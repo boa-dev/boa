@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"struct":[["Icu","Collection of tools initialized from a [`BoaProvider`] that are used for the functionality of `Intl`."]],"trait":[["BoaProvider","Trait encompassing all the required implementations that define a valid icu data provider."]]};
+window.SIDEBAR_ITEMS = {"enum":[["BoaProvider","ICU4X data provider used in boa."]],"struct":[["Icu","Collection of tools initialized from a [`DataProvider`] that are used for the functionality of `Intl`."]]};

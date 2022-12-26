@@ -835,6 +835,11 @@
 <span id="834">834</span>
 <span id="835">835</span>
 <span id="836">836</span>
+<span id="837">837</span>
+<span id="838">838</span>
+<span id="839">839</span>
+<span id="840">840</span>
+<span id="841">841</span>
 </pre><pre class="rust"><code><span class="kw">use crate</span>::{
     builtins::Array,
     context::intrinsics::{StandardConstructor, StandardConstructors},
@@ -1296,7 +1301,12 @@
         </span><span class="prelude-val">Ok</span>(<span class="bool-val">true</span>)
     }
 
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>length_of_array_like(<span class="kw-2">&amp;</span><span class="self">self</span>, context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;u64&gt; {
+    <span class="doccomment">/// Abstract operation [`LengthOfArrayLike ( obj )`][spec].
+    ///
+    /// Returns the value of the &quot;length&quot; property of an array-like object.
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-lengthofarraylike
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>length_of_array_like(<span class="kw-2">&amp;</span><span class="self">self</span>, context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;u64&gt; {
         <span class="comment">// 1. Assert: Type(obj) is Object.
         // 2. Return ℝ(? ToLength(? Get(obj, &quot;length&quot;))).
         </span><span class="self">self</span>.get(<span class="string">&quot;length&quot;</span>, context)<span class="question-mark">?</span>.to_length(context)

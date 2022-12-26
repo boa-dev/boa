@@ -2940,6 +2940,74 @@
 <span id="2939">2939</span>
 <span id="2940">2940</span>
 <span id="2941">2941</span>
+<span id="2942">2942</span>
+<span id="2943">2943</span>
+<span id="2944">2944</span>
+<span id="2945">2945</span>
+<span id="2946">2946</span>
+<span id="2947">2947</span>
+<span id="2948">2948</span>
+<span id="2949">2949</span>
+<span id="2950">2950</span>
+<span id="2951">2951</span>
+<span id="2952">2952</span>
+<span id="2953">2953</span>
+<span id="2954">2954</span>
+<span id="2955">2955</span>
+<span id="2956">2956</span>
+<span id="2957">2957</span>
+<span id="2958">2958</span>
+<span id="2959">2959</span>
+<span id="2960">2960</span>
+<span id="2961">2961</span>
+<span id="2962">2962</span>
+<span id="2963">2963</span>
+<span id="2964">2964</span>
+<span id="2965">2965</span>
+<span id="2966">2966</span>
+<span id="2967">2967</span>
+<span id="2968">2968</span>
+<span id="2969">2969</span>
+<span id="2970">2970</span>
+<span id="2971">2971</span>
+<span id="2972">2972</span>
+<span id="2973">2973</span>
+<span id="2974">2974</span>
+<span id="2975">2975</span>
+<span id="2976">2976</span>
+<span id="2977">2977</span>
+<span id="2978">2978</span>
+<span id="2979">2979</span>
+<span id="2980">2980</span>
+<span id="2981">2981</span>
+<span id="2982">2982</span>
+<span id="2983">2983</span>
+<span id="2984">2984</span>
+<span id="2985">2985</span>
+<span id="2986">2986</span>
+<span id="2987">2987</span>
+<span id="2988">2988</span>
+<span id="2989">2989</span>
+<span id="2990">2990</span>
+<span id="2991">2991</span>
+<span id="2992">2992</span>
+<span id="2993">2993</span>
+<span id="2994">2994</span>
+<span id="2995">2995</span>
+<span id="2996">2996</span>
+<span id="2997">2997</span>
+<span id="2998">2998</span>
+<span id="2999">2999</span>
+<span id="3000">3000</span>
+<span id="3001">3001</span>
+<span id="3002">3002</span>
+<span id="3003">3003</span>
+<span id="3004">3004</span>
+<span id="3005">3005</span>
+<span id="3006">3006</span>
+<span id="3007">3007</span>
+<span id="3008">3008</span>
+<span id="3009">3009</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Boa&#39;s implementation of ECMAScript&#39;s global `Array` object.
 //!
 //! The ECMAScript `Array` class is a global object that is used in the construction of arrays; which are high-level, list-like objects.
@@ -2955,6 +3023,7 @@
 <span class="attribute">#[cfg(test)]
 </span><span class="kw">mod </span>tests;
 
+<span class="kw">use </span>boa_macros::utf16;
 <span class="kw">use </span>boa_profiler::Profiler;
 <span class="kw">use </span>tap::{Conv, Pipe};
 
@@ -3059,6 +3128,7 @@
         .method(<span class="self">Self</span>::some, <span class="string">&quot;some&quot;</span>, <span class="number">1</span>)
         .method(<span class="self">Self</span>::sort, <span class="string">&quot;sort&quot;</span>, <span class="number">1</span>)
         .method(<span class="self">Self</span>::splice, <span class="string">&quot;splice&quot;</span>, <span class="number">2</span>)
+        .method(<span class="self">Self</span>::to_locale_string, <span class="string">&quot;toLocaleString&quot;</span>, <span class="number">0</span>)
         .method(<span class="self">Self</span>::reduce, <span class="string">&quot;reduce&quot;</span>, <span class="number">1</span>)
         .method(<span class="self">Self</span>::reduce_right, <span class="string">&quot;reduceRight&quot;</span>, <span class="number">1</span>)
         .method(<span class="self">Self</span>::keys, <span class="string">&quot;keys&quot;</span>, <span class="number">0</span>)
@@ -4967,6 +5037,72 @@
 
         <span class="comment">// 16. Return A.
         </span><span class="prelude-val">Ok</span>(a.into())
+    }
+
+    <span class="doccomment">/// [`Array.prototype.toLocaleString ( [ locales [ , options ] ] )`][spec].
+    ///
+    /// Returns a string representing the elements of the array. The elements are converted to
+    /// strings using their `toLocaleString` methods and these strings are separated by a
+    /// locale-specific string (such as a comma &quot;,&quot;).
+    ///
+    /// More information:
+    ///  - [MDN documentation][mdn]
+    ///
+    /// [spec]: https://tc39.es/ecma402/#sup-array.prototype.tolocalestring
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/toLocaleString
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>to_locale_string(
+        this: <span class="kw-2">&amp;</span>JsValue,
+        args: <span class="kw-2">&amp;</span>[JsValue],
+        context: <span class="kw-2">&amp;mut </span>Context,
+    ) -&gt; JsResult&lt;JsValue&gt; {
+        <span class="comment">// 1. Let array be ? ToObject(this value).
+        </span><span class="kw">let </span>array = this.to_object(context)<span class="question-mark">?</span>;
+        <span class="comment">// 2. Let len be ? ToLength(? Get(array, &quot;length&quot;)).
+        </span><span class="kw">let </span>len = array.length_of_array_like(context)<span class="question-mark">?</span>;
+
+        <span class="comment">// 3. Let separator be the implementation-defined list-separator String value appropriate for the host environment&#39;s current locale (such as &quot;, &quot;).
+        </span><span class="kw">let </span>separator = {
+            <span class="attribute">#[cfg(feature = <span class="string">&quot;intl&quot;</span>)]
+            </span>{
+                <span class="comment">// TODO: this should eventually return a locale-sensitive separator.
+                </span><span class="macro">utf16!</span>(<span class="string">&quot;, &quot;</span>)
+            }
+
+            <span class="attribute">#[cfg(not(feature = <span class="string">&quot;intl&quot;</span>))]
+            </span>{
+                <span class="macro">utf16!</span>(<span class="string">&quot;, &quot;</span>)
+            }
+        };
+
+        <span class="comment">// 4. Let R be the empty String.
+        </span><span class="kw">let </span><span class="kw-2">mut </span>r = Vec::new();
+
+        <span class="comment">// 5. Let k be 0.
+        // 6. Repeat, while k &lt; len,
+        </span><span class="kw">for </span>k <span class="kw">in </span><span class="number">0</span>..len {
+            <span class="comment">// a. If k &gt; 0, then
+            </span><span class="kw">if </span>k &gt; <span class="number">0 </span>{
+                <span class="comment">// i. Set R to the string-concatenation of R and separator.
+                </span>r.extend_from_slice(separator);
+            }
+
+            <span class="comment">// b. Let nextElement be ? Get(array, ! ToString(k)).
+            </span><span class="kw">let </span>next = array.get(k, context)<span class="question-mark">?</span>;
+
+            <span class="comment">// c. If nextElement is not undefined or null, then
+            </span><span class="kw">if </span>!next.is_null_or_undefined() {
+                <span class="comment">// i. Let S be ? ToString(? Invoke(nextElement, &quot;toLocaleString&quot;, « locales, options »)).
+                </span><span class="kw">let </span>s = next
+                    .invoke(<span class="string">&quot;toLocaleString&quot;</span>, args, context)<span class="question-mark">?
+                    </span>.to_string(context)<span class="question-mark">?</span>;
+
+                <span class="comment">// ii. Set R to the string-concatenation of R and S.
+                </span>r.extend_from_slice(<span class="kw-2">&amp;</span>s);
+            }
+            <span class="comment">//     d. Increase k by 1.
+        </span>}
+        <span class="comment">// 7. Return R.
+        </span><span class="prelude-val">Ok</span>(<span class="macro">js_string!</span>(r).into())
     }
 
     <span class="doccomment">/// `Array.prototype.splice ( start, [deleteCount[, ...items]] )`

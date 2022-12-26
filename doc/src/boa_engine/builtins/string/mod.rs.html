@@ -2305,6 +2305,69 @@
 <span id="2304">2304</span>
 <span id="2305">2305</span>
 <span id="2306">2306</span>
+<span id="2307">2307</span>
+<span id="2308">2308</span>
+<span id="2309">2309</span>
+<span id="2310">2310</span>
+<span id="2311">2311</span>
+<span id="2312">2312</span>
+<span id="2313">2313</span>
+<span id="2314">2314</span>
+<span id="2315">2315</span>
+<span id="2316">2316</span>
+<span id="2317">2317</span>
+<span id="2318">2318</span>
+<span id="2319">2319</span>
+<span id="2320">2320</span>
+<span id="2321">2321</span>
+<span id="2322">2322</span>
+<span id="2323">2323</span>
+<span id="2324">2324</span>
+<span id="2325">2325</span>
+<span id="2326">2326</span>
+<span id="2327">2327</span>
+<span id="2328">2328</span>
+<span id="2329">2329</span>
+<span id="2330">2330</span>
+<span id="2331">2331</span>
+<span id="2332">2332</span>
+<span id="2333">2333</span>
+<span id="2334">2334</span>
+<span id="2335">2335</span>
+<span id="2336">2336</span>
+<span id="2337">2337</span>
+<span id="2338">2338</span>
+<span id="2339">2339</span>
+<span id="2340">2340</span>
+<span id="2341">2341</span>
+<span id="2342">2342</span>
+<span id="2343">2343</span>
+<span id="2344">2344</span>
+<span id="2345">2345</span>
+<span id="2346">2346</span>
+<span id="2347">2347</span>
+<span id="2348">2348</span>
+<span id="2349">2349</span>
+<span id="2350">2350</span>
+<span id="2351">2351</span>
+<span id="2352">2352</span>
+<span id="2353">2353</span>
+<span id="2354">2354</span>
+<span id="2355">2355</span>
+<span id="2356">2356</span>
+<span id="2357">2357</span>
+<span id="2358">2358</span>
+<span id="2359">2359</span>
+<span id="2360">2360</span>
+<span id="2361">2361</span>
+<span id="2362">2362</span>
+<span id="2363">2363</span>
+<span id="2364">2364</span>
+<span id="2365">2365</span>
+<span id="2366">2366</span>
+<span id="2367">2367</span>
+<span id="2368">2368</span>
+<span id="2369">2369</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Boa&#39;s implementation of ECMAScript&#39;s global `String` object.
 //!
 //! The `String` global object is a constructor for strings or a sequence of characters.
@@ -2402,6 +2465,7 @@
         .method(<span class="self">Self</span>::includes, <span class="string">&quot;includes&quot;</span>, <span class="number">1</span>)
         .method(<span class="self">Self</span>::index_of, <span class="string">&quot;indexOf&quot;</span>, <span class="number">1</span>)
         .method(<span class="self">Self</span>::last_index_of, <span class="string">&quot;lastIndexOf&quot;</span>, <span class="number">1</span>)
+        .method(<span class="self">Self</span>::locale_compare, <span class="string">&quot;localeCompare&quot;</span>, <span class="number">1</span>)
         .method(<span class="self">Self</span>::r#match, <span class="string">&quot;match&quot;</span>, <span class="number">1</span>)
         .method(<span class="self">Self</span>::normalize, <span class="string">&quot;normalize&quot;</span>, <span class="number">1</span>)
         .method(<span class="self">Self</span>::pad_end, <span class="string">&quot;padEnd&quot;</span>, <span class="number">1</span>)
@@ -3573,6 +3637,68 @@
 
         <span class="comment">// 12. Return -1𝔽.
         </span><span class="prelude-val">Ok</span>(JsValue::new(-<span class="number">1</span>))
+    }
+
+    <span class="doccomment">/// [`String.prototype.localeCompare ( that [ , locales [ , options ] ] )`][spec]
+    ///
+    /// Returns a number indicating whether a reference string comes before, or after, or is the
+    /// same as the given string in sort order.
+    ///
+    /// More information:
+    ///  - [MDN documentation][mdn]
+    ///
+    /// [spec]: https://tc39.es/ecma402/#sup-String.prototype.localeCompare
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/localeCompare
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>locale_compare(
+        this: <span class="kw-2">&amp;</span>JsValue,
+        args: <span class="kw-2">&amp;</span>[JsValue],
+        context: <span class="kw-2">&amp;mut </span>Context,
+    ) -&gt; JsResult&lt;JsValue&gt; {
+        <span class="comment">// 1. Let O be ? RequireObjectCoercible(this value).
+        </span><span class="kw">let </span>o = this.require_object_coercible()<span class="question-mark">?</span>;
+
+        <span class="comment">// 2. Let S be ? ToString(O).
+        </span><span class="kw">let </span>s = o.to_string(context)<span class="question-mark">?</span>;
+
+        <span class="comment">// 3. Let thatValue be ? ToString(that).
+        </span><span class="kw">let </span>that_value = args.get_or_undefined(<span class="number">0</span>).to_string(context)<span class="question-mark">?</span>;
+
+        <span class="kw">let </span>cmp = {
+            <span class="attribute">#[cfg(feature = <span class="string">&quot;intl&quot;</span>)]
+            </span>{
+                <span class="comment">// 4. Let collator be ? Construct(%Collator%, « locales, options »).
+                </span><span class="kw">let </span>collator = <span class="kw">crate</span>::builtins::intl::collator::Collator::constructor(
+                    <span class="kw-2">&amp;</span>context
+                        .intrinsics()
+                        .constructors()
+                        .collator()
+                        .constructor()
+                        .into(),
+                    args.get(<span class="number">1</span>..).unwrap_or_default(),
+                    context,
+                )<span class="question-mark">?</span>;
+
+                <span class="kw">let </span>collator = collator
+                    .as_object()
+                    .map(JsObject::borrow)
+                    .expect(<span class="string">&quot;constructor must return a JsObject&quot;</span>);
+                <span class="kw">let </span>collator = collator
+                    .as_collator()
+                    .expect(<span class="string">&quot;constructor must return a `Collator` object&quot;</span>)
+                    .collator();
+
+                collator.compare_utf16(<span class="kw-2">&amp;</span>s, <span class="kw-2">&amp;</span>that_value) <span class="kw">as </span>i8
+            }
+
+            <span class="comment">// Default to common comparison if the user doesn&#39;t have `Intl` enabled.
+            </span><span class="attribute">#[cfg(not(feature = <span class="string">&quot;intl&quot;</span>))]
+            </span>{
+                s.cmp(<span class="kw-2">&amp;</span>that_value) <span class="kw">as </span>i8;
+            }
+        };
+
+        <span class="comment">// 5. Return CompareStrings(collator, S, thatValue).
+        </span><span class="prelude-val">Ok</span>(cmp.into())
     }
 
     <span class="doccomment">/// `String.prototype.match( regexp )`

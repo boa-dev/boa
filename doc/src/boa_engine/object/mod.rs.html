@@ -2394,6 +2394,125 @@
 <span id="2393">2393</span>
 <span id="2394">2394</span>
 <span id="2395">2395</span>
+<span id="2396">2396</span>
+<span id="2397">2397</span>
+<span id="2398">2398</span>
+<span id="2399">2399</span>
+<span id="2400">2400</span>
+<span id="2401">2401</span>
+<span id="2402">2402</span>
+<span id="2403">2403</span>
+<span id="2404">2404</span>
+<span id="2405">2405</span>
+<span id="2406">2406</span>
+<span id="2407">2407</span>
+<span id="2408">2408</span>
+<span id="2409">2409</span>
+<span id="2410">2410</span>
+<span id="2411">2411</span>
+<span id="2412">2412</span>
+<span id="2413">2413</span>
+<span id="2414">2414</span>
+<span id="2415">2415</span>
+<span id="2416">2416</span>
+<span id="2417">2417</span>
+<span id="2418">2418</span>
+<span id="2419">2419</span>
+<span id="2420">2420</span>
+<span id="2421">2421</span>
+<span id="2422">2422</span>
+<span id="2423">2423</span>
+<span id="2424">2424</span>
+<span id="2425">2425</span>
+<span id="2426">2426</span>
+<span id="2427">2427</span>
+<span id="2428">2428</span>
+<span id="2429">2429</span>
+<span id="2430">2430</span>
+<span id="2431">2431</span>
+<span id="2432">2432</span>
+<span id="2433">2433</span>
+<span id="2434">2434</span>
+<span id="2435">2435</span>
+<span id="2436">2436</span>
+<span id="2437">2437</span>
+<span id="2438">2438</span>
+<span id="2439">2439</span>
+<span id="2440">2440</span>
+<span id="2441">2441</span>
+<span id="2442">2442</span>
+<span id="2443">2443</span>
+<span id="2444">2444</span>
+<span id="2445">2445</span>
+<span id="2446">2446</span>
+<span id="2447">2447</span>
+<span id="2448">2448</span>
+<span id="2449">2449</span>
+<span id="2450">2450</span>
+<span id="2451">2451</span>
+<span id="2452">2452</span>
+<span id="2453">2453</span>
+<span id="2454">2454</span>
+<span id="2455">2455</span>
+<span id="2456">2456</span>
+<span id="2457">2457</span>
+<span id="2458">2458</span>
+<span id="2459">2459</span>
+<span id="2460">2460</span>
+<span id="2461">2461</span>
+<span id="2462">2462</span>
+<span id="2463">2463</span>
+<span id="2464">2464</span>
+<span id="2465">2465</span>
+<span id="2466">2466</span>
+<span id="2467">2467</span>
+<span id="2468">2468</span>
+<span id="2469">2469</span>
+<span id="2470">2470</span>
+<span id="2471">2471</span>
+<span id="2472">2472</span>
+<span id="2473">2473</span>
+<span id="2474">2474</span>
+<span id="2475">2475</span>
+<span id="2476">2476</span>
+<span id="2477">2477</span>
+<span id="2478">2478</span>
+<span id="2479">2479</span>
+<span id="2480">2480</span>
+<span id="2481">2481</span>
+<span id="2482">2482</span>
+<span id="2483">2483</span>
+<span id="2484">2484</span>
+<span id="2485">2485</span>
+<span id="2486">2486</span>
+<span id="2487">2487</span>
+<span id="2488">2488</span>
+<span id="2489">2489</span>
+<span id="2490">2490</span>
+<span id="2491">2491</span>
+<span id="2492">2492</span>
+<span id="2493">2493</span>
+<span id="2494">2494</span>
+<span id="2495">2495</span>
+<span id="2496">2496</span>
+<span id="2497">2497</span>
+<span id="2498">2498</span>
+<span id="2499">2499</span>
+<span id="2500">2500</span>
+<span id="2501">2501</span>
+<span id="2502">2502</span>
+<span id="2503">2503</span>
+<span id="2504">2504</span>
+<span id="2505">2505</span>
+<span id="2506">2506</span>
+<span id="2507">2507</span>
+<span id="2508">2508</span>
+<span id="2509">2509</span>
+<span id="2510">2510</span>
+<span id="2511">2511</span>
+<span id="2512">2512</span>
+<span id="2513">2513</span>
+<span id="2514">2514</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Boa&#39;s representation of a JavaScript object and builtin object wrappers
 //!
 //! For the builtin object wrappers, please see [`object::builtins`][builtins] for implementors.
@@ -2419,7 +2538,9 @@
     InternalObjectMethods, ORDINARY_INTERNAL_METHODS,
 };
 <span class="attribute">#[cfg(feature = <span class="string">&quot;intl&quot;</span>)]
-</span><span class="kw">use </span><span class="kw">crate</span>::builtins::intl::date_time_format::DateTimeFormat;
+</span><span class="kw">use </span><span class="kw">crate</span>::builtins::intl::{
+    collator::Collator, date_time_format::DateTimeFormat, list_format::ListFormat,
+};
 <span class="kw">use crate</span>::{
     builtins::{
         array::array_iterator::ArrayIterator,
@@ -2666,9 +2787,21 @@
     <span class="doccomment">/// The `WeakRef` object kind.
     </span>WeakRef(WeakGc&lt;GcCell&lt;Object&gt;&gt;),
 
+    <span class="doccomment">/// The `Intl.Collator` object kind.
+    </span><span class="attribute">#[cfg(feature = <span class="string">&quot;intl&quot;</span>)]
+    </span>Collator(Box&lt;Collator&gt;),
+
     <span class="doccomment">/// The `Intl.DateTimeFormat` object kind.
     </span><span class="attribute">#[cfg(feature = <span class="string">&quot;intl&quot;</span>)]
     </span>DateTimeFormat(Box&lt;DateTimeFormat&gt;),
+
+    <span class="doccomment">/// The `Intl.ListFormat` object kind.
+    </span><span class="attribute">#[cfg(feature = <span class="string">&quot;intl&quot;</span>)]
+    </span>ListFormat(Box&lt;ListFormat&gt;),
+
+    <span class="doccomment">/// The `Intl.Locale` object kind.
+    </span><span class="attribute">#[cfg(feature = <span class="string">&quot;intl&quot;</span>)]
+    </span>Locale(Box&lt;icu_locid::Locale&gt;),
 }
 
 <span class="kw">unsafe impl </span>Trace <span class="kw">for </span>ObjectKind {
@@ -2692,11 +2825,15 @@
             <span class="self">Self</span>::Arguments(a) =&gt; mark(a),
             <span class="self">Self</span>::NativeObject(o) =&gt; mark(o),
             <span class="self">Self</span>::IntegerIndexed(i) =&gt; mark(i),
-            <span class="attribute">#[cfg(feature = <span class="string">&quot;intl&quot;</span>)]
-            </span><span class="self">Self</span>::DateTimeFormat(f) =&gt; mark(f),
             <span class="self">Self</span>::Promise(p) =&gt; mark(p),
             <span class="self">Self</span>::AsyncGenerator(g) =&gt; mark(g),
             <span class="self">Self</span>::WeakRef(wr) =&gt; mark(wr),
+            <span class="attribute">#[cfg(feature = <span class="string">&quot;intl&quot;</span>)]
+            </span><span class="self">Self</span>::DateTimeFormat(f) =&gt; mark(f),
+            <span class="attribute">#[cfg(feature = <span class="string">&quot;intl&quot;</span>)]
+            </span><span class="self">Self</span>::Collator(co) =&gt; mark(co),
+            <span class="attribute">#[cfg(feature = <span class="string">&quot;intl&quot;</span>)]
+            </span><span class="self">Self</span>::ListFormat(<span class="kw">_</span>) | <span class="self">Self</span>::Locale(<span class="kw">_</span>) =&gt; {}
             <span class="self">Self</span>::RegExp(<span class="kw">_</span>)
             | <span class="self">Self</span>::BigInt(<span class="kw">_</span>)
             | <span class="self">Self</span>::Boolean(<span class="kw">_</span>)
@@ -3024,12 +3161,42 @@
         }
     }
 
+    <span class="doccomment">/// Create the `Collator` object data
+    </span><span class="attribute">#[cfg(feature = <span class="string">&quot;intl&quot;</span>)]
+    #[must_use]
+    </span><span class="kw">pub fn </span>collator(date_time_fmt: Collator) -&gt; <span class="self">Self </span>{
+        <span class="self">Self </span>{
+            kind: ObjectKind::Collator(Box::new(date_time_fmt)),
+            internal_methods: <span class="kw-2">&amp;</span>ORDINARY_INTERNAL_METHODS,
+        }
+    }
+
     <span class="doccomment">/// Create the `DateTimeFormat` object data
     </span><span class="attribute">#[cfg(feature = <span class="string">&quot;intl&quot;</span>)]
     #[must_use]
     </span><span class="kw">pub fn </span>date_time_format(date_time_fmt: Box&lt;DateTimeFormat&gt;) -&gt; <span class="self">Self </span>{
         <span class="self">Self </span>{
             kind: ObjectKind::DateTimeFormat(date_time_fmt),
+            internal_methods: <span class="kw-2">&amp;</span>ORDINARY_INTERNAL_METHODS,
+        }
+    }
+
+    <span class="doccomment">/// Create the `ListFormat` object data
+    </span><span class="attribute">#[cfg(feature = <span class="string">&quot;intl&quot;</span>)]
+    #[must_use]
+    </span><span class="kw">pub fn </span>list_format(list_format: ListFormat) -&gt; <span class="self">Self </span>{
+        <span class="self">Self </span>{
+            kind: ObjectKind::ListFormat(Box::new(list_format)),
+            internal_methods: <span class="kw-2">&amp;</span>ORDINARY_INTERNAL_METHODS,
+        }
+    }
+
+    <span class="doccomment">/// Create the `Locale` object data
+    </span><span class="attribute">#[cfg(feature = <span class="string">&quot;intl&quot;</span>)]
+    #[must_use]
+    </span><span class="kw">pub fn </span>locale(locale: icu_locid::Locale) -&gt; <span class="self">Self </span>{
+        <span class="self">Self </span>{
+            kind: ObjectKind::Locale(Box::new(locale)),
             internal_methods: <span class="kw-2">&amp;</span>ORDINARY_INTERNAL_METHODS,
         }
     }
@@ -3070,10 +3237,16 @@
             <span class="self">Self</span>::NativeObject(<span class="kw">_</span>) =&gt; <span class="string">&quot;NativeObject&quot;</span>,
             <span class="self">Self</span>::IntegerIndexed(<span class="kw">_</span>) =&gt; <span class="string">&quot;TypedArray&quot;</span>,
             <span class="self">Self</span>::DataView(<span class="kw">_</span>) =&gt; <span class="string">&quot;DataView&quot;</span>,
-            <span class="attribute">#[cfg(feature = <span class="string">&quot;intl&quot;</span>)]
-            </span><span class="self">Self</span>::DateTimeFormat(<span class="kw">_</span>) =&gt; <span class="string">&quot;DateTimeFormat&quot;</span>,
             <span class="self">Self</span>::Promise(<span class="kw">_</span>) =&gt; <span class="string">&quot;Promise&quot;</span>,
             <span class="self">Self</span>::WeakRef(<span class="kw">_</span>) =&gt; <span class="string">&quot;WeakRef&quot;</span>,
+            <span class="attribute">#[cfg(feature = <span class="string">&quot;intl&quot;</span>)]
+            </span><span class="self">Self</span>::Collator(<span class="kw">_</span>) =&gt; <span class="string">&quot;Collator&quot;</span>,
+            <span class="attribute">#[cfg(feature = <span class="string">&quot;intl&quot;</span>)]
+            </span><span class="self">Self</span>::DateTimeFormat(<span class="kw">_</span>) =&gt; <span class="string">&quot;DateTimeFormat&quot;</span>,
+            <span class="attribute">#[cfg(feature = <span class="string">&quot;intl&quot;</span>)]
+            </span><span class="self">Self</span>::ListFormat(<span class="kw">_</span>) =&gt; <span class="string">&quot;ListFormat&quot;</span>,
+            <span class="attribute">#[cfg(feature = <span class="string">&quot;intl&quot;</span>)]
+            </span><span class="self">Self</span>::Locale(<span class="kw">_</span>) =&gt; <span class="string">&quot;Locale&quot;</span>,
         })
     }
 }
@@ -3968,7 +4141,7 @@
         }
     }
 
-    <span class="doccomment">/// Gets the `WeakRef`data if the object is a `WeakRef`.
+    <span class="doccomment">/// Gets the `WeakRef` data if the object is a `WeakRef`.
     </span><span class="attribute">#[inline]
     </span><span class="kw">pub const fn </span>as_weak_ref(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>WeakGc&lt;GcCell&lt;<span class="self">Self</span>&gt;&gt;&gt; {
         <span class="kw">match </span><span class="self">self</span>.data {
@@ -3976,6 +4149,71 @@
                 kind: ObjectKind::WeakRef(<span class="kw-2">ref </span>weak_ref),
                 ..
             } =&gt; <span class="prelude-val">Some</span>(weak_ref),
+            <span class="kw">_ </span>=&gt; <span class="prelude-val">None</span>,
+        }
+    }
+
+    <span class="doccomment">/// Gets the `Collator` data if the object is a `Collator`.
+    </span><span class="attribute">#[inline]
+    #[cfg(feature = <span class="string">&quot;intl&quot;</span>)]
+    </span><span class="kw">pub const fn </span>as_collator(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>Collator&gt; {
+        <span class="kw">match </span><span class="self">self</span>.data {
+            ObjectData {
+                kind: ObjectKind::Collator(<span class="kw-2">ref </span>collator),
+                ..
+            } =&gt; <span class="prelude-val">Some</span>(collator),
+            <span class="kw">_ </span>=&gt; <span class="prelude-val">None</span>,
+        }
+    }
+
+    <span class="doccomment">/// Gets a mutable reference to the `Collator` data if the object is a `Collator`.
+    </span><span class="attribute">#[inline]
+    #[cfg(feature = <span class="string">&quot;intl&quot;</span>)]
+    </span><span class="kw">pub fn </span>as_collator_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;mut </span>Collator&gt; {
+        <span class="kw">match </span><span class="self">self</span>.data {
+            ObjectData {
+                kind: ObjectKind::Collator(<span class="kw-2">ref mut </span>collator),
+                ..
+            } =&gt; <span class="prelude-val">Some</span>(collator),
+            <span class="kw">_ </span>=&gt; <span class="prelude-val">None</span>,
+        }
+    }
+
+    <span class="doccomment">/// Checks if it is a `Locale` object.
+    </span><span class="attribute">#[inline]
+    #[cfg(feature = <span class="string">&quot;intl&quot;</span>)]
+    </span><span class="kw">pub const fn </span>is_locale(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="macro">matches!</span>(
+            <span class="self">self</span>.data,
+            ObjectData {
+                kind: ObjectKind::Locale(<span class="kw">_</span>),
+                ..
+            }
+        )
+    }
+
+    <span class="doccomment">/// Gets the `Locale` data if the object is a `Locale`.
+    </span><span class="attribute">#[inline]
+    #[cfg(feature = <span class="string">&quot;intl&quot;</span>)]
+    </span><span class="kw">pub const fn </span>as_locale(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>icu_locid::Locale&gt; {
+        <span class="kw">match </span><span class="self">self</span>.data {
+            ObjectData {
+                kind: ObjectKind::Locale(<span class="kw-2">ref </span>locale),
+                ..
+            } =&gt; <span class="prelude-val">Some</span>(locale),
+            <span class="kw">_ </span>=&gt; <span class="prelude-val">None</span>,
+        }
+    }
+
+    <span class="doccomment">/// Gets the `ListFormat` data if the object is a `ListFormat`.
+    </span><span class="attribute">#[inline]
+    #[cfg(feature = <span class="string">&quot;intl&quot;</span>)]
+    </span><span class="kw">pub const fn </span>as_list_format(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>ListFormat&gt; {
+        <span class="kw">match </span><span class="self">self</span>.data {
+            ObjectData {
+                kind: ObjectKind::ListFormat(<span class="kw-2">ref </span>lf),
+                ..
+            } =&gt; <span class="prelude-val">Some</span>(lf),
             <span class="kw">_ </span>=&gt; <span class="prelude-val">None</span>,
         }
     }

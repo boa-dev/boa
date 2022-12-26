@@ -172,10 +172,11 @@
 <span id="171">171</span>
 <span id="172">172</span>
 <span id="173">173</span>
-</pre><pre class="rust"><code><span class="doccomment">//! Boa&#39;s **boa_ast** crate implements an ECMAScript abstract syntax tree.
+<span id="174">174</span>
+</pre><pre class="rust"><code><span class="doccomment">//! Boa&#39;s **`boa_ast`** crate implements an ECMAScript abstract syntax tree.
 //!
 //! # Crate Overview
-//! **boa_ast** contains representations of [**Parse Nodes**][grammar] as defined by the ECMAScript
+//! **`boa_ast`** contains representations of [**Parse Nodes**][grammar] as defined by the ECMAScript
 //! spec. Some `Parse Node`s are not represented by Boa&#39;s AST, because a lot of grammar productions
 //! are only used to throw [**Early Errors**][early], and don&#39;t influence the evaluation of the AST
 //! itself.
@@ -191,13 +192,14 @@
 //! Try out the most recent release with Boa&#39;s live demo [playground][boa-playground].  
 //!
 //! # Boa Crates
-//!  - **boa_ast** - Boa&#39;s ECMAScript Abstract Syntax Tree.
-//!  - **boa_engine** - Boa&#39;s implementation of ECMAScript builtin objects and execution.
-//!  - **boa_gc** - Boa&#39;s garbage collector
-//!  - **boa_interner** - Boa&#39;s string interner
-//!  - **boa_parser** - Boa&#39;s lexer and parser
-//!  - **boa_profiler** - Boa&#39;s code profiler
-//!  - **boa_unicode** - Boa&#39;s Unicode identifier
+//!  - **`boa_ast`** - Boa&#39;s ECMAScript Abstract Syntax Tree.
+//!  - **`boa_engine`** - Boa&#39;s implementation of ECMAScript builtin objects and execution.
+//!  - **`boa_gc`** - Boa&#39;s garbage collector.
+//!  - **`boa_interner`** - Boa&#39;s string interner.
+//!  - **`boa_parser`** - Boa&#39;s lexer and parser.
+//!  - **`boa_profiler`** - Boa&#39;s code profiler.
+//!  - **`boa_unicode`** - Boa&#39;s Unicode identifier.
+//!  - **`boa_icu_provider`** - Boa&#39;s ICU4X data provider.
 //!
 //! [grammar]: https://tc39.es/ecma262/#sec-syntactic-grammar
 //! [early]: https://tc39.es/ecma262/#sec-static-semantic-rules

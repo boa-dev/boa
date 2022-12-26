@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"fn":[["blob","Gets a data provider that is stored as a Postcard blob."]]};

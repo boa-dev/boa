@@ -241,6 +241,23 @@
 <span id="240">240</span>
 <span id="241">241</span>
 <span id="242">242</span>
+<span id="243">243</span>
+<span id="244">244</span>
+<span id="245">245</span>
+<span id="246">246</span>
+<span id="247">247</span>
+<span id="248">248</span>
+<span id="249">249</span>
+<span id="250">250</span>
+<span id="251">251</span>
+<span id="252">252</span>
+<span id="253">253</span>
+<span id="254">254</span>
+<span id="255">255</span>
+<span id="256">256</span>
+<span id="257">257</span>
+<span id="258">258</span>
+<span id="259">259</span>
 </pre><pre class="rust"><code><span class="doccomment">//! This module implements the global `Intl.DateTimeFormat` object.
 //!
 //! `Intl.DateTimeFormat` is a built-in object that has properties and methods for date and time i18n.
@@ -263,6 +280,23 @@
 
 <span class="kw">use </span>boa_gc::{Finalize, Trace};
 <span class="kw">use </span>boa_profiler::Profiler;
+<span class="kw">use </span>icu_datetime::options::preferences::HourCycle;
+
+<span class="kw">use </span><span class="kw">super</span>::options::OptionType;
+
+<span class="kw">impl </span>OptionType <span class="kw">for </span>HourCycle {
+    <span class="kw">fn </span>from_value(value: JsValue, context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;<span class="self">Self</span>&gt; {
+        <span class="kw">match </span>value.to_string(context)<span class="question-mark">?</span>.to_std_string_escaped().as_str() {
+            <span class="string">&quot;h11&quot; </span>=&gt; <span class="prelude-val">Ok</span>(HourCycle::H11),
+            <span class="string">&quot;h12&quot; </span>=&gt; <span class="prelude-val">Ok</span>(HourCycle::H12),
+            <span class="string">&quot;h23&quot; </span>=&gt; <span class="prelude-val">Ok</span>(HourCycle::H23),
+            <span class="string">&quot;h24&quot; </span>=&gt; <span class="prelude-val">Ok</span>(HourCycle::H24),
+            <span class="kw">_ </span>=&gt; <span class="prelude-val">Err</span>(JsNativeError::range()
+                .with_message(<span class="string">&quot;provided string was not `h11`, `h12`, `h23` or `h24`&quot;</span>)
+                .into()),
+        }
+    }
+}
 
 <span class="doccomment">/// JavaScript `Intl.DateTimeFormat` object.
 </span><span class="attribute">#[derive(Debug, Clone, Trace, Finalize)]

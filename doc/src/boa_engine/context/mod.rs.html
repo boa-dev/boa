@@ -676,16 +676,41 @@
 <span id="675">675</span>
 <span id="676">676</span>
 <span id="677">677</span>
+<span id="678">678</span>
+<span id="679">679</span>
+<span id="680">680</span>
+<span id="681">681</span>
+<span id="682">682</span>
+<span id="683">683</span>
+<span id="684">684</span>
+<span id="685">685</span>
+<span id="686">686</span>
+<span id="687">687</span>
+<span id="688">688</span>
+<span id="689">689</span>
+<span id="690">690</span>
+<span id="691">691</span>
+<span id="692">692</span>
+<span id="693">693</span>
+<span id="694">694</span>
+<span id="695">695</span>
+<span id="696">696</span>
+<span id="697">697</span>
+<span id="698">698</span>
+<span id="699">699</span>
+<span id="700">700</span>
 </pre><pre class="rust"><code><span class="doccomment">//! The ECMAScript context.
 
 </span><span class="kw">pub mod </span>intrinsics;
 
 <span class="attribute">#[cfg(feature = <span class="string">&quot;intl&quot;</span>)]
-</span><span class="kw">mod </span>icu;
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">mod </span>icu;
 
-<span class="kw">use </span>std::collections::VecDeque;
+<span class="attribute">#[cfg(feature = <span class="string">&quot;intl&quot;</span>)]
+</span><span class="kw">pub use </span>icu::BoaProvider;
 
 <span class="kw">use </span>intrinsics::{IntrinsicObjects, Intrinsics};
+<span class="kw">use </span>std::collections::VecDeque;
 
 <span class="attribute">#[cfg(feature = <span class="string">&quot;console&quot;</span>)]
 </span><span class="kw">use </span><span class="kw">crate</span>::builtins::console::Console;
@@ -707,13 +732,6 @@
 <span class="kw">use </span>boa_interner::{Interner, Sym};
 <span class="kw">use </span>boa_parser::{Error <span class="kw">as </span>ParseError, Parser};
 <span class="kw">use </span>boa_profiler::Profiler;
-
-<span class="attribute">#[cfg(feature = <span class="string">&quot;intl&quot;</span>)]
-</span><span class="kw">use </span>icu_provider::DataError;
-
-<span class="attribute">#[doc(inline)]
-#[cfg(all(feature = <span class="string">&quot;intl&quot;</span>, doc))]
-</span><span class="kw">pub use </span>icu::BoaProvider;
 
 <span class="doccomment">/// ECMAScript context. It is the primary way to interact with the runtime.
 ///
@@ -756,7 +774,6 @@
 ///
 /// assert_eq!(value.as_number(), Some(12.0))
 /// ```
-</span><span class="attribute">#[derive(Debug)]
 </span><span class="kw">pub struct </span>Context {
     <span class="doccomment">/// realm holds both the global object and the environment
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) realm: Realm,
@@ -773,7 +790,7 @@
 
     <span class="doccomment">/// ICU related utilities
     </span><span class="attribute">#[cfg(feature = <span class="string">&quot;intl&quot;</span>)]
-    </span>icu: icu::Icu,
+    </span>icu: icu::Icu&lt;BoaProvider&gt;,
 
     <span class="doccomment">/// Number of instructions remaining before a forced exit
     </span><span class="attribute">#[cfg(feature = <span class="string">&quot;fuzz&quot;</span>)]
@@ -784,6 +801,29 @@
     <span class="kw">pub</span>(<span class="kw">crate</span>) promise_job_queue: VecDeque&lt;JobCallback&gt;,
 
     <span class="kw">pub</span>(<span class="kw">crate</span>) kept_alive: Vec&lt;JsObject&gt;,
+}
+
+<span class="kw">impl </span>std::fmt::Debug <span class="kw">for </span>Context {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>std::fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; std::fmt::Result {
+        <span class="kw">let </span><span class="kw-2">mut </span>debug = f.debug_struct(<span class="string">&quot;Context&quot;</span>);
+
+        debug
+            .field(<span class="string">&quot;realm&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.realm)
+            .field(<span class="string">&quot;interner&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.interner);
+
+        <span class="attribute">#[cfg(feature = <span class="string">&quot;console&quot;</span>)]
+        </span>debug.field(<span class="string">&quot;console&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.console);
+
+        debug
+            .field(<span class="string">&quot;intrinsics&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.intrinsics)
+            .field(<span class="string">&quot;vm&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.vm)
+            .field(<span class="string">&quot;promise_job_queue&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.promise_job_queue);
+
+        <span class="attribute">#[cfg(feature = <span class="string">&quot;intl&quot;</span>)]
+        </span>debug.field(<span class="string">&quot;icu&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.icu);
+
+        debug.finish()
+    }
 }
 
 <span class="kw">impl </span>Default <span class="kw">for </span>Context {
@@ -1230,7 +1270,7 @@
 
     <span class="attribute">#[cfg(feature = <span class="string">&quot;intl&quot;</span>)]
     </span><span class="doccomment">/// Get the ICU related utilities
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const fn </span>icu(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>icu::Icu {
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const fn </span>icu(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>icu::Icu&lt;BoaProvider&gt; {
         <span class="kw-2">&amp;</span><span class="self">self</span>.icu
     }
 
@@ -1269,11 +1309,11 @@
     feature = <span class="string">&quot;intl&quot;</span>,
     doc = <span class="string">&quot;The required data in a valid provider is specified in [`BoaProvider`]&quot;
 </span>)]
-#[derive(Debug, Default)]
+#[derive(Default, Debug)]
 </span><span class="kw">pub struct </span>ContextBuilder {
     interner: <span class="prelude-ty">Option</span>&lt;Interner&gt;,
     <span class="attribute">#[cfg(feature = <span class="string">&quot;intl&quot;</span>)]
-    </span>icu: <span class="prelude-ty">Option</span>&lt;icu::Icu&gt;,
+    </span>icu: <span class="prelude-ty">Option</span>&lt;icu::Icu&lt;BoaProvider&gt;&gt;,
     <span class="attribute">#[cfg(feature = <span class="string">&quot;fuzz&quot;</span>)]
     </span>instructions_remaining: usize,
 }
@@ -1293,8 +1333,11 @@
     <span class="doccomment">/// Provides an icu data provider to the [`Context`].
     ///
     /// This function is only available if the `intl` feature is enabled.
-    </span><span class="attribute">#[cfg(any(feature = <span class="string">&quot;intl&quot;</span>, docs))]
-    </span><span class="kw">pub fn </span>icu_provider(<span class="kw-2">mut </span><span class="self">self</span>, provider: Box&lt;<span class="kw">dyn </span>icu::BoaProvider&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>, DataError&gt; {
+    </span><span class="attribute">#[cfg(feature = <span class="string">&quot;intl&quot;</span>)]
+    </span><span class="kw">pub fn </span>icu_provider(
+        <span class="kw-2">mut </span><span class="self">self</span>,
+        provider: BoaProvider,
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>, icu_locid_transform::LocaleTransformError&gt; {
         <span class="self">self</span>.icu = <span class="prelude-val">Some</span>(icu::Icu::new(provider)<span class="question-mark">?</span>);
         <span class="prelude-val">Ok</span>(<span class="self">self</span>)
     }
@@ -1335,9 +1378,12 @@
             },
             <span class="attribute">#[cfg(feature = <span class="string">&quot;intl&quot;</span>)]
             </span>icu: <span class="self">self</span>.icu.unwrap_or_else(|| {
-                <span class="comment">// TODO: Replace with a more fitting default
-                </span>icu::Icu::new(Box::new(icu_testdata::get_provider()))
-                    .expect(<span class="string">&quot;Failed to initialize default icu data.&quot;</span>)
+                <span class="kw">use </span>icu_provider_adapters::fallback::LocaleFallbackProvider;
+                <span class="kw">let </span>provider = BoaProvider::Buffer(Box::new(
+                    LocaleFallbackProvider::try_new_with_buffer_provider(boa_icu_provider::blob())
+                        .expect(<span class="string">&quot;boa_icu_provider should return a valid provider&quot;</span>),
+                ));
+                icu::Icu::new(provider).expect(<span class="string">&quot;Failed to initialize default icu data.&quot;</span>)
             }),
             <span class="attribute">#[cfg(feature = <span class="string">&quot;fuzz&quot;</span>)]
             </span>instructions_remaining: <span class="self">self</span>.instructions_remaining,

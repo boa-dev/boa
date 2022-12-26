@@ -1,0 +1,1211 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `boa_engine/src/builtins/intl/locale/utils.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>utils.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../../../normalize.css"><link rel="stylesheet" href="../../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../../../ayu.css" disabled><link rel="stylesheet" href="../../../../../dark.css" disabled><link rel="stylesheet" href="../../../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../../../storage.js"></script><script defer src="../../../../../source-script.js"></script><script defer src="../../../../../source-files.js"></script><script defer src="../../../../../main.js"></script><noscript><link rel="stylesheet" href="../../../../../noscript.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><div class="width-limiter"><nav class="sub"><a class="sub-logo-container" href="../../../../../boa_engine/index.html">
+                        <img src="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../../wheel.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><span id="1">1</span>
+<span id="2">2</span>
+<span id="3">3</span>
+<span id="4">4</span>
+<span id="5">5</span>
+<span id="6">6</span>
+<span id="7">7</span>
+<span id="8">8</span>
+<span id="9">9</span>
+<span id="10">10</span>
+<span id="11">11</span>
+<span id="12">12</span>
+<span id="13">13</span>
+<span id="14">14</span>
+<span id="15">15</span>
+<span id="16">16</span>
+<span id="17">17</span>
+<span id="18">18</span>
+<span id="19">19</span>
+<span id="20">20</span>
+<span id="21">21</span>
+<span id="22">22</span>
+<span id="23">23</span>
+<span id="24">24</span>
+<span id="25">25</span>
+<span id="26">26</span>
+<span id="27">27</span>
+<span id="28">28</span>
+<span id="29">29</span>
+<span id="30">30</span>
+<span id="31">31</span>
+<span id="32">32</span>
+<span id="33">33</span>
+<span id="34">34</span>
+<span id="35">35</span>
+<span id="36">36</span>
+<span id="37">37</span>
+<span id="38">38</span>
+<span id="39">39</span>
+<span id="40">40</span>
+<span id="41">41</span>
+<span id="42">42</span>
+<span id="43">43</span>
+<span id="44">44</span>
+<span id="45">45</span>
+<span id="46">46</span>
+<span id="47">47</span>
+<span id="48">48</span>
+<span id="49">49</span>
+<span id="50">50</span>
+<span id="51">51</span>
+<span id="52">52</span>
+<span id="53">53</span>
+<span id="54">54</span>
+<span id="55">55</span>
+<span id="56">56</span>
+<span id="57">57</span>
+<span id="58">58</span>
+<span id="59">59</span>
+<span id="60">60</span>
+<span id="61">61</span>
+<span id="62">62</span>
+<span id="63">63</span>
+<span id="64">64</span>
+<span id="65">65</span>
+<span id="66">66</span>
+<span id="67">67</span>
+<span id="68">68</span>
+<span id="69">69</span>
+<span id="70">70</span>
+<span id="71">71</span>
+<span id="72">72</span>
+<span id="73">73</span>
+<span id="74">74</span>
+<span id="75">75</span>
+<span id="76">76</span>
+<span id="77">77</span>
+<span id="78">78</span>
+<span id="79">79</span>
+<span id="80">80</span>
+<span id="81">81</span>
+<span id="82">82</span>
+<span id="83">83</span>
+<span id="84">84</span>
+<span id="85">85</span>
+<span id="86">86</span>
+<span id="87">87</span>
+<span id="88">88</span>
+<span id="89">89</span>
+<span id="90">90</span>
+<span id="91">91</span>
+<span id="92">92</span>
+<span id="93">93</span>
+<span id="94">94</span>
+<span id="95">95</span>
+<span id="96">96</span>
+<span id="97">97</span>
+<span id="98">98</span>
+<span id="99">99</span>
+<span id="100">100</span>
+<span id="101">101</span>
+<span id="102">102</span>
+<span id="103">103</span>
+<span id="104">104</span>
+<span id="105">105</span>
+<span id="106">106</span>
+<span id="107">107</span>
+<span id="108">108</span>
+<span id="109">109</span>
+<span id="110">110</span>
+<span id="111">111</span>
+<span id="112">112</span>
+<span id="113">113</span>
+<span id="114">114</span>
+<span id="115">115</span>
+<span id="116">116</span>
+<span id="117">117</span>
+<span id="118">118</span>
+<span id="119">119</span>
+<span id="120">120</span>
+<span id="121">121</span>
+<span id="122">122</span>
+<span id="123">123</span>
+<span id="124">124</span>
+<span id="125">125</span>
+<span id="126">126</span>
+<span id="127">127</span>
+<span id="128">128</span>
+<span id="129">129</span>
+<span id="130">130</span>
+<span id="131">131</span>
+<span id="132">132</span>
+<span id="133">133</span>
+<span id="134">134</span>
+<span id="135">135</span>
+<span id="136">136</span>
+<span id="137">137</span>
+<span id="138">138</span>
+<span id="139">139</span>
+<span id="140">140</span>
+<span id="141">141</span>
+<span id="142">142</span>
+<span id="143">143</span>
+<span id="144">144</span>
+<span id="145">145</span>
+<span id="146">146</span>
+<span id="147">147</span>
+<span id="148">148</span>
+<span id="149">149</span>
+<span id="150">150</span>
+<span id="151">151</span>
+<span id="152">152</span>
+<span id="153">153</span>
+<span id="154">154</span>
+<span id="155">155</span>
+<span id="156">156</span>
+<span id="157">157</span>
+<span id="158">158</span>
+<span id="159">159</span>
+<span id="160">160</span>
+<span id="161">161</span>
+<span id="162">162</span>
+<span id="163">163</span>
+<span id="164">164</span>
+<span id="165">165</span>
+<span id="166">166</span>
+<span id="167">167</span>
+<span id="168">168</span>
+<span id="169">169</span>
+<span id="170">170</span>
+<span id="171">171</span>
+<span id="172">172</span>
+<span id="173">173</span>
+<span id="174">174</span>
+<span id="175">175</span>
+<span id="176">176</span>
+<span id="177">177</span>
+<span id="178">178</span>
+<span id="179">179</span>
+<span id="180">180</span>
+<span id="181">181</span>
+<span id="182">182</span>
+<span id="183">183</span>
+<span id="184">184</span>
+<span id="185">185</span>
+<span id="186">186</span>
+<span id="187">187</span>
+<span id="188">188</span>
+<span id="189">189</span>
+<span id="190">190</span>
+<span id="191">191</span>
+<span id="192">192</span>
+<span id="193">193</span>
+<span id="194">194</span>
+<span id="195">195</span>
+<span id="196">196</span>
+<span id="197">197</span>
+<span id="198">198</span>
+<span id="199">199</span>
+<span id="200">200</span>
+<span id="201">201</span>
+<span id="202">202</span>
+<span id="203">203</span>
+<span id="204">204</span>
+<span id="205">205</span>
+<span id="206">206</span>
+<span id="207">207</span>
+<span id="208">208</span>
+<span id="209">209</span>
+<span id="210">210</span>
+<span id="211">211</span>
+<span id="212">212</span>
+<span id="213">213</span>
+<span id="214">214</span>
+<span id="215">215</span>
+<span id="216">216</span>
+<span id="217">217</span>
+<span id="218">218</span>
+<span id="219">219</span>
+<span id="220">220</span>
+<span id="221">221</span>
+<span id="222">222</span>
+<span id="223">223</span>
+<span id="224">224</span>
+<span id="225">225</span>
+<span id="226">226</span>
+<span id="227">227</span>
+<span id="228">228</span>
+<span id="229">229</span>
+<span id="230">230</span>
+<span id="231">231</span>
+<span id="232">232</span>
+<span id="233">233</span>
+<span id="234">234</span>
+<span id="235">235</span>
+<span id="236">236</span>
+<span id="237">237</span>
+<span id="238">238</span>
+<span id="239">239</span>
+<span id="240">240</span>
+<span id="241">241</span>
+<span id="242">242</span>
+<span id="243">243</span>
+<span id="244">244</span>
+<span id="245">245</span>
+<span id="246">246</span>
+<span id="247">247</span>
+<span id="248">248</span>
+<span id="249">249</span>
+<span id="250">250</span>
+<span id="251">251</span>
+<span id="252">252</span>
+<span id="253">253</span>
+<span id="254">254</span>
+<span id="255">255</span>
+<span id="256">256</span>
+<span id="257">257</span>
+<span id="258">258</span>
+<span id="259">259</span>
+<span id="260">260</span>
+<span id="261">261</span>
+<span id="262">262</span>
+<span id="263">263</span>
+<span id="264">264</span>
+<span id="265">265</span>
+<span id="266">266</span>
+<span id="267">267</span>
+<span id="268">268</span>
+<span id="269">269</span>
+<span id="270">270</span>
+<span id="271">271</span>
+<span id="272">272</span>
+<span id="273">273</span>
+<span id="274">274</span>
+<span id="275">275</span>
+<span id="276">276</span>
+<span id="277">277</span>
+<span id="278">278</span>
+<span id="279">279</span>
+<span id="280">280</span>
+<span id="281">281</span>
+<span id="282">282</span>
+<span id="283">283</span>
+<span id="284">284</span>
+<span id="285">285</span>
+<span id="286">286</span>
+<span id="287">287</span>
+<span id="288">288</span>
+<span id="289">289</span>
+<span id="290">290</span>
+<span id="291">291</span>
+<span id="292">292</span>
+<span id="293">293</span>
+<span id="294">294</span>
+<span id="295">295</span>
+<span id="296">296</span>
+<span id="297">297</span>
+<span id="298">298</span>
+<span id="299">299</span>
+<span id="300">300</span>
+<span id="301">301</span>
+<span id="302">302</span>
+<span id="303">303</span>
+<span id="304">304</span>
+<span id="305">305</span>
+<span id="306">306</span>
+<span id="307">307</span>
+<span id="308">308</span>
+<span id="309">309</span>
+<span id="310">310</span>
+<span id="311">311</span>
+<span id="312">312</span>
+<span id="313">313</span>
+<span id="314">314</span>
+<span id="315">315</span>
+<span id="316">316</span>
+<span id="317">317</span>
+<span id="318">318</span>
+<span id="319">319</span>
+<span id="320">320</span>
+<span id="321">321</span>
+<span id="322">322</span>
+<span id="323">323</span>
+<span id="324">324</span>
+<span id="325">325</span>
+<span id="326">326</span>
+<span id="327">327</span>
+<span id="328">328</span>
+<span id="329">329</span>
+<span id="330">330</span>
+<span id="331">331</span>
+<span id="332">332</span>
+<span id="333">333</span>
+<span id="334">334</span>
+<span id="335">335</span>
+<span id="336">336</span>
+<span id="337">337</span>
+<span id="338">338</span>
+<span id="339">339</span>
+<span id="340">340</span>
+<span id="341">341</span>
+<span id="342">342</span>
+<span id="343">343</span>
+<span id="344">344</span>
+<span id="345">345</span>
+<span id="346">346</span>
+<span id="347">347</span>
+<span id="348">348</span>
+<span id="349">349</span>
+<span id="350">350</span>
+<span id="351">351</span>
+<span id="352">352</span>
+<span id="353">353</span>
+<span id="354">354</span>
+<span id="355">355</span>
+<span id="356">356</span>
+<span id="357">357</span>
+<span id="358">358</span>
+<span id="359">359</span>
+<span id="360">360</span>
+<span id="361">361</span>
+<span id="362">362</span>
+<span id="363">363</span>
+<span id="364">364</span>
+<span id="365">365</span>
+<span id="366">366</span>
+<span id="367">367</span>
+<span id="368">368</span>
+<span id="369">369</span>
+<span id="370">370</span>
+<span id="371">371</span>
+<span id="372">372</span>
+<span id="373">373</span>
+<span id="374">374</span>
+<span id="375">375</span>
+<span id="376">376</span>
+<span id="377">377</span>
+<span id="378">378</span>
+<span id="379">379</span>
+<span id="380">380</span>
+<span id="381">381</span>
+<span id="382">382</span>
+<span id="383">383</span>
+<span id="384">384</span>
+<span id="385">385</span>
+<span id="386">386</span>
+<span id="387">387</span>
+<span id="388">388</span>
+<span id="389">389</span>
+<span id="390">390</span>
+<span id="391">391</span>
+<span id="392">392</span>
+<span id="393">393</span>
+<span id="394">394</span>
+<span id="395">395</span>
+<span id="396">396</span>
+<span id="397">397</span>
+<span id="398">398</span>
+<span id="399">399</span>
+<span id="400">400</span>
+<span id="401">401</span>
+<span id="402">402</span>
+<span id="403">403</span>
+<span id="404">404</span>
+<span id="405">405</span>
+<span id="406">406</span>
+<span id="407">407</span>
+<span id="408">408</span>
+<span id="409">409</span>
+<span id="410">410</span>
+<span id="411">411</span>
+<span id="412">412</span>
+<span id="413">413</span>
+<span id="414">414</span>
+<span id="415">415</span>
+<span id="416">416</span>
+<span id="417">417</span>
+<span id="418">418</span>
+<span id="419">419</span>
+<span id="420">420</span>
+<span id="421">421</span>
+<span id="422">422</span>
+<span id="423">423</span>
+<span id="424">424</span>
+<span id="425">425</span>
+<span id="426">426</span>
+<span id="427">427</span>
+<span id="428">428</span>
+<span id="429">429</span>
+<span id="430">430</span>
+<span id="431">431</span>
+<span id="432">432</span>
+<span id="433">433</span>
+<span id="434">434</span>
+<span id="435">435</span>
+<span id="436">436</span>
+<span id="437">437</span>
+<span id="438">438</span>
+<span id="439">439</span>
+<span id="440">440</span>
+<span id="441">441</span>
+<span id="442">442</span>
+<span id="443">443</span>
+<span id="444">444</span>
+<span id="445">445</span>
+<span id="446">446</span>
+<span id="447">447</span>
+<span id="448">448</span>
+<span id="449">449</span>
+<span id="450">450</span>
+<span id="451">451</span>
+<span id="452">452</span>
+<span id="453">453</span>
+<span id="454">454</span>
+<span id="455">455</span>
+<span id="456">456</span>
+<span id="457">457</span>
+<span id="458">458</span>
+<span id="459">459</span>
+<span id="460">460</span>
+<span id="461">461</span>
+<span id="462">462</span>
+<span id="463">463</span>
+<span id="464">464</span>
+<span id="465">465</span>
+<span id="466">466</span>
+<span id="467">467</span>
+<span id="468">468</span>
+<span id="469">469</span>
+<span id="470">470</span>
+<span id="471">471</span>
+<span id="472">472</span>
+<span id="473">473</span>
+<span id="474">474</span>
+<span id="475">475</span>
+<span id="476">476</span>
+<span id="477">477</span>
+<span id="478">478</span>
+<span id="479">479</span>
+<span id="480">480</span>
+<span id="481">481</span>
+<span id="482">482</span>
+<span id="483">483</span>
+<span id="484">484</span>
+<span id="485">485</span>
+<span id="486">486</span>
+<span id="487">487</span>
+<span id="488">488</span>
+<span id="489">489</span>
+<span id="490">490</span>
+<span id="491">491</span>
+<span id="492">492</span>
+<span id="493">493</span>
+<span id="494">494</span>
+<span id="495">495</span>
+<span id="496">496</span>
+<span id="497">497</span>
+<span id="498">498</span>
+<span id="499">499</span>
+<span id="500">500</span>
+<span id="501">501</span>
+<span id="502">502</span>
+<span id="503">503</span>
+<span id="504">504</span>
+<span id="505">505</span>
+<span id="506">506</span>
+<span id="507">507</span>
+<span id="508">508</span>
+<span id="509">509</span>
+<span id="510">510</span>
+<span id="511">511</span>
+<span id="512">512</span>
+<span id="513">513</span>
+<span id="514">514</span>
+<span id="515">515</span>
+<span id="516">516</span>
+<span id="517">517</span>
+<span id="518">518</span>
+<span id="519">519</span>
+<span id="520">520</span>
+<span id="521">521</span>
+<span id="522">522</span>
+<span id="523">523</span>
+<span id="524">524</span>
+<span id="525">525</span>
+<span id="526">526</span>
+<span id="527">527</span>
+<span id="528">528</span>
+<span id="529">529</span>
+<span id="530">530</span>
+<span id="531">531</span>
+<span id="532">532</span>
+<span id="533">533</span>
+<span id="534">534</span>
+<span id="535">535</span>
+<span id="536">536</span>
+<span id="537">537</span>
+<span id="538">538</span>
+<span id="539">539</span>
+<span id="540">540</span>
+<span id="541">541</span>
+<span id="542">542</span>
+<span id="543">543</span>
+<span id="544">544</span>
+<span id="545">545</span>
+<span id="546">546</span>
+<span id="547">547</span>
+<span id="548">548</span>
+<span id="549">549</span>
+<span id="550">550</span>
+<span id="551">551</span>
+<span id="552">552</span>
+<span id="553">553</span>
+<span id="554">554</span>
+<span id="555">555</span>
+<span id="556">556</span>
+<span id="557">557</span>
+<span id="558">558</span>
+<span id="559">559</span>
+<span id="560">560</span>
+<span id="561">561</span>
+<span id="562">562</span>
+<span id="563">563</span>
+<span id="564">564</span>
+<span id="565">565</span>
+<span id="566">566</span>
+<span id="567">567</span>
+<span id="568">568</span>
+<span id="569">569</span>
+<span id="570">570</span>
+<span id="571">571</span>
+<span id="572">572</span>
+<span id="573">573</span>
+<span id="574">574</span>
+<span id="575">575</span>
+<span id="576">576</span>
+<span id="577">577</span>
+<span id="578">578</span>
+<span id="579">579</span>
+<span id="580">580</span>
+<span id="581">581</span>
+<span id="582">582</span>
+<span id="583">583</span>
+<span id="584">584</span>
+<span id="585">585</span>
+<span id="586">586</span>
+<span id="587">587</span>
+<span id="588">588</span>
+<span id="589">589</span>
+<span id="590">590</span>
+<span id="591">591</span>
+<span id="592">592</span>
+<span id="593">593</span>
+<span id="594">594</span>
+<span id="595">595</span>
+<span id="596">596</span>
+<span id="597">597</span>
+<span id="598">598</span>
+<span id="599">599</span>
+<span id="600">600</span>
+<span id="601">601</span>
+<span id="602">602</span>
+<span id="603">603</span>
+<span id="604">604</span>
+</pre><pre class="rust"><code><span class="kw">use crate</span>::{
+    builtins::{
+        intl::{
+            options::{coerce_options_to_object, get_option, IntlOptions, LocaleMatcher},
+            Service,
+        },
+        Array,
+    },
+    context::{icu::Icu, BoaProvider},
+    object::JsObject,
+    Context, JsNativeError, JsResult, JsValue,
+};
+
+<span class="kw">use </span>icu_collator::provider::CollationMetadataV1Marker;
+<span class="kw">use </span>icu_locid::{
+    extensions::unicode::{Key, Value},
+    subtags::Variants,
+    LanguageIdentifier, Locale,
+};
+<span class="kw">use </span>icu_locid_transform::LocaleCanonicalizer;
+<span class="kw">use </span>icu_provider::{DataLocale, DataProvider, DataRequest, DataRequestMetadata, KeyedDataMarker};
+<span class="kw">use </span>indexmap::IndexSet;
+
+<span class="kw">use </span>tap::TapOptional;
+
+<span class="doccomment">/// Abstract operation `DefaultLocale ( )`
+///
+/// Returns a String value representing the structurally valid and canonicalized
+/// Unicode BCP 47 locale identifier for the host environment&#39;s current locale.
+///
+/// More information:
+///  - [ECMAScript reference][spec]
+///
+/// [spec]: https://tc39.es/ecma402/#sec-defaultlocale
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>default_locale(canonicalizer: <span class="kw-2">&amp;</span>LocaleCanonicalizer) -&gt; Locale {
+    sys_locale::get_locale()
+        .and_then(|loc| loc.parse::&lt;Locale&gt;().ok())
+        .tap_some_mut(|loc| {
+            canonicalizer.canonicalize(loc);
+        })
+        .unwrap_or_default()
+}
+
+<span class="doccomment">/// Abstract operation `CanonicalizeLocaleList ( locales )`
+///
+/// Converts an array of [`JsValue`]s containing structurally valid
+/// [Unicode BCP 47 locale identifiers][bcp-47] into their [canonical form][canon].
+///
+/// For efficiency, this returns [`Locale`]s instead of [`String`]s, since
+/// `Locale` allows us to modify individual parts of the locale without scanning
+/// the whole string again.
+///
+/// More information:
+///  - [ECMAScript reference][spec]
+///
+/// [spec]: https://tc39.es/ecma402/#sec-canonicalizelocalelist
+/// [bcp-47]: https://unicode.org/reports/tr35/#Unicode_locale_identifier
+/// [canon]: https://unicode.org/reports/tr35/#LocaleId_Canonicalization
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>canonicalize_locale_list(
+    locales: <span class="kw-2">&amp;</span>JsValue,
+    context: <span class="kw-2">&amp;mut </span>Context,
+) -&gt; JsResult&lt;Vec&lt;Locale&gt;&gt; {
+    <span class="comment">// 1. If locales is undefined, then
+    </span><span class="kw">if </span>locales.is_undefined() {
+        <span class="comment">// a. Return a new empty List.
+        </span><span class="kw">return </span><span class="prelude-val">Ok</span>(Vec::default());
+    }
+
+    <span class="comment">// 2. Let seen be a new empty List.
+    </span><span class="kw">let </span><span class="kw-2">mut </span>seen = IndexSet::new();
+
+    <span class="comment">// 3. If Type(locales) is String or Type(locales) is Object and locales has an [[InitializedLocale]] internal slot, then
+    </span><span class="kw">let </span>o = <span class="kw">if </span>locales.is_string()
+        || locales
+            .as_object()
+            .map_or(<span class="bool-val">false</span>, |o| o.borrow().is_locale())
+    {
+        <span class="comment">// a. Let O be CreateArrayFromList(« locales »).
+        </span>Array::create_array_from_list([locales.clone()], context)
+    } <span class="kw">else </span>{
+        <span class="comment">// 4. Else,
+        // a. Let O be ? ToObject(locales).
+        </span>locales.to_object(context)<span class="question-mark">?
+    </span>};
+
+    <span class="comment">// 5. Let len be ? ToLength(? Get(O, &quot;length&quot;)).
+    </span><span class="kw">let </span>len = o.length_of_array_like(context)<span class="question-mark">?</span>;
+
+    <span class="comment">// 6 Let k be 0.
+    // 7. Repeat, while k &lt; len,
+    </span><span class="kw">for </span>k <span class="kw">in </span><span class="number">0</span>..len {
+        <span class="comment">// a. Let Pk be ToString(k).
+        // b. Let kPresent be ? HasProperty(O, Pk).
+        </span><span class="kw">let </span>k_present = o.has_property(k, context)<span class="question-mark">?</span>;
+        <span class="comment">// c. If kPresent is true, then
+        </span><span class="kw">if </span>k_present {
+            <span class="comment">// i. Let kValue be ? Get(O, Pk).
+            </span><span class="kw">let </span>k_value = o.get(k, context)<span class="question-mark">?</span>;
+
+            <span class="comment">// ii. If Type(kValue) is not String or Object, throw a TypeError exception.
+            </span><span class="kw">if </span>!(k_value.is_object() || k_value.is_string()) {
+                <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::typ()
+                    .with_message(<span class="string">&quot;locale should be a String or Object&quot;</span>)
+                    .into());
+            }
+            <span class="comment">// iii. If Type(kValue) is Object and kValue has an [[InitializedLocale]] internal slot, then
+            </span><span class="kw">let </span><span class="kw-2">mut </span>tag = <span class="kw">if let </span><span class="prelude-val">Some</span>(tag) = k_value
+                .as_object()
+                .and_then(|obj| obj.borrow().as_locale().cloned())
+            {
+                <span class="comment">// 1. Let tag be kValue.[[Locale]].
+                </span>tag
+            }
+            <span class="comment">// iv. Else,
+            </span><span class="kw">else </span>{
+                <span class="comment">// 1. Let tag be ? ToString(kValue).
+                </span>k_value
+                    .to_string(context)<span class="question-mark">?
+                    </span>.to_std_string_escaped()
+                    .parse()
+                    <span class="comment">// v. If IsStructurallyValidLanguageTag(tag) is false, throw a RangeError exception.
+                    </span>.map_err(|<span class="kw">_</span>| {
+                        JsNativeError::range()
+                            .with_message(<span class="string">&quot;locale is not a structurally valid language tag&quot;</span>)
+                    })<span class="question-mark">?
+            </span>};
+
+            <span class="comment">// vi. Let canonicalizedTag be CanonicalizeUnicodeLocaleId(tag).
+            </span>context.icu().locale_canonicalizer().canonicalize(<span class="kw-2">&amp;mut </span>tag);
+
+            <span class="comment">// vii. If canonicalizedTag is not an element of seen, append canonicalizedTag as the last element of seen.
+            </span>seen.insert(tag);
+        }
+        <span class="comment">// d. Increase k by 1.
+    </span>}
+
+    <span class="comment">// 8. Return seen.
+    </span><span class="prelude-val">Ok</span>(seen.into_iter().collect())
+}
+
+<span class="doccomment">/// Abstract operation `BestAvailableLocale ( availableLocales, locale )`
+///
+/// Compares the provided argument `locale`, which must be a String value with a
+/// structurally valid and canonicalized Unicode BCP 47 locale identifier, against
+/// the locales in `availableLocales` and returns either the longest non-empty prefix
+/// of `locale` that is an element of `availableLocales`, or undefined if there is no
+/// such element.
+///
+/// We only work with language identifiers, which have the same semantics
+/// but are a bit easier to manipulate.
+///
+/// More information:
+///  - [ECMAScript reference][spec]
+///
+/// [spec]: https://tc39.es/ecma402/#sec-bestavailablelocale
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>best_available_locale&lt;M: KeyedDataMarker&gt;(
+    candidate: LanguageIdentifier,
+    provider: <span class="kw-2">&amp;</span>(<span class="kw">impl </span>DataProvider&lt;M&gt; + <span class="question-mark">?</span>Sized),
+) -&gt; <span class="prelude-ty">Option</span>&lt;LanguageIdentifier&gt; {
+    <span class="comment">// 1. Let candidate be locale.
+    </span><span class="kw">let </span><span class="kw-2">mut </span>candidate = candidate.into();
+    <span class="comment">// 2. Repeat
+    </span><span class="kw">loop </span>{
+        <span class="comment">// a. If availableLocales contains an element equal to candidate, return candidate.
+        // ICU4X requires doing data requests in order to check if a locale
+        // is part of the set of supported locales.
+        </span><span class="kw">let </span>response = DataProvider::&lt;M&gt;::load(
+            provider,
+            DataRequest {
+                locale: <span class="kw-2">&amp;</span>candidate,
+                metadata: DataRequestMetadata::default(),
+            },
+        );
+
+        <span class="kw">if let </span><span class="prelude-val">Ok</span>(req) = response {
+            <span class="comment">// `metadata.locale` returns None when the provider doesn&#39;t have a fallback mechanism,
+            // but supports the required locale. However, if the provider has a fallback mechanism,
+            // this will return `Some(locale)`, where the locale is the used locale after applying
+            // the fallback algorithm, even if the used locale is exactly the same as the required
+            // locale.
+            </span><span class="kw">match </span>req.metadata.locale {
+                <span class="prelude-val">Some</span>(loc)
+                    <span class="kw">if </span>loc == candidate
+                <span class="comment">// TODO: ugly hack to accept locales that fallback to &quot;und&quot; in the collator service
+                </span>|| (loc.is_empty() &amp;&amp; M::KEY.path() == CollationMetadataV1Marker::KEY.path()) =&gt;
+                {
+                    <span class="kw">return </span><span class="prelude-val">Some</span>(candidate.into_locale().id)
+                }
+                <span class="prelude-val">None </span>=&gt; <span class="kw">return </span><span class="prelude-val">Some</span>(candidate.into_locale().id),
+                <span class="kw">_ </span>=&gt; {}
+            }
+        }
+
+        <span class="comment">// b. Let pos be the character index of the last occurrence of &quot;-&quot; (U+002D) within candidate. If that character does not occur, return undefined.
+        // c. If pos ≥ 2 and the character &quot;-&quot; occurs at index pos-2 of candidate, decrease pos by 2.
+        // d. Let candidate be the substring of candidate from position 0, inclusive, to position pos, exclusive.
+        //
+        // Since the definition of `LanguageIdentifier` allows us to manipulate it
+        // without using strings, we can replace these steps by a simpler
+        // algorithm.
+
+        </span><span class="kw">if </span>candidate.has_variants() {
+            <span class="kw">let </span><span class="kw-2">mut </span>variants = candidate
+                .clear_variants()
+                .iter()
+                .copied()
+                .collect::&lt;Vec&lt;<span class="kw">_</span>&gt;&gt;();
+            variants.pop();
+            candidate.set_variants(Variants::from_vec_unchecked(variants));
+        } <span class="kw">else if </span>candidate.region().is_some() {
+            candidate.set_region(<span class="prelude-val">None</span>);
+        } <span class="kw">else if </span>candidate.script().is_some() {
+            candidate.set_script(<span class="prelude-val">None</span>);
+        } <span class="kw">else </span>{
+            <span class="kw">return </span><span class="prelude-val">None</span>;
+        }
+    }
+}
+
+<span class="doccomment">/// Returns the locale resolved by the `provider` after using the ICU4X fallback
+/// algorithm with `candidate` (if the provider supports this), or None if the locale is not
+/// supported.
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>best_locale_for_provider&lt;M: KeyedDataMarker&gt;(
+    candidate: LanguageIdentifier,
+    provider: <span class="kw-2">&amp;</span>(<span class="kw">impl </span>DataProvider&lt;M&gt; + <span class="question-mark">?</span>Sized),
+) -&gt; <span class="prelude-ty">Option</span>&lt;LanguageIdentifier&gt; {
+    <span class="kw">let </span>response = DataProvider::&lt;M&gt;::load(
+        provider,
+        DataRequest {
+            locale: <span class="kw-2">&amp;</span>DataLocale::from(<span class="kw-2">&amp;</span>candidate),
+            metadata: DataRequestMetadata::default(),
+        },
+    )
+    .ok()<span class="question-mark">?</span>;
+
+    <span class="kw">if </span>candidate == LanguageIdentifier::UND {
+        <span class="kw">return </span><span class="prelude-val">Some</span>(LanguageIdentifier::UND);
+    }
+
+    response
+        .metadata
+        .locale
+        .map(|dl| {
+            <span class="comment">// TODO: ugly hack to accept locales that fallback to &quot;und&quot; in the collator service
+            </span><span class="kw">if </span>M::KEY.path() == CollationMetadataV1Marker::KEY.path() &amp;&amp; dl.is_empty() {
+                candidate.clone()
+            } <span class="kw">else </span>{
+                dl.into_locale().id
+            }
+        })
+        .or(<span class="prelude-val">Some</span>(candidate))
+        .filter(|loc| loc != <span class="kw-2">&amp;</span>LanguageIdentifier::UND)
+}
+
+<span class="doccomment">/// Abstract operation [`LookupMatcher ( availableLocales, requestedLocales )`][spec]
+///
+/// Compares `requestedLocales`, which must be a `List` as returned by `CanonicalizeLocaleList`,
+/// against the locales in `availableLocales` and determines the best available language to
+/// meet the request.
+///
+/// # Note
+///
+/// This differs a bit from the spec, since we don&#39;t have an `[[AvailableLocales]]`
+/// list to compare with. However, we can do data requests to a [`DataProvider`]
+/// in order to see if a certain [`Locale`] is supported.
+///
+/// [spec]: https://tc39.es/ecma402/#sec-lookupmatcher
+</span><span class="kw">fn </span>lookup_matcher&lt;M: KeyedDataMarker&gt;(
+    requested_locales: <span class="kw-2">&amp;</span>[Locale],
+    icu: <span class="kw-2">&amp;</span>Icu&lt;<span class="kw">impl </span>DataProvider&lt;M&gt;&gt;,
+) -&gt; Locale {
+    <span class="comment">// 1. Let result be a new Record.
+    // 2. For each element locale of requestedLocales, do
+    </span><span class="kw">for </span>locale <span class="kw">in </span>requested_locales {
+        <span class="comment">// a. Let noExtensionsLocale be the String value that is locale with any Unicode locale
+        //    extension sequences removed.
+        </span><span class="kw">let </span><span class="kw-2">mut </span>locale = locale.clone();
+        <span class="kw">let </span>id = std::mem::take(<span class="kw-2">&amp;mut </span>locale.id);
+
+        <span class="comment">// b. Let availableLocale be ! BestAvailableLocale(availableLocales, noExtensionsLocale).
+        </span><span class="kw">let </span>available_locale = best_available_locale::&lt;M&gt;(id, icu.provider());
+
+        <span class="comment">// c. If availableLocale is not undefined, then
+        </span><span class="kw">if let </span><span class="prelude-val">Some</span>(available_locale) = available_locale {
+            <span class="comment">// i. Set result.[[locale]] to availableLocale.
+            // Assignment deferred. See return statement below.
+            // ii. If locale and noExtensionsLocale are not the same String value, then
+            // 1. Let extension be the String value consisting of the substring of the Unicode
+            //    locale extension sequence within locale.
+            // 2. Set result.[[extension]] to extension.
+            </span>locale.id = available_locale;
+
+            <span class="comment">// iii. Return result.
+            </span><span class="kw">return </span>locale;
+        }
+    }
+
+    <span class="comment">// 3. Let defLocale be ! DefaultLocale().
+    // 4. Set result.[[locale]] to defLocale.
+    // 5. Return result.
+    </span>default_locale(icu.locale_canonicalizer())
+}
+
+<span class="doccomment">/// Abstract operation [`BestFitMatcher ( availableLocales, requestedLocales )`][spec]
+///
+/// Compares `requestedLocales`, which must be a `List` as returned by `CanonicalizeLocaleList`,
+/// against the locales in `availableLocales` and determines the best available language to
+/// meet the request. The algorithm is implementation dependent, but should produce results
+/// that a typical user of the requested locales would perceive as at least as good as those
+/// produced by the `LookupMatcher` abstract operation.
+///
+/// [spec]: https://tc39.es/ecma402/#sec-bestfitmatcher
+</span><span class="kw">fn </span>best_fit_matcher&lt;M: KeyedDataMarker&gt;(
+    requested_locales: <span class="kw-2">&amp;</span>[Locale],
+    icu: <span class="kw-2">&amp;</span>Icu&lt;<span class="kw">impl </span>DataProvider&lt;M&gt;&gt;,
+) -&gt; Locale {
+    <span class="kw">for </span><span class="kw-2">mut </span>locale <span class="kw">in </span>requested_locales
+        .iter()
+        .cloned()
+        .chain(std::iter::once_with(|| {
+            default_locale(icu.locale_canonicalizer())
+        }))
+    {
+        <span class="kw">let </span>id = std::mem::take(<span class="kw-2">&amp;mut </span>locale.id);
+
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(available) = best_locale_for_provider(id, icu.provider()) {
+            locale.id = available;
+
+            <span class="kw">return </span>locale;
+        }
+    }
+    Locale::default()
+}
+
+<span class="doccomment">/// Abstract operation `ResolveLocale ( availableLocales, requestedLocales, options, relevantExtensionKeys, localeData )`
+///
+/// Compares a BCP 47 language priority list `requestedLocales` against the locales
+/// in `availableLocales` and determines the best available language to meet the request.
+/// `availableLocales`, `requestedLocales`, and `relevantExtensionKeys` must be provided as
+/// `List` values, options and `localeData` as Records.
+///
+/// More information:
+///  - [ECMAScript reference][spec]
+///
+/// [spec]: https://tc39.es/ecma402/#sec-resolvelocale
+</span><span class="kw">pub</span>(<span class="kw">in </span><span class="kw">crate</span>::builtins::intl) <span class="kw">fn </span>resolve_locale&lt;S, P&gt;(
+    requested_locales: <span class="kw-2">&amp;</span>[Locale],
+    options: <span class="kw-2">&amp;mut </span>IntlOptions&lt;S::LocaleOptions&gt;,
+    icu: <span class="kw-2">&amp;</span>Icu&lt;P&gt;,
+) -&gt; Locale
+<span class="kw">where
+    </span>S: Service&lt;P&gt;,
+    P: DataProvider&lt;S::LangMarker&gt;,
+{
+    <span class="comment">// 1. Let matcher be options.[[localeMatcher]].
+    // 2. If matcher is &quot;lookup&quot;, then
+    //    a. Let r be ! LookupMatcher(availableLocales, requestedLocales).
+    // 3. Else,
+    //    a. Let r be ! BestFitMatcher(availableLocales, requestedLocales).
+    // 4. Let foundLocale be r.[[locale]].
+    </span><span class="kw">let </span><span class="kw-2">mut </span>found_locale = <span class="kw">if </span>options.matcher == LocaleMatcher::Lookup {
+        lookup_matcher::&lt;S::LangMarker&gt;(requested_locales, icu)
+    } <span class="kw">else </span>{
+        best_fit_matcher::&lt;S::LangMarker&gt;(requested_locales, icu)
+    };
+
+    <span class="comment">// From here, the spec differs significantly from the implementation,
+    // since ICU4X allows us to skip some steps and modularize the
+    // extension resolution algorithm. However, the original spec is left here
+    // for completion purposes.
+
+    // 5. Let result be a new Record.
+    // 6. Set result.[[dataLocale]] to foundLocale.
+    // 7. If r has an [[extension]] field, then
+    //     a. Let components be ! UnicodeExtensionComponents(r.[[extension]]).
+    //     b. Let keywords be components.[[Keywords]].
+    // 9. For each element key of relevantExtensionKeys, do
+    //     a. Let foundLocaleData be localeData.[[&lt;foundLocale&gt;]].
+    //     b. Assert: Type(foundLocaleData) is Record.
+    //     c. Let keyLocaleData be foundLocaleData.[[&lt;key&gt;]].
+    //     d. Assert: Type(keyLocaleData) is List.
+    //     e. Let value be keyLocaleData[0].
+    //     f. Assert: Type(value) is either String or Null.
+    //     g. Let supportedExtensionAddition be &quot;&quot;.
+    //     h. If r has an [[extension]] field, then
+    //         i. If keywords contains an element whose [[Key]] is the same as key, then
+    //             1. Let entry be the element of keywords whose [[Key]] is the same as key.
+    //             2. Let requestedValue be entry.[[Value]].
+    //             3. If requestedValue is not the empty String, then
+    //                 a. If keyLocaleData contains requestedValue, then
+    //                     i. Let value be requestedValue.
+    //                     ii. Let supportedExtensionAddition be the string-concatenation of &quot;-&quot;, key, &quot;-&quot;, and value.
+    //             4. Else if keyLocaleData contains &quot;true&quot;, then
+    //                 a. Let value be &quot;true&quot;.
+    //                 b. Let supportedExtensionAddition be the string-concatenation of &quot;-&quot; and key.
+    //     i. If options has a field [[&lt;key&gt;]], then
+    //         i. Let optionsValue be options.[[&lt;key&gt;]].
+    //         ii. Assert: Type(optionsValue) is either String, Undefined, or Null.
+    //         iii. If Type(optionsValue) is String, then
+    //             1. Let optionsValue be the string optionsValue after performing the algorithm steps to transform
+    //                Unicode extension values to canonical syntax per Unicode Technical Standard #35 LDML § 3.2.1
+    //                Canonical Unicode Locale Identifiers, treating key as ukey and optionsValue as uvalue productions.
+    //             2. Let optionsValue be the string optionsValue after performing the algorithm steps to replace
+    //                Unicode extension values with their canonical form per Unicode Technical Standard #35 LDML § 3.2.1
+    //                Canonical Unicode Locale Identifiers, treating key as ukey and optionsValue as uvalue productions.
+    //             3. If optionsValue is the empty String, then
+    //                 a. Let optionsValue be &quot;true&quot;.
+    //         iv. If keyLocaleData contains optionsValue, then
+    //             1. If SameValue(optionsValue, value) is false, then
+    //                 a. Let value be optionsValue.
+    //                 b. Let supportedExtensionAddition be &quot;&quot;.
+    //     j. Set result.[[&lt;key&gt;]] to value.
+    //     k. Append supportedExtensionAddition to supportedExtension.
+    // 10. If the number of elements in supportedExtension is greater than 2, then
+    //     a. Let foundLocale be InsertUnicodeExtensionAndCanonicalize(foundLocale, supportedExtension).
+    // 11. Set result.[[locale]] to foundLocale.
+
+    // 12. Return result.
+    </span>S::resolve(
+        <span class="kw-2">&amp;mut </span>found_locale,
+        <span class="kw-2">&amp;mut </span>options.service_options,
+        icu.provider(),
+    );
+    icu.locale_canonicalizer().canonicalize(<span class="kw-2">&amp;mut </span>found_locale);
+    found_locale
+}
+
+<span class="doccomment">/// Abstract operation [`LookupSupportedLocales ( availableLocales, requestedLocales )`][spec]
+///
+/// Returns the subset of the provided BCP 47 language priority list requestedLocales for which
+/// `availableLocales` has a matching locale when using the BCP 47 Lookup algorithm. Locales appear
+/// in the same order in the returned list as in `requestedLocales`.
+///
+/// # Note
+///
+/// This differs a bit from the spec, since we don&#39;t have an `[[AvailableLocales]]`
+/// list to compare with. However, we can do data requests to a [`DataProvider`]
+/// in order to see if a certain [`Locale`] is supported.
+///
+/// [spec]: https://tc39.es/ecma402/#sec-lookupsupportedlocales
+</span><span class="kw">fn </span>lookup_supported_locales&lt;M: KeyedDataMarker&gt;(
+    requested_locales: <span class="kw-2">&amp;</span>[Locale],
+    provider: <span class="kw-2">&amp;</span><span class="kw">impl </span>DataProvider&lt;M&gt;,
+) -&gt; Vec&lt;Locale&gt; {
+    <span class="comment">// 1. Let subset be a new empty List.
+    // 2. For each element locale of requestedLocales, do
+    //     a. Let noExtensionsLocale be the String value that is locale with any Unicode locale extension sequences removed.
+    //     b. Let availableLocale be ! BestAvailableLocale(availableLocales, noExtensionsLocale).
+    //     c. If availableLocale is not undefined, append locale to the end of subset.
+    // 3. Return subset.
+    </span>requested_locales
+        .iter()
+        .cloned()
+        .filter(|loc| best_available_locale(loc.id.clone(), provider).is_some())
+        .collect()
+}
+
+<span class="doccomment">/// Abstract operation [`BestFitSupportedLocales ( availableLocales, requestedLocales )`][spec]
+///
+/// Returns the subset of the provided BCP 47 language priority list `requestedLocales` for which
+/// `availableLocales` has a matching locale when using the Best Fit Matcher algorithm. Locales appear
+/// in the same order in the returned list as in requestedLocales.
+///
+/// [spec]: https://tc39.es/ecma402/#sec-bestfitsupportedlocales
+</span><span class="kw">fn </span>best_fit_supported_locales&lt;M: KeyedDataMarker&gt;(
+    requested_locales: <span class="kw-2">&amp;</span>[Locale],
+    provider: <span class="kw-2">&amp;</span><span class="kw">impl </span>DataProvider&lt;M&gt;,
+) -&gt; Vec&lt;Locale&gt; {
+    requested_locales
+        .iter()
+        .cloned()
+        .filter(|loc| best_locale_for_provider(loc.id.clone(), provider).is_some())
+        .collect()
+}
+
+<span class="doccomment">/// Abstract operation [`SupportedLocales ( availableLocales, requestedLocales, options )`][spec]
+///
+/// Returns the subset of the provided BCP 47 language priority list requestedLocales for which
+/// availableLocales has a matching locale
+///
+/// [spec]: https://tc39.es/ecma402/#sec-supportedlocales
+</span><span class="kw">pub</span>(<span class="kw">in </span><span class="kw">crate</span>::builtins::intl) <span class="kw">fn </span>supported_locales&lt;M: KeyedDataMarker&gt;(
+    requested_locales: <span class="kw-2">&amp;</span>[Locale],
+    options: <span class="kw-2">&amp;</span>JsValue,
+    context: <span class="kw-2">&amp;mut </span>Context,
+) -&gt; JsResult&lt;JsObject&gt;
+<span class="kw">where
+    </span>BoaProvider: DataProvider&lt;M&gt;,
+{
+    <span class="comment">// 1. Set options to ? CoerceOptionsToObject(options).
+    </span><span class="kw">let </span>options = coerce_options_to_object(options, context)<span class="question-mark">?</span>;
+
+    <span class="comment">// 2. Let matcher be ? GetOption(options, &quot;localeMatcher&quot;, string, « &quot;lookup&quot;, &quot;best fit&quot; », &quot;best fit&quot;).
+    </span><span class="kw">let </span>matcher =
+        get_option::&lt;LocaleMatcher&gt;(<span class="kw-2">&amp;</span>options, <span class="string">&quot;localeMatcher&quot;</span>, <span class="bool-val">false</span>, context)<span class="question-mark">?</span>.unwrap_or_default();
+
+    <span class="kw">let </span>elements = <span class="kw">match </span>matcher {
+        <span class="comment">// 4. Else,
+        //     a. Let supportedLocales be LookupSupportedLocales(availableLocales, requestedLocales).
+        </span>LocaleMatcher::Lookup =&gt; {
+            lookup_supported_locales(requested_locales, context.icu().provider())
+        }
+        <span class="comment">// 3. If matcher is &quot;best fit&quot;, then
+        //     a. Let supportedLocales be BestFitSupportedLocales(availableLocales, requestedLocales).
+        </span>LocaleMatcher::BestFit =&gt; {
+            best_fit_supported_locales(requested_locales, context.icu().provider())
+        }
+    };
+
+    <span class="comment">// 5. Return CreateArrayFromList(supportedLocales).
+    </span><span class="prelude-val">Ok</span>(Array::create_array_from_list(
+        elements.into_iter().map(|loc| loc.to_string().into()),
+        context,
+    ))
+}
+
+<span class="doccomment">/// Validates that the unicode extension `key` with `value` is a valid extension value for the
+/// `language`.
+</span><span class="kw">pub</span>(<span class="kw">in </span><span class="kw">crate</span>::builtins::intl) <span class="kw">fn </span>validate_extension&lt;M: KeyedDataMarker&gt;(
+    language: LanguageIdentifier,
+    key: Key,
+    value: <span class="kw-2">&amp;</span>Value,
+    provider: <span class="kw-2">&amp;</span><span class="kw">impl </span>DataProvider&lt;M&gt;,
+) -&gt; bool {
+    <span class="kw">let </span><span class="kw-2">mut </span>locale = DataLocale::from(language);
+    locale.set_unicode_ext(key, value.clone());
+    <span class="kw">let </span>request = DataRequest {
+        locale: <span class="kw-2">&amp;</span>locale,
+        metadata: DataRequestMetadata::default(),
+    };
+
+    DataProvider::load(provider, request)
+        .ok()
+        .map(|res| res.metadata.locale.unwrap_or_else(|| locale.clone()))
+        .filter(|loc| loc == <span class="kw-2">&amp;</span>locale)
+        .is_some()
+}
+
+<span class="attribute">#[cfg(test)]
+</span><span class="kw">mod </span>tests {
+    <span class="kw">use </span>icu_locid::{langid, locale, Locale};
+    <span class="kw">use </span>icu_plurals::provider::CardinalV1Marker;
+    <span class="kw">use </span>icu_provider::AsDeserializingBufferProvider;
+    <span class="kw">use </span>icu_provider_adapters::fallback::LocaleFallbackProvider;
+
+    <span class="kw">use crate</span>::{
+        builtins::intl::locale::utils::{
+            best_available_locale, best_fit_matcher, default_locale, lookup_matcher,
+        },
+        context::icu::{BoaProvider, Icu},
+    };
+
+    <span class="attribute">#[test]
+    </span><span class="kw">fn </span>best_avail_loc() {
+        <span class="kw">let </span>provider = boa_icu_provider::blob();
+        <span class="kw">let </span>provider = provider.as_deserializing();
+
+        <span class="macro">assert_eq!</span>(
+            best_available_locale::&lt;CardinalV1Marker&gt;(<span class="macro">langid!</span>(<span class="string">&quot;en&quot;</span>), <span class="kw-2">&amp;</span>provider),
+            <span class="prelude-val">Some</span>(<span class="macro">langid!</span>(<span class="string">&quot;en&quot;</span>))
+        );
+
+        <span class="macro">assert_eq!</span>(
+            best_available_locale::&lt;CardinalV1Marker&gt;(<span class="macro">langid!</span>(<span class="string">&quot;es-ES&quot;</span>), <span class="kw-2">&amp;</span>provider),
+            <span class="prelude-val">Some</span>(<span class="macro">langid!</span>(<span class="string">&quot;es&quot;</span>))
+        );
+
+        <span class="macro">assert_eq!</span>(
+            best_available_locale::&lt;CardinalV1Marker&gt;(<span class="macro">langid!</span>(<span class="string">&quot;kr&quot;</span>), <span class="kw-2">&amp;</span>provider),
+            <span class="prelude-val">None
+        </span>);
+    }
+
+    <span class="attribute">#[test]
+    </span><span class="kw">fn </span>lookup_match() {
+        <span class="kw">let </span>provider =
+            LocaleFallbackProvider::try_new_with_buffer_provider(boa_icu_provider::blob()).unwrap();
+        <span class="kw">let </span>icu = Icu::new(BoaProvider::Buffer(Box::new(provider))).unwrap();
+
+        <span class="comment">// requested: []
+
+        </span><span class="kw">let </span>res = lookup_matcher::&lt;CardinalV1Marker&gt;(<span class="kw-2">&amp;</span>[], <span class="kw-2">&amp;</span>icu);
+        <span class="macro">assert_eq!</span>(res, default_locale(icu.locale_canonicalizer()));
+        <span class="macro">assert!</span>(res.extensions.is_empty());
+
+        <span class="comment">// requested: [fr-FR-u-hc-h12]
+        </span><span class="kw">let </span>requested: Locale = <span class="string">&quot;fr-FR-u-hc-h12&quot;</span>.parse().unwrap();
+
+        <span class="kw">let </span>result = lookup_matcher::&lt;CardinalV1Marker&gt;(<span class="kw-2">&amp;</span>[requested.clone()], <span class="kw-2">&amp;</span>icu);
+        <span class="macro">assert_eq!</span>(result.id, <span class="macro">langid!</span>(<span class="string">&quot;fr&quot;</span>));
+        <span class="macro">assert_eq!</span>(result.extensions, requested.extensions);
+
+        <span class="comment">// requested: [kr-KR-u-hc-h12, gr-GR-u-hc-h24-x-4a, es-ES-valencia-u-ca-gregory, uz-Cyrl]
+        </span><span class="kw">let </span>kr = <span class="string">&quot;kr-KR-u-hc-h12&quot;</span>.parse().unwrap();
+        <span class="kw">let </span>gr = <span class="string">&quot;gr-GR-u-hc-h24-x-4a&quot;</span>.parse().unwrap();
+        <span class="kw">let </span>es: Locale = <span class="string">&quot;es-ES-valencia-u-ca-gregory&quot;</span>.parse().unwrap();
+        <span class="kw">let </span>uz = <span class="macro">locale!</span>(<span class="string">&quot;uz-Cyrl&quot;</span>);
+        <span class="kw">let </span>requested = <span class="macro">vec!</span>[kr, gr, es.clone(), uz];
+
+        <span class="kw">let </span>res = best_fit_matcher::&lt;CardinalV1Marker&gt;(<span class="kw-2">&amp;</span>requested, <span class="kw-2">&amp;</span>icu);
+        <span class="macro">assert_eq!</span>(res.id, <span class="macro">langid!</span>(<span class="string">&quot;es&quot;</span>));
+        <span class="macro">assert_eq!</span>(res.extensions, es.extensions);
+    }
+}
+</code></pre></div>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../../../" data-current-crate="boa_engine" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.66.0 (69f9c33d7 2022-12-12)" ></div></body></html>

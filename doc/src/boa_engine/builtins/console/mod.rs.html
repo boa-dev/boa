@@ -589,11 +589,6 @@
 <span id="588">588</span>
 <span id="589">589</span>
 <span id="590">590</span>
-<span id="591">591</span>
-<span id="592">592</span>
-<span id="593">593</span>
-<span id="594">594</span>
-<span id="595">595</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Boa&#39;s implementation of JavaScript&#39;s `console` Web API object.
 //!
 //! The `console` object can be accessed from any global object.
@@ -648,19 +643,16 @@
 
 <span class="doccomment">/// This represents the `console` formatter.
 </span><span class="kw">pub fn </span>formatter(data: <span class="kw-2">&amp;</span>[JsValue], context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;String&gt; {
-    <span class="kw">let </span>target = data
-        .get(<span class="number">0</span>)
-        .cloned()
-        .unwrap_or_default()
-        .to_string(context)<span class="question-mark">?</span>;
-
-    <span class="kw">match </span>data.len() {
-        <span class="number">0 </span>=&gt; <span class="prelude-val">Ok</span>(String::new()),
-        <span class="number">1 </span>=&gt; <span class="prelude-val">Ok</span>(target.to_std_string_escaped()),
-        <span class="kw">_ </span>=&gt; {
+    <span class="kw">match </span>data {
+        [] =&gt; <span class="prelude-val">Ok</span>(String::new()),
+        [val] =&gt; <span class="prelude-val">Ok</span>(val.to_string(context)<span class="question-mark">?</span>.to_std_string_escaped()),
+        data =&gt; {
             <span class="kw">let </span><span class="kw-2">mut </span>formatted = String::new();
             <span class="kw">let </span><span class="kw-2">mut </span>arg_index = <span class="number">1</span>;
-            <span class="kw">let </span>target = target.to_std_string_escaped();
+            <span class="kw">let </span>target = data
+                .get_or_undefined(<span class="number">0</span>)
+                .to_string(context)<span class="question-mark">?
+                </span>.to_std_string_escaped();
             <span class="kw">let </span><span class="kw-2">mut </span>chars = target.chars();
             <span class="kw">while let </span><span class="prelude-val">Some</span>(c) = chars.next() {
                 <span class="kw">if </span>c == <span class="string">&#39;%&#39; </span>{
@@ -690,9 +682,7 @@
                         <span class="comment">/* string */
                         </span><span class="string">&#39;s&#39; </span>=&gt; {
                             <span class="kw">let </span>arg = data
-                                .get(arg_index)
-                                .cloned()
-                                .unwrap_or_default()
+                                .get_or_undefined(arg_index)
                                 .to_string(context)<span class="question-mark">?
                                 </span>.to_std_string_escaped();
                             formatted.push_str(<span class="kw-2">&amp;</span>arg);

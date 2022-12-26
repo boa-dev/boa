@@ -1080,6 +1080,16 @@
 <span id="1079">1079</span>
 <span id="1080">1080</span>
 <span id="1081">1081</span>
+<span id="1082">1082</span>
+<span id="1083">1083</span>
+<span id="1084">1084</span>
+<span id="1085">1085</span>
+<span id="1086">1086</span>
+<span id="1087">1087</span>
+<span id="1088">1088</span>
+<span id="1089">1089</span>
+<span id="1090">1090</span>
+<span id="1091">1091</span>
 </pre><pre class="rust"><code><span class="doccomment">//! A UTF-16–encoded, reference counted, immutable string.
 //!
 //! This module contains the [`JsString`] type, the [`js_string`][crate::js_string] macro and the
@@ -1113,10 +1123,12 @@
     alloc::{alloc, dealloc, Layout},
     borrow::Borrow,
     cell::Cell,
+    convert::Infallible,
     hash::{Hash, Hasher},
     ops::{Deref, Index},
     ptr::{<span class="self">self</span>, NonNull},
     slice::SliceIndex,
+    str::FromStr,
 };
 
 <span class="kw">use </span><span class="self">self</span>::common::{COMMON_STRINGS, COMMON_STRINGS_CACHE, MAX_COMMON_STRING_LENGTH};
@@ -1961,6 +1973,14 @@
 <span class="kw">impl </span>PartialOrd <span class="kw">for </span>JsString {
     <span class="kw">fn </span>partial_cmp(<span class="kw-2">&amp;</span><span class="self">self</span>, other: <span class="kw-2">&amp;</span><span class="self">Self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;std::cmp::Ordering&gt; {
         <span class="self">self</span>[..].partial_cmp(other)
+    }
+}
+
+<span class="kw">impl </span>FromStr <span class="kw">for </span>JsString {
+    <span class="kw">type </span><span class="prelude-val">Err </span>= Infallible;
+
+    <span class="kw">fn </span>from_str(s: <span class="kw-2">&amp;</span>str) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>, <span class="self">Self</span>::Err&gt; {
+        <span class="prelude-val">Ok</span>(JsString::from(s))
     }
 }
 
