@@ -3,11 +3,13 @@
 pub mod intrinsics;
 
 #[cfg(feature = "intl")]
-mod icu;
+pub(crate) mod icu;
 
-use std::collections::VecDeque;
+#[cfg(feature = "intl")]
+pub use icu::BoaProvider;
 
 use intrinsics::{IntrinsicObjects, Intrinsics};
+use std::collections::VecDeque;
 
 #[cfg(feature = "console")]
 use crate::builtins::console::Console;
@@ -29,13 +31,6 @@ use boa_gc::Gc;
 use boa_interner::{Interner, Sym};
 use boa_parser::{Error as ParseError, Parser};
 use boa_profiler::Profiler;
-
-#[cfg(feature = "intl")]
-use icu_provider::DataError;
-
-#[doc(inline)]
-#[cfg(all(feature = "intl", doc))]
-pub use icu::BoaProvider;
 
 /// ECMAScript context. It is the primary way to interact with the runtime.
 ///
@@ -78,7 +73,6 @@ pub use icu::BoaProvider;
 ///
 /// assert_eq!(value.as_number(), Some(12.0))
 /// ```
-#[derive(Debug)]
 pub struct Context {
     /// realm holds both the global object and the environment
     pub(crate) realm: Realm,
@@ -95,7 +89,7 @@ pub struct Context {
 
     /// ICU related utilities
     #[cfg(feature = "intl")]
-    icu: icu::Icu,
+    icu: icu::Icu<BoaProvider>,
 
     /// Number of instructions remaining before a forced exit
     #[cfg(feature = "fuzz")]
@@ -106,6 +100,29 @@ pub struct Context {
     pub(crate) promise_job_queue: VecDeque<JobCallback>,
 
     pub(crate) kept_alive: Vec<JsObject>,
+}
+
+impl std::fmt::Debug for Context {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let mut debug = f.debug_struct("Context");
+
+        debug
+            .field("realm", &self.realm)
+            .field("interner", &self.interner);
+
+        #[cfg(feature = "console")]
+        debug.field("console", &self.console);
+
+        debug
+            .field("intrinsics", &self.intrinsics)
+            .field("vm", &self.vm)
+            .field("promise_job_queue", &self.promise_job_queue);
+
+        #[cfg(feature = "intl")]
+        debug.field("icu", &self.icu);
+
+        debug.finish()
+    }
 }
 
 impl Default for Context {
@@ -552,7 +569,7 @@ impl Context {
 
     #[cfg(feature = "intl")]
     /// Get the ICU related utilities
-    pub(crate) const fn icu(&self) -> &icu::Icu {
+    pub(crate) const fn icu(&self) -> &icu::Icu<BoaProvider> {
         &self.icu
     }
 
@@ -591,11 +608,11 @@ impl Context {
     feature = "intl",
     doc = "The required data in a valid provider is specified in [`BoaProvider`]"
 )]
-#[derive(Debug, Default)]
+#[derive(Default, Debug)]
 pub struct ContextBuilder {
     interner: Option<Interner>,
     #[cfg(feature = "intl")]
-    icu: Option<icu::Icu>,
+    icu: Option<icu::Icu<BoaProvider>>,
     #[cfg(feature = "fuzz")]
     instructions_remaining: usize,
 }
@@ -615,8 +632,11 @@ impl ContextBuilder {
     /// Provides an icu data provider to the [`Context`].
     ///
     /// This function is only available if the `intl` feature is enabled.
-    #[cfg(any(feature = "intl", docs))]
-    pub fn icu_provider(mut self, provider: Box<dyn icu::BoaProvider>) -> Result<Self, DataError> {
+    #[cfg(feature = "intl")]
+    pub fn icu_provider(
+        mut self,
+        provider: BoaProvider,
+    ) -> Result<Self, icu_locid_transform::LocaleTransformError> {
         self.icu = Some(icu::Icu::new(provider)?);
         Ok(self)
     }
@@ -657,9 +677,12 @@ impl ContextBuilder {
             },
             #[cfg(feature = "intl")]
             icu: self.icu.unwrap_or_else(|| {
-                // TODO: Replace with a more fitting default
-                icu::Icu::new(Box::new(icu_testdata::get_provider()))
-                    .expect("Failed to initialize default icu data.")
+                use icu_provider_adapters::fallback::LocaleFallbackProvider;
+                let provider = BoaProvider::Buffer(Box::new(
+                    LocaleFallbackProvider::try_new_with_buffer_provider(boa_icu_provider::blob())
+                        .expect("boa_icu_provider should return a valid provider"),
+                ));
+                icu::Icu::new(provider).expect("Failed to initialize default icu data.")
             }),
             #[cfg(feature = "fuzz")]
             instructions_remaining: self.instructions_remaining,

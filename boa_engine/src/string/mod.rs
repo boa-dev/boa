@@ -31,10 +31,12 @@ use std::{
     alloc::{alloc, dealloc, Layout},
     borrow::Borrow,
     cell::Cell,
+    convert::Infallible,
     hash::{Hash, Hasher},
     ops::{Deref, Index},
     ptr::{self, NonNull},
     slice::SliceIndex,
+    str::FromStr,
 };
 
 use self::common::{COMMON_STRINGS, COMMON_STRINGS_CACHE, MAX_COMMON_STRING_LENGTH};
@@ -879,6 +881,14 @@ impl PartialEq<JsString> for str {
 impl PartialOrd for JsString {
     fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
         self[..].partial_cmp(other)
+    }
+}
+
+impl FromStr for JsString {
+    type Err = Infallible;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        Ok(JsString::from(s))
     }
 }
 

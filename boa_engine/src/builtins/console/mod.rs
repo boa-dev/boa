@@ -52,19 +52,16 @@ fn logger(msg: LogMessage, console_state: &Console) {
 
 /// This represents the `console` formatter.
 pub fn formatter(data: &[JsValue], context: &mut Context) -> JsResult<String> {
-    let target = data
-        .get(0)
-        .cloned()
-        .unwrap_or_default()
-        .to_string(context)?;
-
-    match data.len() {
-        0 => Ok(String::new()),
-        1 => Ok(target.to_std_string_escaped()),
-        _ => {
+    match data {
+        [] => Ok(String::new()),
+        [val] => Ok(val.to_string(context)?.to_std_string_escaped()),
+        data => {
             let mut formatted = String::new();
             let mut arg_index = 1;
-            let target = target.to_std_string_escaped();
+            let target = data
+                .get_or_undefined(0)
+                .to_string(context)?
+                .to_std_string_escaped();
             let mut chars = target.chars();
             while let Some(c) = chars.next() {
                 if c == '%' {
@@ -94,9 +91,7 @@ pub fn formatter(data: &[JsValue], context: &mut Context) -> JsResult<String> {
                         /* string */
                         's' => {
                             let arg = data
-                                .get(arg_index)
-                                .cloned()
-                                .unwrap_or_default()
+                                .get_or_undefined(arg_index)
                                 .to_string(context)?
                                 .to_std_string_escaped();
                             formatted.push_str(&arg);

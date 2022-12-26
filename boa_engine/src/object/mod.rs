@@ -23,7 +23,9 @@ use self::internal_methods::{
     InternalObjectMethods, ORDINARY_INTERNAL_METHODS,
 };
 #[cfg(feature = "intl")]
-use crate::builtins::intl::date_time_format::DateTimeFormat;
+use crate::builtins::intl::{
+    collator::Collator, date_time_format::DateTimeFormat, list_format::ListFormat,
+};
 use crate::{
     builtins::{
         array::array_iterator::ArrayIterator,
@@ -270,9 +272,21 @@ pub enum ObjectKind {
     /// The `WeakRef` object kind.
     WeakRef(WeakGc<GcCell<Object>>),
 
+    /// The `Intl.Collator` object kind.
+    #[cfg(feature = "intl")]
+    Collator(Box<Collator>),
+
     /// The `Intl.DateTimeFormat` object kind.
     #[cfg(feature = "intl")]
     DateTimeFormat(Box<DateTimeFormat>),
+
+    /// The `Intl.ListFormat` object kind.
+    #[cfg(feature = "intl")]
+    ListFormat(Box<ListFormat>),
+
+    /// The `Intl.Locale` object kind.
+    #[cfg(feature = "intl")]
+    Locale(Box<icu_locid::Locale>),
 }
 
 unsafe impl Trace for ObjectKind {
@@ -296,11 +310,15 @@ unsafe impl Trace for ObjectKind {
             Self::Arguments(a) => mark(a),
             Self::NativeObject(o) => mark(o),
             Self::IntegerIndexed(i) => mark(i),
-            #[cfg(feature = "intl")]
-            Self::DateTimeFormat(f) => mark(f),
             Self::Promise(p) => mark(p),
             Self::AsyncGenerator(g) => mark(g),
             Self::WeakRef(wr) => mark(wr),
+            #[cfg(feature = "intl")]
+            Self::DateTimeFormat(f) => mark(f),
+            #[cfg(feature = "intl")]
+            Self::Collator(co) => mark(co),
+            #[cfg(feature = "intl")]
+            Self::ListFormat(_) | Self::Locale(_) => {}
             Self::RegExp(_)
             | Self::BigInt(_)
             | Self::Boolean(_)
@@ -628,12 +646,42 @@ impl ObjectData {
         }
     }
 
+    /// Create the `Collator` object data
+    #[cfg(feature = "intl")]
+    #[must_use]
+    pub fn collator(date_time_fmt: Collator) -> Self {
+        Self {
+            kind: ObjectKind::Collator(Box::new(date_time_fmt)),
+            internal_methods: &ORDINARY_INTERNAL_METHODS,
+        }
+    }
+
     /// Create the `DateTimeFormat` object data
     #[cfg(feature = "intl")]
     #[must_use]
     pub fn date_time_format(date_time_fmt: Box<DateTimeFormat>) -> Self {
         Self {
             kind: ObjectKind::DateTimeFormat(date_time_fmt),
+            internal_methods: &ORDINARY_INTERNAL_METHODS,
+        }
+    }
+
+    /// Create the `ListFormat` object data
+    #[cfg(feature = "intl")]
+    #[must_use]
+    pub fn list_format(list_format: ListFormat) -> Self {
+        Self {
+            kind: ObjectKind::ListFormat(Box::new(list_format)),
+            internal_methods: &ORDINARY_INTERNAL_METHODS,
+        }
+    }
+
+    /// Create the `Locale` object data
+    #[cfg(feature = "intl")]
+    #[must_use]
+    pub fn locale(locale: icu_locid::Locale) -> Self {
+        Self {
+            kind: ObjectKind::Locale(Box::new(locale)),
             internal_methods: &ORDINARY_INTERNAL_METHODS,
         }
     }
@@ -674,10 +722,16 @@ impl Display for ObjectKind {
             Self::NativeObject(_) => "NativeObject",
             Self::IntegerIndexed(_) => "TypedArray",
             Self::DataView(_) => "DataView",
-            #[cfg(feature = "intl")]
-            Self::DateTimeFormat(_) => "DateTimeFormat",
             Self::Promise(_) => "Promise",
             Self::WeakRef(_) => "WeakRef",
+            #[cfg(feature = "intl")]
+            Self::Collator(_) => "Collator",
+            #[cfg(feature = "intl")]
+            Self::DateTimeFormat(_) => "DateTimeFormat",
+            #[cfg(feature = "intl")]
+            Self::ListFormat(_) => "ListFormat",
+            #[cfg(feature = "intl")]
+            Self::Locale(_) => "Locale",
         })
     }
 }
@@ -1572,7 +1626,7 @@ impl Object {
         }
     }
 
-    /// Gets the `WeakRef`data if the object is a `WeakRef`.
+    /// Gets the `WeakRef` data if the object is a `WeakRef`.
     #[inline]
     pub const fn as_weak_ref(&self) -> Option<&WeakGc<GcCell<Self>>> {
         match self.data {
@@ -1580,6 +1634,71 @@ impl Object {
                 kind: ObjectKind::WeakRef(ref weak_ref),
                 ..
             } => Some(weak_ref),
+            _ => None,
+        }
+    }
+
+    /// Gets the `Collator` data if the object is a `Collator`.
+    #[inline]
+    #[cfg(feature = "intl")]
+    pub const fn as_collator(&self) -> Option<&Collator> {
+        match self.data {
+            ObjectData {
+                kind: ObjectKind::Collator(ref collator),
+                ..
+            } => Some(collator),
+            _ => None,
+        }
+    }
+
+    /// Gets a mutable reference to the `Collator` data if the object is a `Collator`.
+    #[inline]
+    #[cfg(feature = "intl")]
+    pub fn as_collator_mut(&mut self) -> Option<&mut Collator> {
+        match self.data {
+            ObjectData {
+                kind: ObjectKind::Collator(ref mut collator),
+                ..
+            } => Some(collator),
+            _ => None,
+        }
+    }
+
+    /// Checks if it is a `Locale` object.
+    #[inline]
+    #[cfg(feature = "intl")]
+    pub const fn is_locale(&self) -> bool {
+        matches!(
+            self.data,
+            ObjectData {
+                kind: ObjectKind::Locale(_),
+                ..
+            }
+        )
+    }
+
+    /// Gets the `Locale` data if the object is a `Locale`.
+    #[inline]
+    #[cfg(feature = "intl")]
+    pub const fn as_locale(&self) -> Option<&icu_locid::Locale> {
+        match self.data {
+            ObjectData {
+                kind: ObjectKind::Locale(ref locale),
+                ..
+            } => Some(locale),
+            _ => None,
+        }
+    }
+
+    /// Gets the `ListFormat` data if the object is a `ListFormat`.
+    #[inline]
+    #[cfg(feature = "intl")]
+    pub const fn as_list_format(&self) -> Option<&ListFormat> {
+        match self.data {
+            ObjectData {
+                kind: ObjectKind::ListFormat(ref lf),
+                ..
+            } => Some(lf),
             _ => None,
         }
     }

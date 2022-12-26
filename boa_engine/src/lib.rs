@@ -1,4 +1,4 @@
-//! Boa's **boa_engine** crate implements ECMAScript's standard library of builtin objects
+//! Boa's **`boa_engine`** crate implements ECMAScript's standard library of builtin objects
 //! and an ECMAScript context, bytecompiler, and virtual machine for code execution.
 //!
 //! # Crate Features
@@ -14,13 +14,14 @@
 //! Try out the most recent release with Boa's live demo [playground][boa-playground].  
 //!
 //! # Boa Crates
-//!  - **boa_ast** - Boa's ECMAScript Abstract Syntax Tree.
-//!  - **boa_engine** - Boa's implementation of ECMAScript builtin objects and execution.
-//!  - **boa_gc** - Boa's garbage collector
-//!  - **boa_interner** - Boa's string interner
-//!  - **boa_parser** - Boa's lexer and parser
-//!  - **boa_profiler** - Boa's code profiler
-//!  - **boa_unicode** - Boa's Unicode identifier
+//!  - **`boa_ast`** - Boa's ECMAScript Abstract Syntax Tree.
+//!  - **`boa_engine`** - Boa's implementation of ECMAScript builtin objects and execution.
+//!  - **`boa_gc`** - Boa's garbage collector.
+//!  - **`boa_interner`** - Boa's string interner.
+//!  - **`boa_parser`** - Boa's lexer and parser.
+//!  - **`boa_profiler`** - Boa's code profiler.
+//!  - **`boa_unicode`** - Boa's Unicode identifier.
+//!  - **`boa_icu_provider`** - Boa's ICU4X data provider.
 //!
 //! [whatwg]: https://console.spec.whatwg.org
 //! [ecma-402]: https://tc39.es/ecma402

@@ -1,79 +1,175 @@
-use icu_datetime::provider::{
-    calendar::{DatePatternsV1Marker, DateSkeletonPatternsV1Marker, DateSymbolsV1Marker},
-    week_data::WeekDataV1Marker,
+use std::fmt::Debug;
+
+use icu_collator::{Collator, CollatorError, CollatorOptions};
+use icu_list::{ListError, ListFormatter, ListLength};
+use icu_locid_transform::{LocaleCanonicalizer, LocaleExpander, LocaleTransformError};
+use icu_provider::{
+    yoke::{trait_hack::YokeTraitHack, Yokeable},
+    zerofrom::ZeroFrom,
+    AnyProvider, AsDeserializingBufferProvider, AsDowncastingAnyProvider, BufferProvider,
+    DataError, DataLocale, DataProvider, DataRequest, DataResponse, KeyedDataMarker, MaybeSendSync,
 };
-use icu_locale_canonicalizer::{
-    provider::{AliasesV1Marker, LikelySubtagsV1Marker},
-    LocaleCanonicalizer,
-};
-use icu_plurals::provider::OrdinalV1Marker;
-use icu_provider::prelude::*;
+use serde::Deserialize;
 
-/// Trait encompassing all the required implementations that define
-/// a valid icu data provider.
-pub trait BoaProvider:
-    ResourceProvider<AliasesV1Marker>
-    + ResourceProvider<LikelySubtagsV1Marker>
-    + ResourceProvider<DateSymbolsV1Marker>
-    + ResourceProvider<DatePatternsV1Marker>
-    + ResourceProvider<DateSkeletonPatternsV1Marker>
-    + ResourceProvider<OrdinalV1Marker>
-    + ResourceProvider<WeekDataV1Marker>
-{
+use crate::builtins::intl::list_format::ListFormatType;
+
+/// ICU4X data provider used in boa.
+///
+/// Providers can be either [`BufferProvider`]s or [`AnyProvider`]s.
+///
+/// The [`icu_provider`] documentation has more information about data providers.
+pub enum BoaProvider {
+    /// A [`BufferProvider`] data provider.
+    Buffer(Box<dyn BufferProvider>),
+    /// An [`AnyProvider] data provider.
+    Any(Box<dyn AnyProvider>),
 }
 
-impl<T> BoaProvider for T where
-    T: ResourceProvider<AliasesV1Marker>
-        + ResourceProvider<LikelySubtagsV1Marker>
-        + ResourceProvider<DateSymbolsV1Marker>
-        + ResourceProvider<DatePatternsV1Marker>
-        + ResourceProvider<DateSkeletonPatternsV1Marker>
-        + ResourceProvider<OrdinalV1Marker>
-        + ResourceProvider<WeekDataV1Marker>
-        + ?Sized
-{
-}
-
-/// Collection of tools initialized from a [`BoaProvider`] that are used
-/// for the functionality of `Intl`.
-#[allow(unused)]
-pub(crate) struct Icu {
-    provider: Box<dyn BoaProvider>,
-    locale_canonicalizer: LocaleCanonicalizer,
-}
-
-impl std::fmt::Debug for Icu {
+impl Debug for BoaProvider {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        #[derive(Debug)]
-        struct Canonicalizer;
+        match self {
+            Self::Buffer(_) => f.debug_tuple("Buffer").field(&"_").finish(),
+            Self::Any(_) => f.debug_tuple("Any").field(&"_").finish(),
+        }
+    }
+}
+
+impl<M> DataProvider<M> for BoaProvider
+where
+    M: KeyedDataMarker + 'static,
+    for<'de> YokeTraitHack<<M::Yokeable as Yokeable<'de>>::Output>: Deserialize<'de>,
+    for<'a> YokeTraitHack<<M::Yokeable as Yokeable<'a>>::Output>: Clone,
+    M::Yokeable: ZeroFrom<'static, M::Yokeable> + MaybeSendSync,
+{
+    fn load(&self, req: DataRequest<'_>) -> Result<DataResponse<M>, DataError> {
+        match self {
+            BoaProvider::Buffer(provider) => provider.as_deserializing().load(req),
+            BoaProvider::Any(provider) => provider.as_downcasting().load(req),
+        }
+    }
+}
+
+impl BoaProvider {
+    /// Creates a new [`LocaleCanonicalizer`] from the provided [`DataProvider`].
+    pub(crate) fn try_new_locale_canonicalizer(
+        &self,
+    ) -> Result<LocaleCanonicalizer, LocaleTransformError> {
+        match self {
+            BoaProvider::Buffer(buffer) => {
+                LocaleCanonicalizer::try_new_with_buffer_provider(&**buffer)
+            }
+            BoaProvider::Any(any) => LocaleCanonicalizer::try_new_with_any_provider(&**any),
+        }
+    }
+
+    /// Creates a new [`LocaleExpander`] from the provided [`DataProvider`].
+    pub(crate) fn try_new_locale_expander(&self) -> Result<LocaleExpander, LocaleTransformError> {
+        match self {
+            BoaProvider::Buffer(buffer) => LocaleExpander::try_new_with_buffer_provider(&**buffer),
+            BoaProvider::Any(any) => LocaleExpander::try_new_with_any_provider(&**any),
+        }
+    }
+
+    /// Creates a new [`ListFormatter`] from the provided [`DataProvider`] and options.
+    pub(crate) fn try_new_list_formatter(
+        &self,
+        locale: &DataLocale,
+        typ: ListFormatType,
+        style: ListLength,
+    ) -> Result<ListFormatter, ListError> {
+        match self {
+            BoaProvider::Buffer(buf) => match typ {
+                ListFormatType::Conjunction => {
+                    ListFormatter::try_new_and_with_length_with_buffer_provider(
+                        &**buf, locale, style,
+                    )
+                }
+                ListFormatType::Disjunction => {
+                    ListFormatter::try_new_or_with_length_with_buffer_provider(
+                        &**buf, locale, style,
+                    )
+                }
+                ListFormatType::Unit => {
+                    ListFormatter::try_new_unit_with_length_with_buffer_provider(
+                        &**buf, locale, style,
+                    )
+                }
+            },
+            BoaProvider::Any(any) => match typ {
+                ListFormatType::Conjunction => {
+                    ListFormatter::try_new_and_with_length_with_any_provider(&**any, locale, style)
+                }
+                ListFormatType::Disjunction => {
+                    ListFormatter::try_new_or_with_length_with_any_provider(&**any, locale, style)
+                }
+                ListFormatType::Unit => {
+                    ListFormatter::try_new_unit_with_length_with_any_provider(&**any, locale, style)
+                }
+            },
+        }
+    }
+
+    /// Creates a new [`Collator`] from the provided [`DataProvider`] and options.
+    pub(crate) fn try_new_collator(
+        &self,
+        locale: &DataLocale,
+        options: CollatorOptions,
+    ) -> Result<Collator, CollatorError> {
+        match self {
+            BoaProvider::Buffer(buf) => {
+                Collator::try_new_with_buffer_provider(&**buf, locale, options)
+            }
+            BoaProvider::Any(any) => Collator::try_new_with_any_provider(&**any, locale, options),
+        }
+    }
+}
+
+/// Collection of tools initialized from a [`DataProvider`] that are used
+/// for the functionality of `Intl`.
+pub(crate) struct Icu<P> {
+    provider: P,
+    locale_canonicalizer: LocaleCanonicalizer,
+    locale_expander: LocaleExpander,
+}
+
+impl<P: Debug> Debug for Icu<P> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         f.debug_struct("Icu")
-            .field("locale_canonicalizer", &Canonicalizer)
+            .field("provider", &self.provider)
+            .field("locale_canonicalizer", &"LocaleCanonicalizer")
             .finish()
     }
 }
 
-impl Icu {
-    /// Create a new [`Icu`] from a valid [`BoaProvider`]
+impl<P> Icu<P> {
+    /// Gets the [`LocaleCanonicalizer`] tool.
+    pub(crate) const fn locale_canonicalizer(&self) -> &LocaleCanonicalizer {
+        &self.locale_canonicalizer
+    }
+
+    /// Gets the inner icu data provider
+    pub(crate) const fn provider(&self) -> &P {
+        &self.provider
+    }
+
+    /// Gets the [`LocaleExpander`] tool.
+    pub(crate) const fn locale_expander(&self) -> &LocaleExpander {
+        &self.locale_expander
+    }
+}
+
+impl Icu<BoaProvider> {
+    /// Creates a new [`Icu`] from a valid [`BoaProvider`]
     ///
     /// # Errors
     ///
     /// This method will return an error if any of the tools
     /// required cannot be constructed.
-    pub(crate) fn new(provider: Box<dyn BoaProvider>) -> Result<Self, DataError> {
+    pub(crate) fn new(provider: BoaProvider) -> Result<Self, LocaleTransformError> {
         Ok(Self {
-            locale_canonicalizer: LocaleCanonicalizer::new(&*provider)?,
+            locale_canonicalizer: provider.try_new_locale_canonicalizer()?,
+            locale_expander: provider.try_new_locale_expander()?,
             provider,
         })
-    }
-
-    /// Get the [`LocaleCanonicalizer`] tool.
-    pub(crate) const fn locale_canonicalizer(&self) -> &LocaleCanonicalizer {
-        &self.locale_canonicalizer
-    }
-
-    /// Get the inner icu data provider
-    #[allow(unused)]
-    pub(crate) fn provider(&self) -> &dyn BoaProvider {
-        self.provider.as_ref()
     }
 }
