@@ -23,7 +23,7 @@ use boa_ast::{
     },
     Expression, Punctuator,
 };
-use boa_interner::{Interner, Sym};
+use boa_interner::Interner;
 use boa_profiler::Profiler;
 use std::io::Read;
 
@@ -79,24 +79,19 @@ where
                 // https://tc39.es/ecma262/#sec-update-expressions-static-semantics-early-errors
                 let simple = match &target {
                     Expression::Identifier(_) if !strict => true,
-                    Expression::Identifier(ident)
-                        if ![Sym::EVAL, Sym::ARGUMENTS].contains(&ident.sym()) =>
-                    {
+                    Expression::Identifier(ident) => {
+                        check_strict_arguments_or_eval(*ident, position)?;
                         true
                     }
                     Expression::PropertyAccess(_) => true,
                     _ => false,
                 };
+                
                 if !simple {
                     return Err(Error::lex(LexError::Syntax(
                         "Invalid left-hand side in assignment".into(),
                         position,
                     )));
-                }
-                if strict {
-                    if let Expression::Identifier(ident) = target {
-                        check_strict_arguments_or_eval(ident, position)?;
-                    }
                 }
 
                 return Ok(Unary::new(UnaryOp::IncrementPre, target).into());
@@ -112,9 +107,8 @@ where
                 // https://tc39.es/ecma262/#sec-update-expressions-static-semantics-early-errors
                 let simple = match &target {
                     Expression::Identifier(_) if !strict => true,
-                    Expression::Identifier(ident)
-                        if ![Sym::EVAL, Sym::ARGUMENTS].contains(&ident.sym()) =>
-                    {
+                    Expression::Identifier(ident) => {
+                        check_strict_arguments_or_eval(*ident, position)?;
                         true
                     }
                     Expression::PropertyAccess(_) => true,
@@ -126,11 +120,6 @@ where
                         "Invalid left-hand side in assignment".into(),
                         position,
                     )));
-                }
-                if strict {
-                    if let Expression::Identifier(ident) = target {
-                        check_strict_arguments_or_eval(ident, position)?;
-                    }
                 }
 
                 return Ok(Unary::new(UnaryOp::DecrementPre, target).into());
@@ -152,9 +141,8 @@ where
                     // https://tc39.es/ecma262/#sec-update-expressions-static-semantics-early-errors
                     let simple = match &lhs {
                         Expression::Identifier(_) if !strict => true,
-                        Expression::Identifier(ident)
-                            if ![Sym::EVAL, Sym::ARGUMENTS].contains(&ident.sym()) =>
-                        {
+                        Expression::Identifier(ident) => {
+                            check_strict_arguments_or_eval(*ident, token_start)?;
                             true
                         }
                         Expression::PropertyAccess(_) => true,
@@ -176,9 +164,8 @@ where
                     // https://tc39.es/ecma262/#sec-update-expressions-static-semantics-early-errors
                     let simple = match &lhs {
                         Expression::Identifier(_) if !strict => true,
-                        Expression::Identifier(ident)
-                            if ![Sym::EVAL, Sym::ARGUMENTS].contains(&ident.sym()) =>
-                        {
+                        Expression::Identifier(ident) => {
+                            check_strict_arguments_or_eval(*ident, token_start)?;
                             true
                         }
                         Expression::PropertyAccess(_) => true,
