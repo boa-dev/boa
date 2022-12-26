@@ -77,7 +77,7 @@ where
                     .parse(cursor, interner)?;
                 let strict = cursor.strict_mode();
                 // https://tc39.es/ecma262/#sec-update-expressions-static-semantics-early-errors
-                let ok = match &target {
+                let simple = match &target {
                     Expression::Identifier(_) if !strict => true,
                     Expression::Identifier(ident)
                         if ![Sym::EVAL, Sym::ARGUMENTS].contains(&ident.sym()) =>
@@ -87,7 +87,7 @@ where
                     Expression::PropertyAccess(_) => true,
                     _ => false,
                 };
-                if !ok {
+                if !simple {
                     return Err(Error::lex(LexError::Syntax(
                         "Invalid left-hand side in assignment".into(),
                         position,
@@ -110,7 +110,7 @@ where
                     .parse(cursor, interner)?;
                 let strict = cursor.strict_mode();
                 // https://tc39.es/ecma262/#sec-update-expressions-static-semantics-early-errors
-                let ok = match &target {
+                let simple = match &target {
                     Expression::Identifier(_) if !strict => true,
                     Expression::Identifier(ident)
                         if ![Sym::EVAL, Sym::ARGUMENTS].contains(&ident.sym()) =>
@@ -121,7 +121,7 @@ where
                     _ => false,
                 };
                 
-                if !ok {
+                if !simple {
                     return Err(Error::lex(LexError::Syntax(
                         "Invalid left-hand side in assignment".into(),
                         position,
@@ -150,7 +150,7 @@ where
                         .next(interner)?
                         .expect("Punctuator::Inc token disappeared");
                     // https://tc39.es/ecma262/#sec-update-expressions-static-semantics-early-errors
-                    let ok = match &lhs {
+                    let simple = match &lhs {
                         Expression::Identifier(_) if !strict => true,
                         Expression::Identifier(ident)
                             if ![Sym::EVAL, Sym::ARGUMENTS].contains(&ident.sym()) =>
@@ -160,7 +160,7 @@ where
                         Expression::PropertyAccess(_) => true,
                         _ => false,
                     };
-                    if !ok {
+                    if !simple {
                         return Err(Error::lex(LexError::Syntax(
                             "Invalid left-hand side in assignment".into(),
                             token_start,
@@ -174,7 +174,7 @@ where
                         .next(interner)?
                         .expect("Punctuator::Dec token disappeared");
                     // https://tc39.es/ecma262/#sec-update-expressions-static-semantics-early-errors
-                    let ok = match &lhs {
+                    let simple = match &lhs {
                         Expression::Identifier(_) if !strict => true,
                         Expression::Identifier(ident)
                             if ![Sym::EVAL, Sym::ARGUMENTS].contains(&ident.sym()) =>
@@ -184,7 +184,7 @@ where
                         Expression::PropertyAccess(_) => true,
                         _ => false,
                     };
-                    if !ok {
+                    if !simple {
                         return Err(Error::lex(LexError::Syntax(
                             "Invalid left-hand side in assignment".into(),
                             token_start,
