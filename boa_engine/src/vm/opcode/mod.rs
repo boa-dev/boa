@@ -98,7 +98,7 @@ macro_rules! generate_impl {
         pub enum $Type:ident {
             $(
                 $(#[$inner:ident $($args:tt)*])*
-                $Variant:ident
+                $Variant:ident $(= $index:expr)*
             ),*
             $(,)?
         }
@@ -108,7 +108,7 @@ macro_rules! generate_impl {
         pub enum $Type {
             $(
                 $(#[$inner $($args)*])*
-                $Variant
+                $Variant $(= $index)*
             ),*
         }
 
@@ -126,32 +126,32 @@ macro_rules! generate_impl {
                 unsafe { std::mem::transmute(value) }
             }
 
+            const NAMES: &[&'static str] = &[
+                $($Variant::NAME),*
+            ];
+
             /// Name of this opcode.
             #[must_use]
             pub const fn as_str(self) -> &'static str {
-                match self {
-                    $(
-                        Self::$Variant => $Variant::NAME
-                    ),*
-                }
+                Self::NAMES[self as usize]
             }
+
+            const INSTRUCTIONS: &[&'static str] = &[
+                $($Variant::INSTRUCTION),*
+            ];
 
             /// Name of the profiler event for this opcode.
             #[must_use]
             pub const fn as_instruction_str(self) -> &'static str {
-                match self {
-                    $(
-                        Self::$Variant => $Variant::INSTRUCTION
-                    ),*
-                }
+                Self::INSTRUCTIONS[self as usize]
             }
 
+            const EXECUTE_FNS: &[fn(&mut Context) -> JsResult<ShouldExit>] = &[
+                $($Variant::execute),*
+            ];
+
             pub(super) fn execute(self, context: &mut Context) -> JsResult<ShouldExit> {
-                match self {
-                    $(
-                        Self::$Variant => $Variant::execute(context)
-                    ),*
-                }
+                Self::EXECUTE_FNS[self as usize](context)
             }
         }
     };
@@ -179,7 +179,7 @@ generate_impl! {
         /// Operands:
         ///
         /// Stack: value **=>**
-        Pop,
+        Pop = 0,
 
         /// Pop the top value from the stack if the last try block has thrown a value.
         ///
