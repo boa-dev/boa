@@ -288,7 +288,7 @@
     obj: <span class="kw-2">&amp;</span>JsObject,
     key: PropertyKey,
     desc: PropertyDescriptor,
-    context: <span class="kw-2">&amp;mut </span>Context,
+    context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
 ) -&gt; JsResult&lt;bool&gt; {
     <span class="comment">// 1. Assert: IsPropertyKey(P) is true.
     </span><span class="kw">match </span>key {
@@ -367,7 +367,7 @@
 </span><span class="kw">fn </span>array_set_length(
     obj: <span class="kw-2">&amp;</span>JsObject,
     desc: PropertyDescriptor,
-    context: <span class="kw-2">&amp;mut </span>Context,
+    context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
 ) -&gt; JsResult&lt;bool&gt; {
     <span class="comment">// 1. If Desc.[[Value]] is absent, then
     </span><span class="kw">let </span>new_len_val = <span class="kw">match </span>desc.value() {

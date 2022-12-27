@@ -174,6 +174,8 @@
 <span id="173">173</span>
 <span id="174">174</span>
 <span id="175">175</span>
+<span id="176">176</span>
+<span id="177">177</span>
 </pre><pre class="rust"><code><span class="kw">use </span>std::fmt::Debug;
 
 <span class="kw">use </span>icu_collator::{Collator, CollatorError, CollatorOptions};
@@ -194,23 +196,24 @@
 /// Providers can be either [`BufferProvider`]s or [`AnyProvider`]s.
 ///
 /// The [`icu_provider`] documentation has more information about data providers.
-</span><span class="kw">pub enum </span>BoaProvider {
+</span><span class="attribute">#[derive(Clone, Copy)]
+</span><span class="kw">pub enum </span>BoaProvider&lt;<span class="lifetime">&#39;a</span>&gt; {
     <span class="doccomment">/// A [`BufferProvider`] data provider.
-    </span>Buffer(Box&lt;<span class="kw">dyn </span>BufferProvider&gt;),
-    <span class="doccomment">/// An [`AnyProvider] data provider.
-    </span>Any(Box&lt;<span class="kw">dyn </span>AnyProvider&gt;),
+    </span>Buffer(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw">dyn </span>BufferProvider),
+    <span class="doccomment">/// An [`AnyProvider`] data provider.
+    </span>Any(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw">dyn </span>AnyProvider),
 }
 
-<span class="kw">impl </span>Debug <span class="kw">for </span>BoaProvider {
+<span class="kw">impl </span>Debug <span class="kw">for </span>BoaProvider&lt;<span class="lifetime">&#39;_</span>&gt; {
     <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>std::fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; std::fmt::Result {
         <span class="kw">match </span><span class="self">self </span>{
-            <span class="self">Self</span>::Buffer(<span class="kw">_</span>) =&gt; f.debug_tuple(<span class="string">&quot;Buffer&quot;</span>).field(<span class="kw-2">&amp;</span><span class="string">&quot;_&quot;</span>).finish(),
-            <span class="self">Self</span>::Any(<span class="kw">_</span>) =&gt; f.debug_tuple(<span class="string">&quot;Any&quot;</span>).field(<span class="kw-2">&amp;</span><span class="string">&quot;_&quot;</span>).finish(),
+            <span class="self">Self</span>::Buffer(<span class="kw">_</span>) =&gt; f.debug_tuple(<span class="string">&quot;Buffer&quot;</span>).field(<span class="kw-2">&amp;</span><span class="string">&quot;..&quot;</span>).finish(),
+            <span class="self">Self</span>::Any(<span class="kw">_</span>) =&gt; f.debug_tuple(<span class="string">&quot;Any&quot;</span>).field(<span class="kw-2">&amp;</span><span class="string">&quot;..&quot;</span>).finish(),
         }
     }
 }
 
-<span class="kw">impl</span>&lt;M&gt; DataProvider&lt;M&gt; <span class="kw">for </span>BoaProvider
+<span class="kw">impl</span>&lt;M&gt; DataProvider&lt;M&gt; <span class="kw">for </span>BoaProvider&lt;<span class="lifetime">&#39;_</span>&gt;
 <span class="kw">where
     </span>M: KeyedDataMarker + <span class="lifetime">&#39;static</span>,
     <span class="kw">for</span>&lt;<span class="lifetime">&#39;de</span>&gt; YokeTraitHack&lt;&lt;M::Yokeable <span class="kw">as </span>Yokeable&lt;<span class="lifetime">&#39;de</span>&gt;&gt;::Output&gt;: Deserialize&lt;<span class="lifetime">&#39;de</span>&gt;,
@@ -218,14 +221,14 @@
     M::Yokeable: ZeroFrom&lt;<span class="lifetime">&#39;static</span>, M::Yokeable&gt; + MaybeSendSync,
 {
     <span class="kw">fn </span>load(<span class="kw-2">&amp;</span><span class="self">self</span>, req: DataRequest&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;DataResponse&lt;M&gt;, DataError&gt; {
-        <span class="kw">match </span><span class="self">self </span>{
+        <span class="kw">match </span><span class="kw-2">*</span><span class="self">self </span>{
             BoaProvider::Buffer(provider) =&gt; provider.as_deserializing().load(req),
             BoaProvider::Any(provider) =&gt; provider.as_downcasting().load(req),
         }
     }
 }
 
-<span class="kw">impl </span>BoaProvider {
+<span class="kw">impl </span>BoaProvider&lt;<span class="lifetime">&#39;_</span>&gt; {
     <span class="doccomment">/// Creates a new [`LocaleCanonicalizer`] from the provided [`DataProvider`].
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>try_new_locale_canonicalizer(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
@@ -302,51 +305,52 @@
 
 <span class="doccomment">/// Collection of tools initialized from a [`DataProvider`] that are used
 /// for the functionality of `Intl`.
-</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>Icu&lt;P&gt; {
-    provider: P,
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>Icu&lt;<span class="lifetime">&#39;provider</span>&gt; {
+    provider: BoaProvider&lt;<span class="lifetime">&#39;provider</span>&gt;,
     locale_canonicalizer: LocaleCanonicalizer,
     locale_expander: LocaleExpander,
 }
 
-<span class="kw">impl</span>&lt;P: Debug&gt; Debug <span class="kw">for </span>Icu&lt;P&gt; {
+<span class="kw">impl </span>Debug <span class="kw">for </span>Icu&lt;<span class="lifetime">&#39;_</span>&gt; {
     <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>std::fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; std::fmt::Result {
         f.debug_struct(<span class="string">&quot;Icu&quot;</span>)
             .field(<span class="string">&quot;provider&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.provider)
             .field(<span class="string">&quot;locale_canonicalizer&quot;</span>, <span class="kw-2">&amp;</span><span class="string">&quot;LocaleCanonicalizer&quot;</span>)
+            .field(<span class="string">&quot;locale_expander&quot;</span>, <span class="kw-2">&amp;</span><span class="string">&quot;LocaleExpander&quot;</span>)
             .finish()
     }
 }
 
-<span class="kw">impl</span>&lt;P&gt; Icu&lt;P&gt; {
-    <span class="doccomment">/// Gets the [`LocaleCanonicalizer`] tool.
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const fn </span>locale_canonicalizer(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>LocaleCanonicalizer {
-        <span class="kw-2">&amp;</span><span class="self">self</span>.locale_canonicalizer
-    }
-
-    <span class="doccomment">/// Gets the inner icu data provider
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const fn </span>provider(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>P {
-        <span class="kw-2">&amp;</span><span class="self">self</span>.provider
-    }
-
-    <span class="doccomment">/// Gets the [`LocaleExpander`] tool.
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const fn </span>locale_expander(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>LocaleExpander {
-        <span class="kw-2">&amp;</span><span class="self">self</span>.locale_expander
-    }
-}
-
-<span class="kw">impl </span>Icu&lt;BoaProvider&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;provider</span>&gt; Icu&lt;<span class="lifetime">&#39;provider</span>&gt; {
     <span class="doccomment">/// Creates a new [`Icu`] from a valid [`BoaProvider`]
     ///
     /// # Errors
     ///
     /// This method will return an error if any of the tools
     /// required cannot be constructed.
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>new(provider: BoaProvider) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>, LocaleTransformError&gt; {
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>new(
+        provider: BoaProvider&lt;<span class="lifetime">&#39;provider</span>&gt;,
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;Icu&lt;<span class="lifetime">&#39;provider</span>&gt;, LocaleTransformError&gt; {
         <span class="prelude-val">Ok</span>(<span class="self">Self </span>{
             locale_canonicalizer: provider.try_new_locale_canonicalizer()<span class="question-mark">?</span>,
             locale_expander: provider.try_new_locale_expander()<span class="question-mark">?</span>,
             provider,
         })
+    }
+
+    <span class="doccomment">/// Gets the [`LocaleCanonicalizer`] tool.
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const fn </span>locale_canonicalizer(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>LocaleCanonicalizer {
+        <span class="kw-2">&amp;</span><span class="self">self</span>.locale_canonicalizer
+    }
+
+    <span class="doccomment">/// Gets the [`LocaleExpander`] tool.
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const fn </span>locale_expander(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>LocaleExpander {
+        <span class="kw-2">&amp;</span><span class="self">self</span>.locale_expander
+    }
+
+    <span class="doccomment">/// Gets the inner icu data provider
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const fn </span>provider(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; BoaProvider&lt;<span class="lifetime">&#39;provider</span>&gt; {
+        <span class="self">self</span>.provider
     }
 }
 </code></pre></div>

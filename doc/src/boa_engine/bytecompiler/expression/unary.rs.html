@@ -123,7 +123,7 @@
     JsNativeError, JsResult,
 };
 
-<span class="kw">impl </span>ByteCompiler&lt;<span class="lifetime">&#39;_</span>&gt; {
+<span class="kw">impl </span>ByteCompiler&lt;<span class="lifetime">&#39;_</span>, <span class="lifetime">&#39;_</span>&gt; {
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>compile_unary(<span class="kw-2">&amp;mut </span><span class="self">self</span>, unary: <span class="kw-2">&amp;</span>Unary, use_expr: bool) -&gt; JsResult&lt;()&gt; {
         <span class="kw">let </span>opcode = <span class="kw">match </span>unary.op() {
             UnaryOp::IncrementPre =&gt; {

@@ -1115,6 +1115,13 @@
 <span id="1114">1114</span>
 <span id="1115">1115</span>
 <span id="1116">1116</span>
+<span id="1117">1117</span>
+<span id="1118">1118</span>
+<span id="1119">1119</span>
+<span id="1120">1120</span>
+<span id="1121">1121</span>
+<span id="1122">1122</span>
+<span id="1123">1123</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Boa&#39;s implementation of ECMAScript&#39;s global `Function` object and Native Functions.
 //!
 //! Objects wrap `Function`s and expose them via call/construct slots.
@@ -1181,7 +1188,7 @@
 /// - The second argument represents a list of all arguments passed to the function.
 ///
 /// - The last argument is the [`Context`] of the engine.
-</span><span class="kw">pub type </span>NativeFunctionSignature = <span class="kw">fn</span>(<span class="kw-2">&amp;</span>JsValue, <span class="kw-2">&amp;</span>[JsValue], <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsValue&gt;;
+</span><span class="kw">pub type </span>NativeFunctionSignature = <span class="kw">fn</span>(<span class="kw-2">&amp;</span>JsValue, <span class="kw-2">&amp;</span>[JsValue], <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;JsValue&gt;;
 
 <span class="comment">// Allows restricting closures to only `Copy` ones.
 // Used the sealed pattern to disallow external implementations
@@ -1202,12 +1209,15 @@
 /// be callable from Javascript, but most of the time the compiler
 /// is smart enough to correctly infer the types.
 </span><span class="kw">pub trait </span>ClosureFunctionSignature:
-    Fn(<span class="kw-2">&amp;</span>JsValue, <span class="kw-2">&amp;</span>[JsValue], Captures, <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsValue&gt; + DynCopy + DynClone + <span class="lifetime">&#39;static
+    Fn(<span class="kw-2">&amp;</span>JsValue, <span class="kw-2">&amp;</span>[JsValue], Captures, <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;JsValue&gt;
+    + DynCopy
+    + DynClone
+    + <span class="lifetime">&#39;static
 </span>{
 }
 
 <span class="kw">impl</span>&lt;T&gt; ClosureFunctionSignature <span class="kw">for </span>T <span class="kw">where
-    </span>T: Fn(<span class="kw-2">&amp;</span>JsValue, <span class="kw-2">&amp;</span>[JsValue], Captures, <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsValue&gt; + Copy + <span class="lifetime">&#39;static
+    </span>T: Fn(<span class="kw-2">&amp;</span>JsValue, <span class="kw-2">&amp;</span>[JsValue], Captures, <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;JsValue&gt; + Copy + <span class="lifetime">&#39;static
 </span>{
 }
 
@@ -1605,7 +1615,7 @@
     name: N,
     parent: <span class="kw-2">&amp;</span>JsObject,
     length: usize,
-    interpreter: <span class="kw-2">&amp;</span>Context,
+    interpreter: <span class="kw-2">&amp;</span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
 ) <span class="kw">where
     </span>N: Into&lt;String&gt;,
 {
@@ -1661,7 +1671,7 @@
     </span><span class="kw">fn </span>constructor(
         new_target: <span class="kw-2">&amp;</span>JsValue,
         args: <span class="kw-2">&amp;</span>[JsValue],
-        context: <span class="kw-2">&amp;mut </span>Context,
+        context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
     ) -&gt; JsResult&lt;JsValue&gt; {
         <span class="self">Self</span>::create_dynamic_function(new_target, args, <span class="bool-val">false</span>, <span class="bool-val">false</span>, context).map(Into::into)
     }
@@ -1677,7 +1687,7 @@
         args: <span class="kw-2">&amp;</span>[JsValue],
         r#async: bool,
         generator: bool,
-        context: <span class="kw-2">&amp;mut </span>Context,
+        context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
     ) -&gt; JsResult&lt;JsObject&gt; {
         <span class="kw">let </span>default = <span class="kw">if </span>r#async &amp;&amp; generator {
             StandardConstructors::async_generator_function
@@ -1857,7 +1867,7 @@
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-function.prototype.apply
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function/apply
-    </span><span class="kw">fn </span>apply(this: <span class="kw-2">&amp;</span>JsValue, args: <span class="kw-2">&amp;</span>[JsValue], context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsValue&gt; {
+    </span><span class="kw">fn </span>apply(this: <span class="kw-2">&amp;</span>JsValue, args: <span class="kw-2">&amp;</span>[JsValue], context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;JsValue&gt; {
         <span class="comment">// 1. Let func be the this value.
         // 2. If IsCallable(func) is false, throw a TypeError exception.
         </span><span class="kw">let </span>func = this.as_callable().ok_or_else(|| {
@@ -1897,7 +1907,7 @@
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-function.prototype.bind
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_objects/Function/bind
-    </span><span class="kw">fn </span>bind(this: <span class="kw-2">&amp;</span>JsValue, args: <span class="kw-2">&amp;</span>[JsValue], context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsValue&gt; {
+    </span><span class="kw">fn </span>bind(this: <span class="kw-2">&amp;</span>JsValue, args: <span class="kw-2">&amp;</span>[JsValue], context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;JsValue&gt; {
         <span class="comment">// 1. Let Target be the this value.
         // 2. If IsCallable(Target) is false, throw a TypeError exception.
         </span><span class="kw">let </span>target = this.as_callable().ok_or_else(|| {
@@ -1977,7 +1987,7 @@
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-function.prototype.call
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function/call
-    </span><span class="kw">fn </span>call(this: <span class="kw-2">&amp;</span>JsValue, args: <span class="kw-2">&amp;</span>[JsValue], context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsValue&gt; {
+    </span><span class="kw">fn </span>call(this: <span class="kw-2">&amp;</span>JsValue, args: <span class="kw-2">&amp;</span>[JsValue], context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;JsValue&gt; {
         <span class="comment">// 1. Let func be the this value.
         // 2. If IsCallable(func) is false, throw a TypeError exception.
         </span><span class="kw">let </span>func = this.as_callable().ok_or_else(|| {
@@ -1993,7 +2003,7 @@
     }
 
     <span class="attribute">#[allow(clippy::wrong_self_convention)]
-    </span><span class="kw">fn </span>to_string(this: <span class="kw-2">&amp;</span>JsValue, <span class="kw">_</span>: <span class="kw-2">&amp;</span>[JsValue], context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsValue&gt; {
+    </span><span class="kw">fn </span>to_string(this: <span class="kw-2">&amp;</span>JsValue, <span class="kw">_</span>: <span class="kw-2">&amp;</span>[JsValue], context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;JsValue&gt; {
         <span class="kw">let </span>object = this.as_object().map(JsObject::borrow);
         <span class="kw">let </span>function = object
             .as_deref()
@@ -2040,14 +2050,18 @@
     ///  - [ECMAScript reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-function.prototype-@@hasinstance
-    </span><span class="kw">fn </span>has_instance(this: <span class="kw-2">&amp;</span>JsValue, args: <span class="kw-2">&amp;</span>[JsValue], context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsValue&gt; {
+    </span><span class="kw">fn </span>has_instance(
+        this: <span class="kw-2">&amp;</span>JsValue,
+        args: <span class="kw-2">&amp;</span>[JsValue],
+        context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+    ) -&gt; JsResult&lt;JsValue&gt; {
         <span class="comment">// 1. Let F be the this value.
         // 2. Return ? OrdinaryHasInstance(F, V).
         </span><span class="prelude-val">Ok</span>(JsValue::ordinary_has_instance(this, args.get_or_undefined(<span class="number">0</span>), context)<span class="question-mark">?</span>.into())
     }
 
     <span class="attribute">#[allow(clippy::unnecessary_wraps)]
-    </span><span class="kw">fn </span>prototype(<span class="kw">_</span>: <span class="kw-2">&amp;</span>JsValue, <span class="kw">_</span>: <span class="kw-2">&amp;</span>[JsValue], <span class="kw">_</span>: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsValue&gt; {
+    </span><span class="kw">fn </span>prototype(<span class="kw">_</span>: <span class="kw-2">&amp;</span>JsValue, <span class="kw">_</span>: <span class="kw-2">&amp;</span>[JsValue], <span class="kw">_</span>: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;JsValue&gt; {
         <span class="prelude-val">Ok</span>(JsValue::undefined())
     }
 }
@@ -2055,7 +2069,7 @@
 <span class="kw">impl </span>BuiltIn <span class="kw">for </span>BuiltInFunctionObject {
     <span class="kw">const </span>NAME: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;Function&quot;</span>;
 
-    <span class="kw">fn </span>init(context: <span class="kw-2">&amp;mut </span>Context) -&gt; <span class="prelude-ty">Option</span>&lt;JsValue&gt; {
+    <span class="kw">fn </span>init(context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <span class="prelude-ty">Option</span>&lt;JsValue&gt; {
         <span class="kw">let </span>_timer = Profiler::global().start_event(<span class="string">&quot;function&quot;</span>, <span class="string">&quot;init&quot;</span>);
 
         <span class="kw">let </span>function_prototype = context.intrinsics().constructors().function().prototype();
@@ -2119,7 +2133,7 @@
     function: <span class="kw-2">&amp;</span>JsObject,
     name: <span class="kw-2">&amp;</span>PropertyKey,
     prefix: <span class="prelude-ty">Option</span>&lt;JsString&gt;,
-    context: <span class="kw-2">&amp;mut </span>Context,
+    context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
 ) {
     <span class="comment">// 1. Assert: F is an extensible object that does not have a &quot;name&quot; own property.
     // 2. If Type(name) is Symbol, then
@@ -2187,7 +2201,7 @@
         target_function: JsObject,
         this: JsValue,
         args: Vec&lt;JsValue&gt;,
-        context: <span class="kw-2">&amp;mut </span>Context,
+        context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
     ) -&gt; JsResult&lt;JsObject&gt; {
         <span class="comment">// 1. Let proto be ? targetFunction.[[GetPrototypeOf]]().
         </span><span class="kw">let </span>proto = target_function.__get_prototype_of__(context)<span class="question-mark">?</span>;

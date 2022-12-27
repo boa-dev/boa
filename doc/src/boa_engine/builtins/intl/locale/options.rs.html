@@ -22,10 +22,10 @@
 <span id="21">21</span>
 </pre><pre class="rust"><code><span class="kw">use </span>icu_locid::extensions::unicode::Value;
 
-<span class="kw">use crate</span>::{builtins::intl::options::OptionType, JsNativeError};
+<span class="kw">use crate</span>::{builtins::intl::options::OptionType, Context, JsNativeError};
 
 <span class="kw">impl </span>OptionType <span class="kw">for </span>Value {
-    <span class="kw">fn </span>from_value(value: <span class="kw">crate</span>::JsValue, context: <span class="kw-2">&amp;mut </span><span class="kw">crate</span>::Context) -&gt; <span class="kw">crate</span>::JsResult&lt;<span class="self">Self</span>&gt; {
+    <span class="kw">fn </span>from_value(value: <span class="kw">crate</span>::JsValue, context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <span class="kw">crate</span>::JsResult&lt;<span class="self">Self</span>&gt; {
         <span class="kw">let </span>val = value
             .to_string(context)<span class="question-mark">?
             </span>.to_std_string_escaped()

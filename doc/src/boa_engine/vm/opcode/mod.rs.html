@@ -1644,11 +1644,11 @@
                 <span class="self">Self</span>::INSTRUCTIONS[<span class="self">self </span><span class="kw">as </span>usize]
             }
 
-            <span class="kw">const </span>EXECUTE_FNS: <span class="kw-2">&amp;</span>[<span class="kw">fn</span>(<span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;ShouldExit&gt;] = <span class="kw-2">&amp;</span>[
+            <span class="kw">const </span>EXECUTE_FNS: <span class="kw-2">&amp;</span>[<span class="kw">fn</span>(<span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;ShouldExit&gt;] = <span class="kw-2">&amp;</span>[
                 $(<span class="macro-nonterminal">$Variant::execute</span>),*
             ];
 
-            <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>execute(<span class="self">self</span>, context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;ShouldExit&gt; {
+            <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>execute(<span class="self">self</span>, context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;ShouldExit&gt; {
                 <span class="self">Self</span>::EXECUTE_FNS[<span class="self">self </span><span class="kw">as </span>usize](context)
             }
         }
@@ -1665,7 +1665,7 @@
     <span class="kw">const </span>NAME: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str;
     <span class="kw">const </span>INSTRUCTION: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str;
 
-    <span class="kw">fn </span>execute(context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;ShouldExit&gt;;
+    <span class="kw">fn </span>execute(context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;ShouldExit&gt;;
 }
 
 <span class="macro">generate_impl! </span>{

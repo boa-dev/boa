@@ -338,7 +338,7 @@
     /// # Ok(())
     /// # }
     /// ```
-    </span><span class="kw">pub fn </span>new&lt;S&gt;(pattern: S, flags: S, context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;<span class="self">Self</span>&gt;
+    </span><span class="kw">pub fn </span>new&lt;S&gt;(pattern: S, flags: S, context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;<span class="self">Self</span>&gt;
     <span class="kw">where
         </span>S: Into&lt;JsValue&gt;,
     {
@@ -372,49 +372,49 @@
 
     <span class="doccomment">/// Returns a boolean value for whether the `d` flag is present in `JsRegExp` flags
     </span><span class="attribute">#[inline]
-    </span><span class="kw">pub fn </span>has_indices(<span class="kw-2">&amp;</span><span class="self">self</span>, context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;bool&gt; {
+    </span><span class="kw">pub fn </span>has_indices(<span class="kw-2">&amp;</span><span class="self">self</span>, context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;bool&gt; {
         RegExp::get_has_indices(<span class="kw-2">&amp;</span><span class="self">self</span>.inner.clone().into(), <span class="kw-2">&amp;</span>[], context)
             .map(|v| v.as_boolean().expect(<span class="string">&quot;value must be a bool&quot;</span>))
     }
 
     <span class="doccomment">/// Returns a boolean value for whether the `g` flag is present in `JsRegExp` flags
     </span><span class="attribute">#[inline]
-    </span><span class="kw">pub fn </span>global(<span class="kw-2">&amp;</span><span class="self">self</span>, context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;bool&gt; {
+    </span><span class="kw">pub fn </span>global(<span class="kw-2">&amp;</span><span class="self">self</span>, context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;bool&gt; {
         RegExp::get_global(<span class="kw-2">&amp;</span><span class="self">self</span>.inner.clone().into(), <span class="kw-2">&amp;</span>[], context)
             .map(|v| v.as_boolean().expect(<span class="string">&quot;value must be a bool&quot;</span>))
     }
 
     <span class="doccomment">/// Returns a boolean value for whether the `i` flag is present in `JsRegExp` flags
     </span><span class="attribute">#[inline]
-    </span><span class="kw">pub fn </span>ignore_case(<span class="kw-2">&amp;</span><span class="self">self</span>, context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;bool&gt; {
+    </span><span class="kw">pub fn </span>ignore_case(<span class="kw-2">&amp;</span><span class="self">self</span>, context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;bool&gt; {
         RegExp::get_ignore_case(<span class="kw-2">&amp;</span><span class="self">self</span>.inner.clone().into(), <span class="kw-2">&amp;</span>[], context)
             .map(|v| v.as_boolean().expect(<span class="string">&quot;value must be a bool&quot;</span>))
     }
 
     <span class="doccomment">/// Returns a boolean value for whether the `m` flag is present in `JsRegExp` flags
     </span><span class="attribute">#[inline]
-    </span><span class="kw">pub fn </span>multiline(<span class="kw-2">&amp;</span><span class="self">self</span>, context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;bool&gt; {
+    </span><span class="kw">pub fn </span>multiline(<span class="kw-2">&amp;</span><span class="self">self</span>, context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;bool&gt; {
         RegExp::get_multiline(<span class="kw-2">&amp;</span><span class="self">self</span>.inner.clone().into(), <span class="kw-2">&amp;</span>[], context)
             .map(|v| v.as_boolean().expect(<span class="string">&quot;value must be a bool&quot;</span>))
     }
 
     <span class="doccomment">/// Returns a boolean value for whether the `s` flag is present in `JsRegExp` flags
     </span><span class="attribute">#[inline]
-    </span><span class="kw">pub fn </span>dot_all(<span class="kw-2">&amp;</span><span class="self">self</span>, context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;bool&gt; {
+    </span><span class="kw">pub fn </span>dot_all(<span class="kw-2">&amp;</span><span class="self">self</span>, context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;bool&gt; {
         RegExp::get_dot_all(<span class="kw-2">&amp;</span><span class="self">self</span>.inner.clone().into(), <span class="kw-2">&amp;</span>[], context)
             .map(|v| v.as_boolean().expect(<span class="string">&quot;value must be a bool&quot;</span>))
     }
 
     <span class="doccomment">/// Returns a boolean value for whether the `u` flag is present in `JsRegExp` flags
     </span><span class="attribute">#[inline]
-    </span><span class="kw">pub fn </span>unicode(<span class="kw-2">&amp;</span><span class="self">self</span>, context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;bool&gt; {
+    </span><span class="kw">pub fn </span>unicode(<span class="kw-2">&amp;</span><span class="self">self</span>, context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;bool&gt; {
         RegExp::get_unicode(<span class="kw-2">&amp;</span><span class="self">self</span>.inner.clone().into(), <span class="kw-2">&amp;</span>[], context)
             .map(|v| v.as_boolean().expect(<span class="string">&quot;value must be a bool&quot;</span>))
     }
 
     <span class="doccomment">/// Returns a boolean value for whether the `y` flag is present in `JsRegExp` flags
     </span><span class="attribute">#[inline]
-    </span><span class="kw">pub fn </span>sticky(<span class="kw-2">&amp;</span><span class="self">self</span>, context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;bool&gt; {
+    </span><span class="kw">pub fn </span>sticky(<span class="kw-2">&amp;</span><span class="self">self</span>, context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;bool&gt; {
         RegExp::get_sticky(<span class="kw-2">&amp;</span><span class="self">self</span>.inner.clone().into(), <span class="kw-2">&amp;</span>[], context)
             .map(|v| v.as_boolean().expect(<span class="string">&quot;value must be a bool&quot;</span>))
     }
@@ -435,7 +435,7 @@
     /// # }
     /// ```
     </span><span class="attribute">#[inline]
-    </span><span class="kw">pub fn </span>flags(<span class="kw-2">&amp;</span><span class="self">self</span>, context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;String&gt; {
+    </span><span class="kw">pub fn </span>flags(<span class="kw-2">&amp;</span><span class="self">self</span>, context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;String&gt; {
         RegExp::get_flags(<span class="kw-2">&amp;</span><span class="self">self</span>.inner.clone().into(), <span class="kw-2">&amp;</span>[], context).map(|v| {
             v.as_string()
                 .expect(<span class="string">&quot;value must be string&quot;</span>)
@@ -460,7 +460,7 @@
     /// # }
     /// ```
     </span><span class="attribute">#[inline]
-    </span><span class="kw">pub fn </span>source(<span class="kw-2">&amp;</span><span class="self">self</span>, context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;String&gt; {
+    </span><span class="kw">pub fn </span>source(<span class="kw-2">&amp;</span><span class="self">self</span>, context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;String&gt; {
         RegExp::get_source(<span class="kw-2">&amp;</span><span class="self">self</span>.inner.clone().into(), <span class="kw-2">&amp;</span>[], context).map(|v| {
             v.as_string()
                 .expect(<span class="string">&quot;value must be string&quot;</span>)
@@ -484,7 +484,7 @@
     /// # Ok(())
     /// # }
     /// ```
-    </span><span class="kw">pub fn </span>test&lt;S&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, search_string: S, context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;bool&gt;
+    </span><span class="kw">pub fn </span>test&lt;S&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, search_string: S, context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;bool&gt;
     <span class="kw">where
         </span>S: Into&lt;JsValue&gt;,
     {
@@ -495,7 +495,7 @@
     <span class="doccomment">/// Executes a search for a match in a specified string
     ///
     /// Returns a `JsArray` containing matched value and updates the `lastIndex` property, or `None`
-    </span><span class="kw">pub fn </span>exec&lt;S&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, search_string: S, context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;<span class="prelude-ty">Option</span>&lt;JsArray&gt;&gt;
+    </span><span class="kw">pub fn </span>exec&lt;S&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, search_string: S, context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;<span class="prelude-ty">Option</span>&lt;JsArray&gt;&gt;
     <span class="kw">where
         </span>S: Into&lt;JsValue&gt;,
     {
@@ -527,7 +527,7 @@
     /// # }
     /// ```
     </span><span class="attribute">#[inline]
-    </span><span class="kw">pub fn </span>to_string(<span class="kw-2">&amp;</span><span class="self">self</span>, context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;String&gt; {
+    </span><span class="kw">pub fn </span>to_string(<span class="kw-2">&amp;</span><span class="self">self</span>, context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;String&gt; {
         RegExp::to_string(<span class="kw-2">&amp;</span><span class="self">self</span>.inner.clone().into(), <span class="kw-2">&amp;</span>[], context).map(|v| {
             v.as_string()
                 .expect(<span class="string">&quot;value must be a string&quot;</span>)

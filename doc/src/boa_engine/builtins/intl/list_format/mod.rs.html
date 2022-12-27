@@ -494,6 +494,9 @@
 <span id="493">493</span>
 <span id="494">494</span>
 <span id="495">495</span>
+<span id="496">496</span>
+<span id="497">497</span>
+<span id="498">498</span>
 </pre><pre class="rust"><code><span class="kw">use </span>std::fmt::Write;
 
 <span class="kw">use </span>boa_profiler::Profiler;
@@ -504,7 +507,7 @@
 
 <span class="kw">use crate</span>::{
     builtins::{Array, BuiltIn, JsArgs},
-    context::{intrinsics::StandardConstructors, BoaProvider},
+    context::intrinsics::StandardConstructors,
     object::{
         internal_methods::get_prototype_from_constructor, ConstructorBuilder, JsObject, ObjectData,
     },
@@ -539,7 +542,7 @@
     }
 }
 
-<span class="kw">impl</span>&lt;P&gt; Service&lt;P&gt; <span class="kw">for </span>ListFormat {
+<span class="kw">impl </span>Service <span class="kw">for </span>ListFormat {
     <span class="kw">type </span>LangMarker = AndListV1Marker;
 
     <span class="kw">type </span>LocaleOptions = ();
@@ -548,7 +551,7 @@
 <span class="kw">impl </span>BuiltIn <span class="kw">for </span>ListFormat {
     <span class="kw">const </span>NAME: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;ListFormat&quot;</span>;
 
-    <span class="kw">fn </span>init(context: <span class="kw-2">&amp;mut </span>Context) -&gt; <span class="prelude-ty">Option</span>&lt;JsValue&gt; {
+    <span class="kw">fn </span>init(context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <span class="prelude-ty">Option</span>&lt;JsValue&gt; {
         <span class="kw">let </span>_timer = Profiler::global().start_event(<span class="self">Self</span>::NAME, <span class="string">&quot;init&quot;</span>);
 
         ConstructorBuilder::with_standard_constructor(
@@ -588,7 +591,7 @@
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>constructor(
         new_target: <span class="kw-2">&amp;</span>JsValue,
         args: <span class="kw-2">&amp;</span>[JsValue],
-        context: <span class="kw-2">&amp;mut </span>Context,
+        context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
     ) -&gt; JsResult&lt;JsValue&gt; {
         <span class="comment">// 1. If NewTarget is undefined, throw a TypeError exception.
         </span><span class="kw">if </span>new_target.is_undefined() {
@@ -615,7 +618,7 @@
         // 8. Let localeData be %ListFormat%.[[LocaleData]].
         // 9. Let r be ResolveLocale(%ListFormat%.[[AvailableLocales]], requestedLocales, opt, %ListFormat%.[[RelevantExtensionKeys]], localeData).
         // 10. Set listFormat.[[Locale]] to r.[[locale]].
-        </span><span class="kw">let </span>locale = resolve_locale::&lt;<span class="self">Self</span>, <span class="kw">_</span>&gt;(
+        </span><span class="kw">let </span>locale = resolve_locale::&lt;<span class="self">Self</span>&gt;(
             <span class="kw-2">&amp;</span>requested_locales,
             <span class="kw-2">&amp;mut </span>IntlOptions {
                 matcher,
@@ -673,7 +676,7 @@
     </span><span class="kw">fn </span>supported_locales_of(
         <span class="kw">_</span>: <span class="kw-2">&amp;</span>JsValue,
         args: <span class="kw-2">&amp;</span>[JsValue],
-        context: <span class="kw-2">&amp;mut </span>Context,
+        context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
     ) -&gt; JsResult&lt;JsValue&gt; {
         <span class="kw">let </span>locales = args.get_or_undefined(<span class="number">0</span>);
         <span class="kw">let </span>options = args.get_or_undefined(<span class="number">1</span>);
@@ -683,12 +686,8 @@
         </span><span class="kw">let </span>requested_locales = canonicalize_locale_list(locales, context)<span class="question-mark">?</span>;
 
         <span class="comment">// 3. Return ? SupportedLocales(availableLocales, requestedLocales, options).
-        </span>supported_locales::&lt;&lt;<span class="self">Self </span><span class="kw">as </span>Service&lt;BoaProvider&gt;&gt;::LangMarker&gt;(
-            <span class="kw-2">&amp;</span>requested_locales,
-            options,
-            context,
-        )
-        .map(JsValue::from)
+        </span>supported_locales::&lt;&lt;<span class="self">Self </span><span class="kw">as </span>Service&gt;::LangMarker&gt;(<span class="kw-2">&amp;</span>requested_locales, options, context)
+            .map(JsValue::from)
     }
 
     <span class="doccomment">/// [`Intl.ListFormat.prototype.format ( list )`][spec].
@@ -700,7 +699,7 @@
     ///
     /// [spec]: https://tc39.es/ecma402/#sec-Intl.ListFormat.prototype.format
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Intl/ListFormat/format
-    </span><span class="kw">fn </span>format(this: <span class="kw-2">&amp;</span>JsValue, args: <span class="kw-2">&amp;</span>[JsValue], context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsValue&gt; {
+    </span><span class="kw">fn </span>format(this: <span class="kw-2">&amp;</span>JsValue, args: <span class="kw-2">&amp;</span>[JsValue], context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;JsValue&gt; {
         <span class="comment">// 1. Let lf be the this value.
         // 2. Perform ? RequireInternalSlot(lf, [[InitializedListFormat]]).
         </span><span class="kw">let </span>lf = this.as_object().map(JsObject::borrow).ok_or_else(|| {
@@ -735,7 +734,7 @@
     </span><span class="kw">fn </span>format_to_parts(
         this: <span class="kw-2">&amp;</span>JsValue,
         args: <span class="kw-2">&amp;</span>[JsValue],
-        context: <span class="kw-2">&amp;mut </span>Context,
+        context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
     ) -&gt; JsResult&lt;JsValue&gt; {
         <span class="comment">// TODO: maybe try to move this into icu4x?
         </span><span class="kw">use </span>writeable::{PartsWrite, Writeable};
@@ -890,7 +889,11 @@
     ///
     /// [spec]: https://tc39.es/ecma402/#sec-Intl.ListFormat.prototype.resolvedoptions
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Intl/ListFormat/resolvedOptions
-    </span><span class="kw">fn </span>resolved_options(this: <span class="kw-2">&amp;</span>JsValue, <span class="kw">_</span>: <span class="kw-2">&amp;</span>[JsValue], context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsValue&gt; {
+    </span><span class="kw">fn </span>resolved_options(
+        this: <span class="kw-2">&amp;</span>JsValue,
+        <span class="kw">_</span>: <span class="kw-2">&amp;</span>[JsValue],
+        context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+    ) -&gt; JsResult&lt;JsValue&gt; {
         <span class="comment">// 1. Let lf be the this value.
         // 2. Perform ? RequireInternalSlot(lf, [[InitializedListFormat]]).
         </span><span class="kw">let </span>lf = this.as_object().map(JsObject::borrow).ok_or_else(|| {
@@ -948,7 +951,10 @@
 <span class="doccomment">/// Abstract operation [`StringListFromIterable ( iterable )`][spec]
 ///
 /// [spec]: https://tc39.es/ecma402/#sec-createstringlistfromiterable
-</span><span class="kw">fn </span>string_list_from_iterable(iterable: <span class="kw-2">&amp;</span>JsValue, context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;Vec&lt;JsString&gt;&gt; {
+</span><span class="kw">fn </span>string_list_from_iterable(
+    iterable: <span class="kw-2">&amp;</span>JsValue,
+    context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+) -&gt; JsResult&lt;Vec&lt;JsString&gt;&gt; {
     <span class="comment">// 1. If iterable is undefined, then
     </span><span class="kw">if </span>iterable.is_undefined() {
         <span class="comment">//     a. Return a new empty List.

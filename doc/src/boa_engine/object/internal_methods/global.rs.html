@@ -615,6 +615,9 @@
 <span id="614">614</span>
 <span id="615">615</span>
 <span id="616">616</span>
+<span id="617">617</span>
+<span id="618">618</span>
+<span id="619">619</span>
 </pre><pre class="rust"><code><span class="kw">use crate</span>::{
     object::{
         internal_methods::ordinary_get_prototype_of, InternalObjectMethods, JsObject, JsPrototype,
@@ -656,7 +659,7 @@
 </span><span class="attribute">#[allow(clippy::unnecessary_wraps)]
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>global_get_prototype_of(
     <span class="kw">_</span>: <span class="kw-2">&amp;</span>JsObject,
-    context: <span class="kw-2">&amp;mut </span>Context,
+    context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
 ) -&gt; JsResult&lt;JsPrototype&gt; {
     <span class="comment">// 1. Return O.[[Prototype]].
     </span><span class="prelude-val">Ok</span>(context.realm.global_prototype.clone())
@@ -672,7 +675,7 @@
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>global_set_prototype_of(
     <span class="kw">_</span>: <span class="kw-2">&amp;</span>JsObject,
     val: JsPrototype,
-    context: <span class="kw-2">&amp;mut </span>Context,
+    context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
 ) -&gt; JsResult&lt;bool&gt; {
     <span class="comment">// 1. Assert: Either Type(V) is Object or Type(V) is Null.
     </span>{
@@ -731,7 +734,7 @@
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>global_get_own_property(
     _obj: <span class="kw-2">&amp;</span>JsObject,
     key: <span class="kw-2">&amp;</span>PropertyKey,
-    context: <span class="kw-2">&amp;mut </span>Context,
+    context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
 ) -&gt; JsResult&lt;<span class="prelude-ty">Option</span>&lt;PropertyDescriptor&gt;&gt; {
     <span class="kw">let </span>_timer = Profiler::global().start_event(<span class="string">&quot;Object::global_get_own_property&quot;</span>, <span class="string">&quot;object&quot;</span>);
     <span class="comment">// 1. Assert: IsPropertyKey(P) is true.
@@ -758,7 +761,7 @@
 ///
 /// [spec]: https://tc39.es/ecma262/#sec-ordinaryisextensible
 </span><span class="attribute">#[allow(clippy::unnecessary_wraps)]
-</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>global_is_extensible(_obj: <span class="kw-2">&amp;</span>JsObject, context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;bool&gt; {
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>global_is_extensible(_obj: <span class="kw-2">&amp;</span>JsObject, context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;bool&gt; {
     <span class="comment">// 1. Return O.[[Extensible]].
     </span><span class="prelude-val">Ok</span>(context.realm.global_extensible)
 }
@@ -770,7 +773,10 @@
 ///
 /// [spec]: https://tc39.es/ecma262/#sec-ordinarypreventextensions
 </span><span class="attribute">#[allow(clippy::unnecessary_wraps)]
-</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>global_prevent_extensions(_obj: <span class="kw-2">&amp;</span>JsObject, context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;bool&gt; {
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>global_prevent_extensions(
+    _obj: <span class="kw-2">&amp;</span>JsObject,
+    context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+) -&gt; JsResult&lt;bool&gt; {
     <span class="comment">// 1. Set O.[[Extensible]] to false.
     </span>context.realm.global_extensible = <span class="bool-val">false</span>;
 
@@ -789,7 +795,7 @@
     obj: <span class="kw-2">&amp;</span>JsObject,
     key: PropertyKey,
     desc: PropertyDescriptor,
-    context: <span class="kw-2">&amp;mut </span>Context,
+    context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
 ) -&gt; JsResult&lt;bool&gt; {
     <span class="kw">let </span>_timer = Profiler::global().start_event(<span class="string">&quot;Object::global_define_own_property&quot;</span>, <span class="string">&quot;object&quot;</span>);
     <span class="comment">// 1. Let current be ? O.[[GetOwnProperty]](P).
@@ -814,7 +820,7 @@
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>global_has_property(
     _obj: <span class="kw-2">&amp;</span>JsObject,
     key: <span class="kw-2">&amp;</span>PropertyKey,
-    context: <span class="kw-2">&amp;mut </span>Context,
+    context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
 ) -&gt; JsResult&lt;bool&gt; {
     <span class="kw">let </span>_timer = Profiler::global().start_event(<span class="string">&quot;Object::global_has_property&quot;</span>, <span class="string">&quot;object&quot;</span>);
     <span class="comment">// 1. Assert: IsPropertyKey(P) is true.
@@ -844,7 +850,7 @@
     obj: <span class="kw-2">&amp;</span>JsObject,
     key: <span class="kw-2">&amp;</span>PropertyKey,
     receiver: JsValue,
-    context: <span class="kw-2">&amp;mut </span>Context,
+    context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
 ) -&gt; JsResult&lt;JsValue&gt; {
     <span class="kw">let </span>_timer = Profiler::global().start_event(<span class="string">&quot;Object::global_get&quot;</span>, <span class="string">&quot;object&quot;</span>);
     <span class="comment">// 1. Assert: IsPropertyKey(P) is true.
@@ -891,7 +897,7 @@
     key: PropertyKey,
     value: JsValue,
     _receiver: JsValue,
-    context: <span class="kw-2">&amp;mut </span>Context,
+    context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
 ) -&gt; JsResult&lt;bool&gt; {
     global_set_no_receiver(<span class="kw-2">&amp;</span>key, value, context)
 }
@@ -899,7 +905,7 @@
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>global_set_no_receiver(
     key: <span class="kw-2">&amp;</span>PropertyKey,
     value: JsValue,
-    context: <span class="kw-2">&amp;mut </span>Context,
+    context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
 ) -&gt; JsResult&lt;bool&gt; {
     <span class="kw">let </span>_timer = Profiler::global().start_event(<span class="string">&quot;Object::global_set&quot;</span>, <span class="string">&quot;object&quot;</span>);
 
@@ -997,7 +1003,7 @@
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>global_delete(
     _obj: <span class="kw-2">&amp;</span>JsObject,
     key: <span class="kw-2">&amp;</span>PropertyKey,
-    context: <span class="kw-2">&amp;mut </span>Context,
+    context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
 ) -&gt; JsResult&lt;bool&gt; {
     global_delete_no_receiver(key, context)
 }
@@ -1011,7 +1017,7 @@
 </span><span class="attribute">#[allow(clippy::unnecessary_wraps)]
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>global_delete_no_receiver(
     key: <span class="kw-2">&amp;</span>PropertyKey,
-    context: <span class="kw-2">&amp;mut </span>Context,
+    context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
 ) -&gt; JsResult&lt;bool&gt; {
     <span class="kw">let </span>_timer = Profiler::global().start_event(<span class="string">&quot;Object::global_delete&quot;</span>, <span class="string">&quot;object&quot;</span>);
     <span class="comment">// 1. Assert: IsPropertyKey(P) is true.
@@ -1040,7 +1046,7 @@
 </span><span class="attribute">#[allow(clippy::unnecessary_wraps)]
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>global_own_property_keys(
     <span class="kw">_</span>: <span class="kw-2">&amp;</span>JsObject,
-    context: <span class="kw-2">&amp;mut </span>Context,
+    context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
 ) -&gt; JsResult&lt;Vec&lt;PropertyKey&gt;&gt; {
     <span class="comment">// 1. Let keys be a new empty List.
     </span><span class="kw">let </span><span class="kw-2">mut </span>keys = Vec::new();
@@ -1096,7 +1102,7 @@
     extensible: bool,
     desc: PropertyDescriptor,
     current: <span class="prelude-ty">Option</span>&lt;PropertyDescriptor&gt;,
-    context: <span class="kw-2">&amp;mut </span>Context,
+    context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
 ) -&gt; bool {
     <span class="kw">let </span>_timer = Profiler::global().start_event(
         <span class="string">&quot;Object::global_validate_and_apply_property_descriptor&quot;</span>,

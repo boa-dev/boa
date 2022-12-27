@@ -210,7 +210,7 @@
     /// Doesn&#39;t matches JavaScript `new Set()` as it doesn&#39;t takes an iterator
     /// similar to Rust initialization.
     </span><span class="attribute">#[inline]
-    </span><span class="kw">pub fn </span>new(context: <span class="kw-2">&amp;mut </span>Context) -&gt; <span class="self">Self </span>{
+    </span><span class="kw">pub fn </span>new(context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <span class="self">Self </span>{
         <span class="kw">let </span>inner = Set::set_create(<span class="prelude-val">None</span>, context);
 
         <span class="self">Self </span>{ inner }
@@ -228,7 +228,7 @@
     /// Returns the Set object with added value.
     ///
     /// Same as JavaScript&#39;s `set.add(value)`.
-    </span><span class="kw">pub fn </span>add&lt;T&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, value: T, context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsValue&gt;
+    </span><span class="kw">pub fn </span>add&lt;T&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, value: T, context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;JsValue&gt;
     <span class="kw">where
         </span>T: Into&lt;JsValue&gt;,
     {
@@ -240,7 +240,7 @@
     ///
     /// Same as JavaScript&#39;s `set.add([&quot;one&quot;, &quot;two&quot;, &quot;three&quot;])`
     </span><span class="attribute">#[inline]
-    </span><span class="kw">pub fn </span>add_items(<span class="kw-2">&amp;</span><span class="self">self</span>, items: <span class="kw-2">&amp;</span>[JsValue], context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsValue&gt; {
+    </span><span class="kw">pub fn </span>add_items(<span class="kw-2">&amp;</span><span class="self">self</span>, items: <span class="kw-2">&amp;</span>[JsValue], context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;JsValue&gt; {
         Set::add(<span class="kw-2">&amp;</span><span class="self">self</span>.inner.clone().into(), items, context)
     }
 
@@ -249,7 +249,7 @@
     ///
     /// Same as JavaScript&#39;s `set.clear()`.
     </span><span class="attribute">#[inline]
-    </span><span class="kw">pub fn </span>clear(<span class="kw-2">&amp;</span><span class="self">self</span>, context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsValue&gt; {
+    </span><span class="kw">pub fn </span>clear(<span class="kw-2">&amp;</span><span class="self">self</span>, context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;JsValue&gt; {
         Set::clear(<span class="kw-2">&amp;</span><span class="self">self</span>.inner.clone().into(), <span class="kw-2">&amp;</span>[JsValue::Null], context)
     }
 
@@ -258,7 +258,7 @@
     /// successfully removed or not.
     ///
     /// Same as JavaScript&#39;s `set.delete(value)`.
-    </span><span class="kw">pub fn </span>delete&lt;T&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, value: T, context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;bool&gt;
+    </span><span class="kw">pub fn </span>delete&lt;T&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, value: T, context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;bool&gt;
     <span class="kw">where
         </span>T: Into&lt;JsValue&gt;,
     {
@@ -273,7 +273,7 @@
     /// with the given value in the Set object or not.
     ///
     /// Same as JavaScript&#39;s `set.has(value)`.
-    </span><span class="kw">pub fn </span>has&lt;T&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, value: T, context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;bool&gt;
+    </span><span class="kw">pub fn </span>has&lt;T&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, value: T, context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;bool&gt;
     <span class="kw">where
         </span>T: Into&lt;JsValue&gt;,
     {
@@ -289,7 +289,7 @@
     ///
     /// Same as JavaScript&#39;s `set.values()`.
     </span><span class="attribute">#[inline]
-    </span><span class="kw">pub fn </span>values(<span class="kw-2">&amp;</span><span class="self">self</span>, context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsSetIterator&gt; {
+    </span><span class="kw">pub fn </span>values(<span class="kw-2">&amp;</span><span class="self">self</span>, context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;JsSetIterator&gt; {
         <span class="kw">let </span>iterator_object = Set::values(<span class="kw-2">&amp;</span><span class="self">self</span>.inner.clone().into(), <span class="kw-2">&amp;</span>[JsValue::Null], context)<span class="question-mark">?
             </span>.get_iterator(context, <span class="prelude-val">None</span>, <span class="prelude-val">None</span>)<span class="question-mark">?</span>;
 
@@ -302,7 +302,7 @@
     ///
     /// Same as JavaScript&#39;s `set.keys()`.
     </span><span class="attribute">#[inline]
-    </span><span class="kw">pub fn </span>keys(<span class="kw-2">&amp;</span><span class="self">self</span>, context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsSetIterator&gt; {
+    </span><span class="kw">pub fn </span>keys(<span class="kw-2">&amp;</span><span class="self">self</span>, context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;JsSetIterator&gt; {
         <span class="kw">let </span>iterator_object = Set::values(<span class="kw-2">&amp;</span><span class="self">self</span>.inner.clone().into(), <span class="kw-2">&amp;</span>[JsValue::Null], context)<span class="question-mark">?
             </span>.get_iterator(context, <span class="prelude-val">None</span>, <span class="prelude-val">None</span>)<span class="question-mark">?</span>;
 
@@ -319,7 +319,7 @@
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         callback: JsFunction,
         this_arg: JsValue,
-        context: <span class="kw-2">&amp;mut </span>Context,
+        context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
     ) -&gt; JsResult&lt;JsValue&gt; {
         Set::for_each(
             <span class="kw-2">&amp;</span><span class="self">self</span>.inner.clone().into(),
@@ -341,7 +341,7 @@
     }
 
     <span class="doccomment">/// Utility: Creates a `JsSet` from a `&lt;IntoIterator&lt;Item = JsValue&gt;` convertible object.
-    </span><span class="kw">pub fn </span>from_iter&lt;I&gt;(elements: I, context: <span class="kw-2">&amp;mut </span>Context) -&gt; <span class="self">Self
+    </span><span class="kw">pub fn </span>from_iter&lt;I&gt;(elements: I, context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <span class="self">Self
     </span><span class="kw">where
         </span>I: IntoIterator&lt;Item = JsValue&gt;,
     {

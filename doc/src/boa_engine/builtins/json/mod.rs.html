@@ -876,6 +876,10 @@
 <span id="875">875</span>
 <span id="876">876</span>
 <span id="877">877</span>
+<span id="878">878</span>
+<span id="879">879</span>
+<span id="880">880</span>
+<span id="881">881</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Boa&#39;s implementation of ECMAScript&#39;s global `JSON` object.
 //!
 //! The `JSON` object contains methods for parsing [JavaScript Object Notation (JSON)][spec]
@@ -1016,7 +1020,7 @@
 <span class="kw">impl </span>BuiltIn <span class="kw">for </span>Json {
     <span class="kw">const </span>NAME: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;JSON&quot;</span>;
 
-    <span class="kw">fn </span>init(context: <span class="kw-2">&amp;mut </span>Context) -&gt; <span class="prelude-ty">Option</span>&lt;JsValue&gt; {
+    <span class="kw">fn </span>init(context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <span class="prelude-ty">Option</span>&lt;JsValue&gt; {
         <span class="kw">let </span>_timer = Profiler::global().start_event(<span class="self">Self</span>::NAME, <span class="string">&quot;init&quot;</span>);
 
         <span class="kw">let </span>to_string_tag = WellKnownSymbols::to_string_tag();
@@ -1045,7 +1049,11 @@
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-json.parse
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/JSON/parse
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>parse(<span class="kw">_</span>: <span class="kw-2">&amp;</span>JsValue, args: <span class="kw-2">&amp;</span>[JsValue], context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsValue&gt; {
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>parse(
+        <span class="kw">_</span>: <span class="kw-2">&amp;</span>JsValue,
+        args: <span class="kw-2">&amp;</span>[JsValue],
+        context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+    ) -&gt; JsResult&lt;JsValue&gt; {
         <span class="comment">// 1. Let jsonString be ? ToString(text).
         </span><span class="kw">let </span>json_string = args
             .get(<span class="number">0</span>)
@@ -1107,7 +1115,7 @@
         holder: <span class="kw-2">&amp;</span>JsObject,
         name: JsString,
         reviver: <span class="kw-2">&amp;</span>JsObject,
-        context: <span class="kw-2">&amp;mut </span>Context,
+        context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
     ) -&gt; JsResult&lt;JsValue&gt; {
         <span class="comment">// 1. Let val be ? Get(holder, name).
         </span><span class="kw">let </span>val = holder.get(name.clone(), context)<span class="question-mark">?</span>;
@@ -1197,7 +1205,7 @@
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>stringify(
         <span class="kw">_</span>: <span class="kw-2">&amp;</span>JsValue,
         args: <span class="kw-2">&amp;</span>[JsValue],
-        context: <span class="kw-2">&amp;mut </span>Context,
+        context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
     ) -&gt; JsResult&lt;JsValue&gt; {
         <span class="comment">// 1. Let stack be a new empty List.
         </span><span class="kw">let </span>stack = Vec::new();
@@ -1347,7 +1355,7 @@
         state: <span class="kw-2">&amp;mut </span>StateRecord,
         key: JsString,
         holder: <span class="kw-2">&amp;</span>JsObject,
-        context: <span class="kw-2">&amp;mut </span>Context,
+        context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
     ) -&gt; JsResult&lt;<span class="prelude-ty">Option</span>&lt;JsString&gt;&gt; {
         <span class="comment">// 1. Let value be ? Get(holder, key).
         </span><span class="kw">let </span><span class="kw-2">mut </span>value = holder.get(key.clone(), context)<span class="question-mark">?</span>;
@@ -1518,7 +1526,7 @@
     </span><span class="kw">fn </span>serialize_json_object(
         state: <span class="kw-2">&amp;mut </span>StateRecord,
         value: <span class="kw-2">&amp;</span>JsObject,
-        context: <span class="kw-2">&amp;mut </span>Context,
+        context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
     ) -&gt; JsResult&lt;JsString&gt; {
         <span class="comment">// 1. If state.[[Stack]] contains value, throw a TypeError exception because the structure is cyclical.
         </span><span class="kw">let </span>limiter = RecursionLimiter::new(value);
@@ -1646,7 +1654,7 @@
     </span><span class="kw">fn </span>serialize_json_array(
         state: <span class="kw-2">&amp;mut </span>StateRecord,
         value: <span class="kw-2">&amp;</span>JsObject,
-        context: <span class="kw-2">&amp;mut </span>Context,
+        context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
     ) -&gt; JsResult&lt;JsString&gt; {
         <span class="comment">// 1. If state.[[Stack]] contains value, throw a TypeError exception because the structure is cyclical.
         </span><span class="kw">let </span>limiter = RecursionLimiter::new(value);

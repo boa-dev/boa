@@ -94,7 +94,7 @@
 <span class="kw">impl </span>OptionTypeParsable <span class="kw">for </span>ListFormatType {}
 
 <span class="kw">impl </span>OptionType <span class="kw">for </span>ListLength {
-    <span class="kw">fn </span>from_value(value: JsValue, context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;<span class="self">Self</span>&gt; {
+    <span class="kw">fn </span>from_value(value: JsValue, context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;<span class="self">Self</span>&gt; {
         <span class="kw">match </span>value.to_string(context)<span class="question-mark">?</span>.to_std_string_escaped().as_str() {
             <span class="string">&quot;long&quot; </span>=&gt; <span class="prelude-val">Ok</span>(<span class="self">Self</span>::Wide),
             <span class="string">&quot;short&quot; </span>=&gt; <span class="prelude-val">Ok</span>(<span class="self">Self</span>::Short),

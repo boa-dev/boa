@@ -154,6 +154,10 @@
 <span id="153">153</span>
 <span id="154">154</span>
 <span id="155">155</span>
+<span id="156">156</span>
+<span id="157">157</span>
+<span id="158">158</span>
+<span id="159">159</span>
 </pre><pre class="rust"><code><span class="doccomment">//! This module implements the `MapIterator` object.
 //!
 //! More information:
@@ -202,7 +206,7 @@
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>create_map_iterator(
         map: <span class="kw-2">&amp;</span>JsValue,
         kind: PropertyNameKind,
-        context: <span class="kw-2">&amp;mut </span>Context,
+        context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
     ) -&gt; JsResult&lt;JsValue&gt; {
         <span class="kw">if let </span><span class="prelude-val">Some</span>(map_obj) = map.as_object() {
             <span class="kw">if let </span><span class="prelude-val">Some</span>(map) = map_obj.borrow_mut().as_map_mut() {
@@ -237,7 +241,11 @@
     ///  - [ECMA reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-%mapiteratorprototype%.next
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>next(this: <span class="kw-2">&amp;</span>JsValue, <span class="kw">_</span>: <span class="kw-2">&amp;</span>[JsValue], context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsValue&gt; {
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>next(
+        this: <span class="kw-2">&amp;</span>JsValue,
+        <span class="kw">_</span>: <span class="kw-2">&amp;</span>[JsValue],
+        context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+    ) -&gt; JsResult&lt;JsValue&gt; {
         <span class="kw">let </span><span class="kw-2">mut </span>map_iterator = this.as_object().map(JsObject::borrow_mut);
         <span class="kw">let </span>map_iterator = map_iterator
             .as_mut()
@@ -290,7 +298,7 @@
     /// [spec]: https://tc39.es/ecma262/#sec-%mapiteratorprototype%-object
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>create_prototype(
         iterator_prototype: JsObject,
-        context: <span class="kw-2">&amp;mut </span>Context,
+        context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
     ) -&gt; JsObject {
         <span class="kw">let </span>_timer = Profiler::global().start_event(<span class="self">Self</span>::NAME, <span class="string">&quot;init&quot;</span>);
 

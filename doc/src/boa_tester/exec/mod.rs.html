@@ -406,19 +406,6 @@
 <span id="405">405</span>
 <span id="406">406</span>
 <span id="407">407</span>
-<span id="408">408</span>
-<span id="409">409</span>
-<span id="410">410</span>
-<span id="411">411</span>
-<span id="412">412</span>
-<span id="413">413</span>
-<span id="414">414</span>
-<span id="415">415</span>
-<span id="416">416</span>
-<span id="417">417</span>
-<span id="418">418</span>
-<span id="419">419</span>
-<span id="420">420</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Execution module for the test runner.
 
 </span><span class="kw">mod </span>js262;
@@ -428,18 +415,12 @@
 };
 <span class="kw">use </span><span class="kw">crate</span>::read::ErrorType;
 <span class="kw">use </span>boa_engine::{
-    builtins::JsArgs,
-    context::{BoaProvider, ContextBuilder},
-    object::FunctionBuilder,
-    property::Attribute,
-    Context, JsNativeErrorKind, JsResult, JsValue,
+    builtins::JsArgs, object::FunctionBuilder, property::Attribute, Context, JsNativeErrorKind,
+    JsResult, JsValue,
 };
 <span class="kw">use </span>boa_gc::{Finalize, Gc, GcCell, Trace};
 <span class="kw">use </span>boa_parser::Parser;
 <span class="kw">use </span>colored::Colorize;
-<span class="kw">use </span>icu_provider_adapters::fallback::LocaleFallbackProvider;
-<span class="kw">use </span>icu_provider_blob::BlobDataProvider;
-<span class="kw">use </span>once_cell::sync::Lazy;
 <span class="kw">use </span>rayon::prelude::<span class="kw-2">*</span>;
 <span class="kw">use </span>std::borrow::Cow;
 
@@ -556,7 +537,6 @@
 
     <span class="doccomment">/// Runs the test once, in strict or non-strict mode
     </span><span class="kw">fn </span>run_once(<span class="kw-2">&amp;</span><span class="self">self</span>, harness: <span class="kw-2">&amp;</span>Harness, strict: bool, verbose: u8) -&gt; TestResult {
-        <span class="kw">static </span>LOCALE_DATA: Lazy&lt;BlobDataProvider&gt; = Lazy::new(boa_icu_provider::blob);
         <span class="kw">if </span><span class="self">self</span>.ignored {
             <span class="kw">if </span>verbose &gt; <span class="number">1 </span>{
                 <span class="macro">println!</span>(
@@ -591,13 +571,7 @@
 
         <span class="kw">let </span>result = std::panic::catch_unwind(|| <span class="kw">match </span><span class="self">self</span>.expected_outcome {
             Outcome::Positive =&gt; {
-                <span class="kw">let </span><span class="kw-2">mut </span>context = ContextBuilder::default()
-                    .icu_provider(BoaProvider::Buffer(Box::new(
-                        LocaleFallbackProvider::try_new_with_buffer_provider(LOCALE_DATA.clone())
-                            .expect(<span class="string">&quot;default locale data should be valid&quot;</span>),
-                    )))
-                    .expect(<span class="string">&quot;default locale data should be valid&quot;</span>)
-                    .build();
+                <span class="kw">let </span><span class="kw-2">mut </span>context = Context::default();
                 <span class="kw">let </span>async_result = AsyncResult::default();
 
                 <span class="kw">if let </span><span class="prelude-val">Err</span>(e) = <span class="self">self</span>.set_up_env(harness, <span class="kw-2">&amp;mut </span>context, async_result.clone()) {
@@ -750,7 +724,7 @@
     </span><span class="kw">fn </span>set_up_env(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         harness: <span class="kw-2">&amp;</span>Harness,
-        context: <span class="kw-2">&amp;mut </span>Context,
+        context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
         async_result: AsyncResult,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;(), String&gt; {
         <span class="comment">// Register the print() function.
@@ -792,7 +766,7 @@
     }
 
     <span class="doccomment">/// Registers the print function in the context.
-    </span><span class="kw">fn </span>register_print_fn(context: <span class="kw-2">&amp;mut </span>Context, async_result: AsyncResult) {
+    </span><span class="kw">fn </span>register_print_fn(context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;, async_result: AsyncResult) {
         <span class="comment">// We use `FunctionBuilder` to define a closure with additional captures.
         </span><span class="kw">let </span>js_function =
             FunctionBuilder::closure_with_captures(context, test262_print, async_result)
@@ -828,7 +802,7 @@
     _this: <span class="kw-2">&amp;</span>JsValue,
     args: <span class="kw-2">&amp;</span>[JsValue],
     async_result: <span class="kw-2">&amp;mut </span>AsyncResult,
-    context: <span class="kw-2">&amp;mut </span>Context,
+    context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
 ) -&gt; JsResult&lt;JsValue&gt; {
     <span class="kw">let </span>message = args
         .get_or_undefined(<span class="number">0</span>)

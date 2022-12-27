@@ -1130,6 +1130,9 @@
 <span id="1129">1129</span>
 <span id="1130">1130</span>
 <span id="1131">1131</span>
+<span id="1132">1132</span>
+<span id="1133">1133</span>
+<span id="1134">1134</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Boa&#39;s ECMAScript Value implementation.
 //!
 //! Javascript values, utility methods and conversion between Javascript values and Rust values.
@@ -1485,7 +1488,7 @@
     /// &lt;https://tc39.es/ecma262/#sec-toprimitive&gt;
     </span><span class="kw">pub fn </span>to_primitive(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        context: <span class="kw-2">&amp;mut </span>Context,
+        context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
         preferred_type: PreferredType,
     ) -&gt; JsResult&lt;<span class="self">Self</span>&gt; {
         <span class="comment">// 1. Assert: input is an ECMAScript language value. (always a value not need to check)
@@ -1541,7 +1544,7 @@
     ///  - [ECMAScript reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-tobigint
-    </span><span class="kw">pub fn </span>to_bigint(<span class="kw-2">&amp;</span><span class="self">self</span>, context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsBigInt&gt; {
+    </span><span class="kw">pub fn </span>to_bigint(<span class="kw-2">&amp;</span><span class="self">self</span>, context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;JsBigInt&gt; {
         <span class="kw">match </span><span class="self">self </span>{
             <span class="self">Self</span>::Null =&gt; <span class="prelude-val">Err</span>(JsNativeError::typ()
                 .with_message(<span class="string">&quot;cannot convert null to a BigInt&quot;</span>)
@@ -1601,7 +1604,7 @@
     <span class="doccomment">/// Converts the value to a string.
     ///
     /// This function is equivalent to `String(value)` in JavaScript.
-    </span><span class="kw">pub fn </span>to_string(<span class="kw-2">&amp;</span><span class="self">self</span>, context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsString&gt; {
+    </span><span class="kw">pub fn </span>to_string(<span class="kw-2">&amp;</span><span class="self">self</span>, context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;JsString&gt; {
         <span class="kw">match </span><span class="self">self </span>{
             <span class="self">Self</span>::Null =&gt; <span class="prelude-val">Ok</span>(<span class="string">&quot;null&quot;</span>.into()),
             <span class="self">Self</span>::Undefined =&gt; <span class="prelude-val">Ok</span>(<span class="string">&quot;undefined&quot;</span>.into()),
@@ -1625,7 +1628,7 @@
     /// This function is equivalent to `Object(value)` in JavaScript.
     ///
     /// See: &lt;https://tc39.es/ecma262/#sec-toobject&gt;
-    </span><span class="kw">pub fn </span>to_object(<span class="kw-2">&amp;</span><span class="self">self</span>, context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsObject&gt; {
+    </span><span class="kw">pub fn </span>to_object(<span class="kw-2">&amp;</span><span class="self">self</span>, context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;JsObject&gt; {
         <span class="kw">match </span><span class="self">self </span>{
             <span class="self">Self</span>::Undefined | <span class="self">Self</span>::Null =&gt; <span class="prelude-val">Err</span>(JsNativeError::typ()
                 .with_message(<span class="string">&quot;cannot convert &#39;null&#39; or &#39;undefined&#39; to object&quot;</span>)
@@ -1692,7 +1695,7 @@
     <span class="doccomment">/// Converts the value to a `PropertyKey`, that can be used as a key for properties.
     ///
     /// See &lt;https://tc39.es/ecma262/#sec-topropertykey&gt;
-    </span><span class="kw">pub fn </span>to_property_key(<span class="kw-2">&amp;</span><span class="self">self</span>, context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;PropertyKey&gt; {
+    </span><span class="kw">pub fn </span>to_property_key(<span class="kw-2">&amp;</span><span class="self">self</span>, context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;PropertyKey&gt; {
         <span class="prelude-val">Ok</span>(<span class="kw">match </span><span class="self">self </span>{
             <span class="comment">// Fast path:
             </span><span class="self">Self</span>::String(string) =&gt; string.clone().into(),
@@ -1712,7 +1715,7 @@
     <span class="doccomment">/// It returns value converted to a numeric value of type `Number` or `BigInt`.
     ///
     /// See: &lt;https://tc39.es/ecma262/#sec-tonumeric&gt;
-    </span><span class="kw">pub fn </span>to_numeric(<span class="kw-2">&amp;</span><span class="self">self</span>, context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;Numeric&gt; {
+    </span><span class="kw">pub fn </span>to_numeric(<span class="kw-2">&amp;</span><span class="self">self</span>, context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;Numeric&gt; {
         <span class="comment">// 1. Let primValue be ? ToPrimitive(value, number).
         </span><span class="kw">let </span>primitive = <span class="self">self</span>.to_primitive(context, PreferredType::Number)<span class="question-mark">?</span>;
 
@@ -1730,7 +1733,7 @@
     /// This function is equivalent to `value | 0` in JavaScript
     ///
     /// See: &lt;https://tc39.es/ecma262/#sec-touint32&gt;
-    </span><span class="kw">pub fn </span>to_u32(<span class="kw-2">&amp;</span><span class="self">self</span>, context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;u32&gt; {
+    </span><span class="kw">pub fn </span>to_u32(<span class="kw-2">&amp;</span><span class="self">self</span>, context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;u32&gt; {
         <span class="comment">// This is the fast path, if the value is Integer we can just return it.
         </span><span class="kw">if let </span><span class="self">Self</span>::Integer(number) = <span class="kw-2">*</span><span class="self">self </span>{
             <span class="kw">if let </span><span class="prelude-val">Ok</span>(number) = u32::try_from(number) {
@@ -1745,7 +1748,7 @@
     <span class="doccomment">/// Converts a value to an integral 32 bit signed integer.
     ///
     /// See: &lt;https://tc39.es/ecma262/#sec-toint32&gt;
-    </span><span class="kw">pub fn </span>to_i32(<span class="kw-2">&amp;</span><span class="self">self</span>, context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;i32&gt; {
+    </span><span class="kw">pub fn </span>to_i32(<span class="kw-2">&amp;</span><span class="self">self</span>, context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;i32&gt; {
         <span class="comment">// This is the fast path, if the value is Integer we can just return it.
         </span><span class="kw">if let </span><span class="self">Self</span>::Integer(number) = <span class="kw-2">*</span><span class="self">self </span>{
             <span class="kw">return </span><span class="prelude-val">Ok</span>(number);
@@ -1761,7 +1764,7 @@
     ///  - [ECMAScript reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-toint8
-    </span><span class="kw">pub fn </span>to_int8(<span class="kw-2">&amp;</span><span class="self">self</span>, context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;i8&gt; {
+    </span><span class="kw">pub fn </span>to_int8(<span class="kw-2">&amp;</span><span class="self">self</span>, context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;i8&gt; {
         <span class="comment">// 1. Let number be ? ToNumber(argument).
         </span><span class="kw">let </span>number = <span class="self">self</span>.to_number(context)<span class="question-mark">?</span>;
 
@@ -1790,7 +1793,7 @@
     ///  - [ECMAScript reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-touint8
-    </span><span class="kw">pub fn </span>to_uint8(<span class="kw-2">&amp;</span><span class="self">self</span>, context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;u8&gt; {
+    </span><span class="kw">pub fn </span>to_uint8(<span class="kw-2">&amp;</span><span class="self">self</span>, context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;u8&gt; {
         <span class="comment">// 1. Let number be ? ToNumber(argument).
         </span><span class="kw">let </span>number = <span class="self">self</span>.to_number(context)<span class="question-mark">?</span>;
 
@@ -1815,7 +1818,7 @@
     ///  - [ECMAScript reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-touint8clamp
-    </span><span class="kw">pub fn </span>to_uint8_clamp(<span class="kw-2">&amp;</span><span class="self">self</span>, context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;u8&gt; {
+    </span><span class="kw">pub fn </span>to_uint8_clamp(<span class="kw-2">&amp;</span><span class="self">self</span>, context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;u8&gt; {
         <span class="comment">// 1. Let number be ? ToNumber(argument).
         </span><span class="kw">let </span>number = <span class="self">self</span>.to_number(context)<span class="question-mark">?</span>;
 
@@ -1862,7 +1865,7 @@
     ///  - [ECMAScript reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-toint16
-    </span><span class="kw">pub fn </span>to_int16(<span class="kw-2">&amp;</span><span class="self">self</span>, context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;i16&gt; {
+    </span><span class="kw">pub fn </span>to_int16(<span class="kw-2">&amp;</span><span class="self">self</span>, context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;i16&gt; {
         <span class="comment">// 1. Let number be ? ToNumber(argument).
         </span><span class="kw">let </span>number = <span class="self">self</span>.to_number(context)<span class="question-mark">?</span>;
 
@@ -1891,7 +1894,7 @@
     ///  - [ECMAScript reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-touint16
-    </span><span class="kw">pub fn </span>to_uint16(<span class="kw-2">&amp;</span><span class="self">self</span>, context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;u16&gt; {
+    </span><span class="kw">pub fn </span>to_uint16(<span class="kw-2">&amp;</span><span class="self">self</span>, context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;u16&gt; {
         <span class="comment">// 1. Let number be ? ToNumber(argument).
         </span><span class="kw">let </span>number = <span class="self">self</span>.to_number(context)<span class="question-mark">?</span>;
 
@@ -1916,7 +1919,7 @@
     ///  - [ECMAScript reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-tobigint64
-    </span><span class="kw">pub fn </span>to_big_int64(<span class="kw-2">&amp;</span><span class="self">self</span>, context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;BigInt&gt; {
+    </span><span class="kw">pub fn </span>to_big_int64(<span class="kw-2">&amp;</span><span class="self">self</span>, context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;BigInt&gt; {
         <span class="comment">// 1. Let n be ? ToBigInt(argument).
         </span><span class="kw">let </span>n = <span class="self">self</span>.to_bigint(context)<span class="question-mark">?</span>;
 
@@ -1937,7 +1940,7 @@
     ///  - [ECMAScript reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-tobiguint64
-    </span><span class="kw">pub fn </span>to_big_uint64(<span class="kw-2">&amp;</span><span class="self">self</span>, context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;BigInt&gt; {
+    </span><span class="kw">pub fn </span>to_big_uint64(<span class="kw-2">&amp;</span><span class="self">self</span>, context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;BigInt&gt; {
         <span class="kw">let </span>two_e_64: u128 = <span class="number">0x1_0000_0000_0000_0000</span>;
         <span class="kw">let </span>two_e_64 = BigInt::from(two_e_64);
 
@@ -1952,7 +1955,7 @@
     <span class="doccomment">/// Converts a value to a non-negative integer if it is a valid integer index value.
     ///
     /// See: &lt;https://tc39.es/ecma262/#sec-toindex&gt;
-    </span><span class="kw">pub fn </span>to_index(<span class="kw-2">&amp;</span><span class="self">self</span>, context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;u64&gt; {
+    </span><span class="kw">pub fn </span>to_index(<span class="kw-2">&amp;</span><span class="self">self</span>, context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;u64&gt; {
         <span class="comment">// 1. If value is undefined, then
         </span><span class="kw">if </span><span class="self">self</span>.is_undefined() {
             <span class="comment">// a. Return 0.
@@ -1983,7 +1986,7 @@
     <span class="doccomment">/// Converts argument to an integer suitable for use as the length of an array-like object.
     ///
     /// See: &lt;https://tc39.es/ecma262/#sec-tolength&gt;
-    </span><span class="kw">pub fn </span>to_length(<span class="kw-2">&amp;</span><span class="self">self</span>, context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;u64&gt; {
+    </span><span class="kw">pub fn </span>to_length(<span class="kw-2">&amp;</span><span class="self">self</span>, context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;u64&gt; {
         <span class="comment">// 1. Let len be ? ToInteger(argument).
         // 2. If len ≤ +0, return +0.
         // 3. Return min(len, 2^53 - 1).
@@ -2001,7 +2004,7 @@
     /// - [ECMAScript reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-tointegerorinfinity
-    </span><span class="kw">pub fn </span>to_integer_or_infinity(<span class="kw-2">&amp;</span><span class="self">self</span>, context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;IntegerOrInfinity&gt; {
+    </span><span class="kw">pub fn </span>to_integer_or_infinity(<span class="kw-2">&amp;</span><span class="self">self</span>, context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;IntegerOrInfinity&gt; {
         <span class="comment">// 1. Let number be ? ToNumber(argument).
         </span><span class="kw">let </span>number = <span class="self">self</span>.to_number(context)<span class="question-mark">?</span>;
 
@@ -2013,7 +2016,7 @@
     ///
     /// This function is almost the same as [`Self::to_integer_or_infinity`], but with the exception
     /// that this will return `Nan` if [`Self::to_number`] returns a non-finite number.
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>to_integer_or_nan(<span class="kw-2">&amp;</span><span class="self">self</span>, context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;IntegerOrNan&gt; {
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>to_integer_or_nan(<span class="kw-2">&amp;</span><span class="self">self</span>, context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;IntegerOrNan&gt; {
         <span class="comment">// 1. Let number be ? ToNumber(argument).
         </span><span class="kw">let </span>number = <span class="self">self</span>.to_number(context)<span class="question-mark">?</span>;
 
@@ -2030,7 +2033,7 @@
     /// This function is equivalent to the unary `+` operator (`+value`) in JavaScript
     ///
     /// See: &lt;https://tc39.es/ecma262/#sec-tonumber&gt;
-    </span><span class="kw">pub fn </span>to_number(<span class="kw-2">&amp;</span><span class="self">self</span>, context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;f64&gt; {
+    </span><span class="kw">pub fn </span>to_number(<span class="kw-2">&amp;</span><span class="self">self</span>, context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;f64&gt; {
         <span class="kw">match </span><span class="kw-2">*</span><span class="self">self </span>{
             <span class="self">Self</span>::Null =&gt; <span class="prelude-val">Ok</span>(<span class="number">0.0</span>),
             <span class="self">Self</span>::Undefined =&gt; <span class="prelude-val">Ok</span>(f64::NAN),
@@ -2056,7 +2059,7 @@
     /// This function is equivalent to `Number(value)` in JavaScript
     ///
     /// See: &lt;https://tc39.es/ecma262/#sec-tonumeric&gt;
-    </span><span class="kw">pub fn </span>to_numeric_number(<span class="kw-2">&amp;</span><span class="self">self</span>, context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;f64&gt; {
+    </span><span class="kw">pub fn </span>to_numeric_number(<span class="kw-2">&amp;</span><span class="self">self</span>, context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;f64&gt; {
         <span class="kw">let </span>primitive = <span class="self">self</span>.to_primitive(context, PreferredType::Number)<span class="question-mark">?</span>;
         <span class="kw">if let </span><span class="prelude-val">Some</span>(bigint) = primitive.as_bigint() {
             <span class="kw">return </span><span class="prelude-val">Ok</span>(bigint.to_f64());
@@ -2093,7 +2096,10 @@
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-topropertydescriptor
     </span><span class="attribute">#[inline]
-    </span><span class="kw">pub fn </span>to_property_descriptor(<span class="kw-2">&amp;</span><span class="self">self</span>, context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;PropertyDescriptor&gt; {
+    </span><span class="kw">pub fn </span>to_property_descriptor(
+        <span class="kw-2">&amp;</span><span class="self">self</span>,
+        context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+    ) -&gt; JsResult&lt;PropertyDescriptor&gt; {
         <span class="comment">// 1. If Type(Obj) is not Object, throw a TypeError exception.
         </span><span class="self">self</span>.as_object()
             .ok_or_else(|| {

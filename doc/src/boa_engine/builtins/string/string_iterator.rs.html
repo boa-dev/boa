@@ -141,7 +141,7 @@
 
 <span class="kw">impl </span>StringIterator {
     <span class="doccomment">/// Create a new `StringIterator`.
-    </span><span class="kw">pub fn </span>create_string_iterator(string: JsValue, context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsValue&gt; {
+    </span><span class="kw">pub fn </span>create_string_iterator(string: JsValue, context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;JsValue&gt; {
         <span class="kw">let </span>string_iterator = JsObject::from_proto_and_data(
             context
                 .intrinsics()
@@ -157,7 +157,7 @@
     }
 
     <span class="doccomment">/// `StringIterator.prototype.next( )`
-    </span><span class="kw">pub fn </span>next(this: <span class="kw-2">&amp;</span>JsValue, <span class="kw">_</span>: <span class="kw-2">&amp;</span>[JsValue], context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsValue&gt; {
+    </span><span class="kw">pub fn </span>next(this: <span class="kw-2">&amp;</span>JsValue, <span class="kw">_</span>: <span class="kw-2">&amp;</span>[JsValue], context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;JsValue&gt; {
         <span class="kw">let </span><span class="kw-2">mut </span>string_iterator = this.as_object().map(JsObject::borrow_mut);
         <span class="kw">let </span>string_iterator = string_iterator
             .as_mut()
@@ -200,7 +200,7 @@
     /// [spec]: https://tc39.es/ecma262/#sec-%arrayiteratorprototype%-object
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>create_prototype(
         iterator_prototype: JsObject,
-        context: <span class="kw-2">&amp;mut </span>Context,
+        context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
     ) -&gt; JsObject {
         <span class="kw">let </span>_timer = Profiler::global().start_event(<span class="string">&quot;String Iterator&quot;</span>, <span class="string">&quot;init&quot;</span>);
 

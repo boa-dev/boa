@@ -904,6 +904,9 @@
 <span id="903">903</span>
 <span id="904">904</span>
 <span id="905">905</span>
+<span id="906">906</span>
+<span id="907">907</span>
+<span id="908">908</span>
 </pre><pre class="rust"><code><span class="doccomment">//! This module implements the `JsObject` structure.
 //!
 //! The `JsObject` is a garbage collected Object.
@@ -947,7 +950,7 @@
     /// [call]: https://tc39.es/ecma262/#sec-ordinaryobjectcreate
     </span><span class="attribute">#[inline]
     #[must_use]
-    </span><span class="kw">pub fn </span>with_object_proto(context: <span class="kw-2">&amp;mut </span>Context) -&gt; <span class="self">Self </span>{
+    </span><span class="kw">pub fn </span>with_object_proto(context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <span class="self">Self </span>{
         <span class="self">Self</span>::from_proto_and_data(
             context.intrinsics().constructors().object().prototype(),
             ObjectData::ordinary(),
@@ -1060,7 +1063,7 @@
     /// [spec]: https://tc39.es/ecma262/#sec-ordinarytoprimitive
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>ordinary_to_primitive(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        context: <span class="kw-2">&amp;mut </span>Context,
+        context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
         hint: PreferredType,
     ) -&gt; JsResult&lt;JsValue&gt; {
         <span class="comment">// 1. Assert: Type(O) is Object.
@@ -1428,7 +1431,10 @@
     /// - [ECMAScript reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-topropertydescriptor
-    </span><span class="kw">pub fn </span>to_property_descriptor(<span class="kw-2">&amp;</span><span class="self">self</span>, context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;PropertyDescriptor&gt; {
+    </span><span class="kw">pub fn </span>to_property_descriptor(
+        <span class="kw-2">&amp;</span><span class="self">self</span>,
+        context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+    ) -&gt; JsResult&lt;PropertyDescriptor&gt; {
         <span class="comment">// 1 is implemented on the method `to_property_descriptor` of value
 
         // 2. Let desc be a new Property Descriptor that initially has no fields.
@@ -1529,7 +1535,7 @@ Cannot both specify accessors and a value or writable attribute&quot;</span>,
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         source: <span class="kw-2">&amp;</span>JsValue,
         excluded_keys: Vec&lt;K&gt;,
-        context: <span class="kw-2">&amp;mut </span>Context,
+        context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
     ) -&gt; JsResult&lt;()&gt;
     <span class="kw">where
         </span>K: Into&lt;PropertyKey&gt;,

@@ -2513,6 +2513,9 @@
 <span id="2512">2512</span>
 <span id="2513">2513</span>
 <span id="2514">2514</span>
+<span id="2515">2515</span>
+<span id="2516">2516</span>
+<span id="2517">2517</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Boa&#39;s representation of a JavaScript object and builtin object wrappers
 //!
 //! For the builtin object wrappers, please see [`object::builtins`][builtins] for implementors.
@@ -4414,17 +4417,17 @@
 
 <span class="doccomment">/// Builder for creating native function objects
 </span><span class="attribute">#[derive(Debug)]
-</span><span class="kw">pub struct </span>FunctionBuilder&lt;<span class="lifetime">&#39;context</span>&gt; {
-    context: <span class="kw-2">&amp;</span><span class="lifetime">&#39;context </span><span class="kw-2">mut </span>Context,
+</span><span class="kw">pub struct </span>FunctionBuilder&lt;<span class="lifetime">&#39;ctx</span>, <span class="lifetime">&#39;icu</span>&gt; {
+    context: <span class="kw-2">&amp;</span><span class="lifetime">&#39;ctx </span><span class="kw-2">mut </span>Context&lt;<span class="lifetime">&#39;icu</span>&gt;,
     function: Function,
     name: JsString,
     length: usize,
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;context</span>&gt; FunctionBuilder&lt;<span class="lifetime">&#39;context</span>&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;ctx</span>, <span class="lifetime">&#39;icu</span>&gt; FunctionBuilder&lt;<span class="lifetime">&#39;ctx</span>, <span class="lifetime">&#39;icu</span>&gt; {
     <span class="doccomment">/// Create a new `FunctionBuilder` for creating a native function.
     </span><span class="attribute">#[inline]
-    </span><span class="kw">pub fn </span>native(context: <span class="kw-2">&amp;</span><span class="lifetime">&#39;context </span><span class="kw-2">mut </span>Context, function: NativeFunctionSignature) -&gt; <span class="self">Self </span>{
+    </span><span class="kw">pub fn </span>native(context: <span class="kw-2">&amp;</span><span class="lifetime">&#39;ctx </span><span class="kw-2">mut </span>Context&lt;<span class="lifetime">&#39;icu</span>&gt;, function: NativeFunctionSignature) -&gt; <span class="self">Self </span>{
         <span class="self">Self </span>{
             context,
             function: Function::Native {
@@ -4437,9 +4440,9 @@
     }
 
     <span class="doccomment">/// Create a new `FunctionBuilder` for creating a closure function.
-    </span><span class="kw">pub fn </span>closure&lt;F&gt;(context: <span class="kw-2">&amp;</span><span class="lifetime">&#39;context </span><span class="kw-2">mut </span>Context, function: F) -&gt; <span class="self">Self
+    </span><span class="kw">pub fn </span>closure&lt;F&gt;(context: <span class="kw-2">&amp;</span><span class="lifetime">&#39;ctx </span><span class="kw-2">mut </span>Context&lt;<span class="lifetime">&#39;icu</span>&gt;, function: F) -&gt; <span class="self">Self
     </span><span class="kw">where
-        </span>F: Fn(<span class="kw-2">&amp;</span>JsValue, <span class="kw-2">&amp;</span>[JsValue], <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsValue&gt; + Copy + <span class="lifetime">&#39;static</span>,
+        </span>F: Fn(<span class="kw-2">&amp;</span>JsValue, <span class="kw-2">&amp;</span>[JsValue], <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;JsValue&gt; + Copy + <span class="lifetime">&#39;static</span>,
     {
         <span class="self">Self </span>{
             context,
@@ -4460,12 +4463,12 @@
     /// You can only move variables that implement `Debug + Any + Trace + Clone`.
     /// In other words, only `NativeObject + Clone` objects are movable.
     </span><span class="kw">pub fn </span>closure_with_captures&lt;F, C&gt;(
-        context: <span class="kw-2">&amp;</span><span class="lifetime">&#39;context </span><span class="kw-2">mut </span>Context,
+        context: <span class="kw-2">&amp;</span><span class="lifetime">&#39;ctx </span><span class="kw-2">mut </span>Context&lt;<span class="lifetime">&#39;icu</span>&gt;,
         function: F,
         captures: C,
     ) -&gt; <span class="self">Self
     </span><span class="kw">where
-        </span>F: Fn(<span class="kw-2">&amp;</span>JsValue, <span class="kw-2">&amp;</span>[JsValue], <span class="kw-2">&amp;mut </span>C, <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsValue&gt; + Copy + <span class="lifetime">&#39;static</span>,
+        </span>F: Fn(<span class="kw-2">&amp;</span>JsValue, <span class="kw-2">&amp;</span>[JsValue], <span class="kw-2">&amp;mut </span>C, <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;JsValue&gt; + Copy + <span class="lifetime">&#39;static</span>,
         C: NativeObject,
     {
         <span class="self">Self </span>{
@@ -4601,15 +4604,15 @@
 /// }
 /// ```
 </span><span class="attribute">#[derive(Debug)]
-</span><span class="kw">pub struct </span>ObjectInitializer&lt;<span class="lifetime">&#39;context</span>&gt; {
-    context: <span class="kw-2">&amp;</span><span class="lifetime">&#39;context </span><span class="kw-2">mut </span>Context,
+</span><span class="kw">pub struct </span>ObjectInitializer&lt;<span class="lifetime">&#39;ctx</span>, <span class="lifetime">&#39;icu</span>&gt; {
+    context: <span class="kw-2">&amp;</span><span class="lifetime">&#39;ctx </span><span class="kw-2">mut </span>Context&lt;<span class="lifetime">&#39;icu</span>&gt;,
     object: JsObject,
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;context</span>&gt; ObjectInitializer&lt;<span class="lifetime">&#39;context</span>&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;ctx</span>, <span class="lifetime">&#39;icu</span>&gt; ObjectInitializer&lt;<span class="lifetime">&#39;ctx</span>, <span class="lifetime">&#39;icu</span>&gt; {
     <span class="doccomment">/// Create a new `ObjectBuilder`.
     </span><span class="attribute">#[inline]
-    </span><span class="kw">pub fn </span>new(context: <span class="kw-2">&amp;</span><span class="lifetime">&#39;context </span><span class="kw-2">mut </span>Context) -&gt; <span class="self">Self </span>{
+    </span><span class="kw">pub fn </span>new(context: <span class="kw-2">&amp;</span><span class="lifetime">&#39;ctx </span><span class="kw-2">mut </span>Context&lt;<span class="lifetime">&#39;icu</span>&gt;) -&gt; <span class="self">Self </span>{
         <span class="kw">let </span>object = JsObject::with_object_proto(context);
         <span class="self">Self </span>{ context, object }
     }
@@ -4665,8 +4668,8 @@
 }
 
 <span class="doccomment">/// Builder for creating constructors objects, like `Array`.
-</span><span class="kw">pub struct </span>ConstructorBuilder&lt;<span class="lifetime">&#39;context</span>&gt; {
-    context: <span class="kw-2">&amp;</span><span class="lifetime">&#39;context </span><span class="kw-2">mut </span>Context,
+</span><span class="kw">pub struct </span>ConstructorBuilder&lt;<span class="lifetime">&#39;ctx</span>, <span class="lifetime">&#39;icu</span>&gt; {
+    context: <span class="kw-2">&amp;</span><span class="lifetime">&#39;ctx </span><span class="kw-2">mut </span>Context&lt;<span class="lifetime">&#39;icu</span>&gt;,
     function: NativeFunctionSignature,
     object: JsObject,
     has_prototype_property: bool,
@@ -4679,7 +4682,7 @@
     custom_prototype: <span class="prelude-ty">Option</span>&lt;JsPrototype&gt;,
 }
 
-<span class="kw">impl </span>Debug <span class="kw">for </span>ConstructorBuilder&lt;<span class="lifetime">&#39;_</span>&gt; {
+<span class="kw">impl </span>Debug <span class="kw">for </span>ConstructorBuilder&lt;<span class="lifetime">&#39;_</span>, <span class="lifetime">&#39;_</span>&gt; {
     <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
         f.debug_struct(<span class="string">&quot;ConstructorBuilder&quot;</span>)
             .field(<span class="string">&quot;name&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.name)
@@ -4694,10 +4697,13 @@
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;context</span>&gt; ConstructorBuilder&lt;<span class="lifetime">&#39;context</span>&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;ctx</span>, <span class="lifetime">&#39;icu</span>&gt; ConstructorBuilder&lt;<span class="lifetime">&#39;ctx</span>, <span class="lifetime">&#39;icu</span>&gt; {
     <span class="doccomment">/// Create a new `ConstructorBuilder`.
     </span><span class="attribute">#[inline]
-    </span><span class="kw">pub fn </span>new(context: <span class="kw-2">&amp;</span><span class="lifetime">&#39;context </span><span class="kw-2">mut </span>Context, function: NativeFunctionSignature) -&gt; <span class="self">Self </span>{
+    </span><span class="kw">pub fn </span>new(
+        context: <span class="kw-2">&amp;</span><span class="lifetime">&#39;ctx </span><span class="kw-2">mut </span>Context&lt;<span class="lifetime">&#39;icu</span>&gt;,
+        function: NativeFunctionSignature,
+    ) -&gt; ConstructorBuilder&lt;<span class="lifetime">&#39;ctx</span>, <span class="lifetime">&#39;icu</span>&gt; {
         <span class="self">Self </span>{
             context,
             function,
@@ -4714,10 +4720,10 @@
     }
 
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>with_standard_constructor(
-        context: <span class="kw-2">&amp;</span><span class="lifetime">&#39;context </span><span class="kw-2">mut </span>Context,
+        context: <span class="kw-2">&amp;</span><span class="lifetime">&#39;ctx </span><span class="kw-2">mut </span>Context&lt;<span class="lifetime">&#39;icu</span>&gt;,
         function: NativeFunctionSignature,
         standard_constructor: StandardConstructor,
-    ) -&gt; <span class="self">Self </span>{
+    ) -&gt; ConstructorBuilder&lt;<span class="lifetime">&#39;ctx</span>, <span class="lifetime">&#39;icu</span>&gt; {
         <span class="self">Self </span>{
             context,
             function,
@@ -4947,7 +4953,7 @@
 
     <span class="doccomment">/// Return the current context.
     </span><span class="attribute">#[inline]
-    </span><span class="kw">pub fn </span>context(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;_ </span><span class="kw-2">mut </span>Context {
+    </span><span class="kw">pub fn </span>context(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;icu</span>&gt; {
         <span class="self">self</span>.context
     }
 

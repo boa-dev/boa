@@ -102,6 +102,10 @@
 <span id="101">101</span>
 <span id="102">102</span>
 <span id="103">103</span>
+<span id="104">104</span>
+<span id="105">105</span>
+<span id="106">106</span>
+<span id="107">107</span>
 </pre><pre class="rust"><code><span class="kw">use </span>boa_engine::{
     builtins::JsArgs,
     object::{JsObject, ObjectInitializer},
@@ -110,7 +114,7 @@
 };
 
 <span class="doccomment">/// Initializes the object in the context.
-</span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>init(context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsObject {
+</span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>init(context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsObject {
     <span class="kw">let </span>global_obj = context.global_object().clone();
 
     <span class="kw">let </span>obj = ObjectInitializer::new(context)
@@ -132,7 +136,7 @@
 /// Creates a new ECMAScript Realm, defines this API on the new realm&#39;s global object, and
 /// returns the `$262` property of the new realm&#39;s global object.
 </span><span class="attribute">#[allow(clippy::unnecessary_wraps)]
-</span><span class="kw">fn </span>create_realm(_this: <span class="kw-2">&amp;</span>JsValue, <span class="kw">_</span>: <span class="kw-2">&amp;</span>[JsValue], _context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsValue&gt; {
+</span><span class="kw">fn </span>create_realm(_this: <span class="kw-2">&amp;</span>JsValue, <span class="kw">_</span>: <span class="kw-2">&amp;</span>[JsValue], _context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;JsValue&gt; {
     <span class="kw">let </span><span class="kw-2">mut </span>context = Context::default();
 
     <span class="comment">// add the $262 object.
@@ -144,7 +148,11 @@
 <span class="doccomment">/// The `$262.detachArrayBuffer()` function.
 ///
 /// Implements the `DetachArrayBuffer` abstract operation.
-</span><span class="kw">fn </span>detach_array_buffer(_this: <span class="kw-2">&amp;</span>JsValue, args: <span class="kw-2">&amp;</span>[JsValue], <span class="kw">_</span>: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsValue&gt; {
+</span><span class="kw">fn </span>detach_array_buffer(
+    _this: <span class="kw-2">&amp;</span>JsValue,
+    args: <span class="kw-2">&amp;</span>[JsValue],
+    <span class="kw">_</span>: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+) -&gt; JsResult&lt;JsValue&gt; {
     <span class="kw">fn </span>type_err() -&gt; JsNativeError {
         JsNativeError::typ().with_message(<span class="string">&quot;The provided object was not an ArrayBuffer&quot;</span>)
     }
@@ -180,7 +188,7 @@
 <span class="doccomment">/// The `$262.evalScript()` function.
 ///
 /// Accepts a string value as its first argument and executes it as an ECMAScript script.
-</span><span class="kw">fn </span>eval_script(_this: <span class="kw-2">&amp;</span>JsValue, args: <span class="kw-2">&amp;</span>[JsValue], context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsValue&gt; {
+</span><span class="kw">fn </span>eval_script(_this: <span class="kw-2">&amp;</span>JsValue, args: <span class="kw-2">&amp;</span>[JsValue], context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;JsValue&gt; {
     args.get(<span class="number">0</span>).and_then(JsValue::as_string).map_or_else(
         || <span class="prelude-val">Ok</span>(JsValue::undefined()),
         |source_text| <span class="kw">match </span>context.parse(source_text.to_std_string_escaped()) {
@@ -201,7 +209,7 @@
 /// Must throw an exception if no capability exists. This is necessary for testing the
 /// semantics of any feature that relies on garbage collection, e.g. the `WeakRef` API.
 </span><span class="attribute">#[allow(clippy::unnecessary_wraps)]
-</span><span class="kw">fn </span>gc(_this: <span class="kw-2">&amp;</span>JsValue, <span class="kw">_</span>: <span class="kw-2">&amp;</span>[JsValue], _context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsValue&gt; {
+</span><span class="kw">fn </span>gc(_this: <span class="kw-2">&amp;</span>JsValue, <span class="kw">_</span>: <span class="kw-2">&amp;</span>[JsValue], _context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;JsValue&gt; {
     boa_gc::force_collect();
     <span class="prelude-val">Ok</span>(JsValue::undefined())
 }

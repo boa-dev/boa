@@ -392,6 +392,14 @@
 <span id="391">391</span>
 <span id="392">392</span>
 <span id="393">393</span>
+<span id="394">394</span>
+<span id="395">395</span>
+<span id="396">396</span>
+<span id="397">397</span>
+<span id="398">398</span>
+<span id="399">399</span>
+<span id="400">400</span>
+<span id="401">401</span>
 </pre><pre class="rust"><code><span class="doccomment">//! A Rust API wrapper for Boa&#39;s `Array` Builtin ECMAScript Object
 </span><span class="kw">use crate</span>::{
     builtins::Array,
@@ -412,7 +420,7 @@
 <span class="kw">impl </span>JsArray {
     <span class="doccomment">/// Create a new empty array.
     </span><span class="attribute">#[inline]
-    </span><span class="kw">pub fn </span>new(context: <span class="kw-2">&amp;mut </span>Context) -&gt; <span class="self">Self </span>{
+    </span><span class="kw">pub fn </span>new(context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <span class="self">Self </span>{
         <span class="kw">let </span>inner = Array::array_create(<span class="number">0</span>, <span class="prelude-val">None</span>, context)
             .expect(<span class="string">&quot;creating an empty array with the default prototype must not fail&quot;</span>);
 
@@ -420,7 +428,7 @@
     }
 
     <span class="doccomment">/// Create an array from a `IntoIterator&lt;Item = JsValue&gt;` convertible object.
-    </span><span class="kw">pub fn </span>from_iter&lt;I&gt;(elements: I, context: <span class="kw-2">&amp;mut </span>Context) -&gt; <span class="self">Self
+    </span><span class="kw">pub fn </span>from_iter&lt;I&gt;(elements: I, context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <span class="self">Self
     </span><span class="kw">where
         </span>I: IntoIterator&lt;Item = JsValue&gt;,
     {
@@ -447,18 +455,18 @@
     ///
     /// Same a `array.length` in JavaScript.
     </span><span class="attribute">#[inline]
-    </span><span class="kw">pub fn </span>length(<span class="kw-2">&amp;</span><span class="self">self</span>, context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;u64&gt; {
+    </span><span class="kw">pub fn </span>length(<span class="kw-2">&amp;</span><span class="self">self</span>, context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;u64&gt; {
         <span class="self">self</span>.inner.length_of_array_like(context)
     }
 
     <span class="doccomment">/// Check if the array is empty, i.e. the `length` is zero.
     </span><span class="attribute">#[inline]
-    </span><span class="kw">pub fn </span>is_empty(<span class="kw-2">&amp;</span><span class="self">self</span>, context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;bool&gt; {
+    </span><span class="kw">pub fn </span>is_empty(<span class="kw-2">&amp;</span><span class="self">self</span>, context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;bool&gt; {
         <span class="self">self</span>.inner.length_of_array_like(context).map(|len| len == <span class="number">0</span>)
     }
 
     <span class="doccomment">/// Push an element to the array.
-    </span><span class="kw">pub fn </span>push&lt;T&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, value: T, context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsValue&gt;
+    </span><span class="kw">pub fn </span>push&lt;T&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, value: T, context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;JsValue&gt;
     <span class="kw">where
         </span>T: Into&lt;JsValue&gt;,
     {
@@ -467,18 +475,18 @@
 
     <span class="doccomment">/// Pushes a slice of elements to the array.
     </span><span class="attribute">#[inline]
-    </span><span class="kw">pub fn </span>push_items(<span class="kw-2">&amp;</span><span class="self">self</span>, items: <span class="kw-2">&amp;</span>[JsValue], context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsValue&gt; {
+    </span><span class="kw">pub fn </span>push_items(<span class="kw-2">&amp;</span><span class="self">self</span>, items: <span class="kw-2">&amp;</span>[JsValue], context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;JsValue&gt; {
         Array::push(<span class="kw-2">&amp;</span><span class="self">self</span>.inner.clone().into(), items, context)
     }
 
     <span class="doccomment">/// Pops an element from the array.
     </span><span class="attribute">#[inline]
-    </span><span class="kw">pub fn </span>pop(<span class="kw-2">&amp;</span><span class="self">self</span>, context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsValue&gt; {
+    </span><span class="kw">pub fn </span>pop(<span class="kw-2">&amp;</span><span class="self">self</span>, context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;JsValue&gt; {
         Array::pop(<span class="kw-2">&amp;</span><span class="self">self</span>.inner.clone().into(), <span class="kw-2">&amp;</span>[], context)
     }
 
     <span class="doccomment">/// Calls `Array.prototype.at()`.
-    </span><span class="kw">pub fn </span>at&lt;T&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, index: T, context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsValue&gt;
+    </span><span class="kw">pub fn </span>at&lt;T&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, index: T, context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;JsValue&gt;
     <span class="kw">where
         </span>T: Into&lt;i64&gt;,
     {
@@ -487,26 +495,26 @@
 
     <span class="doccomment">/// Calls `Array.prototype.shift()`.
     </span><span class="attribute">#[inline]
-    </span><span class="kw">pub fn </span>shift(<span class="kw-2">&amp;</span><span class="self">self</span>, context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsValue&gt; {
+    </span><span class="kw">pub fn </span>shift(<span class="kw-2">&amp;</span><span class="self">self</span>, context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;JsValue&gt; {
         Array::shift(<span class="kw-2">&amp;</span><span class="self">self</span>.inner.clone().into(), <span class="kw-2">&amp;</span>[], context)
     }
 
     <span class="doccomment">/// Calls `Array.prototype.unshift()`.
     </span><span class="attribute">#[inline]
-    </span><span class="kw">pub fn </span>unshift(<span class="kw-2">&amp;</span><span class="self">self</span>, items: <span class="kw-2">&amp;</span>[JsValue], context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsValue&gt; {
+    </span><span class="kw">pub fn </span>unshift(<span class="kw-2">&amp;</span><span class="self">self</span>, items: <span class="kw-2">&amp;</span>[JsValue], context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;JsValue&gt; {
         Array::shift(<span class="kw-2">&amp;</span><span class="self">self</span>.inner.clone().into(), items, context)
     }
 
     <span class="doccomment">/// Calls `Array.prototype.reverse()`.
     </span><span class="attribute">#[inline]
-    </span><span class="kw">pub fn </span>reverse(<span class="kw-2">&amp;</span><span class="self">self</span>, context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;<span class="self">Self</span>&gt; {
+    </span><span class="kw">pub fn </span>reverse(<span class="kw-2">&amp;</span><span class="self">self</span>, context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;<span class="self">Self</span>&gt; {
         Array::reverse(<span class="kw-2">&amp;</span><span class="self">self</span>.inner.clone().into(), <span class="kw-2">&amp;</span>[], context)<span class="question-mark">?</span>;
         <span class="prelude-val">Ok</span>(<span class="self">self</span>.clone())
     }
 
     <span class="doccomment">/// Calls `Array.prototype.concat()`.
     </span><span class="attribute">#[inline]
-    </span><span class="kw">pub fn </span>concat(<span class="kw-2">&amp;</span><span class="self">self</span>, items: <span class="kw-2">&amp;</span>[JsValue], context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;<span class="self">Self</span>&gt; {
+    </span><span class="kw">pub fn </span>concat(<span class="kw-2">&amp;</span><span class="self">self</span>, items: <span class="kw-2">&amp;</span>[JsValue], context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;<span class="self">Self</span>&gt; {
         <span class="kw">let </span>object = Array::concat(<span class="kw-2">&amp;</span><span class="self">self</span>.inner.clone().into(), items, context)<span class="question-mark">?
             </span>.as_object()
             .cloned()
@@ -517,7 +525,11 @@
 
     <span class="doccomment">/// Calls `Array.prototype.join()`.
     </span><span class="attribute">#[inline]
-    </span><span class="kw">pub fn </span>join(<span class="kw-2">&amp;</span><span class="self">self</span>, separator: <span class="prelude-ty">Option</span>&lt;JsString&gt;, context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsString&gt; {
+    </span><span class="kw">pub fn </span>join(
+        <span class="kw-2">&amp;</span><span class="self">self</span>,
+        separator: <span class="prelude-ty">Option</span>&lt;JsString&gt;,
+        context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+    ) -&gt; JsResult&lt;JsString&gt; {
         Array::join(
             <span class="kw-2">&amp;</span><span class="self">self</span>.inner.clone().into(),
             <span class="kw-2">&amp;</span>[separator.into_or_undefined()],
@@ -536,7 +548,7 @@
         value: T,
         start: <span class="prelude-ty">Option</span>&lt;u32&gt;,
         end: <span class="prelude-ty">Option</span>&lt;u32&gt;,
-        context: <span class="kw-2">&amp;mut </span>Context,
+        context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
     ) -&gt; JsResult&lt;<span class="self">Self</span>&gt;
     <span class="kw">where
         </span>T: Into&lt;JsValue&gt;,
@@ -558,7 +570,7 @@
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         search_element: T,
         from_index: <span class="prelude-ty">Option</span>&lt;u32&gt;,
-        context: <span class="kw-2">&amp;mut </span>Context,
+        context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
     ) -&gt; JsResult&lt;<span class="prelude-ty">Option</span>&lt;u32&gt;&gt;
     <span class="kw">where
         </span>T: Into&lt;JsValue&gt;,
@@ -584,7 +596,7 @@
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         search_element: T,
         from_index: <span class="prelude-ty">Option</span>&lt;u32&gt;,
-        context: <span class="kw-2">&amp;mut </span>Context,
+        context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
     ) -&gt; JsResult&lt;<span class="prelude-ty">Option</span>&lt;u32&gt;&gt;
     <span class="kw">where
         </span>T: Into&lt;JsValue&gt;,
@@ -611,7 +623,7 @@
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         predicate: JsFunction,
         this_arg: <span class="prelude-ty">Option</span>&lt;JsValue&gt;,
-        context: <span class="kw-2">&amp;mut </span>Context,
+        context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
     ) -&gt; JsResult&lt;JsValue&gt; {
         Array::find(
             <span class="kw-2">&amp;</span><span class="self">self</span>.inner.clone().into(),
@@ -626,7 +638,7 @@
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         callback: JsFunction,
         this_arg: <span class="prelude-ty">Option</span>&lt;JsValue&gt;,
-        context: <span class="kw-2">&amp;mut </span>Context,
+        context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
     ) -&gt; JsResult&lt;<span class="self">Self</span>&gt; {
         <span class="kw">let </span>object = Array::filter(
             <span class="kw-2">&amp;</span><span class="self">self</span>.inner.clone().into(),
@@ -646,7 +658,7 @@
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         callback: JsFunction,
         this_arg: <span class="prelude-ty">Option</span>&lt;JsValue&gt;,
-        context: <span class="kw-2">&amp;mut </span>Context,
+        context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
     ) -&gt; JsResult&lt;<span class="self">Self</span>&gt; {
         <span class="kw">let </span>object = Array::map(
             <span class="kw-2">&amp;</span><span class="self">self</span>.inner.clone().into(),
@@ -666,7 +678,7 @@
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         callback: JsFunction,
         this_arg: <span class="prelude-ty">Option</span>&lt;JsValue&gt;,
-        context: <span class="kw-2">&amp;mut </span>Context,
+        context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
     ) -&gt; JsResult&lt;bool&gt; {
         <span class="kw">let </span>result = Array::every(
             <span class="kw-2">&amp;</span><span class="self">self</span>.inner.clone().into(),
@@ -685,7 +697,7 @@
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         callback: JsFunction,
         this_arg: <span class="prelude-ty">Option</span>&lt;JsValue&gt;,
-        context: <span class="kw-2">&amp;mut </span>Context,
+        context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
     ) -&gt; JsResult&lt;bool&gt; {
         <span class="kw">let </span>result = Array::some(
             <span class="kw-2">&amp;</span><span class="self">self</span>.inner.clone().into(),
@@ -700,7 +712,11 @@
 
     <span class="doccomment">/// Calls `Array.prototype.sort()`.
     </span><span class="attribute">#[inline]
-    </span><span class="kw">pub fn </span>sort(<span class="kw-2">&amp;</span><span class="self">self</span>, compare_fn: <span class="prelude-ty">Option</span>&lt;JsFunction&gt;, context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;<span class="self">Self</span>&gt; {
+    </span><span class="kw">pub fn </span>sort(
+        <span class="kw-2">&amp;</span><span class="self">self</span>,
+        compare_fn: <span class="prelude-ty">Option</span>&lt;JsFunction&gt;,
+        context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+    ) -&gt; JsResult&lt;<span class="self">Self</span>&gt; {
         Array::sort(
             <span class="kw-2">&amp;</span><span class="self">self</span>.inner.clone().into(),
             <span class="kw-2">&amp;</span>[compare_fn.into_or_undefined()],
@@ -716,7 +732,7 @@
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         start: <span class="prelude-ty">Option</span>&lt;u32&gt;,
         end: <span class="prelude-ty">Option</span>&lt;u32&gt;,
-        context: <span class="kw-2">&amp;mut </span>Context,
+        context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
     ) -&gt; JsResult&lt;<span class="self">Self</span>&gt; {
         <span class="kw">let </span>object = Array::slice(
             <span class="kw-2">&amp;</span><span class="self">self</span>.inner.clone().into(),
@@ -736,7 +752,7 @@
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         callback: JsFunction,
         initial_value: <span class="prelude-ty">Option</span>&lt;JsValue&gt;,
-        context: <span class="kw-2">&amp;mut </span>Context,
+        context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
     ) -&gt; JsResult&lt;JsValue&gt; {
         Array::reduce(
             <span class="kw-2">&amp;</span><span class="self">self</span>.inner.clone().into(),
@@ -751,7 +767,7 @@
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         callback: JsFunction,
         initial_value: <span class="prelude-ty">Option</span>&lt;JsValue&gt;,
-        context: <span class="kw-2">&amp;mut </span>Context,
+        context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
     ) -&gt; JsResult&lt;JsValue&gt; {
         Array::reduce_right(
             <span class="kw-2">&amp;</span><span class="self">self</span>.inner.clone().into(),

@@ -275,7 +275,7 @@
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>arguments_exotic_get_own_property(
     obj: <span class="kw-2">&amp;</span>JsObject,
     key: <span class="kw-2">&amp;</span>PropertyKey,
-    context: <span class="kw-2">&amp;mut </span>Context,
+    context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
 ) -&gt; JsResult&lt;<span class="prelude-ty">Option</span>&lt;PropertyDescriptor&gt;&gt; {
     <span class="comment">// 1. Let desc be OrdinaryGetOwnProperty(args, P).
     // 2. If desc is undefined, return desc.
@@ -320,7 +320,7 @@
     obj: <span class="kw-2">&amp;</span>JsObject,
     key: PropertyKey,
     desc: PropertyDescriptor,
-    context: <span class="kw-2">&amp;mut </span>Context,
+    context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
 ) -&gt; JsResult&lt;bool&gt; {
     <span class="comment">// 2. Let isMapped be HasOwnProperty(map, P).
     </span><span class="kw">let </span>mapped = <span class="kw">if let </span>PropertyKey::Index(index) = key {
@@ -411,7 +411,7 @@
     obj: <span class="kw-2">&amp;</span>JsObject,
     key: <span class="kw-2">&amp;</span>PropertyKey,
     receiver: JsValue,
-    context: <span class="kw-2">&amp;mut </span>Context,
+    context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
 ) -&gt; JsResult&lt;JsValue&gt; {
     <span class="kw">if let </span>PropertyKey::Index(index) = key {
         <span class="comment">// 1. Let map be args.[[ParameterMap]].
@@ -444,7 +444,7 @@
     key: PropertyKey,
     value: JsValue,
     receiver: JsValue,
-    context: <span class="kw-2">&amp;mut </span>Context,
+    context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
 ) -&gt; JsResult&lt;bool&gt; {
     <span class="comment">// 1. If SameValue(args, Receiver) is false, then
     // a. Let isMapped be false.
@@ -476,7 +476,7 @@
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>arguments_exotic_delete(
     obj: <span class="kw-2">&amp;</span>JsObject,
     key: <span class="kw-2">&amp;</span>PropertyKey,
-    context: <span class="kw-2">&amp;mut </span>Context,
+    context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
 ) -&gt; JsResult&lt;bool&gt; {
     <span class="comment">// 3. Let result be ? OrdinaryDelete(args, P).
     </span><span class="kw">let </span>result = <span class="kw">super</span>::ordinary_delete(obj, key, context)<span class="question-mark">?</span>;

@@ -1370,6 +1370,22 @@
 <span id="1369">1369</span>
 <span id="1370">1370</span>
 <span id="1371">1371</span>
+<span id="1372">1372</span>
+<span id="1373">1373</span>
+<span id="1374">1374</span>
+<span id="1375">1375</span>
+<span id="1376">1376</span>
+<span id="1377">1377</span>
+<span id="1378">1378</span>
+<span id="1379">1379</span>
+<span id="1380">1380</span>
+<span id="1381">1381</span>
+<span id="1382">1382</span>
+<span id="1383">1383</span>
+<span id="1384">1384</span>
+<span id="1385">1385</span>
+<span id="1386">1386</span>
+<span id="1387">1387</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Boa&#39;s implementation of ECMAScript&#39;s global `Object` object.
 //!
 //! The `Object` class represents one of ECMAScript&#39;s data types.
@@ -1417,7 +1433,7 @@
 <span class="kw">impl </span>BuiltIn <span class="kw">for </span>Object {
     <span class="kw">const </span>NAME: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;Object&quot;</span>;
 
-    <span class="kw">fn </span>init(context: <span class="kw-2">&amp;mut </span>Context) -&gt; <span class="prelude-ty">Option</span>&lt;JsValue&gt; {
+    <span class="kw">fn </span>init(context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <span class="prelude-ty">Option</span>&lt;JsValue&gt; {
         <span class="kw">let </span>_timer = Profiler::global().start_event(<span class="self">Self</span>::NAME, <span class="string">&quot;init&quot;</span>);
 
         <span class="kw">let </span>legacy_proto_getter = FunctionBuilder::native(context, <span class="self">Self</span>::legacy_proto_getter)
@@ -1494,7 +1510,7 @@
     <span class="kw">fn </span>constructor(
         new_target: <span class="kw-2">&amp;</span>JsValue,
         args: <span class="kw-2">&amp;</span>[JsValue],
-        context: <span class="kw-2">&amp;mut </span>Context,
+        context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
     ) -&gt; JsResult&lt;JsValue&gt; {
         <span class="comment">// 1. If NewTarget is neither undefined nor the active function object, then
         </span><span class="kw">if </span>!new_target.is_undefined() {
@@ -1530,7 +1546,7 @@
     </span><span class="kw">pub fn </span>legacy_proto_getter(
         this: <span class="kw-2">&amp;</span>JsValue,
         <span class="kw">_</span>: <span class="kw-2">&amp;</span>[JsValue],
-        context: <span class="kw-2">&amp;mut </span>Context,
+        context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
     ) -&gt; JsResult&lt;JsValue&gt; {
         <span class="comment">// 1. Let O be ? ToObject(this value).
         </span><span class="kw">let </span>obj = this.to_object(context)<span class="question-mark">?</span>;
@@ -1555,7 +1571,7 @@
     </span><span class="kw">pub fn </span>legacy_proto_setter(
         this: <span class="kw-2">&amp;</span>JsValue,
         args: <span class="kw-2">&amp;</span>[JsValue],
-        context: <span class="kw-2">&amp;mut </span>Context,
+        context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
     ) -&gt; JsResult&lt;JsValue&gt; {
         <span class="comment">// 1. Let O be ? RequireObjectCoercible(this value).
         </span><span class="kw">let </span>this = this.require_object_coercible()<span class="question-mark">?</span>;
@@ -1600,7 +1616,7 @@
     </span><span class="kw">pub fn </span>legacy_define_getter(
         this: <span class="kw-2">&amp;</span>JsValue,
         args: <span class="kw-2">&amp;</span>[JsValue],
-        context: <span class="kw-2">&amp;mut </span>Context,
+        context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
     ) -&gt; JsResult&lt;JsValue&gt; {
         <span class="kw">let </span>getter = args.get_or_undefined(<span class="number">1</span>);
 
@@ -1643,7 +1659,7 @@
     </span><span class="kw">pub fn </span>legacy_define_setter(
         this: <span class="kw-2">&amp;</span>JsValue,
         args: <span class="kw-2">&amp;</span>[JsValue],
-        context: <span class="kw-2">&amp;mut </span>Context,
+        context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
     ) -&gt; JsResult&lt;JsValue&gt; {
         <span class="kw">let </span>setter = args.get_or_undefined(<span class="number">1</span>);
 
@@ -1686,7 +1702,7 @@
     </span><span class="kw">pub fn </span>legacy_lookup_getter(
         this: <span class="kw-2">&amp;</span>JsValue,
         args: <span class="kw-2">&amp;</span>[JsValue],
-        context: <span class="kw-2">&amp;mut </span>Context,
+        context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
     ) -&gt; JsResult&lt;JsValue&gt; {
         <span class="comment">// 1. Let O be ? ToObject(this value).
         </span><span class="kw">let </span><span class="kw-2">mut </span>obj = this.to_object(context)<span class="question-mark">?</span>;
@@ -1730,7 +1746,7 @@
     </span><span class="kw">pub fn </span>legacy_lookup_setter(
         this: <span class="kw-2">&amp;</span>JsValue,
         args: <span class="kw-2">&amp;</span>[JsValue],
-        context: <span class="kw-2">&amp;mut </span>Context,
+        context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
     ) -&gt; JsResult&lt;JsValue&gt; {
         <span class="comment">// 1. Let O be ? ToObject(this value).
         </span><span class="kw">let </span><span class="kw-2">mut </span>obj = this.to_object(context)<span class="question-mark">?</span>;
@@ -1772,7 +1788,7 @@
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-object.create
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/create
-    </span><span class="kw">pub fn </span>create(<span class="kw">_</span>: <span class="kw-2">&amp;</span>JsValue, args: <span class="kw-2">&amp;</span>[JsValue], context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsValue&gt; {
+    </span><span class="kw">pub fn </span>create(<span class="kw">_</span>: <span class="kw-2">&amp;</span>JsValue, args: <span class="kw-2">&amp;</span>[JsValue], context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;JsValue&gt; {
         <span class="kw">let </span>prototype = args.get_or_undefined(<span class="number">0</span>);
         <span class="kw">let </span>properties = args.get_or_undefined(<span class="number">1</span>);
 
@@ -1812,7 +1828,7 @@
     </span><span class="kw">pub fn </span>get_own_property_descriptor(
         <span class="kw">_</span>: <span class="kw-2">&amp;</span>JsValue,
         args: <span class="kw-2">&amp;</span>[JsValue],
-        context: <span class="kw-2">&amp;mut </span>Context,
+        context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
     ) -&gt; JsResult&lt;JsValue&gt; {
         <span class="comment">// 1. Let obj be ? ToObject(O).
         </span><span class="kw">let </span>obj = args.get_or_undefined(<span class="number">0</span>).to_object(context)<span class="question-mark">?</span>;
@@ -1840,7 +1856,7 @@
     </span><span class="kw">pub fn </span>get_own_property_descriptors(
         <span class="kw">_</span>: <span class="kw-2">&amp;</span>JsValue,
         args: <span class="kw-2">&amp;</span>[JsValue],
-        context: <span class="kw-2">&amp;mut </span>Context,
+        context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
     ) -&gt; JsResult&lt;JsValue&gt; {
         <span class="comment">// 1. Let obj be ? ToObject(O).
         </span><span class="kw">let </span>obj = args.get_or_undefined(<span class="number">0</span>).to_object(context)<span class="question-mark">?</span>;
@@ -1879,7 +1895,7 @@
     /// [spec]: https://tc39.es/ecma262/#sec-frompropertydescriptor
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>from_property_descriptor(
         desc: <span class="prelude-ty">Option</span>&lt;PropertyDescriptor&gt;,
-        context: <span class="kw-2">&amp;mut </span>Context,
+        context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
     ) -&gt; JsValue {
         <span class="comment">// 1. If Desc is undefined, return undefined.
         </span><span class="kw">let </span>desc = <span class="kw">if let </span><span class="prelude-val">Some</span>(desc) = desc {
@@ -1939,7 +1955,7 @@
     }
 
     <span class="doccomment">/// Uses the `SameValue` algorithm to check equality of objects
-    </span><span class="kw">pub fn </span>is(<span class="kw">_</span>: <span class="kw-2">&amp;</span>JsValue, args: <span class="kw-2">&amp;</span>[JsValue], <span class="kw">_</span>: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsValue&gt; {
+    </span><span class="kw">pub fn </span>is(<span class="kw">_</span>: <span class="kw-2">&amp;</span>JsValue, args: <span class="kw-2">&amp;</span>[JsValue], <span class="kw">_</span>: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;JsValue&gt; {
         <span class="kw">let </span>x = args.get_or_undefined(<span class="number">0</span>);
         <span class="kw">let </span>y = args.get_or_undefined(<span class="number">1</span>);
 
@@ -1954,7 +1970,7 @@
     </span><span class="kw">pub fn </span>get_prototype_of(
         <span class="kw">_</span>: <span class="kw-2">&amp;</span>JsValue,
         args: <span class="kw-2">&amp;</span>[JsValue],
-        context: <span class="kw-2">&amp;mut </span>Context,
+        context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
     ) -&gt; JsResult&lt;JsValue&gt; {
         <span class="kw">if </span>args.is_empty() {
             <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::typ()
@@ -1981,7 +1997,7 @@
     </span><span class="kw">pub fn </span>set_prototype_of(
         <span class="kw">_</span>: <span class="kw-2">&amp;</span>JsValue,
         args: <span class="kw-2">&amp;</span>[JsValue],
-        context: <span class="kw-2">&amp;mut </span>Context,
+        context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
     ) -&gt; JsResult&lt;JsValue&gt; {
         <span class="kw">if </span>args.len() &lt; <span class="number">2 </span>{
             <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::typ()
@@ -2046,7 +2062,7 @@
     </span><span class="kw">pub fn </span>is_prototype_of(
         this: <span class="kw-2">&amp;</span>JsValue,
         args: <span class="kw-2">&amp;</span>[JsValue],
-        context: <span class="kw-2">&amp;mut </span>Context,
+        context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
     ) -&gt; JsResult&lt;JsValue&gt; {
         <span class="kw">let </span>v = args.get_or_undefined(<span class="number">0</span>);
         <span class="kw">if </span>!v.is_object() {
@@ -2069,7 +2085,7 @@
     </span><span class="kw">pub fn </span>define_property(
         <span class="kw">_</span>: <span class="kw-2">&amp;</span>JsValue,
         args: <span class="kw-2">&amp;</span>[JsValue],
-        context: <span class="kw-2">&amp;mut </span>Context,
+        context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
     ) -&gt; JsResult&lt;JsValue&gt; {
         <span class="kw">let </span>object = args.get_or_undefined(<span class="number">0</span>);
         <span class="kw">if let </span>JsValue::Object(object) = object {
@@ -2105,7 +2121,7 @@
     </span><span class="kw">pub fn </span>define_properties(
         <span class="kw">_</span>: <span class="kw-2">&amp;</span>JsValue,
         args: <span class="kw-2">&amp;</span>[JsValue],
-        context: <span class="kw-2">&amp;mut </span>Context,
+        context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
     ) -&gt; JsResult&lt;JsValue&gt; {
         <span class="kw">let </span>arg = args.get_or_undefined(<span class="number">0</span>);
         <span class="kw">if let </span>JsValue::Object(obj) = arg {
@@ -2127,7 +2143,7 @@
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-object.prototype.valueof
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/valueOf
-    </span><span class="kw">pub fn </span>value_of(this: <span class="kw-2">&amp;</span>JsValue, <span class="kw">_</span>: <span class="kw-2">&amp;</span>[JsValue], context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsValue&gt; {
+    </span><span class="kw">pub fn </span>value_of(this: <span class="kw-2">&amp;</span>JsValue, <span class="kw">_</span>: <span class="kw-2">&amp;</span>[JsValue], context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;JsValue&gt; {
         <span class="comment">// 1. Return ? ToObject(this value).
         </span><span class="prelude-val">Ok</span>(this.to_object(context)<span class="question-mark">?</span>.into())
     }
@@ -2143,7 +2159,11 @@
     /// [spec]: https://tc39.es/ecma262/#sec-object.prototype.tostring
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/toString
     </span><span class="attribute">#[allow(clippy::wrong_self_convention)]
-    </span><span class="kw">pub fn </span>to_string(this: <span class="kw-2">&amp;</span>JsValue, <span class="kw">_</span>: <span class="kw-2">&amp;</span>[JsValue], context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsValue&gt; {
+    </span><span class="kw">pub fn </span>to_string(
+        this: <span class="kw-2">&amp;</span>JsValue,
+        <span class="kw">_</span>: <span class="kw-2">&amp;</span>[JsValue],
+        context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+    ) -&gt; JsResult&lt;JsValue&gt; {
         <span class="comment">// 1. If the this value is undefined, return &quot;[object Undefined]&quot;.
         </span><span class="kw">if </span>this.is_undefined() {
             <span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="string">&quot;[object Undefined]&quot;</span>.into());
@@ -2204,7 +2224,7 @@
     </span><span class="kw">pub fn </span>to_locale_string(
         this: <span class="kw-2">&amp;</span>JsValue,
         <span class="kw">_</span>: <span class="kw-2">&amp;</span>[JsValue],
-        context: <span class="kw-2">&amp;mut </span>Context,
+        context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
     ) -&gt; JsResult&lt;JsValue&gt; {
         <span class="comment">// 1. Let O be the this value.
         // 2. Return ? Invoke(O, &quot;toString&quot;).
@@ -2225,7 +2245,7 @@
     </span><span class="kw">pub fn </span>has_own_property(
         this: <span class="kw-2">&amp;</span>JsValue,
         args: <span class="kw-2">&amp;</span>[JsValue],
-        context: <span class="kw-2">&amp;mut </span>Context,
+        context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
     ) -&gt; JsResult&lt;JsValue&gt; {
         <span class="comment">// 1. Let P be ? ToPropertyKey(V).
         </span><span class="kw">let </span>key = args.get_or_undefined(<span class="number">0</span>).to_property_key(context)<span class="question-mark">?</span>;
@@ -2251,7 +2271,7 @@
     </span><span class="kw">pub fn </span>property_is_enumerable(
         this: <span class="kw-2">&amp;</span>JsValue,
         args: <span class="kw-2">&amp;</span>[JsValue],
-        context: <span class="kw-2">&amp;mut </span>Context,
+        context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
     ) -&gt; JsResult&lt;JsValue&gt; {
         <span class="kw">let </span>key = <span class="kw">match </span>args.get(<span class="number">0</span>) {
             <span class="prelude-val">None </span>=&gt; <span class="kw">return </span><span class="prelude-val">Ok</span>(JsValue::new(<span class="bool-val">false</span>)),
@@ -2282,7 +2302,7 @@
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-object.assign
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/assign
-    </span><span class="kw">pub fn </span>assign(<span class="kw">_</span>: <span class="kw-2">&amp;</span>JsValue, args: <span class="kw-2">&amp;</span>[JsValue], context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsValue&gt; {
+    </span><span class="kw">pub fn </span>assign(<span class="kw">_</span>: <span class="kw-2">&amp;</span>JsValue, args: <span class="kw-2">&amp;</span>[JsValue], context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;JsValue&gt; {
         <span class="comment">// 1. Let to be ? ToObject(target).
         </span><span class="kw">let </span>to = args.get_or_undefined(<span class="number">0</span>).to_object(context)<span class="question-mark">?</span>;
 
@@ -2332,7 +2352,7 @@
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-object.keys
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/keys
-    </span><span class="kw">pub fn </span>keys(<span class="kw">_</span>: <span class="kw-2">&amp;</span>JsValue, args: <span class="kw-2">&amp;</span>[JsValue], context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsValue&gt; {
+    </span><span class="kw">pub fn </span>keys(<span class="kw">_</span>: <span class="kw-2">&amp;</span>JsValue, args: <span class="kw-2">&amp;</span>[JsValue], context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;JsValue&gt; {
         <span class="comment">// 1. Let obj be ? ToObject(target).
         </span><span class="kw">let </span>obj = args
             .get(<span class="number">0</span>)
@@ -2357,7 +2377,7 @@
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-object.values
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/values
-    </span><span class="kw">pub fn </span>values(<span class="kw">_</span>: <span class="kw-2">&amp;</span>JsValue, args: <span class="kw-2">&amp;</span>[JsValue], context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsValue&gt; {
+    </span><span class="kw">pub fn </span>values(<span class="kw">_</span>: <span class="kw-2">&amp;</span>JsValue, args: <span class="kw-2">&amp;</span>[JsValue], context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;JsValue&gt; {
         <span class="comment">// 1. Let obj be ? ToObject(target).
         </span><span class="kw">let </span>obj = args
             .get(<span class="number">0</span>)
@@ -2386,7 +2406,7 @@
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-object.entries
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/entries
-    </span><span class="kw">pub fn </span>entries(<span class="kw">_</span>: <span class="kw-2">&amp;</span>JsValue, args: <span class="kw-2">&amp;</span>[JsValue], context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsValue&gt; {
+    </span><span class="kw">pub fn </span>entries(<span class="kw">_</span>: <span class="kw-2">&amp;</span>JsValue, args: <span class="kw-2">&amp;</span>[JsValue], context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;JsValue&gt; {
         <span class="comment">// 1. Let obj be ? ToObject(target).
         </span><span class="kw">let </span>obj = args
             .get(<span class="number">0</span>)
@@ -2412,7 +2432,7 @@
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-object.seal
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/seal
-    </span><span class="kw">pub fn </span>seal(<span class="kw">_</span>: <span class="kw-2">&amp;</span>JsValue, args: <span class="kw-2">&amp;</span>[JsValue], context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsValue&gt; {
+    </span><span class="kw">pub fn </span>seal(<span class="kw">_</span>: <span class="kw-2">&amp;</span>JsValue, args: <span class="kw-2">&amp;</span>[JsValue], context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;JsValue&gt; {
         <span class="kw">let </span>o = args.get_or_undefined(<span class="number">0</span>);
 
         <span class="kw">if let </span><span class="prelude-val">Some</span>(o) = o.as_object() {
@@ -2438,7 +2458,11 @@
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-object.issealed
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/isSealed
-    </span><span class="kw">pub fn </span>is_sealed(<span class="kw">_</span>: <span class="kw-2">&amp;</span>JsValue, args: <span class="kw-2">&amp;</span>[JsValue], context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsValue&gt; {
+    </span><span class="kw">pub fn </span>is_sealed(
+        <span class="kw">_</span>: <span class="kw-2">&amp;</span>JsValue,
+        args: <span class="kw-2">&amp;</span>[JsValue],
+        context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+    ) -&gt; JsResult&lt;JsValue&gt; {
         <span class="kw">let </span>o = args.get_or_undefined(<span class="number">0</span>);
 
         <span class="comment">// 1. If Type(O) is not Object, return true.
@@ -2459,7 +2483,7 @@
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-object.freeze
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/freeze
-    </span><span class="kw">pub fn </span>freeze(<span class="kw">_</span>: <span class="kw-2">&amp;</span>JsValue, args: <span class="kw-2">&amp;</span>[JsValue], context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsValue&gt; {
+    </span><span class="kw">pub fn </span>freeze(<span class="kw">_</span>: <span class="kw-2">&amp;</span>JsValue, args: <span class="kw-2">&amp;</span>[JsValue], context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;JsValue&gt; {
         <span class="kw">let </span>o = args.get_or_undefined(<span class="number">0</span>);
 
         <span class="kw">if let </span><span class="prelude-val">Some</span>(o) = o.as_object() {
@@ -2485,7 +2509,11 @@
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-object.isfrozen
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/isFrozen
-    </span><span class="kw">pub fn </span>is_frozen(<span class="kw">_</span>: <span class="kw-2">&amp;</span>JsValue, args: <span class="kw-2">&amp;</span>[JsValue], context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsValue&gt; {
+    </span><span class="kw">pub fn </span>is_frozen(
+        <span class="kw">_</span>: <span class="kw-2">&amp;</span>JsValue,
+        args: <span class="kw-2">&amp;</span>[JsValue],
+        context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+    ) -&gt; JsResult&lt;JsValue&gt; {
         <span class="kw">let </span>o = args.get_or_undefined(<span class="number">0</span>);
 
         <span class="comment">// 1. If Type(O) is not Object, return true.
@@ -2509,7 +2537,7 @@
     </span><span class="kw">pub fn </span>prevent_extensions(
         <span class="kw">_</span>: <span class="kw-2">&amp;</span>JsValue,
         args: <span class="kw-2">&amp;</span>[JsValue],
-        context: <span class="kw-2">&amp;mut </span>Context,
+        context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
     ) -&gt; JsResult&lt;JsValue&gt; {
         <span class="kw">let </span>o = args.get_or_undefined(<span class="number">0</span>);
 
@@ -2539,7 +2567,7 @@
     </span><span class="kw">pub fn </span>is_extensible(
         <span class="kw">_</span>: <span class="kw-2">&amp;</span>JsValue,
         args: <span class="kw-2">&amp;</span>[JsValue],
-        context: <span class="kw-2">&amp;mut </span>Context,
+        context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
     ) -&gt; JsResult&lt;JsValue&gt; {
         <span class="kw">let </span>o = args.get_or_undefined(<span class="number">0</span>);
         <span class="comment">// 1. If Type(O) is not Object, return false.
@@ -2562,7 +2590,7 @@
     </span><span class="kw">pub fn </span>get_own_property_names(
         <span class="kw">_</span>: <span class="kw-2">&amp;</span>JsValue,
         args: <span class="kw-2">&amp;</span>[JsValue],
-        context: <span class="kw-2">&amp;mut </span>Context,
+        context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
     ) -&gt; JsResult&lt;JsValue&gt; {
         <span class="comment">// 1. Return ? GetOwnPropertyKeys(O, string).
         </span><span class="kw">let </span>o = args.get_or_undefined(<span class="number">0</span>);
@@ -2580,7 +2608,7 @@
     </span><span class="kw">pub fn </span>get_own_property_symbols(
         <span class="kw">_</span>: <span class="kw-2">&amp;</span>JsValue,
         args: <span class="kw-2">&amp;</span>[JsValue],
-        context: <span class="kw-2">&amp;mut </span>Context,
+        context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
     ) -&gt; JsResult&lt;JsValue&gt; {
         <span class="comment">// 1. Return ? GetOwnPropertyKeys(O, symbol).
         </span><span class="kw">let </span>o = args.get_or_undefined(<span class="number">0</span>);
@@ -2595,7 +2623,7 @@
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-object.hasown
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/hasOwn
-    </span><span class="kw">pub fn </span>has_own(<span class="kw">_</span>: <span class="kw-2">&amp;</span>JsValue, args: <span class="kw-2">&amp;</span>[JsValue], context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsValue&gt; {
+    </span><span class="kw">pub fn </span>has_own(<span class="kw">_</span>: <span class="kw-2">&amp;</span>JsValue, args: <span class="kw-2">&amp;</span>[JsValue], context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;JsValue&gt; {
         <span class="comment">// 1. Let obj be ? ToObject(O).
         </span><span class="kw">let </span>obj = args.get_or_undefined(<span class="number">0</span>).to_object(context)<span class="question-mark">?</span>;
 
@@ -2614,7 +2642,11 @@
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-object.fromentries
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/fromEntries
-    </span><span class="kw">pub fn </span>from_entries(<span class="kw">_</span>: <span class="kw-2">&amp;</span>JsValue, args: <span class="kw-2">&amp;</span>[JsValue], context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsValue&gt; {
+    </span><span class="kw">pub fn </span>from_entries(
+        <span class="kw">_</span>: <span class="kw-2">&amp;</span>JsValue,
+        args: <span class="kw-2">&amp;</span>[JsValue],
+        context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+    ) -&gt; JsResult&lt;JsValue&gt; {
         <span class="comment">// 1. Perform ? RequireObjectCoercible(iterable).
         </span><span class="kw">let </span>iterable = args.get_or_undefined(<span class="number">0</span>).require_object_coercible()<span class="question-mark">?</span>;
 
@@ -2659,7 +2691,7 @@
 </span><span class="kw">fn </span>object_define_properties(
     object: <span class="kw-2">&amp;</span>JsObject,
     props: <span class="kw-2">&amp;</span>JsValue,
-    context: <span class="kw-2">&amp;mut </span>Context,
+    context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
 ) -&gt; JsResult&lt;()&gt; {
     <span class="comment">// 1. Assert: Type(O) is Object.
     // 2. Let props be ? ToObject(Properties).
@@ -2717,7 +2749,7 @@
 </span><span class="kw">fn </span>get_own_property_keys(
     o: <span class="kw-2">&amp;</span>JsValue,
     r#type: PropertyKeyType,
-    context: <span class="kw-2">&amp;mut </span>Context,
+    context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
 ) -&gt; JsResult&lt;JsValue&gt; {
     <span class="comment">// 1. Let obj be ? ToObject(o).
     </span><span class="kw">let </span>obj = o.to_object(context)<span class="question-mark">?</span>;

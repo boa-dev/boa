@@ -2117,6 +2117,18 @@
 <span id="2116">2116</span>
 <span id="2117">2117</span>
 <span id="2118">2118</span>
+<span id="2119">2119</span>
+<span id="2120">2120</span>
+<span id="2121">2121</span>
+<span id="2122">2122</span>
+<span id="2123">2123</span>
+<span id="2124">2124</span>
+<span id="2125">2125</span>
+<span id="2126">2126</span>
+<span id="2127">2127</span>
+<span id="2128">2128</span>
+<span id="2129">2129</span>
+<span id="2130">2130</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Boa&#39;s implementation of ECMAScript&#39;s global `Promise` object.
 
 </span><span class="attribute">#[cfg(test)]
@@ -2247,7 +2259,7 @@
     ///  - [ECMAScript reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-newpromisecapability
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>new(c: <span class="kw-2">&amp;</span>JsValue, context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;<span class="self">Self</span>&gt; {
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>new(c: <span class="kw-2">&amp;</span>JsValue, context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;<span class="self">Self</span>&gt; {
         <span class="attribute">#[derive(Debug, Clone, Trace, Finalize)]
         </span><span class="kw">struct </span>RejectResolve {
             reject: JsValue,
@@ -2370,7 +2382,7 @@
         .union(Attribute::NON_ENUMERABLE)
         .union(Attribute::CONFIGURABLE);
 
-    <span class="kw">fn </span>init(context: <span class="kw-2">&amp;mut </span>Context) -&gt; <span class="prelude-ty">Option</span>&lt;JsValue&gt; {
+    <span class="kw">fn </span>init(context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <span class="prelude-ty">Option</span>&lt;JsValue&gt; {
         <span class="kw">let </span>_timer = Profiler::global().start_event(<span class="self">Self</span>::NAME, <span class="string">&quot;init&quot;</span>);
 
         <span class="kw">let </span>get_species = FunctionBuilder::native(context, <span class="self">Self</span>::get_species)
@@ -2435,7 +2447,7 @@
     </span><span class="kw">fn </span>constructor(
         new_target: <span class="kw-2">&amp;</span>JsValue,
         args: <span class="kw-2">&amp;</span>[JsValue],
-        context: <span class="kw-2">&amp;mut </span>Context,
+        context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
     ) -&gt; JsResult&lt;JsValue&gt; {
         <span class="comment">// 1. If NewTarget is undefined, throw a TypeError exception.
         </span><span class="kw">if </span>new_target.is_undefined() {
@@ -2505,7 +2517,7 @@
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>all(
         this: <span class="kw-2">&amp;</span>JsValue,
         args: <span class="kw-2">&amp;</span>[JsValue],
-        context: <span class="kw-2">&amp;mut </span>Context,
+        context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
     ) -&gt; JsResult&lt;JsValue&gt; {
         <span class="comment">// 1. Let C be the this value.
         </span><span class="kw">let </span>c = this;
@@ -2567,7 +2579,7 @@
         constructor: <span class="kw-2">&amp;</span>JsObject,
         result_capability: <span class="kw-2">&amp;</span>PromiseCapability,
         promise_resolve: <span class="kw-2">&amp;</span>JsObject,
-        context: <span class="kw-2">&amp;mut </span>Context,
+        context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
     ) -&gt; JsResult&lt;JsObject&gt; {
         <span class="attribute">#[derive(Debug, Trace, Finalize)]
         </span><span class="kw">struct </span>ResolveElementCaptures {
@@ -2746,7 +2758,7 @@
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>all_settled(
         this: <span class="kw-2">&amp;</span>JsValue,
         args: <span class="kw-2">&amp;</span>[JsValue],
-        context: <span class="kw-2">&amp;mut </span>Context,
+        context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
     ) -&gt; JsResult&lt;JsValue&gt; {
         <span class="comment">// 1. Let C be the this value.
         </span><span class="kw">let </span>c = this;
@@ -2808,7 +2820,7 @@
         constructor: <span class="kw-2">&amp;</span>JsObject,
         result_capability: <span class="kw-2">&amp;</span>PromiseCapability,
         promise_resolve: <span class="kw-2">&amp;</span>JsObject,
-        context: <span class="kw-2">&amp;mut </span>Context,
+        context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
     ) -&gt; JsResult&lt;JsObject&gt; {
         <span class="attribute">#[derive(Debug, Trace, Finalize)]
         </span><span class="kw">struct </span>ResolveRejectElementCaptures {
@@ -3085,7 +3097,7 @@
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>any(
         this: <span class="kw-2">&amp;</span>JsValue,
         args: <span class="kw-2">&amp;</span>[JsValue],
-        context: <span class="kw-2">&amp;mut </span>Context,
+        context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
     ) -&gt; JsResult&lt;JsValue&gt; {
         <span class="comment">// 1. Let C be the this value.
         </span><span class="kw">let </span>c = this;
@@ -3147,7 +3159,7 @@
         constructor: <span class="kw-2">&amp;</span>JsObject,
         result_capability: <span class="kw-2">&amp;</span>PromiseCapability,
         promise_resolve: <span class="kw-2">&amp;</span>JsObject,
-        context: <span class="kw-2">&amp;mut </span>Context,
+        context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
     ) -&gt; JsResult&lt;JsObject&gt; {
         <span class="attribute">#[derive(Debug, Trace, Finalize)]
         </span><span class="kw">struct </span>RejectElementCaptures {
@@ -3359,7 +3371,7 @@
     /// [spec]: https://tc39.es/ecma262/#sec-createresolvingfunctions
     </span><span class="kw">fn </span>create_resolving_functions(
         promise: <span class="kw-2">&amp;</span>JsObject,
-        context: <span class="kw-2">&amp;mut </span>Context,
+        context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
     ) -&gt; ResolvingFunctionsRecord {
         <span class="attribute">#[derive(Debug, Trace, Finalize)]
         </span><span class="kw">struct </span>RejectResolveCaptures {
@@ -3561,7 +3573,7 @@
     /// # Panics
     ///
     /// Panics if `Promise` is not pending.
-    </span><span class="kw">fn </span>fulfill_promise(<span class="kw-2">&amp;mut </span><span class="self">self</span>, value: <span class="kw-2">&amp;</span>JsValue, context: <span class="kw-2">&amp;mut </span>Context) {
+    </span><span class="kw">fn </span>fulfill_promise(<span class="kw-2">&amp;mut </span><span class="self">self</span>, value: <span class="kw-2">&amp;</span>JsValue, context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) {
         <span class="comment">// 1. Assert: The value of promise.[[PromiseState]] is pending.
         </span><span class="macro">assert!</span>(
             <span class="macro">matches!</span>(<span class="self">self</span>.promise_state, PromiseState::Pending),
@@ -3601,7 +3613,7 @@
     /// # Panics
     ///
     /// Panics if `Promise` is not pending.
-    </span><span class="kw">pub fn </span>reject_promise(<span class="kw-2">&amp;mut </span><span class="self">self</span>, reason: <span class="kw-2">&amp;</span>JsValue, context: <span class="kw-2">&amp;mut </span>Context) {
+    </span><span class="kw">pub fn </span>reject_promise(<span class="kw-2">&amp;mut </span><span class="self">self</span>, reason: <span class="kw-2">&amp;</span>JsValue, context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) {
         <span class="comment">// 1. Assert: The value of promise.[[PromiseState]] is pending.
         </span><span class="macro">assert!</span>(
             <span class="macro">matches!</span>(<span class="self">self</span>.promise_state, PromiseState::Pending),
@@ -3649,7 +3661,7 @@
     </span><span class="kw">fn </span>trigger_promise_reactions(
         reactions: <span class="kw-2">&amp;</span>[ReactionRecord],
         argument: <span class="kw-2">&amp;</span>JsValue,
-        context: <span class="kw-2">&amp;mut </span>Context,
+        context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
     ) {
         <span class="comment">// 1. For each element reaction of reactions, do
         </span><span class="kw">for </span>reaction <span class="kw">in </span>reactions {
@@ -3675,7 +3687,7 @@
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-promise.race
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise/race
-    </span><span class="kw">pub fn </span>race(this: <span class="kw-2">&amp;</span>JsValue, args: <span class="kw-2">&amp;</span>[JsValue], context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsValue&gt; {
+    </span><span class="kw">pub fn </span>race(this: <span class="kw-2">&amp;</span>JsValue, args: <span class="kw-2">&amp;</span>[JsValue], context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;JsValue&gt; {
         <span class="kw">let </span>iterable = args.get_or_undefined(<span class="number">0</span>);
 
         <span class="comment">// 1. Let C be the this value.
@@ -3740,7 +3752,7 @@
         constructor: <span class="kw-2">&amp;</span>JsValue,
         result_capability: <span class="kw-2">&amp;</span>PromiseCapability,
         promise_resolve: <span class="kw-2">&amp;</span>JsObject,
-        context: <span class="kw-2">&amp;mut </span>Context,
+        context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
     ) -&gt; JsResult&lt;JsValue&gt; {
         <span class="comment">// 1. Repeat,
         </span><span class="kw">loop </span>{
@@ -3798,7 +3810,11 @@
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-promise.reject
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise/reject
-    </span><span class="kw">pub fn </span>reject(this: <span class="kw-2">&amp;</span>JsValue, args: <span class="kw-2">&amp;</span>[JsValue], context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsValue&gt; {
+    </span><span class="kw">pub fn </span>reject(
+        this: <span class="kw-2">&amp;</span>JsValue,
+        args: <span class="kw-2">&amp;</span>[JsValue],
+        context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+    ) -&gt; JsResult&lt;JsValue&gt; {
         <span class="kw">let </span>r = args.get_or_undefined(<span class="number">0</span>);
 
         <span class="comment">// 1. Let C be the this value.
@@ -3825,7 +3841,11 @@
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-promise.resolve
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise/resolve
-    </span><span class="kw">pub fn </span>resolve(this: <span class="kw-2">&amp;</span>JsValue, args: <span class="kw-2">&amp;</span>[JsValue], context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsValue&gt; {
+    </span><span class="kw">pub fn </span>resolve(
+        this: <span class="kw-2">&amp;</span>JsValue,
+        args: <span class="kw-2">&amp;</span>[JsValue],
+        context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+    ) -&gt; JsResult&lt;JsValue&gt; {
         <span class="kw">let </span>x = args.get_or_undefined(<span class="number">0</span>);
 
         <span class="comment">// 1. Let C be the this value.
@@ -3853,7 +3873,7 @@
     /// [spec]: https://tc39.es/ecma262/#sec-get-promise-@@species
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise/@@species
     </span><span class="attribute">#[allow(clippy::unnecessary_wraps)]
-    </span><span class="kw">fn </span>get_species(this: <span class="kw-2">&amp;</span>JsValue, <span class="kw">_</span>: <span class="kw-2">&amp;</span>[JsValue], <span class="kw">_</span>: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsValue&gt; {
+    </span><span class="kw">fn </span>get_species(this: <span class="kw-2">&amp;</span>JsValue, <span class="kw">_</span>: <span class="kw-2">&amp;</span>[JsValue], <span class="kw">_</span>: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;JsValue&gt; {
         <span class="comment">// 1. Return the this value.
         </span><span class="prelude-val">Ok</span>(this.clone())
     }
@@ -3866,7 +3886,7 @@
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-promise.prototype.catch
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise/catch
-    </span><span class="kw">pub fn </span>catch(this: <span class="kw-2">&amp;</span>JsValue, args: <span class="kw-2">&amp;</span>[JsValue], context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsValue&gt; {
+    </span><span class="kw">pub fn </span>catch(this: <span class="kw-2">&amp;</span>JsValue, args: <span class="kw-2">&amp;</span>[JsValue], context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;JsValue&gt; {
         <span class="kw">let </span>on_rejected = args.get_or_undefined(<span class="number">0</span>);
 
         <span class="comment">// 1. Let promise be the this value.
@@ -3887,7 +3907,11 @@
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-promise.prototype.finally
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise/finally
-    </span><span class="kw">pub fn </span>finally(this: <span class="kw-2">&amp;</span>JsValue, args: <span class="kw-2">&amp;</span>[JsValue], context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsValue&gt; {
+    </span><span class="kw">pub fn </span>finally(
+        this: <span class="kw-2">&amp;</span>JsValue,
+        args: <span class="kw-2">&amp;</span>[JsValue],
+        context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+    ) -&gt; JsResult&lt;JsValue&gt; {
         <span class="comment">// 1. Let promise be the this value.
         </span><span class="kw">let </span>promise = this;
 
@@ -4033,7 +4057,7 @@
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-promise.prototype.then
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise/then
-    </span><span class="kw">pub fn </span>then(this: <span class="kw-2">&amp;</span>JsValue, args: <span class="kw-2">&amp;</span>[JsValue], context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsValue&gt; {
+    </span><span class="kw">pub fn </span>then(this: <span class="kw-2">&amp;</span>JsValue, args: <span class="kw-2">&amp;</span>[JsValue], context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;JsValue&gt; {
         <span class="comment">// 1. Let promise be the this value.
         </span><span class="kw">let </span>promise = this;
 
@@ -4076,7 +4100,7 @@
         on_fulfilled: <span class="kw-2">&amp;</span>JsValue,
         on_rejected: <span class="kw-2">&amp;</span>JsValue,
         result_capability: <span class="prelude-ty">Option</span>&lt;PromiseCapability&gt;,
-        context: <span class="kw-2">&amp;mut </span>Context,
+        context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
     ) -&gt; JsValue {
         <span class="comment">// 1. Assert: IsPromise(promise) is true.
 
@@ -4186,7 +4210,7 @@
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>promise_resolve(
         c: JsObject,
         x: JsValue,
-        context: <span class="kw-2">&amp;mut </span>Context,
+        context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
     ) -&gt; JsResult&lt;JsValue&gt; {
         <span class="comment">// 1. If IsPromise(x) is true, then
         </span><span class="kw">if let </span><span class="prelude-val">Some</span>(x) = x.as_promise() {
@@ -4222,7 +4246,7 @@
     /// [spec]: https://tc39.es/ecma262/#sec-getpromiseresolve
     </span><span class="kw">fn </span>get_promise_resolve(
         promise_constructor: <span class="kw-2">&amp;</span>JsObject,
-        context: <span class="kw-2">&amp;mut </span>Context,
+        context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
     ) -&gt; JsResult&lt;JsObject&gt; {
         <span class="comment">// 1. Let promiseResolve be ? Get(promiseConstructor, &quot;resolve&quot;).
         </span><span class="kw">let </span>promise_resolve = promise_constructor.get(<span class="string">&quot;resolve&quot;</span>, context)<span class="question-mark">?</span>;

@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"fn":[["blob","Gets a data provider that is stored as a Postcard blob."]]};
+window.SIDEBAR_ITEMS = {"fn":[["buffer","Gets a data provider that is stored as a [`BufferProvider`]"]]};

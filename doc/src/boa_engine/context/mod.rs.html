@@ -638,6 +638,27 @@
 <span id="637">637</span>
 <span id="638">638</span>
 <span id="639">639</span>
+<span id="640">640</span>
+<span id="641">641</span>
+<span id="642">642</span>
+<span id="643">643</span>
+<span id="644">644</span>
+<span id="645">645</span>
+<span id="646">646</span>
+<span id="647">647</span>
+<span id="648">648</span>
+<span id="649">649</span>
+<span id="650">650</span>
+<span id="651">651</span>
+<span id="652">652</span>
+<span id="653">653</span>
+<span id="654">654</span>
+<span id="655">655</span>
+<span id="656">656</span>
+<span id="657">657</span>
+<span id="658">658</span>
+<span id="659">659</span>
+<span id="660">660</span>
 </pre><pre class="rust"><code><span class="doccomment">//! The ECMAScript context.
 
 </span><span class="kw">pub mod </span>intrinsics;
@@ -650,6 +671,9 @@
 
 <span class="kw">use </span>intrinsics::{IntrinsicObjects, Intrinsics};
 <span class="kw">use </span>std::collections::VecDeque;
+
+<span class="attribute">#[cfg(not(feature = <span class="string">&quot;intl&quot;</span>))]
+</span><span class="kw">pub use </span>std::marker::PhantomData;
 
 <span class="attribute">#[cfg(feature = <span class="string">&quot;console&quot;</span>)]
 </span><span class="kw">use </span><span class="kw">crate</span>::builtins::console::Console;
@@ -712,7 +736,7 @@
 ///
 /// assert_eq!(value.as_number(), Some(12.0))
 /// ```
-</span><span class="kw">pub struct </span>Context {
+</span><span class="kw">pub struct </span>Context&lt;<span class="lifetime">&#39;icu</span>&gt; {
     <span class="doccomment">/// realm holds both the global object and the environment
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) realm: Realm,
 
@@ -728,7 +752,10 @@
 
     <span class="doccomment">/// ICU related utilities
     </span><span class="attribute">#[cfg(feature = <span class="string">&quot;intl&quot;</span>)]
-    </span>icu: icu::Icu&lt;BoaProvider&gt;,
+    </span>icu: icu::Icu&lt;<span class="lifetime">&#39;icu</span>&gt;,
+
+    <span class="attribute">#[cfg(not(feature = <span class="string">&quot;intl&quot;</span>))]
+    </span>icu: PhantomData&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;icu </span>()&gt;,
 
     <span class="doccomment">/// Number of instructions remaining before a forced exit
     </span><span class="attribute">#[cfg(feature = <span class="string">&quot;fuzz&quot;</span>)]
@@ -741,7 +768,7 @@
     <span class="kw">pub</span>(<span class="kw">crate</span>) kept_alive: Vec&lt;JsObject&gt;,
 }
 
-<span class="kw">impl </span>std::fmt::Debug <span class="kw">for </span>Context {
+<span class="kw">impl </span>std::fmt::Debug <span class="kw">for </span>Context&lt;<span class="lifetime">&#39;_</span>&gt; {
     <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>std::fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; std::fmt::Result {
         <span class="kw">let </span><span class="kw-2">mut </span>debug = f.debug_struct(<span class="string">&quot;Context&quot;</span>);
 
@@ -764,7 +791,7 @@
     }
 }
 
-<span class="kw">impl </span>Default <span class="kw">for </span>Context {
+<span class="kw">impl </span>Default <span class="kw">for </span>Context&lt;<span class="lifetime">&#39;_</span>&gt; {
     <span class="kw">fn </span>default() -&gt; <span class="self">Self </span>{
         ContextBuilder::default().build()
     }
@@ -772,11 +799,11 @@
 
 <span class="comment">// ==== Public API ====
 
-</span><span class="kw">impl </span>Context {
+</span><span class="kw">impl </span>Context&lt;<span class="lifetime">&#39;_</span>&gt; {
     <span class="doccomment">/// Create a new [`ContextBuilder`] to specify the [`Interner`] and/or
     /// the icu data provider.
     </span><span class="attribute">#[must_use]
-    </span><span class="kw">pub fn </span>builder() -&gt; ContextBuilder {
+    </span><span class="kw">pub fn </span>builder() -&gt; ContextBuilder&lt;<span class="lifetime">&#39;static</span>&gt; {
         ContextBuilder::default()
     }
 
@@ -1004,7 +1031,7 @@
     /// why we need to restrict the set of accepted closures.
     </span><span class="kw">pub fn </span>register_global_closure&lt;F&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, name: <span class="kw-2">&amp;</span>str, length: usize, body: F) -&gt; JsResult&lt;()&gt;
     <span class="kw">where
-        </span>F: Fn(<span class="kw-2">&amp;</span>JsValue, <span class="kw-2">&amp;</span>[JsValue], <span class="kw-2">&amp;mut </span><span class="self">Self</span>) -&gt; JsResult&lt;JsValue&gt; + Copy + <span class="lifetime">&#39;static</span>,
+        </span>F: Fn(<span class="kw-2">&amp;</span>JsValue, <span class="kw-2">&amp;</span>[JsValue], <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;JsValue&gt; + Copy + <span class="lifetime">&#39;static</span>,
     {
         <span class="kw">let </span>function = FunctionBuilder::closure(<span class="self">self</span>, body)
             .name(name)
@@ -1112,7 +1139,7 @@
 
 <span class="comment">// ==== Private API ====
 
-</span><span class="kw">impl </span>Context {
+</span><span class="kw">impl </span>Context&lt;<span class="lifetime">&#39;_</span>&gt; {
     <span class="doccomment">/// A helper function for getting an immutable reference to the `console` object.
     </span><span class="attribute">#[cfg(feature = <span class="string">&quot;console&quot;</span>)]
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const fn </span>console(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>Console {
@@ -1154,12 +1181,6 @@
         <span class="prelude-val">Ok</span>(Gc::new(compiler.finish()))
     }
 
-    <span class="doccomment">/// Get the ICU related utilities
-    </span><span class="attribute">#[cfg(feature = <span class="string">&quot;intl&quot;</span>)]
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const fn </span>icu(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>icu::Icu&lt;BoaProvider&gt; {
-        <span class="kw-2">&amp;</span><span class="self">self</span>.icu
-    }
-
     <span class="doccomment">/// Sets up the default global objects within Global
     </span><span class="kw">fn </span>create_intrinsics(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
         <span class="kw">let </span>_timer = Profiler::global().start_event(<span class="string">&quot;create_intrinsics&quot;</span>, <span class="string">&quot;interpreter&quot;</span>);
@@ -1176,6 +1197,15 @@
         <span class="prelude-val">Ok</span>(())
     }
 }
+
+<span class="attribute">#[cfg(feature = <span class="string">&quot;intl&quot;</span>)]
+</span><span class="kw">impl</span>&lt;<span class="lifetime">&#39;icu</span>&gt; Context&lt;<span class="lifetime">&#39;icu</span>&gt; {
+    <span class="doccomment">/// Get the ICU related utilities
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const fn </span>icu(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>icu::Icu&lt;<span class="lifetime">&#39;icu</span>&gt; {
+        <span class="kw-2">&amp;</span><span class="self">self</span>.icu
+    }
+}
+
 <span class="doccomment">/// Builder for the [`Context`] type.
 ///
 /// This builder allows custom initialization of the [`Interner`] within
@@ -1188,15 +1218,17 @@
     doc = <span class="string">&quot;The required data in a valid provider is specified in [`BoaProvider`]&quot;
 </span>)]
 #[derive(Default, Debug)]
-</span><span class="kw">pub struct </span>ContextBuilder {
+</span><span class="kw">pub struct </span>ContextBuilder&lt;<span class="lifetime">&#39;icu</span>&gt; {
     interner: <span class="prelude-ty">Option</span>&lt;Interner&gt;,
     <span class="attribute">#[cfg(feature = <span class="string">&quot;intl&quot;</span>)]
-    </span>icu: <span class="prelude-ty">Option</span>&lt;icu::Icu&lt;BoaProvider&gt;&gt;,
+    </span>icu: <span class="prelude-ty">Option</span>&lt;icu::Icu&lt;<span class="lifetime">&#39;icu</span>&gt;&gt;,
+    <span class="attribute">#[cfg(not(feature = <span class="string">&quot;intl&quot;</span>))]
+    </span>icu: PhantomData&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;icu </span>()&gt;,
     <span class="attribute">#[cfg(feature = <span class="string">&quot;fuzz&quot;</span>)]
     </span>instructions_remaining: usize,
 }
 
-<span class="kw">impl </span>ContextBuilder {
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; ContextBuilder&lt;<span class="lifetime">&#39;a</span>&gt; {
     <span class="doccomment">/// Initializes the context [`Interner`] to the provided interner.
     ///
     /// This is useful when you want to initialize an [`Interner`] with
@@ -1211,13 +1243,25 @@
     <span class="doccomment">/// Provides an icu data provider to the [`Context`].
     ///
     /// This function is only available if the `intl` feature is enabled.
+    ///
+    /// # Errors
+    ///
+    /// This returns `Err` if the provided provider doesn&#39;t have the required locale information
+    /// to construct both a [`LocaleCanonicalizer`] and a [`LocaleExpander`]. Note that this doesn&#39;t
+    /// mean that the provider will successfully construct all `Intl` services; that check is made
+    /// until the creation of an instance of a service.
+    ///
+    /// [`LocaleCanonicalizer`]: icu_locid_transform::LocaleCanonicalizer
+    /// [`LocaleExpander`]: icu_locid_transform::LocaleExpander
     </span><span class="attribute">#[cfg(feature = <span class="string">&quot;intl&quot;</span>)]
     </span><span class="kw">pub fn </span>icu_provider(
-        <span class="kw-2">mut </span><span class="self">self</span>,
-        provider: BoaProvider,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>, icu_locid_transform::LocaleTransformError&gt; {
-        <span class="self">self</span>.icu = <span class="prelude-val">Some</span>(icu::Icu::new(provider)<span class="question-mark">?</span>);
-        <span class="prelude-val">Ok</span>(<span class="self">self</span>)
+        <span class="self">self</span>,
+        provider: BoaProvider&lt;<span class="lifetime">&#39;_</span>&gt;,
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;ContextBuilder&lt;<span class="lifetime">&#39;_</span>&gt;, icu_locid_transform::LocaleTransformError&gt; {
+        <span class="prelude-val">Ok</span>(ContextBuilder {
+            icu: <span class="prelude-val">Some</span>(icu::Icu::new(provider)<span class="question-mark">?</span>),
+            ..<span class="self">self
+        </span>})
     }
 
     <span class="doccomment">/// Specifies the number of instructions remaining to the [`Context`].
@@ -1240,7 +1284,7 @@
     <span class="doccomment">/// Builds a new [`Context`] with the provided parameters, and defaults
     /// all missing parameters to their default values.
     </span><span class="attribute">#[must_use]
-    </span><span class="kw">pub fn </span>build(<span class="self">self</span>) -&gt; Context {
+    </span><span class="kw">pub fn </span>build(<span class="self">self</span>) -&gt; Context&lt;<span class="lifetime">&#39;a</span>&gt; {
         <span class="kw">let </span>intrinsics = Intrinsics::default();
         <span class="kw">let </span><span class="kw-2">mut </span>context = Context {
             realm: Realm::create(intrinsics.constructors().object().prototype().into()),
@@ -1256,13 +1300,11 @@
             },
             <span class="attribute">#[cfg(feature = <span class="string">&quot;intl&quot;</span>)]
             </span>icu: <span class="self">self</span>.icu.unwrap_or_else(|| {
-                <span class="kw">use </span>icu_provider_adapters::fallback::LocaleFallbackProvider;
-                <span class="kw">let </span>provider = BoaProvider::Buffer(Box::new(
-                    LocaleFallbackProvider::try_new_with_buffer_provider(boa_icu_provider::blob())
-                        .expect(<span class="string">&quot;boa_icu_provider should return a valid provider&quot;</span>),
-                ));
+                <span class="kw">let </span>provider = BoaProvider::Buffer(boa_icu_provider::buffer());
                 icu::Icu::new(provider).expect(<span class="string">&quot;Failed to initialize default icu data.&quot;</span>)
             }),
+            <span class="attribute">#[cfg(not(feature = <span class="string">&quot;intl&quot;</span>))]
+            </span>icu: PhantomData,
             <span class="attribute">#[cfg(feature = <span class="string">&quot;fuzz&quot;</span>)]
             </span>instructions_remaining: <span class="self">self</span>.instructions_remaining,
             promise_job_queue: VecDeque::new(),

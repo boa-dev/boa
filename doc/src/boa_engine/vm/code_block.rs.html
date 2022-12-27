@@ -2060,7 +2060,7 @@
     r#async: bool,
     arrow: bool,
     prototype: <span class="prelude-ty">Option</span>&lt;JsObject&gt;,
-    context: <span class="kw-2">&amp;mut </span>Context,
+    context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
 ) -&gt; JsObject {
     <span class="kw">let </span>_timer = Profiler::global().start_event(<span class="string">&quot;JsVmFunction::new&quot;</span>, <span class="string">&quot;vm&quot;</span>);
 
@@ -2165,7 +2165,7 @@
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>create_generator_function_object(
     code: Gc&lt;CodeBlock&gt;,
     r#async: bool,
-    context: <span class="kw-2">&amp;mut </span>Context,
+    context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
 ) -&gt; JsObject {
     <span class="kw">let </span>function_prototype = <span class="kw">if </span>r#async {
         context
@@ -2257,7 +2257,7 @@
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         this: <span class="kw-2">&amp;</span>JsValue,
         args: <span class="kw-2">&amp;</span>[JsValue],
-        context: <span class="kw-2">&amp;mut </span>Context,
+        context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
     ) -&gt; JsResult&lt;JsValue&gt; {
         <span class="kw">let </span>this_function_object = <span class="self">self</span>.clone();
 
@@ -2834,7 +2834,7 @@
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         args: <span class="kw-2">&amp;</span>[JsValue],
         this_target: <span class="kw-2">&amp;</span>JsValue,
-        context: <span class="kw-2">&amp;mut </span>Context,
+        context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
     ) -&gt; JsResult&lt;<span class="self">Self</span>&gt; {
         <span class="kw">let </span>this_function_object = <span class="self">self</span>.clone();
 
@@ -3081,7 +3081,7 @@
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>initialize_instance_elements(
     target: <span class="kw-2">&amp;</span>JsObject,
     constructor: <span class="kw-2">&amp;</span>JsObject,
-    context: <span class="kw-2">&amp;mut </span>Context,
+    context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
 ) -&gt; JsResult&lt;()&gt; {
     <span class="kw">let </span>constructor_borrow = constructor.borrow();
     <span class="kw">let </span>constructor_function = constructor_borrow

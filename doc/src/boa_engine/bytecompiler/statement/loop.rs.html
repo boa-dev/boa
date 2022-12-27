@@ -378,7 +378,7 @@
     JsResult,
 };
 
-<span class="kw">impl </span>ByteCompiler&lt;<span class="lifetime">&#39;_</span>&gt; {
+<span class="kw">impl </span>ByteCompiler&lt;<span class="lifetime">&#39;_</span>, <span class="lifetime">&#39;_</span>&gt; {
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>compile_for_loop(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
         for_loop: <span class="kw-2">&amp;</span>ForLoop,

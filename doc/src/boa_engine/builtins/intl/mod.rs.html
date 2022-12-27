@@ -149,6 +149,11 @@
 <span id="148">148</span>
 <span id="149">149</span>
 <span id="150">150</span>
+<span id="151">151</span>
+<span id="152">152</span>
+<span id="153">153</span>
+<span id="154">154</span>
+<span id="155">155</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Boa&#39;s implementation of ECMAScript&#39;s global `Intl` object.
 //!
 //! `Intl` is a built-in object that has properties and methods for i18n. It&#39;s not a function object.
@@ -164,6 +169,7 @@
 <span class="kw">use crate</span>::{
     builtins::intl::date_time_format::DateTimeFormat,
     builtins::{Array, BuiltIn},
+    context::BoaProvider,
     object::ObjectInitializer,
     property::Attribute,
     symbol::WellKnownSymbols,
@@ -190,7 +196,7 @@
 <span class="kw">impl </span>BuiltIn <span class="kw">for </span>Intl {
     <span class="kw">const </span>NAME: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;Intl&quot;</span>;
 
-    <span class="kw">fn </span>init(context: <span class="kw-2">&amp;mut </span>Context) -&gt; <span class="prelude-ty">Option</span>&lt;JsValue&gt; {
+    <span class="kw">fn </span>init(context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <span class="prelude-ty">Option</span>&lt;JsValue&gt; {
         <span class="kw">let </span>_timer = Profiler::global().start_event(<span class="self">Self</span>::NAME, <span class="string">&quot;init&quot;</span>);
 
         <span class="kw">let </span>collator = Collator::init(context).expect(<span class="string">&quot;initialization should return a constructor&quot;</span>);
@@ -257,7 +263,7 @@
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>get_canonical_locales(
         <span class="kw">_</span>: <span class="kw-2">&amp;</span>JsValue,
         args: <span class="kw-2">&amp;</span>[JsValue],
-        context: <span class="kw-2">&amp;mut </span>Context,
+        context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
     ) -&gt; JsResult&lt;JsValue&gt; {
         <span class="kw">let </span>locales = args.get_or_undefined(<span class="number">0</span>);
 
@@ -272,11 +278,11 @@
     }
 }
 
-<span class="comment">// Making `provider: &amp;BoaProvider` instead of a type parameter `P` makes it so that we need
-// to copy-paste the bounds of `impl&lt;M&gt; DataProvider&lt;M&gt; for BoaProvider` every time we need
-// to use `provider`. The type parameter solves this by delegating simpler bounds to every
-// implementor of `Service`.
-</span><span class="kw">trait </span>Service&lt;P&gt; {
+<span class="doccomment">/// A service component that is part of the `Intl` API.
+///
+/// This needs to be implemented for every `Intl` service in order to use the functions
+/// defined in `locale::utils`, such as locale resolution and selection.
+</span><span class="kw">trait </span>Service {
     <span class="doccomment">/// The data marker used by [`resolve_locale`][locale::resolve_locale] to decide
     /// which locales are supported by this service.
     </span><span class="kw">type </span>LangMarker: KeyedDataMarker;
@@ -296,7 +302,11 @@
     /// new final values.
     /// - If the implementor service doesn&#39;t contain any `[[RelevantExtensionKeys]]`, this can be
     /// skipped.
-    </span><span class="kw">fn </span>resolve(_locale: <span class="kw-2">&amp;mut </span>icu_locid::Locale, _options: <span class="kw-2">&amp;mut </span><span class="self">Self</span>::LocaleOptions, _provider: <span class="kw-2">&amp;</span>P) {
+    </span><span class="kw">fn </span>resolve(
+        _locale: <span class="kw-2">&amp;mut </span>icu_locid::Locale,
+        _options: <span class="kw-2">&amp;mut </span><span class="self">Self</span>::LocaleOptions,
+        _provider: BoaProvider&lt;<span class="lifetime">&#39;_</span>&gt;,
+    ) {
     }
 }
 </code></pre></div>

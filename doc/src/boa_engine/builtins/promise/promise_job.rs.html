@@ -206,7 +206,7 @@
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>new_promise_reaction_job(
         reaction: ReactionRecord,
         argument: JsValue,
-        context: <span class="kw-2">&amp;mut </span>Context,
+        context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
     ) -&gt; JobCallback {
         <span class="attribute">#[derive(Debug, Trace, Finalize)]
         </span><span class="kw">struct </span>ReactionJobCaptures {
@@ -306,12 +306,12 @@
         promise_to_resolve: JsObject,
         thenable: JsValue,
         then: JobCallback,
-        context: <span class="kw-2">&amp;mut </span>Context,
+        context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
     ) -&gt; JobCallback {
         <span class="comment">// 1. Let job be a new Job Abstract Closure with no parameters that captures promiseToResolve, thenable, and then and performs the following steps when called:
         </span><span class="kw">let </span>job = FunctionBuilder::closure_with_captures(
             context,
-            |_this: <span class="kw-2">&amp;</span>JsValue, _args: <span class="kw-2">&amp;</span>[JsValue], captures, context: <span class="kw-2">&amp;mut </span>Context| {
+            |_this: <span class="kw-2">&amp;</span>JsValue, _args: <span class="kw-2">&amp;</span>[JsValue], captures, context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;| {
                 <span class="kw">let </span>JobCapture {
                     promise_to_resolve,
                     thenable,

@@ -869,6 +869,21 @@
 <span id="868">868</span>
 <span id="869">869</span>
 <span id="870">870</span>
+<span id="871">871</span>
+<span id="872">872</span>
+<span id="873">873</span>
+<span id="874">874</span>
+<span id="875">875</span>
+<span id="876">876</span>
+<span id="877">877</span>
+<span id="878">878</span>
+<span id="879">879</span>
+<span id="880">880</span>
+<span id="881">881</span>
+<span id="882">882</span>
+<span id="883">883</span>
+<span id="884">884</span>
+<span id="885">885</span>
 </pre><pre class="rust"><code><span class="kw">use crate</span>::{
     builtins::Array,
     context::intrinsics::{StandardConstructor, StandardConstructors},
@@ -923,7 +938,7 @@
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-isextensible-o
     </span><span class="attribute">#[inline]
-    </span><span class="kw">pub fn </span>is_extensible(<span class="kw-2">&amp;</span><span class="self">self</span>, context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;bool&gt; {
+    </span><span class="kw">pub fn </span>is_extensible(<span class="kw-2">&amp;</span><span class="self">self</span>, context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;bool&gt; {
         <span class="comment">// 1. Return ? O.[[IsExtensible]]().
         </span><span class="self">self</span>.__is_extensible__(context)
     }
@@ -934,7 +949,7 @@
     ///  - [ECMAScript reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-get-o-p
-    </span><span class="kw">pub fn </span>get&lt;K&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, key: K, context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsValue&gt;
+    </span><span class="kw">pub fn </span>get&lt;K&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, key: K, context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;JsValue&gt;
     <span class="kw">where
         </span>K: Into&lt;PropertyKey&gt;,
     {
@@ -950,7 +965,13 @@
     ///  - [ECMAScript reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-set-o-p-v-throw
-    </span><span class="kw">pub fn </span>set&lt;K, V&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, key: K, value: V, throw: bool, context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;bool&gt;
+    </span><span class="kw">pub fn </span>set&lt;K, V&gt;(
+        <span class="kw-2">&amp;</span><span class="self">self</span>,
+        key: K,
+        value: V,
+        throw: bool,
+        context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+    ) -&gt; JsResult&lt;bool&gt;
     <span class="kw">where
         </span>K: Into&lt;PropertyKey&gt;,
         V: Into&lt;JsValue&gt;,
@@ -981,7 +1002,7 @@
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         key: K,
         value: V,
-        context: <span class="kw-2">&amp;mut </span>Context,
+        context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
     ) -&gt; JsResult&lt;bool&gt;
     <span class="kw">where
         </span>K: Into&lt;PropertyKey&gt;,
@@ -1011,7 +1032,7 @@
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         key: K,
         value: V,
-        context: <span class="kw-2">&amp;mut </span>Context,
+        context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
     ) -&gt; JsResult&lt;bool&gt;
     <span class="kw">where
         </span>K: Into&lt;PropertyKey&gt;,
@@ -1042,7 +1063,7 @@
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         key: K,
         value: V,
-        context: <span class="kw-2">&amp;mut </span>Context,
+        context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
     ) <span class="kw">where
         </span>K: Into&lt;PropertyKey&gt;,
         V: Into&lt;JsValue&gt;,
@@ -1079,7 +1100,7 @@
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         key: K,
         desc: P,
-        context: <span class="kw-2">&amp;mut </span>Context,
+        context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
     ) -&gt; JsResult&lt;bool&gt;
     <span class="kw">where
         </span>K: Into&lt;PropertyKey&gt;,
@@ -1106,7 +1127,7 @@
     /// - [ECMAScript reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-deletepropertyorthrow
-    </span><span class="kw">pub fn </span>delete_property_or_throw&lt;K&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, key: K, context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;bool&gt;
+    </span><span class="kw">pub fn </span>delete_property_or_throw&lt;K&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, key: K, context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;bool&gt;
     <span class="kw">where
         </span>K: Into&lt;PropertyKey&gt;,
     {
@@ -1131,7 +1152,7 @@
     ///  - [ECMAScript reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-hasproperty
-    </span><span class="kw">pub fn </span>has_property&lt;K&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, key: K, context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;bool&gt;
+    </span><span class="kw">pub fn </span>has_property&lt;K&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, key: K, context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;bool&gt;
     <span class="kw">where
         </span>K: Into&lt;PropertyKey&gt;,
     {
@@ -1147,7 +1168,7 @@
     ///  - [ECMAScript reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-hasownproperty
-    </span><span class="kw">pub fn </span>has_own_property&lt;K&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, key: K, context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;bool&gt;
+    </span><span class="kw">pub fn </span>has_own_property&lt;K&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, key: K, context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;bool&gt;
     <span class="kw">where
         </span>K: Into&lt;PropertyKey&gt;,
     {
@@ -1174,7 +1195,7 @@
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         this: <span class="kw-2">&amp;</span>JsValue,
         args: <span class="kw-2">&amp;</span>[JsValue],
-        context: <span class="kw-2">&amp;mut </span>Context,
+        context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
     ) -&gt; JsResult&lt;JsValue&gt; {
         <span class="comment">// 1. If argumentsList is not present, set argumentsList to a new empty List.
         // 2. If IsCallable(F) is false, throw a TypeError exception.
@@ -1203,7 +1224,7 @@
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         args: <span class="kw-2">&amp;</span>[JsValue],
         new_target: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="self">Self</span>&gt;,
-        context: <span class="kw-2">&amp;mut </span>Context,
+        context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
     ) -&gt; JsResult&lt;<span class="self">Self</span>&gt; {
         <span class="comment">// 1. If newTarget is not present, set newTarget to F.
         </span><span class="kw">let </span>new_target = new_target.unwrap_or(<span class="self">self</span>);
@@ -1221,7 +1242,7 @@
     </span><span class="kw">pub fn </span>set_integrity_level(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         level: IntegrityLevel,
-        context: <span class="kw-2">&amp;mut </span>Context,
+        context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
     ) -&gt; JsResult&lt;bool&gt; {
         <span class="comment">// 1. Assert: Type(O) is Object.
         // 2. Assert: level is either sealed or frozen.
@@ -1290,7 +1311,7 @@
     </span><span class="kw">pub fn </span>test_integrity_level(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         level: IntegrityLevel,
-        context: <span class="kw-2">&amp;mut </span>Context,
+        context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
     ) -&gt; JsResult&lt;bool&gt; {
         <span class="comment">// 1. Assert: Type(O) is Object.
         // 2. Assert: level is either sealed or frozen.
@@ -1335,7 +1356,7 @@
     /// Returns the value of the &quot;length&quot; property of an array-like object.
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-lengthofarraylike
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>length_of_array_like(<span class="kw-2">&amp;</span><span class="self">self</span>, context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;u64&gt; {
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>length_of_array_like(<span class="kw-2">&amp;</span><span class="self">self</span>, context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;u64&gt; {
         <span class="comment">// 1. Assert: Type(obj) is Object.
         // 2. Return ℝ(? ToLength(? Get(obj, &quot;length&quot;))).
         </span><span class="self">self</span>.get(<span class="string">&quot;length&quot;</span>, context)<span class="question-mark">?</span>.to_length(context)
@@ -1355,7 +1376,7 @@
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>species_constructor&lt;F&gt;(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         default_constructor: F,
-        context: <span class="kw-2">&amp;mut </span>Context,
+        context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
     ) -&gt; JsResult&lt;<span class="self">Self</span>&gt;
     <span class="kw">where
         </span>F: FnOnce(<span class="kw-2">&amp;</span>StandardConstructors) -&gt; <span class="kw-2">&amp;</span>StandardConstructor,
@@ -1403,7 +1424,7 @@
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>enumerable_own_property_names(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         kind: PropertyNameKind,
-        context: <span class="kw-2">&amp;mut </span>Context,
+        context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
     ) -&gt; JsResult&lt;Vec&lt;JsValue&gt;&gt; {
         <span class="comment">// 1. Assert: Type(O) is Object.
         // 2. Let ownKeys be ? O.[[OwnPropertyKeys]]().
@@ -1464,7 +1485,7 @@
     /// - [ECMAScript reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-getmethod
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>get_method&lt;K&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, key: K, context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;<span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>&gt;&gt;
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>get_method&lt;K&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, key: K, context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;<span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>&gt;&gt;
     <span class="kw">where
         </span>K: Into&lt;PropertyKey&gt;,
     {
@@ -1547,7 +1568,7 @@
     /// - [ECMAScript reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-getv
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>get_v&lt;K&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, key: K, context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;<span class="self">Self</span>&gt;
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>get_v&lt;K&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, key: K, context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;<span class="self">Self</span>&gt;
     <span class="kw">where
         </span>K: Into&lt;PropertyKey&gt;,
     {
@@ -1566,7 +1587,11 @@
     /// - [ECMAScript reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-getmethod
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>get_method&lt;K&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, key: K, context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;<span class="prelude-ty">Option</span>&lt;JsObject&gt;&gt;
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>get_method&lt;K&gt;(
+        <span class="kw-2">&amp;</span><span class="self">self</span>,
+        key: K,
+        context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+    ) -&gt; JsResult&lt;<span class="prelude-ty">Option</span>&lt;JsObject&gt;&gt;
     <span class="kw">where
         </span>K: Into&lt;PropertyKey&gt;,
     {
@@ -1585,7 +1610,7 @@
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>create_list_from_array_like(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         element_types: <span class="kw-2">&amp;</span>[Type],
-        context: <span class="kw-2">&amp;mut </span>Context,
+        context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
     ) -&gt; JsResult&lt;Vec&lt;<span class="self">Self</span>&gt;&gt; {
         <span class="comment">// 1. If elementTypes is not present, set elementTypes to « Undefined, Null, Boolean, String, Symbol, Number, BigInt, Object ».
         </span><span class="kw">let </span>types = <span class="kw">if </span>element_types.is_empty() {
@@ -1650,7 +1675,7 @@
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         this: <span class="kw-2">&amp;</span>JsValue,
         args: <span class="kw-2">&amp;</span>[JsValue],
-        context: <span class="kw-2">&amp;mut </span>Context,
+        context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
     ) -&gt; JsResult&lt;JsValue&gt; {
         <span class="self">self</span>.as_callable()
             .ok_or_else(|| {
@@ -1670,7 +1695,12 @@
     /// - [ECMAScript reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-invoke
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>invoke&lt;K&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, key: K, args: <span class="kw-2">&amp;</span>[<span class="self">Self</span>], context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;<span class="self">Self</span>&gt;
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>invoke&lt;K&gt;(
+        <span class="kw-2">&amp;</span><span class="self">self</span>,
+        key: K,
+        args: <span class="kw-2">&amp;</span>[<span class="self">Self</span>],
+        context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+    ) -&gt; JsResult&lt;<span class="self">Self</span>&gt;
     <span class="kw">where
         </span>K: Into&lt;PropertyKey&gt;,
     {
@@ -1691,7 +1721,7 @@
     </span><span class="kw">pub fn </span>ordinary_has_instance(
         function: <span class="kw-2">&amp;</span><span class="self">Self</span>,
         object: <span class="kw-2">&amp;</span><span class="self">Self</span>,
-        context: <span class="kw-2">&amp;mut </span>Context,
+        context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
     ) -&gt; JsResult&lt;bool&gt; {
         <span class="comment">// 1. If IsCallable(C) is false, return false.
         </span><span class="kw">let </span><span class="prelude-val">Some</span>(function) = function.as_callable() <span class="kw">else </span>{

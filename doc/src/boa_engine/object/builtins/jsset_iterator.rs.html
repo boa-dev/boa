@@ -90,7 +90,7 @@
         }
     }
     <span class="doccomment">/// Advances the `JsSetIterator` and gets the next result in the `JsSet`.
-    </span><span class="kw">pub fn </span>next(<span class="kw-2">&amp;</span><span class="self">self</span>, context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsValue&gt; {
+    </span><span class="kw">pub fn </span>next(<span class="kw-2">&amp;</span><span class="self">self</span>, context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;JsValue&gt; {
         SetIterator::next(<span class="kw-2">&amp;</span><span class="self">self</span>.inner.clone().into(), <span class="kw-2">&amp;</span>[JsValue::Null], context)
     }
 }

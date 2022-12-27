@@ -262,7 +262,7 @@
     /// # }
     /// ```
     </span><span class="attribute">#[inline]
-    </span><span class="kw">pub fn </span>new(byte_length: usize, context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;<span class="self">Self</span>&gt; {
+    </span><span class="kw">pub fn </span>new(byte_length: usize, context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;<span class="self">Self</span>&gt; {
         <span class="kw">let </span>inner = ArrayBuffer::allocate(
             <span class="kw-2">&amp;</span>context
                 .intrinsics()
@@ -300,7 +300,7 @@
     /// # Ok(())
     /// # }
     /// ```
-    </span><span class="kw">pub fn </span>from_byte_block(byte_block: Vec&lt;u8&gt;, context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;<span class="self">Self</span>&gt; {
+    </span><span class="kw">pub fn </span>from_byte_block(byte_block: Vec&lt;u8&gt;, context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;<span class="self">Self</span>&gt; {
         <span class="kw">let </span>byte_length = byte_block.len();
 
         <span class="kw">let </span>constructor = context
@@ -373,7 +373,7 @@
     /// # }
     ///  ```
     </span><span class="attribute">#[inline]
-    </span><span class="kw">pub fn </span>byte_length(<span class="kw-2">&amp;</span><span class="self">self</span>, context: <span class="kw-2">&amp;mut </span>Context) -&gt; usize {
+    </span><span class="kw">pub fn </span>byte_length(<span class="kw-2">&amp;</span><span class="self">self</span>, context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; usize {
         ArrayBuffer::get_byte_length(<span class="kw-2">&amp;</span><span class="self">self</span>.inner.clone().into(), <span class="kw-2">&amp;</span>[], context)
             .expect(<span class="string">&quot;it should not throw&quot;</span>)
             .as_number()

@@ -97,7 +97,7 @@
     JsResult,
 };
 
-<span class="kw">impl </span>ByteCompiler&lt;<span class="lifetime">&#39;_</span>&gt; {
+<span class="kw">impl </span>ByteCompiler&lt;<span class="lifetime">&#39;_</span>, <span class="lifetime">&#39;_</span>&gt; {
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>compile_assign(<span class="kw-2">&amp;mut </span><span class="self">self</span>, assign: <span class="kw-2">&amp;</span>Assign, use_expr: bool) -&gt; JsResult&lt;()&gt; {
         <span class="kw">if </span>assign.op() == AssignOp::Assign {
             <span class="kw">match </span>Access::from_assign_target(assign.lhs()) {
@@ -118,7 +118,7 @@
                 .expect(<span class="string">&quot;patterns should throw early errors on complex assignment operators&quot;</span>);
 
             <span class="kw">let </span>shortcircuit_operator_compilation =
-                |compiler: <span class="kw-2">&amp;mut </span>ByteCompiler&lt;<span class="lifetime">&#39;_</span>&gt;, opcode: Opcode| -&gt; JsResult&lt;()&gt; {
+                |compiler: <span class="kw-2">&amp;mut </span>ByteCompiler&lt;<span class="lifetime">&#39;_</span>, <span class="lifetime">&#39;_</span>&gt;, opcode: Opcode| -&gt; JsResult&lt;()&gt; {
                     <span class="kw">let </span>(early_exit, pop_count) =
                         compiler.access_set(access, use_expr, |compiler, level| {
                             compiler.access_get(access, <span class="bool-val">true</span>)<span class="question-mark">?</span>;

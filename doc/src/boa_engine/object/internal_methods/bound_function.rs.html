@@ -131,7 +131,7 @@
     obj: <span class="kw-2">&amp;</span>JsObject,
     <span class="kw">_</span>: <span class="kw-2">&amp;</span>JsValue,
     arguments_list: <span class="kw-2">&amp;</span>[JsValue],
-    context: <span class="kw-2">&amp;mut </span>Context,
+    context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
 ) -&gt; JsResult&lt;JsValue&gt; {
     <span class="kw">let </span>obj = obj.borrow();
     <span class="kw">let </span>bound_function = obj
@@ -166,7 +166,7 @@
     obj: <span class="kw-2">&amp;</span>JsObject,
     arguments_list: <span class="kw-2">&amp;</span>[JsValue],
     new_target: <span class="kw-2">&amp;</span>JsObject,
-    context: <span class="kw-2">&amp;mut </span>Context,
+    context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
 ) -&gt; JsResult&lt;JsObject&gt; {
     <span class="kw">let </span>object = obj.borrow();
     <span class="kw">let </span>bound_function = object

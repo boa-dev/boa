@@ -303,7 +303,7 @@
         .union(Attribute::NON_ENUMERABLE)
         .union(Attribute::WRITABLE);
 
-    <span class="kw">fn </span>init(context: <span class="kw-2">&amp;mut </span>Context) -&gt; <span class="prelude-ty">Option</span>&lt;JsValue&gt; {
+    <span class="kw">fn </span>init(context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <span class="prelude-ty">Option</span>&lt;JsValue&gt; {
         <span class="kw">let </span>_timer = Profiler::global().start_event(<span class="self">Self</span>::NAME, <span class="string">&quot;init&quot;</span>);
 
         <span class="kw">let </span>object = FunctionBuilder::native(context, <span class="self">Self</span>::eval)
@@ -323,7 +323,7 @@
     ///  - [ECMAScript reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-eval-x
-    </span><span class="kw">fn </span>eval(<span class="kw">_</span>: <span class="kw-2">&amp;</span>JsValue, args: <span class="kw-2">&amp;</span>[JsValue], context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsValue&gt; {
+    </span><span class="kw">fn </span>eval(<span class="kw">_</span>: <span class="kw-2">&amp;</span>JsValue, args: <span class="kw-2">&amp;</span>[JsValue], context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;JsValue&gt; {
         <span class="comment">// 1. Return ? PerformEval(x, false, false).
         </span><span class="self">Self</span>::perform_eval(args.get_or_undefined(<span class="number">0</span>), <span class="bool-val">false</span>, <span class="bool-val">false</span>, context)
     }
@@ -338,7 +338,7 @@
         x: <span class="kw-2">&amp;</span>JsValue,
         direct: bool,
         <span class="kw-2">mut </span>strict: bool,
-        context: <span class="kw-2">&amp;mut </span>Context,
+        context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
     ) -&gt; JsResult&lt;JsValue&gt; {
         <span class="macro">bitflags::bitflags! </span>{
             <span class="doccomment">/// Flags used to throw early errors on invalid `eval` calls.
@@ -360,7 +360,7 @@
         }
 
         <span class="doccomment">/// Restores the environment after calling `eval` or after throwing an error.
-        </span><span class="kw">fn </span>restore_environment(context: <span class="kw-2">&amp;mut </span>Context, action: EnvStackAction) {
+        </span><span class="kw">fn </span>restore_environment(context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;, action: EnvStackAction) {
             <span class="kw">match </span>action {
                 EnvStackAction::Truncate(size) =&gt; {
                     context.realm.environments.truncate(size);

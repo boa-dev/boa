@@ -232,7 +232,7 @@
     /// This method is executed when doing abstract equality comparisons with the `==` operator.
     ///  For more information, check &lt;https://tc39.es/ecma262/#sec-abstract-equality-comparison&gt;
     </span><span class="attribute">#[allow(clippy::float_cmp)]
-    </span><span class="kw">pub fn </span>equals(<span class="kw-2">&amp;</span><span class="self">self</span>, other: <span class="kw-2">&amp;</span><span class="self">Self</span>, context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;bool&gt; {
+    </span><span class="kw">pub fn </span>equals(<span class="kw-2">&amp;</span><span class="self">self</span>, other: <span class="kw-2">&amp;</span><span class="self">Self</span>, context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;bool&gt; {
         <span class="comment">// 1. If Type(x) is the same as Type(y), then
         //     a. Return the result of performing Strict Equality Comparison x === y.
         </span><span class="kw">if </span><span class="self">self</span>.get_type() == other.get_type() {

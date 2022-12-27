@@ -161,6 +161,10 @@
 <span id="160">160</span>
 <span id="161">161</span>
 <span id="162">162</span>
+<span id="163">163</span>
+<span id="164">164</span>
+<span id="165">165</span>
+<span id="166">166</span>
 </pre><pre class="rust"><code><span class="doccomment">//! This module implements the `SetIterator` object.
 //!
 //! More information:
@@ -216,7 +220,7 @@
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>create_set_iterator(
         set: JsValue,
         kind: PropertyNameKind,
-        context: <span class="kw-2">&amp;</span>Context,
+        context: <span class="kw-2">&amp;</span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
     ) -&gt; JsValue {
         <span class="kw">let </span>set_iterator = JsObject::from_proto_and_data(
             context
@@ -237,7 +241,11 @@
     ///  - [ECMA reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-%setiteratorprototype%.next
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>next(this: <span class="kw-2">&amp;</span>JsValue, <span class="kw">_</span>: <span class="kw-2">&amp;</span>[JsValue], context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsValue&gt; {
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>next(
+        this: <span class="kw-2">&amp;</span>JsValue,
+        <span class="kw">_</span>: <span class="kw-2">&amp;</span>[JsValue],
+        context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+    ) -&gt; JsResult&lt;JsValue&gt; {
         <span class="kw">let </span><span class="kw-2">mut </span>set_iterator = this.as_object().map(JsObject::borrow_mut);
 
         <span class="kw">let </span>set_iterator = set_iterator
@@ -304,7 +312,7 @@
     /// [spec]: https://tc39.es/ecma262/#sec-%setiteratorprototype%-object
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>create_prototype(
         iterator_prototype: JsObject,
-        context: <span class="kw-2">&amp;mut </span>Context,
+        context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
     ) -&gt; JsObject {
         <span class="kw">let </span>_timer = Profiler::global().start_event(<span class="self">Self</span>::NAME, <span class="string">&quot;init&quot;</span>);
 

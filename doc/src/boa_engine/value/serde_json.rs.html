@@ -325,7 +325,7 @@
     /// #
     /// # assert_eq!(json, value.to_json(&amp;mut context).unwrap());
     /// ```
-    </span><span class="kw">pub fn </span>from_json(json: <span class="kw-2">&amp;</span>Value, context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;<span class="self">Self</span>&gt; {
+    </span><span class="kw">pub fn </span>from_json(json: <span class="kw-2">&amp;</span>Value, context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;<span class="self">Self</span>&gt; {
         <span class="doccomment">/// Biggest possible integer, as i64.
         </span><span class="kw">const </span>MAX_INT: i64 = i32::MAX <span class="kw">as </span>i64;
 
@@ -399,7 +399,7 @@
     /// # Panics
     ///
     /// Panics if the `JsValue` is `Undefined`.
-    </span><span class="kw">pub fn </span>to_json(<span class="kw-2">&amp;</span><span class="self">self</span>, context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;Value&gt; {
+    </span><span class="kw">pub fn </span>to_json(<span class="kw-2">&amp;</span><span class="self">self</span>, context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;Value&gt; {
         <span class="kw">match </span><span class="self">self </span>{
             <span class="self">Self</span>::Null =&gt; <span class="prelude-val">Ok</span>(Value::Null),
             <span class="self">Self</span>::Undefined =&gt; <span class="macro">todo!</span>(<span class="string">&quot;undefined to JSON&quot;</span>),

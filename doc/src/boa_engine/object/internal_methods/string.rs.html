@@ -213,7 +213,7 @@
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>string_exotic_get_own_property(
     obj: <span class="kw-2">&amp;</span>JsObject,
     key: <span class="kw-2">&amp;</span>PropertyKey,
-    context: <span class="kw-2">&amp;mut </span>Context,
+    context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
 ) -&gt; JsResult&lt;<span class="prelude-ty">Option</span>&lt;PropertyDescriptor&gt;&gt; {
     <span class="comment">// 1. Assert: IsPropertyKey(P) is true.
     // 2. Let desc be OrdinaryGetOwnProperty(S, P).
@@ -238,7 +238,7 @@
     obj: <span class="kw-2">&amp;</span>JsObject,
     key: PropertyKey,
     desc: PropertyDescriptor,
-    context: <span class="kw-2">&amp;mut </span>Context,
+    context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
 ) -&gt; JsResult&lt;bool&gt; {
     <span class="comment">// 1. Assert: IsPropertyKey(P) is true.
     // 2. Let stringDesc be ! StringGetOwnProperty(S, P).
@@ -269,7 +269,7 @@
 </span><span class="attribute">#[allow(clippy::unnecessary_wraps)]
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>string_exotic_own_property_keys(
     obj: <span class="kw-2">&amp;</span>JsObject,
-    _context: <span class="kw-2">&amp;mut </span>Context,
+    _context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
 ) -&gt; JsResult&lt;Vec&lt;PropertyKey&gt;&gt; {
     <span class="kw">let </span>obj = obj.borrow();
 

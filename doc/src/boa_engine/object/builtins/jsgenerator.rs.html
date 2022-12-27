@@ -119,7 +119,7 @@
 <span class="kw">impl </span>JsGenerator {
     <span class="doccomment">/// Create a new `JsGenerator` object
     </span><span class="attribute">#[inline]
-    </span><span class="kw">pub fn </span>new(context: <span class="kw-2">&amp;mut </span>Context) -&gt; <span class="self">Self </span>{
+    </span><span class="kw">pub fn </span>new(context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <span class="self">Self </span>{
         <span class="kw">let </span>prototype = context.intrinsics().constructors().generator().prototype();
 
         <span class="kw">let </span>generator = JsObject::from_proto_and_data(
@@ -148,7 +148,7 @@
     <span class="doccomment">/// Calls `Generator.prototype.next()`
     ///
     /// This method returns an object with the properties `done` and `value`
-    </span><span class="kw">pub fn </span>next&lt;T&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, value: T, context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsValue&gt;
+    </span><span class="kw">pub fn </span>next&lt;T&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, value: T, context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;JsValue&gt;
     <span class="kw">where
         </span>T: Into&lt;JsValue&gt;,
     {
@@ -158,7 +158,7 @@
     <span class="doccomment">/// Calls `Generator.prototype.return()`
     ///
     /// This method returns the given value and finishes the generator
-    </span><span class="kw">pub fn </span>r#return&lt;T&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, value: T, context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsValue&gt;
+    </span><span class="kw">pub fn </span>r#return&lt;T&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, value: T, context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;JsValue&gt;
     <span class="kw">where
         </span>T: Into&lt;JsValue&gt;,
     {
@@ -169,7 +169,7 @@
     ///
     /// This method resumes the execution of a generator by throwing an error and returning an
     /// an object with the properties `done` and `value`
-    </span><span class="kw">pub fn </span>throw&lt;T&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, value: T, context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsValue&gt;
+    </span><span class="kw">pub fn </span>throw&lt;T&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, value: T, context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;JsValue&gt;
     <span class="kw">where
         </span>T: Into&lt;JsValue&gt;,
     {

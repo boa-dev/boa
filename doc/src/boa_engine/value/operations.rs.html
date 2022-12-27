@@ -671,7 +671,7 @@
 
 <span class="kw">impl </span>JsValue {
     <span class="doccomment">/// Perform the binary `+` operator on the value and return the result.
-    </span><span class="kw">pub fn </span>add(<span class="kw-2">&amp;</span><span class="self">self</span>, other: <span class="kw-2">&amp;</span><span class="self">Self</span>, context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;<span class="self">Self</span>&gt; {
+    </span><span class="kw">pub fn </span>add(<span class="kw-2">&amp;</span><span class="self">self</span>, other: <span class="kw-2">&amp;</span><span class="self">Self</span>, context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;<span class="self">Self</span>&gt; {
         <span class="prelude-val">Ok</span>(<span class="kw">match </span>(<span class="self">self</span>, other) {
             <span class="comment">// Fast path:
             // Numeric add
@@ -711,7 +711,7 @@
     }
 
     <span class="doccomment">/// Perform the binary `-` operator on the value and return the result.
-    </span><span class="kw">pub fn </span>sub(<span class="kw-2">&amp;</span><span class="self">self</span>, other: <span class="kw-2">&amp;</span><span class="self">Self</span>, context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;<span class="self">Self</span>&gt; {
+    </span><span class="kw">pub fn </span>sub(<span class="kw-2">&amp;</span><span class="self">self</span>, other: <span class="kw-2">&amp;</span><span class="self">Self</span>, context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;<span class="self">Self</span>&gt; {
         <span class="prelude-val">Ok</span>(<span class="kw">match </span>(<span class="self">self</span>, other) {
             <span class="comment">// Fast path:
             </span>(<span class="self">Self</span>::Integer(x), <span class="self">Self</span>::Integer(y)) =&gt; x
@@ -737,7 +737,7 @@
     }
 
     <span class="doccomment">/// Perform the binary `*` operator on the value and return the result.
-    </span><span class="kw">pub fn </span>mul(<span class="kw-2">&amp;</span><span class="self">self</span>, other: <span class="kw-2">&amp;</span><span class="self">Self</span>, context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;<span class="self">Self</span>&gt; {
+    </span><span class="kw">pub fn </span>mul(<span class="kw-2">&amp;</span><span class="self">self</span>, other: <span class="kw-2">&amp;</span><span class="self">Self</span>, context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;<span class="self">Self</span>&gt; {
         <span class="prelude-val">Ok</span>(<span class="kw">match </span>(<span class="self">self</span>, other) {
             <span class="comment">// Fast path:
             </span>(<span class="self">Self</span>::Integer(x), <span class="self">Self</span>::Integer(y)) =&gt; x
@@ -763,7 +763,7 @@
     }
 
     <span class="doccomment">/// Perform the binary `/` operator on the value and return the result.
-    </span><span class="kw">pub fn </span>div(<span class="kw-2">&amp;</span><span class="self">self</span>, other: <span class="kw-2">&amp;</span><span class="self">Self</span>, context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;<span class="self">Self</span>&gt; {
+    </span><span class="kw">pub fn </span>div(<span class="kw-2">&amp;</span><span class="self">self</span>, other: <span class="kw-2">&amp;</span><span class="self">Self</span>, context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;<span class="self">Self</span>&gt; {
         <span class="prelude-val">Ok</span>(<span class="kw">match </span>(<span class="self">self</span>, other) {
             <span class="comment">// Fast path:
             </span>(<span class="self">Self</span>::Integer(x), <span class="self">Self</span>::Integer(y)) =&gt; x
@@ -804,7 +804,7 @@
     }
 
     <span class="doccomment">/// Perform the binary `%` operator on the value and return the result.
-    </span><span class="kw">pub fn </span>rem(<span class="kw-2">&amp;</span><span class="self">self</span>, other: <span class="kw-2">&amp;</span><span class="self">Self</span>, context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;<span class="self">Self</span>&gt; {
+    </span><span class="kw">pub fn </span>rem(<span class="kw-2">&amp;</span><span class="self">self</span>, other: <span class="kw-2">&amp;</span><span class="self">Self</span>, context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;<span class="self">Self</span>&gt; {
         <span class="prelude-val">Ok</span>(<span class="kw">match </span>(<span class="self">self</span>, other) {
             <span class="comment">// Fast path:
             </span>(<span class="self">Self</span>::Integer(x), <span class="self">Self</span>::Integer(y)) =&gt; {
@@ -855,7 +855,7 @@
     }
 
     <span class="doccomment">/// Perform the binary `**` operator on the value and return the result.
-    </span><span class="kw">pub fn </span>pow(<span class="kw-2">&amp;</span><span class="self">self</span>, other: <span class="kw-2">&amp;</span><span class="self">Self</span>, context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;<span class="self">Self</span>&gt; {
+    </span><span class="kw">pub fn </span>pow(<span class="kw-2">&amp;</span><span class="self">self</span>, other: <span class="kw-2">&amp;</span><span class="self">Self</span>, context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;<span class="self">Self</span>&gt; {
         <span class="prelude-val">Ok</span>(<span class="kw">match </span>(<span class="self">self</span>, other) {
             <span class="comment">// Fast path:
             </span>(<span class="self">Self</span>::Integer(x), <span class="self">Self</span>::Integer(y)) =&gt; u32::try_from(<span class="kw-2">*</span>y)
@@ -882,7 +882,7 @@
     }
 
     <span class="doccomment">/// Perform the binary `&amp;` operator on the value and return the result.
-    </span><span class="kw">pub fn </span>bitand(<span class="kw-2">&amp;</span><span class="self">self</span>, other: <span class="kw-2">&amp;</span><span class="self">Self</span>, context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;<span class="self">Self</span>&gt; {
+    </span><span class="kw">pub fn </span>bitand(<span class="kw-2">&amp;</span><span class="self">self</span>, other: <span class="kw-2">&amp;</span><span class="self">Self</span>, context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;<span class="self">Self</span>&gt; {
         <span class="prelude-val">Ok</span>(<span class="kw">match </span>(<span class="self">self</span>, other) {
             <span class="comment">// Fast path:
             </span>(<span class="self">Self</span>::Integer(x), <span class="self">Self</span>::Integer(y)) =&gt; <span class="self">Self</span>::new(x &amp; y),
@@ -912,7 +912,7 @@
     }
 
     <span class="doccomment">/// Perform the binary `|` operator on the value and return the result.
-    </span><span class="kw">pub fn </span>bitor(<span class="kw-2">&amp;</span><span class="self">self</span>, other: <span class="kw-2">&amp;</span><span class="self">Self</span>, context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;<span class="self">Self</span>&gt; {
+    </span><span class="kw">pub fn </span>bitor(<span class="kw-2">&amp;</span><span class="self">self</span>, other: <span class="kw-2">&amp;</span><span class="self">Self</span>, context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;<span class="self">Self</span>&gt; {
         <span class="prelude-val">Ok</span>(<span class="kw">match </span>(<span class="self">self</span>, other) {
             <span class="comment">// Fast path:
             </span>(<span class="self">Self</span>::Integer(x), <span class="self">Self</span>::Integer(y)) =&gt; <span class="self">Self</span>::new(x | y),
@@ -942,7 +942,7 @@
     }
 
     <span class="doccomment">/// Perform the binary `^` operator on the value and return the result.
-    </span><span class="kw">pub fn </span>bitxor(<span class="kw-2">&amp;</span><span class="self">self</span>, other: <span class="kw-2">&amp;</span><span class="self">Self</span>, context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;<span class="self">Self</span>&gt; {
+    </span><span class="kw">pub fn </span>bitxor(<span class="kw-2">&amp;</span><span class="self">self</span>, other: <span class="kw-2">&amp;</span><span class="self">Self</span>, context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;<span class="self">Self</span>&gt; {
         <span class="prelude-val">Ok</span>(<span class="kw">match </span>(<span class="self">self</span>, other) {
             <span class="comment">// Fast path:
             </span>(<span class="self">Self</span>::Integer(x), <span class="self">Self</span>::Integer(y)) =&gt; <span class="self">Self</span>::new(x ^ y),
@@ -972,7 +972,7 @@
     }
 
     <span class="doccomment">/// Perform the binary `&lt;&lt;` operator on the value and return the result.
-    </span><span class="kw">pub fn </span>shl(<span class="kw-2">&amp;</span><span class="self">self</span>, other: <span class="kw-2">&amp;</span><span class="self">Self</span>, context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;<span class="self">Self</span>&gt; {
+    </span><span class="kw">pub fn </span>shl(<span class="kw-2">&amp;</span><span class="self">self</span>, other: <span class="kw-2">&amp;</span><span class="self">Self</span>, context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;<span class="self">Self</span>&gt; {
         <span class="prelude-val">Ok</span>(<span class="kw">match </span>(<span class="self">self</span>, other) {
             <span class="comment">// Fast path:
             </span>(<span class="self">Self</span>::Integer(x), <span class="self">Self</span>::Integer(y)) =&gt; <span class="self">Self</span>::new(x.wrapping_shl(<span class="kw-2">*</span>y <span class="kw">as </span>u32)),
@@ -1004,7 +1004,7 @@
     }
 
     <span class="doccomment">/// Perform the binary `&gt;&gt;` operator on the value and return the result.
-    </span><span class="kw">pub fn </span>shr(<span class="kw-2">&amp;</span><span class="self">self</span>, other: <span class="kw-2">&amp;</span><span class="self">Self</span>, context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;<span class="self">Self</span>&gt; {
+    </span><span class="kw">pub fn </span>shr(<span class="kw-2">&amp;</span><span class="self">self</span>, other: <span class="kw-2">&amp;</span><span class="self">Self</span>, context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;<span class="self">Self</span>&gt; {
         <span class="prelude-val">Ok</span>(<span class="kw">match </span>(<span class="self">self</span>, other) {
             <span class="comment">// Fast path:
             </span>(<span class="self">Self</span>::Integer(x), <span class="self">Self</span>::Integer(y)) =&gt; <span class="self">Self</span>::new(x.wrapping_shr(<span class="kw-2">*</span>y <span class="kw">as </span>u32)),
@@ -1036,7 +1036,7 @@
     }
 
     <span class="doccomment">/// Perform the binary `&gt;&gt;&gt;` operator on the value and return the result.
-    </span><span class="kw">pub fn </span>ushr(<span class="kw-2">&amp;</span><span class="self">self</span>, other: <span class="kw-2">&amp;</span><span class="self">Self</span>, context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;<span class="self">Self</span>&gt; {
+    </span><span class="kw">pub fn </span>ushr(<span class="kw-2">&amp;</span><span class="self">self</span>, other: <span class="kw-2">&amp;</span><span class="self">Self</span>, context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;<span class="self">Self</span>&gt; {
         <span class="prelude-val">Ok</span>(<span class="kw">match </span>(<span class="self">self</span>, other) {
             <span class="comment">// Fast path:
             </span>(<span class="self">Self</span>::Integer(x), <span class="self">Self</span>::Integer(y)) =&gt; <span class="self">Self</span>::new((<span class="kw-2">*</span>x <span class="kw">as </span>u32).wrapping_shr(<span class="kw-2">*</span>y <span class="kw">as </span>u32)),
@@ -1075,7 +1075,7 @@
     /// - [ECMAScript reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-instanceofoperator
-    </span><span class="kw">pub fn </span>instance_of(<span class="kw-2">&amp;</span><span class="self">self</span>, target: <span class="kw-2">&amp;</span><span class="self">Self</span>, context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;bool&gt; {
+    </span><span class="kw">pub fn </span>instance_of(<span class="kw-2">&amp;</span><span class="self">self</span>, target: <span class="kw-2">&amp;</span><span class="self">Self</span>, context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;bool&gt; {
         <span class="comment">// 1. If Type(target) is not Object, throw a TypeError exception.
         </span><span class="kw">if </span>!target.is_object() {
             <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::typ()
@@ -1109,7 +1109,7 @@
     }
 
     <span class="doccomment">/// Returns the negated value.
-    </span><span class="kw">pub fn </span>neg(<span class="kw-2">&amp;</span><span class="self">self</span>, context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;<span class="self">Self</span>&gt; {
+    </span><span class="kw">pub fn </span>neg(<span class="kw-2">&amp;</span><span class="self">self</span>, context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;<span class="self">Self</span>&gt; {
         <span class="prelude-val">Ok</span>(<span class="kw">match </span><span class="kw-2">*</span><span class="self">self </span>{
             <span class="self">Self</span>::Symbol(<span class="kw">_</span>) | <span class="self">Self</span>::Undefined =&gt; <span class="self">Self</span>::new(f64::NAN),
             <span class="self">Self</span>::Object(<span class="kw">_</span>) =&gt; <span class="self">Self</span>::new(
@@ -1153,7 +1153,7 @@
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         other: <span class="kw-2">&amp;</span><span class="self">Self</span>,
         left_first: bool,
-        context: <span class="kw-2">&amp;mut </span>Context,
+        context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
     ) -&gt; JsResult&lt;AbstractRelation&gt; {
         <span class="prelude-val">Ok</span>(<span class="kw">match </span>(<span class="self">self</span>, other) {
             <span class="comment">// Fast path (for some common operations):
@@ -1231,7 +1231,7 @@
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Less_than
     /// [spec]: https://tc39.es/ecma262/#sec-relational-operators-runtime-semantics-evaluation
     </span><span class="attribute">#[inline]
-    </span><span class="kw">pub fn </span>lt(<span class="kw-2">&amp;</span><span class="self">self</span>, other: <span class="kw-2">&amp;</span><span class="self">Self</span>, context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;bool&gt; {
+    </span><span class="kw">pub fn </span>lt(<span class="kw-2">&amp;</span><span class="self">self</span>, other: <span class="kw-2">&amp;</span><span class="self">Self</span>, context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;bool&gt; {
         <span class="kw">match </span><span class="self">self</span>.abstract_relation(other, <span class="bool-val">true</span>, context)<span class="question-mark">? </span>{
             AbstractRelation::True =&gt; <span class="prelude-val">Ok</span>(<span class="bool-val">true</span>),
             AbstractRelation::False | AbstractRelation::Undefined =&gt; <span class="prelude-val">Ok</span>(<span class="bool-val">false</span>),
@@ -1248,7 +1248,7 @@
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Less_than_or_equal
     /// [spec]: https://tc39.es/ecma262/#sec-relational-operators-runtime-semantics-evaluation
     </span><span class="attribute">#[inline]
-    </span><span class="kw">pub fn </span>le(<span class="kw-2">&amp;</span><span class="self">self</span>, other: <span class="kw-2">&amp;</span><span class="self">Self</span>, context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;bool&gt; {
+    </span><span class="kw">pub fn </span>le(<span class="kw-2">&amp;</span><span class="self">self</span>, other: <span class="kw-2">&amp;</span><span class="self">Self</span>, context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;bool&gt; {
         <span class="kw">match </span>other.abstract_relation(<span class="self">self</span>, <span class="bool-val">false</span>, context)<span class="question-mark">? </span>{
             AbstractRelation::False =&gt; <span class="prelude-val">Ok</span>(<span class="bool-val">true</span>),
             AbstractRelation::True | AbstractRelation::Undefined =&gt; <span class="prelude-val">Ok</span>(<span class="bool-val">false</span>),
@@ -1265,7 +1265,7 @@
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Greater_than
     /// [spec]: https://tc39.es/ecma262/#sec-relational-operators-runtime-semantics-evaluation
     </span><span class="attribute">#[inline]
-    </span><span class="kw">pub fn </span>gt(<span class="kw-2">&amp;</span><span class="self">self</span>, other: <span class="kw-2">&amp;</span><span class="self">Self</span>, context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;bool&gt; {
+    </span><span class="kw">pub fn </span>gt(<span class="kw-2">&amp;</span><span class="self">self</span>, other: <span class="kw-2">&amp;</span><span class="self">Self</span>, context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;bool&gt; {
         <span class="kw">match </span>other.abstract_relation(<span class="self">self</span>, <span class="bool-val">false</span>, context)<span class="question-mark">? </span>{
             AbstractRelation::True =&gt; <span class="prelude-val">Ok</span>(<span class="bool-val">true</span>),
             AbstractRelation::False | AbstractRelation::Undefined =&gt; <span class="prelude-val">Ok</span>(<span class="bool-val">false</span>),
@@ -1282,7 +1282,7 @@
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Greater_than_or_equal
     /// [spec]: https://tc39.es/ecma262/#sec-relational-operators-runtime-semantics-evaluation
     </span><span class="attribute">#[inline]
-    </span><span class="kw">pub fn </span>ge(<span class="kw-2">&amp;</span><span class="self">self</span>, other: <span class="kw-2">&amp;</span><span class="self">Self</span>, context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;bool&gt; {
+    </span><span class="kw">pub fn </span>ge(<span class="kw-2">&amp;</span><span class="self">self</span>, other: <span class="kw-2">&amp;</span><span class="self">Self</span>, context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;bool&gt; {
         <span class="kw">match </span><span class="self">self</span>.abstract_relation(other, <span class="bool-val">true</span>, context)<span class="question-mark">? </span>{
             AbstractRelation::False =&gt; <span class="prelude-val">Ok</span>(<span class="bool-val">true</span>),
             AbstractRelation::True | AbstractRelation::Undefined =&gt; <span class="prelude-val">Ok</span>(<span class="bool-val">false</span>),

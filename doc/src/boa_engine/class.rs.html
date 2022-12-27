@@ -293,6 +293,10 @@
 <span id="292">292</span>
 <span id="293">293</span>
 <span id="294">294</span>
+<span id="295">295</span>
+<span id="296">296</span>
+<span id="297">297</span>
+<span id="298">298</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Traits and structs for implementing native classes.
 //!
 //! Native classes are implemented through the [`Class`][class-trait] trait.
@@ -321,7 +325,7 @@
 //!     const LENGTH: usize = 1;
 //!
 //!     // This is what is called when we do `new Animal()`
-//!     fn constructor(_this: &amp;JsValue, args: &amp;[JsValue], context: &amp;mut Context) -&gt; JsResult&lt;Self&gt; {
+//!     fn constructor(_this: &amp;JsValue, args: &amp;[JsValue], context: &amp;mut Context&lt;&#39;_&gt;) -&gt; JsResult&lt;Self&gt; {
 //!         // This is equivalent to `String(arg)`.
 //!         let kind = args.get_or_undefined(0).to_string(context)?;
 //!
@@ -374,10 +378,10 @@
     </span><span class="kw">const </span>ATTRIBUTES: Attribute = Attribute::all();
 
     <span class="doccomment">/// The constructor of the class.
-    </span><span class="kw">fn </span>constructor(this: <span class="kw-2">&amp;</span>JsValue, args: <span class="kw-2">&amp;</span>[JsValue], context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;<span class="self">Self</span>&gt;;
+    </span><span class="kw">fn </span>constructor(this: <span class="kw-2">&amp;</span>JsValue, args: <span class="kw-2">&amp;</span>[JsValue], context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;<span class="self">Self</span>&gt;;
 
     <span class="doccomment">/// Initializes the internals and the methods of the class.
-    </span><span class="kw">fn </span>init(class: <span class="kw-2">&amp;mut </span>ClassBuilder&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;()&gt;;
+    </span><span class="kw">fn </span>init(class: <span class="kw-2">&amp;mut </span>ClassBuilder&lt;<span class="lifetime">&#39;_</span>, <span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;()&gt;;
 }
 
 <span class="doccomment">/// This is a wrapper around `Class::constructor` that sets the internal data of a class.
@@ -388,14 +392,18 @@
     </span><span class="kw">fn </span>raw_constructor(
         this: <span class="kw-2">&amp;</span>JsValue,
         args: <span class="kw-2">&amp;</span>[JsValue],
-        context: <span class="kw-2">&amp;mut </span>Context,
+        context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
     ) -&gt; JsResult&lt;JsValue&gt;
     <span class="kw">where
         </span><span class="self">Self</span>: Sized;
 }
 
 <span class="kw">impl</span>&lt;T: Class&gt; ClassConstructor <span class="kw">for </span>T {
-    <span class="kw">fn </span>raw_constructor(this: <span class="kw-2">&amp;</span>JsValue, args: <span class="kw-2">&amp;</span>[JsValue], context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsValue&gt;
+    <span class="kw">fn </span>raw_constructor(
+        this: <span class="kw-2">&amp;</span>JsValue,
+        args: <span class="kw-2">&amp;</span>[JsValue],
+        context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+    ) -&gt; JsResult&lt;JsValue&gt;
     <span class="kw">where
         </span><span class="self">Self</span>: Sized,
     {
@@ -448,12 +456,12 @@
 
 <span class="doccomment">/// Class builder which allows adding methods and static methods to the class.
 </span><span class="attribute">#[derive(Debug)]
-</span><span class="kw">pub struct </span>ClassBuilder&lt;<span class="lifetime">&#39;context</span>&gt; {
-    builder: ConstructorBuilder&lt;<span class="lifetime">&#39;context</span>&gt;,
+</span><span class="kw">pub struct </span>ClassBuilder&lt;<span class="lifetime">&#39;ctx</span>, <span class="lifetime">&#39;icu</span>&gt; {
+    builder: ConstructorBuilder&lt;<span class="lifetime">&#39;ctx</span>, <span class="lifetime">&#39;icu</span>&gt;,
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;context</span>&gt; ClassBuilder&lt;<span class="lifetime">&#39;context</span>&gt; {
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>new&lt;T&gt;(context: <span class="kw-2">&amp;</span><span class="lifetime">&#39;context </span><span class="kw-2">mut </span>Context) -&gt; <span class="self">Self
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;ctx</span>, <span class="lifetime">&#39;icu</span>&gt; ClassBuilder&lt;<span class="lifetime">&#39;ctx</span>, <span class="lifetime">&#39;icu</span>&gt; {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>new&lt;T&gt;(context: <span class="kw-2">&amp;</span><span class="lifetime">&#39;ctx </span><span class="kw-2">mut </span>Context&lt;<span class="lifetime">&#39;icu</span>&gt;) -&gt; <span class="self">Self
     </span><span class="kw">where
         </span>T: ClassConstructor,
     {
@@ -583,7 +591,7 @@
 
     <span class="doccomment">/// Return the current context.
     </span><span class="attribute">#[inline]
-    </span><span class="kw">pub fn </span>context(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;_ </span><span class="kw-2">mut </span>Context {
+    </span><span class="kw">pub fn </span>context(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;icu</span>&gt; {
         <span class="self">self</span>.builder.context()
     }
 }

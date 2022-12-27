@@ -365,7 +365,7 @@
     /// [spec]: https://tc39.es/ecma262/#sec-createunmappedargumentsobject
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>create_unmapped_arguments_object(
         arguments_list: <span class="kw-2">&amp;</span>[JsValue],
-        context: <span class="kw-2">&amp;mut </span>Context,
+        context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
     ) -&gt; JsObject {
         <span class="comment">// 1. Let len be the number of elements in argumentsList.
         </span><span class="kw">let </span>len = arguments_list.len();
@@ -445,7 +445,7 @@
         formals: <span class="kw-2">&amp;</span>FormalParameterList,
         arguments_list: <span class="kw-2">&amp;</span>[JsValue],
         env: <span class="kw-2">&amp;</span>Gc&lt;DeclarativeEnvironment&gt;,
-        context: <span class="kw-2">&amp;mut </span>Context,
+        context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
     ) -&gt; JsObject {
         <span class="comment">// 1. Assert: formals does not contain a rest parameter, any binding patterns, or any initializers.
         // It may contain duplicate identifiers.

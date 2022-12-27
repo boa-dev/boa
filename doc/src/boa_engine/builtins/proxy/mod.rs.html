@@ -221,7 +221,7 @@
 <span class="kw">impl </span>BuiltIn <span class="kw">for </span>Proxy {
     <span class="kw">const </span>NAME: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;Proxy&quot;</span>;
 
-    <span class="kw">fn </span>init(context: <span class="kw-2">&amp;mut </span>Context) -&gt; <span class="prelude-ty">Option</span>&lt;JsValue&gt; {
+    <span class="kw">fn </span>init(context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <span class="prelude-ty">Option</span>&lt;JsValue&gt; {
         <span class="kw">let </span>_timer = Profiler::global().start_event(<span class="self">Self</span>::NAME, <span class="string">&quot;init&quot;</span>);
 
         ConstructorBuilder::with_standard_constructor(
@@ -268,7 +268,7 @@
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>constructor(
         new_target: <span class="kw-2">&amp;</span>JsValue,
         args: <span class="kw-2">&amp;</span>[JsValue],
-        context: <span class="kw-2">&amp;mut </span>Context,
+        context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
     ) -&gt; JsResult&lt;JsValue&gt; {
         <span class="comment">// 1. If NewTarget is undefined, throw a TypeError exception.
         </span><span class="kw">if </span>new_target.is_undefined() {
@@ -290,7 +290,7 @@
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>create(
         target: <span class="kw-2">&amp;</span>JsValue,
         handler: <span class="kw-2">&amp;</span>JsValue,
-        context: <span class="kw-2">&amp;mut </span>Context,
+        context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
     ) -&gt; JsResult&lt;JsObject&gt; {
         <span class="comment">// 1. If Type(target) is not Object, throw a TypeError exception.
         </span><span class="kw">let </span>target = target.as_object().ok_or_else(|| {
@@ -323,7 +323,7 @@
         </span><span class="prelude-val">Ok</span>(p)
     }
 
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>revoker(proxy: JsObject, context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsFunction {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>revoker(proxy: JsObject, context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsFunction {
         <span class="comment">// 3. Let revoker be ! CreateBuiltinFunction(revokerClosure, 0, &quot;&quot;, « [[RevocableProxy]] »).
         // 4. Set revoker.[[RevocableProxy]] to p.
         </span>FunctionBuilder::closure_with_captures(
@@ -357,7 +357,7 @@
     ///  - [ECMAScript reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-proxy.revocable
-    </span><span class="kw">fn </span>revocable(<span class="kw">_</span>: <span class="kw-2">&amp;</span>JsValue, args: <span class="kw-2">&amp;</span>[JsValue], context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsValue&gt; {
+    </span><span class="kw">fn </span>revocable(<span class="kw">_</span>: <span class="kw-2">&amp;</span>JsValue, args: <span class="kw-2">&amp;</span>[JsValue], context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;JsValue&gt; {
         <span class="comment">// 1. Let p be ? ProxyCreate(target, handler).
         </span><span class="kw">let </span>p = <span class="self">Self</span>::create(args.get_or_undefined(<span class="number">0</span>), args.get_or_undefined(<span class="number">1</span>), context)<span class="question-mark">?</span>;
 

@@ -458,7 +458,7 @@
 ///  - [ECMA reference][spec]
 ///
 /// [spec]: https://tc39.es/ecma262/#sec-%asyncfromsynciteratorprototype%-object
-</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>create_async_from_sync_iterator_prototype(context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsObject {
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>create_async_from_sync_iterator_prototype(context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsObject {
     <span class="kw">let </span>_timer = Profiler::global().start_event(<span class="string">&quot;AsyncFromSyncIteratorPrototype&quot;</span>, <span class="string">&quot;init&quot;</span>);
 
     <span class="kw">let </span>prototype = JsObject::from_proto_and_data(
@@ -536,7 +536,7 @@
     /// [spec]: https://tc39.es/ecma262/#sec-createasyncfromsynciterator
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>create(
         sync_iterator_record: IteratorRecord,
-        context: <span class="kw-2">&amp;mut </span>Context,
+        context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
     ) -&gt; IteratorRecord {
         <span class="comment">// 1. Let asyncIterator be OrdinaryObjectCreate(%AsyncFromSyncIteratorPrototype%, « [[SyncIteratorRecord]] »).
         // 2. Set asyncIterator.[[SyncIteratorRecord]] to syncIteratorRecord.
@@ -567,7 +567,7 @@
     ///  - [ECMA reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-%asyncfromsynciteratorprototype%.next
-    </span><span class="kw">fn </span>next(this: <span class="kw-2">&amp;</span>JsValue, args: <span class="kw-2">&amp;</span>[JsValue], context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsValue&gt; {
+    </span><span class="kw">fn </span>next(this: <span class="kw-2">&amp;</span>JsValue, args: <span class="kw-2">&amp;</span>[JsValue], context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;JsValue&gt; {
         <span class="comment">// 1. Let O be the this value.
         // 2. Assert: O is an Object that has a [[SyncIteratorRecord]] internal slot.
         // 4. Let syncIteratorRecord be O.[[SyncIteratorRecord]].
@@ -611,7 +611,7 @@
     ///  - [ECMA reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-%asyncfromsynciteratorprototype%.return
-    </span><span class="kw">fn </span>r#return(this: <span class="kw-2">&amp;</span>JsValue, args: <span class="kw-2">&amp;</span>[JsValue], context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsValue&gt; {
+    </span><span class="kw">fn </span>r#return(this: <span class="kw-2">&amp;</span>JsValue, args: <span class="kw-2">&amp;</span>[JsValue], context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;JsValue&gt; {
         <span class="comment">// 1. Let O be the this value.
         // 2. Assert: O is an Object that has a [[SyncIteratorRecord]] internal slot.
         // 4. Let syncIterator be O.[[SyncIteratorRecord]].[[Iterator]].
@@ -709,7 +709,7 @@
     ///  - [ECMA reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-%asyncfromsynciteratorprototype%.throw
-    </span><span class="kw">fn </span>throw(this: <span class="kw-2">&amp;</span>JsValue, args: <span class="kw-2">&amp;</span>[JsValue], context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsValue&gt; {
+    </span><span class="kw">fn </span>throw(this: <span class="kw-2">&amp;</span>JsValue, args: <span class="kw-2">&amp;</span>[JsValue], context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;JsValue&gt; {
         <span class="comment">// 1. Let O be the this value.
         // 2. Assert: O is an Object that has a [[SyncIteratorRecord]] internal slot.
         // 4. Let syncIterator be O.[[SyncIteratorRecord]].[[Iterator]].
@@ -810,7 +810,7 @@
     </span><span class="kw">fn </span>continuation(
         result: <span class="kw-2">&amp;</span>IteratorResult,
         promise_capability: <span class="kw-2">&amp;</span>PromiseCapability,
-        context: <span class="kw-2">&amp;mut </span>Context,
+        context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
     ) -&gt; JsResult&lt;JsValue&gt; {
         <span class="comment">// 1. NOTE: Because promiseCapability is derived from the intrinsic %Promise%,
         // the calls to promiseCapability.[[Reject]] entailed by the

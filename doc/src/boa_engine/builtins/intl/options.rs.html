@@ -280,7 +280,7 @@
     /// steps instead of returning a pure string, number or boolean.
     ///
     /// [spec]: https://tc39.es/ecma402/#sec-getoption
-    </span><span class="kw">fn </span>from_value(value: JsValue, context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;<span class="self">Self</span>&gt;;
+    </span><span class="kw">fn </span>from_value(value: JsValue, context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;<span class="self">Self</span>&gt;;
 }
 
 <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">trait </span>OptionTypeParsable: FromStr {}
@@ -289,7 +289,7 @@
 <span class="kw">where
     </span>T::Err: Display,
 {
-    <span class="kw">fn </span>from_value(value: JsValue, context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;<span class="self">Self</span>&gt; {
+    <span class="kw">fn </span>from_value(value: JsValue, context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;<span class="self">Self</span>&gt; {
         value
             .to_string(context)<span class="question-mark">?
             </span>.to_std_string_escaped()
@@ -299,7 +299,7 @@
 }
 
 <span class="kw">impl </span>OptionType <span class="kw">for </span>bool {
-    <span class="kw">fn </span>from_value(value: JsValue, <span class="kw">_</span>: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;<span class="self">Self</span>&gt; {
+    <span class="kw">fn </span>from_value(value: JsValue, <span class="kw">_</span>: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;<span class="self">Self</span>&gt; {
         <span class="comment">// 5. If type is &quot;boolean&quot;, then
         //      a. Set value to ! ToBoolean(value).
         </span><span class="prelude-val">Ok</span>(value.to_boolean())
@@ -307,7 +307,7 @@
 }
 
 <span class="kw">impl </span>OptionType <span class="kw">for </span>JsString {
-    <span class="kw">fn </span>from_value(value: JsValue, context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;<span class="self">Self</span>&gt; {
+    <span class="kw">fn </span>from_value(value: JsValue, context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;<span class="self">Self</span>&gt; {
         <span class="comment">// 6. If type is &quot;string&quot;, then
         //      a. Set value to ? ToString(value).
         </span>value.to_string(context)
@@ -345,7 +345,7 @@
 <span class="kw">impl </span>OptionTypeParsable <span class="kw">for </span>LocaleMatcher {}
 
 <span class="kw">impl </span>OptionType <span class="kw">for </span>CaseFirst {
-    <span class="kw">fn </span>from_value(value: JsValue, context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;<span class="self">Self</span>&gt; {
+    <span class="kw">fn </span>from_value(value: JsValue, context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;<span class="self">Self</span>&gt; {
         <span class="kw">match </span>value.to_string(context)<span class="question-mark">?</span>.to_std_string_escaped().as_str() {
             <span class="string">&quot;upper&quot; </span>=&gt; <span class="prelude-val">Ok</span>(CaseFirst::UpperFirst),
             <span class="string">&quot;lower&quot; </span>=&gt; <span class="prelude-val">Ok</span>(CaseFirst::LowerFirst),
@@ -375,7 +375,7 @@
     options: <span class="kw-2">&amp;</span>JsObject,
     property: <span class="kw-2">&amp;</span>str,
     required: bool,
-    context: <span class="kw-2">&amp;mut </span>Context,
+    context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
 ) -&gt; JsResult&lt;<span class="prelude-ty">Option</span>&lt;T&gt;&gt; {
     <span class="comment">// 1. Let value be ? Get(options, property).
     </span><span class="kw">let </span>value = options.get(property, context)<span class="question-mark">?</span>;
@@ -414,7 +414,7 @@
     minimum: f64,
     maximum: f64,
     fallback: <span class="prelude-ty">Option</span>&lt;f64&gt;,
-    context: <span class="kw-2">&amp;mut </span>Context,
+    context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
 ) -&gt; JsResult&lt;<span class="prelude-ty">Option</span>&lt;f64&gt;&gt; {
     <span class="comment">// 1. Assert: Type(options) is Object.
     // 2. Let value be ? Get(options, property).
@@ -436,7 +436,7 @@
     minimum: f64,
     maximum: f64,
     fallback: <span class="prelude-ty">Option</span>&lt;f64&gt;,
-    context: <span class="kw-2">&amp;mut </span>Context,
+    context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
 ) -&gt; JsResult&lt;<span class="prelude-ty">Option</span>&lt;f64&gt;&gt; {
     <span class="comment">// 1. If value is undefined, return fallback.
     </span><span class="kw">if </span>value.is_undefined() {
@@ -492,7 +492,7 @@
 /// [spec]: https://tc39.es/ecma402/#sec-coerceoptionstoobject
 </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>coerce_options_to_object(
     options: <span class="kw-2">&amp;</span>JsValue,
-    context: <span class="kw-2">&amp;mut </span>Context,
+    context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
 ) -&gt; JsResult&lt;JsObject&gt; {
     <span class="comment">// If options is undefined, then
     </span><span class="kw">if </span>options.is_undefined() {

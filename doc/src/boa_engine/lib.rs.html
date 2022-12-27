@@ -397,7 +397,7 @@
 ///
 /// The state of the `Context` is changed, and a string representation of the result is returned.
 </span><span class="attribute">#[cfg(test)]
-</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>forward&lt;S&gt;(context: <span class="kw-2">&amp;mut </span>Context, src: S) -&gt; String
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>forward&lt;S&gt;(context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;, src: S) -&gt; String
 <span class="kw">where
     </span>S: AsRef&lt;[u8]&gt;,
 {
@@ -412,7 +412,7 @@
 /// If the interpreter fails parsing an error value is returned instead (error object)
 </span><span class="attribute">#[allow(clippy::unit_arg, clippy::drop_copy)]
 #[cfg(test)]
-</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>forward_val&lt;T: AsRef&lt;[u8]&gt;&gt;(context: <span class="kw-2">&amp;mut </span>Context, src: T) -&gt; JsResult&lt;JsValue&gt; {
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>forward_val&lt;T: AsRef&lt;[u8]&gt;&gt;(context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;, src: T) -&gt; JsResult&lt;JsValue&gt; {
     <span class="kw">use </span>boa_profiler::Profiler;
 
     <span class="kw">let </span>main_timer = Profiler::global().start_event(<span class="string">&quot;Main&quot;</span>, <span class="string">&quot;Main&quot;</span>);

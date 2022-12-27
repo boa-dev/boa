@@ -113,7 +113,7 @@
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         v: <span class="kw-2">&amp;</span>JsValue,
         arguments_list: <span class="kw-2">&amp;</span>[JsValue],
-        context: <span class="kw-2">&amp;mut </span>Context,
+        context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
     ) -&gt; JsResult&lt;JsValue&gt; {
         <span class="comment">// It must perform and return the result of Call(jobCallback.[[Callback]], V, argumentsList).
 

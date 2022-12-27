@@ -577,7 +577,7 @@
     <span class="doccomment">/// Disables the traps of the internal `proxy` object, essentially
     /// making it unusable and throwing `TypeError`s for all the traps.
     </span><span class="attribute">#[inline]
-    </span><span class="kw">pub fn </span>revoke(<span class="self">self</span>, context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;()&gt; {
+    </span><span class="kw">pub fn </span>revoke(<span class="self">self</span>, context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;()&gt; {
         <span class="self">self</span>.revoker.call(<span class="kw-2">&amp;</span>JsValue::undefined(), <span class="kw-2">&amp;</span>[], context)<span class="question-mark">?</span>;
         <span class="prelude-val">Ok</span>(())
     }
@@ -867,7 +867,7 @@
     /// [`JsObject`] in case there&#39;s a need to manipulate the returned object
     /// inside Rust code.
     </span><span class="attribute">#[must_use]
-    </span><span class="kw">pub fn </span>build(<span class="self">self</span>, context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsProxy {
+    </span><span class="kw">pub fn </span>build(<span class="self">self</span>, context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsProxy {
         <span class="kw">let </span>handler = JsObject::with_object_proto(context);
 
         <span class="kw">if let </span><span class="prelude-val">Some</span>(apply) = <span class="self">self</span>.apply {
@@ -984,7 +984,7 @@
     /// revoker in case there&#39;s a need to manipulate the returned objects
     /// inside Rust code.
     </span><span class="attribute">#[must_use]
-    </span><span class="kw">pub fn </span>build_revocable(<span class="self">self</span>, context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsRevocableProxy {
+    </span><span class="kw">pub fn </span>build_revocable(<span class="self">self</span>, context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsRevocableProxy {
         <span class="kw">let </span>proxy = <span class="self">self</span>.build(context);
         <span class="kw">let </span>revoker = Proxy::revoker(proxy.inner.clone(), context);
 

@@ -1695,7 +1695,7 @@
     <span class="doccomment">/// Helper method to throws an error if the binding access is illegal.
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>throw_mutate_immutable(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        context: <span class="kw-2">&amp;mut </span>Context,
+        context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;(), JsNativeError&gt; {
         <span class="kw">if </span><span class="self">self</span>.mutate_immutable {
             <span class="prelude-val">Err</span>(JsNativeError::typ().with_message(<span class="macro">format!</span>(

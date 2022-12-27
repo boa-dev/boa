@@ -1004,6 +1004,9 @@
 <span id="1003">1003</span>
 <span id="1004">1004</span>
 <span id="1005">1005</span>
+<span id="1006">1006</span>
+<span id="1007">1007</span>
+<span id="1008">1008</span>
 </pre><pre class="rust"><code><span class="kw">use crate</span>::{
     builtins::{array, object::Object},
     error::JsNativeError,
@@ -1058,7 +1061,7 @@
 /// [spec]: https://tc39.es/ecma262/#sec-proxy-object-internal-methods-and-internal-slots-getprototypeof
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>proxy_exotic_get_prototype_of(
     obj: <span class="kw-2">&amp;</span>JsObject,
-    context: <span class="kw-2">&amp;mut </span>Context,
+    context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
 ) -&gt; JsResult&lt;JsPrototype&gt; {
     <span class="comment">// 1. Let handler be O.[[ProxyHandler]].
     // 2. If handler is null, throw a TypeError exception.
@@ -1120,7 +1123,7 @@
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>proxy_exotic_set_prototype_of(
     obj: <span class="kw-2">&amp;</span>JsObject,
     val: JsPrototype,
-    context: <span class="kw-2">&amp;mut </span>Context,
+    context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
 ) -&gt; JsResult&lt;bool&gt; {
     <span class="comment">// 1. Let handler be O.[[ProxyHandler]].
     // 2. If handler is null, throw a TypeError exception.
@@ -1181,7 +1184,10 @@
 ///  - [ECMAScript reference][spec]
 ///
 /// [spec]: https://tc39.es/ecma262/#sec-proxy-object-internal-methods-and-internal-slots-isextensible
-</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>proxy_exotic_is_extensible(obj: <span class="kw-2">&amp;</span>JsObject, context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;bool&gt; {
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>proxy_exotic_is_extensible(
+    obj: <span class="kw-2">&amp;</span>JsObject,
+    context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+) -&gt; JsResult&lt;bool&gt; {
     <span class="comment">// 1. Let handler be O.[[ProxyHandler]].
     // 2. If handler is null, throw a TypeError exception.
     // 3. Assert: Type(handler) is Object.
@@ -1226,7 +1232,7 @@
 /// [spec]: https://tc39.es/ecma262/#sec-proxy-object-internal-methods-and-internal-slots-preventextensions
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>proxy_exotic_prevent_extensions(
     obj: <span class="kw-2">&amp;</span>JsObject,
-    context: <span class="kw-2">&amp;mut </span>Context,
+    context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
 ) -&gt; JsResult&lt;bool&gt; {
     <span class="comment">// 1. Let handler be O.[[ProxyHandler]].
     // 2. If handler is null, throw a TypeError exception.
@@ -1272,7 +1278,7 @@
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>proxy_exotic_get_own_property(
     obj: <span class="kw-2">&amp;</span>JsObject,
     key: <span class="kw-2">&amp;</span>PropertyKey,
-    context: <span class="kw-2">&amp;mut </span>Context,
+    context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
 ) -&gt; JsResult&lt;<span class="prelude-ty">Option</span>&lt;PropertyDescriptor&gt;&gt; {
     <span class="comment">// 1. Let handler be O.[[ProxyHandler]].
     // 2. If handler is null, throw a TypeError exception.
@@ -1396,7 +1402,7 @@
     obj: <span class="kw-2">&amp;</span>JsObject,
     key: PropertyKey,
     desc: PropertyDescriptor,
-    context: <span class="kw-2">&amp;mut </span>Context,
+    context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
 ) -&gt; JsResult&lt;bool&gt; {
     <span class="comment">// 1. Let handler be O.[[ProxyHandler]].
     // 2. If handler is null, throw a TypeError exception.
@@ -1507,7 +1513,7 @@
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>proxy_exotic_has_property(
     obj: <span class="kw-2">&amp;</span>JsObject,
     key: <span class="kw-2">&amp;</span>PropertyKey,
-    context: <span class="kw-2">&amp;mut </span>Context,
+    context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
 ) -&gt; JsResult&lt;bool&gt; {
     <span class="comment">// 1. Let handler be O.[[ProxyHandler]].
     // 2. If handler is null, throw a TypeError exception.
@@ -1573,7 +1579,7 @@
     obj: <span class="kw-2">&amp;</span>JsObject,
     key: <span class="kw-2">&amp;</span>PropertyKey,
     receiver: JsValue,
-    context: <span class="kw-2">&amp;mut </span>Context,
+    context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
 ) -&gt; JsResult&lt;JsValue&gt; {
     <span class="comment">// 1. Let handler be O.[[ProxyHandler]].
     // 2. If handler is null, throw a TypeError exception.
@@ -1642,7 +1648,7 @@
     key: PropertyKey,
     value: JsValue,
     receiver: JsValue,
-    context: <span class="kw-2">&amp;mut </span>Context,
+    context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
 ) -&gt; JsResult&lt;bool&gt; {
     <span class="comment">// 1. Let handler be O.[[ProxyHandler]].
     // 2. If handler is null, throw a TypeError exception.
@@ -1723,7 +1729,7 @@
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>proxy_exotic_delete(
     obj: <span class="kw-2">&amp;</span>JsObject,
     key: <span class="kw-2">&amp;</span>PropertyKey,
-    context: <span class="kw-2">&amp;mut </span>Context,
+    context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
 ) -&gt; JsResult&lt;bool&gt; {
     <span class="comment">// 1. Let handler be O.[[ProxyHandler]].
     // 2. If handler is null, throw a TypeError exception.
@@ -1789,7 +1795,7 @@
 /// [spec]: https://tc39.es/ecma262/#sec-proxy-object-internal-methods-and-internal-slots-ownpropertykeys
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>proxy_exotic_own_property_keys(
     obj: <span class="kw-2">&amp;</span>JsObject,
-    context: <span class="kw-2">&amp;mut </span>Context,
+    context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
 ) -&gt; JsResult&lt;Vec&lt;PropertyKey&gt;&gt; {
     <span class="comment">// 1. Let handler be O.[[ProxyHandler]].
     // 2. If handler is null, throw a TypeError exception.
@@ -1925,7 +1931,7 @@
     obj: <span class="kw-2">&amp;</span>JsObject,
     this: <span class="kw-2">&amp;</span>JsValue,
     args: <span class="kw-2">&amp;</span>[JsValue],
-    context: <span class="kw-2">&amp;mut </span>Context,
+    context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
 ) -&gt; JsResult&lt;JsValue&gt; {
     <span class="comment">// 1. Let handler be O.[[ProxyHandler]].
     // 2. If handler is null, throw a TypeError exception.
@@ -1965,7 +1971,7 @@
     obj: <span class="kw-2">&amp;</span>JsObject,
     args: <span class="kw-2">&amp;</span>[JsValue],
     new_target: <span class="kw-2">&amp;</span>JsObject,
-    context: <span class="kw-2">&amp;mut </span>Context,
+    context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
 ) -&gt; JsResult&lt;JsObject&gt; {
     <span class="comment">// 1. Let handler be O.[[ProxyHandler]].
     // 2. If handler is null, throw a TypeError exception.

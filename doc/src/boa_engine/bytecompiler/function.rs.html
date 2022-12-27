@@ -301,7 +301,7 @@
         <span class="kw-2">mut </span><span class="self">self</span>,
         parameters: <span class="kw-2">&amp;</span>FormalParameterList,
         body: <span class="kw-2">&amp;</span>StatementList,
-        context: <span class="kw-2">&amp;mut </span>Context,
+        context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
     ) -&gt; JsResult&lt;Gc&lt;CodeBlock&gt;&gt; {
         <span class="self">self</span>.strict = <span class="self">self</span>.strict || body.strict();
 

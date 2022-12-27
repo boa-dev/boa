@@ -627,7 +627,7 @@
 }
 
 <span class="kw">impl </span>IteratorPrototypes {
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>init(context: <span class="kw-2">&amp;mut </span>Context) -&gt; <span class="self">Self </span>{
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>init(context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <span class="self">Self </span>{
         <span class="kw">let </span>_timer = Profiler::global().start_event(<span class="string">&quot;IteratorPrototypes::init&quot;</span>, <span class="string">&quot;init&quot;</span>);
 
         <span class="kw">let </span>iterator_prototype = create_iterator_prototype(context);
@@ -707,7 +707,7 @@
 <span class="doccomment">/// `CreateIterResultObject( value, done )`
 ///
 /// Generates an object supporting the `IteratorResult` interface.
-</span><span class="kw">pub fn </span>create_iter_result_object(value: JsValue, done: bool, context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsValue {
+</span><span class="kw">pub fn </span>create_iter_result_object(value: JsValue, done: bool, context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsValue {
     <span class="kw">let </span>_timer = Profiler::global().start_event(<span class="string">&quot;create_iter_result_object&quot;</span>, <span class="string">&quot;init&quot;</span>);
 
     <span class="comment">// 1. Assert: Type(done) is Boolean.
@@ -743,7 +743,7 @@
     /// [spec]: https://tc39.es/ecma262/#sec-getiterator
     </span><span class="kw">pub fn </span>get_iterator(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        context: <span class="kw-2">&amp;mut </span>Context,
+        context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
         hint: <span class="prelude-ty">Option</span>&lt;IteratorHint&gt;,
         method: <span class="prelude-ty">Option</span>&lt;JsObject&gt;,
     ) -&gt; JsResult&lt;IteratorRecord&gt; {
@@ -812,7 +812,7 @@
 ///  - [ECMA reference][spec]
 ///
 /// [spec]: https://tc39.es/ecma262/#sec-%iteratorprototype%-object
-</span><span class="kw">fn </span>create_iterator_prototype(context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsObject {
+</span><span class="kw">fn </span>create_iterator_prototype(context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsObject {
     <span class="kw">let </span>_timer = Profiler::global().start_event(<span class="string">&quot;Iterator Prototype&quot;</span>, <span class="string">&quot;init&quot;</span>);
 
     <span class="kw">let </span>symbol_iterator = WellKnownSymbols::iterator();
@@ -848,7 +848,7 @@
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-iteratorcomplete
     </span><span class="attribute">#[inline]
-    </span><span class="kw">pub fn </span>complete(<span class="kw-2">&amp;</span><span class="self">self</span>, context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;bool&gt; {
+    </span><span class="kw">pub fn </span>complete(<span class="kw-2">&amp;</span><span class="self">self</span>, context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;bool&gt; {
         <span class="comment">// 1. Return ToBoolean(? Get(iterResult, &quot;done&quot;)).
         </span><span class="prelude-val">Ok</span>(<span class="self">self</span>.object.get(<span class="string">&quot;done&quot;</span>, context)<span class="question-mark">?</span>.to_boolean())
     }
@@ -864,7 +864,7 @@
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-iteratorvalue
     </span><span class="attribute">#[inline]
-    </span><span class="kw">pub fn </span>value(<span class="kw-2">&amp;</span><span class="self">self</span>, context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsValue&gt; {
+    </span><span class="kw">pub fn </span>value(<span class="kw-2">&amp;</span><span class="self">self</span>, context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;JsValue&gt; {
         <span class="comment">// 1. Return ? Get(iterResult, &quot;value&quot;).
         </span><span class="self">self</span>.object.get(<span class="string">&quot;value&quot;</span>, context)
     }
@@ -941,7 +941,7 @@
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>next(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         value: <span class="prelude-ty">Option</span>&lt;JsValue&gt;,
-        context: <span class="kw-2">&amp;mut </span>Context,
+        context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
     ) -&gt; JsResult&lt;IteratorResult&gt; {
         <span class="kw">let </span>_timer = Profiler::global().start_event(<span class="string">&quot;IteratorRecord::next&quot;</span>, <span class="string">&quot;iterator&quot;</span>);
 
@@ -985,7 +985,7 @@
     ///  - [ECMA reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-iteratorstep
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>step(<span class="kw-2">&amp;</span><span class="self">self</span>, context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;<span class="prelude-ty">Option</span>&lt;IteratorResult&gt;&gt; {
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>step(<span class="kw-2">&amp;</span><span class="self">self</span>, context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;<span class="prelude-ty">Option</span>&lt;IteratorResult&gt;&gt; {
         <span class="kw">let </span>_timer = Profiler::global().start_event(<span class="string">&quot;IteratorRecord::step&quot;</span>, <span class="string">&quot;iterator&quot;</span>);
 
         <span class="comment">// 1. Let result be ? IteratorNext(iteratorRecord).
@@ -1017,7 +1017,7 @@
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>close(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         completion: JsResult&lt;JsValue&gt;,
-        context: <span class="kw-2">&amp;mut </span>Context,
+        context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
     ) -&gt; JsResult&lt;JsValue&gt; {
         <span class="kw">let </span>_timer = Profiler::global().start_event(<span class="string">&quot;IteratorRecord::close&quot;</span>, <span class="string">&quot;iterator&quot;</span>);
 
@@ -1077,7 +1077,7 @@
 ///
 ///  [spec]: https://tc39.es/ecma262/#sec-iterabletolist
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>iterable_to_list(
-    context: <span class="kw-2">&amp;mut </span>Context,
+    context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
     items: <span class="kw-2">&amp;</span>JsValue,
     method: <span class="prelude-ty">Option</span>&lt;JsObject&gt;,
 ) -&gt; JsResult&lt;Vec&lt;JsValue&gt;&gt; {
@@ -1136,7 +1136,7 @@
 ///  - [ECMA reference][spec]
 ///
 /// [spec]: https://tc39.es/ecma262/#sec-asynciteratorprototype
-</span><span class="kw">fn </span>create_async_iterator_prototype(context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsObject {
+</span><span class="kw">fn </span>create_async_iterator_prototype(context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsObject {
     <span class="kw">let </span>_timer = Profiler::global().start_event(<span class="string">&quot;AsyncIteratorPrototype&quot;</span>, <span class="string">&quot;init&quot;</span>);
 
     <span class="kw">let </span>symbol_iterator = WellKnownSymbols::async_iterator();
