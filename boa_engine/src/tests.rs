@@ -2841,7 +2841,12 @@ fn spread_with_call() {
 fn unary_operations_on_this() {
     // https://tc39.es/ecma262/#sec-assignment-operators-static-semantics-early-errors
     let mut context = Context::default();
-    let test_cases = [("++this", "1:1"), ("--this", "1:1"), ("this++", "1:5"), ("this--", "1:5")];
+    let test_cases = [
+        ("++this", "1:1"),
+        ("--this", "1:1"),
+        ("this++", "1:5"),
+        ("this--", "1:5"),
+    ];
     for (case, pos) in &test_cases {
         let string = forward(&mut context, case);
         assert!(string.starts_with("Uncaught SyntaxError: "));
