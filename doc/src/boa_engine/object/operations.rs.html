@@ -840,6 +840,35 @@
 <span id="839">839</span>
 <span id="840">840</span>
 <span id="841">841</span>
+<span id="842">842</span>
+<span id="843">843</span>
+<span id="844">844</span>
+<span id="845">845</span>
+<span id="846">846</span>
+<span id="847">847</span>
+<span id="848">848</span>
+<span id="849">849</span>
+<span id="850">850</span>
+<span id="851">851</span>
+<span id="852">852</span>
+<span id="853">853</span>
+<span id="854">854</span>
+<span id="855">855</span>
+<span id="856">856</span>
+<span id="857">857</span>
+<span id="858">858</span>
+<span id="859">859</span>
+<span id="860">860</span>
+<span id="861">861</span>
+<span id="862">862</span>
+<span id="863">863</span>
+<span id="864">864</span>
+<span id="865">865</span>
+<span id="866">866</span>
+<span id="867">867</span>
+<span id="868">868</span>
+<span id="869">869</span>
+<span id="870">870</span>
 </pre><pre class="rust"><code><span class="kw">use crate</span>::{
     builtins::Array,
     context::intrinsics::{StandardConstructor, StandardConstructors},
@@ -1604,6 +1633,35 @@
         </span><span class="prelude-val">Ok</span>(list)
     }
 
+    <span class="doccomment">/// Abstract operation [`Call ( F, V [ , argumentsList ] )`][call].
+    ///
+    /// Calls this value if the value is a callable object.
+    ///
+    /// # Note
+    ///
+    /// It is almost always better to try to obtain a callable object first with [`JsValue::as_callable`],
+    /// then calling [`JsObject::call`], since that allows reusing the unwrapped function for other
+    /// operations. This method is only an utility method for when the spec directly uses `Call`
+    /// without using the value as a proper object.
+    ///
+    /// [call]: https://tc39.es/ecma262/#sec-call
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>call(
+        <span class="kw-2">&amp;</span><span class="self">self</span>,
+        this: <span class="kw-2">&amp;</span>JsValue,
+        args: <span class="kw-2">&amp;</span>[JsValue],
+        context: <span class="kw-2">&amp;mut </span>Context,
+    ) -&gt; JsResult&lt;JsValue&gt; {
+        <span class="self">self</span>.as_callable()
+            .ok_or_else(|| {
+                JsNativeError::typ().with_message(<span class="macro">format!</span>(
+                    <span class="string">&quot;value with type `{}` is not callable&quot;</span>,
+                    <span class="self">self</span>.type_of()
+                ))
+            })<span class="question-mark">?
+            </span>.__call__(this, args, context)
+    }
+
     <span class="doccomment">/// Abstract operation `( V, P [ , argumentsList ] )`
     ///
     /// Calls a method property of an ECMAScript language value.
@@ -1621,7 +1679,7 @@
         </span><span class="kw">let </span>func = <span class="self">self</span>.get_v(key, context)<span class="question-mark">?</span>;
 
         <span class="comment">// 3. Return ? Call(func, V, argumentsList)
-        </span>context.call(<span class="kw-2">&amp;</span>func, <span class="self">self</span>, args)
+        </span>func.call(<span class="self">self</span>, args, context)
     }
 
     <span class="doccomment">/// Abstract operation `OrdinaryHasInstance ( C, O )`

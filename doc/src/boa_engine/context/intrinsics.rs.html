@@ -822,8 +822,8 @@
 <span class="kw">impl </span>Default <span class="kw">for </span>StandardConstructor {
     <span class="kw">fn </span>default() -&gt; <span class="self">Self </span>{
         <span class="self">Self </span>{
-            constructor: JsObject::empty(),
-            prototype: JsObject::empty(),
+            constructor: JsObject::with_null_proto(),
+            prototype: JsObject::with_null_proto(),
         }
     }
 }
@@ -832,7 +832,7 @@
     <span class="doccomment">/// Build a constructor with a defined prototype.
     </span><span class="kw">fn </span>with_prototype(prototype: JsObject) -&gt; <span class="self">Self </span>{
         <span class="self">Self </span>{
-            constructor: JsObject::empty(),
+            constructor: JsObject::with_null_proto(),
             prototype,
         }
     }

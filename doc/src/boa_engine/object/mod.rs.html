@@ -4610,7 +4610,7 @@
     <span class="doccomment">/// Create a new `ObjectBuilder`.
     </span><span class="attribute">#[inline]
     </span><span class="kw">pub fn </span>new(context: <span class="kw-2">&amp;</span><span class="lifetime">&#39;context </span><span class="kw-2">mut </span>Context) -&gt; <span class="self">Self </span>{
-        <span class="kw">let </span>object = context.construct_object();
+        <span class="kw">let </span>object = JsObject::with_object_proto(context);
         <span class="self">Self </span>{ context, object }
     }
 
@@ -4701,8 +4701,8 @@
         <span class="self">Self </span>{
             context,
             function,
-            object: JsObject::empty(),
-            prototype: JsObject::empty(),
+            object: JsObject::with_null_proto(),
+            prototype: JsObject::with_null_proto(),
             length: <span class="number">0</span>,
             name: <span class="macro">js_string!</span>(),
             callable: <span class="bool-val">true</span>,

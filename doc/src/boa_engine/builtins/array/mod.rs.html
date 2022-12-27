@@ -3006,8 +3006,6 @@
 <span id="3005">3005</span>
 <span id="3006">3006</span>
 <span id="3007">3007</span>
-<span id="3008">3008</span>
-<span id="3009">3009</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Boa&#39;s implementation of ECMAScript&#39;s global `Array` object.
 //!
 //! The ECMAScript `Array` class is a global object that is used in the construction of arrays; which are high-level, list-like objects.
@@ -3436,77 +3434,9 @@
         };
 
         <span class="comment">// 4. Let usingIterator be ? GetMethod(items, @@iterator).
-        </span><span class="kw">let </span>using_iterator = items
-            .get_method(WellKnownSymbols::iterator(), context)<span class="question-mark">?
-            </span>.map(JsValue::from);
+        </span><span class="kw">let </span>using_iterator = items.get_method(WellKnownSymbols::iterator(), context)<span class="question-mark">?</span>;
 
-        <span class="kw">if let </span><span class="prelude-val">Some</span>(using_iterator) = using_iterator {
-            <span class="comment">// 5. If usingIterator is not undefined, then
-
-            // a. If IsConstructor(C) is true, then
-            //     i. Let A be ? Construct(C).
-            // b. Else,
-            //     i. Let A be ? ArrayCreate(0en).
-            </span><span class="kw">let </span>a = <span class="kw">match </span>this.as_constructor() {
-                <span class="prelude-val">Some</span>(constructor) =&gt; constructor.construct(<span class="kw-2">&amp;</span>[], <span class="prelude-val">None</span>, context)<span class="question-mark">?</span>,
-                <span class="kw">_ </span>=&gt; <span class="self">Self</span>::array_create(<span class="number">0</span>, <span class="prelude-val">None</span>, context)<span class="question-mark">?</span>,
-            };
-
-            <span class="comment">// c. Let iteratorRecord be ? GetIterator(items, sync, usingIterator).
-            </span><span class="kw">let </span>iterator_record =
-                items.get_iterator(context, <span class="prelude-val">Some</span>(IteratorHint::Sync), <span class="prelude-val">Some</span>(using_iterator))<span class="question-mark">?</span>;
-
-            <span class="comment">// d. Let k be 0.
-            // e. Repeat,
-            //     i. If k ≥ 2^53 - 1 (MAX_SAFE_INTEGER), then
-            //     ...
-            //     x. Set k to k + 1.
-            </span><span class="kw">for </span>k <span class="kw">in </span><span class="number">0</span>..<span class="number">9_007_199_254_740_991_u64 </span>{
-                <span class="comment">// iii. Let next be ? IteratorStep(iteratorRecord).
-                </span><span class="kw">let </span>next = iterator_record.step(context)<span class="question-mark">?</span>;
-
-                <span class="comment">// iv. If next is false, then
-                </span><span class="kw">let </span><span class="prelude-val">Some</span>(next) = next <span class="kw">else </span>{
-                    <span class="comment">// 1. Perform ? Set(A, &quot;length&quot;, 𝔽(k), true).
-                    </span>a.set(<span class="string">&quot;length&quot;</span>, k, <span class="bool-val">true</span>, context)<span class="question-mark">?</span>;
-
-                    <span class="comment">// 2. Return A.
-                    </span><span class="kw">return </span><span class="prelude-val">Ok</span>(a.into());
-                };
-
-                <span class="comment">// v. Let nextValue be ? IteratorValue(next).
-                </span><span class="kw">let </span>next_value = next.value(context)<span class="question-mark">?</span>;
-
-                <span class="comment">// vi. If mapping is true, then
-                </span><span class="kw">let </span>mapped_value = <span class="kw">if let </span><span class="prelude-val">Some</span>(mapfn) = mapping {
-                    <span class="comment">// 1. Let mappedValue be Call(mapfn, thisArg, « nextValue, 𝔽(k) »).
-                    </span><span class="kw">let </span>mapped_value = mapfn.call(this_arg, <span class="kw-2">&amp;</span>[next_value, k.into()], context);
-
-                    <span class="comment">// 2. IfAbruptCloseIterator(mappedValue, iteratorRecord).
-                    </span><span class="macro">if_abrupt_close_iterator!</span>(mapped_value, iterator_record, context)
-                } <span class="kw">else </span>{
-                    <span class="comment">// vii. Else, let mappedValue be nextValue.
-                    </span>next_value
-                };
-
-                <span class="comment">// viii. Let defineStatus be CreateDataPropertyOrThrow(A, Pk, mappedValue).
-                </span><span class="kw">let </span>define_status = a.create_data_property_or_throw(k, mapped_value, context);
-
-                <span class="comment">// ix. IfAbruptCloseIterator(defineStatus, iteratorRecord).
-                </span><span class="macro">if_abrupt_close_iterator!</span>(define_status, iterator_record, context);
-            }
-
-            <span class="comment">// NOTE: The loop above has to return before it reaches iteration limit,
-            // which is why it&#39;s safe to have this as the fallback return
-            //
-            // 1. Let error be ThrowCompletion(a newly created TypeError object).
-            </span><span class="kw">let </span>error = <span class="prelude-val">Err</span>(JsNativeError::typ()
-                .with_message(<span class="string">&quot;Invalid array length&quot;</span>)
-                .into());
-
-            <span class="comment">// 2. Return ? IteratorClose(iteratorRecord, error).
-            </span>iterator_record.close(error, context)
-        } <span class="kw">else </span>{
+        <span class="kw">let </span><span class="prelude-val">Some</span>(using_iterator) = using_iterator <span class="kw">else </span>{
             <span class="comment">// 6. NOTE: items is not an Iterable so assume it is an array-like object.
             // 7. Let arrayLike be ! ToObject(items).
             </span><span class="kw">let </span>array_like = items
@@ -3551,8 +3481,74 @@
             </span>a.set(<span class="string">&quot;length&quot;</span>, len, <span class="bool-val">true</span>, context)<span class="question-mark">?</span>;
 
             <span class="comment">// 14. Return A.
-            </span><span class="prelude-val">Ok</span>(a.into())
+            </span><span class="kw">return </span><span class="prelude-val">Ok</span>(a.into());
+        };
+
+        <span class="comment">// 5. If usingIterator is not undefined, then
+
+        // a. If IsConstructor(C) is true, then
+        //     i. Let A be ? Construct(C).
+        // b. Else,
+        //     i. Let A be ? ArrayCreate(0en).
+        </span><span class="kw">let </span>a = <span class="kw">match </span>this.as_constructor() {
+            <span class="prelude-val">Some</span>(constructor) =&gt; constructor.construct(<span class="kw-2">&amp;</span>[], <span class="prelude-val">None</span>, context)<span class="question-mark">?</span>,
+            <span class="kw">_ </span>=&gt; <span class="self">Self</span>::array_create(<span class="number">0</span>, <span class="prelude-val">None</span>, context)<span class="question-mark">?</span>,
+        };
+
+        <span class="comment">// c. Let iteratorRecord be ? GetIterator(items, sync, usingIterator).
+        </span><span class="kw">let </span>iterator_record =
+            items.get_iterator(context, <span class="prelude-val">Some</span>(IteratorHint::Sync), <span class="prelude-val">Some</span>(using_iterator))<span class="question-mark">?</span>;
+
+        <span class="comment">// d. Let k be 0.
+        // e. Repeat,
+        //     i. If k ≥ 2^53 - 1 (MAX_SAFE_INTEGER), then
+        //     ...
+        //     x. Set k to k + 1.
+        </span><span class="kw">for </span>k <span class="kw">in </span><span class="number">0</span>..<span class="number">9_007_199_254_740_991_u64 </span>{
+            <span class="comment">// iii. Let next be ? IteratorStep(iteratorRecord).
+            </span><span class="kw">let </span>next = iterator_record.step(context)<span class="question-mark">?</span>;
+
+            <span class="comment">// iv. If next is false, then
+            </span><span class="kw">let </span><span class="prelude-val">Some</span>(next) = next <span class="kw">else </span>{
+                    <span class="comment">// 1. Perform ? Set(A, &quot;length&quot;, 𝔽(k), true).
+                    </span>a.set(<span class="string">&quot;length&quot;</span>, k, <span class="bool-val">true</span>, context)<span class="question-mark">?</span>;
+
+                    <span class="comment">// 2. Return A.
+                    </span><span class="kw">return </span><span class="prelude-val">Ok</span>(a.into());
+                };
+
+            <span class="comment">// v. Let nextValue be ? IteratorValue(next).
+            </span><span class="kw">let </span>next_value = next.value(context)<span class="question-mark">?</span>;
+
+            <span class="comment">// vi. If mapping is true, then
+            </span><span class="kw">let </span>mapped_value = <span class="kw">if let </span><span class="prelude-val">Some</span>(mapfn) = mapping {
+                <span class="comment">// 1. Let mappedValue be Call(mapfn, thisArg, « nextValue, 𝔽(k) »).
+                </span><span class="kw">let </span>mapped_value = mapfn.call(this_arg, <span class="kw-2">&amp;</span>[next_value, k.into()], context);
+
+                <span class="comment">// 2. IfAbruptCloseIterator(mappedValue, iteratorRecord).
+                </span><span class="macro">if_abrupt_close_iterator!</span>(mapped_value, iterator_record, context)
+            } <span class="kw">else </span>{
+                <span class="comment">// vii. Else, let mappedValue be nextValue.
+                </span>next_value
+            };
+
+            <span class="comment">// viii. Let defineStatus be CreateDataPropertyOrThrow(A, Pk, mappedValue).
+            </span><span class="kw">let </span>define_status = a.create_data_property_or_throw(k, mapped_value, context);
+
+            <span class="comment">// ix. IfAbruptCloseIterator(defineStatus, iteratorRecord).
+            </span><span class="macro">if_abrupt_close_iterator!</span>(define_status, iterator_record, context);
         }
+
+        <span class="comment">// NOTE: The loop above has to return before it reaches iteration limit,
+        // which is why it&#39;s safe to have this as the fallback return
+        //
+        // 1. Let error be ThrowCompletion(a newly created TypeError object).
+        </span><span class="kw">let </span>error = <span class="prelude-val">Err</span>(JsNativeError::typ()
+            .with_message(<span class="string">&quot;Invalid array length&quot;</span>)
+            .into());
+
+        <span class="comment">// 2. Return ? IteratorClose(iteratorRecord, error).
+        </span>iterator_record.close(error, context)
     }
 
     <span class="doccomment">/// `Array.isArray( arg )`
@@ -5967,7 +5963,7 @@
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/@@unscopables
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>unscopables_intrinsic(context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsObject {
         <span class="comment">// 1. Let unscopableList be OrdinaryObjectCreate(null).
-        </span><span class="kw">let </span>unscopable_list = JsObject::empty();
+        </span><span class="kw">let </span>unscopable_list = JsObject::with_null_proto();
         <span class="comment">// 2. Perform ! CreateDataPropertyOrThrow(unscopableList, &quot;at&quot;, true).
         </span>unscopable_list
             .create_data_property_or_throw(<span class="string">&quot;at&quot;</span>, <span class="bool-val">true</span>, context)

@@ -287,12 +287,14 @@
 <span id="286">286</span>
 <span id="287">287</span>
 <span id="288">288</span>
+<span id="289">289</span>
 </pre><pre class="rust"><code><span class="doccomment">//! This module implements the conversions from and into [`serde_json::Value`].
 
 </span><span class="kw">use </span><span class="kw">super</span>::JsValue;
 <span class="kw">use crate</span>::{
     builtins::Array,
     error::JsNativeError,
+    object::JsObject,
     property::{PropertyDescriptor, PropertyKey},
     Context, JsResult,
 };
@@ -352,7 +354,7 @@
                 <span class="prelude-val">Ok</span>(Array::create_array_from_list(arr, context).into())
             }
             Value::Object(obj) =&gt; {
-                <span class="kw">let </span>js_obj = context.construct_object();
+                <span class="kw">let </span>js_obj = JsObject::with_object_proto(context);
                 <span class="kw">for </span>(key, value) <span class="kw">in </span>obj {
                     <span class="kw">let </span>property = PropertyDescriptor::builder()
                         .value(<span class="self">Self</span>::from_json(value, context)<span class="question-mark">?</span>)

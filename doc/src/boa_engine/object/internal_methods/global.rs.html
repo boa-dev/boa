@@ -871,7 +871,7 @@
             // 6. Let getter be desc.[[Get]].
             </span>DescriptorKind::Accessor { get: <span class="prelude-val">Some</span>(get), .. } <span class="kw">if </span>!get.is_undefined() =&gt; {
                 <span class="comment">// 8. Return ? Call(getter, Receiver).
-                </span>context.call(get, <span class="kw-2">&amp;</span>receiver, <span class="kw-2">&amp;</span>[])
+                </span>get.call(<span class="kw-2">&amp;</span>receiver, <span class="kw-2">&amp;</span>[], context)
             }
             <span class="comment">// 7. If getter is undefined, return undefined.
             </span><span class="kw">_ </span>=&gt; <span class="prelude-val">Ok</span>(JsValue::undefined()),
@@ -977,7 +977,7 @@
     </span><span class="kw">match </span>own_desc.set() {
         <span class="prelude-val">Some</span>(set) <span class="kw">if </span>!set.is_undefined() =&gt; {
             <span class="comment">// 7. Perform ? Call(setter, Receiver, « V »).
-            </span>context.call(set, <span class="kw-2">&amp;</span>context.global_object().clone().into(), <span class="kw-2">&amp;</span>[value])<span class="question-mark">?</span>;
+            </span>set.call(<span class="kw-2">&amp;</span>context.global_object().clone().into(), <span class="kw-2">&amp;</span>[value], context)<span class="question-mark">?</span>;
 
             <span class="comment">// 8. Return true.
             </span><span class="prelude-val">Ok</span>(<span class="bool-val">true</span>)

@@ -177,7 +177,7 @@
                         } =&gt; value.clone(),
                         DescriptorKind::Accessor { get: <span class="prelude-val">Some</span>(get), .. } <span class="kw">if </span>!get.is_undefined() =&gt; {
                             <span class="kw">let </span>get = get.clone();
-                            context.call(<span class="kw-2">&amp;</span>get, <span class="kw-2">&amp;</span>context.global_object().clone().into(), <span class="kw-2">&amp;</span>[])<span class="question-mark">?
+                            get.call(<span class="kw-2">&amp;</span>context.global_object().clone().into(), <span class="kw-2">&amp;</span>[], context)<span class="question-mark">?
                         </span>}
                         <span class="kw">_ </span>=&gt; {
                             <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::reference()
@@ -250,7 +250,7 @@
                         } =&gt; value.clone(),
                         DescriptorKind::Accessor { get: <span class="prelude-val">Some</span>(get), .. } <span class="kw">if </span>!get.is_undefined() =&gt; {
                             <span class="kw">let </span>get = get.clone();
-                            context.call(<span class="kw-2">&amp;</span>get, <span class="kw-2">&amp;</span>context.global_object().clone().into(), <span class="kw-2">&amp;</span>[])<span class="question-mark">?
+                            get.call(<span class="kw-2">&amp;</span>context.global_object().clone().into(), <span class="kw-2">&amp;</span>[], context)<span class="question-mark">?
                         </span>}
                         <span class="kw">_ </span>=&gt; JsValue::undefined(),
                     },

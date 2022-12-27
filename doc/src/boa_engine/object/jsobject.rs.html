@@ -886,6 +886,24 @@
 <span id="885">885</span>
 <span id="886">886</span>
 <span id="887">887</span>
+<span id="888">888</span>
+<span id="889">889</span>
+<span id="890">890</span>
+<span id="891">891</span>
+<span id="892">892</span>
+<span id="893">893</span>
+<span id="894">894</span>
+<span id="895">895</span>
+<span id="896">896</span>
+<span id="897">897</span>
+<span id="898">898</span>
+<span id="899">899</span>
+<span id="900">900</span>
+<span id="901">901</span>
+<span id="902">902</span>
+<span id="903">903</span>
+<span id="904">904</span>
+<span id="905">905</span>
 </pre><pre class="rust"><code><span class="doccomment">//! This module implements the `JsObject` structure.
 //!
 //! The `JsObject` is a garbage collected Object.
@@ -921,32 +939,50 @@
 }
 
 <span class="kw">impl </span>JsObject {
-    <span class="doccomment">/// Create a new `JsObject` from an internal `Object`.
-    </span><span class="kw">fn </span>from_object(object: Object) -&gt; <span class="self">Self </span>{
-        <span class="self">Self </span>{
-            inner: Gc::new(GcCell::new(object)),
-        }
-    }
-
-    <span class="doccomment">/// Create a new empty `JsObject`, with `prototype` set to `JsValue::Null`
-    /// and `data` set to `ObjectData::ordinary`
-    </span><span class="attribute">#[must_use]
-    </span><span class="kw">pub fn </span>empty() -&gt; <span class="self">Self </span>{
-        <span class="self">Self</span>::from_object(Object::default())
-    }
-
-    <span class="doccomment">/// The more general form of `OrdinaryObjectCreate` and `MakeBasicObject`.
+    <span class="doccomment">/// Creates a new ordinary object with its prototype set to the `Object` prototype.
     ///
-    /// Create a `JsObject` and automatically set its internal methods and
-    /// internal slots from the `data` provided.
+    /// This is equivalent to calling the specification&#39;s abstract operation
+    /// [`OrdinaryObjectCreate(%Object.prototype%)`][call].
+    ///
+    /// [call]: https://tc39.es/ecma262/#sec-ordinaryobjectcreate
+    </span><span class="attribute">#[inline]
+    #[must_use]
+    </span><span class="kw">pub fn </span>with_object_proto(context: <span class="kw-2">&amp;mut </span>Context) -&gt; <span class="self">Self </span>{
+        <span class="self">Self</span>::from_proto_and_data(
+            context.intrinsics().constructors().object().prototype(),
+            ObjectData::ordinary(),
+        )
+    }
+
+    <span class="doccomment">/// Creates a new ordinary object, with its prototype set to null.
+    ///
+    /// This is equivalent to calling the specification&#39;s abstract operation
+    /// [`OrdinaryObjectCreate(null)`][call].
+    ///
+    /// [call]: https://tc39.es/ecma262/#sec-ordinaryobjectcreate
+    </span><span class="attribute">#[inline]
+    #[must_use]
+    </span><span class="kw">pub fn </span>with_null_proto() -&gt; <span class="self">Self </span>{
+        <span class="self">Self</span>::from_proto_and_data(<span class="prelude-val">None</span>, ObjectData::ordinary())
+    }
+
+    <span class="doccomment">/// Creates a new object with the provided prototype and object data.
+    ///
+    /// This is equivalent to calling the specification&#39;s abstract operation [`OrdinaryObjectCreate`],
+    /// with the difference that the `additionalInternalSlotsList` parameter is automatically set by
+    /// the [`ObjectData`] provided.
+    ///
+    /// [`OrdinaryObjectCreate`]: https://tc39.es/ecma262/#sec-ordinaryobjectcreate
     </span><span class="kw">pub fn </span>from_proto_and_data&lt;O: Into&lt;<span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>&gt;&gt;&gt;(prototype: O, data: ObjectData) -&gt; <span class="self">Self </span>{
-        <span class="self">Self</span>::from_object(Object {
-            data,
-            prototype: prototype.into(),
-            extensible: <span class="bool-val">true</span>,
-            properties: PropertyMap::default(),
-            private_elements: FxHashMap::default(),
-        })
+        <span class="self">Self </span>{
+            inner: Gc::new(GcCell::new(Object {
+                data,
+                prototype: prototype.into(),
+                extensible: <span class="bool-val">true</span>,
+                properties: PropertyMap::default(),
+                private_elements: FxHashMap::default(),
+            })),
+        }
     }
 
     <span class="doccomment">/// Immutably borrows the `Object`.
@@ -968,7 +1004,7 @@
     /// The borrow lasts until the returned `RefMut` exits scope.
     /// The object cannot be borrowed while this borrow is active.
     ///
-    ///# Panics
+    /// # Panics
     /// Panics if the object is currently borrowed.
     </span><span class="attribute">#[inline]
     #[track_caller]

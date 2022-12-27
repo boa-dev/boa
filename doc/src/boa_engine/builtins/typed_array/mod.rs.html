@@ -4003,7 +4003,7 @@
         <span class="comment">// 6. If usingIterator is not undefined, then
         </span><span class="kw">if let </span><span class="prelude-val">Some</span>(using_iterator) = using_iterator {
             <span class="comment">// a. Let values be ? IterableToList(source, usingIterator).
-            </span><span class="kw">let </span>values = iterable_to_list(context, source, <span class="prelude-val">Some</span>(using_iterator.into()))<span class="question-mark">?</span>;
+            </span><span class="kw">let </span>values = iterable_to_list(context, source, <span class="prelude-val">Some</span>(using_iterator))<span class="question-mark">?</span>;
 
             <span class="comment">// b. Let len be the number of elements in values.
             // c. Let targetObj be ? TypedArrayCreate(C, « 𝔽(len) »).
@@ -6758,7 +6758,7 @@
         }
 
         <span class="comment">// 2. Let obj be ! IntegerIndexedObjectCreate(proto).
-        </span><span class="kw">let </span>obj = IntegerIndexed::create(proto, indexed, context);
+        </span><span class="kw">let </span>obj = JsObject::from_proto_and_data(proto, ObjectData::integer_indexed(indexed));
 
         <span class="comment">// 9. Return obj.
         </span><span class="prelude-val">Ok</span>(obj)

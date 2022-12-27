@@ -1568,7 +1568,6 @@
 <span id="1567">1567</span>
 <span id="1568">1568</span>
 <span id="1569">1569</span>
-<span id="1570">1570</span>
 </pre><pre class="rust"><code><span class="doccomment">//! `CodeBlock`
 //!
 //! This module is for the `CodeBlock` which implements a function representation in the VM
@@ -2077,8 +2076,6 @@
         context.intrinsics().constructors().function().prototype()
     };
 
-    <span class="kw">let </span>prototype = context.construct_object();
-
     <span class="kw">let </span>name_property = PropertyDescriptor::builder()
         .value(
             context
@@ -2137,6 +2134,7 @@
         .configurable(<span class="bool-val">true</span>)
         .build();
 
+    <span class="kw">let </span>prototype = JsObject::with_object_proto(context);
     prototype
         .define_property_or_throw(<span class="macro">js_string!</span>(<span class="string">&quot;constructor&quot;</span>), constructor_property, context)
         .expect(<span class="string">&quot;failed to define the constructor property of the function&quot;</span>);

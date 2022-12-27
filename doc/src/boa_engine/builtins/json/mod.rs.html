@@ -1081,7 +1081,7 @@
         <span class="comment">// 11. If IsCallable(reviver) is true, then
         </span><span class="kw">if let </span><span class="prelude-val">Some</span>(obj) = args.get_or_undefined(<span class="number">1</span>).as_callable() {
             <span class="comment">// a. Let root be ! OrdinaryObjectCreate(%Object.prototype%).
-            </span><span class="kw">let </span>root = context.construct_object();
+            </span><span class="kw">let </span>root = JsObject::with_object_proto(context);
 
             <span class="comment">// b. Let rootName be the empty String.
             // c. Perform ! CreateDataPropertyOrThrow(root, rootName, unfiltered).
@@ -1313,7 +1313,7 @@
         };
 
         <span class="comment">// 9. Let wrapper be ! OrdinaryObjectCreate(%Object.prototype%).
-        </span><span class="kw">let </span>wrapper = context.construct_object();
+        </span><span class="kw">let </span>wrapper = JsObject::with_object_proto(context);
 
         <span class="comment">// 10. Perform ! CreateDataPropertyOrThrow(wrapper, the empty String, value).
         </span>wrapper

@@ -20,7 +20,10 @@
 <span id="19">19</span>
 <span id="20">20</span>
 <span id="21">21</span>
+<span id="22">22</span>
+<span id="23">23</span>
 </pre><pre class="rust"><code><span class="kw">use crate</span>::{
+    object::JsObject,
     vm::{opcode::Operation, ShouldExit},
     Context, JsResult,
 };
@@ -37,7 +40,8 @@
     <span class="kw">const </span>INSTRUCTION: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;INST - PushEmptyObject&quot;</span>;
 
     <span class="kw">fn </span>execute(context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;ShouldExit&gt; {
-        context.vm.push(context.construct_object());
+        <span class="kw">let </span>o = JsObject::with_object_proto(context);
+        context.vm.push(o);
         <span class="prelude-val">Ok</span>(ShouldExit::False)
     }
 }

@@ -222,6 +222,7 @@
 <span id="221">221</span>
 <span id="222">222</span>
 <span id="223">223</span>
+<span id="224">224</span>
 </pre><pre class="rust"><code><span class="doccomment">//! A Rust API wrapper for Boa&#39;s `ArrayBuffer` Builtin ECMAScript Object
 </span><span class="kw">use crate</span>::{
     builtins::array_buffer::ArrayBuffer,
@@ -315,8 +316,6 @@
             StandardConstructors::array_buffer,
             context,
         )<span class="question-mark">?</span>;
-        <span class="kw">let </span>obj = context.construct_object();
-        obj.set_prototype(prototype.into());
 
         <span class="comment">// 2. Let block be ? CreateByteDataBlock(byteLength).
         //
@@ -326,11 +325,14 @@
 
         <span class="comment">// 3. Set obj.[[ArrayBufferData]] to block.
         // 4. Set obj.[[ArrayBufferByteLength]] to byteLength.
-        </span>obj.borrow_mut().data = ObjectData::array_buffer(ArrayBuffer {
-            array_buffer_data: <span class="prelude-val">Some</span>(block),
-            array_buffer_byte_length: byte_length <span class="kw">as </span>u64,
-            array_buffer_detach_key: JsValue::Undefined,
-        });
+        </span><span class="kw">let </span>obj = JsObject::from_proto_and_data(
+            prototype,
+            ObjectData::array_buffer(ArrayBuffer {
+                array_buffer_data: <span class="prelude-val">Some</span>(block),
+                array_buffer_byte_length: byte_length <span class="kw">as </span>u64,
+                array_buffer_detach_key: JsValue::Undefined,
+            }),
+        );
 
         <span class="prelude-val">Ok</span>(<span class="self">Self </span>{ inner: obj })
     }

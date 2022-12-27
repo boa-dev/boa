@@ -374,18 +374,18 @@
 
         <span class="kw">match </span>context.vm.frame().generator_resume_kind {
             GeneratorResumeKind::Normal =&gt; {
-                <span class="kw">let </span>result = context.call(<span class="kw-2">&amp;</span>next_method, <span class="kw-2">&amp;</span>iterator.clone().into(), <span class="kw-2">&amp;</span>[received])<span class="question-mark">?</span>;
-                <span class="kw">let </span>result_object = result.as_object().ok_or_else(|| {
+                <span class="kw">let </span>result = next_method.call(<span class="kw-2">&amp;</span>iterator.clone().into(), <span class="kw-2">&amp;</span>[received], context)<span class="question-mark">?</span>;
+                <span class="kw">let </span>result = result.as_object().ok_or_else(|| {
                     JsNativeError::typ().with_message(<span class="string">&quot;generator next method returned non-object&quot;</span>)
                 })<span class="question-mark">?</span>;
-                <span class="kw">let </span>done = result_object.get(<span class="string">&quot;done&quot;</span>, context)<span class="question-mark">?</span>.to_boolean();
+                <span class="kw">let </span>done = result.get(<span class="string">&quot;done&quot;</span>, context)<span class="question-mark">?</span>.to_boolean();
                 <span class="kw">if </span>done {
                     context.vm.frame_mut().pc = done_address <span class="kw">as </span>usize;
-                    <span class="kw">let </span>value = result_object.get(<span class="string">&quot;value&quot;</span>, context)<span class="question-mark">?</span>;
+                    <span class="kw">let </span>value = result.get(<span class="string">&quot;value&quot;</span>, context)<span class="question-mark">?</span>;
                     context.vm.push(value);
                     <span class="kw">return </span><span class="prelude-val">Ok</span>(ShouldExit::False);
                 }
-                <span class="kw">let </span>value = result_object.get(<span class="string">&quot;value&quot;</span>, context)<span class="question-mark">?</span>;
+                <span class="kw">let </span>value = result.get(<span class="string">&quot;value&quot;</span>, context)<span class="question-mark">?</span>;
                 context.vm.push(iterator.clone());
                 context.vm.push(next_method.clone());
                 context.vm.push(done);

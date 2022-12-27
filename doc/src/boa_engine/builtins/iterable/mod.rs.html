@@ -574,8 +574,6 @@
 <span id="573">573</span>
 <span id="574">574</span>
 <span id="575">575</span>
-<span id="576">576</span>
-<span id="577">577</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Boa&#39;s implementation of ECMAScript&#39;s `IteratorRecord` and iterator prototype objects.
 
 </span><span class="kw">mod </span>async_from_sync_iterator;
@@ -714,7 +712,7 @@
 
     <span class="comment">// 1. Assert: Type(done) is Boolean.
     // 2. Let obj be ! OrdinaryObjectCreate(%Object.prototype%).
-    </span><span class="kw">let </span>obj = context.construct_object();
+    </span><span class="kw">let </span>obj = JsObject::with_object_proto(context);
 
     <span class="comment">// 3. Perform ! CreateDataPropertyOrThrow(obj, &quot;value&quot;, value).
     </span>obj.create_data_property_or_throw(<span class="string">&quot;value&quot;</span>, value, context)
@@ -747,13 +745,13 @@
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         context: <span class="kw-2">&amp;mut </span>Context,
         hint: <span class="prelude-ty">Option</span>&lt;IteratorHint&gt;,
-        method: <span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>&gt;,
+        method: <span class="prelude-ty">Option</span>&lt;JsObject&gt;,
     ) -&gt; JsResult&lt;IteratorRecord&gt; {
         <span class="comment">// 1. If hint is not present, set hint to sync.
         </span><span class="kw">let </span>hint = hint.unwrap_or(IteratorHint::Sync);
 
         <span class="comment">// 2. If method is not present, then
-        </span><span class="kw">let </span>method = <span class="kw">if let </span><span class="prelude-val">Some</span>(method) = method {
+        </span><span class="kw">let </span>method = <span class="kw">if </span>method.is_some() {
             method
         } <span class="kw">else </span>{
             <span class="comment">// a. If hint is async, then
@@ -762,17 +760,15 @@
                 </span><span class="kw">if let </span><span class="prelude-val">Some</span>(method) =
                     <span class="self">self</span>.get_method(WellKnownSymbols::async_iterator(), context)<span class="question-mark">?
                 </span>{
-                    method.into()
+                    <span class="prelude-val">Some</span>(method)
                 } <span class="kw">else </span>{
                     <span class="comment">// ii. If method is undefined, then
                     // 1. Let syncMethod be ? GetMethod(obj, @@iterator).
-                    </span><span class="kw">let </span>sync_method = <span class="self">self
-                        </span>.get_method(WellKnownSymbols::iterator(), context)<span class="question-mark">?
-                        </span>.map_or(<span class="self">Self</span>::Undefined, <span class="self">Self</span>::from);
+                    </span><span class="kw">let </span>sync_method = <span class="self">self</span>.get_method(WellKnownSymbols::iterator(), context)<span class="question-mark">?</span>;
 
                     <span class="comment">// 2. Let syncIteratorRecord be ? GetIterator(obj, sync, syncMethod).
                     </span><span class="kw">let </span>sync_iterator_record =
-                        <span class="self">self</span>.get_iterator(context, <span class="prelude-val">Some</span>(IteratorHint::Sync), <span class="prelude-val">Some</span>(sync_method))<span class="question-mark">?</span>;
+                        <span class="self">self</span>.get_iterator(context, <span class="prelude-val">Some</span>(IteratorHint::Sync), sync_method)<span class="question-mark">?</span>;
 
                     <span class="comment">// 3. Return ! CreateAsyncFromSyncIterator(syncIteratorRecord).
                     </span><span class="kw">return </span><span class="prelude-val">Ok</span>(AsyncFromSyncIterator::create(sync_iterator_record, context));
@@ -780,17 +776,22 @@
             } <span class="kw">else </span>{
                 <span class="comment">// b. Otherwise, set method to ? GetMethod(obj, @@iterator).
                 </span><span class="self">self</span>.get_method(WellKnownSymbols::iterator(), context)<span class="question-mark">?
-                    </span>.map_or(<span class="self">Self</span>::Undefined, <span class="self">Self</span>::from)
-            }
-        };
+            </span>}
+        }
+        .ok_or_else(|| {
+            JsNativeError::typ().with_message(<span class="macro">format!</span>(
+                <span class="string">&quot;value with type `{}` is not iterable&quot;</span>,
+                <span class="self">self</span>.type_of()
+            ))
+        })<span class="question-mark">?</span>;
 
         <span class="comment">// 3. Let iterator be ? Call(method, obj).
-        </span><span class="kw">let </span>iterator = context.call(<span class="kw-2">&amp;</span>method, <span class="self">self</span>, <span class="kw-2">&amp;</span>[])<span class="question-mark">?</span>;
+        </span><span class="kw">let </span>iterator = method.call(<span class="self">self</span>, <span class="kw-2">&amp;</span>[], context)<span class="question-mark">?</span>;
 
         <span class="comment">// 4. If Type(iterator) is not Object, throw a TypeError exception.
-        </span><span class="kw">let </span>iterator_obj = iterator
-            .as_object()
-            .ok_or_else(|| JsNativeError::typ().with_message(<span class="string">&quot;the iterator is not an object&quot;</span>))<span class="question-mark">?</span>;
+        </span><span class="kw">let </span>iterator_obj = iterator.as_object().ok_or_else(|| {
+            JsNativeError::typ().with_message(<span class="string">&quot;returned iterator is not an object&quot;</span>)
+        })<span class="question-mark">?</span>;
 
         <span class="comment">// 5. Let nextMethod be ? GetV(iterator, &quot;next&quot;).
         </span><span class="kw">let </span>next_method = iterator.get_v(<span class="string">&quot;next&quot;</span>, context)<span class="question-mark">?</span>;
@@ -1078,20 +1079,15 @@
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>iterable_to_list(
     context: <span class="kw-2">&amp;mut </span>Context,
     items: <span class="kw-2">&amp;</span>JsValue,
-    method: <span class="prelude-ty">Option</span>&lt;JsValue&gt;,
+    method: <span class="prelude-ty">Option</span>&lt;JsObject&gt;,
 ) -&gt; JsResult&lt;Vec&lt;JsValue&gt;&gt; {
     <span class="kw">let </span>_timer = Profiler::global().start_event(<span class="string">&quot;iterable_to_list&quot;</span>, <span class="string">&quot;iterator&quot;</span>);
 
     <span class="comment">// 1. If method is present, then
-    </span><span class="kw">let </span>iterator_record = <span class="kw">if let </span><span class="prelude-val">Some</span>(method) = method {
-        <span class="comment">// a. Let iteratorRecord be ? GetIterator(items, sync, method).
-        </span>items.get_iterator(context, <span class="prelude-val">Some</span>(IteratorHint::Sync), <span class="prelude-val">Some</span>(method))<span class="question-mark">?
-    </span>} <span class="kw">else </span>{
-        <span class="comment">// 2. Else,
-
-        // a. Let iteratorRecord be ? GetIterator(items, sync).
-        </span>items.get_iterator(context, <span class="prelude-val">Some</span>(IteratorHint::Sync), <span class="prelude-val">None</span>)<span class="question-mark">?
-    </span>};
+    // a. Let iteratorRecord be ? GetIterator(items, sync, method).
+    // 2. Else,
+    // a. Let iteratorRecord be ? GetIterator(items, sync).
+    </span><span class="kw">let </span>iterator_record = items.get_iterator(context, <span class="prelude-val">Some</span>(IteratorHint::Sync), method)<span class="question-mark">?</span>;
 
     <span class="comment">// 3. Let values be a new empty List.
     </span><span class="kw">let </span><span class="kw-2">mut </span>values = Vec::new();

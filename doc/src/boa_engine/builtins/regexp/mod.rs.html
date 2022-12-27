@@ -1687,7 +1687,6 @@
 <span id="1686">1686</span>
 <span id="1687">1687</span>
 <span id="1688">1688</span>
-<span id="1689">1689</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Boa&#39;s implementation of ECMAScript&#39;s global `RegExp` object.
 //!
 //! The `RegExp` object is used for matching text with a pattern.
@@ -2665,7 +2664,7 @@
         </span><span class="kw">let </span>named_groups = match_value.named_groups();
         <span class="kw">let </span>groups = <span class="kw">if </span>named_groups.clone().count() &gt; <span class="number">0 </span>{
             <span class="comment">// a. Let groups be ! OrdinaryObjectCreate(null).
-            </span><span class="kw">let </span>groups = JsObject::empty();
+            </span><span class="kw">let </span>groups = JsObject::with_null_proto();
 
             <span class="comment">// Perform 27.f here
             // f. If the ith capture of R was defined with a GroupName, then
@@ -2927,17 +2926,14 @@
         </span><span class="kw">let </span>length_arg_str = arg_str.len();
 
         <span class="comment">// 5. Let functionalReplace be IsCallable(replaceValue).
-        </span><span class="kw">let </span><span class="kw-2">mut </span>replace_value = args.get_or_undefined(<span class="number">1</span>).clone();
-        <span class="kw">let </span>functional_replace = replace_value
-            .as_object()
-            .map(JsObject::is_callable)
-            .unwrap_or_default();
-
-        <span class="comment">// 6. If functionalReplace is false, then
-        </span><span class="kw">if </span>!functional_replace {
-            <span class="comment">// a. Set replaceValue to ? ToString(replaceValue).
-            </span>replace_value = replace_value.to_string(context)<span class="question-mark">?</span>.into();
-        }
+        </span><span class="kw">let </span>replace_value = args.get_or_undefined(<span class="number">1</span>).clone();
+        <span class="kw">let </span>replace = <span class="kw">if let </span><span class="prelude-val">Some</span>(f) = replace_value.as_callable() {
+            <span class="prelude-val">Ok</span>(f)
+        } <span class="kw">else </span>{
+            <span class="comment">// 6. If functionalReplace is false, then
+            // a. Set replaceValue to ? ToString(replaceValue).
+            </span><span class="prelude-val">Err</span>(replace_value.to_string(context)<span class="question-mark">?</span>)
+        };
 
         <span class="comment">// 7. Let global be ! ToBoolean(? Get(rx, &quot;global&quot;)).
         </span><span class="kw">let </span>global = rx.get(<span class="string">&quot;global&quot;</span>, context)<span class="question-mark">?</span>.to_boolean();
@@ -3046,48 +3042,50 @@
             </span><span class="kw">let </span><span class="kw-2">mut </span>named_captures = result.get(<span class="string">&quot;groups&quot;</span>, context)<span class="question-mark">?</span>;
 
             <span class="comment">// k. If functionalReplace is true, then
-            // l. Else,
-            </span><span class="kw">let </span>replacement = <span class="kw">if </span>functional_replace {
-                <span class="comment">// i. Let replacerArgs be « matched ».
-                </span><span class="kw">let </span><span class="kw-2">mut </span>replacer_args = <span class="macro">vec!</span>[JsValue::new(matched)];
+            </span><span class="kw">let </span>replacement = <span class="kw">match </span>replace {
+                <span class="prelude-val">Ok</span>(replace_fn) =&gt; {
+                    <span class="comment">// i. Let replacerArgs be « matched ».
+                    </span><span class="kw">let </span><span class="kw-2">mut </span>replacer_args = <span class="macro">vec!</span>[JsValue::new(matched)];
 
-                <span class="comment">// ii. Append in List order the elements of captures to the end of the List replacerArgs.
-                </span>replacer_args.extend(captures);
+                    <span class="comment">// ii. Append in List order the elements of captures to the end of the List replacerArgs.
+                    </span>replacer_args.extend(captures);
 
-                <span class="comment">// iii. Append 𝔽(position) and S to replacerArgs.
-                </span>replacer_args.push(position.into());
-                replacer_args.push(arg_str.clone().into());
+                    <span class="comment">// iii. Append 𝔽(position) and S to replacerArgs.
+                    </span>replacer_args.push(position.into());
+                    replacer_args.push(arg_str.clone().into());
 
-                <span class="comment">// iv. If namedCaptures is not undefined, then
-                </span><span class="kw">if </span>!named_captures.is_undefined() {
-                    <span class="comment">// 1. Append namedCaptures as the last element of replacerArgs.
-                    </span>replacer_args.push(named_captures);
-                }
+                    <span class="comment">// iv. If namedCaptures is not undefined, then
+                    </span><span class="kw">if </span>!named_captures.is_undefined() {
+                        <span class="comment">// 1. Append namedCaptures as the last element of replacerArgs.
+                        </span>replacer_args.push(named_captures);
+                    }
 
-                <span class="comment">// v. Let replValue be ? Call(replaceValue, undefined, replacerArgs).
-                </span><span class="kw">let </span>repl_value =
-                    context.call(<span class="kw-2">&amp;</span>replace_value, <span class="kw-2">&amp;</span>JsValue::undefined(), <span class="kw-2">&amp;</span>replacer_args)<span class="question-mark">?</span>;
+                    <span class="comment">// v. Let replValue be ? Call(replaceValue, undefined, replacerArgs).
+                    // vi. Let replacement be ? ToString(replValue).
+                    </span>replace_fn
+                        .call(<span class="kw-2">&amp;</span>JsValue::undefined(), <span class="kw-2">&amp;</span>replacer_args, context)<span class="question-mark">?
+                        </span>.to_string(context)<span class="question-mark">?
+                </span>}
+                <span class="comment">// l. Else,
+                </span><span class="prelude-val">Err</span>(<span class="kw-2">ref </span>replace_str) =&gt; {
+                    <span class="comment">// i. If namedCaptures is not undefined, then
+                    </span><span class="kw">if </span>!named_captures.is_undefined() {
+                        <span class="comment">// 1. Set namedCaptures to ? ToObject(namedCaptures).
+                        </span>named_captures = named_captures.to_object(context)<span class="question-mark">?</span>.into();
+                    }
 
-                <span class="comment">// vi. Let replacement be ? ToString(replValue).
-                </span>repl_value.to_string(context)<span class="question-mark">?
-            </span>} <span class="kw">else </span>{
-                <span class="comment">// i. If namedCaptures is not undefined, then
-                </span><span class="kw">if </span>!named_captures.is_undefined() {
-                    <span class="comment">// 1. Set namedCaptures to ? ToObject(namedCaptures).
-                    </span>named_captures = named_captures.to_object(context)<span class="question-mark">?</span>.into();
-                }
-
-                <span class="comment">// ii. Let replacement be ? GetSubstitution(matched, S, position, captures, namedCaptures, replaceValue).
-                </span>string::get_substitution(
-                    <span class="kw-2">&amp;</span>matched,
-                    <span class="kw-2">&amp;</span>arg_str,
-                    position,
-                    <span class="kw-2">&amp;</span>captures,
-                    <span class="kw-2">&amp;</span>named_captures,
-                    <span class="kw-2">&amp;</span>replace_value.to_string(context)<span class="question-mark">?</span>,
-                    context,
-                )<span class="question-mark">?
-            </span>};
+                    <span class="comment">// ii. Let replacement be ? GetSubstitution(matched, S, position, captures, namedCaptures, replaceValue).
+                    </span>string::get_substitution(
+                        <span class="kw-2">&amp;</span>matched,
+                        <span class="kw-2">&amp;</span>arg_str,
+                        position,
+                        <span class="kw-2">&amp;</span>captures,
+                        <span class="kw-2">&amp;</span>named_captures,
+                        replace_str,
+                        context,
+                    )<span class="question-mark">?
+                </span>}
+            };
 
             <span class="comment">// m. If position ≥ nextSourcePosition, then
             </span><span class="kw">if </span>position &gt;= next_source_position {

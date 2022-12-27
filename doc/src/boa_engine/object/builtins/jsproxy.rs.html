@@ -868,7 +868,7 @@
     /// inside Rust code.
     </span><span class="attribute">#[must_use]
     </span><span class="kw">pub fn </span>build(<span class="self">self</span>, context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsProxy {
-        <span class="kw">let </span>handler = context.construct_object();
+        <span class="kw">let </span>handler = JsObject::with_object_proto(context);
 
         <span class="kw">if let </span><span class="prelude-val">Some</span>(apply) = <span class="self">self</span>.apply {
             <span class="kw">let </span>f = FunctionBuilder::native(context, apply).length(<span class="number">3</span>).build();

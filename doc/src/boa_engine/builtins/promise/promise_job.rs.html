@@ -186,8 +186,6 @@
 <span id="185">185</span>
 <span id="186">186</span>
 <span id="187">187</span>
-<span id="188">188</span>
-<span id="189">189</span>
 </pre><pre class="rust"><code><span class="kw">use super</span>::{Promise, PromiseCapability};
 <span class="kw">use crate</span>::{
     builtins::promise::{ReactionRecord, ReactionType},
@@ -273,13 +271,13 @@
                             <span class="comment">// h. If handlerResult is an abrupt completion, then
                             </span><span class="prelude-val">Err</span>(value) =&gt; {
                                 <span class="comment">// i. Return ? Call(promiseCapability.[[Reject]], undefined, « handlerResult.[[Value]] »).
-                                </span>context.call(<span class="kw-2">&amp;</span>reject.clone().into(), <span class="kw-2">&amp;</span>JsValue::Undefined, <span class="kw-2">&amp;</span>[value])
+                                </span>reject.call(<span class="kw-2">&amp;</span>JsValue::Undefined, <span class="kw-2">&amp;</span>[value], context)
                             }
 
                             <span class="comment">// i. Else,
                             </span><span class="prelude-val">Ok</span>(value) =&gt; {
                                 <span class="comment">// i. Return ? Call(promiseCapability.[[Resolve]], undefined, « handlerResult.[[Value]] »).
-                                </span>context.call(<span class="kw-2">&amp;</span>resolve.clone().into(), <span class="kw-2">&amp;</span>JsValue::Undefined, <span class="kw-2">&amp;</span>[value])
+                                </span>resolve.call(<span class="kw-2">&amp;</span>JsValue::Undefined, <span class="kw-2">&amp;</span>[value], context)
                             }
                         }
                     }
@@ -328,8 +326,8 @@
                 </span><span class="kw">let </span>then_call_result = then.call_job_callback(
                     thenable,
                     <span class="kw-2">&amp;</span>[
-                        resolving_functions.resolve,
-                        resolving_functions.reject.clone(),
+                        resolving_functions.resolve.clone().into(),
+                        resolving_functions.reject.clone().into(),
                     ],
                     context,
                 );
@@ -338,11 +336,9 @@
                 </span><span class="kw">if let </span><span class="prelude-val">Err</span>(value) = then_call_result {
                     <span class="kw">let </span>value = value.to_opaque(context);
                     <span class="comment">//    i. Return ? Call(resolvingFunctions.[[Reject]], undefined, « thenCallResult.[[Value]] »).
-                    </span><span class="kw">return </span>context.call(
-                        <span class="kw-2">&amp;</span>resolving_functions.reject,
-                        <span class="kw-2">&amp;</span>JsValue::Undefined,
-                        <span class="kw-2">&amp;</span>[value],
-                    );
+                    </span><span class="kw">return </span>resolving_functions
+                        .reject
+                        .call(<span class="kw-2">&amp;</span>JsValue::Undefined, <span class="kw-2">&amp;</span>[value], context);
                 }
 
                 <span class="comment">//    d. Return ? thenCallResult.

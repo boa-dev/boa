@@ -2360,14 +2360,6 @@
 <span id="2359">2359</span>
 <span id="2360">2360</span>
 <span id="2361">2361</span>
-<span id="2362">2362</span>
-<span id="2363">2363</span>
-<span id="2364">2364</span>
-<span id="2365">2365</span>
-<span id="2366">2366</span>
-<span id="2367">2367</span>
-<span id="2368">2368</span>
-<span id="2369">2369</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Boa&#39;s implementation of ECMAScript&#39;s global `String` object.
 //!
 //! The `String` global object is a constructor for strings or a sequence of characters.
@@ -3308,10 +3300,7 @@
         </span><span class="kw">let </span>search_str = search_value.to_string(context)<span class="question-mark">?</span>;
 
         <span class="comment">// 5. Let functionalReplace be IsCallable(replaceValue).
-        </span><span class="kw">let </span>functional_replace = replace_value
-            .as_object()
-            .map(JsObject::is_callable)
-            .unwrap_or_default();
+        </span><span class="kw">let </span>replace_obj = replace_value.as_callable();
 
         <span class="comment">// 6. If functionalReplace is false, then
         // a. Set replaceValue to ? ToString(replaceValue).
@@ -3330,13 +3319,13 @@
 
         <span class="comment">// 11. If functionalReplace is true, then
         // 12. Else,
-        </span><span class="kw">let </span>replacement = <span class="kw">if </span>functional_replace {
+        </span><span class="kw">let </span>replacement = <span class="kw">if let </span><span class="prelude-val">Some</span>(replace_fn) = replace_obj {
             <span class="comment">// a. Let replacement be ? ToString(? Call(replaceValue, undefined, « searchString, 𝔽(position), string »)).
-            </span>context
+            </span>replace_fn
                 .call(
-                    replace_value,
                     <span class="kw-2">&amp;</span>JsValue::undefined(),
                     <span class="kw-2">&amp;</span>[search_str.into(), position.into(), this_str.clone().into()],
+                    context,
                 )<span class="question-mark">?
                 </span>.to_string(context)<span class="question-mark">?
         </span>} <span class="kw">else </span>{
@@ -3430,17 +3419,12 @@
         </span><span class="kw">let </span>search_string = search_value.to_string(context)<span class="question-mark">?</span>;
 
         <span class="comment">// 5. Let functionalReplace be IsCallable(replaceValue).
-        </span><span class="kw">let </span>functional_replace = replace_value
-            .as_object()
-            .map(JsObject::is_callable)
-            .unwrap_or_default();
-
-        <span class="kw">let </span>replace_value_string = <span class="kw">if </span>functional_replace {
-            <span class="prelude-val">None
-        </span>} <span class="kw">else </span>{
-            <span class="comment">// a. Set replaceValue to ? ToString(replaceValue).
-            // 6. If functionalReplace is false, then
-            </span><span class="prelude-val">Some</span>(replace_value.to_string(context)<span class="question-mark">?</span>)
+        </span><span class="kw">let </span>replace = <span class="kw">if let </span><span class="prelude-val">Some</span>(f) = replace_value.as_callable() {
+            <span class="prelude-val">Ok</span>(f)
+        } <span class="kw">else </span>{
+            <span class="comment">// 6. If functionalReplace is false, then
+            // a. Set replaceValue to ? ToString(replaceValue).
+            </span><span class="prelude-val">Err</span>(replace_value.to_string(context)<span class="question-mark">?</span>)
         };
 
         <span class="comment">// 7. Let searchLength be the length of searchString.
@@ -3476,36 +3460,36 @@
             </span><span class="kw">let </span>preserved = <span class="kw-2">&amp;</span>string[end_of_last_match..p];
 
             <span class="comment">// c. Else,
-            </span><span class="kw">let </span>replacement = <span class="kw">if let </span><span class="prelude-val">Some</span>(<span class="kw-2">ref </span>replace_value) = replace_value_string {
+            </span><span class="kw">let </span>replacement = <span class="kw">match </span>replace {
+                <span class="comment">// b. If functionalReplace is true, then
+                </span><span class="prelude-val">Ok</span>(replace_fn) =&gt; {
+                    <span class="comment">// i. Let replacement be ? ToString(? Call(replaceValue, undefined, « searchString, 𝔽(p), string »)).
+                    </span>replace_fn
+                        .call(
+                            <span class="kw-2">&amp;</span>JsValue::undefined(),
+                            <span class="kw-2">&amp;</span>[
+                                search_string.clone().into(),
+                                p.into(),
+                                string.clone().into(),
+                            ],
+                            context,
+                        )<span class="question-mark">?
+                        </span>.to_string(context)<span class="question-mark">?
+                </span>}
                 <span class="comment">// i. Assert: Type(replaceValue) is String.
                 // ii. Let captures be a new empty List.
                 // iii. Let replacement be ! GetSubstitution(searchString, string, p, captures, undefined, replaceValue).
-                </span>get_substitution(
+                </span><span class="prelude-val">Err</span>(<span class="kw-2">ref </span>replace_str) =&gt; get_substitution(
                     <span class="kw-2">&amp;</span>search_string,
                     <span class="kw-2">&amp;</span>string,
                     p,
                     <span class="kw-2">&amp;</span>[],
                     <span class="kw-2">&amp;</span>JsValue::undefined(),
-                    replace_value,
+                    replace_str,
                     context,
                 )
-                .expect(<span class="string">&quot;GetSubstitution should never fail here.&quot;</span>)
-            }
-            <span class="comment">// b. If functionalReplace is true, then
-            </span><span class="kw">else </span>{
-                <span class="comment">// i. Let replacement be ? ToString(? Call(replaceValue, undefined, « searchString, 𝔽(p), string »)).
-                </span>context
-                    .call(
-                        replace_value,
-                        <span class="kw-2">&amp;</span>JsValue::undefined(),
-                        <span class="kw-2">&amp;</span>[
-                            search_string.clone().into(),
-                            p.into(),
-                            string.clone().into(),
-                        ],
-                    )<span class="question-mark">?
-                    </span>.to_string(context)<span class="question-mark">?
-            </span>};
+                .expect(<span class="string">&quot;GetSubstitution should never fail here.&quot;</span>),
+            };
 
             <span class="comment">// d. Set result to the string-concatenation of result, preserved, and replacement.
             </span>result.extend_from_slice(preserved);

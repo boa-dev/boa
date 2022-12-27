@@ -638,67 +638,6 @@
 <span id="637">637</span>
 <span id="638">638</span>
 <span id="639">639</span>
-<span id="640">640</span>
-<span id="641">641</span>
-<span id="642">642</span>
-<span id="643">643</span>
-<span id="644">644</span>
-<span id="645">645</span>
-<span id="646">646</span>
-<span id="647">647</span>
-<span id="648">648</span>
-<span id="649">649</span>
-<span id="650">650</span>
-<span id="651">651</span>
-<span id="652">652</span>
-<span id="653">653</span>
-<span id="654">654</span>
-<span id="655">655</span>
-<span id="656">656</span>
-<span id="657">657</span>
-<span id="658">658</span>
-<span id="659">659</span>
-<span id="660">660</span>
-<span id="661">661</span>
-<span id="662">662</span>
-<span id="663">663</span>
-<span id="664">664</span>
-<span id="665">665</span>
-<span id="666">666</span>
-<span id="667">667</span>
-<span id="668">668</span>
-<span id="669">669</span>
-<span id="670">670</span>
-<span id="671">671</span>
-<span id="672">672</span>
-<span id="673">673</span>
-<span id="674">674</span>
-<span id="675">675</span>
-<span id="676">676</span>
-<span id="677">677</span>
-<span id="678">678</span>
-<span id="679">679</span>
-<span id="680">680</span>
-<span id="681">681</span>
-<span id="682">682</span>
-<span id="683">683</span>
-<span id="684">684</span>
-<span id="685">685</span>
-<span id="686">686</span>
-<span id="687">687</span>
-<span id="688">688</span>
-<span id="689">689</span>
-<span id="690">690</span>
-<span id="691">691</span>
-<span id="692">692</span>
-<span id="693">693</span>
-<span id="694">694</span>
-<span id="695">695</span>
-<span id="696">696</span>
-<span id="697">697</span>
-<span id="698">698</span>
-<span id="699">699</span>
-<span id="700">700</span>
 </pre><pre class="rust"><code><span class="doccomment">//! The ECMAScript context.
 
 </span><span class="kw">pub mod </span>intrinsics;
@@ -718,13 +657,12 @@
     builtins::{<span class="self">self</span>, function::NativeFunctionSignature},
     bytecompiler::ByteCompiler,
     class::{Class, ClassBuilder},
-    error::JsNativeError,
     job::JobCallback,
-    object::{FunctionBuilder, GlobalPropertyMap, JsObject, ObjectData},
+    object::{FunctionBuilder, GlobalPropertyMap, JsObject},
     property::{Attribute, PropertyDescriptor, PropertyKey},
     realm::Realm,
     vm::{CallFrame, CodeBlock, FinallyReturn, GeneratorResumeKind, Vm},
-    JsResult, JsString, JsValue,
+    JsResult, JsValue,
 };
 
 <span class="kw">use </span>boa_ast::StatementList;
@@ -832,7 +770,9 @@
     }
 }
 
-<span class="kw">impl </span>Context {
+<span class="comment">// ==== Public API ====
+
+</span><span class="kw">impl </span>Context {
     <span class="doccomment">/// Create a new [`ContextBuilder`] to specify the [`Interner`] and/or
     /// the icu data provider.
     </span><span class="attribute">#[must_use]
@@ -840,44 +780,34 @@
         ContextBuilder::default()
     }
 
-    <span class="doccomment">/// Gets the string interner.
-    </span><span class="attribute">#[inline]
-    </span><span class="kw">pub const fn </span>interner(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>Interner {
-        <span class="kw-2">&amp;</span><span class="self">self</span>.interner
-    }
+    <span class="doccomment">/// Evaluates the given code by compiling down to bytecode, then interpreting the bytecode into a value
+    ///
+    /// # Examples
+    /// ```
+    /// # use boa_engine::Context;
+    /// let mut context = Context::default();
+    ///
+    /// let value = context.eval(&quot;1 + 3&quot;).unwrap();
+    ///
+    /// assert!(value.is_number());
+    /// assert_eq!(value.as_number().unwrap(), 4.0);
+    /// ```
+    </span><span class="attribute">#[allow(clippy::unit_arg, clippy::drop_copy)]
+    </span><span class="kw">pub fn </span>eval&lt;S&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, src: S) -&gt; JsResult&lt;JsValue&gt;
+    <span class="kw">where
+        </span>S: AsRef&lt;[u8]&gt;,
+    {
+        <span class="kw">let </span>main_timer = Profiler::global().start_event(<span class="string">&quot;Evaluation&quot;</span>, <span class="string">&quot;Main&quot;</span>);
 
-    <span class="doccomment">/// Gets a mutable reference to the string interner.
-    </span><span class="attribute">#[inline]
-    </span><span class="kw">pub fn </span>interner_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span>Interner {
-        <span class="kw-2">&amp;mut </span><span class="self">self</span>.interner
-    }
+        <span class="kw">let </span>statement_list = <span class="self">self</span>.parse(src)<span class="question-mark">?</span>;
+        <span class="kw">let </span>code_block = <span class="self">self</span>.compile(<span class="kw-2">&amp;</span>statement_list)<span class="question-mark">?</span>;
+        <span class="kw">let </span>result = <span class="self">self</span>.execute(code_block);
 
-    <span class="doccomment">/// A helper function for getting an immutable reference to the `console` object.
-    </span><span class="attribute">#[cfg(feature = <span class="string">&quot;console&quot;</span>)]
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const fn </span>console(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>Console {
-        <span class="kw-2">&amp;</span><span class="self">self</span>.console
-    }
+        <span class="comment">// The main_timer needs to be dropped before the Profiler is.
+        </span>drop(main_timer);
+        Profiler::global().drop();
 
-    <span class="doccomment">/// A helper function for getting a mutable reference to the `console` object.
-    </span><span class="attribute">#[cfg(feature = <span class="string">&quot;console&quot;</span>)]
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>console_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span>Console {
-        <span class="kw-2">&amp;mut </span><span class="self">self</span>.console
-    }
-
-    <span class="doccomment">/// Sets up the default global objects within Global
-    </span><span class="kw">fn </span>create_intrinsics(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
-        <span class="kw">let </span>_timer = Profiler::global().start_event(<span class="string">&quot;create_intrinsics&quot;</span>, <span class="string">&quot;interpreter&quot;</span>);
-        <span class="comment">// Create intrinsics, add global objects here
-        </span>builtins::init(<span class="self">self</span>);
-    }
-
-    <span class="doccomment">/// Constructs an object with the `%Object.prototype%` prototype.
-    </span><span class="attribute">#[inline]
-    </span><span class="kw">pub fn </span>construct_object(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; JsObject {
-        JsObject::from_proto_and_data(
-            <span class="self">self</span>.intrinsics().constructors().object().prototype(),
-            ObjectData::ordinary(),
-        )
+        result
     }
 
     <span class="doccomment">/// Parse the given source text.
@@ -885,70 +815,91 @@
     <span class="kw">where
         </span>S: AsRef&lt;[u8]&gt;,
     {
+        <span class="kw">let </span>_timer = Profiler::global().start_event(<span class="string">&quot;Parsing&quot;</span>, <span class="string">&quot;Main&quot;</span>);
         <span class="kw">let </span><span class="kw-2">mut </span>parser = Parser::new(src.as_ref());
         parser.parse_all(<span class="kw-2">&amp;mut </span><span class="self">self</span>.interner)
     }
 
-    <span class="doccomment">/// `Call ( F, V [ , argumentsList ] )`
-    ///
-    /// The abstract operation `Call` takes arguments `F` (an ECMAScript language value) and `V`
-    /// (an ECMAScript language value) and optional argument `argumentsList` (a `List` of
-    /// ECMAScript language values) and returns either a normal completion containing an ECMAScript
-    /// language value or a throw completion. It is used to call the `[[Call]]` internal method of
-    /// a function object. `F` is the function object, `V` is an ECMAScript language value that is
-    /// the `this` value of the `[[Call]]`, and `argumentsList` is the value passed to the
-    /// corresponding argument of the internal method. If `argumentsList` is not present, a new
-    /// empty `List` is used as its value.
-    ///
-    /// More information:
-    ///  - [ECMA reference][spec]
-    ///
-    /// [spec]: https://tc39.es/ecma262/#sec-call
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>call(
-        <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-        f: <span class="kw-2">&amp;</span>JsValue,
-        v: <span class="kw-2">&amp;</span>JsValue,
-        arguments_list: <span class="kw-2">&amp;</span>[JsValue],
-    ) -&gt; JsResult&lt;JsValue&gt; {
-        <span class="comment">// 1. If argumentsList is not present, set argumentsList to a new empty List.
-        // 2. If IsCallable(F) is false, throw a TypeError exception.
-        // 3. Return ? F.[[Call]](V, argumentsList).
-        </span>f.as_callable()
-            .ok_or_else(|| {
-                JsNativeError::typ()
-                    .with_message(<span class="string">&quot;Value is not callable&quot;</span>)
-                    .into()
-            })
-            .and_then(|f| f.call(v, arguments_list, <span class="self">self</span>))
+    <span class="doccomment">/// Compile the AST into a `CodeBlock` ready to be executed by the VM.
+    </span><span class="kw">pub fn </span>compile(<span class="kw-2">&amp;mut </span><span class="self">self</span>, statement_list: <span class="kw-2">&amp;</span>StatementList) -&gt; JsResult&lt;Gc&lt;CodeBlock&gt;&gt; {
+        <span class="kw">let </span>_timer = Profiler::global().start_event(<span class="string">&quot;Compilation&quot;</span>, <span class="string">&quot;Main&quot;</span>);
+        <span class="kw">let </span><span class="kw-2">mut </span>compiler = ByteCompiler::new(Sym::MAIN, statement_list.strict(), <span class="bool-val">false</span>, <span class="self">self</span>);
+        compiler.create_decls(statement_list, <span class="bool-val">false</span>);
+        compiler.compile_statement_list(statement_list, <span class="bool-val">true</span>, <span class="bool-val">false</span>)<span class="question-mark">?</span>;
+        <span class="prelude-val">Ok</span>(Gc::new(compiler.finish()))
     }
 
-    <span class="doccomment">/// Return the global object.
-    </span><span class="attribute">#[inline]
-    </span><span class="kw">pub const fn </span>global_object(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>JsObject {
-        <span class="self">self</span>.realm.global_object()
+    <span class="doccomment">/// Call the VM with a `CodeBlock` and return the result.
+    ///
+    /// Since this function receives a `Gc&lt;CodeBlock&gt;`, cloning the code is very cheap, since it&#39;s
+    /// just a pointer copy. Therefore, if you&#39;d like to execute the same `CodeBlock` multiple
+    /// times, there is no need to re-compile it, and you can just call `clone()` on the
+    /// `Gc&lt;CodeBlock&gt;` returned by the [`Self::compile()`] function.
+    </span><span class="kw">pub fn </span>execute(<span class="kw-2">&amp;mut </span><span class="self">self</span>, code_block: Gc&lt;CodeBlock&gt;) -&gt; JsResult&lt;JsValue&gt; {
+        <span class="kw">let </span>_timer = Profiler::global().start_event(<span class="string">&quot;Execution&quot;</span>, <span class="string">&quot;Main&quot;</span>);
+
+        <span class="self">self</span>.vm.push_frame(CallFrame {
+            code: code_block,
+            pc: <span class="number">0</span>,
+            catch: Vec::new(),
+            finally_return: FinallyReturn::None,
+            finally_jump: Vec::new(),
+            pop_on_return: <span class="number">0</span>,
+            loop_env_stack: Vec::from([<span class="number">0</span>]),
+            try_env_stack: Vec::from([<span class="kw">crate</span>::vm::TryStackEntry {
+                num_env: <span class="number">0</span>,
+                num_loop_stack_entries: <span class="number">0</span>,
+            }]),
+            param_count: <span class="number">0</span>,
+            arg_count: <span class="number">0</span>,
+            generator_resume_kind: GeneratorResumeKind::Normal,
+            thrown: <span class="bool-val">false</span>,
+            async_generator: <span class="prelude-val">None</span>,
+        });
+
+        <span class="self">self</span>.realm.set_global_binding_number();
+        <span class="kw">let </span>result = <span class="self">self</span>.run();
+        <span class="self">self</span>.vm.pop_frame();
+        <span class="self">self</span>.clear_kept_objects();
+        <span class="self">self</span>.run_queued_jobs()<span class="question-mark">?</span>;
+        <span class="kw">let </span>(result, <span class="kw">_</span>) = result<span class="question-mark">?</span>;
+        <span class="prelude-val">Ok</span>(result)
     }
 
-    <span class="doccomment">/// Return a mutable reference to the global object string bindings.
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>global_bindings_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span>GlobalPropertyMap {
-        <span class="self">self</span>.realm.global_bindings_mut()
-    }
-
-    <span class="doccomment">/// Constructs a `Error` with the specified message.
-    </span><span class="kw">pub fn </span>construct_error&lt;M&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, message: M) -&gt; JsValue
+    <span class="doccomment">/// Register a global property.
+    ///
+    /// # Example
+    /// ```
+    /// use boa_engine::{
+    ///     object::ObjectInitializer,
+    ///     property::{Attribute, PropertyDescriptor},
+    ///     Context,
+    /// };
+    ///
+    /// let mut context = Context::default();
+    ///
+    /// context.register_global_property(&quot;myPrimitiveProperty&quot;, 10, Attribute::all());
+    ///
+    /// let object = ObjectInitializer::new(&amp;mut context)
+    ///     .property(&quot;x&quot;, 0, Attribute::all())
+    ///     .property(&quot;y&quot;, 1, Attribute::all())
+    ///     .build();
+    /// context.register_global_property(&quot;myObjectProperty&quot;, object, Attribute::all());
+    /// ```
+    </span><span class="kw">pub fn </span>register_global_property&lt;K, V&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, key: K, value: V, attribute: Attribute)
     <span class="kw">where
-        </span>M: Into&lt;JsString&gt;,
+        </span>K: Into&lt;PropertyKey&gt;,
+        V: Into&lt;JsValue&gt;,
     {
-        <span class="kw">crate</span>::builtins::error::Error::constructor(
-            <span class="kw-2">&amp;</span><span class="self">self
-                </span>.intrinsics()
-                .constructors()
-                .error()
-                .constructor()
-                .into(),
-            <span class="kw-2">&amp;</span>[message.into().into()],
-            <span class="self">self</span>,
-        )
-        .expect(<span class="string">&quot;Into&lt;String&gt; used as message&quot;</span>)
+        <span class="self">self</span>.realm.global_property_map.insert(
+            <span class="kw-2">&amp;</span>key.into(),
+            PropertyDescriptor::builder()
+                .value(value)
+                .writable(attribute.writable())
+                .enumerable(attribute.enumerable())
+                .configurable(attribute.configurable())
+                .build(),
+        );
     }
 
     <span class="doccomment">/// Register a global native function.
@@ -1073,12 +1024,6 @@
         <span class="prelude-val">Ok</span>(())
     }
 
-    <span class="doccomment">/// &lt;https://tc39.es/ecma262/#sec-hasproperty&gt;
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>has_property(<span class="kw-2">&amp;mut </span><span class="self">self</span>, obj: <span class="kw-2">&amp;</span>JsValue, key: <span class="kw-2">&amp;</span>PropertyKey) -&gt; JsResult&lt;bool&gt; {
-        obj.as_object()
-            .map_or(<span class="prelude-val">Ok</span>(<span class="bool-val">false</span>), |obj| obj.__has_property__(key, <span class="self">self</span>))
-    }
-
     <span class="doccomment">/// Register a global class of type `T`, where `T` implements `Class`.
     ///
     /// # Example
@@ -1111,150 +1056,22 @@
         <span class="prelude-val">Ok</span>(())
     }
 
-    <span class="doccomment">/// Register a global property.
-    ///
-    /// # Example
-    /// ```
-    /// use boa_engine::{
-    ///     object::ObjectInitializer,
-    ///     property::{Attribute, PropertyDescriptor},
-    ///     Context,
-    /// };
-    ///
-    /// let mut context = Context::default();
-    ///
-    /// context.register_global_property(&quot;myPrimitiveProperty&quot;, 10, Attribute::all());
-    ///
-    /// let object = ObjectInitializer::new(&amp;mut context)
-    ///     .property(&quot;x&quot;, 0, Attribute::all())
-    ///     .property(&quot;y&quot;, 1, Attribute::all())
-    ///     .build();
-    /// context.register_global_property(&quot;myObjectProperty&quot;, object, Attribute::all());
-    /// ```
-    </span><span class="kw">pub fn </span>register_global_property&lt;K, V&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, key: K, value: V, attribute: Attribute)
-    <span class="kw">where
-        </span>K: Into&lt;PropertyKey&gt;,
-        V: Into&lt;JsValue&gt;,
-    {
-        <span class="self">self</span>.realm.global_property_map.insert(
-            <span class="kw-2">&amp;</span>key.into(),
-            PropertyDescriptor::builder()
-                .value(value)
-                .writable(attribute.writable())
-                .enumerable(attribute.enumerable())
-                .configurable(attribute.configurable())
-                .build(),
-        );
+    <span class="doccomment">/// Gets the string interner.
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub const fn </span>interner(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>Interner {
+        <span class="kw-2">&amp;</span><span class="self">self</span>.interner
     }
 
-    <span class="doccomment">/// Evaluates the given code by compiling down to bytecode, then interpreting the bytecode into a value
-    ///
-    /// # Examples
-    /// ```
-    /// # use boa_engine::Context;
-    /// let mut context = Context::default();
-    ///
-    /// let value = context.eval(&quot;1 + 3&quot;).unwrap();
-    ///
-    /// assert!(value.is_number());
-    /// assert_eq!(value.as_number().unwrap(), 4.0);
-    /// ```
-    </span><span class="attribute">#[allow(clippy::unit_arg, clippy::drop_copy)]
-    </span><span class="kw">pub fn </span>eval&lt;S&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, src: S) -&gt; JsResult&lt;JsValue&gt;
-    <span class="kw">where
-        </span>S: AsRef&lt;[u8]&gt;,
-    {
-        <span class="kw">let </span>main_timer = Profiler::global().start_event(<span class="string">&quot;Evaluation&quot;</span>, <span class="string">&quot;Main&quot;</span>);
-
-        <span class="kw">let </span>statement_list = Parser::new(src.as_ref()).parse_all(<span class="kw-2">&amp;mut </span><span class="self">self</span>.interner)<span class="question-mark">?</span>;
-
-        <span class="kw">let </span>code_block = <span class="self">self</span>.compile(<span class="kw-2">&amp;</span>statement_list)<span class="question-mark">?</span>;
-        <span class="kw">let </span>result = <span class="self">self</span>.execute(code_block);
-
-        <span class="comment">// The main_timer needs to be dropped before the Profiler is.
-        </span>drop(main_timer);
-        Profiler::global().drop();
-
-        result
+    <span class="doccomment">/// Gets a mutable reference to the string interner.
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>interner_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span>Interner {
+        <span class="kw-2">&amp;mut </span><span class="self">self</span>.interner
     }
 
-    <span class="doccomment">/// Compile the AST into a `CodeBlock` ready to be executed by the VM.
-    </span><span class="kw">pub fn </span>compile(<span class="kw-2">&amp;mut </span><span class="self">self</span>, statement_list: <span class="kw-2">&amp;</span>StatementList) -&gt; JsResult&lt;Gc&lt;CodeBlock&gt;&gt; {
-        <span class="kw">let </span>_timer = Profiler::global().start_event(<span class="string">&quot;Compilation&quot;</span>, <span class="string">&quot;Main&quot;</span>);
-        <span class="kw">let </span><span class="kw-2">mut </span>compiler = ByteCompiler::new(Sym::MAIN, statement_list.strict(), <span class="bool-val">false</span>, <span class="self">self</span>);
-        compiler.create_decls(statement_list, <span class="bool-val">false</span>);
-        compiler.compile_statement_list(statement_list, <span class="bool-val">true</span>, <span class="bool-val">false</span>)<span class="question-mark">?</span>;
-        <span class="prelude-val">Ok</span>(Gc::new(compiler.finish()))
-    }
-
-    <span class="doccomment">/// Compile the AST into a `CodeBlock` ready to be executed by the VM in a `JSON.parse` context.
-    </span><span class="kw">pub fn </span>compile_json_parse(
-        <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-        statement_list: <span class="kw-2">&amp;</span>StatementList,
-    ) -&gt; JsResult&lt;Gc&lt;CodeBlock&gt;&gt; {
-        <span class="kw">let </span>_timer = Profiler::global().start_event(<span class="string">&quot;Compilation&quot;</span>, <span class="string">&quot;Main&quot;</span>);
-        <span class="kw">let </span><span class="kw-2">mut </span>compiler = ByteCompiler::new(Sym::MAIN, statement_list.strict(), <span class="bool-val">true</span>, <span class="self">self</span>);
-        compiler.create_decls(statement_list, <span class="bool-val">false</span>);
-        compiler.compile_statement_list(statement_list, <span class="bool-val">true</span>, <span class="bool-val">false</span>)<span class="question-mark">?</span>;
-        <span class="prelude-val">Ok</span>(Gc::new(compiler.finish()))
-    }
-
-    <span class="doccomment">/// Compile the AST into a `CodeBlock` with an additional declarative environment.
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>compile_with_new_declarative(
-        <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-        statement_list: <span class="kw-2">&amp;</span>StatementList,
-        strict: bool,
-    ) -&gt; JsResult&lt;Gc&lt;CodeBlock&gt;&gt; {
-        <span class="kw">let </span>_timer = Profiler::global().start_event(<span class="string">&quot;Compilation&quot;</span>, <span class="string">&quot;Main&quot;</span>);
-        <span class="kw">let </span><span class="kw-2">mut </span>compiler = ByteCompiler::new(Sym::MAIN, statement_list.strict(), <span class="bool-val">false</span>, <span class="self">self</span>);
-        compiler.compile_statement_list_with_new_declarative(statement_list, <span class="bool-val">true</span>, strict)<span class="question-mark">?</span>;
-        <span class="prelude-val">Ok</span>(Gc::new(compiler.finish()))
-    }
-
-    <span class="doccomment">/// Call the VM with a `CodeBlock` and return the result.
-    ///
-    /// Since this function receives a `Gc&lt;CodeBlock&gt;`, cloning the code is very cheap, since it&#39;s
-    /// just a pointer copy. Therefore, if you&#39;d like to execute the same `CodeBlock` multiple
-    /// times, there is no need to re-compile it, and you can just call `clone()` on the
-    /// `Gc&lt;CodeBlock&gt;` returned by the [`Self::compile()`] function.
-    </span><span class="kw">pub fn </span>execute(<span class="kw-2">&amp;mut </span><span class="self">self</span>, code_block: Gc&lt;CodeBlock&gt;) -&gt; JsResult&lt;JsValue&gt; {
-        <span class="kw">let </span>_timer = Profiler::global().start_event(<span class="string">&quot;Execution&quot;</span>, <span class="string">&quot;Main&quot;</span>);
-
-        <span class="self">self</span>.vm.push_frame(CallFrame {
-            code: code_block,
-            pc: <span class="number">0</span>,
-            catch: Vec::new(),
-            finally_return: FinallyReturn::None,
-            finally_jump: Vec::new(),
-            pop_on_return: <span class="number">0</span>,
-            loop_env_stack: Vec::from([<span class="number">0</span>]),
-            try_env_stack: Vec::from([<span class="kw">crate</span>::vm::TryStackEntry {
-                num_env: <span class="number">0</span>,
-                num_loop_stack_entries: <span class="number">0</span>,
-            }]),
-            param_count: <span class="number">0</span>,
-            arg_count: <span class="number">0</span>,
-            generator_resume_kind: GeneratorResumeKind::Normal,
-            thrown: <span class="bool-val">false</span>,
-            async_generator: <span class="prelude-val">None</span>,
-        });
-
-        <span class="self">self</span>.realm.set_global_binding_number();
-        <span class="kw">let </span>result = <span class="self">self</span>.run();
-        <span class="self">self</span>.vm.pop_frame();
-        <span class="self">self</span>.clear_kept_objects();
-        <span class="self">self</span>.run_queued_jobs()<span class="question-mark">?</span>;
-        <span class="kw">let </span>(result, <span class="kw">_</span>) = result<span class="question-mark">?</span>;
-        <span class="prelude-val">Ok</span>(result)
-    }
-
-    <span class="doccomment">/// Runs all the jobs in the job queue.
-    </span><span class="kw">fn </span>run_queued_jobs(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; JsResult&lt;()&gt; {
-        <span class="kw">while let </span><span class="prelude-val">Some</span>(job) = <span class="self">self</span>.promise_job_queue.pop_front() {
-            job.call_job_callback(<span class="kw-2">&amp;</span>JsValue::Undefined, <span class="kw-2">&amp;</span>[], <span class="self">self</span>)<span class="question-mark">?</span>;
-            <span class="self">self</span>.clear_kept_objects();
-        }
-        <span class="prelude-val">Ok</span>(())
+    <span class="doccomment">/// Return the global object.
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub const fn </span>global_object(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>JsObject {
+        <span class="self">self</span>.realm.global_object()
     }
 
     <span class="doccomment">/// Return the intrinsic constructors and objects.
@@ -1266,12 +1083,6 @@
     <span class="doccomment">/// Set the value of trace on the context
     </span><span class="kw">pub fn </span>set_trace(<span class="kw-2">&amp;mut </span><span class="self">self</span>, trace: bool) {
         <span class="self">self</span>.vm.trace = trace;
-    }
-
-    <span class="attribute">#[cfg(feature = <span class="string">&quot;intl&quot;</span>)]
-    </span><span class="doccomment">/// Get the ICU related utilities
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const fn </span>icu(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>icu::Icu&lt;BoaProvider&gt; {
-        <span class="kw-2">&amp;</span><span class="self">self</span>.icu
     }
 
     <span class="doccomment">/// More information:
@@ -1296,6 +1107,73 @@
     /// [weak]: https://tc39.es/ecma262/multipage/managing-memory.html#sec-weak-ref-objects
     </span><span class="kw">pub fn </span>clear_kept_objects(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
         <span class="self">self</span>.kept_alive.clear();
+    }
+}
+
+<span class="comment">// ==== Private API ====
+
+</span><span class="kw">impl </span>Context {
+    <span class="doccomment">/// A helper function for getting an immutable reference to the `console` object.
+    </span><span class="attribute">#[cfg(feature = <span class="string">&quot;console&quot;</span>)]
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const fn </span>console(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>Console {
+        <span class="kw-2">&amp;</span><span class="self">self</span>.console
+    }
+
+    <span class="doccomment">/// A helper function for getting a mutable reference to the `console` object.
+    </span><span class="attribute">#[cfg(feature = <span class="string">&quot;console&quot;</span>)]
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>console_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span>Console {
+        <span class="kw-2">&amp;mut </span><span class="self">self</span>.console
+    }
+
+    <span class="doccomment">/// Return a mutable reference to the global object string bindings.
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>global_bindings_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span>GlobalPropertyMap {
+        <span class="self">self</span>.realm.global_bindings_mut()
+    }
+
+    <span class="doccomment">/// Compile the AST into a `CodeBlock` ready to be executed by the VM in a `JSON.parse` context.
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>compile_json_parse(
+        <span class="kw-2">&amp;mut </span><span class="self">self</span>,
+        statement_list: <span class="kw-2">&amp;</span>StatementList,
+    ) -&gt; JsResult&lt;Gc&lt;CodeBlock&gt;&gt; {
+        <span class="kw">let </span>_timer = Profiler::global().start_event(<span class="string">&quot;Compilation&quot;</span>, <span class="string">&quot;Main&quot;</span>);
+        <span class="kw">let </span><span class="kw-2">mut </span>compiler = ByteCompiler::new(Sym::MAIN, statement_list.strict(), <span class="bool-val">true</span>, <span class="self">self</span>);
+        compiler.create_decls(statement_list, <span class="bool-val">false</span>);
+        compiler.compile_statement_list(statement_list, <span class="bool-val">true</span>, <span class="bool-val">false</span>)<span class="question-mark">?</span>;
+        <span class="prelude-val">Ok</span>(Gc::new(compiler.finish()))
+    }
+
+    <span class="doccomment">/// Compile the AST into a `CodeBlock` with an additional declarative environment.
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>compile_with_new_declarative(
+        <span class="kw-2">&amp;mut </span><span class="self">self</span>,
+        statement_list: <span class="kw-2">&amp;</span>StatementList,
+        strict: bool,
+    ) -&gt; JsResult&lt;Gc&lt;CodeBlock&gt;&gt; {
+        <span class="kw">let </span>_timer = Profiler::global().start_event(<span class="string">&quot;Compilation&quot;</span>, <span class="string">&quot;Main&quot;</span>);
+        <span class="kw">let </span><span class="kw-2">mut </span>compiler = ByteCompiler::new(Sym::MAIN, statement_list.strict(), <span class="bool-val">false</span>, <span class="self">self</span>);
+        compiler.compile_statement_list_with_new_declarative(statement_list, <span class="bool-val">true</span>, strict)<span class="question-mark">?</span>;
+        <span class="prelude-val">Ok</span>(Gc::new(compiler.finish()))
+    }
+
+    <span class="doccomment">/// Get the ICU related utilities
+    </span><span class="attribute">#[cfg(feature = <span class="string">&quot;intl&quot;</span>)]
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const fn </span>icu(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>icu::Icu&lt;BoaProvider&gt; {
+        <span class="kw-2">&amp;</span><span class="self">self</span>.icu
+    }
+
+    <span class="doccomment">/// Sets up the default global objects within Global
+    </span><span class="kw">fn </span>create_intrinsics(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
+        <span class="kw">let </span>_timer = Profiler::global().start_event(<span class="string">&quot;create_intrinsics&quot;</span>, <span class="string">&quot;interpreter&quot;</span>);
+        <span class="comment">// Create intrinsics, add global objects here
+        </span>builtins::init(<span class="self">self</span>);
+    }
+
+    <span class="doccomment">/// Runs all the jobs in the job queue.
+    </span><span class="kw">fn </span>run_queued_jobs(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; JsResult&lt;()&gt; {
+        <span class="kw">while let </span><span class="prelude-val">Some</span>(job) = <span class="self">self</span>.promise_job_queue.pop_front() {
+            job.call_job_callback(<span class="kw-2">&amp;</span>JsValue::Undefined, <span class="kw-2">&amp;</span>[], <span class="self">self</span>)<span class="question-mark">?</span>;
+            <span class="self">self</span>.clear_kept_objects();
+        }
+        <span class="prelude-val">Ok</span>(())
     }
 }
 <span class="doccomment">/// Builder for the [`Context`] type.

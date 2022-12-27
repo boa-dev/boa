@@ -204,16 +204,16 @@
         <span class="kw">let </span>rhs = context.vm.pop();
         <span class="kw">let </span>lhs = context.vm.pop();
 
-        <span class="kw">if </span>!rhs.is_object() {
+        <span class="kw">let </span><span class="prelude-val">Some</span>(rhs) = rhs.as_object() <span class="kw">else </span>{
             <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::typ()
                 .with_message(<span class="macro">format!</span>(
                     <span class="string">&quot;right-hand side of &#39;in&#39; should be an object, got `{}`&quot;</span>,
                     rhs.type_of()
                 ))
                 .into());
-        }
+        };
         <span class="kw">let </span>key = lhs.to_property_key(context)<span class="question-mark">?</span>;
-        <span class="kw">let </span>value = context.has_property(<span class="kw-2">&amp;</span>rhs, <span class="kw-2">&amp;</span>key)<span class="question-mark">?</span>;
+        <span class="kw">let </span>value = rhs.has_property(key, context)<span class="question-mark">?</span>;
         context.vm.push(value);
         <span class="prelude-val">Ok</span>(ShouldExit::False)
     }

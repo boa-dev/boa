@@ -837,6 +837,7 @@
 <span id="836">836</span>
 <span id="837">837</span>
 <span id="838">838</span>
+<span id="839">839</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Boa&#39;s implementation of ECMAScript&#39;s global `ArrayBuffer` object.
 //!
 //! More information:
@@ -1179,19 +1180,20 @@
             StandardConstructors::array_buffer,
             context,
         )<span class="question-mark">?</span>;
-        <span class="kw">let </span>obj = context.construct_object();
-        obj.set_prototype(prototype.into());
 
         <span class="comment">// 2. Let block be ? CreateByteDataBlock(byteLength).
         </span><span class="kw">let </span>block = create_byte_data_block(byte_length)<span class="question-mark">?</span>;
 
         <span class="comment">// 3. Set obj.[[ArrayBufferData]] to block.
         // 4. Set obj.[[ArrayBufferByteLength]] to byteLength.
-        </span>obj.borrow_mut().data = ObjectData::array_buffer(<span class="self">Self </span>{
-            array_buffer_data: <span class="prelude-val">Some</span>(block),
-            array_buffer_byte_length: byte_length,
-            array_buffer_detach_key: JsValue::Undefined,
-        });
+        </span><span class="kw">let </span>obj = JsObject::from_proto_and_data(
+            prototype,
+            ObjectData::array_buffer(<span class="self">Self </span>{
+                array_buffer_data: <span class="prelude-val">Some</span>(block),
+                array_buffer_byte_length: byte_length,
+                array_buffer_detach_key: JsValue::Undefined,
+            }),
+        );
 
         <span class="comment">// 5. Return obj.
         </span><span class="prelude-val">Ok</span>(obj)

@@ -365,7 +365,7 @@
         </span><span class="kw">let </span>revoker = <span class="self">Self</span>::revoker(p.clone(), context);
 
         <span class="comment">// 5. Let result be ! OrdinaryObjectCreate(%Object.prototype%).
-        </span><span class="kw">let </span>result = context.construct_object();
+        </span><span class="kw">let </span>result = JsObject::with_object_proto(context);
 
         <span class="comment">// 6. Perform ! CreateDataPropertyOrThrow(result, &quot;proxy&quot;, p).
         </span>result
