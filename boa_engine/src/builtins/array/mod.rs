@@ -240,7 +240,7 @@ impl Array {
         // 5. Set A.[[DefineOwnProperty]] as specified in 10.4.2.1.
         let prototype =
             prototype.unwrap_or_else(|| context.intrinsics().constructors().array().prototype());
-        let array = JsObject::from_proto_and_data(prototype, ObjectData::array());
+        let array = JsObject::with_proto_and_data(prototype, ObjectData::array());
 
         // 6. Perform ! OrdinaryDefineOwnProperty(A, "length", PropertyDescriptor { [[Value]]: 𝔽(length), [[Writable]]: true, [[Enumerable]]: false, [[Configurable]]: false }).
         crate::object::internal_methods::ordinary_define_own_property(

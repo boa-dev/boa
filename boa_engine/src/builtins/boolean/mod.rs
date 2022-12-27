@@ -69,7 +69,7 @@ impl Boolean {
         }
         let prototype =
             get_prototype_from_constructor(new_target, StandardConstructors::boolean, context)?;
-        let boolean = JsObject::from_proto_and_data(prototype, ObjectData::boolean(data));
+        let boolean = JsObject::with_proto_and_data(prototype, ObjectData::boolean(data));
 
         Ok(boolean.into())
     }

@@ -183,7 +183,7 @@ impl JsMap {
         let prototype = context.intrinsics().constructors().map().prototype();
 
         // Create a default map object with [[MapData]] as a new empty list
-        JsObject::from_proto_and_data(prototype, ObjectData::map(OrderedMap::new()))
+        JsObject::with_proto_and_data(prototype, ObjectData::map(OrderedMap::new()))
     }
 
     /// Returns a new [`JsMapIterator`] object that yields the `[key, value]` pairs within the [`JsMap`] in insertion order.

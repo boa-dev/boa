@@ -81,7 +81,7 @@ impl WeakRef {
 
         // 3. Let weakRef be ? OrdinaryCreateFromConstructor(NewTarget, "%WeakRef.prototype%", « [[WeakRefTarget]] »).
         // 5. Set weakRef.[[WeakRefTarget]] to target.
-        let weak_ref = JsObject::from_proto_and_data(
+        let weak_ref = JsObject::with_proto_and_data(
             get_prototype_from_constructor(new_target, StandardConstructors::weak_ref, context)?,
             ObjectData::weak_ref(WeakGc::new(target.inner())),
         );

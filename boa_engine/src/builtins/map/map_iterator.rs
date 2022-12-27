@@ -57,7 +57,7 @@ impl MapIterator {
                     map_iteration_kind: kind,
                     lock,
                 };
-                let map_iterator = JsObject::from_proto_and_data(
+                let map_iterator = JsObject::with_proto_and_data(
                     context
                         .intrinsics()
                         .objects()
@@ -140,7 +140,7 @@ impl MapIterator {
 
         // Create prototype
         let map_iterator =
-            JsObject::from_proto_and_data(iterator_prototype, ObjectData::ordinary());
+            JsObject::with_proto_and_data(iterator_prototype, ObjectData::ordinary());
         make_builtin_fn(Self::next, "next", &map_iterator, 0, context);
 
         let to_string_tag = WellKnownSymbols::to_string_tag();

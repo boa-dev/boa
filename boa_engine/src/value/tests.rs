@@ -24,7 +24,7 @@ fn undefined() {
 #[test]
 fn get_set_field() {
     let mut context = Context::default();
-    let obj = &JsObject::new(&mut context);
+    let obj = &JsObject::with_object_proto(&mut context);
     // Create string and convert it to a Value
     let s = JsValue::new("bar");
     obj.set("foo", s, false, &mut context).unwrap();

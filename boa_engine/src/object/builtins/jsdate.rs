@@ -42,7 +42,7 @@ impl JsDate {
     #[inline]
     pub fn new(context: &mut Context) -> Self {
         let prototype = context.intrinsics().constructors().date().prototype();
-        let inner = JsObject::from_proto_and_data(prototype, ObjectData::date(Date::default()));
+        let inner = JsObject::with_proto_and_data(prototype, ObjectData::date(Date::default()));
 
         Self { inner }
     }
@@ -534,7 +534,7 @@ impl JsDate {
         let date_time = Date::new(Some(date_time.naive_local()));
 
         Ok(Self {
-            inner: JsObject::from_proto_and_data(prototype, ObjectData::date(date_time)),
+            inner: JsObject::with_proto_and_data(prototype, ObjectData::date(date_time)),
         })
     }
 }

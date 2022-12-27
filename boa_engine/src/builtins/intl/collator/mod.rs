@@ -333,7 +333,7 @@ impl Collator {
 
         let prototype =
             get_prototype_from_constructor(new_target, StandardConstructors::collator, context)?;
-        let collator = JsObject::from_proto_and_data(
+        let collator = JsObject::with_proto_and_data(
             prototype,
             ObjectData::collator(Collator {
                 locale,
@@ -474,7 +474,7 @@ impl Collator {
         })?;
 
         // 3. Let options be OrdinaryObjectCreate(%Object.prototype%).
-        let options = JsObject::from_proto_and_data(
+        let options = JsObject::with_proto_and_data(
             context.intrinsics().constructors().object().prototype(),
             ObjectData::ordinary(),
         );

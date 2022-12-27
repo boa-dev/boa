@@ -120,7 +120,7 @@ impl Generator {
     ) -> JsResult<JsValue> {
         let prototype = context.intrinsics().constructors().generator().prototype();
 
-        let this = JsObject::from_proto_and_data(
+        let this = JsObject::with_proto_and_data(
             prototype,
             ObjectData::generator(Self {
                 state: GeneratorState::Undefined,

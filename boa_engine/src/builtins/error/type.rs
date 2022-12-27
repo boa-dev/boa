@@ -75,7 +75,7 @@ impl TypeError {
         // 2. Let O be ? OrdinaryCreateFromConstructor(newTarget, "%NativeError.prototype%", « [[ErrorData]] »).
         let prototype =
             get_prototype_from_constructor(new_target, StandardConstructors::type_error, context)?;
-        let o = JsObject::from_proto_and_data(prototype, ObjectData::error(ErrorKind::Type));
+        let o = JsObject::with_proto_and_data(prototype, ObjectData::error(ErrorKind::Type));
 
         // 3. If message is not undefined, then
         let message = args.get_or_undefined(0);
@@ -100,7 +100,7 @@ pub(crate) fn create_throw_type_error(context: &mut Context) -> JsObject {
         Err(JsNativeError::typ().with_message("'caller', 'callee', and 'arguments' properties may not be accessed on strict mode functions or the arguments objects for calls to them").into())
     }
 
-    let function = JsObject::from_proto_and_data(
+    let function = JsObject::with_proto_and_data(
         context.intrinsics().constructors().function().prototype(),
         ObjectData::function(Function::Native {
             function: throw_type_error,

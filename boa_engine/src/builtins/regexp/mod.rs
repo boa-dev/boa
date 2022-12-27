@@ -236,7 +236,7 @@ impl RegExp {
         // 1. Let obj be ? OrdinaryCreateFromConstructor(newTarget, "%RegExp.prototype%", « [[RegExpMatcher]], [[OriginalSource]], [[OriginalFlags]] »).
         let proto =
             get_prototype_from_constructor(new_target, StandardConstructors::regexp, context)?;
-        let obj = JsObject::from_proto_and_data(proto, ObjectData::ordinary());
+        let obj = JsObject::with_proto_and_data(proto, ObjectData::ordinary());
 
         // 2. Perform ! DefinePropertyOrThrow(obj, "lastIndex", PropertyDescriptor { [[Writable]]: true, [[Enumerable]]: false, [[Configurable]]: false }).
         obj.define_property_or_throw(

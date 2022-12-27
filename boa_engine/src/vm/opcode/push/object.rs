@@ -16,7 +16,7 @@ impl Operation for PushEmptyObject {
     const INSTRUCTION: &'static str = "INST - PushEmptyObject";
 
     fn execute(context: &mut Context) -> JsResult<ShouldExit> {
-        let o = JsObject::new(context);
+        let o = JsObject::with_object_proto(context);
         context.vm.push(o);
         Ok(ShouldExit::False)
     }

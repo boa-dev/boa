@@ -34,7 +34,7 @@ impl Realm {
         // Create brand new global object
         // Global has no prototype to pass None to new_obj
         // Allow identification of the global object easily
-        let global_object = JsObject::from_proto_and_data(None, ObjectData::global());
+        let global_object = JsObject::with_proto_and_data(None, ObjectData::global());
 
         let global_compile_environment = Gc::new(GcCell::new(CompileTimeEnvironment::new_global()));
 

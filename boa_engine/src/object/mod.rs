@@ -2024,7 +2024,7 @@ impl<'context> FunctionBuilder<'context> {
 
     /// Build the function object.
     pub fn build(self) -> JsFunction {
-        let function = JsObject::from_proto_and_data(
+        let function = JsObject::with_proto_and_data(
             self.context
                 .intrinsics()
                 .constructors()
@@ -2095,7 +2095,7 @@ impl<'context> ObjectInitializer<'context> {
     /// Create a new `ObjectBuilder`.
     #[inline]
     pub fn new(context: &'context mut Context) -> Self {
-        let object = JsObject::new(context);
+        let object = JsObject::with_object_proto(context);
         Self { context, object }
     }
 

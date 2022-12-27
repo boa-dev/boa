@@ -118,7 +118,7 @@ impl Proxy {
         // i. Set P.[[Construct]] as specified in 10.5.13.
         // 6. Set P.[[ProxyTarget]] to target.
         // 7. Set P.[[ProxyHandler]] to handler.
-        let p = JsObject::from_proto_and_data(
+        let p = JsObject::with_proto_and_data(
             context.intrinsics().constructors().object().prototype(),
             ObjectData::proxy(
                 Self::new(target.clone(), handler.clone()),
@@ -173,7 +173,7 @@ impl Proxy {
         let revoker = Self::revoker(p.clone(), context);
 
         // 5. Let result be ! OrdinaryObjectCreate(%Object.prototype%).
-        let result = JsObject::new(context);
+        let result = JsObject::with_object_proto(context);
 
         // 6. Perform ! CreateDataPropertyOrThrow(result, "proxy", p).
         result

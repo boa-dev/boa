@@ -20,7 +20,7 @@ use boa_profiler::Profiler;
 pub(crate) fn create_async_from_sync_iterator_prototype(context: &mut Context) -> JsObject {
     let _timer = Profiler::global().start_event("AsyncFromSyncIteratorPrototype", "init");
 
-    let prototype = JsObject::from_proto_and_data(
+    let prototype = JsObject::with_proto_and_data(
         context
             .intrinsics()
             .objects()
@@ -99,7 +99,7 @@ impl AsyncFromSyncIterator {
     ) -> IteratorRecord {
         // 1. Let asyncIterator be OrdinaryObjectCreate(%AsyncFromSyncIteratorPrototype%, « [[SyncIteratorRecord]] »).
         // 2. Set asyncIterator.[[SyncIteratorRecord]] to syncIteratorRecord.
-        let async_iterator = JsObject::from_proto_and_data(
+        let async_iterator = JsObject::with_proto_and_data(
             context
                 .intrinsics()
                 .objects()

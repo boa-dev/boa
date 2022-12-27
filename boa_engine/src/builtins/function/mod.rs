@@ -495,7 +495,7 @@ pub(crate) fn make_builtin_fn<N>(
     let name = name.into();
     let _timer = Profiler::global().start_event(&format!("make_builtin_fn: {name}"), "init");
 
-    let function = JsObject::from_proto_and_data(
+    let function = JsObject::with_proto_and_data(
         interpreter
             .intrinsics()
             .constructors()
@@ -1086,7 +1086,7 @@ impl BoundFunction {
         // 8. Set obj.[[BoundThis]] to boundThis.
         // 9. Set obj.[[BoundArguments]] to boundArgs.
         // 10. Return obj.
-        Ok(JsObject::from_proto_and_data(
+        Ok(JsObject::with_proto_and_data(
             proto,
             ObjectData::bound_function(
                 Self {

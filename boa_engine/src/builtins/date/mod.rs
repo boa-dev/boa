@@ -269,7 +269,7 @@ impl Date {
             get_prototype_from_constructor(new_target, StandardConstructors::date, context)?;
 
         // 7. Set O.[[DateValue]] to dv.
-        let obj = JsObject::from_proto_and_data(prototype, ObjectData::date(dv));
+        let obj = JsObject::with_proto_and_data(prototype, ObjectData::date(dv));
 
         // 8. Return O.
         Ok(obj.into())

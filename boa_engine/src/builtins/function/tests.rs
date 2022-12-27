@@ -230,7 +230,7 @@ fn closure_capture_clone() {
     let mut context = Context::default();
 
     let string = js_string!("Hello");
-    let object = JsObject::new(&mut context);
+    let object = JsObject::with_object_proto(&mut context);
 
     object
         .define_property_or_throw(
