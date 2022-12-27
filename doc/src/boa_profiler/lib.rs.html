@@ -175,6 +175,41 @@
 <span id="175">175</span>
 <span id="176">176</span>
 <span id="177">177</span>
+<span id="178">178</span>
+<span id="179">179</span>
+<span id="180">180</span>
+<span id="181">181</span>
+<span id="182">182</span>
+<span id="183">183</span>
+<span id="184">184</span>
+<span id="185">185</span>
+<span id="186">186</span>
+<span id="187">187</span>
+<span id="188">188</span>
+<span id="189">189</span>
+<span id="190">190</span>
+<span id="191">191</span>
+<span id="192">192</span>
+<span id="193">193</span>
+<span id="194">194</span>
+<span id="195">195</span>
+<span id="196">196</span>
+<span id="197">197</span>
+<span id="198">198</span>
+<span id="199">199</span>
+<span id="200">200</span>
+<span id="201">201</span>
+<span id="202">202</span>
+<span id="203">203</span>
+<span id="204">204</span>
+<span id="205">205</span>
+<span id="206">206</span>
+<span id="207">207</span>
+<span id="208">208</span>
+<span id="209">209</span>
+<span id="210">210</span>
+<span id="211">211</span>
+<span id="212">212</span>
 </pre><pre class="rust"><code><span class="doccomment">//! The **`boa_profiler`** crate is a code profiler for Boa.
 //!
 //! # Crate Overview
@@ -258,9 +293,15 @@
 </span><span class="kw">use </span>std::fmt::{<span class="self">self</span>, Debug};
 
 <span class="attribute">#[cfg(feature = <span class="string">&quot;profiler&quot;</span>)]
-</span><span class="kw">use </span>measureme::{EventId, Profiler <span class="kw">as </span>MeasuremeProfiler, TimingGuard};
+</span><span class="kw">use </span>measureme::{EventId, Profiler <span class="kw">as </span>MeasuremeProfiler, StringId, TimingGuard};
 <span class="attribute">#[cfg(feature = <span class="string">&quot;profiler&quot;</span>)]
 </span><span class="kw">use </span>once_cell::sync::OnceCell;
+<span class="attribute">#[cfg(feature = <span class="string">&quot;profiler&quot;</span>)]
+</span><span class="kw">use </span>rustc_hash::FxHashMap;
+<span class="attribute">#[cfg(feature = <span class="string">&quot;profiler&quot;</span>)]
+</span><span class="kw">use </span>std::collections::hash_map::Entry;
+<span class="attribute">#[cfg(feature = <span class="string">&quot;profiler&quot;</span>)]
+</span><span class="kw">use </span>std::sync::RwLock;
 <span class="attribute">#[cfg(feature = <span class="string">&quot;profiler&quot;</span>)]
 </span><span class="kw">use </span>std::{
     path::Path,
@@ -271,6 +312,7 @@
 </span><span class="attribute">#[cfg(feature = <span class="string">&quot;profiler&quot;</span>)]
 </span><span class="kw">pub struct </span>Profiler {
     profiler: MeasuremeProfiler,
+    string_cache: RwLock&lt;FxHashMap&lt;String, StringId&gt;&gt;,
 }
 
 <span class="doccomment">/// This static instance must never be public, and its only access must be done through the
@@ -283,17 +325,45 @@
 </span><span class="kw">impl </span>Profiler {
     <span class="doccomment">/// Start a new profiled event.
     </span><span class="kw">pub fn </span>start_event(<span class="kw-2">&amp;</span><span class="self">self</span>, label: <span class="kw-2">&amp;</span>str, category: <span class="kw-2">&amp;</span>str) -&gt; TimingGuard&lt;<span class="lifetime">&#39;_</span>&gt; {
-        <span class="kw">let </span>kind = <span class="self">self</span>.profiler.alloc_string(category);
-        <span class="kw">let </span>id = EventId::from_label(<span class="self">self</span>.profiler.alloc_string(label));
+        <span class="kw">let </span>kind = <span class="self">self</span>.get_or_alloc_string(category);
+        <span class="kw">let </span>id = EventId::from_label(<span class="self">self</span>.get_or_alloc_string(label));
         <span class="kw">let </span>thread_id = <span class="self">Self</span>::thread_id_to_u32(current().id());
         <span class="self">self</span>.profiler
             .start_recording_interval_event(kind, id, thread_id)
     }
 
+    <span class="kw">fn </span>get_or_alloc_string(<span class="kw-2">&amp;</span><span class="self">self</span>, s: <span class="kw-2">&amp;</span>str) -&gt; StringId {
+        {
+            <span class="comment">// Check the cache only with the read lock first.
+            </span><span class="kw">let </span>cache = <span class="self">self
+                </span>.string_cache
+                .read()
+                .expect(<span class="string">&quot;Some writer panicked while holding an exclusive lock.&quot;</span>);
+            <span class="kw">if let </span><span class="prelude-val">Some</span>(id) = cache.get(s) {
+                <span class="kw">return </span><span class="kw-2">*</span>id;
+            }
+        }
+        <span class="kw">let </span><span class="kw-2">mut </span>cache = <span class="self">self
+            </span>.string_cache
+            .write()
+            .expect(<span class="string">&quot;Some writer panicked while holding an exclusive lock.&quot;</span>);
+        <span class="kw">let </span>entry = cache.entry(s.into());
+        <span class="kw">match </span>entry {
+            Entry::Occupied(entry) =&gt; <span class="kw-2">*</span>entry.get(),
+            Entry::Vacant(entry) =&gt; {
+                <span class="kw">let </span>id = <span class="self">self</span>.profiler.alloc_string(s);
+                <span class="kw-2">*</span>entry.insert(id)
+            }
+        }
+    }
+
     <span class="kw">fn </span>default() -&gt; <span class="self">Self </span>{
         <span class="kw">let </span>profiler =
             MeasuremeProfiler::new(Path::new(<span class="string">&quot;./my_trace&quot;</span>)).expect(<span class="string">&quot;must be able to create file&quot;</span>);
-        <span class="self">Self </span>{ profiler }
+        <span class="self">Self </span>{
+            profiler,
+            string_cache: RwLock::new(FxHashMap::default()),
+        }
     }
 
     <span class="doccomment">/// Return the global instance of the profiler.
