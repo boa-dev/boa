@@ -21,7 +21,7 @@ use boa_ast::{
         operator::{unary::UnaryOp, Unary},
         Identifier,
     },
-    Expression, Punctuator,
+    Expression, Position, Punctuator,
 };
 use boa_interner::Interner;
 use boa_profiler::Profiler;
@@ -56,6 +56,21 @@ impl UpdateExpression {
     }
 }
 
+#[inline]
+fn is_simple(expr: &Expression, position: Position, strict: bool) -> ParseResult<bool> {
+    match expr {
+        Expression::Identifier(ident) => {
+            if strict {
+                check_strict_arguments_or_eval(*ident, position)?;
+            }
+            Ok(true)
+        }
+        Expression::PropertyAccess(_) => Ok(true),
+        _ => Ok(false),
+    }
+}
+
+// 74.54
 impl<R> TokenParser<R> for UpdateExpression
 where
     R: Read,
@@ -72,22 +87,11 @@ where
                 cursor
                     .next(interner)?
                     .expect("Punctuator::Inc token disappeared");
-                
+
                 let target = UnaryExpression::new(self.name, self.allow_yield, self.allow_await)
                     .parse(cursor, interner)?;
-                let strict = cursor.strict_mode();
                 // https://tc39.es/ecma262/#sec-update-expressions-static-semantics-early-errors
-                let simple = match &target {
-                    Expression::Identifier(_) if !strict => true,
-                    Expression::Identifier(ident) => {
-                        check_strict_arguments_or_eval(*ident, position)?;
-                        true
-                    }
-                    Expression::PropertyAccess(_) => true,
-                    _ => false,
-                };
-                
-                if !simple {
+                if !is_simple(&target, position, cursor.strict_mode())? {
                     return Err(Error::lex(LexError::Syntax(
                         "Invalid left-hand side in assignment".into(),
                         position,
@@ -103,19 +107,8 @@ where
 
                 let target = UnaryExpression::new(self.name, self.allow_yield, self.allow_await)
                     .parse(cursor, interner)?;
-                let strict = cursor.strict_mode();
                 // https://tc39.es/ecma262/#sec-update-expressions-static-semantics-early-errors
-                let simple = match &target {
-                    Expression::Identifier(_) if !strict => true,
-                    Expression::Identifier(ident) => {
-                        check_strict_arguments_or_eval(*ident, position)?;
-                        true
-                    }
-                    Expression::PropertyAccess(_) => true,
-                    _ => false,
-                };
-                
-                if !simple {
+                if !is_simple(&target, position, cursor.strict_mode())? {
                     return Err(Error::lex(LexError::Syntax(
                         "Invalid left-hand side in assignment".into(),
                         position,
@@ -130,7 +123,6 @@ where
         let lhs = LeftHandSideExpression::new(self.name, self.allow_yield, self.allow_await)
             .parse(cursor, interner)?;
 
-        let strict = cursor.strict_mode();
         if let Some(tok) = cursor.peek(0, interner)? {
             let token_start = tok.span().start();
             match tok.kind() {
@@ -139,16 +131,7 @@ where
                         .next(interner)?
                         .expect("Punctuator::Inc token disappeared");
                     // https://tc39.es/ecma262/#sec-update-expressions-static-semantics-early-errors
-                    let simple = match &lhs {
-                        Expression::Identifier(_) if !strict => true,
-                        Expression::Identifier(ident) => {
-                            check_strict_arguments_or_eval(*ident, token_start)?;
-                            true
-                        }
-                        Expression::PropertyAccess(_) => true,
-                        _ => false,
-                    };
-                    if !simple {
+                    if !is_simple(&lhs, token_start, cursor.strict_mode())? {
                         return Err(Error::lex(LexError::Syntax(
                             "Invalid left-hand side in assignment".into(),
                             token_start,
@@ -162,16 +145,7 @@ where
                         .next(interner)?
                         .expect("Punctuator::Dec token disappeared");
                     // https://tc39.es/ecma262/#sec-update-expressions-static-semantics-early-errors
-                    let simple = match &lhs {
-                        Expression::Identifier(_) if !strict => true,
-                        Expression::Identifier(ident) => {
-                            check_strict_arguments_or_eval(*ident, token_start)?;
-                            true
-                        }
-                        Expression::PropertyAccess(_) => true,
-                        _ => false,
-                    };
-                    if !simple {
+                    if !is_simple(&lhs, token_start, cursor.strict_mode())? {
                         return Err(Error::lex(LexError::Syntax(
                             "Invalid left-hand side in assignment".into(),
                             token_start,
