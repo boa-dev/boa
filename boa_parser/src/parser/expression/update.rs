@@ -69,7 +69,6 @@ fn is_simple(expr: &Expression, position: Position, strict: bool) -> ParseResult
     }
 }
 
-// 74.54
 impl<R> TokenParser<R> for UpdateExpression
 where
     R: Read,
