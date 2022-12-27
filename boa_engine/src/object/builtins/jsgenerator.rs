@@ -20,7 +20,7 @@ impl JsGenerator {
     pub fn new(context: &mut Context) -> Self {
         let prototype = context.intrinsics().constructors().generator().prototype();
 
-        let generator = JsObject::with_proto_and_data(
+        let generator = JsObject::from_proto_and_data(
             prototype,
             ObjectData::generator(Generator {
                 state: GeneratorState::Undefined,

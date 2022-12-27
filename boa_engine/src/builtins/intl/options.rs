@@ -215,7 +215,7 @@ pub(super) fn get_options_object(options: &JsValue) -> JsResult<JsObject> {
         // If options is undefined, then
         JsValue::Undefined => {
             // a. Return OrdinaryObjectCreate(null).
-            Ok(JsObject::with_proto_and_data(None, ObjectData::ordinary()))
+            Ok(JsObject::from_proto_and_data(None, ObjectData::ordinary()))
         }
         // 2. If Type(options) is Object, then
         JsValue::Object(obj) => {
@@ -244,7 +244,7 @@ pub(super) fn coerce_options_to_object(
     // If options is undefined, then
     if options.is_undefined() {
         // a. Return OrdinaryObjectCreate(null).
-        return Ok(JsObject::with_proto_and_data(None, ObjectData::ordinary()));
+        return Ok(JsObject::from_proto_and_data(None, ObjectData::ordinary()));
     }
 
     // 2. Return ? ToObject(options).

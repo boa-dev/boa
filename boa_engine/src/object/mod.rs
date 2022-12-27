@@ -2024,7 +2024,7 @@ impl<'context> FunctionBuilder<'context> {
 
     /// Build the function object.
     pub fn build(self) -> JsFunction {
-        let function = JsObject::with_proto_and_data(
+        let function = JsObject::from_proto_and_data(
             self.context
                 .intrinsics()
                 .constructors()

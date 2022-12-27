@@ -74,7 +74,7 @@ impl RegExpStringIterator {
 
         // 5. Return ! CreateIteratorFromClosure(closure, "%RegExpStringIteratorPrototype%", %RegExpStringIteratorPrototype%).
 
-        let regexp_string_iterator = JsObject::with_proto_and_data(
+        let regexp_string_iterator = JsObject::from_proto_and_data(
             context
                 .intrinsics()
                 .objects()
@@ -169,7 +169,7 @@ impl RegExpStringIterator {
         let _timer = Profiler::global().start_event("RegExp String Iterator", "init");
 
         // Create prototype
-        let result = JsObject::with_proto_and_data(iterator_prototype, ObjectData::ordinary());
+        let result = JsObject::from_proto_and_data(iterator_prototype, ObjectData::ordinary());
         make_builtin_fn(Self::next, "next", &result, 0, context);
 
         let to_string_tag = WellKnownSymbols::to_string_tag();

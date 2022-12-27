@@ -555,7 +555,7 @@ pub(crate) fn create_function_object(
     };
 
     let constructor =
-        JsObject::with_proto_and_data(function_prototype, ObjectData::function(function));
+        JsObject::from_proto_and_data(function_prototype, ObjectData::function(function));
 
     let constructor_property = PropertyDescriptor::builder()
         .value(constructor.clone())
@@ -630,7 +630,7 @@ pub(crate) fn create_generator_function_object(
         .configurable(true)
         .build();
 
-    let prototype = JsObject::with_proto_and_data(
+    let prototype = JsObject::from_proto_and_data(
         if r#async {
             context
                 .intrinsics()
@@ -649,7 +649,7 @@ pub(crate) fn create_generator_function_object(
             environments: context.realm.environments.clone(),
             home_object: None,
         };
-        JsObject::with_proto_and_data(
+        JsObject::from_proto_and_data(
             function_prototype,
             ObjectData::async_generator_function(function),
         )
@@ -659,7 +659,7 @@ pub(crate) fn create_generator_function_object(
             environments: context.realm.environments.clone(),
             home_object: None,
         };
-        JsObject::with_proto_and_data(function_prototype, ObjectData::generator_function(function))
+        JsObject::from_proto_and_data(function_prototype, ObjectData::generator_function(function))
     };
 
     let prototype_property = PropertyDescriptor::builder()
@@ -1087,7 +1087,7 @@ impl JsObject {
                         Clone::clone,
                     );
 
-                let generator = Self::with_proto_and_data(
+                let generator = Self::from_proto_and_data(
                     prototype,
                     ObjectData::generator(Generator {
                         state: GeneratorState::SuspendedStart,
@@ -1231,7 +1231,7 @@ impl JsObject {
                         Clone::clone,
                     );
 
-                let generator = Self::with_proto_and_data(
+                let generator = Self::from_proto_and_data(
                     prototype,
                     ObjectData::async_generator(AsyncGenerator {
                         state: AsyncGeneratorState::SuspendedStart,
@@ -1271,7 +1271,7 @@ impl JsObject {
         let create_this = |context| {
             let prototype =
                 get_prototype_from_constructor(this_target, StandardConstructors::object, context)?;
-            Ok(Self::with_proto_and_data(prototype, ObjectData::ordinary()))
+            Ok(Self::from_proto_and_data(prototype, ObjectData::ordinary()))
         };
 
         if !self.is_constructor() {
@@ -1358,7 +1358,7 @@ impl JsObject {
                         StandardConstructors::object,
                         context,
                     )?;
-                    let this = Self::with_proto_and_data(prototype, ObjectData::ordinary());
+                    let this = Self::from_proto_and_data(prototype, ObjectData::ordinary());
 
                     initialize_instance_elements(&this, self, context)?;
 

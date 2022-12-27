@@ -184,7 +184,7 @@ impl Number {
         }
         let prototype =
             get_prototype_from_constructor(new_target, StandardConstructors::number, context)?;
-        let this = JsObject::with_proto_and_data(prototype, ObjectData::number(data));
+        let this = JsObject::from_proto_and_data(prototype, ObjectData::number(data));
         Ok(this.into())
     }
 

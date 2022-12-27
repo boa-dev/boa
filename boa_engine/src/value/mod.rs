@@ -500,21 +500,21 @@ impl JsValue {
                 .into()),
             Self::Boolean(boolean) => {
                 let prototype = context.intrinsics().constructors().boolean().prototype();
-                Ok(JsObject::with_proto_and_data(
+                Ok(JsObject::from_proto_and_data(
                     prototype,
                     ObjectData::boolean(*boolean),
                 ))
             }
             Self::Integer(integer) => {
                 let prototype = context.intrinsics().constructors().number().prototype();
-                Ok(JsObject::with_proto_and_data(
+                Ok(JsObject::from_proto_and_data(
                     prototype,
                     ObjectData::number(f64::from(*integer)),
                 ))
             }
             Self::Rational(rational) => {
                 let prototype = context.intrinsics().constructors().number().prototype();
-                Ok(JsObject::with_proto_and_data(
+                Ok(JsObject::from_proto_and_data(
                     prototype,
                     ObjectData::number(*rational),
                 ))
@@ -523,7 +523,7 @@ impl JsValue {
                 let prototype = context.intrinsics().constructors().string().prototype();
 
                 let object =
-                    JsObject::with_proto_and_data(prototype, ObjectData::string(string.clone()));
+                    JsObject::from_proto_and_data(prototype, ObjectData::string(string.clone()));
                 // Make sure the correct length is set on our new string object
                 object.insert_property(
                     js_string!("length"),
@@ -537,7 +537,7 @@ impl JsValue {
             }
             Self::Symbol(ref symbol) => {
                 let prototype = context.intrinsics().constructors().symbol().prototype();
-                Ok(JsObject::with_proto_and_data(
+                Ok(JsObject::from_proto_and_data(
                     prototype,
                     ObjectData::symbol(symbol.clone()),
                 ))
@@ -548,7 +548,7 @@ impl JsValue {
                     .constructors()
                     .bigint_object()
                     .prototype();
-                Ok(JsObject::with_proto_and_data(
+                Ok(JsObject::from_proto_and_data(
                     prototype,
                     ObjectData::big_int(bigint.clone()),
                 ))

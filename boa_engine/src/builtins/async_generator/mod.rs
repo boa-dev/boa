@@ -133,7 +133,7 @@ impl AsyncGenerator {
             .async_generator()
             .prototype();
 
-        let this = JsObject::with_proto_and_data(
+        let this = JsObject::from_proto_and_data(
             prototype,
             ObjectData::async_generator(Self {
                 state: AsyncGeneratorState::Undefined,

@@ -55,7 +55,7 @@ impl ForInIterator {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-createforiniterator
     pub(crate) fn create_for_in_iterator(object: JsValue, context: &Context) -> JsValue {
-        let for_in_iterator = JsObject::with_proto_and_data(
+        let for_in_iterator = JsObject::from_proto_and_data(
             context
                 .intrinsics()
                 .objects()
@@ -141,7 +141,7 @@ impl ForInIterator {
 
         // Create prototype
         let for_in_iterator =
-            JsObject::with_proto_and_data(iterator_prototype, ObjectData::ordinary());
+            JsObject::from_proto_and_data(iterator_prototype, ObjectData::ordinary());
         make_builtin_fn(Self::next, "next", &for_in_iterator, 0, context);
 
         let to_string_tag = WellKnownSymbols::to_string_tag();

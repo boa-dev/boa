@@ -55,7 +55,7 @@ impl SetIterator {
         kind: PropertyNameKind,
         context: &Context,
     ) -> JsValue {
-        let set_iterator = JsObject::with_proto_and_data(
+        let set_iterator = JsObject::from_proto_and_data(
             context
                 .intrinsics()
                 .objects()
@@ -147,7 +147,7 @@ impl SetIterator {
 
         // Create prototype
         let set_iterator =
-            JsObject::with_proto_and_data(iterator_prototype, ObjectData::ordinary());
+            JsObject::from_proto_and_data(iterator_prototype, ObjectData::ordinary());
         make_builtin_fn(Self::next, "next", &set_iterator, 0, context);
 
         let to_string_tag = WellKnownSymbols::to_string_tag();

@@ -668,7 +668,7 @@ impl JsNativeError {
             }
         };
 
-        let o = JsObject::with_proto_and_data(prototype, ObjectData::error(tag));
+        let o = JsObject::from_proto_and_data(prototype, ObjectData::error(tag));
 
         o.create_non_enumerable_data_property_or_throw("message", &**message, context);
 

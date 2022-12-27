@@ -344,7 +344,7 @@ impl Locale {
         // 6. Let locale be ? OrdinaryCreateFromConstructor(NewTarget, "%Locale.prototype%", internalSlotsList).
         let prototype =
             get_prototype_from_constructor(new_target, StandardConstructors::locale, context)?;
-        let locale = JsObject::with_proto_and_data(prototype, ObjectData::locale(tag));
+        let locale = JsObject::from_proto_and_data(prototype, ObjectData::locale(tag));
 
         // 37. Return locale.
         Ok(locale.into())
@@ -380,7 +380,7 @@ impl Locale {
 
         // 4. Return ! Construct(%Locale%, maximal).
         let prototype = context.intrinsics().constructors().locale().prototype();
-        Ok(JsObject::with_proto_and_data(prototype, ObjectData::locale(loc)).into())
+        Ok(JsObject::from_proto_and_data(prototype, ObjectData::locale(loc)).into())
     }
 
     /// [`Intl.Locale.prototype.minimize ( )`][spec]
@@ -413,7 +413,7 @@ impl Locale {
 
         // 4. Return ! Construct(%Locale%, minimal).
         let prototype = context.intrinsics().constructors().locale().prototype();
-        Ok(JsObject::with_proto_and_data(prototype, ObjectData::locale(loc)).into())
+        Ok(JsObject::from_proto_and_data(prototype, ObjectData::locale(loc)).into())
     }
 
     /// [`Intl.Locale.prototype.toString ( )`][spec].

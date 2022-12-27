@@ -131,7 +131,7 @@ impl Map {
         // 3. Set map.[[MapData]] to a new empty List.
         let prototype =
             get_prototype_from_constructor(new_target, StandardConstructors::map, context)?;
-        let map = JsObject::with_proto_and_data(prototype, ObjectData::map(OrderedMap::new()));
+        let map = JsObject::from_proto_and_data(prototype, ObjectData::map(OrderedMap::new()));
 
         // 4. If iterable is either undefined or null, return map.
         let iterable = match args.get_or_undefined(0) {

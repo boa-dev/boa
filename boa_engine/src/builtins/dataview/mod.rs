@@ -180,7 +180,7 @@ impl DataView {
                 .into());
         }
 
-        let obj = JsObject::with_proto_and_data(
+        let obj = JsObject::from_proto_and_data(
             prototype,
             ObjectData::data_view(Self {
                 // 11. Set O.[[ViewedArrayBuffer]] to buffer.

@@ -79,7 +79,7 @@ impl Arguments {
         // 2. Let obj be ! OrdinaryObjectCreate(%Object.prototype%, « [[ParameterMap]] »).
         // 3. Set obj.[[ParameterMap]] to undefined.
         // skipped because the `Arguments` enum ensures ordinary argument objects don't have a `[[ParameterMap]]`
-        let obj = JsObject::with_proto_and_data(
+        let obj = JsObject::from_proto_and_data(
             context.intrinsics().constructors().object().prototype(),
             ObjectData::arguments(Self::Unmapped),
         );
@@ -222,7 +222,7 @@ impl Arguments {
         }
 
         // 11. Set obj.[[ParameterMap]] to map.
-        let obj = JsObject::with_proto_and_data(
+        let obj = JsObject::from_proto_and_data(
             context.intrinsics().constructors().object().prototype(),
             ObjectData::arguments(Self::Mapped(map)),
         );

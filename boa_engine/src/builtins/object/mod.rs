@@ -129,7 +129,7 @@ impl Object {
             //     a. Return ? OrdinaryCreateFromConstructor(NewTarget, "%Object.prototype%").
             let prototype =
                 get_prototype_from_constructor(new_target, StandardConstructors::object, context)?;
-            let object = JsObject::with_proto_and_data(prototype, ObjectData::ordinary());
+            let object = JsObject::from_proto_and_data(prototype, ObjectData::ordinary());
             return Ok(object.into());
         }
 
@@ -405,7 +405,7 @@ impl Object {
         let properties = args.get_or_undefined(1);
 
         let obj = match prototype {
-            JsValue::Object(_) | JsValue::Null => JsObject::with_proto_and_data(
+            JsValue::Object(_) | JsValue::Null => JsObject::from_proto_and_data(
                 prototype.as_object().cloned(),
                 ObjectData::ordinary(),
             ),

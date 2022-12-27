@@ -146,7 +146,7 @@ impl ListFormat {
         // 2. Let listFormat be ? OrdinaryCreateFromConstructor(NewTarget, "%ListFormat.prototype%", « [[InitializedListFormat]], [[Locale]], [[Type]], [[Style]], [[Templates]] »).
         let prototype =
             get_prototype_from_constructor(new_target, StandardConstructors::list_format, context)?;
-        let list_format = JsObject::with_proto_and_data(
+        let list_format = JsObject::from_proto_and_data(
             prototype,
             ObjectData::list_format(ListFormat {
                 formatter: context
@@ -359,7 +359,7 @@ impl ListFormat {
         // 4. For each Record { [[Type]], [[Value]] } part in parts, do
         for (n, part) in parts.0.into_iter().enumerate() {
             // a. Let O be OrdinaryObjectCreate(%Object.prototype%).
-            let o = JsObject::with_proto_and_data(
+            let o = JsObject::from_proto_and_data(
                 context.intrinsics().constructors().object().prototype(),
                 ObjectData::ordinary(),
             );
@@ -407,7 +407,7 @@ impl ListFormat {
         })?;
 
         // 3. Let options be OrdinaryObjectCreate(%Object.prototype%).
-        let options = JsObject::with_proto_and_data(
+        let options = JsObject::from_proto_and_data(
             context.intrinsics().constructors().object().prototype(),
             ObjectData::ordinary(),
         );

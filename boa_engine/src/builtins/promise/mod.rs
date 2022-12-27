@@ -335,7 +335,7 @@ impl Promise {
         let promise =
             get_prototype_from_constructor(new_target, StandardConstructors::promise, context)?;
 
-        let promise = JsObject::with_proto_and_data(
+        let promise = JsObject::from_proto_and_data(
             promise,
             ObjectData::promise(Self {
                 // 4. Set promise.[[PromiseState]] to pending.
@@ -1074,7 +1074,7 @@ impl Promise {
                     // iii. If remainingElementsCount.[[Value]] is 0, then
                     if remaining_elements_count.get() == 0 {
                         // 1. Let error be a newly created AggregateError object.
-                        let error = JsObject::with_proto_and_data(
+                        let error = JsObject::from_proto_and_data(
                             context
                                 .intrinsics()
                                 .constructors()
@@ -1169,7 +1169,7 @@ impl Promise {
                     // 10. If remainingElementsCount.[[Value]] is 0, then
                     if captures.remaining_elements_count.get() == 0 {
                         // a. Let error be a newly created AggregateError object.
-                        let error = JsObject::with_proto_and_data(
+                        let error = JsObject::from_proto_and_data(
                             context
                                 .intrinsics()
                                 .constructors()

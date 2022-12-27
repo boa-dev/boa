@@ -31,7 +31,7 @@ pub struct StringIterator {
 impl StringIterator {
     /// Create a new `StringIterator`.
     pub fn create_string_iterator(string: JsValue, context: &mut Context) -> JsResult<JsValue> {
-        let string_iterator = JsObject::with_proto_and_data(
+        let string_iterator = JsObject::from_proto_and_data(
             context
                 .intrinsics()
                 .objects()
@@ -95,7 +95,7 @@ impl StringIterator {
 
         // Create prototype
         let array_iterator =
-            JsObject::with_proto_and_data(iterator_prototype, ObjectData::ordinary());
+            JsObject::from_proto_and_data(iterator_prototype, ObjectData::ordinary());
         make_builtin_fn(Self::next, "next", &array_iterator, 0, context);
 
         let to_string_tag = WellKnownSymbols::to_string_tag();

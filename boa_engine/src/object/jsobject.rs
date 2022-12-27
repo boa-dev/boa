@@ -42,7 +42,7 @@ impl JsObject {
     #[inline]
     #[must_use]
     pub fn with_object_proto(context: &mut Context) -> Self {
-        Self::with_proto_and_data(
+        Self::from_proto_and_data(
             context.intrinsics().constructors().object().prototype(),
             ObjectData::ordinary(),
         )
@@ -57,7 +57,7 @@ impl JsObject {
     #[inline]
     #[must_use]
     pub fn with_null_proto() -> Self {
-        Self::with_proto_and_data(None, ObjectData::ordinary())
+        Self::from_proto_and_data(None, ObjectData::ordinary())
     }
 
     /// Creates a new object with the provided prototype and object data.
@@ -67,7 +67,7 @@ impl JsObject {
     /// the [`ObjectData`] provided.
     ///
     /// [`OrdinaryObjectCreate`]: https://tc39.es/ecma262/#sec-ordinaryobjectcreate
-    pub fn with_proto_and_data<O: Into<Option<Self>>>(prototype: O, data: ObjectData) -> Self {
+    pub fn from_proto_and_data<O: Into<Option<Self>>>(prototype: O, data: ObjectData) -> Self {
         Self {
             inner: Gc::new(GcCell::new(Object {
                 data,

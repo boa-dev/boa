@@ -127,7 +127,7 @@ impl Set {
         // 3. Set set.[[SetData]] to a new empty List.
         let prototype =
             get_prototype_from_constructor(new_target, StandardConstructors::set, context)?;
-        let set = JsObject::with_proto_and_data(prototype, ObjectData::set(OrderedSet::default()));
+        let set = JsObject::from_proto_and_data(prototype, ObjectData::set(OrderedSet::default()));
 
         // 4. If iterable is either undefined or null, return set.
         let iterable = args.get_or_undefined(0);
@@ -171,7 +171,7 @@ impl Set {
         let prototype =
             prototype.unwrap_or_else(|| context.intrinsics().constructors().set().prototype());
 
-        JsObject::with_proto_and_data(prototype, ObjectData::set(OrderedSet::new()))
+        JsObject::from_proto_and_data(prototype, ObjectData::set(OrderedSet::new()))
     }
 
     /// Utility for constructing `Set` objects from an iterator of `JsValue`'s.

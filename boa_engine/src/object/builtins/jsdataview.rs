@@ -96,7 +96,7 @@ impl JsDataView {
         let prototype =
             get_prototype_from_constructor(&constructor, StandardConstructors::data_view, context)?;
 
-        let obj = JsObject::with_proto_and_data(
+        let obj = JsObject::from_proto_and_data(
             prototype,
             ObjectData::data_view(DataView {
                 viewed_array_buffer: (**array_buffer).clone(),

@@ -73,7 +73,7 @@ impl SyntaxError {
             StandardConstructors::syntax_error,
             context,
         )?;
-        let o = JsObject::with_proto_and_data(prototype, ObjectData::error(ErrorKind::Syntax));
+        let o = JsObject::from_proto_and_data(prototype, ObjectData::error(ErrorKind::Syntax));
 
         // 3. If message is not undefined, then
         let message = args.get_or_undefined(0);
