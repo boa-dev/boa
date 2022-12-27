@@ -2095,7 +2095,7 @@ impl<'context> ObjectInitializer<'context> {
     /// Create a new `ObjectBuilder`.
     #[inline]
     pub fn new(context: &'context mut Context) -> Self {
-        let object = context.construct_object();
+        let object = JsObject::with_object_proto(context);
         Self { context, object }
     }
 
@@ -2186,8 +2186,8 @@ impl<'context> ConstructorBuilder<'context> {
         Self {
             context,
             function,
-            object: JsObject::empty(),
-            prototype: JsObject::empty(),
+            object: JsObject::with_null_proto(),
+            prototype: JsObject::with_null_proto(),
             length: 0,
             name: js_string!(),
             callable: true,

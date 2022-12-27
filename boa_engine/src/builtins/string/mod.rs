@@ -938,10 +938,7 @@ impl String {
         let search_str = search_value.to_string(context)?;
 
         // 5. Let functionalReplace be IsCallable(replaceValue).
-        let functional_replace = replace_value
-            .as_object()
-            .map(JsObject::is_callable)
-            .unwrap_or_default();
+        let replace_obj = replace_value.as_callable();
 
         // 6. If functionalReplace is false, then
         // a. Set replaceValue to ? ToString(replaceValue).
@@ -960,13 +957,13 @@ impl String {
 
         // 11. If functionalReplace is true, then
         // 12. Else,
-        let replacement = if functional_replace {
+        let replacement = if let Some(replace_fn) = replace_obj {
             // a. Let replacement be ? ToString(? Call(replaceValue, undefined, « searchString, 𝔽(position), string »)).
-            context
+            replace_fn
                 .call(
-                    replace_value,
                     &JsValue::undefined(),
                     &[search_str.into(), position.into(), this_str.clone().into()],
+                    context,
                 )?
                 .to_string(context)?
         } else {
@@ -1060,17 +1057,12 @@ impl String {
         let search_string = search_value.to_string(context)?;
 
         // 5. Let functionalReplace be IsCallable(replaceValue).
-        let functional_replace = replace_value
-            .as_object()
-            .map(JsObject::is_callable)
-            .unwrap_or_default();
-
-        let replace_value_string = if functional_replace {
-            None
+        let replace = if let Some(f) = replace_value.as_callable() {
+            Ok(f)
         } else {
-            // a. Set replaceValue to ? ToString(replaceValue).
             // 6. If functionalReplace is false, then
-            Some(replace_value.to_string(context)?)
+            // a. Set replaceValue to ? ToString(replaceValue).
+            Err(replace_value.to_string(context)?)
         };
 
         // 7. Let searchLength be the length of searchString.
@@ -1106,35 +1098,35 @@ impl String {
             let preserved = &string[end_of_last_match..p];
 
             // c. Else,
-            let replacement = if let Some(ref replace_value) = replace_value_string {
+            let replacement = match replace {
+                // b. If functionalReplace is true, then
+                Ok(replace_fn) => {
+                    // i. Let replacement be ? ToString(? Call(replaceValue, undefined, « searchString, 𝔽(p), string »)).
+                    replace_fn
+                        .call(
+                            &JsValue::undefined(),
+                            &[
+                                search_string.clone().into(),
+                                p.into(),
+                                string.clone().into(),
+                            ],
+                            context,
+                        )?
+                        .to_string(context)?
+                }
                 // i. Assert: Type(replaceValue) is String.
                 // ii. Let captures be a new empty List.
                 // iii. Let replacement be ! GetSubstitution(searchString, string, p, captures, undefined, replaceValue).
-                get_substitution(
+                Err(ref replace_str) => get_substitution(
                     &search_string,
                     &string,
                     p,
                     &[],
                     &JsValue::undefined(),
-                    replace_value,
+                    replace_str,
                     context,
                 )
-                .expect("GetSubstitution should never fail here.")
-            }
-            // b. If functionalReplace is true, then
-            else {
-                // i. Let replacement be ? ToString(? Call(replaceValue, undefined, « searchString, 𝔽(p), string »)).
-                context
-                    .call(
-                        replace_value,
-                        &JsValue::undefined(),
-                        &[
-                            search_string.clone().into(),
-                            p.into(),
-                            string.clone().into(),
-                        ],
-                    )?
-                    .to_string(context)?
+                .expect("GetSubstitution should never fail here."),
             };
 
             // d. Set result to the string-concatenation of result, preserved, and replacement.

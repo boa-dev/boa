@@ -254,7 +254,7 @@ pub(crate) fn global_get(
             // 6. Let getter be desc.[[Get]].
             DescriptorKind::Accessor { get: Some(get), .. } if !get.is_undefined() => {
                 // 8. Return ? Call(getter, Receiver).
-                context.call(get, &receiver, &[])
+                get.call(&receiver, &[], context)
             }
             // 7. If getter is undefined, return undefined.
             _ => Ok(JsValue::undefined()),
@@ -360,7 +360,7 @@ pub(crate) fn global_set_no_receiver(
     match own_desc.set() {
         Some(set) if !set.is_undefined() => {
             // 7. Perform ? Call(setter, Receiver, « V »).
-            context.call(set, &context.global_object().clone().into(), &[value])?;
+            set.call(&context.global_object().clone().into(), &[value], context)?;
 
             // 8. Return true.
             Ok(true)

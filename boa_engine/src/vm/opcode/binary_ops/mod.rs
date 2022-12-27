@@ -83,16 +83,16 @@ impl Operation for In {
         let rhs = context.vm.pop();
         let lhs = context.vm.pop();
 
-        if !rhs.is_object() {
+        let Some(rhs) = rhs.as_object() else {
             return Err(JsNativeError::typ()
                 .with_message(format!(
                     "right-hand side of 'in' should be an object, got `{}`",
                     rhs.type_of()
                 ))
                 .into());
-        }
+        };
         let key = lhs.to_property_key(context)?;
-        let value = context.has_property(&rhs, &key)?;
+        let value = rhs.has_property(key, context)?;
         context.vm.push(value);
         Ok(ShouldExit::False)
     }

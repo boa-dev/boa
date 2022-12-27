@@ -340,19 +340,20 @@ impl ArrayBuffer {
             StandardConstructors::array_buffer,
             context,
         )?;
-        let obj = context.construct_object();
-        obj.set_prototype(prototype.into());
 
         // 2. Let block be ? CreateByteDataBlock(byteLength).
         let block = create_byte_data_block(byte_length)?;
 
         // 3. Set obj.[[ArrayBufferData]] to block.
         // 4. Set obj.[[ArrayBufferByteLength]] to byteLength.
-        obj.borrow_mut().data = ObjectData::array_buffer(Self {
-            array_buffer_data: Some(block),
-            array_buffer_byte_length: byte_length,
-            array_buffer_detach_key: JsValue::Undefined,
-        });
+        let obj = JsObject::from_proto_and_data(
+            prototype,
+            ObjectData::array_buffer(Self {
+                array_buffer_data: Some(block),
+                array_buffer_byte_length: byte_length,
+                array_buffer_detach_key: JsValue::Undefined,
+            }),
+        );
 
         // 5. Return obj.
         Ok(obj)

@@ -147,18 +147,18 @@ impl Operation for GeneratorNextDelegate {
 
         match context.vm.frame().generator_resume_kind {
             GeneratorResumeKind::Normal => {
-                let result = context.call(&next_method, &iterator.clone().into(), &[received])?;
-                let result_object = result.as_object().ok_or_else(|| {
+                let result = next_method.call(&iterator.clone().into(), &[received], context)?;
+                let result = result.as_object().ok_or_else(|| {
                     JsNativeError::typ().with_message("generator next method returned non-object")
                 })?;
-                let done = result_object.get("done", context)?.to_boolean();
+                let done = result.get("done", context)?.to_boolean();
                 if done {
                     context.vm.frame_mut().pc = done_address as usize;
-                    let value = result_object.get("value", context)?;
+                    let value = result.get("value", context)?;
                     context.vm.push(value);
                     return Ok(ShouldExit::False);
                 }
-                let value = result_object.get("value", context)?;
+                let value = result.get("value", context)?;
                 context.vm.push(iterator.clone());
                 context.vm.push(next_method.clone());
                 context.vm.push(done);

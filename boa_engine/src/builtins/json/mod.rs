@@ -203,7 +203,7 @@ impl Json {
         // 11. If IsCallable(reviver) is true, then
         if let Some(obj) = args.get_or_undefined(1).as_callable() {
             // a. Let root be ! OrdinaryObjectCreate(%Object.prototype%).
-            let root = context.construct_object();
+            let root = JsObject::with_object_proto(context);
 
             // b. Let rootName be the empty String.
             // c. Perform ! CreateDataPropertyOrThrow(root, rootName, unfiltered).
@@ -435,7 +435,7 @@ impl Json {
         };
 
         // 9. Let wrapper be ! OrdinaryObjectCreate(%Object.prototype%).
-        let wrapper = context.construct_object();
+        let wrapper = JsObject::with_object_proto(context);
 
         // 10. Perform ! CreateDataPropertyOrThrow(wrapper, the empty String, value).
         wrapper

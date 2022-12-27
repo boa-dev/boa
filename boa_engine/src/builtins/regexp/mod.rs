@@ -975,7 +975,7 @@ impl RegExp {
         let named_groups = match_value.named_groups();
         let groups = if named_groups.clone().count() > 0 {
             // a. Let groups be ! OrdinaryObjectCreate(null).
-            let groups = JsObject::empty();
+            let groups = JsObject::with_null_proto();
 
             // Perform 27.f here
             // f. If the ith capture of R was defined with a GroupName, then
@@ -1237,17 +1237,14 @@ impl RegExp {
         let length_arg_str = arg_str.len();
 
         // 5. Let functionalReplace be IsCallable(replaceValue).
-        let mut replace_value = args.get_or_undefined(1).clone();
-        let functional_replace = replace_value
-            .as_object()
-            .map(JsObject::is_callable)
-            .unwrap_or_default();
-
-        // 6. If functionalReplace is false, then
-        if !functional_replace {
+        let replace_value = args.get_or_undefined(1).clone();
+        let replace = if let Some(f) = replace_value.as_callable() {
+            Ok(f)
+        } else {
+            // 6. If functionalReplace is false, then
             // a. Set replaceValue to ? ToString(replaceValue).
-            replace_value = replace_value.to_string(context)?.into();
-        }
+            Err(replace_value.to_string(context)?)
+        };
 
         // 7. Let global be ! ToBoolean(? Get(rx, "global")).
         let global = rx.get("global", context)?.to_boolean();
@@ -1356,47 +1353,49 @@ impl RegExp {
             let mut named_captures = result.get("groups", context)?;
 
             // k. If functionalReplace is true, then
-            // l. Else,
-            let replacement = if functional_replace {
-                // i. Let replacerArgs be « matched ».
-                let mut replacer_args = vec![JsValue::new(matched)];
+            let replacement = match replace {
+                Ok(replace_fn) => {
+                    // i. Let replacerArgs be « matched ».
+                    let mut replacer_args = vec![JsValue::new(matched)];
 
-                // ii. Append in List order the elements of captures to the end of the List replacerArgs.
-                replacer_args.extend(captures);
+                    // ii. Append in List order the elements of captures to the end of the List replacerArgs.
+                    replacer_args.extend(captures);
 
-                // iii. Append 𝔽(position) and S to replacerArgs.
-                replacer_args.push(position.into());
-                replacer_args.push(arg_str.clone().into());
+                    // iii. Append 𝔽(position) and S to replacerArgs.
+                    replacer_args.push(position.into());
+                    replacer_args.push(arg_str.clone().into());
 
-                // iv. If namedCaptures is not undefined, then
-                if !named_captures.is_undefined() {
-                    // 1. Append namedCaptures as the last element of replacerArgs.
-                    replacer_args.push(named_captures);
+                    // iv. If namedCaptures is not undefined, then
+                    if !named_captures.is_undefined() {
+                        // 1. Append namedCaptures as the last element of replacerArgs.
+                        replacer_args.push(named_captures);
+                    }
+
+                    // v. Let replValue be ? Call(replaceValue, undefined, replacerArgs).
+                    // vi. Let replacement be ? ToString(replValue).
+                    replace_fn
+                        .call(&JsValue::undefined(), &replacer_args, context)?
+                        .to_string(context)?
                 }
+                // l. Else,
+                Err(ref replace_str) => {
+                    // i. If namedCaptures is not undefined, then
+                    if !named_captures.is_undefined() {
+                        // 1. Set namedCaptures to ? ToObject(namedCaptures).
+                        named_captures = named_captures.to_object(context)?.into();
+                    }
 
-                // v. Let replValue be ? Call(replaceValue, undefined, replacerArgs).
-                let repl_value =
-                    context.call(&replace_value, &JsValue::undefined(), &replacer_args)?;
-
-                // vi. Let replacement be ? ToString(replValue).
-                repl_value.to_string(context)?
-            } else {
-                // i. If namedCaptures is not undefined, then
-                if !named_captures.is_undefined() {
-                    // 1. Set namedCaptures to ? ToObject(namedCaptures).
-                    named_captures = named_captures.to_object(context)?.into();
+                    // ii. Let replacement be ? GetSubstitution(matched, S, position, captures, namedCaptures, replaceValue).
+                    string::get_substitution(
+                        &matched,
+                        &arg_str,
+                        position,
+                        &captures,
+                        &named_captures,
+                        replace_str,
+                        context,
+                    )?
                 }
-
-                // ii. Let replacement be ? GetSubstitution(matched, S, position, captures, namedCaptures, replaceValue).
-                string::get_substitution(
-                    &matched,
-                    &arg_str,
-                    position,
-                    &captures,
-                    &named_captures,
-                    &replace_value.to_string(context)?,
-                    context,
-                )?
             };
 
             // m. If position ≥ nextSourcePosition, then

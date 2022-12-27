@@ -426,77 +426,9 @@ impl Array {
         };
 
         // 4. Let usingIterator be ? GetMethod(items, @@iterator).
-        let using_iterator = items
-            .get_method(WellKnownSymbols::iterator(), context)?
-            .map(JsValue::from);
+        let using_iterator = items.get_method(WellKnownSymbols::iterator(), context)?;
 
-        if let Some(using_iterator) = using_iterator {
-            // 5. If usingIterator is not undefined, then
-
-            // a. If IsConstructor(C) is true, then
-            //     i. Let A be ? Construct(C).
-            // b. Else,
-            //     i. Let A be ? ArrayCreate(0en).
-            let a = match this.as_constructor() {
-                Some(constructor) => constructor.construct(&[], None, context)?,
-                _ => Self::array_create(0, None, context)?,
-            };
-
-            // c. Let iteratorRecord be ? GetIterator(items, sync, usingIterator).
-            let iterator_record =
-                items.get_iterator(context, Some(IteratorHint::Sync), Some(using_iterator))?;
-
-            // d. Let k be 0.
-            // e. Repeat,
-            //     i. If k ≥ 2^53 - 1 (MAX_SAFE_INTEGER), then
-            //     ...
-            //     x. Set k to k + 1.
-            for k in 0..9_007_199_254_740_991_u64 {
-                // iii. Let next be ? IteratorStep(iteratorRecord).
-                let next = iterator_record.step(context)?;
-
-                // iv. If next is false, then
-                let Some(next) = next else {
-                    // 1. Perform ? Set(A, "length", 𝔽(k), true).
-                    a.set("length", k, true, context)?;
-
-                    // 2. Return A.
-                    return Ok(a.into());
-                };
-
-                // v. Let nextValue be ? IteratorValue(next).
-                let next_value = next.value(context)?;
-
-                // vi. If mapping is true, then
-                let mapped_value = if let Some(mapfn) = mapping {
-                    // 1. Let mappedValue be Call(mapfn, thisArg, « nextValue, 𝔽(k) »).
-                    let mapped_value = mapfn.call(this_arg, &[next_value, k.into()], context);
-
-                    // 2. IfAbruptCloseIterator(mappedValue, iteratorRecord).
-                    if_abrupt_close_iterator!(mapped_value, iterator_record, context)
-                } else {
-                    // vii. Else, let mappedValue be nextValue.
-                    next_value
-                };
-
-                // viii. Let defineStatus be CreateDataPropertyOrThrow(A, Pk, mappedValue).
-                let define_status = a.create_data_property_or_throw(k, mapped_value, context);
-
-                // ix. IfAbruptCloseIterator(defineStatus, iteratorRecord).
-                if_abrupt_close_iterator!(define_status, iterator_record, context);
-            }
-
-            // NOTE: The loop above has to return before it reaches iteration limit,
-            // which is why it's safe to have this as the fallback return
-            //
-            // 1. Let error be ThrowCompletion(a newly created TypeError object).
-            let error = Err(JsNativeError::typ()
-                .with_message("Invalid array length")
-                .into());
-
-            // 2. Return ? IteratorClose(iteratorRecord, error).
-            iterator_record.close(error, context)
-        } else {
+        let Some(using_iterator) = using_iterator else {
             // 6. NOTE: items is not an Iterable so assume it is an array-like object.
             // 7. Let arrayLike be ! ToObject(items).
             let array_like = items
@@ -541,8 +473,74 @@ impl Array {
             a.set("length", len, true, context)?;
 
             // 14. Return A.
-            Ok(a.into())
+            return Ok(a.into());
+        };
+
+        // 5. If usingIterator is not undefined, then
+
+        // a. If IsConstructor(C) is true, then
+        //     i. Let A be ? Construct(C).
+        // b. Else,
+        //     i. Let A be ? ArrayCreate(0en).
+        let a = match this.as_constructor() {
+            Some(constructor) => constructor.construct(&[], None, context)?,
+            _ => Self::array_create(0, None, context)?,
+        };
+
+        // c. Let iteratorRecord be ? GetIterator(items, sync, usingIterator).
+        let iterator_record =
+            items.get_iterator(context, Some(IteratorHint::Sync), Some(using_iterator))?;
+
+        // d. Let k be 0.
+        // e. Repeat,
+        //     i. If k ≥ 2^53 - 1 (MAX_SAFE_INTEGER), then
+        //     ...
+        //     x. Set k to k + 1.
+        for k in 0..9_007_199_254_740_991_u64 {
+            // iii. Let next be ? IteratorStep(iteratorRecord).
+            let next = iterator_record.step(context)?;
+
+            // iv. If next is false, then
+            let Some(next) = next else {
+                    // 1. Perform ? Set(A, "length", 𝔽(k), true).
+                    a.set("length", k, true, context)?;
+
+                    // 2. Return A.
+                    return Ok(a.into());
+                };
+
+            // v. Let nextValue be ? IteratorValue(next).
+            let next_value = next.value(context)?;
+
+            // vi. If mapping is true, then
+            let mapped_value = if let Some(mapfn) = mapping {
+                // 1. Let mappedValue be Call(mapfn, thisArg, « nextValue, 𝔽(k) »).
+                let mapped_value = mapfn.call(this_arg, &[next_value, k.into()], context);
+
+                // 2. IfAbruptCloseIterator(mappedValue, iteratorRecord).
+                if_abrupt_close_iterator!(mapped_value, iterator_record, context)
+            } else {
+                // vii. Else, let mappedValue be nextValue.
+                next_value
+            };
+
+            // viii. Let defineStatus be CreateDataPropertyOrThrow(A, Pk, mappedValue).
+            let define_status = a.create_data_property_or_throw(k, mapped_value, context);
+
+            // ix. IfAbruptCloseIterator(defineStatus, iteratorRecord).
+            if_abrupt_close_iterator!(define_status, iterator_record, context);
         }
+
+        // NOTE: The loop above has to return before it reaches iteration limit,
+        // which is why it's safe to have this as the fallback return
+        //
+        // 1. Let error be ThrowCompletion(a newly created TypeError object).
+        let error = Err(JsNativeError::typ()
+            .with_message("Invalid array length")
+            .into());
+
+        // 2. Return ? IteratorClose(iteratorRecord, error).
+        iterator_record.close(error, context)
     }
 
     /// `Array.isArray( arg )`
@@ -2957,7 +2955,7 @@ impl Array {
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/@@unscopables
     pub(crate) fn unscopables_intrinsic(context: &mut Context) -> JsObject {
         // 1. Let unscopableList be OrdinaryObjectCreate(null).
-        let unscopable_list = JsObject::empty();
+        let unscopable_list = JsObject::with_null_proto();
         // 2. Perform ! CreateDataPropertyOrThrow(unscopableList, "at", true).
         unscopable_list
             .create_data_property_or_throw("at", true, context)

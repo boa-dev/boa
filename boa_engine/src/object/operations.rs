@@ -762,6 +762,35 @@ impl JsValue {
         Ok(list)
     }
 
+    /// Abstract operation [`Call ( F, V [ , argumentsList ] )`][call].
+    ///
+    /// Calls this value if the value is a callable object.
+    ///
+    /// # Note
+    ///
+    /// It is almost always better to try to obtain a callable object first with [`JsValue::as_callable`],
+    /// then calling [`JsObject::call`], since that allows reusing the unwrapped function for other
+    /// operations. This method is only an utility method for when the spec directly uses `Call`
+    /// without using the value as a proper object.
+    ///
+    /// [call]: https://tc39.es/ecma262/#sec-call
+    #[inline]
+    pub(crate) fn call(
+        &self,
+        this: &JsValue,
+        args: &[JsValue],
+        context: &mut Context,
+    ) -> JsResult<JsValue> {
+        self.as_callable()
+            .ok_or_else(|| {
+                JsNativeError::typ().with_message(format!(
+                    "value with type `{}` is not callable",
+                    self.type_of()
+                ))
+            })?
+            .__call__(this, args, context)
+    }
+
     /// Abstract operation `( V, P [ , argumentsList ] )`
     ///
     /// Calls a method property of an ECMAScript language value.
@@ -779,7 +808,7 @@ impl JsValue {
         let func = self.get_v(key, context)?;
 
         // 3. Return ? Call(func, V, argumentsList)
-        context.call(&func, self, args)
+        func.call(self, args, context)
     }
 
     /// Abstract operation `OrdinaryHasInstance ( C, O )`

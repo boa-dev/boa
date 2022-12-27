@@ -544,7 +544,7 @@ pub(crate) fn ordinary_get(
             // 6. Let getter be desc.[[Get]].
             DescriptorKind::Accessor { get: Some(get), .. } if !get.is_undefined() => {
                 // 8. Return ? Call(getter, Receiver).
-                context.call(get, &receiver, &[])
+                get.call(&receiver, &[], context)
             }
             // 7. If getter is undefined, return undefined.
             _ => Ok(JsValue::undefined()),
@@ -644,7 +644,7 @@ pub(crate) fn ordinary_set(
     match own_desc.set() {
         Some(set) if !set.is_undefined() => {
             // 7. Perform ? Call(setter, Receiver, « V »).
-            context.call(set, &receiver, &[value])?;
+            set.call(&receiver, &[value], context)?;
 
             // 8. Return true.
             Ok(true)

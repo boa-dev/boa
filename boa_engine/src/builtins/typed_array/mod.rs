@@ -433,7 +433,7 @@ impl TypedArray {
         // 6. If usingIterator is not undefined, then
         if let Some(using_iterator) = using_iterator {
             // a. Let values be ? IterableToList(source, usingIterator).
-            let values = iterable_to_list(context, source, Some(using_iterator.into()))?;
+            let values = iterable_to_list(context, source, Some(using_iterator))?;
 
             // b. Let len be the number of elements in values.
             // c. Let targetObj be ? TypedArrayCreate(C, « 𝔽(len) »).
@@ -3188,7 +3188,7 @@ impl TypedArray {
         }
 
         // 2. Let obj be ! IntegerIndexedObjectCreate(proto).
-        let obj = IntegerIndexed::create(proto, indexed, context);
+        let obj = JsObject::from_proto_and_data(proto, ObjectData::integer_indexed(indexed));
 
         // 9. Return obj.
         Ok(obj)

@@ -40,7 +40,7 @@ impl Operation for GetName {
                         } => value.clone(),
                         DescriptorKind::Accessor { get: Some(get), .. } if !get.is_undefined() => {
                             let get = get.clone();
-                            context.call(&get, &context.global_object().clone().into(), &[])?
+                            get.call(&context.global_object().clone().into(), &[], context)?
                         }
                         _ => {
                             return Err(JsNativeError::reference()
@@ -113,7 +113,7 @@ impl Operation for GetNameOrUndefined {
                         } => value.clone(),
                         DescriptorKind::Accessor { get: Some(get), .. } if !get.is_undefined() => {
                             let get = get.clone();
-                            context.call(&get, &context.global_object().clone().into(), &[])?
+                            get.call(&context.global_object().clone().into(), &[], context)?
                         }
                         _ => JsValue::undefined(),
                     },

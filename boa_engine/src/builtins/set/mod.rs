@@ -371,7 +371,7 @@ impl Set {
                 .ok_or_else(|| JsNativeError::typ().with_message("'this' is not a Set"))?;
 
             if let Some(arguments) = arguments {
-                context.call(callback_arg, &this_arg, &arguments)?;
+                callback_arg.call(&this_arg, &arguments, context)?;
             }
 
             index += 1;

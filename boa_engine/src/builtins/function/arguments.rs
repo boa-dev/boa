@@ -77,11 +77,12 @@ impl Arguments {
         let len = arguments_list.len();
 
         // 2. Let obj be ! OrdinaryObjectCreate(%Object.prototype%, « [[ParameterMap]] »).
-        let obj = context.construct_object();
-
         // 3. Set obj.[[ParameterMap]] to undefined.
         // skipped because the `Arguments` enum ensures ordinary argument objects don't have a `[[ParameterMap]]`
-        obj.borrow_mut().data = ObjectData::arguments(Self::Unmapped);
+        let obj = JsObject::from_proto_and_data(
+            context.intrinsics().constructors().object().prototype(),
+            ObjectData::arguments(Self::Unmapped),
+        );
 
         // 4. Perform DefinePropertyOrThrow(obj, "length", PropertyDescriptor { [[Value]]: 𝔽(len),
         // [[Writable]]: true, [[Enumerable]]: false, [[Configurable]]: true }).

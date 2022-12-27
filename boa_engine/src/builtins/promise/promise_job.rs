@@ -83,13 +83,13 @@ impl PromiseJob {
                             // h. If handlerResult is an abrupt completion, then
                             Err(value) => {
                                 // i. Return ? Call(promiseCapability.[[Reject]], undefined, « handlerResult.[[Value]] »).
-                                context.call(&reject.clone().into(), &JsValue::Undefined, &[value])
+                                reject.call(&JsValue::Undefined, &[value], context)
                             }
 
                             // i. Else,
                             Ok(value) => {
                                 // i. Return ? Call(promiseCapability.[[Resolve]], undefined, « handlerResult.[[Value]] »).
-                                context.call(&resolve.clone().into(), &JsValue::Undefined, &[value])
+                                resolve.call(&JsValue::Undefined, &[value], context)
                             }
                         }
                     }
@@ -138,8 +138,8 @@ impl PromiseJob {
                 let then_call_result = then.call_job_callback(
                     thenable,
                     &[
-                        resolving_functions.resolve,
-                        resolving_functions.reject.clone(),
+                        resolving_functions.resolve.clone().into(),
+                        resolving_functions.reject.clone().into(),
                     ],
                     context,
                 );
@@ -148,11 +148,9 @@ impl PromiseJob {
                 if let Err(value) = then_call_result {
                     let value = value.to_opaque(context);
                     //    i. Return ? Call(resolvingFunctions.[[Reject]], undefined, « thenCallResult.[[Value]] »).
-                    return context.call(
-                        &resolving_functions.reject,
-                        &JsValue::Undefined,
-                        &[value],
-                    );
+                    return resolving_functions
+                        .reject
+                        .call(&JsValue::Undefined, &[value], context);
                 }
 
                 //    d. Return ? thenCallResult.

@@ -41,11 +41,9 @@ macro_rules! if_abrupt_reject_promise {
             Err(err) => {
                 let err = err.to_opaque($context);
                 // a. Perform ? Call(capability.[[Reject]], undefined, « value.[[Value]] »).
-                $context.call(
-                    &$capability.reject().clone().into(),
-                    &JsValue::undefined(),
-                    &[err],
-                )?;
+                $capability
+                    .reject()
+                    .call(&JsValue::undefined(), &[err], $context)?;
 
                 // b. Return capability.[[Promise]].
                 return Ok($capability.promise().clone().into());
@@ -297,8 +295,8 @@ impl BuiltIn for Promise {
 
 #[derive(Debug)]
 struct ResolvingFunctionsRecord {
-    resolve: JsValue,
-    reject: JsValue,
+    resolve: JsFunction,
+    reject: JsFunction,
 }
 
 impl Promise {
@@ -327,14 +325,11 @@ impl Promise {
                 .into());
         }
 
-        let executor = args.get_or_undefined(0);
-
         // 2. If IsCallable(executor) is false, throw a TypeError exception.
-        if !executor.is_callable() {
-            return Err(JsNativeError::typ()
-                .with_message("Promise executor is not callable")
-                .into());
-        }
+        let executor = args
+            .get_or_undefined(0)
+            .as_callable()
+            .ok_or_else(|| JsNativeError::typ().with_message("Promise executor is not callable"))?;
 
         // 3. Let promise be ? OrdinaryCreateFromConstructor(NewTarget, "%Promise.prototype%", « [[PromiseState]], [[PromiseResult]], [[PromiseFulfillReactions]], [[PromiseRejectReactions]], [[PromiseIsHandled]] »).
         let promise =
@@ -358,20 +353,22 @@ impl Promise {
         let resolving_functions = Self::create_resolving_functions(&promise, context);
 
         // 9. Let completion Completion(Call(executor, undefined, « resolvingFunctions.[[Resolve]], resolvingFunctions.[[Reject]] »)be ).
-        let completion = context.call(
-            executor,
+        let completion = executor.call(
             &JsValue::Undefined,
             &[
-                resolving_functions.resolve,
-                resolving_functions.reject.clone(),
+                resolving_functions.resolve.clone().into(),
+                resolving_functions.reject.clone().into(),
             ],
+            context,
         );
 
         // 10. If completion is an abrupt completion, then
         if let Err(e) = completion {
             let e = e.to_opaque(context);
             // a. Perform ? Call(resolvingFunctions.[[Reject]], undefined, « completion.[[Value]] »).
-            context.call(&resolving_functions.reject, &JsValue::Undefined, &[e])?;
+            resolving_functions
+                .reject
+                .call(&JsValue::Undefined, &[e], context)?;
         }
 
         // 11. Return promise.
@@ -809,7 +806,7 @@ impl Promise {
                     // 8. Let remainingElementsCount be F.[[RemainingElements]].
 
                     // 9. Let obj be OrdinaryObjectCreate(%Object.prototype%).
-                    let obj = context.construct_object();
+                    let obj = JsObject::with_object_proto(context);
 
                     // 10. Perform ! CreateDataPropertyOrThrow(obj, "status", "fulfilled").
                     obj.create_data_property_or_throw("status", "fulfilled", context)
@@ -893,7 +890,7 @@ impl Promise {
                     // 8. Let remainingElementsCount be F.[[RemainingElements]].
 
                     // 9. Let obj be OrdinaryObjectCreate(%Object.prototype%).
-                    let obj = context.construct_object();
+                    let obj = JsObject::with_object_proto(context);
 
                     // 10. Perform ! CreateDataPropertyOrThrow(obj, "status", "rejected").
                     obj.create_data_property_or_throw("status", "rejected", context)
@@ -1429,8 +1426,6 @@ impl Promise {
         .build();
 
         // 12. Return the Record { [[Resolve]]: resolve, [[Reject]]: reject }.
-        let resolve = resolve.conv::<JsValue>();
-        let reject = reject.conv::<JsValue>();
         ResolvingFunctionsRecord { resolve, reject }
     }
 
@@ -1589,7 +1584,7 @@ impl Promise {
             &mut iterator_record,
             c,
             &promise_capability,
-            &promise_resolve.into(),
+            &promise_resolve,
             context,
         );
 
@@ -1625,7 +1620,7 @@ impl Promise {
         iterator_record: &mut IteratorRecord,
         constructor: &JsValue,
         result_capability: &PromiseCapability,
-        promise_resolve: &JsValue,
+        promise_resolve: &JsObject,
         context: &mut Context,
     ) -> JsResult<JsValue> {
         // 1. Repeat,
@@ -1654,7 +1649,7 @@ impl Promise {
                 let next_value = next_value?;
 
                 // h. Let nextPromise be ? Call(promiseResolve, constructor, « nextValue »).
-                let next_promise = context.call(promise_resolve, constructor, &[next_value])?;
+                let next_promise = promise_resolve.call(constructor, &[next_value], context)?;
 
                 // i. Perform ? Invoke(nextPromise, "then", « resultCapability.[[Resolve]], resultCapability.[[Reject]] »).
                 next_promise.invoke(
@@ -1694,11 +1689,10 @@ impl Promise {
         let promise_capability = PromiseCapability::new(c, context)?;
 
         // 3. Perform ? Call(promiseCapability.[[Reject]], undefined, « r »).
-        context.call(
-            &promise_capability.reject.clone().into(),
-            &JsValue::undefined(),
-            &[r.clone()],
-        )?;
+
+        promise_capability
+            .reject
+            .call(&JsValue::undefined(), &[r.clone()], context)?;
 
         // 4. Return promiseCapability.[[Promise]].
         Ok(promise_capability.promise.clone().into())
@@ -1779,26 +1773,34 @@ impl Promise {
         let promise = this;
 
         // 2. If Type(promise) is not Object, throw a TypeError exception.
-        let Some(promise_obj) = promise.as_object() else {
+        let Some(promise) = promise.as_object() else {
             return Err(JsNativeError::typ()
                 .with_message("finally called with a non-object promise")
                 .into());
         };
 
         // 3. Let C be ? SpeciesConstructor(promise, %Promise%).
-        let c = promise_obj.species_constructor(StandardConstructors::promise, context)?;
+        let c = promise.species_constructor(StandardConstructors::promise, context)?;
 
         // 4. Assert: IsConstructor(C) is true.
         debug_assert!(c.is_constructor());
 
         let on_finally = args.get_or_undefined(0);
 
-        // 5. If IsCallable(onFinally) is false, then
-        let (then_finally, catch_finally) = if on_finally.is_callable() {
+        let Some(on_finally) = on_finally.as_callable() else {
+            // 5. If IsCallable(onFinally) is false, then
+            //    a. Let thenFinally be onFinally.
+            //    b. Let catchFinally be onFinally.
+            // 7. Return ? Invoke(promise, "then", « thenFinally, catchFinally »).
+            let then = promise.get("then", context)?;
+            return then.call(this, &[on_finally.clone(), on_finally.clone()], context);
+        };
+
+        let (then_finally, catch_finally) = {
             /// Capture object for the `thenFinallyClosure` abstract closure.
             #[derive(Debug, Trace, Finalize)]
             struct FinallyCaptures {
-                on_finally: JsValue,
+                on_finally: JsObject,
                 c: JsObject,
             }
 
@@ -1815,7 +1817,9 @@ impl Promise {
                     let value = args.get_or_undefined(0);
 
                     // i. Let result be ? Call(onFinally, undefined).
-                    let result = context.call(&captures.on_finally, &JsValue::undefined(), &[])?;
+                    let result = captures
+                        .on_finally
+                        .call(&JsValue::undefined(), &[], context)?;
 
                     // ii. Let promise be ? PromiseResolve(C, result).
                     let promise = Self::promise_resolve(captures.c.clone(), result, context)?;
@@ -1860,7 +1864,9 @@ impl Promise {
                     let reason = args.get_or_undefined(0);
 
                     // i. Let result be ? Call(onFinally, undefined).
-                    let result = context.call(&captures.on_finally, &JsValue::undefined(), &[])?;
+                    let result = captures
+                        .on_finally
+                        .call(&JsValue::undefined(), &[], context)?;
 
                     // ii. Let promise be ? PromiseResolve(C, result).
                     let promise = Self::promise_resolve(captures.c.clone(), result, context)?;
@@ -1892,16 +1898,12 @@ impl Promise {
             // d. Let catchFinally be CreateBuiltinFunction(catchFinallyClosure, 1, "", « »).
             let catch_finally = catch_finally_closure.length(1).name("").build();
 
-            (then_finally.into(), catch_finally.into()) // TODO
-        } else {
-            // 6. Else,
-            //  a. Let thenFinally be onFinally.
-            //  b. Let catchFinally be onFinally.
-            (on_finally.clone(), on_finally.clone())
+            (then_finally.into(), catch_finally.into())
         };
 
         // 7. Return ? Invoke(promise, "then", « thenFinally, catchFinally »).
-        promise.invoke("then", &[then_finally, catch_finally], context)
+        let then = promise.get("then", context)?;
+        then.call(this, &[then_finally, catch_finally], context)
     }
 
     /// `Promise.prototype.then ( onFulfilled, onRejected )`
@@ -2081,11 +2083,9 @@ impl Promise {
         let promise_capability = PromiseCapability::new(&c.into(), context)?;
 
         // 3. Perform ? Call(promiseCapability.[[Resolve]], undefined, « x »).
-        context.call(
-            &promise_capability.resolve.clone().into(),
-            &JsValue::undefined(),
-            &[x],
-        )?;
+        promise_capability
+            .resolve
+            .call(&JsValue::Undefined, &[x], context)?;
 
         // 4. Return promiseCapability.[[Promise]].
         Ok(promise_capability.promise.clone().into())
@@ -2109,13 +2109,10 @@ impl Promise {
         let promise_resolve = promise_constructor.get("resolve", context)?;
 
         // 2. If IsCallable(promiseResolve) is false, throw a TypeError exception.
-        promise_resolve.as_callable().map_or_else(
-            || {
-                Err(JsNativeError::typ()
-                    .with_message("retrieving a non-callable promise resolver")
-                    .into())
-            },
-            |promise_resolve| Ok(promise_resolve.clone()),
-        )
+        promise_resolve.as_callable().cloned().ok_or_else(|| {
+            JsNativeError::typ()
+                .with_message("retrieving a non-callable promise resolver")
+                .into()
+        })
     }
 }

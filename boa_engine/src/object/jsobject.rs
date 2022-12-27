@@ -33,32 +33,50 @@ pub struct JsObject {
 }
 
 impl JsObject {
-    /// Create a new `JsObject` from an internal `Object`.
-    fn from_object(object: Object) -> Self {
-        Self {
-            inner: Gc::new(GcCell::new(object)),
-        }
-    }
-
-    /// Create a new empty `JsObject`, with `prototype` set to `JsValue::Null`
-    /// and `data` set to `ObjectData::ordinary`
-    #[must_use]
-    pub fn empty() -> Self {
-        Self::from_object(Object::default())
-    }
-
-    /// The more general form of `OrdinaryObjectCreate` and `MakeBasicObject`.
+    /// Creates a new ordinary object with its prototype set to the `Object` prototype.
     ///
-    /// Create a `JsObject` and automatically set its internal methods and
-    /// internal slots from the `data` provided.
+    /// This is equivalent to calling the specification's abstract operation
+    /// [`OrdinaryObjectCreate(%Object.prototype%)`][call].
+    ///
+    /// [call]: https://tc39.es/ecma262/#sec-ordinaryobjectcreate
+    #[inline]
+    #[must_use]
+    pub fn with_object_proto(context: &mut Context) -> Self {
+        Self::from_proto_and_data(
+            context.intrinsics().constructors().object().prototype(),
+            ObjectData::ordinary(),
+        )
+    }
+
+    /// Creates a new ordinary object, with its prototype set to null.
+    ///
+    /// This is equivalent to calling the specification's abstract operation
+    /// [`OrdinaryObjectCreate(null)`][call].
+    ///
+    /// [call]: https://tc39.es/ecma262/#sec-ordinaryobjectcreate
+    #[inline]
+    #[must_use]
+    pub fn with_null_proto() -> Self {
+        Self::from_proto_and_data(None, ObjectData::ordinary())
+    }
+
+    /// Creates a new object with the provided prototype and object data.
+    ///
+    /// This is equivalent to calling the specification's abstract operation [`OrdinaryObjectCreate`],
+    /// with the difference that the `additionalInternalSlotsList` parameter is automatically set by
+    /// the [`ObjectData`] provided.
+    ///
+    /// [`OrdinaryObjectCreate`]: https://tc39.es/ecma262/#sec-ordinaryobjectcreate
     pub fn from_proto_and_data<O: Into<Option<Self>>>(prototype: O, data: ObjectData) -> Self {
-        Self::from_object(Object {
-            data,
-            prototype: prototype.into(),
-            extensible: true,
-            properties: PropertyMap::default(),
-            private_elements: FxHashMap::default(),
-        })
+        Self {
+            inner: Gc::new(GcCell::new(Object {
+                data,
+                prototype: prototype.into(),
+                extensible: true,
+                properties: PropertyMap::default(),
+                private_elements: FxHashMap::default(),
+            })),
+        }
     }
 
     /// Immutably borrows the `Object`.
@@ -80,7 +98,7 @@ impl JsObject {
     /// The borrow lasts until the returned `RefMut` exits scope.
     /// The object cannot be borrowed while this borrow is active.
     ///
-    ///# Panics
+    /// # Panics
     /// Panics if the object is currently borrowed.
     #[inline]
     #[track_caller]

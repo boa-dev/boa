@@ -136,7 +136,7 @@ pub fn create_iter_result_object(value: JsValue, done: bool, context: &mut Conte
 
     // 1. Assert: Type(done) is Boolean.
     // 2. Let obj be ! OrdinaryObjectCreate(%Object.prototype%).
-    let obj = context.construct_object();
+    let obj = JsObject::with_object_proto(context);
 
     // 3. Perform ! CreateDataPropertyOrThrow(obj, "value", value).
     obj.create_data_property_or_throw("value", value, context)
@@ -169,13 +169,13 @@ impl JsValue {
         &self,
         context: &mut Context,
         hint: Option<IteratorHint>,
-        method: Option<Self>,
+        method: Option<JsObject>,
     ) -> JsResult<IteratorRecord> {
         // 1. If hint is not present, set hint to sync.
         let hint = hint.unwrap_or(IteratorHint::Sync);
 
         // 2. If method is not present, then
-        let method = if let Some(method) = method {
+        let method = if method.is_some() {
             method
         } else {
             // a. If hint is async, then
@@ -184,17 +184,15 @@ impl JsValue {
                 if let Some(method) =
                     self.get_method(WellKnownSymbols::async_iterator(), context)?
                 {
-                    method.into()
+                    Some(method)
                 } else {
                     // ii. If method is undefined, then
                     // 1. Let syncMethod be ? GetMethod(obj, @@iterator).
-                    let sync_method = self
-                        .get_method(WellKnownSymbols::iterator(), context)?
-                        .map_or(Self::Undefined, Self::from);
+                    let sync_method = self.get_method(WellKnownSymbols::iterator(), context)?;
 
                     // 2. Let syncIteratorRecord be ? GetIterator(obj, sync, syncMethod).
                     let sync_iterator_record =
-                        self.get_iterator(context, Some(IteratorHint::Sync), Some(sync_method))?;
+                        self.get_iterator(context, Some(IteratorHint::Sync), sync_method)?;
 
                     // 3. Return ! CreateAsyncFromSyncIterator(syncIteratorRecord).
                     return Ok(AsyncFromSyncIterator::create(sync_iterator_record, context));
@@ -202,17 +200,22 @@ impl JsValue {
             } else {
                 // b. Otherwise, set method to ? GetMethod(obj, @@iterator).
                 self.get_method(WellKnownSymbols::iterator(), context)?
-                    .map_or(Self::Undefined, Self::from)
             }
-        };
+        }
+        .ok_or_else(|| {
+            JsNativeError::typ().with_message(format!(
+                "value with type `{}` is not iterable",
+                self.type_of()
+            ))
+        })?;
 
         // 3. Let iterator be ? Call(method, obj).
-        let iterator = context.call(&method, self, &[])?;
+        let iterator = method.call(self, &[], context)?;
 
         // 4. If Type(iterator) is not Object, throw a TypeError exception.
-        let iterator_obj = iterator
-            .as_object()
-            .ok_or_else(|| JsNativeError::typ().with_message("the iterator is not an object"))?;
+        let iterator_obj = iterator.as_object().ok_or_else(|| {
+            JsNativeError::typ().with_message("returned iterator is not an object")
+        })?;
 
         // 5. Let nextMethod be ? GetV(iterator, "next").
         let next_method = iterator.get_v("next", context)?;
@@ -500,20 +503,15 @@ impl IteratorRecord {
 pub(crate) fn iterable_to_list(
     context: &mut Context,
     items: &JsValue,
-    method: Option<JsValue>,
+    method: Option<JsObject>,
 ) -> JsResult<Vec<JsValue>> {
     let _timer = Profiler::global().start_event("iterable_to_list", "iterator");
 
     // 1. If method is present, then
-    let iterator_record = if let Some(method) = method {
-        // a. Let iteratorRecord be ? GetIterator(items, sync, method).
-        items.get_iterator(context, Some(IteratorHint::Sync), Some(method))?
-    } else {
-        // 2. Else,
-
-        // a. Let iteratorRecord be ? GetIterator(items, sync).
-        items.get_iterator(context, Some(IteratorHint::Sync), None)?
-    };
+    // a. Let iteratorRecord be ? GetIterator(items, sync, method).
+    // 2. Else,
+    // a. Let iteratorRecord be ? GetIterator(items, sync).
+    let iterator_record = items.get_iterator(context, Some(IteratorHint::Sync), method)?;
 
     // 3. Let values be a new empty List.
     let mut values = Vec::new();

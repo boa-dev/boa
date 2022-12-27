@@ -4,6 +4,7 @@ use super::JsValue;
 use crate::{
     builtins::Array,
     error::JsNativeError,
+    object::JsObject,
     property::{PropertyDescriptor, PropertyKey},
     Context, JsResult,
 };
@@ -63,7 +64,7 @@ impl JsValue {
                 Ok(Array::create_array_from_list(arr, context).into())
             }
             Value::Object(obj) => {
-                let js_obj = context.construct_object();
+                let js_obj = JsObject::with_object_proto(context);
                 for (key, value) in obj {
                     let property = PropertyDescriptor::builder()
                         .value(Self::from_json(value, context)?)
