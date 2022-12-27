@@ -54,7 +54,7 @@ impl ForInIterator {
     ///  - [ECMA reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-createforiniterator
-    pub(crate) fn create_for_in_iterator(object: JsValue, context: &Context) -> JsValue {
+    pub(crate) fn create_for_in_iterator(object: JsValue, context: &Context<'_>) -> JsValue {
         let for_in_iterator = JsObject::from_proto_and_data(
             context
                 .intrinsics()
@@ -74,7 +74,11 @@ impl ForInIterator {
     ///  - [ECMA reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-%foriniteratorprototype%.next
-    pub(crate) fn next(this: &JsValue, _: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
+    pub(crate) fn next(
+        this: &JsValue,
+        _: &[JsValue],
+        context: &mut Context<'_>,
+    ) -> JsResult<JsValue> {
         let mut iterator = this.as_object().map(JsObject::borrow_mut);
         let iterator = iterator
             .as_mut()
@@ -135,7 +139,7 @@ impl ForInIterator {
     /// [spec]: https://tc39.es/ecma262/#sec-%foriniteratorprototype%-object
     pub(crate) fn create_prototype(
         iterator_prototype: JsObject,
-        context: &mut Context,
+        context: &mut Context<'_>,
     ) -> JsObject {
         let _timer = Profiler::global().start_event(Self::NAME, "init");
 

@@ -80,7 +80,7 @@ impl JsRevocableProxy {
     /// Disables the traps of the internal `proxy` object, essentially
     /// making it unusable and throwing `TypeError`s for all the traps.
     #[inline]
-    pub fn revoke(self, context: &mut Context) -> JsResult<()> {
+    pub fn revoke(self, context: &mut Context<'_>) -> JsResult<()> {
         self.revoker.call(&JsValue::undefined(), &[], context)?;
         Ok(())
     }
@@ -370,7 +370,7 @@ impl JsProxyBuilder {
     /// [`JsObject`] in case there's a need to manipulate the returned object
     /// inside Rust code.
     #[must_use]
-    pub fn build(self, context: &mut Context) -> JsProxy {
+    pub fn build(self, context: &mut Context<'_>) -> JsProxy {
         let handler = JsObject::with_object_proto(context);
 
         if let Some(apply) = self.apply {
@@ -487,7 +487,7 @@ impl JsProxyBuilder {
     /// revoker in case there's a need to manipulate the returned objects
     /// inside Rust code.
     #[must_use]
-    pub fn build_revocable(self, context: &mut Context) -> JsRevocableProxy {
+    pub fn build_revocable(self, context: &mut Context<'_>) -> JsRevocableProxy {
         let proxy = self.build(context);
         let revoker = Proxy::revoker(proxy.inner.clone(), context);
 

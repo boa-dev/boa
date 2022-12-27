@@ -26,7 +26,7 @@ pub struct AsyncFunction;
 impl BuiltIn for AsyncFunction {
     const NAME: &'static str = "AsyncFunction";
 
-    fn init(context: &mut Context) -> Option<JsValue> {
+    fn init(context: &mut Context<'_>) -> Option<JsValue> {
         let _timer = Profiler::global().start_event(Self::NAME, "init");
 
         let prototype = &context
@@ -98,7 +98,7 @@ impl AsyncFunction {
     fn constructor(
         new_target: &JsValue,
         args: &[JsValue],
-        context: &mut Context,
+        context: &mut Context<'_>,
     ) -> JsResult<JsValue> {
         crate::builtins::function::BuiltInFunctionObject::create_dynamic_function(
             new_target, args, true, false, context,

@@ -14,7 +14,7 @@ impl Operation for PushLiteral {
     const NAME: &'static str = "PushLiteral";
     const INSTRUCTION: &'static str = "INST - PushLiteral";
 
-    fn execute(context: &mut Context) -> JsResult<ShouldExit> {
+    fn execute(context: &mut Context<'_>) -> JsResult<ShouldExit> {
         let index = context.vm.read::<u32>() as usize;
         let value = context.vm.frame().code.literals[index].clone();
         context.vm.push(value);

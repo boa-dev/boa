@@ -14,7 +14,7 @@ impl Operation for Swap {
     const NAME: &'static str = "Swap";
     const INSTRUCTION: &'static str = "INST - Swap";
 
-    fn execute(context: &mut Context) -> JsResult<ShouldExit> {
+    fn execute(context: &mut Context<'_>) -> JsResult<ShouldExit> {
         let first = context.vm.pop();
         let second = context.vm.pop();
 
@@ -35,7 +35,7 @@ impl Operation for RotateLeft {
     const NAME: &'static str = "RotateLeft";
     const INSTRUCTION: &'static str = "INST - RotateLeft";
 
-    fn execute(context: &mut Context) -> JsResult<ShouldExit> {
+    fn execute(context: &mut Context<'_>) -> JsResult<ShouldExit> {
         let n = context.vm.read::<u8>() as usize;
         let len = context.vm.stack.len();
         context.vm.stack[(len - n)..].rotate_left(1);
@@ -54,7 +54,7 @@ impl Operation for RotateRight {
     const NAME: &'static str = "RotateRight";
     const INSTRUCTION: &'static str = "INST - RotateRight";
 
-    fn execute(context: &mut Context) -> JsResult<ShouldExit> {
+    fn execute(context: &mut Context<'_>) -> JsResult<ShouldExit> {
         let n = context.vm.read::<u8>() as usize;
         let len = context.vm.stack.len();
         context.vm.stack[(len - n)..].rotate_right(1);

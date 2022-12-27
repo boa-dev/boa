@@ -32,7 +32,7 @@ pub(crate) struct EvalError;
 impl BuiltIn for EvalError {
     const NAME: &'static str = "EvalError";
 
-    fn init(context: &mut Context) -> Option<JsValue> {
+    fn init(context: &mut Context<'_>) -> Option<JsValue> {
         let _timer = Profiler::global().start_event(Self::NAME, "init");
 
         let error_constructor = context.intrinsics().constructors().error().constructor();
@@ -64,7 +64,7 @@ impl EvalError {
     pub(crate) fn constructor(
         new_target: &JsValue,
         args: &[JsValue],
-        context: &mut Context,
+        context: &mut Context<'_>,
     ) -> JsResult<JsValue> {
         // 1. If NewTarget is undefined, let newTarget be the active function object; else let newTarget be NewTarget.
         // 2. Let O be ? OrdinaryCreateFromConstructor(newTarget, "%NativeError.prototype%", « [[ErrorData]] »).

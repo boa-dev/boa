@@ -14,7 +14,7 @@ impl Operation for CopyDataProperties {
     const NAME: &'static str = "CopyDataProperties";
     const INSTRUCTION: &'static str = "INST - CopyDataProperties";
 
-    fn execute(context: &mut Context) -> JsResult<ShouldExit> {
+    fn execute(context: &mut Context<'_>) -> JsResult<ShouldExit> {
         let excluded_key_count = context.vm.read::<u32>();
         let excluded_key_count_computed = context.vm.read::<u32>();
         let mut excluded_keys = Vec::with_capacity(excluded_key_count as usize);

@@ -6,7 +6,7 @@ use boa_engine::{
 };
 
 /// Initializes the object in the context.
-pub(super) fn init(context: &mut Context) -> JsObject {
+pub(super) fn init(context: &mut Context<'_>) -> JsObject {
     let global_obj = context.global_object().clone();
 
     let obj = ObjectInitializer::new(context)
@@ -28,7 +28,7 @@ pub(super) fn init(context: &mut Context) -> JsObject {
 /// Creates a new ECMAScript Realm, defines this API on the new realm's global object, and
 /// returns the `$262` property of the new realm's global object.
 #[allow(clippy::unnecessary_wraps)]
-fn create_realm(_this: &JsValue, _: &[JsValue], _context: &mut Context) -> JsResult<JsValue> {
+fn create_realm(_this: &JsValue, _: &[JsValue], _context: &mut Context<'_>) -> JsResult<JsValue> {
     let mut context = Context::default();
 
     // add the $262 object.
@@ -40,7 +40,11 @@ fn create_realm(_this: &JsValue, _: &[JsValue], _context: &mut Context) -> JsRes
 /// The `$262.detachArrayBuffer()` function.
 ///
 /// Implements the `DetachArrayBuffer` abstract operation.
-fn detach_array_buffer(_this: &JsValue, args: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
+fn detach_array_buffer(
+    _this: &JsValue,
+    args: &[JsValue],
+    _: &mut Context<'_>,
+) -> JsResult<JsValue> {
     fn type_err() -> JsNativeError {
         JsNativeError::typ().with_message("The provided object was not an ArrayBuffer")
     }
@@ -76,7 +80,7 @@ fn detach_array_buffer(_this: &JsValue, args: &[JsValue], _: &mut Context) -> Js
 /// The `$262.evalScript()` function.
 ///
 /// Accepts a string value as its first argument and executes it as an ECMAScript script.
-fn eval_script(_this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
+fn eval_script(_this: &JsValue, args: &[JsValue], context: &mut Context<'_>) -> JsResult<JsValue> {
     args.get(0).and_then(JsValue::as_string).map_or_else(
         || Ok(JsValue::undefined()),
         |source_text| match context.parse(source_text.to_std_string_escaped()) {
@@ -97,7 +101,7 @@ fn eval_script(_this: &JsValue, args: &[JsValue], context: &mut Context) -> JsRe
 /// Must throw an exception if no capability exists. This is necessary for testing the
 /// semantics of any feature that relies on garbage collection, e.g. the `WeakRef` API.
 #[allow(clippy::unnecessary_wraps)]
-fn gc(_this: &JsValue, _: &[JsValue], _context: &mut Context) -> JsResult<JsValue> {
+fn gc(_this: &JsValue, _: &[JsValue], _context: &mut Context<'_>) -> JsResult<JsValue> {
     boa_gc::force_collect();
     Ok(JsValue::undefined())
 }

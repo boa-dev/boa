@@ -16,7 +16,7 @@ impl Operation for CallEval {
     const NAME: &'static str = "CallEval";
     const INSTRUCTION: &'static str = "INST - CallEval";
 
-    fn execute(context: &mut Context) -> JsResult<ShouldExit> {
+    fn execute(context: &mut Context<'_>) -> JsResult<ShouldExit> {
         if context.vm.stack_size_limit <= context.vm.stack.len() {
             return Err(JsNativeError::range()
                 .with_message("Maximum call stack size exceeded")
@@ -72,7 +72,7 @@ impl Operation for CallEvalSpread {
     const NAME: &'static str = "CallEvalSpread";
     const INSTRUCTION: &'static str = "INST - CallEvalSpread";
 
-    fn execute(context: &mut Context) -> JsResult<ShouldExit> {
+    fn execute(context: &mut Context<'_>) -> JsResult<ShouldExit> {
         if context.vm.stack_size_limit <= context.vm.stack.len() {
             return Err(JsNativeError::range()
                 .with_message("Maximum call stack size exceeded")
@@ -134,7 +134,7 @@ impl Operation for Call {
     const NAME: &'static str = "Call";
     const INSTRUCTION: &'static str = "INST - Call";
 
-    fn execute(context: &mut Context) -> JsResult<ShouldExit> {
+    fn execute(context: &mut Context<'_>) -> JsResult<ShouldExit> {
         if context.vm.stack_size_limit <= context.vm.stack.len() {
             return Err(JsNativeError::range()
                 .with_message("Maximum call stack size exceeded")
@@ -173,7 +173,7 @@ impl Operation for CallSpread {
     const NAME: &'static str = "CallSpread";
     const INSTRUCTION: &'static str = "INST - CallSpread";
 
-    fn execute(context: &mut Context) -> JsResult<ShouldExit> {
+    fn execute(context: &mut Context<'_>) -> JsResult<ShouldExit> {
         if context.vm.stack_size_limit <= context.vm.stack.len() {
             return Err(JsNativeError::range()
                 .with_message("Maximum call stack size exceeded")

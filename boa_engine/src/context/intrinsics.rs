@@ -751,7 +751,7 @@ pub struct IntrinsicObjects {
 
 impl IntrinsicObjects {
     /// Initialize the intrinsic objects
-    pub fn init(context: &mut Context) -> Self {
+    pub fn init(context: &mut Context<'_>) -> Self {
         Self {
             throw_type_error: create_throw_type_error(context),
             array_prototype_values: Array::create_array_prototype_values(context).into(),

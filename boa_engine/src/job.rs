@@ -48,7 +48,7 @@ impl JobCallback {
         &self,
         v: &JsValue,
         arguments_list: &[JsValue],
-        context: &mut Context,
+        context: &mut Context<'_>,
     ) -> JsResult<JsValue> {
         // It must perform and return the result of Call(jobCallback.[[Callback]], V, argumentsList).
 

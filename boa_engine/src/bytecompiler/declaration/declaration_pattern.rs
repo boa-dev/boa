@@ -9,7 +9,7 @@ use crate::{
     JsResult,
 };
 
-impl ByteCompiler<'_> {
+impl ByteCompiler<'_, '_> {
     pub(crate) fn compile_declaration_pattern_impl(
         &mut self,
         pattern: &Pattern,

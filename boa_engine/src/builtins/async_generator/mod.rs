@@ -65,7 +65,7 @@ pub struct AsyncGenerator {
 impl BuiltIn for AsyncGenerator {
     const NAME: &'static str = "AsyncGenerator";
 
-    fn init(context: &mut Context) -> Option<JsValue> {
+    fn init(context: &mut Context<'_>) -> Option<JsValue> {
         let _timer = Profiler::global().start_event(Self::NAME, "init");
 
         let iterator_prototype = context
@@ -125,7 +125,7 @@ impl AsyncGenerator {
     pub(crate) fn constructor(
         _: &JsValue,
         _: &[JsValue],
-        context: &mut Context,
+        context: &mut Context<'_>,
     ) -> JsResult<JsValue> {
         let prototype = context
             .intrinsics()
@@ -154,7 +154,7 @@ impl AsyncGenerator {
     pub(crate) fn next(
         this: &JsValue,
         args: &[JsValue],
-        context: &mut Context,
+        context: &mut Context<'_>,
     ) -> JsResult<JsValue> {
         // 1. Let generator be the this value.
         let generator = this;
@@ -247,7 +247,7 @@ impl AsyncGenerator {
     pub(crate) fn r#return(
         this: &JsValue,
         args: &[JsValue],
-        context: &mut Context,
+        context: &mut Context<'_>,
     ) -> JsResult<JsValue> {
         // 1. Let generator be the this value.
         let generator = this;
@@ -335,7 +335,7 @@ impl AsyncGenerator {
     pub(crate) fn throw(
         this: &JsValue,
         args: &[JsValue],
-        context: &mut Context,
+        context: &mut Context<'_>,
     ) -> JsResult<JsValue> {
         // 1. Let generator be the this value.
         let generator = this;
@@ -460,7 +460,7 @@ impl AsyncGenerator {
         next: &AsyncGeneratorRequest,
         completion: JsResult<JsValue>,
         done: bool,
-        context: &mut Context,
+        context: &mut Context<'_>,
     ) {
         // 1. Let queue be generator.[[AsyncGeneratorQueue]].
         // 2. Assert: queue is not empty.
@@ -513,7 +513,7 @@ impl AsyncGenerator {
         state: AsyncGeneratorState,
         generator_context: &Gc<GcCell<GeneratorContext>>,
         completion: (JsResult<JsValue>, bool),
-        context: &mut Context,
+        context: &mut Context<'_>,
     ) {
         // 1. Assert: generator.[[AsyncGeneratorState]] is either suspendedStart or suspendedYield.
         assert!(
@@ -589,7 +589,7 @@ impl AsyncGenerator {
     pub(crate) fn await_return(
         generator: JsObject,
         completion: JsResult<JsValue>,
-        context: &mut Context,
+        context: &mut Context<'_>,
     ) {
         // 1. Let queue be generator.[[AsyncGeneratorQueue]].
         // 2. Assert: queue is not empty.
@@ -708,7 +708,7 @@ impl AsyncGenerator {
     ///  - [ECMAScript reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-asyncgeneratordrainqueue
-    pub(crate) fn drain_queue(generator: &JsObject, context: &mut Context) {
+    pub(crate) fn drain_queue(generator: &JsObject, context: &mut Context<'_>) {
         let mut generator_borrow_mut = generator.borrow_mut();
         let gen = generator_borrow_mut
             .as_async_generator_mut()

@@ -8,7 +8,6 @@ use icu_locid::{
 };
 use icu_plurals::provider::CardinalV1Marker;
 use icu_provider::{DataLocale, DataProvider, DataRequest, DataRequestMetadata};
-use icu_provider_adapters::fallback::LocaleFallbackProvider;
 
 use crate::{
     builtins::intl::{
@@ -26,15 +25,12 @@ struct TestOptions {
 
 struct TestService;
 
-impl<P> Service<P> for TestService
-where
-    P: DataProvider<TimeLengthsV1Marker>,
-{
+impl Service for TestService {
     type LangMarker = CardinalV1Marker;
 
     type LocaleOptions = TestOptions;
 
-    fn resolve(locale: &mut Locale, options: &mut Self::LocaleOptions, provider: &P) {
+    fn resolve(locale: &mut Locale, options: &mut Self::LocaleOptions, provider: BoaProvider<'_>) {
         let loc_hc = locale
             .extensions
             .unicode
@@ -53,7 +49,7 @@ where
                 locale: &DataLocale::from(&*locale),
                 metadata: DataRequestMetadata::default(),
             };
-            let preferred = DataProvider::<TimeLengthsV1Marker>::load(provider, req)
+            let preferred = DataProvider::<TimeLengthsV1Marker>::load(&provider, req)
                 .unwrap()
                 .take_payload()
                 .unwrap()
@@ -77,9 +73,8 @@ where
 
 #[test]
 fn locale_resolution() {
-    let provider =
-        LocaleFallbackProvider::try_new_with_buffer_provider(boa_icu_provider::blob()).unwrap();
-    let icu = Icu::new(BoaProvider::Buffer(Box::new(provider))).unwrap();
+    let provider = boa_icu_provider::buffer();
+    let icu = Icu::new(BoaProvider::Buffer(provider)).unwrap();
     let mut default = default_locale(icu.locale_canonicalizer());
     default
         .extensions
@@ -94,7 +89,7 @@ fn locale_resolution() {
             hc: Some(HourCycle::H11),
         },
     };
-    let locale = resolve_locale::<TestService, _>(&[], &mut options, &icu);
+    let locale = resolve_locale::<TestService>(&[], &mut options, &icu);
     assert_eq!(locale, default);
 
     // test best fit
@@ -105,10 +100,10 @@ fn locale_resolution() {
         },
     };
 
-    let locale = resolve_locale::<TestService, _>(&[], &mut options, &icu);
-    let best = best_locale_for_provider::<<TestService as Service<BoaProvider>>::LangMarker>(
+    let locale = resolve_locale::<TestService>(&[], &mut options, &icu);
+    let best = best_locale_for_provider::<<TestService as Service>::LangMarker>(
         default.id.clone(),
-        icu.provider(),
+        &icu.provider(),
     )
     .unwrap();
     let mut best = Locale::from(best);
@@ -121,6 +116,6 @@ fn locale_resolution() {
         service_options: TestOptions { hc: None },
     };
 
-    let locale = resolve_locale::<TestService, _>(&[locale!("es-AR")], &mut options, &icu);
+    let locale = resolve_locale::<TestService>(&[locale!("es-AR")], &mut options, &icu);
     assert_eq!(locale, "es-u-hc-h23".parse().unwrap());
 }

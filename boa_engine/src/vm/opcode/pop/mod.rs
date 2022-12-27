@@ -14,7 +14,7 @@ impl Operation for Pop {
     const NAME: &'static str = "Pop";
     const INSTRUCTION: &'static str = "INST - Pop";
 
-    fn execute(context: &mut Context) -> JsResult<ShouldExit> {
+    fn execute(context: &mut Context<'_>) -> JsResult<ShouldExit> {
         let _val = context.vm.pop();
         Ok(ShouldExit::False)
     }
@@ -31,7 +31,7 @@ impl Operation for PopIfThrown {
     const NAME: &'static str = "PopIfThrown";
     const INSTRUCTION: &'static str = "INST - PopIfThrown";
 
-    fn execute(context: &mut Context) -> JsResult<ShouldExit> {
+    fn execute(context: &mut Context<'_>) -> JsResult<ShouldExit> {
         let frame = context.vm.frame_mut();
         if frame.thrown {
             frame.thrown = false;
@@ -52,7 +52,7 @@ impl Operation for PopEnvironment {
     const NAME: &'static str = "PopEnvironment";
     const INSTRUCTION: &'static str = "INST - PopEnvironment";
 
-    fn execute(context: &mut Context) -> JsResult<ShouldExit> {
+    fn execute(context: &mut Context<'_>) -> JsResult<ShouldExit> {
         context.realm.environments.pop();
         context.vm.frame_mut().loop_env_stack_dec();
         context.vm.frame_mut().try_env_stack_dec();
@@ -71,7 +71,7 @@ impl Operation for PopOnReturnAdd {
     const NAME: &'static str = "PopOnReturnAdd";
     const INSTRUCTION: &'static str = "INST - PopOnReturnAdd";
 
-    fn execute(context: &mut Context) -> JsResult<ShouldExit> {
+    fn execute(context: &mut Context<'_>) -> JsResult<ShouldExit> {
         context.vm.frame_mut().pop_on_return += 1;
         Ok(ShouldExit::False)
     }
@@ -88,7 +88,7 @@ impl Operation for PopOnReturnSub {
     const NAME: &'static str = "PopOnReturnSub";
     const INSTRUCTION: &'static str = "INST - PopOnReturnSub";
 
-    fn execute(context: &mut Context) -> JsResult<ShouldExit> {
+    fn execute(context: &mut Context<'_>) -> JsResult<ShouldExit> {
         context.vm.frame_mut().pop_on_return -= 1;
         Ok(ShouldExit::False)
     }

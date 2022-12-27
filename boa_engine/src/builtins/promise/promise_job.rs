@@ -18,7 +18,7 @@ impl PromiseJob {
     pub(crate) fn new_promise_reaction_job(
         reaction: ReactionRecord,
         argument: JsValue,
-        context: &mut Context,
+        context: &mut Context<'_>,
     ) -> JobCallback {
         #[derive(Debug, Trace, Finalize)]
         struct ReactionJobCaptures {
@@ -118,12 +118,12 @@ impl PromiseJob {
         promise_to_resolve: JsObject,
         thenable: JsValue,
         then: JobCallback,
-        context: &mut Context,
+        context: &mut Context<'_>,
     ) -> JobCallback {
         // 1. Let job be a new Job Abstract Closure with no parameters that captures promiseToResolve, thenable, and then and performs the following steps when called:
         let job = FunctionBuilder::closure_with_captures(
             context,
-            |_this: &JsValue, _args: &[JsValue], captures, context: &mut Context| {
+            |_this: &JsValue, _args: &[JsValue], captures, context: &mut Context<'_>| {
                 let JobCapture {
                     promise_to_resolve,
                     thenable,

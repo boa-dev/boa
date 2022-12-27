@@ -15,7 +15,7 @@ impl Operation for InitIterator {
     const NAME: &'static str = "InitIterator";
     const INSTRUCTION: &'static str = "INST - InitIterator";
 
-    fn execute(context: &mut Context) -> JsResult<ShouldExit> {
+    fn execute(context: &mut Context<'_>) -> JsResult<ShouldExit> {
         let object = context.vm.pop();
         let iterator = object.get_iterator(context, None, None)?;
         context.vm.push(iterator.iterator().clone());
@@ -36,7 +36,7 @@ impl Operation for InitIteratorAsync {
     const NAME: &'static str = "InitIteratorAsync";
     const INSTRUCTION: &'static str = "INST - InitIteratorAsync";
 
-    fn execute(context: &mut Context) -> JsResult<ShouldExit> {
+    fn execute(context: &mut Context<'_>) -> JsResult<ShouldExit> {
         let object = context.vm.pop();
         let iterator = object.get_iterator(context, Some(IteratorHint::Async), None)?;
         context.vm.push(iterator.iterator().clone());

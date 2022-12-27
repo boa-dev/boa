@@ -14,7 +14,7 @@ impl Operation for FinallyStart {
     const NAME: &'static str = "FinallyStart";
     const INSTRUCTION: &'static str = "INST - FinallyStart";
 
-    fn execute(context: &mut Context) -> JsResult<ShouldExit> {
+    fn execute(context: &mut Context<'_>) -> JsResult<ShouldExit> {
         *context
             .vm
             .frame_mut()
@@ -36,7 +36,7 @@ impl Operation for FinallyEnd {
     const NAME: &'static str = "FinallyEnd";
     const INSTRUCTION: &'static str = "INST - FinallyEnd";
 
-    fn execute(context: &mut Context) -> JsResult<ShouldExit> {
+    fn execute(context: &mut Context<'_>) -> JsResult<ShouldExit> {
         let address = context
             .vm
             .frame_mut()
@@ -67,7 +67,7 @@ impl Operation for FinallySetJump {
     const NAME: &'static str = "FinallySetJump";
     const INSTRUCTION: &'static str = "INST - FinallySetJump";
 
-    fn execute(context: &mut Context) -> JsResult<ShouldExit> {
+    fn execute(context: &mut Context<'_>) -> JsResult<ShouldExit> {
         let address = context.vm.read::<u32>();
         *context
             .vm

@@ -15,7 +15,7 @@ impl Operation for RestParameterInit {
     const NAME: &'static str = "FunctionRestParameter";
     const INSTRUCTION: &'static str = "INST - FunctionRestParameter";
 
-    fn execute(context: &mut Context) -> JsResult<ShouldExit> {
+    fn execute(context: &mut Context<'_>) -> JsResult<ShouldExit> {
         let arg_count = context.vm.frame().arg_count;
         let param_count = context.vm.frame().param_count;
         if arg_count >= param_count {
@@ -49,7 +49,7 @@ impl Operation for RestParameterPop {
     const NAME: &'static str = "RestParameterPop";
     const INSTRUCTION: &'static str = "INST - RestParameterPop";
 
-    fn execute(context: &mut Context) -> JsResult<ShouldExit> {
+    fn execute(context: &mut Context<'_>) -> JsResult<ShouldExit> {
         let arg_count = context.vm.frame().arg_count;
         let param_count = context.vm.frame().param_count;
         if arg_count > param_count {

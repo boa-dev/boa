@@ -39,7 +39,7 @@ pub(crate) static GLOBAL_INTERNAL_METHODS: InternalObjectMethods = InternalObjec
 #[allow(clippy::unnecessary_wraps)]
 pub(crate) fn global_get_prototype_of(
     _: &JsObject,
-    context: &mut Context,
+    context: &mut Context<'_>,
 ) -> JsResult<JsPrototype> {
     // 1. Return O.[[Prototype]].
     Ok(context.realm.global_prototype.clone())
@@ -55,7 +55,7 @@ pub(crate) fn global_get_prototype_of(
 pub(crate) fn global_set_prototype_of(
     _: &JsObject,
     val: JsPrototype,
-    context: &mut Context,
+    context: &mut Context<'_>,
 ) -> JsResult<bool> {
     // 1. Assert: Either Type(V) is Object or Type(V) is Null.
     {
@@ -114,7 +114,7 @@ pub(crate) fn global_set_prototype_of(
 pub(crate) fn global_get_own_property(
     _obj: &JsObject,
     key: &PropertyKey,
-    context: &mut Context,
+    context: &mut Context<'_>,
 ) -> JsResult<Option<PropertyDescriptor>> {
     let _timer = Profiler::global().start_event("Object::global_get_own_property", "object");
     // 1. Assert: IsPropertyKey(P) is true.
@@ -141,7 +141,7 @@ pub(crate) fn global_get_own_property(
 ///
 /// [spec]: https://tc39.es/ecma262/#sec-ordinaryisextensible
 #[allow(clippy::unnecessary_wraps)]
-pub(crate) fn global_is_extensible(_obj: &JsObject, context: &mut Context) -> JsResult<bool> {
+pub(crate) fn global_is_extensible(_obj: &JsObject, context: &mut Context<'_>) -> JsResult<bool> {
     // 1. Return O.[[Extensible]].
     Ok(context.realm.global_extensible)
 }
@@ -153,7 +153,10 @@ pub(crate) fn global_is_extensible(_obj: &JsObject, context: &mut Context) -> Js
 ///
 /// [spec]: https://tc39.es/ecma262/#sec-ordinarypreventextensions
 #[allow(clippy::unnecessary_wraps)]
-pub(crate) fn global_prevent_extensions(_obj: &JsObject, context: &mut Context) -> JsResult<bool> {
+pub(crate) fn global_prevent_extensions(
+    _obj: &JsObject,
+    context: &mut Context<'_>,
+) -> JsResult<bool> {
     // 1. Set O.[[Extensible]] to false.
     context.realm.global_extensible = false;
 
@@ -172,7 +175,7 @@ pub(crate) fn global_define_own_property(
     obj: &JsObject,
     key: PropertyKey,
     desc: PropertyDescriptor,
-    context: &mut Context,
+    context: &mut Context<'_>,
 ) -> JsResult<bool> {
     let _timer = Profiler::global().start_event("Object::global_define_own_property", "object");
     // 1. Let current be ? O.[[GetOwnProperty]](P).
@@ -197,7 +200,7 @@ pub(crate) fn global_define_own_property(
 pub(crate) fn global_has_property(
     _obj: &JsObject,
     key: &PropertyKey,
-    context: &mut Context,
+    context: &mut Context<'_>,
 ) -> JsResult<bool> {
     let _timer = Profiler::global().start_event("Object::global_has_property", "object");
     // 1. Assert: IsPropertyKey(P) is true.
@@ -227,7 +230,7 @@ pub(crate) fn global_get(
     obj: &JsObject,
     key: &PropertyKey,
     receiver: JsValue,
-    context: &mut Context,
+    context: &mut Context<'_>,
 ) -> JsResult<JsValue> {
     let _timer = Profiler::global().start_event("Object::global_get", "object");
     // 1. Assert: IsPropertyKey(P) is true.
@@ -274,7 +277,7 @@ pub(crate) fn global_set(
     key: PropertyKey,
     value: JsValue,
     _receiver: JsValue,
-    context: &mut Context,
+    context: &mut Context<'_>,
 ) -> JsResult<bool> {
     global_set_no_receiver(&key, value, context)
 }
@@ -282,7 +285,7 @@ pub(crate) fn global_set(
 pub(crate) fn global_set_no_receiver(
     key: &PropertyKey,
     value: JsValue,
-    context: &mut Context,
+    context: &mut Context<'_>,
 ) -> JsResult<bool> {
     let _timer = Profiler::global().start_event("Object::global_set", "object");
 
@@ -380,7 +383,7 @@ pub(crate) fn global_set_no_receiver(
 pub(crate) fn global_delete(
     _obj: &JsObject,
     key: &PropertyKey,
-    context: &mut Context,
+    context: &mut Context<'_>,
 ) -> JsResult<bool> {
     global_delete_no_receiver(key, context)
 }
@@ -394,7 +397,7 @@ pub(crate) fn global_delete(
 #[allow(clippy::unnecessary_wraps)]
 pub(crate) fn global_delete_no_receiver(
     key: &PropertyKey,
-    context: &mut Context,
+    context: &mut Context<'_>,
 ) -> JsResult<bool> {
     let _timer = Profiler::global().start_event("Object::global_delete", "object");
     // 1. Assert: IsPropertyKey(P) is true.
@@ -423,7 +426,7 @@ pub(crate) fn global_delete_no_receiver(
 #[allow(clippy::unnecessary_wraps)]
 pub(crate) fn global_own_property_keys(
     _: &JsObject,
-    context: &mut Context,
+    context: &mut Context<'_>,
 ) -> JsResult<Vec<PropertyKey>> {
     // 1. Let keys be a new empty List.
     let mut keys = Vec::new();
@@ -479,7 +482,7 @@ pub(crate) fn validate_and_apply_property_descriptor(
     extensible: bool,
     desc: PropertyDescriptor,
     current: Option<PropertyDescriptor>,
-    context: &mut Context,
+    context: &mut Context<'_>,
 ) -> bool {
     let _timer = Profiler::global().start_event(
         "Object::global_validate_and_apply_property_descriptor",

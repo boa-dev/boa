@@ -15,7 +15,7 @@ impl Operation for DefineClassGetterByName {
     const NAME: &'static str = "DefineClassGetterByName";
     const INSTRUCTION: &'static str = "INST - DefineClassGetterByName";
 
-    fn execute(context: &mut Context) -> JsResult<ShouldExit> {
+    fn execute(context: &mut Context<'_>) -> JsResult<ShouldExit> {
         let index = context.vm.read::<u32>();
         let value = context.vm.pop();
         let object = context.vm.pop();
@@ -63,7 +63,7 @@ impl Operation for DefineClassGetterByValue {
     const NAME: &'static str = "DefineClassGetterByValue";
     const INSTRUCTION: &'static str = "INST - DefineClassGetterByValue";
 
-    fn execute(context: &mut Context) -> JsResult<ShouldExit> {
+    fn execute(context: &mut Context<'_>) -> JsResult<ShouldExit> {
         let value = context.vm.pop();
         let key = context.vm.pop();
         let object = context.vm.pop();

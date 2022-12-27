@@ -6,7 +6,7 @@ use crate::{
     JsResult,
 };
 
-impl ByteCompiler<'_> {
+impl ByteCompiler<'_, '_> {
     pub(crate) fn compile_assign(&mut self, assign: &Assign, use_expr: bool) -> JsResult<()> {
         if assign.op() == AssignOp::Assign {
             match Access::from_assign_target(assign.lhs()) {
@@ -27,7 +27,7 @@ impl ByteCompiler<'_> {
                 .expect("patterns should throw early errors on complex assignment operators");
 
             let shortcircuit_operator_compilation =
-                |compiler: &mut ByteCompiler<'_>, opcode: Opcode| -> JsResult<()> {
+                |compiler: &mut ByteCompiler<'_, '_>, opcode: Opcode| -> JsResult<()> {
                     let (early_exit, pop_count) =
                         compiler.access_set(access, use_expr, |compiler, level| {
                             compiler.access_get(access, true)?;

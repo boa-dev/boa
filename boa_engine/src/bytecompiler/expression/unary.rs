@@ -9,7 +9,7 @@ use crate::{
     JsNativeError, JsResult,
 };
 
-impl ByteCompiler<'_> {
+impl ByteCompiler<'_, '_> {
     pub(crate) fn compile_unary(&mut self, unary: &Unary, use_expr: bool) -> JsResult<()> {
         let opcode = match unary.op() {
             UnaryOp::IncrementPre => {

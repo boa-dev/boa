@@ -110,7 +110,7 @@ pub(crate) enum ReturnType {
     Yield,
 }
 
-impl Context {
+impl Context<'_> {
     fn execute_instruction(&mut self) -> JsResult<ShouldExit> {
         let opcode: Opcode = {
             let _timer = Profiler::global().start_event("Opcode retrieval", "vm");

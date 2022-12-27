@@ -14,7 +14,7 @@ impl Operation for TryStart {
     const NAME: &'static str = "TryStart";
     const INSTRUCTION: &'static str = "INST - TryStart";
 
-    fn execute(context: &mut Context) -> JsResult<ShouldExit> {
+    fn execute(context: &mut Context<'_>) -> JsResult<ShouldExit> {
         let next = context.vm.read::<u32>();
         let finally = context.vm.read::<u32>();
         let finally = if finally == 0 { None } else { Some(finally) };
@@ -44,7 +44,7 @@ impl Operation for TryEnd {
     const NAME: &'static str = "TryEnd";
     const INSTRUCTION: &'static str = "INST - TryEnd";
 
-    fn execute(context: &mut Context) -> JsResult<ShouldExit> {
+    fn execute(context: &mut Context<'_>) -> JsResult<ShouldExit> {
         context.vm.frame_mut().catch.pop();
         let try_stack_entry = context
             .vm
@@ -86,7 +86,7 @@ impl Operation for CatchStart {
     const NAME: &'static str = "CatchStart";
     const INSTRUCTION: &'static str = "INST - CatchStart";
 
-    fn execute(context: &mut Context) -> JsResult<ShouldExit> {
+    fn execute(context: &mut Context<'_>) -> JsResult<ShouldExit> {
         let finally = context.vm.read::<u32>();
         context.vm.frame_mut().catch.push(CatchAddresses {
             next: finally,
@@ -112,7 +112,7 @@ impl Operation for CatchEnd {
     const NAME: &'static str = "CatchEnd";
     const INSTRUCTION: &'static str = "INST - CatchEnd";
 
-    fn execute(context: &mut Context) -> JsResult<ShouldExit> {
+    fn execute(context: &mut Context<'_>) -> JsResult<ShouldExit> {
         context.vm.frame_mut().catch.pop();
         let try_stack_entry = context
             .vm
@@ -154,7 +154,7 @@ impl Operation for CatchEnd2 {
     const NAME: &'static str = "CatchEnd2";
     const INSTRUCTION: &'static str = "INST - CatchEnd2";
 
-    fn execute(context: &mut Context) -> JsResult<ShouldExit> {
+    fn execute(context: &mut Context<'_>) -> JsResult<ShouldExit> {
         let frame = context.vm.frame_mut();
         if frame.finally_return == FinallyReturn::Err {
             frame.finally_return = FinallyReturn::None;

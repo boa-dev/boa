@@ -14,7 +14,7 @@ impl Operation for SetHomeObject {
     const NAME: &'static str = "SetHomeObject";
     const INSTRUCTION: &'static str = "INST - SetHomeObject";
 
-    fn execute(context: &mut Context) -> JsResult<ShouldExit> {
+    fn execute(context: &mut Context<'_>) -> JsResult<ShouldExit> {
         let function = context.vm.pop();
         let function_object = function.as_object().expect("must be object");
         let home = context.vm.pop();

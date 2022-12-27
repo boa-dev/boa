@@ -155,7 +155,7 @@ pub type JsResult<T> = StdResult<T, JsError>;
 ///
 /// The state of the `Context` is changed, and a string representation of the result is returned.
 #[cfg(test)]
-pub(crate) fn forward<S>(context: &mut Context, src: S) -> String
+pub(crate) fn forward<S>(context: &mut Context<'_>, src: S) -> String
 where
     S: AsRef<[u8]>,
 {
@@ -170,7 +170,7 @@ where
 /// If the interpreter fails parsing an error value is returned instead (error object)
 #[allow(clippy::unit_arg, clippy::drop_copy)]
 #[cfg(test)]
-pub(crate) fn forward_val<T: AsRef<[u8]>>(context: &mut Context, src: T) -> JsResult<JsValue> {
+pub(crate) fn forward_val<T: AsRef<[u8]>>(context: &mut Context<'_>, src: T) -> JsResult<JsValue> {
     use boa_profiler::Profiler;
 
     let main_timer = Profiler::global().start_event("Main", "Main");

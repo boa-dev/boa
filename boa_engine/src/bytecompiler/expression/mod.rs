@@ -21,7 +21,7 @@ mod unary;
 use boa_interner::Sym;
 
 use super::{Access, Callable, NodeKind};
-impl ByteCompiler<'_> {
+impl ByteCompiler<'_, '_> {
     fn compile_literal(&mut self, lit: &AstLiteral, use_expr: bool) {
         match lit {
             AstLiteral::String(v) => self.emit_push_literal(Literal::String(

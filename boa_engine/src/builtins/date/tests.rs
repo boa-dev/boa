@@ -25,7 +25,7 @@ fn datetime_from_local(
         .naive_utc()
 }
 
-fn forward_dt(context: &mut Context, src: &str) -> Option<NaiveDateTime> {
+fn forward_dt(context: &mut Context<'_>, src: &str) -> Option<NaiveDateTime> {
     let date_time = forward_val(context, src).unwrap();
     let date_time = date_time.as_object().unwrap();
     let date_time = date_time.borrow();

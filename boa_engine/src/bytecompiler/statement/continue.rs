@@ -6,7 +6,7 @@ use crate::{
     JsNativeError, JsResult,
 };
 
-impl ByteCompiler<'_> {
+impl ByteCompiler<'_, '_> {
     pub(crate) fn compile_continue(&mut self, node: Continue) -> JsResult<()> {
         let next = self.next_opcode_location();
         if let Some(info) = self

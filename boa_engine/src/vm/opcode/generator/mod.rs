@@ -27,7 +27,7 @@ impl Operation for GeneratorNext {
     const NAME: &'static str = "GeneratorNext";
     const INSTRUCTION: &'static str = "INST - GeneratorNext";
 
-    fn execute(context: &mut Context) -> JsResult<ShouldExit> {
+    fn execute(context: &mut Context<'_>) -> JsResult<ShouldExit> {
         match context.vm.frame().generator_resume_kind {
             GeneratorResumeKind::Normal => Ok(ShouldExit::False),
             GeneratorResumeKind::Throw => {
@@ -69,7 +69,7 @@ impl Operation for AsyncGeneratorNext {
     const NAME: &'static str = "AsyncGeneratorNext";
     const INSTRUCTION: &'static str = "INST - AsyncGeneratorNext";
 
-    fn execute(context: &mut Context) -> JsResult<ShouldExit> {
+    fn execute(context: &mut Context<'_>) -> JsResult<ShouldExit> {
         let value = context.vm.pop();
 
         if context.vm.frame().generator_resume_kind == GeneratorResumeKind::Throw {
@@ -133,7 +133,7 @@ impl Operation for GeneratorNextDelegate {
     const NAME: &'static str = "GeneratorNextDelegate";
     const INSTRUCTION: &'static str = "INST - GeneratorNextDelegate";
 
-    fn execute(context: &mut Context) -> JsResult<ShouldExit> {
+    fn execute(context: &mut Context<'_>) -> JsResult<ShouldExit> {
         let done_address = context.vm.read::<u32>();
         let received = context.vm.pop();
         let done = context

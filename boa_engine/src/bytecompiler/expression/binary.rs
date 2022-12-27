@@ -5,7 +5,7 @@ use boa_ast::expression::operator::{
 
 use crate::{bytecompiler::ByteCompiler, vm::Opcode, JsResult};
 
-impl ByteCompiler<'_> {
+impl ByteCompiler<'_, '_> {
     pub(crate) fn compile_binary(&mut self, binary: &Binary, use_expr: bool) -> JsResult<()> {
         self.compile_expr(binary.lhs(), true)?;
         match binary.op() {

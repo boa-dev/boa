@@ -41,7 +41,7 @@ impl JsObject {
     /// [call]: https://tc39.es/ecma262/#sec-ordinaryobjectcreate
     #[inline]
     #[must_use]
-    pub fn with_object_proto(context: &mut Context) -> Self {
+    pub fn with_object_proto(context: &mut Context<'_>) -> Self {
         Self::from_proto_and_data(
             context.intrinsics().constructors().object().prototype(),
             ObjectData::ordinary(),
@@ -154,7 +154,7 @@ impl JsObject {
     /// [spec]: https://tc39.es/ecma262/#sec-ordinarytoprimitive
     pub(crate) fn ordinary_to_primitive(
         &self,
-        context: &mut Context,
+        context: &mut Context<'_>,
         hint: PreferredType,
     ) -> JsResult<JsValue> {
         // 1. Assert: Type(O) is Object.
@@ -522,7 +522,10 @@ impl JsObject {
     /// - [ECMAScript reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-topropertydescriptor
-    pub fn to_property_descriptor(&self, context: &mut Context) -> JsResult<PropertyDescriptor> {
+    pub fn to_property_descriptor(
+        &self,
+        context: &mut Context<'_>,
+    ) -> JsResult<PropertyDescriptor> {
         // 1 is implemented on the method `to_property_descriptor` of value
 
         // 2. Let desc be a new Property Descriptor that initially has no fields.
@@ -623,7 +626,7 @@ Cannot both specify accessors and a value or writable attribute",
         &self,
         source: &JsValue,
         excluded_keys: Vec<K>,
-        context: &mut Context,
+        context: &mut Context<'_>,
     ) -> JsResult<()>
     where
         K: Into<PropertyKey>,

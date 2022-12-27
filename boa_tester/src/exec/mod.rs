@@ -7,18 +7,12 @@ use super::{
 };
 use crate::read::ErrorType;
 use boa_engine::{
-    builtins::JsArgs,
-    context::{BoaProvider, ContextBuilder},
-    object::FunctionBuilder,
-    property::Attribute,
-    Context, JsNativeErrorKind, JsResult, JsValue,
+    builtins::JsArgs, object::FunctionBuilder, property::Attribute, Context, JsNativeErrorKind,
+    JsResult, JsValue,
 };
 use boa_gc::{Finalize, Gc, GcCell, Trace};
 use boa_parser::Parser;
 use colored::Colorize;
-use icu_provider_adapters::fallback::LocaleFallbackProvider;
-use icu_provider_blob::BlobDataProvider;
-use once_cell::sync::Lazy;
 use rayon::prelude::*;
 use std::borrow::Cow;
 
@@ -135,7 +129,6 @@ impl Test {
 
     /// Runs the test once, in strict or non-strict mode
     fn run_once(&self, harness: &Harness, strict: bool, verbose: u8) -> TestResult {
-        static LOCALE_DATA: Lazy<BlobDataProvider> = Lazy::new(boa_icu_provider::blob);
         if self.ignored {
             if verbose > 1 {
                 println!(
@@ -170,13 +163,7 @@ impl Test {
 
         let result = std::panic::catch_unwind(|| match self.expected_outcome {
             Outcome::Positive => {
-                let mut context = ContextBuilder::default()
-                    .icu_provider(BoaProvider::Buffer(Box::new(
-                        LocaleFallbackProvider::try_new_with_buffer_provider(LOCALE_DATA.clone())
-                            .expect("default locale data should be valid"),
-                    )))
-                    .expect("default locale data should be valid")
-                    .build();
+                let mut context = Context::default();
                 let async_result = AsyncResult::default();
 
                 if let Err(e) = self.set_up_env(harness, &mut context, async_result.clone()) {
@@ -329,7 +316,7 @@ impl Test {
     fn set_up_env(
         &self,
         harness: &Harness,
-        context: &mut Context,
+        context: &mut Context<'_>,
         async_result: AsyncResult,
     ) -> Result<(), String> {
         // Register the print() function.
@@ -371,7 +358,7 @@ impl Test {
     }
 
     /// Registers the print function in the context.
-    fn register_print_fn(context: &mut Context, async_result: AsyncResult) {
+    fn register_print_fn(context: &mut Context<'_>, async_result: AsyncResult) {
         // We use `FunctionBuilder` to define a closure with additional captures.
         let js_function =
             FunctionBuilder::closure_with_captures(context, test262_print, async_result)
@@ -407,7 +394,7 @@ fn test262_print(
     _this: &JsValue,
     args: &[JsValue],
     async_result: &mut AsyncResult,
-    context: &mut Context,
+    context: &mut Context<'_>,
 ) -> JsResult<JsValue> {
     let message = args
         .get_or_undefined(0)

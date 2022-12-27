@@ -46,7 +46,7 @@ impl MapIterator {
     pub(crate) fn create_map_iterator(
         map: &JsValue,
         kind: PropertyNameKind,
-        context: &mut Context,
+        context: &mut Context<'_>,
     ) -> JsResult<JsValue> {
         if let Some(map_obj) = map.as_object() {
             if let Some(map) = map_obj.borrow_mut().as_map_mut() {
@@ -81,7 +81,11 @@ impl MapIterator {
     ///  - [ECMA reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-%mapiteratorprototype%.next
-    pub(crate) fn next(this: &JsValue, _: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
+    pub(crate) fn next(
+        this: &JsValue,
+        _: &[JsValue],
+        context: &mut Context<'_>,
+    ) -> JsResult<JsValue> {
         let mut map_iterator = this.as_object().map(JsObject::borrow_mut);
         let map_iterator = map_iterator
             .as_mut()
@@ -134,7 +138,7 @@ impl MapIterator {
     /// [spec]: https://tc39.es/ecma262/#sec-%mapiteratorprototype%-object
     pub(crate) fn create_prototype(
         iterator_prototype: JsObject,
-        context: &mut Context,
+        context: &mut Context<'_>,
     ) -> JsObject {
         let _timer = Profiler::global().start_event(Self::NAME, "init");
 

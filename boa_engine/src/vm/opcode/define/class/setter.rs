@@ -15,7 +15,7 @@ impl Operation for DefineClassSetterByName {
     const NAME: &'static str = "DefineClassSetterByName";
     const INSTRUCTION: &'static str = "INST - DefineClassSetterByName";
 
-    fn execute(context: &mut Context) -> JsResult<ShouldExit> {
+    fn execute(context: &mut Context<'_>) -> JsResult<ShouldExit> {
         let index = context.vm.read::<u32>();
         let value = context.vm.pop();
         let object = context.vm.pop();
@@ -63,7 +63,7 @@ impl Operation for DefineClassSetterByValue {
     const NAME: &'static str = "DefineClassSetterByValue";
     const INSTRUCTION: &'static str = "INST - DefineClassSetterByValue";
 
-    fn execute(context: &mut Context) -> JsResult<ShouldExit> {
+    fn execute(context: &mut Context<'_>) -> JsResult<ShouldExit> {
         let value = context.vm.pop();
         let key = context.vm.pop();
         let object = context.vm.pop();

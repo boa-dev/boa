@@ -200,7 +200,7 @@ impl CompileTimeEnvironment {
     }
 }
 
-impl Context {
+impl Context<'_> {
     /// Push either a new declarative or function environment on the compile time environment stack.
     ///
     /// Note: This function only works at bytecode compile time!

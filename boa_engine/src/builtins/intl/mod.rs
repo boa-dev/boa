@@ -13,6 +13,7 @@ use super::JsArgs;
 use crate::{
     builtins::intl::date_time_format::DateTimeFormat,
     builtins::{Array, BuiltIn},
+    context::BoaProvider,
     object::ObjectInitializer,
     property::Attribute,
     symbol::WellKnownSymbols,
@@ -39,7 +40,7 @@ pub(crate) struct Intl;
 impl BuiltIn for Intl {
     const NAME: &'static str = "Intl";
 
-    fn init(context: &mut Context) -> Option<JsValue> {
+    fn init(context: &mut Context<'_>) -> Option<JsValue> {
         let _timer = Profiler::global().start_event(Self::NAME, "init");
 
         let collator = Collator::init(context).expect("initialization should return a constructor");
@@ -106,7 +107,7 @@ impl Intl {
     pub(crate) fn get_canonical_locales(
         _: &JsValue,
         args: &[JsValue],
-        context: &mut Context,
+        context: &mut Context<'_>,
     ) -> JsResult<JsValue> {
         let locales = args.get_or_undefined(0);
 
@@ -121,11 +122,11 @@ impl Intl {
     }
 }
 
-// Making `provider: &BoaProvider` instead of a type parameter `P` makes it so that we need
-// to copy-paste the bounds of `impl<M> DataProvider<M> for BoaProvider` every time we need
-// to use `provider`. The type parameter solves this by delegating simpler bounds to every
-// implementor of `Service`.
-trait Service<P> {
+/// A service component that is part of the `Intl` API.
+///
+/// This needs to be implemented for every `Intl` service in order to use the functions
+/// defined in `locale::utils`, such as locale resolution and selection.
+trait Service {
     /// The data marker used by [`resolve_locale`][locale::resolve_locale] to decide
     /// which locales are supported by this service.
     type LangMarker: KeyedDataMarker;
@@ -145,6 +146,10 @@ trait Service<P> {
     /// new final values.
     /// - If the implementor service doesn't contain any `[[RelevantExtensionKeys]]`, this can be
     /// skipped.
-    fn resolve(_locale: &mut icu_locid::Locale, _options: &mut Self::LocaleOptions, _provider: &P) {
+    fn resolve(
+        _locale: &mut icu_locid::Locale,
+        _options: &mut Self::LocaleOptions,
+        _provider: BoaProvider<'_>,
+    ) {
     }
 }

@@ -156,7 +156,7 @@ impl JsError {
     ///
     /// assert!(error_val.as_object().unwrap().borrow().is_error());
     /// ```
-    pub fn to_opaque(&self, context: &mut Context) -> JsValue {
+    pub fn to_opaque(&self, context: &mut Context<'_>) -> JsValue {
         match &self.inner {
             Repr::Native(e) => e.to_opaque(context).into(),
             Repr::Opaque(v) => v.clone(),
@@ -201,7 +201,7 @@ impl JsError {
     /// assert!(matches!(error.kind, JsNativeErrorKind::Type));
     /// assert_eq!(error.message(), "type error!");
     /// ```
-    pub fn try_native(&self, context: &mut Context) -> Result<JsNativeError, TryNativeError> {
+    pub fn try_native(&self, context: &mut Context<'_>) -> Result<JsNativeError, TryNativeError> {
         match &self.inner {
             Repr::Native(e) => Ok(e.clone()),
             Repr::Opaque(val) => {
@@ -213,7 +213,7 @@ impl JsError {
                     .as_error()
                     .ok_or_else(|| TryNativeError::NotAnErrorObject(val.clone()))?;
 
-                let try_get_property = |key, context: &mut Context| {
+                let try_get_property = |key, context: &mut Context<'_>| {
                     obj.has_property(key, context)
                         .map_err(|e| TryNativeError::InaccessibleProperty {
                             property: key,
@@ -636,7 +636,7 @@ impl JsNativeError {
     /// assert!(error_obj.borrow().is_error());
     /// assert_eq!(error_obj.get("message", context).unwrap(), "error!".into())
     /// ```
-    pub fn to_opaque(&self, context: &mut Context) -> JsObject {
+    pub fn to_opaque(&self, context: &mut Context<'_>) -> JsObject {
         let Self {
             kind,
             message,

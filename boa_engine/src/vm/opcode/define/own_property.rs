@@ -15,7 +15,7 @@ impl Operation for DefineOwnPropertyByName {
     const NAME: &'static str = "DefineOwnPropertyByName";
     const INSTRUCTION: &'static str = "INST - DefineOwnPropertyByName";
 
-    fn execute(context: &mut Context) -> JsResult<ShouldExit> {
+    fn execute(context: &mut Context<'_>) -> JsResult<ShouldExit> {
         let index = context.vm.read::<u32>();
         let value = context.vm.pop();
         let object = context.vm.pop();
@@ -54,7 +54,7 @@ impl Operation for DefineOwnPropertyByValue {
     const NAME: &'static str = "DefineOwnPropertyByValue";
     const INSTRUCTION: &'static str = "INST - DefineOwnPropertyByValue";
 
-    fn execute(context: &mut Context) -> JsResult<ShouldExit> {
+    fn execute(context: &mut Context<'_>) -> JsResult<ShouldExit> {
         let value = context.vm.pop();
         let key = context.vm.pop();
         let object = context.vm.pop();

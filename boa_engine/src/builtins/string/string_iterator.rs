@@ -30,7 +30,7 @@ pub struct StringIterator {
 
 impl StringIterator {
     /// Create a new `StringIterator`.
-    pub fn create_string_iterator(string: JsValue, context: &mut Context) -> JsResult<JsValue> {
+    pub fn create_string_iterator(string: JsValue, context: &mut Context<'_>) -> JsResult<JsValue> {
         let string_iterator = JsObject::from_proto_and_data(
             context
                 .intrinsics()
@@ -46,7 +46,7 @@ impl StringIterator {
     }
 
     /// `StringIterator.prototype.next( )`
-    pub fn next(this: &JsValue, _: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
+    pub fn next(this: &JsValue, _: &[JsValue], context: &mut Context<'_>) -> JsResult<JsValue> {
         let mut string_iterator = this.as_object().map(JsObject::borrow_mut);
         let string_iterator = string_iterator
             .as_mut()
@@ -89,7 +89,7 @@ impl StringIterator {
     /// [spec]: https://tc39.es/ecma262/#sec-%arrayiteratorprototype%-object
     pub(crate) fn create_prototype(
         iterator_prototype: JsObject,
-        context: &mut Context,
+        context: &mut Context<'_>,
     ) -> JsObject {
         let _timer = Profiler::global().start_event("String Iterator", "init");
 

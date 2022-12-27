@@ -42,7 +42,7 @@ impl JsDataView {
         array_buffer: &JsArrayBuffer,
         offset: Option<u64>,
         byte_length: Option<u64>,
-        context: &mut Context,
+        context: &mut Context<'_>,
     ) -> JsResult<Self> {
         let (byte_offset, byte_length) = {
             let borrowed_buffer = array_buffer.borrow();
@@ -122,20 +122,20 @@ impl JsDataView {
 
     /// Returns the `viewed_array_buffer` field for [`JsDataView`]
     #[inline]
-    pub fn buffer(&self, context: &mut Context) -> JsResult<JsValue> {
+    pub fn buffer(&self, context: &mut Context<'_>) -> JsResult<JsValue> {
         DataView::get_buffer(&self.inner.clone().into(), &[], context)
     }
 
     /// Returns the `byte_length` property of [`JsDataView`] as a u64 integer
     #[inline]
-    pub fn byte_length(&self, context: &mut Context) -> JsResult<u64> {
+    pub fn byte_length(&self, context: &mut Context<'_>) -> JsResult<u64> {
         DataView::get_byte_length(&self.inner.clone().into(), &[], context)
             .map(|v| v.as_number().expect("value should be a number") as u64)
     }
 
     /// Returns the `byte_offset` field property of [`JsDataView`] as a u64 integer
     #[inline]
-    pub fn byte_offset(&self, context: &mut Context) -> JsResult<u64> {
+    pub fn byte_offset(&self, context: &mut Context<'_>) -> JsResult<u64> {
         DataView::get_byte_offset(&self.inner.clone().into(), &[], context)
             .map(|v| v.as_number().expect("byte_offset value must be a number") as u64)
     }
@@ -146,7 +146,7 @@ impl JsDataView {
         &self,
         byte_offset: usize,
         is_little_endian: bool,
-        context: &mut Context,
+        context: &mut Context<'_>,
     ) -> JsResult<i64> {
         DataView::get_big_int64(
             &self.inner.clone().into(),
@@ -162,7 +162,7 @@ impl JsDataView {
         &self,
         byte_offset: usize,
         is_little_endian: bool,
-        context: &mut Context,
+        context: &mut Context<'_>,
     ) -> JsResult<u64> {
         DataView::get_big_uint64(
             &self.inner.clone().into(),
@@ -178,7 +178,7 @@ impl JsDataView {
         &self,
         byte_offset: usize,
         is_little_endian: bool,
-        context: &mut Context,
+        context: &mut Context<'_>,
     ) -> JsResult<f32> {
         DataView::get_float32(
             &self.inner.clone().into(),
@@ -194,7 +194,7 @@ impl JsDataView {
         &self,
         byte_offset: usize,
         is_little_endian: bool,
-        context: &mut Context,
+        context: &mut Context<'_>,
     ) -> JsResult<f64> {
         DataView::get_float64(
             &self.inner.clone().into(),
@@ -210,7 +210,7 @@ impl JsDataView {
         &self,
         byte_offset: usize,
         is_little_endian: bool,
-        context: &mut Context,
+        context: &mut Context<'_>,
     ) -> JsResult<i8> {
         DataView::get_int8(
             &self.inner.clone().into(),
@@ -226,7 +226,7 @@ impl JsDataView {
         &self,
         byte_offset: usize,
         is_little_endian: bool,
-        context: &mut Context,
+        context: &mut Context<'_>,
     ) -> JsResult<i16> {
         DataView::get_int16(
             &self.inner.clone().into(),
@@ -242,7 +242,7 @@ impl JsDataView {
         &self,
         byte_offset: usize,
         is_little_endian: bool,
-        context: &mut Context,
+        context: &mut Context<'_>,
     ) -> JsResult<i32> {
         DataView::get_int32(
             &self.inner.clone().into(),
@@ -258,7 +258,7 @@ impl JsDataView {
         &self,
         byte_offset: usize,
         is_little_endian: bool,
-        context: &mut Context,
+        context: &mut Context<'_>,
     ) -> JsResult<u8> {
         DataView::get_uint8(
             &self.inner.clone().into(),
@@ -274,7 +274,7 @@ impl JsDataView {
         &self,
         byte_offset: usize,
         is_little_endian: bool,
-        context: &mut Context,
+        context: &mut Context<'_>,
     ) -> JsResult<u16> {
         DataView::get_uint16(
             &self.inner.clone().into(),
@@ -290,7 +290,7 @@ impl JsDataView {
         &self,
         byte_offset: usize,
         is_little_endian: bool,
-        context: &mut Context,
+        context: &mut Context<'_>,
     ) -> JsResult<u32> {
         DataView::get_uint32(
             &self.inner.clone().into(),
@@ -307,7 +307,7 @@ impl JsDataView {
         byte_offset: usize,
         value: i64,
         is_little_endian: bool,
-        context: &mut Context,
+        context: &mut Context<'_>,
     ) -> JsResult<JsValue> {
         DataView::set_big_int64(
             &self.inner.clone().into(),
@@ -323,7 +323,7 @@ impl JsDataView {
         byte_offset: usize,
         value: u64,
         is_little_endian: bool,
-        context: &mut Context,
+        context: &mut Context<'_>,
     ) -> JsResult<JsValue> {
         DataView::set_big_uint64(
             &self.inner.clone().into(),
@@ -339,7 +339,7 @@ impl JsDataView {
         byte_offset: usize,
         value: f32,
         is_little_endian: bool,
-        context: &mut Context,
+        context: &mut Context<'_>,
     ) -> JsResult<JsValue> {
         DataView::set_float32(
             &self.inner.clone().into(),
@@ -355,7 +355,7 @@ impl JsDataView {
         byte_offset: usize,
         value: f64,
         is_little_endian: bool,
-        context: &mut Context,
+        context: &mut Context<'_>,
     ) -> JsResult<JsValue> {
         DataView::set_float64(
             &self.inner.clone().into(),
@@ -371,7 +371,7 @@ impl JsDataView {
         byte_offset: usize,
         value: i8,
         is_little_endian: bool,
-        context: &mut Context,
+        context: &mut Context<'_>,
     ) -> JsResult<JsValue> {
         DataView::set_int8(
             &self.inner.clone().into(),
@@ -387,7 +387,7 @@ impl JsDataView {
         byte_offset: usize,
         value: i16,
         is_little_endian: bool,
-        context: &mut Context,
+        context: &mut Context<'_>,
     ) -> JsResult<JsValue> {
         DataView::set_int16(
             &self.inner.clone().into(),
@@ -403,7 +403,7 @@ impl JsDataView {
         byte_offset: usize,
         value: i32,
         is_little_endian: bool,
-        context: &mut Context,
+        context: &mut Context<'_>,
     ) -> JsResult<JsValue> {
         DataView::set_int32(
             &self.inner.clone().into(),
@@ -419,7 +419,7 @@ impl JsDataView {
         byte_offset: usize,
         value: u8,
         is_little_endian: bool,
-        context: &mut Context,
+        context: &mut Context<'_>,
     ) -> JsResult<JsValue> {
         DataView::set_uint8(
             &self.inner.clone().into(),
@@ -435,7 +435,7 @@ impl JsDataView {
         byte_offset: usize,
         value: u16,
         is_little_endian: bool,
-        context: &mut Context,
+        context: &mut Context<'_>,
     ) -> JsResult<JsValue> {
         DataView::set_uint16(
             &self.inner.clone().into(),
@@ -451,7 +451,7 @@ impl JsDataView {
         byte_offset: usize,
         value: u32,
         is_little_endian: bool,
-        context: &mut Context,
+        context: &mut Context<'_>,
     ) -> JsResult<JsValue> {
         DataView::set_uint32(
             &self.inner.clone().into(),

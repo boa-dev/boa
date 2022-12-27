@@ -37,7 +37,7 @@ pub(crate) struct TypeError;
 impl BuiltIn for TypeError {
     const NAME: &'static str = "TypeError";
 
-    fn init(context: &mut Context) -> Option<JsValue> {
+    fn init(context: &mut Context<'_>) -> Option<JsValue> {
         let _timer = Profiler::global().start_event(Self::NAME, "init");
 
         let error_constructor = context.intrinsics().constructors().error().constructor();
@@ -69,7 +69,7 @@ impl TypeError {
     pub(crate) fn constructor(
         new_target: &JsValue,
         args: &[JsValue],
-        context: &mut Context,
+        context: &mut Context<'_>,
     ) -> JsResult<JsValue> {
         // 1. If NewTarget is undefined, let newTarget be the active function object; else let newTarget be NewTarget.
         // 2. Let O be ? OrdinaryCreateFromConstructor(newTarget, "%NativeError.prototype%", « [[ErrorData]] »).
@@ -95,8 +95,8 @@ impl TypeError {
     }
 }
 
-pub(crate) fn create_throw_type_error(context: &mut Context) -> JsObject {
-    fn throw_type_error(_: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
+pub(crate) fn create_throw_type_error(context: &mut Context<'_>) -> JsObject {
+    fn throw_type_error(_: &JsValue, _: &[JsValue], _: &mut Context<'_>) -> JsResult<JsValue> {
         Err(JsNativeError::typ().with_message("'caller', 'callee', and 'arguments' properties may not be accessed on strict mode functions or the arguments objects for calls to them").into())
     }
 

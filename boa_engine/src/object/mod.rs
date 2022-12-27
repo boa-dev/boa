@@ -1899,17 +1899,17 @@ where
 
 /// Builder for creating native function objects
 #[derive(Debug)]
-pub struct FunctionBuilder<'context> {
-    context: &'context mut Context,
+pub struct FunctionBuilder<'ctx, 'icu> {
+    context: &'ctx mut Context<'icu>,
     function: Function,
     name: JsString,
     length: usize,
 }
 
-impl<'context> FunctionBuilder<'context> {
+impl<'ctx, 'icu> FunctionBuilder<'ctx, 'icu> {
     /// Create a new `FunctionBuilder` for creating a native function.
     #[inline]
-    pub fn native(context: &'context mut Context, function: NativeFunctionSignature) -> Self {
+    pub fn native(context: &'ctx mut Context<'icu>, function: NativeFunctionSignature) -> Self {
         Self {
             context,
             function: Function::Native {
@@ -1922,9 +1922,9 @@ impl<'context> FunctionBuilder<'context> {
     }
 
     /// Create a new `FunctionBuilder` for creating a closure function.
-    pub fn closure<F>(context: &'context mut Context, function: F) -> Self
+    pub fn closure<F>(context: &'ctx mut Context<'icu>, function: F) -> Self
     where
-        F: Fn(&JsValue, &[JsValue], &mut Context) -> JsResult<JsValue> + Copy + 'static,
+        F: Fn(&JsValue, &[JsValue], &mut Context<'_>) -> JsResult<JsValue> + Copy + 'static,
     {
         Self {
             context,
@@ -1945,12 +1945,12 @@ impl<'context> FunctionBuilder<'context> {
     /// You can only move variables that implement `Debug + Any + Trace + Clone`.
     /// In other words, only `NativeObject + Clone` objects are movable.
     pub fn closure_with_captures<F, C>(
-        context: &'context mut Context,
+        context: &'ctx mut Context<'icu>,
         function: F,
         captures: C,
     ) -> Self
     where
-        F: Fn(&JsValue, &[JsValue], &mut C, &mut Context) -> JsResult<JsValue> + Copy + 'static,
+        F: Fn(&JsValue, &[JsValue], &mut C, &mut Context<'_>) -> JsResult<JsValue> + Copy + 'static,
         C: NativeObject,
     {
         Self {
@@ -2086,15 +2086,15 @@ impl<'context> FunctionBuilder<'context> {
 /// }
 /// ```
 #[derive(Debug)]
-pub struct ObjectInitializer<'context> {
-    context: &'context mut Context,
+pub struct ObjectInitializer<'ctx, 'icu> {
+    context: &'ctx mut Context<'icu>,
     object: JsObject,
 }
 
-impl<'context> ObjectInitializer<'context> {
+impl<'ctx, 'icu> ObjectInitializer<'ctx, 'icu> {
     /// Create a new `ObjectBuilder`.
     #[inline]
-    pub fn new(context: &'context mut Context) -> Self {
+    pub fn new(context: &'ctx mut Context<'icu>) -> Self {
         let object = JsObject::with_object_proto(context);
         Self { context, object }
     }
@@ -2150,8 +2150,8 @@ impl<'context> ObjectInitializer<'context> {
 }
 
 /// Builder for creating constructors objects, like `Array`.
-pub struct ConstructorBuilder<'context> {
-    context: &'context mut Context,
+pub struct ConstructorBuilder<'ctx, 'icu> {
+    context: &'ctx mut Context<'icu>,
     function: NativeFunctionSignature,
     object: JsObject,
     has_prototype_property: bool,
@@ -2164,7 +2164,7 @@ pub struct ConstructorBuilder<'context> {
     custom_prototype: Option<JsPrototype>,
 }
 
-impl Debug for ConstructorBuilder<'_> {
+impl Debug for ConstructorBuilder<'_, '_> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         f.debug_struct("ConstructorBuilder")
             .field("name", &self.name)
@@ -2179,10 +2179,13 @@ impl Debug for ConstructorBuilder<'_> {
     }
 }
 
-impl<'context> ConstructorBuilder<'context> {
+impl<'ctx, 'icu> ConstructorBuilder<'ctx, 'icu> {
     /// Create a new `ConstructorBuilder`.
     #[inline]
-    pub fn new(context: &'context mut Context, function: NativeFunctionSignature) -> Self {
+    pub fn new(
+        context: &'ctx mut Context<'icu>,
+        function: NativeFunctionSignature,
+    ) -> ConstructorBuilder<'ctx, 'icu> {
         Self {
             context,
             function,
@@ -2199,10 +2202,10 @@ impl<'context> ConstructorBuilder<'context> {
     }
 
     pub(crate) fn with_standard_constructor(
-        context: &'context mut Context,
+        context: &'ctx mut Context<'icu>,
         function: NativeFunctionSignature,
         standard_constructor: StandardConstructor,
-    ) -> Self {
+    ) -> ConstructorBuilder<'ctx, 'icu> {
         Self {
             context,
             function,
@@ -2432,7 +2435,7 @@ impl<'context> ConstructorBuilder<'context> {
 
     /// Return the current context.
     #[inline]
-    pub fn context(&mut self) -> &'_ mut Context {
+    pub fn context(&mut self) -> &mut Context<'icu> {
         self.context
     }
 

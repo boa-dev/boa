@@ -50,7 +50,7 @@ impl ArrayBuffer {
 impl BuiltIn for ArrayBuffer {
     const NAME: &'static str = "ArrayBuffer";
 
-    fn init(context: &mut Context) -> Option<JsValue> {
+    fn init(context: &mut Context<'_>) -> Option<JsValue> {
         let _timer = Profiler::global().start_event(Self::NAME, "init");
 
         let flag_attributes = Attribute::CONFIGURABLE | Attribute::NON_ENUMERABLE;
@@ -103,7 +103,7 @@ impl ArrayBuffer {
     fn constructor(
         new_target: &JsValue,
         args: &[JsValue],
-        context: &mut Context,
+        context: &mut Context<'_>,
     ) -> JsResult<JsValue> {
         // 1. If NewTarget is undefined, throw a TypeError exception.
         if new_target.is_undefined() {
@@ -126,7 +126,7 @@ impl ArrayBuffer {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-get-arraybuffer-@@species
     #[allow(clippy::unnecessary_wraps)]
-    fn get_species(this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
+    fn get_species(this: &JsValue, _: &[JsValue], _: &mut Context<'_>) -> JsResult<JsValue> {
         // 1. Return the this value.
         Ok(this.clone())
     }
@@ -138,7 +138,7 @@ impl ArrayBuffer {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-arraybuffer.isview
     #[allow(clippy::unnecessary_wraps)]
-    fn is_view(_: &JsValue, args: &[JsValue], _context: &mut Context) -> JsResult<JsValue> {
+    fn is_view(_: &JsValue, args: &[JsValue], _context: &mut Context<'_>) -> JsResult<JsValue> {
         // 1. If Type(arg) is not Object, return false.
         // 2. If arg has a [[ViewedArrayBuffer]] internal slot, return true.
         // 3. Return false.
@@ -159,7 +159,7 @@ impl ArrayBuffer {
     pub(crate) fn get_byte_length(
         this: &JsValue,
         _args: &[JsValue],
-        _: &mut Context,
+        _: &mut Context<'_>,
     ) -> JsResult<JsValue> {
         // 1. Let O be the this value.
         // 2. Perform ? RequireInternalSlot(O, [[ArrayBufferData]]).
@@ -190,7 +190,7 @@ impl ArrayBuffer {
     ///  - [ECMAScript reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-arraybuffer.prototype.slice
-    fn slice(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
+    fn slice(this: &JsValue, args: &[JsValue], context: &mut Context<'_>) -> JsResult<JsValue> {
         // 1. Let O be the this value.
         // 2. Perform ? RequireInternalSlot(O, [[ArrayBufferData]]).
         let obj = this.as_object().ok_or_else(|| {
@@ -332,7 +332,7 @@ impl ArrayBuffer {
     pub(crate) fn allocate(
         constructor: &JsValue,
         byte_length: u64,
-        context: &mut Context,
+        context: &mut Context<'_>,
     ) -> JsResult<JsObject> {
         // 1. Let obj be ? OrdinaryCreateFromConstructor(constructor, "%ArrayBuffer.prototype%", « [[ArrayBufferData]], [[ArrayBufferByteLength]], [[ArrayBufferDetachKey]] »).
         let prototype = get_prototype_from_constructor(
@@ -382,7 +382,7 @@ impl ArrayBuffer {
         src_byte_offset: u64,
         src_length: u64,
         clone_constructor: &JsValue,
-        context: &mut Context,
+        context: &mut Context<'_>,
     ) -> JsResult<JsObject> {
         // 1. Let targetBuffer be ? AllocateArrayBuffer(cloneConstructor, srcLength).
         let target_buffer = Self::allocate(clone_constructor, src_length, context)?;
@@ -627,7 +627,7 @@ impl ArrayBuffer {
         t: TypedArrayKind,
         value: &JsValue,
         is_little_endian: bool,
-        context: &mut Context,
+        context: &mut Context<'_>,
     ) -> JsResult<Vec<u8>> {
         Ok(match t {
             TypedArrayKind::Int8 if is_little_endian => {
@@ -722,7 +722,7 @@ impl ArrayBuffer {
         value: &JsValue,
         _order: SharedMemoryOrder,
         is_little_endian: Option<bool>,
-        context: &mut Context,
+        context: &mut Context<'_>,
     ) -> JsResult<JsValue> {
         // 1. Assert: IsDetachedBuffer(arrayBuffer) is false.
         // 2. Assert: There are sufficient bytes in arrayBuffer starting at byteIndex to represent a value of type.

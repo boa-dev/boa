@@ -15,7 +15,7 @@ impl Operation for SetName {
     const NAME: &'static str = "SetName";
     const INSTRUCTION: &'static str = "INST - SetName";
 
-    fn execute(context: &mut Context) -> JsResult<ShouldExit> {
+    fn execute(context: &mut Context<'_>) -> JsResult<ShouldExit> {
         let index = context.vm.read::<u32>();
         let binding_locator = context.vm.frame().code.bindings[index as usize];
         let value = context.vm.pop();

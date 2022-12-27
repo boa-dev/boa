@@ -71,7 +71,7 @@ impl Arguments {
     /// [spec]: https://tc39.es/ecma262/#sec-createunmappedargumentsobject
     pub(crate) fn create_unmapped_arguments_object(
         arguments_list: &[JsValue],
-        context: &mut Context,
+        context: &mut Context<'_>,
     ) -> JsObject {
         // 1. Let len be the number of elements in argumentsList.
         let len = arguments_list.len();
@@ -151,7 +151,7 @@ impl Arguments {
         formals: &FormalParameterList,
         arguments_list: &[JsValue],
         env: &Gc<DeclarativeEnvironment>,
-        context: &mut Context,
+        context: &mut Context<'_>,
     ) -> JsObject {
         // 1. Assert: formals does not contain a rest parameter, any binding patterns, or any initializers.
         // It may contain duplicate identifiers.

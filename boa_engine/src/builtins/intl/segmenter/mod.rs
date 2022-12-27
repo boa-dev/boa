@@ -15,7 +15,7 @@ pub(crate) struct Segmenter;
 impl BuiltIn for Segmenter {
     const NAME: &'static str = "Segmenter";
 
-    fn init(context: &mut Context) -> Option<JsValue> {
+    fn init(context: &mut Context<'_>) -> Option<JsValue> {
         let _timer = Profiler::global().start_event(Self::NAME, "init");
 
         ConstructorBuilder::with_standard_constructor(
@@ -35,7 +35,11 @@ impl Segmenter {
     pub(crate) const LENGTH: usize = 0;
 
     #[allow(clippy::unnecessary_wraps)]
-    pub(crate) fn constructor(_: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
+    pub(crate) fn constructor(
+        _: &JsValue,
+        _: &[JsValue],
+        _: &mut Context<'_>,
+    ) -> JsResult<JsValue> {
         Ok(JsValue::Undefined)
     }
 }

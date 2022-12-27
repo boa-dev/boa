@@ -15,7 +15,7 @@ impl Operation for GetPropertyByName {
     const NAME: &'static str = "GetPropertyName";
     const INSTRUCTION: &'static str = "INST - GetPropertyName";
 
-    fn execute(context: &mut Context) -> JsResult<ShouldExit> {
+    fn execute(context: &mut Context<'_>) -> JsResult<ShouldExit> {
         let index = context.vm.read::<u32>();
 
         let value = context.vm.pop();
@@ -49,7 +49,7 @@ impl Operation for GetPropertyByValue {
     const NAME: &'static str = "GetPropertyByValue";
     const INSTRUCTION: &'static str = "INST - GetPropertyByValue";
 
-    fn execute(context: &mut Context) -> JsResult<ShouldExit> {
+    fn execute(context: &mut Context<'_>) -> JsResult<ShouldExit> {
         let key = context.vm.pop();
         let object = context.vm.pop();
         let object = if let Some(object) = object.as_object() {
@@ -77,7 +77,7 @@ impl Operation for GetPropertyByValuePush {
     const NAME: &'static str = "GetPropertyByValuePush";
     const INSTRUCTION: &'static str = "INST - GetPropertyByValuePush";
 
-    fn execute(context: &mut Context) -> JsResult<ShouldExit> {
+    fn execute(context: &mut Context<'_>) -> JsResult<ShouldExit> {
         let key = context.vm.pop();
         let object = context.vm.pop();
         let object = if let Some(object) = object.as_object() {

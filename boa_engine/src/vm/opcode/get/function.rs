@@ -14,7 +14,7 @@ impl Operation for GetArrowFunction {
     const NAME: &'static str = "GetArrowFunction";
     const INSTRUCTION: &'static str = "INST - GetArrowFunction";
 
-    fn execute(context: &mut Context) -> JsResult<ShouldExit> {
+    fn execute(context: &mut Context<'_>) -> JsResult<ShouldExit> {
         let index = context.vm.read::<u32>();
         let code = context.vm.frame().code.functions[index as usize].clone();
         let function = create_function_object(code, false, true, None, context);
@@ -34,7 +34,7 @@ impl Operation for GetAsyncArrowFunction {
     const NAME: &'static str = "GetAsyncArrowFunction";
     const INSTRUCTION: &'static str = "INST - GetAsyncArrowFunction";
 
-    fn execute(context: &mut Context) -> JsResult<ShouldExit> {
+    fn execute(context: &mut Context<'_>) -> JsResult<ShouldExit> {
         let index = context.vm.read::<u32>();
         let code = context.vm.frame().code.functions[index as usize].clone();
         let function = create_function_object(code, true, true, None, context);
@@ -54,7 +54,7 @@ impl Operation for GetFunction {
     const NAME: &'static str = "GetFunction";
     const INSTRUCTION: &'static str = "INST - GetFunction";
 
-    fn execute(context: &mut Context) -> JsResult<ShouldExit> {
+    fn execute(context: &mut Context<'_>) -> JsResult<ShouldExit> {
         let index = context.vm.read::<u32>();
         let code = context.vm.frame().code.functions[index as usize].clone();
         let function = create_function_object(code, false, false, None, context);
@@ -74,7 +74,7 @@ impl Operation for GetFunctionAsync {
     const NAME: &'static str = "GetFunctionAsync";
     const INSTRUCTION: &'static str = "INST - GetFunctionAsync";
 
-    fn execute(context: &mut Context) -> JsResult<ShouldExit> {
+    fn execute(context: &mut Context<'_>) -> JsResult<ShouldExit> {
         let index = context.vm.read::<u32>();
         let code = context.vm.frame().code.functions[index as usize].clone();
         let function = create_function_object(code, true, false, None, context);

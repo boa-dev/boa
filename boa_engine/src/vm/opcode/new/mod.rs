@@ -15,7 +15,7 @@ impl Operation for New {
     const NAME: &'static str = "New";
     const INSTRUCTION: &'static str = "INST - New";
 
-    fn execute(context: &mut Context) -> JsResult<ShouldExit> {
+    fn execute(context: &mut Context<'_>) -> JsResult<ShouldExit> {
         if context.vm.stack_size_limit <= context.vm.stack.len() {
             return Err(JsNativeError::range()
                 .with_message("Maximum call stack size exceeded")
@@ -54,7 +54,7 @@ impl Operation for NewSpread {
     const NAME: &'static str = "NewSpread";
     const INSTRUCTION: &'static str = "INST - NewSpread";
 
-    fn execute(context: &mut Context) -> JsResult<ShouldExit> {
+    fn execute(context: &mut Context<'_>) -> JsResult<ShouldExit> {
         if context.vm.stack_size_limit <= context.vm.stack.len() {
             return Err(JsNativeError::range()
                 .with_message("Maximum call stack size exceeded")

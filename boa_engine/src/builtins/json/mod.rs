@@ -138,7 +138,7 @@ pub(crate) struct Json;
 impl BuiltIn for Json {
     const NAME: &'static str = "JSON";
 
-    fn init(context: &mut Context) -> Option<JsValue> {
+    fn init(context: &mut Context<'_>) -> Option<JsValue> {
         let _timer = Profiler::global().start_event(Self::NAME, "init");
 
         let to_string_tag = WellKnownSymbols::to_string_tag();
@@ -167,7 +167,11 @@ impl Json {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-json.parse
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/JSON/parse
-    pub(crate) fn parse(_: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
+    pub(crate) fn parse(
+        _: &JsValue,
+        args: &[JsValue],
+        context: &mut Context<'_>,
+    ) -> JsResult<JsValue> {
         // 1. Let jsonString be ? ToString(text).
         let json_string = args
             .get(0)
@@ -229,7 +233,7 @@ impl Json {
         holder: &JsObject,
         name: JsString,
         reviver: &JsObject,
-        context: &mut Context,
+        context: &mut Context<'_>,
     ) -> JsResult<JsValue> {
         // 1. Let val be ? Get(holder, name).
         let val = holder.get(name.clone(), context)?;
@@ -319,7 +323,7 @@ impl Json {
     pub(crate) fn stringify(
         _: &JsValue,
         args: &[JsValue],
-        context: &mut Context,
+        context: &mut Context<'_>,
     ) -> JsResult<JsValue> {
         // 1. Let stack be a new empty List.
         let stack = Vec::new();
@@ -469,7 +473,7 @@ impl Json {
         state: &mut StateRecord,
         key: JsString,
         holder: &JsObject,
-        context: &mut Context,
+        context: &mut Context<'_>,
     ) -> JsResult<Option<JsString>> {
         // 1. Let value be ? Get(holder, key).
         let mut value = holder.get(key.clone(), context)?;
@@ -640,7 +644,7 @@ impl Json {
     fn serialize_json_object(
         state: &mut StateRecord,
         value: &JsObject,
-        context: &mut Context,
+        context: &mut Context<'_>,
     ) -> JsResult<JsString> {
         // 1. If state.[[Stack]] contains value, throw a TypeError exception because the structure is cyclical.
         let limiter = RecursionLimiter::new(value);
@@ -768,7 +772,7 @@ impl Json {
     fn serialize_json_array(
         state: &mut StateRecord,
         value: &JsObject,
-        context: &mut Context,
+        context: &mut Context<'_>,
     ) -> JsResult<JsString> {
         // 1. If state.[[Stack]] contains value, throw a TypeError exception because the structure is cyclical.
         let limiter = RecursionLimiter::new(value);

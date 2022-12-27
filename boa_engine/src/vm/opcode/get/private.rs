@@ -16,7 +16,7 @@ impl Operation for GetPrivateField {
     const NAME: &'static str = "GetPrivateField";
     const INSTRUCTION: &'static str = "INST - GetPrivateField";
 
-    fn execute(context: &mut Context) -> JsResult<ShouldExit> {
+    fn execute(context: &mut Context<'_>) -> JsResult<ShouldExit> {
         let index = context.vm.read::<u32>();
         let name = context.vm.frame().code.names[index as usize];
         let value = context.vm.pop();

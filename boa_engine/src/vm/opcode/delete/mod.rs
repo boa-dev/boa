@@ -15,7 +15,7 @@ impl Operation for DeletePropertyByName {
     const NAME: &'static str = "DeletePropertyByName";
     const INSTRUCTION: &'static str = "INST - DeletePropertyByName";
 
-    fn execute(context: &mut Context) -> JsResult<ShouldExit> {
+    fn execute(context: &mut Context<'_>) -> JsResult<ShouldExit> {
         let index = context.vm.read::<u32>();
         let key = context.vm.frame().code.names[index as usize];
         let key = context
@@ -46,7 +46,7 @@ impl Operation for DeletePropertyByValue {
     const NAME: &'static str = "DeletePropertyByValue";
     const INSTRUCTION: &'static str = "INST - DeletePropertyByValue";
 
-    fn execute(context: &mut Context) -> JsResult<ShouldExit> {
+    fn execute(context: &mut Context<'_>) -> JsResult<ShouldExit> {
         let key = context.vm.pop();
         let object = context.vm.pop();
         let result = object
@@ -73,7 +73,7 @@ impl Operation for DeleteName {
     const NAME: &'static str = "DeleteName";
     const INSTRUCTION: &'static str = "INST - DeleteName";
 
-    fn execute(context: &mut Context) -> JsResult<ShouldExit> {
+    fn execute(context: &mut Context<'_>) -> JsResult<ShouldExit> {
         let index = context.vm.read::<u32>();
         let binding_locator = context.vm.frame().code.bindings[index as usize];
         binding_locator.throw_mutate_immutable(context)?;
@@ -130,7 +130,7 @@ impl Operation for DeleteSuperThrow {
     const NAME: &'static str = "DeleteSuperThrow";
     const INSTRUCTION: &'static str = "INST - DeleteSuperThrow";
 
-    fn execute(_: &mut Context) -> JsResult<ShouldExit> {
+    fn execute(_: &mut Context<'_>) -> JsResult<ShouldExit> {
         Err(JsNativeError::reference()
             .with_message("cannot delete a property of `super`")
             .into())

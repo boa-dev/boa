@@ -47,7 +47,7 @@ pub(crate) struct Number;
 impl BuiltIn for Number {
     const NAME: &'static str = "Number";
 
-    fn init(context: &mut Context) -> Option<JsValue> {
+    fn init(context: &mut Context<'_>) -> Option<JsValue> {
         let _timer = Profiler::global().start_event(Self::NAME, "init");
 
         let parse_int = FunctionBuilder::native(context, Self::parse_int)
@@ -173,7 +173,7 @@ impl Number {
     pub(crate) fn constructor(
         new_target: &JsValue,
         args: &[JsValue],
-        context: &mut Context,
+        context: &mut Context<'_>,
     ) -> JsResult<JsValue> {
         let data = match args.get(0) {
             Some(value) => value.to_numeric_number(context)?,
@@ -222,7 +222,7 @@ impl Number {
     pub(crate) fn to_exponential(
         this: &JsValue,
         args: &[JsValue],
-        context: &mut Context,
+        context: &mut Context<'_>,
     ) -> JsResult<JsValue> {
         // 1. Let x be ? thisNumberValue(this value).
         let this_num = Self::this_number_value(this)?;
@@ -267,7 +267,7 @@ impl Number {
     pub(crate) fn to_fixed(
         this: &JsValue,
         args: &[JsValue],
-        context: &mut Context,
+        context: &mut Context<'_>,
     ) -> JsResult<JsValue> {
         // 1. Let this_num be ? thisNumberValue(this value).
         let this_num = Self::this_number_value(this)?;
@@ -316,7 +316,7 @@ impl Number {
     pub(crate) fn to_locale_string(
         this: &JsValue,
         _: &[JsValue],
-        _: &mut Context,
+        _: &mut Context<'_>,
     ) -> JsResult<JsValue> {
         let this_num = Self::this_number_value(this)?;
         let this_str_num = this_num.to_string();
@@ -424,7 +424,7 @@ impl Number {
     pub(crate) fn to_precision(
         this: &JsValue,
         args: &[JsValue],
-        context: &mut Context,
+        context: &mut Context<'_>,
     ) -> JsResult<JsValue> {
         let precision = args.get_or_undefined(0);
 
@@ -675,7 +675,7 @@ impl Number {
     pub(crate) fn to_string(
         this: &JsValue,
         args: &[JsValue],
-        context: &mut Context,
+        context: &mut Context<'_>,
     ) -> JsResult<JsValue> {
         // 1. Let x be ? thisNumberValue(this value).
         let x = Self::this_number_value(this)?;
@@ -734,7 +734,11 @@ impl Number {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-number.prototype.valueof
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number/valueOf
-    pub(crate) fn value_of(this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
+    pub(crate) fn value_of(
+        this: &JsValue,
+        _: &[JsValue],
+        _: &mut Context<'_>,
+    ) -> JsResult<JsValue> {
         Ok(JsValue::new(Self::this_number_value(this)?))
     }
 
@@ -755,7 +759,7 @@ impl Number {
     pub(crate) fn parse_int(
         _: &JsValue,
         args: &[JsValue],
-        context: &mut Context,
+        context: &mut Context<'_>,
     ) -> JsResult<JsValue> {
         if let (Some(val), radix) = (args.get(0), args.get_or_undefined(1)) {
             // 1. Let inputString be ? ToString(string).
@@ -880,7 +884,7 @@ impl Number {
     pub(crate) fn parse_float(
         _: &JsValue,
         args: &[JsValue],
-        context: &mut Context,
+        context: &mut Context<'_>,
     ) -> JsResult<JsValue> {
         if let Some(val) = args.get(0) {
             // TODO: parse float with optimal utf16 algorithm
@@ -934,7 +938,7 @@ impl Number {
     pub(crate) fn global_is_finite(
         _: &JsValue,
         args: &[JsValue],
-        context: &mut Context,
+        context: &mut Context<'_>,
     ) -> JsResult<JsValue> {
         if let Some(value) = args.get(0) {
             let number = value.to_number(context)?;
@@ -961,7 +965,7 @@ impl Number {
     pub(crate) fn global_is_nan(
         _: &JsValue,
         args: &[JsValue],
-        context: &mut Context,
+        context: &mut Context<'_>,
     ) -> JsResult<JsValue> {
         if let Some(value) = args.get(0) {
             let number = value.to_number(context)?;
@@ -989,7 +993,7 @@ impl Number {
     pub(crate) fn number_is_finite(
         _: &JsValue,
         args: &[JsValue],
-        _ctx: &mut Context,
+        _ctx: &mut Context<'_>,
     ) -> JsResult<JsValue> {
         // 1. If number is not a Number, return false.
         // 2. If number is not finite, return false.
@@ -1015,7 +1019,7 @@ impl Number {
     pub(crate) fn number_is_integer(
         _: &JsValue,
         args: &[JsValue],
-        _ctx: &mut Context,
+        _ctx: &mut Context<'_>,
     ) -> JsResult<JsValue> {
         Ok(args.get(0).map_or(false, Self::is_integer).into())
     }
@@ -1038,7 +1042,7 @@ impl Number {
     pub(crate) fn number_is_nan(
         _: &JsValue,
         args: &[JsValue],
-        _ctx: &mut Context,
+        _ctx: &mut Context<'_>,
     ) -> JsResult<JsValue> {
         Ok(JsValue::new(
             if let Some(&JsValue::Rational(number)) = args.get(0) {
@@ -1067,7 +1071,7 @@ impl Number {
     pub(crate) fn is_safe_integer(
         _: &JsValue,
         args: &[JsValue],
-        _ctx: &mut Context,
+        _ctx: &mut Context<'_>,
     ) -> JsResult<JsValue> {
         Ok(JsValue::new(match args.get(0) {
             Some(JsValue::Integer(_)) => true,

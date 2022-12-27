@@ -14,7 +14,7 @@ impl Operation for Return {
     const NAME: &'static str = "Return";
     const INSTRUCTION: &'static str = "INST - Return";
 
-    fn execute(context: &mut Context) -> JsResult<ShouldExit> {
+    fn execute(context: &mut Context<'_>) -> JsResult<ShouldExit> {
         if let Some(finally_address) = context.vm.frame().catch.last().and_then(|c| c.finally) {
             let frame = context.vm.frame_mut();
             frame.pc = finally_address as usize;

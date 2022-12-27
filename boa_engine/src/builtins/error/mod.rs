@@ -132,7 +132,7 @@ pub(crate) struct Error;
 impl BuiltIn for Error {
     const NAME: &'static str = "Error";
 
-    fn init(context: &mut Context) -> Option<JsValue> {
+    fn init(context: &mut Context<'_>) -> Option<JsValue> {
         let _timer = Profiler::global().start_event(Self::NAME, "init");
 
         let attribute = Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE;
@@ -159,7 +159,7 @@ impl Error {
     pub(crate) fn install_error_cause(
         o: &JsObject,
         options: &JsValue,
-        context: &mut Context,
+        context: &mut Context<'_>,
     ) -> JsResult<()> {
         // 1. If Type(options) is Object and ? HasProperty(options, "cause") is true, then
         if let Some(options) = options.as_object() {
@@ -182,7 +182,7 @@ impl Error {
     pub(crate) fn constructor(
         new_target: &JsValue,
         args: &[JsValue],
-        context: &mut Context,
+        context: &mut Context<'_>,
     ) -> JsResult<JsValue> {
         // 1. If NewTarget is undefined, let newTarget be the active function object; else let newTarget be NewTarget.
 
@@ -222,7 +222,7 @@ impl Error {
     pub(crate) fn to_string(
         this: &JsValue,
         _: &[JsValue],
-        context: &mut Context,
+        context: &mut Context<'_>,
     ) -> JsResult<JsValue> {
         // 1. Let O be the this value.
         // 2. If Type(O) is not Object, throw a TypeError exception.

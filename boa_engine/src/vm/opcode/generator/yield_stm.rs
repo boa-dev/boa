@@ -14,7 +14,7 @@ impl Operation for Yield {
     const NAME: &'static str = "Yield";
     const INSTRUCTION: &'static str = "INST - Yield";
 
-    fn execute(_context: &mut Context) -> JsResult<ShouldExit> {
+    fn execute(_context: &mut Context<'_>) -> JsResult<ShouldExit> {
         Ok(ShouldExit::Yield)
     }
 }

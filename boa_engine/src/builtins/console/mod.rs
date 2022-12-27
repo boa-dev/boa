@@ -51,7 +51,7 @@ fn logger(msg: LogMessage, console_state: &Console) {
 }
 
 /// This represents the `console` formatter.
-pub fn formatter(data: &[JsValue], context: &mut Context) -> JsResult<String> {
+pub fn formatter(data: &[JsValue], context: &mut Context<'_>) -> JsResult<String> {
     match data {
         [] => Ok(String::new()),
         [val] => Ok(val.to_string(context)?.to_std_string_escaped()),
@@ -133,7 +133,7 @@ pub(crate) struct Console {
 impl BuiltIn for Console {
     const NAME: &'static str = "console";
 
-    fn init(context: &mut Context) -> Option<JsValue> {
+    fn init(context: &mut Context<'_>) -> Option<JsValue> {
         let _timer = Profiler::global().start_event(Self::NAME, "init");
         ObjectInitializer::new(context)
             .function(Self::assert, "assert", 0)
@@ -179,7 +179,7 @@ impl Console {
     pub(crate) fn assert(
         _: &JsValue,
         args: &[JsValue],
-        context: &mut Context,
+        context: &mut Context<'_>,
     ) -> JsResult<JsValue> {
         let assertion = args.get(0).map_or(false, JsValue::to_boolean);
 
@@ -215,7 +215,11 @@ impl Console {
     /// [spec]: https://console.spec.whatwg.org/#clear
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/API/console/clear
     #[allow(clippy::unnecessary_wraps)]
-    pub(crate) fn clear(_: &JsValue, _: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
+    pub(crate) fn clear(
+        _: &JsValue,
+        _: &[JsValue],
+        context: &mut Context<'_>,
+    ) -> JsResult<JsValue> {
         context.console_mut().groups.clear();
         Ok(JsValue::undefined())
     }
@@ -230,7 +234,11 @@ impl Console {
     ///
     /// [spec]: https://console.spec.whatwg.org/#debug
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/API/console/debug
-    pub(crate) fn debug(_: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
+    pub(crate) fn debug(
+        _: &JsValue,
+        args: &[JsValue],
+        context: &mut Context<'_>,
+    ) -> JsResult<JsValue> {
         logger(
             LogMessage::Log(formatter(args, context)?),
             context.console(),
@@ -248,7 +256,11 @@ impl Console {
     ///
     /// [spec]: https://console.spec.whatwg.org/#error
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/API/console/error
-    pub(crate) fn error(_: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
+    pub(crate) fn error(
+        _: &JsValue,
+        args: &[JsValue],
+        context: &mut Context<'_>,
+    ) -> JsResult<JsValue> {
         logger(
             LogMessage::Error(formatter(args, context)?),
             context.console(),
@@ -266,7 +278,11 @@ impl Console {
     ///
     /// [spec]: https://console.spec.whatwg.org/#info
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/API/console/info
-    pub(crate) fn info(_: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
+    pub(crate) fn info(
+        _: &JsValue,
+        args: &[JsValue],
+        context: &mut Context<'_>,
+    ) -> JsResult<JsValue> {
         logger(
             LogMessage::Info(formatter(args, context)?),
             context.console(),
@@ -284,7 +300,11 @@ impl Console {
     ///
     /// [spec]: https://console.spec.whatwg.org/#log
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/API/console/log
-    pub(crate) fn log(_: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
+    pub(crate) fn log(
+        _: &JsValue,
+        args: &[JsValue],
+        context: &mut Context<'_>,
+    ) -> JsResult<JsValue> {
         logger(
             LogMessage::Log(formatter(args, context)?),
             context.console(),
@@ -292,7 +312,7 @@ impl Console {
         Ok(JsValue::undefined())
     }
 
-    fn get_stack_trace(context: &mut Context) -> Vec<String> {
+    fn get_stack_trace(context: &mut Context<'_>) -> Vec<String> {
         let mut stack_trace: Vec<String> = vec![];
 
         for frame in context.vm.frames.iter().rev() {
@@ -317,7 +337,11 @@ impl Console {
     ///
     /// [spec]: https://console.spec.whatwg.org/#trace
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/API/console/trace
-    pub(crate) fn trace(_: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
+    pub(crate) fn trace(
+        _: &JsValue,
+        args: &[JsValue],
+        context: &mut Context<'_>,
+    ) -> JsResult<JsValue> {
         if !args.is_empty() {
             logger(
                 LogMessage::Log(formatter(args, context)?),
@@ -341,7 +365,11 @@ impl Console {
     ///
     /// [spec]: https://console.spec.whatwg.org/#warn
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/API/console/warn
-    pub(crate) fn warn(_: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
+    pub(crate) fn warn(
+        _: &JsValue,
+        args: &[JsValue],
+        context: &mut Context<'_>,
+    ) -> JsResult<JsValue> {
         logger(
             LogMessage::Warn(formatter(args, context)?),
             context.console(),
@@ -359,7 +387,11 @@ impl Console {
     ///
     /// [spec]: https://console.spec.whatwg.org/#count
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/API/console/count
-    pub(crate) fn count(_: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
+    pub(crate) fn count(
+        _: &JsValue,
+        args: &[JsValue],
+        context: &mut Context<'_>,
+    ) -> JsResult<JsValue> {
         let label = match args.get(0) {
             Some(value) => value.to_string(context)?,
             None => "default".into(),
@@ -386,7 +418,7 @@ impl Console {
     pub(crate) fn count_reset(
         _: &JsValue,
         args: &[JsValue],
-        context: &mut Context,
+        context: &mut Context<'_>,
     ) -> JsResult<JsValue> {
         let label = match args.get(0) {
             Some(value) => value.to_string(context)?,
@@ -421,7 +453,11 @@ impl Console {
     ///
     /// [spec]: https://console.spec.whatwg.org/#time
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/API/console/time
-    pub(crate) fn time(_: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
+    pub(crate) fn time(
+        _: &JsValue,
+        args: &[JsValue],
+        context: &mut Context<'_>,
+    ) -> JsResult<JsValue> {
         let label = match args.get(0) {
             Some(value) => value.to_string(context)?,
             None => "default".into(),
@@ -456,7 +492,7 @@ impl Console {
     pub(crate) fn time_log(
         _: &JsValue,
         args: &[JsValue],
-        context: &mut Context,
+        context: &mut Context<'_>,
     ) -> JsResult<JsValue> {
         let label = match args.get(0) {
             Some(value) => value.to_string(context)?,
@@ -496,7 +532,7 @@ impl Console {
     pub(crate) fn time_end(
         _: &JsValue,
         args: &[JsValue],
-        context: &mut Context,
+        context: &mut Context<'_>,
     ) -> JsResult<JsValue> {
         let label = match args.get(0) {
             Some(value) => value.to_string(context)?,
@@ -536,7 +572,11 @@ impl Console {
     ///
     /// [spec]: https://console.spec.whatwg.org/#group
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/API/console/group
-    pub(crate) fn group(_: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
+    pub(crate) fn group(
+        _: &JsValue,
+        args: &[JsValue],
+        context: &mut Context<'_>,
+    ) -> JsResult<JsValue> {
         let group_label = formatter(args, context)?;
 
         logger(
@@ -562,7 +602,7 @@ impl Console {
     pub(crate) fn group_end(
         _: &JsValue,
         _: &[JsValue],
-        context: &mut Context,
+        context: &mut Context<'_>,
     ) -> JsResult<JsValue> {
         context.console_mut().groups.pop();
 
@@ -580,7 +620,11 @@ impl Console {
     /// [spec]: https://console.spec.whatwg.org/#dir
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/API/console/dir
     #[allow(clippy::unnecessary_wraps)]
-    pub(crate) fn dir(_: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
+    pub(crate) fn dir(
+        _: &JsValue,
+        args: &[JsValue],
+        context: &mut Context<'_>,
+    ) -> JsResult<JsValue> {
         logger(
             LogMessage::Info(display_obj(args.get_or_undefined(0), true)),
             context.console(),

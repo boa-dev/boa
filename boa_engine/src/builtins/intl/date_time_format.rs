@@ -25,7 +25,7 @@ use icu_datetime::options::preferences::HourCycle;
 use super::options::OptionType;
 
 impl OptionType for HourCycle {
-    fn from_value(value: JsValue, context: &mut Context) -> JsResult<Self> {
+    fn from_value(value: JsValue, context: &mut Context<'_>) -> JsResult<Self> {
         match value.to_string(context)?.to_std_string_escaped().as_str() {
             "h11" => Ok(HourCycle::H11),
             "h12" => Ok(HourCycle::H12),
@@ -65,7 +65,7 @@ pub struct DateTimeFormat {
 impl DateTimeFormat {
     const NAME: &'static str = "DateTimeFormat";
 
-    pub(super) fn init(context: &mut Context) -> JsFunction {
+    pub(super) fn init(context: &mut Context<'_>) -> JsFunction {
         let _timer = Profiler::global().start_event(Self::NAME, "init");
 
         ConstructorBuilder::new(context, Self::constructor)
@@ -87,7 +87,7 @@ impl DateTimeFormat {
     pub(crate) fn constructor(
         new_target: &JsValue,
         _args: &[JsValue],
-        context: &mut Context,
+        context: &mut Context<'_>,
     ) -> JsResult<JsValue> {
         // 1. If NewTarget is undefined, let newTarget be the active function object, else let newTarget be NewTarget.
         let prototype = get_prototype_from_constructor(
@@ -159,7 +159,7 @@ pub(crate) fn to_date_time_options(
     options: &JsValue,
     required: &DateTimeReqs,
     defaults: &DateTimeReqs,
-    context: &mut Context,
+    context: &mut Context<'_>,
 ) -> JsResult<JsObject> {
     // 1. If options is undefined, let options be null;
     // otherwise let options be ? ToObject(options).

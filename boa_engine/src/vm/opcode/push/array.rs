@@ -15,7 +15,7 @@ impl Operation for PushNewArray {
     const NAME: &'static str = "PushNewArray";
     const INSTRUCTION: &'static str = "INST - PushNewArray";
 
-    fn execute(context: &mut Context) -> JsResult<ShouldExit> {
+    fn execute(context: &mut Context<'_>) -> JsResult<ShouldExit> {
         let array = Array::array_create(0, None, context)
             .expect("Array creation with 0 length should never fail");
         context.vm.push(array);
@@ -34,7 +34,7 @@ impl Operation for PushValueToArray {
     const NAME: &'static str = "PushValueToArray";
     const INSTRUCTION: &'static str = "INST - PushValueToArray";
 
-    fn execute(context: &mut Context) -> JsResult<ShouldExit> {
+    fn execute(context: &mut Context<'_>) -> JsResult<ShouldExit> {
         let value = context.vm.pop();
         let array = context.vm.pop();
         let o = array.as_object().expect("should be an object");
@@ -59,7 +59,7 @@ impl Operation for PushElisionToArray {
     const NAME: &'static str = "PushElisionToArray";
     const INSTRUCTION: &'static str = "INST - PushElisionToArray";
 
-    fn execute(context: &mut Context) -> JsResult<ShouldExit> {
+    fn execute(context: &mut Context<'_>) -> JsResult<ShouldExit> {
         let array = context.vm.pop();
         let o = array.as_object().expect("should always be an object");
 
@@ -84,7 +84,7 @@ impl Operation for PushIteratorToArray {
     const NAME: &'static str = "PushIteratorToArray";
     const INSTRUCTION: &'static str = "INST - PushIteratorToArray";
 
-    fn execute(context: &mut Context) -> JsResult<ShouldExit> {
+    fn execute(context: &mut Context<'_>) -> JsResult<ShouldExit> {
         let done = context
             .vm
             .pop()

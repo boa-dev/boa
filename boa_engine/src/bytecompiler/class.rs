@@ -16,7 +16,7 @@ use crate::{
 
 use super::{ByteCompiler, Literal, NodeKind};
 
-impl ByteCompiler<'_> {
+impl ByteCompiler<'_, '_> {
     /// This function compiles a class declaration or expression.
     ///
     /// The compilation of a class declaration and expression is mostly equal.

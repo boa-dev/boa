@@ -222,7 +222,7 @@ impl Access<'_> {
 
 /// The [`ByteCompiler`] is used to compile ECMAScript AST from [`boa_ast`] to bytecode.
 #[derive(Debug)]
-pub struct ByteCompiler<'b> {
+pub struct ByteCompiler<'b, 'icu> {
     code_block: CodeBlock,
     literals_map: FxHashMap<Literal, u32>,
     names_map: FxHashMap<Identifier, u32>,
@@ -230,16 +230,21 @@ pub struct ByteCompiler<'b> {
     jump_info: Vec<JumpControlInfo>,
     in_async_generator: bool,
     json_parse: bool,
-    context: &'b mut Context,
+    context: &'b mut Context<'icu>,
 }
 
-impl<'b> ByteCompiler<'b> {
+impl<'b, 'icu> ByteCompiler<'b, 'icu> {
     /// Represents a placeholder address that will be patched later.
     const DUMMY_ADDRESS: u32 = u32::MAX;
 
     /// Creates a new [`ByteCompiler`].
     #[inline]
-    pub fn new(name: Sym, strict: bool, json_parse: bool, context: &'b mut Context) -> Self {
+    pub fn new(
+        name: Sym,
+        strict: bool,
+        json_parse: bool,
+        context: &'b mut Context<'icu>,
+    ) -> ByteCompiler<'b, 'icu> {
         Self {
             code_block: CodeBlock::new(name, 0, strict),
             literals_map: FxHashMap::default(),
@@ -703,7 +708,10 @@ impl<'b> ByteCompiler<'b> {
 
     // The wrap is needed so it can match the function signature.
     #[allow(clippy::unnecessary_wraps)]
-    fn access_set_top_of_stack_expr_fn(compiler: &mut ByteCompiler<'_>, level: u8) -> JsResult<()> {
+    fn access_set_top_of_stack_expr_fn(
+        compiler: &mut ByteCompiler<'_, '_>,
+        level: u8,
+    ) -> JsResult<()> {
         match level {
             0 => {}
             1 => compiler.emit_opcode(Opcode::Swap),
@@ -717,7 +725,7 @@ impl<'b> ByteCompiler<'b> {
 
     fn access_set<F, R>(&mut self, access: Access<'_>, use_expr: bool, expr_fn: F) -> JsResult<R>
     where
-        F: FnOnce(&mut ByteCompiler<'_>, u8) -> JsResult<R>,
+        F: FnOnce(&mut ByteCompiler<'_, '_>, u8) -> JsResult<R>,
     {
         match access {
             Access::Variable { name } => {
