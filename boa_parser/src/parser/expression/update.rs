@@ -56,7 +56,6 @@ impl UpdateExpression {
     }
 }
 
-#[inline]
 fn is_simple(expr: &Expression, position: Position, strict: bool) -> ParseResult<bool> {
     match expr {
         Expression::Identifier(ident) => {
