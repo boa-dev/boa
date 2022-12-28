@@ -56,6 +56,7 @@ impl UpdateExpression {
     }
 }
 
+// https://tc39.es/ecma262/multipage/syntax-directed-operations.html#sec-static-semantics-assignmenttargettype
 fn is_simple(expr: &Expression, position: Position, strict: bool) -> ParseResult<bool> {
     match expr {
         Expression::Identifier(ident) => {
