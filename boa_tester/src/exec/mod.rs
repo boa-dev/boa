@@ -7,7 +7,7 @@ use super::{
 };
 use crate::read::ErrorType;
 use boa_engine::{
-    builtins::JsArgs, function::NativeCallable, object::FunctionBuilder, property::Attribute,
+    builtins::JsArgs, native_function::NativeFunction, object::FunctionObjectBuilder, property::Attribute,
     Context, JsNativeErrorKind, JsValue,
 };
 use boa_parser::Parser;
@@ -359,11 +359,11 @@ impl Test {
     /// Registers the print function in the context.
     fn register_print_fn(context: &mut Context<'_>, async_result: AsyncResult) {
         // We use `FunctionBuilder` to define a closure with additional captures.
-        let js_function = FunctionBuilder::new(
+        let js_function = FunctionObjectBuilder::new(
             context,
             // SAFETY: `AsyncResult` has only non-traceable captures, making this safe.
             unsafe {
-                NativeCallable::from_closure(move |_, args, context| {
+                NativeFunction::from_closure(move |_, args, context| {
                     let message = args
                         .get_or_undefined(0)
                         .to_string(context)?

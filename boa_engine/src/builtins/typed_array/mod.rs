@@ -21,10 +21,10 @@ use crate::{
     },
     context::intrinsics::{StandardConstructor, StandardConstructors},
     error::JsNativeError,
-    function::NativeCallable,
+    native_function::NativeFunction,
     js_string,
     object::{
-        internal_methods::get_prototype_from_constructor, ConstructorBuilder, FunctionBuilder,
+        internal_methods::get_prototype_from_constructor, ConstructorBuilder, FunctionObjectBuilder,
         JsObject, ObjectData,
     },
     property::{Attribute, PropertyNameKind},
@@ -67,9 +67,9 @@ macro_rules! typed_array {
                     .typed_array()
                     .prototype();
 
-                let get_species = FunctionBuilder::new(
+                let get_species = FunctionObjectBuilder::new(
                     context,
-                    NativeCallable::from_fn_ptr(TypedArray::get_species),
+                    NativeFunction::from_fn_ptr(TypedArray::get_species),
                 )
                 .name("get [Symbol.species]")
                 .constructor(false)
@@ -255,41 +255,41 @@ impl BuiltIn for TypedArray {
     const NAME: &'static str = "TypedArray";
     fn init(context: &mut Context<'_>) -> Option<JsValue> {
         let get_species =
-            FunctionBuilder::new(context, NativeCallable::from_fn_ptr(Self::get_species))
+            FunctionObjectBuilder::new(context, NativeFunction::from_fn_ptr(Self::get_species))
                 .name("get [Symbol.species]")
                 .constructor(false)
                 .build();
 
-        let get_buffer = FunctionBuilder::new(context, NativeCallable::from_fn_ptr(Self::buffer))
+        let get_buffer = FunctionObjectBuilder::new(context, NativeFunction::from_fn_ptr(Self::buffer))
             .name("get buffer")
             .constructor(false)
             .build();
 
         let get_byte_length =
-            FunctionBuilder::new(context, NativeCallable::from_fn_ptr(Self::byte_length))
+            FunctionObjectBuilder::new(context, NativeFunction::from_fn_ptr(Self::byte_length))
                 .name("get byteLength")
                 .constructor(false)
                 .build();
 
         let get_byte_offset =
-            FunctionBuilder::new(context, NativeCallable::from_fn_ptr(Self::byte_offset))
+            FunctionObjectBuilder::new(context, NativeFunction::from_fn_ptr(Self::byte_offset))
                 .name("get byteOffset")
                 .constructor(false)
                 .build();
 
-        let get_length = FunctionBuilder::new(context, NativeCallable::from_fn_ptr(Self::length))
+        let get_length = FunctionObjectBuilder::new(context, NativeFunction::from_fn_ptr(Self::length))
             .name("get length")
             .constructor(false)
             .build();
 
         let get_to_string_tag =
-            FunctionBuilder::new(context, NativeCallable::from_fn_ptr(Self::to_string_tag))
+            FunctionObjectBuilder::new(context, NativeFunction::from_fn_ptr(Self::to_string_tag))
                 .name("get [Symbol.toStringTag]")
                 .constructor(false)
                 .build();
 
         let values_function =
-            FunctionBuilder::new(context, NativeCallable::from_fn_ptr(Self::values))
+            FunctionObjectBuilder::new(context, NativeFunction::from_fn_ptr(Self::values))
                 .name("values")
                 .length(0)
                 .constructor(false)

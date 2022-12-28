@@ -1,9 +1,9 @@
 use super::{Promise, PromiseCapability};
 use crate::{
     builtins::promise::{ReactionRecord, ReactionType},
-    function::NativeCallable,
+    native_function::NativeFunction,
     job::JobCallback,
-    object::{FunctionBuilder, JsObject},
+    object::{FunctionObjectBuilder, JsObject},
     Context, JsValue,
 };
 use boa_gc::{Finalize, Trace};
@@ -28,9 +28,9 @@ impl PromiseJob {
         }
 
         // 1. Let job be a new Job Abstract Closure with no parameters that captures reaction and argument and performs the following steps when called:
-        let job = FunctionBuilder::new(
+        let job = FunctionObjectBuilder::new(
             context,
-            NativeCallable::from_copy_closure_with_captures(
+            NativeFunction::from_copy_closure_with_captures(
                 |_this, _args, captures, context| {
                     let ReactionJobCaptures { reaction, argument } = captures;
 
@@ -124,9 +124,9 @@ impl PromiseJob {
         context: &mut Context<'_>,
     ) -> JobCallback {
         // 1. Let job be a new Job Abstract Closure with no parameters that captures promiseToResolve, thenable, and then and performs the following steps when called:
-        let job = FunctionBuilder::new(
+        let job = FunctionObjectBuilder::new(
             context,
-            NativeCallable::from_copy_closure_with_captures(
+            NativeFunction::from_copy_closure_with_captures(
                 |_this: &JsValue, _args: &[JsValue], captures, context: &mut Context<'_>| {
                     let JobCapture {
                         promise_to_resolve,

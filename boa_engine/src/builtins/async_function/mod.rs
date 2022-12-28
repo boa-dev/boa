@@ -12,7 +12,7 @@ use crate::{
         function::{ConstructorKind, Function},
         BuiltIn,
     },
-    function::NativeCallable,
+    native_function::NativeFunction,
     object::ObjectData,
     property::PropertyDescriptor,
     symbol::WellKnownSymbols,
@@ -63,7 +63,7 @@ impl BuiltIn for AsyncFunction {
             .configurable(false);
         constructor.borrow_mut().insert("prototype", property);
         constructor.borrow_mut().data = ObjectData::function(Function::Native {
-            function: NativeCallable::from_fn_ptr(Self::constructor),
+            function: NativeFunction::from_fn_ptr(Self::constructor),
             constructor: Some(ConstructorKind::Base),
         });
 

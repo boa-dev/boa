@@ -20,9 +20,9 @@ use crate::{
     builtins,
     bytecompiler::ByteCompiler,
     class::{Class, ClassBuilder},
-    function::NativeCallable,
+    native_function::NativeFunction,
     job::JobCallback,
-    object::{FunctionBuilder, GlobalPropertyMap, JsObject},
+    object::{FunctionObjectBuilder, GlobalPropertyMap, JsObject},
     property::{Attribute, PropertyDescriptor, PropertyKey},
     realm::Realm,
     vm::{CallFrame, CodeBlock, FinallyReturn, GeneratorResumeKind, Vm},
@@ -281,8 +281,8 @@ impl Context<'_> {
     ///
     /// If you wish to only create the function object without binding it to the global object, you
     /// can use the [`FunctionBuilder`] API.
-    pub fn register_global_callable(&mut self, name: &str, length: usize, body: NativeCallable) {
-        let function = FunctionBuilder::new(self, body)
+    pub fn register_global_callable(&mut self, name: &str, length: usize, body: NativeFunction) {
+        let function = FunctionObjectBuilder::new(self, body)
             .name(name)
             .length(length)
             .constructor(true)
@@ -312,9 +312,9 @@ impl Context<'_> {
         &mut self,
         name: &str,
         length: usize,
-        body: NativeCallable,
+        body: NativeFunction,
     ) {
-        let function = FunctionBuilder::new(self, body)
+        let function = FunctionObjectBuilder::new(self, body)
             .name(name)
             .length(length)
             .constructor(false)

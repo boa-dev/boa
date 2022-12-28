@@ -9,9 +9,7 @@ use boa_gc::{custom_trace, Finalize, Gc, Trace};
 
 use crate::{Context, JsResult, JsValue};
 
-/// A native built-in function a.k.a. function pointer.
-///
-/// Native functions need to have this signature in order to be callable from ECMAScript.
+/// The required signature for all native built-in function pointers.
 ///
 /// # Arguments
 ///
@@ -20,7 +18,7 @@ use crate::{Context, JsResult, JsValue};
 /// - The second argument represents the list of all arguments passed to the function.
 ///
 /// - The last argument is the engine [`Context`].
-pub type NativeFunctionSignature = fn(&JsValue, &[JsValue], &mut Context<'_>) -> JsResult<JsValue>;
+pub type NativeFunctionPointer = fn(&JsValue, &[JsValue], &mut Context<'_>) -> JsResult<JsValue>;
 
 trait TraceableClosure: Trace {
     fn call(
@@ -63,7 +61,7 @@ where
 /// A callable Rust function that can be invoked by the engine.
 ///
 /// `NativeCallable` functions are divided in two:
-/// - Function pointers a.k.a common functions (see [`NativeFunctionSignature`]).
+/// - Function pointers a.k.a common functions (see [`NativeFunctionPointer`]).
 /// - Closure functions that can capture the current environment.
 ///
 /// # Caveats
@@ -74,17 +72,17 @@ where
 /// API, but note that passing closures implicitly capturing traceable types could cause
 /// **Undefined Behaviour**.
 #[derive(Clone)]
-pub struct NativeCallable {
+pub struct NativeFunction {
     inner: Inner,
 }
 
 #[derive(Clone)]
 enum Inner {
-    PointerFn(NativeFunctionSignature),
+    PointerFn(NativeFunctionPointer),
     Closure(Gc<dyn TraceableClosure>),
 }
 
-impl Finalize for NativeCallable {
+impl Finalize for NativeFunction {
     fn finalize(&self) {
         if let Inner::Closure(c) = &self.inner {
             c.finalize();
@@ -94,7 +92,7 @@ impl Finalize for NativeCallable {
 
 // Manual implementation because deriving `Trace` triggers the `single_use_lifetimes` lint.
 // SAFETY: Only closures can contain `Trace` captures, so this implementation is safe.
-unsafe impl Trace for NativeCallable {
+unsafe impl Trace for NativeFunction {
     custom_trace!(this, {
         if let Inner::Closure(c) = &this.inner {
             mark(c);
@@ -102,16 +100,16 @@ unsafe impl Trace for NativeCallable {
     });
 }
 
-impl std::fmt::Debug for NativeCallable {
+impl std::fmt::Debug for NativeFunction {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         f.debug_struct("NativeCallable").finish_non_exhaustive()
     }
 }
 
-impl NativeCallable {
+impl NativeFunction {
     /// Creates a `NativeCallable` from a function pointer.
     #[inline]
-    pub fn from_fn_ptr(function: NativeFunctionSignature) -> Self {
+    pub fn from_fn_ptr(function: NativeFunctionPointer) -> Self {
         Self {
             inner: Inner::PointerFn(function),
         }
@@ -255,7 +253,7 @@ where
 /// [`HostCallJobCallback`]: https://tc39.es/ecma262/#sec-hostcalljobcallback
 /// [`HostEnqueuePromiseJob`]: https://tc39.es/ecma262/#sec-hostenqueuepromisejob
 /// [**variadic generics**]: https://github.com/rust-lang/rfcs/issues/376
-pub struct GenericNativeCallable<Ret: 'static, Args: 'static> {
+pub struct GenericNativeFunction<Ret: 'static, Args: 'static> {
     inner: GenericInner<Ret, Args>,
 }
 
@@ -264,7 +262,7 @@ enum GenericInner<Ret: 'static, Args: 'static> {
     Closure(Box<dyn TraceableGenericClosure<Ret, Args>>),
 }
 
-impl<Ret, Args> Finalize for GenericNativeCallable<Ret, Args> {
+impl<Ret, Args> Finalize for GenericNativeFunction<Ret, Args> {
     fn finalize(&self) {
         if let GenericInner::Closure(c) = &self.inner {
             c.finalize();
@@ -274,7 +272,7 @@ impl<Ret, Args> Finalize for GenericNativeCallable<Ret, Args> {
 
 // Manual implementation because deriving `Trace` triggers the `single_use_lifetimes` lint.
 // SAFETY: Only closures can contain `Trace` captures, so this implementation is safe.
-unsafe impl<Ret, Args> Trace for GenericNativeCallable<Ret, Args> {
+unsafe impl<Ret, Args> Trace for GenericNativeFunction<Ret, Args> {
     custom_trace!(this, {
         if let GenericInner::Closure(c) = &this.inner {
             mark(c);
@@ -282,13 +280,13 @@ unsafe impl<Ret, Args> Trace for GenericNativeCallable<Ret, Args> {
     });
 }
 
-impl<Ret, Args> std::fmt::Debug for GenericNativeCallable<Ret, Args> {
+impl<Ret, Args> std::fmt::Debug for GenericNativeFunction<Ret, Args> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         f.debug_struct("NativeCallable").finish_non_exhaustive()
     }
 }
 
-impl<Ret, Args> GenericNativeCallable<Ret, Args> {
+impl<Ret, Args> GenericNativeFunction<Ret, Args> {
     /// Creates a `GenericNativeCallable` from a function pointer.
     #[inline]
     pub fn from_fn_ptr(function: fn(Args, &mut Context<'_>) -> Ret) -> Self {

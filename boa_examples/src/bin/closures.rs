@@ -4,9 +4,9 @@
 use std::cell::{Cell, RefCell};
 
 use boa_engine::{
-    function::NativeCallable,
+    native_function::NativeFunction,
     js_string,
-    object::{builtins::JsArray, FunctionBuilder, JsObject},
+    object::{builtins::JsArray, FunctionObjectBuilder, JsObject},
     property::{Attribute, PropertyDescriptor},
     string::utf16,
     Context, JsError, JsNativeError, JsString, JsValue,
@@ -25,7 +25,7 @@ fn main() -> Result<(), JsError> {
     context.register_global_callable(
         "closure",
         0,
-        NativeCallable::from_copy_closure(move |_, _, _| {
+        NativeFunction::from_copy_closure(move |_, _, _| {
             println!("Called `closure`");
             // `variable` is captured from the main function.
             println!("variable = {variable}");
@@ -68,9 +68,9 @@ fn main() -> Result<(), JsError> {
 
     // We can use `FunctionBuilder` to define a closure with additional captures and custom property
     // attributes.
-    let js_function = FunctionBuilder::new(
+    let js_function = FunctionObjectBuilder::new(
         &mut context,
-        NativeCallable::from_copy_closure_with_captures(
+        NativeFunction::from_copy_closure_with_captures(
             |_, _, captures, context| {
                 let mut captures = captures.borrow_mut();
                 let BigStruct { greeting, object } = &mut *captures;
@@ -145,7 +145,7 @@ fn main() -> Result<(), JsError> {
         // Note that it is required to use `unsafe` code, since the compiler cannot verify that the
         // types captured by the closure are not traceable.
         unsafe {
-            NativeCallable::from_closure(move |_, _, context| {
+            NativeFunction::from_closure(move |_, _, context| {
                 println!("Called `enumerate`");
                 // `index` is captured from the main function.
                 println!("index = {}", index.get());

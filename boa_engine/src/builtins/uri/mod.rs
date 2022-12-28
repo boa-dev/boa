@@ -19,7 +19,7 @@ use self::consts::{
 
 use super::BuiltIn;
 use crate::{
-    builtins::JsArgs, function::NativeCallable, js_string, object::FunctionBuilder,
+    builtins::JsArgs, native_function::NativeFunction, js_string, object::FunctionObjectBuilder,
     property::Attribute, string::CodePoint, Context, JsNativeError, JsResult, JsString, JsValue,
 };
 
@@ -32,7 +32,7 @@ impl BuiltIn for Uri {
 
     fn init(context: &mut Context<'_>) -> Option<JsValue> {
         let decode_uri =
-            FunctionBuilder::new(context, NativeCallable::from_fn_ptr(Self::decode_uri))
+            FunctionObjectBuilder::new(context, NativeFunction::from_fn_ptr(Self::decode_uri))
                 .name("decodeURI")
                 .length(1)
                 .constructor(false)
@@ -44,9 +44,9 @@ impl BuiltIn for Uri {
             Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
         );
 
-        let decode_uri_component = FunctionBuilder::new(
+        let decode_uri_component = FunctionObjectBuilder::new(
             context,
-            NativeCallable::from_fn_ptr(Self::decode_uri_component),
+            NativeFunction::from_fn_ptr(Self::decode_uri_component),
         )
         .name("decodeURIComponent")
         .length(1)
@@ -60,7 +60,7 @@ impl BuiltIn for Uri {
         );
 
         let encode_uri =
-            FunctionBuilder::new(context, NativeCallable::from_fn_ptr(Self::encode_uri))
+            FunctionObjectBuilder::new(context, NativeFunction::from_fn_ptr(Self::encode_uri))
                 .name("encodeURI")
                 .length(1)
                 .constructor(false)
@@ -72,9 +72,9 @@ impl BuiltIn for Uri {
             Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
         );
 
-        let encode_uri_component = FunctionBuilder::new(
+        let encode_uri_component = FunctionObjectBuilder::new(
             context,
-            NativeCallable::from_fn_ptr(Self::encode_uri_component),
+            NativeFunction::from_fn_ptr(Self::encode_uri_component),
         )
         .name("encodeURIComponent")
         .length(1)

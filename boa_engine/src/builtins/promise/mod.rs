@@ -11,10 +11,10 @@ use crate::{
     builtins::{error::ErrorKind, Array, BuiltIn},
     context::intrinsics::StandardConstructors,
     error::JsNativeError,
-    function::NativeCallable,
+    native_function::NativeFunction,
     job::JobCallback,
     object::{
-        internal_methods::get_prototype_from_constructor, ConstructorBuilder, FunctionBuilder,
+        internal_methods::get_prototype_from_constructor, ConstructorBuilder, FunctionObjectBuilder,
         JsFunction, JsObject, ObjectData,
     },
     property::{Attribute, PropertyDescriptorBuilder},
@@ -153,9 +153,9 @@ impl PromiseCapability {
 
                 // 4. Let executorClosure be a new Abstract Closure with parameters (resolve, reject) that captures promiseCapability and performs the following steps when called:
                 // 5. Let executor be CreateBuiltinFunction(executorClosure, 2, "", « »).
-                let executor = FunctionBuilder::new(
+                let executor = FunctionObjectBuilder::new(
                     context,
-                    NativeCallable::from_copy_closure_with_captures(
+                    NativeFunction::from_copy_closure_with_captures(
                         |_this, args: &[JsValue], captures, _| {
                             let mut promise_capability = captures.borrow_mut();
                             // a. If promiseCapability.[[Resolve]] is not undefined, throw a TypeError exception.
@@ -258,7 +258,7 @@ impl BuiltIn for Promise {
         let _timer = Profiler::global().start_event(Self::NAME, "init");
 
         let get_species =
-            FunctionBuilder::new(context, NativeCallable::from_fn_ptr(Self::get_species))
+            FunctionObjectBuilder::new(context, NativeFunction::from_fn_ptr(Self::get_species))
                 .name("get [Symbol.species]")
                 .constructor(false)
                 .build();
@@ -546,9 +546,9 @@ impl Promise {
             // o. Set onFulfilled.[[Values]] to values.
             // p. Set onFulfilled.[[Capability]] to resultCapability.
             // q. Set onFulfilled.[[RemainingElements]] to remainingElementsCount.
-            let on_fulfilled = FunctionBuilder::new(
+            let on_fulfilled = FunctionObjectBuilder::new(
                 context,
-                NativeCallable::from_copy_closure_with_captures(
+                NativeFunction::from_copy_closure_with_captures(
                     |_, args, captures, context| {
                         // https://tc39.es/ecma262/#sec-promise.all-resolve-element-functions
 
@@ -791,9 +791,9 @@ impl Promise {
             // p. Set onFulfilled.[[Values]] to values.
             // q. Set onFulfilled.[[Capability]] to resultCapability.
             // r. Set onFulfilled.[[RemainingElements]] to remainingElementsCount.
-            let on_fulfilled = FunctionBuilder::new(
+            let on_fulfilled = FunctionObjectBuilder::new(
                 context,
-                NativeCallable::from_copy_closure_with_captures(
+                NativeFunction::from_copy_closure_with_captures(
                     |_, args, captures, context| {
                         // https://tc39.es/ecma262/#sec-promise.allsettled-resolve-element-functions
 
@@ -877,9 +877,9 @@ impl Promise {
             // x. Set onRejected.[[Values]] to values.
             // y. Set onRejected.[[Capability]] to resultCapability.
             // z. Set onRejected.[[RemainingElements]] to remainingElementsCount.
-            let on_rejected = FunctionBuilder::new(
+            let on_rejected = FunctionObjectBuilder::new(
                 context,
-                NativeCallable::from_copy_closure_with_captures(
+                NativeFunction::from_copy_closure_with_captures(
                     |_, args, captures, context| {
                         // https://tc39.es/ecma262/#sec-promise.allsettled-reject-element-functions
 
@@ -1149,9 +1149,9 @@ impl Promise {
             // o. Set onRejected.[[Errors]] to errors.
             // p. Set onRejected.[[Capability]] to resultCapability.
             // q. Set onRejected.[[RemainingElements]] to remainingElementsCount.
-            let on_rejected = FunctionBuilder::new(
+            let on_rejected = FunctionObjectBuilder::new(
                 context,
-                NativeCallable::from_copy_closure_with_captures(
+                NativeFunction::from_copy_closure_with_captures(
                     |_, args, captures, context| {
                         // https://tc39.es/ecma262/#sec-promise.any-reject-element-functions
 
@@ -1276,9 +1276,9 @@ impl Promise {
         // 2. Let stepsResolve be the algorithm steps defined in Promise Resolve Functions.
         // 3. Let lengthResolve be the number of non-optional parameters of the function definition in Promise Resolve Functions.
         // 4. Let resolve be CreateBuiltinFunction(stepsResolve, lengthResolve, "", « [[Promise]], [[AlreadyResolved]] »).
-        let resolve = FunctionBuilder::new(
+        let resolve = FunctionObjectBuilder::new(
             context,
-            NativeCallable::from_copy_closure_with_captures(
+            NativeFunction::from_copy_closure_with_captures(
                 |_this, args, captures, context| {
                     // https://tc39.es/ecma262/#sec-promise-resolve-functions
 
@@ -1401,9 +1401,9 @@ impl Promise {
         // 7. Let stepsReject be the algorithm steps defined in Promise Reject Functions.
         // 8. Let lengthReject be the number of non-optional parameters of the function definition in Promise Reject Functions.
         // 9. Let reject be CreateBuiltinFunction(stepsReject, lengthReject, "", « [[Promise]], [[AlreadyResolved]] »).
-        let reject = FunctionBuilder::new(
+        let reject = FunctionObjectBuilder::new(
             context,
-            NativeCallable::from_copy_closure_with_captures(
+            NativeFunction::from_copy_closure_with_captures(
                 |_this, args, captures, context| {
                     // https://tc39.es/ecma262/#sec-promise-reject-functions
 
@@ -1835,9 +1835,9 @@ impl Promise {
             }
 
             // a. Let thenFinallyClosure be a new Abstract Closure with parameters (value) that captures onFinally and C and performs the following steps when called:
-            let then_finally_closure = FunctionBuilder::new(
+            let then_finally_closure = FunctionObjectBuilder::new(
                 context,
-                NativeCallable::from_copy_closure_with_captures(
+                NativeFunction::from_copy_closure_with_captures(
                     |_this, args, captures, context| {
                         /// Capture object for the abstract `returnValue` closure.
                         #[derive(Debug, Trace, Finalize)]
@@ -1857,9 +1857,9 @@ impl Promise {
                         let promise = Self::promise_resolve(captures.c.clone(), result, context)?;
 
                         // iii. Let returnValue be a new Abstract Closure with no parameters that captures value and performs the following steps when called:
-                        let return_value = FunctionBuilder::new(
+                        let return_value = FunctionObjectBuilder::new(
                             context,
-                            NativeCallable::from_copy_closure_with_captures(
+                            NativeFunction::from_copy_closure_with_captures(
                                 |_this, _args, captures, _context| {
                                     // 1. Return value.
                                     Ok(captures.value.clone())
@@ -1887,9 +1887,9 @@ impl Promise {
             let then_finally = then_finally_closure.length(1).name("").build();
 
             // c. Let catchFinallyClosure be a new Abstract Closure with parameters (reason) that captures onFinally and C and performs the following steps when called:
-            let catch_finally_closure = FunctionBuilder::new(
+            let catch_finally_closure = FunctionObjectBuilder::new(
                 context,
-                NativeCallable::from_copy_closure_with_captures(
+                NativeFunction::from_copy_closure_with_captures(
                     |_this, args, captures, context| {
                         /// Capture object for the abstract `throwReason` closure.
                         #[derive(Debug, Trace, Finalize)]
@@ -1909,9 +1909,9 @@ impl Promise {
                         let promise = Self::promise_resolve(captures.c.clone(), result, context)?;
 
                         // iii. Let throwReason be a new Abstract Closure with no parameters that captures reason and performs the following steps when called:
-                        let throw_reason = FunctionBuilder::new(
+                        let throw_reason = FunctionObjectBuilder::new(
                             context,
-                            NativeCallable::from_copy_closure_with_captures(
+                            NativeFunction::from_copy_closure_with_captures(
                                 |_this, _args, captures, _context| {
                                     // 1. Return ThrowCompletion(reason).
                                     Err(JsError::from_opaque(captures.reason.clone()))

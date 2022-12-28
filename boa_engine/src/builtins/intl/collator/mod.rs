@@ -14,9 +14,9 @@ use tap::{Conv, Pipe};
 use crate::{
     builtins::{BuiltIn, JsArgs},
     context::{intrinsics::StandardConstructors, BoaProvider},
-    function::NativeCallable,
+    native_function::NativeFunction,
     object::{
-        internal_methods::get_prototype_from_constructor, ConstructorBuilder, FunctionBuilder,
+        internal_methods::get_prototype_from_constructor, ConstructorBuilder, FunctionObjectBuilder,
         JsFunction, JsObject, ObjectData,
     },
     property::Attribute,
@@ -161,7 +161,7 @@ impl BuiltIn for Collator {
     fn init(context: &mut Context<'_>) -> Option<JsValue> {
         let _timer = Profiler::global().start_event(Self::NAME, "init");
 
-        let compare = FunctionBuilder::new(context, NativeCallable::from_fn_ptr(Self::compare))
+        let compare = FunctionObjectBuilder::new(context, NativeFunction::from_fn_ptr(Self::compare))
             .name("get compare")
             .constructor(false)
             .build();
@@ -416,11 +416,11 @@ impl Collator {
         let bound_compare = if let Some(f) = collator.bound_compare.clone() {
             f
         } else {
-            let bound_compare = FunctionBuilder::new(
+            let bound_compare = FunctionObjectBuilder::new(
                 context,
                 // 10.3.3.1. Collator Compare Functions
                 // https://tc39.es/ecma402/#sec-collator-compare-functions
-                NativeCallable::from_copy_closure_with_captures(
+                NativeFunction::from_copy_closure_with_captures(
                     |_, args, collator, context| {
                         // 1. Let collator be F.[[Collator]].
                         // 2. Assert: Type(collator) is Object and collator has an [[InitializedCollator]] internal slot.

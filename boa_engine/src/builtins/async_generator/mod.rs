@@ -11,8 +11,8 @@ use crate::{
         promise::if_abrupt_reject_promise, promise::PromiseCapability, BuiltIn, JsArgs, Promise,
     },
     error::JsNativeError,
-    function::NativeCallable,
-    object::{ConstructorBuilder, FunctionBuilder, JsObject, ObjectData},
+    native_function::NativeFunction,
+    object::{ConstructorBuilder, FunctionObjectBuilder, JsObject, ObjectData},
     property::{Attribute, PropertyDescriptor},
     symbol::WellKnownSymbols,
     value::JsValue,
@@ -628,9 +628,9 @@ impl AsyncGenerator {
 
         // 7. Let fulfilledClosure be a new Abstract Closure with parameters (value) that captures generator and performs the following steps when called:
         // 8. Let onFulfilled be CreateBuiltinFunction(fulfilledClosure, 1, "", « »).
-        let on_fulfilled = FunctionBuilder::new(
+        let on_fulfilled = FunctionObjectBuilder::new(
             context,
-            NativeCallable::from_copy_closure_with_captures(
+            NativeFunction::from_copy_closure_with_captures(
                 |_this, args, generator, context| {
                     let mut generator_borrow_mut = generator.borrow_mut();
                     let gen = generator_borrow_mut
@@ -663,9 +663,9 @@ impl AsyncGenerator {
 
         // 9. Let rejectedClosure be a new Abstract Closure with parameters (reason) that captures generator and performs the following steps when called:
         // 10. Let onRejected be CreateBuiltinFunction(rejectedClosure, 1, "", « »).
-        let on_rejected = FunctionBuilder::new(
+        let on_rejected = FunctionObjectBuilder::new(
             context,
-            NativeCallable::from_copy_closure_with_captures(
+            NativeFunction::from_copy_closure_with_captures(
                 |_this, args, generator, context| {
                     let mut generator_borrow_mut = generator.borrow_mut();
                     let gen = generator_borrow_mut

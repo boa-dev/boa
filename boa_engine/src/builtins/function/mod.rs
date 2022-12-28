@@ -17,10 +17,10 @@ use crate::{
     context::intrinsics::StandardConstructors,
     environments::DeclarativeEnvironmentStack,
     error::JsNativeError,
-    function::{NativeCallable, NativeFunctionSignature},
+    native_function::{NativeFunction, NativeFunctionPointer},
     js_string,
     object::{internal_methods::get_prototype_from_constructor, JsObject, Object, ObjectData},
-    object::{ConstructorBuilder, FunctionBuilder, JsFunction, PrivateElement},
+    object::{ConstructorBuilder, FunctionObjectBuilder, JsFunction, PrivateElement},
     property::{Attribute, PropertyDescriptor, PropertyKey},
     string::utf16,
     symbol::WellKnownSymbols,
@@ -153,7 +153,7 @@ pub enum Function {
     /// A rust function.
     Native {
         /// The rust function.
-        function: NativeCallable,
+        function: NativeFunction,
 
         /// The kind of the function constructor if it is a constructor.
         constructor: Option<ConstructorKind>,
@@ -376,7 +376,7 @@ impl Function {
 /// If no length is provided, the length will be set to 0.
 // TODO: deprecate/remove this.
 pub(crate) fn make_builtin_fn<N>(
-    function: NativeFunctionSignature,
+    function: NativeFunctionPointer,
     name: N,
     parent: &JsObject,
     length: usize,
@@ -394,7 +394,7 @@ pub(crate) fn make_builtin_fn<N>(
             .function()
             .prototype(),
         ObjectData::function(Function::Native {
-            function: NativeCallable::from_fn_ptr(function),
+            function: NativeFunction::from_fn_ptr(function),
             constructor: None,
         }),
     );
@@ -838,7 +838,7 @@ impl BuiltIn for BuiltInFunctionObject {
         let _timer = Profiler::global().start_event("function", "init");
 
         let function_prototype = context.intrinsics().constructors().function().prototype();
-        FunctionBuilder::new(context, NativeCallable::from_fn_ptr(Self::prototype))
+        FunctionObjectBuilder::new(context, NativeFunction::from_fn_ptr(Self::prototype))
             .name("")
             .length(0)
             .constructor(false)
@@ -847,7 +847,7 @@ impl BuiltIn for BuiltInFunctionObject {
         let symbol_has_instance = WellKnownSymbols::has_instance();
 
         let has_instance =
-            FunctionBuilder::new(context, NativeCallable::from_fn_ptr(Self::has_instance))
+            FunctionObjectBuilder::new(context, NativeFunction::from_fn_ptr(Self::has_instance))
                 .name("[Symbol.iterator]")
                 .length(1)
                 .constructor(false)

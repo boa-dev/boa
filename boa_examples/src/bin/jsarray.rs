@@ -1,8 +1,8 @@
 // This example shows how to manipulate a Javascript array using Rust code.
 
 use boa_engine::{
-    function::NativeCallable,
-    object::{builtins::JsArray, FunctionBuilder},
+    native_function::NativeFunction,
+    object::{builtins::JsArray, FunctionObjectBuilder},
     string::utf16,
     Context, JsResult, JsValue,
 };
@@ -61,17 +61,17 @@ fn main() -> JsResult<()> {
     let joined_array = array.join(Some("::".into()), context)?;
     assert_eq!(&joined_array, utf16!("14::false::false::false::10"));
 
-    let filter_callback = FunctionBuilder::new(
+    let filter_callback = FunctionObjectBuilder::new(
         context,
-        NativeCallable::from_fn_ptr(|_this, args, _context| {
+        NativeFunction::from_fn_ptr(|_this, args, _context| {
             Ok(args.get(0).cloned().unwrap_or_default().is_number().into())
         }),
     )
     .build();
 
-    let map_callback = FunctionBuilder::new(
+    let map_callback = FunctionObjectBuilder::new(
         context,
-        NativeCallable::from_fn_ptr(|_this, args, context| {
+        NativeFunction::from_fn_ptr(|_this, args, context| {
             args.get(0)
                 .cloned()
                 .unwrap_or_default()
@@ -95,9 +95,9 @@ fn main() -> JsResult<()> {
 
     assert_eq!(&chained_array.join(None, context)?, utf16!("196,1,2,3"));
 
-    let reduce_callback = FunctionBuilder::new(
+    let reduce_callback = FunctionObjectBuilder::new(
         context,
-        NativeCallable::from_fn_ptr(|_this, args, context| {
+        NativeFunction::from_fn_ptr(|_this, args, context| {
             let accumulator = args.get(0).cloned().unwrap_or_default();
             let value = args.get(1).cloned().unwrap_or_default();
 

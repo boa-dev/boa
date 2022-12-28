@@ -4,8 +4,8 @@ use crate::{
         promise::{if_abrupt_reject_promise, PromiseCapability},
         JsArgs, Promise,
     },
-    function::NativeCallable,
-    object::{FunctionBuilder, JsObject, ObjectData},
+    native_function::NativeFunction,
+    object::{FunctionObjectBuilder, JsObject, ObjectData},
     property::PropertyDescriptor,
     Context, JsNativeError, JsResult, JsValue,
 };
@@ -30,23 +30,23 @@ pub(crate) fn create_async_from_sync_iterator_prototype(context: &mut Context<'_
         ObjectData::ordinary(),
     );
 
-    let next_function = FunctionBuilder::new(
+    let next_function = FunctionObjectBuilder::new(
         context,
-        NativeCallable::from_fn_ptr(AsyncFromSyncIterator::next),
+        NativeFunction::from_fn_ptr(AsyncFromSyncIterator::next),
     )
     .name("next")
     .length(1)
     .build();
-    let return_function = FunctionBuilder::new(
+    let return_function = FunctionObjectBuilder::new(
         context,
-        NativeCallable::from_fn_ptr(AsyncFromSyncIterator::r#return),
+        NativeFunction::from_fn_ptr(AsyncFromSyncIterator::r#return),
     )
     .name("return")
     .length(1)
     .build();
-    let throw_function = FunctionBuilder::new(
+    let throw_function = FunctionObjectBuilder::new(
         context,
-        NativeCallable::from_fn_ptr(AsyncFromSyncIterator::throw),
+        NativeFunction::from_fn_ptr(AsyncFromSyncIterator::throw),
     )
     .name("throw")
     .length(1)
@@ -410,9 +410,9 @@ impl AsyncFromSyncIterator {
         // 8. Let unwrap be a new Abstract Closure with parameters (value)
         // that captures done and performs the following steps when called:
         // 9. Let onFulfilled be CreateBuiltinFunction(unwrap, 1, "", « »).
-        let on_fulfilled = FunctionBuilder::new(
+        let on_fulfilled = FunctionObjectBuilder::new(
             context,
-            NativeCallable::from_copy_closure(move |_this, args, context| {
+            NativeFunction::from_copy_closure(move |_this, args, context| {
                 // a. Return CreateIterResultObject(value, done).
                 Ok(create_iter_result_object(
                     args.get_or_undefined(0).clone(),

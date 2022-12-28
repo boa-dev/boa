@@ -1,9 +1,9 @@
 use crate::{
     error::JsNativeError,
     forward, forward_val,
-    function::NativeCallable,
+    native_function::NativeFunction,
     js_string,
-    object::{FunctionBuilder, JsObject},
+    object::{FunctionObjectBuilder, JsObject},
     property::{Attribute, PropertyDescriptor},
     string::utf16,
     Context, JsNativeErrorKind,
@@ -246,9 +246,9 @@ fn closure_capture_clone() {
         )
         .unwrap();
 
-    let func = FunctionBuilder::new(
+    let func = FunctionObjectBuilder::new(
         &mut context,
-        NativeCallable::from_copy_closure_with_captures(
+        NativeFunction::from_copy_closure_with_captures(
             |_, _, captures, context| {
                 let (string, object) = &captures;
 

@@ -15,8 +15,8 @@ use std::cell::Cell;
 use crate::{
     builtins::{BuiltIn, JsArgs},
     error::JsNativeError,
-    function::NativeCallable,
-    object::{ConstructorBuilder, FunctionBuilder, JsFunction, JsObject, ObjectData},
+    native_function::NativeFunction,
+    object::{ConstructorBuilder, FunctionObjectBuilder, JsFunction, JsObject, ObjectData},
     Context, JsResult, JsValue,
 };
 use boa_gc::{Finalize, Trace};
@@ -137,9 +137,9 @@ impl Proxy {
     pub(crate) fn revoker(proxy: JsObject, context: &mut Context<'_>) -> JsFunction {
         // 3. Let revoker be ! CreateBuiltinFunction(revokerClosure, 0, "", « [[RevocableProxy]] »).
         // 4. Set revoker.[[RevocableProxy]] to p.
-        FunctionBuilder::new(
+        FunctionObjectBuilder::new(
             context,
-            NativeCallable::from_copy_closure_with_captures(
+            NativeFunction::from_copy_closure_with_captures(
                 |_, _, revocable_proxy, _| {
                     // a. Let F be the active function object.
                     // b. Let p be F.[[RevocableProxy]].

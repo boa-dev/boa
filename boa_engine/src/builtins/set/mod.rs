@@ -16,9 +16,9 @@ use crate::{
     builtins::BuiltIn,
     context::intrinsics::StandardConstructors,
     error::JsNativeError,
-    function::NativeCallable,
+    native_function::NativeFunction,
     object::{
-        internal_methods::get_prototype_from_constructor, ConstructorBuilder, FunctionBuilder,
+        internal_methods::get_prototype_from_constructor, ConstructorBuilder, FunctionObjectBuilder,
         JsObject, ObjectData,
     },
     property::{Attribute, PropertyNameKind},
@@ -43,13 +43,13 @@ impl BuiltIn for Set {
         let _timer = Profiler::global().start_event(Self::NAME, "init");
 
         let get_species =
-            FunctionBuilder::new(context, NativeCallable::from_fn_ptr(Self::get_species))
+            FunctionObjectBuilder::new(context, NativeFunction::from_fn_ptr(Self::get_species))
                 .name("get [Symbol.species]")
                 .constructor(false)
                 .build();
 
         let size_getter =
-            FunctionBuilder::new(context, NativeCallable::from_fn_ptr(Self::size_getter))
+            FunctionObjectBuilder::new(context, NativeFunction::from_fn_ptr(Self::size_getter))
                 .constructor(false)
                 .name("get size")
                 .build();
@@ -59,7 +59,7 @@ impl BuiltIn for Set {
         let to_string_tag = WellKnownSymbols::to_string_tag();
 
         let values_function =
-            FunctionBuilder::new(context, NativeCallable::from_fn_ptr(Self::values))
+            FunctionObjectBuilder::new(context, NativeFunction::from_fn_ptr(Self::values))
                 .name("values")
                 .length(0)
                 .constructor(false)

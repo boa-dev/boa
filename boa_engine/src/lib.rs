@@ -114,7 +114,7 @@ pub mod class;
 pub mod context;
 pub mod environments;
 pub mod error;
-pub mod function;
+pub mod native_function;
 pub mod job;
 pub mod object;
 pub mod property;

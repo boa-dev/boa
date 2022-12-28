@@ -20,10 +20,10 @@ use crate::{
     builtins::{map, BuiltIn, JsArgs},
     context::intrinsics::StandardConstructors,
     error::JsNativeError,
-    function::NativeCallable,
+    native_function::NativeFunction,
     js_string,
     object::{
-        internal_methods::get_prototype_from_constructor, ConstructorBuilder, FunctionBuilder,
+        internal_methods::get_prototype_from_constructor, ConstructorBuilder, FunctionObjectBuilder,
         IntegrityLevel, JsObject, ObjectData, ObjectKind,
     },
     property::{Attribute, PropertyDescriptor, PropertyKey, PropertyNameKind},
@@ -49,16 +49,16 @@ impl BuiltIn for Object {
     fn init(context: &mut Context<'_>) -> Option<JsValue> {
         let _timer = Profiler::global().start_event(Self::NAME, "init");
 
-        let legacy_proto_getter = FunctionBuilder::new(
+        let legacy_proto_getter = FunctionObjectBuilder::new(
             context,
-            NativeCallable::from_fn_ptr(Self::legacy_proto_getter),
+            NativeFunction::from_fn_ptr(Self::legacy_proto_getter),
         )
         .name("get __proto__")
         .build();
 
-        let legacy_setter_proto = FunctionBuilder::new(
+        let legacy_setter_proto = FunctionObjectBuilder::new(
             context,
-            NativeCallable::from_fn_ptr(Self::legacy_proto_setter),
+            NativeFunction::from_fn_ptr(Self::legacy_proto_setter),
         )
         .name("set __proto__")
         .build();
@@ -1275,9 +1275,9 @@ impl Object {
 
         // 4. Let closure be a new Abstract Closure with parameters (key, value) that captures
         // obj and performs the following steps when called:
-        let closure = FunctionBuilder::new(
+        let closure = FunctionObjectBuilder::new(
             context,
-            NativeCallable::from_copy_closure_with_captures(
+            NativeFunction::from_copy_closure_with_captures(
                 |_, args, obj, context| {
                     let key = args.get_or_undefined(0);
                     let value = args.get_or_undefined(1);

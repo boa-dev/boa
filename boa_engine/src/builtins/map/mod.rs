@@ -16,9 +16,9 @@ use crate::{
     builtins::BuiltIn,
     context::intrinsics::StandardConstructors,
     error::JsNativeError,
-    function::NativeCallable,
+    native_function::NativeFunction,
     object::{
-        internal_methods::get_prototype_from_constructor, ConstructorBuilder, FunctionBuilder,
+        internal_methods::get_prototype_from_constructor, ConstructorBuilder, FunctionObjectBuilder,
         JsObject, ObjectData,
     },
     property::{Attribute, PropertyNameKind},
@@ -44,19 +44,19 @@ impl BuiltIn for Map {
         let _timer = Profiler::global().start_event(Self::NAME, "init");
 
         let get_species =
-            FunctionBuilder::new(context, NativeCallable::from_fn_ptr(Self::get_species))
+            FunctionObjectBuilder::new(context, NativeFunction::from_fn_ptr(Self::get_species))
                 .name("get [Symbol.species]")
                 .constructor(false)
                 .build();
 
-        let get_size = FunctionBuilder::new(context, NativeCallable::from_fn_ptr(Self::get_size))
+        let get_size = FunctionObjectBuilder::new(context, NativeFunction::from_fn_ptr(Self::get_size))
             .name("get size")
             .length(0)
             .constructor(false)
             .build();
 
         let entries_function =
-            FunctionBuilder::new(context, NativeCallable::from_fn_ptr(Self::entries))
+            FunctionObjectBuilder::new(context, NativeFunction::from_fn_ptr(Self::entries))
                 .name("entries")
                 .length(0)
                 .constructor(false)

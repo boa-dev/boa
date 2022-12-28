@@ -25,10 +25,10 @@ use crate::{
     builtins::Number,
     context::intrinsics::StandardConstructors,
     error::JsNativeError,
-    function::NativeCallable,
+    native_function::NativeFunction,
     js_string,
     object::{
-        internal_methods::get_prototype_from_constructor, ConstructorBuilder, FunctionBuilder,
+        internal_methods::get_prototype_from_constructor, ConstructorBuilder, FunctionObjectBuilder,
         JsFunction, JsObject, ObjectData,
     },
     property::{Attribute, PropertyDescriptor, PropertyNameKind},
@@ -52,7 +52,7 @@ impl BuiltIn for Array {
         let symbol_unscopables = WellKnownSymbols::unscopables();
 
         let get_species =
-            FunctionBuilder::new(context, NativeCallable::from_fn_ptr(Self::get_species))
+            FunctionObjectBuilder::new(context, NativeFunction::from_fn_ptr(Self::get_species))
                 .name("get [Symbol.species]")
                 .constructor(false)
                 .build();
@@ -2849,7 +2849,7 @@ impl Array {
 
     /// Creates an `Array.prototype.values( )` function object.
     pub(crate) fn create_array_prototype_values(context: &mut Context<'_>) -> JsFunction {
-        FunctionBuilder::new(context, NativeCallable::from_fn_ptr(Self::values))
+        FunctionObjectBuilder::new(context, NativeFunction::from_fn_ptr(Self::values))
             .name("values")
             .length(0)
             .constructor(false)

@@ -1,8 +1,8 @@
 // This example shows how to manipulate a Javascript array using Rust code.
 
 use boa_engine::{
-    function::NativeCallable,
-    object::{builtins::JsUint8Array, FunctionBuilder},
+    native_function::NativeFunction,
+    object::{builtins::JsUint8Array, FunctionObjectBuilder},
     property::Attribute,
     Context, JsResult, JsValue,
 };
@@ -24,9 +24,9 @@ fn main() -> JsResult<()> {
         sum += i;
     }
 
-    let callback = FunctionBuilder::new(
+    let callback = FunctionObjectBuilder::new(
         context,
-        NativeCallable::from_fn_ptr(|_this, args, context| {
+        NativeFunction::from_fn_ptr(|_this, args, context| {
             let accumulator = args.get(0).cloned().unwrap_or_default();
             let value = args.get(1).cloned().unwrap_or_default();
 

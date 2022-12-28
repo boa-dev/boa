@@ -17,9 +17,9 @@ use crate::{
     builtins::{string::is_trimmable_whitespace, BuiltIn, JsArgs},
     context::intrinsics::StandardConstructors,
     error::JsNativeError,
-    function::NativeCallable,
+    native_function::NativeFunction,
     object::{
-        internal_methods::get_prototype_from_constructor, ConstructorBuilder, FunctionBuilder,
+        internal_methods::get_prototype_from_constructor, ConstructorBuilder, FunctionObjectBuilder,
         JsObject, ObjectData,
     },
     property::Attribute,
@@ -51,14 +51,14 @@ impl BuiltIn for Number {
     fn init(context: &mut Context<'_>) -> Option<JsValue> {
         let _timer = Profiler::global().start_event(Self::NAME, "init");
 
-        let parse_int = FunctionBuilder::new(context, NativeCallable::from_fn_ptr(Self::parse_int))
+        let parse_int = FunctionObjectBuilder::new(context, NativeFunction::from_fn_ptr(Self::parse_int))
             .name("parseInt")
             .length(2)
             .constructor(false)
             .build();
 
         let parse_float =
-            FunctionBuilder::new(context, NativeCallable::from_fn_ptr(Self::parse_float))
+            FunctionObjectBuilder::new(context, NativeFunction::from_fn_ptr(Self::parse_float))
                 .name("parseFloat")
                 .length(1)
                 .constructor(false)
@@ -78,12 +78,12 @@ impl BuiltIn for Number {
         context.register_global_builtin_callable(
             "isFinite",
             1,
-            NativeCallable::from_fn_ptr(Self::global_is_finite),
+            NativeFunction::from_fn_ptr(Self::global_is_finite),
         );
         context.register_global_builtin_callable(
             "isNaN",
             1,
-            NativeCallable::from_fn_ptr(Self::global_is_nan),
+            NativeFunction::from_fn_ptr(Self::global_is_nan),
         );
 
         let attribute = Attribute::READONLY | Attribute::NON_ENUMERABLE | Attribute::PERMANENT;

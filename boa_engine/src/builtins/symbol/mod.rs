@@ -22,8 +22,8 @@ use super::JsArgs;
 use crate::{
     builtins::BuiltIn,
     error::JsNativeError,
-    function::NativeCallable,
-    object::{ConstructorBuilder, FunctionBuilder},
+    native_function::NativeFunction,
+    object::{ConstructorBuilder, FunctionObjectBuilder},
     property::Attribute,
     symbol::{JsSymbol, WellKnownSymbols},
     value::JsValue,
@@ -98,14 +98,14 @@ impl BuiltIn for Symbol {
         let attribute = Attribute::READONLY | Attribute::NON_ENUMERABLE | Attribute::PERMANENT;
 
         let to_primitive =
-            FunctionBuilder::new(context, NativeCallable::from_fn_ptr(Self::to_primitive))
+            FunctionObjectBuilder::new(context, NativeFunction::from_fn_ptr(Self::to_primitive))
                 .name("[Symbol.toPrimitive]")
                 .length(1)
                 .constructor(false)
                 .build();
 
         let get_description =
-            FunctionBuilder::new(context, NativeCallable::from_fn_ptr(Self::get_description))
+            FunctionObjectBuilder::new(context, NativeFunction::from_fn_ptr(Self::get_description))
                 .name("get description")
                 .constructor(false)
                 .build();

@@ -2,7 +2,7 @@
 // the require/module.exports pattern
 
 use boa_engine::{
-    function::NativeCallable, prelude::JsObject, property::Attribute, Context, JsResult, JsValue,
+    native_function::NativeFunction, prelude::JsObject, property::Attribute, Context, JsResult, JsValue,
 };
 use std::fs::read_to_string;
 
@@ -19,7 +19,7 @@ fn main() {
     let mut ctx = Context::default();
 
     // Adding custom implementation that mimics 'require'
-    ctx.register_global_callable("require", 0, NativeCallable::from_fn_ptr(require));
+    ctx.register_global_callable("require", 0, NativeFunction::from_fn_ptr(require));
 
     // Adding custom object that mimics 'module.exports'
     let moduleobj = JsObject::default();
