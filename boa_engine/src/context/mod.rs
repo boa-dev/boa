@@ -280,7 +280,7 @@ impl Context<'_> {
     /// # Note
     ///
     /// If you wish to only create the function object without binding it to the global object, you
-    /// can use the [`FunctionBuilder`] API.
+    /// can use the [`FunctionObjectBuilder`] API.
     pub fn register_global_callable(&mut self, name: &str, length: usize, body: NativeFunction) {
         let function = FunctionObjectBuilder::new(self, body)
             .name(name)

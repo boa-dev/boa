@@ -1,6 +1,6 @@
 //! Boa's wrappers for native Rust functions to be compatible with ECMAScript calls.
 //!
-//! [`NativeCallable`] is the main type of this module, providing APIs to create native callables
+//! [`NativeFunction`] is the main type of this module, providing APIs to create native callables
 //! from native Rust functions and closures.
 
 use std::marker::PhantomData;
@@ -35,7 +35,7 @@ where
     F: Fn(&JsValue, &[JsValue], &T, &mut Context<'_>) -> JsResult<JsValue>,
     T: Trace,
 {
-    // SAFETY: `NativeCallable`'s safe API ensures only `Copy` closures are stored; its unsafe API,
+    // SAFETY: `NativeFunction`'s safe API ensures only `Copy` closures are stored; its unsafe API,
     // on the other hand, explains the invariants to hold in order for this to be safe, shifting
     // the responsibility to the caller.
     #[unsafe_ignore_trace]
@@ -60,7 +60,7 @@ where
 
 /// A callable Rust function that can be invoked by the engine.
 ///
-/// `NativeCallable` functions are divided in two:
+/// `NativeFunction` functions are divided in two:
 /// - Function pointers a.k.a common functions (see [`NativeFunctionPointer`]).
 /// - Closure functions that can capture the current environment.
 ///
@@ -68,7 +68,7 @@ where
 ///
 /// By limitations of the Rust language, the garbage collector currently cannot inspect closures
 /// in order to trace their captured variables. This means that only [`Copy`] closures are 100% safe
-/// to use. All other closures can also be stored in a `NativeCallable`, albeit by using an `unsafe`
+/// to use. All other closures can also be stored in a `NativeFunction`, albeit by using an `unsafe`
 /// API, but note that passing closures implicitly capturing traceable types could cause
 /// **Undefined Behaviour**.
 #[derive(Clone)]
@@ -102,12 +102,12 @@ unsafe impl Trace for NativeFunction {
 
 impl std::fmt::Debug for NativeFunction {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.debug_struct("NativeCallable").finish_non_exhaustive()
+        f.debug_struct("NativeFunction").finish_non_exhaustive()
     }
 }
 
 impl NativeFunction {
-    /// Creates a `NativeCallable` from a function pointer.
+    /// Creates a `NativeFunction` from a function pointer.
     #[inline]
     pub fn from_fn_ptr(function: NativeFunctionPointer) -> Self {
         Self {
@@ -115,7 +115,7 @@ impl NativeFunction {
         }
     }
 
-    /// Creates a `NativeCallable` from a `Copy` closure.
+    /// Creates a `NativeFunction` from a `Copy` closure.
     pub fn from_copy_closure<F>(closure: F) -> Self
     where
         F: Fn(&JsValue, &[JsValue], &mut Context<'_>) -> JsResult<JsValue> + Copy + 'static,
@@ -124,7 +124,7 @@ impl NativeFunction {
         unsafe { Self::from_closure(closure) }
     }
 
-    /// Creates a `NativeCallable` from a `Copy` closure and a list of traceable captures.
+    /// Creates a `NativeFunction` from a `Copy` closure and a list of traceable captures.
     pub fn from_copy_closure_with_captures<F, T>(closure: F, captures: T) -> Self
     where
         F: Fn(&JsValue, &[JsValue], &T, &mut Context<'_>) -> JsResult<JsValue> + Copy + 'static,
@@ -134,7 +134,7 @@ impl NativeFunction {
         unsafe { Self::from_closure_with_captures(closure, captures) }
     }
 
-    /// Creates a new `NativeCallable` from a closure.
+    /// Creates a new `NativeFunction` from a closure.
     ///
     /// # Safety
     ///
@@ -155,7 +155,7 @@ impl NativeFunction {
         }
     }
 
-    /// Create a new `NativeCallable` from a closure and a list of traceable captures.
+    /// Create a new `NativeFunction` from a closure and a list of traceable captures.
     ///
     /// # Safety
     ///
@@ -183,7 +183,7 @@ impl NativeFunction {
         }
     }
 
-    /// Calls this `NativeCallable`, forwarding the arguments to the corresponding function.
+    /// Calls this `NativeFunction`, forwarding the arguments to the corresponding function.
     #[inline]
     pub fn call(
         &self,
@@ -208,7 +208,7 @@ where
     F: FnMut(Args, &mut T, &mut Context<'_>) -> Ret,
     T: Trace,
 {
-    // SAFETY: `GenericNativeCallable`'s safe API ensures only `Copy` closures are stored; its unsafe API,
+    // SAFETY: `GenericNativeFunction`'s safe API ensures only `Copy` closures are stored; its unsafe API,
     // on the other hand, explains the invariants to hold in order for this to be safe, shifting
     // the responsibility to the caller.
     #[unsafe_ignore_trace]
@@ -230,10 +230,10 @@ where
 
 /// A callable generic Rust function that can be invoked by the engine.
 ///
-/// This is a more general struct of the [`NativeCallable`] API, useful for callbacks defined in the
+/// This is a more general struct of the [`NativeFunction`] API, useful for callbacks defined in the
 /// host that are useful to the engine, such as [`HostCallJobCallback`] or [`HostEnqueuePromiseJob`].
 ///
-/// `GenericNativeCallable` functions are divided in two:
+/// `GenericNativeFunction` functions are divided in two:
 /// - Function pointers a.k.a common functions.
 /// - Closure functions that can capture the current environment.
 ///
@@ -246,7 +246,7 @@ where
 ///
 /// - By limitations of the Rust language, the garbage collector currently cannot inspect closures
 /// in order to trace their captured variables. This means that only [`Copy`] closures are 100% safe
-/// to use. All other closures can also be stored in a `GenericNativeCallable`, albeit by using an
+/// to use. All other closures can also be stored in a `GenericNativeFunction`, albeit by using an
 /// `unsafe` API, but note that passing closures implicitly capturing traceable types could cause
 /// **Undefined Behaviour**.
 ///
@@ -282,12 +282,12 @@ unsafe impl<Ret, Args> Trace for GenericNativeFunction<Ret, Args> {
 
 impl<Ret, Args> std::fmt::Debug for GenericNativeFunction<Ret, Args> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.debug_struct("NativeCallable").finish_non_exhaustive()
+        f.debug_struct("NativeFunction").finish_non_exhaustive()
     }
 }
 
 impl<Ret, Args> GenericNativeFunction<Ret, Args> {
-    /// Creates a `GenericNativeCallable` from a function pointer.
+    /// Creates a `GenericNativeFunction` from a function pointer.
     #[inline]
     pub fn from_fn_ptr(function: fn(Args, &mut Context<'_>) -> Ret) -> Self {
         Self {
@@ -295,7 +295,7 @@ impl<Ret, Args> GenericNativeFunction<Ret, Args> {
         }
     }
 
-    /// Creates a `GenericNativeCallable` from a `Copy` closure.
+    /// Creates a `GenericNativeFunction` from a `Copy` closure.
     pub fn from_copy_closure<F>(closure: F) -> Self
     where
         F: FnMut(Args, &mut Context<'_>) -> Ret + Copy + 'static,
@@ -304,7 +304,7 @@ impl<Ret, Args> GenericNativeFunction<Ret, Args> {
         unsafe { Self::from_closure(closure) }
     }
 
-    /// Creates a `GenericNativeCallable` from a `Copy` closure and a list of traceable captures.
+    /// Creates a `GenericNativeFunction` from a `Copy` closure and a list of traceable captures.
     pub fn from_copy_closure_with_captures<F, T>(closure: F, captures: T) -> Self
     where
         F: FnMut(Args, &mut T, &mut Context<'_>) -> Ret + Copy + 'static,
@@ -314,7 +314,7 @@ impl<Ret, Args> GenericNativeFunction<Ret, Args> {
         unsafe { Self::from_closure_with_captures(closure, captures) }
     }
 
-    /// Creates a new `GenericNativeCallable` from a closure.
+    /// Creates a new `GenericNativeFunction` from a closure.
     ///
     /// # Safety
     ///
@@ -332,7 +332,7 @@ impl<Ret, Args> GenericNativeFunction<Ret, Args> {
         }
     }
 
-    /// Create a new `GenericNativeCallable` from a closure and a list of traceable captures.
+    /// Create a new `GenericNativeFunction` from a closure and a list of traceable captures.
     ///
     /// # Safety
     ///
@@ -354,7 +354,7 @@ impl<Ret, Args> GenericNativeFunction<Ret, Args> {
         }
     }
 
-    /// Calls this `GenericNativeCallable`, forwarding the arguments to the corresponding function.
+    /// Calls this `GenericNativeFunction`, forwarding the arguments to the corresponding function.
     #[inline]
     pub fn call(&mut self, args: Args, context: &mut Context<'_>) -> Ret {
         match self.inner {
