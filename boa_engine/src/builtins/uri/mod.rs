@@ -19,7 +19,7 @@ use self::consts::{
 
 use super::BuiltIn;
 use crate::{
-    builtins::JsArgs, native_function::NativeFunction, js_string, object::FunctionObjectBuilder,
+    builtins::JsArgs, js_string, native_function::NativeFunction, object::FunctionObjectBuilder,
     property::Attribute, string::CodePoint, Context, JsNativeError, JsResult, JsString, JsValue,
 };
 

@@ -21,11 +21,11 @@ use crate::{
     },
     context::intrinsics::{StandardConstructor, StandardConstructors},
     error::JsNativeError,
-    native_function::NativeFunction,
     js_string,
+    native_function::NativeFunction,
     object::{
-        internal_methods::get_prototype_from_constructor, ConstructorBuilder, FunctionObjectBuilder,
-        JsObject, ObjectData,
+        internal_methods::get_prototype_from_constructor, ConstructorBuilder,
+        FunctionObjectBuilder, JsObject, ObjectData,
     },
     property::{Attribute, PropertyNameKind},
     symbol::WellKnownSymbols,
@@ -260,10 +260,11 @@ impl BuiltIn for TypedArray {
                 .constructor(false)
                 .build();
 
-        let get_buffer = FunctionObjectBuilder::new(context, NativeFunction::from_fn_ptr(Self::buffer))
-            .name("get buffer")
-            .constructor(false)
-            .build();
+        let get_buffer =
+            FunctionObjectBuilder::new(context, NativeFunction::from_fn_ptr(Self::buffer))
+                .name("get buffer")
+                .constructor(false)
+                .build();
 
         let get_byte_length =
             FunctionObjectBuilder::new(context, NativeFunction::from_fn_ptr(Self::byte_length))
@@ -277,10 +278,11 @@ impl BuiltIn for TypedArray {
                 .constructor(false)
                 .build();
 
-        let get_length = FunctionObjectBuilder::new(context, NativeFunction::from_fn_ptr(Self::length))
-            .name("get length")
-            .constructor(false)
-            .build();
+        let get_length =
+            FunctionObjectBuilder::new(context, NativeFunction::from_fn_ptr(Self::length))
+                .name("get length")
+                .constructor(false)
+                .build();
 
         let get_to_string_tag =
             FunctionObjectBuilder::new(context, NativeFunction::from_fn_ptr(Self::to_string_tag))

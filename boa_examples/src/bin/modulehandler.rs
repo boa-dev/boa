@@ -2,7 +2,8 @@
 // the require/module.exports pattern
 
 use boa_engine::{
-    native_function::NativeFunction, prelude::JsObject, property::Attribute, Context, JsResult, JsValue,
+    native_function::NativeFunction, prelude::JsObject, property::Attribute, Context, JsResult,
+    JsValue,
 };
 use std::fs::read_to_string;
 

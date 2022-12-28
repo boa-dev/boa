@@ -4,8 +4,8 @@
 use std::cell::{Cell, RefCell};
 
 use boa_engine::{
-    native_function::NativeFunction,
     js_string,
+    native_function::NativeFunction,
     object::{builtins::JsArray, FunctionObjectBuilder, JsObject},
     property::{Attribute, PropertyDescriptor},
     string::utf16,

@@ -17,11 +17,11 @@ use crate::{
     builtins::{array::Array, string, BuiltIn},
     context::intrinsics::StandardConstructors,
     error::JsNativeError,
-    native_function::NativeFunction,
     js_string,
+    native_function::NativeFunction,
     object::{
-        internal_methods::get_prototype_from_constructor, ConstructorBuilder, FunctionObjectBuilder,
-        JsObject, ObjectData,
+        internal_methods::get_prototype_from_constructor, ConstructorBuilder,
+        FunctionObjectBuilder, JsObject, ObjectData,
     },
     property::{Attribute, PropertyDescriptorBuilder},
     string::{utf16, CodePoint},
@@ -97,10 +97,11 @@ impl BuiltIn for RegExp {
                 .name("get sticky")
                 .constructor(false)
                 .build();
-        let get_flags = FunctionObjectBuilder::new(context, NativeFunction::from_fn_ptr(Self::get_flags))
-            .name("get flags")
-            .constructor(false)
-            .build();
+        let get_flags =
+            FunctionObjectBuilder::new(context, NativeFunction::from_fn_ptr(Self::get_flags))
+                .name("get flags")
+                .constructor(false)
+                .build();
         let get_source =
             FunctionObjectBuilder::new(context, NativeFunction::from_fn_ptr(Self::get_source))
                 .name("get source")

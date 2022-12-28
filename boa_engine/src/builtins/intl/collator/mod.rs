@@ -16,8 +16,8 @@ use crate::{
     context::{intrinsics::StandardConstructors, BoaProvider},
     native_function::NativeFunction,
     object::{
-        internal_methods::get_prototype_from_constructor, ConstructorBuilder, FunctionObjectBuilder,
-        JsFunction, JsObject, ObjectData,
+        internal_methods::get_prototype_from_constructor, ConstructorBuilder,
+        FunctionObjectBuilder, JsFunction, JsObject, ObjectData,
     },
     property::Attribute,
     symbol::WellKnownSymbols,
@@ -161,10 +161,11 @@ impl BuiltIn for Collator {
     fn init(context: &mut Context<'_>) -> Option<JsValue> {
         let _timer = Profiler::global().start_event(Self::NAME, "init");
 
-        let compare = FunctionObjectBuilder::new(context, NativeFunction::from_fn_ptr(Self::compare))
-            .name("get compare")
-            .constructor(false)
-            .build();
+        let compare =
+            FunctionObjectBuilder::new(context, NativeFunction::from_fn_ptr(Self::compare))
+                .name("get compare")
+                .constructor(false)
+                .build();
 
         ConstructorBuilder::with_standard_constructor(
             context,

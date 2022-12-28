@@ -19,11 +19,11 @@ mod options;
 use crate::{
     builtins::{BuiltIn, JsArgs},
     context::intrinsics::StandardConstructors,
-    native_function::NativeFunction,
     js_string,
+    native_function::NativeFunction,
     object::{
-        internal_methods::get_prototype_from_constructor, ConstructorBuilder, FunctionObjectBuilder,
-        JsObject, ObjectData,
+        internal_methods::get_prototype_from_constructor, ConstructorBuilder,
+        FunctionObjectBuilder, JsObject, ObjectData,
     },
     property::Attribute,
     symbol::WellKnownSymbols,
@@ -41,15 +41,17 @@ impl BuiltIn for Locale {
     fn init(context: &mut Context<'_>) -> Option<JsValue> {
         let _timer = Profiler::global().start_event(Self::NAME, "init");
 
-        let base_name = FunctionObjectBuilder::new(context, NativeFunction::from_fn_ptr(Self::base_name))
-            .name("get baseName")
-            .constructor(false)
-            .build();
+        let base_name =
+            FunctionObjectBuilder::new(context, NativeFunction::from_fn_ptr(Self::base_name))
+                .name("get baseName")
+                .constructor(false)
+                .build();
 
-        let calendar = FunctionObjectBuilder::new(context, NativeFunction::from_fn_ptr(Self::calendar))
-            .name("get calendar")
-            .constructor(false)
-            .build();
+        let calendar =
+            FunctionObjectBuilder::new(context, NativeFunction::from_fn_ptr(Self::calendar))
+                .name("get calendar")
+                .constructor(false)
+                .build();
 
         let case_first =
             FunctionObjectBuilder::new(context, NativeFunction::from_fn_ptr(Self::case_first))
@@ -57,10 +59,11 @@ impl BuiltIn for Locale {
                 .constructor(false)
                 .build();
 
-        let collation = FunctionObjectBuilder::new(context, NativeFunction::from_fn_ptr(Self::collation))
-            .name("get collation")
-            .constructor(false)
-            .build();
+        let collation =
+            FunctionObjectBuilder::new(context, NativeFunction::from_fn_ptr(Self::collation))
+                .name("get collation")
+                .constructor(false)
+                .build();
 
         let hour_cycle =
             FunctionObjectBuilder::new(context, NativeFunction::from_fn_ptr(Self::hour_cycle))
@@ -68,21 +71,25 @@ impl BuiltIn for Locale {
                 .constructor(false)
                 .build();
 
-        let numeric = FunctionObjectBuilder::new(context, NativeFunction::from_fn_ptr(Self::numeric))
-            .name("get numeric")
-            .constructor(false)
-            .build();
-
-        let numbering_system =
-            FunctionObjectBuilder::new(context, NativeFunction::from_fn_ptr(Self::numbering_system))
-                .name("get numberingSystem")
+        let numeric =
+            FunctionObjectBuilder::new(context, NativeFunction::from_fn_ptr(Self::numeric))
+                .name("get numeric")
                 .constructor(false)
                 .build();
 
-        let language = FunctionObjectBuilder::new(context, NativeFunction::from_fn_ptr(Self::language))
-            .name("get language")
-            .constructor(false)
-            .build();
+        let numbering_system = FunctionObjectBuilder::new(
+            context,
+            NativeFunction::from_fn_ptr(Self::numbering_system),
+        )
+        .name("get numberingSystem")
+        .constructor(false)
+        .build();
+
+        let language =
+            FunctionObjectBuilder::new(context, NativeFunction::from_fn_ptr(Self::language))
+                .name("get language")
+                .constructor(false)
+                .build();
 
         let script = FunctionObjectBuilder::new(context, NativeFunction::from_fn_ptr(Self::script))
             .name("get script")

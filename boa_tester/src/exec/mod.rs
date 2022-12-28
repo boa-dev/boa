@@ -7,8 +7,8 @@ use super::{
 };
 use crate::read::ErrorType;
 use boa_engine::{
-    builtins::JsArgs, native_function::NativeFunction, object::FunctionObjectBuilder, property::Attribute,
-    Context, JsNativeErrorKind, JsValue,
+    builtins::JsArgs, native_function::NativeFunction, object::FunctionObjectBuilder,
+    property::Attribute, Context, JsNativeErrorKind, JsValue,
 };
 use boa_parser::Parser;
 use colored::Colorize;

@@ -1,8 +1,8 @@
 use super::{Promise, PromiseCapability};
 use crate::{
     builtins::promise::{ReactionRecord, ReactionType},
-    native_function::NativeFunction,
     job::JobCallback,
+    native_function::NativeFunction,
     object::{FunctionObjectBuilder, JsObject},
     Context, JsValue,
 };

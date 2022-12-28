@@ -391,17 +391,19 @@ impl JsProxyBuilder {
                 .expect("new object should be writable");
         }
         if let Some(define_property) = self.define_property {
-            let f = FunctionObjectBuilder::new(context, NativeFunction::from_fn_ptr(define_property))
-                .length(3)
-                .build();
+            let f =
+                FunctionObjectBuilder::new(context, NativeFunction::from_fn_ptr(define_property))
+                    .length(3)
+                    .build();
             handler
                 .create_data_property_or_throw("defineProperty", f, context)
                 .expect("new object should be writable");
         }
         if let Some(delete_property) = self.delete_property {
-            let f = FunctionObjectBuilder::new(context, NativeFunction::from_fn_ptr(delete_property))
-                .length(2)
-                .build();
+            let f =
+                FunctionObjectBuilder::new(context, NativeFunction::from_fn_ptr(delete_property))
+                    .length(2)
+                    .build();
             handler
                 .create_data_property_or_throw("deleteProperty", f, context)
                 .expect("new object should be writable");
@@ -426,9 +428,10 @@ impl JsProxyBuilder {
                 .expect("new object should be writable");
         }
         if let Some(get_prototype_of) = self.get_prototype_of {
-            let f = FunctionObjectBuilder::new(context, NativeFunction::from_fn_ptr(get_prototype_of))
-                .length(1)
-                .build();
+            let f =
+                FunctionObjectBuilder::new(context, NativeFunction::from_fn_ptr(get_prototype_of))
+                    .length(1)
+                    .build();
             handler
                 .create_data_property_or_throw("getPrototypeOf", f, context)
                 .expect("new object should be writable");
@@ -458,9 +461,12 @@ impl JsProxyBuilder {
                 .expect("new object should be writable");
         }
         if let Some(prevent_extensions) = self.prevent_extensions {
-            let f = FunctionObjectBuilder::new(context, NativeFunction::from_fn_ptr(prevent_extensions))
-                .length(1)
-                .build();
+            let f = FunctionObjectBuilder::new(
+                context,
+                NativeFunction::from_fn_ptr(prevent_extensions),
+            )
+            .length(1)
+            .build();
             handler
                 .create_data_property_or_throw("preventExtensions", f, context)
                 .expect("new object should be writable");
@@ -474,9 +480,10 @@ impl JsProxyBuilder {
                 .expect("new object should be writable");
         }
         if let Some(set_prototype_of) = self.set_prototype_of {
-            let f = FunctionObjectBuilder::new(context, NativeFunction::from_fn_ptr(set_prototype_of))
-                .length(2)
-                .build();
+            let f =
+                FunctionObjectBuilder::new(context, NativeFunction::from_fn_ptr(set_prototype_of))
+                    .length(2)
+                    .build();
             handler
                 .create_data_property_or_throw("setPrototypeOf", f, context)
                 .expect("new object should be writable");

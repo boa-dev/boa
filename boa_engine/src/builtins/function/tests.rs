@@ -1,8 +1,7 @@
 use crate::{
     error::JsNativeError,
-    forward, forward_val,
+    forward, forward_val, js_string,
     native_function::NativeFunction,
-    js_string,
     object::{FunctionObjectBuilder, JsObject},
     property::{Attribute, PropertyDescriptor},
     string::utf16,

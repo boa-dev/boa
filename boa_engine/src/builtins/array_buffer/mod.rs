@@ -16,8 +16,8 @@ use crate::{
     error::JsNativeError,
     native_function::NativeFunction,
     object::{
-        internal_methods::get_prototype_from_constructor, ConstructorBuilder, FunctionObjectBuilder,
-        JsObject, ObjectData,
+        internal_methods::get_prototype_from_constructor, ConstructorBuilder,
+        FunctionObjectBuilder, JsObject, ObjectData,
     },
     property::Attribute,
     symbol::WellKnownSymbols,

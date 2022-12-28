@@ -19,8 +19,8 @@ use crate::{
     error::JsNativeError,
     native_function::NativeFunction,
     object::{
-        internal_methods::get_prototype_from_constructor, ConstructorBuilder, FunctionObjectBuilder,
-        JsObject, ObjectData,
+        internal_methods::get_prototype_from_constructor, ConstructorBuilder,
+        FunctionObjectBuilder, JsObject, ObjectData,
     },
     property::Attribute,
     string::utf16,
@@ -51,11 +51,12 @@ impl BuiltIn for Number {
     fn init(context: &mut Context<'_>) -> Option<JsValue> {
         let _timer = Profiler::global().start_event(Self::NAME, "init");
 
-        let parse_int = FunctionObjectBuilder::new(context, NativeFunction::from_fn_ptr(Self::parse_int))
-            .name("parseInt")
-            .length(2)
-            .constructor(false)
-            .build();
+        let parse_int =
+            FunctionObjectBuilder::new(context, NativeFunction::from_fn_ptr(Self::parse_int))
+                .name("parseInt")
+                .length(2)
+                .constructor(false)
+                .build();
 
         let parse_float =
             FunctionObjectBuilder::new(context, NativeFunction::from_fn_ptr(Self::parse_float))

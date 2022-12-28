@@ -48,8 +48,8 @@ use crate::{
         DataView, Date, Promise, RegExp,
     },
     context::intrinsics::StandardConstructor,
-    native_function::{NativeFunction, NativeFunctionPointer},
     js_string,
+    native_function::{NativeFunction, NativeFunctionPointer},
     property::{Attribute, PropertyDescriptor, PropertyKey},
     Context, JsBigInt, JsString, JsSymbol, JsValue,
 };
@@ -2052,11 +2052,12 @@ impl<'ctx, 'icu> ObjectInitializer<'ctx, 'icu> {
         B: Into<FunctionBinding>,
     {
         let binding = binding.into();
-        let function = FunctionObjectBuilder::new(self.context, NativeFunction::from_fn_ptr(function))
-            .name(binding.name)
-            .length(length)
-            .constructor(false)
-            .build();
+        let function =
+            FunctionObjectBuilder::new(self.context, NativeFunction::from_fn_ptr(function))
+                .name(binding.name)
+                .length(length)
+                .constructor(false)
+                .build();
 
         self.object.borrow_mut().insert(
             binding.binding,
@@ -2174,11 +2175,12 @@ impl<'ctx, 'icu> ConstructorBuilder<'ctx, 'icu> {
         B: Into<FunctionBinding>,
     {
         let binding = binding.into();
-        let function = FunctionObjectBuilder::new(self.context, NativeFunction::from_fn_ptr(function))
-            .name(binding.name)
-            .length(length)
-            .constructor(false)
-            .build();
+        let function =
+            FunctionObjectBuilder::new(self.context, NativeFunction::from_fn_ptr(function))
+                .name(binding.name)
+                .length(length)
+                .constructor(false)
+                .build();
 
         self.prototype.borrow_mut().insert(
             binding.binding,
@@ -2202,11 +2204,12 @@ impl<'ctx, 'icu> ConstructorBuilder<'ctx, 'icu> {
         B: Into<FunctionBinding>,
     {
         let binding = binding.into();
-        let function = FunctionObjectBuilder::new(self.context, NativeFunction::from_fn_ptr(function))
-            .name(binding.name)
-            .length(length)
-            .constructor(false)
-            .build();
+        let function =
+            FunctionObjectBuilder::new(self.context, NativeFunction::from_fn_ptr(function))
+                .name(binding.name)
+                .length(length)
+                .constructor(false)
+                .build();
 
         self.object.borrow_mut().insert(
             binding.binding,

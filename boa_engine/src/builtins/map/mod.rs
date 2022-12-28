@@ -18,8 +18,8 @@ use crate::{
     error::JsNativeError,
     native_function::NativeFunction,
     object::{
-        internal_methods::get_prototype_from_constructor, ConstructorBuilder, FunctionObjectBuilder,
-        JsObject, ObjectData,
+        internal_methods::get_prototype_from_constructor, ConstructorBuilder,
+        FunctionObjectBuilder, JsObject, ObjectData,
     },
     property::{Attribute, PropertyNameKind},
     symbol::WellKnownSymbols,
@@ -49,11 +49,12 @@ impl BuiltIn for Map {
                 .constructor(false)
                 .build();
 
-        let get_size = FunctionObjectBuilder::new(context, NativeFunction::from_fn_ptr(Self::get_size))
-            .name("get size")
-            .length(0)
-            .constructor(false)
-            .build();
+        let get_size =
+            FunctionObjectBuilder::new(context, NativeFunction::from_fn_ptr(Self::get_size))
+                .name("get size")
+                .length(0)
+                .constructor(false)
+                .build();
 
         let entries_function =
             FunctionObjectBuilder::new(context, NativeFunction::from_fn_ptr(Self::entries))
