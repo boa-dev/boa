@@ -162,10 +162,6 @@
 <span id="161">161</span>
 <span id="162">162</span>
 <span id="163">163</span>
-<span id="164">164</span>
-<span id="165">165</span>
-<span id="166">166</span>
-<span id="167">167</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Update expression parsing.
 //!
 //! More information:
@@ -189,9 +185,9 @@
         operator::{unary::UnaryOp, Unary},
         Identifier,
     },
-    Expression, Punctuator,
+    Expression, Position, Punctuator,
 };
-<span class="kw">use </span>boa_interner::{Interner, Sym};
+<span class="kw">use </span>boa_interner::Interner;
 <span class="kw">use </span>boa_profiler::Profiler;
 <span class="kw">use </span>std::io::Read;
 
@@ -224,6 +220,21 @@
     }
 }
 
+<span class="doccomment">/// &lt;https://tc39.es/ecma262/multipage/syntax-directed-operations.html#sec-static-semantics-assignmenttargettype&gt;
+/// This function checks if the target type is simple
+</span><span class="kw">fn </span>is_simple(expr: <span class="kw-2">&amp;</span>Expression, position: Position, strict: bool) -&gt; ParseResult&lt;bool&gt; {
+    <span class="kw">match </span>expr {
+        Expression::Identifier(ident) =&gt; {
+            <span class="kw">if </span>strict {
+                check_strict_arguments_or_eval(<span class="kw-2">*</span>ident, position)<span class="question-mark">?</span>;
+            }
+            <span class="prelude-val">Ok</span>(<span class="bool-val">true</span>)
+        }
+        Expression::PropertyAccess(<span class="kw">_</span>) =&gt; <span class="prelude-val">Ok</span>(<span class="bool-val">true</span>),
+        <span class="kw">_ </span>=&gt; <span class="prelude-val">Ok</span>(<span class="bool-val">false</span>),
+    }
+}
+
 <span class="kw">impl</span>&lt;R&gt; TokenParser&lt;R&gt; <span class="kw">for </span>UpdateExpression
 <span class="kw">where
     </span>R: Read,
@@ -243,11 +254,12 @@
 
                 <span class="kw">let </span>target = UnaryExpression::new(<span class="self">self</span>.name, <span class="self">self</span>.allow_yield, <span class="self">self</span>.allow_await)
                     .parse(cursor, interner)<span class="question-mark">?</span>;
-
-                <span class="kw">if </span>cursor.strict_mode() {
-                    <span class="kw">if let </span>Expression::Identifier(ident) = target {
-                        check_strict_arguments_or_eval(ident, position)<span class="question-mark">?</span>;
-                    }
+                <span class="comment">// https://tc39.es/ecma262/#sec-update-expressions-static-semantics-early-errors
+                </span><span class="kw">if </span>!is_simple(<span class="kw-2">&amp;</span>target, position, cursor.strict_mode())<span class="question-mark">? </span>{
+                    <span class="kw">return </span><span class="prelude-val">Err</span>(Error::lex(LexError::Syntax(
+                        <span class="string">&quot;Invalid left-hand side in assignment&quot;</span>.into(),
+                        position,
+                    )));
                 }
 
                 <span class="kw">return </span><span class="prelude-val">Ok</span>(Unary::new(UnaryOp::IncrementPre, target).into());
@@ -259,11 +271,12 @@
 
                 <span class="kw">let </span>target = UnaryExpression::new(<span class="self">self</span>.name, <span class="self">self</span>.allow_yield, <span class="self">self</span>.allow_await)
                     .parse(cursor, interner)<span class="question-mark">?</span>;
-
-                <span class="kw">if </span>cursor.strict_mode() {
-                    <span class="kw">if let </span>Expression::Identifier(ident) = target {
-                        check_strict_arguments_or_eval(ident, position)<span class="question-mark">?</span>;
-                    }
+                <span class="comment">// https://tc39.es/ecma262/#sec-update-expressions-static-semantics-early-errors
+                </span><span class="kw">if </span>!is_simple(<span class="kw-2">&amp;</span>target, position, cursor.strict_mode())<span class="question-mark">? </span>{
+                    <span class="kw">return </span><span class="prelude-val">Err</span>(Error::lex(LexError::Syntax(
+                        <span class="string">&quot;Invalid left-hand side in assignment&quot;</span>.into(),
+                        position,
+                    )));
                 }
 
                 <span class="kw">return </span><span class="prelude-val">Ok</span>(Unary::new(UnaryOp::DecrementPre, target).into());
@@ -274,7 +287,6 @@
         <span class="kw">let </span>lhs = LeftHandSideExpression::new(<span class="self">self</span>.name, <span class="self">self</span>.allow_yield, <span class="self">self</span>.allow_await)
             .parse(cursor, interner)<span class="question-mark">?</span>;
 
-        <span class="kw">let </span>strict = cursor.strict_mode();
         <span class="kw">if let </span><span class="prelude-val">Some</span>(tok) = cursor.peek(<span class="number">0</span>, interner)<span class="question-mark">? </span>{
             <span class="kw">let </span>token_start = tok.span().start();
             <span class="kw">match </span>tok.kind() {
@@ -283,17 +295,7 @@
                         .next(interner)<span class="question-mark">?
                         </span>.expect(<span class="string">&quot;Punctuator::Inc token disappeared&quot;</span>);
                     <span class="comment">// https://tc39.es/ecma262/#sec-update-expressions-static-semantics-early-errors
-                    </span><span class="kw">let </span>ok = <span class="kw">match </span><span class="kw-2">&amp;</span>lhs {
-                        Expression::Identifier(<span class="kw">_</span>) <span class="kw">if </span>!strict =&gt; <span class="bool-val">true</span>,
-                        Expression::Identifier(ident)
-                            <span class="kw">if </span>![Sym::EVAL, Sym::ARGUMENTS].contains(<span class="kw-2">&amp;</span>ident.sym()) =&gt;
-                        {
-                            <span class="bool-val">true
-                        </span>}
-                        Expression::PropertyAccess(<span class="kw">_</span>) =&gt; <span class="bool-val">true</span>,
-                        <span class="kw">_ </span>=&gt; <span class="bool-val">false</span>,
-                    };
-                    <span class="kw">if </span>!ok {
+                    </span><span class="kw">if </span>!is_simple(<span class="kw-2">&amp;</span>lhs, token_start, cursor.strict_mode())<span class="question-mark">? </span>{
                         <span class="kw">return </span><span class="prelude-val">Err</span>(Error::lex(LexError::Syntax(
                             <span class="string">&quot;Invalid left-hand side in assignment&quot;</span>.into(),
                             token_start,
@@ -307,17 +309,7 @@
                         .next(interner)<span class="question-mark">?
                         </span>.expect(<span class="string">&quot;Punctuator::Dec token disappeared&quot;</span>);
                     <span class="comment">// https://tc39.es/ecma262/#sec-update-expressions-static-semantics-early-errors
-                    </span><span class="kw">let </span>ok = <span class="kw">match </span><span class="kw-2">&amp;</span>lhs {
-                        Expression::Identifier(<span class="kw">_</span>) <span class="kw">if </span>!strict =&gt; <span class="bool-val">true</span>,
-                        Expression::Identifier(ident)
-                            <span class="kw">if </span>![Sym::EVAL, Sym::ARGUMENTS].contains(<span class="kw-2">&amp;</span>ident.sym()) =&gt;
-                        {
-                            <span class="bool-val">true
-                        </span>}
-                        Expression::PropertyAccess(<span class="kw">_</span>) =&gt; <span class="bool-val">true</span>,
-                        <span class="kw">_ </span>=&gt; <span class="bool-val">false</span>,
-                    };
-                    <span class="kw">if </span>!ok {
+                    </span><span class="kw">if </span>!is_simple(<span class="kw-2">&amp;</span>lhs, token_start, cursor.strict_mode())<span class="question-mark">? </span>{
                         <span class="kw">return </span><span class="prelude-val">Err</span>(Error::lex(LexError::Syntax(
                             <span class="string">&quot;Invalid left-hand side in assignment&quot;</span>.into(),
                             token_start,
