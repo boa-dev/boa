@@ -1,11 +1,11 @@
-use boa_interner::{Interner, Sym, ToInternedString};
-use core::ops::ControlFlow;
-
-use crate::join_nodes;
-use crate::try_break;
-use crate::visitor::{VisitWith, Visitor, VisitorMut};
-
 use super::{access::PropertyAccessField, Expression};
+use crate::{
+    function::PrivateName,
+    join_nodes, try_break,
+    visitor::{VisitWith, Visitor, VisitorMut},
+};
+use boa_interner::{Interner, ToInternedString};
+use core::ops::ControlFlow;
 
 /// List of valid operations in an [`Optional`] chain.
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
@@ -20,7 +20,7 @@ pub enum OptionalOperationKind {
     /// A private property access (`a?.#prop`).
     PrivatePropertyAccess {
         /// The private property accessed.
-        field: Sym,
+        field: PrivateName,
     },
     /// A function call (`a?.(arg)`).
     Call {
@@ -36,7 +36,7 @@ impl VisitWith for OptionalOperationKind {
     {
         match self {
             Self::SimplePropertyAccess { field } => visitor.visit_property_access_field(field),
-            Self::PrivatePropertyAccess { field } => visitor.visit_sym(field),
+            Self::PrivatePropertyAccess { field } => visitor.visit_private_name(field),
             Self::Call { args } => {
                 for arg in args.iter() {
                     try_break!(visitor.visit_expression(arg));
@@ -52,7 +52,7 @@ impl VisitWith for OptionalOperationKind {
     {
         match self {
             Self::SimplePropertyAccess { field } => visitor.visit_property_access_field_mut(field),
-            Self::PrivatePropertyAccess { field } => visitor.visit_sym_mut(field),
+            Self::PrivatePropertyAccess { field } => visitor.visit_private_name_mut(field),
             Self::Call { args } => {
                 for arg in args.iter_mut() {
                     try_break!(visitor.visit_expression_mut(arg));
@@ -113,7 +113,7 @@ impl ToInternedString for OptionalOperation {
             }
 
             if let OptionalOperationKind::PrivatePropertyAccess { field } = &self.kind {
-                return format!(".#{}", interner.resolve_expect(*field));
+                return format!(".#{}", interner.resolve_expect(field.description()));
             }
 
             String::new()
@@ -126,7 +126,7 @@ impl ToInternedString for OptionalOperation {
                 }
             },
             OptionalOperationKind::PrivatePropertyAccess { field } => {
-                format!("#{}", interner.resolve_expect(*field))
+                format!("#{}", interner.resolve_expect(field.description()))
             }
             OptionalOperationKind::Call { args } => format!("({})", join_nodes(interner, args)),
         });

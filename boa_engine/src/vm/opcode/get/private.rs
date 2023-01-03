@@ -18,11 +18,11 @@ impl Operation for GetPrivateField {
 
     fn execute(context: &mut Context<'_>) -> JsResult<ShouldExit> {
         let index = context.vm.read::<u32>();
-        let name = context.vm.frame().code.names[index as usize];
+        let name = context.vm.frame().code.private_names[index as usize];
         let value = context.vm.pop();
         if let Some(object) = value.as_object() {
             let object_borrow_mut = object.borrow();
-            if let Some(element) = object_borrow_mut.get_private_element(name.sym()) {
+            if let Some(element) = object_borrow_mut.get_private_element(name) {
                 match element {
                     PrivateElement::Field(value) => context.vm.push(value.clone()),
                     PrivateElement::Method(method) => context.vm.push(method.clone()),

@@ -120,8 +120,6 @@ impl Operation for SuperCall {
 
         let result = super_constructor.__construct__(&arguments, &new_target, context)?;
 
-        initialize_instance_elements(&result, &active_function, context)?;
-
         let this_env = context
             .realm
             .environments
@@ -134,6 +132,9 @@ impl Operation for SuperCall {
                 .with_message("this already initialized")
                 .into());
         }
+
+        initialize_instance_elements(&result, &active_function, context)?;
+
         context.vm.push(result);
         Ok(ShouldExit::False)
     }
@@ -191,8 +192,6 @@ impl Operation for SuperCallSpread {
 
         let result = super_constructor.__construct__(&arguments, &new_target, context)?;
 
-        initialize_instance_elements(&result, &active_function, context)?;
-
         let this_env = context
             .realm
             .environments
@@ -205,6 +204,9 @@ impl Operation for SuperCallSpread {
                 .with_message("this already initialized")
                 .into());
         }
+
+        initialize_instance_elements(&result, &active_function, context)?;
+
         context.vm.push(result);
         Ok(ShouldExit::False)
     }
@@ -257,19 +259,20 @@ impl Operation for SuperCallDerived {
 
         let result = super_constructor.__construct__(&arguments, &new_target, context)?;
 
-        initialize_instance_elements(&result, &active_function, context)?;
-
         let this_env = context
             .realm
             .environments
             .get_this_environment()
             .as_function_slots()
             .expect("super call must be in function environment");
+
         if !this_env.borrow_mut().bind_this_value(&result) {
             return Err(JsNativeError::reference()
                 .with_message("this already initialized")
                 .into());
         }
+
+        initialize_instance_elements(&result, &active_function, context)?;
 
         context.vm.push(result);
         Ok(ShouldExit::False)

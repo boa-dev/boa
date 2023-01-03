@@ -28,7 +28,7 @@ use crate::{
     Context, JsResult, JsString, JsValue,
 };
 use boa_ast::{
-    function::FormalParameterList,
+    function::{FormalParameterList, PrivateName},
     operations::{bound_names, contains, lexically_declared_names, ContainsSymbol},
     StatementList,
 };
@@ -126,7 +126,7 @@ pub enum ClassFieldDefinition {
     Public(PropertyKey, JsFunction),
 
     /// A class field definition with a private name.
-    Private(Sym, JsFunction),
+    Private(PrivateName, JsFunction),
 }
 
 unsafe impl Trace for ClassFieldDefinition {
@@ -176,7 +176,10 @@ pub enum Function {
         fields: Vec<ClassFieldDefinition>,
 
         /// The `[[PrivateMethods]]` internal slot.
-        private_methods: Vec<(Sym, PrivateElement)>,
+        private_methods: Vec<(PrivateName, PrivateElement)>,
+
+        /// The class object that this function is associated with.
+        class_object: Option<JsObject>,
     },
 
     /// A bytecode async function.
@@ -192,6 +195,9 @@ pub enum Function {
 
         /// The promise capability record of the async function.
         promise_capability: PromiseCapability,
+
+        /// The class object that this function is associated with.
+        class_object: Option<JsObject>,
     },
 
     /// A bytecode generator function.
@@ -204,6 +210,9 @@ pub enum Function {
 
         /// The `[[HomeObject]]` internal slot.
         home_object: Option<JsObject>,
+
+        /// The class object that this function is associated with.
+        class_object: Option<JsObject>,
     },
 
     /// A bytecode async generator function.
@@ -216,6 +225,9 @@ pub enum Function {
 
         /// The `[[HomeObject]]` internal slot.
         home_object: Option<JsObject>,
+
+        /// The class object that this function is associated with.
+        class_object: Option<JsObject>,
     },
 }
 
@@ -223,7 +235,7 @@ unsafe impl Trace for Function {
     custom_trace! {this, {
         match this {
             Self::Native { function, .. } => {mark(function)}
-            Self::Ordinary { code, environments, home_object, fields, private_methods, .. } => {
+            Self::Ordinary { code, environments, home_object, fields, private_methods, class_object, .. } => {
                 mark(code);
                 mark(environments);
                 mark(home_object);
@@ -231,18 +243,21 @@ unsafe impl Trace for Function {
                 for (_, elem) in private_methods {
                     mark(elem);
                 }
+                mark(class_object);
             }
-            Self::Async { code, environments, home_object, promise_capability } => {
+            Self::Async { code, environments, home_object, promise_capability, class_object } => {
                 mark(code);
                 mark(environments);
                 mark(home_object);
                 mark(promise_capability);
+                mark(class_object);
             }
-            Self::Generator { code, environments, home_object}
-            | Self::AsyncGenerator { code, environments, home_object} => {
+            Self::Generator { code, environments, home_object, class_object}
+            | Self::AsyncGenerator { code, environments, home_object, class_object} => {
                 mark(code);
                 mark(environments);
                 mark(home_object);
+                mark(class_object);
             }
         }
     }}
@@ -273,6 +288,15 @@ impl Function {
             constructor_kind.is_derived()
         } else {
             false
+        }
+    }
+
+    /// Returns the `[[ClassFieldInitializerName]]` internal slot of the function.
+    pub(crate) fn class_field_initializer_name(&self) -> Option<Sym> {
+        if let Self::Ordinary { code, .. } = self {
+            code.class_field_initializer_name
+        } else {
+            None
         }
     }
 
@@ -315,14 +339,14 @@ impl Function {
     }
 
     /// Pushes a private value to the `[[Fields]]` internal slot if present.
-    pub(crate) fn push_field_private(&mut self, key: Sym, value: JsFunction) {
+    pub(crate) fn push_field_private(&mut self, key: PrivateName, value: JsFunction) {
         if let Self::Ordinary { fields, .. } = self {
             fields.push(ClassFieldDefinition::Private(key, value));
         }
     }
 
     /// Returns the values of the `[[PrivateMethods]]` internal slot.
-    pub(crate) fn get_private_methods(&self) -> &[(Sym, PrivateElement)] {
+    pub(crate) fn get_private_methods(&self) -> &[(PrivateName, PrivateElement)] {
         if let Self::Ordinary {
             private_methods, ..
         } = self
@@ -334,7 +358,7 @@ impl Function {
     }
 
     /// Pushes a private method to the `[[PrivateMethods]]` internal slot if present.
-    pub(crate) fn push_private_method(&mut self, name: Sym, method: PrivateElement) {
+    pub(crate) fn push_private_method(&mut self, name: PrivateName, method: PrivateElement) {
         if let Self::Ordinary {
             private_methods, ..
         } = self
@@ -352,6 +376,17 @@ impl Function {
             Some(promise_capability)
         } else {
             None
+        }
+    }
+
+    ///  Sets the class object.
+    pub(crate) fn set_class_object(&mut self, object: JsObject) {
+        match self {
+            Self::Ordinary { class_object, .. }
+            | Self::Async { class_object, .. }
+            | Self::Generator { class_object, .. }
+            | Self::AsyncGenerator { class_object, .. } => *class_object = Some(object),
+            Self::Native { .. } => {}
         }
     }
 }
@@ -895,7 +930,7 @@ impl BuiltIn for BuiltInFunctionObject {
 ///  - [ECMAScript reference][spec]
 ///
 /// [spec]: https://tc39.es/ecma262/#sec-setfunctionname
-fn set_function_name(
+pub(crate) fn set_function_name(
     function: &JsObject,
     name: &PropertyKey,
     prefix: Option<JsString>,

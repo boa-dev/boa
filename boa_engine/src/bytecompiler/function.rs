@@ -20,7 +20,8 @@ pub(crate) struct FunctionCompiler {
     r#async: bool,
     strict: bool,
     arrow: bool,
-    has_binding_identifier: bool,
+    binding_identifier: Option<Sym>,
+    class_name: Option<Sym>,
 }
 
 impl FunctionCompiler {
@@ -32,7 +33,8 @@ impl FunctionCompiler {
             r#async: false,
             strict: false,
             arrow: false,
-            has_binding_identifier: false,
+            binding_identifier: None,
+            class_name: None,
         }
     }
 
@@ -72,8 +74,14 @@ impl FunctionCompiler {
     }
 
     /// Indicate if the function has a binding identifier.
-    pub(crate) const fn has_binding_identifier(mut self, has_binding_identifier: bool) -> Self {
-        self.has_binding_identifier = has_binding_identifier;
+    pub(crate) const fn binding_identifier(mut self, binding_identifier: Option<Sym>) -> Self {
+        self.binding_identifier = binding_identifier;
+        self
+    }
+
+    /// Indicate if the function has a class associated with it.
+    pub(crate) const fn class_name(mut self, class_name: Sym) -> Self {
+        self.class_name = Some(class_name);
         self
     }
 
@@ -97,6 +105,7 @@ impl FunctionCompiler {
             code_block: code,
             literals_map: FxHashMap::default(),
             names_map: FxHashMap::default(),
+            private_names_map: FxHashMap::default(),
             bindings_map: FxHashMap::default(),
             jump_info: Vec::new(),
             in_async_generator: self.generator && self.r#async,
@@ -104,12 +113,19 @@ impl FunctionCompiler {
             context,
         };
 
-        if self.has_binding_identifier {
+        if let Some(class_name) = self.class_name {
+            compiler.context.push_compile_time_environment(false);
+            compiler
+                .context
+                .create_immutable_binding(class_name.into(), true);
+        }
+
+        if let Some(binding_identifier) = self.binding_identifier {
             compiler.code_block.has_binding_identifier = true;
             compiler.context.push_compile_time_environment(false);
             compiler
                 .context
-                .create_immutable_binding(self.name.into(), self.strict);
+                .create_immutable_binding(binding_identifier.into(), self.strict);
         }
 
         compiler.context.push_compile_time_environment(true);
@@ -202,7 +218,12 @@ impl FunctionCompiler {
             compiler.code_block.num_bindings = num_bindings;
         }
 
-        if self.has_binding_identifier {
+        if self.binding_identifier.is_some() {
+            let (_, compile_environment) = compiler.context.pop_compile_time_environment();
+            compiler.push_compile_environment(compile_environment);
+        }
+
+        if self.class_name.is_some() {
             let (_, compile_environment) = compiler.context.pop_compile_time_environment();
             compiler.push_compile_environment(compile_environment);
         }

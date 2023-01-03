@@ -13,7 +13,6 @@ mod lexical;
 mod tests;
 
 pub(in crate::parser) use hoistable::class_decl::ClassTail;
-pub(crate) use hoistable::class_decl::PrivateElement;
 pub(in crate::parser) use hoistable::FunctionDeclaration;
 use hoistable::HoistableDeclaration;
 pub(in crate::parser) use lexical::LexicalDeclaration;

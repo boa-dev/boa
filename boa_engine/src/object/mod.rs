@@ -2,6 +2,7 @@
 //!
 //! For the builtin object wrappers, please see [`object::builtins`][builtins] for implementors.
 
+use boa_ast::function::PrivateName;
 pub use jsobject::{RecursionLimiter, Ref, RefMut};
 pub use operations::IntegrityLevel;
 pub use property_map::*;
@@ -55,8 +56,6 @@ use crate::{
 };
 
 use boa_gc::{custom_trace, Finalize, GcCell, Trace, WeakGc};
-use boa_interner::Sym;
-use rustc_hash::FxHashMap;
 use std::{
     any::Any,
     fmt::{self, Debug, Display},
@@ -124,7 +123,7 @@ pub struct Object {
     /// Whether it can have new properties added to it.
     extensible: bool,
     /// The `[[PrivateElements]]` internal slot.
-    private_elements: FxHashMap<Sym, PrivateElement>,
+    private_elements: Vec<(PrivateName, PrivateElement)>,
 }
 
 unsafe impl Trace for Object {
@@ -132,8 +131,8 @@ unsafe impl Trace for Object {
         mark(&this.data);
         mark(&this.properties);
         mark(&this.prototype);
-        for elem in this.private_elements.values() {
-            mark(elem);
+        for (_, element) in &this.private_elements {
+            mark(element);
         }
     });
 }
@@ -751,7 +750,7 @@ impl Default for Object {
             properties: PropertyMap::default(),
             prototype: None,
             extensible: true,
-            private_elements: FxHashMap::default(),
+            private_elements: Vec::default(),
         }
     }
 }
@@ -1773,58 +1772,119 @@ impl Object {
         self.properties.remove(key)
     }
 
+    /// Check if a private name exists.
+    #[inline]
+    pub(crate) fn has_private_name(&self, name: &PrivateName, element: &PrivateElement) -> bool {
+        for (key, value) in &self.private_elements {
+            if name == key {
+                if let PrivateElement::Accessor { setter, getter } = element {
+                    if let PrivateElement::Accessor {
+                        setter: s,
+                        getter: g,
+                    } = value
+                    {
+                        if setter.is_some() && s.is_some() || getter.is_some() && g.is_some() {
+                            return true;
+                        }
+                        return false;
+                    }
+                }
+                return true;
+            }
+        }
+
+        false
+    }
+
     /// Get a private element.
     #[inline]
-    pub(crate) fn get_private_element(&self, name: Sym) -> Option<&PrivateElement> {
-        self.private_elements.get(&name)
+    pub(crate) fn get_private_element(&self, name: PrivateName) -> Option<&PrivateElement> {
+        for (key, value) in &self.private_elements {
+            if *key == name {
+                return Some(value);
+            }
+        }
+        None
     }
 
     /// Set a private element.
     #[inline]
-    pub(crate) fn set_private_element(&mut self, name: Sym, value: PrivateElement) {
-        self.private_elements.insert(name, value);
+    pub(crate) fn set_private_element(&mut self, name: PrivateName, value: PrivateElement) {
+        for (inner_name, element) in &mut self.private_elements {
+            if inner_name.description() == name.description() {
+                *inner_name = name;
+                *element = value;
+                return;
+            }
+        }
+        self.private_elements.push((name, value));
+    }
+
+    /// Assign to an existing private name.
+    #[inline]
+    pub(crate) fn assign_private_element(
+        &mut self,
+        name: PrivateName,
+        element: PrivateElement,
+    ) -> bool {
+        for (key, value) in &mut self.private_elements {
+            if *key == name {
+                *value = element;
+                return true;
+            }
+        }
+
+        false
     }
 
     /// Set a private setter.
-    pub(crate) fn set_private_element_setter(&mut self, name: Sym, setter: JsObject) {
-        match self.private_elements.get_mut(&name) {
-            Some(PrivateElement::Accessor {
-                getter: _,
-                setter: s,
-            }) => {
-                *s = Some(setter);
-            }
-            _ => {
-                self.private_elements.insert(
-                    name,
-                    PrivateElement::Accessor {
-                        getter: None,
-                        setter: Some(setter),
-                    },
-                );
+    #[inline]
+    pub(crate) fn set_private_element_setter(&mut self, name: PrivateName, setter: JsObject) {
+        for (inner_name, element) in &mut self.private_elements {
+            if *inner_name == name {
+                if let PrivateElement::Accessor {
+                    getter: _,
+                    setter: s,
+                } = element
+                {
+                    *s = Some(setter);
+                    return;
+                }
             }
         }
+
+        self.private_elements.push((
+            name,
+            PrivateElement::Accessor {
+                getter: None,
+                setter: Some(setter),
+            },
+        ));
     }
 
     /// Set a private getter.
-    pub(crate) fn set_private_element_getter(&mut self, name: Sym, getter: JsObject) {
-        match self.private_elements.get_mut(&name) {
-            Some(PrivateElement::Accessor {
-                getter: g,
-                setter: _,
-            }) => {
-                *g = Some(getter);
-            }
-            _ => {
-                self.private_elements.insert(
-                    name,
-                    PrivateElement::Accessor {
-                        getter: Some(getter),
-                        setter: None,
-                    },
-                );
+    #[inline]
+    pub(crate) fn set_private_element_getter(&mut self, name: PrivateName, getter: JsObject) {
+        for (inner_name, element) in &mut self.private_elements {
+            if *inner_name == name {
+                if let PrivateElement::Accessor {
+                    getter: g,
+                    setter: _,
+                } = element
+                {
+                    *g = Some(getter);
+                    return;
+                }
             }
         }
+
+        self.private_elements.push((
+            name,
+            PrivateElement::Accessor {
+                getter: Some(getter),
+                setter: None,
+            },
+        ));
     }
 }
 

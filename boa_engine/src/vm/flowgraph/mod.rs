@@ -340,10 +340,13 @@ impl CodeBlock {
                 Opcode::GetPropertyByName
                 | Opcode::SetPropertyByName
                 | Opcode::DefineOwnPropertyByName
+                | Opcode::DefineClassStaticMethodByName
                 | Opcode::DefineClassMethodByName
                 | Opcode::SetPropertyGetterByName
+                | Opcode::DefineClassStaticGetterByName
                 | Opcode::DefineClassGetterByName
                 | Opcode::SetPropertySetterByName
+                | Opcode::DefineClassStaticSetterByName
                 | Opcode::DefineClassSetterByName
                 | Opcode::AssignPrivateField
                 | Opcode::SetPrivateField
@@ -430,10 +433,13 @@ impl CodeBlock {
                 | Opcode::GetPropertyByValuePush
                 | Opcode::SetPropertyByValue
                 | Opcode::DefineOwnPropertyByValue
+                | Opcode::DefineClassStaticMethodByValue
                 | Opcode::DefineClassMethodByValue
                 | Opcode::SetPropertyGetterByValue
+                | Opcode::DefineClassStaticGetterByValue
                 | Opcode::DefineClassGetterByValue
                 | Opcode::SetPropertySetterByValue
+                | Opcode::DefineClassStaticSetterByValue
                 | Opcode::DefineClassSetterByValue
                 | Opcode::DeletePropertyByValue
                 | Opcode::DeleteSuperThrow

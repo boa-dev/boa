@@ -6,18 +6,19 @@ use core::ops::ControlFlow;
 use std::convert::Infallible;
 
 use boa_interner::Sym;
-use rustc_hash::FxHashSet;
+use rustc_hash::{FxHashMap, FxHashSet};
 
 use crate::{
     declaration::VarDeclaration,
     expression::{access::SuperPropertyAccess, Await, Identifier, SuperCall, Yield},
     function::{
         ArrowFunction, AsyncArrowFunction, AsyncFunction, AsyncGenerator, Class, ClassElement,
-        Function, Generator,
+        Function, Generator, PrivateName,
     },
     property::{MethodDefinition, PropertyDefinition},
     statement::LabelledItem,
-    visitor::{NodeRef, VisitWith, Visitor},
+    try_break,
+    visitor::{NodeRef, VisitWith, Visitor, VisitorMut},
     Declaration, Expression, Statement, StatementList, StatementListItem,
 };
 
@@ -661,4 +662,108 @@ pub fn top_level_var_declared_names(stmts: &StatementList) -> FxHashSet<Identifi
     let mut names = FxHashSet::default();
     top_level_vars(stmts, &mut names);
     names
+}
+
+/// Resolves the private names of a class and all of the contained classes and private identifiers.
+pub fn class_private_name_resolver(node: &mut Class, top_level_class_index: usize) -> bool {
+    /// Visitor used by the function to search for an identifier with the name `arguments`.
+    #[derive(Debug, Clone)]
+    struct ClassPrivateNameResolver {
+        private_environments_stack: Vec<FxHashMap<Sym, PrivateName>>,
+        top_level_class_index: usize,
+    }
+
+    impl<'ast> VisitorMut<'ast> for ClassPrivateNameResolver {
+        type BreakTy = ();
+
+        #[inline]
+        fn visit_class_mut(&mut self, node: &'ast mut Class) -> ControlFlow<Self::BreakTy> {
+            let mut names = FxHashMap::default();
+
+            for element in node.elements.iter_mut() {
+                match element {
+                    ClassElement::PrivateMethodDefinition(name, _)
+                    | ClassElement::PrivateStaticMethodDefinition(name, _)
+                    | ClassElement::PrivateFieldDefinition(name, _)
+                    | ClassElement::PrivateStaticFieldDefinition(name, _) => {
+                        name.indices = (
+                            self.top_level_class_index,
+                            self.private_environments_stack.len(),
+                        );
+                        names.insert(name.description(), *name);
+                    }
+                    _ => {}
+                }
+            }
+
+            self.private_environments_stack.push(names);
+
+            for element in node.elements.iter_mut() {
+                match element {
+                    ClassElement::MethodDefinition(name, method)
+                    | ClassElement::StaticMethodDefinition(name, method) => {
+                        try_break!(self.visit_property_name_mut(name));
+                        try_break!(self.visit_method_definition_mut(method));
+                    }
+                    ClassElement::PrivateMethodDefinition(_, method)
+                    | ClassElement::PrivateStaticMethodDefinition(_, method) => {
+                        try_break!(self.visit_method_definition_mut(method));
+                    }
+                    ClassElement::FieldDefinition(name, expression)
+                    | ClassElement::StaticFieldDefinition(name, expression) => {
+                        try_break!(self.visit_property_name_mut(name));
+                        if let Some(expression) = expression {
+                            try_break!(self.visit_expression_mut(expression));
+                        }
+                    }
+                    ClassElement::PrivateFieldDefinition(_, expression)
+                    | ClassElement::PrivateStaticFieldDefinition(_, expression) => {
+                        if let Some(expression) = expression {
+                            try_break!(self.visit_expression_mut(expression));
+                        }
+                    }
+                    ClassElement::StaticBlock(statement_list) => {
+                        try_break!(self.visit_statement_list_mut(statement_list));
+                    }
+                }
+            }
+
+            if let Some(function) = &mut node.constructor {
+                try_break!(self.visit_function_mut(function));
+            }
+
+            self.private_environments_stack.pop();
+
+            ControlFlow::Continue(())
+        }
+
+        #[inline]
+        fn visit_private_name_mut(
+            &mut self,
+            node: &'ast mut PrivateName,
+        ) -> ControlFlow<Self::BreakTy> {
+            let mut found = false;
+
+            for environment in self.private_environments_stack.iter().rev() {
+                if let Some(n) = environment.get(&node.description()) {
+                    found = true;
+                    node.indices = n.indices;
+                    break;
+                }
+            }
+
+            if found {
+                ControlFlow::Continue(())
+            } else {
+                ControlFlow::Break(())
+            }
+        }
+    }
+
+    let mut visitor = ClassPrivateNameResolver {
+        private_environments_stack: Vec::new(),
+        top_level_class_index,
+    };
+
+    visitor.visit_class_mut(node).is_continue()
 }

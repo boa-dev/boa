@@ -33,7 +33,7 @@ pub use arrow_function::ArrowFunction;
 pub use async_arrow_function::AsyncArrowFunction;
 pub use async_function::AsyncFunction;
 pub use async_generator::AsyncGenerator;
-pub use class::{Class, ClassElement};
+pub use class::{Class, ClassElement, PrivateName};
 use core::ops::ControlFlow;
 pub use generator::Generator;
 pub use parameters::{FormalParameter, FormalParameterList, FormalParameterListFlags};

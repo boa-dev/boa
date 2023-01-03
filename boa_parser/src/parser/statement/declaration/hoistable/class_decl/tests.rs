@@ -31,6 +31,7 @@ fn check_async_ordinary_method() {
             None,
             None,
             elements.into(),
+            true,
         ))
         .into()],
         interner,
@@ -57,6 +58,7 @@ fn check_async_field_initialization() {
             None,
             None,
             elements.into(),
+            true,
         ))
         .into()],
         interner,
@@ -82,6 +84,7 @@ fn check_async_field() {
             None,
             None,
             elements.into(),
+            true,
         ))
         .into()],
         interner,

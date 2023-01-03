@@ -1,5 +1,6 @@
 //! Property definition related types, used in object literals and class definitions.
 
+use crate::function::PrivateName;
 use crate::try_break;
 use crate::visitor::{VisitWith, Visitor, VisitorMut};
 use boa_interner::{Interner, Sym, ToInternedString};
@@ -354,7 +355,7 @@ pub enum ClassElementName {
     /// A public property.
     PropertyName(PropertyName),
     /// A private property.
-    PrivateIdentifier(Sym),
+    PrivateIdentifier(PrivateName),
 }
 
 impl ClassElementName {

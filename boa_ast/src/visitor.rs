@@ -24,7 +24,7 @@ use crate::{
     },
     function::{
         ArrowFunction, AsyncArrowFunction, AsyncFunction, AsyncGenerator, Class, ClassElement,
-        FormalParameter, FormalParameterList, Function, Generator,
+        FormalParameter, FormalParameterList, Function, Generator, PrivateName,
     },
     pattern::{ArrayPattern, ArrayPatternElement, ObjectPattern, ObjectPatternElement, Pattern},
     property::{MethodDefinition, PropertyDefinition, PropertyName},
@@ -145,6 +145,7 @@ node_ref! {
     Identifier,
     FormalParameterList,
     ClassElement,
+    PrivateName,
     VariableList,
     Variable,
     Binding,
@@ -230,6 +231,7 @@ pub trait Visitor<'ast>: Sized {
     define_visit!(visit_identifier, Identifier);
     define_visit!(visit_formal_parameter_list, FormalParameterList);
     define_visit!(visit_class_element, ClassElement);
+    define_visit!(visit_private_name, PrivateName);
     define_visit!(visit_variable_list, VariableList);
     define_visit!(visit_variable, Variable);
     define_visit!(visit_binding, Binding);
@@ -312,6 +314,7 @@ pub trait Visitor<'ast>: Sized {
             NodeRef::Identifier(n) => self.visit_identifier(n),
             NodeRef::FormalParameterList(n) => self.visit_formal_parameter_list(n),
             NodeRef::ClassElement(n) => self.visit_class_element(n),
+            NodeRef::PrivateName(n) => self.visit_private_name(n),
             NodeRef::VariableList(n) => self.visit_variable_list(n),
             NodeRef::Variable(n) => self.visit_variable(n),
             NodeRef::Binding(n) => self.visit_binding(n),
@@ -399,6 +402,7 @@ pub trait VisitorMut<'ast>: Sized {
     define_visit_mut!(visit_identifier_mut, Identifier);
     define_visit_mut!(visit_formal_parameter_list_mut, FormalParameterList);
     define_visit_mut!(visit_class_element_mut, ClassElement);
+    define_visit_mut!(visit_private_name_mut, PrivateName);
     define_visit_mut!(visit_variable_list_mut, VariableList);
     define_visit_mut!(visit_variable_mut, Variable);
     define_visit_mut!(visit_binding_mut, Binding);
@@ -481,6 +485,7 @@ pub trait VisitorMut<'ast>: Sized {
             NodeRefMut::Identifier(n) => self.visit_identifier_mut(n),
             NodeRefMut::FormalParameterList(n) => self.visit_formal_parameter_list_mut(n),
             NodeRefMut::ClassElement(n) => self.visit_class_element_mut(n),
+            NodeRefMut::PrivateName(n) => self.visit_private_name_mut(n),
             NodeRefMut::VariableList(n) => self.visit_variable_list_mut(n),
             NodeRefMut::Variable(n) => self.visit_variable_mut(n),
             NodeRefMut::Binding(n) => self.visit_binding_mut(n),

@@ -9,6 +9,7 @@ use crate::{
     },
     Error,
 };
+use ast::function::PrivateName;
 use boa_ast::{
     self as ast,
     expression::{access::PropertyAccessField, Optional, OptionalOperation, OptionalOperationKind},
@@ -81,8 +82,16 @@ where
                     field: PropertyAccessField::Const(Sym::NULL),
                 },
                 TokenKind::PrivateIdentifier(name) => {
-                    cursor.push_used_private_identifier(*name, token.span().start())?;
-                    OptionalOperationKind::PrivatePropertyAccess { field: *name }
+                    if !cursor.in_class() {
+                        return Err(Error::general(
+                            "Private identifier outside of class",
+                            token.span().start(),
+                        ));
+                    }
+
+                    OptionalOperationKind::PrivatePropertyAccess {
+                        field: PrivateName::new(*name),
+                    }
                 }
                 _ => {
                     return Err(Error::expected(

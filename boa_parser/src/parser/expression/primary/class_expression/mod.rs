@@ -6,7 +6,7 @@ use crate::{
     },
 };
 use boa_ast::{expression::Identifier, function::Class, Keyword};
-use boa_interner::{Interner, Sym};
+use boa_interner::Interner;
 use boa_profiler::Profiler;
 use std::io::Read;
 
@@ -50,16 +50,25 @@ where
         let strict = cursor.strict_mode();
         cursor.set_strict_mode(true);
 
+        let mut has_binding_identifier = false;
         let token = cursor.peek(0, interner).or_abrupt()?;
         let name = match token.kind() {
             TokenKind::Identifier(_) | TokenKind::Keyword((Keyword::Yield | Keyword::Await, _)) => {
+                has_binding_identifier = true;
                 BindingIdentifier::new(self.allow_yield, self.allow_await)
                     .parse(cursor, interner)?
+                    .into()
             }
-            _ => self.name.unwrap_or_else(|| Sym::EMPTY_STRING.into()),
+            _ => self.name,
         };
         cursor.set_strict_mode(strict);
 
-        ClassTail::new(name, self.allow_yield, self.allow_await).parse(cursor, interner)
+        ClassTail::new(
+            name,
+            has_binding_identifier,
+            self.allow_yield,
+            self.allow_await,
+        )
+        .parse(cursor, interner)
     }
 }

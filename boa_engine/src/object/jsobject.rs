@@ -11,7 +11,6 @@ use crate::{
     Context, JsResult, JsValue,
 };
 use boa_gc::{self, Finalize, Gc, GcCell, Trace};
-use rustc_hash::FxHashMap;
 use std::{
     cell::RefCell,
     collections::HashMap,
@@ -74,7 +73,7 @@ impl JsObject {
                 prototype: prototype.into(),
                 extensible: true,
                 properties: PropertyMap::default(),
-                private_elements: FxHashMap::default(),
+                private_elements: Vec::new(),
             })),
         }
     }

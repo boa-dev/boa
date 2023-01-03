@@ -16,6 +16,7 @@ use crate::{
     },
     Error,
 };
+use ast::function::PrivateName;
 use boa_ast::{
     self as ast,
     expression::{
@@ -189,8 +190,13 @@ where
                         }
                         TokenKind::NullLiteral => SimplePropertyAccess::new(lhs, Sym::NULL).into(),
                         TokenKind::PrivateIdentifier(name) => {
-                            cursor.push_used_private_identifier(*name, token.span().start())?;
-                            PrivatePropertyAccess::new(lhs, *name).into()
+                            if !cursor.in_class() {
+                                return Err(Error::general(
+                                    "Private identifier outside of class",
+                                    token.span().start(),
+                                ));
+                            }
+                            PrivatePropertyAccess::new(lhs, PrivateName::new(*name)).into()
                         }
                         _ => {
                             return Err(Error::expected(

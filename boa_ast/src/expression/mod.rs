@@ -216,6 +216,27 @@ impl Expression {
                 | Self::Class(_)
         )
     }
+
+    /// Returns if the expression is a function definition without a name.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-isanonymousfunctiondefinition
+    #[must_use]
+    #[inline]
+    pub const fn is_anonymous_function_definition(&self) -> bool {
+        match self {
+            Self::ArrowFunction(f) => f.name().is_none(),
+            Self::AsyncArrowFunction(f) => f.name().is_none(),
+            Self::Function(f) => f.name().is_none(),
+            Self::Generator(f) => f.name().is_none(),
+            Self::AsyncGenerator(f) => f.name().is_none(),
+            Self::AsyncFunction(f) => f.name().is_none(),
+            Self::Class(f) => f.name().is_none(),
+            _ => false,
+        }
+    }
 }
 
 impl From<Expression> for Statement {

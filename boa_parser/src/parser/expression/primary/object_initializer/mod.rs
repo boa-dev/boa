@@ -25,7 +25,9 @@ use boa_ast::{
         literal::{self, Literal},
         Identifier,
     },
-    function::{AsyncFunction, AsyncGenerator, FormalParameterList, Function, Generator},
+    function::{
+        AsyncFunction, AsyncGenerator, FormalParameterList, Function, Generator, PrivateName,
+    },
     operations::{
         bound_names, contains, has_direct_super, top_level_lexically_declared_names, ContainsSymbol,
     },
@@ -611,11 +613,14 @@ where
     fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult<Self::Output> {
         let _timer = Profiler::global().start_event("ClassElementName", "Parsing");
 
-        match cursor.peek(0, interner).or_abrupt()?.kind() {
+        let token = cursor.peek(0, interner).or_abrupt()?;
+        match token.kind() {
             TokenKind::PrivateIdentifier(ident) => {
                 let ident = *ident;
                 cursor.advance(interner);
-                Ok(property::ClassElementName::PrivateIdentifier(ident))
+                Ok(property::ClassElementName::PrivateIdentifier(
+                    PrivateName::new(ident),
+                ))
             }
             _ => Ok(property::ClassElementName::PropertyName(
                 PropertyName::new(self.allow_yield, self.allow_await).parse(cursor, interner)?,
@@ -718,6 +723,14 @@ where
         let params_start_position = cursor.peek(0, interner).or_abrupt()?.span().start();
 
         let params = UniqueFormalParameters::new(true, false).parse(cursor, interner)?;
+
+        // It is a Syntax Error if UniqueFormalParameters Contains YieldExpression is true.
+        if contains(&params, ContainsSymbol::YieldExpression) {
+            return Err(Error::lex(LexError::Syntax(
+                "yield expression not allowed in generator method definition parameters".into(),
+                params_start_position,
+            )));
+        }
 
         let body_start = cursor
             .expect(

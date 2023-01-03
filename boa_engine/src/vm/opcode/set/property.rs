@@ -1,9 +1,9 @@
 use crate::{
+    builtins::function::set_function_name,
     property::{PropertyDescriptor, PropertyKey},
     vm::{opcode::Operation, ShouldExit},
-    Context, JsResult, JsString,
+    Context, JsNativeError, JsResult, JsString, JsValue,
 };
-use boa_macros::utf16;
 
 /// `SetPropertyByName` implements the Opcode Operation for `Opcode::SetPropertyByName`
 ///
@@ -20,6 +20,7 @@ impl Operation for SetPropertyByName {
         let index = context.vm.read::<u32>();
 
         let value = context.vm.pop();
+        let receiver = context.vm.pop();
         let object = context.vm.pop();
         let object = if let Some(object) = object.as_object() {
             object.clone()
@@ -34,7 +35,13 @@ impl Operation for SetPropertyByName {
             .into_common::<JsString>(false)
             .into();
 
-        object.set(name, value.clone(), context.vm.frame().code.strict, context)?;
+        //object.set(name, value.clone(), context.vm.frame().code.strict, context)?;
+        let succeeded = object.__set__(name.clone(), value.clone(), receiver, context)?;
+        if !succeeded && context.vm.frame().code.strict {
+            return Err(JsNativeError::typ()
+                .with_message(format!("cannot set non-writable property: {name}"))
+                .into());
+        }
         context.vm.stack.push(value);
         Ok(ShouldExit::False)
     }
@@ -235,39 +242,27 @@ impl Operation for SetFunctionName {
 
     fn execute(context: &mut Context<'_>) -> JsResult<ShouldExit> {
         let prefix = context.vm.read::<u8>();
-
         let function = context.vm.pop();
         let name = context.vm.pop();
 
-        let function_object = function.as_object().expect("function is not an object");
-
-        let name = if let Some(symbol) = name.as_symbol() {
-            if let Some(name) = symbol.description() {
-                JsString::concat_array(&[utf16!("["), &name, utf16!("]")])
-            } else {
-                JsString::from("")
-            }
-        } else {
-            name.as_string().expect("name is not a string").clone()
-        };
-
-        let name = match prefix {
-            0 => name,
-            1 => JsString::concat(utf16!("get "), &name),
-            2 => JsString::concat(utf16!("set "), &name),
+        let name = match name {
+            JsValue::String(name) => name.into(),
+            JsValue::Symbol(name) => name.into(),
             _ => unreachable!(),
         };
 
-        let desc = PropertyDescriptor::builder()
-            .value(name)
-            .writable(false)
-            .enumerable(false)
-            .configurable(true)
-            .build();
+        let prefix = match prefix {
+            1 => Some(JsString::from("get")),
+            2 => Some(JsString::from("set")),
+            _ => None,
+        };
 
-        function_object
-            .__define_own_property__("name".into(), desc, context)
-            .expect("msg");
+        set_function_name(
+            function.as_object().expect("function is not an object"),
+            &name,
+            prefix,
+            context,
+        );
 
         context.vm.stack.push(function);
         Ok(ShouldExit::False)
