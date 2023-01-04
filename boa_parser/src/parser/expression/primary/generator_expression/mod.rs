@@ -23,7 +23,7 @@ use boa_ast::{
     expression::Identifier,
     function::Generator,
     operations::{bound_names, contains, top_level_lexically_declared_names, ContainsSymbol},
-    Position, Punctuator,
+    Keyword, Punctuator,
 };
 use boa_interner::{Interner, Sym};
 use boa_profiler::Profiler;
@@ -67,27 +67,20 @@ where
             interner,
         )?;
 
-        let (name, has_binding_identifier) = match cursor.peek(0, interner).or_abrupt()?.kind() {
-            TokenKind::Punctuator(Punctuator::OpenParen) => (self.name, false),
-            _ => (
-                Some(BindingIdentifier::new(true, false).parse(cursor, interner)?),
-                true,
-            ),
-        };
+        let token = cursor.peek(0, interner).or_abrupt()?;
+        let (name, name_span) = match token.kind() {
+            TokenKind::Identifier(_)
+            | TokenKind::Keyword((
+                Keyword::Yield | Keyword::Await | Keyword::Async | Keyword::Of,
+                _,
+            )) => {
+                let span = token.span();
+                let name = BindingIdentifier::new(true, false).parse(cursor, interner)?;
 
-        // If BindingIdentifier is present and the source text matched by BindingIdentifier is strict mode code,
-        // it is a Syntax Error if the StringValue of BindingIdentifier is "eval" or "arguments".
-        // https://tc39.es/ecma262/#sec-generator-function-definitions-static-semantics-early-errors
-        if let Some(name) = name {
-            if cursor.strict_mode() && [Sym::EVAL, Sym::ARGUMENTS].contains(&name.sym()) {
-                return Err(Error::lex(LexError::Syntax(
-                    "Unexpected eval or arguments in strict mode".into(),
-                    cursor
-                        .peek(0, interner)?
-                        .map_or_else(|| Position::new(1, 1), |token| token.span().end()),
-                )));
+                (Some(name), span)
             }
-        }
+            _ => (None, token.span()),
+        };
 
         let params_start_position = cursor
             .expect(Punctuator::OpenParen, "generator expression", interner)?
@@ -123,6 +116,26 @@ where
             )));
         }
 
+        // Early Error: If BindingIdentifier is present and the source code matching BindingIdentifier is strict mode code,
+        // it is a Syntax Error if the StringValue of BindingIdentifier is "eval" or "arguments".
+        if (cursor.strict_mode() || body.strict())
+            && [Some(Sym::EVAL), Some(Sym::ARGUMENTS)].contains(&name.map(Identifier::sym))
+        {
+            return Err(Error::lex(LexError::Syntax(
+                "unexpected identifier 'eval' or 'arguments' in strict mode".into(),
+                name_span.start(),
+            )));
+        }
+
+        // Catch early error for BindingIdentifier, because strictness of the functions body is also
+        // relevant for the function parameters.
+        if body.strict() && contains(&params, ContainsSymbol::EvalOrArguments) {
+            return Err(Error::lex(LexError::Syntax(
+                "unexpected identifier 'eval' or 'arguments' in strict mode".into(),
+                params_start_position,
+            )));
+        }
+
         // It is a Syntax Error if any element of the BoundNames of FormalParameters
         // also occurs in the LexicallyDeclaredNames of GeneratorBody.
         // https://tc39.es/ecma262/#sec-generator-function-definitions-static-semantics-early-errors
@@ -141,7 +154,12 @@ where
             )));
         }
 
-        let function = Generator::new(name, params, body, has_binding_identifier);
+        let function = Generator::new(
+            if name.is_some() { name } else { self.name },
+            params,
+            body,
+            name.is_some(),
+        );
 
         if contains(&function, ContainsSymbol::Super) {
             return Err(Error::lex(LexError::Syntax(

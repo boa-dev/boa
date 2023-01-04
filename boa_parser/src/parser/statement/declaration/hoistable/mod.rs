@@ -34,7 +34,7 @@ use boa_ast::{
     expression::Identifier,
     function::FormalParameterList,
     operations::{bound_names, contains, top_level_lexically_declared_names, ContainsSymbol},
-    Declaration, Keyword, Position, Punctuator, StatementList,
+    Declaration, Keyword, Punctuator, StatementList,
 };
 use boa_interner::{Interner, Sym};
 use boa_profiler::Profiler;
@@ -143,13 +143,14 @@ fn parse_callable_declaration<R: Read, C: CallableDeclaration>(
     cursor: &mut Cursor<R>,
     interner: &mut Interner,
 ) -> ParseResult<(Identifier, FormalParameterList, StatementList)> {
-    let next_token = cursor.peek(0, interner).or_abrupt()?;
-    let name = match next_token.kind() {
+    let token = cursor.peek(0, interner).or_abrupt()?;
+    let name_span = token.span();
+    let name = match token.kind() {
         TokenKind::Punctuator(Punctuator::OpenParen) => {
             if !c.is_default() {
                 return Err(Error::unexpected(
-                    next_token.to_string(interner),
-                    next_token.span(),
+                    token.to_string(interner),
+                    token.span(),
                     c.error_context(),
                 ));
             }
@@ -158,17 +159,6 @@ fn parse_callable_declaration<R: Read, C: CallableDeclaration>(
         _ => BindingIdentifier::new(c.name_allow_yield(), c.name_allow_await())
             .parse(cursor, interner)?,
     };
-
-    // Early Error: If BindingIdentifier is present and the source code matching BindingIdentifier is strict mode code,
-    // it is a Syntax Error if the StringValue of BindingIdentifier is "eval" or "arguments".
-    if cursor.strict_mode() && [Sym::EVAL, Sym::ARGUMENTS].contains(&name.sym()) {
-        return Err(Error::lex(LexError::Syntax(
-            "Unexpected eval or arguments in strict mode".into(),
-            cursor
-                .peek(0, interner)?
-                .map_or_else(|| Position::new(1, 1), |token| token.span().end()),
-        )));
-    }
 
     let params_start_position = cursor
         .expect(Punctuator::OpenParen, c.error_context(), interner)?
@@ -200,6 +190,25 @@ fn parse_callable_declaration<R: Read, C: CallableDeclaration>(
     if body.strict() && !params.is_simple() {
         return Err(Error::lex(LexError::Syntax(
             "Illegal 'use strict' directive in function with non-simple parameter list".into(),
+            params_start_position,
+        )));
+    }
+
+    // Early Error: If BindingIdentifier is present and the source code matching BindingIdentifier is strict mode code,
+    // it is a Syntax Error if the StringValue of BindingIdentifier is "eval" or "arguments".
+    if (cursor.strict_mode() || body.strict()) && [Sym::EVAL, Sym::ARGUMENTS].contains(&name.sym())
+    {
+        return Err(Error::lex(LexError::Syntax(
+            "unexpected identifier 'eval' or 'arguments' in strict mode".into(),
+            name_span.start(),
+        )));
+    }
+
+    // Early Error for BindingIdentifier, because the strictness of the functions body is also
+    // relevant for the function parameters.
+    if body.strict() && contains(&params, ContainsSymbol::EvalOrArguments) {
+        return Err(Error::lex(LexError::Syntax(
+            "unexpected identifier 'eval' or 'arguments' in strict mode".into(),
             params_start_position,
         )));
     }

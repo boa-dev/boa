@@ -147,7 +147,7 @@ where
                                     .parse(cursor, interner)
                                     .map(Into::into)
                             }
-                            _ => AsyncFunctionExpression::new(self.name, self.allow_yield)
+                            _ => AsyncFunctionExpression::new(self.name)
                                 .parse(cursor, interner)
                                 .map(Into::into),
                         }
