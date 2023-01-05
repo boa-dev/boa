@@ -301,6 +301,7 @@ dependencies = [
  "fast-float",
  "num-bigint",
  "num-traits",
+ "regress",
  "rustc-hash",
 ]
 
