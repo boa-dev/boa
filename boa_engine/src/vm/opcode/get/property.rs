@@ -12,8 +12,8 @@ use crate::{
 pub(crate) struct GetPropertyByName;
 
 impl Operation for GetPropertyByName {
-    const NAME: &'static str = "GetPropertyName";
-    const INSTRUCTION: &'static str = "INST - GetPropertyName";
+    const NAME: &'static str = "GetPropertyByName";
+    const INSTRUCTION: &'static str = "INST - GetPropertyByName";
 
     fn execute(context: &mut Context<'_>) -> JsResult<ShouldExit> {
         let index = context.vm.read::<u32>();
@@ -25,13 +25,12 @@ impl Operation for GetPropertyByName {
             value.to_object(context)?
         };
 
-        let name = context.vm.frame().code.names[index as usize];
-        let name: PropertyKey = context
+        let key: PropertyKey = context
             .interner()
-            .resolve_expect(name.sym())
+            .resolve_expect(context.vm.frame().code.names[index as usize].sym())
             .into_common::<JsString>(false)
             .into();
-        let result = object.get(name, context)?;
+        let result = object.__get__(&key, value, context)?;
 
         context.vm.push(result);
         Ok(ShouldExit::False)
@@ -51,17 +50,17 @@ impl Operation for GetPropertyByValue {
 
     fn execute(context: &mut Context<'_>) -> JsResult<ShouldExit> {
         let key = context.vm.pop();
-        let object = context.vm.pop();
-        let object = if let Some(object) = object.as_object() {
+        let value = context.vm.pop();
+        let object = if let Some(object) = value.as_object() {
             object.clone()
         } else {
-            object.to_object(context)?
+            value.to_object(context)?
         };
 
         let key = key.to_property_key(context)?;
-        let value = object.get(key, context)?;
+        let result = object.__get__(&key, value, context)?;
 
-        context.vm.push(value);
+        context.vm.push(result);
         Ok(ShouldExit::False)
     }
 }
@@ -79,18 +78,18 @@ impl Operation for GetPropertyByValuePush {
 
     fn execute(context: &mut Context<'_>) -> JsResult<ShouldExit> {
         let key = context.vm.pop();
-        let object = context.vm.pop();
-        let object = if let Some(object) = object.as_object() {
+        let value = context.vm.pop();
+        let object = if let Some(object) = value.as_object() {
             object.clone()
         } else {
-            object.to_object(context)?
+            value.to_object(context)?
         };
 
-        let property_key = key.to_property_key(context)?;
-        let value = object.get(property_key, context)?;
+        let key = key.to_property_key(context)?;
+        let result = object.__get__(&key, value, context)?;
 
         context.vm.push(key);
-        context.vm.push(value);
+        context.vm.push(result);
         Ok(ShouldExit::False)
     }
 }
