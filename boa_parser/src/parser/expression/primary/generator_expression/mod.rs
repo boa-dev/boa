@@ -118,13 +118,15 @@ where
 
         // Early Error: If BindingIdentifier is present and the source code matching BindingIdentifier is strict mode code,
         // it is a Syntax Error if the StringValue of BindingIdentifier is "eval" or "arguments".
-        if (cursor.strict_mode() || body.strict())
-            && [Some(Sym::EVAL), Some(Sym::ARGUMENTS)].contains(&name.map(Identifier::sym))
-        {
-            return Err(Error::lex(LexError::Syntax(
-                "unexpected identifier 'eval' or 'arguments' in strict mode".into(),
-                name_span.start(),
-            )));
+        if let Some(name) = name {
+            if (cursor.strict_mode() || body.strict())
+                && [Sym::EVAL, Sym::ARGUMENTS].contains(&name.sym())
+            {
+                return Err(Error::lex(LexError::Syntax(
+                    "unexpected identifier 'eval' or 'arguments' in strict mode".into(),
+                    name_span.start(),
+                )));
+            }
         }
 
         // Catch early error for BindingIdentifier, because strictness of the functions body is also
@@ -154,12 +156,7 @@ where
             )));
         }
 
-        let function = Generator::new(
-            if name.is_some() { name } else { self.name },
-            params,
-            body,
-            name.is_some(),
-        );
+        let function = Generator::new(name.or(self.name), params, body, name.is_some());
 
         if contains(&function, ContainsSymbol::Super) {
             return Err(Error::lex(LexError::Syntax(
