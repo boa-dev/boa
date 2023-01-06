@@ -1,4 +1,3 @@
-
 use boa_ast::{
     statement::{Labelled, LabelledItem},
     Statement,

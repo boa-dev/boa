@@ -1,11 +1,6 @@
-
 use boa_ast::statement::Switch;
 
-use crate::{
-    bytecompiler::ByteCompiler,
-    vm::Opcode,
-    JsResult,
-};
+use crate::{bytecompiler::ByteCompiler, vm::Opcode, JsResult};
 
 impl ByteCompiler<'_, '_> {
     /// Compile a [`Swtich`] boa_ast node

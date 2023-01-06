@@ -241,7 +241,7 @@ impl CodeBlock {
                         );
                     }
                 }
-                Opcode::CopyDataProperties => {
+                Opcode::CopyDataProperties | Opcode::Break => {
                     let operand1 = self.read::<u32>(pc);
                     pc += size_of::<u32>();
                     let operand2 = self.read::<u32>(pc);

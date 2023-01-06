@@ -1,20 +1,15 @@
-
-use crate::{
-    bytecompiler::ByteCompiler,
-    vm::Opcode, 
-    JsResult
-};
+use crate::{bytecompiler::ByteCompiler, vm::Opcode, JsResult};
 
 use boa_ast::Statement;
 
+mod block;
+mod r#break;
 mod r#continue;
-mod r#loop;
-mod r#try;
 mod r#if;
 mod labelled;
-mod r#break;
+mod r#loop;
 mod switch;
-mod block;
+mod r#try;
 
 impl ByteCompiler<'_, '_> {
     /// Compiles a [`Statement`] *boa_ast* node.

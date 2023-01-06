@@ -1,9 +1,4 @@
-
-use crate::{
-    bytecompiler::ByteCompiler,
-    vm::Opcode,
-    JsResult,
-};
+use crate::{bytecompiler::ByteCompiler, JsResult};
 
 use boa_ast::statement::Block;
 use boa_interner::Sym;
@@ -23,9 +18,11 @@ impl ByteCompiler<'_, '_> {
         }
 
         self.context.push_compile_time_environment(false);
-        let push_env = self.emit_opcode_with_two_operands(Opcode::PushDeclarativeEnvironment);
+        let push_env = self.emit_declarative_env();
+
         self.create_decls(block.statement_list(), configurable_globals);
         self.compile_statement_list(block.statement_list(), use_expr, configurable_globals)?;
+
         let (num_bindings, compile_environment) = self.context.pop_compile_time_environment();
         let index_compile_environment = self.push_compile_environment(compile_environment);
         self.patch_jump_with_target(push_env.0, num_bindings as u32);
@@ -35,7 +32,7 @@ impl ByteCompiler<'_, '_> {
             self.pop_labelled_block_control_info();
         }
 
-        self.emit_opcode(Opcode::PopEnvironment);
+        self.emit_pop_env();
         Ok(())
     }
 }

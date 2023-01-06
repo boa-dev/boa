@@ -1,9 +1,5 @@
-
+use crate::{bytecompiler::ByteCompiler, JsResult};
 use boa_ast::statement::If;
-use crate::{
-    bytecompiler::ByteCompiler,
-    JsResult,
-};
 
 impl ByteCompiler<'_, '_> {
     pub(crate) fn compile_if(&mut self, node: &If, configurable_globals: bool) -> JsResult<()> {

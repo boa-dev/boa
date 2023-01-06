@@ -1435,6 +1435,9 @@ generate_impl! {
         /// Stack: promise **=>**
         Await,
 
+        /// Jumps to a target location and pops the environments involved.
+        Break,
+
         /// Push the current new target to the stack.
         ///
         /// Operands:

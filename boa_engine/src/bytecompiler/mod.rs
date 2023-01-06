@@ -184,6 +184,7 @@ struct JumpControlInfo {
     has_finally: bool,
     finally_start: Option<Label>,
     for_of_in_loop: bool,
+    decl_envs: u32,
 }
 
 #[derive(Debug, Clone, PartialEq)]
@@ -269,6 +270,27 @@ impl<'b, 'icu> ByteCompiler<'b, 'icu> {
         let index = self.code_block.compile_environments.len();
         self.code_block.compile_environments.push(environment);
         index
+    }
+
+    /// Emits the `PushDeclarativeEnvironment` and updates the current jump info to track environments
+    fn emit_declarative_env(&mut self) -> (Label, Label) {
+        let pushed_env = self.emit_opcode_with_two_operands(Opcode::PushDeclarativeEnvironment);
+        if !self.jump_info.is_empty() {
+            let current_jump_info = self
+                .jump_info
+                .last_mut()
+                .expect("Jump info must exist as the vector is not empty");
+            current_jump_info.decl_envs += 1;
+        }
+        pushed_env
+    }
+
+    fn emit_pop_env(&mut self) {
+        self.emit_opcode(Opcode::PopEnvironment);
+        if !self.jump_info.is_empty() {
+            let current_info = self.jump_info.last_mut().expect("JumpInfo must exist");
+            current_info.decl_envs -= 1;
+        }
     }
 
     fn get_or_insert_literal(&mut self, literal: Literal) -> u32 {
@@ -492,6 +514,7 @@ impl<'b, 'icu> ByteCompiler<'b, 'icu> {
             has_finally: false,
             finally_start: None,
             for_of_in_loop: false,
+            decl_envs: 0,
         });
     }
 
@@ -506,6 +529,7 @@ impl<'b, 'icu> ByteCompiler<'b, 'icu> {
             has_finally: false,
             finally_start: None,
             for_of_in_loop: true,
+            decl_envs: 0,
         });
     }
 
@@ -534,6 +558,7 @@ impl<'b, 'icu> ByteCompiler<'b, 'icu> {
             has_finally: false,
             finally_start: None,
             for_of_in_loop: false,
+            decl_envs: 0,
         });
     }
 
@@ -565,6 +590,7 @@ impl<'b, 'icu> ByteCompiler<'b, 'icu> {
                 has_finally,
                 finally_start: None,
                 for_of_in_loop: false,
+                decl_envs: 0,
             });
         }
     }
@@ -640,6 +666,7 @@ impl<'b, 'icu> ByteCompiler<'b, 'icu> {
             has_finally: false,
             finally_start: None,
             for_of_in_loop: false,
+            decl_envs: 0,
         });
     }
 

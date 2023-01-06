@@ -3,10 +3,10 @@ use boa_ast::statement::Break;
 use crate::{
     bytecompiler::{ByteCompiler, JumpControlInfoKind},
     vm::Opcode,
-    JsResult, JsNativeError,
+    JsNativeError, JsResult,
 };
 
-impl ByteCompiler<'_,'_> {
+impl ByteCompiler<'_, '_> {
     /// Compile a [`Break`] boa_ast node
     pub(crate) fn compile_break(&mut self, node: Break) -> JsResult<()> {
         let next = self.next_opcode_location();
@@ -32,12 +32,14 @@ impl ByteCompiler<'_,'_> {
             }
             self.emit(Opcode::FinallySetJump, &[u32::MAX]);
         }
-        let label = self.jump();
+        let (break_label, envs_to_pop) = self.emit_opcode_with_two_operands(Opcode::Break);
         if let Some(label_name) = node.label() {
             let mut found = false;
+            let mut total_envs: u32 = 0;
             for info in self.jump_info.iter_mut().rev() {
+                total_envs += info.decl_envs;
                 if info.label == Some(label_name) {
-                    info.breaks.push(label);
+                    info.breaks.push(break_label);
                     found = true;
                     break;
                 }
@@ -51,16 +53,25 @@ impl ByteCompiler<'_,'_> {
                     ))
                     .into());
             }
+            self.patch_jump_with_target(envs_to_pop, total_envs);
         } else {
-            self.jump_info
-                .last_mut()
+            let envs = self
+                .jump_info
+                .last()
                 // TODO: promote to an early error.
                 .ok_or_else(|| {
                     JsNativeError::syntax()
                         .with_message("unlabeled break must be inside loop or switch")
                 })?
+                .decl_envs;
+
+            self.patch_jump_with_target(envs_to_pop, envs);
+
+            self.jump_info
+                .last_mut()
+                .expect("cannot throw error as last access would have thrown")
                 .breaks
-                .push(label);
+                .push(break_label);
         }
 
         Ok(())
