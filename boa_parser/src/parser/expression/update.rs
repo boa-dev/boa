@@ -123,38 +123,40 @@ where
         let lhs = LeftHandSideExpression::new(self.name, self.allow_yield, self.allow_await)
             .parse(cursor, interner)?;
 
-        if let Some(tok) = cursor.peek(0, interner)? {
-            let token_start = tok.span().start();
-            match tok.kind() {
-                TokenKind::Punctuator(Punctuator::Inc) => {
-                    cursor
-                        .next(interner)?
-                        .expect("Punctuator::Inc token disappeared");
-                    // https://tc39.es/ecma262/#sec-update-expressions-static-semantics-early-errors
-                    if !is_simple(&lhs, token_start, cursor.strict_mode())? {
-                        return Err(Error::lex(LexError::Syntax(
-                            "Invalid left-hand side in assignment".into(),
-                            token_start,
-                        )));
-                    }
+        if !cursor.peek_is_line_terminator(0, interner)?.unwrap_or(true) {
+            if let Some(tok) = cursor.peek(0, interner)? {
+                let token_start = tok.span().start();
+                match tok.kind() {
+                    TokenKind::Punctuator(Punctuator::Inc) => {
+                        cursor
+                            .next(interner)?
+                            .expect("Punctuator::Inc token disappeared");
+                        // https://tc39.es/ecma262/#sec-update-expressions-static-semantics-early-errors
+                        if !is_simple(&lhs, token_start, cursor.strict_mode())? {
+                            return Err(Error::lex(LexError::Syntax(
+                                "Invalid left-hand side in assignment".into(),
+                                token_start,
+                            )));
+                        }
 
-                    return Ok(Unary::new(UnaryOp::IncrementPost, lhs).into());
-                }
-                TokenKind::Punctuator(Punctuator::Dec) => {
-                    cursor
-                        .next(interner)?
-                        .expect("Punctuator::Dec token disappeared");
-                    // https://tc39.es/ecma262/#sec-update-expressions-static-semantics-early-errors
-                    if !is_simple(&lhs, token_start, cursor.strict_mode())? {
-                        return Err(Error::lex(LexError::Syntax(
-                            "Invalid left-hand side in assignment".into(),
-                            token_start,
-                        )));
+                        return Ok(Unary::new(UnaryOp::IncrementPost, lhs).into());
                     }
+                    TokenKind::Punctuator(Punctuator::Dec) => {
+                        cursor
+                            .next(interner)?
+                            .expect("Punctuator::Dec token disappeared");
+                        // https://tc39.es/ecma262/#sec-update-expressions-static-semantics-early-errors
+                        if !is_simple(&lhs, token_start, cursor.strict_mode())? {
+                            return Err(Error::lex(LexError::Syntax(
+                                "Invalid left-hand side in assignment".into(),
+                                token_start,
+                            )));
+                        }
 
-                    return Ok(Unary::new(UnaryOp::DecrementPost, lhs).into());
+                        return Ok(Unary::new(UnaryOp::DecrementPost, lhs).into());
+                    }
+                    _ => {}
                 }
-                _ => {}
             }
         }
 
