@@ -154,6 +154,21 @@
 <span id="153">153</span>
 <span id="154">154</span>
 <span id="155">155</span>
+<span id="156">156</span>
+<span id="157">157</span>
+<span id="158">158</span>
+<span id="159">159</span>
+<span id="160">160</span>
+<span id="161">161</span>
+<span id="162">162</span>
+<span id="163">163</span>
+<span id="164">164</span>
+<span id="165">165</span>
+<span id="166">166</span>
+<span id="167">167</span>
+<span id="168">168</span>
+<span id="169">169</span>
+<span id="170">170</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Generator expression parsing.
 //!
 //! More information:
@@ -179,7 +194,7 @@
     expression::Identifier,
     function::Generator,
     operations::{bound_names, contains, top_level_lexically_declared_names, ContainsSymbol},
-    Position, Punctuator,
+    Keyword, Punctuator,
 };
 <span class="kw">use </span>boa_interner::{Interner, Sym};
 <span class="kw">use </span>boa_profiler::Profiler;
@@ -223,27 +238,20 @@
             interner,
         )<span class="question-mark">?</span>;
 
-        <span class="kw">let </span>(name, has_binding_identifier) = <span class="kw">match </span>cursor.peek(<span class="number">0</span>, interner).or_abrupt()<span class="question-mark">?</span>.kind() {
-            TokenKind::Punctuator(Punctuator::OpenParen) =&gt; (<span class="self">self</span>.name, <span class="bool-val">false</span>),
-            <span class="kw">_ </span>=&gt; (
-                <span class="prelude-val">Some</span>(BindingIdentifier::new(<span class="bool-val">true</span>, <span class="bool-val">false</span>).parse(cursor, interner)<span class="question-mark">?</span>),
-                <span class="bool-val">true</span>,
-            ),
-        };
+        <span class="kw">let </span>token = cursor.peek(<span class="number">0</span>, interner).or_abrupt()<span class="question-mark">?</span>;
+        <span class="kw">let </span>(name, name_span) = <span class="kw">match </span>token.kind() {
+            TokenKind::Identifier(<span class="kw">_</span>)
+            | TokenKind::Keyword((
+                Keyword::Yield | Keyword::Await | Keyword::Async | Keyword::Of,
+                <span class="kw">_</span>,
+            )) =&gt; {
+                <span class="kw">let </span>span = token.span();
+                <span class="kw">let </span>name = BindingIdentifier::new(<span class="bool-val">true</span>, <span class="bool-val">false</span>).parse(cursor, interner)<span class="question-mark">?</span>;
 
-        <span class="comment">// If BindingIdentifier is present and the source text matched by BindingIdentifier is strict mode code,
-        // it is a Syntax Error if the StringValue of BindingIdentifier is &quot;eval&quot; or &quot;arguments&quot;.
-        // https://tc39.es/ecma262/#sec-generator-function-definitions-static-semantics-early-errors
-        </span><span class="kw">if let </span><span class="prelude-val">Some</span>(name) = name {
-            <span class="kw">if </span>cursor.strict_mode() &amp;&amp; [Sym::EVAL, Sym::ARGUMENTS].contains(<span class="kw-2">&amp;</span>name.sym()) {
-                <span class="kw">return </span><span class="prelude-val">Err</span>(Error::lex(LexError::Syntax(
-                    <span class="string">&quot;Unexpected eval or arguments in strict mode&quot;</span>.into(),
-                    cursor
-                        .peek(<span class="number">0</span>, interner)<span class="question-mark">?
-                        </span>.map_or_else(|| Position::new(<span class="number">1</span>, <span class="number">1</span>), |token| token.span().end()),
-                )));
+                (<span class="prelude-val">Some</span>(name), span)
             }
-        }
+            <span class="kw">_ </span>=&gt; (<span class="prelude-val">None</span>, token.span()),
+        };
 
         <span class="kw">let </span>params_start_position = cursor
             .expect(Punctuator::OpenParen, <span class="string">&quot;generator expression&quot;</span>, interner)<span class="question-mark">?
@@ -279,6 +287,28 @@
             )));
         }
 
+        <span class="comment">// Early Error: If BindingIdentifier is present and the source code matching BindingIdentifier is strict mode code,
+        // it is a Syntax Error if the StringValue of BindingIdentifier is &quot;eval&quot; or &quot;arguments&quot;.
+        </span><span class="kw">if let </span><span class="prelude-val">Some</span>(name) = name {
+            <span class="kw">if </span>(cursor.strict_mode() || body.strict())
+                &amp;&amp; [Sym::EVAL, Sym::ARGUMENTS].contains(<span class="kw-2">&amp;</span>name.sym())
+            {
+                <span class="kw">return </span><span class="prelude-val">Err</span>(Error::lex(LexError::Syntax(
+                    <span class="string">&quot;unexpected identifier &#39;eval&#39; or &#39;arguments&#39; in strict mode&quot;</span>.into(),
+                    name_span.start(),
+                )));
+            }
+        }
+
+        <span class="comment">// Catch early error for BindingIdentifier, because strictness of the functions body is also
+        // relevant for the function parameters.
+        </span><span class="kw">if </span>body.strict() &amp;&amp; contains(<span class="kw-2">&amp;</span>params, ContainsSymbol::EvalOrArguments) {
+            <span class="kw">return </span><span class="prelude-val">Err</span>(Error::lex(LexError::Syntax(
+                <span class="string">&quot;unexpected identifier &#39;eval&#39; or &#39;arguments&#39; in strict mode&quot;</span>.into(),
+                params_start_position,
+            )));
+        }
+
         <span class="comment">// It is a Syntax Error if any element of the BoundNames of FormalParameters
         // also occurs in the LexicallyDeclaredNames of GeneratorBody.
         // https://tc39.es/ecma262/#sec-generator-function-definitions-static-semantics-early-errors
@@ -297,7 +327,7 @@
             )));
         }
 
-        <span class="kw">let </span>function = Generator::new(name, params, body, has_binding_identifier);
+        <span class="kw">let </span>function = Generator::new(name.or(<span class="self">self</span>.name), params, body, name.is_some());
 
         <span class="kw">if </span>contains(<span class="kw-2">&amp;</span>function, ContainsSymbol::Super) {
             <span class="kw">return </span><span class="prelude-val">Err</span>(Error::lex(LexError::Syntax(

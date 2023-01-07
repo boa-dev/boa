@@ -652,6 +652,17 @@
 <span id="651">651</span>
 <span id="652">652</span>
 <span id="653">653</span>
+<span id="654">654</span>
+<span id="655">655</span>
+<span id="656">656</span>
+<span id="657">657</span>
+<span id="658">658</span>
+<span id="659">659</span>
+<span id="660">660</span>
+<span id="661">661</span>
+<span id="662">662</span>
+<span id="663">663</span>
+<span id="664">664</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Definitions of various **Syntax-Directed Operations** used in the [spec].
 //!
 //! [spec]: https://tc39.es/ecma262/#sec-syntax-directed-operations
@@ -701,6 +712,8 @@
     </span>This,
     <span class="doccomment">/// A method definition.
     </span>MethodDefinition,
+    <span class="doccomment">/// The BindingIdentifier &quot;eval&quot; or &quot;arguments&quot;.
+    </span>EvalOrArguments,
 }
 
 <span class="doccomment">/// Returns `true` if the node contains the given symbol.
@@ -719,6 +732,15 @@
 
     <span class="kw">impl</span>&lt;<span class="lifetime">&#39;ast</span>&gt; Visitor&lt;<span class="lifetime">&#39;ast</span>&gt; <span class="kw">for </span>ContainsVisitor {
         <span class="kw">type </span>BreakTy = ();
+
+        <span class="kw">fn </span>visit_identifier(<span class="kw-2">&amp;mut </span><span class="self">self</span>, node: <span class="kw-2">&amp;</span><span class="lifetime">&#39;ast </span>Identifier) -&gt; ControlFlow&lt;<span class="self">Self</span>::BreakTy&gt; {
+            <span class="kw">if </span><span class="self">self</span>.<span class="number">0 </span>== ContainsSymbol::EvalOrArguments
+                &amp;&amp; (node.sym() == Sym::EVAL || node.sym() == Sym::ARGUMENTS)
+            {
+                <span class="kw">return </span>ControlFlow::Break(());
+            }
+            ControlFlow::Continue(())
+        }
 
         <span class="kw">fn </span>visit_function(<span class="kw-2">&amp;mut </span><span class="self">self</span>, <span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;ast </span>Function) -&gt; ControlFlow&lt;<span class="self">Self</span>::BreakTy&gt; {
             ControlFlow::Continue(())

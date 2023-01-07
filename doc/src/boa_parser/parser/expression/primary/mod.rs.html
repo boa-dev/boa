@@ -796,7 +796,7 @@
                                     .parse(cursor, interner)
                                     .map(Into::into)
                             }
-                            <span class="kw">_ </span>=&gt; AsyncFunctionExpression::new(<span class="self">self</span>.name, <span class="self">self</span>.allow_yield)
+                            <span class="kw">_ </span>=&gt; AsyncFunctionExpression::new(<span class="self">self</span>.name)
                                 .parse(cursor, interner)
                                 .map(Into::into),
                         }
