@@ -110,16 +110,6 @@ pub enum Literal {
     /// [spec]: https://tc39.es/ecma262/#sec-null-value
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Glossary/null
     Null,
-
-    /// The `undefined` is a primitive value automatically assigned to variables that have just been declared, or to formal arguments for which there are no actual arguments.
-    ///
-    /// More information:
-    ///  - [ECMAScript reference][spec]
-    ///  - [MDN documentation][mdn]
-    ///
-    /// [spec]: https://tc39.es/ecma262/#sec-undefined
-    /// [mdn]: https://developer.mozilla.org/en-US/docs/Glossary/undefined
-    Undefined,
 }
 
 impl From<Sym> for Literal {
@@ -183,7 +173,6 @@ impl ToInternedString for Literal {
             Self::BigInt(ref num) => num.to_string(),
             Self::Bool(v) => v.to_string(),
             Self::Null => "null".to_owned(),
-            Self::Undefined => "undefined".to_owned(),
         }
     }
 }

@@ -35,7 +35,6 @@ impl ByteCompiler<'_, '_> {
             AstLiteral::Bool(true) => self.emit(Opcode::PushTrue, &[]),
             AstLiteral::Bool(false) => self.emit(Opcode::PushFalse, &[]),
             AstLiteral::Null => self.emit(Opcode::PushNull, &[]),
-            AstLiteral::Undefined => self.emit(Opcode::PushUndefined, &[]),
         }
 
         if !use_expr {
