@@ -90,6 +90,8 @@ where
             self.allow_await,
             self.allow_return,
             &BLOCK_BREAK_TOKENS,
+            false,
+            false,
         )
         .parse(cursor, interner)
         .map(statement::Block::from)?;

@@ -11,7 +11,6 @@ mod tests;
 
 use crate::{
     error::ParseResult,
-    lexer::TokenKind,
     parser::{
         cursor::Cursor,
         function::{FormalParameters, FunctionStatementList},
@@ -27,7 +26,6 @@ use boa_ast::{
     Position, StatementList,
 };
 use boa_interner::Interner;
-use boa_macros::utf16;
 use rustc_hash::FxHashSet;
 use std::io::Read;
 
@@ -239,52 +237,31 @@ where
     type Output = StatementList;
 
     fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult<Self::Output> {
-        let mut strict = cursor.strict_mode();
-        match cursor.peek(0, interner)? {
-            Some(tok) => {
-                match tok.kind() {
-                    // Set the strict mode
-                    TokenKind::StringLiteral(string)
-                        if interner.resolve_expect(*string).join(
-                            |s| s == "use strict",
-                            |g| g == utf16!("use strict"),
-                            true,
-                        ) =>
-                    {
-                        cursor.set_strict_mode(true);
-                        strict = true;
-                    }
-                    _ => {}
-                }
-                let mut statement_list =
-                    ScriptBody::new(self.direct_eval).parse(cursor, interner)?;
-                statement_list.set_strict(strict);
+        let statement_list = ScriptBody::new(true, cursor.strict_mode(), self.direct_eval)
+            .parse(cursor, interner)?;
 
-                // It is a Syntax Error if the LexicallyDeclaredNames of ScriptBody contains any duplicate entries.
-                // It is a Syntax Error if any element of the LexicallyDeclaredNames of ScriptBody also occurs in the VarDeclaredNames of ScriptBody.
-                let mut lexical_names = FxHashSet::default();
-                for name in top_level_lexically_declared_names(&statement_list) {
-                    if !lexical_names.insert(name) {
-                        return Err(Error::general(
-                            "lexical name declared multiple times",
-                            Position::new(1, 1),
-                        ));
-                    }
-                }
-
-                for name in top_level_var_declared_names(&statement_list) {
-                    if lexical_names.contains(&name) {
-                        return Err(Error::general(
-                            "lexical name declared multiple times",
-                            Position::new(1, 1),
-                        ));
-                    }
-                }
-
-                Ok(statement_list)
+        // It is a Syntax Error if the LexicallyDeclaredNames of ScriptBody contains any duplicate entries.
+        // It is a Syntax Error if any element of the LexicallyDeclaredNames of ScriptBody also occurs in the VarDeclaredNames of ScriptBody.
+        let mut lexical_names = FxHashSet::default();
+        for name in top_level_lexically_declared_names(&statement_list) {
+            if !lexical_names.insert(name) {
+                return Err(Error::general(
+                    "lexical name declared multiple times",
+                    Position::new(1, 1),
+                ));
             }
-            None => Ok(StatementList::from(Vec::new())),
         }
+
+        for name in top_level_var_declared_names(&statement_list) {
+            if lexical_names.contains(&name) {
+                return Err(Error::general(
+                    "lexical name declared multiple times",
+                    Position::new(1, 1),
+                ));
+            }
+        }
+
+        Ok(statement_list)
     }
 }
 
@@ -296,14 +273,20 @@ where
 /// [spec]: https://tc39.es/ecma262/#prod-ScriptBody
 #[derive(Debug, Clone, Copy)]
 pub struct ScriptBody {
+    directive_prologues: bool,
+    strict: bool,
     direct_eval: bool,
 }
 
 impl ScriptBody {
     /// Create a new `ScriptBody` parser.
     #[inline]
-    const fn new(direct_eval: bool) -> Self {
-        Self { direct_eval }
+    const fn new(directive_prologues: bool, strict: bool, direct_eval: bool) -> Self {
+        Self {
+            directive_prologues,
+            strict,
+            direct_eval,
+        }
     }
 }
 
@@ -314,8 +297,15 @@ where
     type Output = StatementList;
 
     fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult<Self::Output> {
-        let body = self::statement::StatementList::new(false, false, false, &[])
-            .parse(cursor, interner)?;
+        let body = self::statement::StatementList::new(
+            false,
+            false,
+            false,
+            &[],
+            self.directive_prologues,
+            self.strict,
+        )
+        .parse(cursor, interner)?;
 
         if !self.direct_eval {
             // It is a Syntax Error if StatementList Contains super unless the source text containing super is eval

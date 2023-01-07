@@ -121,6 +121,18 @@ pub struct StatementList {
 }
 
 impl StatementList {
+    /// Creates a new `StatementList` AST node.
+    #[must_use]
+    pub fn new<S>(statements: S, strict: bool) -> Self
+    where
+        S: Into<Box<[StatementListItem]>>,
+    {
+        Self {
+            statements: statements.into(),
+            strict,
+        }
+    }
+
     /// Gets the list of statements.
     #[inline]
     #[must_use]
@@ -133,12 +145,6 @@ impl StatementList {
     #[must_use]
     pub const fn strict(&self) -> bool {
         self.strict
-    }
-
-    /// Set the strict mode.
-    #[inline]
-    pub fn set_strict(&mut self, strict: bool) {
-        self.strict = strict;
     }
 }
 

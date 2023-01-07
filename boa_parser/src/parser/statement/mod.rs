@@ -50,6 +50,7 @@ use boa_ast::{
     Keyword, Punctuator,
 };
 use boa_interner::Interner;
+use boa_macros::utf16;
 use boa_profiler::Profiler;
 use std::io::Read;
 
@@ -229,6 +230,8 @@ pub(super) struct StatementList {
     allow_await: AllowAwait,
     allow_return: AllowReturn,
     break_nodes: &'static [TokenKind],
+    directive_prologues: bool,
+    strict: bool,
 }
 
 impl StatementList {
@@ -238,6 +241,8 @@ impl StatementList {
         allow_await: A,
         allow_return: R,
         break_nodes: &'static [TokenKind],
+        directive_prologues: bool,
+        strict: bool,
     ) -> Self
     where
         Y: Into<AllowYield>,
@@ -249,6 +254,8 @@ impl StatementList {
             allow_await: allow_await.into(),
             allow_return: allow_return.into(),
             break_nodes,
+            directive_prologues,
+            strict,
         }
     }
 }
@@ -273,6 +280,10 @@ where
         let _timer = Profiler::global().start_event("StatementList", "Parsing");
         let mut items = Vec::new();
 
+        let global_strict = cursor.strict_mode();
+        let mut directive_prologues = self.directive_prologues;
+        let mut strict = self.strict;
+
         loop {
             match cursor.peek(0, interner)? {
                 Some(token) if self.break_nodes.contains(token.kind()) => break,
@@ -283,6 +294,25 @@ where
             let item =
                 StatementListItem::new(self.allow_yield, self.allow_await, self.allow_return)
                     .parse(cursor, interner)?;
+
+            if directive_prologues {
+                if let ast::StatementListItem::Statement(ast::Statement::Expression(
+                    ast::Expression::Literal(ast::expression::literal::Literal::String(string)),
+                )) = &item
+                {
+                    if interner.resolve_expect(*string).join(
+                        |s| s == "use strict",
+                        |g| g == utf16!("use strict"),
+                        true,
+                    ) {
+                        cursor.set_strict_mode(true);
+                        strict = true;
+                    }
+                } else {
+                    directive_prologues = false;
+                }
+            }
+
             items.push(item);
 
             // move the cursor forward for any consecutive semicolon.
@@ -291,7 +321,9 @@ where
 
         items.sort_by(ast::StatementListItem::hoistable_order);
 
-        Ok(items.into())
+        cursor.set_strict_mode(global_strict);
+
+        Ok(ast::StatementList::new(items, strict))
     }
 }
 
