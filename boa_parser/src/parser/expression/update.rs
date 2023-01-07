@@ -123,6 +123,10 @@ where
         let lhs = LeftHandSideExpression::new(self.name, self.allow_yield, self.allow_await)
             .parse(cursor, interner)?;
 
+        if cursor.peek_is_line_terminator(0, interner)?.unwrap_or(true) {
+            return Ok(lhs);
+        }
+
         if let Some(tok) = cursor.peek(0, interner)? {
             let token_start = tok.span().start();
             match tok.kind() {
