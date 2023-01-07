@@ -1,0 +1,15 @@
+{
+	// See https://aka.ms/vscode-remote/devcontainer.json for format details.
+	"name": "boa",
+	"image": "mcr.microsoft.com/devcontainers/rust:0-1-bullseye",
+	"customizations": {
+		"vscode": {
+			"extensions": [
+				"rust-lang.rust-analyzer"
+			]
+		}
+	},
+
+	// Port 8080 is used for the demo server
+	"forwardPorts": [8080]
+}
