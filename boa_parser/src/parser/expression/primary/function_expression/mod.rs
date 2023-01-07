@@ -23,7 +23,7 @@ use boa_ast::{
     expression::Identifier,
     function::Function,
     operations::{bound_names, contains, top_level_lexically_declared_names, ContainsSymbol},
-    Keyword, Position, Punctuator,
+    Keyword, Punctuator,
 };
 use boa_interner::{Interner, Sym};
 use boa_profiler::Profiler;
@@ -61,28 +61,19 @@ where
     fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult<Self::Output> {
         let _timer = Profiler::global().start_event("FunctionExpression", "Parsing");
 
-        let (name, has_binding_identifier) = match cursor.peek(0, interner).or_abrupt()?.kind() {
+        let token = cursor.peek(0, interner).or_abrupt()?;
+        let (name, name_span) = match token.kind() {
             TokenKind::Identifier(_)
             | TokenKind::Keyword((
                 Keyword::Yield | Keyword::Await | Keyword::Async | Keyword::Of,
                 _,
             )) => {
+                let span = token.span();
                 let name = BindingIdentifier::new(false, false).parse(cursor, interner)?;
 
-                // Early Error: If BindingIdentifier is present and the source code matching BindingIdentifier is strict mode code,
-                // it is a Syntax Error if the StringValue of BindingIdentifier is "eval" or "arguments".
-                if cursor.strict_mode() && [Sym::EVAL, Sym::ARGUMENTS].contains(&name.sym()) {
-                    return Err(Error::lex(LexError::Syntax(
-                        "Unexpected eval or arguments in strict mode".into(),
-                        cursor
-                            .peek(0, interner)?
-                            .map_or_else(|| Position::new(1, 1), |token| token.span().end()),
-                    )));
-                }
-
-                (Some(name), true)
+                (Some(name), span)
             }
-            _ => (self.name, false),
+            _ => (None, token.span()),
         };
 
         let params_start_position = cursor
@@ -117,6 +108,28 @@ where
             )));
         }
 
+        // Early Error: If BindingIdentifier is present and the source code matching BindingIdentifier is strict mode code,
+        // it is a Syntax Error if the StringValue of BindingIdentifier is "eval" or "arguments".
+        if let Some(name) = name {
+            if (cursor.strict_mode() || body.strict())
+                && [Sym::EVAL, Sym::ARGUMENTS].contains(&name.sym())
+            {
+                return Err(Error::lex(LexError::Syntax(
+                    "unexpected identifier 'eval' or 'arguments' in strict mode".into(),
+                    name_span.start(),
+                )));
+            }
+        }
+
+        // Catch early error for BindingIdentifier, because strictness of the functions body is also
+        // relevant for the function parameters.
+        if body.strict() && contains(&params, ContainsSymbol::EvalOrArguments) {
+            return Err(Error::lex(LexError::Syntax(
+                "unexpected identifier 'eval' or 'arguments' in strict mode".into(),
+                params_start_position,
+            )));
+        }
+
         // It is a Syntax Error if any element of the BoundNames of FormalParameters
         // also occurs in the LexicallyDeclaredNames of FunctionBody.
         // https://tc39.es/ecma262/#sec-function-definitions-static-semantics-early-errors
@@ -127,7 +140,7 @@ where
         )?;
 
         let function =
-            Function::new_with_binding_identifier(name, params, body, has_binding_identifier);
+            Function::new_with_binding_identifier(name.or(self.name), params, body, name.is_some());
 
         if contains(&function, ContainsSymbol::Super) {
             return Err(Error::lex(LexError::Syntax(

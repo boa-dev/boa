@@ -6,7 +6,7 @@ use crate::{
     parser::{
         expression::BindingIdentifier,
         function::{FormalParameters, FunctionBody},
-        name_in_lexically_declared_names, AllowYield, Cursor, OrAbrupt, ParseResult, TokenParser,
+        name_in_lexically_declared_names, Cursor, OrAbrupt, ParseResult, TokenParser,
     },
     Error,
 };
@@ -14,7 +14,7 @@ use boa_ast::{
     expression::Identifier,
     function::AsyncFunction,
     operations::{bound_names, contains, top_level_lexically_declared_names, ContainsSymbol},
-    Keyword, Position, Punctuator,
+    Keyword, Punctuator,
 };
 use boa_interner::{Interner, Sym};
 use boa_profiler::Profiler;
@@ -31,20 +31,15 @@ use std::io::Read;
 #[derive(Debug, Clone, Copy)]
 pub(super) struct AsyncFunctionExpression {
     name: Option<Identifier>,
-    allow_yield: AllowYield,
 }
 
 impl AsyncFunctionExpression {
     /// Creates a new `AsyncFunctionExpression` parser.
-    pub(super) fn new<N, Y>(name: N, allow_yield: Y) -> Self
+    pub(super) fn new<N>(name: N) -> Self
     where
         N: Into<Option<Identifier>>,
-        Y: Into<AllowYield>,
     {
-        Self {
-            name: name.into(),
-            allow_yield: allow_yield.into(),
-        }
+        Self { name: name.into() }
     }
 }
 
@@ -63,26 +58,20 @@ where
             interner,
         )?;
 
-        let (name, has_binding_identifier) = match cursor.peek(0, interner).or_abrupt()?.kind() {
-            TokenKind::Punctuator(Punctuator::OpenParen) => (self.name, false),
-            _ => (
-                Some(BindingIdentifier::new(self.allow_yield, true).parse(cursor, interner)?),
-                true,
-            ),
-        };
+        let token = cursor.peek(0, interner).or_abrupt()?;
+        let (name, name_span) = match token.kind() {
+            TokenKind::Identifier(_)
+            | TokenKind::Keyword((
+                Keyword::Yield | Keyword::Await | Keyword::Async | Keyword::Of,
+                _,
+            )) => {
+                let span = token.span();
+                let name = BindingIdentifier::new(false, true).parse(cursor, interner)?;
 
-        // Early Error: If BindingIdentifier is present and the source code matching BindingIdentifier is strict mode code,
-        // it is a Syntax Error if the StringValue of BindingIdentifier is "eval" or "arguments".
-        if let Some(name) = name {
-            if cursor.strict_mode() && [Sym::EVAL, Sym::ARGUMENTS].contains(&name.sym()) {
-                return Err(Error::lex(LexError::Syntax(
-                    "Unexpected eval or arguments in strict mode".into(),
-                    cursor
-                        .peek(0, interner)?
-                        .map_or_else(|| Position::new(1, 1), |token| token.span().end()),
-                )));
+                (Some(name), span)
             }
-        }
+            _ => (None, token.span()),
+        };
 
         let params_start_position = cursor
             .expect(Punctuator::OpenParen, "async function expression", interner)?
@@ -124,6 +113,28 @@ where
             )));
         }
 
+        // Early Error: If BindingIdentifier is present and the source code matching BindingIdentifier is strict mode code,
+        // it is a Syntax Error if the StringValue of BindingIdentifier is "eval" or "arguments".
+        if let Some(name) = name {
+            if (cursor.strict_mode() || body.strict())
+                && [Sym::EVAL, Sym::ARGUMENTS].contains(&name.sym())
+            {
+                return Err(Error::lex(LexError::Syntax(
+                    "unexpected identifier 'eval' or 'arguments' in strict mode".into(),
+                    name_span.start(),
+                )));
+            }
+        }
+
+        // Catch early error for BindingIdentifier, because strictness of the functions body is also
+        // relevant for the function parameters.
+        if body.strict() && contains(&params, ContainsSymbol::EvalOrArguments) {
+            return Err(Error::lex(LexError::Syntax(
+                "unexpected identifier 'eval' or 'arguments' in strict mode".into(),
+                params_start_position,
+            )));
+        }
+
         // It is a Syntax Error if any element of the BoundNames of FormalParameters
         // also occurs in the LexicallyDeclaredNames of FunctionBody.
         // https://tc39.es/ecma262/#sec-function-definitions-static-semantics-early-errors
@@ -133,7 +144,7 @@ where
             params_start_position,
         )?;
 
-        let function = AsyncFunction::new(name, params, body, has_binding_identifier);
+        let function = AsyncFunction::new(name.or(self.name), params, body, name.is_some());
 
         if contains(&function, ContainsSymbol::Super) {
             return Err(Error::lex(LexError::Syntax(

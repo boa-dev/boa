@@ -47,6 +47,8 @@ pub enum ContainsSymbol {
     This,
     /// A method definition.
     MethodDefinition,
+    /// The BindingIdentifier "eval" or "arguments".
+    EvalOrArguments,
 }
 
 /// Returns `true` if the node contains the given symbol.
@@ -65,6 +67,15 @@ where
 
     impl<'ast> Visitor<'ast> for ContainsVisitor {
         type BreakTy = ();
+
+        fn visit_identifier(&mut self, node: &'ast Identifier) -> ControlFlow<Self::BreakTy> {
+            if self.0 == ContainsSymbol::EvalOrArguments
+                && (node.sym() == Sym::EVAL || node.sym() == Sym::ARGUMENTS)
+            {
+                return ControlFlow::Break(());
+            }
+            ControlFlow::Continue(())
+        }
 
         fn visit_function(&mut self, _: &'ast Function) -> ControlFlow<Self::BreakTy> {
             ControlFlow::Continue(())
