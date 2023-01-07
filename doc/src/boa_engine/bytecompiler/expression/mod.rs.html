@@ -315,7 +315,6 @@
 <span id="314">314</span>
 <span id="315">315</span>
 <span id="316">316</span>
-<span id="317">317</span>
 </pre><pre class="rust"><code><span class="kw">use crate</span>::{
     bytecompiler::{ByteCompiler, Literal},
     vm::Opcode,
@@ -353,7 +352,6 @@
             AstLiteral::Bool(<span class="bool-val">true</span>) =&gt; <span class="self">self</span>.emit(Opcode::PushTrue, <span class="kw-2">&amp;</span>[]),
             AstLiteral::Bool(<span class="bool-val">false</span>) =&gt; <span class="self">self</span>.emit(Opcode::PushFalse, <span class="kw-2">&amp;</span>[]),
             AstLiteral::Null =&gt; <span class="self">self</span>.emit(Opcode::PushNull, <span class="kw-2">&amp;</span>[]),
-            AstLiteral::Undefined =&gt; <span class="self">self</span>.emit(Opcode::PushUndefined, <span class="kw-2">&amp;</span>[]),
         }
 
         <span class="kw">if </span>!use_expr {
