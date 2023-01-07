@@ -162,6 +162,10 @@
 <span id="161">161</span>
 <span id="162">162</span>
 <span id="163">163</span>
+<span id="164">164</span>
+<span id="165">165</span>
+<span id="166">166</span>
+<span id="167">167</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Update expression parsing.
 //!
 //! More information:
@@ -286,6 +290,10 @@
 
         <span class="kw">let </span>lhs = LeftHandSideExpression::new(<span class="self">self</span>.name, <span class="self">self</span>.allow_yield, <span class="self">self</span>.allow_await)
             .parse(cursor, interner)<span class="question-mark">?</span>;
+
+        <span class="kw">if </span>cursor.peek_is_line_terminator(<span class="number">0</span>, interner)<span class="question-mark">?</span>.unwrap_or(<span class="bool-val">true</span>) {
+            <span class="kw">return </span><span class="prelude-val">Ok</span>(lhs);
+        }
 
         <span class="kw">if let </span><span class="prelude-val">Some</span>(tok) = cursor.peek(<span class="number">0</span>, interner)<span class="question-mark">? </span>{
             <span class="kw">let </span>token_start = tok.span().start();
