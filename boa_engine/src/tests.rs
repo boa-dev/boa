@@ -2160,17 +2160,25 @@ fn break_environment_gauntlet() {
 
         {
             var str = "";
-
-            outer: for (let i = 0; i < 5; i++) {
-                inner: for (let b = 0; b < 5; b++) {
-                    if (b === 2) {
-                        break outer;
+            
+            far_outer: {
+                outer: for (let i = 0; i < 5; i++) {
+                    inner: for (let b = 5; b < 10; b++) {
+                        if (b === 7) {
+                            break far_outer;
+                        }
+                        str = str + b;
                     }
-                    str = str + b;
+                    str = str + i;
                 }
-                str = str + i;
             }
             str
+        }
+
+        {
+            for (let r = 0; r < 2; r++) {
+                str = str + r
+            }
         }
 
         {
@@ -2187,7 +2195,7 @@ fn break_environment_gauntlet() {
         }
     "#;
 
-    assert_eq!(&exec(scenario), "\"01try_block\"");
+    assert_eq!(&exec(scenario), "\"5601try_block\"");
 }
 
 #[test]
