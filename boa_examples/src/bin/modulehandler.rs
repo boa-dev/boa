@@ -1,7 +1,10 @@
 // This example implements a custom module handler which mimics
 // the require/module.exports pattern
 
-use boa_engine::{prelude::JsObject, property::Attribute, Context, JsResult, JsValue};
+use boa_engine::{
+    native_function::NativeFunction, prelude::JsObject, property::Attribute, Context, JsResult,
+    JsValue,
+};
 use std::fs::read_to_string;
 
 fn main() {
@@ -17,7 +20,7 @@ fn main() {
     let mut ctx = Context::default();
 
     // Adding custom implementation that mimics 'require'
-    ctx.register_global_function("require", 0, require);
+    ctx.register_global_callable("require", 0, NativeFunction::from_fn_ptr(require));
 
     // Adding custom object that mimics 'module.exports'
     let moduleobj = JsObject::default();

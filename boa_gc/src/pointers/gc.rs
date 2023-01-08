@@ -47,6 +47,16 @@ impl<T: Trace> Gc<T> {
         gc.set_root();
         gc
     }
+
+    /// Consumes the `Gc`, returning a wrapped raw pointer.
+    ///
+    /// To avoid a memory leak, the pointer must be converted back to a `Gc` using [`Gc::from_raw`].
+    #[allow(clippy::use_self)]
+    pub fn into_raw(this: Gc<T>) -> NonNull<GcBox<T>> {
+        let ptr = this.inner_ptr.get();
+        std::mem::forget(this);
+        ptr
+    }
 }
 
 impl<T: Trace + ?Sized> Gc<T> {
@@ -55,9 +65,26 @@ impl<T: Trace + ?Sized> Gc<T> {
         GcBox::ptr_eq(this.inner(), other.inner())
     }
 
-    /// Will return a new rooted `Gc` from a `GcBox` pointer
-    pub(crate) fn from_ptr(ptr: NonNull<GcBox<T>>) -> Self {
-        // SAFETY: the value provided as a pointer MUST be a valid GcBox.
+    /// Constructs a `Gc<T>` from a raw pointer.
+    ///
+    /// The raw pointer must have been returned by a previous call to [`Gc<U>::into_raw`][Gc::into_raw]
+    /// where `U` must have the same size and alignment as `T`.
+    ///
+    /// # Safety
+    ///
+    /// This function is unsafe because improper use may lead to memory corruption, double-free,
+    /// or misbehaviour of the garbage collector.
+    #[must_use]
+    pub const unsafe fn from_raw(ptr: NonNull<GcBox<T>>) -> Self {
+        Self {
+            inner_ptr: Cell::new(ptr),
+            marker: PhantomData,
+        }
+    }
+
+    /// Return a rooted `Gc` from a `GcBox` pointer
+    pub(crate) unsafe fn from_ptr(ptr: NonNull<GcBox<T>>) -> Self {
+        // SAFETY: the caller must ensure that the pointer is valid.
         unsafe {
             ptr.as_ref().root_inner();
             let gc = Self {
@@ -159,7 +186,8 @@ unsafe impl<T: Trace + ?Sized> Trace for Gc<T> {
 
 impl<T: Trace + ?Sized> Clone for Gc<T> {
     fn clone(&self) -> Self {
-        Self::from_ptr(self.inner_ptr())
+        // SAFETY: `&self` is a valid Gc pointer.
+        unsafe { Self::from_ptr(self.inner_ptr()) }
     }
 }
 

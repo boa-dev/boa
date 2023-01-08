@@ -26,9 +26,10 @@ use crate::{
     context::intrinsics::StandardConstructors,
     error::JsNativeError,
     js_string,
+    native_function::NativeFunction,
     object::{
-        internal_methods::get_prototype_from_constructor, ConstructorBuilder, FunctionBuilder,
-        JsFunction, JsObject, ObjectData,
+        internal_methods::get_prototype_from_constructor, ConstructorBuilder,
+        FunctionObjectBuilder, JsFunction, JsObject, ObjectData,
     },
     property::{Attribute, PropertyDescriptor, PropertyNameKind},
     symbol::WellKnownSymbols,
@@ -50,10 +51,11 @@ impl BuiltIn for Array {
         let symbol_iterator = WellKnownSymbols::iterator();
         let symbol_unscopables = WellKnownSymbols::unscopables();
 
-        let get_species = FunctionBuilder::native(context, Self::get_species)
-            .name("get [Symbol.species]")
-            .constructor(false)
-            .build();
+        let get_species =
+            FunctionObjectBuilder::new(context, NativeFunction::from_fn_ptr(Self::get_species))
+                .name("get [Symbol.species]")
+                .constructor(false)
+                .build();
 
         let values_function = context.intrinsics().objects().array_prototype_values();
         let unscopables_object = Self::unscopables_intrinsic(context);
@@ -2847,7 +2849,7 @@ impl Array {
 
     /// Creates an `Array.prototype.values( )` function object.
     pub(crate) fn create_array_prototype_values(context: &mut Context<'_>) -> JsFunction {
-        FunctionBuilder::native(context, Self::values)
+        FunctionObjectBuilder::new(context, NativeFunction::from_fn_ptr(Self::values))
             .name("values")
             .length(0)
             .constructor(false)

@@ -16,9 +16,10 @@ use crate::{
     builtins::BuiltIn,
     context::intrinsics::StandardConstructors,
     error::JsNativeError,
+    native_function::NativeFunction,
     object::{
-        internal_methods::get_prototype_from_constructor, ConstructorBuilder, FunctionBuilder,
-        JsObject, ObjectData,
+        internal_methods::get_prototype_from_constructor, ConstructorBuilder,
+        FunctionObjectBuilder, JsObject, ObjectData,
     },
     property::{Attribute, PropertyNameKind},
     symbol::WellKnownSymbols,
@@ -42,22 +43,25 @@ impl BuiltIn for Map {
     fn init(context: &mut Context<'_>) -> Option<JsValue> {
         let _timer = Profiler::global().start_event(Self::NAME, "init");
 
-        let get_species = FunctionBuilder::native(context, Self::get_species)
-            .name("get [Symbol.species]")
-            .constructor(false)
-            .build();
+        let get_species =
+            FunctionObjectBuilder::new(context, NativeFunction::from_fn_ptr(Self::get_species))
+                .name("get [Symbol.species]")
+                .constructor(false)
+                .build();
 
-        let get_size = FunctionBuilder::native(context, Self::get_size)
-            .name("get size")
-            .length(0)
-            .constructor(false)
-            .build();
+        let get_size =
+            FunctionObjectBuilder::new(context, NativeFunction::from_fn_ptr(Self::get_size))
+                .name("get size")
+                .length(0)
+                .constructor(false)
+                .build();
 
-        let entries_function = FunctionBuilder::native(context, Self::entries)
-            .name("entries")
-            .length(0)
-            .constructor(false)
-            .build();
+        let entries_function =
+            FunctionObjectBuilder::new(context, NativeFunction::from_fn_ptr(Self::entries))
+                .name("entries")
+                .length(0)
+                .constructor(false)
+                .build();
 
         ConstructorBuilder::with_standard_constructor(
             context,

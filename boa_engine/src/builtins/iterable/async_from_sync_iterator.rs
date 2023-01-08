@@ -4,7 +4,8 @@ use crate::{
         promise::{if_abrupt_reject_promise, PromiseCapability},
         JsArgs, Promise,
     },
-    object::{FunctionBuilder, JsObject, ObjectData},
+    native_function::NativeFunction,
+    object::{FunctionObjectBuilder, JsObject, ObjectData},
     property::PropertyDescriptor,
     Context, JsNativeError, JsResult, JsValue,
 };
@@ -29,18 +30,27 @@ pub(crate) fn create_async_from_sync_iterator_prototype(context: &mut Context<'_
         ObjectData::ordinary(),
     );
 
-    let next_function = FunctionBuilder::native(context, AsyncFromSyncIterator::next)
-        .name("next")
-        .length(1)
-        .build();
-    let return_function = FunctionBuilder::native(context, AsyncFromSyncIterator::r#return)
-        .name("return")
-        .length(1)
-        .build();
-    let throw_function = FunctionBuilder::native(context, AsyncFromSyncIterator::throw)
-        .name("throw")
-        .length(1)
-        .build();
+    let next_function = FunctionObjectBuilder::new(
+        context,
+        NativeFunction::from_fn_ptr(AsyncFromSyncIterator::next),
+    )
+    .name("next")
+    .length(1)
+    .build();
+    let return_function = FunctionObjectBuilder::new(
+        context,
+        NativeFunction::from_fn_ptr(AsyncFromSyncIterator::r#return),
+    )
+    .name("return")
+    .length(1)
+    .build();
+    let throw_function = FunctionObjectBuilder::new(
+        context,
+        NativeFunction::from_fn_ptr(AsyncFromSyncIterator::throw),
+    )
+    .name("throw")
+    .length(1)
+    .build();
 
     {
         let mut prototype_mut = prototype.borrow_mut();
@@ -400,17 +410,16 @@ impl AsyncFromSyncIterator {
         // 8. Let unwrap be a new Abstract Closure with parameters (value)
         // that captures done and performs the following steps when called:
         // 9. Let onFulfilled be CreateBuiltinFunction(unwrap, 1, "", « »).
-        let on_fulfilled = FunctionBuilder::closure_with_captures(
+        let on_fulfilled = FunctionObjectBuilder::new(
             context,
-            |_this, args, done, context| {
+            NativeFunction::from_copy_closure(move |_this, args, context| {
                 // a. Return CreateIterResultObject(value, done).
                 Ok(create_iter_result_object(
                     args.get_or_undefined(0).clone(),
-                    *done,
+                    done,
                     context,
                 ))
-            },
-            done,
+            }),
         )
         .name("")
         .length(1)

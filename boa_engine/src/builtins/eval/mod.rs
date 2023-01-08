@@ -13,7 +13,8 @@ use crate::{
     builtins::{BuiltIn, JsArgs},
     environments::DeclarativeEnvironment,
     error::JsNativeError,
-    object::FunctionBuilder,
+    native_function::NativeFunction,
+    object::FunctionObjectBuilder,
     property::Attribute,
     Context, JsResult, JsString, JsValue,
 };
@@ -37,7 +38,7 @@ impl BuiltIn for Eval {
     fn init(context: &mut Context<'_>) -> Option<JsValue> {
         let _timer = Profiler::global().start_event(Self::NAME, "init");
 
-        let object = FunctionBuilder::native(context, Self::eval)
+        let object = FunctionObjectBuilder::new(context, NativeFunction::from_fn_ptr(Self::eval))
             .name("eval")
             .length(1)
             .constructor(false)

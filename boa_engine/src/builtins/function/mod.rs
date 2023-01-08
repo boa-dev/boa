@@ -18,11 +18,9 @@ use crate::{
     environments::DeclarativeEnvironmentStack,
     error::JsNativeError,
     js_string,
-    object::{
-        internal_methods::get_prototype_from_constructor, JsObject, NativeObject, Object,
-        ObjectData,
-    },
-    object::{ConstructorBuilder, FunctionBuilder, JsFunction, PrivateElement, Ref, RefMut},
+    native_function::{NativeFunction, NativeFunctionPointer},
+    object::{internal_methods::get_prototype_from_constructor, JsObject, Object, ObjectData},
+    object::{ConstructorBuilder, FunctionObjectBuilder, JsFunction, PrivateElement},
     property::{Attribute, PropertyDescriptor, PropertyKey},
     string::utf16,
     symbol::WellKnownSymbols,
@@ -34,71 +32,19 @@ use boa_ast::{
     operations::{bound_names, contains, lexically_declared_names, ContainsSymbol},
     StatementList,
 };
-use boa_gc::{self, custom_trace, Finalize, Gc, GcCell, Trace};
+use boa_gc::{self, custom_trace, Finalize, Gc, Trace};
 use boa_interner::Sym;
 use boa_parser::Parser;
 use boa_profiler::Profiler;
-use dyn_clone::DynClone;
-use std::{
-    any::Any,
-    fmt,
-    ops::{Deref, DerefMut},
-};
 use tap::{Conv, Pipe};
+
+use std::fmt;
 
 use super::promise::PromiseCapability;
 
 pub(crate) mod arguments;
 #[cfg(test)]
 mod tests;
-
-/// Type representing a native built-in function a.k.a. function pointer.
-///
-/// Native functions need to have this signature in order to
-/// be callable from Javascript.
-///
-/// # Arguments
-///
-/// - The first argument represents the `this` variable of every Javascript function.
-///
-/// - The second argument represents a list of all arguments passed to the function.
-///
-/// - The last argument is the [`Context`] of the engine.
-pub type NativeFunctionSignature = fn(&JsValue, &[JsValue], &mut Context<'_>) -> JsResult<JsValue>;
-
-// Allows restricting closures to only `Copy` ones.
-// Used the sealed pattern to disallow external implementations
-// of `DynCopy`.
-mod sealed {
-    pub trait Sealed {}
-    impl<T: Copy> Sealed for T {}
-}
-
-/// This trait is implemented by any type that implements [`core::marker::Copy`].
-pub trait DynCopy: sealed::Sealed {}
-
-impl<T: Copy> DynCopy for T {}
-
-/// Trait representing a native built-in closure.
-///
-/// Closures need to have this signature in order to
-/// be callable from Javascript, but most of the time the compiler
-/// is smart enough to correctly infer the types.
-pub trait ClosureFunctionSignature:
-    Fn(&JsValue, &[JsValue], Captures, &mut Context<'_>) -> JsResult<JsValue>
-    + DynCopy
-    + DynClone
-    + 'static
-{
-}
-
-impl<T> ClosureFunctionSignature for T where
-    T: Fn(&JsValue, &[JsValue], Captures, &mut Context<'_>) -> JsResult<JsValue> + Copy + 'static
-{
-}
-
-// Allows cloning Box<dyn ClosureFunctionSignature>
-dyn_clone::clone_trait_object!(ClosureFunctionSignature);
 
 /// Represents the `[[ThisMode]]` internal slot of function objects.
 ///
@@ -196,47 +142,6 @@ unsafe impl Trace for ClassFieldDefinition {
     }}
 }
 
-/// Wrapper for `Gc<GcCell<dyn NativeObject>>` that allows passing additional
-/// captures through a `Copy` closure.
-///
-/// Any type implementing `Trace + Any + Debug`
-/// can be used as a capture context, so you can pass e.g. a String,
-/// a tuple or even a full struct.
-///
-/// You can cast to `Any` with `as_any`, `as_mut_any` and downcast
-/// with `Any::downcast_ref` and `Any::downcast_mut` to recover the original
-/// type.
-#[derive(Clone, Debug, Trace, Finalize)]
-pub struct Captures(Gc<GcCell<Box<dyn NativeObject>>>);
-
-impl Captures {
-    /// Creates a new capture context.
-    pub(crate) fn new<T>(captures: T) -> Self
-    where
-        T: NativeObject,
-    {
-        Self(Gc::new(GcCell::new(Box::new(captures))))
-    }
-
-    /// Casts `Captures` to `Any`
-    ///
-    /// # Panics
-    ///
-    /// Panics if it's already borrowed as `&mut Any`
-    pub fn as_any(&self) -> boa_gc::GcCellRef<'_, dyn Any> {
-        Ref::map(self.0.borrow(), |data| data.deref().as_any())
-    }
-
-    /// Mutably casts `Captures` to `Any`
-    ///
-    /// # Panics
-    ///
-    /// Panics if it's already borrowed as `&mut Any`
-    pub fn as_mut_any(&self) -> boa_gc::GcCellRefMut<'_, Box<dyn NativeObject>, dyn Any> {
-        RefMut::map(self.0.borrow_mut(), |data| data.deref_mut().as_mut_any())
-    }
-}
-
 /// Boa representation of a Function Object.
 ///
 /// `FunctionBody` is specific to this interpreter, it will either be Rust code or JavaScript code
@@ -248,24 +153,11 @@ pub enum Function {
     /// A rust function.
     Native {
         /// The rust function.
-        function: NativeFunctionSignature,
+        function: NativeFunction,
 
         /// The kind of the function constructor if it is a constructor.
         constructor: Option<ConstructorKind>,
     },
-
-    /// A rust function that may contain captured values.
-    Closure {
-        /// The rust function.
-        function: Box<dyn ClosureFunctionSignature>,
-
-        /// The kind of the function constructor if it is a constructor.
-        constructor: Option<ConstructorKind>,
-
-        /// The captured values.
-        captures: Captures,
-    },
-
     /// A bytecode function.
     Ordinary {
         /// The code block containing the compiled function.
@@ -330,8 +222,7 @@ pub enum Function {
 unsafe impl Trace for Function {
     custom_trace! {this, {
         match this {
-            Self::Native { .. } => {}
-            Self::Closure { captures, .. } => mark(captures),
+            Self::Native { function, .. } => {mark(function)}
             Self::Ordinary { code, environments, home_object, fields, private_methods, .. } => {
                 mark(code);
                 mark(environments);
@@ -367,9 +258,7 @@ impl Function {
     /// Returns true if the function object is a constructor.
     pub fn is_constructor(&self) -> bool {
         match self {
-            Self::Native { constructor, .. } | Self::Closure { constructor, .. } => {
-                constructor.is_some()
-            }
+            Self::Native { constructor, .. } => constructor.is_some(),
             Self::Generator { .. } | Self::AsyncGenerator { .. } | Self::Async { .. } => false,
             Self::Ordinary { code, .. } => !(code.this_mode == ThisMode::Lexical),
         }
@@ -394,7 +283,7 @@ impl Function {
             | Self::Async { home_object, .. }
             | Self::Generator { home_object, .. }
             | Self::AsyncGenerator { home_object, .. } => home_object.as_ref(),
-            _ => None,
+            Self::Native { .. } => None,
         }
     }
 
@@ -405,7 +294,7 @@ impl Function {
             | Self::Async { home_object, .. }
             | Self::Generator { home_object, .. }
             | Self::AsyncGenerator { home_object, .. } => *home_object = Some(object),
-            _ => {}
+            Self::Native { .. } => {}
         }
     }
 
@@ -487,7 +376,7 @@ impl Function {
 /// If no length is provided, the length will be set to 0.
 // TODO: deprecate/remove this.
 pub(crate) fn make_builtin_fn<N>(
-    function: NativeFunctionSignature,
+    function: NativeFunctionPointer,
     name: N,
     parent: &JsObject,
     length: usize,
@@ -505,7 +394,7 @@ pub(crate) fn make_builtin_fn<N>(
             .function()
             .prototype(),
         ObjectData::function(Function::Native {
-            function,
+            function: NativeFunction::from_fn_ptr(function),
             constructor: None,
         }),
     );
@@ -905,7 +794,7 @@ impl BuiltInFunctionObject {
             .unwrap_or_else(|| "anonymous".into());
 
         match function {
-            Function::Native { .. } | Function::Closure { .. } | Function::Ordinary { .. } => {
+            Function::Native { .. } | Function::Ordinary { .. } => {
                 Ok(js_string!(utf16!("[Function: "), &name, utf16!("]")).into())
             }
             Function::Async { .. } => {
@@ -949,7 +838,7 @@ impl BuiltIn for BuiltInFunctionObject {
         let _timer = Profiler::global().start_event("function", "init");
 
         let function_prototype = context.intrinsics().constructors().function().prototype();
-        FunctionBuilder::native(context, Self::prototype)
+        FunctionObjectBuilder::new(context, NativeFunction::from_fn_ptr(Self::prototype))
             .name("")
             .length(0)
             .constructor(false)
@@ -957,11 +846,12 @@ impl BuiltIn for BuiltInFunctionObject {
 
         let symbol_has_instance = WellKnownSymbols::has_instance();
 
-        let has_instance = FunctionBuilder::native(context, Self::has_instance)
-            .name("[Symbol.iterator]")
-            .length(1)
-            .constructor(false)
-            .build();
+        let has_instance =
+            FunctionObjectBuilder::new(context, NativeFunction::from_fn_ptr(Self::has_instance))
+                .name("[Symbol.iterator]")
+                .length(1)
+                .constructor(false)
+                .build();
 
         let throw_type_error = context.intrinsics().objects().throw_type_error();
 

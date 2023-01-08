@@ -7,14 +7,13 @@ use super::{
 };
 use crate::read::ErrorType;
 use boa_engine::{
-    builtins::JsArgs, object::FunctionBuilder, property::Attribute, Context, JsNativeErrorKind,
-    JsResult, JsValue,
+    builtins::JsArgs, native_function::NativeFunction, object::FunctionObjectBuilder,
+    property::Attribute, Context, JsNativeErrorKind, JsValue,
 };
-use boa_gc::{Finalize, Gc, GcCell, Trace};
 use boa_parser::Parser;
 use colored::Colorize;
 use rayon::prelude::*;
-use std::borrow::Cow;
+use std::{borrow::Cow, cell::RefCell, rc::Rc};
 
 impl TestSuite {
     /// Runs the test suite.
@@ -360,11 +359,25 @@ impl Test {
     /// Registers the print function in the context.
     fn register_print_fn(context: &mut Context<'_>, async_result: AsyncResult) {
         // We use `FunctionBuilder` to define a closure with additional captures.
-        let js_function =
-            FunctionBuilder::closure_with_captures(context, test262_print, async_result)
-                .name("print")
-                .length(1)
-                .build();
+        let js_function = FunctionObjectBuilder::new(
+            context,
+            // SAFETY: `AsyncResult` has only non-traceable captures, making this safe.
+            unsafe {
+                NativeFunction::from_closure(move |_, args, context| {
+                    let message = args
+                        .get_or_undefined(0)
+                        .to_string(context)?
+                        .to_std_string_escaped();
+                    if message != "Test262:AsyncTestComplete" {
+                        *async_result.inner.borrow_mut() = Err(message);
+                    }
+                    Ok(JsValue::undefined())
+                })
+            },
+        )
+        .name("print")
+        .length(1)
+        .build();
 
         context.register_global_property(
             "print",
@@ -375,33 +388,15 @@ impl Test {
 }
 
 /// Object which includes the result of the async operation.
-#[derive(Debug, Clone, Trace, Finalize)]
+#[derive(Debug, Clone)]
 struct AsyncResult {
-    inner: Gc<GcCell<Result<(), String>>>,
+    inner: Rc<RefCell<Result<(), String>>>,
 }
 
 impl Default for AsyncResult {
     fn default() -> Self {
         Self {
-            inner: Gc::new(GcCell::new(Ok(()))),
+            inner: Rc::new(RefCell::new(Ok(()))),
         }
     }
-}
-
-/// `print()` function required by the test262 suite.
-#[allow(clippy::unnecessary_wraps)]
-fn test262_print(
-    _this: &JsValue,
-    args: &[JsValue],
-    async_result: &mut AsyncResult,
-    context: &mut Context<'_>,
-) -> JsResult<JsValue> {
-    let message = args
-        .get_or_undefined(0)
-        .to_string(context)?
-        .to_std_string_escaped();
-    if message != "Test262:AsyncTestComplete" {
-        *async_result.inner.borrow_mut() = Err(message);
-    }
-    Ok(JsValue::undefined())
 }

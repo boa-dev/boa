@@ -1,7 +1,8 @@
 use crate::{
     error::JsNativeError,
     forward, forward_val, js_string,
-    object::{FunctionBuilder, JsObject},
+    native_function::NativeFunction,
+    object::{FunctionObjectBuilder, JsObject},
     property::{Attribute, PropertyDescriptor},
     string::utf16,
     Context, JsNativeErrorKind,
@@ -244,22 +245,26 @@ fn closure_capture_clone() {
         )
         .unwrap();
 
-    let func = FunctionBuilder::closure_with_captures(
+    let func = FunctionObjectBuilder::new(
         &mut context,
-        |_, _, captures, context| {
-            let (string, object) = &captures;
+        NativeFunction::from_copy_closure_with_captures(
+            |_, _, captures, context| {
+                let (string, object) = &captures;
 
-            let hw = js_string!(
-                string,
-                &object
-                    .__get_own_property__(&"key".into(), context)?
-                    .and_then(|prop| prop.value().cloned())
-                    .and_then(|val| val.as_string().cloned())
-                    .ok_or_else(|| JsNativeError::typ().with_message("invalid `key` property"))?
-            );
-            Ok(hw.into())
-        },
-        (string, object),
+                let hw = js_string!(
+                    string,
+                    &object
+                        .__get_own_property__(&"key".into(), context)?
+                        .and_then(|prop| prop.value().cloned())
+                        .and_then(|val| val.as_string().cloned())
+                        .ok_or_else(
+                            || JsNativeError::typ().with_message("invalid `key` property")
+                        )?
+                );
+                Ok(hw.into())
+            },
+            (string, object),
+        ),
     )
     .name("closure")
     .build();

@@ -62,8 +62,8 @@
 //! [class-trait]: ./trait.Class.html
 
 use crate::{
-    builtins::function::NativeFunctionSignature,
     error::JsNativeError,
+    native_function::NativeFunctionPointer,
     object::{ConstructorBuilder, JsFunction, JsObject, NativeObject, ObjectData, PROTOTYPE},
     property::{Attribute, PropertyDescriptor, PropertyKey},
     Context, JsResult, JsValue,
@@ -183,7 +183,7 @@ impl<'ctx, 'icu> ClassBuilder<'ctx, 'icu> {
         &mut self,
         name: N,
         length: usize,
-        function: NativeFunctionSignature,
+        function: NativeFunctionPointer,
     ) -> &mut Self
     where
         N: AsRef<str>,
@@ -199,7 +199,7 @@ impl<'ctx, 'icu> ClassBuilder<'ctx, 'icu> {
         &mut self,
         name: N,
         length: usize,
-        function: NativeFunctionSignature,
+        function: NativeFunctionPointer,
     ) -> &mut Self
     where
         N: AsRef<str>,

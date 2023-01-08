@@ -138,7 +138,7 @@ fn init_builtin<B: BuiltIn>(context: &mut Context<'_>) {
 /// Initializes built-in objects and functions
 pub fn init(context: &mut Context<'_>) {
     macro_rules! globals {
-        ($( $builtin:ty ),*) => {
+        ($( $builtin:ty ),*$(,)?) => {
             $(init_builtin::<$builtin>(context)
             );*
         }
@@ -195,7 +195,7 @@ pub fn init(context: &mut Context<'_>) {
         AsyncGenerator,
         AsyncGeneratorFunction,
         Uri,
-        WeakRef
+        WeakRef,
     };
 
     #[cfg(feature = "intl")]

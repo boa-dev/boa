@@ -2,7 +2,8 @@ use super::{Promise, PromiseCapability};
 use crate::{
     builtins::promise::{ReactionRecord, ReactionType},
     job::JobCallback,
-    object::{FunctionBuilder, JsObject},
+    native_function::NativeFunction,
+    object::{FunctionObjectBuilder, JsObject},
     Context, JsValue,
 };
 use boa_gc::{Finalize, Trace};
@@ -27,75 +28,77 @@ impl PromiseJob {
         }
 
         // 1. Let job be a new Job Abstract Closure with no parameters that captures reaction and argument and performs the following steps when called:
-        let job = FunctionBuilder::closure_with_captures(
+        let job = FunctionObjectBuilder::new(
             context,
-            |_this, _args, captures, context| {
-                let ReactionJobCaptures { reaction, argument } = captures;
+            NativeFunction::from_copy_closure_with_captures(
+                |_this, _args, captures, context| {
+                    let ReactionJobCaptures { reaction, argument } = captures;
 
-                let ReactionRecord {
-                    //   a. Let promiseCapability be reaction.[[Capability]].
-                    promise_capability,
-                    //   b. Let type be reaction.[[Type]].
-                    reaction_type,
-                    //   c. Let handler be reaction.[[Handler]].
-                    handler,
-                } = reaction;
+                    let ReactionRecord {
+                        //   a. Let promiseCapability be reaction.[[Capability]].
+                        promise_capability,
+                        //   b. Let type be reaction.[[Type]].
+                        reaction_type,
+                        //   c. Let handler be reaction.[[Handler]].
+                        handler,
+                    } = reaction;
 
-                let handler_result = match handler {
-                    // d. If handler is empty, then
-                    None => match reaction_type {
-                        // i. If type is Fulfill, let handlerResult be NormalCompletion(argument).
-                        ReactionType::Fulfill => Ok(argument.clone()),
-                        // ii. Else,
-                        //   1. Assert: type is Reject.
-                        ReactionType::Reject => {
-                            // 2. Let handlerResult be ThrowCompletion(argument).
-                            Err(argument.clone())
-                        }
-                    },
-                    //   e. Else, let handlerResult be Completion(HostCallJobCallback(handler, undefined, « argument »)).
-                    Some(handler) => handler
-                        .call_job_callback(&JsValue::Undefined, &[argument.clone()], context)
-                        .map_err(|e| e.to_opaque(context)),
-                };
-
-                match promise_capability {
-                    None => {
-                        // f. If promiseCapability is undefined, then
-                        //    i. Assert: handlerResult is not an abrupt completion.
-                        assert!(
-                            handler_result.is_ok(),
-                            "Assertion: <handlerResult is not an abrupt completion> failed"
-                        );
-
-                        // ii. Return empty.
-                        Ok(JsValue::Undefined)
-                    }
-                    Some(promise_capability_record) => {
-                        // g. Assert: promiseCapability is a PromiseCapability Record.
-                        let PromiseCapability {
-                            promise: _,
-                            resolve,
-                            reject,
-                        } = promise_capability_record;
-
-                        match handler_result {
-                            // h. If handlerResult is an abrupt completion, then
-                            Err(value) => {
-                                // i. Return ? Call(promiseCapability.[[Reject]], undefined, « handlerResult.[[Value]] »).
-                                reject.call(&JsValue::Undefined, &[value], context)
+                    let handler_result = match handler {
+                        // d. If handler is empty, then
+                        None => match reaction_type {
+                            // i. If type is Fulfill, let handlerResult be NormalCompletion(argument).
+                            ReactionType::Fulfill => Ok(argument.clone()),
+                            // ii. Else,
+                            //   1. Assert: type is Reject.
+                            ReactionType::Reject => {
+                                // 2. Let handlerResult be ThrowCompletion(argument).
+                                Err(argument.clone())
                             }
+                        },
+                        //   e. Else, let handlerResult be Completion(HostCallJobCallback(handler, undefined, « argument »)).
+                        Some(handler) => handler
+                            .call_job_callback(&JsValue::Undefined, &[argument.clone()], context)
+                            .map_err(|e| e.to_opaque(context)),
+                    };
 
-                            // i. Else,
-                            Ok(value) => {
-                                // i. Return ? Call(promiseCapability.[[Resolve]], undefined, « handlerResult.[[Value]] »).
-                                resolve.call(&JsValue::Undefined, &[value], context)
+                    match promise_capability {
+                        None => {
+                            // f. If promiseCapability is undefined, then
+                            //    i. Assert: handlerResult is not an abrupt completion.
+                            assert!(
+                                handler_result.is_ok(),
+                                "Assertion: <handlerResult is not an abrupt completion> failed"
+                            );
+
+                            // ii. Return empty.
+                            Ok(JsValue::Undefined)
+                        }
+                        Some(promise_capability_record) => {
+                            // g. Assert: promiseCapability is a PromiseCapability Record.
+                            let PromiseCapability {
+                                promise: _,
+                                resolve,
+                                reject,
+                            } = promise_capability_record;
+
+                            match handler_result {
+                                // h. If handlerResult is an abrupt completion, then
+                                Err(value) => {
+                                    // i. Return ? Call(promiseCapability.[[Reject]], undefined, « handlerResult.[[Value]] »).
+                                    reject.call(&JsValue::Undefined, &[value], context)
+                                }
+
+                                // i. Else,
+                                Ok(value) => {
+                                    // i. Return ? Call(promiseCapability.[[Resolve]], undefined, « handlerResult.[[Value]] »).
+                                    resolve.call(&JsValue::Undefined, &[value], context)
+                                }
                             }
                         }
                     }
-                }
-            },
-            ReactionJobCaptures { reaction, argument },
+                },
+                ReactionJobCaptures { reaction, argument },
+            ),
         )
         .build()
         .into();
@@ -121,42 +124,46 @@ impl PromiseJob {
         context: &mut Context<'_>,
     ) -> JobCallback {
         // 1. Let job be a new Job Abstract Closure with no parameters that captures promiseToResolve, thenable, and then and performs the following steps when called:
-        let job = FunctionBuilder::closure_with_captures(
+        let job = FunctionObjectBuilder::new(
             context,
-            |_this: &JsValue, _args: &[JsValue], captures, context: &mut Context<'_>| {
-                let JobCapture {
-                    promise_to_resolve,
-                    thenable,
-                    then,
-                } = captures;
+            NativeFunction::from_copy_closure_with_captures(
+                |_this: &JsValue, _args: &[JsValue], captures, context: &mut Context<'_>| {
+                    let JobCapture {
+                        promise_to_resolve,
+                        thenable,
+                        then,
+                    } = captures;
 
-                //    a. Let resolvingFunctions be CreateResolvingFunctions(promiseToResolve).
-                let resolving_functions =
-                    Promise::create_resolving_functions(promise_to_resolve, context);
+                    //    a. Let resolvingFunctions be CreateResolvingFunctions(promiseToResolve).
+                    let resolving_functions =
+                        Promise::create_resolving_functions(promise_to_resolve, context);
 
-                //    b. Let thenCallResult be Completion(HostCallJobCallback(then, thenable, « resolvingFunctions.[[Resolve]], resolvingFunctions.[[Reject]] »)).
-                let then_call_result = then.call_job_callback(
-                    thenable,
-                    &[
-                        resolving_functions.resolve.clone().into(),
-                        resolving_functions.reject.clone().into(),
-                    ],
-                    context,
-                );
+                    //    b. Let thenCallResult be Completion(HostCallJobCallback(then, thenable, « resolvingFunctions.[[Resolve]], resolvingFunctions.[[Reject]] »)).
+                    let then_call_result = then.call_job_callback(
+                        thenable,
+                        &[
+                            resolving_functions.resolve.clone().into(),
+                            resolving_functions.reject.clone().into(),
+                        ],
+                        context,
+                    );
 
-                //    c. If thenCallResult is an abrupt completion, then
-                if let Err(value) = then_call_result {
-                    let value = value.to_opaque(context);
-                    //    i. Return ? Call(resolvingFunctions.[[Reject]], undefined, « thenCallResult.[[Value]] »).
-                    return resolving_functions
-                        .reject
-                        .call(&JsValue::Undefined, &[value], context);
-                }
+                    //    c. If thenCallResult is an abrupt completion, then
+                    if let Err(value) = then_call_result {
+                        let value = value.to_opaque(context);
+                        //    i. Return ? Call(resolvingFunctions.[[Reject]], undefined, « thenCallResult.[[Value]] »).
+                        return resolving_functions.reject.call(
+                            &JsValue::Undefined,
+                            &[value],
+                            context,
+                        );
+                    }
 
-                //    d. Return ? thenCallResult.
-                then_call_result
-            },
-            JobCapture::new(promise_to_resolve, thenable, then),
+                    //    d. Return ? thenCallResult.
+                    then_call_result
+                },
+                JobCapture::new(promise_to_resolve, thenable, then),
+            ),
         )
         .build();
 

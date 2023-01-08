@@ -11,7 +11,8 @@ use crate::{
         promise::if_abrupt_reject_promise, promise::PromiseCapability, BuiltIn, JsArgs, Promise,
     },
     error::JsNativeError,
-    object::{ConstructorBuilder, FunctionBuilder, JsObject, ObjectData},
+    native_function::NativeFunction,
+    object::{ConstructorBuilder, FunctionObjectBuilder, JsObject, ObjectData},
     property::{Attribute, PropertyDescriptor},
     symbol::WellKnownSymbols,
     value::JsValue,
@@ -627,32 +628,34 @@ impl AsyncGenerator {
 
         // 7. Let fulfilledClosure be a new Abstract Closure with parameters (value) that captures generator and performs the following steps when called:
         // 8. Let onFulfilled be CreateBuiltinFunction(fulfilledClosure, 1, "", « »).
-        let on_fulfilled = FunctionBuilder::closure_with_captures(
+        let on_fulfilled = FunctionObjectBuilder::new(
             context,
-            |_this, args, generator, context| {
-                let mut generator_borrow_mut = generator.borrow_mut();
-                let gen = generator_borrow_mut
-                    .as_async_generator_mut()
-                    .expect("already checked before");
+            NativeFunction::from_copy_closure_with_captures(
+                |_this, args, generator, context| {
+                    let mut generator_borrow_mut = generator.borrow_mut();
+                    let gen = generator_borrow_mut
+                        .as_async_generator_mut()
+                        .expect("already checked before");
 
-                // a. Set generator.[[AsyncGeneratorState]] to completed.
-                gen.state = AsyncGeneratorState::Completed;
+                    // a. Set generator.[[AsyncGeneratorState]] to completed.
+                    gen.state = AsyncGeneratorState::Completed;
 
-                // b. Let result be NormalCompletion(value).
-                let result = Ok(args.get_or_undefined(0).clone());
+                    // b. Let result be NormalCompletion(value).
+                    let result = Ok(args.get_or_undefined(0).clone());
 
-                // c. Perform AsyncGeneratorCompleteStep(generator, result, true).
-                let next = gen.queue.pop_front().expect("must have one entry");
-                drop(generator_borrow_mut);
-                Self::complete_step(&next, result, true, context);
+                    // c. Perform AsyncGeneratorCompleteStep(generator, result, true).
+                    let next = gen.queue.pop_front().expect("must have one entry");
+                    drop(generator_borrow_mut);
+                    Self::complete_step(&next, result, true, context);
 
-                // d. Perform AsyncGeneratorDrainQueue(generator).
-                Self::drain_queue(generator, context);
+                    // d. Perform AsyncGeneratorDrainQueue(generator).
+                    Self::drain_queue(generator, context);
 
-                // e. Return undefined.
-                Ok(JsValue::undefined())
-            },
-            generator.clone(),
+                    // e. Return undefined.
+                    Ok(JsValue::undefined())
+                },
+                generator.clone(),
+            ),
         )
         .name("")
         .length(1)
@@ -660,32 +663,34 @@ impl AsyncGenerator {
 
         // 9. Let rejectedClosure be a new Abstract Closure with parameters (reason) that captures generator and performs the following steps when called:
         // 10. Let onRejected be CreateBuiltinFunction(rejectedClosure, 1, "", « »).
-        let on_rejected = FunctionBuilder::closure_with_captures(
+        let on_rejected = FunctionObjectBuilder::new(
             context,
-            |_this, args, generator, context| {
-                let mut generator_borrow_mut = generator.borrow_mut();
-                let gen = generator_borrow_mut
-                    .as_async_generator_mut()
-                    .expect("already checked before");
+            NativeFunction::from_copy_closure_with_captures(
+                |_this, args, generator, context| {
+                    let mut generator_borrow_mut = generator.borrow_mut();
+                    let gen = generator_borrow_mut
+                        .as_async_generator_mut()
+                        .expect("already checked before");
 
-                // a. Set generator.[[AsyncGeneratorState]] to completed.
-                gen.state = AsyncGeneratorState::Completed;
+                    // a. Set generator.[[AsyncGeneratorState]] to completed.
+                    gen.state = AsyncGeneratorState::Completed;
 
-                // b. Let result be ThrowCompletion(reason).
-                let result = Err(JsError::from_opaque(args.get_or_undefined(0).clone()));
+                    // b. Let result be ThrowCompletion(reason).
+                    let result = Err(JsError::from_opaque(args.get_or_undefined(0).clone()));
 
-                // c. Perform AsyncGeneratorCompleteStep(generator, result, true).
-                let next = gen.queue.pop_front().expect("must have one entry");
-                drop(generator_borrow_mut);
-                Self::complete_step(&next, result, true, context);
+                    // c. Perform AsyncGeneratorCompleteStep(generator, result, true).
+                    let next = gen.queue.pop_front().expect("must have one entry");
+                    drop(generator_borrow_mut);
+                    Self::complete_step(&next, result, true, context);
 
-                // d. Perform AsyncGeneratorDrainQueue(generator).
-                Self::drain_queue(generator, context);
+                    // d. Perform AsyncGeneratorDrainQueue(generator).
+                    Self::drain_queue(generator, context);
 
-                // e. Return undefined.
-                Ok(JsValue::undefined())
-            },
-            generator,
+                    // e. Return undefined.
+                    Ok(JsValue::undefined())
+                },
+                generator,
+            ),
         )
         .name("")
         .length(1)

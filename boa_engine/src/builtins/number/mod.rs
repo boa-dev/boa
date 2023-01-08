@@ -17,9 +17,10 @@ use crate::{
     builtins::{string::is_trimmable_whitespace, BuiltIn, JsArgs},
     context::intrinsics::StandardConstructors,
     error::JsNativeError,
+    native_function::NativeFunction,
     object::{
-        internal_methods::get_prototype_from_constructor, ConstructorBuilder, FunctionBuilder,
-        JsObject, ObjectData,
+        internal_methods::get_prototype_from_constructor, ConstructorBuilder,
+        FunctionObjectBuilder, JsObject, ObjectData,
     },
     property::Attribute,
     string::utf16,
@@ -50,17 +51,19 @@ impl BuiltIn for Number {
     fn init(context: &mut Context<'_>) -> Option<JsValue> {
         let _timer = Profiler::global().start_event(Self::NAME, "init");
 
-        let parse_int = FunctionBuilder::native(context, Self::parse_int)
-            .name("parseInt")
-            .length(2)
-            .constructor(false)
-            .build();
+        let parse_int =
+            FunctionObjectBuilder::new(context, NativeFunction::from_fn_ptr(Self::parse_int))
+                .name("parseInt")
+                .length(2)
+                .constructor(false)
+                .build();
 
-        let parse_float = FunctionBuilder::native(context, Self::parse_float)
-            .name("parseFloat")
-            .length(1)
-            .constructor(false)
-            .build();
+        let parse_float =
+            FunctionObjectBuilder::new(context, NativeFunction::from_fn_ptr(Self::parse_float))
+                .name("parseFloat")
+                .length(1)
+                .constructor(false)
+                .build();
 
         context.register_global_property(
             "parseInt",
@@ -73,8 +76,16 @@ impl BuiltIn for Number {
             Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
         );
 
-        context.register_global_builtin_function("isFinite", 1, Self::global_is_finite);
-        context.register_global_builtin_function("isNaN", 1, Self::global_is_nan);
+        context.register_global_builtin_callable(
+            "isFinite",
+            1,
+            NativeFunction::from_fn_ptr(Self::global_is_finite),
+        );
+        context.register_global_builtin_callable(
+            "isNaN",
+            1,
+            NativeFunction::from_fn_ptr(Self::global_is_nan),
+        );
 
         let attribute = Attribute::READONLY | Attribute::NON_ENUMERABLE | Attribute::PERMANENT;
 

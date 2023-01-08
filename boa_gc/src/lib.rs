@@ -95,7 +95,6 @@ mod trace;
 pub(crate) mod internals;
 
 use boa_profiler::Profiler;
-use internals::GcBox;
 use std::{
     cell::{Cell, RefCell},
     mem,
@@ -105,6 +104,7 @@ use std::{
 pub use crate::trace::{Finalize, Trace};
 pub use boa_macros::{Finalize, Trace};
 pub use cell::{GcCell, GcCellRef, GcCellRefMut};
+pub use internals::GcBox;
 pub use pointers::{Ephemeron, Gc, WeakGc};
 
 type GcPointer = NonNull<GcBox<dyn Trace>>;

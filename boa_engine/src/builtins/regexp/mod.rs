@@ -18,9 +18,10 @@ use crate::{
     context::intrinsics::StandardConstructors,
     error::JsNativeError,
     js_string,
+    native_function::NativeFunction,
     object::{
-        internal_methods::get_prototype_from_constructor, ConstructorBuilder, FunctionBuilder,
-        JsObject, ObjectData,
+        internal_methods::get_prototype_from_constructor, ConstructorBuilder,
+        FunctionObjectBuilder, JsObject, ObjectData,
     },
     property::{Attribute, PropertyDescriptorBuilder},
     string::{utf16, CodePoint},
@@ -53,49 +54,59 @@ impl BuiltIn for RegExp {
     fn init(context: &mut Context<'_>) -> Option<JsValue> {
         let _timer = Profiler::global().start_event(Self::NAME, "init");
 
-        let get_species = FunctionBuilder::native(context, Self::get_species)
-            .name("get [Symbol.species]")
-            .constructor(false)
-            .build();
+        let get_species =
+            FunctionObjectBuilder::new(context, NativeFunction::from_fn_ptr(Self::get_species))
+                .name("get [Symbol.species]")
+                .constructor(false)
+                .build();
 
         let flag_attributes = Attribute::CONFIGURABLE | Attribute::NON_ENUMERABLE;
 
-        let get_has_indices = FunctionBuilder::native(context, Self::get_has_indices)
-            .name("get hasIndices")
-            .constructor(false)
-            .build();
-        let get_global = FunctionBuilder::native(context, Self::get_global)
-            .name("get global")
-            .constructor(false)
-            .build();
-        let get_ignore_case = FunctionBuilder::native(context, Self::get_ignore_case)
-            .name("get ignoreCase")
-            .constructor(false)
-            .build();
-        let get_multiline = FunctionBuilder::native(context, Self::get_multiline)
-            .name("get multiline")
-            .constructor(false)
-            .build();
-        let get_dot_all = FunctionBuilder::native(context, Self::get_dot_all)
-            .name("get dotAll")
-            .constructor(false)
-            .build();
-        let get_unicode = FunctionBuilder::native(context, Self::get_unicode)
-            .name("get unicode")
-            .constructor(false)
-            .build();
-        let get_sticky = FunctionBuilder::native(context, Self::get_sticky)
-            .name("get sticky")
-            .constructor(false)
-            .build();
-        let get_flags = FunctionBuilder::native(context, Self::get_flags)
-            .name("get flags")
-            .constructor(false)
-            .build();
-        let get_source = FunctionBuilder::native(context, Self::get_source)
-            .name("get source")
-            .constructor(false)
-            .build();
+        let get_has_indices =
+            FunctionObjectBuilder::new(context, NativeFunction::from_fn_ptr(Self::get_has_indices))
+                .name("get hasIndices")
+                .constructor(false)
+                .build();
+        let get_global =
+            FunctionObjectBuilder::new(context, NativeFunction::from_fn_ptr(Self::get_global))
+                .name("get global")
+                .constructor(false)
+                .build();
+        let get_ignore_case =
+            FunctionObjectBuilder::new(context, NativeFunction::from_fn_ptr(Self::get_ignore_case))
+                .name("get ignoreCase")
+                .constructor(false)
+                .build();
+        let get_multiline =
+            FunctionObjectBuilder::new(context, NativeFunction::from_fn_ptr(Self::get_multiline))
+                .name("get multiline")
+                .constructor(false)
+                .build();
+        let get_dot_all =
+            FunctionObjectBuilder::new(context, NativeFunction::from_fn_ptr(Self::get_dot_all))
+                .name("get dotAll")
+                .constructor(false)
+                .build();
+        let get_unicode =
+            FunctionObjectBuilder::new(context, NativeFunction::from_fn_ptr(Self::get_unicode))
+                .name("get unicode")
+                .constructor(false)
+                .build();
+        let get_sticky =
+            FunctionObjectBuilder::new(context, NativeFunction::from_fn_ptr(Self::get_sticky))
+                .name("get sticky")
+                .constructor(false)
+                .build();
+        let get_flags =
+            FunctionObjectBuilder::new(context, NativeFunction::from_fn_ptr(Self::get_flags))
+                .name("get flags")
+                .constructor(false)
+                .build();
+        let get_source =
+            FunctionObjectBuilder::new(context, NativeFunction::from_fn_ptr(Self::get_source))
+                .name("get source")
+                .constructor(false)
+                .build();
         ConstructorBuilder::with_standard_constructor(
             context,
             Self::constructor,

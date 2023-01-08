@@ -15,6 +15,7 @@ use crate::{
         function::{BuiltInFunctionObject, ConstructorKind, Function},
         BuiltIn,
     },
+    native_function::NativeFunction,
     object::ObjectData,
     property::PropertyDescriptor,
     symbol::WellKnownSymbols,
@@ -72,7 +73,7 @@ impl BuiltIn for GeneratorFunction {
             .configurable(false);
         constructor.borrow_mut().insert("prototype", property);
         constructor.borrow_mut().data = ObjectData::function(Function::Native {
-            function: Self::constructor,
+            function: NativeFunction::from_fn_ptr(Self::constructor),
             constructor: Some(ConstructorKind::Base),
         });
 
