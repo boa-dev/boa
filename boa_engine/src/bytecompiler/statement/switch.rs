@@ -3,7 +3,7 @@ use boa_ast::statement::Switch;
 use crate::{bytecompiler::ByteCompiler, vm::Opcode, JsResult};
 
 impl ByteCompiler<'_, '_> {
-    /// Compile a [`Swtich`] boa_ast node
+    /// Compile a [`Switch`] `boa_ast` node
     pub(crate) fn compile_switch(
         &mut self,
         switch: &Switch,

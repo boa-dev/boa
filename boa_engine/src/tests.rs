@@ -2096,6 +2096,100 @@ fn bigger_switch_example() {
 }
 
 #[test]
+fn break_environment_gauntlet() {
+    // test that break handles popping environments correctly.
+    let scenario = r#"
+        let a = 0;
+
+        while(true) {
+            break;
+        }
+
+        while(true) break
+
+        do {break} while(true);
+
+        while (a < 3) {
+            let a = 1;
+            if (a == 1) {
+                break;
+            }
+
+            let b = 2;
+        }
+
+        {
+            b = 0;
+            do {
+                b = 2
+                if (b == 2) {
+                    break;
+                }
+                b++
+            } while( i < 3);
+
+            let c = 1;
+        }
+
+        {
+            for (let r = 0; r< 3; r++) {
+                if (r == 2) {
+                    break;
+                }
+            }
+        }
+
+        basic: for (let a = 0; a < 2; a++) {
+            break;
+        }
+
+        {
+            let result = true;
+            {
+                let x = 2;
+                L: {
+                    let x = 3;
+                    result &&= (x === 3);
+                    break L;
+                    result &&= (false);
+                }
+                result &&= (x === 2);
+            }
+            result;
+        }
+
+        {
+            var str = "";
+
+            outer: for (let i = 0; i < 5; i++) {
+                inner: for (let b = 0; b < 5; b++) {
+                    if (b === 2) {
+                        break outer;
+                    }
+                    str = str + b;
+                }
+                str = str + i;
+            }
+            str
+        }
+
+        {
+            result = "";
+            lab_block: {
+                try {
+                    result = "try_block";
+                    break lab_block;
+                    result = "did not break"
+                } catch (err) {}
+            }
+            str
+        }
+    "#;
+
+    assert_eq!(&exec(scenario), "\"01\"");
+}
+
+#[test]
 fn while_loop_late_break() {
     // Ordering with statement before the break.
     let scenario = r#"

@@ -12,7 +12,7 @@ mod switch;
 mod r#try;
 
 impl ByteCompiler<'_, '_> {
-    /// Compiles a [`Statement`] *boa_ast* node.
+    /// Compiles a [`Statement`] `boa_ast` node.
     pub fn compile_stmt(
         &mut self,
         node: &Statement,

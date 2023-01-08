@@ -4,6 +4,7 @@ mod class;
 mod declaration;
 mod expression;
 mod function;
+mod jump_control;
 mod statement;
 
 use crate::{
@@ -29,9 +30,9 @@ use boa_ast::{
 use boa_gc::{Gc, GcCell};
 use boa_interner::{Interner, Sym};
 use rustc_hash::FxHashMap;
-use std::mem::size_of;
 
 pub(crate) use function::FunctionCompiler;
+pub(crate) use jump_control::{JumpControlInfo, JumpControlInfoKind};
 
 /// Describes how a node has been defined in the source code.
 #[derive(Debug, Clone, Copy, PartialEq)]
@@ -169,30 +170,8 @@ enum Literal {
 
 #[must_use]
 #[derive(Debug, Clone, Copy)]
-struct Label {
+pub(crate) struct Label {
     index: u32,
-}
-
-#[derive(Debug, Clone)]
-struct JumpControlInfo {
-    label: Option<Sym>,
-    start_address: u32,
-    kind: JumpControlInfoKind,
-    breaks: Vec<Label>,
-    try_continues: Vec<Label>,
-    in_catch: bool,
-    has_finally: bool,
-    finally_start: Option<Label>,
-    for_of_in_loop: bool,
-    decl_envs: u32,
-}
-
-#[derive(Debug, Clone, PartialEq)]
-enum JumpControlInfoKind {
-    Loop,
-    Switch,
-    Try,
-    LabelledBlock,
 }
 
 #[derive(Debug, Clone, Copy)]
@@ -270,27 +249,6 @@ impl<'b, 'icu> ByteCompiler<'b, 'icu> {
         let index = self.code_block.compile_environments.len();
         self.code_block.compile_environments.push(environment);
         index
-    }
-
-    /// Emits the `PushDeclarativeEnvironment` and updates the current jump info to track environments
-    fn emit_declarative_env(&mut self) -> (Label, Label) {
-        let pushed_env = self.emit_opcode_with_two_operands(Opcode::PushDeclarativeEnvironment);
-        if !self.jump_info.is_empty() {
-            let current_jump_info = self
-                .jump_info
-                .last_mut()
-                .expect("Jump info must exist as the vector is not empty");
-            current_jump_info.decl_envs += 1;
-        }
-        pushed_env
-    }
-
-    fn emit_pop_env(&mut self) {
-        self.emit_opcode(Opcode::PopEnvironment);
-        if !self.jump_info.is_empty() {
-            let current_info = self.jump_info.last_mut().expect("JumpInfo must exist");
-            current_info.decl_envs -= 1;
-        }
     }
 
     fn get_or_insert_literal(&mut self, literal: Literal) -> u32 {
@@ -501,187 +459,6 @@ impl<'b, 'icu> ByteCompiler<'b, 'icu> {
     fn patch_jump(&mut self, label: Label) {
         let target = self.next_opcode_location();
         self.patch_jump_with_target(label, target);
-    }
-
-    fn push_loop_control_info(&mut self, label: Option<Sym>, start_address: u32) {
-        self.jump_info.push(JumpControlInfo {
-            label,
-            start_address,
-            kind: JumpControlInfoKind::Loop,
-            breaks: Vec::new(),
-            try_continues: Vec::new(),
-            in_catch: false,
-            has_finally: false,
-            finally_start: None,
-            for_of_in_loop: false,
-            decl_envs: 0,
-        });
-    }
-
-    fn push_loop_control_info_for_of_in_loop(&mut self, label: Option<Sym>, start_address: u32) {
-        self.jump_info.push(JumpControlInfo {
-            label,
-            start_address,
-            kind: JumpControlInfoKind::Loop,
-            breaks: Vec::new(),
-            try_continues: Vec::new(),
-            in_catch: false,
-            has_finally: false,
-            finally_start: None,
-            for_of_in_loop: true,
-            decl_envs: 0,
-        });
-    }
-
-    fn pop_loop_control_info(&mut self) {
-        let loop_info = self.jump_info.pop().expect("no jump information found");
-
-        assert!(loop_info.kind == JumpControlInfoKind::Loop);
-
-        for label in loop_info.breaks {
-            self.patch_jump(label);
-        }
-
-        for label in loop_info.try_continues {
-            self.patch_jump_with_target(label, loop_info.start_address);
-        }
-    }
-
-    fn push_switch_control_info(&mut self, label: Option<Sym>, start_address: u32) {
-        self.jump_info.push(JumpControlInfo {
-            label,
-            start_address,
-            kind: JumpControlInfoKind::Switch,
-            breaks: Vec::new(),
-            try_continues: Vec::new(),
-            in_catch: false,
-            has_finally: false,
-            finally_start: None,
-            for_of_in_loop: false,
-            decl_envs: 0,
-        });
-    }
-
-    fn pop_switch_control_info(&mut self) {
-        let info = self.jump_info.pop().expect("no jump information found");
-
-        assert!(info.kind == JumpControlInfoKind::Switch);
-
-        for label in info.breaks {
-            self.patch_jump(label);
-        }
-    }
-
-    fn push_try_control_info(&mut self, has_finally: bool) {
-        if !self.jump_info.is_empty() {
-            let start_address = self
-                .jump_info
-                .last()
-                .expect("no jump information found")
-                .start_address;
-
-            self.jump_info.push(JumpControlInfo {
-                label: None,
-                start_address,
-                kind: JumpControlInfoKind::Try,
-                breaks: Vec::new(),
-                try_continues: Vec::new(),
-                in_catch: false,
-                has_finally,
-                finally_start: None,
-                for_of_in_loop: false,
-                decl_envs: 0,
-            });
-        }
-    }
-
-    fn push_try_control_info_catch_start(&mut self) {
-        if !self.jump_info.is_empty() {
-            let mut info = self
-                .jump_info
-                .last_mut()
-                .expect("must have try control label");
-            assert!(info.kind == JumpControlInfoKind::Try);
-            info.in_catch = true;
-        }
-    }
-
-    fn push_try_control_info_finally_start(&mut self, start: Label) {
-        if !self.jump_info.is_empty() {
-            let mut info = self
-                .jump_info
-                .last_mut()
-                .expect("must have try control label");
-            assert!(info.kind == JumpControlInfoKind::Try);
-            info.finally_start = Some(start);
-        }
-    }
-
-    fn pop_try_control_info(&mut self, finally_start_address: Option<u32>) {
-        if !self.jump_info.is_empty() {
-            let mut info = self.jump_info.pop().expect("no jump information found");
-
-            assert!(info.kind == JumpControlInfoKind::Try);
-
-            let mut breaks = Vec::with_capacity(info.breaks.len());
-
-            if let Some(finally_start_address) = finally_start_address {
-                for label in info.try_continues {
-                    if label.index < finally_start_address {
-                        self.patch_jump_with_target(label, finally_start_address);
-                    } else {
-                        self.patch_jump_with_target(label, info.start_address);
-                    }
-                }
-
-                for label in info.breaks {
-                    if label.index < finally_start_address {
-                        self.patch_jump_with_target(label, finally_start_address);
-                        let Label { mut index } = label;
-                        index -= size_of::<Opcode>() as u32;
-                        index -= size_of::<u32>() as u32;
-                        breaks.push(Label { index });
-                    } else {
-                        breaks.push(label);
-                    }
-                }
-                if let Some(jump_info) = self.jump_info.last_mut() {
-                    jump_info.breaks.append(&mut breaks);
-                }
-            } else if let Some(jump_info) = self.jump_info.last_mut() {
-                jump_info.breaks.append(&mut info.breaks);
-                jump_info.try_continues.append(&mut info.try_continues);
-            }
-        }
-    }
-
-    fn push_labelled_block_control_info(&mut self, label: Sym, start_address: u32) {
-        self.jump_info.push(JumpControlInfo {
-            label: Some(label),
-            start_address,
-            kind: JumpControlInfoKind::LabelledBlock,
-            breaks: Vec::new(),
-            try_continues: Vec::new(),
-            in_catch: false,
-            has_finally: false,
-            finally_start: None,
-            for_of_in_loop: false,
-            decl_envs: 0,
-        });
-    }
-
-    fn pop_labelled_block_control_info(&mut self) {
-        let info = self.jump_info.pop().expect("no jump information found");
-
-        assert!(info.kind == JumpControlInfoKind::LabelledBlock);
-
-        for label in info.breaks {
-            self.patch_jump(label);
-        }
-
-        for label in info.try_continues {
-            self.patch_jump_with_target(label, info.start_address);
-        }
     }
 
     fn access_get(&mut self, access: Access<'_>, use_expr: bool) -> JsResult<()> {

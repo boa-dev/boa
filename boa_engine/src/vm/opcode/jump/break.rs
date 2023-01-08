@@ -15,10 +15,26 @@ impl Operation for Break {
 
     fn execute(context: &mut Context<'_>) -> JsResult<ShouldExit> {
         let address = context.vm.read::<u32>();
-        let envs = context.vm.read::<u32>();
+        let pop_envs = context.vm.read::<u32>();
 
-        for _i in 0..envs {
+        for _ in 0..pop_envs {
             context.realm.environments.pop();
+
+            let loop_envs = *context
+                .vm
+                .frame()
+                .loop_env_stack
+                .last()
+                .expect("loop env stack must exist");
+            if loop_envs == 0 {
+                context
+                    .vm
+                    .frame_mut()
+                    .loop_env_stack
+                    .pop()
+                    .expect("loop env stack must exist");
+            }
+
             context.vm.frame_mut().loop_env_stack_dec();
             context.vm.frame_mut().try_env_stack_dec();
         }

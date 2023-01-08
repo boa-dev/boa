@@ -9,7 +9,7 @@ use crate::{
 };
 
 impl ByteCompiler<'_, '_> {
-    /// Compile a [`Labelled`] boa_ast node
+    /// Compile a [`Labelled`] `boa_ast` node
     pub(crate) fn compile_labelled(
         &mut self,
         labelled: &Labelled,

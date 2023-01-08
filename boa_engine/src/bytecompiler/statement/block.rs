@@ -4,7 +4,7 @@ use boa_ast::statement::Block;
 use boa_interner::Sym;
 
 impl ByteCompiler<'_, '_> {
-    /// Compile a [`Block`] *boa_ast* node
+    /// Compile a [`Block`] `boa_ast` node
     pub(crate) fn compile_block(
         &mut self,
         block: &Block,
@@ -18,7 +18,7 @@ impl ByteCompiler<'_, '_> {
         }
 
         self.context.push_compile_time_environment(false);
-        let push_env = self.emit_declarative_env();
+        let push_env = self.emit_and_track_decl_env();
 
         self.create_decls(block.statement_list(), configurable_globals);
         self.compile_statement_list(block.statement_list(), use_expr, configurable_globals)?;
@@ -30,9 +30,10 @@ impl ByteCompiler<'_, '_> {
 
         if label.is_some() {
             self.pop_labelled_block_control_info();
+        } else {
+            self.emit_and_track_pop_env();
         }
 
-        self.emit_pop_env();
         Ok(())
     }
 }

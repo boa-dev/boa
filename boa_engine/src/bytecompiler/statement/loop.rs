@@ -22,6 +22,7 @@ impl ByteCompiler<'_, '_> {
         configurable_globals: bool,
     ) -> JsResult<()> {
         self.context.push_compile_time_environment(false);
+        self.push_new_jump_control();
         let push_env = self.emit_opcode_with_two_operands(Opcode::PushDeclarativeEnvironment);
 
         if let Some(init) = for_loop.init() {
@@ -42,7 +43,8 @@ impl ByteCompiler<'_, '_> {
         let initial_jump = self.jump();
 
         let start_address = self.next_opcode_location();
-        self.push_loop_control_info(label, start_address);
+        self.set_jump_control_label(label);
+        self.set_jump_control_start_address(start_address);
 
         self.emit_opcode(Opcode::LoopContinue);
         if let Some(final_expr) = for_loop.final_expr() {
