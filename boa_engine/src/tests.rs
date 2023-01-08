@@ -2181,12 +2181,13 @@ fn break_environment_gauntlet() {
                     break lab_block;
                     result = "did not break"
                 } catch (err) {}
-            }
+            } 
+            str = str + result
             str
         }
     "#;
 
-    assert_eq!(&exec(scenario), "\"01\"");
+    assert_eq!(&exec(scenario), "\"01try_block\"");
 }
 
 #[test]
