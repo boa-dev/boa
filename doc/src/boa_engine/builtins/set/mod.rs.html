@@ -457,6 +457,10 @@
 <span id="456">456</span>
 <span id="457">457</span>
 <span id="458">458</span>
+<span id="459">459</span>
+<span id="460">460</span>
+<span id="461">461</span>
+<span id="462">462</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Boa&#39;s implementation of ECMAScript&#39;s global `Set` object.
 //!
 //! The ECMAScript `Set` class is a global object that is used in the construction of sets; which
@@ -475,9 +479,10 @@
     builtins::BuiltIn,
     context::intrinsics::StandardConstructors,
     error::JsNativeError,
+    native_function::NativeFunction,
     object::{
-        internal_methods::get_prototype_from_constructor, ConstructorBuilder, FunctionBuilder,
-        JsObject, ObjectData,
+        internal_methods::get_prototype_from_constructor, ConstructorBuilder,
+        FunctionObjectBuilder, JsObject, ObjectData,
     },
     property::{Attribute, PropertyNameKind},
     symbol::WellKnownSymbols,
@@ -500,25 +505,28 @@
     <span class="kw">fn </span>init(context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <span class="prelude-ty">Option</span>&lt;JsValue&gt; {
         <span class="kw">let </span>_timer = Profiler::global().start_event(<span class="self">Self</span>::NAME, <span class="string">&quot;init&quot;</span>);
 
-        <span class="kw">let </span>get_species = FunctionBuilder::native(context, <span class="self">Self</span>::get_species)
-            .name(<span class="string">&quot;get [Symbol.species]&quot;</span>)
-            .constructor(<span class="bool-val">false</span>)
-            .build();
+        <span class="kw">let </span>get_species =
+            FunctionObjectBuilder::new(context, NativeFunction::from_fn_ptr(<span class="self">Self</span>::get_species))
+                .name(<span class="string">&quot;get [Symbol.species]&quot;</span>)
+                .constructor(<span class="bool-val">false</span>)
+                .build();
 
-        <span class="kw">let </span>size_getter = FunctionBuilder::native(context, <span class="self">Self</span>::size_getter)
-            .constructor(<span class="bool-val">false</span>)
-            .name(<span class="string">&quot;get size&quot;</span>)
-            .build();
+        <span class="kw">let </span>size_getter =
+            FunctionObjectBuilder::new(context, NativeFunction::from_fn_ptr(<span class="self">Self</span>::size_getter))
+                .constructor(<span class="bool-val">false</span>)
+                .name(<span class="string">&quot;get size&quot;</span>)
+                .build();
 
         <span class="kw">let </span>iterator_symbol = WellKnownSymbols::iterator();
 
         <span class="kw">let </span>to_string_tag = WellKnownSymbols::to_string_tag();
 
-        <span class="kw">let </span>values_function = FunctionBuilder::native(context, <span class="self">Self</span>::values)
-            .name(<span class="string">&quot;values&quot;</span>)
-            .length(<span class="number">0</span>)
-            .constructor(<span class="bool-val">false</span>)
-            .build();
+        <span class="kw">let </span>values_function =
+            FunctionObjectBuilder::new(context, NativeFunction::from_fn_ptr(<span class="self">Self</span>::values))
+                .name(<span class="string">&quot;values&quot;</span>)
+                .length(<span class="number">0</span>)
+                .constructor(<span class="bool-val">false</span>)
+                .build();
 
         ConstructorBuilder::with_standard_constructor(
             context,

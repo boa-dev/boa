@@ -757,6 +757,17 @@
 <span id="756">756</span>
 <span id="757">757</span>
 <span id="758">758</span>
+<span id="759">759</span>
+<span id="760">760</span>
+<span id="761">761</span>
+<span id="762">762</span>
+<span id="763">763</span>
+<span id="764">764</span>
+<span id="765">765</span>
+<span id="766">766</span>
+<span id="767">767</span>
+<span id="768">768</span>
+<span id="769">769</span>
 </pre><pre class="rust"><code><span class="kw">use </span>boa_profiler::Profiler;
 <span class="kw">use </span>icu_collator::CaseFirst;
 <span class="kw">use </span>icu_datetime::options::preferences::HourCycle;
@@ -779,9 +790,10 @@
     builtins::{BuiltIn, JsArgs},
     context::intrinsics::StandardConstructors,
     js_string,
+    native_function::NativeFunction,
     object::{
-        internal_methods::get_prototype_from_constructor, ConstructorBuilder, FunctionBuilder,
-        JsObject, ObjectData,
+        internal_methods::get_prototype_from_constructor, ConstructorBuilder,
+        FunctionObjectBuilder, JsObject, ObjectData,
     },
     property::Attribute,
     symbol::WellKnownSymbols,
@@ -799,52 +811,62 @@
     <span class="kw">fn </span>init(context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <span class="prelude-ty">Option</span>&lt;JsValue&gt; {
         <span class="kw">let </span>_timer = Profiler::global().start_event(<span class="self">Self</span>::NAME, <span class="string">&quot;init&quot;</span>);
 
-        <span class="kw">let </span>base_name = FunctionBuilder::native(context, <span class="self">Self</span>::base_name)
-            .name(<span class="string">&quot;get baseName&quot;</span>)
-            .constructor(<span class="bool-val">false</span>)
-            .build();
+        <span class="kw">let </span>base_name =
+            FunctionObjectBuilder::new(context, NativeFunction::from_fn_ptr(<span class="self">Self</span>::base_name))
+                .name(<span class="string">&quot;get baseName&quot;</span>)
+                .constructor(<span class="bool-val">false</span>)
+                .build();
 
-        <span class="kw">let </span>calendar = FunctionBuilder::native(context, <span class="self">Self</span>::calendar)
-            .name(<span class="string">&quot;get calendar&quot;</span>)
-            .constructor(<span class="bool-val">false</span>)
-            .build();
+        <span class="kw">let </span>calendar =
+            FunctionObjectBuilder::new(context, NativeFunction::from_fn_ptr(<span class="self">Self</span>::calendar))
+                .name(<span class="string">&quot;get calendar&quot;</span>)
+                .constructor(<span class="bool-val">false</span>)
+                .build();
 
-        <span class="kw">let </span>case_first = FunctionBuilder::native(context, <span class="self">Self</span>::case_first)
-            .name(<span class="string">&quot;get caseFirst&quot;</span>)
-            .constructor(<span class="bool-val">false</span>)
-            .build();
+        <span class="kw">let </span>case_first =
+            FunctionObjectBuilder::new(context, NativeFunction::from_fn_ptr(<span class="self">Self</span>::case_first))
+                .name(<span class="string">&quot;get caseFirst&quot;</span>)
+                .constructor(<span class="bool-val">false</span>)
+                .build();
 
-        <span class="kw">let </span>collation = FunctionBuilder::native(context, <span class="self">Self</span>::collation)
-            .name(<span class="string">&quot;get collation&quot;</span>)
-            .constructor(<span class="bool-val">false</span>)
-            .build();
+        <span class="kw">let </span>collation =
+            FunctionObjectBuilder::new(context, NativeFunction::from_fn_ptr(<span class="self">Self</span>::collation))
+                .name(<span class="string">&quot;get collation&quot;</span>)
+                .constructor(<span class="bool-val">false</span>)
+                .build();
 
-        <span class="kw">let </span>hour_cycle = FunctionBuilder::native(context, <span class="self">Self</span>::hour_cycle)
-            .name(<span class="string">&quot;get hourCycle&quot;</span>)
-            .constructor(<span class="bool-val">false</span>)
-            .build();
+        <span class="kw">let </span>hour_cycle =
+            FunctionObjectBuilder::new(context, NativeFunction::from_fn_ptr(<span class="self">Self</span>::hour_cycle))
+                .name(<span class="string">&quot;get hourCycle&quot;</span>)
+                .constructor(<span class="bool-val">false</span>)
+                .build();
 
-        <span class="kw">let </span>numeric = FunctionBuilder::native(context, <span class="self">Self</span>::numeric)
-            .name(<span class="string">&quot;get numeric&quot;</span>)
-            .constructor(<span class="bool-val">false</span>)
-            .build();
+        <span class="kw">let </span>numeric =
+            FunctionObjectBuilder::new(context, NativeFunction::from_fn_ptr(<span class="self">Self</span>::numeric))
+                .name(<span class="string">&quot;get numeric&quot;</span>)
+                .constructor(<span class="bool-val">false</span>)
+                .build();
 
-        <span class="kw">let </span>numbering_system = FunctionBuilder::native(context, <span class="self">Self</span>::numbering_system)
-            .name(<span class="string">&quot;get numberingSystem&quot;</span>)
-            .constructor(<span class="bool-val">false</span>)
-            .build();
+        <span class="kw">let </span>numbering_system = FunctionObjectBuilder::new(
+            context,
+            NativeFunction::from_fn_ptr(<span class="self">Self</span>::numbering_system),
+        )
+        .name(<span class="string">&quot;get numberingSystem&quot;</span>)
+        .constructor(<span class="bool-val">false</span>)
+        .build();
 
-        <span class="kw">let </span>language = FunctionBuilder::native(context, <span class="self">Self</span>::language)
-            .name(<span class="string">&quot;get language&quot;</span>)
-            .constructor(<span class="bool-val">false</span>)
-            .build();
+        <span class="kw">let </span>language =
+            FunctionObjectBuilder::new(context, NativeFunction::from_fn_ptr(<span class="self">Self</span>::language))
+                .name(<span class="string">&quot;get language&quot;</span>)
+                .constructor(<span class="bool-val">false</span>)
+                .build();
 
-        <span class="kw">let </span>script = FunctionBuilder::native(context, <span class="self">Self</span>::script)
+        <span class="kw">let </span>script = FunctionObjectBuilder::new(context, NativeFunction::from_fn_ptr(<span class="self">Self</span>::script))
             .name(<span class="string">&quot;get script&quot;</span>)
             .constructor(<span class="bool-val">false</span>)
             .build();
 
-        <span class="kw">let </span>region = FunctionBuilder::native(context, <span class="self">Self</span>::region)
+        <span class="kw">let </span>region = FunctionObjectBuilder::new(context, NativeFunction::from_fn_ptr(<span class="self">Self</span>::region))
             .name(<span class="string">&quot;get region&quot;</span>)
             .constructor(<span class="bool-val">false</span>)
             .build();

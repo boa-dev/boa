@@ -1691,6 +1691,17 @@
 <span id="1690">1690</span>
 <span id="1691">1691</span>
 <span id="1692">1692</span>
+<span id="1693">1693</span>
+<span id="1694">1694</span>
+<span id="1695">1695</span>
+<span id="1696">1696</span>
+<span id="1697">1697</span>
+<span id="1698">1698</span>
+<span id="1699">1699</span>
+<span id="1700">1700</span>
+<span id="1701">1701</span>
+<span id="1702">1702</span>
+<span id="1703">1703</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Boa&#39;s implementation of ECMAScript&#39;s global `RegExp` object.
 //!
 //! The `RegExp` object is used for matching text with a pattern.
@@ -1711,9 +1722,10 @@
     context::intrinsics::StandardConstructors,
     error::JsNativeError,
     js_string,
+    native_function::NativeFunction,
     object::{
-        internal_methods::get_prototype_from_constructor, ConstructorBuilder, FunctionBuilder,
-        JsObject, ObjectData,
+        internal_methods::get_prototype_from_constructor, ConstructorBuilder,
+        FunctionObjectBuilder, JsObject, ObjectData,
     },
     property::{Attribute, PropertyDescriptorBuilder},
     string::{utf16, CodePoint},
@@ -1746,49 +1758,59 @@
     <span class="kw">fn </span>init(context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <span class="prelude-ty">Option</span>&lt;JsValue&gt; {
         <span class="kw">let </span>_timer = Profiler::global().start_event(<span class="self">Self</span>::NAME, <span class="string">&quot;init&quot;</span>);
 
-        <span class="kw">let </span>get_species = FunctionBuilder::native(context, <span class="self">Self</span>::get_species)
-            .name(<span class="string">&quot;get [Symbol.species]&quot;</span>)
-            .constructor(<span class="bool-val">false</span>)
-            .build();
+        <span class="kw">let </span>get_species =
+            FunctionObjectBuilder::new(context, NativeFunction::from_fn_ptr(<span class="self">Self</span>::get_species))
+                .name(<span class="string">&quot;get [Symbol.species]&quot;</span>)
+                .constructor(<span class="bool-val">false</span>)
+                .build();
 
         <span class="kw">let </span>flag_attributes = Attribute::CONFIGURABLE | Attribute::NON_ENUMERABLE;
 
-        <span class="kw">let </span>get_has_indices = FunctionBuilder::native(context, <span class="self">Self</span>::get_has_indices)
-            .name(<span class="string">&quot;get hasIndices&quot;</span>)
-            .constructor(<span class="bool-val">false</span>)
-            .build();
-        <span class="kw">let </span>get_global = FunctionBuilder::native(context, <span class="self">Self</span>::get_global)
-            .name(<span class="string">&quot;get global&quot;</span>)
-            .constructor(<span class="bool-val">false</span>)
-            .build();
-        <span class="kw">let </span>get_ignore_case = FunctionBuilder::native(context, <span class="self">Self</span>::get_ignore_case)
-            .name(<span class="string">&quot;get ignoreCase&quot;</span>)
-            .constructor(<span class="bool-val">false</span>)
-            .build();
-        <span class="kw">let </span>get_multiline = FunctionBuilder::native(context, <span class="self">Self</span>::get_multiline)
-            .name(<span class="string">&quot;get multiline&quot;</span>)
-            .constructor(<span class="bool-val">false</span>)
-            .build();
-        <span class="kw">let </span>get_dot_all = FunctionBuilder::native(context, <span class="self">Self</span>::get_dot_all)
-            .name(<span class="string">&quot;get dotAll&quot;</span>)
-            .constructor(<span class="bool-val">false</span>)
-            .build();
-        <span class="kw">let </span>get_unicode = FunctionBuilder::native(context, <span class="self">Self</span>::get_unicode)
-            .name(<span class="string">&quot;get unicode&quot;</span>)
-            .constructor(<span class="bool-val">false</span>)
-            .build();
-        <span class="kw">let </span>get_sticky = FunctionBuilder::native(context, <span class="self">Self</span>::get_sticky)
-            .name(<span class="string">&quot;get sticky&quot;</span>)
-            .constructor(<span class="bool-val">false</span>)
-            .build();
-        <span class="kw">let </span>get_flags = FunctionBuilder::native(context, <span class="self">Self</span>::get_flags)
-            .name(<span class="string">&quot;get flags&quot;</span>)
-            .constructor(<span class="bool-val">false</span>)
-            .build();
-        <span class="kw">let </span>get_source = FunctionBuilder::native(context, <span class="self">Self</span>::get_source)
-            .name(<span class="string">&quot;get source&quot;</span>)
-            .constructor(<span class="bool-val">false</span>)
-            .build();
+        <span class="kw">let </span>get_has_indices =
+            FunctionObjectBuilder::new(context, NativeFunction::from_fn_ptr(<span class="self">Self</span>::get_has_indices))
+                .name(<span class="string">&quot;get hasIndices&quot;</span>)
+                .constructor(<span class="bool-val">false</span>)
+                .build();
+        <span class="kw">let </span>get_global =
+            FunctionObjectBuilder::new(context, NativeFunction::from_fn_ptr(<span class="self">Self</span>::get_global))
+                .name(<span class="string">&quot;get global&quot;</span>)
+                .constructor(<span class="bool-val">false</span>)
+                .build();
+        <span class="kw">let </span>get_ignore_case =
+            FunctionObjectBuilder::new(context, NativeFunction::from_fn_ptr(<span class="self">Self</span>::get_ignore_case))
+                .name(<span class="string">&quot;get ignoreCase&quot;</span>)
+                .constructor(<span class="bool-val">false</span>)
+                .build();
+        <span class="kw">let </span>get_multiline =
+            FunctionObjectBuilder::new(context, NativeFunction::from_fn_ptr(<span class="self">Self</span>::get_multiline))
+                .name(<span class="string">&quot;get multiline&quot;</span>)
+                .constructor(<span class="bool-val">false</span>)
+                .build();
+        <span class="kw">let </span>get_dot_all =
+            FunctionObjectBuilder::new(context, NativeFunction::from_fn_ptr(<span class="self">Self</span>::get_dot_all))
+                .name(<span class="string">&quot;get dotAll&quot;</span>)
+                .constructor(<span class="bool-val">false</span>)
+                .build();
+        <span class="kw">let </span>get_unicode =
+            FunctionObjectBuilder::new(context, NativeFunction::from_fn_ptr(<span class="self">Self</span>::get_unicode))
+                .name(<span class="string">&quot;get unicode&quot;</span>)
+                .constructor(<span class="bool-val">false</span>)
+                .build();
+        <span class="kw">let </span>get_sticky =
+            FunctionObjectBuilder::new(context, NativeFunction::from_fn_ptr(<span class="self">Self</span>::get_sticky))
+                .name(<span class="string">&quot;get sticky&quot;</span>)
+                .constructor(<span class="bool-val">false</span>)
+                .build();
+        <span class="kw">let </span>get_flags =
+            FunctionObjectBuilder::new(context, NativeFunction::from_fn_ptr(<span class="self">Self</span>::get_flags))
+                .name(<span class="string">&quot;get flags&quot;</span>)
+                .constructor(<span class="bool-val">false</span>)
+                .build();
+        <span class="kw">let </span>get_source =
+            FunctionObjectBuilder::new(context, NativeFunction::from_fn_ptr(<span class="self">Self</span>::get_source))
+                .name(<span class="string">&quot;get source&quot;</span>)
+                .constructor(<span class="bool-val">false</span>)
+                .build();
         ConstructorBuilder::with_standard_constructor(
             context,
             <span class="self">Self</span>::constructor,

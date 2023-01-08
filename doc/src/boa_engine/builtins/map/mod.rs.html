@@ -593,6 +593,10 @@
 <span id="592">592</span>
 <span id="593">593</span>
 <span id="594">594</span>
+<span id="595">595</span>
+<span id="596">596</span>
+<span id="597">597</span>
+<span id="598">598</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Boa&#39;s implementation of ECMAScript&#39;s global `Map` object.
 //!
 //! The ECMAScript `Map` class is a global object that is used in the construction of maps; which
@@ -611,9 +615,10 @@
     builtins::BuiltIn,
     context::intrinsics::StandardConstructors,
     error::JsNativeError,
+    native_function::NativeFunction,
     object::{
-        internal_methods::get_prototype_from_constructor, ConstructorBuilder, FunctionBuilder,
-        JsObject, ObjectData,
+        internal_methods::get_prototype_from_constructor, ConstructorBuilder,
+        FunctionObjectBuilder, JsObject, ObjectData,
     },
     property::{Attribute, PropertyNameKind},
     symbol::WellKnownSymbols,
@@ -637,22 +642,25 @@
     <span class="kw">fn </span>init(context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <span class="prelude-ty">Option</span>&lt;JsValue&gt; {
         <span class="kw">let </span>_timer = Profiler::global().start_event(<span class="self">Self</span>::NAME, <span class="string">&quot;init&quot;</span>);
 
-        <span class="kw">let </span>get_species = FunctionBuilder::native(context, <span class="self">Self</span>::get_species)
-            .name(<span class="string">&quot;get [Symbol.species]&quot;</span>)
-            .constructor(<span class="bool-val">false</span>)
-            .build();
+        <span class="kw">let </span>get_species =
+            FunctionObjectBuilder::new(context, NativeFunction::from_fn_ptr(<span class="self">Self</span>::get_species))
+                .name(<span class="string">&quot;get [Symbol.species]&quot;</span>)
+                .constructor(<span class="bool-val">false</span>)
+                .build();
 
-        <span class="kw">let </span>get_size = FunctionBuilder::native(context, <span class="self">Self</span>::get_size)
-            .name(<span class="string">&quot;get size&quot;</span>)
-            .length(<span class="number">0</span>)
-            .constructor(<span class="bool-val">false</span>)
-            .build();
+        <span class="kw">let </span>get_size =
+            FunctionObjectBuilder::new(context, NativeFunction::from_fn_ptr(<span class="self">Self</span>::get_size))
+                .name(<span class="string">&quot;get size&quot;</span>)
+                .length(<span class="number">0</span>)
+                .constructor(<span class="bool-val">false</span>)
+                .build();
 
-        <span class="kw">let </span>entries_function = FunctionBuilder::native(context, <span class="self">Self</span>::entries)
-            .name(<span class="string">&quot;entries&quot;</span>)
-            .length(<span class="number">0</span>)
-            .constructor(<span class="bool-val">false</span>)
-            .build();
+        <span class="kw">let </span>entries_function =
+            FunctionObjectBuilder::new(context, NativeFunction::from_fn_ptr(<span class="self">Self</span>::entries))
+                .name(<span class="string">&quot;entries&quot;</span>)
+                .length(<span class="number">0</span>)
+                .constructor(<span class="bool-val">false</span>)
+                .build();
 
         ConstructorBuilder::with_standard_constructor(
             context,

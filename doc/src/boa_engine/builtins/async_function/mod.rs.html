@@ -107,6 +107,7 @@
 <span id="106">106</span>
 <span id="107">107</span>
 <span id="108">108</span>
+<span id="109">109</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Boa&#39;s implementation of ECMAScript&#39;s global `AsyncFunction` object.
 //!
 //! More information:
@@ -121,6 +122,7 @@
         function::{ConstructorKind, Function},
         BuiltIn,
     },
+    native_function::NativeFunction,
     object::ObjectData,
     property::PropertyDescriptor,
     symbol::WellKnownSymbols,
@@ -171,7 +173,7 @@
             .configurable(<span class="bool-val">false</span>);
         constructor.borrow_mut().insert(<span class="string">&quot;prototype&quot;</span>, property);
         constructor.borrow_mut().data = ObjectData::function(Function::Native {
-            function: <span class="self">Self</span>::constructor,
+            function: NativeFunction::from_fn_ptr(<span class="self">Self</span>::constructor),
             constructor: <span class="prelude-val">Some</span>(ConstructorKind::Base),
         });
 

@@ -600,65 +600,6 @@
 <span id="599">599</span>
 <span id="600">600</span>
 <span id="601">601</span>
-<span id="602">602</span>
-<span id="603">603</span>
-<span id="604">604</span>
-<span id="605">605</span>
-<span id="606">606</span>
-<span id="607">607</span>
-<span id="608">608</span>
-<span id="609">609</span>
-<span id="610">610</span>
-<span id="611">611</span>
-<span id="612">612</span>
-<span id="613">613</span>
-<span id="614">614</span>
-<span id="615">615</span>
-<span id="616">616</span>
-<span id="617">617</span>
-<span id="618">618</span>
-<span id="619">619</span>
-<span id="620">620</span>
-<span id="621">621</span>
-<span id="622">622</span>
-<span id="623">623</span>
-<span id="624">624</span>
-<span id="625">625</span>
-<span id="626">626</span>
-<span id="627">627</span>
-<span id="628">628</span>
-<span id="629">629</span>
-<span id="630">630</span>
-<span id="631">631</span>
-<span id="632">632</span>
-<span id="633">633</span>
-<span id="634">634</span>
-<span id="635">635</span>
-<span id="636">636</span>
-<span id="637">637</span>
-<span id="638">638</span>
-<span id="639">639</span>
-<span id="640">640</span>
-<span id="641">641</span>
-<span id="642">642</span>
-<span id="643">643</span>
-<span id="644">644</span>
-<span id="645">645</span>
-<span id="646">646</span>
-<span id="647">647</span>
-<span id="648">648</span>
-<span id="649">649</span>
-<span id="650">650</span>
-<span id="651">651</span>
-<span id="652">652</span>
-<span id="653">653</span>
-<span id="654">654</span>
-<span id="655">655</span>
-<span id="656">656</span>
-<span id="657">657</span>
-<span id="658">658</span>
-<span id="659">659</span>
-<span id="660">660</span>
 </pre><pre class="rust"><code><span class="doccomment">//! The ECMAScript context.
 
 </span><span class="kw">pub mod </span>intrinsics;
@@ -678,11 +619,12 @@
 <span class="attribute">#[cfg(feature = <span class="string">&quot;console&quot;</span>)]
 </span><span class="kw">use </span><span class="kw">crate</span>::builtins::console::Console;
 <span class="kw">use crate</span>::{
-    builtins::{<span class="self">self</span>, function::NativeFunctionSignature},
+    builtins,
     bytecompiler::ByteCompiler,
     class::{Class, ClassBuilder},
     job::JobCallback,
-    object::{FunctionBuilder, GlobalPropertyMap, JsObject},
+    native_function::NativeFunction,
+    object::{FunctionObjectBuilder, GlobalPropertyMap, JsObject},
     property::{Attribute, PropertyDescriptor, PropertyKey},
     realm::Realm,
     vm::{CallFrame, CodeBlock, FinallyReturn, GeneratorResumeKind, Vm},
@@ -929,10 +871,7 @@
         );
     }
 
-    <span class="doccomment">/// Register a global native function.
-    ///
-    /// This is more efficient that creating a closure function, since this does not allocate,
-    /// it is just a function pointer.
+    <span class="doccomment">/// Register a global native callable.
     ///
     /// The function will be both `constructable` (call with `new &lt;name&gt;()`) and `callable` (call
     /// with `&lt;name&gt;()`).
@@ -942,18 +881,10 @@
     ///
     /// # Note
     ///
-    /// If you want to make a function only `constructable`, or wish to bind it differently
-    /// to the global object, you can create the function object with
-    /// [`FunctionBuilder`](crate::object::FunctionBuilder::native). And bind it to the global
-    /// object with [`Context::register_global_property`](Context::register_global_property)
-    /// method.
-    </span><span class="kw">pub fn </span>register_global_function(
-        <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-        name: <span class="kw-2">&amp;</span>str,
-        length: usize,
-        body: NativeFunctionSignature,
-    ) {
-        <span class="kw">let </span>function = FunctionBuilder::native(<span class="self">self</span>, body)
+    /// If you wish to only create the function object without binding it to the global object, you
+    /// can use the [`FunctionObjectBuilder`] API.
+    </span><span class="kw">pub fn </span>register_global_callable(<span class="kw-2">&amp;mut </span><span class="self">self</span>, name: <span class="kw-2">&amp;</span>str, length: usize, body: NativeFunction) {
+        <span class="kw">let </span>function = FunctionObjectBuilder::new(<span class="self">self</span>, body)
             .name(name)
             .length(length)
             .constructor(<span class="bool-val">true</span>)
@@ -972,24 +903,20 @@
 
     <span class="doccomment">/// Register a global native function that is not a constructor.
     ///
-    /// This is more efficient that creating a closure function, since this does not allocate,
-    /// it is just a function pointer.
-    ///
     /// The function will be bound to the global object with `writable`, `non-enumerable`
     /// and `configurable` attributes. The same as when you create a function in JavaScript.
     ///
     /// # Note
     ///
-    /// The difference to [`Context::register_global_function`](Context::register_global_function) is,
-    /// that the function will not be `constructable`.
-    /// Usage of the function as a constructor will produce a `TypeError`.
-    </span><span class="kw">pub fn </span>register_global_builtin_function(
+    /// The difference to [`Context::register_global_callable`] is, that the function will not be
+    /// `constructable`. Usage of the function as a constructor will produce a `TypeError`.
+    </span><span class="kw">pub fn </span>register_global_builtin_callable(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
         name: <span class="kw-2">&amp;</span>str,
         length: usize,
-        body: NativeFunctionSignature,
+        body: NativeFunction,
     ) {
-        <span class="kw">let </span>function = FunctionBuilder::native(<span class="self">self</span>, body)
+        <span class="kw">let </span>function = FunctionObjectBuilder::new(<span class="self">self</span>, body)
             .name(name)
             .length(length)
             .constructor(<span class="bool-val">false</span>)
@@ -1004,51 +931,6 @@
                 .configurable(<span class="bool-val">true</span>)
                 .build(),
         );
-    }
-
-    <span class="doccomment">/// Register a global closure function.
-    ///
-    /// The function will be both `constructable` (call with `new`).
-    ///
-    /// The function will be bound to the global object with `writable`, `non-enumerable`
-    /// and `configurable` attributes. The same as when you create a function in JavaScript.
-    ///
-    /// # Note #1
-    ///
-    /// If you want to make a function only `constructable`, or wish to bind it differently
-    /// to the global object, you can create the function object with
-    /// [`FunctionBuilder`](crate::object::FunctionBuilder::closure). And bind it to the global
-    /// object with [`Context::register_global_property`](Context::register_global_property)
-    /// method.
-    ///
-    /// # Note #2
-    ///
-    /// This function will only accept `Copy` closures, meaning you cannot
-    /// move `Clone` types, just `Copy` types. If you need to move `Clone` types
-    /// as captures, see [`FunctionBuilder::closure_with_captures`].
-    ///
-    /// See &lt;https://github.com/boa-dev/boa/issues/1515&gt; for an explanation on
-    /// why we need to restrict the set of accepted closures.
-    </span><span class="kw">pub fn </span>register_global_closure&lt;F&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, name: <span class="kw-2">&amp;</span>str, length: usize, body: F) -&gt; JsResult&lt;()&gt;
-    <span class="kw">where
-        </span>F: Fn(<span class="kw-2">&amp;</span>JsValue, <span class="kw-2">&amp;</span>[JsValue], <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;JsValue&gt; + Copy + <span class="lifetime">&#39;static</span>,
-    {
-        <span class="kw">let </span>function = FunctionBuilder::closure(<span class="self">self</span>, body)
-            .name(name)
-            .length(length)
-            .constructor(<span class="bool-val">true</span>)
-            .build();
-
-        <span class="self">self</span>.global_bindings_mut().insert(
-            name.into(),
-            PropertyDescriptor::builder()
-                .value(function)
-                .writable(<span class="bool-val">true</span>)
-                .enumerable(<span class="bool-val">false</span>)
-                .configurable(<span class="bool-val">true</span>)
-                .build(),
-        );
-        <span class="prelude-val">Ok</span>(())
     }
 
     <span class="doccomment">/// Register a global class of type `T`, where `T` implements `Class`.

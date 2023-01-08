@@ -495,12 +495,34 @@
 <span id="494">494</span>
 <span id="495">495</span>
 <span id="496">496</span>
+<span id="497">497</span>
+<span id="498">498</span>
+<span id="499">499</span>
+<span id="500">500</span>
+<span id="501">501</span>
+<span id="502">502</span>
+<span id="503">503</span>
+<span id="504">504</span>
+<span id="505">505</span>
+<span id="506">506</span>
+<span id="507">507</span>
+<span id="508">508</span>
+<span id="509">509</span>
+<span id="510">510</span>
+<span id="511">511</span>
+<span id="512">512</span>
+<span id="513">513</span>
+<span id="514">514</span>
+<span id="515">515</span>
+<span id="516">516</span>
+<span id="517">517</span>
 </pre><pre class="rust"><code><span class="doccomment">//! A Rust API wrapper for the `Proxy` Builtin ECMAScript Object
 </span><span class="kw">use </span>boa_gc::{Finalize, Trace};
 
 <span class="kw">use crate</span>::{
-    builtins::{function::NativeFunctionSignature, Proxy},
-    object::{FunctionBuilder, JsObject, JsObjectType, ObjectData},
+    builtins::Proxy,
+    native_function::{NativeFunction, NativeFunctionPointer},
+    object::{FunctionObjectBuilder, JsObject, JsObjectType, ObjectData},
     Context, JsResult, JsValue,
 };
 
@@ -601,19 +623,19 @@
 #[derive(Clone)]
 </span><span class="kw">pub struct </span>JsProxyBuilder {
     target: JsObject,
-    apply: <span class="prelude-ty">Option</span>&lt;NativeFunctionSignature&gt;,
-    construct: <span class="prelude-ty">Option</span>&lt;NativeFunctionSignature&gt;,
-    define_property: <span class="prelude-ty">Option</span>&lt;NativeFunctionSignature&gt;,
-    delete_property: <span class="prelude-ty">Option</span>&lt;NativeFunctionSignature&gt;,
-    get: <span class="prelude-ty">Option</span>&lt;NativeFunctionSignature&gt;,
-    get_own_property_descriptor: <span class="prelude-ty">Option</span>&lt;NativeFunctionSignature&gt;,
-    get_prototype_of: <span class="prelude-ty">Option</span>&lt;NativeFunctionSignature&gt;,
-    has: <span class="prelude-ty">Option</span>&lt;NativeFunctionSignature&gt;,
-    is_extensible: <span class="prelude-ty">Option</span>&lt;NativeFunctionSignature&gt;,
-    own_keys: <span class="prelude-ty">Option</span>&lt;NativeFunctionSignature&gt;,
-    prevent_extensions: <span class="prelude-ty">Option</span>&lt;NativeFunctionSignature&gt;,
-    set: <span class="prelude-ty">Option</span>&lt;NativeFunctionSignature&gt;,
-    set_prototype_of: <span class="prelude-ty">Option</span>&lt;NativeFunctionSignature&gt;,
+    apply: <span class="prelude-ty">Option</span>&lt;NativeFunctionPointer&gt;,
+    construct: <span class="prelude-ty">Option</span>&lt;NativeFunctionPointer&gt;,
+    define_property: <span class="prelude-ty">Option</span>&lt;NativeFunctionPointer&gt;,
+    delete_property: <span class="prelude-ty">Option</span>&lt;NativeFunctionPointer&gt;,
+    get: <span class="prelude-ty">Option</span>&lt;NativeFunctionPointer&gt;,
+    get_own_property_descriptor: <span class="prelude-ty">Option</span>&lt;NativeFunctionPointer&gt;,
+    get_prototype_of: <span class="prelude-ty">Option</span>&lt;NativeFunctionPointer&gt;,
+    has: <span class="prelude-ty">Option</span>&lt;NativeFunctionPointer&gt;,
+    is_extensible: <span class="prelude-ty">Option</span>&lt;NativeFunctionPointer&gt;,
+    own_keys: <span class="prelude-ty">Option</span>&lt;NativeFunctionPointer&gt;,
+    prevent_extensions: <span class="prelude-ty">Option</span>&lt;NativeFunctionPointer&gt;,
+    set: <span class="prelude-ty">Option</span>&lt;NativeFunctionPointer&gt;,
+    set_prototype_of: <span class="prelude-ty">Option</span>&lt;NativeFunctionPointer&gt;,
 }
 
 <span class="kw">impl </span>std::fmt::Debug <span class="kw">for </span>JsProxyBuilder {
@@ -692,7 +714,7 @@
     ///
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Proxy/Proxy/apply
     </span><span class="attribute">#[inline]
-    </span><span class="kw">pub fn </span>apply(<span class="kw-2">mut </span><span class="self">self</span>, apply: NativeFunctionSignature) -&gt; <span class="self">Self </span>{
+    </span><span class="kw">pub fn </span>apply(<span class="kw-2">mut </span><span class="self">self</span>, apply: NativeFunctionPointer) -&gt; <span class="self">Self </span>{
         <span class="self">self</span>.apply = <span class="prelude-val">Some</span>(apply);
         <span class="self">self
     </span>}
@@ -710,7 +732,7 @@
     ///
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Proxy/Proxy/construct
     </span><span class="attribute">#[inline]
-    </span><span class="kw">pub fn </span>construct(<span class="kw-2">mut </span><span class="self">self</span>, construct: NativeFunctionSignature) -&gt; <span class="self">Self </span>{
+    </span><span class="kw">pub fn </span>construct(<span class="kw-2">mut </span><span class="self">self</span>, construct: NativeFunctionPointer) -&gt; <span class="self">Self </span>{
         <span class="self">self</span>.construct = <span class="prelude-val">Some</span>(construct);
         <span class="self">self
     </span>}
@@ -723,7 +745,7 @@
     ///
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Proxy/Proxy/defineProperty
     </span><span class="attribute">#[inline]
-    </span><span class="kw">pub fn </span>define_property(<span class="kw-2">mut </span><span class="self">self</span>, define_property: NativeFunctionSignature) -&gt; <span class="self">Self </span>{
+    </span><span class="kw">pub fn </span>define_property(<span class="kw-2">mut </span><span class="self">self</span>, define_property: NativeFunctionPointer) -&gt; <span class="self">Self </span>{
         <span class="self">self</span>.define_property = <span class="prelude-val">Some</span>(define_property);
         <span class="self">self
     </span>}
@@ -736,7 +758,7 @@
     ///
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Proxy/Proxy/deleteProperty
     </span><span class="attribute">#[inline]
-    </span><span class="kw">pub fn </span>delete_property(<span class="kw-2">mut </span><span class="self">self</span>, delete_property: NativeFunctionSignature) -&gt; <span class="self">Self </span>{
+    </span><span class="kw">pub fn </span>delete_property(<span class="kw-2">mut </span><span class="self">self</span>, delete_property: NativeFunctionPointer) -&gt; <span class="self">Self </span>{
         <span class="self">self</span>.delete_property = <span class="prelude-val">Some</span>(delete_property);
         <span class="self">self
     </span>}
@@ -749,7 +771,7 @@
     ///
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Proxy/Proxy/get
     </span><span class="attribute">#[inline]
-    </span><span class="kw">pub fn </span>get(<span class="kw-2">mut </span><span class="self">self</span>, get: NativeFunctionSignature) -&gt; <span class="self">Self </span>{
+    </span><span class="kw">pub fn </span>get(<span class="kw-2">mut </span><span class="self">self</span>, get: NativeFunctionPointer) -&gt; <span class="self">Self </span>{
         <span class="self">self</span>.get = <span class="prelude-val">Some</span>(get);
         <span class="self">self
     </span>}
@@ -764,7 +786,7 @@
     </span><span class="attribute">#[inline]
     </span><span class="kw">pub fn </span>get_own_property_descriptor(
         <span class="kw-2">mut </span><span class="self">self</span>,
-        get_own_property_descriptor: NativeFunctionSignature,
+        get_own_property_descriptor: NativeFunctionPointer,
     ) -&gt; <span class="self">Self </span>{
         <span class="self">self</span>.get_own_property_descriptor = <span class="prelude-val">Some</span>(get_own_property_descriptor);
         <span class="self">self
@@ -778,7 +800,7 @@
     ///
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Proxy/Proxy/getPrototypeOf
     </span><span class="attribute">#[inline]
-    </span><span class="kw">pub fn </span>get_prototype_of(<span class="kw-2">mut </span><span class="self">self</span>, get_prototype_of: NativeFunctionSignature) -&gt; <span class="self">Self </span>{
+    </span><span class="kw">pub fn </span>get_prototype_of(<span class="kw-2">mut </span><span class="self">self</span>, get_prototype_of: NativeFunctionPointer) -&gt; <span class="self">Self </span>{
         <span class="self">self</span>.get_prototype_of = <span class="prelude-val">Some</span>(get_prototype_of);
         <span class="self">self
     </span>}
@@ -791,7 +813,7 @@
     ///
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Proxy/Proxy/has
     </span><span class="attribute">#[inline]
-    </span><span class="kw">pub fn </span>has(<span class="kw-2">mut </span><span class="self">self</span>, has: NativeFunctionSignature) -&gt; <span class="self">Self </span>{
+    </span><span class="kw">pub fn </span>has(<span class="kw-2">mut </span><span class="self">self</span>, has: NativeFunctionPointer) -&gt; <span class="self">Self </span>{
         <span class="self">self</span>.has = <span class="prelude-val">Some</span>(has);
         <span class="self">self
     </span>}
@@ -804,7 +826,7 @@
     ///
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Proxy/Proxy/isExtensible
     </span><span class="attribute">#[inline]
-    </span><span class="kw">pub fn </span>is_extensible(<span class="kw-2">mut </span><span class="self">self</span>, is_extensible: NativeFunctionSignature) -&gt; <span class="self">Self </span>{
+    </span><span class="kw">pub fn </span>is_extensible(<span class="kw-2">mut </span><span class="self">self</span>, is_extensible: NativeFunctionPointer) -&gt; <span class="self">Self </span>{
         <span class="self">self</span>.is_extensible = <span class="prelude-val">Some</span>(is_extensible);
         <span class="self">self
     </span>}
@@ -817,7 +839,7 @@
     ///
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Proxy/Proxy/ownKeys
     </span><span class="attribute">#[inline]
-    </span><span class="kw">pub fn </span>own_keys(<span class="kw-2">mut </span><span class="self">self</span>, own_keys: NativeFunctionSignature) -&gt; <span class="self">Self </span>{
+    </span><span class="kw">pub fn </span>own_keys(<span class="kw-2">mut </span><span class="self">self</span>, own_keys: NativeFunctionPointer) -&gt; <span class="self">Self </span>{
         <span class="self">self</span>.own_keys = <span class="prelude-val">Some</span>(own_keys);
         <span class="self">self
     </span>}
@@ -830,7 +852,7 @@
     ///
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Proxy/Proxy/preventExtensions
     </span><span class="attribute">#[inline]
-    </span><span class="kw">pub fn </span>prevent_extensions(<span class="kw-2">mut </span><span class="self">self</span>, prevent_extensions: NativeFunctionSignature) -&gt; <span class="self">Self </span>{
+    </span><span class="kw">pub fn </span>prevent_extensions(<span class="kw-2">mut </span><span class="self">self</span>, prevent_extensions: NativeFunctionPointer) -&gt; <span class="self">Self </span>{
         <span class="self">self</span>.prevent_extensions = <span class="prelude-val">Some</span>(prevent_extensions);
         <span class="self">self
     </span>}
@@ -843,7 +865,7 @@
     ///
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Proxy/Proxy/set
     </span><span class="attribute">#[inline]
-    </span><span class="kw">pub fn </span>set(<span class="kw-2">mut </span><span class="self">self</span>, set: NativeFunctionSignature) -&gt; <span class="self">Self </span>{
+    </span><span class="kw">pub fn </span>set(<span class="kw-2">mut </span><span class="self">self</span>, set: NativeFunctionPointer) -&gt; <span class="self">Self </span>{
         <span class="self">self</span>.set = <span class="prelude-val">Some</span>(set);
         <span class="self">self
     </span>}
@@ -856,7 +878,7 @@
     ///
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Proxy/Proxy/setPrototypeOf
     </span><span class="attribute">#[inline]
-    </span><span class="kw">pub fn </span>set_prototype_of(<span class="kw-2">mut </span><span class="self">self</span>, set_prototype_of: NativeFunctionSignature) -&gt; <span class="self">Self </span>{
+    </span><span class="kw">pub fn </span>set_prototype_of(<span class="kw-2">mut </span><span class="self">self</span>, set_prototype_of: NativeFunctionPointer) -&gt; <span class="self">Self </span>{
         <span class="self">self</span>.set_prototype_of = <span class="prelude-val">Some</span>(set_prototype_of);
         <span class="self">self
     </span>}
@@ -871,13 +893,15 @@
         <span class="kw">let </span>handler = JsObject::with_object_proto(context);
 
         <span class="kw">if let </span><span class="prelude-val">Some</span>(apply) = <span class="self">self</span>.apply {
-            <span class="kw">let </span>f = FunctionBuilder::native(context, apply).length(<span class="number">3</span>).build();
+            <span class="kw">let </span>f = FunctionObjectBuilder::new(context, NativeFunction::from_fn_ptr(apply))
+                .length(<span class="number">3</span>)
+                .build();
             handler
                 .create_data_property_or_throw(<span class="string">&quot;apply&quot;</span>, f, context)
                 .expect(<span class="string">&quot;new object should be writable&quot;</span>);
         }
         <span class="kw">if let </span><span class="prelude-val">Some</span>(construct) = <span class="self">self</span>.construct {
-            <span class="kw">let </span>f = FunctionBuilder::native(context, construct)
+            <span class="kw">let </span>f = FunctionObjectBuilder::new(context, NativeFunction::from_fn_ptr(construct))
                 .length(<span class="number">3</span>)
                 .build();
             handler
@@ -885,51 +909,61 @@
                 .expect(<span class="string">&quot;new object should be writable&quot;</span>);
         }
         <span class="kw">if let </span><span class="prelude-val">Some</span>(define_property) = <span class="self">self</span>.define_property {
-            <span class="kw">let </span>f = FunctionBuilder::native(context, define_property)
-                .length(<span class="number">3</span>)
-                .build();
+            <span class="kw">let </span>f =
+                FunctionObjectBuilder::new(context, NativeFunction::from_fn_ptr(define_property))
+                    .length(<span class="number">3</span>)
+                    .build();
             handler
                 .create_data_property_or_throw(<span class="string">&quot;defineProperty&quot;</span>, f, context)
                 .expect(<span class="string">&quot;new object should be writable&quot;</span>);
         }
         <span class="kw">if let </span><span class="prelude-val">Some</span>(delete_property) = <span class="self">self</span>.delete_property {
-            <span class="kw">let </span>f = FunctionBuilder::native(context, delete_property)
-                .length(<span class="number">2</span>)
-                .build();
+            <span class="kw">let </span>f =
+                FunctionObjectBuilder::new(context, NativeFunction::from_fn_ptr(delete_property))
+                    .length(<span class="number">2</span>)
+                    .build();
             handler
                 .create_data_property_or_throw(<span class="string">&quot;deleteProperty&quot;</span>, f, context)
                 .expect(<span class="string">&quot;new object should be writable&quot;</span>);
         }
         <span class="kw">if let </span><span class="prelude-val">Some</span>(get) = <span class="self">self</span>.get {
-            <span class="kw">let </span>f = FunctionBuilder::native(context, get).length(<span class="number">3</span>).build();
+            <span class="kw">let </span>f = FunctionObjectBuilder::new(context, NativeFunction::from_fn_ptr(get))
+                .length(<span class="number">3</span>)
+                .build();
             handler
                 .create_data_property_or_throw(<span class="string">&quot;get&quot;</span>, f, context)
                 .expect(<span class="string">&quot;new object should be writable&quot;</span>);
         }
         <span class="kw">if let </span><span class="prelude-val">Some</span>(get_own_property_descriptor) = <span class="self">self</span>.get_own_property_descriptor {
-            <span class="kw">let </span>f = FunctionBuilder::native(context, get_own_property_descriptor)
-                .length(<span class="number">2</span>)
-                .build();
+            <span class="kw">let </span>f = FunctionObjectBuilder::new(
+                context,
+                NativeFunction::from_fn_ptr(get_own_property_descriptor),
+            )
+            .length(<span class="number">2</span>)
+            .build();
             handler
                 .create_data_property_or_throw(<span class="string">&quot;getOwnPropertyDescriptor&quot;</span>, f, context)
                 .expect(<span class="string">&quot;new object should be writable&quot;</span>);
         }
         <span class="kw">if let </span><span class="prelude-val">Some</span>(get_prototype_of) = <span class="self">self</span>.get_prototype_of {
-            <span class="kw">let </span>f = FunctionBuilder::native(context, get_prototype_of)
-                .length(<span class="number">1</span>)
-                .build();
+            <span class="kw">let </span>f =
+                FunctionObjectBuilder::new(context, NativeFunction::from_fn_ptr(get_prototype_of))
+                    .length(<span class="number">1</span>)
+                    .build();
             handler
                 .create_data_property_or_throw(<span class="string">&quot;getPrototypeOf&quot;</span>, f, context)
                 .expect(<span class="string">&quot;new object should be writable&quot;</span>);
         }
         <span class="kw">if let </span><span class="prelude-val">Some</span>(has) = <span class="self">self</span>.has {
-            <span class="kw">let </span>f = FunctionBuilder::native(context, has).length(<span class="number">2</span>).build();
+            <span class="kw">let </span>f = FunctionObjectBuilder::new(context, NativeFunction::from_fn_ptr(has))
+                .length(<span class="number">2</span>)
+                .build();
             handler
                 .create_data_property_or_throw(<span class="string">&quot;has&quot;</span>, f, context)
                 .expect(<span class="string">&quot;new object should be writable&quot;</span>);
         }
         <span class="kw">if let </span><span class="prelude-val">Some</span>(is_extensible) = <span class="self">self</span>.is_extensible {
-            <span class="kw">let </span>f = FunctionBuilder::native(context, is_extensible)
+            <span class="kw">let </span>f = FunctionObjectBuilder::new(context, NativeFunction::from_fn_ptr(is_extensible))
                 .length(<span class="number">1</span>)
                 .build();
             handler
@@ -937,29 +971,37 @@
                 .expect(<span class="string">&quot;new object should be writable&quot;</span>);
         }
         <span class="kw">if let </span><span class="prelude-val">Some</span>(own_keys) = <span class="self">self</span>.own_keys {
-            <span class="kw">let </span>f = FunctionBuilder::native(context, own_keys).length(<span class="number">1</span>).build();
+            <span class="kw">let </span>f = FunctionObjectBuilder::new(context, NativeFunction::from_fn_ptr(own_keys))
+                .length(<span class="number">1</span>)
+                .build();
             handler
                 .create_data_property_or_throw(<span class="string">&quot;ownKeys&quot;</span>, f, context)
                 .expect(<span class="string">&quot;new object should be writable&quot;</span>);
         }
         <span class="kw">if let </span><span class="prelude-val">Some</span>(prevent_extensions) = <span class="self">self</span>.prevent_extensions {
-            <span class="kw">let </span>f = FunctionBuilder::native(context, prevent_extensions)
-                .length(<span class="number">1</span>)
-                .build();
+            <span class="kw">let </span>f = FunctionObjectBuilder::new(
+                context,
+                NativeFunction::from_fn_ptr(prevent_extensions),
+            )
+            .length(<span class="number">1</span>)
+            .build();
             handler
                 .create_data_property_or_throw(<span class="string">&quot;preventExtensions&quot;</span>, f, context)
                 .expect(<span class="string">&quot;new object should be writable&quot;</span>);
         }
         <span class="kw">if let </span><span class="prelude-val">Some</span>(set) = <span class="self">self</span>.set {
-            <span class="kw">let </span>f = FunctionBuilder::native(context, set).length(<span class="number">4</span>).build();
+            <span class="kw">let </span>f = FunctionObjectBuilder::new(context, NativeFunction::from_fn_ptr(set))
+                .length(<span class="number">4</span>)
+                .build();
             handler
                 .create_data_property_or_throw(<span class="string">&quot;set&quot;</span>, f, context)
                 .expect(<span class="string">&quot;new object should be writable&quot;</span>);
         }
         <span class="kw">if let </span><span class="prelude-val">Some</span>(set_prototype_of) = <span class="self">self</span>.set_prototype_of {
-            <span class="kw">let </span>f = FunctionBuilder::native(context, set_prototype_of)
-                .length(<span class="number">2</span>)
-                .build();
+            <span class="kw">let </span>f =
+                FunctionObjectBuilder::new(context, NativeFunction::from_fn_ptr(set_prototype_of))
+                    .length(<span class="number">2</span>)
+                    .build();
             handler
                 .create_data_property_or_throw(<span class="string">&quot;setPrototypeOf&quot;</span>, f, context)
                 .expect(<span class="string">&quot;new object should be writable&quot;</span>);

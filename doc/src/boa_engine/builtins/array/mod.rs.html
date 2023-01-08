@@ -3026,6 +3026,8 @@
 <span id="3025">3025</span>
 <span id="3026">3026</span>
 <span id="3027">3027</span>
+<span id="3028">3028</span>
+<span id="3029">3029</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Boa&#39;s implementation of ECMAScript&#39;s global `Array` object.
 //!
 //! The ECMAScript `Array` class is a global object that is used in the construction of arrays; which are high-level, list-like objects.
@@ -3054,9 +3056,10 @@
     context::intrinsics::StandardConstructors,
     error::JsNativeError,
     js_string,
+    native_function::NativeFunction,
     object::{
-        internal_methods::get_prototype_from_constructor, ConstructorBuilder, FunctionBuilder,
-        JsFunction, JsObject, ObjectData,
+        internal_methods::get_prototype_from_constructor, ConstructorBuilder,
+        FunctionObjectBuilder, JsFunction, JsObject, ObjectData,
     },
     property::{Attribute, PropertyDescriptor, PropertyNameKind},
     symbol::WellKnownSymbols,
@@ -3078,10 +3081,11 @@
         <span class="kw">let </span>symbol_iterator = WellKnownSymbols::iterator();
         <span class="kw">let </span>symbol_unscopables = WellKnownSymbols::unscopables();
 
-        <span class="kw">let </span>get_species = FunctionBuilder::native(context, <span class="self">Self</span>::get_species)
-            .name(<span class="string">&quot;get [Symbol.species]&quot;</span>)
-            .constructor(<span class="bool-val">false</span>)
-            .build();
+        <span class="kw">let </span>get_species =
+            FunctionObjectBuilder::new(context, NativeFunction::from_fn_ptr(<span class="self">Self</span>::get_species))
+                .name(<span class="string">&quot;get [Symbol.species]&quot;</span>)
+                .constructor(<span class="bool-val">false</span>)
+                .build();
 
         <span class="kw">let </span>values_function = context.intrinsics().objects().array_prototype_values();
         <span class="kw">let </span>unscopables_object = <span class="self">Self</span>::unscopables_intrinsic(context);
@@ -5875,7 +5879,7 @@
 
     <span class="doccomment">/// Creates an `Array.prototype.values( )` function object.
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>create_array_prototype_values(context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsFunction {
-        FunctionBuilder::native(context, <span class="self">Self</span>::values)
+        FunctionObjectBuilder::new(context, NativeFunction::from_fn_ptr(<span class="self">Self</span>::values))
             .name(<span class="string">&quot;values&quot;</span>)
             .length(<span class="number">0</span>)
             .constructor(<span class="bool-val">false</span>)

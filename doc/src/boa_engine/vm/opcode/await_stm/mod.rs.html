@@ -118,9 +118,23 @@
 <span id="117">117</span>
 <span id="118">118</span>
 <span id="119">119</span>
-</pre><pre class="rust"><code><span class="kw">use crate</span>::{
+<span id="120">120</span>
+<span id="121">121</span>
+<span id="122">122</span>
+<span id="123">123</span>
+<span id="124">124</span>
+<span id="125">125</span>
+<span id="126">126</span>
+<span id="127">127</span>
+<span id="128">128</span>
+<span id="129">129</span>
+<span id="130">130</span>
+</pre><pre class="rust"><code><span class="kw">use </span>boa_gc::{Gc, GcCell};
+
+<span class="kw">use crate</span>::{
     builtins::{JsArgs, Promise},
-    object::FunctionBuilder,
+    native_function::NativeFunction,
+    object::FunctionObjectBuilder,
     vm::{call_frame::GeneratorResumeKind, opcode::Operation, ShouldExit},
     Context, JsResult, JsValue,
 };
@@ -148,37 +162,41 @@
 
         <span class="comment">// 3. Let fulfilledClosure be a new Abstract Closure with parameters (value) that captures asyncContext and performs the following steps when called:
         // 4. Let onFulfilled be CreateBuiltinFunction(fulfilledClosure, 1, &quot;&quot;, « »).
-        </span><span class="kw">let </span>on_fulfilled = FunctionBuilder::closure_with_captures(
+        </span><span class="kw">let </span>on_fulfilled = FunctionObjectBuilder::new(
             context,
-            |_this, args, (environment, stack, frame), context| {
-                <span class="comment">// a. Let prevContext be the running execution context.
-                // b. Suspend prevContext.
-                // c. Push asyncContext onto the execution context stack; asyncContext is now the running execution context.
-                // d. Resume the suspended evaluation of asyncContext using NormalCompletion(value) as the result of the operation that suspended it.
-                // e. Assert: When we reach this step, asyncContext has already been removed from the execution context stack and prevContext is the currently running execution context.
-                // f. Return undefined.
+            NativeFunction::from_copy_closure_with_captures(
+                |_this, args, captures, context| {
+                    <span class="kw">let </span><span class="kw-2">mut </span>captures = captures.borrow_mut();
+                    <span class="kw">let </span>(environment, stack, frame) = <span class="kw-2">&amp;mut *</span>captures;
+                    <span class="comment">// a. Let prevContext be the running execution context.
+                    // b. Suspend prevContext.
+                    // c. Push asyncContext onto the execution context stack; asyncContext is now the running execution context.
+                    // d. Resume the suspended evaluation of asyncContext using NormalCompletion(value) as the result of the operation that suspended it.
+                    // e. Assert: When we reach this step, asyncContext has already been removed from the execution context stack and prevContext is the currently running execution context.
+                    // f. Return undefined.
 
-                </span>std::mem::swap(<span class="kw-2">&amp;mut </span>context.realm.environments, environment);
-                std::mem::swap(<span class="kw-2">&amp;mut </span>context.vm.stack, stack);
-                context.vm.push_frame(frame.clone());
+                    </span>std::mem::swap(<span class="kw-2">&amp;mut </span>context.realm.environments, environment);
+                    std::mem::swap(<span class="kw-2">&amp;mut </span>context.vm.stack, stack);
+                    context.vm.push_frame(frame.clone());
 
-                context.vm.frame_mut().generator_resume_kind = GeneratorResumeKind::Normal;
-                context.vm.push(args.get_or_undefined(<span class="number">0</span>).clone());
-                context.run()<span class="question-mark">?</span>;
+                    context.vm.frame_mut().generator_resume_kind = GeneratorResumeKind::Normal;
+                    context.vm.push(args.get_or_undefined(<span class="number">0</span>).clone());
+                    context.run()<span class="question-mark">?</span>;
 
-                <span class="kw-2">*</span>frame = context
-                    .vm
-                    .pop_frame()
-                    .expect(<span class="string">&quot;generator call frame must exist&quot;</span>);
-                std::mem::swap(<span class="kw-2">&amp;mut </span>context.realm.environments, environment);
-                std::mem::swap(<span class="kw-2">&amp;mut </span>context.vm.stack, stack);
+                    <span class="kw-2">*</span>frame = context
+                        .vm
+                        .pop_frame()
+                        .expect(<span class="string">&quot;generator call frame must exist&quot;</span>);
+                    std::mem::swap(<span class="kw-2">&amp;mut </span>context.realm.environments, environment);
+                    std::mem::swap(<span class="kw-2">&amp;mut </span>context.vm.stack, stack);
 
-                <span class="prelude-val">Ok</span>(JsValue::undefined())
-            },
-            (
-                context.realm.environments.clone(),
-                context.vm.stack.clone(),
-                context.vm.frame().clone(),
+                    <span class="prelude-val">Ok</span>(JsValue::undefined())
+                },
+                Gc::new(GcCell::new((
+                    context.realm.environments.clone(),
+                    context.vm.stack.clone(),
+                    context.vm.frame().clone(),
+                ))),
             ),
         )
         .name(<span class="string">&quot;&quot;</span>)
@@ -187,37 +205,41 @@
 
         <span class="comment">// 5. Let rejectedClosure be a new Abstract Closure with parameters (reason) that captures asyncContext and performs the following steps when called:
         // 6. Let onRejected be CreateBuiltinFunction(rejectedClosure, 1, &quot;&quot;, « »).
-        </span><span class="kw">let </span>on_rejected = FunctionBuilder::closure_with_captures(
+        </span><span class="kw">let </span>on_rejected = FunctionObjectBuilder::new(
             context,
-            |_this, args, (environment, stack, frame), context| {
-                <span class="comment">// a. Let prevContext be the running execution context.
-                // b. Suspend prevContext.
-                // c. Push asyncContext onto the execution context stack; asyncContext is now the running execution context.
-                // d. Resume the suspended evaluation of asyncContext using ThrowCompletion(reason) as the result of the operation that suspended it.
-                // e. Assert: When we reach this step, asyncContext has already been removed from the execution context stack and prevContext is the currently running execution context.
-                // f. Return undefined.
+            NativeFunction::from_copy_closure_with_captures(
+                |_this, args, captures, context| {
+                    <span class="kw">let </span><span class="kw-2">mut </span>captures = captures.borrow_mut();
+                    <span class="kw">let </span>(environment, stack, frame) = <span class="kw-2">&amp;mut *</span>captures;
+                    <span class="comment">// a. Let prevContext be the running execution context.
+                    // b. Suspend prevContext.
+                    // c. Push asyncContext onto the execution context stack; asyncContext is now the running execution context.
+                    // d. Resume the suspended evaluation of asyncContext using ThrowCompletion(reason) as the result of the operation that suspended it.
+                    // e. Assert: When we reach this step, asyncContext has already been removed from the execution context stack and prevContext is the currently running execution context.
+                    // f. Return undefined.
 
-                </span>std::mem::swap(<span class="kw-2">&amp;mut </span>context.realm.environments, environment);
-                std::mem::swap(<span class="kw-2">&amp;mut </span>context.vm.stack, stack);
-                context.vm.push_frame(frame.clone());
+                    </span>std::mem::swap(<span class="kw-2">&amp;mut </span>context.realm.environments, environment);
+                    std::mem::swap(<span class="kw-2">&amp;mut </span>context.vm.stack, stack);
+                    context.vm.push_frame(frame.clone());
 
-                context.vm.frame_mut().generator_resume_kind = GeneratorResumeKind::Throw;
-                context.vm.push(args.get_or_undefined(<span class="number">0</span>).clone());
-                context.run()<span class="question-mark">?</span>;
+                    context.vm.frame_mut().generator_resume_kind = GeneratorResumeKind::Throw;
+                    context.vm.push(args.get_or_undefined(<span class="number">0</span>).clone());
+                    context.run()<span class="question-mark">?</span>;
 
-                <span class="kw-2">*</span>frame = context
-                    .vm
-                    .pop_frame()
-                    .expect(<span class="string">&quot;generator call frame must exist&quot;</span>);
-                std::mem::swap(<span class="kw-2">&amp;mut </span>context.realm.environments, environment);
-                std::mem::swap(<span class="kw-2">&amp;mut </span>context.vm.stack, stack);
+                    <span class="kw-2">*</span>frame = context
+                        .vm
+                        .pop_frame()
+                        .expect(<span class="string">&quot;generator call frame must exist&quot;</span>);
+                    std::mem::swap(<span class="kw-2">&amp;mut </span>context.realm.environments, environment);
+                    std::mem::swap(<span class="kw-2">&amp;mut </span>context.vm.stack, stack);
 
-                <span class="prelude-val">Ok</span>(JsValue::undefined())
-            },
-            (
-                context.realm.environments.clone(),
-                context.vm.stack.clone(),
-                context.vm.frame().clone(),
+                    <span class="prelude-val">Ok</span>(JsValue::undefined())
+                },
+                Gc::new(GcCell::new((
+                    context.realm.environments.clone(),
+                    context.vm.stack.clone(),
+                    context.vm.frame().clone(),
+                ))),
             ),
         )
         .name(<span class="string">&quot;&quot;</span>)

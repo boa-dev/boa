@@ -3592,6 +3592,17 @@
 <span id="3591">3591</span>
 <span id="3592">3592</span>
 <span id="3593">3593</span>
+<span id="3594">3594</span>
+<span id="3595">3595</span>
+<span id="3596">3596</span>
+<span id="3597">3597</span>
+<span id="3598">3598</span>
+<span id="3599">3599</span>
+<span id="3600">3600</span>
+<span id="3601">3601</span>
+<span id="3602">3602</span>
+<span id="3603">3603</span>
+<span id="3604">3604</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Boa&#39;s implementation of ECMAScript&#39;s global `TypedArray` objects.
 //!
 //! A `TypedArray` object describes an array-like view of an underlying binary data buffer.
@@ -3616,9 +3627,10 @@
     context::intrinsics::{StandardConstructor, StandardConstructors},
     error::JsNativeError,
     js_string,
+    native_function::NativeFunction,
     object::{
-        internal_methods::get_prototype_from_constructor, ConstructorBuilder, FunctionBuilder,
-        JsObject, ObjectData,
+        internal_methods::get_prototype_from_constructor, ConstructorBuilder,
+        FunctionObjectBuilder, JsObject, ObjectData,
     },
     property::{Attribute, PropertyNameKind},
     symbol::WellKnownSymbols,
@@ -3660,10 +3672,13 @@
                     .typed_array()
                     .prototype();
 
-                <span class="kw">let </span>get_species = FunctionBuilder::native(context, TypedArray::get_species)
-                    .name(<span class="string">&quot;get [Symbol.species]&quot;</span>)
-                    .constructor(<span class="bool-val">false</span>)
-                    .build();
+                <span class="kw">let </span>get_species = FunctionObjectBuilder::new(
+                    context,
+                    NativeFunction::from_fn_ptr(TypedArray::get_species),
+                )
+                .name(<span class="string">&quot;get [Symbol.species]&quot;</span>)
+                .constructor(<span class="bool-val">false</span>)
+                .build();
 
                 ConstructorBuilder::with_standard_constructor(
                     context,
@@ -3844,41 +3859,48 @@
 <span class="kw">impl </span>BuiltIn <span class="kw">for </span>TypedArray {
     <span class="kw">const </span>NAME: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;TypedArray&quot;</span>;
     <span class="kw">fn </span>init(context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <span class="prelude-ty">Option</span>&lt;JsValue&gt; {
-        <span class="kw">let </span>get_species = FunctionBuilder::native(context, <span class="self">Self</span>::get_species)
-            .name(<span class="string">&quot;get [Symbol.species]&quot;</span>)
-            .constructor(<span class="bool-val">false</span>)
-            .build();
+        <span class="kw">let </span>get_species =
+            FunctionObjectBuilder::new(context, NativeFunction::from_fn_ptr(<span class="self">Self</span>::get_species))
+                .name(<span class="string">&quot;get [Symbol.species]&quot;</span>)
+                .constructor(<span class="bool-val">false</span>)
+                .build();
 
-        <span class="kw">let </span>get_buffer = FunctionBuilder::native(context, <span class="self">Self</span>::buffer)
-            .name(<span class="string">&quot;get buffer&quot;</span>)
-            .constructor(<span class="bool-val">false</span>)
-            .build();
+        <span class="kw">let </span>get_buffer =
+            FunctionObjectBuilder::new(context, NativeFunction::from_fn_ptr(<span class="self">Self</span>::buffer))
+                .name(<span class="string">&quot;get buffer&quot;</span>)
+                .constructor(<span class="bool-val">false</span>)
+                .build();
 
-        <span class="kw">let </span>get_byte_length = FunctionBuilder::native(context, <span class="self">Self</span>::byte_length)
-            .name(<span class="string">&quot;get byteLength&quot;</span>)
-            .constructor(<span class="bool-val">false</span>)
-            .build();
+        <span class="kw">let </span>get_byte_length =
+            FunctionObjectBuilder::new(context, NativeFunction::from_fn_ptr(<span class="self">Self</span>::byte_length))
+                .name(<span class="string">&quot;get byteLength&quot;</span>)
+                .constructor(<span class="bool-val">false</span>)
+                .build();
 
-        <span class="kw">let </span>get_byte_offset = FunctionBuilder::native(context, <span class="self">Self</span>::byte_offset)
-            .name(<span class="string">&quot;get byteOffset&quot;</span>)
-            .constructor(<span class="bool-val">false</span>)
-            .build();
+        <span class="kw">let </span>get_byte_offset =
+            FunctionObjectBuilder::new(context, NativeFunction::from_fn_ptr(<span class="self">Self</span>::byte_offset))
+                .name(<span class="string">&quot;get byteOffset&quot;</span>)
+                .constructor(<span class="bool-val">false</span>)
+                .build();
 
-        <span class="kw">let </span>get_length = FunctionBuilder::native(context, <span class="self">Self</span>::length)
-            .name(<span class="string">&quot;get length&quot;</span>)
-            .constructor(<span class="bool-val">false</span>)
-            .build();
+        <span class="kw">let </span>get_length =
+            FunctionObjectBuilder::new(context, NativeFunction::from_fn_ptr(<span class="self">Self</span>::length))
+                .name(<span class="string">&quot;get length&quot;</span>)
+                .constructor(<span class="bool-val">false</span>)
+                .build();
 
-        <span class="kw">let </span>get_to_string_tag = FunctionBuilder::native(context, <span class="self">Self</span>::to_string_tag)
-            .name(<span class="string">&quot;get [Symbol.toStringTag]&quot;</span>)
-            .constructor(<span class="bool-val">false</span>)
-            .build();
+        <span class="kw">let </span>get_to_string_tag =
+            FunctionObjectBuilder::new(context, NativeFunction::from_fn_ptr(<span class="self">Self</span>::to_string_tag))
+                .name(<span class="string">&quot;get [Symbol.toStringTag]&quot;</span>)
+                .constructor(<span class="bool-val">false</span>)
+                .build();
 
-        <span class="kw">let </span>values_function = FunctionBuilder::native(context, <span class="self">Self</span>::values)
-            .name(<span class="string">&quot;values&quot;</span>)
-            .length(<span class="number">0</span>)
-            .constructor(<span class="bool-val">false</span>)
-            .build();
+        <span class="kw">let </span>values_function =
+            FunctionObjectBuilder::new(context, NativeFunction::from_fn_ptr(<span class="self">Self</span>::values))
+                .name(<span class="string">&quot;values&quot;</span>)
+                .length(<span class="number">0</span>)
+                .constructor(<span class="bool-val">false</span>)
+                .build();
 
         ConstructorBuilder::with_standard_constructor(
             context,

@@ -401,11 +401,6 @@
 <span id="400">400</span>
 <span id="401">401</span>
 <span id="402">402</span>
-<span id="403">403</span>
-<span id="404">404</span>
-<span id="405">405</span>
-<span id="406">406</span>
-<span id="407">407</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Execution module for the test runner.
 
 </span><span class="kw">mod </span>js262;
@@ -415,14 +410,13 @@
 };
 <span class="kw">use </span><span class="kw">crate</span>::read::ErrorType;
 <span class="kw">use </span>boa_engine::{
-    builtins::JsArgs, object::FunctionBuilder, property::Attribute, Context, JsNativeErrorKind,
-    JsResult, JsValue,
+    builtins::JsArgs, native_function::NativeFunction, object::FunctionObjectBuilder,
+    property::Attribute, Context, JsNativeErrorKind, JsValue,
 };
-<span class="kw">use </span>boa_gc::{Finalize, Gc, GcCell, Trace};
 <span class="kw">use </span>boa_parser::Parser;
 <span class="kw">use </span>colored::Colorize;
 <span class="kw">use </span>rayon::prelude::<span class="kw-2">*</span>;
-<span class="kw">use </span>std::borrow::Cow;
+<span class="kw">use </span>std::{borrow::Cow, cell::RefCell, rc::Rc};
 
 <span class="kw">impl </span>TestSuite {
     <span class="doccomment">/// Runs the test suite.
@@ -768,11 +762,25 @@
     <span class="doccomment">/// Registers the print function in the context.
     </span><span class="kw">fn </span>register_print_fn(context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;, async_result: AsyncResult) {
         <span class="comment">// We use `FunctionBuilder` to define a closure with additional captures.
-        </span><span class="kw">let </span>js_function =
-            FunctionBuilder::closure_with_captures(context, test262_print, async_result)
-                .name(<span class="string">&quot;print&quot;</span>)
-                .length(<span class="number">1</span>)
-                .build();
+        </span><span class="kw">let </span>js_function = FunctionObjectBuilder::new(
+            context,
+            <span class="comment">// SAFETY: `AsyncResult` has only non-traceable captures, making this safe.
+            </span><span class="kw">unsafe </span>{
+                NativeFunction::from_closure(<span class="kw">move </span>|<span class="kw">_</span>, args, context| {
+                    <span class="kw">let </span>message = args
+                        .get_or_undefined(<span class="number">0</span>)
+                        .to_string(context)<span class="question-mark">?
+                        </span>.to_std_string_escaped();
+                    <span class="kw">if </span>message != <span class="string">&quot;Test262:AsyncTestComplete&quot; </span>{
+                        <span class="kw-2">*</span>async_result.inner.borrow_mut() = <span class="prelude-val">Err</span>(message);
+                    }
+                    <span class="prelude-val">Ok</span>(JsValue::undefined())
+                })
+            },
+        )
+        .name(<span class="string">&quot;print&quot;</span>)
+        .length(<span class="number">1</span>)
+        .build();
 
         context.register_global_property(
             <span class="string">&quot;print&quot;</span>,
@@ -783,35 +791,17 @@
 }
 
 <span class="doccomment">/// Object which includes the result of the async operation.
-</span><span class="attribute">#[derive(Debug, Clone, Trace, Finalize)]
+</span><span class="attribute">#[derive(Debug, Clone)]
 </span><span class="kw">struct </span>AsyncResult {
-    inner: Gc&lt;GcCell&lt;<span class="prelude-ty">Result</span>&lt;(), String&gt;&gt;&gt;,
+    inner: Rc&lt;RefCell&lt;<span class="prelude-ty">Result</span>&lt;(), String&gt;&gt;&gt;,
 }
 
 <span class="kw">impl </span>Default <span class="kw">for </span>AsyncResult {
     <span class="kw">fn </span>default() -&gt; <span class="self">Self </span>{
         <span class="self">Self </span>{
-            inner: Gc::new(GcCell::new(<span class="prelude-val">Ok</span>(()))),
+            inner: Rc::new(RefCell::new(<span class="prelude-val">Ok</span>(()))),
         }
     }
-}
-
-<span class="doccomment">/// `print()` function required by the test262 suite.
-</span><span class="attribute">#[allow(clippy::unnecessary_wraps)]
-</span><span class="kw">fn </span>test262_print(
-    _this: <span class="kw-2">&amp;</span>JsValue,
-    args: <span class="kw-2">&amp;</span>[JsValue],
-    async_result: <span class="kw-2">&amp;mut </span>AsyncResult,
-    context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
-) -&gt; JsResult&lt;JsValue&gt; {
-    <span class="kw">let </span>message = args
-        .get_or_undefined(<span class="number">0</span>)
-        .to_string(context)<span class="question-mark">?
-        </span>.to_std_string_escaped();
-    <span class="kw">if </span>message != <span class="string">&quot;Test262:AsyncTestComplete&quot; </span>{
-        <span class="kw-2">*</span>async_result.inner.borrow_mut() = <span class="prelude-val">Err</span>(message);
-    }
-    <span class="prelude-val">Ok</span>(JsValue::undefined())
 }
 </code></pre></div>
 </section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="boa_tester" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.66.0 (69f9c33d7 2022-12-12)" ></div></body></html>

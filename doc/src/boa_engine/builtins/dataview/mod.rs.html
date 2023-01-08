@@ -1062,6 +1062,10 @@
 <span id="1061">1061</span>
 <span id="1062">1062</span>
 <span id="1063">1063</span>
+<span id="1064">1064</span>
+<span id="1065">1065</span>
+<span id="1066">1066</span>
+<span id="1067">1067</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Boa&#39;s implementation of ECMAScript&#39;s global `DataView` object.
 //!
 //! More information:
@@ -1075,9 +1079,10 @@
     builtins::{array_buffer::SharedMemoryOrder, typed_array::TypedArrayKind, BuiltIn, JsArgs},
     context::intrinsics::StandardConstructors,
     error::JsNativeError,
+    native_function::NativeFunction,
     object::{
-        internal_methods::get_prototype_from_constructor, ConstructorBuilder, FunctionBuilder,
-        JsObject, ObjectData,
+        internal_methods::get_prototype_from_constructor, ConstructorBuilder,
+        FunctionObjectBuilder, JsObject, ObjectData,
     },
     property::Attribute,
     symbol::WellKnownSymbols,
@@ -1101,17 +1106,20 @@
     <span class="kw">fn </span>init(context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <span class="prelude-ty">Option</span>&lt;JsValue&gt; {
         <span class="kw">let </span>flag_attributes = Attribute::CONFIGURABLE | Attribute::NON_ENUMERABLE;
 
-        <span class="kw">let </span>get_buffer = FunctionBuilder::native(context, <span class="self">Self</span>::get_buffer)
-            .name(<span class="string">&quot;get buffer&quot;</span>)
-            .build();
+        <span class="kw">let </span>get_buffer =
+            FunctionObjectBuilder::new(context, NativeFunction::from_fn_ptr(<span class="self">Self</span>::get_buffer))
+                .name(<span class="string">&quot;get buffer&quot;</span>)
+                .build();
 
-        <span class="kw">let </span>get_byte_length = FunctionBuilder::native(context, <span class="self">Self</span>::get_byte_length)
-            .name(<span class="string">&quot;get byteLength&quot;</span>)
-            .build();
+        <span class="kw">let </span>get_byte_length =
+            FunctionObjectBuilder::new(context, NativeFunction::from_fn_ptr(<span class="self">Self</span>::get_byte_length))
+                .name(<span class="string">&quot;get byteLength&quot;</span>)
+                .build();
 
-        <span class="kw">let </span>get_byte_offset = FunctionBuilder::native(context, <span class="self">Self</span>::get_byte_offset)
-            .name(<span class="string">&quot;get byteOffset&quot;</span>)
-            .build();
+        <span class="kw">let </span>get_byte_offset =
+            FunctionObjectBuilder::new(context, NativeFunction::from_fn_ptr(<span class="self">Self</span>::get_byte_offset))
+                .name(<span class="string">&quot;get byteOffset&quot;</span>)
+                .build();
 
         ConstructorBuilder::with_standard_constructor(
             context,

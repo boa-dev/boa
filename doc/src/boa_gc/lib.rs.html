@@ -522,7 +522,6 @@
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">mod </span>internals;
 
 <span class="kw">use </span>boa_profiler::Profiler;
-<span class="kw">use </span>internals::GcBox;
 <span class="kw">use </span>std::{
     cell::{Cell, RefCell},
     mem,
@@ -532,6 +531,7 @@
 <span class="kw">pub use </span><span class="kw">crate</span>::trace::{Finalize, Trace};
 <span class="kw">pub use </span>boa_macros::{Finalize, Trace};
 <span class="kw">pub use </span>cell::{GcCell, GcCellRef, GcCellRefMut};
+<span class="kw">pub use </span>internals::GcBox;
 <span class="kw">pub use </span>pointers::{Ephemeron, Gc, WeakGc};
 
 <span class="kw">type </span>GcPointer = NonNull&lt;GcBox&lt;<span class="kw">dyn </span>Trace&gt;&gt;;

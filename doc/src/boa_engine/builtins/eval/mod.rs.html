@@ -267,6 +267,7 @@
 <span id="266">266</span>
 <span id="267">267</span>
 <span id="268">268</span>
+<span id="269">269</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Boa&#39;s implementation of ECMAScript&#39;s global `eval` function.
 //!
 //! The `eval()` function evaluates ECMAScript code represented as a string.
@@ -282,7 +283,8 @@
     builtins::{BuiltIn, JsArgs},
     environments::DeclarativeEnvironment,
     error::JsNativeError,
-    object::FunctionBuilder,
+    native_function::NativeFunction,
+    object::FunctionObjectBuilder,
     property::Attribute,
     Context, JsResult, JsString, JsValue,
 };
@@ -306,7 +308,7 @@
     <span class="kw">fn </span>init(context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <span class="prelude-ty">Option</span>&lt;JsValue&gt; {
         <span class="kw">let </span>_timer = Profiler::global().start_event(<span class="self">Self</span>::NAME, <span class="string">&quot;init&quot;</span>);
 
-        <span class="kw">let </span>object = FunctionBuilder::native(context, <span class="self">Self</span>::eval)
+        <span class="kw">let </span>object = FunctionObjectBuilder::new(context, NativeFunction::from_fn_ptr(<span class="self">Self</span>::eval))
             .name(<span class="string">&quot;eval&quot;</span>)
             .length(<span class="number">1</span>)
             .constructor(<span class="bool-val">false</span>)

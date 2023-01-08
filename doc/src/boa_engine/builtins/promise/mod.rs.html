@@ -2129,6 +2129,34 @@
 <span id="2128">2128</span>
 <span id="2129">2129</span>
 <span id="2130">2130</span>
+<span id="2131">2131</span>
+<span id="2132">2132</span>
+<span id="2133">2133</span>
+<span id="2134">2134</span>
+<span id="2135">2135</span>
+<span id="2136">2136</span>
+<span id="2137">2137</span>
+<span id="2138">2138</span>
+<span id="2139">2139</span>
+<span id="2140">2140</span>
+<span id="2141">2141</span>
+<span id="2142">2142</span>
+<span id="2143">2143</span>
+<span id="2144">2144</span>
+<span id="2145">2145</span>
+<span id="2146">2146</span>
+<span id="2147">2147</span>
+<span id="2148">2148</span>
+<span id="2149">2149</span>
+<span id="2150">2150</span>
+<span id="2151">2151</span>
+<span id="2152">2152</span>
+<span id="2153">2153</span>
+<span id="2154">2154</span>
+<span id="2155">2155</span>
+<span id="2156">2156</span>
+<span id="2157">2157</span>
+<span id="2158">2158</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Boa&#39;s implementation of ECMAScript&#39;s global `Promise` object.
 
 </span><span class="attribute">#[cfg(test)]
@@ -2143,9 +2171,10 @@
     context::intrinsics::StandardConstructors,
     error::JsNativeError,
     job::JobCallback,
+    native_function::NativeFunction,
     object::{
-        internal_methods::get_prototype_from_constructor, ConstructorBuilder, FunctionBuilder,
-        JsFunction, JsObject, ObjectData,
+        internal_methods::get_prototype_from_constructor, ConstructorBuilder,
+        FunctionObjectBuilder, JsFunction, JsObject, ObjectData,
     },
     property::{Attribute, PropertyDescriptorBuilder},
     symbol::WellKnownSymbols,
@@ -2283,37 +2312,39 @@
 
                 <span class="comment">// 4. Let executorClosure be a new Abstract Closure with parameters (resolve, reject) that captures promiseCapability and performs the following steps when called:
                 // 5. Let executor be CreateBuiltinFunction(executorClosure, 2, &quot;&quot;, « »).
-                </span><span class="kw">let </span>executor = FunctionBuilder::closure_with_captures(
+                </span><span class="kw">let </span>executor = FunctionObjectBuilder::new(
                     context,
-                    |_this, args: <span class="kw-2">&amp;</span>[JsValue], captures, <span class="kw">_</span>| {
-                        <span class="kw">let </span><span class="kw-2">mut </span>promise_capability = captures.borrow_mut();
-                        <span class="comment">// a. If promiseCapability.[[Resolve]] is not undefined, throw a TypeError exception.
-                        </span><span class="kw">if </span>!promise_capability.resolve.is_undefined() {
-                            <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::typ()
-                                .with_message(<span class="string">&quot;promiseCapability.[[Resolve]] is not undefined&quot;</span>)
-                                .into());
-                        }
+                    NativeFunction::from_copy_closure_with_captures(
+                        |_this, args: <span class="kw-2">&amp;</span>[JsValue], captures, <span class="kw">_</span>| {
+                            <span class="kw">let </span><span class="kw-2">mut </span>promise_capability = captures.borrow_mut();
+                            <span class="comment">// a. If promiseCapability.[[Resolve]] is not undefined, throw a TypeError exception.
+                            </span><span class="kw">if </span>!promise_capability.resolve.is_undefined() {
+                                <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::typ()
+                                    .with_message(<span class="string">&quot;promiseCapability.[[Resolve]] is not undefined&quot;</span>)
+                                    .into());
+                            }
 
-                        <span class="comment">// b. If promiseCapability.[[Reject]] is not undefined, throw a TypeError exception.
-                        </span><span class="kw">if </span>!promise_capability.reject.is_undefined() {
-                            <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::typ()
-                                .with_message(<span class="string">&quot;promiseCapability.[[Reject]] is not undefined&quot;</span>)
-                                .into());
-                        }
+                            <span class="comment">// b. If promiseCapability.[[Reject]] is not undefined, throw a TypeError exception.
+                            </span><span class="kw">if </span>!promise_capability.reject.is_undefined() {
+                                <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::typ()
+                                    .with_message(<span class="string">&quot;promiseCapability.[[Reject]] is not undefined&quot;</span>)
+                                    .into());
+                            }
 
-                        <span class="kw">let </span>resolve = args.get_or_undefined(<span class="number">0</span>);
-                        <span class="kw">let </span>reject = args.get_or_undefined(<span class="number">1</span>);
+                            <span class="kw">let </span>resolve = args.get_or_undefined(<span class="number">0</span>);
+                            <span class="kw">let </span>reject = args.get_or_undefined(<span class="number">1</span>);
 
-                        <span class="comment">// c. Set promiseCapability.[[Resolve]] to resolve.
-                        </span>promise_capability.resolve = resolve.clone();
+                            <span class="comment">// c. Set promiseCapability.[[Resolve]] to resolve.
+                            </span>promise_capability.resolve = resolve.clone();
 
-                        <span class="comment">// d. Set promiseCapability.[[Reject]] to reject.
-                        </span>promise_capability.reject = reject.clone();
+                            <span class="comment">// d. Set promiseCapability.[[Reject]] to reject.
+                            </span>promise_capability.reject = reject.clone();
 
-                        <span class="comment">// e. Return undefined.
-                        </span><span class="prelude-val">Ok</span>(JsValue::Undefined)
-                    },
-                    promise_capability.clone(),
+                            <span class="comment">// e. Return undefined.
+                            </span><span class="prelude-val">Ok</span>(JsValue::Undefined)
+                        },
+                        promise_capability.clone(),
+                    ),
                 )
                 .name(<span class="string">&quot;&quot;</span>)
                 .length(<span class="number">2</span>)
@@ -2385,10 +2416,11 @@
     <span class="kw">fn </span>init(context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <span class="prelude-ty">Option</span>&lt;JsValue&gt; {
         <span class="kw">let </span>_timer = Profiler::global().start_event(<span class="self">Self</span>::NAME, <span class="string">&quot;init&quot;</span>);
 
-        <span class="kw">let </span>get_species = FunctionBuilder::native(context, <span class="self">Self</span>::get_species)
-            .name(<span class="string">&quot;get [Symbol.species]&quot;</span>)
-            .constructor(<span class="bool-val">false</span>)
-            .build();
+        <span class="kw">let </span>get_species =
+            FunctionObjectBuilder::new(context, NativeFunction::from_fn_ptr(<span class="self">Self</span>::get_species))
+                .name(<span class="string">&quot;get [Symbol.species]&quot;</span>)
+                .constructor(<span class="bool-val">false</span>)
+                .build();
 
         ConstructorBuilder::with_standard_constructor(
             context,
@@ -2673,59 +2705,62 @@
             // o. Set onFulfilled.[[Values]] to values.
             // p. Set onFulfilled.[[Capability]] to resultCapability.
             // q. Set onFulfilled.[[RemainingElements]] to remainingElementsCount.
-            </span><span class="kw">let </span>on_fulfilled = FunctionBuilder::closure_with_captures(
+            </span><span class="kw">let </span>on_fulfilled = FunctionObjectBuilder::new(
                 context,
-                |<span class="kw">_</span>, args, captures, context| {
-                    <span class="comment">// https://tc39.es/ecma262/#sec-promise.all-resolve-element-functions
+                NativeFunction::from_copy_closure_with_captures(
+                    |<span class="kw">_</span>, args, captures, context| {
+                        <span class="comment">// https://tc39.es/ecma262/#sec-promise.all-resolve-element-functions
 
-                    // 1. Let F be the active function object.
-                    // 2. If F.[[AlreadyCalled]] is true, return undefined.
-                    </span><span class="kw">if </span>captures.already_called.get() {
-                        <span class="kw">return </span><span class="prelude-val">Ok</span>(JsValue::undefined());
-                    }
+                        // 1. Let F be the active function object.
+                        // 2. If F.[[AlreadyCalled]] is true, return undefined.
+                        </span><span class="kw">if </span>captures.already_called.get() {
+                            <span class="kw">return </span><span class="prelude-val">Ok</span>(JsValue::undefined());
+                        }
 
-                    <span class="comment">// 3. Set F.[[AlreadyCalled]] to true.
-                    </span>captures.already_called.set(<span class="bool-val">true</span>);
+                        <span class="comment">// 3. Set F.[[AlreadyCalled]] to true.
+                        </span>captures.already_called.set(<span class="bool-val">true</span>);
 
-                    <span class="comment">// 4. Let index be F.[[Index]].
-                    // 5. Let values be F.[[Values]].
-                    // 6. Let promiseCapability be F.[[Capability]].
-                    // 7. Let remainingElementsCount be F.[[RemainingElements]].
+                        <span class="comment">// 4. Let index be F.[[Index]].
+                        // 5. Let values be F.[[Values]].
+                        // 6. Let promiseCapability be F.[[Capability]].
+                        // 7. Let remainingElementsCount be F.[[RemainingElements]].
 
-                    // 8. Set values[index] to x.
-                    </span>captures.values.borrow_mut()[captures.index] = args.get_or_undefined(<span class="number">0</span>).clone();
+                        // 8. Set values[index] to x.
+                        </span>captures.values.borrow_mut()[captures.index] =
+                            args.get_or_undefined(<span class="number">0</span>).clone();
 
-                    <span class="comment">// 9. Set remainingElementsCount.[[Value]] to remainingElementsCount.[[Value]] - 1.
-                    </span>captures
-                        .remaining_elements_count
-                        .set(captures.remaining_elements_count.get() - <span class="number">1</span>);
+                        <span class="comment">// 9. Set remainingElementsCount.[[Value]] to remainingElementsCount.[[Value]] - 1.
+                        </span>captures
+                            .remaining_elements_count
+                            .set(captures.remaining_elements_count.get() - <span class="number">1</span>);
 
-                    <span class="comment">// 10. If remainingElementsCount.[[Value]] is 0, then
-                    </span><span class="kw">if </span>captures.remaining_elements_count.get() == <span class="number">0 </span>{
-                        <span class="comment">// a. Let valuesArray be CreateArrayFromList(values).
-                        </span><span class="kw">let </span>values_array = <span class="kw">crate</span>::builtins::Array::create_array_from_list(
-                            captures.values.borrow().as_slice().iter().cloned(),
-                            context,
-                        );
+                        <span class="comment">// 10. If remainingElementsCount.[[Value]] is 0, then
+                        </span><span class="kw">if </span>captures.remaining_elements_count.get() == <span class="number">0 </span>{
+                            <span class="comment">// a. Let valuesArray be CreateArrayFromList(values).
+                            </span><span class="kw">let </span>values_array = <span class="kw">crate</span>::builtins::Array::create_array_from_list(
+                                captures.values.borrow().as_slice().iter().cloned(),
+                                context,
+                            );
 
-                        <span class="comment">// b. Return ? Call(promiseCapability.[[Resolve]], undefined, « valuesArray »).
-                        </span><span class="kw">return </span>captures.capability_resolve.call(
-                            <span class="kw-2">&amp;</span>JsValue::undefined(),
-                            <span class="kw-2">&amp;</span>[values_array.into()],
-                            context,
-                        );
-                    }
+                            <span class="comment">// b. Return ? Call(promiseCapability.[[Resolve]], undefined, « valuesArray »).
+                            </span><span class="kw">return </span>captures.capability_resolve.call(
+                                <span class="kw-2">&amp;</span>JsValue::undefined(),
+                                <span class="kw-2">&amp;</span>[values_array.into()],
+                                context,
+                            );
+                        }
 
-                    <span class="comment">// 11. Return undefined.
-                    </span><span class="prelude-val">Ok</span>(JsValue::undefined())
-                },
-                ResolveElementCaptures {
-                    already_called: Rc::new(Cell::new(<span class="bool-val">false</span>)),
-                    index,
-                    values: values.clone(),
-                    capability_resolve: result_capability.resolve.clone(),
-                    remaining_elements_count: remaining_elements_count.clone(),
-                },
+                        <span class="comment">// 11. Return undefined.
+                        </span><span class="prelude-val">Ok</span>(JsValue::undefined())
+                    },
+                    ResolveElementCaptures {
+                        already_called: Rc::new(Cell::new(<span class="bool-val">false</span>)),
+                        index,
+                        values: values.clone(),
+                        capability_resolve: result_capability.resolve.clone(),
+                        remaining_elements_count: remaining_elements_count.clone(),
+                    },
+                ),
             )
             .name(<span class="string">&quot;&quot;</span>)
             .length(<span class="number">1</span>)
@@ -2915,76 +2950,78 @@
             // p. Set onFulfilled.[[Values]] to values.
             // q. Set onFulfilled.[[Capability]] to resultCapability.
             // r. Set onFulfilled.[[RemainingElements]] to remainingElementsCount.
-            </span><span class="kw">let </span>on_fulfilled = FunctionBuilder::closure_with_captures(
+            </span><span class="kw">let </span>on_fulfilled = FunctionObjectBuilder::new(
                 context,
-                |<span class="kw">_</span>, args, captures, context| {
-                    <span class="comment">// https://tc39.es/ecma262/#sec-promise.allsettled-resolve-element-functions
+                NativeFunction::from_copy_closure_with_captures(
+                    |<span class="kw">_</span>, args, captures, context| {
+                        <span class="comment">// https://tc39.es/ecma262/#sec-promise.allsettled-resolve-element-functions
 
-                    // 1. Let F be the active function object.
-                    // 2. Let alreadyCalled be F.[[AlreadyCalled]].
+                        // 1. Let F be the active function object.
+                        // 2. Let alreadyCalled be F.[[AlreadyCalled]].
 
-                    // 3. If alreadyCalled.[[Value]] is true, return undefined.
-                    </span><span class="kw">if </span>captures.already_called.get() {
-                        <span class="kw">return </span><span class="prelude-val">Ok</span>(JsValue::undefined());
-                    }
+                        // 3. If alreadyCalled.[[Value]] is true, return undefined.
+                        </span><span class="kw">if </span>captures.already_called.get() {
+                            <span class="kw">return </span><span class="prelude-val">Ok</span>(JsValue::undefined());
+                        }
 
-                    <span class="comment">// 4. Set alreadyCalled.[[Value]] to true.
-                    </span>captures.already_called.set(<span class="bool-val">true</span>);
+                        <span class="comment">// 4. Set alreadyCalled.[[Value]] to true.
+                        </span>captures.already_called.set(<span class="bool-val">true</span>);
 
-                    <span class="comment">// 5. Let index be F.[[Index]].
-                    // 6. Let values be F.[[Values]].
-                    // 7. Let promiseCapability be F.[[Capability]].
-                    // 8. Let remainingElementsCount be F.[[RemainingElements]].
+                        <span class="comment">// 5. Let index be F.[[Index]].
+                        // 6. Let values be F.[[Values]].
+                        // 7. Let promiseCapability be F.[[Capability]].
+                        // 8. Let remainingElementsCount be F.[[RemainingElements]].
 
-                    // 9. Let obj be OrdinaryObjectCreate(%Object.prototype%).
-                    </span><span class="kw">let </span>obj = JsObject::with_object_proto(context);
+                        // 9. Let obj be OrdinaryObjectCreate(%Object.prototype%).
+                        </span><span class="kw">let </span>obj = JsObject::with_object_proto(context);
 
-                    <span class="comment">// 10. Perform ! CreateDataPropertyOrThrow(obj, &quot;status&quot;, &quot;fulfilled&quot;).
-                    </span>obj.create_data_property_or_throw(<span class="string">&quot;status&quot;</span>, <span class="string">&quot;fulfilled&quot;</span>, context)
+                        <span class="comment">// 10. Perform ! CreateDataPropertyOrThrow(obj, &quot;status&quot;, &quot;fulfilled&quot;).
+                        </span>obj.create_data_property_or_throw(<span class="string">&quot;status&quot;</span>, <span class="string">&quot;fulfilled&quot;</span>, context)
+                            .expect(<span class="string">&quot;cannot fail per spec&quot;</span>);
+
+                        <span class="comment">// 11. Perform ! CreateDataPropertyOrThrow(obj, &quot;value&quot;, x).
+                        </span>obj.create_data_property_or_throw(
+                            <span class="string">&quot;value&quot;</span>,
+                            args.get_or_undefined(<span class="number">0</span>).clone(),
+                            context,
+                        )
                         .expect(<span class="string">&quot;cannot fail per spec&quot;</span>);
 
-                    <span class="comment">// 11. Perform ! CreateDataPropertyOrThrow(obj, &quot;value&quot;, x).
-                    </span>obj.create_data_property_or_throw(
-                        <span class="string">&quot;value&quot;</span>,
-                        args.get_or_undefined(<span class="number">0</span>).clone(),
-                        context,
-                    )
-                    .expect(<span class="string">&quot;cannot fail per spec&quot;</span>);
+                        <span class="comment">// 12. Set values[index] to obj.
+                        </span>captures.values.borrow_mut()[captures.index] = obj.into();
 
-                    <span class="comment">// 12. Set values[index] to obj.
-                    </span>captures.values.borrow_mut()[captures.index] = obj.into();
+                        <span class="comment">// 13. Set remainingElementsCount.[[Value]] to remainingElementsCount.[[Value]] - 1.
+                        </span>captures
+                            .remaining_elements
+                            .set(captures.remaining_elements.get() - <span class="number">1</span>);
 
-                    <span class="comment">// 13. Set remainingElementsCount.[[Value]] to remainingElementsCount.[[Value]] - 1.
-                    </span>captures
-                        .remaining_elements
-                        .set(captures.remaining_elements.get() - <span class="number">1</span>);
+                        <span class="comment">// 14. If remainingElementsCount.[[Value]] is 0, then
+                        </span><span class="kw">if </span>captures.remaining_elements.get() == <span class="number">0 </span>{
+                            <span class="comment">// a. Let valuesArray be CreateArrayFromList(values).
+                            </span><span class="kw">let </span>values_array = Array::create_array_from_list(
+                                captures.values.borrow().as_slice().iter().cloned(),
+                                context,
+                            );
 
-                    <span class="comment">// 14. If remainingElementsCount.[[Value]] is 0, then
-                    </span><span class="kw">if </span>captures.remaining_elements.get() == <span class="number">0 </span>{
-                        <span class="comment">// a. Let valuesArray be CreateArrayFromList(values).
-                        </span><span class="kw">let </span>values_array = Array::create_array_from_list(
-                            captures.values.borrow().as_slice().iter().cloned(),
-                            context,
-                        );
+                            <span class="comment">// b. Return ? Call(promiseCapability.[[Resolve]], undefined, « valuesArray »).
+                            </span><span class="kw">return </span>captures.capability.call(
+                                <span class="kw-2">&amp;</span>JsValue::undefined(),
+                                <span class="kw-2">&amp;</span>[values_array.into()],
+                                context,
+                            );
+                        }
 
-                        <span class="comment">// b. Return ? Call(promiseCapability.[[Resolve]], undefined, « valuesArray »).
-                        </span><span class="kw">return </span>captures.capability.call(
-                            <span class="kw-2">&amp;</span>JsValue::undefined(),
-                            <span class="kw-2">&amp;</span>[values_array.into()],
-                            context,
-                        );
-                    }
-
-                    <span class="comment">// 15. Return undefined.
-                    </span><span class="prelude-val">Ok</span>(JsValue::undefined())
-                },
-                ResolveRejectElementCaptures {
-                    already_called: Rc::new(Cell::new(<span class="bool-val">false</span>)),
-                    index,
-                    values: values.clone(),
-                    capability: result_capability.resolve.clone(),
-                    remaining_elements: remaining_elements_count.clone(),
-                },
+                        <span class="comment">// 15. Return undefined.
+                        </span><span class="prelude-val">Ok</span>(JsValue::undefined())
+                    },
+                    ResolveRejectElementCaptures {
+                        already_called: Rc::new(Cell::new(<span class="bool-val">false</span>)),
+                        index,
+                        values: values.clone(),
+                        capability: result_capability.resolve.clone(),
+                        remaining_elements: remaining_elements_count.clone(),
+                    },
+                ),
             )
             .name(<span class="string">&quot;&quot;</span>)
             .length(<span class="number">1</span>)
@@ -2999,76 +3036,78 @@
             // x. Set onRejected.[[Values]] to values.
             // y. Set onRejected.[[Capability]] to resultCapability.
             // z. Set onRejected.[[RemainingElements]] to remainingElementsCount.
-            </span><span class="kw">let </span>on_rejected = FunctionBuilder::closure_with_captures(
+            </span><span class="kw">let </span>on_rejected = FunctionObjectBuilder::new(
                 context,
-                |<span class="kw">_</span>, args, captures, context| {
-                    <span class="comment">// https://tc39.es/ecma262/#sec-promise.allsettled-reject-element-functions
+                NativeFunction::from_copy_closure_with_captures(
+                    |<span class="kw">_</span>, args, captures, context| {
+                        <span class="comment">// https://tc39.es/ecma262/#sec-promise.allsettled-reject-element-functions
 
-                    // 1. Let F be the active function object.
-                    // 2. Let alreadyCalled be F.[[AlreadyCalled]].
+                        // 1. Let F be the active function object.
+                        // 2. Let alreadyCalled be F.[[AlreadyCalled]].
 
-                    // 3. If alreadyCalled.[[Value]] is true, return undefined.
-                    </span><span class="kw">if </span>captures.already_called.get() {
-                        <span class="kw">return </span><span class="prelude-val">Ok</span>(JsValue::undefined());
-                    }
+                        // 3. If alreadyCalled.[[Value]] is true, return undefined.
+                        </span><span class="kw">if </span>captures.already_called.get() {
+                            <span class="kw">return </span><span class="prelude-val">Ok</span>(JsValue::undefined());
+                        }
 
-                    <span class="comment">// 4. Set alreadyCalled.[[Value]] to true.
-                    </span>captures.already_called.set(<span class="bool-val">true</span>);
+                        <span class="comment">// 4. Set alreadyCalled.[[Value]] to true.
+                        </span>captures.already_called.set(<span class="bool-val">true</span>);
 
-                    <span class="comment">// 5. Let index be F.[[Index]].
-                    // 6. Let values be F.[[Values]].
-                    // 7. Let promiseCapability be F.[[Capability]].
-                    // 8. Let remainingElementsCount be F.[[RemainingElements]].
+                        <span class="comment">// 5. Let index be F.[[Index]].
+                        // 6. Let values be F.[[Values]].
+                        // 7. Let promiseCapability be F.[[Capability]].
+                        // 8. Let remainingElementsCount be F.[[RemainingElements]].
 
-                    // 9. Let obj be OrdinaryObjectCreate(%Object.prototype%).
-                    </span><span class="kw">let </span>obj = JsObject::with_object_proto(context);
+                        // 9. Let obj be OrdinaryObjectCreate(%Object.prototype%).
+                        </span><span class="kw">let </span>obj = JsObject::with_object_proto(context);
 
-                    <span class="comment">// 10. Perform ! CreateDataPropertyOrThrow(obj, &quot;status&quot;, &quot;rejected&quot;).
-                    </span>obj.create_data_property_or_throw(<span class="string">&quot;status&quot;</span>, <span class="string">&quot;rejected&quot;</span>, context)
+                        <span class="comment">// 10. Perform ! CreateDataPropertyOrThrow(obj, &quot;status&quot;, &quot;rejected&quot;).
+                        </span>obj.create_data_property_or_throw(<span class="string">&quot;status&quot;</span>, <span class="string">&quot;rejected&quot;</span>, context)
+                            .expect(<span class="string">&quot;cannot fail per spec&quot;</span>);
+
+                        <span class="comment">// 11. Perform ! CreateDataPropertyOrThrow(obj, &quot;reason&quot;, x).
+                        </span>obj.create_data_property_or_throw(
+                            <span class="string">&quot;reason&quot;</span>,
+                            args.get_or_undefined(<span class="number">0</span>).clone(),
+                            context,
+                        )
                         .expect(<span class="string">&quot;cannot fail per spec&quot;</span>);
 
-                    <span class="comment">// 11. Perform ! CreateDataPropertyOrThrow(obj, &quot;reason&quot;, x).
-                    </span>obj.create_data_property_or_throw(
-                        <span class="string">&quot;reason&quot;</span>,
-                        args.get_or_undefined(<span class="number">0</span>).clone(),
-                        context,
-                    )
-                    .expect(<span class="string">&quot;cannot fail per spec&quot;</span>);
+                        <span class="comment">// 12. Set values[index] to obj.
+                        </span>captures.values.borrow_mut()[captures.index] = obj.into();
 
-                    <span class="comment">// 12. Set values[index] to obj.
-                    </span>captures.values.borrow_mut()[captures.index] = obj.into();
+                        <span class="comment">// 13. Set remainingElementsCount.[[Value]] to remainingElementsCount.[[Value]] - 1.
+                        </span>captures
+                            .remaining_elements
+                            .set(captures.remaining_elements.get() - <span class="number">1</span>);
 
-                    <span class="comment">// 13. Set remainingElementsCount.[[Value]] to remainingElementsCount.[[Value]] - 1.
-                    </span>captures
-                        .remaining_elements
-                        .set(captures.remaining_elements.get() - <span class="number">1</span>);
+                        <span class="comment">// 14. If remainingElementsCount.[[Value]] is 0, then
+                        </span><span class="kw">if </span>captures.remaining_elements.get() == <span class="number">0 </span>{
+                            <span class="comment">// a. Let valuesArray be CreateArrayFromList(values).
+                            </span><span class="kw">let </span>values_array = Array::create_array_from_list(
+                                captures.values.borrow().as_slice().iter().cloned(),
+                                context,
+                            );
 
-                    <span class="comment">// 14. If remainingElementsCount.[[Value]] is 0, then
-                    </span><span class="kw">if </span>captures.remaining_elements.get() == <span class="number">0 </span>{
-                        <span class="comment">// a. Let valuesArray be CreateArrayFromList(values).
-                        </span><span class="kw">let </span>values_array = Array::create_array_from_list(
-                            captures.values.borrow().as_slice().iter().cloned(),
-                            context,
-                        );
+                            <span class="comment">// b. Return ? Call(promiseCapability.[[Resolve]], undefined, « valuesArray »).
+                            </span><span class="kw">return </span>captures.capability.call(
+                                <span class="kw-2">&amp;</span>JsValue::undefined(),
+                                <span class="kw-2">&amp;</span>[values_array.into()],
+                                context,
+                            );
+                        }
 
-                        <span class="comment">// b. Return ? Call(promiseCapability.[[Resolve]], undefined, « valuesArray »).
-                        </span><span class="kw">return </span>captures.capability.call(
-                            <span class="kw-2">&amp;</span>JsValue::undefined(),
-                            <span class="kw-2">&amp;</span>[values_array.into()],
-                            context,
-                        );
-                    }
-
-                    <span class="comment">// 15. Return undefined.
-                    </span><span class="prelude-val">Ok</span>(JsValue::undefined())
-                },
-                ResolveRejectElementCaptures {
-                    already_called: Rc::new(Cell::new(<span class="bool-val">false</span>)),
-                    index,
-                    values: values.clone(),
-                    capability: result_capability.resolve.clone(),
-                    remaining_elements: remaining_elements_count.clone(),
-                },
+                        <span class="comment">// 15. Return undefined.
+                        </span><span class="prelude-val">Ok</span>(JsValue::undefined())
+                    },
+                    ResolveRejectElementCaptures {
+                        already_called: Rc::new(Cell::new(<span class="bool-val">false</span>)),
+                        index,
+                        values: values.clone(),
+                        capability: result_capability.resolve.clone(),
+                        remaining_elements: remaining_elements_count.clone(),
+                    },
+                ),
             )
             .name(<span class="string">&quot;&quot;</span>)
             .length(<span class="number">1</span>)
@@ -3269,79 +3308,82 @@
             // o. Set onRejected.[[Errors]] to errors.
             // p. Set onRejected.[[Capability]] to resultCapability.
             // q. Set onRejected.[[RemainingElements]] to remainingElementsCount.
-            </span><span class="kw">let </span>on_rejected = FunctionBuilder::closure_with_captures(
+            </span><span class="kw">let </span>on_rejected = FunctionObjectBuilder::new(
                 context,
-                |<span class="kw">_</span>, args, captures, context| {
-                    <span class="comment">// https://tc39.es/ecma262/#sec-promise.any-reject-element-functions
+                NativeFunction::from_copy_closure_with_captures(
+                    |<span class="kw">_</span>, args, captures, context| {
+                        <span class="comment">// https://tc39.es/ecma262/#sec-promise.any-reject-element-functions
 
-                    // 1. Let F be the active function object.
+                        // 1. Let F be the active function object.
 
-                    // 2. If F.[[AlreadyCalled]] is true, return undefined.
-                    </span><span class="kw">if </span>captures.already_called.get() {
-                        <span class="kw">return </span><span class="prelude-val">Ok</span>(JsValue::undefined());
-                    }
+                        // 2. If F.[[AlreadyCalled]] is true, return undefined.
+                        </span><span class="kw">if </span>captures.already_called.get() {
+                            <span class="kw">return </span><span class="prelude-val">Ok</span>(JsValue::undefined());
+                        }
 
-                    <span class="comment">// 3. Set F.[[AlreadyCalled]] to true.
-                    </span>captures.already_called.set(<span class="bool-val">true</span>);
+                        <span class="comment">// 3. Set F.[[AlreadyCalled]] to true.
+                        </span>captures.already_called.set(<span class="bool-val">true</span>);
 
-                    <span class="comment">// 4. Let index be F.[[Index]].
-                    // 5. Let errors be F.[[Errors]].
-                    // 6. Let promiseCapability be F.[[Capability]].
-                    // 7. Let remainingElementsCount be F.[[RemainingElements]].
+                        <span class="comment">// 4. Let index be F.[[Index]].
+                        // 5. Let errors be F.[[Errors]].
+                        // 6. Let promiseCapability be F.[[Capability]].
+                        // 7. Let remainingElementsCount be F.[[RemainingElements]].
 
-                    // 8. Set errors[index] to x.
-                    </span>captures.errors.borrow_mut()[captures.index] = args.get_or_undefined(<span class="number">0</span>).clone();
+                        // 8. Set errors[index] to x.
+                        </span>captures.errors.borrow_mut()[captures.index] =
+                            args.get_or_undefined(<span class="number">0</span>).clone();
 
-                    <span class="comment">// 9. Set remainingElementsCount.[[Value]] to remainingElementsCount.[[Value]] - 1.
-                    </span>captures
-                        .remaining_elements_count
-                        .set(captures.remaining_elements_count.get() - <span class="number">1</span>);
+                        <span class="comment">// 9. Set remainingElementsCount.[[Value]] to remainingElementsCount.[[Value]] - 1.
+                        </span>captures
+                            .remaining_elements_count
+                            .set(captures.remaining_elements_count.get() - <span class="number">1</span>);
 
-                    <span class="comment">// 10. If remainingElementsCount.[[Value]] is 0, then
-                    </span><span class="kw">if </span>captures.remaining_elements_count.get() == <span class="number">0 </span>{
-                        <span class="comment">// a. Let error be a newly created AggregateError object.
-                        </span><span class="kw">let </span>error = JsObject::from_proto_and_data(
-                            context
-                                .intrinsics()
-                                .constructors()
-                                .aggregate_error()
-                                .prototype(),
-                            ObjectData::error(ErrorKind::Aggregate),
-                        );
+                        <span class="comment">// 10. If remainingElementsCount.[[Value]] is 0, then
+                        </span><span class="kw">if </span>captures.remaining_elements_count.get() == <span class="number">0 </span>{
+                            <span class="comment">// a. Let error be a newly created AggregateError object.
+                            </span><span class="kw">let </span>error = JsObject::from_proto_and_data(
+                                context
+                                    .intrinsics()
+                                    .constructors()
+                                    .aggregate_error()
+                                    .prototype(),
+                                ObjectData::error(ErrorKind::Aggregate),
+                            );
 
-                        <span class="comment">// b. Perform ! DefinePropertyOrThrow(error, &quot;errors&quot;, PropertyDescriptor { [[Configurable]]: true, [[Enumerable]]: false, [[Writable]]: true, [[Value]]: CreateArrayFromList(errors) }).
-                        </span>error
-                            .define_property_or_throw(
-                                <span class="string">&quot;errors&quot;</span>,
-                                PropertyDescriptorBuilder::new()
-                                    .configurable(<span class="bool-val">true</span>)
-                                    .enumerable(<span class="bool-val">false</span>)
-                                    .writable(<span class="bool-val">true</span>)
-                                    .value(Array::create_array_from_list(
-                                        captures.errors.borrow().as_slice().iter().cloned(),
-                                        context,
-                                    )),
+                            <span class="comment">// b. Perform ! DefinePropertyOrThrow(error, &quot;errors&quot;, PropertyDescriptor { [[Configurable]]: true, [[Enumerable]]: false, [[Writable]]: true, [[Value]]: CreateArrayFromList(errors) }).
+                            </span>error
+                                .define_property_or_throw(
+                                    <span class="string">&quot;errors&quot;</span>,
+                                    PropertyDescriptorBuilder::new()
+                                        .configurable(<span class="bool-val">true</span>)
+                                        .enumerable(<span class="bool-val">false</span>)
+                                        .writable(<span class="bool-val">true</span>)
+                                        .value(Array::create_array_from_list(
+                                            captures.errors.borrow().as_slice().iter().cloned(),
+                                            context,
+                                        )),
+                                    context,
+                                )
+                                .expect(<span class="string">&quot;cannot fail per spec&quot;</span>);
+                            <span class="comment">// c. Return ? Call(promiseCapability.[[Reject]], undefined, « error »).
+                            </span><span class="kw">return </span>captures.capability_reject.call(
+                                <span class="kw-2">&amp;</span>JsValue::undefined(),
+                                <span class="kw-2">&amp;</span>[error.into()],
                                 context,
-                            )
-                            .expect(<span class="string">&quot;cannot fail per spec&quot;</span>);
-                        <span class="comment">// c. Return ? Call(promiseCapability.[[Reject]], undefined, « error »).
-                        </span><span class="kw">return </span>captures.capability_reject.call(
-                            <span class="kw-2">&amp;</span>JsValue::undefined(),
-                            <span class="kw-2">&amp;</span>[error.into()],
-                            context,
-                        );
-                    }
+                            );
+                        }
 
-                    <span class="comment">// 11. Return undefined.
-                    </span><span class="prelude-val">Ok</span>(JsValue::undefined())
-                },
-                RejectElementCaptures {
-                    already_called: Rc::new(Cell::new(<span class="bool-val">false</span>)),
-                    index,
-                    errors: errors.clone(),
-                    capability_reject: result_capability.reject.clone(),
-                    remaining_elements_count: remaining_elements_count.clone(),
-                },
+                        <span class="comment">// 11. Return undefined.
+                        </span><span class="prelude-val">Ok</span>(JsValue::undefined())
+                    },
+                    RejectElementCaptures {
+                        already_called: Rc::new(Cell::new(<span class="bool-val">false</span>)),
+                        index,
+                        errors: errors.clone(),
+                        capability_reject: result_capability.reject.clone(),
+                        remaining_elements_count: remaining_elements_count.clone(),
+                    },
+                ),
             )
             .name(<span class="string">&quot;&quot;</span>)
             .length(<span class="number">1</span>)
@@ -3393,49 +3435,50 @@
         <span class="comment">// 2. Let stepsResolve be the algorithm steps defined in Promise Resolve Functions.
         // 3. Let lengthResolve be the number of non-optional parameters of the function definition in Promise Resolve Functions.
         // 4. Let resolve be CreateBuiltinFunction(stepsResolve, lengthResolve, &quot;&quot;, « [[Promise]], [[AlreadyResolved]] »).
-        </span><span class="kw">let </span>resolve = FunctionBuilder::closure_with_captures(
+        </span><span class="kw">let </span>resolve = FunctionObjectBuilder::new(
             context,
-            |_this, args, captures, context| {
-                <span class="comment">// https://tc39.es/ecma262/#sec-promise-resolve-functions
+            NativeFunction::from_copy_closure_with_captures(
+                |_this, args, captures, context| {
+                    <span class="comment">// https://tc39.es/ecma262/#sec-promise-resolve-functions
 
-                // 1. Let F be the active function object.
-                // 2. Assert: F has a [[Promise]] internal slot whose value is an Object.
-                // 3. Let promise be F.[[Promise]].
-                // 4. Let alreadyResolved be F.[[AlreadyResolved]].
-                </span><span class="kw">let </span>RejectResolveCaptures {
-                    promise,
-                    already_resolved,
-                } = captures;
+                    // 1. Let F be the active function object.
+                    // 2. Assert: F has a [[Promise]] internal slot whose value is an Object.
+                    // 3. Let promise be F.[[Promise]].
+                    // 4. Let alreadyResolved be F.[[AlreadyResolved]].
+                    </span><span class="kw">let </span>RejectResolveCaptures {
+                        promise,
+                        already_resolved,
+                    } = captures;
 
-                <span class="comment">// 5. If alreadyResolved.[[Value]] is true, return undefined.
-                </span><span class="kw">if </span>already_resolved.get() {
-                    <span class="kw">return </span><span class="prelude-val">Ok</span>(JsValue::Undefined);
-                }
+                    <span class="comment">// 5. If alreadyResolved.[[Value]] is true, return undefined.
+                    </span><span class="kw">if </span>already_resolved.get() {
+                        <span class="kw">return </span><span class="prelude-val">Ok</span>(JsValue::Undefined);
+                    }
 
-                <span class="comment">// 6. Set alreadyResolved.[[Value]] to true.
-                </span>already_resolved.set(<span class="bool-val">true</span>);
+                    <span class="comment">// 6. Set alreadyResolved.[[Value]] to true.
+                    </span>already_resolved.set(<span class="bool-val">true</span>);
 
-                <span class="kw">let </span>resolution = args.get_or_undefined(<span class="number">0</span>);
+                    <span class="kw">let </span>resolution = args.get_or_undefined(<span class="number">0</span>);
 
-                <span class="comment">// 7. If SameValue(resolution, promise) is true, then
-                </span><span class="kw">if </span>JsValue::same_value(resolution, <span class="kw-2">&amp;</span>promise.clone().into()) {
-                    <span class="comment">//   a. Let selfResolutionError be a newly created TypeError object.
-                    </span><span class="kw">let </span>self_resolution_error = JsNativeError::typ()
-                        .with_message(<span class="string">&quot;SameValue(resolution, promise) is true&quot;</span>)
-                        .to_opaque(context);
+                    <span class="comment">// 7. If SameValue(resolution, promise) is true, then
+                    </span><span class="kw">if </span>JsValue::same_value(resolution, <span class="kw-2">&amp;</span>promise.clone().into()) {
+                        <span class="comment">//   a. Let selfResolutionError be a newly created TypeError object.
+                        </span><span class="kw">let </span>self_resolution_error = JsNativeError::typ()
+                            .with_message(<span class="string">&quot;SameValue(resolution, promise) is true&quot;</span>)
+                            .to_opaque(context);
 
-                    <span class="comment">//   b. Perform RejectPromise(promise, selfResolutionError).
-                    </span>promise
-                        .borrow_mut()
-                        .as_promise_mut()
-                        .expect(<span class="string">&quot;Expected promise to be a Promise&quot;</span>)
-                        .reject_promise(<span class="kw-2">&amp;</span>self_resolution_error.into(), context);
+                        <span class="comment">//   b. Perform RejectPromise(promise, selfResolutionError).
+                        </span>promise
+                            .borrow_mut()
+                            .as_promise_mut()
+                            .expect(<span class="string">&quot;Expected promise to be a Promise&quot;</span>)
+                            .reject_promise(<span class="kw-2">&amp;</span>self_resolution_error.into(), context);
 
-                    <span class="comment">//   c. Return undefined.
-                    </span><span class="kw">return </span><span class="prelude-val">Ok</span>(JsValue::Undefined);
-                }
+                        <span class="comment">//   c. Return undefined.
+                        </span><span class="kw">return </span><span class="prelude-val">Ok</span>(JsValue::Undefined);
+                    }
 
-                <span class="kw">let </span><span class="prelude-val">Some</span>(then) = resolution.as_object() <span class="kw">else </span>{
+                    <span class="kw">let </span><span class="prelude-val">Some</span>(then) = resolution.as_object() <span class="kw">else </span>{
                     <span class="comment">// 8. If Type(resolution) is not Object, then
                     //   a. Perform FulfillPromise(promise, resolution).
                     </span>promise
@@ -3448,58 +3491,59 @@
                     </span><span class="kw">return </span><span class="prelude-val">Ok</span>(JsValue::Undefined);
                 };
 
-                <span class="comment">// 9. Let then be Completion(Get(resolution, &quot;then&quot;)).
-                </span><span class="kw">let </span>then_action = <span class="kw">match </span>then.get(<span class="string">&quot;then&quot;</span>, context) {
-                    <span class="comment">// 10. If then is an abrupt completion, then
-                    </span><span class="prelude-val">Err</span>(e) =&gt; {
-                        <span class="comment">//   a. Perform RejectPromise(promise, then.[[Value]]).
-                        </span>promise
-                            .borrow_mut()
-                            .as_promise_mut()
-                            .expect(<span class="string">&quot;Expected promise to be a Promise&quot;</span>)
-                            .reject_promise(<span class="kw-2">&amp;</span>e.to_opaque(context), context);
+                    <span class="comment">// 9. Let then be Completion(Get(resolution, &quot;then&quot;)).
+                    </span><span class="kw">let </span>then_action = <span class="kw">match </span>then.get(<span class="string">&quot;then&quot;</span>, context) {
+                        <span class="comment">// 10. If then is an abrupt completion, then
+                        </span><span class="prelude-val">Err</span>(e) =&gt; {
+                            <span class="comment">//   a. Perform RejectPromise(promise, then.[[Value]]).
+                            </span>promise
+                                .borrow_mut()
+                                .as_promise_mut()
+                                .expect(<span class="string">&quot;Expected promise to be a Promise&quot;</span>)
+                                .reject_promise(<span class="kw-2">&amp;</span>e.to_opaque(context), context);
 
-                        <span class="comment">//   b. Return undefined.
-                        </span><span class="kw">return </span><span class="prelude-val">Ok</span>(JsValue::Undefined);
-                    }
-                    <span class="comment">// 11. Let thenAction be then.[[Value]].
-                    </span><span class="prelude-val">Ok</span>(then) =&gt; then,
-                };
+                            <span class="comment">//   b. Return undefined.
+                            </span><span class="kw">return </span><span class="prelude-val">Ok</span>(JsValue::Undefined);
+                        }
+                        <span class="comment">// 11. Let thenAction be then.[[Value]].
+                        </span><span class="prelude-val">Ok</span>(then) =&gt; then,
+                    };
 
-                <span class="comment">// 12. If IsCallable(thenAction) is false, then
-                </span><span class="kw">let </span>then_action = <span class="kw">match </span>then_action.as_object() {
-                    <span class="prelude-val">Some</span>(then_action) <span class="kw">if </span>then_action.is_callable() =&gt; then_action,
-                    <span class="kw">_ </span>=&gt; {
-                        <span class="comment">// a. Perform FulfillPromise(promise, resolution).
-                        </span>promise
-                            .borrow_mut()
-                            .as_promise_mut()
-                            .expect(<span class="string">&quot;Expected promise to be a Promise&quot;</span>)
-                            .fulfill_promise(resolution, context);
+                    <span class="comment">// 12. If IsCallable(thenAction) is false, then
+                    </span><span class="kw">let </span>then_action = <span class="kw">match </span>then_action.as_object() {
+                        <span class="prelude-val">Some</span>(then_action) <span class="kw">if </span>then_action.is_callable() =&gt; then_action,
+                        <span class="kw">_ </span>=&gt; {
+                            <span class="comment">// a. Perform FulfillPromise(promise, resolution).
+                            </span>promise
+                                .borrow_mut()
+                                .as_promise_mut()
+                                .expect(<span class="string">&quot;Expected promise to be a Promise&quot;</span>)
+                                .fulfill_promise(resolution, context);
 
-                        <span class="comment">//   b. Return undefined.
-                        </span><span class="kw">return </span><span class="prelude-val">Ok</span>(JsValue::Undefined);
-                    }
-                };
+                            <span class="comment">//   b. Return undefined.
+                            </span><span class="kw">return </span><span class="prelude-val">Ok</span>(JsValue::Undefined);
+                        }
+                    };
 
-                <span class="comment">// 13. Let thenJobCallback be HostMakeJobCallback(thenAction).
-                </span><span class="kw">let </span>then_job_callback = JobCallback::make_job_callback(then_action.clone());
+                    <span class="comment">// 13. Let thenJobCallback be HostMakeJobCallback(thenAction).
+                    </span><span class="kw">let </span>then_job_callback = JobCallback::make_job_callback(then_action.clone());
 
-                <span class="comment">// 14. Let job be NewPromiseResolveThenableJob(promise, resolution, thenJobCallback).
-                </span><span class="kw">let </span>job: JobCallback = PromiseJob::new_promise_resolve_thenable_job(
-                    promise.clone(),
-                    resolution.clone(),
-                    then_job_callback,
-                    context,
-                );
+                    <span class="comment">// 14. Let job be NewPromiseResolveThenableJob(promise, resolution, thenJobCallback).
+                    </span><span class="kw">let </span>job: JobCallback = PromiseJob::new_promise_resolve_thenable_job(
+                        promise.clone(),
+                        resolution.clone(),
+                        then_job_callback,
+                        context,
+                    );
 
-                <span class="comment">// 15. Perform HostEnqueuePromiseJob(job.[[Job]], job.[[Realm]]).
-                </span>context.host_enqueue_promise_job(job);
+                    <span class="comment">// 15. Perform HostEnqueuePromiseJob(job.[[Job]], job.[[Realm]]).
+                    </span>context.host_enqueue_promise_job(job);
 
-                <span class="comment">// 16. Return undefined.
-                </span><span class="prelude-val">Ok</span>(JsValue::Undefined)
-            },
-            resolve_captures,
+                    <span class="comment">// 16. Return undefined.
+                    </span><span class="prelude-val">Ok</span>(JsValue::Undefined)
+                },
+                resolve_captures,
+            ),
         )
         .name(<span class="string">&quot;&quot;</span>)
         .length(<span class="number">1</span>)
@@ -3516,40 +3560,42 @@
         <span class="comment">// 7. Let stepsReject be the algorithm steps defined in Promise Reject Functions.
         // 8. Let lengthReject be the number of non-optional parameters of the function definition in Promise Reject Functions.
         // 9. Let reject be CreateBuiltinFunction(stepsReject, lengthReject, &quot;&quot;, « [[Promise]], [[AlreadyResolved]] »).
-        </span><span class="kw">let </span>reject = FunctionBuilder::closure_with_captures(
+        </span><span class="kw">let </span>reject = FunctionObjectBuilder::new(
             context,
-            |_this, args, captures, context| {
-                <span class="comment">// https://tc39.es/ecma262/#sec-promise-reject-functions
+            NativeFunction::from_copy_closure_with_captures(
+                |_this, args, captures, context| {
+                    <span class="comment">// https://tc39.es/ecma262/#sec-promise-reject-functions
 
-                // 1. Let F be the active function object.
-                // 2. Assert: F has a [[Promise]] internal slot whose value is an Object.
-                // 3. Let promise be F.[[Promise]].
-                // 4. Let alreadyResolved be F.[[AlreadyResolved]].
-                </span><span class="kw">let </span>RejectResolveCaptures {
-                    promise,
-                    already_resolved,
-                } = captures;
+                    // 1. Let F be the active function object.
+                    // 2. Assert: F has a [[Promise]] internal slot whose value is an Object.
+                    // 3. Let promise be F.[[Promise]].
+                    // 4. Let alreadyResolved be F.[[AlreadyResolved]].
+                    </span><span class="kw">let </span>RejectResolveCaptures {
+                        promise,
+                        already_resolved,
+                    } = captures;
 
-                <span class="comment">// 5. If alreadyResolved.[[Value]] is true, return undefined.
-                </span><span class="kw">if </span>already_resolved.get() {
-                    <span class="kw">return </span><span class="prelude-val">Ok</span>(JsValue::Undefined);
-                }
+                    <span class="comment">// 5. If alreadyResolved.[[Value]] is true, return undefined.
+                    </span><span class="kw">if </span>already_resolved.get() {
+                        <span class="kw">return </span><span class="prelude-val">Ok</span>(JsValue::Undefined);
+                    }
 
-                <span class="comment">// 6. Set alreadyResolved.[[Value]] to true.
-                </span>already_resolved.set(<span class="bool-val">true</span>);
+                    <span class="comment">// 6. Set alreadyResolved.[[Value]] to true.
+                    </span>already_resolved.set(<span class="bool-val">true</span>);
 
-                <span class="comment">// let reason = args.get_or_undefined(0);
-                // 7. Perform RejectPromise(promise, reason).
-                </span>promise
-                    .borrow_mut()
-                    .as_promise_mut()
-                    .expect(<span class="string">&quot;Expected promise to be a Promise&quot;</span>)
-                    .reject_promise(args.get_or_undefined(<span class="number">0</span>), context);
+                    <span class="comment">// let reason = args.get_or_undefined(0);
+                    // 7. Perform RejectPromise(promise, reason).
+                    </span>promise
+                        .borrow_mut()
+                        .as_promise_mut()
+                        .expect(<span class="string">&quot;Expected promise to be a Promise&quot;</span>)
+                        .reject_promise(args.get_or_undefined(<span class="number">0</span>), context);
 
-                <span class="comment">// 8. Return undefined.
-                </span><span class="prelude-val">Ok</span>(JsValue::Undefined)
-            },
-            reject_captures,
+                    <span class="comment">// 8. Return undefined.
+                    </span><span class="prelude-val">Ok</span>(JsValue::Undefined)
+                },
+                reject_captures,
+            ),
         )
         .name(<span class="string">&quot;&quot;</span>)
         .length(<span class="number">1</span>)
@@ -3948,94 +3994,104 @@
             }
 
             <span class="comment">// a. Let thenFinallyClosure be a new Abstract Closure with parameters (value) that captures onFinally and C and performs the following steps when called:
-            </span><span class="kw">let </span>then_finally_closure = FunctionBuilder::closure_with_captures(
+            </span><span class="kw">let </span>then_finally_closure = FunctionObjectBuilder::new(
                 context,
-                |_this, args, captures, context| {
-                    <span class="doccomment">/// Capture object for the abstract `returnValue` closure.
-                    </span><span class="attribute">#[derive(Debug, Trace, Finalize)]
-                    </span><span class="kw">struct </span>ReturnValueCaptures {
-                        value: JsValue,
-                    }
+                NativeFunction::from_copy_closure_with_captures(
+                    |_this, args, captures, context| {
+                        <span class="doccomment">/// Capture object for the abstract `returnValue` closure.
+                        </span><span class="attribute">#[derive(Debug, Trace, Finalize)]
+                        </span><span class="kw">struct </span>ReturnValueCaptures {
+                            value: JsValue,
+                        }
 
-                    <span class="kw">let </span>value = args.get_or_undefined(<span class="number">0</span>);
+                        <span class="kw">let </span>value = args.get_or_undefined(<span class="number">0</span>);
 
-                    <span class="comment">// i. Let result be ? Call(onFinally, undefined).
-                    </span><span class="kw">let </span>result = captures
-                        .on_finally
-                        .call(<span class="kw-2">&amp;</span>JsValue::undefined(), <span class="kw-2">&amp;</span>[], context)<span class="question-mark">?</span>;
+                        <span class="comment">// i. Let result be ? Call(onFinally, undefined).
+                        </span><span class="kw">let </span>result =
+                            captures
+                                .on_finally
+                                .call(<span class="kw-2">&amp;</span>JsValue::undefined(), <span class="kw-2">&amp;</span>[], context)<span class="question-mark">?</span>;
 
-                    <span class="comment">// ii. Let promise be ? PromiseResolve(C, result).
-                    </span><span class="kw">let </span>promise = <span class="self">Self</span>::promise_resolve(captures.c.clone(), result, context)<span class="question-mark">?</span>;
+                        <span class="comment">// ii. Let promise be ? PromiseResolve(C, result).
+                        </span><span class="kw">let </span>promise = <span class="self">Self</span>::promise_resolve(captures.c.clone(), result, context)<span class="question-mark">?</span>;
 
-                    <span class="comment">// iii. Let returnValue be a new Abstract Closure with no parameters that captures value and performs the following steps when called:
-                    </span><span class="kw">let </span>return_value = FunctionBuilder::closure_with_captures(
-                        context,
-                        |_this, _args, captures, _context| {
-                            <span class="comment">// 1. Return value.
-                            </span><span class="prelude-val">Ok</span>(captures.value.clone())
-                        },
-                        ReturnValueCaptures {
-                            value: value.clone(),
-                        },
-                    );
+                        <span class="comment">// iii. Let returnValue be a new Abstract Closure with no parameters that captures value and performs the following steps when called:
+                        </span><span class="kw">let </span>return_value = FunctionObjectBuilder::new(
+                            context,
+                            NativeFunction::from_copy_closure_with_captures(
+                                |_this, _args, captures, _context| {
+                                    <span class="comment">// 1. Return value.
+                                    </span><span class="prelude-val">Ok</span>(captures.value.clone())
+                                },
+                                ReturnValueCaptures {
+                                    value: value.clone(),
+                                },
+                            ),
+                        );
 
-                    <span class="comment">// iv. Let valueThunk be CreateBuiltinFunction(returnValue, 0, &quot;&quot;, « »).
-                    </span><span class="kw">let </span>value_thunk = return_value.length(<span class="number">0</span>).name(<span class="string">&quot;&quot;</span>).build();
+                        <span class="comment">// iv. Let valueThunk be CreateBuiltinFunction(returnValue, 0, &quot;&quot;, « »).
+                        </span><span class="kw">let </span>value_thunk = return_value.length(<span class="number">0</span>).name(<span class="string">&quot;&quot;</span>).build();
 
-                    <span class="comment">// v. Return ? Invoke(promise, &quot;then&quot;, « valueThunk »).
-                    </span>promise.invoke(<span class="string">&quot;then&quot;</span>, <span class="kw-2">&amp;</span>[value_thunk.into()], context)
-                },
-                FinallyCaptures {
-                    on_finally: on_finally.clone(),
-                    c: c.clone(),
-                },
+                        <span class="comment">// v. Return ? Invoke(promise, &quot;then&quot;, « valueThunk »).
+                        </span>promise.invoke(<span class="string">&quot;then&quot;</span>, <span class="kw-2">&amp;</span>[value_thunk.into()], context)
+                    },
+                    FinallyCaptures {
+                        on_finally: on_finally.clone(),
+                        c: c.clone(),
+                    },
+                ),
             );
 
             <span class="comment">// b. Let thenFinally be CreateBuiltinFunction(thenFinallyClosure, 1, &quot;&quot;, « »).
             </span><span class="kw">let </span>then_finally = then_finally_closure.length(<span class="number">1</span>).name(<span class="string">&quot;&quot;</span>).build();
 
             <span class="comment">// c. Let catchFinallyClosure be a new Abstract Closure with parameters (reason) that captures onFinally and C and performs the following steps when called:
-            </span><span class="kw">let </span>catch_finally_closure = FunctionBuilder::closure_with_captures(
+            </span><span class="kw">let </span>catch_finally_closure = FunctionObjectBuilder::new(
                 context,
-                |_this, args, captures, context| {
-                    <span class="doccomment">/// Capture object for the abstract `throwReason` closure.
-                    </span><span class="attribute">#[derive(Debug, Trace, Finalize)]
-                    </span><span class="kw">struct </span>ThrowReasonCaptures {
-                        reason: JsValue,
-                    }
+                NativeFunction::from_copy_closure_with_captures(
+                    |_this, args, captures, context| {
+                        <span class="doccomment">/// Capture object for the abstract `throwReason` closure.
+                        </span><span class="attribute">#[derive(Debug, Trace, Finalize)]
+                        </span><span class="kw">struct </span>ThrowReasonCaptures {
+                            reason: JsValue,
+                        }
 
-                    <span class="kw">let </span>reason = args.get_or_undefined(<span class="number">0</span>);
+                        <span class="kw">let </span>reason = args.get_or_undefined(<span class="number">0</span>);
 
-                    <span class="comment">// i. Let result be ? Call(onFinally, undefined).
-                    </span><span class="kw">let </span>result = captures
-                        .on_finally
-                        .call(<span class="kw-2">&amp;</span>JsValue::undefined(), <span class="kw-2">&amp;</span>[], context)<span class="question-mark">?</span>;
+                        <span class="comment">// i. Let result be ? Call(onFinally, undefined).
+                        </span><span class="kw">let </span>result =
+                            captures
+                                .on_finally
+                                .call(<span class="kw-2">&amp;</span>JsValue::undefined(), <span class="kw-2">&amp;</span>[], context)<span class="question-mark">?</span>;
 
-                    <span class="comment">// ii. Let promise be ? PromiseResolve(C, result).
-                    </span><span class="kw">let </span>promise = <span class="self">Self</span>::promise_resolve(captures.c.clone(), result, context)<span class="question-mark">?</span>;
+                        <span class="comment">// ii. Let promise be ? PromiseResolve(C, result).
+                        </span><span class="kw">let </span>promise = <span class="self">Self</span>::promise_resolve(captures.c.clone(), result, context)<span class="question-mark">?</span>;
 
-                    <span class="comment">// iii. Let throwReason be a new Abstract Closure with no parameters that captures reason and performs the following steps when called:
-                    </span><span class="kw">let </span>throw_reason = FunctionBuilder::closure_with_captures(
-                        context,
-                        |_this, _args, captures, _context| {
-                            <span class="comment">// 1. Return ThrowCompletion(reason).
-                            </span><span class="prelude-val">Err</span>(JsError::from_opaque(captures.reason.clone()))
-                        },
-                        ThrowReasonCaptures {
-                            reason: reason.clone(),
-                        },
-                    );
+                        <span class="comment">// iii. Let throwReason be a new Abstract Closure with no parameters that captures reason and performs the following steps when called:
+                        </span><span class="kw">let </span>throw_reason = FunctionObjectBuilder::new(
+                            context,
+                            NativeFunction::from_copy_closure_with_captures(
+                                |_this, _args, captures, _context| {
+                                    <span class="comment">// 1. Return ThrowCompletion(reason).
+                                    </span><span class="prelude-val">Err</span>(JsError::from_opaque(captures.reason.clone()))
+                                },
+                                ThrowReasonCaptures {
+                                    reason: reason.clone(),
+                                },
+                            ),
+                        );
 
-                    <span class="comment">// iv. Let thrower be CreateBuiltinFunction(throwReason, 0, &quot;&quot;, « »).
-                    </span><span class="kw">let </span>thrower = throw_reason.length(<span class="number">0</span>).name(<span class="string">&quot;&quot;</span>).build();
+                        <span class="comment">// iv. Let thrower be CreateBuiltinFunction(throwReason, 0, &quot;&quot;, « »).
+                        </span><span class="kw">let </span>thrower = throw_reason.length(<span class="number">0</span>).name(<span class="string">&quot;&quot;</span>).build();
 
-                    <span class="comment">// v. Return ? Invoke(promise, &quot;then&quot;, « thrower »).
-                    </span>promise.invoke(<span class="string">&quot;then&quot;</span>, <span class="kw-2">&amp;</span>[thrower.into()], context)
-                },
-                FinallyCaptures {
-                    on_finally: on_finally.clone(),
-                    c,
-                },
+                        <span class="comment">// v. Return ? Invoke(promise, &quot;then&quot;, « thrower »).
+                        </span>promise.invoke(<span class="string">&quot;then&quot;</span>, <span class="kw-2">&amp;</span>[thrower.into()], context)
+                    },
+                    FinallyCaptures {
+                        on_finally: on_finally.clone(),
+                        c,
+                    },
+                ),
             );
 
             <span class="comment">// d. Let catchFinally be CreateBuiltinFunction(catchFinallyClosure, 1, &quot;&quot;, « »).

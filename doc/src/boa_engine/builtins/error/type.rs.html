@@ -118,6 +118,7 @@
 <span id="117">117</span>
 <span id="118">118</span>
 <span id="119">119</span>
+<span id="120">120</span>
 </pre><pre class="rust"><code><span class="doccomment">//! This module implements the global `TypeError` object.
 //!
 //! The `TypeError` object represents an error when an operation could not be performed,
@@ -139,6 +140,7 @@
     builtins::{function::Function, BuiltIn, JsArgs},
     context::intrinsics::StandardConstructors,
     error::JsNativeError,
+    native_function::NativeFunction,
     object::{
         internal_methods::get_prototype_from_constructor, ConstructorBuilder, JsObject, ObjectData,
     },
@@ -223,7 +225,7 @@
     <span class="kw">let </span>function = JsObject::from_proto_and_data(
         context.intrinsics().constructors().function().prototype(),
         ObjectData::function(Function::Native {
-            function: throw_type_error,
+            function: NativeFunction::from_fn_ptr(throw_type_error),
             constructor: <span class="prelude-val">None</span>,
         }),
     );

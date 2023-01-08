@@ -1386,6 +1386,15 @@
 <span id="1385">1385</span>
 <span id="1386">1386</span>
 <span id="1387">1387</span>
+<span id="1388">1388</span>
+<span id="1389">1389</span>
+<span id="1390">1390</span>
+<span id="1391">1391</span>
+<span id="1392">1392</span>
+<span id="1393">1393</span>
+<span id="1394">1394</span>
+<span id="1395">1395</span>
+<span id="1396">1396</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Boa&#39;s implementation of ECMAScript&#39;s global `Object` object.
 //!
 //! The `Object` class represents one of ECMAScript&#39;s data types.
@@ -1409,9 +1418,10 @@
     context::intrinsics::StandardConstructors,
     error::JsNativeError,
     js_string,
+    native_function::NativeFunction,
     object::{
-        internal_methods::get_prototype_from_constructor, ConstructorBuilder, FunctionBuilder,
-        IntegrityLevel, JsObject, ObjectData, ObjectKind,
+        internal_methods::get_prototype_from_constructor, ConstructorBuilder,
+        FunctionObjectBuilder, IntegrityLevel, JsObject, ObjectData, ObjectKind,
     },
     property::{Attribute, PropertyDescriptor, PropertyKey, PropertyNameKind},
     string::utf16,
@@ -1436,13 +1446,19 @@
     <span class="kw">fn </span>init(context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <span class="prelude-ty">Option</span>&lt;JsValue&gt; {
         <span class="kw">let </span>_timer = Profiler::global().start_event(<span class="self">Self</span>::NAME, <span class="string">&quot;init&quot;</span>);
 
-        <span class="kw">let </span>legacy_proto_getter = FunctionBuilder::native(context, <span class="self">Self</span>::legacy_proto_getter)
-            .name(<span class="string">&quot;get __proto__&quot;</span>)
-            .build();
+        <span class="kw">let </span>legacy_proto_getter = FunctionObjectBuilder::new(
+            context,
+            NativeFunction::from_fn_ptr(<span class="self">Self</span>::legacy_proto_getter),
+        )
+        .name(<span class="string">&quot;get __proto__&quot;</span>)
+        .build();
 
-        <span class="kw">let </span>legacy_setter_proto = FunctionBuilder::native(context, <span class="self">Self</span>::legacy_proto_setter)
-            .name(<span class="string">&quot;set __proto__&quot;</span>)
-            .build();
+        <span class="kw">let </span>legacy_setter_proto = FunctionObjectBuilder::new(
+            context,
+            NativeFunction::from_fn_ptr(<span class="self">Self</span>::legacy_proto_setter),
+        )
+        .name(<span class="string">&quot;set __proto__&quot;</span>)
+        .build();
 
         ConstructorBuilder::with_standard_constructor(
             context,
@@ -2656,22 +2672,24 @@
 
         <span class="comment">// 4. Let closure be a new Abstract Closure with parameters (key, value) that captures
         // obj and performs the following steps when called:
-        </span><span class="kw">let </span>closure = FunctionBuilder::closure_with_captures(
+        </span><span class="kw">let </span>closure = FunctionObjectBuilder::new(
             context,
-            |<span class="kw">_</span>, args, obj, context| {
-                <span class="kw">let </span>key = args.get_or_undefined(<span class="number">0</span>);
-                <span class="kw">let </span>value = args.get_or_undefined(<span class="number">1</span>);
+            NativeFunction::from_copy_closure_with_captures(
+                |<span class="kw">_</span>, args, obj, context| {
+                    <span class="kw">let </span>key = args.get_or_undefined(<span class="number">0</span>);
+                    <span class="kw">let </span>value = args.get_or_undefined(<span class="number">1</span>);
 
-                <span class="comment">// a. Let propertyKey be ? ToPropertyKey(key).
-                </span><span class="kw">let </span>property_key = key.to_property_key(context)<span class="question-mark">?</span>;
+                    <span class="comment">// a. Let propertyKey be ? ToPropertyKey(key).
+                    </span><span class="kw">let </span>property_key = key.to_property_key(context)<span class="question-mark">?</span>;
 
-                <span class="comment">// b. Perform ! CreateDataPropertyOrThrow(obj, propertyKey, value).
-                </span>obj.create_data_property_or_throw(property_key, value.clone(), context)<span class="question-mark">?</span>;
+                    <span class="comment">// b. Perform ! CreateDataPropertyOrThrow(obj, propertyKey, value).
+                    </span>obj.create_data_property_or_throw(property_key, value.clone(), context)<span class="question-mark">?</span>;
 
-                <span class="comment">// c. Return undefined.
-                </span><span class="prelude-val">Ok</span>(JsValue::undefined())
-            },
-            obj.clone(),
+                    <span class="comment">// c. Return undefined.
+                    </span><span class="prelude-val">Ok</span>(JsValue::undefined())
+                },
+                obj.clone(),
+            ),
         );
 
         <span class="comment">// 5. Let adder be ! CreateBuiltinFunction(closure, 2, &quot;&quot;, « »).

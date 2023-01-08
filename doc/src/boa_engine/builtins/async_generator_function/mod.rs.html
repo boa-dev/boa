@@ -128,6 +128,7 @@
 <span id="127">127</span>
 <span id="128">128</span>
 <span id="129">129</span>
+<span id="130">130</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Boa&#39;s implementation of ECMAScript&#39;s `AsyncGeneratorFunction` object.
 //!
 //! More information:
@@ -140,6 +141,7 @@
         function::{BuiltInFunctionObject, ConstructorKind, Function},
         BuiltIn,
     },
+    native_function::NativeFunction,
     object::ObjectData,
     property::PropertyDescriptor,
     symbol::WellKnownSymbols,
@@ -197,7 +199,7 @@
             .configurable(<span class="bool-val">false</span>);
         constructor.borrow_mut().insert(<span class="string">&quot;prototype&quot;</span>, property);
         constructor.borrow_mut().data = ObjectData::function(Function::Native {
-            function: <span class="self">Self</span>::constructor,
+            function: NativeFunction::from_fn_ptr(<span class="self">Self</span>::constructor),
             constructor: <span class="prelude-val">Some</span>(ConstructorKind::Base),
         });
 

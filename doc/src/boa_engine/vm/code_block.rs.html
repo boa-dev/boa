@@ -1533,41 +1533,6 @@
 <span id="1532">1532</span>
 <span id="1533">1533</span>
 <span id="1534">1534</span>
-<span id="1535">1535</span>
-<span id="1536">1536</span>
-<span id="1537">1537</span>
-<span id="1538">1538</span>
-<span id="1539">1539</span>
-<span id="1540">1540</span>
-<span id="1541">1541</span>
-<span id="1542">1542</span>
-<span id="1543">1543</span>
-<span id="1544">1544</span>
-<span id="1545">1545</span>
-<span id="1546">1546</span>
-<span id="1547">1547</span>
-<span id="1548">1548</span>
-<span id="1549">1549</span>
-<span id="1550">1550</span>
-<span id="1551">1551</span>
-<span id="1552">1552</span>
-<span id="1553">1553</span>
-<span id="1554">1554</span>
-<span id="1555">1555</span>
-<span id="1556">1556</span>
-<span id="1557">1557</span>
-<span id="1558">1558</span>
-<span id="1559">1559</span>
-<span id="1560">1560</span>
-<span id="1561">1561</span>
-<span id="1562">1562</span>
-<span id="1563">1563</span>
-<span id="1564">1564</span>
-<span id="1565">1565</span>
-<span id="1566">1566</span>
-<span id="1567">1567</span>
-<span id="1568">1568</span>
-<span id="1569">1569</span>
 </pre><pre class="rust"><code><span class="doccomment">//! `CodeBlock`
 //!
 //! This module is for the `CodeBlock` which implements a function representation in the VM
@@ -2275,24 +2240,15 @@
                 function,
                 constructor,
             } =&gt; {
-                <span class="kw">let </span>function = <span class="kw-2">*</span>function;
+                <span class="kw">let </span>function = function.clone();
                 <span class="kw">let </span>constructor = <span class="kw-2">*</span>constructor;
                 drop(object);
 
                 <span class="kw">if </span>constructor.is_some() {
-                    function(<span class="kw-2">&amp;</span>JsValue::undefined(), args, context)
+                    function.call(<span class="kw-2">&amp;</span>JsValue::undefined(), args, context)
                 } <span class="kw">else </span>{
-                    function(this, args, context)
+                    function.call(this, args, context)
                 }
-            }
-            Function::Closure {
-                function, captures, ..
-            } =&gt; {
-                <span class="kw">let </span>function = function.clone();
-                <span class="kw">let </span>captures = captures.clone();
-                drop(object);
-
-                (function)(this, args, captures, context)
             }
             Function::Ordinary {
                 code, environments, ..
@@ -2859,40 +2815,14 @@
                 constructor,
                 ..
             } =&gt; {
-                <span class="kw">let </span>function = <span class="kw-2">*</span>function;
+                <span class="kw">let </span>function = function.clone();
                 <span class="kw">let </span>constructor = <span class="kw-2">*</span>constructor;
                 drop(object);
 
-                <span class="kw">match </span>function(this_target, args, context)<span class="question-mark">? </span>{
+                <span class="kw">match </span>function.call(this_target, args, context)<span class="question-mark">? </span>{
                     JsValue::Object(<span class="kw-2">ref </span>o) =&gt; <span class="prelude-val">Ok</span>(o.clone()),
                     val =&gt; {
                         <span class="kw">if </span>constructor.expect(<span class="string">&quot;hmm&quot;</span>).is_base() || val.is_undefined() {
-                            create_this(context)
-                        } <span class="kw">else </span>{
-                            <span class="prelude-val">Err</span>(JsNativeError::typ()
-                                .with_message(
-                                    <span class="string">&quot;Derived constructor can only return an Object or undefined&quot;</span>,
-                                )
-                                .into())
-                        }
-                    }
-                }
-            }
-            Function::Closure {
-                function,
-                captures,
-                constructor,
-                ..
-            } =&gt; {
-                <span class="kw">let </span>function = function.clone();
-                <span class="kw">let </span>captures = captures.clone();
-                <span class="kw">let </span>constructor = <span class="kw-2">*</span>constructor;
-                drop(object);
-
-                <span class="kw">match </span>(function)(this_target, args, captures, context)<span class="question-mark">? </span>{
-                    JsValue::Object(<span class="kw-2">ref </span>o) =&gt; <span class="prelude-val">Ok</span>(o.clone()),
-                    val =&gt; {
-                        <span class="kw">if </span>constructor.expect(<span class="string">&quot;hmma&quot;</span>).is_base() || val.is_undefined() {
                             create_this(context)
                         } <span class="kw">else </span>{
                             <span class="prelude-val">Err</span>(JsNativeError::typ()

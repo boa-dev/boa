@@ -838,6 +838,9 @@
 <span id="837">837</span>
 <span id="838">838</span>
 <span id="839">839</span>
+<span id="840">840</span>
+<span id="841">841</span>
+<span id="842">842</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Boa&#39;s implementation of ECMAScript&#39;s global `ArrayBuffer` object.
 //!
 //! More information:
@@ -854,9 +857,10 @@
     builtins::{typed_array::TypedArrayKind, BuiltIn, JsArgs},
     context::intrinsics::StandardConstructors,
     error::JsNativeError,
+    native_function::NativeFunction,
     object::{
-        internal_methods::get_prototype_from_constructor, ConstructorBuilder, FunctionBuilder,
-        JsObject, ObjectData,
+        internal_methods::get_prototype_from_constructor, ConstructorBuilder,
+        FunctionObjectBuilder, JsObject, ObjectData,
     },
     property::Attribute,
     symbol::WellKnownSymbols,
@@ -895,14 +899,16 @@
 
         <span class="kw">let </span>flag_attributes = Attribute::CONFIGURABLE | Attribute::NON_ENUMERABLE;
 
-        <span class="kw">let </span>get_species = FunctionBuilder::native(context, <span class="self">Self</span>::get_species)
-            .name(<span class="string">&quot;get [Symbol.species]&quot;</span>)
-            .constructor(<span class="bool-val">false</span>)
-            .build();
+        <span class="kw">let </span>get_species =
+            FunctionObjectBuilder::new(context, NativeFunction::from_fn_ptr(<span class="self">Self</span>::get_species))
+                .name(<span class="string">&quot;get [Symbol.species]&quot;</span>)
+                .constructor(<span class="bool-val">false</span>)
+                .build();
 
-        <span class="kw">let </span>get_byte_length = FunctionBuilder::native(context, <span class="self">Self</span>::get_byte_length)
-            .name(<span class="string">&quot;get byteLength&quot;</span>)
-            .build();
+        <span class="kw">let </span>get_byte_length =
+            FunctionObjectBuilder::new(context, NativeFunction::from_fn_ptr(<span class="self">Self</span>::get_byte_length))
+                .name(<span class="string">&quot;get byteLength&quot;</span>)
+                .build();
 
         ConstructorBuilder::with_standard_constructor(
             context,

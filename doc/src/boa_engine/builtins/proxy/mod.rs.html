@@ -190,6 +190,11 @@
 <span id="189">189</span>
 <span id="190">190</span>
 <span id="191">191</span>
+<span id="192">192</span>
+<span id="193">193</span>
+<span id="194">194</span>
+<span id="195">195</span>
+<span id="196">196</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Boa&#39;s implementation of ECMAScript&#39;s global `Proxy` object.
 //!
 //! The `Proxy` object enables you to create a proxy for another object,
@@ -202,10 +207,13 @@
 //! [spec]: https://tc39.es/ecma262/#sec-proxy-objects
 //! [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Proxy
 
-</span><span class="kw">use crate</span>::{
+</span><span class="kw">use </span>std::cell::Cell;
+
+<span class="kw">use crate</span>::{
     builtins::{BuiltIn, JsArgs},
     error::JsNativeError,
-    object::{ConstructorBuilder, FunctionBuilder, JsFunction, JsObject, ObjectData},
+    native_function::NativeFunction,
+    object::{ConstructorBuilder, FunctionObjectBuilder, JsFunction, JsObject, ObjectData},
     Context, JsResult, JsValue,
 };
 <span class="kw">use </span>boa_gc::{Finalize, Trace};
@@ -326,27 +334,29 @@
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>revoker(proxy: JsObject, context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsFunction {
         <span class="comment">// 3. Let revoker be ! CreateBuiltinFunction(revokerClosure, 0, &quot;&quot;, « [[RevocableProxy]] »).
         // 4. Set revoker.[[RevocableProxy]] to p.
-        </span>FunctionBuilder::closure_with_captures(
+        </span>FunctionObjectBuilder::new(
             context,
-            |<span class="kw">_</span>, <span class="kw">_</span>, revocable_proxy, <span class="kw">_</span>| {
-                <span class="comment">// a. Let F be the active function object.
-                // b. Let p be F.[[RevocableProxy]].
-                // d. Set F.[[RevocableProxy]] to null.
-                </span><span class="kw">if let </span><span class="prelude-val">Some</span>(p) = revocable_proxy.take() {
-                    <span class="comment">// e. Assert: p is a Proxy object.
-                    // f. Set p.[[ProxyTarget]] to null.
-                    // g. Set p.[[ProxyHandler]] to null.
-                    </span>p.borrow_mut()
-                        .as_proxy_mut()
-                        .expect(<span class="string">&quot;[[RevocableProxy]] must be a proxy object&quot;</span>)
-                        .data = <span class="prelude-val">None</span>;
-                }
+            NativeFunction::from_copy_closure_with_captures(
+                |<span class="kw">_</span>, <span class="kw">_</span>, revocable_proxy, <span class="kw">_</span>| {
+                    <span class="comment">// a. Let F be the active function object.
+                    // b. Let p be F.[[RevocableProxy]].
+                    // d. Set F.[[RevocableProxy]] to null.
+                    </span><span class="kw">if let </span><span class="prelude-val">Some</span>(p) = revocable_proxy.take() {
+                        <span class="comment">// e. Assert: p is a Proxy object.
+                        // f. Set p.[[ProxyTarget]] to null.
+                        // g. Set p.[[ProxyHandler]] to null.
+                        </span>p.borrow_mut()
+                            .as_proxy_mut()
+                            .expect(<span class="string">&quot;[[RevocableProxy]] must be a proxy object&quot;</span>)
+                            .data = <span class="prelude-val">None</span>;
+                    }
 
-                <span class="comment">// c. If p is null, return undefined.
-                // h. Return undefined.
-                </span><span class="prelude-val">Ok</span>(JsValue::undefined())
-            },
-            <span class="prelude-val">Some</span>(proxy),
+                    <span class="comment">// c. If p is null, return undefined.
+                    // h. Return undefined.
+                    </span><span class="prelude-val">Ok</span>(JsValue::undefined())
+                },
+                Cell::new(<span class="prelude-val">Some</span>(proxy)),
+            ),
         )
         .build()
     }

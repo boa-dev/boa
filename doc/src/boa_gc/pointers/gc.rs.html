@@ -266,6 +266,34 @@
 <span id="265">265</span>
 <span id="266">266</span>
 <span id="267">267</span>
+<span id="268">268</span>
+<span id="269">269</span>
+<span id="270">270</span>
+<span id="271">271</span>
+<span id="272">272</span>
+<span id="273">273</span>
+<span id="274">274</span>
+<span id="275">275</span>
+<span id="276">276</span>
+<span id="277">277</span>
+<span id="278">278</span>
+<span id="279">279</span>
+<span id="280">280</span>
+<span id="281">281</span>
+<span id="282">282</span>
+<span id="283">283</span>
+<span id="284">284</span>
+<span id="285">285</span>
+<span id="286">286</span>
+<span id="287">287</span>
+<span id="288">288</span>
+<span id="289">289</span>
+<span id="290">290</span>
+<span id="291">291</span>
+<span id="292">292</span>
+<span id="293">293</span>
+<span id="294">294</span>
+<span id="295">295</span>
 </pre><pre class="rust"><code><span class="kw">use crate</span>::{
     finalizer_safe,
     internals::GcBox,
@@ -315,6 +343,16 @@
         gc.set_root();
         gc
     }
+
+    <span class="doccomment">/// Consumes the `Gc`, returning a wrapped raw pointer.
+    ///
+    /// To avoid a memory leak, the pointer must be converted back to a `Gc` using [`Gc::from_raw`].
+    </span><span class="attribute">#[allow(clippy::use_self)]
+    </span><span class="kw">pub fn </span>into_raw(this: Gc&lt;T&gt;) -&gt; NonNull&lt;GcBox&lt;T&gt;&gt; {
+        <span class="kw">let </span>ptr = this.inner_ptr.get();
+        std::mem::forget(this);
+        ptr
+    }
 }
 
 <span class="kw">impl</span>&lt;T: Trace + <span class="question-mark">?</span>Sized&gt; Gc&lt;T&gt; {
@@ -323,9 +361,26 @@
         GcBox::ptr_eq(this.inner(), other.inner())
     }
 
-    <span class="doccomment">/// Will return a new rooted `Gc` from a `GcBox` pointer
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>from_ptr(ptr: NonNull&lt;GcBox&lt;T&gt;&gt;) -&gt; <span class="self">Self </span>{
-        <span class="comment">// SAFETY: the value provided as a pointer MUST be a valid GcBox.
+    <span class="doccomment">/// Constructs a `Gc&lt;T&gt;` from a raw pointer.
+    ///
+    /// The raw pointer must have been returned by a previous call to [`Gc&lt;U&gt;::into_raw`][Gc::into_raw]
+    /// where `U` must have the same size and alignment as `T`.
+    ///
+    /// # Safety
+    ///
+    /// This function is unsafe because improper use may lead to memory corruption, double-free,
+    /// or misbehaviour of the garbage collector.
+    </span><span class="attribute">#[must_use]
+    </span><span class="kw">pub const unsafe fn </span>from_raw(ptr: NonNull&lt;GcBox&lt;T&gt;&gt;) -&gt; <span class="self">Self </span>{
+        <span class="self">Self </span>{
+            inner_ptr: Cell::new(ptr),
+            marker: PhantomData,
+        }
+    }
+
+    <span class="doccomment">/// Return a rooted `Gc` from a `GcBox` pointer
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">unsafe fn </span>from_ptr(ptr: NonNull&lt;GcBox&lt;T&gt;&gt;) -&gt; <span class="self">Self </span>{
+        <span class="comment">// SAFETY: the caller must ensure that the pointer is valid.
         </span><span class="kw">unsafe </span>{
             ptr.as_ref().root_inner();
             <span class="kw">let </span>gc = <span class="self">Self </span>{
@@ -427,7 +482,8 @@
 
 <span class="kw">impl</span>&lt;T: Trace + <span class="question-mark">?</span>Sized&gt; Clone <span class="kw">for </span>Gc&lt;T&gt; {
     <span class="kw">fn </span>clone(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="self">Self </span>{
-        <span class="self">Self</span>::from_ptr(<span class="self">self</span>.inner_ptr())
+        <span class="comment">// SAFETY: `&amp;self` is a valid Gc pointer.
+        </span><span class="kw">unsafe </span>{ <span class="self">Self</span>::from_ptr(<span class="self">self</span>.inner_ptr()) }
     }
 }
 

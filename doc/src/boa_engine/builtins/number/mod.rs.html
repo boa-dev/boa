@@ -1186,6 +1186,17 @@
 <span id="1185">1185</span>
 <span id="1186">1186</span>
 <span id="1187">1187</span>
+<span id="1188">1188</span>
+<span id="1189">1189</span>
+<span id="1190">1190</span>
+<span id="1191">1191</span>
+<span id="1192">1192</span>
+<span id="1193">1193</span>
+<span id="1194">1194</span>
+<span id="1195">1195</span>
+<span id="1196">1196</span>
+<span id="1197">1197</span>
+<span id="1198">1198</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Boa&#39;s implementation of ECMAScript&#39;s global `Number` object.
 //!
 //! The `Number` ECMAScript object is a wrapper object allowing you to work with numerical values.
@@ -1205,9 +1216,10 @@
     builtins::{string::is_trimmable_whitespace, BuiltIn, JsArgs},
     context::intrinsics::StandardConstructors,
     error::JsNativeError,
+    native_function::NativeFunction,
     object::{
-        internal_methods::get_prototype_from_constructor, ConstructorBuilder, FunctionBuilder,
-        JsObject, ObjectData,
+        internal_methods::get_prototype_from_constructor, ConstructorBuilder,
+        FunctionObjectBuilder, JsObject, ObjectData,
     },
     property::Attribute,
     string::utf16,
@@ -1238,17 +1250,19 @@
     <span class="kw">fn </span>init(context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <span class="prelude-ty">Option</span>&lt;JsValue&gt; {
         <span class="kw">let </span>_timer = Profiler::global().start_event(<span class="self">Self</span>::NAME, <span class="string">&quot;init&quot;</span>);
 
-        <span class="kw">let </span>parse_int = FunctionBuilder::native(context, <span class="self">Self</span>::parse_int)
-            .name(<span class="string">&quot;parseInt&quot;</span>)
-            .length(<span class="number">2</span>)
-            .constructor(<span class="bool-val">false</span>)
-            .build();
+        <span class="kw">let </span>parse_int =
+            FunctionObjectBuilder::new(context, NativeFunction::from_fn_ptr(<span class="self">Self</span>::parse_int))
+                .name(<span class="string">&quot;parseInt&quot;</span>)
+                .length(<span class="number">2</span>)
+                .constructor(<span class="bool-val">false</span>)
+                .build();
 
-        <span class="kw">let </span>parse_float = FunctionBuilder::native(context, <span class="self">Self</span>::parse_float)
-            .name(<span class="string">&quot;parseFloat&quot;</span>)
-            .length(<span class="number">1</span>)
-            .constructor(<span class="bool-val">false</span>)
-            .build();
+        <span class="kw">let </span>parse_float =
+            FunctionObjectBuilder::new(context, NativeFunction::from_fn_ptr(<span class="self">Self</span>::parse_float))
+                .name(<span class="string">&quot;parseFloat&quot;</span>)
+                .length(<span class="number">1</span>)
+                .constructor(<span class="bool-val">false</span>)
+                .build();
 
         context.register_global_property(
             <span class="string">&quot;parseInt&quot;</span>,
@@ -1261,8 +1275,16 @@
             Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
         );
 
-        context.register_global_builtin_function(<span class="string">&quot;isFinite&quot;</span>, <span class="number">1</span>, <span class="self">Self</span>::global_is_finite);
-        context.register_global_builtin_function(<span class="string">&quot;isNaN&quot;</span>, <span class="number">1</span>, <span class="self">Self</span>::global_is_nan);
+        context.register_global_builtin_callable(
+            <span class="string">&quot;isFinite&quot;</span>,
+            <span class="number">1</span>,
+            NativeFunction::from_fn_ptr(<span class="self">Self</span>::global_is_finite),
+        );
+        context.register_global_builtin_callable(
+            <span class="string">&quot;isNaN&quot;</span>,
+            <span class="number">1</span>,
+            NativeFunction::from_fn_ptr(<span class="self">Self</span>::global_is_nan),
+        );
 
         <span class="kw">let </span>attribute = Attribute::READONLY | Attribute::NON_ENUMERABLE | Attribute::PERMANENT;
 

@@ -553,6 +553,10 @@
 <span id="552">552</span>
 <span id="553">553</span>
 <span id="554">554</span>
+<span id="555">555</span>
+<span id="556">556</span>
+<span id="557">557</span>
+<span id="558">558</span>
 </pre><pre class="rust"><code><span class="kw">use </span>boa_gc::{custom_trace, Finalize, Trace};
 <span class="kw">use </span>boa_profiler::Profiler;
 <span class="kw">use </span>icu_collator::{
@@ -569,9 +573,10 @@
 <span class="kw">use crate</span>::{
     builtins::{BuiltIn, JsArgs},
     context::{intrinsics::StandardConstructors, BoaProvider},
+    native_function::NativeFunction,
     object::{
-        internal_methods::get_prototype_from_constructor, ConstructorBuilder, FunctionBuilder,
-        JsFunction, JsObject, ObjectData,
+        internal_methods::get_prototype_from_constructor, ConstructorBuilder,
+        FunctionObjectBuilder, JsFunction, JsObject, ObjectData,
     },
     property::Attribute,
     symbol::WellKnownSymbols,
@@ -715,10 +720,11 @@
     <span class="kw">fn </span>init(context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <span class="prelude-ty">Option</span>&lt;JsValue&gt; {
         <span class="kw">let </span>_timer = Profiler::global().start_event(<span class="self">Self</span>::NAME, <span class="string">&quot;init&quot;</span>);
 
-        <span class="kw">let </span>compare = FunctionBuilder::native(context, <span class="self">Self</span>::compare)
-            .name(<span class="string">&quot;get compare&quot;</span>)
-            .constructor(<span class="bool-val">false</span>)
-            .build();
+        <span class="kw">let </span>compare =
+            FunctionObjectBuilder::new(context, NativeFunction::from_fn_ptr(<span class="self">Self</span>::compare))
+                .name(<span class="string">&quot;get compare&quot;</span>)
+                .constructor(<span class="bool-val">false</span>)
+                .build();
 
         ConstructorBuilder::with_standard_constructor(
             context,
@@ -970,32 +976,34 @@
         </span><span class="kw">let </span>bound_compare = <span class="kw">if let </span><span class="prelude-val">Some</span>(f) = collator.bound_compare.clone() {
             f
         } <span class="kw">else </span>{
-            <span class="kw">let </span>bound_compare = FunctionBuilder::closure_with_captures(
+            <span class="kw">let </span>bound_compare = FunctionObjectBuilder::new(
                 context,
                 <span class="comment">// 10.3.3.1. Collator Compare Functions
                 // https://tc39.es/ecma402/#sec-collator-compare-functions
-                </span>|<span class="kw">_</span>, args, collator, context| {
-                    <span class="comment">// 1. Let collator be F.[[Collator]].
-                    // 2. Assert: Type(collator) is Object and collator has an [[InitializedCollator]] internal slot.
-                    </span><span class="kw">let </span>collator = collator.borrow();
-                    <span class="kw">let </span>collator = collator
-                        .as_collator()
-                        .expect(<span class="string">&quot;checked above that the object was a collator object&quot;</span>);
+                </span>NativeFunction::from_copy_closure_with_captures(
+                    |<span class="kw">_</span>, args, collator, context| {
+                        <span class="comment">// 1. Let collator be F.[[Collator]].
+                        // 2. Assert: Type(collator) is Object and collator has an [[InitializedCollator]] internal slot.
+                        </span><span class="kw">let </span>collator = collator.borrow();
+                        <span class="kw">let </span>collator = collator
+                            .as_collator()
+                            .expect(<span class="string">&quot;checked above that the object was a collator object&quot;</span>);
 
-                    <span class="comment">// 3. If x is not provided, let x be undefined.
-                    // 5. Let X be ? ToString(x).
-                    </span><span class="kw">let </span>x = args.get_or_undefined(<span class="number">0</span>).to_string(context)<span class="question-mark">?</span>;
+                        <span class="comment">// 3. If x is not provided, let x be undefined.
+                        // 5. Let X be ? ToString(x).
+                        </span><span class="kw">let </span>x = args.get_or_undefined(<span class="number">0</span>).to_string(context)<span class="question-mark">?</span>;
 
-                    <span class="comment">// 4. If y is not provided, let y be undefined.
-                    // 6. Let Y be ? ToString(y).
-                    </span><span class="kw">let </span>y = args.get_or_undefined(<span class="number">1</span>).to_string(context)<span class="question-mark">?</span>;
+                        <span class="comment">// 4. If y is not provided, let y be undefined.
+                        // 6. Let Y be ? ToString(y).
+                        </span><span class="kw">let </span>y = args.get_or_undefined(<span class="number">1</span>).to_string(context)<span class="question-mark">?</span>;
 
-                    <span class="comment">// 7. Return CompareStrings(collator, X, Y).
-                    </span><span class="kw">let </span>result = collator.collator.compare_utf16(<span class="kw-2">&amp;</span>x, <span class="kw-2">&amp;</span>y) <span class="kw">as </span>i32;
+                        <span class="comment">// 7. Return CompareStrings(collator, X, Y).
+                        </span><span class="kw">let </span>result = collator.collator.compare_utf16(<span class="kw-2">&amp;</span>x, <span class="kw-2">&amp;</span>y) <span class="kw">as </span>i32;
 
-                    <span class="prelude-val">Ok</span>(result.into())
-                },
-                collator_obj,
+                        <span class="prelude-val">Ok</span>(result.into())
+                    },
+                    collator_obj,
+                ),
             )
             .length(<span class="number">2</span>)
             .build();

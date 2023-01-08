@@ -439,13 +439,23 @@
 <span id="438">438</span>
 <span id="439">439</span>
 <span id="440">440</span>
+<span id="441">441</span>
+<span id="442">442</span>
+<span id="443">443</span>
+<span id="444">444</span>
+<span id="445">445</span>
+<span id="446">446</span>
+<span id="447">447</span>
+<span id="448">448</span>
+<span id="449">449</span>
 </pre><pre class="rust"><code><span class="kw">use crate</span>::{
     builtins::{
         iterable::{create_iter_result_object, IteratorRecord, IteratorResult},
         promise::{if_abrupt_reject_promise, PromiseCapability},
         JsArgs, Promise,
     },
-    object::{FunctionBuilder, JsObject, ObjectData},
+    native_function::NativeFunction,
+    object::{FunctionObjectBuilder, JsObject, ObjectData},
     property::PropertyDescriptor,
     Context, JsNativeError, JsResult, JsValue,
 };
@@ -470,18 +480,27 @@
         ObjectData::ordinary(),
     );
 
-    <span class="kw">let </span>next_function = FunctionBuilder::native(context, AsyncFromSyncIterator::next)
-        .name(<span class="string">&quot;next&quot;</span>)
-        .length(<span class="number">1</span>)
-        .build();
-    <span class="kw">let </span>return_function = FunctionBuilder::native(context, AsyncFromSyncIterator::r#return)
-        .name(<span class="string">&quot;return&quot;</span>)
-        .length(<span class="number">1</span>)
-        .build();
-    <span class="kw">let </span>throw_function = FunctionBuilder::native(context, AsyncFromSyncIterator::throw)
-        .name(<span class="string">&quot;throw&quot;</span>)
-        .length(<span class="number">1</span>)
-        .build();
+    <span class="kw">let </span>next_function = FunctionObjectBuilder::new(
+        context,
+        NativeFunction::from_fn_ptr(AsyncFromSyncIterator::next),
+    )
+    .name(<span class="string">&quot;next&quot;</span>)
+    .length(<span class="number">1</span>)
+    .build();
+    <span class="kw">let </span>return_function = FunctionObjectBuilder::new(
+        context,
+        NativeFunction::from_fn_ptr(AsyncFromSyncIterator::r#return),
+    )
+    .name(<span class="string">&quot;return&quot;</span>)
+    .length(<span class="number">1</span>)
+    .build();
+    <span class="kw">let </span>throw_function = FunctionObjectBuilder::new(
+        context,
+        NativeFunction::from_fn_ptr(AsyncFromSyncIterator::throw),
+    )
+    .name(<span class="string">&quot;throw&quot;</span>)
+    .length(<span class="number">1</span>)
+    .build();
 
     {
         <span class="kw">let </span><span class="kw-2">mut </span>prototype_mut = prototype.borrow_mut();
@@ -841,17 +860,16 @@
         <span class="comment">// 8. Let unwrap be a new Abstract Closure with parameters (value)
         // that captures done and performs the following steps when called:
         // 9. Let onFulfilled be CreateBuiltinFunction(unwrap, 1, &quot;&quot;, « »).
-        </span><span class="kw">let </span>on_fulfilled = FunctionBuilder::closure_with_captures(
+        </span><span class="kw">let </span>on_fulfilled = FunctionObjectBuilder::new(
             context,
-            |_this, args, done, context| {
+            NativeFunction::from_copy_closure(<span class="kw">move </span>|_this, args, context| {
                 <span class="comment">// a. Return CreateIterResultObject(value, done).
                 </span><span class="prelude-val">Ok</span>(create_iter_result_object(
                     args.get_or_undefined(<span class="number">0</span>).clone(),
-                    <span class="kw-2">*</span>done,
+                    done,
                     context,
                 ))
-            },
-            done,
+            }),
         )
         .name(<span class="string">&quot;&quot;</span>)
         .length(<span class="number">1</span>)

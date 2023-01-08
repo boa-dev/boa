@@ -361,8 +361,8 @@
 //! [class-trait]: ./trait.Class.html
 
 </span><span class="kw">use crate</span>::{
-    builtins::function::NativeFunctionSignature,
     error::JsNativeError,
+    native_function::NativeFunctionPointer,
     object::{ConstructorBuilder, JsFunction, JsObject, NativeObject, ObjectData, PROTOTYPE},
     property::{Attribute, PropertyDescriptor, PropertyKey},
     Context, JsResult, JsValue,
@@ -482,7 +482,7 @@
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
         name: N,
         length: usize,
-        function: NativeFunctionSignature,
+        function: NativeFunctionPointer,
     ) -&gt; <span class="kw-2">&amp;mut </span><span class="self">Self
     </span><span class="kw">where
         </span>N: AsRef&lt;str&gt;,
@@ -498,7 +498,7 @@
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
         name: N,
         length: usize,
-        function: NativeFunctionSignature,
+        function: NativeFunctionPointer,
     ) -&gt; <span class="kw-2">&amp;mut </span><span class="self">Self
     </span><span class="kw">where
         </span>N: AsRef&lt;str&gt;,

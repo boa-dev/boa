@@ -366,7 +366,7 @@
 <span class="doccomment">/// Initializes built-in objects and functions
 </span><span class="kw">pub fn </span>init(context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) {
     <span class="macro">macro_rules! </span>globals {
-        ($( <span class="macro-nonterminal">$builtin</span>:ty ),<span class="kw-2">*</span>) =&gt; {
+        ($( <span class="macro-nonterminal">$builtin</span>:ty ),<span class="kw-2">*</span>$(,)<span class="question-mark">?</span>) =&gt; {
             $(init_builtin::&lt;<span class="macro-nonterminal">$builtin</span>&gt;(context)
             );*
         }
@@ -423,7 +423,7 @@
         AsyncGenerator,
         AsyncGeneratorFunction,
         Uri,
-        WeakRef
+        WeakRef,
     };
 
     <span class="attribute">#[cfg(feature = <span class="string">&quot;intl&quot;</span>)]

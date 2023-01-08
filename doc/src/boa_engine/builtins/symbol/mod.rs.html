@@ -357,6 +357,9 @@
 <span id="356">356</span>
 <span id="357">357</span>
 <span id="358">358</span>
+<span id="359">359</span>
+<span id="360">360</span>
+<span id="361">361</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Boa&#39;s implementation of ECMAScript&#39;s global `Symbol` object.
 //!
 //! The data type symbol is a primitive data type.
@@ -381,7 +384,8 @@
 <span class="kw">use crate</span>::{
     builtins::BuiltIn,
     error::JsNativeError,
-    object::{ConstructorBuilder, FunctionBuilder},
+    native_function::NativeFunction,
+    object::{ConstructorBuilder, FunctionObjectBuilder},
     property::Attribute,
     symbol::{JsSymbol, WellKnownSymbols},
     value::JsValue,
@@ -455,16 +459,18 @@
 
         <span class="kw">let </span>attribute = Attribute::READONLY | Attribute::NON_ENUMERABLE | Attribute::PERMANENT;
 
-        <span class="kw">let </span>to_primitive = FunctionBuilder::native(context, <span class="self">Self</span>::to_primitive)
-            .name(<span class="string">&quot;[Symbol.toPrimitive]&quot;</span>)
-            .length(<span class="number">1</span>)
-            .constructor(<span class="bool-val">false</span>)
-            .build();
+        <span class="kw">let </span>to_primitive =
+            FunctionObjectBuilder::new(context, NativeFunction::from_fn_ptr(<span class="self">Self</span>::to_primitive))
+                .name(<span class="string">&quot;[Symbol.toPrimitive]&quot;</span>)
+                .length(<span class="number">1</span>)
+                .constructor(<span class="bool-val">false</span>)
+                .build();
 
-        <span class="kw">let </span>get_description = FunctionBuilder::native(context, <span class="self">Self</span>::get_description)
-            .name(<span class="string">&quot;get description&quot;</span>)
-            .constructor(<span class="bool-val">false</span>)
-            .build();
+        <span class="kw">let </span>get_description =
+            FunctionObjectBuilder::new(context, NativeFunction::from_fn_ptr(<span class="self">Self</span>::get_description))
+                .name(<span class="string">&quot;get description&quot;</span>)
+                .constructor(<span class="bool-val">false</span>)
+                .build();
 
         ConstructorBuilder::with_standard_constructor(
             context,

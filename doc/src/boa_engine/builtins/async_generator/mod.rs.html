@@ -770,6 +770,11 @@
 <span id="769">769</span>
 <span id="770">770</span>
 <span id="771">771</span>
+<span id="772">772</span>
+<span id="773">773</span>
+<span id="774">774</span>
+<span id="775">775</span>
+<span id="776">776</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Boa&#39;s implementation of ECMAScript&#39;s global `AsyncGenerator` object.
 //!
 //! More information:
@@ -783,7 +788,8 @@
         promise::if_abrupt_reject_promise, promise::PromiseCapability, BuiltIn, JsArgs, Promise,
     },
     error::JsNativeError,
-    object::{ConstructorBuilder, FunctionBuilder, JsObject, ObjectData},
+    native_function::NativeFunction,
+    object::{ConstructorBuilder, FunctionObjectBuilder, JsObject, ObjectData},
     property::{Attribute, PropertyDescriptor},
     symbol::WellKnownSymbols,
     value::JsValue,
@@ -1399,32 +1405,34 @@
 
         <span class="comment">// 7. Let fulfilledClosure be a new Abstract Closure with parameters (value) that captures generator and performs the following steps when called:
         // 8. Let onFulfilled be CreateBuiltinFunction(fulfilledClosure, 1, &quot;&quot;, « »).
-        </span><span class="kw">let </span>on_fulfilled = FunctionBuilder::closure_with_captures(
+        </span><span class="kw">let </span>on_fulfilled = FunctionObjectBuilder::new(
             context,
-            |_this, args, generator, context| {
-                <span class="kw">let </span><span class="kw-2">mut </span>generator_borrow_mut = generator.borrow_mut();
-                <span class="kw">let </span>gen = generator_borrow_mut
-                    .as_async_generator_mut()
-                    .expect(<span class="string">&quot;already checked before&quot;</span>);
+            NativeFunction::from_copy_closure_with_captures(
+                |_this, args, generator, context| {
+                    <span class="kw">let </span><span class="kw-2">mut </span>generator_borrow_mut = generator.borrow_mut();
+                    <span class="kw">let </span>gen = generator_borrow_mut
+                        .as_async_generator_mut()
+                        .expect(<span class="string">&quot;already checked before&quot;</span>);
 
-                <span class="comment">// a. Set generator.[[AsyncGeneratorState]] to completed.
-                </span>gen.state = AsyncGeneratorState::Completed;
+                    <span class="comment">// a. Set generator.[[AsyncGeneratorState]] to completed.
+                    </span>gen.state = AsyncGeneratorState::Completed;
 
-                <span class="comment">// b. Let result be NormalCompletion(value).
-                </span><span class="kw">let </span>result = <span class="prelude-val">Ok</span>(args.get_or_undefined(<span class="number">0</span>).clone());
+                    <span class="comment">// b. Let result be NormalCompletion(value).
+                    </span><span class="kw">let </span>result = <span class="prelude-val">Ok</span>(args.get_or_undefined(<span class="number">0</span>).clone());
 
-                <span class="comment">// c. Perform AsyncGeneratorCompleteStep(generator, result, true).
-                </span><span class="kw">let </span>next = gen.queue.pop_front().expect(<span class="string">&quot;must have one entry&quot;</span>);
-                drop(generator_borrow_mut);
-                <span class="self">Self</span>::complete_step(<span class="kw-2">&amp;</span>next, result, <span class="bool-val">true</span>, context);
+                    <span class="comment">// c. Perform AsyncGeneratorCompleteStep(generator, result, true).
+                    </span><span class="kw">let </span>next = gen.queue.pop_front().expect(<span class="string">&quot;must have one entry&quot;</span>);
+                    drop(generator_borrow_mut);
+                    <span class="self">Self</span>::complete_step(<span class="kw-2">&amp;</span>next, result, <span class="bool-val">true</span>, context);
 
-                <span class="comment">// d. Perform AsyncGeneratorDrainQueue(generator).
-                </span><span class="self">Self</span>::drain_queue(generator, context);
+                    <span class="comment">// d. Perform AsyncGeneratorDrainQueue(generator).
+                    </span><span class="self">Self</span>::drain_queue(generator, context);
 
-                <span class="comment">// e. Return undefined.
-                </span><span class="prelude-val">Ok</span>(JsValue::undefined())
-            },
-            generator.clone(),
+                    <span class="comment">// e. Return undefined.
+                    </span><span class="prelude-val">Ok</span>(JsValue::undefined())
+                },
+                generator.clone(),
+            ),
         )
         .name(<span class="string">&quot;&quot;</span>)
         .length(<span class="number">1</span>)
@@ -1432,32 +1440,34 @@
 
         <span class="comment">// 9. Let rejectedClosure be a new Abstract Closure with parameters (reason) that captures generator and performs the following steps when called:
         // 10. Let onRejected be CreateBuiltinFunction(rejectedClosure, 1, &quot;&quot;, « »).
-        </span><span class="kw">let </span>on_rejected = FunctionBuilder::closure_with_captures(
+        </span><span class="kw">let </span>on_rejected = FunctionObjectBuilder::new(
             context,
-            |_this, args, generator, context| {
-                <span class="kw">let </span><span class="kw-2">mut </span>generator_borrow_mut = generator.borrow_mut();
-                <span class="kw">let </span>gen = generator_borrow_mut
-                    .as_async_generator_mut()
-                    .expect(<span class="string">&quot;already checked before&quot;</span>);
+            NativeFunction::from_copy_closure_with_captures(
+                |_this, args, generator, context| {
+                    <span class="kw">let </span><span class="kw-2">mut </span>generator_borrow_mut = generator.borrow_mut();
+                    <span class="kw">let </span>gen = generator_borrow_mut
+                        .as_async_generator_mut()
+                        .expect(<span class="string">&quot;already checked before&quot;</span>);
 
-                <span class="comment">// a. Set generator.[[AsyncGeneratorState]] to completed.
-                </span>gen.state = AsyncGeneratorState::Completed;
+                    <span class="comment">// a. Set generator.[[AsyncGeneratorState]] to completed.
+                    </span>gen.state = AsyncGeneratorState::Completed;
 
-                <span class="comment">// b. Let result be ThrowCompletion(reason).
-                </span><span class="kw">let </span>result = <span class="prelude-val">Err</span>(JsError::from_opaque(args.get_or_undefined(<span class="number">0</span>).clone()));
+                    <span class="comment">// b. Let result be ThrowCompletion(reason).
+                    </span><span class="kw">let </span>result = <span class="prelude-val">Err</span>(JsError::from_opaque(args.get_or_undefined(<span class="number">0</span>).clone()));
 
-                <span class="comment">// c. Perform AsyncGeneratorCompleteStep(generator, result, true).
-                </span><span class="kw">let </span>next = gen.queue.pop_front().expect(<span class="string">&quot;must have one entry&quot;</span>);
-                drop(generator_borrow_mut);
-                <span class="self">Self</span>::complete_step(<span class="kw-2">&amp;</span>next, result, <span class="bool-val">true</span>, context);
+                    <span class="comment">// c. Perform AsyncGeneratorCompleteStep(generator, result, true).
+                    </span><span class="kw">let </span>next = gen.queue.pop_front().expect(<span class="string">&quot;must have one entry&quot;</span>);
+                    drop(generator_borrow_mut);
+                    <span class="self">Self</span>::complete_step(<span class="kw-2">&amp;</span>next, result, <span class="bool-val">true</span>, context);
 
-                <span class="comment">// d. Perform AsyncGeneratorDrainQueue(generator).
-                </span><span class="self">Self</span>::drain_queue(generator, context);
+                    <span class="comment">// d. Perform AsyncGeneratorDrainQueue(generator).
+                    </span><span class="self">Self</span>::drain_queue(generator, context);
 
-                <span class="comment">// e. Return undefined.
-                </span><span class="prelude-val">Ok</span>(JsValue::undefined())
-            },
-            generator,
+                    <span class="comment">// e. Return undefined.
+                    </span><span class="prelude-val">Ok</span>(JsValue::undefined())
+                },
+                generator,
+            ),
         )
         .name(<span class="string">&quot;&quot;</span>)
         .length(<span class="number">1</span>)

@@ -3,9 +3,11 @@
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
+<span id="5">5</span>
 </pre><pre class="rust"><code><span class="kw">mod </span>ephemeron_box;
 <span class="kw">mod </span>gc_box;
 
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use </span><span class="self">self</span>::{ephemeron_box::EphemeronBox, gc_box::GcBox};
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use </span><span class="self">self</span>::ephemeron_box::EphemeronBox;
+<span class="kw">pub use </span><span class="self">self</span>::gc_box::GcBox;
 </code></pre></div>
 </section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="boa_gc" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.66.0 (69f9c33d7 2022-12-12)" ></div></body></html>
