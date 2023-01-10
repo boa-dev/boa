@@ -7,8 +7,9 @@ use super::{
 };
 use crate::read::ErrorType;
 use boa_engine::{
-    builtins::JsArgs, native_function::NativeFunction, object::FunctionObjectBuilder,
-    property::Attribute, Context, JsNativeErrorKind, JsValue,
+    builtins::JsArgs, context::ContextBuilder, job::SimpleJobQueue,
+    native_function::NativeFunction, object::FunctionObjectBuilder, property::Attribute, Context,
+    JsNativeErrorKind, JsValue,
 };
 use boa_parser::Parser;
 use colored::Colorize;
@@ -162,10 +163,11 @@ impl Test {
 
         let result = std::panic::catch_unwind(|| match self.expected_outcome {
             Outcome::Positive => {
-                let mut context = Context::default();
+                let queue = SimpleJobQueue::new();
+                let context = &mut ContextBuilder::new().job_queue(&queue).build();
                 let async_result = AsyncResult::default();
 
-                if let Err(e) = self.set_up_env(harness, &mut context, async_result.clone()) {
+                if let Err(e) = self.set_up_env(harness, context, async_result.clone()) {
                     return (false, e);
                 }
 
@@ -174,6 +176,8 @@ impl Test {
                     Ok(v) => v,
                     Err(e) => return (false, format!("Uncaught {e}")),
                 };
+
+                context.run_jobs();
 
                 if let Err(e) = async_result.inner.borrow().as_ref() {
                     return (false, format!("Uncaught {e}"));
@@ -209,8 +213,8 @@ impl Test {
                 phase: Phase::Runtime,
                 error_type,
             } => {
-                let mut context = Context::default();
-                if let Err(e) = self.set_up_env(harness, &mut context, AsyncResult::default()) {
+                let context = &mut Context::default();
+                if let Err(e) = self.set_up_env(harness, context, AsyncResult::default()) {
                     return (false, e);
                 }
                 let code = match Parser::new(test_content.as_bytes())
@@ -222,12 +226,11 @@ impl Test {
                     Err(e) => return (false, format!("Uncaught {e}")),
                 };
 
-                // TODO: timeout
                 let e = match context.execute(code) {
                     Ok(res) => return (false, res.display().to_string()),
                     Err(e) => e,
                 };
-                if let Ok(e) = e.try_native(&mut context) {
+                if let Ok(e) = e.try_native(context) {
                     match &e.kind {
                         JsNativeErrorKind::Syntax if error_type == ErrorType::SyntaxError => {}
                         JsNativeErrorKind::Reference if error_type == ErrorType::ReferenceError => {
@@ -242,10 +245,10 @@ impl Test {
                         .as_opaque()
                         .expect("try_native cannot fail if e is not opaque")
                         .as_object()
-                        .and_then(|o| o.get("constructor", &mut context).ok())
+                        .and_then(|o| o.get("constructor", context).ok())
                         .as_ref()
                         .and_then(JsValue::as_object)
-                        .and_then(|o| o.get("name", &mut context).ok())
+                        .and_then(|o| o.get("name", context).ok())
                         .as_ref()
                         .and_then(JsValue::as_string)
                         .map(|s| s == error_type.as_str())

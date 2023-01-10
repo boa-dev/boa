@@ -202,7 +202,7 @@ impl Access<'_> {
 
 /// The [`ByteCompiler`] is used to compile ECMAScript AST from [`boa_ast`] to bytecode.
 #[derive(Debug)]
-pub struct ByteCompiler<'b, 'icu> {
+pub struct ByteCompiler<'b, 'host> {
     code_block: CodeBlock,
     literals_map: FxHashMap<Literal, u32>,
     names_map: FxHashMap<Identifier, u32>,
@@ -211,10 +211,10 @@ pub struct ByteCompiler<'b, 'icu> {
     jump_info: Vec<JumpControlInfo>,
     in_async_generator: bool,
     json_parse: bool,
-    context: &'b mut Context<'icu>,
+    context: &'b mut Context<'host>,
 }
 
-impl<'b, 'icu> ByteCompiler<'b, 'icu> {
+impl<'b, 'host> ByteCompiler<'b, 'host> {
     /// Represents a placeholder address that will be patched later.
     const DUMMY_ADDRESS: u32 = u32::MAX;
 
@@ -224,8 +224,8 @@ impl<'b, 'icu> ByteCompiler<'b, 'icu> {
         name: Sym,
         strict: bool,
         json_parse: bool,
-        context: &'b mut Context<'icu>,
-    ) -> ByteCompiler<'b, 'icu> {
+        context: &'b mut Context<'host>,
+    ) -> ByteCompiler<'b, 'host> {
         Self {
             code_block: CodeBlock::new(name, 0, strict),
             literals_map: FxHashMap::default(),

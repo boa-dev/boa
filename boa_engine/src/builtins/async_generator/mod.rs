@@ -632,20 +632,22 @@ impl AsyncGenerator {
             context,
             NativeFunction::from_copy_closure_with_captures(
                 |_this, args, generator, context| {
-                    let mut generator_borrow_mut = generator.borrow_mut();
-                    let gen = generator_borrow_mut
-                        .as_async_generator_mut()
-                        .expect("already checked before");
+                    let next = {
+                        let mut generator_borrow_mut = generator.borrow_mut();
+                        let gen = generator_borrow_mut
+                            .as_async_generator_mut()
+                            .expect("already checked before");
 
-                    // a. Set generator.[[AsyncGeneratorState]] to completed.
-                    gen.state = AsyncGeneratorState::Completed;
+                        // a. Set generator.[[AsyncGeneratorState]] to completed.
+                        gen.state = AsyncGeneratorState::Completed;
+
+                        gen.queue.pop_front().expect("must have one entry")
+                    };
 
                     // b. Let result be NormalCompletion(value).
                     let result = Ok(args.get_or_undefined(0).clone());
 
                     // c. Perform AsyncGeneratorCompleteStep(generator, result, true).
-                    let next = gen.queue.pop_front().expect("must have one entry");
-                    drop(generator_borrow_mut);
                     Self::complete_step(&next, result, true, context);
 
                     // d. Perform AsyncGeneratorDrainQueue(generator).

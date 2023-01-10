@@ -58,7 +58,7 @@ use crate::{
 use boa_gc::{custom_trace, Finalize, GcCell, Trace, WeakGc};
 use std::{
     any::Any,
-    fmt::{self, Debug, Display},
+    fmt::{self, Debug},
     ops::{Deref, DerefMut},
 };
 
@@ -92,8 +92,8 @@ pub type JsPrototype = Option<JsObject>;
 
 /// This trait allows Rust types to be passed around as objects.
 ///
-/// This is automatically implemented, when a type implements `Debug`, `Any` and `Trace`.
-pub trait NativeObject: Debug + Any + Trace {
+/// This is automatically implemented when a type implements `Any` and `Trace`.
+pub trait NativeObject: Any + Trace {
     /// Convert the Rust type which implements `NativeObject` to a `&dyn Any`.
     fn as_any(&self) -> &dyn Any;
 
@@ -101,7 +101,7 @@ pub trait NativeObject: Debug + Any + Trace {
     fn as_mut_any(&mut self) -> &mut dyn Any;
 }
 
-impl<T: Any + Debug + Trace> NativeObject for T {
+impl<T: Any + Trace> NativeObject for T {
     fn as_any(&self) -> &dyn Any {
         self
     }
@@ -164,7 +164,7 @@ pub struct ObjectData {
 }
 
 /// Defines the different types of objects.
-#[derive(Debug, Finalize)]
+#[derive(Finalize)]
 pub enum ObjectKind {
     /// The `AsyncFromSyncIterator` object kind.
     AsyncFromSyncIterator(AsyncFromSyncIterator),
@@ -683,7 +683,7 @@ impl ObjectData {
     }
 }
 
-impl Display for ObjectKind {
+impl Debug for ObjectKind {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         f.write_str(match self {
             Self::AsyncFromSyncIterator(_) => "AsyncFromSyncIterator",
@@ -736,8 +736,7 @@ impl Debug for ObjectData {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         f.debug_struct("ObjectData")
             .field("kind", &self.kind)
-            .field("internal_methods", &"internal_methods")
-            .finish()
+            .finish_non_exhaustive()
     }
 }
 
@@ -1866,17 +1865,17 @@ where
 
 /// Builder for creating native function objects
 #[derive(Debug)]
-pub struct FunctionObjectBuilder<'ctx, 'icu> {
-    context: &'ctx mut Context<'icu>,
+pub struct FunctionObjectBuilder<'ctx, 'host> {
+    context: &'ctx mut Context<'host>,
     function: Function,
     name: JsString,
     length: usize,
 }
 
-impl<'ctx, 'icu> FunctionObjectBuilder<'ctx, 'icu> {
+impl<'ctx, 'host> FunctionObjectBuilder<'ctx, 'host> {
     /// Create a new `FunctionBuilder` for creating a native function.
     #[inline]
-    pub fn new(context: &'ctx mut Context<'icu>, function: NativeFunction) -> Self {
+    pub fn new(context: &'ctx mut Context<'host>, function: NativeFunction) -> Self {
         Self {
             context,
             function: Function::Native {
@@ -1998,15 +1997,15 @@ impl<'ctx, 'icu> FunctionObjectBuilder<'ctx, 'icu> {
 /// }
 /// ```
 #[derive(Debug)]
-pub struct ObjectInitializer<'ctx, 'icu> {
-    context: &'ctx mut Context<'icu>,
+pub struct ObjectInitializer<'ctx, 'host> {
+    context: &'ctx mut Context<'host>,
     object: JsObject,
 }
 
-impl<'ctx, 'icu> ObjectInitializer<'ctx, 'icu> {
+impl<'ctx, 'host> ObjectInitializer<'ctx, 'host> {
     /// Create a new `ObjectBuilder`.
     #[inline]
-    pub fn new(context: &'ctx mut Context<'icu>) -> Self {
+    pub fn new(context: &'ctx mut Context<'host>) -> Self {
         let object = JsObject::with_object_proto(context);
         Self { context, object }
     }
@@ -2063,8 +2062,8 @@ impl<'ctx, 'icu> ObjectInitializer<'ctx, 'icu> {
 }
 
 /// Builder for creating constructors objects, like `Array`.
-pub struct ConstructorBuilder<'ctx, 'icu> {
-    context: &'ctx mut Context<'icu>,
+pub struct ConstructorBuilder<'ctx, 'host> {
+    context: &'ctx mut Context<'host>,
     function: NativeFunctionPointer,
     object: JsObject,
     has_prototype_property: bool,
@@ -2092,13 +2091,13 @@ impl Debug for ConstructorBuilder<'_, '_> {
     }
 }
 
-impl<'ctx, 'icu> ConstructorBuilder<'ctx, 'icu> {
+impl<'ctx, 'host> ConstructorBuilder<'ctx, 'host> {
     /// Create a new `ConstructorBuilder`.
     #[inline]
     pub fn new(
-        context: &'ctx mut Context<'icu>,
+        context: &'ctx mut Context<'host>,
         function: NativeFunctionPointer,
-    ) -> ConstructorBuilder<'ctx, 'icu> {
+    ) -> ConstructorBuilder<'ctx, 'host> {
         Self {
             context,
             function,
@@ -2115,10 +2114,10 @@ impl<'ctx, 'icu> ConstructorBuilder<'ctx, 'icu> {
     }
 
     pub(crate) fn with_standard_constructor(
-        context: &'ctx mut Context<'icu>,
+        context: &'ctx mut Context<'host>,
         function: NativeFunctionPointer,
         standard_constructor: StandardConstructor,
-    ) -> ConstructorBuilder<'ctx, 'icu> {
+    ) -> ConstructorBuilder<'ctx, 'host> {
         Self {
             context,
             function,
@@ -2350,7 +2349,7 @@ impl<'ctx, 'icu> ConstructorBuilder<'ctx, 'icu> {
 
     /// Return the current context.
     #[inline]
-    pub fn context(&mut self) -> &mut Context<'icu> {
+    pub fn context(&mut self) -> &mut Context<'host> {
         self.context
     }
 
