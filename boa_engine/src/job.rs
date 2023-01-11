@@ -21,19 +21,19 @@ use boa_gc::{Finalize, Trace};
 ///
 /// `NativeJob`s API differs slightly on the last requirement, since it allows closures returning
 /// [`JsResult`], but it's okay because `NativeJob`s are handled by the host anyways; a host could
-/// pass a closure returning `Err` and handle the error on [`JobQueue::run_jobs`], making the closure
+/// pass a closure returning `Err` and handle the error on `JobQueue::run_jobs`, making the closure
 /// effectively run as if it never returned `Err`.
 ///
 /// ## [`Trace`]?
 ///
 /// `NativeJob` doesn't implement `Trace` because it doesn't need to; all jobs can only be run once
-/// and putting a [`JobQueue`] on a garbage collected object should definitely be discouraged.
+/// and putting a `JobQueue` on a garbage collected object should definitely be discouraged.
 ///
 /// On the other hand, it seems like this type breaks all the safety checks of the
 /// [`NativeFunction`] API, since you can capture any `Trace` variable into the closure... but it
 /// doesn't!
 /// The garbage collector doesn't need to trace the captured variables because the closures
-/// are always stored on the [`JobQueue`], which is always rooted, which means the captured variables
+/// are always stored on the `JobQueue`, which is always rooted, which means the captured variables
 /// are also rooted, allowing us to capture any variable in the closure for free!
 ///
 ///
