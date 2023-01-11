@@ -160,7 +160,7 @@ pub trait JobQueue {
 /// This is the default job queue for the [`Context`], and is useful if you want to disable
 /// the promise capabilities of the engine.
 ///
-/// If you want to enable running promise jobs, see [`SimpleQueue`].
+/// If you want to enable running promise jobs, see [`SimpleJobQueue`].
 #[derive(Debug, Clone, Copy)]
 pub struct IdleJobQueue;
 
