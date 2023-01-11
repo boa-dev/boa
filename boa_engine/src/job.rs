@@ -1,6 +1,6 @@
 //! Data structures for the microtask job queue.
 
-use crate::{prelude::JsObject, Context, JsResult, JsValue};
+use crate::{object::JsFunction, Context, JsResult, JsValue};
 use boa_gc::{Finalize, Trace};
 
 /// An ECMAScript [Job] closure.
@@ -73,7 +73,7 @@ impl NativeJob {
 /// [spec]: https://tc39.es/ecma262/#sec-jobcallback-records
 #[derive(Debug, Clone, Trace, Finalize)]
 pub struct JobCallback {
-    callback: JsObject,
+    callback: JsFunction,
 }
 
 impl JobCallback {
@@ -86,7 +86,7 @@ impl JobCallback {
     ///  - [ECMAScript reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-hostmakejobcallback
-    pub fn make_job_callback(callback: JsObject) -> Self {
+    pub fn make_job_callback(callback: JsFunction) -> Self {
         // 1. Return the JobCallback Record { [[Callback]]: callback, [[HostDefined]]: empty }.
         Self { callback }
     }
@@ -113,14 +113,8 @@ impl JobCallback {
         context: &mut Context<'_>,
     ) -> JsResult<JsValue> {
         // It must perform and return the result of Call(jobCallback.[[Callback]], V, argumentsList).
-
         // 1. Assert: IsCallable(jobCallback.[[Callback]]) is true.
-        assert!(
-            self.callback.is_callable(),
-            "the callback of the job callback was not callable"
-        );
-
         // 2. Return ? Call(jobCallback.[[Callback]], V, argumentsList).
-        self.callback.__call__(v, arguments_list, context)
+        self.callback.call(v, arguments_list, context)
     }
 }

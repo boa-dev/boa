@@ -1306,11 +1306,7 @@ impl Promise {
                             .to_opaque(context);
 
                         //   b. Perform RejectPromise(promise, selfResolutionError).
-                        promise
-                            .borrow_mut()
-                            .as_promise_mut()
-                            .expect("Expected promise to be a Promise")
-                            .reject_promise(&self_resolution_error.into(), context);
+                        Promise::reject_promise(promise, self_resolution_error.into(), context);
 
                         //   c. Return undefined.
                         return Ok(JsValue::Undefined);
@@ -1319,11 +1315,7 @@ impl Promise {
                     let Some(then) = resolution.as_object() else {
                     // 8. If Type(resolution) is not Object, then
                     //   a. Perform FulfillPromise(promise, resolution).
-                    promise
-                    .borrow_mut()
-                    .as_promise_mut()
-                    .expect("Expected promise to be a Promise")
-                    .fulfill_promise(resolution, context);
+                    Promise::fulfill_promise(promise, resolution.clone(), context);
 
                     //   b. Return undefined.
                     return Ok(JsValue::Undefined);
@@ -1334,11 +1326,7 @@ impl Promise {
                         // 10. If then is an abrupt completion, then
                         Err(e) => {
                             //   a. Perform RejectPromise(promise, then.[[Value]]).
-                            promise
-                                .borrow_mut()
-                                .as_promise_mut()
-                                .expect("Expected promise to be a Promise")
-                                .reject_promise(&e.to_opaque(context), context);
+                            Promise::reject_promise(promise, e.to_opaque(context), context);
 
                             //   b. Return undefined.
                             return Ok(JsValue::Undefined);
@@ -1348,23 +1336,16 @@ impl Promise {
                     };
 
                     // 12. If IsCallable(thenAction) is false, then
-                    let then_action = match then_action.as_object() {
-                        Some(then_action) if then_action.is_callable() => then_action,
-                        _ => {
-                            // a. Perform FulfillPromise(promise, resolution).
-                            promise
-                                .borrow_mut()
-                                .as_promise_mut()
-                                .expect("Expected promise to be a Promise")
-                                .fulfill_promise(resolution, context);
+                    let Some(then_action) = then_action.as_object().cloned().and_then(JsFunction::from_object) else {
+                        // a. Perform FulfillPromise(promise, resolution).
+                        Promise::fulfill_promise(promise, resolution.clone(), context);
 
-                            //   b. Return undefined.
-                            return Ok(JsValue::Undefined);
-                        }
+                        //   b. Return undefined.
+                        return Ok(JsValue::Undefined);
                     };
 
                     // 13. Let thenJobCallback be HostMakeJobCallback(thenAction).
-                    let then_job_callback = JobCallback::make_job_callback(then_action.clone());
+                    let then_job_callback = JobCallback::make_job_callback(then_action);
 
                     // 14. Let job be NewPromiseResolveThenableJob(promise, resolution, thenJobCallback).
                     let job = new_promise_resolve_thenable_job(
@@ -1422,11 +1403,7 @@ impl Promise {
 
                     // let reason = args.get_or_undefined(0);
                     // 7. Perform RejectPromise(promise, reason).
-                    promise
-                        .borrow_mut()
-                        .as_promise_mut()
-                        .expect("Expected promise to be a Promise")
-                        .reject_promise(args.get_or_undefined(0), context);
+                    Promise::reject_promise(promise, args.get_or_undefined(0).clone(), context);
 
                     // 8. Return undefined.
                     Ok(JsValue::Undefined)
@@ -1456,29 +1433,33 @@ impl Promise {
     /// # Panics
     ///
     /// Panics if `Promise` is not pending.
-    fn fulfill_promise(&mut self, value: &JsValue, context: &mut Context<'_>) {
+    fn fulfill_promise(promise: &JsObject, value: JsValue, context: &mut Context<'_>) {
+        let mut promise = promise.borrow_mut();
+        let promise = promise
+            .as_promise_mut()
+            .expect("IsPromise(promise) is false");
+
         // 1. Assert: The value of promise.[[PromiseState]] is pending.
         assert!(
-            matches!(self.promise_state, PromiseState::Pending),
+            matches!(promise.promise_state, PromiseState::Pending),
             "promise was not pending"
         );
 
+        // reordering these statements does not affect the semantics
+
         // 2. Let reactions be promise.[[PromiseFulfillReactions]].
-        let reactions = &self.promise_fulfill_reactions;
-
-        // 7. Perform TriggerPromiseReactions(reactions, value).
-        Self::trigger_promise_reactions(reactions, value, context);
-        // reordering this statement does not affect the semantics
-
         // 4. Set promise.[[PromiseFulfillReactions]] to undefined.
-        self.promise_fulfill_reactions = Vec::new();
+        let reactions = std::mem::take(&mut promise.promise_fulfill_reactions);
 
         // 5. Set promise.[[PromiseRejectReactions]] to undefined.
-        self.promise_reject_reactions = Vec::new();
+        promise.promise_reject_reactions.clear();
+
+        // 7. Perform TriggerPromiseReactions(reactions, value).
+        Self::trigger_promise_reactions(reactions, &value, context);
 
         // 3. Set promise.[[PromiseResult]] to value.
         // 6. Set promise.[[PromiseState]] to fulfilled.
-        self.promise_state = PromiseState::Fulfilled(value.clone());
+        promise.promise_state = PromiseState::Fulfilled(value);
 
         // 8. Return unused.
     }
@@ -1496,32 +1477,40 @@ impl Promise {
     /// # Panics
     ///
     /// Panics if `Promise` is not pending.
-    pub fn reject_promise(&mut self, reason: &JsValue, context: &mut Context<'_>) {
-        // 1. Assert: The value of promise.[[PromiseState]] is pending.
-        assert!(
-            matches!(self.promise_state, PromiseState::Pending),
-            "Expected promise.[[PromiseState]] to be pending"
-        );
+    pub fn reject_promise(promise: &JsObject, reason: JsValue, context: &mut Context<'_>) {
+        let handled = {
+            let mut promise = promise.borrow_mut();
+            let promise = promise
+                .as_promise_mut()
+                .expect("IsPromise(promise) is false");
 
-        // 2. Let reactions be promise.[[PromiseRejectReactions]].
-        let reactions = &self.promise_reject_reactions;
+            // 1. Assert: The value of promise.[[PromiseState]] is pending.
+            assert!(
+                matches!(promise.promise_state, PromiseState::Pending),
+                "Expected promise.[[PromiseState]] to be pending"
+            );
 
-        // 8. Perform TriggerPromiseReactions(reactions, reason).
-        Self::trigger_promise_reactions(reactions, reason, context);
-        // reordering this statement does not affect the semantics
+            // reordering these statements does not affect the semantics
 
-        // 4. Set promise.[[PromiseFulfillReactions]] to undefined.
-        self.promise_fulfill_reactions = Vec::new();
+            // 2. Let reactions be promise.[[PromiseRejectReactions]].
+            // 5. Set promise.[[PromiseRejectReactions]] to undefined.
+            let reactions = std::mem::take(&mut promise.promise_reject_reactions);
 
-        // 5. Set promise.[[PromiseRejectReactions]] to undefined.
-        self.promise_reject_reactions = Vec::new();
+            // 4. Set promise.[[PromiseFulfillReactions]] to undefined.
+            promise.promise_fulfill_reactions.clear();
 
-        // 3. Set promise.[[PromiseResult]] to reason.
-        // 6. Set promise.[[PromiseState]] to rejected.
-        self.promise_state = PromiseState::Rejected(reason.clone());
+            // 8. Perform TriggerPromiseReactions(reactions, reason).
+            Self::trigger_promise_reactions(reactions, &reason, context);
+
+            // 3. Set promise.[[PromiseResult]] to reason.
+            // 6. Set promise.[[PromiseState]] to rejected.
+            promise.promise_state = PromiseState::Rejected(reason);
+
+            promise.promise_is_handled
+        };
 
         // 7. If promise.[[PromiseIsHandled]] is false, perform HostPromiseRejectionTracker(promise, "reject").
-        if !self.promise_is_handled {
+        if !handled {
             // TODO
         }
 
@@ -1542,14 +1531,14 @@ impl Promise {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-triggerpromisereactions
     fn trigger_promise_reactions(
-        reactions: &[ReactionRecord],
+        reactions: Vec<ReactionRecord>,
         argument: &JsValue,
         context: &mut Context<'_>,
     ) {
         // 1. For each element reaction of reactions, do
         for reaction in reactions {
             // a. Let job be NewPromiseReactionJob(reaction, argument).
-            let job = new_promise_reaction_job(reaction.clone(), argument.clone());
+            let job = new_promise_reaction_job(reaction, argument.clone());
 
             // b. Perform HostEnqueuePromiseJob(job.[[Job]], job.[[Realm]]).
             context.host_enqueue_promise_job(job);
@@ -1599,7 +1588,8 @@ impl Promise {
             &promise_capability,
             &promise_resolve,
             context,
-        );
+        )
+        .map(JsValue::from);
 
         // 8. If result is an abrupt completion, then
         if result.is_err() {
@@ -1635,7 +1625,7 @@ impl Promise {
         result_capability: &PromiseCapability,
         promise_resolve: &JsObject,
         context: &mut Context<'_>,
-    ) -> JsResult<JsValue> {
+    ) -> JsResult<JsObject> {
         // 1. Repeat,
         loop {
             // a. Let next be Completion(IteratorStep(iteratorRecord)).
@@ -1649,38 +1639,38 @@ impl Promise {
             // c. ReturnIfAbrupt(next).
             let next = next?;
 
-            if let Some(next) = next {
-                // e. Let nextValue be Completion(IteratorValue(next)).
-                let next_value = next.value(context);
-
-                // f. If nextValue is an abrupt completion, set iteratorRecord.[[Done]] to true.
-                if next_value.is_err() {
-                    iterator_record.set_done(true);
-                }
-
-                // g. ReturnIfAbrupt(nextValue).
-                let next_value = next_value?;
-
-                // h. Let nextPromise be ? Call(promiseResolve, constructor, « nextValue »).
-                let next_promise = promise_resolve.call(constructor, &[next_value], context)?;
-
-                // i. Perform ? Invoke(nextPromise, "then", « resultCapability.[[Resolve]], resultCapability.[[Reject]] »).
-                next_promise.invoke(
-                    "then",
-                    &[
-                        result_capability.resolve.clone().into(),
-                        result_capability.reject.clone().into(),
-                    ],
-                    context,
-                )?;
-            } else {
+            let Some(next) = next else {
                 // d. If next is false, then
                 // i. Set iteratorRecord.[[Done]] to true.
                 iterator_record.set_done(true);
 
                 // ii. Return resultCapability.[[Promise]].
-                return Ok(result_capability.promise.clone().into());
+                return Ok(result_capability.promise.clone());
+            };
+
+            // e. Let nextValue be Completion(IteratorValue(next)).
+            let next_value = next.value(context);
+
+            // f. If nextValue is an abrupt completion, set iteratorRecord.[[Done]] to true.
+            if next_value.is_err() {
+                iterator_record.set_done(true);
             }
+
+            // g. ReturnIfAbrupt(nextValue).
+            let next_value = next_value?;
+
+            // h. Let nextPromise be ? Call(promiseResolve, constructor, « nextValue »).
+            let next_promise = promise_resolve.call(constructor, &[next_value], context)?;
+
+            // i. Perform ? Invoke(nextPromise, "then", « resultCapability.[[Resolve]], resultCapability.[[Reject]] »).
+            next_promise.invoke(
+                "then",
+                &[
+                    result_capability.resolve.clone().into(),
+                    result_capability.reject.clone().into(),
+                ],
+                context,
+            )?;
         }
     }
 
@@ -1954,17 +1944,13 @@ impl Promise {
         let promise = this;
 
         // 2. If IsPromise(promise) is false, throw a TypeError exception.
-        let promise_obj = match promise.as_promise() {
-            Some(obj) => obj,
-            None => {
-                return Err(JsNativeError::typ()
-                    .with_message("IsPromise(promise) is false")
-                    .into())
-            }
-        };
+        let promise = promise.as_promise().ok_or_else(|| {
+            JsNativeError::typ()
+                .with_message("Promise.prototype.then: provided value is not a promise")
+        })?;
 
         // 3. Let C be ? SpeciesConstructor(promise, %Promise%).
-        let c = promise_obj.species_constructor(StandardConstructors::promise, context)?;
+        let c = promise.species_constructor(StandardConstructors::promise, context)?;
 
         // 4. Let resultCapability be ? NewPromiseCapability(C).
         let result_capability = PromiseCapability::new(&c.into(), context)?;
@@ -1973,12 +1959,15 @@ impl Promise {
         let on_rejected = args.get_or_undefined(1);
 
         // 5. Return PerformPromiseThen(promise, onFulfilled, onRejected, resultCapability).
-        promise_obj
-            .borrow_mut()
-            .as_promise_mut()
-            .expect("IsPromise(promise) is false")
-            .perform_promise_then(on_fulfilled, on_rejected, Some(result_capability), context)
-            .pipe(Ok)
+        Promise::perform_promise_then(
+            promise,
+            on_fulfilled,
+            on_rejected,
+            Some(result_capability),
+            context,
+        )
+        .map_or_else(JsValue::undefined, JsValue::from)
+        .pipe(Ok)
     }
 
     /// `PerformPromiseThen ( promise, onFulfilled, onRejected [ , resultCapability ] )`
@@ -1988,38 +1977,36 @@ impl Promise {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-performpromisethen
     pub(crate) fn perform_promise_then(
-        &mut self,
+        promise: &JsObject,
         on_fulfilled: &JsValue,
         on_rejected: &JsValue,
         result_capability: Option<PromiseCapability>,
         context: &mut Context<'_>,
-    ) -> JsValue {
+    ) -> Option<JsObject> {
         // 1. Assert: IsPromise(promise) is true.
 
         // 2. If resultCapability is not present, then
         //   a. Set resultCapability to undefined.
 
-        let on_fulfilled_job_callback = match on_fulfilled.as_object() {
+        // 3. If IsCallable(onFulfilled) is false, then
+        //   a. Let onFulfilledJobCallback be empty.
+        let on_fulfilled_job_callback = on_fulfilled
+            .as_object()
+            .cloned()
+            .and_then(JsFunction::from_object)
             // 4. Else,
             //   a. Let onFulfilledJobCallback be HostMakeJobCallback(onFulfilled).
-            Some(on_fulfilled) if on_fulfilled.is_callable() => {
-                Some(JobCallback::make_job_callback(on_fulfilled.clone()))
-            }
-            // 3. If IsCallable(onFulfilled) is false, then
-            //   a. Let onFulfilledJobCallback be empty.
-            _ => None,
-        };
+            .map(JobCallback::make_job_callback);
 
-        let on_rejected_job_callback = match on_rejected.as_object() {
+        // 5. If IsCallable(onRejected) is false, then
+        //   a. Let onRejectedJobCallback be empty.
+        let on_rejected_job_callback = on_rejected
+            .as_object()
+            .cloned()
+            .and_then(JsFunction::from_object)
             // 6. Else,
             //   a. Let onRejectedJobCallback be HostMakeJobCallback(onRejected).
-            Some(on_rejected) if on_rejected.is_callable() => {
-                Some(JobCallback::make_job_callback(on_rejected.clone()))
-            }
-            // 5. If IsCallable(onRejected) is false, then
-            //   a. Let onRejectedJobCallback be empty.
-            _ => None,
-        };
+            .map(JobCallback::make_job_callback);
 
         // 7. Let fulfillReaction be the PromiseReaction { [[Capability]]: resultCapability, [[Type]]: Fulfill, [[Handler]]: onFulfilledJobCallback }.
         let fulfill_reaction = ReactionRecord {
@@ -2035,14 +2022,23 @@ impl Promise {
             handler: on_rejected_job_callback,
         };
 
-        match self.promise_state {
+        let (state, handled) = {
+            let promise = promise.borrow();
+            let promise = promise.as_promise().expect("IsPromise(promise) is false");
+            (promise.promise_state.clone(), promise.promise_is_handled)
+        };
+        match state {
             // 9. If promise.[[PromiseState]] is pending, then
             PromiseState::Pending => {
+                let mut promise = promise.borrow_mut();
+                let promise = promise
+                    .as_promise_mut()
+                    .expect("IsPromise(promise) is false");
                 //   a. Append fulfillReaction as the last element of the List that is promise.[[PromiseFulfillReactions]].
-                self.promise_fulfill_reactions.push(fulfill_reaction);
+                promise.promise_fulfill_reactions.push(fulfill_reaction);
 
                 //   b. Append rejectReaction as the last element of the List that is promise.[[PromiseRejectReactions]].
-                self.promise_reject_reactions.push(reject_reaction);
+                promise.promise_reject_reactions.push(reject_reaction);
             }
 
             // 10. Else if promise.[[PromiseState]] is fulfilled, then
@@ -2060,8 +2056,7 @@ impl Promise {
             //   b. Let reason be promise.[[PromiseResult]].
             PromiseState::Rejected(ref reason) => {
                 //   c. If promise.[[PromiseIsHandled]] is false, perform HostPromiseRejectionTracker(promise, "handle").
-                if !self.promise_is_handled {
-                    // HostPromiseRejectionTracker(promise, "handle")
+                if !handled {
                     // TODO
                 }
 
@@ -2072,19 +2067,19 @@ impl Promise {
                 context.host_enqueue_promise_job(reject_job);
 
                 // 12. Set promise.[[PromiseIsHandled]] to true.
-                self.promise_is_handled = true;
+                promise
+                    .borrow_mut()
+                    .as_promise_mut()
+                    .expect("IsPromise(promise) is false")
+                    .promise_is_handled = true;
             }
         }
 
-        match result_capability {
-            // 13. If resultCapability is undefined, then
-            //   a. Return undefined.
-            None => JsValue::Undefined,
-
-            // 14. Else,
-            //   a. Return resultCapability.[[Promise]].
-            Some(result_capability) => result_capability.promise.clone().into(),
-        }
+        // 13. If resultCapability is undefined, then
+        //   a. Return undefined.
+        // 14. Else,
+        //   a. Return resultCapability.[[Promise]].
+        result_capability.map(|cap| cap.promise.clone())
     }
 
     /// `PromiseResolve ( C, x )`
