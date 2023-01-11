@@ -36,7 +36,6 @@ use boa_gc::{Finalize, Trace};
 /// are always stored on the `JobQueue`, which is always rooted, which means the captured variables
 /// are also rooted, allowing us to capture any variable in the closure for free!
 ///
-///
 /// [Job]: https://tc39.es/ecma262/#sec-jobs
 /// [`NativeFunction`]: crate::native_function::NativeFunction
 pub struct NativeJob {
