@@ -1359,7 +1359,7 @@ impl Promise {
                     };
 
                     // 13. Let thenJobCallback be HostMakeJobCallback(thenAction).
-                    let then_job_callback = context.host_hooks.make_job_callback(then_action, context);
+                    let then_job_callback = context.host_hooks().make_job_callback(then_action, context);
 
                     // 14. Let job be NewPromiseResolveThenableJob(promise, resolution, thenJobCallback).
                     let job = new_promise_resolve_thenable_job(
@@ -1369,7 +1369,7 @@ impl Promise {
                     );
 
                     // 15. Perform HostEnqueuePromiseJob(job.[[Job]], job.[[Realm]]).
-                    context.job_queue.enqueue_promise_job(job, context);
+                    context.job_queue().enqueue_promise_job(job, context);
 
                     // 16. Return undefined.
                     Ok(JsValue::Undefined)
@@ -1525,7 +1525,7 @@ impl Promise {
         // 7. If promise.[[PromiseIsHandled]] is false, perform HostPromiseRejectionTracker(promise, "reject").
         if !handled {
             context
-                .host_hooks
+                .host_hooks()
                 .promise_rejection_tracker(promise, OperationType::Reject, context);
         }
 
@@ -1556,7 +1556,7 @@ impl Promise {
             let job = new_promise_reaction_job(reaction, argument.clone());
 
             // b. Perform HostEnqueuePromiseJob(job.[[Job]], job.[[Realm]]).
-            context.job_queue.enqueue_promise_job(job, context);
+            context.job_queue().enqueue_promise_job(job, context);
         }
 
         // 2. Return unused.
@@ -2011,7 +2011,7 @@ impl Promise {
             .and_then(JsFunction::from_object)
             // 4. Else,
             //   a. Let onFulfilledJobCallback be HostMakeJobCallback(onFulfilled).
-            .map(|f| context.host_hooks.make_job_callback(f, context));
+            .map(|f| context.host_hooks().make_job_callback(f, context));
 
         // 5. If IsCallable(onRejected) is false, then
         //   a. Let onRejectedJobCallback be empty.
@@ -2021,7 +2021,7 @@ impl Promise {
             .and_then(JsFunction::from_object)
             // 6. Else,
             //   a. Let onRejectedJobCallback be HostMakeJobCallback(onRejected).
-            .map(|f| context.host_hooks.make_job_callback(f, context));
+            .map(|f| context.host_hooks().make_job_callback(f, context));
 
         // 7. Let fulfillReaction be the PromiseReaction { [[Capability]]: resultCapability, [[Type]]: Fulfill, [[Handler]]: onFulfilledJobCallback }.
         let fulfill_reaction = ReactionRecord {
@@ -2064,7 +2064,9 @@ impl Promise {
                 let fulfill_job = new_promise_reaction_job(fulfill_reaction, value.clone());
 
                 //   c. Perform HostEnqueuePromiseJob(fulfillJob.[[Job]], fulfillJob.[[Realm]]).
-                context.job_queue.enqueue_promise_job(fulfill_job, context);
+                context
+                    .job_queue()
+                    .enqueue_promise_job(fulfill_job, context);
             }
 
             // 11. Else,
@@ -2073,7 +2075,7 @@ impl Promise {
             PromiseState::Rejected(ref reason) => {
                 //   c. If promise.[[PromiseIsHandled]] is false, perform HostPromiseRejectionTracker(promise, "handle").
                 if !handled {
-                    context.host_hooks.promise_rejection_tracker(
+                    context.host_hooks().promise_rejection_tracker(
                         promise,
                         OperationType::Handle,
                         context,
@@ -2084,7 +2086,7 @@ impl Promise {
                 let reject_job = new_promise_reaction_job(reject_reaction, reason.clone());
 
                 //   e. Perform HostEnqueuePromiseJob(rejectJob.[[Job]], rejectJob.[[Realm]]).
-                context.job_queue.enqueue_promise_job(reject_job, context);
+                context.job_queue().enqueue_promise_job(reject_job, context);
 
                 // 12. Set promise.[[PromiseIsHandled]] to true.
                 promise
@@ -2196,7 +2198,7 @@ fn new_promise_reaction_job(mut reaction: ReactionRecord, argument: JsValue) -> 
             },
             //   e. Else, let handlerResult be Completion(HostCallJobCallback(handler, undefined, « argument »)).
             Some(handler) => context
-                .host_hooks
+                .host_hooks()
                 .call_job_callback(handler, &JsValue::Undefined, &[argument.clone()], context)
                 .map_err(|e| e.to_opaque(context)),
         };
@@ -2263,7 +2265,7 @@ fn new_promise_resolve_thenable_job(
         let resolving_functions = Promise::create_resolving_functions(&promise_to_resolve, context);
 
         //    b. Let thenCallResult be Completion(HostCallJobCallback(then, thenable, « resolvingFunctions.[[Resolve]], resolvingFunctions.[[Reject]] »)).
-        let then_call_result = context.host_hooks.call_job_callback(
+        let then_call_result = context.host_hooks().call_job_callback(
             then,
             &thenable,
             &[

@@ -91,10 +91,6 @@ pub struct Context<'host> {
     /// Intrinsic objects
     intrinsics: Intrinsics,
 
-    /// ICU related utilities
-    #[cfg(feature = "intl")]
-    icu: icu::Icu<'host>,
-
     /// Number of instructions remaining before a forced exit
     #[cfg(feature = "fuzz")]
     pub(crate) instructions_remaining: usize,
@@ -103,9 +99,13 @@ pub struct Context<'host> {
 
     pub(crate) kept_alive: Vec<JsObject>,
 
-    pub(crate) host_hooks: &'host dyn HostHooks,
+    /// ICU related utilities
+    #[cfg(feature = "intl")]
+    icu: icu::Icu<'host>,
 
-    pub(crate) job_queue: &'host dyn JobQueue,
+    host_hooks: &'host dyn HostHooks,
+
+    job_queue: &'host dyn JobQueue,
 }
 
 impl std::fmt::Debug for Context<'_> {
@@ -455,9 +455,19 @@ impl Context<'_> {
     }
 }
 
-#[cfg(feature = "intl")]
 impl<'host> Context<'host> {
+    /// Get the host hooks.
+    pub(crate) fn host_hooks(&self) -> &'host dyn HostHooks {
+        self.host_hooks
+    }
+
+    /// Get the job queue.
+    pub(crate) fn job_queue(&mut self) -> &'host dyn JobQueue {
+        self.job_queue
+    }
+
     /// Get the ICU related utilities
+    #[cfg(feature = "intl")]
     pub(crate) const fn icu(&self) -> &icu::Icu<'host> {
         &self.icu
     }
@@ -474,6 +484,7 @@ impl<'host> Context<'host> {
     feature = "intl",
     doc = "The required data in a valid provider is specified in [`BoaProvider`]"
 )]
+#[derive(Default)]
 pub struct ContextBuilder<'icu, 'hooks, 'queue> {
     interner: Option<Interner>,
     host_hooks: Option<&'hooks dyn HostHooks>,
@@ -503,29 +514,14 @@ impl std::fmt::Debug for ContextBuilder<'_, '_, '_> {
     }
 }
 
-impl Default for ContextBuilder<'static, 'static, 'static> {
-    fn default() -> Self {
-        Self {
-            interner: Default::default(),
-            host_hooks: Default::default(),
-            job_queue: Default::default(),
-            icu: Default::default(),
-            #[cfg(feature = "fuzz")]
-            instructions_remaining: Default::default(),
-        }
-    }
-}
-
-impl ContextBuilder<'static, 'static, 'static> {
+impl<'icu, 'hooks, 'queue> ContextBuilder<'icu, 'hooks, 'queue> {
     /// Creates a new [`ContextBuilder`] with a default empty [`Interner`]
     /// and a default [`BoaProvider`] if the `intl` feature is enabled.
     #[must_use]
     pub fn new() -> Self {
         Self::default()
     }
-}
 
-impl<'icu, 'hooks, 'queue> ContextBuilder<'icu, 'hooks, 'queue> {
     /// Initializes the context [`Interner`] to the provided interner.
     ///
     /// This is useful when you want to initialize an [`Interner`] with
@@ -535,26 +531,6 @@ impl<'icu, 'hooks, 'queue> ContextBuilder<'icu, 'hooks, 'queue> {
     pub fn interner(mut self, interner: Interner) -> Self {
         self.interner = Some(interner);
         self
-    }
-
-    /// Initializes the [`Host Hooks`] for the context.
-    ///
-    /// [`Host Hooks`]: https://tc39.es/ecma262/#sec-host-hooks-summary
-    #[must_use]
-    pub fn host_hooks(self, host_hooks: &dyn HostHooks) -> ContextBuilder<'icu, '_, 'queue> {
-        ContextBuilder {
-            host_hooks: Some(host_hooks),
-            ..self
-        }
-    }
-
-    /// Initializes the [`JobQueue`] for the context.
-    #[must_use]
-    pub fn job_queue(self, job_queue: &dyn JobQueue) -> ContextBuilder<'icu, 'hooks, '_> {
-        ContextBuilder {
-            job_queue: Some(job_queue),
-            ..self
-        }
     }
 
     /// Provides an icu data provider to the [`Context`].
@@ -579,6 +555,26 @@ impl<'icu, 'hooks, 'queue> ContextBuilder<'icu, 'hooks, 'queue> {
             icu: Some(icu::Icu::new(provider)?),
             ..self
         })
+    }
+
+    /// Initializes the [`HostHooks`] for the context.
+    ///
+    /// [`Host Hooks`]: https://tc39.es/ecma262/#sec-host-hooks-summary
+    #[must_use]
+    pub fn host_hooks(self, host_hooks: &dyn HostHooks) -> ContextBuilder<'icu, '_, 'queue> {
+        ContextBuilder {
+            host_hooks: Some(host_hooks),
+            ..self
+        }
+    }
+
+    /// Initializes the [`JobQueue`] for the context.
+    #[must_use]
+    pub fn job_queue(self, job_queue: &dyn JobQueue) -> ContextBuilder<'icu, 'hooks, '_> {
+        ContextBuilder {
+            job_queue: Some(job_queue),
+            ..self
+        }
     }
 
     /// Specifies the number of instructions remaining to the [`Context`].
