@@ -19,7 +19,7 @@ use boa_gc::{Finalize, Trace};
 /// - Once evaluation of a Job starts, it must run to completion before evaluation of any other Job starts.
 /// - The Abstract Closure must return a normal completion, implementing its own handling of errors.
 ///
-/// `NativeJob`s API differs slightly on the last requirement, since it allows closures returning
+/// `NativeJob`'s API differs slightly on the last requirement, since it allows closures returning
 /// [`JsResult`], but it's okay because `NativeJob`s are handled by the host anyways; a host could
 /// pass a closure returning `Err` and handle the error on `JobQueue::run_jobs`, making the closure
 /// effectively run as if it never returned `Err`.
