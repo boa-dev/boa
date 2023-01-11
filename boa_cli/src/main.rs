@@ -372,12 +372,16 @@ impl JobQueue for Jobs {
     }
 
     fn run_jobs(&self, context: &mut Context<'_>) {
-        let mut next_job = self.0.borrow_mut().pop_front();
-        while let Some(job) = next_job {
-            if let Err(e) = job.call(context) {
-                eprintln!("Uncaught {e}");
+        loop {
+            let jobs = std::mem::take(&mut *self.0.borrow_mut());
+            if jobs.is_empty() {
+                return;
             }
-            next_job = self.0.borrow_mut().pop_front();
+            for job in jobs {
+                if let Err(e) = job.call(context) {
+                    eprintln!("Uncaught {e}");
+                }
+            }
         }
     }
 }
