@@ -1735,7 +1735,7 @@ impl Promise {
 
         if let Some(c) = c.as_object() {
             // 3. Return ? PromiseResolve(C, x).
-            Self::promise_resolve(c.clone(), x.clone(), context)
+            Self::promise_resolve(c.clone(), x.clone(), context).map(JsValue::from)
         } else {
             // 2. If Type(C) is not Object, throw a TypeError exception.
             Err(JsNativeError::typ()
@@ -2049,8 +2049,7 @@ impl Promise {
             //   a. Let value be promise.[[PromiseResult]].
             PromiseState::Fulfilled(ref value) => {
                 //   b. Let fulfillJob be NewPromiseReactionJob(fulfillReaction, value).
-                let fulfill_job =
-                    new_promise_reaction_job(fulfill_reaction, value.clone());
+                let fulfill_job = new_promise_reaction_job(fulfill_reaction, value.clone());
 
                 //   c. Perform HostEnqueuePromiseJob(fulfillJob.[[Job]], fulfillJob.[[Realm]]).
                 context.host_enqueue_promise_job(fulfill_job);
@@ -2067,8 +2066,7 @@ impl Promise {
                 }
 
                 //   d. Let rejectJob be NewPromiseReactionJob(rejectReaction, reason).
-                let reject_job =
-                    new_promise_reaction_job(reject_reaction, reason.clone());
+                let reject_job = new_promise_reaction_job(reject_reaction, reason.clone());
 
                 //   e. Perform HostEnqueuePromiseJob(rejectJob.[[Job]], rejectJob.[[Realm]]).
                 context.host_enqueue_promise_job(reject_job);
@@ -2103,14 +2101,17 @@ impl Promise {
         c: JsObject,
         x: JsValue,
         context: &mut Context<'_>,
-    ) -> JsResult<JsValue> {
+    ) -> JsResult<JsObject> {
         // 1. If IsPromise(x) is true, then
         if let Some(x) = x.as_promise() {
             // a. Let xConstructor be ? Get(x, "constructor").
             let x_constructor = x.get("constructor", context)?;
             // b. If SameValue(xConstructor, C) is true, return x.
-            if JsValue::same_value(&x_constructor, &JsValue::from(c.clone())) {
-                return Ok(JsValue::from(x.clone()));
+            if x_constructor
+                .as_object()
+                .map_or(false, |o| JsObject::equals(o, &c))
+            {
+                return Ok(x.clone());
             }
         }
 
@@ -2123,7 +2124,7 @@ impl Promise {
             .call(&JsValue::Undefined, &[x], context)?;
 
         // 4. Return promiseCapability.[[Promise]].
-        Ok(promise_capability.promise.clone().into())
+        Ok(promise_capability.promise.clone())
     }
 
     /// `GetPromiseResolve ( promiseConstructor )`

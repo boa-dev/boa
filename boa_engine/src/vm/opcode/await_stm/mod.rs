@@ -117,8 +117,6 @@ impl Operation for Await {
 
         // 7. Perform PerformPromiseThen(promise, onFulfilled, onRejected).
         promise
-            .as_object()
-            .expect("promise was not an object")
             .borrow_mut()
             .as_promise_mut()
             .expect("promise was not a promise")

@@ -431,8 +431,6 @@ impl AsyncFromSyncIterator {
 
         // 11. Perform PerformPromiseThen(valueWrapper, onFulfilled, undefined, promiseCapability).
         value_wrapper
-            .as_object()
-            .expect("result of promise resolve must be promise")
             .borrow_mut()
             .as_promise_mut()
             .expect("constructed promise must be a promise")

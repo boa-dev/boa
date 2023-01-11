@@ -697,10 +697,7 @@ impl AsyncGenerator {
         .build();
 
         // 11. Perform PerformPromiseThen(promise, onFulfilled, onRejected).
-        let promise_obj = promise
-            .as_object()
-            .expect("constructed promise must be a promise");
-        promise_obj
+        promise
             .borrow_mut()
             .as_promise_mut()
             .expect("constructed promise must be a promise")
