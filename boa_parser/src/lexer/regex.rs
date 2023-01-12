@@ -5,6 +5,7 @@ use bitflags::bitflags;
 use boa_ast::Position;
 use boa_interner::{Interner, Sym};
 use boa_profiler::Profiler;
+use regress::Regex;
 use std::{
     io::{self, ErrorKind, Read},
     str::{self, FromStr},
@@ -120,6 +121,13 @@ impl<R> Tokenizer<R> for RegexLiteral {
 
         let flags_str = unsafe { str::from_utf8_unchecked(flags.as_slice()) };
         if let Ok(body_str) = str::from_utf8(body.as_slice()) {
+            if let Err(error) = Regex::with_flags(body_str, flags_str) {
+                return Err(Error::Syntax(
+                    format!("Invalid regular expression literal: {error}").into(),
+                    start_pos,
+                ));
+            }
+
             Ok(Token::new(
                 TokenKind::regular_expression_literal(
                     interner.get_or_intern(body_str),
