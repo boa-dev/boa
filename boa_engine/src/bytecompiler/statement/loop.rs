@@ -23,7 +23,7 @@ impl ByteCompiler<'_, '_> {
     ) -> JsResult<()> {
         self.context.push_compile_time_environment(false);
         let push_env = self.emit_and_track_decl_env();
-        self.push_new_jump_control();
+        self.push_empty_loop_jump_control();
 
         if let Some(init) = for_loop.init() {
             match init {

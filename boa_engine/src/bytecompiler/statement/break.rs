@@ -1,20 +1,12 @@
 use boa_ast::statement::Break;
 
-use crate::{
-    bytecompiler::{ByteCompiler, JumpControlInfoKind},
-    vm::Opcode,
-    JsNativeError, JsResult,
-};
+use crate::{bytecompiler::ByteCompiler, vm::Opcode, JsNativeError, JsResult};
 
 impl ByteCompiler<'_, '_> {
     /// Compile a [`Break`] `boa_ast` node
     pub(crate) fn compile_break(&mut self, node: Break) -> JsResult<()> {
         let next = self.next_opcode_location();
-        if let Some(info) = self
-            .jump_info
-            .last()
-            .filter(|info| info.kind() == JumpControlInfoKind::Try)
-        {
+        if let Some(info) = self.jump_info.last().filter(|info| info.is_try_block()) {
             let in_finally = if let Some(finally_start) = info.finally_start() {
                 next >= finally_start.index
             } else {

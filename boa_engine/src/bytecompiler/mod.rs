@@ -32,7 +32,7 @@ use boa_interner::{Interner, Sym};
 use rustc_hash::FxHashMap;
 
 pub(crate) use function::FunctionCompiler;
-pub(crate) use jump_control::{JumpControlInfo, JumpControlInfoKind};
+pub(crate) use jump_control::JumpControlInfo;
 
 /// Describes how a node has been defined in the source code.
 #[derive(Debug, Clone, Copy, PartialEq)]

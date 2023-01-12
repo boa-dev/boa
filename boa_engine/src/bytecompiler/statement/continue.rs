@@ -1,19 +1,11 @@
 use boa_ast::statement::Continue;
 
-use crate::{
-    bytecompiler::{ByteCompiler, JumpControlInfoKind},
-    vm::Opcode,
-    JsNativeError, JsResult,
-};
+use crate::{bytecompiler::ByteCompiler, vm::Opcode, JsNativeError, JsResult};
 
 impl ByteCompiler<'_, '_> {
     pub(crate) fn compile_continue(&mut self, node: Continue) -> JsResult<()> {
         let next = self.next_opcode_location();
-        if let Some(info) = self
-            .jump_info
-            .last()
-            .filter(|info| info.kind() == JumpControlInfoKind::Try)
-        {
+        if let Some(info) = self.jump_info.last().filter(|info| info.is_try_block()) {
             let start_address = info.start_address();
             let in_finally = if let Some(finally_start) = info.finally_start() {
                 next > finally_start.index
@@ -39,11 +31,7 @@ impl ByteCompiler<'_, '_> {
                 .expect("no jump information found")
                 .push_try_continue_label(label);
         } else {
-            let mut items = self
-                .jump_info
-                .iter()
-                .rev()
-                .filter(|info| info.kind() == JumpControlInfoKind::Loop);
+            let mut items = self.jump_info.iter().rev().filter(|info| info.is_loop());
             let address = if let Some(label_name) = node.label() {
                 let mut num_loops = 0;
                 let mut emit_for_of_in_exit = 0;

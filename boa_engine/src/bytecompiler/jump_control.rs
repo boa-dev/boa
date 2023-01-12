@@ -13,6 +13,7 @@ use crate::{
     bytecompiler::{ByteCompiler, Label},
     vm::Opcode,
 };
+use bitflags::bitflags;
 use boa_interner::Sym;
 use std::mem::size_of;
 
@@ -21,23 +22,30 @@ use std::mem::size_of;
 pub(crate) struct JumpControlInfo {
     label: Option<Sym>,
     start_address: u32,
-    kind: JumpControlInfoKind,
+    decl_envs: u32,
+    flags: JumpControlInfoFlags,
     breaks: Vec<Label>,
     try_continues: Vec<Label>,
-    in_catch: bool,
-    has_finally: bool,
     finally_start: Option<Label>,
-    for_of_in_loop: bool,
-    decl_envs: u32,
 }
 
-/// An enum that sets the type of the current `JumpControlInfo`
-#[derive(Debug, Clone, Copy, PartialEq)]
-pub(crate) enum JumpControlInfoKind {
-    Loop,
-    Switch,
-    Try,
-    LabelledBlock,
+bitflags! {
+    /// A bitflag that contains the type flags and relevant booleans for `JumpControlInfo`.
+    pub(crate) struct JumpControlInfoFlags: u8 {
+        const LOOP = 0b0000_0001;
+        const SWITCH = 0b0000_0010;
+        const TRY_BLOCK = 0b0000_0100;
+        const LABELLED_BLOCK = 0b0000_1000;
+        const IN_CATCH = 0b0001_0000;
+        const HAS_FINALLY = 0b0010_0000;
+        const FOR_OF_IN_LOOP = 0b0100_0000;
+    }
+}
+
+impl Default for JumpControlInfoFlags {
+    fn default() -> Self {
+        JumpControlInfoFlags::empty()
+    }
 }
 
 impl Default for JumpControlInfo {
@@ -45,14 +53,11 @@ impl Default for JumpControlInfo {
         Self {
             label: None,
             start_address: u32::MAX,
-            kind: JumpControlInfoKind::Loop,
+            decl_envs: 0,
+            flags: JumpControlInfoFlags::default(),
             breaks: Vec::new(),
             try_continues: Vec::new(),
-            in_catch: false,
-            has_finally: false,
             finally_start: None,
-            for_of_in_loop: false,
-            decl_envs: 0,
         }
     }
 }
@@ -70,18 +75,33 @@ impl JumpControlInfo {
         self
     }
 
-    pub(crate) const fn with_kind(mut self, kind: JumpControlInfoKind) -> Self {
-        self.kind = kind;
+    pub(crate) fn with_loop_flag(mut self, value: bool) -> Self {
+        self.flags.set(JumpControlInfoFlags::LOOP, value);
         self
     }
 
-    pub(crate) const fn with_has_finally(mut self, value: bool) -> Self {
-        self.has_finally = value;
+    pub(crate) fn with_switch_flag(mut self, value: bool) -> Self {
+        self.flags.set(JumpControlInfoFlags::SWITCH, value);
         self
     }
 
-    pub(crate) const fn with_for_of_in_loop(mut self, value: bool) -> Self {
-        self.for_of_in_loop = value;
+    pub(crate) fn with_try_block_flag(mut self, value: bool) -> Self {
+        self.flags.set(JumpControlInfoFlags::TRY_BLOCK, value);
+        self
+    }
+
+    pub(crate) fn with_labelled_block_flag(mut self, value: bool) -> Self {
+        self.flags.set(JumpControlInfoFlags::LABELLED_BLOCK, value);
+        self
+    }
+
+    pub(crate) fn with_has_finally(mut self, value: bool) -> Self {
+        self.flags.set(JumpControlInfoFlags::HAS_FINALLY, value);
+        self
+    }
+
+    pub(crate) fn with_for_of_in_loop(mut self, value: bool) -> Self {
+        self.flags.set(JumpControlInfoFlags::FOR_OF_IN_LOOP, value);
         self
     }
 }
@@ -97,16 +117,28 @@ impl JumpControlInfo {
         self.start_address
     }
 
-    pub(crate) const fn kind(&self) -> JumpControlInfoKind {
-        self.kind
+    pub(crate) const fn is_loop(&self) -> bool {
+        self.flags.contains(JumpControlInfoFlags::LOOP)
+    }
+
+    pub(crate) const fn is_switch(&self) -> bool {
+        self.flags.contains(JumpControlInfoFlags::SWITCH)
+    }
+
+    pub(crate) const fn is_try_block(&self) -> bool {
+        self.flags.contains(JumpControlInfoFlags::TRY_BLOCK)
+    }
+
+    pub(crate) const fn is_labelled_block(&self) -> bool {
+        self.flags.contains(JumpControlInfoFlags::LABELLED_BLOCK)
     }
 
     pub(crate) const fn in_catch(&self) -> bool {
-        self.in_catch
+        self.flags.contains(JumpControlInfoFlags::IN_CATCH)
     }
 
     pub(crate) const fn has_finally(&self) -> bool {
-        self.has_finally
+        self.flags.contains(JumpControlInfoFlags::HAS_FINALLY)
     }
 
     pub(crate) const fn finally_start(&self) -> Option<Label> {
@@ -114,7 +146,7 @@ impl JumpControlInfo {
     }
 
     pub(crate) const fn for_of_in_loop(&self) -> bool {
-        self.for_of_in_loop
+        self.flags.contains(JumpControlInfoFlags::FOR_OF_IN_LOOP)
     }
 
     pub(crate) const fn decl_envs(&self) -> u32 {
@@ -136,7 +168,7 @@ impl JumpControlInfo {
 
     /// Sets the `in_catch` field of `JumpControlInfo`.
     pub(crate) fn set_in_catch(&mut self, value: bool) {
-        self.in_catch = value;
+        self.flags.set(JumpControlInfoFlags::IN_CATCH, value);
     }
 
     /// Sets the `finally_start` field of `JumpControlInfo`.
@@ -170,8 +202,9 @@ impl ByteCompiler<'_, '_> {
     /// Pushes a generic `JumpControlInfo` onto `ByteCompiler`
     ///
     /// Default `JumpControlInfoKind` is `JumpControlInfoKind::Loop`
-    pub(crate) fn push_new_jump_control(&mut self) {
-        self.jump_info.push(JumpControlInfo::default());
+    pub(crate) fn push_empty_loop_jump_control(&mut self) {
+        self.jump_info
+            .push(JumpControlInfo::default().with_loop_flag(true));
     }
 
     pub(crate) fn current_jump_control_mut(&mut self) -> Option<&mut JumpControlInfo> {
@@ -184,7 +217,7 @@ impl ByteCompiler<'_, '_> {
                 .jump_info
                 .last_mut()
                 .expect("must have try control label");
-            assert!(info.kind == JumpControlInfoKind::Try);
+            assert!(info.is_try_block());
             info.set_finally_start(start);
         }
     }
@@ -195,7 +228,7 @@ impl ByteCompiler<'_, '_> {
                 .jump_info
                 .last_mut()
                 .expect("must have try control label");
-            assert!(info.kind == JumpControlInfoKind::Try);
+            assert!(info.is_try_block());
             info.set_in_catch(value);
         }
     }
@@ -224,6 +257,7 @@ impl ByteCompiler<'_, '_> {
 
     pub(crate) fn push_loop_control_info(&mut self, label: Option<Sym>, start_address: u32) {
         let new_info = JumpControlInfo::default()
+            .with_loop_flag(true)
             .with_label(label)
             .with_start_address(start_address);
         self.jump_info.push(new_info);
@@ -235,6 +269,7 @@ impl ByteCompiler<'_, '_> {
         start_address: u32,
     ) {
         let new_info = JumpControlInfo::default()
+            .with_loop_flag(true)
             .with_label(label)
             .with_start_address(start_address)
             .with_for_of_in_loop(true);
@@ -244,7 +279,7 @@ impl ByteCompiler<'_, '_> {
     pub(crate) fn pop_loop_control_info(&mut self) {
         let loop_info = self.jump_info.pop().expect("no jump information found");
 
-        assert!(loop_info.kind == JumpControlInfoKind::Loop);
+        assert!(loop_info.is_loop());
 
         for label in loop_info.breaks {
             self.patch_jump(label);
@@ -257,7 +292,7 @@ impl ByteCompiler<'_, '_> {
 
     pub(crate) fn push_switch_control_info(&mut self, label: Option<Sym>, start_address: u32) {
         let new_info = JumpControlInfo::default()
-            .with_kind(JumpControlInfoKind::Switch)
+            .with_switch_flag(true)
             .with_label(label)
             .with_start_address(start_address);
         self.jump_info.push(new_info);
@@ -266,7 +301,7 @@ impl ByteCompiler<'_, '_> {
     pub(crate) fn pop_switch_control_info(&mut self) {
         let info = self.jump_info.pop().expect("no jump information found");
 
-        assert!(info.kind == JumpControlInfoKind::Switch);
+        assert!(info.is_switch());
 
         for label in info.breaks {
             self.patch_jump(label);
@@ -282,7 +317,7 @@ impl ByteCompiler<'_, '_> {
                 .start_address();
 
             let new_info = JumpControlInfo::default()
-                .with_kind(JumpControlInfoKind::Try)
+                .with_try_block_flag(true)
                 .with_start_address(start_address)
                 .with_has_finally(has_finally);
 
@@ -294,7 +329,7 @@ impl ByteCompiler<'_, '_> {
         if !self.jump_info.is_empty() {
             let mut info = self.jump_info.pop().expect("no jump information found");
 
-            assert!(info.kind == JumpControlInfoKind::Try);
+            assert!(info.is_try_block());
 
             let mut breaks = Vec::with_capacity(info.breaks.len());
 
@@ -330,7 +365,7 @@ impl ByteCompiler<'_, '_> {
 
     pub(crate) fn push_labelled_block_control_info(&mut self, label: Sym, start_address: u32) {
         let new_info = JumpControlInfo::default()
-            .with_kind(JumpControlInfoKind::LabelledBlock)
+            .with_labelled_block_flag(true)
             .with_label(Some(label))
             .with_start_address(start_address);
         self.jump_info.push(new_info);
@@ -339,7 +374,7 @@ impl ByteCompiler<'_, '_> {
     pub(crate) fn pop_labelled_block_control_info(&mut self) {
         let info = self.jump_info.pop().expect("no jump information found");
 
-        assert!(info.kind == JumpControlInfoKind::LabelledBlock);
+        assert!(info.is_labelled_block());
 
         self.emit_opcode(Opcode::PopEnvironment);
 
