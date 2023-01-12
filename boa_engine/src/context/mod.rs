@@ -2,6 +2,7 @@
 
 mod hooks;
 pub mod intrinsics;
+use hooks::DefaultHooks;
 pub use hooks::HostHooks;
 
 #[cfg(feature = "intl")]
@@ -612,7 +613,7 @@ impl<'icu, 'hooks, 'queue> ContextBuilder<'icu, 'hooks, 'queue> {
             #[cfg(feature = "fuzz")]
             instructions_remaining: self.instructions_remaining,
             kept_alive: Vec::new(),
-            host_hooks: self.host_hooks.unwrap_or(&()),
+            host_hooks: self.host_hooks.unwrap_or(&DefaultHooks),
             job_queue: self.job_queue.unwrap_or(&IdleJobQueue),
         };
 

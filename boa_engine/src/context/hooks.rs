@@ -49,6 +49,7 @@ pub trait HostHooks {
         // 1. Return the JobCallback Record { [[Callback]]: callback, [[HostDefined]]: empty }.
         JobCallback::new(callback, ())
     }
+
     /// [`HostCallJobCallback ( jobCallback, V, argumentsList )`][spec]
     ///
     /// # Requirements
@@ -87,6 +88,7 @@ pub trait HostHooks {
     ) {
         // The default implementation of HostPromiseRejectionTracker is to return unused.
     }
+
     /// [`HostEnsureCanCompileStrings ( calleeRealm )`][spec]
     ///
     /// # Requirements
@@ -102,6 +104,7 @@ pub trait HostHooks {
         // The default implementation of HostEnsureCanCompileStrings is to return NormalCompletion(unused).
         Ok(())
     }
+
     /// [`HostHasSourceTextAvailable ( func )`][spec]
     ///
     /// # Requirements
@@ -121,4 +124,7 @@ pub trait HostHooks {
 }
 
 /// Default implementation of [`HostHooks`], which doesn't carry any state.
-impl HostHooks for () {}
+#[derive(Debug, Clone, Copy)]
+pub(crate) struct DefaultHooks;
+
+impl HostHooks for DefaultHooks {}
