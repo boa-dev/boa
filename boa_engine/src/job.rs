@@ -1,10 +1,7 @@
-//! `ECMAScript` jobs and job queues.
+//! Boa's API to create and customize `ECMAScript` jobs and job queues.
 //!
-//! This module contains Boa's API to create, customize and interact with `ECMAScript` jobs
-//! and job queues.
-//!
-//! [`NativeJob`] is an ECMAScript [Job], or a closure that runs an `ECMAScript` computation when there's no
-//! other computation running.
+//! [`NativeJob`] is an ECMAScript [Job], or a closure that runs an `ECMAScript` computation when
+//! there's no other computation running.
 //!
 //! [`JobCallback`] is an ECMAScript [`JobCallback`] record, containing an `ECMAScript` function
 //! that is executed when a promise is either fulfilled or rejected.
