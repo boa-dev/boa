@@ -230,6 +230,14 @@
 <span id="229">229</span>
 <span id="230">230</span>
 <span id="231">231</span>
+<span id="232">232</span>
+<span id="233">233</span>
+<span id="234">234</span>
+<span id="235">235</span>
+<span id="236">236</span>
+<span id="237">237</span>
+<span id="238">238</span>
+<span id="239">239</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Boa&#39;s lexing for ECMAScript regex literals.
 
 </span><span class="kw">use </span><span class="kw">crate</span>::lexer::{Cursor, Error, Span, Token, TokenKind, Tokenizer};
@@ -237,6 +245,7 @@
 <span class="kw">use </span>boa_ast::Position;
 <span class="kw">use </span>boa_interner::{Interner, Sym};
 <span class="kw">use </span>boa_profiler::Profiler;
+<span class="kw">use </span>regress::Regex;
 <span class="kw">use </span>std::{
     io::{<span class="self">self</span>, ErrorKind, Read},
     str::{<span class="self">self</span>, FromStr},
@@ -352,6 +361,13 @@
 
         <span class="kw">let </span>flags_str = <span class="kw">unsafe </span>{ str::from_utf8_unchecked(flags.as_slice()) };
         <span class="kw">if let </span><span class="prelude-val">Ok</span>(body_str) = str::from_utf8(body.as_slice()) {
+            <span class="kw">if let </span><span class="prelude-val">Err</span>(error) = Regex::with_flags(body_str, flags_str) {
+                <span class="kw">return </span><span class="prelude-val">Err</span>(Error::Syntax(
+                    <span class="macro">format!</span>(<span class="string">&quot;Invalid regular expression literal: {error}&quot;</span>).into(),
+                    start_pos,
+                ));
+            }
+
             <span class="prelude-val">Ok</span>(Token::new(
                 TokenKind::regular_expression_literal(
                     interner.get_or_intern(body_str),
@@ -462,4 +478,4 @@
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="boa_parser" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.66.0 (69f9c33d7 2022-12-12)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="boa_parser" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.66.1 (90743e729 2023-01-10)" ></div></body></html>
