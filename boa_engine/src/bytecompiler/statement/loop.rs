@@ -43,8 +43,12 @@ impl ByteCompiler<'_, '_> {
         let initial_jump = self.jump();
 
         let start_address = self.next_opcode_location();
-        self.set_jump_control_label(label);
-        self.set_jump_control_start_address(start_address);
+        self.current_jump_control_mut()
+            .expect("jump_control must exist as it was just pushed")
+            .set_label(label);
+        self.current_jump_control_mut()
+            .expect("jump_control must exist as it was just pushed")
+            .set_start_address(start_address);
 
         self.emit_opcode(Opcode::LoopContinue);
         if let Some(final_expr) = for_loop.final_expr() {

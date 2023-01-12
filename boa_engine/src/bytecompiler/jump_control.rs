@@ -174,20 +174,8 @@ impl ByteCompiler<'_, '_> {
         self.jump_info.push(JumpControlInfo::default());
     }
 
-    pub(crate) fn set_jump_control_label(&mut self, label: Option<Sym>) {
-        assert!(!self.jump_info.is_empty());
-        self.jump_info
-            .last_mut()
-            .expect("JumpInfo must exist")
-            .set_label(label);
-    }
-
-    pub(crate) fn set_jump_control_start_address(&mut self, start_address: u32) {
-        assert!(!self.jump_info.is_empty());
-        self.jump_info
-            .last_mut()
-            .expect("JumpInfo must exist")
-            .set_start_address(start_address);
+    pub(crate) fn current_jump_control_mut(&mut self) -> Option<&mut JumpControlInfo> {
+        self.jump_info.last_mut()
     }
 
     pub(crate) fn set_jump_control_finally_start(&mut self, start: Label) {
