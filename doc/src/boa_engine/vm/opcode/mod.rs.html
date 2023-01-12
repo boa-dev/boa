@@ -1496,6 +1496,9 @@
 <span id="1495">1495</span>
 <span id="1496">1496</span>
 <span id="1497">1497</span>
+<span id="1498">1498</span>
+<span id="1499">1499</span>
+<span id="1500">1500</span>
 </pre><pre class="rust"><code><span class="doccomment">/// The opcodes of the vm.
 </span><span class="kw">use crate</span>::{vm::ShouldExit, Context, JsResult};
 
@@ -2932,6 +2935,9 @@
         ///
         /// Stack: promise **=&gt;**
         </span>Await,
+
+        <span class="doccomment">/// Jumps to a target location and pops the environments involved.
+        </span>Break,
 
         <span class="doccomment">/// Push the current new target to the stack.
         ///

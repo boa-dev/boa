@@ -1533,6 +1533,7 @@
 <span id="1532">1532</span>
 <span id="1533">1533</span>
 <span id="1534">1534</span>
+<span id="1535">1535</span>
 </pre><pre class="rust"><code><span class="doccomment">//! `CodeBlock`
 //!
 //! This module is for the `CodeBlock` which implements a function representation in the VM
@@ -1776,7 +1777,8 @@
             Opcode::TryStart
             | Opcode::PushDeclarativeEnvironment
             | Opcode::PushFunctionEnvironment
-            | Opcode::CopyDataProperties =&gt; {
+            | Opcode::CopyDataProperties
+            | Opcode::Break =&gt; {
                 <span class="kw">let </span>operand1 = <span class="self">self</span>.read::&lt;u32&gt;(<span class="kw-2">*</span>pc);
                 <span class="kw-2">*</span>pc += size_of::&lt;u32&gt;();
                 <span class="kw">let </span>operand2 = <span class="self">self</span>.read::&lt;u32&gt;(<span class="kw-2">*</span>pc);

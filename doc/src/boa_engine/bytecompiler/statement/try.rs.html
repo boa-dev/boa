@@ -154,7 +154,7 @@
         <span class="self">self</span>.patch_jump(Label { index: try_start });
 
         <span class="kw">if let </span><span class="prelude-val">Some</span>(catch) = t.catch() {
-            <span class="self">self</span>.push_try_control_info_catch_start();
+            <span class="self">self</span>.set_jump_control_catch_start(<span class="bool-val">true</span>);
             <span class="kw">let </span>catch_start = <span class="kw">if </span>t.finally().is_some() {
                 <span class="prelude-val">Some</span>(<span class="self">self</span>.emit_opcode_with_operand(Opcode::CatchStart))
             } <span class="kw">else </span>{
@@ -204,7 +204,7 @@
         <span class="kw">if let </span><span class="prelude-val">Some</span>(finally) = t.finally() {
             <span class="self">self</span>.emit_opcode(Opcode::FinallyStart);
             <span class="kw">let </span>finally_start_address = <span class="self">self</span>.next_opcode_location();
-            <span class="self">self</span>.push_try_control_info_finally_start(Label {
+            <span class="self">self</span>.set_jump_control_finally_start(Label {
                 index: finally_start_address,
             });
             <span class="self">self</span>.patch_jump_with_target(

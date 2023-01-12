@@ -1,0 +1,143 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `boa_engine/src/bytecompiler/statement/break.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>break.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../../normalize.css"><link rel="stylesheet" href="../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../../ayu.css" disabled><link rel="stylesheet" href="../../../../dark.css" disabled><link rel="stylesheet" href="../../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../../storage.js"></script><script defer src="../../../../source-script.js"></script><script defer src="../../../../source-files.js"></script><script defer src="../../../../main.js"></script><noscript><link rel="stylesheet" href="../../../../noscript.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><div class="width-limiter"><nav class="sub"><a class="sub-logo-container" href="../../../../boa_engine/index.html">
+                        <img src="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../wheel.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><span id="1">1</span>
+<span id="2">2</span>
+<span id="3">3</span>
+<span id="4">4</span>
+<span id="5">5</span>
+<span id="6">6</span>
+<span id="7">7</span>
+<span id="8">8</span>
+<span id="9">9</span>
+<span id="10">10</span>
+<span id="11">11</span>
+<span id="12">12</span>
+<span id="13">13</span>
+<span id="14">14</span>
+<span id="15">15</span>
+<span id="16">16</span>
+<span id="17">17</span>
+<span id="18">18</span>
+<span id="19">19</span>
+<span id="20">20</span>
+<span id="21">21</span>
+<span id="22">22</span>
+<span id="23">23</span>
+<span id="24">24</span>
+<span id="25">25</span>
+<span id="26">26</span>
+<span id="27">27</span>
+<span id="28">28</span>
+<span id="29">29</span>
+<span id="30">30</span>
+<span id="31">31</span>
+<span id="32">32</span>
+<span id="33">33</span>
+<span id="34">34</span>
+<span id="35">35</span>
+<span id="36">36</span>
+<span id="37">37</span>
+<span id="38">38</span>
+<span id="39">39</span>
+<span id="40">40</span>
+<span id="41">41</span>
+<span id="42">42</span>
+<span id="43">43</span>
+<span id="44">44</span>
+<span id="45">45</span>
+<span id="46">46</span>
+<span id="47">47</span>
+<span id="48">48</span>
+<span id="49">49</span>
+<span id="50">50</span>
+<span id="51">51</span>
+<span id="52">52</span>
+<span id="53">53</span>
+<span id="54">54</span>
+<span id="55">55</span>
+<span id="56">56</span>
+<span id="57">57</span>
+<span id="58">58</span>
+<span id="59">59</span>
+<span id="60">60</span>
+<span id="61">61</span>
+<span id="62">62</span>
+<span id="63">63</span>
+<span id="64">64</span>
+<span id="65">65</span>
+<span id="66">66</span>
+<span id="67">67</span>
+<span id="68">68</span>
+<span id="69">69</span>
+<span id="70">70</span>
+</pre><pre class="rust"><code><span class="kw">use </span>boa_ast::statement::Break;
+
+<span class="kw">use crate</span>::{bytecompiler::ByteCompiler, vm::Opcode, JsNativeError, JsResult};
+
+<span class="kw">impl </span>ByteCompiler&lt;<span class="lifetime">&#39;_</span>, <span class="lifetime">&#39;_</span>&gt; {
+    <span class="doccomment">/// Compile a [`Break`] `boa_ast` node
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>compile_break(<span class="kw-2">&amp;mut </span><span class="self">self</span>, node: Break) -&gt; JsResult&lt;()&gt; {
+        <span class="kw">let </span>next = <span class="self">self</span>.next_opcode_location();
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(info) = <span class="self">self</span>.jump_info.last().filter(|info| info.is_try_block()) {
+            <span class="kw">let </span>in_finally = <span class="kw">if let </span><span class="prelude-val">Some</span>(finally_start) = info.finally_start() {
+                next &gt;= finally_start.index
+            } <span class="kw">else </span>{
+                <span class="bool-val">false
+            </span>};
+            <span class="kw">let </span>in_catch_no_finally = !info.has_finally() &amp;&amp; info.in_catch();
+
+            <span class="kw">if </span>in_finally {
+                <span class="self">self</span>.emit_opcode(Opcode::PopIfThrown);
+            }
+            <span class="kw">if </span>in_finally || in_catch_no_finally {
+                <span class="self">self</span>.emit_opcode(Opcode::CatchEnd2);
+            } <span class="kw">else </span>{
+                <span class="self">self</span>.emit_opcode(Opcode::TryEnd);
+            }
+            <span class="self">self</span>.emit(Opcode::FinallySetJump, <span class="kw-2">&amp;</span>[u32::MAX]);
+        }
+        <span class="kw">let </span>(break_label, envs_to_pop) = <span class="self">self</span>.emit_opcode_with_two_operands(Opcode::Break);
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(label_name) = node.label() {
+            <span class="kw">let </span><span class="kw-2">mut </span>found = <span class="bool-val">false</span>;
+            <span class="kw">let </span><span class="kw-2">mut </span>total_envs: u32 = <span class="number">0</span>;
+            <span class="kw">for </span>info <span class="kw">in </span><span class="self">self</span>.jump_info.iter_mut().rev() {
+                total_envs += info.decl_envs();
+                <span class="kw">if </span>info.label() == <span class="prelude-val">Some</span>(label_name) {
+                    info.push_break_label(break_label);
+                    found = <span class="bool-val">true</span>;
+                    <span class="kw">break</span>;
+                }
+            }
+            <span class="comment">// TODO: promote to an early error.
+            </span><span class="kw">if </span>!found {
+                <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::syntax()
+                    .with_message(<span class="macro">format!</span>(
+                        <span class="string">&quot;Cannot use the undeclared label &#39;{}&#39;&quot;</span>,
+                        <span class="self">self</span>.interner().resolve_expect(label_name)
+                    ))
+                    .into());
+            }
+            <span class="self">self</span>.patch_jump_with_target(envs_to_pop, total_envs);
+        } <span class="kw">else </span>{
+            <span class="kw">let </span>envs = <span class="self">self
+                </span>.jump_info
+                .last()
+                <span class="comment">// TODO: promote to an early error.
+                </span>.ok_or_else(|| {
+                    JsNativeError::syntax()
+                        .with_message(<span class="string">&quot;unlabeled break must be inside loop or switch&quot;</span>)
+                })<span class="question-mark">?
+                </span>.decl_envs();
+
+            <span class="self">self</span>.patch_jump_with_target(envs_to_pop, envs);
+
+            <span class="self">self</span>.jump_info
+                .last_mut()
+                .expect(<span class="string">&quot;cannot throw error as last access would have thrown&quot;</span>)
+                .push_break_label(break_label);
+        }
+
+        <span class="prelude-val">Ok</span>(())
+    }
+}
+</code></pre></div>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="boa_engine" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.66.1 (90743e729 2023-01-10)" ></div></body></html>

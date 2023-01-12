@@ -502,6 +502,22 @@
 <span id="501">501</span>
 <span id="502">502</span>
 <span id="503">503</span>
+<span id="504">504</span>
+<span id="505">505</span>
+<span id="506">506</span>
+<span id="507">507</span>
+<span id="508">508</span>
+<span id="509">509</span>
+<span id="510">510</span>
+<span id="511">511</span>
+<span id="512">512</span>
+<span id="513">513</span>
+<span id="514">514</span>
+<span id="515">515</span>
+<span id="516">516</span>
+<span id="517">517</span>
+<span id="518">518</span>
+<span id="519">519</span>
 </pre><pre class="rust"><code><span class="doccomment">//! This module is responsible for generating the vm instruction flowgraph.
 
 </span><span class="kw">use </span><span class="kw">crate</span>::vm::{CodeBlock, Opcode};
@@ -629,6 +645,22 @@
                         previous_pc,
                         pc,
                         <span class="prelude-val">Some</span>(<span class="string">&quot;NO&quot;</span>.into()),
+                        Color::Red,
+                        EdgeStyle::Line,
+                    );
+                }
+                Opcode::Break =&gt; {
+                    <span class="kw">let </span>jump_operand = <span class="self">self</span>.read::&lt;u32&gt;(pc);
+                    pc += size_of::&lt;u32&gt;();
+                    <span class="kw">let </span>envs_operand = <span class="self">self</span>.read::&lt;u32&gt;(pc);
+                    pc += size_of::&lt;u32&gt;();
+
+                    <span class="kw">let </span>label = <span class="macro">format!</span>(<span class="string">&quot;{opcode_str} {jump_operand}, pop {envs_operand}&quot;</span>);
+                    graph.add_node(previous_pc, NodeShape::None, label.into(), Color::Red);
+                    graph.add_edge(
+                        previous_pc,
+                        jump_operand <span class="kw">as </span>usize,
+                        <span class="prelude-val">Some</span>(<span class="string">&quot;BREAK&quot;</span>.into()),
                         Color::Red,
                         EdgeStyle::Line,
                     );

@@ -85,11 +85,17 @@
 <span id="84">84</span>
 <span id="85">85</span>
 <span id="86">86</span>
+<span id="87">87</span>
+<span id="88">88</span>
+<span id="89">89</span>
 </pre><pre class="rust"><code><span class="kw">use crate</span>::{
     vm::{opcode::Operation, ShouldExit},
     Context, JsResult,
 };
 
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">mod </span>r#break;
+
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use </span>r#break::<span class="kw-2">*</span>;
 <span class="doccomment">/// `Jump` implements the Opcode Operation for `Opcode::Jump`
 ///
 /// Operation:

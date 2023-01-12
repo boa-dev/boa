@@ -362,6 +362,13 @@
 <span id="361">361</span>
 <span id="362">362</span>
 <span id="363">363</span>
+<span id="364">364</span>
+<span id="365">365</span>
+<span id="366">366</span>
+<span id="367">367</span>
+<span id="368">368</span>
+<span id="369">369</span>
+<span id="370">370</span>
 </pre><pre class="rust"><code><span class="kw">use </span>boa_ast::{
     declaration::Binding,
     operations::bound_names,
@@ -386,7 +393,8 @@
         configurable_globals: bool,
     ) -&gt; JsResult&lt;()&gt; {
         <span class="self">self</span>.context.push_compile_time_environment(<span class="bool-val">false</span>);
-        <span class="kw">let </span>push_env = <span class="self">self</span>.emit_opcode_with_two_operands(Opcode::PushDeclarativeEnvironment);
+        <span class="kw">let </span>push_env = <span class="self">self</span>.emit_and_track_decl_env();
+        <span class="self">self</span>.push_empty_loop_jump_control();
 
         <span class="kw">if let </span><span class="prelude-val">Some</span>(init) = for_loop.init() {
             <span class="kw">match </span>init {
@@ -406,7 +414,12 @@
         <span class="kw">let </span>initial_jump = <span class="self">self</span>.jump();
 
         <span class="kw">let </span>start_address = <span class="self">self</span>.next_opcode_location();
-        <span class="self">self</span>.push_loop_control_info(label, start_address);
+        <span class="self">self</span>.current_jump_control_mut()
+            .expect(<span class="string">&quot;jump_control must exist as it was just pushed&quot;</span>)
+            .set_label(label);
+        <span class="self">self</span>.current_jump_control_mut()
+            .expect(<span class="string">&quot;jump_control must exist as it was just pushed&quot;</span>)
+            .set_start_address(start_address);
 
         <span class="self">self</span>.emit_opcode(Opcode::LoopContinue);
         <span class="kw">if let </span><span class="prelude-val">Some</span>(final_expr) = for_loop.final_expr() {
@@ -426,15 +439,16 @@
 
         <span class="self">self</span>.emit(Opcode::Jump, <span class="kw-2">&amp;</span>[start_address]);
 
-        <span class="self">self</span>.patch_jump(exit);
-        <span class="self">self</span>.pop_loop_control_info();
-        <span class="self">self</span>.emit_opcode(Opcode::LoopEnd);
-
         <span class="kw">let </span>(num_bindings, compile_environment) = <span class="self">self</span>.context.pop_compile_time_environment();
         <span class="kw">let </span>index_compile_environment = <span class="self">self</span>.push_compile_environment(compile_environment);
         <span class="self">self</span>.patch_jump_with_target(push_env.<span class="number">0</span>, num_bindings <span class="kw">as </span>u32);
         <span class="self">self</span>.patch_jump_with_target(push_env.<span class="number">1</span>, index_compile_environment <span class="kw">as </span>u32);
-        <span class="self">self</span>.emit_opcode(Opcode::PopEnvironment);
+
+        <span class="self">self</span>.patch_jump(exit);
+        <span class="self">self</span>.pop_loop_control_info();
+        <span class="self">self</span>.emit_opcode(Opcode::LoopEnd);
+        <span class="self">self</span>.emit_and_track_pop_env();
+
         <span class="prelude-val">Ok</span>(())
     }
 
