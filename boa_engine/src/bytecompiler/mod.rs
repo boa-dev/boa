@@ -4,6 +4,7 @@ mod class;
 mod declaration;
 mod expression;
 mod function;
+mod jump_control;
 mod statement;
 
 use crate::{
@@ -29,9 +30,9 @@ use boa_ast::{
 use boa_gc::{Gc, GcCell};
 use boa_interner::{Interner, Sym};
 use rustc_hash::FxHashMap;
-use std::mem::size_of;
 
 pub(crate) use function::FunctionCompiler;
+pub(crate) use jump_control::JumpControlInfo;
 
 /// Describes how a node has been defined in the source code.
 #[derive(Debug, Clone, Copy, PartialEq)]
@@ -169,29 +170,8 @@ enum Literal {
 
 #[must_use]
 #[derive(Debug, Clone, Copy)]
-struct Label {
+pub(crate) struct Label {
     index: u32,
-}
-
-#[derive(Debug, Clone)]
-struct JumpControlInfo {
-    label: Option<Sym>,
-    start_address: u32,
-    kind: JumpControlInfoKind,
-    breaks: Vec<Label>,
-    try_continues: Vec<Label>,
-    in_catch: bool,
-    has_finally: bool,
-    finally_start: Option<Label>,
-    for_of_in_loop: bool,
-}
-
-#[derive(Debug, Clone, PartialEq)]
-enum JumpControlInfoKind {
-    Loop,
-    Switch,
-    Try,
-    LabelledBlock,
 }
 
 #[derive(Debug, Clone, Copy)]
@@ -237,7 +217,7 @@ impl<'b, 'icu> ByteCompiler<'b, 'icu> {
     /// Represents a placeholder address that will be patched later.
     const DUMMY_ADDRESS: u32 = u32::MAX;
 
-    /// Creates a new [`ByteCompiler`].
+    /// Creates a new `ByteCompiler`.
     #[inline]
     pub fn new(
         name: Sym,
@@ -479,182 +459,6 @@ impl<'b, 'icu> ByteCompiler<'b, 'icu> {
     fn patch_jump(&mut self, label: Label) {
         let target = self.next_opcode_location();
         self.patch_jump_with_target(label, target);
-    }
-
-    fn push_loop_control_info(&mut self, label: Option<Sym>, start_address: u32) {
-        self.jump_info.push(JumpControlInfo {
-            label,
-            start_address,
-            kind: JumpControlInfoKind::Loop,
-            breaks: Vec::new(),
-            try_continues: Vec::new(),
-            in_catch: false,
-            has_finally: false,
-            finally_start: None,
-            for_of_in_loop: false,
-        });
-    }
-
-    fn push_loop_control_info_for_of_in_loop(&mut self, label: Option<Sym>, start_address: u32) {
-        self.jump_info.push(JumpControlInfo {
-            label,
-            start_address,
-            kind: JumpControlInfoKind::Loop,
-            breaks: Vec::new(),
-            try_continues: Vec::new(),
-            in_catch: false,
-            has_finally: false,
-            finally_start: None,
-            for_of_in_loop: true,
-        });
-    }
-
-    fn pop_loop_control_info(&mut self) {
-        let loop_info = self.jump_info.pop().expect("no jump information found");
-
-        assert!(loop_info.kind == JumpControlInfoKind::Loop);
-
-        for label in loop_info.breaks {
-            self.patch_jump(label);
-        }
-
-        for label in loop_info.try_continues {
-            self.patch_jump_with_target(label, loop_info.start_address);
-        }
-    }
-
-    fn push_switch_control_info(&mut self, label: Option<Sym>, start_address: u32) {
-        self.jump_info.push(JumpControlInfo {
-            label,
-            start_address,
-            kind: JumpControlInfoKind::Switch,
-            breaks: Vec::new(),
-            try_continues: Vec::new(),
-            in_catch: false,
-            has_finally: false,
-            finally_start: None,
-            for_of_in_loop: false,
-        });
-    }
-
-    fn pop_switch_control_info(&mut self) {
-        let info = self.jump_info.pop().expect("no jump information found");
-
-        assert!(info.kind == JumpControlInfoKind::Switch);
-
-        for label in info.breaks {
-            self.patch_jump(label);
-        }
-    }
-
-    fn push_try_control_info(&mut self, has_finally: bool) {
-        if !self.jump_info.is_empty() {
-            let start_address = self
-                .jump_info
-                .last()
-                .expect("no jump information found")
-                .start_address;
-
-            self.jump_info.push(JumpControlInfo {
-                label: None,
-                start_address,
-                kind: JumpControlInfoKind::Try,
-                breaks: Vec::new(),
-                try_continues: Vec::new(),
-                in_catch: false,
-                has_finally,
-                finally_start: None,
-                for_of_in_loop: false,
-            });
-        }
-    }
-
-    fn push_try_control_info_catch_start(&mut self) {
-        if !self.jump_info.is_empty() {
-            let mut info = self
-                .jump_info
-                .last_mut()
-                .expect("must have try control label");
-            assert!(info.kind == JumpControlInfoKind::Try);
-            info.in_catch = true;
-        }
-    }
-
-    fn push_try_control_info_finally_start(&mut self, start: Label) {
-        if !self.jump_info.is_empty() {
-            let mut info = self
-                .jump_info
-                .last_mut()
-                .expect("must have try control label");
-            assert!(info.kind == JumpControlInfoKind::Try);
-            info.finally_start = Some(start);
-        }
-    }
-
-    fn pop_try_control_info(&mut self, finally_start_address: Option<u32>) {
-        if !self.jump_info.is_empty() {
-            let mut info = self.jump_info.pop().expect("no jump information found");
-
-            assert!(info.kind == JumpControlInfoKind::Try);
-
-            let mut breaks = Vec::with_capacity(info.breaks.len());
-
-            if let Some(finally_start_address) = finally_start_address {
-                for label in info.try_continues {
-                    if label.index < finally_start_address {
-                        self.patch_jump_with_target(label, finally_start_address);
-                    } else {
-                        self.patch_jump_with_target(label, info.start_address);
-                    }
-                }
-
-                for label in info.breaks {
-                    if label.index < finally_start_address {
-                        self.patch_jump_with_target(label, finally_start_address);
-                        let Label { mut index } = label;
-                        index -= size_of::<Opcode>() as u32;
-                        index -= size_of::<u32>() as u32;
-                        breaks.push(Label { index });
-                    } else {
-                        breaks.push(label);
-                    }
-                }
-                if let Some(jump_info) = self.jump_info.last_mut() {
-                    jump_info.breaks.append(&mut breaks);
-                }
-            } else if let Some(jump_info) = self.jump_info.last_mut() {
-                jump_info.breaks.append(&mut info.breaks);
-                jump_info.try_continues.append(&mut info.try_continues);
-            }
-        }
-    }
-
-    fn push_labelled_block_control_info(&mut self, label: Sym, start_address: u32) {
-        self.jump_info.push(JumpControlInfo {
-            label: Some(label),
-            start_address,
-            kind: JumpControlInfoKind::LabelledBlock,
-            breaks: Vec::new(),
-            try_continues: Vec::new(),
-            in_catch: false,
-            has_finally: false,
-            finally_start: None,
-            for_of_in_loop: false,
-        });
-    }
-
-    fn pop_labelled_block_control_info(&mut self) {
-        let info = self.jump_info.pop().expect("no jump information found");
-
-        assert!(info.kind == JumpControlInfoKind::LabelledBlock);
-
-        for label in info.breaks {
-            self.patch_jump(label);
-        }
-
-        for label in info.try_continues {
-            self.patch_jump_with_target(label, info.start_address);
-        }
     }
 
     fn access_get(&mut self, access: Access<'_>, use_expr: bool) -> JsResult<()> {
@@ -1172,61 +976,6 @@ impl<'b, 'icu> ByteCompiler<'b, 'icu> {
             Declaration::Class(class) => self.class(class, false),
             Declaration::Lexical(lexical) => self.compile_lexical_decl(lexical),
         }
-    }
-
-    /// Compiles a [`Statement`]
-    pub fn compile_stmt(
-        &mut self,
-        node: &Statement,
-        use_expr: bool,
-        configurable_globals: bool,
-    ) -> JsResult<()> {
-        match node {
-            Statement::Var(var) => self.compile_var_decl(var)?,
-            Statement::If(node) => self.compile_if(node, configurable_globals)?,
-            Statement::ForLoop(for_loop) => {
-                self.compile_for_loop(for_loop, None, configurable_globals)?;
-            }
-            Statement::ForInLoop(for_in_loop) => {
-                self.compile_for_in_loop(for_in_loop, None, configurable_globals)?;
-            }
-            Statement::ForOfLoop(for_of_loop) => {
-                self.compile_for_of_loop(for_of_loop, None, configurable_globals)?;
-            }
-            Statement::WhileLoop(while_loop) => {
-                self.compile_while_loop(while_loop, None, configurable_globals)?;
-            }
-            Statement::DoWhileLoop(do_while_loop) => {
-                self.compile_do_while_loop(do_while_loop, None, configurable_globals)?;
-            }
-            Statement::Block(block) => {
-                self.compile_block(block, None, use_expr, configurable_globals)?;
-            }
-            Statement::Labelled(labelled) => {
-                self.compile_labelled(labelled, use_expr, configurable_globals)?;
-            }
-            Statement::Continue(node) => self.compile_continue(*node)?,
-            Statement::Break(node) => self.compile_break(*node)?,
-            Statement::Throw(throw) => {
-                self.compile_expr(throw.target(), true)?;
-                self.emit(Opcode::Throw, &[]);
-            }
-            Statement::Switch(switch) => {
-                self.compile_switch(switch, configurable_globals)?;
-            }
-            Statement::Return(ret) => {
-                if let Some(expr) = ret.target() {
-                    self.compile_expr(expr, true)?;
-                } else {
-                    self.emit(Opcode::PushUndefined, &[]);
-                }
-                self.emit(Opcode::Return, &[]);
-            }
-            Statement::Try(t) => self.compile_try(t, use_expr, configurable_globals)?,
-            Statement::Empty => {}
-            Statement::Expression(expr) => self.compile_expr(expr, use_expr)?,
-        }
-        Ok(())
     }
 
     /// Compile a function AST Node into bytecode.

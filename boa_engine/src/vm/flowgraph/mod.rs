@@ -129,6 +129,22 @@ impl CodeBlock {
                         EdgeStyle::Line,
                     );
                 }
+                Opcode::Break => {
+                    let jump_operand = self.read::<u32>(pc);
+                    pc += size_of::<u32>();
+                    let envs_operand = self.read::<u32>(pc);
+                    pc += size_of::<u32>();
+
+                    let label = format!("{opcode_str} {jump_operand}, pop {envs_operand}");
+                    graph.add_node(previous_pc, NodeShape::None, label.into(), Color::Red);
+                    graph.add_edge(
+                        previous_pc,
+                        jump_operand as usize,
+                        Some("BREAK".into()),
+                        Color::Red,
+                        EdgeStyle::Line,
+                    );
+                }
                 Opcode::LogicalAnd | Opcode::LogicalOr | Opcode::Coalesce => {
                     let exit = self.read::<u32>(pc);
                     pc += size_of::<u32>();

@@ -22,7 +22,8 @@ impl ByteCompiler<'_, '_> {
         configurable_globals: bool,
     ) -> JsResult<()> {
         self.context.push_compile_time_environment(false);
-        let push_env = self.emit_opcode_with_two_operands(Opcode::PushDeclarativeEnvironment);
+        let push_env = self.emit_and_track_decl_env();
+        self.push_empty_loop_jump_control();
 
         if let Some(init) = for_loop.init() {
             match init {
@@ -42,7 +43,12 @@ impl ByteCompiler<'_, '_> {
         let initial_jump = self.jump();
 
         let start_address = self.next_opcode_location();
-        self.push_loop_control_info(label, start_address);
+        self.current_jump_control_mut()
+            .expect("jump_control must exist as it was just pushed")
+            .set_label(label);
+        self.current_jump_control_mut()
+            .expect("jump_control must exist as it was just pushed")
+            .set_start_address(start_address);
 
         self.emit_opcode(Opcode::LoopContinue);
         if let Some(final_expr) = for_loop.final_expr() {
@@ -62,15 +68,16 @@ impl ByteCompiler<'_, '_> {
 
         self.emit(Opcode::Jump, &[start_address]);
 
-        self.patch_jump(exit);
-        self.pop_loop_control_info();
-        self.emit_opcode(Opcode::LoopEnd);
-
         let (num_bindings, compile_environment) = self.context.pop_compile_time_environment();
         let index_compile_environment = self.push_compile_environment(compile_environment);
         self.patch_jump_with_target(push_env.0, num_bindings as u32);
         self.patch_jump_with_target(push_env.1, index_compile_environment as u32);
-        self.emit_opcode(Opcode::PopEnvironment);
+
+        self.patch_jump(exit);
+        self.pop_loop_control_info();
+        self.emit_opcode(Opcode::LoopEnd);
+        self.emit_and_track_pop_env();
+
         Ok(())
     }
 

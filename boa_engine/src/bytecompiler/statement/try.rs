@@ -33,7 +33,7 @@ impl ByteCompiler<'_, '_> {
         self.patch_jump(Label { index: try_start });
 
         if let Some(catch) = t.catch() {
-            self.push_try_control_info_catch_start();
+            self.set_jump_control_catch_start(true);
             let catch_start = if t.finally().is_some() {
                 Some(self.emit_opcode_with_operand(Opcode::CatchStart))
             } else {
@@ -83,7 +83,7 @@ impl ByteCompiler<'_, '_> {
         if let Some(finally) = t.finally() {
             self.emit_opcode(Opcode::FinallyStart);
             let finally_start_address = self.next_opcode_location();
-            self.push_try_control_info_finally_start(Label {
+            self.set_jump_control_finally_start(Label {
                 index: finally_start_address,
             });
             self.patch_jump_with_target(
