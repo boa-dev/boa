@@ -1,6 +1,4 @@
-use std::ptr::NonNull;
-
-use super::set_data_ptr;
+use std::ptr::{self, addr_of_mut, NonNull};
 
 /// A [`NonNull`] pointer with a `rooted` tag.
 ///
@@ -76,4 +74,14 @@ impl<T: ?Sized> Rootable<T> {
         // SAFETY: it is the caller's job to ensure the safety of this operation.
         unsafe { self.as_ptr().as_ref() }
     }
+}
+
+// Technically, this function is safe, since we're just modifying the address of a pointer without
+// dereferencing it.
+fn set_data_ptr<T: ?Sized, U>(mut ptr: *mut T, data: *mut U) -> *mut T {
+    // SAFETY: this should be safe as ptr must be a valid nonnull
+    unsafe {
+        ptr::write(addr_of_mut!(ptr).cast::<*mut u8>(), data.cast::<u8>());
+    }
+    ptr
 }
