@@ -820,13 +820,10 @@ impl JsObject {
             Some(PrivateElement::Accessor { getter, .. }) => {
                 // 5. If entry.[[Get]] is undefined, throw a TypeError exception.
                 // 6. Let getter be entry.[[Get]].
-                let getter = if let Some(getter) = getter {
-                    getter
-                } else {
-                    return Err(JsNativeError::typ()
+                let getter = getter.as_ref().ok_or_else(|| {
+                    JsNativeError::typ()
                         .with_message("private property was defined without a getter")
-                        .into());
-                };
+                })?;
 
                 // 7. Return ? Call(getter, O).
                 getter.call(&self.clone().into(), &[], context)
@@ -851,12 +848,10 @@ impl JsObject {
         // 1. Let entry be PrivateElementFind(O, P).
         // Note: This function is inlined here for mutable access.
         let mut object_mut = self.borrow_mut();
-        let mut entry = None;
-        for (key, value) in &mut object_mut.private_elements {
-            if key == name {
-                entry = Some(value);
-            }
-        }
+        let entry = object_mut
+            .private_elements
+            .iter_mut()
+            .find_map(|(key, value)| if key == name { Some(value) } else { None });
 
         match entry {
             // 2. If entry is empty, throw a TypeError exception.
@@ -885,13 +880,10 @@ impl JsObject {
                 // a. Assert: entry.[[Kind]] is accessor.
                 // b. If entry.[[Set]] is undefined, throw a TypeError exception.
                 // c. Let setter be entry.[[Set]].
-                let setter = if let Some(setter) = setter {
-                    setter.clone()
-                } else {
-                    return Err(JsNativeError::typ()
+                let setter = setter.clone().ok_or_else(|| {
+                    JsNativeError::typ()
                         .with_message("private property was defined without a setter")
-                        .into());
-                };
+                })?;
 
                 // d. Perform ? Call(setter, O, « value »).
                 drop(object_mut);
