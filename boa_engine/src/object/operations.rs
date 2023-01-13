@@ -670,7 +670,7 @@ impl JsObject {
 
     // todo: InitializeInstanceElements
 
-    /// Abstract operation `( V, P [ , argumentsList ] )`
+    /// Abstract operation `Invoke ( V, P [ , argumentsList ] )`
     ///
     /// Calls a method property of an ECMAScript object.
     ///
