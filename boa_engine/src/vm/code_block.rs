@@ -5,9 +5,7 @@
 use crate::{
     builtins::{
         async_generator::{AsyncGenerator, AsyncGeneratorState},
-        function::{
-            arguments::Arguments, ClassFieldDefinition, ConstructorKind, Function, ThisMode,
-        },
+        function::{arguments::Arguments, ConstructorKind, Function, ThisMode},
         generator::{Generator, GeneratorContext, GeneratorState},
         promise::PromiseCapability,
     },
@@ -15,9 +13,7 @@ use crate::{
     environments::{BindingLocator, CompileTimeEnvironment},
     error::JsNativeError,
     js_string,
-    object::{
-        internal_methods::get_prototype_from_constructor, JsObject, ObjectData, PrivateElement,
-    },
+    object::{internal_methods::get_prototype_from_constructor, JsObject, ObjectData},
     property::PropertyDescriptor,
     vm::call_frame::GeneratorResumeKind,
     vm::{call_frame::FinallyReturn, CallFrame, Opcode},
@@ -313,8 +309,8 @@ impl CodeBlock {
                     interner.resolve_expect(self.names[operand as usize].sym()),
                 )
             }
-            Opcode::AssignPrivateField
-            | Opcode::SetPrivateField
+            Opcode::SetPrivateField
+            | Opcode::DefinePrivateField
             | Opcode::SetPrivateMethod
             | Opcode::SetPrivateSetter
             | Opcode::SetPrivateGetter
@@ -1423,7 +1419,7 @@ impl JsObject {
                     )?;
                     let this = Self::from_proto_and_data(prototype, ObjectData::ordinary());
 
-                    initialize_instance_elements(&this, self, context)?;
+                    this.initialize_instance_elements(self, context)?;
 
                     Some(this)
                 } else {
@@ -1564,78 +1560,4 @@ impl JsObject {
             }
         }
     }
-}
-
-/// `InitializeInstanceElements ( O, constructor )`
-///
-/// Add private methods and fields from a class constructor to an object.
-///
-/// More information:
-///  - [ECMAScript specification][spec]
-///
-/// [spec]: https://tc39.es/ecma262/#sec-initializeinstanceelements
-pub(crate) fn initialize_instance_elements(
-    target: &JsObject,
-    constructor: &JsObject,
-    context: &mut Context<'_>,
-) -> JsResult<()> {
-    let constructor_borrow = constructor.borrow();
-    let constructor_function = constructor_borrow
-        .as_function()
-        .expect("class constructor must be function object");
-
-    for (name, private_method) in constructor_function.get_private_methods() {
-        if target.borrow().has_private_name(name, private_method) {
-            return Err(JsNativeError::typ()
-                .with_message("Private method already exists on the prototype")
-                .into());
-        }
-
-        match private_method {
-            PrivateElement::Method(_) => {
-                target
-                    .borrow_mut()
-                    .set_private_element(*name, private_method.clone());
-            }
-            PrivateElement::Accessor { getter, setter } => {
-                if let Some(getter) = getter {
-                    target
-                        .borrow_mut()
-                        .set_private_element_getter(*name, getter.clone());
-                }
-                if let Some(setter) = setter {
-                    target
-                        .borrow_mut()
-                        .set_private_element_setter(*name, setter.clone());
-                }
-            }
-            PrivateElement::Field(_) => unreachable!(),
-        }
-    }
-
-    for field in constructor_function.get_fields() {
-        match field {
-            ClassFieldDefinition::Public(name, function) => {
-                let value = function.call(&target.clone().into(), &[], context)?;
-                target.__define_own_property__(
-                    name.clone(),
-                    PropertyDescriptor::builder()
-                        .value(value)
-                        .writable(true)
-                        .enumerable(true)
-                        .configurable(true)
-                        .build(),
-                    context,
-                )?;
-            }
-            ClassFieldDefinition::Private(name, function) => {
-                let value = function.call(&target.clone().into(), &[], context)?;
-                target
-                    .borrow_mut()
-                    .set_private_element(*name, PrivateElement::Field(value));
-            }
-        }
-    }
-
-    Ok(())
 }

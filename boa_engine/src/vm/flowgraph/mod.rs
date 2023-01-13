@@ -348,8 +348,8 @@ impl CodeBlock {
                 | Opcode::SetPropertySetterByName
                 | Opcode::DefineClassStaticSetterByName
                 | Opcode::DefineClassSetterByName
-                | Opcode::AssignPrivateField
                 | Opcode::SetPrivateField
+                | Opcode::DefinePrivateField
                 | Opcode::SetPrivateMethod
                 | Opcode::SetPrivateSetter
                 | Opcode::SetPrivateGetter

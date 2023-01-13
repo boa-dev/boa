@@ -1,7 +1,7 @@
 use crate::{
     environments::EnvironmentSlots,
     error::JsNativeError,
-    vm::{code_block::initialize_instance_elements, opcode::Operation, ShouldExit},
+    vm::{opcode::Operation, ShouldExit},
     Context, JsResult, JsValue,
 };
 
@@ -133,7 +133,7 @@ impl Operation for SuperCall {
                 .into());
         }
 
-        initialize_instance_elements(&result, &active_function, context)?;
+        result.initialize_instance_elements(&active_function, context)?;
 
         context.vm.push(result);
         Ok(ShouldExit::False)
@@ -205,7 +205,7 @@ impl Operation for SuperCallSpread {
                 .into());
         }
 
-        initialize_instance_elements(&result, &active_function, context)?;
+        result.initialize_instance_elements(&active_function, context)?;
 
         context.vm.push(result);
         Ok(ShouldExit::False)
@@ -272,7 +272,7 @@ impl Operation for SuperCallDerived {
                 .into());
         }
 
-        initialize_instance_elements(&result, &active_function, context)?;
+        result.initialize_instance_elements(&active_function, context)?;
 
         context.vm.push(result);
         Ok(ShouldExit::False)

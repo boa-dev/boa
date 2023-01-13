@@ -919,23 +919,23 @@ generate_impl! {
         /// Stack: class_proto, key, function **=>**
         DefineClassSetterByValue,
 
-        /// Assign the value of a private property of an object by it's name.
+        /// Set the value of a private property of an object by it's name.
         ///
         /// Like `obj.#name = value`
         ///
         /// Operands: private_name_index: `u32`
         ///
         /// Stack: object, value **=>** value
-        AssignPrivateField,
+        SetPrivateField,
 
-        /// Set a private property of a class constructor by it's name.
+        /// Define a private property of a class constructor by it's name.
         ///
         /// Like `#name = value`
         ///
         /// Operands: private_name_index: `u32`
         ///
         /// Stack: object, value **=>**
-        SetPrivateField,
+        DefinePrivateField,
 
         /// Set a private method of a class constructor by it's name.
         ///

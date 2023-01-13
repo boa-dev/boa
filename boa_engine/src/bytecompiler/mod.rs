@@ -586,7 +586,7 @@ impl<'b, 'icu> ByteCompiler<'b, 'icu> {
                     self.compile_expr(access.target(), true)?;
                     let result = expr_fn(self, 1);
                     let index = self.get_or_insert_private_name(access.field());
-                    self.emit(Opcode::AssignPrivateField, &[index]);
+                    self.emit(Opcode::SetPrivateField, &[index]);
                     if !use_expr {
                         self.emit(Opcode::Pop, &[]);
                     }

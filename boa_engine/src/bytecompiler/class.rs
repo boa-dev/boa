@@ -430,7 +430,7 @@ impl ByteCompiler<'_, '_> {
                         self.emit_opcode(Opcode::PushUndefined);
                     }
                     let index = self.get_or_insert_private_name(*name);
-                    self.emit(Opcode::SetPrivateField, &[index]);
+                    self.emit(Opcode::DefinePrivateField, &[index]);
                 }
                 ClassElement::StaticBlock(statement_list) => {
                     self.emit_opcode(Opcode::Dup);
