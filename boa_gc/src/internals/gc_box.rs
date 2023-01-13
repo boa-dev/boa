@@ -6,9 +6,8 @@ use std::{
 };
 
 // Age and Weak Flags
-const MARK_MASK: usize = 1 << (usize::BITS - 2);
-const WEAK_MASK: usize = 1 << (usize::BITS - 1);
-const ROOTS_MASK: usize = !(MARK_MASK | WEAK_MASK);
+const MARK_MASK: usize = 1 << (usize::BITS - 1);
+const ROOTS_MASK: usize = !MARK_MASK;
 const ROOTS_MAX: usize = ROOTS_MASK;
 
 /// The `GcBoxheader` contains the `GcBox`'s current state for the `Collector`'s
@@ -17,7 +16,6 @@ const ROOTS_MAX: usize = ROOTS_MASK;
 /// These flags include:
 ///  - Root Count
 ///  - Mark Flag Bit
-///  - Weak Flag Bit
 ///
 /// The next node is set by the `Allocator` during initialization and by the
 /// `Collector` during the sweep phase.
@@ -31,15 +29,6 @@ impl GcBoxHeader {
     pub(crate) fn new() -> Self {
         Self {
             roots: Cell::new(1),
-            next: Cell::new(None),
-        }
-    }
-
-    /// Creates a new `GcBoxHeader` with the Weak bit at 1 and roots of 1.
-    pub(crate) fn new_weak() -> Self {
-        // Set weak_flag
-        Self {
-            roots: Cell::new(WEAK_MASK | 1),
             next: Cell::new(None),
         }
     }
@@ -83,19 +72,13 @@ impl GcBoxHeader {
     pub(crate) fn unmark(&self) {
         self.roots.set(self.roots.get() & !MARK_MASK);
     }
-
-    /// Returns a bool for whether the `GcBoxHeader`'s weak bit is 1.
-    pub(crate) fn is_ephemeron(&self) -> bool {
-        self.roots.get() & WEAK_MASK != 0
-    }
 }
 
 impl fmt::Debug for GcBoxHeader {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         f.debug_struct("GcBoxHeader")
-            .field("Roots", &self.roots())
-            .field("Weak", &self.is_ephemeron())
-            .field("Marked", &self.is_marked())
+            .field("roots", &self.roots())
+            .field("marked", &self.is_marked())
             .finish()
     }
 }
@@ -104,7 +87,7 @@ impl fmt::Debug for GcBoxHeader {
 #[derive(Debug)]
 pub struct GcBox<T: Trace + ?Sized + 'static> {
     pub(crate) header: GcBoxHeader,
-    pub(crate) value: T,
+    value: T,
 }
 
 impl<T: Trace> GcBox<T> {
@@ -112,14 +95,6 @@ impl<T: Trace> GcBox<T> {
     pub(crate) fn new(value: T) -> Self {
         Self {
             header: GcBoxHeader::new(),
-            value,
-        }
-    }
-
-    /// Returns a new `GcBox` with a rooted and weak `GcBoxHeader`.
-    pub(crate) fn new_weak(value: T) -> Self {
-        Self {
-            header: GcBoxHeader::new_weak(),
             value,
         }
     }
@@ -133,9 +108,9 @@ impl<T: Trace + ?Sized> GcBox<T> {
         ptr::eq(&this.header, &other.header)
     }
 
-    /// Marks this `GcBox` and marks through its data.
-    pub(crate) unsafe fn trace_inner(&self) {
-        if !self.header.is_marked() && !self.header.is_ephemeron() {
+    /// Marks this `GcBox` and traces its value.
+    pub(crate) unsafe fn mark_and_trace(&self) {
+        if !self.header.is_marked() {
             self.header.mark();
             // SAFETY: if `GcBox::trace_inner()` has been called, then,
             // this box must have been deemed as reachable via tracing
@@ -147,29 +122,17 @@ impl<T: Trace + ?Sized> GcBox<T> {
         }
     }
 
-    /// Trace inner data and search for ephemerons to add to the ephemeron queue.
-    pub(crate) fn weak_trace_inner(&self) {
-        if !self.header.is_marked() && !self.header.is_ephemeron() {
-            self.header.mark();
-            // SAFETY: if a `GcBox` has `weak_trace_inner` called, then the inner.
-            // value must have been deemed as reachable.
-            unsafe {
-                self.value.weak_trace();
-            }
-        }
-    }
-
     /// Increases the root count on this `GcBox`.
     ///
     /// Roots prevent the `GcBox` from being destroyed by the garbage collector.
-    pub(crate) fn root_inner(&self) {
+    pub(crate) fn root(&self) {
         self.header.inc_roots();
     }
 
     /// Decreases the root count on this `GcBox`.
     ///
     /// Roots prevent the `GcBox` from being destroyed by the garbage collector.
-    pub(crate) fn unroot_inner(&self) {
+    pub(crate) fn unroot(&self) {
         self.header.dec_roots();
     }
 
@@ -178,7 +141,7 @@ impl<T: Trace + ?Sized> GcBox<T> {
         &self.value
     }
 
-    /// Returns a bool for whether the header is marked.
+    /// Returns `true` if the header is marked.
     pub(crate) fn is_marked(&self) -> bool {
         self.header.is_marked()
     }

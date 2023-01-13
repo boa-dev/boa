@@ -262,14 +262,6 @@ unsafe impl<T: Trace + ?Sized> Trace for GcCell<T> {
         }
     }
 
-    unsafe fn weak_trace(&self) {
-        match self.flags.get().borrowed() {
-            BorrowState::Writing => (),
-            // SAFETY: Please see GcCell's Trace impl Safety note.
-            _ => unsafe { (*self.cell.get()).weak_trace() },
-        }
-    }
-
     unsafe fn root(&self) {
         assert!(!self.flags.get().rooted(), "Can't root a GcCell twice!");
         self.flags.set(self.flags.get().set_rooted(true));
@@ -433,8 +425,8 @@ impl<'a, T: Trace + ?Sized, U: ?Sized> GcCellRefMut<'a, T, U> {
         V: ?Sized,
         F: FnOnce(&mut U) -> &mut V,
     {
-        // SAFETY: This is safe as `GcCellRefMut` is already borrowed, so the value is rooted.
         #[allow(trivial_casts)]
+        // SAFETY: This is safe as `GcCellRefMut` is already borrowed, so the value is rooted.
         let value = unsafe { &mut *(orig.value as *mut U) };
 
         let ret = GcCellRefMut {

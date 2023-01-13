@@ -1,115 +1,200 @@
-use crate::{finalizer_safe, trace::Trace, Finalize, Gc, GcBox};
-use std::{cell::Cell, ptr::NonNull};
+use crate::{trace::Trace, Gc, GcBox};
+use std::{
+    cell::Cell,
+    ptr::{self, NonNull},
+};
+
+// Age and Weak Flags
+const MARK_MASK: usize = 1 << (usize::BITS - 1);
+const ROOTS_MASK: usize = !MARK_MASK;
+const ROOTS_MAX: usize = ROOTS_MASK;
+
+/// The `EphemeronBoxHeader` contains the `EphemeronBoxHeader`'s current state for the `Collector`'s
+/// Mark/Sweep as well as a pointer to the next ephemeron in the heap.
+///
+/// These flags include:
+///  - Root Count
+///  - Mark Flag Bit
+///
+/// The next node is set by the `Allocator` during initialization and by the
+/// `Collector` during the sweep phase.
+pub(crate) struct EphemeronBoxHeader {
+    roots: Cell<usize>,
+    pub(crate) next: Cell<Option<NonNull<dyn ErasedEphemeronBox>>>,
+}
+
+impl EphemeronBoxHeader {
+    /// Creates a new `EphemeronBoxHeader` with a root of 1 and next set to None.
+    pub(crate) fn new() -> Self {
+        Self {
+            roots: Cell::new(1),
+            next: Cell::new(None),
+        }
+    }
+
+    /// Returns the `EphemeronBoxHeader`'s current root count
+    pub(crate) fn roots(&self) -> usize {
+        self.roots.get() & ROOTS_MASK
+    }
+
+    /// Increments `EphemeronBoxHeader`'s root count.
+    pub(crate) fn inc_roots(&self) {
+        let roots = self.roots.get();
+
+        if (roots & ROOTS_MASK) < ROOTS_MAX {
+            self.roots.set(roots + 1);
+        } else {
+            // TODO: implement a better way to handle root overload.
+            panic!("roots counter overflow");
+        }
+    }
+
+    /// Decreases `EphemeronBoxHeader`'s current root count.
+    pub(crate) fn dec_roots(&self) {
+        // Underflow check as a stop gap for current issue when dropping.
+        if self.roots.get() > 0 {
+            self.roots.set(self.roots.get() - 1);
+        }
+    }
+
+    /// Returns a bool for whether `EphemeronBoxHeader`'s mark bit is 1.
+    pub(crate) fn is_marked(&self) -> bool {
+        self.roots.get() & MARK_MASK != 0
+    }
+
+    /// Sets `EphemeronBoxHeader`'s mark bit to 1.
+    pub(crate) fn mark(&self) {
+        self.roots.set(self.roots.get() | MARK_MASK);
+    }
+
+    /// Sets `EphemeronBoxHeader`'s mark bit to 0.
+    pub(crate) fn unmark(&self) {
+        self.roots.set(self.roots.get() & !MARK_MASK);
+    }
+}
+
+impl core::fmt::Debug for EphemeronBoxHeader {
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+        f.debug_struct("EphemeronBoxHeader")
+            .field("roots", &self.roots())
+            .field("marked", &self.is_marked())
+            .finish()
+    }
+}
 
 /// The inner allocation of an [`Ephemeron`][crate::Ephemeron] pointer.
-pub(crate) struct EphemeronBox<K: Trace + ?Sized + 'static, V: Trace + ?Sized + 'static> {
-    key: Cell<Option<NonNull<GcBox<K>>>>,
+pub(crate) struct EphemeronBox<K: Trace + ?Sized + 'static, V: Trace + 'static> {
+    pub(crate) header: EphemeronBoxHeader,
+    data: Cell<Option<NonNull<Data<K, V>>>>,
+}
+
+struct Data<K: Trace + ?Sized + 'static, V: Trace + 'static> {
+    key: NonNull<GcBox<K>>,
     value: V,
 }
 
 impl<K: Trace + ?Sized, V: Trace> EphemeronBox<K, V> {
     pub(crate) fn new(key: &Gc<K>, value: V) -> Self {
-        Self {
-            key: Cell::new(Some(key.inner_ptr())),
+        let data = Box::into_raw(Box::new(Data {
+            key: key.inner_ptr(),
             value,
+        }));
+        // SAFETY: `Box::into_raw` must always return a non-null pointer.
+        let data = unsafe { NonNull::new_unchecked(data) };
+        Self {
+            header: EphemeronBoxHeader::new(),
+            data: Cell::new(Some(data)),
         }
+    }
+
+    /// Returns `true` if the two references refer to the same `GcBox`.
+    pub(crate) fn ptr_eq(this: &Self, other: &Self) -> bool {
+        // Use .header to ignore fat pointer vtables, to work around
+        // https://github.com/rust-lang/rust/issues/46139
+        ptr::eq(&this.header, &other.header)
+    }
+
+    /// Returns a reference to the ephemeron's value or None.
+    pub(crate) fn value(&self) -> Option<&V> {
+        // SAFETY: the garbage collector ensures `ptr` is valid as long as `data` is `Some`.
+        unsafe { self.data.get().map(|ptr| &ptr.as_ref().value) }
+    }
+
+    /// Marks this `EphemeronBox` as live.
+    ///
+    /// This doesn't mark the inner value of the ephemeron. [`ErasedEphemeronBox::trace`]
+    /// does this, and it's called by the garbage collector on demand.
+    pub(crate) unsafe fn mark(&self) {
+        self.header.mark();
+    }
+
+    /// Increases the root count on this `EphemeronBox`.
+    ///
+    /// Roots prevent the `EphemeronBox` from being destroyed by the garbage collector.
+    pub(crate) fn root(&self) {
+        self.header.inc_roots();
+    }
+
+    /// Decreases the root count on this `EphemeronBox`.
+    ///
+    /// Roots prevent the `EphemeronBox` from being destroyed by the garbage collector.
+    pub(crate) fn unroot(&self) {
+        self.header.dec_roots();
     }
 }
 
-impl<K: Trace + ?Sized, V: Trace + ?Sized> EphemeronBox<K, V> {
-    /// Checks if the key pointer is marked by Trace
-    pub(crate) fn is_marked(&self) -> bool {
-        self.inner_key().map_or(false, GcBox::is_marked)
-    }
+pub(crate) trait ErasedEphemeronBox {
+    /// Gets the header of the `EphemeronBox`.
+    fn header(&self) -> &EphemeronBoxHeader;
 
-    /// Returns some pointer to the `key`'s `GcBox` or None
-    /// # Panics
-    /// This method will panic if called while the garbage collector is dropping.
-    pub(crate) fn inner_key_ptr(&self) -> Option<*mut GcBox<K>> {
-        assert!(finalizer_safe());
-        self.key.get().map(NonNull::as_ptr)
-    }
+    /// Traces through the `EphemeronBox`'s held value, but only if it's marked and its key is also
+    /// marked. Returns `true` if the ephemeron successfuly traced through its value. This also
+    /// considers ephemerons that are marked but don't have their value anymore as
+    /// "successfully traced".
+    unsafe fn trace(&self) -> bool;
 
-    /// Returns some reference to `key`'s `GcBox` or None
-    pub(crate) fn inner_key(&self) -> Option<&GcBox<K>> {
-        // SAFETY: This is safe as `EphemeronBox::inner_key_ptr()` will
-        // fetch either a live `GcBox` or None. The value of `key` is set
-        // to None in the case where `EphemeronBox` and `key`'s `GcBox`
-        // entered into `Collector::sweep()` as unmarked.
-        unsafe { self.inner_key_ptr().map(|inner_key| &*inner_key) }
-    }
-
-    /// Returns a reference to the value of `key`'s `GcBox`
-    pub(crate) fn key(&self) -> Option<&K> {
-        self.inner_key().map(GcBox::value)
-    }
-
-    /// Returns a reference to `value`
-    pub(crate) const fn value(&self) -> &V {
-        &self.value
-    }
-
-    /// Calls [`Trace::weak_trace()`][crate::Trace] on key
-    fn weak_trace_key(&self) {
-        if let Some(key) = self.inner_key() {
-            key.weak_trace_inner();
-        }
-    }
-
-    /// Calls [`Trace::weak_trace()`][crate::Trace] on value
-    fn weak_trace_value(&self) {
-        // SAFETY: Value is a sized element that must implement trace. The
-        // operation is safe as EphemeronBox owns value and `Trace::weak_trace`
-        // must be implemented on it
-        unsafe {
-            self.value().weak_trace();
-        }
-    }
+    /// Runs the finalization logic of the `EphemeronBox`'s held value, if the key is still live,
+    /// and clears its contents.
+    fn finalize_and_clear(&self);
 }
 
-// `EphemeronBox`'s Finalize is special in that if it is determined to be unreachable
-// and therefore so has the `GcBox` that `key`stores the pointer to, then we set `key`
-// to None to guarantee that we do not access freed memory.
-impl<K: Trace + ?Sized, V: Trace + ?Sized> Finalize for EphemeronBox<K, V> {
-    fn finalize(&self) {
-        self.key.set(None);
-    }
-}
-
-// SAFETY: EphemeronBox implements primarly two methods of trace `Trace::is_marked_ephemeron`
-// to determine whether the key field is stored and `Trace::weak_trace` which continues the `Trace::weak_trace()`
-// into `key` and `value`.
-unsafe impl<K: Trace + ?Sized, V: Trace + ?Sized> Trace for EphemeronBox<K, V> {
-    unsafe fn trace(&self) {
-        /* An ephemeron is never traced with Phase One Trace */
+impl<K: Trace + ?Sized, V: Trace> ErasedEphemeronBox for EphemeronBox<K, V> {
+    fn header(&self) -> &EphemeronBoxHeader {
+        &self.header
     }
 
-    /// Checks if the `key`'s `GcBox` has been marked by `Trace::trace()` or `Trace::weak_trace`.
-    fn is_marked_ephemeron(&self) -> bool {
-        self.is_marked()
-    }
-
-    /// Checks if this `EphemeronBox` has already been determined reachable. If so, continue to trace
-    /// value in `key` and `value`.
-    unsafe fn weak_trace(&self) {
-        if self.is_marked() {
-            self.weak_trace_key();
-            self.weak_trace_value();
+    unsafe fn trace(&self) -> bool {
+        if !self.header.is_marked() {
+            return false;
         }
+
+        let Some(data) = self.data.get() else {
+            return true;
+        };
+
+        // SAFETY: `data` comes from a `Box`, so it is safe to dereference.
+        let data = unsafe { data.as_ref() };
+        // SAFETY: `key` comes from a `Gc`, and the garbage collector only invalidates
+        // `key` when it is unreachable, making `key` always valid.
+        let key = unsafe { data.key.as_ref() };
+
+        let is_key_marked = key.is_marked();
+
+        if is_key_marked {
+            // SAFETY: this is safe to call, since we want to trace all reachable objects
+            // from a marked ephemeron that holds a live `key`.
+            unsafe { data.value.trace() }
+        }
+
+        is_key_marked
     }
 
-    // EphemeronBox does not implement root.
-    unsafe fn root(&self) {}
-
-    // EphemeronBox does not implement unroot
-    unsafe fn unroot(&self) {}
-
-    // An `EphemeronBox`'s key is set to None once it has been finalized.
-    //
-    // NOTE: while it is possible for the `key`'s pointer value to be
-    // resurrected, we should still consider the finalize the ephemeron
-    // box and set the `key` to None.
-    fn run_finalizer(&self) {
-        Finalize::finalize(self);
+    fn finalize_and_clear(&self) {
+        if let Some(data) = self.data.take() {
+            // SAFETY: `data` comes from an `into_raw` call, so this pointer is safe to pass to
+            // `from_raw`.
+            let contents = unsafe { Box::from_raw(data.as_ptr()) };
+            contents.value.finalize();
+        }
     }
 }

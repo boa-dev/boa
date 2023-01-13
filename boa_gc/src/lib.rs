@@ -79,6 +79,7 @@
     clippy::perf,
     clippy::pedantic,
     clippy::nursery,
+    clippy::undocumented_unsafe_blocks
 )]
 #![allow(
     clippy::module_name_repetitions,
@@ -95,6 +96,7 @@ mod trace;
 pub(crate) mod internals;
 
 use boa_profiler::Profiler;
+use internals::{EphemeronBox, ErasedEphemeronBox};
 use std::{
     cell::{Cell, RefCell},
     mem,
@@ -108,13 +110,14 @@ pub use internals::GcBox;
 pub use pointers::{Ephemeron, Gc, WeakGc};
 
 type GcPointer = NonNull<GcBox<dyn Trace>>;
+type EphemeronPointer = NonNull<dyn ErasedEphemeronBox>;
 
-thread_local!(static EPHEMERON_QUEUE: Cell<Option<Vec<GcPointer>>> = Cell::new(None));
 thread_local!(static GC_DROPPING: Cell<bool> = Cell::new(false));
 thread_local!(static BOA_GC: RefCell<BoaGc> = RefCell::new( BoaGc {
     config: GcConfig::default(),
     runtime: GcRuntimeData::default(),
-    adult_start: Cell::new(None),
+    strong_start: Cell::new(None),
+    weak_start: Cell::new(None)
 }));
 
 #[derive(Debug, Clone, Copy)]
@@ -145,7 +148,8 @@ struct GcRuntimeData {
 struct BoaGc {
     config: GcConfig,
     runtime: GcRuntimeData,
-    adult_start: Cell<Option<GcPointer>>,
+    strong_start: Cell<Option<GcPointer>>,
+    weak_start: Cell<Option<EphemeronPointer>>,
 }
 
 impl Drop for BoaGc {
@@ -190,18 +194,40 @@ struct Allocator;
 
 impl Allocator {
     /// Allocate a new garbage collected value to the Garbage Collector's heap.
-    fn allocate<T: Trace>(value: GcBox<T>) -> NonNull<GcBox<T>> {
-        let _timer = Profiler::global().start_event("New Pointer", "BoaAlloc");
+    fn alloc_gc<T: Trace>(value: GcBox<T>) -> NonNull<GcBox<T>> {
+        let _timer = Profiler::global().start_event("New GcBox", "BoaAlloc");
         let element_size = mem::size_of_val::<GcBox<T>>(&value);
         BOA_GC.with(|st| {
             let mut gc = st.borrow_mut();
 
             Self::manage_state(&mut gc);
-            value.header.next.set(gc.adult_start.take());
-            // Safety: Value Cannot be a null as it must be a GcBox<T>
-            let ptr = unsafe { NonNull::new_unchecked(Box::into_raw(Box::from(value))) };
+            value.header.next.set(gc.strong_start.take());
+            // Safety: value cannot be a null pointer, since `Box` cannot return null pointers.
+            let ptr = unsafe { NonNull::new_unchecked(Box::into_raw(Box::new(value))) };
+            let erased: NonNull<GcBox<dyn Trace>> = ptr;
 
-            gc.adult_start.set(Some(ptr));
+            gc.strong_start.set(Some(erased));
+            gc.runtime.bytes_allocated += element_size;
+
+            ptr
+        })
+    }
+
+    fn alloc_ephemeron<K: Trace + ?Sized, V: Trace>(
+        value: EphemeronBox<K, V>,
+    ) -> NonNull<EphemeronBox<K, V>> {
+        let _timer = Profiler::global().start_event("New EphemeronBox", "BoaAlloc");
+        let element_size = mem::size_of_val::<EphemeronBox<K, V>>(&value);
+        BOA_GC.with(|st| {
+            let mut gc = st.borrow_mut();
+
+            Self::manage_state(&mut gc);
+            value.header.next.set(gc.weak_start.take());
+            // Safety: value cannot be a null pointer, since `Box` cannot return null pointers.
+            let ptr = unsafe { NonNull::new_unchecked(Box::into_raw(Box::new(value))) };
+            let erased: NonNull<dyn ErasedEphemeronBox> = ptr;
+
+            gc.weak_start.set(Some(erased));
             gc.runtime.bytes_allocated += element_size;
 
             ptr
@@ -210,7 +236,7 @@ impl Allocator {
 
     fn manage_state(gc: &mut BoaGc) {
         if gc.runtime.bytes_allocated > gc.config.threshold {
-            Collector::run_full_collection(gc);
+            Collector::collect(gc);
 
             if gc.runtime.bytes_allocated
                 > gc.config.threshold / 100 * gc.config.used_space_percentage
@@ -222,141 +248,153 @@ impl Allocator {
     }
 }
 
-// This collector currently functions in four main phases
-//
-// Mark -> Finalize -> Mark -> Sweep
-//
-// Mark nodes as reachable then finalize the unreachable nodes. A remark phase
-// then needs to be retriggered as finalization can potentially resurrect dead
-// nodes.
-//
-// A better approach in a more concurrent structure may be to reorder.
-//
-// Mark -> Sweep -> Finalize
+struct Unreachables {
+    strong: Vec<NonNull<GcBox<dyn Trace>>>,
+    weak: Vec<NonNull<dyn ErasedEphemeronBox>>,
+}
+
+/// This collector currently functions in four main phases
+///
+/// Mark -> Finalize -> Mark -> Sweep
+///
+/// 1. Mark nodes as reachable.
+/// 2. Finalize the unreachable nodes.
+/// 3. Mark again because `Finalize::finalize` can potentially resurrect dead nodes.
+/// 4. Sweep and drop all dead nodes.
+///
+/// A better approach in a more concurrent structure may be to reorder.
+///
+/// Mark -> Sweep -> Finalize
 struct Collector;
 
 impl Collector {
     /// Run a collection on the full heap.
-    fn run_full_collection(gc: &mut BoaGc) {
+    fn collect(gc: &mut BoaGc) {
         let _timer = Profiler::global().start_event("Gc Full Collection", "gc");
         gc.runtime.collections += 1;
-        let unreachable_adults = Self::mark_heap(&gc.adult_start);
+        let unreachables = Self::mark_heap(&gc.strong_start, &gc.weak_start);
 
-        // Check if any unreachable nodes were found and finalize
-        if !unreachable_adults.is_empty() {
-            // SAFETY: Please see `Collector::finalize()`
-            unsafe { Self::finalize(unreachable_adults) };
+        // Only finalize if there are any unreachable nodes.
+        if !unreachables.strong.is_empty() || unreachables.weak.is_empty() {
+            // Finalize all the unreachable nodes.
+            // SAFETY: All passed pointers are valid, since we won't deallocate until `Self::sweep`.
+            unsafe { Self::finalize(unreachables) };
+
+            let _final_unreachables = Self::mark_heap(&gc.strong_start, &gc.weak_start);
         }
 
-        let _final_unreachable_adults = Self::mark_heap(&gc.adult_start);
-
-        // SAFETY: Please see `Collector::sweep()`
+        // SAFETY: The head of our linked list is always valid per the invariants of our GC.
         unsafe {
-            Self::sweep(&gc.adult_start, &mut gc.runtime.bytes_allocated);
+            Self::sweep(
+                &gc.strong_start,
+                &gc.weak_start,
+                &mut gc.runtime.bytes_allocated,
+            );
         }
     }
 
     /// Walk the heap and mark any nodes deemed reachable
-    fn mark_heap(head: &Cell<Option<NonNull<GcBox<dyn Trace>>>>) -> Vec<NonNull<GcBox<dyn Trace>>> {
+    fn mark_heap(
+        mut strong: &Cell<Option<NonNull<GcBox<dyn Trace>>>>,
+        mut weak: &Cell<Option<NonNull<dyn ErasedEphemeronBox>>>,
+    ) -> Unreachables {
         let _timer = Profiler::global().start_event("Gc Marking", "gc");
         // Walk the list, tracing and marking the nodes
-        let mut finalize = Vec::new();
-        let mut ephemeron_queue = Vec::new();
-        let mut mark_head = head;
-        while let Some(node) = mark_head.get() {
-            // SAFETY: node must be valid as it is coming directly from the heap.
+        let mut strong_dead = Vec::new();
+        let mut pending_ephemerons = Vec::new();
+
+        // === Preliminary mark phase ===
+        //
+        // 0. Get the naive list of possibly dead nodes.
+        while let Some(node) = strong.get() {
+            // SAFETY: node must be valid as this phase cannot drop any node.
             let node_ref = unsafe { node.as_ref() };
-            if node_ref.header.is_ephemeron() {
-                ephemeron_queue.push(node);
-            } else if node_ref.header.roots() > 0 {
+            if node_ref.header.roots() > 0 {
                 // SAFETY: the reference to node must be valid as it is rooted. Passing
                 // invalid references can result in Undefined Behavior
                 unsafe {
-                    node_ref.trace_inner();
+                    node_ref.mark_and_trace();
                 }
-            } else {
-                finalize.push(node);
+            } else if !node_ref.is_marked() {
+                strong_dead.push(node);
             }
-            mark_head = &node_ref.header.next;
+            strong = &node_ref.header.next;
         }
 
-        // Ephemeron Evaluation
-        if !ephemeron_queue.is_empty() {
-            ephemeron_queue = Self::mark_ephemerons(ephemeron_queue);
+        // 0.1. Early return if there are no ephemerons in the GC
+        if weak.get().is_none() {
+            strong_dead.retain_mut(|node| {
+                // SAFETY: node must be valid as this phase cannot drop any node.
+                unsafe { !node.as_ref().is_marked() }
+            });
+            return Unreachables {
+                strong: strong_dead,
+                weak: Vec::new(),
+            };
         }
 
-        // Any left over nodes in the ephemeron queue at this point are
-        // unreachable and need to be notified/finalized.
-        finalize.extend(ephemeron_queue);
+        // === Weak mark phase ===
+        //
+        // 1. Get the naive list of ephemerons that are supposedly dead or their key is dead and
+        // trace all the ephemerons that have roots and their keys are live. Also remove from
+        // this list the ephemerons that are marked but their value is dead.
+        while let Some(eph) = weak.get() {
+            // SAFETY: node must be valid as this phase cannot drop any node.
+            let eph_ref = unsafe { eph.as_ref() };
+            // SAFETY: the garbage collector ensures `eph_ref` always points to valid data.
+            if unsafe { !eph_ref.trace() } {
+                pending_ephemerons.push(eph);
+            }
+            weak = &eph_ref.header().next;
+        }
 
-        finalize
-    }
-
-    // Tracing Ephemerons/Weak is always requires tracing the inner nodes in case it ends up marking unmarked node
-    //
-    // Time complexity should be something like O(nd) where d is the longest chain of epehemerons
-    /// Mark any ephemerons that are deemed live and trace their fields.
-    fn mark_ephemerons(
-        initial_queue: Vec<NonNull<GcBox<dyn Trace>>>,
-    ) -> Vec<NonNull<GcBox<dyn Trace>>> {
-        let mut ephemeron_queue = initial_queue;
+        // 2. Iterate through all pending ephemerons, removing the ones which have been successfully
+        // traced. If there are no changes in the pending ephemerons list, it means that there are no
+        // more reachable ephemerons from the remaining ephemeron values.
+        let mut previous_len = pending_ephemerons.len();
         loop {
-            // iterate through ephemeron queue, sorting nodes by whether they
-            // are reachable or unreachable<?>
-            let (reachable, other): (Vec<_>, Vec<_>) =
-                ephemeron_queue.into_iter().partition(|node| {
-                    // SAFETY: Any node on the eph_queue or the heap must be non null
-                    let node = unsafe { node.as_ref() };
-                    if node.value.is_marked_ephemeron() {
-                        node.header.mark();
-                        true
-                    } else {
-                        node.header.roots() > 0
-                    }
-                });
-            // Replace the old queue with the unreachable<?>
-            ephemeron_queue = other;
+            pending_ephemerons.retain_mut(|eph| {
+                // SAFETY: node must be valid as this phase cannot drop any node.
+                let eph_ref = unsafe { eph.as_ref() };
+                // SAFETY: the garbage collector ensures `eph_ref` always points to valid data.
+                unsafe { !eph_ref.trace() }
+            });
 
-            // If reachable nodes is not empty, trace values. If it is empty,
-            // break from the loop
-            if reachable.is_empty() {
+            if previous_len == pending_ephemerons.len() {
                 break;
             }
-            EPHEMERON_QUEUE.with(|state| state.set(Some(Vec::new())));
-            // iterate through reachable nodes and trace their values,
-            // enqueuing any ephemeron that is found during the trace
-            for node in reachable {
-                // TODO: deal with fetch ephemeron_queue
-                // SAFETY: Node must be a valid pointer or else it would not be deemed reachable.
-                unsafe {
-                    node.as_ref().weak_trace_inner();
-                }
-            }
 
-            EPHEMERON_QUEUE.with(|st| {
-                if let Some(found_nodes) = st.take() {
-                    ephemeron_queue.extend(found_nodes);
-                }
-            });
+            previous_len = pending_ephemerons.len();
         }
-        ephemeron_queue
+
+        // 3. The remaining list should contain the ephemerons that are either unreachable or its key
+        // is dead. Cleanup the strong pointers since this procedure could have marked some more strong
+        // pointers.
+        strong_dead.retain_mut(|node| {
+            // SAFETY: node must be valid as this phase cannot drop any node.
+            unsafe { !node.as_ref().is_marked() }
+        });
+
+        Unreachables {
+            strong: strong_dead,
+            weak: pending_ephemerons,
+        }
     }
 
     /// # Safety
     ///
-    /// Passing a vec with invalid pointers will result in Undefined Behaviour.
-    unsafe fn finalize(finalize_vec: Vec<NonNull<GcBox<dyn Trace>>>) {
+    /// Passing a `strong` or a `weak` vec with invalid pointers will result in Undefined Behaviour.
+    unsafe fn finalize(unreachables: Unreachables) {
         let _timer = Profiler::global().start_event("Gc Finalization", "gc");
-        for node in finalize_vec {
-            // We double check that the unreachable nodes are actually unreachable
-            // prior to finalization as they could have been marked by a different
-            // trace after initially being added to the queue
-            //
-            // SAFETY: The caller must ensure all pointers inside `finalize_vec` are valid.
+        for node in unreachables.strong {
+            // SAFETY: The caller must ensure all pointers inside `unreachables.strong` are valid.
             let node = unsafe { node.as_ref() };
-            if !node.header.is_marked() {
-                Trace::run_finalizer(&node.value);
-            }
+            Trace::run_finalizer(&node.value());
+        }
+        for node in unreachables.weak {
+            // SAFETY: The caller must ensure all pointers inside `unreachables.weak` are valid.
+            let node = unsafe { node.as_ref() };
+            node.finalize_and_clear();
         }
     }
 
@@ -367,30 +405,43 @@ impl Collector {
     /// - Providing a list of pointers that weren't allocated by `Box::into_raw(Box::new(..))`
     /// will result in Undefined Behaviour.
     unsafe fn sweep(
-        heap_start: &Cell<Option<NonNull<GcBox<dyn Trace>>>>,
+        mut strong: &Cell<Option<NonNull<GcBox<dyn Trace>>>>,
+        mut weak: &Cell<Option<NonNull<dyn ErasedEphemeronBox>>>,
         total_allocated: &mut usize,
     ) {
         let _timer = Profiler::global().start_event("Gc Sweeping", "gc");
         let _guard = DropGuard::new();
 
-        let mut sweep_head = heap_start;
-        while let Some(node) = sweep_head.get() {
+        while let Some(node) = strong.get() {
             // SAFETY: The caller must ensure the validity of every node of `heap_start`.
             let node_ref = unsafe { node.as_ref() };
-            if node_ref.is_marked() {
+            if node_ref.header.roots() > 0 || node_ref.is_marked() {
                 node_ref.header.unmark();
-                sweep_head = &node_ref.header.next;
-            } else if node_ref.header.is_ephemeron() && node_ref.header.roots() > 0 {
-                // Keep the ephemeron box's alive if rooted, but note that it's pointer is no longer safe
-                Trace::run_finalizer(&node_ref.value);
-                sweep_head = &node_ref.header.next;
+                strong = &node_ref.header.next;
             } else {
                 // SAFETY: The algorithm ensures only unmarked/unreachable pointers are dropped.
                 // The caller must ensure all pointers were allocated by `Box::into_raw(Box::new(..))`.
                 let unmarked_node = unsafe { Box::from_raw(node.as_ptr()) };
-                let unallocated_bytes = mem::size_of_val::<GcBox<_>>(&*unmarked_node);
+                let unallocated_bytes = mem::size_of_val(&*unmarked_node);
                 *total_allocated -= unallocated_bytes;
-                sweep_head.set(unmarked_node.header.next.take());
+                strong.set(unmarked_node.header.next.take());
+            }
+        }
+
+        while let Some(eph) = weak.get() {
+            // SAFETY: The caller must ensure the validity of every node of `heap_start`.
+            let eph_ref = unsafe { eph.as_ref() };
+            let header = eph_ref.header();
+            if header.roots() > 0 || header.is_marked() {
+                header.unmark();
+                weak = &header.next;
+            } else {
+                // SAFETY: The algorithm ensures only unmarked/unreachable pointers are dropped.
+                // The caller must ensure all pointers were allocated by `Box::into_raw(Box::new(..))`.
+                let unmarked_eph = unsafe { Box::from_raw(eph.as_ptr()) };
+                let unallocated_bytes = mem::size_of_val(&*unmarked_eph);
+                *total_allocated -= unallocated_bytes;
+                weak.set(unmarked_eph.header().next.take());
             }
         }
     }
@@ -400,7 +451,7 @@ impl Collector {
         // Not initializing a dropguard since this should only be invoked when BOA_GC is being dropped.
         let _guard = DropGuard::new();
 
-        let sweep_head = &gc.adult_start;
+        let sweep_head = &gc.strong_start;
         while let Some(node) = sweep_head.get() {
             // SAFETY:
             // The `Allocator` must always ensure its start node is a valid, non-null pointer that
@@ -417,7 +468,7 @@ pub fn force_collect() {
         let mut gc = current.borrow_mut();
 
         if gc.runtime.bytes_allocated > 0 {
-            Collector::run_full_collection(&mut gc);
+            Collector::collect(&mut gc);
         }
     });
 }

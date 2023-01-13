@@ -18,7 +18,7 @@ impl Harness {
         BOA_GC.with(|current| {
             let gc = current.borrow();
 
-            assert!(gc.adult_start.get().is_none());
+            assert!(gc.strong_start.get().is_none());
             assert!(gc.runtime.bytes_allocated == 0);
         });
     }

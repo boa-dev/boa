@@ -11,15 +11,15 @@ fn eph_weak_gc_test() {
 
             let weak = WeakGc::new(&cloned_gc);
 
-            assert_eq!(*weak.value().expect("Is live currently"), 3);
+            assert_eq!(*weak.upgrade().expect("Is live currently"), 3);
             drop(cloned_gc);
             force_collect();
-            assert_eq!(*weak.value().expect("WeakGc is still live here"), 3);
+            assert_eq!(*weak.upgrade().expect("WeakGc is still live here"), 3);
 
             drop(gc_value);
             force_collect();
 
-            assert!(weak.value().is_none());
+            assert!(weak.upgrade().is_none());
         }
     });
 }
@@ -34,16 +34,21 @@ fn eph_ephemeron_test() {
 
             let ephemeron = Ephemeron::new(&cloned_gc, String::from("Hello World!"));
 
-            assert_eq!(*ephemeron.key().expect("Ephemeron is live"), 3);
-            assert_eq!(*ephemeron.value(), String::from("Hello World!"));
+            assert_eq!(
+                *ephemeron.value().expect("Ephemeron is live"),
+                String::from("Hello World!")
+            );
             drop(cloned_gc);
             force_collect();
-            assert_eq!(*ephemeron.key().expect("Ephemeron is still live here"), 3);
+            assert_eq!(
+                *ephemeron.value().expect("Ephemeron is still live here"),
+                String::from("Hello World!")
+            );
 
             drop(gc_value);
             force_collect();
 
-            assert!(ephemeron.key().is_none());
+            assert!(ephemeron.value().is_none());
         }
     });
 }
@@ -58,25 +63,19 @@ fn eph_allocation_chains() {
             let weak = WeakGc::new(&cloned_gc);
             let wrap = Gc::new(weak);
 
-            assert_eq!(wrap.value().expect("weak is live"), &String::from("foo"));
+            assert_eq!(*wrap.upgrade().expect("weak is live"), "foo");
 
             let eph = Ephemeron::new(&wrap, 3);
 
             drop(cloned_gc);
             force_collect();
 
-            assert_eq!(
-                eph.key()
-                    .expect("eph is still live")
-                    .value()
-                    .expect("weak is still live"),
-                &String::from("foo")
-            );
+            assert_eq!(eph.value().expect("weak is still live"), 3);
 
             drop(gc_value);
             force_collect();
 
-            assert!(eph.key().expect("eph is still live").value().is_none());
+            assert!(eph.value().is_none());
         }
     });
 }
@@ -90,7 +89,7 @@ fn eph_basic_alloc_dump_test() {
         let eph = Ephemeron::new(&gc_value, 4);
         let _fourth = Gc::new("tail");
 
-        assert_eq!(*eph.key().expect("must be live"), String::from("gc here"));
+        assert_eq!(eph.value().expect("must be live"), 4);
     });
 }
 
@@ -123,10 +122,10 @@ fn eph_basic_clone_test() {
         drop(weak);
         force_collect();
 
-        assert_eq!(*new_gc, *new_weak.value().expect("weak should be live"));
+        assert_eq!(*new_gc, *new_weak.upgrade().expect("weak should be live"));
         assert_eq!(
             *init_gc,
-            *new_weak.value().expect("weak_should be live still")
+            *new_weak.upgrade().expect("weak_should be live still")
         );
     });
 }
