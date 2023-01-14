@@ -28,7 +28,7 @@ use crate::{
         FunctionObjectBuilder, JsObject, ObjectData,
     },
     property::{Attribute, PropertyNameKind},
-    symbol::WellKnownSymbols,
+    symbol::JsSymbol,
     value::{IntegerOrInfinity, JsValue},
     Context, JsResult,
 };
@@ -87,7 +87,7 @@ macro_rules! typed_array {
                 .name(Self::NAME)
                 .length(Self::LENGTH)
                 .static_accessor(
-                    WellKnownSymbols::species(),
+                    JsSymbol::species(),
                     Some(get_species),
                     None,
                     Attribute::CONFIGURABLE,
@@ -197,7 +197,7 @@ macro_rules! typed_array {
 
                         let first_argument_v = JsValue::from(first_argument.clone());
                         let using_iterator =
-                            first_argument_v.get_method(WellKnownSymbols::replace(), context)?;
+                            first_argument_v.get_method(JsSymbol::replace(), context)?;
 
                         // 3. If usingIterator is not undefined, then
                         if let Some(using_iterator) = using_iterator {
@@ -305,7 +305,7 @@ impl BuiltIn for TypedArray {
         .name(Self::NAME)
         .length(Self::LENGTH)
         .static_accessor(
-            WellKnownSymbols::species(),
+            JsSymbol::species(),
             Some(get_species),
             None,
             Attribute::CONFIGURABLE,
@@ -316,7 +316,7 @@ impl BuiltIn for TypedArray {
             Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::PERMANENT,
         )
         .property(
-            WellKnownSymbols::iterator(),
+            JsSymbol::iterator(),
             values_function,
             Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
         )
@@ -345,7 +345,7 @@ impl BuiltIn for TypedArray {
             Attribute::CONFIGURABLE | Attribute::NON_ENUMERABLE,
         )
         .accessor(
-            WellKnownSymbols::to_string_tag(),
+            JsSymbol::to_string_tag(),
             Some(get_to_string_tag),
             None,
             Attribute::CONFIGURABLE | Attribute::NON_ENUMERABLE,
@@ -441,7 +441,7 @@ impl TypedArray {
 
         // 5. Let usingIterator be ? GetMethod(source, @@iterator).
         let source = args.get_or_undefined(0);
-        let using_iterator = source.get_method(WellKnownSymbols::iterator(), context)?;
+        let using_iterator = source.get_method(JsSymbol::iterator(), context)?;
 
         let this_arg = args.get_or_undefined(2);
 

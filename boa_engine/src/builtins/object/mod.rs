@@ -28,7 +28,7 @@ use crate::{
     },
     property::{Attribute, PropertyDescriptor, PropertyKey, PropertyNameKind},
     string::utf16,
-    symbol::WellKnownSymbols,
+    symbol::JsSymbol,
     value::JsValue,
     Context, JsResult, JsString,
 };
@@ -822,7 +822,7 @@ impl Object {
         };
 
         // 15. Let tag be ? Get(O, @@toStringTag).
-        let tag = o.get(WellKnownSymbols::to_string_tag(), context)?;
+        let tag = o.get(JsSymbol::to_string_tag(), context)?;
 
         // 16. If Type(tag) is not String, set tag to builtinTag.
         let tag_str = tag.as_string().map_or(builtin_tag, JsString::deref);

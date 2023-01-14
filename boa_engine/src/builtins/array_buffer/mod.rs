@@ -20,7 +20,7 @@ use crate::{
         FunctionObjectBuilder, JsObject, ObjectData,
     },
     property::Attribute,
-    symbol::WellKnownSymbols,
+    symbol::JsSymbol,
     value::{IntegerOrInfinity, Numeric},
     Context, JsResult, JsValue,
 };
@@ -76,7 +76,7 @@ impl BuiltIn for ArrayBuffer {
         .length(Self::LENGTH)
         .accessor("byteLength", Some(get_byte_length), None, flag_attributes)
         .static_accessor(
-            WellKnownSymbols::species(),
+            JsSymbol::species(),
             Some(get_species),
             None,
             Attribute::CONFIGURABLE,
@@ -84,7 +84,7 @@ impl BuiltIn for ArrayBuffer {
         .static_method(Self::is_view, "isView", 1)
         .method(Self::slice, "slice", 2)
         .property(
-            WellKnownSymbols::to_string_tag(),
+            JsSymbol::to_string_tag(),
             Self::NAME,
             Attribute::READONLY | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
         )

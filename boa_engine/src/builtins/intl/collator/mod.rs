@@ -20,7 +20,7 @@ use crate::{
         FunctionObjectBuilder, JsFunction, JsObject, ObjectData,
     },
     property::Attribute,
-    symbol::WellKnownSymbols,
+    symbol::JsSymbol,
     Context, JsNativeError, JsResult, JsValue,
 };
 
@@ -176,7 +176,7 @@ impl BuiltIn for Collator {
         .length(Self::LENGTH)
         .static_method(Self::supported_locales_of, "supportedLocalesOf", 1)
         .property(
-            WellKnownSymbols::to_string_tag(),
+            JsSymbol::to_string_tag(),
             "Intl.Collator",
             Attribute::CONFIGURABLE,
         )

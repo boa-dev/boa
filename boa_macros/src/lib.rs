@@ -57,10 +57,58 @@
     clippy::nursery,
 )]
 
+use std::collections::HashSet;
+
 use proc_macro::TokenStream;
 use quote::quote;
-use syn::{parse_macro_input, LitStr};
+use syn::{parse::Parse, parse_macro_input, punctuated::Punctuated, Error, LitStr, Token};
 use synstructure::{decl_derive, AddBounds, Structure};
+
+struct Literals(Vec<LitStr>);
+
+impl Parse for Literals {
+    fn parse(input: syn::parse::ParseStream<'_>) -> syn::Result<Self> {
+        let parsed = Punctuated::<LitStr, Token![,]>::parse_terminated(input)?;
+        let strings = parsed.into_iter().collect::<Vec<_>>();
+        check_duplicates(&strings)?;
+        Ok(Self(strings))
+    }
+}
+
+fn check_duplicates(entries: &[LitStr]) -> syn::Result<()> {
+    let mut keys = HashSet::new();
+    for entry in entries {
+        if !keys.insert(entry) {
+            return Err(Error::new_spanned(entry, "duplicate string"));
+        }
+    }
+    Ok(())
+}
+
+/// Create an ordered static array of `&[u16]` strings from a list of [`str`] literals.
+#[proc_macro]
+pub fn static_strings(input: TokenStream) -> TokenStream {
+    let strings = parse_macro_input!(input as Literals);
+    let mut strings = strings
+        .0
+        .into_iter()
+        .map(|lit| lit.value().encode_utf16().collect::<Vec<_>>())
+        .collect::<Vec<_>>();
+    strings.sort_unstable();
+
+    let quotes = strings.into_iter().map(|utf16| {
+        quote! {
+            [#(#utf16),*].as_slice()
+        }
+    });
+
+    quote! {
+        [
+            #(#quotes),*
+        ]
+    }
+    .into()
+}
 
 /// Construct a utf-16 array literal from a utf-8 [`str`] literal.
 #[proc_macro]

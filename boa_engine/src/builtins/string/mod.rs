@@ -25,7 +25,7 @@ use crate::{
     property::{Attribute, PropertyDescriptor},
     string::utf16,
     string::{CodePoint, Utf16Trim},
-    symbol::WellKnownSymbols,
+    symbol::JsSymbol,
     value::IntegerOrInfinity,
     Context, JsResult, JsString, JsValue,
 };
@@ -69,7 +69,7 @@ impl BuiltIn for String {
     fn init(context: &mut Context<'_>) -> Option<JsValue> {
         let _timer = Profiler::global().start_event(Self::NAME, "init");
 
-        let symbol_iterator = WellKnownSymbols::iterator();
+        let symbol_iterator = JsSymbol::iterator();
 
         let attribute = Attribute::READONLY | Attribute::NON_ENUMERABLE | Attribute::PERMANENT;
         ConstructorBuilder::with_standard_constructor(
@@ -930,7 +930,7 @@ impl String {
         // 2. If searchValue is neither undefined nor null, then
         if !search_value.is_null_or_undefined() {
             // a. Let replacer be ? GetMethod(searchValue, @@replace).
-            let replacer = search_value.get_method(WellKnownSymbols::replace(), context)?;
+            let replacer = search_value.get_method(JsSymbol::replace(), context)?;
 
             // b. If replacer is not undefined, then
             if let Some(replacer) = replacer {
@@ -1053,7 +1053,7 @@ impl String {
             }
 
             // c. Let replacer be ? GetMethod(searchValue, @@replace).
-            let replacer = search_value.get_method(WellKnownSymbols::replace(), context)?;
+            let replacer = search_value.get_method(JsSymbol::replace(), context)?;
 
             // d. If replacer is not undefined, then
             if let Some(replacer) = replacer {
@@ -1358,7 +1358,7 @@ impl String {
         let regexp = args.get_or_undefined(0);
         if !regexp.is_null_or_undefined() {
             // a. Let matcher be ? GetMethod(regexp, @@match).
-            let matcher = regexp.get_method(WellKnownSymbols::r#match(), context)?;
+            let matcher = regexp.get_method(JsSymbol::r#match(), context)?;
             // b. If matcher is not undefined, then
             if let Some(matcher) = matcher {
                 // i. Return ? Call(matcher, regexp, « O »).
@@ -1373,7 +1373,7 @@ impl String {
         let rx = RegExp::create(regexp, &JsValue::Undefined, context)?;
 
         // 5. Return ? Invoke(rx, @@match, « S »).
-        rx.invoke(WellKnownSymbols::r#match(), &[JsValue::new(s)], context)
+        rx.invoke(JsSymbol::r#match(), &[JsValue::new(s)], context)
     }
 
     /// Abstract operation `StringPad ( O, maxLength, fillString, placement )`.
@@ -1828,7 +1828,7 @@ impl String {
         // 2. If separator is neither undefined nor null, then
         if !separator.is_null_or_undefined() {
             // a. Let splitter be ? GetMethod(separator, @@split).
-            let splitter = separator.get_method(WellKnownSymbols::split(), context)?;
+            let splitter = separator.get_method(JsSymbol::split(), context)?;
             // b. If splitter is not undefined, then
             if let Some(splitter) = splitter {
                 // i. Return ? Call(splitter, separator, « O, limit »).
@@ -1986,7 +1986,7 @@ impl String {
                 }
             }
             // c. Let matcher be ? GetMethod(regexp, @@matchAll).
-            let matcher = regexp.get_method(WellKnownSymbols::match_all(), context)?;
+            let matcher = regexp.get_method(JsSymbol::match_all(), context)?;
             // d. If matcher is not undefined, then
             if let Some(matcher) = matcher {
                 return matcher.call(regexp, &[o.clone()], context);
@@ -2000,7 +2000,7 @@ impl String {
         let rx = RegExp::create(regexp, &JsValue::new(js_string!("g")), context)?;
 
         // 5. Return ? Invoke(rx, @@matchAll, « S »).
-        rx.invoke(WellKnownSymbols::match_all(), &[JsValue::new(s)], context)
+        rx.invoke(JsSymbol::match_all(), &[JsValue::new(s)], context)
     }
 
     /// `String.prototype.normalize( [ form ] )`
@@ -2127,7 +2127,7 @@ impl String {
         let regexp = args.get_or_undefined(0);
         if !regexp.is_null_or_undefined() {
             // a. Let searcher be ? GetMethod(regexp, @@search).
-            let searcher = regexp.get_method(WellKnownSymbols::search(), context)?;
+            let searcher = regexp.get_method(JsSymbol::search(), context)?;
             // b. If searcher is not undefined, then
             if let Some(searcher) = searcher {
                 // i. Return ? Call(searcher, regexp, « O »).
@@ -2142,7 +2142,7 @@ impl String {
         let rx = RegExp::create(regexp, &JsValue::Undefined, context)?;
 
         // 5. Return ? Invoke(rx, @@search, « string »).
-        rx.invoke(WellKnownSymbols::search(), &[JsValue::new(string)], context)
+        rx.invoke(JsSymbol::search(), &[JsValue::new(string)], context)
     }
 
     pub(crate) fn iterator(
@@ -2364,7 +2364,7 @@ fn is_reg_exp(argument: &JsValue, context: &mut Context<'_>) -> JsResult<bool> {
 }
 fn is_reg_exp_object(argument: &JsObject, context: &mut Context<'_>) -> JsResult<bool> {
     // 2. Let matcher be ? Get(argument, @@match).
-    let matcher = argument.get(WellKnownSymbols::r#match(), context)?;
+    let matcher = argument.get(JsSymbol::r#match(), context)?;
 
     // 3. If matcher is not undefined, return ! ToBoolean(matcher).
     if !matcher.is_undefined() {

@@ -17,7 +17,7 @@ use crate::{
         FunctionObjectBuilder, JsObject, ObjectData,
     },
     property::Attribute,
-    symbol::WellKnownSymbols,
+    symbol::JsSymbol,
     value::JsValue,
     Context, JsResult,
 };
@@ -84,7 +84,7 @@ impl BuiltIn for DataView {
         .method(Self::set_uint16, "setUint16", 2)
         .method(Self::set_uint32, "setUint32", 2)
         .property(
-            WellKnownSymbols::to_string_tag(),
+            JsSymbol::to_string_tag(),
             Self::NAME,
             Attribute::READONLY | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
         )

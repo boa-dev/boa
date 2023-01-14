@@ -15,7 +15,7 @@ use crate::{
     error::JsNativeError,
     object::{ConstructorBuilder, JsObject, ObjectData},
     property::{Attribute, PropertyDescriptor},
-    symbol::WellKnownSymbols,
+    symbol::JsSymbol,
     value::JsValue,
     vm::{CallFrame, GeneratorResumeKind, ReturnType},
     Context, JsError, JsResult,
@@ -81,7 +81,7 @@ impl BuiltIn for Generator {
         .name(Self::NAME)
         .length(Self::LENGTH)
         .property(
-            WellKnownSymbols::to_string_tag(),
+            JsSymbol::to_string_tag(),
             Self::NAME,
             Attribute::READONLY | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
         )

@@ -32,7 +32,7 @@ use crate::{
         FunctionObjectBuilder, JsFunction, JsObject, ObjectData,
     },
     property::{Attribute, PropertyDescriptor, PropertyNameKind},
-    symbol::WellKnownSymbols,
+    symbol::JsSymbol,
     value::{IntegerOrInfinity, JsValue},
     Context, JsResult,
 };
@@ -48,8 +48,8 @@ impl BuiltIn for Array {
     fn init(context: &mut Context<'_>) -> Option<JsValue> {
         let _timer = Profiler::global().start_event(Self::NAME, "init");
 
-        let symbol_iterator = WellKnownSymbols::iterator();
-        let symbol_unscopables = WellKnownSymbols::unscopables();
+        let symbol_iterator = JsSymbol::iterator();
+        let symbol_unscopables = JsSymbol::unscopables();
 
         let get_species =
             FunctionObjectBuilder::new(context, NativeFunction::from_fn_ptr(Self::get_species))
@@ -68,7 +68,7 @@ impl BuiltIn for Array {
         .name(Self::NAME)
         .length(Self::LENGTH)
         .static_accessor(
-            WellKnownSymbols::species(),
+            JsSymbol::species(),
             Some(get_species),
             None,
             Attribute::CONFIGURABLE,
@@ -307,7 +307,7 @@ impl Array {
         };
 
         // 2. Let spreadable be ? Get(O, @@isConcatSpreadable).
-        let spreadable = o.get(WellKnownSymbols::is_concat_spreadable(), context)?;
+        let spreadable = o.get(JsSymbol::is_concat_spreadable(), context)?;
 
         // 3. If spreadable is not undefined, return ! ToBoolean(spreadable).
         if !spreadable.is_undefined() {
@@ -366,7 +366,7 @@ impl Array {
         // 5. If Type(C) is Object, then
         let c = if let Some(c) = c.as_object() {
             // 5.a. Set C to ? Get(C, @@species).
-            let c = c.get(WellKnownSymbols::species(), context)?;
+            let c = c.get(JsSymbol::species(), context)?;
             // 5.b. If C is null, set C to undefined.
             if c.is_null_or_undefined() {
                 JsValue::undefined()
@@ -428,7 +428,7 @@ impl Array {
         };
 
         // 4. Let usingIterator be ? GetMethod(items, @@iterator).
-        let using_iterator = items.get_method(WellKnownSymbols::iterator(), context)?;
+        let using_iterator = items.get_method(JsSymbol::iterator(), context)?;
 
         let Some(using_iterator) = using_iterator else {
             // 6. NOTE: items is not an Iterable so assume it is an array-like object.

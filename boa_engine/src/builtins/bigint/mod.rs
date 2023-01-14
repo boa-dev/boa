@@ -17,7 +17,7 @@ use crate::{
     error::JsNativeError,
     object::ConstructorBuilder,
     property::Attribute,
-    symbol::WellKnownSymbols,
+    symbol::JsSymbol,
     value::{IntegerOrInfinity, PreferredType},
     Context, JsBigInt, JsResult, JsValue,
 };
@@ -38,7 +38,7 @@ impl BuiltIn for BigInt {
     fn init(context: &mut Context<'_>) -> Option<JsValue> {
         let _timer = Profiler::global().start_event(Self::NAME, "init");
 
-        let to_string_tag = WellKnownSymbols::to_string_tag();
+        let to_string_tag = JsSymbol::to_string_tag();
 
         ConstructorBuilder::with_standard_constructor(
             context,

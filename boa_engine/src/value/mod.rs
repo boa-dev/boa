@@ -24,7 +24,7 @@ use crate::{
     js_string,
     object::{JsObject, ObjectData},
     property::{PropertyDescriptor, PropertyKey},
-    symbol::{JsSymbol, WellKnownSymbols},
+    symbol::JsSymbol,
     Context, JsBigInt, JsResult, JsString,
 };
 use boa_gc::{custom_trace, Finalize, Trace};
@@ -360,7 +360,7 @@ impl JsValue {
         // 2. If Type(input) is Object, then
         if let Some(input) = self.as_object() {
             // a. Let exoticToPrim be ? GetMethod(input, @@toPrimitive).
-            let exotic_to_prim = input.get_method(WellKnownSymbols::to_primitive(), context)?;
+            let exotic_to_prim = input.get_method(JsSymbol::to_primitive(), context)?;
 
             // b. If exoticToPrim is not undefined, then
             if let Some(exotic_to_prim) = exotic_to_prim {

@@ -15,7 +15,7 @@ use crate::{
     error::JsNativeError,
     object::{JsObject, ObjectData},
     property::PropertyDescriptor,
-    symbol::WellKnownSymbols,
+    symbol::JsSymbol,
     Context, JsResult, JsString, JsValue,
 };
 use boa_gc::{Finalize, Trace};
@@ -172,7 +172,7 @@ impl RegExpStringIterator {
         let result = JsObject::from_proto_and_data(iterator_prototype, ObjectData::ordinary());
         make_builtin_fn(Self::next, "next", &result, 0, context);
 
-        let to_string_tag = WellKnownSymbols::to_string_tag();
+        let to_string_tag = JsSymbol::to_string_tag();
         let to_string_tag_property = PropertyDescriptor::builder()
             .value("RegExp String Iterator")
             .writable(false)

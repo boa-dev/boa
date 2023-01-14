@@ -13,8 +13,8 @@
 
 use super::JsArgs;
 use crate::{
-    builtins::BuiltIn, object::ObjectInitializer, property::Attribute, symbol::WellKnownSymbols,
-    Context, JsResult, JsValue,
+    builtins::BuiltIn, object::ObjectInitializer, property::Attribute, symbol::JsSymbol, Context,
+    JsResult, JsValue,
 };
 use boa_profiler::Profiler;
 use tap::{Conv, Pipe};
@@ -33,7 +33,7 @@ impl BuiltIn for Math {
         let _timer = Profiler::global().start_event(Self::NAME, "init");
 
         let attribute = Attribute::READONLY | Attribute::NON_ENUMERABLE | Attribute::PERMANENT;
-        let string_tag = WellKnownSymbols::to_string_tag();
+        let string_tag = JsSymbol::to_string_tag();
         ObjectInitializer::new(context)
             .property("E", std::f64::consts::E, attribute)
             .property("LN10", std::f64::consts::LN_10, attribute)

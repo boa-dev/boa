@@ -14,7 +14,7 @@ use crate::{
     native_function::NativeFunction,
     object::{ConstructorBuilder, FunctionObjectBuilder, JsObject, ObjectData},
     property::{Attribute, PropertyDescriptor},
-    symbol::WellKnownSymbols,
+    symbol::JsSymbol,
     value::JsValue,
     vm::GeneratorResumeKind,
     Context, JsError, JsResult,
@@ -93,7 +93,7 @@ impl BuiltIn for AsyncGenerator {
         .name(Self::NAME)
         .length(0)
         .property(
-            WellKnownSymbols::to_string_tag(),
+            JsSymbol::to_string_tag(),
             Self::NAME,
             Attribute::READONLY | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
         )

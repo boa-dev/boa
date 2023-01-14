@@ -2,7 +2,7 @@ use crate::{
     environments::DeclarativeEnvironment,
     object::{JsObject, ObjectData},
     property::PropertyDescriptor,
-    symbol::{self, WellKnownSymbols},
+    symbol::{self, JsSymbol},
     Context, JsValue,
 };
 use boa_ast::{function::FormalParameterList, operations::bound_names};
@@ -113,7 +113,7 @@ impl Arguments {
         // [[Configurable]]: true }).
         let values_function = context.intrinsics().objects().array_prototype_values();
         obj.define_property_or_throw(
-            symbol::WellKnownSymbols::iterator(),
+            symbol::JsSymbol::iterator(),
             PropertyDescriptor::builder()
                 .value(values_function)
                 .writable(true)
@@ -264,7 +264,7 @@ impl Arguments {
         // [[Configurable]]: true }).
         let values_function = context.intrinsics().objects().array_prototype_values();
         obj.define_property_or_throw(
-            WellKnownSymbols::iterator(),
+            JsSymbol::iterator(),
             PropertyDescriptor::builder()
                 .value(values_function)
                 .writable(true)

@@ -26,7 +26,7 @@ use crate::{
         FunctionObjectBuilder, JsObject, ObjectData,
     },
     property::Attribute,
-    symbol::WellKnownSymbols,
+    symbol::JsSymbol,
     Context, JsNativeError, JsResult, JsString, JsValue,
 };
 
@@ -109,7 +109,7 @@ impl BuiltIn for Locale {
         .name(Self::NAME)
         .length(Self::LENGTH)
         .property(
-            WellKnownSymbols::to_string_tag(),
+            JsSymbol::to_string_tag(),
             "Intl.Locale",
             Attribute::CONFIGURABLE,
         )

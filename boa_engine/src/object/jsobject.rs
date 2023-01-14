@@ -840,10 +840,10 @@ impl Drop for RecursionLimiter {
     fn drop(&mut self) {
         if self.top_level {
             // When the top level of the graph is dropped, we can free the entire map for the next traversal.
-            Self::SEEN.with(|hm| hm.borrow_mut().clear());
+            SEEN.with(|hm| hm.borrow_mut().clear());
         } else if !self.live {
             // This was the first RL for this object to become live, so it's no longer live now that it's dropped.
-            Self::SEEN.with(|hm| {
+            SEEN.with(|hm| {
                 hm.borrow_mut()
                     .insert(self.ptr, RecursionValueState::Visited)
             });
@@ -851,13 +851,13 @@ impl Drop for RecursionLimiter {
     }
 }
 
-impl RecursionLimiter {
-    thread_local! {
-        /// The map of pointers to `JsObject` that have been visited during the current `Debug::fmt` graph,
-        /// and the current state of their RecursionLimiter (dropped or live -- see `RecursionValueState`)
-        static SEEN: RefCell<HashMap<usize, RecursionValueState>> = RefCell::new(HashMap::new());
-    }
+thread_local! {
+    /// The map of pointers to `JsObject` that have been visited during the current `Debug::fmt` graph,
+    /// and the current state of their RecursionLimiter (dropped or live -- see `RecursionValueState`)
+    static SEEN: RefCell<HashMap<usize, RecursionValueState>> = RefCell::new(HashMap::new());
+}
 
+impl RecursionLimiter {
     /// Determines if the specified `JsObject` has been visited, and returns a struct that will free it when dropped.
     ///
     /// This is done by maintaining a thread-local hashset containing the pointers of `JsObject` values that have been
@@ -867,7 +867,7 @@ impl RecursionLimiter {
         // We shouldn't have to worry too much about this being moved during Debug::fmt.
         #[allow(trivial_casts)]
         let ptr = (o.as_ref() as *const _) as usize;
-        let (top_level, visited, live) = Self::SEEN.with(|hm| {
+        let (top_level, visited, live) = SEEN.with(|hm| {
             let mut hm = hm.borrow_mut();
             let top_level = hm.is_empty();
             let old_state = hm.insert(ptr, RecursionValueState::Live);

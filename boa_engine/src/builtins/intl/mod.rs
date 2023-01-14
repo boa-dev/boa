@@ -16,7 +16,7 @@ use crate::{
     context::BoaProvider,
     object::ObjectInitializer,
     property::Attribute,
-    symbol::WellKnownSymbols,
+    symbol::JsSymbol,
     Context, JsResult, JsValue,
 };
 
@@ -57,7 +57,7 @@ impl BuiltIn for Intl {
 
         ObjectInitializer::new(context)
             .property(
-                WellKnownSymbols::to_string_tag(),
+                JsSymbol::to_string_tag(),
                 Self::NAME,
                 Attribute::READONLY | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
             )

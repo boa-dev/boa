@@ -15,7 +15,7 @@ use crate::{
     native_function::NativeFunction,
     object::ObjectData,
     property::PropertyDescriptor,
-    symbol::WellKnownSymbols,
+    symbol::JsSymbol,
     Context, JsResult, JsValue,
 };
 use boa_profiler::Profiler;
@@ -83,7 +83,7 @@ impl BuiltIn for AsyncFunction {
             .configurable(true);
         prototype
             .borrow_mut()
-            .insert(WellKnownSymbols::to_string_tag(), property);
+            .insert(JsSymbol::to_string_tag(), property);
 
         None
     }
