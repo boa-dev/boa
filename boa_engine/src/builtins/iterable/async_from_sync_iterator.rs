@@ -430,18 +430,13 @@ impl AsyncFromSyncIterator {
         // re-package the result in a new "unwrapped" IteratorResult object.
 
         // 11. Perform PerformPromiseThen(valueWrapper, onFulfilled, undefined, promiseCapability).
-        value_wrapper
-            .as_object()
-            .expect("result of promise resolve must be promise")
-            .borrow_mut()
-            .as_promise_mut()
-            .expect("constructed promise must be a promise")
-            .perform_promise_then(
-                &on_fulfilled.into(),
-                &JsValue::Undefined,
-                Some(promise_capability.clone()),
-                context,
-            );
+        Promise::perform_promise_then(
+            &value_wrapper,
+            &on_fulfilled.into(),
+            &JsValue::Undefined,
+            Some(promise_capability.clone()),
+            context,
+        );
 
         // 12. Return promiseCapability.[[Promise]].
         Ok(promise_capability.promise().clone().into())

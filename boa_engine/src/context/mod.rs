@@ -20,7 +20,7 @@ use crate::{
     builtins,
     bytecompiler::ByteCompiler,
     class::{Class, ClassBuilder},
-    job::JobCallback,
+    job::NativeJob,
     native_function::NativeFunction,
     object::{FunctionObjectBuilder, GlobalPropertyMap, JsObject},
     property::{Attribute, PropertyDescriptor, PropertyKey},
@@ -103,7 +103,7 @@ pub struct Context<'icu> {
 
     pub(crate) vm: Vm,
 
-    pub(crate) promise_job_queue: VecDeque<JobCallback>,
+    pub(crate) promise_job_queue: VecDeque<NativeJob>,
 
     pub(crate) kept_alive: Vec<JsObject>,
 }
@@ -396,7 +396,7 @@ impl Context<'_> {
     ///  - [ECMAScript reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-hostenqueuepromisejob
-    pub fn host_enqueue_promise_job(&mut self, job: JobCallback /* , realm: Realm */) {
+    pub fn host_enqueue_promise_job(&mut self, job: NativeJob /* , realm: Realm */) {
         // If realm is not null ...
         // TODO
         // Let scriptOrModule be ...
@@ -471,7 +471,7 @@ impl Context<'_> {
     /// Runs all the jobs in the job queue.
     fn run_queued_jobs(&mut self) -> JsResult<()> {
         while let Some(job) = self.promise_job_queue.pop_front() {
-            job.call_job_callback(&JsValue::Undefined, &[], self)?;
+            job.call(self)?;
             self.clear_kept_objects();
         }
         Ok(())

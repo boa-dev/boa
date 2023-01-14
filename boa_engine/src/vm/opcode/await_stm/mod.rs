@@ -116,13 +116,13 @@ impl Operation for Await {
         .build();
 
         // 7. Perform PerformPromiseThen(promise, onFulfilled, onRejected).
-        promise
-            .as_object()
-            .expect("promise was not an object")
-            .borrow_mut()
-            .as_promise_mut()
-            .expect("promise was not a promise")
-            .perform_promise_then(&on_fulfilled.into(), &on_rejected.into(), None, context);
+        Promise::perform_promise_then(
+            &promise,
+            &on_fulfilled.into(),
+            &on_rejected.into(),
+            None,
+            context,
+        );
 
         context.vm.push(JsValue::undefined());
         Ok(ShouldExit::Await)

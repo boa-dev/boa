@@ -669,6 +669,35 @@ impl JsObject {
     // todo: DefineField
 
     // todo: InitializeInstanceElements
+
+    /// Abstract operation `Invoke ( V, P [ , argumentsList ] )`
+    ///
+    /// Calls a method property of an ECMAScript object.
+    ///
+    /// Equivalent to the [`JsValue::invoke`] method, but specialized for objects.
+    ///
+    /// More information:
+    /// - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-invoke
+    pub(crate) fn invoke<K>(
+        &self,
+        key: K,
+        args: &[JsValue],
+        context: &mut Context<'_>,
+    ) -> JsResult<JsValue>
+    where
+        K: Into<PropertyKey>,
+    {
+        let this_value: JsValue = self.clone().into();
+
+        // 1. If argumentsList is not present, set argumentsList to a new empty List.
+        // 2. Let func be ? GetV(V, P).
+        let func = self.__get__(&key.into(), this_value.clone(), context)?;
+
+        // 3. Return ? Call(func, V, argumentsList)
+        func.call(&this_value, args, context)
+    }
 }
 
 impl JsValue {

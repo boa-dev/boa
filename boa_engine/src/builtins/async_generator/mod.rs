@@ -697,14 +697,13 @@ impl AsyncGenerator {
         .build();
 
         // 11. Perform PerformPromiseThen(promise, onFulfilled, onRejected).
-        let promise_obj = promise
-            .as_object()
-            .expect("constructed promise must be a promise");
-        promise_obj
-            .borrow_mut()
-            .as_promise_mut()
-            .expect("constructed promise must be a promise")
-            .perform_promise_then(&on_fulfilled.into(), &on_rejected.into(), None, context);
+        Promise::perform_promise_then(
+            &promise,
+            &on_fulfilled.into(),
+            &on_rejected.into(),
+            None,
+            context,
+        );
     }
 
     /// `AsyncGeneratorDrainQueue ( generator )`
