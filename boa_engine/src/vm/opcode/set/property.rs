@@ -69,7 +69,12 @@ impl Operation for SetPropertyByValue {
         };
 
         let key = key.to_property_key(context)?;
-        object.set(key, value.clone(), context.vm.frame().code_block.strict, context)?;
+        object.set(
+            key,
+            value.clone(),
+            context.vm.frame().code_block.strict,
+            context,
+        )?;
         context.vm.stack.push(value);
         Ok(ShouldExit::False)
     }

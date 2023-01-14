@@ -859,7 +859,11 @@ impl JsObject {
 
                 let param_count = code.params.as_ref().len();
 
-                context.vm.push_frame(CallFrame::new(code).with_param_count(param_count).with_arg_count(arg_count));
+                context.vm.push_frame(
+                    CallFrame::new(code)
+                        .with_param_count(param_count)
+                        .with_arg_count(arg_count),
+                );
 
                 let result = context.run();
                 context.vm.pop_frame().expect("must have frame");
@@ -978,7 +982,11 @@ impl JsObject {
 
                 let param_count = code.params.as_ref().len();
 
-                context.vm.push_frame(CallFrame::new(code).with_param_count(param_count).with_arg_count(arg_count));
+                context.vm.push_frame(
+                    CallFrame::new(code)
+                        .with_param_count(param_count)
+                        .with_arg_count(arg_count),
+                );
 
                 let _result = context.run();
                 context.vm.pop_frame().expect("must have frame");
@@ -1090,7 +1098,9 @@ impl JsObject {
 
                 let param_count = code.params.as_ref().len();
 
-                let call_frame = CallFrame::new(code).with_param_count(param_count).with_arg_count(arg_count);
+                let call_frame = CallFrame::new(code)
+                    .with_param_count(param_count)
+                    .with_arg_count(arg_count);
                 let mut stack = args;
 
                 std::mem::swap(&mut context.vm.stack, &mut stack);
@@ -1229,7 +1239,9 @@ impl JsObject {
 
                 let param_count = code.params.as_ref().len();
 
-                let call_frame = CallFrame::new(code).with_param_count(param_count).with_arg_count(arg_count);
+                let call_frame = CallFrame::new(code)
+                    .with_param_count(param_count)
+                    .with_arg_count(arg_count);
                 let mut stack = args;
 
                 std::mem::swap(&mut context.vm.stack, &mut stack);
