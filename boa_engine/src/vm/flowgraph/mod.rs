@@ -31,8 +31,8 @@ impl CodeBlock {
         let mut returns = Vec::new();
 
         let mut pc = 0;
-        while pc < self.code.len() {
-            let opcode: Opcode = self.code[pc].try_into().expect("invalid opcode");
+        while pc < self.bytecode.len() {
+            let opcode: Opcode = self.bytecode[pc].try_into().expect("invalid opcode");
             let opcode_str = opcode.as_str();
             let previous_pc = pc;
 

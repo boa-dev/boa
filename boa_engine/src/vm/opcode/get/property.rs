@@ -27,7 +27,7 @@ impl Operation for GetPropertyByName {
 
         let key: PropertyKey = context
             .interner()
-            .resolve_expect(context.vm.frame().code.names[index as usize].sym())
+            .resolve_expect(context.vm.frame().code_block.names[index as usize].sym())
             .into_common::<JsString>(false)
             .into();
         let result = object.__get__(&key, value, context)?;

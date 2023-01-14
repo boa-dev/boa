@@ -319,7 +319,7 @@ impl Console {
             stack_trace.push(
                 context
                     .interner()
-                    .resolve_expect(frame.code.name)
+                    .resolve_expect(frame.code_block.name)
                     .to_string(),
             );
         }

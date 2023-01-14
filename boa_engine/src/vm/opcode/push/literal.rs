@@ -16,7 +16,7 @@ impl Operation for PushLiteral {
 
     fn execute(context: &mut Context<'_>) -> JsResult<ShouldExit> {
         let index = context.vm.read::<u32>() as usize;
-        let value = context.vm.frame().code.literals[index].clone();
+        let value = context.vm.frame().code_block.literals[index].clone();
         context.vm.push(value);
         Ok(ShouldExit::False)
     }

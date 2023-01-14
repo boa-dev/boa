@@ -23,7 +23,7 @@ impl Operation for DefVar {
 
     fn execute(context: &mut Context<'_>) -> JsResult<ShouldExit> {
         let index = context.vm.read::<u32>();
-        let binding_locator = context.vm.frame().code.bindings[index as usize];
+        let binding_locator = context.vm.frame().code_block.bindings[index as usize];
 
         if binding_locator.is_global() {
             let key = context
@@ -63,7 +63,7 @@ impl Operation for DefInitVar {
     fn execute(context: &mut Context<'_>) -> JsResult<ShouldExit> {
         let index = context.vm.read::<u32>();
         let value = context.vm.pop();
-        let binding_locator = context.vm.frame().code.bindings[index as usize];
+        let binding_locator = context.vm.frame().code_block.bindings[index as usize];
         if binding_locator.is_silent() {
             return Ok(ShouldExit::False);
         }
@@ -100,7 +100,7 @@ impl Operation for DefLet {
 
     fn execute(context: &mut Context<'_>) -> JsResult<ShouldExit> {
         let index = context.vm.read::<u32>();
-        let binding_locator = context.vm.frame().code.bindings[index as usize];
+        let binding_locator = context.vm.frame().code_block.bindings[index as usize];
         context.realm.environments.put_value(
             binding_locator.environment_index(),
             binding_locator.binding_index(),
@@ -126,7 +126,7 @@ macro_rules! implement_declaritives {
             fn execute(context: &mut Context<'_>) -> JsResult<ShouldExit> {
                 let index = context.vm.read::<u32>();
                 let value = context.vm.pop();
-                let binding_locator = context.vm.frame().code.bindings[index as usize];
+                let binding_locator = context.vm.frame().code_block.bindings[index as usize];
                 context.realm.environments.put_value(
                     binding_locator.environment_index(),
                     binding_locator.binding_index(),

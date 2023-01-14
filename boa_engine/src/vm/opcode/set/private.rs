@@ -18,7 +18,7 @@ impl Operation for SetPrivateField {
 
     fn execute(context: &mut Context<'_>) -> JsResult<ShouldExit> {
         let index = context.vm.read::<u32>();
-        let name = context.vm.frame().code.private_names[index as usize];
+        let name = context.vm.frame().code_block.private_names[index as usize];
         let value = context.vm.pop();
         let object = context.vm.pop();
         let base_obj = object.to_object(context)?;
@@ -41,7 +41,7 @@ impl Operation for DefinePrivateField {
 
     fn execute(context: &mut Context<'_>) -> JsResult<ShouldExit> {
         let index = context.vm.read::<u32>();
-        let name = context.vm.frame().code.private_names[index as usize];
+        let name = context.vm.frame().code_block.private_names[index as usize];
         let value = context.vm.pop();
         let object = context.vm.pop();
         let object = object
@@ -68,7 +68,7 @@ impl Operation for SetPrivateMethod {
 
     fn execute(context: &mut Context<'_>) -> JsResult<ShouldExit> {
         let index = context.vm.read::<u32>();
-        let name = context.vm.frame().code.private_names[index as usize];
+        let name = context.vm.frame().code_block.private_names[index as usize];
         let value = context.vm.pop();
         let value = value.as_callable().expect("method must be callable");
 
@@ -113,7 +113,7 @@ impl Operation for SetPrivateSetter {
 
     fn execute(context: &mut Context<'_>) -> JsResult<ShouldExit> {
         let index = context.vm.read::<u32>();
-        let name = context.vm.frame().code.private_names[index as usize];
+        let name = context.vm.frame().code_block.private_names[index as usize];
         let value = context.vm.pop();
         let value = value.as_callable().expect("setter must be callable");
         let object = context.vm.pop();
@@ -151,7 +151,7 @@ impl Operation for SetPrivateGetter {
 
     fn execute(context: &mut Context<'_>) -> JsResult<ShouldExit> {
         let index = context.vm.read::<u32>();
-        let name = context.vm.frame().code.private_names[index as usize];
+        let name = context.vm.frame().code_block.private_names[index as usize];
         let value = context.vm.pop();
         let value = value.as_callable().expect("getter must be callable");
         let object = context.vm.pop();

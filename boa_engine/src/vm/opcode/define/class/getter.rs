@@ -75,7 +75,7 @@ impl Operation for DefineClassGetterByName {
         let class_proto = class_proto.as_object().expect("class must be object");
         let key = context
             .interner()
-            .resolve_expect(context.vm.frame().code.names[index as usize].sym())
+            .resolve_expect(context.vm.frame().code_block.names[index as usize].sym())
             .into_common::<JsString>(false)
             .into();
         {

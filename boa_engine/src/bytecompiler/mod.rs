@@ -349,8 +349,8 @@ impl<'b, 'icu> ByteCompiler<'b, 'icu> {
     }
 
     fn next_opcode_location(&mut self) -> u32 {
-        assert!(self.code_block.code.len() < u32::MAX as usize);
-        self.code_block.code.len() as u32
+        assert!(self.code_block.bytecode.len() < u32::MAX as usize);
+        self.code_block.bytecode.len() as u32
     }
 
     fn emit(&mut self, opcode: Opcode, operands: &[u32]) {
@@ -361,15 +361,15 @@ impl<'b, 'icu> ByteCompiler<'b, 'icu> {
     }
 
     fn emit_u64(&mut self, value: u64) {
-        self.code_block.code.extend(value.to_ne_bytes());
+        self.code_block.bytecode.extend(value.to_ne_bytes());
     }
 
     fn emit_u32(&mut self, value: u32) {
-        self.code_block.code.extend(value.to_ne_bytes());
+        self.code_block.bytecode.extend(value.to_ne_bytes());
     }
 
     fn emit_u16(&mut self, value: u16) {
-        self.code_block.code.extend(value.to_ne_bytes());
+        self.code_block.bytecode.extend(value.to_ne_bytes());
     }
 
     fn emit_opcode(&mut self, opcode: Opcode) {
@@ -377,7 +377,7 @@ impl<'b, 'icu> ByteCompiler<'b, 'icu> {
     }
 
     fn emit_u8(&mut self, value: u8) {
-        self.code_block.code.push(value);
+        self.code_block.bytecode.push(value);
     }
 
     fn emit_push_integer(&mut self, value: i32) {
@@ -465,10 +465,10 @@ impl<'b, 'icu> ByteCompiler<'b, 'icu> {
         let index = index as usize;
 
         let bytes = target.to_ne_bytes();
-        self.code_block.code[index + 1] = bytes[0];
-        self.code_block.code[index + 2] = bytes[1];
-        self.code_block.code[index + 3] = bytes[2];
-        self.code_block.code[index + 4] = bytes[3];
+        self.code_block.bytecode[index + 1] = bytes[0];
+        self.code_block.bytecode[index + 2] = bytes[1];
+        self.code_block.bytecode[index + 3] = bytes[2];
+        self.code_block.bytecode[index + 4] = bytes[3];
     }
 
     fn patch_jump(&mut self, label: Label) {

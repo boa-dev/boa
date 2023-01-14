@@ -58,7 +58,7 @@ impl Operation for PushClassFieldPrivate {
 
     fn execute(context: &mut Context<'_>) -> JsResult<ShouldExit> {
         let index = context.vm.read::<u32>();
-        let name = context.vm.frame().code.private_names[index as usize];
+        let name = context.vm.frame().code_block.private_names[index as usize];
         let field_function_value = context.vm.pop();
         let class_value = context.vm.pop();
 

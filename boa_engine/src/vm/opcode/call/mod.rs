@@ -44,7 +44,7 @@ impl Operation for CallEval {
         // A native function with the name "eval" implies, that is this the built-in eval function.
         let eval = matches!(object.borrow().as_function(), Some(Function::Native { .. }));
 
-        let strict = context.vm.frame().code.strict;
+        let strict = context.vm.frame().code_block.strict;
 
         if eval {
             if let Some(x) = arguments.get(0) {
@@ -106,7 +106,7 @@ impl Operation for CallEvalSpread {
         // A native function with the name "eval" implies, that is this the built-in eval function.
         let eval = matches!(object.borrow().as_function(), Some(Function::Native { .. }));
 
-        let strict = context.vm.frame().code.strict;
+        let strict = context.vm.frame().code_block.strict;
 
         if eval {
             if let Some(x) = arguments.get(0) {
