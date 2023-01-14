@@ -774,7 +774,6 @@
 <span id="773">773</span>
 <span id="774">774</span>
 <span id="775">775</span>
-<span id="776">776</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Boa&#39;s implementation of ECMAScript&#39;s global `AsyncGenerator` object.
 //!
 //! More information:
@@ -1474,14 +1473,13 @@
         .build();
 
         <span class="comment">// 11. Perform PerformPromiseThen(promise, onFulfilled, onRejected).
-        </span><span class="kw">let </span>promise_obj = promise
-            .as_object()
-            .expect(<span class="string">&quot;constructed promise must be a promise&quot;</span>);
-        promise_obj
-            .borrow_mut()
-            .as_promise_mut()
-            .expect(<span class="string">&quot;constructed promise must be a promise&quot;</span>)
-            .perform_promise_then(<span class="kw-2">&amp;</span>on_fulfilled.into(), <span class="kw-2">&amp;</span>on_rejected.into(), <span class="prelude-val">None</span>, context);
+        </span>Promise::perform_promise_then(
+            <span class="kw-2">&amp;</span>promise,
+            <span class="kw-2">&amp;</span>on_fulfilled.into(),
+            <span class="kw-2">&amp;</span>on_rejected.into(),
+            <span class="prelude-val">None</span>,
+            context,
+        );
     }
 
     <span class="doccomment">/// `AsyncGeneratorDrainQueue ( generator )`

@@ -2157,20 +2157,132 @@
 <span id="2156">2156</span>
 <span id="2157">2157</span>
 <span id="2158">2158</span>
+<span id="2159">2159</span>
+<span id="2160">2160</span>
+<span id="2161">2161</span>
+<span id="2162">2162</span>
+<span id="2163">2163</span>
+<span id="2164">2164</span>
+<span id="2165">2165</span>
+<span id="2166">2166</span>
+<span id="2167">2167</span>
+<span id="2168">2168</span>
+<span id="2169">2169</span>
+<span id="2170">2170</span>
+<span id="2171">2171</span>
+<span id="2172">2172</span>
+<span id="2173">2173</span>
+<span id="2174">2174</span>
+<span id="2175">2175</span>
+<span id="2176">2176</span>
+<span id="2177">2177</span>
+<span id="2178">2178</span>
+<span id="2179">2179</span>
+<span id="2180">2180</span>
+<span id="2181">2181</span>
+<span id="2182">2182</span>
+<span id="2183">2183</span>
+<span id="2184">2184</span>
+<span id="2185">2185</span>
+<span id="2186">2186</span>
+<span id="2187">2187</span>
+<span id="2188">2188</span>
+<span id="2189">2189</span>
+<span id="2190">2190</span>
+<span id="2191">2191</span>
+<span id="2192">2192</span>
+<span id="2193">2193</span>
+<span id="2194">2194</span>
+<span id="2195">2195</span>
+<span id="2196">2196</span>
+<span id="2197">2197</span>
+<span id="2198">2198</span>
+<span id="2199">2199</span>
+<span id="2200">2200</span>
+<span id="2201">2201</span>
+<span id="2202">2202</span>
+<span id="2203">2203</span>
+<span id="2204">2204</span>
+<span id="2205">2205</span>
+<span id="2206">2206</span>
+<span id="2207">2207</span>
+<span id="2208">2208</span>
+<span id="2209">2209</span>
+<span id="2210">2210</span>
+<span id="2211">2211</span>
+<span id="2212">2212</span>
+<span id="2213">2213</span>
+<span id="2214">2214</span>
+<span id="2215">2215</span>
+<span id="2216">2216</span>
+<span id="2217">2217</span>
+<span id="2218">2218</span>
+<span id="2219">2219</span>
+<span id="2220">2220</span>
+<span id="2221">2221</span>
+<span id="2222">2222</span>
+<span id="2223">2223</span>
+<span id="2224">2224</span>
+<span id="2225">2225</span>
+<span id="2226">2226</span>
+<span id="2227">2227</span>
+<span id="2228">2228</span>
+<span id="2229">2229</span>
+<span id="2230">2230</span>
+<span id="2231">2231</span>
+<span id="2232">2232</span>
+<span id="2233">2233</span>
+<span id="2234">2234</span>
+<span id="2235">2235</span>
+<span id="2236">2236</span>
+<span id="2237">2237</span>
+<span id="2238">2238</span>
+<span id="2239">2239</span>
+<span id="2240">2240</span>
+<span id="2241">2241</span>
+<span id="2242">2242</span>
+<span id="2243">2243</span>
+<span id="2244">2244</span>
+<span id="2245">2245</span>
+<span id="2246">2246</span>
+<span id="2247">2247</span>
+<span id="2248">2248</span>
+<span id="2249">2249</span>
+<span id="2250">2250</span>
+<span id="2251">2251</span>
+<span id="2252">2252</span>
+<span id="2253">2253</span>
+<span id="2254">2254</span>
+<span id="2255">2255</span>
+<span id="2256">2256</span>
+<span id="2257">2257</span>
+<span id="2258">2258</span>
+<span id="2259">2259</span>
+<span id="2260">2260</span>
+<span id="2261">2261</span>
+<span id="2262">2262</span>
+<span id="2263">2263</span>
+<span id="2264">2264</span>
+<span id="2265">2265</span>
+<span id="2266">2266</span>
+<span id="2267">2267</span>
+<span id="2268">2268</span>
+<span id="2269">2269</span>
+<span id="2270">2270</span>
+<span id="2271">2271</span>
+<span id="2272">2272</span>
+<span id="2273">2273</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Boa&#39;s implementation of ECMAScript&#39;s global `Promise` object.
 
 </span><span class="attribute">#[cfg(test)]
 </span><span class="kw">mod </span>tests;
 
-<span class="kw">mod </span>promise_job;
-
-<span class="kw">use </span><span class="self">self</span>::promise_job::PromiseJob;
 <span class="kw">use super</span>::{iterable::IteratorRecord, JsArgs};
 <span class="kw">use crate</span>::{
     builtins::{error::ErrorKind, Array, BuiltIn},
     context::intrinsics::StandardConstructors,
     error::JsNativeError,
-    job::JobCallback,
+    job::{JobCallback, NativeJob},
     native_function::NativeFunction,
     object::{
         internal_methods::get_prototype_from_constructor, ConstructorBuilder,
@@ -2226,10 +2338,10 @@
 <span class="doccomment">/// The internal representation of a `Promise` object.
 </span><span class="attribute">#[derive(Debug, Clone, Trace, Finalize)]
 </span><span class="kw">pub struct </span>Promise {
-    promise_state: PromiseState,
-    promise_fulfill_reactions: Vec&lt;ReactionRecord&gt;,
-    promise_reject_reactions: Vec&lt;ReactionRecord&gt;,
-    promise_is_handled: bool,
+    state: PromiseState,
+    fulfill_reactions: Vec&lt;ReactionRecord&gt;,
+    reject_reactions: Vec&lt;ReactionRecord&gt;,
+    handled: bool,
 }
 
 <span class="doccomment">/// The internal `PromiseReaction` data type.
@@ -2467,7 +2579,7 @@
 
     <span class="doccomment">/// Gets the current state of the promise.
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const fn </span>state(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>PromiseState {
-        <span class="kw-2">&amp;</span><span class="self">self</span>.promise_state
+        <span class="kw-2">&amp;</span><span class="self">self</span>.state
     }
 
     <span class="doccomment">/// `Promise ( executor )`
@@ -2502,13 +2614,13 @@
             promise,
             ObjectData::promise(<span class="self">Self </span>{
                 <span class="comment">// 4. Set promise.[[PromiseState]] to pending.
-                </span>promise_state: PromiseState::Pending,
+                </span>state: PromiseState::Pending,
                 <span class="comment">// 5. Set promise.[[PromiseFulfillReactions]] to a new empty List.
-                </span>promise_fulfill_reactions: Vec::new(),
+                </span>fulfill_reactions: Vec::new(),
                 <span class="comment">// 6. Set promise.[[PromiseRejectReactions]] to a new empty List.
-                </span>promise_reject_reactions: Vec::new(),
+                </span>reject_reactions: Vec::new(),
                 <span class="comment">// 7. Set promise.[[PromiseIsHandled]] to false.
-                </span>promise_is_handled: <span class="bool-val">false</span>,
+                </span>handled: <span class="bool-val">false</span>,
             }),
         );
 
@@ -3468,11 +3580,7 @@
                             .to_opaque(context);
 
                         <span class="comment">//   b. Perform RejectPromise(promise, selfResolutionError).
-                        </span>promise
-                            .borrow_mut()
-                            .as_promise_mut()
-                            .expect(<span class="string">&quot;Expected promise to be a Promise&quot;</span>)
-                            .reject_promise(<span class="kw-2">&amp;</span>self_resolution_error.into(), context);
+                        </span><span class="self">Self</span>::reject_promise(promise, self_resolution_error.into(), context);
 
                         <span class="comment">//   c. Return undefined.
                         </span><span class="kw">return </span><span class="prelude-val">Ok</span>(JsValue::Undefined);
@@ -3481,11 +3589,7 @@
                     <span class="kw">let </span><span class="prelude-val">Some</span>(then) = resolution.as_object() <span class="kw">else </span>{
                     <span class="comment">// 8. If Type(resolution) is not Object, then
                     //   a. Perform FulfillPromise(promise, resolution).
-                    </span>promise
-                    .borrow_mut()
-                    .as_promise_mut()
-                    .expect(<span class="string">&quot;Expected promise to be a Promise&quot;</span>)
-                    .fulfill_promise(resolution, context);
+                    </span><span class="self">Self</span>::fulfill_promise(promise, resolution.clone(), context);
 
                     <span class="comment">//   b. Return undefined.
                     </span><span class="kw">return </span><span class="prelude-val">Ok</span>(JsValue::Undefined);
@@ -3496,11 +3600,7 @@
                         <span class="comment">// 10. If then is an abrupt completion, then
                         </span><span class="prelude-val">Err</span>(e) =&gt; {
                             <span class="comment">//   a. Perform RejectPromise(promise, then.[[Value]]).
-                            </span>promise
-                                .borrow_mut()
-                                .as_promise_mut()
-                                .expect(<span class="string">&quot;Expected promise to be a Promise&quot;</span>)
-                                .reject_promise(<span class="kw-2">&amp;</span>e.to_opaque(context), context);
+                            </span><span class="self">Self</span>::reject_promise(promise, e.to_opaque(context), context);
 
                             <span class="comment">//   b. Return undefined.
                             </span><span class="kw">return </span><span class="prelude-val">Ok</span>(JsValue::Undefined);
@@ -3510,30 +3610,22 @@
                     };
 
                     <span class="comment">// 12. If IsCallable(thenAction) is false, then
-                    </span><span class="kw">let </span>then_action = <span class="kw">match </span>then_action.as_object() {
-                        <span class="prelude-val">Some</span>(then_action) <span class="kw">if </span>then_action.is_callable() =&gt; then_action,
-                        <span class="kw">_ </span>=&gt; {
-                            <span class="comment">// a. Perform FulfillPromise(promise, resolution).
-                            </span>promise
-                                .borrow_mut()
-                                .as_promise_mut()
-                                .expect(<span class="string">&quot;Expected promise to be a Promise&quot;</span>)
-                                .fulfill_promise(resolution, context);
+                    </span><span class="kw">let </span><span class="prelude-val">Some</span>(then_action) = then_action.as_object().cloned().and_then(JsFunction::from_object) <span class="kw">else </span>{
+                        <span class="comment">// a. Perform FulfillPromise(promise, resolution).
+                        </span><span class="self">Self</span>::fulfill_promise(promise, resolution.clone(), context);
 
-                            <span class="comment">//   b. Return undefined.
-                            </span><span class="kw">return </span><span class="prelude-val">Ok</span>(JsValue::Undefined);
-                        }
+                        <span class="comment">//   b. Return undefined.
+                        </span><span class="kw">return </span><span class="prelude-val">Ok</span>(JsValue::Undefined);
                     };
 
                     <span class="comment">// 13. Let thenJobCallback be HostMakeJobCallback(thenAction).
-                    </span><span class="kw">let </span>then_job_callback = JobCallback::make_job_callback(then_action.clone());
+                    </span><span class="kw">let </span>then_job_callback = JobCallback::make_job_callback(then_action);
 
                     <span class="comment">// 14. Let job be NewPromiseResolveThenableJob(promise, resolution, thenJobCallback).
-                    </span><span class="kw">let </span>job: JobCallback = PromiseJob::new_promise_resolve_thenable_job(
+                    </span><span class="kw">let </span>job = new_promise_resolve_thenable_job(
                         promise.clone(),
                         resolution.clone(),
                         then_job_callback,
-                        context,
                     );
 
                     <span class="comment">// 15. Perform HostEnqueuePromiseJob(job.[[Job]], job.[[Realm]]).
@@ -3585,11 +3677,7 @@
 
                     <span class="comment">// let reason = args.get_or_undefined(0);
                     // 7. Perform RejectPromise(promise, reason).
-                    </span>promise
-                        .borrow_mut()
-                        .as_promise_mut()
-                        .expect(<span class="string">&quot;Expected promise to be a Promise&quot;</span>)
-                        .reject_promise(args.get_or_undefined(<span class="number">0</span>), context);
+                    </span><span class="self">Self</span>::reject_promise(promise, args.get_or_undefined(<span class="number">0</span>).clone(), context);
 
                     <span class="comment">// 8. Return undefined.
                     </span><span class="prelude-val">Ok</span>(JsValue::Undefined)
@@ -3619,29 +3707,33 @@
     /// # Panics
     ///
     /// Panics if `Promise` is not pending.
-    </span><span class="kw">fn </span>fulfill_promise(<span class="kw-2">&amp;mut </span><span class="self">self</span>, value: <span class="kw-2">&amp;</span>JsValue, context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) {
+    </span><span class="kw">fn </span>fulfill_promise(promise: <span class="kw-2">&amp;</span>JsObject, value: JsValue, context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) {
+        <span class="kw">let </span><span class="kw-2">mut </span>promise = promise.borrow_mut();
+        <span class="kw">let </span>promise = promise
+            .as_promise_mut()
+            .expect(<span class="string">&quot;IsPromise(promise) is false&quot;</span>);
+
         <span class="comment">// 1. Assert: The value of promise.[[PromiseState]] is pending.
         </span><span class="macro">assert!</span>(
-            <span class="macro">matches!</span>(<span class="self">self</span>.promise_state, PromiseState::Pending),
+            <span class="macro">matches!</span>(promise.state, PromiseState::Pending),
             <span class="string">&quot;promise was not pending&quot;
         </span>);
 
-        <span class="comment">// 2. Let reactions be promise.[[PromiseFulfillReactions]].
-        </span><span class="kw">let </span>reactions = <span class="kw-2">&amp;</span><span class="self">self</span>.promise_fulfill_reactions;
+        <span class="comment">// reordering these statements does not affect the semantics
 
-        <span class="comment">// 7. Perform TriggerPromiseReactions(reactions, value).
-        </span><span class="self">Self</span>::trigger_promise_reactions(reactions, value, context);
-        <span class="comment">// reordering this statement does not affect the semantics
-
+        // 2. Let reactions be promise.[[PromiseFulfillReactions]].
         // 4. Set promise.[[PromiseFulfillReactions]] to undefined.
-        </span><span class="self">self</span>.promise_fulfill_reactions = Vec::new();
+        </span><span class="kw">let </span>reactions = std::mem::take(<span class="kw-2">&amp;mut </span>promise.fulfill_reactions);
 
         <span class="comment">// 5. Set promise.[[PromiseRejectReactions]] to undefined.
-        </span><span class="self">self</span>.promise_reject_reactions = Vec::new();
+        </span>promise.reject_reactions.clear();
+
+        <span class="comment">// 7. Perform TriggerPromiseReactions(reactions, value).
+        </span><span class="self">Self</span>::trigger_promise_reactions(reactions, <span class="kw-2">&amp;</span>value, context);
 
         <span class="comment">// 3. Set promise.[[PromiseResult]] to value.
         // 6. Set promise.[[PromiseState]] to fulfilled.
-        </span><span class="self">self</span>.promise_state = PromiseState::Fulfilled(value.clone());
+        </span>promise.state = PromiseState::Fulfilled(value);
 
         <span class="comment">// 8. Return unused.
     </span>}
@@ -3659,32 +3751,40 @@
     /// # Panics
     ///
     /// Panics if `Promise` is not pending.
-    </span><span class="kw">pub fn </span>reject_promise(<span class="kw-2">&amp;mut </span><span class="self">self</span>, reason: <span class="kw-2">&amp;</span>JsValue, context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) {
-        <span class="comment">// 1. Assert: The value of promise.[[PromiseState]] is pending.
-        </span><span class="macro">assert!</span>(
-            <span class="macro">matches!</span>(<span class="self">self</span>.promise_state, PromiseState::Pending),
-            <span class="string">&quot;Expected promise.[[PromiseState]] to be pending&quot;
-        </span>);
+    </span><span class="kw">pub fn </span>reject_promise(promise: <span class="kw-2">&amp;</span>JsObject, reason: JsValue, context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) {
+        <span class="kw">let </span>handled = {
+            <span class="kw">let </span><span class="kw-2">mut </span>promise = promise.borrow_mut();
+            <span class="kw">let </span>promise = promise
+                .as_promise_mut()
+                .expect(<span class="string">&quot;IsPromise(promise) is false&quot;</span>);
 
-        <span class="comment">// 2. Let reactions be promise.[[PromiseRejectReactions]].
-        </span><span class="kw">let </span>reactions = <span class="kw-2">&amp;</span><span class="self">self</span>.promise_reject_reactions;
+            <span class="comment">// 1. Assert: The value of promise.[[PromiseState]] is pending.
+            </span><span class="macro">assert!</span>(
+                <span class="macro">matches!</span>(promise.state, PromiseState::Pending),
+                <span class="string">&quot;Expected promise.[[PromiseState]] to be pending&quot;
+            </span>);
 
-        <span class="comment">// 8. Perform TriggerPromiseReactions(reactions, reason).
-        </span><span class="self">Self</span>::trigger_promise_reactions(reactions, reason, context);
-        <span class="comment">// reordering this statement does not affect the semantics
+            <span class="comment">// reordering these statements does not affect the semantics
 
-        // 4. Set promise.[[PromiseFulfillReactions]] to undefined.
-        </span><span class="self">self</span>.promise_fulfill_reactions = Vec::new();
+            // 2. Let reactions be promise.[[PromiseRejectReactions]].
+            // 5. Set promise.[[PromiseRejectReactions]] to undefined.
+            </span><span class="kw">let </span>reactions = std::mem::take(<span class="kw-2">&amp;mut </span>promise.reject_reactions);
 
-        <span class="comment">// 5. Set promise.[[PromiseRejectReactions]] to undefined.
-        </span><span class="self">self</span>.promise_reject_reactions = Vec::new();
+            <span class="comment">// 4. Set promise.[[PromiseFulfillReactions]] to undefined.
+            </span>promise.fulfill_reactions.clear();
 
-        <span class="comment">// 3. Set promise.[[PromiseResult]] to reason.
-        // 6. Set promise.[[PromiseState]] to rejected.
-        </span><span class="self">self</span>.promise_state = PromiseState::Rejected(reason.clone());
+            <span class="comment">// 8. Perform TriggerPromiseReactions(reactions, reason).
+            </span><span class="self">Self</span>::trigger_promise_reactions(reactions, <span class="kw-2">&amp;</span>reason, context);
+
+            <span class="comment">// 3. Set promise.[[PromiseResult]] to reason.
+            // 6. Set promise.[[PromiseState]] to rejected.
+            </span>promise.state = PromiseState::Rejected(reason);
+
+            promise.handled
+        };
 
         <span class="comment">// 7. If promise.[[PromiseIsHandled]] is false, perform HostPromiseRejectionTracker(promise, &quot;reject&quot;).
-        </span><span class="kw">if </span>!<span class="self">self</span>.promise_is_handled {
+        </span><span class="kw">if </span>!handled {
             <span class="comment">// TODO
         </span>}
 
@@ -3705,15 +3805,14 @@
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-triggerpromisereactions
     </span><span class="kw">fn </span>trigger_promise_reactions(
-        reactions: <span class="kw-2">&amp;</span>[ReactionRecord],
+        reactions: Vec&lt;ReactionRecord&gt;,
         argument: <span class="kw-2">&amp;</span>JsValue,
         context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
     ) {
         <span class="comment">// 1. For each element reaction of reactions, do
         </span><span class="kw">for </span>reaction <span class="kw">in </span>reactions {
             <span class="comment">// a. Let job be NewPromiseReactionJob(reaction, argument).
-            </span><span class="kw">let </span>job =
-                PromiseJob::new_promise_reaction_job(reaction.clone(), argument.clone(), context);
+            </span><span class="kw">let </span>job = new_promise_reaction_job(reaction, argument.clone());
 
             <span class="comment">// b. Perform HostEnqueuePromiseJob(job.[[Job]], job.[[Realm]]).
             </span>context.host_enqueue_promise_job(job);
@@ -3763,7 +3862,8 @@
             <span class="kw-2">&amp;</span>promise_capability,
             <span class="kw-2">&amp;</span>promise_resolve,
             context,
-        );
+        )
+        .map(JsValue::from);
 
         <span class="comment">// 8. If result is an abrupt completion, then
         </span><span class="kw">if </span>result.is_err() {
@@ -3799,7 +3899,7 @@
         result_capability: <span class="kw-2">&amp;</span>PromiseCapability,
         promise_resolve: <span class="kw-2">&amp;</span>JsObject,
         context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
-    ) -&gt; JsResult&lt;JsValue&gt; {
+    ) -&gt; JsResult&lt;JsObject&gt; {
         <span class="comment">// 1. Repeat,
         </span><span class="kw">loop </span>{
             <span class="comment">// a. Let next be Completion(IteratorStep(iteratorRecord)).
@@ -3813,38 +3913,38 @@
             <span class="comment">// c. ReturnIfAbrupt(next).
             </span><span class="kw">let </span>next = next<span class="question-mark">?</span>;
 
-            <span class="kw">if let </span><span class="prelude-val">Some</span>(next) = next {
-                <span class="comment">// e. Let nextValue be Completion(IteratorValue(next)).
-                </span><span class="kw">let </span>next_value = next.value(context);
-
-                <span class="comment">// f. If nextValue is an abrupt completion, set iteratorRecord.[[Done]] to true.
-                </span><span class="kw">if </span>next_value.is_err() {
-                    iterator_record.set_done(<span class="bool-val">true</span>);
-                }
-
-                <span class="comment">// g. ReturnIfAbrupt(nextValue).
-                </span><span class="kw">let </span>next_value = next_value<span class="question-mark">?</span>;
-
-                <span class="comment">// h. Let nextPromise be ? Call(promiseResolve, constructor, « nextValue »).
-                </span><span class="kw">let </span>next_promise = promise_resolve.call(constructor, <span class="kw-2">&amp;</span>[next_value], context)<span class="question-mark">?</span>;
-
-                <span class="comment">// i. Perform ? Invoke(nextPromise, &quot;then&quot;, « resultCapability.[[Resolve]], resultCapability.[[Reject]] »).
-                </span>next_promise.invoke(
-                    <span class="string">&quot;then&quot;</span>,
-                    <span class="kw-2">&amp;</span>[
-                        result_capability.resolve.clone().into(),
-                        result_capability.reject.clone().into(),
-                    ],
-                    context,
-                )<span class="question-mark">?</span>;
-            } <span class="kw">else </span>{
+            <span class="kw">let </span><span class="prelude-val">Some</span>(next) = next <span class="kw">else </span>{
                 <span class="comment">// d. If next is false, then
                 // i. Set iteratorRecord.[[Done]] to true.
                 </span>iterator_record.set_done(<span class="bool-val">true</span>);
 
                 <span class="comment">// ii. Return resultCapability.[[Promise]].
-                </span><span class="kw">return </span><span class="prelude-val">Ok</span>(result_capability.promise.clone().into());
+                </span><span class="kw">return </span><span class="prelude-val">Ok</span>(result_capability.promise.clone());
+            };
+
+            <span class="comment">// e. Let nextValue be Completion(IteratorValue(next)).
+            </span><span class="kw">let </span>next_value = next.value(context);
+
+            <span class="comment">// f. If nextValue is an abrupt completion, set iteratorRecord.[[Done]] to true.
+            </span><span class="kw">if </span>next_value.is_err() {
+                iterator_record.set_done(<span class="bool-val">true</span>);
             }
+
+            <span class="comment">// g. ReturnIfAbrupt(nextValue).
+            </span><span class="kw">let </span>next_value = next_value<span class="question-mark">?</span>;
+
+            <span class="comment">// h. Let nextPromise be ? Call(promiseResolve, constructor, « nextValue »).
+            </span><span class="kw">let </span>next_promise = promise_resolve.call(constructor, <span class="kw-2">&amp;</span>[next_value], context)<span class="question-mark">?</span>;
+
+            <span class="comment">// i. Perform ? Invoke(nextPromise, &quot;then&quot;, « resultCapability.[[Resolve]], resultCapability.[[Reject]] »).
+            </span>next_promise.invoke(
+                <span class="string">&quot;then&quot;</span>,
+                <span class="kw-2">&amp;</span>[
+                    result_capability.resolve.clone().into(),
+                    result_capability.reject.clone().into(),
+                ],
+                context,
+            )<span class="question-mark">?</span>;
         }
     }
 
@@ -3899,7 +3999,7 @@
 
         <span class="kw">if let </span><span class="prelude-val">Some</span>(c) = c.as_object() {
             <span class="comment">// 3. Return ? PromiseResolve(C, x).
-            </span><span class="self">Self</span>::promise_resolve(c.clone(), x.clone(), context)
+            </span><span class="self">Self</span>::promise_resolve(c.clone(), x.clone(), context).map(JsValue::from)
         } <span class="kw">else </span>{
             <span class="comment">// 2. If Type(C) is not Object, throw a TypeError exception.
             </span><span class="prelude-val">Err</span>(JsNativeError::typ()
@@ -4118,17 +4218,13 @@
         </span><span class="kw">let </span>promise = this;
 
         <span class="comment">// 2. If IsPromise(promise) is false, throw a TypeError exception.
-        </span><span class="kw">let </span>promise_obj = <span class="kw">match </span>promise.as_promise() {
-            <span class="prelude-val">Some</span>(obj) =&gt; obj,
-            <span class="prelude-val">None </span>=&gt; {
-                <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::typ()
-                    .with_message(<span class="string">&quot;IsPromise(promise) is false&quot;</span>)
-                    .into())
-            }
-        };
+        </span><span class="kw">let </span>promise = promise.as_promise().ok_or_else(|| {
+            JsNativeError::typ()
+                .with_message(<span class="string">&quot;Promise.prototype.then: provided value is not a promise&quot;</span>)
+        })<span class="question-mark">?</span>;
 
         <span class="comment">// 3. Let C be ? SpeciesConstructor(promise, %Promise%).
-        </span><span class="kw">let </span>c = promise_obj.species_constructor(StandardConstructors::promise, context)<span class="question-mark">?</span>;
+        </span><span class="kw">let </span>c = promise.species_constructor(StandardConstructors::promise, context)<span class="question-mark">?</span>;
 
         <span class="comment">// 4. Let resultCapability be ? NewPromiseCapability(C).
         </span><span class="kw">let </span>result_capability = PromiseCapability::new(<span class="kw-2">&amp;</span>c.into(), context)<span class="question-mark">?</span>;
@@ -4137,12 +4233,15 @@
         <span class="kw">let </span>on_rejected = args.get_or_undefined(<span class="number">1</span>);
 
         <span class="comment">// 5. Return PerformPromiseThen(promise, onFulfilled, onRejected, resultCapability).
-        </span>promise_obj
-            .borrow_mut()
-            .as_promise_mut()
-            .expect(<span class="string">&quot;IsPromise(promise) is false&quot;</span>)
-            .perform_promise_then(on_fulfilled, on_rejected, <span class="prelude-val">Some</span>(result_capability), context)
-            .pipe(<span class="prelude-val">Ok</span>)
+        </span><span class="self">Self</span>::perform_promise_then(
+            promise,
+            on_fulfilled,
+            on_rejected,
+            <span class="prelude-val">Some</span>(result_capability),
+            context,
+        )
+        .map_or_else(JsValue::undefined, JsValue::from)
+        .pipe(<span class="prelude-val">Ok</span>)
     }
 
     <span class="doccomment">/// `PerformPromiseThen ( promise, onFulfilled, onRejected [ , resultCapability ] )`
@@ -4152,38 +4251,36 @@
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-performpromisethen
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>perform_promise_then(
-        <span class="kw-2">&amp;mut </span><span class="self">self</span>,
+        promise: <span class="kw-2">&amp;</span>JsObject,
         on_fulfilled: <span class="kw-2">&amp;</span>JsValue,
         on_rejected: <span class="kw-2">&amp;</span>JsValue,
         result_capability: <span class="prelude-ty">Option</span>&lt;PromiseCapability&gt;,
         context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
-    ) -&gt; JsValue {
+    ) -&gt; <span class="prelude-ty">Option</span>&lt;JsObject&gt; {
         <span class="comment">// 1. Assert: IsPromise(promise) is true.
 
         // 2. If resultCapability is not present, then
         //   a. Set resultCapability to undefined.
 
-        </span><span class="kw">let </span>on_fulfilled_job_callback = <span class="kw">match </span>on_fulfilled.as_object() {
+        // 3. If IsCallable(onFulfilled) is false, then
+        //   a. Let onFulfilledJobCallback be empty.
+        </span><span class="kw">let </span>on_fulfilled_job_callback = on_fulfilled
+            .as_object()
+            .cloned()
+            .and_then(JsFunction::from_object)
             <span class="comment">// 4. Else,
             //   a. Let onFulfilledJobCallback be HostMakeJobCallback(onFulfilled).
-            </span><span class="prelude-val">Some</span>(on_fulfilled) <span class="kw">if </span>on_fulfilled.is_callable() =&gt; {
-                <span class="prelude-val">Some</span>(JobCallback::make_job_callback(on_fulfilled.clone()))
-            }
-            <span class="comment">// 3. If IsCallable(onFulfilled) is false, then
-            //   a. Let onFulfilledJobCallback be empty.
-            </span><span class="kw">_ </span>=&gt; <span class="prelude-val">None</span>,
-        };
+            </span>.map(JobCallback::make_job_callback);
 
-        <span class="kw">let </span>on_rejected_job_callback = <span class="kw">match </span>on_rejected.as_object() {
+        <span class="comment">// 5. If IsCallable(onRejected) is false, then
+        //   a. Let onRejectedJobCallback be empty.
+        </span><span class="kw">let </span>on_rejected_job_callback = on_rejected
+            .as_object()
+            .cloned()
+            .and_then(JsFunction::from_object)
             <span class="comment">// 6. Else,
             //   a. Let onRejectedJobCallback be HostMakeJobCallback(onRejected).
-            </span><span class="prelude-val">Some</span>(on_rejected) <span class="kw">if </span>on_rejected.is_callable() =&gt; {
-                <span class="prelude-val">Some</span>(JobCallback::make_job_callback(on_rejected.clone()))
-            }
-            <span class="comment">// 5. If IsCallable(onRejected) is false, then
-            //   a. Let onRejectedJobCallback be empty.
-            </span><span class="kw">_ </span>=&gt; <span class="prelude-val">None</span>,
-        };
+            </span>.map(JobCallback::make_job_callback);
 
         <span class="comment">// 7. Let fulfillReaction be the PromiseReaction { [[Capability]]: resultCapability, [[Type]]: Fulfill, [[Handler]]: onFulfilledJobCallback }.
         </span><span class="kw">let </span>fulfill_reaction = ReactionRecord {
@@ -4199,22 +4296,30 @@
             handler: on_rejected_job_callback,
         };
 
-        <span class="kw">match </span><span class="self">self</span>.promise_state {
+        <span class="kw">let </span>(state, handled) = {
+            <span class="kw">let </span>promise = promise.borrow();
+            <span class="kw">let </span>promise = promise.as_promise().expect(<span class="string">&quot;IsPromise(promise) is false&quot;</span>);
+            (promise.state.clone(), promise.handled)
+        };
+        <span class="kw">match </span>state {
             <span class="comment">// 9. If promise.[[PromiseState]] is pending, then
             </span>PromiseState::Pending =&gt; {
+                <span class="kw">let </span><span class="kw-2">mut </span>promise = promise.borrow_mut();
+                <span class="kw">let </span>promise = promise
+                    .as_promise_mut()
+                    .expect(<span class="string">&quot;IsPromise(promise) is false&quot;</span>);
                 <span class="comment">//   a. Append fulfillReaction as the last element of the List that is promise.[[PromiseFulfillReactions]].
-                </span><span class="self">self</span>.promise_fulfill_reactions.push(fulfill_reaction);
+                </span>promise.fulfill_reactions.push(fulfill_reaction);
 
                 <span class="comment">//   b. Append rejectReaction as the last element of the List that is promise.[[PromiseRejectReactions]].
-                </span><span class="self">self</span>.promise_reject_reactions.push(reject_reaction);
+                </span>promise.reject_reactions.push(reject_reaction);
             }
 
             <span class="comment">// 10. Else if promise.[[PromiseState]] is fulfilled, then
             //   a. Let value be promise.[[PromiseResult]].
             </span>PromiseState::Fulfilled(<span class="kw-2">ref </span>value) =&gt; {
                 <span class="comment">//   b. Let fulfillJob be NewPromiseReactionJob(fulfillReaction, value).
-                </span><span class="kw">let </span>fulfill_job =
-                    PromiseJob::new_promise_reaction_job(fulfill_reaction, value.clone(), context);
+                </span><span class="kw">let </span>fulfill_job = new_promise_reaction_job(fulfill_reaction, value.clone());
 
                 <span class="comment">//   c. Perform HostEnqueuePromiseJob(fulfillJob.[[Job]], fulfillJob.[[Realm]]).
                 </span>context.host_enqueue_promise_job(fulfill_job);
@@ -4225,32 +4330,30 @@
             //   b. Let reason be promise.[[PromiseResult]].
             </span>PromiseState::Rejected(<span class="kw-2">ref </span>reason) =&gt; {
                 <span class="comment">//   c. If promise.[[PromiseIsHandled]] is false, perform HostPromiseRejectionTracker(promise, &quot;handle&quot;).
-                </span><span class="kw">if </span>!<span class="self">self</span>.promise_is_handled {
-                    <span class="comment">// HostPromiseRejectionTracker(promise, &quot;handle&quot;)
-                    // TODO
+                </span><span class="kw">if </span>!handled {
+                    <span class="comment">// TODO
                 </span>}
 
                 <span class="comment">//   d. Let rejectJob be NewPromiseReactionJob(rejectReaction, reason).
-                </span><span class="kw">let </span>reject_job =
-                    PromiseJob::new_promise_reaction_job(reject_reaction, reason.clone(), context);
+                </span><span class="kw">let </span>reject_job = new_promise_reaction_job(reject_reaction, reason.clone());
 
                 <span class="comment">//   e. Perform HostEnqueuePromiseJob(rejectJob.[[Job]], rejectJob.[[Realm]]).
                 </span>context.host_enqueue_promise_job(reject_job);
 
                 <span class="comment">// 12. Set promise.[[PromiseIsHandled]] to true.
-                </span><span class="self">self</span>.promise_is_handled = <span class="bool-val">true</span>;
+                </span>promise
+                    .borrow_mut()
+                    .as_promise_mut()
+                    .expect(<span class="string">&quot;IsPromise(promise) is false&quot;</span>)
+                    .handled = <span class="bool-val">true</span>;
             }
         }
 
-        <span class="kw">match </span>result_capability {
-            <span class="comment">// 13. If resultCapability is undefined, then
-            //   a. Return undefined.
-            </span><span class="prelude-val">None </span>=&gt; JsValue::Undefined,
-
-            <span class="comment">// 14. Else,
-            //   a. Return resultCapability.[[Promise]].
-            </span><span class="prelude-val">Some</span>(result_capability) =&gt; result_capability.promise.clone().into(),
-        }
+        <span class="comment">// 13. If resultCapability is undefined, then
+        //   a. Return undefined.
+        // 14. Else,
+        //   a. Return resultCapability.[[Promise]].
+        </span>result_capability.map(|cap| cap.promise.clone())
     }
 
     <span class="doccomment">/// `PromiseResolve ( C, x )`
@@ -4267,14 +4370,17 @@
         c: JsObject,
         x: JsValue,
         context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
-    ) -&gt; JsResult&lt;JsValue&gt; {
+    ) -&gt; JsResult&lt;JsObject&gt; {
         <span class="comment">// 1. If IsPromise(x) is true, then
         </span><span class="kw">if let </span><span class="prelude-val">Some</span>(x) = x.as_promise() {
             <span class="comment">// a. Let xConstructor be ? Get(x, &quot;constructor&quot;).
             </span><span class="kw">let </span>x_constructor = x.get(<span class="string">&quot;constructor&quot;</span>, context)<span class="question-mark">?</span>;
             <span class="comment">// b. If SameValue(xConstructor, C) is true, return x.
-            </span><span class="kw">if </span>JsValue::same_value(<span class="kw-2">&amp;</span>x_constructor, <span class="kw-2">&amp;</span>JsValue::from(c.clone())) {
-                <span class="kw">return </span><span class="prelude-val">Ok</span>(JsValue::from(x.clone()));
+            </span><span class="kw">if </span>x_constructor
+                .as_object()
+                .map_or(<span class="bool-val">false</span>, |o| JsObject::equals(o, <span class="kw-2">&amp;</span>c))
+            {
+                <span class="kw">return </span><span class="prelude-val">Ok</span>(x.clone());
             }
         }
 
@@ -4287,7 +4393,7 @@
             .call(<span class="kw-2">&amp;</span>JsValue::Undefined, <span class="kw-2">&amp;</span>[x], context)<span class="question-mark">?</span>;
 
         <span class="comment">// 4. Return promiseCapability.[[Promise]].
-        </span><span class="prelude-val">Ok</span>(promise_capability.promise.clone().into())
+        </span><span class="prelude-val">Ok</span>(promise_capability.promise.clone())
     }
 
     <span class="doccomment">/// `GetPromiseResolve ( promiseConstructor )`
@@ -4314,6 +4420,130 @@
                 .into()
         })
     }
+}
+
+<span class="doccomment">/// More information:
+///  - [ECMAScript reference][spec]
+///
+/// [spec]: https://tc39.es/ecma262/#sec-newpromisereactionjob
+</span><span class="kw">fn </span>new_promise_reaction_job(<span class="kw-2">mut </span>reaction: ReactionRecord, argument: JsValue) -&gt; NativeJob {
+    <span class="comment">// 1. Let job be a new Job Abstract Closure with no parameters that captures reaction and argument and performs the following steps when called:
+    </span><span class="kw">let </span>job = <span class="kw">move </span>|context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;| {
+        <span class="comment">//   a. Let promiseCapability be reaction.[[Capability]].
+        </span><span class="kw">let </span>promise_capability = reaction.promise_capability.take();
+        <span class="comment">//   b. Let type be reaction.[[Type]].
+        </span><span class="kw">let </span>reaction_type = reaction.reaction_type;
+        <span class="comment">//   c. Let handler be reaction.[[Handler]].
+        </span><span class="kw">let </span>handler = reaction.handler.take();
+
+        <span class="kw">let </span>handler_result = <span class="kw">match </span>handler {
+            <span class="comment">// d. If handler is empty, then
+            </span><span class="prelude-val">None </span>=&gt; <span class="kw">match </span>reaction_type {
+                <span class="comment">// i. If type is Fulfill, let handlerResult be NormalCompletion(argument).
+                </span>ReactionType::Fulfill =&gt; <span class="prelude-val">Ok</span>(argument.clone()),
+                <span class="comment">// ii. Else,
+                //   1. Assert: type is Reject.
+                </span>ReactionType::Reject =&gt; {
+                    <span class="comment">// 2. Let handlerResult be ThrowCompletion(argument).
+                    </span><span class="prelude-val">Err</span>(argument.clone())
+                }
+            },
+            <span class="comment">//   e. Else, let handlerResult be Completion(HostCallJobCallback(handler, undefined, « argument »)).
+            </span><span class="prelude-val">Some</span>(handler) =&gt; handler
+                .call_job_callback(<span class="kw-2">&amp;</span>JsValue::Undefined, <span class="kw-2">&amp;</span>[argument.clone()], context)
+                .map_err(|e| e.to_opaque(context)),
+        };
+
+        <span class="kw">match </span>promise_capability {
+            <span class="prelude-val">None </span>=&gt; {
+                <span class="comment">// f. If promiseCapability is undefined, then
+                //    i. Assert: handlerResult is not an abrupt completion.
+                </span><span class="macro">assert!</span>(
+                    handler_result.is_ok(),
+                    <span class="string">&quot;Assertion: &lt;handlerResult is not an abrupt completion&gt; failed&quot;
+                </span>);
+
+                <span class="comment">// ii. Return empty.
+                </span><span class="prelude-val">Ok</span>(JsValue::Undefined)
+            }
+            <span class="prelude-val">Some</span>(promise_capability_record) =&gt; {
+                <span class="comment">// g. Assert: promiseCapability is a PromiseCapability Record.
+                </span><span class="kw">let </span>PromiseCapability {
+                    promise: <span class="kw">_</span>,
+                    resolve,
+                    reject,
+                } = <span class="kw-2">&amp;</span>promise_capability_record;
+
+                <span class="kw">match </span>handler_result {
+                    <span class="comment">// h. If handlerResult is an abrupt completion, then
+                    </span><span class="prelude-val">Err</span>(value) =&gt; {
+                        <span class="comment">// i. Return ? Call(promiseCapability.[[Reject]], undefined, « handlerResult.[[Value]] »).
+                        </span>reject.call(<span class="kw-2">&amp;</span>JsValue::Undefined, <span class="kw-2">&amp;</span>[value], context)
+                    }
+
+                    <span class="comment">// i. Else,
+                    </span><span class="prelude-val">Ok</span>(value) =&gt; {
+                        <span class="comment">// i. Return ? Call(promiseCapability.[[Resolve]], undefined, « handlerResult.[[Value]] »).
+                        </span>resolve.call(<span class="kw-2">&amp;</span>JsValue::Undefined, <span class="kw-2">&amp;</span>[value], context)
+                    }
+                }
+            }
+        }
+    };
+
+    <span class="comment">// 2. Let handlerRealm be null.
+    // 3. If reaction.[[Handler]] is not empty, then
+    //   a. Let getHandlerRealmResult be Completion(GetFunctionRealm(reaction.[[Handler]].[[Callback]])).
+    //   b. If getHandlerRealmResult is a normal completion, set handlerRealm to getHandlerRealmResult.[[Value]].
+    //   c. Else, set handlerRealm to the current Realm Record.
+    //   d. NOTE: handlerRealm is never null unless the handler is undefined. When the handler is a revoked Proxy and no ECMAScript code runs, handlerRealm is used to create error objects.
+    // 4. Return the Record { [[Job]]: job, [[Realm]]: handlerRealm }.
+    </span>NativeJob::new(job)
+}
+
+<span class="doccomment">/// More information:
+///  - [ECMAScript reference][spec]
+///
+/// [spec]: https://tc39.es/ecma262/#sec-newpromiseresolvethenablejob
+</span><span class="kw">fn </span>new_promise_resolve_thenable_job(
+    promise_to_resolve: JsObject,
+    thenable: JsValue,
+    then: JobCallback,
+) -&gt; NativeJob {
+    <span class="comment">// 1. Let job be a new Job Abstract Closure with no parameters that captures promiseToResolve, thenable, and then and performs the following steps when called:
+    </span><span class="kw">let </span>job = <span class="kw">move </span>|context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;| {
+        <span class="comment">//    a. Let resolvingFunctions be CreateResolvingFunctions(promiseToResolve).
+        </span><span class="kw">let </span>resolving_functions = Promise::create_resolving_functions(<span class="kw-2">&amp;</span>promise_to_resolve, context);
+
+        <span class="comment">//    b. Let thenCallResult be Completion(HostCallJobCallback(then, thenable, « resolvingFunctions.[[Resolve]], resolvingFunctions.[[Reject]] »)).
+        </span><span class="kw">let </span>then_call_result = then.call_job_callback(
+            <span class="kw-2">&amp;</span>thenable,
+            <span class="kw-2">&amp;</span>[
+                resolving_functions.resolve.clone().into(),
+                resolving_functions.reject.clone().into(),
+            ],
+            context,
+        );
+
+        <span class="comment">//    c. If thenCallResult is an abrupt completion, then
+        </span><span class="kw">if let </span><span class="prelude-val">Err</span>(value) = then_call_result {
+            <span class="kw">let </span>value = value.to_opaque(context);
+            <span class="comment">//    i. Return ? Call(resolvingFunctions.[[Reject]], undefined, « thenCallResult.[[Value]] »).
+            </span><span class="kw">return </span>resolving_functions
+                .reject
+                .call(<span class="kw-2">&amp;</span>JsValue::Undefined, <span class="kw-2">&amp;</span>[value], context);
+        }
+
+        <span class="comment">//    d. Return ? thenCallResult.
+        </span>then_call_result
+    };
+
+    <span class="comment">// 2. Let getThenRealmResult be Completion(GetFunctionRealm(then.[[Callback]])).
+    // 3. If getThenRealmResult is a normal completion, let thenRealm be getThenRealmResult.[[Value]].
+    // 4. Else, let thenRealm be the current Realm Record.
+    // 5. NOTE: thenRealm is never null. When then.[[Callback]] is a revoked Proxy and no code runs, thenRealm is used to create error objects.
+    // 6. Return the Record { [[Job]]: job, [[Realm]]: thenRealm }.
+    </span>NativeJob::new(job)
 }
 </code></pre></div>
 </section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="boa_engine" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.66.1 (90743e729 2023-01-10)" ></div></body></html>

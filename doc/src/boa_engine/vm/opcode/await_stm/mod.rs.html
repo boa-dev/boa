@@ -247,13 +247,13 @@
         .build();
 
         <span class="comment">// 7. Perform PerformPromiseThen(promise, onFulfilled, onRejected).
-        </span>promise
-            .as_object()
-            .expect(<span class="string">&quot;promise was not an object&quot;</span>)
-            .borrow_mut()
-            .as_promise_mut()
-            .expect(<span class="string">&quot;promise was not a promise&quot;</span>)
-            .perform_promise_then(<span class="kw-2">&amp;</span>on_fulfilled.into(), <span class="kw-2">&amp;</span>on_rejected.into(), <span class="prelude-val">None</span>, context);
+        </span>Promise::perform_promise_then(
+            <span class="kw-2">&amp;</span>promise,
+            <span class="kw-2">&amp;</span>on_fulfilled.into(),
+            <span class="kw-2">&amp;</span>on_rejected.into(),
+            <span class="prelude-val">None</span>,
+            context,
+        );
 
         context.vm.push(JsValue::undefined());
         <span class="prelude-val">Ok</span>(ShouldExit::Await)

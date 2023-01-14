@@ -622,7 +622,7 @@
     builtins,
     bytecompiler::ByteCompiler,
     class::{Class, ClassBuilder},
-    job::JobCallback,
+    job::NativeJob,
     native_function::NativeFunction,
     object::{FunctionObjectBuilder, GlobalPropertyMap, JsObject},
     property::{Attribute, PropertyDescriptor, PropertyKey},
@@ -705,7 +705,7 @@
 
     <span class="kw">pub</span>(<span class="kw">crate</span>) vm: Vm,
 
-    <span class="kw">pub</span>(<span class="kw">crate</span>) promise_job_queue: VecDeque&lt;JobCallback&gt;,
+    <span class="kw">pub</span>(<span class="kw">crate</span>) promise_job_queue: VecDeque&lt;NativeJob&gt;,
 
     <span class="kw">pub</span>(<span class="kw">crate</span>) kept_alive: Vec&lt;JsObject&gt;,
 }
@@ -998,7 +998,7 @@
     ///  - [ECMAScript reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-hostenqueuepromisejob
-    </span><span class="kw">pub fn </span>host_enqueue_promise_job(<span class="kw-2">&amp;mut </span><span class="self">self</span>, job: JobCallback <span class="comment">/* , realm: Realm */</span>) {
+    </span><span class="kw">pub fn </span>host_enqueue_promise_job(<span class="kw-2">&amp;mut </span><span class="self">self</span>, job: NativeJob <span class="comment">/* , realm: Realm */</span>) {
         <span class="comment">// If realm is not null ...
         // TODO
         // Let scriptOrModule be ...
@@ -1073,7 +1073,7 @@
     <span class="doccomment">/// Runs all the jobs in the job queue.
     </span><span class="kw">fn </span>run_queued_jobs(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; JsResult&lt;()&gt; {
         <span class="kw">while let </span><span class="prelude-val">Some</span>(job) = <span class="self">self</span>.promise_job_queue.pop_front() {
-            job.call_job_callback(<span class="kw-2">&amp;</span>JsValue::Undefined, <span class="kw-2">&amp;</span>[], <span class="self">self</span>)<span class="question-mark">?</span>;
+            job.call(<span class="self">self</span>)<span class="question-mark">?</span>;
             <span class="self">self</span>.clear_kept_objects();
         }
         <span class="prelude-val">Ok</span>(())

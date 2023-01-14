@@ -63,10 +63,126 @@
 <span id="62">62</span>
 <span id="63">63</span>
 <span id="64">64</span>
+<span id="65">65</span>
+<span id="66">66</span>
+<span id="67">67</span>
+<span id="68">68</span>
+<span id="69">69</span>
+<span id="70">70</span>
+<span id="71">71</span>
+<span id="72">72</span>
+<span id="73">73</span>
+<span id="74">74</span>
+<span id="75">75</span>
+<span id="76">76</span>
+<span id="77">77</span>
+<span id="78">78</span>
+<span id="79">79</span>
+<span id="80">80</span>
+<span id="81">81</span>
+<span id="82">82</span>
+<span id="83">83</span>
+<span id="84">84</span>
+<span id="85">85</span>
+<span id="86">86</span>
+<span id="87">87</span>
+<span id="88">88</span>
+<span id="89">89</span>
+<span id="90">90</span>
+<span id="91">91</span>
+<span id="92">92</span>
+<span id="93">93</span>
+<span id="94">94</span>
+<span id="95">95</span>
+<span id="96">96</span>
+<span id="97">97</span>
+<span id="98">98</span>
+<span id="99">99</span>
+<span id="100">100</span>
+<span id="101">101</span>
+<span id="102">102</span>
+<span id="103">103</span>
+<span id="104">104</span>
+<span id="105">105</span>
+<span id="106">106</span>
+<span id="107">107</span>
+<span id="108">108</span>
+<span id="109">109</span>
+<span id="110">110</span>
+<span id="111">111</span>
+<span id="112">112</span>
+<span id="113">113</span>
+<span id="114">114</span>
+<span id="115">115</span>
+<span id="116">116</span>
+<span id="117">117</span>
+<span id="118">118</span>
+<span id="119">119</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Data structures for the microtask job queue.
 
-</span><span class="kw">use crate</span>::{prelude::JsObject, Context, JsResult, JsValue};
+</span><span class="kw">use crate</span>::{object::JsFunction, Context, JsResult, JsValue};
 <span class="kw">use </span>boa_gc::{Finalize, Trace};
+
+<span class="doccomment">/// An ECMAScript [Job] closure.
+///
+/// The specification allows scheduling any [`NativeJob`] closure by the host into the job queue.
+/// However, custom jobs must abide to a list of requirements.
+///
+/// ### Requirements
+///
+/// - At some future point in time, when there is no running execution context and the execution
+/// context stack is empty, the implementation must:
+///     - Perform any host-defined preparation steps.
+///     - Invoke the Job Abstract Closure.
+///     - Perform any host-defined cleanup steps, after which the execution context stack must be empty.
+/// - Only one Job may be actively undergoing evaluation at any point in time.
+/// - Once evaluation of a Job starts, it must run to completion before evaluation of any other Job starts.
+/// - The Abstract Closure must return a normal completion, implementing its own handling of errors.
+///
+/// `NativeJob`&#39;s API differs slightly on the last requirement, since it allows closures returning
+/// [`JsResult`], but it&#39;s okay because `NativeJob`s are handled by the host anyways; a host could
+/// pass a closure returning `Err` and handle the error on `JobQueue::run_jobs`, making the closure
+/// effectively run as if it never returned `Err`.
+///
+/// ## [`Trace`]?
+///
+/// `NativeJob` doesn&#39;t implement `Trace` because it doesn&#39;t need to; all jobs can only be run once
+/// and putting a `JobQueue` on a garbage collected object should definitely be discouraged.
+///
+/// On the other hand, it seems like this type breaks all the safety checks of the
+/// [`NativeFunction`] API, since you can capture any `Trace` variable into the closure... but it
+/// doesn&#39;t!
+/// The garbage collector doesn&#39;t need to trace the captured variables because the closures
+/// are always stored on the `JobQueue`, which is always rooted, which means the captured variables
+/// are also rooted, allowing us to capture any variable in the closure for free!
+///
+/// [Job]: https://tc39.es/ecma262/#sec-jobs
+/// [`NativeFunction`]: crate::native_function::NativeFunction
+</span><span class="kw">pub struct </span>NativeJob {
+    <span class="attribute">#[allow(clippy::type_complexity)]
+    </span>f: Box&lt;<span class="kw">dyn </span>FnOnce(<span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;JsValue&gt;&gt;,
+}
+
+<span class="kw">impl </span>std::fmt::Debug <span class="kw">for </span>NativeJob {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>std::fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; std::fmt::Result {
+        f.debug_struct(<span class="string">&quot;NativeJob&quot;</span>).field(<span class="string">&quot;f&quot;</span>, <span class="kw-2">&amp;</span><span class="string">&quot;Closure&quot;</span>).finish()
+    }
+}
+
+<span class="kw">impl </span>NativeJob {
+    <span class="doccomment">/// Creates a new `NativeJob` from a closure.
+    </span><span class="kw">pub fn </span>new&lt;F&gt;(f: F) -&gt; <span class="self">Self
+    </span><span class="kw">where
+        </span>F: FnOnce(<span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;JsValue&gt; + <span class="lifetime">&#39;static</span>,
+    {
+        <span class="self">Self </span>{ f: Box::new(f) }
+    }
+
+    <span class="doccomment">/// Calls the native job with the specified [`Context`].
+    </span><span class="kw">pub fn </span>call(<span class="self">self</span>, context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;JsValue&gt; {
+        (<span class="self">self</span>.f)(context)
+    }
+}
 
 <span class="doccomment">/// `JobCallback` records
 ///
@@ -76,7 +192,7 @@
 /// [spec]: https://tc39.es/ecma262/#sec-jobcallback-records
 </span><span class="attribute">#[derive(Debug, Clone, Trace, Finalize)]
 </span><span class="kw">pub struct </span>JobCallback {
-    callback: JsObject,
+    callback: JsFunction,
 }
 
 <span class="kw">impl </span>JobCallback {
@@ -89,7 +205,7 @@
     ///  - [ECMAScript reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-hostmakejobcallback
-    </span><span class="kw">pub fn </span>make_job_callback(callback: JsObject) -&gt; <span class="self">Self </span>{
+    </span><span class="kw">pub fn </span>make_job_callback(callback: JsFunction) -&gt; <span class="self">Self </span>{
         <span class="comment">// 1. Return the JobCallback Record { [[Callback]]: callback, [[HostDefined]]: empty }.
         </span><span class="self">Self </span>{ callback }
     }
@@ -116,15 +232,9 @@
         context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
     ) -&gt; JsResult&lt;JsValue&gt; {
         <span class="comment">// It must perform and return the result of Call(jobCallback.[[Callback]], V, argumentsList).
-
         // 1. Assert: IsCallable(jobCallback.[[Callback]]) is true.
-        </span><span class="macro">assert!</span>(
-            <span class="self">self</span>.callback.is_callable(),
-            <span class="string">&quot;the callback of the job callback was not callable&quot;
-        </span>);
-
-        <span class="comment">// 2. Return ? Call(jobCallback.[[Callback]], V, argumentsList).
-        </span><span class="self">self</span>.callback.__call__(v, arguments_list, context)
+        // 2. Return ? Call(jobCallback.[[Callback]], V, argumentsList).
+        </span><span class="self">self</span>.callback.call(v, arguments_list, context)
     }
 }
 </code></pre></div>

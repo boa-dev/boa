@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"struct":[["JobCallback","`JobCallback` records"]]};
+window.SIDEBAR_ITEMS = {"struct":[["JobCallback","`JobCallback` records"],["NativeJob","An ECMAScript Job closure."]]};
