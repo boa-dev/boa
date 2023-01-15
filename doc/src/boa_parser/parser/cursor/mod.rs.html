@@ -296,40 +296,17 @@
 <span id="295">295</span>
 <span id="296">296</span>
 <span id="297">297</span>
-<span id="298">298</span>
-<span id="299">299</span>
-<span id="300">300</span>
-<span id="301">301</span>
-<span id="302">302</span>
-<span id="303">303</span>
-<span id="304">304</span>
-<span id="305">305</span>
-<span id="306">306</span>
-<span id="307">307</span>
-<span id="308">308</span>
-<span id="309">309</span>
-<span id="310">310</span>
-<span id="311">311</span>
-<span id="312">312</span>
-<span id="313">313</span>
-<span id="314">314</span>
-<span id="315">315</span>
-<span id="316">316</span>
-<span id="317">317</span>
-<span id="318">318</span>
-<span id="319">319</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Cursor implementation for the parser.
 </span><span class="kw">mod </span>buffered_lexer;
 
 <span class="kw">use crate</span>::{
     lexer::{InputElement, Lexer, Token, TokenKind},
-    parser::{statement::PrivateElement, OrAbrupt, ParseResult},
+    parser::{OrAbrupt, ParseResult},
     Error,
 };
 <span class="kw">use </span>boa_ast::{Position, Punctuator};
-<span class="kw">use </span>boa_interner::{Interner, Sym};
+<span class="kw">use </span>boa_interner::Interner;
 <span class="kw">use </span>buffered_lexer::BufferedLexer;
-<span class="kw">use </span>rustc_hash::FxHashMap;
 <span class="kw">use </span>std::io::Read;
 
 <span class="doccomment">/// The result of a peek for a semicolon.
@@ -346,8 +323,11 @@
 </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">struct </span>Cursor&lt;R&gt; {
     buffered_lexer: BufferedLexer&lt;R&gt;,
 
-    <span class="doccomment">/// Tracks the private identifiers used in code blocks.
-    </span>private_environments_stack: Vec&lt;FxHashMap&lt;Sym, Position&gt;&gt;,
+    <span class="doccomment">/// Tracks the number of nested private environments that the cursor is in.
+    </span>private_environment_nested_index: usize,
+
+    <span class="doccomment">/// Tracks the number of private environments on the root level of the code that is parsed.
+    </span>private_environment_root_index: usize,
 
     <span class="doccomment">/// Tracks if the cursor is in a arrow function declaration.
     </span>arrow: bool,
@@ -364,7 +344,8 @@
     </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>new(reader: R) -&gt; <span class="self">Self </span>{
         <span class="self">Self </span>{
             buffered_lexer: Lexer::new(reader).into(),
-            private_environments_stack: Vec::new(),
+            private_environment_nested_index: <span class="number">0</span>,
+            private_environment_root_index: <span class="number">0</span>,
             arrow: <span class="bool-val">false</span>,
             json_parse: <span class="bool-val">false</span>,
         }
@@ -448,57 +429,32 @@
     }
 
     <span class="doccomment">/// Push a new private environment.
+    </span><span class="attribute">#[inline]
     </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>push_private_environment(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
-        <span class="kw">let </span>new = FxHashMap::default();
-        <span class="self">self</span>.private_environments_stack.push(new);
-    }
-
-    <span class="doccomment">/// Push a used private identifier.
-    </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>push_used_private_identifier(
-        <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-        identifier: Sym,
-        position: Position,
-    ) -&gt; ParseResult&lt;()&gt; {
-        <span class="self">self</span>.private_environments_stack.last_mut().map_or_else(
-            || {
-                <span class="prelude-val">Err</span>(Error::general(
-                    <span class="string">&quot;private identifier declared outside of class&quot;</span>,
-                    position,
-                ))
-            },
-            |env| {
-                env.entry(identifier).or_insert(position);
-                <span class="prelude-val">Ok</span>(())
-            },
-        )
-    }
-
-    <span class="doccomment">/// Pop the last private environment.
-    ///
-    /// This function takes the private element names of the current class.
-    /// If a used private identifier is not declared, this throws a syntax error.
-    </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>pop_private_environment(
-        <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-        identifiers: <span class="kw-2">&amp;</span>FxHashMap&lt;Sym, PrivateElement&gt;,
-    ) -&gt; ParseResult&lt;()&gt; {
-        <span class="kw">let </span>last = <span class="self">self
-            </span>.private_environments_stack
-            .pop()
-            .expect(<span class="string">&quot;private environment must exist&quot;</span>);
-        <span class="kw">for </span>(identifier, position) <span class="kw">in </span><span class="kw-2">&amp;</span>last {
-            <span class="kw">if </span>!identifiers.contains_key(identifier) {
-                <span class="kw">if let </span><span class="prelude-val">Some</span>(outer) = <span class="self">self</span>.private_environments_stack.last_mut() {
-                    outer.insert(<span class="kw-2">*</span>identifier, <span class="kw-2">*</span>position);
-                } <span class="kw">else </span>{
-                    <span class="kw">return </span><span class="prelude-val">Err</span>(Error::general(
-                        <span class="string">&quot;private identifier must be declared&quot;</span>,
-                        <span class="kw-2">*</span>position,
-                    ));
-                }
-            }
+        <span class="kw">if </span>!<span class="self">self</span>.in_class() {
+            <span class="self">self</span>.private_environment_root_index += <span class="number">1</span>;
         }
-        <span class="prelude-val">Ok</span>(())
+
+        <span class="self">self</span>.private_environment_nested_index += <span class="number">1</span>;
     }
+
+    <span class="doccomment">/// Pop a private environment.
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>pop_private_environment(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
+        <span class="self">self</span>.private_environment_nested_index -= <span class="number">1</span>;
+    }
+
+    <span class="doccomment">/// Returns the current private environment root index.
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">const fn </span>private_environment_root_index(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; usize {
+        <span class="self">self</span>.private_environment_root_index
+    }
+
+    <span class="doccomment">/// Returns if the cursor is in a class.
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">const fn </span>in_class(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="self">self</span>.private_environment_nested_index != <span class="number">0
+    </span>}
 
     <span class="doccomment">/// Returns an error if the next token is not of kind `kind`.
     </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>expect&lt;K&gt;(

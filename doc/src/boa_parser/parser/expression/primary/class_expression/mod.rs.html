@@ -64,6 +64,15 @@
 <span id="63">63</span>
 <span id="64">64</span>
 <span id="65">65</span>
+<span id="66">66</span>
+<span id="67">67</span>
+<span id="68">68</span>
+<span id="69">69</span>
+<span id="70">70</span>
+<span id="71">71</span>
+<span id="72">72</span>
+<span id="73">73</span>
+<span id="74">74</span>
 </pre><pre class="rust"><code><span class="kw">use crate</span>::{
     lexer::TokenKind,
     parser::{
@@ -72,7 +81,7 @@
     },
 };
 <span class="kw">use </span>boa_ast::{expression::Identifier, function::Class, Keyword};
-<span class="kw">use </span>boa_interner::{Interner, Sym};
+<span class="kw">use </span>boa_interner::Interner;
 <span class="kw">use </span>boa_profiler::Profiler;
 <span class="kw">use </span>std::io::Read;
 
@@ -116,17 +125,26 @@
         <span class="kw">let </span>strict = cursor.strict_mode();
         cursor.set_strict_mode(<span class="bool-val">true</span>);
 
+        <span class="kw">let </span><span class="kw-2">mut </span>has_binding_identifier = <span class="bool-val">false</span>;
         <span class="kw">let </span>token = cursor.peek(<span class="number">0</span>, interner).or_abrupt()<span class="question-mark">?</span>;
         <span class="kw">let </span>name = <span class="kw">match </span>token.kind() {
             TokenKind::Identifier(<span class="kw">_</span>) | TokenKind::Keyword((Keyword::Yield | Keyword::Await, <span class="kw">_</span>)) =&gt; {
+                has_binding_identifier = <span class="bool-val">true</span>;
                 BindingIdentifier::new(<span class="self">self</span>.allow_yield, <span class="self">self</span>.allow_await)
                     .parse(cursor, interner)<span class="question-mark">?
-            </span>}
-            <span class="kw">_ </span>=&gt; <span class="self">self</span>.name.unwrap_or_else(|| Sym::EMPTY_STRING.into()),
+                    </span>.into()
+            }
+            <span class="kw">_ </span>=&gt; <span class="self">self</span>.name,
         };
         cursor.set_strict_mode(strict);
 
-        ClassTail::new(name, <span class="self">self</span>.allow_yield, <span class="self">self</span>.allow_await).parse(cursor, interner)
+        ClassTail::new(
+            name,
+            has_binding_identifier,
+            <span class="self">self</span>.allow_yield,
+            <span class="self">self</span>.allow_await,
+        )
+        .parse(cursor, interner)
     }
 }
 </code></pre></div>

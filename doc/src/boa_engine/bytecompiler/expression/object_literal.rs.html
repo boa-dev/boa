@@ -208,7 +208,7 @@
                     PropertyName::Computed(name_node) =&gt; {
                         <span class="self">self</span>.compile_expr(name_node, <span class="bool-val">true</span>)<span class="question-mark">?</span>;
                         <span class="self">self</span>.emit_opcode(Opcode::ToPropertyKey);
-                        <span class="kw">if </span>expr.is_function_definition() {
+                        <span class="kw">if </span>expr.is_anonymous_function_definition() {
                             <span class="self">self</span>.emit_opcode(Opcode::Dup);
                             <span class="self">self</span>.compile_expr(expr, <span class="bool-val">true</span>)<span class="question-mark">?</span>;
                             <span class="self">self</span>.emit_opcode(Opcode::SetFunctionName);

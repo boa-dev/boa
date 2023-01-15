@@ -1499,6 +1499,56 @@
 <span id="1498">1498</span>
 <span id="1499">1499</span>
 <span id="1500">1500</span>
+<span id="1501">1501</span>
+<span id="1502">1502</span>
+<span id="1503">1503</span>
+<span id="1504">1504</span>
+<span id="1505">1505</span>
+<span id="1506">1506</span>
+<span id="1507">1507</span>
+<span id="1508">1508</span>
+<span id="1509">1509</span>
+<span id="1510">1510</span>
+<span id="1511">1511</span>
+<span id="1512">1512</span>
+<span id="1513">1513</span>
+<span id="1514">1514</span>
+<span id="1515">1515</span>
+<span id="1516">1516</span>
+<span id="1517">1517</span>
+<span id="1518">1518</span>
+<span id="1519">1519</span>
+<span id="1520">1520</span>
+<span id="1521">1521</span>
+<span id="1522">1522</span>
+<span id="1523">1523</span>
+<span id="1524">1524</span>
+<span id="1525">1525</span>
+<span id="1526">1526</span>
+<span id="1527">1527</span>
+<span id="1528">1528</span>
+<span id="1529">1529</span>
+<span id="1530">1530</span>
+<span id="1531">1531</span>
+<span id="1532">1532</span>
+<span id="1533">1533</span>
+<span id="1534">1534</span>
+<span id="1535">1535</span>
+<span id="1536">1536</span>
+<span id="1537">1537</span>
+<span id="1538">1538</span>
+<span id="1539">1539</span>
+<span id="1540">1540</span>
+<span id="1541">1541</span>
+<span id="1542">1542</span>
+<span id="1543">1543</span>
+<span id="1544">1544</span>
+<span id="1545">1545</span>
+<span id="1546">1546</span>
+<span id="1547">1547</span>
+<span id="1548">1548</span>
+<span id="1549">1549</span>
+<span id="1550">1550</span>
 </pre><pre class="rust"><code><span class="doccomment">/// The opcodes of the vm.
 </span><span class="kw">use crate</span>::{vm::ShouldExit, Context, JsResult};
 
@@ -2242,7 +2292,7 @@
         ///
         /// Operands: name_index: `u32`
         ///
-        /// Stack: object, value **=&gt;** value
+        /// Stack: object, receiver, value **=&gt;** value
         </span>SetPropertyByName,
 
         <span class="doccomment">/// Sets the name of a function object.
@@ -2268,11 +2318,18 @@
         /// Stack: object, value **=&gt;**
         </span>DefineOwnPropertyByName,
 
+        <span class="doccomment">/// Defines a static class method by name.
+        ///
+        /// Operands: name_index: `u32`
+        ///
+        /// Stack: class, function **=&gt;**
+        </span>DefineClassStaticMethodByName,
+
         <span class="doccomment">/// Defines a class method by name.
         ///
         /// Operands: name_index: `u32`
         ///
-        /// Stack: object, value **=&gt;**
+        /// Stack: class_proto, function **=&gt;**
         </span>DefineClassMethodByName,
 
         <span class="doccomment">/// Sets a property by value of an object.
@@ -2291,11 +2348,18 @@
         /// Stack: object, key, value **=&gt;**
         </span>DefineOwnPropertyByValue,
 
+        <span class="doccomment">/// Defines a static class method by value.
+        ///
+        /// Operands:
+        ///
+        /// Stack: class, key, function **=&gt;**
+        </span>DefineClassStaticMethodByValue,
+
         <span class="doccomment">/// Defines a class method by value.
         ///
         /// Operands:
         ///
-        /// Stack: object, key, value **=&gt;**
+        /// Stack: class_proto, key, function **=&gt;**
         </span>DefineClassMethodByValue,
 
         <span class="doccomment">/// Sets a getter property by name of an object.
@@ -2307,13 +2371,22 @@
         /// Stack: object, value **=&gt;**
         </span>SetPropertyGetterByName,
 
+        <span class="doccomment">/// Defines a static getter class method by name.
+        ///
+        /// Like `static get name() value`
+        ///
+        /// Operands: name_index: `u32`
+        ///
+        /// Stack: class, function **=&gt;**
+        </span>DefineClassStaticGetterByName,
+
         <span class="doccomment">/// Defines a getter class method by name.
         ///
         /// Like `get name() value`
         ///
         /// Operands: name_index: `u32`
         ///
-        /// Stack: object, value **=&gt;**
+        /// Stack: class_proto, function **=&gt;** class
         </span>DefineClassGetterByName,
 
         <span class="doccomment">/// Sets a getter property by value of an object.
@@ -2325,13 +2398,22 @@
         /// Stack: object, key, value **=&gt;**
         </span>SetPropertyGetterByValue,
 
+        <span class="doccomment">/// Defines a static getter class method by value.
+        ///
+        /// Like `static get [key]() value`
+        ///
+        /// Operands:
+        ///
+        /// Stack: class, key, function **=&gt;**
+        </span>DefineClassStaticGetterByValue,
+
         <span class="doccomment">/// Defines a getter class method by value.
         ///
         /// Like `get [key]() value`
         ///
         /// Operands:
         ///
-        /// Stack: object, key, value **=&gt;**
+        /// Stack: class_proto, key, function **=&gt;**
         </span>DefineClassGetterByValue,
 
         <span class="doccomment">/// Sets a setter property by name of an object.
@@ -2343,13 +2425,22 @@
         /// Stack: object, value **=&gt;**
         </span>SetPropertySetterByName,
 
+        <span class="doccomment">/// Defines a static setter class method by name.
+        ///
+        /// Like `static set name() value`
+        ///
+        /// Operands: name_index: `u32`
+        ///
+        /// Stack: class, function **=&gt;**
+        </span>DefineClassStaticSetterByName,
+
         <span class="doccomment">/// Defines a setter class method by name.
         ///
         /// Like `set name() value`
         ///
         /// Operands: name_index: `u32`
         ///
-        /// Stack: object, value **=&gt;**
+        /// Stack: class_proto, function **=&gt;**
         </span>DefineClassSetterByName,
 
         <span class="doccomment">/// Sets a setter property by value of an object.
@@ -2361,38 +2452,47 @@
         /// Stack: object, key, value **=&gt;**
         </span>SetPropertySetterByValue,
 
+        <span class="doccomment">/// Defines a static setter class method by value.
+        ///
+        /// Like `static set [key]() value`
+        ///
+        /// Operands:
+        ///
+        /// Stack: class, key, function **=&gt;**
+        </span>DefineClassStaticSetterByValue,
+
         <span class="doccomment">/// Defines a setter class method by value.
         ///
         /// Like `set [key]() value`
         ///
         /// Operands:
         ///
-        /// Stack: object, key, value **=&gt;**
+        /// Stack: class_proto, key, function **=&gt;**
         </span>DefineClassSetterByValue,
 
-        <span class="doccomment">/// Assign the value of a private property of an object by it&#39;s name.
+        <span class="doccomment">/// Set the value of a private property of an object by it&#39;s name.
         ///
         /// Like `obj.#name = value`
         ///
-        /// Operands: name_index: `u32`
+        /// Operands: private_name_index: `u32`
         ///
         /// Stack: object, value **=&gt;** value
-        </span>AssignPrivateField,
+        </span>SetPrivateField,
 
-        <span class="doccomment">/// Set a private property of a class constructor by it&#39;s name.
+        <span class="doccomment">/// Define a private property of a class constructor by it&#39;s name.
         ///
         /// Like `#name = value`
         ///
-        /// Operands: name_index: `u32`
+        /// Operands: private_name_index: `u32`
         ///
         /// Stack: object, value **=&gt;**
-        </span>SetPrivateField,
+        </span>DefinePrivateField,
 
         <span class="doccomment">/// Set a private method of a class constructor by it&#39;s name.
         ///
         /// Like `#name() {}`
         ///
-        /// Operands: name_index: `u32`
+        /// Operands: private_name_index: `u32`
         ///
         /// Stack: object, value **=&gt;**
         </span>SetPrivateMethod,
@@ -2401,7 +2501,7 @@
         ///
         /// Like `set #name() {}`
         ///
-        /// Operands: name_index: `u32`
+        /// Operands: private_name_index: `u32`
         ///
         /// Stack: object, value **=&gt;**
         </span>SetPrivateSetter,
@@ -2410,7 +2510,7 @@
         ///
         /// Like `get #name() {}`
         ///
-        /// Operands: name_index: `u32`
+        /// Operands: private_name_index: `u32`
         ///
         /// Stack: object, value **=&gt;**
         </span>SetPrivateGetter,
@@ -2419,7 +2519,7 @@
         ///
         /// Like `object.#name`
         ///
-        /// Operands: name_index: `u32`
+        /// Operands: private_name_index: `u32`
         ///
         /// Stack: object **=&gt;** value
         </span>GetPrivateField,
@@ -2433,28 +2533,28 @@
 
         <span class="doccomment">/// Push a private field to the class.
         ///
-        /// Operands: name_index: `u32`
+        /// Operands: private_name_index: `u32`
         ///
         /// Stack: class, field_function **=&gt;**
         </span>PushClassFieldPrivate,
 
         <span class="doccomment">/// Push a private getter to the class.
         ///
-        /// Operands: name_index: `u32`
+        /// Operands: private_name_index: `u32`
         ///
         /// Stack: class, getter **=&gt;**
         </span>PushClassPrivateGetter,
 
         <span class="doccomment">/// Push a private setter to the class.
         ///
-        /// Operands: name_index: `u32`
+        /// Operands: private_name_index: `u32`
         ///
         /// Stack: class, setter **=&gt;**
         </span>PushClassPrivateSetter,
 
         <span class="doccomment">/// Push a private method to the class.
         ///
-        /// Operands: name_index: `u32`
+        /// Operands: private_name_index: `u32`
         ///
         /// Stack: class, method **=&gt;**
         </span>PushClassPrivateMethod,

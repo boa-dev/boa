@@ -534,7 +534,7 @@
                     Expression::PropertyAccess(PropertyAccess::Private(access)) =&gt; {
                         <span class="self">self</span>.compile_expr(access.target(), <span class="bool-val">true</span>)<span class="question-mark">?</span>;
                         <span class="self">self</span>.emit(Opcode::Dup, <span class="kw-2">&amp;</span>[]);
-                        <span class="kw">let </span>index = <span class="self">self</span>.get_or_insert_name(access.field().into());
+                        <span class="kw">let </span>index = <span class="self">self</span>.get_or_insert_private_name(access.field());
                         <span class="self">self</span>.emit(Opcode::GetPrivateField, <span class="kw-2">&amp;</span>[index]);
                     }
                     expr =&gt; {
@@ -555,6 +555,7 @@
                     }
                     <span class="self">self</span>.emit_opcode(Opcode::PushValueToArray);
                 }
+                <span class="self">self</span>.emit_opcode(Opcode::Dup);
                 <span class="self">self</span>.emit_opcode(Opcode::Dup);
 
                 <span class="self">self</span>.emit_opcode(Opcode::PushNewArray);
@@ -627,7 +628,6 @@
             <span class="comment">// TODO: try to remove this variant somehow
             </span>Expression::FormalParameterList(<span class="kw">_</span>) =&gt; <span class="macro">unreachable!</span>(),
         }
-
         <span class="prelude-val">Ok</span>(())
     }
 }

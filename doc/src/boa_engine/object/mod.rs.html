@@ -2431,41 +2431,12 @@
 <span id="2430">2430</span>
 <span id="2431">2431</span>
 <span id="2432">2432</span>
-<span id="2433">2433</span>
-<span id="2434">2434</span>
-<span id="2435">2435</span>
-<span id="2436">2436</span>
-<span id="2437">2437</span>
-<span id="2438">2438</span>
-<span id="2439">2439</span>
-<span id="2440">2440</span>
-<span id="2441">2441</span>
-<span id="2442">2442</span>
-<span id="2443">2443</span>
-<span id="2444">2444</span>
-<span id="2445">2445</span>
-<span id="2446">2446</span>
-<span id="2447">2447</span>
-<span id="2448">2448</span>
-<span id="2449">2449</span>
-<span id="2450">2450</span>
-<span id="2451">2451</span>
-<span id="2452">2452</span>
-<span id="2453">2453</span>
-<span id="2454">2454</span>
-<span id="2455">2455</span>
-<span id="2456">2456</span>
-<span id="2457">2457</span>
-<span id="2458">2458</span>
-<span id="2459">2459</span>
-<span id="2460">2460</span>
-<span id="2461">2461</span>
-<span id="2462">2462</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Boa&#39;s representation of a JavaScript object and builtin object wrappers
 //!
 //! For the builtin object wrappers, please see [`object::builtins`][builtins] for implementors.
 
-</span><span class="kw">pub use </span>jsobject::{RecursionLimiter, Ref, RefMut};
+</span><span class="kw">use </span>boa_ast::function::PrivateName;
+<span class="kw">pub use </span>jsobject::{RecursionLimiter, Ref, RefMut};
 <span class="kw">pub use </span>operations::IntegrityLevel;
 <span class="kw">pub use </span>property_map::<span class="kw-2">*</span>;
 
@@ -2518,8 +2489,6 @@
 };
 
 <span class="kw">use </span>boa_gc::{custom_trace, Finalize, GcCell, Trace, WeakGc};
-<span class="kw">use </span>boa_interner::Sym;
-<span class="kw">use </span>rustc_hash::FxHashMap;
 <span class="kw">use </span>std::{
     any::Any,
     fmt::{<span class="self">self</span>, Debug, Display},
@@ -2587,7 +2556,7 @@
     <span class="doccomment">/// Whether it can have new properties added to it.
     </span>extensible: bool,
     <span class="doccomment">/// The `[[PrivateElements]]` internal slot.
-    </span>private_elements: FxHashMap&lt;Sym, PrivateElement&gt;,
+    </span>private_elements: Vec&lt;(PrivateName, PrivateElement)&gt;,
 }
 
 <span class="kw">unsafe impl </span>Trace <span class="kw">for </span>Object {
@@ -2595,8 +2564,8 @@
         mark(<span class="kw-2">&amp;</span>this.data);
         mark(<span class="kw-2">&amp;</span>this.properties);
         mark(<span class="kw-2">&amp;</span>this.prototype);
-        <span class="kw">for </span>elem <span class="kw">in </span>this.private_elements.values() {
-            mark(elem);
+        <span class="kw">for </span>(<span class="kw">_</span>, element) <span class="kw">in </span><span class="kw-2">&amp;</span>this.private_elements {
+            mark(element);
         }
     });
 }
@@ -3214,7 +3183,7 @@
             properties: PropertyMap::default(),
             prototype: <span class="prelude-val">None</span>,
             extensible: <span class="bool-val">true</span>,
-            private_elements: FxHashMap::default(),
+            private_elements: Vec::default(),
         }
     }
 }
@@ -4236,58 +4205,29 @@
         <span class="self">self</span>.properties.remove(key)
     }
 
-    <span class="doccomment">/// Get a private element.
-    </span><span class="attribute">#[inline]
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>get_private_element(<span class="kw-2">&amp;</span><span class="self">self</span>, name: Sym) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>PrivateElement&gt; {
-        <span class="self">self</span>.private_elements.get(<span class="kw-2">&amp;</span>name)
-    }
-
-    <span class="doccomment">/// Set a private element.
-    </span><span class="attribute">#[inline]
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>set_private_element(<span class="kw-2">&amp;mut </span><span class="self">self</span>, name: Sym, value: PrivateElement) {
-        <span class="self">self</span>.private_elements.insert(name, value);
-    }
-
-    <span class="doccomment">/// Set a private setter.
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>set_private_element_setter(<span class="kw-2">&amp;mut </span><span class="self">self</span>, name: Sym, setter: JsObject) {
-        <span class="kw">match </span><span class="self">self</span>.private_elements.get_mut(<span class="kw-2">&amp;</span>name) {
-            <span class="prelude-val">Some</span>(PrivateElement::Accessor {
-                getter: <span class="kw">_</span>,
-                setter: s,
-            }) =&gt; {
-                <span class="kw-2">*</span>s = <span class="prelude-val">Some</span>(setter);
-            }
-            <span class="kw">_ </span>=&gt; {
-                <span class="self">self</span>.private_elements.insert(
-                    name,
-                    PrivateElement::Accessor {
-                        getter: <span class="prelude-val">None</span>,
-                        setter: <span class="prelude-val">Some</span>(setter),
-                    },
-                );
+    <span class="doccomment">/// Append a private element to an object.
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>append_private_element(<span class="kw-2">&amp;mut </span><span class="self">self</span>, name: PrivateName, element: PrivateElement) {
+        <span class="kw">if let </span>PrivateElement::Accessor { getter, setter } = <span class="kw-2">&amp;</span>element {
+            <span class="kw">for </span>(key, value) <span class="kw">in </span><span class="kw-2">&amp;mut </span><span class="self">self</span>.private_elements {
+                <span class="kw">if </span>name == <span class="kw-2">*</span>key {
+                    <span class="kw">if let </span>PrivateElement::Accessor {
+                        getter: existing_getter,
+                        setter: existing_setter,
+                    } = value
+                    {
+                        <span class="kw">if </span>existing_getter.is_none() {
+                            <span class="kw-2">*</span>existing_getter = getter.clone();
+                        }
+                        <span class="kw">if </span>existing_setter.is_none() {
+                            <span class="kw-2">*</span>existing_setter = setter.clone();
+                        }
+                        <span class="kw">return</span>;
+                    }
+                }
             }
         }
-    }
 
-    <span class="doccomment">/// Set a private getter.
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>set_private_element_getter(<span class="kw-2">&amp;mut </span><span class="self">self</span>, name: Sym, getter: JsObject) {
-        <span class="kw">match </span><span class="self">self</span>.private_elements.get_mut(<span class="kw-2">&amp;</span>name) {
-            <span class="prelude-val">Some</span>(PrivateElement::Accessor {
-                getter: g,
-                setter: <span class="kw">_</span>,
-            }) =&gt; {
-                <span class="kw-2">*</span>g = <span class="prelude-val">Some</span>(getter);
-            }
-            <span class="kw">_ </span>=&gt; {
-                <span class="self">self</span>.private_elements.insert(
-                    name,
-                    PrivateElement::Accessor {
-                        getter: <span class="prelude-val">Some</span>(getter),
-                        setter: <span class="prelude-val">None</span>,
-                    },
-                );
-            }
-        }
+        <span class="self">self</span>.private_elements.push((name, element));
     }
 }
 

@@ -369,9 +369,11 @@
 <span id="368">368</span>
 <span id="369">369</span>
 <span id="370">370</span>
+<span id="371">371</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Property definition related types, used in object literals and class definitions.
 
-</span><span class="kw">use </span><span class="kw">crate</span>::try_break;
+</span><span class="kw">use </span><span class="kw">crate</span>::function::PrivateName;
+<span class="kw">use </span><span class="kw">crate</span>::try_break;
 <span class="kw">use </span><span class="kw">crate</span>::visitor::{VisitWith, Visitor, VisitorMut};
 <span class="kw">use </span>boa_interner::{Interner, Sym, ToInternedString};
 <span class="kw">use </span>core::ops::ControlFlow;
@@ -725,7 +727,7 @@
     <span class="doccomment">/// A public property.
     </span>PropertyName(PropertyName),
     <span class="doccomment">/// A private property.
-    </span>PrivateIdentifier(Sym),
+    </span>PrivateIdentifier(PrivateName),
 }
 
 <span class="kw">impl </span>ClassElementName {

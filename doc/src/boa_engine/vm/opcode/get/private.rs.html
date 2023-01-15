@@ -25,37 +25,7 @@
 <span id="24">24</span>
 <span id="25">25</span>
 <span id="26">26</span>
-<span id="27">27</span>
-<span id="28">28</span>
-<span id="29">29</span>
-<span id="30">30</span>
-<span id="31">31</span>
-<span id="32">32</span>
-<span id="33">33</span>
-<span id="34">34</span>
-<span id="35">35</span>
-<span id="36">36</span>
-<span id="37">37</span>
-<span id="38">38</span>
-<span id="39">39</span>
-<span id="40">40</span>
-<span id="41">41</span>
-<span id="42">42</span>
-<span id="43">43</span>
-<span id="44">44</span>
-<span id="45">45</span>
-<span id="46">46</span>
-<span id="47">47</span>
-<span id="48">48</span>
-<span id="49">49</span>
-<span id="50">50</span>
-<span id="51">51</span>
-<span id="52">52</span>
-<span id="53">53</span>
-<span id="54">54</span>
 </pre><pre class="rust"><code><span class="kw">use crate</span>::{
-    error::JsNativeError,
-    object::PrivateElement,
     vm::{opcode::Operation, ShouldExit},
     Context, JsResult,
 };
@@ -73,37 +43,11 @@
 
     <span class="kw">fn </span>execute(context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;ShouldExit&gt; {
         <span class="kw">let </span>index = context.vm.read::&lt;u32&gt;();
-        <span class="kw">let </span>name = context.vm.frame().code.names[index <span class="kw">as </span>usize];
+        <span class="kw">let </span>name = context.vm.frame().code.private_names[index <span class="kw">as </span>usize];
         <span class="kw">let </span>value = context.vm.pop();
-        <span class="kw">if let </span><span class="prelude-val">Some</span>(object) = value.as_object() {
-            <span class="kw">let </span>object_borrow_mut = object.borrow();
-            <span class="kw">if let </span><span class="prelude-val">Some</span>(element) = object_borrow_mut.get_private_element(name.sym()) {
-                <span class="kw">match </span>element {
-                    PrivateElement::Field(value) =&gt; context.vm.push(value.clone()),
-                    PrivateElement::Method(method) =&gt; context.vm.push(method.clone()),
-                    PrivateElement::Accessor {
-                        getter: <span class="prelude-val">Some</span>(getter),
-                        setter: <span class="kw">_</span>,
-                    } =&gt; {
-                        <span class="kw">let </span>value = getter.call(<span class="kw-2">&amp;</span>value, <span class="kw-2">&amp;</span>[], context)<span class="question-mark">?</span>;
-                        context.vm.push(value);
-                    }
-                    PrivateElement::Accessor { .. } =&gt; {
-                        <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::typ()
-                            .with_message(<span class="string">&quot;private property was defined without a getter&quot;</span>)
-                            .into());
-                    }
-                }
-            } <span class="kw">else </span>{
-                <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::typ()
-                    .with_message(<span class="string">&quot;private property does not exist&quot;</span>)
-                    .into());
-            }
-        } <span class="kw">else </span>{
-            <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::typ()
-                .with_message(<span class="string">&quot;cannot read private property from non-object&quot;</span>)
-                .into());
-        }
+        <span class="kw">let </span>base_obj = value.to_object(context)<span class="question-mark">?</span>;
+        <span class="kw">let </span>result = base_obj.private_get(<span class="kw-2">&amp;</span>name, context)<span class="question-mark">?</span>;
+        context.vm.push(result);
         <span class="prelude-val">Ok</span>(ShouldExit::False)
     }
 }

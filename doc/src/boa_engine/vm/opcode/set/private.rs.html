@@ -176,116 +176,59 @@
 <span id="175">175</span>
 <span id="176">176</span>
 <span id="177">177</span>
-<span id="178">178</span>
-<span id="179">179</span>
-<span id="180">180</span>
-<span id="181">181</span>
-<span id="182">182</span>
-<span id="183">183</span>
-<span id="184">184</span>
-<span id="185">185</span>
-<span id="186">186</span>
-<span id="187">187</span>
-<span id="188">188</span>
-<span id="189">189</span>
 </pre><pre class="rust"><code><span class="kw">use crate</span>::{
-    error::JsNativeError,
     object::PrivateElement,
+    property::PropertyDescriptor,
     vm::{opcode::Operation, ShouldExit},
     Context, JsResult,
 };
 
-<span class="doccomment">/// `AssignPrivateField` implements the Opcode Operation for `Opcode::AssignPrivateField`
+<span class="doccomment">/// `SetPrivateField` implements the Opcode Operation for `Opcode::SetPrivateField`
 ///
 /// Operation:
 ///  - Assign the value of a private property of an object by it&#39;s name.
 </span><span class="attribute">#[derive(Debug, Clone, Copy)]
-</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>AssignPrivateField;
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>SetPrivateField;
 
-<span class="kw">impl </span>Operation <span class="kw">for </span>AssignPrivateField {
-    <span class="kw">const </span>NAME: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;AssignPrivateField&quot;</span>;
-    <span class="kw">const </span>INSTRUCTION: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;INST - AssignPrivateField&quot;</span>;
+<span class="kw">impl </span>Operation <span class="kw">for </span>SetPrivateField {
+    <span class="kw">const </span>NAME: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;SetPrivateField&quot;</span>;
+    <span class="kw">const </span>INSTRUCTION: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;INST - SetPrivateField&quot;</span>;
 
     <span class="kw">fn </span>execute(context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;ShouldExit&gt; {
         <span class="kw">let </span>index = context.vm.read::&lt;u32&gt;();
-        <span class="kw">let </span>name = context.vm.frame().code.names[index <span class="kw">as </span>usize];
+        <span class="kw">let </span>name = context.vm.frame().code.private_names[index <span class="kw">as </span>usize];
         <span class="kw">let </span>value = context.vm.pop();
         <span class="kw">let </span>object = context.vm.pop();
-        <span class="kw">if let </span><span class="prelude-val">Some</span>(object) = object.as_object() {
-            <span class="kw">let </span><span class="kw-2">mut </span>object_borrow_mut = object.borrow_mut();
-            <span class="kw">match </span>object_borrow_mut.get_private_element(name.sym()) {
-                <span class="prelude-val">Some</span>(PrivateElement::Field(<span class="kw">_</span>)) =&gt; {
-                    object_borrow_mut
-                        .set_private_element(name.sym(), PrivateElement::Field(value.clone()));
-                }
-                <span class="prelude-val">Some</span>(PrivateElement::Method(<span class="kw">_</span>)) =&gt; {
-                    <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::typ()
-                        .with_message(<span class="string">&quot;private method is not writable&quot;</span>)
-                        .into());
-                }
-                <span class="prelude-val">Some</span>(PrivateElement::Accessor {
-                    setter: <span class="prelude-val">Some</span>(setter),
-                    ..
-                }) =&gt; {
-                    <span class="kw">let </span>setter = setter.clone();
-                    drop(object_borrow_mut);
-                    setter.call(<span class="kw-2">&amp;</span>object.clone().into(), <span class="kw-2">&amp;</span>[value.clone()], context)<span class="question-mark">?</span>;
-                }
-                <span class="prelude-val">None </span>=&gt; {
-                    <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::typ()
-                        .with_message(<span class="string">&quot;private field not defined&quot;</span>)
-                        .into());
-                }
-                <span class="kw">_ </span>=&gt; {
-                    <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::typ()
-                        .with_message(<span class="string">&quot;private field defined without a setter&quot;</span>)
-                        .into());
-                }
-            }
-        } <span class="kw">else </span>{
-            <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::typ()
-                .with_message(<span class="string">&quot;cannot set private property on non-object&quot;</span>)
-                .into());
-        }
+        <span class="kw">let </span>base_obj = object.to_object(context)<span class="question-mark">?</span>;
+        base_obj.private_set(<span class="kw-2">&amp;</span>name, value.clone(), context)<span class="question-mark">?</span>;
         context.vm.push(value);
         <span class="prelude-val">Ok</span>(ShouldExit::False)
     }
 }
 
-<span class="doccomment">/// `SetPrivateField` implements the Opcode Operation for `Opcode::SetPrivateField`
+<span class="doccomment">/// `DefinePrivateField` implements the Opcode Operation for `Opcode::DefinePrivateField`
 ///
 /// Operation:
 ///  - Set a private property of a class constructor by it&#39;s name.
 </span><span class="attribute">#[derive(Debug, Clone, Copy)]
-</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>SetPrivateField;
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>DefinePrivateField;
 
-<span class="kw">impl </span>Operation <span class="kw">for </span>SetPrivateField {
-    <span class="kw">const </span>NAME: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;SetPrivateValue&quot;</span>;
-    <span class="kw">const </span>INSTRUCTION: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;INST - SetPrivateValue&quot;</span>;
+<span class="kw">impl </span>Operation <span class="kw">for </span>DefinePrivateField {
+    <span class="kw">const </span>NAME: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;DefinePrivateField&quot;</span>;
+    <span class="kw">const </span>INSTRUCTION: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;INST - DefinePrivateField&quot;</span>;
 
     <span class="kw">fn </span>execute(context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;ShouldExit&gt; {
         <span class="kw">let </span>index = context.vm.read::&lt;u32&gt;();
-        <span class="kw">let </span>name = context.vm.frame().code.names[index <span class="kw">as </span>usize];
+        <span class="kw">let </span>name = context.vm.frame().code.private_names[index <span class="kw">as </span>usize];
         <span class="kw">let </span>value = context.vm.pop();
         <span class="kw">let </span>object = context.vm.pop();
-        <span class="kw">if let </span><span class="prelude-val">Some</span>(object) = object.as_object() {
-            <span class="kw">let </span><span class="kw-2">mut </span>object_borrow_mut = object.borrow_mut();
-            <span class="kw">if let </span><span class="prelude-val">Some</span>(PrivateElement::Accessor {
-                getter: <span class="kw">_</span>,
-                setter: <span class="prelude-val">Some</span>(setter),
-            }) = object_borrow_mut.get_private_element(name.sym())
-            {
-                <span class="kw">let </span>setter = setter.clone();
-                drop(object_borrow_mut);
-                setter.call(<span class="kw-2">&amp;</span>object.clone().into(), <span class="kw-2">&amp;</span>[value], context)<span class="question-mark">?</span>;
-            } <span class="kw">else </span>{
-                object_borrow_mut.set_private_element(name.sym(), PrivateElement::Field(value));
-            }
-        } <span class="kw">else </span>{
-            <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::typ()
-                .with_message(<span class="string">&quot;cannot set private property on non-object&quot;</span>)
-                .into());
-        }
+        <span class="kw">let </span>object = object
+            .as_object()
+            .expect(<span class="string">&quot;class prototype must be an object&quot;</span>);
+        object
+            .borrow_mut()
+            .append_private_element(name, PrivateElement::Field(value));
+
         <span class="prelude-val">Ok</span>(ShouldExit::False)
     }
 }
@@ -303,19 +246,34 @@
 
     <span class="kw">fn </span>execute(context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;ShouldExit&gt; {
         <span class="kw">let </span>index = context.vm.read::&lt;u32&gt;();
-        <span class="kw">let </span>name = context.vm.frame().code.names[index <span class="kw">as </span>usize];
+        <span class="kw">let </span>name = context.vm.frame().code.private_names[index <span class="kw">as </span>usize];
         <span class="kw">let </span>value = context.vm.pop();
         <span class="kw">let </span>value = value.as_callable().expect(<span class="string">&quot;method must be callable&quot;</span>);
+
+        <span class="kw">let </span>name_string = <span class="macro">format!</span>(<span class="string">&quot;#{}&quot;</span>, context.interner().resolve_expect(name.description()));
+        <span class="kw">let </span>desc = PropertyDescriptor::builder()
+            .value(name_string)
+            .writable(<span class="bool-val">false</span>)
+            .enumerable(<span class="bool-val">false</span>)
+            .configurable(<span class="bool-val">true</span>)
+            .build();
+        value
+            .__define_own_property__(<span class="string">&quot;name&quot;</span>.into(), desc, context)
+            .expect(<span class="string">&quot;failed to set name property on private method&quot;</span>);
+
         <span class="kw">let </span>object = context.vm.pop();
-        <span class="kw">if let </span><span class="prelude-val">Some</span>(object) = object.as_object() {
-            <span class="kw">let </span><span class="kw-2">mut </span>object_borrow_mut = object.borrow_mut();
-            object_borrow_mut
-                .set_private_element(name.sym(), PrivateElement::Method(value.clone()));
-        } <span class="kw">else </span>{
-            <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::typ()
-                .with_message(<span class="string">&quot;cannot set private setter on non-object&quot;</span>)
-                .into());
-        }
+        <span class="kw">let </span>object = object
+            .as_object()
+            .expect(<span class="string">&quot;class prototype must be an object&quot;</span>);
+        object
+            .borrow_mut()
+            .append_private_element(name, PrivateElement::Method(value.clone()));
+        <span class="kw">let </span><span class="kw-2">mut </span>value_mut = value.borrow_mut();
+        <span class="kw">let </span>function = value_mut
+            .as_function_mut()
+            .expect(<span class="string">&quot;method must be a function&quot;</span>);
+        function.set_class_object(object.clone());
+
         <span class="prelude-val">Ok</span>(ShouldExit::False)
     }
 }
@@ -333,18 +291,27 @@
 
     <span class="kw">fn </span>execute(context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;ShouldExit&gt; {
         <span class="kw">let </span>index = context.vm.read::&lt;u32&gt;();
-        <span class="kw">let </span>name = context.vm.frame().code.names[index <span class="kw">as </span>usize];
+        <span class="kw">let </span>name = context.vm.frame().code.private_names[index <span class="kw">as </span>usize];
         <span class="kw">let </span>value = context.vm.pop();
         <span class="kw">let </span>value = value.as_callable().expect(<span class="string">&quot;setter must be callable&quot;</span>);
         <span class="kw">let </span>object = context.vm.pop();
-        <span class="kw">if let </span><span class="prelude-val">Some</span>(object) = object.as_object() {
-            <span class="kw">let </span><span class="kw-2">mut </span>object_borrow_mut = object.borrow_mut();
-            object_borrow_mut.set_private_element_setter(name.sym(), value.clone());
-        } <span class="kw">else </span>{
-            <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::typ()
-                .with_message(<span class="string">&quot;cannot set private setter on non-object&quot;</span>)
-                .into());
-        }
+        <span class="kw">let </span>object = object
+            .as_object()
+            .expect(<span class="string">&quot;class prototype must be an object&quot;</span>);
+
+        object.borrow_mut().append_private_element(
+            name,
+            PrivateElement::Accessor {
+                getter: <span class="prelude-val">None</span>,
+                setter: <span class="prelude-val">Some</span>(value.clone()),
+            },
+        );
+        <span class="kw">let </span><span class="kw-2">mut </span>value_mut = value.borrow_mut();
+        <span class="kw">let </span>function = value_mut
+            .as_function_mut()
+            .expect(<span class="string">&quot;method must be a function&quot;</span>);
+        function.set_class_object(object.clone());
+
         <span class="prelude-val">Ok</span>(ShouldExit::False)
     }
 }
@@ -362,18 +329,27 @@
 
     <span class="kw">fn </span>execute(context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;ShouldExit&gt; {
         <span class="kw">let </span>index = context.vm.read::&lt;u32&gt;();
-        <span class="kw">let </span>name = context.vm.frame().code.names[index <span class="kw">as </span>usize];
+        <span class="kw">let </span>name = context.vm.frame().code.private_names[index <span class="kw">as </span>usize];
         <span class="kw">let </span>value = context.vm.pop();
         <span class="kw">let </span>value = value.as_callable().expect(<span class="string">&quot;getter must be callable&quot;</span>);
         <span class="kw">let </span>object = context.vm.pop();
-        <span class="kw">if let </span><span class="prelude-val">Some</span>(object) = object.as_object() {
-            <span class="kw">let </span><span class="kw-2">mut </span>object_borrow_mut = object.borrow_mut();
-            object_borrow_mut.set_private_element_getter(name.sym(), value.clone());
-        } <span class="kw">else </span>{
-            <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::typ()
-                .with_message(<span class="string">&quot;cannot set private getter on non-object&quot;</span>)
-                .into());
-        }
+        <span class="kw">let </span>object = object
+            .as_object()
+            .expect(<span class="string">&quot;class prototype must be an object&quot;</span>);
+
+        object.borrow_mut().append_private_element(
+            name,
+            PrivateElement::Accessor {
+                getter: <span class="prelude-val">Some</span>(value.clone()),
+                setter: <span class="prelude-val">None</span>,
+            },
+        );
+        <span class="kw">let </span><span class="kw-2">mut </span>value_mut = value.borrow_mut();
+        <span class="kw">let </span>function = value_mut
+            .as_function_mut()
+            .expect(<span class="string">&quot;method must be a function&quot;</span>);
+        function.set_class_object(object.clone());
+
         <span class="prelude-val">Ok</span>(ShouldExit::False)
     }
 }

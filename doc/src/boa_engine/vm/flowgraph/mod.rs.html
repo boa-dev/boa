@@ -518,6 +518,12 @@
 <span id="517">517</span>
 <span id="518">518</span>
 <span id="519">519</span>
+<span id="520">520</span>
+<span id="521">521</span>
+<span id="522">522</span>
+<span id="523">523</span>
+<span id="524">524</span>
+<span id="525">525</span>
 </pre><pre class="rust"><code><span class="doccomment">//! This module is responsible for generating the vm instruction flowgraph.
 
 </span><span class="kw">use </span><span class="kw">crate</span>::vm::{CodeBlock, Opcode};
@@ -860,13 +866,16 @@
                 Opcode::GetPropertyByName
                 | Opcode::SetPropertyByName
                 | Opcode::DefineOwnPropertyByName
+                | Opcode::DefineClassStaticMethodByName
                 | Opcode::DefineClassMethodByName
                 | Opcode::SetPropertyGetterByName
+                | Opcode::DefineClassStaticGetterByName
                 | Opcode::DefineClassGetterByName
                 | Opcode::SetPropertySetterByName
+                | Opcode::DefineClassStaticSetterByName
                 | Opcode::DefineClassSetterByName
-                | Opcode::AssignPrivateField
                 | Opcode::SetPrivateField
+                | Opcode::DefinePrivateField
                 | Opcode::SetPrivateMethod
                 | Opcode::SetPrivateSetter
                 | Opcode::SetPrivateGetter
@@ -950,10 +959,13 @@
                 | Opcode::GetPropertyByValuePush
                 | Opcode::SetPropertyByValue
                 | Opcode::DefineOwnPropertyByValue
+                | Opcode::DefineClassStaticMethodByValue
                 | Opcode::DefineClassMethodByValue
                 | Opcode::SetPropertyGetterByValue
+                | Opcode::DefineClassStaticGetterByValue
                 | Opcode::DefineClassGetterByValue
                 | Opcode::SetPropertySetterByValue
+                | Opcode::DefineClassStaticSetterByValue
                 | Opcode::DefineClassSetterByValue
                 | Opcode::DeletePropertyByValue
                 | Opcode::DeleteSuperThrow

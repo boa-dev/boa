@@ -1025,6 +1025,19 @@
 <span id="1024">1024</span>
 <span id="1025">1025</span>
 <span id="1026">1026</span>
+<span id="1027">1027</span>
+<span id="1028">1028</span>
+<span id="1029">1029</span>
+<span id="1030">1030</span>
+<span id="1031">1031</span>
+<span id="1032">1032</span>
+<span id="1033">1033</span>
+<span id="1034">1034</span>
+<span id="1035">1035</span>
+<span id="1036">1036</span>
+<span id="1037">1037</span>
+<span id="1038">1038</span>
+<span id="1039">1039</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Object initializer parsing.
 //!
 //! More information:
@@ -1052,7 +1065,9 @@
         literal::{<span class="self">self</span>, Literal},
         Identifier,
     },
-    function::{AsyncFunction, AsyncGenerator, FormalParameterList, Function, Generator},
+    function::{
+        AsyncFunction, AsyncGenerator, FormalParameterList, Function, Generator, PrivateName,
+    },
     operations::{
         bound_names, contains, has_direct_super, top_level_lexically_declared_names, ContainsSymbol,
     },
@@ -1638,11 +1653,14 @@
     <span class="kw">fn </span>parse(<span class="self">self</span>, cursor: <span class="kw-2">&amp;mut </span>Cursor&lt;R&gt;, interner: <span class="kw-2">&amp;mut </span>Interner) -&gt; ParseResult&lt;<span class="self">Self</span>::Output&gt; {
         <span class="kw">let </span>_timer = Profiler::global().start_event(<span class="string">&quot;ClassElementName&quot;</span>, <span class="string">&quot;Parsing&quot;</span>);
 
-        <span class="kw">match </span>cursor.peek(<span class="number">0</span>, interner).or_abrupt()<span class="question-mark">?</span>.kind() {
+        <span class="kw">let </span>token = cursor.peek(<span class="number">0</span>, interner).or_abrupt()<span class="question-mark">?</span>;
+        <span class="kw">match </span>token.kind() {
             TokenKind::PrivateIdentifier(ident) =&gt; {
                 <span class="kw">let </span>ident = <span class="kw-2">*</span>ident;
                 cursor.advance(interner);
-                <span class="prelude-val">Ok</span>(property::ClassElementName::PrivateIdentifier(ident))
+                <span class="prelude-val">Ok</span>(property::ClassElementName::PrivateIdentifier(
+                    PrivateName::new(ident),
+                ))
             }
             <span class="kw">_ </span>=&gt; <span class="prelude-val">Ok</span>(property::ClassElementName::PropertyName(
                 PropertyName::new(<span class="self">self</span>.allow_yield, <span class="self">self</span>.allow_await).parse(cursor, interner)<span class="question-mark">?</span>,
@@ -1745,6 +1763,14 @@
         <span class="kw">let </span>params_start_position = cursor.peek(<span class="number">0</span>, interner).or_abrupt()<span class="question-mark">?</span>.span().start();
 
         <span class="kw">let </span>params = UniqueFormalParameters::new(<span class="bool-val">true</span>, <span class="bool-val">false</span>).parse(cursor, interner)<span class="question-mark">?</span>;
+
+        <span class="comment">// It is a Syntax Error if UniqueFormalParameters Contains YieldExpression is true.
+        </span><span class="kw">if </span>contains(<span class="kw-2">&amp;</span>params, ContainsSymbol::YieldExpression) {
+            <span class="kw">return </span><span class="prelude-val">Err</span>(Error::lex(LexError::Syntax(
+                <span class="string">&quot;yield expression not allowed in generator method definition parameters&quot;</span>.into(),
+                params_start_position,
+            )));
+        }
 
         <span class="kw">let </span>body_start = cursor
             .expect(

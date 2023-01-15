@@ -563,6 +563,11 @@
 <span id="562">562</span>
 <span id="563">563</span>
 <span id="564">564</span>
+<span id="565">565</span>
+<span id="566">566</span>
+<span id="567">567</span>
+<span id="568">568</span>
+<span id="569">569</span>
 </pre><pre class="rust"><code><span class="doccomment">//! ECMAScript Abstract Syntax Tree visitors.
 //!
 //! This module contains visitors which can be used to inspect or modify AST nodes. This allows for
@@ -589,7 +594,7 @@
     },
     function::{
         ArrowFunction, AsyncArrowFunction, AsyncFunction, AsyncGenerator, Class, ClassElement,
-        FormalParameter, FormalParameterList, Function, Generator,
+        FormalParameter, FormalParameterList, Function, Generator, PrivateName,
     },
     pattern::{ArrayPattern, ArrayPatternElement, ObjectPattern, ObjectPatternElement, Pattern},
     property::{MethodDefinition, PropertyDefinition, PropertyName},
@@ -710,6 +715,7 @@
     Identifier,
     FormalParameterList,
     ClassElement,
+    PrivateName,
     VariableList,
     Variable,
     Binding,
@@ -795,6 +801,7 @@
     <span class="macro">define_visit!</span>(visit_identifier, Identifier);
     <span class="macro">define_visit!</span>(visit_formal_parameter_list, FormalParameterList);
     <span class="macro">define_visit!</span>(visit_class_element, ClassElement);
+    <span class="macro">define_visit!</span>(visit_private_name, PrivateName);
     <span class="macro">define_visit!</span>(visit_variable_list, VariableList);
     <span class="macro">define_visit!</span>(visit_variable, Variable);
     <span class="macro">define_visit!</span>(visit_binding, Binding);
@@ -877,6 +884,7 @@
             NodeRef::Identifier(n) =&gt; <span class="self">self</span>.visit_identifier(n),
             NodeRef::FormalParameterList(n) =&gt; <span class="self">self</span>.visit_formal_parameter_list(n),
             NodeRef::ClassElement(n) =&gt; <span class="self">self</span>.visit_class_element(n),
+            NodeRef::PrivateName(n) =&gt; <span class="self">self</span>.visit_private_name(n),
             NodeRef::VariableList(n) =&gt; <span class="self">self</span>.visit_variable_list(n),
             NodeRef::Variable(n) =&gt; <span class="self">self</span>.visit_variable(n),
             NodeRef::Binding(n) =&gt; <span class="self">self</span>.visit_binding(n),
@@ -964,6 +972,7 @@
     <span class="macro">define_visit_mut!</span>(visit_identifier_mut, Identifier);
     <span class="macro">define_visit_mut!</span>(visit_formal_parameter_list_mut, FormalParameterList);
     <span class="macro">define_visit_mut!</span>(visit_class_element_mut, ClassElement);
+    <span class="macro">define_visit_mut!</span>(visit_private_name_mut, PrivateName);
     <span class="macro">define_visit_mut!</span>(visit_variable_list_mut, VariableList);
     <span class="macro">define_visit_mut!</span>(visit_variable_mut, Variable);
     <span class="macro">define_visit_mut!</span>(visit_binding_mut, Binding);
@@ -1046,6 +1055,7 @@
             NodeRefMut::Identifier(n) =&gt; <span class="self">self</span>.visit_identifier_mut(n),
             NodeRefMut::FormalParameterList(n) =&gt; <span class="self">self</span>.visit_formal_parameter_list_mut(n),
             NodeRefMut::ClassElement(n) =&gt; <span class="self">self</span>.visit_class_element_mut(n),
+            NodeRefMut::PrivateName(n) =&gt; <span class="self">self</span>.visit_private_name_mut(n),
             NodeRefMut::VariableList(n) =&gt; <span class="self">self</span>.visit_variable_list_mut(n),
             NodeRefMut::Variable(n) =&gt; <span class="self">self</span>.visit_variable_mut(n),
             NodeRefMut::Binding(n) =&gt; <span class="self">self</span>.visit_binding_mut(n),

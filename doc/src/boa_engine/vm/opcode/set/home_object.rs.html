@@ -32,6 +32,9 @@
 <span id="31">31</span>
 <span id="32">32</span>
 <span id="33">33</span>
+<span id="34">34</span>
+<span id="35">35</span>
+<span id="36">36</span>
 </pre><pre class="rust"><code><span class="kw">use crate</span>::{
     vm::{opcode::Operation, ShouldExit},
     Context, JsResult,
@@ -50,15 +53,18 @@
 
     <span class="kw">fn </span>execute(context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;ShouldExit&gt; {
         <span class="kw">let </span>function = context.vm.pop();
-        <span class="kw">let </span>function_object = function.as_object().expect(<span class="string">&quot;must be object&quot;</span>);
         <span class="kw">let </span>home = context.vm.pop();
-        <span class="kw">let </span>home_object = home.as_object().expect(<span class="string">&quot;must be object&quot;</span>);
 
-        function_object
-            .borrow_mut()
-            .as_function_mut()
-            .expect(<span class="string">&quot;must be function object&quot;</span>)
-            .set_home_object(home_object.clone());
+        {
+            <span class="kw">let </span>function_object = function.as_object().expect(<span class="string">&quot;must be object&quot;</span>);
+            <span class="kw">let </span>home_object = home.as_object().expect(<span class="string">&quot;must be object&quot;</span>);
+            <span class="kw">let </span><span class="kw-2">mut </span>function_object_mut = function_object.borrow_mut();
+            <span class="kw">let </span>function_mut = function_object_mut
+                .as_function_mut()
+                .expect(<span class="string">&quot;must be function object&quot;</span>);
+            function_mut.set_home_object(home_object.clone());
+            function_mut.set_class_object(home_object.clone());
+        }
 
         context.vm.push(home);
         context.vm.push(function);

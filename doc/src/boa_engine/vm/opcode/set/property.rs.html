@@ -269,17 +269,12 @@
 <span id="268">268</span>
 <span id="269">269</span>
 <span id="270">270</span>
-<span id="271">271</span>
-<span id="272">272</span>
-<span id="273">273</span>
-<span id="274">274</span>
-<span id="275">275</span>
 </pre><pre class="rust"><code><span class="kw">use crate</span>::{
+    builtins::function::set_function_name,
     property::{PropertyDescriptor, PropertyKey},
     vm::{opcode::Operation, ShouldExit},
-    Context, JsResult, JsString,
+    Context, JsNativeError, JsResult, JsString, JsValue,
 };
-<span class="kw">use </span>boa_macros::utf16;
 
 <span class="doccomment">/// `SetPropertyByName` implements the Opcode Operation for `Opcode::SetPropertyByName`
 ///
@@ -296,6 +291,7 @@
         <span class="kw">let </span>index = context.vm.read::&lt;u32&gt;();
 
         <span class="kw">let </span>value = context.vm.pop();
+        <span class="kw">let </span>receiver = context.vm.pop();
         <span class="kw">let </span>object = context.vm.pop();
         <span class="kw">let </span>object = <span class="kw">if let </span><span class="prelude-val">Some</span>(object) = object.as_object() {
             object.clone()
@@ -310,7 +306,13 @@
             .into_common::&lt;JsString&gt;(<span class="bool-val">false</span>)
             .into();
 
-        object.set(name, value.clone(), context.vm.frame().code.strict, context)<span class="question-mark">?</span>;
+        <span class="comment">//object.set(name, value.clone(), context.vm.frame().code.strict, context)?;
+        </span><span class="kw">let </span>succeeded = object.__set__(name.clone(), value.clone(), receiver, context)<span class="question-mark">?</span>;
+        <span class="kw">if </span>!succeeded &amp;&amp; context.vm.frame().code.strict {
+            <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::typ()
+                .with_message(<span class="macro">format!</span>(<span class="string">&quot;cannot set non-writable property: {name}&quot;</span>))
+                .into());
+        }
         context.vm.stack.push(value);
         <span class="prelude-val">Ok</span>(ShouldExit::False)
     }
@@ -511,39 +513,27 @@
 
     <span class="kw">fn </span>execute(context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;ShouldExit&gt; {
         <span class="kw">let </span>prefix = context.vm.read::&lt;u8&gt;();
-
         <span class="kw">let </span>function = context.vm.pop();
         <span class="kw">let </span>name = context.vm.pop();
 
-        <span class="kw">let </span>function_object = function.as_object().expect(<span class="string">&quot;function is not an object&quot;</span>);
-
-        <span class="kw">let </span>name = <span class="kw">if let </span><span class="prelude-val">Some</span>(symbol) = name.as_symbol() {
-            <span class="kw">if let </span><span class="prelude-val">Some</span>(name) = symbol.description() {
-                JsString::concat_array(<span class="kw-2">&amp;</span>[<span class="macro">utf16!</span>(<span class="string">&quot;[&quot;</span>), <span class="kw-2">&amp;</span>name, <span class="macro">utf16!</span>(<span class="string">&quot;]&quot;</span>)])
-            } <span class="kw">else </span>{
-                JsString::from(<span class="string">&quot;&quot;</span>)
-            }
-        } <span class="kw">else </span>{
-            name.as_string().expect(<span class="string">&quot;name is not a string&quot;</span>).clone()
-        };
-
-        <span class="kw">let </span>name = <span class="kw">match </span>prefix {
-            <span class="number">0 </span>=&gt; name,
-            <span class="number">1 </span>=&gt; JsString::concat(<span class="macro">utf16!</span>(<span class="string">&quot;get &quot;</span>), <span class="kw-2">&amp;</span>name),
-            <span class="number">2 </span>=&gt; JsString::concat(<span class="macro">utf16!</span>(<span class="string">&quot;set &quot;</span>), <span class="kw-2">&amp;</span>name),
+        <span class="kw">let </span>name = <span class="kw">match </span>name {
+            JsValue::String(name) =&gt; name.into(),
+            JsValue::Symbol(name) =&gt; name.into(),
             <span class="kw">_ </span>=&gt; <span class="macro">unreachable!</span>(),
         };
 
-        <span class="kw">let </span>desc = PropertyDescriptor::builder()
-            .value(name)
-            .writable(<span class="bool-val">false</span>)
-            .enumerable(<span class="bool-val">false</span>)
-            .configurable(<span class="bool-val">true</span>)
-            .build();
+        <span class="kw">let </span>prefix = <span class="kw">match </span>prefix {
+            <span class="number">1 </span>=&gt; <span class="prelude-val">Some</span>(JsString::from(<span class="string">&quot;get&quot;</span>)),
+            <span class="number">2 </span>=&gt; <span class="prelude-val">Some</span>(JsString::from(<span class="string">&quot;set&quot;</span>)),
+            <span class="kw">_ </span>=&gt; <span class="prelude-val">None</span>,
+        };
 
-        function_object
-            .__define_own_property__(<span class="string">&quot;name&quot;</span>.into(), desc, context)
-            .expect(<span class="string">&quot;msg&quot;</span>);
+        set_function_name(
+            function.as_object().expect(<span class="string">&quot;function is not an object&quot;</span>),
+            <span class="kw-2">&amp;</span>name,
+            prefix,
+            context,
+        );
 
         context.vm.stack.push(function);
         <span class="prelude-val">Ok</span>(ShouldExit::False)

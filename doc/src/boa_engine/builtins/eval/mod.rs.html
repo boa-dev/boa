@@ -268,6 +268,8 @@
 <span id="267">267</span>
 <span id="268">268</span>
 <span id="269">269</span>
+<span id="270">270</span>
+<span id="271">271</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Boa&#39;s implementation of ECMAScript&#39;s global `eval` function.
 //!
 //! The `eval()` function evaluates ECMAScript code represented as a string.
@@ -424,20 +426,22 @@
                     flags |= Flags::IN_METHOD;
                 }
 
-                <span class="comment">// iv. If F.[[ConstructorKind]] is derived, set inDerivedConstructor to true.
-                </span><span class="kw">if </span>function_object
+                <span class="kw">let </span>function_object = function_object
                     .as_function()
-                    .expect(<span class="string">&quot;must be function object&quot;</span>)
-                    .is_derived_constructor()
-                {
+                    .expect(<span class="string">&quot;must be function object&quot;</span>);
+
+                <span class="comment">// iv. If F.[[ConstructorKind]] is derived, set inDerivedConstructor to true.
+                </span><span class="kw">if </span>function_object.is_derived_constructor() {
                     flags |= Flags::IN_DERIVED_CONSTRUCTOR;
                 }
 
-                <span class="comment">// TODO:
-                // v. Let classFieldInitializerName be F.[[ClassFieldInitializerName]].
+                <span class="comment">// v. Let classFieldInitializerName be F.[[ClassFieldInitializerName]].
                 // vi. If classFieldInitializerName is not empty, set inClassFieldInitializer to true.
+                </span><span class="kw">if </span>function_object.class_field_initializer_name().is_some() {
+                    flags |= Flags::IN_CLASS_FIELD_INITIALIZER;
+                }
 
-                </span>flags
+                flags
             }
             <span class="kw">_ </span>=&gt; Flags::default(),
         };

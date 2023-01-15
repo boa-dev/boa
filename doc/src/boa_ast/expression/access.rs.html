@@ -346,6 +346,7 @@
 <span id="345">345</span>
 <span id="346">346</span>
 <span id="347">347</span>
+<span id="348">348</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Property access expressions, as defined by the [spec].
 //!
 //! [Property access expressions][access] provide two ways to access properties of an object: *dot notation*
@@ -363,6 +364,7 @@
 //! [access]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Property_Accessors
 
 </span><span class="kw">use </span><span class="kw">crate</span>::expression::Expression;
+<span class="kw">use </span><span class="kw">crate</span>::function::PrivateName;
 <span class="kw">use </span><span class="kw">crate</span>::try_break;
 <span class="kw">use </span><span class="kw">crate</span>::visitor::{VisitWith, Visitor, VisitorMut};
 <span class="kw">use </span>boa_interner::{Interner, Sym, ToInternedString};
@@ -563,14 +565,14 @@
 #[derive(Clone, Debug, PartialEq)]
 </span><span class="kw">pub struct </span>PrivatePropertyAccess {
     target: Box&lt;Expression&gt;,
-    field: Sym,
+    field: PrivateName,
 }
 
 <span class="kw">impl </span>PrivatePropertyAccess {
     <span class="doccomment">/// Creates a `GetPrivateField` AST Expression.
     </span><span class="attribute">#[inline]
     #[must_use]
-    </span><span class="kw">pub fn </span>new(value: Expression, field: Sym) -&gt; <span class="self">Self </span>{
+    </span><span class="kw">pub fn </span>new(value: Expression, field: PrivateName) -&gt; <span class="self">Self </span>{
         <span class="self">Self </span>{
             target: value.into(),
             field,
@@ -587,7 +589,7 @@
     <span class="doccomment">/// Gets the name of the field to retrieve.
     </span><span class="attribute">#[inline]
     #[must_use]
-    </span><span class="kw">pub const fn </span>field(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Sym {
+    </span><span class="kw">pub const fn </span>field(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; PrivateName {
         <span class="self">self</span>.field
     }
 }
@@ -598,7 +600,7 @@
         <span class="macro">format!</span>(
             <span class="string">&quot;{}.#{}&quot;</span>,
             <span class="self">self</span>.target.to_interned_string(interner),
-            interner.resolve_expect(<span class="self">self</span>.field)
+            interner.resolve_expect(<span class="self">self</span>.field.description())
         )
     }
 }
@@ -616,7 +618,7 @@
         </span>V: Visitor&lt;<span class="lifetime">&#39;a</span>&gt;,
     {
         <span class="macro">try_break!</span>(visitor.visit_expression(<span class="kw-2">&amp;</span><span class="self">self</span>.target));
-        visitor.visit_sym(<span class="kw-2">&amp;</span><span class="self">self</span>.field)
+        visitor.visit_private_name(<span class="kw-2">&amp;</span><span class="self">self</span>.field)
     }
 
     <span class="kw">fn </span>visit_with_mut&lt;<span class="lifetime">&#39;a</span>, V&gt;(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span><span class="self">self</span>, visitor: <span class="kw-2">&amp;mut </span>V) -&gt; ControlFlow&lt;V::BreakTy&gt;
@@ -624,7 +626,7 @@
         </span>V: VisitorMut&lt;<span class="lifetime">&#39;a</span>&gt;,
     {
         <span class="macro">try_break!</span>(visitor.visit_expression_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>.target));
-        visitor.visit_sym_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>.field)
+        visitor.visit_private_name_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>.field)
     }
 }
 

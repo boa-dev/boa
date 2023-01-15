@@ -1259,6 +1259,100 @@
 <span id="1258">1258</span>
 <span id="1259">1259</span>
 <span id="1260">1260</span>
+<span id="1261">1261</span>
+<span id="1262">1262</span>
+<span id="1263">1263</span>
+<span id="1264">1264</span>
+<span id="1265">1265</span>
+<span id="1266">1266</span>
+<span id="1267">1267</span>
+<span id="1268">1268</span>
+<span id="1269">1269</span>
+<span id="1270">1270</span>
+<span id="1271">1271</span>
+<span id="1272">1272</span>
+<span id="1273">1273</span>
+<span id="1274">1274</span>
+<span id="1275">1275</span>
+<span id="1276">1276</span>
+<span id="1277">1277</span>
+<span id="1278">1278</span>
+<span id="1279">1279</span>
+<span id="1280">1280</span>
+<span id="1281">1281</span>
+<span id="1282">1282</span>
+<span id="1283">1283</span>
+<span id="1284">1284</span>
+<span id="1285">1285</span>
+<span id="1286">1286</span>
+<span id="1287">1287</span>
+<span id="1288">1288</span>
+<span id="1289">1289</span>
+<span id="1290">1290</span>
+<span id="1291">1291</span>
+<span id="1292">1292</span>
+<span id="1293">1293</span>
+<span id="1294">1294</span>
+<span id="1295">1295</span>
+<span id="1296">1296</span>
+<span id="1297">1297</span>
+<span id="1298">1298</span>
+<span id="1299">1299</span>
+<span id="1300">1300</span>
+<span id="1301">1301</span>
+<span id="1302">1302</span>
+<span id="1303">1303</span>
+<span id="1304">1304</span>
+<span id="1305">1305</span>
+<span id="1306">1306</span>
+<span id="1307">1307</span>
+<span id="1308">1308</span>
+<span id="1309">1309</span>
+<span id="1310">1310</span>
+<span id="1311">1311</span>
+<span id="1312">1312</span>
+<span id="1313">1313</span>
+<span id="1314">1314</span>
+<span id="1315">1315</span>
+<span id="1316">1316</span>
+<span id="1317">1317</span>
+<span id="1318">1318</span>
+<span id="1319">1319</span>
+<span id="1320">1320</span>
+<span id="1321">1321</span>
+<span id="1322">1322</span>
+<span id="1323">1323</span>
+<span id="1324">1324</span>
+<span id="1325">1325</span>
+<span id="1326">1326</span>
+<span id="1327">1327</span>
+<span id="1328">1328</span>
+<span id="1329">1329</span>
+<span id="1330">1330</span>
+<span id="1331">1331</span>
+<span id="1332">1332</span>
+<span id="1333">1333</span>
+<span id="1334">1334</span>
+<span id="1335">1335</span>
+<span id="1336">1336</span>
+<span id="1337">1337</span>
+<span id="1338">1338</span>
+<span id="1339">1339</span>
+<span id="1340">1340</span>
+<span id="1341">1341</span>
+<span id="1342">1342</span>
+<span id="1343">1343</span>
+<span id="1344">1344</span>
+<span id="1345">1345</span>
+<span id="1346">1346</span>
+<span id="1347">1347</span>
+<span id="1348">1348</span>
+<span id="1349">1349</span>
+<span id="1350">1350</span>
+<span id="1351">1351</span>
+<span id="1352">1352</span>
+<span id="1353">1353</span>
+<span id="1354">1354</span>
 </pre><pre class="rust"><code><span class="attribute">#[cfg(test)]
 </span><span class="kw">mod </span>tests;
 
@@ -1275,7 +1369,10 @@
     },
     Error,
 };
-<span class="kw">use </span>ast::operations::{lexically_declared_names, var_declared_names};
+<span class="kw">use </span>ast::{
+    function::PrivateName,
+    operations::{class_private_name_resolver, lexically_declared_names, var_declared_names},
+};
 <span class="kw">use </span>boa_ast::{
     <span class="self">self </span><span class="kw">as </span>ast,
     expression::Identifier,
@@ -1285,6 +1382,7 @@
     Declaration, Expression, Keyword, Punctuator,
 };
 <span class="kw">use </span>boa_interner::{Interner, Sym};
+<span class="kw">use </span>boa_macros::utf16;
 <span class="kw">use </span>rustc_hash::{FxHashMap, FxHashSet};
 <span class="kw">use </span>std::io::Read;
 
@@ -1330,9 +1428,11 @@
         <span class="kw">let </span>strict = cursor.strict_mode();
         cursor.set_strict_mode(<span class="bool-val">true</span>);
 
+        <span class="kw">let </span><span class="kw-2">mut </span>has_binding_identifier = <span class="bool-val">false</span>;
         <span class="kw">let </span>token = cursor.peek(<span class="number">0</span>, interner).or_abrupt()<span class="question-mark">?</span>;
         <span class="kw">let </span>name = <span class="kw">match </span>token.kind() {
             TokenKind::Identifier(<span class="kw">_</span>) | TokenKind::Keyword((Keyword::Yield | Keyword::Await, <span class="kw">_</span>)) =&gt; {
+                has_binding_identifier = <span class="bool-val">true</span>;
                 BindingIdentifier::new(<span class="self">self</span>.allow_yield, <span class="self">self</span>.allow_await)
                     .parse(cursor, interner)<span class="question-mark">?
             </span>}
@@ -1348,7 +1448,13 @@
         cursor.set_strict_mode(strict);
 
         <span class="prelude-val">Ok</span>(Declaration::Class(
-            ClassTail::new(name, <span class="self">self</span>.allow_yield, <span class="self">self</span>.allow_await).parse(cursor, interner)<span class="question-mark">?</span>,
+            ClassTail::new(
+                name,
+                has_binding_identifier,
+                <span class="self">self</span>.allow_yield,
+                <span class="self">self</span>.allow_await,
+            )
+            .parse(cursor, interner)<span class="question-mark">?</span>,
         ))
     }
 }
@@ -1361,20 +1467,28 @@
 /// [spec]: https://tc39.es/ecma262/#prod-ClassTail
 </span><span class="attribute">#[derive(Debug, Clone, Copy)]
 </span><span class="kw">pub</span>(<span class="kw">in </span><span class="kw">crate</span>::parser) <span class="kw">struct </span>ClassTail {
-    name: Identifier,
+    name: <span class="prelude-ty">Option</span>&lt;Identifier&gt;,
+    has_binding_identifier: bool,
     allow_yield: AllowYield,
     allow_await: AllowAwait,
 }
 
 <span class="kw">impl </span>ClassTail {
     <span class="doccomment">/// Creates a new `ClassTail` parser.
-    </span><span class="kw">pub</span>(<span class="kw">in </span><span class="kw">crate</span>::parser) <span class="kw">fn </span>new&lt;Y, A&gt;(name: Identifier, allow_yield: Y, allow_await: A) -&gt; <span class="self">Self
+    </span><span class="kw">pub</span>(<span class="kw">in </span><span class="kw">crate</span>::parser) <span class="kw">fn </span>new&lt;N, Y, A&gt;(
+        name: N,
+        has_binding_identifier: bool,
+        allow_yield: Y,
+        allow_await: A,
+    ) -&gt; <span class="self">Self
     </span><span class="kw">where
-        </span>Y: Into&lt;AllowYield&gt;,
+        </span>N: Into&lt;<span class="prelude-ty">Option</span>&lt;Identifier&gt;&gt;,
+        Y: Into&lt;AllowYield&gt;,
         A: Into&lt;AllowAwait&gt;,
     {
         <span class="self">Self </span>{
-            name,
+            name: name.into(),
+            has_binding_identifier,
             allow_yield: allow_yield.into(),
             allow_await: allow_await.into(),
         }
@@ -1413,17 +1527,27 @@
 
         <span class="kw">if </span>is_close_block {
             cursor.advance(interner);
-            <span class="prelude-val">Ok</span>(Class::new(<span class="prelude-val">Some</span>(<span class="self">self</span>.name), super_ref, <span class="prelude-val">None</span>, Box::default()))
+            <span class="prelude-val">Ok</span>(Class::new(
+                <span class="self">self</span>.name,
+                super_ref,
+                <span class="prelude-val">None</span>,
+                Box::default(),
+                <span class="self">self</span>.has_binding_identifier,
+            ))
         } <span class="kw">else </span>{
+            cursor.push_private_environment();
+
             <span class="kw">let </span>body_start = cursor.peek(<span class="number">0</span>, interner).or_abrupt()<span class="question-mark">?</span>.span().start();
             <span class="kw">let </span>(constructor, elements) =
                 ClassBody::new(<span class="self">self</span>.name, <span class="self">self</span>.allow_yield, <span class="self">self</span>.allow_await)
                     .parse(cursor, interner)<span class="question-mark">?</span>;
             cursor.expect(Punctuator::CloseBlock, <span class="string">&quot;class tail&quot;</span>, interner)<span class="question-mark">?</span>;
 
+            cursor.pop_private_environment();
+
             <span class="kw">if </span>super_ref.is_none() {
                 <span class="kw">if let </span><span class="prelude-val">Some</span>(constructor) = <span class="kw-2">&amp;</span>constructor {
-                    <span class="kw">if </span>contains(constructor, ContainsSymbol::Super) {
+                    <span class="kw">if </span>contains(constructor, ContainsSymbol::SuperCall) {
                         <span class="kw">return </span><span class="prelude-val">Err</span>(Error::lex(LexError::Syntax(
                             <span class="string">&quot;invalid super usage&quot;</span>.into(),
                             body_start,
@@ -1432,12 +1556,24 @@
                 }
             }
 
-            <span class="prelude-val">Ok</span>(Class::new(
-                <span class="prelude-val">Some</span>(<span class="self">self</span>.name),
+            <span class="kw">let </span><span class="kw-2">mut </span>class = Class::new(
+                <span class="self">self</span>.name,
                 super_ref,
                 constructor,
                 elements.into(),
-            ))
+                <span class="self">self</span>.has_binding_identifier,
+            );
+
+            <span class="kw">if </span>!cursor.in_class()
+                &amp;&amp; !class_private_name_resolver(<span class="kw-2">&amp;mut </span>class, cursor.private_environment_root_index())
+            {
+                <span class="kw">return </span><span class="prelude-val">Err</span>(Error::lex(LexError::Syntax(
+                    <span class="string">&quot;invalid private name usage&quot;</span>.into(),
+                    body_start,
+                )));
+            }
+
+            <span class="prelude-val">Ok</span>(class)
         }
     }
 }
@@ -1499,20 +1635,21 @@
 /// [spec]: https://tc39.es/ecma262/#prod-ClassBody
 </span><span class="attribute">#[derive(Debug, Clone, Copy)]
 </span><span class="kw">pub</span>(<span class="kw">in </span><span class="kw">crate</span>::parser) <span class="kw">struct </span>ClassBody {
-    name: Identifier,
+    name: <span class="prelude-ty">Option</span>&lt;Identifier&gt;,
     allow_yield: AllowYield,
     allow_await: AllowAwait,
 }
 
 <span class="kw">impl </span>ClassBody {
     <span class="doccomment">/// Creates a new `ClassBody` parser.
-    </span><span class="kw">pub</span>(<span class="kw">in </span><span class="kw">crate</span>::parser) <span class="kw">fn </span>new&lt;Y, A&gt;(name: Identifier, allow_yield: Y, allow_await: A) -&gt; <span class="self">Self
+    </span><span class="kw">pub</span>(<span class="kw">in </span><span class="kw">crate</span>::parser) <span class="kw">fn </span>new&lt;N, Y, A&gt;(name: N, allow_yield: Y, allow_await: A) -&gt; <span class="self">Self
     </span><span class="kw">where
-        </span>Y: Into&lt;AllowYield&gt;,
+        </span>N: Into&lt;<span class="prelude-ty">Option</span>&lt;Identifier&gt;&gt;,
+        Y: Into&lt;AllowYield&gt;,
         A: Into&lt;AllowAwait&gt;,
     {
         <span class="self">Self </span>{
-            name,
+            name: name.into(),
             allow_yield: allow_yield.into(),
             allow_await: allow_await.into(),
         }
@@ -1526,8 +1663,6 @@
     <span class="kw">type </span>Output = (<span class="prelude-ty">Option</span>&lt;Function&gt;, Vec&lt;function::ClassElement&gt;);
 
     <span class="kw">fn </span>parse(<span class="self">self</span>, cursor: <span class="kw-2">&amp;mut </span>Cursor&lt;R&gt;, interner: <span class="kw-2">&amp;mut </span>Interner) -&gt; ParseResult&lt;<span class="self">Self</span>::Output&gt; {
-        cursor.push_private_environment();
-
         <span class="kw">let </span><span class="kw-2">mut </span>constructor = <span class="prelude-val">None</span>;
         <span class="kw">let </span><span class="kw-2">mut </span>elements = Vec::new();
         <span class="kw">let </span><span class="kw-2">mut </span>private_elements_names = FxHashMap::default();
@@ -1565,10 +1700,12 @@
                                 }
                                 <span class="kw">match </span>method {
                                     MethodDefinition::Get(<span class="kw">_</span>) =&gt; {
-                                        <span class="kw">match </span>private_elements_names.get(name) {
+                                        <span class="kw">match </span>private_elements_names.get(<span class="kw-2">&amp;</span>name.description()) {
                                             <span class="prelude-val">Some</span>(PrivateElement::Setter) =&gt; {
-                                                private_elements_names
-                                                    .insert(<span class="kw-2">*</span>name, PrivateElement::Value);
+                                                private_elements_names.insert(
+                                                    name.description(),
+                                                    PrivateElement::Value,
+                                                );
                                             }
                                             <span class="prelude-val">Some</span>(<span class="kw">_</span>) =&gt; {
                                                 <span class="kw">return </span><span class="prelude-val">Err</span>(Error::general(
@@ -1577,16 +1714,20 @@
                                                 ));
                                             }
                                             <span class="prelude-val">None </span>=&gt; {
-                                                private_elements_names
-                                                    .insert(<span class="kw-2">*</span>name, PrivateElement::Getter);
+                                                private_elements_names.insert(
+                                                    name.description(),
+                                                    PrivateElement::Getter,
+                                                );
                                             }
                                         }
                                     }
                                     MethodDefinition::Set(<span class="kw">_</span>) =&gt; {
-                                        <span class="kw">match </span>private_elements_names.get(name) {
+                                        <span class="kw">match </span>private_elements_names.get(<span class="kw-2">&amp;</span>name.description()) {
                                             <span class="prelude-val">Some</span>(PrivateElement::Getter) =&gt; {
-                                                private_elements_names
-                                                    .insert(<span class="kw-2">*</span>name, PrivateElement::Value);
+                                                private_elements_names.insert(
+                                                    name.description(),
+                                                    PrivateElement::Value,
+                                                );
                                             }
                                             <span class="prelude-val">Some</span>(<span class="kw">_</span>) =&gt; {
                                                 <span class="kw">return </span><span class="prelude-val">Err</span>(Error::general(
@@ -1595,14 +1736,16 @@
                                                 ));
                                             }
                                             <span class="prelude-val">None </span>=&gt; {
-                                                private_elements_names
-                                                    .insert(<span class="kw-2">*</span>name, PrivateElement::Setter);
+                                                private_elements_names.insert(
+                                                    name.description(),
+                                                    PrivateElement::Setter,
+                                                );
                                             }
                                         }
                                     }
                                     <span class="kw">_ </span>=&gt; {
                                         <span class="kw">if </span>private_elements_names
-                                            .insert(<span class="kw-2">*</span>name, PrivateElement::Value)
+                                            .insert(name.description(), PrivateElement::Value)
                                             .is_some()
                                         {
                                             <span class="kw">return </span><span class="prelude-val">Err</span>(Error::general(
@@ -1623,10 +1766,12 @@
                                 }
                                 <span class="kw">match </span>method {
                                     MethodDefinition::Get(<span class="kw">_</span>) =&gt; {
-                                        <span class="kw">match </span>private_elements_names.get(name) {
+                                        <span class="kw">match </span>private_elements_names.get(<span class="kw-2">&amp;</span>name.description()) {
                                             <span class="prelude-val">Some</span>(PrivateElement::StaticSetter) =&gt; {
-                                                private_elements_names
-                                                    .insert(<span class="kw-2">*</span>name, PrivateElement::StaticValue);
+                                                private_elements_names.insert(
+                                                    name.description(),
+                                                    PrivateElement::StaticValue,
+                                                );
                                             }
                                             <span class="prelude-val">Some</span>(<span class="kw">_</span>) =&gt; {
                                                 <span class="kw">return </span><span class="prelude-val">Err</span>(Error::general(
@@ -1635,16 +1780,20 @@
                                                 ));
                                             }
                                             <span class="prelude-val">None </span>=&gt; {
-                                                private_elements_names
-                                                    .insert(<span class="kw-2">*</span>name, PrivateElement::StaticGetter);
+                                                private_elements_names.insert(
+                                                    name.description(),
+                                                    PrivateElement::StaticGetter,
+                                                );
                                             }
                                         }
                                     }
                                     MethodDefinition::Set(<span class="kw">_</span>) =&gt; {
-                                        <span class="kw">match </span>private_elements_names.get(name) {
+                                        <span class="kw">match </span>private_elements_names.get(<span class="kw-2">&amp;</span>name.description()) {
                                             <span class="prelude-val">Some</span>(PrivateElement::StaticGetter) =&gt; {
-                                                private_elements_names
-                                                    .insert(<span class="kw-2">*</span>name, PrivateElement::StaticValue);
+                                                private_elements_names.insert(
+                                                    name.description(),
+                                                    PrivateElement::StaticValue,
+                                                );
                                             }
                                             <span class="prelude-val">Some</span>(<span class="kw">_</span>) =&gt; {
                                                 <span class="kw">return </span><span class="prelude-val">Err</span>(Error::general(
@@ -1653,14 +1802,16 @@
                                                 ));
                                             }
                                             <span class="prelude-val">None </span>=&gt; {
-                                                private_elements_names
-                                                    .insert(<span class="kw-2">*</span>name, PrivateElement::StaticSetter);
+                                                private_elements_names.insert(
+                                                    name.description(),
+                                                    PrivateElement::StaticSetter,
+                                                );
                                             }
                                         }
                                     }
                                     <span class="kw">_ </span>=&gt; {
                                         <span class="kw">if </span>private_elements_names
-                                            .insert(<span class="kw-2">*</span>name, PrivateElement::StaticValue)
+                                            .insert(name.description(), PrivateElement::StaticValue)
                                             .is_some()
                                         {
                                             <span class="kw">return </span><span class="prelude-val">Err</span>(Error::general(
@@ -1681,7 +1832,7 @@
                                     }
                                 }
                                 <span class="kw">if </span>private_elements_names
-                                    .insert(<span class="kw-2">*</span>name, PrivateElement::Value)
+                                    .insert(name.description(), PrivateElement::Value)
                                     .is_some()
                                 {
                                     <span class="kw">return </span><span class="prelude-val">Err</span>(Error::general(
@@ -1700,7 +1851,7 @@
                                     }
                                 }
                                 <span class="kw">if </span>private_elements_names
-                                    .insert(<span class="kw-2">*</span>name, PrivateElement::StaticValue)
+                                    .insert(name.description(), PrivateElement::StaticValue)
                                     .is_some()
                                 {
                                     <span class="kw">return </span><span class="prelude-val">Err</span>(Error::general(
@@ -1741,7 +1892,6 @@
         }
 
         cursor.set_strict_mode(strict);
-        cursor.pop_private_environment(<span class="kw-2">&amp;</span>private_elements_names)<span class="question-mark">?</span>;
 
         <span class="prelude-val">Ok</span>((constructor, elements))
     }
@@ -1766,20 +1916,21 @@
 /// [spec]: https://tc39.es/ecma262/#prod-ClassElement
 </span><span class="attribute">#[derive(Debug, Clone, Copy)]
 </span><span class="kw">pub</span>(<span class="kw">in </span><span class="kw">crate</span>::parser) <span class="kw">struct </span>ClassElement {
-    name: Identifier,
+    name: <span class="prelude-ty">Option</span>&lt;Identifier&gt;,
     allow_yield: AllowYield,
     allow_await: AllowAwait,
 }
 
 <span class="kw">impl </span>ClassElement {
     <span class="doccomment">/// Creates a new `ClassElement` parser.
-    </span><span class="kw">pub</span>(<span class="kw">in </span><span class="kw">crate</span>::parser) <span class="kw">fn </span>new&lt;Y, A&gt;(name: Identifier, allow_yield: Y, allow_await: A) -&gt; <span class="self">Self
+    </span><span class="kw">pub</span>(<span class="kw">in </span><span class="kw">crate</span>::parser) <span class="kw">fn </span>new&lt;N, Y, A&gt;(name: N, allow_yield: Y, allow_await: A) -&gt; <span class="self">Self
     </span><span class="kw">where
-        </span>Y: Into&lt;AllowYield&gt;,
+        </span>N: Into&lt;<span class="prelude-ty">Option</span>&lt;Identifier&gt;&gt;,
+        Y: Into&lt;AllowYield&gt;,
         A: Into&lt;AllowAwait&gt;,
     {
         <span class="self">Self </span>{
-            name,
+            name: name.into(),
             allow_yield: allow_yield.into(),
             allow_await: allow_await.into(),
         }
@@ -1857,7 +2008,7 @@
                 )<span class="question-mark">?</span>;
                 cursor.set_strict_mode(strict);
 
-                <span class="kw">return </span><span class="prelude-val">Ok</span>((<span class="prelude-val">Some</span>(Function::new(<span class="prelude-val">Some</span>(<span class="self">self</span>.name), parameters, body)), <span class="prelude-val">None</span>));
+                <span class="kw">return </span><span class="prelude-val">Ok</span>((<span class="prelude-val">Some</span>(Function::new(<span class="self">self</span>.name, parameters, body)), <span class="prelude-val">None</span>));
             }
             TokenKind::Punctuator(Punctuator::OpenBlock) <span class="kw">if </span>r#static =&gt; {
                 cursor.advance(interner);
@@ -1906,7 +2057,7 @@
             TokenKind::Punctuator(Punctuator::Mul) =&gt; {
                 <span class="kw">let </span>token = cursor.peek(<span class="number">1</span>, interner).or_abrupt()<span class="question-mark">?</span>;
                 <span class="kw">let </span>name_position = token.span().start();
-                <span class="kw">if let </span>TokenKind::Identifier(Sym::CONSTRUCTOR) = token.kind() {
+                <span class="kw">if </span>token.kind() == <span class="kw-2">&amp;</span>TokenKind::Identifier(Sym::CONSTRUCTOR) &amp;&amp; !r#static {
                     <span class="kw">return </span><span class="prelude-val">Err</span>(Error::general(
                         <span class="string">&quot;class constructor may not be a generator method&quot;</span>,
                         token.span().start(),
@@ -1932,7 +2083,9 @@
                     ClassElementName::PropertyName(property_name) =&gt; {
                         function::ClassElement::MethodDefinition(property_name, method)
                     }
-                    ClassElementName::PrivateIdentifier(Sym::CONSTRUCTOR) =&gt; {
+                    ClassElementName::PrivateIdentifier(name)
+                        <span class="kw">if </span>name.description() == Sym::CONSTRUCTOR =&gt;
+                    {
                         <span class="kw">return </span><span class="prelude-val">Err</span>(Error::general(
                             <span class="string">&quot;class constructor may not be a private method&quot;</span>,
                             name_position,
@@ -1960,15 +2113,13 @@
                     TokenKind::Punctuator(Punctuator::Mul) =&gt; {
                         <span class="kw">let </span>token = cursor.peek(<span class="number">1</span>, interner).or_abrupt()<span class="question-mark">?</span>;
                         <span class="kw">let </span>name_position = token.span().start();
-                        <span class="kw">match </span>token.kind() {
-                            TokenKind::Identifier(Sym::CONSTRUCTOR)
-                            | TokenKind::PrivateIdentifier(Sym::CONSTRUCTOR) =&gt; {
-                                <span class="kw">return </span><span class="prelude-val">Err</span>(Error::general(
-                                    <span class="string">&quot;class constructor may not be a generator method&quot;</span>,
-                                    token.span().start(),
-                                ));
-                            }
-                            <span class="kw">_ </span>=&gt; {}
+                        <span class="kw">if </span>token.kind() == <span class="kw-2">&amp;</span>TokenKind::PrivateIdentifier(Sym::CONSTRUCTOR)
+                            || token.kind() == <span class="kw-2">&amp;</span>TokenKind::Identifier(Sym::CONSTRUCTOR) &amp;&amp; !r#static
+                        {
+                            <span class="kw">return </span><span class="prelude-val">Err</span>(Error::general(
+                                <span class="string">&quot;class constructor may not be a generator method&quot;</span>,
+                                token.span().start(),
+                            ));
                         }
                         <span class="kw">let </span>strict = cursor.strict_mode();
                         cursor.set_strict_mode(<span class="bool-val">true</span>);
@@ -2006,7 +2157,7 @@
                             }
                         }
                     }
-                    TokenKind::Identifier(Sym::CONSTRUCTOR) =&gt; {
+                    TokenKind::Identifier(Sym::CONSTRUCTOR) <span class="kw">if </span>!r#static =&gt; {
                         <span class="kw">return </span><span class="prelude-val">Err</span>(Error::general(
                             <span class="string">&quot;class constructor may not be an async method&quot;</span>,
                             token.span().start(),
@@ -2037,7 +2188,9 @@
                             ClassElementName::PropertyName(property_name) =&gt; {
                                 function::ClassElement::MethodDefinition(property_name, method)
                             }
-                            ClassElementName::PrivateIdentifier(Sym::CONSTRUCTOR) <span class="kw">if </span>r#static =&gt; {
+                            ClassElementName::PrivateIdentifier(name)
+                                <span class="kw">if </span>name.description() == Sym::CONSTRUCTOR &amp;&amp; r#static =&gt;
+                            {
                                 <span class="kw">return </span><span class="prelude-val">Err</span>(Error::general(
                                     <span class="string">&quot;class constructor may not be a private method&quot;</span>,
                                     name_position,
@@ -2096,12 +2249,18 @@
                         cursor.set_strict_mode(strict);
                         <span class="kw">let </span>method = MethodDefinition::Get(Function::new(<span class="prelude-val">None</span>, params, body));
                         <span class="kw">if </span>r#static {
-                            function::ClassElement::PrivateStaticMethodDefinition(name, method)
+                            function::ClassElement::PrivateStaticMethodDefinition(
+                                PrivateName::new(name),
+                                method,
+                            )
                         } <span class="kw">else </span>{
-                            function::ClassElement::PrivateMethodDefinition(name, method)
+                            function::ClassElement::PrivateMethodDefinition(
+                                PrivateName::new(name),
+                                method,
+                            )
                         }
                     }
-                    TokenKind::Identifier(Sym::CONSTRUCTOR) =&gt; {
+                    TokenKind::Identifier(Sym::CONSTRUCTOR) <span class="kw">if </span>!r#static =&gt; {
                         <span class="kw">return </span><span class="prelude-val">Err</span>(Error::general(
                             <span class="string">&quot;class constructor may not be a getter method&quot;</span>,
                             token.span().start(),
@@ -2217,12 +2376,18 @@
                         cursor.set_strict_mode(strict);
                         <span class="kw">let </span>method = MethodDefinition::Set(Function::new(<span class="prelude-val">None</span>, params, body));
                         <span class="kw">if </span>r#static {
-                            function::ClassElement::PrivateStaticMethodDefinition(name, method)
+                            function::ClassElement::PrivateStaticMethodDefinition(
+                                PrivateName::new(name),
+                                method,
+                            )
                         } <span class="kw">else </span>{
-                            function::ClassElement::PrivateMethodDefinition(name, method)
+                            function::ClassElement::PrivateMethodDefinition(
+                                PrivateName::new(name),
+                                method,
+                            )
                         }
                     }
-                    TokenKind::Identifier(Sym::CONSTRUCTOR) =&gt; {
+                    TokenKind::Identifier(Sym::CONSTRUCTOR) <span class="kw">if </span>!r#static =&gt; {
                         <span class="kw">return </span><span class="prelude-val">Err</span>(Error::general(
                             <span class="string">&quot;class constructor may not be a setter method&quot;</span>,
                             token.span().start(),
@@ -2302,6 +2467,11 @@
             }
             TokenKind::PrivateIdentifier(name) =&gt; {
                 <span class="kw">let </span>name = <span class="kw-2">*</span>name;
+                <span class="kw">let </span>name_private = interner.get_or_intern(
+                    [<span class="macro">utf16!</span>(<span class="string">&quot;#&quot;</span>), interner.resolve_expect(name).utf16()]
+                        .concat()
+                        .as_slice(),
+                );
                 cursor.advance(interner);
                 <span class="kw">let </span>token = cursor.peek(<span class="number">0</span>, interner).or_abrupt()<span class="question-mark">?</span>;
                 <span class="kw">match </span>token.kind() {
@@ -2310,7 +2480,7 @@
                         <span class="kw">let </span>strict = cursor.strict_mode();
                         cursor.set_strict_mode(<span class="bool-val">true</span>);
                         <span class="kw">let </span>rhs = AssignmentExpression::new(
-                            <span class="prelude-val">Some</span>(name.into()),
+                            <span class="prelude-val">Some</span>(name_private.into()),
                             <span class="bool-val">true</span>,
                             <span class="self">self</span>.allow_yield,
                             <span class="self">self</span>.allow_await,
@@ -2319,9 +2489,15 @@
                         cursor.expect_semicolon(<span class="string">&quot;expected semicolon&quot;</span>, interner)<span class="question-mark">?</span>;
                         cursor.set_strict_mode(strict);
                         <span class="kw">if </span>r#static {
-                            function::ClassElement::PrivateStaticFieldDefinition(name, <span class="prelude-val">Some</span>(rhs))
+                            function::ClassElement::PrivateStaticFieldDefinition(
+                                PrivateName::new(name),
+                                <span class="prelude-val">Some</span>(rhs),
+                            )
                         } <span class="kw">else </span>{
-                            function::ClassElement::PrivateFieldDefinition(name, <span class="prelude-val">Some</span>(rhs))
+                            function::ClassElement::PrivateFieldDefinition(
+                                PrivateName::new(name),
+                                <span class="prelude-val">Some</span>(rhs),
+                            )
                         }
                     }
                     TokenKind::Punctuator(Punctuator::OpenParen) =&gt; {
@@ -2353,17 +2529,29 @@
                         <span class="kw">let </span>method = MethodDefinition::Ordinary(Function::new(<span class="prelude-val">None</span>, params, body));
                         cursor.set_strict_mode(strict);
                         <span class="kw">if </span>r#static {
-                            function::ClassElement::PrivateStaticMethodDefinition(name, method)
+                            function::ClassElement::PrivateStaticMethodDefinition(
+                                PrivateName::new(name),
+                                method,
+                            )
                         } <span class="kw">else </span>{
-                            function::ClassElement::PrivateMethodDefinition(name, method)
+                            function::ClassElement::PrivateMethodDefinition(
+                                PrivateName::new(name),
+                                method,
+                            )
                         }
                     }
                     <span class="kw">_ </span>=&gt; {
                         cursor.expect_semicolon(<span class="string">&quot;expected semicolon&quot;</span>, interner)<span class="question-mark">?</span>;
                         <span class="kw">if </span>r#static {
-                            function::ClassElement::PrivateStaticFieldDefinition(name, <span class="prelude-val">None</span>)
+                            function::ClassElement::PrivateStaticFieldDefinition(
+                                PrivateName::new(name),
+                                <span class="prelude-val">None</span>,
+                            )
                         } <span class="kw">else </span>{
-                            function::ClassElement::PrivateFieldDefinition(name, <span class="prelude-val">None</span>)
+                            function::ClassElement::PrivateFieldDefinition(
+                                PrivateName::new(name),
+                                <span class="prelude-val">None</span>,
+                            )
                         }
                     }
                 }
@@ -2380,7 +2568,7 @@
                 <span class="kw">let </span>token = cursor.peek(<span class="number">0</span>, interner).or_abrupt()<span class="question-mark">?</span>;
                 <span class="kw">match </span>token.kind() {
                     TokenKind::Punctuator(Punctuator::Assign) =&gt; {
-                        <span class="kw">if let </span><span class="prelude-val">Some</span>(name) = name.prop_name() {
+                        <span class="kw">if let </span><span class="prelude-val">Some</span>(name) = name.literal() {
                             <span class="kw">if </span>r#static {
                                 <span class="kw">if </span>[Sym::CONSTRUCTOR, Sym::PROTOTYPE].contains(<span class="kw-2">&amp;</span>name) {
                                     <span class="kw">return </span><span class="prelude-val">Err</span>(Error::general(
@@ -2456,7 +2644,7 @@
                         }
                     }
                     <span class="kw">_ </span>=&gt; {
-                        <span class="kw">if let </span><span class="prelude-val">Some</span>(name) = name.prop_name() {
+                        <span class="kw">if let </span><span class="prelude-val">Some</span>(name) = name.literal() {
                             <span class="kw">if </span>r#static {
                                 <span class="kw">if </span>[Sym::CONSTRUCTOR, Sym::PROTOTYPE].contains(<span class="kw-2">&amp;</span>name) {
                                     <span class="kw">return </span><span class="prelude-val">Err</span>(Error::general(

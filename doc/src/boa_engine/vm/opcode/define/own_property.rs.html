@@ -78,10 +78,15 @@
 <span id="77">77</span>
 <span id="78">78</span>
 <span id="79">79</span>
+<span id="80">80</span>
+<span id="81">81</span>
+<span id="82">82</span>
+<span id="83">83</span>
+<span id="84">84</span>
 </pre><pre class="rust"><code><span class="kw">use crate</span>::{
     property::PropertyDescriptor,
     vm::{opcode::Operation, ShouldExit},
-    Context, JsResult, JsString,
+    Context, JsNativeError, JsResult, JsString,
 };
 
 <span class="doccomment">/// `DefineOwnPropertyByName` implements the Opcode Operation for `Opcode::DefineOwnPropertyByName`
@@ -144,7 +149,7 @@
             object.to_object(context)<span class="question-mark">?
         </span>};
         <span class="kw">let </span>key = key.to_property_key(context)<span class="question-mark">?</span>;
-        object.__define_own_property__(
+        <span class="kw">let </span>success = object.__define_own_property__(
             key,
             PropertyDescriptor::builder()
                 .value(value)
@@ -154,6 +159,11 @@
                 .build(),
             context,
         )<span class="question-mark">?</span>;
+        <span class="kw">if </span>!success {
+            <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::typ()
+                .with_message(<span class="string">&quot;failed to defined own property&quot;</span>)
+                .into());
+        }
         <span class="prelude-val">Ok</span>(ShouldExit::False)
     }
 }

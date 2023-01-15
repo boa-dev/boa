@@ -100,8 +100,35 @@
 <span id="99">99</span>
 <span id="100">100</span>
 <span id="101">101</span>
+<span id="102">102</span>
+<span id="103">103</span>
+<span id="104">104</span>
+<span id="105">105</span>
+<span id="106">106</span>
+<span id="107">107</span>
+<span id="108">108</span>
+<span id="109">109</span>
+<span id="110">110</span>
+<span id="111">111</span>
+<span id="112">112</span>
+<span id="113">113</span>
+<span id="114">114</span>
+<span id="115">115</span>
+<span id="116">116</span>
+<span id="117">117</span>
+<span id="118">118</span>
+<span id="119">119</span>
+<span id="120">120</span>
+<span id="121">121</span>
+<span id="122">122</span>
+<span id="123">123</span>
+<span id="124">124</span>
+<span id="125">125</span>
+<span id="126">126</span>
+<span id="127">127</span>
 </pre><pre class="rust"><code><span class="kw">use crate</span>::{
     object::PrivateElement,
+    property::PropertyDescriptor,
     vm::{opcode::Operation, ShouldExit},
     Context, JsResult,
 };
@@ -119,17 +146,34 @@
 
     <span class="kw">fn </span>execute(context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;ShouldExit&gt; {
         <span class="kw">let </span>index = context.vm.read::&lt;u32&gt;();
-        <span class="kw">let </span>name = context.vm.frame().code.names[index <span class="kw">as </span>usize];
+        <span class="kw">let </span>name = context.vm.frame().code.private_names[index <span class="kw">as </span>usize];
         <span class="kw">let </span>method = context.vm.pop();
         <span class="kw">let </span>method_object = method.as_callable().expect(<span class="string">&quot;method must be callable&quot;</span>);
+
+        <span class="kw">let </span>name_string = <span class="macro">format!</span>(<span class="string">&quot;#{}&quot;</span>, context.interner().resolve_expect(name.description()));
+        <span class="kw">let </span>desc = PropertyDescriptor::builder()
+            .value(name_string)
+            .writable(<span class="bool-val">false</span>)
+            .enumerable(<span class="bool-val">false</span>)
+            .configurable(<span class="bool-val">true</span>)
+            .build();
+        method_object
+            .__define_own_property__(<span class="string">&quot;name&quot;</span>.into(), desc, context)
+            .expect(<span class="string">&quot;failed to set name property on private method&quot;</span>);
+
         <span class="kw">let </span>class = context.vm.pop();
-        class
-            .as_object()
-            .expect(<span class="string">&quot;class must be function object&quot;</span>)
+        <span class="kw">let </span>class_object = class.as_object().expect(<span class="string">&quot;class must be function object&quot;</span>);
+        class_object
             .borrow_mut()
             .as_function_mut()
             .expect(<span class="string">&quot;class must be function object&quot;</span>)
-            .push_private_method(name.sym(), PrivateElement::Method(method_object.clone()));
+            .push_private_method(name, PrivateElement::Method(method_object.clone()));
+
+        <span class="kw">let </span><span class="kw-2">mut </span>method_object_mut = method_object.borrow_mut();
+        <span class="kw">let </span>function = method_object_mut
+            .as_function_mut()
+            .expect(<span class="string">&quot;method must be function object&quot;</span>);
+        function.set_class_object(class_object.clone());
         <span class="prelude-val">Ok</span>(ShouldExit::False)
     }
 }
@@ -147,23 +191,27 @@
 
     <span class="kw">fn </span>execute(context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;ShouldExit&gt; {
         <span class="kw">let </span>index = context.vm.read::&lt;u32&gt;();
-        <span class="kw">let </span>name = context.vm.frame().code.names[index <span class="kw">as </span>usize];
+        <span class="kw">let </span>name = context.vm.frame().code.private_names[index <span class="kw">as </span>usize];
         <span class="kw">let </span>getter = context.vm.pop();
         <span class="kw">let </span>getter_object = getter.as_callable().expect(<span class="string">&quot;getter must be callable&quot;</span>);
         <span class="kw">let </span>class = context.vm.pop();
-        class
-            .as_object()
-            .expect(<span class="string">&quot;class must be function object&quot;</span>)
+        <span class="kw">let </span>class_object = class.as_object().expect(<span class="string">&quot;class must be function object&quot;</span>);
+        class_object
             .borrow_mut()
             .as_function_mut()
             .expect(<span class="string">&quot;class must be function object&quot;</span>)
             .push_private_method(
-                name.sym(),
+                name,
                 PrivateElement::Accessor {
                     getter: <span class="prelude-val">Some</span>(getter_object.clone()),
                     setter: <span class="prelude-val">None</span>,
                 },
             );
+        <span class="kw">let </span><span class="kw-2">mut </span>getter_object_mut = getter_object.borrow_mut();
+        <span class="kw">let </span>function = getter_object_mut
+            .as_function_mut()
+            .expect(<span class="string">&quot;getter must be function object&quot;</span>);
+        function.set_class_object(class_object.clone());
         <span class="prelude-val">Ok</span>(ShouldExit::False)
     }
 }
@@ -181,23 +229,27 @@
 
     <span class="kw">fn </span>execute(context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;ShouldExit&gt; {
         <span class="kw">let </span>index = context.vm.read::&lt;u32&gt;();
-        <span class="kw">let </span>name = context.vm.frame().code.names[index <span class="kw">as </span>usize];
+        <span class="kw">let </span>name = context.vm.frame().code.private_names[index <span class="kw">as </span>usize];
         <span class="kw">let </span>setter = context.vm.pop();
         <span class="kw">let </span>setter_object = setter.as_callable().expect(<span class="string">&quot;getter must be callable&quot;</span>);
         <span class="kw">let </span>class = context.vm.pop();
-        class
-            .as_object()
-            .expect(<span class="string">&quot;class must be function object&quot;</span>)
+        <span class="kw">let </span>class_object = class.as_object().expect(<span class="string">&quot;class must be function object&quot;</span>);
+        class_object
             .borrow_mut()
             .as_function_mut()
             .expect(<span class="string">&quot;class must be function object&quot;</span>)
             .push_private_method(
-                name.sym(),
+                name,
                 PrivateElement::Accessor {
                     getter: <span class="prelude-val">None</span>,
                     setter: <span class="prelude-val">Some</span>(setter_object.clone()),
                 },
             );
+        <span class="kw">let </span><span class="kw-2">mut </span>setter_object_mut = setter_object.borrow_mut();
+        <span class="kw">let </span>function = setter_object_mut
+            .as_function_mut()
+            .expect(<span class="string">&quot;setter must be function object&quot;</span>);
+        function.set_class_object(class_object.clone());
         <span class="prelude-val">Ok</span>(ShouldExit::False)
     }
 }

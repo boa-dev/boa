@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"enum":[["ClassElement","An element that can be within a [`Class`], as defined by the spec."]],"struct":[["Class","A class declaration, as defined by the spec."]]};
+window.SIDEBAR_ITEMS = {"enum":[["ClassElement","An element that can be within a [`Class`], as defined by the spec."]],"struct":[["Class","A class declaration, as defined by the spec."],["PrivateName","A private name as defined by the spec."]]};

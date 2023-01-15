@@ -1012,6 +1012,41 @@
 <span id="1011">1011</span>
 <span id="1012">1012</span>
 <span id="1013">1013</span>
+<span id="1014">1014</span>
+<span id="1015">1015</span>
+<span id="1016">1016</span>
+<span id="1017">1017</span>
+<span id="1018">1018</span>
+<span id="1019">1019</span>
+<span id="1020">1020</span>
+<span id="1021">1021</span>
+<span id="1022">1022</span>
+<span id="1023">1023</span>
+<span id="1024">1024</span>
+<span id="1025">1025</span>
+<span id="1026">1026</span>
+<span id="1027">1027</span>
+<span id="1028">1028</span>
+<span id="1029">1029</span>
+<span id="1030">1030</span>
+<span id="1031">1031</span>
+<span id="1032">1032</span>
+<span id="1033">1033</span>
+<span id="1034">1034</span>
+<span id="1035">1035</span>
+<span id="1036">1036</span>
+<span id="1037">1037</span>
+<span id="1038">1038</span>
+<span id="1039">1039</span>
+<span id="1040">1040</span>
+<span id="1041">1041</span>
+<span id="1042">1042</span>
+<span id="1043">1043</span>
+<span id="1044">1044</span>
+<span id="1045">1045</span>
+<span id="1046">1046</span>
+<span id="1047">1047</span>
+<span id="1048">1048</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Boa&#39;s implementation of ECMAScript&#39;s global `Function` object and Native Functions.
 //!
 //! Objects wrap `Function`s and expose them via call/construct slots.
@@ -1042,7 +1077,7 @@
     Context, JsResult, JsString, JsValue,
 };
 <span class="kw">use </span>boa_ast::{
-    function::FormalParameterList,
+    function::{FormalParameterList, PrivateName},
     operations::{bound_names, contains, lexically_declared_names, ContainsSymbol},
     StatementList,
 };
@@ -1140,7 +1175,7 @@
     </span>Public(PropertyKey, JsFunction),
 
     <span class="doccomment">/// A class field definition with a private name.
-    </span>Private(Sym, JsFunction),
+    </span>Private(PrivateName, JsFunction),
 }
 
 <span class="kw">unsafe impl </span>Trace <span class="kw">for </span>ClassFieldDefinition {
@@ -1190,7 +1225,10 @@
         </span>fields: Vec&lt;ClassFieldDefinition&gt;,
 
         <span class="doccomment">/// The `[[PrivateMethods]]` internal slot.
-        </span>private_methods: Vec&lt;(Sym, PrivateElement)&gt;,
+        </span>private_methods: Vec&lt;(PrivateName, PrivateElement)&gt;,
+
+        <span class="doccomment">/// The class object that this function is associated with.
+        </span>class_object: <span class="prelude-ty">Option</span>&lt;JsObject&gt;,
     },
 
     <span class="doccomment">/// A bytecode async function.
@@ -1206,6 +1244,9 @@
 
         <span class="doccomment">/// The promise capability record of the async function.
         </span>promise_capability: PromiseCapability,
+
+        <span class="doccomment">/// The class object that this function is associated with.
+        </span>class_object: <span class="prelude-ty">Option</span>&lt;JsObject&gt;,
     },
 
     <span class="doccomment">/// A bytecode generator function.
@@ -1218,6 +1259,9 @@
 
         <span class="doccomment">/// The `[[HomeObject]]` internal slot.
         </span>home_object: <span class="prelude-ty">Option</span>&lt;JsObject&gt;,
+
+        <span class="doccomment">/// The class object that this function is associated with.
+        </span>class_object: <span class="prelude-ty">Option</span>&lt;JsObject&gt;,
     },
 
     <span class="doccomment">/// A bytecode async generator function.
@@ -1230,6 +1274,9 @@
 
         <span class="doccomment">/// The `[[HomeObject]]` internal slot.
         </span>home_object: <span class="prelude-ty">Option</span>&lt;JsObject&gt;,
+
+        <span class="doccomment">/// The class object that this function is associated with.
+        </span>class_object: <span class="prelude-ty">Option</span>&lt;JsObject&gt;,
     },
 }
 
@@ -1237,7 +1284,7 @@
     <span class="macro">custom_trace! </span>{this, {
         <span class="kw">match </span>this {
             <span class="self">Self</span>::Native { function, .. } =&gt; {mark(function)}
-            <span class="self">Self</span>::Ordinary { code, environments, home_object, fields, private_methods, .. } =&gt; {
+            <span class="self">Self</span>::Ordinary { code, environments, home_object, fields, private_methods, class_object, .. } =&gt; {
                 mark(code);
                 mark(environments);
                 mark(home_object);
@@ -1245,18 +1292,21 @@
                 <span class="kw">for </span>(<span class="kw">_</span>, elem) <span class="kw">in </span>private_methods {
                     mark(elem);
                 }
+                mark(class_object);
             }
-            <span class="self">Self</span>::Async { code, environments, home_object, promise_capability } =&gt; {
+            <span class="self">Self</span>::Async { code, environments, home_object, promise_capability, class_object } =&gt; {
                 mark(code);
                 mark(environments);
                 mark(home_object);
                 mark(promise_capability);
+                mark(class_object);
             }
-            <span class="self">Self</span>::Generator { code, environments, home_object}
-            | <span class="self">Self</span>::AsyncGenerator { code, environments, home_object} =&gt; {
+            <span class="self">Self</span>::Generator { code, environments, home_object, class_object}
+            | <span class="self">Self</span>::AsyncGenerator { code, environments, home_object, class_object} =&gt; {
                 mark(code);
                 mark(environments);
                 mark(home_object);
+                mark(class_object);
             }
         }
     }}
@@ -1287,6 +1337,15 @@
             constructor_kind.is_derived()
         } <span class="kw">else </span>{
             <span class="bool-val">false
+        </span>}
+    }
+
+    <span class="doccomment">/// Returns the `[[ClassFieldInitializerName]]` internal slot of the function.
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>class_field_initializer_name(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;Sym&gt; {
+        <span class="kw">if let </span><span class="self">Self</span>::Ordinary { code, .. } = <span class="self">self </span>{
+            code.class_field_initializer_name
+        } <span class="kw">else </span>{
+            <span class="prelude-val">None
         </span>}
     }
 
@@ -1329,14 +1388,14 @@
     }
 
     <span class="doccomment">/// Pushes a private value to the `[[Fields]]` internal slot if present.
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>push_field_private(<span class="kw-2">&amp;mut </span><span class="self">self</span>, key: Sym, value: JsFunction) {
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>push_field_private(<span class="kw-2">&amp;mut </span><span class="self">self</span>, key: PrivateName, value: JsFunction) {
         <span class="kw">if let </span><span class="self">Self</span>::Ordinary { fields, .. } = <span class="self">self </span>{
             fields.push(ClassFieldDefinition::Private(key, value));
         }
     }
 
     <span class="doccomment">/// Returns the values of the `[[PrivateMethods]]` internal slot.
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>get_private_methods(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>[(Sym, PrivateElement)] {
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>get_private_methods(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>[(PrivateName, PrivateElement)] {
         <span class="kw">if let </span><span class="self">Self</span>::Ordinary {
             private_methods, ..
         } = <span class="self">self
@@ -1348,7 +1407,7 @@
     }
 
     <span class="doccomment">/// Pushes a private method to the `[[PrivateMethods]]` internal slot if present.
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>push_private_method(<span class="kw-2">&amp;mut </span><span class="self">self</span>, name: Sym, method: PrivateElement) {
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>push_private_method(<span class="kw-2">&amp;mut </span><span class="self">self</span>, name: PrivateName, method: PrivateElement) {
         <span class="kw">if let </span><span class="self">Self</span>::Ordinary {
             private_methods, ..
         } = <span class="self">self
@@ -1367,6 +1426,17 @@
         } <span class="kw">else </span>{
             <span class="prelude-val">None
         </span>}
+    }
+
+    <span class="doccomment">///  Sets the class object.
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>set_class_object(<span class="kw-2">&amp;mut </span><span class="self">self</span>, object: JsObject) {
+        <span class="kw">match </span><span class="self">self </span>{
+            <span class="self">Self</span>::Ordinary { class_object, .. }
+            | <span class="self">Self</span>::Async { class_object, .. }
+            | <span class="self">Self</span>::Generator { class_object, .. }
+            | <span class="self">Self</span>::AsyncGenerator { class_object, .. } =&gt; <span class="kw-2">*</span>class_object = <span class="prelude-val">Some</span>(object),
+            <span class="self">Self</span>::Native { .. } =&gt; {}
+        }
     }
 }
 
@@ -1909,7 +1979,7 @@
 ///  - [ECMAScript reference][spec]
 ///
 /// [spec]: https://tc39.es/ecma262/#sec-setfunctionname
-</span><span class="kw">fn </span>set_function_name(
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>set_function_name(
     function: <span class="kw-2">&amp;</span>JsObject,
     name: <span class="kw-2">&amp;</span>PropertyKey,
     prefix: <span class="prelude-ty">Option</span>&lt;JsString&gt;,

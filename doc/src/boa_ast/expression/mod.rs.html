@@ -310,6 +310,27 @@
 <span id="309">309</span>
 <span id="310">310</span>
 <span id="311">311</span>
+<span id="312">312</span>
+<span id="313">313</span>
+<span id="314">314</span>
+<span id="315">315</span>
+<span id="316">316</span>
+<span id="317">317</span>
+<span id="318">318</span>
+<span id="319">319</span>
+<span id="320">320</span>
+<span id="321">321</span>
+<span id="322">322</span>
+<span id="323">323</span>
+<span id="324">324</span>
+<span id="325">325</span>
+<span id="326">326</span>
+<span id="327">327</span>
+<span id="328">328</span>
+<span id="329">329</span>
+<span id="330">330</span>
+<span id="331">331</span>
+<span id="332">332</span>
 </pre><pre class="rust"><code><span class="doccomment">//! The [`Expression`] Parse Node, as defined by the [spec].
 //!
 //! ECMAScript expressions include:
@@ -527,6 +548,27 @@
                 | <span class="self">Self</span>::AsyncFunction(<span class="kw">_</span>)
                 | <span class="self">Self</span>::Class(<span class="kw">_</span>)
         )
+    }
+
+    <span class="doccomment">/// Returns if the expression is a function definition without a name.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-isanonymousfunctiondefinition
+    </span><span class="attribute">#[must_use]
+    #[inline]
+    </span><span class="kw">pub const fn </span>is_anonymous_function_definition(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="kw">match </span><span class="self">self </span>{
+            <span class="self">Self</span>::ArrowFunction(f) =&gt; f.name().is_none(),
+            <span class="self">Self</span>::AsyncArrowFunction(f) =&gt; f.name().is_none(),
+            <span class="self">Self</span>::Function(f) =&gt; f.name().is_none(),
+            <span class="self">Self</span>::Generator(f) =&gt; f.name().is_none(),
+            <span class="self">Self</span>::AsyncGenerator(f) =&gt; f.name().is_none(),
+            <span class="self">Self</span>::AsyncFunction(f) =&gt; f.name().is_none(),
+            <span class="self">Self</span>::Class(f) =&gt; f.name().is_none(),
+            <span class="kw">_ </span>=&gt; <span class="bool-val">false</span>,
+        }
     }
 }
 

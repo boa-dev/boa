@@ -276,10 +276,13 @@
 <span id="275">275</span>
 <span id="276">276</span>
 <span id="277">277</span>
+<span id="278">278</span>
+<span id="279">279</span>
+<span id="280">280</span>
 </pre><pre class="rust"><code><span class="kw">use crate</span>::{
     environments::EnvironmentSlots,
     error::JsNativeError,
-    vm::{code_block::initialize_instance_elements, opcode::Operation, ShouldExit},
+    vm::{opcode::Operation, ShouldExit},
     Context, JsResult, JsValue,
 };
 
@@ -398,8 +401,6 @@
 
         <span class="kw">let </span>result = super_constructor.__construct__(<span class="kw-2">&amp;</span>arguments, <span class="kw-2">&amp;</span>new_target, context)<span class="question-mark">?</span>;
 
-        initialize_instance_elements(<span class="kw-2">&amp;</span>result, <span class="kw-2">&amp;</span>active_function, context)<span class="question-mark">?</span>;
-
         <span class="kw">let </span>this_env = context
             .realm
             .environments
@@ -412,6 +413,9 @@
                 .with_message(<span class="string">&quot;this already initialized&quot;</span>)
                 .into());
         }
+
+        result.initialize_instance_elements(<span class="kw-2">&amp;</span>active_function, context)<span class="question-mark">?</span>;
+
         context.vm.push(result);
         <span class="prelude-val">Ok</span>(ShouldExit::False)
     }
@@ -469,8 +473,6 @@
 
         <span class="kw">let </span>result = super_constructor.__construct__(<span class="kw-2">&amp;</span>arguments, <span class="kw-2">&amp;</span>new_target, context)<span class="question-mark">?</span>;
 
-        initialize_instance_elements(<span class="kw-2">&amp;</span>result, <span class="kw-2">&amp;</span>active_function, context)<span class="question-mark">?</span>;
-
         <span class="kw">let </span>this_env = context
             .realm
             .environments
@@ -483,6 +485,9 @@
                 .with_message(<span class="string">&quot;this already initialized&quot;</span>)
                 .into());
         }
+
+        result.initialize_instance_elements(<span class="kw-2">&amp;</span>active_function, context)<span class="question-mark">?</span>;
+
         context.vm.push(result);
         <span class="prelude-val">Ok</span>(ShouldExit::False)
     }
@@ -535,19 +540,20 @@
 
         <span class="kw">let </span>result = super_constructor.__construct__(<span class="kw-2">&amp;</span>arguments, <span class="kw-2">&amp;</span>new_target, context)<span class="question-mark">?</span>;
 
-        initialize_instance_elements(<span class="kw-2">&amp;</span>result, <span class="kw-2">&amp;</span>active_function, context)<span class="question-mark">?</span>;
-
         <span class="kw">let </span>this_env = context
             .realm
             .environments
             .get_this_environment()
             .as_function_slots()
             .expect(<span class="string">&quot;super call must be in function environment&quot;</span>);
+
         <span class="kw">if </span>!this_env.borrow_mut().bind_this_value(<span class="kw-2">&amp;</span>result) {
             <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::reference()
                 .with_message(<span class="string">&quot;this already initialized&quot;</span>)
                 .into());
         }
+
+        result.initialize_instance_elements(<span class="kw-2">&amp;</span>active_function, context)<span class="question-mark">?</span>;
 
         context.vm.push(result);
         <span class="prelude-val">Ok</span>(ShouldExit::False)

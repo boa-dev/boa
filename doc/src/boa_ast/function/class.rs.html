@@ -506,9 +506,79 @@
 <span id="505">505</span>
 <span id="506">506</span>
 <span id="507">507</span>
-</pre><pre class="rust"><code><span class="kw">use </span>core::ops::ControlFlow;
-<span class="kw">use </span>std::borrow::Cow;
-
+<span id="508">508</span>
+<span id="509">509</span>
+<span id="510">510</span>
+<span id="511">511</span>
+<span id="512">512</span>
+<span id="513">513</span>
+<span id="514">514</span>
+<span id="515">515</span>
+<span id="516">516</span>
+<span id="517">517</span>
+<span id="518">518</span>
+<span id="519">519</span>
+<span id="520">520</span>
+<span id="521">521</span>
+<span id="522">522</span>
+<span id="523">523</span>
+<span id="524">524</span>
+<span id="525">525</span>
+<span id="526">526</span>
+<span id="527">527</span>
+<span id="528">528</span>
+<span id="529">529</span>
+<span id="530">530</span>
+<span id="531">531</span>
+<span id="532">532</span>
+<span id="533">533</span>
+<span id="534">534</span>
+<span id="535">535</span>
+<span id="536">536</span>
+<span id="537">537</span>
+<span id="538">538</span>
+<span id="539">539</span>
+<span id="540">540</span>
+<span id="541">541</span>
+<span id="542">542</span>
+<span id="543">543</span>
+<span id="544">544</span>
+<span id="545">545</span>
+<span id="546">546</span>
+<span id="547">547</span>
+<span id="548">548</span>
+<span id="549">549</span>
+<span id="550">550</span>
+<span id="551">551</span>
+<span id="552">552</span>
+<span id="553">553</span>
+<span id="554">554</span>
+<span id="555">555</span>
+<span id="556">556</span>
+<span id="557">557</span>
+<span id="558">558</span>
+<span id="559">559</span>
+<span id="560">560</span>
+<span id="561">561</span>
+<span id="562">562</span>
+<span id="563">563</span>
+<span id="564">564</span>
+<span id="565">565</span>
+<span id="566">566</span>
+<span id="567">567</span>
+<span id="568">568</span>
+<span id="569">569</span>
+<span id="570">570</span>
+<span id="571">571</span>
+<span id="572">572</span>
+<span id="573">573</span>
+<span id="574">574</span>
+<span id="575">575</span>
+<span id="576">576</span>
+<span id="577">577</span>
+<span id="578">578</span>
+<span id="579">579</span>
+</pre><pre class="rust"><code><span class="kw">use </span><span class="kw">super</span>::Function;
 <span class="kw">use crate</span>::{
     block_to_string,
     expression::{Expression, Identifier},
@@ -519,8 +589,9 @@
     Declaration, StatementList, ToStringEscaped,
 };
 <span class="kw">use </span>boa_interner::{Interner, Sym, ToIndentedString, ToInternedString};
-
-<span class="kw">use </span><span class="kw">super</span>::Function;
+<span class="kw">use </span>core::ops::ControlFlow;
+<span class="kw">use </span>std::borrow::Cow;
+<span class="kw">use </span>std::hash::Hash;
 
 <span class="doccomment">/// A class declaration, as defined by the [spec].
 ///
@@ -535,8 +606,9 @@
 </span><span class="kw">pub struct </span>Class {
     name: <span class="prelude-ty">Option</span>&lt;Identifier&gt;,
     super_ref: <span class="prelude-ty">Option</span>&lt;Expression&gt;,
-    constructor: <span class="prelude-ty">Option</span>&lt;Function&gt;,
-    elements: Box&lt;[ClassElement]&gt;,
+    <span class="kw">pub</span>(<span class="kw">crate</span>) constructor: <span class="prelude-ty">Option</span>&lt;Function&gt;,
+    <span class="kw">pub</span>(<span class="kw">crate</span>) elements: Box&lt;[ClassElement]&gt;,
+    has_binding_identifier: bool,
 }
 
 <span class="kw">impl </span>Class {
@@ -548,12 +620,14 @@
         super_ref: <span class="prelude-ty">Option</span>&lt;Expression&gt;,
         constructor: <span class="prelude-ty">Option</span>&lt;Function&gt;,
         elements: Box&lt;[ClassElement]&gt;,
+        has_binding_identifier: bool,
     ) -&gt; <span class="self">Self </span>{
         <span class="self">Self </span>{
             name,
             super_ref,
             constructor,
             elements,
+            has_binding_identifier,
         }
     }
 
@@ -583,6 +657,13 @@
     #[must_use]
     </span><span class="kw">pub const fn </span>elements(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>[ClassElement] {
         <span class="kw-2">&amp;</span><span class="self">self</span>.elements
+    }
+
+    <span class="doccomment">/// Returns whether the class has a binding identifier.
+    </span><span class="attribute">#[inline]
+    #[must_use]
+    </span><span class="kw">pub const fn </span>has_binding_identifier(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="self">self</span>.has_binding_identifier
     }
 }
 
@@ -746,7 +827,7 @@
                             MethodDefinition::Set(<span class="kw">_</span>) =&gt; <span class="string">&quot;set &quot;</span>,
                             <span class="kw">_ </span>=&gt; <span class="string">&quot;&quot;</span>,
                         },
-                        interner.resolve_expect(<span class="kw-2">*</span>name),
+                        interner.resolve_expect(name.description()),
                         <span class="kw">match </span><span class="kw-2">&amp;</span>method {
                             MethodDefinition::Get(expr)
                             | MethodDefinition::Set(expr)
@@ -789,7 +870,7 @@
                             MethodDefinition::Set(<span class="kw">_</span>) =&gt; <span class="string">&quot;set &quot;</span>,
                             <span class="kw">_ </span>=&gt; <span class="string">&quot;&quot;</span>,
                         },
-                        interner.resolve_expect(<span class="kw-2">*</span>name),
+                        interner.resolve_expect(name.description()),
                         <span class="kw">match </span><span class="kw-2">&amp;</span>method {
                             MethodDefinition::Get(expr)
                             | MethodDefinition::Set(expr)
@@ -828,24 +909,30 @@
                     <span class="prelude-val">Some</span>(expr) =&gt; {
                         <span class="macro">format!</span>(
                             <span class="string">&quot;{indentation}#{} = {};\n&quot;</span>,
-                            interner.resolve_expect(<span class="kw-2">*</span>name),
+                            interner.resolve_expect(name.description()),
                             expr.to_no_indent_string(interner, indent_n + <span class="number">1</span>)
                         )
                     }
                     <span class="prelude-val">None </span>=&gt; {
-                        <span class="macro">format!</span>(<span class="string">&quot;{indentation}#{};\n&quot;</span>, interner.resolve_expect(<span class="kw-2">*</span>name),)
+                        <span class="macro">format!</span>(
+                            <span class="string">&quot;{indentation}#{};\n&quot;</span>,
+                            interner.resolve_expect(name.description()),
+                        )
                     }
                 },
                 ClassElement::PrivateStaticFieldDefinition(name, field) =&gt; <span class="kw">match </span>field {
                     <span class="prelude-val">Some</span>(expr) =&gt; {
                         <span class="macro">format!</span>(
                             <span class="string">&quot;{indentation}static #{} = {};\n&quot;</span>,
-                            interner.resolve_expect(<span class="kw-2">*</span>name),
+                            interner.resolve_expect(name.description()),
                             expr.to_no_indent_string(interner, indent_n + <span class="number">1</span>)
                         )
                     }
                     <span class="prelude-val">None </span>=&gt; {
-                        <span class="macro">format!</span>(<span class="string">&quot;{indentation}static #{};\n&quot;</span>, interner.resolve_expect(<span class="kw-2">*</span>name),)
+                        <span class="macro">format!</span>(
+                            <span class="string">&quot;{indentation}static #{};\n&quot;</span>,
+                            interner.resolve_expect(name.description()),
+                        )
                     }
                 },
                 ClassElement::StaticBlock(statement_list) =&gt; {
@@ -922,22 +1009,30 @@
 </span><span class="kw">pub enum </span>ClassElement {
     <span class="doccomment">/// A method definition, including `get` and `set` accessors.
     </span>MethodDefinition(PropertyName, MethodDefinition),
+
     <span class="doccomment">/// A static method definition, accessible from the class constructor object.
     </span>StaticMethodDefinition(PropertyName, MethodDefinition),
+
     <span class="doccomment">/// A field definition.
     </span>FieldDefinition(PropertyName, <span class="prelude-ty">Option</span>&lt;Expression&gt;),
+
     <span class="doccomment">/// A static field definition, accessible from the class constructor object
     </span>StaticFieldDefinition(PropertyName, <span class="prelude-ty">Option</span>&lt;Expression&gt;),
+
     <span class="doccomment">/// A private method definition, only accessible inside the class declaration.
-    </span>PrivateMethodDefinition(Sym, MethodDefinition),
+    </span>PrivateMethodDefinition(PrivateName, MethodDefinition),
+
     <span class="doccomment">/// A private static method definition, only accessible from static methods and fields inside
     /// the class declaration.
-    </span>PrivateStaticMethodDefinition(Sym, MethodDefinition),
+    </span>PrivateStaticMethodDefinition(PrivateName, MethodDefinition),
+
     <span class="doccomment">/// A private field definition, only accessible inside the class declaration.
-    </span>PrivateFieldDefinition(Sym, <span class="prelude-ty">Option</span>&lt;Expression&gt;),
+    </span>PrivateFieldDefinition(PrivateName, <span class="prelude-ty">Option</span>&lt;Expression&gt;),
+
     <span class="doccomment">/// A private static field definition, only accessible from static methods and fields inside the
     /// class declaration.
-    </span>PrivateStaticFieldDefinition(Sym, <span class="prelude-ty">Option</span>&lt;Expression&gt;),
+    </span>PrivateStaticFieldDefinition(PrivateName, <span class="prelude-ty">Option</span>&lt;Expression&gt;),
+
     <span class="doccomment">/// A static block, where a class can have initialization logic for its static fields.
     </span>StaticBlock(StatementList),
 }
@@ -960,14 +1055,14 @@
                     ControlFlow::Continue(())
                 }
             }
-            <span class="self">Self</span>::PrivateMethodDefinition(sym, md)
-            | <span class="self">Self</span>::PrivateStaticMethodDefinition(sym, md) =&gt; {
-                <span class="macro">try_break!</span>(visitor.visit_sym(sym));
+            <span class="self">Self</span>::PrivateMethodDefinition(name, md)
+            | <span class="self">Self</span>::PrivateStaticMethodDefinition(name, md) =&gt; {
+                <span class="macro">try_break!</span>(visitor.visit_private_name(name));
                 visitor.visit_method_definition(md)
             }
-            <span class="self">Self</span>::PrivateFieldDefinition(sym, maybe_expr)
-            | <span class="self">Self</span>::PrivateStaticFieldDefinition(sym, maybe_expr) =&gt; {
-                <span class="macro">try_break!</span>(visitor.visit_sym(sym));
+            <span class="self">Self</span>::PrivateFieldDefinition(name, maybe_expr)
+            | <span class="self">Self</span>::PrivateStaticFieldDefinition(name, maybe_expr) =&gt; {
+                <span class="macro">try_break!</span>(visitor.visit_private_name(name));
                 <span class="kw">if let </span><span class="prelude-val">Some</span>(expr) = maybe_expr {
                     visitor.visit_expression(expr)
                 } <span class="kw">else </span>{
@@ -995,14 +1090,14 @@
                     ControlFlow::Continue(())
                 }
             }
-            <span class="self">Self</span>::PrivateMethodDefinition(sym, md)
-            | <span class="self">Self</span>::PrivateStaticMethodDefinition(sym, md) =&gt; {
-                <span class="macro">try_break!</span>(visitor.visit_sym_mut(sym));
+            <span class="self">Self</span>::PrivateMethodDefinition(name, md)
+            | <span class="self">Self</span>::PrivateStaticMethodDefinition(name, md) =&gt; {
+                <span class="macro">try_break!</span>(visitor.visit_private_name_mut(name));
                 visitor.visit_method_definition_mut(md)
             }
-            <span class="self">Self</span>::PrivateFieldDefinition(sym, maybe_expr)
-            | <span class="self">Self</span>::PrivateStaticFieldDefinition(sym, maybe_expr) =&gt; {
-                <span class="macro">try_break!</span>(visitor.visit_sym_mut(sym));
+            <span class="self">Self</span>::PrivateFieldDefinition(name, maybe_expr)
+            | <span class="self">Self</span>::PrivateStaticFieldDefinition(name, maybe_expr) =&gt; {
+                <span class="macro">try_break!</span>(visitor.visit_private_name_mut(name));
                 <span class="kw">if let </span><span class="prelude-val">Some</span>(expr) = maybe_expr {
                     visitor.visit_expression_mut(expr)
                 } <span class="kw">else </span>{
@@ -1011,6 +1106,55 @@
             }
             <span class="self">Self</span>::StaticBlock(sl) =&gt; visitor.visit_statement_list_mut(sl),
         }
+    }
+}
+
+<span class="doccomment">/// A private name as defined by the [spec].
+///
+/// [spec]: https://tc39.es/ecma262/#sec-private-names
+</span><span class="attribute">#[cfg_attr(feature = <span class="string">&quot;serde&quot;</span>, derive(serde::Serialize, serde::Deserialize))]
+#[cfg_attr(feature = <span class="string">&quot;fuzz&quot;</span>, derive(arbitrary::Arbitrary))]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
+</span><span class="kw">pub struct </span>PrivateName {
+    <span class="doccomment">/// The `[[Description]]` internal slot of the private name.
+    </span>description: Sym,
+
+    <span class="doccomment">/// The indices of the private name are included to ensure that private names are unique.
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) indices: (usize, usize),
+}
+
+<span class="kw">impl </span>PrivateName {
+    <span class="doccomment">/// Create a new private name.
+    </span><span class="attribute">#[inline]
+    #[must_use]
+    </span><span class="kw">pub const fn </span>new(description: Sym) -&gt; <span class="self">Self </span>{
+        <span class="self">Self </span>{
+            description,
+            indices: (<span class="number">0</span>, <span class="number">0</span>),
+        }
+    }
+
+    <span class="doccomment">/// Get the description of the private name.
+    </span><span class="attribute">#[inline]
+    #[must_use]
+    </span><span class="kw">pub const fn </span>description(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Sym {
+        <span class="self">self</span>.description
+    }
+}
+
+<span class="kw">impl </span>VisitWith <span class="kw">for </span>PrivateName {
+    <span class="kw">fn </span>visit_with&lt;<span class="lifetime">&#39;a</span>, V&gt;(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="self">self</span>, visitor: <span class="kw-2">&amp;mut </span>V) -&gt; ControlFlow&lt;V::BreakTy&gt;
+    <span class="kw">where
+        </span>V: Visitor&lt;<span class="lifetime">&#39;a</span>&gt;,
+    {
+        visitor.visit_sym(<span class="kw-2">&amp;</span><span class="self">self</span>.description)
+    }
+
+    <span class="kw">fn </span>visit_with_mut&lt;<span class="lifetime">&#39;a</span>, V&gt;(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span><span class="self">self</span>, visitor: <span class="kw-2">&amp;mut </span>V) -&gt; ControlFlow&lt;V::BreakTy&gt;
+    <span class="kw">where
+        </span>V: VisitorMut&lt;<span class="lifetime">&#39;a</span>&gt;,
+    {
+        visitor.visit_sym_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>.description)
     }
 }
 </code></pre></div>

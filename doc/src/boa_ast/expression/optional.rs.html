@@ -248,14 +248,14 @@
 <span id="247">247</span>
 <span id="248">248</span>
 <span id="249">249</span>
-</pre><pre class="rust"><code><span class="kw">use </span>boa_interner::{Interner, Sym, ToInternedString};
+</pre><pre class="rust"><code><span class="kw">use super</span>::{access::PropertyAccessField, Expression};
+<span class="kw">use crate</span>::{
+    function::PrivateName,
+    join_nodes, try_break,
+    visitor::{VisitWith, Visitor, VisitorMut},
+};
+<span class="kw">use </span>boa_interner::{Interner, ToInternedString};
 <span class="kw">use </span>core::ops::ControlFlow;
-
-<span class="kw">use </span><span class="kw">crate</span>::join_nodes;
-<span class="kw">use </span><span class="kw">crate</span>::try_break;
-<span class="kw">use </span><span class="kw">crate</span>::visitor::{VisitWith, Visitor, VisitorMut};
-
-<span class="kw">use super</span>::{access::PropertyAccessField, Expression};
 
 <span class="doccomment">/// List of valid operations in an [`Optional`] chain.
 </span><span class="attribute">#[cfg_attr(feature = <span class="string">&quot;serde&quot;</span>, derive(serde::Serialize, serde::Deserialize))]
@@ -270,7 +270,7 @@
     <span class="doccomment">/// A private property access (`a?.#prop`).
     </span>PrivatePropertyAccess {
         <span class="doccomment">/// The private property accessed.
-        </span>field: Sym,
+        </span>field: PrivateName,
     },
     <span class="doccomment">/// A function call (`a?.(arg)`).
     </span>Call {
@@ -286,7 +286,7 @@
     {
         <span class="kw">match </span><span class="self">self </span>{
             <span class="self">Self</span>::SimplePropertyAccess { field } =&gt; visitor.visit_property_access_field(field),
-            <span class="self">Self</span>::PrivatePropertyAccess { field } =&gt; visitor.visit_sym(field),
+            <span class="self">Self</span>::PrivatePropertyAccess { field } =&gt; visitor.visit_private_name(field),
             <span class="self">Self</span>::Call { args } =&gt; {
                 <span class="kw">for </span>arg <span class="kw">in </span>args.iter() {
                     <span class="macro">try_break!</span>(visitor.visit_expression(arg));
@@ -302,7 +302,7 @@
     {
         <span class="kw">match </span><span class="self">self </span>{
             <span class="self">Self</span>::SimplePropertyAccess { field } =&gt; visitor.visit_property_access_field_mut(field),
-            <span class="self">Self</span>::PrivatePropertyAccess { field } =&gt; visitor.visit_sym_mut(field),
+            <span class="self">Self</span>::PrivatePropertyAccess { field } =&gt; visitor.visit_private_name_mut(field),
             <span class="self">Self</span>::Call { args } =&gt; {
                 <span class="kw">for </span>arg <span class="kw">in </span>args.iter_mut() {
                     <span class="macro">try_break!</span>(visitor.visit_expression_mut(arg));
@@ -363,7 +363,7 @@
             }
 
             <span class="kw">if let </span>OptionalOperationKind::PrivatePropertyAccess { field } = <span class="kw-2">&amp;</span><span class="self">self</span>.kind {
-                <span class="kw">return </span><span class="macro">format!</span>(<span class="string">&quot;.#{}&quot;</span>, interner.resolve_expect(<span class="kw-2">*</span>field));
+                <span class="kw">return </span><span class="macro">format!</span>(<span class="string">&quot;.#{}&quot;</span>, interner.resolve_expect(field.description()));
             }
 
             String::new()
@@ -376,7 +376,7 @@
                 }
             },
             OptionalOperationKind::PrivatePropertyAccess { field } =&gt; {
-                <span class="macro">format!</span>(<span class="string">&quot;#{}&quot;</span>, interner.resolve_expect(<span class="kw-2">*</span>field))
+                <span class="macro">format!</span>(<span class="string">&quot;#{}&quot;</span>, interner.resolve_expect(field.description()))
             }
             OptionalOperationKind::Call { args } =&gt; <span class="macro">format!</span>(<span class="string">&quot;({})&quot;</span>, join_nodes(interner, args)),
         });

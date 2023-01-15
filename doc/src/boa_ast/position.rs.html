@@ -310,7 +310,7 @@
 /// ## Similar Implementations
 /// [V8: Location](https://cs.chromium.org/chromium/src/v8/src/parsing/scanner.h?type=cs&amp;q=isValid+Location&amp;g=0&amp;l=216)
 </span><span class="attribute">#[cfg_attr(feature = <span class="string">&quot;serde&quot;</span>, derive(serde::Serialize, serde::Deserialize))]
-#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 </span><span class="kw">pub struct </span>Position {
     <span class="doccomment">/// Line number.
     </span>line_number: NonZeroU32,
@@ -358,7 +358,7 @@
 /// Note that spans are of the form [start, end) i.e. that the start position is inclusive
 /// and the end position is exclusive.
 </span><span class="attribute">#[cfg_attr(feature = <span class="string">&quot;serde&quot;</span>, derive(serde::Serialize, serde::Deserialize))]
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 </span><span class="kw">pub struct </span>Span {
     start: Position,
     end: Position,

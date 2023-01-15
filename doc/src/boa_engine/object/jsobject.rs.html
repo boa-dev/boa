@@ -906,7 +906,6 @@
 <span id="905">905</span>
 <span id="906">906</span>
 <span id="907">907</span>
-<span id="908">908</span>
 </pre><pre class="rust"><code><span class="doccomment">//! This module implements the `JsObject` structure.
 //!
 //! The `JsObject` is a garbage collected Object.
@@ -920,7 +919,6 @@
     Context, JsResult, JsValue,
 };
 <span class="kw">use </span>boa_gc::{<span class="self">self</span>, Finalize, Gc, GcCell, Trace};
-<span class="kw">use </span>rustc_hash::FxHashMap;
 <span class="kw">use </span>std::{
     cell::RefCell,
     collections::HashMap,
@@ -983,7 +981,7 @@
                 prototype: prototype.into(),
                 extensible: <span class="bool-val">true</span>,
                 properties: PropertyMap::default(),
-                private_elements: FxHashMap::default(),
+                private_elements: Vec::new(),
             })),
         }
     }

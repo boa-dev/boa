@@ -1534,6 +1534,34 @@
 <span id="1533">1533</span>
 <span id="1534">1534</span>
 <span id="1535">1535</span>
+<span id="1536">1536</span>
+<span id="1537">1537</span>
+<span id="1538">1538</span>
+<span id="1539">1539</span>
+<span id="1540">1540</span>
+<span id="1541">1541</span>
+<span id="1542">1542</span>
+<span id="1543">1543</span>
+<span id="1544">1544</span>
+<span id="1545">1545</span>
+<span id="1546">1546</span>
+<span id="1547">1547</span>
+<span id="1548">1548</span>
+<span id="1549">1549</span>
+<span id="1550">1550</span>
+<span id="1551">1551</span>
+<span id="1552">1552</span>
+<span id="1553">1553</span>
+<span id="1554">1554</span>
+<span id="1555">1555</span>
+<span id="1556">1556</span>
+<span id="1557">1557</span>
+<span id="1558">1558</span>
+<span id="1559">1559</span>
+<span id="1560">1560</span>
+<span id="1561">1561</span>
+<span id="1562">1562</span>
+<span id="1563">1563</span>
 </pre><pre class="rust"><code><span class="doccomment">//! `CodeBlock`
 //!
 //! This module is for the `CodeBlock` which implements a function representation in the VM
@@ -1541,9 +1569,7 @@
 </span><span class="kw">use crate</span>::{
     builtins::{
         async_generator::{AsyncGenerator, AsyncGeneratorState},
-        function::{
-            arguments::Arguments, ClassFieldDefinition, ConstructorKind, Function, ThisMode,
-        },
+        function::{arguments::Arguments, ConstructorKind, Function, ThisMode},
         generator::{Generator, GeneratorContext, GeneratorState},
         promise::PromiseCapability,
     },
@@ -1551,15 +1577,16 @@
     environments::{BindingLocator, CompileTimeEnvironment},
     error::JsNativeError,
     js_string,
-    object::{
-        internal_methods::get_prototype_from_constructor, JsObject, ObjectData, PrivateElement,
-    },
+    object::{internal_methods::get_prototype_from_constructor, JsObject, ObjectData},
     property::PropertyDescriptor,
     vm::call_frame::GeneratorResumeKind,
     vm::{call_frame::FinallyReturn, CallFrame, Opcode},
     Context, JsResult, JsString, JsValue,
 };
-<span class="kw">use </span>boa_ast::{expression::Identifier, function::FormalParameterList};
+<span class="kw">use </span>boa_ast::{
+    expression::Identifier,
+    function::{FormalParameterList, PrivateName},
+};
 <span class="kw">use </span>boa_gc::{Finalize, Gc, GcCell, Trace};
 <span class="kw">use </span>boa_interner::{Interner, Sym, ToInternedString};
 <span class="kw">use </span>boa_profiler::Profiler;
@@ -1624,6 +1651,10 @@
     </span><span class="attribute">#[unsafe_ignore_trace]
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) names: Vec&lt;Identifier&gt;,
 
+    <span class="doccomment">/// Private names.
+    </span><span class="attribute">#[unsafe_ignore_trace]
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) private_names: Vec&lt;PrivateName&gt;,
+
     <span class="doccomment">/// Locators for all bindings in the codeblock.
     </span><span class="attribute">#[unsafe_ignore_trace]
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) bindings: Vec&lt;BindingLocator&gt;,
@@ -1644,6 +1675,10 @@
     <span class="doccomment">/// The `[[IsClassConstructor]]` internal slot.
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) is_class_constructor: bool,
 
+    <span class="doccomment">/// The `[[ClassFieldInitializerName]]` internal slot.
+    </span><span class="attribute">#[unsafe_ignore_trace]
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) class_field_initializer_name: <span class="prelude-ty">Option</span>&lt;Sym&gt;,
+
     <span class="doccomment">/// Marks the location in the code where the function environment in pushed.
     /// This is only relevant for functions with expressions in the parameters.
     /// We execute the parameter expressions in the function code and push the function environment afterward.
@@ -1659,6 +1694,7 @@
             code: Vec::new(),
             literals: Vec::new(),
             names: Vec::new(),
+            private_names: Vec::new(),
             bindings: Vec::new(),
             num_bindings: <span class="number">0</span>,
             functions: Vec::new(),
@@ -1671,6 +1707,7 @@
             arguments_binding: <span class="prelude-val">None</span>,
             compile_environments: Vec::new(),
             is_class_constructor: <span class="bool-val">false</span>,
+            class_field_initializer_name: <span class="prelude-val">None</span>,
             function_environment_push_location: <span class="number">0</span>,
         }
     }
@@ -1820,18 +1857,28 @@
             Opcode::GetPropertyByName
             | Opcode::SetPropertyByName
             | Opcode::DefineOwnPropertyByName
+            | Opcode::DefineClassStaticMethodByName
             | Opcode::DefineClassMethodByName
             | Opcode::SetPropertyGetterByName
+            | Opcode::DefineClassStaticGetterByName
             | Opcode::DefineClassGetterByName
             | Opcode::SetPropertySetterByName
+            | Opcode::DefineClassStaticSetterByName
             | Opcode::DefineClassSetterByName
-            | Opcode::AssignPrivateField
-            | Opcode::SetPrivateField
+            | Opcode::DeletePropertyByName =&gt; {
+                <span class="kw">let </span>operand = <span class="self">self</span>.read::&lt;u32&gt;(<span class="kw-2">*</span>pc);
+                <span class="kw-2">*</span>pc += size_of::&lt;u32&gt;();
+                <span class="macro">format!</span>(
+                    <span class="string">&quot;{operand:04}: &#39;{}&#39;&quot;</span>,
+                    interner.resolve_expect(<span class="self">self</span>.names[operand <span class="kw">as </span>usize].sym()),
+                )
+            }
+            Opcode::SetPrivateField
+            | Opcode::DefinePrivateField
             | Opcode::SetPrivateMethod
             | Opcode::SetPrivateSetter
             | Opcode::SetPrivateGetter
             | Opcode::GetPrivateField
-            | Opcode::DeletePropertyByName
             | Opcode::PushClassFieldPrivate
             | Opcode::PushClassPrivateGetter
             | Opcode::PushClassPrivateSetter
@@ -1840,7 +1887,7 @@
                 <span class="kw-2">*</span>pc += size_of::&lt;u32&gt;();
                 <span class="macro">format!</span>(
                     <span class="string">&quot;{operand:04}: &#39;{}&#39;&quot;</span>,
-                    interner.resolve_expect(<span class="self">self</span>.names[operand <span class="kw">as </span>usize].sym()),
+                    interner.resolve_expect(<span class="self">self</span>.private_names[operand <span class="kw">as </span>usize].description()),
                 )
             }
             Opcode::Pop
@@ -1896,10 +1943,13 @@
             | Opcode::GetPropertyByValuePush
             | Opcode::SetPropertyByValue
             | Opcode::DefineOwnPropertyByValue
+            | Opcode::DefineClassStaticMethodByValue
             | Opcode::DefineClassMethodByValue
             | Opcode::SetPropertyGetterByValue
+            | Opcode::DefineClassStaticGetterByValue
             | Opcode::DefineClassGetterByValue
             | Opcode::SetPropertySetterByValue
+            | Opcode::DefineClassStaticSetterByValue
             | Opcode::DefineClassSetterByValue
             | Opcode::DeletePropertyByValue
             | Opcode::DeleteSuperThrow
@@ -2079,6 +2129,7 @@
             environments: context.realm.environments.clone(),
             home_object: <span class="prelude-val">None</span>,
             promise_capability,
+            class_object: <span class="prelude-val">None</span>,
         }
     } <span class="kw">else </span>{
         Function::Ordinary {
@@ -2088,6 +2139,7 @@
             home_object: <span class="prelude-val">None</span>,
             fields: Vec::new(),
             private_methods: Vec::new(),
+            class_object: <span class="prelude-val">None</span>,
         }
     };
 
@@ -2185,6 +2237,7 @@
             code,
             environments: context.realm.environments.clone(),
             home_object: <span class="prelude-val">None</span>,
+            class_object: <span class="prelude-val">None</span>,
         };
         JsObject::from_proto_and_data(
             function_prototype,
@@ -2195,6 +2248,7 @@
             code,
             environments: context.realm.environments.clone(),
             home_object: <span class="prelude-val">None</span>,
+            class_object: <span class="prelude-val">None</span>,
         };
         JsObject::from_proto_and_data(function_prototype, ObjectData::generator_function(function))
     };
@@ -2253,10 +2307,14 @@
                 }
             }
             Function::Ordinary {
-                code, environments, ..
+                code,
+                environments,
+                class_object,
+                ..
             } =&gt; {
                 <span class="kw">let </span>code = code.clone();
                 <span class="kw">let </span><span class="kw-2">mut </span>environments = environments.clone();
+                <span class="kw">let </span>class_object = class_object.clone();
                 drop(object);
 
                 <span class="kw">if </span>code.is_class_constructor {
@@ -2285,6 +2343,20 @@
                 };
 
                 <span class="kw">let </span>compile_time_environment_index = usize::from(code.params.has_expressions());
+
+                <span class="kw">if let </span><span class="prelude-val">Some</span>(class_object) = class_object {
+                    <span class="kw">let </span>index = context.realm.environments.push_declarative(
+                        <span class="number">1</span>,
+                        code.compile_environments[compile_time_environment_index
+                            + usize::from(code.has_binding_identifier)
+                            + <span class="number">1</span>]
+                        .clone(),
+                    );
+                    context
+                        .realm
+                        .environments
+                        .put_value(index, <span class="number">0</span>, class_object.into());
+                }
 
                 <span class="kw">if </span>code.has_binding_identifier {
                     <span class="kw">let </span>index = context.realm.environments.push_declarative(
@@ -2378,11 +2450,13 @@
                 code,
                 environments,
                 promise_capability,
+                class_object,
                 ..
             } =&gt; {
                 <span class="kw">let </span>code = code.clone();
                 <span class="kw">let </span><span class="kw-2">mut </span>environments = environments.clone();
                 <span class="kw">let </span>promise = promise_capability.promise().clone();
+                <span class="kw">let </span>class_object = class_object.clone();
                 drop(object);
 
                 <span class="kw">let </span>environments_len = environments.len();
@@ -2405,6 +2479,20 @@
                 };
 
                 <span class="kw">let </span>compile_time_environment_index = usize::from(code.params.has_expressions());
+
+                <span class="kw">if let </span><span class="prelude-val">Some</span>(class_object) = class_object {
+                    <span class="kw">let </span>index = context.realm.environments.push_declarative(
+                        <span class="number">1</span>,
+                        code.compile_environments[compile_time_environment_index
+                            + usize::from(code.has_binding_identifier)
+                            + <span class="number">1</span>]
+                        .clone(),
+                    );
+                    context
+                        .realm
+                        .environments
+                        .put_value(index, <span class="number">0</span>, class_object.into());
+                }
 
                 <span class="kw">if </span>code.has_binding_identifier {
                     <span class="kw">let </span>index = context.realm.environments.push_declarative(
@@ -2494,10 +2582,14 @@
                 <span class="prelude-val">Ok</span>(promise.into())
             }
             Function::Generator {
-                code, environments, ..
+                code,
+                environments,
+                class_object,
+                ..
             } =&gt; {
                 <span class="kw">let </span>code = code.clone();
                 <span class="kw">let </span><span class="kw-2">mut </span>environments = environments.clone();
+                <span class="kw">let </span>class_object = class_object.clone();
                 drop(object);
 
                 std::mem::swap(<span class="kw-2">&amp;mut </span>environments, <span class="kw-2">&amp;mut </span>context.realm.environments);
@@ -2519,6 +2611,20 @@
                 };
 
                 <span class="kw">let </span>compile_time_environment_index = usize::from(code.params.has_expressions());
+
+                <span class="kw">if let </span><span class="prelude-val">Some</span>(class_object) = class_object {
+                    <span class="kw">let </span>index = context.realm.environments.push_declarative(
+                        <span class="number">1</span>,
+                        code.compile_environments[compile_time_environment_index
+                            + usize::from(code.has_binding_identifier)
+                            + <span class="number">1</span>]
+                        .clone(),
+                    );
+                    context
+                        .realm
+                        .environments
+                        .put_value(index, <span class="number">0</span>, class_object.into());
+                }
 
                 <span class="kw">if </span>code.has_binding_identifier {
                     <span class="kw">let </span>index = context.realm.environments.push_declarative(
@@ -2632,10 +2738,14 @@
                 <span class="prelude-val">Ok</span>(generator.into())
             }
             Function::AsyncGenerator {
-                code, environments, ..
+                code,
+                environments,
+                class_object,
+                ..
             } =&gt; {
                 <span class="kw">let </span>code = code.clone();
                 <span class="kw">let </span><span class="kw-2">mut </span>environments = environments.clone();
+                <span class="kw">let </span>class_object = class_object.clone();
                 drop(object);
 
                 std::mem::swap(<span class="kw-2">&amp;mut </span>environments, <span class="kw-2">&amp;mut </span>context.realm.environments);
@@ -2657,6 +2767,20 @@
                 };
 
                 <span class="kw">let </span>compile_time_environment_index = usize::from(code.params.has_expressions());
+
+                <span class="kw">if let </span><span class="prelude-val">Some</span>(class_object) = class_object {
+                    <span class="kw">let </span>index = context.realm.environments.push_declarative(
+                        <span class="number">1</span>,
+                        code.compile_environments[compile_time_environment_index
+                            + usize::from(code.has_binding_identifier)
+                            + <span class="number">1</span>]
+                        .clone(),
+                    );
+                    context
+                        .realm
+                        .environments
+                        .put_value(index, <span class="number">0</span>, class_object.into());
+                }
 
                 <span class="kw">if </span>code.has_binding_identifier {
                     <span class="kw">let </span>index = context.realm.environments.push_declarative(
@@ -2847,9 +2971,6 @@
                 <span class="kw">let </span>constructor_kind = <span class="kw-2">*</span>constructor_kind;
                 drop(object);
 
-                <span class="kw">let </span>environments_len = environments.len();
-                std::mem::swap(<span class="kw-2">&amp;mut </span>environments, <span class="kw-2">&amp;mut </span>context.realm.environments);
-
                 <span class="kw">let </span>this = <span class="kw">if </span>constructor_kind.is_base() {
                     <span class="comment">// If the prototype of the constructor is not an object, then use the default object
                     // prototype as prototype for the new object
@@ -2862,12 +2983,15 @@
                     )<span class="question-mark">?</span>;
                     <span class="kw">let </span>this = <span class="self">Self</span>::from_proto_and_data(prototype, ObjectData::ordinary());
 
-                    initialize_instance_elements(<span class="kw-2">&amp;</span>this, <span class="self">self</span>, context)<span class="question-mark">?</span>;
+                    this.initialize_instance_elements(<span class="self">self</span>, context)<span class="question-mark">?</span>;
 
                     <span class="prelude-val">Some</span>(this)
                 } <span class="kw">else </span>{
                     <span class="prelude-val">None
                 </span>};
+
+                <span class="kw">let </span>environments_len = environments.len();
+                std::mem::swap(<span class="kw-2">&amp;mut </span>environments, <span class="kw-2">&amp;mut </span>context.realm.environments);
 
                 <span class="kw">let </span>new_target = this_target.as_object().expect(<span class="string">&quot;must be object&quot;</span>);
 
@@ -3000,74 +3124,6 @@
             }
         }
     }
-}
-
-<span class="doccomment">/// `InitializeInstanceElements ( O, constructor )`
-///
-/// Add private methods and fields from a class constructor to an object.
-///
-/// More information:
-///  - [ECMAScript specification][spec]
-///
-/// [spec]: https://tc39.es/ecma262/#sec-initializeinstanceelements
-</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>initialize_instance_elements(
-    target: <span class="kw-2">&amp;</span>JsObject,
-    constructor: <span class="kw-2">&amp;</span>JsObject,
-    context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
-) -&gt; JsResult&lt;()&gt; {
-    <span class="kw">let </span>constructor_borrow = constructor.borrow();
-    <span class="kw">let </span>constructor_function = constructor_borrow
-        .as_function()
-        .expect(<span class="string">&quot;class constructor must be function object&quot;</span>);
-
-    <span class="kw">for </span>(name, private_method) <span class="kw">in </span>constructor_function.get_private_methods() {
-        <span class="kw">match </span>private_method {
-            PrivateElement::Method(<span class="kw">_</span>) =&gt; {
-                target
-                    .borrow_mut()
-                    .set_private_element(<span class="kw-2">*</span>name, private_method.clone());
-            }
-            PrivateElement::Accessor { getter, setter } =&gt; {
-                <span class="kw">if let </span><span class="prelude-val">Some</span>(getter) = getter {
-                    target
-                        .borrow_mut()
-                        .set_private_element_getter(<span class="kw-2">*</span>name, getter.clone());
-                }
-                <span class="kw">if let </span><span class="prelude-val">Some</span>(setter) = setter {
-                    target
-                        .borrow_mut()
-                        .set_private_element_setter(<span class="kw-2">*</span>name, setter.clone());
-                }
-            }
-            PrivateElement::Field(<span class="kw">_</span>) =&gt; <span class="macro">unreachable!</span>(),
-        }
-    }
-
-    <span class="kw">for </span>field <span class="kw">in </span>constructor_function.get_fields() {
-        <span class="kw">match </span>field {
-            ClassFieldDefinition::Public(name, function) =&gt; {
-                <span class="kw">let </span>value = function.call(<span class="kw-2">&amp;</span>target.clone().into(), <span class="kw-2">&amp;</span>[], context)<span class="question-mark">?</span>;
-                target.__define_own_property__(
-                    name.clone(),
-                    PropertyDescriptor::builder()
-                        .value(value)
-                        .writable(<span class="bool-val">true</span>)
-                        .enumerable(<span class="bool-val">true</span>)
-                        .configurable(<span class="bool-val">true</span>)
-                        .build(),
-                    context,
-                )<span class="question-mark">?</span>;
-            }
-            ClassFieldDefinition::Private(name, function) =&gt; {
-                <span class="kw">let </span>value = function.call(<span class="kw-2">&amp;</span>target.clone().into(), <span class="kw-2">&amp;</span>[], context)<span class="question-mark">?</span>;
-                target
-                    .borrow_mut()
-                    .set_private_element(<span class="kw-2">*</span>name, PrivateElement::Field(value));
-            }
-        }
-    }
-
-    <span class="prelude-val">Ok</span>(())
 }
 </code></pre></div>
 </section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="boa_engine" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.66.1 (90743e729 2023-01-10)" ></div></body></html>

@@ -149,6 +149,12 @@
 <span id="148">148</span>
 <span id="149">149</span>
 <span id="150">150</span>
+<span id="151">151</span>
+<span id="152">152</span>
+<span id="153">153</span>
+<span id="154">154</span>
+<span id="155">155</span>
+<span id="156">156</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Call expression parsing.
 //!
 //! More information:
@@ -167,6 +173,7 @@
     },
     Error,
 };
+<span class="kw">use </span>ast::function::PrivateName;
 <span class="kw">use </span>boa_ast::{
     <span class="self">self </span><span class="kw">as </span>ast,
     expression::{
@@ -260,8 +267,13 @@
                         }
                         TokenKind::NullLiteral =&gt; SimplePropertyAccess::new(lhs, Sym::NULL).into(),
                         TokenKind::PrivateIdentifier(name) =&gt; {
-                            cursor.push_used_private_identifier(<span class="kw-2">*</span>name, token.span().start())<span class="question-mark">?</span>;
-                            PrivatePropertyAccess::new(lhs, <span class="kw-2">*</span>name).into()
+                            <span class="kw">if </span>!cursor.in_class() {
+                                <span class="kw">return </span><span class="prelude-val">Err</span>(Error::general(
+                                    <span class="string">&quot;Private identifier outside of class&quot;</span>,
+                                    token.span().start(),
+                                ));
+                            }
+                            PrivatePropertyAccess::new(lhs, PrivateName::new(<span class="kw-2">*</span>name)).into()
                         }
                         <span class="kw">_ </span>=&gt; {
                             <span class="kw">return </span><span class="prelude-val">Err</span>(Error::expected(
