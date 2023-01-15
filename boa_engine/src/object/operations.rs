@@ -1,13 +1,14 @@
 use crate::{
-    builtins::Array,
+    builtins::{function::ClassFieldDefinition, Array},
     context::intrinsics::{StandardConstructor, StandardConstructors},
     error::JsNativeError,
-    object::JsObject,
+    object::{JsObject, PrivateElement},
     property::{PropertyDescriptor, PropertyDescriptorBuilder, PropertyKey, PropertyNameKind},
     symbol::WellKnownSymbols,
     value::Type,
     Context, JsResult, JsValue,
 };
+use boa_ast::function::PrivateName;
 
 /// Object integrity level.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -656,19 +657,323 @@ impl JsObject {
 
     // todo: CopyDataProperties
 
-    // todo: PrivateElementFind
+    /// Abstract operation `PrivateElementFind ( O, P )`
+    ///
+    /// Get the private element from an object.
+    ///
+    /// More information:
+    ///  - [ECMAScript specification][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-privateelementfind
+    #[allow(clippy::similar_names)]
+    pub(crate) fn private_element_find(
+        &self,
+        name: &PrivateName,
+        is_getter: bool,
+        is_setter: bool,
+    ) -> Option<PrivateElement> {
+        // 1. If O.[[PrivateElements]] contains a PrivateElement whose [[Key]] is P, then
+        for (key, value) in &self.borrow().private_elements {
+            if key == name {
+                // a. Let entry be that PrivateElement.
+                // b. Return entry.
+                if let PrivateElement::Accessor { getter, setter } = value {
+                    if getter.is_some() && is_getter || setter.is_some() && is_setter {
+                        return Some(value.clone());
+                    }
+                } else {
+                    return Some(value.clone());
+                }
+            }
+        }
 
-    // todo: PrivateFieldAdd
+        // 2. Return empty.
+        None
+    }
 
-    // todo: PrivateMethodOrAccessorAdd
+    /// Abstract operation `PrivateFieldAdd ( O, P, value )`
+    ///
+    /// Add private field to an object.
+    ///
+    /// More information:
+    ///  - [ECMAScript specification][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-privatefieldadd
+    pub(crate) fn private_field_add(
+        &self,
+        name: &PrivateName,
+        value: JsValue,
+        context: &mut Context<'_>,
+    ) -> JsResult<()> {
+        // 1. If the host is a web browser, then
+        // a. Perform ? HostEnsureCanAddPrivateElement(O).
+        self.host_ensure_can_add_private_element(context)?;
 
-    // todo: PrivateGet
+        // 2. Let entry be PrivateElementFind(O, P).
+        let entry = self.private_element_find(name, false, false);
 
-    // todo: PrivateSet
+        // 3. If entry is not empty, throw a TypeError exception.
+        if entry.is_some() {
+            return Err(JsNativeError::typ()
+                .with_message("Private field already exists on prototype")
+                .into());
+        }
 
-    // todo: DefineField
+        // 4. Append PrivateElement { [[Key]]: P, [[Kind]]: field, [[Value]]: value } to O.[[PrivateElements]].
+        self.borrow_mut()
+            .private_elements
+            .push((*name, PrivateElement::Field(value)));
 
-    // todo: InitializeInstanceElements
+        // 5. Return unused.
+        Ok(())
+    }
+
+    /// Abstract operation `PrivateMethodOrAccessorAdd ( O, method )`
+    ///
+    /// Add private method or accessor to an object.
+    ///
+    /// More information:
+    ///  - [ECMAScript specification][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-privatemethodoraccessoradd
+    pub(crate) fn private_method_or_accessor_add(
+        &self,
+        name: &PrivateName,
+        method: &PrivateElement,
+        context: &mut Context<'_>,
+    ) -> JsResult<()> {
+        // 1. Assert: method.[[Kind]] is either method or accessor.
+        assert!(matches!(
+            method,
+            PrivateElement::Method(_) | PrivateElement::Accessor { .. }
+        ));
+        let (getter, setter) = if let PrivateElement::Accessor { getter, setter } = method {
+            (getter.is_some(), setter.is_some())
+        } else {
+            (false, false)
+        };
+
+        // 2. If the host is a web browser, then
+        // a. Perform ? HostEnsureCanAddPrivateElement(O).
+        self.host_ensure_can_add_private_element(context)?;
+
+        // 3. Let entry be PrivateElementFind(O, method.[[Key]]).
+        let entry = self.private_element_find(name, getter, setter);
+
+        // 4. If entry is not empty, throw a TypeError exception.
+        if entry.is_some() {
+            return Err(JsNativeError::typ()
+                .with_message("Private method already exists on prototype")
+                .into());
+        }
+
+        // 5. Append method to O.[[PrivateElements]].
+        self.borrow_mut()
+            .append_private_element(*name, method.clone());
+
+        // 6. Return unused.
+        Ok(())
+    }
+
+    /// Abstract operation `HostEnsureCanAddPrivateElement ( O )`
+    ///
+    /// Ensure private elements can be added to an object.
+    ///
+    /// More information:
+    ///  - [ECMAScript specification][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-hostensurecanaddprivateelement
+    #[allow(clippy::unnecessary_wraps, clippy::unused_self)]
+    fn host_ensure_can_add_private_element(&self, _context: &mut Context<'_>) -> JsResult<()> {
+        // TODO: Make this operation host-defined.
+        Ok(())
+    }
+
+    /// Abstract operation `PrivateGet ( O, P )`
+    ///
+    /// Get the value of a private element.
+    ///
+    /// More information:
+    ///  - [ECMAScript specification][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-privateget
+    pub(crate) fn private_get(
+        &self,
+        name: &PrivateName,
+        context: &mut Context<'_>,
+    ) -> JsResult<JsValue> {
+        // 1. Let entry be PrivateElementFind(O, P).
+        let entry = self.private_element_find(name, true, true);
+
+        match &entry {
+            // 2. If entry is empty, throw a TypeError exception.
+            None => Err(JsNativeError::typ()
+                .with_message("Private element does not exist on object")
+                .into()),
+
+            // 3. If entry.[[Kind]] is field or method, then
+            // a. Return entry.[[Value]].
+            Some(PrivateElement::Field(value)) => Ok(value.clone()),
+            Some(PrivateElement::Method(value)) => Ok(value.clone().into()),
+
+            // 4. Assert: entry.[[Kind]] is accessor.
+            Some(PrivateElement::Accessor { getter, .. }) => {
+                // 5. If entry.[[Get]] is undefined, throw a TypeError exception.
+                // 6. Let getter be entry.[[Get]].
+                let getter = getter.as_ref().ok_or_else(|| {
+                    JsNativeError::typ()
+                        .with_message("private property was defined without a getter")
+                })?;
+
+                // 7. Return ? Call(getter, O).
+                getter.call(&self.clone().into(), &[], context)
+            }
+        }
+    }
+
+    /// Abstract operation `PrivateSet ( O, P, value )`
+    ///
+    /// Set the value of a private element.
+    ///
+    /// More information:
+    ///  - [ECMAScript specification][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-privateset
+    pub(crate) fn private_set(
+        &self,
+        name: &PrivateName,
+        value: JsValue,
+        context: &mut Context<'_>,
+    ) -> JsResult<()> {
+        // 1. Let entry be PrivateElementFind(O, P).
+        // Note: This function is inlined here for mutable access.
+        let mut object_mut = self.borrow_mut();
+        let entry = object_mut
+            .private_elements
+            .iter_mut()
+            .find_map(|(key, value)| if key == name { Some(value) } else { None });
+
+        match entry {
+            // 2. If entry is empty, throw a TypeError exception.
+            None => {
+                return Err(JsNativeError::typ()
+                    .with_message("Private element does not exist on object")
+                    .into())
+            }
+
+            // 3. If entry.[[Kind]] is field, then
+            // a. Set entry.[[Value]] to value.
+            Some(PrivateElement::Field(field)) => {
+                *field = value;
+            }
+
+            // 4. Else if entry.[[Kind]] is method, then
+            // a. Throw a TypeError exception.
+            Some(PrivateElement::Method(_)) => {
+                return Err(JsNativeError::typ()
+                    .with_message("private method is not writable")
+                    .into())
+            }
+
+            // 5. Else,
+            Some(PrivateElement::Accessor { setter, .. }) => {
+                // a. Assert: entry.[[Kind]] is accessor.
+                // b. If entry.[[Set]] is undefined, throw a TypeError exception.
+                // c. Let setter be entry.[[Set]].
+                let setter = setter.clone().ok_or_else(|| {
+                    JsNativeError::typ()
+                        .with_message("private property was defined without a setter")
+                })?;
+
+                // d. Perform ? Call(setter, O, « value »).
+                drop(object_mut);
+                setter.call(&self.clone().into(), &[value], context)?;
+            }
+        }
+
+        // 6. Return unused.
+        Ok(())
+    }
+
+    /// Abstract operation `DefineField ( receiver, fieldRecord )`
+    ///
+    /// Define a field on an object.
+    ///
+    /// More information:
+    ///  - [ECMAScript specification][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-definefield
+    pub(crate) fn define_field(
+        &self,
+        field_record: &ClassFieldDefinition,
+        context: &mut Context<'_>,
+    ) -> JsResult<()> {
+        // 2. Let initializer be fieldRecord.[[Initializer]].
+        let initializer = match field_record {
+            ClassFieldDefinition::Public(_, function)
+            | ClassFieldDefinition::Private(_, function) => function,
+        };
+
+        // 3. If initializer is not empty, then
+        // a. Let initValue be ? Call(initializer, receiver).
+        // 4. Else, let initValue be undefined.
+        let init_value = initializer.call(&self.clone().into(), &[], context)?;
+
+        match field_record {
+            // 1. Let fieldName be fieldRecord.[[Name]].
+            // 5. If fieldName is a Private Name, then
+            ClassFieldDefinition::Private(field_name, _) => {
+                // a. Perform ? PrivateFieldAdd(receiver, fieldName, initValue).
+                self.private_field_add(field_name, init_value, context)?;
+            }
+            // 1. Let fieldName be fieldRecord.[[Name]].
+            // 6. Else,
+            ClassFieldDefinition::Public(field_name, _) => {
+                // a. Assert: IsPropertyKey(fieldName) is true.
+                // b. Perform ? CreateDataPropertyOrThrow(receiver, fieldName, initValue).
+                self.create_data_property_or_throw(field_name.clone(), init_value, context)?;
+            }
+        }
+
+        // 7. Return unused.
+        Ok(())
+    }
+
+    /// Abstract operation `InitializeInstanceElements ( O, constructor )`
+    ///
+    /// Add private methods and fields from a class constructor to an object.
+    ///
+    /// More information:
+    ///  - [ECMAScript specification][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-initializeinstanceelements
+    pub(crate) fn initialize_instance_elements(
+        &self,
+        constructor: &JsObject,
+        context: &mut Context<'_>,
+    ) -> JsResult<()> {
+        let constructor_borrow = constructor.borrow();
+        let constructor_function = constructor_borrow
+            .as_function()
+            .expect("class constructor must be function object");
+
+        // 1. Let methods be the value of constructor.[[PrivateMethods]].
+        // 2. For each PrivateElement method of methods, do
+        for (name, method) in constructor_function.get_private_methods() {
+            // a. Perform ? PrivateMethodOrAccessorAdd(O, method).
+            self.private_method_or_accessor_add(name, method, context)?;
+        }
+
+        // 3. Let fields be the value of constructor.[[Fields]].
+        // 4. For each element fieldRecord of fields, do
+        for field_record in constructor_function.get_fields() {
+            // a. Perform ? DefineField(O, fieldRecord).
+            self.define_field(field_record, context)?;
+        }
+
+        // 5. Return unused.
+        Ok(())
+    }
 
     /// Abstract operation `Invoke ( V, P [ , argumentsList ] )`
     ///

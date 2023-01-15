@@ -15,6 +15,7 @@
 //! [access]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Property_Accessors
 
 use crate::expression::Expression;
+use crate::function::PrivateName;
 use crate::try_break;
 use crate::visitor::{VisitWith, Visitor, VisitorMut};
 use boa_interner::{Interner, Sym, ToInternedString};
@@ -215,14 +216,14 @@ impl VisitWith for SimplePropertyAccess {
 #[derive(Clone, Debug, PartialEq)]
 pub struct PrivatePropertyAccess {
     target: Box<Expression>,
-    field: Sym,
+    field: PrivateName,
 }
 
 impl PrivatePropertyAccess {
     /// Creates a `GetPrivateField` AST Expression.
     #[inline]
     #[must_use]
-    pub fn new(value: Expression, field: Sym) -> Self {
+    pub fn new(value: Expression, field: PrivateName) -> Self {
         Self {
             target: value.into(),
             field,
@@ -239,7 +240,7 @@ impl PrivatePropertyAccess {
     /// Gets the name of the field to retrieve.
     #[inline]
     #[must_use]
-    pub const fn field(&self) -> Sym {
+    pub const fn field(&self) -> PrivateName {
         self.field
     }
 }
@@ -250,7 +251,7 @@ impl ToInternedString for PrivatePropertyAccess {
         format!(
             "{}.#{}",
             self.target.to_interned_string(interner),
-            interner.resolve_expect(self.field)
+            interner.resolve_expect(self.field.description())
         )
     }
 }
@@ -268,7 +269,7 @@ impl VisitWith for PrivatePropertyAccess {
         V: Visitor<'a>,
     {
         try_break!(visitor.visit_expression(&self.target));
-        visitor.visit_sym(&self.field)
+        visitor.visit_private_name(&self.field)
     }
 
     fn visit_with_mut<'a, V>(&'a mut self, visitor: &mut V) -> ControlFlow<V::BreakTy>
@@ -276,7 +277,7 @@ impl VisitWith for PrivatePropertyAccess {
         V: VisitorMut<'a>,
     {
         try_break!(visitor.visit_expression_mut(&mut self.target));
-        visitor.visit_sym_mut(&mut self.field)
+        visitor.visit_private_name_mut(&mut self.field)
     }
 }
 

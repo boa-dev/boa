@@ -54,7 +54,6 @@ use boa_profiler::Profiler;
 use std::io::Read;
 
 pub(in crate::parser) use declaration::ClassTail;
-pub(crate) use declaration::PrivateElement;
 
 /// Statement parsing.
 ///

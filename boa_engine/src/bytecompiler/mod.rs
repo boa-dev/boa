@@ -21,7 +21,7 @@ use boa_ast::{
     },
     function::{
         ArrowFunction, AsyncArrowFunction, AsyncFunction, AsyncGenerator, Class,
-        FormalParameterList, Function, Generator,
+        FormalParameterList, Function, Generator, PrivateName,
     },
     operations::bound_names,
     pattern::Pattern,
@@ -206,6 +206,7 @@ pub struct ByteCompiler<'b, 'icu> {
     code_block: CodeBlock,
     literals_map: FxHashMap<Literal, u32>,
     names_map: FxHashMap<Identifier, u32>,
+    private_names_map: FxHashMap<PrivateName, u32>,
     bindings_map: FxHashMap<BindingLocator, u32>,
     jump_info: Vec<JumpControlInfo>,
     in_async_generator: bool,
@@ -229,6 +230,7 @@ impl<'b, 'icu> ByteCompiler<'b, 'icu> {
             code_block: CodeBlock::new(name, 0, strict),
             literals_map: FxHashMap::default(),
             names_map: FxHashMap::default(),
+            private_names_map: FxHashMap::default(),
             bindings_map: FxHashMap::default(),
             jump_info: Vec::new(),
             in_async_generator: false,
@@ -278,6 +280,19 @@ impl<'b, 'icu> ByteCompiler<'b, 'icu> {
         index
     }
 
+    #[inline]
+    fn get_or_insert_private_name(&mut self, name: PrivateName) -> u32 {
+        if let Some(index) = self.private_names_map.get(&name) {
+            return *index;
+        }
+
+        let index = self.code_block.private_names.len() as u32;
+        self.code_block.private_names.push(name);
+        self.private_names_map.insert(name, index);
+        index
+    }
+
+    #[inline]
     fn get_or_insert_binding(&mut self, binding: BindingLocator) -> u32 {
         if let Some(index) = self.bindings_map.get(&binding) {
             return *index;
@@ -482,7 +497,7 @@ impl<'b, 'icu> ByteCompiler<'b, 'icu> {
                     }
                 },
                 PropertyAccess::Private(access) => {
-                    let index = self.get_or_insert_name(access.field().into());
+                    let index = self.get_or_insert_private_name(access.field());
                     self.compile_expr(access.target(), true)?;
                     self.emit(Opcode::GetPrivateField, &[index]);
                 }
@@ -546,7 +561,8 @@ impl<'b, 'icu> ByteCompiler<'b, 'icu> {
                 PropertyAccess::Simple(access) => match access.field() {
                     PropertyAccessField::Const(name) => {
                         self.compile_expr(access.target(), true)?;
-                        let result = expr_fn(self, 1);
+                        self.emit_opcode(Opcode::Dup);
+                        let result = expr_fn(self, 2);
                         let index = self.get_or_insert_name((*name).into());
 
                         self.emit(Opcode::SetPropertyByName, &[index]);
@@ -569,8 +585,8 @@ impl<'b, 'icu> ByteCompiler<'b, 'icu> {
                 PropertyAccess::Private(access) => {
                     self.compile_expr(access.target(), true)?;
                     let result = expr_fn(self, 1);
-                    let index = self.get_or_insert_name(access.field().into());
-                    self.emit(Opcode::AssignPrivateField, &[index]);
+                    let index = self.get_or_insert_private_name(access.field());
+                    self.emit(Opcode::SetPrivateField, &[index]);
                     if !use_expr {
                         self.emit(Opcode::Pop, &[]);
                     }
@@ -578,7 +594,8 @@ impl<'b, 'icu> ByteCompiler<'b, 'icu> {
                 }
                 PropertyAccess::Super(access) => match access.field() {
                     PropertyAccessField::Const(name) => {
-                        self.emit(Opcode::Super, &[]);
+                        self.emit_opcode(Opcode::Super);
+                        self.emit_opcode(Opcode::This);
                         let result = expr_fn(self, 1);
                         let index = self.get_or_insert_name((*name).into());
                         self.emit(Opcode::SetPropertyByName, &[index]);
@@ -715,7 +732,7 @@ impl<'b, 'icu> ByteCompiler<'b, 'icu> {
             PropertyAccess::Private(access) => {
                 self.compile_expr(access.target(), true)?;
                 self.emit_opcode(Opcode::Dup);
-                let index = self.get_or_insert_name(access.field().into());
+                let index = self.get_or_insert_private_name(access.field());
                 self.emit(Opcode::GetPrivateField, &[index]);
             }
             PropertyAccess::Super(access) => {
@@ -826,7 +843,7 @@ impl<'b, 'icu> ByteCompiler<'b, 'icu> {
             }
             OptionalOperationKind::PrivatePropertyAccess { field } => {
                 self.emit_opcode(Opcode::Dup);
-                let index = self.get_or_insert_name((*field).into());
+                let index = self.get_or_insert_private_name(*field);
                 self.emit(Opcode::GetPrivateField, &[index]);
                 self.emit_opcode(Opcode::RotateLeft);
                 self.emit_u8(3);
@@ -998,13 +1015,98 @@ impl<'b, 'icu> ByteCompiler<'b, 'icu> {
             ..
         } = function;
 
+        let binding_identifier = if has_binding_identifier {
+            if let Some(name) = name {
+                Some(name.sym())
+            } else {
+                Some(Sym::EMPTY_STRING)
+            }
+        } else {
+            None
+        };
+
         let code = FunctionCompiler::new()
             .name(name.map(Identifier::sym))
             .generator(generator)
             .r#async(r#async)
             .strict(self.code_block.strict)
             .arrow(arrow)
-            .has_binding_identifier(has_binding_identifier)
+            .binding_identifier(binding_identifier)
+            .compile(parameters, body, self.context)?;
+
+        let index = self.code_block.functions.len() as u32;
+        self.code_block.functions.push(code);
+
+        if r#async && generator {
+            self.emit(Opcode::GetGeneratorAsync, &[index]);
+        } else if generator {
+            self.emit(Opcode::GetGenerator, &[index]);
+        } else if r#async && arrow {
+            self.emit(Opcode::GetAsyncArrowFunction, &[index]);
+        } else if r#async {
+            self.emit(Opcode::GetFunctionAsync, &[index]);
+        } else if arrow {
+            self.emit(Opcode::GetArrowFunction, &[index]);
+        } else {
+            self.emit(Opcode::GetFunction, &[index]);
+        }
+
+        match node_kind {
+            NodeKind::Declaration => {
+                self.emit_binding(
+                    BindingOpcode::InitVar,
+                    name.expect("function declaration must have a name"),
+                );
+            }
+            NodeKind::Expression => {
+                if !use_expr {
+                    self.emit(Opcode::Pop, &[]);
+                }
+            }
+        }
+
+        Ok(())
+    }
+
+    /// Compile a class method AST Node into bytecode.
+    fn method(
+        &mut self,
+        function: FunctionSpec<'_>,
+        node_kind: NodeKind,
+        class_name: Sym,
+        use_expr: bool,
+    ) -> JsResult<()> {
+        let (generator, r#async, arrow) = (
+            function.is_generator(),
+            function.is_async(),
+            function.is_arrow(),
+        );
+        let FunctionSpec {
+            name,
+            parameters,
+            body,
+            has_binding_identifier,
+            ..
+        } = function;
+
+        let binding_identifier = if has_binding_identifier {
+            if let Some(name) = name {
+                Some(name.sym())
+            } else {
+                Some(Sym::EMPTY_STRING)
+            }
+        } else {
+            None
+        };
+
+        let code = FunctionCompiler::new()
+            .name(name.map(Identifier::sym))
+            .generator(generator)
+            .r#async(r#async)
+            .strict(true)
+            .arrow(arrow)
+            .binding_identifier(binding_identifier)
+            .class_name(class_name)
             .compile(parameters, body, self.context)?;
 
         let index = self.code_block.functions.len() as u32;

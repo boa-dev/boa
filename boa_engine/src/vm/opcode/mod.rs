@@ -741,7 +741,7 @@ generate_impl! {
         ///
         /// Operands: name_index: `u32`
         ///
-        /// Stack: object, value **=>** value
+        /// Stack: object, receiver, value **=>** value
         SetPropertyByName,
 
         /// Sets the name of a function object.
@@ -767,11 +767,18 @@ generate_impl! {
         /// Stack: object, value **=>**
         DefineOwnPropertyByName,
 
+        /// Defines a static class method by name.
+        ///
+        /// Operands: name_index: `u32`
+        ///
+        /// Stack: class, function **=>**
+        DefineClassStaticMethodByName,
+
         /// Defines a class method by name.
         ///
         /// Operands: name_index: `u32`
         ///
-        /// Stack: object, value **=>**
+        /// Stack: class_proto, function **=>**
         DefineClassMethodByName,
 
         /// Sets a property by value of an object.
@@ -790,11 +797,18 @@ generate_impl! {
         /// Stack: object, key, value **=>**
         DefineOwnPropertyByValue,
 
+        /// Defines a static class method by value.
+        ///
+        /// Operands:
+        ///
+        /// Stack: class, key, function **=>**
+        DefineClassStaticMethodByValue,
+
         /// Defines a class method by value.
         ///
         /// Operands:
         ///
-        /// Stack: object, key, value **=>**
+        /// Stack: class_proto, key, function **=>**
         DefineClassMethodByValue,
 
         /// Sets a getter property by name of an object.
@@ -806,13 +820,22 @@ generate_impl! {
         /// Stack: object, value **=>**
         SetPropertyGetterByName,
 
+        /// Defines a static getter class method by name.
+        ///
+        /// Like `static get name() value`
+        ///
+        /// Operands: name_index: `u32`
+        ///
+        /// Stack: class, function **=>**
+        DefineClassStaticGetterByName,
+
         /// Defines a getter class method by name.
         ///
         /// Like `get name() value`
         ///
         /// Operands: name_index: `u32`
         ///
-        /// Stack: object, value **=>**
+        /// Stack: class_proto, function **=>** class
         DefineClassGetterByName,
 
         /// Sets a getter property by value of an object.
@@ -824,13 +847,22 @@ generate_impl! {
         /// Stack: object, key, value **=>**
         SetPropertyGetterByValue,
 
+        /// Defines a static getter class method by value.
+        ///
+        /// Like `static get [key]() value`
+        ///
+        /// Operands:
+        ///
+        /// Stack: class, key, function **=>**
+        DefineClassStaticGetterByValue,
+
         /// Defines a getter class method by value.
         ///
         /// Like `get [key]() value`
         ///
         /// Operands:
         ///
-        /// Stack: object, key, value **=>**
+        /// Stack: class_proto, key, function **=>**
         DefineClassGetterByValue,
 
         /// Sets a setter property by name of an object.
@@ -842,13 +874,22 @@ generate_impl! {
         /// Stack: object, value **=>**
         SetPropertySetterByName,
 
+        /// Defines a static setter class method by name.
+        ///
+        /// Like `static set name() value`
+        ///
+        /// Operands: name_index: `u32`
+        ///
+        /// Stack: class, function **=>**
+        DefineClassStaticSetterByName,
+
         /// Defines a setter class method by name.
         ///
         /// Like `set name() value`
         ///
         /// Operands: name_index: `u32`
         ///
-        /// Stack: object, value **=>**
+        /// Stack: class_proto, function **=>**
         DefineClassSetterByName,
 
         /// Sets a setter property by value of an object.
@@ -860,38 +901,47 @@ generate_impl! {
         /// Stack: object, key, value **=>**
         SetPropertySetterByValue,
 
+        /// Defines a static setter class method by value.
+        ///
+        /// Like `static set [key]() value`
+        ///
+        /// Operands:
+        ///
+        /// Stack: class, key, function **=>**
+        DefineClassStaticSetterByValue,
+
         /// Defines a setter class method by value.
         ///
         /// Like `set [key]() value`
         ///
         /// Operands:
         ///
-        /// Stack: object, key, value **=>**
+        /// Stack: class_proto, key, function **=>**
         DefineClassSetterByValue,
 
-        /// Assign the value of a private property of an object by it's name.
+        /// Set the value of a private property of an object by it's name.
         ///
         /// Like `obj.#name = value`
         ///
-        /// Operands: name_index: `u32`
+        /// Operands: private_name_index: `u32`
         ///
         /// Stack: object, value **=>** value
-        AssignPrivateField,
+        SetPrivateField,
 
-        /// Set a private property of a class constructor by it's name.
+        /// Define a private property of a class constructor by it's name.
         ///
         /// Like `#name = value`
         ///
-        /// Operands: name_index: `u32`
+        /// Operands: private_name_index: `u32`
         ///
         /// Stack: object, value **=>**
-        SetPrivateField,
+        DefinePrivateField,
 
         /// Set a private method of a class constructor by it's name.
         ///
         /// Like `#name() {}`
         ///
-        /// Operands: name_index: `u32`
+        /// Operands: private_name_index: `u32`
         ///
         /// Stack: object, value **=>**
         SetPrivateMethod,
@@ -900,7 +950,7 @@ generate_impl! {
         ///
         /// Like `set #name() {}`
         ///
-        /// Operands: name_index: `u32`
+        /// Operands: private_name_index: `u32`
         ///
         /// Stack: object, value **=>**
         SetPrivateSetter,
@@ -909,7 +959,7 @@ generate_impl! {
         ///
         /// Like `get #name() {}`
         ///
-        /// Operands: name_index: `u32`
+        /// Operands: private_name_index: `u32`
         ///
         /// Stack: object, value **=>**
         SetPrivateGetter,
@@ -918,7 +968,7 @@ generate_impl! {
         ///
         /// Like `object.#name`
         ///
-        /// Operands: name_index: `u32`
+        /// Operands: private_name_index: `u32`
         ///
         /// Stack: object **=>** value
         GetPrivateField,
@@ -932,28 +982,28 @@ generate_impl! {
 
         /// Push a private field to the class.
         ///
-        /// Operands: name_index: `u32`
+        /// Operands: private_name_index: `u32`
         ///
         /// Stack: class, field_function **=>**
         PushClassFieldPrivate,
 
         /// Push a private getter to the class.
         ///
-        /// Operands: name_index: `u32`
+        /// Operands: private_name_index: `u32`
         ///
         /// Stack: class, getter **=>**
         PushClassPrivateGetter,
 
         /// Push a private setter to the class.
         ///
-        /// Operands: name_index: `u32`
+        /// Operands: private_name_index: `u32`
         ///
         /// Stack: class, setter **=>**
         PushClassPrivateSetter,
 
         /// Push a private method to the class.
         ///
-        /// Operands: name_index: `u32`
+        /// Operands: private_name_index: `u32`
         ///
         /// Stack: class, method **=>**
         PushClassPrivateMethod,

@@ -14,7 +14,10 @@ use crate::{
     },
     Error,
 };
-use ast::operations::{lexically_declared_names, var_declared_names};
+use ast::{
+    function::PrivateName,
+    operations::{class_private_name_resolver, lexically_declared_names, var_declared_names},
+};
 use boa_ast::{
     self as ast,
     expression::Identifier,
@@ -24,6 +27,7 @@ use boa_ast::{
     Declaration, Expression, Keyword, Punctuator,
 };
 use boa_interner::{Interner, Sym};
+use boa_macros::utf16;
 use rustc_hash::{FxHashMap, FxHashSet};
 use std::io::Read;
 
@@ -69,9 +73,11 @@ where
         let strict = cursor.strict_mode();
         cursor.set_strict_mode(true);
 
+        let mut has_binding_identifier = false;
         let token = cursor.peek(0, interner).or_abrupt()?;
         let name = match token.kind() {
             TokenKind::Identifier(_) | TokenKind::Keyword((Keyword::Yield | Keyword::Await, _)) => {
+                has_binding_identifier = true;
                 BindingIdentifier::new(self.allow_yield, self.allow_await)
                     .parse(cursor, interner)?
             }
@@ -87,7 +93,13 @@ where
         cursor.set_strict_mode(strict);
 
         Ok(Declaration::Class(
-            ClassTail::new(name, self.allow_yield, self.allow_await).parse(cursor, interner)?,
+            ClassTail::new(
+                name,
+                has_binding_identifier,
+                self.allow_yield,
+                self.allow_await,
+            )
+            .parse(cursor, interner)?,
         ))
     }
 }
@@ -100,20 +112,28 @@ where
 /// [spec]: https://tc39.es/ecma262/#prod-ClassTail
 #[derive(Debug, Clone, Copy)]
 pub(in crate::parser) struct ClassTail {
-    name: Identifier,
+    name: Option<Identifier>,
+    has_binding_identifier: bool,
     allow_yield: AllowYield,
     allow_await: AllowAwait,
 }
 
 impl ClassTail {
     /// Creates a new `ClassTail` parser.
-    pub(in crate::parser) fn new<Y, A>(name: Identifier, allow_yield: Y, allow_await: A) -> Self
+    pub(in crate::parser) fn new<N, Y, A>(
+        name: N,
+        has_binding_identifier: bool,
+        allow_yield: Y,
+        allow_await: A,
+    ) -> Self
     where
+        N: Into<Option<Identifier>>,
         Y: Into<AllowYield>,
         A: Into<AllowAwait>,
     {
         Self {
-            name,
+            name: name.into(),
+            has_binding_identifier,
             allow_yield: allow_yield.into(),
             allow_await: allow_await.into(),
         }
@@ -152,17 +172,27 @@ where
 
         if is_close_block {
             cursor.advance(interner);
-            Ok(Class::new(Some(self.name), super_ref, None, Box::default()))
+            Ok(Class::new(
+                self.name,
+                super_ref,
+                None,
+                Box::default(),
+                self.has_binding_identifier,
+            ))
         } else {
+            cursor.push_private_environment();
+
             let body_start = cursor.peek(0, interner).or_abrupt()?.span().start();
             let (constructor, elements) =
                 ClassBody::new(self.name, self.allow_yield, self.allow_await)
                     .parse(cursor, interner)?;
             cursor.expect(Punctuator::CloseBlock, "class tail", interner)?;
 
+            cursor.pop_private_environment();
+
             if super_ref.is_none() {
                 if let Some(constructor) = &constructor {
-                    if contains(constructor, ContainsSymbol::Super) {
+                    if contains(constructor, ContainsSymbol::SuperCall) {
                         return Err(Error::lex(LexError::Syntax(
                             "invalid super usage".into(),
                             body_start,
@@ -171,12 +201,24 @@ where
                 }
             }
 
-            Ok(Class::new(
-                Some(self.name),
+            let mut class = Class::new(
+                self.name,
                 super_ref,
                 constructor,
                 elements.into(),
-            ))
+                self.has_binding_identifier,
+            );
+
+            if !cursor.in_class()
+                && !class_private_name_resolver(&mut class, cursor.private_environment_root_index())
+            {
+                return Err(Error::lex(LexError::Syntax(
+                    "invalid private name usage".into(),
+                    body_start,
+                )));
+            }
+
+            Ok(class)
         }
     }
 }
@@ -238,20 +280,21 @@ where
 /// [spec]: https://tc39.es/ecma262/#prod-ClassBody
 #[derive(Debug, Clone, Copy)]
 pub(in crate::parser) struct ClassBody {
-    name: Identifier,
+    name: Option<Identifier>,
     allow_yield: AllowYield,
     allow_await: AllowAwait,
 }
 
 impl ClassBody {
     /// Creates a new `ClassBody` parser.
-    pub(in crate::parser) fn new<Y, A>(name: Identifier, allow_yield: Y, allow_await: A) -> Self
+    pub(in crate::parser) fn new<N, Y, A>(name: N, allow_yield: Y, allow_await: A) -> Self
     where
+        N: Into<Option<Identifier>>,
         Y: Into<AllowYield>,
         A: Into<AllowAwait>,
     {
         Self {
-            name,
+            name: name.into(),
             allow_yield: allow_yield.into(),
             allow_await: allow_await.into(),
         }
@@ -265,8 +308,6 @@ where
     type Output = (Option<Function>, Vec<function::ClassElement>);
 
     fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult<Self::Output> {
-        cursor.push_private_environment();
-
         let mut constructor = None;
         let mut elements = Vec::new();
         let mut private_elements_names = FxHashMap::default();
@@ -304,10 +345,12 @@ where
                                 }
                                 match method {
                                     MethodDefinition::Get(_) => {
-                                        match private_elements_names.get(name) {
+                                        match private_elements_names.get(&name.description()) {
                                             Some(PrivateElement::Setter) => {
-                                                private_elements_names
-                                                    .insert(*name, PrivateElement::Value);
+                                                private_elements_names.insert(
+                                                    name.description(),
+                                                    PrivateElement::Value,
+                                                );
                                             }
                                             Some(_) => {
                                                 return Err(Error::general(
@@ -316,16 +359,20 @@ where
                                                 ));
                                             }
                                             None => {
-                                                private_elements_names
-                                                    .insert(*name, PrivateElement::Getter);
+                                                private_elements_names.insert(
+                                                    name.description(),
+                                                    PrivateElement::Getter,
+                                                );
                                             }
                                         }
                                     }
                                     MethodDefinition::Set(_) => {
-                                        match private_elements_names.get(name) {
+                                        match private_elements_names.get(&name.description()) {
                                             Some(PrivateElement::Getter) => {
-                                                private_elements_names
-                                                    .insert(*name, PrivateElement::Value);
+                                                private_elements_names.insert(
+                                                    name.description(),
+                                                    PrivateElement::Value,
+                                                );
                                             }
                                             Some(_) => {
                                                 return Err(Error::general(
@@ -334,14 +381,16 @@ where
                                                 ));
                                             }
                                             None => {
-                                                private_elements_names
-                                                    .insert(*name, PrivateElement::Setter);
+                                                private_elements_names.insert(
+                                                    name.description(),
+                                                    PrivateElement::Setter,
+                                                );
                                             }
                                         }
                                     }
                                     _ => {
                                         if private_elements_names
-                                            .insert(*name, PrivateElement::Value)
+                                            .insert(name.description(), PrivateElement::Value)
                                             .is_some()
                                         {
                                             return Err(Error::general(
@@ -362,10 +411,12 @@ where
                                 }
                                 match method {
                                     MethodDefinition::Get(_) => {
-                                        match private_elements_names.get(name) {
+                                        match private_elements_names.get(&name.description()) {
                                             Some(PrivateElement::StaticSetter) => {
-                                                private_elements_names
-                                                    .insert(*name, PrivateElement::StaticValue);
+                                                private_elements_names.insert(
+                                                    name.description(),
+                                                    PrivateElement::StaticValue,
+                                                );
                                             }
                                             Some(_) => {
                                                 return Err(Error::general(
@@ -374,16 +425,20 @@ where
                                                 ));
                                             }
                                             None => {
-                                                private_elements_names
-                                                    .insert(*name, PrivateElement::StaticGetter);
+                                                private_elements_names.insert(
+                                                    name.description(),
+                                                    PrivateElement::StaticGetter,
+                                                );
                                             }
                                         }
                                     }
                                     MethodDefinition::Set(_) => {
-                                        match private_elements_names.get(name) {
+                                        match private_elements_names.get(&name.description()) {
                                             Some(PrivateElement::StaticGetter) => {
-                                                private_elements_names
-                                                    .insert(*name, PrivateElement::StaticValue);
+                                                private_elements_names.insert(
+                                                    name.description(),
+                                                    PrivateElement::StaticValue,
+                                                );
                                             }
                                             Some(_) => {
                                                 return Err(Error::general(
@@ -392,14 +447,16 @@ where
                                                 ));
                                             }
                                             None => {
-                                                private_elements_names
-                                                    .insert(*name, PrivateElement::StaticSetter);
+                                                private_elements_names.insert(
+                                                    name.description(),
+                                                    PrivateElement::StaticSetter,
+                                                );
                                             }
                                         }
                                     }
                                     _ => {
                                         if private_elements_names
-                                            .insert(*name, PrivateElement::StaticValue)
+                                            .insert(name.description(), PrivateElement::StaticValue)
                                             .is_some()
                                         {
                                             return Err(Error::general(
@@ -420,7 +477,7 @@ where
                                     }
                                 }
                                 if private_elements_names
-                                    .insert(*name, PrivateElement::Value)
+                                    .insert(name.description(), PrivateElement::Value)
                                     .is_some()
                                 {
                                     return Err(Error::general(
@@ -439,7 +496,7 @@ where
                                     }
                                 }
                                 if private_elements_names
-                                    .insert(*name, PrivateElement::StaticValue)
+                                    .insert(name.description(), PrivateElement::StaticValue)
                                     .is_some()
                                 {
                                     return Err(Error::general(
@@ -480,7 +537,6 @@ where
         }
 
         cursor.set_strict_mode(strict);
-        cursor.pop_private_environment(&private_elements_names)?;
 
         Ok((constructor, elements))
     }
@@ -505,20 +561,21 @@ pub(crate) enum PrivateElement {
 /// [spec]: https://tc39.es/ecma262/#prod-ClassElement
 #[derive(Debug, Clone, Copy)]
 pub(in crate::parser) struct ClassElement {
-    name: Identifier,
+    name: Option<Identifier>,
     allow_yield: AllowYield,
     allow_await: AllowAwait,
 }
 
 impl ClassElement {
     /// Creates a new `ClassElement` parser.
-    pub(in crate::parser) fn new<Y, A>(name: Identifier, allow_yield: Y, allow_await: A) -> Self
+    pub(in crate::parser) fn new<N, Y, A>(name: N, allow_yield: Y, allow_await: A) -> Self
     where
+        N: Into<Option<Identifier>>,
         Y: Into<AllowYield>,
         A: Into<AllowAwait>,
     {
         Self {
-            name,
+            name: name.into(),
             allow_yield: allow_yield.into(),
             allow_await: allow_await.into(),
         }
@@ -596,7 +653,7 @@ where
                 )?;
                 cursor.set_strict_mode(strict);
 
-                return Ok((Some(Function::new(Some(self.name), parameters, body)), None));
+                return Ok((Some(Function::new(self.name, parameters, body)), None));
             }
             TokenKind::Punctuator(Punctuator::OpenBlock) if r#static => {
                 cursor.advance(interner);
@@ -645,7 +702,7 @@ where
             TokenKind::Punctuator(Punctuator::Mul) => {
                 let token = cursor.peek(1, interner).or_abrupt()?;
                 let name_position = token.span().start();
-                if let TokenKind::Identifier(Sym::CONSTRUCTOR) = token.kind() {
+                if token.kind() == &TokenKind::Identifier(Sym::CONSTRUCTOR) && !r#static {
                     return Err(Error::general(
                         "class constructor may not be a generator method",
                         token.span().start(),
@@ -671,7 +728,9 @@ where
                     ClassElementName::PropertyName(property_name) => {
                         function::ClassElement::MethodDefinition(property_name, method)
                     }
-                    ClassElementName::PrivateIdentifier(Sym::CONSTRUCTOR) => {
+                    ClassElementName::PrivateIdentifier(name)
+                        if name.description() == Sym::CONSTRUCTOR =>
+                    {
                         return Err(Error::general(
                             "class constructor may not be a private method",
                             name_position,
@@ -699,15 +758,13 @@ where
                     TokenKind::Punctuator(Punctuator::Mul) => {
                         let token = cursor.peek(1, interner).or_abrupt()?;
                         let name_position = token.span().start();
-                        match token.kind() {
-                            TokenKind::Identifier(Sym::CONSTRUCTOR)
-                            | TokenKind::PrivateIdentifier(Sym::CONSTRUCTOR) => {
-                                return Err(Error::general(
-                                    "class constructor may not be a generator method",
-                                    token.span().start(),
-                                ));
-                            }
-                            _ => {}
+                        if token.kind() == &TokenKind::PrivateIdentifier(Sym::CONSTRUCTOR)
+                            || token.kind() == &TokenKind::Identifier(Sym::CONSTRUCTOR) && !r#static
+                        {
+                            return Err(Error::general(
+                                "class constructor may not be a generator method",
+                                token.span().start(),
+                            ));
                         }
                         let strict = cursor.strict_mode();
                         cursor.set_strict_mode(true);
@@ -745,7 +802,7 @@ where
                             }
                         }
                     }
-                    TokenKind::Identifier(Sym::CONSTRUCTOR) => {
+                    TokenKind::Identifier(Sym::CONSTRUCTOR) if !r#static => {
                         return Err(Error::general(
                             "class constructor may not be an async method",
                             token.span().start(),
@@ -776,7 +833,9 @@ where
                             ClassElementName::PropertyName(property_name) => {
                                 function::ClassElement::MethodDefinition(property_name, method)
                             }
-                            ClassElementName::PrivateIdentifier(Sym::CONSTRUCTOR) if r#static => {
+                            ClassElementName::PrivateIdentifier(name)
+                                if name.description() == Sym::CONSTRUCTOR && r#static =>
+                            {
                                 return Err(Error::general(
                                     "class constructor may not be a private method",
                                     name_position,
@@ -835,12 +894,18 @@ where
                         cursor.set_strict_mode(strict);
                         let method = MethodDefinition::Get(Function::new(None, params, body));
                         if r#static {
-                            function::ClassElement::PrivateStaticMethodDefinition(name, method)
+                            function::ClassElement::PrivateStaticMethodDefinition(
+                                PrivateName::new(name),
+                                method,
+                            )
                         } else {
-                            function::ClassElement::PrivateMethodDefinition(name, method)
+                            function::ClassElement::PrivateMethodDefinition(
+                                PrivateName::new(name),
+                                method,
+                            )
                         }
                     }
-                    TokenKind::Identifier(Sym::CONSTRUCTOR) => {
+                    TokenKind::Identifier(Sym::CONSTRUCTOR) if !r#static => {
                         return Err(Error::general(
                             "class constructor may not be a getter method",
                             token.span().start(),
@@ -956,12 +1021,18 @@ where
                         cursor.set_strict_mode(strict);
                         let method = MethodDefinition::Set(Function::new(None, params, body));
                         if r#static {
-                            function::ClassElement::PrivateStaticMethodDefinition(name, method)
+                            function::ClassElement::PrivateStaticMethodDefinition(
+                                PrivateName::new(name),
+                                method,
+                            )
                         } else {
-                            function::ClassElement::PrivateMethodDefinition(name, method)
+                            function::ClassElement::PrivateMethodDefinition(
+                                PrivateName::new(name),
+                                method,
+                            )
                         }
                     }
-                    TokenKind::Identifier(Sym::CONSTRUCTOR) => {
+                    TokenKind::Identifier(Sym::CONSTRUCTOR) if !r#static => {
                         return Err(Error::general(
                             "class constructor may not be a setter method",
                             token.span().start(),
@@ -1041,6 +1112,11 @@ where
             }
             TokenKind::PrivateIdentifier(name) => {
                 let name = *name;
+                let name_private = interner.get_or_intern(
+                    [utf16!("#"), interner.resolve_expect(name).utf16()]
+                        .concat()
+                        .as_slice(),
+                );
                 cursor.advance(interner);
                 let token = cursor.peek(0, interner).or_abrupt()?;
                 match token.kind() {
@@ -1049,7 +1125,7 @@ where
                         let strict = cursor.strict_mode();
                         cursor.set_strict_mode(true);
                         let rhs = AssignmentExpression::new(
-                            Some(name.into()),
+                            Some(name_private.into()),
                             true,
                             self.allow_yield,
                             self.allow_await,
@@ -1058,9 +1134,15 @@ where
                         cursor.expect_semicolon("expected semicolon", interner)?;
                         cursor.set_strict_mode(strict);
                         if r#static {
-                            function::ClassElement::PrivateStaticFieldDefinition(name, Some(rhs))
+                            function::ClassElement::PrivateStaticFieldDefinition(
+                                PrivateName::new(name),
+                                Some(rhs),
+                            )
                         } else {
-                            function::ClassElement::PrivateFieldDefinition(name, Some(rhs))
+                            function::ClassElement::PrivateFieldDefinition(
+                                PrivateName::new(name),
+                                Some(rhs),
+                            )
                         }
                     }
                     TokenKind::Punctuator(Punctuator::OpenParen) => {
@@ -1092,17 +1174,29 @@ where
                         let method = MethodDefinition::Ordinary(Function::new(None, params, body));
                         cursor.set_strict_mode(strict);
                         if r#static {
-                            function::ClassElement::PrivateStaticMethodDefinition(name, method)
+                            function::ClassElement::PrivateStaticMethodDefinition(
+                                PrivateName::new(name),
+                                method,
+                            )
                         } else {
-                            function::ClassElement::PrivateMethodDefinition(name, method)
+                            function::ClassElement::PrivateMethodDefinition(
+                                PrivateName::new(name),
+                                method,
+                            )
                         }
                     }
                     _ => {
                         cursor.expect_semicolon("expected semicolon", interner)?;
                         if r#static {
-                            function::ClassElement::PrivateStaticFieldDefinition(name, None)
+                            function::ClassElement::PrivateStaticFieldDefinition(
+                                PrivateName::new(name),
+                                None,
+                            )
                         } else {
-                            function::ClassElement::PrivateFieldDefinition(name, None)
+                            function::ClassElement::PrivateFieldDefinition(
+                                PrivateName::new(name),
+                                None,
+                            )
                         }
                     }
                 }
@@ -1119,7 +1213,7 @@ where
                 let token = cursor.peek(0, interner).or_abrupt()?;
                 match token.kind() {
                     TokenKind::Punctuator(Punctuator::Assign) => {
-                        if let Some(name) = name.prop_name() {
+                        if let Some(name) = name.literal() {
                             if r#static {
                                 if [Sym::CONSTRUCTOR, Sym::PROTOTYPE].contains(&name) {
                                     return Err(Error::general(
@@ -1195,7 +1289,7 @@ where
                         }
                     }
                     _ => {
-                        if let Some(name) = name.prop_name() {
+                        if let Some(name) = name.literal() {
                             if r#static {
                                 if [Sym::CONSTRUCTOR, Sym::PROTOTYPE].contains(&name) {
                                     return Err(Error::general(

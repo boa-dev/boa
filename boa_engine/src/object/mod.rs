@@ -2,6 +2,7 @@
 //!
 //! For the builtin object wrappers, please see [`object::builtins`][builtins] for implementors.
 
+use boa_ast::function::PrivateName;
 pub use jsobject::{RecursionLimiter, Ref, RefMut};
 pub use operations::IntegrityLevel;
 pub use property_map::*;
@@ -55,8 +56,6 @@ use crate::{
 };
 
 use boa_gc::{custom_trace, Finalize, GcCell, Trace, WeakGc};
-use boa_interner::Sym;
-use rustc_hash::FxHashMap;
 use std::{
     any::Any,
     fmt::{self, Debug, Display},
@@ -124,7 +123,7 @@ pub struct Object {
     /// Whether it can have new properties added to it.
     extensible: bool,
     /// The `[[PrivateElements]]` internal slot.
-    private_elements: FxHashMap<Sym, PrivateElement>,
+    private_elements: Vec<(PrivateName, PrivateElement)>,
 }
 
 unsafe impl Trace for Object {
@@ -132,8 +131,8 @@ unsafe impl Trace for Object {
         mark(&this.data);
         mark(&this.properties);
         mark(&this.prototype);
-        for elem in this.private_elements.values() {
-            mark(elem);
+        for (_, element) in &this.private_elements {
+            mark(element);
         }
     });
 }
@@ -751,7 +750,7 @@ impl Default for Object {
             properties: PropertyMap::default(),
             prototype: None,
             extensible: true,
-            private_elements: FxHashMap::default(),
+            private_elements: Vec::default(),
         }
     }
 }
@@ -1773,58 +1772,29 @@ impl Object {
         self.properties.remove(key)
     }
 
-    /// Get a private element.
-    #[inline]
-    pub(crate) fn get_private_element(&self, name: Sym) -> Option<&PrivateElement> {
-        self.private_elements.get(&name)
-    }
-
-    /// Set a private element.
-    #[inline]
-    pub(crate) fn set_private_element(&mut self, name: Sym, value: PrivateElement) {
-        self.private_elements.insert(name, value);
-    }
-
-    /// Set a private setter.
-    pub(crate) fn set_private_element_setter(&mut self, name: Sym, setter: JsObject) {
-        match self.private_elements.get_mut(&name) {
-            Some(PrivateElement::Accessor {
-                getter: _,
-                setter: s,
-            }) => {
-                *s = Some(setter);
-            }
-            _ => {
-                self.private_elements.insert(
-                    name,
-                    PrivateElement::Accessor {
-                        getter: None,
-                        setter: Some(setter),
-                    },
-                );
+    /// Append a private element to an object.
+    pub(crate) fn append_private_element(&mut self, name: PrivateName, element: PrivateElement) {
+        if let PrivateElement::Accessor { getter, setter } = &element {
+            for (key, value) in &mut self.private_elements {
+                if name == *key {
+                    if let PrivateElement::Accessor {
+                        getter: existing_getter,
+                        setter: existing_setter,
+                    } = value
+                    {
+                        if existing_getter.is_none() {
+                            *existing_getter = getter.clone();
+                        }
+                        if existing_setter.is_none() {
+                            *existing_setter = setter.clone();
+                        }
+                        return;
+                    }
+                }
             }
         }
-    }
 
-    /// Set a private getter.
-    pub(crate) fn set_private_element_getter(&mut self, name: Sym, getter: JsObject) {
-        match self.private_elements.get_mut(&name) {
-            Some(PrivateElement::Accessor {
-                getter: g,
-                setter: _,
-            }) => {
-                *g = Some(getter);
-            }
-            _ => {
-                self.private_elements.insert(
-                    name,
-                    PrivateElement::Accessor {
-                        getter: Some(getter),
-                        setter: None,
-                    },
-                );
-            }
-        }
+        self.private_elements.push((name, element));
     }
 }
 

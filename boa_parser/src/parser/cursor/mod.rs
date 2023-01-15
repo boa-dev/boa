@@ -3,13 +3,12 @@ mod buffered_lexer;
 
 use crate::{
     lexer::{InputElement, Lexer, Token, TokenKind},
-    parser::{statement::PrivateElement, OrAbrupt, ParseResult},
+    parser::{OrAbrupt, ParseResult},
     Error,
 };
 use boa_ast::{Position, Punctuator};
-use boa_interner::{Interner, Sym};
+use boa_interner::Interner;
 use buffered_lexer::BufferedLexer;
-use rustc_hash::FxHashMap;
 use std::io::Read;
 
 /// The result of a peek for a semicolon.
@@ -26,8 +25,11 @@ pub(super) enum SemicolonResult<'s> {
 pub(super) struct Cursor<R> {
     buffered_lexer: BufferedLexer<R>,
 
-    /// Tracks the private identifiers used in code blocks.
-    private_environments_stack: Vec<FxHashMap<Sym, Position>>,
+    /// Tracks the number of nested private environments that the cursor is in.
+    private_environment_nested_index: usize,
+
+    /// Tracks the number of private environments on the root level of the code that is parsed.
+    private_environment_root_index: usize,
 
     /// Tracks if the cursor is in a arrow function declaration.
     arrow: bool,
@@ -44,7 +46,8 @@ where
     pub(super) fn new(reader: R) -> Self {
         Self {
             buffered_lexer: Lexer::new(reader).into(),
-            private_environments_stack: Vec::new(),
+            private_environment_nested_index: 0,
+            private_environment_root_index: 0,
             arrow: false,
             json_parse: false,
         }
@@ -128,56 +131,31 @@ where
     }
 
     /// Push a new private environment.
+    #[inline]
     pub(super) fn push_private_environment(&mut self) {
-        let new = FxHashMap::default();
-        self.private_environments_stack.push(new);
-    }
-
-    /// Push a used private identifier.
-    pub(super) fn push_used_private_identifier(
-        &mut self,
-        identifier: Sym,
-        position: Position,
-    ) -> ParseResult<()> {
-        self.private_environments_stack.last_mut().map_or_else(
-            || {
-                Err(Error::general(
-                    "private identifier declared outside of class",
-                    position,
-                ))
-            },
-            |env| {
-                env.entry(identifier).or_insert(position);
-                Ok(())
-            },
-        )
-    }
-
-    /// Pop the last private environment.
-    ///
-    /// This function takes the private element names of the current class.
-    /// If a used private identifier is not declared, this throws a syntax error.
-    pub(super) fn pop_private_environment(
-        &mut self,
-        identifiers: &FxHashMap<Sym, PrivateElement>,
-    ) -> ParseResult<()> {
-        let last = self
-            .private_environments_stack
-            .pop()
-            .expect("private environment must exist");
-        for (identifier, position) in &last {
-            if !identifiers.contains_key(identifier) {
-                if let Some(outer) = self.private_environments_stack.last_mut() {
-                    outer.insert(*identifier, *position);
-                } else {
-                    return Err(Error::general(
-                        "private identifier must be declared",
-                        *position,
-                    ));
-                }
-            }
+        if !self.in_class() {
+            self.private_environment_root_index += 1;
         }
-        Ok(())
+
+        self.private_environment_nested_index += 1;
+    }
+
+    /// Pop a private environment.
+    #[inline]
+    pub(super) fn pop_private_environment(&mut self) {
+        self.private_environment_nested_index -= 1;
+    }
+
+    /// Returns the current private environment root index.
+    #[inline]
+    pub(super) const fn private_environment_root_index(&self) -> usize {
+        self.private_environment_root_index
+    }
+
+    /// Returns if the cursor is in a class.
+    #[inline]
+    pub(super) const fn in_class(&self) -> bool {
+        self.private_environment_nested_index != 0
     }
 
     /// Returns an error if the next token is not of kind `kind`.

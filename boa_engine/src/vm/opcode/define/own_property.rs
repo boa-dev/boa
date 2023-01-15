@@ -1,7 +1,7 @@
 use crate::{
     property::PropertyDescriptor,
     vm::{opcode::Operation, ShouldExit},
-    Context, JsResult, JsString,
+    Context, JsNativeError, JsResult, JsString,
 };
 
 /// `DefineOwnPropertyByName` implements the Opcode Operation for `Opcode::DefineOwnPropertyByName`
@@ -64,7 +64,7 @@ impl Operation for DefineOwnPropertyByValue {
             object.to_object(context)?
         };
         let key = key.to_property_key(context)?;
-        object.__define_own_property__(
+        let success = object.__define_own_property__(
             key,
             PropertyDescriptor::builder()
                 .value(value)
@@ -74,6 +74,11 @@ impl Operation for DefineOwnPropertyByValue {
                 .build(),
             context,
         )?;
+        if !success {
+            return Err(JsNativeError::typ()
+                .with_message("failed to defined own property")
+                .into());
+        }
         Ok(ShouldExit::False)
     }
 }

@@ -154,18 +154,20 @@ impl Eval {
                     flags |= Flags::IN_METHOD;
                 }
 
-                // iv. If F.[[ConstructorKind]] is derived, set inDerivedConstructor to true.
-                if function_object
+                let function_object = function_object
                     .as_function()
-                    .expect("must be function object")
-                    .is_derived_constructor()
-                {
+                    .expect("must be function object");
+
+                // iv. If F.[[ConstructorKind]] is derived, set inDerivedConstructor to true.
+                if function_object.is_derived_constructor() {
                     flags |= Flags::IN_DERIVED_CONSTRUCTOR;
                 }
 
-                // TODO:
                 // v. Let classFieldInitializerName be F.[[ClassFieldInitializerName]].
                 // vi. If classFieldInitializerName is not empty, set inClassFieldInitializer to true.
+                if function_object.class_field_initializer_name().is_some() {
+                    flags |= Flags::IN_CLASS_FIELD_INITIALIZER;
+                }
 
                 flags
             }

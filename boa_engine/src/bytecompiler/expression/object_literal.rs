@@ -37,7 +37,7 @@ impl ByteCompiler<'_, '_> {
                     PropertyName::Computed(name_node) => {
                         self.compile_expr(name_node, true)?;
                         self.emit_opcode(Opcode::ToPropertyKey);
-                        if expr.is_function_definition() {
+                        if expr.is_anonymous_function_definition() {
                             self.emit_opcode(Opcode::Dup);
                             self.compile_expr(expr, true)?;
                             self.emit_opcode(Opcode::SetFunctionName);

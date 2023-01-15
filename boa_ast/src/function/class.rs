@@ -1,6 +1,4 @@
-use core::ops::ControlFlow;
-use std::borrow::Cow;
-
+use super::Function;
 use crate::{
     block_to_string,
     expression::{Expression, Identifier},
@@ -11,8 +9,9 @@ use crate::{
     Declaration, StatementList, ToStringEscaped,
 };
 use boa_interner::{Interner, Sym, ToIndentedString, ToInternedString};
-
-use super::Function;
+use core::ops::ControlFlow;
+use std::borrow::Cow;
+use std::hash::Hash;
 
 /// A class declaration, as defined by the [spec].
 ///
@@ -27,8 +26,9 @@ use super::Function;
 pub struct Class {
     name: Option<Identifier>,
     super_ref: Option<Expression>,
-    constructor: Option<Function>,
-    elements: Box<[ClassElement]>,
+    pub(crate) constructor: Option<Function>,
+    pub(crate) elements: Box<[ClassElement]>,
+    has_binding_identifier: bool,
 }
 
 impl Class {
@@ -40,12 +40,14 @@ impl Class {
         super_ref: Option<Expression>,
         constructor: Option<Function>,
         elements: Box<[ClassElement]>,
+        has_binding_identifier: bool,
     ) -> Self {
         Self {
             name,
             super_ref,
             constructor,
             elements,
+            has_binding_identifier,
         }
     }
 
@@ -75,6 +77,13 @@ impl Class {
     #[must_use]
     pub const fn elements(&self) -> &[ClassElement] {
         &self.elements
+    }
+
+    /// Returns whether the class has a binding identifier.
+    #[inline]
+    #[must_use]
+    pub const fn has_binding_identifier(&self) -> bool {
+        self.has_binding_identifier
     }
 }
 
@@ -238,7 +247,7 @@ impl ToIndentedString for Class {
                             MethodDefinition::Set(_) => "set ",
                             _ => "",
                         },
-                        interner.resolve_expect(*name),
+                        interner.resolve_expect(name.description()),
                         match &method {
                             MethodDefinition::Get(expr)
                             | MethodDefinition::Set(expr)
@@ -281,7 +290,7 @@ impl ToIndentedString for Class {
                             MethodDefinition::Set(_) => "set ",
                             _ => "",
                         },
-                        interner.resolve_expect(*name),
+                        interner.resolve_expect(name.description()),
                         match &method {
                             MethodDefinition::Get(expr)
                             | MethodDefinition::Set(expr)
@@ -320,24 +329,30 @@ impl ToIndentedString for Class {
                     Some(expr) => {
                         format!(
                             "{indentation}#{} = {};\n",
-                            interner.resolve_expect(*name),
+                            interner.resolve_expect(name.description()),
                             expr.to_no_indent_string(interner, indent_n + 1)
                         )
                     }
                     None => {
-                        format!("{indentation}#{};\n", interner.resolve_expect(*name),)
+                        format!(
+                            "{indentation}#{};\n",
+                            interner.resolve_expect(name.description()),
+                        )
                     }
                 },
                 ClassElement::PrivateStaticFieldDefinition(name, field) => match field {
                     Some(expr) => {
                         format!(
                             "{indentation}static #{} = {};\n",
-                            interner.resolve_expect(*name),
+                            interner.resolve_expect(name.description()),
                             expr.to_no_indent_string(interner, indent_n + 1)
                         )
                     }
                     None => {
-                        format!("{indentation}static #{};\n", interner.resolve_expect(*name),)
+                        format!(
+                            "{indentation}static #{};\n",
+                            interner.resolve_expect(name.description()),
+                        )
                     }
                 },
                 ClassElement::StaticBlock(statement_list) => {
@@ -414,22 +429,30 @@ impl VisitWith for Class {
 pub enum ClassElement {
     /// A method definition, including `get` and `set` accessors.
     MethodDefinition(PropertyName, MethodDefinition),
+
     /// A static method definition, accessible from the class constructor object.
     StaticMethodDefinition(PropertyName, MethodDefinition),
+
     /// A field definition.
     FieldDefinition(PropertyName, Option<Expression>),
+
     /// A static field definition, accessible from the class constructor object
     StaticFieldDefinition(PropertyName, Option<Expression>),
+
     /// A private method definition, only accessible inside the class declaration.
-    PrivateMethodDefinition(Sym, MethodDefinition),
+    PrivateMethodDefinition(PrivateName, MethodDefinition),
+
     /// A private static method definition, only accessible from static methods and fields inside
     /// the class declaration.
-    PrivateStaticMethodDefinition(Sym, MethodDefinition),
+    PrivateStaticMethodDefinition(PrivateName, MethodDefinition),
+
     /// A private field definition, only accessible inside the class declaration.
-    PrivateFieldDefinition(Sym, Option<Expression>),
+    PrivateFieldDefinition(PrivateName, Option<Expression>),
+
     /// A private static field definition, only accessible from static methods and fields inside the
     /// class declaration.
-    PrivateStaticFieldDefinition(Sym, Option<Expression>),
+    PrivateStaticFieldDefinition(PrivateName, Option<Expression>),
+
     /// A static block, where a class can have initialization logic for its static fields.
     StaticBlock(StatementList),
 }
@@ -452,14 +475,14 @@ impl VisitWith for ClassElement {
                     ControlFlow::Continue(())
                 }
             }
-            Self::PrivateMethodDefinition(sym, md)
-            | Self::PrivateStaticMethodDefinition(sym, md) => {
-                try_break!(visitor.visit_sym(sym));
+            Self::PrivateMethodDefinition(name, md)
+            | Self::PrivateStaticMethodDefinition(name, md) => {
+                try_break!(visitor.visit_private_name(name));
                 visitor.visit_method_definition(md)
             }
-            Self::PrivateFieldDefinition(sym, maybe_expr)
-            | Self::PrivateStaticFieldDefinition(sym, maybe_expr) => {
-                try_break!(visitor.visit_sym(sym));
+            Self::PrivateFieldDefinition(name, maybe_expr)
+            | Self::PrivateStaticFieldDefinition(name, maybe_expr) => {
+                try_break!(visitor.visit_private_name(name));
                 if let Some(expr) = maybe_expr {
                     visitor.visit_expression(expr)
                 } else {
@@ -487,14 +510,14 @@ impl VisitWith for ClassElement {
                     ControlFlow::Continue(())
                 }
             }
-            Self::PrivateMethodDefinition(sym, md)
-            | Self::PrivateStaticMethodDefinition(sym, md) => {
-                try_break!(visitor.visit_sym_mut(sym));
+            Self::PrivateMethodDefinition(name, md)
+            | Self::PrivateStaticMethodDefinition(name, md) => {
+                try_break!(visitor.visit_private_name_mut(name));
                 visitor.visit_method_definition_mut(md)
             }
-            Self::PrivateFieldDefinition(sym, maybe_expr)
-            | Self::PrivateStaticFieldDefinition(sym, maybe_expr) => {
-                try_break!(visitor.visit_sym_mut(sym));
+            Self::PrivateFieldDefinition(name, maybe_expr)
+            | Self::PrivateStaticFieldDefinition(name, maybe_expr) => {
+                try_break!(visitor.visit_private_name_mut(name));
                 if let Some(expr) = maybe_expr {
                     visitor.visit_expression_mut(expr)
                 } else {
@@ -503,5 +526,54 @@ impl VisitWith for ClassElement {
             }
             Self::StaticBlock(sl) => visitor.visit_statement_list_mut(sl),
         }
+    }
+}
+
+/// A private name as defined by the [spec].
+///
+/// [spec]: https://tc39.es/ecma262/#sec-private-names
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+#[cfg_attr(feature = "fuzz", derive(arbitrary::Arbitrary))]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
+pub struct PrivateName {
+    /// The `[[Description]]` internal slot of the private name.
+    description: Sym,
+
+    /// The indices of the private name are included to ensure that private names are unique.
+    pub(crate) indices: (usize, usize),
+}
+
+impl PrivateName {
+    /// Create a new private name.
+    #[inline]
+    #[must_use]
+    pub const fn new(description: Sym) -> Self {
+        Self {
+            description,
+            indices: (0, 0),
+        }
+    }
+
+    /// Get the description of the private name.
+    #[inline]
+    #[must_use]
+    pub const fn description(&self) -> Sym {
+        self.description
+    }
+}
+
+impl VisitWith for PrivateName {
+    fn visit_with<'a, V>(&'a self, visitor: &mut V) -> ControlFlow<V::BreakTy>
+    where
+        V: Visitor<'a>,
+    {
+        visitor.visit_sym(&self.description)
+    }
+
+    fn visit_with_mut<'a, V>(&'a mut self, visitor: &mut V) -> ControlFlow<V::BreakTy>
+    where
+        V: VisitorMut<'a>,
+    {
+        visitor.visit_sym_mut(&mut self.description)
     }
 }

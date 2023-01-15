@@ -16,15 +16,18 @@ impl Operation for SetHomeObject {
 
     fn execute(context: &mut Context<'_>) -> JsResult<ShouldExit> {
         let function = context.vm.pop();
-        let function_object = function.as_object().expect("must be object");
         let home = context.vm.pop();
-        let home_object = home.as_object().expect("must be object");
 
-        function_object
-            .borrow_mut()
-            .as_function_mut()
-            .expect("must be function object")
-            .set_home_object(home_object.clone());
+        {
+            let function_object = function.as_object().expect("must be object");
+            let home_object = home.as_object().expect("must be object");
+            let mut function_object_mut = function_object.borrow_mut();
+            let function_mut = function_object_mut
+                .as_function_mut()
+                .expect("must be function object");
+            function_mut.set_home_object(home_object.clone());
+            function_mut.set_class_object(home_object.clone());
+        }
 
         context.vm.push(home);
         context.vm.push(function);

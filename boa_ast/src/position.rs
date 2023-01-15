@@ -7,7 +7,7 @@ use std::{cmp::Ordering, fmt, num::NonZeroU32};
 /// ## Similar Implementations
 /// [V8: Location](https://cs.chromium.org/chromium/src/v8/src/parsing/scanner.h?type=cs&q=isValid+Location&g=0&l=216)
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct Position {
     /// Line number.
     line_number: NonZeroU32,
@@ -55,7 +55,7 @@ impl fmt::Display for Position {
 /// Note that spans are of the form [start, end) i.e. that the start position is inclusive
 /// and the end position is exclusive.
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub struct Span {
     start: Position,
     end: Position,

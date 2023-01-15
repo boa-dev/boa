@@ -217,7 +217,7 @@ impl ByteCompiler<'_, '_> {
                     Expression::PropertyAccess(PropertyAccess::Private(access)) => {
                         self.compile_expr(access.target(), true)?;
                         self.emit(Opcode::Dup, &[]);
-                        let index = self.get_or_insert_name(access.field().into());
+                        let index = self.get_or_insert_private_name(access.field());
                         self.emit(Opcode::GetPrivateField, &[index]);
                     }
                     expr => {
@@ -238,6 +238,7 @@ impl ByteCompiler<'_, '_> {
                     }
                     self.emit_opcode(Opcode::PushValueToArray);
                 }
+                self.emit_opcode(Opcode::Dup);
                 self.emit_opcode(Opcode::Dup);
 
                 self.emit_opcode(Opcode::PushNewArray);
@@ -310,7 +311,6 @@ impl ByteCompiler<'_, '_> {
             // TODO: try to remove this variant somehow
             Expression::FormalParameterList(_) => unreachable!(),
         }
-
         Ok(())
     }
 }
