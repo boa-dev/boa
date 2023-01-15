@@ -35,7 +35,7 @@ bitflags! {
         const LOOP = 0b0000_0001;
         const SWITCH = 0b0000_0010;
         const TRY_BLOCK = 0b0000_0100;
-        const LABELLED_BLOCK = 0b0000_1000;
+        const LABELLED = 0b0000_1000;
         const IN_CATCH = 0b0001_0000;
         const HAS_FINALLY = 0b0010_0000;
         const FOR_OF_IN_LOOP = 0b0100_0000;
@@ -91,7 +91,7 @@ impl JumpControlInfo {
     }
 
     pub(crate) fn with_labelled_block_flag(mut self, value: bool) -> Self {
-        self.flags.set(JumpControlInfoFlags::LABELLED_BLOCK, value);
+        self.flags.set(JumpControlInfoFlags::LABELLED, value);
         self
     }
 
@@ -129,8 +129,8 @@ impl JumpControlInfo {
         self.flags.contains(JumpControlInfoFlags::TRY_BLOCK)
     }
 
-    pub(crate) const fn is_labelled_block(&self) -> bool {
-        self.flags.contains(JumpControlInfoFlags::LABELLED_BLOCK)
+    pub(crate) const fn is_labelled(&self) -> bool {
+        self.flags.contains(JumpControlInfoFlags::LABELLED)
     }
 
     pub(crate) const fn in_catch(&self) -> bool {
@@ -363,7 +363,7 @@ impl ByteCompiler<'_, '_> {
         }
     }
 
-    pub(crate) fn push_labelled_block_control_info(&mut self, label: Sym, start_address: u32) {
+    pub(crate) fn push_labelled_control_info(&mut self, label: Sym, start_address: u32) {
         let new_info = JumpControlInfo::default()
             .with_labelled_block_flag(true)
             .with_label(Some(label))
@@ -371,12 +371,13 @@ impl ByteCompiler<'_, '_> {
         self.jump_info.push(new_info);
     }
 
-    pub(crate) fn pop_labelled_block_control_info(&mut self) {
+    pub(crate) fn pop_labelled_control_info(&mut self) {
         let info = self.jump_info.pop().expect("no jump information found");
 
-        assert!(info.is_labelled_block());
+        assert!(info.is_labelled());
 
-        self.emit_opcode(Opcode::PopEnvironment);
+        // We should no longer have to PopEnvironment here
+        // self.emit_opcode(Opcode::PopEnvironment);
 
         for label in info.breaks {
             self.patch_jump(label);

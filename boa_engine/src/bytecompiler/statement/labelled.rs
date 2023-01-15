@@ -16,6 +16,10 @@ impl ByteCompiler<'_, '_> {
         use_expr: bool,
         configurable_globals: bool,
     ) -> JsResult<()> {
+        // Push a label jump control info
+        let labelled_loc = self.next_opcode_location();
+        self.push_labelled_control_info(labelled.label(), labelled_loc); 
+
         match labelled.item() {
             LabelledItem::Statement(stmt) => match stmt {
                 Statement::ForLoop(for_loop) => {
@@ -49,20 +53,14 @@ impl ByteCompiler<'_, '_> {
                         configurable_globals,
                     )?;
                 }
-                Statement::Block(block) => {
-                    self.compile_block(
-                        block,
-                        Some(labelled.label()),
-                        use_expr,
-                        configurable_globals,
-                    )?;
-                }
                 stmt => self.compile_stmt(stmt, use_expr, configurable_globals)?,
             },
             LabelledItem::Function(f) => {
                 self.function(f.into(), NodeKind::Declaration, false)?;
             }
         }
+        
+        self.pop_labelled_control_info();
 
         Ok(())
     }
