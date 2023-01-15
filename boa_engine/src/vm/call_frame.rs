@@ -39,11 +39,10 @@ pub struct CallFrame {
     pub(crate) async_generator: Option<JsObject>,
 }
 
-
 impl CallFrame {
     /// ---- `CallFrame` creation methods ----
 
-    /// Creates a new `CallFrame` with the provided `CodeBlock`. 
+    /// Creates a new `CallFrame` with the provided `CodeBlock`.
     pub(crate) fn new(code_block: Gc<CodeBlock>) -> Self {
         Self {
             code_block,
