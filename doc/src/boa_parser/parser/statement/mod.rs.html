@@ -809,6 +809,38 @@
 <span id="808">808</span>
 <span id="809">809</span>
 <span id="810">810</span>
+<span id="811">811</span>
+<span id="812">812</span>
+<span id="813">813</span>
+<span id="814">814</span>
+<span id="815">815</span>
+<span id="816">816</span>
+<span id="817">817</span>
+<span id="818">818</span>
+<span id="819">819</span>
+<span id="820">820</span>
+<span id="821">821</span>
+<span id="822">822</span>
+<span id="823">823</span>
+<span id="824">824</span>
+<span id="825">825</span>
+<span id="826">826</span>
+<span id="827">827</span>
+<span id="828">828</span>
+<span id="829">829</span>
+<span id="830">830</span>
+<span id="831">831</span>
+<span id="832">832</span>
+<span id="833">833</span>
+<span id="834">834</span>
+<span id="835">835</span>
+<span id="836">836</span>
+<span id="837">837</span>
+<span id="838">838</span>
+<span id="839">839</span>
+<span id="840">840</span>
+<span id="841">841</span>
+<span id="842">842</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Statement and declaration parsing.
 //!
 //! More information:
@@ -861,6 +893,7 @@
     Keyword, Punctuator,
 };
 <span class="kw">use </span>boa_interner::Interner;
+<span class="kw">use </span>boa_macros::utf16;
 <span class="kw">use </span>boa_profiler::Profiler;
 <span class="kw">use </span>std::io::Read;
 
@@ -1039,6 +1072,8 @@
     allow_await: AllowAwait,
     allow_return: AllowReturn,
     break_nodes: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>[TokenKind],
+    directive_prologues: bool,
+    strict: bool,
 }
 
 <span class="kw">impl </span>StatementList {
@@ -1048,6 +1083,8 @@
         allow_await: A,
         allow_return: R,
         break_nodes: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>[TokenKind],
+        directive_prologues: bool,
+        strict: bool,
     ) -&gt; <span class="self">Self
     </span><span class="kw">where
         </span>Y: Into&lt;AllowYield&gt;,
@@ -1059,6 +1096,8 @@
             allow_await: allow_await.into(),
             allow_return: allow_return.into(),
             break_nodes,
+            directive_prologues,
+            strict,
         }
     }
 }
@@ -1083,6 +1122,10 @@
         <span class="kw">let </span>_timer = Profiler::global().start_event(<span class="string">&quot;StatementList&quot;</span>, <span class="string">&quot;Parsing&quot;</span>);
         <span class="kw">let </span><span class="kw-2">mut </span>items = Vec::new();
 
+        <span class="kw">let </span>global_strict = cursor.strict_mode();
+        <span class="kw">let </span><span class="kw-2">mut </span>directive_prologues = <span class="self">self</span>.directive_prologues;
+        <span class="kw">let </span><span class="kw-2">mut </span>strict = <span class="self">self</span>.strict;
+
         <span class="kw">loop </span>{
             <span class="kw">match </span>cursor.peek(<span class="number">0</span>, interner)<span class="question-mark">? </span>{
                 <span class="prelude-val">Some</span>(token) <span class="kw">if </span><span class="self">self</span>.break_nodes.contains(token.kind()) =&gt; <span class="kw">break</span>,
@@ -1093,6 +1136,25 @@
             <span class="kw">let </span>item =
                 StatementListItem::new(<span class="self">self</span>.allow_yield, <span class="self">self</span>.allow_await, <span class="self">self</span>.allow_return)
                     .parse(cursor, interner)<span class="question-mark">?</span>;
+
+            <span class="kw">if </span>directive_prologues {
+                <span class="kw">if let </span>ast::StatementListItem::Statement(ast::Statement::Expression(
+                    ast::Expression::Literal(ast::expression::literal::Literal::String(string)),
+                )) = <span class="kw-2">&amp;</span>item
+                {
+                    <span class="kw">if </span>interner.resolve_expect(<span class="kw-2">*</span>string).join(
+                        |s| s == <span class="string">&quot;use strict&quot;</span>,
+                        |g| g == <span class="macro">utf16!</span>(<span class="string">&quot;use strict&quot;</span>),
+                        <span class="bool-val">true</span>,
+                    ) {
+                        cursor.set_strict_mode(<span class="bool-val">true</span>);
+                        strict = <span class="bool-val">true</span>;
+                    }
+                } <span class="kw">else </span>{
+                    directive_prologues = <span class="bool-val">false</span>;
+                }
+            }
+
             items.push(item);
 
             <span class="comment">// move the cursor forward for any consecutive semicolon.
@@ -1101,7 +1163,9 @@
 
         items.sort_by(ast::StatementListItem::hoistable_order);
 
-        <span class="prelude-val">Ok</span>(items.into())
+        cursor.set_strict_mode(global_strict);
+
+        <span class="prelude-val">Ok</span>(ast::StatementList::new(items, strict))
     }
 }
 

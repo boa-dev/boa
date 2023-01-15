@@ -1353,6 +1353,12 @@
 <span id="1352">1352</span>
 <span id="1353">1353</span>
 <span id="1354">1354</span>
+<span id="1355">1355</span>
+<span id="1356">1356</span>
+<span id="1357">1357</span>
+<span id="1358">1358</span>
+<span id="1359">1359</span>
+<span id="1360">1360</span>
 </pre><pre class="rust"><code><span class="attribute">#[cfg(test)]
 </span><span class="kw">mod </span>tests;
 
@@ -2021,9 +2027,15 @@
                     <span class="kw">let </span>strict = cursor.strict_mode();
                     cursor.set_strict_mode(<span class="bool-val">true</span>);
                     <span class="kw">let </span>position = cursor.peek(<span class="number">0</span>, interner).or_abrupt()<span class="question-mark">?</span>.span().start();
-                    <span class="kw">let </span>statement_list =
-                        StatementList::new(<span class="bool-val">false</span>, <span class="bool-val">true</span>, <span class="bool-val">false</span>, <span class="kw-2">&amp;</span>FUNCTION_BREAK_TOKENS)
-                            .parse(cursor, interner)<span class="question-mark">?</span>;
+                    <span class="kw">let </span>statement_list = StatementList::new(
+                        <span class="bool-val">false</span>,
+                        <span class="bool-val">true</span>,
+                        <span class="bool-val">false</span>,
+                        <span class="kw-2">&amp;</span>FUNCTION_BREAK_TOKENS,
+                        <span class="bool-val">false</span>,
+                        <span class="bool-val">false</span>,
+                    )
+                    .parse(cursor, interner)<span class="question-mark">?</span>;
 
                     <span class="kw">let </span><span class="kw-2">mut </span>lexical_names = FxHashSet::default();
                     <span class="kw">for </span>name <span class="kw">in </span><span class="kw-2">&amp;</span>lexically_declared_names(<span class="kw-2">&amp;</span>statement_list) {

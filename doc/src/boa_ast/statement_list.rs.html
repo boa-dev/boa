@@ -208,6 +208,12 @@
 <span id="207">207</span>
 <span id="208">208</span>
 <span id="209">209</span>
+<span id="210">210</span>
+<span id="211">211</span>
+<span id="212">212</span>
+<span id="213">213</span>
+<span id="214">214</span>
+<span id="215">215</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Statement list node.
 
 </span><span class="kw">use </span><span class="kw">super</span>::Declaration;
@@ -331,6 +337,18 @@
 }
 
 <span class="kw">impl </span>StatementList {
+    <span class="doccomment">/// Creates a new `StatementList` AST node.
+    </span><span class="attribute">#[must_use]
+    </span><span class="kw">pub fn </span>new&lt;S&gt;(statements: S, strict: bool) -&gt; <span class="self">Self
+    </span><span class="kw">where
+        </span>S: Into&lt;Box&lt;[StatementListItem]&gt;&gt;,
+    {
+        <span class="self">Self </span>{
+            statements: statements.into(),
+            strict,
+        }
+    }
+
     <span class="doccomment">/// Gets the list of statements.
     </span><span class="attribute">#[inline]
     #[must_use]
@@ -343,12 +361,6 @@
     #[must_use]
     </span><span class="kw">pub const fn </span>strict(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
         <span class="self">self</span>.strict
-    }
-
-    <span class="doccomment">/// Set the strict mode.
-    </span><span class="attribute">#[inline]
-    </span><span class="kw">pub fn </span>set_strict(<span class="kw-2">&amp;mut </span><span class="self">self</span>, strict: bool) {
-        <span class="self">self</span>.strict = strict;
     }
 }
 

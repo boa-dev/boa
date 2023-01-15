@@ -358,16 +358,6 @@
 <span id="357">357</span>
 <span id="358">358</span>
 <span id="359">359</span>
-<span id="360">360</span>
-<span id="361">361</span>
-<span id="362">362</span>
-<span id="363">363</span>
-<span id="364">364</span>
-<span id="365">365</span>
-<span id="366">366</span>
-<span id="367">367</span>
-<span id="368">368</span>
-<span id="369">369</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Boa parser implementation.
 
 </span><span class="kw">mod </span>cursor;
@@ -381,7 +371,6 @@
 
 <span class="kw">use crate</span>::{
     error::ParseResult,
-    lexer::TokenKind,
     parser::{
         cursor::Cursor,
         function::{FormalParameters, FunctionStatementList},
@@ -397,7 +386,6 @@
     Position, StatementList,
 };
 <span class="kw">use </span>boa_interner::Interner;
-<span class="kw">use </span>boa_macros::utf16;
 <span class="kw">use </span>rustc_hash::FxHashSet;
 <span class="kw">use </span>std::io::Read;
 
@@ -609,52 +597,31 @@
     <span class="kw">type </span>Output = StatementList;
 
     <span class="kw">fn </span>parse(<span class="self">self</span>, cursor: <span class="kw-2">&amp;mut </span>Cursor&lt;R&gt;, interner: <span class="kw-2">&amp;mut </span>Interner) -&gt; ParseResult&lt;<span class="self">Self</span>::Output&gt; {
-        <span class="kw">let </span><span class="kw-2">mut </span>strict = cursor.strict_mode();
-        <span class="kw">match </span>cursor.peek(<span class="number">0</span>, interner)<span class="question-mark">? </span>{
-            <span class="prelude-val">Some</span>(tok) =&gt; {
-                <span class="kw">match </span>tok.kind() {
-                    <span class="comment">// Set the strict mode
-                    </span>TokenKind::StringLiteral(string)
-                        <span class="kw">if </span>interner.resolve_expect(<span class="kw-2">*</span>string).join(
-                            |s| s == <span class="string">&quot;use strict&quot;</span>,
-                            |g| g == <span class="macro">utf16!</span>(<span class="string">&quot;use strict&quot;</span>),
-                            <span class="bool-val">true</span>,
-                        ) =&gt;
-                    {
-                        cursor.set_strict_mode(<span class="bool-val">true</span>);
-                        strict = <span class="bool-val">true</span>;
-                    }
-                    <span class="kw">_ </span>=&gt; {}
-                }
-                <span class="kw">let </span><span class="kw-2">mut </span>statement_list =
-                    ScriptBody::new(<span class="self">self</span>.direct_eval).parse(cursor, interner)<span class="question-mark">?</span>;
-                statement_list.set_strict(strict);
+        <span class="kw">let </span>statement_list = ScriptBody::new(<span class="bool-val">true</span>, cursor.strict_mode(), <span class="self">self</span>.direct_eval)
+            .parse(cursor, interner)<span class="question-mark">?</span>;
 
-                <span class="comment">// It is a Syntax Error if the LexicallyDeclaredNames of ScriptBody contains any duplicate entries.
-                // It is a Syntax Error if any element of the LexicallyDeclaredNames of ScriptBody also occurs in the VarDeclaredNames of ScriptBody.
-                </span><span class="kw">let </span><span class="kw-2">mut </span>lexical_names = FxHashSet::default();
-                <span class="kw">for </span>name <span class="kw">in </span>top_level_lexically_declared_names(<span class="kw-2">&amp;</span>statement_list) {
-                    <span class="kw">if </span>!lexical_names.insert(name) {
-                        <span class="kw">return </span><span class="prelude-val">Err</span>(Error::general(
-                            <span class="string">&quot;lexical name declared multiple times&quot;</span>,
-                            Position::new(<span class="number">1</span>, <span class="number">1</span>),
-                        ));
-                    }
-                }
-
-                <span class="kw">for </span>name <span class="kw">in </span>top_level_var_declared_names(<span class="kw-2">&amp;</span>statement_list) {
-                    <span class="kw">if </span>lexical_names.contains(<span class="kw-2">&amp;</span>name) {
-                        <span class="kw">return </span><span class="prelude-val">Err</span>(Error::general(
-                            <span class="string">&quot;lexical name declared multiple times&quot;</span>,
-                            Position::new(<span class="number">1</span>, <span class="number">1</span>),
-                        ));
-                    }
-                }
-
-                <span class="prelude-val">Ok</span>(statement_list)
+        <span class="comment">// It is a Syntax Error if the LexicallyDeclaredNames of ScriptBody contains any duplicate entries.
+        // It is a Syntax Error if any element of the LexicallyDeclaredNames of ScriptBody also occurs in the VarDeclaredNames of ScriptBody.
+        </span><span class="kw">let </span><span class="kw-2">mut </span>lexical_names = FxHashSet::default();
+        <span class="kw">for </span>name <span class="kw">in </span>top_level_lexically_declared_names(<span class="kw-2">&amp;</span>statement_list) {
+            <span class="kw">if </span>!lexical_names.insert(name) {
+                <span class="kw">return </span><span class="prelude-val">Err</span>(Error::general(
+                    <span class="string">&quot;lexical name declared multiple times&quot;</span>,
+                    Position::new(<span class="number">1</span>, <span class="number">1</span>),
+                ));
             }
-            <span class="prelude-val">None </span>=&gt; <span class="prelude-val">Ok</span>(StatementList::from(Vec::new())),
         }
+
+        <span class="kw">for </span>name <span class="kw">in </span>top_level_var_declared_names(<span class="kw-2">&amp;</span>statement_list) {
+            <span class="kw">if </span>lexical_names.contains(<span class="kw-2">&amp;</span>name) {
+                <span class="kw">return </span><span class="prelude-val">Err</span>(Error::general(
+                    <span class="string">&quot;lexical name declared multiple times&quot;</span>,
+                    Position::new(<span class="number">1</span>, <span class="number">1</span>),
+                ));
+            }
+        }
+
+        <span class="prelude-val">Ok</span>(statement_list)
     }
 }
 
@@ -666,14 +633,20 @@
 /// [spec]: https://tc39.es/ecma262/#prod-ScriptBody
 </span><span class="attribute">#[derive(Debug, Clone, Copy)]
 </span><span class="kw">pub struct </span>ScriptBody {
+    directive_prologues: bool,
+    strict: bool,
     direct_eval: bool,
 }
 
 <span class="kw">impl </span>ScriptBody {
     <span class="doccomment">/// Create a new `ScriptBody` parser.
     </span><span class="attribute">#[inline]
-    </span><span class="kw">const fn </span>new(direct_eval: bool) -&gt; <span class="self">Self </span>{
-        <span class="self">Self </span>{ direct_eval }
+    </span><span class="kw">const fn </span>new(directive_prologues: bool, strict: bool, direct_eval: bool) -&gt; <span class="self">Self </span>{
+        <span class="self">Self </span>{
+            directive_prologues,
+            strict,
+            direct_eval,
+        }
     }
 }
 
@@ -684,8 +657,15 @@
     <span class="kw">type </span>Output = StatementList;
 
     <span class="kw">fn </span>parse(<span class="self">self</span>, cursor: <span class="kw-2">&amp;mut </span>Cursor&lt;R&gt;, interner: <span class="kw-2">&amp;mut </span>Interner) -&gt; ParseResult&lt;<span class="self">Self</span>::Output&gt; {
-        <span class="kw">let </span>body = <span class="self">self</span>::statement::StatementList::new(<span class="bool-val">false</span>, <span class="bool-val">false</span>, <span class="bool-val">false</span>, <span class="kw-2">&amp;</span>[])
-            .parse(cursor, interner)<span class="question-mark">?</span>;
+        <span class="kw">let </span>body = <span class="self">self</span>::statement::StatementList::new(
+            <span class="bool-val">false</span>,
+            <span class="bool-val">false</span>,
+            <span class="bool-val">false</span>,
+            <span class="kw-2">&amp;</span>[],
+            <span class="self">self</span>.directive_prologues,
+            <span class="self">self</span>.strict,
+        )
+        .parse(cursor, interner)<span class="question-mark">?</span>;
 
         <span class="kw">if </span>!<span class="self">self</span>.direct_eval {
             <span class="comment">// It is a Syntax Error if StatementList Contains super unless the source text containing super is eval
