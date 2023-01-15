@@ -39,9 +39,11 @@ pub struct CallFrame {
     pub(crate) async_generator: Option<JsObject>,
 }
 
-// ---- `CallFrame` creation methods ---- //
 
 impl CallFrame {
+    /// ---- `CallFrame` creation methods ----
+
+    /// Creates a new `CallFrame` with the provided `CodeBlock`. 
     pub(crate) fn new(code_block: Gc<CodeBlock>) -> Self {
         Self {
             code_block,
@@ -63,20 +65,22 @@ impl CallFrame {
         }
     }
 
+    /// Updates a `CallFrame`'s `param_count` field with the value provided.
     pub(crate) fn with_param_count(mut self, count: usize) -> Self {
         self.param_count = count;
         self
     }
 
+    /// Updates a `CallFrame`'s `arg_count` field with the value provided.
     pub(crate) fn with_arg_count(mut self, count: usize) -> Self {
         self.arg_count = count;
         self
     }
 }
 
-// ---- `CallFrame` stack methods ---- //
-
 impl CallFrame {
+    /// ---- `CallFrame` stack methods ----
+
     /// Tracks that one environment has been pushed in the current loop block.
     pub(crate) fn loop_env_stack_inc(&mut self) {
         *self
