@@ -39,9 +39,8 @@ pub struct CallFrame {
     pub(crate) async_generator: Option<JsObject>,
 }
 
+/// ---- `CallFrame` creation methods ----
 impl CallFrame {
-    /// ---- `CallFrame` creation methods ----
-
     /// Creates a new `CallFrame` with the provided `CodeBlock`.
     pub(crate) fn new(code_block: Gc<CodeBlock>) -> Self {
         Self {
@@ -77,8 +76,8 @@ impl CallFrame {
     }
 }
 
+/// ---- `CallFrame` stack methods ----
 impl CallFrame {
-    /// ---- `CallFrame` stack methods ----
 
     /// Tracks that one environment has been pushed in the current loop block.
     pub(crate) fn loop_env_stack_inc(&mut self) {
