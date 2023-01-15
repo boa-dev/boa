@@ -78,7 +78,6 @@ impl CallFrame {
 
 /// ---- `CallFrame` stack methods ----
 impl CallFrame {
-
     /// Tracks that one environment has been pushed in the current loop block.
     pub(crate) fn loop_env_stack_inc(&mut self) {
         *self
