@@ -313,9 +313,6 @@ where
             }
 
             items.push(item);
-
-            // move the cursor forward for any consecutive semicolon.
-            while cursor.next_if(Punctuator::Semicolon, interner)?.is_some() {}
         }
 
         items.sort_by(ast::StatementListItem::hoistable_order);
