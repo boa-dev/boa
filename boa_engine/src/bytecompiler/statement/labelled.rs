@@ -18,7 +18,7 @@ impl ByteCompiler<'_, '_> {
     ) -> JsResult<()> {
         // Push a label jump control info
         let labelled_loc = self.next_opcode_location();
-        self.push_labelled_control_info(labelled.label(), labelled_loc); 
+        self.push_labelled_control_info(labelled.label(), labelled_loc);
 
         match labelled.item() {
             LabelledItem::Statement(stmt) => match stmt {
@@ -59,7 +59,7 @@ impl ByteCompiler<'_, '_> {
                 self.function(f.into(), NodeKind::Declaration, false)?;
             }
         }
-        
+
         self.pop_labelled_control_info();
 
         Ok(())
