@@ -666,9 +666,15 @@ where
                     let strict = cursor.strict_mode();
                     cursor.set_strict_mode(true);
                     let position = cursor.peek(0, interner).or_abrupt()?.span().start();
-                    let statement_list =
-                        StatementList::new(false, true, false, &FUNCTION_BREAK_TOKENS)
-                            .parse(cursor, interner)?;
+                    let statement_list = StatementList::new(
+                        false,
+                        true,
+                        false,
+                        &FUNCTION_BREAK_TOKENS,
+                        false,
+                        false,
+                    )
+                    .parse(cursor, interner)?;
 
                     let mut lexical_names = FxHashSet::default();
                     for name in &lexically_declared_names(&statement_list) {

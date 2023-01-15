@@ -26,7 +26,6 @@ use boa_ast::{
     Punctuator,
 };
 use boa_interner::{Interner, Sym};
-use boa_macros::utf16;
 use boa_profiler::Profiler;
 use std::io::Read;
 
@@ -449,41 +448,14 @@ where
     fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult<Self::Output> {
         let _timer = Profiler::global().start_event("FunctionStatementList", "Parsing");
 
-        let global_strict_mode = cursor.strict_mode();
-        let mut strict = false;
-
-        if let Some(tk) = cursor.peek(0, interner)? {
-            match tk.kind() {
-                TokenKind::Punctuator(Punctuator::CloseBlock) => {
-                    return Ok(Vec::new().into());
-                }
-                TokenKind::StringLiteral(string)
-                    if interner.resolve_expect(*string).join(
-                        |s| s == "use strict",
-                        |g| g == utf16!("use strict"),
-                        true,
-                    ) =>
-                {
-                    cursor.set_strict_mode(true);
-                    strict = true;
-                }
-                _ => {}
-            }
-        }
-
-        let statement_list = StatementList::new(
+        StatementList::new(
             self.allow_yield,
             self.allow_await,
             true,
             &FUNCTION_BREAK_TOKENS,
+            true,
+            false,
         )
-        .parse(cursor, interner);
-
-        // Reset strict mode back to the global scope.
-        cursor.set_strict_mode(global_strict_mode);
-
-        let mut statement_list = statement_list?;
-        statement_list.set_strict(strict);
-        Ok(statement_list)
+        .parse(cursor, interner)
     }
 }
