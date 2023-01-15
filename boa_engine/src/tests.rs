@@ -2210,7 +2210,7 @@ fn break_labelled_if_statement() {
         result
     "#;
 
-    assert_eq!(&exec(scenario), "\"foo\"")
+    assert_eq!(&exec(scenario), "\"foo\"");
 }
 
 #[test]
@@ -2227,7 +2227,7 @@ fn break_labelled_try_statement() {
         result
     "#;
 
-    assert_eq!(&exec(scenario), "\"foo\"")
+    assert_eq!(&exec(scenario), "\"foo\"");
 }
 
 #[test]
