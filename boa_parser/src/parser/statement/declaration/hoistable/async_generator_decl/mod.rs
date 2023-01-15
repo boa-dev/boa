@@ -75,6 +75,12 @@ impl CallableDeclaration for AsyncGeneratorDeclaration {
     fn body_allow_await(&self) -> bool {
         true
     }
+    fn parameters_await_is_early_error(&self) -> bool {
+        true
+    }
+    fn parameters_yield_is_early_error(&self) -> bool {
+        true
+    }
 }
 
 impl<R> TokenParser<R> for AsyncGeneratorDeclaration

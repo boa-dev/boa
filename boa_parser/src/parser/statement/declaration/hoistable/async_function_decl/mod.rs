@@ -65,6 +65,9 @@ impl CallableDeclaration for AsyncFunctionDeclaration {
     fn body_allow_await(&self) -> bool {
         true
     }
+    fn parameters_await_is_early_error(&self) -> bool {
+        true
+    }
 }
 
 impl<R> TokenParser<R> for AsyncFunctionDeclaration
