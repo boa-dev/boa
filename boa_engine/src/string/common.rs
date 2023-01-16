@@ -27,7 +27,22 @@ pub(crate) struct StaticJsStrings {
 }
 
 impl StaticJsStrings {
+    // useful to search at compile time a certain string in the array
     const fn find_index(&'static self, candidate: &[u16]) -> usize {
+        const fn const_eq(lhs: &[u16], rhs: &[u16]) -> bool {
+            if lhs.len() != rhs.len() {
+                return false;
+            }
+
+            let mut i = 0;
+            while i < lhs.len() {
+                if lhs[i] != rhs[i] {
+                    return false;
+                }
+                i += 1;
+            }
+            true
+        }
         let mut i = 0;
         while i < self.strings.len() {
             let s = self.strings[i];
@@ -39,7 +54,7 @@ impl StaticJsStrings {
         panic!("couldn't find the required string on the common string array");
     }
 
-    /// Get the `JsString` corresponding to `string`, or `None` if the string
+    /// Gets the `JsString` corresponding to `string`, or `None` if the string
     /// doesn't exist inside the static array.
     pub(crate) fn get_string(&'static self, string: &[u16]) -> Option<JsString> {
         if string.len() > self.max_length {
@@ -53,7 +68,7 @@ impl StaticJsStrings {
         })
     }
 
-    /// Get the `&[u16]` slice corresponding to the provided index, or `None` if the index
+    /// Gets the `&[u16]` slice corresponding to the provided index, or `None` if the index
     /// provided exceeds the size of the static array.
     pub(crate) fn get(&'static self, index: usize) -> Option<&'static [u16]> {
         self.strings.get(index).copied()
@@ -96,7 +111,7 @@ impl StaticJsStrings {
     }
 }
 
-pub(crate) static STATIC_JS_STRINGS: StaticJsStrings = StaticJsStrings {
+pub(crate) const STATIC_JS_STRINGS: StaticJsStrings = StaticJsStrings {
     strings: RAW_STATICS,
     max_length: {
         let mut max = 0;
@@ -112,7 +127,11 @@ pub(crate) static STATIC_JS_STRINGS: StaticJsStrings = StaticJsStrings {
     },
 };
 
-static RAW_STATICS: &[&[u16]] = &static_strings! {
+/// Array of raw static strings that aren't reference counted.
+///
+/// The macro `static_strings` automatically sorts the array of strings, making it faster
+/// for searches by using `binary_search`.
+const RAW_STATICS: &[&[u16]] = &static_strings! {
     "",
     // Misc
     ",",
@@ -582,18 +601,3 @@ static RAW_STATICS: &[&[u16]] = &static_strings! {
     "Symbol.unscopables",
     "[Symbol.unscopables]",
 };
-
-const fn const_eq(lhs: &[u16], rhs: &[u16]) -> bool {
-    if lhs.len() != rhs.len() {
-        return false;
-    }
-
-    let mut i = 0;
-    while i < lhs.len() {
-        if lhs[i] != rhs[i] {
-            return false;
-        }
-        i += 1;
-    }
-    true
-}

@@ -520,8 +520,10 @@ impl JsString {
             // `[u16; str_len]`, the memory of the array must be in the `usize`
             // range for the allocation to succeed.
             unsafe {
-                let data = (*inner).data.as_ptr();
-                ptr::eq(inner.cast::<u8>().add(offset).cast(), data)
+                ptr::eq(
+                    inner.cast::<u8>().add(offset).cast(),
+                    (*inner).data.as_mut_ptr(),
+                )
             }
         });
 
@@ -534,7 +536,7 @@ impl JsString {
         let ptr = Self::allocate_inner(count);
 
         // SAFETY: `allocate_inner` guarantees that `ptr` is a valid pointer.
-        let data = unsafe { addr_of_mut!((*ptr.as_ptr()).data).cast() };
+        let data = unsafe { (*ptr.as_ptr()).data.as_mut_ptr() };
         // SAFETY:
         // - We read `count = data.len()` elements from `data`, which is within the bounds of the slice.
         // - `allocate_inner` must allocate at least `count` elements, which allows us to safely
@@ -547,7 +549,7 @@ impl JsString {
             ptr::copy_nonoverlapping(string.as_ptr(), data, count);
         }
         Self {
-            // Safety: We already know it's a valid heap pointer.
+            // Safety: `allocate_inner` guarantees `ptr` is a valid heap pointer.
             ptr: Tagged::from_non_null(ptr),
         }
     }
@@ -654,10 +656,7 @@ impl Deref for JsString {
                 // - The lifetime of `&Self::Target` is shorter than the lifetime of `self`, as seen
                 //   by its signature, so this doesn't outlive `self`.
                 unsafe {
-                    std::slice::from_raw_parts(
-                        h.as_ptr().cast::<u8>().add(DATA_OFFSET).cast(),
-                        h.as_ref().len,
-                    )
+                    std::slice::from_raw_parts((*h.as_ptr()).data.as_ptr(), (*h.as_ptr()).len)
                 }
             }
             UnwrappedTagged::Tag(index) => {

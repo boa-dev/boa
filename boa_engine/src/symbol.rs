@@ -58,8 +58,6 @@ fn get_id() -> Option<u64> {
         .ok()
 }
 
-// NOTE: if you add a new symbol to this enum,
-// update `SYMBOL_HASH_COUNT`.
 /// List of well known symbols.
 #[derive(Debug, Clone, Copy, TryFromPrimitive, IntoPrimitive)]
 #[repr(u8)]
@@ -80,7 +78,7 @@ enum WellKnown {
 }
 
 impl WellKnown {
-    fn description(self) -> JsString {
+    const fn description(self) -> JsString {
         match self {
             WellKnown::AsyncIterator => STATIC_JS_STRINGS.symbol_async_iterator(),
             WellKnown::HasInstance => STATIC_JS_STRINGS.symbol_has_instance(),
