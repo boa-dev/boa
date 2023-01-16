@@ -432,6 +432,20 @@
 <span id="431">431</span>
 <span id="432">432</span>
 <span id="433">433</span>
+<span id="434">434</span>
+<span id="435">435</span>
+<span id="436">436</span>
+<span id="437">437</span>
+<span id="438">438</span>
+<span id="439">439</span>
+<span id="440">440</span>
+<span id="441">441</span>
+<span id="442">442</span>
+<span id="443">443</span>
+<span id="444">444</span>
+<span id="445">445</span>
+<span id="446">446</span>
+<span id="447">447</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Boa&#39;s ECMAScript Virtual Machine
 //!
 //! The Virtual Machine (VM) handles generating instructions, then executing them.
@@ -475,6 +489,17 @@
     <span class="kw">pub</span>(<span class="kw">crate</span>) stack_size_limit: usize,
 }
 
+<span class="kw">impl </span>Default <span class="kw">for </span>Vm {
+    <span class="kw">fn </span>default() -&gt; <span class="self">Self </span>{
+        <span class="self">Self </span>{
+            frames: Vec::with_capacity(<span class="number">16</span>),
+            stack: Vec::with_capacity(<span class="number">1024</span>),
+            trace: <span class="bool-val">false</span>,
+            stack_size_limit: <span class="number">1024</span>,
+        }
+    }
+}
+
 <span class="kw">impl </span>Vm {
     <span class="doccomment">/// Push a value on the stack.
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>push&lt;T&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, value: T)
@@ -496,7 +521,7 @@
 
     <span class="attribute">#[track_caller]
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>read&lt;T: Readable&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; T {
-        <span class="kw">let </span>value = <span class="self">self</span>.frame().code.read::&lt;T&gt;(<span class="self">self</span>.frame().pc);
+        <span class="kw">let </span>value = <span class="self">self</span>.frame().code_block.read::&lt;T&gt;(<span class="self">self</span>.frame().pc);
         <span class="self">self</span>.frame_mut().pc += size_of::&lt;T&gt;();
         value
     }
@@ -548,7 +573,7 @@
     <span class="kw">fn </span>execute_instruction(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; JsResult&lt;ShouldExit&gt; {
         <span class="kw">let </span>opcode: Opcode = {
             <span class="kw">let </span>_timer = Profiler::global().start_event(<span class="string">&quot;Opcode retrieval&quot;</span>, <span class="string">&quot;vm&quot;</span>);
-            <span class="kw">let </span>opcode = <span class="self">self</span>.vm.frame().code.code[<span class="self">self</span>.vm.frame().pc]
+            <span class="kw">let </span>opcode = <span class="self">self</span>.vm.frame().code_block.bytecode[<span class="self">self</span>.vm.frame().pc]
                 .try_into()
                 .expect(<span class="string">&quot;could not convert code at PC to opcode&quot;</span>);
             <span class="self">self</span>.vm.frame_mut().pc += <span class="number">1</span>;
@@ -580,7 +605,10 @@
 
             <span class="macro">println!</span>(
                 <span class="string">&quot;{}\n&quot;</span>,
-                <span class="self">self</span>.vm.frame().code.to_interned_string(<span class="self">self</span>.interner())
+                <span class="self">self</span>.vm
+                    .frame()
+                    .code_block
+                    .to_interned_string(<span class="self">self</span>.interner())
             );
             <span class="macro">println!</span>(
                 <span class="string">&quot;{msg:-^width$}&quot;</span>,
@@ -612,7 +640,7 @@
                     .and_then(|f| f.get_promise_capability().cloned())
             });
 
-        <span class="kw">while </span><span class="self">self</span>.vm.frame().pc &lt; <span class="self">self</span>.vm.frame().code.code.len() {
+        <span class="kw">while </span><span class="self">self</span>.vm.frame().pc &lt; <span class="self">self</span>.vm.frame().code_block.bytecode.len() {
             <span class="attribute">#[cfg(feature = <span class="string">&quot;fuzz&quot;</span>)]
             </span>{
                 <span class="kw">if </span><span class="self">self</span>.instructions_remaining == <span class="number">0 </span>{
@@ -626,14 +654,14 @@
                 <span class="kw">let </span>opcode: Opcode = <span class="self">self
                     </span>.vm
                     .frame()
-                    .code
+                    .code_block
                     .read::&lt;u8&gt;(pc)
                     .try_into()
                     .expect(<span class="string">&quot;invalid opcode&quot;</span>);
                 <span class="kw">let </span>operands = <span class="self">self
                     </span>.vm
                     .frame()
-                    .code
+                    .code_block
                     .instruction_operands(<span class="kw-2">&amp;mut </span>pc, <span class="self">self</span>.interner());
 
                 <span class="kw">let </span>instant = Instant::now();

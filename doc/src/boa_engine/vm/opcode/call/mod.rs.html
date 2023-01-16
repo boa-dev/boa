@@ -257,7 +257,7 @@
         <span class="comment">// A native function with the name &quot;eval&quot; implies, that is this the built-in eval function.
         </span><span class="kw">let </span>eval = <span class="macro">matches!</span>(object.borrow().as_function(), <span class="prelude-val">Some</span>(Function::Native { .. }));
 
-        <span class="kw">let </span>strict = context.vm.frame().code.strict;
+        <span class="kw">let </span>strict = context.vm.frame().code_block.strict;
 
         <span class="kw">if </span>eval {
             <span class="kw">if let </span><span class="prelude-val">Some</span>(x) = arguments.get(<span class="number">0</span>) {
@@ -319,7 +319,7 @@
         <span class="comment">// A native function with the name &quot;eval&quot; implies, that is this the built-in eval function.
         </span><span class="kw">let </span>eval = <span class="macro">matches!</span>(object.borrow().as_function(), <span class="prelude-val">Some</span>(Function::Native { .. }));
 
-        <span class="kw">let </span>strict = context.vm.frame().code.strict;
+        <span class="kw">let </span>strict = context.vm.frame().code_block.strict;
 
         <span class="kw">if </span>eval {
             <span class="kw">if let </span><span class="prelude-val">Some</span>(x) = arguments.get(<span class="number">0</span>) {

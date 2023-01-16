@@ -123,7 +123,7 @@
 
         <span class="kw">let </span>key: PropertyKey = context
             .interner()
-            .resolve_expect(context.vm.frame().code.names[index <span class="kw">as </span>usize].sym())
+            .resolve_expect(context.vm.frame().code_block.names[index <span class="kw">as </span>usize].sym())
             .into_common::&lt;JsString&gt;(<span class="bool-val">false</span>)
             .into();
         <span class="kw">let </span>result = object.__get__(<span class="kw-2">&amp;</span>key, value, context)<span class="question-mark">?</span>;

@@ -109,7 +109,7 @@
         } <span class="kw">else </span>{
             object.to_object(context)<span class="question-mark">?
         </span>};
-        <span class="kw">let </span>name = context.vm.frame().code.names[index <span class="kw">as </span>usize];
+        <span class="kw">let </span>name = context.vm.frame().code_block.names[index <span class="kw">as </span>usize];
         <span class="kw">let </span>name = context
             .interner()
             .resolve_expect(name.sym())

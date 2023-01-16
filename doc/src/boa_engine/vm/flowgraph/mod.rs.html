@@ -557,8 +557,8 @@
         <span class="kw">let </span><span class="kw-2">mut </span>returns = Vec::new();
 
         <span class="kw">let </span><span class="kw-2">mut </span>pc = <span class="number">0</span>;
-        <span class="kw">while </span>pc &lt; <span class="self">self</span>.code.len() {
-            <span class="kw">let </span>opcode: Opcode = <span class="self">self</span>.code[pc].try_into().expect(<span class="string">&quot;invalid opcode&quot;</span>);
+        <span class="kw">while </span>pc &lt; <span class="self">self</span>.bytecode.len() {
+            <span class="kw">let </span>opcode: Opcode = <span class="self">self</span>.bytecode[pc].try_into().expect(<span class="string">&quot;invalid opcode&quot;</span>);
             <span class="kw">let </span>opcode_str = opcode.as_str();
             <span class="kw">let </span>previous_pc = pc;
 

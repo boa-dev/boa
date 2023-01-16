@@ -578,28 +578,6 @@
 <span id="577">577</span>
 <span id="578">578</span>
 <span id="579">579</span>
-<span id="580">580</span>
-<span id="581">581</span>
-<span id="582">582</span>
-<span id="583">583</span>
-<span id="584">584</span>
-<span id="585">585</span>
-<span id="586">586</span>
-<span id="587">587</span>
-<span id="588">588</span>
-<span id="589">589</span>
-<span id="590">590</span>
-<span id="591">591</span>
-<span id="592">592</span>
-<span id="593">593</span>
-<span id="594">594</span>
-<span id="595">595</span>
-<span id="596">596</span>
-<span id="597">597</span>
-<span id="598">598</span>
-<span id="599">599</span>
-<span id="600">600</span>
-<span id="601">601</span>
 </pre><pre class="rust"><code><span class="doccomment">//! The ECMAScript context.
 
 </span><span class="kw">pub mod </span>intrinsics;
@@ -627,7 +605,7 @@
     object::{FunctionObjectBuilder, GlobalPropertyMap, JsObject},
     property::{Attribute, PropertyDescriptor, PropertyKey},
     realm::Realm,
-    vm::{CallFrame, CodeBlock, FinallyReturn, GeneratorResumeKind, Vm},
+    vm::{CallFrame, CodeBlock, Vm},
     JsResult, JsValue,
 };
 
@@ -807,24 +785,7 @@
     </span><span class="kw">pub fn </span>execute(<span class="kw-2">&amp;mut </span><span class="self">self</span>, code_block: Gc&lt;CodeBlock&gt;) -&gt; JsResult&lt;JsValue&gt; {
         <span class="kw">let </span>_timer = Profiler::global().start_event(<span class="string">&quot;Execution&quot;</span>, <span class="string">&quot;Main&quot;</span>);
 
-        <span class="self">self</span>.vm.push_frame(CallFrame {
-            code: code_block,
-            pc: <span class="number">0</span>,
-            catch: Vec::new(),
-            finally_return: FinallyReturn::None,
-            finally_jump: Vec::new(),
-            pop_on_return: <span class="number">0</span>,
-            loop_env_stack: Vec::from([<span class="number">0</span>]),
-            try_env_stack: Vec::from([<span class="kw">crate</span>::vm::TryStackEntry {
-                num_env: <span class="number">0</span>,
-                num_loop_stack_entries: <span class="number">0</span>,
-            }]),
-            param_count: <span class="number">0</span>,
-            arg_count: <span class="number">0</span>,
-            generator_resume_kind: GeneratorResumeKind::Normal,
-            thrown: <span class="bool-val">false</span>,
-            async_generator: <span class="prelude-val">None</span>,
-        });
+        <span class="self">self</span>.vm.push_frame(CallFrame::new(code_block));
 
         <span class="self">self</span>.realm.set_global_binding_number();
         <span class="kw">let </span>result = <span class="self">self</span>.run();
@@ -1174,12 +1135,7 @@
             <span class="attribute">#[cfg(feature = <span class="string">&quot;console&quot;</span>)]
             </span>console: Console::default(),
             intrinsics,
-            vm: Vm {
-                frames: Vec::with_capacity(<span class="number">16</span>),
-                stack: Vec::with_capacity(<span class="number">1024</span>),
-                trace: <span class="bool-val">false</span>,
-                stack_size_limit: <span class="number">1024</span>,
-            },
+            vm: Vm::default(),
             <span class="attribute">#[cfg(feature = <span class="string">&quot;intl&quot;</span>)]
             </span>icu: <span class="self">self</span>.icu.unwrap_or_else(|| {
                 <span class="kw">let </span>provider = BoaProvider::Buffer(boa_icu_provider::buffer());

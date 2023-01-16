@@ -1498,70 +1498,6 @@
 <span id="1497">1497</span>
 <span id="1498">1498</span>
 <span id="1499">1499</span>
-<span id="1500">1500</span>
-<span id="1501">1501</span>
-<span id="1502">1502</span>
-<span id="1503">1503</span>
-<span id="1504">1504</span>
-<span id="1505">1505</span>
-<span id="1506">1506</span>
-<span id="1507">1507</span>
-<span id="1508">1508</span>
-<span id="1509">1509</span>
-<span id="1510">1510</span>
-<span id="1511">1511</span>
-<span id="1512">1512</span>
-<span id="1513">1513</span>
-<span id="1514">1514</span>
-<span id="1515">1515</span>
-<span id="1516">1516</span>
-<span id="1517">1517</span>
-<span id="1518">1518</span>
-<span id="1519">1519</span>
-<span id="1520">1520</span>
-<span id="1521">1521</span>
-<span id="1522">1522</span>
-<span id="1523">1523</span>
-<span id="1524">1524</span>
-<span id="1525">1525</span>
-<span id="1526">1526</span>
-<span id="1527">1527</span>
-<span id="1528">1528</span>
-<span id="1529">1529</span>
-<span id="1530">1530</span>
-<span id="1531">1531</span>
-<span id="1532">1532</span>
-<span id="1533">1533</span>
-<span id="1534">1534</span>
-<span id="1535">1535</span>
-<span id="1536">1536</span>
-<span id="1537">1537</span>
-<span id="1538">1538</span>
-<span id="1539">1539</span>
-<span id="1540">1540</span>
-<span id="1541">1541</span>
-<span id="1542">1542</span>
-<span id="1543">1543</span>
-<span id="1544">1544</span>
-<span id="1545">1545</span>
-<span id="1546">1546</span>
-<span id="1547">1547</span>
-<span id="1548">1548</span>
-<span id="1549">1549</span>
-<span id="1550">1550</span>
-<span id="1551">1551</span>
-<span id="1552">1552</span>
-<span id="1553">1553</span>
-<span id="1554">1554</span>
-<span id="1555">1555</span>
-<span id="1556">1556</span>
-<span id="1557">1557</span>
-<span id="1558">1558</span>
-<span id="1559">1559</span>
-<span id="1560">1560</span>
-<span id="1561">1561</span>
-<span id="1562">1562</span>
-<span id="1563">1563</span>
 </pre><pre class="rust"><code><span class="doccomment">//! `CodeBlock`
 //!
 //! This module is for the `CodeBlock` which implements a function representation in the VM
@@ -1579,8 +1515,7 @@
     js_string,
     object::{internal_methods::get_prototype_from_constructor, JsObject, ObjectData},
     property::PropertyDescriptor,
-    vm::call_frame::GeneratorResumeKind,
-    vm::{call_frame::FinallyReturn, CallFrame, Opcode},
+    vm::{CallFrame, Opcode},
     Context, JsResult, JsString, JsValue,
 };
 <span class="kw">use </span>boa_ast::{
@@ -1642,7 +1577,7 @@
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) params: FormalParameterList,
 
     <span class="doccomment">/// Bytecode
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) code: Vec&lt;u8&gt;,
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) bytecode: Vec&lt;u8&gt;,
 
     <span class="doccomment">/// Literals
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) literals: Vec&lt;JsValue&gt;,
@@ -1691,7 +1626,7 @@
     </span><span class="attribute">#[must_use]
     </span><span class="kw">pub fn </span>new(name: Sym, length: u32, strict: bool) -&gt; <span class="self">Self </span>{
         <span class="self">Self </span>{
-            code: Vec::new(),
+            bytecode: Vec::new(),
             literals: Vec::new(),
             names: Vec::new(),
             private_names: Vec::new(),
@@ -1726,7 +1661,13 @@
         //
         // This has to be an unaligned read because we can&#39;t guarantee that
         // the types are aligned.
-        </span><span class="kw">unsafe </span>{ <span class="self">self</span>.code.as_ptr().add(offset).cast::&lt;T&gt;().read_unaligned() }
+        </span><span class="kw">unsafe </span>{
+            <span class="self">self</span>.bytecode
+                .as_ptr()
+                .add(offset)
+                .cast::&lt;T&gt;()
+                .read_unaligned()
+        }
     }
 
     <span class="doccomment">/// Read type T from code.
@@ -1735,7 +1676,7 @@
     <span class="kw">where
         </span>T: Readable,
     {
-        <span class="macro">assert!</span>(offset + size_of::&lt;T&gt;() - <span class="number">1 </span>&lt; <span class="self">self</span>.code.len());
+        <span class="macro">assert!</span>(offset + size_of::&lt;T&gt;() - <span class="number">1 </span>&lt; <span class="self">self</span>.bytecode.len());
 
         <span class="comment">// Safety: We checked that it is not an out-of-bounds read,
         // so this is safe.
@@ -1747,7 +1688,7 @@
     ///
     /// Returns an empty `String` if no operands are present.
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>instruction_operands(<span class="kw-2">&amp;</span><span class="self">self</span>, pc: <span class="kw-2">&amp;mut </span>usize, interner: <span class="kw-2">&amp;</span>Interner) -&gt; String {
-        <span class="kw">let </span>opcode: Opcode = <span class="self">self</span>.code[<span class="kw-2">*</span>pc].try_into().expect(<span class="string">&quot;invalid opcode&quot;</span>);
+        <span class="kw">let </span>opcode: Opcode = <span class="self">self</span>.bytecode[<span class="kw-2">*</span>pc].try_into().expect(<span class="string">&quot;invalid opcode&quot;</span>);
         <span class="kw-2">*</span>pc += size_of::&lt;Opcode&gt;();
         <span class="kw">match </span>opcode {
             Opcode::SetFunctionName =&gt; {
@@ -2017,8 +1958,8 @@
 
         <span class="kw">let </span><span class="kw-2">mut </span>pc = <span class="number">0</span>;
         <span class="kw">let </span><span class="kw-2">mut </span>count = <span class="number">0</span>;
-        <span class="kw">while </span>pc &lt; <span class="self">self</span>.code.len() {
-            <span class="kw">let </span>opcode: Opcode = <span class="self">self</span>.code[pc].try_into().expect(<span class="string">&quot;invalid opcode&quot;</span>);
+        <span class="kw">while </span>pc &lt; <span class="self">self</span>.bytecode.len() {
+            <span class="kw">let </span>opcode: Opcode = <span class="self">self</span>.bytecode[pc].try_into().expect(<span class="string">&quot;invalid opcode&quot;</span>);
             <span class="kw">let </span>opcode = opcode.as_str();
             <span class="kw">let </span>previous_pc = pc;
             <span class="kw">let </span>operands = <span class="self">self</span>.instruction_operands(<span class="kw-2">&amp;mut </span>pc, interner);
@@ -2418,24 +2359,11 @@
 
                 <span class="kw">let </span>param_count = code.params.as_ref().len();
 
-                context.vm.push_frame(CallFrame {
-                    code,
-                    pc: <span class="number">0</span>,
-                    catch: Vec::new(),
-                    finally_return: FinallyReturn::None,
-                    finally_jump: Vec::new(),
-                    pop_on_return: <span class="number">0</span>,
-                    loop_env_stack: Vec::from([<span class="number">0</span>]),
-                    try_env_stack: Vec::from([<span class="kw">crate</span>::vm::TryStackEntry {
-                        num_env: <span class="number">0</span>,
-                        num_loop_stack_entries: <span class="number">0</span>,
-                    }]),
-                    param_count,
-                    arg_count,
-                    generator_resume_kind: GeneratorResumeKind::Normal,
-                    thrown: <span class="bool-val">false</span>,
-                    async_generator: <span class="prelude-val">None</span>,
-                });
+                context.vm.push_frame(
+                    CallFrame::new(code)
+                        .with_param_count(param_count)
+                        .with_arg_count(arg_count),
+                );
 
                 <span class="kw">let </span>result = context.run();
                 context.vm.pop_frame().expect(<span class="string">&quot;must have frame&quot;</span>);
@@ -2554,24 +2482,11 @@
 
                 <span class="kw">let </span>param_count = code.params.as_ref().len();
 
-                context.vm.push_frame(CallFrame {
-                    code,
-                    pc: <span class="number">0</span>,
-                    catch: Vec::new(),
-                    finally_return: FinallyReturn::None,
-                    finally_jump: Vec::new(),
-                    pop_on_return: <span class="number">0</span>,
-                    loop_env_stack: Vec::from([<span class="number">0</span>]),
-                    try_env_stack: Vec::from([<span class="kw">crate</span>::vm::TryStackEntry {
-                        num_env: <span class="number">0</span>,
-                        num_loop_stack_entries: <span class="number">0</span>,
-                    }]),
-                    param_count,
-                    arg_count,
-                    generator_resume_kind: GeneratorResumeKind::Normal,
-                    thrown: <span class="bool-val">false</span>,
-                    async_generator: <span class="prelude-val">None</span>,
-                });
+                context.vm.push_frame(
+                    CallFrame::new(code)
+                        .with_param_count(param_count)
+                        .with_arg_count(arg_count),
+                );
 
                 <span class="kw">let </span>_result = context.run();
                 context.vm.pop_frame().expect(<span class="string">&quot;must have frame&quot;</span>);
@@ -2683,24 +2598,9 @@
 
                 <span class="kw">let </span>param_count = code.params.as_ref().len();
 
-                <span class="kw">let </span>call_frame = CallFrame {
-                    code,
-                    pc: <span class="number">0</span>,
-                    catch: Vec::new(),
-                    finally_return: FinallyReturn::None,
-                    finally_jump: Vec::new(),
-                    pop_on_return: <span class="number">0</span>,
-                    loop_env_stack: Vec::from([<span class="number">0</span>]),
-                    try_env_stack: Vec::from([<span class="kw">crate</span>::vm::TryStackEntry {
-                        num_env: <span class="number">0</span>,
-                        num_loop_stack_entries: <span class="number">0</span>,
-                    }]),
-                    param_count,
-                    arg_count,
-                    generator_resume_kind: GeneratorResumeKind::Normal,
-                    thrown: <span class="bool-val">false</span>,
-                    async_generator: <span class="prelude-val">None</span>,
-                };
+                <span class="kw">let </span>call_frame = CallFrame::new(code)
+                    .with_param_count(param_count)
+                    .with_arg_count(arg_count);
                 <span class="kw">let </span><span class="kw-2">mut </span>stack = args;
 
                 std::mem::swap(<span class="kw-2">&amp;mut </span>context.vm.stack, <span class="kw-2">&amp;mut </span>stack);
@@ -2839,24 +2739,9 @@
 
                 <span class="kw">let </span>param_count = code.params.as_ref().len();
 
-                <span class="kw">let </span>call_frame = CallFrame {
-                    code,
-                    pc: <span class="number">0</span>,
-                    catch: Vec::new(),
-                    finally_return: FinallyReturn::None,
-                    finally_jump: Vec::new(),
-                    pop_on_return: <span class="number">0</span>,
-                    loop_env_stack: Vec::from([<span class="number">0</span>]),
-                    try_env_stack: Vec::from([<span class="kw">crate</span>::vm::TryStackEntry {
-                        num_env: <span class="number">0</span>,
-                        num_loop_stack_entries: <span class="number">0</span>,
-                    }]),
-                    param_count,
-                    arg_count,
-                    generator_resume_kind: GeneratorResumeKind::Normal,
-                    thrown: <span class="bool-val">false</span>,
-                    async_generator: <span class="prelude-val">None</span>,
-                };
+                <span class="kw">let </span>call_frame = CallFrame::new(code)
+                    .with_param_count(param_count)
+                    .with_arg_count(arg_count);
                 <span class="kw">let </span><span class="kw-2">mut </span>stack = args;
 
                 std::mem::swap(<span class="kw-2">&amp;mut </span>context.vm.stack, <span class="kw-2">&amp;mut </span>stack);
@@ -3058,24 +2943,11 @@
                 <span class="kw">let </span>param_count = code.params.as_ref().len();
                 <span class="kw">let </span>has_binding_identifier = code.has_binding_identifier;
 
-                context.vm.push_frame(CallFrame {
-                    code,
-                    pc: <span class="number">0</span>,
-                    catch: Vec::new(),
-                    finally_return: FinallyReturn::None,
-                    finally_jump: Vec::new(),
-                    pop_on_return: <span class="number">0</span>,
-                    loop_env_stack: Vec::from([<span class="number">0</span>]),
-                    try_env_stack: Vec::from([<span class="kw">crate</span>::vm::TryStackEntry {
-                        num_env: <span class="number">0</span>,
-                        num_loop_stack_entries: <span class="number">0</span>,
-                    }]),
-                    param_count,
-                    arg_count,
-                    generator_resume_kind: GeneratorResumeKind::Normal,
-                    thrown: <span class="bool-val">false</span>,
-                    async_generator: <span class="prelude-val">None</span>,
-                });
+                context.vm.push_frame(
+                    CallFrame::new(code)
+                        .with_param_count(param_count)
+                        .with_arg_count(arg_count),
+                );
 
                 <span class="kw">let </span>result = context.run();
 

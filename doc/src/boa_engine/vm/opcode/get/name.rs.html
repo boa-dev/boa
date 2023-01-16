@@ -155,7 +155,7 @@
 
     <span class="kw">fn </span>execute(context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;ShouldExit&gt; {
         <span class="kw">let </span>index = context.vm.read::&lt;u32&gt;();
-        <span class="kw">let </span>binding_locator = context.vm.frame().code.bindings[index <span class="kw">as </span>usize];
+        <span class="kw">let </span>binding_locator = context.vm.frame().code_block.bindings[index <span class="kw">as </span>usize];
         binding_locator.throw_mutate_immutable(context)<span class="question-mark">?</span>;
 
         <span class="kw">let </span>value = <span class="kw">if </span>binding_locator.is_global() {
@@ -229,7 +229,7 @@
 
     <span class="kw">fn </span>execute(context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;ShouldExit&gt; {
         <span class="kw">let </span>index = context.vm.read::&lt;u32&gt;();
-        <span class="kw">let </span>binding_locator = context.vm.frame().code.bindings[index <span class="kw">as </span>usize];
+        <span class="kw">let </span>binding_locator = context.vm.frame().code_block.bindings[index <span class="kw">as </span>usize];
         binding_locator.throw_mutate_immutable(context)<span class="question-mark">?</span>;
         <span class="kw">let </span>value = <span class="kw">if </span>binding_locator.is_global() {
             <span class="kw">if let </span><span class="prelude-val">Some</span>(value) = context

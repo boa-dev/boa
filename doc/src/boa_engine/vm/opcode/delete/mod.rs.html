@@ -156,7 +156,7 @@
 
     <span class="kw">fn </span>execute(context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;ShouldExit&gt; {
         <span class="kw">let </span>index = context.vm.read::&lt;u32&gt;();
-        <span class="kw">let </span>key = context.vm.frame().code.names[index <span class="kw">as </span>usize];
+        <span class="kw">let </span>key = context.vm.frame().code_block.names[index <span class="kw">as </span>usize];
         <span class="kw">let </span>key = context
             .interner()
             .resolve_expect(key.sym())
@@ -164,7 +164,7 @@
             .into();
         <span class="kw">let </span>object = context.vm.pop();
         <span class="kw">let </span>result = object.to_object(context)<span class="question-mark">?</span>.__delete__(<span class="kw-2">&amp;</span>key, context)<span class="question-mark">?</span>;
-        <span class="kw">if </span>!result &amp;&amp; context.vm.frame().code.strict {
+        <span class="kw">if </span>!result &amp;&amp; context.vm.frame().code_block.strict {
             <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::typ()
                 .with_message(<span class="string">&quot;Cannot delete property&quot;</span>)
                 .into());
@@ -191,7 +191,7 @@
         <span class="kw">let </span>result = object
             .to_object(context)<span class="question-mark">?
             </span>.__delete__(<span class="kw-2">&amp;</span>key.to_property_key(context)<span class="question-mark">?</span>, context)<span class="question-mark">?</span>;
-        <span class="kw">if </span>!result &amp;&amp; context.vm.frame().code.strict {
+        <span class="kw">if </span>!result &amp;&amp; context.vm.frame().code_block.strict {
             <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::typ()
                 .with_message(<span class="string">&quot;Cannot delete property&quot;</span>)
                 .into());
@@ -214,7 +214,7 @@
 
     <span class="kw">fn </span>execute(context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;ShouldExit&gt; {
         <span class="kw">let </span>index = context.vm.read::&lt;u32&gt;();
-        <span class="kw">let </span>binding_locator = context.vm.frame().code.bindings[index <span class="kw">as </span>usize];
+        <span class="kw">let </span>binding_locator = context.vm.frame().code_block.bindings[index <span class="kw">as </span>usize];
         binding_locator.throw_mutate_immutable(context)<span class="question-mark">?</span>;
 
         <span class="kw">let </span>deleted = <span class="kw">if </span>binding_locator.is_global()
@@ -232,7 +232,7 @@
                 context,
             )<span class="question-mark">?</span>;
 
-            <span class="kw">if </span>!deleted &amp;&amp; context.vm.frame().code.strict {
+            <span class="kw">if </span>!deleted &amp;&amp; context.vm.frame().code_block.strict {
                 <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::typ()
                     .with_message(<span class="macro">format!</span>(
                         <span class="string">&quot;property `{}` is non-configurable and cannot be deleted&quot;</span>,

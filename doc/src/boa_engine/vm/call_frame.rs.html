@@ -123,6 +123,44 @@
 <span id="122">122</span>
 <span id="123">123</span>
 <span id="124">124</span>
+<span id="125">125</span>
+<span id="126">126</span>
+<span id="127">127</span>
+<span id="128">128</span>
+<span id="129">129</span>
+<span id="130">130</span>
+<span id="131">131</span>
+<span id="132">132</span>
+<span id="133">133</span>
+<span id="134">134</span>
+<span id="135">135</span>
+<span id="136">136</span>
+<span id="137">137</span>
+<span id="138">138</span>
+<span id="139">139</span>
+<span id="140">140</span>
+<span id="141">141</span>
+<span id="142">142</span>
+<span id="143">143</span>
+<span id="144">144</span>
+<span id="145">145</span>
+<span id="146">146</span>
+<span id="147">147</span>
+<span id="148">148</span>
+<span id="149">149</span>
+<span id="150">150</span>
+<span id="151">151</span>
+<span id="152">152</span>
+<span id="153">153</span>
+<span id="154">154</span>
+<span id="155">155</span>
+<span id="156">156</span>
+<span id="157">157</span>
+<span id="158">158</span>
+<span id="159">159</span>
+<span id="160">160</span>
+<span id="161">161</span>
+<span id="162">162</span>
 </pre><pre class="rust"><code><span class="doccomment">//! `CallFrame`
 //!
 //! This module will provides everything needed to implement the `CallFrame`
@@ -133,7 +171,7 @@
 <span class="doccomment">/// A `CallFrame` holds the state of a function call.
 </span><span class="attribute">#[derive(Clone, Debug, Finalize, Trace)]
 </span><span class="kw">pub struct </span>CallFrame {
-    <span class="kw">pub</span>(<span class="kw">crate</span>) code: Gc&lt;CodeBlock&gt;,
+    <span class="kw">pub</span>(<span class="kw">crate</span>) code_block: Gc&lt;CodeBlock&gt;,
     <span class="kw">pub</span>(<span class="kw">crate</span>) pc: usize,
     <span class="attribute">#[unsafe_ignore_trace]
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) catch: Vec&lt;CatchAddresses&gt;,
@@ -164,7 +202,45 @@
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) async_generator: <span class="prelude-ty">Option</span>&lt;JsObject&gt;,
 }
 
-<span class="kw">impl </span>CallFrame {
+<span class="doccomment">/// ---- `CallFrame` creation methods ----
+</span><span class="kw">impl </span>CallFrame {
+    <span class="doccomment">/// Creates a new `CallFrame` with the provided `CodeBlock`.
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>new(code_block: Gc&lt;CodeBlock&gt;) -&gt; <span class="self">Self </span>{
+        <span class="self">Self </span>{
+            code_block,
+            pc: <span class="number">0</span>,
+            catch: Vec::new(),
+            finally_return: FinallyReturn::None,
+            finally_jump: Vec::new(),
+            pop_on_return: <span class="number">0</span>,
+            loop_env_stack: Vec::from([<span class="number">0</span>]),
+            try_env_stack: Vec::from([TryStackEntry {
+                num_env: <span class="number">0</span>,
+                num_loop_stack_entries: <span class="number">0</span>,
+            }]),
+            param_count: <span class="number">0</span>,
+            arg_count: <span class="number">0</span>,
+            generator_resume_kind: GeneratorResumeKind::Normal,
+            thrown: <span class="bool-val">false</span>,
+            async_generator: <span class="prelude-val">None</span>,
+        }
+    }
+
+    <span class="doccomment">/// Updates a `CallFrame`&#39;s `param_count` field with the value provided.
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>with_param_count(<span class="kw-2">mut </span><span class="self">self</span>, count: usize) -&gt; <span class="self">Self </span>{
+        <span class="self">self</span>.param_count = count;
+        <span class="self">self
+    </span>}
+
+    <span class="doccomment">/// Updates a `CallFrame`&#39;s `arg_count` field with the value provided.
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>with_arg_count(<span class="kw-2">mut </span><span class="self">self</span>, count: usize) -&gt; <span class="self">Self </span>{
+        <span class="self">self</span>.arg_count = count;
+        <span class="self">self
+    </span>}
+}
+
+<span class="doccomment">/// ---- `CallFrame` stack methods ----
+</span><span class="kw">impl </span>CallFrame {
     <span class="doccomment">/// Tracks that one environment has been pushed in the current loop block.
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>loop_env_stack_inc(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
         <span class="kw-2">*</span><span class="self">self

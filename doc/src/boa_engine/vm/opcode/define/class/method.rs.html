@@ -226,7 +226,7 @@
         <span class="kw">let </span>class = class.as_object().expect(<span class="string">&quot;class must be object&quot;</span>);
         <span class="kw">let </span>key = context
             .interner()
-            .resolve_expect(context.vm.frame().code.names[index <span class="kw">as </span>usize].sym())
+            .resolve_expect(context.vm.frame().code_block.names[index <span class="kw">as </span>usize].sym())
             .into_common::&lt;JsString&gt;(<span class="bool-val">false</span>)
             .into();
         {
@@ -273,7 +273,7 @@
         <span class="kw">let </span>class_proto = class_proto.as_object().expect(<span class="string">&quot;class must be object&quot;</span>);
         <span class="kw">let </span>key = context
             .interner()
-            .resolve_expect(context.vm.frame().code.names[index <span class="kw">as </span>usize].sym())
+            .resolve_expect(context.vm.frame().code_block.names[index <span class="kw">as </span>usize].sym())
             .into_common::&lt;JsString&gt;(<span class="bool-val">false</span>)
             .into();
         {

@@ -146,7 +146,7 @@
 
     <span class="kw">fn </span>execute(context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;ShouldExit&gt; {
         <span class="kw">let </span>index = context.vm.read::&lt;u32&gt;();
-        <span class="kw">let </span>name = context.vm.frame().code.private_names[index <span class="kw">as </span>usize];
+        <span class="kw">let </span>name = context.vm.frame().code_block.private_names[index <span class="kw">as </span>usize];
         <span class="kw">let </span>field_function_value = context.vm.pop();
         <span class="kw">let </span>class_value = context.vm.pop();
 

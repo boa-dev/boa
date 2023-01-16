@@ -1759,8 +1759,8 @@
     }
 
     <span class="kw">fn </span>next_opcode_location(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; u32 {
-        <span class="macro">assert!</span>(<span class="self">self</span>.code_block.code.len() &lt; u32::MAX <span class="kw">as </span>usize);
-        <span class="self">self</span>.code_block.code.len() <span class="kw">as </span>u32
+        <span class="macro">assert!</span>(<span class="self">self</span>.code_block.bytecode.len() &lt; u32::MAX <span class="kw">as </span>usize);
+        <span class="self">self</span>.code_block.bytecode.len() <span class="kw">as </span>u32
     }
 
     <span class="kw">fn </span>emit(<span class="kw-2">&amp;mut </span><span class="self">self</span>, opcode: Opcode, operands: <span class="kw-2">&amp;</span>[u32]) {
@@ -1771,15 +1771,15 @@
     }
 
     <span class="kw">fn </span>emit_u64(<span class="kw-2">&amp;mut </span><span class="self">self</span>, value: u64) {
-        <span class="self">self</span>.code_block.code.extend(value.to_ne_bytes());
+        <span class="self">self</span>.code_block.bytecode.extend(value.to_ne_bytes());
     }
 
     <span class="kw">fn </span>emit_u32(<span class="kw-2">&amp;mut </span><span class="self">self</span>, value: u32) {
-        <span class="self">self</span>.code_block.code.extend(value.to_ne_bytes());
+        <span class="self">self</span>.code_block.bytecode.extend(value.to_ne_bytes());
     }
 
     <span class="kw">fn </span>emit_u16(<span class="kw-2">&amp;mut </span><span class="self">self</span>, value: u16) {
-        <span class="self">self</span>.code_block.code.extend(value.to_ne_bytes());
+        <span class="self">self</span>.code_block.bytecode.extend(value.to_ne_bytes());
     }
 
     <span class="kw">fn </span>emit_opcode(<span class="kw-2">&amp;mut </span><span class="self">self</span>, opcode: Opcode) {
@@ -1787,7 +1787,7 @@
     }
 
     <span class="kw">fn </span>emit_u8(<span class="kw-2">&amp;mut </span><span class="self">self</span>, value: u8) {
-        <span class="self">self</span>.code_block.code.push(value);
+        <span class="self">self</span>.code_block.bytecode.push(value);
     }
 
     <span class="kw">fn </span>emit_push_integer(<span class="kw-2">&amp;mut </span><span class="self">self</span>, value: i32) {
@@ -1875,10 +1875,10 @@
         <span class="kw">let </span>index = index <span class="kw">as </span>usize;
 
         <span class="kw">let </span>bytes = target.to_ne_bytes();
-        <span class="self">self</span>.code_block.code[index + <span class="number">1</span>] = bytes[<span class="number">0</span>];
-        <span class="self">self</span>.code_block.code[index + <span class="number">2</span>] = bytes[<span class="number">1</span>];
-        <span class="self">self</span>.code_block.code[index + <span class="number">3</span>] = bytes[<span class="number">2</span>];
-        <span class="self">self</span>.code_block.code[index + <span class="number">4</span>] = bytes[<span class="number">3</span>];
+        <span class="self">self</span>.code_block.bytecode[index + <span class="number">1</span>] = bytes[<span class="number">0</span>];
+        <span class="self">self</span>.code_block.bytecode[index + <span class="number">2</span>] = bytes[<span class="number">1</span>];
+        <span class="self">self</span>.code_block.bytecode[index + <span class="number">3</span>] = bytes[<span class="number">2</span>];
+        <span class="self">self</span>.code_block.bytecode[index + <span class="number">4</span>] = bytes[<span class="number">3</span>];
     }
 
     <span class="kw">fn </span>patch_jump(<span class="kw-2">&amp;mut </span><span class="self">self</span>, label: Label) {

@@ -98,7 +98,7 @@
 
     <span class="kw">fn </span>execute(context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;ShouldExit&gt; {
         <span class="kw">let </span>index = context.vm.read::&lt;u32&gt;();
-        <span class="kw">let </span>binding_locator = context.vm.frame().code.bindings[index <span class="kw">as </span>usize];
+        <span class="kw">let </span>binding_locator = context.vm.frame().code_block.bindings[index <span class="kw">as </span>usize];
         <span class="kw">let </span>value = context.vm.pop();
         <span class="kw">if </span>binding_locator.is_silent() {
             <span class="kw">return </span><span class="prelude-val">Ok</span>(ShouldExit::False);
@@ -117,7 +117,7 @@
                     .into_common(<span class="bool-val">false</span>);
                 <span class="kw">let </span>exists = context.global_bindings_mut().contains_key(<span class="kw-2">&amp;</span>key);
 
-                <span class="kw">if </span>!exists &amp;&amp; context.vm.frame().code.strict {
+                <span class="kw">if </span>!exists &amp;&amp; context.vm.frame().code_block.strict {
                     <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::reference()
                         .with_message(<span class="macro">format!</span>(
                             <span class="string">&quot;assignment to undeclared variable {}&quot;</span>,
@@ -132,7 +132,7 @@
                     context,
                 )<span class="question-mark">?</span>;
 
-                <span class="kw">if </span>!success &amp;&amp; context.vm.frame().code.strict {
+                <span class="kw">if </span>!success &amp;&amp; context.vm.frame().code_block.strict {
                     <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::typ()
                         .with_message(<span class="macro">format!</span>(
                             <span class="string">&quot;cannot set non-writable property: {}&quot;</span>,

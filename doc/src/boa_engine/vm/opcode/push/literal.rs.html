@@ -40,7 +40,7 @@
 
     <span class="kw">fn </span>execute(context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;ShouldExit&gt; {
         <span class="kw">let </span>index = context.vm.read::&lt;u32&gt;() <span class="kw">as </span>usize;
-        <span class="kw">let </span>value = context.vm.frame().code.literals[index].clone();
+        <span class="kw">let </span>value = context.vm.frame().code_block.literals[index].clone();
         context.vm.push(value);
         <span class="prelude-val">Ok</span>(ShouldExit::False)
     }
