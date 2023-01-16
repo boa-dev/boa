@@ -11,7 +11,7 @@
 
 use crate::{
     bytecompiler::{ByteCompiler, Label},
-    vm::Opcode,
+    vm::Opcode, JsResult,
 };
 use bitflags::bitflags;
 use boa_interner::Sym;
@@ -27,6 +27,7 @@ pub(crate) struct JumpControlInfo {
     breaks: Vec<Label>,
     try_continues: Vec<Label>,
     finally_start: Option<Label>,
+    target_label: Option<Sym>,
 }
 
 bitflags! {
@@ -58,6 +59,7 @@ impl Default for JumpControlInfo {
             breaks: Vec::new(),
             try_continues: Vec::new(),
             finally_start: None,
+            target_label: None,
         }
     }
 }
@@ -106,8 +108,7 @@ impl JumpControlInfo {
     }
 }
 
-// ---- `JumpControlInfo` const fn methods ---- //
-
+/// ---- `JumpControlInfo` const fn methods ----
 impl JumpControlInfo {
     pub(crate) const fn label(&self) -> Option<Sym> {
         self.label
@@ -145,6 +146,11 @@ impl JumpControlInfo {
         self.finally_start
     }
 
+    #[allow(dead_code)]
+    pub(crate) const fn target_label(&self) -> Option<Sym> {
+        self.target_label
+    }
+
     pub(crate) const fn for_of_in_loop(&self) -> bool {
         self.flags.contains(JumpControlInfoFlags::FOR_OF_IN_LOOP)
     }
@@ -154,6 +160,7 @@ impl JumpControlInfo {
     }
 }
 
+/// ---- `JumpControlInfo` interaction methods ----
 impl JumpControlInfo {
     /// Sets the `label` field of `JumpControlInfo`.
     pub(crate) fn set_label(&mut self, label: Option<Sym>) {
@@ -174,6 +181,11 @@ impl JumpControlInfo {
     /// Sets the `finally_start` field of `JumpControlInfo`.
     pub(crate) fn set_finally_start(&mut self, label: Label) {
         self.finally_start = Some(label);
+    }
+
+    /// Sets the `target_label` field of `JumpControlInfo`.
+    pub(crate) fn set_target_label(&mut self, target: Option<Sym>) {
+        self.target_label = target;
     }
 
     /// Increments the `decl_env` field of `JumpControlInfo`.
@@ -325,42 +337,48 @@ impl ByteCompiler<'_, '_> {
         }
     }
 
-    pub(crate) fn pop_try_control_info(&mut self, finally_start_address: Option<u32>) {
-        if !self.jump_info.is_empty() {
-            let mut info = self.jump_info.pop().expect("no jump information found");
+    /// Pops and handles the info for a try block's `JumpControlInfo`
+    /// 
+    /// # Panic
+    ///  - Will panic if `jump_info` is empty.
+    ///  - Will panic if popped `JumpControlInfo` is not for a try block.
+    pub(crate) fn pop_try_control_info(&mut self, finally_start_address: Option<u32>) -> JsResult<()> {
+        assert!(!self.jump_info.is_empty());
+        let mut info = self.jump_info.pop().expect("no jump information found");
 
-            assert!(info.is_try_block());
+        assert!(info.is_try_block());
 
-            let mut breaks = Vec::with_capacity(info.breaks.len());
+        let mut breaks = Vec::with_capacity(info.breaks.len());
 
-            if let Some(finally_start_address) = finally_start_address {
-                for label in info.try_continues {
-                    if label.index < finally_start_address {
-                        self.patch_jump_with_target(label, finally_start_address);
-                    } else {
-                        self.patch_jump_with_target(label, info.start_address);
-                    }
+        if let Some(finally_start_address) = finally_start_address {
+            for label in &info.try_continues {
+                if label.index < finally_start_address {
+                    self.patch_jump_with_target(*label, finally_start_address);
+                } else {
+                    self.patch_jump_with_target(*label, info.start_address);
                 }
-
-                for label in info.breaks {
-                    if label.index < finally_start_address {
-                        self.patch_jump_with_target(label, finally_start_address);
-                        let Label { mut index } = label;
-                        index -= size_of::<Opcode>() as u32;
-                        index -= size_of::<u32>() as u32;
-                        breaks.push(Label { index });
-                    } else {
-                        breaks.push(label);
-                    }
-                }
-                if let Some(jump_info) = self.jump_info.last_mut() {
-                    jump_info.breaks.append(&mut breaks);
-                }
-            } else if let Some(jump_info) = self.jump_info.last_mut() {
-                jump_info.breaks.append(&mut info.breaks);
-                jump_info.try_continues.append(&mut info.try_continues);
             }
+
+            for label in info.breaks {
+                if label.index < finally_start_address {
+                    self.patch_jump_with_target(label, finally_start_address);
+                    let Label { mut index} = label;
+                    index -= size_of::<Opcode>() as u32;
+                    index -= size_of::<u32>() as u32 * 2;
+                    breaks.push(Label { index })
+                } else {
+                    breaks.push(label)
+                }
+            }
+            if let Some(jump_info) = self.jump_info.last_mut() {
+                jump_info.breaks.append(&mut breaks);
+            }
+        } else if let Some(jump_info) = self.jump_info.last_mut() {
+            jump_info.breaks.append(&mut info.breaks);
+            jump_info.try_continues.append(&mut info.try_continues);
         }
+
+        Ok(())
     }
 
     pub(crate) fn push_labelled_control_info(&mut self, label: Sym, start_address: u32) {
