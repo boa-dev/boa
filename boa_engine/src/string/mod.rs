@@ -38,7 +38,7 @@ use std::{
     hash::{Hash, Hasher},
     ops::{Deref, Index},
     process::abort,
-    ptr::{self, NonNull, addr_of_mut},
+    ptr::{self, addr_of_mut, NonNull},
     slice::SliceIndex,
     str::FromStr,
     sync::atomic::{AtomicUsize, Ordering},
