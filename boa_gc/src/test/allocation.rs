@@ -1,10 +1,10 @@
 use super::{run_test, Harness};
-use crate::{force_collect, Gc, GcCell};
+use crate::{force_collect, Gc, GcRefCell};
 
 #[test]
 fn gc_basic_cell_allocation() {
     run_test(|| {
-        let gc_cell = Gc::new(GcCell::new(16_u16));
+        let gc_cell = Gc::new(GcRefCell::new(16_u16));
 
         force_collect();
         Harness::assert_collections(1);

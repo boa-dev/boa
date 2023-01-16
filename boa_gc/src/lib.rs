@@ -105,7 +105,7 @@ use std::{
 
 pub use crate::trace::{Finalize, Trace};
 pub use boa_macros::{Finalize, Trace};
-pub use cell::{GcCell, GcCellRef, GcCellRefMut};
+pub use cell::{GcRef, GcRefCell, GcRefMut};
 pub use internals::GcBox;
 pub use pointers::{Ephemeron, Gc, WeakGc};
 

@@ -27,7 +27,7 @@ use boa_ast::{
     pattern::Pattern,
     Declaration, Expression, Statement, StatementList, StatementListItem,
 };
-use boa_gc::{Gc, GcCell};
+use boa_gc::{Gc, GcRefCell};
 use boa_interner::{Interner, Sym};
 use rustc_hash::FxHashMap;
 
@@ -246,7 +246,7 @@ impl<'b, 'host> ByteCompiler<'b, 'host> {
     /// Push a compile time environment to the current `CodeBlock` and return it's index.
     fn push_compile_environment(
         &mut self,
-        environment: Gc<GcCell<CompileTimeEnvironment>>,
+        environment: Gc<GcRefCell<CompileTimeEnvironment>>,
     ) -> usize {
         let index = self.code_block.compile_environments.len();
         self.code_block.compile_environments.push(environment);

@@ -1,4 +1,4 @@
-use boa_gc::{Gc, GcCell};
+use boa_gc::{Gc, GcRefCell};
 
 use crate::{
     builtins::{JsArgs, Promise},
@@ -61,7 +61,7 @@ impl Operation for Await {
 
                     Ok(JsValue::undefined())
                 },
-                Gc::new(GcCell::new((
+                Gc::new(GcRefCell::new((
                     context.realm.environments.clone(),
                     context.vm.stack.clone(),
                     context.vm.frame().clone(),
@@ -104,7 +104,7 @@ impl Operation for Await {
 
                     Ok(JsValue::undefined())
                 },
-                Gc::new(GcCell::new((
+                Gc::new(GcRefCell::new((
                     context.realm.environments.clone(),
                     context.vm.stack.clone(),
                     context.vm.frame().clone(),

@@ -19,7 +19,7 @@ use crate::{
     vm::GeneratorResumeKind,
     Context, JsError, JsResult,
 };
-use boa_gc::{Finalize, Gc, GcCell, Trace};
+use boa_gc::{Finalize, Gc, GcRefCell, Trace};
 use boa_profiler::Profiler;
 use std::collections::VecDeque;
 
@@ -57,7 +57,7 @@ pub struct AsyncGenerator {
     pub(crate) state: AsyncGeneratorState,
 
     /// The `[[AsyncGeneratorContext]]` internal slot.
-    pub(crate) context: Option<Gc<GcCell<GeneratorContext>>>,
+    pub(crate) context: Option<Gc<GcRefCell<GeneratorContext>>>,
 
     /// The `[[AsyncGeneratorQueue]]` internal slot.
     pub(crate) queue: VecDeque<AsyncGeneratorRequest>,
@@ -512,7 +512,7 @@ impl AsyncGenerator {
     pub(crate) fn resume(
         generator: &JsObject,
         state: AsyncGeneratorState,
-        generator_context: &Gc<GcCell<GeneratorContext>>,
+        generator_context: &Gc<GcRefCell<GeneratorContext>>,
         completion: (JsResult<JsValue>, bool),
         context: &mut Context<'_>,
     ) {
