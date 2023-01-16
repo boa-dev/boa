@@ -16,7 +16,7 @@ impl Operation for GetPrivateField {
 
     fn execute(context: &mut Context<'_>) -> JsResult<ShouldExit> {
         let index = context.vm.read::<u32>();
-        let name = context.vm.frame().code.private_names[index as usize];
+        let name = context.vm.frame().code_block.private_names[index as usize];
         let value = context.vm.pop();
         let base_obj = value.to_object(context)?;
         let result = base_obj.private_get(&name, context)?;

@@ -17,7 +17,7 @@ impl Operation for DeletePropertyByName {
 
     fn execute(context: &mut Context<'_>) -> JsResult<ShouldExit> {
         let index = context.vm.read::<u32>();
-        let key = context.vm.frame().code.names[index as usize];
+        let key = context.vm.frame().code_block.names[index as usize];
         let key = context
             .interner()
             .resolve_expect(key.sym())
@@ -25,7 +25,7 @@ impl Operation for DeletePropertyByName {
             .into();
         let object = context.vm.pop();
         let result = object.to_object(context)?.__delete__(&key, context)?;
-        if !result && context.vm.frame().code.strict {
+        if !result && context.vm.frame().code_block.strict {
             return Err(JsNativeError::typ()
                 .with_message("Cannot delete property")
                 .into());
@@ -52,7 +52,7 @@ impl Operation for DeletePropertyByValue {
         let result = object
             .to_object(context)?
             .__delete__(&key.to_property_key(context)?, context)?;
-        if !result && context.vm.frame().code.strict {
+        if !result && context.vm.frame().code_block.strict {
             return Err(JsNativeError::typ()
                 .with_message("Cannot delete property")
                 .into());
@@ -75,7 +75,7 @@ impl Operation for DeleteName {
 
     fn execute(context: &mut Context<'_>) -> JsResult<ShouldExit> {
         let index = context.vm.read::<u32>();
-        let binding_locator = context.vm.frame().code.bindings[index as usize];
+        let binding_locator = context.vm.frame().code_block.bindings[index as usize];
         binding_locator.throw_mutate_immutable(context)?;
 
         let deleted = if binding_locator.is_global()
@@ -93,7 +93,7 @@ impl Operation for DeleteName {
                 context,
             )?;
 
-            if !deleted && context.vm.frame().code.strict {
+            if !deleted && context.vm.frame().code_block.strict {
                 return Err(JsNativeError::typ()
                     .with_message(format!(
                         "property `{}` is non-configurable and cannot be deleted",

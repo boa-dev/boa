@@ -24,7 +24,7 @@ impl Operation for DefineOwnPropertyByName {
         } else {
             object.to_object(context)?
         };
-        let name = context.vm.frame().code.names[index as usize];
+        let name = context.vm.frame().code_block.names[index as usize];
         let name = context
             .interner()
             .resolve_expect(name.sym())

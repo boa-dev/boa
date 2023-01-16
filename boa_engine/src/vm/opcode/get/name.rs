@@ -18,7 +18,7 @@ impl Operation for GetName {
 
     fn execute(context: &mut Context<'_>) -> JsResult<ShouldExit> {
         let index = context.vm.read::<u32>();
-        let binding_locator = context.vm.frame().code.bindings[index as usize];
+        let binding_locator = context.vm.frame().code_block.bindings[index as usize];
         binding_locator.throw_mutate_immutable(context)?;
 
         let value = if binding_locator.is_global() {
@@ -92,7 +92,7 @@ impl Operation for GetNameOrUndefined {
 
     fn execute(context: &mut Context<'_>) -> JsResult<ShouldExit> {
         let index = context.vm.read::<u32>();
-        let binding_locator = context.vm.frame().code.bindings[index as usize];
+        let binding_locator = context.vm.frame().code_block.bindings[index as usize];
         binding_locator.throw_mutate_immutable(context)?;
         let value = if binding_locator.is_global() {
             if let Some(value) = context

@@ -16,7 +16,7 @@ impl Operation for GetGenerator {
 
     fn execute(context: &mut Context<'_>) -> JsResult<ShouldExit> {
         let index = context.vm.read::<u32>();
-        let code = context.vm.frame().code.functions[index as usize].clone();
+        let code = context.vm.frame().code_block.functions[index as usize].clone();
         let function = create_generator_function_object(code, false, context);
         context.vm.push(function);
         Ok(ShouldExit::False)
@@ -36,7 +36,7 @@ impl Operation for GetGeneratorAsync {
 
     fn execute(context: &mut Context<'_>) -> JsResult<ShouldExit> {
         let index = context.vm.read::<u32>();
-        let code = context.vm.frame().code.functions[index as usize].clone();
+        let code = context.vm.frame().code_block.functions[index as usize].clone();
         let function = create_generator_function_object(code, true, context);
         context.vm.push(function);
         Ok(ShouldExit::False)

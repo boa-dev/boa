@@ -8,7 +8,7 @@ use boa_gc::{Finalize, Gc, Trace};
 /// A `CallFrame` holds the state of a function call.
 #[derive(Clone, Debug, Finalize, Trace)]
 pub struct CallFrame {
-    pub(crate) code: Gc<CodeBlock>,
+    pub(crate) code_block: Gc<CodeBlock>,
     pub(crate) pc: usize,
     #[unsafe_ignore_trace]
     pub(crate) catch: Vec<CatchAddresses>,
@@ -39,6 +39,44 @@ pub struct CallFrame {
     pub(crate) async_generator: Option<JsObject>,
 }
 
+/// ---- `CallFrame` creation methods ----
+impl CallFrame {
+    /// Creates a new `CallFrame` with the provided `CodeBlock`.
+    pub(crate) fn new(code_block: Gc<CodeBlock>) -> Self {
+        Self {
+            code_block,
+            pc: 0,
+            catch: Vec::new(),
+            finally_return: FinallyReturn::None,
+            finally_jump: Vec::new(),
+            pop_on_return: 0,
+            loop_env_stack: Vec::from([0]),
+            try_env_stack: Vec::from([TryStackEntry {
+                num_env: 0,
+                num_loop_stack_entries: 0,
+            }]),
+            param_count: 0,
+            arg_count: 0,
+            generator_resume_kind: GeneratorResumeKind::Normal,
+            thrown: false,
+            async_generator: None,
+        }
+    }
+
+    /// Updates a `CallFrame`'s `param_count` field with the value provided.
+    pub(crate) fn with_param_count(mut self, count: usize) -> Self {
+        self.param_count = count;
+        self
+    }
+
+    /// Updates a `CallFrame`'s `arg_count` field with the value provided.
+    pub(crate) fn with_arg_count(mut self, count: usize) -> Self {
+        self.arg_count = count;
+        self
+    }
+}
+
+/// ---- `CallFrame` stack methods ----
 impl CallFrame {
     /// Tracks that one environment has been pushed in the current loop block.
     pub(crate) fn loop_env_stack_inc(&mut self) {

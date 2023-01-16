@@ -41,6 +41,17 @@ pub struct Vm {
     pub(crate) stack_size_limit: usize,
 }
 
+impl Default for Vm {
+    fn default() -> Self {
+        Self {
+            frames: Vec::with_capacity(16),
+            stack: Vec::with_capacity(1024),
+            trace: false,
+            stack_size_limit: 1024,
+        }
+    }
+}
+
 impl Vm {
     /// Push a value on the stack.
     pub(crate) fn push<T>(&mut self, value: T)
@@ -62,7 +73,7 @@ impl Vm {
 
     #[track_caller]
     pub(crate) fn read<T: Readable>(&mut self) -> T {
-        let value = self.frame().code.read::<T>(self.frame().pc);
+        let value = self.frame().code_block.read::<T>(self.frame().pc);
         self.frame_mut().pc += size_of::<T>();
         value
     }
@@ -114,7 +125,7 @@ impl Context<'_> {
     fn execute_instruction(&mut self) -> JsResult<ShouldExit> {
         let opcode: Opcode = {
             let _timer = Profiler::global().start_event("Opcode retrieval", "vm");
-            let opcode = self.vm.frame().code.code[self.vm.frame().pc]
+            let opcode = self.vm.frame().code_block.bytecode[self.vm.frame().pc]
                 .try_into()
                 .expect("could not convert code at PC to opcode");
             self.vm.frame_mut().pc += 1;
@@ -146,7 +157,10 @@ impl Context<'_> {
 
             println!(
                 "{}\n",
-                self.vm.frame().code.to_interned_string(self.interner())
+                self.vm
+                    .frame()
+                    .code_block
+                    .to_interned_string(self.interner())
             );
             println!(
                 "{msg:-^width$}",
@@ -178,7 +192,7 @@ impl Context<'_> {
                     .and_then(|f| f.get_promise_capability().cloned())
             });
 
-        while self.vm.frame().pc < self.vm.frame().code.code.len() {
+        while self.vm.frame().pc < self.vm.frame().code_block.bytecode.len() {
             #[cfg(feature = "fuzz")]
             {
                 if self.instructions_remaining == 0 {
@@ -192,14 +206,14 @@ impl Context<'_> {
                 let opcode: Opcode = self
                     .vm
                     .frame()
-                    .code
+                    .code_block
                     .read::<u8>(pc)
                     .try_into()
                     .expect("invalid opcode");
                 let operands = self
                     .vm
                     .frame()
-                    .code
+                    .code_block
                     .instruction_operands(&mut pc, self.interner());
 
                 let instant = Instant::now();

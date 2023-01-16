@@ -17,7 +17,7 @@ impl Operation for PushDeclarativeEnvironment {
     fn execute(context: &mut Context<'_>) -> JsResult<ShouldExit> {
         let num_bindings = context.vm.read::<u32>();
         let compile_environments_index = context.vm.read::<u32>();
-        let compile_environment = context.vm.frame().code.compile_environments
+        let compile_environment = context.vm.frame().code_block.compile_environments
             [compile_environments_index as usize]
             .clone();
         context
@@ -44,7 +44,7 @@ impl Operation for PushFunctionEnvironment {
     fn execute(context: &mut Context<'_>) -> JsResult<ShouldExit> {
         let num_bindings = context.vm.read::<u32>();
         let compile_environments_index = context.vm.read::<u32>();
-        let compile_environment = context.vm.frame().code.compile_environments
+        let compile_environment = context.vm.frame().code_block.compile_environments
             [compile_environments_index as usize]
             .clone();
         context

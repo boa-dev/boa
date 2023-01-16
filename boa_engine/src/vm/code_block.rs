@@ -15,8 +15,7 @@ use crate::{
     js_string,
     object::{internal_methods::get_prototype_from_constructor, JsObject, ObjectData},
     property::PropertyDescriptor,
-    vm::call_frame::GeneratorResumeKind,
-    vm::{call_frame::FinallyReturn, CallFrame, Opcode},
+    vm::{CallFrame, Opcode},
     Context, JsResult, JsString, JsValue,
 };
 use boa_ast::{
@@ -78,7 +77,7 @@ pub struct CodeBlock {
     pub(crate) params: FormalParameterList,
 
     /// Bytecode
-    pub(crate) code: Vec<u8>,
+    pub(crate) bytecode: Vec<u8>,
 
     /// Literals
     pub(crate) literals: Vec<JsValue>,
@@ -127,7 +126,7 @@ impl CodeBlock {
     #[must_use]
     pub fn new(name: Sym, length: u32, strict: bool) -> Self {
         Self {
-            code: Vec::new(),
+            bytecode: Vec::new(),
             literals: Vec::new(),
             names: Vec::new(),
             private_names: Vec::new(),
@@ -162,7 +161,13 @@ impl CodeBlock {
         //
         // This has to be an unaligned read because we can't guarantee that
         // the types are aligned.
-        unsafe { self.code.as_ptr().add(offset).cast::<T>().read_unaligned() }
+        unsafe {
+            self.bytecode
+                .as_ptr()
+                .add(offset)
+                .cast::<T>()
+                .read_unaligned()
+        }
     }
 
     /// Read type T from code.
@@ -171,7 +176,7 @@ impl CodeBlock {
     where
         T: Readable,
     {
-        assert!(offset + size_of::<T>() - 1 < self.code.len());
+        assert!(offset + size_of::<T>() - 1 < self.bytecode.len());
 
         // Safety: We checked that it is not an out-of-bounds read,
         // so this is safe.
@@ -183,7 +188,7 @@ impl CodeBlock {
     ///
     /// Returns an empty `String` if no operands are present.
     pub(crate) fn instruction_operands(&self, pc: &mut usize, interner: &Interner) -> String {
-        let opcode: Opcode = self.code[*pc].try_into().expect("invalid opcode");
+        let opcode: Opcode = self.bytecode[*pc].try_into().expect("invalid opcode");
         *pc += size_of::<Opcode>();
         match opcode {
             Opcode::SetFunctionName => {
@@ -453,8 +458,8 @@ impl ToInternedString for CodeBlock {
 
         let mut pc = 0;
         let mut count = 0;
-        while pc < self.code.len() {
-            let opcode: Opcode = self.code[pc].try_into().expect("invalid opcode");
+        while pc < self.bytecode.len() {
+            let opcode: Opcode = self.bytecode[pc].try_into().expect("invalid opcode");
             let opcode = opcode.as_str();
             let previous_pc = pc;
             let operands = self.instruction_operands(&mut pc, interner);
@@ -854,24 +859,11 @@ impl JsObject {
 
                 let param_count = code.params.as_ref().len();
 
-                context.vm.push_frame(CallFrame {
-                    code,
-                    pc: 0,
-                    catch: Vec::new(),
-                    finally_return: FinallyReturn::None,
-                    finally_jump: Vec::new(),
-                    pop_on_return: 0,
-                    loop_env_stack: Vec::from([0]),
-                    try_env_stack: Vec::from([crate::vm::TryStackEntry {
-                        num_env: 0,
-                        num_loop_stack_entries: 0,
-                    }]),
-                    param_count,
-                    arg_count,
-                    generator_resume_kind: GeneratorResumeKind::Normal,
-                    thrown: false,
-                    async_generator: None,
-                });
+                context.vm.push_frame(
+                    CallFrame::new(code)
+                        .with_param_count(param_count)
+                        .with_arg_count(arg_count),
+                );
 
                 let result = context.run();
                 context.vm.pop_frame().expect("must have frame");
@@ -990,24 +982,11 @@ impl JsObject {
 
                 let param_count = code.params.as_ref().len();
 
-                context.vm.push_frame(CallFrame {
-                    code,
-                    pc: 0,
-                    catch: Vec::new(),
-                    finally_return: FinallyReturn::None,
-                    finally_jump: Vec::new(),
-                    pop_on_return: 0,
-                    loop_env_stack: Vec::from([0]),
-                    try_env_stack: Vec::from([crate::vm::TryStackEntry {
-                        num_env: 0,
-                        num_loop_stack_entries: 0,
-                    }]),
-                    param_count,
-                    arg_count,
-                    generator_resume_kind: GeneratorResumeKind::Normal,
-                    thrown: false,
-                    async_generator: None,
-                });
+                context.vm.push_frame(
+                    CallFrame::new(code)
+                        .with_param_count(param_count)
+                        .with_arg_count(arg_count),
+                );
 
                 let _result = context.run();
                 context.vm.pop_frame().expect("must have frame");
@@ -1119,24 +1098,9 @@ impl JsObject {
 
                 let param_count = code.params.as_ref().len();
 
-                let call_frame = CallFrame {
-                    code,
-                    pc: 0,
-                    catch: Vec::new(),
-                    finally_return: FinallyReturn::None,
-                    finally_jump: Vec::new(),
-                    pop_on_return: 0,
-                    loop_env_stack: Vec::from([0]),
-                    try_env_stack: Vec::from([crate::vm::TryStackEntry {
-                        num_env: 0,
-                        num_loop_stack_entries: 0,
-                    }]),
-                    param_count,
-                    arg_count,
-                    generator_resume_kind: GeneratorResumeKind::Normal,
-                    thrown: false,
-                    async_generator: None,
-                };
+                let call_frame = CallFrame::new(code)
+                    .with_param_count(param_count)
+                    .with_arg_count(arg_count);
                 let mut stack = args;
 
                 std::mem::swap(&mut context.vm.stack, &mut stack);
@@ -1275,24 +1239,9 @@ impl JsObject {
 
                 let param_count = code.params.as_ref().len();
 
-                let call_frame = CallFrame {
-                    code,
-                    pc: 0,
-                    catch: Vec::new(),
-                    finally_return: FinallyReturn::None,
-                    finally_jump: Vec::new(),
-                    pop_on_return: 0,
-                    loop_env_stack: Vec::from([0]),
-                    try_env_stack: Vec::from([crate::vm::TryStackEntry {
-                        num_env: 0,
-                        num_loop_stack_entries: 0,
-                    }]),
-                    param_count,
-                    arg_count,
-                    generator_resume_kind: GeneratorResumeKind::Normal,
-                    thrown: false,
-                    async_generator: None,
-                };
+                let call_frame = CallFrame::new(code)
+                    .with_param_count(param_count)
+                    .with_arg_count(arg_count);
                 let mut stack = args;
 
                 std::mem::swap(&mut context.vm.stack, &mut stack);
@@ -1494,24 +1443,11 @@ impl JsObject {
                 let param_count = code.params.as_ref().len();
                 let has_binding_identifier = code.has_binding_identifier;
 
-                context.vm.push_frame(CallFrame {
-                    code,
-                    pc: 0,
-                    catch: Vec::new(),
-                    finally_return: FinallyReturn::None,
-                    finally_jump: Vec::new(),
-                    pop_on_return: 0,
-                    loop_env_stack: Vec::from([0]),
-                    try_env_stack: Vec::from([crate::vm::TryStackEntry {
-                        num_env: 0,
-                        num_loop_stack_entries: 0,
-                    }]),
-                    param_count,
-                    arg_count,
-                    generator_resume_kind: GeneratorResumeKind::Normal,
-                    thrown: false,
-                    async_generator: None,
-                });
+                context.vm.push_frame(
+                    CallFrame::new(code)
+                        .with_param_count(param_count)
+                        .with_arg_count(arg_count),
+                );
 
                 let result = context.run();
 

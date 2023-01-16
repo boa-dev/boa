@@ -25,7 +25,7 @@ use crate::{
     object::{FunctionObjectBuilder, GlobalPropertyMap, JsObject},
     property::{Attribute, PropertyDescriptor, PropertyKey},
     realm::Realm,
-    vm::{CallFrame, CodeBlock, FinallyReturn, GeneratorResumeKind, Vm},
+    vm::{CallFrame, CodeBlock, Vm},
     JsResult, JsValue,
 };
 
@@ -205,24 +205,7 @@ impl Context<'_> {
     pub fn execute(&mut self, code_block: Gc<CodeBlock>) -> JsResult<JsValue> {
         let _timer = Profiler::global().start_event("Execution", "Main");
 
-        self.vm.push_frame(CallFrame {
-            code: code_block,
-            pc: 0,
-            catch: Vec::new(),
-            finally_return: FinallyReturn::None,
-            finally_jump: Vec::new(),
-            pop_on_return: 0,
-            loop_env_stack: Vec::from([0]),
-            try_env_stack: Vec::from([crate::vm::TryStackEntry {
-                num_env: 0,
-                num_loop_stack_entries: 0,
-            }]),
-            param_count: 0,
-            arg_count: 0,
-            generator_resume_kind: GeneratorResumeKind::Normal,
-            thrown: false,
-            async_generator: None,
-        });
+        self.vm.push_frame(CallFrame::new(code_block));
 
         self.realm.set_global_binding_number();
         let result = self.run();
@@ -572,12 +555,7 @@ impl<'a> ContextBuilder<'a> {
             #[cfg(feature = "console")]
             console: Console::default(),
             intrinsics,
-            vm: Vm {
-                frames: Vec::with_capacity(16),
-                stack: Vec::with_capacity(1024),
-                trace: false,
-                stack_size_limit: 1024,
-            },
+            vm: Vm::default(),
             #[cfg(feature = "intl")]
             icu: self.icu.unwrap_or_else(|| {
                 let provider = BoaProvider::Buffer(boa_icu_provider::buffer());

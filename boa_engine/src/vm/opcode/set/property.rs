@@ -28,7 +28,7 @@ impl Operation for SetPropertyByName {
             object.to_object(context)?
         };
 
-        let name = context.vm.frame().code.names[index as usize];
+        let name = context.vm.frame().code_block.names[index as usize];
         let name: PropertyKey = context
             .interner()
             .resolve_expect(name.sym())
@@ -37,7 +37,7 @@ impl Operation for SetPropertyByName {
 
         //object.set(name, value.clone(), context.vm.frame().code.strict, context)?;
         let succeeded = object.__set__(name.clone(), value.clone(), receiver, context)?;
-        if !succeeded && context.vm.frame().code.strict {
+        if !succeeded && context.vm.frame().code_block.strict {
             return Err(JsNativeError::typ()
                 .with_message(format!("cannot set non-writable property: {name}"))
                 .into());
@@ -69,7 +69,12 @@ impl Operation for SetPropertyByValue {
         };
 
         let key = key.to_property_key(context)?;
-        object.set(key, value.clone(), context.vm.frame().code.strict, context)?;
+        object.set(
+            key,
+            value.clone(),
+            context.vm.frame().code_block.strict,
+            context,
+        )?;
         context.vm.stack.push(value);
         Ok(ShouldExit::False)
     }
@@ -91,7 +96,7 @@ impl Operation for SetPropertyGetterByName {
         let value = context.vm.pop();
         let object = context.vm.pop();
         let object = object.to_object(context)?;
-        let name = context.vm.frame().code.names[index as usize];
+        let name = context.vm.frame().code_block.names[index as usize];
         let name = context
             .interner()
             .resolve_expect(name.sym())
@@ -168,7 +173,7 @@ impl Operation for SetPropertySetterByName {
         let value = context.vm.pop();
         let object = context.vm.pop();
         let object = object.to_object(context)?;
-        let name = context.vm.frame().code.names[index as usize];
+        let name = context.vm.frame().code_block.names[index as usize];
         let name = context
             .interner()
             .resolve_expect(name.sym())

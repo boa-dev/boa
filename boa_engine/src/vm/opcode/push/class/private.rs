@@ -18,7 +18,7 @@ impl Operation for PushClassPrivateMethod {
 
     fn execute(context: &mut Context<'_>) -> JsResult<ShouldExit> {
         let index = context.vm.read::<u32>();
-        let name = context.vm.frame().code.private_names[index as usize];
+        let name = context.vm.frame().code_block.private_names[index as usize];
         let method = context.vm.pop();
         let method_object = method.as_callable().expect("method must be callable");
 
@@ -63,7 +63,7 @@ impl Operation for PushClassPrivateGetter {
 
     fn execute(context: &mut Context<'_>) -> JsResult<ShouldExit> {
         let index = context.vm.read::<u32>();
-        let name = context.vm.frame().code.private_names[index as usize];
+        let name = context.vm.frame().code_block.private_names[index as usize];
         let getter = context.vm.pop();
         let getter_object = getter.as_callable().expect("getter must be callable");
         let class = context.vm.pop();
@@ -101,7 +101,7 @@ impl Operation for PushClassPrivateSetter {
 
     fn execute(context: &mut Context<'_>) -> JsResult<ShouldExit> {
         let index = context.vm.read::<u32>();
-        let name = context.vm.frame().code.private_names[index as usize];
+        let name = context.vm.frame().code_block.private_names[index as usize];
         let setter = context.vm.pop();
         let setter_object = setter.as_callable().expect("getter must be callable");
         let class = context.vm.pop();

@@ -17,7 +17,7 @@ impl Operation for SetName {
 
     fn execute(context: &mut Context<'_>) -> JsResult<ShouldExit> {
         let index = context.vm.read::<u32>();
-        let binding_locator = context.vm.frame().code.bindings[index as usize];
+        let binding_locator = context.vm.frame().code_block.bindings[index as usize];
         let value = context.vm.pop();
         if binding_locator.is_silent() {
             return Ok(ShouldExit::False);
@@ -36,7 +36,7 @@ impl Operation for SetName {
                     .into_common(false);
                 let exists = context.global_bindings_mut().contains_key(&key);
 
-                if !exists && context.vm.frame().code.strict {
+                if !exists && context.vm.frame().code_block.strict {
                     return Err(JsNativeError::reference()
                         .with_message(format!(
                             "assignment to undeclared variable {}",
@@ -51,7 +51,7 @@ impl Operation for SetName {
                     context,
                 )?;
 
-                if !success && context.vm.frame().code.strict {
+                if !success && context.vm.frame().code_block.strict {
                     return Err(JsNativeError::typ()
                         .with_message(format!(
                             "cannot set non-writable property: {}",
