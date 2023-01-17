@@ -14,19 +14,7 @@ rust-version.workspace = true
 [features]
 profiler = ["boa_profiler/profiler"]
 deser = ["boa_interner/serde", "boa_ast/serde"]
-intl = [
-    "dep:boa_icu_provider",
-    "dep:icu_locid_transform",
-    "dep:icu_locid",
-    "dep:icu_datetime",
-    "dep:icu_plurals",
-    "dep:icu_provider",
-    "dep:icu_calendar",
-    "dep:icu_collator",
-    "dep:icu_list",
-    "dep:writeable",
-    "dep:sys-locale",
-]
+intl = ["dep:boa_icu_provider", "dep:icu_locid_transform", "dep:icu_locid", "dep:icu_datetime", "dep:icu_plurals", "dep:icu_provider", "dep:icu_calendar", "dep:icu_collator", "dep:icu_list", "dep:writeable", "dep:sys-locale"]
 
 fuzz = ["boa_ast/arbitrary", "boa_interner/arbitrary"]
 
@@ -77,6 +65,7 @@ icu_provider = { version = "1.1.0", optional = true }
 icu_list = { version = "1.1.0", features = ["serde"], optional = true }
 writeable = { version = "0.5.1", optional = true }
 sys-locale = { version = "0.2.3", optional = true }
+futures-lite = { version = "1.12.0" }
 
 [dev-dependencies]
 criterion = "0.4.0"

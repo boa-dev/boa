@@ -17,13 +17,16 @@
 //! [Job]: https://tc39.es/ecma262/#sec-jobs
 //! [JobCallback]: https://tc39.es/ecma262/#sec-jobcallback-records
 
-use std::{any::Any, cell::RefCell, collections::VecDeque, fmt::Debug};
+use std::{any::Any, cell::RefCell, collections::VecDeque, fmt::Debug, future::Future, pin::Pin};
 
 use crate::{
     object::{JsFunction, NativeObject},
     Context, JsResult, JsValue,
 };
 use boa_gc::{Finalize, Trace};
+
+/// The [`Future`] job passed to the [`JobQueue::enqueue_future_job`] operation.
+pub type FutureJob = Pin<Box<dyn Future<Output = NativeJob> + 'static>>;
 
 /// An ECMAScript [Job] closure.
 ///
@@ -150,6 +153,14 @@ pub trait JobQueue {
     /// determines if the method should loop until there are no more queued jobs or if
     /// it should only run one iteration of the queue.
     fn run_jobs(&self, context: &mut Context<'_>);
+
+    /// Enqueues a new [`Future`] job on the job queue.
+    ///
+    /// On completion, `future` returns a new [`NativeJob`] that needs to be enqueued into the
+    /// job queue to update the state of the inner `Promise`, which is what ECMAScript sees. Failing
+    /// to do this will leave the inner `Promise` in the `pending` state, which won't call any `then`
+    /// or `catch` handlers, even if `future` was already completed.
+    fn enqueue_future_job(&self, future: FutureJob, context: &mut Context<'_>);
 }
 
 /// A job queue that does nothing.
@@ -165,6 +176,8 @@ impl JobQueue for IdleJobQueue {
     fn enqueue_promise_job(&self, _: NativeJob, _: &mut Context<'_>) {}
 
     fn run_jobs(&self, _: &mut Context<'_>) {}
+
+    fn enqueue_future_job(&self, _: FutureJob, _: &mut Context<'_>) {}
 }
 
 /// A simple FIFO job queue that bails on the first error.
@@ -216,5 +229,10 @@ impl JobQueue for SimpleJobQueue {
             };
             next_job = self.0.borrow_mut().pop_front();
         }
+    }
+
+    fn enqueue_future_job(&self, future: FutureJob, context: &mut Context<'_>) {
+        let job = futures_lite::future::block_on(future);
+        self.enqueue_promise_job(job, context);
     }
 }

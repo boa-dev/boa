@@ -338,16 +338,11 @@ impl BuiltInConstructor for Promise {
 
         let promise = JsObject::from_proto_and_data(
             promise,
-            ObjectData::promise(Self {
-                // 4. Set promise.[[PromiseState]] to pending.
-                state: PromiseState::Pending,
-                // 5. Set promise.[[PromiseFulfillReactions]] to a new empty List.
-                fulfill_reactions: Vec::new(),
-                // 6. Set promise.[[PromiseRejectReactions]] to a new empty List.
-                reject_reactions: Vec::new(),
-                // 7. Set promise.[[PromiseIsHandled]] to false.
-                handled: false,
-            }),
+            // 4. Set promise.[[PromiseState]] to pending.
+            // 5. Set promise.[[PromiseFulfillReactions]] to a new empty List.
+            // 6. Set promise.[[PromiseRejectReactions]] to a new empty List.
+            // 7. Set promise.[[PromiseIsHandled]] to false.
+            ObjectData::promise(Self::new()),
         );
 
         // 8. Let resolvingFunctions be CreateResolvingFunctions(promise).
@@ -378,12 +373,22 @@ impl BuiltInConstructor for Promise {
 }
 
 #[derive(Debug)]
-struct ResolvingFunctionsRecord {
-    resolve: JsFunction,
-    reject: JsFunction,
+pub(crate) struct ResolvingFunctionsRecord {
+    pub(crate) resolve: JsFunction,
+    pub(crate) reject: JsFunction,
 }
 
 impl Promise {
+    /// Creates a new, pending `Promise`.
+    pub(crate) fn new() -> Self {
+        Promise {
+            state: PromiseState::Pending,
+            fulfill_reactions: Vec::default(),
+            reject_reactions: Vec::default(),
+            handled: false,
+        }
+    }
+
     /// Gets the current state of the promise.
     pub(crate) const fn state(&self) -> &PromiseState {
         &self.state
@@ -1266,7 +1271,7 @@ impl Promise {
     ///  - [ECMAScript reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-createresolvingfunctions
-    fn create_resolving_functions(
+    pub(crate) fn create_resolving_functions(
         promise: &JsObject,
         context: &mut Context<'_>,
     ) -> ResolvingFunctionsRecord {
