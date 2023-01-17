@@ -252,10 +252,10 @@ impl Clone for JsSymbol {
             // that came from an `Arc::into_raw` call.
             unsafe {
                 let arc = Arc::from_raw(ptr.as_ptr().cast_const());
-                // Don't need the pointer since `self` is already a copyable pointer, just need to
+                // Don't need the Arc since `self` is already a copyable pointer, just need to
                 // trigger the `clone` impl.
-                let _ = Arc::into_raw(arc.clone());
-                let _ = Arc::into_raw(arc);
+                std::mem::forget(arc.clone());
+                std::mem::forget(arc);
             }
         }
         Self { repr: self.repr }
