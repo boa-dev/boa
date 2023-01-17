@@ -838,9 +838,6 @@
 <span id="837">837</span>
 <span id="838">838</span>
 <span id="839">839</span>
-<span id="840">840</span>
-<span id="841">841</span>
-<span id="842">842</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Statement and declaration parsing.
 //!
 //! More information:
@@ -1156,9 +1153,6 @@
             }
 
             items.push(item);
-
-            <span class="comment">// move the cursor forward for any consecutive semicolon.
-            </span><span class="kw">while </span>cursor.next_if(Punctuator::Semicolon, interner)<span class="question-mark">?</span>.is_some() {}
         }
 
         items.sort_by(ast::StatementListItem::hoistable_order);

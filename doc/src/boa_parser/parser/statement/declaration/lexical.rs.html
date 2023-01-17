@@ -349,6 +349,14 @@
 <span id="348">348</span>
 <span id="349">349</span>
 <span id="350">350</span>
+<span id="351">351</span>
+<span id="352">352</span>
+<span id="353">353</span>
+<span id="354">354</span>
+<span id="355">355</span>
+<span id="356">356</span>
+<span id="357">357</span>
+<span id="358">358</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Lexical declaration parsing.
 //!
 //! This parses `let` and `const` declarations.
@@ -420,11 +428,13 @@
         <span class="kw">let </span>_timer = Profiler::global().start_event(<span class="string">&quot;LexicalDeclaration&quot;</span>, <span class="string">&quot;Parsing&quot;</span>);
         <span class="kw">let </span>tok = cursor.next(interner).or_abrupt()<span class="question-mark">?</span>;
 
-        <span class="kw">match </span>tok.kind() {
-            TokenKind::Keyword((Keyword::Const | Keyword::Let, <span class="bool-val">true</span>)) =&gt; <span class="prelude-val">Err</span>(Error::general(
-                <span class="string">&quot;Keyword must not contain escaped characters&quot;</span>,
-                tok.span().start(),
-            )),
+        <span class="kw">let </span>lexical_declaration = <span class="kw">match </span>tok.kind() {
+            TokenKind::Keyword((Keyword::Const | Keyword::Let, <span class="bool-val">true</span>)) =&gt; {
+                <span class="kw">return </span><span class="prelude-val">Err</span>(Error::general(
+                    <span class="string">&quot;Keyword must not contain escaped characters&quot;</span>,
+                    tok.span().start(),
+                ))
+            }
             TokenKind::Keyword((Keyword::Const, <span class="bool-val">false</span>)) =&gt; BindingList::new(
                 <span class="self">self</span>.allow_in,
                 <span class="self">self</span>.allow_yield,
@@ -432,7 +442,7 @@
                 <span class="bool-val">true</span>,
                 <span class="self">self</span>.loop_init,
             )
-            .parse(cursor, interner),
+            .parse(cursor, interner)<span class="question-mark">?</span>,
             TokenKind::Keyword((Keyword::Let, <span class="bool-val">false</span>)) =&gt; BindingList::new(
                 <span class="self">self</span>.allow_in,
                 <span class="self">self</span>.allow_yield,
@@ -440,9 +450,15 @@
                 <span class="bool-val">false</span>,
                 <span class="self">self</span>.loop_init,
             )
-            .parse(cursor, interner),
+            .parse(cursor, interner)<span class="question-mark">?</span>,
             <span class="kw">_ </span>=&gt; <span class="macro">unreachable!</span>(<span class="string">&quot;unknown token found: {:?}&quot;</span>, tok),
+        };
+
+        <span class="kw">if </span>!<span class="self">self</span>.loop_init {
+            cursor.expect_semicolon(<span class="string">&quot;lexical declaration&quot;</span>, interner)<span class="question-mark">?</span>;
         }
+
+        <span class="prelude-val">Ok</span>(lexical_declaration)
     }
 }
 

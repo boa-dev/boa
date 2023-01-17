@@ -1408,6 +1408,21 @@
 <span id="1407">1407</span>
 <span id="1408">1408</span>
 <span id="1409">1409</span>
+<span id="1410">1410</span>
+<span id="1411">1411</span>
+<span id="1412">1412</span>
+<span id="1413">1413</span>
+<span id="1414">1414</span>
+<span id="1415">1415</span>
+<span id="1416">1416</span>
+<span id="1417">1417</span>
+<span id="1418">1418</span>
+<span id="1419">1419</span>
+<span id="1420">1420</span>
+<span id="1421">1421</span>
+<span id="1422">1422</span>
+<span id="1423">1423</span>
+<span id="1424">1424</span>
 </pre><pre class="rust"><code><span class="doccomment">//! This module contains the bytecode compiler.
 
 </span><span class="kw">mod </span>class;
@@ -2070,12 +2085,20 @@
         use_expr: bool,
         configurable_globals: bool,
     ) -&gt; JsResult&lt;()&gt; {
-        <span class="kw">if let </span><span class="prelude-val">Some</span>((last, items)) = list.statements().split_last() {
-            <span class="kw">for </span>node <span class="kw">in </span>items {
-                <span class="self">self</span>.compile_stmt_list_item(node, <span class="bool-val">false</span>, configurable_globals)<span class="question-mark">?</span>;
+        <span class="kw">let </span><span class="kw-2">mut </span>items = list
+            .statements()
+            .iter()
+            .filter(|item| item != &amp;&amp;StatementListItem::Statement(Statement::Empty))
+            .peekable();
+
+        <span class="kw">while let </span><span class="prelude-val">Some</span>(item) = items.next() {
+            <span class="kw">if </span>items.peek().is_some() {
+                <span class="self">self</span>.compile_stmt_list_item(item, <span class="bool-val">false</span>, configurable_globals)<span class="question-mark">?</span>;
+            } <span class="kw">else </span>{
+                <span class="self">self</span>.compile_stmt_list_item(item, use_expr, configurable_globals)<span class="question-mark">?</span>;
             }
-            <span class="self">self</span>.compile_stmt_list_item(last, use_expr, configurable_globals)<span class="question-mark">?</span>;
         }
+
         <span class="prelude-val">Ok</span>(())
     }
 
@@ -2091,11 +2114,18 @@
 
         <span class="self">self</span>.create_decls(list, <span class="bool-val">true</span>);
 
-        <span class="kw">if let </span><span class="prelude-val">Some</span>((last, items)) = list.statements().split_last() {
-            <span class="kw">for </span>node <span class="kw">in </span>items {
-                <span class="self">self</span>.compile_stmt_list_item(node, <span class="bool-val">false</span>, <span class="bool-val">true</span>)<span class="question-mark">?</span>;
+        <span class="kw">let </span><span class="kw-2">mut </span>items = list
+            .statements()
+            .iter()
+            .filter(|item| item != &amp;&amp;StatementListItem::Statement(Statement::Empty))
+            .peekable();
+
+        <span class="kw">while let </span><span class="prelude-val">Some</span>(item) = items.next() {
+            <span class="kw">if </span>items.peek().is_some() {
+                <span class="self">self</span>.compile_stmt_list_item(item, <span class="bool-val">false</span>, <span class="bool-val">true</span>)<span class="question-mark">?</span>;
+            } <span class="kw">else </span>{
+                <span class="self">self</span>.compile_stmt_list_item(item, use_expr, <span class="bool-val">true</span>)<span class="question-mark">?</span>;
             }
-            <span class="self">self</span>.compile_stmt_list_item(last, use_expr, <span class="bool-val">true</span>)<span class="question-mark">?</span>;
         }
 
         <span class="kw">let </span>(num_bindings, compile_environment) = <span class="self">self</span>.context.pop_compile_time_environment();
