@@ -660,12 +660,20 @@ impl<'b, 'icu> ByteCompiler<'b, 'icu> {
         use_expr: bool,
         configurable_globals: bool,
     ) -> JsResult<()> {
-        if let Some((last, items)) = list.statements().split_last() {
-            for node in items {
-                self.compile_stmt_list_item(node, false, configurable_globals)?;
+        let mut items = list
+            .statements()
+            .iter()
+            .filter(|item| item != &&StatementListItem::Statement(Statement::Empty))
+            .peekable();
+
+        while let Some(item) = items.next() {
+            if items.peek().is_some() {
+                self.compile_stmt_list_item(item, false, configurable_globals)?;
+            } else {
+                self.compile_stmt_list_item(item, use_expr, configurable_globals)?;
             }
-            self.compile_stmt_list_item(last, use_expr, configurable_globals)?;
         }
+
         Ok(())
     }
 
@@ -681,11 +689,18 @@ impl<'b, 'icu> ByteCompiler<'b, 'icu> {
 
         self.create_decls(list, true);
 
-        if let Some((last, items)) = list.statements().split_last() {
-            for node in items {
-                self.compile_stmt_list_item(node, false, true)?;
+        let mut items = list
+            .statements()
+            .iter()
+            .filter(|item| item != &&StatementListItem::Statement(Statement::Empty))
+            .peekable();
+
+        while let Some(item) = items.next() {
+            if items.peek().is_some() {
+                self.compile_stmt_list_item(item, false, true)?;
+            } else {
+                self.compile_stmt_list_item(item, use_expr, true)?;
             }
-            self.compile_stmt_list_item(last, use_expr, true)?;
         }
 
         let (num_bindings, compile_environment) = self.context.pop_compile_time_environment();

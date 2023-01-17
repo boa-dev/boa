@@ -69,11 +69,13 @@ where
         let _timer = Profiler::global().start_event("LexicalDeclaration", "Parsing");
         let tok = cursor.next(interner).or_abrupt()?;
 
-        match tok.kind() {
-            TokenKind::Keyword((Keyword::Const | Keyword::Let, true)) => Err(Error::general(
-                "Keyword must not contain escaped characters",
-                tok.span().start(),
-            )),
+        let lexical_declaration = match tok.kind() {
+            TokenKind::Keyword((Keyword::Const | Keyword::Let, true)) => {
+                return Err(Error::general(
+                    "Keyword must not contain escaped characters",
+                    tok.span().start(),
+                ))
+            }
             TokenKind::Keyword((Keyword::Const, false)) => BindingList::new(
                 self.allow_in,
                 self.allow_yield,
@@ -81,7 +83,7 @@ where
                 true,
                 self.loop_init,
             )
-            .parse(cursor, interner),
+            .parse(cursor, interner)?,
             TokenKind::Keyword((Keyword::Let, false)) => BindingList::new(
                 self.allow_in,
                 self.allow_yield,
@@ -89,9 +91,15 @@ where
                 false,
                 self.loop_init,
             )
-            .parse(cursor, interner),
+            .parse(cursor, interner)?,
             _ => unreachable!("unknown token found: {:?}", tok),
+        };
+
+        if !self.loop_init {
+            cursor.expect_semicolon("lexical declaration", interner)?;
         }
+
+        Ok(lexical_declaration)
     }
 }
 

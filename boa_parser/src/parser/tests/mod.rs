@@ -512,6 +512,7 @@ fn empty_statement() {
         ",
         vec![
             Statement::Empty.into(),
+            Statement::Empty.into(),
             Statement::Var(VarDeclaration(
                 vec![Variable::from_identifier(
                     a.into(),
@@ -522,6 +523,39 @@ fn empty_statement() {
             ))
             .into(),
             Statement::If(If::new(Identifier::new(a).into(), Statement::Empty, None)).into(),
+        ],
+        interner,
+    );
+}
+
+#[test]
+fn empty_statement_ends_directive_prologues() {
+    let interner = &mut Interner::default();
+    let a = interner.get_or_intern_static("a", utf16!("a"));
+    let use_strict = interner.get_or_intern_static("use strict", utf16!("use strict"));
+    let public = interner
+        .get_or_intern_static("public", utf16!("public"))
+        .into();
+    check_parser(
+        r#"
+            "a";
+            ;
+            "use strict";
+            let public = 5;
+        "#,
+        vec![
+            Statement::Expression(Expression::from(Literal::String(a))).into(),
+            Statement::Empty.into(),
+            Statement::Expression(Expression::from(Literal::String(use_strict))).into(),
+            Declaration::Lexical(LexicalDeclaration::Let(
+                vec![Variable::from_identifier(
+                    public,
+                    Some(Literal::from(5).into()),
+                )]
+                .try_into()
+                .unwrap(),
+            ))
+            .into(),
         ],
         interner,
     );
