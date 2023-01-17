@@ -24,6 +24,7 @@ use super::JsArgs;
 use crate::{
     builtins::BuiltIn,
     error::JsNativeError,
+    js_string,
     native_function::NativeFunction,
     object::{ConstructorBuilder, FunctionObjectBuilder},
     property::Attribute,
@@ -42,8 +43,8 @@ static GLOBAL_SYMBOL_REGISTRY: Lazy<GlobalSymbolRegistry> = Lazy::new(GlobalSymb
 type FxDashMap<K, V> = DashMap<K, V, BuildHasherDefault<FxHasher>>;
 
 struct GlobalSymbolRegistry {
-    keys: FxDashMap<JsString, JsSymbol>,
-    symbols: FxDashMap<JsSymbol, JsString>,
+    keys: FxDashMap<Box<[u16]>, JsSymbol>,
+    symbols: FxDashMap<JsSymbol, Box<[u16]>>,
 }
 
 impl GlobalSymbolRegistry {
@@ -54,8 +55,9 @@ impl GlobalSymbolRegistry {
         }
     }
 
-    fn get_or_create_symbol(&self, key: JsString) -> JsResult<JsSymbol> {
-        if let Some(symbol) = self.keys.get(&key) {
+    fn get_or_create_symbol(&self, key: &JsString) -> JsResult<JsSymbol> {
+        let slice = &**key;
+        if let Some(symbol) = self.keys.get(slice) {
             return Ok(symbol.clone());
         }
 
@@ -63,14 +65,14 @@ impl GlobalSymbolRegistry {
             JsNativeError::range()
                 .with_message("reached the maximum number of symbols that can be created")
         })?;
-        self.keys.insert(key.clone(), symbol.clone());
-        self.symbols.insert(symbol.clone(), key);
+        self.keys.insert(slice.into(), symbol.clone());
+        self.symbols.insert(symbol.clone(), slice.into());
         Ok(symbol)
     }
 
     fn get_key(&self, sym: &JsSymbol) -> Option<JsString> {
         if let Some(key) = self.symbols.get(sym) {
-            return Some(key.clone());
+            return Some(js_string!(&**key));
         }
 
         None
@@ -312,7 +314,7 @@ impl Symbol {
         // 5. Append the Record { [[Key]]: stringKey, [[Symbol]]: newSymbol } to the GlobalSymbolRegistry List.
         // 6. Return newSymbol.
         GLOBAL_SYMBOL_REGISTRY
-            .get_or_create_symbol(string_key)
+            .get_or_create_symbol(&string_key)
             .map(JsValue::from)
     }
 

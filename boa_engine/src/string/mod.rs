@@ -34,6 +34,7 @@ pub use boa_macros::utf16;
 use std::{
     alloc::{alloc, dealloc, Layout},
     borrow::Borrow,
+    cell::Cell,
     convert::Infallible,
     hash::{Hash, Hasher},
     ops::{Deref, Index},
@@ -41,7 +42,6 @@ use std::{
     ptr::{self, addr_of_mut, NonNull},
     slice::SliceIndex,
     str::FromStr,
-    sync::atomic::{AtomicUsize, Ordering},
 };
 
 use self::common::STATIC_JS_STRINGS;
@@ -182,7 +182,7 @@ struct RawJsString {
     /// The number of references to the string.
     ///
     /// When this reaches `0` the string is deallocated.
-    refcount: AtomicUsize,
+    refcount: Cell<usize>,
 
     /// An empty array which is used to get the offset of string data.
     data: [u16; 0],
@@ -192,9 +192,9 @@ const DATA_OFFSET: usize = std::mem::size_of::<RawJsString>();
 
 /// A UTF-16–encoded, reference counted, immutable string.
 ///
-/// This is pretty similar to a <code>[Arc][std::sync::Arc]\<[\[u16\]][slice]\></code>, but without
-/// the length metadata associated with the `Arc` fat pointer. Instead, the length of
-/// every string is stored on the heap, along with its reference counter and its data.
+/// This is pretty similar to a <code>[Rc][std::rc::Rc]\<[\[u16\]][slice]\></code>, but without the
+/// length metadata associated with the `Rc` fat pointer. Instead, the length of every string is
+/// stored on the heap, along with its reference counter and its data.
 ///
 /// We define some commonly used string constants in an interner. For these strings, we don't allocate
 /// memory on the heap to reduce the overhead of memory allocation and reference counting.
@@ -207,11 +207,6 @@ const DATA_OFFSET: usize = std::mem::size_of::<RawJsString>();
 pub struct JsString {
     ptr: Tagged<RawJsString>,
 }
-
-// SAFETY: `JsString` is atomically reference counted, making it safe to send between threads.
-unsafe impl Send for JsString {}
-// SAFETY: `JsString` is atomically reference counted, making it safe to sync between threads.
-unsafe impl Sync for JsString {}
 
 // JsString should always be pointer sized.
 sa::assert_eq_size!(JsString, *const ());
@@ -505,7 +500,7 @@ impl JsString {
             // Write the first part, the `RawJsString`.
             inner.as_ptr().write(RawJsString {
                 len: str_len,
-                refcount: AtomicUsize::new(1),
+                refcount: Cell::new(1),
                 data: [0; 0],
             });
         }
@@ -570,17 +565,14 @@ impl Borrow<[u16]> for JsString {
 impl Clone for JsString {
     #[inline]
     fn clone(&self) -> Self {
-        /// A soft limit on the amount of references that may be made to an `Arc`.
-        const MAX_REFCOUNT: usize = (isize::MAX) as usize;
         if let UnwrappedTagged::Ptr(inner) = self.ptr.unwrap() {
-            // See https://doc.rust-lang.org/src/alloc/sync.rs.html#1352 for details.
-
             // SAFETY: The reference count of `JsString` guarantees that `raw` is always valid.
             let inner = unsafe { inner.as_ref() };
-            let old_refs = inner.refcount.fetch_add(1, Ordering::Relaxed);
-            if old_refs > MAX_REFCOUNT {
+            let strong = inner.refcount.get().wrapping_add(1);
+            if strong == 0 {
                 abort()
             }
+            inner.refcount.set(strong);
         }
         Self { ptr: self.ptr }
     }
@@ -600,11 +592,10 @@ impl Drop for JsString {
 
             // SAFETY: The reference count of `JsString` guarantees that `raw` is always valid.
             let inner = unsafe { raw.as_ref() };
-            if inner.refcount.fetch_sub(1, Ordering::Release) != 1 {
+            inner.refcount.set(inner.refcount.get() - 1);
+            if inner.refcount.get() != 0 {
                 return;
             }
-
-            inner.refcount.load(Ordering::Acquire);
 
             // SAFETY:
             // All the checks for the validity of the layout have already been made on `alloc_inner`,
@@ -853,8 +844,6 @@ impl ToStringEscaped for [u16] {
 }
 #[cfg(test)]
 mod tests {
-    use std::sync::atomic::Ordering;
-
     use crate::tagged::UnwrappedTagged;
 
     use super::utf16;
@@ -867,7 +856,7 @@ mod tests {
                 UnwrappedTagged::Ptr(inner) => {
                     // SAFETY: The reference count of `JsString` guarantees that `inner` is always valid.
                     let inner = unsafe { inner.as_ref() };
-                    Some(inner.refcount.load(Ordering::Acquire))
+                    Some(inner.refcount.get())
                 }
                 UnwrappedTagged::Tag(_inner) => None,
             }
