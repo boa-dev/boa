@@ -15,7 +15,6 @@ use crate::{
 };
 use bitflags::bitflags;
 use boa_interner::Sym;
-use std::mem::size_of;
 
 /// Boa's `ByteCompiler` jump information tracking struct.
 #[derive(Debug, Clone)]
@@ -362,10 +361,8 @@ impl ByteCompiler<'_, '_> {
             for label in info.breaks {
                 if label.index < finally_start_address {
                     self.patch_jump_with_target(label, finally_start_address);
-                    let Label { mut index} = label;
-                    index -= size_of::<Opcode>() as u32;
-                    index -= size_of::<u32>() as u32 * 2;
-                    breaks.push(Label { index })
+                    let finally_jump = self.emit_opcode_with_operand(Opcode::FinallySetJump);
+                    breaks.push(finally_jump);
                 } else {
                     breaks.push(label)
                 }

@@ -23,7 +23,6 @@ impl ByteCompiler<'_, '_> {
                 self.emit_opcode(Opcode::CatchEnd2);
             } else {
                 self.emit_break(node.label())?;
-                self.emit_opcode(Opcode::TryEnd);
             }
             
             if in_finally {

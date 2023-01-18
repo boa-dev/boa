@@ -18,7 +18,7 @@ impl ByteCompiler<'_, '_> {
         self.patch_jump_with_target(finally_loc, 0);
 
         self.context.push_compile_time_environment(false);
-        let push_env = self.emit_and_track_decl_env();
+        let push_env = self.emit_opcode_with_two_operands(Opcode::PushDeclarativeEnvironment);
 
         self.create_script_decls(t.block().statement_list(), configurable_globals);
         self.compile_statement_list(t.block().statement_list(), use_expr, configurable_globals)?;
@@ -27,7 +27,7 @@ impl ByteCompiler<'_, '_> {
         let index_compile_environment = self.push_compile_environment(compile_environment);
         self.patch_jump_with_target(push_env.0, num_bindings as u32);
         self.patch_jump_with_target(push_env.1, index_compile_environment as u32);
-        self.emit_and_track_pop_env();
+        self.emit_opcode(Opcode::PopEnvironment);
         self.emit_opcode(Opcode::TryEnd);
 
         let finally = self.jump();
@@ -56,8 +56,10 @@ impl ByteCompiler<'_, '_> {
         } else {
             None
         };
+
         self.context.push_compile_time_environment(false);
-        let push_env = self.emit_and_track_decl_env();
+        let push_env = self.emit_opcode_with_two_operands(Opcode::PushDeclarativeEnvironment);
+
         if let Some(binding) = catch.parameter() {
             match binding {
                 Binding::Identifier(ident) => {
@@ -86,7 +88,7 @@ impl ByteCompiler<'_, '_> {
         let index_compile_environment = self.push_compile_environment(compile_environment);
         self.patch_jump_with_target(push_env.0, num_bindings as u32);
         self.patch_jump_with_target(push_env.1, index_compile_environment as u32);
-        self.emit_and_track_pop_env();
+        self.emit_opcode(Opcode::PopEnvironment);
         if let Some(catch_start) = catch_start {
             self.emit_opcode(Opcode::CatchEnd);
             self.patch_jump(catch_start);
@@ -122,9 +124,9 @@ impl ByteCompiler<'_, '_> {
         let index_compile_environment = self.push_compile_environment(compile_environment);
         self.patch_jump_with_target(push_env.0, num_bindings as u32);
         self.patch_jump_with_target(push_env.1, index_compile_environment as u32);
-        self.emit_opcode(Opcode::PopEnvironment);
 
         self.pop_try_control_info(Some(finally_start_address))?;
+        self.emit_opcode(Opcode::PopEnvironment);
         self.emit_opcode(Opcode::FinallyEnd);
 
         Ok(())
