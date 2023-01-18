@@ -16,7 +16,6 @@ impl ByteCompiler<'_, '_> {
         use_expr: bool,
         configurable_globals: bool,
     ) -> JsResult<()> {
-        // Push a label jump control info
         let labelled_loc = self.next_opcode_location();
         self.push_labelled_control_info(labelled.label(), labelled_loc);
 

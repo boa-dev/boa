@@ -376,9 +376,6 @@ impl ByteCompiler<'_, '_> {
 
         assert!(info.is_labelled());
 
-        // We should no longer have to PopEnvironment here
-        // self.emit_opcode(Opcode::PopEnvironment);
-
         for label in info.breaks {
             self.patch_jump(label);
         }
