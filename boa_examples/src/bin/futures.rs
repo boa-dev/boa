@@ -54,7 +54,8 @@ impl<'a> JobQueue for Queue<'a> {
             // A more optimal implementation could spawn tasks for each native job, interleave resolving
             // futures with resolving promises, or other fun things!
             future::block_on(self.executor.run(async {
-                while let Some(job) = self.futures.borrow_mut().next().await {
+                let futures = &mut std::mem::take(&mut *self.futures.borrow_mut());
+                while let Some(job) = futures.next().await {
                     // Important to either run or schedule the returned `job` into the job queue,
                     // since that's what allows updating the `Promise` seen by ECMAScript for when the
                     // future completes.
