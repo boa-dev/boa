@@ -121,6 +121,25 @@ pub trait HostHooks {
         // The default implementation of HostHasSourceTextAvailable is to return true.
         true
     }
+
+    /// [`HostEnsureCanAddPrivateElement ( O )`][spec]
+    ///
+    /// # Requirements
+    ///
+    /// - If `O` is not a host-defined exotic object, this abstract operation must return
+    /// `NormalCompletion(unused)` and perform no other steps.
+    /// - Any two calls of this abstract operation with the same argument must return the same kind
+    /// of *Completion Record*.
+    /// - This abstract operation should only be overriden by ECMAScript hosts that are web browsers.
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-hostensurecanaddprivateelement
+    fn ensure_can_add_private_element(
+        &self,
+        _o: &JsObject,
+        _context: &mut Context<'_>,
+    ) -> JsResult<()> {
+        Ok(())
+    }
 }
 
 /// Default implementation of [`HostHooks`], which doesn't carry any state.
