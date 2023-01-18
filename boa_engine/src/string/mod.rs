@@ -44,7 +44,7 @@ use std::{
     str::FromStr,
 };
 
-use self::common::STATIC_JS_STRINGS;
+use self::common::StaticJsStrings;
 
 fn alloc_overflow() -> ! {
     panic!("detected overflow during string allocation")
@@ -269,7 +269,7 @@ impl JsString {
             }
         };
 
-        STATIC_JS_STRINGS.get_string(&string[..]).unwrap_or(string)
+        StaticJsStrings::get_string(&string[..]).unwrap_or(string)
     }
 
     /// Decodes a [`JsString`] into a [`String`], replacing invalid data with its escaped representation
@@ -581,7 +581,7 @@ impl Clone for JsString {
 impl Default for JsString {
     #[inline]
     fn default() -> Self {
-        STATIC_JS_STRINGS.empty_string()
+        StaticJsStrings::empty_string()
     }
 }
 
@@ -654,7 +654,7 @@ impl Deref for JsString {
             UnwrappedTagged::Tag(index) => {
                 // SAFETY: all static strings are valid indices on `STATIC_JS_STRINGS`, so `get` should always
                 // return `Some`.
-                unsafe { STATIC_JS_STRINGS.get(index).unwrap_unchecked() }
+                unsafe { StaticJsStrings::get(index).unwrap_unchecked() }
             }
         }
     }
@@ -664,9 +664,7 @@ impl Eq for JsString {}
 
 impl From<&[u16]> for JsString {
     fn from(s: &[u16]) -> Self {
-        STATIC_JS_STRINGS
-            .get_string(s)
-            .unwrap_or_else(|| Self::from_slice_skip_interning(s))
+        StaticJsStrings::get_string(s).unwrap_or_else(|| Self::from_slice_skip_interning(s))
     }
 }
 

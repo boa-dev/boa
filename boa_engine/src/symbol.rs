@@ -23,7 +23,7 @@
 
 use crate::{
     js_string,
-    string::{common::STATIC_JS_STRINGS, utf16},
+    string::{common::StaticJsStrings, utf16},
     tagged::{Tagged, UnwrappedTagged},
     JsString,
 };
@@ -80,19 +80,19 @@ enum WellKnown {
 impl WellKnown {
     const fn description(self) -> JsString {
         match self {
-            WellKnown::AsyncIterator => STATIC_JS_STRINGS.symbol_async_iterator(),
-            WellKnown::HasInstance => STATIC_JS_STRINGS.symbol_has_instance(),
-            WellKnown::IsConcatSpreadable => STATIC_JS_STRINGS.symbol_is_concat_spreadable(),
-            WellKnown::Iterator => STATIC_JS_STRINGS.symbol_iterator(),
-            WellKnown::Match => STATIC_JS_STRINGS.symbol_match(),
-            WellKnown::MatchAll => STATIC_JS_STRINGS.symbol_match_all(),
-            WellKnown::Replace => STATIC_JS_STRINGS.symbol_replace(),
-            WellKnown::Search => STATIC_JS_STRINGS.symbol_search(),
-            WellKnown::Species => STATIC_JS_STRINGS.symbol_species(),
-            WellKnown::Split => STATIC_JS_STRINGS.symbol_split(),
-            WellKnown::ToPrimitive => STATIC_JS_STRINGS.symbol_to_primitive(),
-            WellKnown::ToStringTag => STATIC_JS_STRINGS.symbol_to_string_tag(),
-            WellKnown::Unscopables => STATIC_JS_STRINGS.symbol_unscopables(),
+            WellKnown::AsyncIterator => StaticJsStrings::symbol_async_iterator(),
+            WellKnown::HasInstance => StaticJsStrings::symbol_has_instance(),
+            WellKnown::IsConcatSpreadable => StaticJsStrings::symbol_is_concat_spreadable(),
+            WellKnown::Iterator => StaticJsStrings::symbol_iterator(),
+            WellKnown::Match => StaticJsStrings::symbol_match(),
+            WellKnown::MatchAll => StaticJsStrings::symbol_match_all(),
+            WellKnown::Replace => StaticJsStrings::symbol_replace(),
+            WellKnown::Search => StaticJsStrings::symbol_search(),
+            WellKnown::Species => StaticJsStrings::symbol_species(),
+            WellKnown::Split => StaticJsStrings::symbol_split(),
+            WellKnown::ToPrimitive => StaticJsStrings::symbol_to_primitive(),
+            WellKnown::ToStringTag => StaticJsStrings::symbol_to_string_tag(),
+            WellKnown::Unscopables => StaticJsStrings::symbol_unscopables(),
         }
     }
 
