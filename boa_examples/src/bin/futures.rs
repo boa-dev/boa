@@ -1,5 +1,5 @@
 use std::{
-    cell::RefCell,
+    cell::{Cell, RefCell},
     collections::VecDeque,
     time::{Duration, Instant},
 };
@@ -41,35 +41,56 @@ impl<'a> JobQueue for Queue<'a> {
 
     fn run_jobs(&self, context: &mut boa_engine::Context<'_>) {
         // Example implementation of a job queue that also drives futures to completion.
-        loop {
-            // Need to check if both `futures` and `jobs` are empty, since any of the inner
-            // futures/jobs could schedule more futures/jobs.
-            if self.jobs.borrow().is_empty() && self.futures.borrow().is_empty() {
-                return;
-            }
-
-            // Blocks on all the enqueued futures, driving them all to completion.
-            // This implementation is not optimal because it blocks the main thread until
-            // the completion of the futures, which will delay running the generated jobs.
-            // A more optimal implementation could spawn tasks for each native job, interleave resolving
-            // futures with resolving promises, or other fun things!
-            future::block_on(self.executor.run(async {
-                let futures = &mut std::mem::take(&mut *self.futures.borrow_mut());
-                while let Some(job) = futures.next().await {
-                    // Important to either run or schedule the returned `job` into the job queue,
-                    // since that's what allows updating the `Promise` seen by ECMAScript for when the
-                    // future completes.
-                    self.jobs.borrow_mut().push_back(job);
+        future::block_on(self.executor.run(async {
+            loop {
+                // Need to check if both `futures` and `jobs` are empty, since any of the inner
+                // futures/jobs could schedule more futures/jobs.
+                if self.jobs.borrow().is_empty() && self.futures.borrow().is_empty() {
+                    return;
                 }
-            }));
 
-            let jobs = std::mem::take(&mut *self.jobs.borrow_mut());
-            for job in jobs {
-                if let Err(e) = job.call(context) {
-                    eprintln!("Uncaught {e}");
-                }
+                // `jqueue` could finish before `fqueue` finishes scheduling its jobs, so we need a
+                // way to indicate to `jqueue` that it should wait until the `fqueue` finishes.
+                let finished = Cell::new(false);
+
+                let fqueue = async {
+                    // Blocks on all the enqueued futures, driving them all to completion.
+                    let futures = &mut std::mem::take(&mut *self.futures.borrow_mut());
+                    while let Some(job) = futures.next().await {
+                        // Important to schedule the returned `job` into the job queue, since that's
+                        // what allows updating the `Promise` seen by ECMAScript for when the future
+                        // completes.
+                        self.jobs.borrow_mut().push_back(job);
+                    }
+                    finished.set(true);
+                };
+
+                let jqueue = async {
+                    loop {
+                        let Some(job) = self.jobs.borrow_mut().pop_front() else {
+                            if finished.get() {
+                                // All possible futures and jobs were completed. Exit.
+                                return;
+                            } else {
+                                // All possible jobs were completed, but `fqueue` could have
+                                // pending futures. Yield to the executor to try to progress on
+                                // `fqueue` until we have more pending jobs.
+                                future::yield_now().await;
+                                continue;
+                            }
+                        };
+
+                        if let Err(e) = job.call(context) {
+                            eprintln!("Uncaught {e}");
+                        }
+                        future::yield_now().await;
+                    }
+                };
+
+                // Wait for both queues to complete
+                future::zip(fqueue, jqueue).await;
             }
-        }
+        }))
     }
 }
 
@@ -112,10 +133,13 @@ fn main() {
     delay(30).then(print);
     "#;
 
+    let now = Instant::now();
     context.eval(script).unwrap();
 
     // Important to run this after evaluating, since this is what triggers to run the enqueued jobs.
     context.run_jobs();
+
+    println!("Total elapsed time: {:?}", now.elapsed());
 
     // Example output:
 
