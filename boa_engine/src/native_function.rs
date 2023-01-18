@@ -169,7 +169,7 @@ impl NativeFunction {
     /// NativeFunction::from_async_fn(test);
     /// ```
     /// [this issue]: https://github.com/rust-lang/rust/issues/69663
-    pub fn from_async_fn<F, Fut>(f: fn(&JsValue, &[JsValue], &mut Context<'_>) -> Fut)
+    pub fn from_async_fn<Fut>(f: fn(&JsValue, &[JsValue], &mut Context<'_>) -> Fut) -> Self
     where
         Fut: Future<Output = JsResult<JsValue>> + 'static,
     {
@@ -197,7 +197,7 @@ impl NativeFunction {
                 .job_queue()
                 .enqueue_future_job(future.boxed_local(), context);
             Ok(promise.into())
-        });
+        })
     }
 
     /// Creates a `NativeFunction` from a `Copy` closure.
