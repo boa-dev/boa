@@ -39,7 +39,7 @@ use std::{
     hash::{Hash, Hasher},
     ops::{Deref, Index},
     process::abort,
-    ptr::{self, addr_of_mut, NonNull},
+    ptr::{self, addr_of, addr_of_mut, NonNull},
     slice::SliceIndex,
     str::FromStr,
 };
@@ -531,7 +531,7 @@ impl JsString {
         let ptr = Self::allocate_inner(count);
 
         // SAFETY: `allocate_inner` guarantees that `ptr` is a valid pointer.
-        let data = unsafe { (*ptr.as_ptr()).data.as_mut_ptr() };
+        let data = unsafe { addr_of_mut!((*ptr.as_ptr()).data) };
         // SAFETY:
         // - We read `count = data.len()` elements from `data`, which is within the bounds of the slice.
         // - `allocate_inner` must allocate at least `count` elements, which allows us to safely
@@ -541,7 +541,7 @@ impl JsString {
         // - `allocate_inner` must return a valid pointer to newly allocated memory, meaning `ptr`
         //   and `data` should never overlap.
         unsafe {
-            ptr::copy_nonoverlapping(string.as_ptr(), data, count);
+            ptr::copy_nonoverlapping(string.as_ptr(), data.cast(), count);
         }
         Self {
             // Safety: `allocate_inner` guarantees `ptr` is a valid heap pointer.
@@ -647,7 +647,8 @@ impl Deref for JsString {
                 // - The lifetime of `&Self::Target` is shorter than the lifetime of `self`, as seen
                 //   by its signature, so this doesn't outlive `self`.
                 unsafe {
-                    std::slice::from_raw_parts((*h.as_ptr()).data.as_ptr(), (*h.as_ptr()).len)
+                    let h = h.as_ptr();
+                    std::slice::from_raw_parts(addr_of!((*h).data).cast(), (*h).len)
                 }
             }
             UnwrappedTagged::Tag(index) => {
