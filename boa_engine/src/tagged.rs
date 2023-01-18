@@ -8,14 +8,14 @@ use std::ptr::NonNull;
 
 /// A pointer that can be tagged with an `usize`.
 ///
-/// Only pointers with an alignment of 2-bytes are valid, and the tag must have its MSB unset,
-/// since the `usize` must fit inside `usize::BITS - 1` bits.
+/// Only pointers with a minimum alignment of 2-bytes are valid, and the tag must have its most
+/// significant bit (MSB) unset. In other words, the tag must fit inside `usize::BITS - 1` bits.
 ///
 /// # Representation
 ///
-/// If the LSB of the internal [`NonNull`] is set (1), then the pointer address represents
-/// a tag, where the remaining MSBs stores the tag. Otherwise, the whole pointer represents
-/// the pointer itself.
+/// If the least significant bit (LSB) of the internal [`NonNull`] is set (1), then the pointer
+/// address represents a tag where the remaining bits store the tag. Otherwise, the whole pointer
+/// represents the pointer itself.
 ///
 /// It uses [`NonNull`], which guarantees that [`Tagged`] can use the "null pointer optimization"
 /// to optimize the size of [`Option<Tagged>`].
