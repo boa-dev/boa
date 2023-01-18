@@ -42,6 +42,12 @@ static GLOBAL_SYMBOL_REGISTRY: Lazy<GlobalSymbolRegistry> = Lazy::new(GlobalSymb
 
 type FxDashMap<K, V> = DashMap<K, V, BuildHasherDefault<FxHasher>>;
 
+// We previously used `JsString` instead of `Box<[u16]>` for this, but since the glocal symbol
+// registry needed to be global, we had to either make `JsString` thread-safe or directly store
+// its info into the registry. `JsSymbol` is already a pretty niche feature of JS, and we expect only
+// advanced users to utilize it. On the other hand, almost every JS programmer uses `JsString`s, and
+// the first option would impact performance for all `JsString`s in general. For those reasons, we
+// opted for the second option, but we should try to optimize this in the future.
 struct GlobalSymbolRegistry {
     keys: FxDashMap<Box<[u16]>, JsSymbol>,
     symbols: FxDashMap<JsSymbol, Box<[u16]>>,
