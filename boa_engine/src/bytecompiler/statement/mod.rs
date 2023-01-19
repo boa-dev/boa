@@ -38,7 +38,7 @@ impl ByteCompiler<'_, '_> {
                 self.compile_do_while_loop(do_while_loop, None, configurable_globals)?;
             }
             Statement::Block(block) => {
-                self.compile_block(block, None, use_expr, configurable_globals)?;
+                self.compile_block(block, use_expr, configurable_globals)?;
             }
             Statement::Labelled(labelled) => {
                 self.compile_labelled(labelled, use_expr, configurable_globals)?;

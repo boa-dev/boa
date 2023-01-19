@@ -1,22 +1,15 @@
 use crate::{bytecompiler::ByteCompiler, JsResult};
 
 use boa_ast::statement::Block;
-use boa_interner::Sym;
 
 impl ByteCompiler<'_, '_> {
     /// Compile a [`Block`] `boa_ast` node
     pub(crate) fn compile_block(
         &mut self,
         block: &Block,
-        label: Option<Sym>,
         use_expr: bool,
         configurable_globals: bool,
     ) -> JsResult<()> {
-        if let Some(label) = label {
-            let next = self.next_opcode_location();
-            self.push_labelled_block_control_info(label, next);
-        }
-
         self.context.push_compile_time_environment(false);
         let push_env = self.emit_and_track_decl_env();
 
@@ -28,11 +21,7 @@ impl ByteCompiler<'_, '_> {
         self.patch_jump_with_target(push_env.0, num_bindings as u32);
         self.patch_jump_with_target(push_env.1, index_compile_environment as u32);
 
-        if label.is_some() {
-            self.pop_labelled_block_control_info();
-        } else {
-            self.emit_and_track_pop_env();
-        }
+        self.emit_and_track_pop_env();
 
         Ok(())
     }

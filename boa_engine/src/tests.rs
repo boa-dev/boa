@@ -2199,6 +2199,38 @@ fn break_environment_gauntlet() {
 }
 
 #[test]
+fn break_labelled_if_statement() {
+    let scenario = r#"
+        let result = "";
+        bar: if(true) {
+            result = "foo";
+            break bar;
+            result = 'this will not be executed';
+        }
+        result
+    "#;
+
+    assert_eq!(&exec(scenario), "\"foo\"");
+}
+
+#[test]
+fn break_labelled_try_statement() {
+    let scenario = r#"
+        let result = ""
+        one: try {
+            result = "foo";
+            break one;
+            result = "did not break"
+        } catch (err) {
+            console.log(err)
+        }
+        result
+    "#;
+
+    assert_eq!(&exec(scenario), "\"foo\"");
+}
+
+#[test]
 fn while_loop_late_break() {
     // Ordering with statement before the break.
     let scenario = r#"
