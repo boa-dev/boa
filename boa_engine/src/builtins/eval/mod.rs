@@ -117,15 +117,17 @@ impl Eval {
         // Because of implementation details the following code differs from the spec.
 
         // 5. Perform ? HostEnsureCanCompileStrings(evalRealm).
-        let mut parser = Parser::new(x.as_bytes());
-        if strict {
-            parser.set_strict();
-        }
+        context.host_hooks().ensure_can_compile_strings(context)?;
+
         // 11. Perform the following substeps in an implementation-defined order, possibly interleaving parsing and error detection:
         //     a. Let script be ParseText(StringToCodePoints(x), Script).
         //     b. If script is a List of errors, throw a SyntaxError exception.
         //     c. If script Contains ScriptBody is false, return undefined.
         //     d. Let body be the ScriptBody of script.
+        let mut parser = Parser::new(x.as_bytes());
+        if strict {
+            parser.set_strict();
+        }
         let body = parser.parse_eval(direct, context.interner_mut())?;
 
         // 6. Let inFunction be false.

@@ -66,15 +66,15 @@ enum Repr {
 /// The error type returned by the [`JsError::try_native`] method.
 #[derive(Debug, Clone, Error)]
 pub enum TryNativeError {
-    /// This error is returned when a property of the error object has an invalid type.
+    /// A property of the error object has an invalid type.
     #[error("invalid type of property `{0}`")]
     InvalidPropertyType(&'static str),
 
-    /// This error is returned when the message of the error object could not be decoded.
+    /// The message of the error object could not be decoded.
     #[error("property `message` cannot contain unpaired surrogates")]
     InvalidMessageEncoding,
 
-    /// This error is returned when a property of the error object is not accessible.
+    /// A property of the error object is not accessible.
     #[error("could not access property `{property}`")]
     InaccessibleProperty {
         /// The name of the property that could not be accessed.
@@ -84,7 +84,7 @@ pub enum TryNativeError {
         source: JsError,
     },
 
-    /// This error is returned when any inner error of an aggregate error is not accessible.
+    /// An inner error of an aggregate error is not accessible.
     #[error("could not get element `{index}` of property `errors`")]
     InvalidErrorsIndex {
         /// The index of the error that could not be accessed.
@@ -94,7 +94,7 @@ pub enum TryNativeError {
         source: JsError,
     },
 
-    /// This error is returned when the error value not an error object.
+    /// The error value is not an error object.
     #[error("opaque error of type `{:?}` is not an Error object", .0.get_type())]
     NotAnErrorObject(JsValue),
 }

@@ -62,13 +62,15 @@ mod helper;
 
 use boa_ast::StatementList;
 use boa_engine::{
+    context::ContextBuilder,
+    job::{JobQueue, NativeJob},
     vm::flowgraph::{Direction, Graph},
     Context, JsResult,
 };
 use clap::{Parser, ValueEnum, ValueHint};
 use colored::{Color, Colorize};
 use rustyline::{config::Config, error::ReadlineError, EditMode, Editor};
-use std::{fs::read, fs::OpenOptions, io, path::PathBuf};
+use std::{cell::RefCell, collections::VecDeque, fs::read, fs::OpenOptions, io, path::PathBuf};
 
 #[cfg(all(target_arch = "x86_64", target_os = "linux", target_env = "gnu"))]
 #[cfg_attr(
@@ -253,7 +255,8 @@ fn generate_flowgraph(
 fn main() -> Result<(), io::Error> {
     let args = Opt::parse();
 
-    let mut context = Context::default();
+    let queue = Jobs::default();
+    let mut context = ContextBuilder::new().job_queue(&queue).build();
 
     // Trace Output
     context.set_trace(args.trace);
@@ -280,6 +283,7 @@ fn main() -> Result<(), io::Error> {
                 Ok(v) => println!("{}", v.display()),
                 Err(v) => eprintln!("Uncaught {v}"),
             }
+            context.run_jobs();
         }
     }
 
@@ -333,11 +337,14 @@ fn main() -> Result<(), io::Error> {
                         }
                     } else {
                         match context.eval(line.trim_end()) {
-                            Ok(v) => println!("{}", v.display()),
+                            Ok(v) => {
+                                println!("{}", v.display());
+                            }
                             Err(v) => {
                                 eprintln!("{}: {}", "Uncaught".red(), v.to_string().red());
                             }
                         }
+                        context.run_jobs();
                     }
                 }
 
@@ -354,4 +361,27 @@ fn main() -> Result<(), io::Error> {
     }
 
     Ok(())
+}
+
+#[derive(Default)]
+struct Jobs(RefCell<VecDeque<NativeJob>>);
+
+impl JobQueue for Jobs {
+    fn enqueue_promise_job(&self, job: NativeJob, _: &mut Context<'_>) {
+        self.0.borrow_mut().push_front(job);
+    }
+
+    fn run_jobs(&self, context: &mut Context<'_>) {
+        loop {
+            let jobs = std::mem::take(&mut *self.0.borrow_mut());
+            if jobs.is_empty() {
+                return;
+            }
+            for job in jobs {
+                if let Err(e) = job.call(context) {
+                    eprintln!("Uncaught {e}");
+                }
+            }
+        }
+    }
 }

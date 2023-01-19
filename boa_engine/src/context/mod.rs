@@ -1,6 +1,9 @@
 //! The ECMAScript context.
 
+mod hooks;
 pub mod intrinsics;
+use hooks::DefaultHooks;
+pub use hooks::HostHooks;
 
 #[cfg(feature = "intl")]
 pub(crate) mod icu;
@@ -9,7 +12,6 @@ pub(crate) mod icu;
 pub use icu::BoaProvider;
 
 use intrinsics::{IntrinsicObjects, Intrinsics};
-use std::collections::VecDeque;
 
 #[cfg(not(feature = "intl"))]
 pub use std::marker::PhantomData;
@@ -20,7 +22,7 @@ use crate::{
     builtins,
     bytecompiler::ByteCompiler,
     class::{Class, ClassBuilder},
-    job::NativeJob,
+    job::{IdleJobQueue, JobQueue, NativeJob},
     native_function::NativeFunction,
     object::{FunctionObjectBuilder, GlobalPropertyMap, JsObject},
     property::{Attribute, PropertyDescriptor, PropertyKey},
@@ -76,7 +78,7 @@ use boa_profiler::Profiler;
 ///
 /// assert_eq!(value.as_number(), Some(12.0))
 /// ```
-pub struct Context<'icu> {
+pub struct Context<'host> {
     /// realm holds both the global object and the environment
     pub(crate) realm: Realm,
 
@@ -90,22 +92,21 @@ pub struct Context<'icu> {
     /// Intrinsic objects
     intrinsics: Intrinsics,
 
-    /// ICU related utilities
-    #[cfg(feature = "intl")]
-    icu: icu::Icu<'icu>,
-
-    #[cfg(not(feature = "intl"))]
-    icu: PhantomData<&'icu ()>,
-
     /// Number of instructions remaining before a forced exit
     #[cfg(feature = "fuzz")]
     pub(crate) instructions_remaining: usize,
 
     pub(crate) vm: Vm,
 
-    pub(crate) promise_job_queue: VecDeque<NativeJob>,
-
     pub(crate) kept_alive: Vec<JsObject>,
+
+    /// ICU related utilities
+    #[cfg(feature = "intl")]
+    icu: icu::Icu<'host>,
+
+    host_hooks: &'host dyn HostHooks,
+
+    job_queue: &'host dyn JobQueue,
 }
 
 impl std::fmt::Debug for Context<'_> {
@@ -114,15 +115,14 @@ impl std::fmt::Debug for Context<'_> {
 
         debug
             .field("realm", &self.realm)
-            .field("interner", &self.interner);
+            .field("interner", &self.interner)
+            .field("intrinsics", &self.intrinsics)
+            .field("vm", &self.vm)
+            .field("promise_job_queue", &"JobQueue")
+            .field("hooks", &"HostHooks");
 
         #[cfg(feature = "console")]
         debug.field("console", &self.console);
-
-        debug
-            .field("intrinsics", &self.intrinsics)
-            .field("vm", &self.vm)
-            .field("promise_job_queue", &self.promise_job_queue);
 
         #[cfg(feature = "intl")]
         debug.field("icu", &self.icu);
@@ -143,7 +143,7 @@ impl Context<'_> {
     /// Create a new [`ContextBuilder`] to specify the [`Interner`] and/or
     /// the icu data provider.
     #[must_use]
-    pub fn builder() -> ContextBuilder<'static> {
+    pub fn builder() -> ContextBuilder<'static, 'static, 'static> {
         ContextBuilder::default()
     }
 
@@ -159,6 +159,9 @@ impl Context<'_> {
     /// assert!(value.is_number());
     /// assert_eq!(value.as_number().unwrap(), 4.0);
     /// ```
+    ///
+    /// Note that this won't run any scheduled promise jobs; you need to call [`Context::run_jobs`]
+    /// on the context or [`JobQueue::run_jobs`] on the provided queue to run them.
     #[allow(clippy::unit_arg, clippy::drop_copy)]
     pub fn eval<S>(&mut self, src: S) -> JsResult<JsValue>
     where
@@ -202,6 +205,9 @@ impl Context<'_> {
     /// just a pointer copy. Therefore, if you'd like to execute the same `CodeBlock` multiple
     /// times, there is no need to re-compile it, and you can just call `clone()` on the
     /// `Gc<CodeBlock>` returned by the [`Self::compile()`] function.
+    ///
+    /// Note that this won't run any scheduled promise jobs; you need to call [`Context::run_jobs`]
+    /// on the context or [`JobQueue::run_jobs`] on the provided queue to run them.
     pub fn execute(&mut self, code_block: Gc<CodeBlock>) -> JsResult<JsValue> {
         let _timer = Profiler::global().start_event("Execution", "Main");
 
@@ -211,9 +217,8 @@ impl Context<'_> {
         let result = self.run();
         self.vm.pop_frame();
         self.clear_kept_objects();
-        self.run_queued_jobs()?;
-        let (result, _) = result?;
-        Ok(result)
+
+        result.map(|r| r.0)
     }
 
     /// Register a global property.
@@ -375,16 +380,15 @@ impl Context<'_> {
         self.vm.trace = trace;
     }
 
-    /// More information:
-    ///  - [ECMAScript reference][spec]
-    ///
-    /// [spec]: https://tc39.es/ecma262/#sec-hostenqueuepromisejob
-    pub fn host_enqueue_promise_job(&mut self, job: NativeJob /* , realm: Realm */) {
-        // If realm is not null ...
-        // TODO
-        // Let scriptOrModule be ...
-        // TODO
-        self.promise_job_queue.push_back(job);
+    /// Enqueues a [`NativeJob`] on the [`JobQueue`].
+    pub fn enqueue_job(&mut self, job: NativeJob) {
+        self.job_queue.enqueue_promise_job(job, self);
+    }
+
+    /// Runs all the jobs in the job queue.
+    pub fn run_jobs(&mut self) {
+        self.job_queue.run_jobs(self);
+        self.clear_kept_objects();
     }
 
     /// Abstract operation [`ClearKeptObjects`][clear].
@@ -450,21 +454,22 @@ impl Context<'_> {
         // Create intrinsics, add global objects here
         builtins::init(self);
     }
-
-    /// Runs all the jobs in the job queue.
-    fn run_queued_jobs(&mut self) -> JsResult<()> {
-        while let Some(job) = self.promise_job_queue.pop_front() {
-            job.call(self)?;
-            self.clear_kept_objects();
-        }
-        Ok(())
-    }
 }
 
-#[cfg(feature = "intl")]
-impl<'icu> Context<'icu> {
+impl<'host> Context<'host> {
+    /// Get the host hooks.
+    pub(crate) fn host_hooks(&self) -> &'host dyn HostHooks {
+        self.host_hooks
+    }
+
+    /// Get the job queue.
+    pub(crate) fn job_queue(&mut self) -> &'host dyn JobQueue {
+        self.job_queue
+    }
+
     /// Get the ICU related utilities
-    pub(crate) const fn icu(&self) -> &icu::Icu<'icu> {
+    #[cfg(feature = "intl")]
+    pub(crate) const fn icu(&self) -> &icu::Icu<'host> {
         &self.icu
     }
 }
@@ -480,9 +485,11 @@ impl<'icu> Context<'icu> {
     feature = "intl",
     doc = "The required data in a valid provider is specified in [`BoaProvider`]"
 )]
-#[derive(Default, Debug)]
-pub struct ContextBuilder<'icu> {
+#[derive(Default)]
+pub struct ContextBuilder<'icu, 'hooks, 'queue> {
     interner: Option<Interner>,
+    host_hooks: Option<&'hooks dyn HostHooks>,
+    job_queue: Option<&'queue dyn JobQueue>,
     #[cfg(feature = "intl")]
     icu: Option<icu::Icu<'icu>>,
     #[cfg(not(feature = "intl"))]
@@ -491,7 +498,31 @@ pub struct ContextBuilder<'icu> {
     instructions_remaining: usize,
 }
 
-impl<'a> ContextBuilder<'a> {
+impl std::fmt::Debug for ContextBuilder<'_, '_, '_> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let mut out = f.debug_struct("ContextBuilder");
+
+        out.field("interner", &self.interner)
+            .field("host_hooks", &"HostHooks");
+
+        #[cfg(feature = "intl")]
+        out.field("icu", &self.icu);
+
+        #[cfg(feature = "fuzz")]
+        out.field("instructions_remaining", &self.instructions_remaining);
+
+        out.finish()
+    }
+}
+
+impl<'icu, 'hooks, 'queue> ContextBuilder<'icu, 'hooks, 'queue> {
+    /// Creates a new [`ContextBuilder`] with a default empty [`Interner`]
+    /// and a default [`BoaProvider`] if the `intl` feature is enabled.
+    #[must_use]
+    pub fn new() -> Self {
+        Self::default()
+    }
+
     /// Initializes the context [`Interner`] to the provided interner.
     ///
     /// This is useful when you want to initialize an [`Interner`] with
@@ -520,11 +551,31 @@ impl<'a> ContextBuilder<'a> {
     pub fn icu_provider(
         self,
         provider: BoaProvider<'_>,
-    ) -> Result<ContextBuilder<'_>, icu_locid_transform::LocaleTransformError> {
+    ) -> Result<ContextBuilder<'_, 'hooks, 'queue>, icu_locid_transform::LocaleTransformError> {
         Ok(ContextBuilder {
             icu: Some(icu::Icu::new(provider)?),
             ..self
         })
+    }
+
+    /// Initializes the [`HostHooks`] for the context.
+    ///
+    /// [`Host Hooks`]: https://tc39.es/ecma262/#sec-host-hooks-summary
+    #[must_use]
+    pub fn host_hooks(self, host_hooks: &dyn HostHooks) -> ContextBuilder<'icu, '_, 'queue> {
+        ContextBuilder {
+            host_hooks: Some(host_hooks),
+            ..self
+        }
+    }
+
+    /// Initializes the [`JobQueue`] for the context.
+    #[must_use]
+    pub fn job_queue(self, job_queue: &dyn JobQueue) -> ContextBuilder<'icu, 'hooks, '_> {
+        ContextBuilder {
+            job_queue: Some(job_queue),
+            ..self
+        }
     }
 
     /// Specifies the number of instructions remaining to the [`Context`].
@@ -537,17 +588,15 @@ impl<'a> ContextBuilder<'a> {
         self
     }
 
-    /// Creates a new [`ContextBuilder`] with a default empty [`Interner`]
-    /// and a default [`BoaProvider`] if the `intl` feature is enabled.
-    #[must_use]
-    pub fn new() -> Self {
-        Self::default()
-    }
-
     /// Builds a new [`Context`] with the provided parameters, and defaults
     /// all missing parameters to their default values.
     #[must_use]
-    pub fn build(self) -> Context<'a> {
+    pub fn build<'host>(self) -> Context<'host>
+    where
+        'icu: 'host,
+        'hooks: 'host,
+        'queue: 'host,
+    {
         let intrinsics = Intrinsics::default();
         let mut context = Context {
             realm: Realm::create(intrinsics.constructors().object().prototype().into()),
@@ -561,12 +610,11 @@ impl<'a> ContextBuilder<'a> {
                 let provider = BoaProvider::Buffer(boa_icu_provider::buffer());
                 icu::Icu::new(provider).expect("Failed to initialize default icu data.")
             }),
-            #[cfg(not(feature = "intl"))]
-            icu: PhantomData,
             #[cfg(feature = "fuzz")]
             instructions_remaining: self.instructions_remaining,
-            promise_job_queue: VecDeque::new(),
             kept_alive: Vec::new(),
+            host_hooks: self.host_hooks.unwrap_or(&DefaultHooks),
+            job_queue: self.job_queue.unwrap_or(&IdleJobQueue),
         };
 
         // Add new builtIns to Context Realm

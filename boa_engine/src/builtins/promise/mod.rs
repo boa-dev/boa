@@ -62,7 +62,7 @@ pub(crate) enum PromiseState {
 }
 
 /// The internal representation of a `Promise` object.
-#[derive(Debug, Clone, Trace, Finalize)]
+#[derive(Debug, Trace, Finalize)]
 pub struct Promise {
     state: PromiseState,
     fulfill_reactions: Vec<ReactionRecord>,
@@ -76,7 +76,7 @@ pub struct Promise {
 ///  - [ECMAScript reference][spec]
 ///
 /// [spec]: https://tc39.es/ecma262/#sec-promisereaction-records
-#[derive(Debug, Clone, Trace, Finalize)]
+#[derive(Debug, Trace, Finalize)]
 pub(crate) struct ReactionRecord {
     /// The `[[Capability]]` field.
     promise_capability: Option<PromiseCapability>,
@@ -99,6 +99,25 @@ pub(crate) struct ReactionRecord {
 enum ReactionType {
     Fulfill,
     Reject,
+}
+
+/// The operation type of the [`HostPromiseRejectionTracker`][fn] abstract operation.
+///
+/// # Note
+///
+/// Per the spec:
+///
+/// > If operation is "handle", an implementation should not hold a reference to promise in a way
+/// that would interfere with garbage collection. An implementation may hold a reference to promise
+/// if operation is "reject", since it is expected that rejections will be rare and not on hot code paths.
+///
+/// [fn]: https://tc39.es/ecma262/#sec-host-promise-rejection-tracker
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum OperationType {
+    /// A promise was rejected without any handlers.
+    Reject,
+    /// A handler was added to a rejected promise for the first time.
+    Handle,
 }
 
 /// The internal `PromiseCapability` data type.
@@ -133,99 +152,94 @@ impl PromiseCapability {
             resolve: JsValue,
         }
 
-        match c.as_constructor() {
-            // 1. If IsConstructor(C) is false, throw a TypeError exception.
-            None => Err(JsNativeError::typ()
-                .with_message("PromiseCapability: expected constructor")
-                .into()),
-            Some(c) => {
-                let c = c.clone();
+        // 1. If IsConstructor(C) is false, throw a TypeError exception.
+        let c = c.as_constructor().ok_or_else(|| {
+            JsNativeError::typ().with_message("PromiseCapability: expected constructor")
+        })?;
 
-                // 2. NOTE: C is assumed to be a constructor function that supports the parameter conventions of the Promise constructor (see 27.2.3.1).
-                // 3. Let promiseCapability be the PromiseCapability Record { [[Promise]]: undefined, [[Resolve]]: undefined, [[Reject]]: undefined }.
-                let promise_capability = Gc::new(GcCell::new(RejectResolve {
-                    reject: JsValue::undefined(),
-                    resolve: JsValue::undefined(),
-                }));
+        let c = c.clone();
 
-                // 4. Let executorClosure be a new Abstract Closure with parameters (resolve, reject) that captures promiseCapability and performs the following steps when called:
-                // 5. Let executor be CreateBuiltinFunction(executorClosure, 2, "", « »).
-                let executor = FunctionObjectBuilder::new(
-                    context,
-                    NativeFunction::from_copy_closure_with_captures(
-                        |_this, args: &[JsValue], captures, _| {
-                            let mut promise_capability = captures.borrow_mut();
-                            // a. If promiseCapability.[[Resolve]] is not undefined, throw a TypeError exception.
-                            if !promise_capability.resolve.is_undefined() {
-                                return Err(JsNativeError::typ()
-                                    .with_message("promiseCapability.[[Resolve]] is not undefined")
-                                    .into());
-                            }
+        // 2. NOTE: C is assumed to be a constructor function that supports the parameter conventions of the Promise constructor (see 27.2.3.1).
+        // 3. Let promiseCapability be the PromiseCapability Record { [[Promise]]: undefined, [[Resolve]]: undefined, [[Reject]]: undefined }.
+        let promise_capability = Gc::new(GcCell::new(RejectResolve {
+            reject: JsValue::undefined(),
+            resolve: JsValue::undefined(),
+        }));
 
-                            // b. If promiseCapability.[[Reject]] is not undefined, throw a TypeError exception.
-                            if !promise_capability.reject.is_undefined() {
-                                return Err(JsNativeError::typ()
-                                    .with_message("promiseCapability.[[Reject]] is not undefined")
-                                    .into());
-                            }
+        // 4. Let executorClosure be a new Abstract Closure with parameters (resolve, reject) that captures promiseCapability and performs the following steps when called:
+        // 5. Let executor be CreateBuiltinFunction(executorClosure, 2, "", « »).
+        let executor = FunctionObjectBuilder::new(
+            context,
+            NativeFunction::from_copy_closure_with_captures(
+                |_this, args: &[JsValue], captures, _| {
+                    let mut promise_capability = captures.borrow_mut();
+                    // a. If promiseCapability.[[Resolve]] is not undefined, throw a TypeError exception.
+                    if !promise_capability.resolve.is_undefined() {
+                        return Err(JsNativeError::typ()
+                            .with_message("promiseCapability.[[Resolve]] is not undefined")
+                            .into());
+                    }
 
-                            let resolve = args.get_or_undefined(0);
-                            let reject = args.get_or_undefined(1);
+                    // b. If promiseCapability.[[Reject]] is not undefined, throw a TypeError exception.
+                    if !promise_capability.reject.is_undefined() {
+                        return Err(JsNativeError::typ()
+                            .with_message("promiseCapability.[[Reject]] is not undefined")
+                            .into());
+                    }
 
-                            // c. Set promiseCapability.[[Resolve]] to resolve.
-                            promise_capability.resolve = resolve.clone();
+                    let resolve = args.get_or_undefined(0);
+                    let reject = args.get_or_undefined(1);
 
-                            // d. Set promiseCapability.[[Reject]] to reject.
-                            promise_capability.reject = reject.clone();
+                    // c. Set promiseCapability.[[Resolve]] to resolve.
+                    promise_capability.resolve = resolve.clone();
 
-                            // e. Return undefined.
-                            Ok(JsValue::Undefined)
-                        },
-                        promise_capability.clone(),
-                    ),
-                )
-                .name("")
-                .length(2)
-                .build()
-                .into();
+                    // d. Set promiseCapability.[[Reject]] to reject.
+                    promise_capability.reject = reject.clone();
 
-                // 6. Let promise be ? Construct(C, « executor »).
-                let promise = c.construct(&[executor], Some(&c), context)?;
+                    // e. Return undefined.
+                    Ok(JsValue::Undefined)
+                },
+                promise_capability.clone(),
+            ),
+        )
+        .name("")
+        .length(2)
+        .build()
+        .into();
 
-                let promise_capability = promise_capability.borrow();
+        // 6. Let promise be ? Construct(C, « executor »).
+        let promise = c.construct(&[executor], Some(&c), context)?;
 
-                let resolve = promise_capability.resolve.clone();
-                let reject = promise_capability.reject.clone();
+        let promise_capability = promise_capability.borrow();
 
-                // 7. If IsCallable(promiseCapability.[[Resolve]]) is false, throw a TypeError exception.
-                let resolve = resolve
-                    .as_object()
-                    .cloned()
-                    .and_then(JsFunction::from_object)
-                    .ok_or_else(|| {
-                        JsNativeError::typ()
-                            .with_message("promiseCapability.[[Resolve]] is not callable")
-                    })?;
+        let resolve = promise_capability.resolve.clone();
+        let reject = promise_capability.reject.clone();
 
-                // 8. If IsCallable(promiseCapability.[[Reject]]) is false, throw a TypeError exception.
-                let reject = reject
-                    .as_object()
-                    .cloned()
-                    .and_then(JsFunction::from_object)
-                    .ok_or_else(|| {
-                        JsNativeError::typ()
-                            .with_message("promiseCapability.[[Reject]] is not callable")
-                    })?;
+        // 7. If IsCallable(promiseCapability.[[Resolve]]) is false, throw a TypeError exception.
+        let resolve = resolve
+            .as_object()
+            .cloned()
+            .and_then(JsFunction::from_object)
+            .ok_or_else(|| {
+                JsNativeError::typ().with_message("promiseCapability.[[Resolve]] is not callable")
+            })?;
 
-                // 9. Set promiseCapability.[[Promise]] to promise.
-                // 10. Return promiseCapability.
-                Ok(PromiseCapability {
-                    promise,
-                    resolve,
-                    reject,
-                })
-            }
-        }
+        // 8. If IsCallable(promiseCapability.[[Reject]]) is false, throw a TypeError exception.
+        let reject = reject
+            .as_object()
+            .cloned()
+            .and_then(JsFunction::from_object)
+            .ok_or_else(|| {
+                JsNativeError::typ().with_message("promiseCapability.[[Reject]] is not callable")
+            })?;
+
+        // 9. Set promiseCapability.[[Promise]] to promise.
+        // 10. Return promiseCapability.
+        Ok(PromiseCapability {
+            promise,
+            resolve,
+            reject,
+        })
     }
 
     /// Returns the promise object.
@@ -1313,13 +1327,13 @@ impl Promise {
                     }
 
                     let Some(then) = resolution.as_object() else {
-                    // 8. If Type(resolution) is not Object, then
-                    //   a. Perform FulfillPromise(promise, resolution).
-                    Self::fulfill_promise(promise, resolution.clone(), context);
+                        // 8. If Type(resolution) is not Object, then
+                        //   a. Perform FulfillPromise(promise, resolution).
+                        Self::fulfill_promise(promise, resolution.clone(), context);
 
-                    //   b. Return undefined.
-                    return Ok(JsValue::Undefined);
-                };
+                        //   b. Return undefined.
+                        return Ok(JsValue::Undefined);
+                    };
 
                     // 9. Let then be Completion(Get(resolution, "then")).
                     let then_action = match then.get("then", context) {
@@ -1345,7 +1359,7 @@ impl Promise {
                     };
 
                     // 13. Let thenJobCallback be HostMakeJobCallback(thenAction).
-                    let then_job_callback = JobCallback::make_job_callback(then_action);
+                    let then_job_callback = context.host_hooks().make_job_callback(then_action, context);
 
                     // 14. Let job be NewPromiseResolveThenableJob(promise, resolution, thenJobCallback).
                     let job = new_promise_resolve_thenable_job(
@@ -1355,7 +1369,7 @@ impl Promise {
                     );
 
                     // 15. Perform HostEnqueuePromiseJob(job.[[Job]], job.[[Realm]]).
-                    context.host_enqueue_promise_job(job);
+                    context.job_queue().enqueue_promise_job(job, context);
 
                     // 16. Return undefined.
                     Ok(JsValue::Undefined)
@@ -1401,7 +1415,6 @@ impl Promise {
                     // 6. Set alreadyResolved.[[Value]] to true.
                     already_resolved.set(true);
 
-                    // let reason = args.get_or_undefined(0);
                     // 7. Perform RejectPromise(promise, reason).
                     Self::reject_promise(promise, args.get_or_undefined(0).clone(), context);
 
@@ -1511,7 +1524,9 @@ impl Promise {
 
         // 7. If promise.[[PromiseIsHandled]] is false, perform HostPromiseRejectionTracker(promise, "reject").
         if !handled {
-            // TODO
+            context
+                .host_hooks()
+                .promise_rejection_tracker(promise, OperationType::Reject, context);
         }
 
         // 9. Return unused.
@@ -1541,7 +1556,7 @@ impl Promise {
             let job = new_promise_reaction_job(reaction, argument.clone());
 
             // b. Perform HostEnqueuePromiseJob(job.[[Job]], job.[[Realm]]).
-            context.host_enqueue_promise_job(job);
+            context.job_queue().enqueue_promise_job(job, context);
         }
 
         // 2. Return unused.
@@ -1996,7 +2011,7 @@ impl Promise {
             .and_then(JsFunction::from_object)
             // 4. Else,
             //   a. Let onFulfilledJobCallback be HostMakeJobCallback(onFulfilled).
-            .map(JobCallback::make_job_callback);
+            .map(|f| context.host_hooks().make_job_callback(f, context));
 
         // 5. If IsCallable(onRejected) is false, then
         //   a. Let onRejectedJobCallback be empty.
@@ -2006,7 +2021,7 @@ impl Promise {
             .and_then(JsFunction::from_object)
             // 6. Else,
             //   a. Let onRejectedJobCallback be HostMakeJobCallback(onRejected).
-            .map(JobCallback::make_job_callback);
+            .map(|f| context.host_hooks().make_job_callback(f, context));
 
         // 7. Let fulfillReaction be the PromiseReaction { [[Capability]]: resultCapability, [[Type]]: Fulfill, [[Handler]]: onFulfilledJobCallback }.
         let fulfill_reaction = ReactionRecord {
@@ -2027,6 +2042,7 @@ impl Promise {
             let promise = promise.as_promise().expect("IsPromise(promise) is false");
             (promise.state.clone(), promise.handled)
         };
+
         match state {
             // 9. If promise.[[PromiseState]] is pending, then
             PromiseState::Pending => {
@@ -2048,7 +2064,9 @@ impl Promise {
                 let fulfill_job = new_promise_reaction_job(fulfill_reaction, value.clone());
 
                 //   c. Perform HostEnqueuePromiseJob(fulfillJob.[[Job]], fulfillJob.[[Realm]]).
-                context.host_enqueue_promise_job(fulfill_job);
+                context
+                    .job_queue()
+                    .enqueue_promise_job(fulfill_job, context);
             }
 
             // 11. Else,
@@ -2057,14 +2075,18 @@ impl Promise {
             PromiseState::Rejected(ref reason) => {
                 //   c. If promise.[[PromiseIsHandled]] is false, perform HostPromiseRejectionTracker(promise, "handle").
                 if !handled {
-                    // TODO
+                    context.host_hooks().promise_rejection_tracker(
+                        promise,
+                        OperationType::Handle,
+                        context,
+                    );
                 }
 
                 //   d. Let rejectJob be NewPromiseReactionJob(rejectReaction, reason).
                 let reject_job = new_promise_reaction_job(reject_reaction, reason.clone());
 
                 //   e. Perform HostEnqueuePromiseJob(rejectJob.[[Job]], rejectJob.[[Realm]]).
-                context.host_enqueue_promise_job(reject_job);
+                context.job_queue().enqueue_promise_job(reject_job, context);
 
                 // 12. Set promise.[[PromiseIsHandled]] to true.
                 promise
@@ -2175,8 +2197,9 @@ fn new_promise_reaction_job(mut reaction: ReactionRecord, argument: JsValue) -> 
                 }
             },
             //   e. Else, let handlerResult be Completion(HostCallJobCallback(handler, undefined, « argument »)).
-            Some(handler) => handler
-                .call_job_callback(&JsValue::Undefined, &[argument.clone()], context)
+            Some(handler) => context
+                .host_hooks()
+                .call_job_callback(handler, &JsValue::Undefined, &[argument.clone()], context)
                 .map_err(|e| e.to_opaque(context)),
         };
 
@@ -2242,7 +2265,8 @@ fn new_promise_resolve_thenable_job(
         let resolving_functions = Promise::create_resolving_functions(&promise_to_resolve, context);
 
         //    b. Let thenCallResult be Completion(HostCallJobCallback(then, thenable, « resolvingFunctions.[[Resolve]], resolvingFunctions.[[Reject]] »)).
-        let then_call_result = then.call_job_callback(
+        let then_call_result = context.host_hooks().call_job_callback(
+            then,
             &thenable,
             &[
                 resolving_functions.resolve.clone().into(),

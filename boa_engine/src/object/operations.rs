@@ -706,7 +706,9 @@ impl JsObject {
     ) -> JsResult<()> {
         // 1. If the host is a web browser, then
         // a. Perform ? HostEnsureCanAddPrivateElement(O).
-        self.host_ensure_can_add_private_element(context)?;
+        context
+            .host_hooks()
+            .ensure_can_add_private_element(self, context)?;
 
         // 2. Let entry be PrivateElementFind(O, P).
         let entry = self.private_element_find(name, false, false);
@@ -754,7 +756,9 @@ impl JsObject {
 
         // 2. If the host is a web browser, then
         // a. Perform ? HostEnsureCanAddPrivateElement(O).
-        self.host_ensure_can_add_private_element(context)?;
+        context
+            .host_hooks()
+            .ensure_can_add_private_element(self, context)?;
 
         // 3. Let entry be PrivateElementFind(O, method.[[Key]]).
         let entry = self.private_element_find(name, getter, setter);
@@ -771,20 +775,6 @@ impl JsObject {
             .append_private_element(*name, method.clone());
 
         // 6. Return unused.
-        Ok(())
-    }
-
-    /// Abstract operation `HostEnsureCanAddPrivateElement ( O )`
-    ///
-    /// Ensure private elements can be added to an object.
-    ///
-    /// More information:
-    ///  - [ECMAScript specification][spec]
-    ///
-    /// [spec]: https://tc39.es/ecma262/#sec-hostensurecanaddprivateelement
-    #[allow(clippy::unnecessary_wraps, clippy::unused_self)]
-    fn host_ensure_can_add_private_element(&self, _context: &mut Context<'_>) -> JsResult<()> {
-        // TODO: Make this operation host-defined.
         Ok(())
     }
 
