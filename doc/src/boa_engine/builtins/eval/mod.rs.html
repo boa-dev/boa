@@ -270,6 +270,8 @@
 <span id="269">269</span>
 <span id="270">270</span>
 <span id="271">271</span>
+<span id="272">272</span>
+<span id="273">273</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Boa&#39;s implementation of ECMAScript&#39;s global `eval` function.
 //!
 //! The `eval()` function evaluates ECMAScript code represented as a string.
@@ -389,16 +391,18 @@
         <span class="comment">// Because of implementation details the following code differs from the spec.
 
         // 5. Perform ? HostEnsureCanCompileStrings(evalRealm).
-        </span><span class="kw">let </span><span class="kw-2">mut </span>parser = Parser::new(x.as_bytes());
-        <span class="kw">if </span>strict {
-            parser.set_strict();
-        }
+        </span>context.host_hooks().ensure_can_compile_strings(context)<span class="question-mark">?</span>;
+
         <span class="comment">// 11. Perform the following substeps in an implementation-defined order, possibly interleaving parsing and error detection:
         //     a. Let script be ParseText(StringToCodePoints(x), Script).
         //     b. If script is a List of errors, throw a SyntaxError exception.
         //     c. If script Contains ScriptBody is false, return undefined.
         //     d. Let body be the ScriptBody of script.
-        </span><span class="kw">let </span>body = parser.parse_eval(direct, context.interner_mut())<span class="question-mark">?</span>;
+        </span><span class="kw">let </span><span class="kw-2">mut </span>parser = Parser::new(x.as_bytes());
+        <span class="kw">if </span>strict {
+            parser.set_strict();
+        }
+        <span class="kw">let </span>body = parser.parse_eval(direct, context.interner_mut())<span class="question-mark">?</span>;
 
         <span class="comment">// 6. Let inFunction be false.
         // 7. Let inMethod be false.

@@ -1207,16 +1207,6 @@
 <span id="1206">1206</span>
 <span id="1207">1207</span>
 <span id="1208">1208</span>
-<span id="1209">1209</span>
-<span id="1210">1210</span>
-<span id="1211">1211</span>
-<span id="1212">1212</span>
-<span id="1213">1213</span>
-<span id="1214">1214</span>
-<span id="1215">1215</span>
-<span id="1216">1216</span>
-<span id="1217">1217</span>
-<span id="1218">1218</span>
 </pre><pre class="rust"><code><span class="kw">use crate</span>::{
     builtins::{function::ClassFieldDefinition, Array},
     context::intrinsics::{StandardConstructor, StandardConstructors},
@@ -1925,7 +1915,9 @@
     ) -&gt; JsResult&lt;()&gt; {
         <span class="comment">// 1. If the host is a web browser, then
         // a. Perform ? HostEnsureCanAddPrivateElement(O).
-        </span><span class="self">self</span>.host_ensure_can_add_private_element(context)<span class="question-mark">?</span>;
+        </span>context
+            .host_hooks()
+            .ensure_can_add_private_element(<span class="self">self</span>, context)<span class="question-mark">?</span>;
 
         <span class="comment">// 2. Let entry be PrivateElementFind(O, P).
         </span><span class="kw">let </span>entry = <span class="self">self</span>.private_element_find(name, <span class="bool-val">false</span>, <span class="bool-val">false</span>);
@@ -1973,7 +1965,9 @@
 
         <span class="comment">// 2. If the host is a web browser, then
         // a. Perform ? HostEnsureCanAddPrivateElement(O).
-        </span><span class="self">self</span>.host_ensure_can_add_private_element(context)<span class="question-mark">?</span>;
+        </span>context
+            .host_hooks()
+            .ensure_can_add_private_element(<span class="self">self</span>, context)<span class="question-mark">?</span>;
 
         <span class="comment">// 3. Let entry be PrivateElementFind(O, method.[[Key]]).
         </span><span class="kw">let </span>entry = <span class="self">self</span>.private_element_find(name, getter, setter);
@@ -1990,20 +1984,6 @@
             .append_private_element(<span class="kw-2">*</span>name, method.clone());
 
         <span class="comment">// 6. Return unused.
-        </span><span class="prelude-val">Ok</span>(())
-    }
-
-    <span class="doccomment">/// Abstract operation `HostEnsureCanAddPrivateElement ( O )`
-    ///
-    /// Ensure private elements can be added to an object.
-    ///
-    /// More information:
-    ///  - [ECMAScript specification][spec]
-    ///
-    /// [spec]: https://tc39.es/ecma262/#sec-hostensurecanaddprivateelement
-    </span><span class="attribute">#[allow(clippy::unnecessary_wraps, clippy::unused_self)]
-    </span><span class="kw">fn </span>host_ensure_can_add_private_element(<span class="kw-2">&amp;</span><span class="self">self</span>, _context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;()&gt; {
-        <span class="comment">// TODO: Make this operation host-defined.
         </span><span class="prelude-val">Ok</span>(())
     }
 

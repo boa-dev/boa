@@ -774,6 +774,8 @@
 <span id="773">773</span>
 <span id="774">774</span>
 <span id="775">775</span>
+<span id="776">776</span>
+<span id="777">777</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Boa&#39;s implementation of ECMAScript&#39;s global `AsyncGenerator` object.
 //!
 //! More information:
@@ -1408,21 +1410,23 @@
             context,
             NativeFunction::from_copy_closure_with_captures(
                 |_this, args, generator, context| {
-                    <span class="kw">let </span><span class="kw-2">mut </span>generator_borrow_mut = generator.borrow_mut();
-                    <span class="kw">let </span>gen = generator_borrow_mut
-                        .as_async_generator_mut()
-                        .expect(<span class="string">&quot;already checked before&quot;</span>);
+                    <span class="kw">let </span>next = {
+                        <span class="kw">let </span><span class="kw-2">mut </span>generator_borrow_mut = generator.borrow_mut();
+                        <span class="kw">let </span>gen = generator_borrow_mut
+                            .as_async_generator_mut()
+                            .expect(<span class="string">&quot;already checked before&quot;</span>);
 
-                    <span class="comment">// a. Set generator.[[AsyncGeneratorState]] to completed.
-                    </span>gen.state = AsyncGeneratorState::Completed;
+                        <span class="comment">// a. Set generator.[[AsyncGeneratorState]] to completed.
+                        </span>gen.state = AsyncGeneratorState::Completed;
+
+                        gen.queue.pop_front().expect(<span class="string">&quot;must have one entry&quot;</span>)
+                    };
 
                     <span class="comment">// b. Let result be NormalCompletion(value).
                     </span><span class="kw">let </span>result = <span class="prelude-val">Ok</span>(args.get_or_undefined(<span class="number">0</span>).clone());
 
                     <span class="comment">// c. Perform AsyncGeneratorCompleteStep(generator, result, true).
-                    </span><span class="kw">let </span>next = gen.queue.pop_front().expect(<span class="string">&quot;must have one entry&quot;</span>);
-                    drop(generator_borrow_mut);
-                    <span class="self">Self</span>::complete_step(<span class="kw-2">&amp;</span>next, result, <span class="bool-val">true</span>, context);
+                    </span><span class="self">Self</span>::complete_step(<span class="kw-2">&amp;</span>next, result, <span class="bool-val">true</span>, context);
 
                     <span class="comment">// d. Perform AsyncGeneratorDrainQueue(generator).
                     </span><span class="self">Self</span>::drain_queue(generator, context);

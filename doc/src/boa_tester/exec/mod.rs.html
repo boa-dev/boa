@@ -401,6 +401,9 @@
 <span id="400">400</span>
 <span id="401">401</span>
 <span id="402">402</span>
+<span id="403">403</span>
+<span id="404">404</span>
+<span id="405">405</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Execution module for the test runner.
 
 </span><span class="kw">mod </span>js262;
@@ -410,8 +413,9 @@
 };
 <span class="kw">use </span><span class="kw">crate</span>::read::ErrorType;
 <span class="kw">use </span>boa_engine::{
-    builtins::JsArgs, native_function::NativeFunction, object::FunctionObjectBuilder,
-    property::Attribute, Context, JsNativeErrorKind, JsValue,
+    builtins::JsArgs, context::ContextBuilder, job::SimpleJobQueue,
+    native_function::NativeFunction, object::FunctionObjectBuilder, property::Attribute, Context,
+    JsNativeErrorKind, JsValue,
 };
 <span class="kw">use </span>boa_parser::Parser;
 <span class="kw">use </span>colored::Colorize;
@@ -565,10 +569,11 @@
 
         <span class="kw">let </span>result = std::panic::catch_unwind(|| <span class="kw">match </span><span class="self">self</span>.expected_outcome {
             Outcome::Positive =&gt; {
-                <span class="kw">let </span><span class="kw-2">mut </span>context = Context::default();
+                <span class="kw">let </span>queue = SimpleJobQueue::new();
+                <span class="kw">let </span>context = <span class="kw-2">&amp;mut </span>ContextBuilder::new().job_queue(<span class="kw-2">&amp;</span>queue).build();
                 <span class="kw">let </span>async_result = AsyncResult::default();
 
-                <span class="kw">if let </span><span class="prelude-val">Err</span>(e) = <span class="self">self</span>.set_up_env(harness, <span class="kw-2">&amp;mut </span>context, async_result.clone()) {
+                <span class="kw">if let </span><span class="prelude-val">Err</span>(e) = <span class="self">self</span>.set_up_env(harness, context, async_result.clone()) {
                     <span class="kw">return </span>(<span class="bool-val">false</span>, e);
                 }
 
@@ -577,6 +582,8 @@
                     <span class="prelude-val">Ok</span>(v) =&gt; v,
                     <span class="prelude-val">Err</span>(e) =&gt; <span class="kw">return </span>(<span class="bool-val">false</span>, <span class="macro">format!</span>(<span class="string">&quot;Uncaught {e}&quot;</span>)),
                 };
+
+                context.run_jobs();
 
                 <span class="kw">if let </span><span class="prelude-val">Err</span>(e) = async_result.inner.borrow().as_ref() {
                     <span class="kw">return </span>(<span class="bool-val">false</span>, <span class="macro">format!</span>(<span class="string">&quot;Uncaught {e}&quot;</span>));
@@ -612,8 +619,8 @@
                 phase: Phase::Runtime,
                 error_type,
             } =&gt; {
-                <span class="kw">let </span><span class="kw-2">mut </span>context = Context::default();
-                <span class="kw">if let </span><span class="prelude-val">Err</span>(e) = <span class="self">self</span>.set_up_env(harness, <span class="kw-2">&amp;mut </span>context, AsyncResult::default()) {
+                <span class="kw">let </span>context = <span class="kw-2">&amp;mut </span>Context::default();
+                <span class="kw">if let </span><span class="prelude-val">Err</span>(e) = <span class="self">self</span>.set_up_env(harness, context, AsyncResult::default()) {
                     <span class="kw">return </span>(<span class="bool-val">false</span>, e);
                 }
                 <span class="kw">let </span>code = <span class="kw">match </span>Parser::new(test_content.as_bytes())
@@ -625,12 +632,11 @@
                     <span class="prelude-val">Err</span>(e) =&gt; <span class="kw">return </span>(<span class="bool-val">false</span>, <span class="macro">format!</span>(<span class="string">&quot;Uncaught {e}&quot;</span>)),
                 };
 
-                <span class="comment">// TODO: timeout
-                </span><span class="kw">let </span>e = <span class="kw">match </span>context.execute(code) {
+                <span class="kw">let </span>e = <span class="kw">match </span>context.execute(code) {
                     <span class="prelude-val">Ok</span>(res) =&gt; <span class="kw">return </span>(<span class="bool-val">false</span>, res.display().to_string()),
                     <span class="prelude-val">Err</span>(e) =&gt; e,
                 };
-                <span class="kw">if let </span><span class="prelude-val">Ok</span>(e) = e.try_native(<span class="kw-2">&amp;mut </span>context) {
+                <span class="kw">if let </span><span class="prelude-val">Ok</span>(e) = e.try_native(context) {
                     <span class="kw">match </span><span class="kw-2">&amp;</span>e.kind {
                         JsNativeErrorKind::Syntax <span class="kw">if </span>error_type == ErrorType::SyntaxError =&gt; {}
                         JsNativeErrorKind::Reference <span class="kw">if </span>error_type == ErrorType::ReferenceError =&gt; {
@@ -645,10 +651,10 @@
                         .as_opaque()
                         .expect(<span class="string">&quot;try_native cannot fail if e is not opaque&quot;</span>)
                         .as_object()
-                        .and_then(|o| o.get(<span class="string">&quot;constructor&quot;</span>, <span class="kw-2">&amp;mut </span>context).ok())
+                        .and_then(|o| o.get(<span class="string">&quot;constructor&quot;</span>, context).ok())
                         .as_ref()
                         .and_then(JsValue::as_object)
-                        .and_then(|o| o.get(<span class="string">&quot;name&quot;</span>, <span class="kw-2">&amp;mut </span>context).ok())
+                        .and_then(|o| o.get(<span class="string">&quot;name&quot;</span>, context).ok())
                         .as_ref()
                         .and_then(JsValue::as_string)
                         .map(|s| s == error_type.as_str())

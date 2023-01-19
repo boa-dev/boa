@@ -1627,7 +1627,7 @@
 
 <span class="doccomment">/// The [`ByteCompiler`] is used to compile ECMAScript AST from [`boa_ast`] to bytecode.
 </span><span class="attribute">#[derive(Debug)]
-</span><span class="kw">pub struct </span>ByteCompiler&lt;<span class="lifetime">&#39;b</span>, <span class="lifetime">&#39;icu</span>&gt; {
+</span><span class="kw">pub struct </span>ByteCompiler&lt;<span class="lifetime">&#39;b</span>, <span class="lifetime">&#39;host</span>&gt; {
     code_block: CodeBlock,
     literals_map: FxHashMap&lt;Literal, u32&gt;,
     names_map: FxHashMap&lt;Identifier, u32&gt;,
@@ -1636,10 +1636,10 @@
     jump_info: Vec&lt;JumpControlInfo&gt;,
     in_async_generator: bool,
     json_parse: bool,
-    context: <span class="kw-2">&amp;</span><span class="lifetime">&#39;b </span><span class="kw-2">mut </span>Context&lt;<span class="lifetime">&#39;icu</span>&gt;,
+    context: <span class="kw-2">&amp;</span><span class="lifetime">&#39;b </span><span class="kw-2">mut </span>Context&lt;<span class="lifetime">&#39;host</span>&gt;,
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;b</span>, <span class="lifetime">&#39;icu</span>&gt; ByteCompiler&lt;<span class="lifetime">&#39;b</span>, <span class="lifetime">&#39;icu</span>&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;b</span>, <span class="lifetime">&#39;host</span>&gt; ByteCompiler&lt;<span class="lifetime">&#39;b</span>, <span class="lifetime">&#39;host</span>&gt; {
     <span class="doccomment">/// Represents a placeholder address that will be patched later.
     </span><span class="kw">const </span>DUMMY_ADDRESS: u32 = u32::MAX;
 
@@ -1649,8 +1649,8 @@
         name: Sym,
         strict: bool,
         json_parse: bool,
-        context: <span class="kw-2">&amp;</span><span class="lifetime">&#39;b </span><span class="kw-2">mut </span>Context&lt;<span class="lifetime">&#39;icu</span>&gt;,
-    ) -&gt; ByteCompiler&lt;<span class="lifetime">&#39;b</span>, <span class="lifetime">&#39;icu</span>&gt; {
+        context: <span class="kw-2">&amp;</span><span class="lifetime">&#39;b </span><span class="kw-2">mut </span>Context&lt;<span class="lifetime">&#39;host</span>&gt;,
+    ) -&gt; ByteCompiler&lt;<span class="lifetime">&#39;b</span>, <span class="lifetime">&#39;host</span>&gt; {
         <span class="self">Self </span>{
             code_block: CodeBlock::new(name, <span class="number">0</span>, strict),
             literals_map: FxHashMap::default(),

@@ -886,15 +886,15 @@
 <span class="doccomment">/// The error type returned by the [`JsError::try_native`] method.
 </span><span class="attribute">#[derive(Debug, Clone, Error)]
 </span><span class="kw">pub enum </span>TryNativeError {
-    <span class="doccomment">/// This error is returned when a property of the error object has an invalid type.
+    <span class="doccomment">/// A property of the error object has an invalid type.
     </span><span class="attribute">#[error(<span class="string">&quot;invalid type of property `{0}`&quot;</span>)]
     </span>InvalidPropertyType(<span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str),
 
-    <span class="doccomment">/// This error is returned when the message of the error object could not be decoded.
+    <span class="doccomment">/// The message of the error object could not be decoded.
     </span><span class="attribute">#[error(<span class="string">&quot;property `message` cannot contain unpaired surrogates&quot;</span>)]
     </span>InvalidMessageEncoding,
 
-    <span class="doccomment">/// This error is returned when a property of the error object is not accessible.
+    <span class="doccomment">/// A property of the error object is not accessible.
     </span><span class="attribute">#[error(<span class="string">&quot;could not access property `{property}`&quot;</span>)]
     </span>InaccessibleProperty {
         <span class="doccomment">/// The name of the property that could not be accessed.
@@ -904,7 +904,7 @@
         </span>source: JsError,
     },
 
-    <span class="doccomment">/// This error is returned when any inner error of an aggregate error is not accessible.
+    <span class="doccomment">/// An inner error of an aggregate error is not accessible.
     </span><span class="attribute">#[error(<span class="string">&quot;could not get element `{index}` of property `errors`&quot;</span>)]
     </span>InvalidErrorsIndex {
         <span class="doccomment">/// The index of the error that could not be accessed.
@@ -914,7 +914,7 @@
         </span>source: JsError,
     },
 
-    <span class="doccomment">/// This error is returned when the error value not an error object.
+    <span class="doccomment">/// The error value is not an error object.
     </span><span class="attribute">#[error(<span class="string">&quot;opaque error of type `{:?}` is not an Error object&quot;</span>, .<span class="number">0</span>.get_type())]
     </span>NotAnErrorObject(JsValue),
 }
