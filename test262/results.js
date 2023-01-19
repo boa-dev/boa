@@ -264,7 +264,7 @@ function showData(data) {
 }
 
 function addSuite(suite, parentID, namespace, upstream) {
-  const newID = parentID + suite.n;
+  const newID = (parentID + suite.n).replaceAll(".", "-");
   const newInnerID = newID + "-inner";
   const headerID = newID + "header";
 
