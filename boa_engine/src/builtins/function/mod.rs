@@ -23,7 +23,7 @@ use crate::{
     object::{ConstructorBuilder, FunctionObjectBuilder, JsFunction, PrivateElement},
     property::{Attribute, PropertyDescriptor, PropertyKey},
     string::utf16,
-    symbol::WellKnownSymbols,
+    symbol::JsSymbol,
     value::IntegerOrInfinity,
     Context, JsResult, JsString, JsValue,
 };
@@ -879,7 +879,7 @@ impl BuiltIn for BuiltInFunctionObject {
             .constructor(false)
             .build_function_prototype(&function_prototype);
 
-        let symbol_has_instance = WellKnownSymbols::has_instance();
+        let symbol_has_instance = JsSymbol::has_instance();
 
         let has_instance =
             FunctionObjectBuilder::new(context, NativeFunction::from_fn_ptr(Self::has_instance))

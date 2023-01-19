@@ -124,6 +124,7 @@ pub mod symbol;
 pub mod value;
 pub mod vm;
 
+pub(crate) mod tagged;
 #[cfg(test)]
 mod tests;
 

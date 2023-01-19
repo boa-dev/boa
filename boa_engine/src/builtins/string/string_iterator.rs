@@ -10,7 +10,7 @@ use crate::{
     error::JsNativeError,
     object::{JsObject, ObjectData},
     property::PropertyDescriptor,
-    symbol::WellKnownSymbols,
+    symbol::JsSymbol,
     Context, JsResult, JsValue,
 };
 use boa_gc::{Finalize, Trace};
@@ -98,7 +98,7 @@ impl StringIterator {
             JsObject::from_proto_and_data(iterator_prototype, ObjectData::ordinary());
         make_builtin_fn(Self::next, "next", &array_iterator, 0, context);
 
-        let to_string_tag = WellKnownSymbols::to_string_tag();
+        let to_string_tag = JsSymbol::to_string_tag();
         let to_string_tag_property = PropertyDescriptor::builder()
             .value("String Iterator")
             .writable(false)

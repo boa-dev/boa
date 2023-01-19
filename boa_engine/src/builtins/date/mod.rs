@@ -23,7 +23,7 @@ use crate::{
         internal_methods::get_prototype_from_constructor, ConstructorBuilder, JsObject, ObjectData,
     },
     string::utf16,
-    symbol::WellKnownSymbols,
+    symbol::JsSymbol,
     value::{IntegerOrNan, JsValue, PreferredType},
     Context, JsError, JsResult,
 };
@@ -165,7 +165,7 @@ impl BuiltIn for Date {
         .method(Self::value_of, "valueOf", 0)
         .method(
             Self::to_primitive,
-            (WellKnownSymbols::to_primitive(), "[Symbol.toPrimitive]"),
+            (JsSymbol::to_primitive(), "[Symbol.toPrimitive]"),
             1,
         )
         .build()

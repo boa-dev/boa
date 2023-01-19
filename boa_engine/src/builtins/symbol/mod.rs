@@ -18,53 +18,67 @@
 #[cfg(test)]
 mod tests;
 
+use std::hash::BuildHasherDefault;
+
 use super::JsArgs;
 use crate::{
     builtins::BuiltIn,
     error::JsNativeError,
+    js_string,
     native_function::NativeFunction,
     object::{ConstructorBuilder, FunctionObjectBuilder},
     property::Attribute,
-    symbol::{JsSymbol, WellKnownSymbols},
+    symbol::JsSymbol,
     value::JsValue,
     Context, JsResult, JsString,
 };
 use boa_profiler::Profiler;
-use rustc_hash::FxHashMap;
-use std::cell::RefCell;
+use dashmap::DashMap;
+use once_cell::sync::Lazy;
+use rustc_hash::FxHasher;
 use tap::{Conv, Pipe};
 
-thread_local! {
-    static GLOBAL_SYMBOL_REGISTRY: RefCell<GlobalSymbolRegistry> = RefCell::new(GlobalSymbolRegistry::new());
-}
+static GLOBAL_SYMBOL_REGISTRY: Lazy<GlobalSymbolRegistry> = Lazy::new(GlobalSymbolRegistry::new);
 
+type FxDashMap<K, V> = DashMap<K, V, BuildHasherDefault<FxHasher>>;
+
+// We previously used `JsString` instead of `Box<[u16]>` for this, but since the glocal symbol
+// registry needed to be global, we had to either make `JsString` thread-safe or directly store
+// its info into the registry. `JsSymbol` is already a pretty niche feature of JS, and we expect only
+// advanced users to utilize it. On the other hand, almost every JS programmer uses `JsString`s, and
+// the first option would impact performance for all `JsString`s in general. For those reasons, we
+// opted for the second option, but we should try to optimize this in the future.
 struct GlobalSymbolRegistry {
-    keys: FxHashMap<JsString, JsSymbol>,
-    symbols: FxHashMap<JsSymbol, JsString>,
+    keys: FxDashMap<Box<[u16]>, JsSymbol>,
+    symbols: FxDashMap<JsSymbol, Box<[u16]>>,
 }
 
 impl GlobalSymbolRegistry {
     fn new() -> Self {
         Self {
-            keys: FxHashMap::default(),
-            symbols: FxHashMap::default(),
+            keys: FxDashMap::default(),
+            symbols: FxDashMap::default(),
         }
     }
 
-    fn get_or_insert_key(&mut self, key: JsString) -> JsSymbol {
-        if let Some(symbol) = self.keys.get(&key) {
-            return symbol.clone();
+    fn get_or_create_symbol(&self, key: &JsString) -> JsResult<JsSymbol> {
+        let slice = &**key;
+        if let Some(symbol) = self.keys.get(slice) {
+            return Ok(symbol.clone());
         }
 
-        let symbol = JsSymbol::new(Some(key.clone()));
-        self.keys.insert(key.clone(), symbol.clone());
-        self.symbols.insert(symbol.clone(), key);
-        symbol
+        let symbol = JsSymbol::new(Some(key.clone())).ok_or_else(|| {
+            JsNativeError::range()
+                .with_message("reached the maximum number of symbols that can be created")
+        })?;
+        self.keys.insert(slice.into(), symbol.clone());
+        self.symbols.insert(symbol.clone(), slice.into());
+        Ok(symbol)
     }
 
-    fn get_symbol(&self, sym: &JsSymbol) -> Option<JsString> {
+    fn get_key(&self, sym: &JsSymbol) -> Option<JsString> {
         if let Some(key) = self.symbols.get(sym) {
-            return Some(key.clone());
+            return Some(js_string!(&**key));
         }
 
         None
@@ -81,19 +95,19 @@ impl BuiltIn for Symbol {
     fn init(context: &mut Context<'_>) -> Option<JsValue> {
         let _timer = Profiler::global().start_event(Self::NAME, "init");
 
-        let symbol_async_iterator = WellKnownSymbols::async_iterator();
-        let symbol_has_instance = WellKnownSymbols::has_instance();
-        let symbol_is_concat_spreadable = WellKnownSymbols::is_concat_spreadable();
-        let symbol_iterator = WellKnownSymbols::iterator();
-        let symbol_match = WellKnownSymbols::r#match();
-        let symbol_match_all = WellKnownSymbols::match_all();
-        let symbol_replace = WellKnownSymbols::replace();
-        let symbol_search = WellKnownSymbols::search();
-        let symbol_species = WellKnownSymbols::species();
-        let symbol_split = WellKnownSymbols::split();
-        let symbol_to_primitive = WellKnownSymbols::to_primitive();
-        let symbol_to_string_tag = WellKnownSymbols::to_string_tag();
-        let symbol_unscopables = WellKnownSymbols::unscopables();
+        let symbol_async_iterator = JsSymbol::async_iterator();
+        let symbol_has_instance = JsSymbol::has_instance();
+        let symbol_is_concat_spreadable = JsSymbol::is_concat_spreadable();
+        let symbol_iterator = JsSymbol::iterator();
+        let symbol_match = JsSymbol::r#match();
+        let symbol_match_all = JsSymbol::match_all();
+        let symbol_replace = JsSymbol::replace();
+        let symbol_search = JsSymbol::search();
+        let symbol_species = JsSymbol::species();
+        let symbol_split = JsSymbol::split();
+        let symbol_to_primitive = JsSymbol::to_primitive();
+        let symbol_to_string_tag = JsSymbol::to_string_tag();
+        let symbol_unscopables = JsSymbol::unscopables();
 
         let attribute = Attribute::READONLY | Attribute::NON_ENUMERABLE | Attribute::PERMANENT;
 
@@ -193,7 +207,12 @@ impl Symbol {
         };
 
         // 4. Return a new unique Symbol value whose [[Description]] value is descString.
-        Ok(JsSymbol::new(description).into())
+        Ok(JsSymbol::new(description)
+            .ok_or_else(|| {
+                JsNativeError::range()
+                    .with_message("reached the maximum number of symbols that can be created")
+            })?
+            .into())
     }
 
     fn this_symbol_value(value: &JsValue) -> JsResult<JsSymbol> {
@@ -300,12 +319,9 @@ impl Symbol {
         // 4. Let newSymbol be a new unique Symbol value whose [[Description]] value is stringKey.
         // 5. Append the Record { [[Key]]: stringKey, [[Symbol]]: newSymbol } to the GlobalSymbolRegistry List.
         // 6. Return newSymbol.
-        Ok(GLOBAL_SYMBOL_REGISTRY
-            .with(move |registry| {
-                let mut registry = registry.borrow_mut();
-                registry.get_or_insert_key(string_key)
-            })
-            .into())
+        GLOBAL_SYMBOL_REGISTRY
+            .get_or_create_symbol(&string_key)
+            .map(JsValue::from)
     }
 
     /// `Symbol.keyFor( sym )`
@@ -318,24 +334,20 @@ impl Symbol {
     /// [spec]: https://tc39.es/ecma262/#sec-symbol.prototype.keyfor
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Symbol/keyFor
     pub(crate) fn key_for(_: &JsValue, args: &[JsValue], _: &mut Context<'_>) -> JsResult<JsValue> {
-        let sym = args.get_or_undefined(0);
         // 1. If Type(sym) is not Symbol, throw a TypeError exception.
-        if let Some(sym) = sym.as_symbol() {
-            // 2. For each element e of the GlobalSymbolRegistry List (see 20.4.2.2), do
-            //     a. If SameValue(e.[[Symbol]], sym) is true, return e.[[Key]].
-            // 3. Assert: GlobalSymbolRegistry does not currently contain an entry for sym.
-            // 4. Return undefined.
-            let symbol = GLOBAL_SYMBOL_REGISTRY.with(move |registry| {
-                let registry = registry.borrow();
-                registry.get_symbol(&sym)
-            });
+        let sym = args.get_or_undefined(0).as_symbol().ok_or_else(|| {
+            JsNativeError::typ().with_message("Symbol.keyFor: sym is not a symbol")
+        })?;
 
-            Ok(symbol.map(JsValue::from).unwrap_or_default())
-        } else {
-            Err(JsNativeError::typ()
-                .with_message("Symbol.keyFor: sym is not a symbol")
-                .into())
-        }
+        // 2. For each element e of the GlobalSymbolRegistry List (see 20.4.2.2), do
+        //     a. If SameValue(e.[[Symbol]], sym) is true, return e.[[Key]].
+        // 3. Assert: GlobalSymbolRegistry does not currently contain an entry for sym.
+        // 4. Return undefined.
+
+        Ok(GLOBAL_SYMBOL_REGISTRY
+            .get_key(&sym)
+            .map(JsValue::from)
+            .unwrap_or_default())
     }
 
     /// `Symbol.prototype [ @@toPrimitive ]`

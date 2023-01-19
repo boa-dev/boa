@@ -10,7 +10,7 @@ use crate::{
     },
     error::JsNativeError,
     object::{JsObject, ObjectInitializer},
-    symbol::WellKnownSymbols,
+    symbol::JsSymbol,
     Context, JsResult, JsValue,
 };
 use async_from_sync_iterator::create_async_from_sync_iterator_prototype;
@@ -181,14 +181,12 @@ impl JsValue {
             // a. If hint is async, then
             if hint == IteratorHint::Async {
                 // i. Set method to ? GetMethod(obj, @@asyncIterator).
-                if let Some(method) =
-                    self.get_method(WellKnownSymbols::async_iterator(), context)?
-                {
+                if let Some(method) = self.get_method(JsSymbol::async_iterator(), context)? {
                     Some(method)
                 } else {
                     // ii. If method is undefined, then
                     // 1. Let syncMethod be ? GetMethod(obj, @@iterator).
-                    let sync_method = self.get_method(WellKnownSymbols::iterator(), context)?;
+                    let sync_method = self.get_method(JsSymbol::iterator(), context)?;
 
                     // 2. Let syncIteratorRecord be ? GetIterator(obj, sync, syncMethod).
                     let sync_iterator_record =
@@ -199,7 +197,7 @@ impl JsValue {
                 }
             } else {
                 // b. Otherwise, set method to ? GetMethod(obj, @@iterator).
-                self.get_method(WellKnownSymbols::iterator(), context)?
+                self.get_method(JsSymbol::iterator(), context)?
             }
         }
         .ok_or_else(|| {
@@ -239,7 +237,7 @@ impl JsValue {
 fn create_iterator_prototype(context: &mut Context<'_>) -> JsObject {
     let _timer = Profiler::global().start_event("Iterator Prototype", "init");
 
-    let symbol_iterator = WellKnownSymbols::iterator();
+    let symbol_iterator = JsSymbol::iterator();
     let iterator_prototype = ObjectInitializer::new(context)
         .function(
             |v, _, _| Ok(v.clone()),
@@ -563,7 +561,7 @@ pub(crate) use if_abrupt_close_iterator;
 fn create_async_iterator_prototype(context: &mut Context<'_>) -> JsObject {
     let _timer = Profiler::global().start_event("AsyncIteratorPrototype", "init");
 
-    let symbol_iterator = WellKnownSymbols::async_iterator();
+    let symbol_iterator = JsSymbol::async_iterator();
     let iterator_prototype = ObjectInitializer::new(context)
         .function(
             |v, _, _| Ok(v.clone()),

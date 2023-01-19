@@ -13,7 +13,7 @@ use crate::{
     native_function::NativeFunction,
     object::ObjectData,
     property::PropertyDescriptor,
-    symbol::WellKnownSymbols,
+    symbol::JsSymbol,
     value::JsValue,
     Context, JsResult,
 };
@@ -106,7 +106,7 @@ impl BuiltIn for AsyncGeneratorFunction {
             .configurable(true);
         prototype
             .borrow_mut()
-            .insert(WellKnownSymbols::to_string_tag(), property);
+            .insert(JsSymbol::to_string_tag(), property);
 
         None
     }

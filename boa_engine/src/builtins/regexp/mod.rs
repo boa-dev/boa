@@ -25,7 +25,7 @@ use crate::{
     },
     property::{Attribute, PropertyDescriptorBuilder},
     string::{utf16, CodePoint},
-    symbol::WellKnownSymbols,
+    symbol::JsSymbol,
     value::JsValue,
     Context, JsResult, JsString,
 };
@@ -115,7 +115,7 @@ impl BuiltIn for RegExp {
         .name(Self::NAME)
         .length(Self::LENGTH)
         .static_accessor(
-            WellKnownSymbols::species(),
+            JsSymbol::species(),
             Some(get_species),
             None,
             Attribute::CONFIGURABLE,
@@ -124,31 +124,15 @@ impl BuiltIn for RegExp {
         .method(Self::test, "test", 1)
         .method(Self::exec, "exec", 1)
         .method(Self::to_string, "toString", 0)
-        .method(
-            Self::r#match,
-            (WellKnownSymbols::r#match(), "[Symbol.match]"),
-            1,
-        )
+        .method(Self::r#match, (JsSymbol::r#match(), "[Symbol.match]"), 1)
         .method(
             Self::match_all,
-            (WellKnownSymbols::match_all(), "[Symbol.matchAll]"),
+            (JsSymbol::match_all(), "[Symbol.matchAll]"),
             1,
         )
-        .method(
-            Self::replace,
-            (WellKnownSymbols::replace(), "[Symbol.replace]"),
-            2,
-        )
-        .method(
-            Self::search,
-            (WellKnownSymbols::search(), "[Symbol.search]"),
-            1,
-        )
-        .method(
-            Self::split,
-            (WellKnownSymbols::split(), "[Symbol.split]"),
-            2,
-        )
+        .method(Self::replace, (JsSymbol::replace(), "[Symbol.replace]"), 2)
+        .method(Self::search, (JsSymbol::search(), "[Symbol.search]"), 1)
+        .method(Self::split, (JsSymbol::split(), "[Symbol.split]"), 2)
         .accessor("hasIndices", Some(get_has_indices), None, flag_attributes)
         .accessor("global", Some(get_global), None, flag_attributes)
         .accessor("ignoreCase", Some(get_ignore_case), None, flag_attributes)

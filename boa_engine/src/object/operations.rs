@@ -4,9 +4,8 @@ use crate::{
     error::JsNativeError,
     object::{JsObject, PrivateElement},
     property::{PropertyDescriptor, PropertyDescriptorBuilder, PropertyKey, PropertyNameKind},
-    symbol::WellKnownSymbols,
     value::Type,
-    Context, JsResult, JsValue,
+    Context, JsResult, JsSymbol, JsValue,
 };
 use boa_ast::function::PrivateName;
 
@@ -512,7 +511,7 @@ impl JsObject {
         })?;
 
         // 5. Let S be ? Get(C, @@species).
-        let s = c.get(WellKnownSymbols::species(), context)?;
+        let s = c.get(JsSymbol::species(), context)?;
 
         // 6. If S is either undefined or null, return defaultConstructor.
         if s.is_null_or_undefined() {

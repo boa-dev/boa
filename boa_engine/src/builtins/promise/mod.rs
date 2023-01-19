@@ -15,7 +15,7 @@ use crate::{
         FunctionObjectBuilder, JsFunction, JsObject, ObjectData,
     },
     property::{Attribute, PropertyDescriptorBuilder},
-    symbol::WellKnownSymbols,
+    symbol::JsSymbol,
     value::JsValue,
     Context, JsError, JsResult,
 };
@@ -274,7 +274,7 @@ impl BuiltIn for Promise {
         .static_method(Self::reject, "reject", 1)
         .static_method(Self::resolve, "resolve", 1)
         .static_accessor(
-            WellKnownSymbols::species(),
+            JsSymbol::species(),
             Some(get_species),
             None,
             Attribute::CONFIGURABLE,
@@ -284,7 +284,7 @@ impl BuiltIn for Promise {
         .method(Self::finally, "finally", 1)
         // <https://tc39.es/ecma262/#sec-promise.prototype-@@tostringtag>
         .property(
-            WellKnownSymbols::to_string_tag(),
+            JsSymbol::to_string_tag(),
             Self::NAME,
             Attribute::READONLY | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
         )

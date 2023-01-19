@@ -5,7 +5,7 @@ use crate::{
     },
     error::JsNativeError,
     js_string,
-    value::{Numeric, PreferredType, WellKnownSymbols},
+    value::{JsSymbol, Numeric, PreferredType},
     Context, JsBigInt, JsResult, JsValue,
 };
 
@@ -427,7 +427,7 @@ impl JsValue {
         }
 
         // 2. Let instOfHandler be ? GetMethod(target, @@hasInstance).
-        match target.get_method(WellKnownSymbols::has_instance(), context)? {
+        match target.get_method(JsSymbol::has_instance(), context)? {
             // 3. If instOfHandler is not undefined, then
             Some(instance_of_handler) => {
                 // a. Return ! ToBoolean(? Call(instOfHandler, target, « V »)).

@@ -15,240 +15,97 @@
 //! [spec]: https://tc39.es/ecma262/#sec-symbol-value
 //! [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Symbol
 
-use crate::{js_string, string::utf16, JsString};
-use boa_gc::{empty_trace, Finalize, Trace};
-use std::{
-    cell::Cell,
-    hash::{Hash, Hasher},
-    rc::Rc,
-};
+#![deny(
+    unsafe_op_in_unsafe_fn,
+    clippy::undocumented_unsafe_blocks,
+    clippy::missing_safety_doc
+)]
 
-/// A structure that contains the JavaScript well known symbols.
-///
-/// # Examples
-/// ```
-/// # use boa_engine::symbol::WellKnownSymbols;
-///
-/// let iterator = WellKnownSymbols::iterator();
-/// assert_eq!(iterator.description().unwrap().to_std_string_escaped(), "Symbol.iterator");
-/// ```
-/// This is equivalent to `let iterator = Symbol.iterator` in JavaScript.
-#[derive(Debug, Clone)]
-pub struct WellKnownSymbols {
-    async_iterator: JsSymbol,
-    has_instance: JsSymbol,
-    is_concat_spreadable: JsSymbol,
-    iterator: JsSymbol,
-    r#match: JsSymbol,
-    match_all: JsSymbol,
-    replace: JsSymbol,
-    search: JsSymbol,
-    species: JsSymbol,
-    split: JsSymbol,
-    to_primitive: JsSymbol,
-    to_string_tag: JsSymbol,
-    unscopables: JsSymbol,
-}
+use crate::{
+    js_string,
+    string::{common::StaticJsStrings, utf16},
+    tagged::{Tagged, UnwrappedTagged},
+    JsString,
+};
+use boa_gc::{empty_trace, Finalize, Trace};
+
+use num_enum::{IntoPrimitive, TryFromPrimitive};
+
+use std::{
+    hash::{Hash, Hasher},
+    sync::{
+        atomic::{AtomicU64, Ordering},
+        Arc,
+    },
+};
 
 /// Reserved number of symbols.
 ///
 /// This is where the well known symbol live
 /// and internal engine symbols.
-const RESERVED_SYMBOL_HASHES: u64 = 128;
+const RESERVED_SYMBOL_HASHES: u64 = 127;
 
-thread_local! {
-    /// Cached well known symbols
-    static WELL_KNOW_SYMBOLS: WellKnownSymbols = WellKnownSymbols::new();
+fn get_id() -> Option<u64> {
+    // Symbol hash.
+    //
+    // For now this is an incremented u64 number.
+    static SYMBOL_HASH_COUNT: AtomicU64 = AtomicU64::new(RESERVED_SYMBOL_HASHES + 1);
 
-    /// Symbol hash.
-    ///
-    /// For now this is an incremented u64 number.
-    static SYMBOL_HASH_COUNT: Cell<u64> = Cell::new(RESERVED_SYMBOL_HASHES);
+    SYMBOL_HASH_COUNT
+        .fetch_update(Ordering::Relaxed, Ordering::Relaxed, |value| {
+            value.checked_add(1)
+        })
+        .ok()
 }
 
-impl WellKnownSymbols {
-    /// Create the well known symbols.
-    fn new() -> Self {
-        let mut count = 0;
+/// List of well known symbols.
+#[derive(Debug, Clone, Copy, TryFromPrimitive, IntoPrimitive)]
+#[repr(u8)]
+enum WellKnown {
+    AsyncIterator,
+    HasInstance,
+    IsConcatSpreadable,
+    Iterator,
+    Match,
+    MatchAll,
+    Replace,
+    Search,
+    Species,
+    Split,
+    ToPrimitive,
+    ToStringTag,
+    Unscopables,
+}
 
-        let async_iterator = JsSymbol::with_hash(count, Some("Symbol.asyncIterator".into()));
-        count += 1;
-        let has_instance = JsSymbol::with_hash(count, Some("Symbol.hasInstance".into()));
-        count += 1;
-        let is_concat_spreadable =
-            JsSymbol::with_hash(count, Some("Symbol.isConcatSpreadable".into()));
-        count += 1;
-        let iterator = JsSymbol::with_hash(count, Some("Symbol.iterator".into()));
-        count += 1;
-        let match_ = JsSymbol::with_hash(count, Some("Symbol.match".into()));
-        count += 1;
-        let match_all = JsSymbol::with_hash(count, Some("Symbol.matchAll".into()));
-        count += 1;
-        let replace = JsSymbol::with_hash(count, Some("Symbol.replace".into()));
-        count += 1;
-        let search = JsSymbol::with_hash(count, Some("Symbol.search".into()));
-        count += 1;
-        let species = JsSymbol::with_hash(count, Some("Symbol.species".into()));
-        count += 1;
-        let split = JsSymbol::with_hash(count, Some("Symbol.split".into()));
-        count += 1;
-        let to_primitive = JsSymbol::with_hash(count, Some("Symbol.toPrimitive".into()));
-        count += 1;
-        let to_string_tag = JsSymbol::with_hash(count, Some("Symbol.toStringTag".into()));
-        count += 1;
-        let unscopables = JsSymbol::with_hash(count, Some("Symbol.unscopables".into()));
-
-        Self {
-            async_iterator,
-            has_instance,
-            is_concat_spreadable,
-            iterator,
-            r#match: match_,
-            match_all,
-            replace,
-            search,
-            species,
-            split,
-            to_primitive,
-            to_string_tag,
-            unscopables,
+impl WellKnown {
+    const fn description(self) -> JsString {
+        match self {
+            WellKnown::AsyncIterator => StaticJsStrings::symbol_async_iterator(),
+            WellKnown::HasInstance => StaticJsStrings::symbol_has_instance(),
+            WellKnown::IsConcatSpreadable => StaticJsStrings::symbol_is_concat_spreadable(),
+            WellKnown::Iterator => StaticJsStrings::symbol_iterator(),
+            WellKnown::Match => StaticJsStrings::symbol_match(),
+            WellKnown::MatchAll => StaticJsStrings::symbol_match_all(),
+            WellKnown::Replace => StaticJsStrings::symbol_replace(),
+            WellKnown::Search => StaticJsStrings::symbol_search(),
+            WellKnown::Species => StaticJsStrings::symbol_species(),
+            WellKnown::Split => StaticJsStrings::symbol_split(),
+            WellKnown::ToPrimitive => StaticJsStrings::symbol_to_primitive(),
+            WellKnown::ToStringTag => StaticJsStrings::symbol_to_string_tag(),
+            WellKnown::Unscopables => StaticJsStrings::symbol_unscopables(),
         }
     }
 
-    /// The `Symbol.asyncIterator` well known symbol.
-    ///
-    /// A method that returns the default `AsyncIterator` for an object.
-    /// Called by the semantics of the `for-await-of` statement.
-    #[inline]
-    #[must_use]
-    pub fn async_iterator() -> JsSymbol {
-        WELL_KNOW_SYMBOLS.with(|symbols| symbols.async_iterator.clone())
+    const fn hash(self) -> u64 {
+        self as u64
     }
 
-    /// The `Symbol.hasInstance` well known symbol.
-    ///
-    /// A method that determines if a `constructor` object
-    /// recognizes an object as one of the `constructor`'s instances.
-    /// Called by the semantics of the instanceof operator.
-    #[inline]
-    #[must_use]
-    pub fn has_instance() -> JsSymbol {
-        WELL_KNOW_SYMBOLS.with(|symbols| symbols.has_instance.clone())
+    const fn tag(self) -> usize {
+        self as usize
     }
 
-    /// The `Symbol.isConcatSpreadable` well known symbol.
-    ///
-    /// A Boolean valued property that if `true` indicates that
-    /// an object should be flattened to its array elements
-    /// by `Array.prototype.concat`.
-    #[inline]
-    #[must_use]
-    pub fn is_concat_spreadable() -> JsSymbol {
-        WELL_KNOW_SYMBOLS.with(|symbols| symbols.is_concat_spreadable.clone())
-    }
-
-    /// The `Symbol.iterator` well known symbol.
-    ///
-    /// A method that returns the default Iterator for an object.
-    /// Called by the semantics of the `for-of` statement.
-    #[inline]
-    #[must_use]
-    pub fn iterator() -> JsSymbol {
-        WELL_KNOW_SYMBOLS.with(|symbols| symbols.iterator.clone())
-    }
-
-    /// The `Symbol.match` well known symbol.
-    ///
-    /// A regular expression method that matches the regular expression
-    /// against a string. Called by the `String.prototype.match` method.
-    #[inline]
-    #[must_use]
-    pub fn r#match() -> JsSymbol {
-        WELL_KNOW_SYMBOLS.with(|symbols| symbols.r#match.clone())
-    }
-
-    /// The `Symbol.matchAll` well known symbol.
-    ///
-    /// A regular expression method that returns an iterator, that yields
-    /// matches of the regular expression against a string.
-    /// Called by the `String.prototype.matchAll` method.
-    #[inline]
-    #[must_use]
-    pub fn match_all() -> JsSymbol {
-        WELL_KNOW_SYMBOLS.with(|symbols| symbols.match_all.clone())
-    }
-
-    /// The `Symbol.replace` well known symbol.
-    ///
-    /// A regular expression method that replaces matched substrings
-    /// of a string. Called by the `String.prototype.replace` method.
-    #[inline]
-    #[must_use]
-    pub fn replace() -> JsSymbol {
-        WELL_KNOW_SYMBOLS.with(|symbols| symbols.replace.clone())
-    }
-
-    /// The `Symbol.search` well known symbol.
-    ///
-    /// A regular expression method that returns the index within a
-    /// string that matches the regular expression.
-    /// Called by the `String.prototype.search` method.
-    #[inline]
-    #[must_use]
-    pub fn search() -> JsSymbol {
-        WELL_KNOW_SYMBOLS.with(|symbols| symbols.search.clone())
-    }
-
-    /// The `Symbol.species` well known symbol.
-    ///
-    /// A function valued property that is the `constructor` function
-    /// that is used to create derived objects.
-    #[inline]
-    #[must_use]
-    pub fn species() -> JsSymbol {
-        WELL_KNOW_SYMBOLS.with(|symbols| symbols.species.clone())
-    }
-
-    /// The `Symbol.split` well known symbol.
-    ///
-    /// A regular expression method that splits a string at the indices
-    /// that match the regular expression.
-    /// Called by the `String.prototype.split` method.
-    #[inline]
-    #[must_use]
-    pub fn split() -> JsSymbol {
-        WELL_KNOW_SYMBOLS.with(|symbols| symbols.split.clone())
-    }
-
-    /// The `Symbol.toPrimitive` well known symbol.
-    ///
-    /// A method that converts an object to a corresponding primitive value.
-    /// Called by the `ToPrimitive` (`Value::to_primitive`) abstract operation.
-    #[inline]
-    #[must_use]
-    pub fn to_primitive() -> JsSymbol {
-        WELL_KNOW_SYMBOLS.with(|symbols| symbols.to_primitive.clone())
-    }
-
-    /// The `Symbol.toStringTag` well known symbol.
-    ///
-    /// A String valued property that is used in the creation of the default
-    /// string description of an object.
-    /// Accessed by the built-in method `Object.prototype.toString`.
-    #[inline]
-    #[must_use]
-    pub fn to_string_tag() -> JsSymbol {
-        WELL_KNOW_SYMBOLS.with(|symbols| symbols.to_string_tag.clone())
-    }
-
-    /// The `Symbol.unscopables` well known symbol.
-    ///
-    /// An object valued property whose own and inherited property names are property
-    /// names that are excluded from the `with` environment bindings of the associated object.
-    #[inline]
-    #[must_use]
-    pub fn unscopables() -> JsSymbol {
-        WELL_KNOW_SYMBOLS.with(|symbols| symbols.unscopables.clone())
+    fn from_tag(tag: usize) -> Option<Self> {
+        Self::try_from_primitive(u8::try_from(tag).ok()?).ok()
     }
 }
 
@@ -260,10 +117,16 @@ struct Inner {
 }
 
 /// This represents a JavaScript symbol primitive.
-#[derive(Debug, Clone, Finalize)]
 pub struct JsSymbol {
-    inner: Rc<Inner>,
+    repr: Tagged<Inner>,
 }
+
+// SAFETY: `JsSymbol` uses `Arc` to do the reference counting, making this type thread-safe.
+unsafe impl Send for JsSymbol {}
+// SAFETY: `JsSymbol` uses `Arc` to do the reference counting, making this type thread-safe.
+unsafe impl Sync for JsSymbol {}
+
+impl Finalize for JsSymbol {}
 
 // Safety: JsSymbol does not contain any objects which needs to be traced,
 // so this is safe.
@@ -271,35 +134,51 @@ unsafe impl Trace for JsSymbol {
     empty_trace!();
 }
 
+macro_rules! well_known_symbols {
+    ( $( $(#[$attr:meta])* ($name:ident, $variant:path) ),+$(,)? ) => {
+        $(
+            $(#[$attr])* pub(crate) const fn $name() -> JsSymbol {
+                JsSymbol {
+                    repr: Tagged::from_tag($variant.tag()),
+                }
+            }
+        )+
+    };
+}
+
 impl JsSymbol {
-    /// Create a new symbol.
+    /// Creates a new symbol.
+    ///
+    /// Returns `None` if the maximum number of possible symbols has been reached (`u64::MAX`).
     #[inline]
     #[must_use]
-    pub fn new(description: Option<JsString>) -> Self {
-        let hash = SYMBOL_HASH_COUNT.with(|count| {
-            let hash = count.get();
-            count.set(hash + 1);
-            hash
-        });
+    pub fn new(description: Option<JsString>) -> Option<Self> {
+        let hash = get_id()?;
+        let arc = Arc::new(Inner { hash, description });
 
-        Self {
-            inner: Rc::new(Inner { hash, description }),
-        }
-    }
-
-    /// Create a new symbol with a specified hash and description.
-    #[inline]
-    fn with_hash(hash: u64, description: Option<JsString>) -> Self {
-        Self {
-            inner: Rc::new(Inner { hash, description }),
-        }
+        Some(Self {
+            // SAFETY: Pointers returned by `Arc::into_raw` must be non-null.
+            repr: unsafe { Tagged::from_ptr(Arc::into_raw(arc).cast_mut()) },
+        })
     }
 
     /// Returns the `Symbol`s description.
     #[inline]
     #[must_use]
     pub fn description(&self) -> Option<JsString> {
-        self.inner.description.clone()
+        match self.repr.unwrap() {
+            UnwrappedTagged::Ptr(ptr) => {
+                // SAFETY: `ptr` comes from `Arc`, which ensures the validity of the pointer
+                // as long as we corrently call `Arc::from_raw` on `Drop`.
+                unsafe { ptr.as_ref().description.clone() }
+            }
+            UnwrappedTagged::Tag(tag) => {
+                // SAFETY: All tagged reprs always come from `WellKnown` itself, making
+                // this operation always safe.
+                let wk = unsafe { WellKnown::from_tag(tag).unwrap_unchecked() };
+                Some(wk.description())
+            }
+        }
     }
 
     /// Returns the `Symbol`s hash.
@@ -308,7 +187,18 @@ impl JsSymbol {
     #[inline]
     #[must_use]
     pub fn hash(&self) -> u64 {
-        self.inner.hash
+        match self.repr.unwrap() {
+            UnwrappedTagged::Ptr(ptr) => {
+                // SAFETY: `ptr` comes from `Arc`, which ensures the validity of the pointer
+                // as long as we correctly call `Arc::from_raw` on `Drop`.
+                unsafe { ptr.as_ref().hash }
+            }
+            UnwrappedTagged::Tag(tag) => {
+                // SAFETY: All tagged reprs always come from `WellKnown` itself, making
+                // this operation always safe.
+                unsafe { WellKnown::from_tag(tag).unwrap_unchecked().hash() }
+            }
+        }
     }
 
     /// Abstract operation `SymbolDescriptiveString ( sym )`
@@ -319,17 +209,82 @@ impl JsSymbol {
     /// [spec]: https://tc39.es/ecma262/#sec-symboldescriptivestring
     #[must_use]
     pub fn descriptive_string(&self) -> JsString {
-        self.inner.description.as_ref().map_or_else(
+        self.description().as_ref().map_or_else(
             || js_string!("Symbol()"),
             |desc| js_string!(utf16!("Symbol("), desc, utf16!(")")),
         )
+    }
+
+    well_known_symbols! {
+        /// Gets the static `JsSymbol` for `"Symbol.asyncIterator"`.
+        (async_iterator, WellKnown::AsyncIterator),
+        /// Gets the static `JsSymbol` for `"Symbol.hasInstance"`.
+        (has_instance, WellKnown::HasInstance),
+        /// Gets the static `JsSymbol` for `"Symbol.isConcatSpreadable"`.
+        (is_concat_spreadable, WellKnown::IsConcatSpreadable),
+        /// Gets the static `JsSymbol` for `"Symbol.iterator"`.
+        (iterator, WellKnown::Iterator),
+        /// Gets the static `JsSymbol` for `"Symbol.match"`.
+        (r#match, WellKnown::Match),
+        /// Gets the static `JsSymbol` for `"Symbol.matchAll"`.
+        (match_all, WellKnown::MatchAll),
+        /// Gets the static `JsSymbol` for `"Symbol.replace"`.
+        (replace, WellKnown::Replace),
+        /// Gets the static `JsSymbol` for `"Symbol.search"`.
+        (search, WellKnown::Search),
+        /// Gets the static `JsSymbol` for `"Symbol.species"`.
+        (species, WellKnown::Species),
+        /// Gets the static `JsSymbol` for `"Symbol.split"`.
+        (split, WellKnown::Split),
+        /// Gets the static `JsSymbol` for `"Symbol.toPrimitive"`.
+        (to_primitive, WellKnown::ToPrimitive),
+        /// Gets the static `JsSymbol` for `"Symbol.toStringTag"`.
+        (to_string_tag, WellKnown::ToStringTag),
+        /// Gets the static `JsSymbol` for `"Symbol.unscopables"`.
+        (unscopables, WellKnown::Unscopables),
+    }
+}
+
+impl Clone for JsSymbol {
+    fn clone(&self) -> Self {
+        if let UnwrappedTagged::Ptr(ptr) = self.repr.unwrap() {
+            // SAFETY: the pointer returned by `self.repr` must be a valid pointer
+            // that came from an `Arc::into_raw` call.
+            unsafe {
+                let arc = Arc::from_raw(ptr.as_ptr().cast_const());
+                // Don't need the Arc since `self` is already a copyable pointer, just need to
+                // trigger the `clone` impl.
+                std::mem::forget(arc.clone());
+                std::mem::forget(arc);
+            }
+        }
+        Self { repr: self.repr }
+    }
+}
+
+impl Drop for JsSymbol {
+    fn drop(&mut self) {
+        if let UnwrappedTagged::Ptr(ptr) = self.repr.unwrap() {
+            // SAFETY: the pointer returned by `self.repr` must be a valid pointer
+            // that came from an `Arc::into_raw` call.
+            unsafe { drop(Arc::from_raw(ptr.as_ptr().cast_const())) }
+        }
+    }
+}
+
+impl std::fmt::Debug for JsSymbol {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("JsSymbol")
+            .field("hash", &self.hash())
+            .field("description", &self.description())
+            .finish()
     }
 }
 
 impl std::fmt::Display for JsSymbol {
     #[inline]
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match &self.inner.description {
+        match &self.description() {
             Some(desc) => write!(f, "Symbol({})", desc.to_std_string_escaped()),
             None => write!(f, "Symbol()"),
         }
@@ -341,26 +296,26 @@ impl Eq for JsSymbol {}
 impl PartialEq for JsSymbol {
     #[inline]
     fn eq(&self, other: &Self) -> bool {
-        self.inner.hash == other.inner.hash
+        self.hash() == other.hash()
     }
 }
 
 impl PartialOrd for JsSymbol {
     #[inline]
     fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
-        self.inner.hash.partial_cmp(&other.inner.hash)
+        self.hash().partial_cmp(&other.hash())
     }
 }
 
 impl Ord for JsSymbol {
     #[inline]
     fn cmp(&self, other: &Self) -> std::cmp::Ordering {
-        self.inner.hash.cmp(&other.inner.hash)
+        self.hash().cmp(&other.hash())
     }
 }
 
 impl Hash for JsSymbol {
     fn hash<H: Hasher>(&self, state: &mut H) {
-        self.inner.hash.hash(state);
+        self.hash().hash(state);
     }
 }

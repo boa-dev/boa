@@ -62,6 +62,8 @@ tap = "1.0.1"
 sptr = "0.3.2"
 static_assertions = "1.1.0"
 thiserror = "1.0.38"
+dashmap = "5.4.0"
+num_enum = "0.5.7"
 
 # intl deps
 boa_icu_provider = { workspace = true, optional = true }

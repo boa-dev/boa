@@ -26,7 +26,7 @@ use crate::{
     object::{JsObject, ObjectInitializer, RecursionLimiter},
     property::{Attribute, PropertyNameKind},
     string::{utf16, CodePoint},
-    symbol::WellKnownSymbols,
+    symbol::JsSymbol,
     value::IntegerOrInfinity,
     Context, JsResult, JsString, JsValue,
 };
@@ -141,7 +141,7 @@ impl BuiltIn for Json {
     fn init(context: &mut Context<'_>) -> Option<JsValue> {
         let _timer = Profiler::global().start_event(Self::NAME, "init");
 
-        let to_string_tag = WellKnownSymbols::to_string_tag();
+        let to_string_tag = JsSymbol::to_string_tag();
         let attribute = Attribute::READONLY | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE;
 
         ObjectInitializer::new(context)

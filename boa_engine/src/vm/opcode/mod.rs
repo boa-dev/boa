@@ -1,6 +1,8 @@
 /// The opcodes of the vm.
 use crate::{vm::ShouldExit, Context, JsResult};
 
+use num_enum::TryFromPrimitive;
+
 // Operation modules
 mod await_stm;
 mod binary_ops;
@@ -171,7 +173,7 @@ pub(crate) trait Operation {
 }
 
 generate_impl! {
-    #[derive(Debug, Clone, Copy)]
+    #[derive(Debug, Clone, Copy, TryFromPrimitive)]
     #[repr(u8)]
     pub enum Opcode {
         /// Pop the top value from the stack.
@@ -1503,35 +1505,6 @@ generate_impl! {
         // Safety: Must be last in the list since, we use this for range checking
         // in `TryFrom<u8>` impl.
         Nop,
-    }
-}
-
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub struct InvalidOpcodeError {
-    value: u8,
-}
-
-impl std::fmt::Display for InvalidOpcodeError {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "invalid opcode: {:#04x}", self.value)
-    }
-}
-
-impl std::error::Error for InvalidOpcodeError {}
-
-impl TryFrom<u8> for Opcode {
-    type Error = InvalidOpcodeError;
-
-    fn try_from(value: u8) -> Result<Self, Self::Error> {
-        if value > Self::Nop as u8 {
-            return Err(InvalidOpcodeError { value });
-        }
-
-        // Safety: we already checked if it is in the Opcode range,
-        // so this is safe.
-        let opcode = unsafe { Self::from_raw(value) };
-
-        Ok(opcode)
     }
 }
 

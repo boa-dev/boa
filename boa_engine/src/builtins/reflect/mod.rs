@@ -16,7 +16,7 @@ use crate::{
     error::JsNativeError,
     object::ObjectInitializer,
     property::Attribute,
-    symbol::WellKnownSymbols,
+    symbol::JsSymbol,
     Context, JsResult, JsValue,
 };
 use boa_profiler::Profiler;
@@ -35,7 +35,7 @@ impl BuiltIn for Reflect {
     fn init(context: &mut Context<'_>) -> Option<JsValue> {
         let _timer = Profiler::global().start_event(Self::NAME, "init");
 
-        let to_string_tag = WellKnownSymbols::to_string_tag();
+        let to_string_tag = JsSymbol::to_string_tag();
 
         ObjectInitializer::new(context)
             .function(Self::apply, "apply", 3)

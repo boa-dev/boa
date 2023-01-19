@@ -22,7 +22,7 @@ use crate::{
         FunctionObjectBuilder, JsObject, ObjectData,
     },
     property::{Attribute, PropertyNameKind},
-    symbol::WellKnownSymbols,
+    symbol::JsSymbol,
     Context, JsResult, JsValue,
 };
 use boa_profiler::Profiler;
@@ -54,9 +54,9 @@ impl BuiltIn for Set {
                 .name("get size")
                 .build();
 
-        let iterator_symbol = WellKnownSymbols::iterator();
+        let iterator_symbol = JsSymbol::iterator();
 
-        let to_string_tag = WellKnownSymbols::to_string_tag();
+        let to_string_tag = JsSymbol::to_string_tag();
 
         let values_function =
             FunctionObjectBuilder::new(context, NativeFunction::from_fn_ptr(Self::values))
@@ -73,7 +73,7 @@ impl BuiltIn for Set {
         .name(Self::NAME)
         .length(Self::LENGTH)
         .static_accessor(
-            WellKnownSymbols::species(),
+            JsSymbol::species(),
             Some(get_species),
             None,
             Attribute::CONFIGURABLE,

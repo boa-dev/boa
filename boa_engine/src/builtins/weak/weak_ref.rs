@@ -9,7 +9,7 @@ use crate::{
         internal_methods::get_prototype_from_constructor, ConstructorBuilder, JsObject, ObjectData,
     },
     property::Attribute,
-    symbol::WellKnownSymbols,
+    symbol::JsSymbol,
     Context, JsNativeError, JsResult, JsValue,
 };
 
@@ -41,7 +41,7 @@ impl BuiltIn for WeakRef {
         .name(Self::NAME)
         .length(Self::LENGTH)
         .property(
-            WellKnownSymbols::to_string_tag(),
+            JsSymbol::to_string_tag(),
             "WeakRef",
             Attribute::CONFIGURABLE,
         )

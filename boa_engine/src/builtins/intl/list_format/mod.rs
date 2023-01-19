@@ -13,7 +13,7 @@ use crate::{
         internal_methods::get_prototype_from_constructor, ConstructorBuilder, JsObject, ObjectData,
     },
     property::Attribute,
-    symbol::WellKnownSymbols,
+    symbol::JsSymbol,
     Context, JsNativeError, JsResult, JsString, JsValue,
 };
 
@@ -64,7 +64,7 @@ impl BuiltIn for ListFormat {
         .length(Self::LENGTH)
         .static_method(Self::supported_locales_of, "supportedLocalesOf", 1)
         .property(
-            WellKnownSymbols::to_string_tag(),
+            JsSymbol::to_string_tag(),
             "Intl.ListFormat",
             Attribute::CONFIGURABLE,
         )
