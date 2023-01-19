@@ -11,7 +11,7 @@ use boa_engine::{
     native_function::NativeFunction,
     Context, JsResult, JsValue,
 };
-use futures::{stream::FuturesUnordered, Future};
+use futures_util::{stream::FuturesUnordered, Future};
 use smol::{future, stream::StreamExt, LocalExecutor};
 
 struct Queue<'a> {
@@ -36,12 +36,13 @@ impl<'a> JobQueue for Queue<'a> {
     }
 
     fn enqueue_future_job(&self, future: FutureJob, _context: &mut boa_engine::Context<'_>) {
-        self.futures.borrow_mut().push(future)
+        self.futures.borrow().push(future)
     }
 
     fn run_jobs(&self, context: &mut boa_engine::Context<'_>) {
+        let context = RefCell::new(context);
         // Example implementation of a job queue that also drives futures to completion.
-        future::block_on(self.executor.run(async {
+        future::block_on(self.executor.run(async move {
             loop {
                 // Need to check if both `futures` and `jobs` are empty, since any of the inner
                 // futures/jobs could schedule more futures/jobs.
@@ -60,7 +61,7 @@ impl<'a> JobQueue for Queue<'a> {
                         // Important to schedule the returned `job` into the job queue, since that's
                         // what allows updating the `Promise` seen by ECMAScript for when the future
                         // completes.
-                        self.jobs.borrow_mut().push_back(job);
+                        self.enqueue_promise_job(job, &mut context.borrow_mut());
                     }
                     finished.set(true);
                 };
@@ -80,7 +81,7 @@ impl<'a> JobQueue for Queue<'a> {
                             }
                         };
 
-                        if let Err(e) = job.call(context) {
+                        if let Err(e) = job.call(&mut context.borrow_mut()) {
                             eprintln!("Uncaught {e}");
                         }
                         future::yield_now().await;
@@ -148,11 +149,12 @@ fn main() {
     // Delaying for 200 milliseconds ...
     // Delaying for 600 milliseconds ...
     // Delaying for 30 milliseconds ...
-    // Finished. elapsed time: 30.095278 ms
-    // Finished. elapsed time: 200.111445 ms
-    // Finished. elapsed time: 500.20203200000003 ms
-    // Finished. elapsed time: 600.1167800000001 ms
-    // Finished. elapsed time: 1000.13678 ms
+    // Finished. elapsed time: 30.073821000000002 ms
+    // Finished. elapsed time: 200.079116 ms
+    // Finished. elapsed time: 500.10745099999997 ms
+    // Finished. elapsed time: 600.098433 ms
+    // Finished. elapsed time: 1000.118099 ms
+    // Total elapsed time: 1.002628715s
 
     // The system concurrently drove several timers to completion!
 }
