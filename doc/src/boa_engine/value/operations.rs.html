@@ -665,7 +665,7 @@
     },
     error::JsNativeError,
     js_string,
-    value::{Numeric, PreferredType, WellKnownSymbols},
+    value::{JsSymbol, Numeric, PreferredType},
     Context, JsBigInt, JsResult, JsValue,
 };
 
@@ -1087,7 +1087,7 @@
         }
 
         <span class="comment">// 2. Let instOfHandler be ? GetMethod(target, @@hasInstance).
-        </span><span class="kw">match </span>target.get_method(WellKnownSymbols::has_instance(), context)<span class="question-mark">? </span>{
+        </span><span class="kw">match </span>target.get_method(JsSymbol::has_instance(), context)<span class="question-mark">? </span>{
             <span class="comment">// 3. If instOfHandler is not undefined, then
             </span><span class="prelude-val">Some</span>(instance_of_handler) =&gt; {
                 <span class="comment">// a. Return ! ToBoolean(? Call(instOfHandler, target, « V »)).

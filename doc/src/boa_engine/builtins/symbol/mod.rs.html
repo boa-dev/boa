@@ -360,6 +360,18 @@
 <span id="359">359</span>
 <span id="360">360</span>
 <span id="361">361</span>
+<span id="362">362</span>
+<span id="363">363</span>
+<span id="364">364</span>
+<span id="365">365</span>
+<span id="366">366</span>
+<span id="367">367</span>
+<span id="368">368</span>
+<span id="369">369</span>
+<span id="370">370</span>
+<span id="371">371</span>
+<span id="372">372</span>
+<span id="373">373</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Boa&#39;s implementation of ECMAScript&#39;s global `Symbol` object.
 //!
 //! The data type symbol is a primitive data type.
@@ -380,53 +392,67 @@
 </span><span class="attribute">#[cfg(test)]
 </span><span class="kw">mod </span>tests;
 
+<span class="kw">use </span>std::hash::BuildHasherDefault;
+
 <span class="kw">use </span><span class="kw">super</span>::JsArgs;
 <span class="kw">use crate</span>::{
     builtins::BuiltIn,
     error::JsNativeError,
+    js_string,
     native_function::NativeFunction,
     object::{ConstructorBuilder, FunctionObjectBuilder},
     property::Attribute,
-    symbol::{JsSymbol, WellKnownSymbols},
+    symbol::JsSymbol,
     value::JsValue,
     Context, JsResult, JsString,
 };
 <span class="kw">use </span>boa_profiler::Profiler;
-<span class="kw">use </span>rustc_hash::FxHashMap;
-<span class="kw">use </span>std::cell::RefCell;
+<span class="kw">use </span>dashmap::DashMap;
+<span class="kw">use </span>once_cell::sync::Lazy;
+<span class="kw">use </span>rustc_hash::FxHasher;
 <span class="kw">use </span>tap::{Conv, Pipe};
 
-<span class="macro">thread_local! </span>{
-    <span class="kw">static </span>GLOBAL_SYMBOL_REGISTRY: RefCell&lt;GlobalSymbolRegistry&gt; = RefCell::new(GlobalSymbolRegistry::new());
-}
+<span class="kw">static </span>GLOBAL_SYMBOL_REGISTRY: Lazy&lt;GlobalSymbolRegistry&gt; = Lazy::new(GlobalSymbolRegistry::new);
 
-<span class="kw">struct </span>GlobalSymbolRegistry {
-    keys: FxHashMap&lt;JsString, JsSymbol&gt;,
-    symbols: FxHashMap&lt;JsSymbol, JsString&gt;,
+<span class="kw">type </span>FxDashMap&lt;K, V&gt; = DashMap&lt;K, V, BuildHasherDefault&lt;FxHasher&gt;&gt;;
+
+<span class="comment">// We previously used `JsString` instead of `Box&lt;[u16]&gt;` for this, but since the glocal symbol
+// registry needed to be global, we had to either make `JsString` thread-safe or directly store
+// its info into the registry. `JsSymbol` is already a pretty niche feature of JS, and we expect only
+// advanced users to utilize it. On the other hand, almost every JS programmer uses `JsString`s, and
+// the first option would impact performance for all `JsString`s in general. For those reasons, we
+// opted for the second option, but we should try to optimize this in the future.
+</span><span class="kw">struct </span>GlobalSymbolRegistry {
+    keys: FxDashMap&lt;Box&lt;[u16]&gt;, JsSymbol&gt;,
+    symbols: FxDashMap&lt;JsSymbol, Box&lt;[u16]&gt;&gt;,
 }
 
 <span class="kw">impl </span>GlobalSymbolRegistry {
     <span class="kw">fn </span>new() -&gt; <span class="self">Self </span>{
         <span class="self">Self </span>{
-            keys: FxHashMap::default(),
-            symbols: FxHashMap::default(),
+            keys: FxDashMap::default(),
+            symbols: FxDashMap::default(),
         }
     }
 
-    <span class="kw">fn </span>get_or_insert_key(<span class="kw-2">&amp;mut </span><span class="self">self</span>, key: JsString) -&gt; JsSymbol {
-        <span class="kw">if let </span><span class="prelude-val">Some</span>(symbol) = <span class="self">self</span>.keys.get(<span class="kw-2">&amp;</span>key) {
-            <span class="kw">return </span>symbol.clone();
+    <span class="kw">fn </span>get_or_create_symbol(<span class="kw-2">&amp;</span><span class="self">self</span>, key: <span class="kw-2">&amp;</span>JsString) -&gt; JsResult&lt;JsSymbol&gt; {
+        <span class="kw">let </span>slice = <span class="kw-2">&amp;**</span>key;
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(symbol) = <span class="self">self</span>.keys.get(slice) {
+            <span class="kw">return </span><span class="prelude-val">Ok</span>(symbol.clone());
         }
 
-        <span class="kw">let </span>symbol = JsSymbol::new(<span class="prelude-val">Some</span>(key.clone()));
-        <span class="self">self</span>.keys.insert(key.clone(), symbol.clone());
-        <span class="self">self</span>.symbols.insert(symbol.clone(), key);
-        symbol
+        <span class="kw">let </span>symbol = JsSymbol::new(<span class="prelude-val">Some</span>(key.clone())).ok_or_else(|| {
+            JsNativeError::range()
+                .with_message(<span class="string">&quot;reached the maximum number of symbols that can be created&quot;</span>)
+        })<span class="question-mark">?</span>;
+        <span class="self">self</span>.keys.insert(slice.into(), symbol.clone());
+        <span class="self">self</span>.symbols.insert(symbol.clone(), slice.into());
+        <span class="prelude-val">Ok</span>(symbol)
     }
 
-    <span class="kw">fn </span>get_symbol(<span class="kw-2">&amp;</span><span class="self">self</span>, sym: <span class="kw-2">&amp;</span>JsSymbol) -&gt; <span class="prelude-ty">Option</span>&lt;JsString&gt; {
+    <span class="kw">fn </span>get_key(<span class="kw-2">&amp;</span><span class="self">self</span>, sym: <span class="kw-2">&amp;</span>JsSymbol) -&gt; <span class="prelude-ty">Option</span>&lt;JsString&gt; {
         <span class="kw">if let </span><span class="prelude-val">Some</span>(key) = <span class="self">self</span>.symbols.get(sym) {
-            <span class="kw">return </span><span class="prelude-val">Some</span>(key.clone());
+            <span class="kw">return </span><span class="prelude-val">Some</span>(<span class="macro">js_string!</span>(<span class="kw-2">&amp;**</span>key));
         }
 
         <span class="prelude-val">None
@@ -443,19 +469,19 @@
     <span class="kw">fn </span>init(context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <span class="prelude-ty">Option</span>&lt;JsValue&gt; {
         <span class="kw">let </span>_timer = Profiler::global().start_event(<span class="self">Self</span>::NAME, <span class="string">&quot;init&quot;</span>);
 
-        <span class="kw">let </span>symbol_async_iterator = WellKnownSymbols::async_iterator();
-        <span class="kw">let </span>symbol_has_instance = WellKnownSymbols::has_instance();
-        <span class="kw">let </span>symbol_is_concat_spreadable = WellKnownSymbols::is_concat_spreadable();
-        <span class="kw">let </span>symbol_iterator = WellKnownSymbols::iterator();
-        <span class="kw">let </span>symbol_match = WellKnownSymbols::r#match();
-        <span class="kw">let </span>symbol_match_all = WellKnownSymbols::match_all();
-        <span class="kw">let </span>symbol_replace = WellKnownSymbols::replace();
-        <span class="kw">let </span>symbol_search = WellKnownSymbols::search();
-        <span class="kw">let </span>symbol_species = WellKnownSymbols::species();
-        <span class="kw">let </span>symbol_split = WellKnownSymbols::split();
-        <span class="kw">let </span>symbol_to_primitive = WellKnownSymbols::to_primitive();
-        <span class="kw">let </span>symbol_to_string_tag = WellKnownSymbols::to_string_tag();
-        <span class="kw">let </span>symbol_unscopables = WellKnownSymbols::unscopables();
+        <span class="kw">let </span>symbol_async_iterator = JsSymbol::async_iterator();
+        <span class="kw">let </span>symbol_has_instance = JsSymbol::has_instance();
+        <span class="kw">let </span>symbol_is_concat_spreadable = JsSymbol::is_concat_spreadable();
+        <span class="kw">let </span>symbol_iterator = JsSymbol::iterator();
+        <span class="kw">let </span>symbol_match = JsSymbol::r#match();
+        <span class="kw">let </span>symbol_match_all = JsSymbol::match_all();
+        <span class="kw">let </span>symbol_replace = JsSymbol::replace();
+        <span class="kw">let </span>symbol_search = JsSymbol::search();
+        <span class="kw">let </span>symbol_species = JsSymbol::species();
+        <span class="kw">let </span>symbol_split = JsSymbol::split();
+        <span class="kw">let </span>symbol_to_primitive = JsSymbol::to_primitive();
+        <span class="kw">let </span>symbol_to_string_tag = JsSymbol::to_string_tag();
+        <span class="kw">let </span>symbol_unscopables = JsSymbol::unscopables();
 
         <span class="kw">let </span>attribute = Attribute::READONLY | Attribute::NON_ENUMERABLE | Attribute::PERMANENT;
 
@@ -555,7 +581,12 @@
         };
 
         <span class="comment">// 4. Return a new unique Symbol value whose [[Description]] value is descString.
-        </span><span class="prelude-val">Ok</span>(JsSymbol::new(description).into())
+        </span><span class="prelude-val">Ok</span>(JsSymbol::new(description)
+            .ok_or_else(|| {
+                JsNativeError::range()
+                    .with_message(<span class="string">&quot;reached the maximum number of symbols that can be created&quot;</span>)
+            })<span class="question-mark">?
+            </span>.into())
     }
 
     <span class="kw">fn </span>this_symbol_value(value: <span class="kw-2">&amp;</span>JsValue) -&gt; JsResult&lt;JsSymbol&gt; {
@@ -662,12 +693,9 @@
         // 4. Let newSymbol be a new unique Symbol value whose [[Description]] value is stringKey.
         // 5. Append the Record { [[Key]]: stringKey, [[Symbol]]: newSymbol } to the GlobalSymbolRegistry List.
         // 6. Return newSymbol.
-        </span><span class="prelude-val">Ok</span>(GLOBAL_SYMBOL_REGISTRY
-            .with(<span class="kw">move </span>|registry| {
-                <span class="kw">let </span><span class="kw-2">mut </span>registry = registry.borrow_mut();
-                registry.get_or_insert_key(string_key)
-            })
-            .into())
+        </span>GLOBAL_SYMBOL_REGISTRY
+            .get_or_create_symbol(<span class="kw-2">&amp;</span>string_key)
+            .map(JsValue::from)
     }
 
     <span class="doccomment">/// `Symbol.keyFor( sym )`
@@ -680,24 +708,20 @@
     /// [spec]: https://tc39.es/ecma262/#sec-symbol.prototype.keyfor
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Symbol/keyFor
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>key_for(<span class="kw">_</span>: <span class="kw-2">&amp;</span>JsValue, args: <span class="kw-2">&amp;</span>[JsValue], <span class="kw">_</span>: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;JsValue&gt; {
-        <span class="kw">let </span>sym = args.get_or_undefined(<span class="number">0</span>);
         <span class="comment">// 1. If Type(sym) is not Symbol, throw a TypeError exception.
-        </span><span class="kw">if let </span><span class="prelude-val">Some</span>(sym) = sym.as_symbol() {
-            <span class="comment">// 2. For each element e of the GlobalSymbolRegistry List (see 20.4.2.2), do
-            //     a. If SameValue(e.[[Symbol]], sym) is true, return e.[[Key]].
-            // 3. Assert: GlobalSymbolRegistry does not currently contain an entry for sym.
-            // 4. Return undefined.
-            </span><span class="kw">let </span>symbol = GLOBAL_SYMBOL_REGISTRY.with(<span class="kw">move </span>|registry| {
-                <span class="kw">let </span>registry = registry.borrow();
-                registry.get_symbol(<span class="kw-2">&amp;</span>sym)
-            });
+        </span><span class="kw">let </span>sym = args.get_or_undefined(<span class="number">0</span>).as_symbol().ok_or_else(|| {
+            JsNativeError::typ().with_message(<span class="string">&quot;Symbol.keyFor: sym is not a symbol&quot;</span>)
+        })<span class="question-mark">?</span>;
 
-            <span class="prelude-val">Ok</span>(symbol.map(JsValue::from).unwrap_or_default())
-        } <span class="kw">else </span>{
-            <span class="prelude-val">Err</span>(JsNativeError::typ()
-                .with_message(<span class="string">&quot;Symbol.keyFor: sym is not a symbol&quot;</span>)
-                .into())
-        }
+        <span class="comment">// 2. For each element e of the GlobalSymbolRegistry List (see 20.4.2.2), do
+        //     a. If SameValue(e.[[Symbol]], sym) is true, return e.[[Key]].
+        // 3. Assert: GlobalSymbolRegistry does not currently contain an entry for sym.
+        // 4. Return undefined.
+
+        </span><span class="prelude-val">Ok</span>(GLOBAL_SYMBOL_REGISTRY
+            .get_key(<span class="kw-2">&amp;</span>sym)
+            .map(JsValue::from)
+            .unwrap_or_default())
     }
 
     <span class="doccomment">/// `Symbol.prototype [ @@toPrimitive ]`

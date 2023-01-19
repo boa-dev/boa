@@ -1686,22 +1686,6 @@
 <span id="1685">1685</span>
 <span id="1686">1686</span>
 <span id="1687">1687</span>
-<span id="1688">1688</span>
-<span id="1689">1689</span>
-<span id="1690">1690</span>
-<span id="1691">1691</span>
-<span id="1692">1692</span>
-<span id="1693">1693</span>
-<span id="1694">1694</span>
-<span id="1695">1695</span>
-<span id="1696">1696</span>
-<span id="1697">1697</span>
-<span id="1698">1698</span>
-<span id="1699">1699</span>
-<span id="1700">1700</span>
-<span id="1701">1701</span>
-<span id="1702">1702</span>
-<span id="1703">1703</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Boa&#39;s implementation of ECMAScript&#39;s global `RegExp` object.
 //!
 //! The `RegExp` object is used for matching text with a pattern.
@@ -1729,7 +1713,7 @@
     },
     property::{Attribute, PropertyDescriptorBuilder},
     string::{utf16, CodePoint},
-    symbol::WellKnownSymbols,
+    symbol::JsSymbol,
     value::JsValue,
     Context, JsResult, JsString,
 };
@@ -1819,7 +1803,7 @@
         .name(<span class="self">Self</span>::NAME)
         .length(<span class="self">Self</span>::LENGTH)
         .static_accessor(
-            WellKnownSymbols::species(),
+            JsSymbol::species(),
             <span class="prelude-val">Some</span>(get_species),
             <span class="prelude-val">None</span>,
             Attribute::CONFIGURABLE,
@@ -1828,31 +1812,15 @@
         .method(<span class="self">Self</span>::test, <span class="string">&quot;test&quot;</span>, <span class="number">1</span>)
         .method(<span class="self">Self</span>::exec, <span class="string">&quot;exec&quot;</span>, <span class="number">1</span>)
         .method(<span class="self">Self</span>::to_string, <span class="string">&quot;toString&quot;</span>, <span class="number">0</span>)
-        .method(
-            <span class="self">Self</span>::r#match,
-            (WellKnownSymbols::r#match(), <span class="string">&quot;[Symbol.match]&quot;</span>),
-            <span class="number">1</span>,
-        )
+        .method(<span class="self">Self</span>::r#match, (JsSymbol::r#match(), <span class="string">&quot;[Symbol.match]&quot;</span>), <span class="number">1</span>)
         .method(
             <span class="self">Self</span>::match_all,
-            (WellKnownSymbols::match_all(), <span class="string">&quot;[Symbol.matchAll]&quot;</span>),
+            (JsSymbol::match_all(), <span class="string">&quot;[Symbol.matchAll]&quot;</span>),
             <span class="number">1</span>,
         )
-        .method(
-            <span class="self">Self</span>::replace,
-            (WellKnownSymbols::replace(), <span class="string">&quot;[Symbol.replace]&quot;</span>),
-            <span class="number">2</span>,
-        )
-        .method(
-            <span class="self">Self</span>::search,
-            (WellKnownSymbols::search(), <span class="string">&quot;[Symbol.search]&quot;</span>),
-            <span class="number">1</span>,
-        )
-        .method(
-            <span class="self">Self</span>::split,
-            (WellKnownSymbols::split(), <span class="string">&quot;[Symbol.split]&quot;</span>),
-            <span class="number">2</span>,
-        )
+        .method(<span class="self">Self</span>::replace, (JsSymbol::replace(), <span class="string">&quot;[Symbol.replace]&quot;</span>), <span class="number">2</span>)
+        .method(<span class="self">Self</span>::search, (JsSymbol::search(), <span class="string">&quot;[Symbol.search]&quot;</span>), <span class="number">1</span>)
+        .method(<span class="self">Self</span>::split, (JsSymbol::split(), <span class="string">&quot;[Symbol.split]&quot;</span>), <span class="number">2</span>)
         .accessor(<span class="string">&quot;hasIndices&quot;</span>, <span class="prelude-val">Some</span>(get_has_indices), <span class="prelude-val">None</span>, flag_attributes)
         .accessor(<span class="string">&quot;global&quot;</span>, <span class="prelude-val">Some</span>(get_global), <span class="prelude-val">None</span>, flag_attributes)
         .accessor(<span class="string">&quot;ignoreCase&quot;</span>, <span class="prelude-val">Some</span>(get_ignore_case), <span class="prelude-val">None</span>, flag_attributes)

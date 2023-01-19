@@ -1035,8 +1035,8 @@
 
 </span><span class="kw">use </span><span class="kw">super</span>::JsArgs;
 <span class="kw">use crate</span>::{
-    builtins::BuiltIn, object::ObjectInitializer, property::Attribute, symbol::WellKnownSymbols,
-    Context, JsResult, JsValue,
+    builtins::BuiltIn, object::ObjectInitializer, property::Attribute, symbol::JsSymbol, Context,
+    JsResult, JsValue,
 };
 <span class="kw">use </span>boa_profiler::Profiler;
 <span class="kw">use </span>tap::{Conv, Pipe};
@@ -1055,7 +1055,7 @@
         <span class="kw">let </span>_timer = Profiler::global().start_event(<span class="self">Self</span>::NAME, <span class="string">&quot;init&quot;</span>);
 
         <span class="kw">let </span>attribute = Attribute::READONLY | Attribute::NON_ENUMERABLE | Attribute::PERMANENT;
-        <span class="kw">let </span>string_tag = WellKnownSymbols::to_string_tag();
+        <span class="kw">let </span>string_tag = JsSymbol::to_string_tag();
         ObjectInitializer::new(context)
             .property(<span class="string">&quot;E&quot;</span>, std::f64::consts::E, attribute)
             .property(<span class="string">&quot;LN10&quot;</span>, std::f64::consts::LN_10, attribute)

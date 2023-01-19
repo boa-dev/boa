@@ -1159,7 +1159,7 @@
     js_string,
     object::{JsObject, ObjectData},
     property::{PropertyDescriptor, PropertyKey},
-    symbol::{JsSymbol, WellKnownSymbols},
+    symbol::JsSymbol,
     Context, JsBigInt, JsResult, JsString,
 };
 <span class="kw">use </span>boa_gc::{custom_trace, Finalize, Trace};
@@ -1495,7 +1495,7 @@
         // 2. If Type(input) is Object, then
         </span><span class="kw">if let </span><span class="prelude-val">Some</span>(input) = <span class="self">self</span>.as_object() {
             <span class="comment">// a. Let exoticToPrim be ? GetMethod(input, @@toPrimitive).
-            </span><span class="kw">let </span>exotic_to_prim = input.get_method(WellKnownSymbols::to_primitive(), context)<span class="question-mark">?</span>;
+            </span><span class="kw">let </span>exotic_to_prim = input.get_method(JsSymbol::to_primitive(), context)<span class="question-mark">?</span>;
 
             <span class="comment">// b. If exoticToPrim is not undefined, then
             </span><span class="kw">if let </span><span class="prelude-val">Some</span>(exotic_to_prim) = exotic_to_prim {

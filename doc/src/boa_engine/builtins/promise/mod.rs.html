@@ -2289,7 +2289,7 @@
         FunctionObjectBuilder, JsFunction, JsObject, ObjectData,
     },
     property::{Attribute, PropertyDescriptorBuilder},
-    symbol::WellKnownSymbols,
+    symbol::JsSymbol,
     value::JsValue,
     Context, JsError, JsResult,
 };
@@ -2548,7 +2548,7 @@
         .static_method(<span class="self">Self</span>::reject, <span class="string">&quot;reject&quot;</span>, <span class="number">1</span>)
         .static_method(<span class="self">Self</span>::resolve, <span class="string">&quot;resolve&quot;</span>, <span class="number">1</span>)
         .static_accessor(
-            WellKnownSymbols::species(),
+            JsSymbol::species(),
             <span class="prelude-val">Some</span>(get_species),
             <span class="prelude-val">None</span>,
             Attribute::CONFIGURABLE,
@@ -2558,7 +2558,7 @@
         .method(<span class="self">Self</span>::finally, <span class="string">&quot;finally&quot;</span>, <span class="number">1</span>)
         <span class="comment">// &lt;https://tc39.es/ecma262/#sec-promise.prototype-@@tostringtag&gt;
         </span>.property(
-            WellKnownSymbols::to_string_tag(),
+            JsSymbol::to_string_tag(),
             <span class="self">Self</span>::NAME,
             Attribute::READONLY | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
         )

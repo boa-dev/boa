@@ -1085,7 +1085,7 @@
         FunctionObjectBuilder, JsObject, ObjectData,
     },
     property::Attribute,
-    symbol::WellKnownSymbols,
+    symbol::JsSymbol,
     value::JsValue,
     Context, JsResult,
 };
@@ -1152,7 +1152,7 @@
         .method(<span class="self">Self</span>::set_uint16, <span class="string">&quot;setUint16&quot;</span>, <span class="number">2</span>)
         .method(<span class="self">Self</span>::set_uint32, <span class="string">&quot;setUint32&quot;</span>, <span class="number">2</span>)
         .property(
-            WellKnownSymbols::to_string_tag(),
+            JsSymbol::to_string_tag(),
             <span class="self">Self</span>::NAME,
             Attribute::READONLY | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
         )

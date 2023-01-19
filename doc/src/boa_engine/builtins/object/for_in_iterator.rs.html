@@ -172,7 +172,7 @@
     object::{JsObject, ObjectData},
     property::PropertyDescriptor,
     property::PropertyKey,
-    symbol::WellKnownSymbols,
+    symbol::JsSymbol,
     Context, JsResult, JsString, JsValue,
 };
 <span class="kw">use </span>boa_gc::{Finalize, Trace};
@@ -309,7 +309,7 @@
             JsObject::from_proto_and_data(iterator_prototype, ObjectData::ordinary());
         make_builtin_fn(<span class="self">Self</span>::next, <span class="string">&quot;next&quot;</span>, <span class="kw-2">&amp;</span>for_in_iterator, <span class="number">0</span>, context);
 
-        <span class="kw">let </span>to_string_tag = WellKnownSymbols::to_string_tag();
+        <span class="kw">let </span>to_string_tag = JsSymbol::to_string_tag();
         <span class="kw">let </span>to_string_tag_property = PropertyDescriptor::builder()
             .value(<span class="string">&quot;For In Iterator&quot;</span>)
             .writable(<span class="bool-val">false</span>)

@@ -1217,16 +1217,14 @@
 <span id="1216">1216</span>
 <span id="1217">1217</span>
 <span id="1218">1218</span>
-<span id="1219">1219</span>
 </pre><pre class="rust"><code><span class="kw">use crate</span>::{
     builtins::{function::ClassFieldDefinition, Array},
     context::intrinsics::{StandardConstructor, StandardConstructors},
     error::JsNativeError,
     object::{JsObject, PrivateElement},
     property::{PropertyDescriptor, PropertyDescriptorBuilder, PropertyKey, PropertyNameKind},
-    symbol::WellKnownSymbols,
     value::Type,
-    Context, JsResult, JsValue,
+    Context, JsResult, JsSymbol, JsValue,
 };
 <span class="kw">use </span>boa_ast::function::PrivateName;
 
@@ -1732,7 +1730,7 @@
         })<span class="question-mark">?</span>;
 
         <span class="comment">// 5. Let S be ? Get(C, @@species).
-        </span><span class="kw">let </span>s = c.get(WellKnownSymbols::species(), context)<span class="question-mark">?</span>;
+        </span><span class="kw">let </span>s = c.get(JsSymbol::species(), context)<span class="question-mark">?</span>;
 
         <span class="comment">// 6. If S is either undefined or null, return defaultConstructor.
         </span><span class="kw">if </span>s.is_null_or_undefined() {

@@ -1522,35 +1522,10 @@
 <span id="1521">1521</span>
 <span id="1522">1522</span>
 <span id="1523">1523</span>
-<span id="1524">1524</span>
-<span id="1525">1525</span>
-<span id="1526">1526</span>
-<span id="1527">1527</span>
-<span id="1528">1528</span>
-<span id="1529">1529</span>
-<span id="1530">1530</span>
-<span id="1531">1531</span>
-<span id="1532">1532</span>
-<span id="1533">1533</span>
-<span id="1534">1534</span>
-<span id="1535">1535</span>
-<span id="1536">1536</span>
-<span id="1537">1537</span>
-<span id="1538">1538</span>
-<span id="1539">1539</span>
-<span id="1540">1540</span>
-<span id="1541">1541</span>
-<span id="1542">1542</span>
-<span id="1543">1543</span>
-<span id="1544">1544</span>
-<span id="1545">1545</span>
-<span id="1546">1546</span>
-<span id="1547">1547</span>
-<span id="1548">1548</span>
-<span id="1549">1549</span>
-<span id="1550">1550</span>
 </pre><pre class="rust"><code><span class="doccomment">/// The opcodes of the vm.
 </span><span class="kw">use crate</span>::{vm::ShouldExit, Context, JsResult};
+
+<span class="kw">use </span>num_enum::TryFromPrimitive;
 
 <span class="comment">// Operation modules
 </span><span class="kw">mod </span>await_stm;
@@ -1722,7 +1697,7 @@
 }
 
 <span class="macro">generate_impl! </span>{
-    <span class="attribute">#[derive(Debug, Clone, Copy)]
+    <span class="attribute">#[derive(Debug, Clone, Copy, TryFromPrimitive)]
     #[repr(u8)]
     </span><span class="kw">pub enum </span>Opcode {
         <span class="doccomment">/// Pop the top value from the stack.
@@ -3054,35 +3029,6 @@
         </span><span class="comment">// Safety: Must be last in the list since, we use this for range checking
         // in `TryFrom&lt;u8&gt;` impl.
         </span>Nop,
-    }
-}
-
-<span class="attribute">#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-</span><span class="kw">pub struct </span>InvalidOpcodeError {
-    value: u8,
-}
-
-<span class="kw">impl </span>std::fmt::Display <span class="kw">for </span>InvalidOpcodeError {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>std::fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; std::fmt::Result {
-        <span class="macro">write!</span>(f, <span class="string">&quot;invalid opcode: {:#04x}&quot;</span>, <span class="self">self</span>.value)
-    }
-}
-
-<span class="kw">impl </span>std::error::Error <span class="kw">for </span>InvalidOpcodeError {}
-
-<span class="kw">impl </span>TryFrom&lt;u8&gt; <span class="kw">for </span>Opcode {
-    <span class="kw">type </span>Error = InvalidOpcodeError;
-
-    <span class="kw">fn </span>try_from(value: u8) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>, <span class="self">Self</span>::Error&gt; {
-        <span class="kw">if </span>value &gt; <span class="self">Self</span>::Nop <span class="kw">as </span>u8 {
-            <span class="kw">return </span><span class="prelude-val">Err</span>(InvalidOpcodeError { value });
-        }
-
-        <span class="comment">// Safety: we already checked if it is in the Opcode range,
-        // so this is safe.
-        </span><span class="kw">let </span>opcode = <span class="kw">unsafe </span>{ <span class="self">Self</span>::from_raw(value) };
-
-        <span class="prelude-val">Ok</span>(opcode)
     }
 }
 

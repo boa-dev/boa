@@ -863,7 +863,7 @@
         FunctionObjectBuilder, JsObject, ObjectData,
     },
     property::Attribute,
-    symbol::WellKnownSymbols,
+    symbol::JsSymbol,
     value::{IntegerOrInfinity, Numeric},
     Context, JsResult, JsValue,
 };
@@ -919,7 +919,7 @@
         .length(<span class="self">Self</span>::LENGTH)
         .accessor(<span class="string">&quot;byteLength&quot;</span>, <span class="prelude-val">Some</span>(get_byte_length), <span class="prelude-val">None</span>, flag_attributes)
         .static_accessor(
-            WellKnownSymbols::species(),
+            JsSymbol::species(),
             <span class="prelude-val">Some</span>(get_species),
             <span class="prelude-val">None</span>,
             Attribute::CONFIGURABLE,
@@ -927,7 +927,7 @@
         .static_method(<span class="self">Self</span>::is_view, <span class="string">&quot;isView&quot;</span>, <span class="number">1</span>)
         .method(<span class="self">Self</span>::slice, <span class="string">&quot;slice&quot;</span>, <span class="number">2</span>)
         .property(
-            WellKnownSymbols::to_string_tag(),
+            JsSymbol::to_string_tag(),
             <span class="self">Self</span>::NAME,
             Attribute::READONLY | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
         )

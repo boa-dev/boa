@@ -241,6 +241,7 @@
 <span id="240">240</span>
 <span id="241">241</span>
 <span id="242">242</span>
+<span id="243">243</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Boa&#39;s **`boa_engine`** crate implements ECMAScript&#39;s standard library of builtin objects
 //! and an ECMAScript context, bytecompiler, and virtual machine for code execution.
 //!
@@ -367,6 +368,7 @@
 <span class="kw">pub mod </span>value;
 <span class="kw">pub mod </span>vm;
 
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">mod </span>tagged;
 <span class="attribute">#[cfg(test)]
 </span><span class="kw">mod </span>tests;
 

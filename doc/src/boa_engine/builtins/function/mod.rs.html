@@ -1072,7 +1072,7 @@
     object::{ConstructorBuilder, FunctionObjectBuilder, JsFunction, PrivateElement},
     property::{Attribute, PropertyDescriptor, PropertyKey},
     string::utf16,
-    symbol::WellKnownSymbols,
+    symbol::JsSymbol,
     value::IntegerOrInfinity,
     Context, JsResult, JsString, JsValue,
 };
@@ -1928,7 +1928,7 @@
             .constructor(<span class="bool-val">false</span>)
             .build_function_prototype(<span class="kw-2">&amp;</span>function_prototype);
 
-        <span class="kw">let </span>symbol_has_instance = WellKnownSymbols::has_instance();
+        <span class="kw">let </span>symbol_has_instance = JsSymbol::has_instance();
 
         <span class="kw">let </span>has_instance =
             FunctionObjectBuilder::new(context, NativeFunction::from_fn_ptr(<span class="self">Self</span>::has_instance))

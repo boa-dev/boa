@@ -144,7 +144,7 @@
     native_function::NativeFunction,
     object::ObjectData,
     property::PropertyDescriptor,
-    symbol::WellKnownSymbols,
+    symbol::JsSymbol,
     value::JsValue,
     Context, JsResult,
 };
@@ -237,7 +237,7 @@
             .configurable(<span class="bool-val">true</span>);
         prototype
             .borrow_mut()
-            .insert(WellKnownSymbols::to_string_tag(), property);
+            .insert(JsSymbol::to_string_tag(), property);
 
         <span class="prelude-val">None
     </span>}

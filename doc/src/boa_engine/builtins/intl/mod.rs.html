@@ -172,7 +172,7 @@
     context::BoaProvider,
     object::ObjectInitializer,
     property::Attribute,
-    symbol::WellKnownSymbols,
+    symbol::JsSymbol,
     Context, JsResult, JsValue,
 };
 
@@ -213,7 +213,7 @@
 
         ObjectInitializer::new(context)
             .property(
-                WellKnownSymbols::to_string_tag(),
+                JsSymbol::to_string_tag(),
                 <span class="self">Self</span>::NAME,
                 Attribute::READONLY | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
             )

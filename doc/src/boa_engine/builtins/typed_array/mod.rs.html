@@ -3633,7 +3633,7 @@
         FunctionObjectBuilder, JsObject, ObjectData,
     },
     property::{Attribute, PropertyNameKind},
-    symbol::WellKnownSymbols,
+    symbol::JsSymbol,
     value::{IntegerOrInfinity, JsValue},
     Context, JsResult,
 };
@@ -3692,7 +3692,7 @@
                 .name(<span class="self">Self</span>::NAME)
                 .length(<span class="self">Self</span>::LENGTH)
                 .static_accessor(
-                    WellKnownSymbols::species(),
+                    JsSymbol::species(),
                     <span class="prelude-val">Some</span>(get_species),
                     <span class="prelude-val">None</span>,
                     Attribute::CONFIGURABLE,
@@ -3802,7 +3802,7 @@
 
                         </span><span class="kw">let </span>first_argument_v = JsValue::from(first_argument.clone());
                         <span class="kw">let </span>using_iterator =
-                            first_argument_v.get_method(WellKnownSymbols::replace(), context)<span class="question-mark">?</span>;
+                            first_argument_v.get_method(JsSymbol::replace(), context)<span class="question-mark">?</span>;
 
                         <span class="comment">// 3. If usingIterator is not undefined, then
                         </span><span class="kw">if let </span><span class="prelude-val">Some</span>(using_iterator) = using_iterator {
@@ -3910,7 +3910,7 @@
         .name(<span class="self">Self</span>::NAME)
         .length(<span class="self">Self</span>::LENGTH)
         .static_accessor(
-            WellKnownSymbols::species(),
+            JsSymbol::species(),
             <span class="prelude-val">Some</span>(get_species),
             <span class="prelude-val">None</span>,
             Attribute::CONFIGURABLE,
@@ -3921,7 +3921,7 @@
             Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::PERMANENT,
         )
         .property(
-            WellKnownSymbols::iterator(),
+            JsSymbol::iterator(),
             values_function,
             Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
         )
@@ -3950,7 +3950,7 @@
             Attribute::CONFIGURABLE | Attribute::NON_ENUMERABLE,
         )
         .accessor(
-            WellKnownSymbols::to_string_tag(),
+            JsSymbol::to_string_tag(),
             <span class="prelude-val">Some</span>(get_to_string_tag),
             <span class="prelude-val">None</span>,
             Attribute::CONFIGURABLE | Attribute::NON_ENUMERABLE,
@@ -4046,7 +4046,7 @@
 
         <span class="comment">// 5. Let usingIterator be ? GetMethod(source, @@iterator).
         </span><span class="kw">let </span>source = args.get_or_undefined(<span class="number">0</span>);
-        <span class="kw">let </span>using_iterator = source.get_method(WellKnownSymbols::iterator(), context)<span class="question-mark">?</span>;
+        <span class="kw">let </span>using_iterator = source.get_method(JsSymbol::iterator(), context)<span class="question-mark">?</span>;
 
         <span class="kw">let </span>this_arg = args.get_or_undefined(<span class="number">2</span>);
 

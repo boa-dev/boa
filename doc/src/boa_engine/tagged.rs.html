@@ -1,0 +1,221 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `boa_engine/src/tagged.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>tagged.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../normalize.css"><link rel="stylesheet" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../ayu.css" disabled><link rel="stylesheet" href="../../dark.css" disabled><link rel="stylesheet" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><div class="width-limiter"><nav class="sub"><a class="sub-logo-container" href="../../boa_engine/index.html">
+                        <img src="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><span id="1">1</span>
+<span id="2">2</span>
+<span id="3">3</span>
+<span id="4">4</span>
+<span id="5">5</span>
+<span id="6">6</span>
+<span id="7">7</span>
+<span id="8">8</span>
+<span id="9">9</span>
+<span id="10">10</span>
+<span id="11">11</span>
+<span id="12">12</span>
+<span id="13">13</span>
+<span id="14">14</span>
+<span id="15">15</span>
+<span id="16">16</span>
+<span id="17">17</span>
+<span id="18">18</span>
+<span id="19">19</span>
+<span id="20">20</span>
+<span id="21">21</span>
+<span id="22">22</span>
+<span id="23">23</span>
+<span id="24">24</span>
+<span id="25">25</span>
+<span id="26">26</span>
+<span id="27">27</span>
+<span id="28">28</span>
+<span id="29">29</span>
+<span id="30">30</span>
+<span id="31">31</span>
+<span id="32">32</span>
+<span id="33">33</span>
+<span id="34">34</span>
+<span id="35">35</span>
+<span id="36">36</span>
+<span id="37">37</span>
+<span id="38">38</span>
+<span id="39">39</span>
+<span id="40">40</span>
+<span id="41">41</span>
+<span id="42">42</span>
+<span id="43">43</span>
+<span id="44">44</span>
+<span id="45">45</span>
+<span id="46">46</span>
+<span id="47">47</span>
+<span id="48">48</span>
+<span id="49">49</span>
+<span id="50">50</span>
+<span id="51">51</span>
+<span id="52">52</span>
+<span id="53">53</span>
+<span id="54">54</span>
+<span id="55">55</span>
+<span id="56">56</span>
+<span id="57">57</span>
+<span id="58">58</span>
+<span id="59">59</span>
+<span id="60">60</span>
+<span id="61">61</span>
+<span id="62">62</span>
+<span id="63">63</span>
+<span id="64">64</span>
+<span id="65">65</span>
+<span id="66">66</span>
+<span id="67">67</span>
+<span id="68">68</span>
+<span id="69">69</span>
+<span id="70">70</span>
+<span id="71">71</span>
+<span id="72">72</span>
+<span id="73">73</span>
+<span id="74">74</span>
+<span id="75">75</span>
+<span id="76">76</span>
+<span id="77">77</span>
+<span id="78">78</span>
+<span id="79">79</span>
+<span id="80">80</span>
+<span id="81">81</span>
+<span id="82">82</span>
+<span id="83">83</span>
+<span id="84">84</span>
+<span id="85">85</span>
+<span id="86">86</span>
+<span id="87">87</span>
+<span id="88">88</span>
+<span id="89">89</span>
+<span id="90">90</span>
+<span id="91">91</span>
+<span id="92">92</span>
+<span id="93">93</span>
+<span id="94">94</span>
+<span id="95">95</span>
+<span id="96">96</span>
+<span id="97">97</span>
+<span id="98">98</span>
+<span id="99">99</span>
+<span id="100">100</span>
+<span id="101">101</span>
+<span id="102">102</span>
+<span id="103">103</span>
+<span id="104">104</span>
+<span id="105">105</span>
+<span id="106">106</span>
+<span id="107">107</span>
+<span id="108">108</span>
+<span id="109">109</span>
+</pre><pre class="rust"><code><span class="comment">// Remove when/if https://github.com/rust-lang/rust/issues/95228 stabilizes.
+// Right now this allows us to use the stable polyfill from the `sptr` crate, which uses
+// the same names from the unstable functions of the `std::ptr` module.
+</span><span class="attribute">#![allow(unstable_name_collisions)]
+
+</span><span class="kw">use </span>sptr::Strict;
+<span class="kw">use </span>std::ptr::NonNull;
+
+<span class="doccomment">/// A pointer that can be tagged with an `usize`.
+///
+/// Only pointers with a minimum alignment of 2-bytes are valid, and the tag must have its most
+/// significant bit (MSB) unset. In other words, the tag must fit inside `usize::BITS - 1` bits.
+///
+/// # Representation
+///
+/// If the least significant bit (LSB) of the internal [`NonNull`] is set (1), then the pointer
+/// address represents a tag where the remaining bits store the tag. Otherwise, the whole pointer
+/// represents the pointer itself.
+///
+/// It uses [`NonNull`], which guarantees that [`Tagged`] can use the &quot;null pointer optimization&quot;
+/// to optimize the size of [`Option&lt;Tagged&gt;`].
+///
+/// # Provenance
+///
+/// This struct stores a [`NonNull&lt;T&gt;`] instead of a [`NonZeroUsize`][std::num::NonZeroUsize]
+/// in order to preserve the provenance of our valid heap pointers.
+/// On the other hand, all index values are just casted to invalid pointers, because we don&#39;t need to
+/// preserve the provenance of [`usize`] indices.
+///
+/// [tagged_wp]: https://en.wikipedia.org/wiki/Tagged_pointer
+</span><span class="attribute">#[derive(Debug)]
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>Tagged&lt;T&gt;(NonNull&lt;T&gt;);
+
+<span class="kw">impl</span>&lt;T&gt; Clone <span class="kw">for </span>Tagged&lt;T&gt; {
+    <span class="kw">fn </span>clone(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="self">Self </span>{
+        <span class="self">Self</span>(<span class="self">self</span>.<span class="number">0</span>)
+    }
+}
+
+<span class="kw">impl</span>&lt;T&gt; Copy <span class="kw">for </span>Tagged&lt;T&gt; {}
+
+<span class="kw">impl</span>&lt;T&gt; Tagged&lt;T&gt; {
+    <span class="doccomment">/// Creates a new, tagged `Tagged` pointer from an integer.
+    ///
+    /// # Requirements
+    ///
+    /// - `T` must have an alignment of at least 2.
+    /// - `tag` must fit inside `usize::BITS - 1` bits
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const fn </span>from_tag(tag: usize) -&gt; Tagged&lt;T&gt; {
+        <span class="macro">debug_assert!</span>(std::mem::align_of::&lt;T&gt;() &gt;= <span class="number">2</span>);
+        <span class="kw">let </span>addr = (tag &lt;&lt; <span class="number">1</span>) | <span class="number">1</span>;
+        <span class="comment">// SAFETY: `addr` is never zero, since we always set its LSB to 1
+        </span><span class="kw">unsafe </span>{ Tagged(NonNull::new_unchecked(sptr::invalid_mut(addr))) }
+    }
+
+    <span class="doccomment">/// Creates a new `Tagged` pointer from a raw pointer.
+    ///
+    /// # Requirements
+    ///
+    /// - `T` must have an alignment of at least 2.
+    ///
+    /// # Safety
+    ///
+    /// - `T` must be non null.
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const unsafe fn </span>from_ptr(ptr: <span class="kw-2">*mut </span>T) -&gt; Tagged&lt;T&gt; {
+        <span class="macro">debug_assert!</span>(std::mem::align_of::&lt;T&gt;() &gt;= <span class="number">2</span>);
+        <span class="comment">// SAFETY: the caller must ensure the invariants hold.
+        </span><span class="kw">unsafe </span>{ Tagged(NonNull::new_unchecked(ptr)) }
+    }
+
+    <span class="doccomment">/// Creates a new `Tagged` pointer from a `NonNull` pointer.
+    ///
+    /// # Requirements
+    ///
+    /// - `T` must have an alignment of at least 2.
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const fn </span>from_non_null(ptr: NonNull&lt;T&gt;) -&gt; Tagged&lt;T&gt; {
+        <span class="macro">debug_assert!</span>(std::mem::align_of::&lt;T&gt;() &gt;= <span class="number">2</span>);
+        Tagged(ptr)
+    }
+
+    <span class="doccomment">/// Unwraps the `Tagged` pointer.
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>unwrap(<span class="self">self</span>) -&gt; UnwrappedTagged&lt;T&gt; {
+        <span class="kw">let </span>addr = <span class="self">self</span>.<span class="number">0</span>.as_ptr().addr();
+        <span class="kw">if </span>addr &amp; <span class="number">1 </span>== <span class="number">0 </span>{
+            UnwrappedTagged::Ptr(<span class="self">self</span>.<span class="number">0</span>)
+        } <span class="kw">else </span>{
+            UnwrappedTagged::Tag(addr &gt;&gt; <span class="number">1</span>)
+        }
+    }
+
+    <span class="doccomment">/// Gets the address of the inner pointer.
+    </span><span class="attribute">#[allow(unused)]
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>addr(<span class="self">self</span>) -&gt; usize {
+        <span class="self">self</span>.<span class="number">0</span>.as_ptr().addr()
+    }
+
+    <span class="doccomment">/// Returns `true` if `self ` is a tagged pointer.
+    </span><span class="attribute">#[allow(unused)]
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>is_tagged(<span class="self">self</span>) -&gt; bool {
+        <span class="self">self</span>.<span class="number">0</span>.as_ptr().addr() &amp; <span class="number">1 </span>&gt; <span class="number">0
+    </span>}
+}
+
+<span class="doccomment">/// The unwrapped value of a [`Tagged`] pointer.
+</span><span class="attribute">#[derive(Debug, Clone, Copy)]
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">enum </span>UnwrappedTagged&lt;T&gt; {
+    Ptr(NonNull&lt;T&gt;),
+    Tag(usize),
+}
+</code></pre></div>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="boa_engine" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.66.1 (90743e729 2023-01-10)" ></div></body></html>

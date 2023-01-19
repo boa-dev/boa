@@ -485,7 +485,7 @@
         FunctionObjectBuilder, JsObject, ObjectData,
     },
     property::{Attribute, PropertyNameKind},
-    symbol::WellKnownSymbols,
+    symbol::JsSymbol,
     Context, JsResult, JsValue,
 };
 <span class="kw">use </span>boa_profiler::Profiler;
@@ -517,9 +517,9 @@
                 .name(<span class="string">&quot;get size&quot;</span>)
                 .build();
 
-        <span class="kw">let </span>iterator_symbol = WellKnownSymbols::iterator();
+        <span class="kw">let </span>iterator_symbol = JsSymbol::iterator();
 
-        <span class="kw">let </span>to_string_tag = WellKnownSymbols::to_string_tag();
+        <span class="kw">let </span>to_string_tag = JsSymbol::to_string_tag();
 
         <span class="kw">let </span>values_function =
             FunctionObjectBuilder::new(context, NativeFunction::from_fn_ptr(<span class="self">Self</span>::values))
@@ -536,7 +536,7 @@
         .name(<span class="self">Self</span>::NAME)
         .length(<span class="self">Self</span>::LENGTH)
         .static_accessor(
-            WellKnownSymbols::species(),
+            JsSymbol::species(),
             <span class="prelude-val">Some</span>(get_species),
             <span class="prelude-val">None</span>,
             Attribute::CONFIGURABLE,

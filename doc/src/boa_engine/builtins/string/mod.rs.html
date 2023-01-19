@@ -2403,7 +2403,7 @@
     property::{Attribute, PropertyDescriptor},
     string::utf16,
     string::{CodePoint, Utf16Trim},
-    symbol::WellKnownSymbols,
+    symbol::JsSymbol,
     value::IntegerOrInfinity,
     Context, JsResult, JsString, JsValue,
 };
@@ -2447,7 +2447,7 @@
     <span class="kw">fn </span>init(context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <span class="prelude-ty">Option</span>&lt;JsValue&gt; {
         <span class="kw">let </span>_timer = Profiler::global().start_event(<span class="self">Self</span>::NAME, <span class="string">&quot;init&quot;</span>);
 
-        <span class="kw">let </span>symbol_iterator = WellKnownSymbols::iterator();
+        <span class="kw">let </span>symbol_iterator = JsSymbol::iterator();
 
         <span class="kw">let </span>attribute = Attribute::READONLY | Attribute::NON_ENUMERABLE | Attribute::PERMANENT;
         ConstructorBuilder::with_standard_constructor(
@@ -3308,7 +3308,7 @@
         <span class="comment">// 2. If searchValue is neither undefined nor null, then
         </span><span class="kw">if </span>!search_value.is_null_or_undefined() {
             <span class="comment">// a. Let replacer be ? GetMethod(searchValue, @@replace).
-            </span><span class="kw">let </span>replacer = search_value.get_method(WellKnownSymbols::replace(), context)<span class="question-mark">?</span>;
+            </span><span class="kw">let </span>replacer = search_value.get_method(JsSymbol::replace(), context)<span class="question-mark">?</span>;
 
             <span class="comment">// b. If replacer is not undefined, then
             </span><span class="kw">if let </span><span class="prelude-val">Some</span>(replacer) = replacer {
@@ -3431,7 +3431,7 @@
             }
 
             <span class="comment">// c. Let replacer be ? GetMethod(searchValue, @@replace).
-            </span><span class="kw">let </span>replacer = search_value.get_method(WellKnownSymbols::replace(), context)<span class="question-mark">?</span>;
+            </span><span class="kw">let </span>replacer = search_value.get_method(JsSymbol::replace(), context)<span class="question-mark">?</span>;
 
             <span class="comment">// d. If replacer is not undefined, then
             </span><span class="kw">if let </span><span class="prelude-val">Some</span>(replacer) = replacer {
@@ -3736,7 +3736,7 @@
         </span><span class="kw">let </span>regexp = args.get_or_undefined(<span class="number">0</span>);
         <span class="kw">if </span>!regexp.is_null_or_undefined() {
             <span class="comment">// a. Let matcher be ? GetMethod(regexp, @@match).
-            </span><span class="kw">let </span>matcher = regexp.get_method(WellKnownSymbols::r#match(), context)<span class="question-mark">?</span>;
+            </span><span class="kw">let </span>matcher = regexp.get_method(JsSymbol::r#match(), context)<span class="question-mark">?</span>;
             <span class="comment">// b. If matcher is not undefined, then
             </span><span class="kw">if let </span><span class="prelude-val">Some</span>(matcher) = matcher {
                 <span class="comment">// i. Return ? Call(matcher, regexp, « O »).
@@ -3751,7 +3751,7 @@
         </span><span class="kw">let </span>rx = RegExp::create(regexp, <span class="kw-2">&amp;</span>JsValue::Undefined, context)<span class="question-mark">?</span>;
 
         <span class="comment">// 5. Return ? Invoke(rx, @@match, « S »).
-        </span>rx.invoke(WellKnownSymbols::r#match(), <span class="kw-2">&amp;</span>[JsValue::new(s)], context)
+        </span>rx.invoke(JsSymbol::r#match(), <span class="kw-2">&amp;</span>[JsValue::new(s)], context)
     }
 
     <span class="doccomment">/// Abstract operation `StringPad ( O, maxLength, fillString, placement )`.
@@ -4206,7 +4206,7 @@
         <span class="comment">// 2. If separator is neither undefined nor null, then
         </span><span class="kw">if </span>!separator.is_null_or_undefined() {
             <span class="comment">// a. Let splitter be ? GetMethod(separator, @@split).
-            </span><span class="kw">let </span>splitter = separator.get_method(WellKnownSymbols::split(), context)<span class="question-mark">?</span>;
+            </span><span class="kw">let </span>splitter = separator.get_method(JsSymbol::split(), context)<span class="question-mark">?</span>;
             <span class="comment">// b. If splitter is not undefined, then
             </span><span class="kw">if let </span><span class="prelude-val">Some</span>(splitter) = splitter {
                 <span class="comment">// i. Return ? Call(splitter, separator, « O, limit »).
@@ -4364,7 +4364,7 @@
                 }
             }
             <span class="comment">// c. Let matcher be ? GetMethod(regexp, @@matchAll).
-            </span><span class="kw">let </span>matcher = regexp.get_method(WellKnownSymbols::match_all(), context)<span class="question-mark">?</span>;
+            </span><span class="kw">let </span>matcher = regexp.get_method(JsSymbol::match_all(), context)<span class="question-mark">?</span>;
             <span class="comment">// d. If matcher is not undefined, then
             </span><span class="kw">if let </span><span class="prelude-val">Some</span>(matcher) = matcher {
                 <span class="kw">return </span>matcher.call(regexp, <span class="kw-2">&amp;</span>[o.clone()], context);
@@ -4378,7 +4378,7 @@
         </span><span class="kw">let </span>rx = RegExp::create(regexp, <span class="kw-2">&amp;</span>JsValue::new(<span class="macro">js_string!</span>(<span class="string">&quot;g&quot;</span>)), context)<span class="question-mark">?</span>;
 
         <span class="comment">// 5. Return ? Invoke(rx, @@matchAll, « S »).
-        </span>rx.invoke(WellKnownSymbols::match_all(), <span class="kw-2">&amp;</span>[JsValue::new(s)], context)
+        </span>rx.invoke(JsSymbol::match_all(), <span class="kw-2">&amp;</span>[JsValue::new(s)], context)
     }
 
     <span class="doccomment">/// `String.prototype.normalize( [ form ] )`
@@ -4505,7 +4505,7 @@
         </span><span class="kw">let </span>regexp = args.get_or_undefined(<span class="number">0</span>);
         <span class="kw">if </span>!regexp.is_null_or_undefined() {
             <span class="comment">// a. Let searcher be ? GetMethod(regexp, @@search).
-            </span><span class="kw">let </span>searcher = regexp.get_method(WellKnownSymbols::search(), context)<span class="question-mark">?</span>;
+            </span><span class="kw">let </span>searcher = regexp.get_method(JsSymbol::search(), context)<span class="question-mark">?</span>;
             <span class="comment">// b. If searcher is not undefined, then
             </span><span class="kw">if let </span><span class="prelude-val">Some</span>(searcher) = searcher {
                 <span class="comment">// i. Return ? Call(searcher, regexp, « O »).
@@ -4520,7 +4520,7 @@
         </span><span class="kw">let </span>rx = RegExp::create(regexp, <span class="kw-2">&amp;</span>JsValue::Undefined, context)<span class="question-mark">?</span>;
 
         <span class="comment">// 5. Return ? Invoke(rx, @@search, « string »).
-        </span>rx.invoke(WellKnownSymbols::search(), <span class="kw-2">&amp;</span>[JsValue::new(string)], context)
+        </span>rx.invoke(JsSymbol::search(), <span class="kw-2">&amp;</span>[JsValue::new(string)], context)
     }
 
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>iterator(
@@ -4742,7 +4742,7 @@
 }
 <span class="kw">fn </span>is_reg_exp_object(argument: <span class="kw-2">&amp;</span>JsObject, context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;bool&gt; {
     <span class="comment">// 2. Let matcher be ? Get(argument, @@match).
-    </span><span class="kw">let </span>matcher = argument.get(WellKnownSymbols::r#match(), context)<span class="question-mark">?</span>;
+    </span><span class="kw">let </span>matcher = argument.get(JsSymbol::r#match(), context)<span class="question-mark">?</span>;
 
     <span class="comment">// 3. If matcher is not undefined, return ! ToBoolean(matcher).
     </span><span class="kw">if </span>!matcher.is_undefined() {

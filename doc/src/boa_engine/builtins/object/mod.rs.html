@@ -1425,7 +1425,7 @@
     },
     property::{Attribute, PropertyDescriptor, PropertyKey, PropertyNameKind},
     string::utf16,
-    symbol::WellKnownSymbols,
+    symbol::JsSymbol,
     value::JsValue,
     Context, JsResult, JsString,
 };
@@ -2219,7 +2219,7 @@
         };
 
         <span class="comment">// 15. Let tag be ? Get(O, @@toStringTag).
-        </span><span class="kw">let </span>tag = o.get(WellKnownSymbols::to_string_tag(), context)<span class="question-mark">?</span>;
+        </span><span class="kw">let </span>tag = o.get(JsSymbol::to_string_tag(), context)<span class="question-mark">?</span>;
 
         <span class="comment">// 16. If Type(tag) is not String, set tag to builtinTag.
         </span><span class="kw">let </span>tag_str = tag.as_string().map_or(builtin_tag, JsString::deref);

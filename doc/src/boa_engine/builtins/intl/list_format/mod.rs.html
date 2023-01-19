@@ -512,7 +512,7 @@
         internal_methods::get_prototype_from_constructor, ConstructorBuilder, JsObject, ObjectData,
     },
     property::Attribute,
-    symbol::WellKnownSymbols,
+    symbol::JsSymbol,
     Context, JsNativeError, JsResult, JsString, JsValue,
 };
 
@@ -563,7 +563,7 @@
         .length(<span class="self">Self</span>::LENGTH)
         .static_method(<span class="self">Self</span>::supported_locales_of, <span class="string">&quot;supportedLocalesOf&quot;</span>, <span class="number">1</span>)
         .property(
-            WellKnownSymbols::to_string_tag(),
+            JsSymbol::to_string_tag(),
             <span class="string">&quot;Intl.ListFormat&quot;</span>,
             Attribute::CONFIGURABLE,
         )

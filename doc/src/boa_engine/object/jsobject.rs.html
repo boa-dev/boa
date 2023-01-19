@@ -1748,10 +1748,10 @@ Cannot both specify accessors and a value or writable attribute&quot;</span>,
     <span class="kw">fn </span>drop(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
         <span class="kw">if </span><span class="self">self</span>.top_level {
             <span class="comment">// When the top level of the graph is dropped, we can free the entire map for the next traversal.
-            </span><span class="self">Self</span>::SEEN.with(|hm| hm.borrow_mut().clear());
+            </span>SEEN.with(|hm| hm.borrow_mut().clear());
         } <span class="kw">else if </span>!<span class="self">self</span>.live {
             <span class="comment">// This was the first RL for this object to become live, so it&#39;s no longer live now that it&#39;s dropped.
-            </span><span class="self">Self</span>::SEEN.with(|hm| {
+            </span>SEEN.with(|hm| {
                 hm.borrow_mut()
                     .insert(<span class="self">self</span>.ptr, RecursionValueState::Visited)
             });
@@ -1759,13 +1759,13 @@ Cannot both specify accessors and a value or writable attribute&quot;</span>,
     }
 }
 
-<span class="kw">impl </span>RecursionLimiter {
-    <span class="macro">thread_local! </span>{
-        <span class="doccomment">/// The map of pointers to `JsObject` that have been visited during the current `Debug::fmt` graph,
-        /// and the current state of their RecursionLimiter (dropped or live -- see `RecursionValueState`)
-        </span><span class="kw">static </span>SEEN: RefCell&lt;HashMap&lt;usize, RecursionValueState&gt;&gt; = RefCell::new(HashMap::new());
-    }
+<span class="macro">thread_local! </span>{
+    <span class="doccomment">/// The map of pointers to `JsObject` that have been visited during the current `Debug::fmt` graph,
+    /// and the current state of their RecursionLimiter (dropped or live -- see `RecursionValueState`)
+    </span><span class="kw">static </span>SEEN: RefCell&lt;HashMap&lt;usize, RecursionValueState&gt;&gt; = RefCell::new(HashMap::new());
+}
 
+<span class="kw">impl </span>RecursionLimiter {
     <span class="doccomment">/// Determines if the specified `JsObject` has been visited, and returns a struct that will free it when dropped.
     ///
     /// This is done by maintaining a thread-local hashset containing the pointers of `JsObject` values that have been
@@ -1775,7 +1775,7 @@ Cannot both specify accessors and a value or writable attribute&quot;</span>,
         <span class="comment">// We shouldn&#39;t have to worry too much about this being moved during Debug::fmt.
         </span><span class="attribute">#[allow(trivial_casts)]
         </span><span class="kw">let </span>ptr = (o.as_ref() <span class="kw">as </span><span class="kw-2">*const </span><span class="kw">_</span>) <span class="kw">as </span>usize;
-        <span class="kw">let </span>(top_level, visited, live) = <span class="self">Self</span>::SEEN.with(|hm| {
+        <span class="kw">let </span>(top_level, visited, live) = SEEN.with(|hm| {
             <span class="kw">let </span><span class="kw-2">mut </span>hm = hm.borrow_mut();
             <span class="kw">let </span>top_level = hm.is_empty();
             <span class="kw">let </span>old_state = hm.insert(ptr, RecursionValueState::Live);

@@ -1508,7 +1508,7 @@
         internal_methods::get_prototype_from_constructor, ConstructorBuilder, JsObject, ObjectData,
     },
     string::utf16,
-    symbol::WellKnownSymbols,
+    symbol::JsSymbol,
     value::{IntegerOrNan, JsValue, PreferredType},
     Context, JsError, JsResult,
 };
@@ -1650,7 +1650,7 @@
         .method(<span class="self">Self</span>::value_of, <span class="string">&quot;valueOf&quot;</span>, <span class="number">0</span>)
         .method(
             <span class="self">Self</span>::to_primitive,
-            (WellKnownSymbols::to_primitive(), <span class="string">&quot;[Symbol.toPrimitive]&quot;</span>),
+            (JsSymbol::to_primitive(), <span class="string">&quot;[Symbol.toPrimitive]&quot;</span>),
             <span class="number">1</span>,
         )
         .build()

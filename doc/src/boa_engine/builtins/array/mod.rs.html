@@ -3062,7 +3062,7 @@
         FunctionObjectBuilder, JsFunction, JsObject, ObjectData,
     },
     property::{Attribute, PropertyDescriptor, PropertyNameKind},
-    symbol::WellKnownSymbols,
+    symbol::JsSymbol,
     value::{IntegerOrInfinity, JsValue},
     Context, JsResult,
 };
@@ -3078,8 +3078,8 @@
     <span class="kw">fn </span>init(context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <span class="prelude-ty">Option</span>&lt;JsValue&gt; {
         <span class="kw">let </span>_timer = Profiler::global().start_event(<span class="self">Self</span>::NAME, <span class="string">&quot;init&quot;</span>);
 
-        <span class="kw">let </span>symbol_iterator = WellKnownSymbols::iterator();
-        <span class="kw">let </span>symbol_unscopables = WellKnownSymbols::unscopables();
+        <span class="kw">let </span>symbol_iterator = JsSymbol::iterator();
+        <span class="kw">let </span>symbol_unscopables = JsSymbol::unscopables();
 
         <span class="kw">let </span>get_species =
             FunctionObjectBuilder::new(context, NativeFunction::from_fn_ptr(<span class="self">Self</span>::get_species))
@@ -3098,7 +3098,7 @@
         .name(<span class="self">Self</span>::NAME)
         .length(<span class="self">Self</span>::LENGTH)
         .static_accessor(
-            WellKnownSymbols::species(),
+            JsSymbol::species(),
             <span class="prelude-val">Some</span>(get_species),
             <span class="prelude-val">None</span>,
             Attribute::CONFIGURABLE,
@@ -3337,7 +3337,7 @@
         };
 
         <span class="comment">// 2. Let spreadable be ? Get(O, @@isConcatSpreadable).
-        </span><span class="kw">let </span>spreadable = o.get(WellKnownSymbols::is_concat_spreadable(), context)<span class="question-mark">?</span>;
+        </span><span class="kw">let </span>spreadable = o.get(JsSymbol::is_concat_spreadable(), context)<span class="question-mark">?</span>;
 
         <span class="comment">// 3. If spreadable is not undefined, return ! ToBoolean(spreadable).
         </span><span class="kw">if </span>!spreadable.is_undefined() {
@@ -3396,7 +3396,7 @@
         <span class="comment">// 5. If Type(C) is Object, then
         </span><span class="kw">let </span>c = <span class="kw">if let </span><span class="prelude-val">Some</span>(c) = c.as_object() {
             <span class="comment">// 5.a. Set C to ? Get(C, @@species).
-            </span><span class="kw">let </span>c = c.get(WellKnownSymbols::species(), context)<span class="question-mark">?</span>;
+            </span><span class="kw">let </span>c = c.get(JsSymbol::species(), context)<span class="question-mark">?</span>;
             <span class="comment">// 5.b. If C is null, set C to undefined.
             </span><span class="kw">if </span>c.is_null_or_undefined() {
                 JsValue::undefined()
@@ -3458,7 +3458,7 @@
         };
 
         <span class="comment">// 4. Let usingIterator be ? GetMethod(items, @@iterator).
-        </span><span class="kw">let </span>using_iterator = items.get_method(WellKnownSymbols::iterator(), context)<span class="question-mark">?</span>;
+        </span><span class="kw">let </span>using_iterator = items.get_method(JsSymbol::iterator(), context)<span class="question-mark">?</span>;
 
         <span class="kw">let </span><span class="prelude-val">Some</span>(using_iterator) = using_iterator <span class="kw">else </span>{
             <span class="comment">// 6. NOTE: items is not an Iterable so assume it is an array-like object.

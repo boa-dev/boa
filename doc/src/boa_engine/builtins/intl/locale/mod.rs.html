@@ -796,7 +796,7 @@
         FunctionObjectBuilder, JsObject, ObjectData,
     },
     property::Attribute,
-    symbol::WellKnownSymbols,
+    symbol::JsSymbol,
     Context, JsNativeError, JsResult, JsString, JsValue,
 };
 
@@ -879,7 +879,7 @@
         .name(<span class="self">Self</span>::NAME)
         .length(<span class="self">Self</span>::LENGTH)
         .property(
-            WellKnownSymbols::to_string_tag(),
+            JsSymbol::to_string_tag(),
             <span class="string">&quot;Intl.Locale&quot;</span>,
             Attribute::CONFIGURABLE,
         )

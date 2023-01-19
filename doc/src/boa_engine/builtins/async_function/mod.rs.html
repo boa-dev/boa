@@ -125,7 +125,7 @@
     native_function::NativeFunction,
     object::ObjectData,
     property::PropertyDescriptor,
-    symbol::WellKnownSymbols,
+    symbol::JsSymbol,
     Context, JsResult, JsValue,
 };
 <span class="kw">use </span>boa_profiler::Profiler;
@@ -193,7 +193,7 @@
             .configurable(<span class="bool-val">true</span>);
         prototype
             .borrow_mut()
-            .insert(WellKnownSymbols::to_string_tag(), property);
+            .insert(JsSymbol::to_string_tag(), property);
 
         <span class="prelude-val">None
     </span>}

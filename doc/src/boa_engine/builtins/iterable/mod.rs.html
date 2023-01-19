@@ -572,8 +572,6 @@
 <span id="571">571</span>
 <span id="572">572</span>
 <span id="573">573</span>
-<span id="574">574</span>
-<span id="575">575</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Boa&#39;s implementation of ECMAScript&#39;s `IteratorRecord` and iterator prototype objects.
 
 </span><span class="kw">mod </span>async_from_sync_iterator;
@@ -586,7 +584,7 @@
     },
     error::JsNativeError,
     object::{JsObject, ObjectInitializer},
-    symbol::WellKnownSymbols,
+    symbol::JsSymbol,
     Context, JsResult, JsValue,
 };
 <span class="kw">use </span>async_from_sync_iterator::create_async_from_sync_iterator_prototype;
@@ -757,14 +755,12 @@
             <span class="comment">// a. If hint is async, then
             </span><span class="kw">if </span>hint == IteratorHint::Async {
                 <span class="comment">// i. Set method to ? GetMethod(obj, @@asyncIterator).
-                </span><span class="kw">if let </span><span class="prelude-val">Some</span>(method) =
-                    <span class="self">self</span>.get_method(WellKnownSymbols::async_iterator(), context)<span class="question-mark">?
-                </span>{
+                </span><span class="kw">if let </span><span class="prelude-val">Some</span>(method) = <span class="self">self</span>.get_method(JsSymbol::async_iterator(), context)<span class="question-mark">? </span>{
                     <span class="prelude-val">Some</span>(method)
                 } <span class="kw">else </span>{
                     <span class="comment">// ii. If method is undefined, then
                     // 1. Let syncMethod be ? GetMethod(obj, @@iterator).
-                    </span><span class="kw">let </span>sync_method = <span class="self">self</span>.get_method(WellKnownSymbols::iterator(), context)<span class="question-mark">?</span>;
+                    </span><span class="kw">let </span>sync_method = <span class="self">self</span>.get_method(JsSymbol::iterator(), context)<span class="question-mark">?</span>;
 
                     <span class="comment">// 2. Let syncIteratorRecord be ? GetIterator(obj, sync, syncMethod).
                     </span><span class="kw">let </span>sync_iterator_record =
@@ -775,7 +771,7 @@
                 }
             } <span class="kw">else </span>{
                 <span class="comment">// b. Otherwise, set method to ? GetMethod(obj, @@iterator).
-                </span><span class="self">self</span>.get_method(WellKnownSymbols::iterator(), context)<span class="question-mark">?
+                </span><span class="self">self</span>.get_method(JsSymbol::iterator(), context)<span class="question-mark">?
             </span>}
         }
         .ok_or_else(|| {
@@ -815,7 +811,7 @@
 </span><span class="kw">fn </span>create_iterator_prototype(context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsObject {
     <span class="kw">let </span>_timer = Profiler::global().start_event(<span class="string">&quot;Iterator Prototype&quot;</span>, <span class="string">&quot;init&quot;</span>);
 
-    <span class="kw">let </span>symbol_iterator = WellKnownSymbols::iterator();
+    <span class="kw">let </span>symbol_iterator = JsSymbol::iterator();
     <span class="kw">let </span>iterator_prototype = ObjectInitializer::new(context)
         .function(
             |v, <span class="kw">_</span>, <span class="kw">_</span>| <span class="prelude-val">Ok</span>(v.clone()),
@@ -1139,7 +1135,7 @@
 </span><span class="kw">fn </span>create_async_iterator_prototype(context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsObject {
     <span class="kw">let </span>_timer = Profiler::global().start_event(<span class="string">&quot;AsyncIteratorPrototype&quot;</span>, <span class="string">&quot;init&quot;</span>);
 
-    <span class="kw">let </span>symbol_iterator = WellKnownSymbols::async_iterator();
+    <span class="kw">let </span>symbol_iterator = JsSymbol::async_iterator();
     <span class="kw">let </span>iterator_prototype = ObjectInitializer::new(context)
         .function(
             |v, <span class="kw">_</span>, <span class="kw">_</span>| <span class="prelude-val">Ok</span>(v.clone()),

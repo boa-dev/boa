@@ -187,7 +187,7 @@
         internal_methods::get_prototype_from_constructor, ConstructorBuilder, JsObject, ObjectData,
     },
     property::Attribute,
-    symbol::WellKnownSymbols,
+    symbol::JsSymbol,
     Context, JsNativeError, JsResult, JsValue,
 };
 
@@ -219,7 +219,7 @@
         .name(<span class="self">Self</span>::NAME)
         .length(<span class="self">Self</span>::LENGTH)
         .property(
-            WellKnownSymbols::to_string_tag(),
+            JsSymbol::to_string_tag(),
             <span class="string">&quot;WeakRef&quot;</span>,
             Attribute::CONFIGURABLE,
         )

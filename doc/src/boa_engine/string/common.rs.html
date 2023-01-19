@@ -499,19 +499,248 @@
 <span id="498">498</span>
 <span id="499">499</span>
 <span id="500">500</span>
+<span id="501">501</span>
+<span id="502">502</span>
+<span id="503">503</span>
+<span id="504">504</span>
+<span id="505">505</span>
+<span id="506">506</span>
+<span id="507">507</span>
+<span id="508">508</span>
+<span id="509">509</span>
+<span id="510">510</span>
+<span id="511">511</span>
+<span id="512">512</span>
+<span id="513">513</span>
+<span id="514">514</span>
+<span id="515">515</span>
+<span id="516">516</span>
+<span id="517">517</span>
+<span id="518">518</span>
+<span id="519">519</span>
+<span id="520">520</span>
+<span id="521">521</span>
+<span id="522">522</span>
+<span id="523">523</span>
+<span id="524">524</span>
+<span id="525">525</span>
+<span id="526">526</span>
+<span id="527">527</span>
+<span id="528">528</span>
+<span id="529">529</span>
+<span id="530">530</span>
+<span id="531">531</span>
+<span id="532">532</span>
+<span id="533">533</span>
+<span id="534">534</span>
+<span id="535">535</span>
+<span id="536">536</span>
+<span id="537">537</span>
+<span id="538">538</span>
+<span id="539">539</span>
+<span id="540">540</span>
+<span id="541">541</span>
+<span id="542">542</span>
+<span id="543">543</span>
+<span id="544">544</span>
+<span id="545">545</span>
+<span id="546">546</span>
+<span id="547">547</span>
+<span id="548">548</span>
+<span id="549">549</span>
+<span id="550">550</span>
+<span id="551">551</span>
+<span id="552">552</span>
+<span id="553">553</span>
+<span id="554">554</span>
+<span id="555">555</span>
+<span id="556">556</span>
+<span id="557">557</span>
+<span id="558">558</span>
+<span id="559">559</span>
+<span id="560">560</span>
+<span id="561">561</span>
+<span id="562">562</span>
+<span id="563">563</span>
+<span id="564">564</span>
+<span id="565">565</span>
+<span id="566">566</span>
+<span id="567">567</span>
+<span id="568">568</span>
+<span id="569">569</span>
+<span id="570">570</span>
+<span id="571">571</span>
+<span id="572">572</span>
+<span id="573">573</span>
+<span id="574">574</span>
+<span id="575">575</span>
+<span id="576">576</span>
+<span id="577">577</span>
+<span id="578">578</span>
+<span id="579">579</span>
+<span id="580">580</span>
+<span id="581">581</span>
+<span id="582">582</span>
+<span id="583">583</span>
+<span id="584">584</span>
+<span id="585">585</span>
+<span id="586">586</span>
+<span id="587">587</span>
+<span id="588">588</span>
+<span id="589">589</span>
+<span id="590">590</span>
+<span id="591">591</span>
+<span id="592">592</span>
+<span id="593">593</span>
+<span id="594">594</span>
+<span id="595">595</span>
+<span id="596">596</span>
+<span id="597">597</span>
+<span id="598">598</span>
+<span id="599">599</span>
 </pre><pre class="rust"><code><span class="kw">use </span>std::hash::BuildHasherDefault;
 
+<span class="kw">use </span><span class="kw">crate</span>::tagged::Tagged;
+
+<span class="kw">use </span><span class="kw">super</span>::JsString;
 <span class="kw">use </span>boa_macros::utf16;
 <span class="kw">use </span>rustc_hash::{FxHashMap, FxHasher};
 
-<span class="kw">use super</span>::{JsString, TaggedJsString};
+<span class="macro">macro_rules! </span>well_known_statics {
+    ( $( $(<span class="attribute">#[<span class="macro-nonterminal">$attr</span>:meta]</span>)* (<span class="macro-nonterminal">$name</span>:ident, <span class="macro-nonterminal">$string</span>:literal) ),+$(,)<span class="question-mark">? </span>) =&gt; {
+        $(
+            $(<span class="attribute">#[<span class="macro-nonterminal">$attr</span>]</span>)* <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const fn </span><span class="macro-nonterminal">$name</span>() -&gt; JsString {
+                JsString {
+                    ptr: Tagged::from_tag(
+                        <span class="self">Self</span>::find_index(<span class="macro">utf16!</span>(<span class="macro-nonterminal">$string</span>)),
+                    ),
+                }
+            }
+        )+
+    };
+}
 
 <span class="doccomment">/// List of commonly used strings in Javascript code.
 ///
-/// Any string defined here is used as a static [`JsString`] instead of allocating on the heap.
-</span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">const </span>COMMON_STRINGS: <span class="kw-2">&amp;</span>[<span class="kw-2">&amp;</span>[u16]] = <span class="kw-2">&amp;</span>[
-    <span class="comment">// Empty string
-    </span><span class="macro">utf16!</span>(<span class="string">&quot;&quot;</span>),
+/// Any strings defined here are used as a static [`JsString`] instead of allocating on the heap.
+</span><span class="attribute">#[derive(Debug)]
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>StaticJsStrings;
+
+<span class="kw">impl </span>StaticJsStrings {
+    <span class="comment">// useful to search at compile time a certain string in the array
+    </span><span class="kw">const fn </span>find_index(candidate: <span class="kw-2">&amp;</span>[u16]) -&gt; usize {
+        <span class="kw">const fn </span>const_eq(lhs: <span class="kw-2">&amp;</span>[u16], rhs: <span class="kw-2">&amp;</span>[u16]) -&gt; bool {
+            <span class="kw">if </span>lhs.len() != rhs.len() {
+                <span class="kw">return </span><span class="bool-val">false</span>;
+            }
+
+            <span class="kw">let </span><span class="kw-2">mut </span>i = <span class="number">0</span>;
+            <span class="kw">while </span>i &lt; lhs.len() {
+                <span class="kw">if </span>lhs[i] != rhs[i] {
+                    <span class="kw">return </span><span class="bool-val">false</span>;
+                }
+                i += <span class="number">1</span>;
+            }
+            <span class="bool-val">true
+        </span>}
+        <span class="kw">let </span><span class="kw-2">mut </span>i = <span class="number">0</span>;
+        <span class="kw">while </span>i &lt; RAW_STATICS.len() {
+            <span class="kw">let </span>s = RAW_STATICS[i];
+            <span class="kw">if </span>const_eq(s, candidate) {
+                <span class="kw">return </span>i;
+            }
+            i += <span class="number">1</span>;
+        }
+        <span class="macro">panic!</span>(<span class="string">&quot;couldn&#39;t find the required string on the common string array&quot;</span>);
+    }
+
+    <span class="doccomment">/// Gets the `JsString` corresponding to `string`, or `None` if the string
+    /// doesn&#39;t exist inside the static array.
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>get_string(string: <span class="kw-2">&amp;</span>[u16]) -&gt; <span class="prelude-ty">Option</span>&lt;JsString&gt; {
+        <span class="kw">if </span>string.len() &gt; MAX_STATIC_LENGTH {
+            <span class="kw">return </span><span class="prelude-val">None</span>;
+        }
+
+        <span class="kw">let </span>index = RAW_STATICS_CACHE.with(|map| map.get(string).copied())<span class="question-mark">?</span>;
+
+        <span class="prelude-val">Some</span>(JsString {
+            ptr: Tagged::from_tag(index),
+        })
+    }
+
+    <span class="doccomment">/// Gets the `&amp;[u16]` slice corresponding to the provided index, or `None` if the index
+    /// provided exceeds the size of the static array.
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>get(index: usize) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>[u16]&gt; {
+        RAW_STATICS.get(index).copied()
+    }
+
+    <span class="macro">well_known_statics! </span>{
+        <span class="doccomment">/// Gets the empty string (`&quot;&quot;`) `JsString`.
+        </span>(empty_string, <span class="string">&quot;&quot;</span>),
+        <span class="doccomment">/// Gets the static `JsString` for `&quot;Symbol.asyncIterator&quot;`.
+        </span>(symbol_async_iterator, <span class="string">&quot;Symbol.asyncIterator&quot;</span>),
+        <span class="doccomment">/// Gets the static `JsString` for `&quot;Symbol.hasInstance&quot;`.
+        </span>(symbol_has_instance, <span class="string">&quot;Symbol.hasInstance&quot;</span>),
+        <span class="doccomment">/// Gets the static `JsString` for `&quot;Symbol.isConcatSpreadable&quot;`.
+        </span>(symbol_is_concat_spreadable, <span class="string">&quot;Symbol.isConcatSpreadable&quot;</span>),
+        <span class="doccomment">/// Gets the static `JsString` for `&quot;Symbol.iterator&quot;`.
+        </span>(symbol_iterator, <span class="string">&quot;Symbol.iterator&quot;</span>),
+        <span class="doccomment">/// Gets the static `JsString` for `&quot;Symbol.match&quot;`.
+        </span>(symbol_match, <span class="string">&quot;Symbol.match&quot;</span>),
+        <span class="doccomment">/// Gets the static `JsString` for `&quot;Symbol.matchAll&quot;`.
+        </span>(symbol_match_all, <span class="string">&quot;Symbol.matchAll&quot;</span>),
+        <span class="doccomment">/// Gets the static `JsString` for `&quot;Symbol.replace&quot;`.
+        </span>(symbol_replace, <span class="string">&quot;Symbol.replace&quot;</span>),
+        <span class="doccomment">/// Gets the static `JsString` for `&quot;Symbol.search&quot;`.
+        </span>(symbol_search, <span class="string">&quot;Symbol.search&quot;</span>),
+        <span class="doccomment">/// Gets the static `JsString` for `&quot;Symbol.species&quot;`.
+        </span>(symbol_species, <span class="string">&quot;Symbol.species&quot;</span>),
+        <span class="doccomment">/// Gets the static `JsString` for `&quot;Symbol.split&quot;`.
+        </span>(symbol_split, <span class="string">&quot;Symbol.split&quot;</span>),
+        <span class="doccomment">/// Gets the static `JsString` for `&quot;Symbol.toPrimitive&quot;`.
+        </span>(symbol_to_primitive, <span class="string">&quot;Symbol.toPrimitive&quot;</span>),
+        <span class="doccomment">/// Gets the static `JsString` for `&quot;Symbol.toStringTag&quot;`.
+        </span>(symbol_to_string_tag, <span class="string">&quot;Symbol.toStringTag&quot;</span>),
+        <span class="doccomment">/// Gets the static `JsString` for `&quot;Symbol.unscopables&quot;`.
+        </span>(symbol_unscopables, <span class="string">&quot;Symbol.unscopables&quot;</span>),
+    }
+}
+
+<span class="kw">static </span>MAX_STATIC_LENGTH: usize = {
+    <span class="kw">let </span><span class="kw-2">mut </span>max = <span class="number">0</span>;
+    <span class="kw">let </span><span class="kw-2">mut </span>i = <span class="number">0</span>;
+    <span class="kw">while </span>i &lt; RAW_STATICS.len() {
+        <span class="kw">let </span>len = RAW_STATICS[i].len();
+        <span class="kw">if </span>len &gt; max {
+            max = len;
+        }
+        i += <span class="number">1</span>;
+    }
+    max
+};
+
+<span class="macro">thread_local! </span>{
+    <span class="doccomment">/// Map from a string inside [`RAW_STATICS`] to its corresponding static index on `RAW_STATICS`.
+    </span><span class="kw">static </span>RAW_STATICS_CACHE: FxHashMap&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>[u16], usize&gt; = {
+        <span class="kw">let </span><span class="kw-2">mut </span>constants = FxHashMap::with_capacity_and_hasher(
+            RAW_STATICS.len(),
+            BuildHasherDefault::&lt;FxHasher&gt;::default(),
+        );
+
+        <span class="kw">for </span>(idx, <span class="kw-2">&amp;</span>s) <span class="kw">in </span>RAW_STATICS.iter().enumerate() {
+            constants.insert(s, idx);
+        }
+
+        constants
+    };
+}
+
+<span class="doccomment">/// Array of raw static strings that aren&#39;t reference counted.
+///
+/// The macro `static_strings` automatically sorts the array of strings, making it faster
+/// for searches by using `binary_search`.
+</span><span class="kw">const </span>RAW_STATICS: <span class="kw-2">&amp;</span>[<span class="kw-2">&amp;</span>[u16]] = <span class="kw-2">&amp;</span>[
+    <span class="macro">utf16!</span>(<span class="string">&quot;&quot;</span>),
     <span class="comment">// Misc
     </span><span class="macro">utf16!</span>(<span class="string">&quot;,&quot;</span>),
     <span class="macro">utf16!</span>(<span class="string">&quot;:&quot;</span>),
@@ -581,7 +810,6 @@
     <span class="macro">utf16!</span>(<span class="string">&quot;isArray&quot;</span>),
     <span class="macro">utf16!</span>(<span class="string">&quot;of&quot;</span>),
     <span class="macro">utf16!</span>(<span class="string">&quot;copyWithin&quot;</span>),
-    <span class="macro">utf16!</span>(<span class="string">&quot;entries&quot;</span>),
     <span class="macro">utf16!</span>(<span class="string">&quot;every&quot;</span>),
     <span class="macro">utf16!</span>(<span class="string">&quot;fill&quot;</span>),
     <span class="macro">utf16!</span>(<span class="string">&quot;filter&quot;</span>),
@@ -617,8 +845,6 @@
     <span class="macro">utf16!</span>(<span class="string">&quot;endsWith&quot;</span>),
     <span class="macro">utf16!</span>(<span class="string">&quot;fromCharCode&quot;</span>),
     <span class="macro">utf16!</span>(<span class="string">&quot;fromCodePoint&quot;</span>),
-    <span class="macro">utf16!</span>(<span class="string">&quot;includes&quot;</span>),
-    <span class="macro">utf16!</span>(<span class="string">&quot;indexOf&quot;</span>),
     <span class="macro">utf16!</span>(<span class="string">&quot;lastIndexOf&quot;</span>),
     <span class="macro">utf16!</span>(<span class="string">&quot;match&quot;</span>),
     <span class="macro">utf16!</span>(<span class="string">&quot;matchAll&quot;</span>),
@@ -630,7 +856,6 @@
     <span class="macro">utf16!</span>(<span class="string">&quot;replace&quot;</span>),
     <span class="macro">utf16!</span>(<span class="string">&quot;replaceAll&quot;</span>),
     <span class="macro">utf16!</span>(<span class="string">&quot;search&quot;</span>),
-    <span class="macro">utf16!</span>(<span class="string">&quot;slice&quot;</span>),
     <span class="macro">utf16!</span>(<span class="string">&quot;split&quot;</span>),
     <span class="macro">utf16!</span>(<span class="string">&quot;startsWith&quot;</span>),
     <span class="macro">utf16!</span>(<span class="string">&quot;substr&quot;</span>),
@@ -649,7 +874,6 @@
     <span class="macro">utf16!</span>(<span class="string">&quot;parseFloat&quot;</span>),
     <span class="macro">utf16!</span>(<span class="string">&quot;isFinite&quot;</span>),
     <span class="macro">utf16!</span>(<span class="string">&quot;isNaN&quot;</span>),
-    <span class="macro">utf16!</span>(<span class="string">&quot;parseInt&quot;</span>),
     <span class="macro">utf16!</span>(<span class="string">&quot;EPSILON&quot;</span>),
     <span class="macro">utf16!</span>(<span class="string">&quot;MAX_SAFE_INTEGER&quot;</span>),
     <span class="macro">utf16!</span>(<span class="string">&quot;MIN_SAFE_INTEGER&quot;</span>),
@@ -697,19 +921,8 @@
     <span class="macro">utf16!</span>(<span class="string">&quot;asyncIterator&quot;</span>),
     <span class="macro">utf16!</span>(<span class="string">&quot;hasInstance&quot;</span>),
     <span class="macro">utf16!</span>(<span class="string">&quot;species&quot;</span>),
-    <span class="macro">utf16!</span>(<span class="string">&quot;Symbol.species&quot;</span>),
     <span class="macro">utf16!</span>(<span class="string">&quot;unscopables&quot;</span>),
     <span class="macro">utf16!</span>(<span class="string">&quot;iterator&quot;</span>),
-    <span class="macro">utf16!</span>(<span class="string">&quot;Symbol.iterator&quot;</span>),
-    <span class="macro">utf16!</span>(<span class="string">&quot;Symbol.match&quot;</span>),
-    <span class="macro">utf16!</span>(<span class="string">&quot;[Symbol.match]&quot;</span>),
-    <span class="macro">utf16!</span>(<span class="string">&quot;Symbol.matchAll&quot;</span>),
-    <span class="macro">utf16!</span>(<span class="string">&quot;Symbol.replace&quot;</span>),
-    <span class="macro">utf16!</span>(<span class="string">&quot;[Symbol.replace]&quot;</span>),
-    <span class="macro">utf16!</span>(<span class="string">&quot;Symbol.search&quot;</span>),
-    <span class="macro">utf16!</span>(<span class="string">&quot;[Symbol.search]&quot;</span>),
-    <span class="macro">utf16!</span>(<span class="string">&quot;Symbol.split&quot;</span>),
-    <span class="macro">utf16!</span>(<span class="string">&quot;[Symbol.split]&quot;</span>),
     <span class="macro">utf16!</span>(<span class="string">&quot;toStringTag&quot;</span>),
     <span class="macro">utf16!</span>(<span class="string">&quot;toPrimitive&quot;</span>),
     <span class="macro">utf16!</span>(<span class="string">&quot;get description&quot;</span>),
@@ -956,48 +1169,33 @@
     <span class="macro">utf16!</span>(<span class="string">&quot;Z&quot;</span>),
     <span class="macro">utf16!</span>(<span class="string">&quot;_&quot;</span>),
     <span class="macro">utf16!</span>(<span class="string">&quot;$&quot;</span>),
+    <span class="comment">// Well known symbols
+    </span><span class="macro">utf16!</span>(<span class="string">&quot;Symbol.asyncIterator&quot;</span>),
+    <span class="macro">utf16!</span>(<span class="string">&quot;[Symbol.asyncIterator]&quot;</span>),
+    <span class="macro">utf16!</span>(<span class="string">&quot;Symbol.hasInstance&quot;</span>),
+    <span class="macro">utf16!</span>(<span class="string">&quot;[Symbol.hasInstance]&quot;</span>),
+    <span class="macro">utf16!</span>(<span class="string">&quot;Symbol.isConcatSpreadable&quot;</span>),
+    <span class="macro">utf16!</span>(<span class="string">&quot;[Symbol.isConcatSpreadable]&quot;</span>),
+    <span class="macro">utf16!</span>(<span class="string">&quot;Symbol.iterator&quot;</span>),
+    <span class="macro">utf16!</span>(<span class="string">&quot;[Symbol.iterator]&quot;</span>),
+    <span class="macro">utf16!</span>(<span class="string">&quot;Symbol.match&quot;</span>),
+    <span class="macro">utf16!</span>(<span class="string">&quot;[Symbol.match]&quot;</span>),
+    <span class="macro">utf16!</span>(<span class="string">&quot;Symbol.matchAll&quot;</span>),
+    <span class="macro">utf16!</span>(<span class="string">&quot;[Symbol.matchAll]&quot;</span>),
+    <span class="macro">utf16!</span>(<span class="string">&quot;Symbol.replace&quot;</span>),
+    <span class="macro">utf16!</span>(<span class="string">&quot;[Symbol.replace]&quot;</span>),
+    <span class="macro">utf16!</span>(<span class="string">&quot;Symbol.search&quot;</span>),
+    <span class="macro">utf16!</span>(<span class="string">&quot;[Symbol.search]&quot;</span>),
+    <span class="macro">utf16!</span>(<span class="string">&quot;Symbol.species&quot;</span>),
+    <span class="macro">utf16!</span>(<span class="string">&quot;[Symbol.species]&quot;</span>),
+    <span class="macro">utf16!</span>(<span class="string">&quot;Symbol.split&quot;</span>),
+    <span class="macro">utf16!</span>(<span class="string">&quot;[Symbol.split]&quot;</span>),
+    <span class="macro">utf16!</span>(<span class="string">&quot;Symbol.toPrimitive&quot;</span>),
+    <span class="macro">utf16!</span>(<span class="string">&quot;[Symbol.toPrimitive]&quot;</span>),
+    <span class="macro">utf16!</span>(<span class="string">&quot;Symbol.toStringTag&quot;</span>),
+    <span class="macro">utf16!</span>(<span class="string">&quot;[Symbol.toStringTag]&quot;</span>),
+    <span class="macro">utf16!</span>(<span class="string">&quot;Symbol.unscopables&quot;</span>),
+    <span class="macro">utf16!</span>(<span class="string">&quot;[Symbol.unscopables]&quot;</span>),
 ];
-
-<span class="doccomment">/// The maximum length of a string within [`COMMON_STRINGS`].
-///
-/// This is useful to skip checks for strings with lengths &gt; `MAX_COMMON_STRING_LENGTH` and directly
-/// allocate on the heap.
-</span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">const </span>MAX_COMMON_STRING_LENGTH: usize = {
-    <span class="kw">let </span><span class="kw-2">mut </span>max = <span class="number">0</span>;
-    <span class="kw">let </span><span class="kw-2">mut </span>i = <span class="number">0</span>;
-    <span class="kw">while </span>i &lt; COMMON_STRINGS.len() {
-        <span class="kw">let </span>len = COMMON_STRINGS[i].len();
-        <span class="kw">if </span>len &gt; max {
-            max = len;
-        }
-        i += <span class="number">1</span>;
-    }
-    max
-};
-
-<span class="macro">thread_local! </span>{
-    <span class="doccomment">/// Map from a string inside [`COMMON_STRINGS`] to its corresponding static [`JsString`].
-    </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">static </span>COMMON_STRINGS_CACHE: FxHashMap&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>[u16], JsString&gt; = {
-        <span class="kw">let </span><span class="kw-2">mut </span>constants = FxHashMap::with_capacity_and_hasher(
-            COMMON_STRINGS.len(),
-            BuildHasherDefault::&lt;FxHasher&gt;::default(),
-        );
-
-        <span class="kw">for </span>(idx, <span class="kw-2">&amp;</span>s) <span class="kw">in </span>COMMON_STRINGS.iter().enumerate() {
-            <span class="comment">// Safety:
-            // As we&#39;re just building a cache of `JsString` indices  to access the stored
-            // `COMMON_STRINGS`, this cannot generate invalid `TaggedJsString`s, since `idx` is
-            // always a valid index in `COMMON_STRINGS`.
-            </span><span class="kw">let </span>v = <span class="kw">unsafe </span>{
-                JsString {
-                    ptr: TaggedJsString::new_static(idx),
-                }
-            };
-            constants.insert(s, v);
-        }
-
-        constants
-    };
-}
 </code></pre></div>
 </section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="boa_engine" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.66.1 (90743e729 2023-01-10)" ></div></body></html>
