@@ -54,8 +54,7 @@ impl Operation for PopEnvironment {
 
     fn execute(context: &mut Context<'_>) -> JsResult<ShouldExit> {
         context.realm.environments.pop();
-        context.vm.frame_mut().loop_env_stack_dec();
-        context.vm.frame_mut().try_env_stack_dec();
+        context.vm.frame_mut().dec_frame_env_stack();
         Ok(ShouldExit::False)
     }
 }

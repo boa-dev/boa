@@ -1,5 +1,5 @@
 use crate::{
-    vm::{opcode::Operation, ShouldExit},
+    vm::{opcode::Operation, ShouldExit, call_frame::EnvStackEntry},
     Context, JsResult,
 };
 
@@ -15,8 +15,7 @@ impl Operation for LoopStart {
     const INSTRUCTION: &'static str = "INST - LoopStart";
 
     fn execute(context: &mut Context<'_>) -> JsResult<ShouldExit> {
-        context.vm.frame_mut().loop_env_stack.push(0);
-        context.vm.frame_mut().try_env_stack_loop_inc();
+        context.vm.frame_mut().env_stack.push(EnvStackEntry::default().with_loop_flag());
         Ok(ShouldExit::False)
     }
 }
@@ -33,15 +32,18 @@ impl Operation for LoopContinue {
     const INSTRUCTION: &'static str = "INST - LoopContinue";
 
     fn execute(context: &mut Context<'_>) -> JsResult<ShouldExit> {
-        let env_num = context
-            .vm
-            .frame_mut()
-            .loop_env_stack
-            .last_mut()
-            .expect("loop env stack entry must exist");
-        let env_num_copy = *env_num;
-        *env_num = 0;
-        for _ in 0..env_num_copy {
+        let mut envs_to_pop = 0_usize;
+        for _ in 1..context.vm.frame().env_stack.len() {
+            let env_entry = context.vm.frame_mut().env_stack.last_mut().expect("this must exist");
+            envs_to_pop += env_entry.env_num();
+
+            if env_entry.is_loop_env() {
+                env_entry.set_env_num(0);
+                break;
+            }
+        }
+
+        for _ in 0..envs_to_pop {
             context.realm.environments.pop();
         }
         Ok(ShouldExit::False)
@@ -60,17 +62,19 @@ impl Operation for LoopEnd {
     const INSTRUCTION: &'static str = "INST - LoopEnd";
 
     fn execute(context: &mut Context<'_>) -> JsResult<ShouldExit> {
-        let env_num = context
-            .vm
-            .frame_mut()
-            .loop_env_stack
-            .pop()
-            .expect("loop env stack entry must exist");
-        for _ in 0..env_num {
-            context.realm.environments.pop();
-            context.vm.frame_mut().try_env_stack_dec();
+        let mut envs_to_pop = 0_usize;
+        for _ in 1..context.vm.frame().env_stack.len() {
+            let env_entry = context.vm.frame_mut().env_stack.pop().expect("this must exist");
+            envs_to_pop += env_entry.env_num();
+
+            if env_entry.is_loop_env() {
+                break;
+            }
         }
-        context.vm.frame_mut().try_env_stack_loop_dec();
+
+        for _ in 0..envs_to_pop {
+            context.realm.environments.pop();
+        }
         Ok(ShouldExit::False)
     }
 }

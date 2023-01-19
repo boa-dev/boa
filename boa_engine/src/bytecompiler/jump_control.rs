@@ -319,21 +319,13 @@ impl ByteCompiler<'_, '_> {
         }
     }
 
-    pub(crate) fn push_try_control_info(&mut self, has_finally: bool) {
-        if !self.jump_info.is_empty() {
-            let start_address = self
-                .jump_info
-                .last()
-                .expect("no jump information found")
-                .start_address();
+    pub(crate) fn push_try_control_info(&mut self, has_finally: bool, start_address: u32) {
+        let new_info = JumpControlInfo::default()
+            .with_try_block_flag(true)
+            .with_start_address(start_address)
+            .with_has_finally(has_finally);
 
-            let new_info = JumpControlInfo::default()
-                .with_try_block_flag(true)
-                .with_start_address(start_address)
-                .with_has_finally(has_finally);
-
-            self.jump_info.push(new_info);
-        }
+        self.jump_info.push(new_info);
     }
 
     /// Pops and handles the info for a try block's `JumpControlInfo`

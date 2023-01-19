@@ -20,30 +20,19 @@ impl Operation for Return {
             frame.pc = finally_address as usize;
             frame.finally_return = FinallyReturn::Ok;
             frame.catch.pop();
-            let try_stack_entry = context
-                .vm
-                .frame_mut()
-                .try_env_stack
-                .pop()
-                .expect("must exist");
-            for _ in 0..try_stack_entry.num_env {
+            let mut envs_to_pop = 0_usize;
+            for _ in 1..context.vm.frame().env_stack.len() {
+                let env_entry = context.vm.frame_mut().env_stack.pop().expect("this must exist");
+                envs_to_pop += env_entry.env_num();
+    
+                if env_entry.is_try_env() {
+                    break;
+                }
+            }
+    
+            for _ in 0..envs_to_pop {
                 context.realm.environments.pop();
             }
-            let mut num_env = try_stack_entry.num_env;
-            for _ in 0..try_stack_entry.num_loop_stack_entries {
-                num_env -= context
-                    .vm
-                    .frame_mut()
-                    .loop_env_stack
-                    .pop()
-                    .expect("must exist");
-            }
-            *context
-                .vm
-                .frame_mut()
-                .loop_env_stack
-                .last_mut()
-                .expect("must exist") -= num_env;
         } else {
             return Ok(ShouldExit::True);
         }

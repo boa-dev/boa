@@ -21,9 +21,9 @@ impl ByteCompiler<'_, '_> {
         label: Option<Sym>,
         configurable_globals: bool,
     ) -> JsResult<()> {
+        self.push_empty_loop_jump_control();
         self.context.push_compile_time_environment(false);
         let push_env = self.emit_and_track_decl_env();
-        self.push_empty_loop_jump_control();
 
         if let Some(init) = for_loop.init() {
             match init {
@@ -74,10 +74,10 @@ impl ByteCompiler<'_, '_> {
         self.patch_jump_with_target(push_env.1, index_compile_environment as u32);
 
         self.patch_jump(exit);
-        self.pop_loop_control_info();
         self.emit_opcode(Opcode::LoopEnd);
         self.emit_and_track_pop_env();
 
+        self.pop_loop_control_info();
         Ok(())
     }
 

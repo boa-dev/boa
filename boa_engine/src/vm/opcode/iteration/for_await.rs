@@ -58,8 +58,7 @@ impl Operation for ForAwaitOfLoopNext {
 
         if next_result.complete(context)? {
             context.vm.frame_mut().pc = address as usize;
-            context.vm.frame_mut().loop_env_stack_dec();
-            context.vm.frame_mut().try_env_stack_dec();
+            context.vm.frame_mut().dec_frame_env_stack();
             context.realm.environments.pop();
             context.vm.push(true);
         } else {

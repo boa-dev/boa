@@ -24,8 +24,7 @@ impl Operation for PushDeclarativeEnvironment {
             .realm
             .environments
             .push_declarative(num_bindings as usize, compile_environment);
-        context.vm.frame_mut().loop_env_stack_inc();
-        context.vm.frame_mut().try_env_stack_inc();
+        context.vm.frame_mut().inc_frame_env_stack();
         Ok(ShouldExit::False)
     }
 }

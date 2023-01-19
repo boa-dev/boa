@@ -19,13 +19,8 @@ pub struct CallFrame {
 
     // Tracks the number of environments in the current loop block.
     // On abrupt returns this is used to decide how many environments need to be pop'ed.
-    pub(crate) loop_env_stack: Vec<usize>,
-
-    // Tracks the number of environments in the current try-catch-finally block.
-    // On abrupt returns this is used to decide how many environments need to be pop'ed.
     #[unsafe_ignore_trace]
-    pub(crate) try_env_stack: Vec<TryStackEntry>,
-
+    pub(crate) env_stack: Vec<EnvStackEntry>,
     pub(crate) param_count: usize,
     pub(crate) arg_count: usize,
     #[unsafe_ignore_trace]
@@ -50,11 +45,7 @@ impl CallFrame {
             finally_return: FinallyReturn::None,
             finally_jump: Vec::new(),
             pop_on_return: 0,
-            loop_env_stack: Vec::from([0]),
-            try_env_stack: Vec::from([TryStackEntry {
-                num_env: 0,
-                num_loop_stack_entries: 0,
-            }]),
+            env_stack: Vec::from([EnvStackEntry::default().with_initial_env_num(1)]),
             param_count: 0,
             arg_count: 0,
             generator_resume_kind: GeneratorResumeKind::Normal,
@@ -79,52 +70,29 @@ impl CallFrame {
 /// ---- `CallFrame` stack methods ----
 impl CallFrame {
     /// Tracks that one environment has been pushed in the current loop block.
-    pub(crate) fn loop_env_stack_inc(&mut self) {
-        *self
-            .loop_env_stack
+    pub(crate) fn inc_frame_env_stack(&mut self) {
+        self
+            .env_stack
             .last_mut()
-            .expect("loop environment stack entry must exist") += 1;
+            .expect("environment stack entry must exist")
+            .inc_env_num();
     }
 
     /// Tracks that one environment has been pop'ed in the current loop block.
-    pub(crate) fn loop_env_stack_dec(&mut self) {
-        *self
-            .loop_env_stack
+    pub(crate) fn dec_frame_env_stack(&mut self) {
+        self
+            .env_stack
             .last_mut()
-            .expect("loop environment stack entry must exist") -= 1;
+            .expect("environment stack entry must exist")
+            .dec_env_num();
     }
+}
 
-    /// Tracks that one environment has been pushed in the current try-catch-finally block.
-    pub(crate) fn try_env_stack_inc(&mut self) {
-        self.try_env_stack
-            .last_mut()
-            .expect("try environment stack entry must exist")
-            .num_env += 1;
-    }
-
-    /// Tracks that one environment has been pop'ed in the current try-catch-finally block.
-    pub(crate) fn try_env_stack_dec(&mut self) {
-        self.try_env_stack
-            .last_mut()
-            .expect("try environment stack entry must exist")
-            .num_env -= 1;
-    }
-
-    /// Tracks that one loop has started in the current try-catch-finally block.
-    pub(crate) fn try_env_stack_loop_inc(&mut self) {
-        self.try_env_stack
-            .last_mut()
-            .expect("try environment stack entry must exist")
-            .num_loop_stack_entries += 1;
-    }
-
-    /// Tracks that one loop has finished in the current try-catch-finally block.
-    pub(crate) fn try_env_stack_loop_dec(&mut self) {
-        self.try_env_stack
-            .last_mut()
-            .expect("try environment stack entry must exist")
-            .num_loop_stack_entries -= 1;
-    }
+#[derive(Clone, Copy, Debug, PartialEq)]
+pub(crate) enum EnvEntryKind {
+    Global,
+    Loop,
+    Try,
 }
 
 /// Tracks the number of environments in the current try-catch-finally block.
@@ -132,9 +100,59 @@ impl CallFrame {
 /// Because of the interactions between loops and try-catch-finally blocks,
 /// the number of loop blocks in the try-catch-finally block also needs to be tracked.
 #[derive(Copy, Clone, Debug)]
-pub(crate) struct TryStackEntry {
-    pub(crate) num_env: usize,
-    pub(crate) num_loop_stack_entries: usize,
+pub(crate) struct EnvStackEntry {
+    kind: EnvEntryKind,
+    env_num: usize,
+}
+
+impl Default for EnvStackEntry {
+    fn default() -> Self {
+        Self {
+            kind: EnvEntryKind::Global,
+            env_num: 0,
+        }
+    }
+}
+
+impl EnvStackEntry {
+    pub(crate) fn with_try_flag(mut self) -> Self {
+        self.kind = EnvEntryKind::Try;
+        self
+    }
+
+    pub(crate) fn with_loop_flag(mut self) -> Self {
+        self.kind = EnvEntryKind::Loop;
+        self
+    }
+
+    pub(crate) fn with_initial_env_num(mut self, value: usize) -> Self {
+        self.env_num = value;
+        self
+    }
+
+    pub(crate) fn is_loop_env(&self) -> bool {
+        self.kind == EnvEntryKind::Loop
+    }
+
+    pub(crate) fn is_try_env(&self) -> bool {
+        self.kind == EnvEntryKind::Try
+    }
+
+    pub(crate) const fn env_num(&self) -> usize {
+        self.env_num
+    }
+
+    pub(crate) fn set_env_num(&mut self, value: usize) {
+        self.env_num = value;
+    }
+
+    pub(crate) fn inc_env_num(&mut self) {
+        self.env_num += 1;
+    }
+
+    pub(crate) fn dec_env_num(&mut self) {
+        self.env_num -= 1;
+    }
 }
 
 /// Tracks the address that should be jumped to when an error is caught.

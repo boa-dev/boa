@@ -20,24 +20,13 @@ impl Operation for Break {
         for _ in 0..pop_envs {
             context.realm.environments.pop();
 
-            let loop_envs = *context
-                .vm
-                .frame()
-                .loop_env_stack
-                .last()
-                .expect("loop env stack must exist");
-            if loop_envs == 0 {
-                context
-                    .vm
-                    .frame_mut()
-                    .loop_env_stack
-                    .pop()
-                    .expect("loop env stack must exist");
-            }
+            context.vm.frame_mut().dec_frame_env_stack();
 
-            context.vm.frame_mut().loop_env_stack_dec();
-            context.vm.frame_mut().try_env_stack_dec();
+            if context.vm.frame().env_stack.last().expect("must exist").env_num() == 0 {
+                context.vm.frame_mut().env_stack.pop();
+            }
         }
+
         context.vm.frame_mut().pc = address as usize;
         Ok(ShouldExit::False)
     }

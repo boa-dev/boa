@@ -25,7 +25,7 @@ pub mod flowgraph;
 pub use {call_frame::CallFrame, code_block::CodeBlock, opcode::Opcode};
 
 pub(crate) use {
-    call_frame::{FinallyReturn, GeneratorResumeKind, TryStackEntry},
+    call_frame::{FinallyReturn, GeneratorResumeKind},
     code_block::{create_function_object, create_generator_function_object},
     opcode::BindingOpcode,
 };
@@ -291,34 +291,25 @@ impl Context<'_> {
                     }
                     if let Some(address) = self.vm.frame().catch.last() {
                         let address = address.next;
-                        let try_stack_entry = self
-                            .vm
-                            .frame_mut()
-                            .try_env_stack
-                            .last_mut()
-                            .expect("must exist");
-                        let try_stack_entry_copy = *try_stack_entry;
-                        try_stack_entry.num_env = 0;
-                        try_stack_entry.num_loop_stack_entries = 0;
-                        for _ in 0..try_stack_entry_copy.num_env {
+                        
+                        // Move through the env stack until the first try block is found. 
+                        let mut env_to_pop = 0;
+                        for _ in 0..self.vm.frame().env_stack.len() {
+                            let env_entry = self.vm.frame_mut().env_stack.last_mut().expect("this must exist");
+                            env_to_pop += env_entry.env_num();
+
+                            if env_entry.is_try_env() {
+                                env_entry.set_env_num(1);
+                                break;
+                            } 
+
+                            self.vm.frame_mut().env_stack.pop();
+                        }
+                        
+                        for _ in 0..env_to_pop {
                             self.realm.environments.pop();
                         }
-                        let mut num_env = try_stack_entry_copy.num_env;
-                        for _ in 0..try_stack_entry_copy.num_loop_stack_entries {
-                            num_env -= self
-                                .vm
-                                .frame_mut()
-                                .loop_env_stack
-                                .pop()
-                                .expect("must exist");
-                        }
-                        *self
-                            .vm
-                            .frame_mut()
-                            .loop_env_stack
-                            .last_mut()
-                            .expect("must exist") -= num_env;
-                        self.vm.frame_mut().try_env_stack.pop().expect("must exist");
+
                         for _ in 0..self.vm.frame().pop_on_return {
                             self.vm.pop();
                         }
