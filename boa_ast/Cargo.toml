@@ -12,7 +12,6 @@ rust-version.workspace = true
 
 [features]
 serde = ["dep:serde", "boa_interner/serde"]
-
 arbitrary = ["dep:arbitrary", "boa_interner/arbitrary", "num-bigint/arbitrary"]
 
 [dependencies]

@@ -45,7 +45,7 @@ use super::Declaration;
 /// [varstmt]: https://tc39.es/ecma262/#prod-VariableStatement
 /// [hoisting]: https://developer.mozilla.org/en-US/docs/Glossary/Hoisting
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[cfg_attr(feature = "fuzz", derive(arbitrary::Arbitrary))]
+#[cfg_attr(feature = "arbitrary", derive(arbitrary::Arbitrary))]
 #[derive(Clone, Debug, PartialEq)]
 pub struct VarDeclaration(pub VariableList);
 
@@ -82,7 +82,7 @@ impl VisitWith for VarDeclaration {
 ///
 /// [lexical declaration]: https://tc39.es/ecma262/#sec-let-and-const-declarations
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[cfg_attr(feature = "fuzz", derive(arbitrary::Arbitrary))]
+#[cfg_attr(feature = "arbitrary", derive(arbitrary::Arbitrary))]
 #[derive(Clone, Debug, PartialEq)]
 pub enum LexicalDeclaration {
     /// A <code>[const]</code> variable creates a constant whose scope can be either global or local
@@ -158,7 +158,7 @@ impl VisitWith for LexicalDeclaration {
 
 /// List of variables in a variable declaration.
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[cfg_attr(feature = "fuzz", derive(arbitrary::Arbitrary))]
+#[cfg_attr(feature = "arbitrary", derive(arbitrary::Arbitrary))]
 #[derive(Clone, Debug, PartialEq)]
 pub struct VariableList {
     list: Box<[Variable]>,
@@ -249,7 +249,7 @@ impl TryFrom<Vec<Variable>> for VariableList {
 /// [spec2]: https://tc39.es/ecma262/#prod-VariableDeclaration
 /// [spec3]:  https://tc39.es/ecma262/#sec-declarations-and-the-variable-statement
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[cfg_attr(feature = "fuzz", derive(arbitrary::Arbitrary))]
+#[cfg_attr(feature = "arbitrary", derive(arbitrary::Arbitrary))]
 #[derive(Clone, Debug, PartialEq)]
 pub struct Variable {
     binding: Binding,
@@ -332,7 +332,7 @@ impl VisitWith for Variable {
 ///
 /// [spec]:  https://tc39.es/ecma262/#sec-declarations-and-the-variable-statement
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[cfg_attr(feature = "fuzz", derive(arbitrary::Arbitrary))]
+#[cfg_attr(feature = "arbitrary", derive(arbitrary::Arbitrary))]
 #[derive(Clone, Debug, PartialEq)]
 pub enum Binding {
     /// A single identifier binding.

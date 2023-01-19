@@ -17,7 +17,7 @@ use core::ops::ControlFlow;
 /// [spec]: https://tc39.es/ecma262/#prod-LabelledItem
 /// [label-fn]: https://tc39.es/ecma262/#sec-labelled-function-declarations
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[cfg_attr(feature = "fuzz", derive(arbitrary::Arbitrary))]
+#[cfg_attr(feature = "arbitrary", derive(arbitrary::Arbitrary))]
 #[derive(Clone, Debug, PartialEq)]
 pub enum LabelledItem {
     /// A labelled [`Function`].
@@ -82,7 +82,7 @@ impl VisitWith for LabelledItem {
 ///
 /// [spec]: https://tc39.es/ecma262/#sec-labelled-statements
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[cfg_attr(feature = "fuzz", derive(arbitrary::Arbitrary))]
+#[cfg_attr(feature = "arbitrary", derive(arbitrary::Arbitrary))]
 #[derive(Clone, Debug, PartialEq)]
 pub struct Labelled {
     item: Box<LabelledItem>,
