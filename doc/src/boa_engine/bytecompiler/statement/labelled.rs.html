@@ -65,9 +65,6 @@
 <span id="64">64</span>
 <span id="65">65</span>
 <span id="66">66</span>
-<span id="67">67</span>
-<span id="68">68</span>
-<span id="69">69</span>
 </pre><pre class="rust"><code><span class="kw">use </span>boa_ast::{
     statement::{Labelled, LabelledItem},
     Statement,
@@ -86,6 +83,9 @@
         use_expr: bool,
         configurable_globals: bool,
     ) -&gt; JsResult&lt;()&gt; {
+        <span class="kw">let </span>labelled_loc = <span class="self">self</span>.next_opcode_location();
+        <span class="self">self</span>.push_labelled_control_info(labelled.label(), labelled_loc);
+
         <span class="kw">match </span>labelled.item() {
             LabelledItem::Statement(stmt) =&gt; <span class="kw">match </span>stmt {
                 Statement::ForLoop(for_loop) =&gt; {
@@ -119,20 +119,14 @@
                         configurable_globals,
                     )<span class="question-mark">?</span>;
                 }
-                Statement::Block(block) =&gt; {
-                    <span class="self">self</span>.compile_block(
-                        block,
-                        <span class="prelude-val">Some</span>(labelled.label()),
-                        use_expr,
-                        configurable_globals,
-                    )<span class="question-mark">?</span>;
-                }
                 stmt =&gt; <span class="self">self</span>.compile_stmt(stmt, use_expr, configurable_globals)<span class="question-mark">?</span>,
             },
             LabelledItem::Function(f) =&gt; {
                 <span class="self">self</span>.function(f.into(), NodeKind::Declaration, <span class="bool-val">false</span>)<span class="question-mark">?</span>;
             }
         }
+
+        <span class="self">self</span>.pop_labelled_control_info();
 
         <span class="prelude-val">Ok</span>(())
     }

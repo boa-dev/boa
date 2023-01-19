@@ -386,8 +386,6 @@
 <span id="385">385</span>
 <span id="386">386</span>
 <span id="387">387</span>
-<span id="388">388</span>
-<span id="389">389</span>
 </pre><pre class="rust"><code><span class="doccomment">//! `JumpControlInfo` tracks relevant jump information used during compilation.
 //!
 //! Primarily, jump control tracks information related to the compilation of [iteration
@@ -425,7 +423,7 @@
         <span class="kw">const </span>LOOP = <span class="number">0b0000_0001</span>;
         <span class="kw">const </span>SWITCH = <span class="number">0b0000_0010</span>;
         <span class="kw">const </span>TRY_BLOCK = <span class="number">0b0000_0100</span>;
-        <span class="kw">const </span>LABELLED_BLOCK = <span class="number">0b0000_1000</span>;
+        <span class="kw">const </span>LABELLED = <span class="number">0b0000_1000</span>;
         <span class="kw">const </span>IN_CATCH = <span class="number">0b0001_0000</span>;
         <span class="kw">const </span>HAS_FINALLY = <span class="number">0b0010_0000</span>;
         <span class="kw">const </span>FOR_OF_IN_LOOP = <span class="number">0b0100_0000</span>;
@@ -481,7 +479,7 @@
     </span>}
 
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>with_labelled_block_flag(<span class="kw-2">mut </span><span class="self">self</span>, value: bool) -&gt; <span class="self">Self </span>{
-        <span class="self">self</span>.flags.set(JumpControlInfoFlags::LABELLED_BLOCK, value);
+        <span class="self">self</span>.flags.set(JumpControlInfoFlags::LABELLED, value);
         <span class="self">self
     </span>}
 
@@ -519,8 +517,8 @@
         <span class="self">self</span>.flags.contains(JumpControlInfoFlags::TRY_BLOCK)
     }
 
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const fn </span>is_labelled_block(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
-        <span class="self">self</span>.flags.contains(JumpControlInfoFlags::LABELLED_BLOCK)
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const fn </span>is_labelled(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="self">self</span>.flags.contains(JumpControlInfoFlags::LABELLED)
     }
 
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const fn </span>in_catch(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
@@ -753,7 +751,7 @@
         }
     }
 
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>push_labelled_block_control_info(<span class="kw-2">&amp;mut </span><span class="self">self</span>, label: Sym, start_address: u32) {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>push_labelled_control_info(<span class="kw-2">&amp;mut </span><span class="self">self</span>, label: Sym, start_address: u32) {
         <span class="kw">let </span>new_info = JumpControlInfo::default()
             .with_labelled_block_flag(<span class="bool-val">true</span>)
             .with_label(<span class="prelude-val">Some</span>(label))
@@ -761,12 +759,10 @@
         <span class="self">self</span>.jump_info.push(new_info);
     }
 
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>pop_labelled_block_control_info(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>pop_labelled_control_info(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
         <span class="kw">let </span>info = <span class="self">self</span>.jump_info.pop().expect(<span class="string">&quot;no jump information found&quot;</span>);
 
-        <span class="macro">assert!</span>(info.is_labelled_block());
-
-        <span class="self">self</span>.emit_opcode(Opcode::PopEnvironment);
+        <span class="macro">assert!</span>(info.is_labelled());
 
         <span class="kw">for </span>label <span class="kw">in </span>info.breaks {
             <span class="self">self</span>.patch_jump(label);

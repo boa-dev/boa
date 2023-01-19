@@ -108,7 +108,7 @@
                 <span class="self">self</span>.compile_do_while_loop(do_while_loop, <span class="prelude-val">None</span>, configurable_globals)<span class="question-mark">?</span>;
             }
             Statement::Block(block) =&gt; {
-                <span class="self">self</span>.compile_block(block, <span class="prelude-val">None</span>, use_expr, configurable_globals)<span class="question-mark">?</span>;
+                <span class="self">self</span>.compile_block(block, use_expr, configurable_globals)<span class="question-mark">?</span>;
             }
             Statement::Labelled(labelled) =&gt; {
                 <span class="self">self</span>.compile_labelled(labelled, use_expr, configurable_globals)<span class="question-mark">?</span>;
