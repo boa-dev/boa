@@ -1,3 +1,5 @@
+use alloc::vec::Vec;
+
 use crate::interned_str::InternedStr;
 
 #[derive(Debug)]

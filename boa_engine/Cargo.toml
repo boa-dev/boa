@@ -28,7 +28,7 @@ intl = [
     "dep:sys-locale",
 ]
 
-fuzz = ["boa_ast/fuzz", "boa_interner/fuzz"]
+fuzz = ["boa_ast/arbitrary", "boa_interner/arbitrary"]
 
 # Enable Boa's VM instruction flowgraph generator.
 flowgraph = []

@@ -87,6 +87,7 @@
     clippy::nursery,
 )]
 #![allow(clippy::redundant_pub_crate)]
+#![no_std]
 
 mod tables;
 #[cfg(test)]

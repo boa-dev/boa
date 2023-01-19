@@ -2,7 +2,7 @@
 name = "boa_unicode"
 description = "Unicode support for the Boa JavaScript engine."
 keywords = ["javascript", "compiler", "lexer", "parser", "unicode"]
-categories = ["parsing"]
+categories = ["parsing", "no-std"]
 version.workspace = true
 edition.workspace = true
 authors.workspace = true
