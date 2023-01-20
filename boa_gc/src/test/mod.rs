@@ -29,6 +29,13 @@ impl Harness {
             assert!(gc.runtime.bytes_allocated > 0);
         });
     }
+
+    fn assert_exact_bytes_allocated(bytes: usize) {
+        BOA_GC.with(|current| {
+            let gc = current.borrow();
+            assert_eq!(gc.runtime.bytes_allocated, bytes);
+        })
+    }
 }
 
 fn run_test(test: impl FnOnce() + Send + 'static) {

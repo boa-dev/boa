@@ -1,5 +1,7 @@
 use super::run_test;
-use crate::{force_collect, Ephemeron, Gc, WeakGc};
+use crate::{
+    force_collect, test::Harness, Ephemeron, Finalize, Gc, GcBox, GcRefCell, Trace, WeakGc,
+};
 
 #[test]
 fn eph_weak_gc_test() {
@@ -128,4 +130,91 @@ fn eph_basic_clone_test() {
             *new_weak.upgrade().expect("weak_should be live still")
         );
     });
+}
+
+#[test]
+fn eph_self_referential() {
+    #[derive(Trace, Finalize, Clone)]
+    struct InnerCell {
+        inner: GcRefCell<Option<Ephemeron<InnerCell, TestCell>>>,
+    }
+    #[derive(Trace, Finalize, Clone)]
+    struct TestCell {
+        inner: Gc<InnerCell>,
+    }
+    run_test(|| {
+        let root = TestCell {
+            inner: Gc::new(InnerCell {
+                inner: GcRefCell::new(None),
+            }),
+        };
+        let root_size = std::mem::size_of::<GcBox<InnerCell>>();
+
+        Harness::assert_exact_bytes_allocated(root_size);
+
+        {
+            // Generate a self-referential ephemeron
+            let eph = Ephemeron::new(&root.inner, root.clone());
+            *root.inner.inner.borrow_mut() = Some(eph.clone());
+
+            assert!(eph.value().is_some());
+            Harness::assert_exact_bytes_allocated(80);
+        }
+
+        *root.inner.inner.borrow_mut() = None;
+
+        force_collect();
+
+        Harness::assert_exact_bytes_allocated(root_size);
+    })
+}
+
+#[test]
+fn eph_self_referential_chain() {
+    #[derive(Trace, Finalize, Clone)]
+    struct TestCell {
+        inner: Gc<GcRefCell<Option<Ephemeron<u8, TestCell>>>>,
+    }
+    run_test(|| {
+        let root = Gc::new(GcRefCell::new(None));
+        let root_size = std::mem::size_of::<GcBox<GcRefCell<Option<Ephemeron<u8, TestCell>>>>>();
+
+        Harness::assert_exact_bytes_allocated(root_size);
+
+        let watched = Gc::new(0);
+
+        {
+            // Generate a self-referential loop of weak and non-weak pointers
+            let chain1 = TestCell {
+                inner: Gc::new(GcRefCell::new(None)),
+            };
+            let chain2 = TestCell {
+                inner: Gc::new(GcRefCell::new(None)),
+            };
+
+            let eph_start = Ephemeron::new(&watched, chain1.clone());
+            let eph_chain2 = Ephemeron::new(&watched, chain2.clone());
+
+            *chain1.inner.borrow_mut() = Some(eph_chain2.clone());
+            *chain2.inner.borrow_mut() = Some(eph_start.clone());
+
+            *root.borrow_mut() = Some(eph_start.clone());
+
+            force_collect();
+
+            assert!(eph_start.value().is_some());
+            assert!(eph_chain2.value().is_some());
+            Harness::assert_exact_bytes_allocated(240);
+        }
+
+        *root.borrow_mut() = None;
+
+        force_collect();
+
+        drop(watched);
+
+        force_collect();
+
+        Harness::assert_exact_bytes_allocated(root_size);
+    })
 }
