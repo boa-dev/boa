@@ -135,6 +135,12 @@ trait CallableDeclaration {
     fn parameters_allow_await(&self) -> bool;
     fn body_allow_yield(&self) -> bool;
     fn body_allow_await(&self) -> bool;
+    fn parameters_yield_is_early_error(&self) -> bool {
+        false
+    }
+    fn parameters_await_is_early_error(&self) -> bool {
+        false
+    }
 }
 
 // This is a helper function to not duplicate code in the individual callable declaration parsers.
@@ -176,7 +182,7 @@ fn parse_callable_declaration<R: Read, C: CallableDeclaration>(
 
     cursor.expect(Punctuator::CloseBlock, c.error_context(), interner)?;
 
-    // Early Error: If the source code matching FormalParameters is strict mode code,
+    // If the source text matched by FormalParameters is strict mode code,
     // the Early Error rules for UniqueFormalParameters : FormalParameters are applied.
     if (cursor.strict_mode() || body.strict()) && params.has_duplicates() {
         return Err(Error::lex(LexError::Syntax(
@@ -185,7 +191,7 @@ fn parse_callable_declaration<R: Read, C: CallableDeclaration>(
         )));
     }
 
-    // Early Error: It is a Syntax Error if FunctionBodyContainsUseStrict of FunctionBody is true
+    // It is a Syntax Error if FunctionBodyContainsUseStrict of FunctionBody is true
     // and IsSimpleParameterList of FormalParameters is false.
     if body.strict() && !params.is_simple() {
         return Err(Error::lex(LexError::Syntax(
@@ -215,18 +221,41 @@ fn parse_callable_declaration<R: Read, C: CallableDeclaration>(
 
     // It is a Syntax Error if any element of the BoundNames of FormalParameters
     // also occurs in the LexicallyDeclaredNames of FunctionBody.
-    // https://tc39.es/ecma262/#sec-function-definitions-static-semantics-early-errors
     name_in_lexically_declared_names(
         &bound_names(&params),
         &top_level_lexically_declared_names(&body),
         params_start_position,
     )?;
 
+    // It is a Syntax Error if FormalParameters Contains SuperProperty is true.
+    // It is a Syntax Error if FunctionBody Contains SuperProperty is true.
+    // It is a Syntax Error if FormalParameters Contains SuperCall is true.
+    // It is a Syntax Error if FunctionBody Contains SuperCall is true.
     if contains(&body, ContainsSymbol::Super) || contains(&params, ContainsSymbol::Super) {
         return Err(Error::lex(LexError::Syntax(
             "invalid super usage".into(),
             params_start_position,
         )));
+    }
+
+    if c.parameters_yield_is_early_error() {
+        // It is a Syntax Error if FormalParameters Contains YieldExpression is true.
+        if contains(&params, ContainsSymbol::YieldExpression) {
+            return Err(Error::lex(LexError::Syntax(
+                "invalid yield usage in generator function parameters".into(),
+                params_start_position,
+            )));
+        }
+    }
+
+    if c.parameters_await_is_early_error() {
+        // It is a Syntax Error if FormalParameters Contains AwaitExpression is true.
+        if contains(&params, ContainsSymbol::AwaitExpression) {
+            return Err(Error::lex(LexError::Syntax(
+                "invalid await usage in generator function parameters".into(),
+                params_start_position,
+            )));
+        }
     }
 
     Ok((name, params, body))

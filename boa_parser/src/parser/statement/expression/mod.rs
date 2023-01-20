@@ -63,21 +63,34 @@ where
                 ));
             }
             TokenKind::Keyword((Keyword::Async, false)) => {
-                let next_token = cursor.peek(1, interner).or_abrupt()?;
-                match next_token.kind() {
-                    TokenKind::Keyword((Keyword::Function, true)) => {
-                        return Err(Error::general(
-                            "Keyword must not contain escaped characters",
-                            next_token.span().start(),
-                        ));
+                let skip_n = if cursor.peek_is_line_terminator(0, interner).or_abrupt()? {
+                    2
+                } else {
+                    1
+                };
+                let is_line_terminator = cursor
+                    .peek_is_line_terminator(skip_n, interner)?
+                    .unwrap_or(true);
+
+                if is_line_terminator {
+                    {}
+                } else {
+                    let next_token = cursor.peek(1, interner).or_abrupt()?;
+                    match next_token.kind() {
+                        TokenKind::Keyword((Keyword::Function, true)) => {
+                            return Err(Error::general(
+                                "Keyword must not contain escaped characters",
+                                next_token.span().start(),
+                            ));
+                        }
+                        TokenKind::Keyword((Keyword::Function, false)) => {
+                            return Err(Error::general(
+                                "expected statement",
+                                next_token.span().start(),
+                            ));
+                        }
+                        _ => {}
                     }
-                    TokenKind::Keyword((Keyword::Function, false)) => {
-                        return Err(Error::general(
-                            "expected statement",
-                            next_token.span().start(),
-                        ));
-                    }
-                    _ => {}
                 }
             }
             TokenKind::Keyword((Keyword::Let, false)) => {

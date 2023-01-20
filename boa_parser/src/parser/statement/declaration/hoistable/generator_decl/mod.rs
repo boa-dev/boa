@@ -65,6 +65,9 @@ impl CallableDeclaration for GeneratorDeclaration {
     fn body_allow_await(&self) -> bool {
         false
     }
+    fn parameters_yield_is_early_error(&self) -> bool {
+        true
+    }
 }
 
 impl<R> TokenParser<R> for GeneratorDeclaration

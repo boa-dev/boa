@@ -132,14 +132,25 @@ where
             }
             TokenKind::Keyword((Keyword::Async, contain_escaped_char)) => {
                 let contain_escaped_char = *contain_escaped_char;
+                let skip_n = if cursor.peek_is_line_terminator(0, interner).or_abrupt()? {
+                    2
+                } else {
+                    1
+                };
+                let is_line_terminator = cursor
+                    .peek_is_line_terminator(skip_n, interner)?
+                    .unwrap_or(true);
+
                 match cursor.peek(1, interner)?.map(Token::kind) {
-                    Some(TokenKind::Keyword((Keyword::Function, _))) if contain_escaped_char => {
+                    Some(TokenKind::Keyword((Keyword::Function, _)))
+                        if !is_line_terminator && contain_escaped_char =>
+                    {
                         Err(Error::general(
                             "Keyword must not contain escaped characters",
                             tok_position,
                         ))
                     }
-                    Some(TokenKind::Keyword((Keyword::Function, _))) => {
+                    Some(TokenKind::Keyword((Keyword::Function, _))) if !is_line_terminator => {
                         cursor.advance(interner);
                         match cursor.peek(1, interner)?.map(Token::kind) {
                             Some(TokenKind::Punctuator(Punctuator::Mul)) => {

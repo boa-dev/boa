@@ -33,12 +33,23 @@ impl StatementListItem {
     pub const fn hoistable_order(a: &Self, b: &Self) -> Ordering {
         match (a, b) {
             (
-                Self::Declaration(Declaration::Function(_)),
-                Self::Declaration(Declaration::Function(_)),
-            ) => Ordering::Equal,
-            (_, Self::Declaration(Declaration::Function(_))) => Ordering::Greater,
-            (Self::Declaration(Declaration::Function(_)), _) => Ordering::Less,
-
+                _,
+                Self::Declaration(
+                    Declaration::Function(_)
+                    | Declaration::Generator(_)
+                    | Declaration::AsyncFunction(_)
+                    | Declaration::AsyncGenerator(_),
+                ),
+            ) => Ordering::Greater,
+            (
+                Self::Declaration(
+                    Declaration::Function(_)
+                    | Declaration::Generator(_)
+                    | Declaration::AsyncFunction(_)
+                    | Declaration::AsyncGenerator(_),
+                ),
+                _,
+            ) => Ordering::Less,
             (_, _) => Ordering::Equal,
         }
     }
