@@ -101,6 +101,19 @@
 <span id="100">100</span>
 <span id="101">101</span>
 <span id="102">102</span>
+<span id="103">103</span>
+<span id="104">104</span>
+<span id="105">105</span>
+<span id="106">106</span>
+<span id="107">107</span>
+<span id="108">108</span>
+<span id="109">109</span>
+<span id="110">110</span>
+<span id="111">111</span>
+<span id="112">112</span>
+<span id="113">113</span>
+<span id="114">114</span>
+<span id="115">115</span>
 </pre><pre class="rust"><code><span class="kw">use crate</span>::{
     lexer::TokenKind,
     parser::{
@@ -166,21 +179,34 @@
                 ));
             }
             TokenKind::Keyword((Keyword::Async, <span class="bool-val">false</span>)) =&gt; {
-                <span class="kw">let </span>next_token = cursor.peek(<span class="number">1</span>, interner).or_abrupt()<span class="question-mark">?</span>;
-                <span class="kw">match </span>next_token.kind() {
-                    TokenKind::Keyword((Keyword::Function, <span class="bool-val">true</span>)) =&gt; {
-                        <span class="kw">return </span><span class="prelude-val">Err</span>(Error::general(
-                            <span class="string">&quot;Keyword must not contain escaped characters&quot;</span>,
-                            next_token.span().start(),
-                        ));
+                <span class="kw">let </span>skip_n = <span class="kw">if </span>cursor.peek_is_line_terminator(<span class="number">0</span>, interner).or_abrupt()<span class="question-mark">? </span>{
+                    <span class="number">2
+                </span>} <span class="kw">else </span>{
+                    <span class="number">1
+                </span>};
+                <span class="kw">let </span>is_line_terminator = cursor
+                    .peek_is_line_terminator(skip_n, interner)<span class="question-mark">?
+                    </span>.unwrap_or(<span class="bool-val">true</span>);
+
+                <span class="kw">if </span>is_line_terminator {
+                    {}
+                } <span class="kw">else </span>{
+                    <span class="kw">let </span>next_token = cursor.peek(<span class="number">1</span>, interner).or_abrupt()<span class="question-mark">?</span>;
+                    <span class="kw">match </span>next_token.kind() {
+                        TokenKind::Keyword((Keyword::Function, <span class="bool-val">true</span>)) =&gt; {
+                            <span class="kw">return </span><span class="prelude-val">Err</span>(Error::general(
+                                <span class="string">&quot;Keyword must not contain escaped characters&quot;</span>,
+                                next_token.span().start(),
+                            ));
+                        }
+                        TokenKind::Keyword((Keyword::Function, <span class="bool-val">false</span>)) =&gt; {
+                            <span class="kw">return </span><span class="prelude-val">Err</span>(Error::general(
+                                <span class="string">&quot;expected statement&quot;</span>,
+                                next_token.span().start(),
+                            ));
+                        }
+                        <span class="kw">_ </span>=&gt; {}
                     }
-                    TokenKind::Keyword((Keyword::Function, <span class="bool-val">false</span>)) =&gt; {
-                        <span class="kw">return </span><span class="prelude-val">Err</span>(Error::general(
-                            <span class="string">&quot;expected statement&quot;</span>,
-                            next_token.span().start(),
-                        ));
-                    }
-                    <span class="kw">_ </span>=&gt; {}
                 }
             }
             TokenKind::Keyword((Keyword::Let, <span class="bool-val">false</span>)) =&gt; {

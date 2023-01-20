@@ -838,6 +838,15 @@
 <span id="837">837</span>
 <span id="838">838</span>
 <span id="839">839</span>
+<span id="840">840</span>
+<span id="841">841</span>
+<span id="842">842</span>
+<span id="843">843</span>
+<span id="844">844</span>
+<span id="845">845</span>
+<span id="846">846</span>
+<span id="847">847</span>
+<span id="848">848</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Statement and declaration parsing.
 //!
 //! More information:
@@ -1214,8 +1223,17 @@
                 .parse(cursor, interner)
                 .map(ast::StatementListItem::from),
             TokenKind::Keyword((Keyword::Async, <span class="kw">_</span>)) =&gt; {
+                <span class="kw">let </span>skip_n = <span class="kw">if </span>cursor.peek_is_line_terminator(<span class="number">0</span>, interner).or_abrupt()<span class="question-mark">? </span>{
+                    <span class="number">2
+                </span>} <span class="kw">else </span>{
+                    <span class="number">1
+                </span>};
+                <span class="kw">let </span>is_line_terminator = cursor
+                    .peek_is_line_terminator(skip_n, interner)<span class="question-mark">?
+                    </span>.unwrap_or(<span class="bool-val">true</span>);
+
                 <span class="kw">match </span>cursor.peek(<span class="number">1</span>, interner)<span class="question-mark">?</span>.map(Token::kind) {
-                    <span class="prelude-val">Some</span>(TokenKind::Keyword((Keyword::Function, <span class="kw">_</span>))) =&gt; {
+                    <span class="prelude-val">Some</span>(TokenKind::Keyword((Keyword::Function, <span class="kw">_</span>))) <span class="kw">if </span>!is_line_terminator =&gt; {
                         Declaration::new(<span class="self">self</span>.allow_yield, <span class="self">self</span>.allow_await)
                             .parse(cursor, interner)
                             .map(ast::StatementListItem::from)

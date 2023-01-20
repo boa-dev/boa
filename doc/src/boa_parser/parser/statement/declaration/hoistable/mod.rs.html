@@ -232,6 +232,35 @@
 <span id="231">231</span>
 <span id="232">232</span>
 <span id="233">233</span>
+<span id="234">234</span>
+<span id="235">235</span>
+<span id="236">236</span>
+<span id="237">237</span>
+<span id="238">238</span>
+<span id="239">239</span>
+<span id="240">240</span>
+<span id="241">241</span>
+<span id="242">242</span>
+<span id="243">243</span>
+<span id="244">244</span>
+<span id="245">245</span>
+<span id="246">246</span>
+<span id="247">247</span>
+<span id="248">248</span>
+<span id="249">249</span>
+<span id="250">250</span>
+<span id="251">251</span>
+<span id="252">252</span>
+<span id="253">253</span>
+<span id="254">254</span>
+<span id="255">255</span>
+<span id="256">256</span>
+<span id="257">257</span>
+<span id="258">258</span>
+<span id="259">259</span>
+<span id="260">260</span>
+<span id="261">261</span>
+<span id="262">262</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Hoistable declaration parsing.
 //!
 //! More information:
@@ -369,6 +398,12 @@
     <span class="kw">fn </span>parameters_allow_await(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool;
     <span class="kw">fn </span>body_allow_yield(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool;
     <span class="kw">fn </span>body_allow_await(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool;
+    <span class="kw">fn </span>parameters_yield_is_early_error(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="bool-val">false
+    </span>}
+    <span class="kw">fn </span>parameters_await_is_early_error(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="bool-val">false
+    </span>}
 }
 
 <span class="comment">// This is a helper function to not duplicate code in the individual callable declaration parsers.
@@ -410,7 +445,7 @@
 
     cursor.expect(Punctuator::CloseBlock, c.error_context(), interner)<span class="question-mark">?</span>;
 
-    <span class="comment">// Early Error: If the source code matching FormalParameters is strict mode code,
+    <span class="comment">// If the source text matched by FormalParameters is strict mode code,
     // the Early Error rules for UniqueFormalParameters : FormalParameters are applied.
     </span><span class="kw">if </span>(cursor.strict_mode() || body.strict()) &amp;&amp; params.has_duplicates() {
         <span class="kw">return </span><span class="prelude-val">Err</span>(Error::lex(LexError::Syntax(
@@ -419,7 +454,7 @@
         )));
     }
 
-    <span class="comment">// Early Error: It is a Syntax Error if FunctionBodyContainsUseStrict of FunctionBody is true
+    <span class="comment">// It is a Syntax Error if FunctionBodyContainsUseStrict of FunctionBody is true
     // and IsSimpleParameterList of FormalParameters is false.
     </span><span class="kw">if </span>body.strict() &amp;&amp; !params.is_simple() {
         <span class="kw">return </span><span class="prelude-val">Err</span>(Error::lex(LexError::Syntax(
@@ -449,18 +484,41 @@
 
     <span class="comment">// It is a Syntax Error if any element of the BoundNames of FormalParameters
     // also occurs in the LexicallyDeclaredNames of FunctionBody.
-    // https://tc39.es/ecma262/#sec-function-definitions-static-semantics-early-errors
     </span>name_in_lexically_declared_names(
         <span class="kw-2">&amp;</span>bound_names(<span class="kw-2">&amp;</span>params),
         <span class="kw-2">&amp;</span>top_level_lexically_declared_names(<span class="kw-2">&amp;</span>body),
         params_start_position,
     )<span class="question-mark">?</span>;
 
-    <span class="kw">if </span>contains(<span class="kw-2">&amp;</span>body, ContainsSymbol::Super) || contains(<span class="kw-2">&amp;</span>params, ContainsSymbol::Super) {
+    <span class="comment">// It is a Syntax Error if FormalParameters Contains SuperProperty is true.
+    // It is a Syntax Error if FunctionBody Contains SuperProperty is true.
+    // It is a Syntax Error if FormalParameters Contains SuperCall is true.
+    // It is a Syntax Error if FunctionBody Contains SuperCall is true.
+    </span><span class="kw">if </span>contains(<span class="kw-2">&amp;</span>body, ContainsSymbol::Super) || contains(<span class="kw-2">&amp;</span>params, ContainsSymbol::Super) {
         <span class="kw">return </span><span class="prelude-val">Err</span>(Error::lex(LexError::Syntax(
             <span class="string">&quot;invalid super usage&quot;</span>.into(),
             params_start_position,
         )));
+    }
+
+    <span class="kw">if </span>c.parameters_yield_is_early_error() {
+        <span class="comment">// It is a Syntax Error if FormalParameters Contains YieldExpression is true.
+        </span><span class="kw">if </span>contains(<span class="kw-2">&amp;</span>params, ContainsSymbol::YieldExpression) {
+            <span class="kw">return </span><span class="prelude-val">Err</span>(Error::lex(LexError::Syntax(
+                <span class="string">&quot;invalid yield usage in generator function parameters&quot;</span>.into(),
+                params_start_position,
+            )));
+        }
+    }
+
+    <span class="kw">if </span>c.parameters_await_is_early_error() {
+        <span class="comment">// It is a Syntax Error if FormalParameters Contains AwaitExpression is true.
+        </span><span class="kw">if </span>contains(<span class="kw-2">&amp;</span>params, ContainsSymbol::AwaitExpression) {
+            <span class="kw">return </span><span class="prelude-val">Err</span>(Error::lex(LexError::Syntax(
+                <span class="string">&quot;invalid await usage in generator function parameters&quot;</span>.into(),
+                params_start_position,
+            )));
+        }
     }
 
     <span class="prelude-val">Ok</span>((name, params, body))
