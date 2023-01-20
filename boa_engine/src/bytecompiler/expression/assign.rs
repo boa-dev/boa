@@ -1,9 +1,11 @@
-use boa_ast::expression::operator::{assign::AssignOp, Assign};
-
 use crate::{
     bytecompiler::{Access, ByteCompiler},
     vm::{BindingOpcode, Opcode},
     JsResult,
+};
+use boa_ast::expression::{
+    access::{PropertyAccess, PropertyAccessField},
+    operator::{assign::AssignOp, Assign},
 };
 
 impl ByteCompiler<'_, '_> {
@@ -26,29 +28,6 @@ impl ByteCompiler<'_, '_> {
             let access = Access::from_assign_target(assign.lhs())
                 .expect("patterns should throw early errors on complex assignment operators");
 
-            let shortcircuit_operator_compilation =
-                |compiler: &mut ByteCompiler<'_, '_>, opcode: Opcode| -> JsResult<()> {
-                    let (early_exit, pop_count) =
-                        compiler.access_set(access, use_expr, |compiler, level| {
-                            compiler.access_get(access, true)?;
-                            let early_exit = compiler.emit_opcode_with_operand(opcode);
-                            compiler.compile_expr(assign.rhs(), true)?;
-                            Ok((early_exit, level))
-                        })?;
-                    if pop_count == 0 {
-                        compiler.patch_jump(early_exit);
-                    } else {
-                        let exit = compiler.emit_opcode_with_operand(Opcode::Jump);
-                        compiler.patch_jump(early_exit);
-                        for _ in 0..pop_count {
-                            compiler.emit_opcode(Opcode::Swap);
-                            compiler.emit_opcode(Opcode::Pop);
-                        }
-                        compiler.patch_jump(exit);
-                    }
-                    Ok(())
-                };
-
             let opcode = match assign.op() {
                 AssignOp::Assign => unreachable!(),
                 AssignOp::Add => Opcode::Add,
@@ -63,26 +42,164 @@ impl ByteCompiler<'_, '_> {
                 AssignOp::Shl => Opcode::ShiftLeft,
                 AssignOp::Shr => Opcode::ShiftRight,
                 AssignOp::Ushr => Opcode::UnsignedShiftRight,
-                AssignOp::BoolAnd => {
-                    shortcircuit_operator_compilation(self, Opcode::LogicalAnd)?;
-                    return Ok(());
-                }
-                AssignOp::BoolOr => {
-                    shortcircuit_operator_compilation(self, Opcode::LogicalOr)?;
-                    return Ok(());
-                }
-                AssignOp::Coalesce => {
-                    shortcircuit_operator_compilation(self, Opcode::Coalesce)?;
-                    return Ok(());
-                }
+                AssignOp::BoolAnd => Opcode::LogicalAnd,
+                AssignOp::BoolOr => Opcode::LogicalOr,
+                AssignOp::Coalesce => Opcode::Coalesce,
             };
 
-            self.access_set(access, use_expr, |compiler, _| {
-                compiler.access_get(access, true)?;
-                compiler.compile_expr(assign.rhs(), true)?;
-                compiler.emit(opcode, &[]);
-                Ok(())
-            })?;
+            let short_circuit = matches!(
+                assign.op(),
+                AssignOp::BoolAnd | AssignOp::BoolOr | AssignOp::Coalesce
+            );
+            let mut pop_count = 0;
+            let mut early_exit = None;
+
+            match access {
+                Access::Variable { name } => {
+                    let binding = self.context.get_binding_value(name);
+                    let index = self.get_or_insert_binding(binding);
+                    self.emit(Opcode::GetName, &[index]);
+
+                    if short_circuit {
+                        early_exit = Some(self.emit_opcode_with_operand(opcode));
+                        self.compile_expr(assign.rhs(), true)?;
+                    } else {
+                        self.compile_expr(assign.rhs(), true)?;
+                        self.emit_opcode(opcode);
+                    }
+                    if use_expr {
+                        self.emit_opcode(Opcode::Dup);
+                    }
+
+                    let binding = self.context.set_mutable_binding(name);
+                    let index = self.get_or_insert_binding(binding);
+                    self.emit(Opcode::SetName, &[index]);
+                }
+                Access::Property { access } => match access {
+                    PropertyAccess::Simple(access) => match access.field() {
+                        PropertyAccessField::Const(name) => {
+                            let index = self.get_or_insert_name((*name).into());
+                            self.compile_expr(access.target(), true)?;
+                            self.emit_opcode(Opcode::Dup);
+                            self.emit_opcode(Opcode::Dup);
+
+                            self.emit(Opcode::GetPropertyByName, &[index]);
+                            if short_circuit {
+                                pop_count = 2;
+                                early_exit = Some(self.emit_opcode_with_operand(opcode));
+                                self.compile_expr(assign.rhs(), true)?;
+                            } else {
+                                self.compile_expr(assign.rhs(), true)?;
+                                self.emit_opcode(opcode);
+                            }
+
+                            self.emit(Opcode::SetPropertyByName, &[index]);
+                            if !use_expr {
+                                self.emit_opcode(Opcode::Pop);
+                            }
+                        }
+                        PropertyAccessField::Expr(expr) => {
+                            self.compile_expr(access.target(), true)?;
+                            self.emit_opcode(Opcode::Dup);
+                            self.compile_expr(expr, true)?;
+
+                            self.emit_opcode(Opcode::GetPropertyByValuePush);
+                            if short_circuit {
+                                pop_count = 2;
+                                early_exit = Some(self.emit_opcode_with_operand(opcode));
+                                self.compile_expr(assign.rhs(), true)?;
+                            } else {
+                                self.compile_expr(assign.rhs(), true)?;
+                                self.emit_opcode(opcode);
+                            }
+
+                            self.emit_opcode(Opcode::SetPropertyByValue);
+                            if !use_expr {
+                                self.emit_opcode(Opcode::Pop);
+                            }
+                        }
+                    },
+                    PropertyAccess::Private(access) => {
+                        let index = self.get_or_insert_private_name(access.field());
+                        self.compile_expr(access.target(), true)?;
+                        self.emit_opcode(Opcode::Dup);
+
+                        self.emit(Opcode::GetPrivateField, &[index]);
+                        if short_circuit {
+                            pop_count = 1;
+                            early_exit = Some(self.emit_opcode_with_operand(opcode));
+                            self.compile_expr(assign.rhs(), true)?;
+                        } else {
+                            self.compile_expr(assign.rhs(), true)?;
+                            self.emit_opcode(opcode);
+                        }
+
+                        self.emit(Opcode::SetPrivateField, &[index]);
+                        if !use_expr {
+                            self.emit_opcode(Opcode::Pop);
+                        }
+                    }
+                    PropertyAccess::Super(access) => match access.field() {
+                        PropertyAccessField::Const(name) => {
+                            let index = self.get_or_insert_name((*name).into());
+                            self.emit_opcode(Opcode::Super);
+                            self.emit_opcode(Opcode::Dup);
+                            self.emit_opcode(Opcode::This);
+                            self.emit_opcode(Opcode::Swap);
+
+                            self.emit(Opcode::GetPropertyByName, &[index]);
+                            if short_circuit {
+                                pop_count = 2;
+                                early_exit = Some(self.emit_opcode_with_operand(opcode));
+                                self.compile_expr(assign.rhs(), true)?;
+                            } else {
+                                self.compile_expr(assign.rhs(), true)?;
+                                self.emit_opcode(opcode);
+                            }
+
+                            self.emit(Opcode::SetPropertyByName, &[index]);
+                            if !use_expr {
+                                self.emit_opcode(Opcode::Pop);
+                            }
+                        }
+                        PropertyAccessField::Expr(expr) => {
+                            self.emit_opcode(Opcode::Super);
+                            self.emit_opcode(Opcode::Dup);
+                            self.compile_expr(expr, true)?;
+
+                            self.emit_opcode(Opcode::GetPropertyByValuePush);
+                            if short_circuit {
+                                pop_count = 2;
+                                early_exit = Some(self.emit_opcode_with_operand(opcode));
+                                self.compile_expr(assign.rhs(), true)?;
+                            } else {
+                                self.compile_expr(assign.rhs(), true)?;
+                                self.emit_opcode(opcode);
+                            }
+
+                            self.emit(Opcode::SetPropertyByValue, &[]);
+                            if !use_expr {
+                                self.emit_opcode(Opcode::Pop);
+                            }
+                        }
+                    },
+                },
+                Access::This => unreachable!(),
+            }
+
+            if let Some(early_exit) = early_exit {
+                if pop_count == 0 {
+                    self.patch_jump(early_exit);
+                } else {
+                    let exit = self.emit_opcode_with_operand(Opcode::Jump);
+                    self.patch_jump(early_exit);
+                    for _ in 0..pop_count {
+                        self.emit_opcode(Opcode::Swap);
+                        self.emit_opcode(Opcode::Pop);
+                    }
+                    self.patch_jump(exit);
+                }
+            }
         }
 
         Ok(())
