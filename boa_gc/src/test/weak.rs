@@ -166,7 +166,7 @@ fn eph_self_referential() {
         force_collect();
 
         Harness::assert_exact_bytes_allocated(root_size);
-    })
+    });
 }
 
 #[test]
@@ -216,5 +216,5 @@ fn eph_self_referential_chain() {
         force_collect();
 
         Harness::assert_exact_bytes_allocated(root_size);
-    })
+    });
 }

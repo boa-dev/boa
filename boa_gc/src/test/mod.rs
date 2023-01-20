@@ -34,7 +34,7 @@ impl Harness {
         BOA_GC.with(|current| {
             let gc = current.borrow();
             assert_eq!(gc.runtime.bytes_allocated, bytes);
-        })
+        });
     }
 }
 
