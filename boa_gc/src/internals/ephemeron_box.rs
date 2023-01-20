@@ -88,6 +88,16 @@ pub(crate) struct EphemeronBox<K: Trace + ?Sized + 'static, V: Trace + 'static> 
     data: Cell<Option<NonNull<Data<K, V>>>>,
 }
 
+impl<K: Trace + ?Sized + 'static, V: Trace + 'static> Drop for EphemeronBox<K, V> {
+    fn drop(&mut self) {
+        if let Some(data) = self.data.take() {
+            // SAFETY: `data` comes from an `into_raw` call, so this pointer is safe to pass to
+            // `from_raw`.
+            drop(unsafe { Box::from_raw(data.as_ptr()) });
+        }
+    }
+}
+
 struct Data<K: Trace + ?Sized + 'static, V: Trace + 'static> {
     key: NonNull<GcBox<K>>,
     value: V,

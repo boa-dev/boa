@@ -451,13 +451,22 @@ impl Collector {
         // Not initializing a dropguard since this should only be invoked when BOA_GC is being dropped.
         let _guard = DropGuard::new();
 
-        let sweep_head = &gc.strong_start;
-        while let Some(node) = sweep_head.get() {
+        let strong_head = &gc.strong_start;
+        while let Some(node) = strong_head.get() {
             // SAFETY:
             // The `Allocator` must always ensure its start node is a valid, non-null pointer that
             // was allocated by `Box::from_raw(Box::new(..))`.
             let unmarked_node = unsafe { Box::from_raw(node.as_ptr()) };
-            sweep_head.set(unmarked_node.header.next.take());
+            strong_head.set(unmarked_node.header.next.take());
+        }
+
+        let eph_head = &gc.weak_start;
+        while let Some(node) = eph_head.get() {
+            // SAFETY:
+            // The `Allocator` must always ensure its start node is a valid, non-null pointer that
+            // was allocated by `Box::from_raw(Box::new(..))`.
+            let unmarked_node = unsafe { Box::from_raw(node.as_ptr()) };
+            eph_head.set(unmarked_node.header().next.take());
         }
     }
 }
