@@ -301,9 +301,9 @@ dependencies = [
  "boa_parser",
  "clap 4.1.6",
  "colored",
- "futures-lite",
  "jemallocator",
  "phf",
+ "pollster",
  "regex",
  "rustyline",
  "rustyline-derive",
@@ -327,7 +327,6 @@ dependencies = [
  "dashmap",
  "fast-float",
  "float-cmp",
- "futures-lite",
  "icu_calendar",
  "icu_collator",
  "icu_datetime",
@@ -343,6 +342,7 @@ dependencies = [
  "num-traits",
  "num_enum",
  "once_cell",
+ "pollster",
  "rand",
  "regress",
  "rustc-hash",
@@ -2936,6 +2936,12 @@ dependencies = [
  "wepoll-ffi",
  "windows-sys 0.42.0",
 ]
+
+[[package]]
+name = "pollster"
+version = "0.3.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "22686f4785f02a4fcc856d3b3bb19bf6c8160d103f7a99cc258bddd0251dc7f2"
 
 [[package]]
 name = "postcard"

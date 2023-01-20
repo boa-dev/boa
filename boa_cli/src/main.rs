@@ -388,7 +388,7 @@ impl JobQueue for Jobs {
     }
 
     fn enqueue_future_job(&self, future: FutureJob, _: &mut Context<'_>) {
-        let job = futures_lite::future::block_on(future);
+        let job = pollster::block_on(future);
         self.0.borrow_mut().push_front(job);
     }
 }

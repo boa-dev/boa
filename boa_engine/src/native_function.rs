@@ -6,7 +6,6 @@
 use std::future::Future;
 
 use boa_gc::{custom_trace, Finalize, Gc, Trace};
-use futures_lite::FutureExt;
 
 use crate::{
     builtins::Promise,
@@ -195,7 +194,7 @@ impl NativeFunction {
             };
             context
                 .job_queue()
-                .enqueue_future_job(future.boxed_local(), context);
+                .enqueue_future_job(Box::pin(future), context);
             Ok(promise.into())
         })
     }

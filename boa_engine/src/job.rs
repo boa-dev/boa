@@ -89,7 +89,7 @@ impl NativeJob {
     }
 }
 
-/// [`JobCallback`][spec] records
+/// [`JobCallback`][spec] records.
 ///
 /// [spec]: https://tc39.es/ecma262/#sec-jobcallback-records
 #[derive(Trace, Finalize)]
@@ -232,7 +232,7 @@ impl JobQueue for SimpleJobQueue {
     }
 
     fn enqueue_future_job(&self, future: FutureJob, context: &mut Context<'_>) {
-        let job = futures_lite::future::block_on(future);
+        let job = pollster::block_on(future);
         self.enqueue_promise_job(job, context);
     }
 }

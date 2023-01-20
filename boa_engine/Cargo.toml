@@ -25,7 +25,7 @@ intl = [
     "dep:icu_collator",
     "dep:icu_list",
     "dep:writeable",
-    "dep:sys-locale",
+    "dep:sys-locale"
 ]
 
 fuzz = ["boa_ast/arbitrary", "boa_interner/arbitrary"]
@@ -64,7 +64,7 @@ static_assertions = "1.1.0"
 thiserror = "1.0.38"
 dashmap = "5.4.0"
 num_enum = "0.5.10"
-futures-lite = "1.12.0"
+pollster = "0.3.0"
 
 # intl deps
 boa_icu_provider = { workspace = true, optional = true }
