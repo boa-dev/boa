@@ -209,7 +209,7 @@ where
             )) => IdentifierReference::new(self.allow_yield, self.allow_await)
                 .parse(cursor, interner)
                 .map(Into::into),
-            TokenKind::StringLiteral(lit) => {
+            TokenKind::StringLiteral((lit, _)) => {
                 let node = Literal::from(*lit).into();
                 cursor.advance(interner);
                 Ok(node)

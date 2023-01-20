@@ -88,11 +88,11 @@ impl<R> Tokenizer<R> for StringLiteral {
     {
         let _timer = Profiler::global().start_event("StringLiteral", "Lexing");
 
-        let (lit, span) =
+        let (lit, span, contains_legacy_escape) =
             Self::take_string_characters(cursor, start_pos, self.terminator, cursor.strict_mode())?;
 
         Ok(Token::new(
-            TokenKind::string_literal(interner.get_or_intern(&lit[..])),
+            TokenKind::string_literal(interner.get_or_intern(&lit[..]), contains_legacy_escape),
             span,
         ))
     }
@@ -117,11 +117,13 @@ impl StringLiteral {
         start_pos: Position,
         terminator: StringTerminator,
         is_strict_mode: bool,
-    ) -> Result<(Vec<u16>, Span), Error>
+    ) -> Result<(Vec<u16>, Span, bool), Error>
     where
         R: Read,
     {
         let mut buf = Vec::new();
+        let mut contains_legacy_escape = false;
+
         loop {
             let ch_start_pos = cursor.pos();
             let ch = cursor.next_char()?;
@@ -133,12 +135,15 @@ impl StringLiteral {
                     let _timer =
                         Profiler::global().start_event("StringLiteral - escape sequence", "Lexing");
 
-                    if let Some(escape_value) = Self::take_escape_sequence_or_line_continuation(
-                        cursor,
-                        ch_start_pos,
-                        is_strict_mode,
-                        false,
-                    )? {
+                    if let Some((escape_value, cle)) =
+                        Self::take_escape_sequence_or_line_continuation(
+                            cursor,
+                            ch_start_pos,
+                            is_strict_mode,
+                            false,
+                        )?
+                    {
+                        contains_legacy_escape |= cle;
                         buf.push_code_point(escape_value);
                     }
                 }
@@ -156,7 +161,11 @@ impl StringLiteral {
             }
         }
 
-        Ok((buf, Span::new(start_pos, cursor.pos())))
+        Ok((
+            buf,
+            Span::new(start_pos, cursor.pos()),
+            contains_legacy_escape,
+        ))
     }
 
     pub(super) fn take_escape_sequence_or_line_continuation<R>(
@@ -164,7 +173,7 @@ impl StringLiteral {
         start_pos: Position,
         is_strict_mode: bool,
         is_template_literal: bool,
-    ) -> Result<Option<u32>, Error>
+    ) -> Result<Option<(u32, bool)>, Error>
     where
         R: Read,
     {
@@ -176,25 +185,25 @@ impl StringLiteral {
         })?;
 
         let escape_value = match escape_ch {
-            0x0062 /* b */ => Some(0x0008 /* <BS> */),
-            0x0074 /* t */ => Some(0x0009 /* <HT> */),
-            0x006E /* n */ => Some(0x000A /* <LF> */),
-            0x0076 /* v */ => Some(0x000B /* <VT> */),
-            0x0066 /* f */ => Some(0x000C /* <FF> */),
-            0x0072 /* r */ => Some(0x000D /* <CR> */),
-            0x0022 /* " */ => Some(0x0022 /* " */),
-            0x0027 /* ' */ => Some(0x0027 /* ' */),
-            0x005C /* \ */ => Some(0x005C /* \ */),
+            0x0062 /* b */ => Some((0x0008 /* <BS> */, false)),
+            0x0074 /* t */ => Some((0x0009 /* <HT> */, false)),
+            0x006E /* n */ => Some((0x000A /* <LF> */, false)),
+            0x0076 /* v */ => Some((0x000B /* <VT> */, false)),
+            0x0066 /* f */ => Some((0x000C /* <FF> */, false)),
+            0x0072 /* r */ => Some((0x000D /* <CR> */, false)),
+            0x0022 /* " */ => Some((0x0022 /* " */, false)),
+            0x0027 /* ' */ => Some((0x0027 /* ' */, false)),
+            0x005C /* \ */ => Some((0x005C /* \ */, false)),
             0x0030 /* 0 */ if cursor
                 .peek()?
                 .filter(|next_byte| (b'0'..=b'9').contains(next_byte))
                 .is_none() =>
-                Some(0x0000 /* NULL */),
+                Some((0x0000 /* NULL */, false)),
             0x0078 /* x */ => {
-                Some(Self::take_hex_escape_sequence(cursor, start_pos)?)
+                Some((Self::take_hex_escape_sequence(cursor, start_pos)?, false))
             }
             0x0075 /* u */ => {
-                Some(Self::take_unicode_escape_sequence(cursor, start_pos)?)
+                Some((Self::take_unicode_escape_sequence(cursor, start_pos)?, false))
             }
             0x0038 /* 8 */ | 0x0039 /* 9 */ => {
                 // Grammar: NonOctalDecimalEscapeSequence
@@ -209,7 +218,7 @@ impl StringLiteral {
                         start_pos,
                     ));
                 }
-                    Some(escape_ch)
+                    Some((escape_ch, true))
             }
             _ if (0x0030..=0x0037 /* '0'..='7' */).contains(&escape_ch) => {
                 if is_template_literal {
@@ -226,10 +235,10 @@ impl StringLiteral {
                     ));
                 }
 
-                Some(Self::take_legacy_octal_escape_sequence(
+                Some((Self::take_legacy_octal_escape_sequence(
                     cursor,
                     escape_ch.try_into().expect("an ascii char must not fail to convert"),
-                )?)
+                )?, true))
             }
             _ if Self::is_line_terminator(escape_ch) => {
                 // Grammar: LineContinuation
@@ -238,7 +247,7 @@ impl StringLiteral {
                 None
             }
             _ => {
-                Some(escape_ch)
+                Some((escape_ch, false))
             }
         };
 

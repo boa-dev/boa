@@ -65,7 +65,7 @@ where
         let token = cursor.next(interner).or_abrupt()?;
 
         match token.kind() {
-            TokenKind::Identifier(ident)
+            TokenKind::Identifier((ident, _))
                 if cursor.strict_mode() && RESERVED_IDENTIFIERS_STRICT.contains(ident) =>
             {
                 Err(Error::general(
@@ -73,7 +73,7 @@ where
                     token.span().start(),
                 ))
             }
-            TokenKind::Identifier(ident) => Ok(Identifier::new(*ident)),
+            TokenKind::Identifier((ident, _)) => Ok(Identifier::new(*ident)),
             TokenKind::Keyword((Keyword::Let, _)) if cursor.strict_mode() => Err(Error::general(
                 "using future reserved keyword not allowed in strict mode IdentifierReference",
                 token.span().start(),
@@ -155,19 +155,19 @@ where
         let next_token = cursor.next(interner).or_abrupt()?;
 
         match next_token.kind() {
-            TokenKind::Identifier(Sym::ARGUMENTS) if cursor.strict_mode() => {
+            TokenKind::Identifier((Sym::ARGUMENTS, _)) if cursor.strict_mode() => {
                 Err(Error::lex(LexError::Syntax(
                     "unexpected identifier 'arguments' in strict mode".into(),
                     next_token.span().start(),
                 )))
             }
-            TokenKind::Identifier(Sym::EVAL) if cursor.strict_mode() => {
+            TokenKind::Identifier((Sym::EVAL, _)) if cursor.strict_mode() => {
                 Err(Error::lex(LexError::Syntax(
                     "unexpected identifier 'eval' in strict mode".into(),
                     next_token.span().start(),
                 )))
             }
-            TokenKind::Identifier(ident) => {
+            TokenKind::Identifier((ident, _)) => {
                 if cursor.strict_mode() && RESERVED_IDENTIFIERS_STRICT.contains(ident) {
                     return Err(Error::general(
                         "using future reserved keyword not allowed in strict mode",

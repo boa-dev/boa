@@ -282,10 +282,16 @@ where
         let global_strict = cursor.strict_mode();
         let mut directive_prologues = self.directive_prologues;
         let mut strict = self.strict;
+        let mut string_literal_legacy_escape = None;
 
         loop {
             match cursor.peek(0, interner)? {
                 Some(token) if self.break_nodes.contains(token.kind()) => break,
+                Some(token) if directive_prologues && string_literal_legacy_escape.is_none() => {
+                    if let TokenKind::StringLiteral((_, true)) = token.kind() {
+                        string_literal_legacy_escape = Some(token.span().start());
+                    }
+                }
                 None => break,
                 _ => {}
             }
@@ -306,6 +312,13 @@ where
                     ) {
                         cursor.set_strict_mode(true);
                         strict = true;
+
+                        if let Some(position) = string_literal_legacy_escape {
+                            return Err(Error::general(
+                                "legacy escape sequences are not allowed in strict mode",
+                                position,
+                            ));
+                        }
                     }
                 } else {
                     directive_prologues = false;

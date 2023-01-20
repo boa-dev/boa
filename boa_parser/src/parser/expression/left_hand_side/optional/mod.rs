@@ -66,7 +66,7 @@ where
             interner: &mut Interner,
         ) -> ParseResult<OptionalOperationKind> {
             let item = match token.kind() {
-                TokenKind::Identifier(name) => OptionalOperationKind::SimplePropertyAccess {
+                TokenKind::Identifier((name, _)) => OptionalOperationKind::SimplePropertyAccess {
                     field: PropertyAccessField::Const(*name),
                 },
                 TokenKind::Keyword((kw, _)) => OptionalOperationKind::SimplePropertyAccess {

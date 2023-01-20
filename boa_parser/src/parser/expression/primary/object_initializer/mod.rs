@@ -198,6 +198,7 @@ where
             cursor.peek(1, interner).or_abrupt()?.kind(),
             TokenKind::Punctuator(Punctuator::OpenParen | Punctuator::Colon)
         );
+
         let token = cursor.peek(0, interner).or_abrupt()?;
         match token.kind() {
             TokenKind::Keyword((Keyword::Async, true)) if is_keyword => {
@@ -263,7 +264,9 @@ where
             _ => {}
         }
 
-        if cursor.peek(0, interner).or_abrupt()?.kind() == &TokenKind::Punctuator(Punctuator::Mul) {
+        let token = cursor.peek(0, interner).or_abrupt()?;
+
+        if token.kind() == &TokenKind::Punctuator(Punctuator::Mul) {
             let position = cursor.peek(0, interner).or_abrupt()?.span().start();
             let (class_element_name, method) =
                 GeneratorMethod::new(self.allow_yield, self.allow_await).parse(cursor, interner)?;
@@ -289,6 +292,11 @@ where
             }
         }
 
+        let set_or_get_escaped_position = match token.kind() {
+            TokenKind::Identifier((Sym::GET | Sym::SET, true)) => Some(token.span().start()),
+            _ => None,
+        };
+
         let mut property_name =
             PropertyName::new(self.allow_yield, self.allow_await).parse(cursor, interner)?;
 
@@ -311,6 +319,13 @@ where
         match property_name {
             // MethodDefinition[?Yield, ?Await] -> get ClassElementName[?Yield, ?Await] ( ) { FunctionBody[~Yield, ~Await] }
             property::PropertyName::Literal(str) if str == Sym::GET && !ordinary_method => {
+                if let Some(position) = set_or_get_escaped_position {
+                    return Err(Error::general(
+                        "Keyword must not contain escaped characters",
+                        position,
+                    ));
+                }
+
                 let position = cursor.peek(0, interner).or_abrupt()?.span().start();
 
                 property_name = PropertyName::new(self.allow_yield, self.allow_await)
@@ -364,6 +379,13 @@ where
             }
             // MethodDefinition[?Yield, ?Await] -> set ClassElementName[?Yield, ?Await] ( PropertySetParameterList ) { FunctionBody[~Yield, ~Await] }
             property::PropertyName::Literal(str) if str == Sym::SET && !ordinary_method => {
+                if let Some(position) = set_or_get_escaped_position {
+                    return Err(Error::general(
+                        "Keyword must not contain escaped characters",
+                        position,
+                    ));
+                }
+
                 property_name = PropertyName::new(self.allow_yield, self.allow_await)
                     .parse(cursor, interner)?;
 
@@ -556,7 +578,9 @@ where
                 cursor.expect(Punctuator::CloseBracket, "expected token ']'", interner)?;
                 return Ok(node.into());
             }
-            TokenKind::Identifier(name) | TokenKind::StringLiteral(name) => (*name).into(),
+            TokenKind::Identifier((name, _)) | TokenKind::StringLiteral((name, _)) => {
+                (*name).into()
+            }
             TokenKind::NumericLiteral(num) => match num {
                 Numeric::Rational(num) => Expression::Literal(Literal::from(*num)).into(),
                 Numeric::Integer(num) => Expression::Literal(Literal::from(*num)).into(),
