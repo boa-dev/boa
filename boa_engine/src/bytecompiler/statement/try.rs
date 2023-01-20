@@ -111,7 +111,7 @@ impl ByteCompiler<'_, '_> {
         );
 
         self.context.push_compile_time_environment(false);
-        let push_env = self.emit_and_track_decl_env();
+        let push_env = self.emit_opcode_with_two_operands(Opcode::PushDeclarativeEnvironment);
 
         self.create_script_decls(finally.block().statement_list(), configurable_globals);
         self.compile_statement_list(
@@ -125,9 +125,9 @@ impl ByteCompiler<'_, '_> {
         self.patch_jump_with_target(push_env.0, num_bindings as u32);
         self.patch_jump_with_target(push_env.1, index_compile_environment as u32);
 
+        self.pop_try_control_info(Some(finally_start_address))?;
         self.emit_opcode(Opcode::PopEnvironment);
         self.emit_opcode(Opcode::FinallyEnd);
-        self.pop_try_control_info(Some(finally_start_address))?;
 
         Ok(())
     }

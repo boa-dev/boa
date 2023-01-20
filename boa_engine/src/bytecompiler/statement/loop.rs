@@ -335,8 +335,8 @@ impl ByteCompiler<'_, '_> {
         self.emit(Opcode::Jump, &[start_address]);
         self.patch_jump(exit);
 
-        self.emit_opcode(Opcode::LoopEnd);
         self.pop_loop_control_info();
+        self.emit_opcode(Opcode::LoopEnd);
         Ok(())
     }
 

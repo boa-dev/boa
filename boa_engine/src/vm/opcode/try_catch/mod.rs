@@ -78,7 +78,7 @@ impl Operation for CatchStart {
             next: finally,
             finally: Some(finally),
         });
-        context.vm.frame_mut().env_stack.push(EnvStackEntry::default().with_try_flag());
+        context.vm.frame_mut().env_stack.push(EnvStackEntry::default().with_try_flag().with_initial_env_num(0));
         context.vm.frame_mut().thrown = false;
         Ok(ShouldExit::False)
     }

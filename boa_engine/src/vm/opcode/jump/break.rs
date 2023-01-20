@@ -1,5 +1,5 @@
 use crate::{
-    vm::{opcode::Operation, ShouldExit},
+    vm::{opcode::Operation, ShouldExit, FinallyReturn},
     Context, JsResult,
 };
 
@@ -28,6 +28,7 @@ impl Operation for Break {
         }
 
         context.vm.frame_mut().pc = address as usize;
+        context.vm.frame_mut().finally_return = FinallyReturn::None;
         Ok(ShouldExit::False)
     }
 }

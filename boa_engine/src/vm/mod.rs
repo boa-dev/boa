@@ -299,7 +299,7 @@ impl Context<'_> {
                             env_to_pop += env_entry.env_num();
 
                             if env_entry.is_try_env() {
-                                env_entry.set_env_num(1);
+                                env_entry.set_env_num(0);
                                 break;
                             } 
 
