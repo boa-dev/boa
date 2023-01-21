@@ -25,8 +25,6 @@ pub(crate) struct JumpControlInfo {
     flags: JumpControlInfoFlags,
     breaks: Vec<Label>,
     try_continues: Vec<Label>,
-    finally_start: Option<Label>,
-    target_label: Option<Sym>,
 }
 
 bitflags! {
@@ -37,8 +35,9 @@ bitflags! {
         const TRY_BLOCK = 0b0000_0100;
         const LABELLED = 0b0000_1000;
         const IN_CATCH = 0b0001_0000;
-        const HAS_FINALLY = 0b0010_0000;
-        const FOR_OF_IN_LOOP = 0b0100_0000;
+        const IN_FINALLY = 0b0010_0000;
+        const HAS_FINALLY = 0b0100_0000;
+        const FOR_OF_IN_LOOP = 0b1000_0000;
     }
 }
 
@@ -57,14 +56,11 @@ impl Default for JumpControlInfo {
             flags: JumpControlInfoFlags::default(),
             breaks: Vec::new(),
             try_continues: Vec::new(),
-            finally_start: None,
-            target_label: None,
         }
     }
 }
 
-// ---- `JumpControlInfo` Creation Methods ---- //
-
+/// ---- `JumpControlInfo` Creation Methods ----
 impl JumpControlInfo {
     pub(crate) const fn with_label(mut self, label: Option<Sym>) -> Self {
         self.label = label;
@@ -137,17 +133,12 @@ impl JumpControlInfo {
         self.flags.contains(JumpControlInfoFlags::IN_CATCH)
     }
 
+    pub(crate) const fn in_finally(&self) -> bool {
+        self.flags.contains(JumpControlInfoFlags::IN_FINALLY)
+    }
+
     pub(crate) const fn has_finally(&self) -> bool {
         self.flags.contains(JumpControlInfoFlags::HAS_FINALLY)
-    }
-
-    pub(crate) const fn finally_start(&self) -> Option<Label> {
-        self.finally_start
-    }
-
-    #[allow(dead_code)]
-    pub(crate) const fn target_label(&self) -> Option<Sym> {
-        self.target_label
     }
 
     pub(crate) const fn for_of_in_loop(&self) -> bool {
@@ -177,14 +168,14 @@ impl JumpControlInfo {
         self.flags.set(JumpControlInfoFlags::IN_CATCH, value);
     }
 
+    /// Set the `in_finally` field of `JumpControlInfo`.
+    pub(crate) fn set_in_finally(&mut self, value: bool) {
+        self.flags.set(JumpControlInfoFlags::IN_FINALLY, value);
+    }
+
     /// Sets the `finally_start` field of `JumpControlInfo`.
     pub(crate) fn set_finally_start(&mut self, label: Label) {
         self.finally_start = Some(label);
-    }
-
-    /// Sets the `target_label` field of `JumpControlInfo`.
-    pub(crate) fn set_target_label(&mut self, target: Option<Sym>) {
-        self.target_label = target;
     }
 
     /// Increments the `decl_env` field of `JumpControlInfo`.
@@ -222,18 +213,18 @@ impl ByteCompiler<'_, '_> {
         self.jump_info.last_mut()
     }
 
-    pub(crate) fn set_jump_control_finally_start(&mut self, start: Label) {
+    pub(crate) fn set_jump_control_in_finally(&mut self, value: bool) {
         if !self.jump_info.is_empty() {
             let info = self
                 .jump_info
                 .last_mut()
                 .expect("must have try control label");
             assert!(info.is_try_block());
-            info.set_finally_start(start);
+            info.set_in_finally(value);
         }
     }
 
-    pub(crate) fn set_jump_control_catch_start(&mut self, value: bool) {
+    pub(crate) fn set_jump_control_in_catch(&mut self, value: bool) {
         if !self.jump_info.is_empty() {
             let info = self
                 .jump_info
@@ -266,6 +257,39 @@ impl ByteCompiler<'_, '_> {
         }
     }
 
+    // ---- Labelled Statement JumpControlInfo methods ---- //
+
+    /// Pushes a `LabelledStatement`'s `JumpControlInfo` onto the `jump_info` stack.
+    pub(crate) fn push_labelled_control_info(&mut self, label: Sym, start_address: u32) {
+        let new_info = JumpControlInfo::default()
+            .with_labelled_block_flag(true)
+            .with_label(Some(label))
+            .with_start_address(start_address);
+        self.jump_info.push(new_info);
+    }
+
+    /// Pops and handles the info for a label's `JumpControlInfo`
+    /// 
+    /// # Panic
+    ///  - Will panic if `jump_info` stack is empty.
+    ///  - Will panic if popped `JumpControlInfo` is not for a `LabelledStatement`.
+    pub(crate) fn pop_labelled_control_info(&mut self) {
+        assert!(!self.jump_info.is_empty());
+        let info = self.jump_info.pop().expect("no jump information found");
+
+        assert!(info.is_labelled());
+
+        for label in info.breaks {
+            self.patch_jump(label);
+        }
+
+        for label in info.try_continues {
+            self.patch_jump_with_target(label, info.start_address);
+        }
+    }
+    // ---- `IterationStatement`'s `JumpControlInfo` methods ---- //
+
+    /// Pushes an `WhileStatement`, `ForStatement` or `DoWhileStatement`'s `JumpControlInfo` on to the `jump_info` stack.
     pub(crate) fn push_loop_control_info(&mut self, label: Option<Sym>, start_address: u32) {
         let new_info = JumpControlInfo::default()
             .with_loop_flag(true)
@@ -274,6 +298,7 @@ impl ByteCompiler<'_, '_> {
         self.jump_info.push(new_info);
     }
 
+    /// Pushes a `ForInOfStatement`'s `JumpControlInfo` on to the `jump_info` stack.
     pub(crate) fn push_loop_control_info_for_of_in_loop(
         &mut self,
         label: Option<Sym>,
@@ -287,20 +312,30 @@ impl ByteCompiler<'_, '_> {
         self.jump_info.push(new_info);
     }
 
+    /// Pops and handles the info for a loop control block's `JumpControlInfo`
+    /// 
+    /// # Panic
+    ///  - Will panic if `jump_info` stack is empty.
+    ///  - Will panic if popped `JumpControlInfo` is not for a loop block.
     pub(crate) fn pop_loop_control_info(&mut self) {
-        let loop_info = self.jump_info.pop().expect("no jump information found");
+        assert!(!self.jump_info.is_empty());
+        let info = self.jump_info.pop().expect("no jump information found");
 
-        assert!(loop_info.is_loop());
+        assert!(info.is_loop());
 
-        for label in loop_info.breaks {
+
+        for label in info.breaks {
             self.patch_jump(label);
         }
 
-        for label in loop_info.try_continues {
-            self.patch_jump_with_target(label, loop_info.start_address);
+        for label in info.try_continues {
+            self.patch_jump_with_target(label, info.start_address);
         }
     }
 
+    // ---- `SwitchStatement` `JumpControlInfo` methods ---- //
+
+    /// Pushes a `SwitchStatement`'s `JumpControlInfo` on to the `jump_info` stack.
     pub(crate) fn push_switch_control_info(&mut self, label: Option<Sym>, start_address: u32) {
         let new_info = JumpControlInfo::default()
             .with_switch_flag(true)
@@ -309,7 +344,13 @@ impl ByteCompiler<'_, '_> {
         self.jump_info.push(new_info);
     }
 
+    /// Pops and handles the info for a switch block's `JumpControlInfo`
+    /// 
+    /// # Panic
+    ///  - Will panic if `jump_info` stack is empty.
+    ///  - Will panic if popped `JumpControlInfo` is not for a switch block.
     pub(crate) fn pop_switch_control_info(&mut self) {
+        assert!(!self.jump_info.is_empty());
         let info = self.jump_info.pop().expect("no jump information found");
 
         assert!(info.is_switch());
@@ -319,6 +360,9 @@ impl ByteCompiler<'_, '_> {
         }
     }
 
+    // ---- `TryStatement`'s `JumpControlInfo` methods ---- //
+
+    /// Pushes a `TryStatement`'s `JumpControlInfo` onto the `jump_info` stack.
     pub(crate) fn push_try_control_info(&mut self, has_finally: bool, start_address: u32) {
         let new_info = JumpControlInfo::default()
             .with_try_block_flag(true)
@@ -370,18 +414,22 @@ impl ByteCompiler<'_, '_> {
         Ok(())
     }
 
-    pub(crate) fn push_labelled_control_info(&mut self, label: Sym, start_address: u32) {
+    /// Pushes a `TryStatement`'s Finally block `JumpControlInfo` onto the `jump_info` stack.
+    pub(crate) fn push_finally_control_info(&mut self, start_address: u32) {
         let new_info = JumpControlInfo::default()
-            .with_labelled_block_flag(true)
-            .with_label(Some(label))
-            .with_start_address(start_address);
+            .with_try_block_flag(true)
+            .with_start_address(start_address)
+            .set_in_finally(true);
+
         self.jump_info.push(new_info);
     }
 
-    pub(crate) fn pop_labelled_control_info(&mut self) {
+    pub(crate) fn pop_finally_control_info(&mut self) {
+        assert!(!self.jump_info.is_empty());
         let info = self.jump_info.pop().expect("no jump information found");
 
-        assert!(info.is_labelled());
+        assert!(info.in_finally());
+
 
         for label in info.breaks {
             self.patch_jump(label);

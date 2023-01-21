@@ -50,7 +50,7 @@ impl ByteCompiler<'_, '_> {
 
     pub(crate) fn compile_catch_stmt(&mut self, parent_try: &Try, use_expr: bool, configurable_globals: bool) -> JsResult<()> {
         let catch = parent_try.catch().expect("Catch must exist for compile_catch_stmt to have been invoked");
-        self.set_jump_control_catch_start(true);
+        self.set_jump_control_in_catch(true);
         let catch_start = if parent_try.finally().is_some() {
             Some(self.emit_opcode_with_operand(Opcode::CatchStart))
         } else {
@@ -96,15 +96,15 @@ impl ByteCompiler<'_, '_> {
             self.emit_opcode(Opcode::CatchEnd2);
         }
 
+        self.set_jump_control_in_finally(false);
+
         Ok(())
     }
 
     pub(crate) fn compile_finally_stmt(&mut self, finally: &Finally, finally_location: Label, configurable_globals: bool) -> JsResult<()> {
         self.emit_opcode(Opcode::FinallyStart);
         let finally_start_address = self.next_opcode_location();
-        self.set_jump_control_finally_start(Label {
-            index: finally_start_address,
-        });
+        self.set_jump_control_finally_values(Label { index: finally_start_address,}, true);
         self.patch_jump_with_target(
             finally_location,
             finally_start_address,
@@ -128,7 +128,7 @@ impl ByteCompiler<'_, '_> {
         self.pop_try_control_info(Some(finally_start_address))?;
         self.emit_opcode(Opcode::PopEnvironment);
         self.emit_opcode(Opcode::FinallyEnd);
-
+        
         Ok(())
     }
 }

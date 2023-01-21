@@ -7,13 +7,11 @@ use boa_interner::Sym;
 impl ByteCompiler<'_, '_> {
     /// Compile a [`Break`] `boa_ast` node
     pub(crate) fn compile_break(&mut self, node: Break) -> JsResult<()> {
-        let next = self.next_opcode_location();
         let finally_label = if let Some(info) = self.jump_info.last().filter(|info| info.is_try_block()) {
-            let in_finally = if let Some(finally_start) = info.finally_start() {
-                next >= finally_start.index
-            } else {
-                false
-            };
+            if !info.in_finally() && !info.has_finally() {
+                // hicjack break statement here.
+                
+            }
             let in_catch_no_finally = !info.has_finally() && info.in_catch();
 
             if in_finally {
@@ -39,9 +37,7 @@ impl ByteCompiler<'_, '_> {
         if let Some(label) = finally_label {
             let info = self.jump_info.last_mut().expect("This must exist and must be a try block");
             info.push_break_label(label);
-            if node.label().is_some() {
-                info.set_target_label(node.label());
-            }
+
         }
 
         Ok(())
@@ -49,18 +45,12 @@ impl ByteCompiler<'_, '_> {
 
     /// Emit a [`Opcode::Break`] and handle logic accompanying it.
     pub(crate) fn emit_break(&mut self, label: Option<Sym>) -> JsResult<()> {
+        // Emit the break opcode -> (Label, Label)
         let (break_label, envs_to_pop) = self.emit_opcode_with_two_operands(Opcode::Break);
         if let Some(label_name) = label {
             let mut found = false;
             let mut total_envs: u32 = 0;
             for info in self.jump_info.iter_mut().rev() {
-                if info.has_finally() {
-                    info.push_break_label(break_label);
-                    info.set_target_label(Some(label_name));
-                    found = true;
-                    break;
-                } 
-                
                 total_envs += info.decl_envs();
                 if info.label() == Some(label_name) {
                     info.push_break_label(break_label);
