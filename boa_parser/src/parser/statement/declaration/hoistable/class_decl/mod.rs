@@ -723,7 +723,7 @@ where
 
                 match class_element_name {
                     ClassElementName::PropertyName(property_name) if r#static => {
-                        if property_name.prop_name() == Some(Sym::PROTOTYPE) {
+                        if property_name.literal() == Some(Sym::PROTOTYPE) {
                             return Err(Error::general(
                                 "class may not have static method definitions named 'prototype'",
                                 name_position,
@@ -780,7 +780,7 @@ where
                         cursor.set_strict_mode(strict);
                         match class_element_name {
                             ClassElementName::PropertyName(property_name) if r#static => {
-                                if property_name.prop_name() == Some(Sym::PROTOTYPE) {
+                                if property_name.literal() == Some(Sym::PROTOTYPE) {
                                     return Err(Error::general(
                                         "class may not have static method definitions named 'prototype'",
                                         name_position,
@@ -825,11 +825,11 @@ where
 
                         match class_element_name {
                             ClassElementName::PropertyName(property_name) if r#static => {
-                                if property_name.prop_name() == Some(Sym::PROTOTYPE) {
+                                if property_name.literal() == Some(Sym::PROTOTYPE) {
                                     return Err(Error::general(
-                                            "class may not have static method definitions named 'prototype'",
-                                            name_position,
-                                        ));
+                                        "class may not have static method definitions named 'prototype'",
+                                        name_position,
+                                    ));
                                 }
                                 function::ClassElement::StaticMethodDefinition(
                                     property_name,
@@ -957,13 +957,11 @@ where
                             body,
                         ));
                         if r#static {
-                            if let Some(name) = name.prop_name() {
-                                if name == Sym::PROTOTYPE {
-                                    return Err(Error::general(
-                                            "class may not have static method definitions named 'prototype'",
-                                            name_position,
-                                        ));
-                                }
+                            if name.literal() == Some(Sym::PROTOTYPE) {
+                                return Err(Error::general(
+                                    "class may not have static method definitions named 'prototype'",
+                                    name_position,
+                                ));
                             }
                             function::ClassElement::StaticMethodDefinition(name, method)
                         } else {
@@ -1081,13 +1079,11 @@ where
                         cursor.set_strict_mode(strict);
                         let method = MethodDefinition::Set(Function::new(None, params, body));
                         if r#static {
-                            if let Some(name) = name.prop_name() {
-                                if name == Sym::PROTOTYPE {
-                                    return Err(Error::general(
-                                            "class may not have static method definitions named 'prototype'",
-                                            name_position,
-                                        ));
-                                }
+                            if name.literal() == Some(Sym::PROTOTYPE) {
+                                return Err(Error::general(
+                                    "class may not have static method definitions named 'prototype'",
+                                    name_position,
+                                ));
                             }
                             function::ClassElement::StaticMethodDefinition(name, method)
                         } else {
@@ -1253,13 +1249,11 @@ where
                         }
                     }
                     TokenKind::Punctuator(Punctuator::OpenParen) => {
-                        if let Some(name) = name.prop_name() {
-                            if r#static && name == Sym::PROTOTYPE {
-                                return Err(Error::general(
-                                        "class may not have static method definitions named 'prototype'",
-                                        name_position,
-                                    ));
-                            }
+                        if r#static && name.literal() == Some(Sym::PROTOTYPE) {
+                            return Err(Error::general(
+                                "class may not have static method definitions named 'prototype'",
+                                name_position,
+                            ));
                         }
                         let strict = cursor.strict_mode();
                         cursor.set_strict_mode(true);
