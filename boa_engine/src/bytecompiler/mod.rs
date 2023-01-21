@@ -660,17 +660,26 @@ impl<'b, 'host> ByteCompiler<'b, 'host> {
         use_expr: bool,
         configurable_globals: bool,
     ) -> JsResult<()> {
-        let mut items = list
-            .statements()
-            .iter()
-            .filter(|item| item != &&StatementListItem::Statement(Statement::Empty))
-            .peekable();
+        if use_expr {
+            let expr_index = list
+                .statements()
+                .iter()
+                .rev()
+                .skip_while(|item| {
+                    matches!(
+                        item,
+                        &&StatementListItem::Statement(Statement::Empty | Statement::Var(_))
+                            | &&StatementListItem::Declaration(_)
+                    )
+                })
+                .count();
 
-        while let Some(item) = items.next() {
-            if items.peek().is_some() {
+            for (i, item) in list.statements().iter().enumerate() {
+                self.compile_stmt_list_item(item, i + 1 == expr_index, configurable_globals)?;
+            }
+        } else {
+            for item in list.statements() {
                 self.compile_stmt_list_item(item, false, configurable_globals)?;
-            } else {
-                self.compile_stmt_list_item(item, use_expr, configurable_globals)?;
             }
         }
 
@@ -689,17 +698,26 @@ impl<'b, 'host> ByteCompiler<'b, 'host> {
 
         self.create_decls(list, true);
 
-        let mut items = list
-            .statements()
-            .iter()
-            .filter(|item| item != &&StatementListItem::Statement(Statement::Empty))
-            .peekable();
+        if use_expr {
+            let expr_index = list
+                .statements()
+                .iter()
+                .rev()
+                .skip_while(|item| {
+                    matches!(
+                        item,
+                        &&StatementListItem::Statement(Statement::Empty | Statement::Var(_))
+                            | &&StatementListItem::Declaration(_)
+                    )
+                })
+                .count();
 
-        while let Some(item) = items.next() {
-            if items.peek().is_some() {
+            for (i, item) in list.statements().iter().enumerate() {
+                self.compile_stmt_list_item(item, i + 1 == expr_index, true)?;
+            }
+        } else {
+            for item in list.statements() {
                 self.compile_stmt_list_item(item, false, true)?;
-            } else {
-                self.compile_stmt_list_item(item, use_expr, true)?;
             }
         }
 
