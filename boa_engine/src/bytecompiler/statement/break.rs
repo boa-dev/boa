@@ -11,37 +11,45 @@ use boa_interner::Sym;
 impl ByteCompiler<'_, '_> {
     /// Compile a [`Break`] `boa_ast` node
     pub(crate) fn compile_break(&mut self, node: Break) -> JsResult<()> {
-        let try_target_labels = if self
-            .jump_info
-            .last()
-            .expect("jump_info must exist")
-            .is_try_block()
-        {
-            let (set_jump_label, init_envs) =
-                self.emit_opcode_with_two_operands(Opcode::SetBreakTarget);
-            (Some(set_jump_label), Some(init_envs))
-        } else {
-            (None, None)
-        };
+        let (set_jump, initial_envs, is_try, has_finally) =
+            if let Some(info) = self.jump_info.last().filter(|info| info.is_try_block()) {
+                let is_try_block = info.is_try_block();
+                let has_finally = info.has_finally();
+                let (set_jump_label, init_envs) =
+                    self.emit_opcode_with_two_operands(Opcode::SetBreakTarget);
+                (
+                    Some(set_jump_label),
+                    Some(init_envs),
+                    is_try_block,
+                    has_finally,
+                )
+            } else {
+                (None, None, false, false)
+            };
 
-        if node.label().is_some() && try_target_labels.0.is_some() {
+        let is_try_no_finally = is_try && !has_finally;
+
+        if node.label().is_some() && set_jump.is_some() {
             let envs = self.search_jump_info_label(
-                try_target_labels.0.expect("must exist"),
+                set_jump.expect("must exist"),
                 node.label().expect("must exist as well"),
             )?;
             // Update the initial envs field of `SetBreakTarget` with the initial envs count
-            self.patch_jump_with_target(try_target_labels.1.expect("must exist"), envs);
-        } else if try_target_labels.0.is_some() {
+            self.patch_jump_with_target(initial_envs.expect("must exist"), envs);
+        } else if set_jump.is_some() {
             self.jump_info
                 .last_mut()
-                .expect("jump_info must exist")
-                .push_set_jumps(try_target_labels.0.expect("value must exist"))
+                .expect("jump_info must exist to reach this point")
+                .push_set_jumps(set_jump.expect("value must exist"));
         }
 
         // Emit the break opcode -> (Label, Label)
         let (break_label, envs_to_pop) = self.emit_opcode_with_two_operands(Opcode::Break);
-        if let Some(label_name) = node.label() {
-            let envs_count = self.search_jump_info_label(break_label, label_name)?;
+        if node.label().is_some() && is_try_no_finally {
+            let envs_count = self.search_jump_info_label(
+                break_label,
+                node.label().expect("must exist in this block"),
+            )?;
             self.patch_jump_with_target(envs_to_pop, envs_count);
         } else {
             let envs = self

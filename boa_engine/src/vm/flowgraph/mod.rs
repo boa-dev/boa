@@ -156,7 +156,7 @@ impl CodeBlock {
                     graph.add_edge(
                         previous_pc,
                         jump_operand as usize,
-                        Some("BREAK".into()),
+                        Some("SetBreakTarget".into()),
                         Color::Red,
                         EdgeStyle::Line,
                     );
@@ -172,7 +172,7 @@ impl CodeBlock {
                     graph.add_edge(
                         previous_pc,
                         jump_operand as usize,
-                        Some("BREAK".into()),
+                        Some("SetContinueTarget".into()),
                         Color::Red,
                         EdgeStyle::Line,
                     );

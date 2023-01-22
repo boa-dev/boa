@@ -324,10 +324,9 @@ impl ByteCompiler<'_, '_> {
         label: Option<Sym>,
         configurable_globals: bool,
     ) -> JsResult<()> {
-        self.emit_opcode(Opcode::LoopStart);
         let start_address = self.next_opcode_location();
+        self.emit_opcode(Opcode::LoopStart);
         self.push_loop_control_info(label, start_address);
-        self.emit_opcode(Opcode::LoopContinue);
 
         self.compile_expr(while_loop.condition(), true)?;
         let exit = self.jump_if_false();

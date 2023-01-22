@@ -24,10 +24,10 @@ impl Operation for LoopStart {
     }
 }
 
-/// `LoopContinue` implements the Opcode Operation for `Opcode::LoopContinue`
+/// `LoopContinue` implements the Opcode Operation for `Opcode::LoopContinue`.
 ///
 /// Operation:
-///  - Clean up environments when a loop continues.
+///  - Pushes a clean environment onto the frame's `EnvEntryStack`.
 #[derive(Debug, Clone, Copy)]
 pub(crate) struct LoopContinue;
 
@@ -36,25 +36,12 @@ impl Operation for LoopContinue {
     const INSTRUCTION: &'static str = "INST - LoopContinue";
 
     fn execute(context: &mut Context<'_>) -> JsResult<ShouldExit> {
-        let mut envs_to_pop = 0_usize;
-        for _ in 1..context.vm.frame().env_stack.len() {
-            let env_entry = context
-                .vm
-                .frame_mut()
-                .env_stack
-                .last_mut()
-                .expect("this must exist");
-            envs_to_pop += env_entry.env_num();
+        context
+            .vm
+            .frame_mut()
+            .env_stack
+            .push(EnvStackEntry::default().with_loop_flag());
 
-            if env_entry.is_loop_env() {
-                env_entry.set_env_num(0);
-                break;
-            }
-        }
-
-        for _ in 0..envs_to_pop {
-            context.realm.environments.pop();
-        }
         Ok(ShouldExit::False)
     }
 }

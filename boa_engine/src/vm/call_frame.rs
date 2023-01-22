@@ -47,7 +47,7 @@ impl CallFrame {
             finally_return: FinallyReturn::None,
             finally_jump: Vec::new(),
             pop_on_return: 0,
-            env_stack: Vec::from([EnvStackEntry::default().with_initial_env_num(1)]),
+            env_stack: Vec::from([EnvStackEntry::default().with_initial_env_num(0)]),
             abrupt_completion: None,
             param_count: 0,
             arg_count: 0,
@@ -82,12 +82,24 @@ impl CallFrame {
     }
 
     /// Tracks that one environment has been pop'ed in the current loop block.
+    ///
+    /// Note:
+    ///  - This will check if the env stack has reached 0 and should be popped.
     pub(crate) fn dec_frame_env_stack(&mut self) {
         self.env_stack
             .last_mut()
             .expect("environment stack entry must exist")
             .dec_env_num();
         self.dec_abrupt_completion_envs();
+
+        if self
+            .env_stack
+            .last()
+            .expect("Must exist as we just decremented it")
+            .should_be_popped()
+        {
+            self.pop_env_stack();
+        }
     }
 
     pub(crate) fn inc_abrupt_completion_envs(&mut self) {
@@ -101,6 +113,13 @@ impl CallFrame {
             record.dec_envs_to_reconcile();
         }
     }
+
+    pub(crate) fn pop_env_stack(&mut self) {
+        let dead_entry = self.env_stack.pop().expect("env stack must exist");
+        if dead_entry.is_try_env() {
+            self.catch.pop();
+        }
+    }
 }
 
 #[derive(Clone, Copy, Debug, PartialEq)]
@@ -108,6 +127,8 @@ pub(crate) enum EnvEntryKind {
     Global,
     Loop,
     Try,
+    Catch,
+    Finally,
 }
 /// Tracks the number of environments in the current try-catch-finally block.
 ///
@@ -128,36 +149,54 @@ impl Default for EnvStackEntry {
     }
 }
 
+/// ---- `EnvStackEntry` creation methods ----
 impl EnvStackEntry {
-    pub(crate) fn with_try_flag(mut self) -> Self {
+    pub(crate) const fn with_try_flag(mut self) -> Self {
         self.kind = EnvEntryKind::Try;
         self
     }
 
-    pub(crate) fn with_loop_flag(mut self) -> Self {
+    pub(crate) const fn with_loop_flag(mut self) -> Self {
         self.kind = EnvEntryKind::Loop;
         self
     }
 
-    pub(crate) fn with_initial_env_num(mut self, value: usize) -> Self {
-        self.env_num = value;
+    pub(crate) const fn with_catch_flag(mut self) -> Self {
+        self.kind = EnvEntryKind::Catch;
         self
     }
 
+    pub(crate) const fn with_finally_flag(mut self) -> Self {
+        self.kind = EnvEntryKind::Finally;
+        self
+    }
+
+    pub(crate) const fn with_initial_env_num(mut self, value: usize) -> Self {
+        self.env_num = value;
+        self
+    }
+}
+
+/// ---- `EnvStackEntry` interaction methods ----
+impl EnvStackEntry {
+    /// Returns true if an `EnvStackEntry` is a loop
     pub(crate) fn is_loop_env(&self) -> bool {
         self.kind == EnvEntryKind::Loop
     }
 
+    /// Returns true if an `EnvStackEntry` is a try block
     pub(crate) fn is_try_env(&self) -> bool {
         self.kind == EnvEntryKind::Try
     }
 
+    /// Returns the current environment number for this entry.
     pub(crate) const fn env_num(&self) -> usize {
         self.env_num
     }
 
-    pub(crate) fn set_env_num(&mut self, value: usize) {
-        self.env_num = value;
+    /// Checks if a env block should be popped
+    pub(crate) fn should_be_popped(&self) -> bool {
+        self.kind != EnvEntryKind::Global && self.env_num == 0
     }
 
     pub(crate) fn inc_env_num(&mut self) {
@@ -195,22 +234,22 @@ impl Default for AbruptCompletionRecord {
 
 /// ---- `AbruptCompletionRecord` initialization methods ----
 impl AbruptCompletionRecord {
-    pub(crate) fn with_break_flag(mut self) -> Self {
+    pub(crate) const fn with_break_flag(mut self) -> Self {
         self.kind = AbruptKind::Break;
         self
     }
 
-    pub(crate) fn with_continue_flag(mut self) -> Self {
+    pub(crate) const fn with_continue_flag(mut self) -> Self {
         self.kind = AbruptKind::Continue;
         self
     }
 
-    pub(crate) fn with_initial_target(mut self, target: u32) -> Self {
+    pub(crate) const fn with_initial_target(mut self, target: u32) -> Self {
         self.target = target;
         self
     }
 
-    pub(crate) fn with_initial_envs(mut self, envs: u32) -> Self {
+    pub(crate) const fn with_initial_envs(mut self, envs: u32) -> Self {
         self.envs = envs;
         self
     }
@@ -245,7 +284,7 @@ impl AbruptCompletionRecord {
     }
 
     pub(crate) fn set_envs(&mut self, envs: u32) {
-        self.envs = envs
+        self.envs = envs;
     }
 
     pub(crate) fn inc_envs_to_reconcile(&mut self) {

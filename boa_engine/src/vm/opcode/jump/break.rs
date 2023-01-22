@@ -21,18 +21,6 @@ impl Operation for Break {
             context.realm.environments.pop();
 
             context.vm.frame_mut().dec_frame_env_stack();
-
-            if context
-                .vm
-                .frame()
-                .env_stack
-                .last()
-                .expect("must exist")
-                .env_num()
-                == 0
-            {
-                context.vm.frame_mut().env_stack.pop();
-            }
         }
 
         context.vm.frame_mut().pc = address as usize;

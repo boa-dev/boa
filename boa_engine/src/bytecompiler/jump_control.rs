@@ -12,7 +12,6 @@
 use crate::{
     bytecompiler::{ByteCompiler, Label},
     vm::Opcode,
-    JsResult,
 };
 use bitflags::bitflags;
 use boa_interner::Sym;
@@ -217,7 +216,7 @@ impl ByteCompiler<'_, '_> {
 
     pub(crate) fn set_jump_control_start_address(&mut self, start_address: u32) {
         let info = self.jump_info.last_mut().expect("jump_info must exist");
-        info.set_start_address(start_address)
+        info.set_start_address(start_address);
     }
 
     pub(crate) fn set_jump_control_in_finally(&mut self, value: bool) {
@@ -383,14 +382,26 @@ impl ByteCompiler<'_, '_> {
     /// # Panic
     ///  - Will panic if `jump_info` is empty.
     ///  - Will panic if popped `JumpControlInfo` is not for a try block.
-    pub(crate) fn pop_try_control_info(
-        &mut self,
-        finally_start_address: Option<u32>,
-    ) -> JsResult<()> {
+    pub(crate) fn pop_try_control_info(&mut self, try_end: u32) {
         assert!(!self.jump_info.is_empty());
         let mut info = self.jump_info.pop().expect("no jump information found");
 
         assert!(info.is_try_block());
+
+        // Handle breaks. If there is a finally, breaks should go to the finally
+        if info.has_finally() {
+            for label in info.breaks {
+                self.patch_jump_with_target(label, try_end);
+            }
+        } else {
+            // When there is no finally, search for the break point.
+            for jump_info in self.jump_info.iter_mut().rev() {
+                if !jump_info.is_labelled() {
+                    jump_info.breaks.append(&mut info.breaks);
+                    break;
+                }
+            }
+        }
 
         // Handle set_jumps
         for label in info.set_jumps {
@@ -408,27 +419,10 @@ impl ByteCompiler<'_, '_> {
             }
         }
 
-        // Handle breaks. If there is a finally, breaks should go to the finally
-        if let Some(fin_start) = finally_start_address {
-            for label in info.breaks {
-                self.patch_jump_with_target(label, fin_start);
-            }
-        } else {
-            // When there is no finally, search for the break point.
-            for jump_info in self.jump_info.iter_mut().rev() {
-                if !jump_info.is_labelled() {
-                    jump_info.breaks.append(&mut info.breaks);
-                    break;
-                }
-            }
-        }
-
         // Pass continues down the stack.
         if let Some(jump_info) = self.jump_info.last_mut() {
             jump_info.try_continues.append(&mut info.try_continues);
         }
-
-        Ok(())
     }
 
     /// Pushes a `TryStatement`'s Finally block `JumpControlInfo` onto the `jump_info` stack.
@@ -440,18 +434,19 @@ impl ByteCompiler<'_, '_> {
         self.jump_info.push(new_info);
     }
 
-    pub(crate) fn pop_finally_control_info(&mut self) -> JsResult<()> {
+    pub(crate) fn pop_finally_control_info(&mut self) {
         assert!(!self.jump_info.is_empty());
         let mut info = self.jump_info.pop().expect("no jump information found");
 
         assert!(info.in_finally());
 
         // Handle set_jumps
+        let info_envs = info.decl_envs();
         for label in info.set_jumps {
+            let mut envs_count = info_envs;
             for jump_info in self.jump_info.iter_mut().rev() {
-                let mut envs_count = 0;
                 envs_count += jump_info.decl_envs();
-                if jump_info.is_loop() || jump_info.is_switch() || jump_info.is_try_block() {
+                if jump_info.is_loop() || jump_info.is_switch() {
                     jump_info.breaks.push(label);
                     let envs_label = Label {
                         index: label.index + 4,
@@ -461,12 +456,20 @@ impl ByteCompiler<'_, '_> {
                 }
             }
         }
-        
+
         // Handle breaks in a finally block
+        let mut finally_chain = false;
         for jump_info in self.jump_info.iter_mut().rev() {
-            if jump_info.is_loop() || jump_info.is_switch() || jump_info.is_try_block() {
+            if jump_info.is_try_block() && jump_info.has_finally() {
                 jump_info.breaks.append(&mut info.breaks);
+                finally_chain = true;
                 break;
+            }
+        }
+
+        if !finally_chain {
+            for label in info.breaks {
+                self.patch_jump(label);
             }
         }
 
@@ -474,7 +477,5 @@ impl ByteCompiler<'_, '_> {
         if let Some(jump_info) = self.jump_info.last_mut() {
             jump_info.try_continues.append(&mut info.try_continues);
         }
-
-        Ok(())
     }
 }

@@ -5,7 +5,7 @@ use boa_ast::{
 };
 
 use crate::{
-    bytecompiler::{ByteCompiler, Label},
+    bytecompiler::ByteCompiler,
     vm::{BindingOpcode, Opcode},
     JsResult,
 };
@@ -49,9 +49,19 @@ impl ByteCompiler<'_, '_> {
         self.patch_jump(finally);
 
         if let Some(finally) = t.finally() {
-            self.compile_finally_stmt(finally, finally_loc, configurable_globals)?;
+            // Pop and push control loops post FinallyStart, as FinallyStart resets flow control variables.
+            // Handle finally header operations
+            let finally_start_address = self.next_opcode_location();
+            self.emit_opcode(Opcode::FinallyStart);
+            self.pop_try_control_info(finally_start_address);
+            self.set_jump_control_start_address(finally_start_address);
+            self.patch_jump_with_target(finally_loc, finally_start_address);
+
+            // Compile finally statement body
+            self.compile_finally_stmt(finally, configurable_globals)?;
         } else {
-            self.pop_try_control_info(None)?;
+            let try_end = self.next_opcode_location();
+            self.pop_try_control_info(try_end);
         }
 
         Ok(())
@@ -120,17 +130,8 @@ impl ByteCompiler<'_, '_> {
     pub(crate) fn compile_finally_stmt(
         &mut self,
         finally: &Finally,
-        finally_location: Label,
         configurable_globals: bool,
     ) -> JsResult<()> {
-        self.emit_opcode(Opcode::FinallyStart);
-        // Pop and push control loops post FinallyStart, as FinallyStart resets flow control variables.
-        let finally_start_address = self.next_opcode_location();
-
-        self.pop_try_control_info(Some(finally_start_address))?;
-        self.set_jump_control_start_address(finally_start_address);
-        self.patch_jump_with_target(finally_location, finally_start_address);
-
         self.context.push_compile_time_environment(false);
         let push_env = self.emit_and_track_decl_env();
 
@@ -147,7 +148,7 @@ impl ByteCompiler<'_, '_> {
         self.patch_jump_with_target(push_env.1, index_compile_environment as u32);
 
         self.emit_and_track_pop_env();
-        self.pop_finally_control_info()?;
+        self.pop_finally_control_info();
         self.emit_opcode(Opcode::FinallyEnd);
 
         Ok(())

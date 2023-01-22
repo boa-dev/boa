@@ -299,16 +299,13 @@ impl Context<'_> {
                                 .vm
                                 .frame_mut()
                                 .env_stack
-                                .last_mut()
-                                .expect("this must exist");
+                                .pop()
+                                .expect("stack entries must exist");
                             env_to_pop += env_entry.env_num();
 
                             if env_entry.is_try_env() {
-                                env_entry.set_env_num(0);
                                 break;
                             }
-
-                            self.vm.frame_mut().env_stack.pop();
                         }
 
                         for _ in 0..env_to_pop {
