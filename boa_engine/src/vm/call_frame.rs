@@ -14,6 +14,8 @@ pub struct CallFrame {
     pub(crate) catch: Vec<CatchAddresses>,
     #[unsafe_ignore_trace]
     pub(crate) finally_return: FinallyReturn,
+    #[unsafe_ignore_trace]
+    pub(crate) abrupt_completion: Option<AbruptCompletionRecord>,
     pub(crate) finally_jump: Vec<Option<u32>>,
     pub(crate) pop_on_return: usize,
 
@@ -46,6 +48,7 @@ impl CallFrame {
             finally_jump: Vec::new(),
             pop_on_return: 0,
             env_stack: Vec::from([EnvStackEntry::default().with_initial_env_num(1)]),
+            abrupt_completion: None,
             param_count: 0,
             arg_count: 0,
             generator_resume_kind: GeneratorResumeKind::Normal,
@@ -71,20 +74,32 @@ impl CallFrame {
 impl CallFrame {
     /// Tracks that one environment has been pushed in the current loop block.
     pub(crate) fn inc_frame_env_stack(&mut self) {
-        self
-            .env_stack
+        self.env_stack
             .last_mut()
             .expect("environment stack entry must exist")
             .inc_env_num();
+        self.inc_abrupt_completion_envs();
     }
 
     /// Tracks that one environment has been pop'ed in the current loop block.
     pub(crate) fn dec_frame_env_stack(&mut self) {
-        self
-            .env_stack
+        self.env_stack
             .last_mut()
             .expect("environment stack entry must exist")
             .dec_env_num();
+        self.dec_abrupt_completion_envs();
+    }
+
+    pub(crate) fn inc_abrupt_completion_envs(&mut self) {
+        if let Some(record) = self.abrupt_completion.as_mut() {
+            record.inc_envs_to_reconcile();
+        }
+    }
+
+    pub(crate) fn dec_abrupt_completion_envs(&mut self) {
+        if let Some(record) = self.abrupt_completion.as_mut() {
+            record.dec_envs_to_reconcile();
+        }
     }
 }
 
@@ -94,7 +109,6 @@ pub(crate) enum EnvEntryKind {
     Loop,
     Try,
 }
-
 /// Tracks the number of environments in the current try-catch-finally block.
 ///
 /// Because of the interactions between loops and try-catch-finally blocks,
@@ -152,6 +166,94 @@ impl EnvStackEntry {
 
     pub(crate) fn dec_env_num(&mut self) {
         self.env_num -= 1;
+    }
+}
+
+#[derive(Copy, Clone, Debug, PartialEq)]
+pub(crate) enum AbruptKind {
+    None,
+    Continue,
+    Break,
+}
+
+#[derive(Clone, Copy, Debug)]
+pub(crate) struct AbruptCompletionRecord {
+    kind: AbruptKind,
+    target: u32,
+    envs: u32,
+}
+
+impl Default for AbruptCompletionRecord {
+    fn default() -> Self {
+        Self {
+            kind: AbruptKind::None,
+            target: u32::MAX,
+            envs: 0,
+        }
+    }
+}
+
+/// ---- `AbruptCompletionRecord` initialization methods ----
+impl AbruptCompletionRecord {
+    pub(crate) fn with_break_flag(mut self) -> Self {
+        self.kind = AbruptKind::Break;
+        self
+    }
+
+    pub(crate) fn with_continue_flag(mut self) -> Self {
+        self.kind = AbruptKind::Continue;
+        self
+    }
+
+    pub(crate) fn with_initial_target(mut self, target: u32) -> Self {
+        self.target = target;
+        self
+    }
+
+    pub(crate) fn with_initial_envs(mut self, envs: u32) -> Self {
+        self.envs = envs;
+        self
+    }
+}
+
+impl AbruptCompletionRecord {
+    pub(crate) fn is_break(&self) -> bool {
+        self.kind == AbruptKind::Break
+    }
+
+    pub(crate) const fn target(&self) -> u32 {
+        self.target
+    }
+
+    pub(crate) const fn envs(&self) -> u32 {
+        self.envs
+    }
+}
+
+/// ---- `AbruptCompletionRecord` interaction methods ----
+impl AbruptCompletionRecord {
+    pub(crate) fn set_break_flag(&mut self) {
+        self.kind = AbruptKind::Break;
+    }
+
+    pub(crate) fn set_continue_flag(&mut self) {
+        self.kind = AbruptKind::Continue;
+    }
+
+    pub(crate) fn set_target(&mut self, target: u32) {
+        self.target = target;
+    }
+
+    pub(crate) fn set_envs(&mut self, envs: u32) {
+        self.envs = envs
+    }
+
+    pub(crate) fn inc_envs_to_reconcile(&mut self) {
+        self.envs += 1;
+    }
+
+    pub(crate) fn dec_envs_to_reconcile(&mut self) {
+        self.envs -= 1;
     }
 }
 

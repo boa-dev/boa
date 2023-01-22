@@ -1,4 +1,8 @@
-use boa_ast::{declaration::Binding, operations::bound_names, statement::{Try, Finally}};
+use boa_ast::{
+    declaration::Binding,
+    operations::bound_names,
+    statement::{Finally, Try},
+};
 
 use crate::{
     bytecompiler::{ByteCompiler, Label},
@@ -14,8 +18,13 @@ impl ByteCompiler<'_, '_> {
         configurable_globals: bool,
     ) -> JsResult<()> {
         let (try_start, finally_loc) = self.emit_opcode_with_two_operands(Opcode::TryStart);
-        self.push_try_control_info(t.finally().is_some(), try_start.index);
         self.patch_jump_with_target(finally_loc, 0);
+
+        // If there is a finally block, initialize the finally control block prior to pushing the try block jump_control
+        if t.finally().is_some() {
+            self.push_init_finally_control_info();
+        }
+        self.push_try_control_info(t.finally().is_some(), try_start.index);
 
         self.context.push_compile_time_environment(false);
         let push_env = self.emit_and_track_decl_env();
@@ -48,8 +57,15 @@ impl ByteCompiler<'_, '_> {
         Ok(())
     }
 
-    pub(crate) fn compile_catch_stmt(&mut self, parent_try: &Try, use_expr: bool, configurable_globals: bool) -> JsResult<()> {
-        let catch = parent_try.catch().expect("Catch must exist for compile_catch_stmt to have been invoked");
+    pub(crate) fn compile_catch_stmt(
+        &mut self,
+        parent_try: &Try,
+        use_expr: bool,
+        configurable_globals: bool,
+    ) -> JsResult<()> {
+        let catch = parent_try
+            .catch()
+            .expect("Catch must exist for compile_catch_stmt to have been invoked");
         self.set_jump_control_in_catch(true);
         let catch_start = if parent_try.finally().is_some() {
             Some(self.emit_opcode_with_operand(Opcode::CatchStart))
@@ -101,17 +117,22 @@ impl ByteCompiler<'_, '_> {
         Ok(())
     }
 
-    pub(crate) fn compile_finally_stmt(&mut self, finally: &Finally, finally_location: Label, configurable_globals: bool) -> JsResult<()> {
+    pub(crate) fn compile_finally_stmt(
+        &mut self,
+        finally: &Finally,
+        finally_location: Label,
+        configurable_globals: bool,
+    ) -> JsResult<()> {
         self.emit_opcode(Opcode::FinallyStart);
+        // Pop and push control loops post FinallyStart, as FinallyStart resets flow control variables.
         let finally_start_address = self.next_opcode_location();
-        self.set_jump_control_finally_values(Label { index: finally_start_address,}, true);
-        self.patch_jump_with_target(
-            finally_location,
-            finally_start_address,
-        );
+
+        self.pop_try_control_info(Some(finally_start_address))?;
+        self.set_jump_control_start_address(finally_start_address);
+        self.patch_jump_with_target(finally_location, finally_start_address);
 
         self.context.push_compile_time_environment(false);
-        let push_env = self.emit_opcode_with_two_operands(Opcode::PushDeclarativeEnvironment);
+        let push_env = self.emit_and_track_decl_env();
 
         self.create_script_decls(finally.block().statement_list(), configurable_globals);
         self.compile_statement_list(
@@ -125,10 +146,10 @@ impl ByteCompiler<'_, '_> {
         self.patch_jump_with_target(push_env.0, num_bindings as u32);
         self.patch_jump_with_target(push_env.1, index_compile_environment as u32);
 
-        self.pop_try_control_info(Some(finally_start_address))?;
-        self.emit_opcode(Opcode::PopEnvironment);
+        self.emit_and_track_pop_env();
+        self.pop_finally_control_info()?;
         self.emit_opcode(Opcode::FinallyEnd);
-        
+
         Ok(())
     }
 }

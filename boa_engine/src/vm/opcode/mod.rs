@@ -1155,6 +1155,20 @@ generate_impl! {
         /// Stack: **=>**
         FinallySetJump,
 
+        /// Jumps to a target location and pops the environments involved.
+        ///
+        /// Operands: Address: u32, Environments: u32
+        Break,
+
+        /// Sets the `AbruptCompletionRecord` for a delayed break
+        ///
+        /// Operands: Target address: u32, Initial Environements: u32,
+        SetBreakTarget,
+
+        /// Sets the `AbruptCompletionRecord` for a delayed continue
+        ///
+        /// Operands: Target address: u32, Initial Environements: u32,
+        SetContinueTarget,
         /// Pops value converts it to boolean and pushes it back.
         ///
         /// Operands:
@@ -1493,9 +1507,6 @@ generate_impl! {
         ///
         /// Stack: promise **=>**
         Await,
-
-        /// Jumps to a target location and pops the environments involved.
-        Break,
 
         /// Push the current new target to the stack.
         ///

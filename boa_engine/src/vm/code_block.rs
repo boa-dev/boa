@@ -256,7 +256,9 @@ impl CodeBlock {
             | Opcode::PushDeclarativeEnvironment
             | Opcode::PushFunctionEnvironment
             | Opcode::CopyDataProperties
-            | Opcode::Break => {
+            | Opcode::Break
+            | Opcode::SetBreakTarget
+            | Opcode::SetContinueTarget => {
                 let operand1 = self.read::<u32>(*pc);
                 *pc += size_of::<u32>();
                 let operand2 = self.read::<u32>(*pc);

@@ -4,14 +4,9 @@ use crate::{bytecompiler::ByteCompiler, vm::Opcode, JsNativeError, JsResult};
 
 impl ByteCompiler<'_, '_> {
     pub(crate) fn compile_continue(&mut self, node: Continue) -> JsResult<()> {
-        let next = self.next_opcode_location();
         if let Some(info) = self.jump_info.last().filter(|info| info.is_try_block()) {
             let start_address = info.start_address();
-            let in_finally = if let Some(finally_start) = info.finally_start() {
-                next > finally_start.index
-            } else {
-                false
-            };
+            let in_finally = info.in_finally();
             let in_catch_no_finally = !info.has_finally() && info.in_catch();
 
             if in_finally {

@@ -22,14 +22,19 @@ impl Operation for Return {
             frame.catch.pop();
             let mut envs_to_pop = 0_usize;
             for _ in 1..context.vm.frame().env_stack.len() {
-                let env_entry = context.vm.frame_mut().env_stack.pop().expect("this must exist");
+                let env_entry = context
+                    .vm
+                    .frame_mut()
+                    .env_stack
+                    .pop()
+                    .expect("this must exist");
                 envs_to_pop += env_entry.env_num();
-    
+
                 if env_entry.is_try_env() {
                     break;
                 }
             }
-    
+
             for _ in 0..envs_to_pop {
                 context.realm.environments.pop();
             }

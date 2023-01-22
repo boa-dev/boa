@@ -1,73 +1,48 @@
 use boa_ast::statement::Break;
 
-use crate::{bytecompiler::ByteCompiler, vm::Opcode, JsNativeError, JsResult};
+use crate::{
+    bytecompiler::{ByteCompiler, Label},
+    vm::Opcode,
+    JsNativeError, JsResult,
+};
 
 use boa_interner::Sym;
 
 impl ByteCompiler<'_, '_> {
     /// Compile a [`Break`] `boa_ast` node
     pub(crate) fn compile_break(&mut self, node: Break) -> JsResult<()> {
-        let finally_label = if let Some(info) = self.jump_info.last().filter(|info| info.is_try_block()) {
-            if !info.in_finally() && !info.has_finally() {
-                // hicjack break statement here.
-                
-            }
-            let in_catch_no_finally = !info.has_finally() && info.in_catch();
-
-            if in_finally {
-                self.emit_opcode(Opcode::PopIfThrown);
-            }
-            if in_finally || in_catch_no_finally {
-                self.emit_opcode(Opcode::CatchEnd2);
-            } else {
-                self.emit_break(node.label())?;
-            }
-            
-            if in_finally {
-                let finally_label = self.emit_opcode_with_operand(Opcode::FinallySetJump);
-                Some(finally_label)
-            } else {
-                None
-            }
+        let try_target_labels = if self
+            .jump_info
+            .last()
+            .expect("jump_info must exist")
+            .is_try_block()
+        {
+            let (set_jump_label, init_envs) =
+                self.emit_opcode_with_two_operands(Opcode::SetBreakTarget);
+            (Some(set_jump_label), Some(init_envs))
         } else {
-            self.emit_break(node.label())?;
-            return Ok(())
+            (None, None)
         };
 
-        if let Some(label) = finally_label {
-            let info = self.jump_info.last_mut().expect("This must exist and must be a try block");
-            info.push_break_label(label);
-
+        if node.label().is_some() && try_target_labels.0.is_some() {
+            let envs = self.search_jump_info_label(
+                try_target_labels.0.expect("must exist"),
+                node.label().expect("must exist as well"),
+            )?;
+            // Update the initial envs field of `SetBreakTarget` with the initial envs count
+            self.patch_jump_with_target(try_target_labels.1.expect("must exist"), envs);
+        } else if try_target_labels.0.is_some() {
+            self.jump_info
+                .last_mut()
+                .expect("jump_info must exist")
+                .push_set_jumps(try_target_labels.0.expect("value must exist"))
         }
 
-        Ok(())
-    }
-
-    /// Emit a [`Opcode::Break`] and handle logic accompanying it.
-    pub(crate) fn emit_break(&mut self, label: Option<Sym>) -> JsResult<()> {
         // Emit the break opcode -> (Label, Label)
         let (break_label, envs_to_pop) = self.emit_opcode_with_two_operands(Opcode::Break);
-        if let Some(label_name) = label {
-            let mut found = false;
-            let mut total_envs: u32 = 0;
-            for info in self.jump_info.iter_mut().rev() {
-                total_envs += info.decl_envs();
-                if info.label() == Some(label_name) {
-                    info.push_break_label(break_label);
-                    found = true;
-                    break;
-                }
-            }
-            // TODO: promote to an early error.
-            if !found {
-                return Err(JsNativeError::syntax()
-                    .with_message(format!(
-                        "Cannot use the undeclared label '{}'",
-                        self.interner().resolve_expect(label_name)
-                    ))
-                    .into());
-            }
-            self.patch_jump_with_target(envs_to_pop, total_envs);
+        if let Some(label_name) = node.label() {
+            let envs_count = self.search_jump_info_label(break_label, label_name)?;
+            self.patch_jump_with_target(envs_to_pop, envs_count);
         } else {
             let envs = self
                 .jump_info
@@ -79,7 +54,6 @@ impl ByteCompiler<'_, '_> {
                 })?
                 .decl_envs();
 
-            
             self.patch_jump_with_target(envs_to_pop, envs);
 
             self.jump_info
@@ -87,7 +61,30 @@ impl ByteCompiler<'_, '_> {
                 .expect("cannot throw error as last access would have thrown")
                 .push_break_label(break_label);
         }
-
         Ok(())
+    }
+
+    fn search_jump_info_label(&mut self, address: Label, node_label: Sym) -> JsResult<u32> {
+        let mut found = false;
+        let mut total_envs: u32 = 0;
+        for info in self.jump_info.iter_mut().rev() {
+            total_envs += info.decl_envs();
+            if info.label() == Some(node_label) {
+                info.push_break_label(address);
+                found = true;
+                break;
+            }
+        }
+        // TODO: promote to an early error.
+        if !found {
+            return Err(JsNativeError::syntax()
+                .with_message(format!(
+                    "Cannot use the undeclared label '{}'",
+                    self.interner().resolve_expect(node_label)
+                ))
+                .into());
+        }
+
+        Ok(total_envs)
     }
 }

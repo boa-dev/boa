@@ -291,21 +291,26 @@ impl Context<'_> {
                     }
                     if let Some(address) = self.vm.frame().catch.last() {
                         let address = address.next;
-                        
-                        // Move through the env stack until the first try block is found. 
+
+                        // Move through the env stack until the first try block is found.
                         let mut env_to_pop = 0;
                         for _ in 0..self.vm.frame().env_stack.len() {
-                            let env_entry = self.vm.frame_mut().env_stack.last_mut().expect("this must exist");
+                            let env_entry = self
+                                .vm
+                                .frame_mut()
+                                .env_stack
+                                .last_mut()
+                                .expect("this must exist");
                             env_to_pop += env_entry.env_num();
 
                             if env_entry.is_try_env() {
                                 env_entry.set_env_num(0);
                                 break;
-                            } 
+                            }
 
                             self.vm.frame_mut().env_stack.pop();
                         }
-                        
+
                         for _ in 0..env_to_pop {
                             self.realm.environments.pop();
                         }

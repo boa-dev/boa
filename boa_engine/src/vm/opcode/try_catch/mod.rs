@@ -1,5 +1,5 @@
 use crate::{
-    vm::{opcode::Operation, CatchAddresses, FinallyReturn, ShouldExit, call_frame::EnvStackEntry},
+    vm::{call_frame::EnvStackEntry, opcode::Operation, CatchAddresses, FinallyReturn, ShouldExit},
     Context, JsResult,
 };
 
@@ -25,7 +25,11 @@ impl Operation for TryStart {
             .push(CatchAddresses { next, finally });
         context.vm.frame_mut().finally_jump.push(None);
         context.vm.frame_mut().finally_return = FinallyReturn::None;
-        context.vm.frame_mut().env_stack.push(EnvStackEntry::default().with_try_flag());
+        context
+            .vm
+            .frame_mut()
+            .env_stack
+            .push(EnvStackEntry::default().with_try_flag());
         Ok(ShouldExit::False)
     }
 }
@@ -45,7 +49,12 @@ impl Operation for TryEnd {
         context.vm.frame_mut().catch.pop();
         let mut envs_to_pop = 0_usize;
         for _ in 1..context.vm.frame().env_stack.len() {
-            let env_entry = context.vm.frame_mut().env_stack.pop().expect("this must exist");
+            let env_entry = context
+                .vm
+                .frame_mut()
+                .env_stack
+                .pop()
+                .expect("this must exist");
             envs_to_pop += env_entry.env_num();
 
             if env_entry.is_try_env() {
@@ -78,7 +87,11 @@ impl Operation for CatchStart {
             next: finally,
             finally: Some(finally),
         });
-        context.vm.frame_mut().env_stack.push(EnvStackEntry::default().with_try_flag().with_initial_env_num(0));
+        context.vm.frame_mut().env_stack.push(
+            EnvStackEntry::default()
+                .with_try_flag()
+                .with_initial_env_num(0),
+        );
         context.vm.frame_mut().thrown = false;
         Ok(ShouldExit::False)
     }
@@ -99,7 +112,12 @@ impl Operation for CatchEnd {
         context.vm.frame_mut().catch.pop();
         let mut envs_to_pop = 0_usize;
         for _ in 1..context.vm.frame().env_stack.len() {
-            let env_entry = context.vm.frame_mut().env_stack.pop().expect("this must exist");
+            let env_entry = context
+                .vm
+                .frame_mut()
+                .env_stack
+                .pop()
+                .expect("this must exist");
             envs_to_pop += env_entry.env_num();
 
             if env_entry.is_try_env() {

@@ -1,5 +1,5 @@
 use crate::{
-    vm::{opcode::Operation, ShouldExit, call_frame::EnvStackEntry},
+    vm::{call_frame::EnvStackEntry, opcode::Operation, ShouldExit},
     Context, JsResult,
 };
 
@@ -15,7 +15,11 @@ impl Operation for LoopStart {
     const INSTRUCTION: &'static str = "INST - LoopStart";
 
     fn execute(context: &mut Context<'_>) -> JsResult<ShouldExit> {
-        context.vm.frame_mut().env_stack.push(EnvStackEntry::default().with_loop_flag());
+        context
+            .vm
+            .frame_mut()
+            .env_stack
+            .push(EnvStackEntry::default().with_loop_flag());
         Ok(ShouldExit::False)
     }
 }
@@ -34,7 +38,12 @@ impl Operation for LoopContinue {
     fn execute(context: &mut Context<'_>) -> JsResult<ShouldExit> {
         let mut envs_to_pop = 0_usize;
         for _ in 1..context.vm.frame().env_stack.len() {
-            let env_entry = context.vm.frame_mut().env_stack.last_mut().expect("this must exist");
+            let env_entry = context
+                .vm
+                .frame_mut()
+                .env_stack
+                .last_mut()
+                .expect("this must exist");
             envs_to_pop += env_entry.env_num();
 
             if env_entry.is_loop_env() {
@@ -64,7 +73,12 @@ impl Operation for LoopEnd {
     fn execute(context: &mut Context<'_>) -> JsResult<ShouldExit> {
         let mut envs_to_pop = 0_usize;
         for _ in 1..context.vm.frame().env_stack.len() {
-            let env_entry = context.vm.frame_mut().env_stack.pop().expect("this must exist");
+            let env_entry = context
+                .vm
+                .frame_mut()
+                .env_stack
+                .pop()
+                .expect("this must exist");
             envs_to_pop += env_entry.env_num();
 
             if env_entry.is_loop_env() {
