@@ -136,7 +136,7 @@ impl Operation for DefineClassStaticMethodByValue {
             function_mut.set_home_object(class.clone());
             function_mut.set_class_object(class.clone());
         }
-        class.__define_own_property__(
+        class.define_property_or_throw(
             key,
             PropertyDescriptor::builder()
                 .value(function)

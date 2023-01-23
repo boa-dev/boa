@@ -151,7 +151,7 @@ impl Operation for DefineClassStaticGetterByValue {
             .as_ref()
             .and_then(PropertyDescriptor::set)
             .cloned();
-        class.__define_own_property__(
+        class.define_property_or_throw(
             key,
             PropertyDescriptor::builder()
                 .maybe_get(Some(function))
