@@ -10,7 +10,7 @@ use crate::{
     value::PreferredType,
     Context, JsResult, JsValue,
 };
-use boa_gc::{self, Finalize, Gc, GcCell, Trace};
+use boa_gc::{self, Finalize, Gc, GcRefCell, Trace};
 use std::{
     cell::RefCell,
     collections::HashMap,
@@ -20,15 +20,15 @@ use std::{
 };
 
 /// A wrapper type for an immutably borrowed type T.
-pub type Ref<'a, T> = boa_gc::GcCellRef<'a, T>;
+pub type Ref<'a, T> = boa_gc::GcRef<'a, T>;
 
 /// A wrapper type for a mutably borrowed type T.
-pub type RefMut<'a, T, U> = boa_gc::GcCellRefMut<'a, T, U>;
+pub type RefMut<'a, T, U> = boa_gc::GcRefMut<'a, T, U>;
 
 /// Garbage collected `Object`.
 #[derive(Trace, Finalize, Clone, Default)]
 pub struct JsObject {
-    inner: Gc<GcCell<Object>>,
+    inner: Gc<GcRefCell<Object>>,
 }
 
 impl JsObject {
@@ -68,7 +68,7 @@ impl JsObject {
     /// [`OrdinaryObjectCreate`]: https://tc39.es/ecma262/#sec-ordinaryobjectcreate
     pub fn from_proto_and_data<O: Into<Option<Self>>>(prototype: O, data: ObjectData) -> Self {
         Self {
-            inner: Gc::new(GcCell::new(Object {
+            inner: Gc::new(GcRefCell::new(Object {
                 data,
                 prototype: prototype.into(),
                 extensible: true,
@@ -754,21 +754,21 @@ Cannot both specify accessors and a value or writable attribute",
         )
     }
 
-    pub(crate) const fn inner(&self) -> &Gc<GcCell<Object>> {
+    pub(crate) const fn inner(&self) -> &Gc<GcRefCell<Object>> {
         &self.inner
     }
 }
 
-impl AsRef<GcCell<Object>> for JsObject {
+impl AsRef<GcRefCell<Object>> for JsObject {
     #[inline]
-    fn as_ref(&self) -> &GcCell<Object> {
+    fn as_ref(&self) -> &GcRefCell<Object> {
         &self.inner
     }
 }
 
-impl From<Gc<GcCell<Object>>> for JsObject {
+impl From<Gc<GcRefCell<Object>>> for JsObject {
     #[inline]
-    fn from(inner: Gc<GcCell<Object>>) -> Self {
+    fn from(inner: Gc<GcRefCell<Object>>) -> Self {
         Self { inner }
     }
 }

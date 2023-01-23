@@ -18,7 +18,7 @@ impl Harness {
         BOA_GC.with(|current| {
             let gc = current.borrow();
 
-            assert!(gc.adult_start.get().is_none());
+            assert!(gc.strong_start.get().is_none());
             assert!(gc.runtime.bytes_allocated == 0);
         });
     }
@@ -27,6 +27,13 @@ impl Harness {
         BOA_GC.with(|current| {
             let gc = current.borrow();
             assert!(gc.runtime.bytes_allocated > 0);
+        });
+    }
+
+    fn assert_exact_bytes_allocated(bytes: usize) {
+        BOA_GC.with(|current| {
+            let gc = current.borrow();
+            assert_eq!(gc.runtime.bytes_allocated, bytes);
         });
     }
 }

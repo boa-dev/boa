@@ -2,7 +2,7 @@ use crate::{
     environments::CompileTimeEnvironment, error::JsNativeError, object::JsObject, Context, JsValue,
 };
 use boa_ast::expression::Identifier;
-use boa_gc::{Finalize, Gc, GcCell, Trace};
+use boa_gc::{Finalize, Gc, GcRefCell, Trace};
 use rustc_hash::FxHashSet;
 use std::cell::Cell;
 
@@ -28,8 +28,8 @@ use std::cell::Cell;
 /// All poisoned environments have to be checked for added bindings.
 #[derive(Debug, Trace, Finalize)]
 pub(crate) struct DeclarativeEnvironment {
-    bindings: GcCell<Vec<Option<JsValue>>>,
-    compile: Gc<GcCell<CompileTimeEnvironment>>,
+    bindings: GcRefCell<Vec<Option<JsValue>>>,
+    compile: Gc<GcRefCell<CompileTimeEnvironment>>,
     #[unsafe_ignore_trace]
     poisoned: Cell<bool>,
     slots: Option<EnvironmentSlots>,
@@ -38,13 +38,13 @@ pub(crate) struct DeclarativeEnvironment {
 /// Describes the different types of internal slot data that an environment can hold.
 #[derive(Clone, Debug, Trace, Finalize)]
 pub(crate) enum EnvironmentSlots {
-    Function(GcCell<FunctionSlots>),
+    Function(GcRefCell<FunctionSlots>),
     Global,
 }
 
 impl EnvironmentSlots {
     /// Return the slots if they are part of a function environment.
-    pub(crate) const fn as_function_slots(&self) -> Option<&GcCell<FunctionSlots>> {
+    pub(crate) const fn as_function_slots(&self) -> Option<&GcRefCell<FunctionSlots>> {
         if let Self::Function(env) = &self {
             Some(env)
         } else {
@@ -225,10 +225,10 @@ pub struct DeclarativeEnvironmentStack {
 
 impl DeclarativeEnvironmentStack {
     /// Create a new environment stack with the most outer declarative environment.
-    pub(crate) fn new(global_compile_environment: Gc<GcCell<CompileTimeEnvironment>>) -> Self {
+    pub(crate) fn new(global_compile_environment: Gc<GcRefCell<CompileTimeEnvironment>>) -> Self {
         Self {
             stack: vec![Gc::new(DeclarativeEnvironment {
-                bindings: GcCell::new(Vec::new()),
+                bindings: GcRefCell::new(Vec::new()),
                 compile: global_compile_environment,
                 poisoned: Cell::new(false),
                 slots: Some(EnvironmentSlots::Global),
@@ -349,7 +349,7 @@ impl DeclarativeEnvironmentStack {
     pub(crate) fn push_declarative(
         &mut self,
         num_bindings: usize,
-        compile_environment: Gc<GcCell<CompileTimeEnvironment>>,
+        compile_environment: Gc<GcRefCell<CompileTimeEnvironment>>,
     ) -> usize {
         let poisoned = self
             .stack
@@ -361,7 +361,7 @@ impl DeclarativeEnvironmentStack {
         let index = self.stack.len();
 
         self.stack.push(Gc::new(DeclarativeEnvironment {
-            bindings: GcCell::new(vec![None; num_bindings]),
+            bindings: GcRefCell::new(vec![None; num_bindings]),
             compile: compile_environment,
             poisoned: Cell::new(poisoned),
             slots: None,
@@ -378,7 +378,7 @@ impl DeclarativeEnvironmentStack {
     pub(crate) fn push_function(
         &mut self,
         num_bindings: usize,
-        compile_environment: Gc<GcCell<CompileTimeEnvironment>>,
+        compile_environment: Gc<GcRefCell<CompileTimeEnvironment>>,
         this: Option<JsValue>,
         function_object: JsObject,
         new_target: Option<JsObject>,
@@ -402,10 +402,10 @@ impl DeclarativeEnvironmentStack {
         let this = this.unwrap_or(JsValue::Null);
 
         self.stack.push(Gc::new(DeclarativeEnvironment {
-            bindings: GcCell::new(vec![None; num_bindings]),
+            bindings: GcRefCell::new(vec![None; num_bindings]),
             compile: compile_environment,
             poisoned: Cell::new(poisoned),
-            slots: Some(EnvironmentSlots::Function(GcCell::new(FunctionSlots {
+            slots: Some(EnvironmentSlots::Function(GcRefCell::new(FunctionSlots {
                 this,
                 this_binding_status,
                 function_object,
@@ -422,7 +422,7 @@ impl DeclarativeEnvironmentStack {
     pub(crate) fn push_function_inherit(
         &mut self,
         num_bindings: usize,
-        compile_environment: Gc<GcCell<CompileTimeEnvironment>>,
+        compile_environment: Gc<GcRefCell<CompileTimeEnvironment>>,
     ) {
         let outer = self
             .stack
@@ -433,7 +433,7 @@ impl DeclarativeEnvironmentStack {
         let slots = outer.slots.clone();
 
         self.stack.push(Gc::new(DeclarativeEnvironment {
-            bindings: GcCell::new(vec![None; num_bindings]),
+            bindings: GcRefCell::new(vec![None; num_bindings]),
             compile: compile_environment,
             poisoned: Cell::new(poisoned),
             slots,
@@ -480,7 +480,7 @@ impl DeclarativeEnvironmentStack {
     /// # Panics
     ///
     /// Panics if no environment exists on the stack.
-    pub(crate) fn current_compile_environment(&self) -> Gc<GcCell<CompileTimeEnvironment>> {
+    pub(crate) fn current_compile_environment(&self) -> Gc<GcRefCell<CompileTimeEnvironment>> {
         self.stack
             .last()
             .expect("global environment must always exist")

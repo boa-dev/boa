@@ -55,7 +55,7 @@ use crate::{
     Context, JsBigInt, JsString, JsSymbol, JsValue,
 };
 
-use boa_gc::{custom_trace, Finalize, GcCell, Trace, WeakGc};
+use boa_gc::{custom_trace, Finalize, GcRefCell, Trace, WeakGc};
 use std::{
     any::Any,
     fmt::{self, Debug},
@@ -266,7 +266,7 @@ pub enum ObjectKind {
     Promise(Promise),
 
     /// The `WeakRef` object kind.
-    WeakRef(WeakGc<GcCell<Object>>),
+    WeakRef(WeakGc<GcRefCell<Object>>),
 
     /// The `Intl.Collator` object kind.
     #[cfg(feature = "intl")]
@@ -618,7 +618,7 @@ impl ObjectData {
     }
 
     /// Creates the `WeakRef` object data
-    pub fn weak_ref(weak_ref: WeakGc<GcCell<Object>>) -> Self {
+    pub fn weak_ref(weak_ref: WeakGc<GcRefCell<Object>>) -> Self {
         Self {
             kind: ObjectKind::WeakRef(weak_ref),
             internal_methods: &ORDINARY_INTERNAL_METHODS,
@@ -1623,7 +1623,7 @@ impl Object {
 
     /// Gets the `WeakRef` data if the object is a `WeakRef`.
     #[inline]
-    pub const fn as_weak_ref(&self) -> Option<&WeakGc<GcCell<Self>>> {
+    pub const fn as_weak_ref(&self) -> Option<&WeakGc<GcRefCell<Self>>> {
         match self.data {
             ObjectData {
                 kind: ObjectKind::WeakRef(ref weak_ref),

@@ -11,7 +11,7 @@ use boa_engine::{
     string::utf16,
     Context, JsError, JsNativeError, JsString, JsValue,
 };
-use boa_gc::{Finalize, GcCell, Trace};
+use boa_gc::{Finalize, GcRefCell, Trace};
 
 fn main() -> Result<(), JsError> {
     // We create a new `Context` to create a new Javascript executor.
@@ -96,7 +96,7 @@ fn main() -> Result<(), JsError> {
                 Ok(message.into())
             },
             // Here is where we move `clone_variable` into the closure.
-            GcCell::new(clone_variable),
+            GcRefCell::new(clone_variable),
         ),
     )
     // And here we assign `createMessage` to the `name` property of the closure.

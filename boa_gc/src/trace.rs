@@ -39,13 +39,6 @@ pub unsafe trait Trace: Finalize {
     /// See [`Trace`].
     unsafe fn trace(&self);
 
-    /// Marks all contained weak references of a `Gc`.
-    ///
-    /// # Safety
-    ///
-    /// See [`Trace`].
-    unsafe fn weak_trace(&self);
-
     /// Increments the root-count of all contained `Gc`s.
     ///
     /// # Safety
@@ -60,12 +53,6 @@ pub unsafe trait Trace: Finalize {
     /// See [`Trace`].
     unsafe fn unroot(&self);
 
-    /// Checks if an ephemeron's key is marked.
-    #[doc(hidden)]
-    fn is_marked_ephemeron(&self) -> bool {
-        false
-    }
-
     /// Runs [`Finalize::finalize`] on this object and all
     /// contained subobjects.
     fn run_finalizer(&self);
@@ -79,8 +66,6 @@ macro_rules! empty_trace {
     () => {
         #[inline]
         unsafe fn trace(&self) {}
-        #[inline]
-        unsafe fn weak_trace(&self) {}
         #[inline]
         unsafe fn root(&self) {}
         #[inline]
@@ -110,17 +95,6 @@ macro_rules! custom_trace {
                 // SAFETY: The implementor must ensure that `trace` is correctly implemented.
                 unsafe {
                     $crate::Trace::trace(it);
-                }
-            }
-            let $this = self;
-            $body
-        }
-        #[inline]
-        unsafe fn weak_trace(&self) {
-            fn mark<T: $crate::Trace + ?Sized>(it: &T) {
-                // SAFETY: The implementor must ensure that `weak_trace` is correctly implemented.
-                unsafe {
-                    $crate::Trace::weak_trace(it);
                 }
             }
             let $this = self;
@@ -456,6 +430,8 @@ impl<T: Trace> Finalize for Cell<Option<T>> {
     }
 }
 
+// SAFETY: This implementation is safe, because `take` leaves `None` in the
+// place of our value, making it possible to trace through it safely.
 unsafe impl<T: Trace> Trace for Cell<Option<T>> {
     custom_trace!(this, {
         if let Some(t) = this.take() {

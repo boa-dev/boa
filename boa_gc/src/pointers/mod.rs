@@ -2,6 +2,7 @@
 
 mod ephemeron;
 mod gc;
+mod rootable;
 mod weak;
 
 pub use ephemeron::Ephemeron;
