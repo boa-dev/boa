@@ -1,5 +1,5 @@
 use crate::{
-    vm::{call_frame::EnvStackEntry, opcode::Operation, CatchAddresses, FinallyReturn, ShouldExit},
+    vm::{call_frame::{EnvStackEntry, TryAddresses}, opcode::Operation, FinallyReturn, ShouldExit},
     Context, JsResult,
 };
 
@@ -15,14 +15,14 @@ impl Operation for TryStart {
     const INSTRUCTION: &'static str = "INST - TryStart";
 
     fn execute(context: &mut Context<'_>) -> JsResult<ShouldExit> {
-        let next = context.vm.read::<u32>();
+        let catch = context.vm.read::<u32>();
         let finally = context.vm.read::<u32>();
         let finally = if finally == 0 { None } else { Some(finally) };
         context
             .vm
             .frame_mut()
-            .catch
-            .push(CatchAddresses { next, finally });
+            .try_catch
+            .push(TryAddresses::new(catch, finally));
         context.vm.frame_mut().finally_jump.push(None);
         context.vm.frame_mut().finally_return = FinallyReturn::None;
         context
@@ -46,7 +46,7 @@ impl Operation for TryEnd {
     const INSTRUCTION: &'static str = "INST - TryEnd";
 
     fn execute(context: &mut Context<'_>) -> JsResult<ShouldExit> {
-        context.vm.frame_mut().catch.pop();
+        context.vm.frame_mut().try_catch.pop();
         let mut envs_to_pop = 0_usize;
         for _ in 1..context.vm.frame().env_stack.len() {
             let env_entry = context
@@ -83,10 +83,7 @@ impl Operation for CatchStart {
 
     fn execute(context: &mut Context<'_>) -> JsResult<ShouldExit> {
         let finally = context.vm.read::<u32>();
-        context.vm.frame_mut().catch.push(CatchAddresses {
-            next: finally,
-            finally: Some(finally),
-        });
+        context.vm.frame_mut().try_catch.push(TryAddresses::new(finally, Some(finally)));
         context
             .vm
             .frame_mut()
@@ -109,7 +106,7 @@ impl Operation for CatchEnd {
     const INSTRUCTION: &'static str = "INST - CatchEnd";
 
     fn execute(context: &mut Context<'_>) -> JsResult<ShouldExit> {
-        context.vm.frame_mut().catch.pop();
+        context.vm.frame_mut().try_catch.pop();
         let mut envs_to_pop = 0_usize;
         for _ in 1..context.vm.frame().env_stack.len() {
             let env_entry = context

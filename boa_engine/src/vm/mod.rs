@@ -6,7 +6,7 @@
 
 use crate::{
     builtins::async_generator::{AsyncGenerator, AsyncGeneratorState},
-    vm::{call_frame::CatchAddresses, code_block::Readable},
+    vm::code_block::Readable,
     Context, JsResult, JsValue,
 };
 #[cfg(feature = "fuzz")]
@@ -289,8 +289,8 @@ impl Context<'_> {
                             return Err(e);
                         }
                     }
-                    if let Some(address) = self.vm.frame().catch.last() {
-                        let address = address.next;
+                    if let Some(try_addresses) = self.vm.frame().try_catch.last() {
+                        let address = try_addresses.catch();
 
                         // Move through the env stack until the first try block is found.
                         let mut env_to_pop = 0;
@@ -317,7 +317,7 @@ impl Context<'_> {
                         }
                         self.vm.frame_mut().pop_on_return = 0;
                         self.vm.frame_mut().pc = address as usize;
-                        self.vm.frame_mut().catch.pop();
+                        self.vm.frame_mut().try_catch.pop();
                         self.vm.frame_mut().finally_return = FinallyReturn::Err;
                         self.vm.frame_mut().thrown = true;
                         let e = e.to_opaque(self);

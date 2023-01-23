@@ -383,7 +383,13 @@ impl<'b, 'host> ByteCompiler<'b, 'host> {
     fn emit_opcode(&mut self, opcode: Opcode) {
         self.emit_u8(opcode as u8);
     }
-
+/* 
+    fn emit_opcode_with_location(&mut self, opcode: Opcode) -> u32 {
+        let loc = self.next_opcode_location();
+        self.emit_u8(opcode as u8);
+        loc
+    }
+*/
     fn emit_u8(&mut self, value: u8) {
         self.code_block.bytecode.push(value);
     }

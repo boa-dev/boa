@@ -22,6 +22,7 @@ impl ByteCompiler<'_, '_> {
         configurable_globals: bool,
     ) -> JsResult<()> {
         self.push_empty_loop_jump_control();
+        self.emit_opcode(Opcode::LoopStart);
         self.context.push_compile_time_environment(false);
         let push_env = self.emit_and_track_decl_env();
 
@@ -39,9 +40,7 @@ impl ByteCompiler<'_, '_> {
             }
         }
 
-        self.emit_opcode(Opcode::LoopStart);
         let initial_jump = self.jump();
-
         let start_address = self.next_opcode_location();
         self.current_jump_control_mut()
             .expect("jump_control must exist as it was just pushed")
@@ -50,7 +49,6 @@ impl ByteCompiler<'_, '_> {
             .expect("jump_control must exist as it was just pushed")
             .set_start_address(start_address);
 
-        self.emit_opcode(Opcode::LoopContinue);
         if let Some(final_expr) = for_loop.final_expr() {
             self.compile_expr(final_expr, false)?;
         }
@@ -63,6 +61,7 @@ impl ByteCompiler<'_, '_> {
             self.emit_opcode(Opcode::PushTrue);
         }
         let exit = self.jump_if_false();
+        self.emit_opcode(Opcode::LoopContinue);
 
         self.compile_stmt(for_loop.body(), false, configurable_globals)?;
 
@@ -74,8 +73,8 @@ impl ByteCompiler<'_, '_> {
         self.patch_jump_with_target(push_env.1, index_compile_environment as u32);
 
         self.patch_jump(exit);
-        self.emit_opcode(Opcode::LoopEnd);
         self.emit_and_track_pop_env();
+        self.emit_opcode(Opcode::LoopEnd);
 
         self.pop_loop_control_info();
         Ok(())
@@ -350,11 +349,11 @@ impl ByteCompiler<'_, '_> {
 
         let start_address = self.next_opcode_location();
         self.push_loop_control_info(label, start_address);
-        self.emit_opcode(Opcode::LoopContinue);
 
         let condition_label_address = self.next_opcode_location();
         self.compile_expr(do_while_loop.cond(), true)?;
         let exit = self.jump_if_false();
+        self.emit_opcode(Opcode::LoopContinue);
 
         self.patch_jump(initial_label);
 
