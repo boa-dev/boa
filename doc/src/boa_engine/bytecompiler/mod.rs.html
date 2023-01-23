@@ -1423,6 +1423,24 @@
 <span id="1422">1422</span>
 <span id="1423">1423</span>
 <span id="1424">1424</span>
+<span id="1425">1425</span>
+<span id="1426">1426</span>
+<span id="1427">1427</span>
+<span id="1428">1428</span>
+<span id="1429">1429</span>
+<span id="1430">1430</span>
+<span id="1431">1431</span>
+<span id="1432">1432</span>
+<span id="1433">1433</span>
+<span id="1434">1434</span>
+<span id="1435">1435</span>
+<span id="1436">1436</span>
+<span id="1437">1437</span>
+<span id="1438">1438</span>
+<span id="1439">1439</span>
+<span id="1440">1440</span>
+<span id="1441">1441</span>
+<span id="1442">1442</span>
 </pre><pre class="rust"><code><span class="doccomment">//! This module contains the bytecode compiler.
 
 </span><span class="kw">mod </span>class;
@@ -2085,17 +2103,26 @@
         use_expr: bool,
         configurable_globals: bool,
     ) -&gt; JsResult&lt;()&gt; {
-        <span class="kw">let </span><span class="kw-2">mut </span>items = list
-            .statements()
-            .iter()
-            .filter(|item| item != &amp;&amp;StatementListItem::Statement(Statement::Empty))
-            .peekable();
+        <span class="kw">if </span>use_expr {
+            <span class="kw">let </span>expr_index = list
+                .statements()
+                .iter()
+                .rev()
+                .skip_while(|item| {
+                    <span class="macro">matches!</span>(
+                        item,
+                        &amp;&amp;StatementListItem::Statement(Statement::Empty | Statement::Var(<span class="kw">_</span>))
+                            | &amp;&amp;StatementListItem::Declaration(<span class="kw">_</span>)
+                    )
+                })
+                .count();
 
-        <span class="kw">while let </span><span class="prelude-val">Some</span>(item) = items.next() {
-            <span class="kw">if </span>items.peek().is_some() {
+            <span class="kw">for </span>(i, item) <span class="kw">in </span>list.statements().iter().enumerate() {
+                <span class="self">self</span>.compile_stmt_list_item(item, i + <span class="number">1 </span>== expr_index, configurable_globals)<span class="question-mark">?</span>;
+            }
+        } <span class="kw">else </span>{
+            <span class="kw">for </span>item <span class="kw">in </span>list.statements() {
                 <span class="self">self</span>.compile_stmt_list_item(item, <span class="bool-val">false</span>, configurable_globals)<span class="question-mark">?</span>;
-            } <span class="kw">else </span>{
-                <span class="self">self</span>.compile_stmt_list_item(item, use_expr, configurable_globals)<span class="question-mark">?</span>;
             }
         }
 
@@ -2114,17 +2141,26 @@
 
         <span class="self">self</span>.create_decls(list, <span class="bool-val">true</span>);
 
-        <span class="kw">let </span><span class="kw-2">mut </span>items = list
-            .statements()
-            .iter()
-            .filter(|item| item != &amp;&amp;StatementListItem::Statement(Statement::Empty))
-            .peekable();
+        <span class="kw">if </span>use_expr {
+            <span class="kw">let </span>expr_index = list
+                .statements()
+                .iter()
+                .rev()
+                .skip_while(|item| {
+                    <span class="macro">matches!</span>(
+                        item,
+                        &amp;&amp;StatementListItem::Statement(Statement::Empty | Statement::Var(<span class="kw">_</span>))
+                            | &amp;&amp;StatementListItem::Declaration(<span class="kw">_</span>)
+                    )
+                })
+                .count();
 
-        <span class="kw">while let </span><span class="prelude-val">Some</span>(item) = items.next() {
-            <span class="kw">if </span>items.peek().is_some() {
+            <span class="kw">for </span>(i, item) <span class="kw">in </span>list.statements().iter().enumerate() {
+                <span class="self">self</span>.compile_stmt_list_item(item, i + <span class="number">1 </span>== expr_index, <span class="bool-val">true</span>)<span class="question-mark">?</span>;
+            }
+        } <span class="kw">else </span>{
+            <span class="kw">for </span>item <span class="kw">in </span>list.statements() {
                 <span class="self">self</span>.compile_stmt_list_item(item, <span class="bool-val">false</span>, <span class="bool-val">true</span>)<span class="question-mark">?</span>;
-            } <span class="kw">else </span>{
-                <span class="self">self</span>.compile_stmt_list_item(item, use_expr, <span class="bool-val">true</span>)<span class="question-mark">?</span>;
             }
         }
 
