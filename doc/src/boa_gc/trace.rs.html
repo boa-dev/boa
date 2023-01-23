@@ -441,30 +441,6 @@
 <span id="440">440</span>
 <span id="441">441</span>
 <span id="442">442</span>
-<span id="443">443</span>
-<span id="444">444</span>
-<span id="445">445</span>
-<span id="446">446</span>
-<span id="447">447</span>
-<span id="448">448</span>
-<span id="449">449</span>
-<span id="450">450</span>
-<span id="451">451</span>
-<span id="452">452</span>
-<span id="453">453</span>
-<span id="454">454</span>
-<span id="455">455</span>
-<span id="456">456</span>
-<span id="457">457</span>
-<span id="458">458</span>
-<span id="459">459</span>
-<span id="460">460</span>
-<span id="461">461</span>
-<span id="462">462</span>
-<span id="463">463</span>
-<span id="464">464</span>
-<span id="465">465</span>
-<span id="466">466</span>
 </pre><pre class="rust"><code><span class="kw">use </span>std::{
     borrow::{Cow, ToOwned},
     cell::Cell,
@@ -506,13 +482,6 @@
     /// See [`Trace`].
     </span><span class="kw">unsafe fn </span>trace(<span class="kw-2">&amp;</span><span class="self">self</span>);
 
-    <span class="doccomment">/// Marks all contained weak references of a `Gc`.
-    ///
-    /// # Safety
-    ///
-    /// See [`Trace`].
-    </span><span class="kw">unsafe fn </span>weak_trace(<span class="kw-2">&amp;</span><span class="self">self</span>);
-
     <span class="doccomment">/// Increments the root-count of all contained `Gc`s.
     ///
     /// # Safety
@@ -527,12 +496,6 @@
     /// See [`Trace`].
     </span><span class="kw">unsafe fn </span>unroot(<span class="kw-2">&amp;</span><span class="self">self</span>);
 
-    <span class="doccomment">/// Checks if an ephemeron&#39;s key is marked.
-    </span><span class="attribute">#[doc(hidden)]
-    </span><span class="kw">fn </span>is_marked_ephemeron(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
-        <span class="bool-val">false
-    </span>}
-
     <span class="doccomment">/// Runs [`Finalize::finalize`] on this object and all
     /// contained subobjects.
     </span><span class="kw">fn </span>run_finalizer(<span class="kw-2">&amp;</span><span class="self">self</span>);
@@ -546,8 +509,6 @@
     () =&gt; {
         <span class="attribute">#[inline]
         </span><span class="kw">unsafe fn </span>trace(<span class="kw-2">&amp;</span><span class="self">self</span>) {}
-        <span class="attribute">#[inline]
-        </span><span class="kw">unsafe fn </span>weak_trace(<span class="kw-2">&amp;</span><span class="self">self</span>) {}
         <span class="attribute">#[inline]
         </span><span class="kw">unsafe fn </span>root(<span class="kw-2">&amp;</span><span class="self">self</span>) {}
         <span class="attribute">#[inline]
@@ -577,17 +538,6 @@
                 <span class="comment">// SAFETY: The implementor must ensure that `trace` is correctly implemented.
                 </span><span class="kw">unsafe </span>{
                     <span class="macro-nonterminal">$crate::Trace::trace</span>(it);
-                }
-            }
-            <span class="kw">let </span><span class="macro-nonterminal">$this </span>= <span class="self">self</span>;
-            <span class="macro-nonterminal">$body
-        </span>}
-        <span class="attribute">#[inline]
-        </span><span class="kw">unsafe fn </span>weak_trace(<span class="kw-2">&amp;</span><span class="self">self</span>) {
-            <span class="kw">fn </span>mark&lt;T: <span class="macro-nonterminal">$crate::Trace </span>+ <span class="question-mark">?</span>Sized&gt;(it: <span class="kw-2">&amp;</span>T) {
-                <span class="comment">// SAFETY: The implementor must ensure that `weak_trace` is correctly implemented.
-                </span><span class="kw">unsafe </span>{
-                    <span class="macro-nonterminal">$crate::Trace::weak_trace</span>(it);
                 }
             }
             <span class="kw">let </span><span class="macro-nonterminal">$this </span>= <span class="self">self</span>;
@@ -923,7 +873,9 @@
     }
 }
 
-<span class="kw">unsafe impl</span>&lt;T: Trace&gt; Trace <span class="kw">for </span>Cell&lt;<span class="prelude-ty">Option</span>&lt;T&gt;&gt; {
+<span class="comment">// SAFETY: This implementation is safe, because `take` leaves `None` in the
+// place of our value, making it possible to trace through it safely.
+</span><span class="kw">unsafe impl</span>&lt;T: Trace&gt; Trace <span class="kw">for </span>Cell&lt;<span class="prelude-ty">Option</span>&lt;T&gt;&gt; {
     <span class="macro">custom_trace!</span>(this, {
         <span class="kw">if let </span><span class="prelude-val">Some</span>(t) = this.take() {
             mark(<span class="kw-2">&amp;</span>t);

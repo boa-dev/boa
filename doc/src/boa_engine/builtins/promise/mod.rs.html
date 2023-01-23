@@ -2317,7 +2317,7 @@
     value::JsValue,
     Context, JsError, JsResult,
 };
-<span class="kw">use </span>boa_gc::{Finalize, Gc, GcCell, Trace};
+<span class="kw">use </span>boa_gc::{Finalize, Gc, GcRefCell, Trace};
 <span class="kw">use </span>boa_profiler::Profiler;
 <span class="kw">use </span>std::{cell::Cell, rc::Rc};
 <span class="kw">use </span>tap::{Conv, Pipe};
@@ -2459,7 +2459,7 @@
 
         <span class="comment">// 2. NOTE: C is assumed to be a constructor function that supports the parameter conventions of the Promise constructor (see 27.2.3.1).
         // 3. Let promiseCapability be the PromiseCapability Record { [[Promise]]: undefined, [[Resolve]]: undefined, [[Reject]]: undefined }.
-        </span><span class="kw">let </span>promise_capability = Gc::new(GcCell::new(RejectResolve {
+        </span><span class="kw">let </span>promise_capability = Gc::new(GcRefCell::new(RejectResolve {
             reject: JsValue::undefined(),
             resolve: JsValue::undefined(),
         }));
@@ -2506,7 +2506,7 @@
         .into();
 
         <span class="comment">// 6. Let promise be ? Construct(C, « executor »).
-        </span><span class="kw">let </span>promise = c.construct(<span class="kw-2">&amp;</span>[executor], <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span>c), context)<span class="question-mark">?</span>;
+        </span><span class="kw">let </span>promise = c.construct(<span class="kw-2">&amp;</span>[executor], <span class="prelude-val">None</span>, context)<span class="question-mark">?</span>;
 
         <span class="kw">let </span>promise_capability = promise_capability.borrow();
 
@@ -2768,14 +2768,14 @@
             <span class="attribute">#[unsafe_ignore_trace]
             </span>already_called: Rc&lt;Cell&lt;bool&gt;&gt;,
             index: usize,
-            values: Gc&lt;GcCell&lt;Vec&lt;JsValue&gt;&gt;&gt;,
+            values: Gc&lt;GcRefCell&lt;Vec&lt;JsValue&gt;&gt;&gt;,
             capability_resolve: JsFunction,
             <span class="attribute">#[unsafe_ignore_trace]
             </span>remaining_elements_count: Rc&lt;Cell&lt;i32&gt;&gt;,
         }
 
         <span class="comment">// 1. Let values be a new empty List.
-        </span><span class="kw">let </span>values = Gc::new(GcCell::new(Vec::new()));
+        </span><span class="kw">let </span>values = Gc::new(GcRefCell::new(Vec::new()));
 
         <span class="comment">// 2. Let remainingElementsCount be the Record { [[Value]]: 1 }.
         </span><span class="kw">let </span>remaining_elements_count = Rc::new(Cell::new(<span class="number">1</span>));
@@ -3012,14 +3012,14 @@
             <span class="attribute">#[unsafe_ignore_trace]
             </span>already_called: Rc&lt;Cell&lt;bool&gt;&gt;,
             index: usize,
-            values: Gc&lt;GcCell&lt;Vec&lt;JsValue&gt;&gt;&gt;,
+            values: Gc&lt;GcRefCell&lt;Vec&lt;JsValue&gt;&gt;&gt;,
             capability: JsFunction,
             <span class="attribute">#[unsafe_ignore_trace]
             </span>remaining_elements: Rc&lt;Cell&lt;i32&gt;&gt;,
         }
 
         <span class="comment">// 1. Let values be a new empty List.
-        </span><span class="kw">let </span>values = Gc::new(GcCell::new(Vec::new()));
+        </span><span class="kw">let </span>values = Gc::new(GcRefCell::new(Vec::new()));
 
         <span class="comment">// 2. Let remainingElementsCount be the Record { [[Value]]: 1 }.
         </span><span class="kw">let </span>remaining_elements_count = Rc::new(Cell::new(<span class="number">1</span>));
@@ -3355,14 +3355,14 @@
             <span class="attribute">#[unsafe_ignore_trace]
             </span>already_called: Rc&lt;Cell&lt;bool&gt;&gt;,
             index: usize,
-            errors: Gc&lt;GcCell&lt;Vec&lt;JsValue&gt;&gt;&gt;,
+            errors: Gc&lt;GcRefCell&lt;Vec&lt;JsValue&gt;&gt;&gt;,
             capability_reject: JsFunction,
             <span class="attribute">#[unsafe_ignore_trace]
             </span>remaining_elements_count: Rc&lt;Cell&lt;i32&gt;&gt;,
         }
 
         <span class="comment">// 1. Let errors be a new empty List.
-        </span><span class="kw">let </span>errors = Gc::new(GcCell::new(Vec::new()));
+        </span><span class="kw">let </span>errors = Gc::new(GcRefCell::new(Vec::new()));
 
         <span class="comment">// 2. Let remainingElementsCount be the Record { [[Value]]: 1 }.
         </span><span class="kw">let </span>remaining_elements_count = Rc::new(Cell::new(<span class="number">1</span>));

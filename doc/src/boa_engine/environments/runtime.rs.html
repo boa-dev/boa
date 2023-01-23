@@ -857,7 +857,7 @@
     environments::CompileTimeEnvironment, error::JsNativeError, object::JsObject, Context, JsValue,
 };
 <span class="kw">use </span>boa_ast::expression::Identifier;
-<span class="kw">use </span>boa_gc::{Finalize, Gc, GcCell, Trace};
+<span class="kw">use </span>boa_gc::{Finalize, Gc, GcRefCell, Trace};
 <span class="kw">use </span>rustc_hash::FxHashSet;
 <span class="kw">use </span>std::cell::Cell;
 
@@ -883,8 +883,8 @@
 /// All poisoned environments have to be checked for added bindings.
 </span><span class="attribute">#[derive(Debug, Trace, Finalize)]
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>DeclarativeEnvironment {
-    bindings: GcCell&lt;Vec&lt;<span class="prelude-ty">Option</span>&lt;JsValue&gt;&gt;&gt;,
-    compile: Gc&lt;GcCell&lt;CompileTimeEnvironment&gt;&gt;,
+    bindings: GcRefCell&lt;Vec&lt;<span class="prelude-ty">Option</span>&lt;JsValue&gt;&gt;&gt;,
+    compile: Gc&lt;GcRefCell&lt;CompileTimeEnvironment&gt;&gt;,
     <span class="attribute">#[unsafe_ignore_trace]
     </span>poisoned: Cell&lt;bool&gt;,
     slots: <span class="prelude-ty">Option</span>&lt;EnvironmentSlots&gt;,
@@ -893,13 +893,13 @@
 <span class="doccomment">/// Describes the different types of internal slot data that an environment can hold.
 </span><span class="attribute">#[derive(Clone, Debug, Trace, Finalize)]
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">enum </span>EnvironmentSlots {
-    Function(GcCell&lt;FunctionSlots&gt;),
+    Function(GcRefCell&lt;FunctionSlots&gt;),
     Global,
 }
 
 <span class="kw">impl </span>EnvironmentSlots {
     <span class="doccomment">/// Return the slots if they are part of a function environment.
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const fn </span>as_function_slots(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>GcCell&lt;FunctionSlots&gt;&gt; {
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const fn </span>as_function_slots(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>GcRefCell&lt;FunctionSlots&gt;&gt; {
         <span class="kw">if let </span><span class="self">Self</span>::Function(env) = <span class="kw-2">&amp;</span><span class="self">self </span>{
             <span class="prelude-val">Some</span>(env)
         } <span class="kw">else </span>{
@@ -1080,10 +1080,10 @@
 
 <span class="kw">impl </span>DeclarativeEnvironmentStack {
     <span class="doccomment">/// Create a new environment stack with the most outer declarative environment.
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>new(global_compile_environment: Gc&lt;GcCell&lt;CompileTimeEnvironment&gt;&gt;) -&gt; <span class="self">Self </span>{
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>new(global_compile_environment: Gc&lt;GcRefCell&lt;CompileTimeEnvironment&gt;&gt;) -&gt; <span class="self">Self </span>{
         <span class="self">Self </span>{
             stack: <span class="macro">vec!</span>[Gc::new(DeclarativeEnvironment {
-                bindings: GcCell::new(Vec::new()),
+                bindings: GcRefCell::new(Vec::new()),
                 compile: global_compile_environment,
                 poisoned: Cell::new(<span class="bool-val">false</span>),
                 slots: <span class="prelude-val">Some</span>(EnvironmentSlots::Global),
@@ -1204,7 +1204,7 @@
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>push_declarative(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
         num_bindings: usize,
-        compile_environment: Gc&lt;GcCell&lt;CompileTimeEnvironment&gt;&gt;,
+        compile_environment: Gc&lt;GcRefCell&lt;CompileTimeEnvironment&gt;&gt;,
     ) -&gt; usize {
         <span class="kw">let </span>poisoned = <span class="self">self
             </span>.stack
@@ -1216,7 +1216,7 @@
         <span class="kw">let </span>index = <span class="self">self</span>.stack.len();
 
         <span class="self">self</span>.stack.push(Gc::new(DeclarativeEnvironment {
-            bindings: GcCell::new(<span class="macro">vec!</span>[<span class="prelude-val">None</span>; num_bindings]),
+            bindings: GcRefCell::new(<span class="macro">vec!</span>[<span class="prelude-val">None</span>; num_bindings]),
             compile: compile_environment,
             poisoned: Cell::new(poisoned),
             slots: <span class="prelude-val">None</span>,
@@ -1233,7 +1233,7 @@
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>push_function(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
         num_bindings: usize,
-        compile_environment: Gc&lt;GcCell&lt;CompileTimeEnvironment&gt;&gt;,
+        compile_environment: Gc&lt;GcRefCell&lt;CompileTimeEnvironment&gt;&gt;,
         this: <span class="prelude-ty">Option</span>&lt;JsValue&gt;,
         function_object: JsObject,
         new_target: <span class="prelude-ty">Option</span>&lt;JsObject&gt;,
@@ -1257,10 +1257,10 @@
         <span class="kw">let </span>this = this.unwrap_or(JsValue::Null);
 
         <span class="self">self</span>.stack.push(Gc::new(DeclarativeEnvironment {
-            bindings: GcCell::new(<span class="macro">vec!</span>[<span class="prelude-val">None</span>; num_bindings]),
+            bindings: GcRefCell::new(<span class="macro">vec!</span>[<span class="prelude-val">None</span>; num_bindings]),
             compile: compile_environment,
             poisoned: Cell::new(poisoned),
-            slots: <span class="prelude-val">Some</span>(EnvironmentSlots::Function(GcCell::new(FunctionSlots {
+            slots: <span class="prelude-val">Some</span>(EnvironmentSlots::Function(GcRefCell::new(FunctionSlots {
                 this,
                 this_binding_status,
                 function_object,
@@ -1277,7 +1277,7 @@
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>push_function_inherit(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
         num_bindings: usize,
-        compile_environment: Gc&lt;GcCell&lt;CompileTimeEnvironment&gt;&gt;,
+        compile_environment: Gc&lt;GcRefCell&lt;CompileTimeEnvironment&gt;&gt;,
     ) {
         <span class="kw">let </span>outer = <span class="self">self
             </span>.stack
@@ -1288,7 +1288,7 @@
         <span class="kw">let </span>slots = outer.slots.clone();
 
         <span class="self">self</span>.stack.push(Gc::new(DeclarativeEnvironment {
-            bindings: GcCell::new(<span class="macro">vec!</span>[<span class="prelude-val">None</span>; num_bindings]),
+            bindings: GcRefCell::new(<span class="macro">vec!</span>[<span class="prelude-val">None</span>; num_bindings]),
             compile: compile_environment,
             poisoned: Cell::new(poisoned),
             slots,
@@ -1335,7 +1335,7 @@
     /// # Panics
     ///
     /// Panics if no environment exists on the stack.
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>current_compile_environment(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Gc&lt;GcCell&lt;CompileTimeEnvironment&gt;&gt; {
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>current_compile_environment(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Gc&lt;GcRefCell&lt;CompileTimeEnvironment&gt;&gt; {
         <span class="self">self</span>.stack
             .last()
             .expect(<span class="string">&quot;global environment must always exist&quot;</span>)

@@ -168,16 +168,6 @@
 <span id="167">167</span>
 <span id="168">168</span>
 <span id="169">169</span>
-<span id="170">170</span>
-<span id="171">171</span>
-<span id="172">172</span>
-<span id="173">173</span>
-<span id="174">174</span>
-<span id="175">175</span>
-<span id="176">176</span>
-<span id="177">177</span>
-<span id="178">178</span>
-<span id="179">179</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Macros for the Boa JavaScript engine.
 
 </span><span class="attribute">#![doc(
@@ -279,16 +269,6 @@
                 </span><span class="kw">fn </span>mark&lt;T: ::boa_gc::Trace + <span class="question-mark">?</span>Sized&gt;(it: <span class="kw-2">&amp;</span>T) {
                     <span class="kw">unsafe </span>{
                         ::boa_gc::Trace::trace(it);
-                    }
-                }
-                <span class="kw">match </span><span class="kw-2">*</span><span class="self">self </span>{ #trace_body }
-            }
-            <span class="attribute">#[inline]
-            </span><span class="kw">unsafe fn </span>weak_trace(<span class="kw-2">&amp;</span><span class="self">self</span>) {
-                <span class="attribute">#[allow(dead_code, unreachable_code)]
-                </span><span class="kw">fn </span>mark&lt;T: ::boa_gc::Trace + <span class="question-mark">?</span>Sized&gt;(it: <span class="kw-2">&amp;</span>T) {
-                    <span class="kw">unsafe </span>{
-                        ::boa_gc::Trace::weak_trace(it)
                     }
                 }
                 <span class="kw">match </span><span class="kw-2">*</span><span class="self">self </span>{ #trace_body }

@@ -111,16 +111,63 @@
 <span id="110">110</span>
 <span id="111">111</span>
 <span id="112">112</span>
+<span id="113">113</span>
+<span id="114">114</span>
+<span id="115">115</span>
+<span id="116">116</span>
+<span id="117">117</span>
+<span id="118">118</span>
+<span id="119">119</span>
+<span id="120">120</span>
+<span id="121">121</span>
+<span id="122">122</span>
+<span id="123">123</span>
+<span id="124">124</span>
+<span id="125">125</span>
+<span id="126">126</span>
+<span id="127">127</span>
+<span id="128">128</span>
+<span id="129">129</span>
+<span id="130">130</span>
+<span id="131">131</span>
+<span id="132">132</span>
+<span id="133">133</span>
+<span id="134">134</span>
+<span id="135">135</span>
+<span id="136">136</span>
+<span id="137">137</span>
+<span id="138">138</span>
+<span id="139">139</span>
+<span id="140">140</span>
+<span id="141">141</span>
+<span id="142">142</span>
+<span id="143">143</span>
+<span id="144">144</span>
+<span id="145">145</span>
+<span id="146">146</span>
+<span id="147">147</span>
+<span id="148">148</span>
+<span id="149">149</span>
+<span id="150">150</span>
+<span id="151">151</span>
+<span id="152">152</span>
+<span id="153">153</span>
+<span id="154">154</span>
+<span id="155">155</span>
+<span id="156">156</span>
+<span id="157">157</span>
+<span id="158">158</span>
 </pre><pre class="rust"><code><span class="kw">use crate</span>::{
     finalizer_safe,
     internals::EphemeronBox,
     trace::{Finalize, Trace},
-    Allocator, Gc, GcBox, EPHEMERON_QUEUE,
+    Allocator, Gc,
 };
 <span class="kw">use </span>std::{cell::Cell, ptr::NonNull};
 
-<span class="attribute">#[derive(Debug)]
-</span><span class="doccomment">/// A key-value pair where the value becomes unaccesible when the key is garbage collected.
+<span class="kw">use </span><span class="kw">super</span>::rootable::Rootable;
+
+<span class="doccomment">/// A key-value pair where the value becomes unaccesible when the key is garbage collected.
 ///
 /// See Racket&#39;s explanation on [**ephemerons**][eph] for a brief overview or read Barry Hayes&#39;
 /// [_Ephemerons_: a new finalization mechanism][acm].
@@ -128,70 +175,119 @@
 ///
 /// [eph]: https://docs.racket-lang.org/reference/ephemerons.html
 /// [acm]: https://dl.acm.org/doi/10.1145/263700.263733
+</span><span class="attribute">#[derive(Debug)]
 </span><span class="kw">pub struct </span>Ephemeron&lt;K: Trace + <span class="question-mark">?</span>Sized + <span class="lifetime">&#39;static</span>, V: Trace + <span class="lifetime">&#39;static</span>&gt; {
-    inner_ptr: Cell&lt;NonNull&lt;GcBox&lt;EphemeronBox&lt;K, V&gt;&gt;&gt;&gt;,
+    inner_ptr: Cell&lt;Rootable&lt;EphemeronBox&lt;K, V&gt;&gt;&gt;,
+}
+
+<span class="kw">impl</span>&lt;K: Trace + <span class="question-mark">?</span>Sized, V: Trace + Clone&gt; Ephemeron&lt;K, V&gt; {
+    <span class="doccomment">/// Gets the stored value of this `Ephemeron`, or `None` if the key was already garbage collected.
+    ///
+    /// This needs to return a clone of the value because holding a reference to it between
+    /// garbage collection passes could drop the underlying allocation, causing an Use After Free.
+    </span><span class="kw">pub fn </span>value(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;V&gt; {
+        <span class="comment">// SAFETY: this is safe because `Ephemeron` is tracked to always point to a valid pointer
+        // `inner_ptr`.
+        </span><span class="kw">unsafe </span>{ <span class="self">self</span>.inner_ptr.get().as_ref().value().cloned() }
+    }
 }
 
 <span class="kw">impl</span>&lt;K: Trace + <span class="question-mark">?</span>Sized, V: Trace&gt; Ephemeron&lt;K, V&gt; {
     <span class="doccomment">/// Creates a new `Ephemeron`.
     </span><span class="kw">pub fn </span>new(key: <span class="kw-2">&amp;</span>Gc&lt;K&gt;, value: V) -&gt; <span class="self">Self </span>{
-        <span class="self">Self </span>{
-            inner_ptr: Cell::new(Allocator::allocate(GcBox::new_weak(EphemeronBox::new(
-                key, value,
-            )))),
+        <span class="comment">// SAFETY: `value` comes from the stack and should be rooted, meaning unrooting
+        // it to pass it to the underlying `EphemeronBox` is safe.
+        </span><span class="kw">unsafe </span>{
+            value.unroot();
+        }
+        <span class="comment">// SAFETY: EphemeronBox is at least 2 bytes in size, and so its alignment is always a
+        // multiple of 2.
+        </span><span class="kw">unsafe </span>{
+            <span class="self">Self </span>{
+                inner_ptr: Cell::new(
+                    Rootable::new_unchecked(Allocator::alloc_ephemeron(EphemeronBox::new(
+                        key, value,
+                    )))
+                    .rooted(),
+                ),
+            }
+        }
+    }
+
+    <span class="doccomment">/// Returns `true` if the two `Ephemeron`s point to the same allocation.
+    </span><span class="kw">pub fn </span>ptr_eq(this: <span class="kw-2">&amp;</span><span class="self">Self</span>, other: <span class="kw-2">&amp;</span><span class="self">Self</span>) -&gt; bool {
+        EphemeronBox::ptr_eq(this.inner(), other.inner())
+    }
+
+    <span class="kw">fn </span>is_rooted(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="self">self</span>.inner_ptr.get().is_rooted()
+    }
+
+    <span class="kw">fn </span>root_ptr(<span class="kw-2">&amp;</span><span class="self">self</span>) {
+        <span class="self">self</span>.inner_ptr.set(<span class="self">self</span>.inner_ptr.get().rooted());
+    }
+
+    <span class="kw">fn </span>unroot_ptr(<span class="kw-2">&amp;</span><span class="self">self</span>) {
+        <span class="self">self</span>.inner_ptr.set(<span class="self">self</span>.inner_ptr.get().unrooted());
+    }
+
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>inner_ptr(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; NonNull&lt;EphemeronBox&lt;K, V&gt;&gt; {
+        <span class="macro">assert!</span>(finalizer_safe());
+        <span class="self">self</span>.inner_ptr.get().as_ptr()
+    }
+
+    <span class="kw">fn </span>inner(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>EphemeronBox&lt;K, V&gt; {
+        <span class="comment">// SAFETY: Please see Gc::inner_ptr()
+        </span><span class="kw">unsafe </span>{ <span class="self">self</span>.inner_ptr().as_ref() }
+    }
+
+    <span class="doccomment">/// Constructs an `Ephemeron&lt;K, V&gt;` from a raw pointer.
+    ///
+    /// # Safety
+    ///
+    /// This function is unsafe because improper use may lead to memory corruption, double-free,
+    /// or misbehaviour of the garbage collector.
+    </span><span class="attribute">#[must_use]
+    </span><span class="kw">unsafe fn </span>from_raw(ptr: NonNull&lt;EphemeronBox&lt;K, V&gt;&gt;) -&gt; <span class="self">Self </span>{
+        <span class="comment">// SAFETY: it is the caller&#39;s job to ensure the safety of this operation.
+        </span><span class="kw">unsafe </span>{
+            <span class="self">Self </span>{
+                inner_ptr: Cell::new(Rootable::new_unchecked(ptr).rooted()),
+            }
         }
     }
 }
 
-<span class="kw">impl</span>&lt;K: Trace + <span class="question-mark">?</span>Sized, V: Trace&gt; Ephemeron&lt;K, V&gt; {
-    <span class="kw">fn </span>inner_ptr(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; NonNull&lt;GcBox&lt;EphemeronBox&lt;K, V&gt;&gt;&gt; {
-        <span class="self">self</span>.inner_ptr.get()
+<span class="kw">impl</span>&lt;K: Trace + <span class="question-mark">?</span>Sized, V: Trace&gt; Finalize <span class="kw">for </span>Ephemeron&lt;K, V&gt; {}
+
+<span class="comment">// SAFETY: `Ephemeron`s trace implementation only marks its inner box because we want to stop
+// tracing through weakly held pointers.
+</span><span class="kw">unsafe impl</span>&lt;K: Trace + <span class="question-mark">?</span>Sized, V: Trace&gt; Trace <span class="kw">for </span>Ephemeron&lt;K, V&gt; {
+    <span class="kw">unsafe fn </span>trace(<span class="kw-2">&amp;</span><span class="self">self</span>) {
+        <span class="comment">// SAFETY: We need to mark the inner box of the `Ephemeron` since it is reachable
+        // from a root and this means it cannot be dropped.
+        </span><span class="kw">unsafe </span>{
+            <span class="self">self</span>.inner().mark();
+        }
     }
 
-    <span class="kw">fn </span>inner(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>GcBox&lt;EphemeronBox&lt;K, V&gt;&gt; {
-        <span class="comment">// SAFETY: GcBox&lt;EphemeronBox&lt;K,V&gt;&gt; must live until it is unrooted by Drop
-        </span><span class="kw">unsafe </span>{ <span class="kw-2">&amp;*</span><span class="self">self</span>.inner_ptr().as_ptr() }
+    <span class="kw">unsafe fn </span>root(<span class="kw-2">&amp;</span><span class="self">self</span>) {
+        <span class="macro">assert!</span>(!<span class="self">self</span>.is_rooted(), <span class="string">&quot;Can&#39;t double-root a Gc&lt;T&gt;&quot;</span>);
+        <span class="comment">// Try to get inner before modifying our state. Inner may be
+        // inaccessible due to this method being invoked during the sweeping
+        // phase, and we don&#39;t want to modify our state before panicking.
+        </span><span class="self">self</span>.inner().root();
+        <span class="self">self</span>.root_ptr();
     }
 
-    <span class="doccomment">/// Gets the weak key of this `Ephemeron`, or `None` if the key was already garbage
-    /// collected.
-    </span><span class="kw">pub fn </span>key(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>K&gt; {
-        <span class="self">self</span>.inner().value().key()
+    <span class="kw">unsafe fn </span>unroot(<span class="kw-2">&amp;</span><span class="self">self</span>) {
+        <span class="macro">assert!</span>(<span class="self">self</span>.is_rooted(), <span class="string">&quot;Can&#39;t double-unroot a Gc&lt;T&gt;&quot;</span>);
+        <span class="comment">// Try to get inner before modifying our state. Inner may be
+        // inaccessible due to this method being invoked during the sweeping
+        // phase, and we don&#39;t want to modify our state before panicking.
+        </span><span class="self">self</span>.inner().unroot();
+        <span class="self">self</span>.unroot_ptr();
     }
-
-    <span class="doccomment">/// Gets the stored value of this `Ephemeron`.
-    </span><span class="kw">pub fn </span>value(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>V {
-        <span class="self">self</span>.inner().value().value()
-    }
-
-    <span class="doccomment">/// Gets a `Gc` for the stored key of this `Ephemeron`.
-    </span><span class="kw">pub fn </span>upgrade_key(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;Gc&lt;K&gt;&gt; {
-        <span class="comment">// SAFETY: ptr must be a valid pointer or None would have been returned.
-        </span><span class="self">self</span>.inner().value().inner_key_ptr().map(|ptr| <span class="kw">unsafe </span>{
-            <span class="kw">let </span>inner_ptr = NonNull::new_unchecked(ptr);
-            Gc::from_ptr(inner_ptr)
-        })
-    }
-}
-
-<span class="kw">impl</span>&lt;K: Trace, V: Trace&gt; Finalize <span class="kw">for </span>Ephemeron&lt;K, V&gt; {}
-
-<span class="comment">// SAFETY: Ephemerons trace implementation is standard for everything except `Trace::weak_trace()`,
-// which pushes the GcBox&lt;EphemeronBox&lt;_&gt;&gt; onto the EphemeronQueue
-</span><span class="kw">unsafe impl</span>&lt;K: Trace, V: Trace&gt; Trace <span class="kw">for </span>Ephemeron&lt;K, V&gt; {
-    <span class="kw">unsafe fn </span>trace(<span class="kw-2">&amp;</span><span class="self">self</span>) {}
-
-    <span class="comment">// Push this Ephemeron&#39;s pointer onto the EphemeronQueue
-    </span><span class="kw">unsafe fn </span>weak_trace(<span class="kw-2">&amp;</span><span class="self">self</span>) {
-        EPHEMERON_QUEUE.with(|q| {
-            <span class="kw">let </span><span class="kw-2">mut </span>queue = q.take().expect(<span class="string">&quot;queue is initialized by weak_trace&quot;</span>);
-            queue.push(<span class="self">self</span>.inner_ptr());
-        });
-    }
-
-    <span class="kw">unsafe fn </span>root(<span class="kw-2">&amp;</span><span class="self">self</span>) {}
-
-    <span class="kw">unsafe fn </span>unroot(<span class="kw-2">&amp;</span><span class="self">self</span>) {}
 
     <span class="kw">fn </span>run_finalizer(<span class="kw-2">&amp;</span><span class="self">self</span>) {
         Finalize::finalize(<span class="self">self</span>);
@@ -200,26 +296,22 @@
 
 <span class="kw">impl</span>&lt;K: Trace + <span class="question-mark">?</span>Sized, V: Trace&gt; Clone <span class="kw">for </span>Ephemeron&lt;K, V&gt; {
     <span class="kw">fn </span>clone(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="self">Self </span>{
-        <span class="comment">// SAFETY: This is safe because the inner_ptr must live as long as it&#39;s roots.
-        // Mismanagement of roots can cause inner_ptr to use after free or Undefined
-        // Behavior.
+        <span class="kw">let </span>ptr = <span class="self">self</span>.inner_ptr();
+        <span class="comment">// SAFETY: since an `Ephemeron` is always valid, its `inner_ptr` must also be always a valid
+        // pointer.
         </span><span class="kw">unsafe </span>{
-            <span class="kw">let </span>eph = <span class="self">Self </span>{
-                inner_ptr: Cell::new(NonNull::new_unchecked(<span class="self">self</span>.inner_ptr().as_ptr())),
-            };
-            <span class="comment">// Increment the Ephemeron&#39;s GcBox roots by 1
-            </span><span class="self">self</span>.inner().root_inner();
-            eph
+            ptr.as_ref().root();
         }
+        <span class="comment">// SAFETY: `&amp;self` is a valid Ephemeron pointer.
+        </span><span class="kw">unsafe </span>{ <span class="self">Self</span>::from_raw(ptr) }
     }
 }
 
 <span class="kw">impl</span>&lt;K: Trace + <span class="question-mark">?</span>Sized, V: Trace&gt; Drop <span class="kw">for </span>Ephemeron&lt;K, V&gt; {
     <span class="kw">fn </span>drop(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
-        <span class="comment">// NOTE: We assert that this drop call is not a
-        // drop from `Collector::dump` or `Collector::sweep`
-        </span><span class="kw">if </span>finalizer_safe() {
-            <span class="self">self</span>.inner().unroot_inner();
+        <span class="comment">// If this pointer was a root, we should unroot it.
+        </span><span class="kw">if </span><span class="self">self</span>.is_rooted() {
+            <span class="self">self</span>.inner().unroot();
         }
     }
 }

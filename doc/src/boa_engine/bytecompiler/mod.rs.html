@@ -1452,7 +1452,7 @@
     pattern::Pattern,
     Declaration, Expression, Statement, StatementList, StatementListItem,
 };
-<span class="kw">use </span>boa_gc::{Gc, GcCell};
+<span class="kw">use </span>boa_gc::{Gc, GcRefCell};
 <span class="kw">use </span>boa_interner::{Interner, Sym};
 <span class="kw">use </span>rustc_hash::FxHashMap;
 
@@ -1671,7 +1671,7 @@
     <span class="doccomment">/// Push a compile time environment to the current `CodeBlock` and return it&#39;s index.
     </span><span class="kw">fn </span>push_compile_environment(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-        environment: Gc&lt;GcCell&lt;CompileTimeEnvironment&gt;&gt;,
+        environment: Gc&lt;GcRefCell&lt;CompileTimeEnvironment&gt;&gt;,
     ) -&gt; usize {
         <span class="kw">let </span>index = <span class="self">self</span>.code_block.compile_environments.len();
         <span class="self">self</span>.code_block.compile_environments.push(environment);

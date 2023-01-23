@@ -1522,7 +1522,7 @@
     expression::Identifier,
     function::{FormalParameterList, PrivateName},
 };
-<span class="kw">use </span>boa_gc::{Finalize, Gc, GcCell, Trace};
+<span class="kw">use </span>boa_gc::{Finalize, Gc, GcRefCell, Trace};
 <span class="kw">use </span>boa_interner::{Interner, Sym, ToInternedString};
 <span class="kw">use </span>boa_profiler::Profiler;
 <span class="kw">use </span>std::{collections::VecDeque, convert::TryInto, mem::size_of};
@@ -1605,7 +1605,7 @@
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) arguments_binding: <span class="prelude-ty">Option</span>&lt;BindingLocator&gt;,
 
     <span class="doccomment">/// Compile time environments in this function.
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) compile_environments: Vec&lt;Gc&lt;GcCell&lt;CompileTimeEnvironment&gt;&gt;&gt;,
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) compile_environments: Vec&lt;Gc&lt;GcRefCell&lt;CompileTimeEnvironment&gt;&gt;&gt;,
 
     <span class="doccomment">/// The `[[IsClassConstructor]]` internal slot.
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) is_class_constructor: bool,
@@ -2625,7 +2625,7 @@
                     prototype,
                     ObjectData::generator(Generator {
                         state: GeneratorState::SuspendedStart,
-                        context: <span class="prelude-val">Some</span>(Gc::new(GcCell::new(GeneratorContext {
+                        context: <span class="prelude-val">Some</span>(Gc::new(GcRefCell::new(GeneratorContext {
                             environments,
                             call_frame,
                             stack,
@@ -2772,7 +2772,7 @@
                     prototype,
                     ObjectData::async_generator(AsyncGenerator {
                         state: AsyncGeneratorState::SuspendedStart,
-                        context: <span class="prelude-val">Some</span>(Gc::new(GcCell::new(GeneratorContext {
+                        context: <span class="prelude-val">Some</span>(Gc::new(GcRefCell::new(GeneratorContext {
                             environments,
                             call_frame,
                             stack,

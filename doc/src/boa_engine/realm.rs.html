@@ -63,6 +63,7 @@
 <span id="62">62</span>
 <span id="63">63</span>
 <span id="64">64</span>
+<span id="65">65</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Boa&#39;s implementation of ECMAScript&#39;s `Realm Records`
 //!
 //! Conceptually, a realm consists of a set of intrinsic objects, an ECMAScript global environment,
@@ -75,7 +76,7 @@
     environments::{CompileTimeEnvironment, DeclarativeEnvironmentStack},
     object::{GlobalPropertyMap, JsObject, JsPrototype, ObjectData, PropertyMap},
 };
-<span class="kw">use </span>boa_gc::{Gc, GcCell};
+<span class="kw">use </span>boa_gc::{Gc, GcRefCell};
 <span class="kw">use </span>boa_profiler::Profiler;
 
 <span class="doccomment">/// Representation of a Realm.
@@ -88,7 +89,7 @@
     <span class="kw">pub</span>(<span class="kw">crate</span>) global_property_map: PropertyMap,
     <span class="kw">pub</span>(<span class="kw">crate</span>) global_prototype: JsPrototype,
     <span class="kw">pub</span>(<span class="kw">crate</span>) environments: DeclarativeEnvironmentStack,
-    <span class="kw">pub</span>(<span class="kw">crate</span>) compile_env: Gc&lt;GcCell&lt;CompileTimeEnvironment&gt;&gt;,
+    <span class="kw">pub</span>(<span class="kw">crate</span>) compile_env: Gc&lt;GcRefCell&lt;CompileTimeEnvironment&gt;&gt;,
 }
 
 <span class="kw">impl </span>Realm {
@@ -101,7 +102,8 @@
         // Allow identification of the global object easily
         </span><span class="kw">let </span>global_object = JsObject::from_proto_and_data(<span class="prelude-val">None</span>, ObjectData::global());
 
-        <span class="kw">let </span>global_compile_environment = Gc::new(GcCell::new(CompileTimeEnvironment::new_global()));
+        <span class="kw">let </span>global_compile_environment =
+            Gc::new(GcRefCell::new(CompileTimeEnvironment::new_global()));
 
         <span class="self">Self </span>{
             global_object,

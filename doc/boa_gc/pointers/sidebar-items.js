@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"mod":[["ephemeron",""],["gc",""],["weak",""]]};
+window.SIDEBAR_ITEMS = {"mod":[["ephemeron",""],["gc",""],["rootable",""],["weak",""]]};

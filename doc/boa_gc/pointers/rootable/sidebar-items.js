@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"fn":[["set_data_ptr",""]],"struct":[["Rootable","A [`NonNull`] pointer with a `rooted` tag."]]};

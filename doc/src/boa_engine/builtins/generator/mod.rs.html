@@ -452,7 +452,7 @@
     vm::{CallFrame, GeneratorResumeKind, ReturnType},
     Context, JsError, JsResult,
 };
-<span class="kw">use </span>boa_gc::{Finalize, Gc, GcCell, Trace};
+<span class="kw">use </span>boa_gc::{Finalize, Gc, GcRefCell, Trace};
 <span class="kw">use </span>boa_profiler::Profiler;
 
 <span class="doccomment">/// Indicates the state of a generator.
@@ -484,7 +484,7 @@
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) state: GeneratorState,
 
     <span class="doccomment">/// The `[[GeneratorContext]]` internal slot.
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) context: <span class="prelude-ty">Option</span>&lt;Gc&lt;GcCell&lt;GeneratorContext&gt;&gt;&gt;,
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) context: <span class="prelude-ty">Option</span>&lt;Gc&lt;GcRefCell&lt;GeneratorContext&gt;&gt;&gt;,
 }
 
 <span class="kw">impl </span>BuiltIn <span class="kw">for </span>Generator {

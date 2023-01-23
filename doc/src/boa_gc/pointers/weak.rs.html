@@ -38,47 +38,33 @@
 <span id="37">37</span>
 <span id="38">38</span>
 <span id="39">39</span>
-<span id="40">40</span>
-<span id="41">41</span>
-<span id="42">42</span>
-<span id="43">43</span>
-<span id="44">44</span>
-<span id="45">45</span>
-<span id="46">46</span>
 </pre><pre class="rust"><code><span class="kw">use crate</span>::{Ephemeron, Finalize, Gc, Trace};
 
 <span class="doccomment">/// A weak reference to a [`Gc`].
 ///
 /// This type allows keeping references to [`Gc`] managed values without keeping them alive for
-/// garbage collections. However, this also means [`WeakGc::value`] can return `None` at any moment.
+/// garbage collections. However, this also means [`WeakGc::upgrade`] could return `None` at any moment.
 </span><span class="attribute">#[derive(Debug, Trace, Finalize)]
 #[repr(transparent)]
 </span><span class="kw">pub struct </span>WeakGc&lt;T: Trace + <span class="question-mark">?</span>Sized + <span class="lifetime">&#39;static</span>&gt; {
-    inner: Ephemeron&lt;T, ()&gt;,
+    inner: Ephemeron&lt;T, Gc&lt;T&gt;&gt;,
 }
 
-<span class="kw">impl</span>&lt;T: Trace + <span class="question-mark">?</span>Sized&gt; WeakGc&lt;T&gt; {
+<span class="kw">impl</span>&lt;T: Trace&gt; WeakGc&lt;T&gt; {
     <span class="doccomment">/// Creates a new weak pointer for a garbage collected value.
     </span><span class="kw">pub fn </span>new(value: <span class="kw-2">&amp;</span>Gc&lt;T&gt;) -&gt; <span class="self">Self </span>{
         <span class="self">Self </span>{
-            inner: Ephemeron::new(value, ()),
+            inner: Ephemeron::new(value, value.clone()),
         }
-    }
-}
-
-<span class="kw">impl</span>&lt;T: Trace + <span class="question-mark">?</span>Sized&gt; WeakGc&lt;T&gt; {
-    <span class="doccomment">/// Gets the value of this weak pointer, or `None` if the value was already garbage collected.
-    </span><span class="kw">pub fn </span>value(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>T&gt; {
-        <span class="self">self</span>.inner.key()
     }
 
     <span class="doccomment">/// Upgrade returns a `Gc` pointer for the internal value if valid, or None if the value was already garbage collected.
     </span><span class="kw">pub fn </span>upgrade(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;Gc&lt;T&gt;&gt; {
-        <span class="self">self</span>.inner.upgrade_key()
+        <span class="self">self</span>.inner.value()
     }
 }
 
-<span class="kw">impl</span>&lt;T: Trace + <span class="question-mark">?</span>Sized&gt; Clone <span class="kw">for </span>WeakGc&lt;T&gt; {
+<span class="kw">impl</span>&lt;T: Trace&gt; Clone <span class="kw">for </span>WeakGc&lt;T&gt; {
     <span class="kw">fn </span>clone(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="self">Self </span>{
         <span class="self">Self </span>{
             inner: <span class="self">self</span>.inner.clone(),
@@ -86,8 +72,8 @@
     }
 }
 
-<span class="kw">impl</span>&lt;T: Trace + <span class="question-mark">?</span>Sized&gt; From&lt;Ephemeron&lt;T, ()&gt;&gt; <span class="kw">for </span>WeakGc&lt;T&gt; {
-    <span class="kw">fn </span>from(inner: Ephemeron&lt;T, ()&gt;) -&gt; <span class="self">Self </span>{
+<span class="kw">impl</span>&lt;T: Trace&gt; From&lt;Ephemeron&lt;T, Gc&lt;T&gt;&gt;&gt; <span class="kw">for </span>WeakGc&lt;T&gt; {
+    <span class="kw">fn </span>from(inner: Ephemeron&lt;T, Gc&lt;T&gt;&gt;) -&gt; <span class="self">Self </span>{
         <span class="self">Self </span>{ inner }
     }
 }

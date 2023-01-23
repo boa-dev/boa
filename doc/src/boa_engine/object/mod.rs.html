@@ -2487,7 +2487,7 @@
     Context, JsBigInt, JsString, JsSymbol, JsValue,
 };
 
-<span class="kw">use </span>boa_gc::{custom_trace, Finalize, GcCell, Trace, WeakGc};
+<span class="kw">use </span>boa_gc::{custom_trace, Finalize, GcRefCell, Trace, WeakGc};
 <span class="kw">use </span>std::{
     any::Any,
     fmt::{<span class="self">self</span>, Debug},
@@ -2698,7 +2698,7 @@
     </span>Promise(Promise),
 
     <span class="doccomment">/// The `WeakRef` object kind.
-    </span>WeakRef(WeakGc&lt;GcCell&lt;Object&gt;&gt;),
+    </span>WeakRef(WeakGc&lt;GcRefCell&lt;Object&gt;&gt;),
 
     <span class="doccomment">/// The `Intl.Collator` object kind.
     </span><span class="attribute">#[cfg(feature = <span class="string">&quot;intl&quot;</span>)]
@@ -3050,7 +3050,7 @@
     }
 
     <span class="doccomment">/// Creates the `WeakRef` object data
-    </span><span class="kw">pub fn </span>weak_ref(weak_ref: WeakGc&lt;GcCell&lt;Object&gt;&gt;) -&gt; <span class="self">Self </span>{
+    </span><span class="kw">pub fn </span>weak_ref(weak_ref: WeakGc&lt;GcRefCell&lt;Object&gt;&gt;) -&gt; <span class="self">Self </span>{
         <span class="self">Self </span>{
             kind: ObjectKind::WeakRef(weak_ref),
             internal_methods: <span class="kw-2">&amp;</span>ORDINARY_INTERNAL_METHODS,
@@ -4055,7 +4055,7 @@
 
     <span class="doccomment">/// Gets the `WeakRef` data if the object is a `WeakRef`.
     </span><span class="attribute">#[inline]
-    </span><span class="kw">pub const fn </span>as_weak_ref(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>WeakGc&lt;GcCell&lt;<span class="self">Self</span>&gt;&gt;&gt; {
+    </span><span class="kw">pub const fn </span>as_weak_ref(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>WeakGc&lt;GcRefCell&lt;<span class="self">Self</span>&gt;&gt;&gt; {
         <span class="kw">match </span><span class="self">self</span>.data {
             ObjectData {
                 kind: ObjectKind::WeakRef(<span class="kw-2">ref </span>weak_ref),

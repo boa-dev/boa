@@ -425,6 +425,66 @@
 <span id="424">424</span>
 <span id="425">425</span>
 <span id="426">426</span>
+<span id="427">427</span>
+<span id="428">428</span>
+<span id="429">429</span>
+<span id="430">430</span>
+<span id="431">431</span>
+<span id="432">432</span>
+<span id="433">433</span>
+<span id="434">434</span>
+<span id="435">435</span>
+<span id="436">436</span>
+<span id="437">437</span>
+<span id="438">438</span>
+<span id="439">439</span>
+<span id="440">440</span>
+<span id="441">441</span>
+<span id="442">442</span>
+<span id="443">443</span>
+<span id="444">444</span>
+<span id="445">445</span>
+<span id="446">446</span>
+<span id="447">447</span>
+<span id="448">448</span>
+<span id="449">449</span>
+<span id="450">450</span>
+<span id="451">451</span>
+<span id="452">452</span>
+<span id="453">453</span>
+<span id="454">454</span>
+<span id="455">455</span>
+<span id="456">456</span>
+<span id="457">457</span>
+<span id="458">458</span>
+<span id="459">459</span>
+<span id="460">460</span>
+<span id="461">461</span>
+<span id="462">462</span>
+<span id="463">463</span>
+<span id="464">464</span>
+<span id="465">465</span>
+<span id="466">466</span>
+<span id="467">467</span>
+<span id="468">468</span>
+<span id="469">469</span>
+<span id="470">470</span>
+<span id="471">471</span>
+<span id="472">472</span>
+<span id="473">473</span>
+<span id="474">474</span>
+<span id="475">475</span>
+<span id="476">476</span>
+<span id="477">477</span>
+<span id="478">478</span>
+<span id="479">479</span>
+<span id="480">480</span>
+<span id="481">481</span>
+<span id="482">482</span>
+<span id="483">483</span>
+<span id="484">484</span>
+<span id="485">485</span>
+<span id="486">486</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Boa&#39;s **`boa_gc`** crate implements a garbage collector.
 //!
 //! # Crate Overview
@@ -506,6 +566,7 @@
     clippy::perf,
     clippy::pedantic,
     clippy::nursery,
+    clippy::undocumented_unsafe_blocks
 )]
 #![allow(
     clippy::module_name_repetitions,
@@ -522,6 +583,7 @@
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">mod </span>internals;
 
 <span class="kw">use </span>boa_profiler::Profiler;
+<span class="kw">use </span>internals::{EphemeronBox, ErasedEphemeronBox};
 <span class="kw">use </span>std::{
     cell::{Cell, RefCell},
     mem,
@@ -530,18 +592,19 @@
 
 <span class="kw">pub use </span><span class="kw">crate</span>::trace::{Finalize, Trace};
 <span class="kw">pub use </span>boa_macros::{Finalize, Trace};
-<span class="kw">pub use </span>cell::{GcCell, GcCellRef, GcCellRefMut};
+<span class="kw">pub use </span>cell::{GcRef, GcRefCell, GcRefMut};
 <span class="kw">pub use </span>internals::GcBox;
 <span class="kw">pub use </span>pointers::{Ephemeron, Gc, WeakGc};
 
 <span class="kw">type </span>GcPointer = NonNull&lt;GcBox&lt;<span class="kw">dyn </span>Trace&gt;&gt;;
+<span class="kw">type </span>EphemeronPointer = NonNull&lt;<span class="kw">dyn </span>ErasedEphemeronBox&gt;;
 
-<span class="macro">thread_local!</span>(<span class="kw">static </span>EPHEMERON_QUEUE: Cell&lt;<span class="prelude-ty">Option</span>&lt;Vec&lt;GcPointer&gt;&gt;&gt; = Cell::new(<span class="prelude-val">None</span>));
 <span class="macro">thread_local!</span>(<span class="kw">static </span>GC_DROPPING: Cell&lt;bool&gt; = Cell::new(<span class="bool-val">false</span>));
 <span class="macro">thread_local!</span>(<span class="kw">static </span>BOA_GC: RefCell&lt;BoaGc&gt; = RefCell::new( BoaGc {
     config: GcConfig::default(),
     runtime: GcRuntimeData::default(),
-    adult_start: Cell::new(<span class="prelude-val">None</span>),
+    strong_start: Cell::new(<span class="prelude-val">None</span>),
+    weak_start: Cell::new(<span class="prelude-val">None</span>)
 }));
 
 <span class="attribute">#[derive(Debug, Clone, Copy)]
@@ -572,7 +635,8 @@
 </span><span class="kw">struct </span>BoaGc {
     config: GcConfig,
     runtime: GcRuntimeData,
-    adult_start: Cell&lt;<span class="prelude-ty">Option</span>&lt;GcPointer&gt;&gt;,
+    strong_start: Cell&lt;<span class="prelude-ty">Option</span>&lt;GcPointer&gt;&gt;,
+    weak_start: Cell&lt;<span class="prelude-ty">Option</span>&lt;EphemeronPointer&gt;&gt;,
 }
 
 <span class="kw">impl </span>Drop <span class="kw">for </span>BoaGc {
@@ -617,18 +681,40 @@
 
 <span class="kw">impl </span>Allocator {
     <span class="doccomment">/// Allocate a new garbage collected value to the Garbage Collector&#39;s heap.
-    </span><span class="kw">fn </span>allocate&lt;T: Trace&gt;(value: GcBox&lt;T&gt;) -&gt; NonNull&lt;GcBox&lt;T&gt;&gt; {
-        <span class="kw">let </span>_timer = Profiler::global().start_event(<span class="string">&quot;New Pointer&quot;</span>, <span class="string">&quot;BoaAlloc&quot;</span>);
+    </span><span class="kw">fn </span>alloc_gc&lt;T: Trace&gt;(value: GcBox&lt;T&gt;) -&gt; NonNull&lt;GcBox&lt;T&gt;&gt; {
+        <span class="kw">let </span>_timer = Profiler::global().start_event(<span class="string">&quot;New GcBox&quot;</span>, <span class="string">&quot;BoaAlloc&quot;</span>);
         <span class="kw">let </span>element_size = mem::size_of_val::&lt;GcBox&lt;T&gt;&gt;(<span class="kw-2">&amp;</span>value);
         BOA_GC.with(|st| {
             <span class="kw">let </span><span class="kw-2">mut </span>gc = st.borrow_mut();
 
             <span class="self">Self</span>::manage_state(<span class="kw-2">&amp;mut </span>gc);
-            value.header.next.set(gc.adult_start.take());
-            <span class="comment">// Safety: Value Cannot be a null as it must be a GcBox&lt;T&gt;
-            </span><span class="kw">let </span>ptr = <span class="kw">unsafe </span>{ NonNull::new_unchecked(Box::into_raw(Box::from(value))) };
+            value.header.next.set(gc.strong_start.take());
+            <span class="comment">// Safety: value cannot be a null pointer, since `Box` cannot return null pointers.
+            </span><span class="kw">let </span>ptr = <span class="kw">unsafe </span>{ NonNull::new_unchecked(Box::into_raw(Box::new(value))) };
+            <span class="kw">let </span>erased: NonNull&lt;GcBox&lt;<span class="kw">dyn </span>Trace&gt;&gt; = ptr;
 
-            gc.adult_start.set(<span class="prelude-val">Some</span>(ptr));
+            gc.strong_start.set(<span class="prelude-val">Some</span>(erased));
+            gc.runtime.bytes_allocated += element_size;
+
+            ptr
+        })
+    }
+
+    <span class="kw">fn </span>alloc_ephemeron&lt;K: Trace + <span class="question-mark">?</span>Sized, V: Trace&gt;(
+        value: EphemeronBox&lt;K, V&gt;,
+    ) -&gt; NonNull&lt;EphemeronBox&lt;K, V&gt;&gt; {
+        <span class="kw">let </span>_timer = Profiler::global().start_event(<span class="string">&quot;New EphemeronBox&quot;</span>, <span class="string">&quot;BoaAlloc&quot;</span>);
+        <span class="kw">let </span>element_size = mem::size_of_val::&lt;EphemeronBox&lt;K, V&gt;&gt;(<span class="kw-2">&amp;</span>value);
+        BOA_GC.with(|st| {
+            <span class="kw">let </span><span class="kw-2">mut </span>gc = st.borrow_mut();
+
+            <span class="self">Self</span>::manage_state(<span class="kw-2">&amp;mut </span>gc);
+            value.header.next.set(gc.weak_start.take());
+            <span class="comment">// Safety: value cannot be a null pointer, since `Box` cannot return null pointers.
+            </span><span class="kw">let </span>ptr = <span class="kw">unsafe </span>{ NonNull::new_unchecked(Box::into_raw(Box::new(value))) };
+            <span class="kw">let </span>erased: NonNull&lt;<span class="kw">dyn </span>ErasedEphemeronBox&gt; = ptr;
+
+            gc.weak_start.set(<span class="prelude-val">Some</span>(erased));
             gc.runtime.bytes_allocated += element_size;
 
             ptr
@@ -637,7 +723,7 @@
 
     <span class="kw">fn </span>manage_state(gc: <span class="kw-2">&amp;mut </span>BoaGc) {
         <span class="kw">if </span>gc.runtime.bytes_allocated &gt; gc.config.threshold {
-            Collector::run_full_collection(gc);
+            Collector::collect(gc);
 
             <span class="kw">if </span>gc.runtime.bytes_allocated
                 &gt; gc.config.threshold / <span class="number">100 </span>* gc.config.used_space_percentage
@@ -649,141 +735,153 @@
     }
 }
 
-<span class="comment">// This collector currently functions in four main phases
-//
-// Mark -&gt; Finalize -&gt; Mark -&gt; Sweep
-//
-// Mark nodes as reachable then finalize the unreachable nodes. A remark phase
-// then needs to be retriggered as finalization can potentially resurrect dead
-// nodes.
-//
-// A better approach in a more concurrent structure may be to reorder.
-//
-// Mark -&gt; Sweep -&gt; Finalize
+<span class="kw">struct </span>Unreachables {
+    strong: Vec&lt;NonNull&lt;GcBox&lt;<span class="kw">dyn </span>Trace&gt;&gt;&gt;,
+    weak: Vec&lt;NonNull&lt;<span class="kw">dyn </span>ErasedEphemeronBox&gt;&gt;,
+}
+
+<span class="doccomment">/// This collector currently functions in four main phases
+///
+/// Mark -&gt; Finalize -&gt; Mark -&gt; Sweep
+///
+/// 1. Mark nodes as reachable.
+/// 2. Finalize the unreachable nodes.
+/// 3. Mark again because `Finalize::finalize` can potentially resurrect dead nodes.
+/// 4. Sweep and drop all dead nodes.
+///
+/// A better approach in a more concurrent structure may be to reorder.
+///
+/// Mark -&gt; Sweep -&gt; Finalize
 </span><span class="kw">struct </span>Collector;
 
 <span class="kw">impl </span>Collector {
     <span class="doccomment">/// Run a collection on the full heap.
-    </span><span class="kw">fn </span>run_full_collection(gc: <span class="kw-2">&amp;mut </span>BoaGc) {
+    </span><span class="kw">fn </span>collect(gc: <span class="kw-2">&amp;mut </span>BoaGc) {
         <span class="kw">let </span>_timer = Profiler::global().start_event(<span class="string">&quot;Gc Full Collection&quot;</span>, <span class="string">&quot;gc&quot;</span>);
         gc.runtime.collections += <span class="number">1</span>;
-        <span class="kw">let </span>unreachable_adults = <span class="self">Self</span>::mark_heap(<span class="kw-2">&amp;</span>gc.adult_start);
+        <span class="kw">let </span>unreachables = <span class="self">Self</span>::mark_heap(<span class="kw-2">&amp;</span>gc.strong_start, <span class="kw-2">&amp;</span>gc.weak_start);
 
-        <span class="comment">// Check if any unreachable nodes were found and finalize
-        </span><span class="kw">if </span>!unreachable_adults.is_empty() {
-            <span class="comment">// SAFETY: Please see `Collector::finalize()`
-            </span><span class="kw">unsafe </span>{ <span class="self">Self</span>::finalize(unreachable_adults) };
+        <span class="comment">// Only finalize if there are any unreachable nodes.
+        </span><span class="kw">if </span>!unreachables.strong.is_empty() || unreachables.weak.is_empty() {
+            <span class="comment">// Finalize all the unreachable nodes.
+            // SAFETY: All passed pointers are valid, since we won&#39;t deallocate until `Self::sweep`.
+            </span><span class="kw">unsafe </span>{ <span class="self">Self</span>::finalize(unreachables) };
+
+            <span class="kw">let </span>_final_unreachables = <span class="self">Self</span>::mark_heap(<span class="kw-2">&amp;</span>gc.strong_start, <span class="kw-2">&amp;</span>gc.weak_start);
         }
 
-        <span class="kw">let </span>_final_unreachable_adults = <span class="self">Self</span>::mark_heap(<span class="kw-2">&amp;</span>gc.adult_start);
-
-        <span class="comment">// SAFETY: Please see `Collector::sweep()`
+        <span class="comment">// SAFETY: The head of our linked list is always valid per the invariants of our GC.
         </span><span class="kw">unsafe </span>{
-            <span class="self">Self</span>::sweep(<span class="kw-2">&amp;</span>gc.adult_start, <span class="kw-2">&amp;mut </span>gc.runtime.bytes_allocated);
+            <span class="self">Self</span>::sweep(
+                <span class="kw-2">&amp;</span>gc.strong_start,
+                <span class="kw-2">&amp;</span>gc.weak_start,
+                <span class="kw-2">&amp;mut </span>gc.runtime.bytes_allocated,
+            );
         }
     }
 
     <span class="doccomment">/// Walk the heap and mark any nodes deemed reachable
-    </span><span class="kw">fn </span>mark_heap(head: <span class="kw-2">&amp;</span>Cell&lt;<span class="prelude-ty">Option</span>&lt;NonNull&lt;GcBox&lt;<span class="kw">dyn </span>Trace&gt;&gt;&gt;&gt;) -&gt; Vec&lt;NonNull&lt;GcBox&lt;<span class="kw">dyn </span>Trace&gt;&gt;&gt; {
+    </span><span class="kw">fn </span>mark_heap(
+        <span class="kw-2">mut </span>strong: <span class="kw-2">&amp;</span>Cell&lt;<span class="prelude-ty">Option</span>&lt;NonNull&lt;GcBox&lt;<span class="kw">dyn </span>Trace&gt;&gt;&gt;&gt;,
+        <span class="kw-2">mut </span>weak: <span class="kw-2">&amp;</span>Cell&lt;<span class="prelude-ty">Option</span>&lt;NonNull&lt;<span class="kw">dyn </span>ErasedEphemeronBox&gt;&gt;&gt;,
+    ) -&gt; Unreachables {
         <span class="kw">let </span>_timer = Profiler::global().start_event(<span class="string">&quot;Gc Marking&quot;</span>, <span class="string">&quot;gc&quot;</span>);
         <span class="comment">// Walk the list, tracing and marking the nodes
-        </span><span class="kw">let </span><span class="kw-2">mut </span>finalize = Vec::new();
-        <span class="kw">let </span><span class="kw-2">mut </span>ephemeron_queue = Vec::new();
-        <span class="kw">let </span><span class="kw-2">mut </span>mark_head = head;
-        <span class="kw">while let </span><span class="prelude-val">Some</span>(node) = mark_head.get() {
-            <span class="comment">// SAFETY: node must be valid as it is coming directly from the heap.
+        </span><span class="kw">let </span><span class="kw-2">mut </span>strong_dead = Vec::new();
+        <span class="kw">let </span><span class="kw-2">mut </span>pending_ephemerons = Vec::new();
+
+        <span class="comment">// === Preliminary mark phase ===
+        //
+        // 0. Get the naive list of possibly dead nodes.
+        </span><span class="kw">while let </span><span class="prelude-val">Some</span>(node) = strong.get() {
+            <span class="comment">// SAFETY: node must be valid as this phase cannot drop any node.
             </span><span class="kw">let </span>node_ref = <span class="kw">unsafe </span>{ node.as_ref() };
-            <span class="kw">if </span>node_ref.header.is_ephemeron() {
-                ephemeron_queue.push(node);
-            } <span class="kw">else if </span>node_ref.header.roots() &gt; <span class="number">0 </span>{
+            <span class="kw">if </span>node_ref.header.roots() &gt; <span class="number">0 </span>{
                 <span class="comment">// SAFETY: the reference to node must be valid as it is rooted. Passing
                 // invalid references can result in Undefined Behavior
                 </span><span class="kw">unsafe </span>{
-                    node_ref.trace_inner();
+                    node_ref.mark_and_trace();
                 }
-            } <span class="kw">else </span>{
-                finalize.push(node);
+            } <span class="kw">else if </span>!node_ref.is_marked() {
+                strong_dead.push(node);
             }
-            mark_head = <span class="kw-2">&amp;</span>node_ref.header.next;
+            strong = <span class="kw-2">&amp;</span>node_ref.header.next;
         }
 
-        <span class="comment">// Ephemeron Evaluation
-        </span><span class="kw">if </span>!ephemeron_queue.is_empty() {
-            ephemeron_queue = <span class="self">Self</span>::mark_ephemerons(ephemeron_queue);
+        <span class="comment">// 0.1. Early return if there are no ephemerons in the GC
+        </span><span class="kw">if </span>weak.get().is_none() {
+            strong_dead.retain_mut(|node| {
+                <span class="comment">// SAFETY: node must be valid as this phase cannot drop any node.
+                </span><span class="kw">unsafe </span>{ !node.as_ref().is_marked() }
+            });
+            <span class="kw">return </span>Unreachables {
+                strong: strong_dead,
+                weak: Vec::new(),
+            };
         }
 
-        <span class="comment">// Any left over nodes in the ephemeron queue at this point are
-        // unreachable and need to be notified/finalized.
-        </span>finalize.extend(ephemeron_queue);
+        <span class="comment">// === Weak mark phase ===
+        //
+        // 1. Get the naive list of ephemerons that are supposedly dead or their key is dead and
+        // trace all the ephemerons that have roots and their keys are live. Also remove from
+        // this list the ephemerons that are marked but their value is dead.
+        </span><span class="kw">while let </span><span class="prelude-val">Some</span>(eph) = weak.get() {
+            <span class="comment">// SAFETY: node must be valid as this phase cannot drop any node.
+            </span><span class="kw">let </span>eph_ref = <span class="kw">unsafe </span>{ eph.as_ref() };
+            <span class="comment">// SAFETY: the garbage collector ensures `eph_ref` always points to valid data.
+            </span><span class="kw">if unsafe </span>{ !eph_ref.trace() } {
+                pending_ephemerons.push(eph);
+            }
+            weak = <span class="kw-2">&amp;</span>eph_ref.header().next;
+        }
 
-        finalize
-    }
-
-    <span class="comment">// Tracing Ephemerons/Weak is always requires tracing the inner nodes in case it ends up marking unmarked node
-    //
-    // Time complexity should be something like O(nd) where d is the longest chain of epehemerons
-    </span><span class="doccomment">/// Mark any ephemerons that are deemed live and trace their fields.
-    </span><span class="kw">fn </span>mark_ephemerons(
-        initial_queue: Vec&lt;NonNull&lt;GcBox&lt;<span class="kw">dyn </span>Trace&gt;&gt;&gt;,
-    ) -&gt; Vec&lt;NonNull&lt;GcBox&lt;<span class="kw">dyn </span>Trace&gt;&gt;&gt; {
-        <span class="kw">let </span><span class="kw-2">mut </span>ephemeron_queue = initial_queue;
+        <span class="comment">// 2. Iterate through all pending ephemerons, removing the ones which have been successfully
+        // traced. If there are no changes in the pending ephemerons list, it means that there are no
+        // more reachable ephemerons from the remaining ephemeron values.
+        </span><span class="kw">let </span><span class="kw-2">mut </span>previous_len = pending_ephemerons.len();
         <span class="kw">loop </span>{
-            <span class="comment">// iterate through ephemeron queue, sorting nodes by whether they
-            // are reachable or unreachable&lt;?&gt;
-            </span><span class="kw">let </span>(reachable, other): (Vec&lt;<span class="kw">_</span>&gt;, Vec&lt;<span class="kw">_</span>&gt;) =
-                ephemeron_queue.into_iter().partition(|node| {
-                    <span class="comment">// SAFETY: Any node on the eph_queue or the heap must be non null
-                    </span><span class="kw">let </span>node = <span class="kw">unsafe </span>{ node.as_ref() };
-                    <span class="kw">if </span>node.value.is_marked_ephemeron() {
-                        node.header.mark();
-                        <span class="bool-val">true
-                    </span>} <span class="kw">else </span>{
-                        node.header.roots() &gt; <span class="number">0
-                    </span>}
-                });
-            <span class="comment">// Replace the old queue with the unreachable&lt;?&gt;
-            </span>ephemeron_queue = other;
+            pending_ephemerons.retain_mut(|eph| {
+                <span class="comment">// SAFETY: node must be valid as this phase cannot drop any node.
+                </span><span class="kw">let </span>eph_ref = <span class="kw">unsafe </span>{ eph.as_ref() };
+                <span class="comment">// SAFETY: the garbage collector ensures `eph_ref` always points to valid data.
+                </span><span class="kw">unsafe </span>{ !eph_ref.trace() }
+            });
 
-            <span class="comment">// If reachable nodes is not empty, trace values. If it is empty,
-            // break from the loop
-            </span><span class="kw">if </span>reachable.is_empty() {
+            <span class="kw">if </span>previous_len == pending_ephemerons.len() {
                 <span class="kw">break</span>;
             }
-            EPHEMERON_QUEUE.with(|state| state.set(<span class="prelude-val">Some</span>(Vec::new())));
-            <span class="comment">// iterate through reachable nodes and trace their values,
-            // enqueuing any ephemeron that is found during the trace
-            </span><span class="kw">for </span>node <span class="kw">in </span>reachable {
-                <span class="comment">// TODO: deal with fetch ephemeron_queue
-                // SAFETY: Node must be a valid pointer or else it would not be deemed reachable.
-                </span><span class="kw">unsafe </span>{
-                    node.as_ref().weak_trace_inner();
-                }
-            }
 
-            EPHEMERON_QUEUE.with(|st| {
-                <span class="kw">if let </span><span class="prelude-val">Some</span>(found_nodes) = st.take() {
-                    ephemeron_queue.extend(found_nodes);
-                }
-            });
+            previous_len = pending_ephemerons.len();
         }
-        ephemeron_queue
+
+        <span class="comment">// 3. The remaining list should contain the ephemerons that are either unreachable or its key
+        // is dead. Cleanup the strong pointers since this procedure could have marked some more strong
+        // pointers.
+        </span>strong_dead.retain_mut(|node| {
+            <span class="comment">// SAFETY: node must be valid as this phase cannot drop any node.
+            </span><span class="kw">unsafe </span>{ !node.as_ref().is_marked() }
+        });
+
+        Unreachables {
+            strong: strong_dead,
+            weak: pending_ephemerons,
+        }
     }
 
     <span class="doccomment">/// # Safety
     ///
-    /// Passing a vec with invalid pointers will result in Undefined Behaviour.
-    </span><span class="kw">unsafe fn </span>finalize(finalize_vec: Vec&lt;NonNull&lt;GcBox&lt;<span class="kw">dyn </span>Trace&gt;&gt;&gt;) {
+    /// Passing a `strong` or a `weak` vec with invalid pointers will result in Undefined Behaviour.
+    </span><span class="kw">unsafe fn </span>finalize(unreachables: Unreachables) {
         <span class="kw">let </span>_timer = Profiler::global().start_event(<span class="string">&quot;Gc Finalization&quot;</span>, <span class="string">&quot;gc&quot;</span>);
-        <span class="kw">for </span>node <span class="kw">in </span>finalize_vec {
-            <span class="comment">// We double check that the unreachable nodes are actually unreachable
-            // prior to finalization as they could have been marked by a different
-            // trace after initially being added to the queue
-            //
-            // SAFETY: The caller must ensure all pointers inside `finalize_vec` are valid.
+        <span class="kw">for </span>node <span class="kw">in </span>unreachables.strong {
+            <span class="comment">// SAFETY: The caller must ensure all pointers inside `unreachables.strong` are valid.
             </span><span class="kw">let </span>node = <span class="kw">unsafe </span>{ node.as_ref() };
-            <span class="kw">if </span>!node.header.is_marked() {
-                Trace::run_finalizer(<span class="kw-2">&amp;</span>node.value);
-            }
+            Trace::run_finalizer(<span class="kw-2">&amp;</span>node.value());
+        }
+        <span class="kw">for </span>node <span class="kw">in </span>unreachables.weak {
+            <span class="comment">// SAFETY: The caller must ensure all pointers inside `unreachables.weak` are valid.
+            </span><span class="kw">let </span>node = <span class="kw">unsafe </span>{ node.as_ref() };
+            node.finalize_and_clear();
         }
     }
 
@@ -794,30 +892,43 @@
     /// - Providing a list of pointers that weren&#39;t allocated by `Box::into_raw(Box::new(..))`
     /// will result in Undefined Behaviour.
     </span><span class="kw">unsafe fn </span>sweep(
-        heap_start: <span class="kw-2">&amp;</span>Cell&lt;<span class="prelude-ty">Option</span>&lt;NonNull&lt;GcBox&lt;<span class="kw">dyn </span>Trace&gt;&gt;&gt;&gt;,
+        <span class="kw-2">mut </span>strong: <span class="kw-2">&amp;</span>Cell&lt;<span class="prelude-ty">Option</span>&lt;NonNull&lt;GcBox&lt;<span class="kw">dyn </span>Trace&gt;&gt;&gt;&gt;,
+        <span class="kw-2">mut </span>weak: <span class="kw-2">&amp;</span>Cell&lt;<span class="prelude-ty">Option</span>&lt;NonNull&lt;<span class="kw">dyn </span>ErasedEphemeronBox&gt;&gt;&gt;,
         total_allocated: <span class="kw-2">&amp;mut </span>usize,
     ) {
         <span class="kw">let </span>_timer = Profiler::global().start_event(<span class="string">&quot;Gc Sweeping&quot;</span>, <span class="string">&quot;gc&quot;</span>);
         <span class="kw">let </span>_guard = DropGuard::new();
 
-        <span class="kw">let </span><span class="kw-2">mut </span>sweep_head = heap_start;
-        <span class="kw">while let </span><span class="prelude-val">Some</span>(node) = sweep_head.get() {
+        <span class="kw">while let </span><span class="prelude-val">Some</span>(node) = strong.get() {
             <span class="comment">// SAFETY: The caller must ensure the validity of every node of `heap_start`.
             </span><span class="kw">let </span>node_ref = <span class="kw">unsafe </span>{ node.as_ref() };
-            <span class="kw">if </span>node_ref.is_marked() {
+            <span class="kw">if </span>node_ref.header.roots() &gt; <span class="number">0 </span>|| node_ref.is_marked() {
                 node_ref.header.unmark();
-                sweep_head = <span class="kw-2">&amp;</span>node_ref.header.next;
-            } <span class="kw">else if </span>node_ref.header.is_ephemeron() &amp;&amp; node_ref.header.roots() &gt; <span class="number">0 </span>{
-                <span class="comment">// Keep the ephemeron box&#39;s alive if rooted, but note that it&#39;s pointer is no longer safe
-                </span>Trace::run_finalizer(<span class="kw-2">&amp;</span>node_ref.value);
-                sweep_head = <span class="kw-2">&amp;</span>node_ref.header.next;
+                strong = <span class="kw-2">&amp;</span>node_ref.header.next;
             } <span class="kw">else </span>{
                 <span class="comment">// SAFETY: The algorithm ensures only unmarked/unreachable pointers are dropped.
                 // The caller must ensure all pointers were allocated by `Box::into_raw(Box::new(..))`.
                 </span><span class="kw">let </span>unmarked_node = <span class="kw">unsafe </span>{ Box::from_raw(node.as_ptr()) };
-                <span class="kw">let </span>unallocated_bytes = mem::size_of_val::&lt;GcBox&lt;<span class="kw">_</span>&gt;&gt;(<span class="kw-2">&amp;*</span>unmarked_node);
+                <span class="kw">let </span>unallocated_bytes = mem::size_of_val(<span class="kw-2">&amp;*</span>unmarked_node);
                 <span class="kw-2">*</span>total_allocated -= unallocated_bytes;
-                sweep_head.set(unmarked_node.header.next.take());
+                strong.set(unmarked_node.header.next.take());
+            }
+        }
+
+        <span class="kw">while let </span><span class="prelude-val">Some</span>(eph) = weak.get() {
+            <span class="comment">// SAFETY: The caller must ensure the validity of every node of `heap_start`.
+            </span><span class="kw">let </span>eph_ref = <span class="kw">unsafe </span>{ eph.as_ref() };
+            <span class="kw">let </span>header = eph_ref.header();
+            <span class="kw">if </span>header.roots() &gt; <span class="number">0 </span>|| header.is_marked() {
+                header.unmark();
+                weak = <span class="kw-2">&amp;</span>header.next;
+            } <span class="kw">else </span>{
+                <span class="comment">// SAFETY: The algorithm ensures only unmarked/unreachable pointers are dropped.
+                // The caller must ensure all pointers were allocated by `Box::into_raw(Box::new(..))`.
+                </span><span class="kw">let </span>unmarked_eph = <span class="kw">unsafe </span>{ Box::from_raw(eph.as_ptr()) };
+                <span class="kw">let </span>unallocated_bytes = mem::size_of_val(<span class="kw-2">&amp;*</span>unmarked_eph);
+                <span class="kw-2">*</span>total_allocated -= unallocated_bytes;
+                weak.set(unmarked_eph.header().next.take());
             }
         }
     }
@@ -827,13 +938,22 @@
         <span class="comment">// Not initializing a dropguard since this should only be invoked when BOA_GC is being dropped.
         </span><span class="kw">let </span>_guard = DropGuard::new();
 
-        <span class="kw">let </span>sweep_head = <span class="kw-2">&amp;</span>gc.adult_start;
-        <span class="kw">while let </span><span class="prelude-val">Some</span>(node) = sweep_head.get() {
+        <span class="kw">let </span>strong_head = <span class="kw-2">&amp;</span>gc.strong_start;
+        <span class="kw">while let </span><span class="prelude-val">Some</span>(node) = strong_head.get() {
             <span class="comment">// SAFETY:
             // The `Allocator` must always ensure its start node is a valid, non-null pointer that
             // was allocated by `Box::from_raw(Box::new(..))`.
             </span><span class="kw">let </span>unmarked_node = <span class="kw">unsafe </span>{ Box::from_raw(node.as_ptr()) };
-            sweep_head.set(unmarked_node.header.next.take());
+            strong_head.set(unmarked_node.header.next.take());
+        }
+
+        <span class="kw">let </span>eph_head = <span class="kw-2">&amp;</span>gc.weak_start;
+        <span class="kw">while let </span><span class="prelude-val">Some</span>(node) = eph_head.get() {
+            <span class="comment">// SAFETY:
+            // The `Allocator` must always ensure its start node is a valid, non-null pointer that
+            // was allocated by `Box::from_raw(Box::new(..))`.
+            </span><span class="kw">let </span>unmarked_node = <span class="kw">unsafe </span>{ Box::from_raw(node.as_ptr()) };
+            eph_head.set(unmarked_node.header().next.take());
         }
     }
 }
@@ -844,7 +964,7 @@
         <span class="kw">let </span><span class="kw-2">mut </span>gc = current.borrow_mut();
 
         <span class="kw">if </span>gc.runtime.bytes_allocated &gt; <span class="number">0 </span>{
-            Collector::run_full_collection(<span class="kw-2">&amp;mut </span>gc);
+            Collector::collect(<span class="kw-2">&amp;mut </span>gc);
         }
     });
 }

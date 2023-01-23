@@ -129,7 +129,7 @@
 <span id="128">128</span>
 <span id="129">129</span>
 <span id="130">130</span>
-</pre><pre class="rust"><code><span class="kw">use </span>boa_gc::{Gc, GcCell};
+</pre><pre class="rust"><code><span class="kw">use </span>boa_gc::{Gc, GcRefCell};
 
 <span class="kw">use crate</span>::{
     builtins::{JsArgs, Promise},
@@ -192,7 +192,7 @@
 
                     <span class="prelude-val">Ok</span>(JsValue::undefined())
                 },
-                Gc::new(GcCell::new((
+                Gc::new(GcRefCell::new((
                     context.realm.environments.clone(),
                     context.vm.stack.clone(),
                     context.vm.frame().clone(),
@@ -235,7 +235,7 @@
 
                     <span class="prelude-val">Ok</span>(JsValue::undefined())
                 },
-                Gc::new(GcCell::new((
+                Gc::new(GcRefCell::new((
                     context.realm.environments.clone(),
                     context.vm.stack.clone(),
                     context.vm.frame().clone(),

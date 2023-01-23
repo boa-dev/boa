@@ -562,14 +562,6 @@
 <span id="561">561</span>
 <span id="562">562</span>
 <span id="563">563</span>
-<span id="564">564</span>
-<span id="565">565</span>
-<span id="566">566</span>
-<span id="567">567</span>
-<span id="568">568</span>
-<span id="569">569</span>
-<span id="570">570</span>
-<span id="571">571</span>
 </pre><pre class="rust"><code><span class="doccomment">//! A garbage collected cell implementation
 
 </span><span class="kw">use </span><span class="kw">crate</span>::trace::{Finalize, Trace};
@@ -689,12 +681,12 @@
 /// that can be used inside of a garbage-collected pointer.
 ///
 /// This object is a `RefCell` that can be used inside of a `Gc&lt;T&gt;`.
-</span><span class="kw">pub struct </span>GcCell&lt;T: <span class="question-mark">?</span>Sized + <span class="lifetime">&#39;static</span>&gt; {
+</span><span class="kw">pub struct </span>GcRefCell&lt;T: <span class="question-mark">?</span>Sized + <span class="lifetime">&#39;static</span>&gt; {
     <span class="kw">pub</span>(<span class="kw">crate</span>) flags: Cell&lt;BorrowFlag&gt;,
     <span class="kw">pub</span>(<span class="kw">crate</span>) cell: UnsafeCell&lt;T&gt;,
 }
 
-<span class="kw">impl</span>&lt;T: Trace&gt; GcCell&lt;T&gt; {
+<span class="kw">impl</span>&lt;T: Trace&gt; GcRefCell&lt;T&gt; {
     <span class="doccomment">/// Creates a new `GcCell` containing `value`.
     </span><span class="kw">pub const fn </span>new(value: T) -&gt; <span class="self">Self </span>{
         <span class="self">Self </span>{
@@ -709,7 +701,7 @@
     }
 }
 
-<span class="kw">impl</span>&lt;T: Trace + <span class="question-mark">?</span>Sized&gt; GcCell&lt;T&gt; {
+<span class="kw">impl</span>&lt;T: Trace + <span class="question-mark">?</span>Sized&gt; GcRefCell&lt;T&gt; {
     <span class="doccomment">/// Immutably borrows the wrapped value.
     ///
     /// The borrow lasts until the returned `GcCellRef` exits scope.
@@ -718,7 +710,7 @@
     /// # Panics
     ///
     /// Panics if the value is currently mutably borrowed.
-    </span><span class="kw">pub fn </span>borrow(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; GcCellRef&lt;<span class="lifetime">&#39;_</span>, T&gt; {
+    </span><span class="kw">pub fn </span>borrow(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; GcRef&lt;<span class="lifetime">&#39;_</span>, T&gt; {
         <span class="kw">match </span><span class="self">self</span>.try_borrow() {
             <span class="prelude-val">Ok</span>(value) =&gt; value,
             <span class="prelude-val">Err</span>(e) =&gt; <span class="macro">panic!</span>(<span class="string">&quot;{}&quot;</span>, e),
@@ -733,7 +725,7 @@
     /// # Panics
     ///
     /// Panics if the value is currently borrowed.
-    </span><span class="kw">pub fn </span>borrow_mut(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; GcCellRefMut&lt;<span class="lifetime">&#39;_</span>, T&gt; {
+    </span><span class="kw">pub fn </span>borrow_mut(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; GcRefMut&lt;<span class="lifetime">&#39;_</span>, T&gt; {
         <span class="kw">match </span><span class="self">self</span>.try_borrow_mut() {
             <span class="prelude-val">Ok</span>(value) =&gt; value,
             <span class="prelude-val">Err</span>(e) =&gt; <span class="macro">panic!</span>(<span class="string">&quot;{}&quot;</span>, e),
@@ -751,7 +743,7 @@
     /// # Errors
     ///
     /// Returns an `Err` if the value is currently mutably borrowed.
-    </span><span class="kw">pub fn </span>try_borrow(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;GcCellRef&lt;<span class="lifetime">&#39;_</span>, T&gt;, BorrowError&gt; {
+    </span><span class="kw">pub fn </span>try_borrow(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;GcRef&lt;<span class="lifetime">&#39;_</span>, T&gt;, BorrowError&gt; {
         <span class="kw">if </span><span class="self">self</span>.flags.get().borrowed() == BorrowState::Writing {
             <span class="kw">return </span><span class="prelude-val">Err</span>(BorrowError);
         }
@@ -759,7 +751,7 @@
 
         <span class="comment">// SAFETY: calling value on a rooted value may cause Undefined Behavior
         </span><span class="kw">unsafe </span>{
-            <span class="prelude-val">Ok</span>(GcCellRef {
+            <span class="prelude-val">Ok</span>(GcRef {
                 flags: <span class="kw-2">&amp;</span><span class="self">self</span>.flags,
                 value: <span class="kw-2">&amp;*</span><span class="self">self</span>.cell.get(),
             })
@@ -776,7 +768,7 @@
     /// # Errors
     ///
     /// Returns an `Err` if the value is currently borrowed.
-    </span><span class="kw">pub fn </span>try_borrow_mut(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;GcCellRefMut&lt;<span class="lifetime">&#39;_</span>, T&gt;, BorrowMutError&gt; {
+    </span><span class="kw">pub fn </span>try_borrow_mut(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;GcRefMut&lt;<span class="lifetime">&#39;_</span>, T&gt;, BorrowMutError&gt; {
         <span class="kw">if </span><span class="self">self</span>.flags.get().borrowed() != BorrowState::Unused {
             <span class="kw">return </span><span class="prelude-val">Err</span>(BorrowMutError);
         }
@@ -791,7 +783,7 @@
                 (<span class="kw-2">*</span><span class="self">self</span>.cell.get()).root();
             }
 
-            <span class="prelude-val">Ok</span>(GcCellRefMut {
+            <span class="prelude-val">Ok</span>(GcRefMut {
                 gc_cell: <span class="self">self</span>,
                 value: <span class="kw-2">&amp;mut *</span><span class="self">self</span>.cell.get(),
             })
@@ -819,26 +811,18 @@
     }
 }
 
-<span class="kw">impl</span>&lt;T: Trace + <span class="question-mark">?</span>Sized&gt; Finalize <span class="kw">for </span>GcCell&lt;T&gt; {}
+<span class="kw">impl</span>&lt;T: Trace + <span class="question-mark">?</span>Sized&gt; Finalize <span class="kw">for </span>GcRefCell&lt;T&gt; {}
 
 <span class="comment">// SAFETY: GcCell maintains it&#39;s own BorrowState and rootedness. GcCell&#39;s implementation
 // focuses on only continuing Trace based methods while the cell state is not written.
 // Implementing a Trace while the cell is being written to or incorrectly implementing Trace
 // on GcCell&#39;s value may cause Undefined Behavior
-</span><span class="kw">unsafe impl</span>&lt;T: Trace + <span class="question-mark">?</span>Sized&gt; Trace <span class="kw">for </span>GcCell&lt;T&gt; {
+</span><span class="kw">unsafe impl</span>&lt;T: Trace + <span class="question-mark">?</span>Sized&gt; Trace <span class="kw">for </span>GcRefCell&lt;T&gt; {
     <span class="kw">unsafe fn </span>trace(<span class="kw-2">&amp;</span><span class="self">self</span>) {
         <span class="kw">match </span><span class="self">self</span>.flags.get().borrowed() {
             BorrowState::Writing =&gt; (),
             <span class="comment">// SAFETY: Please see GcCell&#39;s Trace impl Safety note.
             </span><span class="kw">_ </span>=&gt; <span class="kw">unsafe </span>{ (<span class="kw-2">*</span><span class="self">self</span>.cell.get()).trace() },
-        }
-    }
-
-    <span class="kw">unsafe fn </span>weak_trace(<span class="kw-2">&amp;</span><span class="self">self</span>) {
-        <span class="kw">match </span><span class="self">self</span>.flags.get().borrowed() {
-            BorrowState::Writing =&gt; (),
-            <span class="comment">// SAFETY: Please see GcCell&#39;s Trace impl Safety note.
-            </span><span class="kw">_ </span>=&gt; <span class="kw">unsafe </span>{ (<span class="kw-2">*</span><span class="self">self</span>.cell.get()).weak_trace() },
         }
     }
 
@@ -875,12 +859,12 @@
 }
 
 <span class="doccomment">/// A wrapper type for an immutably borrowed value from a `GcCell&lt;T&gt;`.
-</span><span class="kw">pub struct </span>GcCellRef&lt;<span class="lifetime">&#39;a</span>, T: <span class="question-mark">?</span>Sized + <span class="lifetime">&#39;static</span>&gt; {
+</span><span class="kw">pub struct </span>GcRef&lt;<span class="lifetime">&#39;a</span>, T: <span class="question-mark">?</span>Sized + <span class="lifetime">&#39;static</span>&gt; {
     <span class="kw">pub</span>(<span class="kw">crate</span>) flags: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>Cell&lt;BorrowFlag&gt;,
     <span class="kw">pub</span>(<span class="kw">crate</span>) value: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>T,
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, T: <span class="question-mark">?</span>Sized&gt; GcCellRef&lt;<span class="lifetime">&#39;a</span>, T&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, T: <span class="question-mark">?</span>Sized&gt; GcRef&lt;<span class="lifetime">&#39;a</span>, T&gt; {
     <span class="doccomment">/// Copies a `GcCellRef`.
     ///
     /// The `GcCell` is already immutably borrowed, so this cannot fail.
@@ -891,9 +875,9 @@
     /// the contents of a `GcCell`.
     </span><span class="attribute">#[allow(clippy::should_implement_trait)]
     #[must_use]
-    </span><span class="kw">pub fn </span>clone(orig: <span class="kw-2">&amp;</span>GcCellRef&lt;<span class="lifetime">&#39;a</span>, T&gt;) -&gt; GcCellRef&lt;<span class="lifetime">&#39;a</span>, T&gt; {
+    </span><span class="kw">pub fn </span>clone(orig: <span class="kw-2">&amp;</span>GcRef&lt;<span class="lifetime">&#39;a</span>, T&gt;) -&gt; GcRef&lt;<span class="lifetime">&#39;a</span>, T&gt; {
         orig.flags.set(orig.flags.get().add_reading());
-        GcCellRef {
+        GcRef {
             flags: orig.flags,
             value: orig.value,
         }
@@ -906,12 +890,12 @@
     /// This is an associated function that needs to be used as `GcCellRef::map(...)`.
     /// A method would interfere with methods of the same name on the contents
     /// of a `GcCellRef` used through `Deref`.
-    </span><span class="kw">pub fn </span>map&lt;U, F&gt;(orig: <span class="self">Self</span>, f: F) -&gt; GcCellRef&lt;<span class="lifetime">&#39;a</span>, U&gt;
+    </span><span class="kw">pub fn </span>map&lt;U, F&gt;(orig: <span class="self">Self</span>, f: F) -&gt; GcRef&lt;<span class="lifetime">&#39;a</span>, U&gt;
     <span class="kw">where
         </span>U: <span class="question-mark">?</span>Sized,
         F: FnOnce(<span class="kw-2">&amp;</span>T) -&gt; <span class="kw-2">&amp;</span>U,
     {
-        <span class="kw">let </span>ret = GcCellRef {
+        <span class="kw">let </span>ret = GcRef {
             flags: orig.flags,
             value: f(orig.value),
         };
@@ -929,7 +913,7 @@
     ///
     /// This is an associated function that needs to be used as `GcCellRef::map_split(...)`.
     /// A method would interfere with methods of the same name on the contents of a `GcCellRef` used through `Deref`.
-    </span><span class="kw">pub fn </span>map_split&lt;U, V, F&gt;(orig: <span class="self">Self</span>, f: F) -&gt; (GcCellRef&lt;<span class="lifetime">&#39;a</span>, U&gt;, GcCellRef&lt;<span class="lifetime">&#39;a</span>, V&gt;)
+    </span><span class="kw">pub fn </span>map_split&lt;U, V, F&gt;(orig: <span class="self">Self</span>, f: F) -&gt; (GcRef&lt;<span class="lifetime">&#39;a</span>, U&gt;, GcRef&lt;<span class="lifetime">&#39;a</span>, V&gt;)
     <span class="kw">where
         </span>U: <span class="question-mark">?</span>Sized,
         V: <span class="question-mark">?</span>Sized,
@@ -940,11 +924,11 @@
         orig.flags.set(orig.flags.get().add_reading());
 
         <span class="kw">let </span>ret = (
-            GcCellRef {
+            GcRef {
                 flags: orig.flags,
                 value: a,
             },
-            GcCellRef {
+            GcRef {
                 flags: orig.flags,
                 value: b,
             },
@@ -958,7 +942,7 @@
     }
 }
 
-<span class="kw">impl</span>&lt;T: <span class="question-mark">?</span>Sized&gt; Deref <span class="kw">for </span>GcCellRef&lt;<span class="lifetime">&#39;_</span>, T&gt; {
+<span class="kw">impl</span>&lt;T: <span class="question-mark">?</span>Sized&gt; Deref <span class="kw">for </span>GcRef&lt;<span class="lifetime">&#39;_</span>, T&gt; {
     <span class="kw">type </span>Target = T;
 
     <span class="kw">fn </span>deref(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>T {
@@ -966,32 +950,32 @@
     }
 }
 
-<span class="kw">impl</span>&lt;T: <span class="question-mark">?</span>Sized&gt; Drop <span class="kw">for </span>GcCellRef&lt;<span class="lifetime">&#39;_</span>, T&gt; {
+<span class="kw">impl</span>&lt;T: <span class="question-mark">?</span>Sized&gt; Drop <span class="kw">for </span>GcRef&lt;<span class="lifetime">&#39;_</span>, T&gt; {
     <span class="kw">fn </span>drop(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
         <span class="macro">debug_assert!</span>(<span class="self">self</span>.flags.get().borrowed() == BorrowState::Reading);
         <span class="self">self</span>.flags.set(<span class="self">self</span>.flags.get().sub_reading());
     }
 }
 
-<span class="kw">impl</span>&lt;T: <span class="question-mark">?</span>Sized + Debug&gt; Debug <span class="kw">for </span>GcCellRef&lt;<span class="lifetime">&#39;_</span>, T&gt; {
+<span class="kw">impl</span>&lt;T: <span class="question-mark">?</span>Sized + Debug&gt; Debug <span class="kw">for </span>GcRef&lt;<span class="lifetime">&#39;_</span>, T&gt; {
     <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
         Debug::fmt(<span class="kw-2">&amp;**</span><span class="self">self</span>, f)
     }
 }
 
-<span class="kw">impl</span>&lt;T: <span class="question-mark">?</span>Sized + Display&gt; Display <span class="kw">for </span>GcCellRef&lt;<span class="lifetime">&#39;_</span>, T&gt; {
+<span class="kw">impl</span>&lt;T: <span class="question-mark">?</span>Sized + Display&gt; Display <span class="kw">for </span>GcRef&lt;<span class="lifetime">&#39;_</span>, T&gt; {
     <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
         Display::fmt(<span class="kw-2">&amp;**</span><span class="self">self</span>, f)
     }
 }
 
 <span class="doccomment">/// A wrapper type for a mutably borrowed value from a `GcCell&lt;T&gt;`.
-</span><span class="kw">pub struct </span>GcCellRefMut&lt;<span class="lifetime">&#39;a</span>, T: Trace + <span class="question-mark">?</span>Sized + <span class="lifetime">&#39;static</span>, U: <span class="question-mark">?</span>Sized = T&gt; {
-    <span class="kw">pub</span>(<span class="kw">crate</span>) gc_cell: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>GcCell&lt;T&gt;,
+</span><span class="kw">pub struct </span>GcRefMut&lt;<span class="lifetime">&#39;a</span>, T: Trace + <span class="question-mark">?</span>Sized + <span class="lifetime">&#39;static</span>, U: <span class="question-mark">?</span>Sized = T&gt; {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) gc_cell: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>GcRefCell&lt;T&gt;,
     <span class="kw">pub</span>(<span class="kw">crate</span>) value: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span>U,
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, T: Trace + <span class="question-mark">?</span>Sized, U: <span class="question-mark">?</span>Sized&gt; GcCellRefMut&lt;<span class="lifetime">&#39;a</span>, T, U&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, T: Trace + <span class="question-mark">?</span>Sized, U: <span class="question-mark">?</span>Sized&gt; GcRefMut&lt;<span class="lifetime">&#39;a</span>, T, U&gt; {
     <span class="doccomment">/// Makes a new `GcCellRefMut` for a component of the borrowed data, e.g., an enum
     /// variant.
     ///
@@ -1000,16 +984,16 @@
     /// This is an associated function that needs to be used as
     /// `GcCellRefMut::map(...)`. A method would interfere with methods of the same
     /// name on the contents of a `GcCell` used through `Deref`.
-    </span><span class="kw">pub fn </span>map&lt;V, F&gt;(orig: <span class="self">Self</span>, f: F) -&gt; GcCellRefMut&lt;<span class="lifetime">&#39;a</span>, T, V&gt;
+    </span><span class="kw">pub fn </span>map&lt;V, F&gt;(orig: <span class="self">Self</span>, f: F) -&gt; GcRefMut&lt;<span class="lifetime">&#39;a</span>, T, V&gt;
     <span class="kw">where
         </span>V: <span class="question-mark">?</span>Sized,
         F: FnOnce(<span class="kw-2">&amp;mut </span>U) -&gt; <span class="kw-2">&amp;mut </span>V,
     {
-        <span class="comment">// SAFETY: This is safe as `GcCellRefMut` is already borrowed, so the value is rooted.
-        </span><span class="attribute">#[allow(trivial_casts)]
+        <span class="attribute">#[allow(trivial_casts)]
+        </span><span class="comment">// SAFETY: This is safe as `GcCellRefMut` is already borrowed, so the value is rooted.
         </span><span class="kw">let </span>value = <span class="kw">unsafe </span>{ <span class="kw-2">&amp;mut *</span>(orig.value <span class="kw">as </span><span class="kw-2">*mut </span>U) };
 
-        <span class="kw">let </span>ret = GcCellRefMut {
+        <span class="kw">let </span>ret = GcRefMut {
             gc_cell: orig.gc_cell,
             value: f(value),
         };
@@ -1022,7 +1006,7 @@
     }
 }
 
-<span class="kw">impl</span>&lt;T: Trace + <span class="question-mark">?</span>Sized, U: <span class="question-mark">?</span>Sized&gt; Deref <span class="kw">for </span>GcCellRefMut&lt;<span class="lifetime">&#39;_</span>, T, U&gt; {
+<span class="kw">impl</span>&lt;T: Trace + <span class="question-mark">?</span>Sized, U: <span class="question-mark">?</span>Sized&gt; Deref <span class="kw">for </span>GcRefMut&lt;<span class="lifetime">&#39;_</span>, T, U&gt; {
     <span class="kw">type </span>Target = U;
 
     <span class="kw">fn </span>deref(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>U {
@@ -1030,13 +1014,13 @@
     }
 }
 
-<span class="kw">impl</span>&lt;T: Trace + <span class="question-mark">?</span>Sized, U: <span class="question-mark">?</span>Sized&gt; DerefMut <span class="kw">for </span>GcCellRefMut&lt;<span class="lifetime">&#39;_</span>, T, U&gt; {
+<span class="kw">impl</span>&lt;T: Trace + <span class="question-mark">?</span>Sized, U: <span class="question-mark">?</span>Sized&gt; DerefMut <span class="kw">for </span>GcRefMut&lt;<span class="lifetime">&#39;_</span>, T, U&gt; {
     <span class="kw">fn </span>deref_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span>U {
         <span class="self">self</span>.value
     }
 }
 
-<span class="kw">impl</span>&lt;T: Trace + <span class="question-mark">?</span>Sized, U: <span class="question-mark">?</span>Sized&gt; Drop <span class="kw">for </span>GcCellRefMut&lt;<span class="lifetime">&#39;_</span>, T, U&gt; {
+<span class="kw">impl</span>&lt;T: Trace + <span class="question-mark">?</span>Sized, U: <span class="question-mark">?</span>Sized&gt; Drop <span class="kw">for </span>GcRefMut&lt;<span class="lifetime">&#39;_</span>, T, U&gt; {
     <span class="kw">fn </span>drop(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
         <span class="macro">debug_assert!</span>(<span class="self">self</span>.gc_cell.flags.get().borrowed() == BorrowState::Writing);
         <span class="comment">// Restore the rooted state of the GcCell&#39;s contents to the state of the GcCell.
@@ -1054,45 +1038,45 @@
     }
 }
 
-<span class="kw">impl</span>&lt;T: Trace + <span class="question-mark">?</span>Sized, U: Debug + <span class="question-mark">?</span>Sized&gt; Debug <span class="kw">for </span>GcCellRefMut&lt;<span class="lifetime">&#39;_</span>, T, U&gt; {
+<span class="kw">impl</span>&lt;T: Trace + <span class="question-mark">?</span>Sized, U: Debug + <span class="question-mark">?</span>Sized&gt; Debug <span class="kw">for </span>GcRefMut&lt;<span class="lifetime">&#39;_</span>, T, U&gt; {
     <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
         Debug::fmt(<span class="kw-2">&amp;**</span><span class="self">self</span>, f)
     }
 }
 
-<span class="kw">impl</span>&lt;T: Trace + <span class="question-mark">?</span>Sized, U: Display + <span class="question-mark">?</span>Sized&gt; Display <span class="kw">for </span>GcCellRefMut&lt;<span class="lifetime">&#39;_</span>, T, U&gt; {
+<span class="kw">impl</span>&lt;T: Trace + <span class="question-mark">?</span>Sized, U: Display + <span class="question-mark">?</span>Sized&gt; Display <span class="kw">for </span>GcRefMut&lt;<span class="lifetime">&#39;_</span>, T, U&gt; {
     <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
         Display::fmt(<span class="kw-2">&amp;**</span><span class="self">self</span>, f)
     }
 }
 
 <span class="comment">// SAFETY: GcCell&lt;T&gt; tracks it&#39;s `BorrowState` is `Writing`
-</span><span class="kw">unsafe impl</span>&lt;T: <span class="question-mark">?</span>Sized + Send&gt; Send <span class="kw">for </span>GcCell&lt;T&gt; {}
+</span><span class="kw">unsafe impl</span>&lt;T: <span class="question-mark">?</span>Sized + Send&gt; Send <span class="kw">for </span>GcRefCell&lt;T&gt; {}
 
-<span class="kw">impl</span>&lt;T: Trace + Clone&gt; Clone <span class="kw">for </span>GcCell&lt;T&gt; {
+<span class="kw">impl</span>&lt;T: Trace + Clone&gt; Clone <span class="kw">for </span>GcRefCell&lt;T&gt; {
     <span class="kw">fn </span>clone(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="self">Self </span>{
         <span class="self">Self</span>::new(<span class="self">self</span>.borrow().clone())
     }
 }
 
-<span class="kw">impl</span>&lt;T: Trace + Default&gt; Default <span class="kw">for </span>GcCell&lt;T&gt; {
+<span class="kw">impl</span>&lt;T: Trace + Default&gt; Default <span class="kw">for </span>GcRefCell&lt;T&gt; {
     <span class="kw">fn </span>default() -&gt; <span class="self">Self </span>{
         <span class="self">Self</span>::new(Default::default())
     }
 }
 
 <span class="attribute">#[allow(clippy::inline_always)]
-</span><span class="kw">impl</span>&lt;T: Trace + <span class="question-mark">?</span>Sized + PartialEq&gt; PartialEq <span class="kw">for </span>GcCell&lt;T&gt; {
+</span><span class="kw">impl</span>&lt;T: Trace + <span class="question-mark">?</span>Sized + PartialEq&gt; PartialEq <span class="kw">for </span>GcRefCell&lt;T&gt; {
     <span class="attribute">#[inline(always)]
     </span><span class="kw">fn </span>eq(<span class="kw-2">&amp;</span><span class="self">self</span>, other: <span class="kw-2">&amp;</span><span class="self">Self</span>) -&gt; bool {
         <span class="kw-2">*</span><span class="self">self</span>.borrow() == <span class="kw-2">*</span>other.borrow()
     }
 }
 
-<span class="kw">impl</span>&lt;T: Trace + <span class="question-mark">?</span>Sized + Eq&gt; Eq <span class="kw">for </span>GcCell&lt;T&gt; {}
+<span class="kw">impl</span>&lt;T: Trace + <span class="question-mark">?</span>Sized + Eq&gt; Eq <span class="kw">for </span>GcRefCell&lt;T&gt; {}
 
 <span class="attribute">#[allow(clippy::inline_always)]
-</span><span class="kw">impl</span>&lt;T: Trace + <span class="question-mark">?</span>Sized + PartialOrd&gt; PartialOrd <span class="kw">for </span>GcCell&lt;T&gt; {
+</span><span class="kw">impl</span>&lt;T: Trace + <span class="question-mark">?</span>Sized + PartialOrd&gt; PartialOrd <span class="kw">for </span>GcRefCell&lt;T&gt; {
     <span class="attribute">#[inline(always)]
     </span><span class="kw">fn </span>partial_cmp(<span class="kw-2">&amp;</span><span class="self">self</span>, other: <span class="kw-2">&amp;</span><span class="self">Self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;Ordering&gt; {
         (<span class="kw-2">*</span><span class="self">self</span>.borrow()).partial_cmp(<span class="kw-2">&amp;*</span>other.borrow())
@@ -1119,13 +1103,13 @@
     }
 }
 
-<span class="kw">impl</span>&lt;T: Trace + <span class="question-mark">?</span>Sized + Ord&gt; Ord <span class="kw">for </span>GcCell&lt;T&gt; {
+<span class="kw">impl</span>&lt;T: Trace + <span class="question-mark">?</span>Sized + Ord&gt; Ord <span class="kw">for </span>GcRefCell&lt;T&gt; {
     <span class="kw">fn </span>cmp(<span class="kw-2">&amp;</span><span class="self">self</span>, other: <span class="kw-2">&amp;</span><span class="self">Self</span>) -&gt; Ordering {
         (<span class="kw-2">*</span><span class="self">self</span>.borrow()).cmp(<span class="kw-2">&amp;*</span>other.borrow())
     }
 }
 
-<span class="kw">impl</span>&lt;T: Trace + <span class="question-mark">?</span>Sized + Debug&gt; Debug <span class="kw">for </span>GcCell&lt;T&gt; {
+<span class="kw">impl</span>&lt;T: Trace + <span class="question-mark">?</span>Sized + Debug&gt; Debug <span class="kw">for </span>GcRefCell&lt;T&gt; {
     <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
         <span class="kw">match </span><span class="self">self</span>.flags.get().borrowed() {
             BorrowState::Unused | BorrowState::Reading =&gt; f
