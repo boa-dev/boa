@@ -6,10 +6,11 @@
 //! [spec]: https://tc39.es/ecma262/#sec-string-iterator-objects
 
 use crate::{
-    builtins::{function::make_builtin_fn, iterable::create_iter_result_object},
+    builtins::{iterable::create_iter_result_object, BuiltInBuilder, IntrinsicObject},
+    context::intrinsics::Intrinsics,
     error::JsNativeError,
     object::{JsObject, ObjectData},
-    property::PropertyDescriptor,
+    property::Attribute,
     symbol::JsSymbol,
     Context, JsResult, JsValue,
 };
@@ -28,21 +29,40 @@ pub struct StringIterator {
     next_index: usize,
 }
 
+impl IntrinsicObject for StringIterator {
+    fn init(intrinsics: &Intrinsics) {
+        let _timer = Profiler::global().start_event("StringIterator", "init");
+
+        BuiltInBuilder::with_intrinsic::<Self>(intrinsics)
+            .prototype(intrinsics.objects().iterator_prototypes().iterator())
+            .static_method(Self::next, "next", 0)
+            .static_property(
+                JsSymbol::to_string_tag(),
+                "String Iterator",
+                Attribute::CONFIGURABLE,
+            )
+            .build();
+    }
+
+    fn get(intrinsics: &Intrinsics) -> JsObject {
+        intrinsics.objects().iterator_prototypes().string()
+    }
+}
+
 impl StringIterator {
     /// Create a new `StringIterator`.
-    pub fn create_string_iterator(string: JsValue, context: &mut Context<'_>) -> JsResult<JsValue> {
-        let string_iterator = JsObject::from_proto_and_data(
+    pub fn create_string_iterator(string: JsValue, context: &mut Context<'_>) -> JsObject {
+        JsObject::from_proto_and_data(
             context
                 .intrinsics()
                 .objects()
                 .iterator_prototypes()
-                .string_iterator(),
+                .string(),
             ObjectData::string_iterator(Self {
                 string,
                 next_index: 0,
             }),
-        );
-        Ok(string_iterator.into())
+        )
     }
 
     /// `StringIterator.prototype.next( )`
@@ -79,32 +99,5 @@ impl StringIterator {
             context,
         )?;
         Ok(create_iter_result_object(result_string, false, context))
-    }
-
-    /// Create the `%ArrayIteratorPrototype%` object
-    ///
-    /// More information:
-    ///  - [ECMA reference][spec]
-    ///
-    /// [spec]: https://tc39.es/ecma262/#sec-%arrayiteratorprototype%-object
-    pub(crate) fn create_prototype(
-        iterator_prototype: JsObject,
-        context: &mut Context<'_>,
-    ) -> JsObject {
-        let _timer = Profiler::global().start_event("String Iterator", "init");
-
-        // Create prototype
-        let array_iterator =
-            JsObject::from_proto_and_data(iterator_prototype, ObjectData::ordinary());
-        make_builtin_fn(Self::next, "next", &array_iterator, 0, context);
-
-        let to_string_tag = JsSymbol::to_string_tag();
-        let to_string_tag_property = PropertyDescriptor::builder()
-            .value("String Iterator")
-            .writable(false)
-            .enumerable(false)
-            .configurable(true);
-        array_iterator.insert(to_string_tag, to_string_tag_property);
-        array_iterator
     }
 }

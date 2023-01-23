@@ -14,29 +14,24 @@
 
 use crate::{
     builtins::{
+        array::ArrayIterator,
         array_buffer::{ArrayBuffer, SharedMemoryOrder},
         iterable::iterable_to_list,
         typed_array::integer_indexed_object::{ContentType, IntegerIndexed},
-        Array, ArrayIterator, BuiltIn, JsArgs,
+        Array, BuiltInBuilder, BuiltInConstructor, BuiltInObject, IntrinsicObject,
     },
-    context::intrinsics::{StandardConstructor, StandardConstructors},
+    context::intrinsics::{Intrinsics, StandardConstructor, StandardConstructors},
     error::JsNativeError,
     js_string,
-    native_function::NativeFunction,
-    object::{
-        internal_methods::get_prototype_from_constructor, ConstructorBuilder,
-        FunctionObjectBuilder, JsObject, ObjectData,
-    },
+    object::{internal_methods::get_prototype_from_constructor, JsObject, ObjectData},
     property::{Attribute, PropertyNameKind},
     symbol::JsSymbol,
     value::{IntegerOrInfinity, JsValue},
-    Context, JsResult,
+    Context, JsArgs, JsResult,
 };
 use boa_profiler::Profiler;
 use num_traits::{Signed, Zero};
 use std::cmp::Ordering;
-
-use tap::{Conv, Pipe};
 
 pub mod integer_indexed_object;
 
@@ -46,72 +41,55 @@ macro_rules! typed_array {
         #[derive(Debug, Clone, Copy)]
         pub struct $ty;
 
-        impl BuiltIn for $ty {
+        impl IntrinsicObject for $ty {
+            fn get(intrinsics: &Intrinsics) -> JsObject {
+                Self::STANDARD_CONSTRUCTOR(intrinsics.constructors()).constructor()
+            }
+
+            fn init(intrinsics: &Intrinsics) {
+                let _timer = Profiler::global().start_event(Self::NAME, "init");
+
+                let get_species = BuiltInBuilder::new(intrinsics)
+                    .callable(TypedArray::get_species)
+                    .name("get [Symbol.species]")
+                    .build();
+
+                BuiltInBuilder::from_standard_constructor::<Self>(intrinsics)
+                    .prototype(intrinsics.constructors().typed_array().constructor())
+                    .inherits(Some(intrinsics.constructors().typed_array().prototype()))
+                    .static_accessor(
+                        JsSymbol::species(),
+                        Some(get_species),
+                        None,
+                        Attribute::CONFIGURABLE,
+                    )
+                    .property(
+                        "BYTES_PER_ELEMENT",
+                        TypedArrayKind::$variant.element_size(),
+                        Attribute::READONLY | Attribute::NON_ENUMERABLE | Attribute::PERMANENT,
+                    )
+                    .static_property(
+                        "BYTES_PER_ELEMENT",
+                        TypedArrayKind::$variant.element_size(),
+                        Attribute::READONLY | Attribute::NON_ENUMERABLE | Attribute::PERMANENT,
+                    )
+                    .build();
+            }
+        }
+
+        impl BuiltInObject for $ty {
             const NAME: &'static str = $name;
 
             const ATTRIBUTE: Attribute = Attribute::WRITABLE
                 .union(Attribute::NON_ENUMERABLE)
                 .union(Attribute::CONFIGURABLE);
-
-            fn init(context: &mut Context<'_>) -> Option<JsValue> {
-                let _timer = Profiler::global().start_event(Self::NAME, "init");
-
-                let typed_array_constructor = context
-                    .intrinsics()
-                    .constructors()
-                    .typed_array()
-                    .constructor();
-                let typed_array_constructor_proto = context
-                    .intrinsics()
-                    .constructors()
-                    .typed_array()
-                    .prototype();
-
-                let get_species = FunctionObjectBuilder::new(
-                    context,
-                    NativeFunction::from_fn_ptr(TypedArray::get_species),
-                )
-                .name("get [Symbol.species]")
-                .constructor(false)
-                .build();
-
-                ConstructorBuilder::with_standard_constructor(
-                    context,
-                    Self::constructor,
-                    context
-                        .intrinsics()
-                        .constructors()
-                        .$global_object_name()
-                        .clone(),
-                )
-                .name(Self::NAME)
-                .length(Self::LENGTH)
-                .static_accessor(
-                    JsSymbol::species(),
-                    Some(get_species),
-                    None,
-                    Attribute::CONFIGURABLE,
-                )
-                .property(
-                    "BYTES_PER_ELEMENT",
-                    TypedArrayKind::$variant.element_size(),
-                    Attribute::READONLY | Attribute::NON_ENUMERABLE | Attribute::PERMANENT,
-                )
-                .static_property(
-                    "BYTES_PER_ELEMENT",
-                    TypedArrayKind::$variant.element_size(),
-                    Attribute::READONLY | Attribute::NON_ENUMERABLE | Attribute::PERMANENT,
-                )
-                .custom_prototype(typed_array_constructor)
-                .inherit(typed_array_constructor_proto)
-                .build()
-                .conv::<JsValue>()
-                .pipe(Some)
-            }
         }
 
-        impl $ty {
+        impl BuiltInConstructor for $ty {
             const LENGTH: usize = 3;
+
+            const STANDARD_CONSTRUCTOR: fn(&StandardConstructors) -> &StandardConstructor =
+                StandardConstructors::$global_object_name;
 
             /// `23.2.5.1 TypedArray ( ...args )`
             ///
@@ -119,7 +97,7 @@ macro_rules! typed_array {
             ///  - [ECMAScript reference][spec]
             ///
             /// [spec]: https://tc39.es/ecma262/#sec-typedarray
-            pub(crate) fn constructor(
+            fn constructor(
                 new_target: &JsValue,
                 args: &[JsValue],
                 context: &mut Context<'_>,
@@ -251,142 +229,138 @@ macro_rules! typed_array {
 #[derive(Debug, Clone, Copy)]
 pub(crate) struct TypedArray;
 
-impl BuiltIn for TypedArray {
-    const NAME: &'static str = "TypedArray";
-    fn init(context: &mut Context<'_>) -> Option<JsValue> {
-        let get_species =
-            FunctionObjectBuilder::new(context, NativeFunction::from_fn_ptr(Self::get_species))
-                .name("get [Symbol.species]")
-                .constructor(false)
-                .build();
+impl IntrinsicObject for TypedArray {
+    fn init(intrinsics: &Intrinsics) {
+        let get_species = BuiltInBuilder::new(intrinsics)
+            .callable(Self::get_species)
+            .name("get [Symbol.species]")
+            .build();
 
-        let get_buffer =
-            FunctionObjectBuilder::new(context, NativeFunction::from_fn_ptr(Self::buffer))
-                .name("get buffer")
-                .constructor(false)
-                .build();
+        let get_buffer = BuiltInBuilder::new(intrinsics)
+            .callable(Self::buffer)
+            .name("get buffer")
+            .build();
 
-        let get_byte_length =
-            FunctionObjectBuilder::new(context, NativeFunction::from_fn_ptr(Self::byte_length))
-                .name("get byteLength")
-                .constructor(false)
-                .build();
+        let get_byte_length = BuiltInBuilder::new(intrinsics)
+            .callable(Self::byte_length)
+            .name("get byteLength")
+            .build();
 
-        let get_byte_offset =
-            FunctionObjectBuilder::new(context, NativeFunction::from_fn_ptr(Self::byte_offset))
-                .name("get byteOffset")
-                .constructor(false)
-                .build();
+        let get_byte_offset = BuiltInBuilder::new(intrinsics)
+            .callable(Self::byte_offset)
+            .name("get byteOffset")
+            .build();
 
-        let get_length =
-            FunctionObjectBuilder::new(context, NativeFunction::from_fn_ptr(Self::length))
-                .name("get length")
-                .constructor(false)
-                .build();
+        let get_length = BuiltInBuilder::new(intrinsics)
+            .callable(Self::length)
+            .name("get length")
+            .build();
 
-        let get_to_string_tag =
-            FunctionObjectBuilder::new(context, NativeFunction::from_fn_ptr(Self::to_string_tag))
-                .name("get [Symbol.toStringTag]")
-                .constructor(false)
-                .build();
+        let get_to_string_tag = BuiltInBuilder::new(intrinsics)
+            .callable(Self::to_string_tag)
+            .name("get [Symbol.toStringTag]")
+            .build();
 
-        let values_function =
-            FunctionObjectBuilder::new(context, NativeFunction::from_fn_ptr(Self::values))
-                .name("values")
-                .length(0)
-                .constructor(false)
-                .build();
+        let values_function = BuiltInBuilder::new(intrinsics)
+            .callable(Self::values)
+            .name("values")
+            .length(0)
+            .build();
 
-        ConstructorBuilder::with_standard_constructor(
-            context,
-            Self::constructor,
-            context.intrinsics().constructors().typed_array().clone(),
-        )
-        .name(Self::NAME)
-        .length(Self::LENGTH)
-        .static_accessor(
-            JsSymbol::species(),
-            Some(get_species),
-            None,
-            Attribute::CONFIGURABLE,
-        )
-        .property(
-            "length",
-            0,
-            Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::PERMANENT,
-        )
-        .property(
-            JsSymbol::iterator(),
-            values_function,
-            Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
-        )
-        .accessor(
-            "buffer",
-            Some(get_buffer),
-            None,
-            Attribute::CONFIGURABLE | Attribute::NON_ENUMERABLE,
-        )
-        .accessor(
-            "byteLength",
-            Some(get_byte_length),
-            None,
-            Attribute::CONFIGURABLE | Attribute::NON_ENUMERABLE,
-        )
-        .accessor(
-            "byteOffset",
-            Some(get_byte_offset),
-            None,
-            Attribute::CONFIGURABLE | Attribute::NON_ENUMERABLE,
-        )
-        .accessor(
-            "length",
-            Some(get_length),
-            None,
-            Attribute::CONFIGURABLE | Attribute::NON_ENUMERABLE,
-        )
-        .accessor(
-            JsSymbol::to_string_tag(),
-            Some(get_to_string_tag),
-            None,
-            Attribute::CONFIGURABLE | Attribute::NON_ENUMERABLE,
-        )
-        .static_method(Self::from, "from", 1)
-        .static_method(Self::of, "of", 0)
-        .method(Self::at, "at", 1)
-        .method(Self::copy_within, "copyWithin", 2)
-        .method(Self::entries, "entries", 0)
-        .method(Self::every, "every", 1)
-        .method(Self::fill, "fill", 1)
-        .method(Self::filter, "filter", 1)
-        .method(Self::find, "find", 1)
-        .method(Self::findindex, "findIndex", 1)
-        .method(Self::foreach, "forEach", 1)
-        .method(Self::includes, "includes", 1)
-        .method(Self::index_of, "indexOf", 1)
-        .method(Self::join, "join", 1)
-        .method(Self::keys, "keys", 0)
-        .method(Self::last_index_of, "lastIndexOf", 1)
-        .method(Self::map, "map", 1)
-        .method(Self::reduce, "reduce", 1)
-        .method(Self::reduceright, "reduceRight", 1)
-        .method(Self::reverse, "reverse", 0)
-        .method(Self::set, "set", 1)
-        .method(Self::slice, "slice", 2)
-        .method(Self::some, "some", 1)
-        .method(Self::sort, "sort", 1)
-        .method(Self::subarray, "subarray", 2)
-        .method(Self::values, "values", 0)
-        // 23.2.3.29 %TypedArray%.prototype.toString ( )
-        // The initial value of the %TypedArray%.prototype.toString data property is the same
-        // built-in function object as the Array.prototype.toString method defined in 23.1.3.30.
-        .method(Array::to_string, "toString", 0)
-        .build();
+        BuiltInBuilder::from_standard_constructor::<Self>(intrinsics)
+            .static_accessor(
+                JsSymbol::species(),
+                Some(get_species),
+                None,
+                Attribute::CONFIGURABLE,
+            )
+            .property(
+                "length",
+                0,
+                Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::PERMANENT,
+            )
+            .property(
+                JsSymbol::iterator(),
+                values_function,
+                Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
+            )
+            .accessor(
+                "buffer",
+                Some(get_buffer),
+                None,
+                Attribute::CONFIGURABLE | Attribute::NON_ENUMERABLE,
+            )
+            .accessor(
+                "byteLength",
+                Some(get_byte_length),
+                None,
+                Attribute::CONFIGURABLE | Attribute::NON_ENUMERABLE,
+            )
+            .accessor(
+                "byteOffset",
+                Some(get_byte_offset),
+                None,
+                Attribute::CONFIGURABLE | Attribute::NON_ENUMERABLE,
+            )
+            .accessor(
+                "length",
+                Some(get_length),
+                None,
+                Attribute::CONFIGURABLE | Attribute::NON_ENUMERABLE,
+            )
+            .accessor(
+                JsSymbol::to_string_tag(),
+                Some(get_to_string_tag),
+                None,
+                Attribute::CONFIGURABLE | Attribute::NON_ENUMERABLE,
+            )
+            .static_method(Self::from, "from", 1)
+            .static_method(Self::of, "of", 0)
+            .method(Self::at, "at", 1)
+            .method(Self::copy_within, "copyWithin", 2)
+            .method(Self::entries, "entries", 0)
+            .method(Self::every, "every", 1)
+            .method(Self::fill, "fill", 1)
+            .method(Self::filter, "filter", 1)
+            .method(Self::find, "find", 1)
+            .method(Self::findindex, "findIndex", 1)
+            .method(Self::foreach, "forEach", 1)
+            .method(Self::includes, "includes", 1)
+            .method(Self::index_of, "indexOf", 1)
+            .method(Self::join, "join", 1)
+            .method(Self::keys, "keys", 0)
+            .method(Self::last_index_of, "lastIndexOf", 1)
+            .method(Self::map, "map", 1)
+            .method(Self::reduce, "reduce", 1)
+            .method(Self::reduceright, "reduceRight", 1)
+            .method(Self::reverse, "reverse", 0)
+            .method(Self::set, "set", 1)
+            .method(Self::slice, "slice", 2)
+            .method(Self::some, "some", 1)
+            .method(Self::sort, "sort", 1)
+            .method(Self::subarray, "subarray", 2)
+            .method(Self::values, "values", 0)
+            // 23.2.3.29 %TypedArray%.prototype.toString ( )
+            // The initial value of the %TypedArray%.prototype.toString data property is the same
+            // built-in function object as the Array.prototype.toString method defined in 23.1.3.30.
+            .method(Array::to_string, "toString", 0)
+            .build();
+    }
 
-        None
+    fn get(intrinsics: &Intrinsics) -> JsObject {
+        Self::STANDARD_CONSTRUCTOR(intrinsics.constructors()).constructor()
     }
 }
-impl TypedArray {
+
+impl BuiltInObject for TypedArray {
+    const NAME: &'static str = "TypedArray";
+}
+
+impl BuiltInConstructor for TypedArray {
     const LENGTH: usize = 0;
+
+    const STANDARD_CONSTRUCTOR: fn(&StandardConstructors) -> &StandardConstructor =
+        StandardConstructors::typed_array;
 
     /// `23.2.1.1 %TypedArray% ( )`
     ///
@@ -394,17 +368,15 @@ impl TypedArray {
     ///  - [ECMAScript reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-%typedarray%
-    fn constructor(
-        _new_target: &JsValue,
-        _args: &[JsValue],
-        _: &mut Context<'_>,
-    ) -> JsResult<JsValue> {
+    fn constructor(_: &JsValue, _: &[JsValue], _: &mut Context<'_>) -> JsResult<JsValue> {
         // 1. Throw a TypeError exception.
         Err(JsNativeError::typ()
             .with_message("the TypedArray constructor should never be called directly")
             .into())
     }
+}
 
+impl TypedArray {
     /// `23.2.2.1 %TypedArray%.from ( source [ , mapfn [ , thisArg ] ] )`
     ///
     /// More information:

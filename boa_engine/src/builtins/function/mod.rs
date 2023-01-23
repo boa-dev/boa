@@ -12,20 +12,20 @@
 //! [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function
 
 use crate::{
-    builtins::{BuiltIn, JsArgs},
+    builtins::BuiltInObject,
     bytecompiler::FunctionCompiler,
-    context::intrinsics::StandardConstructors,
+    context::intrinsics::{Intrinsics, StandardConstructor, StandardConstructors},
     environments::DeclarativeEnvironmentStack,
     error::JsNativeError,
     js_string,
-    native_function::{NativeFunction, NativeFunctionPointer},
+    native_function::NativeFunction,
     object::{internal_methods::get_prototype_from_constructor, JsObject, Object, ObjectData},
-    object::{ConstructorBuilder, FunctionObjectBuilder, JsFunction, PrivateElement},
+    object::{JsFunction, PrivateElement},
     property::{Attribute, PropertyDescriptor, PropertyKey},
     string::utf16,
     symbol::JsSymbol,
     value::IntegerOrInfinity,
-    Context, JsResult, JsString, JsValue,
+    Context, JsArgs, JsResult, JsString, JsValue,
 };
 use boa_ast::{
     function::{FormalParameterList, PrivateName},
@@ -36,11 +36,10 @@ use boa_gc::{self, custom_trace, Finalize, Gc, Trace};
 use boa_interner::Sym;
 use boa_parser::{Parser, Source};
 use boa_profiler::Profiler;
-use tap::{Conv, Pipe};
 
 use std::fmt;
 
-use super::promise::PromiseCapability;
+use super::{promise::PromiseCapability, BuiltInBuilder, BuiltInConstructor, IntrinsicObject};
 
 pub(crate) mod arguments;
 #[cfg(test)]
@@ -391,71 +390,63 @@ impl Function {
     }
 }
 
-/// Creates a new member function of a `Object` or `prototype`.
-///
-/// A function registered using this macro can then be called from Javascript using:
-///
-/// parent.name()
-///
-/// See the javascript 'Number.toString()' as an example.
-///
-/// # Arguments
-/// function: The function to register as a built in function.
-/// name: The name of the function (how it will be called but without the ()).
-/// parent: The object to register the function on, if the global object is used then the function is instead called as name()
-///     without requiring the parent, see parseInt() as an example.
-/// length: As described at <https://tc39.es/ecma262/#sec-function-instances-length>, The value of the "length" property is an integer that
-///     indicates the typical number of arguments expected by the function. However, the language permits the function to be invoked with
-///     some other number of arguments.
-///
-/// If no length is provided, the length will be set to 0.
-// TODO: deprecate/remove this.
-pub(crate) fn make_builtin_fn<N>(
-    function: NativeFunctionPointer,
-    name: N,
-    parent: &JsObject,
-    length: usize,
-    interpreter: &Context<'_>,
-) where
-    N: Into<String>,
-{
-    let name = name.into();
-    let _timer = Profiler::global().start_event(&format!("make_builtin_fn: {name}"), "init");
-
-    let function = JsObject::from_proto_and_data(
-        interpreter
-            .intrinsics()
-            .constructors()
-            .function()
-            .prototype(),
-        ObjectData::function(Function::Native {
-            function: NativeFunction::from_fn_ptr(function),
-            constructor: None,
-        }),
-    );
-    let attribute = PropertyDescriptor::builder()
-        .writable(false)
-        .enumerable(false)
-        .configurable(true);
-    function.insert_property("length", attribute.clone().value(length));
-    function.insert_property("name", attribute.value(name.as_str()));
-
-    parent.clone().insert_property(
-        name,
-        PropertyDescriptor::builder()
-            .value(function)
-            .writable(true)
-            .enumerable(false)
-            .configurable(true),
-    );
-}
-
 /// The internal representation of a `Function` object.
 #[derive(Debug, Clone, Copy)]
 pub struct BuiltInFunctionObject;
 
-impl BuiltInFunctionObject {
+impl IntrinsicObject for BuiltInFunctionObject {
+    fn init(intrinsics: &Intrinsics) {
+        let _timer = Profiler::global().start_event("function", "init");
+
+        BuiltInBuilder::with_object(intrinsics, intrinsics.constructors().function().prototype())
+            .callable(Self::prototype)
+            .name("")
+            .length(0)
+            .build();
+
+        let has_instance = BuiltInBuilder::new(intrinsics)
+            .callable(Self::has_instance)
+            .name("[Symbol.iterator]")
+            .length(1)
+            .build();
+
+        let throw_type_error = intrinsics.objects().throw_type_error();
+
+        BuiltInBuilder::from_standard_constructor::<Self>(intrinsics)
+            .method(Self::apply, "apply", 2)
+            .method(Self::bind, "bind", 1)
+            .method(Self::call, "call", 1)
+            .method(Self::to_string, "toString", 0)
+            .property(JsSymbol::has_instance(), has_instance, Attribute::default())
+            .accessor(
+                "caller",
+                Some(throw_type_error.clone()),
+                Some(throw_type_error.clone()),
+                Attribute::CONFIGURABLE,
+            )
+            .accessor(
+                "arguments",
+                Some(throw_type_error.clone()),
+                Some(throw_type_error),
+                Attribute::CONFIGURABLE,
+            )
+            .build();
+    }
+
+    fn get(intrinsics: &Intrinsics) -> JsObject {
+        Self::STANDARD_CONSTRUCTOR(intrinsics.constructors()).constructor()
+    }
+}
+
+impl BuiltInObject for BuiltInFunctionObject {
+    const NAME: &'static str = "Function";
+}
+
+impl BuiltInConstructor for BuiltInFunctionObject {
     const LENGTH: usize = 1;
+
+    const STANDARD_CONSTRUCTOR: fn(&StandardConstructors) -> &StandardConstructor =
+        StandardConstructors::function;
 
     /// `Function ( p1, p2, … , pn, body )`
     ///
@@ -475,7 +466,9 @@ impl BuiltInFunctionObject {
     ) -> JsResult<JsValue> {
         Self::create_dynamic_function(new_target, args, false, false, context).map(Into::into)
     }
+}
 
+impl BuiltInFunctionObject {
     /// `CreateDynamicFunction ( constructor, newTarget, kind, args )`
     ///
     /// More information:
@@ -879,64 +872,6 @@ impl BuiltInFunctionObject {
     #[allow(clippy::unnecessary_wraps)]
     fn prototype(_: &JsValue, _: &[JsValue], _: &mut Context<'_>) -> JsResult<JsValue> {
         Ok(JsValue::undefined())
-    }
-}
-
-impl BuiltIn for BuiltInFunctionObject {
-    const NAME: &'static str = "Function";
-
-    fn init(context: &mut Context<'_>) -> Option<JsValue> {
-        let _timer = Profiler::global().start_event("function", "init");
-
-        let function_prototype = context.intrinsics().constructors().function().prototype();
-        FunctionObjectBuilder::new(context, NativeFunction::from_fn_ptr(Self::prototype))
-            .name("")
-            .length(0)
-            .constructor(false)
-            .build_function_prototype(&function_prototype);
-
-        let symbol_has_instance = JsSymbol::has_instance();
-
-        let has_instance =
-            FunctionObjectBuilder::new(context, NativeFunction::from_fn_ptr(Self::has_instance))
-                .name("[Symbol.iterator]")
-                .length(1)
-                .constructor(false)
-                .build();
-
-        let throw_type_error = context.intrinsics().objects().throw_type_error();
-
-        ConstructorBuilder::with_standard_constructor(
-            context,
-            Self::constructor,
-            context.intrinsics().constructors().function().clone(),
-        )
-        .name(Self::NAME)
-        .length(Self::LENGTH)
-        .method(Self::apply, "apply", 2)
-        .method(Self::bind, "bind", 1)
-        .method(Self::call, "call", 1)
-        .method(Self::to_string, "toString", 0)
-        .property(symbol_has_instance, has_instance, Attribute::default())
-        .property_descriptor(
-            "caller",
-            PropertyDescriptor::builder()
-                .get(throw_type_error.clone())
-                .set(throw_type_error.clone())
-                .enumerable(false)
-                .configurable(true),
-        )
-        .property_descriptor(
-            "arguments",
-            PropertyDescriptor::builder()
-                .get(throw_type_error.clone())
-                .set(throw_type_error)
-                .enumerable(false)
-                .configurable(true),
-        )
-        .build()
-        .conv::<JsValue>()
-        .pipe(Some)
     }
 }
 

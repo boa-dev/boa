@@ -1,5 +1,6 @@
 use crate::{
     builtins::function::set_function_name,
+    object::CONSTRUCTOR,
     property::PropertyDescriptor,
     vm::{opcode::Operation, ShouldExit},
     Context, JsResult, JsString,
@@ -84,7 +85,7 @@ impl Operation for DefineClassMethodByName {
                 .expect("method must be function object");
             function_mut.set_home_object(class_proto.clone());
             let class = class_proto
-                .get("constructor", context)
+                .get(CONSTRUCTOR, context)
                 .expect("class prototype must have constructor")
                 .as_object()
                 .expect("class must be object")
@@ -180,7 +181,7 @@ impl Operation for DefineClassMethodByValue {
                 .expect("method must be function object");
             function_mut.set_home_object(class_proto.clone());
             let class = class_proto
-                .get("constructor", context)
+                .get(CONSTRUCTOR, context)
                 .expect("class prototype must have constructor")
                 .as_object()
                 .expect("class must be object")

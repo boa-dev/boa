@@ -29,7 +29,7 @@ use crate::builtins::intl::{
 };
 use crate::{
     builtins::{
-        array::array_iterator::ArrayIterator,
+        array::ArrayIterator,
         array_buffer::ArrayBuffer,
         async_generator::AsyncGenerator,
         error::ErrorKind,
@@ -37,20 +37,19 @@ use crate::{
         function::{arguments::ParameterMap, BoundFunction, ConstructorKind, Function},
         generator::Generator,
         iterable::AsyncFromSyncIterator,
-        map::map_iterator::MapIterator,
         map::ordered_map::OrderedMap,
+        map::MapIterator,
         object::for_in_iterator::ForInIterator,
         proxy::Proxy,
-        regexp::regexp_string_iterator::RegExpStringIterator,
+        regexp::RegExpStringIterator,
         set::ordered_set::OrderedSet,
-        set::set_iterator::SetIterator,
-        string::string_iterator::StringIterator,
+        set::SetIterator,
+        string::StringIterator,
         typed_array::integer_indexed_object::IntegerIndexed,
         DataView, Date, Promise, RegExp,
     },
-    context::intrinsics::StandardConstructor,
     js_string,
-    native_function::{NativeFunction, NativeFunctionPointer},
+    native_function::NativeFunction,
     property::{Attribute, PropertyDescriptor, PropertyKey},
     Context, JsBigInt, JsString, JsSymbol, JsValue,
 };
@@ -81,6 +80,9 @@ pub(crate) trait JsObjectType:
     Into<JsValue> + Into<JsObject> + Deref<Target = JsObject>
 {
 }
+
+/// Static `constructor`, usually set on prototypes as a key to point to their respective constructor object.
+pub static CONSTRUCTOR: &str = "constructor";
 
 /// Static `prototype`, usually set on constructors as a key to point to their respective prototype object.
 pub static PROTOTYPE: &str = "prototype";
@@ -627,9 +629,9 @@ impl ObjectData {
 
     /// Create the `NativeObject` object data
     #[must_use]
-    pub fn native_object(native_object: Box<dyn NativeObject>) -> Self {
+    pub fn native_object<T: NativeObject>(native_object: T) -> Self {
         Self {
-            kind: ObjectKind::NativeObject(native_object),
+            kind: ObjectKind::NativeObject(Box::new(native_object)),
             internal_methods: &ORDINARY_INTERNAL_METHODS,
         }
     }
@@ -1812,8 +1814,8 @@ impl Object {
 /// and the `N` is the function name.
 #[derive(Debug, Clone)]
 pub struct FunctionBinding {
-    binding: PropertyKey,
-    name: JsString,
+    pub(crate) binding: PropertyKey,
+    pub(crate) name: JsString,
 }
 
 impl From<&str> for FunctionBinding {
@@ -1952,26 +1954,6 @@ impl<'ctx, 'host> FunctionObjectBuilder<'ctx, 'host> {
 
         JsFunction::from_object_unchecked(function)
     }
-
-    /// Initializes the `Function.prototype` function object.
-    pub(crate) fn build_function_prototype(self, object: &JsObject) {
-        let mut object = object.borrow_mut();
-        object.data = ObjectData::function(self.function);
-        object.set_prototype(
-            self.context
-                .intrinsics()
-                .constructors()
-                .object()
-                .prototype(),
-        );
-
-        let property = PropertyDescriptor::builder()
-            .writable(false)
-            .enumerable(false)
-            .configurable(true);
-        object.insert("name", property.clone().value(self.name.clone()));
-        object.insert("length", property.value(self.length));
-    }
 }
 
 /// Builder for creating objects with properties.
@@ -2010,23 +1992,26 @@ impl<'ctx, 'host> ObjectInitializer<'ctx, 'host> {
         Self { context, object }
     }
 
+    /// Create a new `ObjectBuilder` with custom [`NativeObject`] data.
+    pub fn with_native<T: NativeObject>(data: T, context: &'ctx mut Context<'host>) -> Self {
+        let object = JsObject::from_proto_and_data(
+            context.intrinsics().constructors().object().prototype(),
+            ObjectData::native_object(data),
+        );
+        Self { context, object }
+    }
+
     /// Add a function to the object.
-    pub fn function<B>(
-        &mut self,
-        function: NativeFunctionPointer,
-        binding: B,
-        length: usize,
-    ) -> &mut Self
+    pub fn function<B>(&mut self, function: NativeFunction, binding: B, length: usize) -> &mut Self
     where
         B: Into<FunctionBinding>,
     {
         let binding = binding.into();
-        let function =
-            FunctionObjectBuilder::new(self.context, NativeFunction::from_fn_ptr(function))
-                .name(binding.name)
-                .length(length)
-                .constructor(false)
-                .build();
+        let function = FunctionObjectBuilder::new(self.context, function)
+            .name(binding.name)
+            .length(length)
+            .constructor(false)
+            .build();
 
         self.object.borrow_mut().insert(
             binding.binding,
@@ -2062,9 +2047,10 @@ impl<'ctx, 'host> ObjectInitializer<'ctx, 'host> {
 }
 
 /// Builder for creating constructors objects, like `Array`.
+#[derive(Debug)]
 pub struct ConstructorBuilder<'ctx, 'host> {
     context: &'ctx mut Context<'host>,
-    function: NativeFunctionPointer,
+    function: NativeFunction,
     object: JsObject,
     has_prototype_property: bool,
     prototype: JsObject,
@@ -2076,27 +2062,12 @@ pub struct ConstructorBuilder<'ctx, 'host> {
     custom_prototype: Option<JsPrototype>,
 }
 
-impl Debug for ConstructorBuilder<'_, '_> {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        f.debug_struct("ConstructorBuilder")
-            .field("name", &self.name)
-            .field("length", &self.length)
-            .field("constructor", &self.object)
-            .field("constructor_has_prototype", &self.has_prototype_property)
-            .field("prototype", &self.prototype)
-            .field("inherit", &self.inherit)
-            .field("callable", &self.callable)
-            .field("constructor", &self.constructor)
-            .finish()
-    }
-}
-
 impl<'ctx, 'host> ConstructorBuilder<'ctx, 'host> {
     /// Create a new `ConstructorBuilder`.
     #[inline]
     pub fn new(
         context: &'ctx mut Context<'host>,
-        function: NativeFunctionPointer,
+        function: NativeFunction,
     ) -> ConstructorBuilder<'ctx, 'host> {
         Self {
             context,
@@ -2113,43 +2084,17 @@ impl<'ctx, 'host> ConstructorBuilder<'ctx, 'host> {
         }
     }
 
-    pub(crate) fn with_standard_constructor(
-        context: &'ctx mut Context<'host>,
-        function: NativeFunctionPointer,
-        standard_constructor: StandardConstructor,
-    ) -> ConstructorBuilder<'ctx, 'host> {
-        Self {
-            context,
-            function,
-            object: standard_constructor.constructor,
-            has_prototype_property: true,
-            prototype: standard_constructor.prototype,
-            length: 0,
-            name: js_string!(),
-            callable: true,
-            constructor: Some(ConstructorKind::Base),
-            inherit: None,
-            custom_prototype: None,
-        }
-    }
-
     /// Add new method to the constructors prototype.
-    pub fn method<B>(
-        &mut self,
-        function: NativeFunctionPointer,
-        binding: B,
-        length: usize,
-    ) -> &mut Self
+    pub fn method<B>(&mut self, function: NativeFunction, binding: B, length: usize) -> &mut Self
     where
         B: Into<FunctionBinding>,
     {
         let binding = binding.into();
-        let function =
-            FunctionObjectBuilder::new(self.context, NativeFunction::from_fn_ptr(function))
-                .name(binding.name)
-                .length(length)
-                .constructor(false)
-                .build();
+        let function = FunctionObjectBuilder::new(self.context, function)
+            .name(binding.name)
+            .length(length)
+            .constructor(false)
+            .build();
 
         self.prototype.borrow_mut().insert(
             binding.binding,
@@ -2165,7 +2110,7 @@ impl<'ctx, 'host> ConstructorBuilder<'ctx, 'host> {
     /// Add new static method to the constructors object itself.
     pub fn static_method<B>(
         &mut self,
-        function: NativeFunctionPointer,
+        function: NativeFunction,
         binding: B,
         length: usize,
     ) -> &mut Self
@@ -2173,12 +2118,11 @@ impl<'ctx, 'host> ConstructorBuilder<'ctx, 'host> {
         B: Into<FunctionBinding>,
     {
         let binding = binding.into();
-        let function =
-            FunctionObjectBuilder::new(self.context, NativeFunction::from_fn_ptr(function))
-                .name(binding.name)
-                .length(length)
-                .constructor(false)
-                .build();
+        let function = FunctionObjectBuilder::new(self.context, function)
+            .name(binding.name)
+            .length(length)
+            .constructor(false)
+            .build();
 
         self.object.borrow_mut().insert(
             binding.binding,
@@ -2357,7 +2301,7 @@ impl<'ctx, 'host> ConstructorBuilder<'ctx, 'host> {
     pub fn build(&mut self) -> JsFunction {
         // Create the native function
         let function = Function::Native {
-            function: NativeFunction::from_fn_ptr(self.function),
+            function: self.function.clone(),
             constructor: self.constructor,
         };
 

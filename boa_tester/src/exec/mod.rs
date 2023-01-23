@@ -7,9 +7,9 @@ use super::{
 };
 use crate::read::ErrorType;
 use boa_engine::{
-    builtins::JsArgs, context::ContextBuilder, job::SimpleJobQueue,
-    native_function::NativeFunction, object::FunctionObjectBuilder, property::Attribute, Context,
-    JsNativeErrorKind, JsValue, Source,
+    context::ContextBuilder, job::SimpleJobQueue, native_function::NativeFunction,
+    object::FunctionObjectBuilder, property::Attribute, Context, JsArgs, JsNativeErrorKind,
+    JsValue, Source,
 };
 use colored::Colorize;
 use rayon::prelude::*;
@@ -174,9 +174,12 @@ impl Test {
 
         let result = std::panic::catch_unwind(|| match self.expected_outcome {
             Outcome::Positive => {
-                let queue = SimpleJobQueue::new();
-                let context = &mut ContextBuilder::new().job_queue(&queue).build();
                 let async_result = AsyncResult::default();
+                let queue = SimpleJobQueue::new();
+                let context = &mut ContextBuilder::new()
+                    .job_queue(&queue)
+                    .build()
+                    .expect("cannot fail with default global");
 
                 if let Err(e) = self.set_up_env(harness, context, async_result.clone()) {
                     return (false, e);
@@ -208,7 +211,7 @@ impl Test {
                     self.path.display()
                 );
 
-                let mut context = Context::default();
+                let context = &mut Context::default();
                 context.strict(strict);
                 match context.parse(source) {
                     Ok(statement_list) => match context.compile(&statement_list) {
@@ -336,10 +339,10 @@ impl Test {
         async_result: AsyncResult,
     ) -> Result<(), String> {
         // Register the print() function.
-        Self::register_print_fn(context, async_result);
+        register_print_fn(context, async_result);
 
         // add the $262 object.
-        let _js262 = js262::init(context);
+        let _js262 = js262::register_js262(context);
 
         if self.flags.contains(TestFlags::RAW) {
             return Ok(());
@@ -381,38 +384,37 @@ impl Test {
 
         Ok(())
     }
-
-    /// Registers the print function in the context.
-    fn register_print_fn(context: &mut Context<'_>, async_result: AsyncResult) {
-        // We use `FunctionBuilder` to define a closure with additional captures.
-        let js_function = FunctionObjectBuilder::new(
-            context,
-            // SAFETY: `AsyncResult` has only non-traceable captures, making this safe.
-            unsafe {
-                NativeFunction::from_closure(move |_, args, context| {
-                    let message = args
-                        .get_or_undefined(0)
-                        .to_string(context)?
-                        .to_std_string_escaped();
-                    if message != "Test262:AsyncTestComplete" {
-                        *async_result.inner.borrow_mut() = Err(message);
-                    }
-                    Ok(JsValue::undefined())
-                })
-            },
-        )
-        .name("print")
-        .length(1)
-        .build();
-
-        context.register_global_property(
-            "print",
-            js_function,
-            Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
-        );
-    }
 }
 
+/// Registers the print function in the context.
+fn register_print_fn(context: &mut Context<'_>, async_result: AsyncResult) {
+    // We use `FunctionBuilder` to define a closure with additional captures.
+    let js_function = FunctionObjectBuilder::new(
+        context,
+        // SAFETY: `AsyncResult` has only non-traceable captures, making this safe.
+        unsafe {
+            NativeFunction::from_closure(move |_, args, context| {
+                let message = args
+                    .get_or_undefined(0)
+                    .to_string(context)?
+                    .to_std_string_escaped();
+                if message != "Test262:AsyncTestComplete" {
+                    *async_result.inner.borrow_mut() = Err(message);
+                }
+                Ok(JsValue::undefined())
+            })
+        },
+    )
+    .name("print")
+    .length(1)
+    .build();
+
+    context.register_global_property(
+        "print",
+        js_function,
+        Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
+    );
+}
 /// Object which includes the result of the async operation.
 #[derive(Debug, Clone)]
 struct AsyncResult {

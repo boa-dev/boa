@@ -13,17 +13,19 @@
 //! [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/BigInt
 
 use crate::{
-    builtins::{BuiltIn, JsArgs},
+    builtins::BuiltInObject,
+    context::intrinsics::{Intrinsics, StandardConstructor, StandardConstructors},
     error::JsNativeError,
-    object::ConstructorBuilder,
+    object::JsObject,
     property::Attribute,
     symbol::JsSymbol,
     value::{IntegerOrInfinity, PreferredType},
-    Context, JsBigInt, JsResult, JsValue,
+    Context, JsArgs, JsBigInt, JsResult, JsValue,
 };
 use boa_profiler::Profiler;
 use num_bigint::ToBigInt;
-use tap::{Conv, Pipe};
+
+use super::{BuiltInBuilder, BuiltInConstructor, IntrinsicObject};
 
 #[cfg(test)]
 mod tests;
@@ -32,41 +34,37 @@ mod tests;
 #[derive(Debug, Clone, Copy)]
 pub struct BigInt;
 
-impl BuiltIn for BigInt {
-    const NAME: &'static str = "BigInt";
-
-    fn init(context: &mut Context<'_>) -> Option<JsValue> {
+impl IntrinsicObject for BigInt {
+    fn init(intrinsics: &Intrinsics) {
         let _timer = Profiler::global().start_event(Self::NAME, "init");
 
-        let to_string_tag = JsSymbol::to_string_tag();
+        BuiltInBuilder::from_standard_constructor::<Self>(intrinsics)
+            .method(Self::to_string, "toString", 0)
+            .method(Self::value_of, "valueOf", 0)
+            .static_method(Self::as_int_n, "asIntN", 2)
+            .static_method(Self::as_uint_n, "asUintN", 2)
+            .property(
+                JsSymbol::to_string_tag(),
+                Self::NAME,
+                Attribute::READONLY | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
+            )
+            .build();
+    }
 
-        ConstructorBuilder::with_standard_constructor(
-            context,
-            Self::constructor,
-            context.intrinsics().constructors().bigint_object().clone(),
-        )
-        .name(Self::NAME)
-        .length(Self::LENGTH)
-        .callable(true)
-        .constructor(true)
-        .method(Self::to_string, "toString", 0)
-        .method(Self::value_of, "valueOf", 0)
-        .static_method(Self::as_int_n, "asIntN", 2)
-        .static_method(Self::as_uint_n, "asUintN", 2)
-        .property(
-            to_string_tag,
-            Self::NAME,
-            Attribute::READONLY | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
-        )
-        .build()
-        .conv::<JsValue>()
-        .pipe(Some)
+    fn get(intrinsics: &Intrinsics) -> JsObject {
+        Self::STANDARD_CONSTRUCTOR(intrinsics.constructors()).constructor()
     }
 }
 
-impl BigInt {
-    /// The amount of arguments this function object takes.
-    pub(crate) const LENGTH: usize = 1;
+impl BuiltInObject for BigInt {
+    const NAME: &'static str = "BigInt";
+}
+
+impl BuiltInConstructor for BigInt {
+    const LENGTH: usize = 1;
+
+    const STANDARD_CONSTRUCTOR: fn(&StandardConstructors) -> &StandardConstructor =
+        StandardConstructors::bigint;
 
     /// `BigInt()`
     ///
@@ -103,7 +101,9 @@ impl BigInt {
         // 4. Otherwise, return ? ToBigInt(value).
         Ok(value.to_bigint(context)?.into())
     }
+}
 
+impl BigInt {
     /// `NumberToBigInt ( number )`
     ///
     /// More information:

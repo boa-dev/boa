@@ -23,7 +23,7 @@ impl Operation for This {
                 context.vm.push(env.borrow().get_this_binding()?.clone());
             }
             EnvironmentSlots::Global => {
-                let this = context.realm.global_object();
+                let this = context.realm.global_this();
                 context.vm.push(this.clone());
             }
         }

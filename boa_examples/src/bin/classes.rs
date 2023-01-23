@@ -1,10 +1,10 @@
 // NOTE: this example requires the `console` feature to run correctly.
 use boa_engine::{
-    builtins::JsArgs,
     class::{Class, ClassBuilder},
     error::JsNativeError,
+    native_function::NativeFunction,
     property::Attribute,
-    Context, JsResult, JsString, JsValue, Source,
+    Context, JsArgs, JsResult, JsString, JsValue, Source,
 };
 
 use boa_gc::{Finalize, Trace};
@@ -86,23 +86,27 @@ impl Class for Person {
         // We add a inheritable method `sayHello` with `0` arguments of length.
         //
         // This function is added to the `Person` prototype.
-        class.method("sayHello", 0, Self::say_hello);
+        class.method("sayHello", 0, NativeFunction::from_fn_ptr(Self::say_hello));
         // We add a static method `is` using a closure, but it must be convertible
         // to a NativeFunction.
         // This means it must not contain state, or the code won't compile.
         //
         // This function is added to the `Person` class.
-        class.static_method("is", 1, |_this, args, _ctx| {
-            if let Some(arg) = args.get(0) {
-                if let Some(object) = arg.as_object() {
-                    // We check if the type of `args[0]` is `Person`
-                    if object.is::<Person>() {
-                        return Ok(true.into()); // and return `true` if it is.
+        class.static_method(
+            "is",
+            1,
+            NativeFunction::from_fn_ptr(|_this, args, _ctx| {
+                if let Some(arg) = args.get(0) {
+                    if let Some(object) = arg.as_object() {
+                        // We check if the type of `args[0]` is `Person`
+                        if object.is::<Person>() {
+                            return Ok(true.into()); // and return `true` if it is.
+                        }
                     }
                 }
-            }
-            Ok(false.into()) // Otherwise we return `false`.
-        });
+                Ok(false.into()) // Otherwise we return `false`.
+            }),
+        );
 
         // We add an `"inheritedProperty"` property to the prototype of `Person` with
         // a value of `10` and default attribute flags `READONLY`, `NON_ENUMERABLE` and `PERMANENT`.

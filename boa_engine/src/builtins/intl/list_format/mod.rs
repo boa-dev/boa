@@ -4,17 +4,14 @@ use boa_profiler::Profiler;
 use icu_list::{provider::AndListV1Marker, ListFormatter, ListLength};
 use icu_locid::Locale;
 use icu_provider::DataLocale;
-use tap::{Conv, Pipe};
 
 use crate::{
-    builtins::{Array, BuiltIn, JsArgs},
-    context::intrinsics::StandardConstructors,
-    object::{
-        internal_methods::get_prototype_from_constructor, ConstructorBuilder, JsObject, ObjectData,
-    },
+    builtins::{Array, BuiltInBuilder, BuiltInConstructor, BuiltInObject, IntrinsicObject},
+    context::intrinsics::{Intrinsics, StandardConstructor, StandardConstructors},
+    object::{internal_methods::get_prototype_from_constructor, JsObject, ObjectData},
     property::Attribute,
     symbol::JsSymbol,
-    Context, JsNativeError, JsResult, JsString, JsValue,
+    Context, JsArgs, JsNativeError, JsResult, JsString, JsValue,
 };
 
 use super::{
@@ -49,36 +46,37 @@ impl Service for ListFormat {
     type LocaleOptions = ();
 }
 
-impl BuiltIn for ListFormat {
-    const NAME: &'static str = "ListFormat";
-
-    fn init(context: &mut Context<'_>) -> Option<JsValue> {
+impl IntrinsicObject for ListFormat {
+    fn init(intrinsics: &Intrinsics) {
         let _timer = Profiler::global().start_event(Self::NAME, "init");
 
-        ConstructorBuilder::with_standard_constructor(
-            context,
-            Self::constructor,
-            context.intrinsics().constructors().list_format().clone(),
-        )
-        .name(Self::NAME)
-        .length(Self::LENGTH)
-        .static_method(Self::supported_locales_of, "supportedLocalesOf", 1)
-        .property(
-            JsSymbol::to_string_tag(),
-            "Intl.ListFormat",
-            Attribute::CONFIGURABLE,
-        )
-        .method(Self::format, "format", 1)
-        .method(Self::format_to_parts, "formatToParts", 1)
-        .method(Self::resolved_options, "resolvedOptions", 0)
-        .build()
-        .conv::<JsValue>()
-        .pipe(Some)
+        BuiltInBuilder::from_standard_constructor::<Self>(intrinsics)
+            .static_method(Self::supported_locales_of, "supportedLocalesOf", 1)
+            .property(
+                JsSymbol::to_string_tag(),
+                "Intl.ListFormat",
+                Attribute::CONFIGURABLE,
+            )
+            .method(Self::format, "format", 1)
+            .method(Self::format_to_parts, "formatToParts", 1)
+            .method(Self::resolved_options, "resolvedOptions", 0)
+            .build();
+    }
+
+    fn get(intrinsics: &Intrinsics) -> JsObject {
+        Self::STANDARD_CONSTRUCTOR(intrinsics.constructors()).constructor()
     }
 }
 
-impl ListFormat {
-    pub(crate) const LENGTH: usize = 0;
+impl BuiltInObject for ListFormat {
+    const NAME: &'static str = "ListFormat";
+}
+
+impl BuiltInConstructor for ListFormat {
+    const LENGTH: usize = 0;
+
+    const STANDARD_CONSTRUCTOR: fn(&StandardConstructors) -> &StandardConstructor =
+        StandardConstructors::list_format;
 
     /// Constructor [`Intl.ListFormat ( [ locales [ , options ] ] )`][spec].
     ///
@@ -89,7 +87,7 @@ impl ListFormat {
     ///
     /// [spec]: https://tc39.es/ecma402/#sec-Intl.ListFormat
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Intl/ListFormat
-    pub(crate) fn constructor(
+    fn constructor(
         new_target: &JsValue,
         args: &[JsValue],
         context: &mut Context<'_>,
@@ -163,7 +161,9 @@ impl ListFormat {
         // 19. Return listFormat.
         Ok(list_format.into())
     }
+}
 
+impl ListFormat {
     /// [`Intl.ListFormat.supportedLocalesOf ( locales [ , options ] )`][spec].
     ///
     /// Returns an array containing those of the provided locales that are supported in list

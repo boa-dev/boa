@@ -5,13 +5,15 @@
 //!
 //! [spec]: https://tc39.es/ecma262/#sec-for-in-iterator-objects
 
+// TODO: This should not be a builtin, since this cannot be seen by ECMAScript code per the spec.
+// Opportunity to optimize this for iteration speed.
+
 use crate::{
-    builtins::{function::make_builtin_fn, iterable::create_iter_result_object},
+    builtins::{iterable::create_iter_result_object, BuiltInBuilder, IntrinsicObject},
+    context::intrinsics::Intrinsics,
     error::JsNativeError,
     object::{JsObject, ObjectData},
-    property::PropertyDescriptor,
     property::PropertyKey,
-    symbol::JsSymbol,
     Context, JsResult, JsString, JsValue,
 };
 use boa_gc::{Finalize, Trace};
@@ -34,9 +36,22 @@ pub struct ForInIterator {
     object_was_visited: bool,
 }
 
-impl ForInIterator {
-    pub(crate) const NAME: &'static str = "ForInIterator";
+impl IntrinsicObject for ForInIterator {
+    fn init(intrinsics: &Intrinsics) {
+        let _timer = Profiler::global().start_event("ForInIterator", "init");
 
+        BuiltInBuilder::with_intrinsic::<Self>(intrinsics)
+            .prototype(intrinsics.objects().iterator_prototypes().iterator())
+            .static_method(Self::next, "next", 0)
+            .build();
+    }
+
+    fn get(intrinsics: &Intrinsics) -> JsObject {
+        intrinsics.objects().iterator_prototypes().for_in()
+    }
+}
+
+impl ForInIterator {
     fn new(object: JsValue) -> Self {
         Self {
             object,
@@ -60,7 +75,7 @@ impl ForInIterator {
                 .intrinsics()
                 .objects()
                 .iterator_prototypes()
-                .for_in_iterator(),
+                .for_in(),
             ObjectData::for_in_iterator(Self::new(object)),
         );
         for_in_iterator.into()
@@ -129,32 +144,5 @@ impl ForInIterator {
             iterator.object = JsValue::new(object.clone());
             iterator.object_was_visited = false;
         }
-    }
-
-    /// Create the `%ArrayIteratorPrototype%` object
-    ///
-    /// More information:
-    ///  - [ECMA reference][spec]
-    ///
-    /// [spec]: https://tc39.es/ecma262/#sec-%foriniteratorprototype%-object
-    pub(crate) fn create_prototype(
-        iterator_prototype: JsObject,
-        context: &mut Context<'_>,
-    ) -> JsObject {
-        let _timer = Profiler::global().start_event(Self::NAME, "init");
-
-        // Create prototype
-        let for_in_iterator =
-            JsObject::from_proto_and_data(iterator_prototype, ObjectData::ordinary());
-        make_builtin_fn(Self::next, "next", &for_in_iterator, 0, context);
-
-        let to_string_tag = JsSymbol::to_string_tag();
-        let to_string_tag_property = PropertyDescriptor::builder()
-            .value("For In Iterator")
-            .writable(false)
-            .enumerable(false)
-            .configurable(true);
-        for_in_iterator.insert(to_string_tag, to_string_tag_property);
-        for_in_iterator
     }
 }

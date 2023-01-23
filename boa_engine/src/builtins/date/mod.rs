@@ -13,24 +13,22 @@ use utils::{make_date, make_day, make_time, replace_params, time_clip, DateParam
 #[cfg(test)]
 mod tests;
 
-use super::JsArgs;
 use crate::{
-    builtins::BuiltIn,
-    context::intrinsics::StandardConstructors,
+    builtins::BuiltInObject,
+    context::intrinsics::{Intrinsics, StandardConstructor, StandardConstructors},
     error::JsNativeError,
     js_string,
-    object::{
-        internal_methods::get_prototype_from_constructor, ConstructorBuilder, JsObject, ObjectData,
-    },
+    object::{internal_methods::get_prototype_from_constructor, JsObject, ObjectData},
     string::utf16,
     symbol::JsSymbol,
     value::{IntegerOrNan, JsValue, PreferredType},
-    Context, JsError, JsResult,
+    Context, JsArgs, JsError, JsResult,
 };
 use boa_profiler::Profiler;
 use chrono::prelude::*;
 use std::fmt::Display;
-use tap::{Conv, Pipe};
+
+use super::{BuiltInBuilder, BuiltInConstructor, IntrinsicObject};
 
 /// Extracts `Some` from an `Option<T>` or returns `NaN` if the object contains `None`.
 macro_rules! some_or_nan {
@@ -101,82 +99,82 @@ impl Default for Date {
     }
 }
 
-impl BuiltIn for Date {
-    const NAME: &'static str = "Date";
-
-    fn init(context: &mut Context<'_>) -> Option<JsValue> {
+impl IntrinsicObject for Date {
+    fn init(intrinsics: &Intrinsics) {
         let _timer = Profiler::global().start_event(Self::NAME, "init");
 
-        ConstructorBuilder::with_standard_constructor(
-            context,
-            Self::constructor,
-            context.intrinsics().constructors().date().clone(),
-        )
-        .name(Self::NAME)
-        .length(Self::LENGTH)
-        .method(Self::get_date::<true>, "getDate", 0)
-        .method(Self::get_day::<true>, "getDay", 0)
-        .method(Self::get_full_year::<true>, "getFullYear", 0)
-        .method(Self::get_hours::<true>, "getHours", 0)
-        .method(Self::get_milliseconds::<true>, "getMilliseconds", 0)
-        .method(Self::get_minutes::<true>, "getMinutes", 0)
-        .method(Self::get_month::<true>, "getMonth", 0)
-        .method(Self::get_seconds::<true>, "getSeconds", 0)
-        .method(Self::get_time, "getTime", 0)
-        .method(Self::get_timezone_offset, "getTimezoneOffset", 0)
-        .method(Self::get_date::<false>, "getUTCDate", 0)
-        .method(Self::get_day::<false>, "getUTCDay", 0)
-        .method(Self::get_full_year::<false>, "getUTCFullYear", 0)
-        .method(Self::get_hours::<false>, "getUTCHours", 0)
-        .method(Self::get_milliseconds::<false>, "getUTCMilliseconds", 0)
-        .method(Self::get_minutes::<false>, "getUTCMinutes", 0)
-        .method(Self::get_month::<false>, "getUTCMonth", 0)
-        .method(Self::get_seconds::<false>, "getUTCSeconds", 0)
-        .method(Self::get_year, "getYear", 0)
-        .static_method(Self::now, "now", 0)
-        .static_method(Self::parse, "parse", 1)
-        .method(Self::set_date::<true>, "setDate", 1)
-        .method(Self::set_full_year::<true>, "setFullYear", 3)
-        .method(Self::set_hours::<true>, "setHours", 4)
-        .method(Self::set_milliseconds::<true>, "setMilliseconds", 1)
-        .method(Self::set_minutes::<true>, "setMinutes", 3)
-        .method(Self::set_month::<true>, "setMonth", 2)
-        .method(Self::set_seconds::<true>, "setSeconds", 2)
-        .method(Self::set_time, "setTime", 1)
-        .method(Self::set_date::<false>, "setUTCDate", 1)
-        .method(Self::set_full_year::<false>, "setUTCFullYear", 3)
-        .method(Self::set_hours::<false>, "setUTCHours", 4)
-        .method(Self::set_milliseconds::<false>, "setUTCMilliseconds", 1)
-        .method(Self::set_minutes::<false>, "setUTCMinutes", 3)
-        .method(Self::set_month::<false>, "setUTCMonth", 2)
-        .method(Self::set_seconds::<false>, "setUTCSeconds", 2)
-        .method(Self::set_year, "setYear", 1)
-        .method(Self::to_date_string, "toDateString", 0)
-        .method(Self::to_gmt_string, "toGMTString", 0)
-        .method(Self::to_iso_string, "toISOString", 0)
-        .method(Self::to_json, "toJSON", 1)
-        .method(Self::to_locale_date_string, "toLocaleDateString", 0)
-        .method(Self::to_locale_string, "toLocaleString", 0)
-        .method(Self::to_locale_time_string, "toLocaleTimeString", 0)
-        .method(Self::to_string, "toString", 0)
-        .method(Self::to_time_string, "toTimeString", 0)
-        .method(Self::to_utc_string, "toUTCString", 0)
-        .static_method(Self::utc, "UTC", 7)
-        .method(Self::value_of, "valueOf", 0)
-        .method(
-            Self::to_primitive,
-            (JsSymbol::to_primitive(), "[Symbol.toPrimitive]"),
-            1,
-        )
-        .build()
-        .conv::<JsValue>()
-        .pipe(Some)
+        BuiltInBuilder::from_standard_constructor::<Self>(intrinsics)
+            .method(Self::get_date::<true>, "getDate", 0)
+            .method(Self::get_day::<true>, "getDay", 0)
+            .method(Self::get_full_year::<true>, "getFullYear", 0)
+            .method(Self::get_hours::<true>, "getHours", 0)
+            .method(Self::get_milliseconds::<true>, "getMilliseconds", 0)
+            .method(Self::get_minutes::<true>, "getMinutes", 0)
+            .method(Self::get_month::<true>, "getMonth", 0)
+            .method(Self::get_seconds::<true>, "getSeconds", 0)
+            .method(Self::get_time, "getTime", 0)
+            .method(Self::get_timezone_offset, "getTimezoneOffset", 0)
+            .method(Self::get_date::<false>, "getUTCDate", 0)
+            .method(Self::get_day::<false>, "getUTCDay", 0)
+            .method(Self::get_full_year::<false>, "getUTCFullYear", 0)
+            .method(Self::get_hours::<false>, "getUTCHours", 0)
+            .method(Self::get_milliseconds::<false>, "getUTCMilliseconds", 0)
+            .method(Self::get_minutes::<false>, "getUTCMinutes", 0)
+            .method(Self::get_month::<false>, "getUTCMonth", 0)
+            .method(Self::get_seconds::<false>, "getUTCSeconds", 0)
+            .method(Self::get_year, "getYear", 0)
+            .static_method(Self::now, "now", 0)
+            .static_method(Self::parse, "parse", 1)
+            .method(Self::set_date::<true>, "setDate", 1)
+            .method(Self::set_full_year::<true>, "setFullYear", 3)
+            .method(Self::set_hours::<true>, "setHours", 4)
+            .method(Self::set_milliseconds::<true>, "setMilliseconds", 1)
+            .method(Self::set_minutes::<true>, "setMinutes", 3)
+            .method(Self::set_month::<true>, "setMonth", 2)
+            .method(Self::set_seconds::<true>, "setSeconds", 2)
+            .method(Self::set_time, "setTime", 1)
+            .method(Self::set_date::<false>, "setUTCDate", 1)
+            .method(Self::set_full_year::<false>, "setUTCFullYear", 3)
+            .method(Self::set_hours::<false>, "setUTCHours", 4)
+            .method(Self::set_milliseconds::<false>, "setUTCMilliseconds", 1)
+            .method(Self::set_minutes::<false>, "setUTCMinutes", 3)
+            .method(Self::set_month::<false>, "setUTCMonth", 2)
+            .method(Self::set_seconds::<false>, "setUTCSeconds", 2)
+            .method(Self::set_year, "setYear", 1)
+            .method(Self::to_date_string, "toDateString", 0)
+            .method(Self::to_gmt_string, "toGMTString", 0)
+            .method(Self::to_iso_string, "toISOString", 0)
+            .method(Self::to_json, "toJSON", 1)
+            .method(Self::to_locale_date_string, "toLocaleDateString", 0)
+            .method(Self::to_locale_string, "toLocaleString", 0)
+            .method(Self::to_locale_time_string, "toLocaleTimeString", 0)
+            .method(Self::to_string, "toString", 0)
+            .method(Self::to_time_string, "toTimeString", 0)
+            .method(Self::to_utc_string, "toUTCString", 0)
+            .static_method(Self::utc, "UTC", 7)
+            .method(Self::value_of, "valueOf", 0)
+            .method(
+                Self::to_primitive,
+                (JsSymbol::to_primitive(), "[Symbol.toPrimitive]"),
+                1,
+            )
+            .build();
+    }
+
+    fn get(intrinsics: &Intrinsics) -> JsObject {
+        Self::STANDARD_CONSTRUCTOR(intrinsics.constructors()).constructor()
     }
 }
 
-impl Date {
-    /// The amount of arguments this function object takes.
-    pub(crate) const LENGTH: usize = 7;
+impl BuiltInObject for Date {
+    const NAME: &'static str = "Date";
+}
+
+impl BuiltInConstructor for Date {
+    const LENGTH: usize = 7;
+
+    const STANDARD_CONSTRUCTOR: fn(&StandardConstructors) -> &StandardConstructor =
+        StandardConstructors::date;
 
     /// [`Date ( ...values )`][spec]
     ///
@@ -187,7 +185,7 @@ impl Date {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-date-constructor
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/Date
-    pub(crate) fn constructor(
+    fn constructor(
         new_target: &JsValue,
         args: &[JsValue],
         context: &mut Context<'_>,
@@ -274,7 +272,9 @@ impl Date {
         // 8. Return O.
         Ok(obj.into())
     }
+}
 
+impl Date {
     /// Gets the timestamp from a list of component values.
     fn construct_date(
         values: &[JsValue],

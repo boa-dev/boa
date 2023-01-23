@@ -8,25 +8,27 @@
 use crate::{
     builtins::{
         generator::GeneratorContext, iterable::create_iter_result_object,
-        promise::if_abrupt_reject_promise, promise::PromiseCapability, BuiltIn, JsArgs, Promise,
+        promise::if_abrupt_reject_promise, promise::PromiseCapability, Promise,
     },
+    context::intrinsics::Intrinsics,
     error::JsNativeError,
     native_function::NativeFunction,
-    object::{ConstructorBuilder, FunctionObjectBuilder, JsObject, ObjectData},
-    property::{Attribute, PropertyDescriptor},
+    object::{FunctionObjectBuilder, JsObject, CONSTRUCTOR},
+    property::Attribute,
     symbol::JsSymbol,
     value::JsValue,
     vm::GeneratorResumeKind,
-    Context, JsError, JsResult,
+    Context, JsArgs, JsError, JsResult,
 };
 use boa_gc::{Finalize, Gc, GcRefCell, Trace};
 use boa_profiler::Profiler;
 use std::collections::VecDeque;
 
+use super::{BuiltInBuilder, IntrinsicObject};
+
 /// Indicates the state of an async generator.
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub(crate) enum AsyncGeneratorState {
-    Undefined,
     SuspendedStart,
     SuspendedYield,
     Executing,
@@ -63,88 +65,38 @@ pub struct AsyncGenerator {
     pub(crate) queue: VecDeque<AsyncGeneratorRequest>,
 }
 
-impl BuiltIn for AsyncGenerator {
-    const NAME: &'static str = "AsyncGenerator";
-
-    fn init(context: &mut Context<'_>) -> Option<JsValue> {
+impl IntrinsicObject for AsyncGenerator {
+    fn init(intrinsics: &Intrinsics) {
         let _timer = Profiler::global().start_event(Self::NAME, "init");
 
-        let iterator_prototype = context
-            .intrinsics()
-            .objects()
-            .iterator_prototypes()
-            .async_iterator_prototype();
+        BuiltInBuilder::with_intrinsic::<Self>(intrinsics)
+            .prototype(intrinsics.objects().iterator_prototypes().async_iterator())
+            .static_method(Self::next, "next", 1)
+            .static_method(Self::r#return, "return", 1)
+            .static_method(Self::throw, "throw", 1)
+            .static_property(
+                JsSymbol::to_string_tag(),
+                Self::NAME,
+                Attribute::CONFIGURABLE,
+            )
+            .static_property(
+                CONSTRUCTOR,
+                intrinsics
+                    .constructors()
+                    .async_generator_function()
+                    .prototype(),
+                Attribute::CONFIGURABLE,
+            )
+            .build();
+    }
 
-        let generator_function_prototype = context
-            .intrinsics()
-            .constructors()
-            .async_generator_function()
-            .prototype();
-
-        ConstructorBuilder::with_standard_constructor(
-            context,
-            Self::constructor,
-            context
-                .intrinsics()
-                .constructors()
-                .async_generator()
-                .clone(),
-        )
-        .name(Self::NAME)
-        .length(0)
-        .property(
-            JsSymbol::to_string_tag(),
-            Self::NAME,
-            Attribute::READONLY | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
-        )
-        .method(Self::next, "next", 1)
-        .method(Self::r#return, "return", 1)
-        .method(Self::throw, "throw", 1)
-        .inherit(iterator_prototype)
-        .build();
-
-        context
-            .intrinsics()
-            .constructors()
-            .async_generator()
-            .prototype
-            .insert_property(
-                "constructor",
-                PropertyDescriptor::builder()
-                    .value(generator_function_prototype)
-                    .writable(false)
-                    .enumerable(false)
-                    .configurable(true),
-            );
-
-        None
+    fn get(intrinsics: &Intrinsics) -> JsObject {
+        intrinsics.objects().async_generator()
     }
 }
 
 impl AsyncGenerator {
-    #[allow(clippy::unnecessary_wraps)]
-    pub(crate) fn constructor(
-        _: &JsValue,
-        _: &[JsValue],
-        context: &mut Context<'_>,
-    ) -> JsResult<JsValue> {
-        let prototype = context
-            .intrinsics()
-            .constructors()
-            .async_generator()
-            .prototype();
-
-        let this = JsObject::from_proto_and_data(
-            prototype,
-            ObjectData::async_generator(Self {
-                state: AsyncGeneratorState::Undefined,
-                context: None,
-                queue: VecDeque::new(),
-            }),
-        );
-
-        Ok(this.into())
-    }
+    const NAME: &'static str = "AsyncGenerator";
 
     /// `AsyncGenerator.prototype.next ( value )`
     ///

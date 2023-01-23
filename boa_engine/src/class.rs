@@ -41,19 +41,22 @@
 //!
 //!     /// This is where the object is initialized.
 //!     fn init(class: &mut ClassBuilder) -> JsResult<()> {
-//!         class.method("speak", 0, |this, _args, _ctx| {
-//!             if let Some(object) = this.as_object() {
-//!                 if let Some(animal) = object.downcast_ref::<Animal>() {
-//!                     match &*animal {
-//!                         Self::Cat => println!("meow"),
-//!                         Self::Dog => println!("woof"),
-//!                         Self::Other => println!(r"¯\_(ツ)_/¯"),
+//!         class.method(
+//!             "speak",
+//!             0,
+//!             NativeFunction::from_fn_ptr(|this, _args, _ctx| {
+//!                 if let Some(object) = this.as_object() {
+//!                     if let Some(animal) = object.downcast_ref::<Animal>() {
+//!                         match &*animal {
+//!                             Self::Cat => println!("meow"),
+//!                             Self::Dog => println!("woof"),
+//!                             Self::Other => println!(r"¯\_(ツ)_/¯"),
+//!                         }
 //!                     }
 //!                 }
-//!             }
-//!             Ok(JsValue::undefined())
-//!         });
-//!
+//!                 Ok(JsValue::undefined())
+//!             }),
+//!         );
 //!         Ok(())
 //!     }
 //! }
@@ -63,7 +66,7 @@
 
 use crate::{
     error::JsNativeError,
-    native_function::NativeFunctionPointer,
+    native_function::NativeFunction,
     object::{ConstructorBuilder, JsFunction, JsObject, NativeObject, ObjectData, PROTOTYPE},
     property::{Attribute, PropertyDescriptor, PropertyKey},
     Context, JsResult, JsValue,
@@ -166,7 +169,8 @@ impl<'ctx, 'host> ClassBuilder<'ctx, 'host> {
     where
         T: ClassConstructor,
     {
-        let mut builder = ConstructorBuilder::new(context, T::raw_constructor);
+        let mut builder =
+            ConstructorBuilder::new(context, NativeFunction::from_fn_ptr(T::raw_constructor));
         builder.name(T::NAME);
         builder.length(T::LENGTH);
         Self { builder }
@@ -179,12 +183,7 @@ impl<'ctx, 'host> ClassBuilder<'ctx, 'host> {
     /// Add a method to the class.
     ///
     /// It is added to `prototype`.
-    pub fn method<N>(
-        &mut self,
-        name: N,
-        length: usize,
-        function: NativeFunctionPointer,
-    ) -> &mut Self
+    pub fn method<N>(&mut self, name: N, length: usize, function: NativeFunction) -> &mut Self
     where
         N: AsRef<str>,
     {
@@ -199,7 +198,7 @@ impl<'ctx, 'host> ClassBuilder<'ctx, 'host> {
         &mut self,
         name: N,
         length: usize,
-        function: NativeFunctionPointer,
+        function: NativeFunction,
     ) -> &mut Self
     where
         N: AsRef<str>,

@@ -1,5 +1,5 @@
 use crate::{
-    object::{JsObject, ObjectData},
+    object::{JsObject, ObjectData, CONSTRUCTOR},
     property::PropertyDescriptorBuilder,
     vm::{opcode::Operation, ShouldExit},
     Context, JsResult, JsValue,
@@ -57,7 +57,7 @@ impl Operation for SetClassPrototype {
 
         proto
             .__define_own_property__(
-                "constructor".into(),
+                CONSTRUCTOR.into(),
                 PropertyDescriptorBuilder::new()
                     .value(class)
                     .writable(true)

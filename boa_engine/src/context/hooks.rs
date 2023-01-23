@@ -1,9 +1,11 @@
 use crate::{
     builtins::promise::OperationType,
     job::JobCallback,
-    object::{JsFunction, JsObject},
+    object::{JsFunction, JsObject, ObjectData},
     Context, JsResult, JsValue,
 };
+
+use super::intrinsics::Intrinsics;
 
 /// [`Host Hooks`] customizable by the host code or engine.
 ///
@@ -140,10 +142,31 @@ pub trait HostHooks {
     ) -> JsResult<()> {
         Ok(())
     }
+
+    /// Creates the global object of a new [`Context`] from the initial intrinsics.
+    ///
+    /// Equivalent to the step 7 of [`InitializeHostDefinedRealm ( )`][ihdr].
+    ///
+    /// [ihdr]: https://tc39.es/ecma262/#sec-initializehostdefinedrealm
+    fn create_global_object(&self, intrinsics: &Intrinsics) -> JsObject {
+        JsObject::from_proto_and_data(
+            intrinsics.constructors().object().prototype(),
+            ObjectData::global(),
+        )
+    }
+
+    /// Creates the global `this` of a new [`Context`] from the initial intrinsics.
+    ///
+    /// Equivalent to the step 8 of [`InitializeHostDefinedRealm ( )`][ihdr].
+    ///
+    /// [ihdr]: https://tc39.es/ecma262/#sec-initializehostdefinedrealm
+    fn create_global_this(&self, _intrinsics: &Intrinsics) -> Option<JsObject> {
+        None
+    }
 }
 
 /// Default implementation of [`HostHooks`], which doesn't carry any state.
 #[derive(Debug, Clone, Copy)]
-pub(crate) struct DefaultHooks;
+pub struct DefaultHooks;
 
 impl HostHooks for DefaultHooks {}

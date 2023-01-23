@@ -13,26 +13,27 @@
 //! [json]: https://www.json.org/json-en.html
 //! [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/JSON
 
-use super::JsArgs;
 use std::{
     borrow::Cow,
     iter::{once, FusedIterator},
 };
 
 use crate::{
-    builtins::BuiltIn,
+    builtins::BuiltInObject,
+    context::intrinsics::Intrinsics,
     error::JsNativeError,
     js_string,
-    object::{JsObject, ObjectInitializer, RecursionLimiter},
+    object::{JsObject, RecursionLimiter},
     property::{Attribute, PropertyNameKind},
     string::{utf16, CodePoint},
     symbol::JsSymbol,
     value::IntegerOrInfinity,
-    Context, JsResult, JsString, JsValue,
+    Context, JsArgs, JsResult, JsString, JsValue,
 };
 use boa_parser::{Parser, Source};
 use boa_profiler::Profiler;
-use tap::{Conv, Pipe};
+
+use super::{BuiltInBuilder, IntrinsicObject};
 
 #[cfg(test)]
 mod tests;
@@ -135,23 +136,27 @@ where
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub(crate) struct Json;
 
-impl BuiltIn for Json {
-    const NAME: &'static str = "JSON";
-
-    fn init(context: &mut Context<'_>) -> Option<JsValue> {
+impl IntrinsicObject for Json {
+    fn init(intrinsics: &Intrinsics) {
         let _timer = Profiler::global().start_event(Self::NAME, "init");
 
         let to_string_tag = JsSymbol::to_string_tag();
         let attribute = Attribute::READONLY | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE;
 
-        ObjectInitializer::new(context)
-            .function(Self::parse, "parse", 2)
-            .function(Self::stringify, "stringify", 3)
-            .property(to_string_tag, Self::NAME, attribute)
-            .build()
-            .conv::<JsValue>()
-            .pipe(Some)
+        BuiltInBuilder::with_intrinsic::<Self>(intrinsics)
+            .static_method(Self::parse, "parse", 2)
+            .static_method(Self::stringify, "stringify", 3)
+            .static_property(to_string_tag, Self::NAME, attribute)
+            .build();
     }
+
+    fn get(intrinsics: &Intrinsics) -> JsObject {
+        intrinsics.objects().json()
+    }
+}
+
+impl BuiltInObject for Json {
+    const NAME: &'static str = "JSON";
 }
 
 impl Json {

@@ -7,10 +7,13 @@
 
 use super::ordered_map::MapLock;
 use crate::{
-    builtins::{function::make_builtin_fn, iterable::create_iter_result_object, Array, JsValue},
+    builtins::{
+        iterable::create_iter_result_object, Array, BuiltInBuilder, IntrinsicObject, JsValue,
+    },
+    context::intrinsics::Intrinsics,
     error::JsNativeError,
     object::{JsObject, ObjectData},
-    property::{PropertyDescriptor, PropertyNameKind},
+    property::{Attribute, PropertyNameKind},
     symbol::JsSymbol,
     Context, JsResult,
 };
@@ -32,9 +35,27 @@ pub struct MapIterator {
     lock: MapLock,
 }
 
-impl MapIterator {
-    pub(crate) const NAME: &'static str = "MapIterator";
+impl IntrinsicObject for MapIterator {
+    fn init(intrinsics: &Intrinsics) {
+        let _timer = Profiler::global().start_event("MapIterator", "init");
 
+        BuiltInBuilder::with_intrinsic::<Self>(intrinsics)
+            .prototype(intrinsics.objects().iterator_prototypes().iterator())
+            .static_method(Self::next, "next", 0)
+            .static_property(
+                JsSymbol::to_string_tag(),
+                "Map Iterator",
+                Attribute::CONFIGURABLE,
+            )
+            .build();
+    }
+
+    fn get(intrinsics: &Intrinsics) -> JsObject {
+        intrinsics.objects().iterator_prototypes().map()
+    }
+}
+
+impl MapIterator {
     /// Abstract operation `CreateMapIterator( map, kind )`
     ///
     /// Creates a new iterator over the given map.
@@ -58,11 +79,7 @@ impl MapIterator {
                     lock,
                 };
                 let map_iterator = JsObject::from_proto_and_data(
-                    context
-                        .intrinsics()
-                        .objects()
-                        .iterator_prototypes()
-                        .map_iterator(),
+                    context.intrinsics().objects().iterator_prototypes().map(),
                     ObjectData::map_iterator(iter),
                 );
                 return Ok(map_iterator.into());
@@ -128,32 +145,5 @@ impl MapIterator {
             true,
             context,
         ))
-    }
-
-    /// Create the `%MapIteratorPrototype%` object
-    ///
-    /// More information:
-    ///  - [ECMA reference][spec]
-    ///
-    /// [spec]: https://tc39.es/ecma262/#sec-%mapiteratorprototype%-object
-    pub(crate) fn create_prototype(
-        iterator_prototype: JsObject,
-        context: &mut Context<'_>,
-    ) -> JsObject {
-        let _timer = Profiler::global().start_event(Self::NAME, "init");
-
-        // Create prototype
-        let map_iterator =
-            JsObject::from_proto_and_data(iterator_prototype, ObjectData::ordinary());
-        make_builtin_fn(Self::next, "next", &map_iterator, 0, context);
-
-        let to_string_tag = JsSymbol::to_string_tag();
-        let to_string_tag_property = PropertyDescriptor::builder()
-            .value("Map Iterator")
-            .writable(false)
-            .enumerable(false)
-            .configurable(true);
-        map_iterator.insert(to_string_tag, to_string_tag_property);
-        map_iterator
     }
 }

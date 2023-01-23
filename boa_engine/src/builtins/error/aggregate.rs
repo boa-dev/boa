@@ -8,60 +8,52 @@
 //! [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/AggregateError
 
 use crate::{
-    builtins::{iterable::iterable_to_list, Array, BuiltIn, JsArgs},
-    context::intrinsics::StandardConstructors,
-    object::{
-        internal_methods::get_prototype_from_constructor, ConstructorBuilder, JsObject, ObjectData,
+    builtins::{
+        iterable::iterable_to_list, Array, BuiltInBuilder, BuiltInConstructor, BuiltInObject,
+        IntrinsicObject,
     },
+    context::intrinsics::{Intrinsics, StandardConstructor, StandardConstructors},
+    object::{internal_methods::get_prototype_from_constructor, JsObject, ObjectData},
     property::{Attribute, PropertyDescriptorBuilder},
-    Context, JsResult, JsValue,
+    Context, JsArgs, JsResult, JsValue,
 };
 use boa_profiler::Profiler;
-use tap::{Conv, Pipe};
 
 use super::{Error, ErrorKind};
 
 #[derive(Debug, Clone, Copy)]
 pub(crate) struct AggregateError;
 
-impl BuiltIn for AggregateError {
-    const NAME: &'static str = "AggregateError";
-
-    fn init(context: &mut Context<'_>) -> Option<JsValue> {
+impl IntrinsicObject for AggregateError {
+    fn init(intrinsics: &Intrinsics) {
         let _timer = Profiler::global().start_event(Self::NAME, "init");
 
-        let error_constructor = context.intrinsics().constructors().error().constructor();
-        let error_prototype = context.intrinsics().constructors().error().prototype();
-
         let attribute = Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE;
+        BuiltInBuilder::from_standard_constructor::<Self>(intrinsics)
+            .prototype(intrinsics.constructors().error().constructor())
+            .inherits(Some(intrinsics.constructors().error().prototype()))
+            .property("name", Self::NAME, attribute)
+            .property("message", "", attribute)
+            .build();
+    }
 
-        ConstructorBuilder::with_standard_constructor(
-            context,
-            Self::constructor,
-            context
-                .intrinsics()
-                .constructors()
-                .aggregate_error()
-                .clone(),
-        )
-        .name(Self::NAME)
-        .length(Self::LENGTH)
-        .inherit(error_prototype)
-        .custom_prototype(error_constructor)
-        .property("name", Self::NAME, attribute)
-        .property("message", "", attribute)
-        .build()
-        .conv::<JsValue>()
-        .pipe(Some)
+    fn get(intrinsics: &Intrinsics) -> JsObject {
+        Self::STANDARD_CONSTRUCTOR(intrinsics.constructors()).constructor()
     }
 }
 
-impl AggregateError {
-    /// The amount of arguments this function object takes.
-    pub(crate) const LENGTH: usize = 2;
+impl BuiltInObject for AggregateError {
+    const NAME: &'static str = "AggregateError";
+}
+
+impl BuiltInConstructor for AggregateError {
+    const LENGTH: usize = 2;
+
+    const STANDARD_CONSTRUCTOR: fn(&StandardConstructors) -> &StandardConstructor =
+        StandardConstructors::aggregate_error;
 
     /// Create a new aggregate error object.
-    pub(crate) fn constructor(
+    fn constructor(
         new_target: &JsValue,
         args: &[JsValue],
         context: &mut Context<'_>,

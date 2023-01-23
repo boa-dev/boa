@@ -1,11 +1,11 @@
 use boa_gc::{Gc, GcRefCell};
 
 use crate::{
-    builtins::{JsArgs, Promise},
+    builtins::Promise,
     native_function::NativeFunction,
     object::FunctionObjectBuilder,
     vm::{call_frame::GeneratorResumeKind, opcode::Operation, ShouldExit},
-    Context, JsResult, JsValue,
+    Context, JsArgs, JsResult, JsValue,
 };
 
 /// `Await` implements the Opcode Operation for `Opcode::Await`

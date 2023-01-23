@@ -10,13 +10,8 @@
 //! [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/eval
 
 use crate::{
-    builtins::{BuiltIn, JsArgs},
-    environments::DeclarativeEnvironment,
-    error::JsNativeError,
-    native_function::NativeFunction,
-    object::FunctionObjectBuilder,
-    property::Attribute,
-    Context, JsResult, JsString, JsValue,
+    builtins::BuiltInObject, context::intrinsics::Intrinsics, environments::DeclarativeEnvironment,
+    error::JsNativeError, object::JsObject, Context, JsArgs, JsResult, JsString, JsValue,
 };
 use boa_ast::operations::{
     contains, contains_arguments, top_level_var_declared_names, ContainsSymbol,
@@ -25,27 +20,29 @@ use boa_gc::Gc;
 use boa_parser::{Parser, Source};
 use boa_profiler::Profiler;
 
+use super::{BuiltInBuilder, IntrinsicObject};
+
 #[derive(Debug, Clone, Copy)]
 pub(crate) struct Eval;
 
-impl BuiltIn for Eval {
-    const NAME: &'static str = "eval";
-
-    const ATTRIBUTE: Attribute = Attribute::CONFIGURABLE
-        .union(Attribute::NON_ENUMERABLE)
-        .union(Attribute::WRITABLE);
-
-    fn init(context: &mut Context<'_>) -> Option<JsValue> {
+impl IntrinsicObject for Eval {
+    fn init(intrinsics: &Intrinsics) {
         let _timer = Profiler::global().start_event(Self::NAME, "init");
 
-        let object = FunctionObjectBuilder::new(context, NativeFunction::from_fn_ptr(Self::eval))
-            .name("eval")
+        BuiltInBuilder::with_intrinsic::<Self>(intrinsics)
+            .callable(Self::eval)
+            .name(Self::NAME)
             .length(1)
-            .constructor(false)
             .build();
-
-        Some(object.into())
     }
+
+    fn get(intrinsics: &Intrinsics) -> JsObject {
+        intrinsics.objects().eval().into()
+    }
+}
+
+impl BuiltInObject for Eval {
+    const NAME: &'static str = "eval";
 }
 
 impl Eval {

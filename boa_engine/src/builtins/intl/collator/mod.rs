@@ -9,19 +9,21 @@ use icu_locid::{
     Locale,
 };
 use icu_provider::DataLocale;
-use tap::{Conv, Pipe};
 
 use crate::{
-    builtins::{BuiltIn, JsArgs},
-    context::{intrinsics::StandardConstructors, BoaProvider},
+    builtins::{BuiltInBuilder, BuiltInConstructor, BuiltInObject, IntrinsicObject},
+    context::{
+        intrinsics::{Intrinsics, StandardConstructor, StandardConstructors},
+        BoaProvider,
+    },
     native_function::NativeFunction,
     object::{
-        internal_methods::get_prototype_from_constructor, ConstructorBuilder,
-        FunctionObjectBuilder, JsFunction, JsObject, ObjectData,
+        internal_methods::get_prototype_from_constructor, FunctionObjectBuilder, JsFunction,
+        JsObject, ObjectData,
     },
     property::Attribute,
     symbol::JsSymbol,
-    Context, JsNativeError, JsResult, JsValue,
+    Context, JsArgs, JsNativeError, JsResult, JsValue,
 };
 
 use super::{
@@ -155,41 +157,41 @@ impl Service for Collator {
     }
 }
 
-impl BuiltIn for Collator {
-    const NAME: &'static str = "Collator";
-
-    fn init(context: &mut Context<'_>) -> Option<JsValue> {
+impl IntrinsicObject for Collator {
+    fn init(intrinsics: &Intrinsics) {
         let _timer = Profiler::global().start_event(Self::NAME, "init");
 
-        let compare =
-            FunctionObjectBuilder::new(context, NativeFunction::from_fn_ptr(Self::compare))
-                .name("get compare")
-                .constructor(false)
-                .build();
+        let compare = BuiltInBuilder::new(intrinsics)
+            .callable(Self::compare)
+            .name("get compare")
+            .build();
 
-        ConstructorBuilder::with_standard_constructor(
-            context,
-            Self::constructor,
-            context.intrinsics().constructors().collator().clone(),
-        )
-        .name(Self::NAME)
-        .length(Self::LENGTH)
-        .static_method(Self::supported_locales_of, "supportedLocalesOf", 1)
-        .property(
-            JsSymbol::to_string_tag(),
-            "Intl.Collator",
-            Attribute::CONFIGURABLE,
-        )
-        .accessor("compare", Some(compare), None, Attribute::CONFIGURABLE)
-        .method(Self::resolved_options, "resolvedOptions", 0)
-        .build()
-        .conv::<JsValue>()
-        .pipe(Some)
+        BuiltInBuilder::from_standard_constructor::<Self>(intrinsics)
+            .static_method(Self::supported_locales_of, "supportedLocalesOf", 1)
+            .property(
+                JsSymbol::to_string_tag(),
+                "Intl.Collator",
+                Attribute::CONFIGURABLE,
+            )
+            .accessor("compare", Some(compare), None, Attribute::CONFIGURABLE)
+            .method(Self::resolved_options, "resolvedOptions", 0)
+            .build();
+    }
+
+    fn get(intrinsics: &Intrinsics) -> JsObject {
+        Self::STANDARD_CONSTRUCTOR(intrinsics.constructors()).constructor()
     }
 }
 
-impl Collator {
-    pub(crate) const LENGTH: usize = 0;
+impl BuiltInObject for Collator {
+    const NAME: &'static str = "Collator";
+}
+
+impl BuiltInConstructor for Collator {
+    const LENGTH: usize = 0;
+
+    const STANDARD_CONSTRUCTOR: fn(&StandardConstructors) -> &StandardConstructor =
+        StandardConstructors::collator;
 
     /// Constructor [`Intl.Collator ( [ locales [ , options ] ] )`][spec].
     ///
@@ -200,7 +202,7 @@ impl Collator {
     ///
     /// [spec]: https://tc39.es/ecma402/#sec-intl.collator
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Intl/Collator
-    pub(crate) fn constructor(
+    fn constructor(
         new_target: &JsValue,
         args: &[JsValue],
         context: &mut Context<'_>,
@@ -359,7 +361,9 @@ impl Collator {
         // 31. Return collator.
         Ok(collator.into())
     }
+}
 
+impl Collator {
     /// [`Intl.Collator.supportedLocalesOf ( locales [ , options ] )`][spec].
     ///
     /// Returns an array containing those of the provided locales that are supported in collation

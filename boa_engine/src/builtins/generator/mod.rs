@@ -10,18 +10,21 @@
 //! [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Generator
 
 use crate::{
-    builtins::{iterable::create_iter_result_object, BuiltIn, JsArgs},
+    builtins::iterable::create_iter_result_object,
+    context::intrinsics::Intrinsics,
     environments::DeclarativeEnvironmentStack,
     error::JsNativeError,
-    object::{ConstructorBuilder, JsObject, ObjectData},
-    property::{Attribute, PropertyDescriptor},
+    object::{JsObject, CONSTRUCTOR},
+    property::Attribute,
     symbol::JsSymbol,
     value::JsValue,
     vm::{CallFrame, GeneratorResumeKind, ReturnType},
-    Context, JsError, JsResult,
+    Context, JsArgs, JsError, JsResult,
 };
 use boa_gc::{Finalize, Gc, GcRefCell, Trace};
 use boa_profiler::Profiler;
+
+use super::{BuiltInBuilder, IntrinsicObject};
 
 /// Indicates the state of a generator.
 #[derive(Debug, Clone, Copy, PartialEq)]
@@ -55,81 +58,35 @@ pub struct Generator {
     pub(crate) context: Option<Gc<GcRefCell<GeneratorContext>>>,
 }
 
-impl BuiltIn for Generator {
-    const NAME: &'static str = "Generator";
-
-    fn init(context: &mut Context<'_>) -> Option<JsValue> {
+impl IntrinsicObject for Generator {
+    fn init(intrinsics: &Intrinsics) {
         let _timer = Profiler::global().start_event(Self::NAME, "init");
 
-        let iterator_prototype = context
-            .intrinsics()
-            .objects()
-            .iterator_prototypes()
-            .iterator_prototype();
+        BuiltInBuilder::with_intrinsic::<Self>(intrinsics)
+            .prototype(intrinsics.objects().iterator_prototypes().iterator())
+            .static_method(Self::next, "next", 1)
+            .static_method(Self::r#return, "return", 1)
+            .static_method(Self::throw, "throw", 1)
+            .static_property(
+                JsSymbol::to_string_tag(),
+                Self::NAME,
+                Attribute::CONFIGURABLE,
+            )
+            .static_property(
+                CONSTRUCTOR,
+                intrinsics.constructors().generator_function().prototype(),
+                Attribute::CONFIGURABLE,
+            )
+            .build();
+    }
 
-        let generator_function_prototype = context
-            .intrinsics()
-            .constructors()
-            .generator_function()
-            .prototype();
-
-        ConstructorBuilder::with_standard_constructor(
-            context,
-            Self::constructor,
-            context.intrinsics().constructors().generator().clone(),
-        )
-        .name(Self::NAME)
-        .length(Self::LENGTH)
-        .property(
-            JsSymbol::to_string_tag(),
-            Self::NAME,
-            Attribute::READONLY | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
-        )
-        .method(Self::next, "next", 1)
-        .method(Self::r#return, "return", 1)
-        .method(Self::throw, "throw", 1)
-        .inherit(iterator_prototype)
-        .build();
-
-        context
-            .intrinsics()
-            .constructors()
-            .generator()
-            .prototype
-            .insert_property(
-                "constructor",
-                PropertyDescriptor::builder()
-                    .value(generator_function_prototype)
-                    .writable(false)
-                    .enumerable(false)
-                    .configurable(true),
-            );
-
-        None
+    fn get(intrinsics: &Intrinsics) -> JsObject {
+        intrinsics.objects().generator()
     }
 }
 
 impl Generator {
-    pub(crate) const LENGTH: usize = 0;
-
-    #[allow(clippy::unnecessary_wraps)]
-    pub(crate) fn constructor(
-        _: &JsValue,
-        _: &[JsValue],
-        context: &mut Context<'_>,
-    ) -> JsResult<JsValue> {
-        let prototype = context.intrinsics().constructors().generator().prototype();
-
-        let this = JsObject::from_proto_and_data(
-            prototype,
-            ObjectData::generator(Self {
-                state: GeneratorState::Undefined,
-                context: None,
-            }),
-        );
-
-        Ok(this.into())
-    }
+    const NAME: &str = "Generator";
 
     /// `Generator.prototype.next ( value )`
     ///

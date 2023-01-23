@@ -15,27 +15,27 @@
 
 use std::ops::Deref;
 
-use super::Array;
+use super::{Array, BuiltInBuilder, BuiltInConstructor, IntrinsicObject};
 use crate::{
-    builtins::{map, BuiltIn, JsArgs},
-    context::intrinsics::StandardConstructors,
+    builtins::{map, BuiltInObject},
+    context::intrinsics::{Intrinsics, StandardConstructor, StandardConstructors},
     error::JsNativeError,
     js_string,
     native_function::NativeFunction,
     object::{
-        internal_methods::get_prototype_from_constructor, ConstructorBuilder,
-        FunctionObjectBuilder, IntegrityLevel, JsObject, ObjectData, ObjectKind,
+        internal_methods::get_prototype_from_constructor, FunctionObjectBuilder, IntegrityLevel,
+        JsObject, ObjectData, ObjectKind,
     },
     property::{Attribute, PropertyDescriptor, PropertyKey, PropertyNameKind},
     string::utf16,
     symbol::JsSymbol,
     value::JsValue,
-    Context, JsResult, JsString,
+    Context, JsArgs, JsResult, JsString,
 };
 use boa_profiler::Profiler;
 use tap::{Conv, Pipe};
 
-pub mod for_in_iterator;
+pub(crate) mod for_in_iterator;
 #[cfg(test)]
 mod tests;
 
@@ -43,88 +43,85 @@ mod tests;
 #[derive(Debug, Clone, Copy)]
 pub struct Object;
 
-impl BuiltIn for Object {
-    const NAME: &'static str = "Object";
-
-    fn init(context: &mut Context<'_>) -> Option<JsValue> {
+impl IntrinsicObject for Object {
+    fn init(intrinsics: &Intrinsics) {
         let _timer = Profiler::global().start_event(Self::NAME, "init");
 
-        let legacy_proto_getter = FunctionObjectBuilder::new(
-            context,
-            NativeFunction::from_fn_ptr(Self::legacy_proto_getter),
-        )
-        .name("get __proto__")
-        .build();
+        let legacy_proto_getter = BuiltInBuilder::new(intrinsics)
+            .callable(Self::legacy_proto_getter)
+            .name("get __proto__")
+            .build();
 
-        let legacy_setter_proto = FunctionObjectBuilder::new(
-            context,
-            NativeFunction::from_fn_ptr(Self::legacy_proto_setter),
-        )
-        .name("set __proto__")
-        .build();
+        let legacy_setter_proto = BuiltInBuilder::new(intrinsics)
+            .callable(Self::legacy_proto_setter)
+            .name("set __proto__")
+            .build();
 
-        ConstructorBuilder::with_standard_constructor(
-            context,
-            Self::constructor,
-            context.intrinsics().constructors().object().clone(),
-        )
-        .name(Self::NAME)
-        .length(Self::LENGTH)
-        .inherit(None)
-        .accessor(
-            "__proto__",
-            Some(legacy_proto_getter),
-            Some(legacy_setter_proto),
-            Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
-        )
-        .method(Self::has_own_property, "hasOwnProperty", 1)
-        .method(Self::property_is_enumerable, "propertyIsEnumerable", 1)
-        .method(Self::to_string, "toString", 0)
-        .method(Self::to_locale_string, "toLocaleString", 0)
-        .method(Self::value_of, "valueOf", 0)
-        .method(Self::is_prototype_of, "isPrototypeOf", 1)
-        .method(Self::legacy_define_getter, "__defineGetter__", 2)
-        .method(Self::legacy_define_setter, "__defineSetter__", 2)
-        .method(Self::legacy_lookup_getter, "__lookupGetter__", 1)
-        .method(Self::legacy_lookup_setter, "__lookupSetter__", 1)
-        .static_method(Self::create, "create", 2)
-        .static_method(Self::set_prototype_of, "setPrototypeOf", 2)
-        .static_method(Self::get_prototype_of, "getPrototypeOf", 1)
-        .static_method(Self::define_property, "defineProperty", 3)
-        .static_method(Self::define_properties, "defineProperties", 2)
-        .static_method(Self::assign, "assign", 2)
-        .static_method(Self::is, "is", 2)
-        .static_method(Self::keys, "keys", 1)
-        .static_method(Self::values, "values", 1)
-        .static_method(Self::entries, "entries", 1)
-        .static_method(Self::seal, "seal", 1)
-        .static_method(Self::is_sealed, "isSealed", 1)
-        .static_method(Self::freeze, "freeze", 1)
-        .static_method(Self::is_frozen, "isFrozen", 1)
-        .static_method(Self::prevent_extensions, "preventExtensions", 1)
-        .static_method(Self::is_extensible, "isExtensible", 1)
-        .static_method(
-            Self::get_own_property_descriptor,
-            "getOwnPropertyDescriptor",
-            2,
-        )
-        .static_method(
-            Self::get_own_property_descriptors,
-            "getOwnPropertyDescriptors",
-            1,
-        )
-        .static_method(Self::get_own_property_names, "getOwnPropertyNames", 1)
-        .static_method(Self::get_own_property_symbols, "getOwnPropertySymbols", 1)
-        .static_method(Self::has_own, "hasOwn", 2)
-        .static_method(Self::from_entries, "fromEntries", 1)
-        .build()
-        .conv::<JsValue>()
-        .pipe(Some)
+        BuiltInBuilder::from_standard_constructor::<Self>(intrinsics)
+            .inherits(None)
+            .accessor(
+                "__proto__",
+                Some(legacy_proto_getter),
+                Some(legacy_setter_proto),
+                Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
+            )
+            .method(Self::has_own_property, "hasOwnProperty", 1)
+            .method(Self::property_is_enumerable, "propertyIsEnumerable", 1)
+            .method(Self::to_string, "toString", 0)
+            .method(Self::to_locale_string, "toLocaleString", 0)
+            .method(Self::value_of, "valueOf", 0)
+            .method(Self::is_prototype_of, "isPrototypeOf", 1)
+            .method(Self::legacy_define_getter, "__defineGetter__", 2)
+            .method(Self::legacy_define_setter, "__defineSetter__", 2)
+            .method(Self::legacy_lookup_getter, "__lookupGetter__", 1)
+            .method(Self::legacy_lookup_setter, "__lookupSetter__", 1)
+            .static_method(Self::create, "create", 2)
+            .static_method(Self::set_prototype_of, "setPrototypeOf", 2)
+            .static_method(Self::get_prototype_of, "getPrototypeOf", 1)
+            .static_method(Self::define_property, "defineProperty", 3)
+            .static_method(Self::define_properties, "defineProperties", 2)
+            .static_method(Self::assign, "assign", 2)
+            .static_method(Self::is, "is", 2)
+            .static_method(Self::keys, "keys", 1)
+            .static_method(Self::values, "values", 1)
+            .static_method(Self::entries, "entries", 1)
+            .static_method(Self::seal, "seal", 1)
+            .static_method(Self::is_sealed, "isSealed", 1)
+            .static_method(Self::freeze, "freeze", 1)
+            .static_method(Self::is_frozen, "isFrozen", 1)
+            .static_method(Self::prevent_extensions, "preventExtensions", 1)
+            .static_method(Self::is_extensible, "isExtensible", 1)
+            .static_method(
+                Self::get_own_property_descriptor,
+                "getOwnPropertyDescriptor",
+                2,
+            )
+            .static_method(
+                Self::get_own_property_descriptors,
+                "getOwnPropertyDescriptors",
+                1,
+            )
+            .static_method(Self::get_own_property_names, "getOwnPropertyNames", 1)
+            .static_method(Self::get_own_property_symbols, "getOwnPropertySymbols", 1)
+            .static_method(Self::has_own, "hasOwn", 2)
+            .static_method(Self::from_entries, "fromEntries", 1)
+            .build();
+    }
+
+    fn get(intrinsics: &Intrinsics) -> JsObject {
+        Self::STANDARD_CONSTRUCTOR(intrinsics.constructors()).constructor()
     }
 }
 
-impl Object {
+impl BuiltInObject for Object {
+    const NAME: &'static str = "Object";
+}
+
+impl BuiltInConstructor for Object {
     const LENGTH: usize = 1;
+
+    const STANDARD_CONSTRUCTOR: fn(&StandardConstructors) -> &StandardConstructor =
+        StandardConstructors::object;
 
     fn constructor(
         new_target: &JsValue,
@@ -150,7 +147,9 @@ impl Object {
             value.to_object(context).map(JsValue::from)
         }
     }
+}
 
+impl Object {
     /// `get Object.prototype.__proto__`
     ///
     /// The `__proto__` getter function exposes the value of the

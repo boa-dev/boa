@@ -5,7 +5,7 @@ use crate::{context::ContextBuilder, forward, job::SimpleJobQueue};
 #[test]
 fn promise() {
     let queue = SimpleJobQueue::new();
-    let mut context = ContextBuilder::new().job_queue(&queue).build();
+    let mut context = ContextBuilder::new().job_queue(&queue).build().unwrap();
     let init = r#"
         let count = 0;
         const promise = new Promise((resolve, reject) => {

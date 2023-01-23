@@ -6,120 +6,64 @@
 //! [spec]: https://tc39.es/ecma262/#sec-asyncgeneratorfunction-objects
 
 use crate::{
-    builtins::{
-        function::{BuiltInFunctionObject, ConstructorKind, Function},
-        BuiltIn,
-    },
-    native_function::NativeFunction,
-    object::ObjectData,
-    property::PropertyDescriptor,
+    builtins::{function::BuiltInFunctionObject, BuiltInObject},
+    context::intrinsics::{Intrinsics, StandardConstructor, StandardConstructors},
+    object::{JsObject, PROTOTYPE},
+    property::Attribute,
     symbol::JsSymbol,
     value::JsValue,
     Context, JsResult,
 };
 use boa_profiler::Profiler;
 
+use super::{BuiltInBuilder, BuiltInConstructor, IntrinsicObject};
+
 /// The internal representation of an `AsyncGeneratorFunction` object.
 #[derive(Debug, Clone, Copy)]
 pub struct AsyncGeneratorFunction;
 
-impl BuiltIn for AsyncGeneratorFunction {
-    const NAME: &'static str = "AsyncGeneratorFunction";
-
-    fn init(context: &mut Context<'_>) -> Option<JsValue> {
+impl IntrinsicObject for AsyncGeneratorFunction {
+    fn init(intrinsics: &Intrinsics) {
         let _timer = Profiler::global().start_event(Self::NAME, "init");
 
-        let prototype = &context
-            .intrinsics()
-            .constructors()
-            .async_generator_function()
-            .prototype;
-        let constructor = &context
-            .intrinsics()
-            .constructors()
-            .async_generator_function()
-            .constructor;
-
-        constructor.set_prototype(Some(
-            context.intrinsics().constructors().function().constructor(),
-        ));
-        let property = PropertyDescriptor::builder()
-            .value(1)
-            .writable(false)
-            .enumerable(false)
-            .configurable(true);
-        constructor.borrow_mut().insert("length", property);
-        let property = PropertyDescriptor::builder()
-            .value(Self::NAME)
-            .writable(false)
-            .enumerable(false)
-            .configurable(true);
-        constructor.borrow_mut().insert("name", property);
-        let property = PropertyDescriptor::builder()
-            .value(
-                context
-                    .intrinsics()
-                    .constructors()
-                    .async_generator_function()
-                    .prototype(),
+        BuiltInBuilder::from_standard_constructor::<Self>(intrinsics)
+            .inherits(Some(intrinsics.constructors().function().prototype()))
+            .constructor_attributes(Attribute::CONFIGURABLE)
+            .property(
+                PROTOTYPE,
+                intrinsics.objects().async_generator(),
+                Attribute::CONFIGURABLE,
             )
-            .writable(false)
-            .enumerable(false)
-            .configurable(false);
-        constructor.borrow_mut().insert("prototype", property);
-        constructor.borrow_mut().data = ObjectData::function(Function::Native {
-            function: NativeFunction::from_fn_ptr(Self::constructor),
-            constructor: Some(ConstructorKind::Base),
-        });
-
-        prototype.set_prototype(Some(
-            context.intrinsics().constructors().function().prototype(),
-        ));
-        let property = PropertyDescriptor::builder()
-            .value(
-                context
-                    .intrinsics()
-                    .constructors()
-                    .async_generator_function()
-                    .constructor(),
+            .property(
+                JsSymbol::to_string_tag(),
+                Self::NAME,
+                Attribute::CONFIGURABLE,
             )
-            .writable(false)
-            .enumerable(false)
-            .configurable(true);
-        prototype.borrow_mut().insert("constructor", property);
-        let property = PropertyDescriptor::builder()
-            .value(
-                context
-                    .intrinsics()
-                    .constructors()
-                    .async_generator()
-                    .prototype(),
-            )
-            .writable(false)
-            .enumerable(false)
-            .configurable(true);
-        prototype.borrow_mut().insert("prototype", property);
-        let property = PropertyDescriptor::builder()
-            .value("AsyncGeneratorFunction")
-            .writable(false)
-            .enumerable(false)
-            .configurable(true);
-        prototype
-            .borrow_mut()
-            .insert(JsSymbol::to_string_tag(), property);
+            .build();
+    }
 
-        None
+    fn get(intrinsics: &Intrinsics) -> JsObject {
+        Self::STANDARD_CONSTRUCTOR(intrinsics.constructors()).constructor()
     }
 }
 
-impl AsyncGeneratorFunction {
+impl BuiltInObject for AsyncGeneratorFunction {
+    const NAME: &'static str = "AsyncGeneratorFunction";
+}
+
+impl BuiltInConstructor for AsyncGeneratorFunction {
+    const LENGTH: usize = 1;
+
+    const STANDARD_CONSTRUCTOR: fn(&StandardConstructors) -> &StandardConstructor =
+        StandardConstructors::async_generator_function;
+
     /// `AsyncGeneratorFunction ( p1, p2, … , pn, body )`
     ///
     /// More information:
     ///  - [ECMAScript reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-asyncgeneratorfunction
-    pub(crate) fn constructor(
+    fn constructor(
         new_target: &JsValue,
         args: &[JsValue],
         context: &mut Context<'_>,

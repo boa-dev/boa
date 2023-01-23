@@ -17,203 +17,267 @@ use self::consts::{
     is_uri_unescaped,
 };
 
-use super::BuiltIn;
+use super::{BuiltInBuilder, BuiltInObject, IntrinsicObject};
 use crate::{
-    builtins::JsArgs, js_string, native_function::NativeFunction, object::FunctionObjectBuilder,
-    property::Attribute, string::CodePoint, Context, JsNativeError, JsResult, JsString, JsValue,
+    context::intrinsics::Intrinsics,
+    js_string,
+    object::{JsFunction, JsObject},
+    string::CodePoint,
+    Context, JsArgs, JsNativeError, JsResult, JsString, JsValue,
 };
 
-/// URI Handling Functions
-#[derive(Debug, Clone, Copy)]
-pub(crate) struct Uri;
+/// Intrinsics for the [`URI Handling Functions`][spec].
+///
+/// [spec]: https://tc39.es/ecma262/multipage/global-object.html#sec-uri-handling-functions
+#[derive(Debug)]
+pub struct UriFunctions {
+    /// %decodeURI%
+    decode_uri: JsFunction,
 
-impl BuiltIn for Uri {
-    const NAME: &'static str = "Uri";
+    /// %decodeURI%
+    decode_uri_component: JsFunction,
 
-    fn init(context: &mut Context<'_>) -> Option<JsValue> {
-        let decode_uri =
-            FunctionObjectBuilder::new(context, NativeFunction::from_fn_ptr(Self::decode_uri))
-                .name("decodeURI")
-                .length(1)
-                .constructor(false)
-                .build();
+    /// %encodeURI%
+    encode_uri: JsFunction,
 
-        context.register_global_property(
-            "decodeURI",
-            decode_uri,
-            Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
-        );
+    /// %encodeURIcomponent%
+    encode_uri_component: JsFunction,
+}
 
-        let decode_uri_component = FunctionObjectBuilder::new(
-            context,
-            NativeFunction::from_fn_ptr(Self::decode_uri_component),
-        )
-        .name("decodeURIComponent")
-        .length(1)
-        .constructor(false)
-        .build();
-
-        context.register_global_property(
-            "decodeURIComponent",
-            decode_uri_component,
-            Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
-        );
-
-        let encode_uri =
-            FunctionObjectBuilder::new(context, NativeFunction::from_fn_ptr(Self::encode_uri))
-                .name("encodeURI")
-                .length(1)
-                .constructor(false)
-                .build();
-
-        context.register_global_property(
-            "encodeURI",
-            encode_uri,
-            Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
-        );
-
-        let encode_uri_component = FunctionObjectBuilder::new(
-            context,
-            NativeFunction::from_fn_ptr(Self::encode_uri_component),
-        )
-        .name("encodeURIComponent")
-        .length(1)
-        .constructor(false)
-        .build();
-
-        context.register_global_property(
-            "encodeURIComponent",
-            encode_uri_component,
-            Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
-        );
-
-        None
+impl Default for UriFunctions {
+    fn default() -> Self {
+        Self {
+            decode_uri: JsFunction::from_object_unchecked(JsObject::default()),
+            decode_uri_component: JsFunction::from_object_unchecked(JsObject::default()),
+            encode_uri: JsFunction::from_object_unchecked(JsObject::default()),
+            encode_uri_component: JsFunction::from_object_unchecked(JsObject::default()),
+        }
     }
 }
 
-impl Uri {
-    /// Builtin JavaScript `decodeURI ( encodedURI )` function.
-    ///
-    /// This function computes a new version of a URI in which each escape sequence and UTF-8
-    /// encoding of the sort that might be introduced by the `encodeURI` function is replaced with
-    /// the UTF-16 encoding of the code points that it represents. Escape sequences that could not
-    /// have been introduced by `encodeURI` are not replaced.
-    ///
-    /// More information:
-    ///  - [ECMAScript reference][spec]
-    ///  - [MDN documentation][mdn]
-    ///
-    /// [spec]: https://tc39.es/ecma262/#sec-decodeuri-encodeduri
-    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/decodeURI
-    pub(crate) fn decode_uri(
-        _: &JsValue,
-        args: &[JsValue],
-        context: &mut Context<'_>,
-    ) -> JsResult<JsValue> {
-        let encoded_uri = args.get_or_undefined(0);
-
-        // 1. Let uriString be ? ToString(encodedURI).
-        let uri_string = encoded_uri.to_string(context)?;
-
-        // 2. Let reservedURISet be a String containing one instance of each code unit valid in uriReserved plus "#".
-        let reserved_uri_set = is_uri_reserved_or_number_sign;
-
-        // 3. Return ? Decode(uriString, reservedURISet).
-        Ok(JsValue::from(decode(&uri_string, reserved_uri_set)?))
+impl UriFunctions {
+    pub(crate) fn decode_uri(&self) -> JsFunction {
+        self.decode_uri.clone()
     }
 
-    /// Builtin JavaScript `decodeURIComponent ( encodedURIComponent )` function.
-    ///
-    /// This function computes a new version of a URI in which each escape sequence and UTF-8
-    /// encoding of the sort that might be introduced by the `encodeURIComponent` function is
-    /// replaced with the UTF-16 encoding of the code points that it represents.
-    ///
-    /// More information:
-    ///  - [ECMAScript reference][spec]
-    ///  - [MDN documentation][mdn]
-    ///
-    /// [spec]: https://tc39.es/ecma262/#sec-decodeuricomponent-encodeduricomponent
-    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/decodeURIComponent
-    pub(crate) fn decode_uri_component(
-        _: &JsValue,
-        args: &[JsValue],
-        context: &mut Context<'_>,
-    ) -> JsResult<JsValue> {
-        let encoded_uri_component = args.get_or_undefined(0);
-
-        // 1. Let componentString be ? ToString(encodedURIComponent).
-        let component_string = encoded_uri_component.to_string(context)?;
-
-        // 2. Let reservedURIComponentSet be the empty String.
-        let reserved_uri_component_set = |_: u16| false;
-
-        // 3. Return ? Decode(componentString, reservedURIComponentSet).
-        Ok(JsValue::from(decode(
-            &component_string,
-            reserved_uri_component_set,
-        )?))
+    pub(crate) fn decode_uri_component(&self) -> JsFunction {
+        self.decode_uri_component.clone()
     }
 
-    /// Builtin JavaScript `encodeURI ( uri )` function.
-    ///
-    /// This function computes a new version of a UTF-16 encoded (6.1.4) URI in which each instance
-    /// of certain code points is replaced by one, two, three, or four escape sequences
-    /// representing the UTF-8 encoding of the code points.
-    ///
-    /// More information:
-    ///  - [ECMAScript reference][spec]
-    ///  - [MDN documentation][mdn]
-    ///
-    /// [spec]: https://tc39.es/ecma262/#sec-encodeuri-uri
-    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/encodeURI
-    pub(crate) fn encode_uri(
-        _: &JsValue,
-        args: &[JsValue],
-        context: &mut Context<'_>,
-    ) -> JsResult<JsValue> {
-        let uri = args.get_or_undefined(0);
-
-        // 1. Let uriString be ? ToString(uri).
-        let uri_string = uri.to_string(context)?;
-
-        // 2. Let unescapedURISet be a String containing one instance of each code unit valid in uriReserved and uriUnescaped plus "#".
-        let unescaped_uri_set = is_uri_reserved_or_uri_unescaped_or_number_sign;
-
-        // 3. Return ? Encode(uriString, unescapedURISet).
-        Ok(JsValue::from(encode(&uri_string, unescaped_uri_set)?))
+    pub(crate) fn encode_uri(&self) -> JsFunction {
+        self.encode_uri.clone()
     }
 
-    /// Builtin JavaScript `encodeURIComponent ( uriComponent )` function.
-    ///
-    /// This function computes a new version of a UTF-16 encoded (6.1.4) URI in which each instance
-    /// of certain code points is replaced by one, two, three, or four escape sequences
-    /// representing the UTF-8 encoding of the code point.
-    ///
-    /// More information:
-    ///  - [ECMAScript reference][spec]
-    ///  - [MDN documentation][mdn]
-    ///
-    /// [spec]: https://tc39.es/ecma262/#sec-encodeuricomponent-uricomponent
-    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/encodeURIComponent
-    pub(crate) fn encode_uri_component(
-        _: &JsValue,
-        args: &[JsValue],
-        context: &mut Context<'_>,
-    ) -> JsResult<JsValue> {
-        let uri_component = args.get_or_undefined(0);
-
-        // 1. Let componentString be ? ToString(uriComponent).
-        let component_string = uri_component.to_string(context)?;
-
-        // 2. Let unescapedURIComponentSet be a String containing one instance of each code unit valid in uriUnescaped.
-        let unescaped_uri_component_set = is_uri_unescaped;
-
-        // 3. Return ? Encode(componentString, unescapedURIComponentSet).
-        Ok(JsValue::from(encode(
-            &component_string,
-            unescaped_uri_component_set,
-        )?))
+    pub(crate) fn encode_uri_component(&self) -> JsFunction {
+        self.encode_uri_component.clone()
     }
+}
+
+/// URI Handling Functions
+#[derive(Debug, Clone, Copy)]
+pub(crate) struct DecodeUri;
+
+impl IntrinsicObject for DecodeUri {
+    fn init(intrinsics: &Intrinsics) {
+        BuiltInBuilder::with_intrinsic::<Self>(intrinsics)
+            .callable(decode_uri)
+            .name(Self::NAME)
+            .length(1)
+            .build();
+    }
+    fn get(intrinsics: &Intrinsics) -> JsObject {
+        intrinsics.objects().uri_functions().decode_uri().into()
+    }
+}
+
+impl BuiltInObject for DecodeUri {
+    const NAME: &'static str = "decodeURI";
+}
+
+pub(crate) struct DecodeUriComponent;
+
+impl IntrinsicObject for DecodeUriComponent {
+    fn init(intrinsics: &Intrinsics) {
+        BuiltInBuilder::with_intrinsic::<Self>(intrinsics)
+            .callable(decode_uri_component)
+            .name(Self::NAME)
+            .length(1)
+            .build();
+    }
+    fn get(intrinsics: &Intrinsics) -> JsObject {
+        intrinsics
+            .objects()
+            .uri_functions()
+            .decode_uri_component()
+            .into()
+    }
+}
+
+impl BuiltInObject for DecodeUriComponent {
+    const NAME: &'static str = "decodeURIComponent";
+}
+
+pub(crate) struct EncodeUri;
+
+impl IntrinsicObject for EncodeUri {
+    fn init(intrinsics: &Intrinsics) {
+        BuiltInBuilder::with_intrinsic::<Self>(intrinsics)
+            .callable(encode_uri)
+            .name(Self::NAME)
+            .length(1)
+            .build();
+    }
+    fn get(intrinsics: &Intrinsics) -> JsObject {
+        intrinsics.objects().uri_functions().encode_uri().into()
+    }
+}
+
+impl BuiltInObject for EncodeUri {
+    const NAME: &'static str = "encodeURI";
+}
+pub(crate) struct EncodeUriComponent;
+
+impl IntrinsicObject for EncodeUriComponent {
+    fn init(intrinsics: &Intrinsics) {
+        BuiltInBuilder::with_intrinsic::<Self>(intrinsics)
+            .callable(encode_uri_component)
+            .name(Self::NAME)
+            .length(1)
+            .build();
+    }
+    fn get(intrinsics: &Intrinsics) -> JsObject {
+        intrinsics
+            .objects()
+            .uri_functions()
+            .encode_uri_component()
+            .into()
+    }
+}
+
+impl BuiltInObject for EncodeUriComponent {
+    const NAME: &'static str = "encodeURIComponent";
+}
+
+/// Builtin JavaScript `decodeURI ( encodedURI )` function.
+///
+/// This function computes a new version of a URI in which each escape sequence and UTF-8
+/// encoding of the sort that might be introduced by the `encodeURI` function is replaced with
+/// the UTF-16 encoding of the code points that it represents. Escape sequences that could not
+/// have been introduced by `encodeURI` are not replaced.
+///
+/// More information:
+///  - [ECMAScript reference][spec]
+///  - [MDN documentation][mdn]
+///
+/// [spec]: https://tc39.es/ecma262/#sec-decodeuri-encodeduri
+/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/decodeURI
+pub(crate) fn decode_uri(
+    _: &JsValue,
+    args: &[JsValue],
+    context: &mut Context<'_>,
+) -> JsResult<JsValue> {
+    let encoded_uri = args.get_or_undefined(0);
+
+    // 1. Let uriString be ? ToString(encodedURI).
+    let uri_string = encoded_uri.to_string(context)?;
+
+    // 2. Let reservedURISet be a String containing one instance of each code unit valid in uriReserved plus "#".
+    let reserved_uri_set = is_uri_reserved_or_number_sign;
+
+    // 3. Return ? Decode(uriString, reservedURISet).
+    Ok(JsValue::from(decode(&uri_string, reserved_uri_set)?))
+}
+/// Builtin JavaScript `decodeURIComponent ( encodedURIComponent )` function.
+///
+/// This function computes a new version of a URI in which each escape sequence and UTF-8
+/// encoding of the sort that might be introduced by the `encodeURIComponent` function is
+/// replaced with the UTF-16 encoding of the code points that it represents.
+///
+/// More information:
+///  - [ECMAScript reference][spec]
+///  - [MDN documentation][mdn]
+///
+/// [spec]: https://tc39.es/ecma262/#sec-decodeuricomponent-encodeduricomponent
+/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/decodeURIComponent
+pub(crate) fn decode_uri_component(
+    _: &JsValue,
+    args: &[JsValue],
+    context: &mut Context<'_>,
+) -> JsResult<JsValue> {
+    let encoded_uri_component = args.get_or_undefined(0);
+
+    // 1. Let componentString be ? ToString(encodedURIComponent).
+    let component_string = encoded_uri_component.to_string(context)?;
+
+    // 2. Let reservedURIComponentSet be the empty String.
+    let reserved_uri_component_set = |_: u16| false;
+
+    // 3. Return ? Decode(componentString, reservedURIComponentSet).
+    Ok(JsValue::from(decode(
+        &component_string,
+        reserved_uri_component_set,
+    )?))
+}
+
+/// Builtin JavaScript `encodeURI ( uri )` function.
+///
+/// This function computes a new version of a UTF-16 encoded (6.1.4) URI in which each instance
+/// of certain code points is replaced by one, two, three, or four escape sequences
+/// representing the UTF-8 encoding of the code points.
+///
+/// More information:
+///  - [ECMAScript reference][spec]
+///  - [MDN documentation][mdn]
+///
+/// [spec]: https://tc39.es/ecma262/#sec-encodeuri-uri
+/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/encodeURI
+pub(crate) fn encode_uri(
+    _: &JsValue,
+    args: &[JsValue],
+    context: &mut Context<'_>,
+) -> JsResult<JsValue> {
+    let uri = args.get_or_undefined(0);
+
+    // 1. Let uriString be ? ToString(uri).
+    let uri_string = uri.to_string(context)?;
+
+    // 2. Let unescapedURISet be a String containing one instance of each code unit valid in uriReserved and uriUnescaped plus "#".
+    let unescaped_uri_set = is_uri_reserved_or_uri_unescaped_or_number_sign;
+
+    // 3. Return ? Encode(uriString, unescapedURISet).
+    Ok(JsValue::from(encode(&uri_string, unescaped_uri_set)?))
+}
+
+/// Builtin JavaScript `encodeURIComponent ( uriComponent )` function.
+///
+/// This function computes a new version of a UTF-16 encoded (6.1.4) URI in which each instance
+/// of certain code points is replaced by one, two, three, or four escape sequences
+/// representing the UTF-8 encoding of the code point.
+///
+/// More information:
+///  - [ECMAScript reference][spec]
+///  - [MDN documentation][mdn]
+///
+/// [spec]: https://tc39.es/ecma262/#sec-encodeuricomponent-uricomponent
+/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/encodeURIComponent
+pub(crate) fn encode_uri_component(
+    _: &JsValue,
+    args: &[JsValue],
+    context: &mut Context<'_>,
+) -> JsResult<JsValue> {
+    let uri_component = args.get_or_undefined(0);
+
+    // 1. Let componentString be ? ToString(uriComponent).
+    let component_string = uri_component.to_string(context)?;
+
+    // 2. Let unescapedURIComponentSet be a String containing one instance of each code unit valid in uriUnescaped.
+    let unescaped_uri_component_set = is_uri_unescaped;
+
+    // 3. Return ? Encode(componentString, unescapedURIComponentSet).
+    Ok(JsValue::from(encode(
+        &component_string,
+        unescaped_uri_component_set,
+    )?))
 }
 
 /// The `Encode ( string, unescapedSet )` abstract operation

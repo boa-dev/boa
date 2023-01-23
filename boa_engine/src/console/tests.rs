@@ -1,4 +1,4 @@
-use crate::{builtins::console::formatter, Context, JsValue};
+use crate::{console::formatter, Context, JsValue};
 
 #[test]
 fn formatter_no_args_is_empty_string() {

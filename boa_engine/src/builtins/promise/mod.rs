@@ -3,21 +3,21 @@
 #[cfg(test)]
 mod tests;
 
-use super::{iterable::IteratorRecord, JsArgs};
+use super::{iterable::IteratorRecord, BuiltInBuilder, BuiltInConstructor, IntrinsicObject};
 use crate::{
-    builtins::{error::ErrorKind, Array, BuiltIn},
-    context::intrinsics::StandardConstructors,
+    builtins::{error::ErrorKind, Array, BuiltInObject},
+    context::intrinsics::{Intrinsics, StandardConstructor, StandardConstructors},
     error::JsNativeError,
     job::{JobCallback, NativeJob},
     native_function::NativeFunction,
     object::{
-        internal_methods::get_prototype_from_constructor, ConstructorBuilder,
-        FunctionObjectBuilder, JsFunction, JsObject, ObjectData,
+        internal_methods::get_prototype_from_constructor, FunctionObjectBuilder, JsFunction,
+        JsObject, ObjectData, CONSTRUCTOR,
     },
     property::{Attribute, PropertyDescriptorBuilder},
     symbol::JsSymbol,
     value::JsValue,
-    Context, JsError, JsResult,
+    Context, JsArgs, JsError, JsResult,
 };
 use boa_gc::{Finalize, Gc, GcRefCell, Trace};
 use boa_profiler::Profiler;
@@ -258,69 +258,54 @@ impl PromiseCapability {
     }
 }
 
-impl BuiltIn for Promise {
-    const NAME: &'static str = "Promise";
-
-    const ATTRIBUTE: Attribute = Attribute::WRITABLE
-        .union(Attribute::NON_ENUMERABLE)
-        .union(Attribute::CONFIGURABLE);
-
-    fn init(context: &mut Context<'_>) -> Option<JsValue> {
+impl IntrinsicObject for Promise {
+    fn init(intrinsics: &Intrinsics) {
         let _timer = Profiler::global().start_event(Self::NAME, "init");
 
-        let get_species =
-            FunctionObjectBuilder::new(context, NativeFunction::from_fn_ptr(Self::get_species))
-                .name("get [Symbol.species]")
-                .constructor(false)
-                .build();
+        let get_species = BuiltInBuilder::new(intrinsics)
+            .callable(Self::get_species)
+            .name("get [Symbol.species]")
+            .build();
 
-        ConstructorBuilder::with_standard_constructor(
-            context,
-            Self::constructor,
-            context.intrinsics().constructors().promise().clone(),
-        )
-        .name(Self::NAME)
-        .length(Self::LENGTH)
-        .static_method(Self::all, "all", 1)
-        .static_method(Self::all_settled, "allSettled", 1)
-        .static_method(Self::any, "any", 1)
-        .static_method(Self::race, "race", 1)
-        .static_method(Self::reject, "reject", 1)
-        .static_method(Self::resolve, "resolve", 1)
-        .static_accessor(
-            JsSymbol::species(),
-            Some(get_species),
-            None,
-            Attribute::CONFIGURABLE,
-        )
-        .method(Self::then, "then", 2)
-        .method(Self::catch, "catch", 1)
-        .method(Self::finally, "finally", 1)
-        // <https://tc39.es/ecma262/#sec-promise.prototype-@@tostringtag>
-        .property(
-            JsSymbol::to_string_tag(),
-            Self::NAME,
-            Attribute::READONLY | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
-        )
-        .build()
-        .conv::<JsValue>()
-        .pipe(Some)
+        BuiltInBuilder::from_standard_constructor::<Self>(intrinsics)
+            .static_method(Self::all, "all", 1)
+            .static_method(Self::all_settled, "allSettled", 1)
+            .static_method(Self::any, "any", 1)
+            .static_method(Self::race, "race", 1)
+            .static_method(Self::reject, "reject", 1)
+            .static_method(Self::resolve, "resolve", 1)
+            .static_accessor(
+                JsSymbol::species(),
+                Some(get_species),
+                None,
+                Attribute::CONFIGURABLE,
+            )
+            .method(Self::then, "then", 2)
+            .method(Self::catch, "catch", 1)
+            .method(Self::finally, "finally", 1)
+            // <https://tc39.es/ecma262/#sec-promise.prototype-@@tostringtag>
+            .property(
+                JsSymbol::to_string_tag(),
+                Self::NAME,
+                Attribute::READONLY | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
+            )
+            .build();
+    }
+
+    fn get(intrinsics: &Intrinsics) -> JsObject {
+        Self::STANDARD_CONSTRUCTOR(intrinsics.constructors()).constructor()
     }
 }
 
-#[derive(Debug)]
-struct ResolvingFunctionsRecord {
-    resolve: JsFunction,
-    reject: JsFunction,
+impl BuiltInObject for Promise {
+    const NAME: &'static str = "Promise";
 }
 
-impl Promise {
+impl BuiltInConstructor for Promise {
     const LENGTH: usize = 1;
 
-    /// Gets the current state of the promise.
-    pub(crate) const fn state(&self) -> &PromiseState {
-        &self.state
-    }
+    const STANDARD_CONSTRUCTOR: fn(&StandardConstructors) -> &StandardConstructor =
+        StandardConstructors::promise;
 
     /// `Promise ( executor )`
     ///
@@ -388,6 +373,19 @@ impl Promise {
 
         // 11. Return promise.
         promise.conv::<JsValue>().pipe(Ok)
+    }
+}
+
+#[derive(Debug)]
+struct ResolvingFunctionsRecord {
+    resolve: JsFunction,
+    reject: JsFunction,
+}
+
+impl Promise {
+    /// Gets the current state of the promise.
+    pub(crate) const fn state(&self) -> &PromiseState {
+        &self.state
     }
 
     /// `Promise.all ( iterable )`
@@ -2122,7 +2120,7 @@ impl Promise {
         // 1. If IsPromise(x) is true, then
         if let Some(x) = x.as_promise() {
             // a. Let xConstructor be ? Get(x, "constructor").
-            let x_constructor = x.get("constructor", context)?;
+            let x_constructor = x.get(CONSTRUCTOR, context)?;
             // b. If SameValue(xConstructor, C) is true, return x.
             if x_constructor
                 .as_object()

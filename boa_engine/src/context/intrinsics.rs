@@ -1,12 +1,8 @@
 //! Data structures that contain intrinsic objects and constructors.
 
 use crate::{
-    builtins::{
-        array::Array, error::r#type::create_throw_type_error, iterable::IteratorPrototypes,
-    },
-    object::{JsObject, ObjectData},
-    property::PropertyDescriptorBuilder,
-    Context,
+    builtins::{iterable::IteratorPrototypes, uri::UriFunctions},
+    object::{JsFunction, JsObject, ObjectData},
 };
 
 /// The intrinsic objects and constructors.
@@ -57,14 +53,6 @@ impl StandardConstructor {
         }
     }
 
-    /// Return the constructor object.
-    ///
-    /// This is the same as `Object`, `Array`, etc.
-    #[inline]
-    pub fn constructor(&self) -> JsObject {
-        self.constructor.clone()
-    }
-
     /// Return the prototype of the constructor object.
     ///
     /// This is the same as `Object.prototype`, `Array.prototype`, etc
@@ -72,20 +60,26 @@ impl StandardConstructor {
     pub fn prototype(&self) -> JsObject {
         self.prototype.clone()
     }
+
+    /// Return the constructor object.
+    ///
+    /// This is the same as `Object`, `Array`, etc.
+    #[inline]
+    pub fn constructor(&self) -> JsObject {
+        self.constructor.clone()
+    }
 }
 
 /// Cached core standard constructors.
 #[derive(Debug, Clone)]
 pub struct StandardConstructors {
-    async_generator_function: StandardConstructor,
-    async_generator: StandardConstructor,
     object: StandardConstructor,
     proxy: StandardConstructor,
     date: StandardConstructor,
     function: StandardConstructor,
     async_function: StandardConstructor,
-    generator: StandardConstructor,
     generator_function: StandardConstructor,
+    async_generator_function: StandardConstructor,
     array: StandardConstructor,
     bigint: StandardConstructor,
     number: StandardConstructor,
@@ -132,15 +126,13 @@ pub struct StandardConstructors {
 
 impl Default for StandardConstructors {
     fn default() -> Self {
-        let result = Self {
+        Self {
             async_generator_function: StandardConstructor::default(),
-            async_generator: StandardConstructor::default(),
             object: StandardConstructor::default(),
             proxy: StandardConstructor::default(),
             date: StandardConstructor::default(),
             function: StandardConstructor::default(),
             async_function: StandardConstructor::default(),
-            generator: StandardConstructor::default(),
             generator_function: StandardConstructor::default(),
             array: StandardConstructor::with_prototype(JsObject::from_proto_and_data(
                 None,
@@ -196,20 +188,7 @@ impl Default for StandardConstructors {
             locale: StandardConstructor::default(),
             #[cfg(feature = "intl")]
             segmenter: StandardConstructor::default(),
-        };
-
-        // The value of `Array.prototype` is the Array prototype object.
-        result.array.prototype.insert(
-            "length",
-            PropertyDescriptorBuilder::new()
-                .value(0)
-                .writable(true)
-                .enumerable(false)
-                .configurable(false)
-                .build(),
-        );
-
-        result
+        }
     }
 }
 
@@ -223,17 +202,6 @@ impl StandardConstructors {
     #[inline]
     pub const fn async_generator_function(&self) -> &StandardConstructor {
         &self.async_generator_function
-    }
-
-    /// Returns the `AsyncGenerator` constructor.
-    ///
-    /// More information:
-    ///  - [ECMAScript reference][spec]
-    ///
-    /// [spec]: https://tc39.es/ecma262/#sec-asyncgenerator-objects
-    #[inline]
-    pub const fn async_generator(&self) -> &StandardConstructor {
-        &self.async_generator
     }
 
     /// Returns the `Object` constructor.
@@ -291,17 +259,6 @@ impl StandardConstructors {
         &self.async_function
     }
 
-    /// Returns the `Generator` constructor.
-    ///
-    /// More information:
-    ///  - [ECMAScript reference][spec]
-    ///
-    /// [spec]: https://tc39.es/ecma262/#sec-generator-objects
-    #[inline]
-    pub const fn generator(&self) -> &StandardConstructor {
-        &self.generator
-    }
-
     /// Returns the `GeneratorFunction` constructor.
     ///
     /// More information:
@@ -331,7 +288,7 @@ impl StandardConstructors {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-bigint-constructor
     #[inline]
-    pub const fn bigint_object(&self) -> &StandardConstructor {
+    pub const fn bigint(&self) -> &StandardConstructor {
         &self.bigint
     }
 
@@ -737,43 +694,167 @@ impl StandardConstructors {
 }
 
 /// Cached intrinsic objects
-#[derive(Debug, Default)]
+#[derive(Debug)]
 pub struct IntrinsicObjects {
-    /// %ThrowTypeError% intrinsic object
-    throw_type_error: JsObject,
+    /// %Reflect%
+    reflect: JsObject,
 
-    /// %Array.prototype.values%
+    /// %Math%
+    math: JsObject,
+
+    /// %JSON%
+    json: JsObject,
+
+    /// %ThrowTypeError% intrinsic object
+    throw_type_error: JsFunction,
+
+    /// `%Array.prototype.values%`
     array_prototype_values: JsObject,
 
     /// Cached iterator prototypes.
     iterator_prototypes: IteratorPrototypes,
+
+    /// %GeneratorFunction.prototype.prototype%
+    generator: JsObject,
+
+    /// %AsyncGeneratorFunction.prototype.prototype%
+    async_generator: JsObject,
+
+    /// %eval%
+    eval: JsFunction,
+
+    /// URI related functions
+    uri_functions: UriFunctions,
+
+    /// %isFinite%
+    is_finite: JsFunction,
+
+    /// %isNaN%
+    is_nan: JsFunction,
+
+    /// %parseFloat%
+    parse_float: JsFunction,
+
+    /// %parseInt%
+    parse_int: JsFunction,
+
+    /// %Intl%
+    #[cfg(feature = "intl")]
+    intl: JsObject,
+}
+
+impl Default for IntrinsicObjects {
+    fn default() -> Self {
+        Self {
+            reflect: JsObject::default(),
+            math: JsObject::default(),
+            json: JsObject::default(),
+            throw_type_error: JsFunction::from_object_unchecked(JsObject::default()),
+            array_prototype_values: JsObject::default(),
+            iterator_prototypes: IteratorPrototypes::default(),
+            generator: JsObject::default(),
+            async_generator: JsObject::default(),
+            eval: JsFunction::from_object_unchecked(JsObject::default()),
+            uri_functions: UriFunctions::default(),
+            is_finite: JsFunction::from_object_unchecked(JsObject::default()),
+            is_nan: JsFunction::from_object_unchecked(JsObject::default()),
+            parse_float: JsFunction::from_object_unchecked(JsObject::default()),
+            parse_int: JsFunction::from_object_unchecked(JsObject::default()),
+            #[cfg(feature = "intl")]
+            intl: JsObject::default(),
+        }
+    }
 }
 
 impl IntrinsicObjects {
-    /// Initialize the intrinsic objects
-    pub fn init(context: &mut Context<'_>) -> Self {
-        Self {
-            throw_type_error: create_throw_type_error(context),
-            array_prototype_values: Array::create_array_prototype_values(context).into(),
-            iterator_prototypes: IteratorPrototypes::init(context),
-        }
-    }
-
-    /// Get the `%ThrowTypeError%` intrinsic object
+    /// Gets the `%ThrowTypeError%` intrinsic function.
     #[inline]
-    pub fn throw_type_error(&self) -> JsObject {
+    pub fn throw_type_error(&self) -> JsFunction {
         self.throw_type_error.clone()
     }
 
-    /// Get the `%Array.prototype.values%` intrinsic object.
+    /// Gets the `%Array.prototype.values%` intrinsic object.
     #[inline]
     pub fn array_prototype_values(&self) -> JsObject {
         self.array_prototype_values.clone()
     }
 
-    /// Get the cached iterator prototypes.
+    /// Gets the cached iterator prototypes.
     #[inline]
     pub const fn iterator_prototypes(&self) -> &IteratorPrototypes {
         &self.iterator_prototypes
+    }
+
+    /// Gets the `%GeneratorFunction.prototype.prototype%` intrinsic object.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-generator-objects
+    #[inline]
+    pub fn generator(&self) -> JsObject {
+        self.generator.clone()
+    }
+
+    /// Gets the `%AsyncGeneratorFunction.prototype.prototype%` intrinsic object.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-asyncgenerator-objects
+    #[inline]
+    pub fn async_generator(&self) -> JsObject {
+        self.async_generator.clone()
+    }
+
+    /// Gets the %eval% intrinsic function.
+    pub fn eval(&self) -> JsFunction {
+        self.eval.clone()
+    }
+
+    /// Gets the URI intrinsic functions.
+    pub const fn uri_functions(&self) -> &UriFunctions {
+        &self.uri_functions
+    }
+
+    /// Gets the %Reflect% intrinsic object.
+    pub fn reflect(&self) -> JsObject {
+        self.reflect.clone()
+    }
+
+    /// Gets the %Math% intrinsic object.
+    pub fn math(&self) -> JsObject {
+        self.math.clone()
+    }
+
+    /// Gets the %JSON% intrinsic object.
+    pub fn json(&self) -> JsObject {
+        self.json.clone()
+    }
+
+    /// Gets the %isFinite% intrinsic function.
+    pub fn is_finite(&self) -> JsFunction {
+        self.is_finite.clone()
+    }
+
+    /// Gets the %`isNaN`% intrinsic function.
+    pub fn is_nan(&self) -> JsFunction {
+        self.is_nan.clone()
+    }
+
+    /// Gets the %parseFloat% intrinsic function.
+    pub fn parse_float(&self) -> JsFunction {
+        self.parse_float.clone()
+    }
+
+    /// Gets the %parseInt% intrinsic function.
+    pub fn parse_int(&self) -> JsFunction {
+        self.parse_int.clone()
+    }
+
+    /// Gets the %Intl% intrinsic object.
+    #[cfg(feature = "intl")]
+    pub fn intl(&self) -> JsObject {
+        self.intl.clone()
     }
 }

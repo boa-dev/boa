@@ -124,6 +124,9 @@ pub mod symbol;
 pub mod value;
 pub mod vm;
 
+#[cfg(feature = "console")]
+pub mod console;
+
 pub(crate) mod tagged;
 #[cfg(test)]
 mod tests;
@@ -155,6 +158,27 @@ pub use boa_parser::Source;
 
 /// The result of a Javascript expression is represented like this so it can succeed (`Ok`) or fail (`Err`)
 pub type JsResult<T> = StdResult<T, JsError>;
+
+/// A utility trait to make working with function arguments easier.
+pub trait JsArgs {
+    /// Utility function to `get` a parameter from a `[JsValue]` or default to `JsValue::Undefined`
+    /// if `get` returns `None`.
+    ///
+    /// Call this if you are thinking of calling something similar to
+    /// `args.get(n).cloned().unwrap_or_default()` or
+    /// `args.get(n).unwrap_or(&undefined)`.
+    ///
+    /// This returns a reference for efficiency, in case you only need to call methods of `JsValue`,
+    /// so try to minimize calling `clone`.
+    fn get_or_undefined(&self, index: usize) -> &JsValue;
+}
+
+impl JsArgs for [JsValue] {
+    fn get_or_undefined(&self, index: usize) -> &JsValue {
+        const UNDEFINED: &JsValue = &JsValue::Undefined;
+        self.get(index).unwrap_or(UNDEFINED)
+    }
+}
 
 /// Execute the code using an existing `Context`.
 ///

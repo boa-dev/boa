@@ -2,89 +2,17 @@ use crate::{
     builtins::{
         iterable::{create_iter_result_object, IteratorRecord, IteratorResult},
         promise::{if_abrupt_reject_promise, PromiseCapability},
-        JsArgs, Promise,
+        BuiltInBuilder, IntrinsicObject, Promise,
     },
+    context::intrinsics::Intrinsics,
     native_function::NativeFunction,
     object::{FunctionObjectBuilder, JsObject, ObjectData},
-    property::PropertyDescriptor,
-    Context, JsNativeError, JsResult, JsValue,
+    Context, JsArgs, JsNativeError, JsResult, JsValue,
 };
 use boa_gc::{Finalize, Trace};
 use boa_profiler::Profiler;
 
-/// Create the `%AsyncFromSyncIteratorPrototype%` object.
-///
-/// More information:
-///  - [ECMA reference][spec]
-///
-/// [spec]: https://tc39.es/ecma262/#sec-%asyncfromsynciteratorprototype%-object
-pub(crate) fn create_async_from_sync_iterator_prototype(context: &mut Context<'_>) -> JsObject {
-    let _timer = Profiler::global().start_event("AsyncFromSyncIteratorPrototype", "init");
-
-    let prototype = JsObject::from_proto_and_data(
-        context
-            .intrinsics()
-            .objects()
-            .iterator_prototypes()
-            .async_iterator_prototype(),
-        ObjectData::ordinary(),
-    );
-
-    let next_function = FunctionObjectBuilder::new(
-        context,
-        NativeFunction::from_fn_ptr(AsyncFromSyncIterator::next),
-    )
-    .name("next")
-    .length(1)
-    .build();
-    let return_function = FunctionObjectBuilder::new(
-        context,
-        NativeFunction::from_fn_ptr(AsyncFromSyncIterator::r#return),
-    )
-    .name("return")
-    .length(1)
-    .build();
-    let throw_function = FunctionObjectBuilder::new(
-        context,
-        NativeFunction::from_fn_ptr(AsyncFromSyncIterator::throw),
-    )
-    .name("throw")
-    .length(1)
-    .build();
-
-    {
-        let mut prototype_mut = prototype.borrow_mut();
-
-        prototype_mut.insert(
-            "next",
-            PropertyDescriptor::builder()
-                .value(next_function)
-                .writable(true)
-                .enumerable(false)
-                .configurable(true),
-        );
-        prototype_mut.insert(
-            "return",
-            PropertyDescriptor::builder()
-                .value(return_function)
-                .writable(true)
-                .enumerable(false)
-                .configurable(true),
-        );
-        prototype_mut.insert(
-            "throw",
-            PropertyDescriptor::builder()
-                .value(throw_function)
-                .writable(true)
-                .enumerable(false)
-                .configurable(true),
-        );
-    }
-
-    prototype
-}
-
-/// The internal data for `%AsyncFromSyncIterator%` objects.
+/// `%AsyncFromSyncIteratorPrototype%` object.
 ///
 /// More information:
 ///  - [ECMA reference][spec]
@@ -94,6 +22,26 @@ pub(crate) fn create_async_from_sync_iterator_prototype(context: &mut Context<'_
 pub struct AsyncFromSyncIterator {
     // The [[SyncIteratorRecord]] internal slot.
     sync_iterator_record: IteratorRecord,
+}
+
+impl IntrinsicObject for AsyncFromSyncIterator {
+    fn init(intrinsics: &Intrinsics) {
+        let _timer = Profiler::global().start_event("AsyncFromSyncIteratorPrototype", "init");
+
+        BuiltInBuilder::with_intrinsic::<Self>(intrinsics)
+            .prototype(intrinsics.objects().iterator_prototypes().async_iterator())
+            .static_method(Self::next, "next", 1)
+            .static_method(Self::r#return, "return", 1)
+            .static_method(Self::throw, "throw", 1)
+            .build();
+    }
+
+    fn get(intrinsics: &Intrinsics) -> JsObject {
+        intrinsics
+            .objects()
+            .iterator_prototypes()
+            .async_from_sync_iterator()
+    }
 }
 
 impl AsyncFromSyncIterator {
@@ -114,7 +62,7 @@ impl AsyncFromSyncIterator {
                 .intrinsics()
                 .objects()
                 .iterator_prototypes()
-                .async_from_sync_iterator_prototype(),
+                .async_from_sync_iterator(),
             ObjectData::async_from_sync_iterator(Self {
                 sync_iterator_record,
             }),

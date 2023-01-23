@@ -12,16 +12,13 @@
 //! [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/EvalError
 
 use crate::{
-    builtins::{BuiltIn, JsArgs},
-    context::intrinsics::StandardConstructors,
-    object::{
-        internal_methods::get_prototype_from_constructor, ConstructorBuilder, JsObject, ObjectData,
-    },
+    builtins::{BuiltInBuilder, BuiltInConstructor, BuiltInObject, IntrinsicObject},
+    context::intrinsics::{Intrinsics, StandardConstructor, StandardConstructors},
+    object::{internal_methods::get_prototype_from_constructor, JsObject, ObjectData},
     property::Attribute,
-    Context, JsResult, JsValue,
+    Context, JsArgs, JsResult, JsValue,
 };
 use boa_profiler::Profiler;
-use tap::{Conv, Pipe};
 
 use super::{Error, ErrorKind};
 
@@ -29,39 +26,36 @@ use super::{Error, ErrorKind};
 #[derive(Debug, Clone, Copy)]
 pub(crate) struct EvalError;
 
-impl BuiltIn for EvalError {
-    const NAME: &'static str = "EvalError";
-
-    fn init(context: &mut Context<'_>) -> Option<JsValue> {
+impl IntrinsicObject for EvalError {
+    fn init(intrinsics: &Intrinsics) {
         let _timer = Profiler::global().start_event(Self::NAME, "init");
 
-        let error_constructor = context.intrinsics().constructors().error().constructor();
-        let error_prototype = context.intrinsics().constructors().error().prototype();
-
         let attribute = Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE;
-        ConstructorBuilder::with_standard_constructor(
-            context,
-            Self::constructor,
-            context.intrinsics().constructors().eval_error().clone(),
-        )
-        .name(Self::NAME)
-        .length(Self::LENGTH)
-        .inherit(error_prototype)
-        .custom_prototype(error_constructor)
-        .property("name", Self::NAME, attribute)
-        .property("message", "", attribute)
-        .build()
-        .conv::<JsValue>()
-        .pipe(Some)
+        BuiltInBuilder::from_standard_constructor::<Self>(intrinsics)
+            .prototype(intrinsics.constructors().error().constructor())
+            .inherits(Some(intrinsics.constructors().error().prototype()))
+            .property("name", Self::NAME, attribute)
+            .property("message", "", attribute)
+            .build();
+    }
+
+    fn get(intrinsics: &Intrinsics) -> JsObject {
+        Self::STANDARD_CONSTRUCTOR(intrinsics.constructors()).constructor()
     }
 }
 
-impl EvalError {
-    /// The amount of arguments this function object takes.
-    pub(crate) const LENGTH: usize = 1;
+impl BuiltInObject for EvalError {
+    const NAME: &'static str = "EvalError";
+}
+
+impl BuiltInConstructor for EvalError {
+    const LENGTH: usize = 1;
+
+    const STANDARD_CONSTRUCTOR: fn(&StandardConstructors) -> &StandardConstructor =
+        StandardConstructors::eval_error;
 
     /// Create a new error object.
-    pub(crate) fn constructor(
+    fn constructor(
         new_target: &JsValue,
         args: &[JsValue],
         context: &mut Context<'_>,
