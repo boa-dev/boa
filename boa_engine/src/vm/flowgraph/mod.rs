@@ -310,7 +310,7 @@ impl CodeBlock {
                     let fn_name = interner
                         .resolve_expect(self.functions[operand as usize].name)
                         .to_string();
-                    pc += size_of::<u32>();
+                    pc += size_of::<u32>() + size_of::<u8>();
                     let label = format!(
                         "{opcode_str} '{fn_name}' (length: {})",
                         self.functions[operand as usize].length

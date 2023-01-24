@@ -270,7 +270,7 @@ impl CodeBlock {
             | Opcode::GetGenerator
             | Opcode::GetGeneratorAsync => {
                 let operand = self.read::<u32>(*pc);
-                *pc += size_of::<u32>();
+                *pc += size_of::<u32>() + size_of::<u8>();
                 format!(
                     "{operand:04}: '{:?}' (length: {})",
                     interner.resolve_expect(self.functions[operand as usize].name),
@@ -518,6 +518,7 @@ pub(crate) fn create_function_object(
     r#async: bool,
     arrow: bool,
     prototype: Option<JsObject>,
+    method: bool,
     context: &mut Context<'_>,
 ) -> JsObject {
     let _timer = Profiler::global().start_event("JsVmFunction::new", "vm");
@@ -612,7 +613,7 @@ pub(crate) fn create_function_object(
     constructor
         .define_property_or_throw(js_string!("name"), name_property, context)
         .expect("failed to define the name property of the function");
-    if !r#async && !arrow {
+    if !r#async && !arrow && !method {
         constructor
             .define_property_or_throw(js_string!("prototype"), prototype_property, context)
             .expect("failed to define the prototype property of the function");
@@ -625,6 +626,7 @@ pub(crate) fn create_function_object(
 pub(crate) fn create_generator_function_object(
     code: Gc<CodeBlock>,
     r#async: bool,
+    method: bool,
     context: &mut Context<'_>,
 ) -> JsObject {
     let function_prototype = if r#async {
@@ -701,9 +703,11 @@ pub(crate) fn create_generator_function_object(
         .configurable(false)
         .build();
 
-    constructor
-        .define_property_or_throw(js_string!("prototype"), prototype_property, context)
-        .expect("failed to define the prototype property of the generator function");
+    if !method {
+        constructor
+            .define_property_or_throw(js_string!("prototype"), prototype_property, context)
+            .expect("failed to define the prototype property of the generator function");
+    }
     constructor
         .define_property_or_throw(js_string!("name"), name_property, context)
         .expect("failed to define the name property of the generator function");

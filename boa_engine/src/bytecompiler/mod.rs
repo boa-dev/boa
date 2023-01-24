@@ -1083,6 +1083,7 @@ impl<'b, 'host> ByteCompiler<'b, 'host> {
         } else {
             self.emit(Opcode::GetFunction, &[index]);
         }
+        self.emit_u8(0);
 
         match node_kind {
             NodeKind::Declaration => {
@@ -1158,6 +1159,7 @@ impl<'b, 'host> ByteCompiler<'b, 'host> {
         } else {
             self.emit(Opcode::GetFunction, &[index]);
         }
+        self.emit_u8(1);
 
         match node_kind {
             NodeKind::Declaration => {

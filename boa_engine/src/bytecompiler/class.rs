@@ -138,6 +138,7 @@ impl ByteCompiler<'_, '_> {
         let index = self.code_block.functions.len() as u32;
         self.code_block.functions.push(code);
         self.emit(Opcode::GetFunction, &[index]);
+        self.emit_u8(0);
 
         self.emit_opcode(Opcode::Dup);
         if let Some(node) = class.super_ref() {
@@ -320,6 +321,7 @@ impl ByteCompiler<'_, '_> {
                     let index = self.code_block.functions.len() as u32;
                     self.code_block.functions.push(code);
                     self.emit(Opcode::GetFunction, &[index]);
+                    self.emit_u8(0);
                     self.emit_opcode(Opcode::PushClassField);
                 }
                 ClassElement::PrivateFieldDefinition(name, field) => {
@@ -362,6 +364,7 @@ impl ByteCompiler<'_, '_> {
                     let index = self.code_block.functions.len() as u32;
                     self.code_block.functions.push(code);
                     self.emit(Opcode::GetFunction, &[index]);
+                    self.emit_u8(0);
                     self.emit(Opcode::PushClassFieldPrivate, &[name_index]);
                 }
                 ClassElement::StaticFieldDefinition(name, field) => {
@@ -414,6 +417,7 @@ impl ByteCompiler<'_, '_> {
                     let index = self.code_block.functions.len() as u32;
                     self.code_block.functions.push(code);
                     self.emit(Opcode::GetFunction, &[index]);
+                    self.emit_u8(0);
                     self.emit_opcode(Opcode::SetHomeObject);
                     self.emit(Opcode::Call, &[0]);
                     if let Some(name_index) = name_index {
@@ -454,6 +458,7 @@ impl ByteCompiler<'_, '_> {
                     let index = self.code_block.functions.len() as u32;
                     self.code_block.functions.push(code);
                     self.emit(Opcode::GetFunction, &[index]);
+                    self.emit_u8(0);
                     self.emit_opcode(Opcode::SetHomeObject);
                     self.emit(Opcode::Call, &[0]);
                     self.emit_opcode(Opcode::Pop);

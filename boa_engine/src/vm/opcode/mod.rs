@@ -1207,42 +1207,42 @@ generate_impl! {
 
         /// Get arrow function from the pre-compiled inner functions.
         ///
-        /// Operands: address: `u32`
+        /// Operands: address: `u32`, method: `u8`
         ///
         /// Stack: **=>** func
         GetArrowFunction,
 
         /// Get async arrow function from the pre-compiled inner functions.
         ///
-        /// Operands: address: `u32`
+        /// Operands: address: `u32`, method: `u8`
         ///
         /// Stack: **=>** func
         GetAsyncArrowFunction,
 
         /// Get function from the pre-compiled inner functions.
         ///
-        /// Operands: address: `u32`
+        /// Operands: address: `u32`, method: `u8`
         ///
         /// Stack: **=>** func
         GetFunction,
 
         /// Get async function from the pre-compiled inner functions.
         ///
-        /// Operands: address: `u32`
+        /// Operands: address: `u32`, method: `u8`
         ///
         /// Stack: **=>** func
         GetFunctionAsync,
 
         /// Get generator function from the pre-compiled inner functions.
         ///
-        /// Operands: address: `u32`
+        /// Operands: address: `u32`, method: `u8`
         ///
         /// Stack: **=>** func
         GetGenerator,
 
         /// Get async generator function from the pre-compiled inner functions.
         ///
-        /// Operands: address: `u32`
+        /// Operands: address: `u32`, method: `u8`
         ///
         /// Stack: **=>** func
         GetGeneratorAsync,
