@@ -1498,6 +1498,10 @@
 <span id="1497">1497</span>
 <span id="1498">1498</span>
 <span id="1499">1499</span>
+<span id="1500">1500</span>
+<span id="1501">1501</span>
+<span id="1502">1502</span>
+<span id="1503">1503</span>
 </pre><pre class="rust"><code><span class="doccomment">//! `CodeBlock`
 //!
 //! This module is for the `CodeBlock` which implements a function representation in the VM
@@ -1770,7 +1774,7 @@
             | Opcode::GetGenerator
             | Opcode::GetGeneratorAsync =&gt; {
                 <span class="kw">let </span>operand = <span class="self">self</span>.read::&lt;u32&gt;(<span class="kw-2">*</span>pc);
-                <span class="kw-2">*</span>pc += size_of::&lt;u32&gt;();
+                <span class="kw-2">*</span>pc += size_of::&lt;u32&gt;() + size_of::&lt;u8&gt;();
                 <span class="macro">format!</span>(
                     <span class="string">&quot;{operand:04}: &#39;{:?}&#39; (length: {})&quot;</span>,
                     interner.resolve_expect(<span class="self">self</span>.functions[operand <span class="kw">as </span>usize].name),
@@ -2018,6 +2022,7 @@
     r#async: bool,
     arrow: bool,
     prototype: <span class="prelude-ty">Option</span>&lt;JsObject&gt;,
+    method: bool,
     context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
 ) -&gt; JsObject {
     <span class="kw">let </span>_timer = Profiler::global().start_event(<span class="string">&quot;JsVmFunction::new&quot;</span>, <span class="string">&quot;vm&quot;</span>);
@@ -2112,7 +2117,7 @@
     constructor
         .define_property_or_throw(<span class="macro">js_string!</span>(<span class="string">&quot;name&quot;</span>), name_property, context)
         .expect(<span class="string">&quot;failed to define the name property of the function&quot;</span>);
-    <span class="kw">if </span>!r#async &amp;&amp; !arrow {
+    <span class="kw">if </span>!r#async &amp;&amp; !arrow &amp;&amp; !method {
         constructor
             .define_property_or_throw(<span class="macro">js_string!</span>(<span class="string">&quot;prototype&quot;</span>), prototype_property, context)
             .expect(<span class="string">&quot;failed to define the prototype property of the function&quot;</span>);
@@ -2125,6 +2130,7 @@
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>create_generator_function_object(
     code: Gc&lt;CodeBlock&gt;,
     r#async: bool,
+    method: bool,
     context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
 ) -&gt; JsObject {
     <span class="kw">let </span>function_prototype = <span class="kw">if </span>r#async {
@@ -2201,9 +2207,11 @@
         .configurable(<span class="bool-val">false</span>)
         .build();
 
-    constructor
-        .define_property_or_throw(<span class="macro">js_string!</span>(<span class="string">&quot;prototype&quot;</span>), prototype_property, context)
-        .expect(<span class="string">&quot;failed to define the prototype property of the generator function&quot;</span>);
+    <span class="kw">if </span>!method {
+        constructor
+            .define_property_or_throw(<span class="macro">js_string!</span>(<span class="string">&quot;prototype&quot;</span>), prototype_property, context)
+            .expect(<span class="string">&quot;failed to define the prototype property of the generator function&quot;</span>);
+    }
     constructor
         .define_property_or_throw(<span class="macro">js_string!</span>(<span class="string">&quot;name&quot;</span>), name_property, context)
         .expect(<span class="string">&quot;failed to define the name property of the generator function&quot;</span>);

@@ -836,7 +836,7 @@
                     <span class="kw">let </span>fn_name = interner
                         .resolve_expect(<span class="self">self</span>.functions[operand <span class="kw">as </span>usize].name)
                         .to_string();
-                    pc += size_of::&lt;u32&gt;();
+                    pc += size_of::&lt;u32&gt;() + size_of::&lt;u8&gt;();
                     <span class="kw">let </span>label = <span class="macro">format!</span>(
                         <span class="string">&quot;{opcode_str} &#39;{fn_name}&#39; (length: {})&quot;</span>,
                         <span class="self">self</span>.functions[operand <span class="kw">as </span>usize].length

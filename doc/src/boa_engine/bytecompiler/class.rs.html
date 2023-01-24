@@ -609,6 +609,11 @@
 <span id="608">608</span>
 <span id="609">609</span>
 <span id="610">610</span>
+<span id="611">611</span>
+<span id="612">612</span>
+<span id="613">613</span>
+<span id="614">614</span>
+<span id="615">615</span>
 </pre><pre class="rust"><code><span class="kw">use </span>boa_ast::{
     declaration::Binding,
     expression::Identifier,
@@ -749,6 +754,7 @@
         <span class="kw">let </span>index = <span class="self">self</span>.code_block.functions.len() <span class="kw">as </span>u32;
         <span class="self">self</span>.code_block.functions.push(code);
         <span class="self">self</span>.emit(Opcode::GetFunction, <span class="kw-2">&amp;</span>[index]);
+        <span class="self">self</span>.emit_u8(<span class="number">0</span>);
 
         <span class="self">self</span>.emit_opcode(Opcode::Dup);
         <span class="kw">if let </span><span class="prelude-val">Some</span>(node) = class.super_ref() {
@@ -931,6 +937,7 @@
                     <span class="kw">let </span>index = <span class="self">self</span>.code_block.functions.len() <span class="kw">as </span>u32;
                     <span class="self">self</span>.code_block.functions.push(code);
                     <span class="self">self</span>.emit(Opcode::GetFunction, <span class="kw-2">&amp;</span>[index]);
+                    <span class="self">self</span>.emit_u8(<span class="number">0</span>);
                     <span class="self">self</span>.emit_opcode(Opcode::PushClassField);
                 }
                 ClassElement::PrivateFieldDefinition(name, field) =&gt; {
@@ -973,6 +980,7 @@
                     <span class="kw">let </span>index = <span class="self">self</span>.code_block.functions.len() <span class="kw">as </span>u32;
                     <span class="self">self</span>.code_block.functions.push(code);
                     <span class="self">self</span>.emit(Opcode::GetFunction, <span class="kw-2">&amp;</span>[index]);
+                    <span class="self">self</span>.emit_u8(<span class="number">0</span>);
                     <span class="self">self</span>.emit(Opcode::PushClassFieldPrivate, <span class="kw-2">&amp;</span>[name_index]);
                 }
                 ClassElement::StaticFieldDefinition(name, field) =&gt; {
@@ -1025,6 +1033,7 @@
                     <span class="kw">let </span>index = <span class="self">self</span>.code_block.functions.len() <span class="kw">as </span>u32;
                     <span class="self">self</span>.code_block.functions.push(code);
                     <span class="self">self</span>.emit(Opcode::GetFunction, <span class="kw-2">&amp;</span>[index]);
+                    <span class="self">self</span>.emit_u8(<span class="number">0</span>);
                     <span class="self">self</span>.emit_opcode(Opcode::SetHomeObject);
                     <span class="self">self</span>.emit(Opcode::Call, <span class="kw-2">&amp;</span>[<span class="number">0</span>]);
                     <span class="kw">if let </span><span class="prelude-val">Some</span>(name_index) = name_index {
@@ -1065,6 +1074,7 @@
                     <span class="kw">let </span>index = <span class="self">self</span>.code_block.functions.len() <span class="kw">as </span>u32;
                     <span class="self">self</span>.code_block.functions.push(code);
                     <span class="self">self</span>.emit(Opcode::GetFunction, <span class="kw-2">&amp;</span>[index]);
+                    <span class="self">self</span>.emit_u8(<span class="number">0</span>);
                     <span class="self">self</span>.emit_opcode(Opcode::SetHomeObject);
                     <span class="self">self</span>.emit(Opcode::Call, <span class="kw-2">&amp;</span>[<span class="number">0</span>]);
                     <span class="self">self</span>.emit_opcode(Opcode::Pop);

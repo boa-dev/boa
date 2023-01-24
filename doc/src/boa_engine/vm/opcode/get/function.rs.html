@@ -83,6 +83,10 @@
 <span id="82">82</span>
 <span id="83">83</span>
 <span id="84">84</span>
+<span id="85">85</span>
+<span id="86">86</span>
+<span id="87">87</span>
+<span id="88">88</span>
 </pre><pre class="rust"><code><span class="kw">use crate</span>::{
     vm::{code_block::create_function_object, opcode::Operation, ShouldExit},
     Context, JsResult,
@@ -101,8 +105,9 @@
 
     <span class="kw">fn </span>execute(context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;ShouldExit&gt; {
         <span class="kw">let </span>index = context.vm.read::&lt;u32&gt;();
+        context.vm.read::&lt;u8&gt;();
         <span class="kw">let </span>code = context.vm.frame().code_block.functions[index <span class="kw">as </span>usize].clone();
-        <span class="kw">let </span>function = create_function_object(code, <span class="bool-val">false</span>, <span class="bool-val">true</span>, <span class="prelude-val">None</span>, context);
+        <span class="kw">let </span>function = create_function_object(code, <span class="bool-val">false</span>, <span class="bool-val">true</span>, <span class="prelude-val">None</span>, <span class="bool-val">false</span>, context);
         context.vm.push(function);
         <span class="prelude-val">Ok</span>(ShouldExit::False)
     }
@@ -121,8 +126,9 @@
 
     <span class="kw">fn </span>execute(context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;ShouldExit&gt; {
         <span class="kw">let </span>index = context.vm.read::&lt;u32&gt;();
+        context.vm.read::&lt;u8&gt;();
         <span class="kw">let </span>code = context.vm.frame().code_block.functions[index <span class="kw">as </span>usize].clone();
-        <span class="kw">let </span>function = create_function_object(code, <span class="bool-val">true</span>, <span class="bool-val">true</span>, <span class="prelude-val">None</span>, context);
+        <span class="kw">let </span>function = create_function_object(code, <span class="bool-val">true</span>, <span class="bool-val">true</span>, <span class="prelude-val">None</span>, <span class="bool-val">false</span>, context);
         context.vm.push(function);
         <span class="prelude-val">Ok</span>(ShouldExit::False)
     }
@@ -141,8 +147,9 @@
 
     <span class="kw">fn </span>execute(context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;ShouldExit&gt; {
         <span class="kw">let </span>index = context.vm.read::&lt;u32&gt;();
+        <span class="kw">let </span>method = context.vm.read::&lt;u8&gt;() != <span class="number">0</span>;
         <span class="kw">let </span>code = context.vm.frame().code_block.functions[index <span class="kw">as </span>usize].clone();
-        <span class="kw">let </span>function = create_function_object(code, <span class="bool-val">false</span>, <span class="bool-val">false</span>, <span class="prelude-val">None</span>, context);
+        <span class="kw">let </span>function = create_function_object(code, <span class="bool-val">false</span>, <span class="bool-val">false</span>, <span class="prelude-val">None</span>, method, context);
         context.vm.push(function);
         <span class="prelude-val">Ok</span>(ShouldExit::False)
     }
@@ -161,8 +168,9 @@
 
     <span class="kw">fn </span>execute(context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;ShouldExit&gt; {
         <span class="kw">let </span>index = context.vm.read::&lt;u32&gt;();
+        <span class="kw">let </span>method = context.vm.read::&lt;u8&gt;() != <span class="number">0</span>;
         <span class="kw">let </span>code = context.vm.frame().code_block.functions[index <span class="kw">as </span>usize].clone();
-        <span class="kw">let </span>function = create_function_object(code, <span class="bool-val">true</span>, <span class="bool-val">false</span>, <span class="prelude-val">None</span>, context);
+        <span class="kw">let </span>function = create_function_object(code, <span class="bool-val">true</span>, <span class="bool-val">false</span>, <span class="prelude-val">None</span>, method, context);
         context.vm.push(function);
         <span class="prelude-val">Ok</span>(ShouldExit::False)
     }

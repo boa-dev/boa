@@ -1047,6 +1047,19 @@
 <span id="1046">1046</span>
 <span id="1047">1047</span>
 <span id="1048">1048</span>
+<span id="1049">1049</span>
+<span id="1050">1050</span>
+<span id="1051">1051</span>
+<span id="1052">1052</span>
+<span id="1053">1053</span>
+<span id="1054">1054</span>
+<span id="1055">1055</span>
+<span id="1056">1056</span>
+<span id="1057">1057</span>
+<span id="1058">1058</span>
+<span id="1059">1059</span>
+<span id="1060">1060</span>
+<span id="1061">1061</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Boa&#39;s implementation of ECMAScript&#39;s global `Function` object and Native Functions.
 //!
 //! Objects wrap `Function`s and expose them via call/construct slots.
@@ -1665,9 +1678,16 @@
             <span class="kw">let </span>environments = context.realm.environments.pop_to_global();
 
             <span class="kw">let </span>function_object = <span class="kw">if </span>generator {
-                <span class="kw">crate</span>::vm::create_generator_function_object(code, r#async, context)
+                <span class="kw">crate</span>::vm::create_generator_function_object(code, r#async, <span class="bool-val">false</span>, context)
             } <span class="kw">else </span>{
-                <span class="kw">crate</span>::vm::create_function_object(code, r#async, <span class="bool-val">false</span>, <span class="prelude-val">Some</span>(prototype), context)
+                <span class="kw">crate</span>::vm::create_function_object(
+                    code,
+                    r#async,
+                    <span class="bool-val">false</span>,
+                    <span class="prelude-val">Some</span>(prototype),
+                    <span class="bool-val">false</span>,
+                    context,
+                )
             };
 
             context.realm.environments.extend(environments);
@@ -1685,7 +1705,7 @@
 
             <span class="kw">let </span>environments = context.realm.environments.pop_to_global();
             <span class="kw">let </span>function_object =
-                <span class="kw">crate</span>::vm::create_generator_function_object(code, r#async, context);
+                <span class="kw">crate</span>::vm::create_generator_function_object(code, r#async, <span class="bool-val">false</span>, context);
             context.realm.environments.extend(environments);
 
             <span class="prelude-val">Ok</span>(function_object)
@@ -1697,8 +1717,14 @@
             )<span class="question-mark">?</span>;
 
             <span class="kw">let </span>environments = context.realm.environments.pop_to_global();
-            <span class="kw">let </span>function_object =
-                <span class="kw">crate</span>::vm::create_function_object(code, r#async, <span class="bool-val">false</span>, <span class="prelude-val">Some</span>(prototype), context);
+            <span class="kw">let </span>function_object = <span class="kw">crate</span>::vm::create_function_object(
+                code,
+                r#async,
+                <span class="bool-val">false</span>,
+                <span class="prelude-val">Some</span>(prototype),
+                <span class="bool-val">false</span>,
+                context,
+            );
             context.realm.environments.extend(environments);
 
             <span class="prelude-val">Ok</span>(function_object)
