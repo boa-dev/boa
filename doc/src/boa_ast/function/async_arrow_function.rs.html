@@ -138,7 +138,7 @@
 /// [spec]: https://tc39.es/ecma262/#prod-AsyncArrowFunction
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Functions/Arrow_functions
 </span><span class="attribute">#[cfg_attr(feature = <span class="string">&quot;serde&quot;</span>, derive(serde::Serialize, serde::Deserialize))]
-#[cfg_attr(feature = <span class="string">&quot;fuzz&quot;</span>, derive(arbitrary::Arbitrary))]
+#[cfg_attr(feature = <span class="string">&quot;arbitrary&quot;</span>, derive(arbitrary::Arbitrary))]
 #[derive(Clone, Debug, PartialEq)]
 </span><span class="kw">pub struct </span>AsyncArrowFunction {
     name: <span class="prelude-ty">Option</span>&lt;Identifier&gt;,

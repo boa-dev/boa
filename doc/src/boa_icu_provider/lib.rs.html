@@ -92,6 +92,8 @@
 <span id="92">92</span>
 <span id="93">93</span>
 <span id="94">94</span>
+<span id="95">95</span>
+<span id="96">96</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Boa&#39;s **`boa_icu_provider`** exports the default data provider used by its `Intl` implementation.
 //!
 //! # Crate Overview
@@ -158,9 +160,11 @@
     clippy::pedantic,
     clippy::nursery,
 )]
+#![cfg_attr(not(feature = <span class="string">&quot;bin&quot;</span>), no_std)]
 
 </span><span class="doccomment">/// Gets the path to the directory where the generated data is stored.
-</span><span class="attribute">#[must_use]
+</span><span class="attribute">#[cfg(feature = <span class="string">&quot;bin&quot;</span>)]
+#[must_use]
 #[doc(hidden)]
 </span><span class="kw">pub fn </span>data_root() -&gt; std::path::PathBuf {
     std::path::PathBuf::from(<span class="macro">std::env!</span>(<span class="string">&quot;CARGO_MANIFEST_DIR&quot;</span>)).join(<span class="string">&quot;data&quot;</span>)

@@ -311,7 +311,7 @@
     // type and encourage people to use Finalize. This implementation will
     // call `Finalize::finalize` if it is safe to do so.
     </span><span class="kw">let </span>drop_impl = s.unbound_impl(
-        <span class="macro">quote!</span>(::std::ops::Drop),
+        <span class="macro">quote!</span>(::core::ops::Drop),
         <span class="macro">quote! </span>{
             <span class="kw">fn </span>drop(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
                 <span class="kw">if </span>::boa_gc::finalizer_safe() {

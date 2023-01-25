@@ -280,7 +280,7 @@
 /// [spec]: https://tc39.es/ecma262/#prod-TryStatement
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/try...catch
 </span><span class="attribute">#[cfg_attr(feature = <span class="string">&quot;serde&quot;</span>, derive(serde::Serialize, serde::Deserialize))]
-#[cfg_attr(feature = <span class="string">&quot;fuzz&quot;</span>, derive(arbitrary::Arbitrary))]
+#[cfg_attr(feature = <span class="string">&quot;arbitrary&quot;</span>, derive(arbitrary::Arbitrary))]
 #[derive(Clone, Debug, PartialEq)]
 </span><span class="kw">pub struct </span>Try {
     block: Block,
@@ -289,7 +289,7 @@
 
 <span class="doccomment">/// The type of error handler in a [`Try`] statement.
 </span><span class="attribute">#[cfg_attr(feature = <span class="string">&quot;serde&quot;</span>, derive(serde::Serialize, serde::Deserialize))]
-#[cfg_attr(feature = <span class="string">&quot;fuzz&quot;</span>, derive(arbitrary::Arbitrary))]
+#[cfg_attr(feature = <span class="string">&quot;arbitrary&quot;</span>, derive(arbitrary::Arbitrary))]
 #[derive(Clone, Debug, PartialEq)]
 </span><span class="kw">pub enum </span>ErrorHandler {
     <span class="doccomment">/// A [`Catch`] error handler.
@@ -396,7 +396,7 @@
 
 <span class="doccomment">/// Catch block.
 </span><span class="attribute">#[cfg_attr(feature = <span class="string">&quot;serde&quot;</span>, derive(serde::Serialize, serde::Deserialize))]
-#[cfg_attr(feature = <span class="string">&quot;fuzz&quot;</span>, derive(arbitrary::Arbitrary))]
+#[cfg_attr(feature = <span class="string">&quot;arbitrary&quot;</span>, derive(arbitrary::Arbitrary))]
 #[derive(Clone, Debug, PartialEq)]
 </span><span class="kw">pub struct </span>Catch {
     parameter: <span class="prelude-ty">Option</span>&lt;Binding&gt;,
@@ -465,7 +465,7 @@
 
 <span class="doccomment">/// Finally block.
 </span><span class="attribute">#[cfg_attr(feature = <span class="string">&quot;serde&quot;</span>, derive(serde::Serialize, serde::Deserialize))]
-#[cfg_attr(feature = <span class="string">&quot;fuzz&quot;</span>, derive(arbitrary::Arbitrary))]
+#[cfg_attr(feature = <span class="string">&quot;arbitrary&quot;</span>, derive(arbitrary::Arbitrary))]
 #[derive(Clone, Debug, PartialEq)]
 </span><span class="kw">pub struct </span>Finally {
     block: Block,

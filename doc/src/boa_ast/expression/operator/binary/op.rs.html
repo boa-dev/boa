@@ -583,7 +583,7 @@
 
 <span class="doccomment">/// This represents a binary operation between two values.
 </span><span class="attribute">#[cfg_attr(feature = <span class="string">&quot;serde&quot;</span>, derive(serde::Serialize, serde::Deserialize))]
-#[cfg_attr(feature = <span class="string">&quot;fuzz&quot;</span>, derive(arbitrary::Arbitrary))]
+#[cfg_attr(feature = <span class="string">&quot;arbitrary&quot;</span>, derive(arbitrary::Arbitrary))]
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 </span><span class="kw">pub enum </span>BinaryOp {
     <span class="doccomment">/// Numeric operation.
@@ -666,7 +666,7 @@
 ///
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Expressions_and_Operators#Arithmetic
 </span><span class="attribute">#[cfg_attr(feature = <span class="string">&quot;serde&quot;</span>, derive(serde::Serialize, serde::Deserialize))]
-#[cfg_attr(feature = <span class="string">&quot;fuzz&quot;</span>, derive(arbitrary::Arbitrary))]
+#[cfg_attr(feature = <span class="string">&quot;arbitrary&quot;</span>, derive(arbitrary::Arbitrary))]
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 </span><span class="kw">pub enum </span>ArithmeticOp {
     <span class="doccomment">/// The addition operator produces the sum of numeric operands or string concatenation.
@@ -777,7 +777,7 @@
 ///
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Expressions_and_Operators#Bitwise
 </span><span class="attribute">#[cfg_attr(feature = <span class="string">&quot;serde&quot;</span>, derive(serde::Serialize, serde::Deserialize))]
-#[cfg_attr(feature = <span class="string">&quot;fuzz&quot;</span>, derive(arbitrary::Arbitrary))]
+#[cfg_attr(feature = <span class="string">&quot;arbitrary&quot;</span>, derive(arbitrary::Arbitrary))]
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 </span><span class="kw">pub enum </span>BitwiseOp {
     <span class="doccomment">/// Performs the AND operation on each pair of bits. a AND b yields 1 only if both a and b are 1.
@@ -901,7 +901,7 @@
 /// [spec]: tc39.es/ecma262/#sec-testing-and-comparison-operations
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Expressions_and_Operators#Comparison
 </span><span class="attribute">#[cfg_attr(feature = <span class="string">&quot;serde&quot;</span>, derive(serde::Serialize, serde::Deserialize))]
-#[cfg_attr(feature = <span class="string">&quot;fuzz&quot;</span>, derive(arbitrary::Arbitrary))]
+#[cfg_attr(feature = <span class="string">&quot;arbitrary&quot;</span>, derive(arbitrary::Arbitrary))]
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 </span><span class="kw">pub enum </span>RelationalOp {
     <span class="doccomment">/// The equality operator converts the operands if they are not of the same type, then applies
@@ -1095,7 +1095,7 @@
 /// [spec]: https://tc39.es/ecma262/#sec-binary-logical-operators
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Expressions_and_Operators#Logical
 </span><span class="attribute">#[cfg_attr(feature = <span class="string">&quot;serde&quot;</span>, derive(serde::Serialize, serde::Deserialize))]
-#[cfg_attr(feature = <span class="string">&quot;fuzz&quot;</span>, derive(arbitrary::Arbitrary))]
+#[cfg_attr(feature = <span class="string">&quot;arbitrary&quot;</span>, derive(arbitrary::Arbitrary))]
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 </span><span class="kw">pub enum </span>LogicalOp {
     <span class="doccomment">/// The logical AND operator returns the value of the first operand if it can be coerced into `false`;

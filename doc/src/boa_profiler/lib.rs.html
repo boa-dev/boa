@@ -210,6 +210,7 @@
 <span id="210">210</span>
 <span id="211">211</span>
 <span id="212">212</span>
+<span id="213">213</span>
 </pre><pre class="rust"><code><span class="doccomment">//! The **`boa_profiler`** crate is a code profiler for Boa.
 //!
 //! # Crate Overview
@@ -289,8 +290,9 @@
     clippy::pedantic,
     clippy::nursery,
 )]
+#![cfg_attr(not(feature = <span class="string">&quot;profiler&quot;</span>), no_std)]
 
-</span><span class="kw">use </span>std::fmt::{<span class="self">self</span>, Debug};
+</span><span class="kw">use </span>core::fmt::{<span class="self">self</span>, Debug};
 
 <span class="attribute">#[cfg(feature = <span class="string">&quot;profiler&quot;</span>)]
 </span><span class="kw">use </span>measureme::{EventId, Profiler <span class="kw">as </span>MeasuremeProfiler, StringId, TimingGuard};

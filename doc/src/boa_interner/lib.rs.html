@@ -461,6 +461,9 @@
 <span id="460">460</span>
 <span id="461">461</span>
 <span id="462">462</span>
+<span id="463">463</span>
+<span id="464">464</span>
+<span id="465">465</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Boa&#39;s **`boa_interner`** is a string interner for compiler performance.
 //!
 //! # Crate Overview
@@ -552,8 +555,11 @@
     <span class="comment">// TODO deny once false positive is fixed (https://github.com/rust-lang/rust-clippy/issues/9626).
     </span>clippy::trait_duplication_in_bounds
 )]
+#![cfg_attr(not(feature = <span class="string">&quot;arbitrary&quot;</span>), no_std)]
 
-</span><span class="kw">extern crate </span>static_assertions <span class="kw">as </span>sa;
+</span><span class="kw">extern crate </span>alloc;
+
+<span class="kw">extern crate </span>static_assertions <span class="kw">as </span>sa;
 
 <span class="kw">mod </span>fixed_string;
 <span class="kw">mod </span>interned_str;
@@ -563,8 +569,8 @@
 <span class="attribute">#[cfg(test)]
 </span><span class="kw">mod </span>tests;
 
+<span class="kw">use </span>alloc::{borrow::Cow, format, string::String};
 <span class="kw">use </span>raw::RawInterner;
-<span class="kw">use </span>std::borrow::Cow;
 
 <span class="kw">pub use </span>sym::<span class="kw-2">*</span>;
 
@@ -676,10 +682,10 @@
     }
 }
 
-<span class="kw">impl </span>std::fmt::Display <span class="kw">for </span>JSInternedStrRef&lt;<span class="lifetime">&#39;_</span>, <span class="lifetime">&#39;_</span>&gt; {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>std::fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; std::fmt::Result {
+<span class="kw">impl </span>core::fmt::Display <span class="kw">for </span>JSInternedStrRef&lt;<span class="lifetime">&#39;_</span>, <span class="lifetime">&#39;_</span>&gt; {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>core::fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; core::fmt::Result {
         <span class="self">self</span>.join_with_context(
-            std::fmt::Display::fmt,
+            core::fmt::Display::fmt,
             |js, f| {
                 char::decode_utf16(js.iter().copied())
                     .map(|r| <span class="kw">match </span>r {
@@ -858,7 +864,7 @@
             // We only manipulate valid UTF-8 `str`s and convert them to `[u8]` for convenience,
             // so converting back to a `str` is safe.
             </span><span class="kw">let </span>utf8 = <span class="kw">unsafe </span>{
-                std::str::from_utf8_unchecked(
+                core::str::from_utf8_unchecked(
                     <span class="self">self</span>.utf8_interner
                         .index(index)
                         .expect(<span class="string">&quot;both interners must have the same size&quot;</span>),

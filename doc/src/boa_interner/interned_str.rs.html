@@ -79,7 +79,7 @@
 <span id="78">78</span>
 <span id="79">79</span>
 <span id="80">80</span>
-</pre><pre class="rust"><code><span class="kw">use </span>std::{hash::Hash, ptr::NonNull};
+</pre><pre class="rust"><code><span class="kw">use </span>core::{hash::Hash, ptr::NonNull};
 
 <span class="doccomment">/// Wrapper for an interned str pointer, required to
 /// quickly check using a hash if a string is inside an [`Interner`][`super::Interner`].
@@ -150,7 +150,7 @@
 <span class="kw">where
     </span>Char: Hash,
 {
-    <span class="kw">fn </span>hash&lt;H: std::hash::Hasher&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, state: <span class="kw-2">&amp;mut </span>H) {
+    <span class="kw">fn </span>hash&lt;H: core::hash::Hasher&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, state: <span class="kw-2">&amp;mut </span>H) {
         <span class="comment">// SAFETY:
         // The caller must ensure `ptr` is still valid throughout the
         // lifetime of `self`.

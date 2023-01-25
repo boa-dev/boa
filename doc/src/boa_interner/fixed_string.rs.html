@@ -77,7 +77,11 @@
 <span id="76">76</span>
 <span id="77">77</span>
 <span id="78">78</span>
-</pre><pre class="rust"><code><span class="kw">use </span><span class="kw">crate</span>::interned_str::InternedStr;
+<span id="79">79</span>
+<span id="80">80</span>
+</pre><pre class="rust"><code><span class="kw">use </span>alloc::vec::Vec;
+
+<span class="kw">use </span><span class="kw">crate</span>::interned_str::InternedStr;
 
 <span class="attribute">#[derive(Debug)]
 </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">struct </span>FixedString&lt;Char&gt; {

@@ -374,7 +374,7 @@
 ///
 /// See the [module level documentation][self] for more information.
 </span><span class="attribute">#[cfg_attr(feature = <span class="string">&quot;serde&quot;</span>, derive(serde::Serialize, serde::Deserialize))]
-#[cfg_attr(feature = <span class="string">&quot;fuzz&quot;</span>, derive(arbitrary::Arbitrary))]
+#[cfg_attr(feature = <span class="string">&quot;arbitrary&quot;</span>, derive(arbitrary::Arbitrary))]
 #[derive(Clone, Debug, PartialEq)]
 </span><span class="kw">pub enum </span>PropertyAccessField {
     <span class="doccomment">/// A constant property field, such as `x.prop`.
@@ -423,7 +423,7 @@
 ///
 /// See the [module level documentation][self] for more information.
 </span><span class="attribute">#[cfg_attr(feature = <span class="string">&quot;serde&quot;</span>, derive(serde::Serialize, serde::Deserialize))]
-#[cfg_attr(feature = <span class="string">&quot;fuzz&quot;</span>, derive(arbitrary::Arbitrary))]
+#[cfg_attr(feature = <span class="string">&quot;arbitrary&quot;</span>, derive(arbitrary::Arbitrary))]
 #[derive(Clone, Debug, PartialEq)]
 </span><span class="kw">pub enum </span>PropertyAccess {
     <span class="doccomment">/// A simple property access (`x.prop`).
@@ -478,7 +478,7 @@
 
 <span class="doccomment">/// A simple property access, where the target object is an [`Expression`].
 </span><span class="attribute">#[cfg_attr(feature = <span class="string">&quot;serde&quot;</span>, derive(serde::Serialize, serde::Deserialize))]
-#[cfg_attr(feature = <span class="string">&quot;fuzz&quot;</span>, derive(arbitrary::Arbitrary))]
+#[cfg_attr(feature = <span class="string">&quot;arbitrary&quot;</span>, derive(arbitrary::Arbitrary))]
 #[derive(Clone, Debug, PartialEq)]
 </span><span class="kw">pub struct </span>SimplePropertyAccess {
     target: Box&lt;Expression&gt;,
@@ -561,7 +561,7 @@
 /// [spec]: https://tc39.es/ecma262/#prod-MemberExpression
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Classes/Private_class_fields
 </span><span class="attribute">#[cfg_attr(feature = <span class="string">&quot;serde&quot;</span>, derive(serde::Serialize, serde::Deserialize))]
-#[cfg_attr(feature = <span class="string">&quot;fuzz&quot;</span>, derive(arbitrary::Arbitrary))]
+#[cfg_attr(feature = <span class="string">&quot;arbitrary&quot;</span>, derive(arbitrary::Arbitrary))]
 #[derive(Clone, Debug, PartialEq)]
 </span><span class="kw">pub struct </span>PrivatePropertyAccess {
     target: Box&lt;Expression&gt;,
@@ -638,7 +638,7 @@
 /// [spec]: https://tc39.es/ecma262/#prod-SuperProperty
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/super
 </span><span class="attribute">#[cfg_attr(feature = <span class="string">&quot;serde&quot;</span>, derive(serde::Serialize, serde::Deserialize))]
-#[cfg_attr(feature = <span class="string">&quot;fuzz&quot;</span>, derive(arbitrary::Arbitrary))]
+#[cfg_attr(feature = <span class="string">&quot;arbitrary&quot;</span>, derive(arbitrary::Arbitrary))]
 #[derive(Clone, Debug, PartialEq)]
 </span><span class="kw">pub struct </span>SuperPropertyAccess {
     field: PropertyAccessField,

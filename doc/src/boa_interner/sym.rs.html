@@ -203,23 +203,29 @@
 <span id="202">202</span>
 <span id="203">203</span>
 <span id="204">204</span>
+<span id="205">205</span>
+<span id="206">206</span>
+<span id="207">207</span>
 </pre><pre class="rust"><code><span class="kw">use </span>boa_macros::utf16;
+<span class="kw">use </span>core::{hash::BuildHasherDefault, num::NonZeroUsize};
 <span class="kw">use </span>indexmap::IndexSet;
 <span class="kw">use </span>once_cell::sync::Lazy;
-<span class="kw">use </span>std::num::NonZeroUsize;
+<span class="kw">use </span>rustc_hash::FxHasher;
 
-<span class="attribute">#[cfg(feature = <span class="string">&quot;serde&quot;</span>)]
-</span><span class="kw">use </span>serde::{Deserialize, Serialize};
+<span class="kw">type </span>Set&lt;T&gt; = IndexSet&lt;T, BuildHasherDefault&lt;FxHasher&gt;&gt;;
 
 <span class="doccomment">/// The string symbol type for Boa.
 ///
 /// This symbol type is internally a `NonZeroUsize`, which makes it pointer-width in size and it&#39;s
 /// optimized so that it can occupy 1 pointer width even in an `Option` type.
-</span><span class="attribute">#[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
-#[cfg_attr(feature = <span class="string">&quot;serde&quot;</span>, derive(Serialize, Deserialize))]
-#[cfg_attr(feature = <span class="string">&quot;serde&quot;</span>, serde(transparent))]
-#[cfg_attr(feature = <span class="string">&quot;fuzz&quot;</span>, derive(arbitrary::Arbitrary))]
+</span><span class="attribute">#[cfg_attr(
+    feature = <span class="string">&quot;serde&quot;</span>,
+    derive(serde::Serialize, serde::Deserialize),
+    serde(transparent)
+)]
+#[cfg_attr(feature = <span class="string">&quot;arbitrary&quot;</span>, derive(arbitrary::Arbitrary))]
 #[allow(clippy::unsafe_derive_deserialize)]
+#[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 </span><span class="kw">pub struct </span>Sym {
     value: NonZeroUsize,
 }
@@ -367,8 +373,8 @@
         /// `COMMON_STRINGS_UTF8`, `COMMON_STRINGS_UTF16` and the constants
         /// defined in [`Sym`] must always be in sync.
         </span><span class="comment">// FIXME: use phf when const expressions are allowed. https://github.com/rust-phf/rust-phf/issues/188
-        </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">static </span>COMMON_STRINGS_UTF16: Lazy&lt;IndexSet&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>[u16]&gt;&gt; = Lazy::new(|| {
-            <span class="kw">let </span><span class="kw-2">mut </span>set = IndexSet::with_capacity(COMMON_STRINGS_UTF8.len());
+        </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">static </span>COMMON_STRINGS_UTF16: Lazy&lt;Set&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>[u16]&gt;&gt; = Lazy::new(|| {
+            <span class="kw">let </span><span class="kw-2">mut </span>set = Set::with_capacity_and_hasher(COMMON_STRINGS_UTF8.len(), BuildHasherDefault::default());
             $( set.insert(<span class="macro">utf16!</span>(<span class="macro-nonterminal">$s</span>)); )+
             set
         });

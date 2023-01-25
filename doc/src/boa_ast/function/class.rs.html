@@ -601,7 +601,7 @@
 /// [spec]: https://tc39.es/ecma262/#sec-class-definitions
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Classes
 </span><span class="attribute">#[cfg_attr(feature = <span class="string">&quot;serde&quot;</span>, derive(serde::Serialize, serde::Deserialize))]
-#[cfg_attr(feature = <span class="string">&quot;fuzz&quot;</span>, derive(arbitrary::Arbitrary))]
+#[cfg_attr(feature = <span class="string">&quot;arbitrary&quot;</span>, derive(arbitrary::Arbitrary))]
 #[derive(Clone, Debug, PartialEq)]
 </span><span class="kw">pub struct </span>Class {
     name: <span class="prelude-ty">Option</span>&lt;Identifier&gt;,
@@ -1004,7 +1004,7 @@
 ///
 /// [spec]: https://tc39.es/ecma262/#prod-ClassElement
 </span><span class="attribute">#[cfg_attr(feature = <span class="string">&quot;serde&quot;</span>, derive(serde::Serialize, serde::Deserialize))]
-#[cfg_attr(feature = <span class="string">&quot;fuzz&quot;</span>, derive(arbitrary::Arbitrary))]
+#[cfg_attr(feature = <span class="string">&quot;arbitrary&quot;</span>, derive(arbitrary::Arbitrary))]
 #[derive(Clone, Debug, PartialEq)]
 </span><span class="kw">pub enum </span>ClassElement {
     <span class="doccomment">/// A method definition, including `get` and `set` accessors.
@@ -1113,7 +1113,7 @@
 ///
 /// [spec]: https://tc39.es/ecma262/#sec-private-names
 </span><span class="attribute">#[cfg_attr(feature = <span class="string">&quot;serde&quot;</span>, derive(serde::Serialize, serde::Deserialize))]
-#[cfg_attr(feature = <span class="string">&quot;fuzz&quot;</span>, derive(arbitrary::Arbitrary))]
+#[cfg_attr(feature = <span class="string">&quot;arbitrary&quot;</span>, derive(arbitrary::Arbitrary))]
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 </span><span class="kw">pub struct </span>PrivateName {
     <span class="doccomment">/// The `[[Description]]` internal slot of the private name.

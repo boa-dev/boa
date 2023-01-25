@@ -189,9 +189,17 @@
 <span id="188">188</span>
 <span id="189">189</span>
 <span id="190">190</span>
+<span id="191">191</span>
+<span id="192">192</span>
+<span id="193">193</span>
+<span id="194">194</span>
 </pre><pre class="rust"><code><span class="kw">use crate</span>::{fixed_string::FixedString, interned_str::InternedStr};
-<span class="kw">use </span>rustc_hash::FxHashMap;
-<span class="kw">use </span>std::hash::Hash;
+<span class="kw">use </span>alloc::vec::Vec;
+<span class="kw">use </span>core::hash::{BuildHasherDefault, Hash};
+<span class="kw">use </span>hashbrown::HashMap;
+<span class="kw">use </span>rustc_hash::FxHasher;
+
+<span class="kw">type </span>Map&lt;T, U&gt; = HashMap&lt;T, U, BuildHasherDefault&lt;FxHasher&gt;&gt;;
 
 <span class="doccomment">/// Raw string interner, generic by a char type.
 </span><span class="attribute">#[derive(Debug)]
@@ -208,7 +216,7 @@
     // please check out https://github.com/Robbepop/string-interner/pull/47 first.
     // This doesn&#39;t implement that method, since implementing it increases
     // our memory footprint.
-    </span>symbol_cache: FxHashMap&lt;InternedStr&lt;Char&gt;, usize&gt;,
+    </span>symbol_cache: Map&lt;InternedStr&lt;Char&gt;, usize&gt;,
     spans: Vec&lt;InternedStr&lt;Char&gt;&gt;,
     head: FixedString&lt;Char&gt;,
     full: Vec&lt;FixedString&lt;Char&gt;&gt;,
@@ -217,7 +225,7 @@
 <span class="kw">impl</span>&lt;Char&gt; Default <span class="kw">for </span>RawInterner&lt;Char&gt; {
     <span class="kw">fn </span>default() -&gt; <span class="self">Self </span>{
         <span class="self">Self </span>{
-            symbol_cache: FxHashMap::default(),
+            symbol_cache: Map::default(),
             spans: Vec::default(),
             head: FixedString::default(),
             full: Vec::default(),
@@ -229,7 +237,7 @@
     <span class="doccomment">/// Creates a new `RawInterner` with the specified capacity.
     </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>with_capacity(capacity: usize) -&gt; <span class="self">Self </span>{
         <span class="self">Self </span>{
-            symbol_cache: FxHashMap::default(),
+            symbol_cache: Map::default(),
             spans: Vec::with_capacity(capacity),
             head: FixedString::new(capacity),
             full: Vec::new(),
@@ -358,7 +366,7 @@
                 <span class="kw">let </span>new_cap =
                     (usize::max(<span class="self">self</span>.head.capacity(), string.len()) + <span class="number">1</span>).next_power_of_two();
                 <span class="kw">let </span>new_head = FixedString::new(new_cap);
-                <span class="kw">let </span>old_head = std::mem::replace(<span class="kw-2">&amp;mut </span><span class="self">self</span>.head, new_head);
+                <span class="kw">let </span>old_head = core::mem::replace(<span class="kw-2">&amp;mut </span><span class="self">self</span>.head, new_head);
 
                 <span class="comment">// If the user creates an `Interner`
                 // with `Interner::with_capacity(BIG_NUMBER)` and

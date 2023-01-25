@@ -257,7 +257,7 @@
 /// [spec]: https://tc39.es/ecma262/#prod-AssignmentOperator
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Expressions_and_Operators#Assignment
 </span><span class="attribute">#[cfg_attr(feature = <span class="string">&quot;serde&quot;</span>, derive(serde::Serialize, serde::Deserialize))]
-#[cfg_attr(feature = <span class="string">&quot;fuzz&quot;</span>, derive(arbitrary::Arbitrary))]
+#[cfg_attr(feature = <span class="string">&quot;arbitrary&quot;</span>, derive(arbitrary::Arbitrary))]
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 </span><span class="kw">pub enum </span>AssignOp {
     <span class="doccomment">/// The assignment operator assigns the value of the right operand to the left operand.

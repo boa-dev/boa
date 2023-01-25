@@ -109,7 +109,7 @@
 /// [spec]: https://tc39.es/ecma262/#prod-BlockStatement
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/block
 </span><span class="attribute">#[cfg_attr(feature = <span class="string">&quot;serde&quot;</span>, derive(serde::Serialize, serde::Deserialize))]
-#[cfg_attr(feature = <span class="string">&quot;fuzz&quot;</span>, derive(arbitrary::Arbitrary))]
+#[cfg_attr(feature = <span class="string">&quot;arbitrary&quot;</span>, derive(arbitrary::Arbitrary))]
 #[derive(Clone, Debug, PartialEq, Default)]
 </span><span class="kw">pub struct </span>Block {
     <span class="attribute">#[cfg_attr(feature = <span class="string">&quot;serde&quot;</span>, serde(flatten))]
