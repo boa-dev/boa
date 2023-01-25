@@ -2,7 +2,7 @@
 mod tests;
 
 use crate::{
-    lexer::{Error as LexError, TokenKind},
+    lexer::{token::ContainsEscapeSequence, Error as LexError, TokenKind},
     parser::{
         expression::{
             AssignmentExpression, AsyncGeneratorMethod, AsyncMethod, BindingIdentifier,
@@ -595,7 +595,7 @@ where
                 cursor.advance(interner);
                 return Ok((None, None));
             }
-            TokenKind::Identifier((Sym::STATIC, contains_escape)) => {
+            TokenKind::Identifier((Sym::STATIC, ContainsEscapeSequence(contains_escape))) => {
                 let contains_escape = *contains_escape;
                 let token = cursor.peek(1, interner).or_abrupt()?;
                 match token.kind() {
@@ -875,13 +875,13 @@ where
                     }
                 }
             }
-            TokenKind::Identifier((Sym::GET, true)) if is_keyword => {
+            TokenKind::Identifier((Sym::GET, ContainsEscapeSequence(true))) if is_keyword => {
                 return Err(Error::general(
                     "keyword must not contain escaped characters",
                     token.span().start(),
                 ))
             }
-            TokenKind::Identifier((Sym::GET, false)) if is_keyword => {
+            TokenKind::Identifier((Sym::GET, ContainsEscapeSequence(false))) if is_keyword => {
                 cursor.advance(interner);
                 let token = cursor.peek(0, interner).or_abrupt()?;
                 match token.kind() {
@@ -1006,13 +1006,13 @@ where
                     }
                 }
             }
-            TokenKind::Identifier((Sym::SET, true)) if is_keyword => {
+            TokenKind::Identifier((Sym::SET, ContainsEscapeSequence(true))) if is_keyword => {
                 return Err(Error::general(
                     "keyword must not contain escaped characters",
                     token.span().start(),
                 ))
             }
-            TokenKind::Identifier((Sym::SET, false)) if is_keyword => {
+            TokenKind::Identifier((Sym::SET, ContainsEscapeSequence(false))) if is_keyword => {
                 cursor.advance(interner);
                 let token = cursor.peek(0, interner).or_abrupt()?;
                 match token.kind() {

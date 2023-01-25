@@ -11,7 +11,10 @@
 mod tests;
 
 use crate::{
-    lexer::{token::Numeric, Error as LexError, TokenKind},
+    lexer::{
+        token::{ContainsEscapeSequence, Numeric},
+        Error as LexError, TokenKind,
+    },
     parser::{
         expression::{identifiers::IdentifierReference, AssignmentExpression},
         function::{FormalParameter, FormalParameters, FunctionBody, UniqueFormalParameters},
@@ -293,7 +296,9 @@ where
         }
 
         let set_or_get_escaped_position = match token.kind() {
-            TokenKind::Identifier((Sym::GET | Sym::SET, true)) => Some(token.span().start()),
+            TokenKind::Identifier((Sym::GET | Sym::SET, ContainsEscapeSequence(true))) => {
+                Some(token.span().start())
+            }
             _ => None,
         };
 

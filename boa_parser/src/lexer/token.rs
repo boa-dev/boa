@@ -99,7 +99,7 @@ pub enum TokenKind {
     EOF,
 
     /// An identifier.
-    Identifier((Sym, bool)),
+    Identifier((Sym, ContainsEscapeSequence)),
 
     /// A private identifier.
     PrivateIdentifier(Sym),
@@ -117,7 +117,7 @@ pub enum TokenKind {
     Punctuator(Punctuator),
 
     /// A string literal.
-    StringLiteral((Sym, bool)),
+    StringLiteral((Sym, Option<EscapeSequence>)),
 
     /// A part of a template literal without substitution.
     TemplateNoSubstitution(TemplateString),
@@ -175,7 +175,7 @@ impl TokenKind {
     /// Creates an `Identifier` token type.
     #[must_use]
     pub const fn identifier(ident: Sym) -> Self {
-        Self::Identifier((ident, false))
+        Self::Identifier((ident, ContainsEscapeSequence(false)))
     }
 
     /// Creates a `NumericLiteral` token kind.
@@ -194,8 +194,8 @@ impl TokenKind {
 
     /// Creates a `StringLiteral` token type.
     #[must_use]
-    pub const fn string_literal(lit: Sym, contains_legacy_escape: bool) -> Self {
-        Self::StringLiteral((lit, contains_legacy_escape))
+    pub const fn string_literal(lit: Sym, escape_sequence: Option<EscapeSequence>) -> Self {
+        Self::StringLiteral((lit, escape_sequence))
     }
 
     /// Creates a `TemplateMiddle` token type.
@@ -258,3 +258,29 @@ impl TokenKind {
         }
     }
 }
+
+/// Indicates the type of an escape sequence.
+#[cfg_attr(feature = "deser", derive(serde::Serialize, serde::Deserialize))]
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum EscapeSequence {
+    /// A legacy escape sequence starting with `0` - `7`.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#prod-LegacyOctalEscapeSequence
+    LegacyOctal,
+
+    /// A octal escape sequence starting with `8` - `9`.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#prod-NonOctalDecimalEscapeSequence
+    NonOctalDecimal,
+}
+
+/// Indicates if an identifier contains an escape sequence.
+#[cfg_attr(feature = "deser", derive(serde::Serialize, serde::Deserialize))]
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub struct ContainsEscapeSequence(pub bool);

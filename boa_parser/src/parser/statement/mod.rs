@@ -37,7 +37,7 @@ use self::{
     variable::VariableStatement,
 };
 use crate::{
-    lexer::{Error as LexError, InputElement, Token, TokenKind},
+    lexer::{token::EscapeSequence, Error as LexError, InputElement, Token, TokenKind},
     parser::{
         expression::{BindingIdentifier, Initializer, PropertyName},
         AllowAwait, AllowReturn, AllowYield, Cursor, OrAbrupt, ParseResult, TokenParser,
@@ -282,14 +282,15 @@ where
         let global_strict = cursor.strict_mode();
         let mut directive_prologues = self.directive_prologues;
         let mut strict = self.strict;
-        let mut string_literal_legacy_escape = None;
+        let mut string_literal_escape_sequence = None;
 
         loop {
             match cursor.peek(0, interner)? {
                 Some(token) if self.break_nodes.contains(token.kind()) => break,
-                Some(token) if directive_prologues && string_literal_legacy_escape.is_none() => {
-                    if let TokenKind::StringLiteral((_, true)) = token.kind() {
-                        string_literal_legacy_escape = Some(token.span().start());
+                Some(token) if directive_prologues && string_literal_escape_sequence.is_none() => {
+                    if let TokenKind::StringLiteral((_, Some(escape_sequence))) = token.kind() {
+                        string_literal_escape_sequence =
+                            Some((token.span().start(), *escape_sequence));
                     }
                 }
                 None => break,
@@ -313,11 +314,19 @@ where
                         cursor.set_strict_mode(true);
                         strict = true;
 
-                        if let Some(position) = string_literal_legacy_escape {
-                            return Err(Error::general(
-                                "legacy escape sequences are not allowed in strict mode",
-                                position,
-                            ));
+                        if let Some((position, escape_sequence)) = string_literal_escape_sequence {
+                            match escape_sequence {
+                                EscapeSequence::LegacyOctal => return Err(Error::general(
+                                    "legacy octal escape sequences are not allowed in strict mode",
+                                    position,
+                                )),
+                                EscapeSequence::NonOctalDecimal => {
+                                    return Err(Error::general(
+                                        "decimal escape sequences are not allowed in strict mode",
+                                        position,
+                                    ))
+                                }
+                            }
                         }
                     }
                 } else {

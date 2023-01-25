@@ -7,7 +7,7 @@
 
 use super::arguments::Arguments;
 use crate::{
-    lexer::{InputElement, TokenKind},
+    lexer::{token::ContainsEscapeSequence, InputElement, TokenKind},
     parser::{
         expression::{
             left_hand_side::template::TaggedTemplateLiteral, primary::PrimaryExpression, Expression,
@@ -85,13 +85,13 @@ where
                 if cursor.next_if(Punctuator::Dot, interner)?.is_some() {
                     let token = cursor.next(interner).or_abrupt()?;
                     match token.kind() {
-                        TokenKind::Identifier((Sym::TARGET, true)) => {
+                        TokenKind::Identifier((Sym::TARGET, ContainsEscapeSequence(true))) => {
                             return Err(Error::general(
                                 "'new.target' must not contain escaped characters",
                                 token.span().start(),
                             ));
                         }
-                        TokenKind::Identifier((Sym::TARGET, false)) => {
+                        TokenKind::Identifier((Sym::TARGET, ContainsEscapeSequence(false))) => {
                             return Ok(ast::Expression::NewTarget)
                         }
                         _ => {
