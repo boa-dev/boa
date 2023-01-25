@@ -77,8 +77,9 @@
     clippy::pedantic,
     clippy::nursery,
 )]
+#![cfg_attr(not(feature = "profiler"), no_std)]
 
-use std::fmt::{self, Debug};
+use core::fmt::{self, Debug};
 
 #[cfg(feature = "profiler")]
 use measureme::{EventId, Profiler as MeasuremeProfiler, StringId, TimingGuard};

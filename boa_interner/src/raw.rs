@@ -1,6 +1,10 @@
 use crate::{fixed_string::FixedString, interned_str::InternedStr};
-use rustc_hash::FxHashMap;
-use std::hash::Hash;
+use alloc::vec::Vec;
+use core::hash::{BuildHasherDefault, Hash};
+use hashbrown::HashMap;
+use rustc_hash::FxHasher;
+
+type Map<T, U> = HashMap<T, U, BuildHasherDefault<FxHasher>>;
 
 /// Raw string interner, generic by a char type.
 #[derive(Debug)]
@@ -17,7 +21,7 @@ pub(super) struct RawInterner<Char> {
     // please check out https://github.com/Robbepop/string-interner/pull/47 first.
     // This doesn't implement that method, since implementing it increases
     // our memory footprint.
-    symbol_cache: FxHashMap<InternedStr<Char>, usize>,
+    symbol_cache: Map<InternedStr<Char>, usize>,
     spans: Vec<InternedStr<Char>>,
     head: FixedString<Char>,
     full: Vec<FixedString<Char>>,
@@ -26,7 +30,7 @@ pub(super) struct RawInterner<Char> {
 impl<Char> Default for RawInterner<Char> {
     fn default() -> Self {
         Self {
-            symbol_cache: FxHashMap::default(),
+            symbol_cache: Map::default(),
             spans: Vec::default(),
             head: FixedString::default(),
             full: Vec::default(),
@@ -38,7 +42,7 @@ impl<Char> RawInterner<Char> {
     /// Creates a new `RawInterner` with the specified capacity.
     pub(super) fn with_capacity(capacity: usize) -> Self {
         Self {
-            symbol_cache: FxHashMap::default(),
+            symbol_cache: Map::default(),
             spans: Vec::with_capacity(capacity),
             head: FixedString::new(capacity),
             full: Vec::new(),
@@ -167,7 +171,7 @@ where
                 let new_cap =
                     (usize::max(self.head.capacity(), string.len()) + 1).next_power_of_two();
                 let new_head = FixedString::new(new_cap);
-                let old_head = std::mem::replace(&mut self.head, new_head);
+                let old_head = core::mem::replace(&mut self.head, new_head);
 
                 // If the user creates an `Interner`
                 // with `Interner::with_capacity(BIG_NUMBER)` and

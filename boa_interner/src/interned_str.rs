@@ -1,4 +1,4 @@
-use std::{hash::Hash, ptr::NonNull};
+use core::{hash::Hash, ptr::NonNull};
 
 /// Wrapper for an interned str pointer, required to
 /// quickly check using a hash if a string is inside an [`Interner`][`super::Interner`].
@@ -69,7 +69,7 @@ impl<Char> Hash for InternedStr<Char>
 where
     Char: Hash,
 {
-    fn hash<H: std::hash::Hasher>(&self, state: &mut H) {
+    fn hash<H: core::hash::Hasher>(&self, state: &mut H) {
         // SAFETY:
         // The caller must ensure `ptr` is still valid throughout the
         // lifetime of `self`.

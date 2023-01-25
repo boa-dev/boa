@@ -1,20 +1,23 @@
 use boa_macros::utf16;
+use core::{hash::BuildHasherDefault, num::NonZeroUsize};
 use indexmap::IndexSet;
 use once_cell::sync::Lazy;
-use std::num::NonZeroUsize;
+use rustc_hash::FxHasher;
 
-#[cfg(feature = "serde")]
-use serde::{Deserialize, Serialize};
+type Set<T> = IndexSet<T, BuildHasherDefault<FxHasher>>;
 
 /// The string symbol type for Boa.
 ///
 /// This symbol type is internally a `NonZeroUsize`, which makes it pointer-width in size and it's
 /// optimized so that it can occupy 1 pointer width even in an `Option` type.
-#[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
-#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
-#[cfg_attr(feature = "serde", serde(transparent))]
-#[cfg_attr(feature = "fuzz", derive(arbitrary::Arbitrary))]
+#[cfg_attr(
+    feature = "serde",
+    derive(serde::Serialize, serde::Deserialize),
+    serde(transparent)
+)]
+#[cfg_attr(feature = "arbitrary", derive(arbitrary::Arbitrary))]
 #[allow(clippy::unsafe_derive_deserialize)]
+#[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct Sym {
     value: NonZeroUsize,
 }
@@ -162,8 +165,8 @@ macro_rules! create_static_strings {
         /// `COMMON_STRINGS_UTF8`, `COMMON_STRINGS_UTF16` and the constants
         /// defined in [`Sym`] must always be in sync.
         // FIXME: use phf when const expressions are allowed. https://github.com/rust-phf/rust-phf/issues/188
-        pub(super) static COMMON_STRINGS_UTF16: Lazy<IndexSet<&'static [u16]>> = Lazy::new(|| {
-            let mut set = IndexSet::with_capacity(COMMON_STRINGS_UTF8.len());
+        pub(super) static COMMON_STRINGS_UTF16: Lazy<Set<&'static [u16]>> = Lazy::new(|| {
+            let mut set = Set::with_capacity_and_hasher(COMMON_STRINGS_UTF8.len(), BuildHasherDefault::default());
             $( set.insert(utf16!($s)); )+
             set
         });

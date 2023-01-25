@@ -89,6 +89,9 @@
     // TODO deny once false positive is fixed (https://github.com/rust-lang/rust-clippy/issues/9626).
     clippy::trait_duplication_in_bounds
 )]
+#![cfg_attr(not(feature = "arbitrary"), no_std)]
+
+extern crate alloc;
 
 extern crate static_assertions as sa;
 
@@ -100,8 +103,8 @@ mod sym;
 #[cfg(test)]
 mod tests;
 
+use alloc::{borrow::Cow, format, string::String};
 use raw::RawInterner;
-use std::borrow::Cow;
 
 pub use sym::*;
 
@@ -213,10 +216,10 @@ impl<'a, 'b> JSInternedStrRef<'a, 'b> {
     }
 }
 
-impl std::fmt::Display for JSInternedStrRef<'_, '_> {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+impl core::fmt::Display for JSInternedStrRef<'_, '_> {
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
         self.join_with_context(
-            std::fmt::Display::fmt,
+            core::fmt::Display::fmt,
             |js, f| {
                 char::decode_utf16(js.iter().copied())
                     .map(|r| match r {
@@ -395,7 +398,7 @@ impl Interner {
             // We only manipulate valid UTF-8 `str`s and convert them to `[u8]` for convenience,
             // so converting back to a `str` is safe.
             let utf8 = unsafe {
-                std::str::from_utf8_unchecked(
+                core::str::from_utf8_unchecked(
                     self.utf8_interner
                         .index(index)
                         .expect("both interners must have the same size"),

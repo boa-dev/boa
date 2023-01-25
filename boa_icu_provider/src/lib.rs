@@ -64,8 +64,10 @@
     clippy::pedantic,
     clippy::nursery,
 )]
+#![cfg_attr(not(feature = "bin"), no_std)]
 
 /// Gets the path to the directory where the generated data is stored.
+#[cfg(feature = "bin")]
 #[must_use]
 #[doc(hidden)]
 pub fn data_root() -> std::path::PathBuf {
