@@ -5,7 +5,8 @@
 //! An operator expression can be any of the following:
 //!
 //! - A [`Unary`] expression.
-//! - An [`Assign`] expression.
+//! - A [`Update`] expression.
+//! - A [`Assign`] expression.
 //! - A [`Binary`] expression.
 //! - A [`Conditional`] expression.
 //!
@@ -16,5 +17,8 @@ mod conditional;
 pub mod assign;
 pub mod binary;
 pub mod unary;
+pub mod update;
 
-pub use self::{assign::Assign, binary::Binary, conditional::Conditional, unary::Unary};
+pub use self::{
+    assign::Assign, binary::Binary, conditional::Conditional, unary::Unary, update::Update,
+};

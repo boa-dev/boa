@@ -1,9 +1,15 @@
+mod assign;
+mod binary;
+mod object_literal;
+mod unary;
+mod update;
+
+use super::{Access, Callable, NodeKind};
 use crate::{
     bytecompiler::{ByteCompiler, Literal},
     vm::Opcode,
     JsResult,
 };
-
 use boa_ast::{
     expression::{
         access::{PropertyAccess, PropertyAccessField},
@@ -12,15 +18,8 @@ use boa_ast::{
     },
     Expression,
 };
-
-mod assign;
-mod binary;
-mod object_literal;
-mod unary;
-
 use boa_interner::Sym;
 
-use super::{Access, Callable, NodeKind};
 impl ByteCompiler<'_, '_> {
     fn compile_literal(&mut self, lit: &AstLiteral, use_expr: bool) {
         match lit {
@@ -90,6 +89,7 @@ impl ByteCompiler<'_, '_> {
         match expr {
             Expression::Literal(lit) => self.compile_literal(lit, use_expr),
             Expression::Unary(unary) => self.compile_unary(unary, use_expr)?,
+            Expression::Update(update) => self.compile_update(update, use_expr)?,
             Expression::Binary(binary) => self.compile_binary(binary, use_expr)?,
             Expression::Assign(assign) => self.compile_assign(assign, use_expr)?,
             Expression::ObjectLiteral(object) => {

@@ -1,25 +1,24 @@
 //! Unary expression nodes.
 //!
-//! A Binary expression comprises any operation applied to a single expression. Some examples include:
+//! A unary expression comprises any operation applied to a single expression. Some examples include:
 //!
-//! - [Increment and decrement operations][inc] (`++`, `--`).
 //! - The [`delete`][del] operator.
 //! - The [bitwise NOT][not] operator (`~`).
 //!
 //! The full list of valid unary operators is defined in [`UnaryOp`].
 //!
-//! [inc]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators#increment_and_decrement
 //! [del]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/delete
 //! [not]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Bitwise_NOT
 mod op;
 
-use core::ops::ControlFlow;
-pub use op::*;
-
+use crate::{
+    expression::Expression,
+    visitor::{VisitWith, Visitor, VisitorMut},
+};
 use boa_interner::{Interner, ToInternedString};
+use core::ops::ControlFlow;
 
-use crate::expression::Expression;
-use crate::visitor::{VisitWith, Visitor, VisitorMut};
+pub use op::*;
 
 /// A unary expression is an operation with only one operand.
 ///

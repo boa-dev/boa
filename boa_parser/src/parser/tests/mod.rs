@@ -13,8 +13,8 @@ use boa_ast::{
         operator::{
             assign::AssignOp,
             binary::{ArithmeticOp, BinaryOp, LogicalOp, RelationalOp},
-            unary::UnaryOp,
-            Assign, Binary, Unary,
+            update::{UpdateOp, UpdateTarget},
+            Assign, Binary, Update,
         },
         Call, Identifier, New,
     },
@@ -126,9 +126,9 @@ fn hoisting() {
                 .unwrap(),
             ))
             .into(),
-            Statement::Expression(Expression::from(Unary::new(
-                UnaryOp::IncrementPost,
-                Identifier::new(a).into(),
+            Statement::Expression(Expression::from(Update::new(
+                UpdateOp::IncrementPost,
+                UpdateTarget::Identifier(Identifier::new(a)),
             )))
             .into(),
         ],
@@ -150,9 +150,9 @@ fn hoisting() {
                 Literal::from(10).into(),
             )))
             .into(),
-            Statement::Expression(Expression::from(Unary::new(
-                UnaryOp::IncrementPost,
-                Identifier::new(a).into(),
+            Statement::Expression(Expression::from(Update::new(
+                UpdateOp::IncrementPost,
+                UpdateTarget::Identifier(Identifier::new(a)),
             )))
             .into(),
             Statement::Var(VarDeclaration(
@@ -429,7 +429,11 @@ fn increment_in_comma_op() {
         s,
         vec![Statement::Expression(Expression::from(Binary::new(
             BinaryOp::Comma,
-            Unary::new(UnaryOp::IncrementPost, Identifier::new(b).into()).into(),
+            Update::new(
+                UpdateOp::IncrementPost,
+                UpdateTarget::Identifier(Identifier::new(b)),
+            )
+            .into(),
             Identifier::new(b).into(),
         )))
         .into()],

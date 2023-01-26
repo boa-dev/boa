@@ -18,7 +18,10 @@ use crate::{
 };
 use boa_ast::{
     expression::{
-        operator::{unary::UnaryOp, Unary},
+        operator::{
+            update::{UpdateOp, UpdateTarget},
+            Update,
+        },
         Identifier,
     },
     Expression, Position, Punctuator,
@@ -56,18 +59,28 @@ impl UpdateExpression {
     }
 }
 
-/// <https://tc39.es/ecma262/multipage/syntax-directed-operations.html#sec-static-semantics-assignmenttargettype>
-/// This function checks if the target type is simple
-fn is_simple(expr: &Expression, position: Position, strict: bool) -> ParseResult<bool> {
+/// Check if the assignment target type is simple and return the target as an `UpdateTarget`.
+///
+/// More information:
+///  - [ECMAScript specification][spec]
+///
+/// [spec]: https://tc39.es/ecma262/#sec-static-semantics-assignmenttargettype
+fn as_simple(
+    expr: &Expression,
+    position: Position,
+    strict: bool,
+) -> ParseResult<Option<UpdateTarget>> {
     match expr {
         Expression::Identifier(ident) => {
             if strict {
                 check_strict_arguments_or_eval(*ident, position)?;
             }
-            Ok(true)
+            Ok(Some(UpdateTarget::Identifier(*ident)))
         }
-        Expression::PropertyAccess(_) => Ok(true),
-        _ => Ok(false),
+        Expression::PropertyAccess(access) => {
+            Ok(Some(UpdateTarget::PropertyAccess(access.clone())))
+        }
+        _ => Ok(None),
     }
 }
 
@@ -90,15 +103,17 @@ where
 
                 let target = UnaryExpression::new(self.name, self.allow_yield, self.allow_await)
                     .parse(cursor, interner)?;
-                // https://tc39.es/ecma262/#sec-update-expressions-static-semantics-early-errors
-                if !is_simple(&target, position, cursor.strict_mode())? {
-                    return Err(Error::lex(LexError::Syntax(
-                        "Invalid left-hand side in assignment".into(),
-                        position,
-                    )));
-                }
 
-                return Ok(Unary::new(UnaryOp::IncrementPre, target).into());
+                // https://tc39.es/ecma262/#sec-update-expressions-static-semantics-early-errors
+                return (as_simple(&target, position, cursor.strict_mode())?).map_or_else(
+                    || {
+                        Err(Error::lex(LexError::Syntax(
+                            "Invalid left-hand side in assignment".into(),
+                            position,
+                        )))
+                    },
+                    |target| Ok(Update::new(UpdateOp::IncrementPre, target).into()),
+                );
             }
             TokenKind::Punctuator(Punctuator::Dec) => {
                 cursor
@@ -107,15 +122,17 @@ where
 
                 let target = UnaryExpression::new(self.name, self.allow_yield, self.allow_await)
                     .parse(cursor, interner)?;
-                // https://tc39.es/ecma262/#sec-update-expressions-static-semantics-early-errors
-                if !is_simple(&target, position, cursor.strict_mode())? {
-                    return Err(Error::lex(LexError::Syntax(
-                        "Invalid left-hand side in assignment".into(),
-                        position,
-                    )));
-                }
 
-                return Ok(Unary::new(UnaryOp::DecrementPre, target).into());
+                // https://tc39.es/ecma262/#sec-update-expressions-static-semantics-early-errors
+                return (as_simple(&target, position, cursor.strict_mode())?).map_or_else(
+                    || {
+                        Err(Error::lex(LexError::Syntax(
+                            "Invalid left-hand side in assignment".into(),
+                            position,
+                        )))
+                    },
+                    |target| Ok(Update::new(UpdateOp::DecrementPre, target).into()),
+                );
             }
             _ => {}
         }
@@ -134,29 +151,33 @@ where
                     cursor
                         .next(interner)?
                         .expect("Punctuator::Inc token disappeared");
-                    // https://tc39.es/ecma262/#sec-update-expressions-static-semantics-early-errors
-                    if !is_simple(&lhs, token_start, cursor.strict_mode())? {
-                        return Err(Error::lex(LexError::Syntax(
-                            "Invalid left-hand side in assignment".into(),
-                            token_start,
-                        )));
-                    }
 
-                    return Ok(Unary::new(UnaryOp::IncrementPost, lhs).into());
+                    // https://tc39.es/ecma262/#sec-update-expressions-static-semantics-early-errors
+                    return (as_simple(&lhs, position, cursor.strict_mode())?).map_or_else(
+                        || {
+                            Err(Error::lex(LexError::Syntax(
+                                "Invalid left-hand side in assignment".into(),
+                                token_start,
+                            )))
+                        },
+                        |target| Ok(Update::new(UpdateOp::IncrementPost, target).into()),
+                    );
                 }
                 TokenKind::Punctuator(Punctuator::Dec) => {
                     cursor
                         .next(interner)?
                         .expect("Punctuator::Dec token disappeared");
-                    // https://tc39.es/ecma262/#sec-update-expressions-static-semantics-early-errors
-                    if !is_simple(&lhs, token_start, cursor.strict_mode())? {
-                        return Err(Error::lex(LexError::Syntax(
-                            "Invalid left-hand side in assignment".into(),
-                            token_start,
-                        )));
-                    }
 
-                    return Ok(Unary::new(UnaryOp::DecrementPost, lhs).into());
+                    // https://tc39.es/ecma262/#sec-update-expressions-static-semantics-early-errors
+                    return (as_simple(&lhs, position, cursor.strict_mode())?).map_or_else(
+                        || {
+                            Err(Error::lex(LexError::Syntax(
+                                "Invalid left-hand side in assignment".into(),
+                                token_start,
+                            )))
+                        },
+                        |target| Ok(Update::new(UpdateOp::DecrementPost, target).into()),
+                    );
                 }
                 _ => {}
             }

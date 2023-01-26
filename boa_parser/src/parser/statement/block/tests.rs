@@ -7,7 +7,11 @@ use boa_ast::{
     declaration::{VarDeclaration, Variable},
     expression::{
         literal::Literal,
-        operator::{assign::AssignOp, unary::UnaryOp, Assign, Unary},
+        operator::{
+            assign::AssignOp,
+            update::{UpdateOp, UpdateTarget},
+            Assign, Update,
+        },
         Call, Identifier,
     },
     function::{FormalParameterList, Function},
@@ -54,9 +58,9 @@ fn non_empty() {
                 .unwrap(),
             ))
             .into(),
-            Statement::Expression(Expression::from(Unary::new(
-                UnaryOp::IncrementPost,
-                Identifier::new(a).into(),
+            Statement::Expression(Expression::from(Update::new(
+                UpdateOp::IncrementPost,
+                UpdateTarget::Identifier(Identifier::new(a)),
             )))
             .into(),
         ],
@@ -94,9 +98,9 @@ fn non_empty() {
                 .unwrap(),
             ))
             .into(),
-            Statement::Expression(Expression::from(Unary::new(
-                UnaryOp::IncrementPost,
-                Identifier::new(a).into(),
+            Statement::Expression(Expression::from(Update::new(
+                UpdateOp::IncrementPost,
+                UpdateTarget::Identifier(Identifier::new(a)),
             )))
             .into(),
         ],
@@ -135,9 +139,9 @@ fn hoisting() {
                 .unwrap(),
             ))
             .into(),
-            Statement::Expression(Expression::from(Unary::new(
-                UnaryOp::IncrementPost,
-                Identifier::new(a).into(),
+            Statement::Expression(Expression::from(Update::new(
+                UpdateOp::IncrementPost,
+                UpdateTarget::Identifier(Identifier::new(a)),
             )))
             .into(),
         ],
@@ -160,9 +164,9 @@ fn hoisting() {
                 Literal::from(10).into(),
             )))
             .into(),
-            Statement::Expression(Expression::from(Unary::new(
-                UnaryOp::IncrementPost,
-                Identifier::new(a).into(),
+            Statement::Expression(Expression::from(Update::new(
+                UpdateOp::IncrementPost,
+                UpdateTarget::Identifier(Identifier::new(a)),
             )))
             .into(),
             Statement::Var(VarDeclaration(

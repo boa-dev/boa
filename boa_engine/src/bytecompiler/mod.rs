@@ -16,7 +16,7 @@ use boa_ast::{
     declaration::{Binding, LexicalDeclaration, VarDeclaration},
     expression::{
         access::{PropertyAccess, PropertyAccessField},
-        operator::assign::AssignTarget,
+        operator::{assign::AssignTarget, update::UpdateTarget},
         Call, Identifier, New, Optional, OptionalOperationKind,
     },
     function::{
@@ -196,6 +196,13 @@ impl Access<'_> {
             Expression::PropertyAccess(access) => Some(Access::Property { access }),
             Expression::This => Some(Access::This),
             _ => None,
+        }
+    }
+
+    const fn from_update_target(target: &UpdateTarget) -> Access<'_> {
+        match target {
+            UpdateTarget::Identifier(name) => Access::Variable { name: *name },
+            UpdateTarget::PropertyAccess(access) => Access::Property { access },
         }
     }
 }
