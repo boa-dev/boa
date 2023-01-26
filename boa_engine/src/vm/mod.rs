@@ -301,8 +301,8 @@ impl Context<'_> {
                                 .env_stack
                                 .pop()
                                 .expect("stack entries must exist");
-                            env_to_pop += env_entry.env_num();
 
+                            env_to_pop += env_entry.env_num();
                             if env_entry.is_try_env() {
                                 break;
                             }

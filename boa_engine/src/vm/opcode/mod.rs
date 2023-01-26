@@ -8,6 +8,7 @@ mod await_stm;
 mod binary_ops;
 mod call;
 mod concat;
+mod control_flow;
 mod copy;
 mod define;
 mod delete;
@@ -30,7 +31,6 @@ mod swap;
 mod switch;
 mod throw;
 mod to;
-mod try_catch;
 mod unary_ops;
 mod value;
 
@@ -43,6 +43,8 @@ pub(crate) use binary_ops::*;
 pub(crate) use call::*;
 #[doc(inline)]
 pub(crate) use concat::*;
+#[doc(inline)]
+pub(crate) use control_flow::*;
 #[doc(inline)]
 pub(crate) use copy::*;
 #[doc(inline)]
@@ -87,8 +89,6 @@ pub(crate) use switch::*;
 pub(crate) use throw::*;
 #[doc(inline)]
 pub(crate) use to::*;
-#[doc(inline)]
-pub(crate) use try_catch::*;
 #[doc(inline)]
 pub(crate) use unary_ops::*;
 #[doc(inline)]
@@ -1148,27 +1148,16 @@ generate_impl! {
         /// Stack: **=>**
         FinallyEnd,
 
-        /// Set the address for a finally jump.
-        ///
-        /// Operands:
-        ///
-        /// Stack: **=>**
-        FinallySetJump,
-
         /// Jumps to a target location and pops the environments involved.
         ///
         /// Operands: Address: u32, Environments: u32
         Break,
 
-        /// Sets the `AbruptCompletionRecord` for a delayed break
-        ///
-        /// Operands: Target address: u32, Initial Environements: u32,
-        SetBreakTarget,
-
         /// Sets the `AbruptCompletionRecord` for a delayed continue
         ///
         /// Operands: Target address: u32, Initial Environements: u32,
-        SetContinueTarget,
+        Continue,
+
         /// Pops value converts it to boolean and pushes it back.
         ///
         /// Operands:
@@ -1358,6 +1347,20 @@ generate_impl! {
         ///
         /// Stack: **=>**
         LoopEnd,
+
+        /// Push labelled start marker.
+        ///
+        /// Operands: Start Address: u32, Exit Address: u32,
+        ///
+        /// Stack: **=>**
+        LabelledStart,
+
+        /// Clean up environments at the end of a labelled block.
+        ///
+        /// Operands:
+        ///
+        /// Stack: **=>**
+        LabelledEnd,
 
         /// Initialize the iterator for a for..in loop or jump to after the loop if object is null or undefined.
         ///

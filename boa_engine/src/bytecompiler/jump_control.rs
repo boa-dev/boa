@@ -146,10 +146,6 @@ impl JumpControlInfo {
     pub(crate) const fn for_of_in_loop(&self) -> bool {
         self.flags.contains(JumpControlInfoFlags::FOR_OF_IN_LOOP)
     }
-
-    pub(crate) const fn decl_envs(&self) -> u32 {
-        self.decl_envs
-    }
 }
 
 /// ---- `JumpControlInfo` interaction methods ----
@@ -329,12 +325,13 @@ impl ByteCompiler<'_, '_> {
 
         assert!(info.is_loop());
 
-        for label in info.breaks {
-            self.patch_jump(label);
+        let start_address = info.start_address();
+        for label in info.try_continues {
+            self.patch_jump_with_target(label, start_address);
         }
 
-        for label in info.try_continues {
-            self.patch_jump_with_target(label, info.start_address);
+        for label in info.breaks {
+            self.patch_jump(label);
         }
     }
 
@@ -405,15 +402,9 @@ impl ByteCompiler<'_, '_> {
 
         // Handle set_jumps
         for label in info.set_jumps {
-            let mut envs_count = 0;
             for jump_info in self.jump_info.iter_mut().rev() {
-                envs_count += jump_info.decl_envs();
                 if jump_info.is_loop() || jump_info.is_switch() {
                     jump_info.breaks.push(label);
-                    let envs_label = Label {
-                        index: label.index + 4,
-                    };
-                    self.patch_jump_with_target(envs_label, envs_count);
                     break;
                 }
             }
@@ -441,23 +432,20 @@ impl ByteCompiler<'_, '_> {
         assert!(info.in_finally());
 
         // Handle set_jumps
-        let info_envs = info.decl_envs();
         for label in info.set_jumps {
-            let mut envs_count = info_envs;
             for jump_info in self.jump_info.iter_mut().rev() {
-                envs_count += jump_info.decl_envs();
                 if jump_info.is_loop() || jump_info.is_switch() {
                     jump_info.breaks.push(label);
-                    let envs_label = Label {
-                        index: label.index + 4,
-                    };
-                    self.patch_jump_with_target(envs_label, envs_count);
                     break;
                 }
             }
         }
 
-        // Handle breaks in a finally block
+        // Handle breaks in a finally block        for label in info.breaks {
+        for label in info.breaks {
+            self.patch_jump(label);
+        }
+        /*
         let mut finally_chain = false;
         for jump_info in self.jump_info.iter_mut().rev() {
             if jump_info.is_try_block() && jump_info.has_finally() {
@@ -471,7 +459,7 @@ impl ByteCompiler<'_, '_> {
             for label in info.breaks {
                 self.patch_jump(label);
             }
-        }
+        }*/
 
         // Pass continues down the stack.
         if let Some(jump_info) = self.jump_info.last_mut() {

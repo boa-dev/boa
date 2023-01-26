@@ -15,27 +15,26 @@ impl Operation for Return {
     const INSTRUCTION: &'static str = "INST - Return";
 
     fn execute(context: &mut Context<'_>) -> JsResult<ShouldExit> {
-        if let Some(finally_address) = context.vm.frame().try_catch.last().and_then(|c| c.finally()) {
+        if let Some(finally_address) = context
+            .vm
+            .frame()
+            .try_catch
+            .last()
+            .and_then(|c| c.finally())
+        {
             let frame = context.vm.frame_mut();
             frame.pc = finally_address as usize;
             frame.finally_return = FinallyReturn::Ok;
             frame.try_catch.pop();
-            let mut envs_to_pop = 0_usize;
-            for _ in 1..context.vm.frame().env_stack.len() {
-                let env_entry = context
-                    .vm
-                    .frame_mut()
-                    .env_stack
-                    .pop()
-                    .expect("this must exist");
-                envs_to_pop += env_entry.env_num();
 
-                if env_entry.is_try_env() {
-                    break;
-                }
-            }
+            let env_entry = context
+                .vm
+                .frame_mut()
+                .env_stack
+                .pop()
+                .expect("this must exist");
 
-            for _ in 0..envs_to_pop {
+            for _ in 0..env_entry.env_num() {
                 context.realm.environments.pop();
             }
         } else {

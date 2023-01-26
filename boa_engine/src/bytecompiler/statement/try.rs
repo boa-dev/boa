@@ -17,14 +17,15 @@ impl ByteCompiler<'_, '_> {
         use_expr: bool,
         configurable_globals: bool,
     ) -> JsResult<()> {
-        let (try_start, finally_loc) = self.emit_opcode_with_two_operands(Opcode::TryStart);
+        let try_start = self.next_opcode_location();
+        let (catch_start, finally_loc) = self.emit_opcode_with_two_operands(Opcode::TryStart);
         self.patch_jump_with_target(finally_loc, 0);
 
         // If there is a finally block, initialize the finally control block prior to pushing the try block jump_control
         if t.finally().is_some() {
             self.push_init_finally_control_info();
         }
-        self.push_try_control_info(t.finally().is_some(), try_start.index);
+        self.push_try_control_info(t.finally().is_some(), try_start);
 
         self.context.push_compile_time_environment(false);
         let push_env = self.emit_and_track_decl_env();
@@ -40,7 +41,7 @@ impl ByteCompiler<'_, '_> {
         self.emit_opcode(Opcode::TryEnd);
 
         let finally = self.jump();
-        self.patch_jump(try_start);
+        self.patch_jump(catch_start);
 
         if t.catch().is_some() {
             self.compile_catch_stmt(t, use_expr, configurable_globals)?;
@@ -51,14 +52,14 @@ impl ByteCompiler<'_, '_> {
         if let Some(finally) = t.finally() {
             // Pop and push control loops post FinallyStart, as FinallyStart resets flow control variables.
             // Handle finally header operations
-            let finally_start_address = self.next_opcode_location();
-            self.emit_opcode(Opcode::FinallyStart);
-            self.pop_try_control_info(finally_start_address);
-            self.set_jump_control_start_address(finally_start_address);
-            self.patch_jump_with_target(finally_loc, finally_start_address);
-
+            let finally_start = self.next_opcode_location();
+            let finally_end = self.emit_opcode_with_operand(Opcode::FinallyStart);
+            self.pop_try_control_info(finally_start);
+            self.set_jump_control_start_address(finally_start);
+            self.patch_jump_with_target(finally_loc, finally_start);
             // Compile finally statement body
             self.compile_finally_stmt(finally, configurable_globals)?;
+            self.patch_jump(finally_end);
         } else {
             let try_end = self.next_opcode_location();
             self.pop_try_control_info(try_end);
@@ -77,11 +78,7 @@ impl ByteCompiler<'_, '_> {
             .catch()
             .expect("Catch must exist for compile_catch_stmt to have been invoked");
         self.set_jump_control_in_catch(true);
-        let catch_start = if parent_try.finally().is_some() {
-            Some(self.emit_opcode_with_operand(Opcode::CatchStart))
-        } else {
-            None
-        };
+        let catch_end = self.emit_opcode_with_operand(Opcode::CatchStart);
 
         self.context.push_compile_time_environment(false);
         let push_env = self.emit_and_track_decl_env();
@@ -115,13 +112,13 @@ impl ByteCompiler<'_, '_> {
         self.patch_jump_with_target(push_env.0, num_bindings as u32);
         self.patch_jump_with_target(push_env.1, index_compile_environment as u32);
         self.emit_and_track_pop_env();
-        if let Some(catch_start) = catch_start {
+        if parent_try.finally().is_some() {
             self.emit_opcode(Opcode::CatchEnd);
-            self.patch_jump(catch_start);
         } else {
             self.emit_opcode(Opcode::CatchEnd2);
         }
 
+        self.patch_jump(catch_end);
         self.set_jump_control_in_finally(false);
 
         Ok(())

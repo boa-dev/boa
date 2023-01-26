@@ -232,8 +232,10 @@ impl CodeBlock {
             | Opcode::JumpIfFalse
             | Opcode::JumpIfNotUndefined
             | Opcode::JumpIfNullOrUndefined
+            | Opcode::LoopStart
             | Opcode::CatchStart
-            | Opcode::FinallySetJump
+            | Opcode::FinallyStart
+            | Opcode::LabelledStart
             | Opcode::Case
             | Opcode::Default
             | Opcode::LogicalAnd
@@ -252,13 +254,14 @@ impl CodeBlock {
                 *pc += size_of::<u32>();
                 result
             }
-            Opcode::TryStart
-            | Opcode::PushDeclarativeEnvironment
+
+            Opcode::PushDeclarativeEnvironment
             | Opcode::PushFunctionEnvironment
             | Opcode::CopyDataProperties
             | Opcode::Break
-            | Opcode::SetBreakTarget
-            | Opcode::SetContinueTarget => {
+            | Opcode::Continue
+            | Opcode::LoopContinue
+            | Opcode::TryStart => {
                 let operand1 = self.read::<u32>(*pc);
                 *pc += size_of::<u32>();
                 let operand2 = self.read::<u32>(*pc);
@@ -403,15 +406,13 @@ impl CodeBlock {
             | Opcode::TryEnd
             | Opcode::CatchEnd
             | Opcode::CatchEnd2
-            | Opcode::FinallyStart
             | Opcode::FinallyEnd
             | Opcode::This
             | Opcode::Super
             | Opcode::Return
             | Opcode::PopEnvironment
-            | Opcode::LoopStart
-            | Opcode::LoopContinue
             | Opcode::LoopEnd
+            | Opcode::LabelledEnd
             | Opcode::InitIterator
             | Opcode::InitIteratorAsync
             | Opcode::IteratorNext

@@ -1,5 +1,9 @@
 use crate::{
-    vm::{call_frame::{EnvStackEntry, TryAddresses}, opcode::Operation, FinallyReturn, ShouldExit},
+    vm::{
+        call_frame::{EnvStackEntry, TryAddresses},
+        opcode::Operation,
+        FinallyReturn, ShouldExit,
+    },
     Context, JsResult,
 };
 
@@ -15,21 +19,23 @@ impl Operation for TryStart {
     const INSTRUCTION: &'static str = "INST - TryStart";
 
     fn execute(context: &mut Context<'_>) -> JsResult<ShouldExit> {
+        let start = context.vm.frame().pc as u32 - 1;
         let catch = context.vm.read::<u32>();
         let finally = context.vm.read::<u32>();
+
+        context.vm.frame_mut().finally_return = FinallyReturn::None;
+        context
+            .vm
+            .frame_mut()
+            .env_stack
+            .push(EnvStackEntry::new(start, finally).with_try_flag());
+
         let finally = if finally == 0 { None } else { Some(finally) };
         context
             .vm
             .frame_mut()
             .try_catch
             .push(TryAddresses::new(catch, finally));
-        context.vm.frame_mut().finally_jump.push(None);
-        context.vm.frame_mut().finally_return = FinallyReturn::None;
-        context
-            .vm
-            .frame_mut()
-            .env_stack
-            .push(EnvStackEntry::default().with_try_flag());
         Ok(ShouldExit::False)
     }
 }
@@ -82,13 +88,14 @@ impl Operation for CatchStart {
     const INSTRUCTION: &'static str = "INST - CatchStart";
 
     fn execute(context: &mut Context<'_>) -> JsResult<ShouldExit> {
+        let start = context.vm.frame().pc as u32 - 1;
         let finally = context.vm.read::<u32>();
-        context.vm.frame_mut().try_catch.push(TryAddresses::new(finally, Some(finally)));
+
         context
             .vm
             .frame_mut()
             .env_stack
-            .push(EnvStackEntry::default().with_catch_flag());
+            .push(EnvStackEntry::new(start, finally).with_catch_flag());
         context.vm.frame_mut().thrown = false;
         Ok(ShouldExit::False)
     }
@@ -143,6 +150,22 @@ impl Operation for CatchEnd2 {
 
     fn execute(context: &mut Context<'_>) -> JsResult<ShouldExit> {
         let frame = context.vm.frame_mut();
+        if frame
+            .env_stack
+            .last()
+            .expect("Env stack entry must exist")
+            .is_catch_env()
+        {
+            let catch_entry = frame
+                .env_stack
+                .pop()
+                .expect("must exist as catch env entry");
+
+            for _ in 0..catch_entry.env_num() {
+                context.realm.environments.pop();
+            }
+        }
+
         if frame.finally_return == FinallyReturn::Err {
             frame.finally_return = FinallyReturn::None;
         }

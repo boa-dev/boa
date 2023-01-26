@@ -22,10 +22,8 @@ pub struct CallFrame {
     pub(crate) finally_return: FinallyReturn,
     #[unsafe_ignore_trace]
     pub(crate) abrupt_completion: Option<AbruptCompletionRecord>,
-    pub(crate) finally_jump: Vec<Option<u32>>,
     pub(crate) pop_on_return: usize,
-
-    // Tracks the number of environments in the current loop block.
+    // Tracks the number of environments in environment entry.
     // On abrupt returns this is used to decide how many environments need to be pop'ed.
     #[unsafe_ignore_trace]
     pub(crate) env_stack: Vec<EnvStackEntry>,
@@ -46,14 +44,14 @@ pub struct CallFrame {
 impl CallFrame {
     /// Creates a new `CallFrame` with the provided `CodeBlock`.
     pub(crate) fn new(code_block: Gc<CodeBlock>) -> Self {
+        let max_length = code_block.bytecode.len() as u32;
         Self {
             code_block,
             pc: 0,
             try_catch: Vec::new(),
             finally_return: FinallyReturn::None,
-            finally_jump: Vec::new(),
             pop_on_return: 0,
-            env_stack: Vec::from([EnvStackEntry::default().with_initial_env_num(0)]),
+            env_stack: Vec::from([EnvStackEntry::new(0, max_length)]),
             abrupt_completion: None,
             param_count: 0,
             arg_count: 0,
@@ -84,7 +82,6 @@ impl CallFrame {
             .last_mut()
             .expect("environment stack entry must exist")
             .inc_env_num();
-        self.inc_and_reconcile_abrupt_completion_envs();
     }
 
     /// Tracks that one environment has been pop'ed in the current loop block.
@@ -92,50 +89,15 @@ impl CallFrame {
     /// Note:
     ///  - This will check if the env stack has reached 0 and should be popped.
     pub(crate) fn dec_frame_env_stack(&mut self) {
-        //println!("Current place: {}", self.pc);
-        //println!("{:#?}\n", self.abrupt_completion);
-        //println!("{:#?}\n\n", self.env_stack);
         self.env_stack
             .last_mut()
             .expect("environment stack entry must exist")
             .dec_env_num();
-        self.dec_and_reconcile_abrupt_completion_envs();
-
-        if self
-            .env_stack
-            .last()
-            .expect("Must exist as we just decremented it")
-            .should_be_popped()
-        {
-            self.pop_env_stack();
-        }
-    }
-
-    pub(crate) fn inc_and_reconcile_abrupt_completion_envs(&mut self) {
-        if let Some(record) = self.abrupt_completion.as_mut() {
-            record.inc_envs();
-        }
-    }
-
-    pub(crate) fn dec_and_reconcile_abrupt_completion_envs(&mut self) {
-        if let Some(record) = self.abrupt_completion.as_mut() {
-            if record.envs() > 0 {
-                record.dec_envs();
-            }
-        };
-    }
-
-    pub(crate) fn pop_env_stack(&mut self) {
-        let dead_entry = self.env_stack.pop().expect("env stack must exist");
-        if dead_entry.is_try_env() {
-            self.try_catch.pop();
-        }
     }
 }
 
-
 /// Tracks the address that should be jumped to when an error is caught.
-/// 
+///
 /// Additionally the address of a finally block is tracked, to allow for special handling if it exists.
 #[derive(Copy, Clone, Debug)]
 pub(crate) struct TryAddresses {
@@ -150,7 +112,7 @@ impl TryAddresses {
             finally: finally_address,
         }
     }
-    /// Returns the catch value of the `TryAddresses` struct. 
+    /// Returns the catch value of the `TryAddresses` struct.
     pub(crate) const fn catch(&self) -> u32 {
         self.catch
     }

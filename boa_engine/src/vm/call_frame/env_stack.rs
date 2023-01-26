@@ -7,6 +7,7 @@ pub(crate) enum EnvEntryKind {
     Try,
     Catch,
     Finally,
+    Labelled,
 }
 /// Tracks the number of environments in the current try-catch-finally block.
 ///
@@ -14,6 +15,8 @@ pub(crate) enum EnvEntryKind {
 /// the number of loop blocks in the try-catch-finally block also needs to be tracked.
 #[derive(Copy, Clone, Debug)]
 pub(crate) struct EnvStackEntry {
+    start: u32,
+    exit: u32,
     kind: EnvEntryKind,
     env_num: usize,
 }
@@ -21,6 +24,8 @@ pub(crate) struct EnvStackEntry {
 impl Default for EnvStackEntry {
     fn default() -> Self {
         Self {
+            start: 0,
+            exit: u32::MAX,
             kind: EnvEntryKind::Global,
             env_num: 0,
         }
@@ -29,6 +34,15 @@ impl Default for EnvStackEntry {
 
 /// ---- `EnvStackEntry` creation methods ----
 impl EnvStackEntry {
+    pub(crate) fn new(start_address: u32, exit_address: u32) -> Self {
+        Self {
+            start: start_address,
+            exit: exit_address,
+            kind: EnvEntryKind::Global,
+            env_num: 0,
+        }
+    }
+
     pub(crate) const fn with_try_flag(mut self) -> Self {
         self.kind = EnvEntryKind::Try;
         self
@@ -49,14 +63,22 @@ impl EnvStackEntry {
         self
     }
 
-    pub(crate) const fn with_initial_env_num(mut self, value: usize) -> Self {
-        self.env_num = value;
+    pub(crate) const fn with_labelled_flag(mut self) -> Self {
+        self.kind = EnvEntryKind::Labelled;
         self
     }
 }
 
 /// ---- `EnvStackEntry` interaction methods ----
 impl EnvStackEntry {
+    pub(crate) const fn start_address(&self) -> u32 {
+        self.start
+    }
+
+    pub(crate) const fn exit_address(&self) -> u32 {
+        self.exit
+    }
+
     /// Returns true if an `EnvStackEntry` is a loop
     pub(crate) fn is_loop_env(&self) -> bool {
         self.kind == EnvEntryKind::Loop
@@ -67,14 +89,17 @@ impl EnvStackEntry {
         self.kind == EnvEntryKind::Try
     }
 
+    pub(crate) fn is_labelled_env(&self) -> bool {
+        self.kind == EnvEntryKind::Labelled
+    }
+
+    pub(crate) fn is_catch_env(&self) -> bool {
+        self.kind == EnvEntryKind::Catch
+    }
+
     /// Returns the current environment number for this entry.
     pub(crate) const fn env_num(&self) -> usize {
         self.env_num
-    }
-
-    /// Checks if a env block should be popped
-    pub(crate) fn should_be_popped(&self) -> bool {
-        self.kind != EnvEntryKind::Global && self.env_num == 0
     }
 
     pub(crate) fn inc_env_num(&mut self) {

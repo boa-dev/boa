@@ -11,7 +11,6 @@ pub(crate) enum AbruptKind {
 pub(crate) struct AbruptCompletionRecord {
     kind: AbruptKind,
     target: u32,
-    envs: u32,
 }
 
 impl Default for AbruptCompletionRecord {
@@ -19,7 +18,6 @@ impl Default for AbruptCompletionRecord {
         Self {
             kind: AbruptKind::None,
             target: u32::MAX,
-            envs: 0,
         }
     }
 }
@@ -40,11 +38,6 @@ impl AbruptCompletionRecord {
         self.target = target;
         self
     }
-
-    pub(crate) const fn with_initial_envs(mut self, envs: u32) -> Self {
-        self.envs = envs;
-        self
-    }
 }
 
 impl AbruptCompletionRecord {
@@ -52,38 +45,11 @@ impl AbruptCompletionRecord {
         self.kind == AbruptKind::Break
     }
 
+    pub(crate) fn is_continue(&self) -> bool {
+        self.kind == AbruptKind::Continue
+    }
+
     pub(crate) const fn target(&self) -> u32 {
         self.target
-    }
-
-    pub(crate) const fn envs(&self) -> u32 {
-        self.envs
-    }
-}
-
-/// ---- `AbruptCompletionRecord` interaction methods ----
-impl AbruptCompletionRecord {
-    pub(crate) fn set_break_flag(&mut self) {
-        self.kind = AbruptKind::Break;
-    }
-
-    pub(crate) fn set_continue_flag(&mut self) {
-        self.kind = AbruptKind::Continue;
-    }
-
-    pub(crate) fn set_target(&mut self, target: u32) {
-        self.target = target;
-    }
-
-    pub(crate) fn set_envs(&mut self, envs: u32) {
-        self.envs = envs;
-    }
-
-    pub(crate) fn inc_envs(&mut self) {
-        self.envs += 1;
-    }
-
-    pub(crate) fn dec_envs(&mut self) {
-        self.envs -= 1;
     }
 }

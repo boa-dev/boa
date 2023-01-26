@@ -15,11 +15,14 @@ impl Operation for LoopStart {
     const INSTRUCTION: &'static str = "INST - LoopStart";
 
     fn execute(context: &mut Context<'_>) -> JsResult<ShouldExit> {
+        let start = context.vm.frame().pc as u32 - 1;
+        let exit = context.vm.read::<u32>();
+
         context
             .vm
             .frame_mut()
             .env_stack
-            .push(EnvStackEntry::default().with_loop_flag());
+            .push(EnvStackEntry::new(start, exit).with_loop_flag());
         Ok(ShouldExit::False)
     }
 }
@@ -36,11 +39,27 @@ impl Operation for LoopContinue {
     const INSTRUCTION: &'static str = "INST - LoopContinue";
 
     fn execute(context: &mut Context<'_>) -> JsResult<ShouldExit> {
+        let start = context.vm.read::<u32>();
+        let exit = context.vm.read::<u32>();
+
+        // 1. Clean up the previous environment.
+        let env_entry = context
+            .vm
+            .frame_mut()
+            .env_stack
+            .pop()
+            .expect("this must exist");
+
+        for _ in 0..env_entry.env_num() {
+            context.realm.environments.pop();
+        }
+
+        // 2. Push a new clean EnvStack.
         context
             .vm
             .frame_mut()
             .env_stack
-            .push(EnvStackEntry::default().with_loop_flag());
+            .push(EnvStackEntry::new(start, exit).with_loop_flag());
 
         Ok(ShouldExit::False)
     }
