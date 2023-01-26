@@ -16,10 +16,10 @@ impl Sensitivity {
     /// Converts the sensitivity option to the equivalent ICU4X collator options.
     pub(crate) const fn to_collator_options(self) -> (Strength, CaseLevel) {
         match self {
-            Sensitivity::Base => (Strength::Primary, CaseLevel::Off),
-            Sensitivity::Accent => (Strength::Secondary, CaseLevel::Off),
-            Sensitivity::Case => (Strength::Primary, CaseLevel::On),
-            Sensitivity::Variant => (Strength::Tertiary, CaseLevel::On),
+            Self::Base => (Strength::Primary, CaseLevel::Off),
+            Self::Accent => (Strength::Secondary, CaseLevel::Off),
+            Self::Case => (Strength::Primary, CaseLevel::On),
+            Self::Variant => (Strength::Tertiary, CaseLevel::On),
         }
     }
 }

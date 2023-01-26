@@ -609,9 +609,7 @@ impl RegExp {
     ) -> JsResult<JsValue> {
         // 1. Let R be the this value.
         // 2. If Type(R) is not Object, throw a TypeError exception.
-        let object = if let Some(object) = this.as_object() {
-            object
-        } else {
+        let Some(object) = this.as_object() else {
             return Err(JsNativeError::typ()
                 .with_message("RegExp.prototype.source method called on incompatible value")
                 .into());

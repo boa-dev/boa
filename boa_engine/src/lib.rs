@@ -95,7 +95,7 @@
     clippy::missing_errors_doc,
     clippy::let_unit_value,
     clippy::option_if_let_else,
-    // Currently derive macros are linted. Should be fixed in 1.66. See https://github.com/rust-lang/rust-clippy/pull/9454
+    // Currently lints in places where `Self` would have a type parameter.
     clippy::use_self,
 
     // It may be worth to look if we can fix the issues highlighted by these lints.
@@ -223,18 +223,14 @@ pub(crate) fn check_output(actions: &[TestAction]) {
                 assert_eq!(
                     &forward(&mut context, case),
                     expected,
-                    "Test case {} ('{}')",
-                    i,
-                    case
+                    "Test case {i} ('{case}')"
                 );
                 i += 1;
             }
             TestAction::TestStartsWith(case, expected) => {
                 assert!(
                     &forward(&mut context, case).starts_with(expected),
-                    "Test case {} ('{}')",
-                    i,
-                    case
+                    "Test case {i} ('{case}')",
                 );
                 i += 1;
             }

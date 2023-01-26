@@ -632,7 +632,7 @@ where
             }
 
             if let Some(peek_token) = cursor.peek(0, interner)? {
-                if let TokenKind::Punctuator(Punctuator::Comma) = peek_token.kind() {
+                if peek_token.kind() == &TokenKind::Punctuator(Punctuator::Comma) {
                     cursor.expect(
                         TokenKind::Punctuator(Punctuator::Comma),
                         "object binding pattern",
@@ -830,7 +830,7 @@ where
             }
 
             if let Some(peek_token) = cursor.peek(0, interner)? {
-                if let TokenKind::Punctuator(Punctuator::Comma) = peek_token.kind() {
+                if peek_token.kind() == &TokenKind::Punctuator(Punctuator::Comma) {
                     cursor.expect(
                         TokenKind::Punctuator(Punctuator::Comma),
                         "array binding pattern",

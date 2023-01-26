@@ -27,10 +27,10 @@ use super::options::OptionType;
 impl OptionType for HourCycle {
     fn from_value(value: JsValue, context: &mut Context<'_>) -> JsResult<Self> {
         match value.to_string(context)?.to_std_string_escaped().as_str() {
-            "h11" => Ok(HourCycle::H11),
-            "h12" => Ok(HourCycle::H12),
-            "h23" => Ok(HourCycle::H23),
-            "h24" => Ok(HourCycle::H24),
+            "h11" => Ok(Self::H11),
+            "h12" => Ok(Self::H12),
+            "h23" => Ok(Self::H23),
+            "h24" => Ok(Self::H24),
             _ => Err(JsNativeError::range()
                 .with_message("provided string was not `h11`, `h12`, `h23` or `h24`")
                 .into()),

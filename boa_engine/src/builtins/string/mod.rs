@@ -2355,9 +2355,8 @@ pub(crate) fn get_substitution(
 /// [spec]: https://tc39.es/ecma262/#sec-isregexp
 fn is_reg_exp(argument: &JsValue, context: &mut Context<'_>) -> JsResult<bool> {
     // 1. If Type(argument) is not Object, return false.
-    let argument = match argument {
-        JsValue::Object(o) => o,
-        _ => return Ok(false),
+    let JsValue::Object(argument) = argument else {
+        return Ok(false);
     };
 
     is_reg_exp_object(argument, context)

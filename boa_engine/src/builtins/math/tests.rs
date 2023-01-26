@@ -93,7 +93,7 @@ fn asinh() {
     let a = forward_val(&mut context, "a").unwrap();
     let b = forward_val(&mut context, "b").unwrap();
 
-    assert_eq!(a.to_number(&mut context).unwrap(), 0.881_373_587_019_542_9);
+    assert_eq!(a.to_number(&mut context).unwrap(), 0.881_373_587_019_543);
     assert_eq!(b.to_number(&mut context).unwrap(), 0_f64);
 }
 

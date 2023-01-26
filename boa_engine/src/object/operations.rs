@@ -938,7 +938,7 @@ impl JsObject {
     /// [spec]: https://tc39.es/ecma262/#sec-initializeinstanceelements
     pub(crate) fn initialize_instance_elements(
         &self,
-        constructor: &JsObject,
+        constructor: &Self,
         context: &mut Context<'_>,
     ) -> JsResult<()> {
         let constructor_borrow = constructor.borrow();
@@ -1110,10 +1110,10 @@ impl JsValue {
     #[inline]
     pub(crate) fn call(
         &self,
-        this: &JsValue,
-        args: &[JsValue],
+        this: &Self,
+        args: &[Self],
         context: &mut Context<'_>,
-    ) -> JsResult<JsValue> {
+    ) -> JsResult<Self> {
         self.as_callable()
             .ok_or_else(|| {
                 JsNativeError::typ().with_message(format!(

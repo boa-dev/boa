@@ -77,13 +77,13 @@ impl Color {
 impl Display for Color {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            Color::None => f.write_str(""),
-            Color::Red => f.write_str("red"),
-            Color::Green => f.write_str("green"),
-            Color::Blue => f.write_str("blue"),
-            Color::Yellow => f.write_str("yellow"),
-            Color::Purple => f.write_str("purple"),
-            Color::Rgb { r, g, b } => write!(f, "#{r:02X}{b:02X}{g:02X}"),
+            Self::None => f.write_str(""),
+            Self::Red => f.write_str("red"),
+            Self::Green => f.write_str("green"),
+            Self::Blue => f.write_str("blue"),
+            Self::Yellow => f.write_str("yellow"),
+            Self::Purple => f.write_str("purple"),
+            Self::Rgb { r, g, b } => write!(f, "#{r:02X}{b:02X}{g:02X}"),
         }
     }
 }

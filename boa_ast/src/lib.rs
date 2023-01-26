@@ -91,8 +91,7 @@
 #![allow(
     clippy::module_name_repetitions,
     clippy::too_many_lines,
-    clippy::option_if_let_else,
-    clippy::use_self
+    clippy::option_if_let_else
 )]
 
 mod position;

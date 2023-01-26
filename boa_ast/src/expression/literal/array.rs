@@ -60,9 +60,7 @@ impl ArrayLiteral {
 
         let mut bindings = Vec::new();
         for (i, expr) in self.arr.iter().enumerate() {
-            let expr = if let Some(expr) = expr {
-                expr
-            } else {
+            let Some(expr) = expr else {
                 bindings.push(ArrayPatternElement::Elision);
                 continue;
             };

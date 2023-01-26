@@ -83,8 +83,8 @@ impl SubGraph {
 
     /// Create a subgraph in this subgraph.
     #[inline]
-    pub fn subgraph(&mut self, label: String) -> &mut SubGraph {
-        self.subgraphs.push(SubGraph::new(label));
+    pub fn subgraph(&mut self, label: String) -> &mut Self {
+        self.subgraphs.push(Self::new(label));
         let result = self
             .subgraphs
             .last_mut()
@@ -248,7 +248,7 @@ impl Graph {
     #[inline]
     #[must_use]
     pub fn new(direction: Direction) -> Self {
-        Graph {
+        Self {
             subgraphs: Vec::default(),
             direction,
         }

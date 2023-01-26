@@ -608,10 +608,9 @@ pub(crate) fn ordinary_set(
             return Ok(false);
         }
 
-        let receiver = match receiver.as_object() {
-            Some(obj) => obj,
-            // b. If Type(Receiver) is not Object, return false.
-            _ => return Ok(false),
+        // b. If Type(Receiver) is not Object, return false.
+        let Some(receiver) = receiver.as_object() else {
+            return Ok(false);
         };
 
         // c. Let existingDescriptor be ? Receiver.[[GetOwnProperty]](P).

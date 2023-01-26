@@ -60,7 +60,6 @@
     clippy::nursery,
 )]
 #![allow(
-    clippy::use_self,
     clippy::too_many_lines,
     clippy::redundant_pub_crate,
     clippy::cast_precision_loss,

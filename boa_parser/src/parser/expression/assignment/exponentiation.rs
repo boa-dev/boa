@@ -88,7 +88,7 @@ where
         let lhs = UpdateExpression::new(self.name, self.allow_yield, self.allow_await)
             .parse(cursor, interner)?;
         if let Some(tok) = cursor.peek(0, interner)? {
-            if let TokenKind::Punctuator(Punctuator::Exp) = tok.kind() {
+            if tok.kind() == &TokenKind::Punctuator(Punctuator::Exp) {
                 cursor.advance(interner);
                 return Ok(Binary::new(
                     ArithmeticOp::Exp.into(),

@@ -50,7 +50,7 @@ impl<T> Tagged<T> {
         debug_assert!(std::mem::align_of::<T>() >= 2);
         let addr = (tag << 1) | 1;
         // SAFETY: `addr` is never zero, since we always set its LSB to 1
-        unsafe { Tagged(NonNull::new_unchecked(sptr::invalid_mut(addr))) }
+        unsafe { Self(NonNull::new_unchecked(sptr::invalid_mut(addr))) }
     }
 
     /// Creates a new `Tagged` pointer from a raw pointer.
@@ -65,7 +65,7 @@ impl<T> Tagged<T> {
     pub(crate) const unsafe fn from_ptr(ptr: *mut T) -> Tagged<T> {
         debug_assert!(std::mem::align_of::<T>() >= 2);
         // SAFETY: the caller must ensure the invariants hold.
-        unsafe { Tagged(NonNull::new_unchecked(ptr)) }
+        unsafe { Self(NonNull::new_unchecked(ptr)) }
     }
 
     /// Creates a new `Tagged` pointer from a `NonNull` pointer.
@@ -75,7 +75,7 @@ impl<T> Tagged<T> {
     /// - `T` must have an alignment of at least 2.
     pub(crate) const fn from_non_null(ptr: NonNull<T>) -> Tagged<T> {
         debug_assert!(std::mem::align_of::<T>() >= 2);
-        Tagged(ptr)
+        Self(ptr)
     }
 
     /// Unwraps the `Tagged` pointer.

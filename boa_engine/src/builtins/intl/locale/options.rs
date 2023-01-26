@@ -7,7 +7,7 @@ impl OptionType for Value {
         let val = value
             .to_string(context)?
             .to_std_string_escaped()
-            .parse::<Value>()
+            .parse::<Self>()
             .map_err(|e| JsNativeError::range().with_message(e.to_string()))?;
 
         if val.as_tinystr_slice().is_empty() {

@@ -81,8 +81,8 @@ where
         let _timer = Profiler::global().start_event("ArrowFunction", "Parsing");
         let next_token = cursor.peek(0, interner).or_abrupt()?;
 
-        let (params, params_start_position) = if let TokenKind::Punctuator(Punctuator::OpenParen) =
-            &next_token.kind()
+        let (params, params_start_position) = if next_token.kind()
+            == &TokenKind::Punctuator(Punctuator::OpenParen)
         {
             // CoverParenthesizedExpressionAndArrowParameterList
             let params_start_position = cursor

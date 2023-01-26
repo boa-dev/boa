@@ -781,7 +781,7 @@ impl FromStr for JsString {
     type Err = Infallible;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        Ok(JsString::from(s))
+        Ok(Self::from(s))
     }
 }
 

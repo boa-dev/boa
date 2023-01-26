@@ -94,9 +94,9 @@ impl OptionTypeParsable for LocaleMatcher {}
 impl OptionType for CaseFirst {
     fn from_value(value: JsValue, context: &mut Context<'_>) -> JsResult<Self> {
         match value.to_string(context)?.to_std_string_escaped().as_str() {
-            "upper" => Ok(CaseFirst::UpperFirst),
-            "lower" => Ok(CaseFirst::LowerFirst),
-            "false" => Ok(CaseFirst::Off),
+            "upper" => Ok(Self::UpperFirst),
+            "lower" => Ok(Self::LowerFirst),
+            "false" => Ok(Self::Off),
             _ => Err(JsNativeError::range()
                 .with_message("provided string was not `upper`, `lower` or `false`")
                 .into()),

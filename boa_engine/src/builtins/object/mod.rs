@@ -203,9 +203,8 @@ impl Object {
         };
 
         // 3. If Type(O) is not Object, return undefined.
-        let object = match this {
-            JsValue::Object(object) => object,
-            _ => return Ok(JsValue::undefined()),
+        let JsValue::Object(object) = this else {
+            return Ok(JsValue::undefined());
         };
 
         // 4. Let status be ? O.[[SetPrototypeOf]](proto).
@@ -517,9 +516,7 @@ impl Object {
         context: &mut Context<'_>,
     ) -> JsValue {
         // 1. If Desc is undefined, return undefined.
-        let desc = if let Some(desc) = desc {
-            desc
-        } else {
+        let Some(desc)= desc else {
             return JsValue::undefined();
         };
 
@@ -892,9 +889,8 @@ impl Object {
         args: &[JsValue],
         context: &mut Context<'_>,
     ) -> JsResult<JsValue> {
-        let key = match args.get(0) {
-            None => return Ok(JsValue::new(false)),
-            Some(key) => key,
+        let Some(key) = args.get(0) else {
+            return Ok(JsValue::new(false));
         };
 
         let key = key.to_property_key(context)?;

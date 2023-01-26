@@ -215,8 +215,7 @@ where
     ) -> ParseResult<Option<&Token>> {
         assert!(
             skip_n <= MAX_PEEK_SKIP,
-            "you cannot skip more than {} elements",
-            MAX_PEEK_SKIP
+            "you cannot skip more than {MAX_PEEK_SKIP} elements",
         );
 
         let mut read_index = self.read_index;

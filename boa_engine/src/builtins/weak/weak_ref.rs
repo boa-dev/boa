@@ -35,7 +35,7 @@ impl BuiltIn for WeakRef {
         let _timer = Profiler::global().start_event(Self::NAME, "init");
         ConstructorBuilder::with_standard_constructor(
             context,
-            WeakRef::constructor,
+            Self::constructor,
             context.intrinsics().constructors().weak_ref().clone(),
         )
         .name(Self::NAME)
@@ -45,7 +45,7 @@ impl BuiltIn for WeakRef {
             "WeakRef",
             Attribute::CONFIGURABLE,
         )
-        .method(WeakRef::deref, "deref", 0)
+        .method(Self::deref, "deref", 0)
         .build()
         .conv::<JsValue>()
         .pipe(Some)
