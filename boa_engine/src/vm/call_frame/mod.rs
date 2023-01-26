@@ -106,7 +106,7 @@ pub(crate) struct TryAddresses {
 }
 
 impl TryAddresses {
-    pub(crate) fn new(catch_address: u32, finally_address: Option<u32>) -> Self {
+    pub(crate) const fn new(catch_address: u32, finally_address: Option<u32>) -> Self {
         Self {
             catch: catch_address,
             finally: finally_address,
@@ -117,7 +117,7 @@ impl TryAddresses {
         self.catch
     }
 
-    pub(crate) fn finally(&self) -> Option<u32> {
+    pub(crate) const fn finally(&self) -> Option<u32> {
         self.finally
     }
 }

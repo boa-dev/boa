@@ -41,15 +41,15 @@ impl AbruptCompletionRecord {
 }
 
 impl AbruptCompletionRecord {
-    pub(crate) fn is_break(&self) -> bool {
+    pub(crate) fn is_break(self) -> bool {
         self.kind == AbruptKind::Break
     }
 
-    pub(crate) fn is_continue(&self) -> bool {
+    pub(crate) fn is_continue(self) -> bool {
         self.kind == AbruptKind::Continue
     }
 
-    pub(crate) const fn target(&self) -> u32 {
+    pub(crate) const fn target(self) -> u32 {
         self.target
     }
 }

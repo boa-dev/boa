@@ -66,10 +66,9 @@ impl Operation for FinallyEnd {
 
                             if next_finally <= env_entry.exit_address() {
                                 break;
-                            } else {
-                                envs_to_pop += env_entry.env_num();
-                                context.vm.frame_mut().env_stack.pop();
                             }
+                            envs_to_pop += env_entry.env_num();
+                            context.vm.frame_mut().env_stack.pop();
                         }
                     } else if record.is_break() && context.vm.frame().pc < record.target() as usize
                     {

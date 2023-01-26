@@ -1,5 +1,5 @@
 use crate::{
-    vm::{opcode::Operation, FinallyReturn, ShouldExit},
+    vm::{call_frame::TryAddresses, opcode::Operation, FinallyReturn, ShouldExit},
     Context, JsResult,
 };
 
@@ -20,7 +20,7 @@ impl Operation for Return {
             .frame()
             .try_catch
             .last()
-            .and_then(|c| c.finally())
+            .and_then(TryAddresses::finally)
         {
             let frame = context.vm.frame_mut();
             frame.pc = finally_address as usize;

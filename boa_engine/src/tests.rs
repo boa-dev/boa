@@ -2995,3 +2995,93 @@ fn unary_operations_on_this() {
         assert!(string.contains(pos));
     }
 }
+
+#[test]
+fn try_break_finally_edge_cases() {
+    let scenario = r#"
+    { 
+        var str = "";
+        while (true) { 
+            try { 
+                try { 
+                    break; 
+                } catch(a) {
+                } finally { 
+                } 
+            } finally { 
+            } 
+        }
+    }
+
+    {
+        while (true) {
+            try {
+                try {
+                    throw "b";
+                } catch (b) {
+                    break;
+                } finally {
+                    str += "foo"
+                }
+            } finally {
+            }
+        }
+        str
+    }
+
+    { 
+        while (true) {
+            try {
+                try {
+                } catch (c) {
+                } finally {
+                    break;
+                }
+            } finally {
+                str += "bar"
+            }
+        }
+        str
+    } 
+    "#;
+
+    assert_eq!(&exec(scenario), "\"foobar\"");
+}
+
+#[test]
+fn try_break_labels() {
+    let scenario = r#"
+    {
+        var str = '';
+    
+        outer: {
+            foo: { 
+                bar: {
+                    while (true) {
+                        try {
+                            try {
+                                break;
+                            } catch(f) {
+        
+                            } finally {
+                                str = "fin"
+                                break foo;
+                                str += "This won't execute"
+                            }
+                        } finally {
+                            str = str + "ally!"
+                            break bar;
+                        }
+                    }
+                    str += " oh no"
+                }
+                str += " lol"
+                
+            }
+        }
+        str
+    }
+    "#;
+
+    assert_eq!(&exec(scenario), "\"finally! :)\"");
+}

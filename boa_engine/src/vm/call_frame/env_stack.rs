@@ -34,7 +34,7 @@ impl Default for EnvStackEntry {
 
 /// ---- `EnvStackEntry` creation methods ----
 impl EnvStackEntry {
-    pub(crate) fn new(start_address: u32, exit_address: u32) -> Self {
+    pub(crate) const fn new(start_address: u32, exit_address: u32) -> Self {
         Self {
             start: start_address,
             exit: exit_address,
