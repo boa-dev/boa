@@ -43,15 +43,25 @@ impl Operation for LoopContinue {
         let exit = context.vm.read::<u32>();
 
         // 1. Clean up the previous environment.
-        let env_entry = context
+        if context
             .vm
             .frame_mut()
             .env_stack
-            .pop()
-            .expect("this must exist");
+            .last()
+            .expect("this must exist")
+            .exit_address()
+            == exit
+        {
+            let popped_entry = context
+                .vm
+                .frame_mut()
+                .env_stack
+                .pop()
+                .expect("EnvStackEntries must exist");
 
-        for _ in 0..env_entry.env_num() {
-            context.realm.environments.pop();
+            for _ in 0..popped_entry.env_num() {
+                context.realm.environments.pop();
+            }
         }
 
         // 2. Push a new clean EnvStack.

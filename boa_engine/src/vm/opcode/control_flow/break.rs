@@ -79,7 +79,7 @@ impl Operation for Continue {
                 .last()
                 .expect("EnvStackEntry must exist");
 
-            if env_entry.start_address() <= jump_address {
+            if env_entry.start_address() < jump_address {
                 break;
             }
 

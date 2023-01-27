@@ -115,6 +115,8 @@ impl Operation for FinallyEnd {
                     for _ in 0..envs_to_pop {
                         context.realm.environments.pop();
                     }
+                } else {
+                    context.vm.frame_mut().env_stack.pop();
                 }
 
                 Ok(ShouldExit::False)
