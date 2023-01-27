@@ -120,13 +120,14 @@ impl Operation for CatchEnd {
                 .vm
                 .frame_mut()
                 .env_stack
-                .pop()
+                .last()
                 .expect("this must exist");
-            envs_to_pop += env_entry.env_num();
 
-            if env_entry.is_try_env() {
+            if env_entry.is_catch_env() {
                 break;
             }
+            envs_to_pop += env_entry.env_num();
+            context.vm.frame_mut().env_stack.pop();
         }
 
         for _ in 0..envs_to_pop {

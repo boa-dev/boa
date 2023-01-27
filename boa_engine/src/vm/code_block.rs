@@ -232,7 +232,6 @@ impl CodeBlock {
             | Opcode::JumpIfFalse
             | Opcode::JumpIfNotUndefined
             | Opcode::JumpIfNullOrUndefined
-            | Opcode::LoopStart
             | Opcode::CatchStart
             | Opcode::FinallyStart
             | Opcode::LabelledStart
@@ -261,6 +260,7 @@ impl CodeBlock {
             | Opcode::Break
             | Opcode::Continue
             | Opcode::LoopContinue
+            | Opcode::LoopStart
             | Opcode::TryStart => {
                 let operand1 = self.read::<u32>(*pc);
                 *pc += size_of::<u32>();

@@ -82,7 +82,7 @@ impl Operation for FinallyEnd {
                                 .last()
                                 .expect("Environment stack entries must exist");
 
-                            if record.target() <= env_entry.exit_address() {
+                            if record.target() == env_entry.exit_address() {
                                 break;
                             }
                             envs_to_pop += env_entry.env_num();
@@ -93,6 +93,7 @@ impl Operation for FinallyEnd {
                     } else if record.is_continue()
                         && context.vm.frame().pc > record.target() as usize
                     {
+                        context.vm.frame_mut().pc = record.target() as usize;
                         for _ in 0..context.vm.frame().env_stack.len() {
                             let env_entry = context
                                 .vm
@@ -101,10 +102,9 @@ impl Operation for FinallyEnd {
                                 .last()
                                 .expect("EnvStackEntry must exist");
 
-                            if env_entry.start_address() <= record.target() {
+                            if env_entry.start_address() == record.target() {
                                 break;
                             }
-
                             envs_to_pop += env_entry.env_num();
                             context.vm.frame_mut().env_stack.pop();
                         }

@@ -14,10 +14,7 @@ impl ByteCompiler<'_, '_> {
             }
             if in_finally || in_catch_no_finally {
                 self.emit_opcode(Opcode::CatchEnd2);
-            } else {
-                self.emit_opcode(Opcode::TryEnd);
             }
-
             // 1. Handle if node has a label.
             if let Some(node_label) = node.label() {
                 let items = self.jump_info.iter().rev().filter(|info| info.is_loop());
@@ -75,7 +72,14 @@ impl ByteCompiler<'_, '_> {
                         .push_break_label(cont_label);
                 }
             } else {
+                // TODO: Add has finally or in finally here
                 let (cont_label, set_label) = self.emit_opcode_with_two_operands(Opcode::Continue);
+                if in_finally_or_has_finally {
+                    self.jump_info
+                        .last_mut()
+                        .expect("Must exist and be a try block")
+                        .push_break_label(cont_label);
+                };
                 let mut items = self
                     .jump_info
                     .iter_mut()
@@ -87,7 +91,9 @@ impl ByteCompiler<'_, '_> {
                     .ok_or_else(|| {
                         JsNativeError::syntax().with_message("continue must be inside loop")
                     })?;
-                jump_info.push_try_continue_label(cont_label);
+                if !in_finally_or_has_finally {
+                    jump_info.push_try_continue_label(cont_label);
+                };
                 jump_info.push_try_continue_label(set_label);
             };
 

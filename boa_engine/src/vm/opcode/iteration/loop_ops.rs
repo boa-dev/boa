@@ -15,7 +15,7 @@ impl Operation for LoopStart {
     const INSTRUCTION: &'static str = "INST - LoopStart";
 
     fn execute(context: &mut Context<'_>) -> JsResult<ShouldExit> {
-        let start = context.vm.frame().pc as u32 - 1;
+        let start = context.vm.read::<u32>();
         let exit = context.vm.read::<u32>();
 
         context

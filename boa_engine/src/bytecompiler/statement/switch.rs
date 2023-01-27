@@ -14,10 +14,11 @@ impl ByteCompiler<'_, '_> {
         for case in switch.cases() {
             self.create_script_decls(case.body(), configurable_globals);
         }
-        let end_label = self.emit_opcode_with_operand(Opcode::LoopStart);
+        let (start_label, end_label) = self.emit_opcode_with_two_operands(Opcode::LoopStart);
 
         let start_address = self.next_opcode_location();
         self.push_switch_control_info(None, start_address);
+        self.patch_jump_with_target(start_label, start_address);
 
         self.compile_expr(switch.val(), true)?;
         let mut labels = Vec::with_capacity(switch.cases().len());

@@ -39,7 +39,7 @@ impl ByteCompiler<'_, '_> {
             }
         }
 
-        let loop_exit = self.emit_opcode_with_operand(Opcode::LoopStart);
+        let (loop_start, loop_exit) = self.emit_opcode_with_two_operands(Opcode::LoopStart);
         let initial_jump = self.jump();
         let start_address = self.next_opcode_location();
 
@@ -52,6 +52,7 @@ impl ByteCompiler<'_, '_> {
 
         let (continue_start, continue_exit) =
             self.emit_opcode_with_two_operands(Opcode::LoopContinue);
+        self.patch_jump_with_target(loop_start, start_address);
         self.patch_jump_with_target(continue_start, start_address);
 
         if let Some(final_expr) = for_loop.final_expr() {
@@ -113,11 +114,13 @@ impl ByteCompiler<'_, '_> {
 
         let early_exit = self.emit_opcode_with_operand(Opcode::ForInLoopInitIterator);
 
-        let exit_label = self.emit_opcode_with_operand(Opcode::LoopStart);
+        let (loop_start, exit_label) = self.emit_opcode_with_two_operands(Opcode::LoopStart);
         let start_address = self.next_opcode_location();
         self.push_loop_control_info_for_of_in_loop(label, start_address);
         let (continue_label, cont_exit_label) =
             self.emit_opcode_with_two_operands(Opcode::LoopContinue);
+        self.patch_jump_with_target(continue_label, start_address);
+        self.patch_jump_with_target(loop_start, start_address);
 
         self.context.push_compile_time_environment(false);
         let push_env = self.emit_opcode_with_two_operands(Opcode::PushDeclarativeEnvironment);
@@ -191,7 +194,6 @@ impl ByteCompiler<'_, '_> {
         self.emit_opcode(Opcode::PopEnvironment);
 
         self.emit(Opcode::Jump, &[start_address]);
-        self.patch_jump_with_target(continue_label, start_address);
 
         self.patch_jump(exit);
         self.patch_jump(exit_label);
@@ -235,11 +237,13 @@ impl ByteCompiler<'_, '_> {
             self.emit_opcode(Opcode::InitIterator);
         }
 
-        let loop_exit = self.emit_opcode_with_operand(Opcode::LoopStart);
+        let (loop_start, loop_exit) = self.emit_opcode_with_two_operands(Opcode::LoopStart);
         let start_address = self.next_opcode_location();
         self.push_loop_control_info_for_of_in_loop(label, start_address);
         let (cont_label, cont_exit_label) =
             self.emit_opcode_with_two_operands(Opcode::LoopContinue);
+        self.patch_jump_with_target(loop_start, start_address);
+        self.patch_jump_with_target(cont_label, start_address);
 
         self.context.push_compile_time_environment(false);
         let push_env = self.emit_opcode_with_two_operands(Opcode::PushDeclarativeEnvironment);
@@ -320,7 +324,6 @@ impl ByteCompiler<'_, '_> {
         self.emit_opcode(Opcode::PopEnvironment);
 
         self.emit(Opcode::Jump, &[start_address]);
-        self.patch_jump_with_target(cont_label, start_address);
 
         self.patch_jump(exit);
         self.patch_jump(loop_exit);
@@ -337,9 +340,13 @@ impl ByteCompiler<'_, '_> {
         label: Option<Sym>,
         configurable_globals: bool,
     ) -> JsResult<()> {
+        let (loop_start, loop_exit) = self.emit_opcode_with_two_operands(Opcode::LoopStart);
         let start_address = self.next_opcode_location();
-        let loop_exit = self.emit_opcode_with_operand(Opcode::LoopStart);
+        let (continue_start, continue_exit) =
+            self.emit_opcode_with_two_operands(Opcode::LoopContinue);
         self.push_loop_control_info(label, start_address);
+        self.patch_jump_with_target(loop_start, start_address);
+        self.patch_jump_with_target(continue_start, start_address);
 
         self.compile_expr(while_loop.condition(), true)?;
         let exit = self.jump_if_false();
@@ -348,6 +355,7 @@ impl ByteCompiler<'_, '_> {
 
         self.patch_jump(exit);
         self.patch_jump(loop_exit);
+        self.patch_jump(continue_exit);
         self.pop_loop_control_info();
         self.emit_opcode(Opcode::LoopEnd);
         Ok(())
@@ -359,13 +367,14 @@ impl ByteCompiler<'_, '_> {
         label: Option<Sym>,
         configurable_globals: bool,
     ) -> JsResult<()> {
-        let loop_exit = self.emit_opcode_with_operand(Opcode::LoopStart);
+        let (loop_start, loop_exit) = self.emit_opcode_with_two_operands(Opcode::LoopStart);
         let initial_label = self.jump();
 
         let start_address = self.next_opcode_location();
         let (continue_start, continue_exit) =
             self.emit_opcode_with_two_operands(Opcode::LoopContinue);
         self.patch_jump_with_target(continue_start, start_address);
+        self.patch_jump_with_target(loop_start, start_address);
         self.push_loop_control_info(label, start_address);
 
         let condition_label_address = self.next_opcode_location();
