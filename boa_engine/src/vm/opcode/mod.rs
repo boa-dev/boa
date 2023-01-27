@@ -1150,12 +1150,12 @@ generate_impl! {
 
         /// Jumps to a target location and pops the environments involved.
         ///
-        /// Operands: Address: u32, Environments: u32
+        /// Operands: Jump Address: u32, Target address: u32
         Break,
 
         /// Sets the `AbruptCompletionRecord` for a delayed continue
         ///
-        /// Operands: Target address: u32, Initial Environements: u32,
+        /// Operands: Jump Address: u32, Target address: u32,
         Continue,
 
         /// Pops value converts it to boolean and pushes it back.
@@ -1329,7 +1329,7 @@ generate_impl! {
 
         /// Push loop start marker.
         ///
-        /// Operands:
+        /// Operands: Exit Address: u32
         ///
         /// Stack: **=>**
         LoopStart,
@@ -1350,7 +1350,7 @@ generate_impl! {
 
         /// Push labelled start marker.
         ///
-        /// Operands: Start Address: u32, Exit Address: u32,
+        /// Operands: Exit Address: u32,
         ///
         /// Stack: **=>**
         LabelledStart,

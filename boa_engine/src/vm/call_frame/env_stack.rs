@@ -9,10 +9,8 @@ pub(crate) enum EnvEntryKind {
     Finally,
     Labelled,
 }
-/// Tracks the number of environments in the current try-catch-finally block.
-///
-/// Because of the interactions between loops and try-catch-finally blocks,
-/// the number of loop blocks in the try-catch-finally block also needs to be tracked.
+
+/// The `EnvStackEntry` tracks the environment count and relavant information for the current environment.
 #[derive(Copy, Clone, Debug)]
 pub(crate) struct EnvStackEntry {
     start: u32,
@@ -34,6 +32,7 @@ impl Default for EnvStackEntry {
 
 /// ---- `EnvStackEntry` creation methods ----
 impl EnvStackEntry {
+    /// Creates a new `EnvStackEntry` with the supplied start addresses.
     pub(crate) const fn new(start_address: u32, exit_address: u32) -> Self {
         Self {
             start: start_address,
@@ -43,26 +42,31 @@ impl EnvStackEntry {
         }
     }
 
+    /// Returns calling `EnvStackEntry` with `kind` field of `Try`.
     pub(crate) const fn with_try_flag(mut self) -> Self {
         self.kind = EnvEntryKind::Try;
         self
     }
 
+    /// Returns calling `EnvStackEntry` with `kind` field of `Loop`.
     pub(crate) const fn with_loop_flag(mut self) -> Self {
         self.kind = EnvEntryKind::Loop;
         self
     }
 
+    /// Returns calling `EnvStackEntry` with `kind` field of `Catch`.
     pub(crate) const fn with_catch_flag(mut self) -> Self {
         self.kind = EnvEntryKind::Catch;
         self
     }
 
+    /// Returns calling `EnvStackEntry` with `kind` field of `Finally`.
     pub(crate) const fn with_finally_flag(mut self) -> Self {
         self.kind = EnvEntryKind::Finally;
         self
     }
 
+    /// Returns calling `EnvStackEntry` with `kind` field of `Labelled`.
     pub(crate) const fn with_labelled_flag(mut self) -> Self {
         self.kind = EnvEntryKind::Labelled;
         self
@@ -71,10 +75,12 @@ impl EnvStackEntry {
 
 /// ---- `EnvStackEntry` interaction methods ----
 impl EnvStackEntry {
+    /// Returns the `start` field of this `EnvStackEntry`.
     pub(crate) const fn start_address(&self) -> u32 {
         self.start
     }
 
+    /// Returns the `exit` field of this `EnvStackEntry`.
     pub(crate) const fn exit_address(&self) -> u32 {
         self.exit
     }
@@ -89,10 +95,12 @@ impl EnvStackEntry {
         self.kind == EnvEntryKind::Try
     }
 
+    /// Returns true if an `EnvStackEntry` is a labelled block
     pub(crate) fn is_labelled_env(&self) -> bool {
         self.kind == EnvEntryKind::Labelled
     }
 
+    /// Returns true if an `EnvStackEntry` is a catch block
     pub(crate) fn is_catch_env(&self) -> bool {
         self.kind == EnvEntryKind::Catch
     }
@@ -102,10 +110,12 @@ impl EnvStackEntry {
         self.env_num
     }
 
+    /// Increments the `env_num` field for current `EnvEntryStack`.
     pub(crate) fn inc_env_num(&mut self) {
         self.env_num += 1;
     }
 
+    /// Decrements the `env_num` field for current `EnvEntryStack`.
     pub(crate) fn dec_env_num(&mut self) {
         self.env_num -= 1;
     }
