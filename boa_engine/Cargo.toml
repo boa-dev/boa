@@ -75,7 +75,7 @@ icu_collator = { version = "1.0.1", features = ["serde"], optional = true }
 icu_plurals = { version = "1.0.0", features = ["serde"], optional = true }
 icu_provider = { version = "1.0.1", optional = true }
 icu_list = { version = "1.0.0", features = ["serde"], optional = true }
-writeable = { version = "0.5.0", optional = true }
+writeable = { version = "0.5.1", optional = true }
 sys-locale = { version = "0.2.3", optional = true }
 
 [dev-dependencies]
