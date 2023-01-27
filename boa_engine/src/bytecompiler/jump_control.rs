@@ -44,7 +44,7 @@ bitflags! {
 
 impl Default for JumpControlInfoFlags {
     fn default() -> Self {
-        JumpControlInfoFlags::empty()
+        Self::empty()
     }
 }
 

@@ -148,7 +148,7 @@ impl ListFormat {
             get_prototype_from_constructor(new_target, StandardConstructors::list_format, context)?;
         let list_format = JsObject::from_proto_and_data(
             prototype,
-            ObjectData::list_format(ListFormat {
+            ObjectData::list_format(Self {
                 formatter: context
                     .icu()
                     .provider()
@@ -249,15 +249,15 @@ impl ListFormat {
         impl Part {
             const fn typ(&self) -> &'static str {
                 match self {
-                    Part::Literal(_) => "literal",
-                    Part::Element(_) => "element",
+                    Self::Literal(_) => "literal",
+                    Self::Element(_) => "element",
                 }
             }
 
             #[allow(clippy::missing_const_for_fn)]
             fn value(self) -> String {
                 match self {
-                    Part::Literal(s) | Part::Element(s) => s,
+                    Self::Literal(s) | Self::Element(s) => s,
                 }
             }
         }
@@ -276,7 +276,7 @@ impl ListFormat {
         }
 
         impl PartsWrite for WriteString {
-            type SubPartsWrite = WriteString;
+            type SubPartsWrite = Self;
 
             fn with_part(
                 &mut self,

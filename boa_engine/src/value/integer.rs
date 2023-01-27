@@ -121,7 +121,6 @@ impl IntegerOrNan {
 
 impl From<IntegerOrInfinity> for IntegerOrNan {
     fn from(ior: IntegerOrInfinity) -> Self {
-        ior.as_integer()
-            .map_or(IntegerOrNan::Nan, IntegerOrNan::Integer)
+        ior.as_integer().map_or(Self::Nan, IntegerOrNan::Integer)
     }
 }

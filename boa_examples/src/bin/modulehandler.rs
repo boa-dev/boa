@@ -45,7 +45,7 @@ fn require(_: &JsValue, args: &[JsValue], ctx: &mut Context<'_>) -> JsResult<JsV
         .to_std_string_escaped();
 
     // Read the module source file
-    println!("Loading: {}", libfile);
+    println!("Loading: {libfile}");
     let buffer = read_to_string(libfile);
     if let Err(..) = buffer {
         println!("Error: {}", buffer.unwrap_err());

@@ -343,7 +343,7 @@ impl Collator {
             get_prototype_from_constructor(new_target, StandardConstructors::collator, context)?;
         let collator = JsObject::from_proto_and_data(
             prototype,
-            ObjectData::collator(Collator {
+            ObjectData::collator(Self {
                 locale,
                 collation,
                 numeric,

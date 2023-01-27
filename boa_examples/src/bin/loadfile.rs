@@ -26,6 +26,6 @@ fn main() {
                 }
             };
         }
-        Err(msg) => eprintln!("Error: {}", msg),
+        Err(msg) => eprintln!("Error: {msg}"),
     }
 }

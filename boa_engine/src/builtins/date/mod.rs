@@ -207,7 +207,7 @@ impl Date {
             // 3. If numberOfArgs = 0, then
             [] => {
                 // a. Let dv be the time value (UTC) identifying the current time.
-                Date::default()
+                Self::default()
             }
             // 4. Else if numberOfArgs = 1, then
             // a. Let value be values[0].
@@ -229,7 +229,7 @@ impl Date {
                             // 1. Assert: The next step never returns an abrupt completion because v is a String.
                             // 2. Let tv be the result of parsing v as a date, in exactly the same manner as for the
                             // parse method (21.4.3.2).
-                            Date(
+                            Self(
                                 str.to_std_string()
                                     .ok()
                                     .and_then(|s| {
@@ -242,7 +242,7 @@ impl Date {
                         v => {
                             // Directly convert to integer
                             // 1. Let tv be ? ToNumber(v).
-                            Date(
+                            Self(
                                 v.to_integer_or_nan(context)?
                                     .as_integer()
                                     // d. Let dv be TimeClip(tv).
@@ -256,7 +256,7 @@ impl Date {
             // 5. Else,
             _ => {
                 // Separating this into its own function to simplify the logic.
-                Date(
+                Self(
                     Self::construct_date(args, context)?
                         .and_then(|dt| Local.from_local_datetime(&dt).earliest())
                         .map(|dt| dt.naive_utc()),
@@ -717,7 +717,7 @@ impl Date {
         );
 
         // 7. Set the [[DateValue]] internal slot of this Date object to u.
-        *t = Date(datetime);
+        *t = Self(datetime);
 
         // 8. Return u.
         Ok(t.as_value())
@@ -748,7 +748,7 @@ impl Date {
                     .earliest()
                     .as_ref()
                     .map(DateTime::naive_utc) else {
-                        *t = Date(None);
+                        *t = Self(None);
                         return Ok(t.as_value())
                     };
                 datetime
@@ -785,7 +785,7 @@ impl Date {
         );
 
         // 8. Set the [[DateValue]] internal slot of this Date object to u.
-        *t = Date(datetime);
+        *t = Self(datetime);
 
         // 9. Return u.
         Ok(t.as_value())
@@ -851,7 +851,7 @@ impl Date {
         );
 
         // 13. Set the [[DateValue]] internal slot of this Date object to u.
-        *t = Date(datetime);
+        *t = Self(datetime);
 
         // 14. Return u.
         Ok(t.as_value())
@@ -892,7 +892,7 @@ impl Date {
         );
 
         // 7. Set the [[DateValue]] internal slot of this Date object to u.
-        *t = Date(datetime);
+        *t = Self(datetime);
 
         // 8. Return u.
         Ok(t.as_value())
@@ -948,7 +948,7 @@ impl Date {
         );
 
         // 11. Set the [[DateValue]] internal slot of this Date object to u.
-        *t = Date(datetime);
+        *t = Self(datetime);
 
         // 12. Return u.
         Ok(t.as_value())
@@ -997,7 +997,7 @@ impl Date {
         );
 
         // 9. Set the [[DateValue]] internal slot of this Date object to u.
-        *t = Date(datetime);
+        *t = Self(datetime);
 
         // 10. Return u.
         Ok(t.as_value())
@@ -1045,7 +1045,7 @@ impl Date {
         );
 
         // 9. Set the [[DateValue]] internal slot of this Date object to u.
-        *t = Date(datetime);
+        *t = Self(datetime);
 
         // 10. Return u.
         Ok(t.as_value())
@@ -1085,14 +1085,14 @@ impl Date {
                 .as_ref()
                 .map(DateTime::naive_utc)
         }) else {
-            *t = Date(None);
+            *t = Self(None);
             return Ok(t.as_value());
         };
 
         // 4. If y is NaN, then
         let Some(mut year) = year.as_integer() else {
             // a. Set the [[DateValue]] internal slot of this Date object to NaN.
-            *t = Date(None);
+            *t = Self(None);
 
             // b. Return NaN.
             return Ok(t.as_value());
@@ -1116,7 +1116,7 @@ impl Date {
         );
 
         // 10. Set the [[DateValue]] internal slot of this Date object to TimeClip(date).
-        *t = Date(datetime);
+        *t = Self(datetime);
 
         // 11. Return the value of the [[DateValue]] internal slot of this Date object.
         Ok(t.as_value())
@@ -1150,7 +1150,7 @@ impl Date {
             .and_then(NaiveDateTime::from_timestamp_millis);
 
         // 4. Set the [[DateValue]] internal slot of this Date object to v.
-        *t = Date(timestamp);
+        *t = Self(timestamp);
 
         // 5. Return v.
         Ok(t.as_value())
@@ -1410,7 +1410,7 @@ impl Date {
         _context: &mut Context<'_>,
     ) -> JsResult<JsValue> {
         // 1. Return ? thisTimeValue(this value).
-        Ok(Date(this_time_value(this)?).as_value())
+        Ok(Self(this_time_value(this)?).as_value())
     }
 
     /// [`Date.prototype [ @@toPrimitive ] ( hint )`][spec].

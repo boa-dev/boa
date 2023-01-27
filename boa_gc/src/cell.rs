@@ -12,7 +12,7 @@ use std::{
 /// `BorrowFlag` represent the internal state of a `GcCell` and
 /// keeps track of the amount of current borrows.
 #[derive(Copy, Clone)]
-pub(crate) struct BorrowFlag(usize);
+struct BorrowFlag(usize);
 
 /// `BorrowState` represents the various states of a `BorrowFlag`
 ///
@@ -20,7 +20,7 @@ pub(crate) struct BorrowFlag(usize);
 ///  - Writing: the value is currently being written/borrowed mutably.
 ///  - Unused: the value is currently unrooted.
 #[derive(Copy, Clone, Debug, Eq, PartialEq)]
-pub(crate) enum BorrowState {
+enum BorrowState {
     Reading,
     Writing,
     Unused,
@@ -31,11 +31,11 @@ const WRITING: usize = !1;
 const UNUSED: usize = 0;
 
 /// The base borrowflag init is rooted, and has no outstanding borrows.
-pub(crate) const BORROWFLAG_INIT: BorrowFlag = BorrowFlag(ROOT);
+const BORROWFLAG_INIT: BorrowFlag = BorrowFlag(ROOT);
 
 impl BorrowFlag {
     /// Check the current `BorrowState` of `BorrowFlag`.
-    pub(crate) const fn borrowed(self) -> BorrowState {
+    const fn borrowed(self) -> BorrowState {
         match self.0 & !ROOT {
             UNUSED => BorrowState::Unused,
             WRITING => BorrowState::Writing,
@@ -44,18 +44,18 @@ impl BorrowFlag {
     }
 
     /// Check whether the borrow bit is flagged.
-    pub(crate) const fn rooted(self) -> bool {
+    const fn rooted(self) -> bool {
         self.0 & ROOT > 0
     }
 
     /// Set the `BorrowFlag`'s state to writing.
-    pub(crate) const fn set_writing(self) -> Self {
+    const fn set_writing(self) -> Self {
         // Set every bit other than the root bit, which is preserved
         Self(self.0 | WRITING)
     }
 
     /// Remove the root flag on `BorrowFlag`
-    pub(crate) const fn set_unused(self) -> Self {
+    const fn set_unused(self) -> Self {
         // Clear every bit other than the root bit, which is preserved
         Self(self.0 & ROOT)
     }
@@ -65,7 +65,7 @@ impl BorrowFlag {
     /// # Panic
     ///  - This method will panic if the current `BorrowState` is writing.
     ///  - This method will panic after incrementing if the borrow count overflows.
-    pub(crate) fn add_reading(self) -> Self {
+    fn add_reading(self) -> Self {
         assert!(self.borrowed() != BorrowState::Writing);
         // Add 1 to the integer starting at the second binary digit. As our
         // borrowstate is not writing, we know that overflow cannot happen, so
@@ -86,7 +86,7 @@ impl BorrowFlag {
     ///
     /// # Panic
     ///  - This method will panic if the current `BorrowState` is not reading.
-    pub(crate) fn sub_reading(self) -> Self {
+    fn sub_reading(self) -> Self {
         assert!(self.borrowed() == BorrowState::Reading);
         // Subtract 1 from the integer starting at the second binary digit. As
         // our borrowstate is not writing or unused, we know that overflow or
@@ -98,7 +98,7 @@ impl BorrowFlag {
     }
 
     /// Set the root flag on the `BorrowFlag`.
-    pub(crate) fn set_rooted(self, rooted: bool) -> Self {
+    fn set_rooted(self, rooted: bool) -> Self {
         // Preserve the non-root bits
         Self((self.0 & !ROOT) | (usize::from(rooted)))
     }
@@ -118,8 +118,8 @@ impl Debug for BorrowFlag {
 ///
 /// This object is a `RefCell` that can be used inside of a `Gc<T>`.
 pub struct GcRefCell<T: ?Sized + 'static> {
-    pub(crate) flags: Cell<BorrowFlag>,
-    pub(crate) cell: UnsafeCell<T>,
+    flags: Cell<BorrowFlag>,
+    cell: UnsafeCell<T>,
 }
 
 impl<T: Trace> GcRefCell<T> {
@@ -296,8 +296,8 @@ unsafe impl<T: Trace + ?Sized> Trace for GcRefCell<T> {
 
 /// A wrapper type for an immutably borrowed value from a `GcCell<T>`.
 pub struct GcRef<'a, T: ?Sized + 'static> {
-    pub(crate) flags: &'a Cell<BorrowFlag>,
-    pub(crate) value: &'a T,
+    flags: &'a Cell<BorrowFlag>,
+    value: &'a T,
 }
 
 impl<'a, T: ?Sized> GcRef<'a, T> {

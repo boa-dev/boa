@@ -235,7 +235,7 @@ impl PromiseCapability {
 
         // 9. Set promiseCapability.[[Promise]] to promise.
         // 10. Return promiseCapability.
-        Ok(PromiseCapability {
+        Ok(Self {
             promise,
             resolve,
             reject,

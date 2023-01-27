@@ -213,7 +213,7 @@ where
                 let token = cursor.peek(0, interner).or_abrupt()?;
                 let position = token.span().start();
 
-                if let TokenKind::Punctuator(Punctuator::Mul) = token.kind() {
+                if token.kind() == &TokenKind::Punctuator(Punctuator::Mul) {
                     let (class_element_name, method) =
                         AsyncGeneratorMethod::new(self.allow_yield, self.allow_await)
                             .parse(cursor, interner)?;
@@ -223,17 +223,12 @@ where
                         return Err(Error::general("invalid super usage", position));
                     }
 
-                    let property_name =
-                        if let property::ClassElementName::PropertyName(property_name) =
-                            class_element_name
-                        {
-                            property_name
-                        } else {
-                            return Err(Error::general(
-                                "private identifiers not allowed in object literal",
-                                position,
-                            ));
-                        };
+                    let property::ClassElementName::PropertyName(property_name) = class_element_name else {
+                        return Err(Error::general(
+                            "private identifiers not allowed in object literal",
+                            position,
+                        ));
+                    };
 
                     return Ok(property::PropertyDefinition::MethodDefinition(
                         property_name,

@@ -90,7 +90,7 @@ where
             }
             TokenKind::Keyword((Keyword::Function, false)) => {
                 let next_token = cursor.peek(1, interner).or_abrupt()?;
-                if let TokenKind::Punctuator(Punctuator::Mul) = next_token.kind() {
+                if next_token.kind() == &TokenKind::Punctuator(Punctuator::Mul) {
                     GeneratorDeclaration::new(self.allow_yield, self.allow_await, self.is_default)
                         .parse(cursor, interner)
                         .map(Declaration::from)
@@ -102,7 +102,7 @@ where
             }
             TokenKind::Keyword((Keyword::Async, false)) => {
                 let next_token = cursor.peek(2, interner).or_abrupt()?;
-                if let TokenKind::Punctuator(Punctuator::Mul) = next_token.kind() {
+                if next_token.kind() == &TokenKind::Punctuator(Punctuator::Mul) {
                     AsyncGeneratorDeclaration::new(
                         self.allow_yield,
                         self.allow_await,

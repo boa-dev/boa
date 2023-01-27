@@ -107,7 +107,7 @@ impl Debug for JobCallback {
 impl JobCallback {
     /// Creates a new `JobCallback`.
     pub fn new<T: Any + Trace>(callback: JsFunction, host_defined: T) -> Self {
-        JobCallback {
+        Self {
             callback,
             host_defined: Box::new(host_defined),
         }

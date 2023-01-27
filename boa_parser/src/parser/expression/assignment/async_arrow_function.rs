@@ -77,8 +77,8 @@ where
         cursor.peek_expect_no_lineterminator(0, "async arrow function", interner)?;
 
         let next_token = cursor.peek(0, interner).or_abrupt()?;
-        let (params, params_start_position) = if let TokenKind::Punctuator(Punctuator::OpenParen) =
-            &next_token.kind()
+        let (params, params_start_position) = if next_token.kind()
+            == &TokenKind::Punctuator(Punctuator::OpenParen)
         {
             let params_start_position = cursor
                 .expect(Punctuator::OpenParen, "async arrow function", interner)?

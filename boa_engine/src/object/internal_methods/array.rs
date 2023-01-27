@@ -111,12 +111,9 @@ fn array_set_length(
     context: &mut Context<'_>,
 ) -> JsResult<bool> {
     // 1. If Desc.[[Value]] is absent, then
-    let new_len_val = match desc.value() {
-        Some(value) => value,
-        _ => {
-            // a. Return OrdinaryDefineOwnProperty(A, "length", Desc).
-            return super::ordinary_define_own_property(obj, "length".into(), desc, context);
-        }
+    let Some(new_len_val) = desc.value() else {
+        // a. Return OrdinaryDefineOwnProperty(A, "length", Desc).
+        return super::ordinary_define_own_property(obj, "length".into(), desc, context);
     };
 
     // 3. Let newLen be ? ToUint32(Desc.[[Value]]).
