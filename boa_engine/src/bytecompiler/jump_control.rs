@@ -9,10 +9,7 @@
 //! [try spec]: https://tc39.es/ecma262/#sec-try-statement
 //! [labelled spec]: https://tc39.es/ecma262/#sec-labelled-statements
 
-use crate::{
-    bytecompiler::{ByteCompiler, Label},
-    vm::Opcode,
-};
+use crate::bytecompiler::{ByteCompiler, Label};
 use bitflags::bitflags;
 use boa_interner::Sym;
 
@@ -21,7 +18,6 @@ use boa_interner::Sym;
 pub(crate) struct JumpControlInfo {
     label: Option<Sym>,
     start_address: u32,
-    decl_envs: u32,
     flags: JumpControlInfoFlags,
     set_jumps: Vec<Label>,
     breaks: Vec<Label>,
@@ -53,7 +49,6 @@ impl Default for JumpControlInfo {
         Self {
             label: None,
             start_address: u32::MAX,
-            decl_envs: 0,
             flags: JumpControlInfoFlags::default(),
             set_jumps: Vec::new(),
             breaks: Vec::new(),
@@ -171,16 +166,6 @@ impl JumpControlInfo {
         self.flags.set(JumpControlInfoFlags::IN_FINALLY, value);
     }
 
-    /// Increments the `decl_env` field of `JumpControlInfo`.
-    pub(crate) fn inc_decl_envs(&mut self) {
-        self.decl_envs += 1;
-    }
-
-    /// Decrements the `decl_env` field of `JumpControlInfo`.
-    pub(crate) fn dec_decl_envs(&mut self) {
-        self.decl_envs -= 1;
-    }
-
     /// Pushes a `Label` onto the `break` vector of `JumpControlInfo`.
     pub(crate) fn push_break_label(&mut self, break_label: Label) {
         self.breaks.push(break_label);
@@ -234,28 +219,6 @@ impl ByteCompiler<'_, '_> {
                 .expect("must have try control label");
             assert!(info.is_try_block());
             info.set_in_catch(value);
-        }
-    }
-
-    /// Emits the `PushDeclarativeEnvironment` and updates the current jump info to track environments.
-    pub(crate) fn emit_and_track_decl_env(&mut self) -> (Label, Label) {
-        let pushed_env = self.emit_opcode_with_two_operands(Opcode::PushDeclarativeEnvironment);
-        if !self.jump_info.is_empty() {
-            let current_jump_info = self
-                .jump_info
-                .last_mut()
-                .expect("Jump info must exist as the vector is not empty");
-            current_jump_info.inc_decl_envs();
-        }
-        pushed_env
-    }
-
-    /// Emits the `PopEnvironment` Opcode and updates the current jump that the env is removed.
-    pub(crate) fn emit_and_track_pop_env(&mut self) {
-        self.emit_opcode(Opcode::PopEnvironment);
-        if !self.jump_info.is_empty() {
-            let current_info = self.jump_info.last_mut().expect("JumpInfo must exist");
-            current_info.dec_decl_envs();
         }
     }
 

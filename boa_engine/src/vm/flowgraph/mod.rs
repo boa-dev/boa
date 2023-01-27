@@ -164,16 +164,16 @@ impl CodeBlock {
                     );
                 }
                 Opcode::Continue => {
-                    let jump_operand = self.read::<u32>(pc);
+                    let jump_address = self.read::<u32>(pc);
                     pc += size_of::<u32>();
                     let target_operand = self.read::<u32>(pc);
                     pc += size_of::<u32>();
 
-                    let label = format!("{opcode_str} {jump_operand}, target {target_operand}");
+                    let label = format!("{opcode_str} {jump_address}, target {target_operand}");
                     graph.add_node(previous_pc, NodeShape::None, label.into(), Color::Red);
                     graph.add_edge(
                         previous_pc,
-                        jump_operand as usize,
+                        jump_address as usize,
                         Some("CONTINUE".into()),
                         Color::Red,
                         EdgeStyle::Line,

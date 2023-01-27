@@ -22,7 +22,7 @@ impl ByteCompiler<'_, '_> {
         configurable_globals: bool,
     ) -> JsResult<()> {
         self.context.push_compile_time_environment(false);
-        let push_env = self.emit_and_track_decl_env();
+        let push_env = self.emit_opcode_with_two_operands(Opcode::PushDeclarativeEnvironment);
         self.push_empty_loop_jump_control();
 
         if let Some(init) = for_loop.init() {
@@ -81,7 +81,7 @@ impl ByteCompiler<'_, '_> {
         self.patch_jump(continue_exit);
         self.pop_loop_control_info();
         self.emit_opcode(Opcode::LoopEnd);
-        self.emit_and_track_pop_env();
+        self.emit_opcode(Opcode::PopEnvironment);
 
         Ok(())
     }
