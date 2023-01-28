@@ -10,8 +10,9 @@ fn main() -> Result<(), Box<dyn Error>> {
         .init()?;
 
     let source_data = SourceData::default()
-        .with_cldr_latest(CldrLocaleSubset::Modern)?
-        .with_icuexport_latest()?;
+        .with_cldr_for_tag(SourceData::LATEST_TESTED_CLDR_TAG, CldrLocaleSubset::Modern)?
+        .with_icuexport_for_tag(SourceData::LATEST_TESTED_ICUEXPORT_TAG)?
+        .with_collations(vec![String::from("search*")]);
 
     let blob_out = Out::Blob(Box::new(File::create(
         data_root().join("icudata.postcard"),
