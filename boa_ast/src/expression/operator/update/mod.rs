@@ -127,8 +127,8 @@ impl ToInternedString for UpdateTarget {
     #[inline]
     fn to_interned_string(&self, interner: &Interner) -> String {
         match self {
-            UpdateTarget::Identifier(identifier) => identifier.to_interned_string(interner),
-            UpdateTarget::PropertyAccess(access) => access.to_interned_string(interner),
+            Self::Identifier(identifier) => identifier.to_interned_string(interner),
+            Self::PropertyAccess(access) => access.to_interned_string(interner),
         }
     }
 }
