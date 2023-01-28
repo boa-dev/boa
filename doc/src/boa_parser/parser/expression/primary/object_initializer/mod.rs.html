@@ -1033,6 +1033,35 @@
 <a href="#1032" id="1032">1032</a>
 <a href="#1033" id="1033">1033</a>
 <a href="#1034" id="1034">1034</a>
+<a href="#1035" id="1035">1035</a>
+<a href="#1036" id="1036">1036</a>
+<a href="#1037" id="1037">1037</a>
+<a href="#1038" id="1038">1038</a>
+<a href="#1039" id="1039">1039</a>
+<a href="#1040" id="1040">1040</a>
+<a href="#1041" id="1041">1041</a>
+<a href="#1042" id="1042">1042</a>
+<a href="#1043" id="1043">1043</a>
+<a href="#1044" id="1044">1044</a>
+<a href="#1045" id="1045">1045</a>
+<a href="#1046" id="1046">1046</a>
+<a href="#1047" id="1047">1047</a>
+<a href="#1048" id="1048">1048</a>
+<a href="#1049" id="1049">1049</a>
+<a href="#1050" id="1050">1050</a>
+<a href="#1051" id="1051">1051</a>
+<a href="#1052" id="1052">1052</a>
+<a href="#1053" id="1053">1053</a>
+<a href="#1054" id="1054">1054</a>
+<a href="#1055" id="1055">1055</a>
+<a href="#1056" id="1056">1056</a>
+<a href="#1057" id="1057">1057</a>
+<a href="#1058" id="1058">1058</a>
+<a href="#1059" id="1059">1059</a>
+<a href="#1060" id="1060">1060</a>
+<a href="#1061" id="1061">1061</a>
+<a href="#1062" id="1062">1062</a>
+<a href="#1063" id="1063">1063</a>
 </pre><pre class="rust"><code><span class="doccomment">//! Object initializer parsing.
 //!
 //! More information:
@@ -1046,7 +1075,10 @@
 </span><span class="kw">mod </span>tests;
 
 <span class="kw">use crate</span>::{
-    lexer::{token::Numeric, Error <span class="kw">as </span>LexError, TokenKind},
+    lexer::{
+        token::{ContainsEscapeSequence, Numeric},
+        Error <span class="kw">as </span>LexError, TokenKind,
+    },
     parser::{
         expression::{identifiers::IdentifierReference, AssignmentExpression},
         function::{FormalParameter, FormalParameters, FunctionBody, UniqueFormalParameters},
@@ -1233,6 +1265,7 @@
             cursor.peek(<span class="number">1</span>, interner).or_abrupt()<span class="question-mark">?</span>.kind(),
             TokenKind::Punctuator(Punctuator::OpenParen | Punctuator::Colon)
         );
+
         <span class="kw">let </span>token = cursor.peek(<span class="number">0</span>, interner).or_abrupt()<span class="question-mark">?</span>;
         <span class="kw">match </span>token.kind() {
             TokenKind::Keyword((Keyword::Async, <span class="bool-val">true</span>)) <span class="kw">if </span>is_keyword =&gt; {
@@ -1293,7 +1326,9 @@
             <span class="kw">_ </span>=&gt; {}
         }
 
-        <span class="kw">if </span>cursor.peek(<span class="number">0</span>, interner).or_abrupt()<span class="question-mark">?</span>.kind() == <span class="kw-2">&amp;</span>TokenKind::Punctuator(Punctuator::Mul) {
+        <span class="kw">let </span>token = cursor.peek(<span class="number">0</span>, interner).or_abrupt()<span class="question-mark">?</span>;
+
+        <span class="kw">if </span>token.kind() == <span class="kw-2">&amp;</span>TokenKind::Punctuator(Punctuator::Mul) {
             <span class="kw">let </span>position = cursor.peek(<span class="number">0</span>, interner).or_abrupt()<span class="question-mark">?</span>.span().start();
             <span class="kw">let </span>(class_element_name, method) =
                 GeneratorMethod::new(<span class="self">self</span>.allow_yield, <span class="self">self</span>.allow_await).parse(cursor, interner)<span class="question-mark">?</span>;
@@ -1319,6 +1354,13 @@
             }
         }
 
+        <span class="kw">let </span>set_or_get_escaped_position = <span class="kw">match </span>token.kind() {
+            TokenKind::Identifier((Sym::GET | Sym::SET, ContainsEscapeSequence(<span class="bool-val">true</span>))) =&gt; {
+                <span class="prelude-val">Some</span>(token.span().start())
+            }
+            <span class="kw">_ </span>=&gt; <span class="prelude-val">None</span>,
+        };
+
         <span class="kw">let </span><span class="kw-2">mut </span>property_name =
             PropertyName::new(<span class="self">self</span>.allow_yield, <span class="self">self</span>.allow_await).parse(cursor, interner)<span class="question-mark">?</span>;
 
@@ -1341,6 +1383,13 @@
         <span class="kw">match </span>property_name {
             <span class="comment">// MethodDefinition[?Yield, ?Await] -&gt; get ClassElementName[?Yield, ?Await] ( ) { FunctionBody[~Yield, ~Await] }
             </span>property::PropertyName::Literal(str) <span class="kw">if </span>str == Sym::GET &amp;&amp; !ordinary_method =&gt; {
+                <span class="kw">if let </span><span class="prelude-val">Some</span>(position) = set_or_get_escaped_position {
+                    <span class="kw">return </span><span class="prelude-val">Err</span>(Error::general(
+                        <span class="string">&quot;Keyword must not contain escaped characters&quot;</span>,
+                        position,
+                    ));
+                }
+
                 <span class="kw">let </span>position = cursor.peek(<span class="number">0</span>, interner).or_abrupt()<span class="question-mark">?</span>.span().start();
 
                 property_name = PropertyName::new(<span class="self">self</span>.allow_yield, <span class="self">self</span>.allow_await)
@@ -1394,6 +1443,13 @@
             }
             <span class="comment">// MethodDefinition[?Yield, ?Await] -&gt; set ClassElementName[?Yield, ?Await] ( PropertySetParameterList ) { FunctionBody[~Yield, ~Await] }
             </span>property::PropertyName::Literal(str) <span class="kw">if </span>str == Sym::SET &amp;&amp; !ordinary_method =&gt; {
+                <span class="kw">if let </span><span class="prelude-val">Some</span>(position) = set_or_get_escaped_position {
+                    <span class="kw">return </span><span class="prelude-val">Err</span>(Error::general(
+                        <span class="string">&quot;Keyword must not contain escaped characters&quot;</span>,
+                        position,
+                    ));
+                }
+
                 property_name = PropertyName::new(<span class="self">self</span>.allow_yield, <span class="self">self</span>.allow_await)
                     .parse(cursor, interner)<span class="question-mark">?</span>;
 
@@ -1586,7 +1642,9 @@
                 cursor.expect(Punctuator::CloseBracket, <span class="string">&quot;expected token &#39;]&#39;&quot;</span>, interner)<span class="question-mark">?</span>;
                 <span class="kw">return </span><span class="prelude-val">Ok</span>(node.into());
             }
-            TokenKind::Identifier(name) | TokenKind::StringLiteral(name) =&gt; (<span class="kw-2">*</span>name).into(),
+            TokenKind::Identifier((name, <span class="kw">_</span>)) | TokenKind::StringLiteral((name, <span class="kw">_</span>)) =&gt; {
+                (<span class="kw-2">*</span>name).into()
+            }
             TokenKind::NumericLiteral(num) =&gt; <span class="kw">match </span>num {
                 Numeric::Rational(num) =&gt; Expression::Literal(Literal::from(<span class="kw-2">*</span>num)).into(),
                 Numeric::Integer(num) =&gt; Expression::Literal(Literal::from(<span class="kw-2">*</span>num)).into(),

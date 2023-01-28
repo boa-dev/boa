@@ -136,9 +136,16 @@
 <a href="#135" id="135">135</a>
 <a href="#136" id="136">136</a>
 <a href="#137" id="137">137</a>
+<a href="#138" id="138">138</a>
+<a href="#139" id="139">139</a>
+<a href="#140" id="140">140</a>
+<a href="#141" id="141">141</a>
+<a href="#142" id="142">142</a>
 </pre><pre class="rust"><code><span class="doccomment">//! This module implements lexing for identifiers (foo, myvar, etc.) used in ECMAScript.
 
-</span><span class="kw">use </span><span class="kw">crate</span>::lexer::{Cursor, Error, StringLiteral, Token, TokenKind, Tokenizer};
+</span><span class="kw">use </span><span class="kw">crate</span>::lexer::{
+    token::ContainsEscapeSequence, Cursor, Error, StringLiteral, Token, TokenKind, Tokenizer,
+};
 <span class="kw">use </span>boa_ast::{Keyword, Position, Span};
 <span class="kw">use </span>boa_interner::Interner;
 <span class="kw">use </span>boa_profiler::Profiler;
@@ -209,7 +216,10 @@
             <span class="prelude-val">Ok</span>(Keyword::False) =&gt; TokenKind::BooleanLiteral(<span class="bool-val">false</span>),
             <span class="prelude-val">Ok</span>(Keyword::Null) =&gt; TokenKind::NullLiteral,
             <span class="prelude-val">Ok</span>(keyword) =&gt; TokenKind::Keyword((keyword, contains_escaped_chars)),
-            <span class="kw">_ </span>=&gt; TokenKind::identifier(interner.get_or_intern(identifier_name.as_str())),
+            <span class="kw">_ </span>=&gt; TokenKind::Identifier((
+                interner.get_or_intern(identifier_name.as_str()),
+                ContainsEscapeSequence(contains_escaped_chars),
+            )),
         };
 
         <span class="prelude-val">Ok</span>(Token::new(token_kind, Span::new(start_pos, cursor.pos())))

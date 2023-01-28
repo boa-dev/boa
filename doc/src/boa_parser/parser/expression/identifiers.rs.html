@@ -298,7 +298,7 @@
         <span class="kw">let </span>token = cursor.next(interner).or_abrupt()<span class="question-mark">?</span>;
 
         <span class="kw">match </span>token.kind() {
-            TokenKind::Identifier(ident)
+            TokenKind::Identifier((ident, <span class="kw">_</span>))
                 <span class="kw">if </span>cursor.strict_mode() &amp;&amp; RESERVED_IDENTIFIERS_STRICT.contains(ident) =&gt;
             {
                 <span class="prelude-val">Err</span>(Error::general(
@@ -306,7 +306,7 @@
                     token.span().start(),
                 ))
             }
-            TokenKind::Identifier(ident) =&gt; <span class="prelude-val">Ok</span>(Identifier::new(<span class="kw-2">*</span>ident)),
+            TokenKind::Identifier((ident, <span class="kw">_</span>)) =&gt; <span class="prelude-val">Ok</span>(Identifier::new(<span class="kw-2">*</span>ident)),
             TokenKind::Keyword((Keyword::Let, <span class="kw">_</span>)) <span class="kw">if </span>cursor.strict_mode() =&gt; <span class="prelude-val">Err</span>(Error::general(
                 <span class="string">&quot;using future reserved keyword not allowed in strict mode IdentifierReference&quot;</span>,
                 token.span().start(),
@@ -388,19 +388,19 @@
         <span class="kw">let </span>next_token = cursor.next(interner).or_abrupt()<span class="question-mark">?</span>;
 
         <span class="kw">match </span>next_token.kind() {
-            TokenKind::Identifier(Sym::ARGUMENTS) <span class="kw">if </span>cursor.strict_mode() =&gt; {
+            TokenKind::Identifier((Sym::ARGUMENTS, <span class="kw">_</span>)) <span class="kw">if </span>cursor.strict_mode() =&gt; {
                 <span class="prelude-val">Err</span>(Error::lex(LexError::Syntax(
                     <span class="string">&quot;unexpected identifier &#39;arguments&#39; in strict mode&quot;</span>.into(),
                     next_token.span().start(),
                 )))
             }
-            TokenKind::Identifier(Sym::EVAL) <span class="kw">if </span>cursor.strict_mode() =&gt; {
+            TokenKind::Identifier((Sym::EVAL, <span class="kw">_</span>)) <span class="kw">if </span>cursor.strict_mode() =&gt; {
                 <span class="prelude-val">Err</span>(Error::lex(LexError::Syntax(
                     <span class="string">&quot;unexpected identifier &#39;eval&#39; in strict mode&quot;</span>.into(),
                     next_token.span().start(),
                 )))
             }
-            TokenKind::Identifier(ident) =&gt; {
+            TokenKind::Identifier((ident, <span class="kw">_</span>)) =&gt; {
                 <span class="kw">if </span>cursor.strict_mode() &amp;&amp; RESERVED_IDENTIFIERS_STRICT.contains(ident) {
                     <span class="kw">return </span><span class="prelude-val">Err</span>(Error::general(
                         <span class="string">&quot;using future reserved keyword not allowed in strict mode&quot;</span>,

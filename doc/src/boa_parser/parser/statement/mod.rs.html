@@ -847,6 +847,28 @@
 <a href="#846" id="846">846</a>
 <a href="#847" id="847">847</a>
 <a href="#848" id="848">848</a>
+<a href="#849" id="849">849</a>
+<a href="#850" id="850">850</a>
+<a href="#851" id="851">851</a>
+<a href="#852" id="852">852</a>
+<a href="#853" id="853">853</a>
+<a href="#854" id="854">854</a>
+<a href="#855" id="855">855</a>
+<a href="#856" id="856">856</a>
+<a href="#857" id="857">857</a>
+<a href="#858" id="858">858</a>
+<a href="#859" id="859">859</a>
+<a href="#860" id="860">860</a>
+<a href="#861" id="861">861</a>
+<a href="#862" id="862">862</a>
+<a href="#863" id="863">863</a>
+<a href="#864" id="864">864</a>
+<a href="#865" id="865">865</a>
+<a href="#866" id="866">866</a>
+<a href="#867" id="867">867</a>
+<a href="#868" id="868">868</a>
+<a href="#869" id="869">869</a>
+<a href="#870" id="870">870</a>
 </pre><pre class="rust"><code><span class="doccomment">//! Statement and declaration parsing.
 //!
 //! More information:
@@ -886,7 +908,7 @@
     variable::VariableStatement,
 };
 <span class="kw">use crate</span>::{
-    lexer::{Error <span class="kw">as </span>LexError, InputElement, Token, TokenKind},
+    lexer::{token::EscapeSequence, Error <span class="kw">as </span>LexError, InputElement, Token, TokenKind},
     parser::{
         expression::{BindingIdentifier, Initializer, PropertyName},
         AllowAwait, AllowReturn, AllowYield, Cursor, OrAbrupt, ParseResult, TokenParser,
@@ -1131,10 +1153,17 @@
         <span class="kw">let </span>global_strict = cursor.strict_mode();
         <span class="kw">let </span><span class="kw-2">mut </span>directive_prologues = <span class="self">self</span>.directive_prologues;
         <span class="kw">let </span><span class="kw-2">mut </span>strict = <span class="self">self</span>.strict;
+        <span class="kw">let </span><span class="kw-2">mut </span>string_literal_escape_sequence = <span class="prelude-val">None</span>;
 
         <span class="kw">loop </span>{
             <span class="kw">match </span>cursor.peek(<span class="number">0</span>, interner)<span class="question-mark">? </span>{
                 <span class="prelude-val">Some</span>(token) <span class="kw">if </span><span class="self">self</span>.break_nodes.contains(token.kind()) =&gt; <span class="kw">break</span>,
+                <span class="prelude-val">Some</span>(token) <span class="kw">if </span>directive_prologues &amp;&amp; string_literal_escape_sequence.is_none() =&gt; {
+                    <span class="kw">if let </span>TokenKind::StringLiteral((<span class="kw">_</span>, <span class="prelude-val">Some</span>(escape_sequence))) = token.kind() {
+                        string_literal_escape_sequence =
+                            <span class="prelude-val">Some</span>((token.span().start(), <span class="kw-2">*</span>escape_sequence));
+                    }
+                }
                 <span class="prelude-val">None </span>=&gt; <span class="kw">break</span>,
                 <span class="kw">_ </span>=&gt; {}
             }
@@ -1155,6 +1184,21 @@
                     ) {
                         cursor.set_strict_mode(<span class="bool-val">true</span>);
                         strict = <span class="bool-val">true</span>;
+
+                        <span class="kw">if let </span><span class="prelude-val">Some</span>((position, escape_sequence)) = string_literal_escape_sequence {
+                            <span class="kw">match </span>escape_sequence {
+                                EscapeSequence::LegacyOctal =&gt; <span class="kw">return </span><span class="prelude-val">Err</span>(Error::general(
+                                    <span class="string">&quot;legacy octal escape sequences are not allowed in strict mode&quot;</span>,
+                                    position,
+                                )),
+                                EscapeSequence::NonOctalDecimal =&gt; {
+                                    <span class="kw">return </span><span class="prelude-val">Err</span>(Error::general(
+                                        <span class="string">&quot;decimal escape sequences are not allowed in strict mode&quot;</span>,
+                                        position,
+                                    ))
+                                }
+                            }
+                        }
                     }
                 } <span class="kw">else </span>{
                     directive_prologues = <span class="bool-val">false</span>;

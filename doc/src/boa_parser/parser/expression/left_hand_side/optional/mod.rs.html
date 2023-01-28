@@ -239,7 +239,7 @@
             interner: <span class="kw-2">&amp;mut </span>Interner,
         ) -&gt; ParseResult&lt;OptionalOperationKind&gt; {
             <span class="kw">let </span>item = <span class="kw">match </span>token.kind() {
-                TokenKind::Identifier(name) =&gt; OptionalOperationKind::SimplePropertyAccess {
+                TokenKind::Identifier((name, <span class="kw">_</span>)) =&gt; OptionalOperationKind::SimplePropertyAccess {
                     field: PropertyAccessField::Const(<span class="kw-2">*</span>name),
                 },
                 TokenKind::Keyword((kw, <span class="kw">_</span>)) =&gt; OptionalOperationKind::SimplePropertyAccess {

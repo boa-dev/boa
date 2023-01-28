@@ -869,7 +869,7 @@
             )) =&gt; IdentifierReference::new(<span class="self">self</span>.allow_yield, <span class="self">self</span>.allow_await)
                 .parse(cursor, interner)
                 .map(Into::into),
-            TokenKind::StringLiteral(lit) =&gt; {
+            TokenKind::StringLiteral((lit, <span class="kw">_</span>)) =&gt; {
                 <span class="kw">let </span>node = Literal::from(<span class="kw-2">*</span>lit).into();
                 cursor.advance(interner);
                 <span class="prelude-val">Ok</span>(node)

@@ -238,6 +238,14 @@
 <a href="#237" id="237">237</a>
 <a href="#238" id="238">238</a>
 <a href="#239" id="239">239</a>
+<a href="#240" id="240">240</a>
+<a href="#241" id="241">241</a>
+<a href="#242" id="242">242</a>
+<a href="#243" id="243">243</a>
+<a href="#244" id="244">244</a>
+<a href="#245" id="245">245</a>
+<a href="#246" id="246">246</a>
+<a href="#247" id="247">247</a>
 </pre><pre class="rust"><code><span class="doccomment">//! Member expression parsing.
 //!
 //! More information:
@@ -247,7 +255,7 @@
 
 </span><span class="kw">use </span><span class="kw">super</span>::arguments::Arguments;
 <span class="kw">use crate</span>::{
-    lexer::{InputElement, TokenKind},
+    lexer::{token::ContainsEscapeSequence, InputElement, TokenKind},
     parser::{
         expression::{
             left_hand_side::template::TaggedTemplateLiteral, primary::PrimaryExpression, Expression,
@@ -325,7 +333,13 @@
                 <span class="kw">if </span>cursor.next_if(Punctuator::Dot, interner)<span class="question-mark">?</span>.is_some() {
                     <span class="kw">let </span>token = cursor.next(interner).or_abrupt()<span class="question-mark">?</span>;
                     <span class="kw">match </span>token.kind() {
-                        TokenKind::Identifier(Sym::TARGET) =&gt; {
+                        TokenKind::Identifier((Sym::TARGET, ContainsEscapeSequence(<span class="bool-val">true</span>))) =&gt; {
+                            <span class="kw">return </span><span class="prelude-val">Err</span>(Error::general(
+                                <span class="string">&quot;&#39;new.target&#39; must not contain escaped characters&quot;</span>,
+                                token.span().start(),
+                            ));
+                        }
+                        TokenKind::Identifier((Sym::TARGET, ContainsEscapeSequence(<span class="bool-val">false</span>))) =&gt; {
                             <span class="kw">return </span><span class="prelude-val">Ok</span>(ast::Expression::NewTarget)
                         }
                         <span class="kw">_ </span>=&gt; {
@@ -356,7 +370,7 @@
                     TokenKind::Punctuator(Punctuator::Dot) =&gt; {
                         <span class="kw">let </span>token = cursor.next(interner).or_abrupt()<span class="question-mark">?</span>;
                         <span class="kw">let </span>field = <span class="kw">match </span>token.kind() {
-                            TokenKind::Identifier(name) =&gt; {
+                            TokenKind::Identifier((name, <span class="kw">_</span>)) =&gt; {
                                 SuperPropertyAccess::new(PropertyAccessField::from(<span class="kw-2">*</span>name))
                             }
                             TokenKind::Keyword((kw, <span class="kw">_</span>)) =&gt; {
@@ -418,7 +432,9 @@
                     </span><span class="kw">let </span>token = cursor.next(interner).or_abrupt()<span class="question-mark">?</span>;
 
                     <span class="kw">let </span>access = <span class="kw">match </span>token.kind() {
-                        TokenKind::Identifier(name) =&gt; SimplePropertyAccess::new(lhs, <span class="kw-2">*</span>name).into(),
+                        TokenKind::Identifier((name, <span class="kw">_</span>)) =&gt; {
+                            SimplePropertyAccess::new(lhs, <span class="kw-2">*</span>name).into()
+                        }
                         TokenKind::Keyword((kw, <span class="kw">_</span>)) =&gt; {
                             SimplePropertyAccess::new(lhs, kw.to_sym(interner)).into()
                         }
