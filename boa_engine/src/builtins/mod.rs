@@ -127,12 +127,18 @@ pub(crate) trait BuiltInObject: IntrinsicObject {
     /// as `Cplx.prop`
     const NAME: &'static str;
 
-    /// Property attribute flags of the builtin. Check [`Attribute`] for more information.
+    /// Property attribute flags of the built-in. Check [`Attribute`] for more information.
     const ATTRIBUTE: Attribute = Attribute::WRITABLE
         .union(Attribute::NON_ENUMERABLE)
         .union(Attribute::CONFIGURABLE);
 }
 
+/// A [built-in object] that is also a constructor.
+///
+/// This trait must be implemented for any global built-in that can also be called with `new` to
+/// construct an object instance e.g. `Array`, `Map` or `Object`.
+///
+/// [built-in object]: https://tc39.es/ecma262/#sec-built-in-object
 pub(crate) trait BuiltInConstructor: BuiltInObject {
     /// The amount of arguments this function object takes.
     const LENGTH: usize;
@@ -387,11 +393,11 @@ impl IsConstructor for OrdinaryFunction {
 }
 
 /// Marker for a callable object.
-struct Callable<Type> {
+struct Callable<Kind> {
     function: NativeFunctionPointer,
     name: JsString,
     length: usize,
-    callable_kind: Type,
+    kind: Kind,
 }
 
 /// Marker for an ordinary object.
@@ -438,7 +444,7 @@ impl ApplyToObject for OrdinaryFunction {
 
 impl<S: ApplyToObject + IsConstructor> ApplyToObject for Callable<S> {
     fn apply_to(self, object: &JsObject) {
-        self.callable_kind.apply_to(object);
+        self.kind.apply_to(object);
 
         let function = function::Function::Native {
             function: NativeFunction::from_fn_ptr(self.function),
@@ -475,10 +481,10 @@ impl ApplyToObject for OrdinaryObject {
 /// type of object that is being constructed.
 #[derive(Debug)]
 #[must_use = "You need to call the `build` method in order for this to correctly assign the inner data"]
-struct BuiltInBuilder<'ctx, ObjectType> {
+struct BuiltInBuilder<'ctx, Kind> {
     intrinsics: &'ctx Intrinsics,
     object: JsObject,
-    object_kind: ObjectType,
+    kind: Kind,
     prototype: JsObject,
 }
 
@@ -487,7 +493,7 @@ impl<'ctx> BuiltInBuilder<'ctx, OrdinaryObject> {
         BuiltInBuilder {
             intrinsics,
             object: JsObject::with_null_proto(),
-            object_kind: OrdinaryObject,
+            kind: OrdinaryObject,
             prototype: intrinsics.constructors().object().prototype(),
         }
     }
@@ -498,7 +504,7 @@ impl<'ctx> BuiltInBuilder<'ctx, OrdinaryObject> {
         BuiltInBuilder {
             intrinsics,
             object: I::get(intrinsics),
-            object_kind: OrdinaryObject,
+            kind: OrdinaryObject,
             prototype: intrinsics.constructors().object().prototype(),
         }
     }
@@ -510,7 +516,7 @@ impl<'ctx> BuiltInBuilder<'ctx, OrdinaryObject> {
         BuiltInBuilder {
             intrinsics,
             object,
-            object_kind: OrdinaryObject,
+            kind: OrdinaryObject,
             prototype: intrinsics.constructors().object().prototype(),
         }
     }
@@ -524,11 +530,11 @@ impl<'ctx> BuiltInBuilder<'ctx, OrdinaryObject> {
         BuiltInBuilder {
             intrinsics: self.intrinsics,
             object: self.object,
-            object_kind: Callable {
+            kind: Callable {
                 function,
                 name: js_string!(""),
                 length: 0,
-                callable_kind: OrdinaryFunction,
+                kind: OrdinaryFunction,
             },
             prototype: self.intrinsics.constructors().function().prototype(),
         }
@@ -543,11 +549,11 @@ impl<'ctx> BuiltInBuilder<'ctx, Callable<Constructor>> {
         BuiltInBuilder {
             intrinsics,
             object: constructor.constructor(),
-            object_kind: Callable {
+            kind: Callable {
                 function: SC::constructor,
                 name: js_string!(SC::NAME),
                 length: SC::LENGTH,
-                callable_kind: Constructor {
+                kind: Constructor {
                     prototype: constructor.prototype(),
                     inherits: Some(intrinsics.constructors().object().prototype()),
                     attributes: Attribute::WRITABLE | Attribute::CONFIGURABLE,
@@ -561,11 +567,11 @@ impl<'ctx> BuiltInBuilder<'ctx, Callable<Constructor>> {
         BuiltInBuilder {
             intrinsics: self.intrinsics,
             object: self.object,
-            object_kind: Callable {
-                function: self.object_kind.function,
-                name: self.object_kind.name,
-                length: self.object_kind.length,
-                callable_kind: ConstructorNoProto,
+            kind: Callable {
+                function: self.kind.function,
+                name: self.kind.name,
+                length: self.kind.length,
+                kind: ConstructorNoProto,
             },
             prototype: self.prototype,
         }
@@ -653,18 +659,14 @@ impl BuiltInBuilder<'_, Callable<Constructor>> {
             .length(length)
             .build();
 
-        self.object_kind
-            .callable_kind
-            .prototype
-            .borrow_mut()
-            .insert(
-                binding.binding,
-                PropertyDescriptor::builder()
-                    .value(function)
-                    .writable(true)
-                    .enumerable(false)
-                    .configurable(true),
-            );
+        self.kind.kind.prototype.borrow_mut().insert(
+            binding.binding,
+            PropertyDescriptor::builder()
+                .value(function)
+                .writable(true)
+                .enumerable(false)
+                .configurable(true),
+        );
         self
     }
 
@@ -679,11 +681,7 @@ impl BuiltInBuilder<'_, Callable<Constructor>> {
             .writable(attribute.writable())
             .enumerable(attribute.enumerable())
             .configurable(attribute.configurable());
-        self.object_kind
-            .callable_kind
-            .prototype
-            .borrow_mut()
-            .insert(key, property);
+        self.kind.kind.prototype.borrow_mut().insert(key, property);
         self
     }
 
@@ -703,11 +701,7 @@ impl BuiltInBuilder<'_, Callable<Constructor>> {
             .maybe_set(set)
             .enumerable(attribute.enumerable())
             .configurable(attribute.configurable());
-        self.object_kind
-            .callable_kind
-            .prototype
-            .borrow_mut()
-            .insert(key, property);
+        self.kind.kind.prototype.borrow_mut().insert(key, property);
         self
     }
 
@@ -716,13 +710,13 @@ impl BuiltInBuilder<'_, Callable<Constructor>> {
     /// Default is `Object.prototype`.
     #[allow(clippy::missing_const_for_fn)]
     fn inherits(mut self, prototype: JsPrototype) -> Self {
-        self.object_kind.callable_kind.inherits = prototype;
+        self.kind.kind.inherits = prototype;
         self
     }
 
     /// Specifies the property attributes of the prototype's "constructor" property.
     const fn constructor_attributes(mut self, attributes: Attribute) -> Self {
-        self.object_kind.callable_kind.attributes = attributes;
+        self.kind.kind.attributes = attributes;
         self
     }
 }
@@ -733,7 +727,7 @@ impl<FnTyp> BuiltInBuilder<'_, Callable<FnTyp>> {
     /// Default is `0`.
     #[inline]
     const fn length(mut self, length: usize) -> Self {
-        self.object_kind.length = length;
+        self.kind.length = length;
         self
     }
 
@@ -741,7 +735,7 @@ impl<FnTyp> BuiltInBuilder<'_, Callable<FnTyp>> {
     ///
     /// Default is `""`
     fn name<N: Into<JsString>>(mut self, name: N) -> Self {
-        self.object_kind.name = name.into();
+        self.kind.name = name.into();
         self
     }
 }
@@ -749,7 +743,7 @@ impl<FnTyp> BuiltInBuilder<'_, Callable<FnTyp>> {
 impl BuiltInBuilder<'_, OrdinaryObject> {
     /// Build the builtin object.
     fn build(self) -> JsObject {
-        self.object_kind.apply_to(&self.object);
+        self.kind.apply_to(&self.object);
 
         {
             let mut object = self.object.borrow_mut();
@@ -763,7 +757,7 @@ impl BuiltInBuilder<'_, OrdinaryObject> {
 impl<FnTyp: ApplyToObject + IsConstructor> BuiltInBuilder<'_, Callable<FnTyp>> {
     /// Build the builtin callable.
     fn build(self) -> JsFunction {
-        self.object_kind.apply_to(&self.object);
+        self.kind.apply_to(&self.object);
 
         {
             let mut object = self.object.borrow_mut();
