@@ -2,7 +2,7 @@
 mod tests;
 
 use crate::{
-    lexer::{Error as LexError, TokenKind},
+    lexer::{token::ContainsEscapeSequence, Error as LexError, TokenKind},
     parser::{
         expression::{
             AssignmentExpression, AsyncGeneratorMethod, AsyncMethod, BindingIdentifier,
@@ -595,7 +595,8 @@ where
                 cursor.advance(interner);
                 return Ok((None, None));
             }
-            TokenKind::Identifier(Sym::STATIC) => {
+            TokenKind::Identifier((Sym::STATIC, ContainsEscapeSequence(contains_escape))) => {
+                let contains_escape = *contains_escape;
                 let token = cursor.peek(1, interner).or_abrupt()?;
                 match token.kind() {
                     TokenKind::Identifier(_)
@@ -607,6 +608,12 @@ where
                     | TokenKind::Punctuator(
                         Punctuator::OpenBracket | Punctuator::Mul | Punctuator::OpenBlock,
                     ) => {
+                        if contains_escape {
+                            return Err(Error::general(
+                                "keyword must not contain escaped characters",
+                                token.span().start(),
+                            ));
+                        }
                         // this "static" is a keyword.
                         cursor.advance(interner);
                         true
@@ -630,7 +637,7 @@ where
         let token = cursor.peek(0, interner).or_abrupt()?;
         let position = token.span().start();
         let element = match token.kind() {
-            TokenKind::Identifier(Sym::CONSTRUCTOR) if !r#static => {
+            TokenKind::Identifier((Sym::CONSTRUCTOR, _)) if !r#static => {
                 cursor.advance(interner);
                 let strict = cursor.strict_mode();
                 cursor.set_strict_mode(true);
@@ -708,11 +715,13 @@ where
             TokenKind::Punctuator(Punctuator::Mul) => {
                 let token = cursor.peek(1, interner).or_abrupt()?;
                 let name_position = token.span().start();
-                if token.kind() == &TokenKind::Identifier(Sym::CONSTRUCTOR) && !r#static {
-                    return Err(Error::general(
-                        "class constructor may not be a generator method",
-                        token.span().start(),
-                    ));
+                if !r#static {
+                    if let TokenKind::Identifier((Sym::CONSTRUCTOR, _)) = token.kind() {
+                        return Err(Error::general(
+                            "class constructor may not be a generator method",
+                            token.span().start(),
+                        ));
+                    }
                 }
                 let strict = cursor.strict_mode();
                 cursor.set_strict_mode(true);
@@ -764,13 +773,20 @@ where
                     TokenKind::Punctuator(Punctuator::Mul) => {
                         let token = cursor.peek(1, interner).or_abrupt()?;
                         let name_position = token.span().start();
-                        if token.kind() == &TokenKind::PrivateIdentifier(Sym::CONSTRUCTOR)
-                            || token.kind() == &TokenKind::Identifier(Sym::CONSTRUCTOR) && !r#static
-                        {
-                            return Err(Error::general(
-                                "class constructor may not be a generator method",
-                                token.span().start(),
-                            ));
+                        match token.kind() {
+                            TokenKind::PrivateIdentifier(Sym::CONSTRUCTOR) => {
+                                return Err(Error::general(
+                                    "class constructor may not be a private method",
+                                    token.span().start(),
+                                ));
+                            }
+                            TokenKind::Identifier((Sym::CONSTRUCTOR, _)) if !r#static => {
+                                return Err(Error::general(
+                                    "class constructor may not be a generator method",
+                                    token.span().start(),
+                                ));
+                            }
+                            _ => {}
                         }
                         let strict = cursor.strict_mode();
                         cursor.set_strict_mode(true);
@@ -808,7 +824,7 @@ where
                             }
                         }
                     }
-                    TokenKind::Identifier(Sym::CONSTRUCTOR) if !r#static => {
+                    TokenKind::Identifier((Sym::CONSTRUCTOR, _)) if !r#static => {
                         return Err(Error::general(
                             "class constructor may not be an async method",
                             token.span().start(),
@@ -859,7 +875,13 @@ where
                     }
                 }
             }
-            TokenKind::Identifier(Sym::GET) if is_keyword => {
+            TokenKind::Identifier((Sym::GET, ContainsEscapeSequence(true))) if is_keyword => {
+                return Err(Error::general(
+                    "keyword must not contain escaped characters",
+                    token.span().start(),
+                ))
+            }
+            TokenKind::Identifier((Sym::GET, ContainsEscapeSequence(false))) if is_keyword => {
                 cursor.advance(interner);
                 let token = cursor.peek(0, interner).or_abrupt()?;
                 match token.kind() {
@@ -911,7 +933,7 @@ where
                             )
                         }
                     }
-                    TokenKind::Identifier(Sym::CONSTRUCTOR) if !r#static => {
+                    TokenKind::Identifier((Sym::CONSTRUCTOR, _)) if !r#static => {
                         return Err(Error::general(
                             "class constructor may not be a getter method",
                             token.span().start(),
@@ -984,7 +1006,13 @@ where
                     }
                 }
             }
-            TokenKind::Identifier(Sym::SET) if is_keyword => {
+            TokenKind::Identifier((Sym::SET, ContainsEscapeSequence(true))) if is_keyword => {
+                return Err(Error::general(
+                    "keyword must not contain escaped characters",
+                    token.span().start(),
+                ))
+            }
+            TokenKind::Identifier((Sym::SET, ContainsEscapeSequence(false))) if is_keyword => {
                 cursor.advance(interner);
                 let token = cursor.peek(0, interner).or_abrupt()?;
                 match token.kind() {
@@ -1036,7 +1064,7 @@ where
                             )
                         }
                     }
-                    TokenKind::Identifier(Sym::CONSTRUCTOR) if !r#static => {
+                    TokenKind::Identifier((Sym::CONSTRUCTOR, _)) if !r#static => {
                         return Err(Error::general(
                             "class constructor may not be a setter method",
                             token.span().start(),

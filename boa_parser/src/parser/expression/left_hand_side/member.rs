@@ -7,7 +7,7 @@
 
 use super::arguments::Arguments;
 use crate::{
-    lexer::{InputElement, TokenKind},
+    lexer::{token::ContainsEscapeSequence, InputElement, TokenKind},
     parser::{
         expression::{
             left_hand_side::template::TaggedTemplateLiteral, primary::PrimaryExpression, Expression,
@@ -85,7 +85,13 @@ where
                 if cursor.next_if(Punctuator::Dot, interner)?.is_some() {
                     let token = cursor.next(interner).or_abrupt()?;
                     match token.kind() {
-                        TokenKind::Identifier(Sym::TARGET) => {
+                        TokenKind::Identifier((Sym::TARGET, ContainsEscapeSequence(true))) => {
+                            return Err(Error::general(
+                                "'new.target' must not contain escaped characters",
+                                token.span().start(),
+                            ));
+                        }
+                        TokenKind::Identifier((Sym::TARGET, ContainsEscapeSequence(false))) => {
                             return Ok(ast::Expression::NewTarget)
                         }
                         _ => {
@@ -116,7 +122,7 @@ where
                     TokenKind::Punctuator(Punctuator::Dot) => {
                         let token = cursor.next(interner).or_abrupt()?;
                         let field = match token.kind() {
-                            TokenKind::Identifier(name) => {
+                            TokenKind::Identifier((name, _)) => {
                                 SuperPropertyAccess::new(PropertyAccessField::from(*name))
                             }
                             TokenKind::Keyword((kw, _)) => {
@@ -178,7 +184,9 @@ where
                     let token = cursor.next(interner).or_abrupt()?;
 
                     let access = match token.kind() {
-                        TokenKind::Identifier(name) => SimplePropertyAccess::new(lhs, *name).into(),
+                        TokenKind::Identifier((name, _)) => {
+                            SimplePropertyAccess::new(lhs, *name).into()
+                        }
                         TokenKind::Keyword((kw, _)) => {
                             SimplePropertyAccess::new(lhs, kw.to_sym(interner)).into()
                         }

@@ -60,7 +60,7 @@ impl TemplateString {
                         true,
                     )?;
 
-                    if let Some(escape_value) = escape_value {
+                    if let Some((escape_value, _)) = escape_value {
                         buf.push_code_point(escape_value);
                     }
                 }

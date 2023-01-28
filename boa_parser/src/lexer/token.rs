@@ -99,7 +99,7 @@ pub enum TokenKind {
     EOF,
 
     /// An identifier.
-    Identifier(Sym),
+    Identifier((Sym, ContainsEscapeSequence)),
 
     /// A private identifier.
     PrivateIdentifier(Sym),
@@ -117,7 +117,7 @@ pub enum TokenKind {
     Punctuator(Punctuator),
 
     /// A string literal.
-    StringLiteral(Sym),
+    StringLiteral((Sym, Option<EscapeSequence>)),
 
     /// A part of a template literal without substitution.
     TemplateNoSubstitution(TemplateString),
@@ -175,7 +175,7 @@ impl TokenKind {
     /// Creates an `Identifier` token type.
     #[must_use]
     pub const fn identifier(ident: Sym) -> Self {
-        Self::Identifier(ident)
+        Self::Identifier((ident, ContainsEscapeSequence(false)))
     }
 
     /// Creates a `NumericLiteral` token kind.
@@ -194,8 +194,8 @@ impl TokenKind {
 
     /// Creates a `StringLiteral` token type.
     #[must_use]
-    pub const fn string_literal(lit: Sym) -> Self {
-        Self::StringLiteral(lit)
+    pub const fn string_literal(lit: Sym, escape_sequence: Option<EscapeSequence>) -> Self {
+        Self::StringLiteral((lit, escape_sequence))
     }
 
     /// Creates a `TemplateMiddle` token type.
@@ -234,7 +234,7 @@ impl TokenKind {
         match *self {
             Self::BooleanLiteral(val) => val.to_string(),
             Self::EOF => "end of file".to_owned(),
-            Self::Identifier(ident) => interner.resolve_expect(ident).to_string(),
+            Self::Identifier((ident, _)) => interner.resolve_expect(ident).to_string(),
             Self::PrivateIdentifier(ident) => format!("#{}", interner.resolve_expect(ident)),
             Self::Keyword((word, _)) => word.to_string(),
             Self::NullLiteral => "null".to_owned(),
@@ -242,7 +242,7 @@ impl TokenKind {
             Self::NumericLiteral(Numeric::Integer(num)) => num.to_string(),
             Self::NumericLiteral(Numeric::BigInt(ref num)) => format!("{num}n"),
             Self::Punctuator(punc) => punc.to_string(),
-            Self::StringLiteral(lit) => interner.resolve_expect(lit).to_string(),
+            Self::StringLiteral((lit, _)) => interner.resolve_expect(lit).to_string(),
             Self::TemplateNoSubstitution(ts) | Self::TemplateMiddle(ts) => {
                 interner.resolve_expect(ts.as_raw()).to_string()
             }
@@ -258,3 +258,29 @@ impl TokenKind {
         }
     }
 }
+
+/// Indicates the type of an escape sequence.
+#[cfg_attr(feature = "deser", derive(serde::Serialize, serde::Deserialize))]
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum EscapeSequence {
+    /// A legacy escape sequence starting with `0` - `7`.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#prod-LegacyOctalEscapeSequence
+    LegacyOctal,
+
+    /// A octal escape sequence starting with `8` - `9`.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#prod-NonOctalDecimalEscapeSequence
+    NonOctalDecimal,
+}
+
+/// Indicates if an identifier contains an escape sequence.
+#[cfg_attr(feature = "deser", derive(serde::Serialize, serde::Deserialize))]
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub struct ContainsEscapeSequence(pub bool);
