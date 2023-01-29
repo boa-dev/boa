@@ -98,7 +98,7 @@ where
                     cursor.advance(interner);
 
                     let access = match cursor.next(interner).or_abrupt()?.kind() {
-                        TokenKind::Identifier((name, _)) => {
+                        TokenKind::IdentifierName((name, _)) => {
                             SimplePropertyAccess::new(lhs, *name).into()
                         }
                         TokenKind::Keyword((kw, _)) => {

@@ -1,4 +1,4 @@
-use crate::parser::tests::check_parser;
+use crate::parser::tests::check_script_parser;
 use boa_ast::{
     function::{AsyncFunction, FormalParameterList},
     Declaration, StatementList,
@@ -10,7 +10,7 @@ use boa_macros::utf16;
 #[test]
 fn async_function_declaration() {
     let interner = &mut Interner::default();
-    check_parser(
+    check_script_parser(
         "async function hello() {}",
         vec![Declaration::AsyncFunction(AsyncFunction::new(
             Some(
@@ -31,7 +31,7 @@ fn async_function_declaration() {
 #[test]
 fn async_function_declaration_keywords() {
     let interner = &mut Interner::default();
-    check_parser(
+    check_script_parser(
         "async function yield() {}",
         vec![Declaration::AsyncFunction(AsyncFunction::new(
             Some(
@@ -48,7 +48,7 @@ fn async_function_declaration_keywords() {
     );
 
     let interner = &mut Interner::default();
-    check_parser(
+    check_script_parser(
         "async function await() {}",
         vec![Declaration::AsyncFunction(AsyncFunction::new(
             Some(

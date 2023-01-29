@@ -60,7 +60,7 @@ where
 
         let token = cursor.peek(0, interner).or_abrupt()?;
         let (name, name_span) = match token.kind() {
-            TokenKind::Identifier(_)
+            TokenKind::IdentifierName(_)
             | TokenKind::Keyword((
                 Keyword::Yield | Keyword::Await | Keyword::Async | Keyword::Of,
                 _,

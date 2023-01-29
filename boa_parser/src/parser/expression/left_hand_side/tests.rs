@@ -1,4 +1,4 @@
-use crate::parser::tests::check_parser;
+use crate::parser::tests::check_script_parser;
 use boa_ast::{
     expression::{access::SimplePropertyAccess, Call, Identifier},
     Expression, Statement,
@@ -9,7 +9,7 @@ use boa_macros::utf16;
 macro_rules! check_call_property_identifier {
     ($property:literal) => {{
         let interner = &mut Interner::default();
-        check_parser(
+        check_script_parser(
             format!("a().{}", $property).as_str(),
             vec![Statement::Expression(Expression::PropertyAccess(
                 SimplePropertyAccess::new(
@@ -40,7 +40,7 @@ fn check_call_properties() {
 macro_rules! check_member_property_identifier {
     ($property:literal) => {{
         let interner = &mut Interner::default();
-        check_parser(
+        check_script_parser(
             format!("a.{}", $property).as_str(),
             vec![Statement::Expression(Expression::PropertyAccess(
                 SimplePropertyAccess::new(

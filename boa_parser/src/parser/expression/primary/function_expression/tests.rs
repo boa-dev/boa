@@ -1,4 +1,4 @@
-use crate::parser::tests::check_parser;
+use crate::parser::tests::check_script_parser;
 use boa_ast::{
     declaration::{LexicalDeclaration, Variable},
     expression::literal::Literal,
@@ -14,7 +14,7 @@ use boa_macros::utf16;
 fn check_function_expression() {
     let interner = &mut Interner::default();
     let add = interner.get_or_intern_static("add", utf16!("add"));
-    check_parser(
+    check_script_parser(
         "const add = function() {
             return 1;
         };
@@ -47,7 +47,7 @@ fn check_nested_function_expression() {
     let interner = &mut Interner::default();
     let a = interner.get_or_intern_static("a", utf16!("a"));
     let b = interner.get_or_intern_static("b", utf16!("b"));
-    check_parser(
+    check_script_parser(
         "const a = function() {
             const b = function() {
                 return 1;
@@ -118,35 +118,35 @@ fn check_function_non_reserved_keyword() {
 
     let interner = &mut Interner::default();
     let ast = genast!("as", interner);
-    check_parser("const add = function as() { return 1; };", ast, interner);
+    check_script_parser("const add = function as() { return 1; };", ast, interner);
 
     let interner = &mut Interner::default();
     let ast = genast!("async", interner);
-    check_parser("const add = function async() { return 1; };", ast, interner);
+    check_script_parser("const add = function async() { return 1; };", ast, interner);
 
     let interner = &mut Interner::default();
     let ast = genast!("from", interner);
-    check_parser("const add = function from() { return 1; };", ast, interner);
+    check_script_parser("const add = function from() { return 1; };", ast, interner);
 
     let interner = &mut Interner::default();
     let ast = genast!("get", interner);
-    check_parser("const add = function get() { return 1; };", ast, interner);
+    check_script_parser("const add = function get() { return 1; };", ast, interner);
 
     let interner = &mut Interner::default();
     let ast = genast!("meta", interner);
-    check_parser("const add = function meta() { return 1; };", ast, interner);
+    check_script_parser("const add = function meta() { return 1; };", ast, interner);
 
     let interner = &mut Interner::default();
     let ast = genast!("of", interner);
-    check_parser("const add = function of() { return 1; };", ast, interner);
+    check_script_parser("const add = function of() { return 1; };", ast, interner);
 
     let interner = &mut Interner::default();
     let ast = genast!("set", interner);
-    check_parser("const add = function set() { return 1; };", ast, interner);
+    check_script_parser("const add = function set() { return 1; };", ast, interner);
 
     let interner = &mut Interner::default();
     let ast = genast!("target", interner);
-    check_parser(
+    check_script_parser(
         "const add = function target() { return 1; };",
         ast,
         interner,

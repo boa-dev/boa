@@ -1,4 +1,4 @@
-use crate::parser::tests::check_parser;
+use crate::parser::tests::check_script_parser;
 use boa_ast::{
     declaration::{LexicalDeclaration, Variable},
     expression::{literal::Literal, Yield},
@@ -12,7 +12,7 @@ use boa_macros::utf16;
 fn check_generator_function_expression() {
     let interner = &mut Interner::default();
     let gen = interner.get_or_intern_static("gen", utf16!("gen"));
-    check_parser(
+    check_script_parser(
         "const gen = function*() {
             yield 1;
         };
@@ -45,7 +45,7 @@ fn check_generator_function_expression() {
 fn check_generator_function_delegate_yield_expression() {
     let interner = &mut Interner::default();
     let gen = interner.get_or_intern_static("gen", utf16!("gen"));
-    check_parser(
+    check_script_parser(
         "const gen = function*() {
             yield* 1;
         };

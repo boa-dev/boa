@@ -1,7 +1,7 @@
 use boa_interner::Interner;
 use boa_macros::utf16;
 
-use crate::parser::tests::{check_invalid, check_parser};
+use crate::parser::tests::{check_invalid, check_script_parser};
 use boa_ast::{
     expression::{
         access::PropertyAccessField, literal::Literal, Identifier, Optional, OptionalOperation,
@@ -14,7 +14,7 @@ use boa_ast::{
 fn simple() {
     let interner = &mut Interner::default();
 
-    check_parser(
+    check_script_parser(
         r#"5?.name"#,
         vec![Statement::Expression(
             Optional::new(
@@ -40,7 +40,7 @@ fn simple() {
 fn complex_chain() {
     let interner = &mut Interner::default();
 
-    check_parser(
+    check_script_parser(
         r#"a?.b(true)?.["c"]"#,
         vec![Statement::Expression(
             Optional::new(

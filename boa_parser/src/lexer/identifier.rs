@@ -73,7 +73,7 @@ impl<R> Tokenizer<R> for Identifier {
             Ok(Keyword::False) => TokenKind::BooleanLiteral(false),
             Ok(Keyword::Null) => TokenKind::NullLiteral,
             Ok(keyword) => TokenKind::Keyword((keyword, contains_escaped_chars)),
-            _ => TokenKind::Identifier((
+            _ => TokenKind::IdentifierName((
                 interner.get_or_intern(identifier_name.as_str()),
                 ContainsEscapeSequence(contains_escaped_chars),
             )),

@@ -1,4 +1,4 @@
-use crate::parser::tests::check_parser;
+use crate::parser::tests::check_script_parser;
 use boa_ast::{
     expression::literal::Literal,
     function::{Class, ClassElement, FormalParameterList, Function},
@@ -21,7 +21,7 @@ fn check_async_ordinary_method() {
         )),
     )];
 
-    check_parser(
+    check_script_parser(
         "class A {
             async() { }
          }
@@ -47,7 +47,7 @@ fn check_async_field_initialization() {
         Some(Literal::from(1).into()),
     )];
 
-    check_parser(
+    check_script_parser(
         "class A {
             async
               = 1
@@ -74,7 +74,7 @@ fn check_async_field() {
         None,
     )];
 
-    check_parser(
+    check_script_parser(
         "class A {
             async
          }

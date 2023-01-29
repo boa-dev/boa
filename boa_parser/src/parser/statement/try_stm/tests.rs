@@ -1,6 +1,6 @@
 use std::convert::TryInto;
 
-use crate::parser::tests::{check_invalid, check_parser};
+use crate::parser::tests::{check_invalid, check_script_parser};
 use boa_ast::{
     declaration::{VarDeclaration, Variable},
     expression::{literal::Literal, Identifier},
@@ -15,7 +15,7 @@ use boa_macros::utf16;
 #[test]
 fn check_inline_with_empty_try_catch() {
     let interner = &mut Interner::default();
-    check_parser(
+    check_script_parser(
         "try { } catch(e) {}",
         vec![Statement::Try(Try::new(
             Block::default(),
@@ -32,7 +32,7 @@ fn check_inline_with_empty_try_catch() {
 #[test]
 fn check_inline_with_var_decl_inside_try() {
     let interner = &mut Interner::default();
-    check_parser(
+    check_script_parser(
         "try { var x = 1; } catch(e) {}",
         vec![Statement::Try(Try::new(
             vec![Statement::Var(VarDeclaration(
@@ -58,7 +58,7 @@ fn check_inline_with_var_decl_inside_try() {
 #[test]
 fn check_inline_with_var_decl_inside_catch() {
     let interner = &mut Interner::default();
-    check_parser(
+    check_script_parser(
         "try { var x = 1; } catch(e) { var x = 1; }",
         vec![Statement::Try(Try::new(
             vec![Statement::Var(VarDeclaration(
@@ -93,7 +93,7 @@ fn check_inline_with_var_decl_inside_catch() {
 #[test]
 fn check_inline_with_empty_try_catch_finally() {
     let interner = &mut Interner::default();
-    check_parser(
+    check_script_parser(
         "try {} catch(e) {} finally {}",
         vec![Statement::Try(Try::new(
             Block::default(),
@@ -112,7 +112,7 @@ fn check_inline_with_empty_try_catch_finally() {
 
 #[test]
 fn check_inline_with_empty_try_finally() {
-    check_parser(
+    check_script_parser(
         "try {} finally {}",
         vec![Statement::Try(Try::new(
             Block::default(),
@@ -126,7 +126,7 @@ fn check_inline_with_empty_try_finally() {
 #[test]
 fn check_inline_with_empty_try_var_decl_in_finally() {
     let interner = &mut Interner::default();
-    check_parser(
+    check_script_parser(
         "try {} finally { var x = 1; }",
         vec![Statement::Try(Try::new(
             Block::default(),
@@ -149,7 +149,7 @@ fn check_inline_with_empty_try_var_decl_in_finally() {
 #[test]
 fn check_inline_empty_try_paramless_catch() {
     let interner = &mut Interner::default();
-    check_parser(
+    check_script_parser(
         "try {} catch { var x = 1; }",
         vec![Statement::Try(Try::new(
             Block::default(),
@@ -176,7 +176,7 @@ fn check_inline_empty_try_paramless_catch() {
 fn check_inline_with_binding_pattern_object() {
     let interner = &mut Interner::default();
     let a = interner.get_or_intern_static("a", utf16!("a"));
-    check_parser(
+    check_script_parser(
         "try {} catch ({ a, b: c }) {}",
         vec![Statement::Try(Try::new(
             Block::default(),
@@ -209,7 +209,7 @@ fn check_inline_with_binding_pattern_object() {
 #[test]
 fn check_inline_with_binding_pattern_array() {
     let interner = &mut Interner::default();
-    check_parser(
+    check_script_parser(
         "try {} catch ([a, b]) {}",
         vec![Statement::Try(Try::new(
             Block::from(vec![]),
@@ -238,7 +238,7 @@ fn check_inline_with_binding_pattern_array() {
 #[test]
 fn check_catch_with_var_redeclaration() {
     let interner = &mut Interner::default();
-    check_parser(
+    check_script_parser(
         "try {} catch(e) { var e = 'oh' }",
         vec![Statement::Try(Try::new(
             Block::from(vec![]),

@@ -76,7 +76,8 @@ where
         let mut has_binding_identifier = false;
         let token = cursor.peek(0, interner).or_abrupt()?;
         let name = match token.kind() {
-            TokenKind::Identifier(_) | TokenKind::Keyword((Keyword::Yield | Keyword::Await, _)) => {
+            TokenKind::IdentifierName(_)
+            | TokenKind::Keyword((Keyword::Yield | Keyword::Await, _)) => {
                 has_binding_identifier = true;
                 BindingIdentifier::new(self.allow_yield, self.allow_await)
                     .parse(cursor, interner)?
@@ -595,11 +596,11 @@ where
                 cursor.advance(interner);
                 return Ok((None, None));
             }
-            TokenKind::Identifier((Sym::STATIC, ContainsEscapeSequence(contains_escape))) => {
+            TokenKind::IdentifierName((Sym::STATIC, ContainsEscapeSequence(contains_escape))) => {
                 let contains_escape = *contains_escape;
                 let token = cursor.peek(1, interner).or_abrupt()?;
                 match token.kind() {
-                    TokenKind::Identifier(_)
+                    TokenKind::IdentifierName(_)
                     | TokenKind::StringLiteral(_)
                     | TokenKind::NumericLiteral(_)
                     | TokenKind::Keyword(_)
@@ -637,7 +638,7 @@ where
         let token = cursor.peek(0, interner).or_abrupt()?;
         let position = token.span().start();
         let element = match token.kind() {
-            TokenKind::Identifier((Sym::CONSTRUCTOR, _)) if !r#static => {
+            TokenKind::IdentifierName((Sym::CONSTRUCTOR, _)) if !r#static => {
                 cursor.advance(interner);
                 let strict = cursor.strict_mode();
                 cursor.set_strict_mode(true);
@@ -716,7 +717,7 @@ where
                 let token = cursor.peek(1, interner).or_abrupt()?;
                 let name_position = token.span().start();
                 if !r#static {
-                    if let TokenKind::Identifier((Sym::CONSTRUCTOR, _)) = token.kind() {
+                    if let TokenKind::IdentifierName((Sym::CONSTRUCTOR, _)) = token.kind() {
                         return Err(Error::general(
                             "class constructor may not be a generator method",
                             token.span().start(),
@@ -780,7 +781,7 @@ where
                                     token.span().start(),
                                 ));
                             }
-                            TokenKind::Identifier((Sym::CONSTRUCTOR, _)) if !r#static => {
+                            TokenKind::IdentifierName((Sym::CONSTRUCTOR, _)) if !r#static => {
                                 return Err(Error::general(
                                     "class constructor may not be a generator method",
                                     token.span().start(),
@@ -824,7 +825,7 @@ where
                             }
                         }
                     }
-                    TokenKind::Identifier((Sym::CONSTRUCTOR, _)) if !r#static => {
+                    TokenKind::IdentifierName((Sym::CONSTRUCTOR, _)) if !r#static => {
                         return Err(Error::general(
                             "class constructor may not be an async method",
                             token.span().start(),
@@ -875,13 +876,13 @@ where
                     }
                 }
             }
-            TokenKind::Identifier((Sym::GET, ContainsEscapeSequence(true))) if is_keyword => {
+            TokenKind::IdentifierName((Sym::GET, ContainsEscapeSequence(true))) if is_keyword => {
                 return Err(Error::general(
                     "keyword must not contain escaped characters",
                     token.span().start(),
                 ))
             }
-            TokenKind::Identifier((Sym::GET, ContainsEscapeSequence(false))) if is_keyword => {
+            TokenKind::IdentifierName((Sym::GET, ContainsEscapeSequence(false))) if is_keyword => {
                 cursor.advance(interner);
                 let token = cursor.peek(0, interner).or_abrupt()?;
                 match token.kind() {
@@ -933,13 +934,13 @@ where
                             )
                         }
                     }
-                    TokenKind::Identifier((Sym::CONSTRUCTOR, _)) if !r#static => {
+                    TokenKind::IdentifierName((Sym::CONSTRUCTOR, _)) if !r#static => {
                         return Err(Error::general(
                             "class constructor may not be a getter method",
                             token.span().start(),
                         ))
                     }
-                    TokenKind::Identifier(_)
+                    TokenKind::IdentifierName(_)
                     | TokenKind::StringLiteral(_)
                     | TokenKind::NumericLiteral(_)
                     | TokenKind::Keyword(_)
@@ -1006,13 +1007,13 @@ where
                     }
                 }
             }
-            TokenKind::Identifier((Sym::SET, ContainsEscapeSequence(true))) if is_keyword => {
+            TokenKind::IdentifierName((Sym::SET, ContainsEscapeSequence(true))) if is_keyword => {
                 return Err(Error::general(
                     "keyword must not contain escaped characters",
                     token.span().start(),
                 ))
             }
-            TokenKind::Identifier((Sym::SET, ContainsEscapeSequence(false))) if is_keyword => {
+            TokenKind::IdentifierName((Sym::SET, ContainsEscapeSequence(false))) if is_keyword => {
                 cursor.advance(interner);
                 let token = cursor.peek(0, interner).or_abrupt()?;
                 match token.kind() {
@@ -1064,13 +1065,13 @@ where
                             )
                         }
                     }
-                    TokenKind::Identifier((Sym::CONSTRUCTOR, _)) if !r#static => {
+                    TokenKind::IdentifierName((Sym::CONSTRUCTOR, _)) if !r#static => {
                         return Err(Error::general(
                             "class constructor may not be a setter method",
                             token.span().start(),
                         ))
                     }
-                    TokenKind::Identifier(_)
+                    TokenKind::IdentifierName(_)
                     | TokenKind::StringLiteral(_)
                     | TokenKind::NumericLiteral(_)
                     | TokenKind::Keyword(_)
@@ -1231,7 +1232,7 @@ where
                     }
                 }
             }
-            TokenKind::Identifier(_)
+            TokenKind::IdentifierName(_)
             | TokenKind::StringLiteral(_)
             | TokenKind::NumericLiteral(_)
             | TokenKind::Keyword(_)
