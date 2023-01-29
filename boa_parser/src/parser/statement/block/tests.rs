@@ -2,7 +2,7 @@
 
 use std::convert::TryInto;
 
-use crate::parser::tests::check_parser;
+use crate::parser::tests::check_script_parser;
 use boa_ast::{
     declaration::{VarDeclaration, Variable},
     expression::{
@@ -23,7 +23,7 @@ fn check_block<B>(js: &str, block: B, interner: &mut Interner)
 where
     B: Into<Box<[StatementListItem]>>,
 {
-    check_parser(
+    check_script_parser(
         js,
         vec![Statement::Block(Block::from(block.into())).into()],
         interner,

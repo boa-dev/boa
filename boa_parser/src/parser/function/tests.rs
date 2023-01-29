@@ -1,4 +1,4 @@
-use crate::parser::tests::{check_invalid, check_parser};
+use crate::parser::tests::{check_invalid, check_script_parser};
 use boa_ast::{
     declaration::{LexicalDeclaration, Variable},
     expression::{
@@ -25,7 +25,7 @@ fn check_basic() {
     assert_eq!(params.flags(), FormalParameterListFlags::default());
     assert_eq!(params.length(), 1);
 
-    check_parser(
+    check_script_parser(
         "function foo(a) { return a; }",
         vec![Declaration::Function(Function::new(
             Some(interner.get_or_intern_static("foo", utf16!("foo")).into()),
@@ -61,7 +61,7 @@ fn check_duplicates_strict_off() {
         FormalParameterListFlags::default().union(FormalParameterListFlags::HAS_DUPLICATES)
     );
     assert_eq!(params.length(), 2);
-    check_parser(
+    check_script_parser(
         "function foo(a, a) { return a; }",
         vec![Declaration::Function(Function::new(
             Some(interner.get_or_intern_static("foo", utf16!("foo")).into()),
@@ -95,7 +95,7 @@ fn check_basic_semicolon_insertion() {
     assert_eq!(params.flags(), FormalParameterListFlags::default());
     assert_eq!(params.length(), 1);
 
-    check_parser(
+    check_script_parser(
         "function foo(a) { return a }",
         vec![Declaration::Function(Function::new(
             Some(interner.get_or_intern_static("foo", utf16!("foo")).into()),
@@ -122,7 +122,7 @@ fn check_empty_return() {
     ));
     assert_eq!(params.flags(), FormalParameterListFlags::default());
     assert_eq!(params.length(), 1);
-    check_parser(
+    check_script_parser(
         "function foo(a) { return; }",
         vec![Declaration::Function(Function::new(
             Some(interner.get_or_intern_static("foo", utf16!("foo")).into()),
@@ -147,7 +147,7 @@ fn check_empty_return_semicolon_insertion() {
     ));
     assert_eq!(params.flags(), FormalParameterListFlags::default());
     assert_eq!(params.length(), 1);
-    check_parser(
+    check_script_parser(
         "function foo(a) { return }",
         vec![Declaration::Function(Function::new(
             Some(interner.get_or_intern_static("foo", utf16!("foo")).into()),
@@ -181,7 +181,7 @@ fn check_rest_operator() {
         FormalParameterListFlags::empty().union(FormalParameterListFlags::HAS_REST_PARAMETER)
     );
     assert_eq!(params.length(), 1);
-    check_parser(
+    check_script_parser(
         "function foo(a, ...b) {}",
         vec![Declaration::Function(Function::new(
             Some(interner.get_or_intern_static("foo", utf16!("foo")).into()),
@@ -206,7 +206,7 @@ fn check_arrow_only_rest() {
         FormalParameterListFlags::empty().union(FormalParameterListFlags::HAS_REST_PARAMETER)
     );
     assert_eq!(params.length(), 0);
-    check_parser(
+    check_script_parser(
         "(...a) => {}",
         vec![Statement::Expression(Expression::from(ArrowFunction::new(
             None,
@@ -241,7 +241,7 @@ fn check_arrow_rest() {
         FormalParameterListFlags::empty().union(FormalParameterListFlags::HAS_REST_PARAMETER)
     );
     assert_eq!(params.length(), 2);
-    check_parser(
+    check_script_parser(
         "(a, b, ...c) => {}",
         vec![Statement::Expression(Expression::from(ArrowFunction::new(
             None,
@@ -269,7 +269,7 @@ fn check_arrow() {
     ]);
     assert_eq!(params.flags(), FormalParameterListFlags::default());
     assert_eq!(params.length(), 2);
-    check_parser(
+    check_script_parser(
         "(a, b) => { return a + b; }",
         vec![Statement::Expression(Expression::from(ArrowFunction::new(
             None,
@@ -305,7 +305,7 @@ fn check_arrow_semicolon_insertion() {
             false,
         ),
     ]);
-    check_parser(
+    check_script_parser(
         "(a, b) => { return a + b }",
         vec![Statement::Expression(Expression::from(ArrowFunction::new(
             None,
@@ -341,7 +341,7 @@ fn check_arrow_epty_return() {
             false,
         ),
     ]);
-    check_parser(
+    check_script_parser(
         "(a, b) => { return; }",
         vec![Statement::Expression(Expression::from(ArrowFunction::new(
             None,
@@ -370,7 +370,7 @@ fn check_arrow_empty_return_semicolon_insertion() {
             false,
         ),
     ]);
-    check_parser(
+    check_script_parser(
         "(a, b) => { return }",
         vec![Statement::Expression(Expression::from(ArrowFunction::new(
             None,
@@ -394,7 +394,7 @@ fn check_arrow_assignment() {
     ));
     assert_eq!(params.flags(), FormalParameterListFlags::default());
     assert_eq!(params.length(), 1);
-    check_parser(
+    check_script_parser(
         "let foo = (a) => { return a };",
         vec![Declaration::Lexical(LexicalDeclaration::Let(
             vec![Variable::from_identifier(
@@ -431,7 +431,7 @@ fn check_arrow_assignment_nobrackets() {
     ));
     assert_eq!(params.flags(), FormalParameterListFlags::default());
     assert_eq!(params.length(), 1);
-    check_parser(
+    check_script_parser(
         "let foo = (a) => a;",
         vec![Declaration::Lexical(LexicalDeclaration::Let(
             vec![Variable::from_identifier(
@@ -468,7 +468,7 @@ fn check_arrow_assignment_noparenthesis() {
     ));
     assert_eq!(params.flags(), FormalParameterListFlags::default());
     assert_eq!(params.length(), 1);
-    check_parser(
+    check_script_parser(
         "let foo = a => { return a };",
         vec![Declaration::Lexical(LexicalDeclaration::Let(
             vec![Variable::from_identifier(
@@ -505,7 +505,7 @@ fn check_arrow_assignment_noparenthesis_nobrackets() {
     ));
     assert_eq!(params.flags(), FormalParameterListFlags::default());
     assert_eq!(params.length(), 1);
-    check_parser(
+    check_script_parser(
         "let foo = a => a;",
         vec![Declaration::Lexical(LexicalDeclaration::Let(
             vec![Variable::from_identifier(
@@ -548,7 +548,7 @@ fn check_arrow_assignment_2arg() {
     ]);
     assert_eq!(params.flags(), FormalParameterListFlags::default());
     assert_eq!(params.length(), 2);
-    check_parser(
+    check_script_parser(
         "let foo = (a, b) => { return a };",
         vec![Declaration::Lexical(LexicalDeclaration::Let(
             vec![Variable::from_identifier(
@@ -591,7 +591,7 @@ fn check_arrow_assignment_2arg_nobrackets() {
     ]);
     assert_eq!(params.flags(), FormalParameterListFlags::default());
     assert_eq!(params.length(), 2);
-    check_parser(
+    check_script_parser(
         "let foo = (a, b) => a;",
         vec![Declaration::Lexical(LexicalDeclaration::Let(
             vec![Variable::from_identifier(
@@ -638,7 +638,7 @@ fn check_arrow_assignment_3arg() {
     ]);
     assert_eq!(params.flags(), FormalParameterListFlags::default());
     assert_eq!(params.length(), 3);
-    check_parser(
+    check_script_parser(
         "let foo = (a, b, c) => { return a };",
         vec![Declaration::Lexical(LexicalDeclaration::Let(
             vec![Variable::from_identifier(
@@ -685,7 +685,7 @@ fn check_arrow_assignment_3arg_nobrackets() {
     ]);
     assert_eq!(params.flags(), FormalParameterListFlags::default());
     assert_eq!(params.length(), 3);
-    check_parser(
+    check_script_parser(
         "let foo = (a, b, c) => a;",
         vec![Declaration::Lexical(LexicalDeclaration::Let(
             vec![Variable::from_identifier(

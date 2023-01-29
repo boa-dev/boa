@@ -75,7 +75,7 @@ where
                     .parse(cursor, interner)?;
                 Ok(Yield::new(Some(expr), true).into())
             }
-            TokenKind::Identifier(_)
+            TokenKind::IdentifierName(_)
             | TokenKind::Punctuator(
                 Punctuator::OpenParen
                 | Punctuator::Add

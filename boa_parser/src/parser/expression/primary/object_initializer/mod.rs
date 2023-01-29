@@ -291,7 +291,7 @@ where
         }
 
         let set_or_get_escaped_position = match token.kind() {
-            TokenKind::Identifier((Sym::GET | Sym::SET, ContainsEscapeSequence(true))) => {
+            TokenKind::IdentifierName((Sym::GET | Sym::SET, ContainsEscapeSequence(true))) => {
                 Some(token.span().start())
             }
             _ => None,
@@ -578,7 +578,7 @@ where
                 cursor.expect(Punctuator::CloseBracket, "expected token ']'", interner)?;
                 return Ok(node.into());
             }
-            TokenKind::Identifier((name, _)) | TokenKind::StringLiteral((name, _)) => {
+            TokenKind::IdentifierName((name, _)) | TokenKind::StringLiteral((name, _)) => {
                 (*name).into()
             }
             TokenKind::NumericLiteral(num) => match num {

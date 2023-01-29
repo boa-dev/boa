@@ -190,7 +190,7 @@ where
                 cursor.advance(interner);
                 Ok(ast::Statement::Empty)
             }
-            TokenKind::Identifier(_) => {
+            TokenKind::IdentifierName(_) => {
                 // Labelled Statement check
                 cursor.set_goal(InputElement::Div);
                 let tok = cursor.peek(1, interner)?;
@@ -504,7 +504,7 @@ where
                         TokenKind::Punctuator(Punctuator::OpenBracket)
                         | TokenKind::StringLiteral(_)
                         | TokenKind::NumericLiteral(_) => true,
-                        TokenKind::Identifier(_) if next_token_is_colon => true,
+                        TokenKind::IdentifierName(_) if next_token_is_colon => true,
                         TokenKind::Keyword(_) if next_token_is_colon => true,
                         _ => false,
                     };

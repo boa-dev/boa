@@ -1,4 +1,4 @@
-use crate::parser::tests::{check_invalid, check_parser};
+use crate::parser::tests::{check_invalid, check_script_parser};
 use boa_ast::{
     declaration::{LexicalDeclaration, Variable},
     expression::{access::SimplePropertyAccess, literal::Literal, Call, Identifier},
@@ -152,7 +152,7 @@ fn check_separated_switch() {
     let console = interner.get_or_intern_static("console", utf16!("console"));
     let a = interner.get_or_intern_static("a", utf16!("a"));
 
-    check_parser(
+    check_script_parser(
         s,
         vec![
             Declaration::Lexical(LexicalDeclaration::Let(

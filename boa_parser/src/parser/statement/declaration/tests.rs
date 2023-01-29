@@ -1,6 +1,6 @@
 use std::convert::TryInto;
 
-use crate::parser::tests::{check_invalid, check_parser};
+use crate::parser::tests::{check_invalid, check_script_parser};
 use boa_ast::{
     declaration::{LexicalDeclaration, VarDeclaration, Variable},
     expression::literal::Literal,
@@ -13,7 +13,7 @@ use boa_macros::utf16;
 #[test]
 fn var_declaration() {
     let interner = &mut Interner::default();
-    check_parser(
+    check_script_parser(
         "var a = 5;",
         vec![Statement::Var(VarDeclaration(
             vec![Variable::from_identifier(
@@ -32,7 +32,7 @@ fn var_declaration() {
 #[test]
 fn var_declaration_keywords() {
     let interner = &mut Interner::default();
-    check_parser(
+    check_script_parser(
         "var yield = 5;",
         vec![Statement::Var(VarDeclaration(
             vec![Variable::from_identifier(
@@ -49,7 +49,7 @@ fn var_declaration_keywords() {
     );
 
     let interner = &mut Interner::default();
-    check_parser(
+    check_script_parser(
         "var await = 5;",
         vec![Statement::Var(VarDeclaration(
             vec![Variable::from_identifier(
@@ -70,7 +70,7 @@ fn var_declaration_keywords() {
 #[test]
 fn var_declaration_no_spaces() {
     let interner = &mut Interner::default();
-    check_parser(
+    check_script_parser(
         "var a=5;",
         vec![Statement::Var(VarDeclaration(
             vec![Variable::from_identifier(
@@ -89,7 +89,7 @@ fn var_declaration_no_spaces() {
 #[test]
 fn empty_var_declaration() {
     let interner = &mut Interner::default();
-    check_parser(
+    check_script_parser(
         "var a;",
         vec![Statement::Var(VarDeclaration(
             vec![Variable::from_identifier(
@@ -108,7 +108,7 @@ fn empty_var_declaration() {
 #[test]
 fn multiple_var_declaration() {
     let interner = &mut Interner::default();
-    check_parser(
+    check_script_parser(
         "var a = 5, b, c = 6;",
         vec![Statement::Var(VarDeclaration(
             vec![
@@ -137,7 +137,7 @@ fn multiple_var_declaration() {
 #[test]
 fn let_declaration() {
     let interner = &mut Interner::default();
-    check_parser(
+    check_script_parser(
         "let a = 5;",
         vec![Declaration::Lexical(LexicalDeclaration::Let(
             vec![Variable::from_identifier(
@@ -156,7 +156,7 @@ fn let_declaration() {
 #[test]
 fn let_declaration_keywords() {
     let interner = &mut Interner::default();
-    check_parser(
+    check_script_parser(
         "let yield = 5;",
         vec![Declaration::Lexical(LexicalDeclaration::Let(
             vec![Variable::from_identifier(
@@ -173,7 +173,7 @@ fn let_declaration_keywords() {
     );
 
     let interner = &mut Interner::default();
-    check_parser(
+    check_script_parser(
         "let await = 5;",
         vec![Declaration::Lexical(LexicalDeclaration::Let(
             vec![Variable::from_identifier(
@@ -194,7 +194,7 @@ fn let_declaration_keywords() {
 #[test]
 fn let_declaration_no_spaces() {
     let interner = &mut Interner::default();
-    check_parser(
+    check_script_parser(
         "let a=5;",
         vec![Declaration::Lexical(LexicalDeclaration::Let(
             vec![Variable::from_identifier(
@@ -213,7 +213,7 @@ fn let_declaration_no_spaces() {
 #[test]
 fn empty_let_declaration() {
     let interner = &mut Interner::default();
-    check_parser(
+    check_script_parser(
         "let a;",
         vec![Declaration::Lexical(LexicalDeclaration::Let(
             vec![Variable::from_identifier(
@@ -232,7 +232,7 @@ fn empty_let_declaration() {
 #[test]
 fn multiple_let_declaration() {
     let interner = &mut Interner::default();
-    check_parser(
+    check_script_parser(
         "let a = 5, b, c = 6;",
         vec![Declaration::Lexical(LexicalDeclaration::Let(
             vec![
@@ -261,7 +261,7 @@ fn multiple_let_declaration() {
 #[test]
 fn const_declaration() {
     let interner = &mut Interner::default();
-    check_parser(
+    check_script_parser(
         "const a = 5;",
         vec![Declaration::Lexical(LexicalDeclaration::Const(
             vec![Variable::from_identifier(
@@ -280,7 +280,7 @@ fn const_declaration() {
 #[test]
 fn const_declaration_keywords() {
     let interner = &mut Interner::default();
-    check_parser(
+    check_script_parser(
         "const yield = 5;",
         vec![Declaration::Lexical(LexicalDeclaration::Const(
             vec![Variable::from_identifier(
@@ -297,7 +297,7 @@ fn const_declaration_keywords() {
     );
 
     let interner = &mut Interner::default();
-    check_parser(
+    check_script_parser(
         "const await = 5;",
         vec![Declaration::Lexical(LexicalDeclaration::Const(
             vec![Variable::from_identifier(
@@ -318,7 +318,7 @@ fn const_declaration_keywords() {
 #[test]
 fn const_declaration_no_spaces() {
     let interner = &mut Interner::default();
-    check_parser(
+    check_script_parser(
         "const a=5;",
         vec![Declaration::Lexical(LexicalDeclaration::Const(
             vec![Variable::from_identifier(
@@ -343,7 +343,7 @@ fn empty_const_declaration() {
 #[test]
 fn multiple_const_declaration() {
     let interner = &mut Interner::default();
-    check_parser(
+    check_script_parser(
         "const a = 5, c = 6;",
         vec![Declaration::Lexical(LexicalDeclaration::Const(
             vec![

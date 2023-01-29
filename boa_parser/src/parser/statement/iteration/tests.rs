@@ -1,4 +1,4 @@
-use crate::parser::tests::{check_invalid, check_parser};
+use crate::parser::tests::{check_invalid, check_script_parser};
 use boa_ast::{
     declaration::{VarDeclaration, Variable},
     expression::{
@@ -17,7 +17,7 @@ use boa_macros::utf16;
 #[test]
 fn check_do_while() {
     let interner = &mut Interner::default();
-    check_parser(
+    check_script_parser(
         r#"do {
             a += 1;
         } while (true)"#,
@@ -43,7 +43,7 @@ fn check_do_while() {
 #[test]
 fn check_do_while_semicolon_insertion() {
     let interner = &mut Interner::default();
-    check_parser(
+    check_script_parser(
         r#"var i = 0;
         do {console.log("hello");} while(i++ < 10) console.log("end");"#,
         vec![
@@ -116,7 +116,7 @@ fn check_do_while_semicolon_insertion() {
 #[test]
 fn check_do_while_semicolon_insertion_no_space() {
     let interner = &mut Interner::default();
-    check_parser(
+    check_script_parser(
         r#"var i = 0;
         do {console.log("hello");} while(i++ < 10)console.log("end");"#,
         vec![
@@ -187,7 +187,7 @@ fn check_do_while_semicolon_insertion_no_space() {
 /// Checks parsing of a while statement which is seperated out with line terminators.
 #[test]
 fn while_spaces() {
-    check_parser(
+    check_script_parser(
         r#"
 
         while
@@ -213,7 +213,7 @@ fn while_spaces() {
 /// Checks parsing of a while statement which is seperated out with line terminators.
 #[test]
 fn do_while_spaces() {
-    check_parser(
+    check_script_parser(
         r#"
 
         do

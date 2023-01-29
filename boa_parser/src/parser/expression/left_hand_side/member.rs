@@ -85,13 +85,13 @@ where
                 if cursor.next_if(Punctuator::Dot, interner)?.is_some() {
                     let token = cursor.next(interner).or_abrupt()?;
                     match token.kind() {
-                        TokenKind::Identifier((Sym::TARGET, ContainsEscapeSequence(true))) => {
+                        TokenKind::IdentifierName((Sym::TARGET, ContainsEscapeSequence(true))) => {
                             return Err(Error::general(
                                 "'new.target' must not contain escaped characters",
                                 token.span().start(),
                             ));
                         }
-                        TokenKind::Identifier((Sym::TARGET, ContainsEscapeSequence(false))) => {
+                        TokenKind::IdentifierName((Sym::TARGET, ContainsEscapeSequence(false))) => {
                             return Ok(ast::Expression::NewTarget)
                         }
                         _ => {
@@ -122,7 +122,7 @@ where
                     TokenKind::Punctuator(Punctuator::Dot) => {
                         let token = cursor.next(interner).or_abrupt()?;
                         let field = match token.kind() {
-                            TokenKind::Identifier((name, _)) => {
+                            TokenKind::IdentifierName((name, _)) => {
                                 SuperPropertyAccess::new(PropertyAccessField::from(*name))
                             }
                             TokenKind::Keyword((kw, _)) => {
@@ -184,7 +184,7 @@ where
                     let token = cursor.next(interner).or_abrupt()?;
 
                     let access = match token.kind() {
-                        TokenKind::Identifier((name, _)) => {
+                        TokenKind::IdentifierName((name, _)) => {
                             SimplePropertyAccess::new(lhs, *name).into()
                         }
                         TokenKind::Keyword((kw, _)) => {

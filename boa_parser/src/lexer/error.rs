@@ -6,7 +6,7 @@
 //! [spec]: https://tc39.es/ecma262/#sec-native-error-types-used-in-this-standard
 
 use boa_ast::Position;
-use std::{error::Error as StdError, fmt, io};
+use std::{error, fmt, io};
 
 /// An error that occurred during the lexing.
 #[derive(Debug)]
@@ -25,6 +25,7 @@ pub enum Error {
 }
 
 impl From<io::Error> for Error {
+    #[inline]
     fn from(err: io::Error) -> Self {
         Self::IO(err)
     }
@@ -42,6 +43,7 @@ impl Error {
 }
 
 impl fmt::Display for Error {
+    #[inline]
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             Self::IO(e) => write!(f, "I/O error: {e}"),
@@ -50,8 +52,9 @@ impl fmt::Display for Error {
     }
 }
 
-impl StdError for Error {
-    fn source(&self) -> Option<&(dyn StdError + 'static)> {
+impl error::Error for Error {
+    #[inline]
+    fn source(&self) -> Option<&(dyn error::Error + 'static)> {
         match self {
             Self::IO(err) => Some(err),
             Self::Syntax(_, _) => None,

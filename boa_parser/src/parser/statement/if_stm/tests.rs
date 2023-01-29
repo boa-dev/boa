@@ -1,4 +1,4 @@
-use crate::parser::tests::check_parser;
+use crate::parser::tests::check_script_parser;
 use boa_ast::{
     expression::literal::Literal,
     statement::{Block, If},
@@ -8,7 +8,7 @@ use boa_interner::Interner;
 
 #[test]
 fn if_without_else_block() {
-    check_parser(
+    check_script_parser(
         "if (true) {}",
         vec![Statement::If(If::new(
             Literal::from(true).into(),
@@ -22,7 +22,7 @@ fn if_without_else_block() {
 
 #[test]
 fn if_without_else_block_with_trailing_newline() {
-    check_parser(
+    check_script_parser(
         "if (true) {}\n",
         vec![Statement::If(If::new(
             Literal::from(true).into(),

@@ -31,7 +31,7 @@ use boa_macros::utf16;
 /// Checks that the given JavaScript string gives the expected expression.
 #[allow(clippy::unwrap_used)]
 #[track_caller]
-pub(super) fn check_parser<L>(js: &str, expr: L, interner: &mut Interner)
+pub(super) fn check_script_parser<L>(js: &str, expr: L, interner: &mut Interner)
 where
     L: Into<Box<[StatementListItem]>>,
 {
@@ -55,7 +55,7 @@ pub(super) fn check_invalid(js: &str) {
 #[test]
 fn check_construct_call_precedence() {
     let interner = &mut Interner::default();
-    check_parser(
+    check_script_parser(
         "new Date().getTime()",
         vec![Statement::Expression(Expression::from(Call::new(
             Expression::PropertyAccess(
@@ -80,7 +80,7 @@ fn check_construct_call_precedence() {
 #[test]
 fn assign_operator_precedence() {
     let interner = &mut Interner::default();
-    check_parser(
+    check_script_parser(
         "a = a + 1",
         vec![Statement::Expression(Expression::from(Assign::new(
             AssignOp::Assign,
@@ -104,7 +104,7 @@ fn hoisting() {
         .get_or_intern_static("hello", utf16!("hello"))
         .into();
     let a = interner.get_or_intern_static("a", utf16!("a"));
-    check_parser(
+    check_script_parser(
         r"
             var a = hello();
             a++;
@@ -137,7 +137,7 @@ fn hoisting() {
 
     let interner = &mut Interner::default();
     let a = interner.get_or_intern_static("a", utf16!("a"));
-    check_parser(
+    check_script_parser(
         r"
             a = 10;
             a++;
@@ -171,7 +171,7 @@ fn ambigous_regex_divide_expression() {
     let s = "1 / a === 1 / b";
 
     let interner = &mut Interner::default();
-    check_parser(
+    check_script_parser(
         s,
         vec![Statement::Expression(Expression::from(Binary::new(
             RelationalOp::StrictEqual.into(),
@@ -199,7 +199,7 @@ fn two_divisions_in_expression() {
 
     let interner = &mut Interner::default();
     let a = interner.get_or_intern_static("a", utf16!("a"));
-    check_parser(
+    check_script_parser(
         s,
         vec![Statement::Expression(Expression::from(Binary::new(
             LogicalOp::Or.into(),
@@ -239,7 +239,7 @@ fn comment_semi_colon_insertion() {
     "#;
 
     let interner = &mut Interner::default();
-    check_parser(
+    check_script_parser(
         s,
         vec![
             Declaration::Lexical(LexicalDeclaration::Let(
@@ -275,7 +275,7 @@ fn multiline_comment_semi_colon_insertion() {
     "#;
 
     let interner = &mut Interner::default();
-    check_parser(
+    check_script_parser(
         s,
         vec![
             Declaration::Lexical(LexicalDeclaration::Let(
@@ -308,7 +308,7 @@ fn multiline_comment_no_lineterminator() {
     "#;
 
     let interner = &mut Interner::default();
-    check_parser(
+    check_script_parser(
         s,
         vec![
             Declaration::Lexical(LexicalDeclaration::Let(
@@ -344,7 +344,7 @@ fn assignment_line_terminator() {
     "#;
 
     let interner = &mut Interner::default();
-    check_parser(
+    check_script_parser(
         s,
         vec![
             Declaration::Lexical(LexicalDeclaration::Let(
@@ -381,7 +381,7 @@ fn assignment_multiline_terminator() {
 
     let interner = &mut Interner::default();
     let a = interner.get_or_intern_static("a", utf16!("a"));
-    check_parser(
+    check_script_parser(
         s,
         vec![
             Declaration::Lexical(LexicalDeclaration::Let(
@@ -409,7 +409,7 @@ fn bracketed_expr() {
     let s = r#"(b)"#;
 
     let interner = &mut Interner::default();
-    check_parser(
+    check_script_parser(
         s,
         vec![Statement::Expression(Expression::from(Identifier::new(
             interner.get_or_intern_static("b", utf16!("b")),
@@ -425,7 +425,7 @@ fn increment_in_comma_op() {
 
     let interner = &mut Interner::default();
     let b = interner.get_or_intern_static("b", utf16!("b"));
-    check_parser(
+    check_script_parser(
         s,
         vec![Statement::Expression(Expression::from(Binary::new(
             BinaryOp::Comma,
@@ -458,7 +458,7 @@ fn spread_in_object() {
         ),
     ];
 
-    check_parser(
+    check_script_parser(
         s,
         vec![Declaration::Lexical(LexicalDeclaration::Let(
             vec![Variable::from_identifier(
@@ -489,7 +489,7 @@ fn spread_in_arrow_function() {
     ));
     assert_eq!(params.flags(), FormalParameterListFlags::HAS_REST_PARAMETER);
     assert_eq!(params.length(), 0);
-    check_parser(
+    check_script_parser(
         s,
         vec![Statement::Expression(Expression::from(ArrowFunction::new(
             None,
@@ -505,7 +505,7 @@ fn spread_in_arrow_function() {
 fn empty_statement() {
     let interner = &mut Interner::default();
     let a = interner.get_or_intern_static("a", utf16!("a"));
-    check_parser(
+    check_script_parser(
         r"
             ;;var a = 10;
             if(a) ;
@@ -536,7 +536,7 @@ fn empty_statement_ends_directive_prologues() {
     let public = interner
         .get_or_intern_static("public", utf16!("public"))
         .into();
-    check_parser(
+    check_script_parser(
         r#"
             "a";
             ;
@@ -563,7 +563,7 @@ fn empty_statement_ends_directive_prologues() {
 
 #[test]
 fn hashbang_use_strict_no_with() {
-    check_parser(
+    check_script_parser(
         r#"#!\"use strict"
         "#,
         vec![],
@@ -574,7 +574,7 @@ fn hashbang_use_strict_no_with() {
 #[test]
 #[ignore]
 fn hashbang_use_strict_with_with_statement() {
-    check_parser(
+    check_script_parser(
         r#"#!\"use strict"
 
         with({}) {}
@@ -586,5 +586,5 @@ fn hashbang_use_strict_with_with_statement() {
 
 #[test]
 fn hashbang_comment() {
-    check_parser(r"#!Comment Here", vec![], &mut Interner::default());
+    check_script_parser(r"#!Comment Here", vec![], &mut Interner::default());
 }

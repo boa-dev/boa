@@ -1,4 +1,4 @@
-use crate::parser::tests::check_parser;
+use crate::parser::tests::check_script_parser;
 use boa_ast::{
     expression::literal::Literal,
     statement::{Block, Continue, WhileLoop},
@@ -9,7 +9,7 @@ use boa_macros::utf16;
 
 #[test]
 fn inline() {
-    check_parser(
+    check_script_parser(
         "while (true) continue;",
         vec![Statement::WhileLoop(WhileLoop::new(
             Literal::from(true).into(),
@@ -22,7 +22,7 @@ fn inline() {
 
 #[test]
 fn new_line() {
-    check_parser(
+    check_script_parser(
         "while (true)
             continue;",
         vec![Statement::WhileLoop(WhileLoop::new(
@@ -36,7 +36,7 @@ fn new_line() {
 
 #[test]
 fn inline_block_semicolon_insertion() {
-    check_parser(
+    check_script_parser(
         "while (true) {continue}",
         vec![Statement::WhileLoop(WhileLoop::new(
             Literal::from(true).into(),
@@ -53,7 +53,7 @@ fn inline_block_semicolon_insertion() {
 #[test]
 fn new_line_semicolon_insertion() {
     let interner = &mut Interner::default();
-    check_parser(
+    check_script_parser(
         "while (true) {
             continue test
         }",
@@ -71,7 +71,7 @@ fn new_line_semicolon_insertion() {
 
 #[test]
 fn inline_block() {
-    check_parser(
+    check_script_parser(
         "while (true) {continue;}",
         vec![Statement::WhileLoop(WhileLoop::new(
             Literal::from(true).into(),
@@ -88,7 +88,7 @@ fn inline_block() {
 #[test]
 fn new_line_block() {
     let interner = &mut Interner::default();
-    check_parser(
+    check_script_parser(
         "while (true) {
             continue test;
         }",
@@ -107,7 +107,7 @@ fn new_line_block() {
 #[test]
 fn reserved_label() {
     let interner = &mut Interner::default();
-    check_parser(
+    check_script_parser(
         "while (true) {
             continue await;
         }",
@@ -125,7 +125,7 @@ fn reserved_label() {
     );
 
     let interner = &mut Interner::default();
-    check_parser(
+    check_script_parser(
         "while (true) {
             continue yield;
         }",
@@ -145,7 +145,7 @@ fn reserved_label() {
 
 #[test]
 fn new_line_block_empty() {
-    check_parser(
+    check_script_parser(
         "while (true) {
             continue;
         }",
@@ -163,7 +163,7 @@ fn new_line_block_empty() {
 
 #[test]
 fn new_line_block_empty_semicolon_insertion() {
-    check_parser(
+    check_script_parser(
         "while (true) {
             continue
         }",

@@ -98,16 +98,24 @@ pub enum TokenKind {
     /// The end of the file.
     EOF,
 
-    /// An identifier.
-    Identifier((Sym, ContainsEscapeSequence)),
+    /// An [**identifier name**][spec].
+    ///
+    /// [spec]: https://tc39.es/ecma262/#prod-IdentifierName
+    IdentifierName((Sym, ContainsEscapeSequence)),
 
-    /// A private identifier.
+    /// A [**private identifier**][spec].
+    ///
+    /// [spec]: https://tc39.es/ecma262/#prod-PrivateIdentifier
     PrivateIdentifier(Sym),
 
     /// A keyword and a flag if the keyword contains unicode escaped chars.
+    ///
+    /// For more information, see [`Keyword`].
     Keyword((Keyword, bool)),
 
-    /// A `null` literal.
+    /// The [`null` literal][spec].
+    ///
+    /// [spec]: https://tc39.es/ecma262/#prod-NullLiteral
     NullLiteral,
 
     /// A numeric literal.
@@ -116,7 +124,9 @@ pub enum TokenKind {
     /// A piece of punctuation
     Punctuator(Punctuator),
 
-    /// A string literal.
+    /// A [**string literal**][spec].
+    ///
+    /// [spec]: https://tc39.es/ecma262/#prod-StringLiteral
     StringLiteral((Sym, Option<EscapeSequence>)),
 
     /// A part of a template literal without substitution.
@@ -128,7 +138,9 @@ pub enum TokenKind {
     /// A regular expression, consisting of body and flags.
     RegularExpressionLiteral(Sym, Sym),
 
-    /// Indicates the end of a line (`\n`).
+    /// Indicates a [**line terminator (`\n`)**][spec].
+    ///
+    /// [spec]: https://tc39.es/ecma262/#prod-LineTerminator
     LineTerminator,
 
     /// Indicates a comment, the content isn't stored.
@@ -136,24 +148,28 @@ pub enum TokenKind {
 }
 
 impl From<bool> for TokenKind {
+    #[inline]
     fn from(oth: bool) -> Self {
         Self::BooleanLiteral(oth)
     }
 }
 
 impl From<(Keyword, bool)> for TokenKind {
+    #[inline]
     fn from(kw: (Keyword, bool)) -> Self {
         Self::Keyword(kw)
     }
 }
 
 impl From<Punctuator> for TokenKind {
+    #[inline]
     fn from(punc: Punctuator) -> Self {
         Self::Punctuator(punc)
     }
 }
 
 impl From<Numeric> for TokenKind {
+    #[inline]
     fn from(num: Numeric) -> Self {
         Self::NumericLiteral(num)
     }
@@ -161,21 +177,24 @@ impl From<Numeric> for TokenKind {
 
 impl TokenKind {
     /// Creates a `BooleanLiteral` token kind.
+    #[inline]
     #[must_use]
     pub const fn boolean_literal(lit: bool) -> Self {
         Self::BooleanLiteral(lit)
     }
 
     /// Creates an `EOF` token kind.
+    #[inline]
     #[must_use]
     pub const fn eof() -> Self {
         Self::EOF
     }
 
     /// Creates an `Identifier` token type.
+    #[inline]
     #[must_use]
     pub const fn identifier(ident: Sym) -> Self {
-        Self::Identifier((ident, ContainsEscapeSequence(false)))
+        Self::IdentifierName((ident, ContainsEscapeSequence(false)))
     }
 
     /// Creates a `NumericLiteral` token kind.
@@ -187,42 +206,49 @@ impl TokenKind {
     }
 
     /// Creates a `Punctuator` token type.
+    #[inline]
     #[must_use]
     pub const fn punctuator(punc: Punctuator) -> Self {
         Self::Punctuator(punc)
     }
 
     /// Creates a `StringLiteral` token type.
+    #[inline]
     #[must_use]
     pub const fn string_literal(lit: Sym, escape_sequence: Option<EscapeSequence>) -> Self {
         Self::StringLiteral((lit, escape_sequence))
     }
 
     /// Creates a `TemplateMiddle` token type.
+    #[inline]
     #[must_use]
     pub const fn template_middle(template_string: TemplateString) -> Self {
         Self::TemplateMiddle(template_string)
     }
 
     /// Creates a `TemplateNoSubstitution` token type.
+    #[inline]
     #[must_use]
     pub const fn template_no_substitution(template_string: TemplateString) -> Self {
         Self::TemplateNoSubstitution(template_string)
     }
 
     /// Creates a `RegularExpressionLiteral` token kind.
+    #[inline]
     #[must_use]
     pub const fn regular_expression_literal(body: Sym, flags: Sym) -> Self {
         Self::RegularExpressionLiteral(body, flags)
     }
 
     /// Creates a `LineTerminator` token kind.
+    #[inline]
     #[must_use]
     pub const fn line_terminator() -> Self {
         Self::LineTerminator
     }
 
     /// Creates a 'Comment' token kind.
+    #[inline]
     #[must_use]
     pub const fn comment() -> Self {
         Self::Comment
@@ -234,7 +260,7 @@ impl TokenKind {
         match *self {
             Self::BooleanLiteral(val) => val.to_string(),
             Self::EOF => "end of file".to_owned(),
-            Self::Identifier((ident, _)) => interner.resolve_expect(ident).to_string(),
+            Self::IdentifierName((ident, _)) => interner.resolve_expect(ident).to_string(),
             Self::PrivateIdentifier(ident) => format!("#{}", interner.resolve_expect(ident)),
             Self::Keyword((word, _)) => word.to_string(),
             Self::NullLiteral => "null".to_owned(),

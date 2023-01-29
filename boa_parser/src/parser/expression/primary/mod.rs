@@ -202,7 +202,7 @@ where
                 cursor.advance(interner);
                 Ok(Literal::Null.into())
             }
-            TokenKind::Identifier(_)
+            TokenKind::IdentifierName(_)
             | TokenKind::Keyword((
                 Keyword::Let | Keyword::Yield | Keyword::Await | Keyword::Of,
                 _,

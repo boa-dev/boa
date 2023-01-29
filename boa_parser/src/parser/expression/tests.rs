@@ -1,4 +1,4 @@
-use crate::parser::tests::{check_invalid, check_parser};
+use crate::parser::tests::{check_invalid, check_script_parser};
 use boa_ast::{
     declaration::{LexicalDeclaration, Variable},
     expression::{
@@ -19,7 +19,7 @@ use boa_macros::utf16;
 #[test]
 fn check_numeric_operations() {
     let interner = &mut Interner::default();
-    check_parser(
+    check_script_parser(
         "a + b",
         vec![Statement::Expression(Expression::from(Binary::new(
             ArithmeticOp::Add.into(),
@@ -31,7 +31,7 @@ fn check_numeric_operations() {
     );
 
     let interner = &mut Interner::default();
-    check_parser(
+    check_script_parser(
         "a+1",
         vec![Statement::Expression(Expression::from(Binary::new(
             ArithmeticOp::Add.into(),
@@ -43,7 +43,7 @@ fn check_numeric_operations() {
     );
 
     let interner = &mut Interner::default();
-    check_parser(
+    check_script_parser(
         "a - b",
         vec![Statement::Expression(Expression::from(Binary::new(
             ArithmeticOp::Sub.into(),
@@ -55,7 +55,7 @@ fn check_numeric_operations() {
     );
 
     let interner = &mut Interner::default();
-    check_parser(
+    check_script_parser(
         "a-1",
         vec![Statement::Expression(Expression::from(Binary::new(
             ArithmeticOp::Sub.into(),
@@ -67,7 +67,7 @@ fn check_numeric_operations() {
     );
 
     let interner = &mut Interner::default();
-    check_parser(
+    check_script_parser(
         "a / b",
         vec![Statement::Expression(Expression::from(Binary::new(
             ArithmeticOp::Div.into(),
@@ -79,7 +79,7 @@ fn check_numeric_operations() {
     );
 
     let interner = &mut Interner::default();
-    check_parser(
+    check_script_parser(
         "a/2",
         vec![Statement::Expression(Expression::from(Binary::new(
             ArithmeticOp::Div.into(),
@@ -91,7 +91,7 @@ fn check_numeric_operations() {
     );
 
     let interner = &mut Interner::default();
-    check_parser(
+    check_script_parser(
         "let myRegex = /=/;",
         vec![Declaration::Lexical(LexicalDeclaration::Let(
             vec![Variable::from_identifier(
@@ -118,7 +118,7 @@ fn check_numeric_operations() {
     );
 
     let interner = &mut Interner::default();
-    check_parser(
+    check_script_parser(
         "fn(/=/);",
         vec![Statement::Expression(Expression::from(Call::new(
             Identifier::new(interner.get_or_intern_static("fn", utf16!("fn"))).into(),
@@ -138,7 +138,7 @@ fn check_numeric_operations() {
     );
 
     let interner = &mut Interner::default();
-    check_parser(
+    check_script_parser(
         "fn(a / b);",
         vec![Statement::Expression(Expression::from(Call::new(
             Identifier::new(interner.get_or_intern_static("fn", utf16!("fn"))).into(),
@@ -154,7 +154,7 @@ fn check_numeric_operations() {
     );
 
     let interner = &mut Interner::default();
-    check_parser(
+    check_script_parser(
         "fn(a) / b;",
         vec![Statement::Expression(Expression::from(Binary::new(
             ArithmeticOp::Div.into(),
@@ -171,7 +171,7 @@ fn check_numeric_operations() {
     );
 
     let interner = &mut Interner::default();
-    check_parser(
+    check_script_parser(
         "a * b",
         vec![Statement::Expression(Expression::from(Binary::new(
             ArithmeticOp::Mul.into(),
@@ -183,7 +183,7 @@ fn check_numeric_operations() {
     );
 
     let interner = &mut Interner::default();
-    check_parser(
+    check_script_parser(
         "a*2",
         vec![Statement::Expression(Expression::from(Binary::new(
             ArithmeticOp::Mul.into(),
@@ -195,7 +195,7 @@ fn check_numeric_operations() {
     );
 
     let interner = &mut Interner::default();
-    check_parser(
+    check_script_parser(
         "a ** b",
         vec![Statement::Expression(Expression::from(Binary::new(
             ArithmeticOp::Exp.into(),
@@ -207,7 +207,7 @@ fn check_numeric_operations() {
     );
 
     let interner = &mut Interner::default();
-    check_parser(
+    check_script_parser(
         "a**2",
         vec![Statement::Expression(Expression::from(Binary::new(
             ArithmeticOp::Exp.into(),
@@ -219,7 +219,7 @@ fn check_numeric_operations() {
     );
 
     let interner = &mut Interner::default();
-    check_parser(
+    check_script_parser(
         "a % b",
         vec![Statement::Expression(Expression::from(Binary::new(
             ArithmeticOp::Mod.into(),
@@ -231,7 +231,7 @@ fn check_numeric_operations() {
     );
 
     let interner = &mut Interner::default();
-    check_parser(
+    check_script_parser(
         "a%2",
         vec![Statement::Expression(Expression::from(Binary::new(
             ArithmeticOp::Mod.into(),
@@ -247,7 +247,7 @@ fn check_numeric_operations() {
 #[test]
 fn check_complex_numeric_operations() {
     let interner = &mut Interner::default();
-    check_parser(
+    check_script_parser(
         "a + d*(b-3)+1",
         vec![Statement::Expression(Expression::from(Binary::new(
             ArithmeticOp::Add.into(),
@@ -278,7 +278,7 @@ fn check_complex_numeric_operations() {
 #[test]
 fn check_bitwise_operations() {
     let interner = &mut Interner::default();
-    check_parser(
+    check_script_parser(
         "a & b",
         vec![Statement::Expression(Expression::from(Binary::new(
             BitwiseOp::And.into(),
@@ -290,7 +290,7 @@ fn check_bitwise_operations() {
     );
 
     let interner = &mut Interner::default();
-    check_parser(
+    check_script_parser(
         "a&b",
         vec![Statement::Expression(Expression::from(Binary::new(
             BitwiseOp::And.into(),
@@ -302,7 +302,7 @@ fn check_bitwise_operations() {
     );
 
     let interner = &mut Interner::default();
-    check_parser(
+    check_script_parser(
         "a | b",
         vec![Statement::Expression(Expression::from(Binary::new(
             BitwiseOp::Or.into(),
@@ -314,7 +314,7 @@ fn check_bitwise_operations() {
     );
 
     let interner = &mut Interner::default();
-    check_parser(
+    check_script_parser(
         "a|b",
         vec![Statement::Expression(Expression::from(Binary::new(
             BitwiseOp::Or.into(),
@@ -326,7 +326,7 @@ fn check_bitwise_operations() {
     );
 
     let interner = &mut Interner::default();
-    check_parser(
+    check_script_parser(
         "a ^ b",
         vec![Statement::Expression(Expression::from(Binary::new(
             BitwiseOp::Xor.into(),
@@ -338,7 +338,7 @@ fn check_bitwise_operations() {
     );
 
     let interner = &mut Interner::default();
-    check_parser(
+    check_script_parser(
         "a^b",
         vec![Statement::Expression(Expression::from(Binary::new(
             BitwiseOp::Xor.into(),
@@ -350,7 +350,7 @@ fn check_bitwise_operations() {
     );
 
     let interner = &mut Interner::default();
-    check_parser(
+    check_script_parser(
         "a << b",
         vec![Statement::Expression(Expression::from(Binary::new(
             BitwiseOp::Shl.into(),
@@ -362,7 +362,7 @@ fn check_bitwise_operations() {
     );
 
     let interner = &mut Interner::default();
-    check_parser(
+    check_script_parser(
         "a<<b",
         vec![Statement::Expression(Expression::from(Binary::new(
             BitwiseOp::Shl.into(),
@@ -374,7 +374,7 @@ fn check_bitwise_operations() {
     );
 
     let interner = &mut Interner::default();
-    check_parser(
+    check_script_parser(
         "a >> b",
         vec![Statement::Expression(Expression::from(Binary::new(
             BitwiseOp::Shr.into(),
@@ -386,7 +386,7 @@ fn check_bitwise_operations() {
     );
 
     let interner = &mut Interner::default();
-    check_parser(
+    check_script_parser(
         "a>>b",
         vec![Statement::Expression(Expression::from(Binary::new(
             BitwiseOp::Shr.into(),
@@ -402,7 +402,7 @@ fn check_bitwise_operations() {
 #[test]
 fn check_assign_operations() {
     let interner = &mut Interner::default();
-    check_parser(
+    check_script_parser(
         "a += b",
         vec![Statement::Expression(Expression::from(Assign::new(
             AssignOp::Add,
@@ -414,7 +414,7 @@ fn check_assign_operations() {
     );
 
     let interner = &mut Interner::default();
-    check_parser(
+    check_script_parser(
         "a -= b",
         vec![Statement::Expression(Expression::from(Assign::new(
             AssignOp::Sub,
@@ -426,7 +426,7 @@ fn check_assign_operations() {
     );
 
     let interner = &mut Interner::default();
-    check_parser(
+    check_script_parser(
         "a *= b",
         vec![Statement::Expression(Expression::from(Assign::new(
             AssignOp::Mul,
@@ -438,7 +438,7 @@ fn check_assign_operations() {
     );
 
     let interner = &mut Interner::default();
-    check_parser(
+    check_script_parser(
         "a **= b",
         vec![Statement::Expression(Expression::from(Assign::new(
             AssignOp::Exp,
@@ -450,7 +450,7 @@ fn check_assign_operations() {
     );
 
     let interner = &mut Interner::default();
-    check_parser(
+    check_script_parser(
         "a /= b",
         vec![Statement::Expression(Expression::from(Assign::new(
             AssignOp::Div,
@@ -462,7 +462,7 @@ fn check_assign_operations() {
     );
 
     let interner = &mut Interner::default();
-    check_parser(
+    check_script_parser(
         "a %= b",
         vec![Statement::Expression(Expression::from(Assign::new(
             AssignOp::Mod,
@@ -474,7 +474,7 @@ fn check_assign_operations() {
     );
 
     let interner = &mut Interner::default();
-    check_parser(
+    check_script_parser(
         "a &= b",
         vec![Statement::Expression(Expression::from(Assign::new(
             AssignOp::And,
@@ -486,7 +486,7 @@ fn check_assign_operations() {
     );
 
     let interner = &mut Interner::default();
-    check_parser(
+    check_script_parser(
         "a |= b",
         vec![Statement::Expression(Expression::from(Assign::new(
             AssignOp::Or,
@@ -498,7 +498,7 @@ fn check_assign_operations() {
     );
 
     let interner = &mut Interner::default();
-    check_parser(
+    check_script_parser(
         "a ^= b",
         vec![Statement::Expression(Expression::from(Assign::new(
             AssignOp::Xor,
@@ -510,7 +510,7 @@ fn check_assign_operations() {
     );
 
     let interner = &mut Interner::default();
-    check_parser(
+    check_script_parser(
         "a <<= b",
         vec![Statement::Expression(Expression::from(Assign::new(
             AssignOp::Shl,
@@ -522,7 +522,7 @@ fn check_assign_operations() {
     );
 
     let interner = &mut Interner::default();
-    check_parser(
+    check_script_parser(
         "a >>= b",
         vec![Statement::Expression(Expression::from(Assign::new(
             AssignOp::Shr,
@@ -534,7 +534,7 @@ fn check_assign_operations() {
     );
 
     let interner = &mut Interner::default();
-    check_parser(
+    check_script_parser(
         "a >>>= b",
         vec![Statement::Expression(Expression::from(Assign::new(
             AssignOp::Ushr,
@@ -546,7 +546,7 @@ fn check_assign_operations() {
     );
 
     let interner = &mut Interner::default();
-    check_parser(
+    check_script_parser(
         "a %= 10 / 2",
         vec![Statement::Expression(Expression::from(Assign::new(
             AssignOp::Mod,
@@ -563,7 +563,7 @@ fn check_assign_operations() {
     );
 
     let interner = &mut Interner::default();
-    check_parser(
+    check_script_parser(
         "a ??= b",
         vec![Statement::Expression(Expression::from(Assign::new(
             AssignOp::Coalesce,
@@ -578,7 +578,7 @@ fn check_assign_operations() {
 #[test]
 fn check_relational_operations() {
     let interner = &mut Interner::default();
-    check_parser(
+    check_script_parser(
         "a < b",
         vec![Statement::Expression(Expression::from(Binary::new(
             RelationalOp::LessThan.into(),
@@ -590,7 +590,7 @@ fn check_relational_operations() {
     );
 
     let interner = &mut Interner::default();
-    check_parser(
+    check_script_parser(
         "a > b",
         vec![Statement::Expression(Expression::from(Binary::new(
             RelationalOp::GreaterThan.into(),
@@ -602,7 +602,7 @@ fn check_relational_operations() {
     );
 
     let interner = &mut Interner::default();
-    check_parser(
+    check_script_parser(
         "a <= b",
         vec![Statement::Expression(Expression::from(Binary::new(
             RelationalOp::LessThanOrEqual.into(),
@@ -614,7 +614,7 @@ fn check_relational_operations() {
     );
 
     let interner = &mut Interner::default();
-    check_parser(
+    check_script_parser(
         "a >= b",
         vec![Statement::Expression(Expression::from(Binary::new(
             RelationalOp::GreaterThanOrEqual.into(),
@@ -626,7 +626,7 @@ fn check_relational_operations() {
     );
 
     let interner = &mut Interner::default();
-    check_parser(
+    check_script_parser(
         "p in o",
         vec![Statement::Expression(Expression::from(Binary::new(
             RelationalOp::In.into(),
@@ -641,7 +641,7 @@ fn check_relational_operations() {
 #[test]
 fn check_logical_expressions() {
     let interner = &mut Interner::default();
-    check_parser(
+    check_script_parser(
         "a && b || c && d || e",
         vec![Statement::Expression(Expression::from(Binary::new(
             LogicalOp::Or.into(),
@@ -668,7 +668,7 @@ fn check_logical_expressions() {
     );
 
     let interner = &mut Interner::default();
-    check_parser(
+    check_script_parser(
         "a ?? b ?? c",
         vec![Statement::Expression(Expression::from(Binary::new(
             LogicalOp::Coalesce.into(),
@@ -693,7 +693,7 @@ fn check_logical_expressions() {
 macro_rules! check_non_reserved_identifier {
     ($keyword:literal) => {{
         let interner = &mut Interner::default();
-        check_parser(
+        check_script_parser(
             format!("({})", $keyword).as_str(),
             vec![Statement::Expression(Expression::from(Identifier::new(
                 interner.get_or_intern_static($keyword, utf16!($keyword)),

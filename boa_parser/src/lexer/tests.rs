@@ -95,15 +95,15 @@ fn check_identifier() {
         TokenKind::identifier(
             interner.get_or_intern_static("x\u{200C}\u{200D}", utf16!("x\u{200C}\u{200D}")),
         ),
-        TokenKind::Identifier((
+        TokenKind::IdentifierName((
             interner.get_or_intern_static("x", utf16!("x")),
             ContainsEscapeSequence(true),
         )),
-        TokenKind::Identifier((
+        TokenKind::IdentifierName((
             interner.get_or_intern_static("xx", utf16!("xx")),
             ContainsEscapeSequence(true),
         )),
-        TokenKind::Identifier((
+        TokenKind::IdentifierName((
             interner.get_or_intern_static("xxx", utf16!("xxx")),
             ContainsEscapeSequence(true),
         )),

@@ -1,4 +1,4 @@
-use crate::parser::tests::{check_invalid, check_parser};
+use crate::parser::tests::{check_invalid, check_script_parser};
 use boa_ast::{
     declaration::{LexicalDeclaration, Variable},
     expression::{
@@ -31,7 +31,7 @@ fn check_object_literal() {
         ),
     ];
 
-    check_parser(
+    check_script_parser(
         "const x = {
             a: true,
             b: false,
@@ -70,7 +70,7 @@ fn check_object_short_function() {
         ),
     ];
 
-    check_parser(
+    check_script_parser(
         "const x = {
             a: true,
             b() {},
@@ -120,7 +120,7 @@ fn check_object_short_function_arguments() {
         ),
     ];
 
-    check_parser(
+    check_script_parser(
         "const x = {
             a: true,
             b(test) {}
@@ -162,7 +162,7 @@ fn check_object_getter() {
         ),
     ];
 
-    check_parser(
+    check_script_parser(
         "const x = {
             a: true,
             get b() {}
@@ -215,7 +215,7 @@ fn check_object_setter() {
         ),
     ];
 
-    check_parser(
+    check_script_parser(
         "const x = {
             a: true,
             set b(test) {}
@@ -247,7 +247,7 @@ fn check_object_short_function_get() {
         )),
     )];
 
-    check_parser(
+    check_script_parser(
         "const x = {
             get() {}
          };
@@ -278,7 +278,7 @@ fn check_object_short_function_set() {
         )),
     )];
 
-    check_parser(
+    check_script_parser(
         "const x = {
             set() {}
          };
@@ -304,7 +304,7 @@ fn check_object_shorthand_property_names() {
         interner.get_or_intern_static("a", utf16!("a")).into(),
     )];
 
-    check_parser(
+    check_script_parser(
         "const a = true;
             const x = { a };
         ",
@@ -345,7 +345,7 @@ fn check_object_shorthand_multiple_properties() {
         ),
     ];
 
-    check_parser(
+    check_script_parser(
         "const a = true;
             const b = false;
             const x = { a, b, };
@@ -397,7 +397,7 @@ fn check_object_spread() {
         ),
     ];
 
-    check_parser(
+    check_script_parser(
         "const x = { a: 1, ...b };
         ",
         vec![Declaration::Lexical(LexicalDeclaration::Const(
@@ -427,7 +427,7 @@ fn check_async_method() {
         )),
     )];
 
-    check_parser(
+    check_script_parser(
         "const x = {
             async dive() {}
         };
@@ -465,7 +465,7 @@ fn check_async_generator_method() {
         )),
     )];
 
-    check_parser(
+    check_script_parser(
         "const x = {
             async* vroom() {}
         };
@@ -522,7 +522,7 @@ fn check_async_ordinary_method() {
         )),
     )];
 
-    check_parser(
+    check_script_parser(
         "const x = {
             async() {}
          };
@@ -549,7 +549,7 @@ fn check_async_property() {
         Literal::from(true).into(),
     )];
 
-    check_parser(
+    check_script_parser(
         "const x = {
             async: true
          };

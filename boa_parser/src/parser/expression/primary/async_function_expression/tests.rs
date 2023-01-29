@@ -1,4 +1,4 @@
-use crate::parser::tests::check_parser;
+use crate::parser::tests::check_script_parser;
 use boa_ast::{
     declaration::{Declaration, LexicalDeclaration, Variable},
     expression::literal::Literal,
@@ -14,7 +14,7 @@ use boa_macros::utf16;
 fn check_async_expression() {
     let interner = &mut Interner::default();
     let add = interner.get_or_intern_static("add", utf16!("add"));
-    check_parser(
+    check_script_parser(
         "const add = async function() {
             return 1;
         };
@@ -48,7 +48,7 @@ fn check_nested_async_expression() {
     let interner = &mut Interner::default();
     let a = interner.get_or_intern_static("a", utf16!("a"));
     let b = interner.get_or_intern_static("b", utf16!("b"));
-    check_parser(
+    check_script_parser(
         "const a = async function() {
             const b = async function() {
                 return 1;
