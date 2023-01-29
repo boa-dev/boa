@@ -1061,7 +1061,7 @@
                 </span>cursor.advance(interner);
                 <span class="prelude-val">Ok</span>(ast::Statement::Empty)
             }
-            TokenKind::Identifier(<span class="kw">_</span>) =&gt; {
+            TokenKind::IdentifierName(<span class="kw">_</span>) =&gt; {
                 <span class="comment">// Labelled Statement check
                 </span>cursor.set_goal(InputElement::Div);
                 <span class="kw">let </span>tok = cursor.peek(<span class="number">1</span>, interner)<span class="question-mark">?</span>;
@@ -1375,7 +1375,7 @@
                         TokenKind::Punctuator(Punctuator::OpenBracket)
                         | TokenKind::StringLiteral(<span class="kw">_</span>)
                         | TokenKind::NumericLiteral(<span class="kw">_</span>) =&gt; <span class="bool-val">true</span>,
-                        TokenKind::Identifier(<span class="kw">_</span>) <span class="kw">if </span>next_token_is_colon =&gt; <span class="bool-val">true</span>,
+                        TokenKind::IdentifierName(<span class="kw">_</span>) <span class="kw">if </span>next_token_is_colon =&gt; <span class="bool-val">true</span>,
                         TokenKind::Keyword(<span class="kw">_</span>) <span class="kw">if </span>next_token_is_colon =&gt; <span class="bool-val">true</span>,
                         <span class="kw">_ </span>=&gt; <span class="bool-val">false</span>,
                     };

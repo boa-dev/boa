@@ -216,7 +216,7 @@
             <span class="prelude-val">Ok</span>(Keyword::False) =&gt; TokenKind::BooleanLiteral(<span class="bool-val">false</span>),
             <span class="prelude-val">Ok</span>(Keyword::Null) =&gt; TokenKind::NullLiteral,
             <span class="prelude-val">Ok</span>(keyword) =&gt; TokenKind::Keyword((keyword, contains_escaped_chars)),
-            <span class="kw">_ </span>=&gt; TokenKind::Identifier((
+            <span class="kw">_ </span>=&gt; TokenKind::IdentifierName((
                 interner.get_or_intern(identifier_name.as_str()),
                 ContainsEscapeSequence(contains_escaped_chars),
             )),

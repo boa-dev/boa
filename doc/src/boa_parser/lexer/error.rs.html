@@ -59,6 +59,9 @@
 <a href="#58" id="58">58</a>
 <a href="#59" id="59">59</a>
 <a href="#60" id="60">60</a>
+<a href="#61" id="61">61</a>
+<a href="#62" id="62">62</a>
+<a href="#63" id="63">63</a>
 </pre><pre class="rust"><code><span class="doccomment">//! This module contains the errors used by the lexer.
 //!
 //! More information:
@@ -67,7 +70,7 @@
 //! [spec]: https://tc39.es/ecma262/#sec-native-error-types-used-in-this-standard
 
 </span><span class="kw">use </span>boa_ast::Position;
-<span class="kw">use </span>std::{error::Error <span class="kw">as </span>StdError, fmt, io};
+<span class="kw">use </span>std::{error, fmt, io};
 
 <span class="doccomment">/// An error that occurred during the lexing.
 </span><span class="attr">#[derive(Debug)]
@@ -86,7 +89,8 @@
 }
 
 <span class="kw">impl </span>From&lt;io::Error&gt; <span class="kw">for </span>Error {
-    <span class="kw">fn </span>from(err: io::Error) -&gt; <span class="self">Self </span>{
+    <span class="attr">#[inline]
+    </span><span class="kw">fn </span>from(err: io::Error) -&gt; <span class="self">Self </span>{
         <span class="self">Self</span>::IO(err)
     }
 }
@@ -103,7 +107,8 @@
 }
 
 <span class="kw">impl </span>fmt::Display <span class="kw">for </span>Error {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
+    <span class="attr">#[inline]
+    </span><span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
         <span class="kw">match </span><span class="self">self </span>{
             <span class="self">Self</span>::IO(e) =&gt; <span class="macro">write!</span>(f, <span class="string">&quot;I/O error: {e}&quot;</span>),
             <span class="self">Self</span>::Syntax(e, pos) =&gt; <span class="macro">write!</span>(f, <span class="string">&quot;Syntax Error: {e} at position: {pos}&quot;</span>),
@@ -111,8 +116,9 @@
     }
 }
 
-<span class="kw">impl </span>StdError <span class="kw">for </span>Error {
-    <span class="kw">fn </span>source(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>(<span class="kw">dyn </span>StdError + <span class="lifetime">&#39;static</span>)&gt; {
+<span class="kw">impl </span>error::Error <span class="kw">for </span>Error {
+    <span class="attr">#[inline]
+    </span><span class="kw">fn </span>source(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>(<span class="kw">dyn </span>error::Error + <span class="lifetime">&#39;static</span>)&gt; {
         <span class="kw">match </span><span class="self">self </span>{
             <span class="self">Self</span>::IO(err) =&gt; <span class="prelude-val">Some</span>(err),
             <span class="self">Self</span>::Syntax(<span class="kw">_</span>, <span class="kw">_</span>) =&gt; <span class="prelude-val">None</span>,

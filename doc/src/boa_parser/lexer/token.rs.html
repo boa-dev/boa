@@ -285,6 +285,32 @@
 <a href="#284" id="284">284</a>
 <a href="#285" id="285">285</a>
 <a href="#286" id="286">286</a>
+<a href="#287" id="287">287</a>
+<a href="#288" id="288">288</a>
+<a href="#289" id="289">289</a>
+<a href="#290" id="290">290</a>
+<a href="#291" id="291">291</a>
+<a href="#292" id="292">292</a>
+<a href="#293" id="293">293</a>
+<a href="#294" id="294">294</a>
+<a href="#295" id="295">295</a>
+<a href="#296" id="296">296</a>
+<a href="#297" id="297">297</a>
+<a href="#298" id="298">298</a>
+<a href="#299" id="299">299</a>
+<a href="#300" id="300">300</a>
+<a href="#301" id="301">301</a>
+<a href="#302" id="302">302</a>
+<a href="#303" id="303">303</a>
+<a href="#304" id="304">304</a>
+<a href="#305" id="305">305</a>
+<a href="#306" id="306">306</a>
+<a href="#307" id="307">307</a>
+<a href="#308" id="308">308</a>
+<a href="#309" id="309">309</a>
+<a href="#310" id="310">310</a>
+<a href="#311" id="311">311</a>
+<a href="#312" id="312">312</a>
 </pre><pre class="rust"><code><span class="doccomment">//! Boa&#39;s implementation of all ECMAScript [Token]s.
 //!
 //! More information:
@@ -385,16 +411,24 @@
     <span class="doccomment">/// The end of the file.
     </span>EOF,
 
-    <span class="doccomment">/// An identifier.
-    </span>Identifier((Sym, ContainsEscapeSequence)),
+    <span class="doccomment">/// An [**identifier name**][spec].
+    ///
+    /// [spec]: https://tc39.es/ecma262/#prod-IdentifierName
+    </span>IdentifierName((Sym, ContainsEscapeSequence)),
 
-    <span class="doccomment">/// A private identifier.
+    <span class="doccomment">/// A [**private identifier**][spec].
+    ///
+    /// [spec]: https://tc39.es/ecma262/#prod-PrivateIdentifier
     </span>PrivateIdentifier(Sym),
 
     <span class="doccomment">/// A keyword and a flag if the keyword contains unicode escaped chars.
+    ///
+    /// For more information, see [`Keyword`].
     </span>Keyword((Keyword, bool)),
 
-    <span class="doccomment">/// A `null` literal.
+    <span class="doccomment">/// The [`null` literal][spec].
+    ///
+    /// [spec]: https://tc39.es/ecma262/#prod-NullLiteral
     </span>NullLiteral,
 
     <span class="doccomment">/// A numeric literal.
@@ -403,7 +437,9 @@
     <span class="doccomment">/// A piece of punctuation
     </span>Punctuator(Punctuator),
 
-    <span class="doccomment">/// A string literal.
+    <span class="doccomment">/// A [**string literal**][spec].
+    ///
+    /// [spec]: https://tc39.es/ecma262/#prod-StringLiteral
     </span>StringLiteral((Sym, <span class="prelude-ty">Option</span>&lt;EscapeSequence&gt;)),
 
     <span class="doccomment">/// A part of a template literal without substitution.
@@ -415,7 +451,9 @@
     <span class="doccomment">/// A regular expression, consisting of body and flags.
     </span>RegularExpressionLiteral(Sym, Sym),
 
-    <span class="doccomment">/// Indicates the end of a line (`\n`).
+    <span class="doccomment">/// Indicates a [**line terminator (`\n`)**][spec].
+    ///
+    /// [spec]: https://tc39.es/ecma262/#prod-LineTerminator
     </span>LineTerminator,
 
     <span class="doccomment">/// Indicates a comment, the content isn&#39;t stored.
@@ -423,46 +461,53 @@
 }
 
 <span class="kw">impl </span>From&lt;bool&gt; <span class="kw">for </span>TokenKind {
-    <span class="kw">fn </span>from(oth: bool) -&gt; <span class="self">Self </span>{
+    <span class="attr">#[inline]
+    </span><span class="kw">fn </span>from(oth: bool) -&gt; <span class="self">Self </span>{
         <span class="self">Self</span>::BooleanLiteral(oth)
     }
 }
 
 <span class="kw">impl </span>From&lt;(Keyword, bool)&gt; <span class="kw">for </span>TokenKind {
-    <span class="kw">fn </span>from(kw: (Keyword, bool)) -&gt; <span class="self">Self </span>{
+    <span class="attr">#[inline]
+    </span><span class="kw">fn </span>from(kw: (Keyword, bool)) -&gt; <span class="self">Self </span>{
         <span class="self">Self</span>::Keyword(kw)
     }
 }
 
 <span class="kw">impl </span>From&lt;Punctuator&gt; <span class="kw">for </span>TokenKind {
-    <span class="kw">fn </span>from(punc: Punctuator) -&gt; <span class="self">Self </span>{
+    <span class="attr">#[inline]
+    </span><span class="kw">fn </span>from(punc: Punctuator) -&gt; <span class="self">Self </span>{
         <span class="self">Self</span>::Punctuator(punc)
     }
 }
 
 <span class="kw">impl </span>From&lt;Numeric&gt; <span class="kw">for </span>TokenKind {
-    <span class="kw">fn </span>from(num: Numeric) -&gt; <span class="self">Self </span>{
+    <span class="attr">#[inline]
+    </span><span class="kw">fn </span>from(num: Numeric) -&gt; <span class="self">Self </span>{
         <span class="self">Self</span>::NumericLiteral(num)
     }
 }
 
 <span class="kw">impl </span>TokenKind {
     <span class="doccomment">/// Creates a `BooleanLiteral` token kind.
-    </span><span class="attr">#[must_use]
+    </span><span class="attr">#[inline]
+    #[must_use]
     </span><span class="kw">pub const fn </span>boolean_literal(lit: bool) -&gt; <span class="self">Self </span>{
         <span class="self">Self</span>::BooleanLiteral(lit)
     }
 
     <span class="doccomment">/// Creates an `EOF` token kind.
-    </span><span class="attr">#[must_use]
+    </span><span class="attr">#[inline]
+    #[must_use]
     </span><span class="kw">pub const fn </span>eof() -&gt; <span class="self">Self </span>{
         <span class="self">Self</span>::EOF
     }
 
     <span class="doccomment">/// Creates an `Identifier` token type.
-    </span><span class="attr">#[must_use]
+    </span><span class="attr">#[inline]
+    #[must_use]
     </span><span class="kw">pub const fn </span>identifier(ident: Sym) -&gt; <span class="self">Self </span>{
-        <span class="self">Self</span>::Identifier((ident, ContainsEscapeSequence(<span class="bool-val">false</span>)))
+        <span class="self">Self</span>::IdentifierName((ident, ContainsEscapeSequence(<span class="bool-val">false</span>)))
     }
 
     <span class="doccomment">/// Creates a `NumericLiteral` token kind.
@@ -474,43 +519,50 @@
     }
 
     <span class="doccomment">/// Creates a `Punctuator` token type.
-    </span><span class="attr">#[must_use]
+    </span><span class="attr">#[inline]
+    #[must_use]
     </span><span class="kw">pub const fn </span>punctuator(punc: Punctuator) -&gt; <span class="self">Self </span>{
         <span class="self">Self</span>::Punctuator(punc)
     }
 
     <span class="doccomment">/// Creates a `StringLiteral` token type.
-    </span><span class="attr">#[must_use]
+    </span><span class="attr">#[inline]
+    #[must_use]
     </span><span class="kw">pub const fn </span>string_literal(lit: Sym, escape_sequence: <span class="prelude-ty">Option</span>&lt;EscapeSequence&gt;) -&gt; <span class="self">Self </span>{
         <span class="self">Self</span>::StringLiteral((lit, escape_sequence))
     }
 
     <span class="doccomment">/// Creates a `TemplateMiddle` token type.
-    </span><span class="attr">#[must_use]
+    </span><span class="attr">#[inline]
+    #[must_use]
     </span><span class="kw">pub const fn </span>template_middle(template_string: TemplateString) -&gt; <span class="self">Self </span>{
         <span class="self">Self</span>::TemplateMiddle(template_string)
     }
 
     <span class="doccomment">/// Creates a `TemplateNoSubstitution` token type.
-    </span><span class="attr">#[must_use]
+    </span><span class="attr">#[inline]
+    #[must_use]
     </span><span class="kw">pub const fn </span>template_no_substitution(template_string: TemplateString) -&gt; <span class="self">Self </span>{
         <span class="self">Self</span>::TemplateNoSubstitution(template_string)
     }
 
     <span class="doccomment">/// Creates a `RegularExpressionLiteral` token kind.
-    </span><span class="attr">#[must_use]
+    </span><span class="attr">#[inline]
+    #[must_use]
     </span><span class="kw">pub const fn </span>regular_expression_literal(body: Sym, flags: Sym) -&gt; <span class="self">Self </span>{
         <span class="self">Self</span>::RegularExpressionLiteral(body, flags)
     }
 
     <span class="doccomment">/// Creates a `LineTerminator` token kind.
-    </span><span class="attr">#[must_use]
+    </span><span class="attr">#[inline]
+    #[must_use]
     </span><span class="kw">pub const fn </span>line_terminator() -&gt; <span class="self">Self </span>{
         <span class="self">Self</span>::LineTerminator
     }
 
     <span class="doccomment">/// Creates a &#39;Comment&#39; token kind.
-    </span><span class="attr">#[must_use]
+    </span><span class="attr">#[inline]
+    #[must_use]
     </span><span class="kw">pub const fn </span>comment() -&gt; <span class="self">Self </span>{
         <span class="self">Self</span>::Comment
     }
@@ -521,7 +573,7 @@
         <span class="kw">match </span><span class="kw-2">*</span><span class="self">self </span>{
             <span class="self">Self</span>::BooleanLiteral(val) =&gt; val.to_string(),
             <span class="self">Self</span>::EOF =&gt; <span class="string">&quot;end of file&quot;</span>.to_owned(),
-            <span class="self">Self</span>::Identifier((ident, <span class="kw">_</span>)) =&gt; interner.resolve_expect(ident).to_string(),
+            <span class="self">Self</span>::IdentifierName((ident, <span class="kw">_</span>)) =&gt; interner.resolve_expect(ident).to_string(),
             <span class="self">Self</span>::PrivateIdentifier(ident) =&gt; <span class="macro">format!</span>(<span class="string">&quot;#{}&quot;</span>, interner.resolve_expect(ident)),
             <span class="self">Self</span>::Keyword((word, <span class="kw">_</span>)) =&gt; word.to_string(),
             <span class="self">Self</span>::NullLiteral =&gt; <span class="string">&quot;null&quot;</span>.to_owned(),

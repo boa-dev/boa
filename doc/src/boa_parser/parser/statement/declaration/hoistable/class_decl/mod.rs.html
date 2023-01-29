@@ -1381,6 +1381,7 @@
 <a href="#1380" id="1380">1380</a>
 <a href="#1381" id="1381">1381</a>
 <a href="#1382" id="1382">1382</a>
+<a href="#1383" id="1383">1383</a>
 </pre><pre class="rust"><code><span class="attr">#[cfg(test)]
 </span><span class="kw">mod </span>tests;
 
@@ -1459,7 +1460,8 @@
         <span class="kw">let </span><span class="kw-2">mut </span>has_binding_identifier = <span class="bool-val">false</span>;
         <span class="kw">let </span>token = cursor.peek(<span class="number">0</span>, interner).or_abrupt()<span class="question-mark">?</span>;
         <span class="kw">let </span>name = <span class="kw">match </span>token.kind() {
-            TokenKind::Identifier(<span class="kw">_</span>) | TokenKind::Keyword((Keyword::Yield | Keyword::Await, <span class="kw">_</span>)) =&gt; {
+            TokenKind::IdentifierName(<span class="kw">_</span>)
+            | TokenKind::Keyword((Keyword::Yield | Keyword::Await, <span class="kw">_</span>)) =&gt; {
                 has_binding_identifier = <span class="bool-val">true</span>;
                 BindingIdentifier::new(<span class="self">self</span>.allow_yield, <span class="self">self</span>.allow_await)
                     .parse(cursor, interner)<span class="question-mark">?
@@ -1978,11 +1980,11 @@
                 cursor.advance(interner);
                 <span class="kw">return </span><span class="prelude-val">Ok</span>((<span class="prelude-val">None</span>, <span class="prelude-val">None</span>));
             }
-            TokenKind::Identifier((Sym::STATIC, ContainsEscapeSequence(contains_escape))) =&gt; {
+            TokenKind::IdentifierName((Sym::STATIC, ContainsEscapeSequence(contains_escape))) =&gt; {
                 <span class="kw">let </span>contains_escape = <span class="kw-2">*</span>contains_escape;
                 <span class="kw">let </span>token = cursor.peek(<span class="number">1</span>, interner).or_abrupt()<span class="question-mark">?</span>;
                 <span class="kw">match </span>token.kind() {
-                    TokenKind::Identifier(<span class="kw">_</span>)
+                    TokenKind::IdentifierName(<span class="kw">_</span>)
                     | TokenKind::StringLiteral(<span class="kw">_</span>)
                     | TokenKind::NumericLiteral(<span class="kw">_</span>)
                     | TokenKind::Keyword(<span class="kw">_</span>)
@@ -2020,7 +2022,7 @@
         <span class="kw">let </span>token = cursor.peek(<span class="number">0</span>, interner).or_abrupt()<span class="question-mark">?</span>;
         <span class="kw">let </span>position = token.span().start();
         <span class="kw">let </span>element = <span class="kw">match </span>token.kind() {
-            TokenKind::Identifier((Sym::CONSTRUCTOR, <span class="kw">_</span>)) <span class="kw">if </span>!r#static =&gt; {
+            TokenKind::IdentifierName((Sym::CONSTRUCTOR, <span class="kw">_</span>)) <span class="kw">if </span>!r#static =&gt; {
                 cursor.advance(interner);
                 <span class="kw">let </span>strict = cursor.strict_mode();
                 cursor.set_strict_mode(<span class="bool-val">true</span>);
@@ -2099,7 +2101,7 @@
                 <span class="kw">let </span>token = cursor.peek(<span class="number">1</span>, interner).or_abrupt()<span class="question-mark">?</span>;
                 <span class="kw">let </span>name_position = token.span().start();
                 <span class="kw">if </span>!r#static {
-                    <span class="kw">if let </span>TokenKind::Identifier((Sym::CONSTRUCTOR, <span class="kw">_</span>)) = token.kind() {
+                    <span class="kw">if let </span>TokenKind::IdentifierName((Sym::CONSTRUCTOR, <span class="kw">_</span>)) = token.kind() {
                         <span class="kw">return </span><span class="prelude-val">Err</span>(Error::general(
                             <span class="string">&quot;class constructor may not be a generator method&quot;</span>,
                             token.span().start(),
@@ -2163,7 +2165,7 @@
                                     token.span().start(),
                                 ));
                             }
-                            TokenKind::Identifier((Sym::CONSTRUCTOR, <span class="kw">_</span>)) <span class="kw">if </span>!r#static =&gt; {
+                            TokenKind::IdentifierName((Sym::CONSTRUCTOR, <span class="kw">_</span>)) <span class="kw">if </span>!r#static =&gt; {
                                 <span class="kw">return </span><span class="prelude-val">Err</span>(Error::general(
                                     <span class="string">&quot;class constructor may not be a generator method&quot;</span>,
                                     token.span().start(),
@@ -2207,7 +2209,7 @@
                             }
                         }
                     }
-                    TokenKind::Identifier((Sym::CONSTRUCTOR, <span class="kw">_</span>)) <span class="kw">if </span>!r#static =&gt; {
+                    TokenKind::IdentifierName((Sym::CONSTRUCTOR, <span class="kw">_</span>)) <span class="kw">if </span>!r#static =&gt; {
                         <span class="kw">return </span><span class="prelude-val">Err</span>(Error::general(
                             <span class="string">&quot;class constructor may not be an async method&quot;</span>,
                             token.span().start(),
@@ -2258,13 +2260,13 @@
                     }
                 }
             }
-            TokenKind::Identifier((Sym::GET, ContainsEscapeSequence(<span class="bool-val">true</span>))) <span class="kw">if </span>is_keyword =&gt; {
+            TokenKind::IdentifierName((Sym::GET, ContainsEscapeSequence(<span class="bool-val">true</span>))) <span class="kw">if </span>is_keyword =&gt; {
                 <span class="kw">return </span><span class="prelude-val">Err</span>(Error::general(
                     <span class="string">&quot;keyword must not contain escaped characters&quot;</span>,
                     token.span().start(),
                 ))
             }
-            TokenKind::Identifier((Sym::GET, ContainsEscapeSequence(<span class="bool-val">false</span>))) <span class="kw">if </span>is_keyword =&gt; {
+            TokenKind::IdentifierName((Sym::GET, ContainsEscapeSequence(<span class="bool-val">false</span>))) <span class="kw">if </span>is_keyword =&gt; {
                 cursor.advance(interner);
                 <span class="kw">let </span>token = cursor.peek(<span class="number">0</span>, interner).or_abrupt()<span class="question-mark">?</span>;
                 <span class="kw">match </span>token.kind() {
@@ -2316,13 +2318,13 @@
                             )
                         }
                     }
-                    TokenKind::Identifier((Sym::CONSTRUCTOR, <span class="kw">_</span>)) <span class="kw">if </span>!r#static =&gt; {
+                    TokenKind::IdentifierName((Sym::CONSTRUCTOR, <span class="kw">_</span>)) <span class="kw">if </span>!r#static =&gt; {
                         <span class="kw">return </span><span class="prelude-val">Err</span>(Error::general(
                             <span class="string">&quot;class constructor may not be a getter method&quot;</span>,
                             token.span().start(),
                         ))
                     }
-                    TokenKind::Identifier(<span class="kw">_</span>)
+                    TokenKind::IdentifierName(<span class="kw">_</span>)
                     | TokenKind::StringLiteral(<span class="kw">_</span>)
                     | TokenKind::NumericLiteral(<span class="kw">_</span>)
                     | TokenKind::Keyword(<span class="kw">_</span>)
@@ -2389,13 +2391,13 @@
                     }
                 }
             }
-            TokenKind::Identifier((Sym::SET, ContainsEscapeSequence(<span class="bool-val">true</span>))) <span class="kw">if </span>is_keyword =&gt; {
+            TokenKind::IdentifierName((Sym::SET, ContainsEscapeSequence(<span class="bool-val">true</span>))) <span class="kw">if </span>is_keyword =&gt; {
                 <span class="kw">return </span><span class="prelude-val">Err</span>(Error::general(
                     <span class="string">&quot;keyword must not contain escaped characters&quot;</span>,
                     token.span().start(),
                 ))
             }
-            TokenKind::Identifier((Sym::SET, ContainsEscapeSequence(<span class="bool-val">false</span>))) <span class="kw">if </span>is_keyword =&gt; {
+            TokenKind::IdentifierName((Sym::SET, ContainsEscapeSequence(<span class="bool-val">false</span>))) <span class="kw">if </span>is_keyword =&gt; {
                 cursor.advance(interner);
                 <span class="kw">let </span>token = cursor.peek(<span class="number">0</span>, interner).or_abrupt()<span class="question-mark">?</span>;
                 <span class="kw">match </span>token.kind() {
@@ -2447,13 +2449,13 @@
                             )
                         }
                     }
-                    TokenKind::Identifier((Sym::CONSTRUCTOR, <span class="kw">_</span>)) <span class="kw">if </span>!r#static =&gt; {
+                    TokenKind::IdentifierName((Sym::CONSTRUCTOR, <span class="kw">_</span>)) <span class="kw">if </span>!r#static =&gt; {
                         <span class="kw">return </span><span class="prelude-val">Err</span>(Error::general(
                             <span class="string">&quot;class constructor may not be a setter method&quot;</span>,
                             token.span().start(),
                         ))
                     }
-                    TokenKind::Identifier(<span class="kw">_</span>)
+                    TokenKind::IdentifierName(<span class="kw">_</span>)
                     | TokenKind::StringLiteral(<span class="kw">_</span>)
                     | TokenKind::NumericLiteral(<span class="kw">_</span>)
                     | TokenKind::Keyword(<span class="kw">_</span>)
@@ -2614,7 +2616,7 @@
                     }
                 }
             }
-            TokenKind::Identifier(<span class="kw">_</span>)
+            TokenKind::IdentifierName(<span class="kw">_</span>)
             | TokenKind::StringLiteral(<span class="kw">_</span>)
             | TokenKind::NumericLiteral(<span class="kw">_</span>)
             | TokenKind::Keyword(<span class="kw">_</span>)

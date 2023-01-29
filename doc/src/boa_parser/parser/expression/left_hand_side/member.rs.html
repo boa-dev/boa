@@ -333,13 +333,13 @@
                 <span class="kw">if </span>cursor.next_if(Punctuator::Dot, interner)<span class="question-mark">?</span>.is_some() {
                     <span class="kw">let </span>token = cursor.next(interner).or_abrupt()<span class="question-mark">?</span>;
                     <span class="kw">match </span>token.kind() {
-                        TokenKind::Identifier((Sym::TARGET, ContainsEscapeSequence(<span class="bool-val">true</span>))) =&gt; {
+                        TokenKind::IdentifierName((Sym::TARGET, ContainsEscapeSequence(<span class="bool-val">true</span>))) =&gt; {
                             <span class="kw">return </span><span class="prelude-val">Err</span>(Error::general(
                                 <span class="string">&quot;&#39;new.target&#39; must not contain escaped characters&quot;</span>,
                                 token.span().start(),
                             ));
                         }
-                        TokenKind::Identifier((Sym::TARGET, ContainsEscapeSequence(<span class="bool-val">false</span>))) =&gt; {
+                        TokenKind::IdentifierName((Sym::TARGET, ContainsEscapeSequence(<span class="bool-val">false</span>))) =&gt; {
                             <span class="kw">return </span><span class="prelude-val">Ok</span>(ast::Expression::NewTarget)
                         }
                         <span class="kw">_ </span>=&gt; {
@@ -370,7 +370,7 @@
                     TokenKind::Punctuator(Punctuator::Dot) =&gt; {
                         <span class="kw">let </span>token = cursor.next(interner).or_abrupt()<span class="question-mark">?</span>;
                         <span class="kw">let </span>field = <span class="kw">match </span>token.kind() {
-                            TokenKind::Identifier((name, <span class="kw">_</span>)) =&gt; {
+                            TokenKind::IdentifierName((name, <span class="kw">_</span>)) =&gt; {
                                 SuperPropertyAccess::new(PropertyAccessField::from(<span class="kw-2">*</span>name))
                             }
                             TokenKind::Keyword((kw, <span class="kw">_</span>)) =&gt; {
@@ -432,7 +432,7 @@
                     </span><span class="kw">let </span>token = cursor.next(interner).or_abrupt()<span class="question-mark">?</span>;
 
                     <span class="kw">let </span>access = <span class="kw">match </span>token.kind() {
-                        TokenKind::Identifier((name, <span class="kw">_</span>)) =&gt; {
+                        TokenKind::IdentifierName((name, <span class="kw">_</span>)) =&gt; {
                             SimplePropertyAccess::new(lhs, <span class="kw-2">*</span>name).into()
                         }
                         TokenKind::Keyword((kw, <span class="kw">_</span>)) =&gt; {

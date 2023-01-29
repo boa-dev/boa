@@ -298,6 +298,7 @@
 <a href="#297" id="297">297</a>
 <a href="#298" id="298">298</a>
 <a href="#299" id="299">299</a>
+<a href="#300" id="300">300</a>
 </pre><pre class="rust"><code><span class="doccomment">//! Assignment operator parsing.
 //!
 //! More information:
@@ -408,7 +409,8 @@
                     .parse(cursor, interner)
             }
             <span class="comment">// ArrowFunction[?In, ?Yield, ?Await] -&gt; ArrowParameters[?Yield, ?Await] -&gt; BindingIdentifier[?Yield, ?Await]
-            </span>TokenKind::Identifier(<span class="kw">_</span>) | TokenKind::Keyword((Keyword::Yield | Keyword::Await, <span class="kw">_</span>)) =&gt; {
+            </span>TokenKind::IdentifierName(<span class="kw">_</span>)
+            | TokenKind::Keyword((Keyword::Yield | Keyword::Await, <span class="kw">_</span>)) =&gt; {
                 cursor.set_goal(InputElement::Div);
 
                 <span class="comment">// Because we already peeked the identifier token, there may be a line terminator before the identifier token.
@@ -446,7 +448,7 @@
                     .or_abrupt()<span class="question-mark">?
                     </span>&amp;&amp; <span class="macro">matches!</span>(
                         cursor.peek(<span class="number">1</span>, interner).or_abrupt()<span class="question-mark">?</span>.kind(),
-                        TokenKind::Identifier(<span class="kw">_</span>)
+                        TokenKind::IdentifierName(<span class="kw">_</span>)
                             | TokenKind::Keyword((Keyword::Yield | Keyword::Await, <span class="kw">_</span>))
                             | TokenKind::Punctuator(Punctuator::OpenParen)
                     )

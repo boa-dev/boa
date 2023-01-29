@@ -1355,7 +1355,7 @@
         }
 
         <span class="kw">let </span>set_or_get_escaped_position = <span class="kw">match </span>token.kind() {
-            TokenKind::Identifier((Sym::GET | Sym::SET, ContainsEscapeSequence(<span class="bool-val">true</span>))) =&gt; {
+            TokenKind::IdentifierName((Sym::GET | Sym::SET, ContainsEscapeSequence(<span class="bool-val">true</span>))) =&gt; {
                 <span class="prelude-val">Some</span>(token.span().start())
             }
             <span class="kw">_ </span>=&gt; <span class="prelude-val">None</span>,
@@ -1642,7 +1642,7 @@
                 cursor.expect(Punctuator::CloseBracket, <span class="string">&quot;expected token &#39;]&#39;&quot;</span>, interner)<span class="question-mark">?</span>;
                 <span class="kw">return </span><span class="prelude-val">Ok</span>(node.into());
             }
-            TokenKind::Identifier((name, <span class="kw">_</span>)) | TokenKind::StringLiteral((name, <span class="kw">_</span>)) =&gt; {
+            TokenKind::IdentifierName((name, <span class="kw">_</span>)) | TokenKind::StringLiteral((name, <span class="kw">_</span>)) =&gt; {
                 (<span class="kw-2">*</span>name).into()
             }
             TokenKind::NumericLiteral(num) =&gt; <span class="kw">match </span>num {

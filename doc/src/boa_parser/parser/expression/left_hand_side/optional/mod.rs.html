@@ -171,6 +171,8 @@
 <a href="#170" id="170">170</a>
 <a href="#171" id="171">171</a>
 <a href="#172" id="172">172</a>
+<a href="#173" id="173">173</a>
+<a href="#174" id="174">174</a>
 </pre><pre class="rust"><code><span class="attr">#[cfg(test)]
 </span><span class="kw">mod </span>tests;
 
@@ -239,9 +241,11 @@
             interner: <span class="kw-2">&amp;mut </span>Interner,
         ) -&gt; ParseResult&lt;OptionalOperationKind&gt; {
             <span class="kw">let </span>item = <span class="kw">match </span>token.kind() {
-                TokenKind::Identifier((name, <span class="kw">_</span>)) =&gt; OptionalOperationKind::SimplePropertyAccess {
-                    field: PropertyAccessField::Const(<span class="kw-2">*</span>name),
-                },
+                TokenKind::IdentifierName((name, <span class="kw">_</span>)) =&gt; {
+                    OptionalOperationKind::SimplePropertyAccess {
+                        field: PropertyAccessField::Const(<span class="kw-2">*</span>name),
+                    }
+                }
                 TokenKind::Keyword((kw, <span class="kw">_</span>)) =&gt; OptionalOperationKind::SimplePropertyAccess {
                     field: PropertyAccessField::Const(kw.to_sym(interner)),
                 },
