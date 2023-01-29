@@ -18,7 +18,7 @@ use std::io::Read;
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/function*
 /// [spec]: https://tc39.es/ecma262/#prod-GeneratorDeclaration
 #[derive(Debug, Clone, Copy)]
-pub(super) struct GeneratorDeclaration {
+pub(in crate::parser) struct GeneratorDeclaration {
     allow_yield: AllowYield,
     allow_await: AllowAwait,
     is_default: AllowDefault,
@@ -26,7 +26,7 @@ pub(super) struct GeneratorDeclaration {
 
 impl GeneratorDeclaration {
     /// Creates a new `GeneratorDeclaration` parser.
-    pub(super) fn new<Y, A, D>(allow_yield: Y, allow_await: A, is_default: D) -> Self
+    pub(in crate::parser) fn new<Y, A, D>(allow_yield: Y, allow_await: A, is_default: D) -> Self
     where
         Y: Into<AllowYield>,
         A: Into<AllowAwait>,

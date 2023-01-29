@@ -18,7 +18,7 @@ use std::io::Read;
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/async_function
 /// [spec]: https://tc39.es/ecma262/#prod-AsyncFunctionDeclaration
 #[derive(Debug, Clone, Copy)]
-pub(super) struct AsyncFunctionDeclaration {
+pub(in crate::parser) struct AsyncFunctionDeclaration {
     allow_yield: AllowYield,
     allow_await: AllowAwait,
     is_default: AllowDefault,
@@ -26,7 +26,7 @@ pub(super) struct AsyncFunctionDeclaration {
 
 impl AsyncFunctionDeclaration {
     /// Creates a new `FunctionDeclaration` parser.
-    pub(super) fn new<Y, A, D>(allow_yield: Y, allow_await: A, is_default: D) -> Self
+    pub(in crate::parser) fn new<Y, A, D>(allow_yield: Y, allow_await: A, is_default: D) -> Self
     where
         Y: Into<AllowYield>,
         A: Into<AllowAwait>,

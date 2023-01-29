@@ -13,16 +13,20 @@ use crate::{
     lexer::{token::ContainsEscapeSequence, TokenKind},
     parser::{
         cursor::Cursor,
+        expression::AssignmentExpression,
         statement::{declaration::ClassDeclaration, variable::VariableStatement},
         Error, OrAbrupt, ParseResult, TokenParser,
     },
 };
-use boa_ast::{Keyword, Punctuator};
+use boa_ast::{declaration::ExportDeclaration as AstExportDeclaration, Keyword, Punctuator};
 use boa_interner::{Interner, Sym};
 use boa_profiler::Profiler;
 use std::io::Read;
 
-use super::FromClause;
+use super::{
+    hoistable::{AsyncFunctionDeclaration, AsyncGeneratorDeclaration, GeneratorDeclaration},
+    Declaration, FromClause, FunctionDeclaration,
+};
 
 /// Parses an export declaration.
 ///
@@ -37,7 +41,7 @@ impl<R> TokenParser<R> for ExportDeclaration
 where
     R: Read,
 {
-    type Output = boa_ast::declaration::ExportDeclaration;
+    type Output = AstExportDeclaration;
 
     fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult<Self::Output> {
         let _timer = Profiler::global().start_event("ExportDeclaration", "Parsing");
@@ -97,9 +101,10 @@ where
 
                 let next = cursor.peek(0, interner).or_abrupt()?;
 
-                if let TokenKind::IdentifierName((Sym::FROM, ContainsEscapeSequence(false))) =
-                    next.kind()
-                {
+                if matches!(
+                    next.kind(),
+                    TokenKind::IdentifierName((Sym::FROM, ContainsEscapeSequence(false)))
+                ) {
                     let from = FromClause::new("export declaration").parse(cursor, interner)?;
                     boa_ast::declaration::ExportDeclaration::List {
                         list,
@@ -118,17 +123,48 @@ where
                 let tok = cursor.peek(0, interner).or_abrupt()?;
 
                 match tok.kind() {
-                    TokenKind::Keyword((Keyword::Class, _)) => {
-                        ClassDeclaration::new(false, true, true)
-                            .parse(cursor, interner)
-                            .map(boa_ast::declaration::ExportDeclaration::DefaultClassDeclaration)?
+                    TokenKind::Keyword((Keyword::Function, false)) => {
+                        let next_token = cursor.peek(1, interner).or_abrupt()?;
+                        if next_token.kind() == &TokenKind::Punctuator(Punctuator::Mul) {
+                            AstExportDeclaration::DefaultGenerator(
+                                GeneratorDeclaration::new(false, true, true)
+                                    .parse(cursor, interner)?,
+                            )
+                        } else {
+                            AstExportDeclaration::DefaultFunction(
+                                FunctionDeclaration::new(false, true, true)
+                                    .parse(cursor, interner)?,
+                            )
+                        }
                     }
-                    _ => todo!("default export parsing"),
+                    TokenKind::Keyword((Keyword::Async, false)) => {
+                        let next_token = cursor.peek(2, interner).or_abrupt()?;
+                        if next_token.kind() == &TokenKind::Punctuator(Punctuator::Mul) {
+                            AstExportDeclaration::DefaultAsyncGenerator(
+                                AsyncGeneratorDeclaration::new(false, true, true)
+                                    .parse(cursor, interner)?,
+                            )
+                        } else {
+                            AstExportDeclaration::DefaultAsyncFunction(
+                                AsyncFunctionDeclaration::new(false, true, true)
+                                    .parse(cursor, interner)?,
+                            )
+                        }
+                    }
+                    TokenKind::Keyword((Keyword::Class, false)) => {
+                        AstExportDeclaration::DefaultClassDeclaration(
+                            ClassDeclaration::new(false, true, true).parse(cursor, interner)?,
+                        )
+                    }
+                    _ => AstExportDeclaration::DefaultAssignmentExpression(
+                        AssignmentExpression::new(None, true, false, true)
+                            .parse(cursor, interner)?,
+                    ),
                 }
             }
-            _ => {
-                todo!()
-            }
+            _ => AstExportDeclaration::Declaration(
+                Declaration::new(false, true).parse(cursor, interner)?,
+            ),
         };
 
         Ok(export_clause)

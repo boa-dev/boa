@@ -15,10 +15,6 @@ mod generator_decl;
 
 pub(crate) mod class_decl;
 
-use self::{
-    async_function_decl::AsyncFunctionDeclaration, async_generator_decl::AsyncGeneratorDeclaration,
-    generator_decl::GeneratorDeclaration,
-};
 use crate::{
     lexer::TokenKind,
     parser::{
@@ -41,7 +37,9 @@ use boa_profiler::Profiler;
 use std::io::Read;
 
 pub(in crate::parser) use self::{
+    async_function_decl::AsyncFunctionDeclaration, async_generator_decl::AsyncGeneratorDeclaration,
     class_decl::ClassDeclaration, function_decl::FunctionDeclaration,
+    generator_decl::GeneratorDeclaration,
 };
 
 /// Hoistable declaration parsing.
