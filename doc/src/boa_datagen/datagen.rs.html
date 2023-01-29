@@ -19,6 +19,7 @@
 <a href="#19" id="19">19</a>
 <a href="#20" id="20">20</a>
 <a href="#21" id="21">21</a>
+<a href="#22" id="22">22</a>
 </pre><pre class="rust"><code><span class="kw">use </span>std::{error::Error, fs::File};
 
 <span class="kw">use </span>boa_icu_provider::data_root;
@@ -31,8 +32,9 @@
         .init()<span class="question-mark">?</span>;
 
     <span class="kw">let </span>source_data = SourceData::default()
-        .with_cldr_latest(CldrLocaleSubset::Modern)<span class="question-mark">?
-        </span>.with_icuexport_latest()<span class="question-mark">?</span>;
+        .with_cldr_for_tag(SourceData::LATEST_TESTED_CLDR_TAG, CldrLocaleSubset::Modern)<span class="question-mark">?
+        </span>.with_icuexport_for_tag(SourceData::LATEST_TESTED_ICUEXPORT_TAG)<span class="question-mark">?
+        </span>.with_collations(<span class="macro">vec!</span>[String::from(<span class="string">&quot;search*&quot;</span>)]);
 
     <span class="kw">let </span>blob_out = Out::Blob(Box::new(File::create(
         data_root().join(<span class="string">&quot;icudata.postcard&quot;</span>),
