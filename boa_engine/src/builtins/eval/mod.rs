@@ -22,7 +22,7 @@ use boa_ast::operations::{
     contains, contains_arguments, top_level_var_declared_names, ContainsSymbol,
 };
 use boa_gc::Gc;
-use boa_parser::Parser;
+use boa_parser::{Parser, Source};
 use boa_profiler::Profiler;
 
 #[derive(Debug, Clone, Copy)]
@@ -124,7 +124,7 @@ impl Eval {
         //     b. If script is a List of errors, throw a SyntaxError exception.
         //     c. If script Contains ScriptBody is false, return undefined.
         //     d. Let body be the ScriptBody of script.
-        let mut parser = Parser::new(x.as_bytes());
+        let mut parser = Parser::new(Source::from_bytes(&x));
         if strict {
             parser.set_strict();
         }

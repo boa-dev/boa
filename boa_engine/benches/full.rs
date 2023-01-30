@@ -1,6 +1,6 @@
 //! Benchmarks of the whole execution engine in Boa.
 
-use boa_engine::{realm::Realm, Context};
+use boa_engine::{realm::Realm, Context, Source};
 use criterion::{criterion_group, criterion_main, Criterion};
 use std::hint::black_box;
 
@@ -23,7 +23,7 @@ macro_rules! full_benchmarks {
                     static CODE: &str = include_str!(concat!("bench_scripts/", stringify!($name), ".js"));
                     let mut context = Context::default();
                     c.bench_function(concat!($id, " (Parser)"), move |b| {
-                        b.iter(|| context.parse(black_box(CODE)))
+                        b.iter(|| context.parse(black_box(Source::from_bytes(CODE))))
                     });
                 }
             )*
@@ -33,7 +33,7 @@ macro_rules! full_benchmarks {
                 {
                     static CODE: &str = include_str!(concat!("bench_scripts/", stringify!($name), ".js"));
                     let mut context = Context::default();
-                    let statement_list = context.parse(CODE).expect("parsing failed");
+                    let statement_list = context.parse(Source::from_bytes(CODE)).expect("parsing failed");
                     c.bench_function(concat!($id, " (Compiler)"), move |b| {
                         b.iter(|| {
                             context.compile(black_box(&statement_list))
@@ -47,7 +47,7 @@ macro_rules! full_benchmarks {
                 {
                     static CODE: &str = include_str!(concat!("bench_scripts/", stringify!($name), ".js"));
                     let mut context = Context::default();
-                    let statement_list = context.parse(CODE).expect("parsing failed");
+                    let statement_list = context.parse(Source::from_bytes(CODE)).expect("parsing failed");
                     let code_block = context.compile(&statement_list).unwrap();
                     c.bench_function(concat!($id, " (Execution)"), move |b| {
                         b.iter(|| {

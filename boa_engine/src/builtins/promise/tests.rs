@@ -1,3 +1,5 @@
+use boa_parser::Source;
+
 use crate::{context::ContextBuilder, forward, job::SimpleJobQueue};
 
 #[test]
@@ -13,7 +15,7 @@ fn promise() {
         count += 1;
         count;
     "#;
-    let result = context.eval(init).unwrap();
+    let result = context.eval(Source::from_bytes(init)).unwrap();
     assert_eq!(result.as_number(), Some(2_f64));
     context.run_jobs();
     let after_completion = forward(&mut context, "count");

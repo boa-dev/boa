@@ -1,3 +1,5 @@
+use boa_parser::Source;
+
 use crate::{check_output, forward, Context, JsValue, TestAction};
 
 #[test]
@@ -249,7 +251,10 @@ fn get_own_property_descriptor_1_arg_returns_undefined() {
         let obj = {a: 2};
         Object.getOwnPropertyDescriptor(obj)
     "#;
-    assert_eq!(context.eval(code).unwrap(), JsValue::undefined());
+    assert_eq!(
+        context.eval(Source::from_bytes(code)).unwrap(),
+        JsValue::undefined()
+    );
 }
 
 #[test]
@@ -318,7 +323,10 @@ fn object_is_prototype_of() {
         Object.prototype.isPrototypeOf(String.prototype)
     "#;
 
-    assert_eq!(context.eval(init).unwrap(), JsValue::new(true));
+    assert_eq!(
+        context.eval(Source::from_bytes(init)).unwrap(),
+        JsValue::new(true)
+    );
 }
 
 #[test]

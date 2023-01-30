@@ -323,7 +323,6 @@ dependencies = [
  "bitflags",
  "boa_engine",
  "boa_gc",
- "boa_parser",
  "clap 4.1.4",
  "color-eyre",
  "colored",

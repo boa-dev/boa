@@ -141,6 +141,8 @@ impl WeakRef {
 
 #[cfg(test)]
 mod tests {
+    use boa_parser::Source;
+
     use crate::{Context, JsValue};
 
     #[test]
@@ -148,7 +150,7 @@ mod tests {
         let context = &mut Context::default();
 
         assert!(context
-            .eval(
+            .eval(Source::from_bytes(
                 r#"
             var ptr;
             {
@@ -157,7 +159,7 @@ mod tests {
             }
             ptr.deref()
         "#
-            )
+            ))
             .unwrap()
             .is_object());
 
@@ -165,11 +167,11 @@ mod tests {
 
         assert_eq!(
             context
-                .eval(
+                .eval(Source::from_bytes(
                     r#"
             ptr.deref()
         "#
-                )
+                ))
                 .unwrap(),
             JsValue::undefined()
         );

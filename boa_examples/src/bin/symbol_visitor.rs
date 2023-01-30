@@ -3,11 +3,11 @@
 // which mutates the AST.
 
 use boa_ast::visitor::Visitor;
-use boa_engine::Context;
+use boa_engine::{Context, Source};
 use boa_interner::Sym;
 use boa_parser::Parser;
 use core::ops::ControlFlow;
-use std::{collections::HashSet, convert::Infallible, fs::File, io::BufReader};
+use std::{collections::HashSet, convert::Infallible, path::Path};
 
 #[derive(Debug, Clone, Default)]
 struct SymbolVisitor {
@@ -24,9 +24,9 @@ impl<'ast> Visitor<'ast> for SymbolVisitor {
 }
 
 fn main() {
-    let mut parser = Parser::new(BufReader::new(
-        File::open("boa_examples/scripts/calc.js").unwrap(),
-    ));
+    let mut parser = Parser::new(
+        Source::from_filepath(Path::new(Path::new("boa_examples/scripts/calc.js"))).unwrap(),
+    );
     let mut ctx = Context::default();
 
     let statements = parser.parse_all(ctx.interner_mut()).unwrap();

@@ -16,7 +16,7 @@ use crate::{
 /// need to be redefined:
 ///
 /// ```
-/// use boa_engine::{JsNativeError, JsResult, context::{Context, ContextBuilder, HostHooks}};
+/// use boa_engine::{JsNativeError, JsResult, context::{Context, ContextBuilder, HostHooks}, Source};
 ///
 /// struct Hooks;
 ///
@@ -30,7 +30,7 @@ use crate::{
 /// }
 /// let hooks = Hooks; // Can have additional state.
 /// let context = &mut ContextBuilder::new().host_hooks(&hooks).build();
-/// let result = context.eval(r#"eval("let a = 5")"#);
+/// let result = context.eval(Source::from_bytes(r#"eval("let a = 5")"#));
 /// assert_eq!(result.unwrap_err().to_string(), "TypeError: eval calls not available");
 /// ```
 ///

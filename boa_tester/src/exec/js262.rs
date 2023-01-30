@@ -2,7 +2,7 @@ use boa_engine::{
     builtins::JsArgs,
     object::{JsObject, ObjectInitializer},
     property::Attribute,
-    Context, JsNativeError, JsResult, JsValue,
+    Context, JsNativeError, JsResult, JsValue, Source,
 };
 
 /// Initializes the object in the context.
@@ -83,14 +83,15 @@ fn detach_array_buffer(
 fn eval_script(_this: &JsValue, args: &[JsValue], context: &mut Context<'_>) -> JsResult<JsValue> {
     args.get(0).and_then(JsValue::as_string).map_or_else(
         || Ok(JsValue::undefined()),
-        |source_text| match context.parse(source_text.to_std_string_escaped()) {
+        |source_text| match context.parse(Source::from_bytes(&source_text.to_std_string_escaped()))
+        {
             // TODO: check strict
             Err(e) => Err(JsNativeError::typ()
                 .with_message(format!("Uncaught Syntax Error: {e}"))
                 .into()),
             // Calling eval here parses the code a second time.
             // TODO: We can fix this after we have have defined the public api for the vm executer.
-            Ok(_) => context.eval(source_text.to_std_string_escaped()),
+            Ok(_) => context.eval(Source::from_bytes(&source_text.to_std_string_escaped())),
         },
     )
 }

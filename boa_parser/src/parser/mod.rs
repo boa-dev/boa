@@ -15,7 +15,7 @@ use crate::{
         cursor::Cursor,
         function::{FormalParameters, FunctionStatementList},
     },
-    Error,
+    Error, Source,
 };
 use boa_ast::{
     expression::Identifier,
@@ -27,7 +27,7 @@ use boa_ast::{
 };
 use boa_interner::Interner;
 use rustc_hash::FxHashSet;
-use std::io::Read;
+use std::{io::Read, path::Path};
 
 /// Trait implemented by parsers.
 ///
@@ -105,36 +105,21 @@ impl From<bool> for AllowDefault {
 /// [label]: https://tc39.es/ecma262/#sec-labelled-function-declarations
 /// [block]: https://tc39.es/ecma262/#sec-block-duplicates-allowed-static-semantics
 #[derive(Debug)]
-pub struct Parser<R> {
+#[allow(unused)] // Right now the path is not used, but it's better to have it for future improvements.
+pub struct Parser<'a, R> {
+    /// Path to the source being parsed.
+    path: Option<&'a Path>,
     /// Cursor of the parser, pointing to the lexer and used to get tokens for the parser.
     cursor: Cursor<R>,
 }
 
-impl<R> Parser<R> {
-    /// Create a new `Parser` with a reader as the input to parse.
-    pub fn new(reader: R) -> Self
-    where
-        R: Read,
-    {
+impl<'a, R: Read> Parser<'a, R> {
+    /// Create a new `Parser` with a `Source` as the input to parse.
+    pub fn new(source: Source<'a, R>) -> Self {
         Self {
-            cursor: Cursor::new(reader),
+            path: source.path,
+            cursor: Cursor::new(source.reader),
         }
-    }
-
-    /// Set the parser strict mode to true.
-    pub fn set_strict(&mut self)
-    where
-        R: Read,
-    {
-        self.cursor.set_strict_mode(true);
-    }
-
-    /// Set the parser strict mode to true.
-    pub fn set_json_parse(&mut self)
-    where
-        R: Read,
-    {
-        self.cursor.set_json_parse(true);
     }
 
     /// Parse the full input as a [ECMAScript Script][spec] into the boa AST representation.
@@ -145,10 +130,7 @@ impl<R> Parser<R> {
     /// Will return `Err` on any parsing error, including invalid reads of the bytes being parsed.
     ///
     /// [spec]: https://tc39.es/ecma262/#prod-Script
-    pub fn parse_all(&mut self, interner: &mut Interner) -> ParseResult<StatementList>
-    where
-        R: Read,
-    {
+    pub fn parse_all(&mut self, interner: &mut Interner) -> ParseResult<StatementList> {
         Script::new(false).parse(&mut self.cursor, interner)
     }
 
@@ -165,10 +147,7 @@ impl<R> Parser<R> {
         &mut self,
         direct: bool,
         interner: &mut Interner,
-    ) -> ParseResult<StatementList>
-    where
-        R: Read,
-    {
+    ) -> ParseResult<StatementList> {
         Script::new(direct).parse(&mut self.cursor, interner)
     }
 
@@ -184,10 +163,7 @@ impl<R> Parser<R> {
         interner: &mut Interner,
         allow_yield: bool,
         allow_await: bool,
-    ) -> ParseResult<StatementList>
-    where
-        R: Read,
-    {
+    ) -> ParseResult<StatementList> {
         FunctionStatementList::new(allow_yield, allow_await).parse(&mut self.cursor, interner)
     }
 
@@ -203,11 +179,26 @@ impl<R> Parser<R> {
         interner: &mut Interner,
         allow_yield: bool,
         allow_await: bool,
-    ) -> ParseResult<FormalParameterList>
+    ) -> ParseResult<FormalParameterList> {
+        FormalParameters::new(allow_yield, allow_await).parse(&mut self.cursor, interner)
+    }
+}
+
+impl<R> Parser<'_, R> {
+    /// Set the parser strict mode to true.
+    pub fn set_strict(&mut self)
     where
         R: Read,
     {
-        FormalParameters::new(allow_yield, allow_await).parse(&mut self.cursor, interner)
+        self.cursor.set_strict_mode(true);
+    }
+
+    /// Set the parser JSON mode to true.
+    pub fn set_json_parse(&mut self)
+    where
+        R: Read,
+    {
+        self.cursor.set_json_parse(true);
     }
 }
 

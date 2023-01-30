@@ -34,7 +34,7 @@ use boa_ast::{
 };
 use boa_gc::{self, custom_trace, Finalize, Gc, Trace};
 use boa_interner::Sym;
-use boa_parser::Parser;
+use boa_parser::{Parser, Source};
 use boa_profiler::Profiler;
 use tap::{Conv, Pipe};
 
@@ -512,16 +512,17 @@ impl BuiltInFunctionObject {
                 parameters.push(u16::from(b')'));
 
                 // TODO: make parser generic to u32 iterators
-                let parameters = match Parser::new(String::from_utf16_lossy(&parameters).as_bytes())
-                    .parse_formal_parameters(context.interner_mut(), generator, r#async)
-                {
-                    Ok(parameters) => parameters,
-                    Err(e) => {
-                        return Err(JsNativeError::syntax()
-                            .with_message(format!("failed to parse function parameters: {e}"))
-                            .into())
-                    }
-                };
+                let parameters =
+                    match Parser::new(Source::from_bytes(&String::from_utf16_lossy(&parameters)))
+                        .parse_formal_parameters(context.interner_mut(), generator, r#async)
+                    {
+                        Ok(parameters) => parameters,
+                        Err(e) => {
+                            return Err(JsNativeError::syntax()
+                                .with_message(format!("failed to parse function parameters: {e}"))
+                                .into())
+                        }
+                    };
 
                 if generator && contains(&parameters, ContainsSymbol::YieldExpression) {
                     return Err(JsNativeError::syntax().with_message(
@@ -549,7 +550,7 @@ impl BuiltInFunctionObject {
             let body_arg = body_arg.to_string(context)?;
 
             // TODO: make parser generic to u32 iterators
-            let body = match Parser::new(body_arg.to_std_string_escaped().as_bytes())
+            let body = match Parser::new(Source::from_bytes(&body_arg.to_std_string_escaped()))
                 .parse_function_body(context.interner_mut(), generator, r#async)
             {
                 Ok(statement_list) => statement_list,

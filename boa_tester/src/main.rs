@@ -297,16 +297,23 @@ fn run_test_suite(
 /// All the harness include files.
 #[derive(Debug, Clone)]
 struct Harness {
-    assert: Box<str>,
-    sta: Box<str>,
-    doneprint_handle: Box<str>,
-    includes: FxHashMap<Box<str>, Box<str>>,
+    assert: HarnessFile,
+    sta: HarnessFile,
+    doneprint_handle: HarnessFile,
+    includes: FxHashMap<Box<str>, HarnessFile>,
+}
+
+#[derive(Debug, Clone)]
+struct HarnessFile {
+    content: Box<str>,
+    path: Box<Path>,
 }
 
 /// Represents a test suite.
 #[derive(Debug, Clone)]
 struct TestSuite {
     name: Box<str>,
+    path: Box<Path>,
     suites: Box<[TestSuite]>,
     tests: Box<[Test]>,
 }
@@ -362,7 +369,7 @@ enum TestOutcomeResult {
 }
 
 /// Represents a test.
-#[derive(Debug, Clone, Default)]
+#[derive(Debug, Clone)]
 #[allow(dead_code)]
 struct Test {
     name: Box<str>,
@@ -374,16 +381,16 @@ struct Test {
     expected_outcome: Outcome,
     includes: Box<[Box<str>]>,
     locale: Locale,
-    content: Box<str>,
+    path: Box<Path>,
     ignored: bool,
 }
 
 impl Test {
     /// Creates a new test.
-    fn new<N, C>(name: N, content: C, metadata: MetaData) -> Self
+    fn new<N, C>(name: N, path: C, metadata: MetaData) -> Self
     where
         N: Into<Box<str>>,
-        C: Into<Box<str>>,
+        C: Into<Box<Path>>,
     {
         Self {
             name: name.into(),
@@ -395,7 +402,7 @@ impl Test {
             expected_outcome: Outcome::from(metadata.negative),
             includes: metadata.includes,
             locale: metadata.locale,
-            content: content.into(),
+            path: path.into(),
             ignored: false,
         }
     }

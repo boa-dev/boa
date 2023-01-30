@@ -1,14 +1,14 @@
 // This example shows how to load, parse and execute JS code from a source file
 // (./scripts/helloworld.js)
 
-use std::fs;
+use std::path::Path;
 
-use boa_engine::Context;
+use boa_engine::{Context, Source};
 
 fn main() {
     let js_file_path = "./scripts/helloworld.js";
 
-    match fs::read(js_file_path) {
+    match Source::from_filepath(Path::new(js_file_path)) {
         Ok(src) => {
             // Instantiate the execution context
             let mut context = Context::default();

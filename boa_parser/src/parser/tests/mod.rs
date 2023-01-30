@@ -4,7 +4,7 @@ mod format;
 
 use std::convert::TryInto;
 
-use crate::Parser;
+use crate::{Parser, Source};
 use boa_ast::{
     declaration::{Declaration, LexicalDeclaration, VarDeclaration, Variable},
     expression::{
@@ -36,7 +36,7 @@ where
     L: Into<Box<[StatementListItem]>>,
 {
     assert_eq!(
-        Parser::new(js.as_bytes())
+        Parser::new(Source::from_bytes(js))
             .parse_all(interner)
             .expect("failed to parse"),
         StatementList::from(expr.into())
@@ -46,7 +46,7 @@ where
 /// Checks that the given javascript string creates a parse error.
 #[track_caller]
 pub(super) fn check_invalid(js: &str) {
-    assert!(Parser::new(js.as_bytes())
+    assert!(Parser::new(Source::from_bytes(js))
         .parse_all(&mut Interner::default())
         .is_err());
 }
