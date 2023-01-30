@@ -79,13 +79,16 @@ impl Operation for Continue {
                 .last()
                 .expect("EnvStackEntry must exist");
 
-            if (jump_address > target_address && jump_address <= env_entry.exit_address())
-                || (jump_address == target_address && env_entry.start_address() < jump_address)
-            {
+            if (env_entry.is_finally_env() && jump_address == env_entry.start_address())
+                || (jump_address == target_address && jump_address == env_entry.start_address()) {
                 break;
             }
 
             envs_to_pop += env_entry.env_num();
+            if jump_address > target_address && jump_address == env_entry.exit_address() {
+                context.vm.frame_mut().env_stack.pop();
+                break;
+            }
             context.vm.frame_mut().env_stack.pop();
         }
 

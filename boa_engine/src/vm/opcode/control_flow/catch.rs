@@ -1,80 +1,7 @@
 use crate::{
-    vm::{
-        call_frame::{EnvStackEntry, TryAddresses},
-        opcode::Operation,
-        FinallyReturn, ShouldExit,
-    },
+    vm::{call_frame::EnvStackEntry, opcode::Operation, FinallyReturn, ShouldExit},
     Context, JsResult,
 };
-
-/// `TryStart` implements the Opcode Operation for `Opcode::TryStart`
-///
-/// Operation:
-///  - Start of a try block.
-#[derive(Debug, Clone, Copy)]
-pub(crate) struct TryStart;
-
-impl Operation for TryStart {
-    const NAME: &'static str = "TryStart";
-    const INSTRUCTION: &'static str = "INST - TryStart";
-
-    fn execute(context: &mut Context<'_>) -> JsResult<ShouldExit> {
-        let start = context.vm.frame().pc as u32 - 1;
-        let catch = context.vm.read::<u32>();
-        let finally = context.vm.read::<u32>();
-
-        context.vm.frame_mut().finally_return = FinallyReturn::None;
-        context
-            .vm
-            .frame_mut()
-            .env_stack
-            .push(EnvStackEntry::new(start, finally).with_try_flag());
-
-        let finally = if finally == 0 { None } else { Some(finally) };
-        context
-            .vm
-            .frame_mut()
-            .try_catch
-            .push(TryAddresses::new(catch, finally));
-        Ok(ShouldExit::False)
-    }
-}
-
-/// `TryEnd` implements the Opcode Operation for `Opcode::TryEnd`
-///
-/// Operation:
-///  - End of a try block
-#[derive(Debug, Clone, Copy)]
-pub(crate) struct TryEnd;
-
-impl Operation for TryEnd {
-    const NAME: &'static str = "TryEnd";
-    const INSTRUCTION: &'static str = "INST - TryEnd";
-
-    fn execute(context: &mut Context<'_>) -> JsResult<ShouldExit> {
-        context.vm.frame_mut().try_catch.pop();
-        let mut envs_to_pop = 0_usize;
-        for _ in 1..context.vm.frame().env_stack.len() {
-            let env_entry = context
-                .vm
-                .frame_mut()
-                .env_stack
-                .pop()
-                .expect("this must exist");
-            envs_to_pop += env_entry.env_num();
-
-            if env_entry.is_try_env() {
-                break;
-            }
-        }
-
-        for _ in 0..envs_to_pop {
-            context.realm.environments.pop();
-        }
-        context.vm.frame_mut().finally_return = FinallyReturn::None;
-        Ok(ShouldExit::False)
-    }
-}
 
 /// `CatchStart` implements the Opcode Operation for `Opcode::CatchStart`
 ///
@@ -120,14 +47,13 @@ impl Operation for CatchEnd {
                 .vm
                 .frame_mut()
                 .env_stack
-                .last()
+                .pop()
                 .expect("this must exist");
 
+            envs_to_pop += env_entry.env_num();
             if env_entry.is_catch_env() {
                 break;
             }
-            envs_to_pop += env_entry.env_num();
-            context.vm.frame_mut().env_stack.pop();
         }
 
         for _ in 0..envs_to_pop {

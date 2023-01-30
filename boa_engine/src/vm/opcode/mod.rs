@@ -21,7 +21,6 @@ mod jump;
 mod new;
 mod nop;
 mod pop;
-mod promise;
 mod push;
 mod require;
 mod rest_parameter;
@@ -69,8 +68,6 @@ pub(crate) use new::*;
 pub(crate) use nop::*;
 #[doc(inline)]
 pub(crate) use pop::*;
-#[doc(inline)]
-pub(crate) use promise::*;
 #[doc(inline)]
 pub(crate) use push::*;
 #[doc(inline)]

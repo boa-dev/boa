@@ -17,7 +17,7 @@ pub struct CallFrame {
     pub(crate) code_block: Gc<CodeBlock>,
     pub(crate) pc: usize,
     #[unsafe_ignore_trace]
-    pub(crate) try_catch: Vec<TryAddresses>,
+    pub(crate) try_catch: Vec<FinallyAddresses>,
     #[unsafe_ignore_trace]
     pub(crate) finally_return: FinallyReturn,
     #[unsafe_ignore_trace]
@@ -100,24 +100,18 @@ impl CallFrame {
 ///
 /// Additionally the address of a finally block is tracked, to allow for special handling if it exists.
 #[derive(Copy, Clone, Debug)]
-pub(crate) struct TryAddresses {
-    catch: u32,
+pub(crate) struct FinallyAddresses {
     finally: Option<u32>,
 }
 
-impl TryAddresses {
-    pub(crate) const fn new(catch_address: u32, finally_address: Option<u32>) -> Self {
+impl FinallyAddresses {
+    pub(crate) const fn new(finally_address: Option<u32>) -> Self {
         Self {
-            catch: catch_address,
             finally: finally_address,
         }
     }
-    /// Returns the catch value of the `TryAddresses` struct.
-    pub(crate) const fn catch(&self) -> u32 {
-        self.catch
-    }
 
-    pub(crate) const fn finally(&self) -> Option<u32> {
+    pub(crate) const fn finally(self) -> Option<u32> {
         self.finally
     }
 }

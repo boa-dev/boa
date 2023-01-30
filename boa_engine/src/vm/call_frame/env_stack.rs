@@ -71,6 +71,11 @@ impl EnvStackEntry {
         self.kind = EnvEntryKind::Labelled;
         self
     }
+
+    pub(crate) const fn with_start_address(mut self, start_address: u32) -> Self {
+        self.start = start_address;
+        self
+    }
 }
 
 /// ---- `EnvStackEntry` interaction methods ----
@@ -83,6 +88,10 @@ impl EnvStackEntry {
     /// Returns the `exit` field of this `EnvStackEntry`.
     pub(crate) const fn exit_address(&self) -> u32 {
         self.exit
+    }
+
+    pub(crate) fn is_global_env(&self) -> bool {
+        self.kind == EnvEntryKind::Global
     }
 
     /// Returns true if an `EnvStackEntry` is a loop
@@ -105,9 +114,17 @@ impl EnvStackEntry {
         self.kind == EnvEntryKind::Catch
     }
 
+    pub(crate) fn is_finally_env(&self) -> bool {
+        self.kind == EnvEntryKind::Finally
+    }
+
     /// Returns the current environment number for this entry.
     pub(crate) const fn env_num(&self) -> usize {
         self.env_num
+    }
+
+    pub(crate) fn set_exit_address(&mut self, exit_address: u32) {
+        self.exit = exit_address;
     }
 
     /// Increments the `env_num` field for current `EnvEntryStack`.

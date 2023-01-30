@@ -5,7 +5,7 @@ use boa_ast::{
 };
 
 use crate::{
-    bytecompiler::ByteCompiler,
+    bytecompiler::{ByteCompiler, Label},
     vm::{BindingOpcode, Opcode},
     JsResult,
 };
@@ -19,7 +19,7 @@ impl ByteCompiler<'_, '_> {
     ) -> JsResult<()> {
         let try_start = self.next_opcode_location();
         let (catch_start, finally_loc) = self.emit_opcode_with_two_operands(Opcode::TryStart);
-        self.patch_jump_with_target(finally_loc, 0);
+        self.patch_jump_with_target(finally_loc, u32::MAX);
 
         // If there is a finally block, initialize the finally control block prior to pushing the try block jump_control
         if t.finally().is_some() {
@@ -58,8 +58,7 @@ impl ByteCompiler<'_, '_> {
             self.set_jump_control_start_address(finally_start);
             self.patch_jump_with_target(finally_loc, finally_start);
             // Compile finally statement body
-            self.compile_finally_stmt(finally, configurable_globals)?;
-            self.patch_jump(finally_end);
+            self.compile_finally_stmt(finally, finally_end, configurable_globals)?;
         } else {
             let try_end = self.next_opcode_location();
             self.pop_try_control_info(try_end);
@@ -127,6 +126,7 @@ impl ByteCompiler<'_, '_> {
     pub(crate) fn compile_finally_stmt(
         &mut self,
         finally: &Finally,
+        finally_end_label: Label,
         configurable_globals: bool,
     ) -> JsResult<()> {
         self.context.push_compile_time_environment(false);
@@ -146,6 +146,7 @@ impl ByteCompiler<'_, '_> {
 
         self.emit_opcode(Opcode::PopEnvironment);
         self.pop_finally_control_info();
+        self.patch_jump(finally_end_label);
         self.emit_opcode(Opcode::FinallyEnd);
 
         Ok(())

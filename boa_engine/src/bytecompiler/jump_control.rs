@@ -408,21 +408,6 @@ impl ByteCompiler<'_, '_> {
         for label in info.breaks {
             self.patch_jump(label);
         }
-        /*
-        let mut finally_chain = false;
-        for jump_info in self.jump_info.iter_mut().rev() {
-            if jump_info.is_try_block() && jump_info.has_finally() {
-                jump_info.breaks.append(&mut info.breaks);
-                finally_chain = true;
-                break;
-            }
-        }
-
-        if !finally_chain {
-            for label in info.breaks {
-                self.patch_jump(label);
-            }
-        }*/
 
         // Pass continues down the stack.
         if let Some(jump_info) = self.jump_info.last_mut() {

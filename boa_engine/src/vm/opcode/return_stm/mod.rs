@@ -1,5 +1,5 @@
 use crate::{
-    vm::{call_frame::TryAddresses, opcode::Operation, FinallyReturn, ShouldExit},
+    vm::{opcode::Operation, FinallyReturn, ShouldExit},
     Context, JsResult,
 };
 
@@ -15,31 +15,44 @@ impl Operation for Return {
     const INSTRUCTION: &'static str = "INST - Return";
 
     fn execute(context: &mut Context<'_>) -> JsResult<ShouldExit> {
-        if let Some(finally_address) = context
-            .vm
-            .frame()
-            .try_catch
-            .last()
-            .and_then(TryAddresses::finally)
-        {
-            let frame = context.vm.frame_mut();
-            frame.pc = finally_address as usize;
-            frame.finally_return = FinallyReturn::Ok;
-            frame.try_catch.pop();
-
+        let current_address = context.vm.frame().pc;
+        let mut env_to_pop = 0;
+        let mut finally_address = None;
+        while !context.vm.frame().env_stack.is_empty() {
             let env_entry = context
                 .vm
-                .frame_mut()
+                .frame()
                 .env_stack
-                .pop()
-                .expect("this must exist");
+                .last()
+                .expect("EnvStackEntry must exist");
 
-            for _ in 0..env_entry.env_num() {
-                context.realm.environments.pop();
+            if env_entry.is_finally_env() {
+                if (env_entry.start_address() as usize) < current_address {
+                    finally_address = Some(env_entry.exit_address() as usize);
+                } else {
+                    finally_address = Some(env_entry.start_address() as usize);
+                }
+                break;
+            } 
+
+            env_to_pop += env_entry.env_num();
+            if env_entry.is_global_env() {
+                break;
             }
-        } else {
-            return Ok(ShouldExit::True);
+
+            context.vm.frame_mut().env_stack.pop();
         }
-        Ok(ShouldExit::False)
+
+        for _ in 0..env_to_pop {
+            context.realm.environments.pop();
+        }
+
+        if let Some(finally) = finally_address {
+            context.vm.frame_mut().pc = finally;
+            context.vm.frame_mut().finally_return = FinallyReturn::Ok;
+            return Ok(ShouldExit::False);
+        }
+
+        Ok(ShouldExit::True)
     }
 }

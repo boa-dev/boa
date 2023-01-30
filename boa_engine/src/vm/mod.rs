@@ -6,7 +6,7 @@
 
 use crate::{
     builtins::async_generator::{AsyncGenerator, AsyncGeneratorState},
-    vm::code_block::Readable,
+    vm::{code_block::Readable, call_frame::AbruptCompletionRecord},
     Context, JsResult, JsValue,
 };
 #[cfg(feature = "fuzz")]
@@ -289,39 +289,55 @@ impl Context<'_> {
                             return Err(e);
                         }
                     }
-                    if let Some(try_addresses) = self.vm.frame().try_catch.last() {
-                        let address = try_addresses.catch();
+                    // 1. Find the next active catch block
+                    let viable_catch_candidates = self
+                        .vm
+                        .frame()
+                        .env_stack
+                        .iter()
+                        .filter(|env| env.is_try_env() && env.start_address() < env.exit_address());
 
-                        // Move through the env stack until the first try block is found.
+                    if let Some(candidate) = viable_catch_candidates.last() {
+                        let catch_target = candidate.start_address();
+
                         let mut env_to_pop = 0;
-                        for _ in 0..self.vm.frame().env_stack.len() {
+                        let mut target_address = u32::MAX;
+                        while self.vm.frame().env_stack.len() > 1 {
                             let env_entry = self
                                 .vm
                                 .frame_mut()
                                 .env_stack
-                                .pop()
-                                .expect("stack entries must exist");
-
-                            env_to_pop += env_entry.env_num();
-                            if env_entry.is_try_env() {
+                                .last()
+                                .expect("EnvStackEntries must exist");
+            
+                            if env_entry.is_try_env() && env_entry.start_address() < env_entry.exit_address() {
+                                target_address = env_entry.start_address();
+                                env_to_pop += env_entry.env_num();
+                                self.vm.frame_mut().env_stack.pop();
+                                break;
+                            } else if env_entry.is_finally_env() {
+                                target_address = env_entry.start_address();
                                 break;
                             }
+                            env_to_pop += env_entry.env_num();
+                            self.vm.frame_mut().env_stack.pop();
                         }
-
+            
                         for _ in 0..env_to_pop {
                             self.realm.environments.pop();
-                        }
+                        } 
 
-                        for _ in 0..self.vm.frame().pop_on_return {
-                            self.vm.pop();
+                        if target_address != catch_target {
+                            self.vm.frame_mut().pc = target_address as usize;
+                            let record = AbruptCompletionRecord::default()
+                                .with_throw_flag()
+                                .with_initial_target(catch_target);
+                            self.vm.frame_mut().abrupt_completion = Some(record);
+                        } else {
+                            self.vm.frame_mut().pc = catch_target as usize;
+                            let err = e.to_opaque(self);
+                            self.vm.push(err);
                         }
-                        self.vm.frame_mut().pop_on_return = 0;
-                        self.vm.frame_mut().pc = address as usize;
-                        self.vm.frame_mut().try_catch.pop();
-                        self.vm.frame_mut().finally_return = FinallyReturn::Err;
-                        self.vm.frame_mut().thrown = true;
-                        let e = e.to_opaque(self);
-                        self.vm.push(e);
                     } else {
                         self.vm.stack.truncate(start_stack_size);
 
@@ -332,20 +348,18 @@ impl Context<'_> {
                                 .reject()
                                 .call(&JsValue::undefined(), &[e.clone()], self)
                                 .expect("cannot fail per spec");
-
+    
                             return Ok((e, ReturnType::Normal));
                         }
                         // Step 4.e-j in [AsyncGeneratorStart](https://tc39.es/ecma262/#sec-asyncgeneratorstart)
-                        else if let Some(generator_object) =
-                            self.vm.frame().async_generator.clone()
-                        {
+                        else if let Some(generator_object) = self.vm.frame().async_generator.clone() {
                             let mut generator_object_mut = generator_object.borrow_mut();
                             let generator = generator_object_mut
                                 .as_async_generator_mut()
                                 .expect("must be async generator");
-
+    
                             generator.state = AsyncGeneratorState::Completed;
-
+    
                             let next = generator
                                 .queue
                                 .pop_front()
@@ -355,7 +369,7 @@ impl Context<'_> {
                             AsyncGenerator::drain_queue(&generator_object, self);
                             return Ok((JsValue::undefined(), ReturnType::Normal));
                         }
-
+    
                         return Err(e);
                     }
                 }

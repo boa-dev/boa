@@ -1,5 +1,5 @@
 use crate::{
-    vm::{call_frame::EnvStackEntry, opcode::Operation, FinallyReturn, ShouldExit},
+    vm::{opcode::Operation, FinallyReturn, ShouldExit},
     Context, JsError, JsResult,
 };
 
@@ -15,15 +15,17 @@ impl Operation for FinallyStart {
     const INSTRUCTION: &'static str = "INST - FinallyStart";
 
     fn execute(context: &mut Context<'_>) -> JsResult<ShouldExit> {
-        let start = context.vm.frame().pc as u32 - 1;
         let exit = context.vm.read::<u32>();
         context.vm.frame_mut().try_catch.pop();
 
-        context
+        let finally_env = context
             .vm
             .frame_mut()
             .env_stack
-            .push(EnvStackEntry::new(start, exit).with_finally_flag());
+            .last_mut()
+            .expect("EnvStackEntries must exist");
+
+        finally_env.set_exit_address(exit);
         Ok(ShouldExit::False)
     }
 }
@@ -40,6 +42,7 @@ impl Operation for FinallyEnd {
     const INSTRUCTION: &'static str = "INST - FinallyEnd";
 
     fn execute(context: &mut Context<'_>) -> JsResult<ShouldExit> {
+        // TODO handle a new way to get next_finally value
         let next_finally = match context.vm.frame_mut().try_catch.last() {
             Some(addresses) if addresses.finally().is_some() => {
                 addresses.finally().expect("must exist")
@@ -72,7 +75,7 @@ impl Operation for FinallyEnd {
                         }
                     } else if record.is_break() && context.vm.frame().pc < record.target() as usize
                     {
-                        // Set the program counter to the target()
+                        // handle the continuation of an abrupt break.
                         context.vm.frame_mut().pc = record.target() as usize;
                         for _ in 0..context.vm.frame().env_stack.len() {
                             let env_entry = context
@@ -93,6 +96,7 @@ impl Operation for FinallyEnd {
                     } else if record.is_continue()
                         && context.vm.frame().pc > record.target() as usize
                     {
+                        // Handle the continuation of an abrupt continue
                         context.vm.frame_mut().pc = record.target() as usize;
                         for _ in 0..context.vm.frame().env_stack.len() {
                             let env_entry = context
@@ -107,6 +111,24 @@ impl Operation for FinallyEnd {
                             }
                             envs_to_pop += env_entry.env_num();
                             context.vm.frame_mut().env_stack.pop();
+                        }
+
+                        context.vm.frame_mut().abrupt_completion = None;
+                    } else if record.is_throw() && context.vm.frame().pc < record.target() as usize
+                    {
+                        context.vm.frame_mut().pc = record.target() as usize;
+                        for _ in 0..context.vm.frame().env_stack.len() {
+                            let env_entry = context
+                                .vm
+                                .frame_mut()
+                                .env_stack
+                                .pop()
+                                .expect("EnvStackEntry must exist");
+
+                            envs_to_pop += env_entry.env_num();
+                            if env_entry.start_address() == record.target() {
+                                break;
+                            }
                         }
 
                         context.vm.frame_mut().abrupt_completion = None;
