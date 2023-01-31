@@ -43,10 +43,12 @@ impl Operation for FinallyEnd {
 
     fn execute(context: &mut Context<'_>) -> JsResult<ShouldExit> {
         // TODO handle a new way to get next_finally value
-        let next_finally = match context.vm.frame_mut().try_catch.last() {
-            Some(addresses) if addresses.finally().is_some() => {
-                addresses.finally().expect("must exist")
-            }
+        let finally_candidates = context.vm.frame().env_stack.iter().filter(|env| {
+            env.is_finally_env() && context.vm.frame().pc < (env.start_address() as usize)
+        });
+
+        let next_finally = match finally_candidates.last() {
+            Some(env) => env.start_address(),
             _ => u32::MAX,
         };
 
@@ -114,6 +116,38 @@ impl Operation for FinallyEnd {
                         }
 
                         context.vm.frame_mut().abrupt_completion = None;
+                    }
+
+                    for _ in 0..envs_to_pop {
+                        context.realm.environments.pop();
+                    }
+                } else {
+                    context.vm.frame_mut().env_stack.pop();
+                }
+
+                Ok(ShouldExit::False)
+            }
+            FinallyReturn::Ok => Ok(ShouldExit::True),
+            FinallyReturn::Err => {
+                if let Some(record) = abrupt_record {
+                    let mut envs_to_pop = 0;
+                    if next_finally < record.target() {
+                        context.vm.frame_mut().pc = next_finally as usize;
+
+                        for _ in 0..context.vm.frame().env_stack.len() {
+                            let env_entry = context
+                                .vm
+                                .frame_mut()
+                                .env_stack
+                                .last()
+                                .expect("Environment stack entries must exist");
+
+                            if next_finally <= env_entry.exit_address() {
+                                break;
+                            }
+                            envs_to_pop += env_entry.env_num();
+                            context.vm.frame_mut().env_stack.pop();
+                        }
                     } else if record.is_throw() && context.vm.frame().pc < record.target() as usize
                     {
                         context.vm.frame_mut().pc = record.target() as usize;
@@ -130,21 +164,21 @@ impl Operation for FinallyEnd {
                                 break;
                             }
                         }
-
                         context.vm.frame_mut().abrupt_completion = None;
                     }
 
                     for _ in 0..envs_to_pop {
                         context.realm.environments.pop();
                     }
-                } else {
-                    context.vm.frame_mut().env_stack.pop();
+                    return Ok(ShouldExit::False);
                 }
+                let current_stack = context.vm.frame_mut().env_stack.pop().expect("Popping current finally stack.");
 
-                Ok(ShouldExit::False)
+                for _ in 0..current_stack.env_num() {
+                    context.realm.environments.pop();
+                }
+                Err(JsError::from_opaque(context.vm.pop()))
             }
-            FinallyReturn::Ok => Ok(ShouldExit::True),
-            FinallyReturn::Err => Err(JsError::from_opaque(context.vm.pop())),
         }
     }
 }

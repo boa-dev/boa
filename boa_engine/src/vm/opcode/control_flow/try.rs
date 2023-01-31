@@ -28,7 +28,7 @@ impl Operation for TryStart {
                 EnvStackEntry::default()
                     .with_finally_flag()
                     .with_start_address(finally),
-            )
+            );
         }
 
         context.vm.frame_mut().finally_return = FinallyReturn::None;
@@ -38,7 +38,11 @@ impl Operation for TryStart {
             .env_stack
             .push(EnvStackEntry::new(catch, finally).with_try_flag());
 
-        let finally = if finally == u32::MAX { None } else { Some(finally) };
+        let finally = if finally == u32::MAX {
+            None
+        } else {
+            Some(finally)
+        };
         context
             .vm
             .frame_mut()

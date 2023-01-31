@@ -33,7 +33,7 @@ impl Operation for Return {
                     finally_address = Some(env_entry.start_address() as usize);
                 }
                 break;
-            } 
+            }
 
             env_to_pop += env_entry.env_num();
             if env_entry.is_global_env() {

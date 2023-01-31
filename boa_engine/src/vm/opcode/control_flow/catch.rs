@@ -1,6 +1,6 @@
 use crate::{
     vm::{call_frame::EnvStackEntry, opcode::Operation, FinallyReturn, ShouldExit},
-    Context, JsResult,
+    Context, JsResult, 
 };
 
 /// `CatchStart` implements the Opcode Operation for `Opcode::CatchStart`
@@ -22,7 +22,10 @@ impl Operation for CatchStart {
             .vm
             .frame_mut()
             .env_stack
-            .push(EnvStackEntry::new(start, finally).with_catch_flag());
+            .push(EnvStackEntry::new(start, finally-1).with_catch_flag());
+
+        context.vm.frame_mut().abrupt_completion = None;
+        context.vm.frame_mut().finally_return = FinallyReturn::None;
         context.vm.frame_mut().thrown = false;
         Ok(ShouldExit::False)
     }
@@ -59,6 +62,7 @@ impl Operation for CatchEnd {
         for _ in 0..envs_to_pop {
             context.realm.environments.pop();
         }
+        
         context.vm.frame_mut().finally_return = FinallyReturn::None;
         Ok(ShouldExit::False)
     }

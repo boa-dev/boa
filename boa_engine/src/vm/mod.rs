@@ -6,7 +6,7 @@
 
 use crate::{
     builtins::async_generator::{AsyncGenerator, AsyncGeneratorState},
-    vm::{code_block::Readable, call_frame::AbruptCompletionRecord},
+    vm::{call_frame::AbruptCompletionRecord, code_block::Readable},
     Context, JsResult, JsValue,
 };
 #[cfg(feature = "fuzz")]
@@ -289,13 +289,12 @@ impl Context<'_> {
                             return Err(e);
                         }
                     }
-                    // 1. Find the next active catch block
-                    let viable_catch_candidates = self
-                        .vm
-                        .frame()
-                        .env_stack
-                        .iter()
-                        .filter(|env| env.is_try_env() && env.start_address() < env.exit_address());
+                    // 1. Find the viable catch and finally blocks
+                    let current_address = self.vm.frame().pc;
+                    let viable_catch_candidates =
+                        self.vm.frame().env_stack.iter().filter(|env| {
+                            env.is_try_env() && env.start_address() < env.exit_address()
+                        });
 
                     if let Some(candidate) = viable_catch_candidates.last() {
                         let catch_target = candidate.start_address();
@@ -309,68 +308,129 @@ impl Context<'_> {
                                 .env_stack
                                 .last()
                                 .expect("EnvStackEntries must exist");
-            
-                            if env_entry.is_try_env() && env_entry.start_address() < env_entry.exit_address() {
+
+                            if env_entry.is_try_env()
+                                && env_entry.start_address() < env_entry.exit_address()
+                            {
                                 target_address = env_entry.start_address();
                                 env_to_pop += env_entry.env_num();
                                 self.vm.frame_mut().env_stack.pop();
                                 break;
                             } else if env_entry.is_finally_env() {
-                                target_address = env_entry.start_address();
+                                if current_address > (env_entry.start_address() as usize) {
+                                    target_address = env_entry.exit_address();
+                                } else {
+                                    target_address = env_entry.start_address();
+                                }
                                 break;
                             }
                             env_to_pop += env_entry.env_num();
                             self.vm.frame_mut().env_stack.pop();
                         }
-            
+
                         for _ in 0..env_to_pop {
                             self.realm.environments.pop();
-                        } 
+                        }
 
-                        if target_address != catch_target {
+                        if target_address == catch_target {
+                            self.vm.frame_mut().pc = catch_target as usize;
+                        } else {
                             self.vm.frame_mut().pc = target_address as usize;
                             let record = AbruptCompletionRecord::default()
                                 .with_throw_flag()
                                 .with_initial_target(catch_target);
                             self.vm.frame_mut().abrupt_completion = Some(record);
-                        } else {
-                            self.vm.frame_mut().pc = catch_target as usize;
+                        };
+
+                        for _ in 0..self.vm.frame().pop_on_return {
+                            self.vm.pop();
+                        }
+                        self.vm.frame_mut().pop_on_return = 0;
+
+                        self.vm.frame_mut().thrown = true;
+                        self.vm.frame_mut().finally_return = FinallyReturn::Err;
+                        let err = e.to_opaque(self);
+                        self.vm.push(err);
+                    } else {
+                        let mut env_to_pop = 0;
+                        let mut target_address = None;
+                        while !self.vm.frame().env_stack.is_empty() {
+                            let env_entry = self
+                                .vm
+                                .frame()
+                                .env_stack
+                                .last()
+                                .expect("EnvStackEntry must exist");
+                
+                            if env_entry.is_finally_env() {
+                                if (env_entry.start_address() as usize) < current_address {
+                                    target_address = Some(env_entry.exit_address() as usize);
+                                } else {
+                                    target_address = Some(env_entry.start_address() as usize);
+                                }
+                                break;
+                            };
+                
+                            env_to_pop += env_entry.env_num();
+                            if env_entry.is_global_env() {
+                                break;
+                            };
+                
+                            self.vm.frame_mut().env_stack.pop();
+                        }
+                
+                        for _ in 0..env_to_pop {
+                            self.realm.environments.pop();
+                        }
+                
+                        if let Some(address) = target_address {
+
+                            for _ in 0..self.vm.frame().pop_on_return {
+                                self.vm.pop();
+                            }
+                            self.vm.frame_mut().pop_on_return = 0;
+    
+                            self.vm.frame_mut().thrown = true;
+                            self.vm.frame_mut().pc = address;
+                            self.vm.frame_mut().finally_return = FinallyReturn::Err;
                             let err = e.to_opaque(self);
                             self.vm.push(err);
-                        }
-                    } else {
-                        self.vm.stack.truncate(start_stack_size);
+                        } else {
+                            self.vm.stack.truncate(start_stack_size);
 
-                        // Step 3.f in [AsyncBlockStart](https://tc39.es/ecma262/#sec-asyncblockstart).
-                        if let Some(promise_capability) = promise_capability {
-                            let e = e.to_opaque(self);
-                            promise_capability
-                                .reject()
-                                .call(&JsValue::undefined(), &[e.clone()], self)
-                                .expect("cannot fail per spec");
-    
-                            return Ok((e, ReturnType::Normal));
+                            // Step 3.f in [AsyncBlockStart](https://tc39.es/ecma262/#sec-asyncblockstart).
+                            if let Some(promise_capability) = promise_capability {
+                                let e = e.to_opaque(self);
+                                promise_capability
+                                    .reject()
+                                    .call(&JsValue::undefined(), &[e.clone()], self)
+                                    .expect("cannot fail per spec");
+
+                                return Ok((e, ReturnType::Normal));
+                            }
+                            // Step 4.e-j in [AsyncGeneratorStart](https://tc39.es/ecma262/#sec-asyncgeneratorstart)
+                            else if let Some(generator_object) =
+                                self.vm.frame().async_generator.clone()
+                            {
+                                let mut generator_object_mut = generator_object.borrow_mut();
+                                let generator = generator_object_mut
+                                    .as_async_generator_mut()
+                                    .expect("must be async generator");
+
+                                generator.state = AsyncGeneratorState::Completed;
+
+                                let next = generator
+                                    .queue
+                                    .pop_front()
+                                    .expect("must have item in queue");
+                                drop(generator_object_mut);
+                                AsyncGenerator::complete_step(&next, Err(e), true, self);
+                                AsyncGenerator::drain_queue(&generator_object, self);
+                                return Ok((JsValue::undefined(), ReturnType::Normal));
+                            }
+
+                            return Err(e);
                         }
-                        // Step 4.e-j in [AsyncGeneratorStart](https://tc39.es/ecma262/#sec-asyncgeneratorstart)
-                        else if let Some(generator_object) = self.vm.frame().async_generator.clone() {
-                            let mut generator_object_mut = generator_object.borrow_mut();
-                            let generator = generator_object_mut
-                                .as_async_generator_mut()
-                                .expect("must be async generator");
-    
-                            generator.state = AsyncGeneratorState::Completed;
-    
-                            let next = generator
-                                .queue
-                                .pop_front()
-                                .expect("must have item in queue");
-                            drop(generator_object_mut);
-                            AsyncGenerator::complete_step(&next, Err(e), true, self);
-                            AsyncGenerator::drain_queue(&generator_object, self);
-                            return Ok((JsValue::undefined(), ReturnType::Normal));
-                        }
-    
-                        return Err(e);
                     }
                 }
             }
