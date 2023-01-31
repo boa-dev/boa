@@ -10,11 +10,11 @@ use boa_ast::{
     visitor::{VisitWith, VisitorMut},
     Expression,
 };
-use boa_engine::Context;
+use boa_engine::{Context, Source};
 use boa_interner::ToInternedString;
 use boa_parser::Parser;
 use core::ops::ControlFlow;
-use std::{convert::Infallible, fs::File, io::BufReader};
+use std::{convert::Infallible, path::Path};
 
 /// Visitor which, when applied to a binary expression, will swap the operands. Use in other
 /// circumstances is undefined.
@@ -65,9 +65,8 @@ impl<'ast> VisitorMut<'ast> for CommutorVisitor {
 }
 
 fn main() {
-    let mut parser = Parser::new(BufReader::new(
-        File::open("boa_examples/scripts/calc.js").unwrap(),
-    ));
+    let mut parser =
+        Parser::new(Source::from_filepath(Path::new("boa_examples/scripts/calc.js")).unwrap());
     let mut ctx = Context::default();
 
     let mut statements = parser.parse_all(ctx.interner_mut()).unwrap();

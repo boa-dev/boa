@@ -30,7 +30,7 @@ use crate::{
     value::IntegerOrInfinity,
     Context, JsResult, JsString, JsValue,
 };
-use boa_parser::Parser;
+use boa_parser::{Parser, Source};
 use boa_profiler::Profiler;
 use tap::{Conv, Pipe};
 
@@ -198,7 +198,7 @@ impl Json {
         // 8. NOTE: The PropertyDefinitionEvaluation semantics defined in 13.2.5.5 have special handling for the above evaluation.
         // 9. Let unfiltered be completion.[[Value]].
         // 10. Assert: unfiltered is either a String, Number, Boolean, Null, or an Object that is defined by either an ArrayLiteral or an ObjectLiteral.
-        let mut parser = Parser::new(script_string.as_bytes());
+        let mut parser = Parser::new(Source::from_bytes(&script_string));
         parser.set_json_parse();
         let statement_list = parser.parse_all(context.interner_mut())?;
         let code_block = context.compile_json_parse(&statement_list)?;

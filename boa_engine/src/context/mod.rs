@@ -13,6 +13,7 @@ pub use icu::BoaProvider;
 
 use intrinsics::{IntrinsicObjects, Intrinsics};
 
+use std::io::Read;
 #[cfg(not(feature = "intl"))]
 pub use std::marker::PhantomData;
 
@@ -28,7 +29,7 @@ use crate::{
     property::{Attribute, PropertyDescriptor, PropertyKey},
     realm::Realm,
     vm::{CallFrame, CodeBlock, Vm},
-    JsResult, JsValue,
+    JsResult, JsValue, Source,
 };
 
 use boa_ast::StatementList;
@@ -52,6 +53,7 @@ use boa_profiler::Profiler;
 ///     object::ObjectInitializer,
 ///     property::{Attribute, PropertyDescriptor},
 ///     Context,
+///     Source
 /// };
 ///
 /// let script = r#"
@@ -66,7 +68,7 @@ use boa_profiler::Profiler;
 /// let mut context = Context::default();
 ///
 /// // Populate the script definition to the context.
-/// context.eval(script).unwrap();
+/// context.eval(Source::from_bytes(script)).unwrap();
 ///
 /// // Create an object that can be used in eval calls.
 /// let arg = ObjectInitializer::new(&mut context)
@@ -74,7 +76,7 @@ use boa_profiler::Profiler;
 ///     .build();
 /// context.register_global_property("arg", arg, Attribute::all());
 ///
-/// let value = context.eval("test(arg)").unwrap();
+/// let value = context.eval(Source::from_bytes("test(arg)")).unwrap();
 ///
 /// assert_eq!(value.as_number(), Some(12.0))
 /// ```
@@ -91,6 +93,9 @@ pub struct Context<'host> {
 
     /// Intrinsic objects
     intrinsics: Intrinsics,
+
+    /// Execute in strict mode,
+    strict: bool,
 
     /// Number of instructions remaining before a forced exit
     #[cfg(feature = "fuzz")]
@@ -118,6 +123,7 @@ impl std::fmt::Debug for Context<'_> {
             .field("interner", &self.interner)
             .field("intrinsics", &self.intrinsics)
             .field("vm", &self.vm)
+            .field("strict", &self.strict)
             .field("promise_job_queue", &"JobQueue")
             .field("hooks", &"HostHooks");
 
@@ -147,14 +153,16 @@ impl Context<'_> {
         ContextBuilder::default()
     }
 
-    /// Evaluates the given code by compiling down to bytecode, then interpreting the bytecode into a value
+    /// Evaluates the given script `Source` by compiling down to bytecode, then interpreting the
+    /// bytecode into a value.
     ///
     /// # Examples
     /// ```
-    /// # use boa_engine::Context;
+    /// # use boa_engine::{Context, Source};
     /// let mut context = Context::default();
     ///
-    /// let value = context.eval("1 + 3").unwrap();
+    /// let source = Source::from_bytes("1 + 3");
+    /// let value = context.eval(source).unwrap();
     ///
     /// assert!(value.is_number());
     /// assert_eq!(value.as_number().unwrap(), 4.0);
@@ -163,14 +171,11 @@ impl Context<'_> {
     /// Note that this won't run any scheduled promise jobs; you need to call [`Context::run_jobs`]
     /// on the context or [`JobQueue::run_jobs`] on the provided queue to run them.
     #[allow(clippy::unit_arg, clippy::drop_copy)]
-    pub fn eval<S>(&mut self, src: S) -> JsResult<JsValue>
-    where
-        S: AsRef<[u8]>,
-    {
+    pub fn eval<R: Read>(&mut self, src: Source<'_, R>) -> JsResult<JsValue> {
         let main_timer = Profiler::global().start_event("Evaluation", "Main");
 
-        let statement_list = self.parse(src)?;
-        let code_block = self.compile(&statement_list)?;
+        let script = self.parse(src)?;
+        let code_block = self.compile(&script)?;
         let result = self.execute(code_block);
 
         // The main_timer needs to be dropped before the Profiler is.
@@ -180,13 +185,13 @@ impl Context<'_> {
         result
     }
 
-    /// Parse the given source text.
-    pub fn parse<S>(&mut self, src: S) -> Result<StatementList, ParseError>
-    where
-        S: AsRef<[u8]>,
-    {
+    /// Parse the given source script.
+    pub fn parse<R: Read>(&mut self, src: Source<'_, R>) -> Result<StatementList, ParseError> {
         let _timer = Profiler::global().start_event("Parsing", "Main");
-        let mut parser = Parser::new(src.as_ref());
+        let mut parser = Parser::new(src);
+        if self.strict {
+            parser.set_strict();
+        }
         parser.parse_all(&mut self.interner)
     }
 
@@ -378,6 +383,11 @@ impl Context<'_> {
     /// Set the value of trace on the context
     pub fn set_trace(&mut self, trace: bool) {
         self.vm.trace = trace;
+    }
+
+    /// Executes all code in strict mode.
+    pub fn strict(&mut self, strict: bool) {
+        self.strict = strict;
     }
 
     /// Enqueues a [`NativeJob`] on the [`JobQueue`].
@@ -605,6 +615,7 @@ impl<'icu, 'hooks, 'queue> ContextBuilder<'icu, 'hooks, 'queue> {
             console: Console::default(),
             intrinsics,
             vm: Vm::default(),
+            strict: false,
             #[cfg(feature = "intl")]
             icu: self.icu.unwrap_or_else(|| {
                 let provider = BoaProvider::Buffer(boa_icu_provider::buffer());

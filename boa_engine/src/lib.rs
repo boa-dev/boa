@@ -135,6 +135,7 @@ pub mod prelude {
         object::JsObject,
         Context, JsBigInt, JsResult, JsString, JsValue,
     };
+    pub use boa_parser::Source;
 }
 
 use std::result::Result as StdResult;
@@ -149,6 +150,8 @@ pub use crate::{
     symbol::JsSymbol,
     value::JsValue,
 };
+#[doc(inline)]
+pub use boa_parser::Source;
 
 /// The result of a Javascript expression is represented like this so it can succeed (`Ok`) or fail (`Err`)
 pub type JsResult<T> = StdResult<T, JsError>;
@@ -157,12 +160,12 @@ pub type JsResult<T> = StdResult<T, JsError>;
 ///
 /// The state of the `Context` is changed, and a string representation of the result is returned.
 #[cfg(test)]
-pub(crate) fn forward<S>(context: &mut Context<'_>, src: S) -> String
+pub(crate) fn forward<S>(context: &mut Context<'_>, src: &S) -> String
 where
-    S: AsRef<[u8]>,
+    S: AsRef<[u8]> + ?Sized,
 {
     context
-        .eval(src.as_ref())
+        .eval(Source::from_bytes(src))
         .map_or_else(|e| format!("Uncaught {e}"), |v| v.display().to_string())
 }
 
@@ -172,13 +175,15 @@ where
 /// If the interpreter fails parsing an error value is returned instead (error object)
 #[allow(clippy::unit_arg, clippy::drop_copy)]
 #[cfg(test)]
-pub(crate) fn forward_val<T: AsRef<[u8]>>(context: &mut Context<'_>, src: T) -> JsResult<JsValue> {
+pub(crate) fn forward_val<T: AsRef<[u8]> + ?Sized>(
+    context: &mut Context<'_>,
+    src: &T,
+) -> JsResult<JsValue> {
     use boa_profiler::Profiler;
 
     let main_timer = Profiler::global().start_event("Main", "Main");
 
-    let src_bytes: &[u8] = src.as_ref();
-    let result = context.eval(src_bytes);
+    let result = context.eval(Source::from_bytes(src));
 
     // The main_timer needs to be dropped before the Profiler is.
     drop(main_timer);
@@ -189,10 +194,8 @@ pub(crate) fn forward_val<T: AsRef<[u8]>>(context: &mut Context<'_>, src: T) -> 
 
 /// Create a clean Context and execute the code
 #[cfg(test)]
-pub(crate) fn exec<T: AsRef<[u8]>>(src: T) -> String {
-    let src_bytes: &[u8] = src.as_ref();
-
-    match Context::default().eval(src_bytes) {
+pub(crate) fn exec<T: AsRef<[u8]> + ?Sized>(src: &T) -> String {
+    match Context::default().eval(Source::from_bytes(src)) {
         Ok(value) => value.display().to_string(),
         Err(error) => error.to_string(),
     }

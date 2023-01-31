@@ -4,7 +4,7 @@ use boa_engine::{
     class::{Class, ClassBuilder},
     error::JsNativeError,
     property::Attribute,
-    Context, JsResult, JsString, JsValue,
+    Context, JsResult, JsString, JsValue, Source,
 };
 
 use boa_gc::{Finalize, Trace};
@@ -130,7 +130,7 @@ fn main() {
     // Having done all of that, we can execute Javascript code with `eval`,
     // and access the `Person` class defined in Rust!
     context
-        .eval(
+        .eval(Source::from_bytes(
             r"
 		let person = new Person('John', 19);
 		person.sayHello();
@@ -146,6 +146,6 @@ fn main() {
         console.log(person.inheritedProperty);
 	    console.log(Person.prototype.inheritedProperty === person.inheritedProperty);
     ",
-        )
+        ))
         .unwrap();
 }

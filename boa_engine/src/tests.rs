@@ -1,3 +1,5 @@
+use boa_parser::Source;
+
 use crate::{
     builtins::Number, check_output, exec, forward, forward_val, string::utf16,
     value::IntegerOrInfinity, Context, JsValue, TestAction,
@@ -454,7 +456,7 @@ fn test_invalid_break_target() {
         }
         "#;
 
-    assert!(Context::default().eval(src).is_err());
+    assert!(Context::default().eval(Source::from_bytes(src)).is_err());
 }
 
 #[test]
@@ -2091,7 +2093,7 @@ fn bigger_switch_example() {
             "#,
         );
 
-        assert_eq!(&exec(scenario), val);
+        assert_eq!(&exec(&scenario), val);
     }
 }
 

@@ -1,6 +1,6 @@
 //! Module to read the list of test suites from disk.
 
-use crate::Ignored;
+use crate::{HarnessFile, Ignored};
 
 use super::{Harness, Locale, Phase, Test, TestSuite};
 use color_eyre::{
@@ -9,7 +9,10 @@ use color_eyre::{
 };
 use fxhash::FxHashMap;
 use serde::Deserialize;
-use std::{fs, io, path::Path};
+use std::{
+    fs, io,
+    path::{Path, PathBuf},
+};
 
 /// Representation of the YAML metadata in Test262 tests.
 #[derive(Debug, Clone, Deserialize)]
@@ -84,6 +87,15 @@ pub(super) enum TestFlag {
 
 /// Reads the Test262 defined bindings.
 pub(super) fn read_harness(test262_path: &Path) -> Result<Harness> {
+    fn read_harness_file(path: PathBuf) -> Result<HarnessFile> {
+        let content = fs::read_to_string(path.as_path())
+            .wrap_err_with(|| format!("error reading the harness file `{}`", path.display()))?;
+
+        Ok(HarnessFile {
+            content: content.into_boxed_str(),
+            path: path.into_boxed_path(),
+        })
+    }
     let mut includes = FxHashMap::default();
 
     for entry in fs::read_dir(test262_path.join("harness"))
@@ -97,23 +109,14 @@ pub(super) fn read_harness(test262_path: &Path) -> Result<Harness> {
             continue;
         }
 
-        let content = fs::read_to_string(entry.path())
-            .wrap_err_with(|| format!("error reading the harnes/{file_name}"))?;
-
         includes.insert(
             file_name.into_owned().into_boxed_str(),
-            content.into_boxed_str(),
+            read_harness_file(entry.path())?,
         );
     }
-    let assert = fs::read_to_string(test262_path.join("harness/assert.js"))
-        .wrap_err("error reading harnes/assert.js")?
-        .into_boxed_str();
-    let sta = fs::read_to_string(test262_path.join("harness/sta.js"))
-        .wrap_err("error reading harnes/sta.js")?
-        .into_boxed_str();
-    let doneprint_handle = fs::read_to_string(test262_path.join("harness/doneprintHandle.js"))
-        .wrap_err("error reading harnes/doneprintHandle.js")?
-        .into_boxed_str();
+    let assert = read_harness_file(test262_path.join("harness/assert.js"))?;
+    let sta = read_harness_file(test262_path.join("harness/sta.js"))?;
+    let doneprint_handle = read_harness_file(test262_path.join("harness/doneprintHandle.js"))?;
 
     Ok(Harness {
         assert,
@@ -177,6 +180,7 @@ pub(super) fn read_suite(
 
     Ok(TestSuite {
         name: name.into(),
+        path: Box::from(path),
         suites: suites.into_boxed_slice(),
         tests: tests.into_boxed_slice(),
     })
@@ -200,16 +204,15 @@ pub(super) fn read_test(path: &Path) -> io::Result<Test> {
             )
         })?;
 
-    let content = fs::read_to_string(path)?;
-    let metadata = read_metadata(&content, path)?;
+    let metadata = read_metadata(path)?;
 
-    Ok(Test::new(name, content, metadata))
+    Ok(Test::new(name, path, metadata))
 }
 
 /// Reads the metadata from the input test code.
-fn read_metadata(code: &str, test: &Path) -> io::Result<MetaData> {
+fn read_metadata(test: &Path) -> io::Result<MetaData> {
     use once_cell::sync::Lazy;
-    use regex::Regex;
+    use regex::bytes::Regex;
 
     /// Regular expression to retrieve the metadata of a test.
     static META_REGEX: Lazy<Regex> = Lazy::new(|| {
@@ -217,8 +220,10 @@ fn read_metadata(code: &str, test: &Path) -> io::Result<MetaData> {
             .expect("could not compile metadata regular expression")
     });
 
+    let code = fs::read(test)?;
+
     let yaml = META_REGEX
-        .captures(code)
+        .captures(&code)
         .ok_or_else(|| {
             io::Error::new(
                 io::ErrorKind::InvalidData,
@@ -226,13 +231,13 @@ fn read_metadata(code: &str, test: &Path) -> io::Result<MetaData> {
             )
         })?
         .get(1)
+        .map(|m| String::from_utf8_lossy(m.as_bytes()))
         .ok_or_else(|| {
             io::Error::new(
                 io::ErrorKind::InvalidData,
                 format!("no metadata found for test {}", test.display()),
             )
         })?
-        .as_str()
         .replace('\r', "\n");
 
     serde_yaml::from_str(&yaml).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))

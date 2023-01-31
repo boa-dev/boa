@@ -95,7 +95,9 @@
 pub mod error;
 pub mod lexer;
 pub mod parser;
+mod source;
 
 pub use error::Error;
 pub use lexer::Lexer;
 pub use parser::Parser;
+pub use source::Source;

@@ -16,7 +16,7 @@ mod statement;
 fn test_formatting(source: &'static str) {
     // Remove preceding newline.
 
-    use crate::Parser;
+    use crate::{Parser, Source};
     use boa_interner::{Interner, ToInternedString};
     let source = &source[1..];
 
@@ -30,8 +30,9 @@ fn test_formatting(source: &'static str) {
         .map(|l| &l[characters_to_remove..]) // Remove preceding whitespace from each line
         .collect::<Vec<&'static str>>()
         .join("\n");
+    let source = Source::from_bytes(source);
     let interner = &mut Interner::default();
-    let result = Parser::new(scenario.as_bytes())
+    let result = Parser::new(source)
         .parse_all(interner)
         .expect("parsing failed")
         .to_interned_string(interner);

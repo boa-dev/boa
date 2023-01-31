@@ -9,18 +9,17 @@ use crate::read::ErrorType;
 use boa_engine::{
     builtins::JsArgs, context::ContextBuilder, job::SimpleJobQueue,
     native_function::NativeFunction, object::FunctionObjectBuilder, property::Attribute, Context,
-    JsNativeErrorKind, JsValue,
+    JsNativeErrorKind, JsValue, Source,
 };
-use boa_parser::Parser;
 use colored::Colorize;
 use rayon::prelude::*;
-use std::{borrow::Cow, cell::RefCell, rc::Rc};
+use std::{cell::RefCell, rc::Rc};
 
 impl TestSuite {
     /// Runs the test suite.
     pub(crate) fn run(&self, harness: &Harness, verbose: u8, parallel: bool) -> SuiteResult {
         if verbose != 0 {
-            println!("Suite {}:", self.name);
+            println!("Suite {}:", self.path.display());
         }
 
         let suites: Vec<_> = if parallel {
@@ -85,7 +84,7 @@ impl TestSuite {
             println!(
                 "Suite {} results: total: {total}, passed: {}, ignored: {}, failed: {} (panics: \
                     {}{}), conformance: {:.2}%",
-                self.name,
+                self.path.display(),
                 passed.to_string().green(),
                 ignored.to_string().yellow(),
                 (total - passed - ignored).to_string().red(),
@@ -129,11 +128,29 @@ impl Test {
 
     /// Runs the test once, in strict or non-strict mode
     fn run_once(&self, harness: &Harness, strict: bool, verbose: u8) -> TestResult {
+        let Ok(source) = Source::from_filepath(&self.path) else {
+            if verbose > 1 {
+                println!(
+                    "`{}`{}: {}",
+                    self.path.display(),
+                    if strict { " (strict mode)" } else { "" },
+                    "Invalid file".red()
+                );
+            } else {
+                print!("{}", "F".red());
+            }
+            return TestResult {
+                name: self.name.clone(),
+                strict,
+                result: TestOutcomeResult::Failed,
+                result_text: Box::from("Could not read test file.")
+            }
+        };
         if self.ignored {
             if verbose > 1 {
                 println!(
                     "`{}`{}: {}",
-                    self.name,
+                    self.path.display(),
                     if strict { " (strict mode)" } else { "" },
                     "Ignored".yellow()
                 );
@@ -150,16 +167,10 @@ impl Test {
         if verbose > 1 {
             println!(
                 "`{}`{}: starting",
-                self.name,
+                self.path.display(),
                 if strict { " (strict mode)" } else { "" }
             );
         }
-
-        let test_content = if strict {
-            Cow::Owned(format!("\"use strict\";\n{}", self.content))
-        } else {
-            Cow::Borrowed(&*self.content)
-        };
 
         let result = std::panic::catch_unwind(|| match self.expected_outcome {
             Outcome::Positive => {
@@ -170,9 +181,10 @@ impl Test {
                 if let Err(e) = self.set_up_env(harness, context, async_result.clone()) {
                     return (false, e);
                 }
+                context.strict(strict);
 
                 // TODO: timeout
-                let value = match context.eval(&*test_content) {
+                let value = match context.eval(source) {
                     Ok(v) => v,
                     Err(e) => return (false, format!("Uncaught {e}")),
                 };
@@ -193,11 +205,12 @@ impl Test {
                     error_type,
                     ErrorType::SyntaxError,
                     "non-SyntaxError parsing/early error found in {}",
-                    self.name
+                    self.path.display()
                 );
 
                 let mut context = Context::default();
-                match context.parse(&*test_content) {
+                context.strict(strict);
+                match context.parse(source) {
                     Ok(statement_list) => match context.compile(&statement_list) {
                         Ok(_) => (false, "StatementList compilation should fail".to_owned()),
                         Err(e) => (true, format!("Uncaught {e:?}")),
@@ -217,8 +230,9 @@ impl Test {
                 if let Err(e) = self.set_up_env(harness, context, AsyncResult::default()) {
                     return (false, e);
                 }
-                let code = match Parser::new(test_content.as_bytes())
-                    .parse_all(context.interner_mut())
+                context.strict(strict);
+                let code = match context
+                    .parse(source)
                     .map_err(Into::into)
                     .and_then(|stmts| context.compile(&stmts))
                 {
@@ -260,7 +274,7 @@ impl Test {
 
         let (result, result_text) = result.map_or_else(
             |_| {
-                eprintln!("last panic was on test \"{}\"", self.name);
+                eprintln!("last panic was on test \"{}\"", self.path.display());
                 (TestOutcomeResult::Panic, String::new())
             },
             |(res, text)| {
@@ -275,7 +289,7 @@ impl Test {
         if verbose > 1 {
             println!(
                 "`{}`{}: {}",
-                self.name,
+                self.path.display(),
                 if strict { " (strict mode)" } else { "" },
                 if result == TestOutcomeResult::Passed {
                     "Passed".green()
@@ -299,7 +313,7 @@ impl Test {
         if verbose > 2 {
             println!(
                 "`{}`{}: result text",
-                self.name,
+                self.path.display(),
                 if strict { " (strict mode)" } else { "" },
             );
             println!("{result_text}");
@@ -331,29 +345,38 @@ impl Test {
             return Ok(());
         }
 
+        let assert = Source::from_reader(
+            harness.assert.content.as_bytes(),
+            Some(&harness.assert.path),
+        );
+        let sta = Source::from_reader(harness.sta.content.as_bytes(), Some(&harness.sta.path));
+
         context
-            .eval(harness.assert.as_ref())
+            .eval(assert)
             .map_err(|e| format!("could not run assert.js:\n{e}"))?;
         context
-            .eval(harness.sta.as_ref())
+            .eval(sta)
             .map_err(|e| format!("could not run sta.js:\n{e}"))?;
 
         if self.flags.contains(TestFlags::ASYNC) {
+            let dph = Source::from_reader(
+                harness.doneprint_handle.content.as_bytes(),
+                Some(&harness.doneprint_handle.path),
+            );
             context
-                .eval(harness.doneprint_handle.as_ref())
+                .eval(dph)
                 .map_err(|e| format!("could not run doneprintHandle.js:\n{e}"))?;
         }
 
-        for include in self.includes.iter() {
-            context
-                .eval(
-                    harness
-                        .includes
-                        .get(include)
-                        .ok_or_else(|| format!("could not find the {include} include file."))?
-                        .as_ref(),
-                )
-                .map_err(|e| format!("could not run the {include} include file:\nUncaught {e}"))?;
+        for include_name in self.includes.iter() {
+            let include = harness
+                .includes
+                .get(include_name)
+                .ok_or_else(|| format!("could not find the {include_name} include file."))?;
+            let source = Source::from_reader(include.content.as_bytes(), Some(&include.path));
+            context.eval(source).map_err(|e| {
+                format!("could not run the harness `{include_name}`:\nUncaught {e}",)
+            })?;
         }
 
         Ok(())

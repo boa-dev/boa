@@ -65,7 +65,7 @@ use boa_engine::{
     context::ContextBuilder,
     job::{JobQueue, NativeJob},
     vm::flowgraph::{Direction, Graph},
-    Context, JsResult,
+    Context, JsResult, Source,
 };
 use clap::{Parser, ValueEnum, ValueHint};
 use colored::{Color, Colorize};
@@ -189,23 +189,22 @@ enum FlowgraphDirection {
 ///
 /// Returns a error of type String with a message,
 /// if the token stream has a parsing error.
-fn parse_tokens<S>(src: S, context: &mut Context<'_>) -> Result<StatementList, String>
+fn parse_tokens<S>(src: &S, context: &mut Context<'_>) -> Result<StatementList, String>
 where
-    S: AsRef<[u8]>,
+    S: AsRef<[u8]> + ?Sized,
 {
-    let src_bytes = src.as_ref();
-    boa_parser::Parser::new(src_bytes)
+    boa_parser::Parser::new(Source::from_bytes(&src))
         .parse_all(context.interner_mut())
-        .map_err(|e| format!("ParsingError: {e}"))
+        .map_err(|e| format!("Uncaught SyntaxError: {e}"))
 }
 
 /// Dumps the AST to stdout with format controlled by the given arguments.
 ///
 /// Returns a error of type String with a error message,
 /// if the source has a syntax or parsing error.
-fn dump<S>(src: S, args: &Opt, context: &mut Context<'_>) -> Result<(), String>
+fn dump<S>(src: &S, args: &Opt, context: &mut Context<'_>) -> Result<(), String>
 where
-    S: AsRef<[u8]>,
+    S: AsRef<[u8]> + ?Sized,
 {
     if let Some(ref arg) = args.dump_ast {
         let ast = parse_tokens(src, context)?;
@@ -233,7 +232,7 @@ fn generate_flowgraph(
     format: FlowgraphFormat,
     direction: Option<FlowgraphDirection>,
 ) -> JsResult<String> {
-    let ast = context.parse(src)?;
+    let ast = context.parse(Source::from_bytes(src))?;
     let code = context.compile(&ast)?;
 
     let direction = match direction {
@@ -279,7 +278,7 @@ fn main() -> Result<(), io::Error> {
                 Err(v) => eprintln!("Uncaught {v}"),
             }
         } else {
-            match context.eval(&buffer) {
+            match context.eval(Source::from_bytes(&buffer)) {
                 Ok(v) => println!("{}", v.display()),
                 Err(v) => eprintln!("Uncaught {v}"),
             }
@@ -336,7 +335,7 @@ fn main() -> Result<(), io::Error> {
                             Err(v) => eprintln!("Uncaught {v}"),
                         }
                     } else {
-                        match context.eval(line.trim_end()) {
+                        match context.eval(Source::from_bytes(line.trim_end())) {
                             Ok(v) => {
                                 println!("{}", v.display());
                             }

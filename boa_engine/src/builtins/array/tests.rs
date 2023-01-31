@@ -1,3 +1,5 @@
+use boa_parser::Source;
+
 use super::Array;
 use crate::builtins::Number;
 use crate::{forward, Context, JsValue};
@@ -10,60 +12,85 @@ fn is_array() {
         var new_arr = new Array();
         var many = ["a", "b", "c"];
         "#;
-    context.eval(init).unwrap();
+    context.eval(Source::from_bytes(init)).unwrap();
     assert_eq!(
-        context.eval("Array.isArray(empty)").unwrap(),
+        context
+            .eval(Source::from_bytes("Array.isArray(empty)"))
+            .unwrap(),
         JsValue::new(true)
-    );
-    assert_eq!(
-        context.eval("Array.isArray(new_arr)").unwrap(),
-        JsValue::new(true)
-    );
-    assert_eq!(
-        context.eval("Array.isArray(many)").unwrap(),
-        JsValue::new(true)
-    );
-    assert_eq!(
-        context.eval("Array.isArray([1, 2, 3])").unwrap(),
-        JsValue::new(true)
-    );
-    assert_eq!(
-        context.eval("Array.isArray([])").unwrap(),
-        JsValue::new(true)
-    );
-    assert_eq!(
-        context.eval("Array.isArray({})").unwrap(),
-        JsValue::new(false)
-    );
-    // assert_eq!(context.eval("Array.isArray(new Array)"), "true");
-    assert_eq!(
-        context.eval("Array.isArray()").unwrap(),
-        JsValue::new(false)
     );
     assert_eq!(
         context
-            .eval("Array.isArray({ constructor: Array })")
+            .eval(Source::from_bytes("Array.isArray(new_arr)"))
+            .unwrap(),
+        JsValue::new(true)
+    );
+    assert_eq!(
+        context
+            .eval(Source::from_bytes("Array.isArray(many)"))
+            .unwrap(),
+        JsValue::new(true)
+    );
+    assert_eq!(
+        context
+            .eval(Source::from_bytes("Array.isArray([1, 2, 3])"))
+            .unwrap(),
+        JsValue::new(true)
+    );
+    assert_eq!(
+        context
+            .eval(Source::from_bytes("Array.isArray([])"))
+            .unwrap(),
+        JsValue::new(true)
+    );
+    assert_eq!(
+        context
+            .eval(Source::from_bytes("Array.isArray({})"))
             .unwrap(),
         JsValue::new(false)
     );
     assert_eq!(
         context
-            .eval("Array.isArray({ push: Array.prototype.push, concat: Array.prototype.concat })")
+            .eval(Source::from_bytes("Array.isArray(new Array)"))
             .unwrap(),
-        JsValue::new(false)
+        JsValue::new(true)
     );
     assert_eq!(
-        context.eval("Array.isArray(17)").unwrap(),
+        context.eval(Source::from_bytes("Array.isArray()")).unwrap(),
         JsValue::new(false)
     );
     assert_eq!(
         context
-            .eval("Array.isArray({ __proto__: Array.prototype })")
+            .eval(Source::from_bytes("Array.isArray({ constructor: Array })"))
             .unwrap(),
         JsValue::new(false)
     );
     assert_eq!(
-        context.eval("Array.isArray({ length: 0 })").unwrap(),
+        context
+            .eval(Source::from_bytes(
+                "Array.isArray({ push: Array.prototype.push, concat: Array.prototype.concat })"
+            ))
+            .unwrap(),
+        JsValue::new(false)
+    );
+    assert_eq!(
+        context
+            .eval(Source::from_bytes("Array.isArray(17)"))
+            .unwrap(),
+        JsValue::new(false)
+    );
+    assert_eq!(
+        context
+            .eval(Source::from_bytes(
+                "Array.isArray({ __proto__: Array.prototype })"
+            ))
+            .unwrap(),
+        JsValue::new(false)
+    );
+    assert_eq!(
+        context
+            .eval(Source::from_bytes("Array.isArray({ length: 0 })"))
+            .unwrap(),
         JsValue::new(false)
     );
 }
@@ -73,48 +100,68 @@ fn of() {
     let mut context = Context::default();
     assert_eq!(
         context
-            .eval("Array.of(1, 2, 3)")
+            .eval(Source::from_bytes("Array.of(1, 2, 3)"))
             .unwrap()
             .to_string(&mut context)
             .unwrap(),
         context
-            .eval("[1, 2, 3]")
+            .eval(Source::from_bytes("[1, 2, 3]"))
             .unwrap()
             .to_string(&mut context)
             .unwrap()
     );
     assert_eq!(
         context
-            .eval("Array.of(1, 'a', [], undefined, null)")
+            .eval(Source::from_bytes("Array.of(1, 'a', [], undefined, null)"))
             .unwrap()
             .to_string(&mut context)
             .unwrap(),
         context
-            .eval("[1, 'a', [], undefined, null]")
+            .eval(Source::from_bytes("[1, 'a', [], undefined, null]"))
             .unwrap()
             .to_string(&mut context)
             .unwrap()
     );
     assert_eq!(
         context
-            .eval("Array.of()")
+            .eval(Source::from_bytes("Array.of()"))
             .unwrap()
             .to_string(&mut context)
             .unwrap(),
-        context.eval("[]").unwrap().to_string(&mut context).unwrap()
+        context
+            .eval(Source::from_bytes("[]"))
+            .unwrap()
+            .to_string(&mut context)
+            .unwrap()
     );
 
     context
-        .eval(r#"let a = Array.of.call(Date, "a", undefined, 3);"#)
+        .eval(Source::from_bytes(
+            r#"let a = Array.of.call(Date, "a", undefined, 3);"#,
+        ))
         .unwrap();
     assert_eq!(
-        context.eval("a instanceof Date").unwrap(),
+        context
+            .eval(Source::from_bytes("a instanceof Date"))
+            .unwrap(),
         JsValue::new(true)
     );
-    assert_eq!(context.eval("a[0]").unwrap(), JsValue::new("a"));
-    assert_eq!(context.eval("a[1]").unwrap(), JsValue::undefined());
-    assert_eq!(context.eval("a[2]").unwrap(), JsValue::new(3));
-    assert_eq!(context.eval("a.length").unwrap(), JsValue::new(3));
+    assert_eq!(
+        context.eval(Source::from_bytes("a[0]")).unwrap(),
+        JsValue::new("a")
+    );
+    assert_eq!(
+        context.eval(Source::from_bytes("a[1]")).unwrap(),
+        JsValue::undefined()
+    );
+    assert_eq!(
+        context.eval(Source::from_bytes("a[2]")).unwrap(),
+        JsValue::new(3)
+    );
+    assert_eq!(
+        context.eval(Source::from_bytes("a.length")).unwrap(),
+        JsValue::new(3)
+    );
 }
 
 #[test]
@@ -124,31 +171,31 @@ fn concat() {
     var empty = [];
     var one = [1];
     "#;
-    context.eval(init).unwrap();
+    context.eval(Source::from_bytes(init)).unwrap();
     // Empty ++ Empty
     let ee = context
-        .eval("empty.concat(empty)")
+        .eval(Source::from_bytes("empty.concat(empty)"))
         .unwrap()
         .display()
         .to_string();
     assert_eq!(ee, "[]");
     // Empty ++ NonEmpty
     let en = context
-        .eval("empty.concat(one)")
+        .eval(Source::from_bytes("empty.concat(one)"))
         .unwrap()
         .display()
         .to_string();
     assert_eq!(en, "[ 1 ]");
     // NonEmpty ++ Empty
     let ne = context
-        .eval("one.concat(empty)")
+        .eval(Source::from_bytes("one.concat(empty)"))
         .unwrap()
         .display()
         .to_string();
     assert_eq!(ne, "[ 1 ]");
     // NonEmpty ++ NonEmpty
     let nn = context
-        .eval("one.concat(one)")
+        .eval(Source::from_bytes("one.concat(one)"))
         .unwrap()
         .display()
         .to_string();
