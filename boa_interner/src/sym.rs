@@ -38,7 +38,7 @@ impl Sym {
         }
     }
 
-    /// Checks if this symbol is one of the [reserved words][spec] of the ECMAScript
+    /// Checks if this symbol is one of the [reserved identifiers][spec] of the ECMAScript
     /// specification, excluding `await` and `yield`
     ///
     /// [spec]: https://tc39.es/ecma262/#prod-ReservedWord
@@ -48,7 +48,7 @@ impl Sym {
         (Self::BREAK..=Self::WITH).contains(&self)
     }
 
-    /// Checks if this symbol is one of the [strict reserved words][spec] of the ECMAScript
+    /// Checks if this symbol is one of the [strict reserved identifiers][spec] of the ECMAScript
     /// specification.
     ///
     /// [spec]: https://tc39.es/ecma262/#prod-ReservedWord
@@ -106,9 +106,9 @@ static_syms! {
     "void",
     "while",
     "with",
-    // End reserved words
+    // End reserved identifier
 
-    // strict reserved words.
+    // strict reserved identifiers.
     // See: <https://tc39.es/ecma262/#prod-Identifier>
     // Note, they must all be together.
     "implements",
@@ -120,7 +120,7 @@ static_syms! {
     "public",
     "static",
     "yield",
-    // End reserved words
+    // End strict reserved identifiers
 
     "",
     "prototype",
