@@ -186,7 +186,7 @@ where
                         return Err(Error::unexpected(
                             token.to_string(interner),
                             token.span(),
-                            Some("more than one switch default"),
+                            "more than one switch default",
                         ));
                     }
 

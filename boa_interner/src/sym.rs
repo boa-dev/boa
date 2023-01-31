@@ -1,10 +1,5 @@
-use boa_macros::utf16;
-use core::{hash::BuildHasherDefault, num::NonZeroUsize};
-use indexmap::IndexSet;
-use once_cell::sync::Lazy;
-use rustc_hash::FxHasher;
-
-type Set<T> = IndexSet<T, BuildHasherDefault<FxHasher>>;
+use boa_macros::static_syms;
+use core::num::NonZeroUsize;
 
 /// The string symbol type for Boa.
 ///
@@ -23,96 +18,6 @@ pub struct Sym {
 }
 
 impl Sym {
-    /// Symbol for the empty string (`""`).
-    pub const EMPTY_STRING: Self = unsafe { Self::new_unchecked(1) };
-
-    /// Symbol for the `"arguments"` string.
-    pub const ARGUMENTS: Self = unsafe { Self::new_unchecked(2) };
-
-    /// Symbol for the `"await"` string.
-    pub const AWAIT: Self = unsafe { Self::new_unchecked(3) };
-
-    /// Symbol for the `"yield"` string.
-    pub const YIELD: Self = unsafe { Self::new_unchecked(4) };
-
-    /// Symbol for the `"eval"` string.
-    pub const EVAL: Self = unsafe { Self::new_unchecked(5) };
-
-    /// Symbol for the `"default"` string.
-    pub const DEFAULT: Self = unsafe { Self::new_unchecked(6) };
-
-    /// Symbol for the `"null"` string.
-    pub const NULL: Self = unsafe { Self::new_unchecked(7) };
-
-    /// Symbol for the `"RegExp"` string.
-    pub const REGEXP: Self = unsafe { Self::new_unchecked(8) };
-
-    /// Symbol for the `"get"` string.
-    pub const GET: Self = unsafe { Self::new_unchecked(9) };
-
-    /// Symbol for the `"set"` string.
-    pub const SET: Self = unsafe { Self::new_unchecked(10) };
-
-    /// Symbol for the `"<main>"` string.
-    pub const MAIN: Self = unsafe { Self::new_unchecked(11) };
-
-    /// Symbol for the `"raw"` string.
-    pub const RAW: Self = unsafe { Self::new_unchecked(12) };
-
-    /// Symbol for the `"static"` string.
-    pub const STATIC: Self = unsafe { Self::new_unchecked(13) };
-
-    /// Symbol for the `"prototype"` string.
-    pub const PROTOTYPE: Self = unsafe { Self::new_unchecked(14) };
-
-    /// Symbol for the `"constructor"` string.
-    pub const CONSTRUCTOR: Self = unsafe { Self::new_unchecked(15) };
-
-    /// Symbol for the `"implements"` string.
-    pub const IMPLEMENTS: Self = unsafe { Self::new_unchecked(16) };
-
-    /// Symbol for the `"interface"` string.
-    pub const INTERFACE: Self = unsafe { Self::new_unchecked(17) };
-
-    /// Symbol for the `"let"` string.
-    pub const LET: Self = unsafe { Self::new_unchecked(18) };
-
-    /// Symbol for the `"package"` string.
-    pub const PACKAGE: Self = unsafe { Self::new_unchecked(19) };
-
-    /// Symbol for the `"private"` string.
-    pub const PRIVATE: Self = unsafe { Self::new_unchecked(20) };
-
-    /// Symbol for the `"protected"` string.
-    pub const PROTECTED: Self = unsafe { Self::new_unchecked(21) };
-
-    /// Symbol for the `"public"` string.
-    pub const PUBLIC: Self = unsafe { Self::new_unchecked(22) };
-
-    /// Symbol for the `"anonymous"` string.
-    pub const ANONYMOUS: Self = unsafe { Self::new_unchecked(23) };
-
-    /// Symbol for the `"true"` string.
-    pub const TRUE: Self = unsafe { Self::new_unchecked(24) };
-
-    /// Symbol for the `"false"` string.
-    pub const FALSE: Self = unsafe { Self::new_unchecked(25) };
-
-    /// Symbol for the `"async"` string.
-    pub const ASYNC: Self = unsafe { Self::new_unchecked(26) };
-
-    /// Symbol for the `"of"` string.
-    pub const OF: Self = unsafe { Self::new_unchecked(27) };
-
-    /// Symbol for the `"target"` string.
-    pub const TARGET: Self = unsafe { Self::new_unchecked(28) };
-
-    /// Symbol for the `"__proto__"` string.
-    pub const __PROTO__: Self = unsafe { Self::new_unchecked(29) };
-
-    /// Symbol for the `"name"` string.
-    pub const NAME: Self = unsafe { Self::new_unchecked(30) };
-
     /// Creates a new [`Sym`] from the provided `value`, or returns `None` if `index` is zero.
     pub(super) fn new(value: usize) -> Option<Self> {
         NonZeroUsize::new(value).map(|value| Self { value })
@@ -133,6 +38,26 @@ impl Sym {
         }
     }
 
+    /// Checks if this symbol is one of the [reserved words][spec] of the ECMAScript
+    /// specification, excluding `await` and `yield`
+    ///
+    /// [spec]: https://tc39.es/ecma262/#prod-ReservedWord
+    #[inline]
+    #[must_use]
+    pub fn is_reserved_identifier(self) -> bool {
+        (Self::BREAK..=Self::WITH).contains(&self)
+    }
+
+    /// Checks if this symbol is one of the [strict reserved words][spec] of the ECMAScript
+    /// specification.
+    ///
+    /// [spec]: https://tc39.es/ecma262/#prod-ReservedWord
+    #[inline]
+    #[must_use]
+    pub fn is_strict_reserved_identifier(self) -> bool {
+        (Self::IMPLEMENTS..=Self::YIELD).contains(&self)
+    }
+
     /// Returns the internal value of the [`Sym`]
     #[inline]
     #[must_use]
@@ -141,54 +66,51 @@ impl Sym {
     }
 }
 
-macro_rules! create_static_strings {
-    ( $( $s:literal ),+$(,)? ) => {
-        /// Ordered set of commonly used static `UTF-8` strings.
-        ///
-        /// # Note
-        ///
-        /// `COMMON_STRINGS_UTF8`, `COMMON_STRINGS_UTF16` and the constants
-        /// defined in [`Sym`] must always be in sync.
-        pub(super) static COMMON_STRINGS_UTF8: phf::OrderedSet<&'static str> = {
-            const COMMON_STRINGS: phf::OrderedSet<&'static str> = phf::phf_ordered_set! {
-                $( $s ),+
-            };
-            // A `COMMON_STRINGS` of size `usize::MAX` would cause an overflow on our `Interner`
-            sa::const_assert!(COMMON_STRINGS.len() < usize::MAX);
-            COMMON_STRINGS
-        };
-
-        /// Ordered set of commonly used static `UTF-16` strings.
-        ///
-        /// # Note
-        ///
-        /// `COMMON_STRINGS_UTF8`, `COMMON_STRINGS_UTF16` and the constants
-        /// defined in [`Sym`] must always be in sync.
-        // FIXME: use phf when const expressions are allowed. https://github.com/rust-phf/rust-phf/issues/188
-        pub(super) static COMMON_STRINGS_UTF16: Lazy<Set<&'static [u16]>> = Lazy::new(|| {
-            let mut set = Set::with_capacity_and_hasher(COMMON_STRINGS_UTF8.len(), BuildHasherDefault::default());
-            $( set.insert(utf16!($s)); )+
-            set
-        });
-    };
-}
-
-create_static_strings! {
-    "",
-    "arguments",
-    "await",
-    "yield",
-    "eval",
+static_syms! {
+    // Reserved identifiers
+    // See: <https://tc39.es/ecma262/#prod-ReservedWord>
+    // Note, they must all be together.
+    "break",
+    "case",
+    "catch",
+    "class",
+    "const",
+    "continue",
+    "debugger",
     "default",
+    "delete",
+    "do",
+    "else",
+    "enum",
+    "export",
+    "extends",
+    "false",
+    "finally",
+    "for",
+    "function",
+    "if",
+    "import",
+    "in",
+    "instanceof",
+    "new",
     "null",
-    "RegExp",
-    "get",
-    "set",
-    "<main>",
-    "raw",
-    "static",
-    "prototype",
-    "constructor",
+    "return",
+    "super",
+    "switch",
+    "this",
+    "throw",
+    "true",
+    "try",
+    "typeof",
+    "var",
+    "void",
+    "while",
+    "with",
+    // End reserved words
+
+    // strict reserved words.
+    // See: <https://tc39.es/ecma262/#prod-Identifier>
+    // Note, they must all be together.
     "implements",
     "interface",
     "let",
@@ -196,12 +118,25 @@ create_static_strings! {
     "private",
     "protected",
     "public",
+    "static",
+    "yield",
+    // End reserved words
+
+    "",
+    "prototype",
+    "constructor",
+    "arguments",
+    "eval",
+    "RegExp",
+    "get",
+    "set",
+    "<main>",
+    "raw",
     "anonymous",
-    "true",
-    "false",
     "async",
     "of",
     "target",
     "__proto__",
     "name",
+    "await",
 }

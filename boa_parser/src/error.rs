@@ -45,7 +45,7 @@ pub enum Error {
     /// When a token is unexpected
     Unexpected {
         /// The error message.
-        message: Option<&'static str>,
+        message: Box<str>,
 
         /// The token that was not expected.
         found: Box<str>,
@@ -101,11 +101,11 @@ impl Error {
         }
     }
 
-    /// Creates an `Expected` parsing error.
+    /// Creates an `Unexpected` parsing error.
     pub(crate) fn unexpected<F, C>(found: F, span: Span, message: C) -> Self
     where
         F: Into<Box<str>>,
-        C: Into<Option<&'static str>>,
+        C: Into<Box<str>>,
     {
         Self::Unexpected {
             found: found.into(),
@@ -187,8 +187,7 @@ impl fmt::Display for Error {
                 message,
             } => write!(
                 f,
-                "unexpected token '{found}'{} at line {}, col {}",
-                message.map_or_else(String::new, |m| format!(", {m}")),
+                "unexpected token '{found}', {message} at line {}, col {}",
                 span.start().line_number(),
                 span.start().column_number()
             ),

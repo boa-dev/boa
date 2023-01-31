@@ -173,10 +173,11 @@ where
                     .parse(cursor, interner)?;
                 Ok(Binding::Identifier(ident))
             }
-            _ => Err(Error::unexpected(
+            _ => Err(Error::expected(
+                [String::from("pattern"), String::from("binding identifier")],
                 token.to_string(interner),
                 token.span(),
-                None,
+                "catch parameter",
             )),
         }
     }

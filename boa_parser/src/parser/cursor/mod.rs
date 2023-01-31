@@ -36,6 +36,9 @@ pub(super) struct Cursor<R> {
 
     /// Indicate if the cursor is used in `JSON.parse`.
     json_parse: bool,
+
+    /// Indicate if the cursor's **goal symbol** is a Module.
+    module: bool,
 }
 
 impl<R> Cursor<R>
@@ -50,7 +53,19 @@ where
             private_environment_root_index: 0,
             arrow: false,
             json_parse: false,
+            module: false,
         }
+    }
+
+    /// Sets the goal symbol of the cursor to `Module`.
+    #[allow(unused)]
+    pub(super) fn set_module_mode(&mut self) {
+        self.module = true;
+    }
+
+    /// Returns `true` if the cursor is currently parsing a `Module`.
+    pub(super) const fn module_mode(&self) -> bool {
+        self.module
     }
 
     pub(super) fn set_goal(&mut self, elm: InputElement) {
