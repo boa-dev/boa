@@ -28,8 +28,9 @@ impl Operation for Break {
                 .expect("EnvStackEntry must exist");
 
             if (jump_address <= env_entry.exit_address())
-                || (env_entry.is_finally_env() && jump_address == env_entry.start_address()) {
-                break
+                || (env_entry.is_finally_env() && jump_address == env_entry.start_address())
+            {
+                break;
             }
 
             if jump_address <= env_entry.exit_address() {

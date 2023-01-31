@@ -361,7 +361,7 @@ impl Context<'_> {
                                 .env_stack
                                 .last()
                                 .expect("EnvStackEntry must exist");
-                
+
                             if env_entry.is_finally_env() {
                                 if (env_entry.start_address() as usize) < current_address {
                                     target_address = Some(env_entry.exit_address() as usize);
@@ -370,26 +370,25 @@ impl Context<'_> {
                                 }
                                 break;
                             };
-                
+
                             env_to_pop += env_entry.env_num();
                             if env_entry.is_global_env() {
                                 break;
                             };
-                
+
                             self.vm.frame_mut().env_stack.pop();
                         }
-                
+
                         for _ in 0..env_to_pop {
                             self.realm.environments.pop();
                         }
-                
-                        if let Some(address) = target_address {
 
+                        if let Some(address) = target_address {
                             for _ in 0..self.vm.frame().pop_on_return {
                                 self.vm.pop();
                             }
                             self.vm.frame_mut().pop_on_return = 0;
-    
+
                             self.vm.frame_mut().thrown = true;
                             self.vm.frame_mut().pc = address;
                             self.vm.frame_mut().finally_return = FinallyReturn::Err;

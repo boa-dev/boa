@@ -172,7 +172,12 @@ impl Operation for FinallyEnd {
                     }
                     return Ok(ShouldExit::False);
                 }
-                let current_stack = context.vm.frame_mut().env_stack.pop().expect("Popping current finally stack.");
+                let current_stack = context
+                    .vm
+                    .frame_mut()
+                    .env_stack
+                    .pop()
+                    .expect("Popping current finally stack.");
 
                 for _ in 0..current_stack.env_num() {
                     context.realm.environments.pop();
