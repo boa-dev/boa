@@ -696,49 +696,49 @@ impl StandardConstructors {
 /// Cached intrinsic objects
 #[derive(Debug)]
 pub struct IntrinsicObjects {
-    /// %Reflect%
+    /// [`%Reflect%`][https://tc39.es/ecma262/#sec-reflect]
     reflect: JsObject,
 
-    /// %Math%
+    /// [`%Math%`][https://tc39.es/ecma262/#sec-math]
     math: JsObject,
 
-    /// %JSON%
+    /// [`%JSON%`][https://tc39.es/ecma262/#sec-json]
     json: JsObject,
 
-    /// %ThrowTypeError% intrinsic object
+    /// [`%ThrowTypeError%`][https://tc39.es/ecma262/#sec-%throwtypeerror%]
     throw_type_error: JsFunction,
 
-    /// `%Array.prototype.values%`
+    /// [`%Array.prototype.values%`][https://tc39.es/ecma262/#sec-array.prototype.values]
     array_prototype_values: JsObject,
 
     /// Cached iterator prototypes.
     iterator_prototypes: IteratorPrototypes,
 
-    /// %GeneratorFunction.prototype.prototype%
+    /// [`%GeneratorFunction.prototype.prototype%`][https://tc39.es/ecma262/#sec-properties-of-generator-prototype]
     generator: JsObject,
 
-    /// %AsyncGeneratorFunction.prototype.prototype%
+    /// [`%AsyncGeneratorFunction.prototype.prototype%`][https://tc39.es/ecma262/#sec-properties-of-asyncgenerator-prototype]
     async_generator: JsObject,
 
-    /// %eval%
+    /// [`%eval%`][https://tc39.es/ecma262/#sec-eval-x]
     eval: JsFunction,
 
     /// URI related functions
     uri_functions: UriFunctions,
 
-    /// %isFinite%
+    /// [`%isFinite%`][https://tc39.es/ecma262/#sec-isfinite-number]
     is_finite: JsFunction,
 
-    /// %isNaN%
+    /// [`%isNaN%`][https://tc39.es/ecma262/#sec-isnan-number]
     is_nan: JsFunction,
 
-    /// %parseFloat%
+    /// [`%parseFloat%`][https://tc39.es/ecma262/#sec-parsefloat-string]
     parse_float: JsFunction,
 
-    /// %parseInt%
+    /// [`%parseInt%`][https://tc39.es/ecma262/#sec-parseint-string-radix]
     parse_int: JsFunction,
 
-    /// %Intl%
+    /// [`%Intl%`][https://tc39.es/ecma402/#intl-object]
     #[cfg(feature = "intl")]
     intl: JsObject,
 }
@@ -767,13 +767,17 @@ impl Default for IntrinsicObjects {
 }
 
 impl IntrinsicObjects {
-    /// Gets the `%ThrowTypeError%` intrinsic function.
+    /// Gets the [`%ThrowTypeError%`][spec] intrinsic function.
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-%throwtypeerror%
     #[inline]
     pub fn throw_type_error(&self) -> JsFunction {
         self.throw_type_error.clone()
     }
 
-    /// Gets the `%Array.prototype.values%` intrinsic object.
+    /// Gets the [`%Array.prototype.values%`][spec] intrinsic object.
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-array.prototype.values
     #[inline]
     pub fn array_prototype_values(&self) -> JsObject {
         self.array_prototype_values.clone()
@@ -785,10 +789,7 @@ impl IntrinsicObjects {
         &self.iterator_prototypes
     }
 
-    /// Gets the `%GeneratorFunction.prototype.prototype%` intrinsic object.
-    ///
-    /// More information:
-    ///  - [ECMAScript reference][spec]
+    /// Gets the [`%GeneratorFunction.prototype.prototype%`][spec] intrinsic object.
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-generator-objects
     #[inline]
@@ -796,10 +797,7 @@ impl IntrinsicObjects {
         self.generator.clone()
     }
 
-    /// Gets the `%AsyncGeneratorFunction.prototype.prototype%` intrinsic object.
-    ///
-    /// More information:
-    ///  - [ECMAScript reference][spec]
+    /// Gets the [`%AsyncGeneratorFunction.prototype.prototype%`] intrinsic object.
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-asyncgenerator-objects
     #[inline]
@@ -807,7 +805,9 @@ impl IntrinsicObjects {
         self.async_generator.clone()
     }
 
-    /// Gets the %eval% intrinsic function.
+    /// Gets the [`%eval%`][spec] intrinsic function.
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-eval-x
     pub fn eval(&self) -> JsFunction {
         self.eval.clone()
     }
@@ -817,42 +817,58 @@ impl IntrinsicObjects {
         &self.uri_functions
     }
 
-    /// Gets the %Reflect% intrinsic object.
+    /// Gets the [`%Reflect%`][spec] intrinsic object.
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-reflect
     pub fn reflect(&self) -> JsObject {
         self.reflect.clone()
     }
 
-    /// Gets the %Math% intrinsic object.
+    /// Gets the [`%Math%`][spec] intrinsic object.
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-math
     pub fn math(&self) -> JsObject {
         self.math.clone()
     }
 
-    /// Gets the %JSON% intrinsic object.
+    /// Gets the [`%JSON%`][spec] intrinsic object.
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-json
     pub fn json(&self) -> JsObject {
         self.json.clone()
     }
 
-    /// Gets the %isFinite% intrinsic function.
+    /// Gets the [`%isFinite%`][spec] intrinsic function.
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-isfinite-number
     pub fn is_finite(&self) -> JsFunction {
         self.is_finite.clone()
     }
 
-    /// Gets the %`isNaN`% intrinsic function.
+    /// Gets the [`%isNaN%`][spec] intrinsic function.
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-isnan-number
     pub fn is_nan(&self) -> JsFunction {
         self.is_nan.clone()
     }
 
-    /// Gets the %parseFloat% intrinsic function.
+    /// Gets the [`%parseFloat%`][spec] intrinsic function.
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-parsefloat-string
     pub fn parse_float(&self) -> JsFunction {
         self.parse_float.clone()
     }
 
-    /// Gets the %parseInt% intrinsic function.
+    /// Gets the [`%parseInt%`][spec] intrinsic function.
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-parseint-string-radix
     pub fn parse_int(&self) -> JsFunction {
         self.parse_int.clone()
     }
 
-    /// Gets the %Intl% intrinsic object.
+    /// Gets the [`%Intl%`][spec] intrinsic object.
+    ///
+    /// [spec]: https://tc39.es/ecma402/#intl-object
     #[cfg(feature = "intl")]
     pub fn intl(&self) -> JsObject {
         self.intl.clone()
