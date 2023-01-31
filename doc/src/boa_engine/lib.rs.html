@@ -238,6 +238,9 @@
 <a href="#237" id="237">237</a>
 <a href="#238" id="238">238</a>
 <a href="#239" id="239">239</a>
+<a href="#240" id="240">240</a>
+<a href="#241" id="241">241</a>
+<a href="#242" id="242">242</a>
 </pre><pre class="rust"><code><span class="doccomment">//! Boa&#39;s **`boa_engine`** crate implements ECMAScript&#39;s standard library of builtin objects
 //! and an ECMAScript context, bytecompiler, and virtual machine for code execution.
 //!
@@ -375,6 +378,7 @@
         object::JsObject,
         Context, JsBigInt, JsResult, JsString, JsValue,
     };
+    <span class="kw">pub use </span>boa_parser::Source;
 }
 
 <span class="kw">use </span>std::result::Result <span class="kw">as </span>StdResult;
@@ -389,6 +393,8 @@
     symbol::JsSymbol,
     value::JsValue,
 };
+<span class="attr">#[doc(inline)]
+</span><span class="kw">pub use </span>boa_parser::Source;
 
 <span class="doccomment">/// The result of a Javascript expression is represented like this so it can succeed (`Ok`) or fail (`Err`)
 </span><span class="kw">pub type </span>JsResult&lt;T&gt; = StdResult&lt;T, JsError&gt;;
@@ -397,12 +403,12 @@
 ///
 /// The state of the `Context` is changed, and a string representation of the result is returned.
 </span><span class="attr">#[cfg(test)]
-</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>forward&lt;S&gt;(context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;, src: S) -&gt; String
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>forward&lt;S&gt;(context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;, src: <span class="kw-2">&amp;</span>S) -&gt; String
 <span class="kw">where
-    </span>S: AsRef&lt;[u8]&gt;,
+    </span>S: AsRef&lt;[u8]&gt; + <span class="question-mark">?</span>Sized,
 {
     context
-        .eval(src.as_ref())
+        .eval(Source::from_bytes(src))
         .map_or_else(|e| <span class="macro">format!</span>(<span class="string">&quot;Uncaught {e}&quot;</span>), |v| v.display().to_string())
 }
 
@@ -412,13 +418,15 @@
 /// If the interpreter fails parsing an error value is returned instead (error object)
 </span><span class="attr">#[allow(clippy::unit_arg, clippy::drop_copy)]
 #[cfg(test)]
-</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>forward_val&lt;T: AsRef&lt;[u8]&gt;&gt;(context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;, src: T) -&gt; JsResult&lt;JsValue&gt; {
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>forward_val&lt;T: AsRef&lt;[u8]&gt; + <span class="question-mark">?</span>Sized&gt;(
+    context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+    src: <span class="kw-2">&amp;</span>T,
+) -&gt; JsResult&lt;JsValue&gt; {
     <span class="kw">use </span>boa_profiler::Profiler;
 
     <span class="kw">let </span>main_timer = Profiler::global().start_event(<span class="string">&quot;Main&quot;</span>, <span class="string">&quot;Main&quot;</span>);
 
-    <span class="kw">let </span>src_bytes: <span class="kw-2">&amp;</span>[u8] = src.as_ref();
-    <span class="kw">let </span>result = context.eval(src_bytes);
+    <span class="kw">let </span>result = context.eval(Source::from_bytes(src));
 
     <span class="comment">// The main_timer needs to be dropped before the Profiler is.
     </span>drop(main_timer);
@@ -429,10 +437,8 @@
 
 <span class="doccomment">/// Create a clean Context and execute the code
 </span><span class="attr">#[cfg(test)]
-</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>exec&lt;T: AsRef&lt;[u8]&gt;&gt;(src: T) -&gt; String {
-    <span class="kw">let </span>src_bytes: <span class="kw-2">&amp;</span>[u8] = src.as_ref();
-
-    <span class="kw">match </span>Context::default().eval(src_bytes) {
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>exec&lt;T: AsRef&lt;[u8]&gt; + <span class="question-mark">?</span>Sized&gt;(src: <span class="kw-2">&amp;</span>T) -&gt; String {
+    <span class="kw">match </span>Context::default().eval(Source::from_bytes(src)) {
         <span class="prelude-val">Ok</span>(value) =&gt; value.display().to_string(),
         <span class="prelude-val">Err</span>(error) =&gt; error.to_string(),
     }

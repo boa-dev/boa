@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"struct":[["JsObject","Garbage collected `Object`."]]};
+window.SIDEBAR_ITEMS = {"struct":[["JsObject","Garbage collected `Object`."],["Source","A source of ECMAScript code."]]};

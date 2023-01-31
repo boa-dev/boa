@@ -296,7 +296,7 @@
     contains, contains_arguments, top_level_var_declared_names, ContainsSymbol,
 };
 <span class="kw">use </span>boa_gc::Gc;
-<span class="kw">use </span>boa_parser::Parser;
+<span class="kw">use </span>boa_parser::{Parser, Source};
 <span class="kw">use </span>boa_profiler::Profiler;
 
 <span class="attr">#[derive(Debug, Clone, Copy)]
@@ -398,7 +398,7 @@
         //     b. If script is a List of errors, throw a SyntaxError exception.
         //     c. If script Contains ScriptBody is false, return undefined.
         //     d. Let body be the ScriptBody of script.
-        </span><span class="kw">let </span><span class="kw-2">mut </span>parser = Parser::new(x.as_bytes());
+        </span><span class="kw">let </span><span class="kw-2">mut </span>parser = Parser::new(Source::from_bytes(<span class="kw-2">&amp;</span>x));
         <span class="kw">if </span>strict {
             parser.set_strict();
         }

@@ -100,6 +100,8 @@
 <a href="#99" id="99">99</a>
 <a href="#100" id="100">100</a>
 <a href="#101" id="101">101</a>
+<a href="#102" id="102">102</a>
+<a href="#103" id="103">103</a>
 </pre><pre class="rust"><code><span class="doccomment">//! Boa&#39;s **`boa_parser`** crate is a parser targeting the latest [ECMAScript language specification][spec].
 //!
 //! # Crate Overview
@@ -197,9 +199,11 @@
 </span><span class="kw">pub mod </span>error;
 <span class="kw">pub mod </span>lexer;
 <span class="kw">pub mod </span>parser;
+<span class="kw">mod </span>source;
 
 <span class="kw">pub use </span>error::Error;
 <span class="kw">pub use </span>lexer::Lexer;
 <span class="kw">pub use </span>parser::Parser;
+<span class="kw">pub use </span>source::Source;
 </code></pre></div>
 </section></div></main><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="boa_parser" data-themes="" data-resource-suffix="" data-rustdoc-version="1.67.0 (fc594f156 2023-01-24)" data-search-js="search-444266647c4dba98.js" data-settings-js="settings-bebeae96e00e4617.js" data-settings-css="settings-af96d9e2fc13e081.css" ></div></body></html>

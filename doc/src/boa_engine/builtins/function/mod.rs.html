@@ -1062,6 +1062,7 @@
 <a href="#1061" id="1061">1061</a>
 <a href="#1062" id="1062">1062</a>
 <a href="#1063" id="1063">1063</a>
+<a href="#1064" id="1064">1064</a>
 </pre><pre class="rust"><code><span class="doccomment">//! Boa&#39;s implementation of ECMAScript&#39;s global `Function` object and Native Functions.
 //!
 //! Objects wrap `Function`s and expose them via call/construct slots.
@@ -1098,7 +1099,7 @@
 };
 <span class="kw">use </span>boa_gc::{<span class="self">self</span>, custom_trace, Finalize, Gc, Trace};
 <span class="kw">use </span>boa_interner::Sym;
-<span class="kw">use </span>boa_parser::Parser;
+<span class="kw">use </span>boa_parser::{Parser, Source};
 <span class="kw">use </span>boa_profiler::Profiler;
 <span class="kw">use </span>tap::{Conv, Pipe};
 
@@ -1576,16 +1577,17 @@
                 parameters.push(u16::from(<span class="string">b&#39;)&#39;</span>));
 
                 <span class="comment">// TODO: make parser generic to u32 iterators
-                </span><span class="kw">let </span>parameters = <span class="kw">match </span>Parser::new(String::from_utf16_lossy(<span class="kw-2">&amp;</span>parameters).as_bytes())
-                    .parse_formal_parameters(context.interner_mut(), generator, r#async)
-                {
-                    <span class="prelude-val">Ok</span>(parameters) =&gt; parameters,
-                    <span class="prelude-val">Err</span>(e) =&gt; {
-                        <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::syntax()
-                            .with_message(<span class="macro">format!</span>(<span class="string">&quot;failed to parse function parameters: {e}&quot;</span>))
-                            .into())
-                    }
-                };
+                </span><span class="kw">let </span>parameters =
+                    <span class="kw">match </span>Parser::new(Source::from_bytes(<span class="kw-2">&amp;</span>String::from_utf16_lossy(<span class="kw-2">&amp;</span>parameters)))
+                        .parse_formal_parameters(context.interner_mut(), generator, r#async)
+                    {
+                        <span class="prelude-val">Ok</span>(parameters) =&gt; parameters,
+                        <span class="prelude-val">Err</span>(e) =&gt; {
+                            <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::syntax()
+                                .with_message(<span class="macro">format!</span>(<span class="string">&quot;failed to parse function parameters: {e}&quot;</span>))
+                                .into())
+                        }
+                    };
 
                 <span class="kw">if </span>generator &amp;&amp; contains(<span class="kw-2">&amp;</span>parameters, ContainsSymbol::YieldExpression) {
                     <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::syntax().with_message(
@@ -1613,7 +1615,7 @@
             <span class="kw">let </span>body_arg = body_arg.to_string(context)<span class="question-mark">?</span>;
 
             <span class="comment">// TODO: make parser generic to u32 iterators
-            </span><span class="kw">let </span>body = <span class="kw">match </span>Parser::new(body_arg.to_std_string_escaped().as_bytes())
+            </span><span class="kw">let </span>body = <span class="kw">match </span>Parser::new(Source::from_bytes(<span class="kw-2">&amp;</span>body_arg.to_std_string_escaped()))
                 .parse_function_body(context.interner_mut(), generator, r#async)
             {
                 <span class="prelude-val">Ok</span>(statement_list) =&gt; statement_list,

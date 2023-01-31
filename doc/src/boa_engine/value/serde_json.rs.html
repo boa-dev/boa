@@ -288,6 +288,8 @@
 <a href="#287" id="287">287</a>
 <a href="#288" id="288">288</a>
 <a href="#289" id="289">289</a>
+<a href="#290" id="290">290</a>
+<a href="#291" id="291">291</a>
 </pre><pre class="rust"><code><span class="doccomment">//! This module implements the conversions from and into [`serde_json::Value`].
 
 </span><span class="kw">use </span><span class="kw">super</span>::JsValue;
@@ -458,6 +460,8 @@
 
 <span class="attr">#[cfg(test)]
 </span><span class="kw">mod </span>tests {
+    <span class="kw">use </span>boa_parser::Source;
+
     <span class="kw">use </span><span class="kw">crate</span>::object::JsArray;
     <span class="kw">use crate</span>::{Context, JsValue};
 
@@ -515,61 +519,61 @@
         <span class="kw">let </span><span class="kw-2">mut </span>context = Context::default();
 
         <span class="kw">let </span>add = context
-            .eval(
+            .eval(Source::from_bytes(
                 <span class="string">r#&quot;
                 1000000 + 500
             &quot;#</span>,
-            )
+            ))
             .unwrap();
         <span class="kw">let </span>add: u32 = serde_json::from_value(add.to_json(<span class="kw-2">&amp;mut </span>context).unwrap()).unwrap();
         <span class="macro">assert_eq!</span>(add, <span class="number">1_000_500</span>);
 
         <span class="kw">let </span>sub = context
-            .eval(
+            .eval(Source::from_bytes(
                 <span class="string">r#&quot;
                 1000000 - 500
             &quot;#</span>,
-            )
+            ))
             .unwrap();
         <span class="kw">let </span>sub: u32 = serde_json::from_value(sub.to_json(<span class="kw-2">&amp;mut </span>context).unwrap()).unwrap();
         <span class="macro">assert_eq!</span>(sub, <span class="number">999_500</span>);
 
         <span class="kw">let </span>mult = context
-            .eval(
+            .eval(Source::from_bytes(
                 <span class="string">r#&quot;
                 1000000 * 500
             &quot;#</span>,
-            )
+            ))
             .unwrap();
         <span class="kw">let </span>mult: u32 = serde_json::from_value(mult.to_json(<span class="kw-2">&amp;mut </span>context).unwrap()).unwrap();
         <span class="macro">assert_eq!</span>(mult, <span class="number">500_000_000</span>);
 
         <span class="kw">let </span>div = context
-            .eval(
+            .eval(Source::from_bytes(
                 <span class="string">r#&quot;
                 1000000 / 500
             &quot;#</span>,
-            )
+            ))
             .unwrap();
         <span class="kw">let </span>div: u32 = serde_json::from_value(div.to_json(<span class="kw-2">&amp;mut </span>context).unwrap()).unwrap();
         <span class="macro">assert_eq!</span>(div, <span class="number">2000</span>);
 
         <span class="kw">let </span>rem = context
-            .eval(
+            .eval(Source::from_bytes(
                 <span class="string">r#&quot;
                 233894 % 500
             &quot;#</span>,
-            )
+            ))
             .unwrap();
         <span class="kw">let </span>rem: u32 = serde_json::from_value(rem.to_json(<span class="kw-2">&amp;mut </span>context).unwrap()).unwrap();
         <span class="macro">assert_eq!</span>(rem, <span class="number">394</span>);
 
         <span class="kw">let </span>pow = context
-            .eval(
+            .eval(Source::from_bytes(
                 <span class="string">r#&quot;
                 36 ** 5
             &quot;#</span>,
-            )
+            ))
             .unwrap();
 
         <span class="kw">let </span>pow: u32 = serde_json::from_value(pow.to_json(<span class="kw-2">&amp;mut </span>context).unwrap()).unwrap();

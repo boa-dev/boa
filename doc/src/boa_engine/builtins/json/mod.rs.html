@@ -912,7 +912,7 @@
     value::IntegerOrInfinity,
     Context, JsResult, JsString, JsValue,
 };
-<span class="kw">use </span>boa_parser::Parser;
+<span class="kw">use </span>boa_parser::{Parser, Source};
 <span class="kw">use </span>boa_profiler::Profiler;
 <span class="kw">use </span>tap::{Conv, Pipe};
 
@@ -1080,7 +1080,7 @@
         // 8. NOTE: The PropertyDefinitionEvaluation semantics defined in 13.2.5.5 have special handling for the above evaluation.
         // 9. Let unfiltered be completion.[[Value]].
         // 10. Assert: unfiltered is either a String, Number, Boolean, Null, or an Object that is defined by either an ArrayLiteral or an ObjectLiteral.
-        </span><span class="kw">let </span><span class="kw-2">mut </span>parser = Parser::new(script_string.as_bytes());
+        </span><span class="kw">let </span><span class="kw-2">mut </span>parser = Parser::new(Source::from_bytes(<span class="kw-2">&amp;</span>script_string));
         parser.set_json_parse();
         <span class="kw">let </span>statement_list = parser.parse_all(context.interner_mut())<span class="question-mark">?</span>;
         <span class="kw">let </span>code_block = context.compile_json_parse(<span class="kw-2">&amp;</span>statement_list)<span class="question-mark">?</span>;

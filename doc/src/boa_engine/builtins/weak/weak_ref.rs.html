@@ -176,6 +176,8 @@
 <a href="#175" id="175">175</a>
 <a href="#176" id="176">176</a>
 <a href="#177" id="177">177</a>
+<a href="#178" id="178">178</a>
+<a href="#179" id="179">179</a>
 </pre><pre class="rust"><code><span class="kw">use </span>boa_gc::{Finalize, Trace, WeakGc};
 <span class="kw">use </span>boa_profiler::Profiler;
 <span class="kw">use </span>tap::{Conv, Pipe};
@@ -319,6 +321,8 @@
 
 <span class="attr">#[cfg(test)]
 </span><span class="kw">mod </span>tests {
+    <span class="kw">use </span>boa_parser::Source;
+
     <span class="kw">use crate</span>::{Context, JsValue};
 
     <span class="attr">#[test]
@@ -326,7 +330,7 @@
         <span class="kw">let </span>context = <span class="kw-2">&amp;mut </span>Context::default();
 
         <span class="macro">assert!</span>(context
-            .eval(
+            .eval(Source::from_bytes(
                 <span class="string">r#&quot;
             var ptr;
             {
@@ -335,7 +339,7 @@
             }
             ptr.deref()
         &quot;#
-            </span>)
+            </span>))
             .unwrap()
             .is_object());
 
@@ -343,11 +347,11 @@
 
         <span class="macro">assert_eq!</span>(
             context
-                .eval(
+                .eval(Source::from_bytes(
                     <span class="string">r#&quot;
             ptr.deref()
         &quot;#
-                </span>)
+                </span>))
                 .unwrap(),
             JsValue::undefined()
         );

@@ -349,15 +349,6 @@
 <a href="#348" id="348">348</a>
 <a href="#349" id="349">349</a>
 <a href="#350" id="350">350</a>
-<a href="#351" id="351">351</a>
-<a href="#352" id="352">352</a>
-<a href="#353" id="353">353</a>
-<a href="#354" id="354">354</a>
-<a href="#355" id="355">355</a>
-<a href="#356" id="356">356</a>
-<a href="#357" id="357">357</a>
-<a href="#358" id="358">358</a>
-<a href="#359" id="359">359</a>
 </pre><pre class="rust"><code><span class="doccomment">//! Boa parser implementation.
 
 </span><span class="kw">mod </span>cursor;
@@ -375,7 +366,7 @@
         cursor::Cursor,
         function::{FormalParameters, FunctionStatementList},
     },
-    Error,
+    Error, Source,
 };
 <span class="kw">use </span>boa_ast::{
     expression::Identifier,
@@ -387,7 +378,7 @@
 };
 <span class="kw">use </span>boa_interner::Interner;
 <span class="kw">use </span>rustc_hash::FxHashSet;
-<span class="kw">use </span>std::io::Read;
+<span class="kw">use </span>std::{io::Read, path::Path};
 
 <span class="doccomment">/// Trait implemented by parsers.
 ///
@@ -465,36 +456,21 @@
 /// [label]: https://tc39.es/ecma262/#sec-labelled-function-declarations
 /// [block]: https://tc39.es/ecma262/#sec-block-duplicates-allowed-static-semantics
 </span><span class="attr">#[derive(Debug)]
-</span><span class="kw">pub struct </span>Parser&lt;R&gt; {
+#[allow(unused)] </span><span class="comment">// Right now the path is not used, but it&#39;s better to have it for future improvements.
+</span><span class="kw">pub struct </span>Parser&lt;<span class="lifetime">&#39;a</span>, R&gt; {
+    <span class="doccomment">/// Path to the source being parsed.
+    </span>path: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>Path&gt;,
     <span class="doccomment">/// Cursor of the parser, pointing to the lexer and used to get tokens for the parser.
     </span>cursor: Cursor&lt;R&gt;,
 }
 
-<span class="kw">impl</span>&lt;R&gt; Parser&lt;R&gt; {
-    <span class="doccomment">/// Create a new `Parser` with a reader as the input to parse.
-    </span><span class="kw">pub fn </span>new(reader: R) -&gt; <span class="self">Self
-    </span><span class="kw">where
-        </span>R: Read,
-    {
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, R: Read&gt; Parser&lt;<span class="lifetime">&#39;a</span>, R&gt; {
+    <span class="doccomment">/// Create a new `Parser` with a `Source` as the input to parse.
+    </span><span class="kw">pub fn </span>new(source: Source&lt;<span class="lifetime">&#39;a</span>, R&gt;) -&gt; <span class="self">Self </span>{
         <span class="self">Self </span>{
-            cursor: Cursor::new(reader),
+            path: source.path,
+            cursor: Cursor::new(source.reader),
         }
-    }
-
-    <span class="doccomment">/// Set the parser strict mode to true.
-    </span><span class="kw">pub fn </span>set_strict(<span class="kw-2">&amp;mut </span><span class="self">self</span>)
-    <span class="kw">where
-        </span>R: Read,
-    {
-        <span class="self">self</span>.cursor.set_strict_mode(<span class="bool-val">true</span>);
-    }
-
-    <span class="doccomment">/// Set the parser strict mode to true.
-    </span><span class="kw">pub fn </span>set_json_parse(<span class="kw-2">&amp;mut </span><span class="self">self</span>)
-    <span class="kw">where
-        </span>R: Read,
-    {
-        <span class="self">self</span>.cursor.set_json_parse(<span class="bool-val">true</span>);
     }
 
     <span class="doccomment">/// Parse the full input as a [ECMAScript Script][spec] into the boa AST representation.
@@ -505,10 +481,7 @@
     /// Will return `Err` on any parsing error, including invalid reads of the bytes being parsed.
     ///
     /// [spec]: https://tc39.es/ecma262/#prod-Script
-    </span><span class="kw">pub fn </span>parse_all(<span class="kw-2">&amp;mut </span><span class="self">self</span>, interner: <span class="kw-2">&amp;mut </span>Interner) -&gt; ParseResult&lt;StatementList&gt;
-    <span class="kw">where
-        </span>R: Read,
-    {
+    </span><span class="kw">pub fn </span>parse_all(<span class="kw-2">&amp;mut </span><span class="self">self</span>, interner: <span class="kw-2">&amp;mut </span>Interner) -&gt; ParseResult&lt;StatementList&gt; {
         Script::new(<span class="bool-val">false</span>).parse(<span class="kw-2">&amp;mut </span><span class="self">self</span>.cursor, interner)
     }
 
@@ -525,10 +498,7 @@
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
         direct: bool,
         interner: <span class="kw-2">&amp;mut </span>Interner,
-    ) -&gt; ParseResult&lt;StatementList&gt;
-    <span class="kw">where
-        </span>R: Read,
-    {
+    ) -&gt; ParseResult&lt;StatementList&gt; {
         Script::new(direct).parse(<span class="kw-2">&amp;mut </span><span class="self">self</span>.cursor, interner)
     }
 
@@ -544,10 +514,7 @@
         interner: <span class="kw-2">&amp;mut </span>Interner,
         allow_yield: bool,
         allow_await: bool,
-    ) -&gt; ParseResult&lt;StatementList&gt;
-    <span class="kw">where
-        </span>R: Read,
-    {
+    ) -&gt; ParseResult&lt;StatementList&gt; {
         FunctionStatementList::new(allow_yield, allow_await).parse(<span class="kw-2">&amp;mut </span><span class="self">self</span>.cursor, interner)
     }
 
@@ -563,11 +530,26 @@
         interner: <span class="kw-2">&amp;mut </span>Interner,
         allow_yield: bool,
         allow_await: bool,
-    ) -&gt; ParseResult&lt;FormalParameterList&gt;
+    ) -&gt; ParseResult&lt;FormalParameterList&gt; {
+        FormalParameters::new(allow_yield, allow_await).parse(<span class="kw-2">&amp;mut </span><span class="self">self</span>.cursor, interner)
+    }
+}
+
+<span class="kw">impl</span>&lt;R&gt; Parser&lt;<span class="lifetime">&#39;_</span>, R&gt; {
+    <span class="doccomment">/// Set the parser strict mode to true.
+    </span><span class="kw">pub fn </span>set_strict(<span class="kw-2">&amp;mut </span><span class="self">self</span>)
     <span class="kw">where
         </span>R: Read,
     {
-        FormalParameters::new(allow_yield, allow_await).parse(<span class="kw-2">&amp;mut </span><span class="self">self</span>.cursor, interner)
+        <span class="self">self</span>.cursor.set_strict_mode(<span class="bool-val">true</span>);
+    }
+
+    <span class="doccomment">/// Set the parser JSON mode to true.
+    </span><span class="kw">pub fn </span>set_json_parse(<span class="kw-2">&amp;mut </span><span class="self">self</span>)
+    <span class="kw">where
+        </span>R: Read,
+    {
+        <span class="self">self</span>.cursor.set_json_parse(<span class="bool-val">true</span>);
     }
 }
 

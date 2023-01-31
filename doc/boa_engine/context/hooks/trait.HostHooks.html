@@ -13,7 +13,7 @@ that the hook must abide to for spec compliance.</p>
 <p>Implement the trait for a custom struct (maybe with additional state), overriding the methods that
 need to be redefined:</p>
 
-<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use </span>boa_engine::{JsNativeError, JsResult, context::{Context, ContextBuilder, HostHooks}};
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use </span>boa_engine::{JsNativeError, JsResult, context::{Context, ContextBuilder, HostHooks}, Source};
 
 <span class="kw">struct </span>Hooks;
 
@@ -27,7 +27,7 @@ need to be redefined:</p>
 }
 <span class="kw">let </span>hooks = Hooks; <span class="comment">// Can have additional state.
 </span><span class="kw">let </span>context = <span class="kw-2">&amp;mut </span>ContextBuilder::new().host_hooks(<span class="kw-2">&amp;</span>hooks).build();
-<span class="kw">let </span>result = context.eval(<span class="string">r#&quot;eval(&quot;let a = 5&quot;)&quot;#</span>);
+<span class="kw">let </span>result = context.eval(Source::from_bytes(<span class="string">r#&quot;eval(&quot;let a = 5&quot;)&quot;#</span>));
 <span class="macro">assert_eq!</span>(result.unwrap_err().to_string(), <span class="string">&quot;TypeError: eval calls not available&quot;</span>);</code></pre></div>
 </div></details><h2 id="provided-methods" class="small-section-header">Provided Methods<a href="#provided-methods" class="anchor">§</a></h2><div class="methods"><details class="rustdoc-toggle method-toggle" open><summary><section id="method.make_job_callback" class="method has-srclink"><a class="srclink rightside" href="../../../src/boa_engine/context/hooks.rs.html#46-51">source</a><h4 class="code-header">fn <a href="#method.make_job_callback" class="fn">make_job_callback</a>(<br>&nbsp;&nbsp;&nbsp;&nbsp;&amp;self,<br>&nbsp;&nbsp;&nbsp;&nbsp;callback: <a class="struct" href="../../object/builtins/jsfunction/struct.JsFunction.html" title="struct boa_engine::object::builtins::jsfunction::JsFunction">JsFunction</a>,<br>&nbsp;&nbsp;&nbsp;&nbsp;_context: &amp;mut <a class="struct" href="../../struct.Context.html" title="struct boa_engine::Context">Context</a>&lt;'_&gt;<br>) -&gt; <a class="struct" href="../../job/struct.JobCallback.html" title="struct boa_engine::job::JobCallback">JobCallback</a></h4></section></summary><div class="docblock"><p><a href="https://tc39.es/ecma262/#sec-hostmakejobcallback"><code>HostMakeJobCallback ( callback )</code></a></p>
 <h5 id="requirements"><a href="#requirements">Requirements</a></h5>

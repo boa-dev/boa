@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"mod":[["error","Error and result implementation for the parser."],["lexer","Boa’s lexical analyzer(Lexer) for ECMAScript source code."],["parser","Boa parser implementation."]]};
+window.SIDEBAR_ITEMS = {"mod":[["error","Error and result implementation for the parser."],["lexer","Boa’s lexical analyzer(Lexer) for ECMAScript source code."],["parser","Boa parser implementation."],["source",""]],"struct":[["Source","A source of ECMAScript code."]]};

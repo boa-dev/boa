@@ -558,6 +558,13 @@
 <a href="#557" id="557">557</a>
 <a href="#558" id="558">558</a>
 <a href="#559" id="559">559</a>
+<a href="#560" id="560">560</a>
+<a href="#561" id="561">561</a>
+<a href="#562" id="562">562</a>
+<a href="#563" id="563">563</a>
+<a href="#564" id="564">564</a>
+<a href="#565" id="565">565</a>
+<a href="#566" id="566">566</a>
 </pre><pre class="rust"><code><span class="doccomment">//! Test262 test runner
 //!
 //! This crate will run the full ECMAScript test suite (Test262) and report compliance of the
@@ -857,16 +864,23 @@
 <span class="doccomment">/// All the harness include files.
 </span><span class="attr">#[derive(Debug, Clone)]
 </span><span class="kw">struct </span>Harness {
-    assert: Box&lt;str&gt;,
-    sta: Box&lt;str&gt;,
-    doneprint_handle: Box&lt;str&gt;,
-    includes: FxHashMap&lt;Box&lt;str&gt;, Box&lt;str&gt;&gt;,
+    assert: HarnessFile,
+    sta: HarnessFile,
+    doneprint_handle: HarnessFile,
+    includes: FxHashMap&lt;Box&lt;str&gt;, HarnessFile&gt;,
+}
+
+<span class="attr">#[derive(Debug, Clone)]
+</span><span class="kw">struct </span>HarnessFile {
+    content: Box&lt;str&gt;,
+    path: Box&lt;Path&gt;,
 }
 
 <span class="doccomment">/// Represents a test suite.
 </span><span class="attr">#[derive(Debug, Clone)]
 </span><span class="kw">struct </span>TestSuite {
     name: Box&lt;str&gt;,
+    path: Box&lt;Path&gt;,
     suites: Box&lt;[TestSuite]&gt;,
     tests: Box&lt;[Test]&gt;,
 }
@@ -922,7 +936,7 @@
 }
 
 <span class="doccomment">/// Represents a test.
-</span><span class="attr">#[derive(Debug, Clone, Default)]
+</span><span class="attr">#[derive(Debug, Clone)]
 #[allow(dead_code)]
 </span><span class="kw">struct </span>Test {
     name: Box&lt;str&gt;,
@@ -934,16 +948,16 @@
     expected_outcome: Outcome,
     includes: Box&lt;[Box&lt;str&gt;]&gt;,
     locale: Locale,
-    content: Box&lt;str&gt;,
+    path: Box&lt;Path&gt;,
     ignored: bool,
 }
 
 <span class="kw">impl </span>Test {
     <span class="doccomment">/// Creates a new test.
-    </span><span class="kw">fn </span>new&lt;N, C&gt;(name: N, content: C, metadata: MetaData) -&gt; <span class="self">Self
+    </span><span class="kw">fn </span>new&lt;N, C&gt;(name: N, path: C, metadata: MetaData) -&gt; <span class="self">Self
     </span><span class="kw">where
         </span>N: Into&lt;Box&lt;str&gt;&gt;,
-        C: Into&lt;Box&lt;str&gt;&gt;,
+        C: Into&lt;Box&lt;Path&gt;&gt;,
     {
         <span class="self">Self </span>{
             name: name.into(),
@@ -955,7 +969,7 @@
             expected_outcome: Outcome::from(metadata.negative),
             includes: metadata.includes,
             locale: metadata.locale,
-            content: content.into(),
+            path: path.into(),
             ignored: <span class="bool-val">false</span>,
         }
     }

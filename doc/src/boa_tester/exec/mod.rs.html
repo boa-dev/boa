@@ -404,6 +404,29 @@
 <a href="#403" id="403">403</a>
 <a href="#404" id="404">404</a>
 <a href="#405" id="405">405</a>
+<a href="#406" id="406">406</a>
+<a href="#407" id="407">407</a>
+<a href="#408" id="408">408</a>
+<a href="#409" id="409">409</a>
+<a href="#410" id="410">410</a>
+<a href="#411" id="411">411</a>
+<a href="#412" id="412">412</a>
+<a href="#413" id="413">413</a>
+<a href="#414" id="414">414</a>
+<a href="#415" id="415">415</a>
+<a href="#416" id="416">416</a>
+<a href="#417" id="417">417</a>
+<a href="#418" id="418">418</a>
+<a href="#419" id="419">419</a>
+<a href="#420" id="420">420</a>
+<a href="#421" id="421">421</a>
+<a href="#422" id="422">422</a>
+<a href="#423" id="423">423</a>
+<a href="#424" id="424">424</a>
+<a href="#425" id="425">425</a>
+<a href="#426" id="426">426</a>
+<a href="#427" id="427">427</a>
+<a href="#428" id="428">428</a>
 </pre><pre class="rust"><code><span class="doccomment">//! Execution module for the test runner.
 
 </span><span class="kw">mod </span>js262;
@@ -415,18 +438,17 @@
 <span class="kw">use </span>boa_engine::{
     builtins::JsArgs, context::ContextBuilder, job::SimpleJobQueue,
     native_function::NativeFunction, object::FunctionObjectBuilder, property::Attribute, Context,
-    JsNativeErrorKind, JsValue,
+    JsNativeErrorKind, JsValue, Source,
 };
-<span class="kw">use </span>boa_parser::Parser;
 <span class="kw">use </span>colored::Colorize;
 <span class="kw">use </span>rayon::prelude::<span class="kw-2">*</span>;
-<span class="kw">use </span>std::{borrow::Cow, cell::RefCell, rc::Rc};
+<span class="kw">use </span>std::{cell::RefCell, rc::Rc};
 
 <span class="kw">impl </span>TestSuite {
     <span class="doccomment">/// Runs the test suite.
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>run(<span class="kw-2">&amp;</span><span class="self">self</span>, harness: <span class="kw-2">&amp;</span>Harness, verbose: u8, parallel: bool) -&gt; SuiteResult {
         <span class="kw">if </span>verbose != <span class="number">0 </span>{
-            <span class="macro">println!</span>(<span class="string">&quot;Suite {}:&quot;</span>, <span class="self">self</span>.name);
+            <span class="macro">println!</span>(<span class="string">&quot;Suite {}:&quot;</span>, <span class="self">self</span>.path.display());
         }
 
         <span class="kw">let </span>suites: Vec&lt;<span class="kw">_</span>&gt; = <span class="kw">if </span>parallel {
@@ -491,7 +513,7 @@
             <span class="macro">println!</span>(
                 <span class="string">&quot;Suite {} results: total: {total}, passed: {}, ignored: {}, failed: {} (panics: \
                     {}{}), conformance: {:.2}%&quot;</span>,
-                <span class="self">self</span>.name,
+                <span class="self">self</span>.path.display(),
                 passed.to_string().green(),
                 ignored.to_string().yellow(),
                 (total - passed - ignored).to_string().red(),
@@ -535,11 +557,29 @@
 
     <span class="doccomment">/// Runs the test once, in strict or non-strict mode
     </span><span class="kw">fn </span>run_once(<span class="kw-2">&amp;</span><span class="self">self</span>, harness: <span class="kw-2">&amp;</span>Harness, strict: bool, verbose: u8) -&gt; TestResult {
+        <span class="kw">let </span><span class="prelude-val">Ok</span>(source) = Source::from_filepath(<span class="kw-2">&amp;</span><span class="self">self</span>.path) <span class="kw">else </span>{
+            <span class="kw">if </span>verbose &gt; <span class="number">1 </span>{
+                <span class="macro">println!</span>(
+                    <span class="string">&quot;`{}`{}: {}&quot;</span>,
+                    <span class="self">self</span>.path.display(),
+                    <span class="kw">if </span>strict { <span class="string">&quot; (strict mode)&quot; </span>} <span class="kw">else </span>{ <span class="string">&quot;&quot; </span>},
+                    <span class="string">&quot;Invalid file&quot;</span>.red()
+                );
+            } <span class="kw">else </span>{
+                <span class="macro">print!</span>(<span class="string">&quot;{}&quot;</span>, <span class="string">&quot;F&quot;</span>.red());
+            }
+            <span class="kw">return </span>TestResult {
+                name: <span class="self">self</span>.name.clone(),
+                strict,
+                result: TestOutcomeResult::Failed,
+                result_text: Box::from(<span class="string">&quot;Could not read test file.&quot;</span>)
+            }
+        };
         <span class="kw">if </span><span class="self">self</span>.ignored {
             <span class="kw">if </span>verbose &gt; <span class="number">1 </span>{
                 <span class="macro">println!</span>(
                     <span class="string">&quot;`{}`{}: {}&quot;</span>,
-                    <span class="self">self</span>.name,
+                    <span class="self">self</span>.path.display(),
                     <span class="kw">if </span>strict { <span class="string">&quot; (strict mode)&quot; </span>} <span class="kw">else </span>{ <span class="string">&quot;&quot; </span>},
                     <span class="string">&quot;Ignored&quot;</span>.yellow()
                 );
@@ -556,16 +596,10 @@
         <span class="kw">if </span>verbose &gt; <span class="number">1 </span>{
             <span class="macro">println!</span>(
                 <span class="string">&quot;`{}`{}: starting&quot;</span>,
-                <span class="self">self</span>.name,
+                <span class="self">self</span>.path.display(),
                 <span class="kw">if </span>strict { <span class="string">&quot; (strict mode)&quot; </span>} <span class="kw">else </span>{ <span class="string">&quot;&quot; </span>}
             );
         }
-
-        <span class="kw">let </span>test_content = <span class="kw">if </span>strict {
-            Cow::Owned(<span class="macro">format!</span>(<span class="string">&quot;\&quot;use strict\&quot;;\n{}&quot;</span>, <span class="self">self</span>.content))
-        } <span class="kw">else </span>{
-            Cow::Borrowed(<span class="kw-2">&amp;*</span><span class="self">self</span>.content)
-        };
 
         <span class="kw">let </span>result = std::panic::catch_unwind(|| <span class="kw">match </span><span class="self">self</span>.expected_outcome {
             Outcome::Positive =&gt; {
@@ -576,9 +610,10 @@
                 <span class="kw">if let </span><span class="prelude-val">Err</span>(e) = <span class="self">self</span>.set_up_env(harness, context, async_result.clone()) {
                     <span class="kw">return </span>(<span class="bool-val">false</span>, e);
                 }
+                context.strict(strict);
 
                 <span class="comment">// TODO: timeout
-                </span><span class="kw">let </span>value = <span class="kw">match </span>context.eval(<span class="kw-2">&amp;*</span>test_content) {
+                </span><span class="kw">let </span>value = <span class="kw">match </span>context.eval(source) {
                     <span class="prelude-val">Ok</span>(v) =&gt; v,
                     <span class="prelude-val">Err</span>(e) =&gt; <span class="kw">return </span>(<span class="bool-val">false</span>, <span class="macro">format!</span>(<span class="string">&quot;Uncaught {e}&quot;</span>)),
                 };
@@ -599,11 +634,12 @@
                     error_type,
                     ErrorType::SyntaxError,
                     <span class="string">&quot;non-SyntaxError parsing/early error found in {}&quot;</span>,
-                    <span class="self">self</span>.name
+                    <span class="self">self</span>.path.display()
                 );
 
                 <span class="kw">let </span><span class="kw-2">mut </span>context = Context::default();
-                <span class="kw">match </span>context.parse(<span class="kw-2">&amp;*</span>test_content) {
+                context.strict(strict);
+                <span class="kw">match </span>context.parse(source) {
                     <span class="prelude-val">Ok</span>(statement_list) =&gt; <span class="kw">match </span>context.compile(<span class="kw-2">&amp;</span>statement_list) {
                         <span class="prelude-val">Ok</span>(<span class="kw">_</span>) =&gt; (<span class="bool-val">false</span>, <span class="string">&quot;StatementList compilation should fail&quot;</span>.to_owned()),
                         <span class="prelude-val">Err</span>(e) =&gt; (<span class="bool-val">true</span>, <span class="macro">format!</span>(<span class="string">&quot;Uncaught {e:?}&quot;</span>)),
@@ -623,8 +659,9 @@
                 <span class="kw">if let </span><span class="prelude-val">Err</span>(e) = <span class="self">self</span>.set_up_env(harness, context, AsyncResult::default()) {
                     <span class="kw">return </span>(<span class="bool-val">false</span>, e);
                 }
-                <span class="kw">let </span>code = <span class="kw">match </span>Parser::new(test_content.as_bytes())
-                    .parse_all(context.interner_mut())
+                context.strict(strict);
+                <span class="kw">let </span>code = <span class="kw">match </span>context
+                    .parse(source)
                     .map_err(Into::into)
                     .and_then(|stmts| context.compile(<span class="kw-2">&amp;</span>stmts))
                 {
@@ -666,7 +703,7 @@
 
         <span class="kw">let </span>(result, result_text) = result.map_or_else(
             |<span class="kw">_</span>| {
-                <span class="macro">eprintln!</span>(<span class="string">&quot;last panic was on test \&quot;{}\&quot;&quot;</span>, <span class="self">self</span>.name);
+                <span class="macro">eprintln!</span>(<span class="string">&quot;last panic was on test \&quot;{}\&quot;&quot;</span>, <span class="self">self</span>.path.display());
                 (TestOutcomeResult::Panic, String::new())
             },
             |(res, text)| {
@@ -681,7 +718,7 @@
         <span class="kw">if </span>verbose &gt; <span class="number">1 </span>{
             <span class="macro">println!</span>(
                 <span class="string">&quot;`{}`{}: {}&quot;</span>,
-                <span class="self">self</span>.name,
+                <span class="self">self</span>.path.display(),
                 <span class="kw">if </span>strict { <span class="string">&quot; (strict mode)&quot; </span>} <span class="kw">else </span>{ <span class="string">&quot;&quot; </span>},
                 <span class="kw">if </span>result == TestOutcomeResult::Passed {
                     <span class="string">&quot;Passed&quot;</span>.green()
@@ -705,7 +742,7 @@
         <span class="kw">if </span>verbose &gt; <span class="number">2 </span>{
             <span class="macro">println!</span>(
                 <span class="string">&quot;`{}`{}: result text&quot;</span>,
-                <span class="self">self</span>.name,
+                <span class="self">self</span>.path.display(),
                 <span class="kw">if </span>strict { <span class="string">&quot; (strict mode)&quot; </span>} <span class="kw">else </span>{ <span class="string">&quot;&quot; </span>},
             );
             <span class="macro">println!</span>(<span class="string">&quot;{result_text}&quot;</span>);
@@ -737,29 +774,38 @@
             <span class="kw">return </span><span class="prelude-val">Ok</span>(());
         }
 
+        <span class="kw">let </span>assert = Source::from_reader(
+            harness.assert.content.as_bytes(),
+            <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span>harness.assert.path),
+        );
+        <span class="kw">let </span>sta = Source::from_reader(harness.sta.content.as_bytes(), <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span>harness.sta.path));
+
         context
-            .eval(harness.assert.as_ref())
+            .eval(assert)
             .map_err(|e| <span class="macro">format!</span>(<span class="string">&quot;could not run assert.js:\n{e}&quot;</span>))<span class="question-mark">?</span>;
         context
-            .eval(harness.sta.as_ref())
+            .eval(sta)
             .map_err(|e| <span class="macro">format!</span>(<span class="string">&quot;could not run sta.js:\n{e}&quot;</span>))<span class="question-mark">?</span>;
 
         <span class="kw">if </span><span class="self">self</span>.flags.contains(TestFlags::ASYNC) {
+            <span class="kw">let </span>dph = Source::from_reader(
+                harness.doneprint_handle.content.as_bytes(),
+                <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span>harness.doneprint_handle.path),
+            );
             context
-                .eval(harness.doneprint_handle.as_ref())
+                .eval(dph)
                 .map_err(|e| <span class="macro">format!</span>(<span class="string">&quot;could not run doneprintHandle.js:\n{e}&quot;</span>))<span class="question-mark">?</span>;
         }
 
-        <span class="kw">for </span>include <span class="kw">in </span><span class="self">self</span>.includes.iter() {
-            context
-                .eval(
-                    harness
-                        .includes
-                        .get(include)
-                        .ok_or_else(|| <span class="macro">format!</span>(<span class="string">&quot;could not find the {include} include file.&quot;</span>))<span class="question-mark">?
-                        </span>.as_ref(),
-                )
-                .map_err(|e| <span class="macro">format!</span>(<span class="string">&quot;could not run the {include} include file:\nUncaught {e}&quot;</span>))<span class="question-mark">?</span>;
+        <span class="kw">for </span>include_name <span class="kw">in </span><span class="self">self</span>.includes.iter() {
+            <span class="kw">let </span>include = harness
+                .includes
+                .get(include_name)
+                .ok_or_else(|| <span class="macro">format!</span>(<span class="string">&quot;could not find the {include_name} include file.&quot;</span>))<span class="question-mark">?</span>;
+            <span class="kw">let </span>source = Source::from_reader(include.content.as_bytes(), <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span>include.path));
+            context.eval(source).map_err(|e| {
+                <span class="macro">format!</span>(<span class="string">&quot;could not run the harness `{include_name}`:\nUncaught {e}&quot;</span>,)
+            })<span class="question-mark">?</span>;
         }
 
         <span class="prelude-val">Ok</span>(())

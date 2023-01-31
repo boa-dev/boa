@@ -626,6 +626,17 @@
 <a href="#625" id="625">625</a>
 <a href="#626" id="626">626</a>
 <a href="#627" id="627">627</a>
+<a href="#628" id="628">628</a>
+<a href="#629" id="629">629</a>
+<a href="#630" id="630">630</a>
+<a href="#631" id="631">631</a>
+<a href="#632" id="632">632</a>
+<a href="#633" id="633">633</a>
+<a href="#634" id="634">634</a>
+<a href="#635" id="635">635</a>
+<a href="#636" id="636">636</a>
+<a href="#637" id="637">637</a>
+<a href="#638" id="638">638</a>
 </pre><pre class="rust"><code><span class="doccomment">//! The ECMAScript context.
 
 </span><span class="kw">mod </span>hooks;
@@ -641,6 +652,7 @@
 
 <span class="kw">use </span>intrinsics::{IntrinsicObjects, Intrinsics};
 
+<span class="kw">use </span>std::io::Read;
 <span class="attr">#[cfg(not(feature = <span class="string">&quot;intl&quot;</span>))]
 </span><span class="kw">pub use </span>std::marker::PhantomData;
 
@@ -656,7 +668,7 @@
     property::{Attribute, PropertyDescriptor, PropertyKey},
     realm::Realm,
     vm::{CallFrame, CodeBlock, Vm},
-    JsResult, JsValue,
+    JsResult, JsValue, Source,
 };
 
 <span class="kw">use </span>boa_ast::StatementList;
@@ -680,6 +692,7 @@
 ///     object::ObjectInitializer,
 ///     property::{Attribute, PropertyDescriptor},
 ///     Context,
+///     Source
 /// };
 ///
 /// let script = r#&quot;
@@ -694,7 +707,7 @@
 /// let mut context = Context::default();
 ///
 /// // Populate the script definition to the context.
-/// context.eval(script).unwrap();
+/// context.eval(Source::from_bytes(script)).unwrap();
 ///
 /// // Create an object that can be used in eval calls.
 /// let arg = ObjectInitializer::new(&amp;mut context)
@@ -702,7 +715,7 @@
 ///     .build();
 /// context.register_global_property(&quot;arg&quot;, arg, Attribute::all());
 ///
-/// let value = context.eval(&quot;test(arg)&quot;).unwrap();
+/// let value = context.eval(Source::from_bytes(&quot;test(arg)&quot;)).unwrap();
 ///
 /// assert_eq!(value.as_number(), Some(12.0))
 /// ```
@@ -719,6 +732,9 @@
 
     <span class="doccomment">/// Intrinsic objects
     </span>intrinsics: Intrinsics,
+
+    <span class="doccomment">/// Execute in strict mode,
+    </span>strict: bool,
 
     <span class="doccomment">/// Number of instructions remaining before a forced exit
     </span><span class="attr">#[cfg(feature = <span class="string">&quot;fuzz&quot;</span>)]
@@ -746,6 +762,7 @@
             .field(<span class="string">&quot;interner&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.interner)
             .field(<span class="string">&quot;intrinsics&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.intrinsics)
             .field(<span class="string">&quot;vm&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.vm)
+            .field(<span class="string">&quot;strict&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.strict)
             .field(<span class="string">&quot;promise_job_queue&quot;</span>, <span class="kw-2">&amp;</span><span class="string">&quot;JobQueue&quot;</span>)
             .field(<span class="string">&quot;hooks&quot;</span>, <span class="kw-2">&amp;</span><span class="string">&quot;HostHooks&quot;</span>);
 
@@ -775,14 +792,16 @@
         ContextBuilder::default()
     }
 
-    <span class="doccomment">/// Evaluates the given code by compiling down to bytecode, then interpreting the bytecode into a value
+    <span class="doccomment">/// Evaluates the given script `Source` by compiling down to bytecode, then interpreting the
+    /// bytecode into a value.
     ///
     /// # Examples
     /// ```
-    /// # use boa_engine::Context;
+    /// # use boa_engine::{Context, Source};
     /// let mut context = Context::default();
     ///
-    /// let value = context.eval(&quot;1 + 3&quot;).unwrap();
+    /// let source = Source::from_bytes(&quot;1 + 3&quot;);
+    /// let value = context.eval(source).unwrap();
     ///
     /// assert!(value.is_number());
     /// assert_eq!(value.as_number().unwrap(), 4.0);
@@ -791,14 +810,11 @@
     /// Note that this won&#39;t run any scheduled promise jobs; you need to call [`Context::run_jobs`]
     /// on the context or [`JobQueue::run_jobs`] on the provided queue to run them.
     </span><span class="attr">#[allow(clippy::unit_arg, clippy::drop_copy)]
-    </span><span class="kw">pub fn </span>eval&lt;S&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, src: S) -&gt; JsResult&lt;JsValue&gt;
-    <span class="kw">where
-        </span>S: AsRef&lt;[u8]&gt;,
-    {
+    </span><span class="kw">pub fn </span>eval&lt;R: Read&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, src: Source&lt;<span class="lifetime">&#39;_</span>, R&gt;) -&gt; JsResult&lt;JsValue&gt; {
         <span class="kw">let </span>main_timer = Profiler::global().start_event(<span class="string">&quot;Evaluation&quot;</span>, <span class="string">&quot;Main&quot;</span>);
 
-        <span class="kw">let </span>statement_list = <span class="self">self</span>.parse(src)<span class="question-mark">?</span>;
-        <span class="kw">let </span>code_block = <span class="self">self</span>.compile(<span class="kw-2">&amp;</span>statement_list)<span class="question-mark">?</span>;
+        <span class="kw">let </span>script = <span class="self">self</span>.parse(src)<span class="question-mark">?</span>;
+        <span class="kw">let </span>code_block = <span class="self">self</span>.compile(<span class="kw-2">&amp;</span>script)<span class="question-mark">?</span>;
         <span class="kw">let </span>result = <span class="self">self</span>.execute(code_block);
 
         <span class="comment">// The main_timer needs to be dropped before the Profiler is.
@@ -808,13 +824,13 @@
         result
     }
 
-    <span class="doccomment">/// Parse the given source text.
-    </span><span class="kw">pub fn </span>parse&lt;S&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, src: S) -&gt; <span class="prelude-ty">Result</span>&lt;StatementList, ParseError&gt;
-    <span class="kw">where
-        </span>S: AsRef&lt;[u8]&gt;,
-    {
+    <span class="doccomment">/// Parse the given source script.
+    </span><span class="kw">pub fn </span>parse&lt;R: Read&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, src: Source&lt;<span class="lifetime">&#39;_</span>, R&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;StatementList, ParseError&gt; {
         <span class="kw">let </span>_timer = Profiler::global().start_event(<span class="string">&quot;Parsing&quot;</span>, <span class="string">&quot;Main&quot;</span>);
-        <span class="kw">let </span><span class="kw-2">mut </span>parser = Parser::new(src.as_ref());
+        <span class="kw">let </span><span class="kw-2">mut </span>parser = Parser::new(src);
+        <span class="kw">if </span><span class="self">self</span>.strict {
+            parser.set_strict();
+        }
         parser.parse_all(<span class="kw-2">&amp;mut </span><span class="self">self</span>.interner)
     }
 
@@ -1006,6 +1022,11 @@
     <span class="doccomment">/// Set the value of trace on the context
     </span><span class="kw">pub fn </span>set_trace(<span class="kw-2">&amp;mut </span><span class="self">self</span>, trace: bool) {
         <span class="self">self</span>.vm.trace = trace;
+    }
+
+    <span class="doccomment">/// Executes all code in strict mode.
+    </span><span class="kw">pub fn </span>strict(<span class="kw-2">&amp;mut </span><span class="self">self</span>, strict: bool) {
+        <span class="self">self</span>.strict = strict;
     }
 
     <span class="doccomment">/// Enqueues a [`NativeJob`] on the [`JobQueue`].
@@ -1233,6 +1254,7 @@
             </span>console: Console::default(),
             intrinsics,
             vm: Vm::default(),
+            strict: <span class="bool-val">false</span>,
             <span class="attr">#[cfg(feature = <span class="string">&quot;intl&quot;</span>)]
             </span>icu: <span class="self">self</span>.icu.unwrap_or_else(|| {
                 <span class="kw">let </span>provider = BoaProvider::Buffer(boa_icu_provider::buffer());

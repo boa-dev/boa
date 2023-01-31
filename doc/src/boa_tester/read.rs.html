@@ -238,9 +238,14 @@
 <a href="#237" id="237">237</a>
 <a href="#238" id="238">238</a>
 <a href="#239" id="239">239</a>
+<a href="#240" id="240">240</a>
+<a href="#241" id="241">241</a>
+<a href="#242" id="242">242</a>
+<a href="#243" id="243">243</a>
+<a href="#244" id="244">244</a>
 </pre><pre class="rust"><code><span class="doccomment">//! Module to read the list of test suites from disk.
 
-</span><span class="kw">use </span><span class="kw">crate</span>::Ignored;
+</span><span class="kw">use crate</span>::{HarnessFile, Ignored};
 
 <span class="kw">use super</span>::{Harness, Locale, Phase, Test, TestSuite};
 <span class="kw">use </span>color_eyre::{
@@ -249,7 +254,10 @@
 };
 <span class="kw">use </span>fxhash::FxHashMap;
 <span class="kw">use </span>serde::Deserialize;
-<span class="kw">use </span>std::{fs, io, path::Path};
+<span class="kw">use </span>std::{
+    fs, io,
+    path::{Path, PathBuf},
+};
 
 <span class="doccomment">/// Representation of the YAML metadata in Test262 tests.
 </span><span class="attr">#[derive(Debug, Clone, Deserialize)]
@@ -324,6 +332,15 @@
 
 <span class="doccomment">/// Reads the Test262 defined bindings.
 </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>read_harness(test262_path: <span class="kw-2">&amp;</span>Path) -&gt; <span class="prelude-ty">Result</span>&lt;Harness&gt; {
+    <span class="kw">fn </span>read_harness_file(path: PathBuf) -&gt; <span class="prelude-ty">Result</span>&lt;HarnessFile&gt; {
+        <span class="kw">let </span>content = fs::read_to_string(path.as_path())
+            .wrap_err_with(|| <span class="macro">format!</span>(<span class="string">&quot;error reading the harness file `{}`&quot;</span>, path.display()))<span class="question-mark">?</span>;
+
+        <span class="prelude-val">Ok</span>(HarnessFile {
+            content: content.into_boxed_str(),
+            path: path.into_boxed_path(),
+        })
+    }
     <span class="kw">let </span><span class="kw-2">mut </span>includes = FxHashMap::default();
 
     <span class="kw">for </span>entry <span class="kw">in </span>fs::read_dir(test262_path.join(<span class="string">&quot;harness&quot;</span>))
@@ -337,23 +354,14 @@
             <span class="kw">continue</span>;
         }
 
-        <span class="kw">let </span>content = fs::read_to_string(entry.path())
-            .wrap_err_with(|| <span class="macro">format!</span>(<span class="string">&quot;error reading the harnes/{file_name}&quot;</span>))<span class="question-mark">?</span>;
-
         includes.insert(
             file_name.into_owned().into_boxed_str(),
-            content.into_boxed_str(),
+            read_harness_file(entry.path())<span class="question-mark">?</span>,
         );
     }
-    <span class="kw">let </span>assert = fs::read_to_string(test262_path.join(<span class="string">&quot;harness/assert.js&quot;</span>))
-        .wrap_err(<span class="string">&quot;error reading harnes/assert.js&quot;</span>)<span class="question-mark">?
-        </span>.into_boxed_str();
-    <span class="kw">let </span>sta = fs::read_to_string(test262_path.join(<span class="string">&quot;harness/sta.js&quot;</span>))
-        .wrap_err(<span class="string">&quot;error reading harnes/sta.js&quot;</span>)<span class="question-mark">?
-        </span>.into_boxed_str();
-    <span class="kw">let </span>doneprint_handle = fs::read_to_string(test262_path.join(<span class="string">&quot;harness/doneprintHandle.js&quot;</span>))
-        .wrap_err(<span class="string">&quot;error reading harnes/doneprintHandle.js&quot;</span>)<span class="question-mark">?
-        </span>.into_boxed_str();
+    <span class="kw">let </span>assert = read_harness_file(test262_path.join(<span class="string">&quot;harness/assert.js&quot;</span>))<span class="question-mark">?</span>;
+    <span class="kw">let </span>sta = read_harness_file(test262_path.join(<span class="string">&quot;harness/sta.js&quot;</span>))<span class="question-mark">?</span>;
+    <span class="kw">let </span>doneprint_handle = read_harness_file(test262_path.join(<span class="string">&quot;harness/doneprintHandle.js&quot;</span>))<span class="question-mark">?</span>;
 
     <span class="prelude-val">Ok</span>(Harness {
         assert,
@@ -417,6 +425,7 @@
 
     <span class="prelude-val">Ok</span>(TestSuite {
         name: name.into(),
+        path: Box::from(path),
         suites: suites.into_boxed_slice(),
         tests: tests.into_boxed_slice(),
     })
@@ -440,16 +449,15 @@
             )
         })<span class="question-mark">?</span>;
 
-    <span class="kw">let </span>content = fs::read_to_string(path)<span class="question-mark">?</span>;
-    <span class="kw">let </span>metadata = read_metadata(<span class="kw-2">&amp;</span>content, path)<span class="question-mark">?</span>;
+    <span class="kw">let </span>metadata = read_metadata(path)<span class="question-mark">?</span>;
 
-    <span class="prelude-val">Ok</span>(Test::new(name, content, metadata))
+    <span class="prelude-val">Ok</span>(Test::new(name, path, metadata))
 }
 
 <span class="doccomment">/// Reads the metadata from the input test code.
-</span><span class="kw">fn </span>read_metadata(code: <span class="kw-2">&amp;</span>str, test: <span class="kw-2">&amp;</span>Path) -&gt; io::Result&lt;MetaData&gt; {
+</span><span class="kw">fn </span>read_metadata(test: <span class="kw-2">&amp;</span>Path) -&gt; io::Result&lt;MetaData&gt; {
     <span class="kw">use </span>once_cell::sync::Lazy;
-    <span class="kw">use </span>regex::Regex;
+    <span class="kw">use </span>regex::bytes::Regex;
 
     <span class="doccomment">/// Regular expression to retrieve the metadata of a test.
     </span><span class="kw">static </span>META_REGEX: Lazy&lt;Regex&gt; = Lazy::new(|| {
@@ -457,8 +465,10 @@
             .expect(<span class="string">&quot;could not compile metadata regular expression&quot;</span>)
     });
 
+    <span class="kw">let </span>code = fs::read(test)<span class="question-mark">?</span>;
+
     <span class="kw">let </span>yaml = META_REGEX
-        .captures(code)
+        .captures(<span class="kw-2">&amp;</span>code)
         .ok_or_else(|| {
             io::Error::new(
                 io::ErrorKind::InvalidData,
@@ -466,14 +476,14 @@
             )
         })<span class="question-mark">?
         </span>.get(<span class="number">1</span>)
+        .map(|m| String::from_utf8_lossy(m.as_bytes()))
         .ok_or_else(|| {
             io::Error::new(
                 io::ErrorKind::InvalidData,
                 <span class="macro">format!</span>(<span class="string">&quot;no metadata found for test {}&quot;</span>, test.display()),
             )
         })<span class="question-mark">?
-        </span>.as_str()
-        .replace(<span class="string">&#39;\r&#39;</span>, <span class="string">&quot;\n&quot;</span>);
+        </span>.replace(<span class="string">&#39;\r&#39;</span>, <span class="string">&quot;\n&quot;</span>);
 
     serde_yaml::from_str(<span class="kw-2">&amp;</span>yaml).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
 }
