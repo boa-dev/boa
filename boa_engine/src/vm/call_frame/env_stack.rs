@@ -127,6 +127,10 @@ impl EnvStackEntry {
         self.exit = exit_address;
     }
 
+    pub(crate) fn clear_env_num(&mut self) {
+        self.env_num = 0;
+    }
+
     /// Increments the `env_num` field for current `EnvEntryStack`.
     pub(crate) fn inc_env_num(&mut self) {
         self.env_num += 1;

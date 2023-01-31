@@ -354,14 +354,8 @@ impl Context<'_> {
                     } else {
                         let mut env_to_pop = 0;
                         let mut target_address = None;
-                        while !self.vm.frame().env_stack.is_empty() {
-                            let env_entry = self
-                                .vm
-                                .frame()
-                                .env_stack
-                                .last()
-                                .expect("EnvStackEntry must exist");
-
+                        let mut env_stack_to_pop = 0;
+                        for env_entry in self.vm.frame_mut().env_stack.iter_mut().rev() {
                             if env_entry.is_finally_env() {
                                 if (env_entry.start_address() as usize) < current_address {
                                     target_address = Some(env_entry.exit_address() as usize);
@@ -373,17 +367,22 @@ impl Context<'_> {
 
                             env_to_pop += env_entry.env_num();
                             if env_entry.is_global_env() {
+                                env_entry.clear_env_num();
                                 break;
                             };
 
-                            self.vm.frame_mut().env_stack.pop();
-                        }
-
-                        for _ in 0..env_to_pop {
-                            self.realm.environments.pop();
+                            env_stack_to_pop += 1;
                         }
 
                         if let Some(address) = target_address {
+                            for _ in 0..env_stack_to_pop {
+                                self.vm.frame_mut().env_stack.pop();
+                            }
+
+                            for _ in 0..env_to_pop {
+                                self.realm.environments.pop();
+                            }
+
                             for _ in 0..self.vm.frame().pop_on_return {
                                 self.vm.pop();
                             }
