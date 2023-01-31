@@ -15,8 +15,9 @@ pub struct Source<'path, R> {
 }
 
 impl<'bytes> Source<'static, &'bytes [u8]> {
-    /// Creates a new `Source` from any type equivalent to a slice of bytes e.g. [`&str`], [`Vec<u8>`]
-    /// <code>[Box]<[\[u8\]][slice]></code> or a plain slice <code>[&\[u8\]][slice]</code>.
+    /// Creates a new `Source` from any type equivalent to a slice of bytes e.g. [`&str`][str],
+    /// <code>[Vec]<[u8]></code>, <code>[Box]<[\[u8\]][slice]></code> or a plain slice
+    /// <code>[&\[u8\]][slice]</code>.
     ///
     /// # Examples
     ///
@@ -26,7 +27,6 @@ impl<'bytes> Source<'static, &'bytes [u8]> {
     /// let source = Source::from_bytes(code);
     /// ```
     ///
-    /// [`&str`]: str
     /// [slice]: std::slice
     pub fn from_bytes<T: AsRef<[u8]> + ?Sized>(source: &'bytes T) -> Self {
         Self {
