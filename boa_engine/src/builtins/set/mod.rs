@@ -10,112 +10,104 @@
 //! [spec]: https://tc39.es/ecma262/#sec-set-objects
 //! [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Set
 
-use self::{ordered_set::OrderedSet, set_iterator::SetIterator};
-use super::JsArgs;
 use crate::{
-    builtins::BuiltIn,
-    context::intrinsics::StandardConstructors,
+    builtins::BuiltInObject,
+    context::intrinsics::{Intrinsics, StandardConstructor, StandardConstructors},
     error::JsNativeError,
-    native_function::NativeFunction,
-    object::{
-        internal_methods::get_prototype_from_constructor, ConstructorBuilder,
-        FunctionObjectBuilder, JsObject, ObjectData,
-    },
+    object::{internal_methods::get_prototype_from_constructor, JsObject, ObjectData},
     property::{Attribute, PropertyNameKind},
     symbol::JsSymbol,
-    Context, JsResult, JsValue,
+    Context, JsArgs, JsResult, JsValue,
 };
 use boa_profiler::Profiler;
-use tap::{Conv, Pipe};
+
+use super::{BuiltInBuilder, BuiltInConstructor, IntrinsicObject};
 
 pub mod ordered_set;
-pub mod set_iterator;
+use self::ordered_set::OrderedSet;
+
+mod set_iterator;
+pub(crate) use set_iterator::SetIterator;
 #[cfg(test)]
 mod tests;
 
 #[derive(Debug, Clone)]
 pub(crate) struct Set;
 
-impl BuiltIn for Set {
-    const NAME: &'static str = "Set";
-
-    fn init(context: &mut Context<'_>) -> Option<JsValue> {
+impl IntrinsicObject for Set {
+    fn get(intrinsics: &Intrinsics) -> JsObject {
+        Self::STANDARD_CONSTRUCTOR(intrinsics.constructors()).constructor()
+    }
+    fn init(intrinsics: &Intrinsics) {
         let _timer = Profiler::global().start_event(Self::NAME, "init");
 
-        let get_species =
-            FunctionObjectBuilder::new(context, NativeFunction::from_fn_ptr(Self::get_species))
-                .name("get [Symbol.species]")
-                .constructor(false)
-                .build();
+        let get_species = BuiltInBuilder::new(intrinsics)
+            .callable(Self::get_species)
+            .name("get [Symbol.species]")
+            .build();
 
-        let size_getter =
-            FunctionObjectBuilder::new(context, NativeFunction::from_fn_ptr(Self::size_getter))
-                .constructor(false)
-                .name("get size")
-                .build();
+        let size_getter = BuiltInBuilder::new(intrinsics)
+            .callable(Self::size_getter)
+            .name("get size")
+            .build();
 
         let iterator_symbol = JsSymbol::iterator();
 
         let to_string_tag = JsSymbol::to_string_tag();
 
-        let values_function =
-            FunctionObjectBuilder::new(context, NativeFunction::from_fn_ptr(Self::values))
-                .name("values")
-                .length(0)
-                .constructor(false)
-                .build();
+        let values_function = BuiltInBuilder::new(intrinsics)
+            .callable(Self::values)
+            .name("values")
+            .build();
 
-        ConstructorBuilder::with_standard_constructor(
-            context,
-            Self::constructor,
-            context.intrinsics().constructors().set().clone(),
-        )
-        .name(Self::NAME)
-        .length(Self::LENGTH)
-        .static_accessor(
-            JsSymbol::species(),
-            Some(get_species),
-            None,
-            Attribute::CONFIGURABLE,
-        )
-        .method(Self::add, "add", 1)
-        .method(Self::clear, "clear", 0)
-        .method(Self::delete, "delete", 1)
-        .method(Self::entries, "entries", 0)
-        .method(Self::for_each, "forEach", 1)
-        .method(Self::has, "has", 1)
-        .property(
-            "keys",
-            values_function.clone(),
-            Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
-        )
-        .accessor("size", Some(size_getter), None, Attribute::CONFIGURABLE)
-        .property(
-            "values",
-            values_function.clone(),
-            Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
-        )
-        .property(
-            iterator_symbol,
-            values_function,
-            Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
-        )
-        .property(
-            to_string_tag,
-            Self::NAME,
-            Attribute::READONLY | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
-        )
-        .build()
-        .conv::<JsValue>()
-        .pipe(Some)
+        BuiltInBuilder::from_standard_constructor::<Self>(intrinsics)
+            .static_accessor(
+                JsSymbol::species(),
+                Some(get_species),
+                None,
+                Attribute::CONFIGURABLE,
+            )
+            .method(Self::add, "add", 1)
+            .method(Self::clear, "clear", 0)
+            .method(Self::delete, "delete", 1)
+            .method(Self::entries, "entries", 0)
+            .method(Self::for_each, "forEach", 1)
+            .method(Self::has, "has", 1)
+            .property(
+                "keys",
+                values_function.clone(),
+                Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
+            )
+            .accessor("size", Some(size_getter), None, Attribute::CONFIGURABLE)
+            .property(
+                "values",
+                values_function.clone(),
+                Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
+            )
+            .property(
+                iterator_symbol,
+                values_function,
+                Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
+            )
+            .property(
+                to_string_tag,
+                Self::NAME,
+                Attribute::READONLY | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
+            )
+            .build();
     }
 }
 
-impl Set {
-    pub(crate) const LENGTH: usize = 0;
+impl BuiltInObject for Set {
+    const NAME: &'static str = "Set";
+}
 
-    /// Create a new set
-    pub(crate) fn constructor(
+impl BuiltInConstructor for Set {
+    const LENGTH: usize = 0;
+    const STANDARD_CONSTRUCTOR: fn(&StandardConstructors) -> &StandardConstructor =
+        StandardConstructors::set;
+
+    fn constructor(
         new_target: &JsValue,
         args: &[JsValue],
         context: &mut Context<'_>,
@@ -169,7 +161,9 @@ impl Set {
         // 8.b
         Ok(set.into())
     }
+}
 
+impl Set {
     /// Utility for constructing `Set` objects.
     pub(crate) fn set_create(prototype: Option<JsObject>, context: &mut Context<'_>) -> JsObject {
         let prototype =

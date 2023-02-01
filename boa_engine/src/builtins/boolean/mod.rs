@@ -13,51 +13,49 @@
 mod tests;
 
 use crate::{
-    builtins::BuiltIn,
-    context::intrinsics::StandardConstructors,
+    builtins::BuiltInObject,
+    context::intrinsics::{Intrinsics, StandardConstructor, StandardConstructors},
     error::JsNativeError,
-    object::{
-        internal_methods::get_prototype_from_constructor, ConstructorBuilder, JsObject, ObjectData,
-    },
+    object::{internal_methods::get_prototype_from_constructor, JsObject, ObjectData},
     Context, JsResult, JsValue,
 };
 use boa_profiler::Profiler;
-use tap::{Conv, Pipe};
+
+use super::{BuiltInBuilder, BuiltInConstructor, IntrinsicObject};
 
 /// Boolean implementation.
 #[derive(Debug, Clone, Copy)]
 pub(crate) struct Boolean;
 
-impl BuiltIn for Boolean {
-    /// The name of the object.
-    const NAME: &'static str = "Boolean";
-
-    fn init(context: &mut Context<'_>) -> Option<JsValue> {
+impl IntrinsicObject for Boolean {
+    fn init(intrinsics: &Intrinsics) {
         let _timer = Profiler::global().start_event(Self::NAME, "init");
 
-        ConstructorBuilder::with_standard_constructor(
-            context,
-            Self::constructor,
-            context.intrinsics().constructors().boolean().clone(),
-        )
-        .name(Self::NAME)
-        .length(Self::LENGTH)
-        .method(Self::to_string, "toString", 0)
-        .method(Self::value_of, "valueOf", 0)
-        .build()
-        .conv::<JsValue>()
-        .pipe(Some)
+        BuiltInBuilder::from_standard_constructor::<Self>(intrinsics)
+            .method(Self::to_string, "toString", 0)
+            .method(Self::value_of, "valueOf", 0)
+            .build();
+    }
+
+    fn get(intrinsics: &Intrinsics) -> JsObject {
+        Self::STANDARD_CONSTRUCTOR(intrinsics.constructors()).constructor()
     }
 }
 
-impl Boolean {
-    /// The amount of arguments this function object takes.
-    pub(crate) const LENGTH: usize = 1;
+impl BuiltInObject for Boolean {
+    const NAME: &'static str = "Boolean";
+}
+
+impl BuiltInConstructor for Boolean {
+    const LENGTH: usize = 1;
+
+    const STANDARD_CONSTRUCTOR: fn(&StandardConstructors) -> &StandardConstructor =
+        StandardConstructors::boolean;
 
     /// `[[Construct]]` Create a new boolean object
     ///
     /// `[[Call]]` Creates a new boolean primitive
-    pub(crate) fn constructor(
+    fn constructor(
         new_target: &JsValue,
         args: &[JsValue],
         context: &mut Context<'_>,
@@ -73,7 +71,9 @@ impl Boolean {
 
         Ok(boolean.into())
     }
+}
 
+impl Boolean {
     /// An Utility function used to get the internal `[[BooleanData]]`.
     ///
     /// More information:

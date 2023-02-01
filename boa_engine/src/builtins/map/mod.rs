@@ -10,104 +10,98 @@
 //! [spec]: https://tc39.es/ecma262/#sec-map-objects
 //! [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Map
 
-use self::{map_iterator::MapIterator, ordered_map::OrderedMap};
-use super::JsArgs;
 use crate::{
-    builtins::BuiltIn,
-    context::intrinsics::StandardConstructors,
+    builtins::BuiltInObject,
+    context::intrinsics::{Intrinsics, StandardConstructor, StandardConstructors},
     error::JsNativeError,
-    native_function::NativeFunction,
-    object::{
-        internal_methods::get_prototype_from_constructor, ConstructorBuilder,
-        FunctionObjectBuilder, JsObject, ObjectData,
-    },
+    object::{internal_methods::get_prototype_from_constructor, JsObject, ObjectData},
     property::{Attribute, PropertyNameKind},
     symbol::JsSymbol,
-    Context, JsResult, JsValue,
+    Context, JsArgs, JsResult, JsValue,
 };
 use boa_profiler::Profiler;
 use num_traits::Zero;
-use tap::{Conv, Pipe};
 
-pub mod map_iterator;
+use super::{BuiltInBuilder, BuiltInConstructor, IntrinsicObject};
+
+mod map_iterator;
+pub(crate) use map_iterator::MapIterator;
+
 pub mod ordered_map;
+use ordered_map::OrderedMap;
 #[cfg(test)]
 mod tests;
 
 #[derive(Debug, Clone)]
 pub(crate) struct Map;
 
-impl BuiltIn for Map {
-    const NAME: &'static str = "Map";
-
-    fn init(context: &mut Context<'_>) -> Option<JsValue> {
+impl IntrinsicObject for Map {
+    fn init(intrinsics: &Intrinsics) {
         let _timer = Profiler::global().start_event(Self::NAME, "init");
 
-        let get_species =
-            FunctionObjectBuilder::new(context, NativeFunction::from_fn_ptr(Self::get_species))
-                .name("get [Symbol.species]")
-                .constructor(false)
-                .build();
+        let get_species = BuiltInBuilder::new(intrinsics)
+            .callable(Self::get_species)
+            .name("get [Symbol.species]")
+            .build();
 
-        let get_size =
-            FunctionObjectBuilder::new(context, NativeFunction::from_fn_ptr(Self::get_size))
-                .name("get size")
-                .length(0)
-                .constructor(false)
-                .build();
+        let get_size = BuiltInBuilder::new(intrinsics)
+            .callable(Self::get_size)
+            .name("get size")
+            .build();
 
-        let entries_function =
-            FunctionObjectBuilder::new(context, NativeFunction::from_fn_ptr(Self::entries))
-                .name("entries")
-                .length(0)
-                .constructor(false)
-                .build();
+        let entries_function = BuiltInBuilder::new(intrinsics)
+            .callable(Self::entries)
+            .name("entries")
+            .build();
 
-        ConstructorBuilder::with_standard_constructor(
-            context,
-            Self::constructor,
-            context.intrinsics().constructors().map().clone(),
-        )
-        .name(Self::NAME)
-        .length(Self::LENGTH)
-        .static_accessor(
-            JsSymbol::species(),
-            Some(get_species),
-            None,
-            Attribute::CONFIGURABLE,
-        )
-        .property(
-            "entries",
-            entries_function.clone(),
-            Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
-        )
-        .property(
-            JsSymbol::iterator(),
-            entries_function,
-            Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
-        )
-        .property(
-            JsSymbol::to_string_tag(),
-            Self::NAME,
-            Attribute::READONLY | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
-        )
-        .method(Self::clear, "clear", 0)
-        .method(Self::delete, "delete", 1)
-        .method(Self::for_each, "forEach", 1)
-        .method(Self::get, "get", 1)
-        .method(Self::has, "has", 1)
-        .method(Self::keys, "keys", 0)
-        .method(Self::set, "set", 2)
-        .method(Self::values, "values", 0)
-        .accessor("size", Some(get_size), None, Attribute::CONFIGURABLE)
-        .build()
-        .conv::<JsValue>()
-        .pipe(Some)
+        BuiltInBuilder::from_standard_constructor::<Self>(intrinsics)
+            .static_accessor(
+                JsSymbol::species(),
+                Some(get_species),
+                None,
+                Attribute::CONFIGURABLE,
+            )
+            .property(
+                "entries",
+                entries_function.clone(),
+                Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
+            )
+            .property(
+                JsSymbol::iterator(),
+                entries_function,
+                Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
+            )
+            .property(
+                JsSymbol::to_string_tag(),
+                Self::NAME,
+                Attribute::READONLY | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
+            )
+            .method(Self::clear, "clear", 0)
+            .method(Self::delete, "delete", 1)
+            .method(Self::for_each, "forEach", 1)
+            .method(Self::get, "get", 1)
+            .method(Self::has, "has", 1)
+            .method(Self::keys, "keys", 0)
+            .method(Self::set, "set", 2)
+            .method(Self::values, "values", 0)
+            .accessor("size", Some(get_size), None, Attribute::CONFIGURABLE)
+            .build();
+    }
+
+    fn get(intrinsics: &Intrinsics) -> JsObject {
+        Self::STANDARD_CONSTRUCTOR(intrinsics.constructors()).constructor()
     }
 }
 
-impl Map {
-    pub(crate) const LENGTH: usize = 0;
+impl BuiltInObject for Map {
+    const NAME: &'static str = "Map";
+}
+
+impl BuiltInConstructor for Map {
+    const LENGTH: usize = 0;
+
+    const STANDARD_CONSTRUCTOR: fn(&StandardConstructors) -> &StandardConstructor =
+        StandardConstructors::map;
 
     /// `Map ( [ iterable ] )`
     ///
@@ -119,7 +113,7 @@ impl Map {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-map-iterable
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Map/Map
-    pub(crate) fn constructor(
+    fn constructor(
         new_target: &JsValue,
         args: &[JsValue],
         context: &mut Context<'_>,
@@ -149,7 +143,9 @@ impl Map {
         // 6. Return ? AddEntriesFromIterable(map, iterable, adder).
         add_entries_from_iterable(&map, iterable, &adder, context)
     }
+}
 
+impl Map {
     /// `get Map [ @@species ]`
     ///
     /// The `Map [ @@species ]` accessor property returns the Map constructor.

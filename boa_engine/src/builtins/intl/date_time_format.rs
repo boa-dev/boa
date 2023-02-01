@@ -8,13 +8,11 @@
 //! [spec]: https://tc39.es/ecma402/#datetimeformat-objects
 
 use crate::{
-    context::intrinsics::StandardConstructors,
+    builtins::{BuiltInBuilder, BuiltInConstructor, BuiltInObject, IntrinsicObject},
+    context::intrinsics::{Intrinsics, StandardConstructor, StandardConstructors},
     error::JsNativeError,
     js_string,
-    object::{
-        internal_methods::get_prototype_from_constructor, ConstructorBuilder, JsFunction, JsObject,
-        ObjectData,
-    },
+    object::{internal_methods::get_prototype_from_constructor, JsObject, ObjectData},
     Context, JsResult, JsString, JsValue,
 };
 
@@ -62,20 +60,27 @@ pub struct DateTimeFormat {
     bound_format: JsString,
 }
 
-impl DateTimeFormat {
-    const NAME: &'static str = "DateTimeFormat";
-
-    pub(super) fn init(context: &mut Context<'_>) -> JsFunction {
+impl IntrinsicObject for DateTimeFormat {
+    fn init(intrinsics: &Intrinsics) {
         let _timer = Profiler::global().start_event(Self::NAME, "init");
 
-        ConstructorBuilder::new(context, Self::constructor)
-            .name(Self::NAME)
-            .length(0)
-            .build()
+        BuiltInBuilder::from_standard_constructor::<Self>(intrinsics).build();
+    }
+
+    fn get(intrinsics: &Intrinsics) -> JsObject {
+        Self::STANDARD_CONSTRUCTOR(intrinsics.constructors()).constructor()
     }
 }
 
-impl DateTimeFormat {
+impl BuiltInObject for DateTimeFormat {
+    const NAME: &'static str = "DateTimeFormat";
+}
+
+impl BuiltInConstructor for DateTimeFormat {
+    const LENGTH: usize = 0;
+
+    const STANDARD_CONSTRUCTOR: fn(&StandardConstructors) -> &StandardConstructor =
+        StandardConstructors::date_time_format;
     /// The `Intl.DateTimeFormat` constructor is the `%DateTimeFormat%` intrinsic object and a standard built-in property of the `Intl` object.
     ///
     /// More information:
@@ -84,7 +89,7 @@ impl DateTimeFormat {
     ///
     /// [spec]: https://tc39.es/ecma402/#datetimeformat-objects
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Intl/DateTimeFormat
-    pub(crate) fn constructor(
+    fn constructor(
         new_target: &JsValue,
         _args: &[JsValue],
         context: &mut Context<'_>,

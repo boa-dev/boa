@@ -1,6 +1,6 @@
 //! Benchmarks of the whole execution engine in Boa.
 
-use boa_engine::{realm::Realm, Context, Source};
+use boa_engine::{context::DefaultHooks, realm::Realm, Context, Source};
 use criterion::{criterion_group, criterion_main, Criterion};
 use std::hint::black_box;
 
@@ -12,7 +12,9 @@ use std::hint::black_box;
 static ALLOC: jemallocator::Jemalloc = jemallocator::Jemalloc;
 
 fn create_realm(c: &mut Criterion) {
-    c.bench_function("Create Realm", move |b| b.iter(|| Realm::create(None)));
+    c.bench_function("Create Realm", move |b| {
+        b.iter(|| Realm::create(&DefaultHooks))
+    });
 }
 
 macro_rules! full_benchmarks {

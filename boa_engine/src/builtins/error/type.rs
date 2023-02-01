@@ -16,18 +16,17 @@
 //! [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/TypeError
 
 use crate::{
-    builtins::{function::Function, BuiltIn, JsArgs},
-    context::intrinsics::StandardConstructors,
+    builtins::{
+        function::Function, BuiltInBuilder, BuiltInConstructor, BuiltInObject, IntrinsicObject,
+    },
+    context::intrinsics::{Intrinsics, StandardConstructor, StandardConstructors},
     error::JsNativeError,
     native_function::NativeFunction,
-    object::{
-        internal_methods::get_prototype_from_constructor, ConstructorBuilder, JsObject, ObjectData,
-    },
-    property::{Attribute, PropertyDescriptor},
-    Context, JsResult, JsValue,
+    object::{internal_methods::get_prototype_from_constructor, JsObject, ObjectData},
+    property::Attribute,
+    Context, JsArgs, JsResult, JsValue,
 };
 use boa_profiler::Profiler;
-use tap::{Conv, Pipe};
 
 use super::{Error, ErrorKind};
 
@@ -35,39 +34,36 @@ use super::{Error, ErrorKind};
 #[derive(Debug, Clone, Copy)]
 pub(crate) struct TypeError;
 
-impl BuiltIn for TypeError {
-    const NAME: &'static str = "TypeError";
-
-    fn init(context: &mut Context<'_>) -> Option<JsValue> {
+impl IntrinsicObject for TypeError {
+    fn init(intrinsics: &Intrinsics) {
         let _timer = Profiler::global().start_event(Self::NAME, "init");
 
-        let error_constructor = context.intrinsics().constructors().error().constructor();
-        let error_prototype = context.intrinsics().constructors().error().prototype();
-
         let attribute = Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE;
-        ConstructorBuilder::with_standard_constructor(
-            context,
-            Self::constructor,
-            context.intrinsics().constructors().type_error().clone(),
-        )
-        .name(Self::NAME)
-        .length(Self::LENGTH)
-        .inherit(error_prototype)
-        .custom_prototype(error_constructor)
-        .property("name", Self::NAME, attribute)
-        .property("message", "", attribute)
-        .build()
-        .conv::<JsValue>()
-        .pipe(Some)
+        BuiltInBuilder::from_standard_constructor::<Self>(intrinsics)
+            .prototype(intrinsics.constructors().error().constructor())
+            .inherits(Some(intrinsics.constructors().error().prototype()))
+            .property("name", Self::NAME, attribute)
+            .property("message", "", attribute)
+            .build();
+    }
+
+    fn get(intrinsics: &Intrinsics) -> JsObject {
+        Self::STANDARD_CONSTRUCTOR(intrinsics.constructors()).constructor()
     }
 }
 
-impl TypeError {
-    /// The amount of arguments this function object takes.
-    pub(crate) const LENGTH: usize = 1;
+impl BuiltInObject for TypeError {
+    const NAME: &'static str = "TypeError";
+}
+
+impl BuiltInConstructor for TypeError {
+    const LENGTH: usize = 1;
+
+    const STANDARD_CONSTRUCTOR: fn(&StandardConstructors) -> &StandardConstructor =
+        StandardConstructors::type_error;
 
     /// Create a new error object.
-    pub(crate) fn constructor(
+    fn constructor(
         new_target: &JsValue,
         args: &[JsValue],
         context: &mut Context<'_>,
@@ -96,25 +92,35 @@ impl TypeError {
     }
 }
 
-pub(crate) fn create_throw_type_error(context: &mut Context<'_>) -> JsObject {
-    fn throw_type_error(_: &JsValue, _: &[JsValue], _: &mut Context<'_>) -> JsResult<JsValue> {
-        Err(JsNativeError::typ().with_message("'caller', 'callee', and 'arguments' properties may not be accessed on strict mode functions or the arguments objects for calls to them").into())
-    }
+#[derive(Debug, Clone, Copy)]
+pub(crate) struct ThrowTypeError;
 
-    let function = JsObject::from_proto_and_data(
-        context.intrinsics().constructors().function().prototype(),
-        ObjectData::function(Function::Native {
+impl IntrinsicObject for ThrowTypeError {
+    fn init(intrinsics: &Intrinsics) {
+        fn throw_type_error(_: &JsValue, _: &[JsValue], _: &mut Context<'_>) -> JsResult<JsValue> {
+            Err(JsNativeError::typ()
+                .with_message(
+                    "'caller', 'callee', and 'arguments' properties may not be accessed on strict mode \
+                    functions or the arguments objects for calls to them",
+                )
+                .into())
+        }
+
+        let obj = BuiltInBuilder::with_intrinsic::<Self>(intrinsics)
+            .prototype(intrinsics.constructors().function().prototype())
+            .static_property("name", "ThrowTypeError", Attribute::empty())
+            .static_property("length", 0, Attribute::empty())
+            .build();
+
+        let mut obj = obj.borrow_mut();
+
+        obj.data = ObjectData::function(Function::Native {
             function: NativeFunction::from_fn_ptr(throw_type_error),
             constructor: None,
-        }),
-    );
+        });
+    }
 
-    let property = PropertyDescriptor::builder()
-        .writable(false)
-        .enumerable(false)
-        .configurable(false);
-    function.insert_property("name", property.clone().value("ThrowTypeError"));
-    function.insert_property("length", property.value(0));
-
-    function
+    fn get(intrinsics: &Intrinsics) -> JsObject {
+        intrinsics.objects().throw_type_error().into()
+    }
 }

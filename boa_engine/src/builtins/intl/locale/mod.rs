@@ -6,7 +6,6 @@ use icu_locid::{
     extensions_unicode_key as key, extensions_unicode_value as value,
     subtags::{Language, Region, Script},
 };
-use tap::{Conv, Pipe};
 
 #[cfg(test)]
 mod tests;
@@ -17,17 +16,13 @@ pub(crate) use utils::*;
 mod options;
 
 use crate::{
-    builtins::{BuiltIn, JsArgs},
-    context::intrinsics::StandardConstructors,
+    builtins::{BuiltInBuilder, BuiltInConstructor, BuiltInObject, IntrinsicObject},
+    context::intrinsics::{Intrinsics, StandardConstructor, StandardConstructors},
     js_string,
-    native_function::NativeFunction,
-    object::{
-        internal_methods::get_prototype_from_constructor, ConstructorBuilder,
-        FunctionObjectBuilder, JsObject, ObjectData,
-    },
+    object::{internal_methods::get_prototype_from_constructor, JsObject, ObjectData},
     property::Attribute,
     symbol::JsSymbol,
-    Context, JsNativeError, JsResult, JsString, JsValue,
+    Context, JsArgs, JsNativeError, JsResult, JsString, JsValue,
 };
 
 use super::options::{coerce_options_to_object, get_option};
@@ -35,110 +30,101 @@ use super::options::{coerce_options_to_object, get_option};
 #[derive(Debug, Clone)]
 pub(crate) struct Locale;
 
-impl BuiltIn for Locale {
-    const NAME: &'static str = "Locale";
-
-    fn init(context: &mut Context<'_>) -> Option<JsValue> {
+impl IntrinsicObject for Locale {
+    fn init(intrinsics: &Intrinsics) {
         let _timer = Profiler::global().start_event(Self::NAME, "init");
 
-        let base_name =
-            FunctionObjectBuilder::new(context, NativeFunction::from_fn_ptr(Self::base_name))
-                .name("get baseName")
-                .constructor(false)
-                .build();
+        let base_name = BuiltInBuilder::new(intrinsics)
+            .callable(Self::base_name)
+            .name("get baseName")
+            .build();
 
-        let calendar =
-            FunctionObjectBuilder::new(context, NativeFunction::from_fn_ptr(Self::calendar))
-                .name("get calendar")
-                .constructor(false)
-                .build();
+        let calendar = BuiltInBuilder::new(intrinsics)
+            .callable(Self::calendar)
+            .name("get calendar")
+            .build();
 
-        let case_first =
-            FunctionObjectBuilder::new(context, NativeFunction::from_fn_ptr(Self::case_first))
-                .name("get caseFirst")
-                .constructor(false)
-                .build();
+        let case_first = BuiltInBuilder::new(intrinsics)
+            .callable(Self::case_first)
+            .name("get caseFirst")
+            .build();
 
-        let collation =
-            FunctionObjectBuilder::new(context, NativeFunction::from_fn_ptr(Self::collation))
-                .name("get collation")
-                .constructor(false)
-                .build();
+        let collation = BuiltInBuilder::new(intrinsics)
+            .callable(Self::collation)
+            .name("get collation")
+            .build();
 
-        let hour_cycle =
-            FunctionObjectBuilder::new(context, NativeFunction::from_fn_ptr(Self::hour_cycle))
-                .name("get hourCycle")
-                .constructor(false)
-                .build();
+        let hour_cycle = BuiltInBuilder::new(intrinsics)
+            .callable(Self::hour_cycle)
+            .name("get hourCycle")
+            .build();
 
-        let numeric =
-            FunctionObjectBuilder::new(context, NativeFunction::from_fn_ptr(Self::numeric))
-                .name("get numeric")
-                .constructor(false)
-                .build();
+        let numeric = BuiltInBuilder::new(intrinsics)
+            .callable(Self::numeric)
+            .name("get numeric")
+            .build();
 
-        let numbering_system = FunctionObjectBuilder::new(
-            context,
-            NativeFunction::from_fn_ptr(Self::numbering_system),
-        )
-        .name("get numberingSystem")
-        .constructor(false)
-        .build();
+        let numbering_system = BuiltInBuilder::new(intrinsics)
+            .callable(Self::numbering_system)
+            .name("get numberingSystem")
+            .build();
 
-        let language =
-            FunctionObjectBuilder::new(context, NativeFunction::from_fn_ptr(Self::language))
-                .name("get language")
-                .constructor(false)
-                .build();
+        let language = BuiltInBuilder::new(intrinsics)
+            .callable(Self::language)
+            .name("get language")
+            .build();
 
-        let script = FunctionObjectBuilder::new(context, NativeFunction::from_fn_ptr(Self::script))
+        let script = BuiltInBuilder::new(intrinsics)
+            .callable(Self::script)
             .name("get script")
-            .constructor(false)
             .build();
 
-        let region = FunctionObjectBuilder::new(context, NativeFunction::from_fn_ptr(Self::region))
+        let region = BuiltInBuilder::new(intrinsics)
+            .callable(Self::region)
             .name("get region")
-            .constructor(false)
             .build();
 
-        ConstructorBuilder::with_standard_constructor(
-            context,
-            Self::constructor,
-            context.intrinsics().constructors().locale().clone(),
-        )
-        .name(Self::NAME)
-        .length(Self::LENGTH)
-        .property(
-            JsSymbol::to_string_tag(),
-            "Intl.Locale",
-            Attribute::CONFIGURABLE,
-        )
-        .method(Self::maximize, "maximize", 0)
-        .method(Self::minimize, "minimize", 0)
-        .method(Self::to_string, "toString", 0)
-        .accessor("baseName", Some(base_name), None, Attribute::CONFIGURABLE)
-        .accessor("calendar", Some(calendar), None, Attribute::CONFIGURABLE)
-        .accessor("caseFirst", Some(case_first), None, Attribute::CONFIGURABLE)
-        .accessor("collation", Some(collation), None, Attribute::CONFIGURABLE)
-        .accessor("hourCycle", Some(hour_cycle), None, Attribute::CONFIGURABLE)
-        .accessor("numeric", Some(numeric), None, Attribute::CONFIGURABLE)
-        .accessor(
-            "numberingSystem",
-            Some(numbering_system),
-            None,
-            Attribute::CONFIGURABLE,
-        )
-        .accessor("language", Some(language), None, Attribute::CONFIGURABLE)
-        .accessor("script", Some(script), None, Attribute::CONFIGURABLE)
-        .accessor("region", Some(region), None, Attribute::CONFIGURABLE)
-        .build()
-        .conv::<JsValue>()
-        .pipe(Some)
+        BuiltInBuilder::from_standard_constructor::<Self>(intrinsics)
+            .property(
+                JsSymbol::to_string_tag(),
+                "Intl.Locale",
+                Attribute::CONFIGURABLE,
+            )
+            .method(Self::maximize, "maximize", 0)
+            .method(Self::minimize, "minimize", 0)
+            .method(Self::to_string, "toString", 0)
+            .accessor("baseName", Some(base_name), None, Attribute::CONFIGURABLE)
+            .accessor("calendar", Some(calendar), None, Attribute::CONFIGURABLE)
+            .accessor("caseFirst", Some(case_first), None, Attribute::CONFIGURABLE)
+            .accessor("collation", Some(collation), None, Attribute::CONFIGURABLE)
+            .accessor("hourCycle", Some(hour_cycle), None, Attribute::CONFIGURABLE)
+            .accessor("numeric", Some(numeric), None, Attribute::CONFIGURABLE)
+            .accessor(
+                "numberingSystem",
+                Some(numbering_system),
+                None,
+                Attribute::CONFIGURABLE,
+            )
+            .accessor("language", Some(language), None, Attribute::CONFIGURABLE)
+            .accessor("script", Some(script), None, Attribute::CONFIGURABLE)
+            .accessor("region", Some(region), None, Attribute::CONFIGURABLE)
+            .build();
+    }
+
+    fn get(intrinsics: &Intrinsics) -> JsObject {
+        Self::STANDARD_CONSTRUCTOR(intrinsics.constructors()).constructor()
     }
 }
 
-impl Locale {
-    pub(crate) const LENGTH: usize = 1;
+impl BuiltInObject for Locale {
+    const NAME: &'static str = "Locale";
+}
+
+impl BuiltInConstructor for Locale {
+    const LENGTH: usize = 1;
+
+    const STANDARD_CONSTRUCTOR: fn(&StandardConstructors) -> &StandardConstructor =
+        StandardConstructors::locale;
 
     /// Constructor [`Intl.Locale ( tag [ , options ] )`][spec].
     ///
@@ -149,7 +135,7 @@ impl Locale {
     ///
     /// [spec]: https://tc39.es/ecma402/#sec-Intl.Locale
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Intl/Locale
-    pub(crate) fn constructor(
+    fn constructor(
         new_target: &JsValue,
         args: &[JsValue],
         context: &mut Context<'_>,
@@ -360,7 +346,9 @@ impl Locale {
         // 37. Return locale.
         Ok(locale.into())
     }
+}
 
+impl Locale {
     /// [`Intl.Locale.prototype.maximize ( )`][spec].
     ///
     /// More information:

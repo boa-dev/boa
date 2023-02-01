@@ -2,8 +2,7 @@
 
 mod hooks;
 pub mod intrinsics;
-use hooks::DefaultHooks;
-pub use hooks::HostHooks;
+pub use hooks::{DefaultHooks, HostHooks};
 
 #[cfg(feature = "intl")]
 pub(crate) mod icu;
@@ -11,14 +10,12 @@ pub(crate) mod icu;
 #[cfg(feature = "intl")]
 pub use icu::BoaProvider;
 
-use intrinsics::{IntrinsicObjects, Intrinsics};
+use intrinsics::Intrinsics;
 
 use std::io::Read;
 #[cfg(not(feature = "intl"))]
 pub use std::marker::PhantomData;
 
-#[cfg(feature = "console")]
-use crate::builtins::console::Console;
 use crate::{
     builtins,
     bytecompiler::ByteCompiler,
@@ -87,13 +84,6 @@ pub struct Context<'host> {
     /// String interner in the context.
     interner: Interner,
 
-    /// console object state.
-    #[cfg(feature = "console")]
-    console: Console,
-
-    /// Intrinsic objects
-    intrinsics: Intrinsics,
-
     /// Execute in strict mode,
     strict: bool,
 
@@ -121,14 +111,10 @@ impl std::fmt::Debug for Context<'_> {
         debug
             .field("realm", &self.realm)
             .field("interner", &self.interner)
-            .field("intrinsics", &self.intrinsics)
             .field("vm", &self.vm)
             .field("strict", &self.strict)
             .field("promise_job_queue", &"JobQueue")
             .field("hooks", &"HostHooks");
-
-        #[cfg(feature = "console")]
-        debug.field("console", &self.console);
 
         #[cfg(feature = "intl")]
         debug.field("icu", &self.icu);
@@ -139,7 +125,9 @@ impl std::fmt::Debug for Context<'_> {
 
 impl Default for Context<'_> {
     fn default() -> Self {
-        ContextBuilder::default().build()
+        ContextBuilder::default()
+            .build()
+            .expect("Building the default context should not fail")
     }
 }
 
@@ -377,7 +365,7 @@ impl Context<'_> {
     /// Return the intrinsic constructors and objects.
     #[inline]
     pub const fn intrinsics(&self) -> &Intrinsics {
-        &self.intrinsics
+        &self.realm.intrinsics
     }
 
     /// Set the value of trace on the context
@@ -417,18 +405,6 @@ impl Context<'_> {
 // ==== Private API ====
 
 impl Context<'_> {
-    /// A helper function for getting an immutable reference to the `console` object.
-    #[cfg(feature = "console")]
-    pub(crate) const fn console(&self) -> &Console {
-        &self.console
-    }
-
-    /// A helper function for getting a mutable reference to the `console` object.
-    #[cfg(feature = "console")]
-    pub(crate) fn console_mut(&mut self) -> &mut Console {
-        &mut self.console
-    }
-
     /// Return a mutable reference to the global object string bindings.
     pub(crate) fn global_bindings_mut(&mut self) -> &mut GlobalPropertyMap {
         self.realm.global_bindings_mut()
@@ -457,23 +433,16 @@ impl Context<'_> {
         compiler.compile_statement_list_with_new_declarative(statement_list, true, strict)?;
         Ok(Gc::new(compiler.finish()))
     }
-
-    /// Sets up the default global objects within Global
-    fn create_intrinsics(&mut self) {
-        let _timer = Profiler::global().start_event("create_intrinsics", "interpreter");
-        // Create intrinsics, add global objects here
-        builtins::init(self);
-    }
 }
 
 impl<'host> Context<'host> {
     /// Get the host hooks.
-    pub(crate) fn host_hooks(&self) -> &'host dyn HostHooks {
+    pub fn host_hooks(&self) -> &'host dyn HostHooks {
         self.host_hooks
     }
 
     /// Get the job queue.
-    pub(crate) fn job_queue(&mut self) -> &'host dyn JobQueue {
+    pub fn job_queue(&mut self) -> &'host dyn JobQueue {
         self.job_queue
     }
 
@@ -600,20 +569,17 @@ impl<'icu, 'hooks, 'queue> ContextBuilder<'icu, 'hooks, 'queue> {
 
     /// Builds a new [`Context`] with the provided parameters, and defaults
     /// all missing parameters to their default values.
-    #[must_use]
-    pub fn build<'host>(self) -> Context<'host>
+    pub fn build<'host>(self) -> JsResult<Context<'host>>
     where
         'icu: 'host,
         'hooks: 'host,
         'queue: 'host,
     {
-        let intrinsics = Intrinsics::default();
+        let host_hooks = self.host_hooks.unwrap_or(&DefaultHooks);
+
         let mut context = Context {
-            realm: Realm::create(intrinsics.constructors().object().prototype().into()),
+            realm: Realm::create(host_hooks),
             interner: self.interner.unwrap_or_default(),
-            #[cfg(feature = "console")]
-            console: Console::default(),
-            intrinsics,
             vm: Vm::default(),
             strict: false,
             #[cfg(feature = "intl")]
@@ -624,15 +590,12 @@ impl<'icu, 'hooks, 'queue> ContextBuilder<'icu, 'hooks, 'queue> {
             #[cfg(feature = "fuzz")]
             instructions_remaining: self.instructions_remaining,
             kept_alive: Vec::new(),
-            host_hooks: self.host_hooks.unwrap_or(&DefaultHooks),
+            host_hooks,
             job_queue: self.job_queue.unwrap_or(&IdleJobQueue),
         };
 
-        // Add new builtIns to Context Realm
-        // At a later date this can be removed from here and called explicitly,
-        // but for now we almost always want these default builtins
-        context.intrinsics.objects = IntrinsicObjects::init(&mut context);
-        context.create_intrinsics();
-        context
+        builtins::set_default_global_bindings(&mut context)?;
+
+        Ok(context)
     }
 }

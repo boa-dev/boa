@@ -9,29 +9,29 @@
 //! [spec]: https://tc39.es/ecma262/#sec-string-object
 //! [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String
 
-pub mod string_iterator;
-#[cfg(test)]
-mod tests;
-
-use super::JsArgs;
 use crate::{
-    builtins::{string::string_iterator::StringIterator, Array, BuiltIn, Number, RegExp},
-    context::intrinsics::StandardConstructors,
+    builtins::{Array, BuiltInObject, Number, RegExp},
+    context::intrinsics::{Intrinsics, StandardConstructor, StandardConstructors},
     error::JsNativeError,
     js_string,
-    object::{
-        internal_methods::get_prototype_from_constructor, ConstructorBuilder, JsObject, ObjectData,
-    },
+    object::{internal_methods::get_prototype_from_constructor, JsObject, ObjectData},
     property::{Attribute, PropertyDescriptor},
     string::utf16,
     string::{CodePoint, Utf16Trim},
     symbol::JsSymbol,
     value::IntegerOrInfinity,
-    Context, JsResult, JsString, JsValue,
+    Context, JsArgs, JsResult, JsString, JsValue,
 };
 use boa_profiler::Profiler;
 use std::cmp::{max, min};
-use tap::{Conv, Pipe};
+
+use super::{BuiltInBuilder, BuiltInConstructor, IntrinsicObject};
+
+mod string_iterator;
+pub(crate) use string_iterator::StringIterator;
+
+#[cfg(test)]
+mod tests;
 
 #[derive(Clone, Copy, Eq, PartialEq)]
 pub(crate) enum Placement {
@@ -63,79 +63,72 @@ pub(crate) const fn is_trimmable_whitespace(c: char) -> bool {
 #[derive(Debug, Clone, Copy)]
 pub(crate) struct String;
 
-impl BuiltIn for String {
-    const NAME: &'static str = "String";
-
-    fn init(context: &mut Context<'_>) -> Option<JsValue> {
+impl IntrinsicObject for String {
+    fn init(intrinsics: &Intrinsics) {
         let _timer = Profiler::global().start_event(Self::NAME, "init");
 
         let symbol_iterator = JsSymbol::iterator();
 
         let attribute = Attribute::READONLY | Attribute::NON_ENUMERABLE | Attribute::PERMANENT;
-        ConstructorBuilder::with_standard_constructor(
-            context,
-            Self::constructor,
-            context.intrinsics().constructors().string().clone(),
-        )
-        .name(Self::NAME)
-        .length(Self::LENGTH)
-        .property("length", 0, attribute)
-        .static_method(Self::raw, "raw", 1)
-        .static_method(Self::from_char_code, "fromCharCode", 1)
-        .static_method(Self::from_code_point, "fromCodePoint", 1)
-        .method(Self::char_at, "charAt", 1)
-        .method(Self::char_code_at, "charCodeAt", 1)
-        .method(Self::code_point_at, "codePointAt", 1)
-        .method(Self::to_string, "toString", 0)
-        .method(Self::concat, "concat", 1)
-        .method(Self::repeat, "repeat", 1)
-        .method(Self::slice, "slice", 2)
-        .method(Self::starts_with, "startsWith", 1)
-        .method(Self::ends_with, "endsWith", 1)
-        .method(Self::includes, "includes", 1)
-        .method(Self::index_of, "indexOf", 1)
-        .method(Self::last_index_of, "lastIndexOf", 1)
-        .method(Self::locale_compare, "localeCompare", 1)
-        .method(Self::r#match, "match", 1)
-        .method(Self::normalize, "normalize", 1)
-        .method(Self::pad_end, "padEnd", 1)
-        .method(Self::pad_start, "padStart", 1)
-        .method(Self::trim, "trim", 0)
-        .method(Self::trim_start, "trimStart", 0)
-        .method(Self::trim_end, "trimEnd", 0)
-        .method(Self::to_lowercase, "toLowerCase", 0)
-        .method(Self::to_uppercase, "toUpperCase", 0)
-        .method(Self::substring, "substring", 2)
-        .method(Self::substr, "substr", 2)
-        .method(Self::split, "split", 2)
-        .method(Self::value_of, "valueOf", 0)
-        .method(Self::match_all, "matchAll", 1)
-        .method(Self::replace, "replace", 2)
-        .method(Self::replace_all, "replaceAll", 2)
-        .method(Self::iterator, (symbol_iterator, "[Symbol.iterator]"), 0)
-        .method(Self::search, "search", 1)
-        .method(Self::at, "at", 1)
-        .build()
-        .conv::<JsValue>()
-        .pipe(Some)
+        BuiltInBuilder::from_standard_constructor::<Self>(intrinsics)
+            .property("length", 0, attribute)
+            .static_method(Self::raw, "raw", 1)
+            .static_method(Self::from_char_code, "fromCharCode", 1)
+            .static_method(Self::from_code_point, "fromCodePoint", 1)
+            .method(Self::char_at, "charAt", 1)
+            .method(Self::char_code_at, "charCodeAt", 1)
+            .method(Self::code_point_at, "codePointAt", 1)
+            .method(Self::to_string, "toString", 0)
+            .method(Self::concat, "concat", 1)
+            .method(Self::repeat, "repeat", 1)
+            .method(Self::slice, "slice", 2)
+            .method(Self::starts_with, "startsWith", 1)
+            .method(Self::ends_with, "endsWith", 1)
+            .method(Self::includes, "includes", 1)
+            .method(Self::index_of, "indexOf", 1)
+            .method(Self::last_index_of, "lastIndexOf", 1)
+            .method(Self::locale_compare, "localeCompare", 1)
+            .method(Self::r#match, "match", 1)
+            .method(Self::normalize, "normalize", 1)
+            .method(Self::pad_end, "padEnd", 1)
+            .method(Self::pad_start, "padStart", 1)
+            .method(Self::trim, "trim", 0)
+            .method(Self::trim_start, "trimStart", 0)
+            .method(Self::trim_end, "trimEnd", 0)
+            .method(Self::to_lowercase, "toLowerCase", 0)
+            .method(Self::to_uppercase, "toUpperCase", 0)
+            .method(Self::substring, "substring", 2)
+            .method(Self::substr, "substr", 2)
+            .method(Self::split, "split", 2)
+            .method(Self::value_of, "valueOf", 0)
+            .method(Self::match_all, "matchAll", 1)
+            .method(Self::replace, "replace", 2)
+            .method(Self::replace_all, "replaceAll", 2)
+            .method(Self::iterator, (symbol_iterator, "[Symbol.iterator]"), 0)
+            .method(Self::search, "search", 1)
+            .method(Self::at, "at", 1)
+            .build();
+    }
+
+    fn get(intrinsics: &Intrinsics) -> JsObject {
+        Self::STANDARD_CONSTRUCTOR(intrinsics.constructors()).constructor()
     }
 }
 
-impl String {
-    /// The amount of arguments this function object takes.
-    pub(crate) const LENGTH: usize = 1;
+impl BuiltInObject for String {
+    const NAME: &'static str = "String";
+}
 
-    /// JavaScript strings must be between `0` and less than positive `Infinity` and cannot be a negative number.
-    /// The range of allowed values can be described like this: `[0, +∞)`.
-    ///
-    /// The resulting string can also not be larger than the maximum string size,
-    /// which can differ in JavaScript engines. In Boa it is `2^32 - 1`
-    pub(crate) const MAX_STRING_LENGTH: usize = u32::MAX as usize;
+impl BuiltInConstructor for String {
+    const LENGTH: usize = 1;
+
+    const STANDARD_CONSTRUCTOR: fn(&StandardConstructors) -> &StandardConstructor =
+        StandardConstructors::string;
 
     /// Constructor `String( value )`
     ///
     /// <https://tc39.es/ecma262/#sec-string-constructor-string-value>
-    pub(crate) fn constructor(
+    fn constructor(
         new_target: &JsValue,
         args: &[JsValue],
         context: &mut Context<'_>,
@@ -164,6 +157,15 @@ impl String {
         // 4. Return ! StringCreate(s, ? GetPrototypeFromConstructor(NewTarget, "%String.prototype%")).
         Ok(Self::string_create(string, prototype, context).into())
     }
+}
+
+impl String {
+    /// JavaScript strings must be between `0` and less than positive `Infinity` and cannot be a negative number.
+    /// The range of allowed values can be described like this: `[0, +∞)`.
+    ///
+    /// The resulting string can also not be larger than the maximum string size,
+    /// which can differ in JavaScript engines. In Boa it is `2^32 - 1`
+    pub(crate) const MAX_STRING_LENGTH: usize = u32::MAX as usize;
 
     /// Abstract function `StringCreate( value, prototype )`.
     ///
@@ -2145,12 +2147,13 @@ impl String {
         rx.invoke(JsSymbol::search(), &[JsValue::new(string)], context)
     }
 
+    #[allow(clippy::unnecessary_wraps)]
     pub(crate) fn iterator(
         this: &JsValue,
         _: &[JsValue],
         context: &mut Context<'_>,
     ) -> JsResult<JsValue> {
-        StringIterator::create_string_iterator(this.clone(), context)
+        Ok(StringIterator::create_string_iterator(this.clone(), context).into())
     }
 }
 

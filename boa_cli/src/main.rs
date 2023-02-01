@@ -255,7 +255,10 @@ fn main() -> Result<(), io::Error> {
     let args = Opt::parse();
 
     let queue = Jobs::default();
-    let mut context = ContextBuilder::new().job_queue(&queue).build();
+    let mut context = ContextBuilder::new()
+        .job_queue(&queue)
+        .build()
+        .expect("cannot fail with default global object");
 
     // Trace Output
     context.set_trace(args.trace);

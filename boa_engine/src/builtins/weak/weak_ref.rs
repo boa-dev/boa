@@ -1,16 +1,13 @@
 use boa_gc::{Finalize, Trace, WeakGc};
 use boa_profiler::Profiler;
-use tap::{Conv, Pipe};
 
 use crate::{
-    builtins::{BuiltIn, JsArgs},
-    context::intrinsics::StandardConstructors,
-    object::{
-        internal_methods::get_prototype_from_constructor, ConstructorBuilder, JsObject, ObjectData,
-    },
+    builtins::{BuiltInBuilder, BuiltInConstructor, BuiltInObject, IntrinsicObject},
+    context::intrinsics::{Intrinsics, StandardConstructor, StandardConstructors},
+    object::{internal_methods::get_prototype_from_constructor, JsObject, ObjectData},
     property::Attribute,
     symbol::JsSymbol,
-    Context, JsNativeError, JsResult, JsValue,
+    Context, JsArgs, JsNativeError, JsResult, JsValue,
 };
 
 /// Boa's implementation of ECMAScript's `WeakRef` builtin object.
@@ -26,40 +23,41 @@ use crate::{
 #[derive(Debug, Clone, Trace, Finalize)]
 pub(crate) struct WeakRef;
 
-impl BuiltIn for WeakRef {
-    const NAME: &'static str = "WeakRef";
+impl IntrinsicObject for WeakRef {
+    fn get(intrinsics: &Intrinsics) -> JsObject {
+        Self::STANDARD_CONSTRUCTOR(intrinsics.constructors()).constructor()
+    }
 
-    const ATTRIBUTE: Attribute = Attribute::WRITABLE.union(Attribute::CONFIGURABLE);
-
-    fn init(context: &mut Context<'_>) -> Option<JsValue> {
+    fn init(intrinsics: &Intrinsics) {
         let _timer = Profiler::global().start_event(Self::NAME, "init");
-        ConstructorBuilder::with_standard_constructor(
-            context,
-            Self::constructor,
-            context.intrinsics().constructors().weak_ref().clone(),
-        )
-        .name(Self::NAME)
-        .length(Self::LENGTH)
-        .property(
-            JsSymbol::to_string_tag(),
-            "WeakRef",
-            Attribute::CONFIGURABLE,
-        )
-        .method(Self::deref, "deref", 0)
-        .build()
-        .conv::<JsValue>()
-        .pipe(Some)
+        BuiltInBuilder::from_standard_constructor::<Self>(intrinsics)
+            .property(
+                JsSymbol::to_string_tag(),
+                "WeakRef",
+                Attribute::CONFIGURABLE,
+            )
+            .method(Self::deref, "deref", 0)
+            .build();
     }
 }
 
-impl WeakRef {
+impl BuiltInObject for WeakRef {
+    const NAME: &'static str = "WeakRef";
+
+    const ATTRIBUTE: Attribute = Attribute::WRITABLE.union(Attribute::CONFIGURABLE);
+}
+
+impl BuiltInConstructor for WeakRef {
     /// The amount of arguments the `WeakRef` constructor takes.
-    pub(crate) const LENGTH: usize = 1;
+    const LENGTH: usize = 1;
+
+    const STANDARD_CONSTRUCTOR: fn(&StandardConstructors) -> &StandardConstructor =
+        StandardConstructors::weak_ref;
 
     /// Constructor [`WeakRef ( target )`][cons]
     ///
     /// [cons]: https://tc39.es/ecma262/#sec-weak-ref-target
-    pub(crate) fn constructor(
+    fn constructor(
         new_target: &JsValue,
         args: &[JsValue],
         context: &mut Context<'_>,
@@ -92,7 +90,9 @@ impl WeakRef {
         // 6. Return weakRef.
         Ok(weak_ref.into())
     }
+}
 
+impl WeakRef {
     /// Method [`WeakRef.prototype.deref ( )`][spec].
     ///
     /// If the referenced object hasn't been collected, this method promotes a `WeakRef` into a

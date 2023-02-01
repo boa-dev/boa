@@ -9,88 +9,81 @@
 
 #![allow(clippy::string_lit_as_bytes)]
 
-use super::JsArgs;
 use crate::{
-    builtins::intl::date_time_format::DateTimeFormat,
-    builtins::{Array, BuiltIn},
-    context::BoaProvider,
-    object::ObjectInitializer,
+    builtins::{Array, BuiltInBuilder, BuiltInObject, IntrinsicObject},
+    context::{intrinsics::Intrinsics, BoaProvider},
+    object::JsObject,
     property::Attribute,
     symbol::JsSymbol,
-    Context, JsResult, JsValue,
+    Context, JsArgs, JsResult, JsValue,
 };
 
 use boa_profiler::Profiler;
 use icu_provider::KeyedDataMarker;
-use tap::{Conv, Pipe};
 
 pub(crate) mod collator;
 pub(crate) mod date_time_format;
 pub(crate) mod list_format;
 pub(crate) mod locale;
-mod options;
 pub(crate) mod segmenter;
 
-use self::{collator::Collator, list_format::ListFormat, locale::Locale, segmenter::Segmenter};
+pub(crate) use self::{
+    collator::Collator, date_time_format::DateTimeFormat, list_format::ListFormat, locale::Locale,
+    segmenter::Segmenter,
+};
+
+mod options;
 
 /// JavaScript `Intl` object.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub(crate) struct Intl;
 
-impl BuiltIn for Intl {
-    const NAME: &'static str = "Intl";
-
-    fn init(context: &mut Context<'_>) -> Option<JsValue> {
+impl IntrinsicObject for Intl {
+    fn init(intrinsics: &Intrinsics) {
         let _timer = Profiler::global().start_event(Self::NAME, "init");
 
-        let collator = Collator::init(context).expect("initialization should return a constructor");
-
-        let list_format =
-            ListFormat::init(context).expect("initialization should return a constructor");
-
-        let locale = Locale::init(context).expect("initialization should return a constructor");
-
-        let segmenter =
-            Segmenter::init(context).expect("initialization should return a constructor");
-
-        let date_time_format = DateTimeFormat::init(context);
-
-        ObjectInitializer::new(context)
-            .property(
+        BuiltInBuilder::with_intrinsic::<Self>(intrinsics)
+            .static_property(
                 JsSymbol::to_string_tag(),
                 Self::NAME,
-                Attribute::READONLY | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
+                Attribute::CONFIGURABLE,
             )
-            .property(
-                "Collator",
-                collator,
-                Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
+            .static_property(
+                Collator::NAME,
+                intrinsics.constructors().collator().constructor(),
+                Collator::ATTRIBUTE,
             )
-            .property(
-                "ListFormat",
-                list_format,
-                Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
+            .static_property(
+                ListFormat::NAME,
+                intrinsics.constructors().list_format().constructor(),
+                ListFormat::ATTRIBUTE,
             )
-            .property(
-                "DateTimeFormat",
-                date_time_format,
-                Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
+            .static_property(
+                Locale::NAME,
+                intrinsics.constructors().locale().constructor(),
+                Locale::ATTRIBUTE,
             )
-            .property(
-                "Locale",
-                locale,
-                Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
+            .static_property(
+                Segmenter::NAME,
+                intrinsics.constructors().segmenter().constructor(),
+                Segmenter::ATTRIBUTE,
             )
-            .property(
-                "Segmenter",
-                segmenter,
-                Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
+            .static_property(
+                DateTimeFormat::NAME,
+                intrinsics.constructors().date_time_format().constructor(),
+                DateTimeFormat::ATTRIBUTE,
             )
-            .function(Self::get_canonical_locales, "getCanonicalLocales", 1)
-            .build()
-            .conv::<JsValue>()
-            .pipe(Some)
+            .static_method(Self::get_canonical_locales, "getCanonicalLocales", 1)
+            .build();
     }
+
+    fn get(intrinsics: &Intrinsics) -> JsObject {
+        intrinsics.objects().intl()
+    }
+}
+
+impl BuiltInObject for Intl {
+    const NAME: &'static str = "Intl";
 }
 
 impl Intl {

@@ -543,11 +543,7 @@ impl JsValue {
                 ))
             }
             Self::BigInt(ref bigint) => {
-                let prototype = context
-                    .intrinsics()
-                    .constructors()
-                    .bigint_object()
-                    .prototype();
+                let prototype = context.intrinsics().constructors().bigint().prototype();
                 Ok(JsObject::from_proto_and_data(
                     prototype,
                     ObjectData::big_int(bigint.clone()),

@@ -13,7 +13,7 @@ use crate::{
     environments::{BindingLocator, CompileTimeEnvironment},
     error::JsNativeError,
     js_string,
-    object::{internal_methods::get_prototype_from_constructor, JsObject, ObjectData},
+    object::{internal_methods::get_prototype_from_constructor, JsObject, ObjectData, CONSTRUCTOR},
     property::PropertyDescriptor,
     vm::{CallFrame, Opcode},
     Context, JsResult, JsString, JsValue,
@@ -597,7 +597,7 @@ pub(crate) fn create_function_object(
 
     let prototype = JsObject::with_object_proto(context);
     prototype
-        .define_property_or_throw(js_string!("constructor"), constructor_property, context)
+        .define_property_or_throw(CONSTRUCTOR, constructor_property, context)
         .expect("failed to define the constructor property of the function");
 
     let prototype_property = PropertyDescriptor::builder()
@@ -664,13 +664,9 @@ pub(crate) fn create_generator_function_object(
 
     let prototype = JsObject::from_proto_and_data(
         if r#async {
-            context
-                .intrinsics()
-                .constructors()
-                .async_generator()
-                .prototype()
+            context.intrinsics().objects().async_generator()
         } else {
-            context.intrinsics().constructors().generator().prototype()
+            context.intrinsics().objects().generator()
         },
         ObjectData::ordinary(),
     );
@@ -1120,10 +1116,7 @@ impl JsObject {
                     .get("prototype", context)
                     .expect("GeneratorFunction must have a prototype property")
                     .as_object()
-                    .map_or_else(
-                        || context.intrinsics().constructors().generator().prototype(),
-                        Clone::clone,
-                    );
+                    .map_or_else(|| context.intrinsics().objects().generator(), Clone::clone);
 
                 let generator = Self::from_proto_and_data(
                     prototype,
@@ -1262,13 +1255,7 @@ impl JsObject {
                     .expect("AsyncGeneratorFunction must have a prototype property")
                     .as_object()
                     .map_or_else(
-                        || {
-                            context
-                                .intrinsics()
-                                .constructors()
-                                .async_generator()
-                                .prototype()
-                        },
+                        || context.intrinsics().objects().async_generator(),
                         Clone::clone,
                     );
 

@@ -9,6 +9,8 @@ use crate::{
 };
 use boa_ast::function::PrivateName;
 
+use super::CONSTRUCTOR;
+
 /// Object integrity level.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum IntegrityLevel {
@@ -498,7 +500,7 @@ impl JsObject {
         // 1. Assert: Type(O) is Object.
 
         // 2. Let C be ? Get(O, "constructor").
-        let c = self.get("constructor", context)?;
+        let c = self.get(CONSTRUCTOR, context)?;
 
         // 3. If C is undefined, return defaultConstructor.
         if c.is_undefined() {

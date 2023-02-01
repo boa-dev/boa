@@ -9,135 +9,136 @@
 //! [spec]: https://tc39.es/ecma262/#sec-array-objects
 //! [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array
 
-pub mod array_iterator;
-#[cfg(test)]
-mod tests;
-
 use boa_macros::utf16;
 use boa_profiler::Profiler;
-use tap::{Conv, Pipe};
 
-use super::JsArgs;
 use crate::{
-    builtins::array::array_iterator::ArrayIterator,
     builtins::iterable::{if_abrupt_close_iterator, IteratorHint},
-    builtins::BuiltIn,
+    builtins::BuiltInObject,
     builtins::Number,
-    context::intrinsics::StandardConstructors,
+    context::intrinsics::{Intrinsics, StandardConstructor, StandardConstructors},
     error::JsNativeError,
     js_string,
-    native_function::NativeFunction,
-    object::{
-        internal_methods::get_prototype_from_constructor, ConstructorBuilder,
-        FunctionObjectBuilder, JsFunction, JsObject, ObjectData,
-    },
+    object::{internal_methods::get_prototype_from_constructor, JsObject, ObjectData, CONSTRUCTOR},
     property::{Attribute, PropertyDescriptor, PropertyNameKind},
     symbol::JsSymbol,
     value::{IntegerOrInfinity, JsValue},
-    Context, JsResult,
+    Context, JsArgs, JsResult,
 };
 use std::cmp::{max, min, Ordering};
+
+use super::{BuiltInBuilder, BuiltInConstructor, IntrinsicObject};
+
+mod array_iterator;
+pub(crate) use array_iterator::ArrayIterator;
+#[cfg(test)]
+mod tests;
 
 /// JavaScript `Array` built-in implementation.
 #[derive(Debug, Clone, Copy)]
 pub(crate) struct Array;
 
-impl BuiltIn for Array {
-    const NAME: &'static str = "Array";
-
-    fn init(context: &mut Context<'_>) -> Option<JsValue> {
+impl IntrinsicObject for Array {
+    fn init(intrinsics: &Intrinsics) {
         let _timer = Profiler::global().start_event(Self::NAME, "init");
 
         let symbol_iterator = JsSymbol::iterator();
         let symbol_unscopables = JsSymbol::unscopables();
 
-        let get_species =
-            FunctionObjectBuilder::new(context, NativeFunction::from_fn_ptr(Self::get_species))
-                .name("get [Symbol.species]")
-                .constructor(false)
+        let get_species = BuiltInBuilder::new(intrinsics)
+            .callable(Self::get_species)
+            .name("get [Symbol.species]")
+            .build();
+
+        let values_function =
+            BuiltInBuilder::with_object(intrinsics, intrinsics.objects().array_prototype_values())
+                .callable(Self::values)
+                .name("values")
                 .build();
 
-        let values_function = context.intrinsics().objects().array_prototype_values();
-        let unscopables_object = Self::unscopables_intrinsic(context);
+        let unscopables_object = Self::unscopables_object();
 
-        ConstructorBuilder::with_standard_constructor(
-            context,
-            Self::constructor,
-            context.intrinsics().constructors().array().clone(),
-        )
-        .name(Self::NAME)
-        .length(Self::LENGTH)
-        .static_accessor(
-            JsSymbol::species(),
-            Some(get_species),
-            None,
-            Attribute::CONFIGURABLE,
-        )
-        .property(
-            "length",
-            0,
-            Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::PERMANENT,
-        )
-        .property(
-            "values",
-            values_function.clone(),
-            Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
-        )
-        .property(
-            symbol_iterator,
-            values_function,
-            Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
-        )
-        .property(
-            symbol_unscopables,
-            unscopables_object,
-            Attribute::READONLY | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
-        )
-        .method(Self::at, "at", 1)
-        .method(Self::concat, "concat", 1)
-        .method(Self::push, "push", 1)
-        .method(Self::index_of, "indexOf", 1)
-        .method(Self::last_index_of, "lastIndexOf", 1)
-        .method(Self::includes_value, "includes", 1)
-        .method(Self::map, "map", 1)
-        .method(Self::fill, "fill", 1)
-        .method(Self::for_each, "forEach", 1)
-        .method(Self::filter, "filter", 1)
-        .method(Self::pop, "pop", 0)
-        .method(Self::join, "join", 1)
-        .method(Self::to_string, "toString", 0)
-        .method(Self::reverse, "reverse", 0)
-        .method(Self::shift, "shift", 0)
-        .method(Self::unshift, "unshift", 1)
-        .method(Self::every, "every", 1)
-        .method(Self::find, "find", 1)
-        .method(Self::find_index, "findIndex", 1)
-        .method(Self::find_last, "findLast", 1)
-        .method(Self::find_last_index, "findLastIndex", 1)
-        .method(Self::flat, "flat", 0)
-        .method(Self::flat_map, "flatMap", 1)
-        .method(Self::slice, "slice", 2)
-        .method(Self::some, "some", 1)
-        .method(Self::sort, "sort", 1)
-        .method(Self::splice, "splice", 2)
-        .method(Self::to_locale_string, "toLocaleString", 0)
-        .method(Self::reduce, "reduce", 1)
-        .method(Self::reduce_right, "reduceRight", 1)
-        .method(Self::keys, "keys", 0)
-        .method(Self::entries, "entries", 0)
-        .method(Self::copy_within, "copyWithin", 2)
-        // Static Methods
-        .static_method(Self::from, "from", 1)
-        .static_method(Self::is_array, "isArray", 1)
-        .static_method(Self::of, "of", 0)
-        .build()
-        .conv::<JsValue>()
-        .pipe(Some)
+        BuiltInBuilder::from_standard_constructor::<Self>(intrinsics)
+            .static_accessor(
+                JsSymbol::species(),
+                Some(get_species),
+                None,
+                Attribute::CONFIGURABLE,
+            )
+            .property(
+                "length",
+                0,
+                Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::PERMANENT,
+            )
+            .property(
+                "values",
+                values_function.clone(),
+                Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
+            )
+            .property(
+                symbol_iterator,
+                values_function,
+                Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
+            )
+            .property(
+                symbol_unscopables,
+                unscopables_object,
+                Attribute::READONLY | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
+            )
+            .method(Self::at, "at", 1)
+            .method(Self::concat, "concat", 1)
+            .method(Self::push, "push", 1)
+            .method(Self::index_of, "indexOf", 1)
+            .method(Self::last_index_of, "lastIndexOf", 1)
+            .method(Self::includes_value, "includes", 1)
+            .method(Self::map, "map", 1)
+            .method(Self::fill, "fill", 1)
+            .method(Self::for_each, "forEach", 1)
+            .method(Self::filter, "filter", 1)
+            .method(Self::pop, "pop", 0)
+            .method(Self::join, "join", 1)
+            .method(Self::to_string, "toString", 0)
+            .method(Self::reverse, "reverse", 0)
+            .method(Self::shift, "shift", 0)
+            .method(Self::unshift, "unshift", 1)
+            .method(Self::every, "every", 1)
+            .method(Self::find, "find", 1)
+            .method(Self::find_index, "findIndex", 1)
+            .method(Self::find_last, "findLast", 1)
+            .method(Self::find_last_index, "findLastIndex", 1)
+            .method(Self::flat, "flat", 0)
+            .method(Self::flat_map, "flatMap", 1)
+            .method(Self::slice, "slice", 2)
+            .method(Self::some, "some", 1)
+            .method(Self::sort, "sort", 1)
+            .method(Self::splice, "splice", 2)
+            .method(Self::to_locale_string, "toLocaleString", 0)
+            .method(Self::reduce, "reduce", 1)
+            .method(Self::reduce_right, "reduceRight", 1)
+            .method(Self::keys, "keys", 0)
+            .method(Self::entries, "entries", 0)
+            .method(Self::copy_within, "copyWithin", 2)
+            // Static Methods
+            .static_method(Self::from, "from", 1)
+            .static_method(Self::is_array, "isArray", 1)
+            .static_method(Self::of, "of", 0)
+            .build();
+    }
+
+    fn get(intrinsics: &Intrinsics) -> JsObject {
+        Self::STANDARD_CONSTRUCTOR(intrinsics.constructors()).constructor()
     }
 }
 
-impl Array {
+impl BuiltInObject for Array {
+    const NAME: &'static str = "Array";
+}
+
+impl BuiltInConstructor for Array {
     const LENGTH: usize = 1;
+
+    const STANDARD_CONSTRUCTOR: fn(&StandardConstructors) -> &StandardConstructor =
+        StandardConstructors::array;
 
     fn constructor(
         new_target: &JsValue,
@@ -217,7 +218,9 @@ impl Array {
             Ok(array.into())
         }
     }
+}
 
+impl Array {
     /// Utility for constructing `Array` objects.
     ///
     /// More information:
@@ -349,7 +352,7 @@ impl Array {
             return Self::array_create(length, None, context);
         }
         // 3. Let C be ? Get(originalArray, "constructor").
-        let c = original_array.get("constructor", context)?;
+        let c = original_array.get(CONSTRUCTOR, context)?;
 
         // 4. If IsConstructor(C) is true, then
         if let Some(c) = c.as_constructor() {
@@ -2847,15 +2850,6 @@ impl Array {
         ))
     }
 
-    /// Creates an `Array.prototype.values( )` function object.
-    pub(crate) fn create_array_prototype_values(context: &mut Context<'_>) -> JsFunction {
-        FunctionObjectBuilder::new(context, NativeFunction::from_fn_ptr(Self::values))
-            .name("values")
-            .length(0)
-            .constructor(false)
-            .build()
-    }
-
     /// `Array.prototype.keys( )`
     ///
     /// The keys method returns an iterable that iterates over the indexes in the array.
@@ -2975,53 +2969,39 @@ impl Array {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-array.prototype-@@unscopables
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/@@unscopables
-    pub(crate) fn unscopables_intrinsic(context: &mut Context<'_>) -> JsObject {
+    pub(crate) fn unscopables_object() -> JsObject {
         // 1. Let unscopableList be OrdinaryObjectCreate(null).
         let unscopable_list = JsObject::with_null_proto();
-        // 2. Perform ! CreateDataPropertyOrThrow(unscopableList, "at", true).
-        unscopable_list
-            .create_data_property_or_throw("at", true, context)
-            .expect("CreateDataPropertyOrThrow for 'at' must not fail");
-        // 3. Perform ! CreateDataPropertyOrThrow(unscopableList, "copyWithin", true).
-        unscopable_list
-            .create_data_property_or_throw("copyWithin", true, context)
-            .expect("CreateDataPropertyOrThrow for 'copyWithin' must not fail");
-        // 4. Perform ! CreateDataPropertyOrThrow(unscopableList, "entries", true).
-        unscopable_list
-            .create_data_property_or_throw("entries", true, context)
-            .expect("CreateDataPropertyOrThrow for 'entries' must not fail");
-        // 5. Perform ! CreateDataPropertyOrThrow(unscopableList, "fill", true).
-        unscopable_list
-            .create_data_property_or_throw("fill", true, context)
-            .expect("CreateDataPropertyOrThrow for 'fill' must not fail");
-        // 6. Perform ! CreateDataPropertyOrThrow(unscopableList, "find", true).
-        unscopable_list
-            .create_data_property_or_throw("find", true, context)
-            .expect("CreateDataPropertyOrThrow for 'find' must not fail");
-        // 7. Perform ! CreateDataPropertyOrThrow(unscopableList, "findIndex", true).
-        unscopable_list
-            .create_data_property_or_throw("findIndex", true, context)
-            .expect("CreateDataPropertyOrThrow for 'findIndex' must not fail");
-        // 8. Perform ! CreateDataPropertyOrThrow(unscopableList, "flat", true).
-        unscopable_list
-            .create_data_property_or_throw("flat", true, context)
-            .expect("CreateDataPropertyOrThrow for 'flat' must not fail");
-        // 9. Perform ! CreateDataPropertyOrThrow(unscopableList, "flatMap", true).
-        unscopable_list
-            .create_data_property_or_throw("flatMap", true, context)
-            .expect("CreateDataPropertyOrThrow for 'flatMap' must not fail");
-        // 10. Perform ! CreateDataPropertyOrThrow(unscopableList, "includes", true).
-        unscopable_list
-            .create_data_property_or_throw("includes", true, context)
-            .expect("CreateDataPropertyOrThrow for 'includes' must not fail");
-        // 11. Perform ! CreateDataPropertyOrThrow(unscopableList, "keys", true).
-        unscopable_list
-            .create_data_property_or_throw("keys", true, context)
-            .expect("CreateDataPropertyOrThrow for 'keys' must not fail");
-        // 12. Perform ! CreateDataPropertyOrThrow(unscopableList, "values", true).
-        unscopable_list
-            .create_data_property_or_throw("values", true, context)
-            .expect("CreateDataPropertyOrThrow for 'values' must not fail");
+        let true_prop = PropertyDescriptor::builder()
+            .value(true)
+            .writable(true)
+            .enumerable(true)
+            .configurable(true);
+        {
+            let mut obj = unscopable_list.borrow_mut();
+            // 2. Perform ! CreateDataPropertyOrThrow(unscopableList, "at", true).
+            obj.insert("at", true_prop.clone());
+            // 3. Perform ! CreateDataPropertyOrThrow(unscopableList, "copyWithin", true).
+            obj.insert("copyWithin", true_prop.clone());
+            // 4. Perform ! CreateDataPropertyOrThrow(unscopableList, "entries", true).
+            obj.insert("entries", true_prop.clone());
+            // 5. Perform ! CreateDataPropertyOrThrow(unscopableList, "fill", true).
+            obj.insert("fill", true_prop.clone());
+            // 6. Perform ! CreateDataPropertyOrThrow(unscopableList, "find", true).
+            obj.insert("find", true_prop.clone());
+            // 7. Perform ! CreateDataPropertyOrThrow(unscopableList, "findIndex", true).
+            obj.insert("findIndex", true_prop.clone());
+            // 8. Perform ! CreateDataPropertyOrThrow(unscopableList, "flat", true).
+            obj.insert("flat", true_prop.clone());
+            // 9. Perform ! CreateDataPropertyOrThrow(unscopableList, "flatMap", true).
+            obj.insert("flatMap", true_prop.clone());
+            // 10. Perform ! CreateDataPropertyOrThrow(unscopableList, "includes", true).
+            obj.insert("includes", true_prop.clone());
+            // 11. Perform ! CreateDataPropertyOrThrow(unscopableList, "keys", true).
+            obj.insert("keys", true_prop.clone());
+            // 12. Perform ! CreateDataPropertyOrThrow(unscopableList, "values", true).
+            obj.insert("values", true_prop);
+        }
 
         // 13. Return unscopableList.
         unscopable_list

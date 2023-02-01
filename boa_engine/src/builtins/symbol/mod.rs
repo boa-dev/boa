@@ -20,23 +20,23 @@ mod tests;
 
 use std::hash::BuildHasherDefault;
 
-use super::JsArgs;
 use crate::{
-    builtins::BuiltIn,
+    builtins::BuiltInObject,
+    context::intrinsics::{Intrinsics, StandardConstructor, StandardConstructors},
     error::JsNativeError,
     js_string,
-    native_function::NativeFunction,
-    object::{ConstructorBuilder, FunctionObjectBuilder},
+    object::JsObject,
     property::Attribute,
     symbol::JsSymbol,
     value::JsValue,
-    Context, JsResult, JsString,
+    Context, JsArgs, JsResult, JsString,
 };
 use boa_profiler::Profiler;
 use dashmap::DashMap;
 use once_cell::sync::Lazy;
 use rustc_hash::FxHasher;
-use tap::{Conv, Pipe};
+
+use super::{BuiltInBuilder, BuiltInConstructor, IntrinsicObject};
 
 static GLOBAL_SYMBOL_REGISTRY: Lazy<GlobalSymbolRegistry> = Lazy::new(GlobalSymbolRegistry::new);
 
@@ -89,10 +89,8 @@ impl GlobalSymbolRegistry {
 #[derive(Debug, Clone, Copy)]
 pub struct Symbol;
 
-impl BuiltIn for Symbol {
-    const NAME: &'static str = "Symbol";
-
-    fn init(context: &mut Context<'_>) -> Option<JsValue> {
+impl IntrinsicObject for Symbol {
+    fn init(intrinsics: &Intrinsics) {
         let _timer = Profiler::global().start_event(Self::NAME, "init");
 
         let symbol_async_iterator = JsSymbol::async_iterator();
@@ -111,70 +109,68 @@ impl BuiltIn for Symbol {
 
         let attribute = Attribute::READONLY | Attribute::NON_ENUMERABLE | Attribute::PERMANENT;
 
-        let to_primitive =
-            FunctionObjectBuilder::new(context, NativeFunction::from_fn_ptr(Self::to_primitive))
-                .name("[Symbol.toPrimitive]")
-                .length(1)
-                .constructor(false)
-                .build();
+        let to_primitive = BuiltInBuilder::new(intrinsics)
+            .callable(Self::to_primitive)
+            .name("[Symbol.toPrimitive]")
+            .length(1)
+            .build();
 
-        let get_description =
-            FunctionObjectBuilder::new(context, NativeFunction::from_fn_ptr(Self::get_description))
-                .name("get description")
-                .constructor(false)
-                .build();
+        let get_description = BuiltInBuilder::new(intrinsics)
+            .callable(Self::get_description)
+            .name("get description")
+            .build();
 
-        ConstructorBuilder::with_standard_constructor(
-            context,
-            Self::constructor,
-            context.intrinsics().constructors().symbol().clone(),
-        )
-        .name(Self::NAME)
-        .length(Self::LENGTH)
-        .callable(true)
-        .constructor(true)
-        .static_method(Self::for_, "for", 1)
-        .static_method(Self::key_for, "keyFor", 1)
-        .static_property("asyncIterator", symbol_async_iterator, attribute)
-        .static_property("hasInstance", symbol_has_instance, attribute)
-        .static_property("isConcatSpreadable", symbol_is_concat_spreadable, attribute)
-        .static_property("iterator", symbol_iterator, attribute)
-        .static_property("match", symbol_match, attribute)
-        .static_property("matchAll", symbol_match_all, attribute)
-        .static_property("replace", symbol_replace, attribute)
-        .static_property("search", symbol_search, attribute)
-        .static_property("species", symbol_species, attribute)
-        .static_property("split", symbol_split, attribute)
-        .static_property("toPrimitive", symbol_to_primitive.clone(), attribute)
-        .static_property("toStringTag", symbol_to_string_tag.clone(), attribute)
-        .static_property("unscopables", symbol_unscopables, attribute)
-        .method(Self::to_string, "toString", 0)
-        .method(Self::value_of, "valueOf", 0)
-        .accessor(
-            "description",
-            Some(get_description),
-            None,
-            Attribute::CONFIGURABLE | Attribute::NON_ENUMERABLE,
-        )
-        .property(
-            symbol_to_string_tag,
-            Self::NAME,
-            Attribute::READONLY | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
-        )
-        .property(
-            symbol_to_primitive,
-            to_primitive,
-            Attribute::READONLY | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
-        )
-        .build()
-        .conv::<JsValue>()
-        .pipe(Some)
+        BuiltInBuilder::from_standard_constructor::<Self>(intrinsics)
+            .static_method(Self::for_, "for", 1)
+            .static_method(Self::key_for, "keyFor", 1)
+            .static_property("asyncIterator", symbol_async_iterator, attribute)
+            .static_property("hasInstance", symbol_has_instance, attribute)
+            .static_property("isConcatSpreadable", symbol_is_concat_spreadable, attribute)
+            .static_property("iterator", symbol_iterator, attribute)
+            .static_property("match", symbol_match, attribute)
+            .static_property("matchAll", symbol_match_all, attribute)
+            .static_property("replace", symbol_replace, attribute)
+            .static_property("search", symbol_search, attribute)
+            .static_property("species", symbol_species, attribute)
+            .static_property("split", symbol_split, attribute)
+            .static_property("toPrimitive", symbol_to_primitive.clone(), attribute)
+            .static_property("toStringTag", symbol_to_string_tag.clone(), attribute)
+            .static_property("unscopables", symbol_unscopables, attribute)
+            .method(Self::to_string, "toString", 0)
+            .method(Self::value_of, "valueOf", 0)
+            .accessor(
+                "description",
+                Some(get_description),
+                None,
+                Attribute::CONFIGURABLE | Attribute::NON_ENUMERABLE,
+            )
+            .property(
+                symbol_to_string_tag,
+                Self::NAME,
+                Attribute::READONLY | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
+            )
+            .property(
+                symbol_to_primitive,
+                to_primitive,
+                Attribute::READONLY | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
+            )
+            .build();
+    }
+
+    fn get(intrinsics: &Intrinsics) -> JsObject {
+        Self::STANDARD_CONSTRUCTOR(intrinsics.constructors()).constructor()
     }
 }
 
-impl Symbol {
-    /// The amount of arguments this function object takes.
-    pub(crate) const LENGTH: usize = 0;
+impl BuiltInObject for Symbol {
+    const NAME: &'static str = "Symbol";
+}
+
+impl BuiltInConstructor for Symbol {
+    const LENGTH: usize = 0;
+
+    const STANDARD_CONSTRUCTOR: fn(&StandardConstructors) -> &StandardConstructor =
+        StandardConstructors::symbol;
 
     /// The `Symbol()` constructor returns a value of type symbol.
     ///
@@ -187,7 +183,7 @@ impl Symbol {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-symbol-description
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Symbol/Symbol
-    pub(crate) fn constructor(
+    fn constructor(
         new_target: &JsValue,
         args: &[JsValue],
         context: &mut Context<'_>,
@@ -214,7 +210,9 @@ impl Symbol {
             })?
             .into())
     }
+}
 
+impl Symbol {
     fn this_symbol_value(value: &JsValue) -> JsResult<JsSymbol> {
         value
             .as_symbol()

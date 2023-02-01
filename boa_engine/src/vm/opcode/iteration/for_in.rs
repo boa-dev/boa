@@ -1,5 +1,5 @@
 use crate::{
-    builtins::{iterable::IteratorRecord, ForInIterator},
+    builtins::{iterable::IteratorRecord, object::for_in_iterator::ForInIterator},
     error::JsNativeError,
     property::PropertyDescriptor,
     vm::{opcode::Operation, ShouldExit},

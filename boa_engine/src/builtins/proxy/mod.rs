@@ -13,15 +13,17 @@
 use std::cell::Cell;
 
 use crate::{
-    builtins::{BuiltIn, JsArgs},
+    builtins::BuiltInObject,
+    context::intrinsics::{Intrinsics, StandardConstructor, StandardConstructors},
     error::JsNativeError,
     native_function::NativeFunction,
-    object::{ConstructorBuilder, FunctionObjectBuilder, JsFunction, JsObject, ObjectData},
-    Context, JsResult, JsValue,
+    object::{FunctionObjectBuilder, JsFunction, JsObject, ObjectData},
+    Context, JsArgs, JsResult, JsValue,
 };
 use boa_gc::{Finalize, Trace};
 use boa_profiler::Profiler;
-use tap::{Conv, Pipe};
+
+use super::{BuiltInBuilder, BuiltInConstructor, IntrinsicObject};
 /// Javascript `Proxy` object.
 #[derive(Debug, Clone, Trace, Finalize)]
 pub struct Proxy {
@@ -29,30 +31,55 @@ pub struct Proxy {
     data: Option<(JsObject, JsObject)>,
 }
 
-impl BuiltIn for Proxy {
-    const NAME: &'static str = "Proxy";
-
-    fn init(context: &mut Context<'_>) -> Option<JsValue> {
+impl IntrinsicObject for Proxy {
+    fn init(intrinsics: &Intrinsics) {
         let _timer = Profiler::global().start_event(Self::NAME, "init");
 
-        ConstructorBuilder::with_standard_constructor(
-            context,
-            Self::constructor,
-            context.intrinsics().constructors().proxy().clone(),
-        )
-        .name(Self::NAME)
-        .length(Self::LENGTH)
-        .has_prototype_property(false)
-        .static_method(Self::revocable, "revocable", 2)
-        .build()
-        .conv::<JsValue>()
-        .pipe(Some)
+        BuiltInBuilder::from_standard_constructor::<Self>(intrinsics)
+            .no_proto()
+            .static_method(Self::revocable, "revocable", 2)
+            .build();
+    }
+
+    fn get(intrinsics: &Intrinsics) -> JsObject {
+        Self::STANDARD_CONSTRUCTOR(intrinsics.constructors()).constructor()
+    }
+}
+
+impl BuiltInObject for Proxy {
+    const NAME: &'static str = "Proxy";
+}
+
+impl BuiltInConstructor for Proxy {
+    const LENGTH: usize = 2;
+
+    const STANDARD_CONSTRUCTOR: fn(&StandardConstructors) -> &StandardConstructor =
+        StandardConstructors::proxy;
+
+    /// `28.2.1.1 Proxy ( target, handler )`
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-proxy-target-handler
+    fn constructor(
+        new_target: &JsValue,
+        args: &[JsValue],
+        context: &mut Context<'_>,
+    ) -> JsResult<JsValue> {
+        // 1. If NewTarget is undefined, throw a TypeError exception.
+        if new_target.is_undefined() {
+            return Err(JsNativeError::typ()
+                .with_message("Proxy constructor called on undefined new target")
+                .into());
+        }
+
+        // 2. Return ? ProxyCreate(target, handler).
+        Self::create(args.get_or_undefined(0), args.get_or_undefined(1), context).map(JsValue::from)
     }
 }
 
 impl Proxy {
-    const LENGTH: usize = 2;
-
     pub(crate) fn new(target: JsObject, handler: JsObject) -> Self {
         Self {
             data: Some((target, handler)),
@@ -68,28 +95,6 @@ impl Proxy {
                 .with_message("Proxy object has empty handler and target")
                 .into()
         })
-    }
-
-    /// `28.2.1.1 Proxy ( target, handler )`
-    ///
-    /// More information:
-    ///  - [ECMAScript reference][spec]
-    ///
-    /// [spec]: https://tc39.es/ecma262/#sec-proxy-target-handler
-    pub(crate) fn constructor(
-        new_target: &JsValue,
-        args: &[JsValue],
-        context: &mut Context<'_>,
-    ) -> JsResult<JsValue> {
-        // 1. If NewTarget is undefined, throw a TypeError exception.
-        if new_target.is_undefined() {
-            return Err(JsNativeError::typ()
-                .with_message("Proxy constructor called on undefined new target")
-                .into());
-        }
-
-        // 2. Return ? ProxyCreate(target, handler).
-        Self::create(args.get_or_undefined(0), args.get_or_undefined(1), context).map(JsValue::from)
     }
 
     // `10.5.14 ProxyCreate ( target, handler )`

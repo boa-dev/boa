@@ -18,7 +18,7 @@ impl JsGenerator {
     /// Create a new `JsGenerator` object
     #[inline]
     pub fn new(context: &mut Context<'_>) -> Self {
-        let prototype = context.intrinsics().constructors().generator().prototype();
+        let prototype = context.intrinsics().objects().generator();
 
         let generator = JsObject::from_proto_and_data(
             prototype,

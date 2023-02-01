@@ -17,15 +17,15 @@
 mod tests;
 
 use crate::{
-    builtins::{BuiltIn, JsArgs},
-    object::ObjectInitializer,
+    native_function::NativeFunction,
+    object::{JsObject, ObjectInitializer},
     value::{display::display_obj, JsValue, Numeric},
-    Context, JsResult, JsString,
+    Context, JsArgs, JsResult, JsString,
 };
+use boa_gc::{Finalize, Trace};
 use boa_profiler::Profiler;
 use rustc_hash::FxHashMap;
-use std::time::SystemTime;
-use tap::{Conv, Pipe};
+use std::{cell::RefCell, rc::Rc, time::SystemTime};
 
 /// This represents the different types of log messages.
 #[derive(Debug)]
@@ -123,47 +123,80 @@ pub fn formatter(data: &[JsValue], context: &mut Context<'_>) -> JsResult<String
 }
 
 /// This is the internal console object state.
-#[derive(Debug, Default)]
+#[derive(Debug, Default, Trace, Finalize)]
 pub(crate) struct Console {
     count_map: FxHashMap<JsString, u32>,
     timer_map: FxHashMap<JsString, u128>,
     groups: Vec<String>,
 }
 
-impl BuiltIn for Console {
+impl Console {
     const NAME: &'static str = "console";
 
-    fn init(context: &mut Context<'_>) -> Option<JsValue> {
+    pub(crate) fn init(context: &mut Context<'_>) -> JsObject {
+        fn console_method(
+            f: fn(&JsValue, &[JsValue], &Console, &mut Context<'_>) -> JsResult<JsValue>,
+            state: Rc<RefCell<Console>>,
+        ) -> NativeFunction {
+            // SAFETY: `Console` doesn't contain types that need tracing.
+            unsafe {
+                NativeFunction::from_closure(move |this, args, context| {
+                    f(this, args, &state.borrow(), context)
+                })
+            }
+        }
+        fn console_method_mut(
+            f: fn(&JsValue, &[JsValue], &mut Console, &mut Context<'_>) -> JsResult<JsValue>,
+            state: Rc<RefCell<Console>>,
+        ) -> NativeFunction {
+            // SAFETY: `Console` doesn't contain types that need tracing.
+            unsafe {
+                NativeFunction::from_closure(move |this, args, context| {
+                    f(this, args, &mut state.borrow_mut(), context)
+                })
+            }
+        }
         let _timer = Profiler::global().start_event(Self::NAME, "init");
-        ObjectInitializer::new(context)
-            .function(Self::assert, "assert", 0)
-            .function(Self::clear, "clear", 0)
-            .function(Self::debug, "debug", 0)
-            .function(Self::error, "error", 0)
-            .function(Self::info, "info", 0)
-            .function(Self::log, "log", 0)
-            .function(Self::trace, "trace", 0)
-            .function(Self::warn, "warn", 0)
-            .function(Self::error, "exception", 0)
-            .function(Self::count, "count", 0)
-            .function(Self::count_reset, "countReset", 0)
-            .function(Self::group, "group", 0)
-            .function(Self::group, "groupCollapsed", 0)
-            .function(Self::group_end, "groupEnd", 0)
-            .function(Self::time, "time", 0)
-            .function(Self::time_log, "timeLog", 0)
-            .function(Self::time_end, "timeEnd", 0)
-            .function(Self::dir, "dir", 0)
-            .function(Self::dir, "dirxml", 0)
-            .build()
-            .conv::<JsValue>()
-            .pipe(Some)
-    }
-}
 
-impl Console {
-    /// The name of the object.
-    pub(crate) const NAME: &'static str = "console";
+        let state = Rc::new(RefCell::new(Console::default()));
+
+        ObjectInitializer::with_native(Console::default(), context)
+            .function(console_method(Self::assert, state.clone()), "assert", 0)
+            .function(console_method_mut(Self::clear, state.clone()), "clear", 0)
+            .function(console_method(Self::debug, state.clone()), "debug", 0)
+            .function(console_method(Self::error, state.clone()), "error", 0)
+            .function(console_method(Self::info, state.clone()), "info", 0)
+            .function(console_method(Self::log, state.clone()), "log", 0)
+            .function(console_method(Self::trace, state.clone()), "trace", 0)
+            .function(console_method(Self::warn, state.clone()), "warn", 0)
+            .function(console_method_mut(Self::count, state.clone()), "count", 0)
+            .function(
+                console_method_mut(Self::count_reset, state.clone()),
+                "countReset",
+                0,
+            )
+            .function(console_method_mut(Self::group, state.clone()), "group", 0)
+            .function(
+                console_method_mut(Self::group, state.clone()),
+                "groupCollapsed",
+                0,
+            )
+            .function(
+                console_method_mut(Self::group_end, state.clone()),
+                "groupEnd",
+                0,
+            )
+            .function(console_method_mut(Self::time, state.clone()), "time", 0)
+            .function(console_method(Self::time_log, state.clone()), "timeLog", 0)
+            .function(
+                console_method_mut(Self::time_end, state.clone()),
+                "timeEnd",
+                0,
+            )
+            .function(console_method(Self::dir, state.clone()), "dir", 0)
+            .function(console_method(Self::dir, state), "dirxml", 0)
+            .build()
+    }
 
     /// `console.assert(condition, ...data)`
     ///
@@ -179,6 +212,7 @@ impl Console {
     pub(crate) fn assert(
         _: &JsValue,
         args: &[JsValue],
+        console: &Console,
         context: &mut Context<'_>,
     ) -> JsResult<JsValue> {
         let assertion = args.get(0).map_or(false, JsValue::to_boolean);
@@ -195,10 +229,7 @@ impl Console {
                 args[0] = JsValue::new(concat);
             }
 
-            logger(
-                LogMessage::Error(formatter(&args, context)?),
-                context.console(),
-            );
+            logger(LogMessage::Error(formatter(&args, context)?), console);
         }
 
         Ok(JsValue::undefined())
@@ -218,9 +249,10 @@ impl Console {
     pub(crate) fn clear(
         _: &JsValue,
         _: &[JsValue],
-        context: &mut Context<'_>,
+        console: &mut Console,
+        _: &mut Context<'_>,
     ) -> JsResult<JsValue> {
-        context.console_mut().groups.clear();
+        console.groups.clear();
         Ok(JsValue::undefined())
     }
 
@@ -237,12 +269,10 @@ impl Console {
     pub(crate) fn debug(
         _: &JsValue,
         args: &[JsValue],
+        console: &Console,
         context: &mut Context<'_>,
     ) -> JsResult<JsValue> {
-        logger(
-            LogMessage::Log(formatter(args, context)?),
-            context.console(),
-        );
+        logger(LogMessage::Log(formatter(args, context)?), console);
         Ok(JsValue::undefined())
     }
 
@@ -259,12 +289,10 @@ impl Console {
     pub(crate) fn error(
         _: &JsValue,
         args: &[JsValue],
+        console: &Console,
         context: &mut Context<'_>,
     ) -> JsResult<JsValue> {
-        logger(
-            LogMessage::Error(formatter(args, context)?),
-            context.console(),
-        );
+        logger(LogMessage::Error(formatter(args, context)?), console);
         Ok(JsValue::undefined())
     }
 
@@ -281,12 +309,10 @@ impl Console {
     pub(crate) fn info(
         _: &JsValue,
         args: &[JsValue],
+        console: &Console,
         context: &mut Context<'_>,
     ) -> JsResult<JsValue> {
-        logger(
-            LogMessage::Info(formatter(args, context)?),
-            context.console(),
-        );
+        logger(LogMessage::Info(formatter(args, context)?), console);
         Ok(JsValue::undefined())
     }
 
@@ -303,12 +329,10 @@ impl Console {
     pub(crate) fn log(
         _: &JsValue,
         args: &[JsValue],
+        console: &Console,
         context: &mut Context<'_>,
     ) -> JsResult<JsValue> {
-        logger(
-            LogMessage::Log(formatter(args, context)?),
-            context.console(),
-        );
+        logger(LogMessage::Log(formatter(args, context)?), console);
         Ok(JsValue::undefined())
     }
 
@@ -340,16 +364,14 @@ impl Console {
     pub(crate) fn trace(
         _: &JsValue,
         args: &[JsValue],
+        console: &Console,
         context: &mut Context<'_>,
     ) -> JsResult<JsValue> {
         if !args.is_empty() {
-            logger(
-                LogMessage::Log(formatter(args, context)?),
-                context.console(),
-            );
+            logger(LogMessage::Log(formatter(args, context)?), console);
 
             let stack_trace_dump = Self::get_stack_trace(context).join("\n");
-            logger(LogMessage::Log(stack_trace_dump), context.console());
+            logger(LogMessage::Log(stack_trace_dump), console);
         }
 
         Ok(JsValue::undefined())
@@ -368,12 +390,10 @@ impl Console {
     pub(crate) fn warn(
         _: &JsValue,
         args: &[JsValue],
+        console: &Console,
         context: &mut Context<'_>,
     ) -> JsResult<JsValue> {
-        logger(
-            LogMessage::Warn(formatter(args, context)?),
-            context.console(),
-        );
+        logger(LogMessage::Warn(formatter(args, context)?), console);
         Ok(JsValue::undefined())
     }
 
@@ -390,6 +410,7 @@ impl Console {
     pub(crate) fn count(
         _: &JsValue,
         args: &[JsValue],
+        console: &mut Console,
         context: &mut Context<'_>,
     ) -> JsResult<JsValue> {
         let label = match args.get(0) {
@@ -398,10 +419,10 @@ impl Console {
         };
 
         let msg = format!("count {}:", label.to_std_string_escaped());
-        let c = context.console_mut().count_map.entry(label).or_insert(0);
+        let c = console.count_map.entry(label).or_insert(0);
         *c += 1;
 
-        logger(LogMessage::Info(format!("{msg} {c}")), context.console());
+        logger(LogMessage::Info(format!("{msg} {c}")), console);
         Ok(JsValue::undefined())
     }
 
@@ -418,6 +439,7 @@ impl Console {
     pub(crate) fn count_reset(
         _: &JsValue,
         args: &[JsValue],
+        console: &mut Console,
         context: &mut Context<'_>,
     ) -> JsResult<JsValue> {
         let label = match args.get(0) {
@@ -425,11 +447,11 @@ impl Console {
             None => "default".into(),
         };
 
-        context.console_mut().count_map.remove(&label);
+        console.count_map.remove(&label);
 
         logger(
             LogMessage::Warn(format!("countReset {}", label.to_std_string_escaped())),
-            context.console(),
+            console,
         );
 
         Ok(JsValue::undefined())
@@ -456,6 +478,7 @@ impl Console {
     pub(crate) fn time(
         _: &JsValue,
         args: &[JsValue],
+        console: &mut Console,
         context: &mut Context<'_>,
     ) -> JsResult<JsValue> {
         let label = match args.get(0) {
@@ -463,17 +486,17 @@ impl Console {
             None => "default".into(),
         };
 
-        if context.console().timer_map.get(&label).is_some() {
+        if console.timer_map.get(&label).is_some() {
             logger(
                 LogMessage::Warn(format!(
                     "Timer '{}' already exist",
                     label.to_std_string_escaped()
                 )),
-                context.console(),
+                console,
             );
         } else {
             let time = Self::system_time_in_ms();
-            context.console_mut().timer_map.insert(label, time);
+            console.timer_map.insert(label, time);
         }
 
         Ok(JsValue::undefined())
@@ -492,6 +515,7 @@ impl Console {
     pub(crate) fn time_log(
         _: &JsValue,
         args: &[JsValue],
+        console: &Console,
         context: &mut Context<'_>,
     ) -> JsResult<JsValue> {
         let label = match args.get(0) {
@@ -499,20 +523,20 @@ impl Console {
             None => "default".into(),
         };
 
-        if let Some(t) = context.console().timer_map.get(&label) {
+        if let Some(t) = console.timer_map.get(&label) {
             let time = Self::system_time_in_ms();
             let mut concat = format!("{}: {} ms", label.to_std_string_escaped(), time - t);
             for msg in args.iter().skip(1) {
                 concat = concat + " " + &msg.display().to_string();
             }
-            logger(LogMessage::Log(concat), context.console());
+            logger(LogMessage::Log(concat), console);
         } else {
             logger(
                 LogMessage::Warn(format!(
                     "Timer '{}' doesn't exist",
                     label.to_std_string_escaped()
                 )),
-                context.console(),
+                console,
             );
         }
 
@@ -532,6 +556,7 @@ impl Console {
     pub(crate) fn time_end(
         _: &JsValue,
         args: &[JsValue],
+        console: &mut Console,
         context: &mut Context<'_>,
     ) -> JsResult<JsValue> {
         let label = match args.get(0) {
@@ -539,7 +564,7 @@ impl Console {
             None => "default".into(),
         };
 
-        if let Some(t) = context.console_mut().timer_map.remove(&label) {
+        if let Some(t) = console.timer_map.remove(&label) {
             let time = Self::system_time_in_ms();
             logger(
                 LogMessage::Info(format!(
@@ -547,7 +572,7 @@ impl Console {
                     label.to_std_string_escaped(),
                     time - t
                 )),
-                context.console(),
+                console,
             );
         } else {
             logger(
@@ -555,7 +580,7 @@ impl Console {
                     "Timer '{}' doesn't exist",
                     label.to_std_string_escaped()
                 )),
-                context.console(),
+                console,
             );
         }
 
@@ -575,15 +600,13 @@ impl Console {
     pub(crate) fn group(
         _: &JsValue,
         args: &[JsValue],
+        console: &mut Console,
         context: &mut Context<'_>,
     ) -> JsResult<JsValue> {
         let group_label = formatter(args, context)?;
 
-        logger(
-            LogMessage::Info(format!("group: {group_label}")),
-            context.console(),
-        );
-        context.console_mut().groups.push(group_label);
+        logger(LogMessage::Info(format!("group: {group_label}")), console);
+        console.groups.push(group_label);
 
         Ok(JsValue::undefined())
     }
@@ -602,9 +625,10 @@ impl Console {
     pub(crate) fn group_end(
         _: &JsValue,
         _: &[JsValue],
-        context: &mut Context<'_>,
+        console: &mut Console,
+        _: &mut Context<'_>,
     ) -> JsResult<JsValue> {
-        context.console_mut().groups.pop();
+        console.groups.pop();
 
         Ok(JsValue::undefined())
     }
@@ -623,11 +647,12 @@ impl Console {
     pub(crate) fn dir(
         _: &JsValue,
         args: &[JsValue],
-        context: &mut Context<'_>,
+        console: &Console,
+        _: &mut Context<'_>,
     ) -> JsResult<JsValue> {
         logger(
             LogMessage::Info(display_obj(args.get_or_undefined(0), true)),
-            context.console(),
+            console,
         );
         Ok(JsValue::undefined())
     }

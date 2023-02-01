@@ -11,19 +11,16 @@
 //! [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error
 
 use crate::{
-    builtins::BuiltIn,
-    context::intrinsics::StandardConstructors,
+    builtins::BuiltInObject,
+    context::intrinsics::{Intrinsics, StandardConstructor, StandardConstructors},
     error::JsNativeError,
     js_string,
-    object::{
-        internal_methods::get_prototype_from_constructor, ConstructorBuilder, JsObject, ObjectData,
-    },
+    object::{internal_methods::get_prototype_from_constructor, JsObject, ObjectData},
     property::Attribute,
     string::utf16,
-    Context, JsResult, JsValue,
+    Context, JsArgs, JsResult, JsValue,
 };
 use boa_profiler::Profiler;
-use tap::{Conv, Pipe};
 
 pub(crate) mod aggregate;
 pub(crate) mod eval;
@@ -44,7 +41,7 @@ pub(crate) use self::reference::ReferenceError;
 pub(crate) use self::syntax::SyntaxError;
 pub(crate) use self::uri::UriError;
 
-use super::JsArgs;
+use super::{BuiltInBuilder, BuiltInConstructor, IntrinsicObject};
 
 /// The kind of a `NativeError` object, per the [ECMAScript spec][spec].
 ///
@@ -129,57 +126,37 @@ pub enum ErrorKind {
 #[derive(Debug, Clone, Copy)]
 pub(crate) struct Error;
 
-impl BuiltIn for Error {
-    const NAME: &'static str = "Error";
-
-    fn init(context: &mut Context<'_>) -> Option<JsValue> {
+impl IntrinsicObject for Error {
+    fn init(intrinsics: &Intrinsics) {
         let _timer = Profiler::global().start_event(Self::NAME, "init");
 
         let attribute = Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE;
-        ConstructorBuilder::with_standard_constructor(
-            context,
-            Self::constructor,
-            context.intrinsics().constructors().error().clone(),
-        )
-        .name(Self::NAME)
-        .length(Self::LENGTH)
-        .property("name", Self::NAME, attribute)
-        .property("message", "", attribute)
-        .method(Self::to_string, "toString", 0)
-        .build()
-        .conv::<JsValue>()
-        .pipe(Some)
+        BuiltInBuilder::from_standard_constructor::<Self>(intrinsics)
+            .property("name", Self::NAME, attribute)
+            .property("message", "", attribute)
+            .method(Self::to_string, "toString", 0)
+            .build();
+    }
+
+    fn get(intrinsics: &Intrinsics) -> JsObject {
+        Self::STANDARD_CONSTRUCTOR(intrinsics.constructors()).constructor()
     }
 }
 
-impl Error {
-    /// The amount of arguments this function object takes.
-    pub(crate) const LENGTH: usize = 1;
+impl BuiltInObject for Error {
+    const NAME: &'static str = "Error";
+}
 
-    pub(crate) fn install_error_cause(
-        o: &JsObject,
-        options: &JsValue,
-        context: &mut Context<'_>,
-    ) -> JsResult<()> {
-        // 1. If Type(options) is Object and ? HasProperty(options, "cause") is true, then
-        if let Some(options) = options.as_object() {
-            if options.has_property("cause", context)? {
-                // a. Let cause be ? Get(options, "cause").
-                let cause = options.get("cause", context)?;
+impl BuiltInConstructor for Error {
+    const LENGTH: usize = 1;
 
-                // b. Perform CreateNonEnumerableDataPropertyOrThrow(O, "cause", cause).
-                o.create_non_enumerable_data_property_or_throw("cause", cause, context);
-            }
-        }
-
-        // 2. Return unused.
-        Ok(())
-    }
+    const STANDARD_CONSTRUCTOR: fn(&StandardConstructors) -> &StandardConstructor =
+        StandardConstructors::error;
 
     /// `Error( message [ , options ] )`
     ///
     /// Create a new error object.
-    pub(crate) fn constructor(
+    fn constructor(
         new_target: &JsValue,
         args: &[JsValue],
         context: &mut Context<'_>,
@@ -206,6 +183,28 @@ impl Error {
 
         // 5. Return O.
         Ok(o.into())
+    }
+}
+
+impl Error {
+    pub(crate) fn install_error_cause(
+        o: &JsObject,
+        options: &JsValue,
+        context: &mut Context<'_>,
+    ) -> JsResult<()> {
+        // 1. If Type(options) is Object and ? HasProperty(options, "cause") is true, then
+        if let Some(options) = options.as_object() {
+            if options.has_property("cause", context)? {
+                // a. Let cause be ? Get(options, "cause").
+                let cause = options.get("cause", context)?;
+
+                // b. Perform CreateNonEnumerableDataPropertyOrThrow(O, "cause", cause).
+                o.create_non_enumerable_data_property_or_throw("cause", cause, context);
+            }
+        }
+
+        // 2. Return unused.
+        Ok(())
     }
 
     /// `Error.prototype.toString()`

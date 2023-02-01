@@ -14,27 +14,25 @@
 //! [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number
 
 use crate::{
-    builtins::{string::is_trimmable_whitespace, BuiltIn, JsArgs},
-    context::intrinsics::StandardConstructors,
+    builtins::BuiltInObject,
+    context::intrinsics::{Intrinsics, StandardConstructor, StandardConstructors},
     error::JsNativeError,
-    native_function::NativeFunction,
-    object::{
-        internal_methods::get_prototype_from_constructor, ConstructorBuilder,
-        FunctionObjectBuilder, JsObject, ObjectData,
-    },
+    object::{internal_methods::get_prototype_from_constructor, JsObject, ObjectData},
     property::Attribute,
-    string::utf16,
-    string::Utf16Trim,
     value::{AbstractRelation, IntegerOrInfinity, JsValue},
-    Context, JsResult,
+    Context, JsArgs, JsResult,
 };
 use boa_profiler::Profiler;
-use num_traits::{float::FloatCore, Num};
+use num_traits::float::FloatCore;
+
+mod globals;
+pub(crate) use globals::{IsFinite, IsNaN, ParseFloat, ParseInt};
 
 mod conversions;
 
 pub(crate) use conversions::{f64_to_int32, f64_to_uint32};
-use tap::{Conv, Pipe};
+
+use super::{BuiltInBuilder, BuiltInConstructor, IntrinsicObject};
 
 #[cfg(test)]
 mod tests;
@@ -45,95 +43,80 @@ const BUF_SIZE: usize = 2200;
 #[derive(Debug, Clone, Copy)]
 pub(crate) struct Number;
 
-impl BuiltIn for Number {
-    const NAME: &'static str = "Number";
-
-    fn init(context: &mut Context<'_>) -> Option<JsValue> {
+impl IntrinsicObject for Number {
+    fn init(intrinsics: &Intrinsics) {
         let _timer = Profiler::global().start_event(Self::NAME, "init");
-
-        let parse_int =
-            FunctionObjectBuilder::new(context, NativeFunction::from_fn_ptr(Self::parse_int))
-                .name("parseInt")
-                .length(2)
-                .constructor(false)
-                .build();
-
-        let parse_float =
-            FunctionObjectBuilder::new(context, NativeFunction::from_fn_ptr(Self::parse_float))
-                .name("parseFloat")
-                .length(1)
-                .constructor(false)
-                .build();
-
-        context.register_global_property(
-            "parseInt",
-            parse_int.clone(),
-            Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
-        );
-        context.register_global_property(
-            "parseFloat",
-            parse_float.clone(),
-            Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
-        );
-
-        context.register_global_builtin_callable(
-            "isFinite",
-            1,
-            NativeFunction::from_fn_ptr(Self::global_is_finite),
-        );
-        context.register_global_builtin_callable(
-            "isNaN",
-            1,
-            NativeFunction::from_fn_ptr(Self::global_is_nan),
-        );
 
         let attribute = Attribute::READONLY | Attribute::NON_ENUMERABLE | Attribute::PERMANENT;
 
-        ConstructorBuilder::with_standard_constructor(
-            context,
-            Self::constructor,
-            context.intrinsics().constructors().number().clone(),
-        )
-        .name(Self::NAME)
-        .length(Self::LENGTH)
-        .static_property("EPSILON", f64::EPSILON, attribute)
-        .static_property("MAX_SAFE_INTEGER", Self::MAX_SAFE_INTEGER, attribute)
-        .static_property("MIN_SAFE_INTEGER", Self::MIN_SAFE_INTEGER, attribute)
-        .static_property("MAX_VALUE", Self::MAX_VALUE, attribute)
-        .static_property("MIN_VALUE", Self::MIN_VALUE, attribute)
-        .static_property("NEGATIVE_INFINITY", f64::NEG_INFINITY, attribute)
-        .static_property("POSITIVE_INFINITY", f64::INFINITY, attribute)
-        .static_property("NaN", f64::NAN, attribute)
-        .static_property(
-            "parseInt",
-            parse_int,
-            Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
-        )
-        .static_property(
-            "parseFloat",
-            parse_float,
-            Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
-        )
-        .static_method(Self::number_is_finite, "isFinite", 1)
-        .static_method(Self::number_is_nan, "isNaN", 1)
-        .static_method(Self::is_safe_integer, "isSafeInteger", 1)
-        .static_method(Self::number_is_integer, "isInteger", 1)
-        .method(Self::to_exponential, "toExponential", 1)
-        .method(Self::to_fixed, "toFixed", 1)
-        .method(Self::to_locale_string, "toLocaleString", 0)
-        .method(Self::to_precision, "toPrecision", 1)
-        .method(Self::to_string, "toString", 1)
-        .method(Self::value_of, "valueOf", 0)
-        .build()
-        .conv::<JsValue>()
-        .pipe(Some)
+        BuiltInBuilder::from_standard_constructor::<Self>(intrinsics)
+            .static_property("EPSILON", f64::EPSILON, attribute)
+            .static_property("MAX_SAFE_INTEGER", Self::MAX_SAFE_INTEGER, attribute)
+            .static_property("MIN_SAFE_INTEGER", Self::MIN_SAFE_INTEGER, attribute)
+            .static_property("MAX_VALUE", Self::MAX_VALUE, attribute)
+            .static_property("MIN_VALUE", Self::MIN_VALUE, attribute)
+            .static_property("NEGATIVE_INFINITY", f64::NEG_INFINITY, attribute)
+            .static_property("POSITIVE_INFINITY", f64::INFINITY, attribute)
+            .static_property("NaN", f64::NAN, attribute)
+            .static_property(
+                "parseInt",
+                intrinsics.objects().parse_int(),
+                Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
+            )
+            .static_property(
+                "parseFloat",
+                intrinsics.objects().parse_float(),
+                Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
+            )
+            .static_method(Self::number_is_finite, "isFinite", 1)
+            .static_method(Self::number_is_nan, "isNaN", 1)
+            .static_method(Self::is_safe_integer, "isSafeInteger", 1)
+            .static_method(Self::number_is_integer, "isInteger", 1)
+            .method(Self::to_exponential, "toExponential", 1)
+            .method(Self::to_fixed, "toFixed", 1)
+            .method(Self::to_locale_string, "toLocaleString", 0)
+            .method(Self::to_precision, "toPrecision", 1)
+            .method(Self::to_string, "toString", 1)
+            .method(Self::value_of, "valueOf", 0)
+            .build();
+    }
+
+    fn get(intrinsics: &Intrinsics) -> JsObject {
+        Self::STANDARD_CONSTRUCTOR(intrinsics.constructors()).constructor()
+    }
+}
+
+impl BuiltInObject for Number {
+    const NAME: &'static str = "Number";
+}
+
+impl BuiltInConstructor for Number {
+    const LENGTH: usize = 1;
+
+    const STANDARD_CONSTRUCTOR: fn(&StandardConstructors) -> &StandardConstructor =
+        StandardConstructors::number;
+
+    /// `Number( value )`
+    fn constructor(
+        new_target: &JsValue,
+        args: &[JsValue],
+        context: &mut Context<'_>,
+    ) -> JsResult<JsValue> {
+        let data = match args.get(0) {
+            Some(value) => value.to_numeric_number(context)?,
+            None => 0.0,
+        };
+        if new_target.is_undefined() {
+            return Ok(JsValue::new(data));
+        }
+        let prototype =
+            get_prototype_from_constructor(new_target, StandardConstructors::number, context)?;
+        let this = JsObject::from_proto_and_data(prototype, ObjectData::number(data));
+        Ok(this.into())
     }
 }
 
 impl Number {
-    /// The amount of arguments this function object takes.
-    pub(crate) const LENGTH: usize = 1;
-
     /// The `Number.MAX_SAFE_INTEGER` constant represents the maximum safe integer in JavaScript (`2^53 - 1`).
     ///
     /// /// More information:
@@ -179,25 +162,6 @@ impl Number {
     /// [spec]: https://tc39.es/ecma262/#sec-number.min_value
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number/MIN_VALUE
     pub(crate) const MIN_VALUE: f64 = f64::MIN_POSITIVE;
-
-    /// `Number( value )`
-    pub(crate) fn constructor(
-        new_target: &JsValue,
-        args: &[JsValue],
-        context: &mut Context<'_>,
-    ) -> JsResult<JsValue> {
-        let data = match args.get(0) {
-            Some(value) => value.to_numeric_number(context)?,
-            None => 0.0,
-        };
-        if new_target.is_undefined() {
-            return Ok(JsValue::new(data));
-        }
-        let prototype =
-            get_prototype_from_constructor(new_target, StandardConstructors::number, context)?;
-        let this = JsObject::from_proto_and_data(prototype, ObjectData::number(data));
-        Ok(this.into())
-    }
 
     /// This function returns a `JsResult` of the number `Value`.
     ///
@@ -751,239 +715,6 @@ impl Number {
         _: &mut Context<'_>,
     ) -> JsResult<JsValue> {
         Ok(JsValue::new(Self::this_number_value(this)?))
-    }
-
-    /// Builtin javascript 'parseInt(str, radix)' function.
-    ///
-    /// Parses the given string as an integer using the given radix as a base.
-    ///
-    /// An argument of type Number (i.e. Integer or Rational) is also accepted in place of string.
-    ///
-    /// The radix must be an integer in the range [2, 36] inclusive.
-    ///
-    /// More information:
-    ///  - [ECMAScript reference][spec]
-    ///  - [MDN documentation][mdn]
-    ///
-    /// [spec]: https://tc39.es/ecma262/#sec-parseint-string-radix
-    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/parseInt
-    pub(crate) fn parse_int(
-        _: &JsValue,
-        args: &[JsValue],
-        context: &mut Context<'_>,
-    ) -> JsResult<JsValue> {
-        if let (Some(val), radix) = (args.get(0), args.get_or_undefined(1)) {
-            // 1. Let inputString be ? ToString(string).
-            let input_string = val.to_string(context)?;
-
-            // 2. Let S be ! TrimString(inputString, start).
-            let mut var_s = input_string.trim_start();
-
-            // 3. Let sign be 1.
-            // 4. If S is not empty and the first code unit of S is the code unit 0x002D (HYPHEN-MINUS),
-            //    set sign to -1.
-            let sign = if !var_s.is_empty() && var_s.starts_with(utf16!("-")) {
-                -1
-            } else {
-                1
-            };
-
-            // 5. If S is not empty and the first code unit of S is the code unit 0x002B (PLUS SIGN) or
-            //    the code unit 0x002D (HYPHEN-MINUS), remove the first code unit from S.
-            if !var_s.is_empty()
-                && (var_s.starts_with(utf16!("+")) || var_s.starts_with(utf16!("-")))
-            {
-                var_s = &var_s[1..];
-            }
-
-            // 6. Let R be ℝ(? ToInt32(radix)).
-            let mut var_r = radix.to_i32(context)?;
-
-            // 7. Let stripPrefix be true.
-            let mut strip_prefix = true;
-
-            // 8. If R ≠ 0, then
-            #[allow(clippy::if_not_else)]
-            if var_r != 0 {
-                //     a. If R < 2 or R > 36, return NaN.
-                if !(2..=36).contains(&var_r) {
-                    return Ok(JsValue::nan());
-                }
-
-                //     b. If R ≠ 16, set stripPrefix to false.
-                if var_r != 16 {
-                    strip_prefix = false;
-                }
-            } else {
-                // 9. Else,
-                //     a. Set R to 10.
-                var_r = 10;
-            }
-
-            // 10. If stripPrefix is true, then
-            //     a. If the length of S is at least 2 and the first two code units of S are either "0x" or "0X", then
-            //         i. Remove the first two code units from S.
-            //         ii. Set R to 16.
-            if strip_prefix
-                && var_s.len() >= 2
-                && (var_s.starts_with(utf16!("0x")) || var_s.starts_with(utf16!("0X")))
-            {
-                var_s = &var_s[2..];
-
-                var_r = 16;
-            }
-
-            // 11. If S contains a code unit that is not a radix-R digit, let end be the index within S of the
-            //     first such code unit; otherwise, let end be the length of S.
-            let end = char::decode_utf16(var_s.iter().copied())
-                .position(|code| !code.map(|c| c.is_digit(var_r as u32)).unwrap_or_default())
-                .unwrap_or(var_s.len());
-
-            // 12. Let Z be the substring of S from 0 to end.
-            let var_z = String::from_utf16_lossy(&var_s[..end]);
-
-            // 13. If Z is empty, return NaN.
-            if var_z.is_empty() {
-                return Ok(JsValue::nan());
-            }
-
-            // 14. Let mathInt be the integer value that is represented by Z in radix-R notation, using the
-            //     letters A-Z and a-z for digits with values 10 through 35. (However, if R is 10 and Z contains
-            //     more than 20 significant digits, every significant digit after the 20th may be replaced by a
-            //     0 digit, at the option of the implementation; and if R is not 2, 4, 8, 10, 16, or 32, then
-            //     mathInt may be an implementation-approximated value representing the integer value that is
-            //     represented by Z in radix-R notation.)
-            let math_int = u64::from_str_radix(&var_z, var_r as u32).map_or_else(
-                |_| f64::from_str_radix(&var_z, var_r as u32).expect("invalid_float_conversion"),
-                |i| i as f64,
-            );
-
-            // 15. If mathInt = 0, then
-            //     a. If sign = -1, return -0𝔽.
-            //     b. Return +0𝔽.
-            if math_int == 0_f64 {
-                if sign == -1 {
-                    return Ok(JsValue::new(-0_f64));
-                }
-
-                return Ok(JsValue::new(0_f64));
-            }
-
-            // 16. Return 𝔽(sign × mathInt).
-            Ok(JsValue::new(f64::from(sign) * math_int))
-        } else {
-            // Not enough arguments to parseInt.
-            Ok(JsValue::nan())
-        }
-    }
-
-    /// Builtin javascript 'parseFloat(str)' function.
-    ///
-    /// Parses the given string as a floating point value.
-    ///
-    /// An argument of type Number (i.e. Integer or Rational) is also accepted in place of string.
-    ///
-    /// To improve performance an Integer type Number is returned in place of a Rational if the given
-    /// string can be parsed and stored as an Integer.
-    ///
-    /// More information:
-    ///  - [ECMAScript reference][spec]
-    ///  - [MDN documentation][mdn]
-    ///
-    /// [spec]: https://tc39.es/ecma262/#sec-parsefloat-string
-    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/parseFloat
-    pub(crate) fn parse_float(
-        _: &JsValue,
-        args: &[JsValue],
-        context: &mut Context<'_>,
-    ) -> JsResult<JsValue> {
-        if let Some(val) = args.get(0) {
-            // TODO: parse float with optimal utf16 algorithm
-            let input_string = val.to_string(context)?.to_std_string_escaped();
-            let s = input_string.trim_start_matches(is_trimmable_whitespace);
-            let s_prefix_lower = s.chars().take(4).collect::<String>().to_ascii_lowercase();
-
-            // TODO: write our own lexer to match syntax StrDecimalLiteral
-            if s.starts_with("Infinity") || s.starts_with("+Infinity") {
-                Ok(JsValue::new(f64::INFINITY))
-            } else if s.starts_with("-Infinity") {
-                Ok(JsValue::new(f64::NEG_INFINITY))
-            } else if s_prefix_lower.starts_with("inf")
-                || s_prefix_lower.starts_with("+inf")
-                || s_prefix_lower.starts_with("-inf")
-            {
-                // Prevent fast_float from parsing "inf", "+inf" as Infinity and "-inf" as -Infinity
-                Ok(JsValue::nan())
-            } else {
-                Ok(fast_float::parse_partial::<f64, _>(s).map_or_else(
-                    |_| JsValue::nan(),
-                    |(f, len)| {
-                        if len > 0 {
-                            JsValue::new(f)
-                        } else {
-                            JsValue::nan()
-                        }
-                    },
-                ))
-            }
-        } else {
-            // Not enough arguments to parseFloat.
-            Ok(JsValue::nan())
-        }
-    }
-
-    /// Builtin javascript 'isFinite(number)' function.
-    ///
-    /// Converts the argument to a number, throwing a type error if the conversion is invalid.
-    ///
-    /// If the number is `NaN`, `+∞`, or `-∞`, `false` is returned.
-    ///
-    /// Otherwise true is returned.
-    ///
-    /// More information:
-    ///  - [ECMAScript reference][spec]
-    ///  - [MDN documentation][mdn]
-    ///
-    /// [spec]: https://tc39.es/ecma262/#sec-isfinite-number
-    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/isFinite
-    pub(crate) fn global_is_finite(
-        _: &JsValue,
-        args: &[JsValue],
-        context: &mut Context<'_>,
-    ) -> JsResult<JsValue> {
-        if let Some(value) = args.get(0) {
-            let number = value.to_number(context)?;
-            Ok(number.is_finite().into())
-        } else {
-            Ok(false.into())
-        }
-    }
-
-    /// Builtin javascript 'isNaN(number)' function.
-    ///
-    /// Converts the argument to a number, throwing a type error if the conversion is invalid.
-    ///
-    /// If the number is `NaN`, `true` is returned.
-    ///
-    /// Otherwise false is returned.
-    ///
-    /// More information:
-    ///  - [ECMAScript reference][spec]
-    ///  - [MDN documentation][mdn]
-    ///
-    /// [spec]: https://tc39.es/ecma262/#sec-isnan-number
-    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/isNaN
-    pub(crate) fn global_is_nan(
-        _: &JsValue,
-        args: &[JsValue],
-        context: &mut Context<'_>,
-    ) -> JsResult<JsValue> {
-        if let Some(value) = args.get(0) {
-            let number = value.to_number(context)?;
-            Ok(number.is_nan().into())
-        } else {
-            Ok(true.into())
-        }
     }
 
     /// `Number.isFinite( number )`

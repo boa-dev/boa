@@ -249,7 +249,7 @@ impl JsObject {
     ///
     /// Panics if the object is currently borrowed.
     #[track_caller]
-    pub fn downcast_mut<T>(&mut self) -> Option<RefMut<'_, Object, T>>
+    pub fn downcast_mut<T>(&self) -> Option<RefMut<'_, Object, T>>
     where
         T: NativeObject,
     {

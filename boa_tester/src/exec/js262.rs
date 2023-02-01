@@ -1,26 +1,38 @@
 use boa_engine::{
-    builtins::JsArgs,
+    native_function::NativeFunction,
     object::{JsObject, ObjectInitializer},
     property::Attribute,
-    Context, JsNativeError, JsResult, JsValue, Source,
+    Context, JsArgs, JsNativeError, JsResult, JsValue, Source,
 };
 
-/// Initializes the object in the context.
-pub(super) fn init(context: &mut Context<'_>) -> JsObject {
+/// Creates the object $262 in the context.
+pub(super) fn register_js262(context: &mut Context<'_>) -> JsObject {
     let global_obj = context.global_object().clone();
 
-    let obj = ObjectInitializer::new(context)
-        .function(create_realm, "createRealm", 0)
-        .function(detach_array_buffer, "detachArrayBuffer", 2)
-        .function(eval_script, "evalScript", 1)
-        .function(gc, "gc", 0)
-        .property("global", global_obj, Attribute::default())
+    let js262 = ObjectInitializer::new(context)
+        .function(NativeFunction::from_fn_ptr(create_realm), "createRealm", 0)
+        .function(
+            NativeFunction::from_fn_ptr(detach_array_buffer),
+            "detachArrayBuffer",
+            2,
+        )
+        .function(NativeFunction::from_fn_ptr(eval_script), "evalScript", 1)
+        .function(NativeFunction::from_fn_ptr(gc), "gc", 0)
+        .property(
+            "global",
+            global_obj,
+            Attribute::WRITABLE | Attribute::CONFIGURABLE,
+        )
         // .property("agent", agent, Attribute::default())
         .build();
 
-    context.register_global_property("$262", obj.clone(), Attribute::empty());
+    context.register_global_property(
+        "$262",
+        js262.clone(),
+        Attribute::WRITABLE | Attribute::CONFIGURABLE,
+    );
 
-    obj
+    js262
 }
 
 /// The `$262.createRealm()` function.
@@ -28,23 +40,18 @@ pub(super) fn init(context: &mut Context<'_>) -> JsObject {
 /// Creates a new ECMAScript Realm, defines this API on the new realm's global object, and
 /// returns the `$262` property of the new realm's global object.
 #[allow(clippy::unnecessary_wraps)]
-fn create_realm(_this: &JsValue, _: &[JsValue], _context: &mut Context<'_>) -> JsResult<JsValue> {
-    let mut context = Context::default();
+fn create_realm(_: &JsValue, _: &[JsValue], _: &mut Context<'_>) -> JsResult<JsValue> {
+    let context = &mut Context::default();
 
-    // add the $262 object.
-    let js_262 = init(&mut context);
+    let js262 = register_js262(context);
 
-    Ok(JsValue::new(js_262))
+    Ok(JsValue::new(js262))
 }
 
 /// The `$262.detachArrayBuffer()` function.
 ///
 /// Implements the `DetachArrayBuffer` abstract operation.
-fn detach_array_buffer(
-    _this: &JsValue,
-    args: &[JsValue],
-    _: &mut Context<'_>,
-) -> JsResult<JsValue> {
+fn detach_array_buffer(_: &JsValue, args: &[JsValue], _: &mut Context<'_>) -> JsResult<JsValue> {
     fn type_err() -> JsNativeError {
         JsNativeError::typ().with_message("The provided object was not an ArrayBuffer")
     }

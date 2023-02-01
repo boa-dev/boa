@@ -11,23 +11,20 @@
 mod tests;
 
 use crate::{
-    builtins::{typed_array::TypedArrayKind, BuiltIn, JsArgs},
-    context::intrinsics::StandardConstructors,
+    builtins::{typed_array::TypedArrayKind, BuiltInObject},
+    context::intrinsics::{Intrinsics, StandardConstructor, StandardConstructors},
     error::JsNativeError,
-    native_function::NativeFunction,
-    object::{
-        internal_methods::get_prototype_from_constructor, ConstructorBuilder,
-        FunctionObjectBuilder, JsObject, ObjectData,
-    },
+    object::{internal_methods::get_prototype_from_constructor, JsObject, ObjectData},
     property::Attribute,
     symbol::JsSymbol,
     value::{IntegerOrInfinity, Numeric},
-    Context, JsResult, JsValue,
+    Context, JsArgs, JsResult, JsValue,
 };
 use boa_gc::{Finalize, Trace};
 use boa_profiler::Profiler;
 use num_traits::{Signed, ToPrimitive};
-use tap::{Conv, Pipe};
+
+use super::{BuiltInBuilder, BuiltInConstructor, IntrinsicObject};
 
 /// The internal representation of an `ArrayBuffer` object.
 #[derive(Debug, Clone, Trace, Finalize)]
@@ -48,54 +45,54 @@ impl ArrayBuffer {
     }
 }
 
-impl BuiltIn for ArrayBuffer {
-    const NAME: &'static str = "ArrayBuffer";
-
-    fn init(context: &mut Context<'_>) -> Option<JsValue> {
+impl IntrinsicObject for ArrayBuffer {
+    fn init(intrinsics: &Intrinsics) {
         let _timer = Profiler::global().start_event(Self::NAME, "init");
 
         let flag_attributes = Attribute::CONFIGURABLE | Attribute::NON_ENUMERABLE;
 
-        let get_species =
-            FunctionObjectBuilder::new(context, NativeFunction::from_fn_ptr(Self::get_species))
-                .name("get [Symbol.species]")
-                .constructor(false)
-                .build();
+        let get_species = BuiltInBuilder::new(intrinsics)
+            .callable(Self::get_species)
+            .name("get [Symbol.species]")
+            .build();
 
-        let get_byte_length =
-            FunctionObjectBuilder::new(context, NativeFunction::from_fn_ptr(Self::get_byte_length))
-                .name("get byteLength")
-                .build();
+        let get_byte_length = BuiltInBuilder::new(intrinsics)
+            .callable(Self::get_byte_length)
+            .name("get byteLength")
+            .build();
 
-        ConstructorBuilder::with_standard_constructor(
-            context,
-            Self::constructor,
-            context.intrinsics().constructors().array_buffer().clone(),
-        )
-        .name(Self::NAME)
-        .length(Self::LENGTH)
-        .accessor("byteLength", Some(get_byte_length), None, flag_attributes)
-        .static_accessor(
-            JsSymbol::species(),
-            Some(get_species),
-            None,
-            Attribute::CONFIGURABLE,
-        )
-        .static_method(Self::is_view, "isView", 1)
-        .method(Self::slice, "slice", 2)
-        .property(
-            JsSymbol::to_string_tag(),
-            Self::NAME,
-            Attribute::READONLY | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
-        )
-        .build()
-        .conv::<JsValue>()
-        .pipe(Some)
+        BuiltInBuilder::from_standard_constructor::<Self>(intrinsics)
+            .accessor("byteLength", Some(get_byte_length), None, flag_attributes)
+            .static_accessor(
+                JsSymbol::species(),
+                Some(get_species),
+                None,
+                Attribute::CONFIGURABLE,
+            )
+            .static_method(Self::is_view, "isView", 1)
+            .method(Self::slice, "slice", 2)
+            .property(
+                JsSymbol::to_string_tag(),
+                Self::NAME,
+                Attribute::READONLY | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
+            )
+            .build();
+    }
+
+    fn get(intrinsics: &Intrinsics) -> JsObject {
+        Self::STANDARD_CONSTRUCTOR(intrinsics.constructors()).constructor()
     }
 }
 
-impl ArrayBuffer {
+impl BuiltInObject for ArrayBuffer {
+    const NAME: &'static str = "ArrayBuffer";
+}
+
+impl BuiltInConstructor for ArrayBuffer {
     const LENGTH: usize = 1;
+
+    const STANDARD_CONSTRUCTOR: fn(&StandardConstructors) -> &StandardConstructor =
+        StandardConstructors::array_buffer;
 
     /// `25.1.3.1 ArrayBuffer ( length )`
     ///
@@ -121,7 +118,9 @@ impl ArrayBuffer {
         // 3. Return ? AllocateArrayBuffer(NewTarget, byteLength).
         Ok(Self::allocate(new_target, byte_length, context)?.into())
     }
+}
 
+impl ArrayBuffer {
     /// `25.1.4.3 get ArrayBuffer [ @@species ]`
     ///
     /// More information:

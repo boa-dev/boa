@@ -8,88 +8,50 @@
 //! [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/AsyncFunction
 
 use crate::{
-    builtins::{
-        function::{ConstructorKind, Function},
-        BuiltIn,
-    },
-    native_function::NativeFunction,
-    object::ObjectData,
-    property::PropertyDescriptor,
+    builtins::BuiltInObject,
+    context::intrinsics::{Intrinsics, StandardConstructor, StandardConstructors},
+    property::Attribute,
     symbol::JsSymbol,
     Context, JsResult, JsValue,
 };
 use boa_profiler::Profiler;
 
+use super::{BuiltInBuilder, BuiltInConstructor, IntrinsicObject};
+
 /// The internal representation of an `AsyncFunction` object.
 #[derive(Debug, Clone, Copy)]
 pub struct AsyncFunction;
 
-impl BuiltIn for AsyncFunction {
-    const NAME: &'static str = "AsyncFunction";
-
-    fn init(context: &mut Context<'_>) -> Option<JsValue> {
+impl IntrinsicObject for AsyncFunction {
+    fn init(intrinsics: &Intrinsics) {
         let _timer = Profiler::global().start_event(Self::NAME, "init");
 
-        let prototype = &context
-            .intrinsics()
-            .constructors()
-            .async_function()
-            .prototype;
-        let constructor = &context
-            .intrinsics()
-            .constructors()
-            .async_function()
-            .constructor;
+        BuiltInBuilder::from_standard_constructor::<Self>(intrinsics)
+            .prototype(intrinsics.constructors().function().constructor())
+            .inherits(Some(intrinsics.constructors().function().prototype()))
+            .property(
+                JsSymbol::to_string_tag(),
+                Self::NAME,
+                Attribute::CONFIGURABLE,
+            )
+            .build();
+    }
 
-        constructor.set_prototype(Some(
-            context.intrinsics().constructors().function().constructor(),
-        ));
-        let property = PropertyDescriptor::builder()
-            .value(1)
-            .writable(false)
-            .enumerable(false)
-            .configurable(true);
-        constructor.borrow_mut().insert("length", property);
-        let property = PropertyDescriptor::builder()
-            .value(Self::NAME)
-            .writable(false)
-            .enumerable(false)
-            .configurable(true);
-        constructor.borrow_mut().insert("name", property);
-        let property = PropertyDescriptor::builder()
-            .value(prototype.clone())
-            .writable(false)
-            .enumerable(false)
-            .configurable(false);
-        constructor.borrow_mut().insert("prototype", property);
-        constructor.borrow_mut().data = ObjectData::function(Function::Native {
-            function: NativeFunction::from_fn_ptr(Self::constructor),
-            constructor: Some(ConstructorKind::Base),
-        });
-
-        prototype.set_prototype(Some(
-            context.intrinsics().constructors().function().prototype(),
-        ));
-        let property = PropertyDescriptor::builder()
-            .value(constructor.clone())
-            .writable(false)
-            .enumerable(false)
-            .configurable(true);
-        prototype.borrow_mut().insert("constructor", property);
-        let property = PropertyDescriptor::builder()
-            .value(Self::NAME)
-            .writable(false)
-            .enumerable(false)
-            .configurable(true);
-        prototype
-            .borrow_mut()
-            .insert(JsSymbol::to_string_tag(), property);
-
-        None
+    fn get(intrinsics: &Intrinsics) -> crate::object::JsObject {
+        Self::STANDARD_CONSTRUCTOR(intrinsics.constructors()).constructor()
     }
 }
 
-impl AsyncFunction {
+impl BuiltInObject for AsyncFunction {
+    const NAME: &'static str = "AsyncFunction";
+}
+
+impl BuiltInConstructor for AsyncFunction {
+    const LENGTH: usize = 1;
+
+    const STANDARD_CONSTRUCTOR: fn(&StandardConstructors) -> &StandardConstructor =
+        StandardConstructors::async_function;
+
     /// `AsyncFunction ( p1, p2, … , pn, body )`
     ///
     /// More information:

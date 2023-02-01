@@ -11,114 +11,64 @@
 //! [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/GeneratorFunction
 
 use crate::{
-    builtins::{
-        function::{BuiltInFunctionObject, ConstructorKind, Function},
-        BuiltIn,
-    },
-    native_function::NativeFunction,
-    object::ObjectData,
-    property::PropertyDescriptor,
+    builtins::{function::BuiltInFunctionObject, BuiltInObject},
+    context::intrinsics::{Intrinsics, StandardConstructor, StandardConstructors},
+    object::PROTOTYPE,
+    property::Attribute,
     symbol::JsSymbol,
     value::JsValue,
     Context, JsResult,
 };
 use boa_profiler::Profiler;
 
+use super::{BuiltInBuilder, BuiltInConstructor, IntrinsicObject};
+
 /// The internal representation of a `Generator` object.
 #[derive(Debug, Clone, Copy)]
 pub struct GeneratorFunction;
 
-impl BuiltIn for GeneratorFunction {
-    const NAME: &'static str = "GeneratorFunction";
-
-    fn init(context: &mut Context<'_>) -> Option<JsValue> {
+impl IntrinsicObject for GeneratorFunction {
+    fn init(intrinsics: &Intrinsics) {
         let _timer = Profiler::global().start_event(Self::NAME, "init");
 
-        let prototype = &context
-            .intrinsics()
-            .constructors()
-            .generator_function()
-            .prototype;
-        let constructor = &context
-            .intrinsics()
-            .constructors()
-            .generator_function()
-            .constructor;
-
-        constructor.set_prototype(Some(
-            context.intrinsics().constructors().function().constructor(),
-        ));
-        let property = PropertyDescriptor::builder()
-            .value(1)
-            .writable(false)
-            .enumerable(false)
-            .configurable(true);
-        constructor.borrow_mut().insert("length", property);
-        let property = PropertyDescriptor::builder()
-            .value("GeneratorFunction")
-            .writable(false)
-            .enumerable(false)
-            .configurable(true);
-        constructor.borrow_mut().insert("name", property);
-        let property = PropertyDescriptor::builder()
-            .value(
-                context
-                    .intrinsics()
-                    .constructors()
-                    .generator_function()
-                    .prototype(),
+        BuiltInBuilder::from_standard_constructor::<Self>(intrinsics)
+            .inherits(Some(intrinsics.constructors().function().prototype()))
+            .constructor_attributes(Attribute::CONFIGURABLE)
+            .property(
+                PROTOTYPE,
+                intrinsics.objects().generator(),
+                Attribute::CONFIGURABLE,
             )
-            .writable(false)
-            .enumerable(false)
-            .configurable(false);
-        constructor.borrow_mut().insert("prototype", property);
-        constructor.borrow_mut().data = ObjectData::function(Function::Native {
-            function: NativeFunction::from_fn_ptr(Self::constructor),
-            constructor: Some(ConstructorKind::Base),
-        });
-
-        prototype.set_prototype(Some(
-            context.intrinsics().constructors().function().prototype(),
-        ));
-        let property = PropertyDescriptor::builder()
-            .value(
-                context
-                    .intrinsics()
-                    .constructors()
-                    .generator_function()
-                    .constructor(),
+            .property(
+                JsSymbol::to_string_tag(),
+                Self::NAME,
+                Attribute::CONFIGURABLE,
             )
-            .writable(false)
-            .enumerable(false)
-            .configurable(true);
-        prototype.borrow_mut().insert("constructor", property);
-        let property = PropertyDescriptor::builder()
-            .value(context.intrinsics().constructors().generator().prototype())
-            .writable(false)
-            .enumerable(false)
-            .configurable(true);
-        prototype.borrow_mut().insert("prototype", property);
-        let property = PropertyDescriptor::builder()
-            .value("GeneratorFunction")
-            .writable(false)
-            .enumerable(false)
-            .configurable(true);
-        prototype
-            .borrow_mut()
-            .insert(JsSymbol::to_string_tag(), property);
+            .build();
+    }
 
-        None
+    fn get(intrinsics: &Intrinsics) -> crate::object::JsObject {
+        Self::STANDARD_CONSTRUCTOR(intrinsics.constructors()).constructor()
     }
 }
 
-impl GeneratorFunction {
+impl BuiltInObject for GeneratorFunction {
+    const NAME: &'static str = "GeneratorFunction";
+}
+
+impl BuiltInConstructor for GeneratorFunction {
+    const LENGTH: usize = 1;
+
+    const STANDARD_CONSTRUCTOR: fn(&StandardConstructors) -> &StandardConstructor =
+        StandardConstructors::generator_function;
+
     /// `GeneratorFunction ( p1, p2, … , pn, body )`
     ///
     /// More information:
     ///  - [ECMAScript reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-generatorfunction
-    pub(crate) fn constructor(
+    fn constructor(
         new_target: &JsValue,
         args: &[JsValue],
         context: &mut Context<'_>,

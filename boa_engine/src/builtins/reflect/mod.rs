@@ -10,17 +10,17 @@
 //! [spec]: https://tc39.es/ecma262/#sec-reflect-object
 //! [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Reflect
 
-use super::{Array, JsArgs};
+use super::{Array, BuiltInBuilder, IntrinsicObject};
 use crate::{
-    builtins::{self, BuiltIn},
+    builtins::{self, BuiltInObject},
+    context::intrinsics::Intrinsics,
     error::JsNativeError,
-    object::ObjectInitializer,
+    object::JsObject,
     property::Attribute,
     symbol::JsSymbol,
-    Context, JsResult, JsValue,
+    Context, JsArgs, JsResult, JsValue,
 };
 use boa_profiler::Profiler;
-use tap::{Conv, Pipe};
 
 #[cfg(test)]
 mod tests;
@@ -29,41 +29,45 @@ mod tests;
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub(crate) struct Reflect;
 
-impl BuiltIn for Reflect {
-    const NAME: &'static str = "Reflect";
-
-    fn init(context: &mut Context<'_>) -> Option<JsValue> {
+impl IntrinsicObject for Reflect {
+    fn init(intrinsics: &Intrinsics) {
         let _timer = Profiler::global().start_event(Self::NAME, "init");
 
         let to_string_tag = JsSymbol::to_string_tag();
 
-        ObjectInitializer::new(context)
-            .function(Self::apply, "apply", 3)
-            .function(Self::construct, "construct", 2)
-            .function(Self::define_property, "defineProperty", 3)
-            .function(Self::delete_property, "deleteProperty", 2)
-            .function(Self::get, "get", 2)
-            .function(
+        BuiltInBuilder::with_intrinsic::<Self>(intrinsics)
+            .static_method(Self::apply, "apply", 3)
+            .static_method(Self::construct, "construct", 2)
+            .static_method(Self::define_property, "defineProperty", 3)
+            .static_method(Self::delete_property, "deleteProperty", 2)
+            .static_method(Self::get, "get", 2)
+            .static_method(
                 Self::get_own_property_descriptor,
                 "getOwnPropertyDescriptor",
                 2,
             )
-            .function(Self::get_prototype_of, "getPrototypeOf", 1)
-            .function(Self::has, "has", 2)
-            .function(Self::is_extensible, "isExtensible", 1)
-            .function(Self::own_keys, "ownKeys", 1)
-            .function(Self::prevent_extensions, "preventExtensions", 1)
-            .function(Self::set, "set", 3)
-            .function(Self::set_prototype_of, "setPrototypeOf", 2)
-            .property(
+            .static_method(Self::get_prototype_of, "getPrototypeOf", 1)
+            .static_method(Self::has, "has", 2)
+            .static_method(Self::is_extensible, "isExtensible", 1)
+            .static_method(Self::own_keys, "ownKeys", 1)
+            .static_method(Self::prevent_extensions, "preventExtensions", 1)
+            .static_method(Self::set, "set", 3)
+            .static_method(Self::set_prototype_of, "setPrototypeOf", 2)
+            .static_property(
                 to_string_tag,
                 Self::NAME,
                 Attribute::READONLY | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
             )
-            .build()
-            .conv::<JsValue>()
-            .pipe(Some)
+            .build();
     }
+
+    fn get(intrinsics: &Intrinsics) -> JsObject {
+        intrinsics.objects().reflect()
+    }
+}
+
+impl BuiltInObject for Reflect {
+    const NAME: &'static str = "Reflect";
 }
 
 impl Reflect {

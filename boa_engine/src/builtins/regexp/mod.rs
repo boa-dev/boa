@@ -9,32 +9,27 @@
 //! [spec]: https://tc39.es/ecma262/#sec-regexp-constructor
 //! [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/RegExp
 
-pub mod regexp_string_iterator;
-
-use self::regexp_string_iterator::RegExpStringIterator;
-use super::JsArgs;
 use crate::{
-    builtins::{array::Array, string, BuiltIn},
-    context::intrinsics::StandardConstructors,
+    builtins::{array::Array, string, BuiltInObject},
+    context::intrinsics::{Intrinsics, StandardConstructor, StandardConstructors},
     error::JsNativeError,
     js_string,
-    native_function::NativeFunction,
-    object::{
-        internal_methods::get_prototype_from_constructor, ConstructorBuilder,
-        FunctionObjectBuilder, JsObject, ObjectData,
-    },
+    object::{internal_methods::get_prototype_from_constructor, JsObject, ObjectData, CONSTRUCTOR},
     property::{Attribute, PropertyDescriptorBuilder},
     string::{utf16, CodePoint},
     symbol::JsSymbol,
     value::JsValue,
-    Context, JsResult, JsString,
+    Context, JsArgs, JsResult, JsString,
 };
 use boa_parser::lexer::regex::RegExpFlags;
 use boa_profiler::Profiler;
 use regress::Regex;
 use std::str::FromStr;
-use tap::{Conv, Pipe};
 
+use super::{BuiltInBuilder, BuiltInConstructor, IntrinsicObject};
+
+mod regexp_string_iterator;
+pub(crate) use regexp_string_iterator::RegExpStringIterator;
 #[cfg(test)]
 mod tests;
 
@@ -48,112 +43,99 @@ pub struct RegExp {
     original_flags: JsString,
 }
 
-impl BuiltIn for RegExp {
-    const NAME: &'static str = "RegExp";
-
-    fn init(context: &mut Context<'_>) -> Option<JsValue> {
+impl IntrinsicObject for RegExp {
+    fn init(intrinsics: &Intrinsics) {
         let _timer = Profiler::global().start_event(Self::NAME, "init");
 
-        let get_species =
-            FunctionObjectBuilder::new(context, NativeFunction::from_fn_ptr(Self::get_species))
-                .name("get [Symbol.species]")
-                .constructor(false)
-                .build();
+        let get_species = BuiltInBuilder::new(intrinsics)
+            .callable(Self::get_species)
+            .name("get [Symbol.species]")
+            .build();
 
         let flag_attributes = Attribute::CONFIGURABLE | Attribute::NON_ENUMERABLE;
 
-        let get_has_indices =
-            FunctionObjectBuilder::new(context, NativeFunction::from_fn_ptr(Self::get_has_indices))
-                .name("get hasIndices")
-                .constructor(false)
-                .build();
-        let get_global =
-            FunctionObjectBuilder::new(context, NativeFunction::from_fn_ptr(Self::get_global))
-                .name("get global")
-                .constructor(false)
-                .build();
-        let get_ignore_case =
-            FunctionObjectBuilder::new(context, NativeFunction::from_fn_ptr(Self::get_ignore_case))
-                .name("get ignoreCase")
-                .constructor(false)
-                .build();
-        let get_multiline =
-            FunctionObjectBuilder::new(context, NativeFunction::from_fn_ptr(Self::get_multiline))
-                .name("get multiline")
-                .constructor(false)
-                .build();
-        let get_dot_all =
-            FunctionObjectBuilder::new(context, NativeFunction::from_fn_ptr(Self::get_dot_all))
-                .name("get dotAll")
-                .constructor(false)
-                .build();
-        let get_unicode =
-            FunctionObjectBuilder::new(context, NativeFunction::from_fn_ptr(Self::get_unicode))
-                .name("get unicode")
-                .constructor(false)
-                .build();
-        let get_sticky =
-            FunctionObjectBuilder::new(context, NativeFunction::from_fn_ptr(Self::get_sticky))
-                .name("get sticky")
-                .constructor(false)
-                .build();
-        let get_flags =
-            FunctionObjectBuilder::new(context, NativeFunction::from_fn_ptr(Self::get_flags))
-                .name("get flags")
-                .constructor(false)
-                .build();
-        let get_source =
-            FunctionObjectBuilder::new(context, NativeFunction::from_fn_ptr(Self::get_source))
-                .name("get source")
-                .constructor(false)
-                .build();
-        ConstructorBuilder::with_standard_constructor(
-            context,
-            Self::constructor,
-            context.intrinsics().constructors().regexp().clone(),
-        )
-        .name(Self::NAME)
-        .length(Self::LENGTH)
-        .static_accessor(
-            JsSymbol::species(),
-            Some(get_species),
-            None,
-            Attribute::CONFIGURABLE,
-        )
-        .property("lastIndex", 0, Attribute::all())
-        .method(Self::test, "test", 1)
-        .method(Self::exec, "exec", 1)
-        .method(Self::to_string, "toString", 0)
-        .method(Self::r#match, (JsSymbol::r#match(), "[Symbol.match]"), 1)
-        .method(
-            Self::match_all,
-            (JsSymbol::match_all(), "[Symbol.matchAll]"),
-            1,
-        )
-        .method(Self::replace, (JsSymbol::replace(), "[Symbol.replace]"), 2)
-        .method(Self::search, (JsSymbol::search(), "[Symbol.search]"), 1)
-        .method(Self::split, (JsSymbol::split(), "[Symbol.split]"), 2)
-        .accessor("hasIndices", Some(get_has_indices), None, flag_attributes)
-        .accessor("global", Some(get_global), None, flag_attributes)
-        .accessor("ignoreCase", Some(get_ignore_case), None, flag_attributes)
-        .accessor("multiline", Some(get_multiline), None, flag_attributes)
-        .accessor("dotAll", Some(get_dot_all), None, flag_attributes)
-        .accessor("unicode", Some(get_unicode), None, flag_attributes)
-        .accessor("sticky", Some(get_sticky), None, flag_attributes)
-        .accessor("flags", Some(get_flags), None, flag_attributes)
-        .accessor("source", Some(get_source), None, flag_attributes)
-        .build()
-        .conv::<JsValue>()
-        .pipe(Some)
+        let get_has_indices = BuiltInBuilder::new(intrinsics)
+            .callable(Self::get_has_indices)
+            .name("get hasIndices")
+            .build();
+        let get_global = BuiltInBuilder::new(intrinsics)
+            .callable(Self::get_global)
+            .name("get global")
+            .build();
+        let get_ignore_case = BuiltInBuilder::new(intrinsics)
+            .callable(Self::get_ignore_case)
+            .name("get ignoreCase")
+            .build();
+        let get_multiline = BuiltInBuilder::new(intrinsics)
+            .callable(Self::get_multiline)
+            .name("get multiline")
+            .build();
+        let get_dot_all = BuiltInBuilder::new(intrinsics)
+            .callable(Self::get_dot_all)
+            .name("get dotAll")
+            .build();
+        let get_unicode = BuiltInBuilder::new(intrinsics)
+            .callable(Self::get_unicode)
+            .name("get unicode")
+            .build();
+        let get_sticky = BuiltInBuilder::new(intrinsics)
+            .callable(Self::get_sticky)
+            .name("get sticky")
+            .build();
+        let get_flags = BuiltInBuilder::new(intrinsics)
+            .callable(Self::get_flags)
+            .name("get flags")
+            .build();
+        let get_source = BuiltInBuilder::new(intrinsics)
+            .callable(Self::get_source)
+            .name("get source")
+            .build();
+        BuiltInBuilder::from_standard_constructor::<Self>(intrinsics)
+            .static_accessor(
+                JsSymbol::species(),
+                Some(get_species),
+                None,
+                Attribute::CONFIGURABLE,
+            )
+            .property("lastIndex", 0, Attribute::all())
+            .method(Self::test, "test", 1)
+            .method(Self::exec, "exec", 1)
+            .method(Self::to_string, "toString", 0)
+            .method(Self::r#match, (JsSymbol::r#match(), "[Symbol.match]"), 1)
+            .method(
+                Self::match_all,
+                (JsSymbol::match_all(), "[Symbol.matchAll]"),
+                1,
+            )
+            .method(Self::replace, (JsSymbol::replace(), "[Symbol.replace]"), 2)
+            .method(Self::search, (JsSymbol::search(), "[Symbol.search]"), 1)
+            .method(Self::split, (JsSymbol::split(), "[Symbol.split]"), 2)
+            .accessor("hasIndices", Some(get_has_indices), None, flag_attributes)
+            .accessor("global", Some(get_global), None, flag_attributes)
+            .accessor("ignoreCase", Some(get_ignore_case), None, flag_attributes)
+            .accessor("multiline", Some(get_multiline), None, flag_attributes)
+            .accessor("dotAll", Some(get_dot_all), None, flag_attributes)
+            .accessor("unicode", Some(get_unicode), None, flag_attributes)
+            .accessor("sticky", Some(get_sticky), None, flag_attributes)
+            .accessor("flags", Some(get_flags), None, flag_attributes)
+            .accessor("source", Some(get_source), None, flag_attributes)
+            .build();
+    }
+
+    fn get(intrinsics: &Intrinsics) -> JsObject {
+        Self::STANDARD_CONSTRUCTOR(intrinsics.constructors()).constructor()
     }
 }
 
-impl RegExp {
-    /// The name of the object.
-    pub(crate) const NAME: &'static str = "RegExp";
+impl BuiltInObject for RegExp {
+    const NAME: &'static str = "RegExp";
+}
 
-    /// The amount of arguments this function object takes.
-    pub(crate) const LENGTH: usize = 2;
+impl BuiltInConstructor for RegExp {
+    const LENGTH: usize = 2;
+
+    const STANDARD_CONSTRUCTOR: fn(&StandardConstructors) -> &StandardConstructor =
+        StandardConstructors::regexp;
 
     /// `22.2.3.1 RegExp ( pattern, flags )`
     ///
@@ -161,7 +143,7 @@ impl RegExp {
     ///  - [ECMAScript reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-regexp-pattern-flags
-    pub(crate) fn constructor(
+    fn constructor(
         new_target: &JsValue,
         args: &[JsValue],
         context: &mut Context<'_>,
@@ -180,7 +162,7 @@ impl RegExp {
             if let Some(pattern) = pattern_is_regexp {
                 if flags.is_undefined() {
                     // i. Let patternConstructor be ? Get(pattern, "constructor").
-                    let pattern_constructor = pattern.get("constructor", context)?;
+                    let pattern_constructor = pattern.get(CONSTRUCTOR, context)?;
                     // ii. If SameValue(newTarget, patternConstructor) is true, return pattern.
                     if JsValue::same_value(new_target, &pattern_constructor) {
                         return Ok(pattern.clone().into());
@@ -220,7 +202,9 @@ impl RegExp {
         // 8.Return ? RegExpInitialize(O, P, F).
         Self::initialize(o, &p, &f, context)
     }
+}
 
+impl RegExp {
     /// `22.2.3.2.1 RegExpAlloc ( newTarget )`
     ///
     /// More information:

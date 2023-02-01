@@ -6,10 +6,13 @@
 //! [spec]: https://tc39.es/ecma262/#sec-set-iterator-objects
 
 use crate::{
-    builtins::{function::make_builtin_fn, iterable::create_iter_result_object, Array, JsValue},
+    builtins::{
+        iterable::create_iter_result_object, Array, BuiltInBuilder, IntrinsicObject, JsValue,
+    },
+    context::intrinsics::Intrinsics,
     error::JsNativeError,
     object::{JsObject, ObjectData},
-    property::{PropertyDescriptor, PropertyNameKind},
+    property::{Attribute, PropertyNameKind},
     symbol::JsSymbol,
     Context, JsResult,
 };
@@ -30,9 +33,27 @@ pub struct SetIterator {
     iteration_kind: PropertyNameKind,
 }
 
-impl SetIterator {
-    pub(crate) const NAME: &'static str = "SetIterator";
+impl IntrinsicObject for SetIterator {
+    fn init(intrinsics: &Intrinsics) {
+        let _timer = Profiler::global().start_event("SetIterator", "init");
 
+        BuiltInBuilder::with_intrinsic::<Self>(intrinsics)
+            .prototype(intrinsics.objects().iterator_prototypes().iterator())
+            .static_method(Self::next, "next", 0)
+            .static_property(
+                JsSymbol::to_string_tag(),
+                "Set Iterator",
+                Attribute::CONFIGURABLE,
+            )
+            .build();
+    }
+
+    fn get(intrinsics: &Intrinsics) -> JsObject {
+        intrinsics.objects().iterator_prototypes().set()
+    }
+}
+
+impl SetIterator {
     /// Constructs a new `SetIterator`, that will iterate over `set`, starting at index 0
     const fn new(set: JsValue, kind: PropertyNameKind) -> Self {
         Self {
@@ -56,11 +77,7 @@ impl SetIterator {
         context: &Context<'_>,
     ) -> JsValue {
         let set_iterator = JsObject::from_proto_and_data(
-            context
-                .intrinsics()
-                .objects()
-                .iterator_prototypes()
-                .set_iterator(),
+            context.intrinsics().objects().iterator_prototypes().set(),
             ObjectData::set_iterator(Self::new(set, kind)),
         );
         set_iterator.into()
@@ -135,32 +152,5 @@ impl SetIterator {
             true,
             context,
         ))
-    }
-
-    /// Create the `%SetIteratorPrototype%` object
-    ///
-    /// More information:
-    ///  - [ECMA reference][spec]
-    ///
-    /// [spec]: https://tc39.es/ecma262/#sec-%setiteratorprototype%-object
-    pub(crate) fn create_prototype(
-        iterator_prototype: JsObject,
-        context: &mut Context<'_>,
-    ) -> JsObject {
-        let _timer = Profiler::global().start_event(Self::NAME, "init");
-
-        // Create prototype
-        let set_iterator =
-            JsObject::from_proto_and_data(iterator_prototype, ObjectData::ordinary());
-        make_builtin_fn(Self::next, "next", &set_iterator, 0, context);
-
-        let to_string_tag = JsSymbol::to_string_tag();
-        let to_string_tag_property = PropertyDescriptor::builder()
-            .value("Set Iterator")
-            .writable(false)
-            .enumerable(false)
-            .configurable(true);
-        set_iterator.insert(to_string_tag, to_string_tag_property);
-        set_iterator
     }
 }

@@ -11,16 +11,13 @@
 //! [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/URIError
 
 use crate::{
-    builtins::{BuiltIn, JsArgs},
-    context::intrinsics::StandardConstructors,
-    object::{
-        internal_methods::get_prototype_from_constructor, ConstructorBuilder, JsObject, ObjectData,
-    },
+    builtins::{BuiltInBuilder, BuiltInConstructor, BuiltInObject, IntrinsicObject},
+    context::intrinsics::{Intrinsics, StandardConstructor, StandardConstructors},
+    object::{internal_methods::get_prototype_from_constructor, JsObject, ObjectData},
     property::Attribute,
-    Context, JsResult, JsValue,
+    Context, JsArgs, JsResult, JsValue,
 };
 use boa_profiler::Profiler;
-use tap::{Conv, Pipe};
 
 use super::{Error, ErrorKind};
 
@@ -28,39 +25,36 @@ use super::{Error, ErrorKind};
 #[derive(Debug, Clone, Copy)]
 pub(crate) struct UriError;
 
-impl BuiltIn for UriError {
-    const NAME: &'static str = "URIError";
-
-    fn init(context: &mut Context<'_>) -> Option<JsValue> {
+impl IntrinsicObject for UriError {
+    fn init(intrinsics: &Intrinsics) {
         let _timer = Profiler::global().start_event(Self::NAME, "init");
 
-        let error_constructor = context.intrinsics().constructors().error().constructor();
-        let error_prototype = context.intrinsics().constructors().error().prototype();
-
         let attribute = Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE;
-        ConstructorBuilder::with_standard_constructor(
-            context,
-            Self::constructor,
-            context.intrinsics().constructors().uri_error().clone(),
-        )
-        .name(Self::NAME)
-        .length(Self::LENGTH)
-        .inherit(error_prototype)
-        .custom_prototype(error_constructor)
-        .property("name", Self::NAME, attribute)
-        .property("message", "", attribute)
-        .build()
-        .conv::<JsValue>()
-        .pipe(Some)
+        BuiltInBuilder::from_standard_constructor::<Self>(intrinsics)
+            .prototype(intrinsics.constructors().error().constructor())
+            .inherits(Some(intrinsics.constructors().error().prototype()))
+            .property("name", Self::NAME, attribute)
+            .property("message", "", attribute)
+            .build();
+    }
+
+    fn get(intrinsics: &Intrinsics) -> JsObject {
+        Self::STANDARD_CONSTRUCTOR(intrinsics.constructors()).constructor()
     }
 }
 
-impl UriError {
-    /// The amount of arguments this function object takes.
-    pub(crate) const LENGTH: usize = 1;
+impl BuiltInObject for UriError {
+    const NAME: &'static str = "URIError";
+}
+
+impl BuiltInConstructor for UriError {
+    const LENGTH: usize = 1;
+
+    const STANDARD_CONSTRUCTOR: fn(&StandardConstructors) -> &StandardConstructor =
+        StandardConstructors::uri_error;
 
     /// Create a new error object.
-    pub(crate) fn constructor(
+    fn constructor(
         new_target: &JsValue,
         args: &[JsValue],
         context: &mut Context<'_>,

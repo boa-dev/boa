@@ -8,21 +8,18 @@
 //! [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/DataView
 
 use crate::{
-    builtins::{array_buffer::SharedMemoryOrder, typed_array::TypedArrayKind, BuiltIn, JsArgs},
-    context::intrinsics::StandardConstructors,
+    builtins::{array_buffer::SharedMemoryOrder, typed_array::TypedArrayKind, BuiltInObject},
+    context::intrinsics::{Intrinsics, StandardConstructor, StandardConstructors},
     error::JsNativeError,
-    native_function::NativeFunction,
-    object::{
-        internal_methods::get_prototype_from_constructor, ConstructorBuilder,
-        FunctionObjectBuilder, JsObject, ObjectData,
-    },
+    object::{internal_methods::get_prototype_from_constructor, JsObject, ObjectData},
     property::Attribute,
     symbol::JsSymbol,
     value::JsValue,
-    Context, JsResult,
+    Context, JsArgs, JsResult,
 };
 use boa_gc::{Finalize, Trace};
-use tap::{Conv, Pipe};
+
+use super::{BuiltInBuilder, BuiltInConstructor, IntrinsicObject};
 
 /// The internal representation of a `DataView` object.
 #[derive(Debug, Clone, Trace, Finalize)]
@@ -32,70 +29,71 @@ pub struct DataView {
     pub(crate) byte_offset: u64,
 }
 
-impl BuiltIn for DataView {
-    const NAME: &'static str = "DataView";
-
-    fn init(context: &mut Context<'_>) -> Option<JsValue> {
+impl IntrinsicObject for DataView {
+    fn init(intrinsics: &Intrinsics) {
         let flag_attributes = Attribute::CONFIGURABLE | Attribute::NON_ENUMERABLE;
 
-        let get_buffer =
-            FunctionObjectBuilder::new(context, NativeFunction::from_fn_ptr(Self::get_buffer))
-                .name("get buffer")
-                .build();
+        let get_buffer = BuiltInBuilder::new(intrinsics)
+            .callable(Self::get_buffer)
+            .name("get buffer")
+            .build();
 
-        let get_byte_length =
-            FunctionObjectBuilder::new(context, NativeFunction::from_fn_ptr(Self::get_byte_length))
-                .name("get byteLength")
-                .build();
+        let get_byte_length = BuiltInBuilder::new(intrinsics)
+            .callable(Self::get_byte_length)
+            .name("get byteLength")
+            .build();
 
-        let get_byte_offset =
-            FunctionObjectBuilder::new(context, NativeFunction::from_fn_ptr(Self::get_byte_offset))
-                .name("get byteOffset")
-                .build();
+        let get_byte_offset = BuiltInBuilder::new(intrinsics)
+            .callable(Self::get_byte_offset)
+            .name("get byteOffset")
+            .build();
 
-        ConstructorBuilder::with_standard_constructor(
-            context,
-            Self::constructor,
-            context.intrinsics().constructors().data_view().clone(),
-        )
-        .name(Self::NAME)
-        .length(Self::LENGTH)
-        .accessor("buffer", Some(get_buffer), None, flag_attributes)
-        .accessor("byteLength", Some(get_byte_length), None, flag_attributes)
-        .accessor("byteOffset", Some(get_byte_offset), None, flag_attributes)
-        .method(Self::get_big_int64, "getBigInt64", 1)
-        .method(Self::get_big_uint64, "getBigUint64", 1)
-        .method(Self::get_float32, "getFloat32", 1)
-        .method(Self::get_float64, "getFloat64", 1)
-        .method(Self::get_int8, "getInt8", 1)
-        .method(Self::get_int16, "getInt16", 1)
-        .method(Self::get_int32, "getInt32", 1)
-        .method(Self::get_uint8, "getUint8", 1)
-        .method(Self::get_uint16, "getUint16", 1)
-        .method(Self::get_uint32, "getUint32", 1)
-        .method(Self::set_big_int64, "setBigInt64", 2)
-        .method(Self::set_big_uint64, "setBigUint64", 2)
-        .method(Self::set_float32, "setFloat32", 2)
-        .method(Self::set_float64, "setFloat64", 2)
-        .method(Self::set_int8, "setInt8", 2)
-        .method(Self::set_int16, "setInt16", 2)
-        .method(Self::set_int32, "setInt32", 2)
-        .method(Self::set_uint8, "setUint8", 2)
-        .method(Self::set_uint16, "setUint16", 2)
-        .method(Self::set_uint32, "setUint32", 2)
-        .property(
-            JsSymbol::to_string_tag(),
-            Self::NAME,
-            Attribute::READONLY | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
-        )
-        .build()
-        .conv::<JsValue>()
-        .pipe(Some)
+        BuiltInBuilder::from_standard_constructor::<Self>(intrinsics)
+            .accessor("buffer", Some(get_buffer), None, flag_attributes)
+            .accessor("byteLength", Some(get_byte_length), None, flag_attributes)
+            .accessor("byteOffset", Some(get_byte_offset), None, flag_attributes)
+            .method(Self::get_big_int64, "getBigInt64", 1)
+            .method(Self::get_big_uint64, "getBigUint64", 1)
+            .method(Self::get_float32, "getFloat32", 1)
+            .method(Self::get_float64, "getFloat64", 1)
+            .method(Self::get_int8, "getInt8", 1)
+            .method(Self::get_int16, "getInt16", 1)
+            .method(Self::get_int32, "getInt32", 1)
+            .method(Self::get_uint8, "getUint8", 1)
+            .method(Self::get_uint16, "getUint16", 1)
+            .method(Self::get_uint32, "getUint32", 1)
+            .method(Self::set_big_int64, "setBigInt64", 2)
+            .method(Self::set_big_uint64, "setBigUint64", 2)
+            .method(Self::set_float32, "setFloat32", 2)
+            .method(Self::set_float64, "setFloat64", 2)
+            .method(Self::set_int8, "setInt8", 2)
+            .method(Self::set_int16, "setInt16", 2)
+            .method(Self::set_int32, "setInt32", 2)
+            .method(Self::set_uint8, "setUint8", 2)
+            .method(Self::set_uint16, "setUint16", 2)
+            .method(Self::set_uint32, "setUint32", 2)
+            .property(
+                JsSymbol::to_string_tag(),
+                Self::NAME,
+                Attribute::READONLY | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
+            )
+            .build();
+    }
+
+    fn get(intrinsics: &Intrinsics) -> JsObject {
+        Self::STANDARD_CONSTRUCTOR(intrinsics.constructors()).constructor()
     }
 }
 
-impl DataView {
-    pub(crate) const LENGTH: usize = 1;
+impl BuiltInObject for DataView {
+    const NAME: &'static str = "DataView";
+}
+
+impl BuiltInConstructor for DataView {
+    const LENGTH: usize = 1;
+
+    const STANDARD_CONSTRUCTOR: fn(&StandardConstructors) -> &StandardConstructor =
+        StandardConstructors::data_view;
 
     /// `25.3.2.1 DataView ( buffer [ , byteOffset [ , byteLength ] ] )`
     ///
@@ -108,7 +106,7 @@ impl DataView {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-dataview-buffer-byteoffset-bytelength
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/DataView/DataView
-    pub(crate) fn constructor(
+    fn constructor(
         new_target: &JsValue,
         args: &[JsValue],
         context: &mut Context<'_>,
@@ -199,7 +197,9 @@ impl DataView {
         // 14. Return O.
         Ok(obj.into())
     }
+}
 
+impl DataView {
     /// `25.3.4.1 get DataView.prototype.buffer`
     ///
     /// The buffer accessor property represents the `ArrayBuffer` or `SharedArrayBuffer` referenced
