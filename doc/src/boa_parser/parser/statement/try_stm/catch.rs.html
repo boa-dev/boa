@@ -182,6 +182,7 @@
 <a href="#181" id="181">181</a>
 <a href="#182" id="182">182</a>
 <a href="#183" id="183">183</a>
+<a href="#184" id="184">184</a>
 </pre><pre class="rust"><code><span class="kw">use crate</span>::{
     lexer::TokenKind,
     parser::{
@@ -357,10 +358,11 @@
                     .parse(cursor, interner)<span class="question-mark">?</span>;
                 <span class="prelude-val">Ok</span>(Binding::Identifier(ident))
             }
-            <span class="kw">_ </span>=&gt; <span class="prelude-val">Err</span>(Error::unexpected(
+            <span class="kw">_ </span>=&gt; <span class="prelude-val">Err</span>(Error::expected(
+                [String::from(<span class="string">&quot;pattern&quot;</span>), String::from(<span class="string">&quot;binding identifier&quot;</span>)],
                 token.to_string(interner),
                 token.span(),
-                <span class="prelude-val">None</span>,
+                <span class="string">&quot;catch parameter&quot;</span>,
             )),
         }
     }

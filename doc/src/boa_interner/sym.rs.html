@@ -141,78 +141,8 @@
 <a href="#140" id="140">140</a>
 <a href="#141" id="141">141</a>
 <a href="#142" id="142">142</a>
-<a href="#143" id="143">143</a>
-<a href="#144" id="144">144</a>
-<a href="#145" id="145">145</a>
-<a href="#146" id="146">146</a>
-<a href="#147" id="147">147</a>
-<a href="#148" id="148">148</a>
-<a href="#149" id="149">149</a>
-<a href="#150" id="150">150</a>
-<a href="#151" id="151">151</a>
-<a href="#152" id="152">152</a>
-<a href="#153" id="153">153</a>
-<a href="#154" id="154">154</a>
-<a href="#155" id="155">155</a>
-<a href="#156" id="156">156</a>
-<a href="#157" id="157">157</a>
-<a href="#158" id="158">158</a>
-<a href="#159" id="159">159</a>
-<a href="#160" id="160">160</a>
-<a href="#161" id="161">161</a>
-<a href="#162" id="162">162</a>
-<a href="#163" id="163">163</a>
-<a href="#164" id="164">164</a>
-<a href="#165" id="165">165</a>
-<a href="#166" id="166">166</a>
-<a href="#167" id="167">167</a>
-<a href="#168" id="168">168</a>
-<a href="#169" id="169">169</a>
-<a href="#170" id="170">170</a>
-<a href="#171" id="171">171</a>
-<a href="#172" id="172">172</a>
-<a href="#173" id="173">173</a>
-<a href="#174" id="174">174</a>
-<a href="#175" id="175">175</a>
-<a href="#176" id="176">176</a>
-<a href="#177" id="177">177</a>
-<a href="#178" id="178">178</a>
-<a href="#179" id="179">179</a>
-<a href="#180" id="180">180</a>
-<a href="#181" id="181">181</a>
-<a href="#182" id="182">182</a>
-<a href="#183" id="183">183</a>
-<a href="#184" id="184">184</a>
-<a href="#185" id="185">185</a>
-<a href="#186" id="186">186</a>
-<a href="#187" id="187">187</a>
-<a href="#188" id="188">188</a>
-<a href="#189" id="189">189</a>
-<a href="#190" id="190">190</a>
-<a href="#191" id="191">191</a>
-<a href="#192" id="192">192</a>
-<a href="#193" id="193">193</a>
-<a href="#194" id="194">194</a>
-<a href="#195" id="195">195</a>
-<a href="#196" id="196">196</a>
-<a href="#197" id="197">197</a>
-<a href="#198" id="198">198</a>
-<a href="#199" id="199">199</a>
-<a href="#200" id="200">200</a>
-<a href="#201" id="201">201</a>
-<a href="#202" id="202">202</a>
-<a href="#203" id="203">203</a>
-<a href="#204" id="204">204</a>
-<a href="#205" id="205">205</a>
-<a href="#206" id="206">206</a>
-<a href="#207" id="207">207</a>
-</pre><pre class="rust"><code><span class="kw">use </span>boa_macros::utf16;
-<span class="kw">use </span>core::{hash::BuildHasherDefault, num::NonZeroUsize};
-<span class="kw">use </span>indexmap::IndexSet;
-<span class="kw">use </span>once_cell::sync::Lazy;
-<span class="kw">use </span>rustc_hash::FxHasher;
-
-<span class="kw">type </span>Set&lt;T&gt; = IndexSet&lt;T, BuildHasherDefault&lt;FxHasher&gt;&gt;;
+</pre><pre class="rust"><code><span class="kw">use </span>boa_macros::static_syms;
+<span class="kw">use </span>core::num::NonZeroUsize;
 
 <span class="doccomment">/// The string symbol type for Boa.
 ///
@@ -231,96 +161,6 @@
 }
 
 <span class="kw">impl </span>Sym {
-    <span class="doccomment">/// Symbol for the empty string (`&quot;&quot;`).
-    </span><span class="kw">pub const </span>EMPTY_STRING: <span class="self">Self </span>= <span class="kw">unsafe </span>{ <span class="self">Self</span>::new_unchecked(<span class="number">1</span>) };
-
-    <span class="doccomment">/// Symbol for the `&quot;arguments&quot;` string.
-    </span><span class="kw">pub const </span>ARGUMENTS: <span class="self">Self </span>= <span class="kw">unsafe </span>{ <span class="self">Self</span>::new_unchecked(<span class="number">2</span>) };
-
-    <span class="doccomment">/// Symbol for the `&quot;await&quot;` string.
-    </span><span class="kw">pub const </span>AWAIT: <span class="self">Self </span>= <span class="kw">unsafe </span>{ <span class="self">Self</span>::new_unchecked(<span class="number">3</span>) };
-
-    <span class="doccomment">/// Symbol for the `&quot;yield&quot;` string.
-    </span><span class="kw">pub const </span>YIELD: <span class="self">Self </span>= <span class="kw">unsafe </span>{ <span class="self">Self</span>::new_unchecked(<span class="number">4</span>) };
-
-    <span class="doccomment">/// Symbol for the `&quot;eval&quot;` string.
-    </span><span class="kw">pub const </span>EVAL: <span class="self">Self </span>= <span class="kw">unsafe </span>{ <span class="self">Self</span>::new_unchecked(<span class="number">5</span>) };
-
-    <span class="doccomment">/// Symbol for the `&quot;default&quot;` string.
-    </span><span class="kw">pub const </span>DEFAULT: <span class="self">Self </span>= <span class="kw">unsafe </span>{ <span class="self">Self</span>::new_unchecked(<span class="number">6</span>) };
-
-    <span class="doccomment">/// Symbol for the `&quot;null&quot;` string.
-    </span><span class="kw">pub const </span>NULL: <span class="self">Self </span>= <span class="kw">unsafe </span>{ <span class="self">Self</span>::new_unchecked(<span class="number">7</span>) };
-
-    <span class="doccomment">/// Symbol for the `&quot;RegExp&quot;` string.
-    </span><span class="kw">pub const </span>REGEXP: <span class="self">Self </span>= <span class="kw">unsafe </span>{ <span class="self">Self</span>::new_unchecked(<span class="number">8</span>) };
-
-    <span class="doccomment">/// Symbol for the `&quot;get&quot;` string.
-    </span><span class="kw">pub const </span>GET: <span class="self">Self </span>= <span class="kw">unsafe </span>{ <span class="self">Self</span>::new_unchecked(<span class="number">9</span>) };
-
-    <span class="doccomment">/// Symbol for the `&quot;set&quot;` string.
-    </span><span class="kw">pub const </span>SET: <span class="self">Self </span>= <span class="kw">unsafe </span>{ <span class="self">Self</span>::new_unchecked(<span class="number">10</span>) };
-
-    <span class="doccomment">/// Symbol for the `&quot;&lt;main&gt;&quot;` string.
-    </span><span class="kw">pub const </span>MAIN: <span class="self">Self </span>= <span class="kw">unsafe </span>{ <span class="self">Self</span>::new_unchecked(<span class="number">11</span>) };
-
-    <span class="doccomment">/// Symbol for the `&quot;raw&quot;` string.
-    </span><span class="kw">pub const </span>RAW: <span class="self">Self </span>= <span class="kw">unsafe </span>{ <span class="self">Self</span>::new_unchecked(<span class="number">12</span>) };
-
-    <span class="doccomment">/// Symbol for the `&quot;static&quot;` string.
-    </span><span class="kw">pub const </span>STATIC: <span class="self">Self </span>= <span class="kw">unsafe </span>{ <span class="self">Self</span>::new_unchecked(<span class="number">13</span>) };
-
-    <span class="doccomment">/// Symbol for the `&quot;prototype&quot;` string.
-    </span><span class="kw">pub const </span>PROTOTYPE: <span class="self">Self </span>= <span class="kw">unsafe </span>{ <span class="self">Self</span>::new_unchecked(<span class="number">14</span>) };
-
-    <span class="doccomment">/// Symbol for the `&quot;constructor&quot;` string.
-    </span><span class="kw">pub const </span>CONSTRUCTOR: <span class="self">Self </span>= <span class="kw">unsafe </span>{ <span class="self">Self</span>::new_unchecked(<span class="number">15</span>) };
-
-    <span class="doccomment">/// Symbol for the `&quot;implements&quot;` string.
-    </span><span class="kw">pub const </span>IMPLEMENTS: <span class="self">Self </span>= <span class="kw">unsafe </span>{ <span class="self">Self</span>::new_unchecked(<span class="number">16</span>) };
-
-    <span class="doccomment">/// Symbol for the `&quot;interface&quot;` string.
-    </span><span class="kw">pub const </span>INTERFACE: <span class="self">Self </span>= <span class="kw">unsafe </span>{ <span class="self">Self</span>::new_unchecked(<span class="number">17</span>) };
-
-    <span class="doccomment">/// Symbol for the `&quot;let&quot;` string.
-    </span><span class="kw">pub const </span>LET: <span class="self">Self </span>= <span class="kw">unsafe </span>{ <span class="self">Self</span>::new_unchecked(<span class="number">18</span>) };
-
-    <span class="doccomment">/// Symbol for the `&quot;package&quot;` string.
-    </span><span class="kw">pub const </span>PACKAGE: <span class="self">Self </span>= <span class="kw">unsafe </span>{ <span class="self">Self</span>::new_unchecked(<span class="number">19</span>) };
-
-    <span class="doccomment">/// Symbol for the `&quot;private&quot;` string.
-    </span><span class="kw">pub const </span>PRIVATE: <span class="self">Self </span>= <span class="kw">unsafe </span>{ <span class="self">Self</span>::new_unchecked(<span class="number">20</span>) };
-
-    <span class="doccomment">/// Symbol for the `&quot;protected&quot;` string.
-    </span><span class="kw">pub const </span>PROTECTED: <span class="self">Self </span>= <span class="kw">unsafe </span>{ <span class="self">Self</span>::new_unchecked(<span class="number">21</span>) };
-
-    <span class="doccomment">/// Symbol for the `&quot;public&quot;` string.
-    </span><span class="kw">pub const </span>PUBLIC: <span class="self">Self </span>= <span class="kw">unsafe </span>{ <span class="self">Self</span>::new_unchecked(<span class="number">22</span>) };
-
-    <span class="doccomment">/// Symbol for the `&quot;anonymous&quot;` string.
-    </span><span class="kw">pub const </span>ANONYMOUS: <span class="self">Self </span>= <span class="kw">unsafe </span>{ <span class="self">Self</span>::new_unchecked(<span class="number">23</span>) };
-
-    <span class="doccomment">/// Symbol for the `&quot;true&quot;` string.
-    </span><span class="kw">pub const </span>TRUE: <span class="self">Self </span>= <span class="kw">unsafe </span>{ <span class="self">Self</span>::new_unchecked(<span class="number">24</span>) };
-
-    <span class="doccomment">/// Symbol for the `&quot;false&quot;` string.
-    </span><span class="kw">pub const </span>FALSE: <span class="self">Self </span>= <span class="kw">unsafe </span>{ <span class="self">Self</span>::new_unchecked(<span class="number">25</span>) };
-
-    <span class="doccomment">/// Symbol for the `&quot;async&quot;` string.
-    </span><span class="kw">pub const </span>ASYNC: <span class="self">Self </span>= <span class="kw">unsafe </span>{ <span class="self">Self</span>::new_unchecked(<span class="number">26</span>) };
-
-    <span class="doccomment">/// Symbol for the `&quot;of&quot;` string.
-    </span><span class="kw">pub const </span>OF: <span class="self">Self </span>= <span class="kw">unsafe </span>{ <span class="self">Self</span>::new_unchecked(<span class="number">27</span>) };
-
-    <span class="doccomment">/// Symbol for the `&quot;target&quot;` string.
-    </span><span class="kw">pub const </span>TARGET: <span class="self">Self </span>= <span class="kw">unsafe </span>{ <span class="self">Self</span>::new_unchecked(<span class="number">28</span>) };
-
-    <span class="doccomment">/// Symbol for the `&quot;__proto__&quot;` string.
-    </span><span class="kw">pub const </span>__PROTO__: <span class="self">Self </span>= <span class="kw">unsafe </span>{ <span class="self">Self</span>::new_unchecked(<span class="number">29</span>) };
-
-    <span class="doccomment">/// Symbol for the `&quot;name&quot;` string.
-    </span><span class="kw">pub const </span>NAME: <span class="self">Self </span>= <span class="kw">unsafe </span>{ <span class="self">Self</span>::new_unchecked(<span class="number">30</span>) };
-
     <span class="doccomment">/// Creates a new [`Sym`] from the provided `value`, or returns `None` if `index` is zero.
     </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>new(value: usize) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>&gt; {
         NonZeroUsize::new(value).map(|value| <span class="self">Self </span>{ value })
@@ -341,6 +181,26 @@
         }
     }
 
+    <span class="doccomment">/// Checks if this symbol is one of the [reserved identifiers][spec] of the ECMAScript
+    /// specification, excluding `await` and `yield`
+    ///
+    /// [spec]: https://tc39.es/ecma262/#prod-ReservedWord
+    </span><span class="attr">#[inline]
+    #[must_use]
+    </span><span class="kw">pub fn </span>is_reserved_identifier(<span class="self">self</span>) -&gt; bool {
+        (<span class="self">Self</span>::BREAK..=<span class="self">Self</span>::WITH).contains(<span class="kw-2">&amp;</span><span class="self">self</span>)
+    }
+
+    <span class="doccomment">/// Checks if this symbol is one of the [strict reserved identifiers][spec] of the ECMAScript
+    /// specification.
+    ///
+    /// [spec]: https://tc39.es/ecma262/#prod-ReservedWord
+    </span><span class="attr">#[inline]
+    #[must_use]
+    </span><span class="kw">pub fn </span>is_strict_reserved_identifier(<span class="self">self</span>) -&gt; bool {
+        (<span class="self">Self</span>::IMPLEMENTS..=<span class="self">Self</span>::YIELD).contains(<span class="kw-2">&amp;</span><span class="self">self</span>)
+    }
+
     <span class="doccomment">/// Returns the internal value of the [`Sym`]
     </span><span class="attr">#[inline]
     #[must_use]
@@ -349,69 +209,79 @@
     }
 }
 
-<span class="macro">macro_rules! </span>create_static_strings {
-    ( $( <span class="macro-nonterminal">$s</span>:literal ),+$(,)<span class="question-mark">? </span>) =&gt; {
-        <span class="doccomment">/// Ordered set of commonly used static `UTF-8` strings.
-        ///
-        /// # Note
-        ///
-        /// `COMMON_STRINGS_UTF8`, `COMMON_STRINGS_UTF16` and the constants
-        /// defined in [`Sym`] must always be in sync.
-        </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">static </span>COMMON_STRINGS_UTF8: phf::OrderedSet&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str&gt; = {
-            <span class="kw">const </span>COMMON_STRINGS: phf::OrderedSet&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str&gt; = <span class="macro">phf::phf_ordered_set! </span>{
-                $( <span class="macro-nonterminal">$s </span>),+
-            };
-            <span class="comment">// A `COMMON_STRINGS` of size `usize::MAX` would cause an overflow on our `Interner`
-            </span><span class="macro">sa::const_assert!</span>(COMMON_STRINGS.len() &lt; usize::MAX);
-            COMMON_STRINGS
-        };
-
-        <span class="doccomment">/// Ordered set of commonly used static `UTF-16` strings.
-        ///
-        /// # Note
-        ///
-        /// `COMMON_STRINGS_UTF8`, `COMMON_STRINGS_UTF16` and the constants
-        /// defined in [`Sym`] must always be in sync.
-        </span><span class="comment">// FIXME: use phf when const expressions are allowed. https://github.com/rust-phf/rust-phf/issues/188
-        </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">static </span>COMMON_STRINGS_UTF16: Lazy&lt;Set&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>[u16]&gt;&gt; = Lazy::new(|| {
-            <span class="kw">let </span><span class="kw-2">mut </span>set = Set::with_capacity_and_hasher(COMMON_STRINGS_UTF8.len(), BuildHasherDefault::default());
-            $( set.insert(<span class="macro">utf16!</span>(<span class="macro-nonterminal">$s</span>)); )+
-            set
-        });
-    };
-}
-
-<span class="macro">create_static_strings! </span>{
-    <span class="string">&quot;&quot;</span>,
-    <span class="string">&quot;arguments&quot;</span>,
-    <span class="string">&quot;await&quot;</span>,
-    <span class="string">&quot;yield&quot;</span>,
-    <span class="string">&quot;eval&quot;</span>,
+<span class="macro">static_syms! </span>{
+    <span class="comment">// Reserved identifiers
+    // See: &lt;https://tc39.es/ecma262/#prod-ReservedWord&gt;
+    // Note, they must all be together.
+    </span><span class="string">&quot;break&quot;</span>,
+    <span class="string">&quot;case&quot;</span>,
+    <span class="string">&quot;catch&quot;</span>,
+    <span class="string">&quot;class&quot;</span>,
+    <span class="string">&quot;const&quot;</span>,
+    <span class="string">&quot;continue&quot;</span>,
+    <span class="string">&quot;debugger&quot;</span>,
     <span class="string">&quot;default&quot;</span>,
+    <span class="string">&quot;delete&quot;</span>,
+    <span class="string">&quot;do&quot;</span>,
+    <span class="string">&quot;else&quot;</span>,
+    <span class="string">&quot;enum&quot;</span>,
+    <span class="string">&quot;export&quot;</span>,
+    <span class="string">&quot;extends&quot;</span>,
+    <span class="string">&quot;false&quot;</span>,
+    <span class="string">&quot;finally&quot;</span>,
+    <span class="string">&quot;for&quot;</span>,
+    <span class="string">&quot;function&quot;</span>,
+    <span class="string">&quot;if&quot;</span>,
+    <span class="string">&quot;import&quot;</span>,
+    <span class="string">&quot;in&quot;</span>,
+    <span class="string">&quot;instanceof&quot;</span>,
+    <span class="string">&quot;new&quot;</span>,
     <span class="string">&quot;null&quot;</span>,
-    <span class="string">&quot;RegExp&quot;</span>,
-    <span class="string">&quot;get&quot;</span>,
-    <span class="string">&quot;set&quot;</span>,
-    <span class="string">&quot;&lt;main&gt;&quot;</span>,
-    <span class="string">&quot;raw&quot;</span>,
-    <span class="string">&quot;static&quot;</span>,
-    <span class="string">&quot;prototype&quot;</span>,
-    <span class="string">&quot;constructor&quot;</span>,
-    <span class="string">&quot;implements&quot;</span>,
+    <span class="string">&quot;return&quot;</span>,
+    <span class="string">&quot;super&quot;</span>,
+    <span class="string">&quot;switch&quot;</span>,
+    <span class="string">&quot;this&quot;</span>,
+    <span class="string">&quot;throw&quot;</span>,
+    <span class="string">&quot;true&quot;</span>,
+    <span class="string">&quot;try&quot;</span>,
+    <span class="string">&quot;typeof&quot;</span>,
+    <span class="string">&quot;var&quot;</span>,
+    <span class="string">&quot;void&quot;</span>,
+    <span class="string">&quot;while&quot;</span>,
+    <span class="string">&quot;with&quot;</span>,
+    <span class="comment">// End reserved identifier
+
+    // strict reserved identifiers.
+    // See: &lt;https://tc39.es/ecma262/#prod-Identifier&gt;
+    // Note, they must all be together.
+    </span><span class="string">&quot;implements&quot;</span>,
     <span class="string">&quot;interface&quot;</span>,
     <span class="string">&quot;let&quot;</span>,
     <span class="string">&quot;package&quot;</span>,
     <span class="string">&quot;private&quot;</span>,
     <span class="string">&quot;protected&quot;</span>,
     <span class="string">&quot;public&quot;</span>,
+    <span class="string">&quot;static&quot;</span>,
+    <span class="string">&quot;yield&quot;</span>,
+    <span class="comment">// End strict reserved identifiers
+
+    </span><span class="string">&quot;&quot;</span>,
+    <span class="string">&quot;prototype&quot;</span>,
+    <span class="string">&quot;constructor&quot;</span>,
+    <span class="string">&quot;arguments&quot;</span>,
+    <span class="string">&quot;eval&quot;</span>,
+    <span class="string">&quot;RegExp&quot;</span>,
+    <span class="string">&quot;get&quot;</span>,
+    <span class="string">&quot;set&quot;</span>,
+    <span class="string">&quot;&lt;main&gt;&quot;</span>,
+    <span class="string">&quot;raw&quot;</span>,
     <span class="string">&quot;anonymous&quot;</span>,
-    <span class="string">&quot;true&quot;</span>,
-    <span class="string">&quot;false&quot;</span>,
     <span class="string">&quot;async&quot;</span>,
     <span class="string">&quot;of&quot;</span>,
     <span class="string">&quot;target&quot;</span>,
     <span class="string">&quot;__proto__&quot;</span>,
     <span class="string">&quot;name&quot;</span>,
+    <span class="string">&quot;await&quot;</span>,
 }
 </code></pre></div>
 </section></div></main><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="boa_interner" data-themes="" data-resource-suffix="" data-rustdoc-version="1.67.0 (fc594f156 2023-01-24)" data-search-js="search-444266647c4dba98.js" data-settings-js="settings-bebeae96e00e4617.js" data-settings-css="settings-af96d9e2fc13e081.css" ></div></body></html>

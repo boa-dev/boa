@@ -261,7 +261,7 @@
                             SimplePropertyAccess::new(lhs, <span class="kw-2">*</span>name).into()
                         }
                         TokenKind::Keyword((kw, <span class="kw">_</span>)) =&gt; {
-                            SimplePropertyAccess::new(lhs, kw.to_sym(interner)).into()
+                            SimplePropertyAccess::new(lhs, kw.to_sym()).into()
                         }
                         TokenKind::BooleanLiteral(<span class="bool-val">true</span>) =&gt; {
                             SimplePropertyAccess::new(lhs, Sym::TRUE).into()

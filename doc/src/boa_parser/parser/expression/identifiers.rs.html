@@ -210,25 +210,6 @@
 <a href="#209" id="209">209</a>
 <a href="#210" id="210">210</a>
 <a href="#211" id="211">211</a>
-<a href="#212" id="212">212</a>
-<a href="#213" id="213">213</a>
-<a href="#214" id="214">214</a>
-<a href="#215" id="215">215</a>
-<a href="#216" id="216">216</a>
-<a href="#217" id="217">217</a>
-<a href="#218" id="218">218</a>
-<a href="#219" id="219">219</a>
-<a href="#220" id="220">220</a>
-<a href="#221" id="221">221</a>
-<a href="#222" id="222">222</a>
-<a href="#223" id="223">223</a>
-<a href="#224" id="224">224</a>
-<a href="#225" id="225">225</a>
-<a href="#226" id="226">226</a>
-<a href="#227" id="227">227</a>
-<a href="#228" id="228">228</a>
-<a href="#229" id="229">229</a>
-<a href="#230" id="230">230</a>
 </pre><pre class="rust"><code><span class="doccomment">//! Identifiers parsing.
 //!
 //! More information:
@@ -237,26 +218,14 @@
 //! [spec]: https://tc39.es/ecma262/#sec-identifiers
 
 </span><span class="kw">use crate</span>::{
-    lexer::{Error <span class="kw">as </span>LexError, TokenKind},
+    lexer::TokenKind,
     parser::{cursor::Cursor, AllowAwait, AllowYield, OrAbrupt, ParseResult, TokenParser},
     Error,
 };
-<span class="kw">use </span>boa_ast::{expression::Identifier, Keyword};
+<span class="kw">use </span>boa_ast::expression::Identifier <span class="kw">as </span>AstIdentifier;
 <span class="kw">use </span>boa_interner::{Interner, Sym};
 <span class="kw">use </span>boa_profiler::Profiler;
 <span class="kw">use </span>std::io::Read;
-
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const </span>RESERVED_IDENTIFIERS_STRICT: [Sym; <span class="number">9</span>] = [
-    Sym::IMPLEMENTS,
-    Sym::INTERFACE,
-    Sym::LET,
-    Sym::PACKAGE,
-    Sym::PRIVATE,
-    Sym::PROTECTED,
-    Sym::PUBLIC,
-    Sym::STATIC,
-    Sym::YIELD,
-];
 
 <span class="doccomment">/// Identifier reference parsing.
 ///
@@ -288,61 +257,25 @@
 <span class="kw">where
     </span>R: Read,
 {
-    <span class="kw">type </span>Output = Identifier;
+    <span class="kw">type </span>Output = AstIdentifier;
 
     <span class="kw">fn </span>parse(<span class="self">self</span>, cursor: <span class="kw-2">&amp;mut </span>Cursor&lt;R&gt;, interner: <span class="kw-2">&amp;mut </span>Interner) -&gt; ParseResult&lt;<span class="self">Self</span>::Output&gt; {
         <span class="kw">let </span>_timer = Profiler::global().start_event(<span class="string">&quot;IdentifierReference&quot;</span>, <span class="string">&quot;Parsing&quot;</span>);
 
-        <span class="kw">let </span>token = cursor.next(interner).or_abrupt()<span class="question-mark">?</span>;
-
-        <span class="kw">match </span>token.kind() {
-            TokenKind::IdentifierName((ident, <span class="kw">_</span>))
-                <span class="kw">if </span>cursor.strict_mode() &amp;&amp; RESERVED_IDENTIFIERS_STRICT.contains(ident) =&gt;
-            {
-                <span class="prelude-val">Err</span>(Error::general(
-                    <span class="string">&quot;using future reserved keyword not allowed in strict mode IdentifierReference&quot;</span>,
-                    token.span().start(),
-                ))
-            }
-            TokenKind::IdentifierName((ident, <span class="kw">_</span>)) =&gt; <span class="prelude-val">Ok</span>(Identifier::new(<span class="kw-2">*</span>ident)),
-            TokenKind::Keyword((Keyword::Let, <span class="kw">_</span>)) <span class="kw">if </span>cursor.strict_mode() =&gt; <span class="prelude-val">Err</span>(Error::general(
-                <span class="string">&quot;using future reserved keyword not allowed in strict mode IdentifierReference&quot;</span>,
-                token.span().start(),
+        <span class="kw">let </span>span = cursor.peek(<span class="number">0</span>, interner).or_abrupt()<span class="question-mark">?</span>.span();
+        <span class="kw">let </span>ident = Identifier.parse(cursor, interner)<span class="question-mark">?</span>;
+        <span class="kw">match </span>ident.sym() {
+            Sym::YIELD <span class="kw">if </span><span class="self">self</span>.allow_yield.<span class="number">0 </span>=&gt; <span class="prelude-val">Err</span>(Error::unexpected(
+                <span class="string">&quot;yield&quot;</span>,
+                span,
+                <span class="string">&quot;keyword `yield` not allowed in this context&quot;</span>,
             )),
-            TokenKind::Keyword((Keyword::Let, <span class="kw">_</span>)) =&gt; <span class="prelude-val">Ok</span>(Identifier::new(Sym::LET)),
-            TokenKind::Keyword((Keyword::Yield, <span class="kw">_</span>)) <span class="kw">if </span><span class="self">self</span>.allow_yield.<span class="number">0 </span>=&gt; {
-                <span class="comment">// Early Error: It is a Syntax Error if this production has a [Yield] parameter and StringValue of Identifier is &quot;yield&quot;.
-                </span><span class="prelude-val">Err</span>(Error::general(
-                    <span class="string">&quot;Unexpected identifier&quot;</span>,
-                    token.span().start(),
-                ))
-            }
-            TokenKind::Keyword((Keyword::Yield, <span class="kw">_</span>)) <span class="kw">if </span>!<span class="self">self</span>.allow_yield.<span class="number">0 </span>=&gt; {
-                <span class="kw">if </span>cursor.strict_mode() {
-                    <span class="kw">return </span><span class="prelude-val">Err</span>(Error::general(
-                        <span class="string">&quot;Unexpected strict mode reserved word&quot;</span>,
-                        token.span().start(),
-                    ));
-                }
-                <span class="prelude-val">Ok</span>(Identifier::new(Sym::YIELD))
-            }
-            TokenKind::Keyword((Keyword::Await, <span class="kw">_</span>)) <span class="kw">if </span><span class="self">self</span>.allow_await.<span class="number">0 </span>=&gt; {
-                <span class="comment">// Early Error: It is a Syntax Error if this production has an [Await] parameter and StringValue of Identifier is &quot;await&quot;.
-                </span><span class="prelude-val">Err</span>(Error::general(
-                    <span class="string">&quot;Unexpected identifier&quot;</span>,
-                    token.span().start(),
-                ))
-            }
-            TokenKind::Keyword((Keyword::Await, <span class="kw">_</span>)) <span class="kw">if </span>!<span class="self">self</span>.allow_await.<span class="number">0 </span>=&gt; {
-                <span class="prelude-val">Ok</span>(Identifier::new(Sym::AWAIT))
-            }
-            TokenKind::Keyword((Keyword::Async, <span class="kw">_</span>)) =&gt; <span class="prelude-val">Ok</span>(Identifier::new(Sym::ASYNC)),
-            TokenKind::Keyword((Keyword::Of, <span class="kw">_</span>)) =&gt; <span class="prelude-val">Ok</span>(Identifier::new(Sym::OF)),
-            <span class="kw">_ </span>=&gt; <span class="prelude-val">Err</span>(Error::unexpected(
-                token.to_string(interner),
-                token.span(),
-                <span class="string">&quot;IdentifierReference&quot;</span>,
+            Sym::AWAIT <span class="kw">if </span><span class="self">self</span>.allow_await.<span class="number">0 </span>=&gt; <span class="prelude-val">Err</span>(Error::unexpected(
+                <span class="string">&quot;await&quot;</span>,
+                span,
+                <span class="string">&quot;keyword `await` not allowed in this context&quot;</span>,
             )),
+            <span class="kw">_ </span>=&gt; <span class="prelude-val">Ok</span>(ident),
         }
     }
 }
@@ -377,87 +310,116 @@
 <span class="kw">where
     </span>R: Read,
 {
-    <span class="kw">type </span>Output = Identifier;
+    <span class="kw">type </span>Output = AstIdentifier;
 
     <span class="doccomment">/// Strict mode parsing as per &lt;https://tc39.es/ecma262/#sec-identifiers-static-semantics-early-errors&gt;.
     </span><span class="kw">fn </span>parse(<span class="self">self</span>, cursor: <span class="kw-2">&amp;mut </span>Cursor&lt;R&gt;, interner: <span class="kw-2">&amp;mut </span>Interner) -&gt; ParseResult&lt;<span class="self">Self</span>::Output&gt; {
         <span class="kw">let </span>_timer = Profiler::global().start_event(<span class="string">&quot;BindingIdentifier&quot;</span>, <span class="string">&quot;Parsing&quot;</span>);
 
-        <span class="kw">let </span>next_token = cursor.next(interner).or_abrupt()<span class="question-mark">?</span>;
-
-        <span class="kw">match </span>next_token.kind() {
-            TokenKind::IdentifierName((Sym::ARGUMENTS | Sym::EVAL, <span class="kw">_</span>)) <span class="kw">if </span>cursor.strict_mode() =&gt; {
-                <span class="prelude-val">Err</span>(Error::lex(LexError::Syntax(
-                    <span class="macro">format!</span>(
-                        <span class="string">&quot;unexpected identifier &#39;{}&#39; in strict mode&quot;</span>,
-                        next_token.to_string(interner)
-                    )
-                    .into(),
-                    next_token.span().start(),
-                )))
-            }
-            TokenKind::IdentifierName((ident, <span class="kw">_</span>)) =&gt; {
-                <span class="kw">if </span>cursor.strict_mode() &amp;&amp; RESERVED_IDENTIFIERS_STRICT.contains(ident) {
-                    <span class="kw">return </span><span class="prelude-val">Err</span>(Error::general(
-                        <span class="string">&quot;using future reserved keyword not allowed in strict mode&quot;</span>,
-                        next_token.span().start(),
-                    ));
-                }
-                <span class="prelude-val">Ok</span>((<span class="kw-2">*</span>ident).into())
-            }
-            TokenKind::Keyword((Keyword::Let, <span class="kw">_</span>)) <span class="kw">if </span>cursor.strict_mode() =&gt; {
-                <span class="prelude-val">Err</span>(Error::lex(LexError::Syntax(
-                    <span class="string">&quot;unexpected identifier &#39;let&#39; in strict mode&quot;</span>.into(),
-                    next_token.span().start(),
-                )))
-            }
-            TokenKind::Keyword((Keyword::Let, <span class="kw">_</span>)) =&gt; <span class="prelude-val">Ok</span>(Sym::LET.into()),
-            TokenKind::Keyword((Keyword::Yield, <span class="kw">_</span>)) <span class="kw">if </span><span class="self">self</span>.allow_yield.<span class="number">0 </span>=&gt; {
-                <span class="comment">// Early Error: It is a Syntax Error if this production has a [Yield] parameter and StringValue of Identifier is &quot;yield&quot;.
-                </span><span class="prelude-val">Err</span>(Error::general(
-                    <span class="string">&quot;Unexpected identifier&quot;</span>,
-                    next_token.span().start(),
+        <span class="kw">let </span>span = cursor.peek(<span class="number">0</span>, interner).or_abrupt()<span class="question-mark">?</span>.span();
+        <span class="kw">let </span>ident = Identifier.parse(cursor, interner)<span class="question-mark">?</span>;
+        <span class="kw">match </span>ident.sym() {
+            Sym::ARGUMENTS | Sym::EVAL <span class="kw">if </span>cursor.strict_mode() =&gt; {
+                <span class="kw">let </span>name = interner
+                    .resolve_expect(ident.sym())
+                    .utf8()
+                    .expect(<span class="string">&quot;keyword must be utf-8&quot;</span>);
+                <span class="prelude-val">Err</span>(Error::unexpected(
+                    name,
+                    span,
+                    <span class="macro">format!</span>(<span class="string">&quot;binding identifier `{name}` not allowed in strict mode&quot;</span>),
                 ))
             }
-            TokenKind::Keyword((Keyword::Yield, <span class="kw">_</span>)) <span class="kw">if </span>!<span class="self">self</span>.allow_yield.<span class="number">0 </span>=&gt; {
-                <span class="kw">if </span>cursor.strict_mode() {
-                    <span class="prelude-val">Err</span>(Error::general(
-                        <span class="string">&quot;yield keyword in binding identifier not allowed in strict mode&quot;</span>,
-                        next_token.span().start(),
-                    ))
-                } <span class="kw">else </span>{
-                    <span class="prelude-val">Ok</span>(Sym::YIELD.into())
-                }
-            }
-            TokenKind::Keyword((Keyword::Await, <span class="kw">_</span>)) <span class="kw">if </span>cursor.arrow() =&gt; <span class="prelude-val">Ok</span>(Sym::AWAIT.into()),
-            TokenKind::Keyword((Keyword::Await, <span class="kw">_</span>)) <span class="kw">if </span><span class="self">self</span>.allow_await.<span class="number">0 </span>=&gt; {
-                <span class="comment">// Early Error: It is a Syntax Error if this production has an [Await] parameter and StringValue of Identifier is &quot;await&quot;.
-                </span><span class="prelude-val">Err</span>(Error::general(
-                    <span class="string">&quot;Unexpected identifier&quot;</span>,
-                    next_token.span().start(),
-                ))
-            }
-            TokenKind::Keyword((Keyword::Await, <span class="kw">_</span>)) <span class="kw">if </span>!<span class="self">self</span>.allow_await.<span class="number">0 </span>=&gt; <span class="prelude-val">Ok</span>(Sym::AWAIT.into()),
-            TokenKind::Keyword((Keyword::Async, <span class="kw">_</span>)) =&gt; <span class="prelude-val">Ok</span>(Sym::ASYNC.into()),
-            TokenKind::Keyword((Keyword::Of, <span class="kw">_</span>)) =&gt; <span class="prelude-val">Ok</span>(Sym::OF.into()),
-            <span class="kw">_ </span>=&gt; <span class="prelude-val">Err</span>(Error::expected(
-                [<span class="string">&quot;identifier&quot;</span>.to_owned()],
-                next_token.to_string(interner),
-                next_token.span(),
-                <span class="string">&quot;binding identifier&quot;</span>,
+            Sym::YIELD <span class="kw">if </span><span class="self">self</span>.allow_yield.<span class="number">0 </span>=&gt; <span class="prelude-val">Err</span>(Error::unexpected(
+                <span class="string">&quot;yield&quot;</span>,
+                span,
+                <span class="string">&quot;keyword `yield` not allowed in this context&quot;</span>,
             )),
+            Sym::AWAIT <span class="kw">if </span><span class="self">self</span>.allow_await.<span class="number">0 </span>=&gt; <span class="prelude-val">Err</span>(Error::unexpected(
+                <span class="string">&quot;await&quot;</span>,
+                span,
+                <span class="string">&quot;keyword `await` not allowed in this context&quot;</span>,
+            )),
+            <span class="kw">_ </span>=&gt; <span class="prelude-val">Ok</span>(ident),
         }
     }
 }
 
 <span class="doccomment">/// Label identifier parsing.
 ///
-/// This seems to be the same as a `BindingIdentifier`.
+/// This seems to be the same as an `IdentifierReference`.
 ///
 /// More information:
 ///  - [ECMAScript specification][spec]
 ///
 /// [spec]: https://tc39.es/ecma262/#prod-LabelIdentifier
-</span><span class="kw">pub</span>(<span class="kw">in </span><span class="kw">crate</span>::parser) <span class="kw">type </span>LabelIdentifier = BindingIdentifier;
+</span><span class="kw">pub</span>(<span class="kw">in </span><span class="kw">crate</span>::parser) <span class="kw">type </span>LabelIdentifier = IdentifierReference;
+
+<span class="doccomment">/// Identifier parsing.
+///
+/// More information:
+///  - [ECMAScript specification][spec]
+///
+/// [spec]: https://tc39.es/ecma262/#prod-Identifier
+</span><span class="attr">#[derive(Debug, Clone, Copy)]
+</span><span class="kw">pub</span>(<span class="kw">in </span><span class="kw">crate</span>::parser) <span class="kw">struct </span>Identifier;
+
+<span class="kw">impl</span>&lt;R&gt; TokenParser&lt;R&gt; <span class="kw">for </span>Identifier
+<span class="kw">where
+    </span>R: Read,
+{
+    <span class="kw">type </span>Output = AstIdentifier;
+
+    <span class="kw">fn </span>parse(<span class="self">self</span>, cursor: <span class="kw-2">&amp;mut </span>Cursor&lt;R&gt;, interner: <span class="kw-2">&amp;mut </span>Interner) -&gt; ParseResult&lt;<span class="self">Self</span>::Output&gt; {
+        <span class="kw">let </span>_timer = Profiler::global().start_event(<span class="string">&quot;Identifier&quot;</span>, <span class="string">&quot;Parsing&quot;</span>);
+
+        <span class="kw">let </span>tok = cursor.next(interner).or_abrupt()<span class="question-mark">?</span>;
+
+        <span class="kw">let </span>ident = <span class="kw">match </span>tok.kind() {
+            TokenKind::IdentifierName((ident, <span class="kw">_</span>)) =&gt; <span class="kw-2">*</span>ident,
+            TokenKind::Keyword((kw, <span class="kw">_</span>)) =&gt; kw.to_sym(),
+            <span class="kw">_ </span>=&gt; {
+                <span class="kw">return </span><span class="prelude-val">Err</span>(Error::expected(
+                    [<span class="string">&quot;identifier&quot;</span>.to_owned()],
+                    tok.to_string(interner),
+                    tok.span(),
+                    <span class="string">&quot;identifier parsing&quot;</span>,
+                ))
+            }
+        };
+
+        <span class="kw">if </span>cursor.strict_mode() &amp;&amp; ident.is_strict_reserved_identifier() {
+            <span class="kw">return </span><span class="prelude-val">Err</span>(Error::unexpected(
+                interner
+                    .resolve_expect(ident)
+                    .utf8()
+                    .expect(<span class="string">&quot;keyword must always be utf-8&quot;</span>),
+                tok.span(),
+                <span class="string">&quot;strict reserved word cannot be an identifier&quot;</span>,
+            ));
+        }
+
+        <span class="kw">if </span>cursor.module_mode() &amp;&amp; ident == Sym::AWAIT {
+            <span class="kw">return </span><span class="prelude-val">Err</span>(Error::unexpected(
+                <span class="string">&quot;await&quot;</span>,
+                tok.span(),
+                <span class="string">&quot;`await` cannot be used as an identifier in a module&quot;</span>,
+            ));
+        }
+
+        <span class="kw">if </span>ident.is_reserved_identifier() {
+            <span class="kw">return </span><span class="prelude-val">Err</span>(Error::unexpected(
+                interner
+                    .resolve_expect(ident)
+                    .utf8()
+                    .expect(<span class="string">&quot;keyword must always be utf-8&quot;</span>),
+                tok.span(),
+                <span class="string">&quot;reserved word cannot be an identifier&quot;</span>,
+            ));
+        }
+
+        <span class="prelude-val">Ok</span>(AstIdentifier::new(ident))
+    }
+}
 </code></pre></div>
 </section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-static-root-path="../../../../static.files/" data-current-crate="boa_parser" data-themes="" data-resource-suffix="" data-rustdoc-version="1.67.0 (fc594f156 2023-01-24)" data-search-js="search-444266647c4dba98.js" data-settings-js="settings-bebeae96e00e4617.js" data-settings-css="settings-af96d9e2fc13e081.css" ></div></body></html>

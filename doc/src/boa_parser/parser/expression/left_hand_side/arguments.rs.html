@@ -115,6 +115,7 @@
 <a href="#114" id="114">114</a>
 <a href="#115" id="115">115</a>
 <a href="#116" id="116">116</a>
+<a href="#117" id="117">117</a>
 </pre><pre class="rust"><code><span class="doccomment">//! Argument parsing.
 //!
 //! More information:
@@ -189,10 +190,11 @@
                     <span class="kw">let </span>next_token = cursor.next(interner)<span class="question-mark">?</span>.expect(<span class="string">&quot;, token vanished&quot;</span>); <span class="comment">// Consume the token.
 
                     </span><span class="kw">if </span>args.is_empty() {
-                        <span class="kw">return </span><span class="prelude-val">Err</span>(Error::unexpected(
+                        <span class="kw">return </span><span class="prelude-val">Err</span>(Error::expected(
+                            [String::from(<span class="string">&quot;expression&quot;</span>)],
                             next_token.to_string(interner),
                             next_token.span(),
-                            <span class="prelude-val">None</span>,
+                            <span class="string">&quot;call&quot;</span>,
                         ));
                     }
 

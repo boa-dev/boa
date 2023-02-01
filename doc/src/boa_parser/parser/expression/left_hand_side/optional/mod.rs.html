@@ -247,7 +247,7 @@
                     }
                 }
                 TokenKind::Keyword((kw, <span class="kw">_</span>)) =&gt; OptionalOperationKind::SimplePropertyAccess {
-                    field: PropertyAccessField::Const(kw.to_sym(interner)),
+                    field: PropertyAccessField::Const(kw.to_sym()),
                 },
                 TokenKind::BooleanLiteral(<span class="bool-val">true</span>) =&gt; OptionalOperationKind::SimplePropertyAccess {
                     field: PropertyAccessField::Const(Sym::TRUE),

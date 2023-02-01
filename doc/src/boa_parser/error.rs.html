@@ -203,7 +203,6 @@
 <a href="#202" id="202">202</a>
 <a href="#203" id="203">203</a>
 <a href="#204" id="204">204</a>
-<a href="#205" id="205">205</a>
 </pre><pre class="rust"><code><span class="doccomment">//! Error and result implementation for the parser.
 
 </span><span class="kw">use </span><span class="kw">crate</span>::lexer::Error <span class="kw">as </span>LexError;
@@ -251,7 +250,7 @@
     <span class="doccomment">/// When a token is unexpected
     </span>Unexpected {
         <span class="doccomment">/// The error message.
-        </span>message: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str&gt;,
+        </span>message: Box&lt;str&gt;,
 
         <span class="doccomment">/// The token that was not expected.
         </span>found: Box&lt;str&gt;,
@@ -307,11 +306,11 @@
         }
     }
 
-    <span class="doccomment">/// Creates an `Expected` parsing error.
+    <span class="doccomment">/// Creates an `Unexpected` parsing error.
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>unexpected&lt;F, C&gt;(found: F, span: Span, message: C) -&gt; <span class="self">Self
     </span><span class="kw">where
         </span>F: Into&lt;Box&lt;str&gt;&gt;,
-        C: Into&lt;<span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str&gt;&gt;,
+        C: Into&lt;Box&lt;str&gt;&gt;,
     {
         <span class="self">Self</span>::Unexpected {
             found: found.into(),
@@ -393,8 +392,7 @@
                 message,
             } =&gt; <span class="macro">write!</span>(
                 f,
-                <span class="string">&quot;unexpected token &#39;{found}&#39;{} at line {}, col {}&quot;</span>,
-                message.map_or_else(String::new, |m| <span class="macro">format!</span>(<span class="string">&quot;, {m}&quot;</span>)),
+                <span class="string">&quot;unexpected token &#39;{found}&#39;, {message} at line {}, col {}&quot;</span>,
                 span.start().line_number(),
                 span.start().column_number()
             ),

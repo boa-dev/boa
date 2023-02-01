@@ -296,6 +296,21 @@
 <a href="#295" id="295">295</a>
 <a href="#296" id="296">296</a>
 <a href="#297" id="297">297</a>
+<a href="#298" id="298">298</a>
+<a href="#299" id="299">299</a>
+<a href="#300" id="300">300</a>
+<a href="#301" id="301">301</a>
+<a href="#302" id="302">302</a>
+<a href="#303" id="303">303</a>
+<a href="#304" id="304">304</a>
+<a href="#305" id="305">305</a>
+<a href="#306" id="306">306</a>
+<a href="#307" id="307">307</a>
+<a href="#308" id="308">308</a>
+<a href="#309" id="309">309</a>
+<a href="#310" id="310">310</a>
+<a href="#311" id="311">311</a>
+<a href="#312" id="312">312</a>
 </pre><pre class="rust"><code><span class="doccomment">//! Cursor implementation for the parser.
 </span><span class="kw">mod </span>buffered_lexer;
 
@@ -334,6 +349,9 @@
 
     <span class="doccomment">/// Indicate if the cursor is used in `JSON.parse`.
     </span>json_parse: bool,
+
+    <span class="doccomment">/// Indicate if the cursor&#39;s **goal symbol** is a Module.
+    </span>module: bool,
 }
 
 <span class="kw">impl</span>&lt;R&gt; Cursor&lt;R&gt;
@@ -348,7 +366,19 @@
             private_environment_root_index: <span class="number">0</span>,
             arrow: <span class="bool-val">false</span>,
             json_parse: <span class="bool-val">false</span>,
+            module: <span class="bool-val">false</span>,
         }
+    }
+
+    <span class="doccomment">/// Sets the goal symbol of the cursor to `Module`.
+    </span><span class="attr">#[allow(unused)]
+    </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>set_module_mode(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
+        <span class="self">self</span>.module = <span class="bool-val">true</span>;
+    }
+
+    <span class="doccomment">/// Returns `true` if the cursor is currently parsing a `Module`.
+    </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">const fn </span>module_mode(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="self">self</span>.module
     }
 
     <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>set_goal(<span class="kw-2">&amp;mut </span><span class="self">self</span>, elm: InputElement) {
