@@ -100,29 +100,27 @@
 <a href="#99" id="99">99</a>
 <a href="#100" id="100">100</a>
 <a href="#101" id="101">101</a>
-<a href="#102" id="102">102</a>
 </pre><pre class="rust"><code><span class="doccomment">//! Unary expression nodes.
 //!
-//! A Binary expression comprises any operation applied to a single expression. Some examples include:
+//! A unary expression comprises any operation applied to a single expression. Some examples include:
 //!
-//! - [Increment and decrement operations][inc] (`++`, `--`).
 //! - The [`delete`][del] operator.
 //! - The [bitwise NOT][not] operator (`~`).
 //!
 //! The full list of valid unary operators is defined in [`UnaryOp`].
 //!
-//! [inc]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators#increment_and_decrement
 //! [del]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/delete
 //! [not]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Bitwise_NOT
 </span><span class="kw">mod </span>op;
 
-<span class="kw">use </span>core::ops::ControlFlow;
-<span class="kw">pub use </span>op::<span class="kw-2">*</span>;
-
+<span class="kw">use crate</span>::{
+    expression::Expression,
+    visitor::{VisitWith, Visitor, VisitorMut},
+};
 <span class="kw">use </span>boa_interner::{Interner, ToInternedString};
+<span class="kw">use </span>core::ops::ControlFlow;
 
-<span class="kw">use </span><span class="kw">crate</span>::expression::Expression;
-<span class="kw">use </span><span class="kw">crate</span>::visitor::{VisitWith, Visitor, VisitorMut};
+<span class="kw">pub use </span>op::<span class="kw-2">*</span>;
 
 <span class="doccomment">/// A unary expression is an operation with only one operand.
 ///

@@ -166,6 +166,27 @@
 <a href="#165" id="165">165</a>
 <a href="#166" id="166">166</a>
 <a href="#167" id="167">167</a>
+<a href="#168" id="168">168</a>
+<a href="#169" id="169">169</a>
+<a href="#170" id="170">170</a>
+<a href="#171" id="171">171</a>
+<a href="#172" id="172">172</a>
+<a href="#173" id="173">173</a>
+<a href="#174" id="174">174</a>
+<a href="#175" id="175">175</a>
+<a href="#176" id="176">176</a>
+<a href="#177" id="177">177</a>
+<a href="#178" id="178">178</a>
+<a href="#179" id="179">179</a>
+<a href="#180" id="180">180</a>
+<a href="#181" id="181">181</a>
+<a href="#182" id="182">182</a>
+<a href="#183" id="183">183</a>
+<a href="#184" id="184">184</a>
+<a href="#185" id="185">185</a>
+<a href="#186" id="186">186</a>
+<a href="#187" id="187">187</a>
+<a href="#188" id="188">188</a>
 </pre><pre class="rust"><code><span class="doccomment">//! Update expression parsing.
 //!
 //! More information:
@@ -186,7 +207,10 @@
 };
 <span class="kw">use </span>boa_ast::{
     expression::{
-        operator::{unary::UnaryOp, Unary},
+        operator::{
+            update::{UpdateOp, UpdateTarget},
+            Update,
+        },
         Identifier,
     },
     Expression, Position, Punctuator,
@@ -224,18 +248,28 @@
     }
 }
 
-<span class="doccomment">/// &lt;https://tc39.es/ecma262/multipage/syntax-directed-operations.html#sec-static-semantics-assignmenttargettype&gt;
-/// This function checks if the target type is simple
-</span><span class="kw">fn </span>is_simple(expr: <span class="kw-2">&amp;</span>Expression, position: Position, strict: bool) -&gt; ParseResult&lt;bool&gt; {
+<span class="doccomment">/// Check if the assignment target type is simple and return the target as an `UpdateTarget`.
+///
+/// More information:
+///  - [ECMAScript specification][spec]
+///
+/// [spec]: https://tc39.es/ecma262/#sec-static-semantics-assignmenttargettype
+</span><span class="kw">fn </span>as_simple(
+    expr: <span class="kw-2">&amp;</span>Expression,
+    position: Position,
+    strict: bool,
+) -&gt; ParseResult&lt;<span class="prelude-ty">Option</span>&lt;UpdateTarget&gt;&gt; {
     <span class="kw">match </span>expr {
         Expression::Identifier(ident) =&gt; {
             <span class="kw">if </span>strict {
                 check_strict_arguments_or_eval(<span class="kw-2">*</span>ident, position)<span class="question-mark">?</span>;
             }
-            <span class="prelude-val">Ok</span>(<span class="bool-val">true</span>)
+            <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(UpdateTarget::Identifier(<span class="kw-2">*</span>ident)))
         }
-        Expression::PropertyAccess(<span class="kw">_</span>) =&gt; <span class="prelude-val">Ok</span>(<span class="bool-val">true</span>),
-        <span class="kw">_ </span>=&gt; <span class="prelude-val">Ok</span>(<span class="bool-val">false</span>),
+        Expression::PropertyAccess(access) =&gt; {
+            <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(UpdateTarget::PropertyAccess(access.clone())))
+        }
+        <span class="kw">_ </span>=&gt; <span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>),
     }
 }
 
@@ -258,15 +292,17 @@
 
                 <span class="kw">let </span>target = UnaryExpression::new(<span class="self">self</span>.name, <span class="self">self</span>.allow_yield, <span class="self">self</span>.allow_await)
                     .parse(cursor, interner)<span class="question-mark">?</span>;
-                <span class="comment">// https://tc39.es/ecma262/#sec-update-expressions-static-semantics-early-errors
-                </span><span class="kw">if </span>!is_simple(<span class="kw-2">&amp;</span>target, position, cursor.strict_mode())<span class="question-mark">? </span>{
-                    <span class="kw">return </span><span class="prelude-val">Err</span>(Error::lex(LexError::Syntax(
-                        <span class="string">&quot;Invalid left-hand side in assignment&quot;</span>.into(),
-                        position,
-                    )));
-                }
 
-                <span class="kw">return </span><span class="prelude-val">Ok</span>(Unary::new(UnaryOp::IncrementPre, target).into());
+                <span class="comment">// https://tc39.es/ecma262/#sec-update-expressions-static-semantics-early-errors
+                </span><span class="kw">return </span>(as_simple(<span class="kw-2">&amp;</span>target, position, cursor.strict_mode())<span class="question-mark">?</span>).map_or_else(
+                    || {
+                        <span class="prelude-val">Err</span>(Error::lex(LexError::Syntax(
+                            <span class="string">&quot;Invalid left-hand side in assignment&quot;</span>.into(),
+                            position,
+                        )))
+                    },
+                    |target| <span class="prelude-val">Ok</span>(Update::new(UpdateOp::IncrementPre, target).into()),
+                );
             }
             TokenKind::Punctuator(Punctuator::Dec) =&gt; {
                 cursor
@@ -275,15 +311,17 @@
 
                 <span class="kw">let </span>target = UnaryExpression::new(<span class="self">self</span>.name, <span class="self">self</span>.allow_yield, <span class="self">self</span>.allow_await)
                     .parse(cursor, interner)<span class="question-mark">?</span>;
-                <span class="comment">// https://tc39.es/ecma262/#sec-update-expressions-static-semantics-early-errors
-                </span><span class="kw">if </span>!is_simple(<span class="kw-2">&amp;</span>target, position, cursor.strict_mode())<span class="question-mark">? </span>{
-                    <span class="kw">return </span><span class="prelude-val">Err</span>(Error::lex(LexError::Syntax(
-                        <span class="string">&quot;Invalid left-hand side in assignment&quot;</span>.into(),
-                        position,
-                    )));
-                }
 
-                <span class="kw">return </span><span class="prelude-val">Ok</span>(Unary::new(UnaryOp::DecrementPre, target).into());
+                <span class="comment">// https://tc39.es/ecma262/#sec-update-expressions-static-semantics-early-errors
+                </span><span class="kw">return </span>(as_simple(<span class="kw-2">&amp;</span>target, position, cursor.strict_mode())<span class="question-mark">?</span>).map_or_else(
+                    || {
+                        <span class="prelude-val">Err</span>(Error::lex(LexError::Syntax(
+                            <span class="string">&quot;Invalid left-hand side in assignment&quot;</span>.into(),
+                            position,
+                        )))
+                    },
+                    |target| <span class="prelude-val">Ok</span>(Update::new(UpdateOp::DecrementPre, target).into()),
+                );
             }
             <span class="kw">_ </span>=&gt; {}
         }
@@ -302,29 +340,33 @@
                     cursor
                         .next(interner)<span class="question-mark">?
                         </span>.expect(<span class="string">&quot;Punctuator::Inc token disappeared&quot;</span>);
-                    <span class="comment">// https://tc39.es/ecma262/#sec-update-expressions-static-semantics-early-errors
-                    </span><span class="kw">if </span>!is_simple(<span class="kw-2">&amp;</span>lhs, token_start, cursor.strict_mode())<span class="question-mark">? </span>{
-                        <span class="kw">return </span><span class="prelude-val">Err</span>(Error::lex(LexError::Syntax(
-                            <span class="string">&quot;Invalid left-hand side in assignment&quot;</span>.into(),
-                            token_start,
-                        )));
-                    }
 
-                    <span class="kw">return </span><span class="prelude-val">Ok</span>(Unary::new(UnaryOp::IncrementPost, lhs).into());
+                    <span class="comment">// https://tc39.es/ecma262/#sec-update-expressions-static-semantics-early-errors
+                    </span><span class="kw">return </span>(as_simple(<span class="kw-2">&amp;</span>lhs, position, cursor.strict_mode())<span class="question-mark">?</span>).map_or_else(
+                        || {
+                            <span class="prelude-val">Err</span>(Error::lex(LexError::Syntax(
+                                <span class="string">&quot;Invalid left-hand side in assignment&quot;</span>.into(),
+                                token_start,
+                            )))
+                        },
+                        |target| <span class="prelude-val">Ok</span>(Update::new(UpdateOp::IncrementPost, target).into()),
+                    );
                 }
                 TokenKind::Punctuator(Punctuator::Dec) =&gt; {
                     cursor
                         .next(interner)<span class="question-mark">?
                         </span>.expect(<span class="string">&quot;Punctuator::Dec token disappeared&quot;</span>);
-                    <span class="comment">// https://tc39.es/ecma262/#sec-update-expressions-static-semantics-early-errors
-                    </span><span class="kw">if </span>!is_simple(<span class="kw-2">&amp;</span>lhs, token_start, cursor.strict_mode())<span class="question-mark">? </span>{
-                        <span class="kw">return </span><span class="prelude-val">Err</span>(Error::lex(LexError::Syntax(
-                            <span class="string">&quot;Invalid left-hand side in assignment&quot;</span>.into(),
-                            token_start,
-                        )));
-                    }
 
-                    <span class="kw">return </span><span class="prelude-val">Ok</span>(Unary::new(UnaryOp::DecrementPost, lhs).into());
+                    <span class="comment">// https://tc39.es/ecma262/#sec-update-expressions-static-semantics-early-errors
+                    </span><span class="kw">return </span>(as_simple(<span class="kw-2">&amp;</span>lhs, position, cursor.strict_mode())<span class="question-mark">?</span>).map_or_else(
+                        || {
+                            <span class="prelude-val">Err</span>(Error::lex(LexError::Syntax(
+                                <span class="string">&quot;Invalid left-hand side in assignment&quot;</span>.into(),
+                                token_start,
+                            )))
+                        },
+                        |target| <span class="prelude-val">Ok</span>(Update::new(UpdateOp::DecrementPost, target).into()),
+                    );
                 }
                 <span class="kw">_ </span>=&gt; {}
             }

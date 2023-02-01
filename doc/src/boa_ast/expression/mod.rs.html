@@ -331,6 +331,12 @@
 <a href="#330" id="330">330</a>
 <a href="#331" id="331">331</a>
 <a href="#332" id="332">332</a>
+<a href="#333" id="333">333</a>
+<a href="#334" id="334">334</a>
+<a href="#335" id="335">335</a>
+<a href="#336" id="336">336</a>
+<a href="#337" id="337">337</a>
+<a href="#338" id="338">338</a>
 </pre><pre class="rust"><code><span class="doccomment">//! The [`Expression`] Parse Node, as defined by the [spec].
 //!
 //! ECMAScript expressions include:
@@ -348,7 +354,7 @@
 <span class="kw">use </span><span class="self">self</span>::{
     access::PropertyAccess,
     literal::{ArrayLiteral, Literal, ObjectLiteral, TemplateLiteral},
-    operator::{Assign, Binary, Conditional, Unary},
+    operator::{Assign, Binary, Conditional, Unary, Update},
 };
 
 <span class="kw">use super</span>::{
@@ -471,6 +477,9 @@
     <span class="doccomment">/// See [`Unary`].
     </span>Unary(Unary),
 
+    <span class="doccomment">/// See [`Unary`].
+    </span>Update(Update),
+
     <span class="doccomment">/// See [`Binary`].
     </span>Binary(Binary),
 
@@ -521,6 +530,7 @@
             <span class="self">Self</span>::TaggedTemplate(tag) =&gt; tag.to_interned_string(interner),
             <span class="self">Self</span>::Assign(assign) =&gt; assign.to_interned_string(interner),
             <span class="self">Self</span>::Unary(unary) =&gt; unary.to_interned_string(interner),
+            <span class="self">Self</span>::Update(update) =&gt; update.to_interned_string(interner),
             <span class="self">Self</span>::Binary(bin) =&gt; bin.to_interned_string(interner),
             <span class="self">Self</span>::Conditional(cond) =&gt; cond.to_interned_string(interner),
             <span class="self">Self</span>::Await(aw) =&gt; aw.to_interned_string(interner),
@@ -613,6 +623,7 @@
             <span class="self">Self</span>::TaggedTemplate(tt) =&gt; visitor.visit_tagged_template(tt),
             <span class="self">Self</span>::Assign(a) =&gt; visitor.visit_assign(a),
             <span class="self">Self</span>::Unary(u) =&gt; visitor.visit_unary(u),
+            <span class="self">Self</span>::Update(u) =&gt; visitor.visit_update(u),
             <span class="self">Self</span>::Binary(b) =&gt; visitor.visit_binary(b),
             <span class="self">Self</span>::Conditional(c) =&gt; visitor.visit_conditional(c),
             <span class="self">Self</span>::Await(a) =&gt; visitor.visit_await(a),
@@ -651,6 +662,7 @@
             <span class="self">Self</span>::TaggedTemplate(tt) =&gt; visitor.visit_tagged_template_mut(tt),
             <span class="self">Self</span>::Assign(a) =&gt; visitor.visit_assign_mut(a),
             <span class="self">Self</span>::Unary(u) =&gt; visitor.visit_unary_mut(u),
+            <span class="self">Self</span>::Update(u) =&gt; visitor.visit_update_mut(u),
             <span class="self">Self</span>::Binary(b) =&gt; visitor.visit_binary_mut(b),
             <span class="self">Self</span>::Conditional(c) =&gt; visitor.visit_conditional_mut(c),
             <span class="self">Self</span>::Await(a) =&gt; visitor.visit_await_mut(a),

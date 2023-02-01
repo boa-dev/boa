@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"enum":[["UpdateOp","A update operator is one that takes a single operand/argument and performs an operation."]]};

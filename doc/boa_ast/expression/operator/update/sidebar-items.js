@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"enum":[["UpdateOp","A update operator is one that takes a single operand/argument and performs an operation."],["UpdateTarget","A update expression can only be performed on identifier expressions or property access expressions."]],"mod":[["op",""]],"struct":[["Update","A update expression is an operation with only one operand."]]};

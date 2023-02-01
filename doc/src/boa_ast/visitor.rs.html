@@ -568,6 +568,11 @@
 <a href="#567" id="567">567</a>
 <a href="#568" id="568">568</a>
 <a href="#569" id="569">569</a>
+<a href="#570" id="570">570</a>
+<a href="#571" id="571">571</a>
+<a href="#572" id="572">572</a>
+<a href="#573" id="573">573</a>
+<a href="#574" id="574">574</a>
 </pre><pre class="rust"><code><span class="doccomment">//! ECMAScript Abstract Syntax Tree visitors.
 //!
 //! This module contains visitors which can be used to inspect or modify AST nodes. This allows for
@@ -587,7 +592,7 @@
         literal::{ArrayLiteral, Literal, ObjectLiteral, TemplateElement, TemplateLiteral},
         operator::{
             assign::{Assign, AssignTarget},
-            Binary, Conditional, Unary,
+            Binary, Conditional, Unary, Update,
         },
         Await, Call, Expression, Identifier, New, Optional, OptionalOperation,
         OptionalOperationKind, Spread, SuperCall, TaggedTemplate, Yield,
@@ -735,6 +740,7 @@
     TaggedTemplate,
     Assign,
     Unary,
+    Update,
     Binary,
     Conditional,
     Await,
@@ -821,6 +827,7 @@
     <span class="macro">define_visit!</span>(visit_tagged_template, TaggedTemplate);
     <span class="macro">define_visit!</span>(visit_assign, Assign);
     <span class="macro">define_visit!</span>(visit_unary, Unary);
+    <span class="macro">define_visit!</span>(visit_update, Update);
     <span class="macro">define_visit!</span>(visit_binary, Binary);
     <span class="macro">define_visit!</span>(visit_conditional, Conditional);
     <span class="macro">define_visit!</span>(visit_await, Await);
@@ -904,6 +911,7 @@
             NodeRef::TaggedTemplate(n) =&gt; <span class="self">self</span>.visit_tagged_template(n),
             NodeRef::Assign(n) =&gt; <span class="self">self</span>.visit_assign(n),
             NodeRef::Unary(n) =&gt; <span class="self">self</span>.visit_unary(n),
+            NodeRef::Update(n) =&gt; <span class="self">self</span>.visit_update(n),
             NodeRef::Binary(n) =&gt; <span class="self">self</span>.visit_binary(n),
             NodeRef::Conditional(n) =&gt; <span class="self">self</span>.visit_conditional(n),
             NodeRef::Await(n) =&gt; <span class="self">self</span>.visit_await(n),
@@ -992,6 +1000,7 @@
     <span class="macro">define_visit_mut!</span>(visit_tagged_template_mut, TaggedTemplate);
     <span class="macro">define_visit_mut!</span>(visit_assign_mut, Assign);
     <span class="macro">define_visit_mut!</span>(visit_unary_mut, Unary);
+    <span class="macro">define_visit_mut!</span>(visit_update_mut, Update);
     <span class="macro">define_visit_mut!</span>(visit_binary_mut, Binary);
     <span class="macro">define_visit_mut!</span>(visit_conditional_mut, Conditional);
     <span class="macro">define_visit_mut!</span>(visit_await_mut, Await);
@@ -1075,6 +1084,7 @@
             NodeRefMut::TaggedTemplate(n) =&gt; <span class="self">self</span>.visit_tagged_template_mut(n),
             NodeRefMut::Assign(n) =&gt; <span class="self">self</span>.visit_assign_mut(n),
             NodeRefMut::Unary(n) =&gt; <span class="self">self</span>.visit_unary_mut(n),
+            NodeRefMut::Update(n) =&gt; <span class="self">self</span>.visit_update_mut(n),
             NodeRefMut::Binary(n) =&gt; <span class="self">self</span>.visit_binary_mut(n),
             NodeRefMut::Conditional(n) =&gt; <span class="self">self</span>.visit_conditional_mut(n),
             NodeRefMut::Await(n) =&gt; <span class="self">self</span>.visit_await_mut(n),

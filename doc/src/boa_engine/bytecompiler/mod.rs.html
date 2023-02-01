@@ -1443,6 +1443,13 @@
 <a href="#1442" id="1442">1442</a>
 <a href="#1443" id="1443">1443</a>
 <a href="#1444" id="1444">1444</a>
+<a href="#1445" id="1445">1445</a>
+<a href="#1446" id="1446">1446</a>
+<a href="#1447" id="1447">1447</a>
+<a href="#1448" id="1448">1448</a>
+<a href="#1449" id="1449">1449</a>
+<a href="#1450" id="1450">1450</a>
+<a href="#1451" id="1451">1451</a>
 </pre><pre class="rust"><code><span class="doccomment">//! This module contains the bytecode compiler.
 
 </span><span class="kw">mod </span>class;
@@ -1461,7 +1468,7 @@
     declaration::{Binding, LexicalDeclaration, VarDeclaration},
     expression::{
         access::{PropertyAccess, PropertyAccessField},
-        operator::assign::AssignTarget,
+        operator::{assign::AssignTarget, update::UpdateTarget},
         Call, Identifier, New, Optional, OptionalOperationKind,
     },
     function::{
@@ -1641,6 +1648,13 @@
             Expression::PropertyAccess(access) =&gt; <span class="prelude-val">Some</span>(Access::Property { access }),
             Expression::This =&gt; <span class="prelude-val">Some</span>(Access::This),
             <span class="kw">_ </span>=&gt; <span class="prelude-val">None</span>,
+        }
+    }
+
+    <span class="kw">const fn </span>from_update_target(target: <span class="kw-2">&amp;</span>UpdateTarget) -&gt; Access&lt;<span class="lifetime">&#39;_</span>&gt; {
+        <span class="kw">match </span>target {
+            UpdateTarget::Identifier(name) =&gt; Access::Variable { name: <span class="kw-2">*</span>name },
+            UpdateTarget::PropertyAccess(access) =&gt; Access::Property { access },
         }
     }
 }
