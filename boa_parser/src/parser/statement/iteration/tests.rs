@@ -4,7 +4,12 @@ use boa_ast::{
     expression::{
         access::SimplePropertyAccess,
         literal::Literal,
-        operator::{assign::AssignOp, binary::RelationalOp, unary::UnaryOp, Assign, Binary, Unary},
+        operator::{
+            assign::AssignOp,
+            binary::RelationalOp,
+            update::{UpdateOp, UpdateTarget},
+            Assign, Binary, Update,
+        },
         Call, Identifier,
     },
     statement::{Block, Break, DoWhileLoop, WhileLoop},
@@ -81,9 +86,11 @@ fn check_do_while_semicolon_insertion() {
                 ),
                 Binary::new(
                     RelationalOp::LessThan.into(),
-                    Unary::new(
-                        UnaryOp::IncrementPost,
-                        Identifier::new(interner.get_or_intern_static("i", utf16!("i"))).into(),
+                    Update::new(
+                        UpdateOp::IncrementPost,
+                        UpdateTarget::Identifier(Identifier::new(
+                            interner.get_or_intern_static("i", utf16!("i")),
+                        )),
                     )
                     .into(),
                     Literal::from(10).into(),
@@ -154,9 +161,11 @@ fn check_do_while_semicolon_insertion_no_space() {
                 ),
                 Binary::new(
                     RelationalOp::LessThan.into(),
-                    Unary::new(
-                        UnaryOp::IncrementPost,
-                        Identifier::new(interner.get_or_intern_static("i", utf16!("i"))).into(),
+                    Update::new(
+                        UpdateOp::IncrementPost,
+                        UpdateTarget::Identifier(Identifier::new(
+                            interner.get_or_intern_static("i", utf16!("i")),
+                        )),
                     )
                     .into(),
                     Literal::from(10).into(),

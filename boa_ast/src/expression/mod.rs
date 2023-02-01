@@ -15,7 +15,7 @@ use core::ops::ControlFlow;
 use self::{
     access::PropertyAccess,
     literal::{ArrayLiteral, Literal, ObjectLiteral, TemplateLiteral},
-    operator::{Assign, Binary, Conditional, Unary},
+    operator::{Assign, Binary, Conditional, Unary, Update},
 };
 
 use super::{
@@ -138,6 +138,9 @@ pub enum Expression {
     /// See [`Unary`].
     Unary(Unary),
 
+    /// See [`Unary`].
+    Update(Update),
+
     /// See [`Binary`].
     Binary(Binary),
 
@@ -188,6 +191,7 @@ impl Expression {
             Self::TaggedTemplate(tag) => tag.to_interned_string(interner),
             Self::Assign(assign) => assign.to_interned_string(interner),
             Self::Unary(unary) => unary.to_interned_string(interner),
+            Self::Update(update) => update.to_interned_string(interner),
             Self::Binary(bin) => bin.to_interned_string(interner),
             Self::Conditional(cond) => cond.to_interned_string(interner),
             Self::Await(aw) => aw.to_interned_string(interner),
@@ -280,6 +284,7 @@ impl VisitWith for Expression {
             Self::TaggedTemplate(tt) => visitor.visit_tagged_template(tt),
             Self::Assign(a) => visitor.visit_assign(a),
             Self::Unary(u) => visitor.visit_unary(u),
+            Self::Update(u) => visitor.visit_update(u),
             Self::Binary(b) => visitor.visit_binary(b),
             Self::Conditional(c) => visitor.visit_conditional(c),
             Self::Await(a) => visitor.visit_await(a),
@@ -318,6 +323,7 @@ impl VisitWith for Expression {
             Self::TaggedTemplate(tt) => visitor.visit_tagged_template_mut(tt),
             Self::Assign(a) => visitor.visit_assign_mut(a),
             Self::Unary(u) => visitor.visit_unary_mut(u),
+            Self::Update(u) => visitor.visit_update_mut(u),
             Self::Binary(b) => visitor.visit_binary_mut(b),
             Self::Conditional(c) => visitor.visit_conditional_mut(c),
             Self::Await(a) => visitor.visit_await_mut(a),

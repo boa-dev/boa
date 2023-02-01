@@ -17,7 +17,7 @@ use crate::{
         literal::{ArrayLiteral, Literal, ObjectLiteral, TemplateElement, TemplateLiteral},
         operator::{
             assign::{Assign, AssignTarget},
-            Binary, Conditional, Unary,
+            Binary, Conditional, Unary, Update,
         },
         Await, Call, Expression, Identifier, New, Optional, OptionalOperation,
         OptionalOperationKind, Spread, SuperCall, TaggedTemplate, Yield,
@@ -165,6 +165,7 @@ node_ref! {
     TaggedTemplate,
     Assign,
     Unary,
+    Update,
     Binary,
     Conditional,
     Await,
@@ -251,6 +252,7 @@ pub trait Visitor<'ast>: Sized {
     define_visit!(visit_tagged_template, TaggedTemplate);
     define_visit!(visit_assign, Assign);
     define_visit!(visit_unary, Unary);
+    define_visit!(visit_update, Update);
     define_visit!(visit_binary, Binary);
     define_visit!(visit_conditional, Conditional);
     define_visit!(visit_await, Await);
@@ -334,6 +336,7 @@ pub trait Visitor<'ast>: Sized {
             NodeRef::TaggedTemplate(n) => self.visit_tagged_template(n),
             NodeRef::Assign(n) => self.visit_assign(n),
             NodeRef::Unary(n) => self.visit_unary(n),
+            NodeRef::Update(n) => self.visit_update(n),
             NodeRef::Binary(n) => self.visit_binary(n),
             NodeRef::Conditional(n) => self.visit_conditional(n),
             NodeRef::Await(n) => self.visit_await(n),
@@ -422,6 +425,7 @@ pub trait VisitorMut<'ast>: Sized {
     define_visit_mut!(visit_tagged_template_mut, TaggedTemplate);
     define_visit_mut!(visit_assign_mut, Assign);
     define_visit_mut!(visit_unary_mut, Unary);
+    define_visit_mut!(visit_update_mut, Update);
     define_visit_mut!(visit_binary_mut, Binary);
     define_visit_mut!(visit_conditional_mut, Conditional);
     define_visit_mut!(visit_await_mut, Await);
@@ -505,6 +509,7 @@ pub trait VisitorMut<'ast>: Sized {
             NodeRefMut::TaggedTemplate(n) => self.visit_tagged_template_mut(n),
             NodeRefMut::Assign(n) => self.visit_assign_mut(n),
             NodeRefMut::Unary(n) => self.visit_unary_mut(n),
+            NodeRefMut::Update(n) => self.visit_update_mut(n),
             NodeRefMut::Binary(n) => self.visit_binary_mut(n),
             NodeRefMut::Conditional(n) => self.visit_conditional_mut(n),
             NodeRefMut::Await(n) => self.visit_await_mut(n),

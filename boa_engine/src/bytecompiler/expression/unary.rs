@@ -6,71 +6,12 @@ use boa_ast::{
 use crate::{
     bytecompiler::{Access, ByteCompiler},
     vm::Opcode,
-    JsNativeError, JsResult,
+    JsResult,
 };
 
 impl ByteCompiler<'_, '_> {
     pub(crate) fn compile_unary(&mut self, unary: &Unary, use_expr: bool) -> JsResult<()> {
         let opcode = match unary.op() {
-            UnaryOp::IncrementPre => {
-                // TODO: promote to an early error.
-                let access = Access::from_expression(unary.target()).ok_or_else(|| {
-                    JsNativeError::syntax().with_message("Invalid increment operand")
-                })?;
-
-                self.access_set(access, true, |compiler, _| {
-                    compiler.compile_expr(unary.target(), true)?;
-                    compiler.emit(Opcode::Inc, &[]);
-                    Ok(())
-                })?;
-
-                None
-            }
-            UnaryOp::DecrementPre => {
-                // TODO: promote to an early error.
-                let access = Access::from_expression(unary.target()).ok_or_else(|| {
-                    JsNativeError::syntax().with_message("Invalid decrement operand")
-                })?;
-
-                self.access_set(access, true, |compiler, _| {
-                    compiler.compile_expr(unary.target(), true)?;
-                    compiler.emit(Opcode::Dec, &[]);
-                    Ok(())
-                })?;
-                None
-            }
-            UnaryOp::IncrementPost => {
-                // TODO: promote to an early error.
-                let access = Access::from_expression(unary.target()).ok_or_else(|| {
-                    JsNativeError::syntax().with_message("Invalid increment operand")
-                })?;
-
-                self.access_set(access, false, |compiler, level| {
-                    compiler.compile_expr(unary.target(), true)?;
-                    compiler.emit(Opcode::IncPost, &[]);
-                    compiler.emit_opcode(Opcode::RotateRight);
-                    compiler.emit_u8(level + 2);
-                    Ok(())
-                })?;
-
-                None
-            }
-            UnaryOp::DecrementPost => {
-                // TODO: promote to an early error.
-                let access = Access::from_expression(unary.target()).ok_or_else(|| {
-                    JsNativeError::syntax().with_message("Invalid decrement operand")
-                })?;
-
-                self.access_set(access, false, |compiler, level| {
-                    compiler.compile_expr(unary.target(), true)?;
-                    compiler.emit(Opcode::DecPost, &[]);
-                    compiler.emit_opcode(Opcode::RotateRight);
-                    compiler.emit_u8(level + 2);
-                    Ok(())
-                })?;
-
-                None
-            }
             UnaryOp::Delete => {
                 if let Some(access) = Access::from_expression(unary.target()) {
                     self.access_delete(access)?;
