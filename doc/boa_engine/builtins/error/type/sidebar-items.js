@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"fn":[["create_throw_type_error",""]],"struct":[["TypeError","JavaScript `TypeError` implementation."]]};
+window.SIDEBAR_ITEMS = {"struct":[["ThrowTypeError",""],["TypeError","JavaScript `TypeError` implementation."]]};

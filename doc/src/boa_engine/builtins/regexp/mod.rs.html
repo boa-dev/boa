@@ -1668,22 +1668,6 @@
 <a href="#1667" id="1667">1667</a>
 <a href="#1668" id="1668">1668</a>
 <a href="#1669" id="1669">1669</a>
-<a href="#1670" id="1670">1670</a>
-<a href="#1671" id="1671">1671</a>
-<a href="#1672" id="1672">1672</a>
-<a href="#1673" id="1673">1673</a>
-<a href="#1674" id="1674">1674</a>
-<a href="#1675" id="1675">1675</a>
-<a href="#1676" id="1676">1676</a>
-<a href="#1677" id="1677">1677</a>
-<a href="#1678" id="1678">1678</a>
-<a href="#1679" id="1679">1679</a>
-<a href="#1680" id="1680">1680</a>
-<a href="#1681" id="1681">1681</a>
-<a href="#1682" id="1682">1682</a>
-<a href="#1683" id="1683">1683</a>
-<a href="#1684" id="1684">1684</a>
-<a href="#1685" id="1685">1685</a>
 </pre><pre class="rust"><code><span class="doccomment">//! Boa&#39;s implementation of ECMAScript&#39;s global `RegExp` object.
 //!
 //! The `RegExp` object is used for matching text with a pattern.
@@ -1695,32 +1679,27 @@
 //! [spec]: https://tc39.es/ecma262/#sec-regexp-constructor
 //! [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/RegExp
 
-</span><span class="kw">pub mod </span>regexp_string_iterator;
-
-<span class="kw">use </span><span class="self">self</span>::regexp_string_iterator::RegExpStringIterator;
-<span class="kw">use </span><span class="kw">super</span>::JsArgs;
-<span class="kw">use crate</span>::{
-    builtins::{array::Array, string, BuiltIn},
-    context::intrinsics::StandardConstructors,
+</span><span class="kw">use crate</span>::{
+    builtins::{array::Array, string, BuiltInObject},
+    context::intrinsics::{Intrinsics, StandardConstructor, StandardConstructors},
     error::JsNativeError,
     js_string,
-    native_function::NativeFunction,
-    object::{
-        internal_methods::get_prototype_from_constructor, ConstructorBuilder,
-        FunctionObjectBuilder, JsObject, ObjectData,
-    },
+    object::{internal_methods::get_prototype_from_constructor, JsObject, ObjectData, CONSTRUCTOR},
     property::{Attribute, PropertyDescriptorBuilder},
     string::{utf16, CodePoint},
     symbol::JsSymbol,
     value::JsValue,
-    Context, JsResult, JsString,
+    Context, JsArgs, JsResult, JsString,
 };
 <span class="kw">use </span>boa_parser::lexer::regex::RegExpFlags;
 <span class="kw">use </span>boa_profiler::Profiler;
 <span class="kw">use </span>regress::Regex;
 <span class="kw">use </span>std::str::FromStr;
-<span class="kw">use </span>tap::{Conv, Pipe};
 
+<span class="kw">use super</span>::{BuiltInBuilder, BuiltInConstructor, IntrinsicObject};
+
+<span class="kw">mod </span>regexp_string_iterator;
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use </span>regexp_string_iterator::RegExpStringIterator;
 <span class="attr">#[cfg(test)]
 </span><span class="kw">mod </span>tests;
 
@@ -1734,112 +1713,99 @@
     original_flags: JsString,
 }
 
-<span class="kw">impl </span>BuiltIn <span class="kw">for </span>RegExp {
-    <span class="kw">const </span>NAME: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;RegExp&quot;</span>;
-
-    <span class="kw">fn </span>init(context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <span class="prelude-ty">Option</span>&lt;JsValue&gt; {
+<span class="kw">impl </span>IntrinsicObject <span class="kw">for </span>RegExp {
+    <span class="kw">fn </span>init(intrinsics: <span class="kw-2">&amp;</span>Intrinsics) {
         <span class="kw">let </span>_timer = Profiler::global().start_event(<span class="self">Self</span>::NAME, <span class="string">&quot;init&quot;</span>);
 
-        <span class="kw">let </span>get_species =
-            FunctionObjectBuilder::new(context, NativeFunction::from_fn_ptr(<span class="self">Self</span>::get_species))
-                .name(<span class="string">&quot;get [Symbol.species]&quot;</span>)
-                .constructor(<span class="bool-val">false</span>)
-                .build();
+        <span class="kw">let </span>get_species = BuiltInBuilder::new(intrinsics)
+            .callable(<span class="self">Self</span>::get_species)
+            .name(<span class="string">&quot;get [Symbol.species]&quot;</span>)
+            .build();
 
         <span class="kw">let </span>flag_attributes = Attribute::CONFIGURABLE | Attribute::NON_ENUMERABLE;
 
-        <span class="kw">let </span>get_has_indices =
-            FunctionObjectBuilder::new(context, NativeFunction::from_fn_ptr(<span class="self">Self</span>::get_has_indices))
-                .name(<span class="string">&quot;get hasIndices&quot;</span>)
-                .constructor(<span class="bool-val">false</span>)
-                .build();
-        <span class="kw">let </span>get_global =
-            FunctionObjectBuilder::new(context, NativeFunction::from_fn_ptr(<span class="self">Self</span>::get_global))
-                .name(<span class="string">&quot;get global&quot;</span>)
-                .constructor(<span class="bool-val">false</span>)
-                .build();
-        <span class="kw">let </span>get_ignore_case =
-            FunctionObjectBuilder::new(context, NativeFunction::from_fn_ptr(<span class="self">Self</span>::get_ignore_case))
-                .name(<span class="string">&quot;get ignoreCase&quot;</span>)
-                .constructor(<span class="bool-val">false</span>)
-                .build();
-        <span class="kw">let </span>get_multiline =
-            FunctionObjectBuilder::new(context, NativeFunction::from_fn_ptr(<span class="self">Self</span>::get_multiline))
-                .name(<span class="string">&quot;get multiline&quot;</span>)
-                .constructor(<span class="bool-val">false</span>)
-                .build();
-        <span class="kw">let </span>get_dot_all =
-            FunctionObjectBuilder::new(context, NativeFunction::from_fn_ptr(<span class="self">Self</span>::get_dot_all))
-                .name(<span class="string">&quot;get dotAll&quot;</span>)
-                .constructor(<span class="bool-val">false</span>)
-                .build();
-        <span class="kw">let </span>get_unicode =
-            FunctionObjectBuilder::new(context, NativeFunction::from_fn_ptr(<span class="self">Self</span>::get_unicode))
-                .name(<span class="string">&quot;get unicode&quot;</span>)
-                .constructor(<span class="bool-val">false</span>)
-                .build();
-        <span class="kw">let </span>get_sticky =
-            FunctionObjectBuilder::new(context, NativeFunction::from_fn_ptr(<span class="self">Self</span>::get_sticky))
-                .name(<span class="string">&quot;get sticky&quot;</span>)
-                .constructor(<span class="bool-val">false</span>)
-                .build();
-        <span class="kw">let </span>get_flags =
-            FunctionObjectBuilder::new(context, NativeFunction::from_fn_ptr(<span class="self">Self</span>::get_flags))
-                .name(<span class="string">&quot;get flags&quot;</span>)
-                .constructor(<span class="bool-val">false</span>)
-                .build();
-        <span class="kw">let </span>get_source =
-            FunctionObjectBuilder::new(context, NativeFunction::from_fn_ptr(<span class="self">Self</span>::get_source))
-                .name(<span class="string">&quot;get source&quot;</span>)
-                .constructor(<span class="bool-val">false</span>)
-                .build();
-        ConstructorBuilder::with_standard_constructor(
-            context,
-            <span class="self">Self</span>::constructor,
-            context.intrinsics().constructors().regexp().clone(),
-        )
-        .name(<span class="self">Self</span>::NAME)
-        .length(<span class="self">Self</span>::LENGTH)
-        .static_accessor(
-            JsSymbol::species(),
-            <span class="prelude-val">Some</span>(get_species),
-            <span class="prelude-val">None</span>,
-            Attribute::CONFIGURABLE,
-        )
-        .property(<span class="string">&quot;lastIndex&quot;</span>, <span class="number">0</span>, Attribute::all())
-        .method(<span class="self">Self</span>::test, <span class="string">&quot;test&quot;</span>, <span class="number">1</span>)
-        .method(<span class="self">Self</span>::exec, <span class="string">&quot;exec&quot;</span>, <span class="number">1</span>)
-        .method(<span class="self">Self</span>::to_string, <span class="string">&quot;toString&quot;</span>, <span class="number">0</span>)
-        .method(<span class="self">Self</span>::r#match, (JsSymbol::r#match(), <span class="string">&quot;[Symbol.match]&quot;</span>), <span class="number">1</span>)
-        .method(
-            <span class="self">Self</span>::match_all,
-            (JsSymbol::match_all(), <span class="string">&quot;[Symbol.matchAll]&quot;</span>),
-            <span class="number">1</span>,
-        )
-        .method(<span class="self">Self</span>::replace, (JsSymbol::replace(), <span class="string">&quot;[Symbol.replace]&quot;</span>), <span class="number">2</span>)
-        .method(<span class="self">Self</span>::search, (JsSymbol::search(), <span class="string">&quot;[Symbol.search]&quot;</span>), <span class="number">1</span>)
-        .method(<span class="self">Self</span>::split, (JsSymbol::split(), <span class="string">&quot;[Symbol.split]&quot;</span>), <span class="number">2</span>)
-        .accessor(<span class="string">&quot;hasIndices&quot;</span>, <span class="prelude-val">Some</span>(get_has_indices), <span class="prelude-val">None</span>, flag_attributes)
-        .accessor(<span class="string">&quot;global&quot;</span>, <span class="prelude-val">Some</span>(get_global), <span class="prelude-val">None</span>, flag_attributes)
-        .accessor(<span class="string">&quot;ignoreCase&quot;</span>, <span class="prelude-val">Some</span>(get_ignore_case), <span class="prelude-val">None</span>, flag_attributes)
-        .accessor(<span class="string">&quot;multiline&quot;</span>, <span class="prelude-val">Some</span>(get_multiline), <span class="prelude-val">None</span>, flag_attributes)
-        .accessor(<span class="string">&quot;dotAll&quot;</span>, <span class="prelude-val">Some</span>(get_dot_all), <span class="prelude-val">None</span>, flag_attributes)
-        .accessor(<span class="string">&quot;unicode&quot;</span>, <span class="prelude-val">Some</span>(get_unicode), <span class="prelude-val">None</span>, flag_attributes)
-        .accessor(<span class="string">&quot;sticky&quot;</span>, <span class="prelude-val">Some</span>(get_sticky), <span class="prelude-val">None</span>, flag_attributes)
-        .accessor(<span class="string">&quot;flags&quot;</span>, <span class="prelude-val">Some</span>(get_flags), <span class="prelude-val">None</span>, flag_attributes)
-        .accessor(<span class="string">&quot;source&quot;</span>, <span class="prelude-val">Some</span>(get_source), <span class="prelude-val">None</span>, flag_attributes)
-        .build()
-        .conv::&lt;JsValue&gt;()
-        .pipe(<span class="prelude-val">Some</span>)
+        <span class="kw">let </span>get_has_indices = BuiltInBuilder::new(intrinsics)
+            .callable(<span class="self">Self</span>::get_has_indices)
+            .name(<span class="string">&quot;get hasIndices&quot;</span>)
+            .build();
+        <span class="kw">let </span>get_global = BuiltInBuilder::new(intrinsics)
+            .callable(<span class="self">Self</span>::get_global)
+            .name(<span class="string">&quot;get global&quot;</span>)
+            .build();
+        <span class="kw">let </span>get_ignore_case = BuiltInBuilder::new(intrinsics)
+            .callable(<span class="self">Self</span>::get_ignore_case)
+            .name(<span class="string">&quot;get ignoreCase&quot;</span>)
+            .build();
+        <span class="kw">let </span>get_multiline = BuiltInBuilder::new(intrinsics)
+            .callable(<span class="self">Self</span>::get_multiline)
+            .name(<span class="string">&quot;get multiline&quot;</span>)
+            .build();
+        <span class="kw">let </span>get_dot_all = BuiltInBuilder::new(intrinsics)
+            .callable(<span class="self">Self</span>::get_dot_all)
+            .name(<span class="string">&quot;get dotAll&quot;</span>)
+            .build();
+        <span class="kw">let </span>get_unicode = BuiltInBuilder::new(intrinsics)
+            .callable(<span class="self">Self</span>::get_unicode)
+            .name(<span class="string">&quot;get unicode&quot;</span>)
+            .build();
+        <span class="kw">let </span>get_sticky = BuiltInBuilder::new(intrinsics)
+            .callable(<span class="self">Self</span>::get_sticky)
+            .name(<span class="string">&quot;get sticky&quot;</span>)
+            .build();
+        <span class="kw">let </span>get_flags = BuiltInBuilder::new(intrinsics)
+            .callable(<span class="self">Self</span>::get_flags)
+            .name(<span class="string">&quot;get flags&quot;</span>)
+            .build();
+        <span class="kw">let </span>get_source = BuiltInBuilder::new(intrinsics)
+            .callable(<span class="self">Self</span>::get_source)
+            .name(<span class="string">&quot;get source&quot;</span>)
+            .build();
+        BuiltInBuilder::from_standard_constructor::&lt;<span class="self">Self</span>&gt;(intrinsics)
+            .static_accessor(
+                JsSymbol::species(),
+                <span class="prelude-val">Some</span>(get_species),
+                <span class="prelude-val">None</span>,
+                Attribute::CONFIGURABLE,
+            )
+            .property(<span class="string">&quot;lastIndex&quot;</span>, <span class="number">0</span>, Attribute::all())
+            .method(<span class="self">Self</span>::test, <span class="string">&quot;test&quot;</span>, <span class="number">1</span>)
+            .method(<span class="self">Self</span>::exec, <span class="string">&quot;exec&quot;</span>, <span class="number">1</span>)
+            .method(<span class="self">Self</span>::to_string, <span class="string">&quot;toString&quot;</span>, <span class="number">0</span>)
+            .method(<span class="self">Self</span>::r#match, (JsSymbol::r#match(), <span class="string">&quot;[Symbol.match]&quot;</span>), <span class="number">1</span>)
+            .method(
+                <span class="self">Self</span>::match_all,
+                (JsSymbol::match_all(), <span class="string">&quot;[Symbol.matchAll]&quot;</span>),
+                <span class="number">1</span>,
+            )
+            .method(<span class="self">Self</span>::replace, (JsSymbol::replace(), <span class="string">&quot;[Symbol.replace]&quot;</span>), <span class="number">2</span>)
+            .method(<span class="self">Self</span>::search, (JsSymbol::search(), <span class="string">&quot;[Symbol.search]&quot;</span>), <span class="number">1</span>)
+            .method(<span class="self">Self</span>::split, (JsSymbol::split(), <span class="string">&quot;[Symbol.split]&quot;</span>), <span class="number">2</span>)
+            .accessor(<span class="string">&quot;hasIndices&quot;</span>, <span class="prelude-val">Some</span>(get_has_indices), <span class="prelude-val">None</span>, flag_attributes)
+            .accessor(<span class="string">&quot;global&quot;</span>, <span class="prelude-val">Some</span>(get_global), <span class="prelude-val">None</span>, flag_attributes)
+            .accessor(<span class="string">&quot;ignoreCase&quot;</span>, <span class="prelude-val">Some</span>(get_ignore_case), <span class="prelude-val">None</span>, flag_attributes)
+            .accessor(<span class="string">&quot;multiline&quot;</span>, <span class="prelude-val">Some</span>(get_multiline), <span class="prelude-val">None</span>, flag_attributes)
+            .accessor(<span class="string">&quot;dotAll&quot;</span>, <span class="prelude-val">Some</span>(get_dot_all), <span class="prelude-val">None</span>, flag_attributes)
+            .accessor(<span class="string">&quot;unicode&quot;</span>, <span class="prelude-val">Some</span>(get_unicode), <span class="prelude-val">None</span>, flag_attributes)
+            .accessor(<span class="string">&quot;sticky&quot;</span>, <span class="prelude-val">Some</span>(get_sticky), <span class="prelude-val">None</span>, flag_attributes)
+            .accessor(<span class="string">&quot;flags&quot;</span>, <span class="prelude-val">Some</span>(get_flags), <span class="prelude-val">None</span>, flag_attributes)
+            .accessor(<span class="string">&quot;source&quot;</span>, <span class="prelude-val">Some</span>(get_source), <span class="prelude-val">None</span>, flag_attributes)
+            .build();
+    }
+
+    <span class="kw">fn </span>get(intrinsics: <span class="kw-2">&amp;</span>Intrinsics) -&gt; JsObject {
+        <span class="self">Self</span>::STANDARD_CONSTRUCTOR(intrinsics.constructors()).constructor()
     }
 }
 
-<span class="kw">impl </span>RegExp {
-    <span class="doccomment">/// The name of the object.
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const </span>NAME: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;RegExp&quot;</span>;
+<span class="kw">impl </span>BuiltInObject <span class="kw">for </span>RegExp {
+    <span class="kw">const </span>NAME: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;RegExp&quot;</span>;
+}
 
-    <span class="doccomment">/// The amount of arguments this function object takes.
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const </span>LENGTH: usize = <span class="number">2</span>;
+<span class="kw">impl </span>BuiltInConstructor <span class="kw">for </span>RegExp {
+    <span class="kw">const </span>LENGTH: usize = <span class="number">2</span>;
+
+    <span class="kw">const </span>STANDARD_CONSTRUCTOR: <span class="kw">fn</span>(<span class="kw-2">&amp;</span>StandardConstructors) -&gt; <span class="kw-2">&amp;</span>StandardConstructor =
+        StandardConstructors::regexp;
 
     <span class="doccomment">/// `22.2.3.1 RegExp ( pattern, flags )`
     ///
@@ -1847,7 +1813,7 @@
     ///  - [ECMAScript reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-regexp-pattern-flags
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>constructor(
+    </span><span class="kw">fn </span>constructor(
         new_target: <span class="kw-2">&amp;</span>JsValue,
         args: <span class="kw-2">&amp;</span>[JsValue],
         context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
@@ -1866,7 +1832,7 @@
             </span><span class="kw">if let </span><span class="prelude-val">Some</span>(pattern) = pattern_is_regexp {
                 <span class="kw">if </span>flags.is_undefined() {
                     <span class="comment">// i. Let patternConstructor be ? Get(pattern, &quot;constructor&quot;).
-                    </span><span class="kw">let </span>pattern_constructor = pattern.get(<span class="string">&quot;constructor&quot;</span>, context)<span class="question-mark">?</span>;
+                    </span><span class="kw">let </span>pattern_constructor = pattern.get(CONSTRUCTOR, context)<span class="question-mark">?</span>;
                     <span class="comment">// ii. If SameValue(newTarget, patternConstructor) is true, return pattern.
                     </span><span class="kw">if </span>JsValue::same_value(new_target, <span class="kw-2">&amp;</span>pattern_constructor) {
                         <span class="kw">return </span><span class="prelude-val">Ok</span>(pattern.clone().into());
@@ -1906,7 +1872,9 @@
         <span class="comment">// 8.Return ? RegExpInitialize(O, P, F).
         </span><span class="self">Self</span>::initialize(o, <span class="kw-2">&amp;</span>p, <span class="kw-2">&amp;</span>f, context)
     }
+}
 
+<span class="kw">impl </span>RegExp {
     <span class="doccomment">/// `22.2.3.2.1 RegExpAlloc ( newTarget )`
     ///
     /// More information:

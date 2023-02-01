@@ -998,71 +998,6 @@
 <a href="#997" id="997">997</a>
 <a href="#998" id="998">998</a>
 <a href="#999" id="999">999</a>
-<a href="#1000" id="1000">1000</a>
-<a href="#1001" id="1001">1001</a>
-<a href="#1002" id="1002">1002</a>
-<a href="#1003" id="1003">1003</a>
-<a href="#1004" id="1004">1004</a>
-<a href="#1005" id="1005">1005</a>
-<a href="#1006" id="1006">1006</a>
-<a href="#1007" id="1007">1007</a>
-<a href="#1008" id="1008">1008</a>
-<a href="#1009" id="1009">1009</a>
-<a href="#1010" id="1010">1010</a>
-<a href="#1011" id="1011">1011</a>
-<a href="#1012" id="1012">1012</a>
-<a href="#1013" id="1013">1013</a>
-<a href="#1014" id="1014">1014</a>
-<a href="#1015" id="1015">1015</a>
-<a href="#1016" id="1016">1016</a>
-<a href="#1017" id="1017">1017</a>
-<a href="#1018" id="1018">1018</a>
-<a href="#1019" id="1019">1019</a>
-<a href="#1020" id="1020">1020</a>
-<a href="#1021" id="1021">1021</a>
-<a href="#1022" id="1022">1022</a>
-<a href="#1023" id="1023">1023</a>
-<a href="#1024" id="1024">1024</a>
-<a href="#1025" id="1025">1025</a>
-<a href="#1026" id="1026">1026</a>
-<a href="#1027" id="1027">1027</a>
-<a href="#1028" id="1028">1028</a>
-<a href="#1029" id="1029">1029</a>
-<a href="#1030" id="1030">1030</a>
-<a href="#1031" id="1031">1031</a>
-<a href="#1032" id="1032">1032</a>
-<a href="#1033" id="1033">1033</a>
-<a href="#1034" id="1034">1034</a>
-<a href="#1035" id="1035">1035</a>
-<a href="#1036" id="1036">1036</a>
-<a href="#1037" id="1037">1037</a>
-<a href="#1038" id="1038">1038</a>
-<a href="#1039" id="1039">1039</a>
-<a href="#1040" id="1040">1040</a>
-<a href="#1041" id="1041">1041</a>
-<a href="#1042" id="1042">1042</a>
-<a href="#1043" id="1043">1043</a>
-<a href="#1044" id="1044">1044</a>
-<a href="#1045" id="1045">1045</a>
-<a href="#1046" id="1046">1046</a>
-<a href="#1047" id="1047">1047</a>
-<a href="#1048" id="1048">1048</a>
-<a href="#1049" id="1049">1049</a>
-<a href="#1050" id="1050">1050</a>
-<a href="#1051" id="1051">1051</a>
-<a href="#1052" id="1052">1052</a>
-<a href="#1053" id="1053">1053</a>
-<a href="#1054" id="1054">1054</a>
-<a href="#1055" id="1055">1055</a>
-<a href="#1056" id="1056">1056</a>
-<a href="#1057" id="1057">1057</a>
-<a href="#1058" id="1058">1058</a>
-<a href="#1059" id="1059">1059</a>
-<a href="#1060" id="1060">1060</a>
-<a href="#1061" id="1061">1061</a>
-<a href="#1062" id="1062">1062</a>
-<a href="#1063" id="1063">1063</a>
-<a href="#1064" id="1064">1064</a>
 </pre><pre class="rust"><code><span class="doccomment">//! Boa&#39;s implementation of ECMAScript&#39;s global `Function` object and Native Functions.
 //!
 //! Objects wrap `Function`s and expose them via call/construct slots.
@@ -1077,20 +1012,20 @@
 //! [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function
 
 </span><span class="kw">use crate</span>::{
-    builtins::{BuiltIn, JsArgs},
+    builtins::BuiltInObject,
     bytecompiler::FunctionCompiler,
-    context::intrinsics::StandardConstructors,
+    context::intrinsics::{Intrinsics, StandardConstructor, StandardConstructors},
     environments::DeclarativeEnvironmentStack,
     error::JsNativeError,
     js_string,
-    native_function::{NativeFunction, NativeFunctionPointer},
+    native_function::NativeFunction,
     object::{internal_methods::get_prototype_from_constructor, JsObject, Object, ObjectData},
-    object::{ConstructorBuilder, FunctionObjectBuilder, JsFunction, PrivateElement},
+    object::{JsFunction, PrivateElement},
     property::{Attribute, PropertyDescriptor, PropertyKey},
     string::utf16,
     symbol::JsSymbol,
     value::IntegerOrInfinity,
-    Context, JsResult, JsString, JsValue,
+    Context, JsArgs, JsResult, JsString, JsValue,
 };
 <span class="kw">use </span>boa_ast::{
     function::{FormalParameterList, PrivateName},
@@ -1101,11 +1036,10 @@
 <span class="kw">use </span>boa_interner::Sym;
 <span class="kw">use </span>boa_parser::{Parser, Source};
 <span class="kw">use </span>boa_profiler::Profiler;
-<span class="kw">use </span>tap::{Conv, Pipe};
 
 <span class="kw">use </span>std::fmt;
 
-<span class="kw">use </span><span class="kw">super</span>::promise::PromiseCapability;
+<span class="kw">use super</span>::{promise::PromiseCapability, BuiltInBuilder, BuiltInConstructor, IntrinsicObject};
 
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">mod </span>arguments;
 <span class="attr">#[cfg(test)]
@@ -1456,71 +1390,63 @@
     }
 }
 
-<span class="doccomment">/// Creates a new member function of a `Object` or `prototype`.
-///
-/// A function registered using this macro can then be called from Javascript using:
-///
-/// parent.name()
-///
-/// See the javascript &#39;Number.toString()&#39; as an example.
-///
-/// # Arguments
-/// function: The function to register as a built in function.
-/// name: The name of the function (how it will be called but without the ()).
-/// parent: The object to register the function on, if the global object is used then the function is instead called as name()
-///     without requiring the parent, see parseInt() as an example.
-/// length: As described at &lt;https://tc39.es/ecma262/#sec-function-instances-length&gt;, The value of the &quot;length&quot; property is an integer that
-///     indicates the typical number of arguments expected by the function. However, the language permits the function to be invoked with
-///     some other number of arguments.
-///
-/// If no length is provided, the length will be set to 0.
-</span><span class="comment">// TODO: deprecate/remove this.
-</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>make_builtin_fn&lt;N&gt;(
-    function: NativeFunctionPointer,
-    name: N,
-    parent: <span class="kw-2">&amp;</span>JsObject,
-    length: usize,
-    interpreter: <span class="kw-2">&amp;</span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
-) <span class="kw">where
-    </span>N: Into&lt;String&gt;,
-{
-    <span class="kw">let </span>name = name.into();
-    <span class="kw">let </span>_timer = Profiler::global().start_event(<span class="kw-2">&amp;</span><span class="macro">format!</span>(<span class="string">&quot;make_builtin_fn: {name}&quot;</span>), <span class="string">&quot;init&quot;</span>);
-
-    <span class="kw">let </span>function = JsObject::from_proto_and_data(
-        interpreter
-            .intrinsics()
-            .constructors()
-            .function()
-            .prototype(),
-        ObjectData::function(Function::Native {
-            function: NativeFunction::from_fn_ptr(function),
-            constructor: <span class="prelude-val">None</span>,
-        }),
-    );
-    <span class="kw">let </span>attribute = PropertyDescriptor::builder()
-        .writable(<span class="bool-val">false</span>)
-        .enumerable(<span class="bool-val">false</span>)
-        .configurable(<span class="bool-val">true</span>);
-    function.insert_property(<span class="string">&quot;length&quot;</span>, attribute.clone().value(length));
-    function.insert_property(<span class="string">&quot;name&quot;</span>, attribute.value(name.as_str()));
-
-    parent.clone().insert_property(
-        name,
-        PropertyDescriptor::builder()
-            .value(function)
-            .writable(<span class="bool-val">true</span>)
-            .enumerable(<span class="bool-val">false</span>)
-            .configurable(<span class="bool-val">true</span>),
-    );
-}
-
 <span class="doccomment">/// The internal representation of a `Function` object.
 </span><span class="attr">#[derive(Debug, Clone, Copy)]
 </span><span class="kw">pub struct </span>BuiltInFunctionObject;
 
-<span class="kw">impl </span>BuiltInFunctionObject {
+<span class="kw">impl </span>IntrinsicObject <span class="kw">for </span>BuiltInFunctionObject {
+    <span class="kw">fn </span>init(intrinsics: <span class="kw-2">&amp;</span>Intrinsics) {
+        <span class="kw">let </span>_timer = Profiler::global().start_event(<span class="string">&quot;function&quot;</span>, <span class="string">&quot;init&quot;</span>);
+
+        BuiltInBuilder::with_object(intrinsics, intrinsics.constructors().function().prototype())
+            .callable(<span class="self">Self</span>::prototype)
+            .name(<span class="string">&quot;&quot;</span>)
+            .length(<span class="number">0</span>)
+            .build();
+
+        <span class="kw">let </span>has_instance = BuiltInBuilder::new(intrinsics)
+            .callable(<span class="self">Self</span>::has_instance)
+            .name(<span class="string">&quot;[Symbol.iterator]&quot;</span>)
+            .length(<span class="number">1</span>)
+            .build();
+
+        <span class="kw">let </span>throw_type_error = intrinsics.objects().throw_type_error();
+
+        BuiltInBuilder::from_standard_constructor::&lt;<span class="self">Self</span>&gt;(intrinsics)
+            .method(<span class="self">Self</span>::apply, <span class="string">&quot;apply&quot;</span>, <span class="number">2</span>)
+            .method(<span class="self">Self</span>::bind, <span class="string">&quot;bind&quot;</span>, <span class="number">1</span>)
+            .method(<span class="self">Self</span>::call, <span class="string">&quot;call&quot;</span>, <span class="number">1</span>)
+            .method(<span class="self">Self</span>::to_string, <span class="string">&quot;toString&quot;</span>, <span class="number">0</span>)
+            .property(JsSymbol::has_instance(), has_instance, Attribute::default())
+            .accessor(
+                <span class="string">&quot;caller&quot;</span>,
+                <span class="prelude-val">Some</span>(throw_type_error.clone()),
+                <span class="prelude-val">Some</span>(throw_type_error.clone()),
+                Attribute::CONFIGURABLE,
+            )
+            .accessor(
+                <span class="string">&quot;arguments&quot;</span>,
+                <span class="prelude-val">Some</span>(throw_type_error.clone()),
+                <span class="prelude-val">Some</span>(throw_type_error),
+                Attribute::CONFIGURABLE,
+            )
+            .build();
+    }
+
+    <span class="kw">fn </span>get(intrinsics: <span class="kw-2">&amp;</span>Intrinsics) -&gt; JsObject {
+        <span class="self">Self</span>::STANDARD_CONSTRUCTOR(intrinsics.constructors()).constructor()
+    }
+}
+
+<span class="kw">impl </span>BuiltInObject <span class="kw">for </span>BuiltInFunctionObject {
+    <span class="kw">const </span>NAME: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;Function&quot;</span>;
+}
+
+<span class="kw">impl </span>BuiltInConstructor <span class="kw">for </span>BuiltInFunctionObject {
     <span class="kw">const </span>LENGTH: usize = <span class="number">1</span>;
+
+    <span class="kw">const </span>STANDARD_CONSTRUCTOR: <span class="kw">fn</span>(<span class="kw-2">&amp;</span>StandardConstructors) -&gt; <span class="kw-2">&amp;</span>StandardConstructor =
+        StandardConstructors::function;
 
     <span class="doccomment">/// `Function ( p1, p2, … , pn, body )`
     ///
@@ -1540,7 +1466,9 @@
     ) -&gt; JsResult&lt;JsValue&gt; {
         <span class="self">Self</span>::create_dynamic_function(new_target, args, <span class="bool-val">false</span>, <span class="bool-val">false</span>, context).map(Into::into)
     }
+}
 
+<span class="kw">impl </span>BuiltInFunctionObject {
     <span class="doccomment">/// `CreateDynamicFunction ( constructor, newTarget, kind, args )`
     ///
     /// More information:
@@ -1944,64 +1872,6 @@
     <span class="attr">#[allow(clippy::unnecessary_wraps)]
     </span><span class="kw">fn </span>prototype(<span class="kw">_</span>: <span class="kw-2">&amp;</span>JsValue, <span class="kw">_</span>: <span class="kw-2">&amp;</span>[JsValue], <span class="kw">_</span>: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;JsValue&gt; {
         <span class="prelude-val">Ok</span>(JsValue::undefined())
-    }
-}
-
-<span class="kw">impl </span>BuiltIn <span class="kw">for </span>BuiltInFunctionObject {
-    <span class="kw">const </span>NAME: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;Function&quot;</span>;
-
-    <span class="kw">fn </span>init(context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <span class="prelude-ty">Option</span>&lt;JsValue&gt; {
-        <span class="kw">let </span>_timer = Profiler::global().start_event(<span class="string">&quot;function&quot;</span>, <span class="string">&quot;init&quot;</span>);
-
-        <span class="kw">let </span>function_prototype = context.intrinsics().constructors().function().prototype();
-        FunctionObjectBuilder::new(context, NativeFunction::from_fn_ptr(<span class="self">Self</span>::prototype))
-            .name(<span class="string">&quot;&quot;</span>)
-            .length(<span class="number">0</span>)
-            .constructor(<span class="bool-val">false</span>)
-            .build_function_prototype(<span class="kw-2">&amp;</span>function_prototype);
-
-        <span class="kw">let </span>symbol_has_instance = JsSymbol::has_instance();
-
-        <span class="kw">let </span>has_instance =
-            FunctionObjectBuilder::new(context, NativeFunction::from_fn_ptr(<span class="self">Self</span>::has_instance))
-                .name(<span class="string">&quot;[Symbol.iterator]&quot;</span>)
-                .length(<span class="number">1</span>)
-                .constructor(<span class="bool-val">false</span>)
-                .build();
-
-        <span class="kw">let </span>throw_type_error = context.intrinsics().objects().throw_type_error();
-
-        ConstructorBuilder::with_standard_constructor(
-            context,
-            <span class="self">Self</span>::constructor,
-            context.intrinsics().constructors().function().clone(),
-        )
-        .name(<span class="self">Self</span>::NAME)
-        .length(<span class="self">Self</span>::LENGTH)
-        .method(<span class="self">Self</span>::apply, <span class="string">&quot;apply&quot;</span>, <span class="number">2</span>)
-        .method(<span class="self">Self</span>::bind, <span class="string">&quot;bind&quot;</span>, <span class="number">1</span>)
-        .method(<span class="self">Self</span>::call, <span class="string">&quot;call&quot;</span>, <span class="number">1</span>)
-        .method(<span class="self">Self</span>::to_string, <span class="string">&quot;toString&quot;</span>, <span class="number">0</span>)
-        .property(symbol_has_instance, has_instance, Attribute::default())
-        .property_descriptor(
-            <span class="string">&quot;caller&quot;</span>,
-            PropertyDescriptor::builder()
-                .get(throw_type_error.clone())
-                .set(throw_type_error.clone())
-                .enumerable(<span class="bool-val">false</span>)
-                .configurable(<span class="bool-val">true</span>),
-        )
-        .property_descriptor(
-            <span class="string">&quot;arguments&quot;</span>,
-            PropertyDescriptor::builder()
-                .get(throw_type_error.clone())
-                .set(throw_type_error)
-                .enumerable(<span class="bool-val">false</span>)
-                .configurable(<span class="bool-val">true</span>),
-        )
-        .build()
-        .conv::&lt;JsValue&gt;()
-        .pipe(<span class="prelude-val">Some</span>)
     }
 }
 

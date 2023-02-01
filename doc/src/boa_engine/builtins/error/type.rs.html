@@ -119,6 +119,12 @@
 <a href="#118" id="118">118</a>
 <a href="#119" id="119">119</a>
 <a href="#120" id="120">120</a>
+<a href="#121" id="121">121</a>
+<a href="#122" id="122">122</a>
+<a href="#123" id="123">123</a>
+<a href="#124" id="124">124</a>
+<a href="#125" id="125">125</a>
+<a href="#126" id="126">126</a>
 </pre><pre class="rust"><code><span class="doccomment">//! This module implements the global `TypeError` object.
 //!
 //! The `TypeError` object represents an error when an operation could not be performed,
@@ -137,18 +143,17 @@
 //! [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/TypeError
 
 </span><span class="kw">use crate</span>::{
-    builtins::{function::Function, BuiltIn, JsArgs},
-    context::intrinsics::StandardConstructors,
+    builtins::{
+        function::Function, BuiltInBuilder, BuiltInConstructor, BuiltInObject, IntrinsicObject,
+    },
+    context::intrinsics::{Intrinsics, StandardConstructor, StandardConstructors},
     error::JsNativeError,
     native_function::NativeFunction,
-    object::{
-        internal_methods::get_prototype_from_constructor, ConstructorBuilder, JsObject, ObjectData,
-    },
-    property::{Attribute, PropertyDescriptor},
-    Context, JsResult, JsValue,
+    object::{internal_methods::get_prototype_from_constructor, JsObject, ObjectData},
+    property::Attribute,
+    Context, JsArgs, JsResult, JsValue,
 };
 <span class="kw">use </span>boa_profiler::Profiler;
-<span class="kw">use </span>tap::{Conv, Pipe};
 
 <span class="kw">use super</span>::{Error, ErrorKind};
 
@@ -156,39 +161,36 @@
 </span><span class="attr">#[derive(Debug, Clone, Copy)]
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>TypeError;
 
-<span class="kw">impl </span>BuiltIn <span class="kw">for </span>TypeError {
-    <span class="kw">const </span>NAME: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;TypeError&quot;</span>;
-
-    <span class="kw">fn </span>init(context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <span class="prelude-ty">Option</span>&lt;JsValue&gt; {
+<span class="kw">impl </span>IntrinsicObject <span class="kw">for </span>TypeError {
+    <span class="kw">fn </span>init(intrinsics: <span class="kw-2">&amp;</span>Intrinsics) {
         <span class="kw">let </span>_timer = Profiler::global().start_event(<span class="self">Self</span>::NAME, <span class="string">&quot;init&quot;</span>);
 
-        <span class="kw">let </span>error_constructor = context.intrinsics().constructors().error().constructor();
-        <span class="kw">let </span>error_prototype = context.intrinsics().constructors().error().prototype();
-
         <span class="kw">let </span>attribute = Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE;
-        ConstructorBuilder::with_standard_constructor(
-            context,
-            <span class="self">Self</span>::constructor,
-            context.intrinsics().constructors().type_error().clone(),
-        )
-        .name(<span class="self">Self</span>::NAME)
-        .length(<span class="self">Self</span>::LENGTH)
-        .inherit(error_prototype)
-        .custom_prototype(error_constructor)
-        .property(<span class="string">&quot;name&quot;</span>, <span class="self">Self</span>::NAME, attribute)
-        .property(<span class="string">&quot;message&quot;</span>, <span class="string">&quot;&quot;</span>, attribute)
-        .build()
-        .conv::&lt;JsValue&gt;()
-        .pipe(<span class="prelude-val">Some</span>)
+        BuiltInBuilder::from_standard_constructor::&lt;<span class="self">Self</span>&gt;(intrinsics)
+            .prototype(intrinsics.constructors().error().constructor())
+            .inherits(<span class="prelude-val">Some</span>(intrinsics.constructors().error().prototype()))
+            .property(<span class="string">&quot;name&quot;</span>, <span class="self">Self</span>::NAME, attribute)
+            .property(<span class="string">&quot;message&quot;</span>, <span class="string">&quot;&quot;</span>, attribute)
+            .build();
+    }
+
+    <span class="kw">fn </span>get(intrinsics: <span class="kw-2">&amp;</span>Intrinsics) -&gt; JsObject {
+        <span class="self">Self</span>::STANDARD_CONSTRUCTOR(intrinsics.constructors()).constructor()
     }
 }
 
-<span class="kw">impl </span>TypeError {
-    <span class="doccomment">/// The amount of arguments this function object takes.
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const </span>LENGTH: usize = <span class="number">1</span>;
+<span class="kw">impl </span>BuiltInObject <span class="kw">for </span>TypeError {
+    <span class="kw">const </span>NAME: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;TypeError&quot;</span>;
+}
+
+<span class="kw">impl </span>BuiltInConstructor <span class="kw">for </span>TypeError {
+    <span class="kw">const </span>LENGTH: usize = <span class="number">1</span>;
+
+    <span class="kw">const </span>STANDARD_CONSTRUCTOR: <span class="kw">fn</span>(<span class="kw-2">&amp;</span>StandardConstructors) -&gt; <span class="kw-2">&amp;</span>StandardConstructor =
+        StandardConstructors::type_error;
 
     <span class="doccomment">/// Create a new error object.
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>constructor(
+    </span><span class="kw">fn </span>constructor(
         new_target: <span class="kw-2">&amp;</span>JsValue,
         args: <span class="kw-2">&amp;</span>[JsValue],
         context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
@@ -217,27 +219,37 @@
     }
 }
 
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>create_throw_type_error(context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsObject {
-    <span class="kw">fn </span>throw_type_error(<span class="kw">_</span>: <span class="kw-2">&amp;</span>JsValue, <span class="kw">_</span>: <span class="kw-2">&amp;</span>[JsValue], <span class="kw">_</span>: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;JsValue&gt; {
-        <span class="prelude-val">Err</span>(JsNativeError::typ().with_message(<span class="string">&quot;&#39;caller&#39;, &#39;callee&#39;, and &#39;arguments&#39; properties may not be accessed on strict mode functions or the arguments objects for calls to them&quot;</span>).into())
-    }
+<span class="attr">#[derive(Debug, Clone, Copy)]
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>ThrowTypeError;
 
-    <span class="kw">let </span>function = JsObject::from_proto_and_data(
-        context.intrinsics().constructors().function().prototype(),
-        ObjectData::function(Function::Native {
+<span class="kw">impl </span>IntrinsicObject <span class="kw">for </span>ThrowTypeError {
+    <span class="kw">fn </span>init(intrinsics: <span class="kw-2">&amp;</span>Intrinsics) {
+        <span class="kw">fn </span>throw_type_error(<span class="kw">_</span>: <span class="kw-2">&amp;</span>JsValue, <span class="kw">_</span>: <span class="kw-2">&amp;</span>[JsValue], <span class="kw">_</span>: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;JsValue&gt; {
+            <span class="prelude-val">Err</span>(JsNativeError::typ()
+                .with_message(
+                    <span class="string">&quot;&#39;caller&#39;, &#39;callee&#39;, and &#39;arguments&#39; properties may not be accessed on strict mode \
+                    functions or the arguments objects for calls to them&quot;</span>,
+                )
+                .into())
+        }
+
+        <span class="kw">let </span>obj = BuiltInBuilder::with_intrinsic::&lt;<span class="self">Self</span>&gt;(intrinsics)
+            .prototype(intrinsics.constructors().function().prototype())
+            .static_property(<span class="string">&quot;name&quot;</span>, <span class="string">&quot;ThrowTypeError&quot;</span>, Attribute::empty())
+            .static_property(<span class="string">&quot;length&quot;</span>, <span class="number">0</span>, Attribute::empty())
+            .build();
+
+        <span class="kw">let </span><span class="kw-2">mut </span>obj = obj.borrow_mut();
+
+        obj.data = ObjectData::function(Function::Native {
             function: NativeFunction::from_fn_ptr(throw_type_error),
             constructor: <span class="prelude-val">None</span>,
-        }),
-    );
+        });
+    }
 
-    <span class="kw">let </span>property = PropertyDescriptor::builder()
-        .writable(<span class="bool-val">false</span>)
-        .enumerable(<span class="bool-val">false</span>)
-        .configurable(<span class="bool-val">false</span>);
-    function.insert_property(<span class="string">&quot;name&quot;</span>, property.clone().value(<span class="string">&quot;ThrowTypeError&quot;</span>));
-    function.insert_property(<span class="string">&quot;length&quot;</span>, property.value(<span class="number">0</span>));
-
-    function
+    <span class="kw">fn </span>get(intrinsics: <span class="kw-2">&amp;</span>Intrinsics) -&gt; JsObject {
+        intrinsics.objects().throw_type_error().into()
+    }
 }
 </code></pre></div>
 </section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-static-root-path="../../../../static.files/" data-current-crate="boa_engine" data-themes="" data-resource-suffix="" data-rustdoc-version="1.67.0 (fc594f156 2023-01-24)" data-search-js="search-444266647c4dba98.js" data-settings-js="settings-bebeae96e00e4617.js" data-settings-css="settings-af96d9e2fc13e081.css" ></div></body></html>

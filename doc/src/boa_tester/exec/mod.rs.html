@@ -427,6 +427,8 @@
 <a href="#426" id="426">426</a>
 <a href="#427" id="427">427</a>
 <a href="#428" id="428">428</a>
+<a href="#429" id="429">429</a>
+<a href="#430" id="430">430</a>
 </pre><pre class="rust"><code><span class="doccomment">//! Execution module for the test runner.
 
 </span><span class="kw">mod </span>js262;
@@ -436,9 +438,9 @@
 };
 <span class="kw">use </span><span class="kw">crate</span>::read::ErrorType;
 <span class="kw">use </span>boa_engine::{
-    builtins::JsArgs, context::ContextBuilder, job::SimpleJobQueue,
-    native_function::NativeFunction, object::FunctionObjectBuilder, property::Attribute, Context,
-    JsNativeErrorKind, JsValue, Source,
+    context::ContextBuilder, job::SimpleJobQueue, native_function::NativeFunction,
+    object::FunctionObjectBuilder, property::Attribute, Context, JsArgs, JsNativeErrorKind,
+    JsValue, Source,
 };
 <span class="kw">use </span>colored::Colorize;
 <span class="kw">use </span>rayon::prelude::<span class="kw-2">*</span>;
@@ -603,9 +605,12 @@
 
         <span class="kw">let </span>result = std::panic::catch_unwind(|| <span class="kw">match </span><span class="self">self</span>.expected_outcome {
             Outcome::Positive =&gt; {
-                <span class="kw">let </span>queue = SimpleJobQueue::new();
-                <span class="kw">let </span>context = <span class="kw-2">&amp;mut </span>ContextBuilder::new().job_queue(<span class="kw-2">&amp;</span>queue).build();
                 <span class="kw">let </span>async_result = AsyncResult::default();
+                <span class="kw">let </span>queue = SimpleJobQueue::new();
+                <span class="kw">let </span>context = <span class="kw-2">&amp;mut </span>ContextBuilder::new()
+                    .job_queue(<span class="kw-2">&amp;</span>queue)
+                    .build()
+                    .expect(<span class="string">&quot;cannot fail with default global&quot;</span>);
 
                 <span class="kw">if let </span><span class="prelude-val">Err</span>(e) = <span class="self">self</span>.set_up_env(harness, context, async_result.clone()) {
                     <span class="kw">return </span>(<span class="bool-val">false</span>, e);
@@ -637,7 +642,7 @@
                     <span class="self">self</span>.path.display()
                 );
 
-                <span class="kw">let </span><span class="kw-2">mut </span>context = Context::default();
+                <span class="kw">let </span>context = <span class="kw-2">&amp;mut </span>Context::default();
                 context.strict(strict);
                 <span class="kw">match </span>context.parse(source) {
                     <span class="prelude-val">Ok</span>(statement_list) =&gt; <span class="kw">match </span>context.compile(<span class="kw-2">&amp;</span>statement_list) {
@@ -765,10 +770,10 @@
         async_result: AsyncResult,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;(), String&gt; {
         <span class="comment">// Register the print() function.
-        </span><span class="self">Self</span>::register_print_fn(context, async_result);
+        </span>register_print_fn(context, async_result);
 
         <span class="comment">// add the $262 object.
-        </span><span class="kw">let </span>_js262 = js262::init(context);
+        </span><span class="kw">let </span>_js262 = js262::register_js262(context);
 
         <span class="kw">if </span><span class="self">self</span>.flags.contains(TestFlags::RAW) {
             <span class="kw">return </span><span class="prelude-val">Ok</span>(());
@@ -810,38 +815,37 @@
 
         <span class="prelude-val">Ok</span>(())
     }
-
-    <span class="doccomment">/// Registers the print function in the context.
-    </span><span class="kw">fn </span>register_print_fn(context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;, async_result: AsyncResult) {
-        <span class="comment">// We use `FunctionBuilder` to define a closure with additional captures.
-        </span><span class="kw">let </span>js_function = FunctionObjectBuilder::new(
-            context,
-            <span class="comment">// SAFETY: `AsyncResult` has only non-traceable captures, making this safe.
-            </span><span class="kw">unsafe </span>{
-                NativeFunction::from_closure(<span class="kw">move </span>|<span class="kw">_</span>, args, context| {
-                    <span class="kw">let </span>message = args
-                        .get_or_undefined(<span class="number">0</span>)
-                        .to_string(context)<span class="question-mark">?
-                        </span>.to_std_string_escaped();
-                    <span class="kw">if </span>message != <span class="string">&quot;Test262:AsyncTestComplete&quot; </span>{
-                        <span class="kw-2">*</span>async_result.inner.borrow_mut() = <span class="prelude-val">Err</span>(message);
-                    }
-                    <span class="prelude-val">Ok</span>(JsValue::undefined())
-                })
-            },
-        )
-        .name(<span class="string">&quot;print&quot;</span>)
-        .length(<span class="number">1</span>)
-        .build();
-
-        context.register_global_property(
-            <span class="string">&quot;print&quot;</span>,
-            js_function,
-            Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
-        );
-    }
 }
 
+<span class="doccomment">/// Registers the print function in the context.
+</span><span class="kw">fn </span>register_print_fn(context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;, async_result: AsyncResult) {
+    <span class="comment">// We use `FunctionBuilder` to define a closure with additional captures.
+    </span><span class="kw">let </span>js_function = FunctionObjectBuilder::new(
+        context,
+        <span class="comment">// SAFETY: `AsyncResult` has only non-traceable captures, making this safe.
+        </span><span class="kw">unsafe </span>{
+            NativeFunction::from_closure(<span class="kw">move </span>|<span class="kw">_</span>, args, context| {
+                <span class="kw">let </span>message = args
+                    .get_or_undefined(<span class="number">0</span>)
+                    .to_string(context)<span class="question-mark">?
+                    </span>.to_std_string_escaped();
+                <span class="kw">if </span>message != <span class="string">&quot;Test262:AsyncTestComplete&quot; </span>{
+                    <span class="kw-2">*</span>async_result.inner.borrow_mut() = <span class="prelude-val">Err</span>(message);
+                }
+                <span class="prelude-val">Ok</span>(JsValue::undefined())
+            })
+        },
+    )
+    .name(<span class="string">&quot;print&quot;</span>)
+    .length(<span class="number">1</span>)
+    .build();
+
+    context.register_global_property(
+        <span class="string">&quot;print&quot;</span>,
+        js_function,
+        Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
+    );
+}
 <span class="doccomment">/// Object which includes the result of the async operation.
 </span><span class="attr">#[derive(Debug, Clone)]
 </span><span class="kw">struct </span>AsyncResult {

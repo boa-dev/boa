@@ -195,6 +195,11 @@
 <a href="#194" id="194">194</a>
 <a href="#195" id="195">195</a>
 <a href="#196" id="196">196</a>
+<a href="#197" id="197">197</a>
+<a href="#198" id="198">198</a>
+<a href="#199" id="199">199</a>
+<a href="#200" id="200">200</a>
+<a href="#201" id="201">201</a>
 </pre><pre class="rust"><code><span class="doccomment">//! Boa&#39;s implementation of ECMAScript&#39;s global `Proxy` object.
 //!
 //! The `Proxy` object enables you to create a proxy for another object,
@@ -210,15 +215,17 @@
 </span><span class="kw">use </span>std::cell::Cell;
 
 <span class="kw">use crate</span>::{
-    builtins::{BuiltIn, JsArgs},
+    builtins::BuiltInObject,
+    context::intrinsics::{Intrinsics, StandardConstructor, StandardConstructors},
     error::JsNativeError,
     native_function::NativeFunction,
-    object::{ConstructorBuilder, FunctionObjectBuilder, JsFunction, JsObject, ObjectData},
-    Context, JsResult, JsValue,
+    object::{FunctionObjectBuilder, JsFunction, JsObject, ObjectData},
+    Context, JsArgs, JsResult, JsValue,
 };
 <span class="kw">use </span>boa_gc::{Finalize, Trace};
 <span class="kw">use </span>boa_profiler::Profiler;
-<span class="kw">use </span>tap::{Conv, Pipe};
+
+<span class="kw">use super</span>::{BuiltInBuilder, BuiltInConstructor, IntrinsicObject};
 <span class="doccomment">/// Javascript `Proxy` object.
 </span><span class="attr">#[derive(Debug, Clone, Trace, Finalize)]
 </span><span class="kw">pub struct </span>Proxy {
@@ -226,30 +233,55 @@
     </span>data: <span class="prelude-ty">Option</span>&lt;(JsObject, JsObject)&gt;,
 }
 
-<span class="kw">impl </span>BuiltIn <span class="kw">for </span>Proxy {
-    <span class="kw">const </span>NAME: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;Proxy&quot;</span>;
-
-    <span class="kw">fn </span>init(context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <span class="prelude-ty">Option</span>&lt;JsValue&gt; {
+<span class="kw">impl </span>IntrinsicObject <span class="kw">for </span>Proxy {
+    <span class="kw">fn </span>init(intrinsics: <span class="kw-2">&amp;</span>Intrinsics) {
         <span class="kw">let </span>_timer = Profiler::global().start_event(<span class="self">Self</span>::NAME, <span class="string">&quot;init&quot;</span>);
 
-        ConstructorBuilder::with_standard_constructor(
-            context,
-            <span class="self">Self</span>::constructor,
-            context.intrinsics().constructors().proxy().clone(),
-        )
-        .name(<span class="self">Self</span>::NAME)
-        .length(<span class="self">Self</span>::LENGTH)
-        .has_prototype_property(<span class="bool-val">false</span>)
-        .static_method(<span class="self">Self</span>::revocable, <span class="string">&quot;revocable&quot;</span>, <span class="number">2</span>)
-        .build()
-        .conv::&lt;JsValue&gt;()
-        .pipe(<span class="prelude-val">Some</span>)
+        BuiltInBuilder::from_standard_constructor::&lt;<span class="self">Self</span>&gt;(intrinsics)
+            .no_proto()
+            .static_method(<span class="self">Self</span>::revocable, <span class="string">&quot;revocable&quot;</span>, <span class="number">2</span>)
+            .build();
+    }
+
+    <span class="kw">fn </span>get(intrinsics: <span class="kw-2">&amp;</span>Intrinsics) -&gt; JsObject {
+        <span class="self">Self</span>::STANDARD_CONSTRUCTOR(intrinsics.constructors()).constructor()
+    }
+}
+
+<span class="kw">impl </span>BuiltInObject <span class="kw">for </span>Proxy {
+    <span class="kw">const </span>NAME: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;Proxy&quot;</span>;
+}
+
+<span class="kw">impl </span>BuiltInConstructor <span class="kw">for </span>Proxy {
+    <span class="kw">const </span>LENGTH: usize = <span class="number">2</span>;
+
+    <span class="kw">const </span>STANDARD_CONSTRUCTOR: <span class="kw">fn</span>(<span class="kw-2">&amp;</span>StandardConstructors) -&gt; <span class="kw-2">&amp;</span>StandardConstructor =
+        StandardConstructors::proxy;
+
+    <span class="doccomment">/// `28.2.1.1 Proxy ( target, handler )`
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-proxy-target-handler
+    </span><span class="kw">fn </span>constructor(
+        new_target: <span class="kw-2">&amp;</span>JsValue,
+        args: <span class="kw-2">&amp;</span>[JsValue],
+        context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+    ) -&gt; JsResult&lt;JsValue&gt; {
+        <span class="comment">// 1. If NewTarget is undefined, throw a TypeError exception.
+        </span><span class="kw">if </span>new_target.is_undefined() {
+            <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::typ()
+                .with_message(<span class="string">&quot;Proxy constructor called on undefined new target&quot;</span>)
+                .into());
+        }
+
+        <span class="comment">// 2. Return ? ProxyCreate(target, handler).
+        </span><span class="self">Self</span>::create(args.get_or_undefined(<span class="number">0</span>), args.get_or_undefined(<span class="number">1</span>), context).map(JsValue::from)
     }
 }
 
 <span class="kw">impl </span>Proxy {
-    <span class="kw">const </span>LENGTH: usize = <span class="number">2</span>;
-
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>new(target: JsObject, handler: JsObject) -&gt; <span class="self">Self </span>{
         <span class="self">Self </span>{
             data: <span class="prelude-val">Some</span>((target, handler)),
@@ -265,28 +297,6 @@
                 .with_message(<span class="string">&quot;Proxy object has empty handler and target&quot;</span>)
                 .into()
         })
-    }
-
-    <span class="doccomment">/// `28.2.1.1 Proxy ( target, handler )`
-    ///
-    /// More information:
-    ///  - [ECMAScript reference][spec]
-    ///
-    /// [spec]: https://tc39.es/ecma262/#sec-proxy-target-handler
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>constructor(
-        new_target: <span class="kw-2">&amp;</span>JsValue,
-        args: <span class="kw-2">&amp;</span>[JsValue],
-        context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
-    ) -&gt; JsResult&lt;JsValue&gt; {
-        <span class="comment">// 1. If NewTarget is undefined, throw a TypeError exception.
-        </span><span class="kw">if </span>new_target.is_undefined() {
-            <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::typ()
-                .with_message(<span class="string">&quot;Proxy constructor called on undefined new target&quot;</span>)
-                .into());
-        }
-
-        <span class="comment">// 2. Return ? ProxyCreate(target, handler).
-        </span><span class="self">Self</span>::create(args.get_or_undefined(<span class="number">0</span>), args.get_or_undefined(<span class="number">1</span>), context).map(JsValue::from)
     }
 
     <span class="comment">// `10.5.14 ProxyCreate ( target, handler )`

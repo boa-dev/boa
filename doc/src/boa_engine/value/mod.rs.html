@@ -1129,10 +1129,6 @@
 <a href="#1128" id="1128">1128</a>
 <a href="#1129" id="1129">1129</a>
 <a href="#1130" id="1130">1130</a>
-<a href="#1131" id="1131">1131</a>
-<a href="#1132" id="1132">1132</a>
-<a href="#1133" id="1133">1133</a>
-<a href="#1134" id="1134">1134</a>
 </pre><pre class="rust"><code><span class="doccomment">//! Boa&#39;s ECMAScript Value implementation.
 //!
 //! Javascript values, utility methods and conversion between Javascript values and Rust values.
@@ -1678,11 +1674,7 @@
                 ))
             }
             <span class="self">Self</span>::BigInt(<span class="kw-2">ref </span>bigint) =&gt; {
-                <span class="kw">let </span>prototype = context
-                    .intrinsics()
-                    .constructors()
-                    .bigint_object()
-                    .prototype();
+                <span class="kw">let </span>prototype = context.intrinsics().constructors().bigint().prototype();
                 <span class="prelude-val">Ok</span>(JsObject::from_proto_and_data(
                     prototype,
                     ObjectData::big_int(bigint.clone()),

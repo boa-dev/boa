@@ -2374,62 +2374,6 @@
 <a href="#2373" id="2373">2373</a>
 <a href="#2374" id="2374">2374</a>
 <a href="#2375" id="2375">2375</a>
-<a href="#2376" id="2376">2376</a>
-<a href="#2377" id="2377">2377</a>
-<a href="#2378" id="2378">2378</a>
-<a href="#2379" id="2379">2379</a>
-<a href="#2380" id="2380">2380</a>
-<a href="#2381" id="2381">2381</a>
-<a href="#2382" id="2382">2382</a>
-<a href="#2383" id="2383">2383</a>
-<a href="#2384" id="2384">2384</a>
-<a href="#2385" id="2385">2385</a>
-<a href="#2386" id="2386">2386</a>
-<a href="#2387" id="2387">2387</a>
-<a href="#2388" id="2388">2388</a>
-<a href="#2389" id="2389">2389</a>
-<a href="#2390" id="2390">2390</a>
-<a href="#2391" id="2391">2391</a>
-<a href="#2392" id="2392">2392</a>
-<a href="#2393" id="2393">2393</a>
-<a href="#2394" id="2394">2394</a>
-<a href="#2395" id="2395">2395</a>
-<a href="#2396" id="2396">2396</a>
-<a href="#2397" id="2397">2397</a>
-<a href="#2398" id="2398">2398</a>
-<a href="#2399" id="2399">2399</a>
-<a href="#2400" id="2400">2400</a>
-<a href="#2401" id="2401">2401</a>
-<a href="#2402" id="2402">2402</a>
-<a href="#2403" id="2403">2403</a>
-<a href="#2404" id="2404">2404</a>
-<a href="#2405" id="2405">2405</a>
-<a href="#2406" id="2406">2406</a>
-<a href="#2407" id="2407">2407</a>
-<a href="#2408" id="2408">2408</a>
-<a href="#2409" id="2409">2409</a>
-<a href="#2410" id="2410">2410</a>
-<a href="#2411" id="2411">2411</a>
-<a href="#2412" id="2412">2412</a>
-<a href="#2413" id="2413">2413</a>
-<a href="#2414" id="2414">2414</a>
-<a href="#2415" id="2415">2415</a>
-<a href="#2416" id="2416">2416</a>
-<a href="#2417" id="2417">2417</a>
-<a href="#2418" id="2418">2418</a>
-<a href="#2419" id="2419">2419</a>
-<a href="#2420" id="2420">2420</a>
-<a href="#2421" id="2421">2421</a>
-<a href="#2422" id="2422">2422</a>
-<a href="#2423" id="2423">2423</a>
-<a href="#2424" id="2424">2424</a>
-<a href="#2425" id="2425">2425</a>
-<a href="#2426" id="2426">2426</a>
-<a href="#2427" id="2427">2427</a>
-<a href="#2428" id="2428">2428</a>
-<a href="#2429" id="2429">2429</a>
-<a href="#2430" id="2430">2430</a>
-<a href="#2431" id="2431">2431</a>
 </pre><pre class="rust"><code><span class="doccomment">//! Boa&#39;s representation of a JavaScript object and builtin object wrappers
 //!
 //! For the builtin object wrappers, please see [`object::builtins`][builtins] for implementors.
@@ -2461,7 +2405,7 @@
 };
 <span class="kw">use crate</span>::{
     builtins::{
-        array::array_iterator::ArrayIterator,
+        array::ArrayIterator,
         array_buffer::ArrayBuffer,
         async_generator::AsyncGenerator,
         error::ErrorKind,
@@ -2469,20 +2413,19 @@
         function::{arguments::ParameterMap, BoundFunction, ConstructorKind, Function},
         generator::Generator,
         iterable::AsyncFromSyncIterator,
-        map::map_iterator::MapIterator,
         map::ordered_map::OrderedMap,
+        map::MapIterator,
         object::for_in_iterator::ForInIterator,
         proxy::Proxy,
-        regexp::regexp_string_iterator::RegExpStringIterator,
+        regexp::RegExpStringIterator,
         set::ordered_set::OrderedSet,
-        set::set_iterator::SetIterator,
-        string::string_iterator::StringIterator,
+        set::SetIterator,
+        string::StringIterator,
         typed_array::integer_indexed_object::IntegerIndexed,
         DataView, Date, Promise, RegExp,
     },
-    context::intrinsics::StandardConstructor,
     js_string,
-    native_function::{NativeFunction, NativeFunctionPointer},
+    native_function::NativeFunction,
     property::{Attribute, PropertyDescriptor, PropertyKey},
     Context, JsBigInt, JsString, JsSymbol, JsValue,
 };
@@ -2513,6 +2456,9 @@
     Into&lt;JsValue&gt; + Into&lt;JsObject&gt; + Deref&lt;Target = JsObject&gt;
 {
 }
+
+<span class="doccomment">/// Static `constructor`, usually set on prototypes as a key to point to their respective constructor object.
+</span><span class="kw">pub static </span>CONSTRUCTOR: <span class="kw-2">&amp;</span>str = <span class="string">&quot;constructor&quot;</span>;
 
 <span class="doccomment">/// Static `prototype`, usually set on constructors as a key to point to their respective prototype object.
 </span><span class="kw">pub static </span>PROTOTYPE: <span class="kw-2">&amp;</span>str = <span class="string">&quot;prototype&quot;</span>;
@@ -3059,9 +3005,9 @@
 
     <span class="doccomment">/// Create the `NativeObject` object data
     </span><span class="attr">#[must_use]
-    </span><span class="kw">pub fn </span>native_object(native_object: Box&lt;<span class="kw">dyn </span>NativeObject&gt;) -&gt; <span class="self">Self </span>{
+    </span><span class="kw">pub fn </span>native_object&lt;T: NativeObject&gt;(native_object: T) -&gt; <span class="self">Self </span>{
         <span class="self">Self </span>{
-            kind: ObjectKind::NativeObject(native_object),
+            kind: ObjectKind::NativeObject(Box::new(native_object)),
             internal_methods: <span class="kw-2">&amp;</span>ORDINARY_INTERNAL_METHODS,
         }
     }
@@ -4244,8 +4190,8 @@
 /// and the `N` is the function name.
 </span><span class="attr">#[derive(Debug, Clone)]
 </span><span class="kw">pub struct </span>FunctionBinding {
-    binding: PropertyKey,
-    name: JsString,
+    <span class="kw">pub</span>(<span class="kw">crate</span>) binding: PropertyKey,
+    <span class="kw">pub</span>(<span class="kw">crate</span>) name: JsString,
 }
 
 <span class="kw">impl </span>From&lt;<span class="kw-2">&amp;</span>str&gt; <span class="kw">for </span>FunctionBinding {
@@ -4384,26 +4330,6 @@
 
         JsFunction::from_object_unchecked(function)
     }
-
-    <span class="doccomment">/// Initializes the `Function.prototype` function object.
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>build_function_prototype(<span class="self">self</span>, object: <span class="kw-2">&amp;</span>JsObject) {
-        <span class="kw">let </span><span class="kw-2">mut </span>object = object.borrow_mut();
-        object.data = ObjectData::function(<span class="self">self</span>.function);
-        object.set_prototype(
-            <span class="self">self</span>.context
-                .intrinsics()
-                .constructors()
-                .object()
-                .prototype(),
-        );
-
-        <span class="kw">let </span>property = PropertyDescriptor::builder()
-            .writable(<span class="bool-val">false</span>)
-            .enumerable(<span class="bool-val">false</span>)
-            .configurable(<span class="bool-val">true</span>);
-        object.insert(<span class="string">&quot;name&quot;</span>, property.clone().value(<span class="self">self</span>.name.clone()));
-        object.insert(<span class="string">&quot;length&quot;</span>, property.value(<span class="self">self</span>.length));
-    }
 }
 
 <span class="doccomment">/// Builder for creating objects with properties.
@@ -4442,23 +4368,26 @@
         <span class="self">Self </span>{ context, object }
     }
 
+    <span class="doccomment">/// Create a new `ObjectBuilder` with custom [`NativeObject`] data.
+    </span><span class="kw">pub fn </span>with_native&lt;T: NativeObject&gt;(data: T, context: <span class="kw-2">&amp;</span><span class="lifetime">&#39;ctx </span><span class="kw-2">mut </span>Context&lt;<span class="lifetime">&#39;host</span>&gt;) -&gt; <span class="self">Self </span>{
+        <span class="kw">let </span>object = JsObject::from_proto_and_data(
+            context.intrinsics().constructors().object().prototype(),
+            ObjectData::native_object(data),
+        );
+        <span class="self">Self </span>{ context, object }
+    }
+
     <span class="doccomment">/// Add a function to the object.
-    </span><span class="kw">pub fn </span>function&lt;B&gt;(
-        <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-        function: NativeFunctionPointer,
-        binding: B,
-        length: usize,
-    ) -&gt; <span class="kw-2">&amp;mut </span><span class="self">Self
+    </span><span class="kw">pub fn </span>function&lt;B&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, function: NativeFunction, binding: B, length: usize) -&gt; <span class="kw-2">&amp;mut </span><span class="self">Self
     </span><span class="kw">where
         </span>B: Into&lt;FunctionBinding&gt;,
     {
         <span class="kw">let </span>binding = binding.into();
-        <span class="kw">let </span>function =
-            FunctionObjectBuilder::new(<span class="self">self</span>.context, NativeFunction::from_fn_ptr(function))
-                .name(binding.name)
-                .length(length)
-                .constructor(<span class="bool-val">false</span>)
-                .build();
+        <span class="kw">let </span>function = FunctionObjectBuilder::new(<span class="self">self</span>.context, function)
+            .name(binding.name)
+            .length(length)
+            .constructor(<span class="bool-val">false</span>)
+            .build();
 
         <span class="self">self</span>.object.borrow_mut().insert(
             binding.binding,
@@ -4494,9 +4423,10 @@
 }
 
 <span class="doccomment">/// Builder for creating constructors objects, like `Array`.
+</span><span class="attr">#[derive(Debug)]
 </span><span class="kw">pub struct </span>ConstructorBuilder&lt;<span class="lifetime">&#39;ctx</span>, <span class="lifetime">&#39;host</span>&gt; {
     context: <span class="kw-2">&amp;</span><span class="lifetime">&#39;ctx </span><span class="kw-2">mut </span>Context&lt;<span class="lifetime">&#39;host</span>&gt;,
-    function: NativeFunctionPointer,
+    function: NativeFunction,
     object: JsObject,
     has_prototype_property: bool,
     prototype: JsObject,
@@ -4508,27 +4438,12 @@
     custom_prototype: <span class="prelude-ty">Option</span>&lt;JsPrototype&gt;,
 }
 
-<span class="kw">impl </span>Debug <span class="kw">for </span>ConstructorBuilder&lt;<span class="lifetime">&#39;_</span>, <span class="lifetime">&#39;_</span>&gt; {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
-        f.debug_struct(<span class="string">&quot;ConstructorBuilder&quot;</span>)
-            .field(<span class="string">&quot;name&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.name)
-            .field(<span class="string">&quot;length&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.length)
-            .field(<span class="string">&quot;constructor&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.object)
-            .field(<span class="string">&quot;constructor_has_prototype&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.has_prototype_property)
-            .field(<span class="string">&quot;prototype&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.prototype)
-            .field(<span class="string">&quot;inherit&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.inherit)
-            .field(<span class="string">&quot;callable&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.callable)
-            .field(<span class="string">&quot;constructor&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.constructor)
-            .finish()
-    }
-}
-
 <span class="kw">impl</span>&lt;<span class="lifetime">&#39;ctx</span>, <span class="lifetime">&#39;host</span>&gt; ConstructorBuilder&lt;<span class="lifetime">&#39;ctx</span>, <span class="lifetime">&#39;host</span>&gt; {
     <span class="doccomment">/// Create a new `ConstructorBuilder`.
     </span><span class="attr">#[inline]
     </span><span class="kw">pub fn </span>new(
         context: <span class="kw-2">&amp;</span><span class="lifetime">&#39;ctx </span><span class="kw-2">mut </span>Context&lt;<span class="lifetime">&#39;host</span>&gt;,
-        function: NativeFunctionPointer,
+        function: NativeFunction,
     ) -&gt; ConstructorBuilder&lt;<span class="lifetime">&#39;ctx</span>, <span class="lifetime">&#39;host</span>&gt; {
         <span class="self">Self </span>{
             context,
@@ -4545,43 +4460,17 @@
         }
     }
 
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>with_standard_constructor(
-        context: <span class="kw-2">&amp;</span><span class="lifetime">&#39;ctx </span><span class="kw-2">mut </span>Context&lt;<span class="lifetime">&#39;host</span>&gt;,
-        function: NativeFunctionPointer,
-        standard_constructor: StandardConstructor,
-    ) -&gt; ConstructorBuilder&lt;<span class="lifetime">&#39;ctx</span>, <span class="lifetime">&#39;host</span>&gt; {
-        <span class="self">Self </span>{
-            context,
-            function,
-            object: standard_constructor.constructor,
-            has_prototype_property: <span class="bool-val">true</span>,
-            prototype: standard_constructor.prototype,
-            length: <span class="number">0</span>,
-            name: <span class="macro">js_string!</span>(),
-            callable: <span class="bool-val">true</span>,
-            constructor: <span class="prelude-val">Some</span>(ConstructorKind::Base),
-            inherit: <span class="prelude-val">None</span>,
-            custom_prototype: <span class="prelude-val">None</span>,
-        }
-    }
-
     <span class="doccomment">/// Add new method to the constructors prototype.
-    </span><span class="kw">pub fn </span>method&lt;B&gt;(
-        <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-        function: NativeFunctionPointer,
-        binding: B,
-        length: usize,
-    ) -&gt; <span class="kw-2">&amp;mut </span><span class="self">Self
+    </span><span class="kw">pub fn </span>method&lt;B&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, function: NativeFunction, binding: B, length: usize) -&gt; <span class="kw-2">&amp;mut </span><span class="self">Self
     </span><span class="kw">where
         </span>B: Into&lt;FunctionBinding&gt;,
     {
         <span class="kw">let </span>binding = binding.into();
-        <span class="kw">let </span>function =
-            FunctionObjectBuilder::new(<span class="self">self</span>.context, NativeFunction::from_fn_ptr(function))
-                .name(binding.name)
-                .length(length)
-                .constructor(<span class="bool-val">false</span>)
-                .build();
+        <span class="kw">let </span>function = FunctionObjectBuilder::new(<span class="self">self</span>.context, function)
+            .name(binding.name)
+            .length(length)
+            .constructor(<span class="bool-val">false</span>)
+            .build();
 
         <span class="self">self</span>.prototype.borrow_mut().insert(
             binding.binding,
@@ -4597,7 +4486,7 @@
     <span class="doccomment">/// Add new static method to the constructors object itself.
     </span><span class="kw">pub fn </span>static_method&lt;B&gt;(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-        function: NativeFunctionPointer,
+        function: NativeFunction,
         binding: B,
         length: usize,
     ) -&gt; <span class="kw-2">&amp;mut </span><span class="self">Self
@@ -4605,12 +4494,11 @@
         </span>B: Into&lt;FunctionBinding&gt;,
     {
         <span class="kw">let </span>binding = binding.into();
-        <span class="kw">let </span>function =
-            FunctionObjectBuilder::new(<span class="self">self</span>.context, NativeFunction::from_fn_ptr(function))
-                .name(binding.name)
-                .length(length)
-                .constructor(<span class="bool-val">false</span>)
-                .build();
+        <span class="kw">let </span>function = FunctionObjectBuilder::new(<span class="self">self</span>.context, function)
+            .name(binding.name)
+            .length(length)
+            .constructor(<span class="bool-val">false</span>)
+            .build();
 
         <span class="self">self</span>.object.borrow_mut().insert(
             binding.binding,
@@ -4789,7 +4677,7 @@
     </span><span class="kw">pub fn </span>build(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; JsFunction {
         <span class="comment">// Create the native function
         </span><span class="kw">let </span>function = Function::Native {
-            function: NativeFunction::from_fn_ptr(<span class="self">self</span>.function),
+            function: <span class="self">self</span>.function.clone(),
             constructor: <span class="self">self</span>.constructor,
         };
 

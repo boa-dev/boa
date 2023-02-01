@@ -880,6 +880,11 @@
 <a href="#879" id="879">879</a>
 <a href="#880" id="880">880</a>
 <a href="#881" id="881">881</a>
+<a href="#882" id="882">882</a>
+<a href="#883" id="883">883</a>
+<a href="#884" id="884">884</a>
+<a href="#885" id="885">885</a>
+<a href="#886" id="886">886</a>
 </pre><pre class="rust"><code><span class="doccomment">//! Boa&#39;s implementation of ECMAScript&#39;s global `JSON` object.
 //!
 //! The `JSON` object contains methods for parsing [JavaScript Object Notation (JSON)][spec]
@@ -895,26 +900,27 @@
 //! [json]: https://www.json.org/json-en.html
 //! [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/JSON
 
-</span><span class="kw">use </span><span class="kw">super</span>::JsArgs;
-<span class="kw">use </span>std::{
+</span><span class="kw">use </span>std::{
     borrow::Cow,
     iter::{once, FusedIterator},
 };
 
 <span class="kw">use crate</span>::{
-    builtins::BuiltIn,
+    builtins::BuiltInObject,
+    context::intrinsics::Intrinsics,
     error::JsNativeError,
     js_string,
-    object::{JsObject, ObjectInitializer, RecursionLimiter},
+    object::{JsObject, RecursionLimiter},
     property::{Attribute, PropertyNameKind},
     string::{utf16, CodePoint},
     symbol::JsSymbol,
     value::IntegerOrInfinity,
-    Context, JsResult, JsString, JsValue,
+    Context, JsArgs, JsResult, JsString, JsValue,
 };
 <span class="kw">use </span>boa_parser::{Parser, Source};
 <span class="kw">use </span>boa_profiler::Profiler;
-<span class="kw">use </span>tap::{Conv, Pipe};
+
+<span class="kw">use super</span>::{BuiltInBuilder, IntrinsicObject};
 
 <span class="attr">#[cfg(test)]
 </span><span class="kw">mod </span>tests;
@@ -1017,23 +1023,27 @@
 </span><span class="attr">#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>Json;
 
-<span class="kw">impl </span>BuiltIn <span class="kw">for </span>Json {
-    <span class="kw">const </span>NAME: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;JSON&quot;</span>;
-
-    <span class="kw">fn </span>init(context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <span class="prelude-ty">Option</span>&lt;JsValue&gt; {
+<span class="kw">impl </span>IntrinsicObject <span class="kw">for </span>Json {
+    <span class="kw">fn </span>init(intrinsics: <span class="kw-2">&amp;</span>Intrinsics) {
         <span class="kw">let </span>_timer = Profiler::global().start_event(<span class="self">Self</span>::NAME, <span class="string">&quot;init&quot;</span>);
 
         <span class="kw">let </span>to_string_tag = JsSymbol::to_string_tag();
         <span class="kw">let </span>attribute = Attribute::READONLY | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE;
 
-        ObjectInitializer::new(context)
-            .function(<span class="self">Self</span>::parse, <span class="string">&quot;parse&quot;</span>, <span class="number">2</span>)
-            .function(<span class="self">Self</span>::stringify, <span class="string">&quot;stringify&quot;</span>, <span class="number">3</span>)
-            .property(to_string_tag, <span class="self">Self</span>::NAME, attribute)
-            .build()
-            .conv::&lt;JsValue&gt;()
-            .pipe(<span class="prelude-val">Some</span>)
+        BuiltInBuilder::with_intrinsic::&lt;<span class="self">Self</span>&gt;(intrinsics)
+            .static_method(<span class="self">Self</span>::parse, <span class="string">&quot;parse&quot;</span>, <span class="number">2</span>)
+            .static_method(<span class="self">Self</span>::stringify, <span class="string">&quot;stringify&quot;</span>, <span class="number">3</span>)
+            .static_property(to_string_tag, <span class="self">Self</span>::NAME, attribute)
+            .build();
     }
+
+    <span class="kw">fn </span>get(intrinsics: <span class="kw-2">&amp;</span>Intrinsics) -&gt; JsObject {
+        intrinsics.objects().json()
+    }
+}
+
+<span class="kw">impl </span>BuiltInObject <span class="kw">for </span>Json {
+    <span class="kw">const </span>NAME: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;JSON&quot;</span>;
 }
 
 <span class="kw">impl </span>Json {

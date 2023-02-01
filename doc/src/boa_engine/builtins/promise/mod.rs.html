@@ -2294,28 +2294,26 @@
 <a href="#2293" id="2293">2293</a>
 <a href="#2294" id="2294">2294</a>
 <a href="#2295" id="2295">2295</a>
-<a href="#2296" id="2296">2296</a>
-<a href="#2297" id="2297">2297</a>
 </pre><pre class="rust"><code><span class="doccomment">//! Boa&#39;s implementation of ECMAScript&#39;s global `Promise` object.
 
 </span><span class="attr">#[cfg(test)]
 </span><span class="kw">mod </span>tests;
 
-<span class="kw">use super</span>::{iterable::IteratorRecord, JsArgs};
+<span class="kw">use super</span>::{iterable::IteratorRecord, BuiltInBuilder, BuiltInConstructor, IntrinsicObject};
 <span class="kw">use crate</span>::{
-    builtins::{error::ErrorKind, Array, BuiltIn},
-    context::intrinsics::StandardConstructors,
+    builtins::{error::ErrorKind, Array, BuiltInObject},
+    context::intrinsics::{Intrinsics, StandardConstructor, StandardConstructors},
     error::JsNativeError,
     job::{JobCallback, NativeJob},
     native_function::NativeFunction,
     object::{
-        internal_methods::get_prototype_from_constructor, ConstructorBuilder,
-        FunctionObjectBuilder, JsFunction, JsObject, ObjectData,
+        internal_methods::get_prototype_from_constructor, FunctionObjectBuilder, JsFunction,
+        JsObject, ObjectData, CONSTRUCTOR,
     },
     property::{Attribute, PropertyDescriptorBuilder},
     symbol::JsSymbol,
     value::JsValue,
-    Context, JsError, JsResult,
+    Context, JsArgs, JsError, JsResult,
 };
 <span class="kw">use </span>boa_gc::{Finalize, Gc, GcRefCell, Trace};
 <span class="kw">use </span>boa_profiler::Profiler;
@@ -2556,69 +2554,54 @@
     }
 }
 
-<span class="kw">impl </span>BuiltIn <span class="kw">for </span>Promise {
-    <span class="kw">const </span>NAME: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;Promise&quot;</span>;
-
-    <span class="kw">const </span>ATTRIBUTE: Attribute = Attribute::WRITABLE
-        .union(Attribute::NON_ENUMERABLE)
-        .union(Attribute::CONFIGURABLE);
-
-    <span class="kw">fn </span>init(context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <span class="prelude-ty">Option</span>&lt;JsValue&gt; {
+<span class="kw">impl </span>IntrinsicObject <span class="kw">for </span>Promise {
+    <span class="kw">fn </span>init(intrinsics: <span class="kw-2">&amp;</span>Intrinsics) {
         <span class="kw">let </span>_timer = Profiler::global().start_event(<span class="self">Self</span>::NAME, <span class="string">&quot;init&quot;</span>);
 
-        <span class="kw">let </span>get_species =
-            FunctionObjectBuilder::new(context, NativeFunction::from_fn_ptr(<span class="self">Self</span>::get_species))
-                .name(<span class="string">&quot;get [Symbol.species]&quot;</span>)
-                .constructor(<span class="bool-val">false</span>)
-                .build();
+        <span class="kw">let </span>get_species = BuiltInBuilder::new(intrinsics)
+            .callable(<span class="self">Self</span>::get_species)
+            .name(<span class="string">&quot;get [Symbol.species]&quot;</span>)
+            .build();
 
-        ConstructorBuilder::with_standard_constructor(
-            context,
-            <span class="self">Self</span>::constructor,
-            context.intrinsics().constructors().promise().clone(),
-        )
-        .name(<span class="self">Self</span>::NAME)
-        .length(<span class="self">Self</span>::LENGTH)
-        .static_method(<span class="self">Self</span>::all, <span class="string">&quot;all&quot;</span>, <span class="number">1</span>)
-        .static_method(<span class="self">Self</span>::all_settled, <span class="string">&quot;allSettled&quot;</span>, <span class="number">1</span>)
-        .static_method(<span class="self">Self</span>::any, <span class="string">&quot;any&quot;</span>, <span class="number">1</span>)
-        .static_method(<span class="self">Self</span>::race, <span class="string">&quot;race&quot;</span>, <span class="number">1</span>)
-        .static_method(<span class="self">Self</span>::reject, <span class="string">&quot;reject&quot;</span>, <span class="number">1</span>)
-        .static_method(<span class="self">Self</span>::resolve, <span class="string">&quot;resolve&quot;</span>, <span class="number">1</span>)
-        .static_accessor(
-            JsSymbol::species(),
-            <span class="prelude-val">Some</span>(get_species),
-            <span class="prelude-val">None</span>,
-            Attribute::CONFIGURABLE,
-        )
-        .method(<span class="self">Self</span>::then, <span class="string">&quot;then&quot;</span>, <span class="number">2</span>)
-        .method(<span class="self">Self</span>::catch, <span class="string">&quot;catch&quot;</span>, <span class="number">1</span>)
-        .method(<span class="self">Self</span>::finally, <span class="string">&quot;finally&quot;</span>, <span class="number">1</span>)
-        <span class="comment">// &lt;https://tc39.es/ecma262/#sec-promise.prototype-@@tostringtag&gt;
-        </span>.property(
-            JsSymbol::to_string_tag(),
-            <span class="self">Self</span>::NAME,
-            Attribute::READONLY | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
-        )
-        .build()
-        .conv::&lt;JsValue&gt;()
-        .pipe(<span class="prelude-val">Some</span>)
+        BuiltInBuilder::from_standard_constructor::&lt;<span class="self">Self</span>&gt;(intrinsics)
+            .static_method(<span class="self">Self</span>::all, <span class="string">&quot;all&quot;</span>, <span class="number">1</span>)
+            .static_method(<span class="self">Self</span>::all_settled, <span class="string">&quot;allSettled&quot;</span>, <span class="number">1</span>)
+            .static_method(<span class="self">Self</span>::any, <span class="string">&quot;any&quot;</span>, <span class="number">1</span>)
+            .static_method(<span class="self">Self</span>::race, <span class="string">&quot;race&quot;</span>, <span class="number">1</span>)
+            .static_method(<span class="self">Self</span>::reject, <span class="string">&quot;reject&quot;</span>, <span class="number">1</span>)
+            .static_method(<span class="self">Self</span>::resolve, <span class="string">&quot;resolve&quot;</span>, <span class="number">1</span>)
+            .static_accessor(
+                JsSymbol::species(),
+                <span class="prelude-val">Some</span>(get_species),
+                <span class="prelude-val">None</span>,
+                Attribute::CONFIGURABLE,
+            )
+            .method(<span class="self">Self</span>::then, <span class="string">&quot;then&quot;</span>, <span class="number">2</span>)
+            .method(<span class="self">Self</span>::catch, <span class="string">&quot;catch&quot;</span>, <span class="number">1</span>)
+            .method(<span class="self">Self</span>::finally, <span class="string">&quot;finally&quot;</span>, <span class="number">1</span>)
+            <span class="comment">// &lt;https://tc39.es/ecma262/#sec-promise.prototype-@@tostringtag&gt;
+            </span>.property(
+                JsSymbol::to_string_tag(),
+                <span class="self">Self</span>::NAME,
+                Attribute::READONLY | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
+            )
+            .build();
+    }
+
+    <span class="kw">fn </span>get(intrinsics: <span class="kw-2">&amp;</span>Intrinsics) -&gt; JsObject {
+        <span class="self">Self</span>::STANDARD_CONSTRUCTOR(intrinsics.constructors()).constructor()
     }
 }
 
-<span class="attr">#[derive(Debug)]
-</span><span class="kw">struct </span>ResolvingFunctionsRecord {
-    resolve: JsFunction,
-    reject: JsFunction,
+<span class="kw">impl </span>BuiltInObject <span class="kw">for </span>Promise {
+    <span class="kw">const </span>NAME: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;Promise&quot;</span>;
 }
 
-<span class="kw">impl </span>Promise {
+<span class="kw">impl </span>BuiltInConstructor <span class="kw">for </span>Promise {
     <span class="kw">const </span>LENGTH: usize = <span class="number">1</span>;
 
-    <span class="doccomment">/// Gets the current state of the promise.
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const fn </span>state(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>PromiseState {
-        <span class="kw-2">&amp;</span><span class="self">self</span>.state
-    }
+    <span class="kw">const </span>STANDARD_CONSTRUCTOR: <span class="kw">fn</span>(<span class="kw-2">&amp;</span>StandardConstructors) -&gt; <span class="kw-2">&amp;</span>StandardConstructor =
+        StandardConstructors::promise;
 
     <span class="doccomment">/// `Promise ( executor )`
     ///
@@ -2686,6 +2669,19 @@
 
         <span class="comment">// 11. Return promise.
         </span>promise.conv::&lt;JsValue&gt;().pipe(<span class="prelude-val">Ok</span>)
+    }
+}
+
+<span class="attr">#[derive(Debug)]
+</span><span class="kw">struct </span>ResolvingFunctionsRecord {
+    resolve: JsFunction,
+    reject: JsFunction,
+}
+
+<span class="kw">impl </span>Promise {
+    <span class="doccomment">/// Gets the current state of the promise.
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const fn </span>state(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>PromiseState {
+        <span class="kw-2">&amp;</span><span class="self">self</span>.state
     }
 
     <span class="doccomment">/// `Promise.all ( iterable )`
@@ -4420,7 +4416,7 @@
         <span class="comment">// 1. If IsPromise(x) is true, then
         </span><span class="kw">if let </span><span class="prelude-val">Some</span>(x) = x.as_promise() {
             <span class="comment">// a. Let xConstructor be ? Get(x, &quot;constructor&quot;).
-            </span><span class="kw">let </span>x_constructor = x.get(<span class="string">&quot;constructor&quot;</span>, context)<span class="question-mark">?</span>;
+            </span><span class="kw">let </span>x_constructor = x.get(CONSTRUCTOR, context)<span class="question-mark">?</span>;
             <span class="comment">// b. If SameValue(xConstructor, C) is true, return x.
             </span><span class="kw">if </span>x_constructor
                 .as_object()

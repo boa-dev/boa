@@ -141,51 +141,49 @@
 </span><span class="kw">mod </span>tests;
 
 <span class="kw">use crate</span>::{
-    builtins::BuiltIn,
-    context::intrinsics::StandardConstructors,
+    builtins::BuiltInObject,
+    context::intrinsics::{Intrinsics, StandardConstructor, StandardConstructors},
     error::JsNativeError,
-    object::{
-        internal_methods::get_prototype_from_constructor, ConstructorBuilder, JsObject, ObjectData,
-    },
+    object::{internal_methods::get_prototype_from_constructor, JsObject, ObjectData},
     Context, JsResult, JsValue,
 };
 <span class="kw">use </span>boa_profiler::Profiler;
-<span class="kw">use </span>tap::{Conv, Pipe};
+
+<span class="kw">use super</span>::{BuiltInBuilder, BuiltInConstructor, IntrinsicObject};
 
 <span class="doccomment">/// Boolean implementation.
 </span><span class="attr">#[derive(Debug, Clone, Copy)]
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>Boolean;
 
-<span class="kw">impl </span>BuiltIn <span class="kw">for </span>Boolean {
-    <span class="doccomment">/// The name of the object.
-    </span><span class="kw">const </span>NAME: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;Boolean&quot;</span>;
-
-    <span class="kw">fn </span>init(context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <span class="prelude-ty">Option</span>&lt;JsValue&gt; {
+<span class="kw">impl </span>IntrinsicObject <span class="kw">for </span>Boolean {
+    <span class="kw">fn </span>init(intrinsics: <span class="kw-2">&amp;</span>Intrinsics) {
         <span class="kw">let </span>_timer = Profiler::global().start_event(<span class="self">Self</span>::NAME, <span class="string">&quot;init&quot;</span>);
 
-        ConstructorBuilder::with_standard_constructor(
-            context,
-            <span class="self">Self</span>::constructor,
-            context.intrinsics().constructors().boolean().clone(),
-        )
-        .name(<span class="self">Self</span>::NAME)
-        .length(<span class="self">Self</span>::LENGTH)
-        .method(<span class="self">Self</span>::to_string, <span class="string">&quot;toString&quot;</span>, <span class="number">0</span>)
-        .method(<span class="self">Self</span>::value_of, <span class="string">&quot;valueOf&quot;</span>, <span class="number">0</span>)
-        .build()
-        .conv::&lt;JsValue&gt;()
-        .pipe(<span class="prelude-val">Some</span>)
+        BuiltInBuilder::from_standard_constructor::&lt;<span class="self">Self</span>&gt;(intrinsics)
+            .method(<span class="self">Self</span>::to_string, <span class="string">&quot;toString&quot;</span>, <span class="number">0</span>)
+            .method(<span class="self">Self</span>::value_of, <span class="string">&quot;valueOf&quot;</span>, <span class="number">0</span>)
+            .build();
+    }
+
+    <span class="kw">fn </span>get(intrinsics: <span class="kw-2">&amp;</span>Intrinsics) -&gt; JsObject {
+        <span class="self">Self</span>::STANDARD_CONSTRUCTOR(intrinsics.constructors()).constructor()
     }
 }
 
-<span class="kw">impl </span>Boolean {
-    <span class="doccomment">/// The amount of arguments this function object takes.
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const </span>LENGTH: usize = <span class="number">1</span>;
+<span class="kw">impl </span>BuiltInObject <span class="kw">for </span>Boolean {
+    <span class="kw">const </span>NAME: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;Boolean&quot;</span>;
+}
+
+<span class="kw">impl </span>BuiltInConstructor <span class="kw">for </span>Boolean {
+    <span class="kw">const </span>LENGTH: usize = <span class="number">1</span>;
+
+    <span class="kw">const </span>STANDARD_CONSTRUCTOR: <span class="kw">fn</span>(<span class="kw-2">&amp;</span>StandardConstructors) -&gt; <span class="kw-2">&amp;</span>StandardConstructor =
+        StandardConstructors::boolean;
 
     <span class="doccomment">/// `[[Construct]]` Create a new boolean object
     ///
     /// `[[Call]]` Creates a new boolean primitive
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>constructor(
+    </span><span class="kw">fn </span>constructor(
         new_target: <span class="kw-2">&amp;</span>JsValue,
         args: <span class="kw-2">&amp;</span>[JsValue],
         context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
@@ -201,7 +199,9 @@
 
         <span class="prelude-val">Ok</span>(boolean.into())
     }
+}
 
+<span class="kw">impl </span>Boolean {
     <span class="doccomment">/// An Utility function used to get the internal `[[BooleanData]]`.
     ///
     /// More information:

@@ -132,11 +132,11 @@
 </pre><pre class="rust"><code><span class="kw">use </span>boa_gc::{Gc, GcRefCell};
 
 <span class="kw">use crate</span>::{
-    builtins::{JsArgs, Promise},
+    builtins::Promise,
     native_function::NativeFunction,
     object::FunctionObjectBuilder,
     vm::{call_frame::GeneratorResumeKind, opcode::Operation, ShouldExit},
-    Context, JsResult, JsValue,
+    Context, JsArgs, JsResult, JsValue,
 };
 
 <span class="doccomment">/// `Await` implements the Opcode Operation for `Opcode::Await`

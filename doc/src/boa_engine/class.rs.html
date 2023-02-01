@@ -294,9 +294,6 @@
 <a href="#293" id="293">293</a>
 <a href="#294" id="294">294</a>
 <a href="#295" id="295">295</a>
-<a href="#296" id="296">296</a>
-<a href="#297" id="297">297</a>
-<a href="#298" id="298">298</a>
 </pre><pre class="rust"><code><span class="doccomment">//! Traits and structs for implementing native classes.
 //!
 //! Native classes are implemented through the [`Class`][class-trait] trait.
@@ -340,19 +337,22 @@
 //!
 //!     /// This is where the object is initialized.
 //!     fn init(class: &amp;mut ClassBuilder) -&gt; JsResult&lt;()&gt; {
-//!         class.method(&quot;speak&quot;, 0, |this, _args, _ctx| {
-//!             if let Some(object) = this.as_object() {
-//!                 if let Some(animal) = object.downcast_ref::&lt;Animal&gt;() {
-//!                     match &amp;*animal {
-//!                         Self::Cat =&gt; println!(&quot;meow&quot;),
-//!                         Self::Dog =&gt; println!(&quot;woof&quot;),
-//!                         Self::Other =&gt; println!(r&quot;¯\_(ツ)_/¯&quot;),
+//!         class.method(
+//!             &quot;speak&quot;,
+//!             0,
+//!             NativeFunction::from_fn_ptr(|this, _args, _ctx| {
+//!                 if let Some(object) = this.as_object() {
+//!                     if let Some(animal) = object.downcast_ref::&lt;Animal&gt;() {
+//!                         match &amp;*animal {
+//!                             Self::Cat =&gt; println!(&quot;meow&quot;),
+//!                             Self::Dog =&gt; println!(&quot;woof&quot;),
+//!                             Self::Other =&gt; println!(r&quot;¯\_(ツ)_/¯&quot;),
+//!                         }
 //!                     }
 //!                 }
-//!             }
-//!             Ok(JsValue::undefined())
-//!         });
-//!
+//!                 Ok(JsValue::undefined())
+//!             }),
+//!         );
 //!         Ok(())
 //!     }
 //! }
@@ -362,7 +362,7 @@
 
 </span><span class="kw">use crate</span>::{
     error::JsNativeError,
-    native_function::NativeFunctionPointer,
+    native_function::NativeFunction,
     object::{ConstructorBuilder, JsFunction, JsObject, NativeObject, ObjectData, PROTOTYPE},
     property::{Attribute, PropertyDescriptor, PropertyKey},
     Context, JsResult, JsValue,
@@ -446,10 +446,8 @@
             .unwrap_or_else(|| class_prototype.clone());
 
         <span class="kw">let </span>native_instance = <span class="self">Self</span>::constructor(this, args, context)<span class="question-mark">?</span>;
-        <span class="kw">let </span>object_instance = JsObject::from_proto_and_data(
-            prototype,
-            ObjectData::native_object(Box::new(native_instance)),
-        );
+        <span class="kw">let </span>object_instance =
+            JsObject::from_proto_and_data(prototype, ObjectData::native_object(native_instance));
         <span class="prelude-val">Ok</span>(object_instance.into())
     }
 }
@@ -465,7 +463,8 @@
     </span><span class="kw">where
         </span>T: ClassConstructor,
     {
-        <span class="kw">let </span><span class="kw-2">mut </span>builder = ConstructorBuilder::new(context, T::raw_constructor);
+        <span class="kw">let </span><span class="kw-2">mut </span>builder =
+            ConstructorBuilder::new(context, NativeFunction::from_fn_ptr(T::raw_constructor));
         builder.name(T::NAME);
         builder.length(T::LENGTH);
         <span class="self">Self </span>{ builder }
@@ -478,12 +477,7 @@
     <span class="doccomment">/// Add a method to the class.
     ///
     /// It is added to `prototype`.
-    </span><span class="kw">pub fn </span>method&lt;N&gt;(
-        <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-        name: N,
-        length: usize,
-        function: NativeFunctionPointer,
-    ) -&gt; <span class="kw-2">&amp;mut </span><span class="self">Self
+    </span><span class="kw">pub fn </span>method&lt;N&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, name: N, length: usize, function: NativeFunction) -&gt; <span class="kw-2">&amp;mut </span><span class="self">Self
     </span><span class="kw">where
         </span>N: AsRef&lt;str&gt;,
     {
@@ -498,7 +492,7 @@
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
         name: N,
         length: usize,
-        function: NativeFunctionPointer,
+        function: NativeFunction,
     ) -&gt; <span class="kw-2">&amp;mut </span><span class="self">Self
     </span><span class="kw">where
         </span>N: AsRef&lt;str&gt;,

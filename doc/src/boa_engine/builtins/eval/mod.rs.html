@@ -269,9 +269,6 @@
 <a href="#268" id="268">268</a>
 <a href="#269" id="269">269</a>
 <a href="#270" id="270">270</a>
-<a href="#271" id="271">271</a>
-<a href="#272" id="272">272</a>
-<a href="#273" id="273">273</a>
 </pre><pre class="rust"><code><span class="doccomment">//! Boa&#39;s implementation of ECMAScript&#39;s global `eval` function.
 //!
 //! The `eval()` function evaluates ECMAScript code represented as a string.
@@ -284,13 +281,8 @@
 //! [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/eval
 
 </span><span class="kw">use crate</span>::{
-    builtins::{BuiltIn, JsArgs},
-    environments::DeclarativeEnvironment,
-    error::JsNativeError,
-    native_function::NativeFunction,
-    object::FunctionObjectBuilder,
-    property::Attribute,
-    Context, JsResult, JsString, JsValue,
+    builtins::BuiltInObject, context::intrinsics::Intrinsics, environments::DeclarativeEnvironment,
+    error::JsNativeError, object::JsObject, Context, JsArgs, JsResult, JsString, JsValue,
 };
 <span class="kw">use </span>boa_ast::operations::{
     contains, contains_arguments, top_level_var_declared_names, ContainsSymbol,
@@ -299,27 +291,29 @@
 <span class="kw">use </span>boa_parser::{Parser, Source};
 <span class="kw">use </span>boa_profiler::Profiler;
 
+<span class="kw">use super</span>::{BuiltInBuilder, IntrinsicObject};
+
 <span class="attr">#[derive(Debug, Clone, Copy)]
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>Eval;
 
-<span class="kw">impl </span>BuiltIn <span class="kw">for </span>Eval {
-    <span class="kw">const </span>NAME: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;eval&quot;</span>;
-
-    <span class="kw">const </span>ATTRIBUTE: Attribute = Attribute::CONFIGURABLE
-        .union(Attribute::NON_ENUMERABLE)
-        .union(Attribute::WRITABLE);
-
-    <span class="kw">fn </span>init(context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <span class="prelude-ty">Option</span>&lt;JsValue&gt; {
+<span class="kw">impl </span>IntrinsicObject <span class="kw">for </span>Eval {
+    <span class="kw">fn </span>init(intrinsics: <span class="kw-2">&amp;</span>Intrinsics) {
         <span class="kw">let </span>_timer = Profiler::global().start_event(<span class="self">Self</span>::NAME, <span class="string">&quot;init&quot;</span>);
 
-        <span class="kw">let </span>object = FunctionObjectBuilder::new(context, NativeFunction::from_fn_ptr(<span class="self">Self</span>::eval))
-            .name(<span class="string">&quot;eval&quot;</span>)
+        BuiltInBuilder::with_intrinsic::&lt;<span class="self">Self</span>&gt;(intrinsics)
+            .callable(<span class="self">Self</span>::eval)
+            .name(<span class="self">Self</span>::NAME)
             .length(<span class="number">1</span>)
-            .constructor(<span class="bool-val">false</span>)
             .build();
-
-        <span class="prelude-val">Some</span>(object.into())
     }
+
+    <span class="kw">fn </span>get(intrinsics: <span class="kw-2">&amp;</span>Intrinsics) -&gt; JsObject {
+        intrinsics.objects().eval().into()
+    }
+}
+
+<span class="kw">impl </span>BuiltInObject <span class="kw">for </span>Eval {
+    <span class="kw">const </span>NAME: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;eval&quot;</span>;
 }
 
 <span class="kw">impl </span>Eval {

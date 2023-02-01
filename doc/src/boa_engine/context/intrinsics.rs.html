@@ -778,15 +778,108 @@
 <a href="#777" id="777">777</a>
 <a href="#778" id="778">778</a>
 <a href="#779" id="779">779</a>
+<a href="#780" id="780">780</a>
+<a href="#781" id="781">781</a>
+<a href="#782" id="782">782</a>
+<a href="#783" id="783">783</a>
+<a href="#784" id="784">784</a>
+<a href="#785" id="785">785</a>
+<a href="#786" id="786">786</a>
+<a href="#787" id="787">787</a>
+<a href="#788" id="788">788</a>
+<a href="#789" id="789">789</a>
+<a href="#790" id="790">790</a>
+<a href="#791" id="791">791</a>
+<a href="#792" id="792">792</a>
+<a href="#793" id="793">793</a>
+<a href="#794" id="794">794</a>
+<a href="#795" id="795">795</a>
+<a href="#796" id="796">796</a>
+<a href="#797" id="797">797</a>
+<a href="#798" id="798">798</a>
+<a href="#799" id="799">799</a>
+<a href="#800" id="800">800</a>
+<a href="#801" id="801">801</a>
+<a href="#802" id="802">802</a>
+<a href="#803" id="803">803</a>
+<a href="#804" id="804">804</a>
+<a href="#805" id="805">805</a>
+<a href="#806" id="806">806</a>
+<a href="#807" id="807">807</a>
+<a href="#808" id="808">808</a>
+<a href="#809" id="809">809</a>
+<a href="#810" id="810">810</a>
+<a href="#811" id="811">811</a>
+<a href="#812" id="812">812</a>
+<a href="#813" id="813">813</a>
+<a href="#814" id="814">814</a>
+<a href="#815" id="815">815</a>
+<a href="#816" id="816">816</a>
+<a href="#817" id="817">817</a>
+<a href="#818" id="818">818</a>
+<a href="#819" id="819">819</a>
+<a href="#820" id="820">820</a>
+<a href="#821" id="821">821</a>
+<a href="#822" id="822">822</a>
+<a href="#823" id="823">823</a>
+<a href="#824" id="824">824</a>
+<a href="#825" id="825">825</a>
+<a href="#826" id="826">826</a>
+<a href="#827" id="827">827</a>
+<a href="#828" id="828">828</a>
+<a href="#829" id="829">829</a>
+<a href="#830" id="830">830</a>
+<a href="#831" id="831">831</a>
+<a href="#832" id="832">832</a>
+<a href="#833" id="833">833</a>
+<a href="#834" id="834">834</a>
+<a href="#835" id="835">835</a>
+<a href="#836" id="836">836</a>
+<a href="#837" id="837">837</a>
+<a href="#838" id="838">838</a>
+<a href="#839" id="839">839</a>
+<a href="#840" id="840">840</a>
+<a href="#841" id="841">841</a>
+<a href="#842" id="842">842</a>
+<a href="#843" id="843">843</a>
+<a href="#844" id="844">844</a>
+<a href="#845" id="845">845</a>
+<a href="#846" id="846">846</a>
+<a href="#847" id="847">847</a>
+<a href="#848" id="848">848</a>
+<a href="#849" id="849">849</a>
+<a href="#850" id="850">850</a>
+<a href="#851" id="851">851</a>
+<a href="#852" id="852">852</a>
+<a href="#853" id="853">853</a>
+<a href="#854" id="854">854</a>
+<a href="#855" id="855">855</a>
+<a href="#856" id="856">856</a>
+<a href="#857" id="857">857</a>
+<a href="#858" id="858">858</a>
+<a href="#859" id="859">859</a>
+<a href="#860" id="860">860</a>
+<a href="#861" id="861">861</a>
+<a href="#862" id="862">862</a>
+<a href="#863" id="863">863</a>
+<a href="#864" id="864">864</a>
+<a href="#865" id="865">865</a>
+<a href="#866" id="866">866</a>
+<a href="#867" id="867">867</a>
+<a href="#868" id="868">868</a>
+<a href="#869" id="869">869</a>
+<a href="#870" id="870">870</a>
+<a href="#871" id="871">871</a>
+<a href="#872" id="872">872</a>
+<a href="#873" id="873">873</a>
+<a href="#874" id="874">874</a>
+<a href="#875" id="875">875</a>
+<a href="#876" id="876">876</a>
 </pre><pre class="rust"><code><span class="doccomment">//! Data structures that contain intrinsic objects and constructors.
 
 </span><span class="kw">use crate</span>::{
-    builtins::{
-        array::Array, error::r#type::create_throw_type_error, iterable::IteratorPrototypes,
-    },
-    object::{JsObject, ObjectData},
-    property::PropertyDescriptorBuilder,
-    Context,
+    builtins::{iterable::IteratorPrototypes, uri::UriFunctions},
+    object::{JsFunction, JsObject, ObjectData},
 };
 
 <span class="doccomment">/// The intrinsic objects and constructors.
@@ -837,14 +930,6 @@
         }
     }
 
-    <span class="doccomment">/// Return the constructor object.
-    ///
-    /// This is the same as `Object`, `Array`, etc.
-    </span><span class="attr">#[inline]
-    </span><span class="kw">pub fn </span>constructor(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; JsObject {
-        <span class="self">self</span>.constructor.clone()
-    }
-
     <span class="doccomment">/// Return the prototype of the constructor object.
     ///
     /// This is the same as `Object.prototype`, `Array.prototype`, etc
@@ -852,20 +937,26 @@
     </span><span class="kw">pub fn </span>prototype(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; JsObject {
         <span class="self">self</span>.prototype.clone()
     }
+
+    <span class="doccomment">/// Return the constructor object.
+    ///
+    /// This is the same as `Object`, `Array`, etc.
+    </span><span class="attr">#[inline]
+    </span><span class="kw">pub fn </span>constructor(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; JsObject {
+        <span class="self">self</span>.constructor.clone()
+    }
 }
 
 <span class="doccomment">/// Cached core standard constructors.
 </span><span class="attr">#[derive(Debug, Clone)]
 </span><span class="kw">pub struct </span>StandardConstructors {
-    async_generator_function: StandardConstructor,
-    async_generator: StandardConstructor,
     object: StandardConstructor,
     proxy: StandardConstructor,
     date: StandardConstructor,
     function: StandardConstructor,
     async_function: StandardConstructor,
-    generator: StandardConstructor,
     generator_function: StandardConstructor,
+    async_generator_function: StandardConstructor,
     array: StandardConstructor,
     bigint: StandardConstructor,
     number: StandardConstructor,
@@ -912,15 +1003,13 @@
 
 <span class="kw">impl </span>Default <span class="kw">for </span>StandardConstructors {
     <span class="kw">fn </span>default() -&gt; <span class="self">Self </span>{
-        <span class="kw">let </span>result = <span class="self">Self </span>{
+        <span class="self">Self </span>{
             async_generator_function: StandardConstructor::default(),
-            async_generator: StandardConstructor::default(),
             object: StandardConstructor::default(),
             proxy: StandardConstructor::default(),
             date: StandardConstructor::default(),
             function: StandardConstructor::default(),
             async_function: StandardConstructor::default(),
-            generator: StandardConstructor::default(),
             generator_function: StandardConstructor::default(),
             array: StandardConstructor::with_prototype(JsObject::from_proto_and_data(
                 <span class="prelude-val">None</span>,
@@ -976,20 +1065,7 @@
             </span>locale: StandardConstructor::default(),
             <span class="attr">#[cfg(feature = <span class="string">&quot;intl&quot;</span>)]
             </span>segmenter: StandardConstructor::default(),
-        };
-
-        <span class="comment">// The value of `Array.prototype` is the Array prototype object.
-        </span>result.array.prototype.insert(
-            <span class="string">&quot;length&quot;</span>,
-            PropertyDescriptorBuilder::new()
-                .value(<span class="number">0</span>)
-                .writable(<span class="bool-val">true</span>)
-                .enumerable(<span class="bool-val">false</span>)
-                .configurable(<span class="bool-val">false</span>)
-                .build(),
-        );
-
-        result
+        }
     }
 }
 
@@ -1003,17 +1079,6 @@
     </span><span class="attr">#[inline]
     </span><span class="kw">pub const fn </span>async_generator_function(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>StandardConstructor {
         <span class="kw-2">&amp;</span><span class="self">self</span>.async_generator_function
-    }
-
-    <span class="doccomment">/// Returns the `AsyncGenerator` constructor.
-    ///
-    /// More information:
-    ///  - [ECMAScript reference][spec]
-    ///
-    /// [spec]: https://tc39.es/ecma262/#sec-asyncgenerator-objects
-    </span><span class="attr">#[inline]
-    </span><span class="kw">pub const fn </span>async_generator(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>StandardConstructor {
-        <span class="kw-2">&amp;</span><span class="self">self</span>.async_generator
     }
 
     <span class="doccomment">/// Returns the `Object` constructor.
@@ -1071,17 +1136,6 @@
         <span class="kw-2">&amp;</span><span class="self">self</span>.async_function
     }
 
-    <span class="doccomment">/// Returns the `Generator` constructor.
-    ///
-    /// More information:
-    ///  - [ECMAScript reference][spec]
-    ///
-    /// [spec]: https://tc39.es/ecma262/#sec-generator-objects
-    </span><span class="attr">#[inline]
-    </span><span class="kw">pub const fn </span>generator(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>StandardConstructor {
-        <span class="kw-2">&amp;</span><span class="self">self</span>.generator
-    }
-
     <span class="doccomment">/// Returns the `GeneratorFunction` constructor.
     ///
     /// More information:
@@ -1111,7 +1165,7 @@
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-bigint-constructor
     </span><span class="attr">#[inline]
-    </span><span class="kw">pub const fn </span>bigint_object(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>StandardConstructor {
+    </span><span class="kw">pub const fn </span>bigint(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>StandardConstructor {
         <span class="kw-2">&amp;</span><span class="self">self</span>.bigint
     }
 
@@ -1517,44 +1571,184 @@
 }
 
 <span class="doccomment">/// Cached intrinsic objects
-</span><span class="attr">#[derive(Debug, Default)]
+</span><span class="attr">#[derive(Debug)]
 </span><span class="kw">pub struct </span>IntrinsicObjects {
-    <span class="doccomment">/// %ThrowTypeError% intrinsic object
-    </span>throw_type_error: JsObject,
+    <span class="doccomment">/// [`%Reflect%`](https://tc39.es/ecma262/#sec-reflect)
+    </span>reflect: JsObject,
 
-    <span class="doccomment">/// %Array.prototype.values%
+    <span class="doccomment">/// [`%Math%`](https://tc39.es/ecma262/#sec-math)
+    </span>math: JsObject,
+
+    <span class="doccomment">/// [`%JSON%`](https://tc39.es/ecma262/#sec-json)
+    </span>json: JsObject,
+
+    <span class="doccomment">/// [`%ThrowTypeError%`](https://tc39.es/ecma262/#sec-%throwtypeerror%)
+    </span>throw_type_error: JsFunction,
+
+    <span class="doccomment">/// [`%Array.prototype.values%`](https://tc39.es/ecma262/#sec-array.prototype.values)
     </span>array_prototype_values: JsObject,
 
     <span class="doccomment">/// Cached iterator prototypes.
     </span>iterator_prototypes: IteratorPrototypes,
+
+    <span class="doccomment">/// [`%GeneratorFunction.prototype.prototype%`](https://tc39.es/ecma262/#sec-properties-of-generator-prototype)
+    </span>generator: JsObject,
+
+    <span class="doccomment">/// [`%AsyncGeneratorFunction.prototype.prototype%`](https://tc39.es/ecma262/#sec-properties-of-asyncgenerator-prototype)
+    </span>async_generator: JsObject,
+
+    <span class="doccomment">/// [`%eval%`](https://tc39.es/ecma262/#sec-eval-x)
+    </span>eval: JsFunction,
+
+    <span class="doccomment">/// URI related functions
+    </span>uri_functions: UriFunctions,
+
+    <span class="doccomment">/// [`%isFinite%`](https://tc39.es/ecma262/#sec-isfinite-number)
+    </span>is_finite: JsFunction,
+
+    <span class="doccomment">/// [`%isNaN%`](https://tc39.es/ecma262/#sec-isnan-number)
+    </span>is_nan: JsFunction,
+
+    <span class="doccomment">/// [`%parseFloat%`](https://tc39.es/ecma262/#sec-parsefloat-string)
+    </span>parse_float: JsFunction,
+
+    <span class="doccomment">/// [`%parseInt%`](https://tc39.es/ecma262/#sec-parseint-string-radix)
+    </span>parse_int: JsFunction,
+
+    <span class="doccomment">/// [`%Intl%`](https://tc39.es/ecma402/#intl-object)
+    </span><span class="attr">#[cfg(feature = <span class="string">&quot;intl&quot;</span>)]
+    </span>intl: JsObject,
+}
+
+<span class="kw">impl </span>Default <span class="kw">for </span>IntrinsicObjects {
+    <span class="kw">fn </span>default() -&gt; <span class="self">Self </span>{
+        <span class="self">Self </span>{
+            reflect: JsObject::default(),
+            math: JsObject::default(),
+            json: JsObject::default(),
+            throw_type_error: JsFunction::from_object_unchecked(JsObject::default()),
+            array_prototype_values: JsObject::default(),
+            iterator_prototypes: IteratorPrototypes::default(),
+            generator: JsObject::default(),
+            async_generator: JsObject::default(),
+            eval: JsFunction::from_object_unchecked(JsObject::default()),
+            uri_functions: UriFunctions::default(),
+            is_finite: JsFunction::from_object_unchecked(JsObject::default()),
+            is_nan: JsFunction::from_object_unchecked(JsObject::default()),
+            parse_float: JsFunction::from_object_unchecked(JsObject::default()),
+            parse_int: JsFunction::from_object_unchecked(JsObject::default()),
+            <span class="attr">#[cfg(feature = <span class="string">&quot;intl&quot;</span>)]
+            </span>intl: JsObject::default(),
+        }
+    }
 }
 
 <span class="kw">impl </span>IntrinsicObjects {
-    <span class="doccomment">/// Initialize the intrinsic objects
-    </span><span class="kw">pub fn </span>init(context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <span class="self">Self </span>{
-        <span class="self">Self </span>{
-            throw_type_error: create_throw_type_error(context),
-            array_prototype_values: Array::create_array_prototype_values(context).into(),
-            iterator_prototypes: IteratorPrototypes::init(context),
-        }
-    }
-
-    <span class="doccomment">/// Get the `%ThrowTypeError%` intrinsic object
+    <span class="doccomment">/// Gets the [`%ThrowTypeError%`][spec] intrinsic function.
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-%throwtypeerror%
     </span><span class="attr">#[inline]
-    </span><span class="kw">pub fn </span>throw_type_error(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; JsObject {
+    </span><span class="kw">pub fn </span>throw_type_error(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; JsFunction {
         <span class="self">self</span>.throw_type_error.clone()
     }
 
-    <span class="doccomment">/// Get the `%Array.prototype.values%` intrinsic object.
+    <span class="doccomment">/// Gets the [`%Array.prototype.values%`][spec] intrinsic object.
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-array.prototype.values
     </span><span class="attr">#[inline]
     </span><span class="kw">pub fn </span>array_prototype_values(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; JsObject {
         <span class="self">self</span>.array_prototype_values.clone()
     }
 
-    <span class="doccomment">/// Get the cached iterator prototypes.
+    <span class="doccomment">/// Gets the cached iterator prototypes.
     </span><span class="attr">#[inline]
     </span><span class="kw">pub const fn </span>iterator_prototypes(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>IteratorPrototypes {
         <span class="kw-2">&amp;</span><span class="self">self</span>.iterator_prototypes
+    }
+
+    <span class="doccomment">/// Gets the [`%GeneratorFunction.prototype.prototype%`][spec] intrinsic object.
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-generator-objects
+    </span><span class="attr">#[inline]
+    </span><span class="kw">pub fn </span>generator(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; JsObject {
+        <span class="self">self</span>.generator.clone()
+    }
+
+    <span class="doccomment">/// Gets the [`%AsyncGeneratorFunction.prototype.prototype%`] intrinsic object.
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-asyncgenerator-objects
+    </span><span class="attr">#[inline]
+    </span><span class="kw">pub fn </span>async_generator(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; JsObject {
+        <span class="self">self</span>.async_generator.clone()
+    }
+
+    <span class="doccomment">/// Gets the [`%eval%`][spec] intrinsic function.
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-eval-x
+    </span><span class="kw">pub fn </span>eval(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; JsFunction {
+        <span class="self">self</span>.eval.clone()
+    }
+
+    <span class="doccomment">/// Gets the URI intrinsic functions.
+    </span><span class="kw">pub const fn </span>uri_functions(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>UriFunctions {
+        <span class="kw-2">&amp;</span><span class="self">self</span>.uri_functions
+    }
+
+    <span class="doccomment">/// Gets the [`%Reflect%`][spec] intrinsic object.
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-reflect
+    </span><span class="kw">pub fn </span>reflect(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; JsObject {
+        <span class="self">self</span>.reflect.clone()
+    }
+
+    <span class="doccomment">/// Gets the [`%Math%`][spec] intrinsic object.
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-math
+    </span><span class="kw">pub fn </span>math(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; JsObject {
+        <span class="self">self</span>.math.clone()
+    }
+
+    <span class="doccomment">/// Gets the [`%JSON%`][spec] intrinsic object.
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-json
+    </span><span class="kw">pub fn </span>json(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; JsObject {
+        <span class="self">self</span>.json.clone()
+    }
+
+    <span class="doccomment">/// Gets the [`%isFinite%`][spec] intrinsic function.
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-isfinite-number
+    </span><span class="kw">pub fn </span>is_finite(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; JsFunction {
+        <span class="self">self</span>.is_finite.clone()
+    }
+
+    <span class="doccomment">/// Gets the [`%isNaN%`][spec] intrinsic function.
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-isnan-number
+    </span><span class="kw">pub fn </span>is_nan(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; JsFunction {
+        <span class="self">self</span>.is_nan.clone()
+    }
+
+    <span class="doccomment">/// Gets the [`%parseFloat%`][spec] intrinsic function.
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-parsefloat-string
+    </span><span class="kw">pub fn </span>parse_float(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; JsFunction {
+        <span class="self">self</span>.parse_float.clone()
+    }
+
+    <span class="doccomment">/// Gets the [`%parseInt%`][spec] intrinsic function.
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-parseint-string-radix
+    </span><span class="kw">pub fn </span>parse_int(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; JsFunction {
+        <span class="self">self</span>.parse_int.clone()
+    }
+
+    <span class="doccomment">/// Gets the [`%Intl%`][spec] intrinsic object.
+    ///
+    /// [spec]: https://tc39.es/ecma402/#intl-object
+    </span><span class="attr">#[cfg(feature = <span class="string">&quot;intl&quot;</span>)]
+    </span><span class="kw">pub fn </span>intl(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; JsObject {
+        <span class="self">self</span>.intl.clone()
     }
 }
 </code></pre></div>

@@ -47,9 +47,13 @@
 </pre><pre class="rust"><code><span class="comment">// TODO: implement `Segmenter` when https://github.com/unicode-org/icu4x/issues/2259 closes.
 
 </span><span class="kw">use </span>boa_profiler::Profiler;
-<span class="kw">use </span>tap::{Conv, Pipe};
 
-<span class="kw">use crate</span>::{builtins::BuiltIn, object::ConstructorBuilder, Context, JsResult, JsValue};
+<span class="kw">use crate</span>::{
+    builtins::{BuiltInBuilder, BuiltInConstructor, BuiltInObject, IntrinsicObject},
+    context::intrinsics::{Intrinsics, StandardConstructor, StandardConstructors},
+    object::JsObject,
+    Context, JsResult, JsValue,
+};
 
 <span class="kw">mod </span>options;
 <span class="attr">#[allow(unused)]
@@ -58,34 +62,30 @@
 <span class="attr">#[derive(Debug, Clone)]
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>Segmenter;
 
-<span class="kw">impl </span>BuiltIn <span class="kw">for </span>Segmenter {
-    <span class="kw">const </span>NAME: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;Segmenter&quot;</span>;
-
-    <span class="kw">fn </span>init(context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <span class="prelude-ty">Option</span>&lt;JsValue&gt; {
+<span class="kw">impl </span>IntrinsicObject <span class="kw">for </span>Segmenter {
+    <span class="kw">fn </span>init(intrinsics: <span class="kw-2">&amp;</span>Intrinsics) {
         <span class="kw">let </span>_timer = Profiler::global().start_event(<span class="self">Self</span>::NAME, <span class="string">&quot;init&quot;</span>);
 
-        ConstructorBuilder::with_standard_constructor(
-            context,
-            <span class="self">Self</span>::constructor,
-            context.intrinsics().constructors().segmenter().clone(),
-        )
-        .name(<span class="self">Self</span>::NAME)
-        .length(<span class="self">Self</span>::LENGTH)
-        .build()
-        .conv::&lt;JsValue&gt;()
-        .pipe(<span class="prelude-val">Some</span>)
+        BuiltInBuilder::from_standard_constructor::&lt;<span class="self">Self</span>&gt;(intrinsics).build();
+    }
+
+    <span class="kw">fn </span>get(intrinsics: <span class="kw-2">&amp;</span>Intrinsics) -&gt; JsObject {
+        <span class="self">Self</span>::STANDARD_CONSTRUCTOR(intrinsics.constructors()).constructor()
     }
 }
 
-<span class="kw">impl </span>Segmenter {
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const </span>LENGTH: usize = <span class="number">0</span>;
+<span class="kw">impl </span>BuiltInObject <span class="kw">for </span>Segmenter {
+    <span class="kw">const </span>NAME: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;Segmenter&quot;</span>;
+}
+
+<span class="kw">impl </span>BuiltInConstructor <span class="kw">for </span>Segmenter {
+    <span class="kw">const </span>LENGTH: usize = <span class="number">0</span>;
+
+    <span class="kw">const </span>STANDARD_CONSTRUCTOR: <span class="kw">fn</span>(<span class="kw-2">&amp;</span>StandardConstructors) -&gt; <span class="kw-2">&amp;</span>StandardConstructor =
+        StandardConstructors::segmenter;
 
     <span class="attr">#[allow(clippy::unnecessary_wraps)]
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>constructor(
-        <span class="kw">_</span>: <span class="kw-2">&amp;</span>JsValue,
-        <span class="kw">_</span>: <span class="kw-2">&amp;</span>[JsValue],
-        <span class="kw">_</span>: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
-    ) -&gt; JsResult&lt;JsValue&gt; {
+    </span><span class="kw">fn </span>constructor(<span class="kw">_</span>: <span class="kw-2">&amp;</span>JsValue, <span class="kw">_</span>: <span class="kw-2">&amp;</span>[JsValue], <span class="kw">_</span>: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;JsValue&gt; {
         <span class="prelude-val">Ok</span>(JsValue::Undefined)
     }
 }

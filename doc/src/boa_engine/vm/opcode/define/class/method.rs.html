@@ -201,8 +201,10 @@
 <a href="#200" id="200">200</a>
 <a href="#201" id="201">201</a>
 <a href="#202" id="202">202</a>
+<a href="#203" id="203">203</a>
 </pre><pre class="rust"><code><span class="kw">use crate</span>::{
     builtins::function::set_function_name,
+    object::CONSTRUCTOR,
     property::PropertyDescriptor,
     vm::{opcode::Operation, ShouldExit},
     Context, JsResult, JsString,
@@ -287,7 +289,7 @@
                 .expect(<span class="string">&quot;method must be function object&quot;</span>);
             function_mut.set_home_object(class_proto.clone());
             <span class="kw">let </span>class = class_proto
-                .get(<span class="string">&quot;constructor&quot;</span>, context)
+                .get(CONSTRUCTOR, context)
                 .expect(<span class="string">&quot;class prototype must have constructor&quot;</span>)
                 .as_object()
                 .expect(<span class="string">&quot;class must be object&quot;</span>)
@@ -383,7 +385,7 @@
                 .expect(<span class="string">&quot;method must be function object&quot;</span>);
             function_mut.set_home_object(class_proto.clone());
             <span class="kw">let </span>class = class_proto
-                .get(<span class="string">&quot;constructor&quot;</span>, context)
+                .get(CONSTRUCTOR, context)
                 .expect(<span class="string">&quot;class prototype must have constructor&quot;</span>)
                 .as_object()
                 .expect(<span class="string">&quot;class must be object&quot;</span>)

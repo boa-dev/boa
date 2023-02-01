@@ -180,17 +180,14 @@
 <a href="#179" id="179">179</a>
 </pre><pre class="rust"><code><span class="kw">use </span>boa_gc::{Finalize, Trace, WeakGc};
 <span class="kw">use </span>boa_profiler::Profiler;
-<span class="kw">use </span>tap::{Conv, Pipe};
 
 <span class="kw">use crate</span>::{
-    builtins::{BuiltIn, JsArgs},
-    context::intrinsics::StandardConstructors,
-    object::{
-        internal_methods::get_prototype_from_constructor, ConstructorBuilder, JsObject, ObjectData,
-    },
+    builtins::{BuiltInBuilder, BuiltInConstructor, BuiltInObject, IntrinsicObject},
+    context::intrinsics::{Intrinsics, StandardConstructor, StandardConstructors},
+    object::{internal_methods::get_prototype_from_constructor, JsObject, ObjectData},
     property::Attribute,
     symbol::JsSymbol,
-    Context, JsNativeError, JsResult, JsValue,
+    Context, JsArgs, JsNativeError, JsResult, JsValue,
 };
 
 <span class="doccomment">/// Boa&#39;s implementation of ECMAScript&#39;s `WeakRef` builtin object.
@@ -206,40 +203,41 @@
 </span><span class="attr">#[derive(Debug, Clone, Trace, Finalize)]
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>WeakRef;
 
-<span class="kw">impl </span>BuiltIn <span class="kw">for </span>WeakRef {
-    <span class="kw">const </span>NAME: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;WeakRef&quot;</span>;
+<span class="kw">impl </span>IntrinsicObject <span class="kw">for </span>WeakRef {
+    <span class="kw">fn </span>get(intrinsics: <span class="kw-2">&amp;</span>Intrinsics) -&gt; JsObject {
+        <span class="self">Self</span>::STANDARD_CONSTRUCTOR(intrinsics.constructors()).constructor()
+    }
 
-    <span class="kw">const </span>ATTRIBUTE: Attribute = Attribute::WRITABLE.union(Attribute::CONFIGURABLE);
-
-    <span class="kw">fn </span>init(context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <span class="prelude-ty">Option</span>&lt;JsValue&gt; {
+    <span class="kw">fn </span>init(intrinsics: <span class="kw-2">&amp;</span>Intrinsics) {
         <span class="kw">let </span>_timer = Profiler::global().start_event(<span class="self">Self</span>::NAME, <span class="string">&quot;init&quot;</span>);
-        ConstructorBuilder::with_standard_constructor(
-            context,
-            <span class="self">Self</span>::constructor,
-            context.intrinsics().constructors().weak_ref().clone(),
-        )
-        .name(<span class="self">Self</span>::NAME)
-        .length(<span class="self">Self</span>::LENGTH)
-        .property(
-            JsSymbol::to_string_tag(),
-            <span class="string">&quot;WeakRef&quot;</span>,
-            Attribute::CONFIGURABLE,
-        )
-        .method(<span class="self">Self</span>::deref, <span class="string">&quot;deref&quot;</span>, <span class="number">0</span>)
-        .build()
-        .conv::&lt;JsValue&gt;()
-        .pipe(<span class="prelude-val">Some</span>)
+        BuiltInBuilder::from_standard_constructor::&lt;<span class="self">Self</span>&gt;(intrinsics)
+            .property(
+                JsSymbol::to_string_tag(),
+                <span class="string">&quot;WeakRef&quot;</span>,
+                Attribute::CONFIGURABLE,
+            )
+            .method(<span class="self">Self</span>::deref, <span class="string">&quot;deref&quot;</span>, <span class="number">0</span>)
+            .build();
     }
 }
 
-<span class="kw">impl </span>WeakRef {
+<span class="kw">impl </span>BuiltInObject <span class="kw">for </span>WeakRef {
+    <span class="kw">const </span>NAME: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;WeakRef&quot;</span>;
+
+    <span class="kw">const </span>ATTRIBUTE: Attribute = Attribute::WRITABLE.union(Attribute::CONFIGURABLE);
+}
+
+<span class="kw">impl </span>BuiltInConstructor <span class="kw">for </span>WeakRef {
     <span class="doccomment">/// The amount of arguments the `WeakRef` constructor takes.
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const </span>LENGTH: usize = <span class="number">1</span>;
+    </span><span class="kw">const </span>LENGTH: usize = <span class="number">1</span>;
+
+    <span class="kw">const </span>STANDARD_CONSTRUCTOR: <span class="kw">fn</span>(<span class="kw-2">&amp;</span>StandardConstructors) -&gt; <span class="kw-2">&amp;</span>StandardConstructor =
+        StandardConstructors::weak_ref;
 
     <span class="doccomment">/// Constructor [`WeakRef ( target )`][cons]
     ///
     /// [cons]: https://tc39.es/ecma262/#sec-weak-ref-target
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>constructor(
+    </span><span class="kw">fn </span>constructor(
         new_target: <span class="kw-2">&amp;</span>JsValue,
         args: <span class="kw-2">&amp;</span>[JsValue],
         context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
@@ -272,7 +270,9 @@
         <span class="comment">// 6. Return weakRef.
         </span><span class="prelude-val">Ok</span>(weak_ref.into())
     }
+}
 
+<span class="kw">impl </span>WeakRef {
     <span class="doccomment">/// Method [`WeakRef.prototype.deref ( )`][spec].
     ///
     /// If the referenced object hasn&#39;t been collected, this method promotes a `WeakRef` into a

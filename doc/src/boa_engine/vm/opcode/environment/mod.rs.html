@@ -304,7 +304,7 @@
                 context.vm.push(env.borrow().get_this_binding()<span class="question-mark">?</span>.clone());
             }
             EnvironmentSlots::Global =&gt; {
-                <span class="kw">let </span>this = context.realm.global_object();
+                <span class="kw">let </span>this = context.realm.global_this();
                 context.vm.push(this.clone());
             }
         }

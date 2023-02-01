@@ -64,6 +64,15 @@
 <a href="#63" id="63">63</a>
 <a href="#64" id="64">64</a>
 <a href="#65" id="65">65</a>
+<a href="#66" id="66">66</a>
+<a href="#67" id="67">67</a>
+<a href="#68" id="68">68</a>
+<a href="#69" id="69">69</a>
+<a href="#70" id="70">70</a>
+<a href="#71" id="71">71</a>
+<a href="#72" id="72">72</a>
+<a href="#73" id="73">73</a>
+<a href="#74" id="74">74</a>
 </pre><pre class="rust"><code><span class="doccomment">//! Boa&#39;s implementation of ECMAScript&#39;s `Realm Records`
 //!
 //! Conceptually, a realm consists of a set of intrinsic objects, an ECMAScript global environment,
@@ -73,8 +82,9 @@
 //! A realm is represented in this implementation as a Realm struct with the fields specified from the spec.
 
 </span><span class="kw">use crate</span>::{
+    context::{intrinsics::Intrinsics, HostHooks},
     environments::{CompileTimeEnvironment, DeclarativeEnvironmentStack},
-    object::{GlobalPropertyMap, JsObject, JsPrototype, ObjectData, PropertyMap},
+    object::{GlobalPropertyMap, JsObject, PropertyMap},
 };
 <span class="kw">use </span>boa_gc::{Gc, GcRefCell};
 <span class="kw">use </span>boa_profiler::Profiler;
@@ -84,32 +94,36 @@
 /// In the specification these are called Realm Records.
 </span><span class="attr">#[derive(Debug)]
 </span><span class="kw">pub struct </span>Realm {
-    global_object: JsObject,
-    <span class="kw">pub</span>(<span class="kw">crate</span>) global_extensible: bool,
+    <span class="kw">pub</span>(<span class="kw">crate</span>) intrinsics: Intrinsics,
     <span class="kw">pub</span>(<span class="kw">crate</span>) global_property_map: PropertyMap,
-    <span class="kw">pub</span>(<span class="kw">crate</span>) global_prototype: JsPrototype,
     <span class="kw">pub</span>(<span class="kw">crate</span>) environments: DeclarativeEnvironmentStack,
     <span class="kw">pub</span>(<span class="kw">crate</span>) compile_env: Gc&lt;GcRefCell&lt;CompileTimeEnvironment&gt;&gt;,
+    global_object: JsObject,
+    global_this: JsObject,
 }
 
 <span class="kw">impl </span>Realm {
     <span class="doccomment">/// Create a new Realm.
     </span><span class="attr">#[inline]
-    </span><span class="kw">pub fn </span>create(global_prototype: JsPrototype) -&gt; <span class="self">Self </span>{
+    </span><span class="kw">pub fn </span>create(hooks: <span class="kw-2">&amp;</span><span class="kw">dyn </span>HostHooks) -&gt; <span class="self">Self </span>{
         <span class="kw">let </span>_timer = Profiler::global().start_event(<span class="string">&quot;Realm::create&quot;</span>, <span class="string">&quot;realm&quot;</span>);
-        <span class="comment">// Create brand new global object
-        // Global has no prototype to pass None to new_obj
-        // Allow identification of the global object easily
-        </span><span class="kw">let </span>global_object = JsObject::from_proto_and_data(<span class="prelude-val">None</span>, ObjectData::global());
+
+        <span class="kw">let </span>intrinsics = Intrinsics::new();
+
+        <span class="kw">let </span>global_object = hooks.create_global_object(<span class="kw-2">&amp;</span>intrinsics);
+        <span class="kw">let </span>global_this = hooks
+            .create_global_this(<span class="kw-2">&amp;</span>intrinsics)
+            .unwrap_or_else(|| global_object.clone());
 
         <span class="kw">let </span>global_compile_environment =
             Gc::new(GcRefCell::new(CompileTimeEnvironment::new_global()));
 
-        <span class="self">Self </span>{
+        <span class="attr">#[allow(unreachable_code)]
+        </span><span class="self">Self </span>{
+            intrinsics,
             global_object,
-            global_extensible: <span class="bool-val">true</span>,
+            global_this,
             global_property_map: PropertyMap::default(),
-            global_prototype,
             environments: DeclarativeEnvironmentStack::new(global_compile_environment.clone()),
             compile_env: global_compile_environment,
         }
@@ -117,6 +131,10 @@
 
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const fn </span>global_object(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>JsObject {
         <span class="kw-2">&amp;</span><span class="self">self</span>.global_object
+    }
+
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const fn </span>global_this(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>JsObject {
+        <span class="kw-2">&amp;</span><span class="self">self</span>.global_this
     }
 
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>global_bindings_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span>GlobalPropertyMap {

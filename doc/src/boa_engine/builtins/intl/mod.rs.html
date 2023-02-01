@@ -147,13 +147,6 @@
 <a href="#146" id="146">146</a>
 <a href="#147" id="147">147</a>
 <a href="#148" id="148">148</a>
-<a href="#149" id="149">149</a>
-<a href="#150" id="150">150</a>
-<a href="#151" id="151">151</a>
-<a href="#152" id="152">152</a>
-<a href="#153" id="153">153</a>
-<a href="#154" id="154">154</a>
-<a href="#155" id="155">155</a>
 </pre><pre class="rust"><code><span class="doccomment">//! Boa&#39;s implementation of ECMAScript&#39;s global `Intl` object.
 //!
 //! `Intl` is a built-in object that has properties and methods for i18n. It&#39;s not a function object.
@@ -165,88 +158,81 @@
 
 </span><span class="attr">#![allow(clippy::string_lit_as_bytes)]
 
-</span><span class="kw">use </span><span class="kw">super</span>::JsArgs;
-<span class="kw">use crate</span>::{
-    builtins::intl::date_time_format::DateTimeFormat,
-    builtins::{Array, BuiltIn},
-    context::BoaProvider,
-    object::ObjectInitializer,
+</span><span class="kw">use crate</span>::{
+    builtins::{Array, BuiltInBuilder, BuiltInObject, IntrinsicObject},
+    context::{intrinsics::Intrinsics, BoaProvider},
+    object::JsObject,
     property::Attribute,
     symbol::JsSymbol,
-    Context, JsResult, JsValue,
+    Context, JsArgs, JsResult, JsValue,
 };
 
 <span class="kw">use </span>boa_profiler::Profiler;
 <span class="kw">use </span>icu_provider::KeyedDataMarker;
-<span class="kw">use </span>tap::{Conv, Pipe};
 
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">mod </span>collator;
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">mod </span>date_time_format;
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">mod </span>list_format;
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">mod </span>locale;
-<span class="kw">mod </span>options;
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">mod </span>segmenter;
 
-<span class="kw">use </span><span class="self">self</span>::{collator::Collator, list_format::ListFormat, locale::Locale, segmenter::Segmenter};
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use </span><span class="self">self</span>::{
+    collator::Collator, date_time_format::DateTimeFormat, list_format::ListFormat, locale::Locale,
+    segmenter::Segmenter,
+};
+
+<span class="kw">mod </span>options;
 
 <span class="doccomment">/// JavaScript `Intl` object.
 </span><span class="attr">#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>Intl;
 
-<span class="kw">impl </span>BuiltIn <span class="kw">for </span>Intl {
-    <span class="kw">const </span>NAME: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;Intl&quot;</span>;
-
-    <span class="kw">fn </span>init(context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <span class="prelude-ty">Option</span>&lt;JsValue&gt; {
+<span class="kw">impl </span>IntrinsicObject <span class="kw">for </span>Intl {
+    <span class="kw">fn </span>init(intrinsics: <span class="kw-2">&amp;</span>Intrinsics) {
         <span class="kw">let </span>_timer = Profiler::global().start_event(<span class="self">Self</span>::NAME, <span class="string">&quot;init&quot;</span>);
 
-        <span class="kw">let </span>collator = Collator::init(context).expect(<span class="string">&quot;initialization should return a constructor&quot;</span>);
-
-        <span class="kw">let </span>list_format =
-            ListFormat::init(context).expect(<span class="string">&quot;initialization should return a constructor&quot;</span>);
-
-        <span class="kw">let </span>locale = Locale::init(context).expect(<span class="string">&quot;initialization should return a constructor&quot;</span>);
-
-        <span class="kw">let </span>segmenter =
-            Segmenter::init(context).expect(<span class="string">&quot;initialization should return a constructor&quot;</span>);
-
-        <span class="kw">let </span>date_time_format = DateTimeFormat::init(context);
-
-        ObjectInitializer::new(context)
-            .property(
+        BuiltInBuilder::with_intrinsic::&lt;<span class="self">Self</span>&gt;(intrinsics)
+            .static_property(
                 JsSymbol::to_string_tag(),
                 <span class="self">Self</span>::NAME,
-                Attribute::READONLY | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
+                Attribute::CONFIGURABLE,
             )
-            .property(
-                <span class="string">&quot;Collator&quot;</span>,
-                collator,
-                Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
+            .static_property(
+                Collator::NAME,
+                intrinsics.constructors().collator().constructor(),
+                Collator::ATTRIBUTE,
             )
-            .property(
-                <span class="string">&quot;ListFormat&quot;</span>,
-                list_format,
-                Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
+            .static_property(
+                ListFormat::NAME,
+                intrinsics.constructors().list_format().constructor(),
+                ListFormat::ATTRIBUTE,
             )
-            .property(
-                <span class="string">&quot;DateTimeFormat&quot;</span>,
-                date_time_format,
-                Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
+            .static_property(
+                Locale::NAME,
+                intrinsics.constructors().locale().constructor(),
+                Locale::ATTRIBUTE,
             )
-            .property(
-                <span class="string">&quot;Locale&quot;</span>,
-                locale,
-                Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
+            .static_property(
+                Segmenter::NAME,
+                intrinsics.constructors().segmenter().constructor(),
+                Segmenter::ATTRIBUTE,
             )
-            .property(
-                <span class="string">&quot;Segmenter&quot;</span>,
-                segmenter,
-                Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
+            .static_property(
+                DateTimeFormat::NAME,
+                intrinsics.constructors().date_time_format().constructor(),
+                DateTimeFormat::ATTRIBUTE,
             )
-            .function(<span class="self">Self</span>::get_canonical_locales, <span class="string">&quot;getCanonicalLocales&quot;</span>, <span class="number">1</span>)
-            .build()
-            .conv::&lt;JsValue&gt;()
-            .pipe(<span class="prelude-val">Some</span>)
+            .static_method(<span class="self">Self</span>::get_canonical_locales, <span class="string">&quot;getCanonicalLocales&quot;</span>, <span class="number">1</span>)
+            .build();
     }
+
+    <span class="kw">fn </span>get(intrinsics: <span class="kw-2">&amp;</span>Intrinsics) -&gt; JsObject {
+        intrinsics.objects().intl()
+    }
+}
+
+<span class="kw">impl </span>BuiltInObject <span class="kw">for </span>Intl {
+    <span class="kw">const </span>NAME: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;Intl&quot;</span>;
 }
 
 <span class="kw">impl </span>Intl {

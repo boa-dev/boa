@@ -2375,6 +2375,9 @@
 <a href="#2374" id="2374">2374</a>
 <a href="#2375" id="2375">2375</a>
 <a href="#2376" id="2376">2376</a>
+<a href="#2377" id="2377">2377</a>
+<a href="#2378" id="2378">2378</a>
+<a href="#2379" id="2379">2379</a>
 </pre><pre class="rust"><code><span class="doccomment">//! Boa&#39;s implementation of ECMAScript&#39;s global `String` object.
 //!
 //! The `String` global object is a constructor for strings or a sequence of characters.
@@ -2386,29 +2389,29 @@
 //! [spec]: https://tc39.es/ecma262/#sec-string-object
 //! [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String
 
-</span><span class="kw">pub mod </span>string_iterator;
-<span class="attr">#[cfg(test)]
-</span><span class="kw">mod </span>tests;
-
-<span class="kw">use </span><span class="kw">super</span>::JsArgs;
-<span class="kw">use crate</span>::{
-    builtins::{string::string_iterator::StringIterator, Array, BuiltIn, Number, RegExp},
-    context::intrinsics::StandardConstructors,
+</span><span class="kw">use crate</span>::{
+    builtins::{Array, BuiltInObject, Number, RegExp},
+    context::intrinsics::{Intrinsics, StandardConstructor, StandardConstructors},
     error::JsNativeError,
     js_string,
-    object::{
-        internal_methods::get_prototype_from_constructor, ConstructorBuilder, JsObject, ObjectData,
-    },
+    object::{internal_methods::get_prototype_from_constructor, JsObject, ObjectData},
     property::{Attribute, PropertyDescriptor},
     string::utf16,
     string::{CodePoint, Utf16Trim},
     symbol::JsSymbol,
     value::IntegerOrInfinity,
-    Context, JsResult, JsString, JsValue,
+    Context, JsArgs, JsResult, JsString, JsValue,
 };
 <span class="kw">use </span>boa_profiler::Profiler;
 <span class="kw">use </span>std::cmp::{max, min};
-<span class="kw">use </span>tap::{Conv, Pipe};
+
+<span class="kw">use super</span>::{BuiltInBuilder, BuiltInConstructor, IntrinsicObject};
+
+<span class="kw">mod </span>string_iterator;
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use </span>string_iterator::StringIterator;
+
+<span class="attr">#[cfg(test)]
+</span><span class="kw">mod </span>tests;
 
 <span class="attr">#[derive(Clone, Copy, Eq, PartialEq)]
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">enum </span>Placement {
@@ -2440,79 +2443,72 @@
 </span><span class="attr">#[derive(Debug, Clone, Copy)]
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>String;
 
-<span class="kw">impl </span>BuiltIn <span class="kw">for </span>String {
-    <span class="kw">const </span>NAME: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;String&quot;</span>;
-
-    <span class="kw">fn </span>init(context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <span class="prelude-ty">Option</span>&lt;JsValue&gt; {
+<span class="kw">impl </span>IntrinsicObject <span class="kw">for </span>String {
+    <span class="kw">fn </span>init(intrinsics: <span class="kw-2">&amp;</span>Intrinsics) {
         <span class="kw">let </span>_timer = Profiler::global().start_event(<span class="self">Self</span>::NAME, <span class="string">&quot;init&quot;</span>);
 
         <span class="kw">let </span>symbol_iterator = JsSymbol::iterator();
 
         <span class="kw">let </span>attribute = Attribute::READONLY | Attribute::NON_ENUMERABLE | Attribute::PERMANENT;
-        ConstructorBuilder::with_standard_constructor(
-            context,
-            <span class="self">Self</span>::constructor,
-            context.intrinsics().constructors().string().clone(),
-        )
-        .name(<span class="self">Self</span>::NAME)
-        .length(<span class="self">Self</span>::LENGTH)
-        .property(<span class="string">&quot;length&quot;</span>, <span class="number">0</span>, attribute)
-        .static_method(<span class="self">Self</span>::raw, <span class="string">&quot;raw&quot;</span>, <span class="number">1</span>)
-        .static_method(<span class="self">Self</span>::from_char_code, <span class="string">&quot;fromCharCode&quot;</span>, <span class="number">1</span>)
-        .static_method(<span class="self">Self</span>::from_code_point, <span class="string">&quot;fromCodePoint&quot;</span>, <span class="number">1</span>)
-        .method(<span class="self">Self</span>::char_at, <span class="string">&quot;charAt&quot;</span>, <span class="number">1</span>)
-        .method(<span class="self">Self</span>::char_code_at, <span class="string">&quot;charCodeAt&quot;</span>, <span class="number">1</span>)
-        .method(<span class="self">Self</span>::code_point_at, <span class="string">&quot;codePointAt&quot;</span>, <span class="number">1</span>)
-        .method(<span class="self">Self</span>::to_string, <span class="string">&quot;toString&quot;</span>, <span class="number">0</span>)
-        .method(<span class="self">Self</span>::concat, <span class="string">&quot;concat&quot;</span>, <span class="number">1</span>)
-        .method(<span class="self">Self</span>::repeat, <span class="string">&quot;repeat&quot;</span>, <span class="number">1</span>)
-        .method(<span class="self">Self</span>::slice, <span class="string">&quot;slice&quot;</span>, <span class="number">2</span>)
-        .method(<span class="self">Self</span>::starts_with, <span class="string">&quot;startsWith&quot;</span>, <span class="number">1</span>)
-        .method(<span class="self">Self</span>::ends_with, <span class="string">&quot;endsWith&quot;</span>, <span class="number">1</span>)
-        .method(<span class="self">Self</span>::includes, <span class="string">&quot;includes&quot;</span>, <span class="number">1</span>)
-        .method(<span class="self">Self</span>::index_of, <span class="string">&quot;indexOf&quot;</span>, <span class="number">1</span>)
-        .method(<span class="self">Self</span>::last_index_of, <span class="string">&quot;lastIndexOf&quot;</span>, <span class="number">1</span>)
-        .method(<span class="self">Self</span>::locale_compare, <span class="string">&quot;localeCompare&quot;</span>, <span class="number">1</span>)
-        .method(<span class="self">Self</span>::r#match, <span class="string">&quot;match&quot;</span>, <span class="number">1</span>)
-        .method(<span class="self">Self</span>::normalize, <span class="string">&quot;normalize&quot;</span>, <span class="number">1</span>)
-        .method(<span class="self">Self</span>::pad_end, <span class="string">&quot;padEnd&quot;</span>, <span class="number">1</span>)
-        .method(<span class="self">Self</span>::pad_start, <span class="string">&quot;padStart&quot;</span>, <span class="number">1</span>)
-        .method(<span class="self">Self</span>::trim, <span class="string">&quot;trim&quot;</span>, <span class="number">0</span>)
-        .method(<span class="self">Self</span>::trim_start, <span class="string">&quot;trimStart&quot;</span>, <span class="number">0</span>)
-        .method(<span class="self">Self</span>::trim_end, <span class="string">&quot;trimEnd&quot;</span>, <span class="number">0</span>)
-        .method(<span class="self">Self</span>::to_lowercase, <span class="string">&quot;toLowerCase&quot;</span>, <span class="number">0</span>)
-        .method(<span class="self">Self</span>::to_uppercase, <span class="string">&quot;toUpperCase&quot;</span>, <span class="number">0</span>)
-        .method(<span class="self">Self</span>::substring, <span class="string">&quot;substring&quot;</span>, <span class="number">2</span>)
-        .method(<span class="self">Self</span>::substr, <span class="string">&quot;substr&quot;</span>, <span class="number">2</span>)
-        .method(<span class="self">Self</span>::split, <span class="string">&quot;split&quot;</span>, <span class="number">2</span>)
-        .method(<span class="self">Self</span>::value_of, <span class="string">&quot;valueOf&quot;</span>, <span class="number">0</span>)
-        .method(<span class="self">Self</span>::match_all, <span class="string">&quot;matchAll&quot;</span>, <span class="number">1</span>)
-        .method(<span class="self">Self</span>::replace, <span class="string">&quot;replace&quot;</span>, <span class="number">2</span>)
-        .method(<span class="self">Self</span>::replace_all, <span class="string">&quot;replaceAll&quot;</span>, <span class="number">2</span>)
-        .method(<span class="self">Self</span>::iterator, (symbol_iterator, <span class="string">&quot;[Symbol.iterator]&quot;</span>), <span class="number">0</span>)
-        .method(<span class="self">Self</span>::search, <span class="string">&quot;search&quot;</span>, <span class="number">1</span>)
-        .method(<span class="self">Self</span>::at, <span class="string">&quot;at&quot;</span>, <span class="number">1</span>)
-        .build()
-        .conv::&lt;JsValue&gt;()
-        .pipe(<span class="prelude-val">Some</span>)
+        BuiltInBuilder::from_standard_constructor::&lt;<span class="self">Self</span>&gt;(intrinsics)
+            .property(<span class="string">&quot;length&quot;</span>, <span class="number">0</span>, attribute)
+            .static_method(<span class="self">Self</span>::raw, <span class="string">&quot;raw&quot;</span>, <span class="number">1</span>)
+            .static_method(<span class="self">Self</span>::from_char_code, <span class="string">&quot;fromCharCode&quot;</span>, <span class="number">1</span>)
+            .static_method(<span class="self">Self</span>::from_code_point, <span class="string">&quot;fromCodePoint&quot;</span>, <span class="number">1</span>)
+            .method(<span class="self">Self</span>::char_at, <span class="string">&quot;charAt&quot;</span>, <span class="number">1</span>)
+            .method(<span class="self">Self</span>::char_code_at, <span class="string">&quot;charCodeAt&quot;</span>, <span class="number">1</span>)
+            .method(<span class="self">Self</span>::code_point_at, <span class="string">&quot;codePointAt&quot;</span>, <span class="number">1</span>)
+            .method(<span class="self">Self</span>::to_string, <span class="string">&quot;toString&quot;</span>, <span class="number">0</span>)
+            .method(<span class="self">Self</span>::concat, <span class="string">&quot;concat&quot;</span>, <span class="number">1</span>)
+            .method(<span class="self">Self</span>::repeat, <span class="string">&quot;repeat&quot;</span>, <span class="number">1</span>)
+            .method(<span class="self">Self</span>::slice, <span class="string">&quot;slice&quot;</span>, <span class="number">2</span>)
+            .method(<span class="self">Self</span>::starts_with, <span class="string">&quot;startsWith&quot;</span>, <span class="number">1</span>)
+            .method(<span class="self">Self</span>::ends_with, <span class="string">&quot;endsWith&quot;</span>, <span class="number">1</span>)
+            .method(<span class="self">Self</span>::includes, <span class="string">&quot;includes&quot;</span>, <span class="number">1</span>)
+            .method(<span class="self">Self</span>::index_of, <span class="string">&quot;indexOf&quot;</span>, <span class="number">1</span>)
+            .method(<span class="self">Self</span>::last_index_of, <span class="string">&quot;lastIndexOf&quot;</span>, <span class="number">1</span>)
+            .method(<span class="self">Self</span>::locale_compare, <span class="string">&quot;localeCompare&quot;</span>, <span class="number">1</span>)
+            .method(<span class="self">Self</span>::r#match, <span class="string">&quot;match&quot;</span>, <span class="number">1</span>)
+            .method(<span class="self">Self</span>::normalize, <span class="string">&quot;normalize&quot;</span>, <span class="number">1</span>)
+            .method(<span class="self">Self</span>::pad_end, <span class="string">&quot;padEnd&quot;</span>, <span class="number">1</span>)
+            .method(<span class="self">Self</span>::pad_start, <span class="string">&quot;padStart&quot;</span>, <span class="number">1</span>)
+            .method(<span class="self">Self</span>::trim, <span class="string">&quot;trim&quot;</span>, <span class="number">0</span>)
+            .method(<span class="self">Self</span>::trim_start, <span class="string">&quot;trimStart&quot;</span>, <span class="number">0</span>)
+            .method(<span class="self">Self</span>::trim_end, <span class="string">&quot;trimEnd&quot;</span>, <span class="number">0</span>)
+            .method(<span class="self">Self</span>::to_lowercase, <span class="string">&quot;toLowerCase&quot;</span>, <span class="number">0</span>)
+            .method(<span class="self">Self</span>::to_uppercase, <span class="string">&quot;toUpperCase&quot;</span>, <span class="number">0</span>)
+            .method(<span class="self">Self</span>::substring, <span class="string">&quot;substring&quot;</span>, <span class="number">2</span>)
+            .method(<span class="self">Self</span>::substr, <span class="string">&quot;substr&quot;</span>, <span class="number">2</span>)
+            .method(<span class="self">Self</span>::split, <span class="string">&quot;split&quot;</span>, <span class="number">2</span>)
+            .method(<span class="self">Self</span>::value_of, <span class="string">&quot;valueOf&quot;</span>, <span class="number">0</span>)
+            .method(<span class="self">Self</span>::match_all, <span class="string">&quot;matchAll&quot;</span>, <span class="number">1</span>)
+            .method(<span class="self">Self</span>::replace, <span class="string">&quot;replace&quot;</span>, <span class="number">2</span>)
+            .method(<span class="self">Self</span>::replace_all, <span class="string">&quot;replaceAll&quot;</span>, <span class="number">2</span>)
+            .method(<span class="self">Self</span>::iterator, (symbol_iterator, <span class="string">&quot;[Symbol.iterator]&quot;</span>), <span class="number">0</span>)
+            .method(<span class="self">Self</span>::search, <span class="string">&quot;search&quot;</span>, <span class="number">1</span>)
+            .method(<span class="self">Self</span>::at, <span class="string">&quot;at&quot;</span>, <span class="number">1</span>)
+            .build();
+    }
+
+    <span class="kw">fn </span>get(intrinsics: <span class="kw-2">&amp;</span>Intrinsics) -&gt; JsObject {
+        <span class="self">Self</span>::STANDARD_CONSTRUCTOR(intrinsics.constructors()).constructor()
     }
 }
 
-<span class="kw">impl </span>String {
-    <span class="doccomment">/// The amount of arguments this function object takes.
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const </span>LENGTH: usize = <span class="number">1</span>;
+<span class="kw">impl </span>BuiltInObject <span class="kw">for </span>String {
+    <span class="kw">const </span>NAME: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;String&quot;</span>;
+}
 
-    <span class="doccomment">/// JavaScript strings must be between `0` and less than positive `Infinity` and cannot be a negative number.
-    /// The range of allowed values can be described like this: `[0, +∞)`.
-    ///
-    /// The resulting string can also not be larger than the maximum string size,
-    /// which can differ in JavaScript engines. In Boa it is `2^32 - 1`
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const </span>MAX_STRING_LENGTH: usize = u32::MAX <span class="kw">as </span>usize;
+<span class="kw">impl </span>BuiltInConstructor <span class="kw">for </span>String {
+    <span class="kw">const </span>LENGTH: usize = <span class="number">1</span>;
+
+    <span class="kw">const </span>STANDARD_CONSTRUCTOR: <span class="kw">fn</span>(<span class="kw-2">&amp;</span>StandardConstructors) -&gt; <span class="kw-2">&amp;</span>StandardConstructor =
+        StandardConstructors::string;
 
     <span class="doccomment">/// Constructor `String( value )`
     ///
     /// &lt;https://tc39.es/ecma262/#sec-string-constructor-string-value&gt;
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>constructor(
+    </span><span class="kw">fn </span>constructor(
         new_target: <span class="kw-2">&amp;</span>JsValue,
         args: <span class="kw-2">&amp;</span>[JsValue],
         context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
@@ -2541,6 +2537,15 @@
         <span class="comment">// 4. Return ! StringCreate(s, ? GetPrototypeFromConstructor(NewTarget, &quot;%String.prototype%&quot;)).
         </span><span class="prelude-val">Ok</span>(<span class="self">Self</span>::string_create(string, prototype, context).into())
     }
+}
+
+<span class="kw">impl </span>String {
+    <span class="doccomment">/// JavaScript strings must be between `0` and less than positive `Infinity` and cannot be a negative number.
+    /// The range of allowed values can be described like this: `[0, +∞)`.
+    ///
+    /// The resulting string can also not be larger than the maximum string size,
+    /// which can differ in JavaScript engines. In Boa it is `2^32 - 1`
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const </span>MAX_STRING_LENGTH: usize = u32::MAX <span class="kw">as </span>usize;
 
     <span class="doccomment">/// Abstract function `StringCreate( value, prototype )`.
     ///
@@ -4522,12 +4527,13 @@
         </span>rx.invoke(JsSymbol::search(), <span class="kw-2">&amp;</span>[JsValue::new(string)], context)
     }
 
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>iterator(
+    <span class="attr">#[allow(clippy::unnecessary_wraps)]
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>iterator(
         this: <span class="kw-2">&amp;</span>JsValue,
         <span class="kw">_</span>: <span class="kw-2">&amp;</span>[JsValue],
         context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
     ) -&gt; JsResult&lt;JsValue&gt; {
-        StringIterator::create_string_iterator(this.clone(), context)
+        <span class="prelude-val">Ok</span>(StringIterator::create_string_iterator(this.clone(), context).into())
     }
 }
 

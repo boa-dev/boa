@@ -3575,34 +3575,6 @@
 <a href="#3574" id="3574">3574</a>
 <a href="#3575" id="3575">3575</a>
 <a href="#3576" id="3576">3576</a>
-<a href="#3577" id="3577">3577</a>
-<a href="#3578" id="3578">3578</a>
-<a href="#3579" id="3579">3579</a>
-<a href="#3580" id="3580">3580</a>
-<a href="#3581" id="3581">3581</a>
-<a href="#3582" id="3582">3582</a>
-<a href="#3583" id="3583">3583</a>
-<a href="#3584" id="3584">3584</a>
-<a href="#3585" id="3585">3585</a>
-<a href="#3586" id="3586">3586</a>
-<a href="#3587" id="3587">3587</a>
-<a href="#3588" id="3588">3588</a>
-<a href="#3589" id="3589">3589</a>
-<a href="#3590" id="3590">3590</a>
-<a href="#3591" id="3591">3591</a>
-<a href="#3592" id="3592">3592</a>
-<a href="#3593" id="3593">3593</a>
-<a href="#3594" id="3594">3594</a>
-<a href="#3595" id="3595">3595</a>
-<a href="#3596" id="3596">3596</a>
-<a href="#3597" id="3597">3597</a>
-<a href="#3598" id="3598">3598</a>
-<a href="#3599" id="3599">3599</a>
-<a href="#3600" id="3600">3600</a>
-<a href="#3601" id="3601">3601</a>
-<a href="#3602" id="3602">3602</a>
-<a href="#3603" id="3603">3603</a>
-<a href="#3604" id="3604">3604</a>
 </pre><pre class="rust"><code><span class="doccomment">//! Boa&#39;s implementation of ECMAScript&#39;s global `TypedArray` objects.
 //!
 //! A `TypedArray` object describes an array-like view of an underlying binary data buffer.
@@ -3619,29 +3591,24 @@
 
 </span><span class="kw">use crate</span>::{
     builtins::{
+        array::ArrayIterator,
         array_buffer::{ArrayBuffer, SharedMemoryOrder},
         iterable::iterable_to_list,
         typed_array::integer_indexed_object::{ContentType, IntegerIndexed},
-        Array, ArrayIterator, BuiltIn, JsArgs,
+        Array, BuiltInBuilder, BuiltInConstructor, BuiltInObject, IntrinsicObject,
     },
-    context::intrinsics::{StandardConstructor, StandardConstructors},
+    context::intrinsics::{Intrinsics, StandardConstructor, StandardConstructors},
     error::JsNativeError,
     js_string,
-    native_function::NativeFunction,
-    object::{
-        internal_methods::get_prototype_from_constructor, ConstructorBuilder,
-        FunctionObjectBuilder, JsObject, ObjectData,
-    },
+    object::{internal_methods::get_prototype_from_constructor, JsObject, ObjectData},
     property::{Attribute, PropertyNameKind},
     symbol::JsSymbol,
     value::{IntegerOrInfinity, JsValue},
-    Context, JsResult,
+    Context, JsArgs, JsResult,
 };
 <span class="kw">use </span>boa_profiler::Profiler;
 <span class="kw">use </span>num_traits::{Signed, Zero};
 <span class="kw">use </span>std::cmp::Ordering;
-
-<span class="kw">use </span>tap::{Conv, Pipe};
 
 <span class="kw">pub mod </span>integer_indexed_object;
 
@@ -3651,72 +3618,55 @@
         #[derive(Debug, Clone, Copy)]
         </span><span class="kw">pub struct </span><span class="macro-nonterminal">$ty</span>;
 
-        <span class="kw">impl </span>BuiltIn <span class="kw">for </span><span class="macro-nonterminal">$ty </span>{
+        <span class="kw">impl </span>IntrinsicObject <span class="kw">for </span><span class="macro-nonterminal">$ty </span>{
+            <span class="kw">fn </span>get(intrinsics: <span class="kw-2">&amp;</span>Intrinsics) -&gt; JsObject {
+                <span class="self">Self</span>::STANDARD_CONSTRUCTOR(intrinsics.constructors()).constructor()
+            }
+
+            <span class="kw">fn </span>init(intrinsics: <span class="kw-2">&amp;</span>Intrinsics) {
+                <span class="kw">let </span>_timer = Profiler::global().start_event(<span class="self">Self</span>::NAME, <span class="string">&quot;init&quot;</span>);
+
+                <span class="kw">let </span>get_species = BuiltInBuilder::new(intrinsics)
+                    .callable(TypedArray::get_species)
+                    .name(<span class="string">&quot;get [Symbol.species]&quot;</span>)
+                    .build();
+
+                BuiltInBuilder::from_standard_constructor::&lt;<span class="self">Self</span>&gt;(intrinsics)
+                    .prototype(intrinsics.constructors().typed_array().constructor())
+                    .inherits(<span class="prelude-val">Some</span>(intrinsics.constructors().typed_array().prototype()))
+                    .static_accessor(
+                        JsSymbol::species(),
+                        <span class="prelude-val">Some</span>(get_species),
+                        <span class="prelude-val">None</span>,
+                        Attribute::CONFIGURABLE,
+                    )
+                    .property(
+                        <span class="string">&quot;BYTES_PER_ELEMENT&quot;</span>,
+                        TypedArrayKind::<span class="macro-nonterminal">$variant</span>.element_size(),
+                        Attribute::READONLY | Attribute::NON_ENUMERABLE | Attribute::PERMANENT,
+                    )
+                    .static_property(
+                        <span class="string">&quot;BYTES_PER_ELEMENT&quot;</span>,
+                        TypedArrayKind::<span class="macro-nonterminal">$variant</span>.element_size(),
+                        Attribute::READONLY | Attribute::NON_ENUMERABLE | Attribute::PERMANENT,
+                    )
+                    .build();
+            }
+        }
+
+        <span class="kw">impl </span>BuiltInObject <span class="kw">for </span><span class="macro-nonterminal">$ty </span>{
             <span class="kw">const </span>NAME: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="macro-nonterminal">$name</span>;
 
             <span class="kw">const </span>ATTRIBUTE: Attribute = Attribute::WRITABLE
                 .union(Attribute::NON_ENUMERABLE)
                 .union(Attribute::CONFIGURABLE);
-
-            <span class="kw">fn </span>init(context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <span class="prelude-ty">Option</span>&lt;JsValue&gt; {
-                <span class="kw">let </span>_timer = Profiler::global().start_event(<span class="self">Self</span>::NAME, <span class="string">&quot;init&quot;</span>);
-
-                <span class="kw">let </span>typed_array_constructor = context
-                    .intrinsics()
-                    .constructors()
-                    .typed_array()
-                    .constructor();
-                <span class="kw">let </span>typed_array_constructor_proto = context
-                    .intrinsics()
-                    .constructors()
-                    .typed_array()
-                    .prototype();
-
-                <span class="kw">let </span>get_species = FunctionObjectBuilder::new(
-                    context,
-                    NativeFunction::from_fn_ptr(TypedArray::get_species),
-                )
-                .name(<span class="string">&quot;get [Symbol.species]&quot;</span>)
-                .constructor(<span class="bool-val">false</span>)
-                .build();
-
-                ConstructorBuilder::with_standard_constructor(
-                    context,
-                    <span class="self">Self</span>::constructor,
-                    context
-                        .intrinsics()
-                        .constructors()
-                        .<span class="macro-nonterminal">$global_object_name</span>()
-                        .clone(),
-                )
-                .name(<span class="self">Self</span>::NAME)
-                .length(<span class="self">Self</span>::LENGTH)
-                .static_accessor(
-                    JsSymbol::species(),
-                    <span class="prelude-val">Some</span>(get_species),
-                    <span class="prelude-val">None</span>,
-                    Attribute::CONFIGURABLE,
-                )
-                .property(
-                    <span class="string">&quot;BYTES_PER_ELEMENT&quot;</span>,
-                    TypedArrayKind::<span class="macro-nonterminal">$variant</span>.element_size(),
-                    Attribute::READONLY | Attribute::NON_ENUMERABLE | Attribute::PERMANENT,
-                )
-                .static_property(
-                    <span class="string">&quot;BYTES_PER_ELEMENT&quot;</span>,
-                    TypedArrayKind::<span class="macro-nonterminal">$variant</span>.element_size(),
-                    Attribute::READONLY | Attribute::NON_ENUMERABLE | Attribute::PERMANENT,
-                )
-                .custom_prototype(typed_array_constructor)
-                .inherit(typed_array_constructor_proto)
-                .build()
-                .conv::&lt;JsValue&gt;()
-                .pipe(<span class="prelude-val">Some</span>)
-            }
         }
 
-        <span class="kw">impl </span><span class="macro-nonterminal">$ty </span>{
+        <span class="kw">impl </span>BuiltInConstructor <span class="kw">for </span><span class="macro-nonterminal">$ty </span>{
             <span class="kw">const </span>LENGTH: usize = <span class="number">3</span>;
+
+            <span class="kw">const </span>STANDARD_CONSTRUCTOR: <span class="kw">fn</span>(<span class="kw-2">&amp;</span>StandardConstructors) -&gt; <span class="kw-2">&amp;</span>StandardConstructor =
+                StandardConstructors::<span class="macro-nonterminal">$global_object_name</span>;
 
             <span class="doccomment">/// `23.2.5.1 TypedArray ( ...args )`
             ///
@@ -3724,7 +3674,7 @@
             ///  - [ECMAScript reference][spec]
             ///
             /// [spec]: https://tc39.es/ecma262/#sec-typedarray
-            </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>constructor(
+            </span><span class="kw">fn </span>constructor(
                 new_target: <span class="kw-2">&amp;</span>JsValue,
                 args: <span class="kw-2">&amp;</span>[JsValue],
                 context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
@@ -3856,142 +3806,138 @@
 </span><span class="attr">#[derive(Debug, Clone, Copy)]
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>TypedArray;
 
-<span class="kw">impl </span>BuiltIn <span class="kw">for </span>TypedArray {
-    <span class="kw">const </span>NAME: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;TypedArray&quot;</span>;
-    <span class="kw">fn </span>init(context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <span class="prelude-ty">Option</span>&lt;JsValue&gt; {
-        <span class="kw">let </span>get_species =
-            FunctionObjectBuilder::new(context, NativeFunction::from_fn_ptr(<span class="self">Self</span>::get_species))
-                .name(<span class="string">&quot;get [Symbol.species]&quot;</span>)
-                .constructor(<span class="bool-val">false</span>)
-                .build();
+<span class="kw">impl </span>IntrinsicObject <span class="kw">for </span>TypedArray {
+    <span class="kw">fn </span>init(intrinsics: <span class="kw-2">&amp;</span>Intrinsics) {
+        <span class="kw">let </span>get_species = BuiltInBuilder::new(intrinsics)
+            .callable(<span class="self">Self</span>::get_species)
+            .name(<span class="string">&quot;get [Symbol.species]&quot;</span>)
+            .build();
 
-        <span class="kw">let </span>get_buffer =
-            FunctionObjectBuilder::new(context, NativeFunction::from_fn_ptr(<span class="self">Self</span>::buffer))
-                .name(<span class="string">&quot;get buffer&quot;</span>)
-                .constructor(<span class="bool-val">false</span>)
-                .build();
+        <span class="kw">let </span>get_buffer = BuiltInBuilder::new(intrinsics)
+            .callable(<span class="self">Self</span>::buffer)
+            .name(<span class="string">&quot;get buffer&quot;</span>)
+            .build();
 
-        <span class="kw">let </span>get_byte_length =
-            FunctionObjectBuilder::new(context, NativeFunction::from_fn_ptr(<span class="self">Self</span>::byte_length))
-                .name(<span class="string">&quot;get byteLength&quot;</span>)
-                .constructor(<span class="bool-val">false</span>)
-                .build();
+        <span class="kw">let </span>get_byte_length = BuiltInBuilder::new(intrinsics)
+            .callable(<span class="self">Self</span>::byte_length)
+            .name(<span class="string">&quot;get byteLength&quot;</span>)
+            .build();
 
-        <span class="kw">let </span>get_byte_offset =
-            FunctionObjectBuilder::new(context, NativeFunction::from_fn_ptr(<span class="self">Self</span>::byte_offset))
-                .name(<span class="string">&quot;get byteOffset&quot;</span>)
-                .constructor(<span class="bool-val">false</span>)
-                .build();
+        <span class="kw">let </span>get_byte_offset = BuiltInBuilder::new(intrinsics)
+            .callable(<span class="self">Self</span>::byte_offset)
+            .name(<span class="string">&quot;get byteOffset&quot;</span>)
+            .build();
 
-        <span class="kw">let </span>get_length =
-            FunctionObjectBuilder::new(context, NativeFunction::from_fn_ptr(<span class="self">Self</span>::length))
-                .name(<span class="string">&quot;get length&quot;</span>)
-                .constructor(<span class="bool-val">false</span>)
-                .build();
+        <span class="kw">let </span>get_length = BuiltInBuilder::new(intrinsics)
+            .callable(<span class="self">Self</span>::length)
+            .name(<span class="string">&quot;get length&quot;</span>)
+            .build();
 
-        <span class="kw">let </span>get_to_string_tag =
-            FunctionObjectBuilder::new(context, NativeFunction::from_fn_ptr(<span class="self">Self</span>::to_string_tag))
-                .name(<span class="string">&quot;get [Symbol.toStringTag]&quot;</span>)
-                .constructor(<span class="bool-val">false</span>)
-                .build();
+        <span class="kw">let </span>get_to_string_tag = BuiltInBuilder::new(intrinsics)
+            .callable(<span class="self">Self</span>::to_string_tag)
+            .name(<span class="string">&quot;get [Symbol.toStringTag]&quot;</span>)
+            .build();
 
-        <span class="kw">let </span>values_function =
-            FunctionObjectBuilder::new(context, NativeFunction::from_fn_ptr(<span class="self">Self</span>::values))
-                .name(<span class="string">&quot;values&quot;</span>)
-                .length(<span class="number">0</span>)
-                .constructor(<span class="bool-val">false</span>)
-                .build();
+        <span class="kw">let </span>values_function = BuiltInBuilder::new(intrinsics)
+            .callable(<span class="self">Self</span>::values)
+            .name(<span class="string">&quot;values&quot;</span>)
+            .length(<span class="number">0</span>)
+            .build();
 
-        ConstructorBuilder::with_standard_constructor(
-            context,
-            <span class="self">Self</span>::constructor,
-            context.intrinsics().constructors().typed_array().clone(),
-        )
-        .name(<span class="self">Self</span>::NAME)
-        .length(<span class="self">Self</span>::LENGTH)
-        .static_accessor(
-            JsSymbol::species(),
-            <span class="prelude-val">Some</span>(get_species),
-            <span class="prelude-val">None</span>,
-            Attribute::CONFIGURABLE,
-        )
-        .property(
-            <span class="string">&quot;length&quot;</span>,
-            <span class="number">0</span>,
-            Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::PERMANENT,
-        )
-        .property(
-            JsSymbol::iterator(),
-            values_function,
-            Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
-        )
-        .accessor(
-            <span class="string">&quot;buffer&quot;</span>,
-            <span class="prelude-val">Some</span>(get_buffer),
-            <span class="prelude-val">None</span>,
-            Attribute::CONFIGURABLE | Attribute::NON_ENUMERABLE,
-        )
-        .accessor(
-            <span class="string">&quot;byteLength&quot;</span>,
-            <span class="prelude-val">Some</span>(get_byte_length),
-            <span class="prelude-val">None</span>,
-            Attribute::CONFIGURABLE | Attribute::NON_ENUMERABLE,
-        )
-        .accessor(
-            <span class="string">&quot;byteOffset&quot;</span>,
-            <span class="prelude-val">Some</span>(get_byte_offset),
-            <span class="prelude-val">None</span>,
-            Attribute::CONFIGURABLE | Attribute::NON_ENUMERABLE,
-        )
-        .accessor(
-            <span class="string">&quot;length&quot;</span>,
-            <span class="prelude-val">Some</span>(get_length),
-            <span class="prelude-val">None</span>,
-            Attribute::CONFIGURABLE | Attribute::NON_ENUMERABLE,
-        )
-        .accessor(
-            JsSymbol::to_string_tag(),
-            <span class="prelude-val">Some</span>(get_to_string_tag),
-            <span class="prelude-val">None</span>,
-            Attribute::CONFIGURABLE | Attribute::NON_ENUMERABLE,
-        )
-        .static_method(<span class="self">Self</span>::from, <span class="string">&quot;from&quot;</span>, <span class="number">1</span>)
-        .static_method(<span class="self">Self</span>::of, <span class="string">&quot;of&quot;</span>, <span class="number">0</span>)
-        .method(<span class="self">Self</span>::at, <span class="string">&quot;at&quot;</span>, <span class="number">1</span>)
-        .method(<span class="self">Self</span>::copy_within, <span class="string">&quot;copyWithin&quot;</span>, <span class="number">2</span>)
-        .method(<span class="self">Self</span>::entries, <span class="string">&quot;entries&quot;</span>, <span class="number">0</span>)
-        .method(<span class="self">Self</span>::every, <span class="string">&quot;every&quot;</span>, <span class="number">1</span>)
-        .method(<span class="self">Self</span>::fill, <span class="string">&quot;fill&quot;</span>, <span class="number">1</span>)
-        .method(<span class="self">Self</span>::filter, <span class="string">&quot;filter&quot;</span>, <span class="number">1</span>)
-        .method(<span class="self">Self</span>::find, <span class="string">&quot;find&quot;</span>, <span class="number">1</span>)
-        .method(<span class="self">Self</span>::findindex, <span class="string">&quot;findIndex&quot;</span>, <span class="number">1</span>)
-        .method(<span class="self">Self</span>::foreach, <span class="string">&quot;forEach&quot;</span>, <span class="number">1</span>)
-        .method(<span class="self">Self</span>::includes, <span class="string">&quot;includes&quot;</span>, <span class="number">1</span>)
-        .method(<span class="self">Self</span>::index_of, <span class="string">&quot;indexOf&quot;</span>, <span class="number">1</span>)
-        .method(<span class="self">Self</span>::join, <span class="string">&quot;join&quot;</span>, <span class="number">1</span>)
-        .method(<span class="self">Self</span>::keys, <span class="string">&quot;keys&quot;</span>, <span class="number">0</span>)
-        .method(<span class="self">Self</span>::last_index_of, <span class="string">&quot;lastIndexOf&quot;</span>, <span class="number">1</span>)
-        .method(<span class="self">Self</span>::map, <span class="string">&quot;map&quot;</span>, <span class="number">1</span>)
-        .method(<span class="self">Self</span>::reduce, <span class="string">&quot;reduce&quot;</span>, <span class="number">1</span>)
-        .method(<span class="self">Self</span>::reduceright, <span class="string">&quot;reduceRight&quot;</span>, <span class="number">1</span>)
-        .method(<span class="self">Self</span>::reverse, <span class="string">&quot;reverse&quot;</span>, <span class="number">0</span>)
-        .method(<span class="self">Self</span>::set, <span class="string">&quot;set&quot;</span>, <span class="number">1</span>)
-        .method(<span class="self">Self</span>::slice, <span class="string">&quot;slice&quot;</span>, <span class="number">2</span>)
-        .method(<span class="self">Self</span>::some, <span class="string">&quot;some&quot;</span>, <span class="number">1</span>)
-        .method(<span class="self">Self</span>::sort, <span class="string">&quot;sort&quot;</span>, <span class="number">1</span>)
-        .method(<span class="self">Self</span>::subarray, <span class="string">&quot;subarray&quot;</span>, <span class="number">2</span>)
-        .method(<span class="self">Self</span>::values, <span class="string">&quot;values&quot;</span>, <span class="number">0</span>)
-        <span class="comment">// 23.2.3.29 %TypedArray%.prototype.toString ( )
-        // The initial value of the %TypedArray%.prototype.toString data property is the same
-        // built-in function object as the Array.prototype.toString method defined in 23.1.3.30.
-        </span>.method(Array::to_string, <span class="string">&quot;toString&quot;</span>, <span class="number">0</span>)
-        .build();
+        BuiltInBuilder::from_standard_constructor::&lt;<span class="self">Self</span>&gt;(intrinsics)
+            .static_accessor(
+                JsSymbol::species(),
+                <span class="prelude-val">Some</span>(get_species),
+                <span class="prelude-val">None</span>,
+                Attribute::CONFIGURABLE,
+            )
+            .property(
+                <span class="string">&quot;length&quot;</span>,
+                <span class="number">0</span>,
+                Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::PERMANENT,
+            )
+            .property(
+                JsSymbol::iterator(),
+                values_function,
+                Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
+            )
+            .accessor(
+                <span class="string">&quot;buffer&quot;</span>,
+                <span class="prelude-val">Some</span>(get_buffer),
+                <span class="prelude-val">None</span>,
+                Attribute::CONFIGURABLE | Attribute::NON_ENUMERABLE,
+            )
+            .accessor(
+                <span class="string">&quot;byteLength&quot;</span>,
+                <span class="prelude-val">Some</span>(get_byte_length),
+                <span class="prelude-val">None</span>,
+                Attribute::CONFIGURABLE | Attribute::NON_ENUMERABLE,
+            )
+            .accessor(
+                <span class="string">&quot;byteOffset&quot;</span>,
+                <span class="prelude-val">Some</span>(get_byte_offset),
+                <span class="prelude-val">None</span>,
+                Attribute::CONFIGURABLE | Attribute::NON_ENUMERABLE,
+            )
+            .accessor(
+                <span class="string">&quot;length&quot;</span>,
+                <span class="prelude-val">Some</span>(get_length),
+                <span class="prelude-val">None</span>,
+                Attribute::CONFIGURABLE | Attribute::NON_ENUMERABLE,
+            )
+            .accessor(
+                JsSymbol::to_string_tag(),
+                <span class="prelude-val">Some</span>(get_to_string_tag),
+                <span class="prelude-val">None</span>,
+                Attribute::CONFIGURABLE | Attribute::NON_ENUMERABLE,
+            )
+            .static_method(<span class="self">Self</span>::from, <span class="string">&quot;from&quot;</span>, <span class="number">1</span>)
+            .static_method(<span class="self">Self</span>::of, <span class="string">&quot;of&quot;</span>, <span class="number">0</span>)
+            .method(<span class="self">Self</span>::at, <span class="string">&quot;at&quot;</span>, <span class="number">1</span>)
+            .method(<span class="self">Self</span>::copy_within, <span class="string">&quot;copyWithin&quot;</span>, <span class="number">2</span>)
+            .method(<span class="self">Self</span>::entries, <span class="string">&quot;entries&quot;</span>, <span class="number">0</span>)
+            .method(<span class="self">Self</span>::every, <span class="string">&quot;every&quot;</span>, <span class="number">1</span>)
+            .method(<span class="self">Self</span>::fill, <span class="string">&quot;fill&quot;</span>, <span class="number">1</span>)
+            .method(<span class="self">Self</span>::filter, <span class="string">&quot;filter&quot;</span>, <span class="number">1</span>)
+            .method(<span class="self">Self</span>::find, <span class="string">&quot;find&quot;</span>, <span class="number">1</span>)
+            .method(<span class="self">Self</span>::findindex, <span class="string">&quot;findIndex&quot;</span>, <span class="number">1</span>)
+            .method(<span class="self">Self</span>::foreach, <span class="string">&quot;forEach&quot;</span>, <span class="number">1</span>)
+            .method(<span class="self">Self</span>::includes, <span class="string">&quot;includes&quot;</span>, <span class="number">1</span>)
+            .method(<span class="self">Self</span>::index_of, <span class="string">&quot;indexOf&quot;</span>, <span class="number">1</span>)
+            .method(<span class="self">Self</span>::join, <span class="string">&quot;join&quot;</span>, <span class="number">1</span>)
+            .method(<span class="self">Self</span>::keys, <span class="string">&quot;keys&quot;</span>, <span class="number">0</span>)
+            .method(<span class="self">Self</span>::last_index_of, <span class="string">&quot;lastIndexOf&quot;</span>, <span class="number">1</span>)
+            .method(<span class="self">Self</span>::map, <span class="string">&quot;map&quot;</span>, <span class="number">1</span>)
+            .method(<span class="self">Self</span>::reduce, <span class="string">&quot;reduce&quot;</span>, <span class="number">1</span>)
+            .method(<span class="self">Self</span>::reduceright, <span class="string">&quot;reduceRight&quot;</span>, <span class="number">1</span>)
+            .method(<span class="self">Self</span>::reverse, <span class="string">&quot;reverse&quot;</span>, <span class="number">0</span>)
+            .method(<span class="self">Self</span>::set, <span class="string">&quot;set&quot;</span>, <span class="number">1</span>)
+            .method(<span class="self">Self</span>::slice, <span class="string">&quot;slice&quot;</span>, <span class="number">2</span>)
+            .method(<span class="self">Self</span>::some, <span class="string">&quot;some&quot;</span>, <span class="number">1</span>)
+            .method(<span class="self">Self</span>::sort, <span class="string">&quot;sort&quot;</span>, <span class="number">1</span>)
+            .method(<span class="self">Self</span>::subarray, <span class="string">&quot;subarray&quot;</span>, <span class="number">2</span>)
+            .method(<span class="self">Self</span>::values, <span class="string">&quot;values&quot;</span>, <span class="number">0</span>)
+            <span class="comment">// 23.2.3.29 %TypedArray%.prototype.toString ( )
+            // The initial value of the %TypedArray%.prototype.toString data property is the same
+            // built-in function object as the Array.prototype.toString method defined in 23.1.3.30.
+            </span>.method(Array::to_string, <span class="string">&quot;toString&quot;</span>, <span class="number">0</span>)
+            .build();
+    }
 
-        <span class="prelude-val">None
-    </span>}
+    <span class="kw">fn </span>get(intrinsics: <span class="kw-2">&amp;</span>Intrinsics) -&gt; JsObject {
+        <span class="self">Self</span>::STANDARD_CONSTRUCTOR(intrinsics.constructors()).constructor()
+    }
 }
-<span class="kw">impl </span>TypedArray {
+
+<span class="kw">impl </span>BuiltInObject <span class="kw">for </span>TypedArray {
+    <span class="kw">const </span>NAME: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;TypedArray&quot;</span>;
+}
+
+<span class="kw">impl </span>BuiltInConstructor <span class="kw">for </span>TypedArray {
     <span class="kw">const </span>LENGTH: usize = <span class="number">0</span>;
+
+    <span class="kw">const </span>STANDARD_CONSTRUCTOR: <span class="kw">fn</span>(<span class="kw-2">&amp;</span>StandardConstructors) -&gt; <span class="kw-2">&amp;</span>StandardConstructor =
+        StandardConstructors::typed_array;
 
     <span class="doccomment">/// `23.2.1.1 %TypedArray% ( )`
     ///
@@ -3999,17 +3945,15 @@
     ///  - [ECMAScript reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-%typedarray%
-    </span><span class="kw">fn </span>constructor(
-        _new_target: <span class="kw-2">&amp;</span>JsValue,
-        _args: <span class="kw-2">&amp;</span>[JsValue],
-        <span class="kw">_</span>: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
-    ) -&gt; JsResult&lt;JsValue&gt; {
+    </span><span class="kw">fn </span>constructor(<span class="kw">_</span>: <span class="kw-2">&amp;</span>JsValue, <span class="kw">_</span>: <span class="kw-2">&amp;</span>[JsValue], <span class="kw">_</span>: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;JsValue&gt; {
         <span class="comment">// 1. Throw a TypeError exception.
         </span><span class="prelude-val">Err</span>(JsNativeError::typ()
             .with_message(<span class="string">&quot;the TypedArray constructor should never be called directly&quot;</span>)
             .into())
     }
+}
 
+<span class="kw">impl </span>TypedArray {
     <span class="doccomment">/// `23.2.2.1 %TypedArray%.from ( source [ , mapfn [ , thisArg ] ] )`
     ///
     /// More information:

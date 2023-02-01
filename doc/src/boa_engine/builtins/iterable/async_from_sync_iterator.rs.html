@@ -391,145 +391,21 @@
 <a href="#390" id="390">390</a>
 <a href="#391" id="391">391</a>
 <a href="#392" id="392">392</a>
-<a href="#393" id="393">393</a>
-<a href="#394" id="394">394</a>
-<a href="#395" id="395">395</a>
-<a href="#396" id="396">396</a>
-<a href="#397" id="397">397</a>
-<a href="#398" id="398">398</a>
-<a href="#399" id="399">399</a>
-<a href="#400" id="400">400</a>
-<a href="#401" id="401">401</a>
-<a href="#402" id="402">402</a>
-<a href="#403" id="403">403</a>
-<a href="#404" id="404">404</a>
-<a href="#405" id="405">405</a>
-<a href="#406" id="406">406</a>
-<a href="#407" id="407">407</a>
-<a href="#408" id="408">408</a>
-<a href="#409" id="409">409</a>
-<a href="#410" id="410">410</a>
-<a href="#411" id="411">411</a>
-<a href="#412" id="412">412</a>
-<a href="#413" id="413">413</a>
-<a href="#414" id="414">414</a>
-<a href="#415" id="415">415</a>
-<a href="#416" id="416">416</a>
-<a href="#417" id="417">417</a>
-<a href="#418" id="418">418</a>
-<a href="#419" id="419">419</a>
-<a href="#420" id="420">420</a>
-<a href="#421" id="421">421</a>
-<a href="#422" id="422">422</a>
-<a href="#423" id="423">423</a>
-<a href="#424" id="424">424</a>
-<a href="#425" id="425">425</a>
-<a href="#426" id="426">426</a>
-<a href="#427" id="427">427</a>
-<a href="#428" id="428">428</a>
-<a href="#429" id="429">429</a>
-<a href="#430" id="430">430</a>
-<a href="#431" id="431">431</a>
-<a href="#432" id="432">432</a>
-<a href="#433" id="433">433</a>
-<a href="#434" id="434">434</a>
-<a href="#435" id="435">435</a>
-<a href="#436" id="436">436</a>
-<a href="#437" id="437">437</a>
-<a href="#438" id="438">438</a>
-<a href="#439" id="439">439</a>
-<a href="#440" id="440">440</a>
-<a href="#441" id="441">441</a>
-<a href="#442" id="442">442</a>
-<a href="#443" id="443">443</a>
-<a href="#444" id="444">444</a>
 </pre><pre class="rust"><code><span class="kw">use crate</span>::{
     builtins::{
         iterable::{create_iter_result_object, IteratorRecord, IteratorResult},
         promise::{if_abrupt_reject_promise, PromiseCapability},
-        JsArgs, Promise,
+        BuiltInBuilder, IntrinsicObject, Promise,
     },
+    context::intrinsics::Intrinsics,
     native_function::NativeFunction,
     object::{FunctionObjectBuilder, JsObject, ObjectData},
-    property::PropertyDescriptor,
-    Context, JsNativeError, JsResult, JsValue,
+    Context, JsArgs, JsNativeError, JsResult, JsValue,
 };
 <span class="kw">use </span>boa_gc::{Finalize, Trace};
 <span class="kw">use </span>boa_profiler::Profiler;
 
-<span class="doccomment">/// Create the `%AsyncFromSyncIteratorPrototype%` object.
-///
-/// More information:
-///  - [ECMA reference][spec]
-///
-/// [spec]: https://tc39.es/ecma262/#sec-%asyncfromsynciteratorprototype%-object
-</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>create_async_from_sync_iterator_prototype(context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsObject {
-    <span class="kw">let </span>_timer = Profiler::global().start_event(<span class="string">&quot;AsyncFromSyncIteratorPrototype&quot;</span>, <span class="string">&quot;init&quot;</span>);
-
-    <span class="kw">let </span>prototype = JsObject::from_proto_and_data(
-        context
-            .intrinsics()
-            .objects()
-            .iterator_prototypes()
-            .async_iterator_prototype(),
-        ObjectData::ordinary(),
-    );
-
-    <span class="kw">let </span>next_function = FunctionObjectBuilder::new(
-        context,
-        NativeFunction::from_fn_ptr(AsyncFromSyncIterator::next),
-    )
-    .name(<span class="string">&quot;next&quot;</span>)
-    .length(<span class="number">1</span>)
-    .build();
-    <span class="kw">let </span>return_function = FunctionObjectBuilder::new(
-        context,
-        NativeFunction::from_fn_ptr(AsyncFromSyncIterator::r#return),
-    )
-    .name(<span class="string">&quot;return&quot;</span>)
-    .length(<span class="number">1</span>)
-    .build();
-    <span class="kw">let </span>throw_function = FunctionObjectBuilder::new(
-        context,
-        NativeFunction::from_fn_ptr(AsyncFromSyncIterator::throw),
-    )
-    .name(<span class="string">&quot;throw&quot;</span>)
-    .length(<span class="number">1</span>)
-    .build();
-
-    {
-        <span class="kw">let </span><span class="kw-2">mut </span>prototype_mut = prototype.borrow_mut();
-
-        prototype_mut.insert(
-            <span class="string">&quot;next&quot;</span>,
-            PropertyDescriptor::builder()
-                .value(next_function)
-                .writable(<span class="bool-val">true</span>)
-                .enumerable(<span class="bool-val">false</span>)
-                .configurable(<span class="bool-val">true</span>),
-        );
-        prototype_mut.insert(
-            <span class="string">&quot;return&quot;</span>,
-            PropertyDescriptor::builder()
-                .value(return_function)
-                .writable(<span class="bool-val">true</span>)
-                .enumerable(<span class="bool-val">false</span>)
-                .configurable(<span class="bool-val">true</span>),
-        );
-        prototype_mut.insert(
-            <span class="string">&quot;throw&quot;</span>,
-            PropertyDescriptor::builder()
-                .value(throw_function)
-                .writable(<span class="bool-val">true</span>)
-                .enumerable(<span class="bool-val">false</span>)
-                .configurable(<span class="bool-val">true</span>),
-        );
-    }
-
-    prototype
-}
-
-<span class="doccomment">/// The internal data for `%AsyncFromSyncIterator%` objects.
+<span class="doccomment">/// `%AsyncFromSyncIteratorPrototype%` object.
 ///
 /// More information:
 ///  - [ECMA reference][spec]
@@ -539,6 +415,26 @@
 </span><span class="kw">pub struct </span>AsyncFromSyncIterator {
     <span class="comment">// The [[SyncIteratorRecord]] internal slot.
     </span>sync_iterator_record: IteratorRecord,
+}
+
+<span class="kw">impl </span>IntrinsicObject <span class="kw">for </span>AsyncFromSyncIterator {
+    <span class="kw">fn </span>init(intrinsics: <span class="kw-2">&amp;</span>Intrinsics) {
+        <span class="kw">let </span>_timer = Profiler::global().start_event(<span class="string">&quot;AsyncFromSyncIteratorPrototype&quot;</span>, <span class="string">&quot;init&quot;</span>);
+
+        BuiltInBuilder::with_intrinsic::&lt;<span class="self">Self</span>&gt;(intrinsics)
+            .prototype(intrinsics.objects().iterator_prototypes().async_iterator())
+            .static_method(<span class="self">Self</span>::next, <span class="string">&quot;next&quot;</span>, <span class="number">1</span>)
+            .static_method(<span class="self">Self</span>::r#return, <span class="string">&quot;return&quot;</span>, <span class="number">1</span>)
+            .static_method(<span class="self">Self</span>::throw, <span class="string">&quot;throw&quot;</span>, <span class="number">1</span>)
+            .build();
+    }
+
+    <span class="kw">fn </span>get(intrinsics: <span class="kw-2">&amp;</span>Intrinsics) -&gt; JsObject {
+        intrinsics
+            .objects()
+            .iterator_prototypes()
+            .async_from_sync_iterator()
+    }
 }
 
 <span class="kw">impl </span>AsyncFromSyncIterator {
@@ -559,7 +455,7 @@
                 .intrinsics()
                 .objects()
                 .iterator_prototypes()
-                .async_from_sync_iterator_prototype(),
+                .async_from_sync_iterator(),
             ObjectData::async_from_sync_iterator(<span class="self">Self </span>{
                 sync_iterator_record,
             }),

@@ -455,12 +455,6 @@
 <a href="#454" id="454">454</a>
 <a href="#455" id="455">455</a>
 <a href="#456" id="456">456</a>
-<a href="#457" id="457">457</a>
-<a href="#458" id="458">458</a>
-<a href="#459" id="459">459</a>
-<a href="#460" id="460">460</a>
-<a href="#461" id="461">461</a>
-<a href="#462" id="462">462</a>
 </pre><pre class="rust"><code><span class="doccomment">//! Boa&#39;s implementation of ECMAScript&#39;s global `Set` object.
 //!
 //! The ECMAScript `Set` class is a global object that is used in the construction of sets; which
@@ -473,112 +467,104 @@
 //! [spec]: https://tc39.es/ecma262/#sec-set-objects
 //! [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Set
 
-</span><span class="kw">use </span><span class="self">self</span>::{ordered_set::OrderedSet, set_iterator::SetIterator};
-<span class="kw">use </span><span class="kw">super</span>::JsArgs;
-<span class="kw">use crate</span>::{
-    builtins::BuiltIn,
-    context::intrinsics::StandardConstructors,
+</span><span class="kw">use crate</span>::{
+    builtins::BuiltInObject,
+    context::intrinsics::{Intrinsics, StandardConstructor, StandardConstructors},
     error::JsNativeError,
-    native_function::NativeFunction,
-    object::{
-        internal_methods::get_prototype_from_constructor, ConstructorBuilder,
-        FunctionObjectBuilder, JsObject, ObjectData,
-    },
+    object::{internal_methods::get_prototype_from_constructor, JsObject, ObjectData},
     property::{Attribute, PropertyNameKind},
     symbol::JsSymbol,
-    Context, JsResult, JsValue,
+    Context, JsArgs, JsResult, JsValue,
 };
 <span class="kw">use </span>boa_profiler::Profiler;
-<span class="kw">use </span>tap::{Conv, Pipe};
+
+<span class="kw">use super</span>::{BuiltInBuilder, BuiltInConstructor, IntrinsicObject};
 
 <span class="kw">pub mod </span>ordered_set;
-<span class="kw">pub mod </span>set_iterator;
+<span class="kw">use </span><span class="self">self</span>::ordered_set::OrderedSet;
+
+<span class="kw">mod </span>set_iterator;
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use </span>set_iterator::SetIterator;
 <span class="attr">#[cfg(test)]
 </span><span class="kw">mod </span>tests;
 
 <span class="attr">#[derive(Debug, Clone)]
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>Set;
 
-<span class="kw">impl </span>BuiltIn <span class="kw">for </span>Set {
-    <span class="kw">const </span>NAME: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;Set&quot;</span>;
-
-    <span class="kw">fn </span>init(context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <span class="prelude-ty">Option</span>&lt;JsValue&gt; {
+<span class="kw">impl </span>IntrinsicObject <span class="kw">for </span>Set {
+    <span class="kw">fn </span>get(intrinsics: <span class="kw-2">&amp;</span>Intrinsics) -&gt; JsObject {
+        <span class="self">Self</span>::STANDARD_CONSTRUCTOR(intrinsics.constructors()).constructor()
+    }
+    <span class="kw">fn </span>init(intrinsics: <span class="kw-2">&amp;</span>Intrinsics) {
         <span class="kw">let </span>_timer = Profiler::global().start_event(<span class="self">Self</span>::NAME, <span class="string">&quot;init&quot;</span>);
 
-        <span class="kw">let </span>get_species =
-            FunctionObjectBuilder::new(context, NativeFunction::from_fn_ptr(<span class="self">Self</span>::get_species))
-                .name(<span class="string">&quot;get [Symbol.species]&quot;</span>)
-                .constructor(<span class="bool-val">false</span>)
-                .build();
+        <span class="kw">let </span>get_species = BuiltInBuilder::new(intrinsics)
+            .callable(<span class="self">Self</span>::get_species)
+            .name(<span class="string">&quot;get [Symbol.species]&quot;</span>)
+            .build();
 
-        <span class="kw">let </span>size_getter =
-            FunctionObjectBuilder::new(context, NativeFunction::from_fn_ptr(<span class="self">Self</span>::size_getter))
-                .constructor(<span class="bool-val">false</span>)
-                .name(<span class="string">&quot;get size&quot;</span>)
-                .build();
+        <span class="kw">let </span>size_getter = BuiltInBuilder::new(intrinsics)
+            .callable(<span class="self">Self</span>::size_getter)
+            .name(<span class="string">&quot;get size&quot;</span>)
+            .build();
 
         <span class="kw">let </span>iterator_symbol = JsSymbol::iterator();
 
         <span class="kw">let </span>to_string_tag = JsSymbol::to_string_tag();
 
-        <span class="kw">let </span>values_function =
-            FunctionObjectBuilder::new(context, NativeFunction::from_fn_ptr(<span class="self">Self</span>::values))
-                .name(<span class="string">&quot;values&quot;</span>)
-                .length(<span class="number">0</span>)
-                .constructor(<span class="bool-val">false</span>)
-                .build();
+        <span class="kw">let </span>values_function = BuiltInBuilder::new(intrinsics)
+            .callable(<span class="self">Self</span>::values)
+            .name(<span class="string">&quot;values&quot;</span>)
+            .build();
 
-        ConstructorBuilder::with_standard_constructor(
-            context,
-            <span class="self">Self</span>::constructor,
-            context.intrinsics().constructors().set().clone(),
-        )
-        .name(<span class="self">Self</span>::NAME)
-        .length(<span class="self">Self</span>::LENGTH)
-        .static_accessor(
-            JsSymbol::species(),
-            <span class="prelude-val">Some</span>(get_species),
-            <span class="prelude-val">None</span>,
-            Attribute::CONFIGURABLE,
-        )
-        .method(<span class="self">Self</span>::add, <span class="string">&quot;add&quot;</span>, <span class="number">1</span>)
-        .method(<span class="self">Self</span>::clear, <span class="string">&quot;clear&quot;</span>, <span class="number">0</span>)
-        .method(<span class="self">Self</span>::delete, <span class="string">&quot;delete&quot;</span>, <span class="number">1</span>)
-        .method(<span class="self">Self</span>::entries, <span class="string">&quot;entries&quot;</span>, <span class="number">0</span>)
-        .method(<span class="self">Self</span>::for_each, <span class="string">&quot;forEach&quot;</span>, <span class="number">1</span>)
-        .method(<span class="self">Self</span>::has, <span class="string">&quot;has&quot;</span>, <span class="number">1</span>)
-        .property(
-            <span class="string">&quot;keys&quot;</span>,
-            values_function.clone(),
-            Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
-        )
-        .accessor(<span class="string">&quot;size&quot;</span>, <span class="prelude-val">Some</span>(size_getter), <span class="prelude-val">None</span>, Attribute::CONFIGURABLE)
-        .property(
-            <span class="string">&quot;values&quot;</span>,
-            values_function.clone(),
-            Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
-        )
-        .property(
-            iterator_symbol,
-            values_function,
-            Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
-        )
-        .property(
-            to_string_tag,
-            <span class="self">Self</span>::NAME,
-            Attribute::READONLY | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
-        )
-        .build()
-        .conv::&lt;JsValue&gt;()
-        .pipe(<span class="prelude-val">Some</span>)
+        BuiltInBuilder::from_standard_constructor::&lt;<span class="self">Self</span>&gt;(intrinsics)
+            .static_accessor(
+                JsSymbol::species(),
+                <span class="prelude-val">Some</span>(get_species),
+                <span class="prelude-val">None</span>,
+                Attribute::CONFIGURABLE,
+            )
+            .method(<span class="self">Self</span>::add, <span class="string">&quot;add&quot;</span>, <span class="number">1</span>)
+            .method(<span class="self">Self</span>::clear, <span class="string">&quot;clear&quot;</span>, <span class="number">0</span>)
+            .method(<span class="self">Self</span>::delete, <span class="string">&quot;delete&quot;</span>, <span class="number">1</span>)
+            .method(<span class="self">Self</span>::entries, <span class="string">&quot;entries&quot;</span>, <span class="number">0</span>)
+            .method(<span class="self">Self</span>::for_each, <span class="string">&quot;forEach&quot;</span>, <span class="number">1</span>)
+            .method(<span class="self">Self</span>::has, <span class="string">&quot;has&quot;</span>, <span class="number">1</span>)
+            .property(
+                <span class="string">&quot;keys&quot;</span>,
+                values_function.clone(),
+                Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
+            )
+            .accessor(<span class="string">&quot;size&quot;</span>, <span class="prelude-val">Some</span>(size_getter), <span class="prelude-val">None</span>, Attribute::CONFIGURABLE)
+            .property(
+                <span class="string">&quot;values&quot;</span>,
+                values_function.clone(),
+                Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
+            )
+            .property(
+                iterator_symbol,
+                values_function,
+                Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
+            )
+            .property(
+                to_string_tag,
+                <span class="self">Self</span>::NAME,
+                Attribute::READONLY | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
+            )
+            .build();
     }
 }
 
-<span class="kw">impl </span>Set {
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const </span>LENGTH: usize = <span class="number">0</span>;
+<span class="kw">impl </span>BuiltInObject <span class="kw">for </span>Set {
+    <span class="kw">const </span>NAME: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;Set&quot;</span>;
+}
 
-    <span class="doccomment">/// Create a new set
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>constructor(
+<span class="kw">impl </span>BuiltInConstructor <span class="kw">for </span>Set {
+    <span class="kw">const </span>LENGTH: usize = <span class="number">0</span>;
+    <span class="kw">const </span>STANDARD_CONSTRUCTOR: <span class="kw">fn</span>(<span class="kw-2">&amp;</span>StandardConstructors) -&gt; <span class="kw-2">&amp;</span>StandardConstructor =
+        StandardConstructors::set;
+
+    <span class="kw">fn </span>constructor(
         new_target: <span class="kw-2">&amp;</span>JsValue,
         args: <span class="kw-2">&amp;</span>[JsValue],
         context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
@@ -632,7 +618,9 @@
         <span class="comment">// 8.b
         </span><span class="prelude-val">Ok</span>(set.into())
     }
+}
 
+<span class="kw">impl </span>Set {
     <span class="doccomment">/// Utility for constructing `Set` objects.
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>set_create(prototype: <span class="prelude-ty">Option</span>&lt;JsObject&gt;, context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsObject {
         <span class="kw">let </span>prototype =

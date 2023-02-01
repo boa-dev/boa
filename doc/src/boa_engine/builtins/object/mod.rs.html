@@ -1390,7 +1390,6 @@
 <a href="#1389" id="1389">1389</a>
 <a href="#1390" id="1390">1390</a>
 <a href="#1391" id="1391">1391</a>
-<a href="#1392" id="1392">1392</a>
 </pre><pre class="rust"><code><span class="doccomment">//! Boa&#39;s implementation of ECMAScript&#39;s global `Object` object.
 //!
 //! The `Object` class represents one of ECMAScript&#39;s data types.
@@ -1408,27 +1407,27 @@
 
 </span><span class="kw">use </span>std::ops::Deref;
 
-<span class="kw">use </span><span class="kw">super</span>::Array;
+<span class="kw">use super</span>::{Array, BuiltInBuilder, BuiltInConstructor, IntrinsicObject};
 <span class="kw">use crate</span>::{
-    builtins::{map, BuiltIn, JsArgs},
-    context::intrinsics::StandardConstructors,
+    builtins::{map, BuiltInObject},
+    context::intrinsics::{Intrinsics, StandardConstructor, StandardConstructors},
     error::JsNativeError,
     js_string,
     native_function::NativeFunction,
     object::{
-        internal_methods::get_prototype_from_constructor, ConstructorBuilder,
-        FunctionObjectBuilder, IntegrityLevel, JsObject, ObjectData, ObjectKind,
+        internal_methods::get_prototype_from_constructor, FunctionObjectBuilder, IntegrityLevel,
+        JsObject, ObjectData, ObjectKind,
     },
     property::{Attribute, PropertyDescriptor, PropertyKey, PropertyNameKind},
     string::utf16,
     symbol::JsSymbol,
     value::JsValue,
-    Context, JsResult, JsString,
+    Context, JsArgs, JsResult, JsString,
 };
 <span class="kw">use </span>boa_profiler::Profiler;
 <span class="kw">use </span>tap::{Conv, Pipe};
 
-<span class="kw">pub mod </span>for_in_iterator;
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">mod </span>for_in_iterator;
 <span class="attr">#[cfg(test)]
 </span><span class="kw">mod </span>tests;
 
@@ -1436,88 +1435,85 @@
 </span><span class="attr">#[derive(Debug, Clone, Copy)]
 </span><span class="kw">pub struct </span>Object;
 
-<span class="kw">impl </span>BuiltIn <span class="kw">for </span>Object {
-    <span class="kw">const </span>NAME: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;Object&quot;</span>;
-
-    <span class="kw">fn </span>init(context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <span class="prelude-ty">Option</span>&lt;JsValue&gt; {
+<span class="kw">impl </span>IntrinsicObject <span class="kw">for </span>Object {
+    <span class="kw">fn </span>init(intrinsics: <span class="kw-2">&amp;</span>Intrinsics) {
         <span class="kw">let </span>_timer = Profiler::global().start_event(<span class="self">Self</span>::NAME, <span class="string">&quot;init&quot;</span>);
 
-        <span class="kw">let </span>legacy_proto_getter = FunctionObjectBuilder::new(
-            context,
-            NativeFunction::from_fn_ptr(<span class="self">Self</span>::legacy_proto_getter),
-        )
-        .name(<span class="string">&quot;get __proto__&quot;</span>)
-        .build();
+        <span class="kw">let </span>legacy_proto_getter = BuiltInBuilder::new(intrinsics)
+            .callable(<span class="self">Self</span>::legacy_proto_getter)
+            .name(<span class="string">&quot;get __proto__&quot;</span>)
+            .build();
 
-        <span class="kw">let </span>legacy_setter_proto = FunctionObjectBuilder::new(
-            context,
-            NativeFunction::from_fn_ptr(<span class="self">Self</span>::legacy_proto_setter),
-        )
-        .name(<span class="string">&quot;set __proto__&quot;</span>)
-        .build();
+        <span class="kw">let </span>legacy_setter_proto = BuiltInBuilder::new(intrinsics)
+            .callable(<span class="self">Self</span>::legacy_proto_setter)
+            .name(<span class="string">&quot;set __proto__&quot;</span>)
+            .build();
 
-        ConstructorBuilder::with_standard_constructor(
-            context,
-            <span class="self">Self</span>::constructor,
-            context.intrinsics().constructors().object().clone(),
-        )
-        .name(<span class="self">Self</span>::NAME)
-        .length(<span class="self">Self</span>::LENGTH)
-        .inherit(<span class="prelude-val">None</span>)
-        .accessor(
-            <span class="string">&quot;__proto__&quot;</span>,
-            <span class="prelude-val">Some</span>(legacy_proto_getter),
-            <span class="prelude-val">Some</span>(legacy_setter_proto),
-            Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
-        )
-        .method(<span class="self">Self</span>::has_own_property, <span class="string">&quot;hasOwnProperty&quot;</span>, <span class="number">1</span>)
-        .method(<span class="self">Self</span>::property_is_enumerable, <span class="string">&quot;propertyIsEnumerable&quot;</span>, <span class="number">1</span>)
-        .method(<span class="self">Self</span>::to_string, <span class="string">&quot;toString&quot;</span>, <span class="number">0</span>)
-        .method(<span class="self">Self</span>::to_locale_string, <span class="string">&quot;toLocaleString&quot;</span>, <span class="number">0</span>)
-        .method(<span class="self">Self</span>::value_of, <span class="string">&quot;valueOf&quot;</span>, <span class="number">0</span>)
-        .method(<span class="self">Self</span>::is_prototype_of, <span class="string">&quot;isPrototypeOf&quot;</span>, <span class="number">1</span>)
-        .method(<span class="self">Self</span>::legacy_define_getter, <span class="string">&quot;__defineGetter__&quot;</span>, <span class="number">2</span>)
-        .method(<span class="self">Self</span>::legacy_define_setter, <span class="string">&quot;__defineSetter__&quot;</span>, <span class="number">2</span>)
-        .method(<span class="self">Self</span>::legacy_lookup_getter, <span class="string">&quot;__lookupGetter__&quot;</span>, <span class="number">1</span>)
-        .method(<span class="self">Self</span>::legacy_lookup_setter, <span class="string">&quot;__lookupSetter__&quot;</span>, <span class="number">1</span>)
-        .static_method(<span class="self">Self</span>::create, <span class="string">&quot;create&quot;</span>, <span class="number">2</span>)
-        .static_method(<span class="self">Self</span>::set_prototype_of, <span class="string">&quot;setPrototypeOf&quot;</span>, <span class="number">2</span>)
-        .static_method(<span class="self">Self</span>::get_prototype_of, <span class="string">&quot;getPrototypeOf&quot;</span>, <span class="number">1</span>)
-        .static_method(<span class="self">Self</span>::define_property, <span class="string">&quot;defineProperty&quot;</span>, <span class="number">3</span>)
-        .static_method(<span class="self">Self</span>::define_properties, <span class="string">&quot;defineProperties&quot;</span>, <span class="number">2</span>)
-        .static_method(<span class="self">Self</span>::assign, <span class="string">&quot;assign&quot;</span>, <span class="number">2</span>)
-        .static_method(<span class="self">Self</span>::is, <span class="string">&quot;is&quot;</span>, <span class="number">2</span>)
-        .static_method(<span class="self">Self</span>::keys, <span class="string">&quot;keys&quot;</span>, <span class="number">1</span>)
-        .static_method(<span class="self">Self</span>::values, <span class="string">&quot;values&quot;</span>, <span class="number">1</span>)
-        .static_method(<span class="self">Self</span>::entries, <span class="string">&quot;entries&quot;</span>, <span class="number">1</span>)
-        .static_method(<span class="self">Self</span>::seal, <span class="string">&quot;seal&quot;</span>, <span class="number">1</span>)
-        .static_method(<span class="self">Self</span>::is_sealed, <span class="string">&quot;isSealed&quot;</span>, <span class="number">1</span>)
-        .static_method(<span class="self">Self</span>::freeze, <span class="string">&quot;freeze&quot;</span>, <span class="number">1</span>)
-        .static_method(<span class="self">Self</span>::is_frozen, <span class="string">&quot;isFrozen&quot;</span>, <span class="number">1</span>)
-        .static_method(<span class="self">Self</span>::prevent_extensions, <span class="string">&quot;preventExtensions&quot;</span>, <span class="number">1</span>)
-        .static_method(<span class="self">Self</span>::is_extensible, <span class="string">&quot;isExtensible&quot;</span>, <span class="number">1</span>)
-        .static_method(
-            <span class="self">Self</span>::get_own_property_descriptor,
-            <span class="string">&quot;getOwnPropertyDescriptor&quot;</span>,
-            <span class="number">2</span>,
-        )
-        .static_method(
-            <span class="self">Self</span>::get_own_property_descriptors,
-            <span class="string">&quot;getOwnPropertyDescriptors&quot;</span>,
-            <span class="number">1</span>,
-        )
-        .static_method(<span class="self">Self</span>::get_own_property_names, <span class="string">&quot;getOwnPropertyNames&quot;</span>, <span class="number">1</span>)
-        .static_method(<span class="self">Self</span>::get_own_property_symbols, <span class="string">&quot;getOwnPropertySymbols&quot;</span>, <span class="number">1</span>)
-        .static_method(<span class="self">Self</span>::has_own, <span class="string">&quot;hasOwn&quot;</span>, <span class="number">2</span>)
-        .static_method(<span class="self">Self</span>::from_entries, <span class="string">&quot;fromEntries&quot;</span>, <span class="number">1</span>)
-        .build()
-        .conv::&lt;JsValue&gt;()
-        .pipe(<span class="prelude-val">Some</span>)
+        BuiltInBuilder::from_standard_constructor::&lt;<span class="self">Self</span>&gt;(intrinsics)
+            .inherits(<span class="prelude-val">None</span>)
+            .accessor(
+                <span class="string">&quot;__proto__&quot;</span>,
+                <span class="prelude-val">Some</span>(legacy_proto_getter),
+                <span class="prelude-val">Some</span>(legacy_setter_proto),
+                Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
+            )
+            .method(<span class="self">Self</span>::has_own_property, <span class="string">&quot;hasOwnProperty&quot;</span>, <span class="number">1</span>)
+            .method(<span class="self">Self</span>::property_is_enumerable, <span class="string">&quot;propertyIsEnumerable&quot;</span>, <span class="number">1</span>)
+            .method(<span class="self">Self</span>::to_string, <span class="string">&quot;toString&quot;</span>, <span class="number">0</span>)
+            .method(<span class="self">Self</span>::to_locale_string, <span class="string">&quot;toLocaleString&quot;</span>, <span class="number">0</span>)
+            .method(<span class="self">Self</span>::value_of, <span class="string">&quot;valueOf&quot;</span>, <span class="number">0</span>)
+            .method(<span class="self">Self</span>::is_prototype_of, <span class="string">&quot;isPrototypeOf&quot;</span>, <span class="number">1</span>)
+            .method(<span class="self">Self</span>::legacy_define_getter, <span class="string">&quot;__defineGetter__&quot;</span>, <span class="number">2</span>)
+            .method(<span class="self">Self</span>::legacy_define_setter, <span class="string">&quot;__defineSetter__&quot;</span>, <span class="number">2</span>)
+            .method(<span class="self">Self</span>::legacy_lookup_getter, <span class="string">&quot;__lookupGetter__&quot;</span>, <span class="number">1</span>)
+            .method(<span class="self">Self</span>::legacy_lookup_setter, <span class="string">&quot;__lookupSetter__&quot;</span>, <span class="number">1</span>)
+            .static_method(<span class="self">Self</span>::create, <span class="string">&quot;create&quot;</span>, <span class="number">2</span>)
+            .static_method(<span class="self">Self</span>::set_prototype_of, <span class="string">&quot;setPrototypeOf&quot;</span>, <span class="number">2</span>)
+            .static_method(<span class="self">Self</span>::get_prototype_of, <span class="string">&quot;getPrototypeOf&quot;</span>, <span class="number">1</span>)
+            .static_method(<span class="self">Self</span>::define_property, <span class="string">&quot;defineProperty&quot;</span>, <span class="number">3</span>)
+            .static_method(<span class="self">Self</span>::define_properties, <span class="string">&quot;defineProperties&quot;</span>, <span class="number">2</span>)
+            .static_method(<span class="self">Self</span>::assign, <span class="string">&quot;assign&quot;</span>, <span class="number">2</span>)
+            .static_method(<span class="self">Self</span>::is, <span class="string">&quot;is&quot;</span>, <span class="number">2</span>)
+            .static_method(<span class="self">Self</span>::keys, <span class="string">&quot;keys&quot;</span>, <span class="number">1</span>)
+            .static_method(<span class="self">Self</span>::values, <span class="string">&quot;values&quot;</span>, <span class="number">1</span>)
+            .static_method(<span class="self">Self</span>::entries, <span class="string">&quot;entries&quot;</span>, <span class="number">1</span>)
+            .static_method(<span class="self">Self</span>::seal, <span class="string">&quot;seal&quot;</span>, <span class="number">1</span>)
+            .static_method(<span class="self">Self</span>::is_sealed, <span class="string">&quot;isSealed&quot;</span>, <span class="number">1</span>)
+            .static_method(<span class="self">Self</span>::freeze, <span class="string">&quot;freeze&quot;</span>, <span class="number">1</span>)
+            .static_method(<span class="self">Self</span>::is_frozen, <span class="string">&quot;isFrozen&quot;</span>, <span class="number">1</span>)
+            .static_method(<span class="self">Self</span>::prevent_extensions, <span class="string">&quot;preventExtensions&quot;</span>, <span class="number">1</span>)
+            .static_method(<span class="self">Self</span>::is_extensible, <span class="string">&quot;isExtensible&quot;</span>, <span class="number">1</span>)
+            .static_method(
+                <span class="self">Self</span>::get_own_property_descriptor,
+                <span class="string">&quot;getOwnPropertyDescriptor&quot;</span>,
+                <span class="number">2</span>,
+            )
+            .static_method(
+                <span class="self">Self</span>::get_own_property_descriptors,
+                <span class="string">&quot;getOwnPropertyDescriptors&quot;</span>,
+                <span class="number">1</span>,
+            )
+            .static_method(<span class="self">Self</span>::get_own_property_names, <span class="string">&quot;getOwnPropertyNames&quot;</span>, <span class="number">1</span>)
+            .static_method(<span class="self">Self</span>::get_own_property_symbols, <span class="string">&quot;getOwnPropertySymbols&quot;</span>, <span class="number">1</span>)
+            .static_method(<span class="self">Self</span>::has_own, <span class="string">&quot;hasOwn&quot;</span>, <span class="number">2</span>)
+            .static_method(<span class="self">Self</span>::from_entries, <span class="string">&quot;fromEntries&quot;</span>, <span class="number">1</span>)
+            .build();
+    }
+
+    <span class="kw">fn </span>get(intrinsics: <span class="kw-2">&amp;</span>Intrinsics) -&gt; JsObject {
+        <span class="self">Self</span>::STANDARD_CONSTRUCTOR(intrinsics.constructors()).constructor()
     }
 }
 
-<span class="kw">impl </span>Object {
+<span class="kw">impl </span>BuiltInObject <span class="kw">for </span>Object {
+    <span class="kw">const </span>NAME: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;Object&quot;</span>;
+}
+
+<span class="kw">impl </span>BuiltInConstructor <span class="kw">for </span>Object {
     <span class="kw">const </span>LENGTH: usize = <span class="number">1</span>;
+
+    <span class="kw">const </span>STANDARD_CONSTRUCTOR: <span class="kw">fn</span>(<span class="kw-2">&amp;</span>StandardConstructors) -&gt; <span class="kw-2">&amp;</span>StandardConstructor =
+        StandardConstructors::object;
 
     <span class="kw">fn </span>constructor(
         new_target: <span class="kw-2">&amp;</span>JsValue,
@@ -1543,7 +1539,9 @@
             </span>value.to_object(context).map(JsValue::from)
         }
     }
+}
 
+<span class="kw">impl </span>Object {
     <span class="doccomment">/// `get Object.prototype.__proto__`
     ///
     /// The `__proto__` getter function exposes the value of the

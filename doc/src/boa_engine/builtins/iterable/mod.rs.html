@@ -558,147 +558,182 @@
 <a href="#557" id="557">557</a>
 <a href="#558" id="558">558</a>
 <a href="#559" id="559">559</a>
-<a href="#560" id="560">560</a>
-<a href="#561" id="561">561</a>
-<a href="#562" id="562">562</a>
-<a href="#563" id="563">563</a>
-<a href="#564" id="564">564</a>
-<a href="#565" id="565">565</a>
-<a href="#566" id="566">566</a>
-<a href="#567" id="567">567</a>
-<a href="#568" id="568">568</a>
-<a href="#569" id="569">569</a>
-<a href="#570" id="570">570</a>
-<a href="#571" id="571">571</a>
-<a href="#572" id="572">572</a>
-<a href="#573" id="573">573</a>
 </pre><pre class="rust"><code><span class="doccomment">//! Boa&#39;s implementation of ECMAScript&#39;s `IteratorRecord` and iterator prototype objects.
 
-</span><span class="kw">mod </span>async_from_sync_iterator;
-
-<span class="kw">use crate</span>::{
-    builtins::{
-        regexp::regexp_string_iterator::RegExpStringIterator,
-        string::string_iterator::StringIterator, ArrayIterator, ForInIterator, MapIterator,
-        SetIterator,
-    },
+</span><span class="kw">use crate</span>::{
+    builtins::{BuiltInBuilder, IntrinsicObject},
+    context::intrinsics::Intrinsics,
     error::JsNativeError,
-    object::{JsObject, ObjectInitializer},
+    object::JsObject,
     symbol::JsSymbol,
     Context, JsResult, JsValue,
 };
-<span class="kw">use </span>async_from_sync_iterator::create_async_from_sync_iterator_prototype;
 <span class="kw">use </span>boa_gc::{Finalize, Trace};
 <span class="kw">use </span>boa_profiler::Profiler;
 
+<span class="kw">mod </span>async_from_sync_iterator;
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use </span>async_from_sync_iterator::AsyncFromSyncIterator;
+
+<span class="doccomment">/// `IfAbruptCloseIterator ( value, iteratorRecord )`
+///
+/// `IfAbruptCloseIterator` is a shorthand for a sequence of algorithm steps that use an `Iterator`
+/// Record.
+///
+/// More information:
+///  - [ECMA reference][spec]
+///
+///  [spec]: https://tc39.es/ecma262/#sec-ifabruptcloseiterator
+</span><span class="macro">macro_rules! </span>if_abrupt_close_iterator {
+    (<span class="macro-nonterminal">$value</span>:expr, <span class="macro-nonterminal">$iterator_record</span>:expr, <span class="macro-nonterminal">$context</span>:expr) =&gt; {
+        <span class="kw">match </span><span class="macro-nonterminal">$value </span>{
+            <span class="comment">// 1. If value is an abrupt completion, return ? IteratorClose(iteratorRecord, value).
+            </span><span class="prelude-val">Err</span>(err) =&gt; <span class="kw">return </span><span class="macro-nonterminal">$iterator_record</span>.close(<span class="prelude-val">Err</span>(err), <span class="macro-nonterminal">$context</span>),
+            <span class="comment">// 2. Else if value is a Completion Record, set value to value.
+            </span><span class="prelude-val">Ok</span>(value) =&gt; value,
+        }
+    };
+}
+
+<span class="comment">// Export macro to crate level
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use </span>if_abrupt_close_iterator;
 
 <span class="doccomment">/// The built-in iterator prototypes.
 </span><span class="attr">#[derive(Debug, Default)]
 </span><span class="kw">pub struct </span>IteratorPrototypes {
     <span class="doccomment">/// The `IteratorPrototype` object.
-    </span>iterator_prototype: JsObject,
+    </span>iterator: JsObject,
 
     <span class="doccomment">/// The `AsyncIteratorPrototype` object.
-    </span>async_iterator_prototype: JsObject,
+    </span>async_iterator: JsObject,
 
     <span class="doccomment">/// The `AsyncFromSyncIteratorPrototype` prototype object.
-    </span>async_from_sync_iterator_prototype: JsObject,
+    </span>async_from_sync_iterator: JsObject,
 
     <span class="doccomment">/// The `ArrayIteratorPrototype` prototype object.
-    </span>array_iterator: JsObject,
+    </span>array: JsObject,
 
     <span class="doccomment">/// The `SetIteratorPrototype` prototype object.
-    </span>set_iterator: JsObject,
+    </span>set: JsObject,
 
     <span class="doccomment">/// The `StringIteratorPrototype` prototype object.
-    </span>string_iterator: JsObject,
+    </span>string: JsObject,
 
     <span class="doccomment">/// The `RegExpStringIteratorPrototype` prototype object.
-    </span>regexp_string_iterator: JsObject,
+    </span>regexp_string: JsObject,
 
     <span class="doccomment">/// The `MapIteratorPrototype` prototype object.
-    </span>map_iterator: JsObject,
+    </span>map: JsObject,
 
     <span class="doccomment">/// The `ForInIteratorPrototype` prototype object.
-    </span>for_in_iterator: JsObject,
+    </span>for_in: JsObject,
 }
 
 <span class="kw">impl </span>IteratorPrototypes {
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>init(context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <span class="self">Self </span>{
-        <span class="kw">let </span>_timer = Profiler::global().start_event(<span class="string">&quot;IteratorPrototypes::init&quot;</span>, <span class="string">&quot;init&quot;</span>);
-
-        <span class="kw">let </span>iterator_prototype = create_iterator_prototype(context);
-        <span class="kw">let </span>async_iterator_prototype = create_async_iterator_prototype(context);
-        <span class="kw">let </span>async_from_sync_iterator_prototype = create_async_from_sync_iterator_prototype(context);
-        <span class="self">Self </span>{
-            array_iterator: ArrayIterator::create_prototype(iterator_prototype.clone(), context),
-            set_iterator: SetIterator::create_prototype(iterator_prototype.clone(), context),
-            string_iterator: StringIterator::create_prototype(iterator_prototype.clone(), context),
-            regexp_string_iterator: RegExpStringIterator::create_prototype(
-                iterator_prototype.clone(),
-                context,
-            ),
-            map_iterator: MapIterator::create_prototype(iterator_prototype.clone(), context),
-            for_in_iterator: ForInIterator::create_prototype(iterator_prototype.clone(), context),
-            iterator_prototype,
-            async_iterator_prototype,
-            async_from_sync_iterator_prototype,
-        }
-    }
-
     <span class="doccomment">/// Returns the `ArrayIteratorPrototype` object.
     </span><span class="attr">#[inline]
-    </span><span class="kw">pub fn </span>array_iterator(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; JsObject {
-        <span class="self">self</span>.array_iterator.clone()
+    </span><span class="kw">pub fn </span>array(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; JsObject {
+        <span class="self">self</span>.array.clone()
     }
 
     <span class="doccomment">/// Returns the `IteratorPrototype` object.
     </span><span class="attr">#[inline]
-    </span><span class="kw">pub fn </span>iterator_prototype(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; JsObject {
-        <span class="self">self</span>.iterator_prototype.clone()
+    </span><span class="kw">pub fn </span>iterator(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; JsObject {
+        <span class="self">self</span>.iterator.clone()
     }
 
     <span class="doccomment">/// Returns the `AsyncIteratorPrototype` object.
     </span><span class="attr">#[inline]
-    </span><span class="kw">pub fn </span>async_iterator_prototype(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; JsObject {
-        <span class="self">self</span>.async_iterator_prototype.clone()
+    </span><span class="kw">pub fn </span>async_iterator(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; JsObject {
+        <span class="self">self</span>.async_iterator.clone()
     }
 
     <span class="doccomment">/// Returns the `AsyncFromSyncIteratorPrototype` object.
     </span><span class="attr">#[inline]
-    </span><span class="kw">pub fn </span>async_from_sync_iterator_prototype(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; JsObject {
-        <span class="self">self</span>.async_from_sync_iterator_prototype.clone()
+    </span><span class="kw">pub fn </span>async_from_sync_iterator(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; JsObject {
+        <span class="self">self</span>.async_from_sync_iterator.clone()
     }
 
     <span class="doccomment">/// Returns the `SetIteratorPrototype` object.
     </span><span class="attr">#[inline]
-    </span><span class="kw">pub fn </span>set_iterator(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; JsObject {
-        <span class="self">self</span>.set_iterator.clone()
+    </span><span class="kw">pub fn </span>set(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; JsObject {
+        <span class="self">self</span>.set.clone()
     }
 
     <span class="doccomment">/// Returns the `StringIteratorPrototype` object.
     </span><span class="attr">#[inline]
-    </span><span class="kw">pub fn </span>string_iterator(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; JsObject {
-        <span class="self">self</span>.string_iterator.clone()
+    </span><span class="kw">pub fn </span>string(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; JsObject {
+        <span class="self">self</span>.string.clone()
     }
 
     <span class="doccomment">/// Returns the `RegExpStringIteratorPrototype` object.
     </span><span class="attr">#[inline]
-    </span><span class="kw">pub fn </span>regexp_string_iterator(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; JsObject {
-        <span class="self">self</span>.regexp_string_iterator.clone()
+    </span><span class="kw">pub fn </span>regexp_string(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; JsObject {
+        <span class="self">self</span>.regexp_string.clone()
     }
 
     <span class="doccomment">/// Returns the `MapIteratorPrototype` object.
     </span><span class="attr">#[inline]
-    </span><span class="kw">pub fn </span>map_iterator(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; JsObject {
-        <span class="self">self</span>.map_iterator.clone()
+    </span><span class="kw">pub fn </span>map(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; JsObject {
+        <span class="self">self</span>.map.clone()
     }
 
     <span class="doccomment">/// Returns the `ForInIteratorPrototype` object.
     </span><span class="attr">#[inline]
-    </span><span class="kw">pub fn </span>for_in_iterator(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; JsObject {
-        <span class="self">self</span>.for_in_iterator.clone()
+    </span><span class="kw">pub fn </span>for_in(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; JsObject {
+        <span class="self">self</span>.for_in.clone()
+    }
+}
+
+<span class="doccomment">/// `%IteratorPrototype%` object
+///
+/// More information:
+///  - [ECMA reference][spec]
+///
+/// [spec]: https://tc39.es/ecma262/#sec-%iteratorprototype%-object
+
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>Iterator;
+
+<span class="kw">impl </span>IntrinsicObject <span class="kw">for </span>Iterator {
+    <span class="kw">fn </span>init(intrinsics: <span class="kw-2">&amp;</span>Intrinsics) {
+        <span class="kw">let </span>_timer = Profiler::global().start_event(<span class="string">&quot;Iterator Prototype&quot;</span>, <span class="string">&quot;init&quot;</span>);
+
+        BuiltInBuilder::with_intrinsic::&lt;<span class="self">Self</span>&gt;(intrinsics)
+            .static_method(
+                |v, <span class="kw">_</span>, <span class="kw">_</span>| <span class="prelude-val">Ok</span>(v.clone()),
+                (JsSymbol::iterator(), <span class="string">&quot;[Symbol.iterator]&quot;</span>),
+                <span class="number">0</span>,
+            )
+            .build();
+    }
+
+    <span class="kw">fn </span>get(intrinsics: <span class="kw-2">&amp;</span>Intrinsics) -&gt; JsObject {
+        intrinsics.objects().iterator_prototypes().iterator()
+    }
+}
+
+<span class="doccomment">/// `%AsyncIteratorPrototype%` object
+///
+/// More information:
+///  - [ECMA reference][spec]
+///
+/// [spec]: https://tc39.es/ecma262/#sec-asynciteratorprototype
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>AsyncIterator;
+
+<span class="kw">impl </span>IntrinsicObject <span class="kw">for </span>AsyncIterator {
+    <span class="kw">fn </span>init(intrinsics: <span class="kw-2">&amp;</span>Intrinsics) {
+        <span class="kw">let </span>_timer = Profiler::global().start_event(<span class="string">&quot;AsyncIteratorPrototype&quot;</span>, <span class="string">&quot;init&quot;</span>);
+
+        BuiltInBuilder::with_intrinsic::&lt;<span class="self">Self</span>&gt;(intrinsics)
+            .static_method(
+                |v, <span class="kw">_</span>, <span class="kw">_</span>| <span class="prelude-val">Ok</span>(v.clone()),
+                (JsSymbol::async_iterator(), <span class="string">&quot;[Symbol.asyncIterator]&quot;</span>),
+                <span class="number">0</span>,
+            )
+            .build();
+    }
+
+    <span class="kw">fn </span>get(intrinsics: <span class="kw-2">&amp;</span>Intrinsics) -&gt; JsObject {
+        intrinsics.objects().iterator_prototypes().async_iterator()
     }
 }
 
@@ -800,26 +835,6 @@
             <span class="bool-val">false</span>,
         ))
     }
-}
-
-<span class="doccomment">/// Create the `%IteratorPrototype%` object
-///
-/// More information:
-///  - [ECMA reference][spec]
-///
-/// [spec]: https://tc39.es/ecma262/#sec-%iteratorprototype%-object
-</span><span class="kw">fn </span>create_iterator_prototype(context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsObject {
-    <span class="kw">let </span>_timer = Profiler::global().start_event(<span class="string">&quot;Iterator Prototype&quot;</span>, <span class="string">&quot;init&quot;</span>);
-
-    <span class="kw">let </span>symbol_iterator = JsSymbol::iterator();
-    <span class="kw">let </span>iterator_prototype = ObjectInitializer::new(context)
-        .function(
-            |v, <span class="kw">_</span>, <span class="kw">_</span>| <span class="prelude-val">Ok</span>(v.clone()),
-            (symbol_iterator, <span class="string">&quot;[Symbol.iterator]&quot;</span>),
-            <span class="number">0</span>,
-        )
-        .build();
-    iterator_prototype
 }
 
 <span class="doccomment">/// The result of the iteration process.
@@ -1101,49 +1116,6 @@
 
     <span class="comment">// 6. Return values.
     </span><span class="prelude-val">Ok</span>(values)
-}
-
-<span class="doccomment">/// `IfAbruptCloseIterator ( value, iteratorRecord )`
-///
-/// `IfAbruptCloseIterator` is a shorthand for a sequence of algorithm steps that use an `Iterator`
-/// Record.
-///
-/// More information:
-///  - [ECMA reference][spec]
-///
-///  [spec]: https://tc39.es/ecma262/#sec-ifabruptcloseiterator
-</span><span class="macro">macro_rules! </span>if_abrupt_close_iterator {
-    (<span class="macro-nonterminal">$value</span>:expr, <span class="macro-nonterminal">$iterator_record</span>:expr, <span class="macro-nonterminal">$context</span>:expr) =&gt; {
-        <span class="kw">match </span><span class="macro-nonterminal">$value </span>{
-            <span class="comment">// 1. If value is an abrupt completion, return ? IteratorClose(iteratorRecord, value).
-            </span><span class="prelude-val">Err</span>(err) =&gt; <span class="kw">return </span><span class="macro-nonterminal">$iterator_record</span>.close(<span class="prelude-val">Err</span>(err), <span class="macro-nonterminal">$context</span>),
-            <span class="comment">// 2. Else if value is a Completion Record, set value to value.
-            </span><span class="prelude-val">Ok</span>(value) =&gt; value,
-        }
-    };
-}
-
-<span class="comment">// Export macro to crate level
-</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use </span>if_abrupt_close_iterator;
-
-<span class="doccomment">/// Create the `%AsyncIteratorPrototype%` object
-///
-/// More information:
-///  - [ECMA reference][spec]
-///
-/// [spec]: https://tc39.es/ecma262/#sec-asynciteratorprototype
-</span><span class="kw">fn </span>create_async_iterator_prototype(context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsObject {
-    <span class="kw">let </span>_timer = Profiler::global().start_event(<span class="string">&quot;AsyncIteratorPrototype&quot;</span>, <span class="string">&quot;init&quot;</span>);
-
-    <span class="kw">let </span>symbol_iterator = JsSymbol::async_iterator();
-    <span class="kw">let </span>iterator_prototype = ObjectInitializer::new(context)
-        .function(
-            |v, <span class="kw">_</span>, <span class="kw">_</span>| <span class="prelude-val">Ok</span>(v.clone()),
-            (symbol_iterator, <span class="string">&quot;[Symbol.asyncIterator]&quot;</span>),
-            <span class="number">0</span>,
-        )
-        .build();
-    iterator_prototype
 }
 </code></pre></div>
 </section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-static-root-path="../../../../static.files/" data-current-crate="boa_engine" data-themes="" data-resource-suffix="" data-rustdoc-version="1.67.0 (fc594f156 2023-01-24)" data-search-js="search-444266647c4dba98.js" data-settings-js="settings-bebeae96e00e4617.js" data-settings-css="settings-af96d9e2fc13e081.css" ></div></body></html>

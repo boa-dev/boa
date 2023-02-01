@@ -258,6 +258,11 @@
 <a href="#257" id="257">257</a>
 <a href="#258" id="258">258</a>
 <a href="#259" id="259">259</a>
+<a href="#260" id="260">260</a>
+<a href="#261" id="261">261</a>
+<a href="#262" id="262">262</a>
+<a href="#263" id="263">263</a>
+<a href="#264" id="264">264</a>
 </pre><pre class="rust"><code><span class="doccomment">//! This module implements the global `Intl.DateTimeFormat` object.
 //!
 //! `Intl.DateTimeFormat` is a built-in object that has properties and methods for date and time i18n.
@@ -268,13 +273,11 @@
 //! [spec]: https://tc39.es/ecma402/#datetimeformat-objects
 
 </span><span class="kw">use crate</span>::{
-    context::intrinsics::StandardConstructors,
+    builtins::{BuiltInBuilder, BuiltInConstructor, BuiltInObject, IntrinsicObject},
+    context::intrinsics::{Intrinsics, StandardConstructor, StandardConstructors},
     error::JsNativeError,
     js_string,
-    object::{
-        internal_methods::get_prototype_from_constructor, ConstructorBuilder, JsFunction, JsObject,
-        ObjectData,
-    },
+    object::{internal_methods::get_prototype_from_constructor, JsObject, ObjectData},
     Context, JsResult, JsString, JsValue,
 };
 
@@ -322,20 +325,27 @@
     bound_format: JsString,
 }
 
-<span class="kw">impl </span>DateTimeFormat {
-    <span class="kw">const </span>NAME: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;DateTimeFormat&quot;</span>;
-
-    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>init(context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsFunction {
+<span class="kw">impl </span>IntrinsicObject <span class="kw">for </span>DateTimeFormat {
+    <span class="kw">fn </span>init(intrinsics: <span class="kw-2">&amp;</span>Intrinsics) {
         <span class="kw">let </span>_timer = Profiler::global().start_event(<span class="self">Self</span>::NAME, <span class="string">&quot;init&quot;</span>);
 
-        ConstructorBuilder::new(context, <span class="self">Self</span>::constructor)
-            .name(<span class="self">Self</span>::NAME)
-            .length(<span class="number">0</span>)
-            .build()
+        BuiltInBuilder::from_standard_constructor::&lt;<span class="self">Self</span>&gt;(intrinsics).build();
+    }
+
+    <span class="kw">fn </span>get(intrinsics: <span class="kw-2">&amp;</span>Intrinsics) -&gt; JsObject {
+        <span class="self">Self</span>::STANDARD_CONSTRUCTOR(intrinsics.constructors()).constructor()
     }
 }
 
-<span class="kw">impl </span>DateTimeFormat {
+<span class="kw">impl </span>BuiltInObject <span class="kw">for </span>DateTimeFormat {
+    <span class="kw">const </span>NAME: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;DateTimeFormat&quot;</span>;
+}
+
+<span class="kw">impl </span>BuiltInConstructor <span class="kw">for </span>DateTimeFormat {
+    <span class="kw">const </span>LENGTH: usize = <span class="number">0</span>;
+
+    <span class="kw">const </span>STANDARD_CONSTRUCTOR: <span class="kw">fn</span>(<span class="kw-2">&amp;</span>StandardConstructors) -&gt; <span class="kw-2">&amp;</span>StandardConstructor =
+        StandardConstructors::date_time_format;
     <span class="doccomment">/// The `Intl.DateTimeFormat` constructor is the `%DateTimeFormat%` intrinsic object and a standard built-in property of the `Intl` object.
     ///
     /// More information:
@@ -344,7 +354,7 @@
     ///
     /// [spec]: https://tc39.es/ecma402/#datetimeformat-objects
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Intl/DateTimeFormat
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>constructor(
+    </span><span class="kw">fn </span>constructor(
         new_target: <span class="kw-2">&amp;</span>JsValue,
         _args: <span class="kw-2">&amp;</span>[JsValue],
         context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,

@@ -840,7 +840,6 @@
 <a href="#839" id="839">839</a>
 <a href="#840" id="840">840</a>
 <a href="#841" id="841">841</a>
-<a href="#842" id="842">842</a>
 </pre><pre class="rust"><code><span class="doccomment">//! Boa&#39;s implementation of ECMAScript&#39;s global `ArrayBuffer` object.
 //!
 //! More information:
@@ -854,23 +853,20 @@
 </span><span class="kw">mod </span>tests;
 
 <span class="kw">use crate</span>::{
-    builtins::{typed_array::TypedArrayKind, BuiltIn, JsArgs},
-    context::intrinsics::StandardConstructors,
+    builtins::{typed_array::TypedArrayKind, BuiltInObject},
+    context::intrinsics::{Intrinsics, StandardConstructor, StandardConstructors},
     error::JsNativeError,
-    native_function::NativeFunction,
-    object::{
-        internal_methods::get_prototype_from_constructor, ConstructorBuilder,
-        FunctionObjectBuilder, JsObject, ObjectData,
-    },
+    object::{internal_methods::get_prototype_from_constructor, JsObject, ObjectData},
     property::Attribute,
     symbol::JsSymbol,
     value::{IntegerOrInfinity, Numeric},
-    Context, JsResult, JsValue,
+    Context, JsArgs, JsResult, JsValue,
 };
 <span class="kw">use </span>boa_gc::{Finalize, Trace};
 <span class="kw">use </span>boa_profiler::Profiler;
 <span class="kw">use </span>num_traits::{Signed, ToPrimitive};
-<span class="kw">use </span>tap::{Conv, Pipe};
+
+<span class="kw">use super</span>::{BuiltInBuilder, BuiltInConstructor, IntrinsicObject};
 
 <span class="doccomment">/// The internal representation of an `ArrayBuffer` object.
 </span><span class="attr">#[derive(Debug, Clone, Trace, Finalize)]
@@ -891,54 +887,54 @@
     }
 }
 
-<span class="kw">impl </span>BuiltIn <span class="kw">for </span>ArrayBuffer {
-    <span class="kw">const </span>NAME: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;ArrayBuffer&quot;</span>;
-
-    <span class="kw">fn </span>init(context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <span class="prelude-ty">Option</span>&lt;JsValue&gt; {
+<span class="kw">impl </span>IntrinsicObject <span class="kw">for </span>ArrayBuffer {
+    <span class="kw">fn </span>init(intrinsics: <span class="kw-2">&amp;</span>Intrinsics) {
         <span class="kw">let </span>_timer = Profiler::global().start_event(<span class="self">Self</span>::NAME, <span class="string">&quot;init&quot;</span>);
 
         <span class="kw">let </span>flag_attributes = Attribute::CONFIGURABLE | Attribute::NON_ENUMERABLE;
 
-        <span class="kw">let </span>get_species =
-            FunctionObjectBuilder::new(context, NativeFunction::from_fn_ptr(<span class="self">Self</span>::get_species))
-                .name(<span class="string">&quot;get [Symbol.species]&quot;</span>)
-                .constructor(<span class="bool-val">false</span>)
-                .build();
+        <span class="kw">let </span>get_species = BuiltInBuilder::new(intrinsics)
+            .callable(<span class="self">Self</span>::get_species)
+            .name(<span class="string">&quot;get [Symbol.species]&quot;</span>)
+            .build();
 
-        <span class="kw">let </span>get_byte_length =
-            FunctionObjectBuilder::new(context, NativeFunction::from_fn_ptr(<span class="self">Self</span>::get_byte_length))
-                .name(<span class="string">&quot;get byteLength&quot;</span>)
-                .build();
+        <span class="kw">let </span>get_byte_length = BuiltInBuilder::new(intrinsics)
+            .callable(<span class="self">Self</span>::get_byte_length)
+            .name(<span class="string">&quot;get byteLength&quot;</span>)
+            .build();
 
-        ConstructorBuilder::with_standard_constructor(
-            context,
-            <span class="self">Self</span>::constructor,
-            context.intrinsics().constructors().array_buffer().clone(),
-        )
-        .name(<span class="self">Self</span>::NAME)
-        .length(<span class="self">Self</span>::LENGTH)
-        .accessor(<span class="string">&quot;byteLength&quot;</span>, <span class="prelude-val">Some</span>(get_byte_length), <span class="prelude-val">None</span>, flag_attributes)
-        .static_accessor(
-            JsSymbol::species(),
-            <span class="prelude-val">Some</span>(get_species),
-            <span class="prelude-val">None</span>,
-            Attribute::CONFIGURABLE,
-        )
-        .static_method(<span class="self">Self</span>::is_view, <span class="string">&quot;isView&quot;</span>, <span class="number">1</span>)
-        .method(<span class="self">Self</span>::slice, <span class="string">&quot;slice&quot;</span>, <span class="number">2</span>)
-        .property(
-            JsSymbol::to_string_tag(),
-            <span class="self">Self</span>::NAME,
-            Attribute::READONLY | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
-        )
-        .build()
-        .conv::&lt;JsValue&gt;()
-        .pipe(<span class="prelude-val">Some</span>)
+        BuiltInBuilder::from_standard_constructor::&lt;<span class="self">Self</span>&gt;(intrinsics)
+            .accessor(<span class="string">&quot;byteLength&quot;</span>, <span class="prelude-val">Some</span>(get_byte_length), <span class="prelude-val">None</span>, flag_attributes)
+            .static_accessor(
+                JsSymbol::species(),
+                <span class="prelude-val">Some</span>(get_species),
+                <span class="prelude-val">None</span>,
+                Attribute::CONFIGURABLE,
+            )
+            .static_method(<span class="self">Self</span>::is_view, <span class="string">&quot;isView&quot;</span>, <span class="number">1</span>)
+            .method(<span class="self">Self</span>::slice, <span class="string">&quot;slice&quot;</span>, <span class="number">2</span>)
+            .property(
+                JsSymbol::to_string_tag(),
+                <span class="self">Self</span>::NAME,
+                Attribute::READONLY | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
+            )
+            .build();
+    }
+
+    <span class="kw">fn </span>get(intrinsics: <span class="kw-2">&amp;</span>Intrinsics) -&gt; JsObject {
+        <span class="self">Self</span>::STANDARD_CONSTRUCTOR(intrinsics.constructors()).constructor()
     }
 }
 
-<span class="kw">impl </span>ArrayBuffer {
+<span class="kw">impl </span>BuiltInObject <span class="kw">for </span>ArrayBuffer {
+    <span class="kw">const </span>NAME: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;ArrayBuffer&quot;</span>;
+}
+
+<span class="kw">impl </span>BuiltInConstructor <span class="kw">for </span>ArrayBuffer {
     <span class="kw">const </span>LENGTH: usize = <span class="number">1</span>;
+
+    <span class="kw">const </span>STANDARD_CONSTRUCTOR: <span class="kw">fn</span>(<span class="kw-2">&amp;</span>StandardConstructors) -&gt; <span class="kw-2">&amp;</span>StandardConstructor =
+        StandardConstructors::array_buffer;
 
     <span class="doccomment">/// `25.1.3.1 ArrayBuffer ( length )`
     ///
@@ -964,7 +960,9 @@
         <span class="comment">// 3. Return ? AllocateArrayBuffer(NewTarget, byteLength).
         </span><span class="prelude-val">Ok</span>(<span class="self">Self</span>::allocate(new_target, byte_length, context)<span class="question-mark">?</span>.into())
     }
+}
 
+<span class="kw">impl </span>ArrayBuffer {
     <span class="doccomment">/// `25.1.4.3 get ArrayBuffer [ @@species ]`
     ///
     /// More information:

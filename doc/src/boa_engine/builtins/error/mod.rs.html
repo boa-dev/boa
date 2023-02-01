@@ -265,7 +265,6 @@
 <a href="#264" id="264">264</a>
 <a href="#265" id="265">265</a>
 <a href="#266" id="266">266</a>
-<a href="#267" id="267">267</a>
 </pre><pre class="rust"><code><span class="doccomment">//! Boa&#39;s implementation of ECMAScript&#39;s global `Error` object.
 //!
 //! Error objects are thrown when runtime errors occur.
@@ -279,19 +278,16 @@
 //! [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error
 
 </span><span class="kw">use crate</span>::{
-    builtins::BuiltIn,
-    context::intrinsics::StandardConstructors,
+    builtins::BuiltInObject,
+    context::intrinsics::{Intrinsics, StandardConstructor, StandardConstructors},
     error::JsNativeError,
     js_string,
-    object::{
-        internal_methods::get_prototype_from_constructor, ConstructorBuilder, JsObject, ObjectData,
-    },
+    object::{internal_methods::get_prototype_from_constructor, JsObject, ObjectData},
     property::Attribute,
     string::utf16,
-    Context, JsResult, JsValue,
+    Context, JsArgs, JsResult, JsValue,
 };
 <span class="kw">use </span>boa_profiler::Profiler;
-<span class="kw">use </span>tap::{Conv, Pipe};
 
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">mod </span>aggregate;
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">mod </span>eval;
@@ -312,7 +308,7 @@
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use </span><span class="self">self</span>::syntax::SyntaxError;
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use </span><span class="self">self</span>::uri::UriError;
 
-<span class="kw">use </span><span class="kw">super</span>::JsArgs;
+<span class="kw">use super</span>::{BuiltInBuilder, BuiltInConstructor, IntrinsicObject};
 
 <span class="doccomment">/// The kind of a `NativeError` object, per the [ECMAScript spec][spec].
 ///
@@ -397,57 +393,37 @@
 </span><span class="attr">#[derive(Debug, Clone, Copy)]
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>Error;
 
-<span class="kw">impl </span>BuiltIn <span class="kw">for </span>Error {
-    <span class="kw">const </span>NAME: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;Error&quot;</span>;
-
-    <span class="kw">fn </span>init(context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <span class="prelude-ty">Option</span>&lt;JsValue&gt; {
+<span class="kw">impl </span>IntrinsicObject <span class="kw">for </span>Error {
+    <span class="kw">fn </span>init(intrinsics: <span class="kw-2">&amp;</span>Intrinsics) {
         <span class="kw">let </span>_timer = Profiler::global().start_event(<span class="self">Self</span>::NAME, <span class="string">&quot;init&quot;</span>);
 
         <span class="kw">let </span>attribute = Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE;
-        ConstructorBuilder::with_standard_constructor(
-            context,
-            <span class="self">Self</span>::constructor,
-            context.intrinsics().constructors().error().clone(),
-        )
-        .name(<span class="self">Self</span>::NAME)
-        .length(<span class="self">Self</span>::LENGTH)
-        .property(<span class="string">&quot;name&quot;</span>, <span class="self">Self</span>::NAME, attribute)
-        .property(<span class="string">&quot;message&quot;</span>, <span class="string">&quot;&quot;</span>, attribute)
-        .method(<span class="self">Self</span>::to_string, <span class="string">&quot;toString&quot;</span>, <span class="number">0</span>)
-        .build()
-        .conv::&lt;JsValue&gt;()
-        .pipe(<span class="prelude-val">Some</span>)
+        BuiltInBuilder::from_standard_constructor::&lt;<span class="self">Self</span>&gt;(intrinsics)
+            .property(<span class="string">&quot;name&quot;</span>, <span class="self">Self</span>::NAME, attribute)
+            .property(<span class="string">&quot;message&quot;</span>, <span class="string">&quot;&quot;</span>, attribute)
+            .method(<span class="self">Self</span>::to_string, <span class="string">&quot;toString&quot;</span>, <span class="number">0</span>)
+            .build();
+    }
+
+    <span class="kw">fn </span>get(intrinsics: <span class="kw-2">&amp;</span>Intrinsics) -&gt; JsObject {
+        <span class="self">Self</span>::STANDARD_CONSTRUCTOR(intrinsics.constructors()).constructor()
     }
 }
 
-<span class="kw">impl </span>Error {
-    <span class="doccomment">/// The amount of arguments this function object takes.
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const </span>LENGTH: usize = <span class="number">1</span>;
+<span class="kw">impl </span>BuiltInObject <span class="kw">for </span>Error {
+    <span class="kw">const </span>NAME: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;Error&quot;</span>;
+}
 
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>install_error_cause(
-        o: <span class="kw-2">&amp;</span>JsObject,
-        options: <span class="kw-2">&amp;</span>JsValue,
-        context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
-    ) -&gt; JsResult&lt;()&gt; {
-        <span class="comment">// 1. If Type(options) is Object and ? HasProperty(options, &quot;cause&quot;) is true, then
-        </span><span class="kw">if let </span><span class="prelude-val">Some</span>(options) = options.as_object() {
-            <span class="kw">if </span>options.has_property(<span class="string">&quot;cause&quot;</span>, context)<span class="question-mark">? </span>{
-                <span class="comment">// a. Let cause be ? Get(options, &quot;cause&quot;).
-                </span><span class="kw">let </span>cause = options.get(<span class="string">&quot;cause&quot;</span>, context)<span class="question-mark">?</span>;
+<span class="kw">impl </span>BuiltInConstructor <span class="kw">for </span>Error {
+    <span class="kw">const </span>LENGTH: usize = <span class="number">1</span>;
 
-                <span class="comment">// b. Perform CreateNonEnumerableDataPropertyOrThrow(O, &quot;cause&quot;, cause).
-                </span>o.create_non_enumerable_data_property_or_throw(<span class="string">&quot;cause&quot;</span>, cause, context);
-            }
-        }
-
-        <span class="comment">// 2. Return unused.
-        </span><span class="prelude-val">Ok</span>(())
-    }
+    <span class="kw">const </span>STANDARD_CONSTRUCTOR: <span class="kw">fn</span>(<span class="kw-2">&amp;</span>StandardConstructors) -&gt; <span class="kw-2">&amp;</span>StandardConstructor =
+        StandardConstructors::error;
 
     <span class="doccomment">/// `Error( message [ , options ] )`
     ///
     /// Create a new error object.
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>constructor(
+    </span><span class="kw">fn </span>constructor(
         new_target: <span class="kw-2">&amp;</span>JsValue,
         args: <span class="kw-2">&amp;</span>[JsValue],
         context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
@@ -474,6 +450,28 @@
 
         <span class="comment">// 5. Return O.
         </span><span class="prelude-val">Ok</span>(o.into())
+    }
+}
+
+<span class="kw">impl </span>Error {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>install_error_cause(
+        o: <span class="kw-2">&amp;</span>JsObject,
+        options: <span class="kw-2">&amp;</span>JsValue,
+        context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+    ) -&gt; JsResult&lt;()&gt; {
+        <span class="comment">// 1. If Type(options) is Object and ? HasProperty(options, &quot;cause&quot;) is true, then
+        </span><span class="kw">if let </span><span class="prelude-val">Some</span>(options) = options.as_object() {
+            <span class="kw">if </span>options.has_property(<span class="string">&quot;cause&quot;</span>, context)<span class="question-mark">? </span>{
+                <span class="comment">// a. Let cause be ? Get(options, &quot;cause&quot;).
+                </span><span class="kw">let </span>cause = options.get(<span class="string">&quot;cause&quot;</span>, context)<span class="question-mark">?</span>;
+
+                <span class="comment">// b. Perform CreateNonEnumerableDataPropertyOrThrow(O, &quot;cause&quot;, cause).
+                </span>o.create_non_enumerable_data_property_or_throw(<span class="string">&quot;cause&quot;</span>, cause, context);
+            }
+        }
+
+        <span class="comment">// 2. Return unused.
+        </span><span class="prelude-val">Ok</span>(())
     }
 
     <span class="doccomment">/// `Error.prototype.toString()`

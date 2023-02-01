@@ -107,14 +107,6 @@
 <a href="#106" id="106">106</a>
 <a href="#107" id="107">107</a>
 <a href="#108" id="108">108</a>
-<a href="#109" id="109">109</a>
-<a href="#110" id="110">110</a>
-<a href="#111" id="111">111</a>
-<a href="#112" id="112">112</a>
-<a href="#113" id="113">113</a>
-<a href="#114" id="114">114</a>
-<a href="#115" id="115">115</a>
-<a href="#116" id="116">116</a>
 </pre><pre class="rust"><code><span class="doccomment">//! This module implements the global `AggregateError` object.
 //!
 //! More information:
@@ -125,60 +117,52 @@
 //! [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/AggregateError
 
 </span><span class="kw">use crate</span>::{
-    builtins::{iterable::iterable_to_list, Array, BuiltIn, JsArgs},
-    context::intrinsics::StandardConstructors,
-    object::{
-        internal_methods::get_prototype_from_constructor, ConstructorBuilder, JsObject, ObjectData,
+    builtins::{
+        iterable::iterable_to_list, Array, BuiltInBuilder, BuiltInConstructor, BuiltInObject,
+        IntrinsicObject,
     },
+    context::intrinsics::{Intrinsics, StandardConstructor, StandardConstructors},
+    object::{internal_methods::get_prototype_from_constructor, JsObject, ObjectData},
     property::{Attribute, PropertyDescriptorBuilder},
-    Context, JsResult, JsValue,
+    Context, JsArgs, JsResult, JsValue,
 };
 <span class="kw">use </span>boa_profiler::Profiler;
-<span class="kw">use </span>tap::{Conv, Pipe};
 
 <span class="kw">use super</span>::{Error, ErrorKind};
 
 <span class="attr">#[derive(Debug, Clone, Copy)]
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>AggregateError;
 
-<span class="kw">impl </span>BuiltIn <span class="kw">for </span>AggregateError {
-    <span class="kw">const </span>NAME: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;AggregateError&quot;</span>;
-
-    <span class="kw">fn </span>init(context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <span class="prelude-ty">Option</span>&lt;JsValue&gt; {
+<span class="kw">impl </span>IntrinsicObject <span class="kw">for </span>AggregateError {
+    <span class="kw">fn </span>init(intrinsics: <span class="kw-2">&amp;</span>Intrinsics) {
         <span class="kw">let </span>_timer = Profiler::global().start_event(<span class="self">Self</span>::NAME, <span class="string">&quot;init&quot;</span>);
 
-        <span class="kw">let </span>error_constructor = context.intrinsics().constructors().error().constructor();
-        <span class="kw">let </span>error_prototype = context.intrinsics().constructors().error().prototype();
-
         <span class="kw">let </span>attribute = Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE;
+        BuiltInBuilder::from_standard_constructor::&lt;<span class="self">Self</span>&gt;(intrinsics)
+            .prototype(intrinsics.constructors().error().constructor())
+            .inherits(<span class="prelude-val">Some</span>(intrinsics.constructors().error().prototype()))
+            .property(<span class="string">&quot;name&quot;</span>, <span class="self">Self</span>::NAME, attribute)
+            .property(<span class="string">&quot;message&quot;</span>, <span class="string">&quot;&quot;</span>, attribute)
+            .build();
+    }
 
-        ConstructorBuilder::with_standard_constructor(
-            context,
-            <span class="self">Self</span>::constructor,
-            context
-                .intrinsics()
-                .constructors()
-                .aggregate_error()
-                .clone(),
-        )
-        .name(<span class="self">Self</span>::NAME)
-        .length(<span class="self">Self</span>::LENGTH)
-        .inherit(error_prototype)
-        .custom_prototype(error_constructor)
-        .property(<span class="string">&quot;name&quot;</span>, <span class="self">Self</span>::NAME, attribute)
-        .property(<span class="string">&quot;message&quot;</span>, <span class="string">&quot;&quot;</span>, attribute)
-        .build()
-        .conv::&lt;JsValue&gt;()
-        .pipe(<span class="prelude-val">Some</span>)
+    <span class="kw">fn </span>get(intrinsics: <span class="kw-2">&amp;</span>Intrinsics) -&gt; JsObject {
+        <span class="self">Self</span>::STANDARD_CONSTRUCTOR(intrinsics.constructors()).constructor()
     }
 }
 
-<span class="kw">impl </span>AggregateError {
-    <span class="doccomment">/// The amount of arguments this function object takes.
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const </span>LENGTH: usize = <span class="number">2</span>;
+<span class="kw">impl </span>BuiltInObject <span class="kw">for </span>AggregateError {
+    <span class="kw">const </span>NAME: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;AggregateError&quot;</span>;
+}
+
+<span class="kw">impl </span>BuiltInConstructor <span class="kw">for </span>AggregateError {
+    <span class="kw">const </span>LENGTH: usize = <span class="number">2</span>;
+
+    <span class="kw">const </span>STANDARD_CONSTRUCTOR: <span class="kw">fn</span>(<span class="kw-2">&amp;</span>StandardConstructors) -&gt; <span class="kw-2">&amp;</span>StandardConstructor =
+        StandardConstructors::aggregate_error;
 
     <span class="doccomment">/// Create a new aggregate error object.
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>constructor(
+    </span><span class="kw">fn </span>constructor(
         new_target: <span class="kw-2">&amp;</span>JsValue,
         args: <span class="kw-2">&amp;</span>[JsValue],
         context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,

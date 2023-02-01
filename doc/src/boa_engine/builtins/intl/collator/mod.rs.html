@@ -557,6 +557,10 @@
 <a href="#556" id="556">556</a>
 <a href="#557" id="557">557</a>
 <a href="#558" id="558">558</a>
+<a href="#559" id="559">559</a>
+<a href="#560" id="560">560</a>
+<a href="#561" id="561">561</a>
+<a href="#562" id="562">562</a>
 </pre><pre class="rust"><code><span class="kw">use </span>boa_gc::{custom_trace, Finalize, Trace};
 <span class="kw">use </span>boa_profiler::Profiler;
 <span class="kw">use </span>icu_collator::{
@@ -568,19 +572,21 @@
     Locale,
 };
 <span class="kw">use </span>icu_provider::DataLocale;
-<span class="kw">use </span>tap::{Conv, Pipe};
 
 <span class="kw">use crate</span>::{
-    builtins::{BuiltIn, JsArgs},
-    context::{intrinsics::StandardConstructors, BoaProvider},
+    builtins::{BuiltInBuilder, BuiltInConstructor, BuiltInObject, IntrinsicObject},
+    context::{
+        intrinsics::{Intrinsics, StandardConstructor, StandardConstructors},
+        BoaProvider,
+    },
     native_function::NativeFunction,
     object::{
-        internal_methods::get_prototype_from_constructor, ConstructorBuilder,
-        FunctionObjectBuilder, JsFunction, JsObject, ObjectData,
+        internal_methods::get_prototype_from_constructor, FunctionObjectBuilder, JsFunction,
+        JsObject, ObjectData,
     },
     property::Attribute,
     symbol::JsSymbol,
-    Context, JsNativeError, JsResult, JsValue,
+    Context, JsArgs, JsNativeError, JsResult, JsValue,
 };
 
 <span class="kw">use super</span>::{
@@ -714,41 +720,41 @@
     }
 }
 
-<span class="kw">impl </span>BuiltIn <span class="kw">for </span>Collator {
-    <span class="kw">const </span>NAME: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;Collator&quot;</span>;
-
-    <span class="kw">fn </span>init(context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <span class="prelude-ty">Option</span>&lt;JsValue&gt; {
+<span class="kw">impl </span>IntrinsicObject <span class="kw">for </span>Collator {
+    <span class="kw">fn </span>init(intrinsics: <span class="kw-2">&amp;</span>Intrinsics) {
         <span class="kw">let </span>_timer = Profiler::global().start_event(<span class="self">Self</span>::NAME, <span class="string">&quot;init&quot;</span>);
 
-        <span class="kw">let </span>compare =
-            FunctionObjectBuilder::new(context, NativeFunction::from_fn_ptr(<span class="self">Self</span>::compare))
-                .name(<span class="string">&quot;get compare&quot;</span>)
-                .constructor(<span class="bool-val">false</span>)
-                .build();
+        <span class="kw">let </span>compare = BuiltInBuilder::new(intrinsics)
+            .callable(<span class="self">Self</span>::compare)
+            .name(<span class="string">&quot;get compare&quot;</span>)
+            .build();
 
-        ConstructorBuilder::with_standard_constructor(
-            context,
-            <span class="self">Self</span>::constructor,
-            context.intrinsics().constructors().collator().clone(),
-        )
-        .name(<span class="self">Self</span>::NAME)
-        .length(<span class="self">Self</span>::LENGTH)
-        .static_method(<span class="self">Self</span>::supported_locales_of, <span class="string">&quot;supportedLocalesOf&quot;</span>, <span class="number">1</span>)
-        .property(
-            JsSymbol::to_string_tag(),
-            <span class="string">&quot;Intl.Collator&quot;</span>,
-            Attribute::CONFIGURABLE,
-        )
-        .accessor(<span class="string">&quot;compare&quot;</span>, <span class="prelude-val">Some</span>(compare), <span class="prelude-val">None</span>, Attribute::CONFIGURABLE)
-        .method(<span class="self">Self</span>::resolved_options, <span class="string">&quot;resolvedOptions&quot;</span>, <span class="number">0</span>)
-        .build()
-        .conv::&lt;JsValue&gt;()
-        .pipe(<span class="prelude-val">Some</span>)
+        BuiltInBuilder::from_standard_constructor::&lt;<span class="self">Self</span>&gt;(intrinsics)
+            .static_method(<span class="self">Self</span>::supported_locales_of, <span class="string">&quot;supportedLocalesOf&quot;</span>, <span class="number">1</span>)
+            .property(
+                JsSymbol::to_string_tag(),
+                <span class="string">&quot;Intl.Collator&quot;</span>,
+                Attribute::CONFIGURABLE,
+            )
+            .accessor(<span class="string">&quot;compare&quot;</span>, <span class="prelude-val">Some</span>(compare), <span class="prelude-val">None</span>, Attribute::CONFIGURABLE)
+            .method(<span class="self">Self</span>::resolved_options, <span class="string">&quot;resolvedOptions&quot;</span>, <span class="number">0</span>)
+            .build();
+    }
+
+    <span class="kw">fn </span>get(intrinsics: <span class="kw-2">&amp;</span>Intrinsics) -&gt; JsObject {
+        <span class="self">Self</span>::STANDARD_CONSTRUCTOR(intrinsics.constructors()).constructor()
     }
 }
 
-<span class="kw">impl </span>Collator {
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const </span>LENGTH: usize = <span class="number">0</span>;
+<span class="kw">impl </span>BuiltInObject <span class="kw">for </span>Collator {
+    <span class="kw">const </span>NAME: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;Collator&quot;</span>;
+}
+
+<span class="kw">impl </span>BuiltInConstructor <span class="kw">for </span>Collator {
+    <span class="kw">const </span>LENGTH: usize = <span class="number">0</span>;
+
+    <span class="kw">const </span>STANDARD_CONSTRUCTOR: <span class="kw">fn</span>(<span class="kw-2">&amp;</span>StandardConstructors) -&gt; <span class="kw-2">&amp;</span>StandardConstructor =
+        StandardConstructors::collator;
 
     <span class="doccomment">/// Constructor [`Intl.Collator ( [ locales [ , options ] ] )`][spec].
     ///
@@ -759,7 +765,7 @@
     ///
     /// [spec]: https://tc39.es/ecma402/#sec-intl.collator
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Intl/Collator
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>constructor(
+    </span><span class="kw">fn </span>constructor(
         new_target: <span class="kw-2">&amp;</span>JsValue,
         args: <span class="kw-2">&amp;</span>[JsValue],
         context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
@@ -918,7 +924,9 @@
         <span class="comment">// 31. Return collator.
         </span><span class="prelude-val">Ok</span>(collator.into())
     }
+}
 
+<span class="kw">impl </span>Collator {
     <span class="doccomment">/// [`Intl.Collator.supportedLocalesOf ( locales [ , options ] )`][spec].
     ///
     /// Returns an array containing those of the provided locales that are supported in collation

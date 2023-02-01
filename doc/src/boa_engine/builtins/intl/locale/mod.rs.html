@@ -756,18 +756,6 @@
 <a href="#755" id="755">755</a>
 <a href="#756" id="756">756</a>
 <a href="#757" id="757">757</a>
-<a href="#758" id="758">758</a>
-<a href="#759" id="759">759</a>
-<a href="#760" id="760">760</a>
-<a href="#761" id="761">761</a>
-<a href="#762" id="762">762</a>
-<a href="#763" id="763">763</a>
-<a href="#764" id="764">764</a>
-<a href="#765" id="765">765</a>
-<a href="#766" id="766">766</a>
-<a href="#767" id="767">767</a>
-<a href="#768" id="768">768</a>
-<a href="#769" id="769">769</a>
 </pre><pre class="rust"><code><span class="kw">use </span>boa_profiler::Profiler;
 <span class="kw">use </span>icu_collator::CaseFirst;
 <span class="kw">use </span>icu_datetime::options::preferences::HourCycle;
@@ -776,7 +764,6 @@
     extensions_unicode_key <span class="kw">as </span>key, extensions_unicode_value <span class="kw">as </span>value,
     subtags::{Language, Region, Script},
 };
-<span class="kw">use </span>tap::{Conv, Pipe};
 
 <span class="attr">#[cfg(test)]
 </span><span class="kw">mod </span>tests;
@@ -787,17 +774,13 @@
 <span class="kw">mod </span>options;
 
 <span class="kw">use crate</span>::{
-    builtins::{BuiltIn, JsArgs},
-    context::intrinsics::StandardConstructors,
+    builtins::{BuiltInBuilder, BuiltInConstructor, BuiltInObject, IntrinsicObject},
+    context::intrinsics::{Intrinsics, StandardConstructor, StandardConstructors},
     js_string,
-    native_function::NativeFunction,
-    object::{
-        internal_methods::get_prototype_from_constructor, ConstructorBuilder,
-        FunctionObjectBuilder, JsObject, ObjectData,
-    },
+    object::{internal_methods::get_prototype_from_constructor, JsObject, ObjectData},
     property::Attribute,
     symbol::JsSymbol,
-    Context, JsNativeError, JsResult, JsString, JsValue,
+    Context, JsArgs, JsNativeError, JsResult, JsString, JsValue,
 };
 
 <span class="kw">use </span><span class="kw">super</span>::options::{coerce_options_to_object, get_option};
@@ -805,110 +788,101 @@
 <span class="attr">#[derive(Debug, Clone)]
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>Locale;
 
-<span class="kw">impl </span>BuiltIn <span class="kw">for </span>Locale {
-    <span class="kw">const </span>NAME: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;Locale&quot;</span>;
-
-    <span class="kw">fn </span>init(context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <span class="prelude-ty">Option</span>&lt;JsValue&gt; {
+<span class="kw">impl </span>IntrinsicObject <span class="kw">for </span>Locale {
+    <span class="kw">fn </span>init(intrinsics: <span class="kw-2">&amp;</span>Intrinsics) {
         <span class="kw">let </span>_timer = Profiler::global().start_event(<span class="self">Self</span>::NAME, <span class="string">&quot;init&quot;</span>);
 
-        <span class="kw">let </span>base_name =
-            FunctionObjectBuilder::new(context, NativeFunction::from_fn_ptr(<span class="self">Self</span>::base_name))
-                .name(<span class="string">&quot;get baseName&quot;</span>)
-                .constructor(<span class="bool-val">false</span>)
-                .build();
+        <span class="kw">let </span>base_name = BuiltInBuilder::new(intrinsics)
+            .callable(<span class="self">Self</span>::base_name)
+            .name(<span class="string">&quot;get baseName&quot;</span>)
+            .build();
 
-        <span class="kw">let </span>calendar =
-            FunctionObjectBuilder::new(context, NativeFunction::from_fn_ptr(<span class="self">Self</span>::calendar))
-                .name(<span class="string">&quot;get calendar&quot;</span>)
-                .constructor(<span class="bool-val">false</span>)
-                .build();
+        <span class="kw">let </span>calendar = BuiltInBuilder::new(intrinsics)
+            .callable(<span class="self">Self</span>::calendar)
+            .name(<span class="string">&quot;get calendar&quot;</span>)
+            .build();
 
-        <span class="kw">let </span>case_first =
-            FunctionObjectBuilder::new(context, NativeFunction::from_fn_ptr(<span class="self">Self</span>::case_first))
-                .name(<span class="string">&quot;get caseFirst&quot;</span>)
-                .constructor(<span class="bool-val">false</span>)
-                .build();
+        <span class="kw">let </span>case_first = BuiltInBuilder::new(intrinsics)
+            .callable(<span class="self">Self</span>::case_first)
+            .name(<span class="string">&quot;get caseFirst&quot;</span>)
+            .build();
 
-        <span class="kw">let </span>collation =
-            FunctionObjectBuilder::new(context, NativeFunction::from_fn_ptr(<span class="self">Self</span>::collation))
-                .name(<span class="string">&quot;get collation&quot;</span>)
-                .constructor(<span class="bool-val">false</span>)
-                .build();
+        <span class="kw">let </span>collation = BuiltInBuilder::new(intrinsics)
+            .callable(<span class="self">Self</span>::collation)
+            .name(<span class="string">&quot;get collation&quot;</span>)
+            .build();
 
-        <span class="kw">let </span>hour_cycle =
-            FunctionObjectBuilder::new(context, NativeFunction::from_fn_ptr(<span class="self">Self</span>::hour_cycle))
-                .name(<span class="string">&quot;get hourCycle&quot;</span>)
-                .constructor(<span class="bool-val">false</span>)
-                .build();
+        <span class="kw">let </span>hour_cycle = BuiltInBuilder::new(intrinsics)
+            .callable(<span class="self">Self</span>::hour_cycle)
+            .name(<span class="string">&quot;get hourCycle&quot;</span>)
+            .build();
 
-        <span class="kw">let </span>numeric =
-            FunctionObjectBuilder::new(context, NativeFunction::from_fn_ptr(<span class="self">Self</span>::numeric))
-                .name(<span class="string">&quot;get numeric&quot;</span>)
-                .constructor(<span class="bool-val">false</span>)
-                .build();
+        <span class="kw">let </span>numeric = BuiltInBuilder::new(intrinsics)
+            .callable(<span class="self">Self</span>::numeric)
+            .name(<span class="string">&quot;get numeric&quot;</span>)
+            .build();
 
-        <span class="kw">let </span>numbering_system = FunctionObjectBuilder::new(
-            context,
-            NativeFunction::from_fn_ptr(<span class="self">Self</span>::numbering_system),
-        )
-        .name(<span class="string">&quot;get numberingSystem&quot;</span>)
-        .constructor(<span class="bool-val">false</span>)
-        .build();
+        <span class="kw">let </span>numbering_system = BuiltInBuilder::new(intrinsics)
+            .callable(<span class="self">Self</span>::numbering_system)
+            .name(<span class="string">&quot;get numberingSystem&quot;</span>)
+            .build();
 
-        <span class="kw">let </span>language =
-            FunctionObjectBuilder::new(context, NativeFunction::from_fn_ptr(<span class="self">Self</span>::language))
-                .name(<span class="string">&quot;get language&quot;</span>)
-                .constructor(<span class="bool-val">false</span>)
-                .build();
+        <span class="kw">let </span>language = BuiltInBuilder::new(intrinsics)
+            .callable(<span class="self">Self</span>::language)
+            .name(<span class="string">&quot;get language&quot;</span>)
+            .build();
 
-        <span class="kw">let </span>script = FunctionObjectBuilder::new(context, NativeFunction::from_fn_ptr(<span class="self">Self</span>::script))
+        <span class="kw">let </span>script = BuiltInBuilder::new(intrinsics)
+            .callable(<span class="self">Self</span>::script)
             .name(<span class="string">&quot;get script&quot;</span>)
-            .constructor(<span class="bool-val">false</span>)
             .build();
 
-        <span class="kw">let </span>region = FunctionObjectBuilder::new(context, NativeFunction::from_fn_ptr(<span class="self">Self</span>::region))
+        <span class="kw">let </span>region = BuiltInBuilder::new(intrinsics)
+            .callable(<span class="self">Self</span>::region)
             .name(<span class="string">&quot;get region&quot;</span>)
-            .constructor(<span class="bool-val">false</span>)
             .build();
 
-        ConstructorBuilder::with_standard_constructor(
-            context,
-            <span class="self">Self</span>::constructor,
-            context.intrinsics().constructors().locale().clone(),
-        )
-        .name(<span class="self">Self</span>::NAME)
-        .length(<span class="self">Self</span>::LENGTH)
-        .property(
-            JsSymbol::to_string_tag(),
-            <span class="string">&quot;Intl.Locale&quot;</span>,
-            Attribute::CONFIGURABLE,
-        )
-        .method(<span class="self">Self</span>::maximize, <span class="string">&quot;maximize&quot;</span>, <span class="number">0</span>)
-        .method(<span class="self">Self</span>::minimize, <span class="string">&quot;minimize&quot;</span>, <span class="number">0</span>)
-        .method(<span class="self">Self</span>::to_string, <span class="string">&quot;toString&quot;</span>, <span class="number">0</span>)
-        .accessor(<span class="string">&quot;baseName&quot;</span>, <span class="prelude-val">Some</span>(base_name), <span class="prelude-val">None</span>, Attribute::CONFIGURABLE)
-        .accessor(<span class="string">&quot;calendar&quot;</span>, <span class="prelude-val">Some</span>(calendar), <span class="prelude-val">None</span>, Attribute::CONFIGURABLE)
-        .accessor(<span class="string">&quot;caseFirst&quot;</span>, <span class="prelude-val">Some</span>(case_first), <span class="prelude-val">None</span>, Attribute::CONFIGURABLE)
-        .accessor(<span class="string">&quot;collation&quot;</span>, <span class="prelude-val">Some</span>(collation), <span class="prelude-val">None</span>, Attribute::CONFIGURABLE)
-        .accessor(<span class="string">&quot;hourCycle&quot;</span>, <span class="prelude-val">Some</span>(hour_cycle), <span class="prelude-val">None</span>, Attribute::CONFIGURABLE)
-        .accessor(<span class="string">&quot;numeric&quot;</span>, <span class="prelude-val">Some</span>(numeric), <span class="prelude-val">None</span>, Attribute::CONFIGURABLE)
-        .accessor(
-            <span class="string">&quot;numberingSystem&quot;</span>,
-            <span class="prelude-val">Some</span>(numbering_system),
-            <span class="prelude-val">None</span>,
-            Attribute::CONFIGURABLE,
-        )
-        .accessor(<span class="string">&quot;language&quot;</span>, <span class="prelude-val">Some</span>(language), <span class="prelude-val">None</span>, Attribute::CONFIGURABLE)
-        .accessor(<span class="string">&quot;script&quot;</span>, <span class="prelude-val">Some</span>(script), <span class="prelude-val">None</span>, Attribute::CONFIGURABLE)
-        .accessor(<span class="string">&quot;region&quot;</span>, <span class="prelude-val">Some</span>(region), <span class="prelude-val">None</span>, Attribute::CONFIGURABLE)
-        .build()
-        .conv::&lt;JsValue&gt;()
-        .pipe(<span class="prelude-val">Some</span>)
+        BuiltInBuilder::from_standard_constructor::&lt;<span class="self">Self</span>&gt;(intrinsics)
+            .property(
+                JsSymbol::to_string_tag(),
+                <span class="string">&quot;Intl.Locale&quot;</span>,
+                Attribute::CONFIGURABLE,
+            )
+            .method(<span class="self">Self</span>::maximize, <span class="string">&quot;maximize&quot;</span>, <span class="number">0</span>)
+            .method(<span class="self">Self</span>::minimize, <span class="string">&quot;minimize&quot;</span>, <span class="number">0</span>)
+            .method(<span class="self">Self</span>::to_string, <span class="string">&quot;toString&quot;</span>, <span class="number">0</span>)
+            .accessor(<span class="string">&quot;baseName&quot;</span>, <span class="prelude-val">Some</span>(base_name), <span class="prelude-val">None</span>, Attribute::CONFIGURABLE)
+            .accessor(<span class="string">&quot;calendar&quot;</span>, <span class="prelude-val">Some</span>(calendar), <span class="prelude-val">None</span>, Attribute::CONFIGURABLE)
+            .accessor(<span class="string">&quot;caseFirst&quot;</span>, <span class="prelude-val">Some</span>(case_first), <span class="prelude-val">None</span>, Attribute::CONFIGURABLE)
+            .accessor(<span class="string">&quot;collation&quot;</span>, <span class="prelude-val">Some</span>(collation), <span class="prelude-val">None</span>, Attribute::CONFIGURABLE)
+            .accessor(<span class="string">&quot;hourCycle&quot;</span>, <span class="prelude-val">Some</span>(hour_cycle), <span class="prelude-val">None</span>, Attribute::CONFIGURABLE)
+            .accessor(<span class="string">&quot;numeric&quot;</span>, <span class="prelude-val">Some</span>(numeric), <span class="prelude-val">None</span>, Attribute::CONFIGURABLE)
+            .accessor(
+                <span class="string">&quot;numberingSystem&quot;</span>,
+                <span class="prelude-val">Some</span>(numbering_system),
+                <span class="prelude-val">None</span>,
+                Attribute::CONFIGURABLE,
+            )
+            .accessor(<span class="string">&quot;language&quot;</span>, <span class="prelude-val">Some</span>(language), <span class="prelude-val">None</span>, Attribute::CONFIGURABLE)
+            .accessor(<span class="string">&quot;script&quot;</span>, <span class="prelude-val">Some</span>(script), <span class="prelude-val">None</span>, Attribute::CONFIGURABLE)
+            .accessor(<span class="string">&quot;region&quot;</span>, <span class="prelude-val">Some</span>(region), <span class="prelude-val">None</span>, Attribute::CONFIGURABLE)
+            .build();
+    }
+
+    <span class="kw">fn </span>get(intrinsics: <span class="kw-2">&amp;</span>Intrinsics) -&gt; JsObject {
+        <span class="self">Self</span>::STANDARD_CONSTRUCTOR(intrinsics.constructors()).constructor()
     }
 }
 
-<span class="kw">impl </span>Locale {
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const </span>LENGTH: usize = <span class="number">1</span>;
+<span class="kw">impl </span>BuiltInObject <span class="kw">for </span>Locale {
+    <span class="kw">const </span>NAME: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;Locale&quot;</span>;
+}
+
+<span class="kw">impl </span>BuiltInConstructor <span class="kw">for </span>Locale {
+    <span class="kw">const </span>LENGTH: usize = <span class="number">1</span>;
+
+    <span class="kw">const </span>STANDARD_CONSTRUCTOR: <span class="kw">fn</span>(<span class="kw-2">&amp;</span>StandardConstructors) -&gt; <span class="kw-2">&amp;</span>StandardConstructor =
+        StandardConstructors::locale;
 
     <span class="doccomment">/// Constructor [`Intl.Locale ( tag [ , options ] )`][spec].
     ///
@@ -919,7 +893,7 @@
     ///
     /// [spec]: https://tc39.es/ecma402/#sec-Intl.Locale
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Intl/Locale
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>constructor(
+    </span><span class="kw">fn </span>constructor(
         new_target: <span class="kw-2">&amp;</span>JsValue,
         args: <span class="kw-2">&amp;</span>[JsValue],
         context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
@@ -1130,7 +1104,9 @@
         <span class="comment">// 37. Return locale.
         </span><span class="prelude-val">Ok</span>(locale.into())
     }
+}
 
+<span class="kw">impl </span>Locale {
     <span class="doccomment">/// [`Intl.Locale.prototype.maximize ( )`][spec].
     ///
     /// More information:

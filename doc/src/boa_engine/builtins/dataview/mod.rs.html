@@ -1076,21 +1076,18 @@
 //! [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/DataView
 
 </span><span class="kw">use crate</span>::{
-    builtins::{array_buffer::SharedMemoryOrder, typed_array::TypedArrayKind, BuiltIn, JsArgs},
-    context::intrinsics::StandardConstructors,
+    builtins::{array_buffer::SharedMemoryOrder, typed_array::TypedArrayKind, BuiltInObject},
+    context::intrinsics::{Intrinsics, StandardConstructor, StandardConstructors},
     error::JsNativeError,
-    native_function::NativeFunction,
-    object::{
-        internal_methods::get_prototype_from_constructor, ConstructorBuilder,
-        FunctionObjectBuilder, JsObject, ObjectData,
-    },
+    object::{internal_methods::get_prototype_from_constructor, JsObject, ObjectData},
     property::Attribute,
     symbol::JsSymbol,
     value::JsValue,
-    Context, JsResult,
+    Context, JsArgs, JsResult,
 };
 <span class="kw">use </span>boa_gc::{Finalize, Trace};
-<span class="kw">use </span>tap::{Conv, Pipe};
+
+<span class="kw">use super</span>::{BuiltInBuilder, BuiltInConstructor, IntrinsicObject};
 
 <span class="doccomment">/// The internal representation of a `DataView` object.
 </span><span class="attr">#[derive(Debug, Clone, Trace, Finalize)]
@@ -1100,70 +1097,71 @@
     <span class="kw">pub</span>(<span class="kw">crate</span>) byte_offset: u64,
 }
 
-<span class="kw">impl </span>BuiltIn <span class="kw">for </span>DataView {
-    <span class="kw">const </span>NAME: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;DataView&quot;</span>;
-
-    <span class="kw">fn </span>init(context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <span class="prelude-ty">Option</span>&lt;JsValue&gt; {
+<span class="kw">impl </span>IntrinsicObject <span class="kw">for </span>DataView {
+    <span class="kw">fn </span>init(intrinsics: <span class="kw-2">&amp;</span>Intrinsics) {
         <span class="kw">let </span>flag_attributes = Attribute::CONFIGURABLE | Attribute::NON_ENUMERABLE;
 
-        <span class="kw">let </span>get_buffer =
-            FunctionObjectBuilder::new(context, NativeFunction::from_fn_ptr(<span class="self">Self</span>::get_buffer))
-                .name(<span class="string">&quot;get buffer&quot;</span>)
-                .build();
+        <span class="kw">let </span>get_buffer = BuiltInBuilder::new(intrinsics)
+            .callable(<span class="self">Self</span>::get_buffer)
+            .name(<span class="string">&quot;get buffer&quot;</span>)
+            .build();
 
-        <span class="kw">let </span>get_byte_length =
-            FunctionObjectBuilder::new(context, NativeFunction::from_fn_ptr(<span class="self">Self</span>::get_byte_length))
-                .name(<span class="string">&quot;get byteLength&quot;</span>)
-                .build();
+        <span class="kw">let </span>get_byte_length = BuiltInBuilder::new(intrinsics)
+            .callable(<span class="self">Self</span>::get_byte_length)
+            .name(<span class="string">&quot;get byteLength&quot;</span>)
+            .build();
 
-        <span class="kw">let </span>get_byte_offset =
-            FunctionObjectBuilder::new(context, NativeFunction::from_fn_ptr(<span class="self">Self</span>::get_byte_offset))
-                .name(<span class="string">&quot;get byteOffset&quot;</span>)
-                .build();
+        <span class="kw">let </span>get_byte_offset = BuiltInBuilder::new(intrinsics)
+            .callable(<span class="self">Self</span>::get_byte_offset)
+            .name(<span class="string">&quot;get byteOffset&quot;</span>)
+            .build();
 
-        ConstructorBuilder::with_standard_constructor(
-            context,
-            <span class="self">Self</span>::constructor,
-            context.intrinsics().constructors().data_view().clone(),
-        )
-        .name(<span class="self">Self</span>::NAME)
-        .length(<span class="self">Self</span>::LENGTH)
-        .accessor(<span class="string">&quot;buffer&quot;</span>, <span class="prelude-val">Some</span>(get_buffer), <span class="prelude-val">None</span>, flag_attributes)
-        .accessor(<span class="string">&quot;byteLength&quot;</span>, <span class="prelude-val">Some</span>(get_byte_length), <span class="prelude-val">None</span>, flag_attributes)
-        .accessor(<span class="string">&quot;byteOffset&quot;</span>, <span class="prelude-val">Some</span>(get_byte_offset), <span class="prelude-val">None</span>, flag_attributes)
-        .method(<span class="self">Self</span>::get_big_int64, <span class="string">&quot;getBigInt64&quot;</span>, <span class="number">1</span>)
-        .method(<span class="self">Self</span>::get_big_uint64, <span class="string">&quot;getBigUint64&quot;</span>, <span class="number">1</span>)
-        .method(<span class="self">Self</span>::get_float32, <span class="string">&quot;getFloat32&quot;</span>, <span class="number">1</span>)
-        .method(<span class="self">Self</span>::get_float64, <span class="string">&quot;getFloat64&quot;</span>, <span class="number">1</span>)
-        .method(<span class="self">Self</span>::get_int8, <span class="string">&quot;getInt8&quot;</span>, <span class="number">1</span>)
-        .method(<span class="self">Self</span>::get_int16, <span class="string">&quot;getInt16&quot;</span>, <span class="number">1</span>)
-        .method(<span class="self">Self</span>::get_int32, <span class="string">&quot;getInt32&quot;</span>, <span class="number">1</span>)
-        .method(<span class="self">Self</span>::get_uint8, <span class="string">&quot;getUint8&quot;</span>, <span class="number">1</span>)
-        .method(<span class="self">Self</span>::get_uint16, <span class="string">&quot;getUint16&quot;</span>, <span class="number">1</span>)
-        .method(<span class="self">Self</span>::get_uint32, <span class="string">&quot;getUint32&quot;</span>, <span class="number">1</span>)
-        .method(<span class="self">Self</span>::set_big_int64, <span class="string">&quot;setBigInt64&quot;</span>, <span class="number">2</span>)
-        .method(<span class="self">Self</span>::set_big_uint64, <span class="string">&quot;setBigUint64&quot;</span>, <span class="number">2</span>)
-        .method(<span class="self">Self</span>::set_float32, <span class="string">&quot;setFloat32&quot;</span>, <span class="number">2</span>)
-        .method(<span class="self">Self</span>::set_float64, <span class="string">&quot;setFloat64&quot;</span>, <span class="number">2</span>)
-        .method(<span class="self">Self</span>::set_int8, <span class="string">&quot;setInt8&quot;</span>, <span class="number">2</span>)
-        .method(<span class="self">Self</span>::set_int16, <span class="string">&quot;setInt16&quot;</span>, <span class="number">2</span>)
-        .method(<span class="self">Self</span>::set_int32, <span class="string">&quot;setInt32&quot;</span>, <span class="number">2</span>)
-        .method(<span class="self">Self</span>::set_uint8, <span class="string">&quot;setUint8&quot;</span>, <span class="number">2</span>)
-        .method(<span class="self">Self</span>::set_uint16, <span class="string">&quot;setUint16&quot;</span>, <span class="number">2</span>)
-        .method(<span class="self">Self</span>::set_uint32, <span class="string">&quot;setUint32&quot;</span>, <span class="number">2</span>)
-        .property(
-            JsSymbol::to_string_tag(),
-            <span class="self">Self</span>::NAME,
-            Attribute::READONLY | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
-        )
-        .build()
-        .conv::&lt;JsValue&gt;()
-        .pipe(<span class="prelude-val">Some</span>)
+        BuiltInBuilder::from_standard_constructor::&lt;<span class="self">Self</span>&gt;(intrinsics)
+            .accessor(<span class="string">&quot;buffer&quot;</span>, <span class="prelude-val">Some</span>(get_buffer), <span class="prelude-val">None</span>, flag_attributes)
+            .accessor(<span class="string">&quot;byteLength&quot;</span>, <span class="prelude-val">Some</span>(get_byte_length), <span class="prelude-val">None</span>, flag_attributes)
+            .accessor(<span class="string">&quot;byteOffset&quot;</span>, <span class="prelude-val">Some</span>(get_byte_offset), <span class="prelude-val">None</span>, flag_attributes)
+            .method(<span class="self">Self</span>::get_big_int64, <span class="string">&quot;getBigInt64&quot;</span>, <span class="number">1</span>)
+            .method(<span class="self">Self</span>::get_big_uint64, <span class="string">&quot;getBigUint64&quot;</span>, <span class="number">1</span>)
+            .method(<span class="self">Self</span>::get_float32, <span class="string">&quot;getFloat32&quot;</span>, <span class="number">1</span>)
+            .method(<span class="self">Self</span>::get_float64, <span class="string">&quot;getFloat64&quot;</span>, <span class="number">1</span>)
+            .method(<span class="self">Self</span>::get_int8, <span class="string">&quot;getInt8&quot;</span>, <span class="number">1</span>)
+            .method(<span class="self">Self</span>::get_int16, <span class="string">&quot;getInt16&quot;</span>, <span class="number">1</span>)
+            .method(<span class="self">Self</span>::get_int32, <span class="string">&quot;getInt32&quot;</span>, <span class="number">1</span>)
+            .method(<span class="self">Self</span>::get_uint8, <span class="string">&quot;getUint8&quot;</span>, <span class="number">1</span>)
+            .method(<span class="self">Self</span>::get_uint16, <span class="string">&quot;getUint16&quot;</span>, <span class="number">1</span>)
+            .method(<span class="self">Self</span>::get_uint32, <span class="string">&quot;getUint32&quot;</span>, <span class="number">1</span>)
+            .method(<span class="self">Self</span>::set_big_int64, <span class="string">&quot;setBigInt64&quot;</span>, <span class="number">2</span>)
+            .method(<span class="self">Self</span>::set_big_uint64, <span class="string">&quot;setBigUint64&quot;</span>, <span class="number">2</span>)
+            .method(<span class="self">Self</span>::set_float32, <span class="string">&quot;setFloat32&quot;</span>, <span class="number">2</span>)
+            .method(<span class="self">Self</span>::set_float64, <span class="string">&quot;setFloat64&quot;</span>, <span class="number">2</span>)
+            .method(<span class="self">Self</span>::set_int8, <span class="string">&quot;setInt8&quot;</span>, <span class="number">2</span>)
+            .method(<span class="self">Self</span>::set_int16, <span class="string">&quot;setInt16&quot;</span>, <span class="number">2</span>)
+            .method(<span class="self">Self</span>::set_int32, <span class="string">&quot;setInt32&quot;</span>, <span class="number">2</span>)
+            .method(<span class="self">Self</span>::set_uint8, <span class="string">&quot;setUint8&quot;</span>, <span class="number">2</span>)
+            .method(<span class="self">Self</span>::set_uint16, <span class="string">&quot;setUint16&quot;</span>, <span class="number">2</span>)
+            .method(<span class="self">Self</span>::set_uint32, <span class="string">&quot;setUint32&quot;</span>, <span class="number">2</span>)
+            .property(
+                JsSymbol::to_string_tag(),
+                <span class="self">Self</span>::NAME,
+                Attribute::READONLY | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
+            )
+            .build();
+    }
+
+    <span class="kw">fn </span>get(intrinsics: <span class="kw-2">&amp;</span>Intrinsics) -&gt; JsObject {
+        <span class="self">Self</span>::STANDARD_CONSTRUCTOR(intrinsics.constructors()).constructor()
     }
 }
 
-<span class="kw">impl </span>DataView {
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const </span>LENGTH: usize = <span class="number">1</span>;
+<span class="kw">impl </span>BuiltInObject <span class="kw">for </span>DataView {
+    <span class="kw">const </span>NAME: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;DataView&quot;</span>;
+}
+
+<span class="kw">impl </span>BuiltInConstructor <span class="kw">for </span>DataView {
+    <span class="kw">const </span>LENGTH: usize = <span class="number">1</span>;
+
+    <span class="kw">const </span>STANDARD_CONSTRUCTOR: <span class="kw">fn</span>(<span class="kw-2">&amp;</span>StandardConstructors) -&gt; <span class="kw-2">&amp;</span>StandardConstructor =
+        StandardConstructors::data_view;
 
     <span class="doccomment">/// `25.3.2.1 DataView ( buffer [ , byteOffset [ , byteLength ] ] )`
     ///
@@ -1176,7 +1174,7 @@
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-dataview-buffer-byteoffset-bytelength
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/DataView/DataView
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>constructor(
+    </span><span class="kw">fn </span>constructor(
         new_target: <span class="kw-2">&amp;</span>JsValue,
         args: <span class="kw-2">&amp;</span>[JsValue],
         context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
@@ -1267,7 +1265,9 @@
         <span class="comment">// 14. Return O.
         </span><span class="prelude-val">Ok</span>(obj.into())
     }
+}
 
+<span class="kw">impl </span>DataView {
     <span class="doccomment">/// `25.3.4.1 get DataView.prototype.buffer`
     ///
     /// The buffer accessor property represents the `ArrayBuffer` or `SharedArrayBuffer` referenced

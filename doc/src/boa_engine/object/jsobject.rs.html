@@ -1157,7 +1157,7 @@
     ///
     /// Panics if the object is currently borrowed.
     </span><span class="attr">#[track_caller]
-    </span><span class="kw">pub fn </span>downcast_mut&lt;T&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;RefMut&lt;<span class="lifetime">&#39;_</span>, Object, T&gt;&gt;
+    </span><span class="kw">pub fn </span>downcast_mut&lt;T&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;RefMut&lt;<span class="lifetime">&#39;_</span>, Object, T&gt;&gt;
     <span class="kw">where
         </span>T: NativeObject,
     {

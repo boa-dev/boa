@@ -120,7 +120,7 @@
     <span class="doccomment">/// Create a new `JsGenerator` object
     </span><span class="attr">#[inline]
     </span><span class="kw">pub fn </span>new(context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <span class="self">Self </span>{
-        <span class="kw">let </span>prototype = context.intrinsics().constructors().generator().prototype();
+        <span class="kw">let </span>prototype = context.intrinsics().objects().generator();
 
         <span class="kw">let </span>generator = JsObject::from_proto_and_data(
             prototype,

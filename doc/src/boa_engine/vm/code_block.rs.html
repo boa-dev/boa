@@ -1489,19 +1489,6 @@
 <a href="#1488" id="1488">1488</a>
 <a href="#1489" id="1489">1489</a>
 <a href="#1490" id="1490">1490</a>
-<a href="#1491" id="1491">1491</a>
-<a href="#1492" id="1492">1492</a>
-<a href="#1493" id="1493">1493</a>
-<a href="#1494" id="1494">1494</a>
-<a href="#1495" id="1495">1495</a>
-<a href="#1496" id="1496">1496</a>
-<a href="#1497" id="1497">1497</a>
-<a href="#1498" id="1498">1498</a>
-<a href="#1499" id="1499">1499</a>
-<a href="#1500" id="1500">1500</a>
-<a href="#1501" id="1501">1501</a>
-<a href="#1502" id="1502">1502</a>
-<a href="#1503" id="1503">1503</a>
 </pre><pre class="rust"><code><span class="doccomment">//! `CodeBlock`
 //!
 //! This module is for the `CodeBlock` which implements a function representation in the VM
@@ -1517,7 +1504,7 @@
     environments::{BindingLocator, CompileTimeEnvironment},
     error::JsNativeError,
     js_string,
-    object::{internal_methods::get_prototype_from_constructor, JsObject, ObjectData},
+    object::{internal_methods::get_prototype_from_constructor, JsObject, ObjectData, CONSTRUCTOR},
     property::PropertyDescriptor,
     vm::{CallFrame, Opcode},
     Context, JsResult, JsString, JsValue,
@@ -2101,7 +2088,7 @@
 
     <span class="kw">let </span>prototype = JsObject::with_object_proto(context);
     prototype
-        .define_property_or_throw(<span class="macro">js_string!</span>(<span class="string">&quot;constructor&quot;</span>), constructor_property, context)
+        .define_property_or_throw(CONSTRUCTOR, constructor_property, context)
         .expect(<span class="string">&quot;failed to define the constructor property of the function&quot;</span>);
 
     <span class="kw">let </span>prototype_property = PropertyDescriptor::builder()
@@ -2168,13 +2155,9 @@
 
     <span class="kw">let </span>prototype = JsObject::from_proto_and_data(
         <span class="kw">if </span>r#async {
-            context
-                .intrinsics()
-                .constructors()
-                .async_generator()
-                .prototype()
+            context.intrinsics().objects().async_generator()
         } <span class="kw">else </span>{
-            context.intrinsics().constructors().generator().prototype()
+            context.intrinsics().objects().generator()
         },
         ObjectData::ordinary(),
     );
@@ -2624,10 +2607,7 @@
                     .get(<span class="string">&quot;prototype&quot;</span>, context)
                     .expect(<span class="string">&quot;GeneratorFunction must have a prototype property&quot;</span>)
                     .as_object()
-                    .map_or_else(
-                        || context.intrinsics().constructors().generator().prototype(),
-                        Clone::clone,
-                    );
+                    .map_or_else(|| context.intrinsics().objects().generator(), Clone::clone);
 
                 <span class="kw">let </span>generator = <span class="self">Self</span>::from_proto_and_data(
                     prototype,
@@ -2766,13 +2746,7 @@
                     .expect(<span class="string">&quot;AsyncGeneratorFunction must have a prototype property&quot;</span>)
                     .as_object()
                     .map_or_else(
-                        || {
-                            context
-                                .intrinsics()
-                                .constructors()
-                                .async_generator()
-                                .prototype()
-                        },
+                        || context.intrinsics().objects().async_generator(),
                         Clone::clone,
                     );
 

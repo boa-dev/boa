@@ -74,7 +74,7 @@
 <a href="#73" id="73">73</a>
 <a href="#74" id="74">74</a>
 </pre><pre class="rust"><code><span class="kw">use crate</span>::{
-    object::{JsObject, ObjectData},
+    object::{JsObject, ObjectData, CONSTRUCTOR},
     property::PropertyDescriptorBuilder,
     vm::{opcode::Operation, ShouldExit},
     Context, JsResult, JsValue,
@@ -132,7 +132,7 @@
 
         proto
             .__define_own_property__(
-                <span class="string">&quot;constructor&quot;</span>.into(),
+                CONSTRUCTOR.into(),
                 PropertyDescriptorBuilder::new()
                     .value(class)
                     .writable(<span class="bool-val">true</span>)

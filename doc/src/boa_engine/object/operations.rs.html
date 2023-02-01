@@ -1207,6 +1207,8 @@
 <a href="#1206" id="1206">1206</a>
 <a href="#1207" id="1207">1207</a>
 <a href="#1208" id="1208">1208</a>
+<a href="#1209" id="1209">1209</a>
+<a href="#1210" id="1210">1210</a>
 </pre><pre class="rust"><code><span class="kw">use crate</span>::{
     builtins::{function::ClassFieldDefinition, Array},
     context::intrinsics::{StandardConstructor, StandardConstructors},
@@ -1217,6 +1219,8 @@
     Context, JsResult, JsSymbol, JsValue,
 };
 <span class="kw">use </span>boa_ast::function::PrivateName;
+
+<span class="kw">use </span><span class="kw">super</span>::CONSTRUCTOR;
 
 <span class="doccomment">/// Object integrity level.
 </span><span class="attr">#[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -1707,7 +1711,7 @@
         <span class="comment">// 1. Assert: Type(O) is Object.
 
         // 2. Let C be ? Get(O, &quot;constructor&quot;).
-        </span><span class="kw">let </span>c = <span class="self">self</span>.get(<span class="string">&quot;constructor&quot;</span>, context)<span class="question-mark">?</span>;
+        </span><span class="kw">let </span>c = <span class="self">self</span>.get(CONSTRUCTOR, context)<span class="question-mark">?</span>;
 
         <span class="comment">// 3. If C is undefined, return defaultConstructor.
         </span><span class="kw">if </span>c.is_undefined() {

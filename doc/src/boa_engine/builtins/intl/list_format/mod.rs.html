@@ -503,17 +503,14 @@
 <span class="kw">use </span>icu_list::{provider::AndListV1Marker, ListFormatter, ListLength};
 <span class="kw">use </span>icu_locid::Locale;
 <span class="kw">use </span>icu_provider::DataLocale;
-<span class="kw">use </span>tap::{Conv, Pipe};
 
 <span class="kw">use crate</span>::{
-    builtins::{Array, BuiltIn, JsArgs},
-    context::intrinsics::StandardConstructors,
-    object::{
-        internal_methods::get_prototype_from_constructor, ConstructorBuilder, JsObject, ObjectData,
-    },
+    builtins::{Array, BuiltInBuilder, BuiltInConstructor, BuiltInObject, IntrinsicObject},
+    context::intrinsics::{Intrinsics, StandardConstructor, StandardConstructors},
+    object::{internal_methods::get_prototype_from_constructor, JsObject, ObjectData},
     property::Attribute,
     symbol::JsSymbol,
-    Context, JsNativeError, JsResult, JsString, JsValue,
+    Context, JsArgs, JsNativeError, JsResult, JsString, JsValue,
 };
 
 <span class="kw">use super</span>::{
@@ -548,36 +545,37 @@
     <span class="kw">type </span>LocaleOptions = ();
 }
 
-<span class="kw">impl </span>BuiltIn <span class="kw">for </span>ListFormat {
-    <span class="kw">const </span>NAME: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;ListFormat&quot;</span>;
-
-    <span class="kw">fn </span>init(context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <span class="prelude-ty">Option</span>&lt;JsValue&gt; {
+<span class="kw">impl </span>IntrinsicObject <span class="kw">for </span>ListFormat {
+    <span class="kw">fn </span>init(intrinsics: <span class="kw-2">&amp;</span>Intrinsics) {
         <span class="kw">let </span>_timer = Profiler::global().start_event(<span class="self">Self</span>::NAME, <span class="string">&quot;init&quot;</span>);
 
-        ConstructorBuilder::with_standard_constructor(
-            context,
-            <span class="self">Self</span>::constructor,
-            context.intrinsics().constructors().list_format().clone(),
-        )
-        .name(<span class="self">Self</span>::NAME)
-        .length(<span class="self">Self</span>::LENGTH)
-        .static_method(<span class="self">Self</span>::supported_locales_of, <span class="string">&quot;supportedLocalesOf&quot;</span>, <span class="number">1</span>)
-        .property(
-            JsSymbol::to_string_tag(),
-            <span class="string">&quot;Intl.ListFormat&quot;</span>,
-            Attribute::CONFIGURABLE,
-        )
-        .method(<span class="self">Self</span>::format, <span class="string">&quot;format&quot;</span>, <span class="number">1</span>)
-        .method(<span class="self">Self</span>::format_to_parts, <span class="string">&quot;formatToParts&quot;</span>, <span class="number">1</span>)
-        .method(<span class="self">Self</span>::resolved_options, <span class="string">&quot;resolvedOptions&quot;</span>, <span class="number">0</span>)
-        .build()
-        .conv::&lt;JsValue&gt;()
-        .pipe(<span class="prelude-val">Some</span>)
+        BuiltInBuilder::from_standard_constructor::&lt;<span class="self">Self</span>&gt;(intrinsics)
+            .static_method(<span class="self">Self</span>::supported_locales_of, <span class="string">&quot;supportedLocalesOf&quot;</span>, <span class="number">1</span>)
+            .property(
+                JsSymbol::to_string_tag(),
+                <span class="string">&quot;Intl.ListFormat&quot;</span>,
+                Attribute::CONFIGURABLE,
+            )
+            .method(<span class="self">Self</span>::format, <span class="string">&quot;format&quot;</span>, <span class="number">1</span>)
+            .method(<span class="self">Self</span>::format_to_parts, <span class="string">&quot;formatToParts&quot;</span>, <span class="number">1</span>)
+            .method(<span class="self">Self</span>::resolved_options, <span class="string">&quot;resolvedOptions&quot;</span>, <span class="number">0</span>)
+            .build();
+    }
+
+    <span class="kw">fn </span>get(intrinsics: <span class="kw-2">&amp;</span>Intrinsics) -&gt; JsObject {
+        <span class="self">Self</span>::STANDARD_CONSTRUCTOR(intrinsics.constructors()).constructor()
     }
 }
 
-<span class="kw">impl </span>ListFormat {
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const </span>LENGTH: usize = <span class="number">0</span>;
+<span class="kw">impl </span>BuiltInObject <span class="kw">for </span>ListFormat {
+    <span class="kw">const </span>NAME: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;ListFormat&quot;</span>;
+}
+
+<span class="kw">impl </span>BuiltInConstructor <span class="kw">for </span>ListFormat {
+    <span class="kw">const </span>LENGTH: usize = <span class="number">0</span>;
+
+    <span class="kw">const </span>STANDARD_CONSTRUCTOR: <span class="kw">fn</span>(<span class="kw-2">&amp;</span>StandardConstructors) -&gt; <span class="kw-2">&amp;</span>StandardConstructor =
+        StandardConstructors::list_format;
 
     <span class="doccomment">/// Constructor [`Intl.ListFormat ( [ locales [ , options ] ] )`][spec].
     ///
@@ -588,7 +586,7 @@
     ///
     /// [spec]: https://tc39.es/ecma402/#sec-Intl.ListFormat
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Intl/ListFormat
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>constructor(
+    </span><span class="kw">fn </span>constructor(
         new_target: <span class="kw-2">&amp;</span>JsValue,
         args: <span class="kw-2">&amp;</span>[JsValue],
         context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
@@ -662,7 +660,9 @@
         <span class="comment">// 19. Return listFormat.
         </span><span class="prelude-val">Ok</span>(list_format.into())
     }
+}
 
+<span class="kw">impl </span>ListFormat {
     <span class="doccomment">/// [`Intl.ListFormat.supportedLocalesOf ( locales [ , options ] )`][spec].
     ///
     /// Returns an array containing those of the provided locales that are supported in list

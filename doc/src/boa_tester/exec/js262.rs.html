@@ -107,29 +107,48 @@
 <a href="#106" id="106">106</a>
 <a href="#107" id="107">107</a>
 <a href="#108" id="108">108</a>
+<a href="#109" id="109">109</a>
+<a href="#110" id="110">110</a>
+<a href="#111" id="111">111</a>
+<a href="#112" id="112">112</a>
+<a href="#113" id="113">113</a>
+<a href="#114" id="114">114</a>
+<a href="#115" id="115">115</a>
 </pre><pre class="rust"><code><span class="kw">use </span>boa_engine::{
-    builtins::JsArgs,
+    native_function::NativeFunction,
     object::{JsObject, ObjectInitializer},
     property::Attribute,
-    Context, JsNativeError, JsResult, JsValue, Source,
+    Context, JsArgs, JsNativeError, JsResult, JsValue, Source,
 };
 
-<span class="doccomment">/// Initializes the object in the context.
-</span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>init(context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsObject {
+<span class="doccomment">/// Creates the object $262 in the context.
+</span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>register_js262(context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsObject {
     <span class="kw">let </span>global_obj = context.global_object().clone();
 
-    <span class="kw">let </span>obj = ObjectInitializer::new(context)
-        .function(create_realm, <span class="string">&quot;createRealm&quot;</span>, <span class="number">0</span>)
-        .function(detach_array_buffer, <span class="string">&quot;detachArrayBuffer&quot;</span>, <span class="number">2</span>)
-        .function(eval_script, <span class="string">&quot;evalScript&quot;</span>, <span class="number">1</span>)
-        .function(gc, <span class="string">&quot;gc&quot;</span>, <span class="number">0</span>)
-        .property(<span class="string">&quot;global&quot;</span>, global_obj, Attribute::default())
+    <span class="kw">let </span>js262 = ObjectInitializer::new(context)
+        .function(NativeFunction::from_fn_ptr(create_realm), <span class="string">&quot;createRealm&quot;</span>, <span class="number">0</span>)
+        .function(
+            NativeFunction::from_fn_ptr(detach_array_buffer),
+            <span class="string">&quot;detachArrayBuffer&quot;</span>,
+            <span class="number">2</span>,
+        )
+        .function(NativeFunction::from_fn_ptr(eval_script), <span class="string">&quot;evalScript&quot;</span>, <span class="number">1</span>)
+        .function(NativeFunction::from_fn_ptr(gc), <span class="string">&quot;gc&quot;</span>, <span class="number">0</span>)
+        .property(
+            <span class="string">&quot;global&quot;</span>,
+            global_obj,
+            Attribute::WRITABLE | Attribute::CONFIGURABLE,
+        )
         <span class="comment">// .property(&quot;agent&quot;, agent, Attribute::default())
         </span>.build();
 
-    context.register_global_property(<span class="string">&quot;$262&quot;</span>, obj.clone(), Attribute::empty());
+    context.register_global_property(
+        <span class="string">&quot;$262&quot;</span>,
+        js262.clone(),
+        Attribute::WRITABLE | Attribute::CONFIGURABLE,
+    );
 
-    obj
+    js262
 }
 
 <span class="doccomment">/// The `$262.createRealm()` function.
@@ -137,23 +156,18 @@
 /// Creates a new ECMAScript Realm, defines this API on the new realm&#39;s global object, and
 /// returns the `$262` property of the new realm&#39;s global object.
 </span><span class="attr">#[allow(clippy::unnecessary_wraps)]
-</span><span class="kw">fn </span>create_realm(_this: <span class="kw-2">&amp;</span>JsValue, <span class="kw">_</span>: <span class="kw-2">&amp;</span>[JsValue], _context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;JsValue&gt; {
-    <span class="kw">let </span><span class="kw-2">mut </span>context = Context::default();
+</span><span class="kw">fn </span>create_realm(<span class="kw">_</span>: <span class="kw-2">&amp;</span>JsValue, <span class="kw">_</span>: <span class="kw-2">&amp;</span>[JsValue], <span class="kw">_</span>: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;JsValue&gt; {
+    <span class="kw">let </span>context = <span class="kw-2">&amp;mut </span>Context::default();
 
-    <span class="comment">// add the $262 object.
-    </span><span class="kw">let </span>js_262 = init(<span class="kw-2">&amp;mut </span>context);
+    <span class="kw">let </span>js262 = register_js262(context);
 
-    <span class="prelude-val">Ok</span>(JsValue::new(js_262))
+    <span class="prelude-val">Ok</span>(JsValue::new(js262))
 }
 
 <span class="doccomment">/// The `$262.detachArrayBuffer()` function.
 ///
 /// Implements the `DetachArrayBuffer` abstract operation.
-</span><span class="kw">fn </span>detach_array_buffer(
-    _this: <span class="kw-2">&amp;</span>JsValue,
-    args: <span class="kw-2">&amp;</span>[JsValue],
-    <span class="kw">_</span>: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
-) -&gt; JsResult&lt;JsValue&gt; {
+</span><span class="kw">fn </span>detach_array_buffer(<span class="kw">_</span>: <span class="kw-2">&amp;</span>JsValue, args: <span class="kw-2">&amp;</span>[JsValue], <span class="kw">_</span>: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;JsValue&gt; {
     <span class="kw">fn </span>type_err() -&gt; JsNativeError {
         JsNativeError::typ().with_message(<span class="string">&quot;The provided object was not an ArrayBuffer&quot;</span>)
     }
