@@ -126,7 +126,7 @@ where
                                 SuperPropertyAccess::new(PropertyAccessField::from(*name))
                             }
                             TokenKind::Keyword((kw, _)) => {
-                                SuperPropertyAccess::new(kw.to_sym(interner).into())
+                                SuperPropertyAccess::new(kw.to_sym().into())
                             }
                             TokenKind::BooleanLiteral(true) => {
                                 SuperPropertyAccess::new(Sym::TRUE.into())
@@ -188,7 +188,7 @@ where
                             SimplePropertyAccess::new(lhs, *name).into()
                         }
                         TokenKind::Keyword((kw, _)) => {
-                            SimplePropertyAccess::new(lhs, kw.to_sym(interner)).into()
+                            SimplePropertyAccess::new(lhs, kw.to_sym()).into()
                         }
                         TokenKind::BooleanLiteral(true) => {
                             SimplePropertyAccess::new(lhs, Sym::TRUE).into()

@@ -10,7 +10,7 @@
 //! [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Lexical_grammar#Keywords
 
 use crate::expression::operator::binary::{BinaryOp, RelationalOp};
-use boa_interner::{Interner, Sym};
+use boa_interner::Sym;
 use boa_macros::utf16;
 use std::{convert::TryFrom, error, fmt, str::FromStr};
 
@@ -534,11 +534,52 @@ impl Keyword {
         }
     }
 
-    // TODO: promote all keywords to statics inside Interner
     /// Converts the keyword to a symbol in the given interner.
-    pub fn to_sym(self, interner: &mut Interner) -> Sym {
-        let (utf8, utf16) = self.as_str();
-        interner.get_or_intern_static(utf8, utf16)
+    #[must_use]
+    pub const fn to_sym(self) -> Sym {
+        match self {
+            Self::Await => Sym::AWAIT,
+            Self::Async => Sym::ASYNC,
+            Self::Break => Sym::BREAK,
+            Self::Case => Sym::CASE,
+            Self::Catch => Sym::CATCH,
+            Self::Class => Sym::CLASS,
+            Self::Continue => Sym::CONTINUE,
+            Self::Const => Sym::CONST,
+            Self::Debugger => Sym::DEBUGGER,
+            Self::Default => Sym::DEFAULT,
+            Self::Delete => Sym::DELETE,
+            Self::Do => Sym::DO,
+            Self::Else => Sym::ELSE,
+            Self::Enum => Sym::ENUM,
+            Self::Export => Sym::EXPORT,
+            Self::Extends => Sym::EXTENDS,
+            Self::False => Sym::FALSE,
+            Self::Finally => Sym::FINALLY,
+            Self::For => Sym::FOR,
+            Self::Function => Sym::FUNCTION,
+            Self::If => Sym::IF,
+            Self::In => Sym::IN,
+            Self::InstanceOf => Sym::INSTANCEOF,
+            Self::Import => Sym::IMPORT,
+            Self::Let => Sym::LET,
+            Self::New => Sym::NEW,
+            Self::Null => Sym::NULL,
+            Self::Of => Sym::OF,
+            Self::Return => Sym::RETURN,
+            Self::Super => Sym::SUPER,
+            Self::Switch => Sym::SWITCH,
+            Self::This => Sym::THIS,
+            Self::Throw => Sym::THROW,
+            Self::True => Sym::TRUE,
+            Self::Try => Sym::TRY,
+            Self::TypeOf => Sym::TYPEOF,
+            Self::Var => Sym::VAR,
+            Self::Void => Sym::VOID,
+            Self::While => Sym::WHILE,
+            Self::With => Sym::WITH,
+            Self::Yield => Sym::YIELD,
+        }
     }
 }
 

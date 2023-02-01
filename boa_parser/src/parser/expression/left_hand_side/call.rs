@@ -102,7 +102,7 @@ where
                             SimplePropertyAccess::new(lhs, *name).into()
                         }
                         TokenKind::Keyword((kw, _)) => {
-                            SimplePropertyAccess::new(lhs, kw.to_sym(interner)).into()
+                            SimplePropertyAccess::new(lhs, kw.to_sym()).into()
                         }
                         TokenKind::BooleanLiteral(true) => {
                             SimplePropertyAccess::new(lhs, Sym::TRUE).into()

@@ -58,9 +58,98 @@
 )]
 
 use proc_macro::TokenStream;
+use proc_macro2::Ident;
 use quote::quote;
-use syn::{parse_macro_input, LitStr};
+use syn::{
+    parse::{Parse, ParseStream},
+    parse_macro_input,
+    punctuated::Punctuated,
+    LitStr, Token,
+};
 use synstructure::{decl_derive, AddBounds, Structure};
+
+struct Syms(Vec<LitStr>);
+
+impl Parse for Syms {
+    fn parse(input: ParseStream<'_>) -> syn::Result<Self> {
+        let parsed = Punctuated::<LitStr, Token![,]>::parse_terminated(input)?;
+        let literals = parsed.into_iter().collect();
+        Ok(Self(literals))
+    }
+}
+
+#[doc(hidden)]
+#[proc_macro]
+pub fn static_syms(input: TokenStream) -> TokenStream {
+    let literals = parse_macro_input!(input as Syms).0;
+
+    let consts = literals.iter().enumerate().map(|(mut idx, lit)| {
+        let ident = lit.value();
+        let (doc, ident) = match &*ident {
+            "" => (
+                String::from("Symbol for the empty string."),
+                String::from("EMPTY_STRING"),
+            ),
+            "<main>" => (
+                String::from("Symbol for the `<main>` string."),
+                String::from("MAIN"),
+            ),
+            ident => (
+                format!("Symbol for the `{ident}` string.",),
+                ident.to_uppercase(),
+            ),
+        };
+        let ident = Ident::new(&ident, lit.span());
+        idx += 1;
+        quote! {
+            #[doc = #doc]
+            pub const #ident: Self = unsafe { Self::new_unchecked(#idx) };
+        }
+    });
+
+    let caches = quote! {
+        type Set<T> = ::indexmap::IndexSet<T, ::core::hash::BuildHasherDefault<::rustc_hash::FxHasher>>;
+
+        /// Ordered set of commonly used static `UTF-8` strings.
+        ///
+        /// # Note
+        ///
+        /// `COMMON_STRINGS_UTF8`, `COMMON_STRINGS_UTF16` and the constants
+        /// defined in [`Sym`] must always be in sync.
+        pub(super) static COMMON_STRINGS_UTF8: ::phf::OrderedSet<&'static str> = {
+            const COMMON_STRINGS: ::phf::OrderedSet<&'static str> = ::phf::phf_ordered_set! {
+                #(#literals),*
+            };
+            // A `COMMON_STRINGS` of size `usize::MAX` would cause an overflow on our `Interner`
+            ::static_assertions::const_assert!(COMMON_STRINGS.len() < usize::MAX);
+            COMMON_STRINGS
+        };
+
+        /// Ordered set of commonly used static `UTF-16` strings.
+        ///
+        /// # Note
+        ///
+        /// `COMMON_STRINGS_UTF8`, `COMMON_STRINGS_UTF16` and the constants
+        /// defined in [`Sym`] must always be in sync.
+        // FIXME: use phf when const expressions are allowed. https://github.com/rust-phf/rust-phf/issues/188
+        pub(super) static COMMON_STRINGS_UTF16: ::once_cell::sync::Lazy<Set<&'static [u16]>> =
+            ::once_cell::sync::Lazy::new(|| {
+                let mut set = Set::with_capacity_and_hasher(COMMON_STRINGS_UTF8.len(), ::core::hash::BuildHasherDefault::default());
+                #(
+                    set.insert(::boa_macros::utf16!(#literals));
+                )*
+                set
+            });
+    };
+
+    quote! {
+        impl Sym {
+            #(#consts)*
+        }
+        #caches
+    }
+    .into()
+}
 
 /// Construct a utf-16 array literal from a utf-8 [`str`] literal.
 #[proc_macro]

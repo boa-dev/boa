@@ -72,10 +72,11 @@ where
                     let next_token = cursor.next(interner)?.expect(", token vanished"); // Consume the token.
 
                     if args.is_empty() {
-                        return Err(Error::unexpected(
+                        return Err(Error::expected(
+                            [String::from("expression")],
                             next_token.to_string(interner),
                             next_token.span(),
-                            None,
+                            "call",
                         ));
                     }
 

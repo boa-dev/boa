@@ -93,8 +93,6 @@
 
 extern crate alloc;
 
-extern crate static_assertions as sa;
-
 mod fixed_string;
 mod interned_str;
 mod raw;
