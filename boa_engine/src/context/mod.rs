@@ -177,10 +177,12 @@ impl Context<'_> {
     ///
     /// # Examples
     /// ```
-    /// # use boa_engine::Context;
+    /// # use boa_engine::{Context, Source};
     /// let mut context = Context::default();
     ///
-    /// let value = context.eval_module("1 + 3").unwrap();
+    /// let source = Source::from_bytes("1 + 3");
+    ///
+    /// let value = context.eval_module(source).unwrap();
     ///
     /// assert!(value.is_number());
     /// assert_eq!(value.as_number().unwrap(), 4.0);
@@ -247,7 +249,8 @@ impl Context<'_> {
     /// Since this function receives a `Gc<CodeBlock>`, cloning the code is very cheap, since it's
     /// just a pointer copy. Therefore, if you'd like to execute the same `CodeBlock` multiple
     /// times, there is no need to re-compile it, and you can just call `clone()` on the
-    /// `Gc<CodeBlock>` returned by the [`Self::compile()`] function.
+    /// `Gc<CodeBlock>` returned by the [`Context::compile_script`] or [`Context::compile_module`]
+    /// functions.
     ///
     /// Note that this won't run any scheduled promise jobs; you need to call [`Context::run_jobs`]
     /// on the context or [`JobQueue::run_jobs`] on the provided queue to run them.
