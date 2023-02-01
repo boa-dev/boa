@@ -52,7 +52,7 @@ where
                 cursor.expect_semicolon("import declaration", interner)?;
 
                 return Ok(boa_ast::declaration::ImportDeclaration::Module(
-                    module_identifier,
+                    module_identifier.into(),
                 ));
             }
             TokenKind::Punctuator(Punctuator::OpenBlock) => {
@@ -116,7 +116,7 @@ where
 
         let module_identifier = FromClause::new("import declaration").parse(cursor, interner)?;
 
-        Ok(import_clause.add_from(module_identifier))
+        Ok(import_clause.with_specifier(module_identifier))
     }
 }
 
@@ -219,16 +219,16 @@ enum ImportClause {
 
 impl ImportClause {
     #[inline]
-    fn add_from(
+    fn with_specifier(
         self,
-        from_clause: boa_ast::declaration::FromClause,
+        specifier: boa_ast::declaration::ModuleSpecifier,
     ) -> boa_ast::declaration::ImportDeclaration {
         match self {
             Self::Namespace(default, alias) => {
-                boa_ast::declaration::ImportDeclaration::namespace(default, alias, from_clause)
+                boa_ast::declaration::ImportDeclaration::namespace(default, alias, specifier)
             }
             Self::ImportList(default, list) => {
-                boa_ast::declaration::ImportDeclaration::list(default, list, from_clause)
+                boa_ast::declaration::ImportDeclaration::list(default, list, specifier)
             }
         }
     }
@@ -254,31 +254,34 @@ where
 
         match tok.kind() {
             TokenKind::StringLiteral((name, _)) => {
+                if interner.resolve_expect(*name).utf8().is_none() {
+                    return Err(Error::general(
+                        "import specifiers don't allow unpaired surrogates",
+                        tok.span().end(),
+                    ));
+                }
                 cursor.expect(
                     TokenKind::identifier(Sym::AS),
                     "import declaration",
                     interner,
                 )?;
 
-                let alias = ImportedBinding.parse(cursor, interner)?;
+                let binding = ImportedBinding.parse(cursor, interner)?;
 
-                Ok(boa_ast::declaration::ImportSpecifier::new(
-                    *name,
-                    Some(alias),
-                ))
+                Ok(boa_ast::declaration::ImportSpecifier::new(binding, *name))
             }
             TokenKind::IdentifierName((name, _)) => {
                 if cursor
                     .next_if(TokenKind::identifier(Sym::AS), interner)?
                     .is_some()
                 {
-                    let alias = ImportedBinding.parse(cursor, interner)?;
-                    Ok(boa_ast::declaration::ImportSpecifier::new(
-                        *name,
-                        Some(alias),
-                    ))
+                    let binding = ImportedBinding.parse(cursor, interner)?;
+                    Ok(boa_ast::declaration::ImportSpecifier::new(binding, *name))
                 } else {
-                    Ok(boa_ast::declaration::ImportSpecifier::new(*name, None))
+                    Ok(boa_ast::declaration::ImportSpecifier::new(
+                        Identifier::new(*name),
+                        *name,
+                    ))
                 }
             }
             _ => Err(Error::expected(

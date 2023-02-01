@@ -78,13 +78,16 @@ where
 
                         boa_ast::declaration::ExportDeclaration::ReExportAll {
                             alias: Some(alias),
-                            from,
+                            specifier: from,
                         }
                     }
                     TokenKind::IdentifierName((Sym::FROM, _)) => {
                         let from = FromClause::new("export declaration").parse(cursor, interner)?;
 
-                        boa_ast::declaration::ExportDeclaration::ReExportAll { alias: None, from }
+                        boa_ast::declaration::ExportDeclaration::ReExportAll {
+                            alias: None,
+                            specifier: from,
+                        }
                     }
                     _ => {
                         return Err(Error::expected(
@@ -108,10 +111,13 @@ where
                     let from = FromClause::new("export declaration").parse(cursor, interner)?;
                     boa_ast::declaration::ExportDeclaration::List {
                         list,
-                        from: Some(from),
+                        specifier: Some(from),
                     }
                 } else {
-                    boa_ast::declaration::ExportDeclaration::List { list, from: None }
+                    boa_ast::declaration::ExportDeclaration::List {
+                        list,
+                        specifier: None,
+                    }
                 }
             }
             TokenKind::Keyword((Keyword::Var, false)) => VariableStatement::new(false, true)
@@ -251,9 +257,16 @@ where
         let tok = cursor.next(interner).or_abrupt()?;
 
         match tok.kind() {
-            TokenKind::IdentifierName((ident, _)) | TokenKind::StringLiteral((ident, _)) => {
+            TokenKind::StringLiteral((ident, _)) => {
+                if interner.resolve_expect(*ident).utf8().is_none() {
+                    return Err(Error::general(
+                        "import specifiers don't allow unpaired surrogates",
+                        tok.span().end(),
+                    ));
+                }
                 Ok(*ident)
             }
+            TokenKind::IdentifierName((ident, _)) => Ok(*ident),
             _ => Err(Error::expected(
                 ["identifier".to_owned(), "string literal".to_owned()],
                 tok.to_string(interner),
@@ -280,17 +293,21 @@ where
     type Output = boa_ast::declaration::ExportSpecifier;
 
     fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult<Self::Output> {
-        let export = ModuleExportName.parse(cursor, interner)?;
+        let inner_name = ModuleExportName.parse(cursor, interner)?;
 
-        let alias = if cursor
+        if cursor
             .next_if(TokenKind::identifier(Sym::AS), interner)?
             .is_some()
         {
-            Some(ModuleExportName.parse(cursor, interner)?)
+            let export_name = ModuleExportName.parse(cursor, interner)?;
+            Ok(boa_ast::declaration::ExportSpecifier::new(
+                export_name,
+                inner_name,
+            ))
         } else {
-            None
-        };
-
-        Ok(boa_ast::declaration::ExportSpecifier::new(export, alias))
+            Ok(boa_ast::declaration::ExportSpecifier::new(
+                inner_name, inner_name,
+            ))
+        }
     }
 }

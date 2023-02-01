@@ -107,7 +107,7 @@ impl<R> TokenParser<R> for FromClause
 where
     R: Read,
 {
-    type Output = ast::declaration::FromClause;
+    type Output = ast::declaration::ModuleSpecifier;
 
     fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult<Self::Output> {
         let _timer = Profiler::global().start_event("FromClause", "Parsing");

@@ -12,7 +12,7 @@
 use crate::expression::Identifier;
 use boa_interner::Sym;
 
-use super::FromClause;
+use super::ModuleSpecifier;
 
 /// An import declaration AST node.
 ///
@@ -23,7 +23,7 @@ use super::FromClause;
 #[derive(Debug, Clone)]
 pub enum ImportDeclaration {
     /// Full module import (`import "module-name"`).
-    Module(Sym),
+    Module(ModuleSpecifier),
     /// Namespace import (`import * as name from "module-name"`), with an optional default export
     /// binding.
     Namespace {
@@ -31,8 +31,8 @@ pub enum ImportDeclaration {
         default_export: Option<Identifier>,
         /// Alias for the namespace import.
         alias: Identifier,
-        /// From clause.
-        from_clause: FromClause,
+        /// Module specifier.
+        specifier: ModuleSpecifier,
     },
     /// Import list (`import { export1, export2 as alias2} from "module-name"`), with an optional
     /// default export binding.
@@ -41,8 +41,8 @@ pub enum ImportDeclaration {
         default_export: Option<Identifier>,
         /// List of imports.
         import_list: Box<[ImportSpecifier]>,
-        /// From clause.
-        from_clause: FromClause,
+        /// Module specifier.
+        specifier: ModuleSpecifier,
     },
 }
 
@@ -55,12 +55,12 @@ impl ImportDeclaration {
         from_clause: F,
     ) -> Self
     where
-        F: Into<FromClause>,
+        F: Into<ModuleSpecifier>,
     {
         Self::Namespace {
             default_export,
             alias,
-            from_clause: from_clause.into(),
+            specifier: from_clause.into(),
         }
     }
 
@@ -69,12 +69,22 @@ impl ImportDeclaration {
     pub fn list<L, F>(default_export: Option<Identifier>, import_list: L, from_clause: F) -> Self
     where
         L: Into<Box<[ImportSpecifier]>>,
-        F: Into<FromClause>,
+        F: Into<ModuleSpecifier>,
     {
         Self::List {
             default_export,
             import_list: import_list.into(),
-            from_clause: from_clause.into(),
+            specifier: from_clause.into(),
+        }
+    }
+
+    /// Gets the module specifier of the import.
+    #[must_use]
+    pub const fn module_specifier(&self) -> ModuleSpecifier {
+        match self {
+            Self::Module(specifier)
+            | Self::Namespace { specifier, .. }
+            | Self::List { specifier, .. } => *specifier,
         }
     }
 }
@@ -87,29 +97,32 @@ impl ImportDeclaration {
 /// [spec]: https://tc39.es/ecma262/#prod-ImportSpecifier
 #[derive(Debug, Clone, Copy)]
 pub struct ImportSpecifier {
-    import_name: Sym,
-    alias: Option<Identifier>,
+    binding: Identifier,
+    export_name: Sym,
 }
 
 impl ImportSpecifier {
     /// Creates a new [`ImportSpecifier`].
     #[inline]
     #[must_use]
-    pub const fn new(import_name: Sym, alias: Option<Identifier>) -> Self {
-        Self { import_name, alias }
+    pub const fn new(binding: Identifier, export_name: Sym) -> Self {
+        Self {
+            binding,
+            export_name,
+        }
     }
 
-    /// Gets the original import name.
+    /// Gets the binding of the import specifier.
     #[inline]
     #[must_use]
-    pub const fn import_name(self) -> Sym {
-        self.import_name
+    pub const fn binding(self) -> Identifier {
+        self.binding
     }
 
-    /// Gets an optional import alias for the import.
+    /// Gets the optional export name of the import.
     #[inline]
     #[must_use]
-    pub const fn alias(self) -> Option<Identifier> {
-        self.alias
+    pub const fn export_name(self) -> Sym {
+        self.export_name
     }
 }

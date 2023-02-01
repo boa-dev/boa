@@ -9,7 +9,7 @@
 //! [spec]: https://tc39.es/ecma262/#sec-exports
 //! [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/export
 
-use super::FromClause;
+use super::ModuleSpecifier;
 use crate::{
     function::{AsyncFunction, AsyncGenerator, Class, Function, Generator},
     Declaration, Expression, Statement,
@@ -28,15 +28,15 @@ pub enum ExportDeclaration {
     ReExportAll {
         /// Alias for the module export.
         alias: Option<Sym>,
-        /// From clause.
-        from: FromClause,
+        /// Module specifier.
+        specifier: ModuleSpecifier,
     },
     /// List of exports.
     List {
         /// List of exports.
         list: Box<[ExportSpecifier]>,
-        /// From clause.
-        from: Option<FromClause>,
+        /// Module specifier.
+        specifier: Option<ModuleSpecifier>,
     },
     /// Variable statement export.
     VarStatement(Statement),
@@ -65,15 +65,18 @@ pub enum ExportDeclaration {
 #[derive(Debug, Clone, Copy)]
 pub struct ExportSpecifier {
     export_name: Sym,
-    alias: Option<Sym>,
+    private_name: Sym,
 }
 
 impl ExportSpecifier {
     /// Creates a new [`ExportSpecifier`].
     #[inline]
     #[must_use]
-    pub const fn new(export_name: Sym, alias: Option<Sym>) -> Self {
-        Self { export_name, alias }
+    pub const fn new(export_name: Sym, private_name: Sym) -> Self {
+        Self {
+            export_name,
+            private_name,
+        }
     }
 
     /// Gets the original export name.
@@ -83,10 +86,10 @@ impl ExportSpecifier {
         self.export_name
     }
 
-    /// Gets an optional export alias for the export.
+    /// Gets the private name of the export inside the module.
     #[inline]
     #[must_use]
-    pub const fn alias(self) -> Option<Sym> {
-        self.alias
+    pub const fn private_name(self) -> Sym {
+        self.private_name
     }
 }

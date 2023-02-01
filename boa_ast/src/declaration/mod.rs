@@ -100,27 +100,26 @@ impl VisitWith for Declaration {
     }
 }
 
-/// From clause AST node.
+/// Module specifier.
 ///
-/// More information:
-///  - [ECMAScript specification][spec]
+/// This is equivalent to the [`ModuleSpecifier`] production.
 ///
-/// [spec]: https://tc39.es/ecma262/#prod-FromClause
+/// [`FromClause`]: https://tc39.es/ecma262/#prod-ModuleSpecifier
 #[derive(Debug, Clone, Copy)]
-pub struct FromClause {
+pub struct ModuleSpecifier {
     module: Sym,
 }
 
-impl FromClause {
-    /// Gets the module specifier for the from clause.
+impl ModuleSpecifier {
+    /// Gets the inner `Sym` of the module specifier.
     #[inline]
     #[must_use]
-    pub const fn module(self) -> Sym {
+    pub const fn sym(self) -> Sym {
         self.module
     }
 }
 
-impl From<Sym> for FromClause {
+impl From<Sym> for ModuleSpecifier {
     #[inline]
     fn from(s: Sym) -> Self {
         Self { module: s }
