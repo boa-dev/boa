@@ -20,5 +20,9 @@ pub mod unary;
 pub mod update;
 
 pub use self::{
-    assign::Assign, binary::Binary, conditional::Conditional, unary::Unary, update::Update,
+    assign::Assign,
+    binary::{Binary, BinaryInPrivate},
+    conditional::Conditional,
+    unary::Unary,
+    update::Update,
 };

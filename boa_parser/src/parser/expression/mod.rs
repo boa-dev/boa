@@ -32,10 +32,11 @@ use boa_ast::{
     expression::{
         operator::{
             binary::{BinaryOp, LogicalOp},
-            Binary,
+            Binary, BinaryInPrivate,
         },
         Identifier,
     },
+    function::PrivateName,
     Keyword, Position, Punctuator,
 };
 use boa_interner::{Interner, Sym};
@@ -564,8 +565,44 @@ where
     fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult<Self::Output> {
         let _timer = Profiler::global().start_event("Relation Expression", "Parsing");
 
+        if self.allow_in.0 {
+            let token = cursor.peek(0, interner).or_abrupt()?;
+            let span = token.span();
+            if let TokenKind::PrivateIdentifier(identifier) = token.kind() {
+                let identifier = *identifier;
+                let token = cursor.peek(1, interner).or_abrupt()?;
+                match token.kind() {
+                    TokenKind::Keyword((Keyword::In, true)) => {
+                        return Err(Error::general(
+                            "Keyword must not contain escaped characters",
+                            token.span().start(),
+                        ));
+                    }
+                    TokenKind::Keyword((Keyword::In, false)) => {
+                        cursor.advance(interner);
+                        cursor.advance(interner);
+
+                        if !cursor.in_class() {
+                            return Err(Error::general(
+                                "Private identifier outside of class",
+                                span.start(),
+                            ));
+                        }
+
+                        let rhs =
+                            ShiftExpression::new(self.name, self.allow_yield, self.allow_await)
+                                .parse(cursor, interner)?;
+
+                        return Ok(BinaryInPrivate::new(PrivateName::new(identifier), rhs).into());
+                    }
+                    _ => {}
+                }
+            }
+        }
+
         let mut lhs = ShiftExpression::new(self.name, self.allow_yield, self.allow_await)
             .parse(cursor, interner)?;
+
         while let Some(tok) = cursor.peek(0, interner)? {
             match *tok.kind() {
                 TokenKind::Punctuator(op)

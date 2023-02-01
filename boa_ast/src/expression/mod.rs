@@ -9,20 +9,18 @@
 //! [primary]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators#primary_expressions
 //! [lhs]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators#left-hand-side_expressions
 
-use boa_interner::{Interner, ToIndentedString, ToInternedString};
-use core::ops::ControlFlow;
-
 use self::{
     access::PropertyAccess,
     literal::{ArrayLiteral, Literal, ObjectLiteral, TemplateLiteral},
-    operator::{Assign, Binary, Conditional, Unary, Update},
+    operator::{Assign, Binary, BinaryInPrivate, Conditional, Unary, Update},
 };
-
 use super::{
     function::{ArrowFunction, AsyncFunction, AsyncGenerator, Class, Function, Generator},
     function::{AsyncArrowFunction, FormalParameterList},
     Statement,
 };
+use boa_interner::{Interner, ToIndentedString, ToInternedString};
+use core::ops::ControlFlow;
 
 mod r#await;
 mod call;
@@ -144,6 +142,9 @@ pub enum Expression {
     /// See [`Binary`].
     Binary(Binary),
 
+    /// See [`BinaryInPrivate`].
+    BinaryInPrivate(BinaryInPrivate),
+
     /// See [`Conditional`].
     Conditional(Conditional),
 
@@ -193,6 +194,7 @@ impl Expression {
             Self::Unary(unary) => unary.to_interned_string(interner),
             Self::Update(update) => update.to_interned_string(interner),
             Self::Binary(bin) => bin.to_interned_string(interner),
+            Self::BinaryInPrivate(bin) => bin.to_interned_string(interner),
             Self::Conditional(cond) => cond.to_interned_string(interner),
             Self::Await(aw) => aw.to_interned_string(interner),
             Self::Yield(yi) => yi.to_interned_string(interner),
@@ -286,6 +288,7 @@ impl VisitWith for Expression {
             Self::Unary(u) => visitor.visit_unary(u),
             Self::Update(u) => visitor.visit_update(u),
             Self::Binary(b) => visitor.visit_binary(b),
+            Self::BinaryInPrivate(b) => visitor.visit_binary_in_private(b),
             Self::Conditional(c) => visitor.visit_conditional(c),
             Self::Await(a) => visitor.visit_await(a),
             Self::Yield(y) => visitor.visit_yield(y),
@@ -325,6 +328,7 @@ impl VisitWith for Expression {
             Self::Unary(u) => visitor.visit_unary_mut(u),
             Self::Update(u) => visitor.visit_update_mut(u),
             Self::Binary(b) => visitor.visit_binary_mut(b),
+            Self::BinaryInPrivate(b) => visitor.visit_binary_in_private_mut(b),
             Self::Conditional(c) => visitor.visit_conditional_mut(c),
             Self::Await(a) => visitor.visit_await_mut(a),
             Self::Yield(y) => visitor.visit_yield_mut(y),

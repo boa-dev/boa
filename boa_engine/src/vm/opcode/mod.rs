@@ -486,6 +486,13 @@ generate_impl! {
         /// Stack: lhs, rhs **=>** (lhs `in` rhs)
         In,
 
+        /// Binary `in` operator for private names.
+        ///
+        /// Operands: private_name_index: `u32`
+        ///
+        /// Stack: rhs **=>** (private_name `in` rhs)
+        InPrivate,
+
         /// Binary `==` operator.
         ///
         /// Operands:

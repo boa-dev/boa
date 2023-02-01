@@ -323,7 +323,8 @@ impl CodeBlock {
             | Opcode::PushClassFieldPrivate
             | Opcode::PushClassPrivateGetter
             | Opcode::PushClassPrivateSetter
-            | Opcode::PushClassPrivateMethod => {
+            | Opcode::PushClassPrivateMethod
+            | Opcode::InPrivate => {
                 let operand = self.read::<u32>(*pc);
                 *pc += size_of::<u32>();
                 format!(

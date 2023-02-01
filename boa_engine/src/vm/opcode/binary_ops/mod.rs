@@ -98,6 +98,40 @@ impl Operation for In {
     }
 }
 
+/// `InPrivate` implements the Opcode Operation for `Opcode::InPrivate`
+///
+/// Operation:
+///  - Binary `in` operation for private names.
+#[derive(Debug, Clone, Copy)]
+pub(crate) struct InPrivate;
+
+impl Operation for InPrivate {
+    const NAME: &'static str = "InPrivate";
+    const INSTRUCTION: &'static str = "INST - InPrivate";
+
+    fn execute(context: &mut Context<'_>) -> JsResult<ShouldExit> {
+        let index = context.vm.read::<u32>();
+        let name = context.vm.frame().code_block.private_names[index as usize];
+        let rhs = context.vm.pop();
+
+        let Some(rhs) = rhs.as_object() else {
+            return Err(JsNativeError::typ()
+                .with_message(format!(
+                    "right-hand side of 'in' should be an object, got `{}`",
+                    rhs.type_of()
+                ))
+                .into());
+        };
+        if rhs.private_element_find(&name, true, true).is_some() {
+            context.vm.push(true);
+        } else {
+            context.vm.push(false);
+        }
+
+        Ok(ShouldExit::False)
+    }
+}
+
 /// `InstanceOf` implements the Opcode Operation for `Opcode::InstanceOf`
 ///
 /// Operation:

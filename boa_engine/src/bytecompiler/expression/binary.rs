@@ -1,6 +1,6 @@
 use boa_ast::expression::operator::{
     binary::{ArithmeticOp, BinaryOp, BitwiseOp, LogicalOp, RelationalOp},
-    Binary,
+    Binary, BinaryInPrivate,
 };
 
 use crate::{bytecompiler::ByteCompiler, vm::Opcode, JsResult};
@@ -92,6 +92,22 @@ impl ByteCompiler<'_, '_> {
                 }
             }
         };
+
+        Ok(())
+    }
+
+    pub(crate) fn compile_binary_in_private(
+        &mut self,
+        binary: &BinaryInPrivate,
+        use_expr: bool,
+    ) -> JsResult<()> {
+        let index = self.get_or_insert_private_name(*binary.lhs());
+        self.compile_expr(binary.rhs(), true)?;
+        self.emit(Opcode::InPrivate, &[index]);
+
+        if !use_expr {
+            self.emit_opcode(Opcode::Pop);
+        }
 
         Ok(())
     }

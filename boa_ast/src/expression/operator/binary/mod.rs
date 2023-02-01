@@ -16,16 +16,16 @@
 
 mod op;
 
-use core::ops::ControlFlow;
-pub use op::*;
-
-use boa_interner::{Interner, ToInternedString};
-
 use crate::{
     expression::Expression,
+    function::PrivateName,
     try_break,
     visitor::{VisitWith, Visitor, VisitorMut},
 };
+use boa_interner::{Interner, ToInternedString};
+use core::ops::ControlFlow;
+
+pub use op::*;
 
 /// Binary operations require two operands, one before the operator and one after the operator.
 ///
@@ -106,6 +106,81 @@ impl VisitWith for Binary {
         V: VisitorMut<'a>,
     {
         try_break!(visitor.visit_expression_mut(&mut self.lhs));
+        visitor.visit_expression_mut(&mut self.rhs)
+    }
+}
+
+/// Binary [relational][relat] `In` expression with a private name on the left hand side.
+///
+/// Because the left hand side must be a private name, this is a separate type from [`Binary`].
+///
+/// [relat]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators#relational_operators
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+#[cfg_attr(feature = "arbitrary", derive(arbitrary::Arbitrary))]
+#[derive(Clone, Debug, PartialEq)]
+pub struct BinaryInPrivate {
+    lhs: PrivateName,
+    rhs: Box<Expression>,
+}
+
+impl BinaryInPrivate {
+    /// Creates a `BinaryInPrivate` AST Expression.
+    #[inline]
+    #[must_use]
+    pub fn new(lhs: PrivateName, rhs: Expression) -> Self {
+        Self {
+            lhs,
+            rhs: Box::new(rhs),
+        }
+    }
+
+    /// Gets the left hand side of the binary operation.
+    #[inline]
+    #[must_use]
+    pub const fn lhs(&self) -> &PrivateName {
+        &self.lhs
+    }
+
+    /// Gets the right hand side of the binary operation.
+    #[inline]
+    #[must_use]
+    pub const fn rhs(&self) -> &Expression {
+        &self.rhs
+    }
+}
+
+impl ToInternedString for BinaryInPrivate {
+    #[inline]
+    fn to_interned_string(&self, interner: &Interner) -> String {
+        format!(
+            "#{} in {}",
+            interner.resolve_expect(self.lhs.description()),
+            self.rhs.to_interned_string(interner)
+        )
+    }
+}
+
+impl From<BinaryInPrivate> for Expression {
+    #[inline]
+    fn from(op: BinaryInPrivate) -> Self {
+        Self::BinaryInPrivate(op)
+    }
+}
+
+impl VisitWith for BinaryInPrivate {
+    fn visit_with<'a, V>(&'a self, visitor: &mut V) -> ControlFlow<V::BreakTy>
+    where
+        V: Visitor<'a>,
+    {
+        try_break!(visitor.visit_private_name(&self.lhs));
+        visitor.visit_expression(&self.rhs)
+    }
+
+    fn visit_with_mut<'a, V>(&'a mut self, visitor: &mut V) -> ControlFlow<V::BreakTy>
+    where
+        V: VisitorMut<'a>,
+    {
+        try_break!(visitor.visit_private_name_mut(&mut self.lhs));
         visitor.visit_expression_mut(&mut self.rhs)
     }
 }
