@@ -42,7 +42,6 @@ impl Operation for FinallyEnd {
     const INSTRUCTION: &'static str = "INST - FinallyEnd";
 
     fn execute(context: &mut Context<'_>) -> JsResult<ShouldExit> {
-        // TODO handle a new way to get next_finally value
         let finally_candidates = context.vm.frame().env_stack.iter().filter(|env| {
             env.is_finally_env() && context.vm.frame().pc < (env.start_address() as usize)
         });
@@ -148,7 +147,8 @@ impl Operation for FinallyEnd {
                             envs_to_pop += env_entry.env_num();
                             context.vm.frame_mut().env_stack.pop();
                         }
-                    } else if record.is_throw() && context.vm.frame().pc < record.target() as usize
+                    } else if record.is_throw_with_target()
+                        && context.vm.frame().pc < record.target() as usize
                     {
                         context.vm.frame_mut().pc = record.target() as usize;
                         for _ in 0..context.vm.frame().env_stack.len() {
@@ -165,6 +165,18 @@ impl Operation for FinallyEnd {
                             }
                         }
                         context.vm.frame_mut().abrupt_completion = None;
+                    } else if !record.is_throw_with_target() {
+                        let current_stack = context
+                            .vm
+                            .frame_mut()
+                            .env_stack
+                            .pop()
+                            .expect("Popping current finally stack.");
+
+                        for _ in 0..current_stack.env_num() {
+                            context.realm.environments.pop();
+                        }
+                        return Err(JsError::from_opaque(context.vm.pop()));
                     }
 
                     for _ in 0..envs_to_pop {

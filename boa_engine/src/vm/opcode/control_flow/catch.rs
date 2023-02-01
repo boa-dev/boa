@@ -26,7 +26,6 @@ impl Operation for CatchStart {
 
         context.vm.frame_mut().abrupt_completion = None;
         context.vm.frame_mut().finally_return = FinallyReturn::None;
-        context.vm.frame_mut().thrown = false;
         Ok(ShouldExit::False)
     }
 }

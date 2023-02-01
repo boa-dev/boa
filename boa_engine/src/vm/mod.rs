@@ -336,18 +336,17 @@ impl Context<'_> {
                             self.vm.frame_mut().pc = catch_target as usize;
                         } else {
                             self.vm.frame_mut().pc = target_address as usize;
-                            let record = AbruptCompletionRecord::default()
-                                .with_throw_flag()
-                                .with_initial_target(catch_target);
-                            self.vm.frame_mut().abrupt_completion = Some(record);
                         };
 
                         for _ in 0..self.vm.frame().pop_on_return {
                             self.vm.pop();
                         }
-                        self.vm.frame_mut().pop_on_return = 0;
 
-                        self.vm.frame_mut().thrown = true;
+                        self.vm.frame_mut().pop_on_return = 0;
+                        let record = AbruptCompletionRecord::default()
+                            .with_throw_flag()
+                            .with_initial_target(catch_target);
+                        self.vm.frame_mut().abrupt_completion = Some(record);
                         self.vm.frame_mut().finally_return = FinallyReturn::Err;
                         let err = e.to_opaque(self);
                         self.vm.push(err);
@@ -388,7 +387,8 @@ impl Context<'_> {
                             }
                             self.vm.frame_mut().pop_on_return = 0;
 
-                            self.vm.frame_mut().thrown = true;
+                            let record = AbruptCompletionRecord::default().with_throw_flag();
+                            self.vm.frame_mut().abrupt_completion = Some(record);
                             self.vm.frame_mut().pc = address;
                             self.vm.frame_mut().finally_return = FinallyReturn::Err;
                             let err = e.to_opaque(self);

@@ -32,9 +32,6 @@ pub struct CallFrame {
     #[unsafe_ignore_trace]
     pub(crate) generator_resume_kind: GeneratorResumeKind,
 
-    // Indicate that the last try block has thrown an exception.
-    pub(crate) thrown: bool,
-
     // When an async generator is resumed, the generator object is needed
     // to fulfill the steps 4.e-j in [AsyncGeneratorStart](https://tc39.es/ecma262/#sec-asyncgeneratorstart).
     pub(crate) async_generator: Option<JsObject>,
@@ -56,7 +53,6 @@ impl CallFrame {
             param_count: 0,
             arg_count: 0,
             generator_resume_kind: GeneratorResumeKind::Normal,
-            thrown: false,
             async_generator: None,
         }
     }

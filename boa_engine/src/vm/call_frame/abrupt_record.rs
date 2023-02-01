@@ -66,6 +66,10 @@ impl AbruptCompletionRecord {
         self.kind == AbruptKind::Throw
     }
 
+    pub(crate) fn is_throw_with_target(self) -> bool {
+        self.is_throw() && self.target < u32::MAX
+    }
+
     /// Returns the value of `AbruptCompletionRecord`'s `target` field.
     pub(crate) const fn target(self) -> u32 {
         self.target

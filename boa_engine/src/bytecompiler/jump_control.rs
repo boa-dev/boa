@@ -404,7 +404,7 @@ impl ByteCompiler<'_, '_> {
             }
         }
 
-        // Handle breaks in a finally block        for label in info.breaks {
+        // Handle breaks in a finally block
         for label in info.breaks {
             self.patch_jump(label);
         }

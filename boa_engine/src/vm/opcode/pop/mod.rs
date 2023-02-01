@@ -32,11 +32,13 @@ impl Operation for PopIfThrown {
     const INSTRUCTION: &'static str = "INST - PopIfThrown";
 
     fn execute(context: &mut Context<'_>) -> JsResult<ShouldExit> {
-        let frame = context.vm.frame_mut();
-        if frame.thrown {
-            frame.thrown = false;
-            context.vm.pop();
-        }
+        let frame = context.vm.frame();
+        match frame.abrupt_completion {
+            Some(record) if record.is_throw() => {
+                context.vm.pop();
+            }
+            _ => {}
+        };
         Ok(ShouldExit::False)
     }
 }
