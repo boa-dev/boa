@@ -14,6 +14,23 @@ use boa_interner::Sym;
 
 use super::ModuleSpecifier;
 
+/// The kind of import in an [`ImportDeclaration`].
+#[derive(Debug, Clone)]
+pub enum ImportKind {
+    /// Default (`import defaultName from "module-name"`) or null (`import "module-name").
+    DefaultOrNull,
+    /// Namespaced import (`import * as name from "module-name"`).
+    Namespaced {
+        /// Binding for the namespace created from the exports of the imported module.
+        binding: Identifier,
+    },
+    /// Import list (`import { export1, export2 as alias2 } from "module-name"`).
+    Named {
+        /// List of the required exports of the imported module.
+        names: Box<[ImportSpecifier]>,
+    },
+}
+
 /// An import declaration AST node.
 ///
 /// More information:
@@ -21,71 +38,50 @@ use super::ModuleSpecifier;
 ///
 /// [spec]: https://tc39.es/ecma262/#prod-ImportDeclaration
 #[derive(Debug, Clone)]
-pub enum ImportDeclaration {
-    /// Full module import (`import "module-name"`).
-    Module(ModuleSpecifier),
-    /// Namespace import (`import * as name from "module-name"`), with an optional default export
-    /// binding.
-    Namespace {
-        /// Optional default export for the namespace import.
-        default_export: Option<Identifier>,
-        /// Alias for the namespace import.
-        alias: Identifier,
-        /// Module specifier.
-        specifier: ModuleSpecifier,
-    },
-    /// Import list (`import { export1, export2 as alias2} from "module-name"`), with an optional
-    /// default export binding.
-    List {
-        /// Optional default export for the import list.
-        default_export: Option<Identifier>,
-        /// List of imports.
-        import_list: Box<[ImportSpecifier]>,
-        /// Module specifier.
-        specifier: ModuleSpecifier,
-    },
+pub struct ImportDeclaration {
+    /// Binding for the default export of `specifier`.
+    default: Option<Identifier>,
+    /// See [`ImportKind`].
+    kind: ImportKind,
+    /// Module specifier.
+    specifier: ModuleSpecifier,
 }
 
 impl ImportDeclaration {
-    /// Creates a new namespace import declaration.
+    /// Creates a new import declaration.
     #[inline]
-    pub fn namespace<F>(
-        default_export: Option<Identifier>,
-        alias: Identifier,
-        from_clause: F,
-    ) -> Self
-    where
-        F: Into<ModuleSpecifier>,
-    {
-        Self::Namespace {
-            default_export,
-            alias,
-            specifier: from_clause.into(),
-        }
-    }
-
-    /// Creates a new namespace import declaration.
-    #[inline]
-    pub fn list<L, F>(default_export: Option<Identifier>, import_list: L, from_clause: F) -> Self
-    where
-        L: Into<Box<[ImportSpecifier]>>,
-        F: Into<ModuleSpecifier>,
-    {
-        Self::List {
-            default_export,
-            import_list: import_list.into(),
-            specifier: from_clause.into(),
-        }
-    }
-
-    /// Gets the module specifier of the import.
     #[must_use]
-    pub const fn module_specifier(&self) -> ModuleSpecifier {
-        match self {
-            Self::Module(specifier)
-            | Self::Namespace { specifier, .. }
-            | Self::List { specifier, .. } => *specifier,
+    pub const fn new(
+        default: Option<Identifier>,
+        kind: ImportKind,
+        specifier: ModuleSpecifier,
+    ) -> Self {
+        Self {
+            default,
+            kind,
+            specifier,
         }
+    }
+
+    /// Gets the binding for the default export of the module.
+    #[inline]
+    #[must_use]
+    pub const fn default(&self) -> Option<Identifier> {
+        self.default
+    }
+
+    /// Gets the module specifier of the import declaration.
+    #[inline]
+    #[must_use]
+    pub const fn specifier(&self) -> ModuleSpecifier {
+        self.specifier
+    }
+
+    /// Gets the import kind of the import declaration
+    #[inline]
+    #[must_use]
+    pub const fn kind(&self) -> &ImportKind {
+        &self.kind
     }
 }
 

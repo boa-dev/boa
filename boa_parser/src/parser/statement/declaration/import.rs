@@ -17,7 +17,14 @@ use crate::{
         Error, OrAbrupt, ParseResult, TokenParser,
     },
 };
-use boa_ast::{expression::Identifier, Keyword, Punctuator};
+use boa_ast::{
+    declaration::{
+        ImportDeclaration as AstImportDeclaration, ImportKind,
+        ImportSpecifier as AstImportSpecifier, ModuleSpecifier,
+    },
+    expression::Identifier,
+    Keyword, Punctuator,
+};
 use boa_interner::{Interner, Sym};
 use boa_profiler::Profiler;
 use std::io::Read;
@@ -35,7 +42,7 @@ impl<R> TokenParser<R> for ImportDeclaration
 where
     R: Read,
 {
-    type Output = boa_ast::declaration::ImportDeclaration;
+    type Output = AstImportDeclaration;
 
     fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult<Self::Output> {
         let _timer = Profiler::global().start_event("ImportDeclaration", "Parsing");
@@ -51,8 +58,10 @@ where
                 cursor.advance(interner);
                 cursor.expect_semicolon("import declaration", interner)?;
 
-                return Ok(boa_ast::declaration::ImportDeclaration::Module(
-                    module_identifier.into(),
+                return Ok(AstImportDeclaration::new(
+                    None,
+                    ImportKind::DefaultOrNull,
+                    ModuleSpecifier::new(module_identifier),
                 ));
             }
             TokenKind::Punctuator(Punctuator::OpenBlock) => {
@@ -96,7 +105,7 @@ where
                             }
                         }
                     }
-                    _ => ImportClause::ImportList(Some(imported_binding), Box::new([])),
+                    _ => ImportClause::ImportList(Some(imported_binding), Box::default()),
                 }
             }
             _ => {
@@ -154,7 +163,7 @@ impl<R> TokenParser<R> for NamedImports
 where
     R: Read,
 {
-    type Output = Box<[boa_ast::declaration::ImportSpecifier]>;
+    type Output = Box<[AstImportSpecifier]>;
 
     fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult<Self::Output> {
         cursor.expect(Punctuator::OpenBlock, "import declaration", interner)?;
@@ -211,24 +220,23 @@ where
 #[derive(Debug, Clone)]
 enum ImportClause {
     Namespace(Option<Identifier>, Identifier),
-    ImportList(
-        Option<Identifier>,
-        Box<[boa_ast::declaration::ImportSpecifier]>,
-    ),
+    ImportList(Option<Identifier>, Box<[AstImportSpecifier]>),
 }
 
 impl ImportClause {
     #[inline]
-    fn with_specifier(
-        self,
-        specifier: boa_ast::declaration::ModuleSpecifier,
-    ) -> boa_ast::declaration::ImportDeclaration {
+    #[allow(clippy::missing_const_for_fn)]
+    fn with_specifier(self, specifier: ModuleSpecifier) -> AstImportDeclaration {
         match self {
-            Self::Namespace(default, alias) => {
-                boa_ast::declaration::ImportDeclaration::namespace(default, alias, specifier)
+            Self::Namespace(default, binding) => {
+                AstImportDeclaration::new(default, ImportKind::Namespaced { binding }, specifier)
             }
-            Self::ImportList(default, list) => {
-                boa_ast::declaration::ImportDeclaration::list(default, list, specifier)
+            Self::ImportList(default, names) => {
+                if names.is_empty() {
+                    AstImportDeclaration::new(default, ImportKind::DefaultOrNull, specifier)
+                } else {
+                    AstImportDeclaration::new(default, ImportKind::Named { names }, specifier)
+                }
             }
         }
     }
@@ -247,7 +255,7 @@ impl<R> TokenParser<R> for ImportSpecifier
 where
     R: Read,
 {
-    type Output = boa_ast::declaration::ImportSpecifier;
+    type Output = AstImportSpecifier;
 
     fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult<Self::Output> {
         let tok = cursor.next(interner).or_abrupt()?;
@@ -268,7 +276,7 @@ where
 
                 let binding = ImportedBinding.parse(cursor, interner)?;
 
-                Ok(boa_ast::declaration::ImportSpecifier::new(binding, *name))
+                Ok(AstImportSpecifier::new(binding, *name))
             }
             TokenKind::IdentifierName((name, _)) => {
                 if cursor
@@ -276,12 +284,9 @@ where
                     .is_some()
                 {
                     let binding = ImportedBinding.parse(cursor, interner)?;
-                    Ok(boa_ast::declaration::ImportSpecifier::new(binding, *name))
+                    Ok(AstImportSpecifier::new(binding, *name))
                 } else {
-                    Ok(boa_ast::declaration::ImportSpecifier::new(
-                        Identifier::new(*name),
-                        *name,
-                    ))
+                    Ok(AstImportSpecifier::new(Identifier::new(*name), *name))
                 }
             }
             _ => Err(Error::expected(

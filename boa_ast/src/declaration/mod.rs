@@ -111,6 +111,12 @@ pub struct ModuleSpecifier {
 }
 
 impl ModuleSpecifier {
+    /// Creates a `ModuleSpecifier` from a `Sym`.
+    #[must_use]
+    pub const fn new(module: Sym) -> Self {
+        Self { module }
+    }
+
     /// Gets the inner `Sym` of the module specifier.
     #[inline]
     #[must_use]
@@ -121,7 +127,7 @@ impl ModuleSpecifier {
 
 impl From<Sym> for ModuleSpecifier {
     #[inline]
-    fn from(s: Sym) -> Self {
-        Self { module: s }
+    fn from(module: Sym) -> Self {
+        Self::new(module)
     }
 }
