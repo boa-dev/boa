@@ -91,6 +91,9 @@ impl ByteCompiler<'_, '_> {
             Expression::Unary(unary) => self.compile_unary(unary, use_expr)?,
             Expression::Update(update) => self.compile_update(update, use_expr)?,
             Expression::Binary(binary) => self.compile_binary(binary, use_expr)?,
+            Expression::BinaryInPrivate(binary) => {
+                self.compile_binary_in_private(binary, use_expr)?;
+            }
             Expression::Assign(assign) => self.compile_assign(assign, use_expr)?,
             Expression::ObjectLiteral(object) => {
                 self.compile_object_literal(object, use_expr)?;
