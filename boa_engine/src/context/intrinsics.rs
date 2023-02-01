@@ -696,49 +696,49 @@ impl StandardConstructors {
 /// Cached intrinsic objects
 #[derive(Debug)]
 pub struct IntrinsicObjects {
-    /// [`%Reflect%`][https://tc39.es/ecma262/#sec-reflect]
+    /// [`%Reflect%`](https://tc39.es/ecma262/#sec-reflect)
     reflect: JsObject,
 
-    /// [`%Math%`][https://tc39.es/ecma262/#sec-math]
+    /// [`%Math%`](https://tc39.es/ecma262/#sec-math)
     math: JsObject,
 
-    /// [`%JSON%`][https://tc39.es/ecma262/#sec-json]
+    /// [`%JSON%`](https://tc39.es/ecma262/#sec-json)
     json: JsObject,
 
-    /// [`%ThrowTypeError%`][https://tc39.es/ecma262/#sec-%throwtypeerror%]
+    /// [`%ThrowTypeError%`](https://tc39.es/ecma262/#sec-%throwtypeerror%)
     throw_type_error: JsFunction,
 
-    /// [`%Array.prototype.values%`][https://tc39.es/ecma262/#sec-array.prototype.values]
+    /// [`%Array.prototype.values%`](https://tc39.es/ecma262/#sec-array.prototype.values)
     array_prototype_values: JsObject,
 
     /// Cached iterator prototypes.
     iterator_prototypes: IteratorPrototypes,
 
-    /// [`%GeneratorFunction.prototype.prototype%`][https://tc39.es/ecma262/#sec-properties-of-generator-prototype]
+    /// [`%GeneratorFunction.prototype.prototype%`](https://tc39.es/ecma262/#sec-properties-of-generator-prototype)
     generator: JsObject,
 
-    /// [`%AsyncGeneratorFunction.prototype.prototype%`][https://tc39.es/ecma262/#sec-properties-of-asyncgenerator-prototype]
+    /// [`%AsyncGeneratorFunction.prototype.prototype%`](https://tc39.es/ecma262/#sec-properties-of-asyncgenerator-prototype)
     async_generator: JsObject,
 
-    /// [`%eval%`][https://tc39.es/ecma262/#sec-eval-x]
+    /// [`%eval%`](https://tc39.es/ecma262/#sec-eval-x)
     eval: JsFunction,
 
     /// URI related functions
     uri_functions: UriFunctions,
 
-    /// [`%isFinite%`][https://tc39.es/ecma262/#sec-isfinite-number]
+    /// [`%isFinite%`](https://tc39.es/ecma262/#sec-isfinite-number)
     is_finite: JsFunction,
 
-    /// [`%isNaN%`][https://tc39.es/ecma262/#sec-isnan-number]
+    /// [`%isNaN%`](https://tc39.es/ecma262/#sec-isnan-number)
     is_nan: JsFunction,
 
-    /// [`%parseFloat%`][https://tc39.es/ecma262/#sec-parsefloat-string]
+    /// [`%parseFloat%`](https://tc39.es/ecma262/#sec-parsefloat-string)
     parse_float: JsFunction,
 
-    /// [`%parseInt%`][https://tc39.es/ecma262/#sec-parseint-string-radix]
+    /// [`%parseInt%`](https://tc39.es/ecma262/#sec-parseint-string-radix)
     parse_int: JsFunction,
 
-    /// [`%Intl%`][https://tc39.es/ecma402/#intl-object]
+    /// [`%Intl%`](https://tc39.es/ecma402/#intl-object)
     #[cfg(feature = "intl")]
     intl: JsObject,
 }
