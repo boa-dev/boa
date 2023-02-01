@@ -524,6 +524,7 @@
 <a href="#523" id="523">523</a>
 <a href="#524" id="524">524</a>
 <a href="#525" id="525">525</a>
+<a href="#526" id="526">526</a>
 </pre><pre class="rust"><code><span class="doccomment">//! This module is responsible for generating the vm instruction flowgraph.
 
 </span><span class="kw">use </span><span class="kw">crate</span>::vm::{CodeBlock, Opcode};
@@ -884,7 +885,8 @@
                 | Opcode::PushClassFieldPrivate
                 | Opcode::PushClassPrivateGetter
                 | Opcode::PushClassPrivateSetter
-                | Opcode::PushClassPrivateMethod =&gt; {
+                | Opcode::PushClassPrivateMethod
+                | Opcode::InPrivate =&gt; {
                     <span class="kw">let </span>operand = <span class="self">self</span>.read::&lt;u32&gt;(pc);
                     pc += size_of::&lt;u32&gt;();
                     <span class="kw">let </span>label = <span class="macro">format!</span>(

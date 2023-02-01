@@ -573,6 +573,11 @@
 <a href="#572" id="572">572</a>
 <a href="#573" id="573">573</a>
 <a href="#574" id="574">574</a>
+<a href="#575" id="575">575</a>
+<a href="#576" id="576">576</a>
+<a href="#577" id="577">577</a>
+<a href="#578" id="578">578</a>
+<a href="#579" id="579">579</a>
 </pre><pre class="rust"><code><span class="doccomment">//! ECMAScript Abstract Syntax Tree visitors.
 //!
 //! This module contains visitors which can be used to inspect or modify AST nodes. This allows for
@@ -592,7 +597,7 @@
         literal::{ArrayLiteral, Literal, ObjectLiteral, TemplateElement, TemplateLiteral},
         operator::{
             assign::{Assign, AssignTarget},
-            Binary, Conditional, Unary, Update,
+            Binary, BinaryInPrivate, Conditional, Unary, Update,
         },
         Await, Call, Expression, Identifier, New, Optional, OptionalOperation,
         OptionalOperationKind, Spread, SuperCall, TaggedTemplate, Yield,
@@ -742,6 +747,7 @@
     Unary,
     Update,
     Binary,
+    BinaryInPrivate,
     Conditional,
     Await,
     Yield,
@@ -829,6 +835,7 @@
     <span class="macro">define_visit!</span>(visit_unary, Unary);
     <span class="macro">define_visit!</span>(visit_update, Update);
     <span class="macro">define_visit!</span>(visit_binary, Binary);
+    <span class="macro">define_visit!</span>(visit_binary_in_private, BinaryInPrivate);
     <span class="macro">define_visit!</span>(visit_conditional, Conditional);
     <span class="macro">define_visit!</span>(visit_await, Await);
     <span class="macro">define_visit!</span>(visit_yield, Yield);
@@ -913,6 +920,7 @@
             NodeRef::Unary(n) =&gt; <span class="self">self</span>.visit_unary(n),
             NodeRef::Update(n) =&gt; <span class="self">self</span>.visit_update(n),
             NodeRef::Binary(n) =&gt; <span class="self">self</span>.visit_binary(n),
+            NodeRef::BinaryInPrivate(n) =&gt; <span class="self">self</span>.visit_binary_in_private(n),
             NodeRef::Conditional(n) =&gt; <span class="self">self</span>.visit_conditional(n),
             NodeRef::Await(n) =&gt; <span class="self">self</span>.visit_await(n),
             NodeRef::Yield(n) =&gt; <span class="self">self</span>.visit_yield(n),
@@ -1002,6 +1010,7 @@
     <span class="macro">define_visit_mut!</span>(visit_unary_mut, Unary);
     <span class="macro">define_visit_mut!</span>(visit_update_mut, Update);
     <span class="macro">define_visit_mut!</span>(visit_binary_mut, Binary);
+    <span class="macro">define_visit_mut!</span>(visit_binary_in_private_mut, BinaryInPrivate);
     <span class="macro">define_visit_mut!</span>(visit_conditional_mut, Conditional);
     <span class="macro">define_visit_mut!</span>(visit_await_mut, Await);
     <span class="macro">define_visit_mut!</span>(visit_yield_mut, Yield);
@@ -1086,6 +1095,7 @@
             NodeRefMut::Unary(n) =&gt; <span class="self">self</span>.visit_unary_mut(n),
             NodeRefMut::Update(n) =&gt; <span class="self">self</span>.visit_update_mut(n),
             NodeRefMut::Binary(n) =&gt; <span class="self">self</span>.visit_binary_mut(n),
+            NodeRefMut::BinaryInPrivate(n) =&gt; <span class="self">self</span>.visit_binary_in_private_mut(n),
             NodeRefMut::Conditional(n) =&gt; <span class="self">self</span>.visit_conditional_mut(n),
             NodeRefMut::Await(n) =&gt; <span class="self">self</span>.visit_await_mut(n),
             NodeRefMut::Yield(n) =&gt; <span class="self">self</span>.visit_yield_mut(n),

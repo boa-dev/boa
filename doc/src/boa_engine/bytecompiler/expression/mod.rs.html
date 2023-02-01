@@ -315,6 +315,9 @@
 <a href="#314" id="314">314</a>
 <a href="#315" id="315">315</a>
 <a href="#316" id="316">316</a>
+<a href="#317" id="317">317</a>
+<a href="#318" id="318">318</a>
+<a href="#319" id="319">319</a>
 </pre><pre class="rust"><code><span class="kw">mod </span>assign;
 <span class="kw">mod </span>binary;
 <span class="kw">mod </span>object_literal;
@@ -408,6 +411,9 @@
             Expression::Unary(unary) =&gt; <span class="self">self</span>.compile_unary(unary, use_expr)<span class="question-mark">?</span>,
             Expression::Update(update) =&gt; <span class="self">self</span>.compile_update(update, use_expr)<span class="question-mark">?</span>,
             Expression::Binary(binary) =&gt; <span class="self">self</span>.compile_binary(binary, use_expr)<span class="question-mark">?</span>,
+            Expression::BinaryInPrivate(binary) =&gt; {
+                <span class="self">self</span>.compile_binary_in_private(binary, use_expr)<span class="question-mark">?</span>;
+            }
             Expression::Assign(assign) =&gt; <span class="self">self</span>.compile_assign(assign, use_expr)<span class="question-mark">?</span>,
             Expression::ObjectLiteral(object) =&gt; {
                 <span class="self">self</span>.compile_object_literal(object, use_expr)<span class="question-mark">?</span>;

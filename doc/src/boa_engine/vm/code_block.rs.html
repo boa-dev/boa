@@ -1489,6 +1489,7 @@
 <a href="#1488" id="1488">1488</a>
 <a href="#1489" id="1489">1489</a>
 <a href="#1490" id="1490">1490</a>
+<a href="#1491" id="1491">1491</a>
 </pre><pre class="rust"><code><span class="doccomment">//! `CodeBlock`
 //!
 //! This module is for the `CodeBlock` which implements a function representation in the VM
@@ -1814,7 +1815,8 @@
             | Opcode::PushClassFieldPrivate
             | Opcode::PushClassPrivateGetter
             | Opcode::PushClassPrivateSetter
-            | Opcode::PushClassPrivateMethod =&gt; {
+            | Opcode::PushClassPrivateMethod
+            | Opcode::InPrivate =&gt; {
                 <span class="kw">let </span>operand = <span class="self">self</span>.read::&lt;u32&gt;(<span class="kw-2">*</span>pc);
                 <span class="kw-2">*</span>pc += size_of::&lt;u32&gt;();
                 <span class="macro">format!</span>(

@@ -1522,6 +1522,13 @@
 <a href="#1521" id="1521">1521</a>
 <a href="#1522" id="1522">1522</a>
 <a href="#1523" id="1523">1523</a>
+<a href="#1524" id="1524">1524</a>
+<a href="#1525" id="1525">1525</a>
+<a href="#1526" id="1526">1526</a>
+<a href="#1527" id="1527">1527</a>
+<a href="#1528" id="1528">1528</a>
+<a href="#1529" id="1529">1529</a>
+<a href="#1530" id="1530">1530</a>
 </pre><pre class="rust"><code><span class="doccomment">/// The opcodes of the vm.
 </span><span class="kw">use crate</span>::{vm::ShouldExit, Context, JsResult};
 
@@ -2009,6 +2016,13 @@
         ///
         /// Stack: lhs, rhs **=&gt;** (lhs `in` rhs)
         </span>In,
+
+        <span class="doccomment">/// Binary `in` operator for private names.
+        ///
+        /// Operands: private_name_index: `u32`
+        ///
+        /// Stack: rhs **=&gt;** (private_name `in` rhs)
+        </span>InPrivate,
 
         <span class="doccomment">/// Binary `==` operator.
         ///
