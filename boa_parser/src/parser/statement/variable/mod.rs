@@ -11,7 +11,7 @@ use crate::{
 };
 use boa_ast::{
     declaration::{VarDeclaration, Variable},
-    Keyword, Punctuator, Statement,
+    Keyword, Punctuator,
 };
 use boa_interner::Interner;
 use boa_profiler::Profiler;
@@ -51,7 +51,7 @@ impl<R> TokenParser<R> for VariableStatement
 where
     R: Read,
 {
-    type Output = Statement;
+    type Output = VarDeclaration;
 
     fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult<Self::Output> {
         let _timer = Profiler::global().start_event("VariableStatement", "Parsing");
@@ -62,7 +62,7 @@ where
 
         cursor.expect_semicolon("variable statement", interner)?;
 
-        Ok(decl_list.into())
+        Ok(decl_list)
     }
 }
 

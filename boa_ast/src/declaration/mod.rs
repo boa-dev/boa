@@ -131,3 +131,19 @@ impl From<Sym> for ModuleSpecifier {
         Self::new(module)
     }
 }
+
+impl VisitWith for ModuleSpecifier {
+    fn visit_with<'a, V>(&'a self, visitor: &mut V) -> ControlFlow<V::BreakTy>
+    where
+        V: Visitor<'a>,
+    {
+        visitor.visit_sym(&self.module)
+    }
+
+    fn visit_with_mut<'a, V>(&'a mut self, visitor: &mut V) -> ControlFlow<V::BreakTy>
+    where
+        V: VisitorMut<'a>,
+    {
+        visitor.visit_sym_mut(&mut self.module)
+    }
+}

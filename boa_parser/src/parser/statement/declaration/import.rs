@@ -60,7 +60,7 @@ where
 
                 return Ok(AstImportDeclaration::new(
                     None,
-                    ImportKind::DefaultOrNull,
+                    ImportKind::DefaultOrUnnamed,
                     ModuleSpecifier::new(module_identifier),
                 ));
             }
@@ -233,7 +233,7 @@ impl ImportClause {
             }
             Self::ImportList(default, names) => {
                 if names.is_empty() {
-                    AstImportDeclaration::new(default, ImportKind::DefaultOrNull, specifier)
+                    AstImportDeclaration::new(default, ImportKind::DefaultOrUnnamed, specifier)
                 } else {
                     AstImportDeclaration::new(default, ImportKind::Named { names }, specifier)
                 }

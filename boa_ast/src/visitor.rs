@@ -7,7 +7,9 @@ use std::ops::ControlFlow;
 
 use crate::{
     declaration::{
-        Binding, Declaration, LexicalDeclaration, VarDeclaration, Variable, VariableList,
+        Binding, Declaration, ExportDeclaration, ExportSpecifier, ImportDeclaration, ImportKind,
+        ImportSpecifier, LexicalDeclaration, ModuleSpecifier, ReExportKind, VarDeclaration,
+        Variable, VariableList,
     },
     expression::{
         access::{
@@ -194,6 +196,13 @@ node_ref! {
     ArrayPatternElement,
     PropertyAccessField,
     OptionalOperationKind,
+    ModuleSpecifier,
+    ImportKind,
+    ImportDeclaration,
+    ImportSpecifier,
+    ReExportKind,
+    ExportDeclaration,
+    ExportSpecifier
 }
 
 /// Represents an AST visitor.
@@ -282,6 +291,13 @@ pub trait Visitor<'ast>: Sized {
     define_visit!(visit_array_pattern_element, ArrayPatternElement);
     define_visit!(visit_property_access_field, PropertyAccessField);
     define_visit!(visit_optional_operation_kind, OptionalOperationKind);
+    define_visit!(visit_module_specifier, ModuleSpecifier);
+    define_visit!(visit_import_kind, ImportKind);
+    define_visit!(visit_import_declaration, ImportDeclaration);
+    define_visit!(visit_import_specifier, ImportSpecifier);
+    define_visit!(visit_re_export_kind, ReExportKind);
+    define_visit!(visit_export_declaration, ExportDeclaration);
+    define_visit!(visit_export_specifier, ExportSpecifier);
 
     /// Generic entry point for a node that is visitable by a `Visitor`.
     ///
@@ -367,6 +383,13 @@ pub trait Visitor<'ast>: Sized {
             NodeRef::ArrayPatternElement(n) => self.visit_array_pattern_element(n),
             NodeRef::PropertyAccessField(n) => self.visit_property_access_field(n),
             NodeRef::OptionalOperationKind(n) => self.visit_optional_operation_kind(n),
+            NodeRef::ModuleSpecifier(n) => self.visit_module_specifier(n),
+            NodeRef::ImportKind(n) => self.visit_import_kind(n),
+            NodeRef::ImportDeclaration(n) => self.visit_import_declaration(n),
+            NodeRef::ImportSpecifier(n) => self.visit_import_specifier(n),
+            NodeRef::ReExportKind(n) => self.visit_re_export_kind(n),
+            NodeRef::ExportDeclaration(n) => self.visit_export_declaration(n),
+            NodeRef::ExportSpecifier(n) => self.visit_export_specifier(n),
         }
     }
 }
@@ -457,6 +480,13 @@ pub trait VisitorMut<'ast>: Sized {
     define_visit_mut!(visit_array_pattern_element_mut, ArrayPatternElement);
     define_visit_mut!(visit_property_access_field_mut, PropertyAccessField);
     define_visit_mut!(visit_optional_operation_kind_mut, OptionalOperationKind);
+    define_visit_mut!(visit_module_specifier_mut, ModuleSpecifier);
+    define_visit_mut!(visit_import_kind_mut, ImportKind);
+    define_visit_mut!(visit_import_declaration_mut, ImportDeclaration);
+    define_visit_mut!(visit_import_specifier_mut, ImportSpecifier);
+    define_visit_mut!(visit_re_export_kind_mut, ReExportKind);
+    define_visit_mut!(visit_export_declaration_mut, ExportDeclaration);
+    define_visit_mut!(visit_export_specifier_mut, ExportSpecifier);
 
     /// Generic entry point for a node that is visitable by a `VisitorMut`.
     ///
@@ -542,6 +572,13 @@ pub trait VisitorMut<'ast>: Sized {
             NodeRefMut::ArrayPatternElement(n) => self.visit_array_pattern_element_mut(n),
             NodeRefMut::PropertyAccessField(n) => self.visit_property_access_field_mut(n),
             NodeRefMut::OptionalOperationKind(n) => self.visit_optional_operation_kind_mut(n),
+            NodeRefMut::ModuleSpecifier(n) => self.visit_module_specifier_mut(n),
+            NodeRefMut::ImportKind(n) => self.visit_import_kind_mut(n),
+            NodeRefMut::ImportDeclaration(n) => self.visit_import_declaration_mut(n),
+            NodeRefMut::ImportSpecifier(n) => self.visit_import_specifier_mut(n),
+            NodeRefMut::ReExportKind(n) => self.visit_re_export_kind_mut(n),
+            NodeRefMut::ExportDeclaration(n) => self.visit_export_declaration_mut(n),
+            NodeRefMut::ExportSpecifier(n) => self.visit_export_specifier_mut(n),
         }
     }
 }

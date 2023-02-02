@@ -18,7 +18,10 @@ use crate::{
         Error, OrAbrupt, ParseResult, TokenParser,
     },
 };
-use boa_ast::{declaration::ExportDeclaration as AstExportDeclaration, Keyword, Punctuator};
+use boa_ast::{
+    declaration::{ExportDeclaration as AstExportDeclaration, ReExportKind},
+    Keyword, Punctuator,
+};
 use boa_interner::{Interner, Sym};
 use boa_profiler::Profiler;
 use std::io::Read;
@@ -74,19 +77,21 @@ where
                             }
                         };
 
-                        let from = FromClause::new("export declaration").parse(cursor, interner)?;
+                        let specifier =
+                            FromClause::new("export declaration").parse(cursor, interner)?;
 
-                        boa_ast::declaration::ExportDeclaration::ReExportAll {
-                            alias: Some(alias),
-                            specifier: from,
+                        AstExportDeclaration::ReExport {
+                            kind: ReExportKind::Namespaced { name: Some(alias) },
+                            specifier,
                         }
                     }
                     TokenKind::IdentifierName((Sym::FROM, _)) => {
-                        let from = FromClause::new("export declaration").parse(cursor, interner)?;
+                        let specifier =
+                            FromClause::new("export declaration").parse(cursor, interner)?;
 
-                        boa_ast::declaration::ExportDeclaration::ReExportAll {
-                            alias: None,
-                            specifier: from,
+                        AstExportDeclaration::ReExport {
+                            kind: ReExportKind::Namespaced { name: None },
+                            specifier,
                         }
                     }
                     _ => {
@@ -100,7 +105,7 @@ where
                 }
             }
             TokenKind::Punctuator(Punctuator::OpenBlock) => {
-                let list = NamedExports.parse(cursor, interner)?;
+                let names = NamedExports.parse(cursor, interner)?;
 
                 let next = cursor.peek(0, interner).or_abrupt()?;
 
@@ -108,21 +113,19 @@ where
                     next.kind(),
                     TokenKind::IdentifierName((Sym::FROM, ContainsEscapeSequence(false)))
                 ) {
-                    let from = FromClause::new("export declaration").parse(cursor, interner)?;
-                    boa_ast::declaration::ExportDeclaration::List {
-                        list,
-                        specifier: Some(from),
+                    let specifier =
+                        FromClause::new("export declaration").parse(cursor, interner)?;
+                    AstExportDeclaration::ReExport {
+                        kind: ReExportKind::Named { names },
+                        specifier,
                     }
                 } else {
-                    boa_ast::declaration::ExportDeclaration::List {
-                        list,
-                        specifier: None,
-                    }
+                    AstExportDeclaration::List(names)
                 }
             }
             TokenKind::Keyword((Keyword::Var, false)) => VariableStatement::new(false, true)
                 .parse(cursor, interner)
-                .map(boa_ast::declaration::ExportDeclaration::VarStatement)?,
+                .map(AstExportDeclaration::VarStatement)?,
             TokenKind::Keyword((Keyword::Default, _)) => {
                 cursor.advance(interner);
 
