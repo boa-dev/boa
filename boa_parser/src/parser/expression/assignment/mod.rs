@@ -228,6 +228,7 @@ where
                 &bound_names(&parameters),
                 &top_level_lexically_declared_names(&body),
                 position,
+                interner,
             )?;
 
             return Ok(boa_ast::function::ArrowFunction::new(self.name, parameters, body).into());

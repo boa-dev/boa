@@ -436,6 +436,7 @@ where
                     &bound_names(&parameters),
                     &top_level_lexically_declared_names(&body),
                     params_start_position,
+                    interner,
                 )?;
 
                 let name = property_name.literal().map(|name| {
@@ -511,6 +512,7 @@ where
                     &bound_names(&params),
                     &top_level_lexically_declared_names(&body),
                     params_start_position,
+                    interner,
                 )?;
 
                 let method = MethodDefinition::Ordinary(Function::new(
@@ -793,6 +795,7 @@ where
             &bound_names(&params),
             &top_level_lexically_declared_names(&body),
             params_start_position,
+            interner,
         )?;
 
         let method = MethodDefinition::Generator(Generator::new(
@@ -908,6 +911,7 @@ where
             &bound_names(&params),
             &top_level_lexically_declared_names(&body),
             params_start_position,
+            interner,
         )?;
 
         let method = MethodDefinition::AsyncGenerator(AsyncGenerator::new(
@@ -1000,6 +1004,7 @@ where
             &bound_names(&params),
             &top_level_lexically_declared_names(&body),
             params_start_position,
+            interner,
         )?;
 
         let method = MethodDefinition::Async(AsyncFunction::new(

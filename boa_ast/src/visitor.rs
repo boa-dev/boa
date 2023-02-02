@@ -38,7 +38,7 @@ use crate::{
         Block, Case, Catch, Finally, If, Labelled, LabelledItem, Return, Statement, Switch, Throw,
         Try,
     },
-    StatementList, StatementListItem,
+    ModuleItem, ModuleItemList, StatementList, StatementListItem,
 };
 use boa_interner::Sym;
 
@@ -196,6 +196,8 @@ node_ref! {
     ArrayPatternElement,
     PropertyAccessField,
     OptionalOperationKind,
+    ModuleItemList,
+    ModuleItem,
     ModuleSpecifier,
     ImportKind,
     ImportDeclaration,
@@ -291,6 +293,8 @@ pub trait Visitor<'ast>: Sized {
     define_visit!(visit_array_pattern_element, ArrayPatternElement);
     define_visit!(visit_property_access_field, PropertyAccessField);
     define_visit!(visit_optional_operation_kind, OptionalOperationKind);
+    define_visit!(visit_module_item_list, ModuleItemList);
+    define_visit!(visit_module_item, ModuleItem);
     define_visit!(visit_module_specifier, ModuleSpecifier);
     define_visit!(visit_import_kind, ImportKind);
     define_visit!(visit_import_declaration, ImportDeclaration);
@@ -383,6 +387,8 @@ pub trait Visitor<'ast>: Sized {
             NodeRef::ArrayPatternElement(n) => self.visit_array_pattern_element(n),
             NodeRef::PropertyAccessField(n) => self.visit_property_access_field(n),
             NodeRef::OptionalOperationKind(n) => self.visit_optional_operation_kind(n),
+            NodeRef::ModuleItemList(n) => self.visit_module_item_list(n),
+            NodeRef::ModuleItem(n) => self.visit_module_item(n),
             NodeRef::ModuleSpecifier(n) => self.visit_module_specifier(n),
             NodeRef::ImportKind(n) => self.visit_import_kind(n),
             NodeRef::ImportDeclaration(n) => self.visit_import_declaration(n),
@@ -480,6 +486,8 @@ pub trait VisitorMut<'ast>: Sized {
     define_visit_mut!(visit_array_pattern_element_mut, ArrayPatternElement);
     define_visit_mut!(visit_property_access_field_mut, PropertyAccessField);
     define_visit_mut!(visit_optional_operation_kind_mut, OptionalOperationKind);
+    define_visit_mut!(visit_module_item_list_mut, ModuleItemList);
+    define_visit_mut!(visit_module_item_mut, ModuleItem);
     define_visit_mut!(visit_module_specifier_mut, ModuleSpecifier);
     define_visit_mut!(visit_import_kind_mut, ImportKind);
     define_visit_mut!(visit_import_declaration_mut, ImportDeclaration);
@@ -572,6 +580,8 @@ pub trait VisitorMut<'ast>: Sized {
             NodeRefMut::ArrayPatternElement(n) => self.visit_array_pattern_element_mut(n),
             NodeRefMut::PropertyAccessField(n) => self.visit_property_access_field_mut(n),
             NodeRefMut::OptionalOperationKind(n) => self.visit_optional_operation_kind_mut(n),
+            NodeRefMut::ModuleItemList(n) => self.visit_module_item_list_mut(n),
+            NodeRefMut::ModuleItem(n) => self.visit_module_item_mut(n),
             NodeRefMut::ModuleSpecifier(n) => self.visit_module_specifier_mut(n),
             NodeRefMut::ImportKind(n) => self.visit_import_kind_mut(n),
             NodeRefMut::ImportDeclaration(n) => self.visit_import_declaration_mut(n),

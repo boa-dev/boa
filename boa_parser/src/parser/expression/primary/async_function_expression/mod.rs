@@ -142,6 +142,7 @@ where
             &bound_names(&params),
             &top_level_lexically_declared_names(&body),
             params_start_position,
+            interner,
         )?;
 
         let function = AsyncFunction::new(name.or(self.name), params, body, name.is_some());

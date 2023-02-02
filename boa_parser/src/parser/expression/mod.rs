@@ -773,14 +773,14 @@ expression!(
 );
 
 /// Returns an error if `arguments` or `eval` are used as identifier in strict mode.
-const fn check_strict_arguments_or_eval(ident: Identifier, position: Position) -> ParseResult<()> {
+fn check_strict_arguments_or_eval(ident: Identifier, position: Position) -> ParseResult<()> {
     match ident.sym() {
         Sym::ARGUMENTS => Err(Error::general(
-            "unexpected identifier 'arguments' in strict mode",
+            "unexpected identifier `arguments` in strict mode",
             position,
         )),
         Sym::EVAL => Err(Error::general(
-            "unexpected identifier 'eval' in strict mode",
+            "unexpected identifier `eval` in strict mode",
             position,
         )),
         _ => Ok(()),

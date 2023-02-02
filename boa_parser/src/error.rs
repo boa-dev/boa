@@ -66,7 +66,7 @@ pub enum Error {
     /// Catch all General Error
     General {
         /// The error message.
-        message: &'static str,
+        message: Box<str>,
 
         /// Position of the source code where the error occurred.
         position: Position,
@@ -115,22 +115,29 @@ impl Error {
     }
 
     /// Creates a "general" parsing error.
-    pub(crate) const fn general(message: &'static str, position: Position) -> Self {
-        Self::General { message, position }
+    pub(crate) fn general<S>(message: S, position: Position) -> Self
+    where
+        S: Into<Box<str>>,
+    {
+        Self::General {
+            message: message.into(),
+            position,
+        }
     }
 
     /// Creates a "general" parsing error with the specific error message for a wrong function declaration in non-strict mode.
-    pub(crate) const fn wrong_function_declaration_non_strict(position: Position) -> Self {
+    pub(crate) fn wrong_function_declaration_non_strict(position: Position) -> Self {
         Self::General {
-            message: "In non-strict mode code, functions can only be declared at top level, inside a block, or as the body of an if statement.",
+            message: "In non-strict mode code, functions can only be declared at top level, inside a block, or as the body of an if statement.".into(),
             position
         }
     }
 
     /// Creates a "general" parsing error with the specific error message for a wrong function declaration with label.
-    pub(crate) const fn wrong_labelled_function_declaration(position: Position) -> Self {
+    pub(crate) fn wrong_labelled_function_declaration(position: Position) -> Self {
         Self::General {
-            message: "Labelled functions can only be declared at top level or inside a block",
+            message: "Labelled functions can only be declared at top level or inside a block"
+                .into(),
             position,
         }
     }

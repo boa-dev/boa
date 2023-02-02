@@ -145,6 +145,7 @@ where
             &bound_names(&params),
             &top_level_lexically_declared_names(&body),
             params_start_position,
+            interner,
         )?;
 
         // It is a Syntax Error if FormalParameters Contains YieldExpression is true.

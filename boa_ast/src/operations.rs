@@ -9,7 +9,7 @@ use boa_interner::Sym;
 use rustc_hash::{FxHashMap, FxHashSet};
 
 use crate::{
-    declaration::VarDeclaration,
+    declaration::{ExportDeclaration, ImportDeclaration, VarDeclaration},
     expression::{access::SuperPropertyAccess, Await, Identifier, SuperCall, Yield},
     function::{
         ArrowFunction, AsyncArrowFunction, AsyncFunction, AsyncGenerator, Class, ClassElement,
@@ -299,37 +299,43 @@ pub fn has_direct_super(method: &MethodDefinition) -> bool {
 }
 
 /// A container that [`BoundNamesVisitor`] can use to push the found identifiers.
-trait IdentList {
-    fn add(&mut self, value: Identifier, function: bool);
+pub(crate) trait IdentList {
+    fn add(&mut self, value: Sym, function: bool);
 }
 
-impl IdentList for Vec<Identifier> {
-    fn add(&mut self, value: Identifier, _function: bool) {
+impl IdentList for Vec<Sym> {
+    fn add(&mut self, value: Sym, _function: bool) {
         self.push(value);
     }
 }
 
+impl IdentList for Vec<Identifier> {
+    fn add(&mut self, value: Sym, _function: bool) {
+        self.push(Identifier::new(value));
+    }
+}
+
 impl IdentList for Vec<(Identifier, bool)> {
-    fn add(&mut self, value: Identifier, function: bool) {
-        self.push((value, function));
+    fn add(&mut self, value: Sym, function: bool) {
+        self.push((Identifier::new(value), function));
     }
 }
 
 impl IdentList for FxHashSet<Identifier> {
-    fn add(&mut self, value: Identifier, _function: bool) {
-        self.insert(value);
+    fn add(&mut self, value: Sym, _function: bool) {
+        self.insert(Identifier::new(value));
     }
 }
 
 /// The [`Visitor`] used to obtain the bound names of a node.
 #[derive(Debug)]
-struct BoundNamesVisitor<'a, T: IdentList>(&'a mut T);
+pub(crate) struct BoundNamesVisitor<'a, T: IdentList>(pub(crate) &'a mut T);
 
 impl<'ast, T: IdentList> Visitor<'ast> for BoundNamesVisitor<'_, T> {
     type BreakTy = Infallible;
 
     fn visit_identifier(&mut self, node: &'ast Identifier) -> ControlFlow<Self::BreakTy> {
-        self.0.add(*node, false);
+        self.0.add(node.sym(), false);
         ControlFlow::Continue(())
     }
 
@@ -337,39 +343,80 @@ impl<'ast, T: IdentList> Visitor<'ast> for BoundNamesVisitor<'_, T> {
         ControlFlow::Continue(())
     }
 
-    // TODO: add "*default" for module default functions without name
     fn visit_function(&mut self, node: &'ast Function) -> ControlFlow<Self::BreakTy> {
         if let Some(ident) = node.name() {
-            self.0.add(ident, true);
+            self.0.add(ident.sym(), true);
         }
         ControlFlow::Continue(())
     }
 
     fn visit_generator(&mut self, node: &'ast Generator) -> ControlFlow<Self::BreakTy> {
         if let Some(ident) = node.name() {
-            self.0.add(ident, false);
+            self.0.add(ident.sym(), false);
         }
         ControlFlow::Continue(())
     }
 
     fn visit_async_function(&mut self, node: &'ast AsyncFunction) -> ControlFlow<Self::BreakTy> {
         if let Some(ident) = node.name() {
-            self.0.add(ident, false);
+            self.0.add(ident.sym(), false);
         }
         ControlFlow::Continue(())
     }
 
     fn visit_async_generator(&mut self, node: &'ast AsyncGenerator) -> ControlFlow<Self::BreakTy> {
         if let Some(ident) = node.name() {
-            self.0.add(ident, false);
+            self.0.add(ident.sym(), false);
         }
         ControlFlow::Continue(())
     }
 
     fn visit_class(&mut self, node: &'ast Class) -> ControlFlow<Self::BreakTy> {
         if let Some(ident) = node.name() {
-            self.0.add(ident, false);
+            self.0.add(ident.sym(), false);
         }
+        ControlFlow::Continue(())
+    }
+
+    fn visit_export_declaration(
+        &mut self,
+        node: &'ast ExportDeclaration,
+    ) -> ControlFlow<Self::BreakTy> {
+        match node {
+            ExportDeclaration::VarStatement(var) => try_break!(self.visit_var_declaration(var)),
+            ExportDeclaration::Declaration(decl) => try_break!(self.visit_declaration(decl)),
+            ExportDeclaration::DefaultFunction(f) => {
+                self.0
+                    .add(f.name().map_or(Sym::DEFAULT_EXPORT, Identifier::sym), true);
+            }
+            ExportDeclaration::DefaultGenerator(g) => {
+                self.0
+                    .add(g.name().map_or(Sym::DEFAULT_EXPORT, Identifier::sym), false);
+            }
+            ExportDeclaration::DefaultAsyncFunction(af) => {
+                self.0.add(
+                    af.name().map_or(Sym::DEFAULT_EXPORT, Identifier::sym),
+                    false,
+                );
+            }
+            ExportDeclaration::DefaultAsyncGenerator(ag) => {
+                self.0.add(
+                    ag.name().map_or(Sym::DEFAULT_EXPORT, Identifier::sym),
+                    false,
+                );
+            }
+            ExportDeclaration::DefaultClassDeclaration(cl) => {
+                self.0.add(
+                    cl.name().map_or(Sym::DEFAULT_EXPORT, Identifier::sym),
+                    false,
+                );
+            }
+            ExportDeclaration::DefaultAssignmentExpression(_) => {
+                self.0.add(Sym::DEFAULT_EXPORT, false);
+            }
+            ExportDeclaration::ReExport { .. } | ExportDeclaration::List(_) => {}
+        }
+
         ControlFlow::Continue(())
     }
 }
@@ -447,6 +494,21 @@ impl<'ast, T: IdentList> Visitor<'ast> for LexicallyDeclaredNamesVisitor<'_, T> 
             top_level_lexicals(stmts, self.0);
         }
         ControlFlow::Continue(())
+    }
+    fn visit_import_declaration(
+        &mut self,
+        node: &'ast ImportDeclaration,
+    ) -> ControlFlow<Self::BreakTy> {
+        BoundNamesVisitor(self.0).visit_import_declaration(node)
+    }
+    fn visit_export_declaration(
+        &mut self,
+        node: &'ast ExportDeclaration,
+    ) -> ControlFlow<Self::BreakTy> {
+        if matches!(node, ExportDeclaration::VarStatement(_)) {
+            return ControlFlow::Continue(());
+        }
+        BoundNamesVisitor(self.0).visit_export_declaration(node)
     }
 
     // TODO:  ScriptBody : StatementList
@@ -550,6 +612,25 @@ impl<'ast> Visitor<'ast> for VarDeclaredNamesVisitor<'_> {
             top_level_vars(stmts, self.0);
         }
         node.visit_with(self)
+    }
+
+    fn visit_import_declaration(
+        &mut self,
+        _: &'ast ImportDeclaration,
+    ) -> ControlFlow<Self::BreakTy> {
+        ControlFlow::Continue(())
+    }
+
+    fn visit_export_declaration(
+        &mut self,
+        node: &'ast ExportDeclaration,
+    ) -> ControlFlow<Self::BreakTy> {
+        match node {
+            ExportDeclaration::VarStatement(var) => {
+                BoundNamesVisitor(self.0).visit_var_declaration(var)
+            }
+            _ => ControlFlow::Continue(()),
+        }
     }
 
     // TODO:  ScriptBody : StatementList

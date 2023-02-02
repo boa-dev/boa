@@ -59,20 +59,76 @@
 
 use proc_macro::TokenStream;
 use proc_macro2::Ident;
-use quote::quote;
+use quote::{quote, ToTokens};
 use syn::{
     parse::{Parse, ParseStream},
     parse_macro_input,
     punctuated::Punctuated,
-    LitStr, Token,
+    Expr, ExprLit, Lit, LitStr, Token,
 };
 use synstructure::{decl_derive, AddBounds, Structure};
 
-struct Syms(Vec<LitStr>);
+struct Static {
+    literal: LitStr,
+    ident: Ident,
+}
+
+impl Parse for Static {
+    fn parse(input: ParseStream<'_>) -> syn::Result<Self> {
+        let expr = Expr::parse(input)?;
+        match expr {
+            Expr::Tuple(expr) => {
+                let mut elems = expr.elems.iter().cloned();
+                let literal = elems
+                    .next()
+                    .ok_or_else(|| syn::Error::new_spanned(&expr, "invalid empty tuple"))?;
+                let ident = elems.next();
+                if elems.next().is_some() {
+                    return Err(syn::Error::new_spanned(
+                        &expr,
+                        "invalid tuple with more than two elements",
+                    ));
+                }
+                let Expr::Lit(ExprLit {
+                    lit: Lit::Str(literal), ..
+                }) = literal else {
+                    return Err(syn::Error::new_spanned(
+                        literal,
+                        "expected an UTF-8 string literal",
+                    ));
+                };
+
+                let ident = if let Some(ident) = ident {
+                    syn::parse2::<Ident>(ident.into_token_stream())?
+                } else {
+                    Ident::new(&literal.value().to_uppercase(), literal.span())
+                };
+
+                Ok(Self { literal, ident })
+            }
+            Expr::Lit(expr) => match expr.lit {
+                Lit::Str(str) => Ok(Self {
+                    ident: Ident::new(&str.value().to_uppercase(), str.span()),
+                    literal: str,
+                }),
+                _ => Err(syn::Error::new_spanned(
+                    expr,
+                    "expected an UTF-8 string literal",
+                )),
+            },
+            _ => Err(syn::Error::new_spanned(
+                expr,
+                "expected a string literal or a tuple expression",
+            )),
+        }
+    }
+}
+
+struct Syms(Vec<Static>);
 
 impl Parse for Syms {
     fn parse(input: ParseStream<'_>) -> syn::Result<Self> {
-        let parsed = Punctuated::<LitStr, Token![,]>::parse_terminated(input)?;
+        let parsed = Punctuated::<Static, Token![,]>::parse_terminated(input)?;
         let literals = parsed.into_iter().collect();
         Ok(Self(literals))
     }
@@ -84,28 +140,23 @@ pub fn static_syms(input: TokenStream) -> TokenStream {
     let literals = parse_macro_input!(input as Syms).0;
 
     let consts = literals.iter().enumerate().map(|(mut idx, lit)| {
-        let ident = lit.value();
-        let (doc, ident) = match &*ident {
-            "" => (
-                String::from("Symbol for the empty string."),
-                String::from("EMPTY_STRING"),
-            ),
-            "<main>" => (
-                String::from("Symbol for the `<main>` string."),
-                String::from("MAIN"),
-            ),
-            ident => (
-                format!("Symbol for the `{ident}` string.",),
-                ident.to_uppercase(),
-            ),
-        };
-        let ident = Ident::new(&ident, lit.span());
+        let doc = format!(
+            "Symbol for the \"{}\" string.",
+            lit.literal
+                .value()
+                .replace('<', r"\<")
+                .replace('>', r"\>")
+                .replace('*', r"\*")
+        );
+        let ident = &lit.ident;
         idx += 1;
         quote! {
             #[doc = #doc]
             pub const #ident: Self = unsafe { Self::new_unchecked(#idx) };
         }
     });
+
+    let literals = literals.iter().map(|lit| &lit.literal).collect::<Vec<_>>();
 
     let caches = quote! {
         type Set<T> = ::indexmap::IndexSet<T, ::core::hash::BuildHasherDefault<::rustc_hash::FxHasher>>;

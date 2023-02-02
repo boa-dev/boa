@@ -225,6 +225,7 @@ fn parse_callable_declaration<R: Read, C: CallableDeclaration>(
         &bound_names(&params),
         &top_level_lexically_declared_names(&body),
         params_start_position,
+        interner,
     )?;
 
     // It is a Syntax Error if FormalParameters Contains SuperProperty is true.
