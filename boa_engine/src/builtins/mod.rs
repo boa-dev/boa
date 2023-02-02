@@ -86,7 +86,6 @@ use crate::{
         uri::{DecodeUri, DecodeUriComponent, EncodeUri, EncodeUriComponent},
         weak::WeakRef,
     },
-    console::Console,
     context::intrinsics::{Intrinsics, StandardConstructor, StandardConstructors},
     js_string,
     native_function::{NativeFunction, NativeFunctionPointer},
@@ -96,6 +95,9 @@ use crate::{
     property::{Attribute, PropertyDescriptor, PropertyKey},
     Context, JsResult, JsString, JsValue,
 };
+
+#[cfg(feature = "console")]
+use crate::console::Console;
 
 /// A [Well-Known Intrinsic Object].
 ///
