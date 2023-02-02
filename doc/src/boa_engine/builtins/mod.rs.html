@@ -768,6 +768,8 @@
 <a href="#767" id="767">767</a>
 <a href="#768" id="768">768</a>
 <a href="#769" id="769">769</a>
+<a href="#770" id="770">770</a>
+<a href="#771" id="771">771</a>
 </pre><pre class="rust"><code><span class="doccomment">//! Boa&#39;s ECMAScript built-in object implementations, e.g. Object, String, Math, Array, etc.
 //!
 //! This module also contains a JavaScript Console implementation.
@@ -856,7 +858,6 @@
         uri::{DecodeUri, DecodeUriComponent, EncodeUri, EncodeUriComponent},
         weak::WeakRef,
     },
-    console::Console,
     context::intrinsics::{Intrinsics, StandardConstructor, StandardConstructors},
     js_string,
     native_function::{NativeFunction, NativeFunctionPointer},
@@ -866,6 +867,9 @@
     property::{Attribute, PropertyDescriptor, PropertyKey},
     Context, JsResult, JsString, JsValue,
 };
+
+<span class="attr">#[cfg(feature = <span class="string">&quot;console&quot;</span>)]
+</span><span class="kw">use </span><span class="kw">crate</span>::console::Console;
 
 <span class="doccomment">/// A [Well-Known Intrinsic Object].
 ///
