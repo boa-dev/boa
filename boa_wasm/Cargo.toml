@@ -13,7 +13,7 @@ rust-version.workspace = true
 
 [dependencies]
 boa_engine = { workspace = true, features = ["console"] }
-wasm-bindgen = "0.2.83"
+wasm-bindgen = "0.2.84"
 getrandom = { version = "0.2.8", features = ["js"] }
 
 [lib]
