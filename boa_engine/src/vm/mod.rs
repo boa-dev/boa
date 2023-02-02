@@ -10,7 +10,7 @@ use crate::{
     Context, JsResult, JsValue,
 };
 #[cfg(feature = "fuzz")]
-use crate::{JsError, JsNativeError};
+use crate::{JsError, JsNativeError, JsNativeErrorKind};
 use boa_interner::ToInternedString;
 use boa_profiler::Profiler;
 use std::{convert::TryInto, mem::size_of, time::Instant};
@@ -281,6 +281,14 @@ impl Context<'_> {
                     return Ok((result, ReturnType::Yield));
                 }
                 Err(e) => {
+                    #[cfg(feature = "fuzz")]
+                    if let Some(native_error) = e.as_native() {
+                        // If we hit the execution step limit, bubble up the error to the
+                        // (Rust) caller instead of trying to handle as an exception.
+                        if matches!(native_error.kind, JsNativeErrorKind::NoInstructionsRemain) {
+                            return Err(e);
+                        }
+                    }
                     if let Some(address) = self.vm.frame().catch.last() {
                         let address = address.next;
                         let try_stack_entry = self

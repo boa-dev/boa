@@ -10,9 +10,9 @@ cargo-fuzz = true
 [dependencies]
 libfuzzer-sys = "0.4"
 
-boa_ast = { path = "../boa_ast", features = ["fuzz"] }
+boa_ast = { path = "../boa_ast", features = ["arbitrary"] }
 boa_engine = { path = "../boa_engine", features = ["fuzz"] }
-boa_interner = { path = "../boa_interner", features = ["fuzz"] }
+boa_interner = { path = "../boa_interner", features = ["arbitrary"] }
 boa_parser = { path = "../boa_parser" }
 
 # Prevent this from interfering with workspaces
