@@ -19,30 +19,23 @@ impl Operation for Break {
 
         // 1. Iterate through Env stack looking for exit address.
         let mut envs_to_pop = 0;
-        for _ in 0..context.vm.frame().env_stack.len() {
-            let env_entry = context
-                .vm
-                .frame_mut()
-                .env_stack
-                .last()
-                .expect("EnvStackEntry must exist");
-
-            if (jump_address <= env_entry.exit_address())
+        while let Some(env_entry) = context.vm.frame().env_stack.last() {
+            if (jump_address == env_entry.exit_address())
                 || (env_entry.is_finally_env() && jump_address == env_entry.start_address())
             {
                 break;
             }
 
-            if jump_address <= env_entry.exit_address() {
+            // Checks for the break if we have jumped from inside of a finally block
+            if jump_address == env_entry.exit_address() {
                 break;
             }
             envs_to_pop += env_entry.env_num();
             context.vm.frame_mut().env_stack.pop();
         }
 
-        for _ in 0..envs_to_pop {
-            context.realm.environments.pop();
-        }
+        let env_truncation_len = context.realm.environments.len().saturating_sub(envs_to_pop);
+        context.realm.environments.truncate(env_truncation_len);
 
         // 2. Register target address in AbruptCompletionRecord.
         let new_record = AbruptCompletionRecord::default()
@@ -77,14 +70,10 @@ impl Operation for Continue {
 
         // 1. Iterate through Env stack looking for exit address.
         let mut envs_to_pop = 0;
-        for _ in 0..context.vm.frame().env_stack.len() {
-            let env_entry = context
-                .vm
-                .frame_mut()
-                .env_stack
-                .last()
-                .expect("EnvStackEntry must exist");
-
+        while let Some(env_entry) = context.vm.frame_mut().env_stack.last() {
+            // We check two conditions here where continue actually jumps to a higher address.
+            //   1. When we have reached a finally env that matches the jump address we are moving to.
+            //   2. When there is no finally, and we have reached the continue location.
             if (env_entry.is_finally_env() && jump_address == env_entry.start_address())
                 || (jump_address == target_address && jump_address == env_entry.start_address())
             {
@@ -92,6 +81,7 @@ impl Operation for Continue {
             }
 
             envs_to_pop += env_entry.env_num();
+            // The below check determines whether we have continued from inside of a finally block.
             if jump_address > target_address && jump_address == env_entry.exit_address() {
                 context.vm.frame_mut().env_stack.pop();
                 break;
@@ -99,9 +89,8 @@ impl Operation for Continue {
             context.vm.frame_mut().env_stack.pop();
         }
 
-        for _ in 0..envs_to_pop {
-            context.realm.environments.pop();
-        }
+        let env_truncation_len = context.realm.environments.len().saturating_sub(envs_to_pop);
+        context.realm.environments.truncate(env_truncation_len);
 
         // 2. Register target address in AbruptCompletionRecord.
         let new_record = AbruptCompletionRecord::default()

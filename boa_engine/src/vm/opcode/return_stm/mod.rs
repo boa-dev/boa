@@ -18,14 +18,7 @@ impl Operation for Return {
         let current_address = context.vm.frame().pc;
         let mut env_to_pop = 0;
         let mut finally_address = None;
-        while !context.vm.frame().env_stack.is_empty() {
-            let env_entry = context
-                .vm
-                .frame()
-                .env_stack
-                .last()
-                .expect("EnvStackEntry must exist");
-
+        while let Some(env_entry) = context.vm.frame().env_stack.last() {
             if env_entry.is_finally_env() {
                 if (env_entry.start_address() as usize) < current_address {
                     finally_address = Some(env_entry.exit_address() as usize);
@@ -43,9 +36,8 @@ impl Operation for Return {
             context.vm.frame_mut().env_stack.pop();
         }
 
-        for _ in 0..env_to_pop {
-            context.realm.environments.pop();
-        }
+        let env_truncation_len = context.realm.environments.len().saturating_sub(env_to_pop);
+        context.realm.environments.truncate(env_truncation_len);
 
         if let Some(finally) = finally_address {
             context.vm.frame_mut().pc = finally;

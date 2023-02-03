@@ -44,23 +44,16 @@ impl Operation for CatchEnd {
     fn execute(context: &mut Context<'_>) -> JsResult<ShouldExit> {
         context.vm.frame_mut().try_catch.pop();
         let mut envs_to_pop = 0_usize;
-        for _ in 1..context.vm.frame().env_stack.len() {
-            let env_entry = context
-                .vm
-                .frame_mut()
-                .env_stack
-                .pop()
-                .expect("this must exist");
-
+        while let Some(env_entry) = context.vm.frame_mut().env_stack.pop() {
             envs_to_pop += env_entry.env_num();
+
             if env_entry.is_catch_env() {
                 break;
             }
         }
 
-        for _ in 0..envs_to_pop {
-            context.realm.environments.pop();
-        }
+        let env_truncation_len = context.realm.environments.len().saturating_sub(envs_to_pop);
+        context.realm.environments.truncate(env_truncation_len);
 
         context.vm.frame_mut().finally_return = FinallyReturn::None;
         Ok(ShouldExit::False)
@@ -79,25 +72,25 @@ impl Operation for CatchEnd2 {
     const INSTRUCTION: &'static str = "INST - CatchEnd2";
 
     fn execute(context: &mut Context<'_>) -> JsResult<ShouldExit> {
-        let frame = context.vm.frame_mut();
-        if frame
+        if let Some(catch_entry) = context
+            .vm
+            .frame()
             .env_stack
             .last()
-            .expect("Env stack entry must exist")
-            .is_catch_env()
+            .filter(|entry| entry.is_catch_env())
         {
-            let catch_entry = frame
-                .env_stack
-                .pop()
-                .expect("must exist as catch env entry");
+            let env_truncation_len = context
+                .realm
+                .environments
+                .len()
+                .saturating_sub(catch_entry.env_num());
+            context.realm.environments.truncate(env_truncation_len);
 
-            for _ in 0..catch_entry.env_num() {
-                context.realm.environments.pop();
-            }
+            context.vm.frame_mut().env_stack.pop();
         }
 
-        if frame.finally_return == FinallyReturn::Err {
-            frame.finally_return = FinallyReturn::None;
+        if context.vm.frame_mut().finally_return == FinallyReturn::Err {
+            context.vm.frame_mut().finally_return = FinallyReturn::None;
         }
         Ok(ShouldExit::False)
     }

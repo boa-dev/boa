@@ -328,9 +328,9 @@ impl Context<'_> {
                             self.vm.frame_mut().env_stack.pop();
                         }
 
-                        for _ in 0..env_to_pop {
-                            self.realm.environments.pop();
-                        }
+                        let env_truncation_len =
+                            self.realm.environments.len().saturating_sub(env_to_pop);
+                        self.realm.environments.truncate(env_truncation_len);
 
                         if target_address == catch_target {
                             self.vm.frame_mut().pc = catch_target as usize;
@@ -378,13 +378,16 @@ impl Context<'_> {
                                 self.vm.frame_mut().env_stack.pop();
                             }
 
-                            for _ in 0..env_to_pop {
-                                self.realm.environments.pop();
-                            }
+                            let env_truncation_len =
+                                self.realm.environments.len().saturating_sub(env_to_pop);
+                            self.realm.environments.truncate(env_truncation_len);
 
-                            for _ in 0..self.vm.frame().pop_on_return {
-                                self.vm.pop();
-                            }
+                            let previous_stack_size = self
+                                .vm
+                                .stack
+                                .len()
+                                .saturating_sub(self.vm.frame().pop_on_return);
+                            self.vm.stack.truncate(previous_stack_size);
                             self.vm.frame_mut().pop_on_return = 0;
 
                             let record = AbruptCompletionRecord::default().with_throw_flag();

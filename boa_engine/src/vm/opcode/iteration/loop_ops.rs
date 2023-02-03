@@ -43,25 +43,21 @@ impl Operation for LoopContinue {
         let exit = context.vm.read::<u32>();
 
         // 1. Clean up the previous environment.
-        if context
+        if let Some(entry) = context
             .vm
-            .frame_mut()
+            .frame()
             .env_stack
             .last()
-            .expect("this must exist")
-            .exit_address()
-            == exit
+            .filter(|entry| entry.exit_address() == exit)
         {
-            let popped_entry = context
-                .vm
-                .frame_mut()
-                .env_stack
-                .pop()
-                .expect("EnvStackEntries must exist");
+            let env_truncation_len = context
+                .realm
+                .environments
+                .len()
+                .saturating_sub(entry.env_num());
+            context.realm.environments.truncate(env_truncation_len);
 
-            for _ in 0..popped_entry.env_num() {
-                context.realm.environments.pop();
-            }
+            context.vm.frame_mut().env_stack.pop();
         }
 
         // 2. Push a new clean EnvStack.
@@ -88,13 +84,7 @@ impl Operation for LoopEnd {
 
     fn execute(context: &mut Context<'_>) -> JsResult<ShouldExit> {
         let mut envs_to_pop = 0_usize;
-        for _ in 1..context.vm.frame().env_stack.len() {
-            let env_entry = context
-                .vm
-                .frame_mut()
-                .env_stack
-                .pop()
-                .expect("this must exist");
+        while let Some(env_entry) = context.vm.frame_mut().env_stack.pop() {
             envs_to_pop += env_entry.env_num();
 
             if env_entry.is_loop_env() {
@@ -102,9 +92,9 @@ impl Operation for LoopEnd {
             }
         }
 
-        for _ in 0..envs_to_pop {
-            context.realm.environments.pop();
-        }
+        let env_truncation_len = context.realm.environments.len().saturating_sub(envs_to_pop);
+        context.realm.environments.truncate(env_truncation_len);
+
         Ok(ShouldExit::False)
     }
 }

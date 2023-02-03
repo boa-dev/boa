@@ -60,17 +60,11 @@ impl Operation for FinallyEnd {
                     if next_finally < record.target() {
                         context.vm.frame_mut().pc = next_finally as usize;
 
-                        for _ in 0..context.vm.frame().env_stack.len() {
-                            let env_entry = context
-                                .vm
-                                .frame_mut()
-                                .env_stack
-                                .last()
-                                .expect("Environment stack entries must exist");
-
+                        while let Some(env_entry) = context.vm.frame().env_stack.last() {
                             if next_finally <= env_entry.exit_address() {
                                 break;
                             }
+
                             envs_to_pop += env_entry.env_num();
                             context.vm.frame_mut().env_stack.pop();
                         }
@@ -78,17 +72,11 @@ impl Operation for FinallyEnd {
                     {
                         // handle the continuation of an abrupt break.
                         context.vm.frame_mut().pc = record.target() as usize;
-                        for _ in 0..context.vm.frame().env_stack.len() {
-                            let env_entry = context
-                                .vm
-                                .frame_mut()
-                                .env_stack
-                                .last()
-                                .expect("Environment stack entries must exist");
-
+                        while let Some(env_entry) = context.vm.frame().env_stack.last() {
                             if record.target() == env_entry.exit_address() {
                                 break;
                             }
+
                             envs_to_pop += env_entry.env_num();
                             context.vm.frame_mut().env_stack.pop();
                         }
@@ -99,14 +87,7 @@ impl Operation for FinallyEnd {
                     {
                         // Handle the continuation of an abrupt continue
                         context.vm.frame_mut().pc = record.target() as usize;
-                        for _ in 0..context.vm.frame().env_stack.len() {
-                            let env_entry = context
-                                .vm
-                                .frame_mut()
-                                .env_stack
-                                .last()
-                                .expect("EnvStackEntry must exist");
-
+                        while let Some(env_entry) = context.vm.frame().env_stack.last() {
                             if env_entry.start_address() == record.target() {
                                 break;
                             }
@@ -117,9 +98,9 @@ impl Operation for FinallyEnd {
                         context.vm.frame_mut().abrupt_completion = None;
                     }
 
-                    for _ in 0..envs_to_pop {
-                        context.realm.environments.pop();
-                    }
+                    let env_truncation_len =
+                        context.realm.environments.len().saturating_sub(envs_to_pop);
+                    context.realm.environments.truncate(env_truncation_len);
                 } else {
                     context.vm.frame_mut().env_stack.pop();
                 }
@@ -133,17 +114,11 @@ impl Operation for FinallyEnd {
                     if next_finally < record.target() {
                         context.vm.frame_mut().pc = next_finally as usize;
 
-                        for _ in 0..context.vm.frame().env_stack.len() {
-                            let env_entry = context
-                                .vm
-                                .frame_mut()
-                                .env_stack
-                                .last()
-                                .expect("Environment stack entries must exist");
-
+                        while let Some(env_entry) = context.vm.frame().env_stack.last() {
                             if next_finally <= env_entry.exit_address() {
                                 break;
                             }
+
                             envs_to_pop += env_entry.env_num();
                             context.vm.frame_mut().env_stack.pop();
                         }
@@ -151,14 +126,7 @@ impl Operation for FinallyEnd {
                         && context.vm.frame().pc < record.target() as usize
                     {
                         context.vm.frame_mut().pc = record.target() as usize;
-                        for _ in 0..context.vm.frame().env_stack.len() {
-                            let env_entry = context
-                                .vm
-                                .frame_mut()
-                                .env_stack
-                                .pop()
-                                .expect("EnvStackEntry must exist");
-
+                        while let Some(env_entry) = context.vm.frame_mut().env_stack.pop() {
                             envs_to_pop += env_entry.env_num();
                             if env_entry.start_address() == record.target() {
                                 break;
@@ -173,15 +141,20 @@ impl Operation for FinallyEnd {
                             .pop()
                             .expect("Popping current finally stack.");
 
-                        for _ in 0..current_stack.env_num() {
-                            context.realm.environments.pop();
-                        }
+                        let env_truncation_len = context
+                            .realm
+                            .environments
+                            .len()
+                            .saturating_sub(current_stack.env_num());
+                        context.realm.environments.truncate(env_truncation_len);
+
                         return Err(JsError::from_opaque(context.vm.pop()));
                     }
 
-                    for _ in 0..envs_to_pop {
-                        context.realm.environments.pop();
-                    }
+                    let env_truncation_len =
+                        context.realm.environments.len().saturating_sub(envs_to_pop);
+                    context.realm.environments.truncate(env_truncation_len);
+
                     return Ok(ShouldExit::False);
                 }
                 let current_stack = context
@@ -191,9 +164,13 @@ impl Operation for FinallyEnd {
                     .pop()
                     .expect("Popping current finally stack.");
 
-                for _ in 0..current_stack.env_num() {
-                    context.realm.environments.pop();
-                }
+                let env_truncation_len = context
+                    .realm
+                    .environments
+                    .len()
+                    .saturating_sub(current_stack.env_num());
+                context.realm.environments.truncate(env_truncation_len);
+
                 Err(JsError::from_opaque(context.vm.pop()))
             }
         }

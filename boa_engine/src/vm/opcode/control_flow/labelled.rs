@@ -16,12 +16,12 @@ impl Operation for LabelledStart {
 
     fn execute(context: &mut Context<'_>) -> JsResult<ShouldExit> {
         let start = context.vm.frame().pc as u32 - 1;
-        let finally = context.vm.read::<u32>();
+        let end = context.vm.read::<u32>();
         context
             .vm
             .frame_mut()
             .env_stack
-            .push(EnvStackEntry::new(start, finally).with_labelled_flag());
+            .push(EnvStackEntry::new(start, end).with_labelled_flag());
         Ok(ShouldExit::False)
     }
 }
@@ -29,7 +29,7 @@ impl Operation for LabelledStart {
 /// `LabelledEnd` implements the Opcode Operation for `Opcode::LabelledEnd`
 ///
 /// Operation:
-///  - Clean up enviroments at the end of labelled block.
+///  - Clean up environments at the end of labelled block.
 #[derive(Debug, Clone, Copy)]
 pub(crate) struct LabelledEnd;
 
@@ -39,13 +39,7 @@ impl Operation for LabelledEnd {
 
     fn execute(context: &mut Context<'_>) -> JsResult<ShouldExit> {
         let mut envs_to_pop = 0_usize;
-        for _ in 1..context.vm.frame().env_stack.len() {
-            let env_entry = context
-                .vm
-                .frame_mut()
-                .env_stack
-                .pop()
-                .expect("this must exist");
+        while let Some(env_entry) = context.vm.frame_mut().env_stack.pop() {
             envs_to_pop += env_entry.env_num();
 
             if env_entry.is_labelled_env() {
@@ -53,9 +47,9 @@ impl Operation for LabelledEnd {
             }
         }
 
-        for _ in 0..envs_to_pop {
-            context.realm.environments.pop();
-        }
+        let env_truncation_len = context.realm.environments.len().saturating_sub(envs_to_pop);
+        context.realm.environments.truncate(env_truncation_len);
+
         Ok(ShouldExit::False)
     }
 }
