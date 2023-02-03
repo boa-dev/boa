@@ -446,6 +446,14 @@
 <a href="#445" id="445">445</a>
 <a href="#446" id="446">446</a>
 <a href="#447" id="447">447</a>
+<a href="#448" id="448">448</a>
+<a href="#449" id="449">449</a>
+<a href="#450" id="450">450</a>
+<a href="#451" id="451">451</a>
+<a href="#452" id="452">452</a>
+<a href="#453" id="453">453</a>
+<a href="#454" id="454">454</a>
+<a href="#455" id="455">455</a>
 </pre><pre class="rust"><code><span class="doccomment">//! Boa&#39;s ECMAScript Virtual Machine
 //!
 //! The Virtual Machine (VM) handles generating instructions, then executing them.
@@ -458,7 +466,7 @@
     Context, JsResult, JsValue,
 };
 <span class="attr">#[cfg(feature = <span class="string">&quot;fuzz&quot;</span>)]
-</span><span class="kw">use crate</span>::{JsError, JsNativeError};
+</span><span class="kw">use crate</span>::{JsError, JsNativeError, JsNativeErrorKind};
 <span class="kw">use </span>boa_interner::ToInternedString;
 <span class="kw">use </span>boa_profiler::Profiler;
 <span class="kw">use </span>std::{convert::TryInto, mem::size_of, time::Instant};
@@ -729,6 +737,14 @@
                     <span class="kw">return </span><span class="prelude-val">Ok</span>((result, ReturnType::Yield));
                 }
                 <span class="prelude-val">Err</span>(e) =&gt; {
+                    <span class="attr">#[cfg(feature = <span class="string">&quot;fuzz&quot;</span>)]
+                    </span><span class="kw">if let </span><span class="prelude-val">Some</span>(native_error) = e.as_native() {
+                        <span class="comment">// If we hit the execution step limit, bubble up the error to the
+                        // (Rust) caller instead of trying to handle as an exception.
+                        </span><span class="kw">if </span><span class="macro">matches!</span>(native_error.kind, JsNativeErrorKind::NoInstructionsRemain) {
+                            <span class="kw">return </span><span class="prelude-val">Err</span>(e);
+                        }
+                    }
                     <span class="kw">if let </span><span class="prelude-val">Some</span>(address) = <span class="self">self</span>.vm.frame().catch.last() {
                         <span class="kw">let </span>address = address.next;
                         <span class="kw">let </span>try_stack_entry = <span class="self">self
