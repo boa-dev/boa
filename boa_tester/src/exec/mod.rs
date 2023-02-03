@@ -244,6 +244,7 @@ impl Test {
                 error_type,
             } => {
                 let context = &mut Context::default();
+                context.strict(strict);
                 if let Err(e) = self.set_up_env(harness, context, AsyncResult::default()) {
                     return (false, e);
                 }

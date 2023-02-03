@@ -426,7 +426,7 @@ impl Context<'_> {
         self.vm.trace = trace;
     }
 
-    /// Executes all code in strict mode.
+    /// Changes the strictness mode of the context.
     pub fn strict(&mut self, strict: bool) {
         self.strict = strict;
     }
