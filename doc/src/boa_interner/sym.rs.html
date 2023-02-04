@@ -141,6 +141,9 @@
 <a href="#140" id="140">140</a>
 <a href="#141" id="141">141</a>
 <a href="#142" id="142">142</a>
+<a href="#143" id="143">143</a>
+<a href="#144" id="144">144</a>
+<a href="#145" id="145">145</a>
 </pre><pre class="rust"><code><span class="kw">use </span>boa_macros::static_syms;
 <span class="kw">use </span>core::num::NonZeroUsize;
 
@@ -265,7 +268,7 @@
     <span class="string">&quot;yield&quot;</span>,
     <span class="comment">// End strict reserved identifiers
 
-    </span><span class="string">&quot;&quot;</span>,
+    </span>(<span class="string">&quot;&quot;</span>, EMPTY_STRING),
     <span class="string">&quot;prototype&quot;</span>,
     <span class="string">&quot;constructor&quot;</span>,
     <span class="string">&quot;arguments&quot;</span>,
@@ -273,15 +276,18 @@
     <span class="string">&quot;RegExp&quot;</span>,
     <span class="string">&quot;get&quot;</span>,
     <span class="string">&quot;set&quot;</span>,
-    <span class="string">&quot;&lt;main&gt;&quot;</span>,
+    (<span class="string">&quot;&lt;main&gt;&quot;</span>, MAIN),
     <span class="string">&quot;raw&quot;</span>,
     <span class="string">&quot;anonymous&quot;</span>,
     <span class="string">&quot;async&quot;</span>,
     <span class="string">&quot;of&quot;</span>,
     <span class="string">&quot;target&quot;</span>,
+    <span class="string">&quot;as&quot;</span>,
+    <span class="string">&quot;from&quot;</span>,
     <span class="string">&quot;__proto__&quot;</span>,
     <span class="string">&quot;name&quot;</span>,
     <span class="string">&quot;await&quot;</span>,
+    (<span class="string">&quot;*default*&quot;</span>, DEFAULT_EXPORT)
 }
 </code></pre></div>
 </section></div></main><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="boa_interner" data-themes="" data-resource-suffix="" data-rustdoc-version="1.67.0 (fc594f156 2023-01-24)" data-search-js="search-444266647c4dba98.js" data-settings-js="settings-bebeae96e00e4617.js" data-settings-css="settings-af96d9e2fc13e081.css" ></div></body></html>

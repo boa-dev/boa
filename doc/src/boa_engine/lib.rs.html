@@ -456,7 +456,7 @@
     </span>S: AsRef&lt;[u8]&gt; + <span class="question-mark">?</span>Sized,
 {
     context
-        .eval(Source::from_bytes(src))
+        .eval_script(Source::from_bytes(src))
         .map_or_else(|e| <span class="macro">format!</span>(<span class="string">&quot;Uncaught {e}&quot;</span>), |v| v.display().to_string())
 }
 
@@ -474,7 +474,7 @@
 
     <span class="kw">let </span>main_timer = Profiler::global().start_event(<span class="string">&quot;Main&quot;</span>, <span class="string">&quot;Main&quot;</span>);
 
-    <span class="kw">let </span>result = context.eval(Source::from_bytes(src));
+    <span class="kw">let </span>result = context.eval_script(Source::from_bytes(src));
 
     <span class="comment">// The main_timer needs to be dropped before the Profiler is.
     </span>drop(main_timer);
@@ -486,7 +486,7 @@
 <span class="doccomment">/// Create a clean Context and execute the code
 </span><span class="attr">#[cfg(test)]
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>exec&lt;T: AsRef&lt;[u8]&gt; + <span class="question-mark">?</span>Sized&gt;(src: <span class="kw-2">&amp;</span>T) -&gt; String {
-    <span class="kw">match </span>Context::default().eval(Source::from_bytes(src)) {
+    <span class="kw">match </span>Context::default().eval_script(Source::from_bytes(src)) {
         <span class="prelude-val">Ok</span>(value) =&gt; value.display().to_string(),
         <span class="prelude-val">Err</span>(error) =&gt; error.to_string(),
     }

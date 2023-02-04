@@ -194,6 +194,7 @@
 <a href="#193" id="193">193</a>
 <a href="#194" id="194">194</a>
 <a href="#195" id="195">195</a>
+<a href="#196" id="196">196</a>
 </pre><pre class="rust"><code><span class="doccomment">//! Async Generator Expression Parser
 //!
 //! Implements `TokenParser` fo`AsyncGeneratorExpression`on and outputs
@@ -375,6 +376,7 @@
             <span class="kw-2">&amp;</span>bound_names(<span class="kw-2">&amp;</span>params),
             <span class="kw-2">&amp;</span>top_level_lexically_declared_names(<span class="kw-2">&amp;</span>body),
             params_start_position,
+            interner,
         )<span class="question-mark">?</span>;
 
         <span class="kw">let </span>function = AsyncGenerator::new(name.or(<span class="self">self</span>.name), params, body, name.is_some());

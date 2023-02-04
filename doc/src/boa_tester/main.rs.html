@@ -565,6 +565,14 @@
 <a href="#564" id="564">564</a>
 <a href="#565" id="565">565</a>
 <a href="#566" id="566">566</a>
+<a href="#567" id="567">567</a>
+<a href="#568" id="568">568</a>
+<a href="#569" id="569">569</a>
+<a href="#570" id="570">570</a>
+<a href="#571" id="571">571</a>
+<a href="#572" id="572">572</a>
+<a href="#573" id="573">573</a>
+<a href="#574" id="574">574</a>
 </pre><pre class="rust"><code><span class="doccomment">//! Test262 test runner
 //!
 //! This crate will run the full ECMAScript test suite (Test262) and report compliance of the
@@ -974,8 +982,16 @@
         }
     }
 
-    <span class="kw">fn </span>set_ignored(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
+    <span class="doccomment">/// Sets the test as ignored.
+    </span><span class="attr">#[inline]
+    </span><span class="kw">fn </span>set_ignored(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
         <span class="self">self</span>.ignored = <span class="bool-val">true</span>;
+    }
+
+    <span class="doccomment">/// Checks if this is a module test.
+    </span><span class="attr">#[inline]
+    </span><span class="kw">const fn </span>is_module(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="self">self</span>.flags.contains(TestFlags::MODULE)
     }
 }
 

@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"enum":[["ImportClause","Parses an import clause."]],"struct":[["ImportDeclaration","Parses an import declaration."],["ImportSpecifier","Parses an import specifier."],["ImportedBinding","Parses an imported binding"],["NameSpaceImport","Parses a namespace import"],["NamedImports","Parses a named import list."]]};

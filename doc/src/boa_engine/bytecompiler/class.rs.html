@@ -713,7 +713,7 @@
             } <span class="kw">else </span>{
                 <span class="prelude-val">None
             </span>};
-            compiler.create_decls(expr.body(), <span class="bool-val">false</span>);
+            compiler.create_script_decls(expr.body(), <span class="bool-val">false</span>);
             compiler.compile_statement_list(expr.body(), <span class="bool-val">false</span>, <span class="bool-val">false</span>)<span class="question-mark">?</span>;
             <span class="kw">if let </span><span class="prelude-val">Some</span>(env_label) = env_label {
                 <span class="kw">let </span>(num_bindings, compile_environment) =
@@ -1061,7 +1061,7 @@
                         .context
                         .create_immutable_binding(class_name.into(), <span class="bool-val">true</span>);
                     compiler.context.push_compile_time_environment(<span class="bool-val">true</span>);
-                    compiler.create_decls(statement_list, <span class="bool-val">false</span>);
+                    compiler.create_script_decls(statement_list, <span class="bool-val">false</span>);
                     compiler.compile_statement_list(statement_list, <span class="bool-val">false</span>, <span class="bool-val">false</span>)<span class="question-mark">?</span>;
                     <span class="kw">let </span>(num_bindings, compile_environment) =
                         compiler.context.pop_compile_time_environment();

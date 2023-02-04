@@ -42,7 +42,7 @@
         <span class="self">self</span>.context.push_compile_time_environment(<span class="bool-val">false</span>);
         <span class="kw">let </span>push_env = <span class="self">self</span>.emit_and_track_decl_env();
 
-        <span class="self">self</span>.create_decls(block.statement_list(), configurable_globals);
+        <span class="self">self</span>.create_script_decls(block.statement_list(), configurable_globals);
         <span class="self">self</span>.compile_statement_list(block.statement_list(), use_expr, configurable_globals)<span class="question-mark">?</span>;
 
         <span class="kw">let </span>(num_bindings, compile_environment) = <span class="self">self</span>.context.pop_compile_time_environment();

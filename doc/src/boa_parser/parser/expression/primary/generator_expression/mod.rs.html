@@ -169,6 +169,7 @@
 <a href="#168" id="168">168</a>
 <a href="#169" id="169">169</a>
 <a href="#170" id="170">170</a>
+<a href="#171" id="171">171</a>
 </pre><pre class="rust"><code><span class="doccomment">//! Generator expression parsing.
 //!
 //! More information:
@@ -316,6 +317,7 @@
             <span class="kw-2">&amp;</span>bound_names(<span class="kw-2">&amp;</span>params),
             <span class="kw-2">&amp;</span>top_level_lexically_declared_names(<span class="kw-2">&amp;</span>body),
             params_start_position,
+            interner,
         )<span class="question-mark">?</span>;
 
         <span class="comment">// It is a Syntax Error if FormalParameters Contains YieldExpression is true.

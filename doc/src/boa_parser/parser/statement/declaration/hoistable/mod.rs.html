@@ -261,6 +261,7 @@
 <a href="#260" id="260">260</a>
 <a href="#261" id="261">261</a>
 <a href="#262" id="262">262</a>
+<a href="#263" id="263">263</a>
 </pre><pre class="rust"><code><span class="doccomment">//! Hoistable declaration parsing.
 //!
 //! More information:
@@ -278,10 +279,6 @@
 
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">mod </span>class_decl;
 
-<span class="kw">use </span><span class="self">self</span>::{
-    async_function_decl::AsyncFunctionDeclaration, async_generator_decl::AsyncGeneratorDeclaration,
-    class_decl::ClassDeclaration, generator_decl::GeneratorDeclaration,
-};
 <span class="kw">use crate</span>::{
     lexer::TokenKind,
     parser::{
@@ -303,7 +300,11 @@
 <span class="kw">use </span>boa_profiler::Profiler;
 <span class="kw">use </span>std::io::Read;
 
-<span class="kw">pub</span>(<span class="kw">in </span><span class="kw">crate</span>::parser) <span class="kw">use </span>function_decl::FunctionDeclaration;
+<span class="kw">pub</span>(<span class="kw">in </span><span class="kw">crate</span>::parser) <span class="kw">use </span><span class="self">self</span>::{
+    async_function_decl::AsyncFunctionDeclaration, async_generator_decl::AsyncGeneratorDeclaration,
+    class_decl::ClassDeclaration, function_decl::FunctionDeclaration,
+    generator_decl::GeneratorDeclaration,
+};
 
 <span class="doccomment">/// Hoistable declaration parsing.
 ///
@@ -312,7 +313,7 @@
 ///
 /// [spec]: https://tc39.es/ecma262/#prod-FunctionDeclaration
 </span><span class="attr">#[derive(Debug, Clone, Copy)]
-</span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">struct </span>HoistableDeclaration {
+</span><span class="kw">pub</span>(<span class="kw">in </span><span class="kw">crate</span>::parser) <span class="kw">struct </span>HoistableDeclaration {
     allow_yield: AllowYield,
     allow_await: AllowAwait,
     is_default: AllowDefault,
@@ -320,7 +321,7 @@
 
 <span class="kw">impl </span>HoistableDeclaration {
     <span class="doccomment">/// Creates a new `HoistableDeclaration` parser.
-    </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>new&lt;Y, A, D&gt;(allow_yield: Y, allow_await: A, is_default: D) -&gt; <span class="self">Self
+    </span><span class="kw">pub</span>(<span class="kw">in </span><span class="kw">crate</span>::parser) <span class="kw">fn </span>new&lt;Y, A, D&gt;(allow_yield: Y, allow_await: A, is_default: D) -&gt; <span class="self">Self
     </span><span class="kw">where
         </span>Y: Into&lt;AllowYield&gt;,
         A: Into&lt;AllowAwait&gt;,
@@ -488,6 +489,7 @@
         <span class="kw-2">&amp;</span>bound_names(<span class="kw-2">&amp;</span>params),
         <span class="kw-2">&amp;</span>top_level_lexically_declared_names(<span class="kw-2">&amp;</span>body),
         params_start_position,
+        interner,
     )<span class="question-mark">?</span>;
 
     <span class="comment">// It is a Syntax Error if FormalParameters Contains SuperProperty is true.

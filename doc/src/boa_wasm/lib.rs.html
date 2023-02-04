@@ -139,7 +139,7 @@
 </span><span class="kw">pub fn </span>evaluate(src: <span class="kw-2">&amp;</span>str) -&gt; <span class="prelude-ty">Result</span>&lt;String, JsValue&gt; {
     <span class="comment">// Setup executor
     </span>Context::default()
-        .eval(Source::from_bytes(src))
+        .eval_script(Source::from_bytes(src))
         .map_err(|e| JsValue::from(<span class="macro">format!</span>(<span class="string">&quot;Uncaught {e}&quot;</span>)))
         .map(|v| v.display().to_string())
 }

@@ -1062,6 +1062,18 @@
 <a href="#1061" id="1061">1061</a>
 <a href="#1062" id="1062">1062</a>
 <a href="#1063" id="1063">1063</a>
+<a href="#1064" id="1064">1064</a>
+<a href="#1065" id="1065">1065</a>
+<a href="#1066" id="1066">1066</a>
+<a href="#1067" id="1067">1067</a>
+<a href="#1068" id="1068">1068</a>
+<a href="#1069" id="1069">1069</a>
+<a href="#1070" id="1070">1070</a>
+<a href="#1071" id="1071">1071</a>
+<a href="#1072" id="1072">1072</a>
+<a href="#1073" id="1073">1073</a>
+<a href="#1074" id="1074">1074</a>
+<a href="#1075" id="1075">1075</a>
 </pre><pre class="rust"><code><span class="doccomment">//! Object initializer parsing.
 //!
 //! More information:
@@ -1500,6 +1512,7 @@
                     <span class="kw-2">&amp;</span>bound_names(<span class="kw-2">&amp;</span>parameters),
                     <span class="kw-2">&amp;</span>top_level_lexically_declared_names(<span class="kw-2">&amp;</span>body),
                     params_start_position,
+                    interner,
                 )<span class="question-mark">?</span>;
 
                 <span class="kw">let </span>name = property_name.literal().map(|name| {
@@ -1575,6 +1588,7 @@
                     <span class="kw-2">&amp;</span>bound_names(<span class="kw-2">&amp;</span>params),
                     <span class="kw-2">&amp;</span>top_level_lexically_declared_names(<span class="kw-2">&amp;</span>body),
                     params_start_position,
+                    interner,
                 )<span class="question-mark">?</span>;
 
                 <span class="kw">let </span>method = MethodDefinition::Ordinary(Function::new(
@@ -1656,10 +1670,17 @@
             }
             TokenKind::NullLiteral =&gt; (Sym::NULL).into(),
             TokenKind::BooleanLiteral(bool) =&gt; <span class="kw">match </span>bool {
-                <span class="bool-val">true </span>=&gt; (interner.get_or_intern_static(<span class="string">&quot;true&quot;</span>, <span class="macro">utf16!</span>(<span class="string">&quot;true&quot;</span>))).into(),
-                <span class="bool-val">false </span>=&gt; (interner.get_or_intern_static(<span class="string">&quot;false&quot;</span>, <span class="macro">utf16!</span>(<span class="string">&quot;false&quot;</span>))).into(),
+                <span class="bool-val">true </span>=&gt; Sym::TRUE.into(),
+                <span class="bool-val">false </span>=&gt; Sym::FALSE.into(),
             },
-            <span class="kw">_ </span>=&gt; <span class="kw">return </span><span class="prelude-val">Err</span>(Error::AbruptEnd),
+            <span class="kw">_ </span>=&gt; {
+                <span class="kw">return </span><span class="prelude-val">Err</span>(Error::expected(
+                    <span class="macro">vec!</span>[<span class="string">&quot;property name&quot;</span>.to_owned()],
+                    token.to_string(interner),
+                    token.span(),
+                    <span class="string">&quot;property name&quot;</span>,
+                ))
+            }
         };
         cursor.advance(interner);
         <span class="prelude-val">Ok</span>(name)
@@ -1850,6 +1871,7 @@
             <span class="kw-2">&amp;</span>bound_names(<span class="kw-2">&amp;</span>params),
             <span class="kw-2">&amp;</span>top_level_lexically_declared_names(<span class="kw-2">&amp;</span>body),
             params_start_position,
+            interner,
         )<span class="question-mark">?</span>;
 
         <span class="kw">let </span>method = MethodDefinition::Generator(Generator::new(
@@ -1965,6 +1987,7 @@
             <span class="kw-2">&amp;</span>bound_names(<span class="kw-2">&amp;</span>params),
             <span class="kw-2">&amp;</span>top_level_lexically_declared_names(<span class="kw-2">&amp;</span>body),
             params_start_position,
+            interner,
         )<span class="question-mark">?</span>;
 
         <span class="kw">let </span>method = MethodDefinition::AsyncGenerator(AsyncGenerator::new(
@@ -2057,6 +2080,7 @@
             <span class="kw-2">&amp;</span>bound_names(<span class="kw-2">&amp;</span>params),
             <span class="kw-2">&amp;</span>top_level_lexically_declared_names(<span class="kw-2">&amp;</span>body),
             params_start_position,
+            interner,
         )<span class="question-mark">?</span>;
 
         <span class="kw">let </span>method = MethodDefinition::Async(AsyncFunction::new(

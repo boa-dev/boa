@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"derive":[["Finalize","Derive the Finalize trait."],["Trace","Derive the Trace trait."]],"fn":[["derive_finalize",""],["derive_trace",""]],"macro":[["utf16","Construct a utf-16 array literal from a utf-8 [`str`] literal."]],"struct":[["Syms",""]]};
+window.SIDEBAR_ITEMS = {"derive":[["Finalize","Derive the Finalize trait."],["Trace","Derive the Trace trait."]],"fn":[["derive_finalize",""],["derive_trace",""]],"macro":[["utf16","Construct a utf-16 array literal from a utf-8 [`str`] literal."]],"struct":[["Static",""],["Syms",""]]};

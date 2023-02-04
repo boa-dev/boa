@@ -365,6 +365,10 @@
 <a href="#364" id="364">364</a>
 <a href="#365" id="365">365</a>
 <a href="#366" id="366">366</a>
+<a href="#367" id="367">367</a>
+<a href="#368" id="368">368</a>
+<a href="#369" id="369">369</a>
+<a href="#370" id="370">370</a>
 </pre><pre class="rust"><code><span class="doccomment">//! For statement parsing.
 //!
 //! More information:
@@ -670,16 +674,20 @@
             ast::Expression::Identifier(ident) =&gt; <span class="prelude-val">Ok</span>(IterableLoopInitializer::Identifier(ident)),
             ast::Expression::ArrayLiteral(array) =&gt; array
                 .to_pattern(strict)
-                .ok_or(Error::General {
-                    message: <span class="string">&quot;invalid array destructuring pattern in iterable loop initializer&quot;</span>,
-                    position,
+                .ok_or_else(|| {
+                    Error::general(
+                        <span class="string">&quot;invalid array destructuring pattern in iterable loop initializer&quot;</span>,
+                        position,
+                    )
                 })
                 .map(|arr| IterableLoopInitializer::Pattern(arr.into())),
             ast::Expression::ObjectLiteral(object) =&gt; object
                 .to_pattern(strict)
-                .ok_or(Error::General {
-                    message: <span class="string">&quot;invalid object destructuring pattern in iterable loop initializer&quot;</span>,
-                    position,
+                .ok_or_else(|| {
+                    Error::general(
+                        <span class="string">&quot;invalid object destructuring pattern in iterable loop initializer&quot;</span>,
+                        position,
+                    )
                 })
                 .map(|obj| IterableLoopInitializer::Pattern(obj.into())),
             ast::Expression::PropertyAccess(access) =&gt; <span class="prelude-val">Ok</span>(IterableLoopInitializer::Access(access)),

@@ -1092,7 +1092,7 @@
         // 10. Assert: unfiltered is either a String, Number, Boolean, Null, or an Object that is defined by either an ArrayLiteral or an ObjectLiteral.
         </span><span class="kw">let </span><span class="kw-2">mut </span>parser = Parser::new(Source::from_bytes(<span class="kw-2">&amp;</span>script_string));
         parser.set_json_parse();
-        <span class="kw">let </span>statement_list = parser.parse_all(context.interner_mut())<span class="question-mark">?</span>;
+        <span class="kw">let </span>statement_list = parser.parse_script(context.interner_mut())<span class="question-mark">?</span>;
         <span class="kw">let </span>code_block = context.compile_json_parse(<span class="kw-2">&amp;</span>statement_list)<span class="question-mark">?</span>;
         <span class="kw">let </span>unfiltered = context.execute(code_block)<span class="question-mark">?</span>;
 

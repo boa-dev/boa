@@ -210,6 +210,8 @@
 <a href="#209" id="209">209</a>
 <a href="#210" id="210">210</a>
 <a href="#211" id="211">211</a>
+<a href="#212" id="212">212</a>
+<a href="#213" id="213">213</a>
 </pre><pre class="rust"><code><span class="doccomment">//! Identifiers parsing.
 //!
 //! More information:
@@ -241,6 +243,7 @@
 
 <span class="kw">impl </span>IdentifierReference {
     <span class="doccomment">/// Creates a new `IdentifierReference` parser.
+    </span><span class="attr">#[inline]
     </span><span class="kw">pub</span>(<span class="kw">in </span><span class="kw">crate</span>::parser) <span class="kw">fn </span>new&lt;Y, A&gt;(allow_yield: Y, allow_await: A) -&gt; <span class="self">Self
     </span><span class="kw">where
         </span>Y: Into&lt;AllowYield&gt;,
@@ -294,6 +297,7 @@
 
 <span class="kw">impl </span>BindingIdentifier {
     <span class="doccomment">/// Creates a new `BindingIdentifier` parser.
+    </span><span class="attr">#[inline]
     </span><span class="kw">pub</span>(<span class="kw">in </span><span class="kw">crate</span>::parser) <span class="kw">fn </span>new&lt;Y, A&gt;(allow_yield: Y, allow_await: A) -&gt; <span class="self">Self
     </span><span class="kw">where
         </span>Y: Into&lt;AllowYield&gt;,

@@ -1380,8 +1380,6 @@
 <a href="#1379" id="1379">1379</a>
 <a href="#1380" id="1380">1380</a>
 <a href="#1381" id="1381">1381</a>
-<a href="#1382" id="1382">1382</a>
-<a href="#1383" id="1383">1383</a>
 </pre><pre class="rust"><code><span class="attr">#[cfg(test)]
 </span><span class="kw">mod </span>tests;
 
@@ -1408,7 +1406,7 @@
     function::{<span class="self">self</span>, Class, FormalParameterList, Function},
     operations::{contains, contains_arguments, has_direct_super, ContainsSymbol},
     property::{ClassElementName, MethodDefinition},
-    Declaration, Expression, Keyword, Punctuator,
+    Expression, Keyword, Punctuator,
 };
 <span class="kw">use </span>boa_interner::{Interner, Sym};
 <span class="kw">use </span>boa_macros::utf16;
@@ -1424,7 +1422,7 @@
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/class
 /// [spec]: https://tc39.es/ecma262/#prod-ClassDeclaration
 </span><span class="attr">#[derive(Debug, Clone, Copy)]
-</span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">struct </span>ClassDeclaration {
+</span><span class="kw">pub</span>(<span class="kw">in </span><span class="kw">crate</span>::parser) <span class="kw">struct </span>ClassDeclaration {
     allow_yield: AllowYield,
     allow_await: AllowAwait,
     is_default: AllowDefault,
@@ -1432,7 +1430,7 @@
 
 <span class="kw">impl </span>ClassDeclaration {
     <span class="doccomment">/// Creates a new `ClassDeclaration` parser.
-    </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>new&lt;Y, A, D&gt;(allow_yield: Y, allow_await: A, is_default: D) -&gt; <span class="self">Self
+    </span><span class="kw">pub</span>(<span class="kw">in </span><span class="kw">crate</span>::parser) <span class="kw">fn </span>new&lt;Y, A, D&gt;(allow_yield: Y, allow_await: A, is_default: D) -&gt; <span class="self">Self
     </span><span class="kw">where
         </span>Y: Into&lt;AllowYield&gt;,
         A: Into&lt;AllowAwait&gt;,
@@ -1450,7 +1448,7 @@
 <span class="kw">where
     </span>R: Read,
 {
-    <span class="kw">type </span>Output = Declaration;
+    <span class="kw">type </span>Output = Class;
 
     <span class="kw">fn </span>parse(<span class="self">self</span>, cursor: <span class="kw-2">&amp;mut </span>Cursor&lt;R&gt;, interner: <span class="kw-2">&amp;mut </span>Interner) -&gt; ParseResult&lt;<span class="self">Self</span>::Output&gt; {
         cursor.expect((Keyword::Class, <span class="bool-val">false</span>), <span class="string">&quot;class declaration&quot;</span>, interner)<span class="question-mark">?</span>;
@@ -1477,15 +1475,13 @@
         };
         cursor.set_strict_mode(strict);
 
-        <span class="prelude-val">Ok</span>(Declaration::Class(
-            ClassTail::new(
-                name,
-                has_binding_identifier,
-                <span class="self">self</span>.allow_yield,
-                <span class="self">self</span>.allow_await,
-            )
-            .parse(cursor, interner)<span class="question-mark">?</span>,
-        ))
+        ClassTail::new(
+            name,
+            has_binding_identifier,
+            <span class="self">self</span>.allow_yield,
+            <span class="self">self</span>.allow_await,
+        )
+        .parse(cursor, interner)
     }
 }
 

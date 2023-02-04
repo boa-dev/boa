@@ -110,7 +110,7 @@
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/function*
 /// [spec]: https://tc39.es/ecma262/#prod-GeneratorDeclaration
 </span><span class="attr">#[derive(Debug, Clone, Copy)]
-</span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">struct </span>GeneratorDeclaration {
+</span><span class="kw">pub</span>(<span class="kw">in </span><span class="kw">crate</span>::parser) <span class="kw">struct </span>GeneratorDeclaration {
     allow_yield: AllowYield,
     allow_await: AllowAwait,
     is_default: AllowDefault,
@@ -118,7 +118,7 @@
 
 <span class="kw">impl </span>GeneratorDeclaration {
     <span class="doccomment">/// Creates a new `GeneratorDeclaration` parser.
-    </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>new&lt;Y, A, D&gt;(allow_yield: Y, allow_await: A, is_default: D) -&gt; <span class="self">Self
+    </span><span class="kw">pub</span>(<span class="kw">in </span><span class="kw">crate</span>::parser) <span class="kw">fn </span>new&lt;Y, A, D&gt;(allow_yield: Y, allow_await: A, is_default: D) -&gt; <span class="self">Self
     </span><span class="kw">where
         </span>Y: Into&lt;AllowYield&gt;,
         A: Into&lt;AllowAwait&gt;,

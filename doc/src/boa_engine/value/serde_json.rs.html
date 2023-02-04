@@ -519,7 +519,7 @@
         <span class="kw">let </span><span class="kw-2">mut </span>context = Context::default();
 
         <span class="kw">let </span>add = context
-            .eval(Source::from_bytes(
+            .eval_script(Source::from_bytes(
                 <span class="string">r#&quot;
                 1000000 + 500
             &quot;#</span>,
@@ -529,7 +529,7 @@
         <span class="macro">assert_eq!</span>(add, <span class="number">1_000_500</span>);
 
         <span class="kw">let </span>sub = context
-            .eval(Source::from_bytes(
+            .eval_script(Source::from_bytes(
                 <span class="string">r#&quot;
                 1000000 - 500
             &quot;#</span>,
@@ -539,7 +539,7 @@
         <span class="macro">assert_eq!</span>(sub, <span class="number">999_500</span>);
 
         <span class="kw">let </span>mult = context
-            .eval(Source::from_bytes(
+            .eval_script(Source::from_bytes(
                 <span class="string">r#&quot;
                 1000000 * 500
             &quot;#</span>,
@@ -549,7 +549,7 @@
         <span class="macro">assert_eq!</span>(mult, <span class="number">500_000_000</span>);
 
         <span class="kw">let </span>div = context
-            .eval(Source::from_bytes(
+            .eval_script(Source::from_bytes(
                 <span class="string">r#&quot;
                 1000000 / 500
             &quot;#</span>,
@@ -559,7 +559,7 @@
         <span class="macro">assert_eq!</span>(div, <span class="number">2000</span>);
 
         <span class="kw">let </span>rem = context
-            .eval(Source::from_bytes(
+            .eval_script(Source::from_bytes(
                 <span class="string">r#&quot;
                 233894 % 500
             &quot;#</span>,
@@ -569,7 +569,7 @@
         <span class="macro">assert_eq!</span>(rem, <span class="number">394</span>);
 
         <span class="kw">let </span>pow = context
-            .eval(Source::from_bytes(
+            .eval_script(Source::from_bytes(
                 <span class="string">r#&quot;
                 36 ** 5
             &quot;#</span>,

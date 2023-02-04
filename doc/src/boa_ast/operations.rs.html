@@ -768,6 +768,87 @@
 <a href="#767" id="767">767</a>
 <a href="#768" id="768">768</a>
 <a href="#769" id="769">769</a>
+<a href="#770" id="770">770</a>
+<a href="#771" id="771">771</a>
+<a href="#772" id="772">772</a>
+<a href="#773" id="773">773</a>
+<a href="#774" id="774">774</a>
+<a href="#775" id="775">775</a>
+<a href="#776" id="776">776</a>
+<a href="#777" id="777">777</a>
+<a href="#778" id="778">778</a>
+<a href="#779" id="779">779</a>
+<a href="#780" id="780">780</a>
+<a href="#781" id="781">781</a>
+<a href="#782" id="782">782</a>
+<a href="#783" id="783">783</a>
+<a href="#784" id="784">784</a>
+<a href="#785" id="785">785</a>
+<a href="#786" id="786">786</a>
+<a href="#787" id="787">787</a>
+<a href="#788" id="788">788</a>
+<a href="#789" id="789">789</a>
+<a href="#790" id="790">790</a>
+<a href="#791" id="791">791</a>
+<a href="#792" id="792">792</a>
+<a href="#793" id="793">793</a>
+<a href="#794" id="794">794</a>
+<a href="#795" id="795">795</a>
+<a href="#796" id="796">796</a>
+<a href="#797" id="797">797</a>
+<a href="#798" id="798">798</a>
+<a href="#799" id="799">799</a>
+<a href="#800" id="800">800</a>
+<a href="#801" id="801">801</a>
+<a href="#802" id="802">802</a>
+<a href="#803" id="803">803</a>
+<a href="#804" id="804">804</a>
+<a href="#805" id="805">805</a>
+<a href="#806" id="806">806</a>
+<a href="#807" id="807">807</a>
+<a href="#808" id="808">808</a>
+<a href="#809" id="809">809</a>
+<a href="#810" id="810">810</a>
+<a href="#811" id="811">811</a>
+<a href="#812" id="812">812</a>
+<a href="#813" id="813">813</a>
+<a href="#814" id="814">814</a>
+<a href="#815" id="815">815</a>
+<a href="#816" id="816">816</a>
+<a href="#817" id="817">817</a>
+<a href="#818" id="818">818</a>
+<a href="#819" id="819">819</a>
+<a href="#820" id="820">820</a>
+<a href="#821" id="821">821</a>
+<a href="#822" id="822">822</a>
+<a href="#823" id="823">823</a>
+<a href="#824" id="824">824</a>
+<a href="#825" id="825">825</a>
+<a href="#826" id="826">826</a>
+<a href="#827" id="827">827</a>
+<a href="#828" id="828">828</a>
+<a href="#829" id="829">829</a>
+<a href="#830" id="830">830</a>
+<a href="#831" id="831">831</a>
+<a href="#832" id="832">832</a>
+<a href="#833" id="833">833</a>
+<a href="#834" id="834">834</a>
+<a href="#835" id="835">835</a>
+<a href="#836" id="836">836</a>
+<a href="#837" id="837">837</a>
+<a href="#838" id="838">838</a>
+<a href="#839" id="839">839</a>
+<a href="#840" id="840">840</a>
+<a href="#841" id="841">841</a>
+<a href="#842" id="842">842</a>
+<a href="#843" id="843">843</a>
+<a href="#844" id="844">844</a>
+<a href="#845" id="845">845</a>
+<a href="#846" id="846">846</a>
+<a href="#847" id="847">847</a>
+<a href="#848" id="848">848</a>
+<a href="#849" id="849">849</a>
+<a href="#850" id="850">850</a>
 </pre><pre class="rust"><code><span class="doccomment">//! Definitions of various **Syntax-Directed Operations** used in the [spec].
 //!
 //! [spec]: https://tc39.es/ecma262/#sec-syntax-directed-operations
@@ -779,7 +860,7 @@
 <span class="kw">use </span>rustc_hash::{FxHashMap, FxHashSet};
 
 <span class="kw">use crate</span>::{
-    declaration::VarDeclaration,
+    declaration::{ExportDeclaration, ImportDeclaration, VarDeclaration},
     expression::{access::SuperPropertyAccess, Await, Identifier, SuperCall, Yield},
     function::{
         ArrowFunction, AsyncArrowFunction, AsyncFunction, AsyncGenerator, Class, ClassElement,
@@ -1069,37 +1150,43 @@
 }
 
 <span class="doccomment">/// A container that [`BoundNamesVisitor`] can use to push the found identifiers.
-</span><span class="kw">trait </span>IdentList {
-    <span class="kw">fn </span>add(<span class="kw-2">&amp;mut </span><span class="self">self</span>, value: Identifier, function: bool);
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">trait </span>IdentList {
+    <span class="kw">fn </span>add(<span class="kw-2">&amp;mut </span><span class="self">self</span>, value: Sym, function: bool);
 }
 
-<span class="kw">impl </span>IdentList <span class="kw">for </span>Vec&lt;Identifier&gt; {
-    <span class="kw">fn </span>add(<span class="kw-2">&amp;mut </span><span class="self">self</span>, value: Identifier, _function: bool) {
+<span class="kw">impl </span>IdentList <span class="kw">for </span>Vec&lt;Sym&gt; {
+    <span class="kw">fn </span>add(<span class="kw-2">&amp;mut </span><span class="self">self</span>, value: Sym, _function: bool) {
         <span class="self">self</span>.push(value);
     }
 }
 
+<span class="kw">impl </span>IdentList <span class="kw">for </span>Vec&lt;Identifier&gt; {
+    <span class="kw">fn </span>add(<span class="kw-2">&amp;mut </span><span class="self">self</span>, value: Sym, _function: bool) {
+        <span class="self">self</span>.push(Identifier::new(value));
+    }
+}
+
 <span class="kw">impl </span>IdentList <span class="kw">for </span>Vec&lt;(Identifier, bool)&gt; {
-    <span class="kw">fn </span>add(<span class="kw-2">&amp;mut </span><span class="self">self</span>, value: Identifier, function: bool) {
-        <span class="self">self</span>.push((value, function));
+    <span class="kw">fn </span>add(<span class="kw-2">&amp;mut </span><span class="self">self</span>, value: Sym, function: bool) {
+        <span class="self">self</span>.push((Identifier::new(value), function));
     }
 }
 
 <span class="kw">impl </span>IdentList <span class="kw">for </span>FxHashSet&lt;Identifier&gt; {
-    <span class="kw">fn </span>add(<span class="kw-2">&amp;mut </span><span class="self">self</span>, value: Identifier, _function: bool) {
-        <span class="self">self</span>.insert(value);
+    <span class="kw">fn </span>add(<span class="kw-2">&amp;mut </span><span class="self">self</span>, value: Sym, _function: bool) {
+        <span class="self">self</span>.insert(Identifier::new(value));
     }
 }
 
 <span class="doccomment">/// The [`Visitor`] used to obtain the bound names of a node.
 </span><span class="attr">#[derive(Debug)]
-</span><span class="kw">struct </span>BoundNamesVisitor&lt;<span class="lifetime">&#39;a</span>, T: IdentList&gt;(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span>T);
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>BoundNamesVisitor&lt;<span class="lifetime">&#39;a</span>, T: IdentList&gt;(<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span>T);
 
 <span class="kw">impl</span>&lt;<span class="lifetime">&#39;ast</span>, T: IdentList&gt; Visitor&lt;<span class="lifetime">&#39;ast</span>&gt; <span class="kw">for </span>BoundNamesVisitor&lt;<span class="lifetime">&#39;_</span>, T&gt; {
     <span class="kw">type </span>BreakTy = Infallible;
 
     <span class="kw">fn </span>visit_identifier(<span class="kw-2">&amp;mut </span><span class="self">self</span>, node: <span class="kw-2">&amp;</span><span class="lifetime">&#39;ast </span>Identifier) -&gt; ControlFlow&lt;<span class="self">Self</span>::BreakTy&gt; {
-        <span class="self">self</span>.<span class="number">0</span>.add(<span class="kw-2">*</span>node, <span class="bool-val">false</span>);
+        <span class="self">self</span>.<span class="number">0</span>.add(node.sym(), <span class="bool-val">false</span>);
         ControlFlow::Continue(())
     }
 
@@ -1107,39 +1194,80 @@
         ControlFlow::Continue(())
     }
 
-    <span class="comment">// TODO: add &quot;*default&quot; for module default functions without name
-    </span><span class="kw">fn </span>visit_function(<span class="kw-2">&amp;mut </span><span class="self">self</span>, node: <span class="kw-2">&amp;</span><span class="lifetime">&#39;ast </span>Function) -&gt; ControlFlow&lt;<span class="self">Self</span>::BreakTy&gt; {
+    <span class="kw">fn </span>visit_function(<span class="kw-2">&amp;mut </span><span class="self">self</span>, node: <span class="kw-2">&amp;</span><span class="lifetime">&#39;ast </span>Function) -&gt; ControlFlow&lt;<span class="self">Self</span>::BreakTy&gt; {
         <span class="kw">if let </span><span class="prelude-val">Some</span>(ident) = node.name() {
-            <span class="self">self</span>.<span class="number">0</span>.add(ident, <span class="bool-val">true</span>);
+            <span class="self">self</span>.<span class="number">0</span>.add(ident.sym(), <span class="bool-val">true</span>);
         }
         ControlFlow::Continue(())
     }
 
     <span class="kw">fn </span>visit_generator(<span class="kw-2">&amp;mut </span><span class="self">self</span>, node: <span class="kw-2">&amp;</span><span class="lifetime">&#39;ast </span>Generator) -&gt; ControlFlow&lt;<span class="self">Self</span>::BreakTy&gt; {
         <span class="kw">if let </span><span class="prelude-val">Some</span>(ident) = node.name() {
-            <span class="self">self</span>.<span class="number">0</span>.add(ident, <span class="bool-val">false</span>);
+            <span class="self">self</span>.<span class="number">0</span>.add(ident.sym(), <span class="bool-val">false</span>);
         }
         ControlFlow::Continue(())
     }
 
     <span class="kw">fn </span>visit_async_function(<span class="kw-2">&amp;mut </span><span class="self">self</span>, node: <span class="kw-2">&amp;</span><span class="lifetime">&#39;ast </span>AsyncFunction) -&gt; ControlFlow&lt;<span class="self">Self</span>::BreakTy&gt; {
         <span class="kw">if let </span><span class="prelude-val">Some</span>(ident) = node.name() {
-            <span class="self">self</span>.<span class="number">0</span>.add(ident, <span class="bool-val">false</span>);
+            <span class="self">self</span>.<span class="number">0</span>.add(ident.sym(), <span class="bool-val">false</span>);
         }
         ControlFlow::Continue(())
     }
 
     <span class="kw">fn </span>visit_async_generator(<span class="kw-2">&amp;mut </span><span class="self">self</span>, node: <span class="kw-2">&amp;</span><span class="lifetime">&#39;ast </span>AsyncGenerator) -&gt; ControlFlow&lt;<span class="self">Self</span>::BreakTy&gt; {
         <span class="kw">if let </span><span class="prelude-val">Some</span>(ident) = node.name() {
-            <span class="self">self</span>.<span class="number">0</span>.add(ident, <span class="bool-val">false</span>);
+            <span class="self">self</span>.<span class="number">0</span>.add(ident.sym(), <span class="bool-val">false</span>);
         }
         ControlFlow::Continue(())
     }
 
     <span class="kw">fn </span>visit_class(<span class="kw-2">&amp;mut </span><span class="self">self</span>, node: <span class="kw-2">&amp;</span><span class="lifetime">&#39;ast </span>Class) -&gt; ControlFlow&lt;<span class="self">Self</span>::BreakTy&gt; {
         <span class="kw">if let </span><span class="prelude-val">Some</span>(ident) = node.name() {
-            <span class="self">self</span>.<span class="number">0</span>.add(ident, <span class="bool-val">false</span>);
+            <span class="self">self</span>.<span class="number">0</span>.add(ident.sym(), <span class="bool-val">false</span>);
         }
+        ControlFlow::Continue(())
+    }
+
+    <span class="kw">fn </span>visit_export_declaration(
+        <span class="kw-2">&amp;mut </span><span class="self">self</span>,
+        node: <span class="kw-2">&amp;</span><span class="lifetime">&#39;ast </span>ExportDeclaration,
+    ) -&gt; ControlFlow&lt;<span class="self">Self</span>::BreakTy&gt; {
+        <span class="kw">match </span>node {
+            ExportDeclaration::VarStatement(var) =&gt; <span class="macro">try_break!</span>(<span class="self">self</span>.visit_var_declaration(var)),
+            ExportDeclaration::Declaration(decl) =&gt; <span class="macro">try_break!</span>(<span class="self">self</span>.visit_declaration(decl)),
+            ExportDeclaration::DefaultFunction(f) =&gt; {
+                <span class="self">self</span>.<span class="number">0
+                    </span>.add(f.name().map_or(Sym::DEFAULT_EXPORT, Identifier::sym), <span class="bool-val">true</span>);
+            }
+            ExportDeclaration::DefaultGenerator(g) =&gt; {
+                <span class="self">self</span>.<span class="number">0
+                    </span>.add(g.name().map_or(Sym::DEFAULT_EXPORT, Identifier::sym), <span class="bool-val">false</span>);
+            }
+            ExportDeclaration::DefaultAsyncFunction(af) =&gt; {
+                <span class="self">self</span>.<span class="number">0</span>.add(
+                    af.name().map_or(Sym::DEFAULT_EXPORT, Identifier::sym),
+                    <span class="bool-val">false</span>,
+                );
+            }
+            ExportDeclaration::DefaultAsyncGenerator(ag) =&gt; {
+                <span class="self">self</span>.<span class="number">0</span>.add(
+                    ag.name().map_or(Sym::DEFAULT_EXPORT, Identifier::sym),
+                    <span class="bool-val">false</span>,
+                );
+            }
+            ExportDeclaration::DefaultClassDeclaration(cl) =&gt; {
+                <span class="self">self</span>.<span class="number">0</span>.add(
+                    cl.name().map_or(Sym::DEFAULT_EXPORT, Identifier::sym),
+                    <span class="bool-val">false</span>,
+                );
+            }
+            ExportDeclaration::DefaultAssignmentExpression(<span class="kw">_</span>) =&gt; {
+                <span class="self">self</span>.<span class="number">0</span>.add(Sym::DEFAULT_EXPORT, <span class="bool-val">false</span>);
+            }
+            ExportDeclaration::ReExport { .. } | ExportDeclaration::List(<span class="kw">_</span>) =&gt; {}
+        }
+
         ControlFlow::Continue(())
     }
 }
@@ -1217,6 +1345,21 @@
             top_level_lexicals(stmts, <span class="self">self</span>.<span class="number">0</span>);
         }
         ControlFlow::Continue(())
+    }
+    <span class="kw">fn </span>visit_import_declaration(
+        <span class="kw-2">&amp;mut </span><span class="self">self</span>,
+        node: <span class="kw-2">&amp;</span><span class="lifetime">&#39;ast </span>ImportDeclaration,
+    ) -&gt; ControlFlow&lt;<span class="self">Self</span>::BreakTy&gt; {
+        BoundNamesVisitor(<span class="self">self</span>.<span class="number">0</span>).visit_import_declaration(node)
+    }
+    <span class="kw">fn </span>visit_export_declaration(
+        <span class="kw-2">&amp;mut </span><span class="self">self</span>,
+        node: <span class="kw-2">&amp;</span><span class="lifetime">&#39;ast </span>ExportDeclaration,
+    ) -&gt; ControlFlow&lt;<span class="self">Self</span>::BreakTy&gt; {
+        <span class="kw">if </span><span class="macro">matches!</span>(node, ExportDeclaration::VarStatement(<span class="kw">_</span>)) {
+            <span class="kw">return </span>ControlFlow::Continue(());
+        }
+        BoundNamesVisitor(<span class="self">self</span>.<span class="number">0</span>).visit_export_declaration(node)
     }
 
     <span class="comment">// TODO:  ScriptBody : StatementList
@@ -1320,6 +1463,25 @@
             top_level_vars(stmts, <span class="self">self</span>.<span class="number">0</span>);
         }
         node.visit_with(<span class="self">self</span>)
+    }
+
+    <span class="kw">fn </span>visit_import_declaration(
+        <span class="kw-2">&amp;mut </span><span class="self">self</span>,
+        <span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;ast </span>ImportDeclaration,
+    ) -&gt; ControlFlow&lt;<span class="self">Self</span>::BreakTy&gt; {
+        ControlFlow::Continue(())
+    }
+
+    <span class="kw">fn </span>visit_export_declaration(
+        <span class="kw-2">&amp;mut </span><span class="self">self</span>,
+        node: <span class="kw-2">&amp;</span><span class="lifetime">&#39;ast </span>ExportDeclaration,
+    ) -&gt; ControlFlow&lt;<span class="self">Self</span>::BreakTy&gt; {
+        <span class="kw">match </span>node {
+            ExportDeclaration::VarStatement(var) =&gt; {
+                BoundNamesVisitor(<span class="self">self</span>.<span class="number">0</span>).visit_var_declaration(var)
+            }
+            <span class="kw">_ </span>=&gt; ControlFlow::Continue(()),
+        }
     }
 
     <span class="comment">// TODO:  ScriptBody : StatementList

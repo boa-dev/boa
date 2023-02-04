@@ -172,6 +172,8 @@
 <a href="#171" id="171">171</a>
 <a href="#172" id="172">172</a>
 <a href="#173" id="173">173</a>
+<a href="#174" id="174">174</a>
+<a href="#175" id="175">175</a>
 </pre><pre class="rust"><code><span class="doccomment">//! Boa&#39;s **`boa_ast`** crate implements an ECMAScript abstract syntax tree.
 //!
 //! # Crate Overview
@@ -276,6 +278,7 @@
 <span class="kw">pub mod </span>expression;
 <span class="kw">pub mod </span>function;
 <span class="kw">pub mod </span>keyword;
+<span class="kw">pub mod </span>module_item_list;
 <span class="kw">pub mod </span>operations;
 <span class="kw">pub mod </span>pattern;
 <span class="kw">pub mod </span>property;
@@ -288,6 +291,7 @@
     declaration::Declaration,
     expression::Expression,
     keyword::Keyword,
+    module_item_list::{ModuleItem, ModuleItemList},
     position::{Position, Span},
     punctuator::Punctuator,
     statement::Statement,

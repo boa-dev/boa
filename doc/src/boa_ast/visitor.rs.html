@@ -578,6 +578,53 @@
 <a href="#577" id="577">577</a>
 <a href="#578" id="578">578</a>
 <a href="#579" id="579">579</a>
+<a href="#580" id="580">580</a>
+<a href="#581" id="581">581</a>
+<a href="#582" id="582">582</a>
+<a href="#583" id="583">583</a>
+<a href="#584" id="584">584</a>
+<a href="#585" id="585">585</a>
+<a href="#586" id="586">586</a>
+<a href="#587" id="587">587</a>
+<a href="#588" id="588">588</a>
+<a href="#589" id="589">589</a>
+<a href="#590" id="590">590</a>
+<a href="#591" id="591">591</a>
+<a href="#592" id="592">592</a>
+<a href="#593" id="593">593</a>
+<a href="#594" id="594">594</a>
+<a href="#595" id="595">595</a>
+<a href="#596" id="596">596</a>
+<a href="#597" id="597">597</a>
+<a href="#598" id="598">598</a>
+<a href="#599" id="599">599</a>
+<a href="#600" id="600">600</a>
+<a href="#601" id="601">601</a>
+<a href="#602" id="602">602</a>
+<a href="#603" id="603">603</a>
+<a href="#604" id="604">604</a>
+<a href="#605" id="605">605</a>
+<a href="#606" id="606">606</a>
+<a href="#607" id="607">607</a>
+<a href="#608" id="608">608</a>
+<a href="#609" id="609">609</a>
+<a href="#610" id="610">610</a>
+<a href="#611" id="611">611</a>
+<a href="#612" id="612">612</a>
+<a href="#613" id="613">613</a>
+<a href="#614" id="614">614</a>
+<a href="#615" id="615">615</a>
+<a href="#616" id="616">616</a>
+<a href="#617" id="617">617</a>
+<a href="#618" id="618">618</a>
+<a href="#619" id="619">619</a>
+<a href="#620" id="620">620</a>
+<a href="#621" id="621">621</a>
+<a href="#622" id="622">622</a>
+<a href="#623" id="623">623</a>
+<a href="#624" id="624">624</a>
+<a href="#625" id="625">625</a>
+<a href="#626" id="626">626</a>
 </pre><pre class="rust"><code><span class="doccomment">//! ECMAScript Abstract Syntax Tree visitors.
 //!
 //! This module contains visitors which can be used to inspect or modify AST nodes. This allows for
@@ -587,7 +634,9 @@
 
 <span class="kw">use crate</span>::{
     declaration::{
-        Binding, Declaration, LexicalDeclaration, VarDeclaration, Variable, VariableList,
+        Binding, Declaration, ExportDeclaration, ExportSpecifier, ImportDeclaration, ImportKind,
+        ImportSpecifier, LexicalDeclaration, ModuleSpecifier, ReExportKind, VarDeclaration,
+        Variable, VariableList,
     },
     expression::{
         access::{
@@ -616,7 +665,7 @@
         Block, Case, Catch, Finally, If, Labelled, LabelledItem, Return, Statement, Switch, Throw,
         Try,
     },
-    StatementList, StatementListItem,
+    ModuleItem, ModuleItemList, StatementList, StatementListItem,
 };
 <span class="kw">use </span>boa_interner::Sym;
 
@@ -774,6 +823,15 @@
     ArrayPatternElement,
     PropertyAccessField,
     OptionalOperationKind,
+    ModuleItemList,
+    ModuleItem,
+    ModuleSpecifier,
+    ImportKind,
+    ImportDeclaration,
+    ImportSpecifier,
+    ReExportKind,
+    ExportDeclaration,
+    ExportSpecifier
 }
 
 <span class="doccomment">/// Represents an AST visitor.
@@ -862,6 +920,15 @@
     <span class="macro">define_visit!</span>(visit_array_pattern_element, ArrayPatternElement);
     <span class="macro">define_visit!</span>(visit_property_access_field, PropertyAccessField);
     <span class="macro">define_visit!</span>(visit_optional_operation_kind, OptionalOperationKind);
+    <span class="macro">define_visit!</span>(visit_module_item_list, ModuleItemList);
+    <span class="macro">define_visit!</span>(visit_module_item, ModuleItem);
+    <span class="macro">define_visit!</span>(visit_module_specifier, ModuleSpecifier);
+    <span class="macro">define_visit!</span>(visit_import_kind, ImportKind);
+    <span class="macro">define_visit!</span>(visit_import_declaration, ImportDeclaration);
+    <span class="macro">define_visit!</span>(visit_import_specifier, ImportSpecifier);
+    <span class="macro">define_visit!</span>(visit_re_export_kind, ReExportKind);
+    <span class="macro">define_visit!</span>(visit_export_declaration, ExportDeclaration);
+    <span class="macro">define_visit!</span>(visit_export_specifier, ExportSpecifier);
 
     <span class="doccomment">/// Generic entry point for a node that is visitable by a `Visitor`.
     ///
@@ -947,6 +1014,15 @@
             NodeRef::ArrayPatternElement(n) =&gt; <span class="self">self</span>.visit_array_pattern_element(n),
             NodeRef::PropertyAccessField(n) =&gt; <span class="self">self</span>.visit_property_access_field(n),
             NodeRef::OptionalOperationKind(n) =&gt; <span class="self">self</span>.visit_optional_operation_kind(n),
+            NodeRef::ModuleItemList(n) =&gt; <span class="self">self</span>.visit_module_item_list(n),
+            NodeRef::ModuleItem(n) =&gt; <span class="self">self</span>.visit_module_item(n),
+            NodeRef::ModuleSpecifier(n) =&gt; <span class="self">self</span>.visit_module_specifier(n),
+            NodeRef::ImportKind(n) =&gt; <span class="self">self</span>.visit_import_kind(n),
+            NodeRef::ImportDeclaration(n) =&gt; <span class="self">self</span>.visit_import_declaration(n),
+            NodeRef::ImportSpecifier(n) =&gt; <span class="self">self</span>.visit_import_specifier(n),
+            NodeRef::ReExportKind(n) =&gt; <span class="self">self</span>.visit_re_export_kind(n),
+            NodeRef::ExportDeclaration(n) =&gt; <span class="self">self</span>.visit_export_declaration(n),
+            NodeRef::ExportSpecifier(n) =&gt; <span class="self">self</span>.visit_export_specifier(n),
         }
     }
 }
@@ -1037,6 +1113,15 @@
     <span class="macro">define_visit_mut!</span>(visit_array_pattern_element_mut, ArrayPatternElement);
     <span class="macro">define_visit_mut!</span>(visit_property_access_field_mut, PropertyAccessField);
     <span class="macro">define_visit_mut!</span>(visit_optional_operation_kind_mut, OptionalOperationKind);
+    <span class="macro">define_visit_mut!</span>(visit_module_item_list_mut, ModuleItemList);
+    <span class="macro">define_visit_mut!</span>(visit_module_item_mut, ModuleItem);
+    <span class="macro">define_visit_mut!</span>(visit_module_specifier_mut, ModuleSpecifier);
+    <span class="macro">define_visit_mut!</span>(visit_import_kind_mut, ImportKind);
+    <span class="macro">define_visit_mut!</span>(visit_import_declaration_mut, ImportDeclaration);
+    <span class="macro">define_visit_mut!</span>(visit_import_specifier_mut, ImportSpecifier);
+    <span class="macro">define_visit_mut!</span>(visit_re_export_kind_mut, ReExportKind);
+    <span class="macro">define_visit_mut!</span>(visit_export_declaration_mut, ExportDeclaration);
+    <span class="macro">define_visit_mut!</span>(visit_export_specifier_mut, ExportSpecifier);
 
     <span class="doccomment">/// Generic entry point for a node that is visitable by a `VisitorMut`.
     ///
@@ -1122,6 +1207,15 @@
             NodeRefMut::ArrayPatternElement(n) =&gt; <span class="self">self</span>.visit_array_pattern_element_mut(n),
             NodeRefMut::PropertyAccessField(n) =&gt; <span class="self">self</span>.visit_property_access_field_mut(n),
             NodeRefMut::OptionalOperationKind(n) =&gt; <span class="self">self</span>.visit_optional_operation_kind_mut(n),
+            NodeRefMut::ModuleItemList(n) =&gt; <span class="self">self</span>.visit_module_item_list_mut(n),
+            NodeRefMut::ModuleItem(n) =&gt; <span class="self">self</span>.visit_module_item_mut(n),
+            NodeRefMut::ModuleSpecifier(n) =&gt; <span class="self">self</span>.visit_module_specifier_mut(n),
+            NodeRefMut::ImportKind(n) =&gt; <span class="self">self</span>.visit_import_kind_mut(n),
+            NodeRefMut::ImportDeclaration(n) =&gt; <span class="self">self</span>.visit_import_declaration_mut(n),
+            NodeRefMut::ImportSpecifier(n) =&gt; <span class="self">self</span>.visit_import_specifier_mut(n),
+            NodeRefMut::ReExportKind(n) =&gt; <span class="self">self</span>.visit_re_export_kind_mut(n),
+            NodeRefMut::ExportDeclaration(n) =&gt; <span class="self">self</span>.visit_export_declaration_mut(n),
+            NodeRefMut::ExportSpecifier(n) =&gt; <span class="self">self</span>.visit_export_specifier_mut(n),
         }
     }
 }

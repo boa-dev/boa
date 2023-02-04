@@ -62,6 +62,7 @@
 <a href="#61" id="61">61</a>
 <a href="#62" id="62">62</a>
 <a href="#63" id="63">63</a>
+<a href="#64" id="64">64</a>
 </pre><pre class="rust"><code><span class="doccomment">//! This module contains the errors used by the lexer.
 //!
 //! More information:
@@ -97,6 +98,7 @@
 
 <span class="kw">impl </span>Error {
     <span class="doccomment">/// Creates a new syntax error.
+    </span><span class="attr">#[inline]
     </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>syntax&lt;M, P&gt;(err: M, pos: P) -&gt; <span class="self">Self
     </span><span class="kw">where
         </span>M: Into&lt;Box&lt;str&gt;&gt;,

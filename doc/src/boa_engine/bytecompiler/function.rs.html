@@ -439,7 +439,7 @@
             compiler.emit_opcode(Opcode::Yield);
         }
 
-        compiler.create_decls(body, <span class="bool-val">false</span>);
+        compiler.create_script_decls(body, <span class="bool-val">false</span>);
         compiler.compile_statement_list(body, <span class="bool-val">false</span>, <span class="bool-val">false</span>)<span class="question-mark">?</span>;
 
         <span class="kw">if let </span><span class="prelude-val">Some</span>(env_label) = env_label {

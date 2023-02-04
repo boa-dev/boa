@@ -1450,6 +1450,12 @@
 <a href="#1449" id="1449">1449</a>
 <a href="#1450" id="1450">1450</a>
 <a href="#1451" id="1451">1451</a>
+<a href="#1452" id="1452">1452</a>
+<a href="#1453" id="1453">1453</a>
+<a href="#1454" id="1454">1454</a>
+<a href="#1455" id="1455">1455</a>
+<a href="#1456" id="1456">1456</a>
+<a href="#1457" id="1457">1457</a>
 </pre><pre class="rust"><code><span class="doccomment">//! This module contains the bytecode compiler.
 
 </span><span class="kw">mod </span>class;
@@ -1457,6 +1463,7 @@
 <span class="kw">mod </span>expression;
 <span class="kw">mod </span>function;
 <span class="kw">mod </span>jump_control;
+<span class="kw">mod </span>module;
 <span class="kw">mod </span>statement;
 
 <span class="kw">use crate</span>::{
@@ -2155,7 +2162,7 @@
         <span class="self">self</span>.context.push_compile_time_environment(strict);
         <span class="kw">let </span>push_env = <span class="self">self</span>.emit_opcode_with_two_operands(Opcode::PushDeclarativeEnvironment);
 
-        <span class="self">self</span>.create_decls(list, <span class="bool-val">true</span>);
+        <span class="self">self</span>.create_script_decls(list, <span class="bool-val">true</span>);
 
         <span class="kw">if </span>use_expr {
             <span class="kw">let </span>expr_index = list
@@ -2723,7 +2730,12 @@
         <span class="self">self</span>.compile_declaration_pattern_impl(pattern, def)
     }
 
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>create_decls(<span class="kw-2">&amp;mut </span><span class="self">self</span>, stmt_list: <span class="kw-2">&amp;</span>StatementList, configurable_globals: bool) {
+    <span class="doccomment">/// Creates the declarations for a sript.
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>create_script_decls(
+        <span class="kw-2">&amp;mut </span><span class="self">self</span>,
+        stmt_list: <span class="kw-2">&amp;</span>StatementList,
+        configurable_globals: bool,
+    ) {
         <span class="kw">for </span>node <span class="kw">in </span>stmt_list.statements() {
             <span class="self">self</span>.create_decls_from_stmt_list_item(node, configurable_globals);
         }

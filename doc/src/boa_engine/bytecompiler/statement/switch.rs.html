@@ -67,7 +67,7 @@
         <span class="self">self</span>.context.push_compile_time_environment(<span class="bool-val">false</span>);
         <span class="kw">let </span>push_env = <span class="self">self</span>.emit_opcode_with_two_operands(Opcode::PushDeclarativeEnvironment);
         <span class="kw">for </span>case <span class="kw">in </span>switch.cases() {
-            <span class="self">self</span>.create_decls(case.body(), configurable_globals);
+            <span class="self">self</span>.create_script_decls(case.body(), configurable_globals);
         }
         <span class="self">self</span>.emit_opcode(Opcode::LoopStart);
 
@@ -90,7 +90,7 @@
 
         <span class="self">self</span>.patch_jump(exit);
         <span class="kw">if let </span><span class="prelude-val">Some</span>(body) = switch.default() {
-            <span class="self">self</span>.create_decls(body, configurable_globals);
+            <span class="self">self</span>.create_script_decls(body, configurable_globals);
             <span class="self">self</span>.compile_statement_list(body, <span class="bool-val">false</span>, configurable_globals)<span class="question-mark">?</span>;
         }
 

@@ -239,7 +239,7 @@
 };
 <span class="kw">use </span>boa_ast::{
     declaration::{VarDeclaration, Variable},
-    Keyword, Punctuator, Statement,
+    Keyword, Punctuator,
 };
 <span class="kw">use </span>boa_interner::Interner;
 <span class="kw">use </span>boa_profiler::Profiler;
@@ -279,7 +279,7 @@
 <span class="kw">where
     </span>R: Read,
 {
-    <span class="kw">type </span>Output = Statement;
+    <span class="kw">type </span>Output = VarDeclaration;
 
     <span class="kw">fn </span>parse(<span class="self">self</span>, cursor: <span class="kw-2">&amp;mut </span>Cursor&lt;R&gt;, interner: <span class="kw-2">&amp;mut </span>Interner) -&gt; ParseResult&lt;<span class="self">Self</span>::Output&gt; {
         <span class="kw">let </span>_timer = Profiler::global().start_event(<span class="string">&quot;VariableStatement&quot;</span>, <span class="string">&quot;Parsing&quot;</span>);
@@ -290,7 +290,7 @@
 
         cursor.expect_semicolon(<span class="string">&quot;variable statement&quot;</span>, interner)<span class="question-mark">?</span>;
 
-        <span class="prelude-val">Ok</span>(decl_list.into())
+        <span class="prelude-val">Ok</span>(decl_list)
     }
 }
 

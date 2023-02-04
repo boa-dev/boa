@@ -257,6 +257,57 @@
 <a href="#256" id="256">256</a>
 <a href="#257" id="257">257</a>
 <a href="#258" id="258">258</a>
+<a href="#259" id="259">259</a>
+<a href="#260" id="260">260</a>
+<a href="#261" id="261">261</a>
+<a href="#262" id="262">262</a>
+<a href="#263" id="263">263</a>
+<a href="#264" id="264">264</a>
+<a href="#265" id="265">265</a>
+<a href="#266" id="266">266</a>
+<a href="#267" id="267">267</a>
+<a href="#268" id="268">268</a>
+<a href="#269" id="269">269</a>
+<a href="#270" id="270">270</a>
+<a href="#271" id="271">271</a>
+<a href="#272" id="272">272</a>
+<a href="#273" id="273">273</a>
+<a href="#274" id="274">274</a>
+<a href="#275" id="275">275</a>
+<a href="#276" id="276">276</a>
+<a href="#277" id="277">277</a>
+<a href="#278" id="278">278</a>
+<a href="#279" id="279">279</a>
+<a href="#280" id="280">280</a>
+<a href="#281" id="281">281</a>
+<a href="#282" id="282">282</a>
+<a href="#283" id="283">283</a>
+<a href="#284" id="284">284</a>
+<a href="#285" id="285">285</a>
+<a href="#286" id="286">286</a>
+<a href="#287" id="287">287</a>
+<a href="#288" id="288">288</a>
+<a href="#289" id="289">289</a>
+<a href="#290" id="290">290</a>
+<a href="#291" id="291">291</a>
+<a href="#292" id="292">292</a>
+<a href="#293" id="293">293</a>
+<a href="#294" id="294">294</a>
+<a href="#295" id="295">295</a>
+<a href="#296" id="296">296</a>
+<a href="#297" id="297">297</a>
+<a href="#298" id="298">298</a>
+<a href="#299" id="299">299</a>
+<a href="#300" id="300">300</a>
+<a href="#301" id="301">301</a>
+<a href="#302" id="302">302</a>
+<a href="#303" id="303">303</a>
+<a href="#304" id="304">304</a>
+<a href="#305" id="305">305</a>
+<a href="#306" id="306">306</a>
+<a href="#307" id="307">307</a>
+<a href="#308" id="308">308</a>
+<a href="#309" id="309">309</a>
 </pre><pre class="rust"><code><span class="doccomment">//! Macros for the Boa JavaScript engine.
 
 </span><span class="attr">#![doc(
@@ -318,20 +369,76 @@
 
 </span><span class="kw">use </span>proc_macro::TokenStream;
 <span class="kw">use </span>proc_macro2::Ident;
-<span class="kw">use </span>quote::quote;
+<span class="kw">use </span>quote::{quote, ToTokens};
 <span class="kw">use </span>syn::{
     parse::{Parse, ParseStream},
     parse_macro_input,
     punctuated::Punctuated,
-    LitStr, Token,
+    Expr, ExprLit, Lit, LitStr, Token,
 };
 <span class="kw">use </span>synstructure::{decl_derive, AddBounds, Structure};
 
-<span class="kw">struct </span>Syms(Vec&lt;LitStr&gt;);
+<span class="kw">struct </span>Static {
+    literal: LitStr,
+    ident: Ident,
+}
+
+<span class="kw">impl </span>Parse <span class="kw">for </span>Static {
+    <span class="kw">fn </span>parse(input: ParseStream&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; syn::Result&lt;<span class="self">Self</span>&gt; {
+        <span class="kw">let </span>expr = Expr::parse(input)<span class="question-mark">?</span>;
+        <span class="kw">match </span>expr {
+            Expr::Tuple(expr) =&gt; {
+                <span class="kw">let </span><span class="kw-2">mut </span>elems = expr.elems.iter().cloned();
+                <span class="kw">let </span>literal = elems
+                    .next()
+                    .ok_or_else(|| syn::Error::new_spanned(<span class="kw-2">&amp;</span>expr, <span class="string">&quot;invalid empty tuple&quot;</span>))<span class="question-mark">?</span>;
+                <span class="kw">let </span>ident = elems.next();
+                <span class="kw">if </span>elems.next().is_some() {
+                    <span class="kw">return </span><span class="prelude-val">Err</span>(syn::Error::new_spanned(
+                        <span class="kw-2">&amp;</span>expr,
+                        <span class="string">&quot;invalid tuple with more than two elements&quot;</span>,
+                    ));
+                }
+                <span class="kw">let </span>Expr::Lit(ExprLit {
+                    lit: Lit::Str(literal), ..
+                }) = literal <span class="kw">else </span>{
+                    <span class="kw">return </span><span class="prelude-val">Err</span>(syn::Error::new_spanned(
+                        literal,
+                        <span class="string">&quot;expected an UTF-8 string literal&quot;</span>,
+                    ));
+                };
+
+                <span class="kw">let </span>ident = <span class="kw">if let </span><span class="prelude-val">Some</span>(ident) = ident {
+                    syn::parse2::&lt;Ident&gt;(ident.into_token_stream())<span class="question-mark">?
+                </span>} <span class="kw">else </span>{
+                    Ident::new(<span class="kw-2">&amp;</span>literal.value().to_uppercase(), literal.span())
+                };
+
+                <span class="prelude-val">Ok</span>(<span class="self">Self </span>{ literal, ident })
+            }
+            Expr::Lit(expr) =&gt; <span class="kw">match </span>expr.lit {
+                Lit::Str(str) =&gt; <span class="prelude-val">Ok</span>(<span class="self">Self </span>{
+                    ident: Ident::new(<span class="kw-2">&amp;</span>str.value().to_uppercase(), str.span()),
+                    literal: str,
+                }),
+                <span class="kw">_ </span>=&gt; <span class="prelude-val">Err</span>(syn::Error::new_spanned(
+                    expr,
+                    <span class="string">&quot;expected an UTF-8 string literal&quot;</span>,
+                )),
+            },
+            <span class="kw">_ </span>=&gt; <span class="prelude-val">Err</span>(syn::Error::new_spanned(
+                expr,
+                <span class="string">&quot;expected a string literal or a tuple expression&quot;</span>,
+            )),
+        }
+    }
+}
+
+<span class="kw">struct </span>Syms(Vec&lt;Static&gt;);
 
 <span class="kw">impl </span>Parse <span class="kw">for </span>Syms {
     <span class="kw">fn </span>parse(input: ParseStream&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; syn::Result&lt;<span class="self">Self</span>&gt; {
-        <span class="kw">let </span>parsed = Punctuated::&lt;LitStr, <span class="macro">Token!</span>[,]&gt;::parse_terminated(input)<span class="question-mark">?</span>;
+        <span class="kw">let </span>parsed = Punctuated::&lt;Static, <span class="macro">Token!</span>[,]&gt;::parse_terminated(input)<span class="question-mark">?</span>;
         <span class="kw">let </span>literals = parsed.into_iter().collect();
         <span class="prelude-val">Ok</span>(<span class="self">Self</span>(literals))
     }
@@ -343,28 +450,23 @@
     <span class="kw">let </span>literals = <span class="macro">parse_macro_input!</span>(input <span class="kw">as </span>Syms).<span class="number">0</span>;
 
     <span class="kw">let </span>consts = literals.iter().enumerate().map(|(<span class="kw-2">mut </span>idx, lit)| {
-        <span class="kw">let </span>ident = lit.value();
-        <span class="kw">let </span>(doc, ident) = <span class="kw">match </span><span class="kw-2">&amp;*</span>ident {
-            <span class="string">&quot;&quot; </span>=&gt; (
-                String::from(<span class="string">&quot;Symbol for the empty string.&quot;</span>),
-                String::from(<span class="string">&quot;EMPTY_STRING&quot;</span>),
-            ),
-            <span class="string">&quot;&lt;main&gt;&quot; </span>=&gt; (
-                String::from(<span class="string">&quot;Symbol for the `&lt;main&gt;` string.&quot;</span>),
-                String::from(<span class="string">&quot;MAIN&quot;</span>),
-            ),
-            ident =&gt; (
-                <span class="macro">format!</span>(<span class="string">&quot;Symbol for the `{ident}` string.&quot;</span>,),
-                ident.to_uppercase(),
-            ),
-        };
-        <span class="kw">let </span>ident = Ident::new(<span class="kw-2">&amp;</span>ident, lit.span());
+        <span class="kw">let </span>doc = <span class="macro">format!</span>(
+            <span class="string">&quot;Symbol for the \&quot;{}\&quot; string.&quot;</span>,
+            lit.literal
+                .value()
+                .replace(<span class="string">&#39;&lt;&#39;</span>, <span class="string">r&quot;\&lt;&quot;</span>)
+                .replace(<span class="string">&#39;&gt;&#39;</span>, <span class="string">r&quot;\&gt;&quot;</span>)
+                .replace(<span class="string">&#39;*&#39;</span>, <span class="string">r&quot;\*&quot;</span>)
+        );
+        <span class="kw">let </span>ident = <span class="kw-2">&amp;</span>lit.ident;
         idx += <span class="number">1</span>;
         <span class="macro">quote! </span>{
             <span class="attr">#[doc = #doc]
             </span><span class="kw">pub const </span>#ident: <span class="self">Self </span>= <span class="kw">unsafe </span>{ <span class="self">Self</span>::new_unchecked(#idx) };
         }
     });
+
+    <span class="kw">let </span>literals = literals.iter().map(|lit| <span class="kw-2">&amp;</span>lit.literal).collect::&lt;Vec&lt;<span class="kw">_</span>&gt;&gt;();
 
     <span class="kw">let </span>caches = <span class="macro">quote! </span>{
         <span class="kw">type </span>Set&lt;T&gt; = ::indexmap::IndexSet&lt;T, ::core::hash::BuildHasherDefault&lt;::rustc_hash::FxHasher&gt;&gt;;

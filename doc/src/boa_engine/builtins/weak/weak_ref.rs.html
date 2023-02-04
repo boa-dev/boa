@@ -330,7 +330,7 @@
         <span class="kw">let </span>context = <span class="kw-2">&amp;mut </span>Context::default();
 
         <span class="macro">assert!</span>(context
-            .eval(Source::from_bytes(
+            .eval_script(Source::from_bytes(
                 <span class="string">r#&quot;
             var ptr;
             {
@@ -347,7 +347,7 @@
 
         <span class="macro">assert_eq!</span>(
             context
-                .eval(Source::from_bytes(
+                .eval_script(Source::from_bytes(
                     <span class="string">r#&quot;
             ptr.deref()
         &quot;#

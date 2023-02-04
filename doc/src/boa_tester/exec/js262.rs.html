@@ -114,6 +114,7 @@
 <a href="#113" id="113">113</a>
 <a href="#114" id="114">114</a>
 <a href="#115" id="115">115</a>
+<a href="#116" id="116">116</a>
 </pre><pre class="rust"><code><span class="kw">use </span>boa_engine::{
     native_function::NativeFunction,
     object::{JsObject, ObjectInitializer},
@@ -206,7 +207,8 @@
 </span><span class="kw">fn </span>eval_script(_this: <span class="kw-2">&amp;</span>JsValue, args: <span class="kw-2">&amp;</span>[JsValue], context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;JsValue&gt; {
     args.get(<span class="number">0</span>).and_then(JsValue::as_string).map_or_else(
         || <span class="prelude-val">Ok</span>(JsValue::undefined()),
-        |source_text| <span class="kw">match </span>context.parse(Source::from_bytes(<span class="kw-2">&amp;</span>source_text.to_std_string_escaped()))
+        |source_text| <span class="kw">match </span>context
+            .parse_script(Source::from_bytes(<span class="kw-2">&amp;</span>source_text.to_std_string_escaped()))
         {
             <span class="comment">// TODO: check strict
             </span><span class="prelude-val">Err</span>(e) =&gt; <span class="prelude-val">Err</span>(JsNativeError::typ()
@@ -214,7 +216,7 @@
                 .into()),
             <span class="comment">// Calling eval here parses the code a second time.
             // TODO: We can fix this after we have have defined the public api for the vm executer.
-            </span><span class="prelude-val">Ok</span>(<span class="kw">_</span>) =&gt; context.eval(Source::from_bytes(<span class="kw-2">&amp;</span>source_text.to_std_string_escaped())),
+            </span><span class="prelude-val">Ok</span>(<span class="kw">_</span>) =&gt; context.eval_script(Source::from_bytes(<span class="kw-2">&amp;</span>source_text.to_std_string_escaped())),
         },
     )
 }

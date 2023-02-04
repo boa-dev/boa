@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"mod":[["hoistable","Hoistable declaration parsing."],["lexical","Lexical declaration parsing."]],"struct":[["Declaration","Parses a declaration."]]};
+window.SIDEBAR_ITEMS = {"mod":[["export","Export declaration parsing"],["hoistable","Hoistable declaration parsing."],["import","Import declaration parsing"],["lexical","Lexical declaration parsing."]],"struct":[["Declaration","Parses a declaration."],["FromClause","Parses a `from` clause."]]};
