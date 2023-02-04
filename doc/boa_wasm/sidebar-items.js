@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"constant":[["__wasm_bindgen_generated_evaluate__const",""]],"fn":[["evaluate","Evaluate the given ECMAScript code."]]};
+window.SIDEBAR_ITEMS = {"fn":[["evaluate","Evaluate the given ECMAScript code."]]};
