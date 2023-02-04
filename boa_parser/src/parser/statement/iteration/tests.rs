@@ -1,4 +1,4 @@
-use crate::parser::tests::{check_invalid, check_script_parser};
+use crate::parser::tests::{check_invalid_script, check_script_parser};
 use boa_ast::{
     declaration::{VarDeclaration, Variable},
     expression::{
@@ -251,11 +251,11 @@ fn do_while_spaces() {
 /// Checks rejection of const bindings without init in for loops
 #[test]
 fn reject_const_no_init_for_loop() {
-    check_invalid("for (const h;;);");
+    check_invalid_script("for (const h;;);");
 }
 
 /// Checks rejection of for await .. in loops
 #[test]
 fn reject_for_await_in_loop() {
-    check_invalid("for await (x in [1,2,3]);");
+    check_invalid_script("for await (x in [1,2,3]);");
 }

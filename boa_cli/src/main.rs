@@ -194,7 +194,7 @@ where
     S: AsRef<[u8]> + ?Sized,
 {
     boa_parser::Parser::new(Source::from_bytes(&src))
-        .parse_all(context.interner_mut())
+        .parse_script(context.interner_mut())
         .map_err(|e| format!("Uncaught SyntaxError: {e}"))
 }
 
@@ -232,8 +232,8 @@ fn generate_flowgraph(
     format: FlowgraphFormat,
     direction: Option<FlowgraphDirection>,
 ) -> JsResult<String> {
-    let ast = context.parse(Source::from_bytes(src))?;
-    let code = context.compile(&ast)?;
+    let ast = context.parse_script(Source::from_bytes(src))?;
+    let code = context.compile_script(&ast)?;
 
     let direction = match direction {
         Some(FlowgraphDirection::TopToBottom) | None => Direction::TopToBottom,
@@ -281,7 +281,7 @@ fn main() -> Result<(), io::Error> {
                 Err(v) => eprintln!("Uncaught {v}"),
             }
         } else {
-            match context.eval(Source::from_bytes(&buffer)) {
+            match context.eval_script(Source::from_bytes(&buffer)) {
                 Ok(v) => println!("{}", v.display()),
                 Err(v) => eprintln!("Uncaught {v}"),
             }
@@ -338,7 +338,7 @@ fn main() -> Result<(), io::Error> {
                             Err(v) => eprintln!("Uncaught {v}"),
                         }
                     } else {
-                        match context.eval(Source::from_bytes(line.trim_end())) {
+                        match context.eval_script(Source::from_bytes(line.trim_end())) {
                             Ok(v) => {
                                 println!("{}", v.display());
                             }

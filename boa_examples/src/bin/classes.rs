@@ -134,7 +134,7 @@ fn main() {
     // Having done all of that, we can execute Javascript code with `eval`,
     // and access the `Person` class defined in Rust!
     context
-        .eval(Source::from_bytes(
+        .eval_script(Source::from_bytes(
             r"
 		let person = new Person('John', 19);
 		person.sayHello();

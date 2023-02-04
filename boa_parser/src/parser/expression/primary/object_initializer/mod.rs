@@ -436,6 +436,7 @@ where
                     &bound_names(&parameters),
                     &top_level_lexically_declared_names(&body),
                     params_start_position,
+                    interner,
                 )?;
 
                 let name = property_name.literal().map(|name| {
@@ -511,6 +512,7 @@ where
                     &bound_names(&params),
                     &top_level_lexically_declared_names(&body),
                     params_start_position,
+                    interner,
                 )?;
 
                 let method = MethodDefinition::Ordinary(Function::new(
@@ -592,10 +594,17 @@ where
             }
             TokenKind::NullLiteral => (Sym::NULL).into(),
             TokenKind::BooleanLiteral(bool) => match bool {
-                true => (interner.get_or_intern_static("true", utf16!("true"))).into(),
-                false => (interner.get_or_intern_static("false", utf16!("false"))).into(),
+                true => Sym::TRUE.into(),
+                false => Sym::FALSE.into(),
             },
-            _ => return Err(Error::AbruptEnd),
+            _ => {
+                return Err(Error::expected(
+                    vec!["property name".to_owned()],
+                    token.to_string(interner),
+                    token.span(),
+                    "property name",
+                ))
+            }
         };
         cursor.advance(interner);
         Ok(name)
@@ -786,6 +795,7 @@ where
             &bound_names(&params),
             &top_level_lexically_declared_names(&body),
             params_start_position,
+            interner,
         )?;
 
         let method = MethodDefinition::Generator(Generator::new(
@@ -901,6 +911,7 @@ where
             &bound_names(&params),
             &top_level_lexically_declared_names(&body),
             params_start_position,
+            interner,
         )?;
 
         let method = MethodDefinition::AsyncGenerator(AsyncGenerator::new(
@@ -993,6 +1004,7 @@ where
             &bound_names(&params),
             &top_level_lexically_declared_names(&body),
             params_start_position,
+            interner,
         )?;
 
         let method = MethodDefinition::Async(AsyncFunction::new(

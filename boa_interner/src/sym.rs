@@ -122,7 +122,7 @@ static_syms! {
     "yield",
     // End strict reserved identifiers
 
-    "",
+    ("", EMPTY_STRING),
     "prototype",
     "constructor",
     "arguments",
@@ -130,13 +130,16 @@ static_syms! {
     "RegExp",
     "get",
     "set",
-    "<main>",
+    ("<main>", MAIN),
     "raw",
     "anonymous",
     "async",
     "of",
     "target",
+    "as",
+    "from",
     "__proto__",
     "name",
     "await",
+    ("*default*", DEFAULT_EXPORT)
 }

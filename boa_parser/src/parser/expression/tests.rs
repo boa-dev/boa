@@ -1,4 +1,4 @@
-use crate::parser::tests::{check_invalid, check_script_parser};
+use crate::parser::tests::{check_invalid_script, check_script_parser};
 use boa_ast::{
     declaration::{LexicalDeclaration, Variable},
     expression::{
@@ -684,10 +684,10 @@ fn check_logical_expressions() {
         interner,
     );
 
-    check_invalid("a ?? b && c");
-    check_invalid("a && b ?? c");
-    check_invalid("a ?? b || c");
-    check_invalid("a || b ?? c");
+    check_invalid_script("a ?? b && c");
+    check_invalid_script("a && b ?? c");
+    check_invalid_script("a ?? b || c");
+    check_invalid_script("a || b ?? c");
 }
 
 macro_rules! check_non_reserved_identifier {

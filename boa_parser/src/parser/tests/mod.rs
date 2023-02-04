@@ -37,7 +37,7 @@ where
 {
     assert_eq!(
         Parser::new(Source::from_bytes(js))
-            .parse_all(interner)
+            .parse_script(interner)
             .expect("failed to parse"),
         StatementList::from(expr.into())
     );
@@ -45,9 +45,9 @@ where
 
 /// Checks that the given javascript string creates a parse error.
 #[track_caller]
-pub(super) fn check_invalid(js: &str) {
+pub(super) fn check_invalid_script(js: &str) {
     assert!(Parser::new(Source::from_bytes(js))
-        .parse_all(&mut Interner::default())
+        .parse_script(&mut Interner::default())
         .is_err());
 }
 

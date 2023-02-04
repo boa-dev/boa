@@ -21,7 +21,7 @@ use std::io::Read;
 ///
 /// [spec]: https://tc39.es/ecma262/#prod-AsyncGeneratorDeclaration
 #[derive(Debug, Clone, Copy)]
-pub(super) struct AsyncGeneratorDeclaration {
+pub(in crate::parser) struct AsyncGeneratorDeclaration {
     allow_yield: AllowYield,
     allow_await: AllowAwait,
     is_default: AllowDefault,
@@ -29,7 +29,7 @@ pub(super) struct AsyncGeneratorDeclaration {
 
 impl AsyncGeneratorDeclaration {
     /// Creates a new `AsyncGeneratorDeclaration` parser.
-    pub(super) fn new<Y, A, D>(allow_yield: Y, allow_await: A, is_default: D) -> Self
+    pub(in crate::parser) fn new<Y, A, D>(allow_yield: Y, allow_await: A, is_default: D) -> Self
     where
         Y: Into<AllowYield>,
         A: Into<AllowAwait>,

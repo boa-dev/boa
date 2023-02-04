@@ -21,9 +21,10 @@ use boa_ast::{
     expression::Identifier,
     function::FormalParameterList,
     operations::{
-        contains, top_level_lexically_declared_names, top_level_var_declared_names, ContainsSymbol,
+        contains, lexically_declared_names, top_level_lexically_declared_names,
+        top_level_var_declared_names, var_declared_names, ContainsSymbol,
     },
-    Position, StatementList,
+    ModuleItemList, Position, StatementList,
 };
 use boa_interner::Interner;
 use rustc_hash::FxHashSet;
@@ -130,8 +131,23 @@ impl<'a, R: Read> Parser<'a, R> {
     /// Will return `Err` on any parsing error, including invalid reads of the bytes being parsed.
     ///
     /// [spec]: https://tc39.es/ecma262/#prod-Script
-    pub fn parse_all(&mut self, interner: &mut Interner) -> ParseResult<StatementList> {
+    pub fn parse_script(&mut self, interner: &mut Interner) -> ParseResult<StatementList> {
         Script::new(false).parse(&mut self.cursor, interner)
+    }
+
+    /// Parse the full input as an [ECMAScript Module][spec] into the boa AST representation.
+    /// The resulting `ModuleItemList` can be compiled into boa bytecode and executed in the boa vm.
+    ///
+    /// # Errors
+    ///
+    /// Will return `Err` on any parsing error, including invalid reads of the bytes being parsed.
+    ///
+    /// [spec]: https://tc39.es/ecma262/#prod-Module
+    pub fn parse_module(&mut self, interner: &mut Interner) -> ParseResult<ModuleItemList>
+    where
+        R: Read,
+    {
+        Module.parse(&mut self.cursor, interner)
     }
 
     /// [`19.2.1.1 PerformEval ( x, strictCaller, direct )`][spec]
@@ -232,7 +248,6 @@ where
             .parse(cursor, interner)?;
 
         // It is a Syntax Error if the LexicallyDeclaredNames of ScriptBody contains any duplicate entries.
-        // It is a Syntax Error if any element of the LexicallyDeclaredNames of ScriptBody also occurs in the VarDeclaredNames of ScriptBody.
         let mut lexical_names = FxHashSet::default();
         for name in top_level_lexically_declared_names(&statement_list) {
             if !lexical_names.insert(name) {
@@ -243,6 +258,7 @@ where
             }
         }
 
+        // It is a Syntax Error if any element of the LexicallyDeclaredNames of ScriptBody also occurs in the VarDeclaredNames of ScriptBody.
         for name in top_level_var_declared_names(&statement_list) {
             if lexical_names.contains(&name) {
                 return Err(Error::general(
@@ -314,6 +330,13 @@ where
                     Position::new(1, 1),
                 ));
             }
+
+            // TODO:
+            // It is a Syntax Error if ContainsDuplicateLabels of StatementList with argument « » is true.
+            // It is a Syntax Error if ContainsUndefinedBreakTarget of StatementList with argument « » is true.
+            // It is a Syntax Error if ContainsUndefinedContinueTarget of StatementList with arguments « » and « » is true.
+            // It is a Syntax Error if AllPrivateIdentifiersValid of StatementList with argument « » is false unless the
+            // source text containing ScriptBody is eval code that is being processed by a direct eval.
         }
 
         Ok(body)
@@ -325,13 +348,17 @@ fn name_in_lexically_declared_names(
     bound_names: &[Identifier],
     lexical_names: &[Identifier],
     position: Position,
+    interner: &Interner,
 ) -> ParseResult<()> {
     for name in bound_names {
         if lexical_names.contains(name) {
-            return Err(Error::General {
-                message: "formal parameter declared in lexically declared names",
+            return Err(Error::general(
+                format!(
+                    "formal parameter `{}` declared in lexically declared names",
+                    interner.resolve_expect(name.sym())
+                ),
                 position,
-            });
+            ));
         }
     }
     Ok(())
@@ -346,5 +373,113 @@ trait OrAbrupt<T> {
 impl<T> OrAbrupt<T> for ParseResult<Option<T>> {
     fn or_abrupt(self) -> ParseResult<T> {
         self?.ok_or(Error::AbruptEnd)
+    }
+}
+
+/// Parses a full module.
+///
+/// More information:
+///  - [ECMAScript specification][spec]
+///
+/// [spec]: https://tc39.es/ecma262/#prod-Module
+#[derive(Debug, Clone, Copy)]
+struct Module;
+
+impl<R> TokenParser<R> for Module
+where
+    R: Read,
+{
+    type Output = ModuleItemList;
+
+    fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult<Self::Output> {
+        cursor.set_module_mode();
+
+        let items = if cursor.peek(0, interner)?.is_some() {
+            self::statement::ModuleItemList.parse(cursor, interner)?
+        } else {
+            return Ok(Vec::new().into());
+        };
+
+        // It is a Syntax Error if the LexicallyDeclaredNames of ModuleItemList contains any duplicate entries.
+        let mut bindings = FxHashSet::default();
+        for name in lexically_declared_names(&items) {
+            if !bindings.insert(name) {
+                return Err(Error::general(
+                    format!(
+                        "lexical name `{}` declared multiple times",
+                        interner.resolve_expect(name.sym())
+                    ),
+                    Position::new(1, 1),
+                ));
+            }
+        }
+
+        // It is a Syntax Error if any element of the LexicallyDeclaredNames of ModuleItemList also occurs in the
+        // VarDeclaredNames of ModuleItemList.
+        for name in var_declared_names(&items) {
+            if !bindings.insert(name) {
+                return Err(Error::general(
+                    format!(
+                        "lexical name `{}` declared multiple times",
+                        interner.resolve_expect(name.sym())
+                    ),
+                    Position::new(1, 1),
+                ));
+            }
+        }
+
+        // It is a Syntax Error if the ExportedNames of ModuleItemList contains any duplicate entries.
+        {
+            let mut exported_names = FxHashSet::default();
+            for name in items.exported_names() {
+                if !exported_names.insert(name) {
+                    return Err(Error::general(
+                        format!(
+                            "exported name `{}` declared multiple times",
+                            interner.resolve_expect(name)
+                        ),
+                        Position::new(1, 1),
+                    ));
+                }
+            }
+        }
+
+        // It is a Syntax Error if any element of the ExportedBindings of ModuleItemList does not also occur in either
+        // the VarDeclaredNames of ModuleItemList, or the LexicallyDeclaredNames of ModuleItemList.
+        for name in items.exported_bindings() {
+            if !bindings.contains(&name) {
+                return Err(Error::general(
+                    format!(
+                        "could not find the exported binding `{}` in the declared names of the module",
+                        interner.resolve_expect(name.sym())
+                    ),
+                    Position::new(1, 1),
+                ));
+            }
+        }
+
+        // It is a Syntax Error if ModuleItemList Contains super.
+        if contains(&items, ContainsSymbol::Super) {
+            return Err(Error::general(
+                "module cannot contain `super` on the top-level",
+                Position::new(1, 1),
+            ));
+        }
+
+        // It is a Syntax Error if ModuleItemList Contains NewTarget.
+        if contains(&items, ContainsSymbol::NewTarget) {
+            return Err(Error::general(
+                "module cannot contain `new.target` on the top-level",
+                Position::new(1, 1),
+            ));
+        }
+
+        // TODO:
+        // It is a Syntax Error if ContainsDuplicateLabels of ModuleItemList with argument « » is true.
+        // It is a Syntax Error if ContainsUndefinedBreakTarget of ModuleItemList with argument « » is true.
+        // It is a Syntax Error if ContainsUndefinedContinueTarget of ModuleItemList with arguments « » and « » is true.
+        // It is a Syntax Error if AllPrivateIdentifiersValid of ModuleItemList with argument « » is false.
+
+        Ok(items)
     }
 }

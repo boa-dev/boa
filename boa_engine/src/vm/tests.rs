@@ -47,7 +47,7 @@ fn try_catch_finally_from_init() {
 
     assert_eq!(
         Context::default()
-            .eval(Source::from_bytes(source))
+            .eval_script(Source::from_bytes(source))
             .unwrap_err()
             .as_opaque()
             .unwrap(),
@@ -70,7 +70,9 @@ fn multiple_catches() {
     "#;
 
     assert_eq!(
-        Context::default().eval(Source::from_bytes(source)).unwrap(),
+        Context::default()
+            .eval_script(Source::from_bytes(source))
+            .unwrap(),
         JsValue::Undefined
     );
 }
@@ -89,7 +91,9 @@ fn use_last_expr_try_block() {
     "#;
 
     assert_eq!(
-        Context::default().eval(Source::from_bytes(source)).unwrap(),
+        Context::default()
+            .eval_script(Source::from_bytes(source))
+            .unwrap(),
         JsValue::from("Hello!")
     );
 }
@@ -107,7 +111,9 @@ fn use_last_expr_catch_block() {
     "#;
 
     assert_eq!(
-        Context::default().eval(Source::from_bytes(source)).unwrap(),
+        Context::default()
+            .eval_script(Source::from_bytes(source))
+            .unwrap(),
         JsValue::from("Hello!")
     );
 }
@@ -123,7 +129,9 @@ fn no_use_last_expr_finally_block() {
     "#;
 
     assert_eq!(
-        Context::default().eval(Source::from_bytes(source)).unwrap(),
+        Context::default()
+            .eval_script(Source::from_bytes(source))
+            .unwrap(),
         JsValue::undefined()
     );
 }
@@ -142,7 +150,9 @@ fn finally_block_binding_env() {
     "#;
 
     assert_eq!(
-        Context::default().eval(Source::from_bytes(source)).unwrap(),
+        Context::default()
+            .eval_script(Source::from_bytes(source))
+            .unwrap(),
         JsValue::from("Hey hey people")
     );
 }
@@ -161,7 +171,9 @@ fn run_super_method_in_object() {
     "#;
 
     assert_eq!(
-        Context::default().eval(Source::from_bytes(source)).unwrap(),
+        Context::default()
+            .eval_script(Source::from_bytes(source))
+            .unwrap(),
         JsValue::from("super")
     );
 }
@@ -187,7 +199,9 @@ fn get_reference_by_super() {
     "#;
 
     assert_eq!(
-        Context::default().eval(Source::from_bytes(source)).unwrap(),
+        Context::default()
+            .eval_script(Source::from_bytes(source))
+            .unwrap(),
         JsValue::from("ab")
     );
 }

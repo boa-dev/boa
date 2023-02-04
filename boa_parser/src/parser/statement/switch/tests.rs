@@ -1,4 +1,4 @@
-use crate::parser::tests::{check_invalid, check_script_parser};
+use crate::parser::tests::{check_invalid_script, check_script_parser};
 use boa_ast::{
     declaration::{LexicalDeclaration, Variable},
     expression::{access::SimplePropertyAccess, literal::Literal, Call, Identifier},
@@ -11,7 +11,7 @@ use boa_macros::utf16;
 /// Checks parsing malformed switch with no closeblock.
 #[test]
 fn check_switch_no_closeblock() {
-    check_invalid(
+    check_invalid_script(
         r#"
         let a = 10;
         switch (a) {
@@ -26,7 +26,7 @@ fn check_switch_no_closeblock() {
 /// Checks parsing malformed switch in which a case is started but not finished.
 #[test]
 fn check_switch_case_unclosed() {
-    check_invalid(
+    check_invalid_script(
         r#"
         let a = 10;
         switch (a) {
@@ -40,7 +40,7 @@ fn check_switch_case_unclosed() {
 /// Checks parsing malformed switch with 2 defaults.
 #[test]
 fn check_switch_two_default() {
-    check_invalid(
+    check_invalid_script(
         r#"
         let a = 10;
         switch (a) {
@@ -58,7 +58,7 @@ fn check_switch_two_default() {
 /// Checks parsing malformed switch with no expression.
 #[test]
 fn check_switch_no_expr() {
-    check_invalid(
+    check_invalid_script(
         r#"
         let a = 10;
         switch {
@@ -73,7 +73,7 @@ fn check_switch_no_expr() {
 /// Checks parsing malformed switch with an unknown label.
 #[test]
 fn check_switch_unknown_label() {
-    check_invalid(
+    check_invalid_script(
         r#"
         let a = 10;
         switch (a) {
@@ -88,7 +88,7 @@ fn check_switch_unknown_label() {
 /// Checks parsing malformed switch with two defaults that are seperated by cases.
 #[test]
 fn check_switch_seperated_defaults() {
-    check_invalid(
+    check_invalid_script(
         r#"
         let a = 10;
         switch (a) {

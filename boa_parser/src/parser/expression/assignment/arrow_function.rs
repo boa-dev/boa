@@ -161,6 +161,7 @@ where
             &bound_names(&params),
             &top_level_lexically_declared_names(&body),
             params_start_position,
+            interner,
         )?;
 
         Ok(ast::function::ArrowFunction::new(self.name, params, body))

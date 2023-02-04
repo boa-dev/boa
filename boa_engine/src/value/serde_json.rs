@@ -227,7 +227,7 @@ mod tests {
         let mut context = Context::default();
 
         let add = context
-            .eval(Source::from_bytes(
+            .eval_script(Source::from_bytes(
                 r#"
                 1000000 + 500
             "#,
@@ -237,7 +237,7 @@ mod tests {
         assert_eq!(add, 1_000_500);
 
         let sub = context
-            .eval(Source::from_bytes(
+            .eval_script(Source::from_bytes(
                 r#"
                 1000000 - 500
             "#,
@@ -247,7 +247,7 @@ mod tests {
         assert_eq!(sub, 999_500);
 
         let mult = context
-            .eval(Source::from_bytes(
+            .eval_script(Source::from_bytes(
                 r#"
                 1000000 * 500
             "#,
@@ -257,7 +257,7 @@ mod tests {
         assert_eq!(mult, 500_000_000);
 
         let div = context
-            .eval(Source::from_bytes(
+            .eval_script(Source::from_bytes(
                 r#"
                 1000000 / 500
             "#,
@@ -267,7 +267,7 @@ mod tests {
         assert_eq!(div, 2000);
 
         let rem = context
-            .eval(Source::from_bytes(
+            .eval_script(Source::from_bytes(
                 r#"
                 233894 % 500
             "#,
@@ -277,7 +277,7 @@ mod tests {
         assert_eq!(rem, 394);
 
         let pow = context
-            .eval(Source::from_bytes(
+            .eval_script(Source::from_bytes(
                 r#"
                 36 ** 5
             "#,

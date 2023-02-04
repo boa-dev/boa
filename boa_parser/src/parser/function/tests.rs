@@ -1,4 +1,4 @@
-use crate::parser::tests::{check_invalid, check_script_parser};
+use crate::parser::tests::{check_invalid_script, check_script_parser};
 use boa_ast::{
     declaration::{LexicalDeclaration, Variable},
     expression::{
@@ -81,7 +81,7 @@ fn check_duplicates_strict_off() {
 /// Checks if duplicate parameter names are an error with strict mode on.
 #[test]
 fn check_duplicates_strict_on() {
-    check_invalid("'use strict'; function foo(a, a) {}");
+    check_invalid_script("'use strict'; function foo(a, a) {}");
 }
 
 /// Checks basic function declaration parsing with automatic semicolon insertion.

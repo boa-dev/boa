@@ -25,7 +25,7 @@ use self::{
     block::BlockStatement,
     break_stm::BreakStatement,
     continue_stm::ContinueStatement,
-    declaration::Declaration,
+    declaration::{Declaration, ExportDeclaration, ImportDeclaration},
     expression::ExpressionStatement,
     if_stm::IfStatement,
     iteration::{DoWhileStatement, ForStatement, WhileStatement},
@@ -37,7 +37,10 @@ use self::{
     variable::VariableStatement,
 };
 use crate::{
-    lexer::{token::EscapeSequence, Error as LexError, InputElement, Token, TokenKind},
+    lexer::{
+        token::{ContainsEscapeSequence, EscapeSequence},
+        Error as LexError, InputElement, Token, TokenKind,
+    },
     parser::{
         expression::{BindingIdentifier, Initializer, PropertyName},
         AllowAwait, AllowReturn, AllowYield, Cursor, OrAbrupt, ParseResult, TokenParser,
@@ -49,7 +52,7 @@ use boa_ast::{
     pattern::{ArrayPattern, ArrayPatternElement, ObjectPatternElement},
     Keyword, Punctuator,
 };
-use boa_interner::Interner;
+use boa_interner::{Interner, Sym};
 use boa_macros::utf16;
 use boa_profiler::Profiler;
 use std::io::Read;
@@ -865,6 +868,70 @@ where
                     }
                 }
             }
+        }
+    }
+}
+
+/// Parses a module body
+///
+/// More information:
+///  - [ECMAScript specification][spec]
+///
+/// [spec]: https://tc39.es/ecma262/#prod-ModuleBody
+#[derive(Debug, Clone, Copy)]
+pub(super) struct ModuleItemList;
+
+impl<R> TokenParser<R> for ModuleItemList
+where
+    R: Read,
+{
+    type Output = boa_ast::ModuleItemList;
+
+    fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult<Self::Output> {
+        let mut list = Vec::new();
+        while cursor.peek(0, interner)?.is_some() {
+            list.push(ModuleItem.parse(cursor, interner)?);
+        }
+
+        Ok(list.into())
+    }
+}
+
+/// Parses a module item.
+///
+/// More information:
+///  - [ECMAScript specification][spec]
+///
+/// [spec]: https://tc39.es/ecma262/#prod-ModuleItem
+struct ModuleItem;
+
+impl<R> TokenParser<R> for ModuleItem
+where
+    R: Read,
+{
+    type Output = boa_ast::ModuleItem;
+
+    fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult<Self::Output> {
+        let tok = cursor.peek(0, interner).or_abrupt()?;
+
+        match tok.kind() {
+            TokenKind::IdentifierName((ident, ContainsEscapeSequence(false)))
+                if *ident == Sym::IMPORT =>
+            {
+                ImportDeclaration
+                    .parse(cursor, interner)
+                    .map(Self::Output::ImportDeclaration)
+            }
+            TokenKind::IdentifierName((ident, ContainsEscapeSequence(false)))
+                if *ident == Sym::EXPORT =>
+            {
+                ExportDeclaration
+                    .parse(cursor, interner)
+                    .map(Self::Output::ExportDeclaration)
+            }
+            _ => StatementListItem::new(false, true, false)
+                .parse(cursor, interner)
+                .map(Self::Output::StatementListItem),
         }
     }
 }

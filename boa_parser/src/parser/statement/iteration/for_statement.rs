@@ -303,16 +303,20 @@ fn initializer_to_iterable_loop_initializer(
             ast::Expression::Identifier(ident) => Ok(IterableLoopInitializer::Identifier(ident)),
             ast::Expression::ArrayLiteral(array) => array
                 .to_pattern(strict)
-                .ok_or(Error::General {
-                    message: "invalid array destructuring pattern in iterable loop initializer",
-                    position,
+                .ok_or_else(|| {
+                    Error::general(
+                        "invalid array destructuring pattern in iterable loop initializer",
+                        position,
+                    )
                 })
                 .map(|arr| IterableLoopInitializer::Pattern(arr.into())),
             ast::Expression::ObjectLiteral(object) => object
                 .to_pattern(strict)
-                .ok_or(Error::General {
-                    message: "invalid object destructuring pattern in iterable loop initializer",
-                    position,
+                .ok_or_else(|| {
+                    Error::general(
+                        "invalid object destructuring pattern in iterable loop initializer",
+                        position,
+                    )
                 })
                 .map(|obj| IterableLoopInitializer::Pattern(obj.into())),
             ast::Expression::PropertyAccess(access) => Ok(IterableLoopInitializer::Access(access)),

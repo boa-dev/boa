@@ -13,7 +13,7 @@ fn main() {
             // Instantiate the execution context
             let mut context = Context::default();
             // Parse the source code
-            match context.eval(src) {
+            match context.eval_script(src) {
                 Ok(res) => {
                     println!(
                         "{}",

@@ -1,5 +1,3 @@
-use std::convert::TryInto;
-
 use crate::parser::tests::check_script_parser;
 use boa_ast::{
     declaration::{LexicalDeclaration, Variable},

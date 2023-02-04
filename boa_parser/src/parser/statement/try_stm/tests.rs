@@ -1,6 +1,4 @@
-use std::convert::TryInto;
-
-use crate::parser::tests::{check_invalid, check_script_parser};
+use crate::parser::tests::{check_invalid_script, check_script_parser};
 use boa_ast::{
     declaration::{VarDeclaration, Variable},
     expression::{literal::Literal, Identifier},
@@ -265,35 +263,35 @@ fn check_catch_with_var_redeclaration() {
 
 #[test]
 fn check_inline_invalid_catch() {
-    check_invalid("try {} catch");
+    check_invalid_script("try {} catch");
 }
 
 #[test]
 fn check_inline_invalid_catch_without_closing_paren() {
-    check_invalid("try {} catch(e {}");
+    check_invalid_script("try {} catch(e {}");
 }
 
 #[test]
 fn check_inline_invalid_catch_parameter() {
-    check_invalid("try {} catch(1) {}");
+    check_invalid_script("try {} catch(1) {}");
 }
 
 #[test]
 fn check_invalid_try_no_catch_finally() {
-    check_invalid("try {} let a = 10;");
+    check_invalid_script("try {} let a = 10;");
 }
 
 #[test]
 fn check_invalid_catch_with_empty_paren() {
-    check_invalid("try {} catch() {}");
+    check_invalid_script("try {} catch() {}");
 }
 
 #[test]
 fn check_invalid_catch_with_duplicate_params() {
-    check_invalid("try {} catch({ a, b: a }) {}");
+    check_invalid_script("try {} catch({ a, b: a }) {}");
 }
 
 #[test]
 fn check_invalid_catch_with_lexical_redeclaration() {
-    check_invalid("try {} catch(e) { let e = 'oh' }");
+    check_invalid_script("try {} catch(e) { let e = 'oh' }");
 }

@@ -2,10 +2,10 @@
 
 mod js262;
 
-use super::{
-    Harness, Outcome, Phase, SuiteResult, Test, TestFlags, TestOutcomeResult, TestResult, TestSuite,
+use crate::{
+    read::ErrorType, Harness, Outcome, Phase, SuiteResult, Test, TestFlags, TestOutcomeResult,
+    TestResult, TestSuite,
 };
-use crate::read::ErrorType;
 use boa_engine::{
     context::ContextBuilder, job::SimpleJobQueue, native_function::NativeFunction,
     object::FunctionObjectBuilder, property::Attribute, Context, JsArgs, JsNativeErrorKind,
@@ -187,7 +187,11 @@ impl Test {
                 context.strict(strict);
 
                 // TODO: timeout
-                let value = match context.eval(source) {
+                let value = match if self.is_module() {
+                    context.eval_module(source)
+                } else {
+                    context.eval_script(source)
+                } {
                     Ok(v) => v,
                     Err(e) => return (false, format!("Uncaught {e}")),
                 };
@@ -213,12 +217,22 @@ impl Test {
 
                 let context = &mut Context::default();
                 context.strict(strict);
-                match context.parse(source) {
-                    Ok(statement_list) => match context.compile(&statement_list) {
-                        Ok(_) => (false, "StatementList compilation should fail".to_owned()),
-                        Err(e) => (true, format!("Uncaught {e:?}")),
-                    },
-                    Err(e) => (true, format!("Uncaught {e}")),
+                if self.is_module() {
+                    match context.parse_module(source) {
+                        Ok(module_item_list) => match context.compile_module(&module_item_list) {
+                            Ok(_) => (false, "ModuleItemList compilation should fail".to_owned()),
+                            Err(e) => (true, format!("Uncaught {e:?}")),
+                        },
+                        Err(e) => (true, format!("Uncaught {e}")),
+                    }
+                } else {
+                    match context.parse_script(source) {
+                        Ok(statement_list) => match context.compile_script(&statement_list) {
+                            Ok(_) => (false, "StatementList compilation should fail".to_owned()),
+                            Err(e) => (true, format!("Uncaught {e:?}")),
+                        },
+                        Err(e) => (true, format!("Uncaught {e}")),
+                    }
                 }
             }
             Outcome::Negative {
@@ -230,17 +244,28 @@ impl Test {
                 error_type,
             } => {
                 let context = &mut Context::default();
+                context.strict(strict);
                 if let Err(e) = self.set_up_env(harness, context, AsyncResult::default()) {
                     return (false, e);
                 }
-                context.strict(strict);
-                let code = match context
-                    .parse(source)
-                    .map_err(Into::into)
-                    .and_then(|stmts| context.compile(&stmts))
-                {
-                    Ok(code) => code,
-                    Err(e) => return (false, format!("Uncaught {e}")),
+                let code = if self.is_module() {
+                    match context
+                        .parse_module(source)
+                        .map_err(Into::into)
+                        .and_then(|stmts| context.compile_module(&stmts))
+                    {
+                        Ok(code) => code,
+                        Err(e) => return (false, format!("Uncaught {e}")),
+                    }
+                } else {
+                    match context
+                        .parse_script(source)
+                        .map_err(Into::into)
+                        .and_then(|stmts| context.compile_script(&stmts))
+                    {
+                        Ok(code) => code,
+                        Err(e) => return (false, format!("Uncaught {e}")),
+                    }
                 };
 
                 let e = match context.execute(code) {
@@ -355,10 +380,10 @@ impl Test {
         let sta = Source::from_reader(harness.sta.content.as_bytes(), Some(&harness.sta.path));
 
         context
-            .eval(assert)
+            .eval_script(assert)
             .map_err(|e| format!("could not run assert.js:\n{e}"))?;
         context
-            .eval(sta)
+            .eval_script(sta)
             .map_err(|e| format!("could not run sta.js:\n{e}"))?;
 
         if self.flags.contains(TestFlags::ASYNC) {
@@ -367,7 +392,7 @@ impl Test {
                 Some(&harness.doneprint_handle.path),
             );
             context
-                .eval(dph)
+                .eval_script(dph)
                 .map_err(|e| format!("could not run doneprintHandle.js:\n{e}"))?;
         }
 
@@ -377,7 +402,7 @@ impl Test {
                 .get(include_name)
                 .ok_or_else(|| format!("could not find the {include_name} include file."))?;
             let source = Source::from_reader(include.content.as_bytes(), Some(&include.path));
-            context.eval(source).map_err(|e| {
+            context.eval_script(source).map_err(|e| {
                 format!("could not run the harness `{include_name}`:\nUncaught {e}",)
             })?;
         }
@@ -422,6 +447,7 @@ struct AsyncResult {
 }
 
 impl Default for AsyncResult {
+    #[inline]
     fn default() -> Self {
         Self {
             inner: Rc::new(RefCell::new(Ok(()))),

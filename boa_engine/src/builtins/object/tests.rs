@@ -252,7 +252,7 @@ fn get_own_property_descriptor_1_arg_returns_undefined() {
         Object.getOwnPropertyDescriptor(obj)
     "#;
     assert_eq!(
-        context.eval(Source::from_bytes(code)).unwrap(),
+        context.eval_script(Source::from_bytes(code)).unwrap(),
         JsValue::undefined()
     );
 }
@@ -324,7 +324,7 @@ fn object_is_prototype_of() {
     "#;
 
     assert_eq!(
-        context.eval(Source::from_bytes(init)).unwrap(),
+        context.eval_script(Source::from_bytes(init)).unwrap(),
         JsValue::new(true)
     );
 }

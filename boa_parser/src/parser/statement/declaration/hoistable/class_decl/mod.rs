@@ -24,7 +24,7 @@ use boa_ast::{
     function::{self, Class, FormalParameterList, Function},
     operations::{contains, contains_arguments, has_direct_super, ContainsSymbol},
     property::{ClassElementName, MethodDefinition},
-    Declaration, Expression, Keyword, Punctuator,
+    Expression, Keyword, Punctuator,
 };
 use boa_interner::{Interner, Sym};
 use boa_macros::utf16;
@@ -40,7 +40,7 @@ use std::io::Read;
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/class
 /// [spec]: https://tc39.es/ecma262/#prod-ClassDeclaration
 #[derive(Debug, Clone, Copy)]
-pub(super) struct ClassDeclaration {
+pub(in crate::parser) struct ClassDeclaration {
     allow_yield: AllowYield,
     allow_await: AllowAwait,
     is_default: AllowDefault,
@@ -48,7 +48,7 @@ pub(super) struct ClassDeclaration {
 
 impl ClassDeclaration {
     /// Creates a new `ClassDeclaration` parser.
-    pub(super) fn new<Y, A, D>(allow_yield: Y, allow_await: A, is_default: D) -> Self
+    pub(in crate::parser) fn new<Y, A, D>(allow_yield: Y, allow_await: A, is_default: D) -> Self
     where
         Y: Into<AllowYield>,
         A: Into<AllowAwait>,
@@ -66,7 +66,7 @@ impl<R> TokenParser<R> for ClassDeclaration
 where
     R: Read,
 {
-    type Output = Declaration;
+    type Output = Class;
 
     fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult<Self::Output> {
         cursor.expect((Keyword::Class, false), "class declaration", interner)?;
@@ -93,15 +93,13 @@ where
         };
         cursor.set_strict_mode(strict);
 
-        Ok(Declaration::Class(
-            ClassTail::new(
-                name,
-                has_binding_identifier,
-                self.allow_yield,
-                self.allow_await,
-            )
-            .parse(cursor, interner)?,
-        ))
+        ClassTail::new(
+            name,
+            has_binding_identifier,
+            self.allow_yield,
+            self.allow_await,
+        )
+        .parse(cursor, interner)
     }
 }
 

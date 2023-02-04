@@ -33,6 +33,7 @@ impl From<io::Error> for Error {
 
 impl Error {
     /// Creates a new syntax error.
+    #[inline]
     pub(super) fn syntax<M, P>(err: M, pos: P) -> Self
     where
         M: Into<Box<str>>,

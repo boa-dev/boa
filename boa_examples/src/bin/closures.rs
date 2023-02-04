@@ -36,7 +36,10 @@ fn main() -> Result<(), JsError> {
         }),
     );
 
-    assert_eq!(context.eval(Source::from_bytes("closure()"))?, 255.into());
+    assert_eq!(
+        context.eval_script(Source::from_bytes("closure()"))?,
+        255.into()
+    );
 
     // We have created a closure with moved variables and executed that closure
     // inside Javascript!
@@ -117,13 +120,13 @@ fn main() -> Result<(), JsError> {
     );
 
     assert_eq!(
-        context.eval(Source::from_bytes("createMessage()"))?,
+        context.eval_script(Source::from_bytes("createMessage()"))?,
         "message from `Boa dev`: Hello!".into()
     );
 
     // The data mutates between calls
     assert_eq!(
-        context.eval(Source::from_bytes("createMessage(); createMessage();"))?,
+        context.eval_script(Source::from_bytes("createMessage(); createMessage();"))?,
         "message from `Boa dev`: Hello! Hello! Hello!".into()
     );
 
@@ -167,7 +170,7 @@ fn main() -> Result<(), JsError> {
     );
 
     // First call should return the array `[0]`.
-    let result = context.eval(Source::from_bytes("enumerate()"))?;
+    let result = context.eval_script(Source::from_bytes("enumerate()"))?;
     let object = result
         .as_object()
         .cloned()
@@ -178,7 +181,7 @@ fn main() -> Result<(), JsError> {
     assert_eq!(array.get(1, &mut context)?, JsValue::undefined());
 
     // First call should return the array `[0, 1]`.
-    let result = context.eval(Source::from_bytes("enumerate()"))?;
+    let result = context.eval_script(Source::from_bytes("enumerate()"))?;
     let object = result
         .as_object()
         .cloned()

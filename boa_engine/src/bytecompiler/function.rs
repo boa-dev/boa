@@ -199,7 +199,7 @@ impl FunctionCompiler {
             compiler.emit_opcode(Opcode::Yield);
         }
 
-        compiler.create_decls(body, false);
+        compiler.create_script_decls(body, false);
         compiler.compile_statement_list(body, false, false)?;
 
         if let Some(env_label) = env_label {

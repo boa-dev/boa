@@ -13,7 +13,7 @@ impl ByteCompiler<'_, '_> {
         self.context.push_compile_time_environment(false);
         let push_env = self.emit_and_track_decl_env();
 
-        self.create_decls(block.statement_list(), configurable_globals);
+        self.create_script_decls(block.statement_list(), configurable_globals);
         self.compile_statement_list(block.statement_list(), use_expr, configurable_globals)?;
 
         let (num_bindings, compile_environment) = self.context.pop_compile_time_environment();

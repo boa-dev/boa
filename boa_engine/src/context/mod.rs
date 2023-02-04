@@ -28,8 +28,7 @@ use crate::{
     vm::{CallFrame, CodeBlock, Vm},
     JsResult, JsValue, Source,
 };
-
-use boa_ast::StatementList;
+use boa_ast::{ModuleItemList, StatementList};
 use boa_gc::Gc;
 use boa_interner::{Interner, Sym};
 use boa_parser::{Error as ParseError, Parser};
@@ -65,7 +64,7 @@ use boa_profiler::Profiler;
 /// let mut context = Context::default();
 ///
 /// // Populate the script definition to the context.
-/// context.eval(Source::from_bytes(script)).unwrap();
+/// context.eval_script(Source::from_bytes(script)).unwrap();
 ///
 /// // Create an object that can be used in eval calls.
 /// let arg = ObjectInitializer::new(&mut context)
@@ -73,7 +72,7 @@ use boa_profiler::Profiler;
 ///     .build();
 /// context.register_global_property("arg", arg, Attribute::all());
 ///
-/// let value = context.eval(Source::from_bytes("test(arg)")).unwrap();
+/// let value = context.eval_script(Source::from_bytes("test(arg)")).unwrap();
 ///
 /// assert_eq!(value.as_number(), Some(12.0))
 /// ```
@@ -141,7 +140,7 @@ impl Context<'_> {
         ContextBuilder::default()
     }
 
-    /// Evaluates the given script `Source` by compiling down to bytecode, then interpreting the
+    /// Evaluates the given script `src` by compiling down to bytecode, then interpreting the
     /// bytecode into a value.
     ///
     /// # Examples
@@ -150,7 +149,7 @@ impl Context<'_> {
     /// let mut context = Context::default();
     ///
     /// let source = Source::from_bytes("1 + 3");
-    /// let value = context.eval(source).unwrap();
+    /// let value = context.eval_script(source).unwrap();
     ///
     /// assert!(value.is_number());
     /// assert_eq!(value.as_number().unwrap(), 4.0);
@@ -159,11 +158,41 @@ impl Context<'_> {
     /// Note that this won't run any scheduled promise jobs; you need to call [`Context::run_jobs`]
     /// on the context or [`JobQueue::run_jobs`] on the provided queue to run them.
     #[allow(clippy::unit_arg, clippy::drop_copy)]
-    pub fn eval<R: Read>(&mut self, src: Source<'_, R>) -> JsResult<JsValue> {
-        let main_timer = Profiler::global().start_event("Evaluation", "Main");
+    pub fn eval_script<R: Read>(&mut self, src: Source<'_, R>) -> JsResult<JsValue> {
+        let main_timer = Profiler::global().start_event("Script evaluation", "Main");
 
-        let script = self.parse(src)?;
-        let code_block = self.compile(&script)?;
+        let script = self.parse_script(src)?;
+        let code_block = self.compile_script(&script)?;
+        let result = self.execute(code_block);
+
+        // The main_timer needs to be dropped before the Profiler is.
+        drop(main_timer);
+        Profiler::global().drop();
+
+        result
+    }
+
+    /// Evaluates the given module `src` by compiling down to bytecode, then interpreting the
+    /// bytecode into a value.
+    ///
+    /// # Examples
+    /// ```
+    /// # use boa_engine::{Context, Source};
+    /// let mut context = Context::default();
+    ///
+    /// let source = Source::from_bytes("1 + 3");
+    ///
+    /// let value = context.eval_module(source).unwrap();
+    ///
+    /// assert!(value.is_number());
+    /// assert_eq!(value.as_number().unwrap(), 4.0);
+    /// ```
+    #[allow(clippy::unit_arg, clippy::drop_copy)]
+    pub fn eval_module<R: Read>(&mut self, src: Source<'_, R>) -> JsResult<JsValue> {
+        let main_timer = Profiler::global().start_event("Module evaluation", "Main");
+
+        let module_item_list = self.parse_module(src)?;
+        let code_block = self.compile_module(&module_item_list)?;
         let result = self.execute(code_block);
 
         // The main_timer needs to be dropped before the Profiler is.
@@ -174,21 +203,44 @@ impl Context<'_> {
     }
 
     /// Parse the given source script.
-    pub fn parse<R: Read>(&mut self, src: Source<'_, R>) -> Result<StatementList, ParseError> {
-        let _timer = Profiler::global().start_event("Parsing", "Main");
+    pub fn parse_script<R: Read>(
+        &mut self,
+        src: Source<'_, R>,
+    ) -> Result<StatementList, ParseError> {
+        let _timer = Profiler::global().start_event("Script parsing", "Main");
         let mut parser = Parser::new(src);
         if self.strict {
             parser.set_strict();
         }
-        parser.parse_all(&mut self.interner)
+        parser.parse_script(&mut self.interner)
     }
 
-    /// Compile the AST into a `CodeBlock` ready to be executed by the VM.
-    pub fn compile(&mut self, statement_list: &StatementList) -> JsResult<Gc<CodeBlock>> {
-        let _timer = Profiler::global().start_event("Compilation", "Main");
+    /// Parse the given source script.
+    pub fn parse_module<R: Read>(
+        &mut self,
+        src: Source<'_, R>,
+    ) -> Result<ModuleItemList, ParseError> {
+        let _timer = Profiler::global().start_event("Module parsing", "Main");
+        let mut parser = Parser::new(src);
+        parser.parse_module(&mut self.interner)
+    }
+
+    /// Compile the script AST into a `CodeBlock` ready to be executed by the VM.
+    pub fn compile_script(&mut self, statement_list: &StatementList) -> JsResult<Gc<CodeBlock>> {
+        let _timer = Profiler::global().start_event("Script compilation", "Main");
         let mut compiler = ByteCompiler::new(Sym::MAIN, statement_list.strict(), false, self);
-        compiler.create_decls(statement_list, false);
+        compiler.create_script_decls(statement_list, false);
         compiler.compile_statement_list(statement_list, true, false)?;
+        Ok(Gc::new(compiler.finish()))
+    }
+
+    /// Compile the module AST into a `CodeBlock` ready to be executed by the VM.
+    pub fn compile_module(&mut self, statement_list: &ModuleItemList) -> JsResult<Gc<CodeBlock>> {
+        let _timer = Profiler::global().start_event("Module compilation", "Main");
+
+        let mut compiler = ByteCompiler::new(Sym::MAIN, true, false, self);
+        compiler.create_module_decls(statement_list, false);
+        compiler.compile_module_item_list(statement_list, false)?;
         Ok(Gc::new(compiler.finish()))
     }
 
@@ -197,7 +249,8 @@ impl Context<'_> {
     /// Since this function receives a `Gc<CodeBlock>`, cloning the code is very cheap, since it's
     /// just a pointer copy. Therefore, if you'd like to execute the same `CodeBlock` multiple
     /// times, there is no need to re-compile it, and you can just call `clone()` on the
-    /// `Gc<CodeBlock>` returned by the [`Self::compile()`] function.
+    /// `Gc<CodeBlock>` returned by the [`Context::compile_script`] or [`Context::compile_module`]
+    /// functions.
     ///
     /// Note that this won't run any scheduled promise jobs; you need to call [`Context::run_jobs`]
     /// on the context or [`JobQueue::run_jobs`] on the provided queue to run them.
@@ -373,7 +426,7 @@ impl Context<'_> {
         self.vm.trace = trace;
     }
 
-    /// Executes all code in strict mode.
+    /// Changes the strictness mode of the context.
     pub fn strict(&mut self, strict: bool) {
         self.strict = strict;
     }
@@ -417,7 +470,7 @@ impl Context<'_> {
     ) -> JsResult<Gc<CodeBlock>> {
         let _timer = Profiler::global().start_event("Compilation", "Main");
         let mut compiler = ByteCompiler::new(Sym::MAIN, statement_list.strict(), true, self);
-        compiler.create_decls(statement_list, false);
+        compiler.create_script_decls(statement_list, false);
         compiler.compile_statement_list(statement_list, true, false)?;
         Ok(Gc::new(compiler.finish()))
     }
