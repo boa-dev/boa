@@ -2999,50 +2999,50 @@ fn unary_operations_on_this() {
 #[test]
 fn try_break_finally_edge_cases() {
     let scenario = r#"
-    var a;
-    var b;
-    { 
-        while (true) { 
-            try { 
-                try { 
-                    break; 
-                } catch(a) {
-                } finally { 
-                } 
-            } finally { 
-            } 
-        }
-    }
-
-    {
-        while (true) {
-            try {
+        var a;
+        var b;
+        {
+            while (true) {
                 try {
-                    throw "b";
-                } catch (b) {
-                    break;
+                    try {
+                        break;
+                    } catch(a) {
+                    } finally {
+                    } 
                 } finally {
-                    a = "foo"
                 }
-            } finally {
             }
         }
-    }
 
-    { 
-        while (true) {
-            try {
+        {
+            while (true) {
                 try {
-                } catch (c) {
+                    try {
+                        throw "b";
+                    } catch (b) {
+                        break;
+                    } finally {
+                        a = "foo"
+                    }
                 } finally {
-                    b = "bar"
-                    break;
                 }
-            } finally {
             }
         }
-    } 
-    a + b
+
+        {
+            while (true) {
+                try {
+                    try {
+                    } catch (c) {
+                    } finally {
+                        b = "bar"
+                        break;
+                    }
+                } finally {
+                }
+            }
+        }
+        a + b
     "#;
 
     assert_eq!(&exec(scenario), "\"foobar\"");
@@ -3051,36 +3051,34 @@ fn try_break_finally_edge_cases() {
 #[test]
 fn try_break_labels() {
     let scenario = r#"
-    {
-        var str = '';
-    
-        outer: {
-            foo: { 
-                bar: {
-                    while (true) {
-                        try {
-                            try {
-                                break;
-                            } catch(f) {
+        {
+            var str = '';
         
+            outer: {
+                foo: {
+                    bar: {
+                        while (true) {
+                            try {
+                                try {
+                                    break;
+                                } catch(f) {
+                                } finally {
+                                    str = "fin";
+                                    break foo;
+                                    str += "This won't execute";
+                                }
                             } finally {
-                                str = "fin"
-                                break foo;
-                                str += "This won't execute"
+                                str = str + "ally!"
+                                break bar;
                             }
-                        } finally {
-                            str = str + "ally!"
-                            break bar;
                         }
+                        str += " oh no";
                     }
-                    str += " oh no"
+                    str += " :)";
                 }
-                str += " :)"
-                
             }
+            str
         }
-        str
-    }
     "#;
 
     assert_eq!(&exec(scenario), "\"finally! :)\"");
@@ -3091,7 +3089,7 @@ fn break_nested_labels_loops_and_try() {
     let scenario = r#"
         {
             let nestedLabels = (x) => {
-                let str = ""
+                let str = "";
                 foo: {
                     spacer: {
                         bar: {
@@ -3100,7 +3098,7 @@ fn break_nested_labels_loops_and_try() {
                                     try {
                                         break spacer;
                                     } finally {
-                                        str = "foo"
+                                        str = "foo";
                                     }
                                 } catch(h) {} finally {
                                     str += "bar"
@@ -3109,7 +3107,7 @@ fn break_nested_labels_loops_and_try() {
                                     } else {
                                         break bar;
                                     }
-                                } 
+                                }
                             }
                             str += " broke-while"
                         }
@@ -3117,10 +3115,9 @@ fn break_nested_labels_loops_and_try() {
                     }
                     str += " broke-spacer"
                 }
-                str += " broke-foo"
+                str += " broke-foo";
                 return str
             }
-        
             nestedLabels(true) + " != " + nestedLabels(false)
         }
     "#;

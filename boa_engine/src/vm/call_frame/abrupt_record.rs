@@ -2,7 +2,6 @@
 
 #[derive(Copy, Clone, Debug, PartialEq)]
 pub(crate) enum AbruptKind {
-    None,
     Continue,
     Break,
     Throw,
@@ -18,7 +17,7 @@ pub(crate) struct AbruptCompletionRecord {
 impl Default for AbruptCompletionRecord {
     fn default() -> Self {
         Self {
-            kind: AbruptKind::None,
+            kind: AbruptKind::Break,
             target: u32::MAX,
         }
     }

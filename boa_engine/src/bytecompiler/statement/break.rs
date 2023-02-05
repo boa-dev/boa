@@ -26,16 +26,16 @@ impl ByteCompiler<'_, '_> {
             let (break_label, target_jump_label) =
                 self.emit_opcode_with_two_operands(Opcode::Break);
 
-            if node.label().is_some() {
+            if let Some(node_label) = node.label() {
                 self.search_jump_info_label(
                     target_jump_label,
-                    node.label().expect("must exist as well"),
+                    node_label,
                 )?;
 
                 if !has_finally_or_is_finally {
                     self.search_jump_info_label(
                         break_label,
-                        node.label().expect("must exist as well"),
+                        node_label,
                     )?;
                     return Ok(());
                 }
