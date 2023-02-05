@@ -27,16 +27,10 @@ impl ByteCompiler<'_, '_> {
                 self.emit_opcode_with_two_operands(Opcode::Break);
 
             if let Some(node_label) = node.label() {
-                self.search_jump_info_label(
-                    target_jump_label,
-                    node_label,
-                )?;
+                self.search_jump_info_label(target_jump_label, node_label)?;
 
                 if !has_finally_or_is_finally {
-                    self.search_jump_info_label(
-                        break_label,
-                        node_label,
-                    )?;
+                    self.search_jump_info_label(break_label, node_label)?;
                     return Ok(());
                 }
             } else {
