@@ -32,11 +32,13 @@ impl Operation for PopIfThrown {
     const INSTRUCTION: &'static str = "INST - PopIfThrown";
 
     fn execute(context: &mut Context<'_>) -> JsResult<ShouldExit> {
-        let frame = context.vm.frame_mut();
-        if frame.thrown {
-            frame.thrown = false;
-            context.vm.pop();
-        }
+        let frame = context.vm.frame();
+        match frame.abrupt_completion {
+            Some(record) if record.is_throw() => {
+                context.vm.pop();
+            }
+            _ => {}
+        };
         Ok(ShouldExit::False)
     }
 }
@@ -54,8 +56,7 @@ impl Operation for PopEnvironment {
 
     fn execute(context: &mut Context<'_>) -> JsResult<ShouldExit> {
         context.realm.environments.pop();
-        context.vm.frame_mut().loop_env_stack_dec();
-        context.vm.frame_mut().try_env_stack_dec();
+        context.vm.frame_mut().dec_frame_env_stack();
         Ok(ShouldExit::False)
     }
 }

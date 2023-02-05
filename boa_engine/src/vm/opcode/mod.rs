@@ -8,6 +8,7 @@ mod await_stm;
 mod binary_ops;
 mod call;
 mod concat;
+mod control_flow;
 mod copy;
 mod define;
 mod delete;
@@ -20,7 +21,6 @@ mod jump;
 mod new;
 mod nop;
 mod pop;
-mod promise;
 mod push;
 mod require;
 mod rest_parameter;
@@ -30,7 +30,6 @@ mod swap;
 mod switch;
 mod throw;
 mod to;
-mod try_catch;
 mod unary_ops;
 mod value;
 
@@ -43,6 +42,8 @@ pub(crate) use binary_ops::*;
 pub(crate) use call::*;
 #[doc(inline)]
 pub(crate) use concat::*;
+#[doc(inline)]
+pub(crate) use control_flow::*;
 #[doc(inline)]
 pub(crate) use copy::*;
 #[doc(inline)]
@@ -68,8 +69,6 @@ pub(crate) use nop::*;
 #[doc(inline)]
 pub(crate) use pop::*;
 #[doc(inline)]
-pub(crate) use promise::*;
-#[doc(inline)]
 pub(crate) use push::*;
 #[doc(inline)]
 pub(crate) use require::*;
@@ -87,8 +86,6 @@ pub(crate) use switch::*;
 pub(crate) use throw::*;
 #[doc(inline)]
 pub(crate) use to::*;
-#[doc(inline)]
-pub(crate) use try_catch::*;
 #[doc(inline)]
 pub(crate) use unary_ops::*;
 #[doc(inline)]
@@ -1148,12 +1145,19 @@ generate_impl! {
         /// Stack: **=>**
         FinallyEnd,
 
-        /// Set the address for a finally jump.
+        /// Jumps to a target location and pops the environments involved.
         ///
-        /// Operands:
+        /// Operands: Jump Address: u32, Target address: u32
         ///
         /// Stack: **=>**
-        FinallySetJump,
+        Break,
+
+        /// Sets the `AbruptCompletionRecord` for a delayed continue
+        ///
+        /// Operands: Jump Address: u32, Target address: u32,
+        ///
+        /// Stack: **=>**
+        Continue,
 
         /// Pops value converts it to boolean and pushes it back.
         ///
@@ -1326,14 +1330,14 @@ generate_impl! {
 
         /// Push loop start marker.
         ///
-        /// Operands:
+        /// Operands: Exit Address: `u32`
         ///
         /// Stack: **=>**
         LoopStart,
 
         /// Clean up environments when a loop continues.
         ///
-        /// Operands:
+        /// Operands: Start Address: `u32`, Exit Address: `u32`
         ///
         /// Stack: **=>**
         LoopContinue,
@@ -1344,6 +1348,20 @@ generate_impl! {
         ///
         /// Stack: **=>**
         LoopEnd,
+
+        /// Push labelled start marker.
+        ///
+        /// Operands: Exit Address: u32,
+        ///
+        /// Stack: **=>**
+        LabelledStart,
+
+        /// Clean up environments at the end of a labelled block.
+        ///
+        /// Operands:
+        ///
+        /// Stack: **=>**
+        LabelledEnd,
 
         /// Initialize the iterator for a for..in loop or jump to after the loop if object is null or undefined.
         ///
@@ -1493,9 +1511,6 @@ generate_impl! {
         ///
         /// Stack: promise **=>**
         Await,
-
-        /// Jumps to a target location and pops the environments involved.
-        Break,
 
         /// Push the current new target to the stack.
         ///

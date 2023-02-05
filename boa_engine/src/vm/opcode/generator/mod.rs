@@ -37,16 +37,16 @@ impl Operation for GeneratorNext {
             GeneratorResumeKind::Return => {
                 let mut finally_left = false;
 
-                while let Some(catch_addresses) = context.vm.frame().catch.last() {
-                    if let Some(finally_address) = catch_addresses.finally {
+                while let Some(try_addresses) = context.vm.frame().try_catch.last() {
+                    if let Some(finally_address) = try_addresses.finally() {
                         let frame = context.vm.frame_mut();
                         frame.pc = finally_address as usize;
                         frame.finally_return = FinallyReturn::Ok;
-                        frame.catch.pop();
+                        frame.try_catch.pop();
                         finally_left = true;
                         break;
                     }
-                    context.vm.frame_mut().catch.pop();
+                    context.vm.frame_mut().try_catch.pop();
                 }
 
                 if finally_left {

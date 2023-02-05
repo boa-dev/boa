@@ -129,18 +129,52 @@ impl CodeBlock {
                         EdgeStyle::Line,
                     );
                 }
+                Opcode::LabelledStart => {
+                    let end_address = self.read::<u32>(pc);
+                    pc += size_of::<u32>();
+
+                    let label = format!("{opcode_str} {end_address}");
+                    graph.add_node(previous_pc, NodeShape::None, label.into(), Color::Red);
+                    graph.add_edge(previous_pc, pc, None, Color::None, EdgeStyle::Line);
+                }
+                Opcode::LoopContinue | Opcode::LoopStart => {
+                    let start_address = self.read::<u32>(pc);
+                    pc += size_of::<u32>();
+                    let end_address = self.read::<u32>(pc);
+                    pc += size_of::<u32>();
+
+                    let label = format!("{opcode_str} {start_address}, {end_address}");
+                    graph.add_node(previous_pc, NodeShape::None, label.into(), Color::Red);
+                    graph.add_edge(previous_pc, pc, None, Color::None, EdgeStyle::Line);
+                }
                 Opcode::Break => {
                     let jump_operand = self.read::<u32>(pc);
                     pc += size_of::<u32>();
-                    let envs_operand = self.read::<u32>(pc);
+                    let target_operand = self.read::<u32>(pc);
                     pc += size_of::<u32>();
 
-                    let label = format!("{opcode_str} {jump_operand}, pop {envs_operand}");
+                    let label = format!("{opcode_str} {jump_operand}, target {target_operand}");
                     graph.add_node(previous_pc, NodeShape::None, label.into(), Color::Red);
                     graph.add_edge(
                         previous_pc,
                         jump_operand as usize,
                         Some("BREAK".into()),
+                        Color::Red,
+                        EdgeStyle::Line,
+                    );
+                }
+                Opcode::Continue => {
+                    let jump_address = self.read::<u32>(pc);
+                    pc += size_of::<u32>();
+                    let target_operand = self.read::<u32>(pc);
+                    pc += size_of::<u32>();
+
+                    let label = format!("{opcode_str} {jump_address}, target {target_operand}");
+                    graph.add_node(previous_pc, NodeShape::None, label.into(), Color::Red);
+                    graph.add_edge(
+                        previous_pc,
+                        jump_address as usize,
+                        Some("CONTINUE".into()),
                         Color::Red,
                         EdgeStyle::Line,
                     );
@@ -212,7 +246,6 @@ impl CodeBlock {
                     );
                 }
                 Opcode::CatchStart
-                | Opcode::FinallySetJump
                 | Opcode::CallEval
                 | Opcode::Call
                 | Opcode::New
@@ -452,9 +485,8 @@ impl CodeBlock {
                 | Opcode::FinallyEnd
                 | Opcode::This
                 | Opcode::Super
-                | Opcode::LoopStart
-                | Opcode::LoopContinue
                 | Opcode::LoopEnd
+                | Opcode::LabelledEnd
                 | Opcode::InitIterator
                 | Opcode::InitIteratorAsync
                 | Opcode::IteratorNext

@@ -5,6 +5,7 @@ use boa_ast::{
 
 use crate::{
     bytecompiler::{ByteCompiler, NodeKind},
+    vm::Opcode,
     JsResult,
 };
 
@@ -17,6 +18,7 @@ impl ByteCompiler<'_, '_> {
         configurable_globals: bool,
     ) -> JsResult<()> {
         let labelled_loc = self.next_opcode_location();
+        let end_label = self.emit_opcode_with_operand(Opcode::LabelledStart);
         self.push_labelled_control_info(labelled.label(), labelled_loc);
 
         match labelled.item() {
@@ -59,7 +61,10 @@ impl ByteCompiler<'_, '_> {
             }
         }
 
+        let labelled_end = self.next_opcode_location();
+        self.patch_jump_with_target(end_label, labelled_end);
         self.pop_labelled_control_info();
+        self.emit_opcode(Opcode::LabelledEnd);
 
         Ok(())
     }

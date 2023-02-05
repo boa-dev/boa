@@ -1,68 +1,100 @@
 use boa_ast::statement::Break;
 
-use crate::{bytecompiler::ByteCompiler, vm::Opcode, JsNativeError, JsResult};
+use crate::{
+    bytecompiler::{ByteCompiler, Label},
+    vm::Opcode,
+    JsNativeError, JsResult,
+};
+
+use boa_interner::Sym;
 
 impl ByteCompiler<'_, '_> {
     /// Compile a [`Break`] `boa_ast` node
     pub(crate) fn compile_break(&mut self, node: Break) -> JsResult<()> {
-        let next = self.next_opcode_location();
         if let Some(info) = self.jump_info.last().filter(|info| info.is_try_block()) {
-            let in_finally = if let Some(finally_start) = info.finally_start() {
-                next >= finally_start.index
-            } else {
-                false
-            };
-            let in_catch_no_finally = !info.has_finally() && info.in_catch();
+            let in_finally = info.in_finally();
+            let in_catch_no_finally = info.in_catch() && !info.has_finally();
+            let has_finally_or_is_finally = info.has_finally() || info.in_finally();
 
             if in_finally {
                 self.emit_opcode(Opcode::PopIfThrown);
             }
             if in_finally || in_catch_no_finally {
                 self.emit_opcode(Opcode::CatchEnd2);
-            } else {
-                self.emit_opcode(Opcode::TryEnd);
             }
-            self.emit(Opcode::FinallySetJump, &[u32::MAX]);
-        }
-        let (break_label, envs_to_pop) = self.emit_opcode_with_two_operands(Opcode::Break);
-        if let Some(label_name) = node.label() {
-            let mut found = false;
-            let mut total_envs: u32 = 0;
-            for info in self.jump_info.iter_mut().rev() {
-                total_envs += info.decl_envs();
-                if info.label() == Some(label_name) {
-                    info.push_break_label(break_label);
-                    found = true;
-                    break;
+
+            let (break_label, target_jump_label) =
+                self.emit_opcode_with_two_operands(Opcode::Break);
+
+            if let Some(node_label) = node.label() {
+                self.search_jump_info_label(target_jump_label, node_label)?;
+
+                if !has_finally_or_is_finally {
+                    self.search_jump_info_label(break_label, node_label)?;
+                    return Ok(());
                 }
+            } else {
+                self.jump_info
+                    .last_mut()
+                    .expect("jump_info must exist to reach this point")
+                    .push_set_jumps(target_jump_label);
             }
-            // TODO: promote to an early error.
-            if !found {
-                return Err(JsNativeError::syntax()
-                    .with_message(format!(
-                        "Cannot use the undeclared label '{}'",
-                        self.interner().resolve_expect(label_name)
-                    ))
-                    .into());
-            }
-            self.patch_jump_with_target(envs_to_pop, total_envs);
-        } else {
-            let envs = self
+
+            let info = self
                 .jump_info
-                .last()
-                // TODO: promote to an early error.
-                .ok_or_else(|| {
-                    JsNativeError::syntax()
-                        .with_message("unlabeled break must be inside loop or switch")
-                })?
-                .decl_envs();
-
-            self.patch_jump_with_target(envs_to_pop, envs);
-
-            self.jump_info
                 .last_mut()
-                .expect("cannot throw error as last access would have thrown")
-                .push_break_label(break_label);
+                // TODO: Currently would allow unlabelled breaks in try_blocks with no
+                // loops or switch. This can prevented by the early error referenced in line 66.
+                .expect("This try block must exist");
+
+            info.push_break_label(break_label);
+
+            return Ok(());
+        }
+
+        // Emit the break opcode -> (Label, Label)
+        let (break_label, target_label) = self.emit_opcode_with_two_operands(Opcode::Break);
+        if node.label().is_some() {
+            self.search_jump_info_label(
+                break_label,
+                node.label().expect("must exist in this block"),
+            )?;
+            self.search_jump_info_label(target_label, node.label().expect("must exist"))?;
+            return Ok(());
+        };
+
+        let info = self
+            .jump_info
+            .last_mut()
+            // TODO: promote to an early error.
+            .ok_or_else(|| {
+                JsNativeError::syntax()
+                    .with_message("unlabeled break must be inside loop or switch")
+            })?;
+
+        info.push_break_label(break_label);
+        info.push_break_label(target_label);
+
+        Ok(())
+    }
+
+    fn search_jump_info_label(&mut self, address: Label, node_label: Sym) -> JsResult<()> {
+        let mut found = false;
+        for info in self.jump_info.iter_mut().rev() {
+            if info.label() == Some(node_label) {
+                info.push_break_label(address);
+                found = true;
+                break;
+            }
+        }
+        // TODO: promote to an early error.
+        if !found {
+            return Err(JsNativeError::syntax()
+                .with_message(format!(
+                    "Cannot use the undeclared label '{}'",
+                    self.interner().resolve_expect(node_label)
+                ))
+                .into());
         }
 
         Ok(())

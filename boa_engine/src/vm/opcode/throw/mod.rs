@@ -15,7 +15,7 @@ impl Operation for Throw {
     const INSTRUCTION: &'static str = "INST - Throw";
 
     fn execute(context: &mut Context<'_>) -> JsResult<ShouldExit> {
-        let value = context.vm.pop();
-        Err(JsError::from_opaque(value))
+        let err = context.vm.pop();
+        Err(JsError::from_opaque(err))
     }
 }

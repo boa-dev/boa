@@ -1,5 +1,5 @@
 use crate::{
-    vm::{opcode::Operation, ShouldExit},
+    vm::{call_frame::EnvStackEntry, opcode::Operation, ShouldExit},
     Context, JsResult,
 };
 
@@ -15,16 +15,22 @@ impl Operation for LoopStart {
     const INSTRUCTION: &'static str = "INST - LoopStart";
 
     fn execute(context: &mut Context<'_>) -> JsResult<ShouldExit> {
-        context.vm.frame_mut().loop_env_stack.push(0);
-        context.vm.frame_mut().try_env_stack_loop_inc();
+        let start = context.vm.read::<u32>();
+        let exit = context.vm.read::<u32>();
+
+        context
+            .vm
+            .frame_mut()
+            .env_stack
+            .push(EnvStackEntry::new(start, exit).with_loop_flag());
         Ok(ShouldExit::False)
     }
 }
 
-/// `LoopContinue` implements the Opcode Operation for `Opcode::LoopContinue`
+/// `LoopContinue` implements the Opcode Operation for `Opcode::LoopContinue`.
 ///
 /// Operation:
-///  - Clean up environments when a loop continues.
+///  - Pushes a clean environment onto the frame's `EnvEntryStack`.
 #[derive(Debug, Clone, Copy)]
 pub(crate) struct LoopContinue;
 
@@ -33,17 +39,34 @@ impl Operation for LoopContinue {
     const INSTRUCTION: &'static str = "INST - LoopContinue";
 
     fn execute(context: &mut Context<'_>) -> JsResult<ShouldExit> {
-        let env_num = context
+        let start = context.vm.read::<u32>();
+        let exit = context.vm.read::<u32>();
+
+        // 1. Clean up the previous environment.
+        if let Some(entry) = context
+            .vm
+            .frame()
+            .env_stack
+            .last()
+            .filter(|entry| entry.exit_address() == exit)
+        {
+            let env_truncation_len = context
+                .realm
+                .environments
+                .len()
+                .saturating_sub(entry.env_num());
+            context.realm.environments.truncate(env_truncation_len);
+
+            context.vm.frame_mut().env_stack.pop();
+        }
+
+        // 2. Push a new clean EnvStack.
+        context
             .vm
             .frame_mut()
-            .loop_env_stack
-            .last_mut()
-            .expect("loop env stack entry must exist");
-        let env_num_copy = *env_num;
-        *env_num = 0;
-        for _ in 0..env_num_copy {
-            context.realm.environments.pop();
-        }
+            .env_stack
+            .push(EnvStackEntry::new(start, exit).with_loop_flag());
+
         Ok(ShouldExit::False)
     }
 }
@@ -60,17 +83,18 @@ impl Operation for LoopEnd {
     const INSTRUCTION: &'static str = "INST - LoopEnd";
 
     fn execute(context: &mut Context<'_>) -> JsResult<ShouldExit> {
-        let env_num = context
-            .vm
-            .frame_mut()
-            .loop_env_stack
-            .pop()
-            .expect("loop env stack entry must exist");
-        for _ in 0..env_num {
-            context.realm.environments.pop();
-            context.vm.frame_mut().try_env_stack_dec();
+        let mut envs_to_pop = 0_usize;
+        while let Some(env_entry) = context.vm.frame_mut().env_stack.pop() {
+            envs_to_pop += env_entry.env_num();
+
+            if env_entry.is_loop_env() {
+                break;
+            }
         }
-        context.vm.frame_mut().try_env_stack_loop_dec();
+
+        let env_truncation_len = context.realm.environments.len().saturating_sub(envs_to_pop);
+        context.realm.environments.truncate(env_truncation_len);
+
         Ok(ShouldExit::False)
     }
 }

@@ -2189,7 +2189,7 @@ fn break_environment_gauntlet() {
         }
 
         {
-            result = "";
+            let result = "";
             lab_block: {
                 try {
                     result = "try_block";
@@ -2994,4 +2994,136 @@ fn unary_operations_on_this() {
         assert!(string.starts_with("Uncaught SyntaxError: "));
         assert!(string.contains(pos));
     }
+}
+
+#[test]
+fn try_break_finally_edge_cases() {
+    let scenario = r#"
+        var a;
+        var b;
+        {
+            while (true) {
+                try {
+                    try {
+                        break;
+                    } catch(a) {
+                    } finally {
+                    }
+                } finally {
+                }
+            }
+        }
+
+        {
+            while (true) {
+                try {
+                    try {
+                        throw "b";
+                    } catch (b) {
+                        break;
+                    } finally {
+                        a = "foo"
+                    }
+                } finally {
+                }
+            }
+        }
+
+        {
+            while (true) {
+                try {
+                    try {
+                    } catch (c) {
+                    } finally {
+                        b = "bar"
+                        break;
+                    }
+                } finally {
+                }
+            }
+        }
+        a + b
+    "#;
+
+    assert_eq!(&exec(scenario), "\"foobar\"");
+}
+
+#[test]
+fn try_break_labels() {
+    let scenario = r#"
+        {
+            var str = '';
+
+            outer: {
+                foo: {
+                    bar: {
+                        while (true) {
+                            try {
+                                try {
+                                    break;
+                                } catch(f) {
+                                } finally {
+                                    str = "fin";
+                                    break foo;
+                                    str += "This won't execute";
+                                }
+                            } finally {
+                                str = str + "ally!"
+                                break bar;
+                            }
+                        }
+                        str += " oh no";
+                    }
+                    str += " :)";
+                }
+            }
+            str
+        }
+    "#;
+
+    assert_eq!(&exec(scenario), "\"finally! :)\"");
+}
+
+#[test]
+fn break_nested_labels_loops_and_try() {
+    let scenario = r#"
+        {
+            let nestedLabels = (x) => {
+                let str = "";
+                foo: {
+                    spacer: {
+                        bar: {
+                            while(true) {
+                                try {
+                                    try {
+                                        break spacer;
+                                    } finally {
+                                        str = "foo";
+                                    }
+                                } catch(h) {} finally {
+                                    str += "bar"
+                                    if (x === true) {
+                                        break foo;
+                                    } else {
+                                        break bar;
+                                    }
+                                }
+                            }
+                            str += " broke-while"
+                        }
+                        str += " broke-bar"
+                    }
+                    str += " broke-spacer"
+                }
+                str += " broke-foo";
+                return str
+            }
+            nestedLabels(true) + " != " + nestedLabels(false)
+        }
+    "#;
+
+    assert_eq!(
+        &exec(scenario),
+        "\"foobar broke-foo != foobar broke-bar broke-spacer broke-foo\""
+    );
 }

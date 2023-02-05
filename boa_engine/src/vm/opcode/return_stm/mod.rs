@@ -15,38 +15,36 @@ impl Operation for Return {
     const INSTRUCTION: &'static str = "INST - Return";
 
     fn execute(context: &mut Context<'_>) -> JsResult<ShouldExit> {
-        if let Some(finally_address) = context.vm.frame().catch.last().and_then(|c| c.finally) {
-            let frame = context.vm.frame_mut();
-            frame.pc = finally_address as usize;
-            frame.finally_return = FinallyReturn::Ok;
-            frame.catch.pop();
-            let try_stack_entry = context
-                .vm
-                .frame_mut()
-                .try_env_stack
-                .pop()
-                .expect("must exist");
-            for _ in 0..try_stack_entry.num_env {
-                context.realm.environments.pop();
+        let current_address = context.vm.frame().pc;
+        let mut env_to_pop = 0;
+        let mut finally_address = None;
+        while let Some(env_entry) = context.vm.frame().env_stack.last() {
+            if env_entry.is_finally_env() {
+                if (env_entry.start_address() as usize) < current_address {
+                    finally_address = Some(env_entry.exit_address() as usize);
+                } else {
+                    finally_address = Some(env_entry.start_address() as usize);
+                }
+                break;
             }
-            let mut num_env = try_stack_entry.num_env;
-            for _ in 0..try_stack_entry.num_loop_stack_entries {
-                num_env -= context
-                    .vm
-                    .frame_mut()
-                    .loop_env_stack
-                    .pop()
-                    .expect("must exist");
+
+            env_to_pop += env_entry.env_num();
+            if env_entry.is_global_env() {
+                break;
             }
-            *context
-                .vm
-                .frame_mut()
-                .loop_env_stack
-                .last_mut()
-                .expect("must exist") -= num_env;
-        } else {
-            return Ok(ShouldExit::True);
+
+            context.vm.frame_mut().env_stack.pop();
         }
-        Ok(ShouldExit::False)
+
+        let env_truncation_len = context.realm.environments.len().saturating_sub(env_to_pop);
+        context.realm.environments.truncate(env_truncation_len);
+
+        if let Some(finally) = finally_address {
+            context.vm.frame_mut().pc = finally;
+            context.vm.frame_mut().finally_return = FinallyReturn::Ok;
+            return Ok(ShouldExit::False);
+        }
+
+        Ok(ShouldExit::True)
     }
 }
