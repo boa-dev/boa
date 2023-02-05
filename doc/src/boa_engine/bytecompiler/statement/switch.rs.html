@@ -53,6 +53,7 @@
 <a href="#52" id="52">52</a>
 <a href="#53" id="53">53</a>
 <a href="#54" id="54">54</a>
+<a href="#55" id="55">55</a>
 </pre><pre class="rust"><code><span class="kw">use </span>boa_ast::statement::Switch;
 
 <span class="kw">use crate</span>::{bytecompiler::ByteCompiler, vm::Opcode, JsResult};
@@ -69,10 +70,11 @@
         <span class="kw">for </span>case <span class="kw">in </span>switch.cases() {
             <span class="self">self</span>.create_script_decls(case.body(), configurable_globals);
         }
-        <span class="self">self</span>.emit_opcode(Opcode::LoopStart);
+        <span class="kw">let </span>(start_label, end_label) = <span class="self">self</span>.emit_opcode_with_two_operands(Opcode::LoopStart);
 
         <span class="kw">let </span>start_address = <span class="self">self</span>.next_opcode_location();
         <span class="self">self</span>.push_switch_control_info(<span class="prelude-val">None</span>, start_address);
+        <span class="self">self</span>.patch_jump_with_target(start_label, start_address);
 
         <span class="self">self</span>.compile_expr(switch.val(), <span class="bool-val">true</span>)<span class="question-mark">?</span>;
         <span class="kw">let </span><span class="kw-2">mut </span>labels = Vec::with_capacity(switch.cases().len());
@@ -95,7 +97,7 @@
         }
 
         <span class="self">self</span>.pop_switch_control_info();
-
+        <span class="self">self</span>.patch_jump(end_label);
         <span class="self">self</span>.emit_opcode(Opcode::LoopEnd);
 
         <span class="kw">let </span>(num_bindings, compile_environment) = <span class="self">self</span>.context.pop_compile_time_environment();

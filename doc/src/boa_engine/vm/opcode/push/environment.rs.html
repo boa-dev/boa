@@ -54,7 +54,6 @@
 <a href="#53" id="53">53</a>
 <a href="#54" id="54">54</a>
 <a href="#55" id="55">55</a>
-<a href="#56" id="56">56</a>
 </pre><pre class="rust"><code><span class="kw">use crate</span>::{
     vm::{opcode::Operation, ShouldExit},
     Context, JsResult,
@@ -81,8 +80,7 @@
             .realm
             .environments
             .push_declarative(num_bindings <span class="kw">as </span>usize, compile_environment);
-        context.vm.frame_mut().loop_env_stack_inc();
-        context.vm.frame_mut().try_env_stack_inc();
+        context.vm.frame_mut().inc_frame_env_stack();
         <span class="prelude-val">Ok</span>(ShouldExit::False)
     }
 }

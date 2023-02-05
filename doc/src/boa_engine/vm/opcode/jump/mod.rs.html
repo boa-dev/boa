@@ -85,17 +85,11 @@
 <a href="#84" id="84">84</a>
 <a href="#85" id="85">85</a>
 <a href="#86" id="86">86</a>
-<a href="#87" id="87">87</a>
-<a href="#88" id="88">88</a>
-<a href="#89" id="89">89</a>
 </pre><pre class="rust"><code><span class="kw">use crate</span>::{
     vm::{opcode::Operation, ShouldExit},
     Context, JsResult,
 };
 
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">mod </span>r#break;
-
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use </span>r#break::<span class="kw-2">*</span>;
 <span class="doccomment">/// `Jump` implements the Opcode Operation for `Opcode::Jump`
 ///
 /// Operation:

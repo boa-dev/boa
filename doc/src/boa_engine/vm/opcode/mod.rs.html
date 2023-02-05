@@ -1529,6 +1529,21 @@
 <a href="#1528" id="1528">1528</a>
 <a href="#1529" id="1529">1529</a>
 <a href="#1530" id="1530">1530</a>
+<a href="#1531" id="1531">1531</a>
+<a href="#1532" id="1532">1532</a>
+<a href="#1533" id="1533">1533</a>
+<a href="#1534" id="1534">1534</a>
+<a href="#1535" id="1535">1535</a>
+<a href="#1536" id="1536">1536</a>
+<a href="#1537" id="1537">1537</a>
+<a href="#1538" id="1538">1538</a>
+<a href="#1539" id="1539">1539</a>
+<a href="#1540" id="1540">1540</a>
+<a href="#1541" id="1541">1541</a>
+<a href="#1542" id="1542">1542</a>
+<a href="#1543" id="1543">1543</a>
+<a href="#1544" id="1544">1544</a>
+<a href="#1545" id="1545">1545</a>
 </pre><pre class="rust"><code><span class="doccomment">/// The opcodes of the vm.
 </span><span class="kw">use crate</span>::{vm::ShouldExit, Context, JsResult};
 
@@ -1539,6 +1554,7 @@
 <span class="kw">mod </span>binary_ops;
 <span class="kw">mod </span>call;
 <span class="kw">mod </span>concat;
+<span class="kw">mod </span>control_flow;
 <span class="kw">mod </span>copy;
 <span class="kw">mod </span>define;
 <span class="kw">mod </span>delete;
@@ -1551,7 +1567,6 @@
 <span class="kw">mod </span>new;
 <span class="kw">mod </span>nop;
 <span class="kw">mod </span>pop;
-<span class="kw">mod </span>promise;
 <span class="kw">mod </span>push;
 <span class="kw">mod </span>require;
 <span class="kw">mod </span>rest_parameter;
@@ -1561,7 +1576,6 @@
 <span class="kw">mod </span>switch;
 <span class="kw">mod </span>throw;
 <span class="kw">mod </span>to;
-<span class="kw">mod </span>try_catch;
 <span class="kw">mod </span>unary_ops;
 <span class="kw">mod </span>value;
 
@@ -1574,6 +1588,8 @@
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use </span>call::<span class="kw-2">*</span>;
 <span class="attr">#[doc(inline)]
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use </span>concat::<span class="kw-2">*</span>;
+<span class="attr">#[doc(inline)]
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use </span>control_flow::<span class="kw-2">*</span>;
 <span class="attr">#[doc(inline)]
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use </span>copy::<span class="kw-2">*</span>;
 <span class="attr">#[doc(inline)]
@@ -1599,8 +1615,6 @@
 <span class="attr">#[doc(inline)]
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use </span>pop::<span class="kw-2">*</span>;
 <span class="attr">#[doc(inline)]
-</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use </span>promise::<span class="kw-2">*</span>;
-<span class="attr">#[doc(inline)]
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use </span>push::<span class="kw-2">*</span>;
 <span class="attr">#[doc(inline)]
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use </span>require::<span class="kw-2">*</span>;
@@ -1618,8 +1632,6 @@
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use </span>throw::<span class="kw-2">*</span>;
 <span class="attr">#[doc(inline)]
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use </span>to::<span class="kw-2">*</span>;
-<span class="attr">#[doc(inline)]
-</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use </span>try_catch::<span class="kw-2">*</span>;
 <span class="attr">#[doc(inline)]
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use </span>unary_ops::<span class="kw-2">*</span>;
 <span class="attr">#[doc(inline)]
@@ -2679,12 +2691,19 @@
         /// Stack: **=&gt;**
         </span>FinallyEnd,
 
-        <span class="doccomment">/// Set the address for a finally jump.
+        <span class="doccomment">/// Jumps to a target location and pops the environments involved.
         ///
-        /// Operands:
+        /// Operands: Jump Address: u32, Target address: u32
         ///
         /// Stack: **=&gt;**
-        </span>FinallySetJump,
+        </span>Break,
+
+        <span class="doccomment">/// Sets the `AbruptCompletionRecord` for a delayed continue
+        ///
+        /// Operands: Jump Address: u32, Target address: u32,
+        ///
+        /// Stack: **=&gt;**
+        </span>Continue,
 
         <span class="doccomment">/// Pops value converts it to boolean and pushes it back.
         ///
@@ -2857,14 +2876,14 @@
 
         <span class="doccomment">/// Push loop start marker.
         ///
-        /// Operands:
+        /// Operands: Exit Address: `u32`
         ///
         /// Stack: **=&gt;**
         </span>LoopStart,
 
         <span class="doccomment">/// Clean up environments when a loop continues.
         ///
-        /// Operands:
+        /// Operands: Start Address: `u32`, Exit Address: `u32`
         ///
         /// Stack: **=&gt;**
         </span>LoopContinue,
@@ -2875,6 +2894,20 @@
         ///
         /// Stack: **=&gt;**
         </span>LoopEnd,
+
+        <span class="doccomment">/// Push labelled start marker.
+        ///
+        /// Operands: Exit Address: u32,
+        ///
+        /// Stack: **=&gt;**
+        </span>LabelledStart,
+
+        <span class="doccomment">/// Clean up environments at the end of a labelled block.
+        ///
+        /// Operands:
+        ///
+        /// Stack: **=&gt;**
+        </span>LabelledEnd,
 
         <span class="doccomment">/// Initialize the iterator for a for..in loop or jump to after the loop if object is null or undefined.
         ///
@@ -3024,9 +3057,6 @@
         ///
         /// Stack: promise **=&gt;**
         </span>Await,
-
-        <span class="doccomment">/// Jumps to a target location and pops the environments involved.
-        </span>Break,
 
         <span class="doccomment">/// Push the current new target to the stack.
         ///

@@ -1490,6 +1490,9 @@
 <a href="#1489" id="1489">1489</a>
 <a href="#1490" id="1490">1490</a>
 <a href="#1491" id="1491">1491</a>
+<a href="#1492" id="1492">1492</a>
+<a href="#1493" id="1493">1493</a>
+<a href="#1494" id="1494">1494</a>
 </pre><pre class="rust"><code><span class="doccomment">//! `CodeBlock`
 //!
 //! This module is for the `CodeBlock` which implements a function representation in the VM
@@ -1725,7 +1728,8 @@
             | Opcode::JumpIfNotUndefined
             | Opcode::JumpIfNullOrUndefined
             | Opcode::CatchStart
-            | Opcode::FinallySetJump
+            | Opcode::FinallyStart
+            | Opcode::LabelledStart
             | Opcode::Case
             | Opcode::Default
             | Opcode::LogicalAnd
@@ -1744,11 +1748,15 @@
                 <span class="kw-2">*</span>pc += size_of::&lt;u32&gt;();
                 result
             }
-            Opcode::TryStart
-            | Opcode::PushDeclarativeEnvironment
+
+            Opcode::PushDeclarativeEnvironment
             | Opcode::PushFunctionEnvironment
             | Opcode::CopyDataProperties
-            | Opcode::Break =&gt; {
+            | Opcode::Break
+            | Opcode::Continue
+            | Opcode::LoopContinue
+            | Opcode::LoopStart
+            | Opcode::TryStart =&gt; {
                 <span class="kw">let </span>operand1 = <span class="self">self</span>.read::&lt;u32&gt;(<span class="kw-2">*</span>pc);
                 <span class="kw-2">*</span>pc += size_of::&lt;u32&gt;();
                 <span class="kw">let </span>operand2 = <span class="self">self</span>.read::&lt;u32&gt;(<span class="kw-2">*</span>pc);
@@ -1893,15 +1901,13 @@
             | Opcode::TryEnd
             | Opcode::CatchEnd
             | Opcode::CatchEnd2
-            | Opcode::FinallyStart
             | Opcode::FinallyEnd
             | Opcode::This
             | Opcode::Super
             | Opcode::Return
             | Opcode::PopEnvironment
-            | Opcode::LoopStart
-            | Opcode::LoopContinue
             | Opcode::LoopEnd
+            | Opcode::LabelledEnd
             | Opcode::InitIterator
             | Opcode::InitIteratorAsync
             | Opcode::IteratorNext

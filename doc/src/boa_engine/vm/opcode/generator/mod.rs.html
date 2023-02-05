@@ -264,16 +264,16 @@
             GeneratorResumeKind::Return =&gt; {
                 <span class="kw">let </span><span class="kw-2">mut </span>finally_left = <span class="bool-val">false</span>;
 
-                <span class="kw">while let </span><span class="prelude-val">Some</span>(catch_addresses) = context.vm.frame().catch.last() {
-                    <span class="kw">if let </span><span class="prelude-val">Some</span>(finally_address) = catch_addresses.finally {
+                <span class="kw">while let </span><span class="prelude-val">Some</span>(try_addresses) = context.vm.frame().try_catch.last() {
+                    <span class="kw">if let </span><span class="prelude-val">Some</span>(finally_address) = try_addresses.finally() {
                         <span class="kw">let </span>frame = context.vm.frame_mut();
                         frame.pc = finally_address <span class="kw">as </span>usize;
                         frame.finally_return = FinallyReturn::Ok;
-                        frame.catch.pop();
+                        frame.try_catch.pop();
                         finally_left = <span class="bool-val">true</span>;
                         <span class="kw">break</span>;
                     }
-                    context.vm.frame_mut().catch.pop();
+                    context.vm.frame_mut().try_catch.pop();
                 }
 
                 <span class="kw">if </span>finally_left {

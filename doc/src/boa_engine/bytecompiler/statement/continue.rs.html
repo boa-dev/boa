@@ -82,20 +82,94 @@
 <a href="#81" id="81">81</a>
 <a href="#82" id="82">82</a>
 <a href="#83" id="83">83</a>
+<a href="#84" id="84">84</a>
+<a href="#85" id="85">85</a>
+<a href="#86" id="86">86</a>
+<a href="#87" id="87">87</a>
+<a href="#88" id="88">88</a>
+<a href="#89" id="89">89</a>
+<a href="#90" id="90">90</a>
+<a href="#91" id="91">91</a>
+<a href="#92" id="92">92</a>
+<a href="#93" id="93">93</a>
+<a href="#94" id="94">94</a>
+<a href="#95" id="95">95</a>
+<a href="#96" id="96">96</a>
+<a href="#97" id="97">97</a>
+<a href="#98" id="98">98</a>
+<a href="#99" id="99">99</a>
+<a href="#100" id="100">100</a>
+<a href="#101" id="101">101</a>
+<a href="#102" id="102">102</a>
+<a href="#103" id="103">103</a>
+<a href="#104" id="104">104</a>
+<a href="#105" id="105">105</a>
+<a href="#106" id="106">106</a>
+<a href="#107" id="107">107</a>
+<a href="#108" id="108">108</a>
+<a href="#109" id="109">109</a>
+<a href="#110" id="110">110</a>
+<a href="#111" id="111">111</a>
+<a href="#112" id="112">112</a>
+<a href="#113" id="113">113</a>
+<a href="#114" id="114">114</a>
+<a href="#115" id="115">115</a>
+<a href="#116" id="116">116</a>
+<a href="#117" id="117">117</a>
+<a href="#118" id="118">118</a>
+<a href="#119" id="119">119</a>
+<a href="#120" id="120">120</a>
+<a href="#121" id="121">121</a>
+<a href="#122" id="122">122</a>
+<a href="#123" id="123">123</a>
+<a href="#124" id="124">124</a>
+<a href="#125" id="125">125</a>
+<a href="#126" id="126">126</a>
+<a href="#127" id="127">127</a>
+<a href="#128" id="128">128</a>
+<a href="#129" id="129">129</a>
+<a href="#130" id="130">130</a>
+<a href="#131" id="131">131</a>
+<a href="#132" id="132">132</a>
+<a href="#133" id="133">133</a>
+<a href="#134" id="134">134</a>
+<a href="#135" id="135">135</a>
+<a href="#136" id="136">136</a>
+<a href="#137" id="137">137</a>
+<a href="#138" id="138">138</a>
+<a href="#139" id="139">139</a>
+<a href="#140" id="140">140</a>
+<a href="#141" id="141">141</a>
+<a href="#142" id="142">142</a>
+<a href="#143" id="143">143</a>
+<a href="#144" id="144">144</a>
+<a href="#145" id="145">145</a>
+<a href="#146" id="146">146</a>
+<a href="#147" id="147">147</a>
+<a href="#148" id="148">148</a>
+<a href="#149" id="149">149</a>
+<a href="#150" id="150">150</a>
+<a href="#151" id="151">151</a>
+<a href="#152" id="152">152</a>
+<a href="#153" id="153">153</a>
+<a href="#154" id="154">154</a>
+<a href="#155" id="155">155</a>
+<a href="#156" id="156">156</a>
+<a href="#157" id="157">157</a>
+<a href="#158" id="158">158</a>
+<a href="#159" id="159">159</a>
+<a href="#160" id="160">160</a>
+<a href="#161" id="161">161</a>
+<a href="#162" id="162">162</a>
 </pre><pre class="rust"><code><span class="kw">use </span>boa_ast::statement::Continue;
 
 <span class="kw">use crate</span>::{bytecompiler::ByteCompiler, vm::Opcode, JsNativeError, JsResult};
 
 <span class="kw">impl </span>ByteCompiler&lt;<span class="lifetime">&#39;_</span>, <span class="lifetime">&#39;_</span>&gt; {
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>compile_continue(<span class="kw-2">&amp;mut </span><span class="self">self</span>, node: Continue) -&gt; JsResult&lt;()&gt; {
-        <span class="kw">let </span>next = <span class="self">self</span>.next_opcode_location();
         <span class="kw">if let </span><span class="prelude-val">Some</span>(info) = <span class="self">self</span>.jump_info.last().filter(|info| info.is_try_block()) {
-            <span class="kw">let </span>start_address = info.start_address();
-            <span class="kw">let </span>in_finally = <span class="kw">if let </span><span class="prelude-val">Some</span>(finally_start) = info.finally_start() {
-                next &gt; finally_start.index
-            } <span class="kw">else </span>{
-                <span class="bool-val">false
-            </span>};
+            <span class="kw">let </span>in_finally = info.in_finally();
+            <span class="kw">let </span>in_finally_or_has_finally = in_finally || info.has_finally();
             <span class="kw">let </span>in_catch_no_finally = !info.has_finally() &amp;&amp; info.in_catch();
 
             <span class="kw">if </span>in_finally {
@@ -103,63 +177,147 @@
             }
             <span class="kw">if </span>in_finally || in_catch_no_finally {
                 <span class="self">self</span>.emit_opcode(Opcode::CatchEnd2);
-            } <span class="kw">else </span>{
-                <span class="self">self</span>.emit_opcode(Opcode::TryEnd);
             }
-
-            <span class="self">self</span>.emit(Opcode::FinallySetJump, <span class="kw-2">&amp;</span>[start_address]);
-
-            <span class="kw">let </span>label = <span class="self">self</span>.jump();
-            <span class="self">self</span>.jump_info
-                .last_mut()
-                .expect(<span class="string">&quot;no jump information found&quot;</span>)
-                .push_try_continue_label(label);
-        } <span class="kw">else </span>{
-            <span class="kw">let </span><span class="kw-2">mut </span>items = <span class="self">self</span>.jump_info.iter().rev().filter(|info| info.is_loop());
-            <span class="kw">let </span>address = <span class="kw">if let </span><span class="prelude-val">Some</span>(label_name) = node.label() {
-                <span class="kw">let </span><span class="kw-2">mut </span>num_loops = <span class="number">0</span>;
-                <span class="kw">let </span><span class="kw-2">mut </span>emit_for_of_in_exit = <span class="number">0</span>;
-                <span class="kw">let </span><span class="kw-2">mut </span>address_info = <span class="prelude-val">None</span>;
+            <span class="comment">// 1. Handle if node has a label.
+            </span><span class="kw">if let </span><span class="prelude-val">Some</span>(node_label) = node.label() {
+                <span class="kw">let </span>items = <span class="self">self</span>.jump_info.iter().rev().filter(|info| info.is_loop());
+                <span class="kw">let </span><span class="kw-2">mut </span>emit_for_of_in_exit = <span class="number">0_u32</span>;
+                <span class="kw">let </span><span class="kw-2">mut </span>loop_info = <span class="prelude-val">None</span>;
                 <span class="kw">for </span>info <span class="kw">in </span>items {
-                    <span class="kw">if </span>info.label() == node.label() {
-                        address_info = <span class="prelude-val">Some</span>(info);
+                    <span class="kw">if </span>info.label() == <span class="prelude-val">Some</span>(node_label) {
+                        loop_info = <span class="prelude-val">Some</span>(info);
                         <span class="kw">break</span>;
                     }
-                    num_loops += <span class="number">1</span>;
+
                     <span class="kw">if </span>info.for_of_in_loop() {
                         emit_for_of_in_exit += <span class="number">1</span>;
                     }
                 }
+
                 <span class="comment">// TODO: promote to an early error.
-                </span><span class="kw">let </span>address = address_info
-                    .ok_or_else(|| {
-                        JsNativeError::syntax().with_message(<span class="macro">format!</span>(
-                            <span class="string">&quot;Cannot use the undeclared label &#39;{}&#39;&quot;</span>,
-                            <span class="self">self</span>.context.interner().resolve_expect(label_name)
-                        ))
-                    })<span class="question-mark">?
-                    </span>.start_address();
+                </span>loop_info.ok_or_else(|| {
+                    JsNativeError::syntax().with_message(<span class="macro">format!</span>(
+                        <span class="string">&quot;Cannot use the undeclared label &#39;{}&#39;&quot;</span>,
+                        <span class="self">self</span>.context.interner().resolve_expect(node_label)
+                    ))
+                })<span class="question-mark">?</span>;
+
                 <span class="kw">for _ in </span><span class="number">0</span>..emit_for_of_in_exit {
                     <span class="self">self</span>.emit_opcode(Opcode::Pop);
                     <span class="self">self</span>.emit_opcode(Opcode::Pop);
                     <span class="self">self</span>.emit_opcode(Opcode::Pop);
                 }
-                <span class="kw">for _ in </span><span class="number">0</span>..num_loops {
-                    <span class="self">self</span>.emit_opcode(Opcode::LoopEnd);
+
+                <span class="kw">let </span>(cont_label, set_label) = <span class="self">self</span>.emit_opcode_with_two_operands(Opcode::Continue);
+
+                <span class="kw">let </span>loops = <span class="self">self
+                    </span>.jump_info
+                    .iter_mut()
+                    .rev()
+                    .filter(|info| info.is_loop());
+                <span class="kw">let </span><span class="kw-2">mut </span>set_continue_as_break = <span class="bool-val">false</span>;
+                <span class="kw">for </span>info <span class="kw">in </span>loops {
+                    <span class="kw">let </span>found_label = info.label() == <span class="prelude-val">Some</span>(node_label);
+                    <span class="kw">if </span>found_label &amp;&amp; in_finally_or_has_finally {
+                        set_continue_as_break = <span class="bool-val">true</span>;
+                        info.push_try_continue_label(set_label);
+                        <span class="kw">break</span>;
+                    } <span class="kw">else if </span>found_label &amp;&amp; !in_finally_or_has_finally {
+                        info.push_try_continue_label(cont_label);
+                        info.push_try_continue_label(set_label);
+                        <span class="kw">break</span>;
+                    }
                 }
-                address
+                <span class="kw">if </span>set_continue_as_break {
+                    <span class="self">self</span>.jump_info
+                        .last_mut()
+                        .expect(<span class="string">&quot;no jump information found&quot;</span>)
+                        .push_break_label(cont_label);
+                }
             } <span class="kw">else </span>{
-                items
+                <span class="comment">// TODO: Add has finally or in finally here
+                </span><span class="kw">let </span>(cont_label, set_label) = <span class="self">self</span>.emit_opcode_with_two_operands(Opcode::Continue);
+                <span class="kw">if </span>in_finally_or_has_finally {
+                    <span class="self">self</span>.jump_info
+                        .last_mut()
+                        .expect(<span class="string">&quot;Must exist and be a try block&quot;</span>)
+                        .push_break_label(cont_label);
+                };
+                <span class="kw">let </span><span class="kw-2">mut </span>items = <span class="self">self
+                    </span>.jump_info
+                    .iter_mut()
+                    .rev()
+                    .filter(|info| info.is_loop());
+                <span class="kw">let </span>jump_info = items
                     .next()
                     <span class="comment">// TODO: promote to an early error.
                     </span>.ok_or_else(|| {
                         JsNativeError::syntax().with_message(<span class="string">&quot;continue must be inside loop&quot;</span>)
-                    })<span class="question-mark">?
-                    </span>.start_address()
+                    })<span class="question-mark">?</span>;
+                <span class="kw">if </span>!in_finally_or_has_finally {
+                    jump_info.push_try_continue_label(cont_label);
+                };
+                jump_info.push_try_continue_label(set_label);
             };
-            <span class="self">self</span>.emit_opcode(Opcode::LoopEnd);
-            <span class="self">self</span>.emit_opcode(Opcode::LoopStart);
-            <span class="self">self</span>.emit(Opcode::Jump, <span class="kw-2">&amp;</span>[address]);
+
+            <span class="kw">return </span><span class="prelude-val">Ok</span>(());
+        } <span class="kw">else if let </span><span class="prelude-val">Some</span>(node_label) = node.label() {
+            <span class="kw">let </span>items = <span class="self">self</span>.jump_info.iter().rev().filter(|info| info.is_loop());
+            <span class="kw">let </span><span class="kw-2">mut </span>emit_for_of_in_exit = <span class="number">0_u32</span>;
+            <span class="kw">let </span><span class="kw-2">mut </span>loop_info = <span class="prelude-val">None</span>;
+            <span class="kw">for </span>info <span class="kw">in </span>items {
+                <span class="kw">if </span>info.label() == <span class="prelude-val">Some</span>(node_label) {
+                    loop_info = <span class="prelude-val">Some</span>(info);
+                    <span class="kw">break</span>;
+                }
+
+                <span class="kw">if </span>info.for_of_in_loop() {
+                    emit_for_of_in_exit += <span class="number">1</span>;
+                }
+            }
+
+            <span class="comment">// TODO: promote to an early error.
+            </span>loop_info.ok_or_else(|| {
+                JsNativeError::syntax().with_message(<span class="macro">format!</span>(
+                    <span class="string">&quot;Cannot use the undeclared label &#39;{}&#39;&quot;</span>,
+                    <span class="self">self</span>.context.interner().resolve_expect(node_label)
+                ))
+            })<span class="question-mark">?</span>;
+
+            <span class="kw">for _ in </span><span class="number">0</span>..emit_for_of_in_exit {
+                <span class="self">self</span>.emit_opcode(Opcode::Pop);
+                <span class="self">self</span>.emit_opcode(Opcode::Pop);
+                <span class="self">self</span>.emit_opcode(Opcode::Pop);
+            }
+
+            <span class="kw">let </span>(cont_label, set_label) = <span class="self">self</span>.emit_opcode_with_two_operands(Opcode::Continue);
+            <span class="kw">let </span>loops = <span class="self">self
+                </span>.jump_info
+                .iter_mut()
+                .rev()
+                .filter(|info| info.is_loop());
+
+            <span class="kw">for </span>info <span class="kw">in </span>loops {
+                <span class="kw">if </span>info.label() == <span class="prelude-val">Some</span>(node_label) {
+                    info.push_try_continue_label(cont_label);
+                    info.push_try_continue_label(set_label);
+                }
+            }
+        } <span class="kw">else </span>{
+            <span class="kw">let </span>(cont_label, set_label) = <span class="self">self</span>.emit_opcode_with_two_operands(Opcode::Continue);
+            <span class="kw">let </span><span class="kw-2">mut </span>items = <span class="self">self
+                </span>.jump_info
+                .iter_mut()
+                .rev()
+                .filter(|info| info.is_loop());
+            <span class="kw">let </span>jump_info = items
+                .next()
+                <span class="comment">// TODO: promote to an early error.
+                </span>.ok_or_else(|| {
+                    JsNativeError::syntax().with_message(<span class="string">&quot;continue must be inside loop&quot;</span>)
+                })<span class="question-mark">?</span>;
+            jump_info.push_try_continue_label(cont_label);
+            jump_info.push_try_continue_label(set_label);
         }
 
         <span class="prelude-val">Ok</span>(())
