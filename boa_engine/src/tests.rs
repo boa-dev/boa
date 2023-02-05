@@ -3008,7 +3008,7 @@ fn try_break_finally_edge_cases() {
                         break;
                     } catch(a) {
                     } finally {
-                    } 
+                    }
                 } finally {
                 }
             }
@@ -3053,7 +3053,7 @@ fn try_break_labels() {
     let scenario = r#"
         {
             var str = '';
-        
+
             outer: {
                 foo: {
                     bar: {

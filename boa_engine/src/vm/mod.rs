@@ -343,8 +343,7 @@ impl Context<'_> {
                         }
 
                         self.vm.frame_mut().pop_on_return = 0;
-                        let record = AbruptCompletionRecord::default()
-                            .with_throw_flag()
+                        let record = AbruptCompletionRecord::create_throw_completion()
                             .with_initial_target(catch_target);
                         self.vm.frame_mut().abrupt_completion = Some(record);
                         self.vm.frame_mut().finally_return = FinallyReturn::Err;
@@ -390,7 +389,7 @@ impl Context<'_> {
                             self.vm.stack.truncate(previous_stack_size);
                             self.vm.frame_mut().pop_on_return = 0;
 
-                            let record = AbruptCompletionRecord::default().with_throw_flag();
+                            let record = AbruptCompletionRecord::create_throw_completion();
                             self.vm.frame_mut().abrupt_completion = Some(record);
                             self.vm.frame_mut().pc = address;
                             self.vm.frame_mut().finally_return = FinallyReturn::Err;

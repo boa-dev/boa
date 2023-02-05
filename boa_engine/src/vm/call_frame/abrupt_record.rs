@@ -14,32 +14,30 @@ pub(crate) struct AbruptCompletionRecord {
     target: u32,
 }
 
-impl Default for AbruptCompletionRecord {
-    fn default() -> Self {
+/// ---- `AbruptCompletionRecord` initialization methods ----
+impl AbruptCompletionRecord {
+    /// Creates an `AbruptCompletionRecord` for an abrupt `Break`.
+    pub(crate) const fn create_break_completion() -> Self {
         Self {
             kind: AbruptKind::Break,
             target: u32::MAX,
         }
     }
-}
 
-/// ---- `AbruptCompletionRecord` initialization methods ----
-impl AbruptCompletionRecord {
-    /// Sets the `kind` field on `AbruptCompletionRecord` to `Break`.
-    pub(crate) const fn with_break_flag(mut self) -> Self {
-        self.kind = AbruptKind::Break;
-        self
+    /// Creates an `AbruptCompletionRecord` for an abrupt `Continue`.
+    pub(crate) const fn create_continue_completion() -> Self {
+        Self {
+            kind: AbruptKind::Continue,
+            target: u32::MAX,
+        }
     }
 
-    /// Sets the `kind` field on `AbruptCompletionRecord` to `Continue`.
-    pub(crate) const fn with_continue_flag(mut self) -> Self {
-        self.kind = AbruptKind::Continue;
-        self
-    }
-
-    pub(crate) const fn with_throw_flag(mut self) -> Self {
-        self.kind = AbruptKind::Throw;
-        self
+    /// Creates an `AbruptCompletionRecord` for an abrupt `Throw`.
+    pub(crate) const fn create_throw_completion() -> Self {
+        Self {
+            kind: AbruptKind::Throw,
+            target: u32::MAX,
+        }
     }
 
     /// Set the target field of the `AbruptCompletionRecord`.
@@ -49,6 +47,7 @@ impl AbruptCompletionRecord {
     }
 }
 
+/// ---- `AbruptCompletionRecord` interaction methods ----
 impl AbruptCompletionRecord {
     /// Returns a boolean value for whether `AbruptCompletionRecord` is a break.
     pub(crate) fn is_break(self) -> bool {
