@@ -17,7 +17,7 @@ pub(crate) struct AbruptCompletionRecord {
 /// ---- `AbruptCompletionRecord` initialization methods ----
 impl AbruptCompletionRecord {
     /// Creates an `AbruptCompletionRecord` for an abrupt `Break`.
-    pub(crate) const fn create_break_completion() -> Self {
+    pub(crate) const fn new_break() -> Self {
         Self {
             kind: AbruptKind::Break,
             target: u32::MAX,
@@ -25,7 +25,7 @@ impl AbruptCompletionRecord {
     }
 
     /// Creates an `AbruptCompletionRecord` for an abrupt `Continue`.
-    pub(crate) const fn create_continue_completion() -> Self {
+    pub(crate) const fn new_continue() -> Self {
         Self {
             kind: AbruptKind::Continue,
             target: u32::MAX,
@@ -33,7 +33,7 @@ impl AbruptCompletionRecord {
     }
 
     /// Creates an `AbruptCompletionRecord` for an abrupt `Throw`.
-    pub(crate) const fn create_throw_completion() -> Self {
+    pub(crate) const fn new_throw() -> Self {
         Self {
             kind: AbruptKind::Throw,
             target: u32::MAX,

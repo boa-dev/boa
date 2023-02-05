@@ -38,8 +38,7 @@ impl Operation for Break {
         context.realm.environments.truncate(env_truncation_len);
 
         // 2. Register target address in AbruptCompletionRecord.
-        let new_record =
-            AbruptCompletionRecord::create_break_completion().with_initial_target(target_address);
+        let new_record = AbruptCompletionRecord::new_break().with_initial_target(target_address);
         context.vm.frame_mut().abrupt_completion = Some(new_record);
 
         // 3. Set program counter and finally return fields.
@@ -92,8 +91,7 @@ impl Operation for Continue {
         context.realm.environments.truncate(env_truncation_len);
 
         // 2. Register target address in AbruptCompletionRecord.
-        let new_record = AbruptCompletionRecord::create_continue_completion()
-            .with_initial_target(target_address);
+        let new_record = AbruptCompletionRecord::new_continue().with_initial_target(target_address);
         context.vm.frame_mut().abrupt_completion = Some(new_record);
 
         // 3. Set program counter and finally return fields.
