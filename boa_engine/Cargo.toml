@@ -25,7 +25,7 @@ intl = [
     "dep:icu_collator",
     "dep:icu_list",
     "dep:writeable",
-    "dep:sys-locale"
+    "dep:sys-locale",
 ]
 
 fuzz = ["boa_ast/arbitrary", "boa_interner/arbitrary"]
