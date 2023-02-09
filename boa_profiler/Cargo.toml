@@ -14,6 +14,6 @@ rust-version.workspace = true
 profiler = ["measureme", "once_cell", "rustc-hash"]
 
 [dependencies]
-measureme = { version = "10.1.0", optional = true }
+measureme = { version = "10.1.1", optional = true }
 once_cell = { version = "1.17.0", optional = true }
 rustc-hash = { version = "1.1.0", optional = true }
