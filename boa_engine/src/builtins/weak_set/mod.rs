@@ -7,11 +7,6 @@
 //! [spec]: https://tc39.es/ecma262/#sec-weakset-objects
 //! [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/WeakSet
 
-mod weak_ordered_set;
-
-#[cfg(test)]
-mod tests;
-
 use crate::{
     builtins::{BuiltInBuilder, BuiltInConstructor, BuiltInObject, IntrinsicObject},
     context::intrinsics::{Intrinsics, StandardConstructor, StandardConstructors},
@@ -20,13 +15,11 @@ use crate::{
     symbol::JsSymbol,
     Context, JsArgs, JsNativeError, JsResult, JsValue,
 };
-use boa_gc::{Finalize, Trace};
+use boa_gc::{Finalize, Trace, WeakMap};
 use boa_profiler::Profiler;
 
-pub(crate) use weak_ordered_set::WeakOrderedSet;
-
-#[derive(Debug, Clone, Trace, Finalize)]
-pub(crate) struct WeakSet(WeakOrderedSet);
+#[derive(Debug, Trace, Finalize)]
+pub(crate) struct WeakSet;
 
 impl IntrinsicObject for WeakSet {
     fn get(intrinsics: &Intrinsics) -> JsObject {
@@ -85,7 +78,7 @@ impl BuiltInConstructor for WeakSet {
         // 3. Set set.[[WeakSetData]] to a new empty List.
         let weak_set = JsObject::from_proto_and_data(
             get_prototype_from_constructor(new_target, StandardConstructors::weak_set, context)?,
-            ObjectData::weak_set(WeakOrderedSet::default()),
+            ObjectData::weak_set(WeakMap::new()),
         );
 
         // 4. If iterable is either undefined or null, return set.
@@ -163,14 +156,14 @@ impl WeakSet {
 
         // 4. Let entries be the List that is S.[[WeakSetData]].
         // 5. For each element e of entries, do
-        if o.contains(value) {
+        if o.contains_key(value.inner()) {
             // a. If e is not empty and SameValue(e, value) is true, then
             // i. Return S.
             return Ok(this.clone());
         }
 
         // 6. Append value as the last element of entries.
-        o.add(value);
+        o.insert(value.inner(), ());
 
         // 7. Return S.
         Ok(this.clone())
@@ -215,7 +208,7 @@ impl WeakSet {
         // i. Replace the element of entries whose value is e with an element whose value is empty.
         // ii. Return true.
         // 6. Return false.
-        Ok(o.delete(value).into())
+        Ok(o.remove(value.inner()).is_some().into())
     }
 
     /// `WeakSet.prototype.has( value )`
@@ -255,6 +248,6 @@ impl WeakSet {
         // 5. For each element e of entries, do
         // a. If e is not empty and SameValue(e, value) is true, return true.
         // 6. Return false.
-        Ok(o.contains(value).into())
+        Ok(o.contains_key(value.inner()).into())
     }
 }

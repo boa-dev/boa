@@ -46,7 +46,6 @@ use crate::{
         set::SetIterator,
         string::StringIterator,
         typed_array::integer_indexed_object::IntegerIndexed,
-        weak_set::WeakOrderedSet,
         DataView, Date, Promise, RegExp,
     },
     js_string,
@@ -55,7 +54,7 @@ use crate::{
     Context, JsBigInt, JsString, JsSymbol, JsValue,
 };
 
-use boa_gc::{custom_trace, Finalize, GcRefCell, Trace, WeakGc};
+use boa_gc::{custom_trace, Finalize, GcRefCell, Trace, WeakGc, WeakMap};
 use std::{
     any::Any,
     fmt::{self, Debug},
@@ -272,7 +271,7 @@ pub enum ObjectKind {
     WeakRef(WeakGc<GcRefCell<Object>>),
 
     /// The `WeakSet` object kind.
-    WeakSet(WeakOrderedSet),
+    WeakSet(WeakMap<GcRefCell<Object>, ()>),
 
     /// The `Intl.Collator` object kind.
     #[cfg(feature = "intl")]
@@ -634,7 +633,7 @@ impl ObjectData {
 
     /// Create the `WeakSet` object data
     #[must_use]
-    pub fn weak_set(weak_set: WeakOrderedSet) -> Self {
+    pub fn weak_set(weak_set: WeakMap<GcRefCell<Object>, ()>) -> Self {
         Self {
             kind: ObjectKind::WeakSet(weak_set),
             internal_methods: &ORDINARY_INTERNAL_METHODS,
@@ -1556,7 +1555,7 @@ impl Object {
 
     /// Gets the weak set data if the object is a `WeakSet`.
     #[inline]
-    pub const fn as_weak_set(&self) -> Option<&WeakOrderedSet> {
+    pub const fn as_weak_set(&self) -> Option<&WeakMap<GcRefCell<Object>, ()>> {
         match self.data {
             ObjectData {
                 kind: ObjectKind::WeakSet(ref weak_set),
@@ -1568,7 +1567,7 @@ impl Object {
 
     /// Gets the mutable weak set data if the object is a `WeakSet`.
     #[inline]
-    pub fn as_weak_set_mut(&mut self) -> Option<&mut WeakOrderedSet> {
+    pub fn as_weak_set_mut(&mut self) -> Option<&mut WeakMap<GcRefCell<Object>, ()>> {
         match self.data {
             ObjectData {
                 kind: ObjectKind::WeakSet(ref mut weak_set),

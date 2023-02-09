@@ -1,4 +1,5 @@
 use crate::{Ephemeron, Finalize, Gc, Trace};
+use std::hash::{Hash, Hasher};
 
 /// A weak reference to a [`Gc`].
 ///
@@ -35,5 +36,26 @@ impl<T: Trace> Clone for WeakGc<T> {
 impl<T: Trace> From<Ephemeron<T, Gc<T>>> for WeakGc<T> {
     fn from(inner: Ephemeron<T, Gc<T>>) -> Self {
         Self { inner }
+    }
+}
+
+impl<T: Trace> PartialEq for WeakGc<T> {
+    fn eq(&self, other: &Self) -> bool {
+        match (self.upgrade(), other.upgrade()) {
+            (Some(a), Some(b)) => std::ptr::eq(a.as_ref(), b.as_ref()),
+            _ => false,
+        }
+    }
+}
+
+impl<T: Trace> Eq for WeakGc<T> {}
+
+impl<T: Trace> Hash for WeakGc<T> {
+    fn hash<H: Hasher>(&self, state: &mut H) {
+        if let Some(obj) = self.upgrade() {
+            std::ptr::hash(obj.as_ref(), state);
+        } else {
+            std::ptr::hash(self, state);
+        }
     }
 }
