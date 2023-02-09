@@ -330,7 +330,7 @@ impl Collector {
             let node_ref = unsafe { w.as_ref() };
 
             if node_ref.is_live() {
-                node_ref.clear_dead_entires();
+                node_ref.clear_dead_entries();
                 weak_map = node_ref.next();
             } else {
                 weak_map.set(node_ref.next().take());

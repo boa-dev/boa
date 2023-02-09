@@ -10,7 +10,7 @@ pub(crate) struct WeakMapBox<K: Trace + Sized + 'static, V: Trace + Sized + 'sta
 /// A trait that is used to erase the type of a [`WeakMapBox`].
 pub(crate) trait ErasedWeakMapBox {
     /// Clear dead entries from the [`WeakMapBox`].
-    fn clear_dead_entires(&self);
+    fn clear_dead_entries(&self);
 
     /// A pointer to the next [`WeakMapBox`].
     fn next(&self) -> &Cell<Option<NonNull<dyn ErasedWeakMapBox>>>;
@@ -23,7 +23,7 @@ pub(crate) trait ErasedWeakMapBox {
 }
 
 impl<K: Trace, V: Trace> ErasedWeakMapBox for WeakMapBox<K, V> {
-    fn clear_dead_entires(&self) {
+    fn clear_dead_entries(&self) {
         if let Some(map) = self.map.upgrade() {
             let mut map = map.borrow_mut();
             map.retain(|k, _| k.upgrade().is_some());
