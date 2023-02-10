@@ -239,7 +239,7 @@ impl Allocator {
     }
 
     fn alloc_weak_map<K: Trace, V: Trace>() -> WeakMap<K, V> {
-        let _timer = Profiler::global().start_event("New WeakGc", "BoaAlloc");
+        let _timer = Profiler::global().start_event("New WeakMap", "BoaAlloc");
 
         let weak_map = WeakMap {
             inner: Gc::new(GcRefCell::new(HashMap::new())),
