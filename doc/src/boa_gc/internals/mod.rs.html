@@ -4,10 +4,16 @@
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
 <a href="#5" id="5">5</a>
+<a href="#6" id="6">6</a>
+<a href="#7" id="7">7</a>
+<a href="#8" id="8">8</a>
 </pre><pre class="rust"><code><span class="kw">mod </span>ephemeron_box;
 <span class="kw">mod </span>gc_box;
+<span class="kw">mod </span>weak_map_box;
 
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use </span><span class="self">self</span>::ephemeron_box::{EphemeronBox, ErasedEphemeronBox};
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use </span><span class="self">self</span>::weak_map_box::{ErasedWeakMapBox, WeakMapBox};
+
 <span class="kw">pub use </span><span class="self">self</span>::gc_box::GcBox;
 </code></pre></div>
 </section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="boa_gc" data-themes="" data-resource-suffix="" data-rustdoc-version="1.67.1 (d5a82bbd2 2023-02-07)" data-search-js="search-444266647c4dba98.js" data-settings-js="settings-bebeae96e00e4617.js" data-settings-css="settings-af96d9e2fc13e081.css" ></div></body></html>

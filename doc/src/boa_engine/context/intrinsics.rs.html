@@ -875,6 +875,19 @@
 <a href="#874" id="874">874</a>
 <a href="#875" id="875">875</a>
 <a href="#876" id="876">876</a>
+<a href="#877" id="877">877</a>
+<a href="#878" id="878">878</a>
+<a href="#879" id="879">879</a>
+<a href="#880" id="880">880</a>
+<a href="#881" id="881">881</a>
+<a href="#882" id="882">882</a>
+<a href="#883" id="883">883</a>
+<a href="#884" id="884">884</a>
+<a href="#885" id="885">885</a>
+<a href="#886" id="886">886</a>
+<a href="#887" id="887">887</a>
+<a href="#888" id="888">888</a>
+<a href="#889" id="889">889</a>
 </pre><pre class="rust"><code><span class="doccomment">//! Data structures that contain intrinsic objects and constructors.
 
 </span><span class="kw">use crate</span>::{
@@ -991,6 +1004,7 @@
     date_time_format: StandardConstructor,
     promise: StandardConstructor,
     weak_ref: StandardConstructor,
+    weak_set: StandardConstructor,
     <span class="attr">#[cfg(feature = <span class="string">&quot;intl&quot;</span>)]
     </span>collator: StandardConstructor,
     <span class="attr">#[cfg(feature = <span class="string">&quot;intl&quot;</span>)]
@@ -1057,6 +1071,7 @@
             date_time_format: StandardConstructor::default(),
             promise: StandardConstructor::default(),
             weak_ref: StandardConstructor::default(),
+            weak_set: StandardConstructor::default(),
             <span class="attr">#[cfg(feature = <span class="string">&quot;intl&quot;</span>)]
             </span>collator: StandardConstructor::default(),
             <span class="attr">#[cfg(feature = <span class="string">&quot;intl&quot;</span>)]
@@ -1519,6 +1534,17 @@
     </span><span class="attr">#[inline]
     </span><span class="kw">pub const fn </span>weak_ref(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>StandardConstructor {
         <span class="kw-2">&amp;</span><span class="self">self</span>.weak_ref
+    }
+
+    <span class="doccomment">/// Returns the `WeakSet` constructor.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-weakset-constructor
+    </span><span class="attr">#[inline]
+    </span><span class="kw">pub const fn </span>weak_set(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>StandardConstructor {
+        <span class="kw-2">&amp;</span><span class="self">self</span>.weak_set
     }
 
     <span class="doccomment">/// Returns the `Intl.Collator` constructor.

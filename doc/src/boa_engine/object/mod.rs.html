@@ -2374,6 +2374,44 @@
 <a href="#2373" id="2373">2373</a>
 <a href="#2374" id="2374">2374</a>
 <a href="#2375" id="2375">2375</a>
+<a href="#2376" id="2376">2376</a>
+<a href="#2377" id="2377">2377</a>
+<a href="#2378" id="2378">2378</a>
+<a href="#2379" id="2379">2379</a>
+<a href="#2380" id="2380">2380</a>
+<a href="#2381" id="2381">2381</a>
+<a href="#2382" id="2382">2382</a>
+<a href="#2383" id="2383">2383</a>
+<a href="#2384" id="2384">2384</a>
+<a href="#2385" id="2385">2385</a>
+<a href="#2386" id="2386">2386</a>
+<a href="#2387" id="2387">2387</a>
+<a href="#2388" id="2388">2388</a>
+<a href="#2389" id="2389">2389</a>
+<a href="#2390" id="2390">2390</a>
+<a href="#2391" id="2391">2391</a>
+<a href="#2392" id="2392">2392</a>
+<a href="#2393" id="2393">2393</a>
+<a href="#2394" id="2394">2394</a>
+<a href="#2395" id="2395">2395</a>
+<a href="#2396" id="2396">2396</a>
+<a href="#2397" id="2397">2397</a>
+<a href="#2398" id="2398">2398</a>
+<a href="#2399" id="2399">2399</a>
+<a href="#2400" id="2400">2400</a>
+<a href="#2401" id="2401">2401</a>
+<a href="#2402" id="2402">2402</a>
+<a href="#2403" id="2403">2403</a>
+<a href="#2404" id="2404">2404</a>
+<a href="#2405" id="2405">2405</a>
+<a href="#2406" id="2406">2406</a>
+<a href="#2407" id="2407">2407</a>
+<a href="#2408" id="2408">2408</a>
+<a href="#2409" id="2409">2409</a>
+<a href="#2410" id="2410">2410</a>
+<a href="#2411" id="2411">2411</a>
+<a href="#2412" id="2412">2412</a>
+<a href="#2413" id="2413">2413</a>
 </pre><pre class="rust"><code><span class="doccomment">//! Boa&#39;s representation of a JavaScript object and builtin object wrappers
 //!
 //! For the builtin object wrappers, please see [`object::builtins`][builtins] for implementors.
@@ -2430,7 +2468,7 @@
     Context, JsBigInt, JsString, JsSymbol, JsValue,
 };
 
-<span class="kw">use </span>boa_gc::{custom_trace, Finalize, GcRefCell, Trace, WeakGc};
+<span class="kw">use </span>boa_gc::{custom_trace, Finalize, GcRefCell, Trace, WeakGc, WeakMap};
 <span class="kw">use </span>std::{
     any::Any,
     fmt::{<span class="self">self</span>, Debug},
@@ -2646,6 +2684,9 @@
     <span class="doccomment">/// The `WeakRef` object kind.
     </span>WeakRef(WeakGc&lt;GcRefCell&lt;Object&gt;&gt;),
 
+    <span class="doccomment">/// The `WeakSet` object kind.
+    </span>WeakSet(WeakMap&lt;GcRefCell&lt;Object&gt;, ()&gt;),
+
     <span class="doccomment">/// The `Intl.Collator` object kind.
     </span><span class="attr">#[cfg(feature = <span class="string">&quot;intl&quot;</span>)]
     </span>Collator(Box&lt;Collator&gt;),
@@ -2687,6 +2728,7 @@
             <span class="self">Self</span>::Promise(p) =&gt; mark(p),
             <span class="self">Self</span>::AsyncGenerator(g) =&gt; mark(g),
             <span class="self">Self</span>::WeakRef(wr) =&gt; mark(wr),
+            <span class="self">Self</span>::WeakSet(ws) =&gt; mark(ws),
             <span class="attr">#[cfg(feature = <span class="string">&quot;intl&quot;</span>)]
             </span><span class="self">Self</span>::DateTimeFormat(f) =&gt; mark(f),
             <span class="attr">#[cfg(feature = <span class="string">&quot;intl&quot;</span>)]
@@ -3003,6 +3045,15 @@
         }
     }
 
+    <span class="doccomment">/// Create the `WeakSet` object data
+    </span><span class="attr">#[must_use]
+    </span><span class="kw">pub fn </span>weak_set(weak_set: WeakMap&lt;GcRefCell&lt;Object&gt;, ()&gt;) -&gt; <span class="self">Self </span>{
+        <span class="self">Self </span>{
+            kind: ObjectKind::WeakSet(weak_set),
+            internal_methods: <span class="kw-2">&amp;</span>ORDINARY_INTERNAL_METHODS,
+        }
+    }
+
     <span class="doccomment">/// Create the `NativeObject` object data
     </span><span class="attr">#[must_use]
     </span><span class="kw">pub fn </span>native_object&lt;T: NativeObject&gt;(native_object: T) -&gt; <span class="self">Self </span>{
@@ -3098,6 +3149,7 @@
             <span class="self">Self</span>::DataView(<span class="kw">_</span>) =&gt; <span class="string">&quot;DataView&quot;</span>,
             <span class="self">Self</span>::Promise(<span class="kw">_</span>) =&gt; <span class="string">&quot;Promise&quot;</span>,
             <span class="self">Self</span>::WeakRef(<span class="kw">_</span>) =&gt; <span class="string">&quot;WeakRef&quot;</span>,
+            <span class="self">Self</span>::WeakSet(<span class="kw">_</span>) =&gt; <span class="string">&quot;WeakSet&quot;</span>,
             <span class="attr">#[cfg(feature = <span class="string">&quot;intl&quot;</span>)]
             </span><span class="self">Self</span>::Collator(<span class="kw">_</span>) =&gt; <span class="string">&quot;Collator&quot;</span>,
             <span class="attr">#[cfg(feature = <span class="string">&quot;intl&quot;</span>)]
@@ -3911,6 +3963,30 @@
                 kind: ObjectKind::Proxy(<span class="kw-2">ref mut </span>proxy),
                 ..
             } =&gt; <span class="prelude-val">Some</span>(proxy),
+            <span class="kw">_ </span>=&gt; <span class="prelude-val">None</span>,
+        }
+    }
+
+    <span class="doccomment">/// Gets the weak set data if the object is a `WeakSet`.
+    </span><span class="attr">#[inline]
+    </span><span class="kw">pub const fn </span>as_weak_set(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>WeakMap&lt;GcRefCell&lt;Object&gt;, ()&gt;&gt; {
+        <span class="kw">match </span><span class="self">self</span>.data {
+            ObjectData {
+                kind: ObjectKind::WeakSet(<span class="kw-2">ref </span>weak_set),
+                ..
+            } =&gt; <span class="prelude-val">Some</span>(weak_set),
+            <span class="kw">_ </span>=&gt; <span class="prelude-val">None</span>,
+        }
+    }
+
+    <span class="doccomment">/// Gets the mutable weak set data if the object is a `WeakSet`.
+    </span><span class="attr">#[inline]
+    </span><span class="kw">pub fn </span>as_weak_set_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;mut </span>WeakMap&lt;GcRefCell&lt;Object&gt;, ()&gt;&gt; {
+        <span class="kw">match </span><span class="self">self</span>.data {
+            ObjectData {
+                kind: ObjectKind::WeakSet(<span class="kw-2">ref mut </span>weak_set),
+                ..
+            } =&gt; <span class="prelude-val">Some</span>(weak_set),
             <span class="kw">_ </span>=&gt; <span class="prelude-val">None</span>,
         }
     }
