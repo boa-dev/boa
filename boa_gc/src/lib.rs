@@ -96,9 +96,10 @@ mod trace;
 pub(crate) mod internals;
 
 use boa_profiler::Profiler;
-use internals::{EphemeronBox, ErasedEphemeronBox};
+use internals::{EphemeronBox, ErasedEphemeronBox, ErasedWeakMapBox, WeakMapBox};
 use std::{
     cell::{Cell, RefCell},
+    collections::HashMap,
     mem,
     ptr::NonNull,
 };
@@ -107,17 +108,19 @@ pub use crate::trace::{Finalize, Trace};
 pub use boa_macros::{Finalize, Trace};
 pub use cell::{GcRef, GcRefCell, GcRefMut};
 pub use internals::GcBox;
-pub use pointers::{Ephemeron, Gc, WeakGc};
+pub use pointers::{Ephemeron, Gc, WeakGc, WeakMap};
 
 type GcPointer = NonNull<GcBox<dyn Trace>>;
 type EphemeronPointer = NonNull<dyn ErasedEphemeronBox>;
+type ErasedWeakMapBoxPointer = NonNull<dyn ErasedWeakMapBox>;
 
 thread_local!(static GC_DROPPING: Cell<bool> = Cell::new(false));
 thread_local!(static BOA_GC: RefCell<BoaGc> = RefCell::new( BoaGc {
     config: GcConfig::default(),
     runtime: GcRuntimeData::default(),
     strong_start: Cell::new(None),
-    weak_start: Cell::new(None)
+    weak_start: Cell::new(None),
+    weak_map_start: Cell::new(None),
 }));
 
 #[derive(Debug, Clone, Copy)]
@@ -150,6 +153,7 @@ struct BoaGc {
     runtime: GcRuntimeData,
     strong_start: Cell<Option<GcPointer>>,
     weak_start: Cell<Option<EphemeronPointer>>,
+    weak_map_start: Cell<Option<ErasedWeakMapBoxPointer>>,
 }
 
 impl Drop for BoaGc {
@@ -234,6 +238,32 @@ impl Allocator {
         })
     }
 
+    fn alloc_weak_map<K: Trace, V: Trace>() -> WeakMap<K, V> {
+        let _timer = Profiler::global().start_event("New WeakMap", "BoaAlloc");
+
+        let weak_map = WeakMap {
+            inner: Gc::new(GcRefCell::new(HashMap::new())),
+        };
+        let weak = WeakGc::new(&weak_map.inner);
+
+        BOA_GC.with(|st| {
+            let gc = st.borrow_mut();
+
+            let weak_box = WeakMapBox {
+                map: weak,
+                next: Cell::new(gc.weak_map_start.take()),
+            };
+
+            // Safety: value cannot be a null pointer, since `Box` cannot return null pointers.
+            let ptr = unsafe { NonNull::new_unchecked(Box::into_raw(Box::new(weak_box))) };
+            let erased: ErasedWeakMapBoxPointer = ptr;
+
+            gc.weak_map_start.set(Some(erased));
+
+            weak_map
+        })
+    }
+
     fn manage_state(gc: &mut BoaGc) {
         if gc.runtime.bytes_allocated > gc.config.threshold {
             Collector::collect(gc);
@@ -272,7 +302,7 @@ impl Collector {
     fn collect(gc: &mut BoaGc) {
         let _timer = Profiler::global().start_event("Gc Full Collection", "gc");
         gc.runtime.collections += 1;
-        let unreachables = Self::mark_heap(&gc.strong_start, &gc.weak_start);
+        let unreachables = Self::mark_heap(&gc.strong_start, &gc.weak_start, &gc.weak_map_start);
 
         // Only finalize if there are any unreachable nodes.
         if !unreachables.strong.is_empty() || unreachables.weak.is_empty() {
@@ -280,7 +310,8 @@ impl Collector {
             // SAFETY: All passed pointers are valid, since we won't deallocate until `Self::sweep`.
             unsafe { Self::finalize(unreachables) };
 
-            let _final_unreachables = Self::mark_heap(&gc.strong_start, &gc.weak_start);
+            let _final_unreachables =
+                Self::mark_heap(&gc.strong_start, &gc.weak_start, &gc.weak_map_start);
         }
 
         // SAFETY: The head of our linked list is always valid per the invariants of our GC.
@@ -291,12 +322,32 @@ impl Collector {
                 &mut gc.runtime.bytes_allocated,
             );
         }
+
+        // Weak maps have to be cleared after the sweep, since the process dereferences GcBoxes.
+        let mut weak_map = &gc.weak_map_start;
+        while let Some(w) = weak_map.get() {
+            // SAFETY: The caller must ensure the validity of every node of `heap_start`.
+            let node_ref = unsafe { w.as_ref() };
+
+            if node_ref.is_live() {
+                node_ref.clear_dead_entries();
+                weak_map = node_ref.next();
+            } else {
+                weak_map.set(node_ref.next().take());
+
+                // SAFETY:
+                // The `Allocator` must always ensure its start node is a valid, non-null pointer that
+                // was allocated by `Box::from_raw(Box::new(..))`.
+                let _unmarked_node = unsafe { Box::from_raw(w.as_ptr()) };
+            }
+        }
     }
 
     /// Walk the heap and mark any nodes deemed reachable
     fn mark_heap(
         mut strong: &Cell<Option<NonNull<GcBox<dyn Trace>>>>,
         mut weak: &Cell<Option<NonNull<dyn ErasedEphemeronBox>>>,
+        mut weak_map: &Cell<Option<ErasedWeakMapBoxPointer>>,
     ) -> Unreachables {
         let _timer = Profiler::global().start_event("Gc Marking", "gc");
         // Walk the list, tracing and marking the nodes
@@ -348,7 +399,18 @@ impl Collector {
             weak = &eph_ref.header().next;
         }
 
-        // 2. Iterate through all pending ephemerons, removing the ones which have been successfully
+        // 2. Trace all the weak pointers in the live weak maps to make sure they do not get swept.
+        while let Some(w) = weak_map.get() {
+            // SAFETY: node must be valid as this phase cannot drop any node.
+            let node_ref = unsafe { w.as_ref() };
+
+            // SAFETY: The garbage collector ensures that all nodes are valid.
+            unsafe { node_ref.trace() };
+
+            weak_map = node_ref.next();
+        }
+
+        // 3. Iterate through all pending ephemerons, removing the ones which have been successfully
         // traced. If there are no changes in the pending ephemerons list, it means that there are no
         // more reachable ephemerons from the remaining ephemeron values.
         let mut previous_len = pending_ephemerons.len();
@@ -367,7 +429,7 @@ impl Collector {
             previous_len = pending_ephemerons.len();
         }
 
-        // 3. The remaining list should contain the ephemerons that are either unreachable or its key
+        // 4. The remaining list should contain the ephemerons that are either unreachable or its key
         // is dead. Cleanup the strong pointers since this procedure could have marked some more strong
         // pointers.
         strong_dead.retain_mut(|node| {
@@ -448,6 +510,17 @@ impl Collector {
 
     // Clean up the heap when BoaGc is dropped
     fn dump(gc: &mut BoaGc) {
+        // Weak maps have to be dropped first, since the process dereferences GcBoxes.
+        // This can be done without initializing a dropguard since no GcBox's are being dropped.
+        let weak_map_head = &gc.weak_map_start;
+        while let Some(node) = weak_map_head.get() {
+            // SAFETY:
+            // The `Allocator` must always ensure its start node is a valid, non-null pointer that
+            // was allocated by `Box::from_raw(Box::new(..))`.
+            let unmarked_node = unsafe { Box::from_raw(node.as_ptr()) };
+            weak_map_head.set(unmarked_node.next().take());
+        }
+
         // Not initializing a dropguard since this should only be invoked when BOA_GC is being dropped.
         let _guard = DropGuard::new();
 
@@ -484,3 +557,14 @@ pub fn force_collect() {
 
 #[cfg(test)]
 mod test;
+
+/// Returns `true` is any weak maps are currently allocated.
+#[cfg(test)]
+#[must_use]
+pub fn has_weak_maps() -> bool {
+    BOA_GC.with(|current| {
+        let gc = current.borrow();
+
+        gc.weak_map_start.get().is_some()
+    })
+}
