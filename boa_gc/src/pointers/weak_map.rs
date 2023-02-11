@@ -7,7 +7,7 @@ pub struct WeakMap<K: Trace + Sized + 'static, V: Trace + Sized + 'static> {
     pub(crate) inner: Gc<GcRefCell<HashMap<WeakGc<K>, V>>>,
 }
 
-impl<K: Trace, V: Trace> WeakMap<K, V> {
+impl<K: Trace, V: Trace + Clone> WeakMap<K, V> {
     /// Creates a new [`WeakMap`].
     #[must_use]
     #[inline]
@@ -31,5 +31,11 @@ impl<K: Trace, V: Trace> WeakMap<K, V> {
     #[inline]
     pub fn contains_key(&self, key: &Gc<K>) -> bool {
         self.inner.borrow().contains_key(&WeakGc::new(key))
+    }
+
+    /// Returns a reference to the value corresponding to the key.
+    #[inline]
+    pub fn get(&self, key: &Gc<K>) -> Option<V> {
+        self.inner.borrow().get(&WeakGc::new(key)).cloned()
     }
 }
