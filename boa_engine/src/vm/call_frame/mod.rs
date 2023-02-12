@@ -17,10 +17,6 @@ pub struct CallFrame {
     pub(crate) code_block: Gc<CodeBlock>,
     pub(crate) pc: usize,
     #[unsafe_ignore_trace]
-    pub(crate) try_catch: Vec<FinallyAddresses>,
-    #[unsafe_ignore_trace]
-    pub(crate) finally_return: FinallyReturn,
-    #[unsafe_ignore_trace]
     pub(crate) abrupt_completion: Option<AbruptCompletionRecord>,
     pub(crate) completion_register: Option<JsValue>,
     pub(crate) pop_on_return: usize,
@@ -46,8 +42,6 @@ impl CallFrame {
         Self {
             code_block,
             pc: 0,
-            try_catch: Vec::new(),
-            finally_return: FinallyReturn::None,
             pop_on_return: 0,
             env_stack: Vec::from([EnvStackEntry::new(0, max_length)]),
             abrupt_completion: None,
@@ -92,34 +86,6 @@ impl CallFrame {
             .expect("environment stack entry must exist")
             .dec_env_num();
     }
-}
-
-/// Tracks the address that should be jumped to when an error is caught.
-///
-/// Additionally the address of a finally block is tracked, to allow for special handling if it exists.
-#[derive(Copy, Clone, Debug)]
-pub(crate) struct FinallyAddresses {
-    finally: Option<u32>,
-}
-
-impl FinallyAddresses {
-    pub(crate) const fn new(finally_address: Option<u32>) -> Self {
-        Self {
-            finally: finally_address,
-        }
-    }
-
-    pub(crate) const fn finally(self) -> Option<u32> {
-        self.finally
-    }
-}
-
-/// Indicates if a function should return or throw at the end of a finally block.
-#[derive(Copy, Clone, Debug, PartialEq)]
-pub(crate) enum FinallyReturn {
-    None,
-    Ok,
-    Err,
 }
 
 /// Indicates how a generator function that has been called/resumed should return.

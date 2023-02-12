@@ -25,7 +25,7 @@ pub mod flowgraph;
 pub use {call_frame::CallFrame, code_block::CodeBlock, opcode::Opcode};
 
 pub(crate) use {
-    call_frame::{FinallyReturn, GeneratorResumeKind},
+    call_frame::GeneratorResumeKind,
     code_block::{create_function_object, create_generator_function_object},
     opcode::BindingOpcode,
 };
@@ -347,7 +347,6 @@ impl Context<'_> {
                         let record =
                             AbruptCompletionRecord::new_throw().with_initial_target(catch_target);
                         self.vm.frame_mut().abrupt_completion = Some(record);
-                        self.vm.frame_mut().finally_return = FinallyReturn::Err;
                         let err = e.to_opaque(self);
                         self.vm.push(err);
                     } else {
@@ -393,7 +392,6 @@ impl Context<'_> {
                             let record = AbruptCompletionRecord::new_throw();
                             self.vm.frame_mut().abrupt_completion = Some(record);
                             self.vm.frame_mut().pc = address;
-                            self.vm.frame_mut().finally_return = FinallyReturn::Err;
                             let err = e.to_opaque(self);
                             self.vm.push(err);
                         } else {

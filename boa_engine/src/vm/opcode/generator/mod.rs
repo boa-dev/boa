@@ -6,7 +6,7 @@ use crate::{
     error::JsNativeError,
     string::utf16,
     vm::{
-        call_frame::{FinallyReturn, GeneratorResumeKind},
+        call_frame::{AbruptCompletionRecord, GeneratorResumeKind},
         opcode::Operation,
         ShouldExit,
     },
@@ -36,23 +36,20 @@ impl Operation for GeneratorNext {
                 Err(JsError::from_opaque(received))
             }
             GeneratorResumeKind::Return => {
-                let mut finally_left = false;
-
-                while let Some(try_addresses) = context.vm.frame().try_catch.last() {
-                    if let Some(finally_address) = try_addresses.finally() {
-                        let frame = context.vm.frame_mut();
-                        frame.pc = finally_address as usize;
-                        frame.finally_return = FinallyReturn::Ok;
-                        frame.try_catch.pop();
-                        finally_left = true;
-                        break;
-                    }
-                    context.vm.frame_mut().try_catch.pop();
-                }
-
-                if finally_left {
+                // TODO: Determine GeneratorResumeKind::Return can be called in a finally, in which case we would need to skip the first value.
+                let finally_entries = context
+                    .vm
+                    .frame()
+                    .env_stack
+                    .iter()
+                    .filter(|entry| entry.is_finally_env());
+                if let Some(next_finally) = finally_entries.rev().next() {
+                    context.vm.frame_mut().pc = next_finally.start_address() as usize;
+                    let return_record = AbruptCompletionRecord::new_return();
+                    context.vm.frame_mut().abrupt_completion = Some(return_record);
                     return Ok(ShouldExit::False);
                 }
+
                 Ok(ShouldExit::True)
             }
         }

@@ -1,5 +1,5 @@
 use crate::{
-    vm::{call_frame::AbruptCompletionRecord, opcode::Operation, FinallyReturn, ShouldExit},
+    vm::{call_frame::AbruptCompletionRecord, opcode::Operation, ShouldExit},
     Context, JsResult,
 };
 
@@ -49,7 +49,6 @@ impl Operation for Break {
 
         // 4. Set program counter and finally return fields.
         context.vm.frame_mut().pc = jump_address as usize;
-        context.vm.frame_mut().finally_return = FinallyReturn::None;
         Ok(ShouldExit::False)
     }
 }

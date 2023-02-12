@@ -68,6 +68,11 @@ impl AbruptCompletionRecord {
         self.kind == AbruptKind::Continue
     }
 
+    /// Returns a boolean value for whether `AbruptCompletionRecord` is a return.
+    pub(crate) fn is_return(self) -> bool {
+        self.kind == AbruptKind::Return
+    }
+
     /// Returns a boolean value for whether `AbruptCompletionRecord` is a throw.
     pub(crate) fn is_throw(self) -> bool {
         self.kind == AbruptKind::Throw

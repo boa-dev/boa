@@ -1,5 +1,5 @@
 use crate::{
-    vm::{call_frame::EnvStackEntry, opcode::Operation, FinallyReturn, ShouldExit},
+    vm::{call_frame::EnvStackEntry, opcode::Operation, ShouldExit},
     Context, JsResult,
 };
 
@@ -25,7 +25,6 @@ impl Operation for CatchStart {
             .push(EnvStackEntry::new(start, finally - 1).with_catch_flag());
 
         context.vm.frame_mut().abrupt_completion = None;
-        context.vm.frame_mut().finally_return = FinallyReturn::None;
         Ok(ShouldExit::False)
     }
 }
@@ -42,7 +41,6 @@ impl Operation for CatchEnd {
     const INSTRUCTION: &'static str = "INST - CatchEnd";
 
     fn execute(context: &mut Context<'_>) -> JsResult<ShouldExit> {
-        context.vm.frame_mut().try_catch.pop();
         let mut envs_to_pop = 0_usize;
         while let Some(env_entry) = context.vm.frame_mut().env_stack.pop() {
             envs_to_pop += env_entry.env_num();
@@ -55,7 +53,6 @@ impl Operation for CatchEnd {
         let env_truncation_len = context.realm.environments.len().saturating_sub(envs_to_pop);
         context.realm.environments.truncate(env_truncation_len);
 
-        context.vm.frame_mut().finally_return = FinallyReturn::None;
         Ok(ShouldExit::False)
     }
 }
@@ -89,9 +86,6 @@ impl Operation for CatchEnd2 {
             context.vm.frame_mut().env_stack.pop();
         }
 
-        if context.vm.frame_mut().finally_return == FinallyReturn::Err {
-            context.vm.frame_mut().finally_return = FinallyReturn::None;
-        }
         Ok(ShouldExit::False)
     }
 }

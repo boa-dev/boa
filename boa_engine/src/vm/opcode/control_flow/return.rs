@@ -1,5 +1,5 @@
 use crate::{
-    vm::{opcode::Operation, FinallyReturn, ShouldExit, call_frame::AbruptCompletionRecord},
+    vm::{call_frame::AbruptCompletionRecord, opcode::Operation, ShouldExit},
     Context, JsResult,
 };
 
@@ -44,7 +44,6 @@ impl Operation for Return {
 
         if let Some(finally) = finally_address {
             context.vm.frame_mut().pc = finally;
-            context.vm.frame_mut().finally_return = FinallyReturn::Ok;
             return Ok(ShouldExit::False);
         }
 
