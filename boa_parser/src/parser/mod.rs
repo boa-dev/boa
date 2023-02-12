@@ -11,6 +11,7 @@ mod tests;
 
 use crate::{
     error::ParseResult,
+    lexer::Error as LexError,
     parser::{
         cursor::Cursor,
         function::{FormalParameters, FunctionStatementList},
@@ -21,8 +22,9 @@ use boa_ast::{
     expression::Identifier,
     function::FormalParameterList,
     operations::{
-        contains, lexically_declared_names, top_level_lexically_declared_names,
-        top_level_var_declared_names, var_declared_names, ContainsSymbol,
+        check_labels, contains, contains_invalid_object_literal, lexically_declared_names,
+        top_level_lexically_declared_names, top_level_var_declared_names, var_declared_names,
+        ContainsSymbol,
     },
     ModuleItemList, Position, StatementList,
 };
@@ -330,13 +332,20 @@ where
                     Position::new(1, 1),
                 ));
             }
+        }
 
-            // TODO:
-            // It is a Syntax Error if ContainsDuplicateLabels of StatementList with argument « » is true.
-            // It is a Syntax Error if ContainsUndefinedBreakTarget of StatementList with argument « » is true.
-            // It is a Syntax Error if ContainsUndefinedContinueTarget of StatementList with arguments « » and « » is true.
-            // It is a Syntax Error if AllPrivateIdentifiersValid of StatementList with argument « » is false unless the
-            // source text containing ScriptBody is eval code that is being processed by a direct eval.
+        if let Some(error) = check_labels(&body, interner) {
+            return Err(Error::lex(LexError::Syntax(
+                error.into_boxed_str(),
+                Position::new(1, 1),
+            )));
+        }
+
+        if contains_invalid_object_literal(&body) {
+            return Err(Error::lex(LexError::Syntax(
+                "invalid object literal in script statement list".into(),
+                Position::new(1, 1),
+            )));
         }
 
         Ok(body)

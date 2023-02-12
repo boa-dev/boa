@@ -8,7 +8,6 @@ use super::{Access, Callable, NodeKind};
 use crate::{
     bytecompiler::{ByteCompiler, Literal},
     vm::Opcode,
-    JsResult,
 };
 use boa_ast::{
     expression::{
@@ -41,34 +40,28 @@ impl ByteCompiler<'_, '_> {
         }
     }
 
-    fn compile_conditional(&mut self, op: &Conditional, use_expr: bool) -> JsResult<()> {
-        self.compile_expr(op.condition(), true)?;
+    fn compile_conditional(&mut self, op: &Conditional, use_expr: bool) {
+        self.compile_expr(op.condition(), true);
         let jelse = self.jump_if_false();
-        self.compile_expr(op.if_true(), true)?;
+        self.compile_expr(op.if_true(), true);
         let exit = self.jump();
         self.patch_jump(jelse);
-        self.compile_expr(op.if_false(), true)?;
+        self.compile_expr(op.if_false(), true);
         self.patch_jump(exit);
 
         if !use_expr {
             self.emit(Opcode::Pop, &[]);
         };
-
-        Ok(())
     }
 
-    fn compile_template_literal(
-        &mut self,
-        template_literal: &TemplateLiteral,
-        use_expr: bool,
-    ) -> JsResult<()> {
+    fn compile_template_literal(&mut self, template_literal: &TemplateLiteral, use_expr: bool) {
         for element in template_literal.elements() {
             match element {
                 TemplateElement::String(s) => self.emit_push_literal(Literal::String(
                     self.interner().resolve_expect(*s).into_common(false),
                 )),
                 TemplateElement::Expr(expr) => {
-                    self.compile_expr(expr, true)?;
+                    self.compile_expr(expr, true);
                 }
             }
         }
@@ -81,37 +74,35 @@ impl ByteCompiler<'_, '_> {
         if !use_expr {
             self.emit(Opcode::Pop, &[]);
         }
-
-        Ok(())
     }
 
-    pub(crate) fn compile_expr_impl(&mut self, expr: &Expression, use_expr: bool) -> JsResult<()> {
+    pub(crate) fn compile_expr_impl(&mut self, expr: &Expression, use_expr: bool) {
         match expr {
             Expression::Literal(lit) => self.compile_literal(lit, use_expr),
-            Expression::Unary(unary) => self.compile_unary(unary, use_expr)?,
-            Expression::Update(update) => self.compile_update(update, use_expr)?,
-            Expression::Binary(binary) => self.compile_binary(binary, use_expr)?,
+            Expression::Unary(unary) => self.compile_unary(unary, use_expr),
+            Expression::Update(update) => self.compile_update(update, use_expr),
+            Expression::Binary(binary) => self.compile_binary(binary, use_expr),
             Expression::BinaryInPrivate(binary) => {
-                self.compile_binary_in_private(binary, use_expr)?;
+                self.compile_binary_in_private(binary, use_expr);
             }
-            Expression::Assign(assign) => self.compile_assign(assign, use_expr)?,
+            Expression::Assign(assign) => self.compile_assign(assign, use_expr),
             Expression::ObjectLiteral(object) => {
-                self.compile_object_literal(object, use_expr)?;
+                self.compile_object_literal(object, use_expr);
             }
             Expression::Identifier(name) => {
-                self.access_get(Access::Variable { name: *name }, use_expr)?;
+                self.access_get(Access::Variable { name: *name }, use_expr);
             }
             Expression::PropertyAccess(access) => {
-                self.access_get(Access::Property { access }, use_expr)?;
+                self.access_get(Access::Property { access }, use_expr);
             }
-            Expression::Conditional(op) => self.compile_conditional(op, use_expr)?,
+            Expression::Conditional(op) => self.compile_conditional(op, use_expr),
             Expression::ArrayLiteral(array) => {
                 self.emit_opcode(Opcode::PushNewArray);
                 self.emit_opcode(Opcode::PopOnReturnAdd);
 
                 for element in array.as_ref() {
                     if let Some(element) = element {
-                        self.compile_expr(element, true)?;
+                        self.compile_expr(element, true);
                         if let Expression::Spread(_) = element {
                             self.emit_opcode(Opcode::InitIterator);
                             self.emit_opcode(Opcode::PushIteratorToArray);
@@ -129,34 +120,34 @@ impl ByteCompiler<'_, '_> {
                 }
             }
             Expression::This => {
-                self.access_get(Access::This, use_expr)?;
+                self.access_get(Access::This, use_expr);
             }
-            Expression::Spread(spread) => self.compile_expr(spread.target(), true)?,
+            Expression::Spread(spread) => self.compile_expr(spread.target(), true),
             Expression::Function(function) => {
-                self.function(function.into(), NodeKind::Expression, use_expr)?;
+                self.function(function.into(), NodeKind::Expression, use_expr);
             }
             Expression::ArrowFunction(function) => {
-                self.function(function.into(), NodeKind::Expression, use_expr)?;
+                self.function(function.into(), NodeKind::Expression, use_expr);
             }
             Expression::AsyncArrowFunction(function) => {
-                self.function(function.into(), NodeKind::Expression, use_expr)?;
+                self.function(function.into(), NodeKind::Expression, use_expr);
             }
             Expression::Generator(function) => {
-                self.function(function.into(), NodeKind::Expression, use_expr)?;
+                self.function(function.into(), NodeKind::Expression, use_expr);
             }
             Expression::AsyncFunction(function) => {
-                self.function(function.into(), NodeKind::Expression, use_expr)?;
+                self.function(function.into(), NodeKind::Expression, use_expr);
             }
             Expression::AsyncGenerator(function) => {
-                self.function(function.into(), NodeKind::Expression, use_expr)?;
+                self.function(function.into(), NodeKind::Expression, use_expr);
             }
-            Expression::Call(call) => self.call(Callable::Call(call), use_expr)?,
-            Expression::New(new) => self.call(Callable::New(new), use_expr)?,
+            Expression::Call(call) => self.call(Callable::Call(call), use_expr),
+            Expression::New(new) => self.call(Callable::New(new), use_expr),
             Expression::TemplateLiteral(template_literal) => {
-                self.compile_template_literal(template_literal, use_expr)?;
+                self.compile_template_literal(template_literal, use_expr);
             }
             Expression::Await(expr) => {
-                self.compile_expr(expr.target(), true)?;
+                self.compile_expr(expr.target(), true);
                 self.emit_opcode(Opcode::Await);
                 self.emit_opcode(Opcode::GeneratorNext);
                 if !use_expr {
@@ -165,7 +156,7 @@ impl ByteCompiler<'_, '_> {
             }
             Expression::Yield(r#yield) => {
                 if let Some(expr) = r#yield.target() {
-                    self.compile_expr(expr, true)?;
+                    self.compile_expr(expr, true);
                 } else {
                     self.emit_opcode(Opcode::PushUndefined);
                 }
@@ -204,7 +195,7 @@ impl ByteCompiler<'_, '_> {
             Expression::TaggedTemplate(template) => {
                 match template.tag() {
                     Expression::PropertyAccess(PropertyAccess::Simple(access)) => {
-                        self.compile_expr(access.target(), true)?;
+                        self.compile_expr(access.target(), true);
                         self.emit(Opcode::Dup, &[]);
                         match access.field() {
                             PropertyAccessField::Const(field) => {
@@ -212,19 +203,19 @@ impl ByteCompiler<'_, '_> {
                                 self.emit(Opcode::GetPropertyByName, &[index]);
                             }
                             PropertyAccessField::Expr(field) => {
-                                self.compile_expr(field, true)?;
+                                self.compile_expr(field, true);
                                 self.emit(Opcode::GetPropertyByValue, &[]);
                             }
                         }
                     }
                     Expression::PropertyAccess(PropertyAccess::Private(access)) => {
-                        self.compile_expr(access.target(), true)?;
+                        self.compile_expr(access.target(), true);
                         self.emit(Opcode::Dup, &[]);
                         let index = self.get_or_insert_private_name(access.field());
                         self.emit(Opcode::GetPrivateField, &[index]);
                     }
                     expr => {
-                        self.compile_expr(expr, true)?;
+                        self.compile_expr(expr, true);
                         self.emit_opcode(Opcode::This);
                         self.emit_opcode(Opcode::Swap);
                     }
@@ -257,12 +248,12 @@ impl ByteCompiler<'_, '_> {
                 self.emit(Opcode::Pop, &[]);
 
                 for expr in template.exprs() {
-                    self.compile_expr(expr, true)?;
+                    self.compile_expr(expr, true);
                 }
 
                 self.emit(Opcode::Call, &[(template.exprs().len() + 1) as u32]);
             }
-            Expression::Class(class) => self.class(class, true)?,
+            Expression::Class(class) => self.class(class, true),
             Expression::SuperCall(super_call) => {
                 let contains_spread = super_call
                     .arguments()
@@ -272,7 +263,7 @@ impl ByteCompiler<'_, '_> {
                 if contains_spread {
                     self.emit_opcode(Opcode::PushNewArray);
                     for arg in super_call.arguments() {
-                        self.compile_expr(arg, true)?;
+                        self.compile_expr(arg, true);
                         if let Expression::Spread(_) = arg {
                             self.emit_opcode(Opcode::InitIterator);
                             self.emit_opcode(Opcode::PushIteratorToArray);
@@ -282,7 +273,7 @@ impl ByteCompiler<'_, '_> {
                     }
                 } else {
                     for arg in super_call.arguments() {
-                        self.compile_expr(arg, true)?;
+                        self.compile_expr(arg, true);
                     }
                 }
 
@@ -302,7 +293,7 @@ impl ByteCompiler<'_, '_> {
                 }
             }
             Expression::Optional(opt) => {
-                self.compile_optional_preserve_this(opt)?;
+                self.compile_optional_preserve_this(opt);
 
                 self.emit_opcode(Opcode::Swap);
                 self.emit_opcode(Opcode::Pop);
@@ -314,6 +305,5 @@ impl ByteCompiler<'_, '_> {
             // TODO: try to remove this variant somehow
             Expression::FormalParameterList(_) => unreachable!(),
         }
-        Ok(())
     }
 }

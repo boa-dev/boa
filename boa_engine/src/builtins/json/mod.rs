@@ -206,7 +206,7 @@ impl Json {
         let mut parser = Parser::new(Source::from_bytes(&script_string));
         parser.set_json_parse();
         let statement_list = parser.parse_script(context.interner_mut())?;
-        let code_block = context.compile_json_parse(&statement_list)?;
+        let code_block = context.compile_json_parse(&statement_list);
         let unfiltered = context.execute(code_block)?;
 
         // 11. If IsCallable(reviver) is true, then

@@ -6,17 +6,16 @@ use boa_ast::{
 use crate::{
     bytecompiler::{Access, ByteCompiler},
     vm::Opcode,
-    JsResult,
 };
 
 impl ByteCompiler<'_, '_> {
-    pub(crate) fn compile_unary(&mut self, unary: &Unary, use_expr: bool) -> JsResult<()> {
+    pub(crate) fn compile_unary(&mut self, unary: &Unary, use_expr: bool) {
         let opcode = match unary.op() {
             UnaryOp::Delete => {
                 if let Some(access) = Access::from_expression(unary.target()) {
-                    self.access_delete(access)?;
+                    self.access_delete(access);
                 } else {
-                    self.compile_expr(unary.target(), false)?;
+                    self.compile_expr(unary.target(), false);
                     self.emit(Opcode::PushTrue, &[]);
                 }
                 None
@@ -32,7 +31,7 @@ impl ByteCompiler<'_, '_> {
                         let index = self.get_or_insert_binding(binding);
                         self.emit(Opcode::GetNameOrUndefined, &[index]);
                     }
-                    expr => self.compile_expr(expr, true)?,
+                    expr => self.compile_expr(expr, true),
                 }
                 self.emit_opcode(Opcode::TypeOf);
                 None
@@ -41,14 +40,12 @@ impl ByteCompiler<'_, '_> {
         };
 
         if let Some(opcode) = opcode {
-            self.compile_expr(unary.target(), true)?;
+            self.compile_expr(unary.target(), true);
             self.emit(opcode, &[]);
         }
 
         if !use_expr {
             self.emit(Opcode::Pop, &[]);
         }
-
-        Ok(())
     }
 }

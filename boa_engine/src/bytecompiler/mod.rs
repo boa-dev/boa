@@ -11,7 +11,7 @@ mod statement;
 use crate::{
     environments::{BindingLocator, CompileTimeEnvironment},
     vm::{BindingOpcode, CodeBlock, Opcode},
-    Context, JsBigInt, JsResult, JsString, JsValue,
+    Context, JsBigInt, JsString, JsValue,
 };
 use boa_ast::{
     declaration::{Binding, LexicalDeclaration, VarDeclaration},
@@ -484,7 +484,7 @@ impl<'b, 'host> ByteCompiler<'b, 'host> {
         self.patch_jump_with_target(label, target);
     }
 
-    fn access_get(&mut self, access: Access<'_>, use_expr: bool) -> JsResult<()> {
+    fn access_get(&mut self, access: Access<'_>, use_expr: bool) {
         match access {
             Access::Variable { name } => {
                 let binding = self.context.get_binding_value(name);
@@ -495,18 +495,18 @@ impl<'b, 'host> ByteCompiler<'b, 'host> {
                 PropertyAccess::Simple(access) => match access.field() {
                     PropertyAccessField::Const(name) => {
                         let index = self.get_or_insert_name((*name).into());
-                        self.compile_expr(access.target(), true)?;
+                        self.compile_expr(access.target(), true);
                         self.emit(Opcode::GetPropertyByName, &[index]);
                     }
                     PropertyAccessField::Expr(expr) => {
-                        self.compile_expr(access.target(), true)?;
-                        self.compile_expr(expr, true)?;
+                        self.compile_expr(access.target(), true);
+                        self.compile_expr(expr, true);
                         self.emit(Opcode::GetPropertyByValue, &[]);
                     }
                 },
                 PropertyAccess::Private(access) => {
                     let index = self.get_or_insert_private_name(access.field());
-                    self.compile_expr(access.target(), true)?;
+                    self.compile_expr(access.target(), true);
                     self.emit(Opcode::GetPrivateField, &[index]);
                 }
                 PropertyAccess::Super(access) => match access.field() {
@@ -517,7 +517,7 @@ impl<'b, 'host> ByteCompiler<'b, 'host> {
                     }
                     PropertyAccessField::Expr(expr) => {
                         self.emit_opcode(Opcode::Super);
-                        self.compile_expr(expr, true)?;
+                        self.compile_expr(expr, true);
                         self.emit_opcode(Opcode::GetPropertyByValue);
                     }
                 },
@@ -530,15 +530,11 @@ impl<'b, 'host> ByteCompiler<'b, 'host> {
         if !use_expr {
             self.emit(Opcode::Pop, &[]);
         }
-        Ok(())
     }
 
     // The wrap is needed so it can match the function signature.
     #[allow(clippy::unnecessary_wraps)]
-    fn access_set_top_of_stack_expr_fn(
-        compiler: &mut ByteCompiler<'_, '_>,
-        level: u8,
-    ) -> JsResult<()> {
+    fn access_set_top_of_stack_expr_fn(compiler: &mut ByteCompiler<'_, '_>, level: u8) {
         match level {
             0 => {}
             1 => compiler.emit_opcode(Opcode::Swap),
@@ -547,80 +543,73 @@ impl<'b, 'host> ByteCompiler<'b, 'host> {
                 compiler.emit_u8(level + 1);
             }
         }
-        Ok(())
     }
 
-    fn access_set<F, R>(&mut self, access: Access<'_>, use_expr: bool, expr_fn: F) -> JsResult<R>
+    fn access_set<F, R>(&mut self, access: Access<'_>, use_expr: bool, expr_fn: F)
     where
-        F: FnOnce(&mut ByteCompiler<'_, '_>, u8) -> JsResult<R>,
+        F: FnOnce(&mut ByteCompiler<'_, '_>, u8) -> R,
     {
         match access {
             Access::Variable { name } => {
-                let result = expr_fn(self, 0);
+                expr_fn(self, 0);
                 if use_expr {
                     self.emit(Opcode::Dup, &[]);
                 }
                 let binding = self.context.set_mutable_binding(name);
                 let index = self.get_or_insert_binding(binding);
                 self.emit(Opcode::SetName, &[index]);
-                result
             }
             Access::Property { access } => match access {
                 PropertyAccess::Simple(access) => match access.field() {
                     PropertyAccessField::Const(name) => {
-                        self.compile_expr(access.target(), true)?;
+                        self.compile_expr(access.target(), true);
                         self.emit_opcode(Opcode::Dup);
-                        let result = expr_fn(self, 2);
+                        expr_fn(self, 2);
                         let index = self.get_or_insert_name((*name).into());
 
                         self.emit(Opcode::SetPropertyByName, &[index]);
                         if !use_expr {
                             self.emit(Opcode::Pop, &[]);
                         }
-                        result
                     }
                     PropertyAccessField::Expr(expr) => {
-                        self.compile_expr(access.target(), true)?;
-                        self.compile_expr(expr, true)?;
-                        let result = expr_fn(self, 2);
+                        self.compile_expr(access.target(), true);
+                        self.compile_expr(expr, true);
+                        expr_fn(self, 2);
                         self.emit(Opcode::SetPropertyByValue, &[]);
                         if !use_expr {
                             self.emit(Opcode::Pop, &[]);
                         }
-                        result
                     }
                 },
                 PropertyAccess::Private(access) => {
-                    self.compile_expr(access.target(), true)?;
-                    let result = expr_fn(self, 1);
+                    self.compile_expr(access.target(), true);
+                    expr_fn(self, 1);
                     let index = self.get_or_insert_private_name(access.field());
                     self.emit(Opcode::SetPrivateField, &[index]);
                     if !use_expr {
                         self.emit(Opcode::Pop, &[]);
                     }
-                    result
                 }
                 PropertyAccess::Super(access) => match access.field() {
                     PropertyAccessField::Const(name) => {
                         self.emit_opcode(Opcode::Super);
                         self.emit_opcode(Opcode::This);
-                        let result = expr_fn(self, 1);
+                        expr_fn(self, 1);
                         let index = self.get_or_insert_name((*name).into());
                         self.emit(Opcode::SetPropertyByName, &[index]);
                         if !use_expr {
                             self.emit(Opcode::Pop, &[]);
                         }
-                        result
                     }
                     PropertyAccessField::Expr(expr) => {
                         self.emit(Opcode::Super, &[]);
-                        self.compile_expr(expr, true)?;
-                        let result = expr_fn(self, 0);
+                        self.compile_expr(expr, true);
+                        expr_fn(self, 0);
                         self.emit(Opcode::SetPropertyByValue, &[]);
                         if !use_expr {
                             self.emit(Opcode::Pop, &[]);
                         }
-                        result
                     }
                 },
             },
@@ -628,18 +617,18 @@ impl<'b, 'host> ByteCompiler<'b, 'host> {
         }
     }
 
-    fn access_delete(&mut self, access: Access<'_>) -> JsResult<()> {
+    fn access_delete(&mut self, access: Access<'_>) {
         match access {
             Access::Property { access } => match access {
                 PropertyAccess::Simple(access) => match access.field() {
                     PropertyAccessField::Const(name) => {
                         let index = self.get_or_insert_name((*name).into());
-                        self.compile_expr(access.target(), true)?;
+                        self.compile_expr(access.target(), true);
                         self.emit(Opcode::DeletePropertyByName, &[index]);
                     }
                     PropertyAccessField::Expr(expr) => {
-                        self.compile_expr(access.target(), true)?;
-                        self.compile_expr(expr, true)?;
+                        self.compile_expr(access.target(), true);
+                        self.compile_expr(expr, true);
                         self.emit_opcode(Opcode::DeletePropertyByValue);
                     }
                 },
@@ -658,7 +647,6 @@ impl<'b, 'host> ByteCompiler<'b, 'host> {
                 self.emit_opcode(Opcode::PushTrue);
             }
         }
-        Ok(())
     }
 
     /// Compile a [`StatementList`].
@@ -667,7 +655,7 @@ impl<'b, 'host> ByteCompiler<'b, 'host> {
         list: &StatementList,
         use_expr: bool,
         configurable_globals: bool,
-    ) -> JsResult<()> {
+    ) {
         if use_expr {
             let expr_index = list
                 .statements()
@@ -683,15 +671,13 @@ impl<'b, 'host> ByteCompiler<'b, 'host> {
                 .count();
 
             for (i, item) in list.statements().iter().enumerate() {
-                self.compile_stmt_list_item(item, i + 1 == expr_index, configurable_globals)?;
+                self.compile_stmt_list_item(item, i + 1 == expr_index, configurable_globals);
             }
         } else {
             for item in list.statements() {
-                self.compile_stmt_list_item(item, false, configurable_globals)?;
+                self.compile_stmt_list_item(item, false, configurable_globals);
             }
         }
-
-        Ok(())
     }
 
     /// Compile a statement list in a new declarative environment.
@@ -700,7 +686,7 @@ impl<'b, 'host> ByteCompiler<'b, 'host> {
         list: &StatementList,
         use_expr: bool,
         strict: bool,
-    ) -> JsResult<()> {
+    ) {
         self.context.push_compile_time_environment(strict);
         let push_env = self.emit_opcode_with_two_operands(Opcode::PushDeclarativeEnvironment);
 
@@ -721,11 +707,11 @@ impl<'b, 'host> ByteCompiler<'b, 'host> {
                 .count();
 
             for (i, item) in list.statements().iter().enumerate() {
-                self.compile_stmt_list_item(item, i + 1 == expr_index, true)?;
+                self.compile_stmt_list_item(item, i + 1 == expr_index, true);
             }
         } else {
             for item in list.statements() {
-                self.compile_stmt_list_item(item, false, true)?;
+                self.compile_stmt_list_item(item, false, true);
             }
         }
 
@@ -734,14 +720,12 @@ impl<'b, 'host> ByteCompiler<'b, 'host> {
         self.patch_jump_with_target(push_env.0, num_bindings as u32);
         self.patch_jump_with_target(push_env.1, index_compile_environment as u32);
         self.emit_opcode(Opcode::PopEnvironment);
-
-        Ok(())
     }
 
     /// Compile an [`Expression`].
     #[inline]
-    pub fn compile_expr(&mut self, expr: &Expression, use_expr: bool) -> JsResult<()> {
-        self.compile_expr_impl(expr, use_expr)
+    pub fn compile_expr(&mut self, expr: &Expression, use_expr: bool) {
+        self.compile_expr_impl(expr, use_expr);
     }
 
     /// Compile a property access expression, prepending `this` to the property value in the stack.
@@ -754,10 +738,10 @@ impl<'b, 'host> ByteCompiler<'b, 'host> {
     /// with calls (`a.b()`), since both of them must have `a` be the value of `this` for the function
     /// call `b()`, but a regular compilation of the access would lose the `this` value after accessing
     /// `b`.
-    fn compile_access_preserve_this(&mut self, access: &PropertyAccess) -> JsResult<()> {
+    fn compile_access_preserve_this(&mut self, access: &PropertyAccess) {
         match access {
             PropertyAccess::Simple(access) => {
-                self.compile_expr(access.target(), true)?;
+                self.compile_expr(access.target(), true);
                 self.emit_opcode(Opcode::Dup);
                 match access.field() {
                     PropertyAccessField::Const(field) => {
@@ -765,13 +749,13 @@ impl<'b, 'host> ByteCompiler<'b, 'host> {
                         self.emit(Opcode::GetPropertyByName, &[index]);
                     }
                     PropertyAccessField::Expr(field) => {
-                        self.compile_expr(field, true)?;
+                        self.compile_expr(field, true);
                         self.emit_opcode(Opcode::GetPropertyByValue);
                     }
                 }
             }
             PropertyAccess::Private(access) => {
-                self.compile_expr(access.target(), true)?;
+                self.compile_expr(access.target(), true);
                 self.emit_opcode(Opcode::Dup);
                 let index = self.get_or_insert_private_name(access.field());
                 self.emit(Opcode::GetPrivateField, &[index]);
@@ -785,13 +769,12 @@ impl<'b, 'host> ByteCompiler<'b, 'host> {
                         self.emit(Opcode::GetPropertyByName, &[index]);
                     }
                     PropertyAccessField::Expr(expr) => {
-                        self.compile_expr(expr, true)?;
+                        self.compile_expr(expr, true);
                         self.emit_opcode(Opcode::GetPropertyByValue);
                     }
                 }
             }
         }
-        Ok(())
     }
 
     /// Compile an optional chain expression, prepending `this` to the property value in the stack.
@@ -805,17 +788,17 @@ impl<'b, 'host> ByteCompiler<'b, 'host> {
     /// would only return the result of the chain without preserving the `this` value. In other words,
     /// `this` would be set to `undefined` for that call, which is incorrect since `a` should be the
     /// `this` value of the call.
-    fn compile_optional_preserve_this(&mut self, optional: &Optional) -> JsResult<()> {
+    fn compile_optional_preserve_this(&mut self, optional: &Optional) {
         let mut jumps = Vec::with_capacity(optional.chain().len());
 
         match optional.target() {
             Expression::PropertyAccess(access) => {
-                self.compile_access_preserve_this(access)?;
+                self.compile_access_preserve_this(access);
             }
-            Expression::Optional(opt) => self.compile_optional_preserve_this(opt)?,
+            Expression::Optional(opt) => self.compile_optional_preserve_this(opt),
             expr => {
                 self.emit(Opcode::PushUndefined, &[]);
-                self.compile_expr(expr, true)?;
+                self.compile_expr(expr, true);
             }
         }
         jumps.push(self.jump_if_null_or_undefined());
@@ -826,13 +809,13 @@ impl<'b, 'host> ByteCompiler<'b, 'host> {
             .expect("chain must have at least one element");
         assert!(first.shorted());
 
-        self.compile_optional_item_kind(first.kind())?;
+        self.compile_optional_item_kind(first.kind());
 
         for item in rest {
             if item.shorted() {
                 jumps.push(self.jump_if_null_or_undefined());
             }
-            self.compile_optional_item_kind(item.kind())?;
+            self.compile_optional_item_kind(item.kind());
         }
         let skip_undef = self.jump();
 
@@ -844,8 +827,6 @@ impl<'b, 'host> ByteCompiler<'b, 'host> {
         self.emit_opcode(Opcode::PushUndefined);
 
         self.patch_jump(skip_undef);
-
-        Ok(())
     }
 
     /// Compile a single operation in an optional chain.
@@ -864,7 +845,7 @@ impl<'b, 'host> ByteCompiler<'b, 'host> {
     /// is not null or undefined (if the operator `?.` was used).
     /// - This assumes that the state of the stack before compiling is `...rest, this, value`,
     /// since the operation compiled by this function could be a call.
-    fn compile_optional_item_kind(&mut self, kind: &OptionalOperationKind) -> JsResult<()> {
+    fn compile_optional_item_kind(&mut self, kind: &OptionalOperationKind) {
         match kind {
             OptionalOperationKind::SimplePropertyAccess { field } => {
                 self.emit_opcode(Opcode::Dup);
@@ -874,7 +855,7 @@ impl<'b, 'host> ByteCompiler<'b, 'host> {
                         self.emit(Opcode::GetPropertyByName, &[index]);
                     }
                     PropertyAccessField::Expr(expr) => {
-                        self.compile_expr(expr, true)?;
+                        self.compile_expr(expr, true);
                         self.emit(Opcode::GetPropertyByValue, &[]);
                     }
                 }
@@ -897,7 +878,7 @@ impl<'b, 'host> ByteCompiler<'b, 'host> {
                 if contains_spread {
                     self.emit_opcode(Opcode::PushNewArray);
                     for arg in args {
-                        self.compile_expr(arg, true)?;
+                        self.compile_expr(arg, true);
                         if let Expression::Spread(_) = arg {
                             self.emit_opcode(Opcode::InitIterator);
                             self.emit_opcode(Opcode::PushIteratorToArray);
@@ -908,7 +889,7 @@ impl<'b, 'host> ByteCompiler<'b, 'host> {
                     self.emit_opcode(Opcode::CallSpread);
                 } else {
                     for arg in args {
-                        self.compile_expr(arg, true)?;
+                        self.compile_expr(arg, true);
                     }
                     self.emit(Opcode::Call, &[args.len() as u32]);
                 }
@@ -917,17 +898,16 @@ impl<'b, 'host> ByteCompiler<'b, 'host> {
                 self.emit_opcode(Opcode::Swap);
             }
         }
-        Ok(())
     }
 
     /// Compile a [`VarDeclaration`].
-    fn compile_var_decl(&mut self, decl: &VarDeclaration) -> JsResult<()> {
+    fn compile_var_decl(&mut self, decl: &VarDeclaration) {
         for variable in decl.0.as_ref() {
             match variable.binding() {
                 Binding::Identifier(ident) => {
                     let ident = ident;
                     if let Some(expr) = variable.init() {
-                        self.compile_expr(expr, true)?;
+                        self.compile_expr(expr, true);
                         self.emit_binding(BindingOpcode::InitVar, *ident);
                     } else {
                         self.emit_binding(BindingOpcode::Var, *ident);
@@ -935,20 +915,19 @@ impl<'b, 'host> ByteCompiler<'b, 'host> {
                 }
                 Binding::Pattern(pattern) => {
                     if let Some(init) = variable.init() {
-                        self.compile_expr(init, true)?;
+                        self.compile_expr(init, true);
                     } else {
                         self.emit_opcode(Opcode::PushUndefined);
                     };
 
-                    self.compile_declaration_pattern(pattern, BindingOpcode::InitVar)?;
+                    self.compile_declaration_pattern(pattern, BindingOpcode::InitVar);
                 }
             }
         }
-        Ok(())
     }
 
     /// Compile a [`LexicalDeclaration`].
-    fn compile_lexical_decl(&mut self, decl: &LexicalDeclaration) -> JsResult<()> {
+    fn compile_lexical_decl(&mut self, decl: &LexicalDeclaration) {
         match decl {
             LexicalDeclaration::Let(decls) => {
                 for variable in decls.as_ref() {
@@ -956,7 +935,7 @@ impl<'b, 'host> ByteCompiler<'b, 'host> {
                         Binding::Identifier(ident) => {
                             let ident = ident;
                             if let Some(expr) = variable.init() {
-                                self.compile_expr(expr, true)?;
+                                self.compile_expr(expr, true);
                                 self.emit_binding(BindingOpcode::InitLet, *ident);
                             } else {
                                 self.emit_binding(BindingOpcode::Let, *ident);
@@ -964,12 +943,12 @@ impl<'b, 'host> ByteCompiler<'b, 'host> {
                         }
                         Binding::Pattern(pattern) => {
                             if let Some(init) = variable.init() {
-                                self.compile_expr(init, true)?;
+                                self.compile_expr(init, true);
                             } else {
                                 self.emit_opcode(Opcode::PushUndefined);
                             };
 
-                            self.compile_declaration_pattern(pattern, BindingOpcode::InitLet)?;
+                            self.compile_declaration_pattern(pattern, BindingOpcode::InitLet);
                         }
                     }
                 }
@@ -981,24 +960,22 @@ impl<'b, 'host> ByteCompiler<'b, 'host> {
                             let init = variable
                                 .init()
                                 .expect("const declaration must have initializer");
-                            self.compile_expr(init, true)?;
+                            self.compile_expr(init, true);
                             self.emit_binding(BindingOpcode::InitConst, *ident);
                         }
                         Binding::Pattern(pattern) => {
                             if let Some(init) = variable.init() {
-                                self.compile_expr(init, true)?;
+                                self.compile_expr(init, true);
                             } else {
                                 self.emit_opcode(Opcode::PushUndefined);
                             };
 
-                            self.compile_declaration_pattern(pattern, BindingOpcode::InitConst)?;
+                            self.compile_declaration_pattern(pattern, BindingOpcode::InitConst);
                         }
                     }
                 }
-                return Ok(());
             }
         };
-        Ok(())
     }
 
     /// Compile a [`StatementListItem`].
@@ -1007,29 +984,29 @@ impl<'b, 'host> ByteCompiler<'b, 'host> {
         item: &StatementListItem,
         use_expr: bool,
         configurable_globals: bool,
-    ) -> JsResult<()> {
+    ) {
         match item {
             StatementListItem::Statement(stmt) => {
-                self.compile_stmt(stmt, use_expr, configurable_globals)
+                self.compile_stmt(stmt, use_expr, configurable_globals);
             }
             StatementListItem::Declaration(decl) => self.compile_decl(decl),
         }
     }
 
     /// Compile a [`Declaration`].
-    pub fn compile_decl(&mut self, decl: &Declaration) -> JsResult<()> {
+    pub fn compile_decl(&mut self, decl: &Declaration) {
         match decl {
             Declaration::Function(function) => {
-                self.function(function.into(), NodeKind::Declaration, false)
+                self.function(function.into(), NodeKind::Declaration, false);
             }
             Declaration::Generator(function) => {
-                self.function(function.into(), NodeKind::Declaration, false)
+                self.function(function.into(), NodeKind::Declaration, false);
             }
             Declaration::AsyncFunction(function) => {
-                self.function(function.into(), NodeKind::Declaration, false)
+                self.function(function.into(), NodeKind::Declaration, false);
             }
             Declaration::AsyncGenerator(function) => {
-                self.function(function.into(), NodeKind::Declaration, false)
+                self.function(function.into(), NodeKind::Declaration, false);
             }
             Declaration::Class(class) => self.class(class, false),
             Declaration::Lexical(lexical) => self.compile_lexical_decl(lexical),
@@ -1037,12 +1014,7 @@ impl<'b, 'host> ByteCompiler<'b, 'host> {
     }
 
     /// Compile a function AST Node into bytecode.
-    fn function(
-        &mut self,
-        function: FunctionSpec<'_>,
-        node_kind: NodeKind,
-        use_expr: bool,
-    ) -> JsResult<()> {
+    fn function(&mut self, function: FunctionSpec<'_>, node_kind: NodeKind, use_expr: bool) {
         let (generator, r#async, arrow) = (
             function.is_generator(),
             function.is_async(),
@@ -1073,7 +1045,7 @@ impl<'b, 'host> ByteCompiler<'b, 'host> {
             .strict(self.code_block.strict)
             .arrow(arrow)
             .binding_identifier(binding_identifier)
-            .compile(parameters, body, self.context)?;
+            .compile(parameters, body, self.context);
 
         let index = self.code_block.functions.len() as u32;
         self.code_block.functions.push(code);
@@ -1106,8 +1078,6 @@ impl<'b, 'host> ByteCompiler<'b, 'host> {
                 }
             }
         }
-
-        Ok(())
     }
 
     /// Compile a class method AST Node into bytecode.
@@ -1117,7 +1087,7 @@ impl<'b, 'host> ByteCompiler<'b, 'host> {
         node_kind: NodeKind,
         class_name: Sym,
         use_expr: bool,
-    ) -> JsResult<()> {
+    ) {
         let (generator, r#async, arrow) = (
             function.is_generator(),
             function.is_async(),
@@ -1149,7 +1119,7 @@ impl<'b, 'host> ByteCompiler<'b, 'host> {
             .arrow(arrow)
             .binding_identifier(binding_identifier)
             .class_name(class_name)
-            .compile(parameters, body, self.context)?;
+            .compile(parameters, body, self.context);
 
         let index = self.code_block.functions.len() as u32;
         self.code_block.functions.push(code);
@@ -1182,11 +1152,9 @@ impl<'b, 'host> ByteCompiler<'b, 'host> {
                 }
             }
         }
-
-        Ok(())
     }
 
-    fn call(&mut self, callable: Callable<'_>, use_expr: bool) -> JsResult<()> {
+    fn call(&mut self, callable: Callable<'_>, use_expr: bool) {
         #[derive(PartialEq)]
         enum CallKind {
             CallEval,
@@ -1204,14 +1172,14 @@ impl<'b, 'host> ByteCompiler<'b, 'host> {
 
         match call.function() {
             Expression::PropertyAccess(access) if kind == CallKind::Call => {
-                self.compile_access_preserve_this(access)?;
+                self.compile_access_preserve_this(access);
             }
 
             Expression::Optional(opt) if kind == CallKind::Call => {
-                self.compile_optional_preserve_this(opt)?;
+                self.compile_optional_preserve_this(opt);
             }
             expr => {
-                self.compile_expr(expr, true)?;
+                self.compile_expr(expr, true);
                 if kind == CallKind::Call || kind == CallKind::CallEval {
                     self.emit_opcode(Opcode::PushUndefined);
                     self.emit_opcode(Opcode::Swap);
@@ -1227,7 +1195,7 @@ impl<'b, 'host> ByteCompiler<'b, 'host> {
         if contains_spread {
             self.emit_opcode(Opcode::PushNewArray);
             for arg in call.args() {
-                self.compile_expr(arg, true)?;
+                self.compile_expr(arg, true);
                 if let Expression::Spread(_) = arg {
                     self.emit_opcode(Opcode::InitIterator);
                     self.emit_opcode(Opcode::PushIteratorToArray);
@@ -1237,7 +1205,7 @@ impl<'b, 'host> ByteCompiler<'b, 'host> {
             }
         } else {
             for arg in call.args() {
-                self.compile_expr(arg, true)?;
+                self.compile_expr(arg, true);
             }
         }
 
@@ -1253,7 +1221,6 @@ impl<'b, 'host> ByteCompiler<'b, 'host> {
         if !use_expr {
             self.emit(Opcode::Pop, &[]);
         }
-        Ok(())
     }
 
     /// Finish compiling code with the [`ByteCompiler`] and return the generated [`CodeBlock`].
@@ -1264,12 +1231,8 @@ impl<'b, 'host> ByteCompiler<'b, 'host> {
         self.code_block
     }
 
-    fn compile_declaration_pattern(
-        &mut self,
-        pattern: &Pattern,
-        def: BindingOpcode,
-    ) -> JsResult<()> {
-        self.compile_declaration_pattern_impl(pattern, def)
+    fn compile_declaration_pattern(&mut self, pattern: &Pattern, def: BindingOpcode) {
+        self.compile_declaration_pattern_impl(pattern, def);
     }
 
     /// Creates the declarations for a sript.
@@ -1451,7 +1414,7 @@ impl<'b, 'host> ByteCompiler<'b, 'host> {
         }
     }
 
-    fn class(&mut self, class: &Class, expression: bool) -> JsResult<()> {
-        self.compile_class(class, expression)
+    fn class(&mut self, class: &Class, expression: bool) {
+        self.compile_class(class, expression);
     }
 }

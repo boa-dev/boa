@@ -605,7 +605,7 @@ impl BuiltInFunctionObject {
                 .name(Sym::ANONYMOUS)
                 .generator(generator)
                 .r#async(r#async)
-                .compile(&parameters, &body, context)?;
+                .compile(&parameters, &body, context);
 
             let environments = context.realm.environments.pop_to_global();
 
@@ -633,7 +633,7 @@ impl BuiltInFunctionObject {
                     &FormalParameterList::default(),
                     &StatementList::default(),
                     context,
-                )?;
+                );
 
             let environments = context.realm.environments.pop_to_global();
             let function_object =
@@ -646,7 +646,7 @@ impl BuiltInFunctionObject {
                 &FormalParameterList::default(),
                 &StatementList::default(),
                 context,
-            )?;
+            );
 
             let environments = context.realm.environments.pop_to_global();
             let function_object = crate::vm::create_function_object(

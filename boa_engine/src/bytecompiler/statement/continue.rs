@@ -1,9 +1,9 @@
+use crate::{bytecompiler::ByteCompiler, vm::Opcode};
 use boa_ast::statement::Continue;
 
-use crate::{bytecompiler::ByteCompiler, vm::Opcode, JsNativeError, JsResult};
-
 impl ByteCompiler<'_, '_> {
-    pub(crate) fn compile_continue(&mut self, node: Continue) -> JsResult<()> {
+    #[allow(clippy::unnecessary_wraps)]
+    pub(crate) fn compile_continue(&mut self, node: Continue) {
         if let Some(info) = self.jump_info.last().filter(|info| info.is_try_block()) {
             let in_finally = info.in_finally();
             let in_finally_or_has_finally = in_finally || info.has_finally();
@@ -31,13 +31,7 @@ impl ByteCompiler<'_, '_> {
                     }
                 }
 
-                // TODO: promote to an early error.
-                loop_info.ok_or_else(|| {
-                    JsNativeError::syntax().with_message(format!(
-                        "Cannot use the undeclared label '{}'",
-                        self.context.interner().resolve_expect(node_label)
-                    ))
-                })?;
+                loop_info.expect("Cannot use the undeclared label");
 
                 for _ in 0..emit_for_of_in_exit {
                     self.emit_opcode(Opcode::Pop);
@@ -85,19 +79,12 @@ impl ByteCompiler<'_, '_> {
                     .iter_mut()
                     .rev()
                     .filter(|info| info.is_loop());
-                let jump_info = items
-                    .next()
-                    // TODO: promote to an early error.
-                    .ok_or_else(|| {
-                        JsNativeError::syntax().with_message("continue must be inside loop")
-                    })?;
+                let jump_info = items.next().expect("continue must be inside loop");
                 if !in_finally_or_has_finally {
                     jump_info.push_try_continue_label(cont_label);
                 };
                 jump_info.push_try_continue_label(set_label);
             };
-
-            return Ok(());
         } else if let Some(node_label) = node.label() {
             let items = self.jump_info.iter().rev().filter(|info| info.is_loop());
             let mut emit_for_of_in_exit = 0_u32;
@@ -113,13 +100,7 @@ impl ByteCompiler<'_, '_> {
                 }
             }
 
-            // TODO: promote to an early error.
-            loop_info.ok_or_else(|| {
-                JsNativeError::syntax().with_message(format!(
-                    "Cannot use the undeclared label '{}'",
-                    self.context.interner().resolve_expect(node_label)
-                ))
-            })?;
+            loop_info.expect("Cannot use the undeclared label");
 
             for _ in 0..emit_for_of_in_exit {
                 self.emit_opcode(Opcode::Pop);
@@ -147,16 +128,9 @@ impl ByteCompiler<'_, '_> {
                 .iter_mut()
                 .rev()
                 .filter(|info| info.is_loop());
-            let jump_info = items
-                .next()
-                // TODO: promote to an early error.
-                .ok_or_else(|| {
-                    JsNativeError::syntax().with_message("continue must be inside loop")
-                })?;
+            let jump_info = items.next().expect("continue must be inside loop");
             jump_info.push_try_continue_label(cont_label);
             jump_info.push_try_continue_label(set_label);
         }
-
-        Ok(())
     }
 }

@@ -3,14 +3,14 @@ use boa_ast::expression::operator::{
     Binary, BinaryInPrivate,
 };
 
-use crate::{bytecompiler::ByteCompiler, vm::Opcode, JsResult};
+use crate::{bytecompiler::ByteCompiler, vm::Opcode};
 
 impl ByteCompiler<'_, '_> {
-    pub(crate) fn compile_binary(&mut self, binary: &Binary, use_expr: bool) -> JsResult<()> {
-        self.compile_expr(binary.lhs(), true)?;
+    pub(crate) fn compile_binary(&mut self, binary: &Binary, use_expr: bool) {
+        self.compile_expr(binary.lhs(), true);
         match binary.op() {
             BinaryOp::Arithmetic(op) => {
-                self.compile_expr(binary.rhs(), true)?;
+                self.compile_expr(binary.rhs(), true);
                 match op {
                     ArithmeticOp::Add => self.emit_opcode(Opcode::Add),
                     ArithmeticOp::Sub => self.emit_opcode(Opcode::Sub),
@@ -25,7 +25,7 @@ impl ByteCompiler<'_, '_> {
                 }
             }
             BinaryOp::Bitwise(op) => {
-                self.compile_expr(binary.rhs(), true)?;
+                self.compile_expr(binary.rhs(), true);
                 match op {
                     BitwiseOp::And => self.emit_opcode(Opcode::BitAnd),
                     BitwiseOp::Or => self.emit_opcode(Opcode::BitOr),
@@ -40,7 +40,7 @@ impl ByteCompiler<'_, '_> {
                 }
             }
             BinaryOp::Relational(op) => {
-                self.compile_expr(binary.rhs(), true)?;
+                self.compile_expr(binary.rhs(), true);
                 match op {
                     RelationalOp::Equal => self.emit_opcode(Opcode::Eq),
                     RelationalOp::NotEqual => self.emit_opcode(Opcode::NotEq),
@@ -64,17 +64,17 @@ impl ByteCompiler<'_, '_> {
                 match op {
                     LogicalOp::And => {
                         let exit = self.emit_opcode_with_operand(Opcode::LogicalAnd);
-                        self.compile_expr(binary.rhs(), true)?;
+                        self.compile_expr(binary.rhs(), true);
                         self.patch_jump(exit);
                     }
                     LogicalOp::Or => {
                         let exit = self.emit_opcode_with_operand(Opcode::LogicalOr);
-                        self.compile_expr(binary.rhs(), true)?;
+                        self.compile_expr(binary.rhs(), true);
                         self.patch_jump(exit);
                     }
                     LogicalOp::Coalesce => {
                         let exit = self.emit_opcode_with_operand(Opcode::Coalesce);
-                        self.compile_expr(binary.rhs(), true)?;
+                        self.compile_expr(binary.rhs(), true);
                         self.patch_jump(exit);
                     }
                 };
@@ -85,30 +85,22 @@ impl ByteCompiler<'_, '_> {
             }
             BinaryOp::Comma => {
                 self.emit(Opcode::Pop, &[]);
-                self.compile_expr(binary.rhs(), true)?;
+                self.compile_expr(binary.rhs(), true);
 
                 if !use_expr {
                     self.emit(Opcode::Pop, &[]);
                 }
             }
         };
-
-        Ok(())
     }
 
-    pub(crate) fn compile_binary_in_private(
-        &mut self,
-        binary: &BinaryInPrivate,
-        use_expr: bool,
-    ) -> JsResult<()> {
+    pub(crate) fn compile_binary_in_private(&mut self, binary: &BinaryInPrivate, use_expr: bool) {
         let index = self.get_or_insert_private_name(*binary.lhs());
-        self.compile_expr(binary.rhs(), true)?;
+        self.compile_expr(binary.rhs(), true);
         self.emit(Opcode::InPrivate, &[index]);
 
         if !use_expr {
             self.emit_opcode(Opcode::Pop);
         }
-
-        Ok(())
     }
 }

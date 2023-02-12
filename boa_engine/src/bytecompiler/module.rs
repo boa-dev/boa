@@ -1,36 +1,24 @@
-use boa_ast::{ModuleItem, ModuleItemList};
-
-use crate::JsResult;
-
 use super::ByteCompiler;
+use boa_ast::{ModuleItem, ModuleItemList};
 
 impl ByteCompiler<'_, '_> {
     /// Compiles a [`ModuleItemList`].
     #[inline]
-    pub fn compile_module_item_list(
-        &mut self,
-        list: &ModuleItemList,
-        configurable_globals: bool,
-    ) -> JsResult<()> {
+    pub fn compile_module_item_list(&mut self, list: &ModuleItemList, configurable_globals: bool) {
         for node in list.items() {
-            self.compile_module_item(node, configurable_globals)?;
+            self.compile_module_item(node, configurable_globals);
         }
-        Ok(())
     }
 
     /// Compiles a [`ModuleItem`].
     #[inline]
     #[allow(unused_variables, clippy::missing_panics_doc)] // Unimplemented
-    pub fn compile_module_item(
-        &mut self,
-        item: &ModuleItem,
-        configurable_globals: bool,
-    ) -> JsResult<()> {
+    pub fn compile_module_item(&mut self, item: &ModuleItem, configurable_globals: bool) {
         match item {
             ModuleItem::ImportDeclaration(import) => todo!("import declaration compilation"),
             ModuleItem::ExportDeclaration(export) => todo!("export declaration compilation"),
             ModuleItem::StatementListItem(stmt) => {
-                self.compile_stmt_list_item(stmt, false, configurable_globals)
+                self.compile_stmt_list_item(stmt, false, configurable_globals);
             }
         }
     }

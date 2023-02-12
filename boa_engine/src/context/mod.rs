@@ -231,7 +231,7 @@ impl Context<'_> {
         let _timer = Profiler::global().start_event("Script compilation", "Main");
         let mut compiler = ByteCompiler::new(Sym::MAIN, statement_list.strict(), false, self);
         compiler.create_script_decls(statement_list, false);
-        compiler.compile_statement_list(statement_list, true, false)?;
+        compiler.compile_statement_list(statement_list, true, false);
         Ok(Gc::new(compiler.finish()))
     }
 
@@ -241,7 +241,7 @@ impl Context<'_> {
 
         let mut compiler = ByteCompiler::new(Sym::MAIN, true, false, self);
         compiler.create_module_decls(statement_list, false);
-        compiler.compile_module_item_list(statement_list, false)?;
+        compiler.compile_module_item_list(statement_list, false);
         Ok(Gc::new(compiler.finish()))
     }
 
@@ -465,15 +465,12 @@ impl Context<'_> {
     }
 
     /// Compile the AST into a `CodeBlock` ready to be executed by the VM in a `JSON.parse` context.
-    pub(crate) fn compile_json_parse(
-        &mut self,
-        statement_list: &StatementList,
-    ) -> JsResult<Gc<CodeBlock>> {
+    pub(crate) fn compile_json_parse(&mut self, statement_list: &StatementList) -> Gc<CodeBlock> {
         let _timer = Profiler::global().start_event("Compilation", "Main");
         let mut compiler = ByteCompiler::new(Sym::MAIN, statement_list.strict(), true, self);
         compiler.create_script_decls(statement_list, false);
-        compiler.compile_statement_list(statement_list, true, false)?;
-        Ok(Gc::new(compiler.finish()))
+        compiler.compile_statement_list(statement_list, true, false);
+        Gc::new(compiler.finish())
     }
 
     /// Compile the AST into a `CodeBlock` with an additional declarative environment.
@@ -481,11 +478,11 @@ impl Context<'_> {
         &mut self,
         statement_list: &StatementList,
         strict: bool,
-    ) -> JsResult<Gc<CodeBlock>> {
+    ) -> Gc<CodeBlock> {
         let _timer = Profiler::global().start_event("Compilation", "Main");
         let mut compiler = ByteCompiler::new(Sym::MAIN, statement_list.strict(), false, self);
-        compiler.compile_statement_list_with_new_declarative(statement_list, true, strict)?;
-        Ok(Gc::new(compiler.finish()))
+        compiler.compile_statement_list_with_new_declarative(statement_list, true, strict);
+        Gc::new(compiler.finish())
     }
 }
 

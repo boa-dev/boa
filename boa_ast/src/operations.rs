@@ -5,7 +5,7 @@
 use core::ops::ControlFlow;
 use std::convert::Infallible;
 
-use boa_interner::Sym;
+use boa_interner::{Interner, Sym};
 use rustc_hash::{FxHashMap, FxHashSet};
 
 use crate::{
@@ -847,4 +847,362 @@ pub fn class_private_name_resolver(node: &mut Class, top_level_class_index: usiz
     };
 
     visitor.visit_class_mut(node).is_continue()
+}
+
+/// This function checks multiple syntax errors conditions for labels, `break` and `continue`.
+///
+/// The following syntax errors are checked:
+/// - [`ContainsDuplicateLabels`][ContainsDuplicateLabels]
+/// - [`ContainsUndefinedBreakTarget`][ContainsUndefinedBreakTarget]
+/// - [`ContainsUndefinedContinueTarget`][ContainsUndefinedContinueTarget]
+/// - Early errors for [`BreakStatement`][BreakStatement]
+/// - Early errors for [`ContinueStatement`][ContinueStatement]
+///
+/// [ContainsDuplicateLabels]: https://tc39.es/ecma262/#sec-static-semantics-containsduplicatelabels
+/// [ContainsUndefinedBreakTarget]: https://tc39.es/ecma262/#sec-static-semantics-containsundefinedbreaktarget
+/// [ContainsUndefinedContinueTarget]: https://tc39.es/ecma262/#sec-static-semantics-containsundefinedcontinuetarget
+/// [BreakStatement]: https://tc39.es/ecma262/#sec-break-statement-static-semantics-early-errors
+/// [ContinueStatement]: https://tc39.es/ecma262/#sec-continue-statement-static-semantics-early-errors
+#[must_use]
+pub fn check_labels<N>(node: &N, interner: &Interner) -> Option<String>
+where
+    N: VisitWith,
+{
+    enum CheckLabelsError {
+        DuplicateLabel(Sym),
+        UndefinedBreakTarget(Sym),
+        UndefinedContinueTarget(Sym),
+        IllegalBreakStatement,
+        IllegalContinueStatement,
+    }
+
+    #[derive(Debug, Clone)]
+    struct CheckLabelsResolver {
+        labels: FxHashSet<Sym>,
+        continue_iteration_labels: FxHashSet<Sym>,
+        continue_labels: Option<FxHashSet<Sym>>,
+        iteration: bool,
+        switch: bool,
+    }
+
+    impl<'ast> Visitor<'ast> for CheckLabelsResolver {
+        type BreakTy = CheckLabelsError;
+
+        fn visit_statement(&mut self, node: &'ast Statement) -> ControlFlow<Self::BreakTy> {
+            match node {
+                Statement::Block(node) => self.visit_block(node),
+                Statement::Var(_)
+                | Statement::Empty
+                | Statement::Expression(_)
+                | Statement::Return(_)
+                | Statement::Throw(_) => ControlFlow::Continue(()),
+                Statement::If(node) => self.visit_if(node),
+                Statement::DoWhileLoop(node) => self.visit_do_while_loop(node),
+                Statement::WhileLoop(node) => self.visit_while_loop(node),
+                Statement::ForLoop(node) => self.visit_for_loop(node),
+                Statement::ForInLoop(node) => self.visit_for_in_loop(node),
+                Statement::ForOfLoop(node) => self.visit_for_of_loop(node),
+                Statement::Switch(node) => self.visit_switch(node),
+                Statement::Labelled(node) => self.visit_labelled(node),
+                Statement::Try(node) => self.visit_try(node),
+                Statement::Continue(node) => self.visit_continue(node),
+                Statement::Break(node) => self.visit_break(node),
+            }
+        }
+
+        fn visit_block(
+            &mut self,
+            node: &'ast crate::statement::Block,
+        ) -> ControlFlow<Self::BreakTy> {
+            let continue_labels = self.continue_labels.take();
+            try_break!(self.visit_statement_list(node.statement_list()));
+            self.continue_labels = continue_labels;
+            ControlFlow::Continue(())
+        }
+
+        fn visit_break(
+            &mut self,
+            node: &'ast crate::statement::Break,
+        ) -> ControlFlow<Self::BreakTy> {
+            if let Some(label) = node.label() {
+                if !self.labels.contains(&label) {
+                    return ControlFlow::Break(CheckLabelsError::UndefinedBreakTarget(label));
+                }
+            } else if !self.iteration && !self.switch {
+                return ControlFlow::Break(CheckLabelsError::IllegalBreakStatement);
+            }
+            ControlFlow::Continue(())
+        }
+
+        fn visit_continue(
+            &mut self,
+            node: &'ast crate::statement::Continue,
+        ) -> ControlFlow<Self::BreakTy> {
+            if !self.iteration {
+                return ControlFlow::Break(CheckLabelsError::IllegalContinueStatement);
+            }
+
+            if let Some(label) = node.label() {
+                if !self.continue_iteration_labels.contains(&label) {
+                    return ControlFlow::Break(CheckLabelsError::UndefinedContinueTarget(label));
+                }
+            }
+            ControlFlow::Continue(())
+        }
+
+        fn visit_do_while_loop(
+            &mut self,
+            node: &'ast crate::statement::DoWhileLoop,
+        ) -> ControlFlow<Self::BreakTy> {
+            let continue_labels = self.continue_labels.take();
+            let continue_iteration_labels = self.continue_iteration_labels.clone();
+            if let Some(continue_labels) = &continue_labels {
+                self.continue_iteration_labels.extend(continue_labels);
+            }
+            let iteration = self.iteration;
+            self.iteration = true;
+            try_break!(self.visit_statement(node.body()));
+            self.continue_iteration_labels = continue_iteration_labels;
+            self.continue_labels = continue_labels;
+            self.iteration = iteration;
+            ControlFlow::Continue(())
+        }
+
+        fn visit_while_loop(
+            &mut self,
+            node: &'ast crate::statement::WhileLoop,
+        ) -> ControlFlow<Self::BreakTy> {
+            let continue_labels = self.continue_labels.take();
+            let continue_iteration_labels = self.continue_iteration_labels.clone();
+            if let Some(continue_labels) = &continue_labels {
+                self.continue_iteration_labels.extend(continue_labels);
+            }
+            let iteration = self.iteration;
+            self.iteration = true;
+            try_break!(self.visit_statement(node.body()));
+            self.continue_iteration_labels = continue_iteration_labels;
+            self.continue_labels = continue_labels;
+            self.iteration = iteration;
+            ControlFlow::Continue(())
+        }
+
+        fn visit_for_loop(
+            &mut self,
+            node: &'ast crate::statement::ForLoop,
+        ) -> ControlFlow<Self::BreakTy> {
+            let continue_labels = self.continue_labels.take();
+            let continue_iteration_labels = self.continue_iteration_labels.clone();
+            if let Some(continue_labels) = &continue_labels {
+                self.continue_iteration_labels.extend(continue_labels);
+            }
+            let iteration = self.iteration;
+            self.iteration = true;
+            try_break!(self.visit_statement(node.body()));
+            self.continue_iteration_labels = continue_iteration_labels;
+            self.continue_labels = continue_labels;
+            self.iteration = iteration;
+            ControlFlow::Continue(())
+        }
+
+        fn visit_for_in_loop(
+            &mut self,
+            node: &'ast crate::statement::ForInLoop,
+        ) -> ControlFlow<Self::BreakTy> {
+            let continue_labels = self.continue_labels.take();
+            let continue_iteration_labels = self.continue_iteration_labels.clone();
+            if let Some(continue_labels) = &continue_labels {
+                self.continue_iteration_labels.extend(continue_labels);
+            }
+            let iteration = self.iteration;
+            self.iteration = true;
+            try_break!(self.visit_statement(node.body()));
+            self.continue_iteration_labels = continue_iteration_labels;
+            self.continue_labels = continue_labels;
+            self.iteration = iteration;
+            ControlFlow::Continue(())
+        }
+
+        fn visit_for_of_loop(
+            &mut self,
+            node: &'ast crate::statement::ForOfLoop,
+        ) -> ControlFlow<Self::BreakTy> {
+            let continue_labels = self.continue_labels.take();
+            let continue_iteration_labels = self.continue_iteration_labels.clone();
+            if let Some(continue_labels) = &continue_labels {
+                self.continue_iteration_labels.extend(continue_labels);
+            }
+            let iteration = self.iteration;
+            self.iteration = true;
+            try_break!(self.visit_statement(node.body()));
+            self.continue_iteration_labels = continue_iteration_labels;
+            self.continue_labels = continue_labels;
+            self.iteration = iteration;
+            ControlFlow::Continue(())
+        }
+
+        fn visit_statement_list_item(
+            &mut self,
+            node: &'ast StatementListItem,
+        ) -> ControlFlow<Self::BreakTy> {
+            let continue_labels = self.continue_labels.take();
+            if let StatementListItem::Statement(stmt) = node {
+                try_break!(self.visit_statement(stmt));
+            }
+            self.continue_labels = continue_labels;
+            ControlFlow::Continue(())
+        }
+
+        fn visit_if(&mut self, node: &'ast crate::statement::If) -> ControlFlow<Self::BreakTy> {
+            let continue_labels = self.continue_labels.take();
+            try_break!(self.visit_statement(node.body()));
+            if let Some(stmt) = node.else_node() {
+                try_break!(self.visit_statement(stmt));
+            }
+            self.continue_labels = continue_labels;
+            ControlFlow::Continue(())
+        }
+
+        fn visit_switch(
+            &mut self,
+            node: &'ast crate::statement::Switch,
+        ) -> ControlFlow<Self::BreakTy> {
+            let continue_labels = self.continue_labels.take();
+            let switch = self.switch;
+            self.switch = true;
+            for case in node.cases() {
+                try_break!(self.visit_statement_list(case.body()));
+            }
+            if let Some(default) = node.default() {
+                try_break!(self.visit_statement_list(default));
+            }
+            self.continue_labels = continue_labels;
+            self.switch = switch;
+            ControlFlow::Continue(())
+        }
+
+        fn visit_labelled(
+            &mut self,
+            node: &'ast crate::statement::Labelled,
+        ) -> ControlFlow<Self::BreakTy> {
+            let continue_labels = self.continue_labels.clone();
+            if let Some(continue_labels) = &mut self.continue_labels {
+                continue_labels.insert(node.label());
+            } else {
+                let mut continue_labels = FxHashSet::default();
+                continue_labels.insert(node.label());
+                self.continue_labels = Some(continue_labels);
+            }
+
+            if !self.labels.insert(node.label()) {
+                return ControlFlow::Break(CheckLabelsError::DuplicateLabel(node.label()));
+            }
+            try_break!(self.visit_labelled_item(node.item()));
+            self.labels.remove(&node.label());
+            self.continue_labels = continue_labels;
+            ControlFlow::Continue(())
+        }
+
+        fn visit_labelled_item(&mut self, node: &'ast LabelledItem) -> ControlFlow<Self::BreakTy> {
+            match node {
+                LabelledItem::Statement(stmt) => self.visit_statement(stmt),
+                LabelledItem::Function(_) => ControlFlow::Continue(()),
+            }
+        }
+
+        fn visit_try(&mut self, node: &'ast crate::statement::Try) -> ControlFlow<Self::BreakTy> {
+            let continue_labels = self.continue_labels.take();
+            try_break!(self.visit_block(node.block()));
+            if let Some(catch) = node.catch() {
+                try_break!(self.visit_block(catch.block()));
+            }
+            if let Some(finally) = node.finally() {
+                try_break!(self.visit_block(finally.block()));
+            }
+            self.continue_labels = continue_labels;
+            ControlFlow::Continue(())
+        }
+
+        fn visit_module_item_list(
+            &mut self,
+            node: &'ast crate::ModuleItemList,
+        ) -> ControlFlow<Self::BreakTy> {
+            let continue_labels = self.continue_labels.take();
+            for item in node.items() {
+                try_break!(self.visit_module_item(item));
+            }
+            self.continue_labels = continue_labels;
+            ControlFlow::Continue(())
+        }
+
+        fn visit_module_item(
+            &mut self,
+            node: &'ast crate::ModuleItem,
+        ) -> ControlFlow<Self::BreakTy> {
+            match node {
+                crate::ModuleItem::ImportDeclaration(_)
+                | crate::ModuleItem::ExportDeclaration(_) => ControlFlow::Continue(()),
+                crate::ModuleItem::StatementListItem(node) => self.visit_statement_list_item(node),
+            }
+        }
+    }
+
+    let mut visitor = CheckLabelsResolver {
+        labels: FxHashSet::default(),
+        continue_iteration_labels: FxHashSet::default(),
+        continue_labels: None,
+        iteration: false,
+        switch: false,
+    };
+
+    if let ControlFlow::Break(error) = node.visit_with(&mut visitor) {
+        let msg = match error {
+            CheckLabelsError::DuplicateLabel(label) => {
+                format!("duplicate label: {}", interner.resolve_expect(label))
+            }
+            CheckLabelsError::UndefinedBreakTarget(label) => {
+                format!("undefined break target: {}", interner.resolve_expect(label))
+            }
+            CheckLabelsError::UndefinedContinueTarget(label) => format!(
+                "undefined continue target: {}",
+                interner.resolve_expect(label)
+            ),
+            CheckLabelsError::IllegalBreakStatement => "illegal break statement".into(),
+            CheckLabelsError::IllegalContinueStatement => "illegal continue statement".into(),
+        };
+
+        Some(msg)
+    } else {
+        None
+    }
+}
+
+/// Returns `true` if the given node contains a `CoverInitializedName`.
+#[must_use]
+pub fn contains_invalid_object_literal<N>(node: &N) -> bool
+where
+    N: VisitWith,
+{
+    #[derive(Debug, Clone)]
+    struct ContainsInvalidObjectLiteral {}
+
+    impl<'ast> Visitor<'ast> for ContainsInvalidObjectLiteral {
+        type BreakTy = ();
+
+        fn visit_object_literal(
+            &mut self,
+            node: &'ast crate::expression::literal::ObjectLiteral,
+        ) -> ControlFlow<Self::BreakTy> {
+            for pd in node.properties() {
+                if let PropertyDefinition::CoverInitializedName(..) = pd {
+                    return ControlFlow::Break(());
+                }
+                try_break!(self.visit_property_definition(pd));
+            }
+            ControlFlow::Continue(())
+        }
+    }
+
+    let mut visitor = ContainsInvalidObjectLiteral {};
+
+    node.visit_with(&mut visitor).is_break()
 }

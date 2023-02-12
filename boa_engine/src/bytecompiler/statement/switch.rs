@@ -1,14 +1,9 @@
+use crate::{bytecompiler::ByteCompiler, vm::Opcode};
 use boa_ast::statement::Switch;
-
-use crate::{bytecompiler::ByteCompiler, vm::Opcode, JsResult};
 
 impl ByteCompiler<'_, '_> {
     /// Compile a [`Switch`] `boa_ast` node
-    pub(crate) fn compile_switch(
-        &mut self,
-        switch: &Switch,
-        configurable_globals: bool,
-    ) -> JsResult<()> {
+    pub(crate) fn compile_switch(&mut self, switch: &Switch, configurable_globals: bool) {
         self.context.push_compile_time_environment(false);
         let push_env = self.emit_opcode_with_two_operands(Opcode::PushDeclarativeEnvironment);
         for case in switch.cases() {
@@ -20,10 +15,10 @@ impl ByteCompiler<'_, '_> {
         self.push_switch_control_info(None, start_address);
         self.patch_jump_with_target(start_label, start_address);
 
-        self.compile_expr(switch.val(), true)?;
+        self.compile_expr(switch.val(), true);
         let mut labels = Vec::with_capacity(switch.cases().len());
         for case in switch.cases() {
-            self.compile_expr(case.condition(), true)?;
+            self.compile_expr(case.condition(), true);
             labels.push(self.emit_opcode_with_operand(Opcode::Case));
         }
 
@@ -31,13 +26,13 @@ impl ByteCompiler<'_, '_> {
 
         for (label, case) in labels.into_iter().zip(switch.cases()) {
             self.patch_jump(label);
-            self.compile_statement_list(case.body(), false, configurable_globals)?;
+            self.compile_statement_list(case.body(), false, configurable_globals);
         }
 
         self.patch_jump(exit);
         if let Some(body) = switch.default() {
             self.create_script_decls(body, configurable_globals);
-            self.compile_statement_list(body, false, configurable_globals)?;
+            self.compile_statement_list(body, false, configurable_globals);
         }
 
         self.pop_switch_control_info();
@@ -49,7 +44,5 @@ impl ByteCompiler<'_, '_> {
         self.patch_jump_with_target(push_env.0, num_bindings as u32);
         self.patch_jump_with_target(push_env.1, index_compile_environment as u32);
         self.emit_opcode(Opcode::PopEnvironment);
-
-        Ok(())
     }
 }

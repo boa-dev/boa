@@ -16,7 +16,10 @@ use crate::{
 };
 use ast::{
     function::PrivateName,
-    operations::{class_private_name_resolver, lexically_declared_names, var_declared_names},
+    operations::{
+        check_labels, class_private_name_resolver, contains_invalid_object_literal,
+        lexically_declared_names, var_declared_names,
+    },
 };
 use boa_ast::{
     self as ast,
@@ -1358,19 +1361,34 @@ where
                 }
             }
             // ClassStaticBlockBody : ClassStaticBlockStatementList
-            // It is a Syntax Error if ContainsArguments of ClassStaticBlockStatementList is true.
-            // It is a Syntax Error if ClassStaticBlockStatementList Contains SuperCall is true.
             function::ClassElement::StaticBlock(block) => {
                 for node in block.statements() {
+                    // It is a Syntax Error if ContainsArguments of ClassStaticBlockStatementList is true.
                     if contains_arguments(node) {
                         return Err(Error::general(
                             "'arguments' not allowed in class static block",
                             position,
                         ));
                     }
+
+                    // It is a Syntax Error if ClassStaticBlockStatementList Contains SuperCall is true.
                     if contains(node, ContainsSymbol::SuperCall) {
                         return Err(Error::general("invalid super usage", position));
                     }
+                }
+
+                if let Some(error) = check_labels(block, interner) {
+                    return Err(Error::lex(LexError::Syntax(
+                        error.into_boxed_str(),
+                        position,
+                    )));
+                }
+
+                if contains_invalid_object_literal(block) {
+                    return Err(Error::lex(LexError::Syntax(
+                        "invalid object literal in class static block statement list".into(),
+                        position,
+                    )));
                 }
             }
             _ => {}

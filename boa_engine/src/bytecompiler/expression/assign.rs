@@ -1,7 +1,6 @@
 use crate::{
     bytecompiler::{Access, ByteCompiler},
     vm::{BindingOpcode, Opcode},
-    JsResult,
 };
 use boa_ast::expression::{
     access::{PropertyAccess, PropertyAccessField},
@@ -9,19 +8,18 @@ use boa_ast::expression::{
 };
 
 impl ByteCompiler<'_, '_> {
-    pub(crate) fn compile_assign(&mut self, assign: &Assign, use_expr: bool) -> JsResult<()> {
+    pub(crate) fn compile_assign(&mut self, assign: &Assign, use_expr: bool) {
         if assign.op() == AssignOp::Assign {
             match Access::from_assign_target(assign.lhs()) {
                 Ok(access) => self.access_set(access, use_expr, |compiler, _| {
-                    compiler.compile_expr(assign.rhs(), true)?;
-                    Ok(())
-                })?,
+                    compiler.compile_expr(assign.rhs(), true);
+                }),
                 Err(pattern) => {
-                    self.compile_expr(assign.rhs(), true)?;
+                    self.compile_expr(assign.rhs(), true);
                     if use_expr {
                         self.emit_opcode(Opcode::Dup);
                     }
-                    self.compile_declaration_pattern(pattern, BindingOpcode::SetName)?;
+                    self.compile_declaration_pattern(pattern, BindingOpcode::SetName);
                 }
             }
         } else {
@@ -62,9 +60,9 @@ impl ByteCompiler<'_, '_> {
 
                     if short_circuit {
                         early_exit = Some(self.emit_opcode_with_operand(opcode));
-                        self.compile_expr(assign.rhs(), true)?;
+                        self.compile_expr(assign.rhs(), true);
                     } else {
-                        self.compile_expr(assign.rhs(), true)?;
+                        self.compile_expr(assign.rhs(), true);
                         self.emit_opcode(opcode);
                     }
                     if use_expr {
@@ -79,7 +77,7 @@ impl ByteCompiler<'_, '_> {
                     PropertyAccess::Simple(access) => match access.field() {
                         PropertyAccessField::Const(name) => {
                             let index = self.get_or_insert_name((*name).into());
-                            self.compile_expr(access.target(), true)?;
+                            self.compile_expr(access.target(), true);
                             self.emit_opcode(Opcode::Dup);
                             self.emit_opcode(Opcode::Dup);
 
@@ -87,9 +85,9 @@ impl ByteCompiler<'_, '_> {
                             if short_circuit {
                                 pop_count = 2;
                                 early_exit = Some(self.emit_opcode_with_operand(opcode));
-                                self.compile_expr(assign.rhs(), true)?;
+                                self.compile_expr(assign.rhs(), true);
                             } else {
-                                self.compile_expr(assign.rhs(), true)?;
+                                self.compile_expr(assign.rhs(), true);
                                 self.emit_opcode(opcode);
                             }
 
@@ -99,17 +97,17 @@ impl ByteCompiler<'_, '_> {
                             }
                         }
                         PropertyAccessField::Expr(expr) => {
-                            self.compile_expr(access.target(), true)?;
+                            self.compile_expr(access.target(), true);
                             self.emit_opcode(Opcode::Dup);
-                            self.compile_expr(expr, true)?;
+                            self.compile_expr(expr, true);
 
                             self.emit_opcode(Opcode::GetPropertyByValuePush);
                             if short_circuit {
                                 pop_count = 2;
                                 early_exit = Some(self.emit_opcode_with_operand(opcode));
-                                self.compile_expr(assign.rhs(), true)?;
+                                self.compile_expr(assign.rhs(), true);
                             } else {
-                                self.compile_expr(assign.rhs(), true)?;
+                                self.compile_expr(assign.rhs(), true);
                                 self.emit_opcode(opcode);
                             }
 
@@ -121,16 +119,16 @@ impl ByteCompiler<'_, '_> {
                     },
                     PropertyAccess::Private(access) => {
                         let index = self.get_or_insert_private_name(access.field());
-                        self.compile_expr(access.target(), true)?;
+                        self.compile_expr(access.target(), true);
                         self.emit_opcode(Opcode::Dup);
 
                         self.emit(Opcode::GetPrivateField, &[index]);
                         if short_circuit {
                             pop_count = 1;
                             early_exit = Some(self.emit_opcode_with_operand(opcode));
-                            self.compile_expr(assign.rhs(), true)?;
+                            self.compile_expr(assign.rhs(), true);
                         } else {
-                            self.compile_expr(assign.rhs(), true)?;
+                            self.compile_expr(assign.rhs(), true);
                             self.emit_opcode(opcode);
                         }
 
@@ -151,9 +149,9 @@ impl ByteCompiler<'_, '_> {
                             if short_circuit {
                                 pop_count = 2;
                                 early_exit = Some(self.emit_opcode_with_operand(opcode));
-                                self.compile_expr(assign.rhs(), true)?;
+                                self.compile_expr(assign.rhs(), true);
                             } else {
-                                self.compile_expr(assign.rhs(), true)?;
+                                self.compile_expr(assign.rhs(), true);
                                 self.emit_opcode(opcode);
                             }
 
@@ -165,15 +163,15 @@ impl ByteCompiler<'_, '_> {
                         PropertyAccessField::Expr(expr) => {
                             self.emit_opcode(Opcode::Super);
                             self.emit_opcode(Opcode::Dup);
-                            self.compile_expr(expr, true)?;
+                            self.compile_expr(expr, true);
 
                             self.emit_opcode(Opcode::GetPropertyByValuePush);
                             if short_circuit {
                                 pop_count = 2;
                                 early_exit = Some(self.emit_opcode_with_operand(opcode));
-                                self.compile_expr(assign.rhs(), true)?;
+                                self.compile_expr(assign.rhs(), true);
                             } else {
-                                self.compile_expr(assign.rhs(), true)?;
+                                self.compile_expr(assign.rhs(), true);
                                 self.emit_opcode(opcode);
                             }
 
@@ -201,7 +199,5 @@ impl ByteCompiler<'_, '_> {
                 }
             }
         }
-
-        Ok(())
     }
 }
