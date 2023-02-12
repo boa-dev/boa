@@ -5,6 +5,7 @@ pub(crate) enum AbruptKind {
     Continue,
     Break,
     Throw,
+    Return,
 }
 
 /// The `AbruptCompletionRecord` tracks the current `AbruptCompletion` and target address of completion.
@@ -36,6 +37,14 @@ impl AbruptCompletionRecord {
     pub(crate) const fn new_throw() -> Self {
         Self {
             kind: AbruptKind::Throw,
+            target: u32::MAX,
+        }
+    }
+
+    /// Creates an `AbruptCompletionRecord` for an abrupt `Return`.
+    pub(crate) const fn new_return() -> Self {
+        Self {
+            kind: AbruptKind::Return,
             target: u32::MAX,
         }
     }

@@ -192,6 +192,7 @@ impl Context<'_> {
                     .and_then(|f| f.get_promise_capability().cloned())
             });
 
+        // ---- Beginning of execution loop ----
         while self.vm.frame().pc < self.vm.frame().code_block.bytecode.len() {
             #[cfg(feature = "fuzz")]
             {
@@ -435,6 +436,7 @@ impl Context<'_> {
                 }
             }
         }
+        // ---- End of execution loop ----
 
         if self.vm.trace {
             println!("\nStack:");

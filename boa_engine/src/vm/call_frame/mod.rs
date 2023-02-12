@@ -2,7 +2,7 @@
 //!
 //! This module will provides everything needed to implement the `CallFrame`
 
-use crate::{object::JsObject, vm::CodeBlock};
+use crate::{object::JsObject, vm::CodeBlock, JsValue};
 use boa_gc::{Finalize, Gc, Trace};
 
 mod abrupt_record;
@@ -22,6 +22,7 @@ pub struct CallFrame {
     pub(crate) finally_return: FinallyReturn,
     #[unsafe_ignore_trace]
     pub(crate) abrupt_completion: Option<AbruptCompletionRecord>,
+    pub(crate) completion_register: Option<JsValue>,
     pub(crate) pop_on_return: usize,
     // Tracks the number of environments in environment entry.
     // On abrupt returns this is used to decide how many environments need to be pop'ed.
@@ -50,6 +51,7 @@ impl CallFrame {
             pop_on_return: 0,
             env_stack: Vec::from([EnvStackEntry::new(0, max_length)]),
             abrupt_completion: None,
+            completion_register: None,
             param_count: 0,
             arg_count: 0,
             generator_resume_kind: GeneratorResumeKind::Normal,

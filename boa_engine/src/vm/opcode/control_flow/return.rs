@@ -1,5 +1,5 @@
 use crate::{
-    vm::{opcode::Operation, FinallyReturn, ShouldExit},
+    vm::{opcode::Operation, FinallyReturn, ShouldExit, call_frame::AbruptCompletionRecord},
     Context, JsResult,
 };
 
@@ -38,6 +38,9 @@ impl Operation for Return {
 
         let env_truncation_len = context.realm.environments.len().saturating_sub(env_to_pop);
         context.realm.environments.truncate(env_truncation_len);
+
+        let record = AbruptCompletionRecord::new_return();
+        context.vm.frame_mut().abrupt_completion = Some(record);
 
         if let Some(finally) = finally_address {
             context.vm.frame_mut().pc = finally;

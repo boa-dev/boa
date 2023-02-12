@@ -24,11 +24,9 @@ mod pop;
 mod push;
 mod require;
 mod rest_parameter;
-mod return_stm;
 mod set;
 mod swap;
 mod switch;
-mod throw;
 mod to;
 mod unary_ops;
 mod value;
@@ -75,15 +73,11 @@ pub(crate) use require::*;
 #[doc(inline)]
 pub(crate) use rest_parameter::*;
 #[doc(inline)]
-pub(crate) use return_stm::*;
-#[doc(inline)]
 pub(crate) use set::*;
 #[doc(inline)]
 pub(crate) use swap::*;
 #[doc(inline)]
 pub(crate) use switch::*;
-#[doc(inline)]
-pub(crate) use throw::*;
 #[doc(inline)]
 pub(crate) use to::*;
 #[doc(inline)]
