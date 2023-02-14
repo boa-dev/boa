@@ -11,9 +11,13 @@ use boa_interner::Sym;
 use rustc_hash::FxHashSet;
 
 use crate::{
-    declaration::{ExportDeclaration, ExportSpecifier, ImportDeclaration, ReExportKind},
+    declaration::{
+        ExportDeclaration, ExportEntry, ExportSpecifier, ImportDeclaration, ImportEntry,
+        ImportKind, ImportName, IndirectExportEntry, LocalExportEntry, ModuleSpecifier,
+        ReExportImportName, ReExportKind,
+    },
     expression::Identifier,
-    operations::BoundNamesVisitor,
+    operations::{bound_names, BoundNamesVisitor},
     try_break,
     visitor::{VisitWith, Visitor, VisitorMut},
     StatementListItem,
@@ -21,7 +25,7 @@ use crate::{
 
 /// Module item list AST node.
 ///
-/// It contains a list of
+/// It contains a list of module items.
 ///
 /// More information:
 ///  - [ECMAScript specification][spec]
@@ -191,6 +195,224 @@ impl ModuleItemList {
         ExportedBindingsVisitor(&mut names).visit_module_item_list(self);
 
         names
+    }
+
+    /// Operation [`ModuleRequests`][spec].
+    ///
+    /// Gets the list of modules that need to be fetched by the module resolver to link this module.
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-static-semantics-modulerequests
+    #[inline]
+    #[must_use]
+    pub fn requests(&self) -> FxHashSet<Sym> {
+        #[derive(Debug)]
+        struct RequestsVisitor<'vec>(&'vec mut FxHashSet<Sym>);
+
+        impl<'ast> Visitor<'ast> for RequestsVisitor<'_> {
+            type BreakTy = Infallible;
+
+            fn visit_statement_list_item(
+                &mut self,
+                _: &'ast StatementListItem,
+            ) -> ControlFlow<Self::BreakTy> {
+                ControlFlow::Continue(())
+            }
+            fn visit_module_specifier(
+                &mut self,
+                node: &'ast ModuleSpecifier,
+            ) -> ControlFlow<Self::BreakTy> {
+                self.0.insert(node.sym());
+                ControlFlow::Continue(())
+            }
+        }
+
+        let mut requests = FxHashSet::default();
+
+        RequestsVisitor(&mut requests).visit_module_item_list(self);
+
+        requests
+    }
+
+    /// Operation [`ImportEntries`][spec].
+    ///
+    /// Gets the list of import entries of this module.
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-static-semantics-modulerequests
+    #[inline]
+    #[must_use]
+    pub fn import_entries(&self) -> Vec<ImportEntry> {
+        #[derive(Debug)]
+        struct ImportEntriesVisitor<'vec>(&'vec mut Vec<ImportEntry>);
+
+        impl<'ast> Visitor<'ast> for ImportEntriesVisitor<'_> {
+            type BreakTy = Infallible;
+
+            fn visit_module_item(&mut self, node: &'ast ModuleItem) -> ControlFlow<Self::BreakTy> {
+                match node {
+                    ModuleItem::ImportDeclaration(import) => self.visit_import_declaration(import),
+                    ModuleItem::ExportDeclaration(_) | ModuleItem::StatementListItem(_) => {
+                        ControlFlow::Continue(())
+                    }
+                }
+            }
+
+            fn visit_import_declaration(
+                &mut self,
+                node: &'ast ImportDeclaration,
+            ) -> ControlFlow<Self::BreakTy> {
+                let module = node.specifier().sym();
+
+                if let Some(default) = node.default() {
+                    self.0.push(ImportEntry::new(
+                        module,
+                        ImportName::Name(Sym::DEFAULT),
+                        default,
+                    ));
+                }
+
+                match node.kind() {
+                    ImportKind::DefaultOrUnnamed => {}
+                    ImportKind::Namespaced { binding } => {
+                        self.0
+                            .push(ImportEntry::new(module, ImportName::Namespace, *binding));
+                    }
+                    ImportKind::Named { names } => {
+                        for name in &**names {
+                            self.0.push(ImportEntry::new(
+                                module,
+                                ImportName::Name(name.export_name()),
+                                name.binding(),
+                            ));
+                        }
+                    }
+                }
+
+                ControlFlow::Continue(())
+            }
+        }
+
+        let mut entries = Vec::default();
+
+        ImportEntriesVisitor(&mut entries).visit_module_item_list(self);
+
+        entries
+    }
+
+    /// Operation [`ImportEntries`][spec].
+    ///
+    /// Gets the list of import entries of this module.
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-static-semantics-modulerequests
+    #[inline]
+    #[must_use]
+    pub fn export_entries(&self) -> Vec<ExportEntry> {
+        #[derive(Debug)]
+        struct ExportEntriesVisitor<'vec>(&'vec mut Vec<ExportEntry>);
+
+        impl<'ast> Visitor<'ast> for ExportEntriesVisitor<'_> {
+            type BreakTy = Infallible;
+
+            fn visit_module_item(&mut self, node: &'ast ModuleItem) -> ControlFlow<Self::BreakTy> {
+                match node {
+                    ModuleItem::ExportDeclaration(import) => self.visit_export_declaration(import),
+                    ModuleItem::ImportDeclaration(_) | ModuleItem::StatementListItem(_) => {
+                        ControlFlow::Continue(())
+                    }
+                }
+            }
+
+            fn visit_export_declaration(
+                &mut self,
+                node: &'ast ExportDeclaration,
+            ) -> ControlFlow<Self::BreakTy> {
+                let name = match node {
+                    ExportDeclaration::ReExport { kind, specifier } => {
+                        let module = specifier.sym();
+
+                        match kind {
+                            ReExportKind::Namespaced { name } => {
+                                if let Some(name) = *name {
+                                    self.0.push(
+                                        IndirectExportEntry::new(
+                                            module,
+                                            ReExportImportName::Star,
+                                            name,
+                                        )
+                                        .into(),
+                                    );
+                                } else {
+                                    self.0.push(ExportEntry::StarReExport {
+                                        module_request: module,
+                                    });
+                                }
+                            }
+                            ReExportKind::Named { names } => {
+                                for name in &**names {
+                                    self.0.push(
+                                        IndirectExportEntry::new(
+                                            module,
+                                            ReExportImportName::Name(name.private_name()),
+                                            name.alias(),
+                                        )
+                                        .into(),
+                                    );
+                                }
+                            }
+                        }
+
+                        return ControlFlow::Continue(());
+                    }
+                    ExportDeclaration::List(names) => {
+                        for name in &**names {
+                            self.0.push(
+                                LocalExportEntry::new(
+                                    Identifier::from(name.private_name()),
+                                    name.alias(),
+                                )
+                                .into(),
+                            );
+                        }
+                        return ControlFlow::Continue(());
+                    }
+                    ExportDeclaration::VarStatement(var) => {
+                        for name in bound_names(var) {
+                            self.0.push(LocalExportEntry::new(name, name.sym()).into());
+                        }
+                        return ControlFlow::Continue(());
+                    }
+                    ExportDeclaration::Declaration(decl) => {
+                        for name in bound_names(decl) {
+                            self.0.push(LocalExportEntry::new(name, name.sym()).into());
+                        }
+                        return ControlFlow::Continue(());
+                    }
+                    ExportDeclaration::DefaultFunction(f) => f.name(),
+                    ExportDeclaration::DefaultGenerator(g) => g.name(),
+                    ExportDeclaration::DefaultAsyncFunction(af) => af.name(),
+                    ExportDeclaration::DefaultAsyncGenerator(ag) => ag.name(),
+                    ExportDeclaration::DefaultClassDeclaration(c) => c.name(),
+                    ExportDeclaration::DefaultAssignmentExpression(_) => {
+                        Some(Identifier::from(Sym::DEFAULT_EXPORT))
+                    }
+                };
+
+                self.0.push(
+                    LocalExportEntry::new(
+                        name.unwrap_or_else(|| Identifier::from(Sym::DEFAULT_EXPORT)),
+                        Sym::DEFAULT,
+                    )
+                    .into(),
+                );
+
+                ControlFlow::Continue(())
+            }
+        }
+
+        let mut entries = Vec::default();
+
+        ExportEntriesVisitor(&mut entries).visit_module_item_list(self);
+
+        entries
     }
 }
 

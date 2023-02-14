@@ -15,8 +15,8 @@ node_modules
 yarn-error.log
 .vscode/settings.json
 
-# tests/js/test.js is used for testing changes locally
-tests/js/test.js
+# tests/js is used for testing changes locally
+tests/js
 .boa_history
 
 # Profiling

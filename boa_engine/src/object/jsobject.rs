@@ -1053,15 +1053,15 @@ thread_local! {
 }
 
 impl RecursionLimiter {
-    /// Determines if the specified `JsObject` has been visited, and returns a struct that will free it when dropped.
+    /// Determines if the specified `T` has been visited, and returns a struct that will free it when dropped.
     ///
-    /// This is done by maintaining a thread-local hashset containing the pointers of `JsObject` values that have been
-    /// visited. The first `JsObject` visited will clear the hashset, while any others will check if they are contained
+    /// This is done by maintaining a thread-local hashset containing the pointers of `T` values that have been
+    /// visited. The first `T` visited will clear the hashset, while any others will check if they are contained
     /// by the hashset.
-    pub fn new(o: &JsObject) -> Self {
+    pub fn new<T>(o: &T) -> Self {
         // We shouldn't have to worry too much about this being moved during Debug::fmt.
         #[allow(trivial_casts)]
-        let ptr = (o.as_ref() as *const _) as usize;
+        let ptr = (o as *const _) as usize;
         let (top_level, visited, live) = SEEN.with(|hm| {
             let mut hm = hm.borrow_mut();
             let top_level = hm.is_empty();
@@ -1086,7 +1086,8 @@ impl RecursionLimiter {
 impl Debug for JsObject {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> std::fmt::Result {
         let ptr: *const _ = self.vtable();
-        let limiter = RecursionLimiter::new(self);
+        let obj: *const _ = &*self.inner;
+        let limiter = RecursionLimiter::new(self.as_ref());
 
         // Typically, using `!limiter.live` would be good enough here.
         // However, the JS object hierarchy involves quite a bit of repitition, and the sheer amount of data makes
@@ -1097,7 +1098,7 @@ impl Debug for JsObject {
         if !limiter.visited && !limiter.live {
             f.debug_struct("JsObject")
                 .field("vtable", &ptr)
-                .field("object", &self.inner.object)
+                .field("object", &obj)
                 .finish()
         } else {
             f.write_str("{ ... }")

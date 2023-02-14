@@ -9,12 +9,13 @@
 use crate::{
     context::{intrinsics::Intrinsics, HostHooks},
     environments::DeclarativeEnvironment,
+    module::Module,
     object::{shape::shared_shape::SharedShape, JsObject},
+    JsString,
 };
 use boa_gc::{Finalize, Gc, GcRefCell, Trace};
 use boa_profiler::Profiler;
 use rustc_hash::FxHashMap;
-use std::fmt;
 
 /// Representation of a Realm.
 ///
@@ -32,8 +33,8 @@ impl PartialEq for Realm {
     }
 }
 
-impl fmt::Debug for Realm {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+impl std::fmt::Debug for Realm {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         f.debug_struct("Realm")
             .field("intrinsics", &self.inner.intrinsics)
             .field("environment", &self.inner.environment)
@@ -50,6 +51,7 @@ struct Inner {
     global_object: JsObject,
     global_this: JsObject,
     template_map: GcRefCell<FxHashMap<u64, JsObject>>,
+    loaded_modules: GcRefCell<FxHashMap<JsString, Module>>,
 }
 
 impl Realm {
@@ -71,7 +73,8 @@ impl Realm {
                 environment,
                 global_object,
                 global_this,
-                template_map: GcRefCell::new(FxHashMap::default()),
+                template_map: GcRefCell::default(),
+                loaded_modules: GcRefCell::default(),
             }),
         };
 
@@ -97,6 +100,11 @@ impl Realm {
         &self.inner.global_this
     }
 
+    #[allow(unused)]
+    pub(crate) fn loaded_modules(&self) -> &GcRefCell<FxHashMap<JsString, Module>> {
+        &self.inner.loaded_modules
+    }
+
     /// Resizes the number of bindings on the global environment.
     pub(crate) fn resize_global_env(&self) {
         let binding_number = self.environment().compile_env().borrow().num_bindings();
@@ -119,5 +127,10 @@ impl Realm {
 
     pub(crate) fn lookup_template(&self, site: u64) -> Option<JsObject> {
         self.inner.template_map.borrow().get(&site).cloned()
+    }
+
+    pub(crate) fn addr(&self) -> *const () {
+        let ptr: *const _ = &*self.inner;
+        ptr.cast()
     }
 }

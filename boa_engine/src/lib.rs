@@ -133,6 +133,7 @@ pub mod context;
 pub mod environments;
 pub mod error;
 pub mod job;
+pub mod module;
 pub mod native_function;
 pub mod object;
 pub mod optimizer;

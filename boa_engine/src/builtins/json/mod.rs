@@ -23,7 +23,7 @@ use crate::{
     context::intrinsics::Intrinsics,
     error::JsNativeError,
     js_string,
-    object::{JsObject, RecursionLimiter},
+    object::JsObject,
     property::{Attribute, PropertyNameKind},
     realm::Realm,
     string::{utf16, CodePoint},
@@ -571,15 +571,14 @@ impl Json {
         context: &mut Context<'_>,
     ) -> JsResult<JsString> {
         // 1. If state.[[Stack]] contains value, throw a TypeError exception because the structure is cyclical.
-        let limiter = RecursionLimiter::new(value);
-        if limiter.live {
+        if state.stack.contains(value) {
             return Err(JsNativeError::typ()
                 .with_message("cyclic object value")
                 .into());
         }
 
         // 2. Append value to state.[[Stack]].
-        state.stack.push(value.clone().into());
+        state.stack.push(value.clone());
 
         // 3. Let stepback be state.[[Indent]].
         let stepback = state.indent.clone();
@@ -705,15 +704,14 @@ impl Json {
         context: &mut Context<'_>,
     ) -> JsResult<JsString> {
         // 1. If state.[[Stack]] contains value, throw a TypeError exception because the structure is cyclical.
-        let limiter = RecursionLimiter::new(value);
-        if limiter.live {
+        if state.stack.contains(value) {
             return Err(JsNativeError::typ()
                 .with_message("cyclic object value")
                 .into());
         }
 
         // 2. Append value to state.[[Stack]].
-        state.stack.push(value.clone().into());
+        state.stack.push(value.clone());
 
         // 3. Let stepback be state.[[Indent]].
         let stepback = state.indent.clone();
@@ -810,7 +808,7 @@ impl Json {
 
 struct StateRecord {
     replacer_function: Option<JsObject>,
-    stack: Vec<JsValue>,
+    stack: Vec<JsObject>,
     indent: JsString,
     gap: JsString,
     property_list: Option<Vec<JsString>>,

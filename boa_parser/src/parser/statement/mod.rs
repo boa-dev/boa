@@ -39,10 +39,7 @@ use self::{
     with::WithStatement,
 };
 use crate::{
-    lexer::{
-        token::{ContainsEscapeSequence, EscapeSequence},
-        Error as LexError, InputElement, Token, TokenKind,
-    },
+    lexer::{token::EscapeSequence, Error as LexError, InputElement, Token, TokenKind},
     parser::{
         expression::{BindingIdentifier, Initializer, PropertyName},
         AllowAwait, AllowReturn, AllowYield, Cursor, OrAbrupt, ParseResult, TokenParser,
@@ -58,7 +55,7 @@ use boa_ast::{
     pattern::{ArrayPattern, ArrayPatternElement, ObjectPatternElement},
     Keyword, Punctuator,
 };
-use boa_interner::{Interner, Sym};
+use boa_interner::Interner;
 use boa_macros::utf16;
 use boa_profiler::Profiler;
 use std::io::Read;
@@ -954,20 +951,12 @@ where
         let tok = cursor.peek(0, interner).or_abrupt()?;
 
         match tok.kind() {
-            TokenKind::IdentifierName((ident, ContainsEscapeSequence(false)))
-                if *ident == Sym::IMPORT =>
-            {
-                ImportDeclaration
-                    .parse(cursor, interner)
-                    .map(Self::Output::ImportDeclaration)
-            }
-            TokenKind::IdentifierName((ident, ContainsEscapeSequence(false)))
-                if *ident == Sym::EXPORT =>
-            {
-                ExportDeclaration
-                    .parse(cursor, interner)
-                    .map(Self::Output::ExportDeclaration)
-            }
+            TokenKind::Keyword((Keyword::Import, false)) => ImportDeclaration
+                .parse(cursor, interner)
+                .map(Self::Output::ImportDeclaration),
+            TokenKind::Keyword((Keyword::Export, false)) => ExportDeclaration
+                .parse(cursor, interner)
+                .map(Self::Output::ExportDeclaration),
             _ => StatementListItem::new(false, true, false)
                 .parse(cursor, interner)
                 .map(Self::Output::StatementListItem),

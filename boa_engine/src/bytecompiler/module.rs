@@ -1,7 +1,8 @@
-use crate::{js_string, vm::Opcode};
+use crate::vm::BindingOpcode;
 
-use super::{ByteCompiler, Literal};
-use boa_ast::{ModuleItem, ModuleItemList};
+use super::ByteCompiler;
+use boa_ast::{declaration::ExportDeclaration, expression::Identifier, ModuleItem, ModuleItemList};
+use boa_interner::Sym;
 
 impl ByteCompiler<'_, '_> {
     /// Compiles a [`ModuleItemList`].
@@ -14,18 +15,49 @@ impl ByteCompiler<'_, '_> {
 
     /// Compiles a [`ModuleItem`].
     #[inline]
-    #[allow(clippy::single_match_else)]
     pub fn compile_module_item(&mut self, item: &ModuleItem) {
         match item {
             ModuleItem::StatementListItem(stmt) => {
                 self.compile_stmt_list_item(stmt, false, false);
             }
-            _ => {
-                // TODO: Remove after implementing modules.
-                let msg = self.get_or_insert_literal(Literal::String(js_string!(
-                    "modules are unimplemented"
-                )));
-                self.emit(Opcode::ThrowNewTypeError, &[msg]);
+            ModuleItem::ImportDeclaration(_) => {
+                // ModuleItem : ImportDeclaration
+
+                // 1. Return empty.
+            }
+            ModuleItem::ExportDeclaration(export) => {
+                #[allow(clippy::match_same_arms)]
+                match export {
+                    ExportDeclaration::ReExport { .. } | ExportDeclaration::List(_) => {
+                        // ExportDeclaration :
+                        //    export ExportFromClause FromClause ;
+                        //    export NamedExports ;
+                        //        1. Return empty.
+                    }
+                    ExportDeclaration::DefaultFunction(_)
+                    | ExportDeclaration::DefaultGenerator(_)
+                    | ExportDeclaration::DefaultAsyncFunction(_)
+                    | ExportDeclaration::DefaultAsyncGenerator(_) => {
+                        // Already instantiated in `initialize_environment`.
+                    }
+                    ExportDeclaration::VarStatement(var) => self.compile_var_decl(var),
+                    ExportDeclaration::Declaration(decl) => self.compile_decl(decl, false),
+                    ExportDeclaration::DefaultClassDeclaration(cl) => {
+                        self.class(cl, cl.name().is_none());
+                        if cl.name().is_none() {
+                            self.emit_binding(
+                                BindingOpcode::InitLet,
+                                Identifier::from(Sym::DEFAULT_EXPORT),
+                            );
+                        }
+                    }
+                    ExportDeclaration::DefaultAssignmentExpression(expr) => {
+                        let name = Identifier::from(Sym::DEFAULT_EXPORT);
+                        self.create_mutable_binding(name, false);
+                        self.compile_expr(expr, true);
+                        self.emit_binding(BindingOpcode::InitLet, name);
+                    }
+                }
             }
         }
     }

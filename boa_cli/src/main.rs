@@ -64,12 +64,14 @@ mod helper;
 
 use boa_ast::StatementList;
 use boa_engine::{
+    builtins::promise::PromiseState,
     context::ContextBuilder,
     job::{FutureJob, JobQueue, NativeJob},
+    module::{ModuleLoader, SimpleModuleLoader},
     optimizer::OptimizerOptions,
     property::Attribute,
     vm::flowgraph::{Direction, Graph},
-    Context, JsResult, Source,
+    Context, JsNativeError, JsResult, Source,
 };
 use boa_runtime::Console;
 use clap::{Parser, ValueEnum, ValueHint};
@@ -155,6 +157,14 @@ struct Opt {
     /// Inject debugging object `$boa`.
     #[arg(long)]
     debug_object: bool,
+
+    /// Treats the input files as modules.
+    #[arg(long, short = 'm', group = "mod")]
+    module: bool,
+
+    /// Root path from where the module resolver will try to load the modules.
+    #[arg(long, default_value_os_t = PathBuf::from("."), requires = "mod")]
+    modpath: PathBuf,
 }
 
 impl Opt {
@@ -272,7 +282,11 @@ fn generate_flowgraph(
     Ok(result)
 }
 
-fn evaluate_files(args: &Opt, context: &mut Context<'_>) -> Result<(), io::Error> {
+fn evaluate_files(
+    args: &Opt,
+    context: &mut Context<'_>,
+    loader: &SimpleModuleLoader,
+) -> Result<(), io::Error> {
     for file in &args.files {
         let buffer = read(file)?;
 
@@ -290,6 +304,32 @@ fn evaluate_files(args: &Opt, context: &mut Context<'_>) -> Result<(), io::Error
                 Ok(v) => println!("{v}"),
                 Err(v) => eprintln!("Uncaught {v}"),
             }
+        } else if args.module {
+            let result = (|| {
+                let module = context.parse_module(Source::from_bytes(&buffer), None)?;
+
+                loader.insert(
+                    file.canonicalize()
+                        .map_err(|e| JsNativeError::typ().with_message(e.to_string()))?,
+                    module.clone(),
+                );
+
+                let promise = module.load_link_evaluate(context)?;
+
+                context.run_jobs();
+                promise.state()
+            })();
+
+            match result {
+                Ok(PromiseState::Pending) => {
+                    eprintln!("module `{}` didn't execute", file.display());
+                }
+                Ok(PromiseState::Fulfilled(_)) => {}
+                Ok(PromiseState::Rejected(err)) => {
+                    eprintln!("Uncaught {}", err.display());
+                }
+                Err(err) => eprintln!("Uncaught {err}"),
+            }
         } else {
             match context.eval_script(Source::from_bytes(&buffer)) {
                 Ok(v) => println!("{}", v.display()),
@@ -306,8 +346,12 @@ fn main() -> Result<(), io::Error> {
     let args = Opt::parse();
 
     let queue: &dyn JobQueue = &Jobs::default();
+    let loader = &SimpleModuleLoader::new(&args.modpath)
+        .map_err(|e| io::Error::new(io::ErrorKind::Other, e.to_string()))?;
+    let dyn_loader: &dyn ModuleLoader = loader;
     let mut context = ContextBuilder::new()
         .job_queue(queue)
+        .module_loader(dyn_loader)
         .build()
         .expect("cannot fail with default global object");
 
@@ -404,7 +448,7 @@ fn main() -> Result<(), io::Error> {
             .save_history(CLI_HISTORY)
             .expect("could not save CLI history");
     } else {
-        evaluate_files(&args, &mut context)?;
+        evaluate_files(&args, &mut context, loader)?;
     }
 
     Ok(())

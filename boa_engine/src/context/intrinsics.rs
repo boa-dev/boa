@@ -156,8 +156,11 @@ pub struct StandardConstructors {
 impl Default for StandardConstructors {
     fn default() -> Self {
         Self {
+            object: StandardConstructor::with_prototype(JsObject::from_proto_and_data(
+                None,
+                ObjectData::object_prototype(),
+            )),
             async_generator_function: StandardConstructor::default(),
-            object: StandardConstructor::default(),
             proxy: StandardConstructor::default(),
             date: StandardConstructor::default(),
             function: StandardConstructor {

@@ -73,7 +73,7 @@ impl<K: Trace + ?Sized, V: Trace> Ephemeron<K, V> {
     }
 
     pub(crate) fn inner_ptr(&self) -> NonNull<EphemeronBox<K, V>> {
-        assert!(finalizer_safe());
+        assert!(finalizer_safe() || self.is_rooted());
         self.inner_ptr.get().as_ptr()
     }
 

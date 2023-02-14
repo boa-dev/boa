@@ -16,7 +16,9 @@ use self::{
             BOUND_CONSTRUCTOR_EXOTIC_INTERNAL_METHODS, BOUND_FUNCTION_EXOTIC_INTERNAL_METHODS,
         },
         function::{CONSTRUCTOR_INTERNAL_METHODS, FUNCTION_INTERNAL_METHODS},
+        immutable::IMMUTABLE_PROTOTYPE_EXOTIC_INTERNAL_METHODS,
         integer_indexed::INTEGER_INDEXED_EXOTIC_INTERNAL_METHODS,
+        namespace::MODULE_NAMESPACE_EXOTIC_INTERNAL_METHODS,
         proxy::{
             PROXY_EXOTIC_INTERNAL_METHODS_ALL, PROXY_EXOTIC_INTERNAL_METHODS_BASIC,
             PROXY_EXOTIC_INTERNAL_METHODS_WITH_CALL,
@@ -55,6 +57,7 @@ use crate::{
         DataView, Date, Promise, RegExp,
     },
     js_string,
+    module::ModuleNamespace,
     native_function::NativeFunction,
     property::{Attribute, PropertyDescriptor, PropertyKey},
     string::utf16,
@@ -307,6 +310,9 @@ pub enum ObjectKind {
     /// The `WeakSet` object kind.
     WeakSet(boa_gc::WeakMap<VTableObject, ()>),
 
+    /// The `ModuleNamespace` object kind.
+    ModuleNamespace(ModuleNamespace),
+
     /// The `Intl.Collator` object kind.
     #[cfg(feature = "intl")]
     Collator(Box<Collator>),
@@ -362,6 +368,7 @@ unsafe impl Trace for ObjectKind {
             Self::WeakRef(wr) => mark(wr),
             Self::WeakMap(wm) => mark(wm),
             Self::WeakSet(ws) => mark(ws),
+            Self::ModuleNamespace(m) => mark(m),
             #[cfg(feature = "intl")]
             Self::DateTimeFormat(f) => mark(f),
             #[cfg(feature = "intl")]
@@ -388,6 +395,14 @@ unsafe impl Trace for ObjectKind {
 }
 
 impl ObjectData {
+    /// Create the immutable `%Object.prototype%` object data
+    pub(crate) fn object_prototype() -> Self {
+        Self {
+            kind: ObjectKind::Ordinary,
+            internal_methods: &IMMUTABLE_PROTOTYPE_EXOTIC_INTERNAL_METHODS,
+        }
+    }
+
     /// Create the `AsyncFromSyncIterator` object data
     pub fn async_from_sync_iterator(async_from_sync_iterator: AsyncFromSyncIterator) -> Self {
         Self {
@@ -694,10 +709,20 @@ impl ObjectData {
     }
 
     /// Creates the `IntegerIndexed` object data
+    #[must_use]
     pub fn integer_indexed(integer_indexed: IntegerIndexed) -> Self {
         Self {
             kind: ObjectKind::IntegerIndexed(integer_indexed),
             internal_methods: &INTEGER_INDEXED_EXOTIC_INTERNAL_METHODS,
+        }
+    }
+
+    /// Creates the `ModuleNamespace` object data
+    #[must_use]
+    pub fn module_namespace(namespace: ModuleNamespace) -> Self {
+        Self {
+            kind: ObjectKind::ModuleNamespace(namespace),
+            internal_methods: &MODULE_NAMESPACE_EXOTIC_INTERNAL_METHODS,
         }
     }
 
@@ -811,6 +836,7 @@ impl Debug for ObjectKind {
             Self::WeakRef(_) => "WeakRef",
             Self::WeakMap(_) => "WeakMap",
             Self::WeakSet(_) => "WeakSet",
+            Self::ModuleNamespace(_) => "ModuleNamespace",
             #[cfg(feature = "intl")]
             Self::Collator(_) => "Collator",
             #[cfg(feature = "intl")]
@@ -1546,6 +1572,24 @@ impl Object {
     pub const fn as_weak_ref(&self) -> Option<&WeakGc<VTableObject>> {
         match self.kind {
             ObjectKind::WeakRef(ref weak_ref) => Some(weak_ref),
+            _ => None,
+        }
+    }
+
+    /// Gets a reference to the module namespace if the object is a `ModuleNamespace`.
+    #[inline]
+    pub const fn as_module_namespace(&self) -> Option<&ModuleNamespace> {
+        match &self.kind {
+            ObjectKind::ModuleNamespace(ns) => Some(ns),
+            _ => None,
+        }
+    }
+
+    /// Gets a mutable reference module namespace if the object is a `ModuleNamespace`.
+    #[inline]
+    pub fn as_module_namespace_mut(&mut self) -> Option<&mut ModuleNamespace> {
+        match &mut self.kind {
+            ObjectKind::ModuleNamespace(ns) => Some(ns),
             _ => None,
         }
     }

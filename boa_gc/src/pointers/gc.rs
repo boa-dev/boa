@@ -94,7 +94,7 @@ impl<T: Trace + ?Sized> Gc<T> {
     }
 
     pub(crate) fn inner_ptr(&self) -> NonNull<GcBox<T>> {
-        assert!(finalizer_safe());
+        assert!(finalizer_safe() || self.is_rooted());
         self.inner_ptr.get().as_ptr()
     }
 

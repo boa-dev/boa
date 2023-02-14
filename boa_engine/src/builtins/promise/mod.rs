@@ -21,7 +21,7 @@ use crate::{
     value::JsValue,
     Context, JsArgs, JsError, JsResult,
 };
-use boa_gc::{Finalize, Gc, GcRefCell, Trace};
+use boa_gc::{custom_trace, Finalize, Gc, GcRefCell, Trace};
 use boa_profiler::Profiler;
 use std::{cell::Cell, rc::Rc};
 use tap::{Conv, Pipe};
@@ -29,7 +29,7 @@ use tap::{Conv, Pipe};
 // ==================== Public API ====================
 
 /// The current state of a [`Promise`].
-#[derive(Debug, Clone, Trace, Finalize, PartialEq, Eq)]
+#[derive(Debug, Clone, Finalize, PartialEq, Eq)]
 pub enum PromiseState {
     /// The promise hasn't been resolved.
     Pending,
@@ -37,6 +37,15 @@ pub enum PromiseState {
     Fulfilled(JsValue),
     /// The promise was rejected with a failure reason.
     Rejected(JsValue),
+}
+
+unsafe impl Trace for PromiseState {
+    custom_trace!(this, {
+        match this {
+            PromiseState::Fulfilled(v) | PromiseState::Rejected(v) => mark(v),
+            PromiseState::Pending => {}
+        }
+    });
 }
 
 impl PromiseState {
