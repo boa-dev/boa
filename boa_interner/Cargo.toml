@@ -19,7 +19,7 @@ boa_macros.workspace = true
 phf = { version = "0.11.1", default-features = false, features = ["macros"] }
 rustc-hash = { version = "1.1.0", default-features = false }
 static_assertions = "1.1.0"
-once_cell = {version = "1.17.0", default-features = false, features = ["critical-section"]}
+once_cell = {version = "1.17.1", default-features = false, features = ["critical-section"]}
 indexmap = "1.9.2"
 serde = { version = "1.0.152", features = ["derive"], optional = true }
 arbitrary = { version = "1", features = ["derive"], optional = true }
