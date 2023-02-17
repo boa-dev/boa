@@ -114,6 +114,7 @@ pub struct StandardConstructors {
     date_time_format: StandardConstructor,
     promise: StandardConstructor,
     weak_ref: StandardConstructor,
+    weak_map: StandardConstructor,
     weak_set: StandardConstructor,
     #[cfg(feature = "intl")]
     collator: StandardConstructor,
@@ -181,6 +182,7 @@ impl Default for StandardConstructors {
             date_time_format: StandardConstructor::default(),
             promise: StandardConstructor::default(),
             weak_ref: StandardConstructor::default(),
+            weak_map: StandardConstructor::default(),
             weak_set: StandardConstructor::default(),
             #[cfg(feature = "intl")]
             collator: StandardConstructor::default(),
@@ -644,6 +646,17 @@ impl StandardConstructors {
     #[inline]
     pub const fn weak_ref(&self) -> &StandardConstructor {
         &self.weak_ref
+    }
+
+    /// Returns the `WeakMap` constructor.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-weakmap-constructor
+    #[inline]
+    pub const fn weak_map(&self) -> &StandardConstructor {
+        &self.weak_map
     }
 
     /// Returns the `WeakSet` constructor.

@@ -32,6 +32,7 @@ pub mod symbol;
 pub mod typed_array;
 pub mod uri;
 pub mod weak;
+pub mod weak_map;
 pub mod weak_set;
 
 #[cfg(feature = "intl")]
@@ -86,6 +87,7 @@ use crate::{
         typed_array::TypedArray,
         uri::{DecodeUri, DecodeUriComponent, EncodeUri, EncodeUriComponent},
         weak::WeakRef,
+        weak_map::WeakMap,
         weak_set::WeakSet,
     },
     context::intrinsics::{Intrinsics, StandardConstructor, StandardConstructors},
@@ -248,6 +250,7 @@ impl Intrinsics {
         DecodeUri::init(&intrinsics);
         DecodeUriComponent::init(&intrinsics);
         WeakRef::init(&intrinsics);
+        WeakMap::init(&intrinsics);
         WeakSet::init(&intrinsics);
         #[cfg(feature = "intl")]
         {
@@ -343,6 +346,7 @@ pub(crate) fn set_default_global_bindings(context: &mut Context<'_>) -> JsResult
     global_binding::<DecodeUri>(context)?;
     global_binding::<DecodeUriComponent>(context)?;
     global_binding::<WeakRef>(context)?;
+    global_binding::<WeakMap>(context)?;
     global_binding::<WeakSet>(context)?;
 
     #[cfg(feature = "intl")]

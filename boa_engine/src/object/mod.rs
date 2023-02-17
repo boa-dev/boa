@@ -54,7 +54,7 @@ use crate::{
     Context, JsBigInt, JsString, JsSymbol, JsValue,
 };
 
-use boa_gc::{custom_trace, Finalize, GcRefCell, Trace, WeakGc, WeakMap};
+use boa_gc::{custom_trace, Finalize, GcRefCell, Trace, WeakGc};
 use std::{
     any::Any,
     fmt::{self, Debug},
@@ -270,8 +270,11 @@ pub enum ObjectKind {
     /// The `WeakRef` object kind.
     WeakRef(WeakGc<GcRefCell<Object>>),
 
+    /// The `WeakMap` object kind.
+    WeakMap(boa_gc::WeakMap<GcRefCell<Object>, JsValue>),
+
     /// The `WeakSet` object kind.
-    WeakSet(WeakMap<GcRefCell<Object>, ()>),
+    WeakSet(boa_gc::WeakMap<GcRefCell<Object>, ()>),
 
     /// The `Intl.Collator` object kind.
     #[cfg(feature = "intl")]
@@ -314,6 +317,7 @@ unsafe impl Trace for ObjectKind {
             Self::Promise(p) => mark(p),
             Self::AsyncGenerator(g) => mark(g),
             Self::WeakRef(wr) => mark(wr),
+            Self::WeakMap(wm) => mark(wm),
             Self::WeakSet(ws) => mark(ws),
             #[cfg(feature = "intl")]
             Self::DateTimeFormat(f) => mark(f),
@@ -631,9 +635,18 @@ impl ObjectData {
         }
     }
 
+    /// Create the `WeakMap` object data
+    #[must_use]
+    pub fn weak_map(weak_map: boa_gc::WeakMap<GcRefCell<Object>, JsValue>) -> Self {
+        Self {
+            kind: ObjectKind::WeakMap(weak_map),
+            internal_methods: &ORDINARY_INTERNAL_METHODS,
+        }
+    }
+
     /// Create the `WeakSet` object data
     #[must_use]
-    pub fn weak_set(weak_set: WeakMap<GcRefCell<Object>, ()>) -> Self {
+    pub fn weak_set(weak_set: boa_gc::WeakMap<GcRefCell<Object>, ()>) -> Self {
         Self {
             kind: ObjectKind::WeakSet(weak_set),
             internal_methods: &ORDINARY_INTERNAL_METHODS,
@@ -735,6 +748,7 @@ impl Debug for ObjectKind {
             Self::DataView(_) => "DataView",
             Self::Promise(_) => "Promise",
             Self::WeakRef(_) => "WeakRef",
+            Self::WeakMap(_) => "WeakMap",
             Self::WeakSet(_) => "WeakSet",
             #[cfg(feature = "intl")]
             Self::Collator(_) => "Collator",
@@ -1553,9 +1567,33 @@ impl Object {
         }
     }
 
+    /// Gets the weak map data if the object is a `WeakMap`.
+    #[inline]
+    pub const fn as_weak_map(&self) -> Option<&boa_gc::WeakMap<GcRefCell<Object>, JsValue>> {
+        match self.data {
+            ObjectData {
+                kind: ObjectKind::WeakMap(ref weak_map),
+                ..
+            } => Some(weak_map),
+            _ => None,
+        }
+    }
+
+    /// Gets the mutable weak map data if the object is a `WeakMap`.
+    #[inline]
+    pub fn as_weak_map_mut(&mut self) -> Option<&mut boa_gc::WeakMap<GcRefCell<Object>, JsValue>> {
+        match self.data {
+            ObjectData {
+                kind: ObjectKind::WeakMap(ref mut weak_map),
+                ..
+            } => Some(weak_map),
+            _ => None,
+        }
+    }
+
     /// Gets the weak set data if the object is a `WeakSet`.
     #[inline]
-    pub const fn as_weak_set(&self) -> Option<&WeakMap<GcRefCell<Object>, ()>> {
+    pub const fn as_weak_set(&self) -> Option<&boa_gc::WeakMap<GcRefCell<Object>, ()>> {
         match self.data {
             ObjectData {
                 kind: ObjectKind::WeakSet(ref weak_set),
@@ -1567,7 +1605,7 @@ impl Object {
 
     /// Gets the mutable weak set data if the object is a `WeakSet`.
     #[inline]
-    pub fn as_weak_set_mut(&mut self) -> Option<&mut WeakMap<GcRefCell<Object>, ()>> {
+    pub fn as_weak_set_mut(&mut self) -> Option<&mut boa_gc::WeakMap<GcRefCell<Object>, ()>> {
         match self.data {
             ObjectData {
                 kind: ObjectKind::WeakSet(ref mut weak_set),
