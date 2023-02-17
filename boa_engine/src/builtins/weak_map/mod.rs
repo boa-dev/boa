@@ -181,11 +181,7 @@ impl WeakMap {
         // 5. For each Record { [[Key]], [[Value]] } p of entries, do
         // a. If p.[[Key]] is not empty and SameValue(p.[[Key]], key) is true, return p.[[Value]].
         // 6. Return undefined.
-        if let Some(value) = m.get(key.inner()) {
-            Ok(value)
-        } else {
-            Ok(JsValue::undefined())
-        }
+        Ok(m.get(key.inner()).unwrap_or_default())
     }
 
     /// `WeakMap.prototype.has ( key )`
