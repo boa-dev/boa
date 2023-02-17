@@ -774,6 +774,10 @@
 <a href="#773" id="773">773</a>
 <a href="#774" id="774">774</a>
 <a href="#775" id="775">775</a>
+<a href="#776" id="776">776</a>
+<a href="#777" id="777">777</a>
+<a href="#778" id="778">778</a>
+<a href="#779" id="779">779</a>
 </pre><pre class="rust"><code><span class="doccomment">//! Boa&#39;s ECMAScript built-in object implementations, e.g. Object, String, Math, Array, etc.
 //!
 //! This module also contains a JavaScript Console implementation.
@@ -808,6 +812,7 @@
 <span class="kw">pub mod </span>typed_array;
 <span class="kw">pub mod </span>uri;
 <span class="kw">pub mod </span>weak;
+<span class="kw">pub mod </span>weak_map;
 <span class="kw">pub mod </span>weak_set;
 
 <span class="attr">#[cfg(feature = <span class="string">&quot;intl&quot;</span>)]
@@ -862,6 +867,7 @@
         typed_array::TypedArray,
         uri::{DecodeUri, DecodeUriComponent, EncodeUri, EncodeUriComponent},
         weak::WeakRef,
+        weak_map::WeakMap,
         weak_set::WeakSet,
     },
     context::intrinsics::{Intrinsics, StandardConstructor, StandardConstructors},
@@ -1024,6 +1030,7 @@
         DecodeUri::init(<span class="kw-2">&amp;</span>intrinsics);
         DecodeUriComponent::init(<span class="kw-2">&amp;</span>intrinsics);
         WeakRef::init(<span class="kw-2">&amp;</span>intrinsics);
+        WeakMap::init(<span class="kw-2">&amp;</span>intrinsics);
         WeakSet::init(<span class="kw-2">&amp;</span>intrinsics);
         <span class="attr">#[cfg(feature = <span class="string">&quot;intl&quot;</span>)]
         </span>{
@@ -1119,6 +1126,7 @@
     global_binding::&lt;DecodeUri&gt;(context)<span class="question-mark">?</span>;
     global_binding::&lt;DecodeUriComponent&gt;(context)<span class="question-mark">?</span>;
     global_binding::&lt;WeakRef&gt;(context)<span class="question-mark">?</span>;
+    global_binding::&lt;WeakMap&gt;(context)<span class="question-mark">?</span>;
     global_binding::&lt;WeakSet&gt;(context)<span class="question-mark">?</span>;
 
     <span class="attr">#[cfg(feature = <span class="string">&quot;intl&quot;</span>)]

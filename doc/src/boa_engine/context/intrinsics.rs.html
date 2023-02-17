@@ -888,6 +888,19 @@
 <a href="#887" id="887">887</a>
 <a href="#888" id="888">888</a>
 <a href="#889" id="889">889</a>
+<a href="#890" id="890">890</a>
+<a href="#891" id="891">891</a>
+<a href="#892" id="892">892</a>
+<a href="#893" id="893">893</a>
+<a href="#894" id="894">894</a>
+<a href="#895" id="895">895</a>
+<a href="#896" id="896">896</a>
+<a href="#897" id="897">897</a>
+<a href="#898" id="898">898</a>
+<a href="#899" id="899">899</a>
+<a href="#900" id="900">900</a>
+<a href="#901" id="901">901</a>
+<a href="#902" id="902">902</a>
 </pre><pre class="rust"><code><span class="doccomment">//! Data structures that contain intrinsic objects and constructors.
 
 </span><span class="kw">use crate</span>::{
@@ -1004,6 +1017,7 @@
     date_time_format: StandardConstructor,
     promise: StandardConstructor,
     weak_ref: StandardConstructor,
+    weak_map: StandardConstructor,
     weak_set: StandardConstructor,
     <span class="attr">#[cfg(feature = <span class="string">&quot;intl&quot;</span>)]
     </span>collator: StandardConstructor,
@@ -1071,6 +1085,7 @@
             date_time_format: StandardConstructor::default(),
             promise: StandardConstructor::default(),
             weak_ref: StandardConstructor::default(),
+            weak_map: StandardConstructor::default(),
             weak_set: StandardConstructor::default(),
             <span class="attr">#[cfg(feature = <span class="string">&quot;intl&quot;</span>)]
             </span>collator: StandardConstructor::default(),
@@ -1534,6 +1549,17 @@
     </span><span class="attr">#[inline]
     </span><span class="kw">pub const fn </span>weak_ref(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>StandardConstructor {
         <span class="kw-2">&amp;</span><span class="self">self</span>.weak_ref
+    }
+
+    <span class="doccomment">/// Returns the `WeakMap` constructor.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-weakmap-constructor
+    </span><span class="attr">#[inline]
+    </span><span class="kw">pub const fn </span>weak_map(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>StandardConstructor {
+        <span class="kw-2">&amp;</span><span class="self">self</span>.weak_map
     }
 
     <span class="doccomment">/// Returns the `WeakSet` constructor.
