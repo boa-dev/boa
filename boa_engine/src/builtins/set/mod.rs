@@ -16,6 +16,7 @@ use crate::{
     error::JsNativeError,
     object::{internal_methods::get_prototype_from_constructor, JsObject, ObjectData},
     property::{Attribute, PropertyNameKind},
+    string::utf16,
     symbol::JsSymbol,
     Context, JsArgs, JsResult, JsValue,
 };
@@ -74,13 +75,18 @@ impl IntrinsicObject for Set {
             .method(Self::for_each, "forEach", 1)
             .method(Self::has, "has", 1)
             .property(
-                "keys",
+                utf16!("keys"),
                 values_function.clone(),
                 Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
             )
-            .accessor("size", Some(size_getter), None, Attribute::CONFIGURABLE)
+            .accessor(
+                utf16!("size"),
+                Some(size_getter),
+                None,
+                Attribute::CONFIGURABLE,
+            )
             .property(
-                "values",
+                utf16!("values"),
                 values_function.clone(),
                 Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
             )
@@ -132,7 +138,7 @@ impl BuiltInConstructor for Set {
         }
 
         // 5. Let adder be ? Get(set, "add").
-        let adder = set.get("add", context)?;
+        let adder = set.get(utf16!("add"), context)?;
 
         // 6. If IsCallable(adder) is false, throw a TypeError exception.
         let adder = adder.as_callable().ok_or_else(|| {

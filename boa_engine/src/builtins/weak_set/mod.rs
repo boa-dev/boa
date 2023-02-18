@@ -12,6 +12,7 @@ use crate::{
     context::intrinsics::{Intrinsics, StandardConstructor, StandardConstructors},
     object::{internal_methods::get_prototype_from_constructor, JsObject, ObjectData},
     property::Attribute,
+    string::utf16,
     symbol::JsSymbol,
     Context, JsArgs, JsNativeError, JsResult, JsValue,
 };
@@ -88,7 +89,7 @@ impl BuiltInConstructor for WeakSet {
         }
 
         // 5. Let adder be ? Get(set, "add").
-        let adder = weak_set.get("add", context)?;
+        let adder = weak_set.get(utf16!("add"), context)?;
 
         // 6. If IsCallable(adder) is false, throw a TypeError exception.
         let adder = adder

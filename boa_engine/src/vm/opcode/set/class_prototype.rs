@@ -1,5 +1,5 @@
 use crate::{
-    object::{JsObject, ObjectData, CONSTRUCTOR},
+    object::{JsObject, ObjectData, CONSTRUCTOR, PROTOTYPE},
     property::PropertyDescriptorBuilder,
     vm::{opcode::Operation, ShouldExit},
     Context, JsResult, JsValue,
@@ -39,7 +39,7 @@ impl Operation for SetClassPrototype {
             let class_object = class.as_object().expect("class must be object");
             class_object
                 .define_property_or_throw(
-                    "prototype",
+                    PROTOTYPE,
                     PropertyDescriptorBuilder::new()
                         .value(proto.clone())
                         .writable(false)
@@ -57,7 +57,7 @@ impl Operation for SetClassPrototype {
 
         proto
             .__define_own_property__(
-                CONSTRUCTOR.into(),
+                &CONSTRUCTOR.into(),
                 PropertyDescriptorBuilder::new()
                     .value(class)
                     .writable(true)

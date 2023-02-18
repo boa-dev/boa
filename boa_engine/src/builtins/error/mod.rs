@@ -132,8 +132,8 @@ impl IntrinsicObject for Error {
 
         let attribute = Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE;
         BuiltInBuilder::from_standard_constructor::<Self>(intrinsics)
-            .property("name", Self::NAME, attribute)
-            .property("message", "", attribute)
+            .property(utf16!("name"), Self::NAME, attribute)
+            .property(utf16!("message"), "", attribute)
             .method(Self::to_string, "toString", 0)
             .build();
     }
@@ -175,7 +175,7 @@ impl BuiltInConstructor for Error {
             let msg = message.to_string(context)?;
 
             // b. Perform CreateNonEnumerableDataPropertyOrThrow(O, "message", msg).
-            o.create_non_enumerable_data_property_or_throw("message", msg, context);
+            o.create_non_enumerable_data_property_or_throw(utf16!("message"), msg, context);
         }
 
         // 4. Perform ? InstallErrorCause(O, options).
@@ -194,12 +194,12 @@ impl Error {
     ) -> JsResult<()> {
         // 1. If Type(options) is Object and ? HasProperty(options, "cause") is true, then
         if let Some(options) = options.as_object() {
-            if options.has_property("cause", context)? {
+            if options.has_property(utf16!("cause"), context)? {
                 // a. Let cause be ? Get(options, "cause").
-                let cause = options.get("cause", context)?;
+                let cause = options.get(utf16!("cause"), context)?;
 
                 // b. Perform CreateNonEnumerableDataPropertyOrThrow(O, "cause", cause).
-                o.create_non_enumerable_data_property_or_throw("cause", cause, context);
+                o.create_non_enumerable_data_property_or_throw(utf16!("cause"), cause, context);
             }
         }
 

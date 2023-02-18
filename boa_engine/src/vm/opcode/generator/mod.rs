@@ -4,6 +4,7 @@ use crate::{
         iterable::IteratorRecord,
     },
     error::JsNativeError,
+    string::utf16,
     vm::{
         call_frame::{FinallyReturn, GeneratorResumeKind},
         opcode::Operation,
@@ -151,14 +152,14 @@ impl Operation for GeneratorNextDelegate {
                 let result = result.as_object().ok_or_else(|| {
                     JsNativeError::typ().with_message("generator next method returned non-object")
                 })?;
-                let done = result.get("done", context)?.to_boolean();
+                let done = result.get(utf16!("done"), context)?.to_boolean();
                 if done {
                     context.vm.frame_mut().pc = done_address as usize;
-                    let value = result.get("value", context)?;
+                    let value = result.get(utf16!("value"), context)?;
                     context.vm.push(value);
                     return Ok(ShouldExit::False);
                 }
-                let value = result.get("value", context)?;
+                let value = result.get(utf16!("value"), context)?;
                 context.vm.push(iterator.clone());
                 context.vm.push(next_method.clone());
                 context.vm.push(done);
@@ -166,21 +167,21 @@ impl Operation for GeneratorNextDelegate {
                 Ok(ShouldExit::Yield)
             }
             GeneratorResumeKind::Throw => {
-                let throw = iterator.get_method("throw", context)?;
+                let throw = iterator.get_method(utf16!("throw"), context)?;
                 if let Some(throw) = throw {
                     let result = throw.call(&iterator.clone().into(), &[received], context)?;
                     let result_object = result.as_object().ok_or_else(|| {
                         JsNativeError::typ()
                             .with_message("generator throw method returned non-object")
                     })?;
-                    let done = result_object.get("done", context)?.to_boolean();
+                    let done = result_object.get(utf16!("done"), context)?.to_boolean();
                     if done {
                         context.vm.frame_mut().pc = done_address as usize;
-                        let value = result_object.get("value", context)?;
+                        let value = result_object.get(utf16!("value"), context)?;
                         context.vm.push(value);
                         return Ok(ShouldExit::False);
                     }
-                    let value = result_object.get("value", context)?;
+                    let value = result_object.get(utf16!("value"), context)?;
                     context.vm.push(iterator.clone());
                     context.vm.push(next_method.clone());
                     context.vm.push(done);
@@ -196,21 +197,21 @@ impl Operation for GeneratorNextDelegate {
                     .into())
             }
             GeneratorResumeKind::Return => {
-                let r#return = iterator.get_method("return", context)?;
+                let r#return = iterator.get_method(utf16!("return"), context)?;
                 if let Some(r#return) = r#return {
                     let result = r#return.call(&iterator.clone().into(), &[received], context)?;
                     let result_object = result.as_object().ok_or_else(|| {
                         JsNativeError::typ()
                             .with_message("generator return method returned non-object")
                     })?;
-                    let done = result_object.get("done", context)?.to_boolean();
+                    let done = result_object.get(utf16!("done"), context)?.to_boolean();
                     if done {
                         context.vm.frame_mut().pc = done_address as usize;
-                        let value = result_object.get("value", context)?;
+                        let value = result_object.get(utf16!("value"), context)?;
                         context.vm.push(value);
                         return Ok(ShouldExit::True);
                     }
-                    let value = result_object.get("value", context)?;
+                    let value = result_object.get(utf16!("value"), context)?;
                     context.vm.push(iterator.clone());
                     context.vm.push(next_method.clone());
                     context.vm.push(done);

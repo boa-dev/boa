@@ -19,6 +19,7 @@ use crate::{
     error::JsNativeError,
     object::{internal_methods::get_prototype_from_constructor, JsObject, ObjectData},
     property::Attribute,
+    string::utf16,
     value::{AbstractRelation, IntegerOrInfinity, JsValue},
     Context, JsArgs, JsResult,
 };
@@ -50,21 +51,29 @@ impl IntrinsicObject for Number {
         let attribute = Attribute::READONLY | Attribute::NON_ENUMERABLE | Attribute::PERMANENT;
 
         BuiltInBuilder::from_standard_constructor::<Self>(intrinsics)
-            .static_property("EPSILON", f64::EPSILON, attribute)
-            .static_property("MAX_SAFE_INTEGER", Self::MAX_SAFE_INTEGER, attribute)
-            .static_property("MIN_SAFE_INTEGER", Self::MIN_SAFE_INTEGER, attribute)
-            .static_property("MAX_VALUE", Self::MAX_VALUE, attribute)
-            .static_property("MIN_VALUE", Self::MIN_VALUE, attribute)
-            .static_property("NEGATIVE_INFINITY", f64::NEG_INFINITY, attribute)
-            .static_property("POSITIVE_INFINITY", f64::INFINITY, attribute)
-            .static_property("NaN", f64::NAN, attribute)
+            .static_property(utf16!("EPSILON"), f64::EPSILON, attribute)
             .static_property(
-                "parseInt",
+                utf16!("MAX_SAFE_INTEGER"),
+                Self::MAX_SAFE_INTEGER,
+                attribute,
+            )
+            .static_property(
+                utf16!("MIN_SAFE_INTEGER"),
+                Self::MIN_SAFE_INTEGER,
+                attribute,
+            )
+            .static_property(utf16!("MAX_VALUE"), Self::MAX_VALUE, attribute)
+            .static_property(utf16!("MIN_VALUE"), Self::MIN_VALUE, attribute)
+            .static_property(utf16!("NEGATIVE_INFINITY"), f64::NEG_INFINITY, attribute)
+            .static_property(utf16!("POSITIVE_INFINITY"), f64::INFINITY, attribute)
+            .static_property(utf16!("NaN"), f64::NAN, attribute)
+            .static_property(
+                utf16!("parseInt"),
                 intrinsics.objects().parse_int(),
                 Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
             )
             .static_property(
-                "parseFloat",
+                utf16!("parseFloat"),
                 intrinsics.objects().parse_float(),
                 Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
             )

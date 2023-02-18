@@ -27,6 +27,7 @@ use crate::{
     js_string,
     object::JsObject,
     property::Attribute,
+    string::utf16,
     symbol::JsSymbol,
     value::JsValue,
     Context, JsArgs, JsResult, JsString,
@@ -123,23 +124,35 @@ impl IntrinsicObject for Symbol {
         BuiltInBuilder::from_standard_constructor::<Self>(intrinsics)
             .static_method(Self::for_, "for", 1)
             .static_method(Self::key_for, "keyFor", 1)
-            .static_property("asyncIterator", symbol_async_iterator, attribute)
-            .static_property("hasInstance", symbol_has_instance, attribute)
-            .static_property("isConcatSpreadable", symbol_is_concat_spreadable, attribute)
-            .static_property("iterator", symbol_iterator, attribute)
-            .static_property("match", symbol_match, attribute)
-            .static_property("matchAll", symbol_match_all, attribute)
-            .static_property("replace", symbol_replace, attribute)
-            .static_property("search", symbol_search, attribute)
-            .static_property("species", symbol_species, attribute)
-            .static_property("split", symbol_split, attribute)
-            .static_property("toPrimitive", symbol_to_primitive.clone(), attribute)
-            .static_property("toStringTag", symbol_to_string_tag.clone(), attribute)
-            .static_property("unscopables", symbol_unscopables, attribute)
+            .static_property(utf16!("asyncIterator"), symbol_async_iterator, attribute)
+            .static_property(utf16!("hasInstance"), symbol_has_instance, attribute)
+            .static_property(
+                utf16!("isConcatSpreadable"),
+                symbol_is_concat_spreadable,
+                attribute,
+            )
+            .static_property(utf16!("iterator"), symbol_iterator, attribute)
+            .static_property(utf16!("match"), symbol_match, attribute)
+            .static_property(utf16!("matchAll"), symbol_match_all, attribute)
+            .static_property(utf16!("replace"), symbol_replace, attribute)
+            .static_property(utf16!("search"), symbol_search, attribute)
+            .static_property(utf16!("species"), symbol_species, attribute)
+            .static_property(utf16!("split"), symbol_split, attribute)
+            .static_property(
+                utf16!("toPrimitive"),
+                symbol_to_primitive.clone(),
+                attribute,
+            )
+            .static_property(
+                utf16!("toStringTag"),
+                symbol_to_string_tag.clone(),
+                attribute,
+            )
+            .static_property(utf16!("unscopables"), symbol_unscopables, attribute)
             .method(Self::to_string, "toString", 0)
             .method(Self::value_of, "valueOf", 0)
             .accessor(
-                "description",
+                utf16!("description"),
                 Some(get_description),
                 None,
                 Attribute::CONFIGURABLE | Attribute::NON_ENUMERABLE,

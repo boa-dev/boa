@@ -15,6 +15,7 @@ use crate::{
     context::intrinsics::{Intrinsics, StandardConstructor, StandardConstructors},
     object::{internal_methods::get_prototype_from_constructor, JsObject, ObjectData},
     property::{Attribute, PropertyDescriptorBuilder},
+    string::utf16,
     Context, JsArgs, JsResult, JsValue,
 };
 use boa_profiler::Profiler;
@@ -32,8 +33,8 @@ impl IntrinsicObject for AggregateError {
         BuiltInBuilder::from_standard_constructor::<Self>(intrinsics)
             .prototype(intrinsics.constructors().error().constructor())
             .inherits(Some(intrinsics.constructors().error().prototype()))
-            .property("name", Self::NAME, attribute)
-            .property("message", "", attribute)
+            .property(utf16!("name"), Self::NAME, attribute)
+            .property(utf16!("message"), "", attribute)
             .build();
     }
 
@@ -74,7 +75,7 @@ impl BuiltInConstructor for AggregateError {
             let msg = message.to_string(context)?;
 
             // b. Perform CreateNonEnumerableDataPropertyOrThrow(O, "message", msg).
-            o.create_non_enumerable_data_property_or_throw("message", msg, context);
+            o.create_non_enumerable_data_property_or_throw(utf16!("message"), msg, context);
         }
 
         // 4. Perform ? InstallErrorCause(O, options).
@@ -91,7 +92,7 @@ impl BuiltInConstructor for AggregateError {
         //      [[Value]]: CreateArrayFromList(errorsList)
         //    }).
         o.define_property_or_throw(
-            "errors",
+            utf16!("errors"),
             PropertyDescriptorBuilder::new()
                 .configurable(true)
                 .enumerable(false)

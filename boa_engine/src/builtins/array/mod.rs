@@ -66,12 +66,12 @@ impl IntrinsicObject for Array {
                 Attribute::CONFIGURABLE,
             )
             .property(
-                "length",
+                utf16!("length"),
                 0,
                 Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::PERMANENT,
             )
             .property(
-                "values",
+                utf16!("values"),
                 values_function.clone(),
                 Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
             )
@@ -191,7 +191,7 @@ impl BuiltInConstructor for Array {
             };
             // e. Perform ! Set(array, "length", intLen, true).
             array
-                .set("length", int_len, true, context)
+                .set(utf16!("length"), int_len, true, context)
                 .expect("this Set call must not fail");
             // f. Return array.
             Ok(array.into())
@@ -250,7 +250,7 @@ impl Array {
         // 6. Perform ! OrdinaryDefineOwnProperty(A, "length", PropertyDescriptor { [[Value]]: 𝔽(length), [[Writable]]: true, [[Enumerable]]: false, [[Configurable]]: false }).
         crate::object::internal_methods::ordinary_define_own_property(
             &array,
-            "length".into(),
+            &utf16!("length").into(),
             PropertyDescriptor::builder()
                 .value(length)
                 .writable(true)
@@ -291,7 +291,7 @@ impl Array {
             .properties_mut()
             .override_indexed_properties(elements);
         array
-            .set("length", length, true, context)
+            .set(utf16!("length"), length, true, context)
             .expect("Should not fail");
 
         // 5. Return array.
@@ -475,7 +475,7 @@ impl Array {
             }
 
             // 13. Perform ? Set(A, "length", 𝔽(len), true).
-            a.set("length", len, true, context)?;
+            a.set(utf16!("length"), len, true, context)?;
 
             // 14. Return A.
             return Ok(a.into());
@@ -508,7 +508,7 @@ impl Array {
             // iv. If next is false, then
             let Some(next) = next else {
                     // 1. Perform ? Set(A, "length", 𝔽(k), true).
-                    a.set("length", k, true, context)?;
+                    a.set(utf16!("length"), k, true, context)?;
 
                     // 2. Return A.
                     return Ok(a.into());
@@ -609,7 +609,7 @@ impl Array {
         }
 
         // 8. Perform ? Set(A, "length", lenNumber, true).
-        a.set("length", len, true, context)?;
+        a.set(utf16!("length"), len, true, context)?;
 
         // 9. Return A.
         Ok(a.into())
@@ -733,7 +733,7 @@ impl Array {
             }
         }
         // 6. Perform ? Set(A, "length", 𝔽(n), true).
-        arr.set("length", n, true, context)?;
+        arr.set(utf16!("length"), n, true, context)?;
 
         // 7. Return A.
         Ok(JsValue::new(arr))
@@ -778,7 +778,7 @@ impl Array {
             len += 1;
         }
         // 6. Perform ? Set(O, "length", 𝔽(len), true).
-        o.set("length", len, true, context)?;
+        o.set(utf16!("length"), len, true, context)?;
         // 7. Return 𝔽(len).
         Ok(len.into())
     }
@@ -805,7 +805,7 @@ impl Array {
         // 3. If len = 0, then
         if len == 0 {
             // a. Perform ? Set(O, "length", +0𝔽, true).
-            o.set("length", 0, true, context)?;
+            o.set(utf16!("length"), 0, true, context)?;
             // b. Return undefined.
             Ok(JsValue::undefined())
         // 4. Else,
@@ -820,7 +820,7 @@ impl Array {
             // e. Perform ? DeletePropertyOrThrow(O, index).
             o.delete_property_or_throw(index, context)?;
             // f. Perform ? Set(O, "length", newLen, true).
-            o.set("length", new_len, true, context)?;
+            o.set(utf16!("length"), new_len, true, context)?;
             // g. Return element.
             Ok(element)
         }
@@ -946,7 +946,7 @@ impl Array {
         // 1. Let array be ? ToObject(this value).
         let array = this.to_object(context)?;
         // 2. Let func be ? Get(array, "join").
-        let func = array.get("join", context)?;
+        let func = array.get(utf16!("join"), context)?;
         // 3. If IsCallable(func) is false, set func to the intrinsic function %Object.prototype.toString%.
         // 4. Return ? Call(func, array).
         if let Some(func) = func.as_callable() {
@@ -1061,7 +1061,7 @@ impl Array {
         // 3. If len = 0, then
         if len == 0 {
             // a. Perform ? Set(O, "length", +0𝔽, true).
-            o.set("length", 0, true, context)?;
+            o.set(utf16!("length"), 0, true, context)?;
             // b. Return undefined.
             return Ok(JsValue::undefined());
         }
@@ -1093,7 +1093,7 @@ impl Array {
         // 7. Perform ? DeletePropertyOrThrow(O, ! ToString(𝔽(len - 1))).
         o.delete_property_or_throw(len - 1, context)?;
         // 8. Perform ? Set(O, "length", 𝔽(len - 1), true).
-        o.set("length", len - 1, true, context)?;
+        o.set(utf16!("length"), len - 1, true, context)?;
         // 9. Return first.
         Ok(first)
     }
@@ -1163,7 +1163,7 @@ impl Array {
             }
         }
         // 5. Perform ? Set(O, "length", 𝔽(len + argCount), true).
-        o.set("length", len + arg_count, true, context)?;
+        o.set(utf16!("length"), len + arg_count, true, context)?;
         // 6. Return 𝔽(len + argCount).
         Ok((len + arg_count).into())
     }
@@ -2042,7 +2042,7 @@ impl Array {
         }
 
         // 15. Perform ? Set(A, "length", 𝔽(n), true).
-        a.set("length", n, true, context)?;
+        a.set(utf16!("length"), n, true, context)?;
 
         // 16. Return A.
         Ok(a.into())
@@ -2102,7 +2102,7 @@ impl Array {
             if !next.is_null_or_undefined() {
                 // i. Let S be ? ToString(? Invoke(nextElement, "toLocaleString", « locales, options »)).
                 let s = next
-                    .invoke("toLocaleString", args, context)?
+                    .invoke(utf16!("toLocaleString"), args, context)?
                     .to_string(context)?;
 
                 // ii. Set R to the string-concatenation of R and S.
@@ -2197,7 +2197,7 @@ impl Array {
         }
 
         // 14. Perform ? Set(A, "length", 𝔽(actualDeleteCount), true).
-        arr.set("length", actual_delete_count, true, context)?;
+        arr.set(utf16!("length"), actual_delete_count, true, context)?;
 
         // 15. Let itemCount be the number of elements in items.
         let item_count = items.len() as u64;
@@ -2283,7 +2283,7 @@ impl Array {
 
         // 20. Perform ? Set(O, "length", 𝔽(len - actualDeleteCount + itemCount), true).
         o.set(
-            "length",
+            utf16!("length"),
             len - actual_delete_count + item_count,
             true,
             context,
@@ -2980,27 +2980,27 @@ impl Array {
         {
             let mut obj = unscopable_list.borrow_mut();
             // 2. Perform ! CreateDataPropertyOrThrow(unscopableList, "at", true).
-            obj.insert("at", true_prop.clone());
+            obj.insert(utf16!("at"), true_prop.clone());
             // 3. Perform ! CreateDataPropertyOrThrow(unscopableList, "copyWithin", true).
-            obj.insert("copyWithin", true_prop.clone());
+            obj.insert(utf16!("copyWithin"), true_prop.clone());
             // 4. Perform ! CreateDataPropertyOrThrow(unscopableList, "entries", true).
-            obj.insert("entries", true_prop.clone());
+            obj.insert(utf16!("entries"), true_prop.clone());
             // 5. Perform ! CreateDataPropertyOrThrow(unscopableList, "fill", true).
-            obj.insert("fill", true_prop.clone());
+            obj.insert(utf16!("fill"), true_prop.clone());
             // 6. Perform ! CreateDataPropertyOrThrow(unscopableList, "find", true).
-            obj.insert("find", true_prop.clone());
+            obj.insert(utf16!("find"), true_prop.clone());
             // 7. Perform ! CreateDataPropertyOrThrow(unscopableList, "findIndex", true).
-            obj.insert("findIndex", true_prop.clone());
+            obj.insert(utf16!("findIndex"), true_prop.clone());
             // 8. Perform ! CreateDataPropertyOrThrow(unscopableList, "flat", true).
-            obj.insert("flat", true_prop.clone());
+            obj.insert(utf16!("flat"), true_prop.clone());
             // 9. Perform ! CreateDataPropertyOrThrow(unscopableList, "flatMap", true).
-            obj.insert("flatMap", true_prop.clone());
+            obj.insert(utf16!("flatMap"), true_prop.clone());
             // 10. Perform ! CreateDataPropertyOrThrow(unscopableList, "includes", true).
-            obj.insert("includes", true_prop.clone());
+            obj.insert(utf16!("includes"), true_prop.clone());
             // 11. Perform ! CreateDataPropertyOrThrow(unscopableList, "keys", true).
-            obj.insert("keys", true_prop.clone());
+            obj.insert(utf16!("keys"), true_prop.clone());
             // 12. Perform ! CreateDataPropertyOrThrow(unscopableList, "values", true).
-            obj.insert("values", true_prop);
+            obj.insert(utf16!("values"), true_prop);
         }
 
         // 13. Return unscopableList.

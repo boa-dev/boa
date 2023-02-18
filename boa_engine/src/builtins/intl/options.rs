@@ -120,7 +120,7 @@ impl OptionType for CaseFirst {
 /// [spec]: https://tc39.es/ecma402/#sec-getoption
 pub(super) fn get_option<T: OptionType>(
     options: &JsObject,
-    property: &str,
+    property: &[u16],
     required: bool,
     context: &mut Context<'_>,
 ) -> JsResult<Option<T>> {
@@ -157,7 +157,7 @@ pub(super) fn get_option<T: OptionType>(
 #[allow(unused)]
 pub(super) fn get_number_option(
     options: &JsObject,
-    property: &str,
+    property: &[u16],
     minimum: f64,
     maximum: f64,
     fallback: Option<f64>,

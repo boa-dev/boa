@@ -97,6 +97,7 @@ use crate::{
         FunctionBinding, JsFunction, JsObject, JsPrototype, ObjectData, CONSTRUCTOR, PROTOTYPE,
     },
     property::{Attribute, PropertyDescriptor, PropertyKey},
+    string::utf16,
     Context, JsResult, JsString, JsValue,
 };
 
@@ -273,7 +274,7 @@ pub(crate) fn set_default_global_bindings(context: &mut Context<'_>) -> JsResult
     let global_object = context.global_object().clone();
 
     global_object.define_property_or_throw(
-        "globalThis",
+        utf16!("globalThis"),
         PropertyDescriptor::builder()
             .value(context.realm.global_this().clone())
             .writable(true)
@@ -286,13 +287,17 @@ pub(crate) fn set_default_global_bindings(context: &mut Context<'_>) -> JsResult
         .enumerable(false)
         .configurable(false);
     global_object.define_property_or_throw(
-        "Infinity",
+        utf16!("Infinity"),
         restricted.clone().value(f64::INFINITY),
         context,
     )?;
-    global_object.define_property_or_throw("NaN", restricted.clone().value(f64::NAN), context)?;
     global_object.define_property_or_throw(
-        "undefined",
+        utf16!("NaN"),
+        restricted.clone().value(f64::NAN),
+        context,
+    )?;
+    global_object.define_property_or_throw(
+        utf16!("undefined"),
         restricted.value(JsValue::undefined()),
         context,
     )?;
@@ -357,7 +362,7 @@ pub(crate) fn set_default_global_bindings(context: &mut Context<'_>) -> JsResult
         let object = Console::init(context);
         let global_object = context.global_object().clone();
         global_object.define_property_or_throw(
-            "console",
+            utf16!("console"),
             PropertyDescriptor::builder()
                 .value(object)
                 .writable(true)
@@ -475,8 +480,8 @@ impl<S: ApplyToObject + IsConstructor> ApplyToObject for Callable<S> {
         {
             let mut constructor = object.borrow_mut();
             constructor.data = ObjectData::function(function);
-            constructor.insert("length", length);
-            constructor.insert("name", name);
+            constructor.insert(utf16!("length"), length);
+            constructor.insert(utf16!("name"), name);
         }
     }
 }

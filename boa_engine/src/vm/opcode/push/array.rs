@@ -1,5 +1,6 @@
 use crate::{
     builtins::{iterable::IteratorRecord, Array},
+    string::utf16,
     vm::{opcode::Operation, ShouldExit},
     Context, JsResult,
 };
@@ -67,7 +68,7 @@ impl Operation for PushElisionToArray {
             .length_of_array_like(context)
             .expect("arrays should always have a 'length' property");
 
-        o.set("length", len + 1, true, context)?;
+        o.set(utf16!("length"), len + 1, true, context)?;
         context.vm.push(array);
         Ok(ShouldExit::False)
     }

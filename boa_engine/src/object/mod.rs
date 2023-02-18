@@ -51,6 +51,7 @@ use crate::{
     js_string,
     native_function::NativeFunction,
     property::{Attribute, PropertyDescriptor, PropertyKey},
+    string::utf16,
     Context, JsBigInt, JsString, JsSymbol, JsValue,
 };
 
@@ -81,11 +82,13 @@ pub(crate) trait JsObjectType:
 {
 }
 
-/// Static `constructor`, usually set on prototypes as a key to point to their respective constructor object.
-pub static CONSTRUCTOR: &str = "constructor";
+/// Const `constructor`, usually set on prototypes as a key to point to their respective constructor object.
+pub const CONSTRUCTOR: &'static [u16] = utf16!("constructor");
 
-/// Static `prototype`, usually set on constructors as a key to point to their respective prototype object.
-pub static PROTOTYPE: &str = "prototype";
+/// Const `prototype`, usually set on constructors as a key to point to their respective prototype object.
+pub const PROTOTYPE: &'static [u16] = utf16!("prototype");
+
+/// Common field names.
 
 /// A type alias for an object prototype.
 ///
@@ -2025,8 +2028,8 @@ impl<'ctx, 'host> FunctionObjectBuilder<'ctx, 'host> {
             .writable(false)
             .enumerable(false)
             .configurable(true);
-        function.insert_property("length", property.clone().value(self.length));
-        function.insert_property("name", property.value(self.name));
+        function.insert_property(utf16!("length"), property.clone().value(self.length));
+        function.insert_property(utf16!("name"), property.value(self.name));
 
         JsFunction::from_object_unchecked(function)
     }
@@ -2395,8 +2398,8 @@ impl<'ctx, 'host> ConstructorBuilder<'ctx, 'host> {
         {
             let mut constructor = self.object.borrow_mut();
             constructor.data = ObjectData::function(function);
-            constructor.insert("length", length);
-            constructor.insert("name", name);
+            constructor.insert(utf16!("length"), length);
+            constructor.insert(utf16!("name"), name);
 
             if let Some(proto) = self.custom_prototype.take() {
                 constructor.set_prototype(proto);
@@ -2425,7 +2428,7 @@ impl<'ctx, 'host> ConstructorBuilder<'ctx, 'host> {
         {
             let mut prototype = self.prototype.borrow_mut();
             prototype.insert(
-                "constructor",
+                CONSTRUCTOR,
                 PropertyDescriptor::builder()
                     .value(self.object.clone())
                     .writable(true)

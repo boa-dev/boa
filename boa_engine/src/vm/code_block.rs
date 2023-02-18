@@ -12,9 +12,12 @@ use crate::{
     context::intrinsics::StandardConstructors,
     environments::{BindingLocator, CompileTimeEnvironment},
     error::JsNativeError,
-    js_string,
-    object::{internal_methods::get_prototype_from_constructor, JsObject, ObjectData, CONSTRUCTOR},
+    object::{
+        internal_methods::get_prototype_from_constructor, JsObject, ObjectData, CONSTRUCTOR,
+        PROTOTYPE,
+    },
     property::PropertyDescriptor,
+    string::utf16,
     vm::{CallFrame, Opcode},
     Context, JsResult, JsString, JsValue,
 };
@@ -612,14 +615,14 @@ pub(crate) fn create_function_object(
         .build();
 
     constructor
-        .define_property_or_throw(js_string!("length"), length_property, context)
+        .define_property_or_throw(utf16!("length"), length_property, context)
         .expect("failed to define the length property of the function");
     constructor
-        .define_property_or_throw(js_string!("name"), name_property, context)
+        .define_property_or_throw(utf16!("name"), name_property, context)
         .expect("failed to define the name property of the function");
     if !r#async && !arrow && !method {
         constructor
-            .define_property_or_throw(js_string!("prototype"), prototype_property, context)
+            .define_property_or_throw(PROTOTYPE, prototype_property, context)
             .expect("failed to define the prototype property of the function");
     }
 
@@ -705,14 +708,14 @@ pub(crate) fn create_generator_function_object(
 
     if !method {
         constructor
-            .define_property_or_throw(js_string!("prototype"), prototype_property, context)
+            .define_property_or_throw(PROTOTYPE, prototype_property, context)
             .expect("failed to define the prototype property of the generator function");
     }
     constructor
-        .define_property_or_throw(js_string!("name"), name_property, context)
+        .define_property_or_throw(utf16!("name"), name_property, context)
         .expect("failed to define the name property of the generator function");
     constructor
-        .define_property_or_throw(js_string!("length"), length_property, context)
+        .define_property_or_throw(utf16!("length"), length_property, context)
         .expect("failed to define the length property of the generator function");
 
     constructor
@@ -1117,7 +1120,7 @@ impl JsObject {
                 std::mem::swap(&mut context.vm.stack, &mut stack);
 
                 let prototype = this_function_object
-                    .get("prototype", context)
+                    .get(PROTOTYPE, context)
                     .expect("GeneratorFunction must have a prototype property")
                     .as_object()
                     .map_or_else(|| context.intrinsics().objects().generator(), Clone::clone);
@@ -1255,7 +1258,7 @@ impl JsObject {
                 std::mem::swap(&mut context.vm.stack, &mut stack);
 
                 let prototype = this_function_object
-                    .get("prototype", context)
+                    .get(PROTOTYPE, context)
                     .expect("AsyncGeneratorFunction must have a prototype property")
                     .as_object()
                     .map_or_else(

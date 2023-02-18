@@ -89,14 +89,14 @@ pub(crate) fn integer_indexed_exotic_has_property(
 /// [spec]: https://tc39.es/ecma262/#sec-integer-indexed-exotic-objects-defineownproperty-p-desc
 pub(crate) fn integer_indexed_exotic_define_own_property(
     obj: &JsObject,
-    key: PropertyKey,
+    key: &PropertyKey,
     desc: PropertyDescriptor,
     context: &mut Context<'_>,
 ) -> JsResult<bool> {
     // 1. If Type(P) is String, then
     // a. Let numericIndex be ! CanonicalNumericIndexString(P).
     // b. If numericIndex is not undefined, then
-    if let PropertyKey::Index(index) = key {
+    if let &PropertyKey::Index(index) = key {
         // i. If ! IsValidIntegerIndex(O, numericIndex) is false, return false.
         // ii. If Desc has a [[Configurable]] field and if Desc.[[Configurable]] is false, return false.
         // iii. If Desc has an [[Enumerable]] field and if Desc.[[Enumerable]] is false, return false.

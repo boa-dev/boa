@@ -1241,7 +1241,7 @@ impl Date {
         }
 
         // 4. Return ? Invoke(O, "toISOString").
-        let func = o.get("toISOString", context)?;
+        let func = o.get(utf16!("toISOString"), context)?;
         func.call(this, &[], context)
     }
 

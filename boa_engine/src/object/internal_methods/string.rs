@@ -52,7 +52,7 @@ pub(crate) fn string_exotic_get_own_property(
 /// [spec]: https://tc39.es/ecma262/#sec-string-exotic-objects-defineownproperty-p-desc
 pub(crate) fn string_exotic_define_own_property(
     obj: &JsObject,
-    key: PropertyKey,
+    key: &PropertyKey,
     desc: PropertyDescriptor,
     context: &mut Context<'_>,
 ) -> JsResult<bool> {

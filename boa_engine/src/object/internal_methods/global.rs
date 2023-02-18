@@ -60,7 +60,7 @@ pub(crate) fn global_get_own_property(
 #[allow(clippy::needless_pass_by_value)]
 pub(crate) fn global_define_own_property(
     obj: &JsObject,
-    key: PropertyKey,
+    key: &PropertyKey,
     desc: PropertyDescriptor,
     context: &mut Context<'_>,
 ) -> JsResult<bool> {

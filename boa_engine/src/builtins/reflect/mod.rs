@@ -167,7 +167,7 @@ impl Reflect {
             .into();
 
         target
-            .__define_own_property__(key, prop_desc.to_property_descriptor(context)?, context)
+            .__define_own_property__(&key, prop_desc.to_property_descriptor(context)?, context)
             .map(Into::into)
     }
 

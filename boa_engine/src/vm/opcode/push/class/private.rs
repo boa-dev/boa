@@ -1,6 +1,7 @@
 use crate::{
     object::PrivateElement,
     property::PropertyDescriptor,
+    string::utf16,
     vm::{opcode::Operation, ShouldExit},
     Context, JsResult,
 };
@@ -30,7 +31,7 @@ impl Operation for PushClassPrivateMethod {
             .configurable(true)
             .build();
         method_object
-            .__define_own_property__("name".into(), desc, context)
+            .__define_own_property__(&utf16!("name").into(), desc, context)
             .expect("failed to set name property on private method");
 
         let class = context.vm.pop();

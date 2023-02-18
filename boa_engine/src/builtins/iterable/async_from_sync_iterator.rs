@@ -7,6 +7,7 @@ use crate::{
     context::intrinsics::Intrinsics,
     native_function::NativeFunction,
     object::{FunctionObjectBuilder, JsObject, ObjectData},
+    string::utf16,
     Context, JsArgs, JsNativeError, JsResult, JsValue,
 };
 use boa_gc::{Finalize, Trace};
@@ -70,7 +71,7 @@ impl AsyncFromSyncIterator {
 
         // 3. Let nextMethod be ! Get(asyncIterator, "next").
         let next_method = async_iterator
-            .get("next", context)
+            .get(utf16!("next"), context)
             .expect("async from sync iterator prototype must have next method");
 
         // 4. Let iteratorRecord be the Iterator Record { [[Iterator]]: asyncIterator, [[NextMethod]]: nextMethod, [[Done]]: false }.
@@ -155,7 +156,7 @@ impl AsyncFromSyncIterator {
         .expect("cannot fail with promise constructor");
 
         // 5. Let return be Completion(GetMethod(syncIterator, "return")).
-        let r#return = sync_iterator.get_method("return", context);
+        let r#return = sync_iterator.get_method(utf16!("return"), context);
 
         // 6. IfAbruptRejectPromise(return, promiseCapability).
         if_abrupt_reject_promise!(r#return, promise_capability, context);
@@ -253,7 +254,7 @@ impl AsyncFromSyncIterator {
         .expect("cannot fail with promise constructor");
 
         // 5. Let throw be Completion(GetMethod(syncIterator, "throw")).
-        let throw = sync_iterator.get_method("throw", context);
+        let throw = sync_iterator.get_method(utf16!("throw"), context);
 
         // 6. IfAbruptRejectPromise(throw, promiseCapability).
         if_abrupt_reject_promise!(throw, promise_capability, context);

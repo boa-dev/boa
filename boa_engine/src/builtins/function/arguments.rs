@@ -2,6 +2,7 @@ use crate::{
     environments::DeclarativeEnvironment,
     object::{JsObject, ObjectData},
     property::PropertyDescriptor,
+    string::utf16,
     symbol::{self, JsSymbol},
     Context, JsValue,
 };
@@ -87,7 +88,7 @@ impl Arguments {
         // 4. Perform DefinePropertyOrThrow(obj, "length", PropertyDescriptor { [[Value]]: 𝔽(len),
         // [[Writable]]: true, [[Enumerable]]: false, [[Configurable]]: true }).
         obj.define_property_or_throw(
-            "length",
+            utf16!("length"),
             PropertyDescriptor::builder()
                 .value(len)
                 .writable(true)
@@ -129,7 +130,7 @@ impl Arguments {
         // [[Get]]: %ThrowTypeError%, [[Set]]: %ThrowTypeError%, [[Enumerable]]: false,
         // [[Configurable]]: false }).
         obj.define_property_or_throw(
-            "callee",
+            utf16!("callee"),
             PropertyDescriptor::builder()
                 .get(throw_type_error.clone())
                 .set(throw_type_error)
@@ -249,7 +250,7 @@ impl Arguments {
         // 16. Perform ! DefinePropertyOrThrow(obj, "length", PropertyDescriptor { [[Value]]: 𝔽(len),
         // [[Writable]]: true, [[Enumerable]]: false, [[Configurable]]: true }).
         obj.define_property_or_throw(
-            "length",
+            utf16!("length"),
             PropertyDescriptor::builder()
                 .value(len)
                 .writable(true)
@@ -277,7 +278,7 @@ impl Arguments {
         // 21. Perform ! DefinePropertyOrThrow(obj, "callee", PropertyDescriptor {
         // [[Value]]: func, [[Writable]]: true, [[Enumerable]]: false, [[Configurable]]: true }).
         obj.define_property_or_throw(
-            "callee",
+            utf16!("callee"),
             PropertyDescriptor::builder()
                 .value(func.clone())
                 .writable(true)

@@ -5,6 +5,7 @@ use crate::{
     object::JsObject,
     object::ObjectData,
     property::PropertyDescriptor,
+    string::utf16,
     Context, JsString, JsValue,
 };
 use boa_gc::{Finalize, Trace};
@@ -249,7 +250,7 @@ impl JsError {
                     ErrorKind::Syntax => JsNativeErrorKind::Syntax,
                     ErrorKind::Uri => JsNativeErrorKind::Uri,
                     ErrorKind::Aggregate => {
-                        let errors = obj.get("errors", context).map_err(|e| {
+                        let errors = obj.get(utf16!("errors"), context).map_err(|e| {
                             TryNativeError::InaccessibleProperty {
                                 property: "errors",
                                 source: e,
@@ -670,11 +671,11 @@ impl JsNativeError {
 
         let o = JsObject::from_proto_and_data(prototype, ObjectData::error(tag));
 
-        o.create_non_enumerable_data_property_or_throw("message", &**message, context);
+        o.create_non_enumerable_data_property_or_throw(utf16!("message"), &**message, context);
 
         if let Some(cause) = cause {
             o.create_non_enumerable_data_property_or_throw(
-                "cause",
+                utf16!("cause"),
                 cause.to_opaque(context),
                 context,
             );
@@ -687,7 +688,7 @@ impl JsNativeError {
                 .collect::<Vec<_>>();
             let errors = Array::create_array_from_list(errors, context);
             o.define_property_or_throw(
-                "errors",
+                utf16!("errors"),
                 PropertyDescriptor::builder()
                     .configurable(true)
                     .enumerable(false)

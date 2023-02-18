@@ -18,6 +18,7 @@ use crate::{
     error::JsNativeError,
     native_function::NativeFunction,
     object::{FunctionObjectBuilder, JsFunction, JsObject, ObjectData},
+    string::utf16,
     Context, JsArgs, JsResult, JsValue,
 };
 use boa_gc::{Finalize, Trace};
@@ -187,12 +188,12 @@ impl Proxy {
 
         // 6. Perform ! CreateDataPropertyOrThrow(result, "proxy", p).
         result
-            .create_data_property_or_throw("proxy", p, context)
+            .create_data_property_or_throw(utf16!("proxy"), p, context)
             .expect("CreateDataPropertyOrThrow cannot fail here");
 
         // 7. Perform ! CreateDataPropertyOrThrow(result, "revoke", revoker).
         result
-            .create_data_property_or_throw("revoke", revoker, context)
+            .create_data_property_or_throw(utf16!("revoke"), revoker, context)
             .expect("CreateDataPropertyOrThrow cannot fail here");
 
         // 8. Return result.

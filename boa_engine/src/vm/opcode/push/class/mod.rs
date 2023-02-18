@@ -1,6 +1,7 @@
 use crate::{
     builtins::function::{ConstructorKind, Function},
     error::JsNativeError,
+    object::PROTOTYPE,
     vm::{opcode::Operation, ShouldExit},
     Context, JsResult, JsValue,
 };
@@ -26,7 +27,7 @@ impl Operation for PushClassPrototype {
         let superclass = context.vm.pop();
 
         if let Some(superclass) = superclass.as_constructor() {
-            let proto = superclass.get("prototype", context)?;
+            let proto = superclass.get(PROTOTYPE, context)?;
             if !proto.is_object() && !proto.is_null() {
                 return Err(JsNativeError::typ()
                     .with_message("superclass prototype must be an object or null")

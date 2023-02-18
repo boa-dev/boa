@@ -216,7 +216,7 @@ impl Json {
 
             // b. Let rootName be the empty String.
             // c. Perform ! CreateDataPropertyOrThrow(root, rootName, unfiltered).
-            root.create_data_property_or_throw("", unfiltered, context)
+            root.create_data_property_or_throw(utf16!(""), unfiltered, context)
                 .expect("CreateDataPropertyOrThrow should never throw here");
 
             // d. Return ? InternalizeJSONProperty(root, rootName, reviver).
@@ -448,7 +448,7 @@ impl Json {
 
         // 10. Perform ! CreateDataPropertyOrThrow(wrapper, the empty String, value).
         wrapper
-            .create_data_property_or_throw("", args.get_or_undefined(0).clone(), context)
+            .create_data_property_or_throw(utf16!(""), args.get_or_undefined(0).clone(), context)
             .expect("CreateDataPropertyOrThrow should never fail here");
 
         // 11. Let state be the Record { [[ReplacerFunction]]: ReplacerFunction, [[Stack]]: stack, [[Indent]]: indent, [[Gap]]: gap, [[PropertyList]]: PropertyList }.
@@ -486,7 +486,7 @@ impl Json {
         // 2. If Type(value) is Object or BigInt, then
         if value.is_object() || value.is_bigint() {
             // a. Let toJSON be ? GetV(value, "toJSON").
-            let to_json = value.get_v("toJSON", context)?;
+            let to_json = value.get_v(utf16!("toJSON"), context)?;
 
             // b. If IsCallable(toJSON) is true, then
             if let Some(obj) = to_json.as_object() {

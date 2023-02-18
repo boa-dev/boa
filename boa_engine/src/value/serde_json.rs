@@ -71,7 +71,7 @@ impl JsValue {
                         .writable(true)
                         .enumerable(true)
                         .configurable(true);
-                    js_obj.borrow_mut().insert(key.as_str(), property);
+                    js_obj.borrow_mut().insert(key.clone(), property);
                 }
 
                 Ok(js_obj.into())
@@ -171,7 +171,7 @@ mod tests {
     use boa_parser::Source;
 
     use crate::object::JsArray;
-    use crate::{Context, JsValue};
+    use crate::{string::utf16, Context, JsValue};
 
     #[test]
     fn ut_json_conversions() {
@@ -199,17 +199,26 @@ mod tests {
         let value = JsValue::from_json(&json, &mut context).unwrap();
 
         let obj = value.as_object().unwrap();
-        assert_eq!(obj.get("name", &mut context).unwrap(), "John Doe".into());
-        assert_eq!(obj.get("age", &mut context).unwrap(), 43_i32.into());
-        assert_eq!(obj.get("minor", &mut context).unwrap(), false.into());
-        assert_eq!(obj.get("adult", &mut context).unwrap(), true.into());
+        assert_eq!(
+            obj.get(utf16!("name"), &mut context).unwrap(),
+            "John Doe".into()
+        );
+        assert_eq!(obj.get(utf16!("age"), &mut context).unwrap(), 43_i32.into());
+        assert_eq!(
+            obj.get(utf16!("minor"), &mut context).unwrap(),
+            false.into()
+        );
+        assert_eq!(obj.get(utf16!("adult"), &mut context).unwrap(), true.into());
         {
-            let extra = obj.get("extra", &mut context).unwrap();
+            let extra = obj.get(utf16!("extra"), &mut context).unwrap();
             let extra = extra.as_object().unwrap();
-            assert!(extra.get("address", &mut context).unwrap().is_null());
+            assert!(extra
+                .get(utf16!("address"), &mut context)
+                .unwrap()
+                .is_null());
         }
         {
-            let phones = obj.get("phones", &mut context).unwrap();
+            let phones = obj.get(utf16!("phones"), &mut context).unwrap();
             let phones = phones.as_object().unwrap();
 
             let arr = JsArray::from_object(phones.clone()).unwrap();

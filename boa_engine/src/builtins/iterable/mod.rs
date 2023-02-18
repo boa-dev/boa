@@ -5,6 +5,7 @@ use crate::{
     context::intrinsics::Intrinsics,
     error::JsNativeError,
     object::JsObject,
+    string::utf16,
     symbol::JsSymbol,
     Context, JsResult, JsValue,
 };
@@ -188,10 +189,10 @@ pub fn create_iter_result_object(value: JsValue, done: bool, context: &mut Conte
     let obj = JsObject::with_object_proto(context);
 
     // 3. Perform ! CreateDataPropertyOrThrow(obj, "value", value).
-    obj.create_data_property_or_throw("value", value, context)
+    obj.create_data_property_or_throw(utf16!("value"), value, context)
         .expect("this CreateDataPropertyOrThrow call must not fail");
     // 4. Perform ! CreateDataPropertyOrThrow(obj, "done", done).
-    obj.create_data_property_or_throw("done", done, context)
+    obj.create_data_property_or_throw(utf16!("done"), done, context)
         .expect("this CreateDataPropertyOrThrow call must not fail");
     // 5. Return obj.
     obj.into()
@@ -265,7 +266,7 @@ impl JsValue {
         })?;
 
         // 5. Let nextMethod be ? GetV(iterator, "next").
-        let next_method = iterator.get_v("next", context)?;
+        let next_method = iterator.get_v(utf16!("next"), context)?;
 
         // 6. Let iteratorRecord be the Record { [[Iterator]]: iterator, [[NextMethod]]: nextMethod, [[Done]]: false }.
         // 7. Return iteratorRecord.
@@ -301,7 +302,7 @@ impl IteratorResult {
     #[inline]
     pub fn complete(&self, context: &mut Context<'_>) -> JsResult<bool> {
         // 1. Return ToBoolean(? Get(iterResult, "done")).
-        Ok(self.object.get("done", context)?.to_boolean())
+        Ok(self.object.get(utf16!("done"), context)?.to_boolean())
     }
 
     /// `IteratorValue ( iterResult )`
@@ -317,7 +318,7 @@ impl IteratorResult {
     #[inline]
     pub fn value(&self, context: &mut Context<'_>) -> JsResult<JsValue> {
         // 1. Return ? Get(iterResult, "value").
-        self.object.get("value", context)
+        self.object.get(utf16!("value"), context)
     }
 }
 
@@ -478,7 +479,7 @@ impl IteratorRecord {
         let iterator = &self.iterator;
 
         // 3. Let innerResult be Completion(GetMethod(iterator, "return")).
-        let inner_result = iterator.get_method("return", context);
+        let inner_result = iterator.get_method(utf16!("return"), context);
 
         // 4. If innerResult.[[Type]] is normal, then
         let inner_result = match inner_result {
