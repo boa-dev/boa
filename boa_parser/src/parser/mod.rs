@@ -334,9 +334,9 @@ where
             }
         }
 
-        if let Some(error) = check_labels(&body, interner) {
+        if let Err(error) = check_labels(&body) {
             return Err(Error::lex(LexError::Syntax(
-                error.into_boxed_str(),
+                error.message(interner).into(),
                 Position::new(1, 1),
             )));
         }

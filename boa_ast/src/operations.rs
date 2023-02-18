@@ -849,6 +849,49 @@ pub fn class_private_name_resolver(node: &mut Class, top_level_class_index: usiz
     visitor.visit_class_mut(node).is_continue()
 }
 
+/// Errors that can occur when checking labels.
+#[derive(Debug, Clone, Copy)]
+pub enum CheckLabelsError {
+    /// A label was used multiple times.
+    DuplicateLabel(Sym),
+
+    /// A `break` statement was used with a label that was not defined.
+    UndefinedBreakTarget(Sym),
+
+    /// A `continue` statement was used with a label that was not defined.
+    UndefinedContinueTarget(Sym),
+
+    /// A `break` statement was used in a non-looping context.
+    IllegalBreakStatement,
+
+    /// A `continue` statement was used in a non-looping context.
+    IllegalContinueStatement,
+}
+
+impl CheckLabelsError {
+    /// Returns an error message based on the error.
+    #[must_use]
+    pub fn message(&self, interner: &Interner) -> String {
+        match self {
+            Self::DuplicateLabel(label) => {
+                format!("duplicate label: {}", interner.resolve_expect(*label))
+            }
+            Self::UndefinedBreakTarget(label) => {
+                format!(
+                    "undefined break target: {}",
+                    interner.resolve_expect(*label)
+                )
+            }
+            Self::UndefinedContinueTarget(label) => format!(
+                "undefined continue target: {}",
+                interner.resolve_expect(*label)
+            ),
+            Self::IllegalBreakStatement => "illegal break statement".into(),
+            Self::IllegalContinueStatement => "illegal continue statement".into(),
+        }
+    }
+}
+
 /// This function checks multiple syntax errors conditions for labels, `break` and `continue`.
 ///
 /// The following syntax errors are checked:
@@ -863,19 +906,14 @@ pub fn class_private_name_resolver(node: &mut Class, top_level_class_index: usiz
 /// [ContainsUndefinedContinueTarget]: https://tc39.es/ecma262/#sec-static-semantics-containsundefinedcontinuetarget
 /// [BreakStatement]: https://tc39.es/ecma262/#sec-break-statement-static-semantics-early-errors
 /// [ContinueStatement]: https://tc39.es/ecma262/#sec-continue-statement-static-semantics-early-errors
-#[must_use]
-pub fn check_labels<N>(node: &N, interner: &Interner) -> Option<String>
+///
+/// # Errors
+///
+/// This function returns an error for the first syntax error that is found.
+pub fn check_labels<N>(node: &N) -> Result<(), CheckLabelsError>
 where
     N: VisitWith,
 {
-    enum CheckLabelsError {
-        DuplicateLabel(Sym),
-        UndefinedBreakTarget(Sym),
-        UndefinedContinueTarget(Sym),
-        IllegalBreakStatement,
-        IllegalContinueStatement,
-    }
-
     #[derive(Debug, Clone)]
     struct CheckLabelsResolver {
         labels: FxHashSet<Sym>,
@@ -1155,24 +1193,9 @@ where
     };
 
     if let ControlFlow::Break(error) = node.visit_with(&mut visitor) {
-        let msg = match error {
-            CheckLabelsError::DuplicateLabel(label) => {
-                format!("duplicate label: {}", interner.resolve_expect(label))
-            }
-            CheckLabelsError::UndefinedBreakTarget(label) => {
-                format!("undefined break target: {}", interner.resolve_expect(label))
-            }
-            CheckLabelsError::UndefinedContinueTarget(label) => format!(
-                "undefined continue target: {}",
-                interner.resolve_expect(label)
-            ),
-            CheckLabelsError::IllegalBreakStatement => "illegal break statement".into(),
-            CheckLabelsError::IllegalContinueStatement => "illegal continue statement".into(),
-        };
-
-        Some(msg)
+        Err(error)
     } else {
-        None
+        Ok(())
     }
 }
 

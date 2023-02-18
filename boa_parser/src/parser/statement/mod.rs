@@ -897,9 +897,9 @@ where
         while cursor.peek(0, interner)?.is_some() {
             let item = ModuleItem.parse(cursor, interner)?;
 
-            if let Some(error) = check_labels(&item, interner) {
+            if let Err(error) = check_labels(&item) {
                 return Err(Error::lex(LexError::Syntax(
-                    error.into_boxed_str(),
+                    error.message(interner).into(),
                     Position::new(1, 1),
                 )));
             }

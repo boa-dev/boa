@@ -462,9 +462,9 @@ where
         )
         .parse(cursor, interner)?;
 
-        if let Some(error) = check_labels(&statement_list, interner) {
+        if let Err(error) = check_labels(&statement_list) {
             return Err(Error::lex(LexError::Syntax(
-                error.into_boxed_str(),
+                error.message(interner).into(),
                 Position::new(1, 1),
             )));
         }
