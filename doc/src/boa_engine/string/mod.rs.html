@@ -1390,6 +1390,10 @@
             (<span class="prelude-val">Some</span>(<span class="string">b&#39;0&#39;</span>), <span class="prelude-val">Some</span>(<span class="string">b&#39;b&#39; </span>| <span class="string">b&#39;B&#39;</span>)) =&gt; <span class="prelude-val">Some</span>(<span class="number">2</span>),
             (<span class="prelude-val">Some</span>(<span class="string">b&#39;0&#39;</span>), <span class="prelude-val">Some</span>(<span class="string">b&#39;o&#39; </span>| <span class="string">b&#39;O&#39;</span>)) =&gt; <span class="prelude-val">Some</span>(<span class="number">8</span>),
             (<span class="prelude-val">Some</span>(<span class="string">b&#39;0&#39;</span>), <span class="prelude-val">Some</span>(<span class="string">b&#39;x&#39; </span>| <span class="string">b&#39;X&#39;</span>)) =&gt; <span class="prelude-val">Some</span>(<span class="number">16</span>),
+            <span class="comment">// Make sure that no further variants of &quot;infinity&quot; are parsed.
+            </span>(<span class="prelude-val">Some</span>(<span class="string">b&#39;i&#39; </span>| <span class="string">b&#39;I&#39;</span>), <span class="kw">_</span>) =&gt; {
+                <span class="kw">return </span>f64::NAN;
+            }
             <span class="kw">_ </span>=&gt; <span class="prelude-val">None</span>,
         };
 
@@ -1417,11 +1421,7 @@
             <span class="kw">return </span>value;
         }
 
-        <span class="kw">match </span>string {
-            <span class="comment">// Handle special cases so `fast_float` does not return infinity.
-            </span><span class="string">&quot;inf&quot; </span>| <span class="string">&quot;+inf&quot; </span>| <span class="string">&quot;-inf&quot; </span>=&gt; f64::NAN,
-            string =&gt; fast_float::parse(string).unwrap_or(f64::NAN),
-        }
+        fast_float::parse(string).unwrap_or(f64::NAN)
     }
 
     <span class="doccomment">/// Abstract operation `StringToBigInt ( str )`
