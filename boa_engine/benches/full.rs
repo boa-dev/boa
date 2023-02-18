@@ -1,8 +1,6 @@
 //! Benchmarks of the whole execution engine in Boa.
 
-use boa_engine::{
-    context::DefaultHooks, optimizer::OptimizerOptions, realm::Realm, Context, Source,
-};
+use boa_engine::{optimizer::OptimizerOptions, realm::Realm, runtime::Runtime, Context, Source};
 use criterion::{criterion_group, criterion_main, Criterion};
 use std::hint::black_box;
 
@@ -15,7 +13,7 @@ static ALLOC: jemallocator::Jemalloc = jemallocator::Jemalloc;
 
 fn create_realm(c: &mut Criterion) {
     c.bench_function("Create Realm", move |b| {
-        b.iter(|| Realm::create(&DefaultHooks))
+        b.iter(|| Realm::create(&Runtime::default()))
     });
 }
 
@@ -25,7 +23,8 @@ macro_rules! full_benchmarks {
             $(
                 {
                     static CODE: &str = include_str!(concat!("bench_scripts/", stringify!($name), ".js"));
-                    let mut context = Context::default();
+                    let rt = &Runtime::default();
+                    let mut context = Context::builder(&rt).build().unwrap();
 
                     // Disable optimizations
                     context.set_optimizer_options(OptimizerOptions::empty());
@@ -40,7 +39,8 @@ macro_rules! full_benchmarks {
             $(
                 {
                     static CODE: &str = include_str!(concat!("bench_scripts/", stringify!($name), ".js"));
-                    let mut context = Context::default();
+                    let rt = &Runtime::default();
+                    let mut context = Context::builder(&rt).build().unwrap();
 
                     // Disable optimizations
                     context.set_optimizer_options(OptimizerOptions::empty());
@@ -58,7 +58,8 @@ macro_rules! full_benchmarks {
             $(
                 {
                     static CODE: &str = include_str!(concat!("bench_scripts/", stringify!($name), ".js"));
-                    let mut context = Context::default();
+                    let rt = &Runtime::default();
+                    let mut context = Context::builder(&rt).build().unwrap();
 
                     // Disable optimizations
                     context.set_optimizer_options(OptimizerOptions::empty());

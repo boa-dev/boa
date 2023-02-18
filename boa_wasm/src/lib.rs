@@ -57,7 +57,7 @@
     clippy::nursery,
 )]
 
-use boa_engine::{Context, Source};
+use boa_engine::{Context, Runtime, Source};
 use getrandom as _;
 use wasm_bindgen::prelude::*;
 
@@ -65,8 +65,9 @@ use wasm_bindgen::prelude::*;
 #[wasm_bindgen]
 pub fn evaluate(src: &str) -> Result<String, JsValue> {
     // Setup executor
-    Context::default()
-        .eval_script(Source::from_bytes(src))
+    Context::builder(&Runtime::default())
+        .build()
+        .and_then(|mut ctx| ctx.eval_script(Source::from_bytes(src)))
         .map_err(|e| JsValue::from(format!("Uncaught {e}")))
         .map(|v| v.display().to_string())
 }

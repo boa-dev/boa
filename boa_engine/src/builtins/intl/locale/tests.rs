@@ -15,7 +15,7 @@ use crate::{
         options::{IntlOptions, LocaleMatcher},
         Service,
     },
-    context::icu::{BoaProvider, Icu},
+    runtime::{icu::Icu, BoaProvider},
 };
 
 #[derive(Debug)]

@@ -11,9 +11,10 @@
 
 use crate::{
     builtins::{Array, BuiltInBuilder, BuiltInObject, IntrinsicObject},
-    context::{intrinsics::Intrinsics, BoaProvider},
+    context::intrinsics::Intrinsics,
     object::JsObject,
     property::Attribute,
+    runtime::BoaProvider,
     symbol::JsSymbol,
     Context, JsArgs, JsResult, JsValue,
 };

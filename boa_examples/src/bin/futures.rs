@@ -5,10 +5,9 @@ use std::{
 };
 
 use boa_engine::{
-    context::ContextBuilder,
     job::{FutureJob, JobQueue, NativeJob},
     native_function::NativeFunction,
-    Context, JsArgs, JsResult, JsValue, Source,
+    Context, JsArgs, JsResult, JsValue, Runtime, Source,
 };
 use futures_util::{stream::FuturesUnordered, Future};
 use smol::{future, stream::StreamExt, LocalExecutor};
@@ -132,7 +131,8 @@ fn main() {
     // Initialize the required executors and the context
     let executor = LocalExecutor::new();
     let queue = Queue::new(executor);
-    let context = &mut ContextBuilder::new().job_queue(&queue).build().unwrap();
+    let runtime = &Runtime::default();
+    let context = &mut Context::builder(runtime).job_queue(&queue).build().unwrap();
 
     // Bind the defined async function to the ECMAScript function "delay".
     context.register_global_builtin_callable("delay", 1, NativeFunction::from_async_fn(delay));

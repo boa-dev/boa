@@ -1,4 +1,4 @@
-use boa_engine::{value::TryFromJs, Context, JsNativeError, JsResult, JsValue, Source};
+use boa_engine::{value::TryFromJs, Context, JsNativeError, JsResult, JsValue, Runtime, Source};
 
 /// You can easily derive `TryFromJs` for structures with base Rust types.
 ///
@@ -25,8 +25,8 @@ fn main() {
     x;
     "#;
     let js = Source::from_bytes(js_str);
-
-    let mut context = Context::default();
+    let runtime = &Runtime::default();
+    let mut context = Context::builder(runtime).build().unwrap();
     let res = context.eval_script(js).unwrap();
 
     let str = TestStruct::try_from_js(&res, &mut context)

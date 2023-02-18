@@ -1,11 +1,12 @@
 use boa_engine::{
     object::{builtins::JsArray, builtins::JsMap},
-    Context, JsResult, JsValue,
+    Context, JsResult, JsValue, Runtime,
 };
 
 fn main() -> JsResult<()> {
     // Create a `Context` for the Javascript executor.
-    let context = &mut Context::default();
+    let runtime = &Runtime::default();
+    let context = &mut Context::builder(runtime).build().unwrap();
 
     // Create a new empty map.
     let map = JsMap::new(context);

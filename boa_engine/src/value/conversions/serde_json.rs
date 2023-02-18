@@ -30,7 +30,7 @@ impl JsValue {
     ///
     /// let json: serde_json::Value = serde_json::from_str(data).unwrap();
     ///
-    /// let mut context = Context::default();
+    /// let mut context = test_context();
     /// let value = JsValue::from_json(&json, &mut context).unwrap();
     /// #
     /// # assert_eq!(json, value.to_json(&mut context).unwrap());
@@ -98,7 +98,7 @@ impl JsValue {
     ///
     /// let json: serde_json::Value = serde_json::from_str(data).unwrap();
     ///
-    /// let mut context = Context::default();
+    /// let mut context = test_context();
     /// let value = JsValue::from_json(&json, &mut context).unwrap();
     ///
     /// let back_to_json = value.to_json(&mut context).unwrap();

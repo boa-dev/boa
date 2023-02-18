@@ -27,7 +27,7 @@ impl JsArrayBuffer {
     /// # };
     /// # fn main() -> JsResult<()> {
     /// # // Initialize context
-    /// # let context = &mut Context::default();
+    /// # let context = &mut test_context();
     /// // Creates a blank array buffer of n bytes
     /// let array_buffer = JsArrayBuffer::new(4, context)?;
     ///
@@ -65,7 +65,7 @@ impl JsArrayBuffer {
     /// # };
     /// # fn main() -> JsResult<()> {
     /// # // Initialize context
-    /// # let context = &mut Context::default();
+    /// # let context = &mut test_context();
     ///
     /// // Create a buffer from a chunk of data
     /// let data_block: Vec<u8> = (0..5).collect();
@@ -135,7 +135,7 @@ impl JsArrayBuffer {
     /// # };
     /// # fn main() -> JsResult<()> {
     /// # // Initialize context
-    /// # let context = &mut Context::default();
+    /// # let context = &mut test_context();
     /// // Create a buffer from a chunk of data
     /// let data_block: Vec<u8> = (0..5).collect();
     /// let array_buffer = JsArrayBuffer::from_byte_block(data_block, context)?;
@@ -166,7 +166,7 @@ impl JsArrayBuffer {
     /// # };
     /// # fn main() -> JsResult<()> {
     /// # // Initialize context
-    /// # let context = &mut Context::default();
+    /// # let context = &mut test_context();
     /// // Create a buffer from a chunk of data
     /// let data_block: Vec<u8> = (0..5).collect();
     /// let array_buffer = JsArrayBuffer::from_byte_block(data_block, context)?;

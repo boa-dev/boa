@@ -1,12 +1,13 @@
 use indoc::indoc;
 
-use crate::{job::SimpleJobQueue, run_test_actions_with, Context, TestAction};
+use crate::{job::SimpleJobQueue, run_test_actions_with, Context, Runtime, TestAction};
 
 #[test]
 #[allow(clippy::redundant_closure_for_method_calls)]
 fn issue_2658() {
+    let rt = &Runtime::default();
     let queue = &SimpleJobQueue::new();
-    let context = &mut Context::builder().job_queue(queue).build().unwrap();
+    let context = &mut Context::builder(rt).job_queue(queue).build().unwrap();
     run_test_actions_with(
         [
             TestAction::run(indoc! {

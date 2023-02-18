@@ -62,11 +62,10 @@ mod helper;
 
 use boa_ast::StatementList;
 use boa_engine::{
-    context::ContextBuilder,
     job::{FutureJob, JobQueue, NativeJob},
     optimizer::OptimizerOptions,
     vm::flowgraph::{Direction, Graph},
-    Context, JsResult, Source,
+    Context, JsResult, Runtime, Source,
 };
 use clap::{Parser, ValueEnum, ValueHint};
 use colored::{Color, Colorize};
@@ -296,9 +295,10 @@ fn evaluate_files(args: &Opt, context: &mut Context<'_>) -> Result<(), io::Error
 fn main() -> Result<(), io::Error> {
     let args = Opt::parse();
 
-    let queue = Jobs::default();
-    let mut context = ContextBuilder::new()
-        .job_queue(&queue)
+    let runtime = &Runtime::default();
+    let queue = &Jobs::default();
+    let mut context = Context::builder(runtime)
+        .job_queue(queue)
         .build()
         .expect("cannot fail with default global object");
 

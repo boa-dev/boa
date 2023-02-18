@@ -10,7 +10,7 @@ use boa_ast::{
     visitor::{VisitWith, VisitorMut},
     Expression,
 };
-use boa_engine::{Context, Source};
+use boa_engine::{Context, Runtime, Source};
 use boa_interner::ToInternedString;
 use boa_parser::Parser;
 use core::ops::ControlFlow;
@@ -67,7 +67,8 @@ impl<'ast> VisitorMut<'ast> for CommutorVisitor {
 fn main() {
     let mut parser =
         Parser::new(Source::from_filepath(Path::new("boa_examples/scripts/calc.js")).unwrap());
-    let mut ctx = Context::default();
+    let runtime = &Runtime::default();
+    let mut ctx = Context::builder(runtime).build().unwrap();
 
     let mut statements = parser.parse_script(ctx.interner_mut()).unwrap();
 

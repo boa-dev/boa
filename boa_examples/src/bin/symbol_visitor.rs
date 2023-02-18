@@ -3,7 +3,7 @@
 // which mutates the AST.
 
 use boa_ast::visitor::Visitor;
-use boa_engine::{Context, Source};
+use boa_engine::{Context, Runtime, Source};
 use boa_interner::Sym;
 use boa_parser::Parser;
 use core::ops::ControlFlow;
@@ -26,7 +26,8 @@ impl<'ast> Visitor<'ast> for SymbolVisitor {
 fn main() {
     let mut parser =
         Parser::new(Source::from_filepath(Path::new("boa_examples/scripts/calc.js")).unwrap());
-    let mut ctx = Context::default();
+    let runtime = &Runtime::default();
+    let mut ctx = Context::builder(runtime).build().unwrap();
 
     let statements = parser.parse_script(ctx.interner_mut()).unwrap();
 

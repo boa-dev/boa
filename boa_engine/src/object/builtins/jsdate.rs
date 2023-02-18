@@ -21,7 +21,7 @@ use crate::{
 ///
 /// fn main() -> JsResult<()> {
 /// // JS mutable Context
-/// let context = &mut Context::default();
+/// let context = &mut test_context();
 ///
 /// let date = JsDate::new(context);
 ///

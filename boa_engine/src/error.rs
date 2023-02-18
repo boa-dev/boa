@@ -151,7 +151,7 @@ impl JsError {
     ///
     /// ```rust
     /// # use boa_engine::{Context, JsError, JsNativeError};
-    /// let context = &mut Context::default();
+    /// let context = &mut test_context();
     /// let error: JsError = JsNativeError::eval().with_message("invalid script").into();
     /// let error_val = error.to_opaque(context);
     ///
@@ -190,7 +190,7 @@ impl JsError {
     ///
     /// ```rust
     /// # use boa_engine::{Context, JsError, JsNativeError, JsNativeErrorKind};
-    /// let context = &mut Context::default();
+    /// let context = &mut test_context();
     ///
     /// // create a new, opaque Error object
     /// let error: JsError = JsNativeError::typ().with_message("type error!").into();
@@ -629,7 +629,7 @@ impl JsNativeError {
     ///
     /// ```rust
     /// # use boa_engine::{Context, JsError, JsNativeError};
-    /// let context = &mut Context::default();
+    /// let context = &mut test_context();
     ///
     /// let error = JsNativeError::error().with_message("error!");
     /// let error_obj = error.to_opaque(context);

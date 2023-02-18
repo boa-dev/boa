@@ -4,7 +4,7 @@ use boa_engine::{
     error::JsNativeError,
     native_function::NativeFunction,
     property::Attribute,
-    Context, JsArgs, JsResult, JsString, JsValue, Source,
+    Context, JsArgs, JsResult, JsString, JsValue, Runtime, Source,
 };
 
 use boa_gc::{Finalize, Trace};
@@ -126,7 +126,8 @@ impl Class for Person {
 
 fn main() {
     // First we need to create a Javascript context.
-    let mut context = Context::default();
+    let runtime = &Runtime::default();
+    let context = &mut Context::builder(runtime).build().unwrap();
 
     // Then we need to register the global class `Person` inside `context`.
     context.register_global_class::<Person>().unwrap();

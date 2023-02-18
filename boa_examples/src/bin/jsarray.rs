@@ -4,12 +4,13 @@ use boa_engine::{
     native_function::NativeFunction,
     object::{builtins::JsArray, FunctionObjectBuilder},
     string::utf16,
-    Context, JsResult, JsValue,
+    Context, JsResult, JsValue, Runtime,
 };
 
 fn main() -> JsResult<()> {
     // We create a new `Context` to create a new Javascript executor.
-    let context = &mut Context::default();
+    let runtime = &Runtime::default();
+    let context = &mut Context::builder(runtime).build().unwrap();
 
     // Create an empty array.
     let array = JsArray::new(context);

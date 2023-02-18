@@ -12,16 +12,14 @@ use icu_provider::DataLocale;
 
 use crate::{
     builtins::{BuiltInBuilder, BuiltInConstructor, BuiltInObject, IntrinsicObject},
-    context::{
-        intrinsics::{Intrinsics, StandardConstructor, StandardConstructors},
-        BoaProvider,
-    },
+    context::intrinsics::{Intrinsics, StandardConstructor, StandardConstructors},
     native_function::NativeFunction,
     object::{
         internal_methods::get_prototype_from_constructor, FunctionObjectBuilder, JsFunction,
         JsObject, ObjectData,
     },
     property::Attribute,
+    runtime::BoaProvider,
     string::utf16,
     symbol::JsSymbol,
     Context, JsArgs, JsNativeError, JsResult, JsValue,

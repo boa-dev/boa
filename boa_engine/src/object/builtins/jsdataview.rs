@@ -22,7 +22,7 @@ use std::ops::Deref;
 /// # };
 /// # fn main() -> JsResult<()> {
 /// // Create a new context and ArrayBuffer
-/// let context = &mut Context::default();
+/// let context = &mut test_context();
 /// let array_buffer = JsArrayBuffer::new(4, context)?;
 ///
 /// // Create a new Dataview from pre-existing ArrayBuffer

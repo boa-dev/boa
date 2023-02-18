@@ -3,7 +3,7 @@
 
 use boa_engine::{
     native_function::NativeFunction, prelude::JsObject, property::Attribute, Context, JsResult,
-    JsValue, Source,
+    JsValue, Runtime, Source,
 };
 use std::fs::read_to_string;
 
@@ -17,7 +17,8 @@ fn main() {
     }
 
     // Creating the execution context
-    let mut ctx = Context::default();
+    let runtime = &Runtime::default();
+    let ctx = &mut Context::builder(runtime).build().unwrap();
 
     // Adding custom implementation that mimics 'require'
     ctx.register_global_callable("require", 0, NativeFunction::from_fn_ptr(require));
@@ -25,7 +26,7 @@ fn main() {
     // Adding custom object that mimics 'module.exports'
     let moduleobj = JsObject::default();
     moduleobj
-        .set("exports", JsValue::from(" "), false, &mut ctx)
+        .set("exports", JsValue::from(" "), false, ctx)
         .unwrap();
     ctx.register_global_property("module", JsValue::from(moduleobj), Attribute::default());
 

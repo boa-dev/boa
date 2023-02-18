@@ -1,20 +1,9 @@
 //! The ECMAScript context.
 
-mod hooks;
 pub mod intrinsics;
-pub use hooks::{DefaultHooks, HostHooks};
-
-#[cfg(feature = "intl")]
-pub(crate) mod icu;
-
-#[cfg(feature = "intl")]
-pub use icu::BoaProvider;
-
 use intrinsics::Intrinsics;
 
 use std::io::Read;
-#[cfg(not(feature = "intl"))]
-pub use std::marker::PhantomData;
 
 use crate::{
     builtins,
@@ -26,6 +15,7 @@ use crate::{
     optimizer::{Optimizer, OptimizerOptions, OptimizerStatistics},
     property::{Attribute, PropertyDescriptor, PropertyKey},
     realm::Realm,
+    runtime::{HostHooks, Runtime},
     vm::{CallFrame, CodeBlock, Vm},
     JsResult, JsValue, Source,
 };
@@ -35,11 +25,9 @@ use boa_interner::{Interner, Sym};
 use boa_parser::{Error as ParseError, Parser};
 use boa_profiler::Profiler;
 
-/// ECMAScript context. It is the primary way to interact with the runtime.
+/// An execution context.
 ///
-/// `Context`s constructed in a thread share the same runtime, therefore it
-/// is possible to share objects from one context to another context, but they
-/// have to be in the same thread.
+/// [`Context`] is the main interface used to parse, compile and execute ECMAScript code.
 ///
 /// # Examples
 ///
@@ -62,7 +50,7 @@ use boa_profiler::Profiler;
 /// }
 /// "#;
 ///
-/// let mut context = Context::default();
+/// let mut context = test_context();
 ///
 /// // Populate the script definition to the context.
 /// context.eval_script(Source::from_bytes(script)).unwrap();
@@ -78,28 +66,23 @@ use boa_profiler::Profiler;
 /// assert_eq!(value.as_number(), Some(12.0))
 /// ```
 pub struct Context<'host> {
-    /// realm holds both the global object and the environment
+    /// The runtime that this context belongs to.
+    pub(crate) runtime: &'host Runtime<'host>,
+
+    /// realm holds both the global object and the environment.
     pub(crate) realm: Realm,
 
     /// String interner in the context.
     interner: Interner,
 
-    /// Execute in strict mode,
+    /// Execute in strict mode.
     strict: bool,
 
-    /// Number of instructions remaining before a forced exit
+    /// Number of instructions remaining before a forced exit.
     #[cfg(feature = "fuzz")]
     pub(crate) instructions_remaining: usize,
 
     pub(crate) vm: Vm,
-
-    pub(crate) kept_alive: Vec<JsObject>,
-
-    /// ICU related utilities
-    #[cfg(feature = "intl")]
-    icu: icu::Icu<'host>,
-
-    host_hooks: &'host dyn HostHooks,
 
     job_queue: &'host dyn JobQueue,
 
@@ -108,39 +91,25 @@ pub struct Context<'host> {
 
 impl std::fmt::Debug for Context<'_> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        let mut debug = f.debug_struct("Context");
-
-        debug
+        f.debug_struct("Context")
             .field("realm", &self.realm)
             .field("interner", &self.interner)
             .field("vm", &self.vm)
             .field("strict", &self.strict)
             .field("promise_job_queue", &"JobQueue")
-            .field("hooks", &"HostHooks")
-            .field("optimizer_options", &self.optimizer_options);
-
-        #[cfg(feature = "intl")]
-        debug.field("icu", &self.icu);
-
-        debug.finish()
-    }
-}
-
-impl Default for Context<'_> {
-    fn default() -> Self {
-        ContextBuilder::default()
-            .build()
-            .expect("Building the default context should not fail")
+            .field("optimizer_options", &self.optimizer_options)
+            .finish_non_exhaustive()
     }
 }
 
 // ==== Public API ====
-impl Context<'_> {
-    /// Create a new [`ContextBuilder`] to specify the [`Interner`] and/or
-    /// the icu data provider.
+impl<'host> Context<'host> {
+    /// Creates a new [`ContextBuilder`] to specify the initial configuration of the context.
     #[must_use]
-    pub fn builder() -> ContextBuilder<'static, 'static, 'static> {
-        ContextBuilder::default()
+    pub fn builder<'runtime, 'icu>(
+        runtime: &'runtime Runtime<'icu>,
+    ) -> ContextBuilder<'runtime, 'icu, 'static> {
+        ContextBuilder::new(runtime)
     }
 
     /// Evaluates the given script `src` by compiling down to bytecode, then interpreting the
@@ -149,7 +118,7 @@ impl Context<'_> {
     /// # Examples
     /// ```
     /// # use boa_engine::{Context, Source};
-    /// let mut context = Context::default();
+    /// let mut context = test_context();
     ///
     /// let source = Source::from_bytes("1 + 3");
     /// let value = context.eval_script(source).unwrap();
@@ -182,7 +151,7 @@ impl Context<'_> {
     /// # Examples
     /// ```ignore
     /// # use boa_engine::{Context, Source};
-    /// let mut context = Context::default();
+    /// let mut context = test_context();
     ///
     /// let source = Source::from_bytes("1 + 3");
     ///
@@ -291,14 +260,15 @@ impl Context<'_> {
     /// use boa_engine::{
     ///     object::ObjectInitializer,
     ///     property::{Attribute, PropertyDescriptor},
-    ///     Context,
+    ///     Runtime, Context,
     /// };
     ///
-    /// let mut context = Context::default();
+    /// let rt = Runtime::default();
+    /// let mut context = &mut Context::builder(&rt).build().unwrap();
     ///
     /// context.register_global_property("myPrimitiveProperty", 10, Attribute::all());
     ///
-    /// let object = ObjectInitializer::new(&mut context)
+    /// let object = ObjectInitializer::new(context)
     ///     .property("x", 0, Attribute::all())
     ///     .property("y", 1, Attribute::all())
     ///     .build();
@@ -414,6 +384,12 @@ impl Context<'_> {
         Ok(())
     }
 
+    /// Gets the runtime used by this context.
+    #[inline]
+    pub const fn runtime(&self) -> &'host Runtime<'host> {
+        self.runtime
+    }
+
     /// Gets the string interner.
     #[inline]
     pub const fn interner(&self) -> &Interner {
@@ -436,6 +412,16 @@ impl Context<'_> {
     #[inline]
     pub const fn intrinsics(&self) -> &Intrinsics {
         &self.realm.intrinsics
+    }
+
+    /// Gets the host hooks of the current `Runtime`.
+    pub fn host_hooks(&self) -> &'host dyn HostHooks {
+        self.runtime.host_hooks()
+    }
+
+    /// Gets the job queue.
+    pub fn job_queue(&mut self) -> &'host dyn JobQueue {
+        self.job_queue
     }
 
     /// Set the value of trace on the context
@@ -474,17 +460,28 @@ impl Context<'_> {
     /// Clears all objects maintained alive by calls to the [`AddToKeptObjects`][add] abstract
     /// operation, used within the [`WeakRef`][weak] constructor.
     ///
-    /// [clear]: https://tc39.es/ecma262/multipage/executable-code-and-execution-contexts.html#sec-clear-kept-objects
-    /// [add]: https://tc39.es/ecma262/multipage/executable-code-and-execution-contexts.html#sec-addtokeptobjects
-    /// [weak]: https://tc39.es/ecma262/multipage/managing-memory.html#sec-weak-ref-objects
+    /// [clear]: https://tc39.es/ecma262/#sec-clear-kept-objects
+    /// [add]: https://tc39.es/ecma262/#sec-addtokeptobjects
+    /// [weak]: https://tc39.es/ecma262/#sec-weak-ref-objects
     pub fn clear_kept_objects(&mut self) {
-        self.kept_alive.clear();
+        self.runtime.clear_kept_objects();
     }
 }
 
 // ==== Private API ====
 
-impl Context<'_> {
+impl<'host> Context<'host> {
+    /// Abstract operation [`AddToKeptObjects ( object )`][add].
+    ///
+    /// Adds `object` to the `[[KeptAlive]]` field of the current [`surrounding agent`][agent], which
+    /// is represented by the `Runtime`.
+    ///
+    /// [add]: https://tc39.es/ecma262/#sec-addtokeptobjects
+    /// [agent]: https://tc39.es/ecma262/#sec-agents
+    pub(crate) fn add_to_kept_objects(&mut self, object: JsObject) {
+        self.runtime.add_to_kept_objects(object);
+    }
+
     /// Return a mutable reference to the global object string bindings.
     pub(crate) fn global_bindings_mut(&mut self) -> &mut GlobalPropertyMap {
         self.realm.global_bindings_mut()
@@ -510,23 +507,11 @@ impl Context<'_> {
         compiler.compile_statement_list_with_new_declarative(statement_list, true, strict);
         Gc::new(compiler.finish())
     }
-}
-
-impl<'host> Context<'host> {
-    /// Get the host hooks.
-    pub fn host_hooks(&self) -> &'host dyn HostHooks {
-        self.host_hooks
-    }
-
-    /// Get the job queue.
-    pub fn job_queue(&mut self) -> &'host dyn JobQueue {
-        self.job_queue
-    }
 
     /// Get the ICU related utilities
     #[cfg(feature = "intl")]
-    pub(crate) const fn icu(&self) -> &icu::Icu<'host> {
-        &self.icu
+    pub(crate) const fn icu(&self) -> &'host crate::runtime::icu::Icu<'host> {
+        self.runtime.icu()
     }
 }
 
@@ -534,22 +519,10 @@ impl<'host> Context<'host> {
 ///
 /// This builder allows custom initialization of the [`Interner`] within
 /// the context.
-/// Additionally, if the `intl` feature is enabled, [`ContextBuilder`] becomes
-/// the only way to create a new [`Context`], since now it requires a
-/// valid data provider for the `Intl` functionality.
-#[cfg_attr(
-    feature = "intl",
-    doc = "The required data in a valid provider is specified in [`BoaProvider`]"
-)]
-#[derive(Default)]
-pub struct ContextBuilder<'icu, 'hooks, 'queue> {
+pub struct ContextBuilder<'runtime, 'icu, 'queue> {
+    runtime: &'runtime Runtime<'icu>,
     interner: Option<Interner>,
-    host_hooks: Option<&'hooks dyn HostHooks>,
     job_queue: Option<&'queue dyn JobQueue>,
-    #[cfg(feature = "intl")]
-    icu: Option<icu::Icu<'icu>>,
-    #[cfg(not(feature = "intl"))]
-    icu: PhantomData<&'icu ()>,
     #[cfg(feature = "fuzz")]
     instructions_remaining: usize,
 }
@@ -559,24 +532,27 @@ impl std::fmt::Debug for ContextBuilder<'_, '_, '_> {
         let mut out = f.debug_struct("ContextBuilder");
 
         out.field("interner", &self.interner)
-            .field("host_hooks", &"HostHooks");
-
-        #[cfg(feature = "intl")]
-        out.field("icu", &self.icu);
+            .field("job_queue", &"JobQueue");
 
         #[cfg(feature = "fuzz")]
         out.field("instructions_remaining", &self.instructions_remaining);
 
-        out.finish()
+        out.finish_non_exhaustive()
     }
 }
 
-impl<'icu, 'hooks, 'queue> ContextBuilder<'icu, 'hooks, 'queue> {
+impl<'runtime, 'icu, 'queue> ContextBuilder<'runtime, 'icu, 'queue> {
     /// Creates a new [`ContextBuilder`] with a default empty [`Interner`]
     /// and a default [`BoaProvider`] if the `intl` feature is enabled.
     #[must_use]
-    pub fn new() -> Self {
-        Self::default()
+    pub fn new(runtime: &'runtime Runtime<'icu>) -> Self {
+        Self {
+            runtime,
+            interner: None,
+            job_queue: None,
+            #[cfg(feature = "fuzz")]
+            instructions_remaining: 0,
+        }
     }
 
     /// Initializes the context [`Interner`] to the provided interner.
@@ -590,44 +566,9 @@ impl<'icu, 'hooks, 'queue> ContextBuilder<'icu, 'hooks, 'queue> {
         self
     }
 
-    /// Provides an icu data provider to the [`Context`].
-    ///
-    /// This function is only available if the `intl` feature is enabled.
-    ///
-    /// # Errors
-    ///
-    /// This returns `Err` if the provided provider doesn't have the required locale information
-    /// to construct both a [`LocaleCanonicalizer`] and a [`LocaleExpander`]. Note that this doesn't
-    /// mean that the provider will successfully construct all `Intl` services; that check is made
-    /// until the creation of an instance of a service.
-    ///
-    /// [`LocaleCanonicalizer`]: icu_locid_transform::LocaleCanonicalizer
-    /// [`LocaleExpander`]: icu_locid_transform::LocaleExpander
-    #[cfg(feature = "intl")]
-    pub fn icu_provider(
-        self,
-        provider: BoaProvider<'_>,
-    ) -> Result<ContextBuilder<'_, 'hooks, 'queue>, icu_locid_transform::LocaleTransformError> {
-        Ok(ContextBuilder {
-            icu: Some(icu::Icu::new(provider)?),
-            ..self
-        })
-    }
-
-    /// Initializes the [`HostHooks`] for the context.
-    ///
-    /// [`Host Hooks`]: https://tc39.es/ecma262/#sec-host-hooks-summary
-    #[must_use]
-    pub fn host_hooks(self, host_hooks: &dyn HostHooks) -> ContextBuilder<'icu, '_, 'queue> {
-        ContextBuilder {
-            host_hooks: Some(host_hooks),
-            ..self
-        }
-    }
-
     /// Initializes the [`JobQueue`] for the context.
     #[must_use]
-    pub fn job_queue(self, job_queue: &dyn JobQueue) -> ContextBuilder<'icu, 'hooks, '_> {
+    pub fn job_queue(self, job_queue: &dyn JobQueue) -> ContextBuilder<'runtime, 'icu, '_> {
         ContextBuilder {
             job_queue: Some(job_queue),
             ..self
@@ -648,26 +589,18 @@ impl<'icu, 'hooks, 'queue> ContextBuilder<'icu, 'hooks, 'queue> {
     /// all missing parameters to their default values.
     pub fn build<'host>(self) -> JsResult<Context<'host>>
     where
+        'runtime: 'host,
         'icu: 'host,
-        'hooks: 'host,
         'queue: 'host,
     {
-        let host_hooks = self.host_hooks.unwrap_or(&DefaultHooks);
-
         let mut context = Context {
-            realm: Realm::create(host_hooks),
+            realm: Realm::create(self.runtime),
+            runtime: self.runtime,
             interner: self.interner.unwrap_or_default(),
             vm: Vm::default(),
             strict: false,
-            #[cfg(feature = "intl")]
-            icu: self.icu.unwrap_or_else(|| {
-                let provider = BoaProvider::Buffer(boa_icu_provider::buffer());
-                icu::Icu::new(provider).expect("Failed to initialize default icu data.")
-            }),
             #[cfg(feature = "fuzz")]
             instructions_remaining: self.instructions_remaining,
-            kept_alive: Vec::new(),
-            host_hooks,
             job_queue: self.job_queue.unwrap_or(&IdleJobQueue),
             optimizer_options: OptimizerOptions::OPTIMIZE_ALL,
         };

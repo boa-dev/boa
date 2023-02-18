@@ -3,7 +3,7 @@
 
 use std::path::Path;
 
-use boa_engine::{Context, Source};
+use boa_engine::{Context, Runtime, Source};
 
 fn main() {
     let js_file_path = "./scripts/helloworld.js";
@@ -11,13 +11,14 @@ fn main() {
     match Source::from_filepath(Path::new(js_file_path)) {
         Ok(src) => {
             // Instantiate the execution context
-            let mut context = Context::default();
+            let runtime = &Runtime::default();
+            let context = &mut Context::builder(runtime).build().unwrap();
             // Parse the source code
             match context.eval_script(src) {
                 Ok(res) => {
                     println!(
                         "{}",
-                        res.to_string(&mut context).unwrap().to_std_string_escaped()
+                        res.to_string(context).unwrap().to_std_string_escaped()
                     );
                 }
                 Err(e) => {

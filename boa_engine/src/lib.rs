@@ -153,6 +153,7 @@ pub mod native_function;
 pub mod object;
 pub mod property;
 pub mod realm;
+pub mod runtime;
 pub mod string;
 pub mod symbol;
 pub mod value;
@@ -173,7 +174,7 @@ pub mod prelude {
         error::{JsError, JsNativeError, JsNativeErrorKind},
         native_function::NativeFunction,
         object::JsObject,
-        Context, JsBigInt, JsResult, JsString, JsValue,
+        Context, JsBigInt, JsResult, JsString, JsValue, Runtime,
     };
     pub use boa_parser::Source;
 }
@@ -188,6 +189,7 @@ pub use crate::{
     error::{JsError, JsNativeError, JsNativeErrorKind},
     native_function::NativeFunction,
     object::JsObject,
+    runtime::Runtime,
     string::JsString,
     symbol::JsSymbol,
     value::JsValue,
@@ -348,7 +350,8 @@ impl TestAction {
 #[cfg(test)]
 #[track_caller]
 pub(crate) fn run_test_actions(actions: impl IntoIterator<Item = TestAction>) {
-    let context = &mut Context::default();
+    let rt = &Runtime::default();
+    let context = &mut Context::builder(rt).build().unwrap();
     run_test_actions_with(actions, context);
 }
 

@@ -7,9 +7,9 @@ use crate::{
     TestFlags, TestOutcomeResult, TestResult, TestSuite, VersionedStats,
 };
 use boa_engine::{
-    context::ContextBuilder, job::SimpleJobQueue, native_function::NativeFunction,
-    object::FunctionObjectBuilder, optimizer::OptimizerOptions, property::Attribute, Context,
-    JsArgs, JsNativeErrorKind, JsValue, Source,
+    job::SimpleJobQueue, native_function::NativeFunction, object::FunctionObjectBuilder,
+    optimizer::OptimizerOptions, property::Attribute, Context, JsArgs, JsNativeErrorKind, JsValue,
+    Runtime, Source,
 };
 use colored::Colorize;
 use fxhash::FxHashSet;
@@ -209,9 +209,10 @@ impl Test {
 
         let result = std::panic::catch_unwind(|| match self.expected_outcome {
             Outcome::Positive => {
+                let rt = &Runtime::default();
                 let async_result = AsyncResult::default();
                 let queue = SimpleJobQueue::new();
-                let context = &mut ContextBuilder::new()
+                let context = &mut Context::builder(rt)
                     .job_queue(&queue)
                     .build()
                     .expect("cannot fail with default global");
@@ -258,7 +259,10 @@ impl Test {
                     self.path.display()
                 );
 
-                let context = &mut Context::default();
+                let rt = &Runtime::default();
+                let context = &mut Context::builder(rt)
+                    .build()
+                    .expect("cannot fail with default global");
                 context.strict(strict);
                 context.set_optimizer_options(OptimizerOptions::OPTIMIZE_ALL);
 
@@ -288,7 +292,10 @@ impl Test {
                 phase: Phase::Runtime,
                 error_type,
             } => {
-                let context = &mut Context::default();
+                let rt = &Runtime::default();
+                let context = &mut Context::builder(rt)
+                    .build()
+                    .expect("cannot fail with default global");
                 context.strict(strict);
                 context.set_optimizer_options(optimizer_options);
 

@@ -40,8 +40,10 @@ pub(super) fn register_js262(context: &mut Context<'_>) -> JsObject {
 /// Creates a new ECMAScript Realm, defines this API on the new realm's global object, and
 /// returns the `$262` property of the new realm's global object.
 #[allow(clippy::unnecessary_wraps)]
-fn create_realm(_: &JsValue, _: &[JsValue], _: &mut Context<'_>) -> JsResult<JsValue> {
-    let context = &mut Context::default();
+fn create_realm(_: &JsValue, _: &[JsValue], ctx: &mut Context<'_>) -> JsResult<JsValue> {
+    let context = &mut Context::builder(ctx.runtime())
+        .build()
+        .expect("cannot fail with default global");
 
     let js262 = register_js262(context);
 

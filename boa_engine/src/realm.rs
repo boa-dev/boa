@@ -7,9 +7,10 @@
 //! A realm is represented in this implementation as a Realm struct with the fields specified from the spec.
 
 use crate::{
-    context::{intrinsics::Intrinsics, HostHooks},
+    context::intrinsics::Intrinsics,
     environments::{CompileTimeEnvironment, DeclarativeEnvironmentStack},
     object::{GlobalPropertyMap, JsObject, PropertyMap},
+    Runtime,
 };
 use boa_gc::{Gc, GcRefCell};
 use boa_profiler::Profiler;
@@ -30,9 +31,9 @@ pub struct Realm {
 impl Realm {
     /// Create a new Realm.
     #[inline]
-    pub fn create(hooks: &dyn HostHooks) -> Self {
+    pub fn create(runtime: &Runtime<'_>) -> Self {
         let _timer = Profiler::global().start_event("Realm::create", "realm");
-
+        let hooks = runtime.host_hooks();
         let intrinsics = Intrinsics::new();
 
         let global_object = hooks.create_global_object(&intrinsics);
@@ -43,7 +44,6 @@ impl Realm {
         let global_compile_environment =
             Gc::new(GcRefCell::new(CompileTimeEnvironment::new_global()));
 
-        #[allow(unreachable_code)]
         Self {
             intrinsics,
             global_object,
@@ -54,11 +54,18 @@ impl Realm {
         }
     }
 
-    pub(crate) const fn global_object(&self) -> &JsObject {
+    /// Gets the global object of the realm.
+    pub const fn global_object(&self) -> &JsObject {
         &self.global_object
     }
 
-    pub(crate) const fn global_this(&self) -> &JsObject {
+    /// Gets the global `this` of the realm.
+    ///
+    /// Usually this will the same as calling [`Realm::global_object`]. However, the
+    /// [`HostHooks::create_global_this`] hook allows hosts to bind the global `this` to a different
+    /// object.
+    ///
+    pub const fn global_this(&self) -> &JsObject {
         &self.global_this
     }
 

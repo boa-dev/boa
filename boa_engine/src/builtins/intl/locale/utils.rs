@@ -6,8 +6,8 @@ use crate::{
         },
         Array,
     },
-    context::{icu::Icu, BoaProvider},
     object::JsObject,
+    runtime::{icu::Icu, BoaProvider},
     string::utf16,
     Context, JsNativeError, JsResult, JsValue,
 };
@@ -553,7 +553,7 @@ mod tests {
         builtins::intl::locale::utils::{
             best_available_locale, best_fit_matcher, default_locale, lookup_matcher,
         },
-        context::icu::{BoaProvider, Icu},
+        runtime::{icu::Icu, BoaProvider},
     };
 
     #[test]

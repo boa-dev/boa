@@ -1,7 +1,8 @@
-use boa_engine::{object::builtins::JsRegExp, Context, JsResult};
+use boa_engine::{object::builtins::JsRegExp, Context, JsResult, Runtime};
 
 fn main() -> JsResult<()> {
-    let context = &mut Context::default();
+    let runtime = &Runtime::default();
+    let context = &mut Context::builder(runtime).build().unwrap();
 
     let regexp = JsRegExp::new("foo", "gi", context)?;
 

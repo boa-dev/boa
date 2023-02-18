@@ -1,11 +1,10 @@
 use crate::{
     builtins::promise::OperationType,
+    context::intrinsics::Intrinsics,
     job::JobCallback,
     object::{JsFunction, JsObject, ObjectData},
     Context, JsResult, JsValue,
 };
-
-use super::intrinsics::Intrinsics;
 
 /// [`Host Hooks`] customizable by the host code or engine.
 ///

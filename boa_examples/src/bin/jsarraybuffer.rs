@@ -3,12 +3,13 @@
 use boa_engine::{
     object::builtins::{JsArrayBuffer, JsDataView, JsUint32Array, JsUint8Array},
     property::Attribute,
-    Context, JsResult, JsValue,
+    Context, JsResult, JsValue, Runtime,
 };
 
 fn main() -> JsResult<()> {
     // We create a new `Context` to create a new Javascript executor.
-    let context = &mut Context::default();
+    let runtime = &Runtime::default();
+    let context = &mut Context::builder(runtime).build().unwrap();
 
     // This create an array buffer of byte length 4
     let array_buffer = JsArrayBuffer::new(4, context)?;

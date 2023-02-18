@@ -23,7 +23,7 @@ use std::ops::Deref;
 /// # };
 /// # fn main() -> JsResult<()> {
 /// // Create default `Context`
-/// let context = &mut Context::default();
+/// let context = &mut test_context();
 ///
 /// // Create a new empty `JsMap`.
 /// let map = JsMap::new(context);
@@ -45,7 +45,7 @@ use std::ops::Deref;
 /// # };
 /// # fn main() -> JsResult<()> {
 /// // Create a default `Context`
-/// let context = &mut Context::default();
+/// let context = &mut test_context();
 ///
 /// // Create an array of two `[key, value]` pairs
 /// let js_array = JsArray::new(context);
@@ -82,7 +82,7 @@ impl JsMap {
     /// #    Context, JsValue,
     /// # };
     /// # // Create a new context.
-    /// # let context = &mut Context::default();
+    /// # let context = &mut test_context();
     /// // Create a new empty `JsMap`.
     /// let map = JsMap::new(context);
     /// ```
@@ -102,7 +102,7 @@ impl JsMap {
     /// # };
     /// # fn main() -> JsResult<()> {
     /// # // Create a default `Context`
-    /// # let context = &mut Context::default();
+    /// # let context = &mut test_context();
     /// // Create an array of two `[key, value]` pairs
     /// let js_array = JsArray::new(context);
     ///
@@ -142,7 +142,7 @@ impl JsMap {
     /// #    Context, JsValue, JsResult,
     /// # };
     /// # fn main() -> JsResult<()> {
-    /// # let context = &mut Context::default();
+    /// # let context = &mut test_context();
     /// // `some_object` can be any JavaScript `Map` object.
     /// let some_object = JsObject::from_proto_and_data(
     ///     context.intrinsics().constructors().map().prototype(),
@@ -161,7 +161,7 @@ impl JsMap {
     /// #    object::{JsObject, builtins::{JsArray, JsMap}},
     /// #    Context, JsResult, JsValue,
     /// # };
-    /// # let context = &mut Context::default();
+    /// # let context = &mut test_context();
     /// let some_object = JsArray::new(context);
     ///
     /// // `some_object` is an Array object, not a map object
@@ -215,7 +215,7 @@ impl JsMap {
     /// #    Context, JsValue, JsResult,
     /// # };
     /// # fn main() -> JsResult<()> {
-    /// # let context = &mut Context::default();
+    /// # let context = &mut test_context();
     /// let js_map = JsMap::new(context);
     ///
     /// js_map.set("foo", "bar", context)?;
@@ -248,7 +248,7 @@ impl JsMap {
     /// #    Context, JsValue, JsResult,
     /// # };
     /// # fn main() -> JsResult<()> {
-    /// # let context = &mut Context::default();
+    /// # let context = &mut test_context();
     /// let js_map = JsMap::new(context);
     ///
     /// js_map.set("foo", "bar", context)?;
@@ -274,7 +274,7 @@ impl JsMap {
     /// #    Context, JsValue, JsResult,
     /// # };
     /// # fn main() -> JsResult<()> {
-    /// # let context = &mut Context::default();
+    /// # let context = &mut test_context();
     /// let js_map = JsMap::new(context);
     /// js_map.set("foo", "bar", context)?;
     /// js_map.set("hello", "world", context)?;
@@ -303,7 +303,7 @@ impl JsMap {
     /// #    Context, JsValue, JsResult,
     /// # };
     /// # fn main() -> JsResult<()> {
-    /// # let context = &mut Context::default();
+    /// # let context = &mut test_context();
     /// let js_map = JsMap::new(context);
     /// js_map.set("foo", "bar", context)?;
     ///
@@ -330,7 +330,7 @@ impl JsMap {
     /// #    Context, JsValue, JsResult,
     /// # };
     /// # fn main() -> JsResult<()> {
-    /// # let context = &mut Context::default();
+    /// # let context = &mut test_context();
     /// let js_map = JsMap::new(context);
     /// js_map.set("foo", "bar", context)?;
     /// js_map.set("hello", "world", context)?;
@@ -356,7 +356,7 @@ impl JsMap {
     /// #    Context, JsValue, JsResult,
     /// # };
     /// # fn main() -> JsResult<()> {
-    /// # let context = &mut Context::default();
+    /// # let context = &mut test_context();
     /// let js_map = JsMap::new(context);
     /// js_map.set("foo", "bar", context)?;
     ///

@@ -21,7 +21,7 @@ use std::ops::Deref;
 /// # };
 /// # fn main() -> JsResult<()> {
 /// // Initialize the `Context`
-/// let context = &mut Context::default();
+/// let context = &mut test_context();
 ///
 /// // Create a new RegExp with pattern and flags
 /// let regexp = JsRegExp::new("foo", "gi", context)?;
@@ -49,7 +49,7 @@ impl JsRegExp {
     /// # };
     /// # fn main() -> JsResult<()> {
     /// // Initialize the `Context`
-    /// let context = &mut Context::default();
+    /// let context = &mut test_context();
     ///
     /// // Create a new RegExp with pattern and flags
     /// let regexp = JsRegExp::new("foo", "gi", context)?;
@@ -144,7 +144,7 @@ impl JsRegExp {
     /// #  Context, JsValue, JsResult,
     /// # };
     /// # fn main() -> JsResult<()> {
-    /// # let context = &mut Context::default();
+    /// # let context = &mut test_context();
     /// let regexp = JsRegExp::new("foo", "gi", context)?;
     ///
     /// let flags = regexp.flags(context)?;
@@ -169,7 +169,7 @@ impl JsRegExp {
     /// #  Context, JsValue, JsResult,
     /// # };
     /// # fn main() -> JsResult<()> {
-    /// # let context = &mut Context::default();
+    /// # let context = &mut test_context();
     /// let regexp = JsRegExp::new("foo", "gi", context)?;
     ///
     /// let src = regexp.source(context)?;
@@ -194,7 +194,7 @@ impl JsRegExp {
     /// #  Context, JsValue, JsResult,
     /// # };
     /// # fn main() -> JsResult<()> {
-    /// # let context = &mut Context::default();
+    /// # let context = &mut test_context();
     /// let regexp = JsRegExp::new("foo", "gi", context)?;
     ///
     /// let test_result = regexp.test("football", context)?;
@@ -236,7 +236,7 @@ impl JsRegExp {
     /// #  Context, JsValue, JsResult,
     /// # };
     /// # fn main() -> JsResult<()> {
-    /// # let context = &mut Context::default();
+    /// # let context = &mut test_context();
     /// let regexp = JsRegExp::new("foo", "gi", context)?;
     ///
     /// let to_string = regexp.to_string(context)?;
