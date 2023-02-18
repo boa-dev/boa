@@ -57,6 +57,8 @@ jobs:
         uses: taiki-e/install-action@nextest
       - name: Test with nextest
         run: cargo nextest run --profile ci --cargo-profile ci --features intl
+      - name: Test docs
+        run: cargo test --doc --profile ci --features intl
 
   misc:
     name: Misc

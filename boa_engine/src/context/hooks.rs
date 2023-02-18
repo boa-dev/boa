@@ -31,7 +31,7 @@ use super::intrinsics::Intrinsics;
 ///     }
 /// }
 /// let hooks = Hooks; // Can have additional state.
-/// let context = &mut ContextBuilder::new().host_hooks(&hooks).build();
+/// let context = &mut ContextBuilder::new().host_hooks(&hooks).build().unwrap();
 /// let result = context.eval_script(Source::from_bytes(r#"eval("let a = 5")"#));
 /// assert_eq!(result.unwrap_err().to_string(), "TypeError: eval calls not available");
 /// ```

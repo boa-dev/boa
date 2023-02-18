@@ -3,10 +3,11 @@
 //! Native classes are implemented through the [`Class`][class-trait] trait.
 //! ```
 //! # use boa_engine::{
+//! #    NativeFunction,
 //! #    property::Attribute,
 //! #    class::{Class, ClassBuilder},
 //! #    Context, JsResult, JsValue,
-//! #    builtins::JsArgs,
+//! #    JsArgs,
 //! # };
 //! # use boa_gc::{Finalize, Trace};
 //! #
