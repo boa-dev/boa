@@ -29,11 +29,7 @@ impl Operation for SetPropertyByName {
         };
 
         let name = context.vm.frame().code_block.names[index as usize];
-        let name: PropertyKey = context
-            .interner()
-            .resolve_expect(name.sym())
-            .into_common::<JsString>(false)
-            .into();
+        let name: PropertyKey = context.interner().resolve_expect(name.sym()).utf16().into();
 
         //object.set(name, value.clone(), context.vm.frame().code.strict, context)?;
         let succeeded = object.__set__(name.clone(), value.clone(), receiver, context)?;
