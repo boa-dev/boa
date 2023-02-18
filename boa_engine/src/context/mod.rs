@@ -172,11 +172,12 @@ impl Context<'_> {
         result
     }
 
+    // TODO: remove `ignore` after we implement module execution
     /// Evaluates the given module `src` by compiling down to bytecode, then interpreting the
     /// bytecode into a value.
     ///
     /// # Examples
-    /// ```
+    /// ```ignore
     /// # use boa_engine::{Context, Source};
     /// let mut context = Context::default();
     ///
