@@ -22,6 +22,7 @@ use crate::{
         JsObject, ObjectData,
     },
     property::Attribute,
+    string::utf16,
     symbol::JsSymbol,
     Context, JsArgs, JsNativeError, JsResult, JsValue,
 };
@@ -173,7 +174,12 @@ impl IntrinsicObject for Collator {
                 "Intl.Collator",
                 Attribute::CONFIGURABLE,
             )
-            .accessor("compare", Some(compare), None, Attribute::CONFIGURABLE)
+            .accessor(
+                utf16!("compare"),
+                Some(compare),
+                None,
+                Attribute::CONFIGURABLE,
+            )
             .method(Self::resolved_options, "resolvedOptions", 0)
             .build();
     }
@@ -234,29 +240,31 @@ impl BuiltInConstructor for Collator {
         //     a. Let localeData be %Collator%.[[SortLocaleData]].
         // 6. Else,
         //     a. Let localeData be %Collator%.[[SearchLocaleData]].
-        let usage = get_option::<Usage>(&options, "usage", false, context)?.unwrap_or_default();
+        let usage =
+            get_option::<Usage>(&options, utf16!("usage"), false, context)?.unwrap_or_default();
 
         // 7. Let opt be a new Record.
         // 8. Let matcher be ? GetOption(options, "localeMatcher", string, « "lookup", "best fit" », "best fit").
         // 9. Set opt.[[localeMatcher]] to matcher.
-        let matcher = get_option::<LocaleMatcher>(&options, "localeMatcher", false, context)?
-            .unwrap_or_default();
+        let matcher =
+            get_option::<LocaleMatcher>(&options, utf16!("localeMatcher"), false, context)?
+                .unwrap_or_default();
 
         // 10. Let collation be ? GetOption(options, "collation", string, empty, undefined).
         // 11. If collation is not undefined, then
         //     a. If collation does not match the Unicode Locale Identifier type nonterminal, throw a RangeError exception.
         // 12. Set opt.[[co]] to collation.
-        let collation = get_option::<Value>(&options, "collation", false, context)?;
+        let collation = get_option::<Value>(&options, utf16!("collation"), false, context)?;
 
         // 13. Let numeric be ? GetOption(options, "numeric", boolean, empty, undefined).
         // 14. If numeric is not undefined, then
         //     a. Let numeric be ! ToString(numeric).
         // 15. Set opt.[[kn]] to numeric.
-        let numeric = get_option::<bool>(&options, "numeric", false, context)?;
+        let numeric = get_option::<bool>(&options, utf16!("numeric"), false, context)?;
 
         // 16. Let caseFirst be ? GetOption(options, "caseFirst", string, « "upper", "lower", "false" », undefined).
         // 17. Set opt.[[kf]] to caseFirst.
-        let case_first = get_option::<CaseFirst>(&options, "caseFirst", false, context)?;
+        let case_first = get_option::<CaseFirst>(&options, utf16!("caseFirst"), false, context)?;
 
         let mut intl_options = IntlOptions {
             matcher,
@@ -305,20 +313,22 @@ impl BuiltInConstructor for Collator {
 
         // 26. Let sensitivity be ? GetOption(options, "sensitivity", string, « "base", "accent", "case", "variant" », undefined).
         // 28. Set collator.[[Sensitivity]] to sensitivity.
-        let sensitivity = get_option::<Sensitivity>(&options, "sensitivity", false, context)?
-            // 27. If sensitivity is undefined, then
-            //     a. If usage is "sort", then
-            //         i. Let sensitivity be "variant".
-            //     b. Else,
-            //         i. Let dataLocale be r.[[dataLocale]].
-            //         ii. Let dataLocaleData be localeData.[[<dataLocale>]].
-            //         iii. Let sensitivity be dataLocaleData.[[sensitivity]].
-            .or_else(|| (usage == Usage::Sort).then_some(Sensitivity::Variant));
+        let sensitivity =
+            get_option::<Sensitivity>(&options, utf16!("sensitivity"), false, context)?
+                // 27. If sensitivity is undefined, then
+                //     a. If usage is "sort", then
+                //         i. Let sensitivity be "variant".
+                //     b. Else,
+                //         i. Let dataLocale be r.[[dataLocale]].
+                //         ii. Let dataLocaleData be localeData.[[<dataLocale>]].
+                //         iii. Let sensitivity be dataLocaleData.[[sensitivity]].
+                .or_else(|| (usage == Usage::Sort).then_some(Sensitivity::Variant));
 
         // 29. Let ignorePunctuation be ? GetOption(options, "ignorePunctuation", boolean, empty, false).
         // 30. Set collator.[[IgnorePunctuation]] to ignorePunctuation.
         let ignore_punctuation =
-            get_option::<bool>(&options, "ignorePunctuation", false, context)?.unwrap_or_default();
+            get_option::<bool>(&options, utf16!("ignorePunctuation"), false, context)?
+                .unwrap_or_default();
 
         let (strength, case_level) = sensitivity.map(Sensitivity::to_collator_options).unzip();
 
@@ -504,11 +514,11 @@ impl Collator {
         //         i. Perform ! CreateDataPropertyOrThrow(options, p, v).
         // 5. Return options.
         options
-            .create_data_property_or_throw("locale", collator.locale.to_string(), context)
+            .create_data_property_or_throw(utf16!("locale"), collator.locale.to_string(), context)
             .expect("operation must not fail per the spec");
         options
             .create_data_property_or_throw(
-                "usage",
+                utf16!("usage"),
                 match collator.usage {
                     Usage::Search => "search",
                     Usage::Sort => "sort",
@@ -518,7 +528,7 @@ impl Collator {
             .expect("operation must not fail per the spec");
         options
             .create_data_property_or_throw(
-                "sensitivity",
+                utf16!("sensitivity"),
                 match collator.sensitivity {
                     Sensitivity::Base => "base",
                     Sensitivity::Accent => "accent",
@@ -530,21 +540,25 @@ impl Collator {
             .expect("operation must not fail per the spec");
         options
             .create_data_property_or_throw(
-                "ignorePunctuation",
+                utf16!("ignorePunctuation"),
                 collator.ignore_punctuation,
                 context,
             )
             .expect("operation must not fail per the spec");
         options
-            .create_data_property_or_throw("collation", collator.collation.to_string(), context)
+            .create_data_property_or_throw(
+                utf16!("collation"),
+                collator.collation.to_string(),
+                context,
+            )
             .expect("operation must not fail per the spec");
         options
-            .create_data_property_or_throw("numeric", collator.numeric, context)
+            .create_data_property_or_throw(utf16!("numeric"), collator.numeric, context)
             .expect("operation must not fail per the spec");
         if let Some(kf) = collator.case_first {
             options
                 .create_data_property_or_throw(
-                    "caseFirst",
+                    utf16!("caseFirst"),
                     match kf {
                         CaseFirst::Off => "false",
                         CaseFirst::LowerFirst => "lower",

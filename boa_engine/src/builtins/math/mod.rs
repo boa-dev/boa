@@ -13,7 +13,7 @@
 
 use crate::{
     builtins::BuiltInObject, context::intrinsics::Intrinsics, object::JsObject,
-    property::Attribute, symbol::JsSymbol, Context, JsArgs, JsResult, JsValue,
+    property::Attribute, string::utf16, symbol::JsSymbol, Context, JsArgs, JsResult, JsValue,
 };
 use boa_profiler::Profiler;
 
@@ -32,14 +32,18 @@ impl IntrinsicObject for Math {
 
         let attribute = Attribute::READONLY | Attribute::NON_ENUMERABLE | Attribute::PERMANENT;
         BuiltInBuilder::with_intrinsic::<Self>(intrinsics)
-            .static_property("E", std::f64::consts::E, attribute)
-            .static_property("LN10", std::f64::consts::LN_10, attribute)
-            .static_property("LN2", std::f64::consts::LN_2, attribute)
-            .static_property("LOG10E", std::f64::consts::LOG10_E, attribute)
-            .static_property("LOG2E", std::f64::consts::LOG2_E, attribute)
-            .static_property("PI", std::f64::consts::PI, attribute)
-            .static_property("SQRT1_2", std::f64::consts::FRAC_1_SQRT_2, attribute)
-            .static_property("SQRT2", std::f64::consts::SQRT_2, attribute)
+            .static_property(utf16!("E"), std::f64::consts::E, attribute)
+            .static_property(utf16!("LN10"), std::f64::consts::LN_10, attribute)
+            .static_property(utf16!("LN2"), std::f64::consts::LN_2, attribute)
+            .static_property(utf16!("LOG10E"), std::f64::consts::LOG10_E, attribute)
+            .static_property(utf16!("LOG2E"), std::f64::consts::LOG2_E, attribute)
+            .static_property(utf16!("PI"), std::f64::consts::PI, attribute)
+            .static_property(
+                utf16!("SQRT1_2"),
+                std::f64::consts::FRAC_1_SQRT_2,
+                attribute,
+            )
+            .static_property(utf16!("SQRT2"), std::f64::consts::SQRT_2, attribute)
             .static_method(Self::abs, "abs", 1)
             .static_method(Self::acos, "acos", 1)
             .static_method(Self::acosh, "acosh", 1)

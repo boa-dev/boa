@@ -2,8 +2,9 @@ use crate::{
     builtins::{function::ClassFieldDefinition, Array},
     context::intrinsics::{StandardConstructor, StandardConstructors},
     error::JsNativeError,
-    object::{JsObject, PrivateElement},
+    object::{JsObject, PrivateElement, PROTOTYPE},
     property::{PropertyDescriptor, PropertyDescriptorBuilder, PropertyKey, PropertyNameKind},
+    string::utf16,
     value::Type,
     Context, JsResult, JsSymbol, JsValue,
 };
@@ -133,7 +134,7 @@ impl JsObject {
             .enumerable(true)
             .configurable(true);
         // 4. Return ? O.[[DefineOwnProperty]](P, newDesc).
-        self.__define_own_property__(key.into(), new_desc.into(), context)
+        self.__define_own_property__(&key.into(), new_desc.into(), context)
     }
 
     // todo: CreateMethodProperty
@@ -226,7 +227,7 @@ impl JsObject {
         // 1. Assert: Type(O) is Object.
         // 2. Assert: IsPropertyKey(P) is true.
         // 3. Let success be ? O.[[DefineOwnProperty]](P, desc).
-        let success = self.__define_own_property__(key.clone(), desc.into(), context)?;
+        let success = self.__define_own_property__(&key, desc.into(), context)?;
         // 4. If success is false, throw a TypeError exception.
         if !success {
             return Err(JsNativeError::typ()
@@ -475,7 +476,7 @@ impl JsObject {
     pub(crate) fn length_of_array_like(&self, context: &mut Context<'_>) -> JsResult<u64> {
         // 1. Assert: Type(obj) is Object.
         // 2. Return ℝ(? ToLength(? Get(obj, "length"))).
-        self.get("length", context)?.to_length(context)
+        self.get(utf16!("length"), context)?.to_length(context)
     }
 
     /// `7.3.22 SpeciesConstructor ( O, defaultConstructor )`
@@ -1184,7 +1185,7 @@ impl JsValue {
         };
 
         // 4. Let P be ? Get(C, "prototype").
-        let prototype = function.get("prototype", context)?;
+        let prototype = function.get(PROTOTYPE, context)?;
 
         // 5. If Type(P) is not Object, throw a TypeError exception.
         let prototype = prototype.as_object().ok_or_else(|| {

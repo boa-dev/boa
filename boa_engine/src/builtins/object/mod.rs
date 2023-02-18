@@ -60,7 +60,7 @@ impl IntrinsicObject for Object {
         BuiltInBuilder::from_standard_constructor::<Self>(intrinsics)
             .inherits(None)
             .accessor(
-                "__proto__",
+                utf16!("__proto__"),
                 Some(legacy_proto_getter),
                 Some(legacy_setter_proto),
                 Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
@@ -526,42 +526,42 @@ impl Object {
         // 4. If Desc has a [[Value]] field, then
         if let Some(value) = desc.value() {
             // a. Perform ! CreateDataPropertyOrThrow(obj, "value", Desc.[[Value]]).
-            obj.create_data_property_or_throw("value", value.clone(), context)
+            obj.create_data_property_or_throw(utf16!("value"), value.clone(), context)
                 .expect("CreateDataPropertyOrThrow cannot fail here");
         }
 
         // 5. If Desc has a [[Writable]] field, then
         if let Some(writable) = desc.writable() {
             // a. Perform ! CreateDataPropertyOrThrow(obj, "writable", Desc.[[Writable]]).
-            obj.create_data_property_or_throw("writable", writable, context)
+            obj.create_data_property_or_throw(utf16!("writable"), writable, context)
                 .expect("CreateDataPropertyOrThrow cannot fail here");
         }
 
         // 6. If Desc has a [[Get]] field, then
         if let Some(get) = desc.get() {
             // a. Perform ! CreateDataPropertyOrThrow(obj, "get", Desc.[[Get]]).
-            obj.create_data_property_or_throw("get", get.clone(), context)
+            obj.create_data_property_or_throw(utf16!("get"), get.clone(), context)
                 .expect("CreateDataPropertyOrThrow cannot fail here");
         }
 
         // 7. If Desc has a [[Set]] field, then
         if let Some(set) = desc.set() {
             // a. Perform ! CreateDataPropertyOrThrow(obj, "set", Desc.[[Set]]).
-            obj.create_data_property_or_throw("set", set.clone(), context)
+            obj.create_data_property_or_throw(utf16!("set"), set.clone(), context)
                 .expect("CreateDataPropertyOrThrow cannot fail here");
         }
 
         // 8. If Desc has an [[Enumerable]] field, then
         if let Some(enumerable) = desc.enumerable() {
             // a. Perform ! CreateDataPropertyOrThrow(obj, "enumerable", Desc.[[Enumerable]]).
-            obj.create_data_property_or_throw("enumerable", enumerable, context)
+            obj.create_data_property_or_throw(utf16!("enumerable"), enumerable, context)
                 .expect("CreateDataPropertyOrThrow cannot fail here");
         }
 
         // 9. If Desc has a [[Configurable]] field, then
         if let Some(configurable) = desc.configurable() {
             // a. Perform ! CreateDataPropertyOrThrow(obj, "configurable", Desc.[[Configurable]]).
-            obj.create_data_property_or_throw("configurable", configurable, context)
+            obj.create_data_property_or_throw(utf16!("configurable"), configurable, context)
                 .expect("CreateDataPropertyOrThrow cannot fail here");
         }
 
@@ -843,7 +843,7 @@ impl Object {
     ) -> JsResult<JsValue> {
         // 1. Let O be the this value.
         // 2. Return ? Invoke(O, "toString").
-        this.invoke("toString", &[], context)
+        this.invoke(utf16!("toString"), &[], context)
     }
 
     /// `Object.prototype.hasOwnProperty( property )`

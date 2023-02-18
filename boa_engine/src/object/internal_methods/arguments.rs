@@ -68,12 +68,12 @@ pub(crate) fn arguments_exotic_get_own_property(
 #[allow(clippy::needless_pass_by_value)]
 pub(crate) fn arguments_exotic_define_own_property(
     obj: &JsObject,
-    key: PropertyKey,
+    key: &PropertyKey,
     desc: PropertyDescriptor,
     context: &mut Context<'_>,
 ) -> JsResult<bool> {
     // 2. Let isMapped be HasOwnProperty(map, P).
-    let mapped = if let PropertyKey::Index(index) = key {
+    let mapped = if let &PropertyKey::Index(index) = key {
         // 1. Let map be args.[[ParameterMap]].
         obj.borrow()
             .as_mapped_arguments()

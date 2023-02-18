@@ -1,6 +1,7 @@
 use crate::{
     builtins::{iterable::IteratorRecord, object::for_in_iterator::ForInIterator},
     error::JsNativeError,
+    js_string,
     property::PropertyDescriptor,
     vm::{opcode::Operation, ShouldExit},
     Context, JsResult, JsValue,
@@ -29,7 +30,7 @@ impl Operation for ForInLoopInitIterator {
         let object = object.to_object(context)?;
         let iterator = ForInIterator::create_for_in_iterator(JsValue::new(object), context);
         let next_method = iterator
-            .get_property("next")
+            .get_property(js_string!("next"))
             .as_ref()
             .map(PropertyDescriptor::expect_value)
             .cloned()

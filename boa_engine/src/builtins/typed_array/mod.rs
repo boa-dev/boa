@@ -25,6 +25,7 @@ use crate::{
     js_string,
     object::{internal_methods::get_prototype_from_constructor, JsObject, ObjectData},
     property::{Attribute, PropertyNameKind},
+    string::utf16,
     symbol::JsSymbol,
     value::{IntegerOrInfinity, JsValue},
     Context, JsArgs, JsResult,
@@ -64,12 +65,12 @@ macro_rules! typed_array {
                         Attribute::CONFIGURABLE,
                     )
                     .property(
-                        "BYTES_PER_ELEMENT",
+                        utf16!("BYTES_PER_ELEMENT"),
                         TypedArrayKind::$variant.element_size(),
                         Attribute::READONLY | Attribute::NON_ENUMERABLE | Attribute::PERMANENT,
                     )
                     .static_property(
-                        "BYTES_PER_ELEMENT",
+                        utf16!("BYTES_PER_ELEMENT"),
                         TypedArrayKind::$variant.element_size(),
                         Attribute::READONLY | Attribute::NON_ENUMERABLE | Attribute::PERMANENT,
                     )
@@ -275,7 +276,7 @@ impl IntrinsicObject for TypedArray {
                 Attribute::CONFIGURABLE,
             )
             .property(
-                "length",
+                utf16!("length"),
                 0,
                 Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::PERMANENT,
             )
@@ -285,25 +286,25 @@ impl IntrinsicObject for TypedArray {
                 Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
             )
             .accessor(
-                "buffer",
+                utf16!("buffer"),
                 Some(get_buffer),
                 None,
                 Attribute::CONFIGURABLE | Attribute::NON_ENUMERABLE,
             )
             .accessor(
-                "byteLength",
+                utf16!("byteLength"),
                 Some(get_byte_length),
                 None,
                 Attribute::CONFIGURABLE | Attribute::NON_ENUMERABLE,
             )
             .accessor(
-                "byteOffset",
+                utf16!("byteOffset"),
                 Some(get_byte_offset),
                 None,
                 Attribute::CONFIGURABLE | Attribute::NON_ENUMERABLE,
             )
             .accessor(
-                "length",
+                utf16!("length"),
                 Some(get_length),
                 None,
                 Attribute::CONFIGURABLE | Attribute::NON_ENUMERABLE,

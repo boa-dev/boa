@@ -108,7 +108,7 @@ impl Operation for SetPropertyGetterByName {
             .and_then(PropertyDescriptor::set)
             .cloned();
         object.__define_own_property__(
-            name,
+            &name,
             PropertyDescriptor::builder()
                 .maybe_get(Some(value))
                 .maybe_set(set)
@@ -144,7 +144,7 @@ impl Operation for SetPropertyGetterByValue {
             .and_then(PropertyDescriptor::set)
             .cloned();
         object.__define_own_property__(
-            name,
+            &name,
             PropertyDescriptor::builder()
                 .maybe_get(Some(value))
                 .maybe_set(set)
@@ -185,7 +185,7 @@ impl Operation for SetPropertySetterByName {
             .and_then(PropertyDescriptor::get)
             .cloned();
         object.__define_own_property__(
-            name,
+            &name,
             PropertyDescriptor::builder()
                 .maybe_set(Some(value))
                 .maybe_get(get)
@@ -221,7 +221,7 @@ impl Operation for SetPropertySetterByValue {
             .and_then(PropertyDescriptor::get)
             .cloned();
         object.__define_own_property__(
-            name,
+            &name,
             PropertyDescriptor::builder()
                 .maybe_set(Some(value))
                 .maybe_get(get)

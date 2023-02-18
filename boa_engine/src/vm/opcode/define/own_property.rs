@@ -30,7 +30,7 @@ impl Operation for DefineOwnPropertyByName {
             .resolve_expect(name.sym())
             .into_common::<JsString>(false);
         object.__define_own_property__(
-            name.into(),
+            &name.into(),
             PropertyDescriptor::builder()
                 .value(value)
                 .writable(true)
@@ -65,7 +65,7 @@ impl Operation for DefineOwnPropertyByValue {
         };
         let key = key.to_property_key(context)?;
         let success = object.__define_own_property__(
-            key,
+            &key,
             PropertyDescriptor::builder()
                 .value(value)
                 .writable(true)

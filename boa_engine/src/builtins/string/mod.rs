@@ -71,7 +71,7 @@ impl IntrinsicObject for String {
 
         let attribute = Attribute::READONLY | Attribute::NON_ENUMERABLE | Attribute::PERMANENT;
         BuiltInBuilder::from_standard_constructor::<Self>(intrinsics)
-            .property("length", 0, attribute)
+            .property(utf16!("length"), 0, attribute)
             .static_method(Self::raw, "raw", 1)
             .static_method(Self::from_char_code, "fromCharCode", 1)
             .static_method(Self::from_code_point, "fromCodePoint", 1)
@@ -190,7 +190,7 @@ impl String {
         // 8. Perform ! DefinePropertyOrThrow(S, "length", PropertyDescriptor { [[Value]]: 𝔽(length),
         // [[Writable]]: false, [[Enumerable]]: false, [[Configurable]]: false }).
         s.define_property_or_throw(
-            "length",
+            utf16!("length"),
             PropertyDescriptor::builder()
                 .value(len)
                 .writable(false)
@@ -300,7 +300,7 @@ impl String {
         let cooked = args.get_or_undefined(0).to_object(context)?;
 
         // 3. Let raw be ? ToObject(? Get(cooked, "raw")).
-        let raw = cooked.get("raw", context)?.to_object(context)?;
+        let raw = cooked.get(utf16!("raw"), context)?.to_object(context)?;
 
         // 4. Let literalSegments be ? LengthOfArrayLike(raw).
         let literal_segments = raw.length_of_array_like(context)?;
@@ -1040,7 +1040,7 @@ impl String {
                 // b. If isRegExp is true, then
                 if is_reg_exp_object(obj, context)? {
                     // i. Let flags be ? Get(searchValue, "flags").
-                    let flags = obj.get("flags", context)?;
+                    let flags = obj.get(utf16!("flags"), context)?;
 
                     // ii. Perform ? RequireObjectCoercible(flags).
                     flags.require_object_coercible()?;
@@ -1972,7 +1972,7 @@ impl String {
             if let Some(regexp_obj) = regexp.as_object() {
                 if is_reg_exp_object(regexp_obj, context)? {
                     // i. Let flags be ? Get(regexp, "flags").
-                    let flags = regexp_obj.get("flags", context)?;
+                    let flags = regexp_obj.get(utf16!("flags"), context)?;
 
                     // ii. Perform ? RequireObjectCoercible(flags).
                     flags.require_object_coercible()?;

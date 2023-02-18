@@ -16,6 +16,7 @@ use crate::{
     error::JsNativeError,
     object::{internal_methods::get_prototype_from_constructor, JsObject, ObjectData},
     property::{Attribute, PropertyNameKind},
+    string::utf16,
     symbol::JsSymbol,
     Context, JsArgs, JsResult, JsValue,
 };
@@ -62,7 +63,7 @@ impl IntrinsicObject for Map {
                 Attribute::CONFIGURABLE,
             )
             .property(
-                "entries",
+                utf16!("entries"),
                 entries_function.clone(),
                 Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
             )
@@ -84,7 +85,12 @@ impl IntrinsicObject for Map {
             .method(Self::keys, "keys", 0)
             .method(Self::set, "set", 2)
             .method(Self::values, "values", 0)
-            .accessor("size", Some(get_size), None, Attribute::CONFIGURABLE)
+            .accessor(
+                utf16!("size"),
+                Some(get_size),
+                None,
+                Attribute::CONFIGURABLE,
+            )
             .build();
     }
 
@@ -138,7 +144,7 @@ impl BuiltInConstructor for Map {
         };
 
         // 5. Let adder be ? Get(map, "set").
-        let adder = map.get("set", context)?;
+        let adder = map.get(utf16!("set"), context)?;
 
         // 6. Return ? AddEntriesFromIterable(map, iterable, adder).
         add_entries_from_iterable(&map, iterable, &adder, context)

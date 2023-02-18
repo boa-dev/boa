@@ -60,20 +60,20 @@ pub(crate) fn global_get_own_property(
 #[allow(clippy::needless_pass_by_value)]
 pub(crate) fn global_define_own_property(
     obj: &JsObject,
-    key: PropertyKey,
+    key: &PropertyKey,
     desc: PropertyDescriptor,
     context: &mut Context<'_>,
 ) -> JsResult<bool> {
     let _timer = Profiler::global().start_event("Object::global_define_own_property", "object");
     // 1. Let current be ? O.[[GetOwnProperty]](P).
-    let current = global_get_own_property(obj, &key, context)?;
+    let current = global_get_own_property(obj, key, context)?;
 
     // 2. Let extensible be ? IsExtensible(O).
     let extensible = obj.__is_extensible__(context)?;
 
     // 3. Return ValidateAndApplyPropertyDescriptor(O, P, extensible, Desc, current).
     Ok(validate_and_apply_property_descriptor(
-        &key, extensible, desc, current, context,
+        key, extensible, desc, current, context,
     ))
 }
 

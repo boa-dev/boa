@@ -40,7 +40,7 @@ impl Operation for DefineClassStaticMethodByName {
             function_mut.set_class_object(class.clone());
         }
         class.__define_own_property__(
-            key,
+            &key,
             PropertyDescriptor::builder()
                 .value(function)
                 .writable(true)
@@ -93,7 +93,7 @@ impl Operation for DefineClassMethodByName {
             function_mut.set_class_object(class);
         }
         class_proto.__define_own_property__(
-            key,
+            &key,
             PropertyDescriptor::builder()
                 .value(function)
                 .writable(true)
@@ -189,7 +189,7 @@ impl Operation for DefineClassMethodByValue {
             function_mut.set_class_object(class);
         }
         class_proto.__define_own_property__(
-            key,
+            &key,
             PropertyDescriptor::builder()
                 .value(function)
                 .writable(true)

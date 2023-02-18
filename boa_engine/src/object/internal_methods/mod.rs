@@ -114,7 +114,7 @@ impl JsObject {
     /// [spec]: https://tc39.es/ecma262/#sec-ordinary-object-internal-methods-and-internal-slots-defineownproperty-p-desc
     pub(crate) fn __define_own_property__(
         &self,
-        key: PropertyKey,
+        key: &PropertyKey,
         desc: PropertyDescriptor,
         context: &mut Context<'_>,
     ) -> JsResult<bool> {
@@ -305,7 +305,7 @@ pub(crate) struct InternalObjectMethods {
     pub(crate) __get_own_property__:
         fn(&JsObject, &PropertyKey, &mut Context<'_>) -> JsResult<Option<PropertyDescriptor>>,
     pub(crate) __define_own_property__:
-        fn(&JsObject, PropertyKey, PropertyDescriptor, &mut Context<'_>) -> JsResult<bool>,
+        fn(&JsObject, &PropertyKey, PropertyDescriptor, &mut Context<'_>) -> JsResult<bool>,
     pub(crate) __has_property__: fn(&JsObject, &PropertyKey, &mut Context<'_>) -> JsResult<bool>,
     pub(crate) __get__: fn(&JsObject, &PropertyKey, JsValue, &mut Context<'_>) -> JsResult<JsValue>,
     pub(crate) __set__:
@@ -462,13 +462,13 @@ pub(crate) fn ordinary_get_own_property(
 /// [spec]: https://tc39.es/ecma262/#sec-ordinarydefineownproperty
 pub(crate) fn ordinary_define_own_property(
     obj: &JsObject,
-    key: PropertyKey,
+    key: &PropertyKey,
     desc: PropertyDescriptor,
     context: &mut Context<'_>,
 ) -> JsResult<bool> {
     let _timer = Profiler::global().start_event("Object::ordinary_define_own_property", "object");
     // 1. Let current be ? O.[[GetOwnProperty]](P).
-    let current = obj.__get_own_property__(&key, context)?;
+    let current = obj.__get_own_property__(key, context)?;
 
     // 2. Let extensible be ? IsExtensible(O).
     let extensible = obj.__is_extensible__(context)?;
@@ -629,7 +629,7 @@ pub(crate) fn ordinary_set(
             // iii. Let valueDesc be the PropertyDescriptor { [[Value]]: V }.
             // iv. Return ? Receiver.[[DefineOwnProperty]](P, valueDesc).
             return receiver.__define_own_property__(
-                key,
+                &key,
                 PropertyDescriptor::builder().value(value).build(),
                 context,
             );
@@ -762,7 +762,7 @@ pub(crate) fn is_compatible_property_descriptor(
 ///
 /// [spec]: https://tc39.es/ecma262/#sec-validateandapplypropertydescriptor
 pub(crate) fn validate_and_apply_property_descriptor(
-    obj_and_key: Option<(&JsObject, PropertyKey)>,
+    obj_and_key: Option<(&JsObject, &PropertyKey)>,
     extensible: bool,
     desc: PropertyDescriptor,
     current: Option<PropertyDescriptor>,
@@ -782,7 +782,7 @@ pub(crate) fn validate_and_apply_property_descriptor(
 
         if let Some((obj, key)) = obj_and_key {
             obj.borrow_mut().properties.insert(
-                &key,
+                key,
                 // c. If IsGenericDescriptor(Desc) is true or IsDataDescriptor(Desc) is true, then
                 if desc.is_generic_descriptor() || desc.is_data_descriptor() {
                     // i. If O is not undefined, create an own data property named P of
@@ -899,7 +899,7 @@ pub(crate) fn validate_and_apply_property_descriptor(
         // a. For each field of Desc that is present, set the corresponding attribute of the
         // property named P of object O to the value of the field.
         current.fill_with(&desc);
-        obj.borrow_mut().properties.insert(&key, current);
+        obj.borrow_mut().properties.insert(key, current);
     }
 
     // 10. Return true.

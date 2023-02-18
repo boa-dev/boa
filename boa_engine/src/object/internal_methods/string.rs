@@ -52,13 +52,13 @@ pub(crate) fn string_exotic_get_own_property(
 /// [spec]: https://tc39.es/ecma262/#sec-string-exotic-objects-defineownproperty-p-desc
 pub(crate) fn string_exotic_define_own_property(
     obj: &JsObject,
-    key: PropertyKey,
+    key: &PropertyKey,
     desc: PropertyDescriptor,
     context: &mut Context<'_>,
 ) -> JsResult<bool> {
     // 1. Assert: IsPropertyKey(P) is true.
     // 2. Let stringDesc be ! StringGetOwnProperty(S, P).
-    let string_desc = string_get_own_property(obj, &key);
+    let string_desc = string_get_own_property(obj, key);
 
     // 3. If stringDesc is not undefined, then
     if let Some(string_desc) = string_desc {

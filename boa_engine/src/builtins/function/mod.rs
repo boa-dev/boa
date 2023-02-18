@@ -419,13 +419,13 @@ impl IntrinsicObject for BuiltInFunctionObject {
             .method(Self::to_string, "toString", 0)
             .property(JsSymbol::has_instance(), has_instance, Attribute::default())
             .accessor(
-                "caller",
+                utf16!("caller"),
                 Some(throw_type_error.clone()),
                 Some(throw_type_error.clone()),
                 Attribute::CONFIGURABLE,
             )
             .accessor(
-                "arguments",
+                utf16!("arguments"),
                 Some(throw_type_error.clone()),
                 Some(throw_type_error),
                 Attribute::CONFIGURABLE,
@@ -734,9 +734,9 @@ impl BuiltInFunctionObject {
 
         // 5. Let targetHasLength be ? HasOwnProperty(Target, "length").
         // 6. If targetHasLength is true, then
-        if target.has_own_property("length", context)? {
+        if target.has_own_property(utf16!("length"), context)? {
             // a. Let targetLen be ? Get(Target, "length").
-            let target_len = target.get("length", context)?;
+            let target_len = target.get(utf16!("length"), context)?;
             // b. If Type(targetLen) is Number, then
             if target_len.is_number() {
                 // 1. Let targetLenAsInt be ! ToIntegerOrInfinity(targetLen).
@@ -761,7 +761,7 @@ impl BuiltInFunctionObject {
 
         // 7. Perform ! SetFunctionLength(F, L).
         f.define_property_or_throw(
-            "length",
+            utf16!("length"),
             PropertyDescriptor::builder()
                 .value(l)
                 .writable(false)
@@ -772,7 +772,7 @@ impl BuiltInFunctionObject {
         .expect("defining the `length` property for a new object should not fail");
 
         // 8. Let targetName be ? Get(Target, "name").
-        let target_name = target.get("name", context)?;
+        let target_name = target.get(utf16!("name"), context)?;
 
         // 9. If Type(targetName) is not String, set targetName to the empty String.
         let target_name = target_name
@@ -825,7 +825,7 @@ impl BuiltInFunctionObject {
             let value = this
                 .as_object()
                 .expect("checked that `this` was an object above")
-                .get("name", &mut *context)?;
+                .get(utf16!("name"), &mut *context)?;
             if value.is_null_or_undefined() {
                 None
             } else {
@@ -923,7 +923,7 @@ pub(crate) fn set_function_name(
     // [[Writable]]: false, [[Enumerable]]: false, [[Configurable]]: true }).
     function
         .define_property_or_throw(
-            "name",
+            utf16!("name"),
             PropertyDescriptor::builder()
                 .value(name)
                 .writable(false)

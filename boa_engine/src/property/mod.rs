@@ -569,6 +569,17 @@ pub enum PropertyKey {
     Index(u32),
 }
 
+impl From<&[u16]> for PropertyKey {
+    #[inline]
+    fn from(string: &[u16]) -> Self {
+        debug_assert!(String::from_utf16(string)
+            .expect("should be ascii string")
+            .parse::<u32>()
+            .is_err());
+        Self::String(string.into())
+    }
+}
+
 impl From<JsString> for PropertyKey {
     #[inline]
     fn from(string: JsString) -> Self {

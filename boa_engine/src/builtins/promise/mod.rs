@@ -15,6 +15,7 @@ use crate::{
         JsObject, ObjectData, CONSTRUCTOR,
     },
     property::{Attribute, PropertyDescriptorBuilder},
+    string::utf16,
     symbol::JsSymbol,
     value::JsValue,
     Context, JsArgs, JsError, JsResult,
@@ -622,7 +623,7 @@ impl Promise {
 
             // s. Perform ? Invoke(nextPromise, "then", « onFulfilled, resultCapability.[[Reject]] »).
             next_promise.invoke(
-                "then",
+                utf16!("then"),
                 &[on_fulfilled.into(), result_capability.reject.clone().into()],
                 context,
             )?;
@@ -826,12 +827,12 @@ impl Promise {
                         let obj = JsObject::with_object_proto(context);
 
                         // 10. Perform ! CreateDataPropertyOrThrow(obj, "status", "fulfilled").
-                        obj.create_data_property_or_throw("status", "fulfilled", context)
+                        obj.create_data_property_or_throw(utf16!("status"), "fulfilled", context)
                             .expect("cannot fail per spec");
 
                         // 11. Perform ! CreateDataPropertyOrThrow(obj, "value", x).
                         obj.create_data_property_or_throw(
-                            "value",
+                            utf16!("value"),
                             args.get_or_undefined(0).clone(),
                             context,
                         )
@@ -912,12 +913,12 @@ impl Promise {
                         let obj = JsObject::with_object_proto(context);
 
                         // 10. Perform ! CreateDataPropertyOrThrow(obj, "status", "rejected").
-                        obj.create_data_property_or_throw("status", "rejected", context)
+                        obj.create_data_property_or_throw(utf16!("status"), "rejected", context)
                             .expect("cannot fail per spec");
 
                         // 11. Perform ! CreateDataPropertyOrThrow(obj, "reason", x).
                         obj.create_data_property_or_throw(
-                            "reason",
+                            utf16!("reason"),
                             args.get_or_undefined(0).clone(),
                             context,
                         )
@@ -968,7 +969,11 @@ impl Promise {
             remaining_elements_count.set(remaining_elements_count.get() + 1);
 
             // ab. Perform ? Invoke(nextPromise, "then", « onFulfilled, onRejected »).
-            next_promise.invoke("then", &[on_fulfilled.into(), on_rejected.into()], context)?;
+            next_promise.invoke(
+                utf16!("then"),
+                &[on_fulfilled.into(), on_rejected.into()],
+                context,
+            )?;
 
             // ac. Set index to index + 1.
             index += 1;
@@ -1106,7 +1111,7 @@ impl Promise {
                         // 2. Perform ! DefinePropertyOrThrow(error, "errors", PropertyDescriptor { [[Configurable]]: true, [[Enumerable]]: false, [[Writable]]: true, [[Value]]: CreateArrayFromList(errors) }).
                         error
                             .define_property_or_throw(
-                                "errors",
+                                utf16!("errors"),
                                 PropertyDescriptorBuilder::new()
                                     .configurable(true)
                                     .enumerable(false)
@@ -1203,7 +1208,7 @@ impl Promise {
                             // b. Perform ! DefinePropertyOrThrow(error, "errors", PropertyDescriptor { [[Configurable]]: true, [[Enumerable]]: false, [[Writable]]: true, [[Value]]: CreateArrayFromList(errors) }).
                             error
                                 .define_property_or_throw(
-                                    "errors",
+                                    utf16!("errors"),
                                     PropertyDescriptorBuilder::new()
                                         .configurable(true)
                                         .enumerable(false)
@@ -1245,7 +1250,7 @@ impl Promise {
 
             // s. Perform ? Invoke(nextPromise, "then", « resultCapability.[[Resolve]], onRejected »).
             next_promise.invoke(
-                "then",
+                utf16!("then"),
                 &[result_capability.resolve.clone().into(), on_rejected.into()],
                 context,
             )?;
@@ -1334,7 +1339,7 @@ impl Promise {
                     };
 
                     // 9. Let then be Completion(Get(resolution, "then")).
-                    let then_action = match then.get("then", context) {
+                    let then_action = match then.get(utf16!("then"), context) {
                         // 10. If then is an abrupt completion, then
                         Err(e) => {
                             //   a. Perform RejectPromise(promise, then.[[Value]]).
@@ -1677,7 +1682,7 @@ impl Promise {
 
             // i. Perform ? Invoke(nextPromise, "then", « resultCapability.[[Resolve]], resultCapability.[[Reject]] »).
             next_promise.invoke(
-                "then",
+                utf16!("then"),
                 &[
                     result_capability.resolve.clone().into(),
                     result_capability.reject.clone().into(),
@@ -1778,7 +1783,7 @@ impl Promise {
         let promise = this;
         // 2. Return ? Invoke(promise, "then", « undefined, onRejected »).
         promise.invoke(
-            "then",
+            utf16!("then"),
             &[JsValue::undefined(), on_rejected.clone()],
             context,
         )
@@ -1820,7 +1825,7 @@ impl Promise {
             //    a. Let thenFinally be onFinally.
             //    b. Let catchFinally be onFinally.
             // 7. Return ? Invoke(promise, "then", « thenFinally, catchFinally »).
-            let then = promise.get("then", context)?;
+            let then = promise.get(utf16!("then"), context)?;
             return then.call(this, &[on_finally.clone(), on_finally.clone()], context);
         };
 
@@ -1872,7 +1877,7 @@ impl Promise {
                         let value_thunk = return_value.length(0).name("").build();
 
                         // v. Return ? Invoke(promise, "then", « valueThunk »).
-                        promise.invoke("then", &[value_thunk.into()], context)
+                        promise.invoke(utf16!("then"), &[value_thunk.into()], context)
                     },
                     FinallyCaptures {
                         on_finally: on_finally.clone(),
@@ -1924,7 +1929,7 @@ impl Promise {
                         let thrower = throw_reason.length(0).name("").build();
 
                         // v. Return ? Invoke(promise, "then", « thrower »).
-                        promise.invoke("then", &[thrower.into()], context)
+                        promise.invoke(utf16!("then"), &[thrower.into()], context)
                     },
                     FinallyCaptures {
                         on_finally: on_finally.clone(),
@@ -1940,7 +1945,7 @@ impl Promise {
         };
 
         // 7. Return ? Invoke(promise, "then", « thenFinally, catchFinally »).
-        let then = promise.get("then", context)?;
+        let then = promise.get(utf16!("then"), context)?;
         then.call(this, &[then_finally, catch_finally], context)
     }
 
@@ -2157,7 +2162,7 @@ impl Promise {
         context: &mut Context<'_>,
     ) -> JsResult<JsObject> {
         // 1. Let promiseResolve be ? Get(promiseConstructor, "resolve").
-        let promise_resolve = promise_constructor.get("resolve", context)?;
+        let promise_resolve = promise_constructor.get(utf16!("resolve"), context)?;
 
         // 2. If IsCallable(promiseResolve) is false, throw a TypeError exception.
         promise_resolve.as_callable().cloned().ok_or_else(|| {

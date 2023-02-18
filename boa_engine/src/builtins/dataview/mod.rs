@@ -13,6 +13,7 @@ use crate::{
     error::JsNativeError,
     object::{internal_methods::get_prototype_from_constructor, JsObject, ObjectData},
     property::Attribute,
+    string::utf16,
     symbol::JsSymbol,
     value::JsValue,
     Context, JsArgs, JsResult,
@@ -49,9 +50,19 @@ impl IntrinsicObject for DataView {
             .build();
 
         BuiltInBuilder::from_standard_constructor::<Self>(intrinsics)
-            .accessor("buffer", Some(get_buffer), None, flag_attributes)
-            .accessor("byteLength", Some(get_byte_length), None, flag_attributes)
-            .accessor("byteOffset", Some(get_byte_offset), None, flag_attributes)
+            .accessor(utf16!("buffer"), Some(get_buffer), None, flag_attributes)
+            .accessor(
+                utf16!("byteLength"),
+                Some(get_byte_length),
+                None,
+                flag_attributes,
+            )
+            .accessor(
+                utf16!("byteOffset"),
+                Some(get_byte_offset),
+                None,
+                flag_attributes,
+            )
             .method(Self::get_big_int64, "getBigInt64", 1)
             .method(Self::get_big_uint64, "getBigUint64", 1)
             .method(Self::get_float32, "getFloat32", 1)

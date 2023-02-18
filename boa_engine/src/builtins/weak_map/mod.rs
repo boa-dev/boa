@@ -15,6 +15,7 @@ use crate::{
     context::intrinsics::{Intrinsics, StandardConstructor, StandardConstructors},
     object::{internal_methods::get_prototype_from_constructor, JsObject, ObjectData},
     property::Attribute,
+    string::utf16,
     symbol::JsSymbol,
     Context, JsArgs, JsNativeError, JsResult, JsValue,
 };
@@ -92,7 +93,7 @@ impl BuiltInConstructor for WeakMap {
         }
 
         // 5. Let adder be ? Get(map, "set").
-        let adder = map.get("set", context)?;
+        let adder = map.get(utf16!("set"), context)?;
 
         // 6. If IsCallable(adder) is false, throw a TypeError exception.
         if !adder.is_callable() {

@@ -16,6 +16,7 @@ use crate::{
     error::JsNativeError,
     object::{internal_methods::get_prototype_from_constructor, JsObject, ObjectData},
     property::Attribute,
+    string::utf16,
     symbol::JsSymbol,
     value::{IntegerOrInfinity, Numeric},
     Context, JsArgs, JsResult, JsValue,
@@ -62,7 +63,12 @@ impl IntrinsicObject for ArrayBuffer {
             .build();
 
         BuiltInBuilder::from_standard_constructor::<Self>(intrinsics)
-            .accessor("byteLength", Some(get_byte_length), None, flag_attributes)
+            .accessor(
+                utf16!("byteLength"),
+                Some(get_byte_length),
+                None,
+                flag_attributes,
+            )
             .static_accessor(
                 JsSymbol::species(),
                 Some(get_species),

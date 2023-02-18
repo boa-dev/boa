@@ -16,6 +16,7 @@ use crate::{
     error::JsNativeError,
     object::{JsObject, ObjectData},
     property::Attribute,
+    string::utf16,
     symbol::JsSymbol,
     Context, JsResult, JsString, JsValue,
 };
@@ -144,14 +145,14 @@ impl RegExpStringIterator {
             }
 
             // iv. Let matchStr be ? ToString(? Get(match, "0")).
-            let m_str = m.get("0", context)?.to_string(context)?;
+            let m_str = m.get(0, context)?.to_string(context)?;
 
             // v. If matchStr is the empty String, then
             if m_str.is_empty() {
                 // 1. Let thisIndex be ℝ(? ToLength(? Get(R, "lastIndex"))).
                 let this_index = iterator
                     .matcher
-                    .get("lastIndex", context)?
+                    .get(utf16!("lastIndex"), context)?
                     .to_length(context)?;
 
                 // 2. Let nextIndex be ! AdvanceStringIndex(S, thisIndex, fullUnicode).
@@ -161,7 +162,7 @@ impl RegExpStringIterator {
                 // 3. Perform ? Set(R, "lastIndex", 𝔽(nextIndex), true).
                 iterator
                     .matcher
-                    .set("lastIndex", next_index, true, context)?;
+                    .set(utf16!("lastIndex"), next_index, true, context)?;
             }
 
             // vi. Perform ? Yield(match).

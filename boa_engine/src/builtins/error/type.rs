@@ -24,6 +24,7 @@ use crate::{
     native_function::NativeFunction,
     object::{internal_methods::get_prototype_from_constructor, JsObject, ObjectData},
     property::Attribute,
+    string::utf16,
     Context, JsArgs, JsResult, JsValue,
 };
 use boa_profiler::Profiler;
@@ -42,8 +43,8 @@ impl IntrinsicObject for TypeError {
         BuiltInBuilder::from_standard_constructor::<Self>(intrinsics)
             .prototype(intrinsics.constructors().error().constructor())
             .inherits(Some(intrinsics.constructors().error().prototype()))
-            .property("name", Self::NAME, attribute)
-            .property("message", "", attribute)
+            .property(utf16!("name"), Self::NAME, attribute)
+            .property(utf16!("message"), "", attribute)
             .build();
     }
 
@@ -81,7 +82,7 @@ impl BuiltInConstructor for TypeError {
             let msg = message.to_string(context)?;
 
             // b. Perform CreateNonEnumerableDataPropertyOrThrow(O, "message", msg).
-            o.create_non_enumerable_data_property_or_throw("message", msg, context);
+            o.create_non_enumerable_data_property_or_throw(utf16!("message"), msg, context);
         }
 
         // 4. Perform ? InstallErrorCause(O, options).
@@ -108,8 +109,8 @@ impl IntrinsicObject for ThrowTypeError {
 
         let obj = BuiltInBuilder::with_intrinsic::<Self>(intrinsics)
             .prototype(intrinsics.constructors().function().prototype())
-            .static_property("name", "ThrowTypeError", Attribute::empty())
-            .static_property("length", 0, Attribute::empty())
+            .static_property(utf16!("name"), "ThrowTypeError", Attribute::empty())
+            .static_property(utf16!("length"), 0, Attribute::empty())
             .build();
 
         let mut obj = obj.borrow_mut();

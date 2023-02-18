@@ -27,12 +27,12 @@ pub(crate) static ARRAY_EXOTIC_INTERNAL_METHODS: InternalObjectMethods = Interna
 /// [spec]: https://tc39.es/ecma262/#sec-array-exotic-objects-defineownproperty-p-desc
 pub(crate) fn array_exotic_define_own_property(
     obj: &JsObject,
-    key: PropertyKey,
+    key: &PropertyKey,
     desc: PropertyDescriptor,
     context: &mut Context<'_>,
 ) -> JsResult<bool> {
     // 1. Assert: IsPropertyKey(P) is true.
-    match key {
+    match *key {
         // 2. If P is "length", then
         PropertyKey::String(ref s) if s == utf16!("length") => {
             // a. Return ? ArraySetLength(A, Desc).
@@ -42,8 +42,9 @@ pub(crate) fn array_exotic_define_own_property(
         // 3. Else if P is an array index, then
         PropertyKey::Index(index) if index < u32::MAX => {
             // a. Let oldLenDesc be OrdinaryGetOwnProperty(A, "length").
-            let old_len_desc = super::ordinary_get_own_property(obj, &"length".into(), context)?
-                .expect("the property descriptor must exist");
+            let old_len_desc =
+                super::ordinary_get_own_property(obj, &utf16!("length").into(), context)?
+                    .expect("the property descriptor must exist");
 
             // b. Assert: ! IsDataDescriptor(oldLenDesc) is true.
             debug_assert!(old_len_desc.is_data_descriptor());
@@ -78,7 +79,7 @@ pub(crate) fn array_exotic_define_own_property(
                     // ii. Set succeeded to OrdinaryDefineOwnProperty(A, "length", oldLenDesc).
                     let succeeded = super::ordinary_define_own_property(
                         obj,
-                        "length".into(),
+                        &utf16!("length").into(),
                         old_len_desc.into(),
                         context,
                     )?;
@@ -113,7 +114,7 @@ fn array_set_length(
     // 1. If Desc.[[Value]] is absent, then
     let Some(new_len_val) = desc.value() else {
         // a. Return OrdinaryDefineOwnProperty(A, "length", Desc).
-        return super::ordinary_define_own_property(obj, "length".into(), desc, context);
+        return super::ordinary_define_own_property(obj, &utf16!("length").into(), desc, context);
     };
 
     // 3. Let newLen be ? ToUint32(Desc.[[Value]]).
@@ -139,7 +140,7 @@ fn array_set_length(
         .maybe_configurable(desc.configurable());
 
     // 7. Let oldLenDesc be OrdinaryGetOwnProperty(A, "length").
-    let old_len_desc = super::ordinary_get_own_property(obj, &"length".into(), context)?
+    let old_len_desc = super::ordinary_get_own_property(obj, &utf16!("length").into(), context)?
         .expect("the property descriptor must exist");
 
     // 8. Assert: ! IsDataDescriptor(oldLenDesc) is true.
@@ -156,7 +157,7 @@ fn array_set_length(
         // a. Return OrdinaryDefineOwnProperty(A, "length", newLenDesc).
         return super::ordinary_define_own_property(
             obj,
-            "length".into(),
+            &utf16!("length").into(),
             new_len_desc.build(),
             context,
         );
@@ -186,7 +187,7 @@ fn array_set_length(
     // 16. If succeeded is false, return false.
     if !super::ordinary_define_own_property(
         obj,
-        "length".into(),
+        &utf16!("length").into(),
         new_len_desc.clone().build(),
         context,
     )
@@ -223,7 +224,7 @@ fn array_set_length(
             // iii. Perform ! OrdinaryDefineOwnProperty(A, "length", newLenDesc).
             super::ordinary_define_own_property(
                 obj,
-                "length".into(),
+                &utf16!("length").into(),
                 new_len_desc.build(),
                 context,
             )
@@ -240,7 +241,7 @@ fn array_set_length(
         // PropertyDescriptor { [[Writable]]: false }).
         let succeeded = super::ordinary_define_own_property(
             obj,
-            "length".into(),
+            &utf16!("length").into(),
             PropertyDescriptor::builder().writable(false).build(),
             context,
         )

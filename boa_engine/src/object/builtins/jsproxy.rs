@@ -5,6 +5,7 @@ use crate::{
     builtins::Proxy,
     native_function::{NativeFunction, NativeFunctionPointer},
     object::{FunctionObjectBuilder, JsObject, JsObjectType, ObjectData},
+    string::utf16,
     Context, JsResult, JsValue,
 };
 
@@ -379,7 +380,7 @@ impl JsProxyBuilder {
                 .length(3)
                 .build();
             handler
-                .create_data_property_or_throw("apply", f, context)
+                .create_data_property_or_throw(utf16!("apply"), f, context)
                 .expect("new object should be writable");
         }
         if let Some(construct) = self.construct {
@@ -387,7 +388,7 @@ impl JsProxyBuilder {
                 .length(3)
                 .build();
             handler
-                .create_data_property_or_throw("construct", f, context)
+                .create_data_property_or_throw(utf16!("construct"), f, context)
                 .expect("new object should be writable");
         }
         if let Some(define_property) = self.define_property {
@@ -396,7 +397,7 @@ impl JsProxyBuilder {
                     .length(3)
                     .build();
             handler
-                .create_data_property_or_throw("defineProperty", f, context)
+                .create_data_property_or_throw(utf16!("defineProperty"), f, context)
                 .expect("new object should be writable");
         }
         if let Some(delete_property) = self.delete_property {
@@ -405,7 +406,7 @@ impl JsProxyBuilder {
                     .length(2)
                     .build();
             handler
-                .create_data_property_or_throw("deleteProperty", f, context)
+                .create_data_property_or_throw(utf16!("deleteProperty"), f, context)
                 .expect("new object should be writable");
         }
         if let Some(get) = self.get {
@@ -413,7 +414,7 @@ impl JsProxyBuilder {
                 .length(3)
                 .build();
             handler
-                .create_data_property_or_throw("get", f, context)
+                .create_data_property_or_throw(utf16!("get"), f, context)
                 .expect("new object should be writable");
         }
         if let Some(get_own_property_descriptor) = self.get_own_property_descriptor {
@@ -424,7 +425,7 @@ impl JsProxyBuilder {
             .length(2)
             .build();
             handler
-                .create_data_property_or_throw("getOwnPropertyDescriptor", f, context)
+                .create_data_property_or_throw(utf16!("getOwnPropertyDescriptor"), f, context)
                 .expect("new object should be writable");
         }
         if let Some(get_prototype_of) = self.get_prototype_of {
@@ -433,7 +434,7 @@ impl JsProxyBuilder {
                     .length(1)
                     .build();
             handler
-                .create_data_property_or_throw("getPrototypeOf", f, context)
+                .create_data_property_or_throw(utf16!("getPrototypeOf"), f, context)
                 .expect("new object should be writable");
         }
         if let Some(has) = self.has {
@@ -441,7 +442,7 @@ impl JsProxyBuilder {
                 .length(2)
                 .build();
             handler
-                .create_data_property_or_throw("has", f, context)
+                .create_data_property_or_throw(utf16!("has"), f, context)
                 .expect("new object should be writable");
         }
         if let Some(is_extensible) = self.is_extensible {
@@ -449,7 +450,7 @@ impl JsProxyBuilder {
                 .length(1)
                 .build();
             handler
-                .create_data_property_or_throw("isExtensible", f, context)
+                .create_data_property_or_throw(utf16!("isExtensible"), f, context)
                 .expect("new object should be writable");
         }
         if let Some(own_keys) = self.own_keys {
@@ -457,7 +458,7 @@ impl JsProxyBuilder {
                 .length(1)
                 .build();
             handler
-                .create_data_property_or_throw("ownKeys", f, context)
+                .create_data_property_or_throw(utf16!("ownKeys"), f, context)
                 .expect("new object should be writable");
         }
         if let Some(prevent_extensions) = self.prevent_extensions {
@@ -468,7 +469,7 @@ impl JsProxyBuilder {
             .length(1)
             .build();
             handler
-                .create_data_property_or_throw("preventExtensions", f, context)
+                .create_data_property_or_throw(utf16!("preventExtensions"), f, context)
                 .expect("new object should be writable");
         }
         if let Some(set) = self.set {
@@ -476,7 +477,7 @@ impl JsProxyBuilder {
                 .length(4)
                 .build();
             handler
-                .create_data_property_or_throw("set", f, context)
+                .create_data_property_or_throw(utf16!("set"), f, context)
                 .expect("new object should be writable");
         }
         if let Some(set_prototype_of) = self.set_prototype_of {
@@ -485,7 +486,7 @@ impl JsProxyBuilder {
                     .length(2)
                     .build();
             handler
-                .create_data_property_or_throw("setPrototypeOf", f, context)
+                .create_data_property_or_throw(utf16!("setPrototypeOf"), f, context)
                 .expect("new object should be writable");
         }
 

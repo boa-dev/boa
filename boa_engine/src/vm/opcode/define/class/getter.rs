@@ -45,7 +45,7 @@ impl Operation for DefineClassStaticGetterByName {
             .and_then(PropertyDescriptor::set)
             .cloned();
         class.__define_own_property__(
-            key,
+            &key,
             PropertyDescriptor::builder()
                 .maybe_get(Some(function))
                 .maybe_set(set)
@@ -103,7 +103,7 @@ impl Operation for DefineClassGetterByName {
             .and_then(PropertyDescriptor::set)
             .cloned();
         class_proto.__define_own_property__(
-            key,
+            &key,
             PropertyDescriptor::builder()
                 .maybe_get(Some(function))
                 .maybe_set(set)
@@ -209,7 +209,7 @@ impl Operation for DefineClassGetterByValue {
             .and_then(PropertyDescriptor::set)
             .cloned();
         class_proto.__define_own_property__(
-            key,
+            &key,
             PropertyDescriptor::builder()
                 .maybe_get(Some(function))
                 .maybe_set(set)
