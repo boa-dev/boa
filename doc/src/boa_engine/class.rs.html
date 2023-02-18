@@ -294,15 +294,17 @@
 <a href="#293" id="293">293</a>
 <a href="#294" id="294">294</a>
 <a href="#295" id="295">295</a>
+<a href="#296" id="296">296</a>
 </pre><pre class="rust"><code><span class="doccomment">//! Traits and structs for implementing native classes.
 //!
 //! Native classes are implemented through the [`Class`][class-trait] trait.
 //! ```
 //! # use boa_engine::{
+//! #    NativeFunction,
 //! #    property::Attribute,
 //! #    class::{Class, ClassBuilder},
 //! #    Context, JsResult, JsValue,
-//! #    builtins::JsArgs,
+//! #    JsArgs,
 //! # };
 //! # use boa_gc::{Finalize, Trace};
 //! #

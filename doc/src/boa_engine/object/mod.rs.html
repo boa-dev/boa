@@ -2453,6 +2453,12 @@
 <a href="#2452" id="2452">2452</a>
 <a href="#2453" id="2453">2453</a>
 <a href="#2454" id="2454">2454</a>
+<a href="#2455" id="2455">2455</a>
+<a href="#2456" id="2456">2456</a>
+<a href="#2457" id="2457">2457</a>
+<a href="#2458" id="2458">2458</a>
+<a href="#2459" id="2459">2459</a>
+<a href="#2460" id="2460">2460</a>
 </pre><pre class="rust"><code><span class="doccomment">//! Boa&#39;s representation of a JavaScript object and builtin object wrappers
 //!
 //! For the builtin object wrappers, please see [`object::builtins`][builtins] for implementors.
@@ -4495,12 +4501,18 @@
 /// # Examples
 ///
 /// ```
-/// # use boa_engine::{Context, JsValue, object::ObjectInitializer, property::Attribute};
+/// # use boa_engine::{
+/// #     Context,
+/// #     JsValue,
+/// #     NativeFunction,
+/// #     object::ObjectInitializer,
+/// #     property::Attribute
+/// # };
 /// let mut context = Context::default();
 /// let object = ObjectInitializer::new(&amp;mut context)
 ///     .property(&quot;hello&quot;, &quot;world&quot;, Attribute::all())
 ///     .property(1, 1, Attribute::all())
-///     .function(|_, _, _| Ok(JsValue::undefined()), &quot;func&quot;, 0)
+///     .function(NativeFunction::from_fn_ptr(|_, _, _| Ok(JsValue::undefined())), &quot;func&quot;, 0)
 ///     .build();
 /// ```
 ///

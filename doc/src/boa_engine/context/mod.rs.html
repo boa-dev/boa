@@ -653,6 +653,7 @@
 <a href="#652" id="652">652</a>
 <a href="#653" id="653">653</a>
 <a href="#654" id="654">654</a>
+<a href="#655" id="655">655</a>
 </pre><pre class="rust"><code><span class="doccomment">//! The ECMAScript context.
 
 </span><span class="kw">mod </span>hooks;
@@ -827,11 +828,12 @@
         result
     }
 
-    <span class="doccomment">/// Evaluates the given module `src` by compiling down to bytecode, then interpreting the
+    <span class="comment">// TODO: remove `ignore` after we implement module execution
+    </span><span class="doccomment">/// Evaluates the given module `src` by compiling down to bytecode, then interpreting the
     /// bytecode into a value.
     ///
     /// # Examples
-    /// ```
+    /// ```ignore
     /// # use boa_engine::{Context, Source};
     /// let mut context = Context::default();
     ///

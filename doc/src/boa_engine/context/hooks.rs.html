@@ -204,7 +204,7 @@
 ///     }
 /// }
 /// let hooks = Hooks; // Can have additional state.
-/// let context = &amp;mut ContextBuilder::new().host_hooks(&amp;hooks).build();
+/// let context = &amp;mut ContextBuilder::new().host_hooks(&amp;hooks).build().unwrap();
 /// let result = context.eval_script(Source::from_bytes(r#&quot;eval(&quot;let a = 5&quot;)&quot;#));
 /// assert_eq!(result.unwrap_err().to_string(), &quot;TypeError: eval calls not available&quot;);
 /// ```
