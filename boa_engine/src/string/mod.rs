@@ -403,6 +403,10 @@ impl JsString {
             (Some(b'0'), Some(b'b' | b'B')) => Some(2),
             (Some(b'0'), Some(b'o' | b'O')) => Some(8),
             (Some(b'0'), Some(b'x' | b'X')) => Some(16),
+            // Make sure that no further variants of "infinity" are parsed.
+            (Some(b'i' | b'I'), _) => {
+                return f64::NAN;
+            }
             _ => None,
         };
 
@@ -430,11 +434,7 @@ impl JsString {
             return value;
         }
 
-        match string {
-            // Handle special cases so `fast_float` does not return infinity.
-            "inf" | "+inf" | "-inf" => f64::NAN,
-            string => fast_float::parse(string).unwrap_or(f64::NAN),
-        }
+        fast_float::parse(string).unwrap_or(f64::NAN)
     }
 
     /// Abstract operation `StringToBigInt ( str )`
