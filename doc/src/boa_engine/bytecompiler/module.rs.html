@@ -52,51 +52,27 @@
 <a href="#51" id="51">51</a>
 <a href="#52" id="52">52</a>
 <a href="#53" id="53">53</a>
-<a href="#54" id="54">54</a>
-<a href="#55" id="55">55</a>
-<a href="#56" id="56">56</a>
-<a href="#57" id="57">57</a>
-<a href="#58" id="58">58</a>
-<a href="#59" id="59">59</a>
-<a href="#60" id="60">60</a>
-<a href="#61" id="61">61</a>
-<a href="#62" id="62">62</a>
-<a href="#63" id="63">63</a>
-<a href="#64" id="64">64</a>
-<a href="#65" id="65">65</a>
-</pre><pre class="rust"><code><span class="kw">use </span>boa_ast::{ModuleItem, ModuleItemList};
-
-<span class="kw">use </span><span class="kw">crate</span>::JsResult;
-
-<span class="kw">use </span><span class="kw">super</span>::ByteCompiler;
+</pre><pre class="rust"><code><span class="kw">use </span><span class="kw">super</span>::ByteCompiler;
+<span class="kw">use </span>boa_ast::{ModuleItem, ModuleItemList};
 
 <span class="kw">impl </span>ByteCompiler&lt;<span class="lifetime">&#39;_</span>, <span class="lifetime">&#39;_</span>&gt; {
     <span class="doccomment">/// Compiles a [`ModuleItemList`].
     </span><span class="attr">#[inline]
-    </span><span class="kw">pub fn </span>compile_module_item_list(
-        <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-        list: <span class="kw-2">&amp;</span>ModuleItemList,
-        configurable_globals: bool,
-    ) -&gt; JsResult&lt;()&gt; {
+    </span><span class="kw">pub fn </span>compile_module_item_list(<span class="kw-2">&amp;mut </span><span class="self">self</span>, list: <span class="kw-2">&amp;</span>ModuleItemList, configurable_globals: bool) {
         <span class="kw">for </span>node <span class="kw">in </span>list.items() {
-            <span class="self">self</span>.compile_module_item(node, configurable_globals)<span class="question-mark">?</span>;
+            <span class="self">self</span>.compile_module_item(node, configurable_globals);
         }
-        <span class="prelude-val">Ok</span>(())
     }
 
     <span class="doccomment">/// Compiles a [`ModuleItem`].
     </span><span class="attr">#[inline]
     #[allow(unused_variables, clippy::missing_panics_doc)] </span><span class="comment">// Unimplemented
-    </span><span class="kw">pub fn </span>compile_module_item(
-        <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-        item: <span class="kw-2">&amp;</span>ModuleItem,
-        configurable_globals: bool,
-    ) -&gt; JsResult&lt;()&gt; {
+    </span><span class="kw">pub fn </span>compile_module_item(<span class="kw-2">&amp;mut </span><span class="self">self</span>, item: <span class="kw-2">&amp;</span>ModuleItem, configurable_globals: bool) {
         <span class="kw">match </span>item {
             ModuleItem::ImportDeclaration(import) =&gt; <span class="macro">todo!</span>(<span class="string">&quot;import declaration compilation&quot;</span>),
             ModuleItem::ExportDeclaration(export) =&gt; <span class="macro">todo!</span>(<span class="string">&quot;export declaration compilation&quot;</span>),
             ModuleItem::StatementListItem(stmt) =&gt; {
-                <span class="self">self</span>.compile_stmt_list_item(stmt, <span class="bool-val">false</span>, configurable_globals)
+                <span class="self">self</span>.compile_stmt_list_item(stmt, <span class="bool-val">false</span>, configurable_globals);
             }
         }
     }

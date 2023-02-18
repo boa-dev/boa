@@ -202,14 +202,9 @@
 <a href="#201" id="201">201</a>
 <a href="#202" id="202">202</a>
 <a href="#203" id="203">203</a>
-<a href="#204" id="204">204</a>
-<a href="#205" id="205">205</a>
-<a href="#206" id="206">206</a>
-<a href="#207" id="207">207</a>
 </pre><pre class="rust"><code><span class="kw">use crate</span>::{
     bytecompiler::{Access, ByteCompiler},
     vm::{BindingOpcode, Opcode},
-    JsResult,
 };
 <span class="kw">use </span>boa_ast::expression::{
     access::{PropertyAccess, PropertyAccessField},
@@ -217,19 +212,18 @@
 };
 
 <span class="kw">impl </span>ByteCompiler&lt;<span class="lifetime">&#39;_</span>, <span class="lifetime">&#39;_</span>&gt; {
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>compile_assign(<span class="kw-2">&amp;mut </span><span class="self">self</span>, assign: <span class="kw-2">&amp;</span>Assign, use_expr: bool) -&gt; JsResult&lt;()&gt; {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>compile_assign(<span class="kw-2">&amp;mut </span><span class="self">self</span>, assign: <span class="kw-2">&amp;</span>Assign, use_expr: bool) {
         <span class="kw">if </span>assign.op() == AssignOp::Assign {
             <span class="kw">match </span>Access::from_assign_target(assign.lhs()) {
                 <span class="prelude-val">Ok</span>(access) =&gt; <span class="self">self</span>.access_set(access, use_expr, |compiler, <span class="kw">_</span>| {
-                    compiler.compile_expr(assign.rhs(), <span class="bool-val">true</span>)<span class="question-mark">?</span>;
-                    <span class="prelude-val">Ok</span>(())
-                })<span class="question-mark">?</span>,
+                    compiler.compile_expr(assign.rhs(), <span class="bool-val">true</span>);
+                }),
                 <span class="prelude-val">Err</span>(pattern) =&gt; {
-                    <span class="self">self</span>.compile_expr(assign.rhs(), <span class="bool-val">true</span>)<span class="question-mark">?</span>;
+                    <span class="self">self</span>.compile_expr(assign.rhs(), <span class="bool-val">true</span>);
                     <span class="kw">if </span>use_expr {
                         <span class="self">self</span>.emit_opcode(Opcode::Dup);
                     }
-                    <span class="self">self</span>.compile_declaration_pattern(pattern, BindingOpcode::SetName)<span class="question-mark">?</span>;
+                    <span class="self">self</span>.compile_declaration_pattern(pattern, BindingOpcode::SetName);
                 }
             }
         } <span class="kw">else </span>{
@@ -270,9 +264,9 @@
 
                     <span class="kw">if </span>short_circuit {
                         early_exit = <span class="prelude-val">Some</span>(<span class="self">self</span>.emit_opcode_with_operand(opcode));
-                        <span class="self">self</span>.compile_expr(assign.rhs(), <span class="bool-val">true</span>)<span class="question-mark">?</span>;
+                        <span class="self">self</span>.compile_expr(assign.rhs(), <span class="bool-val">true</span>);
                     } <span class="kw">else </span>{
-                        <span class="self">self</span>.compile_expr(assign.rhs(), <span class="bool-val">true</span>)<span class="question-mark">?</span>;
+                        <span class="self">self</span>.compile_expr(assign.rhs(), <span class="bool-val">true</span>);
                         <span class="self">self</span>.emit_opcode(opcode);
                     }
                     <span class="kw">if </span>use_expr {
@@ -287,7 +281,7 @@
                     PropertyAccess::Simple(access) =&gt; <span class="kw">match </span>access.field() {
                         PropertyAccessField::Const(name) =&gt; {
                             <span class="kw">let </span>index = <span class="self">self</span>.get_or_insert_name((<span class="kw-2">*</span>name).into());
-                            <span class="self">self</span>.compile_expr(access.target(), <span class="bool-val">true</span>)<span class="question-mark">?</span>;
+                            <span class="self">self</span>.compile_expr(access.target(), <span class="bool-val">true</span>);
                             <span class="self">self</span>.emit_opcode(Opcode::Dup);
                             <span class="self">self</span>.emit_opcode(Opcode::Dup);
 
@@ -295,9 +289,9 @@
                             <span class="kw">if </span>short_circuit {
                                 pop_count = <span class="number">2</span>;
                                 early_exit = <span class="prelude-val">Some</span>(<span class="self">self</span>.emit_opcode_with_operand(opcode));
-                                <span class="self">self</span>.compile_expr(assign.rhs(), <span class="bool-val">true</span>)<span class="question-mark">?</span>;
+                                <span class="self">self</span>.compile_expr(assign.rhs(), <span class="bool-val">true</span>);
                             } <span class="kw">else </span>{
-                                <span class="self">self</span>.compile_expr(assign.rhs(), <span class="bool-val">true</span>)<span class="question-mark">?</span>;
+                                <span class="self">self</span>.compile_expr(assign.rhs(), <span class="bool-val">true</span>);
                                 <span class="self">self</span>.emit_opcode(opcode);
                             }
 
@@ -307,17 +301,17 @@
                             }
                         }
                         PropertyAccessField::Expr(expr) =&gt; {
-                            <span class="self">self</span>.compile_expr(access.target(), <span class="bool-val">true</span>)<span class="question-mark">?</span>;
+                            <span class="self">self</span>.compile_expr(access.target(), <span class="bool-val">true</span>);
                             <span class="self">self</span>.emit_opcode(Opcode::Dup);
-                            <span class="self">self</span>.compile_expr(expr, <span class="bool-val">true</span>)<span class="question-mark">?</span>;
+                            <span class="self">self</span>.compile_expr(expr, <span class="bool-val">true</span>);
 
                             <span class="self">self</span>.emit_opcode(Opcode::GetPropertyByValuePush);
                             <span class="kw">if </span>short_circuit {
                                 pop_count = <span class="number">2</span>;
                                 early_exit = <span class="prelude-val">Some</span>(<span class="self">self</span>.emit_opcode_with_operand(opcode));
-                                <span class="self">self</span>.compile_expr(assign.rhs(), <span class="bool-val">true</span>)<span class="question-mark">?</span>;
+                                <span class="self">self</span>.compile_expr(assign.rhs(), <span class="bool-val">true</span>);
                             } <span class="kw">else </span>{
-                                <span class="self">self</span>.compile_expr(assign.rhs(), <span class="bool-val">true</span>)<span class="question-mark">?</span>;
+                                <span class="self">self</span>.compile_expr(assign.rhs(), <span class="bool-val">true</span>);
                                 <span class="self">self</span>.emit_opcode(opcode);
                             }
 
@@ -329,16 +323,16 @@
                     },
                     PropertyAccess::Private(access) =&gt; {
                         <span class="kw">let </span>index = <span class="self">self</span>.get_or_insert_private_name(access.field());
-                        <span class="self">self</span>.compile_expr(access.target(), <span class="bool-val">true</span>)<span class="question-mark">?</span>;
+                        <span class="self">self</span>.compile_expr(access.target(), <span class="bool-val">true</span>);
                         <span class="self">self</span>.emit_opcode(Opcode::Dup);
 
                         <span class="self">self</span>.emit(Opcode::GetPrivateField, <span class="kw-2">&amp;</span>[index]);
                         <span class="kw">if </span>short_circuit {
                             pop_count = <span class="number">1</span>;
                             early_exit = <span class="prelude-val">Some</span>(<span class="self">self</span>.emit_opcode_with_operand(opcode));
-                            <span class="self">self</span>.compile_expr(assign.rhs(), <span class="bool-val">true</span>)<span class="question-mark">?</span>;
+                            <span class="self">self</span>.compile_expr(assign.rhs(), <span class="bool-val">true</span>);
                         } <span class="kw">else </span>{
-                            <span class="self">self</span>.compile_expr(assign.rhs(), <span class="bool-val">true</span>)<span class="question-mark">?</span>;
+                            <span class="self">self</span>.compile_expr(assign.rhs(), <span class="bool-val">true</span>);
                             <span class="self">self</span>.emit_opcode(opcode);
                         }
 
@@ -359,9 +353,9 @@
                             <span class="kw">if </span>short_circuit {
                                 pop_count = <span class="number">2</span>;
                                 early_exit = <span class="prelude-val">Some</span>(<span class="self">self</span>.emit_opcode_with_operand(opcode));
-                                <span class="self">self</span>.compile_expr(assign.rhs(), <span class="bool-val">true</span>)<span class="question-mark">?</span>;
+                                <span class="self">self</span>.compile_expr(assign.rhs(), <span class="bool-val">true</span>);
                             } <span class="kw">else </span>{
-                                <span class="self">self</span>.compile_expr(assign.rhs(), <span class="bool-val">true</span>)<span class="question-mark">?</span>;
+                                <span class="self">self</span>.compile_expr(assign.rhs(), <span class="bool-val">true</span>);
                                 <span class="self">self</span>.emit_opcode(opcode);
                             }
 
@@ -373,15 +367,15 @@
                         PropertyAccessField::Expr(expr) =&gt; {
                             <span class="self">self</span>.emit_opcode(Opcode::Super);
                             <span class="self">self</span>.emit_opcode(Opcode::Dup);
-                            <span class="self">self</span>.compile_expr(expr, <span class="bool-val">true</span>)<span class="question-mark">?</span>;
+                            <span class="self">self</span>.compile_expr(expr, <span class="bool-val">true</span>);
 
                             <span class="self">self</span>.emit_opcode(Opcode::GetPropertyByValuePush);
                             <span class="kw">if </span>short_circuit {
                                 pop_count = <span class="number">2</span>;
                                 early_exit = <span class="prelude-val">Some</span>(<span class="self">self</span>.emit_opcode_with_operand(opcode));
-                                <span class="self">self</span>.compile_expr(assign.rhs(), <span class="bool-val">true</span>)<span class="question-mark">?</span>;
+                                <span class="self">self</span>.compile_expr(assign.rhs(), <span class="bool-val">true</span>);
                             } <span class="kw">else </span>{
-                                <span class="self">self</span>.compile_expr(assign.rhs(), <span class="bool-val">true</span>)<span class="question-mark">?</span>;
+                                <span class="self">self</span>.compile_expr(assign.rhs(), <span class="bool-val">true</span>);
                                 <span class="self">self</span>.emit_opcode(opcode);
                             }
 
@@ -409,8 +403,6 @@
                 }
             }
         }
-
-        <span class="prelude-val">Ok</span>(())
     }
 }
 </code></pre></div>

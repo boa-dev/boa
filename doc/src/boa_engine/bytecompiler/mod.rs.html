@@ -1419,43 +1419,6 @@
 <a href="#1418" id="1418">1418</a>
 <a href="#1419" id="1419">1419</a>
 <a href="#1420" id="1420">1420</a>
-<a href="#1421" id="1421">1421</a>
-<a href="#1422" id="1422">1422</a>
-<a href="#1423" id="1423">1423</a>
-<a href="#1424" id="1424">1424</a>
-<a href="#1425" id="1425">1425</a>
-<a href="#1426" id="1426">1426</a>
-<a href="#1427" id="1427">1427</a>
-<a href="#1428" id="1428">1428</a>
-<a href="#1429" id="1429">1429</a>
-<a href="#1430" id="1430">1430</a>
-<a href="#1431" id="1431">1431</a>
-<a href="#1432" id="1432">1432</a>
-<a href="#1433" id="1433">1433</a>
-<a href="#1434" id="1434">1434</a>
-<a href="#1435" id="1435">1435</a>
-<a href="#1436" id="1436">1436</a>
-<a href="#1437" id="1437">1437</a>
-<a href="#1438" id="1438">1438</a>
-<a href="#1439" id="1439">1439</a>
-<a href="#1440" id="1440">1440</a>
-<a href="#1441" id="1441">1441</a>
-<a href="#1442" id="1442">1442</a>
-<a href="#1443" id="1443">1443</a>
-<a href="#1444" id="1444">1444</a>
-<a href="#1445" id="1445">1445</a>
-<a href="#1446" id="1446">1446</a>
-<a href="#1447" id="1447">1447</a>
-<a href="#1448" id="1448">1448</a>
-<a href="#1449" id="1449">1449</a>
-<a href="#1450" id="1450">1450</a>
-<a href="#1451" id="1451">1451</a>
-<a href="#1452" id="1452">1452</a>
-<a href="#1453" id="1453">1453</a>
-<a href="#1454" id="1454">1454</a>
-<a href="#1455" id="1455">1455</a>
-<a href="#1456" id="1456">1456</a>
-<a href="#1457" id="1457">1457</a>
 </pre><pre class="rust"><code><span class="doccomment">//! This module contains the bytecode compiler.
 
 </span><span class="kw">mod </span>class;
@@ -1469,7 +1432,7 @@
 <span class="kw">use crate</span>::{
     environments::{BindingLocator, CompileTimeEnvironment},
     vm::{BindingOpcode, CodeBlock, Opcode},
-    Context, JsBigInt, JsResult, JsString, JsValue,
+    Context, JsBigInt, JsString, JsValue,
 };
 <span class="kw">use </span>boa_ast::{
     declaration::{Binding, LexicalDeclaration, VarDeclaration},
@@ -1942,7 +1905,7 @@
         <span class="self">self</span>.patch_jump_with_target(label, target);
     }
 
-    <span class="kw">fn </span>access_get(<span class="kw-2">&amp;mut </span><span class="self">self</span>, access: Access&lt;<span class="lifetime">&#39;_</span>&gt;, use_expr: bool) -&gt; JsResult&lt;()&gt; {
+    <span class="kw">fn </span>access_get(<span class="kw-2">&amp;mut </span><span class="self">self</span>, access: Access&lt;<span class="lifetime">&#39;_</span>&gt;, use_expr: bool) {
         <span class="kw">match </span>access {
             Access::Variable { name } =&gt; {
                 <span class="kw">let </span>binding = <span class="self">self</span>.context.get_binding_value(name);
@@ -1953,18 +1916,18 @@
                 PropertyAccess::Simple(access) =&gt; <span class="kw">match </span>access.field() {
                     PropertyAccessField::Const(name) =&gt; {
                         <span class="kw">let </span>index = <span class="self">self</span>.get_or_insert_name((<span class="kw-2">*</span>name).into());
-                        <span class="self">self</span>.compile_expr(access.target(), <span class="bool-val">true</span>)<span class="question-mark">?</span>;
+                        <span class="self">self</span>.compile_expr(access.target(), <span class="bool-val">true</span>);
                         <span class="self">self</span>.emit(Opcode::GetPropertyByName, <span class="kw-2">&amp;</span>[index]);
                     }
                     PropertyAccessField::Expr(expr) =&gt; {
-                        <span class="self">self</span>.compile_expr(access.target(), <span class="bool-val">true</span>)<span class="question-mark">?</span>;
-                        <span class="self">self</span>.compile_expr(expr, <span class="bool-val">true</span>)<span class="question-mark">?</span>;
+                        <span class="self">self</span>.compile_expr(access.target(), <span class="bool-val">true</span>);
+                        <span class="self">self</span>.compile_expr(expr, <span class="bool-val">true</span>);
                         <span class="self">self</span>.emit(Opcode::GetPropertyByValue, <span class="kw-2">&amp;</span>[]);
                     }
                 },
                 PropertyAccess::Private(access) =&gt; {
                     <span class="kw">let </span>index = <span class="self">self</span>.get_or_insert_private_name(access.field());
-                    <span class="self">self</span>.compile_expr(access.target(), <span class="bool-val">true</span>)<span class="question-mark">?</span>;
+                    <span class="self">self</span>.compile_expr(access.target(), <span class="bool-val">true</span>);
                     <span class="self">self</span>.emit(Opcode::GetPrivateField, <span class="kw-2">&amp;</span>[index]);
                 }
                 PropertyAccess::Super(access) =&gt; <span class="kw">match </span>access.field() {
@@ -1975,7 +1938,7 @@
                     }
                     PropertyAccessField::Expr(expr) =&gt; {
                         <span class="self">self</span>.emit_opcode(Opcode::Super);
-                        <span class="self">self</span>.compile_expr(expr, <span class="bool-val">true</span>)<span class="question-mark">?</span>;
+                        <span class="self">self</span>.compile_expr(expr, <span class="bool-val">true</span>);
                         <span class="self">self</span>.emit_opcode(Opcode::GetPropertyByValue);
                     }
                 },
@@ -1988,15 +1951,11 @@
         <span class="kw">if </span>!use_expr {
             <span class="self">self</span>.emit(Opcode::Pop, <span class="kw-2">&amp;</span>[]);
         }
-        <span class="prelude-val">Ok</span>(())
     }
 
     <span class="comment">// The wrap is needed so it can match the function signature.
     </span><span class="attr">#[allow(clippy::unnecessary_wraps)]
-    </span><span class="kw">fn </span>access_set_top_of_stack_expr_fn(
-        compiler: <span class="kw-2">&amp;mut </span>ByteCompiler&lt;<span class="lifetime">&#39;_</span>, <span class="lifetime">&#39;_</span>&gt;,
-        level: u8,
-    ) -&gt; JsResult&lt;()&gt; {
+    </span><span class="kw">fn </span>access_set_top_of_stack_expr_fn(compiler: <span class="kw-2">&amp;mut </span>ByteCompiler&lt;<span class="lifetime">&#39;_</span>, <span class="lifetime">&#39;_</span>&gt;, level: u8) {
         <span class="kw">match </span>level {
             <span class="number">0 </span>=&gt; {}
             <span class="number">1 </span>=&gt; compiler.emit_opcode(Opcode::Swap),
@@ -2005,80 +1964,73 @@
                 compiler.emit_u8(level + <span class="number">1</span>);
             }
         }
-        <span class="prelude-val">Ok</span>(())
     }
 
-    <span class="kw">fn </span>access_set&lt;F, R&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, access: Access&lt;<span class="lifetime">&#39;_</span>&gt;, use_expr: bool, expr_fn: F) -&gt; JsResult&lt;R&gt;
+    <span class="kw">fn </span>access_set&lt;F, R&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, access: Access&lt;<span class="lifetime">&#39;_</span>&gt;, use_expr: bool, expr_fn: F)
     <span class="kw">where
-        </span>F: FnOnce(<span class="kw-2">&amp;mut </span>ByteCompiler&lt;<span class="lifetime">&#39;_</span>, <span class="lifetime">&#39;_</span>&gt;, u8) -&gt; JsResult&lt;R&gt;,
+        </span>F: FnOnce(<span class="kw-2">&amp;mut </span>ByteCompiler&lt;<span class="lifetime">&#39;_</span>, <span class="lifetime">&#39;_</span>&gt;, u8) -&gt; R,
     {
         <span class="kw">match </span>access {
             Access::Variable { name } =&gt; {
-                <span class="kw">let </span>result = expr_fn(<span class="self">self</span>, <span class="number">0</span>);
+                expr_fn(<span class="self">self</span>, <span class="number">0</span>);
                 <span class="kw">if </span>use_expr {
                     <span class="self">self</span>.emit(Opcode::Dup, <span class="kw-2">&amp;</span>[]);
                 }
                 <span class="kw">let </span>binding = <span class="self">self</span>.context.set_mutable_binding(name);
                 <span class="kw">let </span>index = <span class="self">self</span>.get_or_insert_binding(binding);
                 <span class="self">self</span>.emit(Opcode::SetName, <span class="kw-2">&amp;</span>[index]);
-                result
             }
             Access::Property { access } =&gt; <span class="kw">match </span>access {
                 PropertyAccess::Simple(access) =&gt; <span class="kw">match </span>access.field() {
                     PropertyAccessField::Const(name) =&gt; {
-                        <span class="self">self</span>.compile_expr(access.target(), <span class="bool-val">true</span>)<span class="question-mark">?</span>;
+                        <span class="self">self</span>.compile_expr(access.target(), <span class="bool-val">true</span>);
                         <span class="self">self</span>.emit_opcode(Opcode::Dup);
-                        <span class="kw">let </span>result = expr_fn(<span class="self">self</span>, <span class="number">2</span>);
+                        expr_fn(<span class="self">self</span>, <span class="number">2</span>);
                         <span class="kw">let </span>index = <span class="self">self</span>.get_or_insert_name((<span class="kw-2">*</span>name).into());
 
                         <span class="self">self</span>.emit(Opcode::SetPropertyByName, <span class="kw-2">&amp;</span>[index]);
                         <span class="kw">if </span>!use_expr {
                             <span class="self">self</span>.emit(Opcode::Pop, <span class="kw-2">&amp;</span>[]);
                         }
-                        result
                     }
                     PropertyAccessField::Expr(expr) =&gt; {
-                        <span class="self">self</span>.compile_expr(access.target(), <span class="bool-val">true</span>)<span class="question-mark">?</span>;
-                        <span class="self">self</span>.compile_expr(expr, <span class="bool-val">true</span>)<span class="question-mark">?</span>;
-                        <span class="kw">let </span>result = expr_fn(<span class="self">self</span>, <span class="number">2</span>);
+                        <span class="self">self</span>.compile_expr(access.target(), <span class="bool-val">true</span>);
+                        <span class="self">self</span>.compile_expr(expr, <span class="bool-val">true</span>);
+                        expr_fn(<span class="self">self</span>, <span class="number">2</span>);
                         <span class="self">self</span>.emit(Opcode::SetPropertyByValue, <span class="kw-2">&amp;</span>[]);
                         <span class="kw">if </span>!use_expr {
                             <span class="self">self</span>.emit(Opcode::Pop, <span class="kw-2">&amp;</span>[]);
                         }
-                        result
                     }
                 },
                 PropertyAccess::Private(access) =&gt; {
-                    <span class="self">self</span>.compile_expr(access.target(), <span class="bool-val">true</span>)<span class="question-mark">?</span>;
-                    <span class="kw">let </span>result = expr_fn(<span class="self">self</span>, <span class="number">1</span>);
+                    <span class="self">self</span>.compile_expr(access.target(), <span class="bool-val">true</span>);
+                    expr_fn(<span class="self">self</span>, <span class="number">1</span>);
                     <span class="kw">let </span>index = <span class="self">self</span>.get_or_insert_private_name(access.field());
                     <span class="self">self</span>.emit(Opcode::SetPrivateField, <span class="kw-2">&amp;</span>[index]);
                     <span class="kw">if </span>!use_expr {
                         <span class="self">self</span>.emit(Opcode::Pop, <span class="kw-2">&amp;</span>[]);
                     }
-                    result
                 }
                 PropertyAccess::Super(access) =&gt; <span class="kw">match </span>access.field() {
                     PropertyAccessField::Const(name) =&gt; {
                         <span class="self">self</span>.emit_opcode(Opcode::Super);
                         <span class="self">self</span>.emit_opcode(Opcode::This);
-                        <span class="kw">let </span>result = expr_fn(<span class="self">self</span>, <span class="number">1</span>);
+                        expr_fn(<span class="self">self</span>, <span class="number">1</span>);
                         <span class="kw">let </span>index = <span class="self">self</span>.get_or_insert_name((<span class="kw-2">*</span>name).into());
                         <span class="self">self</span>.emit(Opcode::SetPropertyByName, <span class="kw-2">&amp;</span>[index]);
                         <span class="kw">if </span>!use_expr {
                             <span class="self">self</span>.emit(Opcode::Pop, <span class="kw-2">&amp;</span>[]);
                         }
-                        result
                     }
                     PropertyAccessField::Expr(expr) =&gt; {
                         <span class="self">self</span>.emit(Opcode::Super, <span class="kw-2">&amp;</span>[]);
-                        <span class="self">self</span>.compile_expr(expr, <span class="bool-val">true</span>)<span class="question-mark">?</span>;
-                        <span class="kw">let </span>result = expr_fn(<span class="self">self</span>, <span class="number">0</span>);
+                        <span class="self">self</span>.compile_expr(expr, <span class="bool-val">true</span>);
+                        expr_fn(<span class="self">self</span>, <span class="number">0</span>);
                         <span class="self">self</span>.emit(Opcode::SetPropertyByValue, <span class="kw-2">&amp;</span>[]);
                         <span class="kw">if </span>!use_expr {
                             <span class="self">self</span>.emit(Opcode::Pop, <span class="kw-2">&amp;</span>[]);
                         }
-                        result
                     }
                 },
             },
@@ -2086,18 +2038,18 @@
         }
     }
 
-    <span class="kw">fn </span>access_delete(<span class="kw-2">&amp;mut </span><span class="self">self</span>, access: Access&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;()&gt; {
+    <span class="kw">fn </span>access_delete(<span class="kw-2">&amp;mut </span><span class="self">self</span>, access: Access&lt;<span class="lifetime">&#39;_</span>&gt;) {
         <span class="kw">match </span>access {
             Access::Property { access } =&gt; <span class="kw">match </span>access {
                 PropertyAccess::Simple(access) =&gt; <span class="kw">match </span>access.field() {
                     PropertyAccessField::Const(name) =&gt; {
                         <span class="kw">let </span>index = <span class="self">self</span>.get_or_insert_name((<span class="kw-2">*</span>name).into());
-                        <span class="self">self</span>.compile_expr(access.target(), <span class="bool-val">true</span>)<span class="question-mark">?</span>;
+                        <span class="self">self</span>.compile_expr(access.target(), <span class="bool-val">true</span>);
                         <span class="self">self</span>.emit(Opcode::DeletePropertyByName, <span class="kw-2">&amp;</span>[index]);
                     }
                     PropertyAccessField::Expr(expr) =&gt; {
-                        <span class="self">self</span>.compile_expr(access.target(), <span class="bool-val">true</span>)<span class="question-mark">?</span>;
-                        <span class="self">self</span>.compile_expr(expr, <span class="bool-val">true</span>)<span class="question-mark">?</span>;
+                        <span class="self">self</span>.compile_expr(access.target(), <span class="bool-val">true</span>);
+                        <span class="self">self</span>.compile_expr(expr, <span class="bool-val">true</span>);
                         <span class="self">self</span>.emit_opcode(Opcode::DeletePropertyByValue);
                     }
                 },
@@ -2116,7 +2068,6 @@
                 <span class="self">self</span>.emit_opcode(Opcode::PushTrue);
             }
         }
-        <span class="prelude-val">Ok</span>(())
     }
 
     <span class="doccomment">/// Compile a [`StatementList`].
@@ -2125,7 +2076,7 @@
         list: <span class="kw-2">&amp;</span>StatementList,
         use_expr: bool,
         configurable_globals: bool,
-    ) -&gt; JsResult&lt;()&gt; {
+    ) {
         <span class="kw">if </span>use_expr {
             <span class="kw">let </span>expr_index = list
                 .statements()
@@ -2141,15 +2092,13 @@
                 .count();
 
             <span class="kw">for </span>(i, item) <span class="kw">in </span>list.statements().iter().enumerate() {
-                <span class="self">self</span>.compile_stmt_list_item(item, i + <span class="number">1 </span>== expr_index, configurable_globals)<span class="question-mark">?</span>;
+                <span class="self">self</span>.compile_stmt_list_item(item, i + <span class="number">1 </span>== expr_index, configurable_globals);
             }
         } <span class="kw">else </span>{
             <span class="kw">for </span>item <span class="kw">in </span>list.statements() {
-                <span class="self">self</span>.compile_stmt_list_item(item, <span class="bool-val">false</span>, configurable_globals)<span class="question-mark">?</span>;
+                <span class="self">self</span>.compile_stmt_list_item(item, <span class="bool-val">false</span>, configurable_globals);
             }
         }
-
-        <span class="prelude-val">Ok</span>(())
     }
 
     <span class="doccomment">/// Compile a statement list in a new declarative environment.
@@ -2158,7 +2107,7 @@
         list: <span class="kw-2">&amp;</span>StatementList,
         use_expr: bool,
         strict: bool,
-    ) -&gt; JsResult&lt;()&gt; {
+    ) {
         <span class="self">self</span>.context.push_compile_time_environment(strict);
         <span class="kw">let </span>push_env = <span class="self">self</span>.emit_opcode_with_two_operands(Opcode::PushDeclarativeEnvironment);
 
@@ -2179,11 +2128,11 @@
                 .count();
 
             <span class="kw">for </span>(i, item) <span class="kw">in </span>list.statements().iter().enumerate() {
-                <span class="self">self</span>.compile_stmt_list_item(item, i + <span class="number">1 </span>== expr_index, <span class="bool-val">true</span>)<span class="question-mark">?</span>;
+                <span class="self">self</span>.compile_stmt_list_item(item, i + <span class="number">1 </span>== expr_index, <span class="bool-val">true</span>);
             }
         } <span class="kw">else </span>{
             <span class="kw">for </span>item <span class="kw">in </span>list.statements() {
-                <span class="self">self</span>.compile_stmt_list_item(item, <span class="bool-val">false</span>, <span class="bool-val">true</span>)<span class="question-mark">?</span>;
+                <span class="self">self</span>.compile_stmt_list_item(item, <span class="bool-val">false</span>, <span class="bool-val">true</span>);
             }
         }
 
@@ -2192,14 +2141,12 @@
         <span class="self">self</span>.patch_jump_with_target(push_env.<span class="number">0</span>, num_bindings <span class="kw">as </span>u32);
         <span class="self">self</span>.patch_jump_with_target(push_env.<span class="number">1</span>, index_compile_environment <span class="kw">as </span>u32);
         <span class="self">self</span>.emit_opcode(Opcode::PopEnvironment);
-
-        <span class="prelude-val">Ok</span>(())
     }
 
     <span class="doccomment">/// Compile an [`Expression`].
     </span><span class="attr">#[inline]
-    </span><span class="kw">pub fn </span>compile_expr(<span class="kw-2">&amp;mut </span><span class="self">self</span>, expr: <span class="kw-2">&amp;</span>Expression, use_expr: bool) -&gt; JsResult&lt;()&gt; {
-        <span class="self">self</span>.compile_expr_impl(expr, use_expr)
+    </span><span class="kw">pub fn </span>compile_expr(<span class="kw-2">&amp;mut </span><span class="self">self</span>, expr: <span class="kw-2">&amp;</span>Expression, use_expr: bool) {
+        <span class="self">self</span>.compile_expr_impl(expr, use_expr);
     }
 
     <span class="doccomment">/// Compile a property access expression, prepending `this` to the property value in the stack.
@@ -2212,10 +2159,10 @@
     /// with calls (`a.b()`), since both of them must have `a` be the value of `this` for the function
     /// call `b()`, but a regular compilation of the access would lose the `this` value after accessing
     /// `b`.
-    </span><span class="kw">fn </span>compile_access_preserve_this(<span class="kw-2">&amp;mut </span><span class="self">self</span>, access: <span class="kw-2">&amp;</span>PropertyAccess) -&gt; JsResult&lt;()&gt; {
+    </span><span class="kw">fn </span>compile_access_preserve_this(<span class="kw-2">&amp;mut </span><span class="self">self</span>, access: <span class="kw-2">&amp;</span>PropertyAccess) {
         <span class="kw">match </span>access {
             PropertyAccess::Simple(access) =&gt; {
-                <span class="self">self</span>.compile_expr(access.target(), <span class="bool-val">true</span>)<span class="question-mark">?</span>;
+                <span class="self">self</span>.compile_expr(access.target(), <span class="bool-val">true</span>);
                 <span class="self">self</span>.emit_opcode(Opcode::Dup);
                 <span class="kw">match </span>access.field() {
                     PropertyAccessField::Const(field) =&gt; {
@@ -2223,13 +2170,13 @@
                         <span class="self">self</span>.emit(Opcode::GetPropertyByName, <span class="kw-2">&amp;</span>[index]);
                     }
                     PropertyAccessField::Expr(field) =&gt; {
-                        <span class="self">self</span>.compile_expr(field, <span class="bool-val">true</span>)<span class="question-mark">?</span>;
+                        <span class="self">self</span>.compile_expr(field, <span class="bool-val">true</span>);
                         <span class="self">self</span>.emit_opcode(Opcode::GetPropertyByValue);
                     }
                 }
             }
             PropertyAccess::Private(access) =&gt; {
-                <span class="self">self</span>.compile_expr(access.target(), <span class="bool-val">true</span>)<span class="question-mark">?</span>;
+                <span class="self">self</span>.compile_expr(access.target(), <span class="bool-val">true</span>);
                 <span class="self">self</span>.emit_opcode(Opcode::Dup);
                 <span class="kw">let </span>index = <span class="self">self</span>.get_or_insert_private_name(access.field());
                 <span class="self">self</span>.emit(Opcode::GetPrivateField, <span class="kw-2">&amp;</span>[index]);
@@ -2243,13 +2190,12 @@
                         <span class="self">self</span>.emit(Opcode::GetPropertyByName, <span class="kw-2">&amp;</span>[index]);
                     }
                     PropertyAccessField::Expr(expr) =&gt; {
-                        <span class="self">self</span>.compile_expr(expr, <span class="bool-val">true</span>)<span class="question-mark">?</span>;
+                        <span class="self">self</span>.compile_expr(expr, <span class="bool-val">true</span>);
                         <span class="self">self</span>.emit_opcode(Opcode::GetPropertyByValue);
                     }
                 }
             }
         }
-        <span class="prelude-val">Ok</span>(())
     }
 
     <span class="doccomment">/// Compile an optional chain expression, prepending `this` to the property value in the stack.
@@ -2263,17 +2209,17 @@
     /// would only return the result of the chain without preserving the `this` value. In other words,
     /// `this` would be set to `undefined` for that call, which is incorrect since `a` should be the
     /// `this` value of the call.
-    </span><span class="kw">fn </span>compile_optional_preserve_this(<span class="kw-2">&amp;mut </span><span class="self">self</span>, optional: <span class="kw-2">&amp;</span>Optional) -&gt; JsResult&lt;()&gt; {
+    </span><span class="kw">fn </span>compile_optional_preserve_this(<span class="kw-2">&amp;mut </span><span class="self">self</span>, optional: <span class="kw-2">&amp;</span>Optional) {
         <span class="kw">let </span><span class="kw-2">mut </span>jumps = Vec::with_capacity(optional.chain().len());
 
         <span class="kw">match </span>optional.target() {
             Expression::PropertyAccess(access) =&gt; {
-                <span class="self">self</span>.compile_access_preserve_this(access)<span class="question-mark">?</span>;
+                <span class="self">self</span>.compile_access_preserve_this(access);
             }
-            Expression::Optional(opt) =&gt; <span class="self">self</span>.compile_optional_preserve_this(opt)<span class="question-mark">?</span>,
+            Expression::Optional(opt) =&gt; <span class="self">self</span>.compile_optional_preserve_this(opt),
             expr =&gt; {
                 <span class="self">self</span>.emit(Opcode::PushUndefined, <span class="kw-2">&amp;</span>[]);
-                <span class="self">self</span>.compile_expr(expr, <span class="bool-val">true</span>)<span class="question-mark">?</span>;
+                <span class="self">self</span>.compile_expr(expr, <span class="bool-val">true</span>);
             }
         }
         jumps.push(<span class="self">self</span>.jump_if_null_or_undefined());
@@ -2284,13 +2230,13 @@
             .expect(<span class="string">&quot;chain must have at least one element&quot;</span>);
         <span class="macro">assert!</span>(first.shorted());
 
-        <span class="self">self</span>.compile_optional_item_kind(first.kind())<span class="question-mark">?</span>;
+        <span class="self">self</span>.compile_optional_item_kind(first.kind());
 
         <span class="kw">for </span>item <span class="kw">in </span>rest {
             <span class="kw">if </span>item.shorted() {
                 jumps.push(<span class="self">self</span>.jump_if_null_or_undefined());
             }
-            <span class="self">self</span>.compile_optional_item_kind(item.kind())<span class="question-mark">?</span>;
+            <span class="self">self</span>.compile_optional_item_kind(item.kind());
         }
         <span class="kw">let </span>skip_undef = <span class="self">self</span>.jump();
 
@@ -2302,8 +2248,6 @@
         <span class="self">self</span>.emit_opcode(Opcode::PushUndefined);
 
         <span class="self">self</span>.patch_jump(skip_undef);
-
-        <span class="prelude-val">Ok</span>(())
     }
 
     <span class="doccomment">/// Compile a single operation in an optional chain.
@@ -2322,7 +2266,7 @@
     /// is not null or undefined (if the operator `?.` was used).
     /// - This assumes that the state of the stack before compiling is `...rest, this, value`,
     /// since the operation compiled by this function could be a call.
-    </span><span class="kw">fn </span>compile_optional_item_kind(<span class="kw-2">&amp;mut </span><span class="self">self</span>, kind: <span class="kw-2">&amp;</span>OptionalOperationKind) -&gt; JsResult&lt;()&gt; {
+    </span><span class="kw">fn </span>compile_optional_item_kind(<span class="kw-2">&amp;mut </span><span class="self">self</span>, kind: <span class="kw-2">&amp;</span>OptionalOperationKind) {
         <span class="kw">match </span>kind {
             OptionalOperationKind::SimplePropertyAccess { field } =&gt; {
                 <span class="self">self</span>.emit_opcode(Opcode::Dup);
@@ -2332,7 +2276,7 @@
                         <span class="self">self</span>.emit(Opcode::GetPropertyByName, <span class="kw-2">&amp;</span>[index]);
                     }
                     PropertyAccessField::Expr(expr) =&gt; {
-                        <span class="self">self</span>.compile_expr(expr, <span class="bool-val">true</span>)<span class="question-mark">?</span>;
+                        <span class="self">self</span>.compile_expr(expr, <span class="bool-val">true</span>);
                         <span class="self">self</span>.emit(Opcode::GetPropertyByValue, <span class="kw-2">&amp;</span>[]);
                     }
                 }
@@ -2355,7 +2299,7 @@
                 <span class="kw">if </span>contains_spread {
                     <span class="self">self</span>.emit_opcode(Opcode::PushNewArray);
                     <span class="kw">for </span>arg <span class="kw">in </span>args {
-                        <span class="self">self</span>.compile_expr(arg, <span class="bool-val">true</span>)<span class="question-mark">?</span>;
+                        <span class="self">self</span>.compile_expr(arg, <span class="bool-val">true</span>);
                         <span class="kw">if let </span>Expression::Spread(<span class="kw">_</span>) = arg {
                             <span class="self">self</span>.emit_opcode(Opcode::InitIterator);
                             <span class="self">self</span>.emit_opcode(Opcode::PushIteratorToArray);
@@ -2366,7 +2310,7 @@
                     <span class="self">self</span>.emit_opcode(Opcode::CallSpread);
                 } <span class="kw">else </span>{
                     <span class="kw">for </span>arg <span class="kw">in </span>args {
-                        <span class="self">self</span>.compile_expr(arg, <span class="bool-val">true</span>)<span class="question-mark">?</span>;
+                        <span class="self">self</span>.compile_expr(arg, <span class="bool-val">true</span>);
                     }
                     <span class="self">self</span>.emit(Opcode::Call, <span class="kw-2">&amp;</span>[args.len() <span class="kw">as </span>u32]);
                 }
@@ -2375,17 +2319,16 @@
                 <span class="self">self</span>.emit_opcode(Opcode::Swap);
             }
         }
-        <span class="prelude-val">Ok</span>(())
     }
 
     <span class="doccomment">/// Compile a [`VarDeclaration`].
-    </span><span class="kw">fn </span>compile_var_decl(<span class="kw-2">&amp;mut </span><span class="self">self</span>, decl: <span class="kw-2">&amp;</span>VarDeclaration) -&gt; JsResult&lt;()&gt; {
+    </span><span class="kw">fn </span>compile_var_decl(<span class="kw-2">&amp;mut </span><span class="self">self</span>, decl: <span class="kw-2">&amp;</span>VarDeclaration) {
         <span class="kw">for </span>variable <span class="kw">in </span>decl.<span class="number">0</span>.as_ref() {
             <span class="kw">match </span>variable.binding() {
                 Binding::Identifier(ident) =&gt; {
                     <span class="kw">let </span>ident = ident;
                     <span class="kw">if let </span><span class="prelude-val">Some</span>(expr) = variable.init() {
-                        <span class="self">self</span>.compile_expr(expr, <span class="bool-val">true</span>)<span class="question-mark">?</span>;
+                        <span class="self">self</span>.compile_expr(expr, <span class="bool-val">true</span>);
                         <span class="self">self</span>.emit_binding(BindingOpcode::InitVar, <span class="kw-2">*</span>ident);
                     } <span class="kw">else </span>{
                         <span class="self">self</span>.emit_binding(BindingOpcode::Var, <span class="kw-2">*</span>ident);
@@ -2393,20 +2336,19 @@
                 }
                 Binding::Pattern(pattern) =&gt; {
                     <span class="kw">if let </span><span class="prelude-val">Some</span>(init) = variable.init() {
-                        <span class="self">self</span>.compile_expr(init, <span class="bool-val">true</span>)<span class="question-mark">?</span>;
+                        <span class="self">self</span>.compile_expr(init, <span class="bool-val">true</span>);
                     } <span class="kw">else </span>{
                         <span class="self">self</span>.emit_opcode(Opcode::PushUndefined);
                     };
 
-                    <span class="self">self</span>.compile_declaration_pattern(pattern, BindingOpcode::InitVar)<span class="question-mark">?</span>;
+                    <span class="self">self</span>.compile_declaration_pattern(pattern, BindingOpcode::InitVar);
                 }
             }
         }
-        <span class="prelude-val">Ok</span>(())
     }
 
     <span class="doccomment">/// Compile a [`LexicalDeclaration`].
-    </span><span class="kw">fn </span>compile_lexical_decl(<span class="kw-2">&amp;mut </span><span class="self">self</span>, decl: <span class="kw-2">&amp;</span>LexicalDeclaration) -&gt; JsResult&lt;()&gt; {
+    </span><span class="kw">fn </span>compile_lexical_decl(<span class="kw-2">&amp;mut </span><span class="self">self</span>, decl: <span class="kw-2">&amp;</span>LexicalDeclaration) {
         <span class="kw">match </span>decl {
             LexicalDeclaration::Let(decls) =&gt; {
                 <span class="kw">for </span>variable <span class="kw">in </span>decls.as_ref() {
@@ -2414,7 +2356,7 @@
                         Binding::Identifier(ident) =&gt; {
                             <span class="kw">let </span>ident = ident;
                             <span class="kw">if let </span><span class="prelude-val">Some</span>(expr) = variable.init() {
-                                <span class="self">self</span>.compile_expr(expr, <span class="bool-val">true</span>)<span class="question-mark">?</span>;
+                                <span class="self">self</span>.compile_expr(expr, <span class="bool-val">true</span>);
                                 <span class="self">self</span>.emit_binding(BindingOpcode::InitLet, <span class="kw-2">*</span>ident);
                             } <span class="kw">else </span>{
                                 <span class="self">self</span>.emit_binding(BindingOpcode::Let, <span class="kw-2">*</span>ident);
@@ -2422,12 +2364,12 @@
                         }
                         Binding::Pattern(pattern) =&gt; {
                             <span class="kw">if let </span><span class="prelude-val">Some</span>(init) = variable.init() {
-                                <span class="self">self</span>.compile_expr(init, <span class="bool-val">true</span>)<span class="question-mark">?</span>;
+                                <span class="self">self</span>.compile_expr(init, <span class="bool-val">true</span>);
                             } <span class="kw">else </span>{
                                 <span class="self">self</span>.emit_opcode(Opcode::PushUndefined);
                             };
 
-                            <span class="self">self</span>.compile_declaration_pattern(pattern, BindingOpcode::InitLet)<span class="question-mark">?</span>;
+                            <span class="self">self</span>.compile_declaration_pattern(pattern, BindingOpcode::InitLet);
                         }
                     }
                 }
@@ -2439,24 +2381,22 @@
                             <span class="kw">let </span>init = variable
                                 .init()
                                 .expect(<span class="string">&quot;const declaration must have initializer&quot;</span>);
-                            <span class="self">self</span>.compile_expr(init, <span class="bool-val">true</span>)<span class="question-mark">?</span>;
+                            <span class="self">self</span>.compile_expr(init, <span class="bool-val">true</span>);
                             <span class="self">self</span>.emit_binding(BindingOpcode::InitConst, <span class="kw-2">*</span>ident);
                         }
                         Binding::Pattern(pattern) =&gt; {
                             <span class="kw">if let </span><span class="prelude-val">Some</span>(init) = variable.init() {
-                                <span class="self">self</span>.compile_expr(init, <span class="bool-val">true</span>)<span class="question-mark">?</span>;
+                                <span class="self">self</span>.compile_expr(init, <span class="bool-val">true</span>);
                             } <span class="kw">else </span>{
                                 <span class="self">self</span>.emit_opcode(Opcode::PushUndefined);
                             };
 
-                            <span class="self">self</span>.compile_declaration_pattern(pattern, BindingOpcode::InitConst)<span class="question-mark">?</span>;
+                            <span class="self">self</span>.compile_declaration_pattern(pattern, BindingOpcode::InitConst);
                         }
                     }
                 }
-                <span class="kw">return </span><span class="prelude-val">Ok</span>(());
             }
         };
-        <span class="prelude-val">Ok</span>(())
     }
 
     <span class="doccomment">/// Compile a [`StatementListItem`].
@@ -2465,29 +2405,29 @@
         item: <span class="kw-2">&amp;</span>StatementListItem,
         use_expr: bool,
         configurable_globals: bool,
-    ) -&gt; JsResult&lt;()&gt; {
+    ) {
         <span class="kw">match </span>item {
             StatementListItem::Statement(stmt) =&gt; {
-                <span class="self">self</span>.compile_stmt(stmt, use_expr, configurable_globals)
+                <span class="self">self</span>.compile_stmt(stmt, use_expr, configurable_globals);
             }
             StatementListItem::Declaration(decl) =&gt; <span class="self">self</span>.compile_decl(decl),
         }
     }
 
     <span class="doccomment">/// Compile a [`Declaration`].
-    </span><span class="kw">pub fn </span>compile_decl(<span class="kw-2">&amp;mut </span><span class="self">self</span>, decl: <span class="kw-2">&amp;</span>Declaration) -&gt; JsResult&lt;()&gt; {
+    </span><span class="kw">pub fn </span>compile_decl(<span class="kw-2">&amp;mut </span><span class="self">self</span>, decl: <span class="kw-2">&amp;</span>Declaration) {
         <span class="kw">match </span>decl {
             Declaration::Function(function) =&gt; {
-                <span class="self">self</span>.function(function.into(), NodeKind::Declaration, <span class="bool-val">false</span>)
+                <span class="self">self</span>.function(function.into(), NodeKind::Declaration, <span class="bool-val">false</span>);
             }
             Declaration::Generator(function) =&gt; {
-                <span class="self">self</span>.function(function.into(), NodeKind::Declaration, <span class="bool-val">false</span>)
+                <span class="self">self</span>.function(function.into(), NodeKind::Declaration, <span class="bool-val">false</span>);
             }
             Declaration::AsyncFunction(function) =&gt; {
-                <span class="self">self</span>.function(function.into(), NodeKind::Declaration, <span class="bool-val">false</span>)
+                <span class="self">self</span>.function(function.into(), NodeKind::Declaration, <span class="bool-val">false</span>);
             }
             Declaration::AsyncGenerator(function) =&gt; {
-                <span class="self">self</span>.function(function.into(), NodeKind::Declaration, <span class="bool-val">false</span>)
+                <span class="self">self</span>.function(function.into(), NodeKind::Declaration, <span class="bool-val">false</span>);
             }
             Declaration::Class(class) =&gt; <span class="self">self</span>.class(class, <span class="bool-val">false</span>),
             Declaration::Lexical(lexical) =&gt; <span class="self">self</span>.compile_lexical_decl(lexical),
@@ -2495,12 +2435,7 @@
     }
 
     <span class="doccomment">/// Compile a function AST Node into bytecode.
-    </span><span class="kw">fn </span>function(
-        <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-        function: FunctionSpec&lt;<span class="lifetime">&#39;_</span>&gt;,
-        node_kind: NodeKind,
-        use_expr: bool,
-    ) -&gt; JsResult&lt;()&gt; {
+    </span><span class="kw">fn </span>function(<span class="kw-2">&amp;mut </span><span class="self">self</span>, function: FunctionSpec&lt;<span class="lifetime">&#39;_</span>&gt;, node_kind: NodeKind, use_expr: bool) {
         <span class="kw">let </span>(generator, r#async, arrow) = (
             function.is_generator(),
             function.is_async(),
@@ -2531,7 +2466,7 @@
             .strict(<span class="self">self</span>.code_block.strict)
             .arrow(arrow)
             .binding_identifier(binding_identifier)
-            .compile(parameters, body, <span class="self">self</span>.context)<span class="question-mark">?</span>;
+            .compile(parameters, body, <span class="self">self</span>.context);
 
         <span class="kw">let </span>index = <span class="self">self</span>.code_block.functions.len() <span class="kw">as </span>u32;
         <span class="self">self</span>.code_block.functions.push(code);
@@ -2564,8 +2499,6 @@
                 }
             }
         }
-
-        <span class="prelude-val">Ok</span>(())
     }
 
     <span class="doccomment">/// Compile a class method AST Node into bytecode.
@@ -2575,7 +2508,7 @@
         node_kind: NodeKind,
         class_name: Sym,
         use_expr: bool,
-    ) -&gt; JsResult&lt;()&gt; {
+    ) {
         <span class="kw">let </span>(generator, r#async, arrow) = (
             function.is_generator(),
             function.is_async(),
@@ -2607,7 +2540,7 @@
             .arrow(arrow)
             .binding_identifier(binding_identifier)
             .class_name(class_name)
-            .compile(parameters, body, <span class="self">self</span>.context)<span class="question-mark">?</span>;
+            .compile(parameters, body, <span class="self">self</span>.context);
 
         <span class="kw">let </span>index = <span class="self">self</span>.code_block.functions.len() <span class="kw">as </span>u32;
         <span class="self">self</span>.code_block.functions.push(code);
@@ -2640,11 +2573,9 @@
                 }
             }
         }
-
-        <span class="prelude-val">Ok</span>(())
     }
 
-    <span class="kw">fn </span>call(<span class="kw-2">&amp;mut </span><span class="self">self</span>, callable: Callable&lt;<span class="lifetime">&#39;_</span>&gt;, use_expr: bool) -&gt; JsResult&lt;()&gt; {
+    <span class="kw">fn </span>call(<span class="kw-2">&amp;mut </span><span class="self">self</span>, callable: Callable&lt;<span class="lifetime">&#39;_</span>&gt;, use_expr: bool) {
         <span class="attr">#[derive(PartialEq)]
         </span><span class="kw">enum </span>CallKind {
             CallEval,
@@ -2662,14 +2593,14 @@
 
         <span class="kw">match </span>call.function() {
             Expression::PropertyAccess(access) <span class="kw">if </span>kind == CallKind::Call =&gt; {
-                <span class="self">self</span>.compile_access_preserve_this(access)<span class="question-mark">?</span>;
+                <span class="self">self</span>.compile_access_preserve_this(access);
             }
 
             Expression::Optional(opt) <span class="kw">if </span>kind == CallKind::Call =&gt; {
-                <span class="self">self</span>.compile_optional_preserve_this(opt)<span class="question-mark">?</span>;
+                <span class="self">self</span>.compile_optional_preserve_this(opt);
             }
             expr =&gt; {
-                <span class="self">self</span>.compile_expr(expr, <span class="bool-val">true</span>)<span class="question-mark">?</span>;
+                <span class="self">self</span>.compile_expr(expr, <span class="bool-val">true</span>);
                 <span class="kw">if </span>kind == CallKind::Call || kind == CallKind::CallEval {
                     <span class="self">self</span>.emit_opcode(Opcode::PushUndefined);
                     <span class="self">self</span>.emit_opcode(Opcode::Swap);
@@ -2685,7 +2616,7 @@
         <span class="kw">if </span>contains_spread {
             <span class="self">self</span>.emit_opcode(Opcode::PushNewArray);
             <span class="kw">for </span>arg <span class="kw">in </span>call.args() {
-                <span class="self">self</span>.compile_expr(arg, <span class="bool-val">true</span>)<span class="question-mark">?</span>;
+                <span class="self">self</span>.compile_expr(arg, <span class="bool-val">true</span>);
                 <span class="kw">if let </span>Expression::Spread(<span class="kw">_</span>) = arg {
                     <span class="self">self</span>.emit_opcode(Opcode::InitIterator);
                     <span class="self">self</span>.emit_opcode(Opcode::PushIteratorToArray);
@@ -2695,7 +2626,7 @@
             }
         } <span class="kw">else </span>{
             <span class="kw">for </span>arg <span class="kw">in </span>call.args() {
-                <span class="self">self</span>.compile_expr(arg, <span class="bool-val">true</span>)<span class="question-mark">?</span>;
+                <span class="self">self</span>.compile_expr(arg, <span class="bool-val">true</span>);
             }
         }
 
@@ -2711,7 +2642,6 @@
         <span class="kw">if </span>!use_expr {
             <span class="self">self</span>.emit(Opcode::Pop, <span class="kw-2">&amp;</span>[]);
         }
-        <span class="prelude-val">Ok</span>(())
     }
 
     <span class="doccomment">/// Finish compiling code with the [`ByteCompiler`] and return the generated [`CodeBlock`].
@@ -2722,12 +2652,8 @@
         <span class="self">self</span>.code_block
     }
 
-    <span class="kw">fn </span>compile_declaration_pattern(
-        <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-        pattern: <span class="kw-2">&amp;</span>Pattern,
-        def: BindingOpcode,
-    ) -&gt; JsResult&lt;()&gt; {
-        <span class="self">self</span>.compile_declaration_pattern_impl(pattern, def)
+    <span class="kw">fn </span>compile_declaration_pattern(<span class="kw-2">&amp;mut </span><span class="self">self</span>, pattern: <span class="kw-2">&amp;</span>Pattern, def: BindingOpcode) {
+        <span class="self">self</span>.compile_declaration_pattern_impl(pattern, def);
     }
 
     <span class="doccomment">/// Creates the declarations for a sript.
@@ -2909,8 +2835,8 @@
         }
     }
 
-    <span class="kw">fn </span>class(<span class="kw-2">&amp;mut </span><span class="self">self</span>, class: <span class="kw-2">&amp;</span>Class, expression: bool) -&gt; JsResult&lt;()&gt; {
-        <span class="self">self</span>.compile_class(class, expression)
+    <span class="kw">fn </span>class(<span class="kw-2">&amp;mut </span><span class="self">self</span>, class: <span class="kw-2">&amp;</span>Class, expression: bool) {
+        <span class="self">self</span>.compile_class(class, expression);
     }
 }
 </code></pre></div>

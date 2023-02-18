@@ -936,6 +936,27 @@
 <a href="#935" id="935">935</a>
 <a href="#936" id="936">936</a>
 <a href="#937" id="937">937</a>
+<a href="#938" id="938">938</a>
+<a href="#939" id="939">939</a>
+<a href="#940" id="940">940</a>
+<a href="#941" id="941">941</a>
+<a href="#942" id="942">942</a>
+<a href="#943" id="943">943</a>
+<a href="#944" id="944">944</a>
+<a href="#945" id="945">945</a>
+<a href="#946" id="946">946</a>
+<a href="#947" id="947">947</a>
+<a href="#948" id="948">948</a>
+<a href="#949" id="949">949</a>
+<a href="#950" id="950">950</a>
+<a href="#951" id="951">951</a>
+<a href="#952" id="952">952</a>
+<a href="#953" id="953">953</a>
+<a href="#954" id="954">954</a>
+<a href="#955" id="955">955</a>
+<a href="#956" id="956">956</a>
+<a href="#957" id="957">957</a>
+<a href="#958" id="958">958</a>
 </pre><pre class="rust"><code><span class="doccomment">//! Statement and declaration parsing.
 //!
 //! More information:
@@ -984,6 +1005,10 @@
         AllowAwait, AllowReturn, AllowYield, Cursor, OrAbrupt, ParseResult, TokenParser,
     },
     Error,
+};
+<span class="kw">use </span>ast::{
+    operations::{check_labels, contains_invalid_object_literal},
+    Position,
 };
 <span class="kw">use </span>boa_ast::{
     <span class="self">self </span><span class="kw">as </span>ast,
@@ -1131,7 +1156,8 @@
                 </span>cursor.advance(interner);
                 <span class="prelude-val">Ok</span>(ast::Statement::Empty)
             }
-            TokenKind::IdentifierName(<span class="kw">_</span>) =&gt; {
+            TokenKind::IdentifierName(<span class="kw">_</span>)
+            | TokenKind::Keyword((Keyword::Await | Keyword::Yield, <span class="bool-val">false</span>)) =&gt; {
                 <span class="comment">// Labelled Statement check
                 </span>cursor.set_goal(InputElement::Div);
                 <span class="kw">let </span>tok = cursor.peek(<span class="number">1</span>, interner)<span class="question-mark">?</span>;
@@ -1828,7 +1854,23 @@
     <span class="kw">fn </span>parse(<span class="self">self</span>, cursor: <span class="kw-2">&amp;mut </span>Cursor&lt;R&gt;, interner: <span class="kw-2">&amp;mut </span>Interner) -&gt; ParseResult&lt;<span class="self">Self</span>::Output&gt; {
         <span class="kw">let </span><span class="kw-2">mut </span>list = Vec::new();
         <span class="kw">while </span>cursor.peek(<span class="number">0</span>, interner)<span class="question-mark">?</span>.is_some() {
-            list.push(ModuleItem.parse(cursor, interner)<span class="question-mark">?</span>);
+            <span class="kw">let </span>item = ModuleItem.parse(cursor, interner)<span class="question-mark">?</span>;
+
+            <span class="kw">if let </span><span class="prelude-val">Err</span>(error) = check_labels(<span class="kw-2">&amp;</span>item) {
+                <span class="kw">return </span><span class="prelude-val">Err</span>(Error::lex(LexError::Syntax(
+                    error.message(interner).into(),
+                    Position::new(<span class="number">1</span>, <span class="number">1</span>),
+                )));
+            }
+
+            <span class="kw">if </span>contains_invalid_object_literal(<span class="kw-2">&amp;</span>item) {
+                <span class="kw">return </span><span class="prelude-val">Err</span>(Error::lex(LexError::Syntax(
+                    <span class="string">&quot;invalid object literal in module item list&quot;</span>.into(),
+                    Position::new(<span class="number">1</span>, <span class="number">1</span>),
+                )));
+            }
+
+            list.push(item);
         }
 
         <span class="prelude-val">Ok</span>(list.into())

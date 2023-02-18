@@ -25,9 +25,7 @@
 <a href="#24" id="24">24</a>
 <a href="#25" id="25">25</a>
 <a href="#26" id="26">26</a>
-<a href="#27" id="27">27</a>
-<a href="#28" id="28">28</a>
-</pre><pre class="rust"><code><span class="kw">use crate</span>::{bytecompiler::ByteCompiler, vm::Opcode, JsResult};
+</pre><pre class="rust"><code><span class="kw">use crate</span>::{bytecompiler::ByteCompiler, vm::Opcode};
 
 <span class="kw">use </span>boa_ast::statement::Block;
 
@@ -38,12 +36,12 @@
         block: <span class="kw-2">&amp;</span>Block,
         use_expr: bool,
         configurable_globals: bool,
-    ) -&gt; JsResult&lt;()&gt; {
+    ) {
         <span class="self">self</span>.context.push_compile_time_environment(<span class="bool-val">false</span>);
         <span class="kw">let </span>push_env = <span class="self">self</span>.emit_opcode_with_two_operands(Opcode::PushDeclarativeEnvironment);
 
         <span class="self">self</span>.create_script_decls(block.statement_list(), configurable_globals);
-        <span class="self">self</span>.compile_statement_list(block.statement_list(), use_expr, configurable_globals)<span class="question-mark">?</span>;
+        <span class="self">self</span>.compile_statement_list(block.statement_list(), use_expr, configurable_globals);
 
         <span class="kw">let </span>(num_bindings, compile_environment) = <span class="self">self</span>.context.pop_compile_time_environment();
         <span class="kw">let </span>index_compile_environment = <span class="self">self</span>.push_compile_environment(compile_environment);
@@ -51,8 +49,6 @@
         <span class="self">self</span>.patch_jump_with_target(push_env.<span class="number">1</span>, index_compile_environment <span class="kw">as </span>u32);
 
         <span class="self">self</span>.emit_opcode(Opcode::PopEnvironment);
-
-        <span class="prelude-val">Ok</span>(())
     }
 }
 </code></pre></div>

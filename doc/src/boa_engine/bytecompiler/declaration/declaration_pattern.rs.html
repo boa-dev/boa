@@ -254,18 +254,13 @@
 <a href="#253" id="253">253</a>
 <a href="#254" id="254">254</a>
 <a href="#255" id="255">255</a>
-<a href="#256" id="256">256</a>
-<a href="#257" id="257">257</a>
-<a href="#258" id="258">258</a>
-</pre><pre class="rust"><code><span class="kw">use </span>boa_ast::{
-    pattern::{ArrayPatternElement, ObjectPatternElement, Pattern},
-    property::PropertyName,
-};
-
-<span class="kw">use crate</span>::{
+</pre><pre class="rust"><code><span class="kw">use crate</span>::{
     bytecompiler::{Access, ByteCompiler, Literal},
     vm::{BindingOpcode, Opcode},
-    JsResult,
+};
+<span class="kw">use </span>boa_ast::{
+    pattern::{ArrayPatternElement, ObjectPatternElement, Pattern},
+    property::PropertyName,
 };
 
 <span class="kw">impl </span>ByteCompiler&lt;<span class="lifetime">&#39;_</span>, <span class="lifetime">&#39;_</span>&gt; {
@@ -273,7 +268,7 @@
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
         pattern: <span class="kw-2">&amp;</span>Pattern,
         def: BindingOpcode,
-    ) -&gt; JsResult&lt;()&gt; {
+    ) {
         <span class="kw">match </span>pattern {
             Pattern::Object(pattern) =&gt; {
                 <span class="self">self</span>.emit_opcode(Opcode::ValueNotNullOrUndefined);
@@ -303,7 +298,7 @@
                                     <span class="self">self</span>.emit(Opcode::GetPropertyByName, <span class="kw-2">&amp;</span>[index]);
                                 }
                                 PropertyName::Computed(node) =&gt; {
-                                    <span class="self">self</span>.compile_expr(node, <span class="bool-val">true</span>)<span class="question-mark">?</span>;
+                                    <span class="self">self</span>.compile_expr(node, <span class="bool-val">true</span>);
                                     <span class="kw">if </span>rest_exits {
                                         <span class="self">self</span>.emit_opcode(Opcode::GetPropertyByValuePush);
                                     } <span class="kw">else </span>{
@@ -315,7 +310,7 @@
                             <span class="kw">if let </span><span class="prelude-val">Some</span>(init) = default_init {
                                 <span class="kw">let </span>skip =
                                     <span class="self">self</span>.emit_opcode_with_operand(Opcode::JumpIfNotUndefined);
-                                <span class="self">self</span>.compile_expr(init, <span class="bool-val">true</span>)<span class="question-mark">?</span>;
+                                <span class="self">self</span>.compile_expr(init, <span class="bool-val">true</span>);
                                 <span class="self">self</span>.patch_jump(skip);
                             }
                             <span class="self">self</span>.emit_binding(def, <span class="kw-2">*</span>ident);
@@ -360,7 +355,7 @@
                                 Access::Property { access },
                                 <span class="bool-val">false</span>,
                                 ByteCompiler::access_set_top_of_stack_expr_fn,
-                            )<span class="question-mark">?</span>;
+                            );
                         }
                         AssignmentPropertyAccess {
                             name,
@@ -374,7 +369,7 @@
                                     <span class="self">self</span>.emit(Opcode::GetPropertyByName, <span class="kw-2">&amp;</span>[index]);
                                 }
                                 PropertyName::Computed(node) =&gt; {
-                                    <span class="self">self</span>.compile_expr(node, <span class="bool-val">true</span>)<span class="question-mark">?</span>;
+                                    <span class="self">self</span>.compile_expr(node, <span class="bool-val">true</span>);
                                     <span class="kw">if </span>rest_exits {
                                         <span class="self">self</span>.emit_opcode(Opcode::GetPropertyByValuePush);
                                     } <span class="kw">else </span>{
@@ -386,7 +381,7 @@
                             <span class="kw">if let </span><span class="prelude-val">Some</span>(init) = default_init {
                                 <span class="kw">let </span>skip =
                                     <span class="self">self</span>.emit_opcode_with_operand(Opcode::JumpIfNotUndefined);
-                                <span class="self">self</span>.compile_expr(init, <span class="bool-val">true</span>)<span class="question-mark">?</span>;
+                                <span class="self">self</span>.compile_expr(init, <span class="bool-val">true</span>);
                                 <span class="self">self</span>.patch_jump(skip);
                             }
 
@@ -394,7 +389,7 @@
                                 Access::Property { access },
                                 <span class="bool-val">false</span>,
                                 ByteCompiler::access_set_top_of_stack_expr_fn,
-                            )<span class="question-mark">?</span>;
+                            );
 
                             <span class="kw">if </span>rest_exits &amp;&amp; name.computed().is_some() {
                                 <span class="self">self</span>.emit_opcode(Opcode::Swap);
@@ -413,7 +408,7 @@
                                     <span class="self">self</span>.emit(Opcode::GetPropertyByName, <span class="kw-2">&amp;</span>[index]);
                                 }
                                 PropertyName::Computed(node) =&gt; {
-                                    <span class="self">self</span>.compile_expr(node, <span class="bool-val">true</span>)<span class="question-mark">?</span>;
+                                    <span class="self">self</span>.compile_expr(node, <span class="bool-val">true</span>);
                                     <span class="self">self</span>.emit_opcode(Opcode::GetPropertyByValue);
                                 }
                             }
@@ -421,11 +416,11 @@
                             <span class="kw">if let </span><span class="prelude-val">Some</span>(init) = default_init {
                                 <span class="kw">let </span>skip =
                                     <span class="self">self</span>.emit_opcode_with_operand(Opcode::JumpIfNotUndefined);
-                                <span class="self">self</span>.compile_expr(init, <span class="bool-val">true</span>)<span class="question-mark">?</span>;
+                                <span class="self">self</span>.compile_expr(init, <span class="bool-val">true</span>);
                                 <span class="self">self</span>.patch_jump(skip);
                             }
 
-                            <span class="self">self</span>.compile_declaration_pattern(pattern, def)<span class="question-mark">?</span>;
+                            <span class="self">self</span>.compile_declaration_pattern(pattern, def);
                         }
                     }
                 }
@@ -459,7 +454,7 @@
                             <span class="kw">if let </span><span class="prelude-val">Some</span>(init) = default_init {
                                 <span class="kw">let </span>skip =
                                     <span class="self">self</span>.emit_opcode_with_operand(Opcode::JumpIfNotUndefined);
-                                <span class="self">self</span>.compile_expr(init, <span class="bool-val">true</span>)<span class="question-mark">?</span>;
+                                <span class="self">self</span>.compile_expr(init, <span class="bool-val">true</span>);
                                 <span class="self">self</span>.patch_jump(skip);
                             }
                             <span class="self">self</span>.emit_binding(def, <span class="kw-2">*</span>ident);
@@ -470,7 +465,7 @@
                                 Access::Property { access },
                                 <span class="bool-val">false</span>,
                                 ByteCompiler::access_set_top_of_stack_expr_fn,
-                            )<span class="question-mark">?</span>;
+                            );
                         }
                         <span class="comment">// BindingElement : BindingPattern Initializer[opt]
                         </span>Pattern {
@@ -482,11 +477,11 @@
                             <span class="kw">if let </span><span class="prelude-val">Some</span>(init) = default_init {
                                 <span class="kw">let </span>skip =
                                     <span class="self">self</span>.emit_opcode_with_operand(Opcode::JumpIfNotUndefined);
-                                <span class="self">self</span>.compile_expr(init, <span class="bool-val">true</span>)<span class="question-mark">?</span>;
+                                <span class="self">self</span>.compile_expr(init, <span class="bool-val">true</span>);
                                 <span class="self">self</span>.patch_jump(skip);
                             }
 
-                            <span class="self">self</span>.compile_declaration_pattern(pattern, def)<span class="question-mark">?</span>;
+                            <span class="self">self</span>.compile_declaration_pattern(pattern, def);
                         }
                         <span class="comment">// BindingRestElement : ... BindingIdentifier
                         </span>SingleNameRest { ident } =&gt; {
@@ -499,12 +494,12 @@
                                 Access::Property { access },
                                 <span class="bool-val">false</span>,
                                 ByteCompiler::access_set_top_of_stack_expr_fn,
-                            )<span class="question-mark">?</span>;
+                            );
                         }
                         <span class="comment">// BindingRestElement : ... BindingPattern
                         </span>PatternRest { pattern } =&gt; {
                             <span class="self">self</span>.emit_opcode(Opcode::IteratorToArray);
-                            <span class="self">self</span>.compile_declaration_pattern(pattern, def)<span class="question-mark">?</span>;
+                            <span class="self">self</span>.compile_declaration_pattern(pattern, def);
                         }
                     }
                 }
@@ -512,7 +507,6 @@
                 <span class="self">self</span>.emit_opcode(Opcode::IteratorClose);
             }
         }
-        <span class="prelude-val">Ok</span>(())
     }
 }
 </code></pre></div>

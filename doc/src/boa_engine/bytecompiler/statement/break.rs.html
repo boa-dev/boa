@@ -80,40 +80,16 @@
 <a href="#79" id="79">79</a>
 <a href="#80" id="80">80</a>
 <a href="#81" id="81">81</a>
-<a href="#82" id="82">82</a>
-<a href="#83" id="83">83</a>
-<a href="#84" id="84">84</a>
-<a href="#85" id="85">85</a>
-<a href="#86" id="86">86</a>
-<a href="#87" id="87">87</a>
-<a href="#88" id="88">88</a>
-<a href="#89" id="89">89</a>
-<a href="#90" id="90">90</a>
-<a href="#91" id="91">91</a>
-<a href="#92" id="92">92</a>
-<a href="#93" id="93">93</a>
-<a href="#94" id="94">94</a>
-<a href="#95" id="95">95</a>
-<a href="#96" id="96">96</a>
-<a href="#97" id="97">97</a>
-<a href="#98" id="98">98</a>
-<a href="#99" id="99">99</a>
-<a href="#100" id="100">100</a>
-<a href="#101" id="101">101</a>
-<a href="#102" id="102">102</a>
-</pre><pre class="rust"><code><span class="kw">use </span>boa_ast::statement::Break;
-
-<span class="kw">use crate</span>::{
+</pre><pre class="rust"><code><span class="kw">use crate</span>::{
     bytecompiler::{ByteCompiler, Label},
     vm::Opcode,
-    JsNativeError, JsResult,
 };
-
+<span class="kw">use </span>boa_ast::statement::Break;
 <span class="kw">use </span>boa_interner::Sym;
 
 <span class="kw">impl </span>ByteCompiler&lt;<span class="lifetime">&#39;_</span>, <span class="lifetime">&#39;_</span>&gt; {
     <span class="doccomment">/// Compile a [`Break`] `boa_ast` node
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>compile_break(<span class="kw-2">&amp;mut </span><span class="self">self</span>, node: Break) -&gt; JsResult&lt;()&gt; {
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>compile_break(<span class="kw-2">&amp;mut </span><span class="self">self</span>, node: Break) {
         <span class="kw">if let </span><span class="prelude-val">Some</span>(info) = <span class="self">self</span>.jump_info.last().filter(|info| info.is_try_block()) {
             <span class="kw">let </span>in_finally = info.in_finally();
             <span class="kw">let </span>in_catch_no_finally = info.in_catch() &amp;&amp; !info.has_finally();
@@ -130,11 +106,11 @@
                 <span class="self">self</span>.emit_opcode_with_two_operands(Opcode::Break);
 
             <span class="kw">if let </span><span class="prelude-val">Some</span>(node_label) = node.label() {
-                <span class="self">self</span>.search_jump_info_label(target_jump_label, node_label)<span class="question-mark">?</span>;
+                <span class="self">self</span>.search_jump_info_label(target_jump_label, node_label);
 
                 <span class="kw">if </span>!has_finally_or_is_finally {
-                    <span class="self">self</span>.search_jump_info_label(break_label, node_label)<span class="question-mark">?</span>;
-                    <span class="kw">return </span><span class="prelude-val">Ok</span>(());
+                    <span class="self">self</span>.search_jump_info_label(break_label, node_label);
+                    <span class="kw">return</span>;
                 }
             } <span class="kw">else </span>{
                 <span class="self">self</span>.jump_info
@@ -146,13 +122,11 @@
             <span class="kw">let </span>info = <span class="self">self
                 </span>.jump_info
                 .last_mut()
-                <span class="comment">// TODO: Currently would allow unlabelled breaks in try_blocks with no
-                // loops or switch. This can prevented by the early error referenced in line 66.
-                </span>.expect(<span class="string">&quot;This try block must exist&quot;</span>);
+                .expect(<span class="string">&quot;This try block must exist&quot;</span>);
 
             info.push_break_label(break_label);
 
-            <span class="kw">return </span><span class="prelude-val">Ok</span>(());
+            <span class="kw">return</span>;
         }
 
         <span class="comment">// Emit the break opcode -&gt; (Label, Label)
@@ -161,27 +135,21 @@
             <span class="self">self</span>.search_jump_info_label(
                 break_label,
                 node.label().expect(<span class="string">&quot;must exist in this block&quot;</span>),
-            )<span class="question-mark">?</span>;
-            <span class="self">self</span>.search_jump_info_label(target_label, node.label().expect(<span class="string">&quot;must exist&quot;</span>))<span class="question-mark">?</span>;
-            <span class="kw">return </span><span class="prelude-val">Ok</span>(());
+            );
+            <span class="self">self</span>.search_jump_info_label(target_label, node.label().expect(<span class="string">&quot;must exist&quot;</span>));
+            <span class="kw">return</span>;
         };
 
         <span class="kw">let </span>info = <span class="self">self
             </span>.jump_info
             .last_mut()
-            <span class="comment">// TODO: promote to an early error.
-            </span>.ok_or_else(|| {
-                JsNativeError::syntax()
-                    .with_message(<span class="string">&quot;unlabeled break must be inside loop or switch&quot;</span>)
-            })<span class="question-mark">?</span>;
+            .expect(<span class="string">&quot;unlabeled break must be inside loop or switch&quot;</span>);
 
         info.push_break_label(break_label);
         info.push_break_label(target_label);
-
-        <span class="prelude-val">Ok</span>(())
     }
 
-    <span class="kw">fn </span>search_jump_info_label(<span class="kw-2">&amp;mut </span><span class="self">self</span>, address: Label, node_label: Sym) -&gt; JsResult&lt;()&gt; {
+    <span class="kw">fn </span>search_jump_info_label(<span class="kw-2">&amp;mut </span><span class="self">self</span>, address: Label, node_label: Sym) {
         <span class="kw">let </span><span class="kw-2">mut </span>found = <span class="bool-val">false</span>;
         <span class="kw">for </span>info <span class="kw">in </span><span class="self">self</span>.jump_info.iter_mut().rev() {
             <span class="kw">if </span>info.label() == <span class="prelude-val">Some</span>(node_label) {
@@ -190,17 +158,7 @@
                 <span class="kw">break</span>;
             }
         }
-        <span class="comment">// TODO: promote to an early error.
-        </span><span class="kw">if </span>!found {
-            <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::syntax()
-                .with_message(<span class="macro">format!</span>(
-                    <span class="string">&quot;Cannot use the undeclared label &#39;{}&#39;&quot;</span>,
-                    <span class="self">self</span>.interner().resolve_expect(node_label)
-                ))
-                .into());
-        }
-
-        <span class="prelude-val">Ok</span>(())
+        <span class="macro">assert!</span>(found, <span class="string">&quot;Cannot use the undeclared label&quot;</span>);
     }
 }
 </code></pre></div>

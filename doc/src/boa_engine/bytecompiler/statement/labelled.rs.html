@@ -66,19 +66,13 @@
 <a href="#65" id="65">65</a>
 <a href="#66" id="66">66</a>
 <a href="#67" id="67">67</a>
-<a href="#68" id="68">68</a>
-<a href="#69" id="69">69</a>
-<a href="#70" id="70">70</a>
-<a href="#71" id="71">71</a>
-</pre><pre class="rust"><code><span class="kw">use </span>boa_ast::{
-    statement::{Labelled, LabelledItem},
-    Statement,
-};
-
-<span class="kw">use crate</span>::{
+</pre><pre class="rust"><code><span class="kw">use crate</span>::{
     bytecompiler::{ByteCompiler, NodeKind},
     vm::Opcode,
-    JsResult,
+};
+<span class="kw">use </span>boa_ast::{
+    statement::{Labelled, LabelledItem},
+    Statement,
 };
 
 <span class="kw">impl </span>ByteCompiler&lt;<span class="lifetime">&#39;_</span>, <span class="lifetime">&#39;_</span>&gt; {
@@ -88,7 +82,7 @@
         labelled: <span class="kw-2">&amp;</span>Labelled,
         use_expr: bool,
         configurable_globals: bool,
-    ) -&gt; JsResult&lt;()&gt; {
+    ) {
         <span class="kw">let </span>labelled_loc = <span class="self">self</span>.next_opcode_location();
         <span class="kw">let </span>end_label = <span class="self">self</span>.emit_opcode_with_operand(Opcode::LabelledStart);
         <span class="self">self</span>.push_labelled_control_info(labelled.label(), labelled_loc);
@@ -96,40 +90,40 @@
         <span class="kw">match </span>labelled.item() {
             LabelledItem::Statement(stmt) =&gt; <span class="kw">match </span>stmt {
                 Statement::ForLoop(for_loop) =&gt; {
-                    <span class="self">self</span>.compile_for_loop(for_loop, <span class="prelude-val">Some</span>(labelled.label()), configurable_globals)<span class="question-mark">?</span>;
+                    <span class="self">self</span>.compile_for_loop(for_loop, <span class="prelude-val">Some</span>(labelled.label()), configurable_globals);
                 }
                 Statement::ForInLoop(for_in_loop) =&gt; {
                     <span class="self">self</span>.compile_for_in_loop(
                         for_in_loop,
                         <span class="prelude-val">Some</span>(labelled.label()),
                         configurable_globals,
-                    )<span class="question-mark">?</span>;
+                    );
                 }
                 Statement::ForOfLoop(for_of_loop) =&gt; {
                     <span class="self">self</span>.compile_for_of_loop(
                         for_of_loop,
                         <span class="prelude-val">Some</span>(labelled.label()),
                         configurable_globals,
-                    )<span class="question-mark">?</span>;
+                    );
                 }
                 Statement::WhileLoop(while_loop) =&gt; {
                     <span class="self">self</span>.compile_while_loop(
                         while_loop,
                         <span class="prelude-val">Some</span>(labelled.label()),
                         configurable_globals,
-                    )<span class="question-mark">?</span>;
+                    );
                 }
                 Statement::DoWhileLoop(do_while_loop) =&gt; {
                     <span class="self">self</span>.compile_do_while_loop(
                         do_while_loop,
                         <span class="prelude-val">Some</span>(labelled.label()),
                         configurable_globals,
-                    )<span class="question-mark">?</span>;
+                    );
                 }
-                stmt =&gt; <span class="self">self</span>.compile_stmt(stmt, use_expr, configurable_globals)<span class="question-mark">?</span>,
+                stmt =&gt; <span class="self">self</span>.compile_stmt(stmt, use_expr, configurable_globals),
             },
             LabelledItem::Function(f) =&gt; {
-                <span class="self">self</span>.function(f.into(), NodeKind::Declaration, <span class="bool-val">false</span>)<span class="question-mark">?</span>;
+                <span class="self">self</span>.function(f.into(), NodeKind::Declaration, <span class="bool-val">false</span>);
             }
         }
 
@@ -137,8 +131,6 @@
         <span class="self">self</span>.patch_jump_with_target(end_label, labelled_end);
         <span class="self">self</span>.pop_labelled_control_info();
         <span class="self">self</span>.emit_opcode(Opcode::LabelledEnd);
-
-        <span class="prelude-val">Ok</span>(())
     }
 }
 </code></pre></div>

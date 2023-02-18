@@ -308,16 +308,6 @@
 <a href="#307" id="307">307</a>
 <a href="#308" id="308">308</a>
 <a href="#309" id="309">309</a>
-<a href="#310" id="310">310</a>
-<a href="#311" id="311">311</a>
-<a href="#312" id="312">312</a>
-<a href="#313" id="313">313</a>
-<a href="#314" id="314">314</a>
-<a href="#315" id="315">315</a>
-<a href="#316" id="316">316</a>
-<a href="#317" id="317">317</a>
-<a href="#318" id="318">318</a>
-<a href="#319" id="319">319</a>
 </pre><pre class="rust"><code><span class="kw">mod </span>assign;
 <span class="kw">mod </span>binary;
 <span class="kw">mod </span>object_literal;
@@ -328,7 +318,6 @@
 <span class="kw">use crate</span>::{
     bytecompiler::{ByteCompiler, Literal},
     vm::Opcode,
-    JsResult,
 };
 <span class="kw">use </span>boa_ast::{
     expression::{
@@ -361,34 +350,28 @@
         }
     }
 
-    <span class="kw">fn </span>compile_conditional(<span class="kw-2">&amp;mut </span><span class="self">self</span>, op: <span class="kw-2">&amp;</span>Conditional, use_expr: bool) -&gt; JsResult&lt;()&gt; {
-        <span class="self">self</span>.compile_expr(op.condition(), <span class="bool-val">true</span>)<span class="question-mark">?</span>;
+    <span class="kw">fn </span>compile_conditional(<span class="kw-2">&amp;mut </span><span class="self">self</span>, op: <span class="kw-2">&amp;</span>Conditional, use_expr: bool) {
+        <span class="self">self</span>.compile_expr(op.condition(), <span class="bool-val">true</span>);
         <span class="kw">let </span>jelse = <span class="self">self</span>.jump_if_false();
-        <span class="self">self</span>.compile_expr(op.if_true(), <span class="bool-val">true</span>)<span class="question-mark">?</span>;
+        <span class="self">self</span>.compile_expr(op.if_true(), <span class="bool-val">true</span>);
         <span class="kw">let </span>exit = <span class="self">self</span>.jump();
         <span class="self">self</span>.patch_jump(jelse);
-        <span class="self">self</span>.compile_expr(op.if_false(), <span class="bool-val">true</span>)<span class="question-mark">?</span>;
+        <span class="self">self</span>.compile_expr(op.if_false(), <span class="bool-val">true</span>);
         <span class="self">self</span>.patch_jump(exit);
 
         <span class="kw">if </span>!use_expr {
             <span class="self">self</span>.emit(Opcode::Pop, <span class="kw-2">&amp;</span>[]);
         };
-
-        <span class="prelude-val">Ok</span>(())
     }
 
-    <span class="kw">fn </span>compile_template_literal(
-        <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-        template_literal: <span class="kw-2">&amp;</span>TemplateLiteral,
-        use_expr: bool,
-    ) -&gt; JsResult&lt;()&gt; {
+    <span class="kw">fn </span>compile_template_literal(<span class="kw-2">&amp;mut </span><span class="self">self</span>, template_literal: <span class="kw-2">&amp;</span>TemplateLiteral, use_expr: bool) {
         <span class="kw">for </span>element <span class="kw">in </span>template_literal.elements() {
             <span class="kw">match </span>element {
                 TemplateElement::String(s) =&gt; <span class="self">self</span>.emit_push_literal(Literal::String(
                     <span class="self">self</span>.interner().resolve_expect(<span class="kw-2">*</span>s).into_common(<span class="bool-val">false</span>),
                 )),
                 TemplateElement::Expr(expr) =&gt; {
-                    <span class="self">self</span>.compile_expr(expr, <span class="bool-val">true</span>)<span class="question-mark">?</span>;
+                    <span class="self">self</span>.compile_expr(expr, <span class="bool-val">true</span>);
                 }
             }
         }
@@ -401,37 +384,35 @@
         <span class="kw">if </span>!use_expr {
             <span class="self">self</span>.emit(Opcode::Pop, <span class="kw-2">&amp;</span>[]);
         }
-
-        <span class="prelude-val">Ok</span>(())
     }
 
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>compile_expr_impl(<span class="kw-2">&amp;mut </span><span class="self">self</span>, expr: <span class="kw-2">&amp;</span>Expression, use_expr: bool) -&gt; JsResult&lt;()&gt; {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>compile_expr_impl(<span class="kw-2">&amp;mut </span><span class="self">self</span>, expr: <span class="kw-2">&amp;</span>Expression, use_expr: bool) {
         <span class="kw">match </span>expr {
             Expression::Literal(lit) =&gt; <span class="self">self</span>.compile_literal(lit, use_expr),
-            Expression::Unary(unary) =&gt; <span class="self">self</span>.compile_unary(unary, use_expr)<span class="question-mark">?</span>,
-            Expression::Update(update) =&gt; <span class="self">self</span>.compile_update(update, use_expr)<span class="question-mark">?</span>,
-            Expression::Binary(binary) =&gt; <span class="self">self</span>.compile_binary(binary, use_expr)<span class="question-mark">?</span>,
+            Expression::Unary(unary) =&gt; <span class="self">self</span>.compile_unary(unary, use_expr),
+            Expression::Update(update) =&gt; <span class="self">self</span>.compile_update(update, use_expr),
+            Expression::Binary(binary) =&gt; <span class="self">self</span>.compile_binary(binary, use_expr),
             Expression::BinaryInPrivate(binary) =&gt; {
-                <span class="self">self</span>.compile_binary_in_private(binary, use_expr)<span class="question-mark">?</span>;
+                <span class="self">self</span>.compile_binary_in_private(binary, use_expr);
             }
-            Expression::Assign(assign) =&gt; <span class="self">self</span>.compile_assign(assign, use_expr)<span class="question-mark">?</span>,
+            Expression::Assign(assign) =&gt; <span class="self">self</span>.compile_assign(assign, use_expr),
             Expression::ObjectLiteral(object) =&gt; {
-                <span class="self">self</span>.compile_object_literal(object, use_expr)<span class="question-mark">?</span>;
+                <span class="self">self</span>.compile_object_literal(object, use_expr);
             }
             Expression::Identifier(name) =&gt; {
-                <span class="self">self</span>.access_get(Access::Variable { name: <span class="kw-2">*</span>name }, use_expr)<span class="question-mark">?</span>;
+                <span class="self">self</span>.access_get(Access::Variable { name: <span class="kw-2">*</span>name }, use_expr);
             }
             Expression::PropertyAccess(access) =&gt; {
-                <span class="self">self</span>.access_get(Access::Property { access }, use_expr)<span class="question-mark">?</span>;
+                <span class="self">self</span>.access_get(Access::Property { access }, use_expr);
             }
-            Expression::Conditional(op) =&gt; <span class="self">self</span>.compile_conditional(op, use_expr)<span class="question-mark">?</span>,
+            Expression::Conditional(op) =&gt; <span class="self">self</span>.compile_conditional(op, use_expr),
             Expression::ArrayLiteral(array) =&gt; {
                 <span class="self">self</span>.emit_opcode(Opcode::PushNewArray);
                 <span class="self">self</span>.emit_opcode(Opcode::PopOnReturnAdd);
 
                 <span class="kw">for </span>element <span class="kw">in </span>array.as_ref() {
                     <span class="kw">if let </span><span class="prelude-val">Some</span>(element) = element {
-                        <span class="self">self</span>.compile_expr(element, <span class="bool-val">true</span>)<span class="question-mark">?</span>;
+                        <span class="self">self</span>.compile_expr(element, <span class="bool-val">true</span>);
                         <span class="kw">if let </span>Expression::Spread(<span class="kw">_</span>) = element {
                             <span class="self">self</span>.emit_opcode(Opcode::InitIterator);
                             <span class="self">self</span>.emit_opcode(Opcode::PushIteratorToArray);
@@ -449,34 +430,34 @@
                 }
             }
             Expression::This =&gt; {
-                <span class="self">self</span>.access_get(Access::This, use_expr)<span class="question-mark">?</span>;
+                <span class="self">self</span>.access_get(Access::This, use_expr);
             }
-            Expression::Spread(spread) =&gt; <span class="self">self</span>.compile_expr(spread.target(), <span class="bool-val">true</span>)<span class="question-mark">?</span>,
+            Expression::Spread(spread) =&gt; <span class="self">self</span>.compile_expr(spread.target(), <span class="bool-val">true</span>),
             Expression::Function(function) =&gt; {
-                <span class="self">self</span>.function(function.into(), NodeKind::Expression, use_expr)<span class="question-mark">?</span>;
+                <span class="self">self</span>.function(function.into(), NodeKind::Expression, use_expr);
             }
             Expression::ArrowFunction(function) =&gt; {
-                <span class="self">self</span>.function(function.into(), NodeKind::Expression, use_expr)<span class="question-mark">?</span>;
+                <span class="self">self</span>.function(function.into(), NodeKind::Expression, use_expr);
             }
             Expression::AsyncArrowFunction(function) =&gt; {
-                <span class="self">self</span>.function(function.into(), NodeKind::Expression, use_expr)<span class="question-mark">?</span>;
+                <span class="self">self</span>.function(function.into(), NodeKind::Expression, use_expr);
             }
             Expression::Generator(function) =&gt; {
-                <span class="self">self</span>.function(function.into(), NodeKind::Expression, use_expr)<span class="question-mark">?</span>;
+                <span class="self">self</span>.function(function.into(), NodeKind::Expression, use_expr);
             }
             Expression::AsyncFunction(function) =&gt; {
-                <span class="self">self</span>.function(function.into(), NodeKind::Expression, use_expr)<span class="question-mark">?</span>;
+                <span class="self">self</span>.function(function.into(), NodeKind::Expression, use_expr);
             }
             Expression::AsyncGenerator(function) =&gt; {
-                <span class="self">self</span>.function(function.into(), NodeKind::Expression, use_expr)<span class="question-mark">?</span>;
+                <span class="self">self</span>.function(function.into(), NodeKind::Expression, use_expr);
             }
-            Expression::Call(call) =&gt; <span class="self">self</span>.call(Callable::Call(call), use_expr)<span class="question-mark">?</span>,
-            Expression::New(new) =&gt; <span class="self">self</span>.call(Callable::New(new), use_expr)<span class="question-mark">?</span>,
+            Expression::Call(call) =&gt; <span class="self">self</span>.call(Callable::Call(call), use_expr),
+            Expression::New(new) =&gt; <span class="self">self</span>.call(Callable::New(new), use_expr),
             Expression::TemplateLiteral(template_literal) =&gt; {
-                <span class="self">self</span>.compile_template_literal(template_literal, use_expr)<span class="question-mark">?</span>;
+                <span class="self">self</span>.compile_template_literal(template_literal, use_expr);
             }
             Expression::Await(expr) =&gt; {
-                <span class="self">self</span>.compile_expr(expr.target(), <span class="bool-val">true</span>)<span class="question-mark">?</span>;
+                <span class="self">self</span>.compile_expr(expr.target(), <span class="bool-val">true</span>);
                 <span class="self">self</span>.emit_opcode(Opcode::Await);
                 <span class="self">self</span>.emit_opcode(Opcode::GeneratorNext);
                 <span class="kw">if </span>!use_expr {
@@ -485,7 +466,7 @@
             }
             Expression::Yield(r#yield) =&gt; {
                 <span class="kw">if let </span><span class="prelude-val">Some</span>(expr) = r#yield.target() {
-                    <span class="self">self</span>.compile_expr(expr, <span class="bool-val">true</span>)<span class="question-mark">?</span>;
+                    <span class="self">self</span>.compile_expr(expr, <span class="bool-val">true</span>);
                 } <span class="kw">else </span>{
                     <span class="self">self</span>.emit_opcode(Opcode::PushUndefined);
                 }
@@ -524,7 +505,7 @@
             Expression::TaggedTemplate(template) =&gt; {
                 <span class="kw">match </span>template.tag() {
                     Expression::PropertyAccess(PropertyAccess::Simple(access)) =&gt; {
-                        <span class="self">self</span>.compile_expr(access.target(), <span class="bool-val">true</span>)<span class="question-mark">?</span>;
+                        <span class="self">self</span>.compile_expr(access.target(), <span class="bool-val">true</span>);
                         <span class="self">self</span>.emit(Opcode::Dup, <span class="kw-2">&amp;</span>[]);
                         <span class="kw">match </span>access.field() {
                             PropertyAccessField::Const(field) =&gt; {
@@ -532,19 +513,19 @@
                                 <span class="self">self</span>.emit(Opcode::GetPropertyByName, <span class="kw-2">&amp;</span>[index]);
                             }
                             PropertyAccessField::Expr(field) =&gt; {
-                                <span class="self">self</span>.compile_expr(field, <span class="bool-val">true</span>)<span class="question-mark">?</span>;
+                                <span class="self">self</span>.compile_expr(field, <span class="bool-val">true</span>);
                                 <span class="self">self</span>.emit(Opcode::GetPropertyByValue, <span class="kw-2">&amp;</span>[]);
                             }
                         }
                     }
                     Expression::PropertyAccess(PropertyAccess::Private(access)) =&gt; {
-                        <span class="self">self</span>.compile_expr(access.target(), <span class="bool-val">true</span>)<span class="question-mark">?</span>;
+                        <span class="self">self</span>.compile_expr(access.target(), <span class="bool-val">true</span>);
                         <span class="self">self</span>.emit(Opcode::Dup, <span class="kw-2">&amp;</span>[]);
                         <span class="kw">let </span>index = <span class="self">self</span>.get_or_insert_private_name(access.field());
                         <span class="self">self</span>.emit(Opcode::GetPrivateField, <span class="kw-2">&amp;</span>[index]);
                     }
                     expr =&gt; {
-                        <span class="self">self</span>.compile_expr(expr, <span class="bool-val">true</span>)<span class="question-mark">?</span>;
+                        <span class="self">self</span>.compile_expr(expr, <span class="bool-val">true</span>);
                         <span class="self">self</span>.emit_opcode(Opcode::This);
                         <span class="self">self</span>.emit_opcode(Opcode::Swap);
                     }
@@ -577,12 +558,12 @@
                 <span class="self">self</span>.emit(Opcode::Pop, <span class="kw-2">&amp;</span>[]);
 
                 <span class="kw">for </span>expr <span class="kw">in </span>template.exprs() {
-                    <span class="self">self</span>.compile_expr(expr, <span class="bool-val">true</span>)<span class="question-mark">?</span>;
+                    <span class="self">self</span>.compile_expr(expr, <span class="bool-val">true</span>);
                 }
 
                 <span class="self">self</span>.emit(Opcode::Call, <span class="kw-2">&amp;</span>[(template.exprs().len() + <span class="number">1</span>) <span class="kw">as </span>u32]);
             }
-            Expression::Class(class) =&gt; <span class="self">self</span>.class(class, <span class="bool-val">true</span>)<span class="question-mark">?</span>,
+            Expression::Class(class) =&gt; <span class="self">self</span>.class(class, <span class="bool-val">true</span>),
             Expression::SuperCall(super_call) =&gt; {
                 <span class="kw">let </span>contains_spread = super_call
                     .arguments()
@@ -592,7 +573,7 @@
                 <span class="kw">if </span>contains_spread {
                     <span class="self">self</span>.emit_opcode(Opcode::PushNewArray);
                     <span class="kw">for </span>arg <span class="kw">in </span>super_call.arguments() {
-                        <span class="self">self</span>.compile_expr(arg, <span class="bool-val">true</span>)<span class="question-mark">?</span>;
+                        <span class="self">self</span>.compile_expr(arg, <span class="bool-val">true</span>);
                         <span class="kw">if let </span>Expression::Spread(<span class="kw">_</span>) = arg {
                             <span class="self">self</span>.emit_opcode(Opcode::InitIterator);
                             <span class="self">self</span>.emit_opcode(Opcode::PushIteratorToArray);
@@ -602,7 +583,7 @@
                     }
                 } <span class="kw">else </span>{
                     <span class="kw">for </span>arg <span class="kw">in </span>super_call.arguments() {
-                        <span class="self">self</span>.compile_expr(arg, <span class="bool-val">true</span>)<span class="question-mark">?</span>;
+                        <span class="self">self</span>.compile_expr(arg, <span class="bool-val">true</span>);
                     }
                 }
 
@@ -622,7 +603,7 @@
                 }
             }
             Expression::Optional(opt) =&gt; {
-                <span class="self">self</span>.compile_optional_preserve_this(opt)<span class="question-mark">?</span>;
+                <span class="self">self</span>.compile_optional_preserve_this(opt);
 
                 <span class="self">self</span>.emit_opcode(Opcode::Swap);
                 <span class="self">self</span>.emit_opcode(Opcode::Pop);
@@ -634,7 +615,6 @@
             <span class="comment">// TODO: try to remove this variant somehow
             </span>Expression::FormalParameterList(<span class="kw">_</span>) =&gt; <span class="macro">unreachable!</span>(),
         }
-        <span class="prelude-val">Ok</span>(())
     }
 }
 </code></pre></div>

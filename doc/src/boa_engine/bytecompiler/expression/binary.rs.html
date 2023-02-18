@@ -105,27 +105,19 @@
 <a href="#104" id="104">104</a>
 <a href="#105" id="105">105</a>
 <a href="#106" id="106">106</a>
-<a href="#107" id="107">107</a>
-<a href="#108" id="108">108</a>
-<a href="#109" id="109">109</a>
-<a href="#110" id="110">110</a>
-<a href="#111" id="111">111</a>
-<a href="#112" id="112">112</a>
-<a href="#113" id="113">113</a>
-<a href="#114" id="114">114</a>
 </pre><pre class="rust"><code><span class="kw">use </span>boa_ast::expression::operator::{
     binary::{ArithmeticOp, BinaryOp, BitwiseOp, LogicalOp, RelationalOp},
     Binary, BinaryInPrivate,
 };
 
-<span class="kw">use crate</span>::{bytecompiler::ByteCompiler, vm::Opcode, JsResult};
+<span class="kw">use crate</span>::{bytecompiler::ByteCompiler, vm::Opcode};
 
 <span class="kw">impl </span>ByteCompiler&lt;<span class="lifetime">&#39;_</span>, <span class="lifetime">&#39;_</span>&gt; {
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>compile_binary(<span class="kw-2">&amp;mut </span><span class="self">self</span>, binary: <span class="kw-2">&amp;</span>Binary, use_expr: bool) -&gt; JsResult&lt;()&gt; {
-        <span class="self">self</span>.compile_expr(binary.lhs(), <span class="bool-val">true</span>)<span class="question-mark">?</span>;
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>compile_binary(<span class="kw-2">&amp;mut </span><span class="self">self</span>, binary: <span class="kw-2">&amp;</span>Binary, use_expr: bool) {
+        <span class="self">self</span>.compile_expr(binary.lhs(), <span class="bool-val">true</span>);
         <span class="kw">match </span>binary.op() {
             BinaryOp::Arithmetic(op) =&gt; {
-                <span class="self">self</span>.compile_expr(binary.rhs(), <span class="bool-val">true</span>)<span class="question-mark">?</span>;
+                <span class="self">self</span>.compile_expr(binary.rhs(), <span class="bool-val">true</span>);
                 <span class="kw">match </span>op {
                     ArithmeticOp::Add =&gt; <span class="self">self</span>.emit_opcode(Opcode::Add),
                     ArithmeticOp::Sub =&gt; <span class="self">self</span>.emit_opcode(Opcode::Sub),
@@ -140,7 +132,7 @@
                 }
             }
             BinaryOp::Bitwise(op) =&gt; {
-                <span class="self">self</span>.compile_expr(binary.rhs(), <span class="bool-val">true</span>)<span class="question-mark">?</span>;
+                <span class="self">self</span>.compile_expr(binary.rhs(), <span class="bool-val">true</span>);
                 <span class="kw">match </span>op {
                     BitwiseOp::And =&gt; <span class="self">self</span>.emit_opcode(Opcode::BitAnd),
                     BitwiseOp::Or =&gt; <span class="self">self</span>.emit_opcode(Opcode::BitOr),
@@ -155,7 +147,7 @@
                 }
             }
             BinaryOp::Relational(op) =&gt; {
-                <span class="self">self</span>.compile_expr(binary.rhs(), <span class="bool-val">true</span>)<span class="question-mark">?</span>;
+                <span class="self">self</span>.compile_expr(binary.rhs(), <span class="bool-val">true</span>);
                 <span class="kw">match </span>op {
                     RelationalOp::Equal =&gt; <span class="self">self</span>.emit_opcode(Opcode::Eq),
                     RelationalOp::NotEqual =&gt; <span class="self">self</span>.emit_opcode(Opcode::NotEq),
@@ -179,17 +171,17 @@
                 <span class="kw">match </span>op {
                     LogicalOp::And =&gt; {
                         <span class="kw">let </span>exit = <span class="self">self</span>.emit_opcode_with_operand(Opcode::LogicalAnd);
-                        <span class="self">self</span>.compile_expr(binary.rhs(), <span class="bool-val">true</span>)<span class="question-mark">?</span>;
+                        <span class="self">self</span>.compile_expr(binary.rhs(), <span class="bool-val">true</span>);
                         <span class="self">self</span>.patch_jump(exit);
                     }
                     LogicalOp::Or =&gt; {
                         <span class="kw">let </span>exit = <span class="self">self</span>.emit_opcode_with_operand(Opcode::LogicalOr);
-                        <span class="self">self</span>.compile_expr(binary.rhs(), <span class="bool-val">true</span>)<span class="question-mark">?</span>;
+                        <span class="self">self</span>.compile_expr(binary.rhs(), <span class="bool-val">true</span>);
                         <span class="self">self</span>.patch_jump(exit);
                     }
                     LogicalOp::Coalesce =&gt; {
                         <span class="kw">let </span>exit = <span class="self">self</span>.emit_opcode_with_operand(Opcode::Coalesce);
-                        <span class="self">self</span>.compile_expr(binary.rhs(), <span class="bool-val">true</span>)<span class="question-mark">?</span>;
+                        <span class="self">self</span>.compile_expr(binary.rhs(), <span class="bool-val">true</span>);
                         <span class="self">self</span>.patch_jump(exit);
                     }
                 };
@@ -200,31 +192,23 @@
             }
             BinaryOp::Comma =&gt; {
                 <span class="self">self</span>.emit(Opcode::Pop, <span class="kw-2">&amp;</span>[]);
-                <span class="self">self</span>.compile_expr(binary.rhs(), <span class="bool-val">true</span>)<span class="question-mark">?</span>;
+                <span class="self">self</span>.compile_expr(binary.rhs(), <span class="bool-val">true</span>);
 
                 <span class="kw">if </span>!use_expr {
                     <span class="self">self</span>.emit(Opcode::Pop, <span class="kw-2">&amp;</span>[]);
                 }
             }
         };
-
-        <span class="prelude-val">Ok</span>(())
     }
 
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>compile_binary_in_private(
-        <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-        binary: <span class="kw-2">&amp;</span>BinaryInPrivate,
-        use_expr: bool,
-    ) -&gt; JsResult&lt;()&gt; {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>compile_binary_in_private(<span class="kw-2">&amp;mut </span><span class="self">self</span>, binary: <span class="kw-2">&amp;</span>BinaryInPrivate, use_expr: bool) {
         <span class="kw">let </span>index = <span class="self">self</span>.get_or_insert_private_name(<span class="kw-2">*</span>binary.lhs());
-        <span class="self">self</span>.compile_expr(binary.rhs(), <span class="bool-val">true</span>)<span class="question-mark">?</span>;
+        <span class="self">self</span>.compile_expr(binary.rhs(), <span class="bool-val">true</span>);
         <span class="self">self</span>.emit(Opcode::InPrivate, <span class="kw-2">&amp;</span>[index]);
 
         <span class="kw">if </span>!use_expr {
             <span class="self">self</span>.emit_opcode(Opcode::Pop);
         }
-
-        <span class="prelude-val">Ok</span>(())
     }
 }
 </code></pre></div>

@@ -22,17 +22,15 @@
 <a href="#21" id="21">21</a>
 <a href="#22" id="22">22</a>
 <a href="#23" id="23">23</a>
-<a href="#24" id="24">24</a>
-<a href="#25" id="25">25</a>
-</pre><pre class="rust"><code><span class="kw">use crate</span>::{bytecompiler::ByteCompiler, JsResult};
+</pre><pre class="rust"><code><span class="kw">use </span><span class="kw">crate</span>::bytecompiler::ByteCompiler;
 <span class="kw">use </span>boa_ast::statement::If;
 
 <span class="kw">impl </span>ByteCompiler&lt;<span class="lifetime">&#39;_</span>, <span class="lifetime">&#39;_</span>&gt; {
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>compile_if(<span class="kw-2">&amp;mut </span><span class="self">self</span>, node: <span class="kw-2">&amp;</span>If, configurable_globals: bool) -&gt; JsResult&lt;()&gt; {
-        <span class="self">self</span>.compile_expr(node.cond(), <span class="bool-val">true</span>)<span class="question-mark">?</span>;
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>compile_if(<span class="kw-2">&amp;mut </span><span class="self">self</span>, node: <span class="kw-2">&amp;</span>If, configurable_globals: bool) {
+        <span class="self">self</span>.compile_expr(node.cond(), <span class="bool-val">true</span>);
         <span class="kw">let </span>jelse = <span class="self">self</span>.jump_if_false();
 
-        <span class="self">self</span>.compile_stmt(node.body(), <span class="bool-val">false</span>, configurable_globals)<span class="question-mark">?</span>;
+        <span class="self">self</span>.compile_stmt(node.body(), <span class="bool-val">false</span>, configurable_globals);
 
         <span class="kw">match </span>node.else_node() {
             <span class="prelude-val">None </span>=&gt; {
@@ -41,12 +39,10 @@
             <span class="prelude-val">Some</span>(else_body) =&gt; {
                 <span class="kw">let </span>exit = <span class="self">self</span>.jump();
                 <span class="self">self</span>.patch_jump(jelse);
-                <span class="self">self</span>.compile_stmt(else_body, <span class="bool-val">false</span>, configurable_globals)<span class="question-mark">?</span>;
+                <span class="self">self</span>.compile_stmt(else_body, <span class="bool-val">false</span>, configurable_globals);
                 <span class="self">self</span>.patch_jump(exit);
             }
         }
-
-        <span class="prelude-val">Ok</span>(())
     }
 }
 </code></pre></div>

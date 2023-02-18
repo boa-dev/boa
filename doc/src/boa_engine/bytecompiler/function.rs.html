@@ -242,7 +242,7 @@
     builtins::function::ThisMode,
     bytecompiler::ByteCompiler,
     vm::{BindingOpcode, CodeBlock, Opcode},
-    Context, JsResult,
+    Context,
 };
 <span class="kw">use </span>boa_ast::{
     declaration::Binding, function::FormalParameterList, operations::bound_names, StatementList,
@@ -331,7 +331,7 @@
         parameters: <span class="kw-2">&amp;</span>FormalParameterList,
         body: <span class="kw-2">&amp;</span>StatementList,
         context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
-    ) -&gt; JsResult&lt;Gc&lt;CodeBlock&gt;&gt; {
+    ) -&gt; Gc&lt;CodeBlock&gt; {
         <span class="self">self</span>.strict = <span class="self">self</span>.strict || body.strict();
 
         <span class="kw">let </span>length = parameters.length();
@@ -399,7 +399,7 @@
                     <span class="comment">// TODO: throw custom error if ident is in init
                     </span><span class="kw">if let </span><span class="prelude-val">Some</span>(init) = parameter.variable().init() {
                         <span class="kw">let </span>skip = compiler.emit_opcode_with_operand(Opcode::JumpIfNotUndefined);
-                        compiler.compile_expr(init, <span class="bool-val">true</span>)<span class="question-mark">?</span>;
+                        compiler.compile_expr(init, <span class="bool-val">true</span>);
                         compiler.patch_jump(skip);
                     }
                     compiler.emit_binding(BindingOpcode::InitArg, <span class="kw-2">*</span>ident);
@@ -411,10 +411,10 @@
                     <span class="comment">// TODO: throw custom error if ident is in init
                     </span><span class="kw">if let </span><span class="prelude-val">Some</span>(init) = parameter.variable().init() {
                         <span class="kw">let </span>skip = compiler.emit_opcode_with_operand(Opcode::JumpIfNotUndefined);
-                        compiler.compile_expr(init, <span class="bool-val">true</span>)<span class="question-mark">?</span>;
+                        compiler.compile_expr(init, <span class="bool-val">true</span>);
                         compiler.patch_jump(skip);
                     }
-                    compiler.compile_declaration_pattern(pattern, BindingOpcode::InitArg)<span class="question-mark">?</span>;
+                    compiler.compile_declaration_pattern(pattern, BindingOpcode::InitArg);
                 }
             }
         }
@@ -440,7 +440,7 @@
         }
 
         compiler.create_script_decls(body, <span class="bool-val">false</span>);
-        compiler.compile_statement_list(body, <span class="bool-val">false</span>, <span class="bool-val">false</span>)<span class="question-mark">?</span>;
+        compiler.compile_statement_list(body, <span class="bool-val">false</span>, <span class="bool-val">false</span>);
 
         <span class="kw">if let </span><span class="prelude-val">Some</span>(env_label) = env_label {
             <span class="kw">let </span>(num_bindings, compile_environment) =
@@ -474,7 +474,7 @@
         </span>compiler.emit(Opcode::PushUndefined, <span class="kw-2">&amp;</span>[]);
         compiler.emit(Opcode::Return, <span class="kw-2">&amp;</span>[]);
 
-        <span class="prelude-val">Ok</span>(Gc::new(compiler.finish()))
+        Gc::new(compiler.finish())
     }
 }
 </code></pre></div>

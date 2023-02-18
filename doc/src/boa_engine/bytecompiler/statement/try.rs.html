@@ -140,38 +140,18 @@
 <a href="#139" id="139">139</a>
 <a href="#140" id="140">140</a>
 <a href="#141" id="141">141</a>
-<a href="#142" id="142">142</a>
-<a href="#143" id="143">143</a>
-<a href="#144" id="144">144</a>
-<a href="#145" id="145">145</a>
-<a href="#146" id="146">146</a>
-<a href="#147" id="147">147</a>
-<a href="#148" id="148">148</a>
-<a href="#149" id="149">149</a>
-<a href="#150" id="150">150</a>
-<a href="#151" id="151">151</a>
-<a href="#152" id="152">152</a>
-<a href="#153" id="153">153</a>
-<a href="#154" id="154">154</a>
-</pre><pre class="rust"><code><span class="kw">use </span>boa_ast::{
+</pre><pre class="rust"><code><span class="kw">use crate</span>::{
+    bytecompiler::{ByteCompiler, Label},
+    vm::{BindingOpcode, Opcode},
+};
+<span class="kw">use </span>boa_ast::{
     declaration::Binding,
     operations::bound_names,
     statement::{Finally, Try},
 };
 
-<span class="kw">use crate</span>::{
-    bytecompiler::{ByteCompiler, Label},
-    vm::{BindingOpcode, Opcode},
-    JsResult,
-};
-
 <span class="kw">impl </span>ByteCompiler&lt;<span class="lifetime">&#39;_</span>, <span class="lifetime">&#39;_</span>&gt; {
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>compile_try(
-        <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-        t: <span class="kw-2">&amp;</span>Try,
-        use_expr: bool,
-        configurable_globals: bool,
-    ) -&gt; JsResult&lt;()&gt; {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>compile_try(<span class="kw-2">&amp;mut </span><span class="self">self</span>, t: <span class="kw-2">&amp;</span>Try, use_expr: bool, configurable_globals: bool) {
         <span class="kw">let </span>try_start = <span class="self">self</span>.next_opcode_location();
         <span class="kw">let </span>(catch_start, finally_loc) = <span class="self">self</span>.emit_opcode_with_two_operands(Opcode::TryStart);
         <span class="self">self</span>.patch_jump_with_target(finally_loc, u32::MAX);
@@ -186,7 +166,7 @@
         <span class="kw">let </span>push_env = <span class="self">self</span>.emit_opcode_with_two_operands(Opcode::PushDeclarativeEnvironment);
 
         <span class="self">self</span>.create_script_decls(t.block().statement_list(), configurable_globals);
-        <span class="self">self</span>.compile_statement_list(t.block().statement_list(), use_expr, configurable_globals)<span class="question-mark">?</span>;
+        <span class="self">self</span>.compile_statement_list(t.block().statement_list(), use_expr, configurable_globals);
 
         <span class="kw">let </span>(num_bindings, compile_environment) = <span class="self">self</span>.context.pop_compile_time_environment();
         <span class="kw">let </span>index_compile_environment = <span class="self">self</span>.push_compile_environment(compile_environment);
@@ -199,7 +179,7 @@
         <span class="self">self</span>.patch_jump(catch_start);
 
         <span class="kw">if </span>t.catch().is_some() {
-            <span class="self">self</span>.compile_catch_stmt(t, use_expr, configurable_globals)<span class="question-mark">?</span>;
+            <span class="self">self</span>.compile_catch_stmt(t, use_expr, configurable_globals);
         }
 
         <span class="self">self</span>.patch_jump(finally);
@@ -213,13 +193,11 @@
             <span class="self">self</span>.set_jump_control_start_address(finally_start);
             <span class="self">self</span>.patch_jump_with_target(finally_loc, finally_start);
             <span class="comment">// Compile finally statement body
-            </span><span class="self">self</span>.compile_finally_stmt(finally, finally_end, configurable_globals)<span class="question-mark">?</span>;
+            </span><span class="self">self</span>.compile_finally_stmt(finally, finally_end, configurable_globals);
         } <span class="kw">else </span>{
             <span class="kw">let </span>try_end = <span class="self">self</span>.next_opcode_location();
             <span class="self">self</span>.pop_try_control_info(try_end);
         }
-
-        <span class="prelude-val">Ok</span>(())
     }
 
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>compile_catch_stmt(
@@ -227,7 +205,7 @@
         parent_try: <span class="kw-2">&amp;</span>Try,
         use_expr: bool,
         configurable_globals: bool,
-    ) -&gt; JsResult&lt;()&gt; {
+    ) {
         <span class="kw">let </span>catch = parent_try
             .catch()
             .expect(<span class="string">&quot;Catch must exist for compile_catch_stmt to have been invoked&quot;</span>);
@@ -247,7 +225,7 @@
                     <span class="kw">for </span>ident <span class="kw">in </span>bound_names(pattern) {
                         <span class="self">self</span>.context.create_mutable_binding(ident, <span class="bool-val">false</span>, <span class="bool-val">false</span>);
                     }
-                    <span class="self">self</span>.compile_declaration_pattern(pattern, BindingOpcode::InitLet)<span class="question-mark">?</span>;
+                    <span class="self">self</span>.compile_declaration_pattern(pattern, BindingOpcode::InitLet);
                 }
             }
         } <span class="kw">else </span>{
@@ -259,7 +237,7 @@
             catch.block().statement_list(),
             use_expr,
             configurable_globals,
-        )<span class="question-mark">?</span>;
+        );
 
         <span class="kw">let </span>(num_bindings, compile_environment) = <span class="self">self</span>.context.pop_compile_time_environment();
         <span class="kw">let </span>index_compile_environment = <span class="self">self</span>.push_compile_environment(compile_environment);
@@ -274,8 +252,6 @@
 
         <span class="self">self</span>.patch_jump(catch_end);
         <span class="self">self</span>.set_jump_control_in_finally(<span class="bool-val">false</span>);
-
-        <span class="prelude-val">Ok</span>(())
     }
 
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>compile_finally_stmt(
@@ -283,7 +259,7 @@
         finally: <span class="kw-2">&amp;</span>Finally,
         finally_end_label: Label,
         configurable_globals: bool,
-    ) -&gt; JsResult&lt;()&gt; {
+    ) {
         <span class="self">self</span>.context.push_compile_time_environment(<span class="bool-val">false</span>);
         <span class="kw">let </span>push_env = <span class="self">self</span>.emit_opcode_with_two_operands(Opcode::PushDeclarativeEnvironment);
 
@@ -292,7 +268,7 @@
             finally.block().statement_list(),
             <span class="bool-val">false</span>,
             configurable_globals,
-        )<span class="question-mark">?</span>;
+        );
 
         <span class="kw">let </span>(num_bindings, compile_environment) = <span class="self">self</span>.context.pop_compile_time_environment();
         <span class="kw">let </span>index_compile_environment = <span class="self">self</span>.push_compile_environment(compile_environment);
@@ -303,8 +279,6 @@
         <span class="self">self</span>.pop_finally_control_info();
         <span class="self">self</span>.patch_jump(finally_end_label);
         <span class="self">self</span>.emit_opcode(Opcode::FinallyEnd);
-
-        <span class="prelude-val">Ok</span>(())
     }
 }
 </code></pre></div>

@@ -388,13 +388,6 @@
 <a href="#387" id="387">387</a>
 <a href="#388" id="388">388</a>
 <a href="#389" id="389">389</a>
-<a href="#390" id="390">390</a>
-<a href="#391" id="391">391</a>
-<a href="#392" id="392">392</a>
-<a href="#393" id="393">393</a>
-<a href="#394" id="394">394</a>
-<a href="#395" id="395">395</a>
-<a href="#396" id="396">396</a>
 </pre><pre class="rust"><code><span class="kw">use </span>boa_ast::{
     declaration::Binding,
     operations::bound_names,
@@ -408,7 +401,6 @@
 <span class="kw">use crate</span>::{
     bytecompiler::{Access, ByteCompiler},
     vm::{BindingOpcode, Opcode},
-    JsResult,
 };
 
 <span class="kw">impl </span>ByteCompiler&lt;<span class="lifetime">&#39;_</span>, <span class="lifetime">&#39;_</span>&gt; {
@@ -417,21 +409,21 @@
         for_loop: <span class="kw-2">&amp;</span>ForLoop,
         label: <span class="prelude-ty">Option</span>&lt;Sym&gt;,
         configurable_globals: bool,
-    ) -&gt; JsResult&lt;()&gt; {
+    ) {
         <span class="self">self</span>.context.push_compile_time_environment(<span class="bool-val">false</span>);
         <span class="kw">let </span>push_env = <span class="self">self</span>.emit_opcode_with_two_operands(Opcode::PushDeclarativeEnvironment);
         <span class="self">self</span>.push_empty_loop_jump_control();
 
         <span class="kw">if let </span><span class="prelude-val">Some</span>(init) = for_loop.init() {
             <span class="kw">match </span>init {
-                ForLoopInitializer::Expression(expr) =&gt; <span class="self">self</span>.compile_expr(expr, <span class="bool-val">false</span>)<span class="question-mark">?</span>,
+                ForLoopInitializer::Expression(expr) =&gt; <span class="self">self</span>.compile_expr(expr, <span class="bool-val">false</span>),
                 ForLoopInitializer::Var(decl) =&gt; {
                     <span class="self">self</span>.create_decls_from_var_decl(decl, configurable_globals);
-                    <span class="self">self</span>.compile_var_decl(decl)<span class="question-mark">?</span>;
+                    <span class="self">self</span>.compile_var_decl(decl);
                 }
                 ForLoopInitializer::Lexical(decl) =&gt; {
                     <span class="self">self</span>.create_decls_from_lexical_decl(decl);
-                    <span class="self">self</span>.compile_lexical_decl(decl)<span class="question-mark">?</span>;
+                    <span class="self">self</span>.compile_lexical_decl(decl);
                 }
             }
         }
@@ -453,19 +445,19 @@
         <span class="self">self</span>.patch_jump_with_target(continue_start, start_address);
 
         <span class="kw">if let </span><span class="prelude-val">Some</span>(final_expr) = for_loop.final_expr() {
-            <span class="self">self</span>.compile_expr(final_expr, <span class="bool-val">false</span>)<span class="question-mark">?</span>;
+            <span class="self">self</span>.compile_expr(final_expr, <span class="bool-val">false</span>);
         }
 
         <span class="self">self</span>.patch_jump(initial_jump);
 
         <span class="kw">if let </span><span class="prelude-val">Some</span>(condition) = for_loop.condition() {
-            <span class="self">self</span>.compile_expr(condition, <span class="bool-val">true</span>)<span class="question-mark">?</span>;
+            <span class="self">self</span>.compile_expr(condition, <span class="bool-val">true</span>);
         } <span class="kw">else </span>{
             <span class="self">self</span>.emit_opcode(Opcode::PushTrue);
         }
         <span class="kw">let </span>exit = <span class="self">self</span>.jump_if_false();
 
-        <span class="self">self</span>.compile_stmt(for_loop.body(), <span class="bool-val">false</span>, configurable_globals)<span class="question-mark">?</span>;
+        <span class="self">self</span>.compile_stmt(for_loop.body(), <span class="bool-val">false</span>, configurable_globals);
 
         <span class="self">self</span>.emit(Opcode::Jump, <span class="kw-2">&amp;</span>[start_address]);
 
@@ -480,8 +472,6 @@
         <span class="self">self</span>.pop_loop_control_info();
         <span class="self">self</span>.emit_opcode(Opcode::LoopEnd);
         <span class="self">self</span>.emit_opcode(Opcode::PopEnvironment);
-
-        <span class="prelude-val">Ok</span>(())
     }
 
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>compile_for_in_loop(
@@ -489,10 +479,10 @@
         for_in_loop: <span class="kw-2">&amp;</span>ForInLoop,
         label: <span class="prelude-ty">Option</span>&lt;Sym&gt;,
         configurable_globals: bool,
-    ) -&gt; JsResult&lt;()&gt; {
+    ) {
         <span class="kw">let </span>init_bound_names = bound_names(for_in_loop.initializer());
         <span class="kw">if </span>init_bound_names.is_empty() {
-            <span class="self">self</span>.compile_expr(for_in_loop.target(), <span class="bool-val">true</span>)<span class="question-mark">?</span>;
+            <span class="self">self</span>.compile_expr(for_in_loop.target(), <span class="bool-val">true</span>);
         } <span class="kw">else </span>{
             <span class="self">self</span>.context.push_compile_time_environment(<span class="bool-val">false</span>);
             <span class="kw">let </span>push_env = <span class="self">self</span>.emit_opcode_with_two_operands(Opcode::PushDeclarativeEnvironment);
@@ -500,7 +490,7 @@
             <span class="kw">for </span>name <span class="kw">in </span>init_bound_names {
                 <span class="self">self</span>.context.create_mutable_binding(name, <span class="bool-val">false</span>, <span class="bool-val">false</span>);
             }
-            <span class="self">self</span>.compile_expr(for_in_loop.target(), <span class="bool-val">true</span>)<span class="question-mark">?</span>;
+            <span class="self">self</span>.compile_expr(for_in_loop.target(), <span class="bool-val">true</span>);
 
             <span class="kw">let </span>(num_bindings, compile_environment) = <span class="self">self</span>.context.pop_compile_time_environment();
             <span class="kw">let </span>index_compile_environment = <span class="self">self</span>.push_compile_environment(compile_environment);
@@ -535,7 +525,7 @@
                     Access::Property { access },
                     <span class="bool-val">false</span>,
                     ByteCompiler::access_set_top_of_stack_expr_fn,
-                )<span class="question-mark">?</span>;
+                );
             }
             IterableLoopInitializer::Var(declaration) =&gt; <span class="kw">match </span>declaration {
                 Binding::Identifier(ident) =&gt; {
@@ -547,7 +537,7 @@
                     <span class="kw">for </span>ident <span class="kw">in </span>bound_names(pattern) {
                         <span class="self">self</span>.context.create_mutable_binding(ident, <span class="bool-val">true</span>, <span class="bool-val">false</span>);
                     }
-                    <span class="self">self</span>.compile_declaration_pattern(pattern, BindingOpcode::InitVar)<span class="question-mark">?</span>;
+                    <span class="self">self</span>.compile_declaration_pattern(pattern, BindingOpcode::InitVar);
                 }
             },
             IterableLoopInitializer::Let(declaration) =&gt; <span class="kw">match </span>declaration {
@@ -559,7 +549,7 @@
                     <span class="kw">for </span>ident <span class="kw">in </span>bound_names(pattern) {
                         <span class="self">self</span>.context.create_mutable_binding(ident, <span class="bool-val">false</span>, <span class="bool-val">false</span>);
                     }
-                    <span class="self">self</span>.compile_declaration_pattern(pattern, BindingOpcode::InitLet)<span class="question-mark">?</span>;
+                    <span class="self">self</span>.compile_declaration_pattern(pattern, BindingOpcode::InitLet);
                 }
             },
             IterableLoopInitializer::Const(declaration) =&gt; <span class="kw">match </span>declaration {
@@ -571,18 +561,18 @@
                     <span class="kw">for </span>ident <span class="kw">in </span>bound_names(pattern) {
                         <span class="self">self</span>.context.create_immutable_binding(ident, <span class="bool-val">true</span>);
                     }
-                    <span class="self">self</span>.compile_declaration_pattern(pattern, BindingOpcode::InitConst)<span class="question-mark">?</span>;
+                    <span class="self">self</span>.compile_declaration_pattern(pattern, BindingOpcode::InitConst);
                 }
             },
             IterableLoopInitializer::Pattern(pattern) =&gt; {
                 <span class="kw">for </span>ident <span class="kw">in </span>bound_names(pattern) {
                     <span class="self">self</span>.context.create_mutable_binding(ident, <span class="bool-val">true</span>, <span class="bool-val">true</span>);
                 }
-                <span class="self">self</span>.compile_declaration_pattern(pattern, BindingOpcode::InitVar)<span class="question-mark">?</span>;
+                <span class="self">self</span>.compile_declaration_pattern(pattern, BindingOpcode::InitVar);
             }
         }
 
-        <span class="self">self</span>.compile_stmt(for_in_loop.body(), <span class="bool-val">false</span>, configurable_globals)<span class="question-mark">?</span>;
+        <span class="self">self</span>.compile_stmt(for_in_loop.body(), <span class="bool-val">false</span>, configurable_globals);
 
         <span class="kw">let </span>(num_bindings, compile_environment) = <span class="self">self</span>.context.pop_compile_time_environment();
         <span class="kw">let </span>index_compile_environment = <span class="self">self</span>.push_compile_environment(compile_environment);
@@ -600,7 +590,6 @@
         <span class="self">self</span>.emit_opcode(Opcode::IteratorClose);
 
         <span class="self">self</span>.patch_jump(early_exit);
-        <span class="prelude-val">Ok</span>(())
     }
 
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>compile_for_of_loop(
@@ -608,10 +597,10 @@
         for_of_loop: <span class="kw-2">&amp;</span>ForOfLoop,
         label: <span class="prelude-ty">Option</span>&lt;Sym&gt;,
         configurable_globals: bool,
-    ) -&gt; JsResult&lt;()&gt; {
+    ) {
         <span class="kw">let </span>init_bound_names = bound_names(for_of_loop.initializer());
         <span class="kw">if </span>init_bound_names.is_empty() {
-            <span class="self">self</span>.compile_expr(for_of_loop.iterable(), <span class="bool-val">true</span>)<span class="question-mark">?</span>;
+            <span class="self">self</span>.compile_expr(for_of_loop.iterable(), <span class="bool-val">true</span>);
         } <span class="kw">else </span>{
             <span class="self">self</span>.context.push_compile_time_environment(<span class="bool-val">false</span>);
             <span class="kw">let </span>push_env = <span class="self">self</span>.emit_opcode_with_two_operands(Opcode::PushDeclarativeEnvironment);
@@ -619,7 +608,7 @@
             <span class="kw">for </span>name <span class="kw">in </span>init_bound_names {
                 <span class="self">self</span>.context.create_mutable_binding(name, <span class="bool-val">false</span>, <span class="bool-val">false</span>);
             }
-            <span class="self">self</span>.compile_expr(for_of_loop.iterable(), <span class="bool-val">true</span>)<span class="question-mark">?</span>;
+            <span class="self">self</span>.compile_expr(for_of_loop.iterable(), <span class="bool-val">true</span>);
 
             <span class="kw">let </span>(num_bindings, compile_environment) = <span class="self">self</span>.context.pop_compile_time_environment();
             <span class="kw">let </span>index_compile_environment = <span class="self">self</span>.push_compile_environment(compile_environment);
@@ -666,7 +655,7 @@
                     Access::Property { access },
                     <span class="bool-val">false</span>,
                     ByteCompiler::access_set_top_of_stack_expr_fn,
-                )<span class="question-mark">?</span>;
+                );
             }
             IterableLoopInitializer::Var(declaration) =&gt; <span class="kw">match </span>declaration {
                 Binding::Identifier(ident) =&gt; {
@@ -677,7 +666,7 @@
                     <span class="kw">for </span>ident <span class="kw">in </span>bound_names(pattern) {
                         <span class="self">self</span>.context.create_mutable_binding(ident, <span class="bool-val">true</span>, <span class="bool-val">false</span>);
                     }
-                    <span class="self">self</span>.compile_declaration_pattern(pattern, BindingOpcode::InitVar)<span class="question-mark">?</span>;
+                    <span class="self">self</span>.compile_declaration_pattern(pattern, BindingOpcode::InitVar);
                 }
             },
             IterableLoopInitializer::Let(declaration) =&gt; <span class="kw">match </span>declaration {
@@ -689,7 +678,7 @@
                     <span class="kw">for </span>ident <span class="kw">in </span>bound_names(pattern) {
                         <span class="self">self</span>.context.create_mutable_binding(ident, <span class="bool-val">false</span>, <span class="bool-val">false</span>);
                     }
-                    <span class="self">self</span>.compile_declaration_pattern(pattern, BindingOpcode::InitLet)<span class="question-mark">?</span>;
+                    <span class="self">self</span>.compile_declaration_pattern(pattern, BindingOpcode::InitLet);
                 }
             },
             IterableLoopInitializer::Const(declaration) =&gt; <span class="kw">match </span>declaration {
@@ -701,18 +690,18 @@
                     <span class="kw">for </span>ident <span class="kw">in </span>bound_names(pattern) {
                         <span class="self">self</span>.context.create_immutable_binding(ident, <span class="bool-val">true</span>);
                     }
-                    <span class="self">self</span>.compile_declaration_pattern(pattern, BindingOpcode::InitConst)<span class="question-mark">?</span>;
+                    <span class="self">self</span>.compile_declaration_pattern(pattern, BindingOpcode::InitConst);
                 }
             },
             IterableLoopInitializer::Pattern(pattern) =&gt; {
                 <span class="kw">for </span>ident <span class="kw">in </span>bound_names(pattern) {
                     <span class="self">self</span>.context.create_mutable_binding(ident, <span class="bool-val">true</span>, <span class="bool-val">true</span>);
                 }
-                <span class="self">self</span>.compile_declaration_pattern(pattern, BindingOpcode::InitVar)<span class="question-mark">?</span>;
+                <span class="self">self</span>.compile_declaration_pattern(pattern, BindingOpcode::InitVar);
             }
         }
 
-        <span class="self">self</span>.compile_stmt(for_of_loop.body(), <span class="bool-val">false</span>, configurable_globals)<span class="question-mark">?</span>;
+        <span class="self">self</span>.compile_stmt(for_of_loop.body(), <span class="bool-val">false</span>, configurable_globals);
 
         <span class="kw">let </span>(num_bindings, compile_environment) = <span class="self">self</span>.context.pop_compile_time_environment();
         <span class="kw">let </span>index_compile_environment = <span class="self">self</span>.push_compile_environment(compile_environment);
@@ -728,7 +717,6 @@
         <span class="self">self</span>.pop_loop_control_info();
         <span class="self">self</span>.emit_opcode(Opcode::LoopEnd);
         <span class="self">self</span>.emit_opcode(Opcode::IteratorClose);
-        <span class="prelude-val">Ok</span>(())
     }
 
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>compile_while_loop(
@@ -736,7 +724,7 @@
         while_loop: <span class="kw-2">&amp;</span>WhileLoop,
         label: <span class="prelude-ty">Option</span>&lt;Sym&gt;,
         configurable_globals: bool,
-    ) -&gt; JsResult&lt;()&gt; {
+    ) {
         <span class="kw">let </span>(loop_start, loop_exit) = <span class="self">self</span>.emit_opcode_with_two_operands(Opcode::LoopStart);
         <span class="kw">let </span>start_address = <span class="self">self</span>.next_opcode_location();
         <span class="kw">let </span>(continue_start, continue_exit) =
@@ -745,9 +733,9 @@
         <span class="self">self</span>.patch_jump_with_target(loop_start, start_address);
         <span class="self">self</span>.patch_jump_with_target(continue_start, start_address);
 
-        <span class="self">self</span>.compile_expr(while_loop.condition(), <span class="bool-val">true</span>)<span class="question-mark">?</span>;
+        <span class="self">self</span>.compile_expr(while_loop.condition(), <span class="bool-val">true</span>);
         <span class="kw">let </span>exit = <span class="self">self</span>.jump_if_false();
-        <span class="self">self</span>.compile_stmt(while_loop.body(), <span class="bool-val">false</span>, configurable_globals)<span class="question-mark">?</span>;
+        <span class="self">self</span>.compile_stmt(while_loop.body(), <span class="bool-val">false</span>, configurable_globals);
         <span class="self">self</span>.emit(Opcode::Jump, <span class="kw-2">&amp;</span>[start_address]);
 
         <span class="self">self</span>.patch_jump(exit);
@@ -755,7 +743,6 @@
         <span class="self">self</span>.patch_jump(continue_exit);
         <span class="self">self</span>.pop_loop_control_info();
         <span class="self">self</span>.emit_opcode(Opcode::LoopEnd);
-        <span class="prelude-val">Ok</span>(())
     }
 
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>compile_do_while_loop(
@@ -763,7 +750,7 @@
         do_while_loop: <span class="kw-2">&amp;</span>DoWhileLoop,
         label: <span class="prelude-ty">Option</span>&lt;Sym&gt;,
         configurable_globals: bool,
-    ) -&gt; JsResult&lt;()&gt; {
+    ) {
         <span class="kw">let </span>(loop_start, loop_exit) = <span class="self">self</span>.emit_opcode_with_two_operands(Opcode::LoopStart);
         <span class="kw">let </span>initial_label = <span class="self">self</span>.jump();
 
@@ -775,12 +762,12 @@
         <span class="self">self</span>.push_loop_control_info(label, start_address);
 
         <span class="kw">let </span>condition_label_address = <span class="self">self</span>.next_opcode_location();
-        <span class="self">self</span>.compile_expr(do_while_loop.cond(), <span class="bool-val">true</span>)<span class="question-mark">?</span>;
+        <span class="self">self</span>.compile_expr(do_while_loop.cond(), <span class="bool-val">true</span>);
         <span class="kw">let </span>exit = <span class="self">self</span>.jump_if_false();
 
         <span class="self">self</span>.patch_jump(initial_label);
 
-        <span class="self">self</span>.compile_stmt(do_while_loop.body(), <span class="bool-val">false</span>, configurable_globals)<span class="question-mark">?</span>;
+        <span class="self">self</span>.compile_stmt(do_while_loop.body(), <span class="bool-val">false</span>, configurable_globals);
         <span class="self">self</span>.emit(Opcode::Jump, <span class="kw-2">&amp;</span>[condition_label_address]);
         <span class="self">self</span>.patch_jump(exit);
         <span class="self">self</span>.patch_jump(loop_exit);
@@ -788,7 +775,6 @@
 
         <span class="self">self</span>.pop_loop_control_info();
         <span class="self">self</span>.emit_opcode(Opcode::LoopEnd);
-        <span class="prelude-val">Ok</span>(())
     }
 }
 </code></pre></div>

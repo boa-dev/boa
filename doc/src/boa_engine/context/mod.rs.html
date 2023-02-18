@@ -651,9 +651,6 @@
 <a href="#650" id="650">650</a>
 <a href="#651" id="651">651</a>
 <a href="#652" id="652">652</a>
-<a href="#653" id="653">653</a>
-<a href="#654" id="654">654</a>
-<a href="#655" id="655">655</a>
 </pre><pre class="rust"><code><span class="doccomment">//! The ECMAScript context.
 
 </span><span class="kw">mod </span>hooks;
@@ -887,7 +884,7 @@
         <span class="kw">let </span>_timer = Profiler::global().start_event(<span class="string">&quot;Script compilation&quot;</span>, <span class="string">&quot;Main&quot;</span>);
         <span class="kw">let </span><span class="kw-2">mut </span>compiler = ByteCompiler::new(Sym::MAIN, statement_list.strict(), <span class="bool-val">false</span>, <span class="self">self</span>);
         compiler.create_script_decls(statement_list, <span class="bool-val">false</span>);
-        compiler.compile_statement_list(statement_list, <span class="bool-val">true</span>, <span class="bool-val">false</span>)<span class="question-mark">?</span>;
+        compiler.compile_statement_list(statement_list, <span class="bool-val">true</span>, <span class="bool-val">false</span>);
         <span class="prelude-val">Ok</span>(Gc::new(compiler.finish()))
     }
 
@@ -897,7 +894,7 @@
 
         <span class="kw">let </span><span class="kw-2">mut </span>compiler = ByteCompiler::new(Sym::MAIN, <span class="bool-val">true</span>, <span class="bool-val">false</span>, <span class="self">self</span>);
         compiler.create_module_decls(statement_list, <span class="bool-val">false</span>);
-        compiler.compile_module_item_list(statement_list, <span class="bool-val">false</span>)<span class="question-mark">?</span>;
+        compiler.compile_module_item_list(statement_list, <span class="bool-val">false</span>);
         <span class="prelude-val">Ok</span>(Gc::new(compiler.finish()))
     }
 
@@ -1121,15 +1118,12 @@
     }
 
     <span class="doccomment">/// Compile the AST into a `CodeBlock` ready to be executed by the VM in a `JSON.parse` context.
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>compile_json_parse(
-        <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-        statement_list: <span class="kw-2">&amp;</span>StatementList,
-    ) -&gt; JsResult&lt;Gc&lt;CodeBlock&gt;&gt; {
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>compile_json_parse(<span class="kw-2">&amp;mut </span><span class="self">self</span>, statement_list: <span class="kw-2">&amp;</span>StatementList) -&gt; Gc&lt;CodeBlock&gt; {
         <span class="kw">let </span>_timer = Profiler::global().start_event(<span class="string">&quot;Compilation&quot;</span>, <span class="string">&quot;Main&quot;</span>);
         <span class="kw">let </span><span class="kw-2">mut </span>compiler = ByteCompiler::new(Sym::MAIN, statement_list.strict(), <span class="bool-val">true</span>, <span class="self">self</span>);
         compiler.create_script_decls(statement_list, <span class="bool-val">false</span>);
-        compiler.compile_statement_list(statement_list, <span class="bool-val">true</span>, <span class="bool-val">false</span>)<span class="question-mark">?</span>;
-        <span class="prelude-val">Ok</span>(Gc::new(compiler.finish()))
+        compiler.compile_statement_list(statement_list, <span class="bool-val">true</span>, <span class="bool-val">false</span>);
+        Gc::new(compiler.finish())
     }
 
     <span class="doccomment">/// Compile the AST into a `CodeBlock` with an additional declarative environment.
@@ -1137,11 +1131,11 @@
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
         statement_list: <span class="kw-2">&amp;</span>StatementList,
         strict: bool,
-    ) -&gt; JsResult&lt;Gc&lt;CodeBlock&gt;&gt; {
+    ) -&gt; Gc&lt;CodeBlock&gt; {
         <span class="kw">let </span>_timer = Profiler::global().start_event(<span class="string">&quot;Compilation&quot;</span>, <span class="string">&quot;Main&quot;</span>);
         <span class="kw">let </span><span class="kw-2">mut </span>compiler = ByteCompiler::new(Sym::MAIN, statement_list.strict(), <span class="bool-val">false</span>, <span class="self">self</span>);
-        compiler.compile_statement_list_with_new_declarative(statement_list, <span class="bool-val">true</span>, strict)<span class="question-mark">?</span>;
-        <span class="prelude-val">Ok</span>(Gc::new(compiler.finish()))
+        compiler.compile_statement_list_with_new_declarative(statement_list, <span class="bool-val">true</span>, strict);
+        Gc::new(compiler.finish())
     }
 }
 
