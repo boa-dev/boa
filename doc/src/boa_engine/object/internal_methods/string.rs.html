@@ -236,13 +236,13 @@
 /// [spec]: https://tc39.es/ecma262/#sec-string-exotic-objects-defineownproperty-p-desc
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>string_exotic_define_own_property(
     obj: <span class="kw-2">&amp;</span>JsObject,
-    key: PropertyKey,
+    key: <span class="kw-2">&amp;</span>PropertyKey,
     desc: PropertyDescriptor,
     context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
 ) -&gt; JsResult&lt;bool&gt; {
     <span class="comment">// 1. Assert: IsPropertyKey(P) is true.
     // 2. Let stringDesc be ! StringGetOwnProperty(S, P).
-    </span><span class="kw">let </span>string_desc = string_get_own_property(obj, <span class="kw-2">&amp;</span>key);
+    </span><span class="kw">let </span>string_desc = string_get_own_property(obj, key);
 
     <span class="comment">// 3. If stringDesc is not undefined, then
     </span><span class="kw">if let </span><span class="prelude-val">Some</span>(string_desc) = string_desc {

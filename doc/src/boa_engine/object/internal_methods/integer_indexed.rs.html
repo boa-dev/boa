@@ -474,14 +474,14 @@
 /// [spec]: https://tc39.es/ecma262/#sec-integer-indexed-exotic-objects-defineownproperty-p-desc
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>integer_indexed_exotic_define_own_property(
     obj: <span class="kw-2">&amp;</span>JsObject,
-    key: PropertyKey,
+    key: <span class="kw-2">&amp;</span>PropertyKey,
     desc: PropertyDescriptor,
     context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
 ) -&gt; JsResult&lt;bool&gt; {
     <span class="comment">// 1. If Type(P) is String, then
     // a. Let numericIndex be ! CanonicalNumericIndexString(P).
     // b. If numericIndex is not undefined, then
-    </span><span class="kw">if let </span>PropertyKey::Index(index) = key {
+    </span><span class="kw">if let </span><span class="kw-2">&amp;</span>PropertyKey::Index(index) = key {
         <span class="comment">// i. If ! IsValidIntegerIndex(O, numericIndex) is false, return false.
         // ii. If Desc has a [[Configurable]] field and if Desc.[[Configurable]] is false, return false.
         // iii. If Desc has an [[Enumerable]] field and if Desc.[[Enumerable]] is false, return false.

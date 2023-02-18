@@ -126,9 +126,11 @@
 <a href="#125" id="125">125</a>
 <a href="#126" id="126">126</a>
 <a href="#127" id="127">127</a>
+<a href="#128" id="128">128</a>
 </pre><pre class="rust"><code><span class="kw">use crate</span>::{
     object::PrivateElement,
     property::PropertyDescriptor,
+    string::utf16,
     vm::{opcode::Operation, ShouldExit},
     Context, JsResult,
 };
@@ -158,7 +160,7 @@
             .configurable(<span class="bool-val">true</span>)
             .build();
         method_object
-            .__define_own_property__(<span class="string">&quot;name&quot;</span>.into(), desc, context)
+            .__define_own_property__(<span class="kw-2">&amp;</span><span class="macro">utf16!</span>(<span class="string">&quot;name&quot;</span>).into(), desc, context)
             .expect(<span class="string">&quot;failed to set name property on private method&quot;</span>);
 
         <span class="kw">let </span>class = context.vm.pop();

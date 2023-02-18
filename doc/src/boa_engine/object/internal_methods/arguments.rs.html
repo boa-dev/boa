@@ -318,12 +318,12 @@
 </span><span class="attr">#[allow(clippy::needless_pass_by_value)]
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>arguments_exotic_define_own_property(
     obj: <span class="kw-2">&amp;</span>JsObject,
-    key: PropertyKey,
+    key: <span class="kw-2">&amp;</span>PropertyKey,
     desc: PropertyDescriptor,
     context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
 ) -&gt; JsResult&lt;bool&gt; {
     <span class="comment">// 2. Let isMapped be HasOwnProperty(map, P).
-    </span><span class="kw">let </span>mapped = <span class="kw">if let </span>PropertyKey::Index(index) = key {
+    </span><span class="kw">let </span>mapped = <span class="kw">if let </span><span class="kw-2">&amp;</span>PropertyKey::Index(index) = key {
         <span class="comment">// 1. Let map be args.[[ParameterMap]].
         </span>obj.borrow()
             .as_mapped_arguments()

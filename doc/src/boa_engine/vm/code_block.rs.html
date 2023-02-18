@@ -1493,6 +1493,9 @@
 <a href="#1492" id="1492">1492</a>
 <a href="#1493" id="1493">1493</a>
 <a href="#1494" id="1494">1494</a>
+<a href="#1495" id="1495">1495</a>
+<a href="#1496" id="1496">1496</a>
+<a href="#1497" id="1497">1497</a>
 </pre><pre class="rust"><code><span class="doccomment">//! `CodeBlock`
 //!
 //! This module is for the `CodeBlock` which implements a function representation in the VM
@@ -1507,9 +1510,12 @@
     context::intrinsics::StandardConstructors,
     environments::{BindingLocator, CompileTimeEnvironment},
     error::JsNativeError,
-    js_string,
-    object::{internal_methods::get_prototype_from_constructor, JsObject, ObjectData, CONSTRUCTOR},
+    object::{
+        internal_methods::get_prototype_from_constructor, JsObject, ObjectData, CONSTRUCTOR,
+        PROTOTYPE,
+    },
     property::PropertyDescriptor,
+    string::utf16,
     vm::{CallFrame, Opcode},
     Context, JsResult, JsString, JsValue,
 };
@@ -2107,14 +2113,14 @@
         .build();
 
     constructor
-        .define_property_or_throw(<span class="macro">js_string!</span>(<span class="string">&quot;length&quot;</span>), length_property, context)
+        .define_property_or_throw(<span class="macro">utf16!</span>(<span class="string">&quot;length&quot;</span>), length_property, context)
         .expect(<span class="string">&quot;failed to define the length property of the function&quot;</span>);
     constructor
-        .define_property_or_throw(<span class="macro">js_string!</span>(<span class="string">&quot;name&quot;</span>), name_property, context)
+        .define_property_or_throw(<span class="macro">utf16!</span>(<span class="string">&quot;name&quot;</span>), name_property, context)
         .expect(<span class="string">&quot;failed to define the name property of the function&quot;</span>);
     <span class="kw">if </span>!r#async &amp;&amp; !arrow &amp;&amp; !method {
         constructor
-            .define_property_or_throw(<span class="macro">js_string!</span>(<span class="string">&quot;prototype&quot;</span>), prototype_property, context)
+            .define_property_or_throw(PROTOTYPE, prototype_property, context)
             .expect(<span class="string">&quot;failed to define the prototype property of the function&quot;</span>);
     }
 
@@ -2200,14 +2206,14 @@
 
     <span class="kw">if </span>!method {
         constructor
-            .define_property_or_throw(<span class="macro">js_string!</span>(<span class="string">&quot;prototype&quot;</span>), prototype_property, context)
+            .define_property_or_throw(PROTOTYPE, prototype_property, context)
             .expect(<span class="string">&quot;failed to define the prototype property of the generator function&quot;</span>);
     }
     constructor
-        .define_property_or_throw(<span class="macro">js_string!</span>(<span class="string">&quot;name&quot;</span>), name_property, context)
+        .define_property_or_throw(<span class="macro">utf16!</span>(<span class="string">&quot;name&quot;</span>), name_property, context)
         .expect(<span class="string">&quot;failed to define the name property of the generator function&quot;</span>);
     constructor
-        .define_property_or_throw(<span class="macro">js_string!</span>(<span class="string">&quot;length&quot;</span>), length_property, context)
+        .define_property_or_throw(<span class="macro">utf16!</span>(<span class="string">&quot;length&quot;</span>), length_property, context)
         .expect(<span class="string">&quot;failed to define the length property of the generator function&quot;</span>);
 
     constructor
@@ -2612,7 +2618,7 @@
                 std::mem::swap(<span class="kw-2">&amp;mut </span>context.vm.stack, <span class="kw-2">&amp;mut </span>stack);
 
                 <span class="kw">let </span>prototype = this_function_object
-                    .get(<span class="string">&quot;prototype&quot;</span>, context)
+                    .get(PROTOTYPE, context)
                     .expect(<span class="string">&quot;GeneratorFunction must have a prototype property&quot;</span>)
                     .as_object()
                     .map_or_else(|| context.intrinsics().objects().generator(), Clone::clone);
@@ -2750,7 +2756,7 @@
                 std::mem::swap(<span class="kw-2">&amp;mut </span>context.vm.stack, <span class="kw-2">&amp;mut </span>stack);
 
                 <span class="kw">let </span>prototype = this_function_object
-                    .get(<span class="string">&quot;prototype&quot;</span>, context)
+                    .get(PROTOTYPE, context)
                     .expect(<span class="string">&quot;AsyncGeneratorFunction must have a prototype property&quot;</span>)
                     .as_object()
                     .map_or_else(

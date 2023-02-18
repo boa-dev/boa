@@ -928,6 +928,15 @@
 <a href="#927" id="927">927</a>
 <a href="#928" id="928">928</a>
 <a href="#929" id="929">929</a>
+<a href="#930" id="930">930</a>
+<a href="#931" id="931">931</a>
+<a href="#932" id="932">932</a>
+<a href="#933" id="933">933</a>
+<a href="#934" id="934">934</a>
+<a href="#935" id="935">935</a>
+<a href="#936" id="936">936</a>
+<a href="#937" id="937">937</a>
+<a href="#938" id="938">938</a>
 </pre><pre class="rust"><code><span class="doccomment">//! Boa&#39;s implementation of ECMAScript&#39;s global `Number` object.
 //!
 //! The `Number` ECMAScript object is a wrapper object allowing you to work with numerical values.
@@ -949,6 +958,7 @@
     error::JsNativeError,
     object::{internal_methods::get_prototype_from_constructor, JsObject, ObjectData},
     property::Attribute,
+    string::utf16,
     value::{AbstractRelation, IntegerOrInfinity, JsValue},
     Context, JsArgs, JsResult,
 };
@@ -980,21 +990,29 @@
         <span class="kw">let </span>attribute = Attribute::READONLY | Attribute::NON_ENUMERABLE | Attribute::PERMANENT;
 
         BuiltInBuilder::from_standard_constructor::&lt;<span class="self">Self</span>&gt;(intrinsics)
-            .static_property(<span class="string">&quot;EPSILON&quot;</span>, f64::EPSILON, attribute)
-            .static_property(<span class="string">&quot;MAX_SAFE_INTEGER&quot;</span>, <span class="self">Self</span>::MAX_SAFE_INTEGER, attribute)
-            .static_property(<span class="string">&quot;MIN_SAFE_INTEGER&quot;</span>, <span class="self">Self</span>::MIN_SAFE_INTEGER, attribute)
-            .static_property(<span class="string">&quot;MAX_VALUE&quot;</span>, <span class="self">Self</span>::MAX_VALUE, attribute)
-            .static_property(<span class="string">&quot;MIN_VALUE&quot;</span>, <span class="self">Self</span>::MIN_VALUE, attribute)
-            .static_property(<span class="string">&quot;NEGATIVE_INFINITY&quot;</span>, f64::NEG_INFINITY, attribute)
-            .static_property(<span class="string">&quot;POSITIVE_INFINITY&quot;</span>, f64::INFINITY, attribute)
-            .static_property(<span class="string">&quot;NaN&quot;</span>, f64::NAN, attribute)
+            .static_property(<span class="macro">utf16!</span>(<span class="string">&quot;EPSILON&quot;</span>), f64::EPSILON, attribute)
             .static_property(
-                <span class="string">&quot;parseInt&quot;</span>,
+                <span class="macro">utf16!</span>(<span class="string">&quot;MAX_SAFE_INTEGER&quot;</span>),
+                <span class="self">Self</span>::MAX_SAFE_INTEGER,
+                attribute,
+            )
+            .static_property(
+                <span class="macro">utf16!</span>(<span class="string">&quot;MIN_SAFE_INTEGER&quot;</span>),
+                <span class="self">Self</span>::MIN_SAFE_INTEGER,
+                attribute,
+            )
+            .static_property(<span class="macro">utf16!</span>(<span class="string">&quot;MAX_VALUE&quot;</span>), <span class="self">Self</span>::MAX_VALUE, attribute)
+            .static_property(<span class="macro">utf16!</span>(<span class="string">&quot;MIN_VALUE&quot;</span>), <span class="self">Self</span>::MIN_VALUE, attribute)
+            .static_property(<span class="macro">utf16!</span>(<span class="string">&quot;NEGATIVE_INFINITY&quot;</span>), f64::NEG_INFINITY, attribute)
+            .static_property(<span class="macro">utf16!</span>(<span class="string">&quot;POSITIVE_INFINITY&quot;</span>), f64::INFINITY, attribute)
+            .static_property(<span class="macro">utf16!</span>(<span class="string">&quot;NaN&quot;</span>), f64::NAN, attribute)
+            .static_property(
+                <span class="macro">utf16!</span>(<span class="string">&quot;parseInt&quot;</span>),
                 intrinsics.objects().parse_int(),
                 Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
             )
             .static_property(
-                <span class="string">&quot;parseFloat&quot;</span>,
+                <span class="macro">utf16!</span>(<span class="string">&quot;parseFloat&quot;</span>),
                 intrinsics.objects().parse_float(),
                 Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
             )

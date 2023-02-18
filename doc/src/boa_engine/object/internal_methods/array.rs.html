@@ -254,6 +254,7 @@
 <a href="#253" id="253">253</a>
 <a href="#254" id="254">254</a>
 <a href="#255" id="255">255</a>
+<a href="#256" id="256">256</a>
 </pre><pre class="rust"><code><span class="kw">use crate</span>::{
     error::JsNativeError,
     object::JsObject,
@@ -283,12 +284,12 @@
 /// [spec]: https://tc39.es/ecma262/#sec-array-exotic-objects-defineownproperty-p-desc
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>array_exotic_define_own_property(
     obj: <span class="kw-2">&amp;</span>JsObject,
-    key: PropertyKey,
+    key: <span class="kw-2">&amp;</span>PropertyKey,
     desc: PropertyDescriptor,
     context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
 ) -&gt; JsResult&lt;bool&gt; {
     <span class="comment">// 1. Assert: IsPropertyKey(P) is true.
-    </span><span class="kw">match </span>key {
+    </span><span class="kw">match </span><span class="kw-2">*</span>key {
         <span class="comment">// 2. If P is &quot;length&quot;, then
         </span>PropertyKey::String(<span class="kw-2">ref </span>s) <span class="kw">if </span>s == <span class="macro">utf16!</span>(<span class="string">&quot;length&quot;</span>) =&gt; {
             <span class="comment">// a. Return ? ArraySetLength(A, Desc).
@@ -298,8 +299,9 @@
         <span class="comment">// 3. Else if P is an array index, then
         </span>PropertyKey::Index(index) <span class="kw">if </span>index &lt; u32::MAX =&gt; {
             <span class="comment">// a. Let oldLenDesc be OrdinaryGetOwnProperty(A, &quot;length&quot;).
-            </span><span class="kw">let </span>old_len_desc = <span class="kw">super</span>::ordinary_get_own_property(obj, <span class="kw-2">&amp;</span><span class="string">&quot;length&quot;</span>.into(), context)<span class="question-mark">?
-                </span>.expect(<span class="string">&quot;the property descriptor must exist&quot;</span>);
+            </span><span class="kw">let </span>old_len_desc =
+                <span class="kw">super</span>::ordinary_get_own_property(obj, <span class="kw-2">&amp;</span><span class="macro">utf16!</span>(<span class="string">&quot;length&quot;</span>).into(), context)<span class="question-mark">?
+                    </span>.expect(<span class="string">&quot;the property descriptor must exist&quot;</span>);
 
             <span class="comment">// b. Assert: ! IsDataDescriptor(oldLenDesc) is true.
             </span><span class="macro">debug_assert!</span>(old_len_desc.is_data_descriptor());
@@ -334,7 +336,7 @@
                     <span class="comment">// ii. Set succeeded to OrdinaryDefineOwnProperty(A, &quot;length&quot;, oldLenDesc).
                     </span><span class="kw">let </span>succeeded = <span class="kw">super</span>::ordinary_define_own_property(
                         obj,
-                        <span class="string">&quot;length&quot;</span>.into(),
+                        <span class="kw-2">&amp;</span><span class="macro">utf16!</span>(<span class="string">&quot;length&quot;</span>).into(),
                         old_len_desc.into(),
                         context,
                     )<span class="question-mark">?</span>;
@@ -369,7 +371,7 @@
     <span class="comment">// 1. If Desc.[[Value]] is absent, then
     </span><span class="kw">let </span><span class="prelude-val">Some</span>(new_len_val) = desc.value() <span class="kw">else </span>{
         <span class="comment">// a. Return OrdinaryDefineOwnProperty(A, &quot;length&quot;, Desc).
-        </span><span class="kw">return </span><span class="kw">super</span>::ordinary_define_own_property(obj, <span class="string">&quot;length&quot;</span>.into(), desc, context);
+        </span><span class="kw">return </span><span class="kw">super</span>::ordinary_define_own_property(obj, <span class="kw-2">&amp;</span><span class="macro">utf16!</span>(<span class="string">&quot;length&quot;</span>).into(), desc, context);
     };
 
     <span class="comment">// 3. Let newLen be ? ToUint32(Desc.[[Value]]).
@@ -395,7 +397,7 @@
         .maybe_configurable(desc.configurable());
 
     <span class="comment">// 7. Let oldLenDesc be OrdinaryGetOwnProperty(A, &quot;length&quot;).
-    </span><span class="kw">let </span>old_len_desc = <span class="kw">super</span>::ordinary_get_own_property(obj, <span class="kw-2">&amp;</span><span class="string">&quot;length&quot;</span>.into(), context)<span class="question-mark">?
+    </span><span class="kw">let </span>old_len_desc = <span class="kw">super</span>::ordinary_get_own_property(obj, <span class="kw-2">&amp;</span><span class="macro">utf16!</span>(<span class="string">&quot;length&quot;</span>).into(), context)<span class="question-mark">?
         </span>.expect(<span class="string">&quot;the property descriptor must exist&quot;</span>);
 
     <span class="comment">// 8. Assert: ! IsDataDescriptor(oldLenDesc) is true.
@@ -412,7 +414,7 @@
         <span class="comment">// a. Return OrdinaryDefineOwnProperty(A, &quot;length&quot;, newLenDesc).
         </span><span class="kw">return </span><span class="kw">super</span>::ordinary_define_own_property(
             obj,
-            <span class="string">&quot;length&quot;</span>.into(),
+            <span class="kw-2">&amp;</span><span class="macro">utf16!</span>(<span class="string">&quot;length&quot;</span>).into(),
             new_len_desc.build(),
             context,
         );
@@ -442,7 +444,7 @@
     // 16. If succeeded is false, return false.
     </span><span class="kw">if </span>!<span class="kw">super</span>::ordinary_define_own_property(
         obj,
-        <span class="string">&quot;length&quot;</span>.into(),
+        <span class="kw-2">&amp;</span><span class="macro">utf16!</span>(<span class="string">&quot;length&quot;</span>).into(),
         new_len_desc.clone().build(),
         context,
     )
@@ -479,7 +481,7 @@
             <span class="comment">// iii. Perform ! OrdinaryDefineOwnProperty(A, &quot;length&quot;, newLenDesc).
             </span><span class="kw">super</span>::ordinary_define_own_property(
                 obj,
-                <span class="string">&quot;length&quot;</span>.into(),
+                <span class="kw-2">&amp;</span><span class="macro">utf16!</span>(<span class="string">&quot;length&quot;</span>).into(),
                 new_len_desc.build(),
                 context,
             )
@@ -496,7 +498,7 @@
         // PropertyDescriptor { [[Writable]]: false }).
         </span><span class="kw">let </span>succeeded = <span class="kw">super</span>::ordinary_define_own_property(
             obj,
-            <span class="string">&quot;length&quot;</span>.into(),
+            <span class="kw-2">&amp;</span><span class="macro">utf16!</span>(<span class="string">&quot;length&quot;</span>).into(),
             PropertyDescriptor::builder().writable(<span class="bool-val">false</span>).build(),
             context,
         )

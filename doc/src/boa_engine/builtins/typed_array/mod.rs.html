@@ -3575,6 +3575,7 @@
 <a href="#3574" id="3574">3574</a>
 <a href="#3575" id="3575">3575</a>
 <a href="#3576" id="3576">3576</a>
+<a href="#3577" id="3577">3577</a>
 </pre><pre class="rust"><code><span class="doccomment">//! Boa&#39;s implementation of ECMAScript&#39;s global `TypedArray` objects.
 //!
 //! A `TypedArray` object describes an array-like view of an underlying binary data buffer.
@@ -3602,6 +3603,7 @@
     js_string,
     object::{internal_methods::get_prototype_from_constructor, JsObject, ObjectData},
     property::{Attribute, PropertyNameKind},
+    string::utf16,
     symbol::JsSymbol,
     value::{IntegerOrInfinity, JsValue},
     Context, JsArgs, JsResult,
@@ -3641,12 +3643,12 @@
                         Attribute::CONFIGURABLE,
                     )
                     .property(
-                        <span class="string">&quot;BYTES_PER_ELEMENT&quot;</span>,
+                        <span class="macro">utf16!</span>(<span class="string">&quot;BYTES_PER_ELEMENT&quot;</span>),
                         TypedArrayKind::<span class="macro-nonterminal">$variant</span>.element_size(),
                         Attribute::READONLY | Attribute::NON_ENUMERABLE | Attribute::PERMANENT,
                     )
                     .static_property(
-                        <span class="string">&quot;BYTES_PER_ELEMENT&quot;</span>,
+                        <span class="macro">utf16!</span>(<span class="string">&quot;BYTES_PER_ELEMENT&quot;</span>),
                         TypedArrayKind::<span class="macro-nonterminal">$variant</span>.element_size(),
                         Attribute::READONLY | Attribute::NON_ENUMERABLE | Attribute::PERMANENT,
                     )
@@ -3852,7 +3854,7 @@
                 Attribute::CONFIGURABLE,
             )
             .property(
-                <span class="string">&quot;length&quot;</span>,
+                <span class="macro">utf16!</span>(<span class="string">&quot;length&quot;</span>),
                 <span class="number">0</span>,
                 Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::PERMANENT,
             )
@@ -3862,25 +3864,25 @@
                 Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
             )
             .accessor(
-                <span class="string">&quot;buffer&quot;</span>,
+                <span class="macro">utf16!</span>(<span class="string">&quot;buffer&quot;</span>),
                 <span class="prelude-val">Some</span>(get_buffer),
                 <span class="prelude-val">None</span>,
                 Attribute::CONFIGURABLE | Attribute::NON_ENUMERABLE,
             )
             .accessor(
-                <span class="string">&quot;byteLength&quot;</span>,
+                <span class="macro">utf16!</span>(<span class="string">&quot;byteLength&quot;</span>),
                 <span class="prelude-val">Some</span>(get_byte_length),
                 <span class="prelude-val">None</span>,
                 Attribute::CONFIGURABLE | Attribute::NON_ENUMERABLE,
             )
             .accessor(
-                <span class="string">&quot;byteOffset&quot;</span>,
+                <span class="macro">utf16!</span>(<span class="string">&quot;byteOffset&quot;</span>),
                 <span class="prelude-val">Some</span>(get_byte_offset),
                 <span class="prelude-val">None</span>,
                 Attribute::CONFIGURABLE | Attribute::NON_ENUMERABLE,
             )
             .accessor(
-                <span class="string">&quot;length&quot;</span>,
+                <span class="macro">utf16!</span>(<span class="string">&quot;length&quot;</span>),
                 <span class="prelude-val">Some</span>(get_length),
                 <span class="prelude-val">None</span>,
                 Attribute::CONFIGURABLE | Attribute::NON_ENUMERABLE,

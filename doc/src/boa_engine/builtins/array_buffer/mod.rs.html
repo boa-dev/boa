@@ -840,6 +840,12 @@
 <a href="#839" id="839">839</a>
 <a href="#840" id="840">840</a>
 <a href="#841" id="841">841</a>
+<a href="#842" id="842">842</a>
+<a href="#843" id="843">843</a>
+<a href="#844" id="844">844</a>
+<a href="#845" id="845">845</a>
+<a href="#846" id="846">846</a>
+<a href="#847" id="847">847</a>
 </pre><pre class="rust"><code><span class="doccomment">//! Boa&#39;s implementation of ECMAScript&#39;s global `ArrayBuffer` object.
 //!
 //! More information:
@@ -858,6 +864,7 @@
     error::JsNativeError,
     object::{internal_methods::get_prototype_from_constructor, JsObject, ObjectData},
     property::Attribute,
+    string::utf16,
     symbol::JsSymbol,
     value::{IntegerOrInfinity, Numeric},
     Context, JsArgs, JsResult, JsValue,
@@ -904,7 +911,12 @@
             .build();
 
         BuiltInBuilder::from_standard_constructor::&lt;<span class="self">Self</span>&gt;(intrinsics)
-            .accessor(<span class="string">&quot;byteLength&quot;</span>, <span class="prelude-val">Some</span>(get_byte_length), <span class="prelude-val">None</span>, flag_attributes)
+            .accessor(
+                <span class="macro">utf16!</span>(<span class="string">&quot;byteLength&quot;</span>),
+                <span class="prelude-val">Some</span>(get_byte_length),
+                <span class="prelude-val">None</span>,
+                flag_attributes,
+            )
             .static_accessor(
                 JsSymbol::species(),
                 <span class="prelude-val">Some</span>(get_species),

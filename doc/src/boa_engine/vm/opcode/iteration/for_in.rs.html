@@ -84,9 +84,11 @@
 <a href="#83" id="83">83</a>
 <a href="#84" id="84">84</a>
 <a href="#85" id="85">85</a>
+<a href="#86" id="86">86</a>
 </pre><pre class="rust"><code><span class="kw">use crate</span>::{
     builtins::{iterable::IteratorRecord, object::for_in_iterator::ForInIterator},
     error::JsNativeError,
+    js_string,
     property::PropertyDescriptor,
     vm::{opcode::Operation, ShouldExit},
     Context, JsResult, JsValue,
@@ -115,7 +117,7 @@
         <span class="kw">let </span>object = object.to_object(context)<span class="question-mark">?</span>;
         <span class="kw">let </span>iterator = ForInIterator::create_for_in_iterator(JsValue::new(object), context);
         <span class="kw">let </span>next_method = iterator
-            .get_property(<span class="string">&quot;next&quot;</span>)
+            .get_property(<span class="macro">js_string!</span>(<span class="string">&quot;next&quot;</span>))
             .as_ref()
             .map(PropertyDescriptor::expect_value)
             .cloned()

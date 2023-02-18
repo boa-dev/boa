@@ -592,7 +592,7 @@
             </span>.into();
 
         target
-            .__define_own_property__(key, prop_desc.to_property_descriptor(context)<span class="question-mark">?</span>, context)
+            .__define_own_property__(<span class="kw-2">&amp;</span>key, prop_desc.to_property_descriptor(context)<span class="question-mark">?</span>, context)
             .map(Into::into)
     }
 

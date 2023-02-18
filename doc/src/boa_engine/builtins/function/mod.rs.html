@@ -1419,13 +1419,13 @@
             .method(<span class="self">Self</span>::to_string, <span class="string">&quot;toString&quot;</span>, <span class="number">0</span>)
             .property(JsSymbol::has_instance(), has_instance, Attribute::default())
             .accessor(
-                <span class="string">&quot;caller&quot;</span>,
+                <span class="macro">utf16!</span>(<span class="string">&quot;caller&quot;</span>),
                 <span class="prelude-val">Some</span>(throw_type_error.clone()),
                 <span class="prelude-val">Some</span>(throw_type_error.clone()),
                 Attribute::CONFIGURABLE,
             )
             .accessor(
-                <span class="string">&quot;arguments&quot;</span>,
+                <span class="macro">utf16!</span>(<span class="string">&quot;arguments&quot;</span>),
                 <span class="prelude-val">Some</span>(throw_type_error.clone()),
                 <span class="prelude-val">Some</span>(throw_type_error),
                 Attribute::CONFIGURABLE,
@@ -1734,9 +1734,9 @@
 
         <span class="comment">// 5. Let targetHasLength be ? HasOwnProperty(Target, &quot;length&quot;).
         // 6. If targetHasLength is true, then
-        </span><span class="kw">if </span>target.has_own_property(<span class="string">&quot;length&quot;</span>, context)<span class="question-mark">? </span>{
+        </span><span class="kw">if </span>target.has_own_property(<span class="macro">utf16!</span>(<span class="string">&quot;length&quot;</span>), context)<span class="question-mark">? </span>{
             <span class="comment">// a. Let targetLen be ? Get(Target, &quot;length&quot;).
-            </span><span class="kw">let </span>target_len = target.get(<span class="string">&quot;length&quot;</span>, context)<span class="question-mark">?</span>;
+            </span><span class="kw">let </span>target_len = target.get(<span class="macro">utf16!</span>(<span class="string">&quot;length&quot;</span>), context)<span class="question-mark">?</span>;
             <span class="comment">// b. If Type(targetLen) is Number, then
             </span><span class="kw">if </span>target_len.is_number() {
                 <span class="comment">// 1. Let targetLenAsInt be ! ToIntegerOrInfinity(targetLen).
@@ -1761,7 +1761,7 @@
 
         <span class="comment">// 7. Perform ! SetFunctionLength(F, L).
         </span>f.define_property_or_throw(
-            <span class="string">&quot;length&quot;</span>,
+            <span class="macro">utf16!</span>(<span class="string">&quot;length&quot;</span>),
             PropertyDescriptor::builder()
                 .value(l)
                 .writable(<span class="bool-val">false</span>)
@@ -1772,7 +1772,7 @@
         .expect(<span class="string">&quot;defining the `length` property for a new object should not fail&quot;</span>);
 
         <span class="comment">// 8. Let targetName be ? Get(Target, &quot;name&quot;).
-        </span><span class="kw">let </span>target_name = target.get(<span class="string">&quot;name&quot;</span>, context)<span class="question-mark">?</span>;
+        </span><span class="kw">let </span>target_name = target.get(<span class="macro">utf16!</span>(<span class="string">&quot;name&quot;</span>), context)<span class="question-mark">?</span>;
 
         <span class="comment">// 9. If Type(targetName) is not String, set targetName to the empty String.
         </span><span class="kw">let </span>target_name = target_name
@@ -1825,7 +1825,7 @@
             </span><span class="kw">let </span>value = this
                 .as_object()
                 .expect(<span class="string">&quot;checked that `this` was an object above&quot;</span>)
-                .get(<span class="string">&quot;name&quot;</span>, <span class="kw-2">&amp;mut *</span>context)<span class="question-mark">?</span>;
+                .get(<span class="macro">utf16!</span>(<span class="string">&quot;name&quot;</span>), <span class="kw-2">&amp;mut *</span>context)<span class="question-mark">?</span>;
             <span class="kw">if </span>value.is_null_or_undefined() {
                 <span class="prelude-val">None
             </span>} <span class="kw">else </span>{
@@ -1923,7 +1923,7 @@
     // [[Writable]]: false, [[Enumerable]]: false, [[Configurable]]: true }).
     </span>function
         .define_property_or_throw(
-            <span class="string">&quot;name&quot;</span>,
+            <span class="macro">utf16!</span>(<span class="string">&quot;name&quot;</span>),
             PropertyDescriptor::builder()
                 .value(name)
                 .writable(<span class="bool-val">false</span>)

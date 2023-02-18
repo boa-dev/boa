@@ -373,7 +373,7 @@
 /// [spec]: https://tc39.es/ecma402/#sec-getoption
 </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>get_option&lt;T: OptionType&gt;(
     options: <span class="kw-2">&amp;</span>JsObject,
-    property: <span class="kw-2">&amp;</span>str,
+    property: <span class="kw-2">&amp;</span>[u16],
     required: bool,
     context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
 ) -&gt; JsResult&lt;<span class="prelude-ty">Option</span>&lt;T&gt;&gt; {
@@ -410,7 +410,7 @@
 </span><span class="attr">#[allow(unused)]
 </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>get_number_option(
     options: <span class="kw-2">&amp;</span>JsObject,
-    property: <span class="kw-2">&amp;</span>str,
+    property: <span class="kw-2">&amp;</span>[u16],
     minimum: f64,
     maximum: f64,
     fallback: <span class="prelude-ty">Option</span>&lt;f64&gt;,

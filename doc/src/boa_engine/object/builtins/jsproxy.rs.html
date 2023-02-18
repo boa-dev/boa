@@ -516,6 +516,7 @@
 <a href="#515" id="515">515</a>
 <a href="#516" id="516">516</a>
 <a href="#517" id="517">517</a>
+<a href="#518" id="518">518</a>
 </pre><pre class="rust"><code><span class="doccomment">//! A Rust API wrapper for the `Proxy` Builtin ECMAScript Object
 </span><span class="kw">use </span>boa_gc::{Finalize, Trace};
 
@@ -523,6 +524,7 @@
     builtins::Proxy,
     native_function::{NativeFunction, NativeFunctionPointer},
     object::{FunctionObjectBuilder, JsObject, JsObjectType, ObjectData},
+    string::utf16,
     Context, JsResult, JsValue,
 };
 
@@ -897,7 +899,7 @@
                 .length(<span class="number">3</span>)
                 .build();
             handler
-                .create_data_property_or_throw(<span class="string">&quot;apply&quot;</span>, f, context)
+                .create_data_property_or_throw(<span class="macro">utf16!</span>(<span class="string">&quot;apply&quot;</span>), f, context)
                 .expect(<span class="string">&quot;new object should be writable&quot;</span>);
         }
         <span class="kw">if let </span><span class="prelude-val">Some</span>(construct) = <span class="self">self</span>.construct {
@@ -905,7 +907,7 @@
                 .length(<span class="number">3</span>)
                 .build();
             handler
-                .create_data_property_or_throw(<span class="string">&quot;construct&quot;</span>, f, context)
+                .create_data_property_or_throw(<span class="macro">utf16!</span>(<span class="string">&quot;construct&quot;</span>), f, context)
                 .expect(<span class="string">&quot;new object should be writable&quot;</span>);
         }
         <span class="kw">if let </span><span class="prelude-val">Some</span>(define_property) = <span class="self">self</span>.define_property {
@@ -914,7 +916,7 @@
                     .length(<span class="number">3</span>)
                     .build();
             handler
-                .create_data_property_or_throw(<span class="string">&quot;defineProperty&quot;</span>, f, context)
+                .create_data_property_or_throw(<span class="macro">utf16!</span>(<span class="string">&quot;defineProperty&quot;</span>), f, context)
                 .expect(<span class="string">&quot;new object should be writable&quot;</span>);
         }
         <span class="kw">if let </span><span class="prelude-val">Some</span>(delete_property) = <span class="self">self</span>.delete_property {
@@ -923,7 +925,7 @@
                     .length(<span class="number">2</span>)
                     .build();
             handler
-                .create_data_property_or_throw(<span class="string">&quot;deleteProperty&quot;</span>, f, context)
+                .create_data_property_or_throw(<span class="macro">utf16!</span>(<span class="string">&quot;deleteProperty&quot;</span>), f, context)
                 .expect(<span class="string">&quot;new object should be writable&quot;</span>);
         }
         <span class="kw">if let </span><span class="prelude-val">Some</span>(get) = <span class="self">self</span>.get {
@@ -931,7 +933,7 @@
                 .length(<span class="number">3</span>)
                 .build();
             handler
-                .create_data_property_or_throw(<span class="string">&quot;get&quot;</span>, f, context)
+                .create_data_property_or_throw(<span class="macro">utf16!</span>(<span class="string">&quot;get&quot;</span>), f, context)
                 .expect(<span class="string">&quot;new object should be writable&quot;</span>);
         }
         <span class="kw">if let </span><span class="prelude-val">Some</span>(get_own_property_descriptor) = <span class="self">self</span>.get_own_property_descriptor {
@@ -942,7 +944,7 @@
             .length(<span class="number">2</span>)
             .build();
             handler
-                .create_data_property_or_throw(<span class="string">&quot;getOwnPropertyDescriptor&quot;</span>, f, context)
+                .create_data_property_or_throw(<span class="macro">utf16!</span>(<span class="string">&quot;getOwnPropertyDescriptor&quot;</span>), f, context)
                 .expect(<span class="string">&quot;new object should be writable&quot;</span>);
         }
         <span class="kw">if let </span><span class="prelude-val">Some</span>(get_prototype_of) = <span class="self">self</span>.get_prototype_of {
@@ -951,7 +953,7 @@
                     .length(<span class="number">1</span>)
                     .build();
             handler
-                .create_data_property_or_throw(<span class="string">&quot;getPrototypeOf&quot;</span>, f, context)
+                .create_data_property_or_throw(<span class="macro">utf16!</span>(<span class="string">&quot;getPrototypeOf&quot;</span>), f, context)
                 .expect(<span class="string">&quot;new object should be writable&quot;</span>);
         }
         <span class="kw">if let </span><span class="prelude-val">Some</span>(has) = <span class="self">self</span>.has {
@@ -959,7 +961,7 @@
                 .length(<span class="number">2</span>)
                 .build();
             handler
-                .create_data_property_or_throw(<span class="string">&quot;has&quot;</span>, f, context)
+                .create_data_property_or_throw(<span class="macro">utf16!</span>(<span class="string">&quot;has&quot;</span>), f, context)
                 .expect(<span class="string">&quot;new object should be writable&quot;</span>);
         }
         <span class="kw">if let </span><span class="prelude-val">Some</span>(is_extensible) = <span class="self">self</span>.is_extensible {
@@ -967,7 +969,7 @@
                 .length(<span class="number">1</span>)
                 .build();
             handler
-                .create_data_property_or_throw(<span class="string">&quot;isExtensible&quot;</span>, f, context)
+                .create_data_property_or_throw(<span class="macro">utf16!</span>(<span class="string">&quot;isExtensible&quot;</span>), f, context)
                 .expect(<span class="string">&quot;new object should be writable&quot;</span>);
         }
         <span class="kw">if let </span><span class="prelude-val">Some</span>(own_keys) = <span class="self">self</span>.own_keys {
@@ -975,7 +977,7 @@
                 .length(<span class="number">1</span>)
                 .build();
             handler
-                .create_data_property_or_throw(<span class="string">&quot;ownKeys&quot;</span>, f, context)
+                .create_data_property_or_throw(<span class="macro">utf16!</span>(<span class="string">&quot;ownKeys&quot;</span>), f, context)
                 .expect(<span class="string">&quot;new object should be writable&quot;</span>);
         }
         <span class="kw">if let </span><span class="prelude-val">Some</span>(prevent_extensions) = <span class="self">self</span>.prevent_extensions {
@@ -986,7 +988,7 @@
             .length(<span class="number">1</span>)
             .build();
             handler
-                .create_data_property_or_throw(<span class="string">&quot;preventExtensions&quot;</span>, f, context)
+                .create_data_property_or_throw(<span class="macro">utf16!</span>(<span class="string">&quot;preventExtensions&quot;</span>), f, context)
                 .expect(<span class="string">&quot;new object should be writable&quot;</span>);
         }
         <span class="kw">if let </span><span class="prelude-val">Some</span>(set) = <span class="self">self</span>.set {
@@ -994,7 +996,7 @@
                 .length(<span class="number">4</span>)
                 .build();
             handler
-                .create_data_property_or_throw(<span class="string">&quot;set&quot;</span>, f, context)
+                .create_data_property_or_throw(<span class="macro">utf16!</span>(<span class="string">&quot;set&quot;</span>), f, context)
                 .expect(<span class="string">&quot;new object should be writable&quot;</span>);
         }
         <span class="kw">if let </span><span class="prelude-val">Some</span>(set_prototype_of) = <span class="self">self</span>.set_prototype_of {
@@ -1003,7 +1005,7 @@
                     .length(<span class="number">2</span>)
                     .build();
             handler
-                .create_data_property_or_throw(<span class="string">&quot;setPrototypeOf&quot;</span>, f, context)
+                .create_data_property_or_throw(<span class="macro">utf16!</span>(<span class="string">&quot;setPrototypeOf&quot;</span>), f, context)
                 .expect(<span class="string">&quot;new object should be writable&quot;</span>);
         }
 

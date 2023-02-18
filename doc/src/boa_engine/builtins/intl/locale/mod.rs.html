@@ -756,7 +756,58 @@
 <a href="#755" id="755">755</a>
 <a href="#756" id="756">756</a>
 <a href="#757" id="757">757</a>
-</pre><pre class="rust"><code><span class="kw">use </span>boa_profiler::Profiler;
+<a href="#758" id="758">758</a>
+<a href="#759" id="759">759</a>
+<a href="#760" id="760">760</a>
+<a href="#761" id="761">761</a>
+<a href="#762" id="762">762</a>
+<a href="#763" id="763">763</a>
+<a href="#764" id="764">764</a>
+<a href="#765" id="765">765</a>
+<a href="#766" id="766">766</a>
+<a href="#767" id="767">767</a>
+<a href="#768" id="768">768</a>
+<a href="#769" id="769">769</a>
+<a href="#770" id="770">770</a>
+<a href="#771" id="771">771</a>
+<a href="#772" id="772">772</a>
+<a href="#773" id="773">773</a>
+<a href="#774" id="774">774</a>
+<a href="#775" id="775">775</a>
+<a href="#776" id="776">776</a>
+<a href="#777" id="777">777</a>
+<a href="#778" id="778">778</a>
+<a href="#779" id="779">779</a>
+<a href="#780" id="780">780</a>
+<a href="#781" id="781">781</a>
+<a href="#782" id="782">782</a>
+<a href="#783" id="783">783</a>
+<a href="#784" id="784">784</a>
+<a href="#785" id="785">785</a>
+<a href="#786" id="786">786</a>
+<a href="#787" id="787">787</a>
+<a href="#788" id="788">788</a>
+<a href="#789" id="789">789</a>
+<a href="#790" id="790">790</a>
+<a href="#791" id="791">791</a>
+<a href="#792" id="792">792</a>
+<a href="#793" id="793">793</a>
+<a href="#794" id="794">794</a>
+<a href="#795" id="795">795</a>
+<a href="#796" id="796">796</a>
+<a href="#797" id="797">797</a>
+<a href="#798" id="798">798</a>
+<a href="#799" id="799">799</a>
+<a href="#800" id="800">800</a>
+<a href="#801" id="801">801</a>
+<a href="#802" id="802">802</a>
+<a href="#803" id="803">803</a>
+<a href="#804" id="804">804</a>
+<a href="#805" id="805">805</a>
+<a href="#806" id="806">806</a>
+<a href="#807" id="807">807</a>
+</pre><pre class="rust"><code><span class="kw">use </span><span class="kw">crate</span>::string::utf16;
+<span class="kw">use </span>boa_profiler::Profiler;
 <span class="kw">use </span>icu_collator::CaseFirst;
 <span class="kw">use </span>icu_datetime::options::preferences::HourCycle;
 <span class="kw">use </span>icu_locid::{
@@ -851,21 +902,66 @@
             .method(<span class="self">Self</span>::maximize, <span class="string">&quot;maximize&quot;</span>, <span class="number">0</span>)
             .method(<span class="self">Self</span>::minimize, <span class="string">&quot;minimize&quot;</span>, <span class="number">0</span>)
             .method(<span class="self">Self</span>::to_string, <span class="string">&quot;toString&quot;</span>, <span class="number">0</span>)
-            .accessor(<span class="string">&quot;baseName&quot;</span>, <span class="prelude-val">Some</span>(base_name), <span class="prelude-val">None</span>, Attribute::CONFIGURABLE)
-            .accessor(<span class="string">&quot;calendar&quot;</span>, <span class="prelude-val">Some</span>(calendar), <span class="prelude-val">None</span>, Attribute::CONFIGURABLE)
-            .accessor(<span class="string">&quot;caseFirst&quot;</span>, <span class="prelude-val">Some</span>(case_first), <span class="prelude-val">None</span>, Attribute::CONFIGURABLE)
-            .accessor(<span class="string">&quot;collation&quot;</span>, <span class="prelude-val">Some</span>(collation), <span class="prelude-val">None</span>, Attribute::CONFIGURABLE)
-            .accessor(<span class="string">&quot;hourCycle&quot;</span>, <span class="prelude-val">Some</span>(hour_cycle), <span class="prelude-val">None</span>, Attribute::CONFIGURABLE)
-            .accessor(<span class="string">&quot;numeric&quot;</span>, <span class="prelude-val">Some</span>(numeric), <span class="prelude-val">None</span>, Attribute::CONFIGURABLE)
             .accessor(
-                <span class="string">&quot;numberingSystem&quot;</span>,
+                <span class="macro">utf16!</span>(<span class="string">&quot;baseName&quot;</span>),
+                <span class="prelude-val">Some</span>(base_name),
+                <span class="prelude-val">None</span>,
+                Attribute::CONFIGURABLE,
+            )
+            .accessor(
+                <span class="macro">utf16!</span>(<span class="string">&quot;calendar&quot;</span>),
+                <span class="prelude-val">Some</span>(calendar),
+                <span class="prelude-val">None</span>,
+                Attribute::CONFIGURABLE,
+            )
+            .accessor(
+                <span class="macro">utf16!</span>(<span class="string">&quot;caseFirst&quot;</span>),
+                <span class="prelude-val">Some</span>(case_first),
+                <span class="prelude-val">None</span>,
+                Attribute::CONFIGURABLE,
+            )
+            .accessor(
+                <span class="macro">utf16!</span>(<span class="string">&quot;collation&quot;</span>),
+                <span class="prelude-val">Some</span>(collation),
+                <span class="prelude-val">None</span>,
+                Attribute::CONFIGURABLE,
+            )
+            .accessor(
+                <span class="macro">utf16!</span>(<span class="string">&quot;hourCycle&quot;</span>),
+                <span class="prelude-val">Some</span>(hour_cycle),
+                <span class="prelude-val">None</span>,
+                Attribute::CONFIGURABLE,
+            )
+            .accessor(
+                <span class="macro">utf16!</span>(<span class="string">&quot;numeric&quot;</span>),
+                <span class="prelude-val">Some</span>(numeric),
+                <span class="prelude-val">None</span>,
+                Attribute::CONFIGURABLE,
+            )
+            .accessor(
+                <span class="macro">utf16!</span>(<span class="string">&quot;numberingSystem&quot;</span>),
                 <span class="prelude-val">Some</span>(numbering_system),
                 <span class="prelude-val">None</span>,
                 Attribute::CONFIGURABLE,
             )
-            .accessor(<span class="string">&quot;language&quot;</span>, <span class="prelude-val">Some</span>(language), <span class="prelude-val">None</span>, Attribute::CONFIGURABLE)
-            .accessor(<span class="string">&quot;script&quot;</span>, <span class="prelude-val">Some</span>(script), <span class="prelude-val">None</span>, Attribute::CONFIGURABLE)
-            .accessor(<span class="string">&quot;region&quot;</span>, <span class="prelude-val">Some</span>(region), <span class="prelude-val">None</span>, Attribute::CONFIGURABLE)
+            .accessor(
+                <span class="macro">utf16!</span>(<span class="string">&quot;language&quot;</span>),
+                <span class="prelude-val">Some</span>(language),
+                <span class="prelude-val">None</span>,
+                Attribute::CONFIGURABLE,
+            )
+            .accessor(
+                <span class="macro">utf16!</span>(<span class="string">&quot;script&quot;</span>),
+                <span class="prelude-val">Some</span>(script),
+                <span class="prelude-val">None</span>,
+                Attribute::CONFIGURABLE,
+            )
+            .accessor(
+                <span class="macro">utf16!</span>(<span class="string">&quot;region&quot;</span>),
+                <span class="prelude-val">Some</span>(region),
+                <span class="prelude-val">None</span>,
+                Attribute::CONFIGURABLE,
+            )
             .build();
     }
 
@@ -955,7 +1051,7 @@
             // 3. If ! IsStructurallyValidLanguageTag(tag) is false, throw a RangeError exception.
             // 4. Let language be ? GetOption(options, &quot;language&quot;, string, empty, undefined).
             // 5. If language is not undefined, then
-            </span><span class="kw">let </span>language = get_option::&lt;JsString&gt;(options, <span class="string">&quot;language&quot;</span>, <span class="bool-val">false</span>, context)<span class="question-mark">?
+            </span><span class="kw">let </span>language = get_option::&lt;JsString&gt;(options, <span class="macro">utf16!</span>(<span class="string">&quot;language&quot;</span>), <span class="bool-val">false</span>, context)<span class="question-mark">?
                 </span><span class="comment">// a. If language does not match the unicode_language_subtag production, throw a RangeError exception.
                 </span>.map(|s| s.to_std_string_escaped().parse::&lt;Language&gt;())
                 .transpose()
@@ -963,7 +1059,7 @@
 
             <span class="comment">// 6. Let script be ? GetOption(options, &quot;script&quot;, string, empty, undefined).
             // 7. If script is not undefined, then
-            </span><span class="kw">let </span>script = get_option::&lt;JsString&gt;(options, <span class="string">&quot;script&quot;</span>, <span class="bool-val">false</span>, context)<span class="question-mark">?
+            </span><span class="kw">let </span>script = get_option::&lt;JsString&gt;(options, <span class="macro">utf16!</span>(<span class="string">&quot;script&quot;</span>), <span class="bool-val">false</span>, context)<span class="question-mark">?
                 </span>.map(|s| s.to_std_string_escaped().parse::&lt;Script&gt;())
                 .transpose()
                 <span class="comment">// a. If script does not match the unicode_script_subtag production, throw a RangeError exception.
@@ -971,7 +1067,7 @@
 
             <span class="comment">// 8. Let region be ? GetOption(options, &quot;region&quot;, string, empty, undefined).
             // 9. If region is not undefined, then
-            </span><span class="kw">let </span>region = get_option::&lt;JsString&gt;(options, <span class="string">&quot;region&quot;</span>, <span class="bool-val">false</span>, context)<span class="question-mark">?
+            </span><span class="kw">let </span>region = get_option::&lt;JsString&gt;(options, <span class="macro">utf16!</span>(<span class="string">&quot;region&quot;</span>), <span class="bool-val">false</span>, context)<span class="question-mark">?
                 </span>.map(|s| s.to_std_string_escaped().parse::&lt;Region&gt;())
                 .transpose()
                 <span class="comment">// a. If region does not match the unicode_region_subtag production, throw a RangeError exception.
@@ -1017,38 +1113,42 @@
         // 14. If calendar is not undefined, then
         // 15. Set opt.[[ca]] to calendar.
         //     a. If calendar does not match the Unicode Locale Identifier type nonterminal, throw a RangeError exception.
-        </span><span class="kw">let </span>ca = get_option::&lt;Value&gt;(options, <span class="string">&quot;calendar&quot;</span>, <span class="bool-val">false</span>, context)<span class="question-mark">?</span>;
+        </span><span class="kw">let </span>ca = get_option::&lt;Value&gt;(options, <span class="macro">utf16!</span>(<span class="string">&quot;calendar&quot;</span>), <span class="bool-val">false</span>, context)<span class="question-mark">?</span>;
 
         <span class="comment">// 16. Let collation be ? GetOption(options, &quot;collation&quot;, string, empty, undefined).
         // 17. If collation is not undefined, then
         // 18. Set opt.[[co]] to collation.
         //     a. If collation does not match the Unicode Locale Identifier type nonterminal, throw a RangeError exception.
-        </span><span class="kw">let </span>co = get_option::&lt;Value&gt;(options, <span class="string">&quot;collation&quot;</span>, <span class="bool-val">false</span>, context)<span class="question-mark">?</span>;
+        </span><span class="kw">let </span>co = get_option::&lt;Value&gt;(options, <span class="macro">utf16!</span>(<span class="string">&quot;collation&quot;</span>), <span class="bool-val">false</span>, context)<span class="question-mark">?</span>;
 
         <span class="comment">// 19. Let hc be ? GetOption(options, &quot;hourCycle&quot;, string, « &quot;h11&quot;, &quot;h12&quot;, &quot;h23&quot;, &quot;h24&quot; », undefined).
         // 20. Set opt.[[hc]] to hc.
         </span><span class="kw">let </span>hc =
-            get_option::&lt;HourCycle&gt;(options, <span class="string">&quot;hourCycle&quot;</span>, <span class="bool-val">false</span>, context)<span class="question-mark">?</span>.map(|hc| <span class="kw">match </span>hc {
-                HourCycle::H24 =&gt; <span class="macro">value!</span>(<span class="string">&quot;h24&quot;</span>),
-                HourCycle::H23 =&gt; <span class="macro">value!</span>(<span class="string">&quot;h23&quot;</span>),
-                HourCycle::H12 =&gt; <span class="macro">value!</span>(<span class="string">&quot;h12&quot;</span>),
-                HourCycle::H11 =&gt; <span class="macro">value!</span>(<span class="string">&quot;h11&quot;</span>),
-            });
+            get_option::&lt;HourCycle&gt;(options, <span class="macro">utf16!</span>(<span class="string">&quot;hourCycle&quot;</span>), <span class="bool-val">false</span>, context)<span class="question-mark">?</span>.map(
+                |hc| <span class="kw">match </span>hc {
+                    HourCycle::H24 =&gt; <span class="macro">value!</span>(<span class="string">&quot;h24&quot;</span>),
+                    HourCycle::H23 =&gt; <span class="macro">value!</span>(<span class="string">&quot;h23&quot;</span>),
+                    HourCycle::H12 =&gt; <span class="macro">value!</span>(<span class="string">&quot;h12&quot;</span>),
+                    HourCycle::H11 =&gt; <span class="macro">value!</span>(<span class="string">&quot;h11&quot;</span>),
+                },
+            );
 
         <span class="comment">// 21. Let kf be ? GetOption(options, &quot;caseFirst&quot;, string, « &quot;upper&quot;, &quot;lower&quot;, &quot;false&quot; », undefined).
         // 22. Set opt.[[kf]] to kf.
         </span><span class="kw">let </span>kf =
-            get_option::&lt;CaseFirst&gt;(options, <span class="string">&quot;caseFirst&quot;</span>, <span class="bool-val">false</span>, context)<span class="question-mark">?</span>.map(|kf| <span class="kw">match </span>kf {
-                CaseFirst::UpperFirst =&gt; <span class="macro">value!</span>(<span class="string">&quot;upper&quot;</span>),
-                CaseFirst::LowerFirst =&gt; <span class="macro">value!</span>(<span class="string">&quot;lower&quot;</span>),
-                CaseFirst::Off =&gt; <span class="macro">value!</span>(<span class="string">&quot;false&quot;</span>),
-                <span class="kw">_ </span>=&gt; <span class="macro">unreachable!</span>(),
-            });
+            get_option::&lt;CaseFirst&gt;(options, <span class="macro">utf16!</span>(<span class="string">&quot;caseFirst&quot;</span>), <span class="bool-val">false</span>, context)<span class="question-mark">?</span>.map(
+                |kf| <span class="kw">match </span>kf {
+                    CaseFirst::UpperFirst =&gt; <span class="macro">value!</span>(<span class="string">&quot;upper&quot;</span>),
+                    CaseFirst::LowerFirst =&gt; <span class="macro">value!</span>(<span class="string">&quot;lower&quot;</span>),
+                    CaseFirst::Off =&gt; <span class="macro">value!</span>(<span class="string">&quot;false&quot;</span>),
+                    <span class="kw">_ </span>=&gt; <span class="macro">unreachable!</span>(),
+                },
+            );
 
         <span class="comment">// 23. Let kn be ? GetOption(options, &quot;numeric&quot;, boolean, empty, undefined).
         // 24. If kn is not undefined, set kn to ! ToString(kn).
         // 25. Set opt.[[kn]] to kn.
-        </span><span class="kw">let </span>kn = get_option::&lt;bool&gt;(options, <span class="string">&quot;numeric&quot;</span>, <span class="bool-val">false</span>, context)<span class="question-mark">?</span>.map(|b| {
+        </span><span class="kw">let </span>kn = get_option::&lt;bool&gt;(options, <span class="macro">utf16!</span>(<span class="string">&quot;numeric&quot;</span>), <span class="bool-val">false</span>, context)<span class="question-mark">?</span>.map(|b| {
             <span class="kw">if </span>b {
                 <span class="macro">value!</span>(<span class="string">&quot;true&quot;</span>)
             } <span class="kw">else </span>{
@@ -1060,7 +1160,7 @@
         // 27. If numberingSystem is not undefined, then
         // 28. Set opt.[[nu]] to numberingSystem.
         //     a. If numberingSystem does not match the Unicode Locale Identifier type nonterminal, throw a RangeError exception.
-        </span><span class="kw">let </span>nu = get_option::&lt;Value&gt;(options, <span class="string">&quot;numberingSystem&quot;</span>, <span class="bool-val">false</span>, context)<span class="question-mark">?</span>;
+        </span><span class="kw">let </span>nu = get_option::&lt;Value&gt;(options, <span class="macro">utf16!</span>(<span class="string">&quot;numberingSystem&quot;</span>), <span class="bool-val">false</span>, context)<span class="question-mark">?</span>;
 
         <span class="comment">// 29. Let r be ! ApplyUnicodeExtensionToTag(tag, opt, relevantExtensionKeys).
         // 30. Set locale.[[Locale]] to r.[[locale]].

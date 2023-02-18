@@ -2294,6 +2294,11 @@
 <a href="#2293" id="2293">2293</a>
 <a href="#2294" id="2294">2294</a>
 <a href="#2295" id="2295">2295</a>
+<a href="#2296" id="2296">2296</a>
+<a href="#2297" id="2297">2297</a>
+<a href="#2298" id="2298">2298</a>
+<a href="#2299" id="2299">2299</a>
+<a href="#2300" id="2300">2300</a>
 </pre><pre class="rust"><code><span class="doccomment">//! Boa&#39;s implementation of ECMAScript&#39;s global `Promise` object.
 
 </span><span class="attr">#[cfg(test)]
@@ -2311,6 +2316,7 @@
         JsObject, ObjectData, CONSTRUCTOR,
     },
     property::{Attribute, PropertyDescriptorBuilder},
+    string::utf16,
     symbol::JsSymbol,
     value::JsValue,
     Context, JsArgs, JsError, JsResult,
@@ -2918,7 +2924,7 @@
 
             <span class="comment">// s. Perform ? Invoke(nextPromise, &quot;then&quot;, « onFulfilled, resultCapability.[[Reject]] »).
             </span>next_promise.invoke(
-                <span class="string">&quot;then&quot;</span>,
+                <span class="macro">utf16!</span>(<span class="string">&quot;then&quot;</span>),
                 <span class="kw-2">&amp;</span>[on_fulfilled.into(), result_capability.reject.clone().into()],
                 context,
             )<span class="question-mark">?</span>;
@@ -3122,12 +3128,12 @@
                         </span><span class="kw">let </span>obj = JsObject::with_object_proto(context);
 
                         <span class="comment">// 10. Perform ! CreateDataPropertyOrThrow(obj, &quot;status&quot;, &quot;fulfilled&quot;).
-                        </span>obj.create_data_property_or_throw(<span class="string">&quot;status&quot;</span>, <span class="string">&quot;fulfilled&quot;</span>, context)
+                        </span>obj.create_data_property_or_throw(<span class="macro">utf16!</span>(<span class="string">&quot;status&quot;</span>), <span class="string">&quot;fulfilled&quot;</span>, context)
                             .expect(<span class="string">&quot;cannot fail per spec&quot;</span>);
 
                         <span class="comment">// 11. Perform ! CreateDataPropertyOrThrow(obj, &quot;value&quot;, x).
                         </span>obj.create_data_property_or_throw(
-                            <span class="string">&quot;value&quot;</span>,
+                            <span class="macro">utf16!</span>(<span class="string">&quot;value&quot;</span>),
                             args.get_or_undefined(<span class="number">0</span>).clone(),
                             context,
                         )
@@ -3208,12 +3214,12 @@
                         </span><span class="kw">let </span>obj = JsObject::with_object_proto(context);
 
                         <span class="comment">// 10. Perform ! CreateDataPropertyOrThrow(obj, &quot;status&quot;, &quot;rejected&quot;).
-                        </span>obj.create_data_property_or_throw(<span class="string">&quot;status&quot;</span>, <span class="string">&quot;rejected&quot;</span>, context)
+                        </span>obj.create_data_property_or_throw(<span class="macro">utf16!</span>(<span class="string">&quot;status&quot;</span>), <span class="string">&quot;rejected&quot;</span>, context)
                             .expect(<span class="string">&quot;cannot fail per spec&quot;</span>);
 
                         <span class="comment">// 11. Perform ! CreateDataPropertyOrThrow(obj, &quot;reason&quot;, x).
                         </span>obj.create_data_property_or_throw(
-                            <span class="string">&quot;reason&quot;</span>,
+                            <span class="macro">utf16!</span>(<span class="string">&quot;reason&quot;</span>),
                             args.get_or_undefined(<span class="number">0</span>).clone(),
                             context,
                         )
@@ -3264,7 +3270,11 @@
             </span>remaining_elements_count.set(remaining_elements_count.get() + <span class="number">1</span>);
 
             <span class="comment">// ab. Perform ? Invoke(nextPromise, &quot;then&quot;, « onFulfilled, onRejected »).
-            </span>next_promise.invoke(<span class="string">&quot;then&quot;</span>, <span class="kw-2">&amp;</span>[on_fulfilled.into(), on_rejected.into()], context)<span class="question-mark">?</span>;
+            </span>next_promise.invoke(
+                <span class="macro">utf16!</span>(<span class="string">&quot;then&quot;</span>),
+                <span class="kw-2">&amp;</span>[on_fulfilled.into(), on_rejected.into()],
+                context,
+            )<span class="question-mark">?</span>;
 
             <span class="comment">// ac. Set index to index + 1.
             </span>index += <span class="number">1</span>;
@@ -3402,7 +3412,7 @@
                         <span class="comment">// 2. Perform ! DefinePropertyOrThrow(error, &quot;errors&quot;, PropertyDescriptor { [[Configurable]]: true, [[Enumerable]]: false, [[Writable]]: true, [[Value]]: CreateArrayFromList(errors) }).
                         </span>error
                             .define_property_or_throw(
-                                <span class="string">&quot;errors&quot;</span>,
+                                <span class="macro">utf16!</span>(<span class="string">&quot;errors&quot;</span>),
                                 PropertyDescriptorBuilder::new()
                                     .configurable(<span class="bool-val">true</span>)
                                     .enumerable(<span class="bool-val">false</span>)
@@ -3499,7 +3509,7 @@
                             <span class="comment">// b. Perform ! DefinePropertyOrThrow(error, &quot;errors&quot;, PropertyDescriptor { [[Configurable]]: true, [[Enumerable]]: false, [[Writable]]: true, [[Value]]: CreateArrayFromList(errors) }).
                             </span>error
                                 .define_property_or_throw(
-                                    <span class="string">&quot;errors&quot;</span>,
+                                    <span class="macro">utf16!</span>(<span class="string">&quot;errors&quot;</span>),
                                     PropertyDescriptorBuilder::new()
                                         .configurable(<span class="bool-val">true</span>)
                                         .enumerable(<span class="bool-val">false</span>)
@@ -3541,7 +3551,7 @@
 
             <span class="comment">// s. Perform ? Invoke(nextPromise, &quot;then&quot;, « resultCapability.[[Resolve]], onRejected »).
             </span>next_promise.invoke(
-                <span class="string">&quot;then&quot;</span>,
+                <span class="macro">utf16!</span>(<span class="string">&quot;then&quot;</span>),
                 <span class="kw-2">&amp;</span>[result_capability.resolve.clone().into(), on_rejected.into()],
                 context,
             )<span class="question-mark">?</span>;
@@ -3630,7 +3640,7 @@
                     };
 
                     <span class="comment">// 9. Let then be Completion(Get(resolution, &quot;then&quot;)).
-                    </span><span class="kw">let </span>then_action = <span class="kw">match </span>then.get(<span class="string">&quot;then&quot;</span>, context) {
+                    </span><span class="kw">let </span>then_action = <span class="kw">match </span>then.get(<span class="macro">utf16!</span>(<span class="string">&quot;then&quot;</span>), context) {
                         <span class="comment">// 10. If then is an abrupt completion, then
                         </span><span class="prelude-val">Err</span>(e) =&gt; {
                             <span class="comment">//   a. Perform RejectPromise(promise, then.[[Value]]).
@@ -3973,7 +3983,7 @@
 
             <span class="comment">// i. Perform ? Invoke(nextPromise, &quot;then&quot;, « resultCapability.[[Resolve]], resultCapability.[[Reject]] »).
             </span>next_promise.invoke(
-                <span class="string">&quot;then&quot;</span>,
+                <span class="macro">utf16!</span>(<span class="string">&quot;then&quot;</span>),
                 <span class="kw-2">&amp;</span>[
                     result_capability.resolve.clone().into(),
                     result_capability.reject.clone().into(),
@@ -4074,7 +4084,7 @@
         </span><span class="kw">let </span>promise = this;
         <span class="comment">// 2. Return ? Invoke(promise, &quot;then&quot;, « undefined, onRejected »).
         </span>promise.invoke(
-            <span class="string">&quot;then&quot;</span>,
+            <span class="macro">utf16!</span>(<span class="string">&quot;then&quot;</span>),
             <span class="kw-2">&amp;</span>[JsValue::undefined(), on_rejected.clone()],
             context,
         )
@@ -4116,7 +4126,7 @@
             //    a. Let thenFinally be onFinally.
             //    b. Let catchFinally be onFinally.
             // 7. Return ? Invoke(promise, &quot;then&quot;, « thenFinally, catchFinally »).
-            </span><span class="kw">let </span>then = promise.get(<span class="string">&quot;then&quot;</span>, context)<span class="question-mark">?</span>;
+            </span><span class="kw">let </span>then = promise.get(<span class="macro">utf16!</span>(<span class="string">&quot;then&quot;</span>), context)<span class="question-mark">?</span>;
             <span class="kw">return </span>then.call(this, <span class="kw-2">&amp;</span>[on_finally.clone(), on_finally.clone()], context);
         };
 
@@ -4168,7 +4178,7 @@
                         </span><span class="kw">let </span>value_thunk = return_value.length(<span class="number">0</span>).name(<span class="string">&quot;&quot;</span>).build();
 
                         <span class="comment">// v. Return ? Invoke(promise, &quot;then&quot;, « valueThunk »).
-                        </span>promise.invoke(<span class="string">&quot;then&quot;</span>, <span class="kw-2">&amp;</span>[value_thunk.into()], context)
+                        </span>promise.invoke(<span class="macro">utf16!</span>(<span class="string">&quot;then&quot;</span>), <span class="kw-2">&amp;</span>[value_thunk.into()], context)
                     },
                     FinallyCaptures {
                         on_finally: on_finally.clone(),
@@ -4220,7 +4230,7 @@
                         </span><span class="kw">let </span>thrower = throw_reason.length(<span class="number">0</span>).name(<span class="string">&quot;&quot;</span>).build();
 
                         <span class="comment">// v. Return ? Invoke(promise, &quot;then&quot;, « thrower »).
-                        </span>promise.invoke(<span class="string">&quot;then&quot;</span>, <span class="kw-2">&amp;</span>[thrower.into()], context)
+                        </span>promise.invoke(<span class="macro">utf16!</span>(<span class="string">&quot;then&quot;</span>), <span class="kw-2">&amp;</span>[thrower.into()], context)
                     },
                     FinallyCaptures {
                         on_finally: on_finally.clone(),
@@ -4236,7 +4246,7 @@
         };
 
         <span class="comment">// 7. Return ? Invoke(promise, &quot;then&quot;, « thenFinally, catchFinally »).
-        </span><span class="kw">let </span>then = promise.get(<span class="string">&quot;then&quot;</span>, context)<span class="question-mark">?</span>;
+        </span><span class="kw">let </span>then = promise.get(<span class="macro">utf16!</span>(<span class="string">&quot;then&quot;</span>), context)<span class="question-mark">?</span>;
         then.call(this, <span class="kw-2">&amp;</span>[then_finally, catch_finally], context)
     }
 
@@ -4453,7 +4463,7 @@
         context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
     ) -&gt; JsResult&lt;JsObject&gt; {
         <span class="comment">// 1. Let promiseResolve be ? Get(promiseConstructor, &quot;resolve&quot;).
-        </span><span class="kw">let </span>promise_resolve = promise_constructor.get(<span class="string">&quot;resolve&quot;</span>, context)<span class="question-mark">?</span>;
+        </span><span class="kw">let </span>promise_resolve = promise_constructor.get(<span class="macro">utf16!</span>(<span class="string">&quot;resolve&quot;</span>), context)<span class="question-mark">?</span>;
 
         <span class="comment">// 2. If IsCallable(promiseResolve) is false, throw a TypeError exception.
         </span>promise_resolve.as_callable().cloned().ok_or_else(|| {

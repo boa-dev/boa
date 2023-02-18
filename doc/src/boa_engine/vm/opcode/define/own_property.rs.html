@@ -115,7 +115,7 @@
             .resolve_expect(name.sym())
             .into_common::&lt;JsString&gt;(<span class="bool-val">false</span>);
         object.__define_own_property__(
-            name.into(),
+            <span class="kw-2">&amp;</span>name.into(),
             PropertyDescriptor::builder()
                 .value(value)
                 .writable(<span class="bool-val">true</span>)
@@ -150,7 +150,7 @@
         </span>};
         <span class="kw">let </span>key = key.to_property_key(context)<span class="question-mark">?</span>;
         <span class="kw">let </span>success = object.__define_own_property__(
-            key,
+            <span class="kw-2">&amp;</span>key,
             PropertyDescriptor::builder()
                 .value(value)
                 .writable(<span class="bool-val">true</span>)

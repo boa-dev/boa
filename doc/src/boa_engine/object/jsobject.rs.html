@@ -906,6 +906,7 @@
 <a href="#905" id="905">905</a>
 <a href="#906" id="906">906</a>
 <a href="#907" id="907">907</a>
+<a href="#908" id="908">908</a>
 </pre><pre class="rust"><code><span class="doccomment">//! This module implements the `JsObject` structure.
 //!
 //! The `JsObject` is a garbage collected Object.
@@ -915,6 +916,7 @@
     error::JsNativeError,
     object::{ObjectData, ObjectKind},
     property::{PropertyDescriptor, PropertyKey},
+    string::utf16,
     value::PreferredType,
     Context, JsResult, JsValue,
 };
@@ -1088,9 +1090,9 @@
         // 4. Else,
         //    a. Let methodNames be « &quot;valueOf&quot;, &quot;toString&quot; ».
         </span><span class="kw">let </span>method_names = <span class="kw">if </span>hint == PreferredType::String {
-            [<span class="string">&quot;toString&quot;</span>, <span class="string">&quot;valueOf&quot;</span>]
+            [<span class="macro">utf16!</span>(<span class="string">&quot;toString&quot;</span>), <span class="macro">utf16!</span>(<span class="string">&quot;valueOf&quot;</span>)]
         } <span class="kw">else </span>{
-            [<span class="string">&quot;valueOf&quot;</span>, <span class="string">&quot;toString&quot;</span>]
+            [<span class="macro">utf16!</span>(<span class="string">&quot;valueOf&quot;</span>), <span class="macro">utf16!</span>(<span class="string">&quot;toString&quot;</span>)]
         };
 
         <span class="comment">// 5. For each name in methodNames in List order, do
@@ -1440,41 +1442,41 @@
 
         <span class="comment">// 3. Let hasEnumerable be ? HasProperty(Obj, &quot;enumerable&quot;).
         // 4. If hasEnumerable is true, then ...
-        </span><span class="kw">if </span><span class="self">self</span>.has_property(<span class="string">&quot;enumerable&quot;</span>, context)<span class="question-mark">? </span>{
+        </span><span class="kw">if </span><span class="self">self</span>.has_property(<span class="macro">utf16!</span>(<span class="string">&quot;enumerable&quot;</span>), context)<span class="question-mark">? </span>{
             <span class="comment">// a. Let enumerable be ! ToBoolean(? Get(Obj, &quot;enumerable&quot;)).
             // b. Set desc.[[Enumerable]] to enumerable.
-            </span>desc = desc.enumerable(<span class="self">self</span>.get(<span class="string">&quot;enumerable&quot;</span>, context)<span class="question-mark">?</span>.to_boolean());
+            </span>desc = desc.enumerable(<span class="self">self</span>.get(<span class="macro">utf16!</span>(<span class="string">&quot;enumerable&quot;</span>), context)<span class="question-mark">?</span>.to_boolean());
         }
 
         <span class="comment">// 5. Let hasConfigurable be ? HasProperty(Obj, &quot;configurable&quot;).
         // 6. If hasConfigurable is true, then ...
-        </span><span class="kw">if </span><span class="self">self</span>.has_property(<span class="string">&quot;configurable&quot;</span>, context)<span class="question-mark">? </span>{
+        </span><span class="kw">if </span><span class="self">self</span>.has_property(<span class="macro">utf16!</span>(<span class="string">&quot;configurable&quot;</span>), context)<span class="question-mark">? </span>{
             <span class="comment">// a. Let configurable be ! ToBoolean(? Get(Obj, &quot;configurable&quot;)).
             // b. Set desc.[[Configurable]] to configurable.
-            </span>desc = desc.configurable(<span class="self">self</span>.get(<span class="string">&quot;configurable&quot;</span>, context)<span class="question-mark">?</span>.to_boolean());
+            </span>desc = desc.configurable(<span class="self">self</span>.get(<span class="macro">utf16!</span>(<span class="string">&quot;configurable&quot;</span>), context)<span class="question-mark">?</span>.to_boolean());
         }
 
         <span class="comment">// 7. Let hasValue be ? HasProperty(Obj, &quot;value&quot;).
         // 8. If hasValue is true, then ...
-        </span><span class="kw">if </span><span class="self">self</span>.has_property(<span class="string">&quot;value&quot;</span>, context)<span class="question-mark">? </span>{
+        </span><span class="kw">if </span><span class="self">self</span>.has_property(<span class="macro">utf16!</span>(<span class="string">&quot;value&quot;</span>), context)<span class="question-mark">? </span>{
             <span class="comment">// a. Let value be ? Get(Obj, &quot;value&quot;).
             // b. Set desc.[[Value]] to value.
-            </span>desc = desc.value(<span class="self">self</span>.get(<span class="string">&quot;value&quot;</span>, context)<span class="question-mark">?</span>);
+            </span>desc = desc.value(<span class="self">self</span>.get(<span class="macro">utf16!</span>(<span class="string">&quot;value&quot;</span>), context)<span class="question-mark">?</span>);
         }
 
         <span class="comment">// 9. Let hasWritable be ? HasProperty(Obj, ).
         // 10. If hasWritable is true, then ...
-        </span><span class="kw">if </span><span class="self">self</span>.has_property(<span class="string">&quot;writable&quot;</span>, context)<span class="question-mark">? </span>{
+        </span><span class="kw">if </span><span class="self">self</span>.has_property(<span class="macro">utf16!</span>(<span class="string">&quot;writable&quot;</span>), context)<span class="question-mark">? </span>{
             <span class="comment">// a. Let writable be ! ToBoolean(? Get(Obj, &quot;writable&quot;)).
             // b. Set desc.[[Writable]] to writable.
-            </span>desc = desc.writable(<span class="self">self</span>.get(<span class="string">&quot;writable&quot;</span>, context)<span class="question-mark">?</span>.to_boolean());
+            </span>desc = desc.writable(<span class="self">self</span>.get(<span class="macro">utf16!</span>(<span class="string">&quot;writable&quot;</span>), context)<span class="question-mark">?</span>.to_boolean());
         }
 
         <span class="comment">// 11. Let hasGet be ? HasProperty(Obj, &quot;get&quot;).
         // 12. If hasGet is true, then
-        </span><span class="kw">let </span>get = <span class="kw">if </span><span class="self">self</span>.has_property(<span class="string">&quot;get&quot;</span>, context)<span class="question-mark">? </span>{
+        </span><span class="kw">let </span>get = <span class="kw">if </span><span class="self">self</span>.has_property(<span class="macro">utf16!</span>(<span class="string">&quot;get&quot;</span>), context)<span class="question-mark">? </span>{
             <span class="comment">// a. Let getter be ? Get(Obj, &quot;get&quot;).
-            </span><span class="kw">let </span>getter = <span class="self">self</span>.get(<span class="string">&quot;get&quot;</span>, context)<span class="question-mark">?</span>;
+            </span><span class="kw">let </span>getter = <span class="self">self</span>.get(<span class="macro">utf16!</span>(<span class="string">&quot;get&quot;</span>), context)<span class="question-mark">?</span>;
             <span class="comment">// b. If IsCallable(getter) is false and getter is not undefined, throw a TypeError exception.
             // todo: extract IsCallable to be callable from Value
             </span><span class="kw">if </span>!getter.is_undefined() &amp;&amp; getter.as_object().map_or(<span class="bool-val">true</span>, |o| !o.is_callable()) {
@@ -1490,9 +1492,9 @@
 
         <span class="comment">// 13. Let hasSet be ? HasProperty(Obj, &quot;set&quot;).
         // 14. If hasSet is true, then
-        </span><span class="kw">let </span>set = <span class="kw">if </span><span class="self">self</span>.has_property(<span class="string">&quot;set&quot;</span>, context)<span class="question-mark">? </span>{
+        </span><span class="kw">let </span>set = <span class="kw">if </span><span class="self">self</span>.has_property(<span class="macro">utf16!</span>(<span class="string">&quot;set&quot;</span>), context)<span class="question-mark">? </span>{
             <span class="comment">// 14.a. Let setter be ? Get(Obj, &quot;set&quot;).
-            </span><span class="kw">let </span>setter = <span class="self">self</span>.get(<span class="string">&quot;set&quot;</span>, context)<span class="question-mark">?</span>;
+            </span><span class="kw">let </span>setter = <span class="self">self</span>.get(<span class="macro">utf16!</span>(<span class="string">&quot;set&quot;</span>), context)<span class="question-mark">?</span>;
             <span class="comment">// 14.b. If IsCallable(setter) is false and setter is not undefined, throw a TypeError exception.
             // todo: extract IsCallable to be callable from Value
             </span><span class="kw">if </span>!setter.is_undefined() &amp;&amp; setter.as_object().map_or(<span class="bool-val">true</span>, |o| !o.is_callable()) {

@@ -593,6 +593,12 @@
 <a href="#592" id="592">592</a>
 <a href="#593" id="593">593</a>
 <a href="#594" id="594">594</a>
+<a href="#595" id="595">595</a>
+<a href="#596" id="596">596</a>
+<a href="#597" id="597">597</a>
+<a href="#598" id="598">598</a>
+<a href="#599" id="599">599</a>
+<a href="#600" id="600">600</a>
 </pre><pre class="rust"><code><span class="doccomment">//! Boa&#39;s implementation of ECMAScript&#39;s global `Map` object.
 //!
 //! The ECMAScript `Map` class is a global object that is used in the construction of maps; which
@@ -611,6 +617,7 @@
     error::JsNativeError,
     object::{internal_methods::get_prototype_from_constructor, JsObject, ObjectData},
     property::{Attribute, PropertyNameKind},
+    string::utf16,
     symbol::JsSymbol,
     Context, JsArgs, JsResult, JsValue,
 };
@@ -657,7 +664,7 @@
                 Attribute::CONFIGURABLE,
             )
             .property(
-                <span class="string">&quot;entries&quot;</span>,
+                <span class="macro">utf16!</span>(<span class="string">&quot;entries&quot;</span>),
                 entries_function.clone(),
                 Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
             )
@@ -679,7 +686,12 @@
             .method(<span class="self">Self</span>::keys, <span class="string">&quot;keys&quot;</span>, <span class="number">0</span>)
             .method(<span class="self">Self</span>::set, <span class="string">&quot;set&quot;</span>, <span class="number">2</span>)
             .method(<span class="self">Self</span>::values, <span class="string">&quot;values&quot;</span>, <span class="number">0</span>)
-            .accessor(<span class="string">&quot;size&quot;</span>, <span class="prelude-val">Some</span>(get_size), <span class="prelude-val">None</span>, Attribute::CONFIGURABLE)
+            .accessor(
+                <span class="macro">utf16!</span>(<span class="string">&quot;size&quot;</span>),
+                <span class="prelude-val">Some</span>(get_size),
+                <span class="prelude-val">None</span>,
+                Attribute::CONFIGURABLE,
+            )
             .build();
     }
 
@@ -733,7 +745,7 @@
         };
 
         <span class="comment">// 5. Let adder be ? Get(map, &quot;set&quot;).
-        </span><span class="kw">let </span>adder = map.get(<span class="string">&quot;set&quot;</span>, context)<span class="question-mark">?</span>;
+        </span><span class="kw">let </span>adder = map.get(<span class="macro">utf16!</span>(<span class="string">&quot;set&quot;</span>), context)<span class="question-mark">?</span>;
 
         <span class="comment">// 6. Return ? AddEntriesFromIterable(map, iterable, adder).
         </span>add_entries_from_iterable(<span class="kw-2">&amp;</span>map, iterable, <span class="kw-2">&amp;</span>adder, context)

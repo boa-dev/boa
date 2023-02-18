@@ -1023,6 +1023,10 @@
 <a href="#1022" id="1022">1022</a>
 <a href="#1023" id="1023">1023</a>
 <a href="#1024" id="1024">1024</a>
+<a href="#1025" id="1025">1025</a>
+<a href="#1026" id="1026">1026</a>
+<a href="#1027" id="1027">1027</a>
+<a href="#1028" id="1028">1028</a>
 </pre><pre class="rust"><code><span class="doccomment">//! Boa&#39;s implementation of ECMAScript&#39;s global `Math` object.
 //!
 //! `Math` is a built-in object that has properties and methods for mathematical constants and functions. It’s not a function object.
@@ -1038,7 +1042,7 @@
 
 </span><span class="kw">use crate</span>::{
     builtins::BuiltInObject, context::intrinsics::Intrinsics, object::JsObject,
-    property::Attribute, symbol::JsSymbol, Context, JsArgs, JsResult, JsValue,
+    property::Attribute, string::utf16, symbol::JsSymbol, Context, JsArgs, JsResult, JsValue,
 };
 <span class="kw">use </span>boa_profiler::Profiler;
 
@@ -1057,14 +1061,18 @@
 
         <span class="kw">let </span>attribute = Attribute::READONLY | Attribute::NON_ENUMERABLE | Attribute::PERMANENT;
         BuiltInBuilder::with_intrinsic::&lt;<span class="self">Self</span>&gt;(intrinsics)
-            .static_property(<span class="string">&quot;E&quot;</span>, std::f64::consts::E, attribute)
-            .static_property(<span class="string">&quot;LN10&quot;</span>, std::f64::consts::LN_10, attribute)
-            .static_property(<span class="string">&quot;LN2&quot;</span>, std::f64::consts::LN_2, attribute)
-            .static_property(<span class="string">&quot;LOG10E&quot;</span>, std::f64::consts::LOG10_E, attribute)
-            .static_property(<span class="string">&quot;LOG2E&quot;</span>, std::f64::consts::LOG2_E, attribute)
-            .static_property(<span class="string">&quot;PI&quot;</span>, std::f64::consts::PI, attribute)
-            .static_property(<span class="string">&quot;SQRT1_2&quot;</span>, std::f64::consts::FRAC_1_SQRT_2, attribute)
-            .static_property(<span class="string">&quot;SQRT2&quot;</span>, std::f64::consts::SQRT_2, attribute)
+            .static_property(<span class="macro">utf16!</span>(<span class="string">&quot;E&quot;</span>), std::f64::consts::E, attribute)
+            .static_property(<span class="macro">utf16!</span>(<span class="string">&quot;LN10&quot;</span>), std::f64::consts::LN_10, attribute)
+            .static_property(<span class="macro">utf16!</span>(<span class="string">&quot;LN2&quot;</span>), std::f64::consts::LN_2, attribute)
+            .static_property(<span class="macro">utf16!</span>(<span class="string">&quot;LOG10E&quot;</span>), std::f64::consts::LOG10_E, attribute)
+            .static_property(<span class="macro">utf16!</span>(<span class="string">&quot;LOG2E&quot;</span>), std::f64::consts::LOG2_E, attribute)
+            .static_property(<span class="macro">utf16!</span>(<span class="string">&quot;PI&quot;</span>), std::f64::consts::PI, attribute)
+            .static_property(
+                <span class="macro">utf16!</span>(<span class="string">&quot;SQRT1_2&quot;</span>),
+                std::f64::consts::FRAC_1_SQRT_2,
+                attribute,
+            )
+            .static_property(<span class="macro">utf16!</span>(<span class="string">&quot;SQRT2&quot;</span>), std::f64::consts::SQRT_2, attribute)
             .static_method(<span class="self">Self</span>::abs, <span class="string">&quot;abs&quot;</span>, <span class="number">1</span>)
             .static_method(<span class="self">Self</span>::acos, <span class="string">&quot;acos&quot;</span>, <span class="number">1</span>)
             .static_method(<span class="self">Self</span>::acosh, <span class="string">&quot;acosh&quot;</span>, <span class="number">1</span>)

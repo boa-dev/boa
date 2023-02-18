@@ -1103,7 +1103,7 @@
 
             <span class="comment">// b. Let rootName be the empty String.
             // c. Perform ! CreateDataPropertyOrThrow(root, rootName, unfiltered).
-            </span>root.create_data_property_or_throw(<span class="string">&quot;&quot;</span>, unfiltered, context)
+            </span>root.create_data_property_or_throw(<span class="macro">utf16!</span>(<span class="string">&quot;&quot;</span>), unfiltered, context)
                 .expect(<span class="string">&quot;CreateDataPropertyOrThrow should never throw here&quot;</span>);
 
             <span class="comment">// d. Return ? InternalizeJSONProperty(root, rootName, reviver).
@@ -1335,7 +1335,7 @@
 
         <span class="comment">// 10. Perform ! CreateDataPropertyOrThrow(wrapper, the empty String, value).
         </span>wrapper
-            .create_data_property_or_throw(<span class="string">&quot;&quot;</span>, args.get_or_undefined(<span class="number">0</span>).clone(), context)
+            .create_data_property_or_throw(<span class="macro">utf16!</span>(<span class="string">&quot;&quot;</span>), args.get_or_undefined(<span class="number">0</span>).clone(), context)
             .expect(<span class="string">&quot;CreateDataPropertyOrThrow should never fail here&quot;</span>);
 
         <span class="comment">// 11. Let state be the Record { [[ReplacerFunction]]: ReplacerFunction, [[Stack]]: stack, [[Indent]]: indent, [[Gap]]: gap, [[PropertyList]]: PropertyList }.
@@ -1373,7 +1373,7 @@
         <span class="comment">// 2. If Type(value) is Object or BigInt, then
         </span><span class="kw">if </span>value.is_object() || value.is_bigint() {
             <span class="comment">// a. Let toJSON be ? GetV(value, &quot;toJSON&quot;).
-            </span><span class="kw">let </span>to_json = value.get_v(<span class="string">&quot;toJSON&quot;</span>, context)<span class="question-mark">?</span>;
+            </span><span class="kw">let </span>to_json = value.get_v(<span class="macro">utf16!</span>(<span class="string">&quot;toJSON&quot;</span>), context)<span class="question-mark">?</span>;
 
             <span class="comment">// b. If IsCallable(toJSON) is true, then
             </span><span class="kw">if let </span><span class="prelude-val">Some</span>(obj) = to_json.as_object() {

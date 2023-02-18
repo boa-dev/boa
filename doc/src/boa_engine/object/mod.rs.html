@@ -2450,6 +2450,9 @@
 <a href="#2449" id="2449">2449</a>
 <a href="#2450" id="2450">2450</a>
 <a href="#2451" id="2451">2451</a>
+<a href="#2452" id="2452">2452</a>
+<a href="#2453" id="2453">2453</a>
+<a href="#2454" id="2454">2454</a>
 </pre><pre class="rust"><code><span class="doccomment">//! Boa&#39;s representation of a JavaScript object and builtin object wrappers
 //!
 //! For the builtin object wrappers, please see [`object::builtins`][builtins] for implementors.
@@ -2503,6 +2506,7 @@
     js_string,
     native_function::NativeFunction,
     property::{Attribute, PropertyDescriptor, PropertyKey},
+    string::utf16,
     Context, JsBigInt, JsString, JsSymbol, JsValue,
 };
 
@@ -2533,13 +2537,15 @@
 {
 }
 
-<span class="doccomment">/// Static `constructor`, usually set on prototypes as a key to point to their respective constructor object.
-</span><span class="kw">pub static </span>CONSTRUCTOR: <span class="kw-2">&amp;</span>str = <span class="string">&quot;constructor&quot;</span>;
+<span class="doccomment">/// Const `constructor`, usually set on prototypes as a key to point to their respective constructor object.
+</span><span class="kw">pub const </span>CONSTRUCTOR: <span class="kw-2">&amp;</span>[u16] = <span class="macro">utf16!</span>(<span class="string">&quot;constructor&quot;</span>);
 
-<span class="doccomment">/// Static `prototype`, usually set on constructors as a key to point to their respective prototype object.
-</span><span class="kw">pub static </span>PROTOTYPE: <span class="kw-2">&amp;</span>str = <span class="string">&quot;prototype&quot;</span>;
+<span class="doccomment">/// Const `prototype`, usually set on constructors as a key to point to their respective prototype object.
+</span><span class="kw">pub const </span>PROTOTYPE: <span class="kw-2">&amp;</span>[u16] = <span class="macro">utf16!</span>(<span class="string">&quot;prototype&quot;</span>);
 
-<span class="doccomment">/// A type alias for an object prototype.
+<span class="doccomment">/// Common field names.
+
+/// A type alias for an object prototype.
 ///
 /// A `None` values means that the prototype is the `null` value.
 </span><span class="kw">pub type </span>JsPrototype = <span class="prelude-ty">Option</span>&lt;JsObject&gt;;
@@ -4477,8 +4483,8 @@
             .writable(<span class="bool-val">false</span>)
             .enumerable(<span class="bool-val">false</span>)
             .configurable(<span class="bool-val">true</span>);
-        function.insert_property(<span class="string">&quot;length&quot;</span>, property.clone().value(<span class="self">self</span>.length));
-        function.insert_property(<span class="string">&quot;name&quot;</span>, property.value(<span class="self">self</span>.name));
+        function.insert_property(<span class="macro">utf16!</span>(<span class="string">&quot;length&quot;</span>), property.clone().value(<span class="self">self</span>.length));
+        function.insert_property(<span class="macro">utf16!</span>(<span class="string">&quot;name&quot;</span>), property.value(<span class="self">self</span>.name));
 
         JsFunction::from_object_unchecked(function)
     }
@@ -4847,8 +4853,8 @@
         {
             <span class="kw">let </span><span class="kw-2">mut </span>constructor = <span class="self">self</span>.object.borrow_mut();
             constructor.data = ObjectData::function(function);
-            constructor.insert(<span class="string">&quot;length&quot;</span>, length);
-            constructor.insert(<span class="string">&quot;name&quot;</span>, name);
+            constructor.insert(<span class="macro">utf16!</span>(<span class="string">&quot;length&quot;</span>), length);
+            constructor.insert(<span class="macro">utf16!</span>(<span class="string">&quot;name&quot;</span>), name);
 
             <span class="kw">if let </span><span class="prelude-val">Some</span>(proto) = <span class="self">self</span>.custom_prototype.take() {
                 constructor.set_prototype(proto);
@@ -4877,7 +4883,7 @@
         {
             <span class="kw">let </span><span class="kw-2">mut </span>prototype = <span class="self">self</span>.prototype.borrow_mut();
             prototype.insert(
-                <span class="string">&quot;constructor&quot;</span>,
+                CONSTRUCTOR,
                 PropertyDescriptor::builder()
                     .value(<span class="self">self</span>.object.clone())
                     .writable(<span class="bool-val">true</span>)

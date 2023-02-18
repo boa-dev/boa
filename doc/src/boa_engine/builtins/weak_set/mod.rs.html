@@ -252,6 +252,7 @@
 <a href="#251" id="251">251</a>
 <a href="#252" id="252">252</a>
 <a href="#253" id="253">253</a>
+<a href="#254" id="254">254</a>
 </pre><pre class="rust"><code><span class="doccomment">//! Boa&#39;s implementation of ECMAScript&#39;s `WeakSet` builtin object.
 //!
 //! More information:
@@ -266,6 +267,7 @@
     context::intrinsics::{Intrinsics, StandardConstructor, StandardConstructors},
     object::{internal_methods::get_prototype_from_constructor, JsObject, ObjectData},
     property::Attribute,
+    string::utf16,
     symbol::JsSymbol,
     Context, JsArgs, JsNativeError, JsResult, JsValue,
 };
@@ -342,7 +344,7 @@
         }
 
         <span class="comment">// 5. Let adder be ? Get(set, &quot;add&quot;).
-        </span><span class="kw">let </span>adder = weak_set.get(<span class="string">&quot;add&quot;</span>, context)<span class="question-mark">?</span>;
+        </span><span class="kw">let </span>adder = weak_set.get(<span class="macro">utf16!</span>(<span class="string">&quot;add&quot;</span>), context)<span class="question-mark">?</span>;
 
         <span class="comment">// 6. If IsCallable(adder) is false, throw a TypeError exception.
         </span><span class="kw">let </span>adder = adder

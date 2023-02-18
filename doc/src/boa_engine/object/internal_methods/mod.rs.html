@@ -1055,7 +1055,7 @@
     /// [spec]: https://tc39.es/ecma262/#sec-ordinary-object-internal-methods-and-internal-slots-defineownproperty-p-desc
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>__define_own_property__(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        key: PropertyKey,
+        key: <span class="kw-2">&amp;</span>PropertyKey,
         desc: PropertyDescriptor,
         context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
     ) -&gt; JsResult&lt;bool&gt; {
@@ -1246,7 +1246,7 @@
     <span class="kw">pub</span>(<span class="kw">crate</span>) __get_own_property__:
         <span class="kw">fn</span>(<span class="kw-2">&amp;</span>JsObject, <span class="kw-2">&amp;</span>PropertyKey, <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;<span class="prelude-ty">Option</span>&lt;PropertyDescriptor&gt;&gt;,
     <span class="kw">pub</span>(<span class="kw">crate</span>) __define_own_property__:
-        <span class="kw">fn</span>(<span class="kw-2">&amp;</span>JsObject, PropertyKey, PropertyDescriptor, <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;bool&gt;,
+        <span class="kw">fn</span>(<span class="kw-2">&amp;</span>JsObject, <span class="kw-2">&amp;</span>PropertyKey, PropertyDescriptor, <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;bool&gt;,
     <span class="kw">pub</span>(<span class="kw">crate</span>) __has_property__: <span class="kw">fn</span>(<span class="kw-2">&amp;</span>JsObject, <span class="kw-2">&amp;</span>PropertyKey, <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;bool&gt;,
     <span class="kw">pub</span>(<span class="kw">crate</span>) __get__: <span class="kw">fn</span>(<span class="kw-2">&amp;</span>JsObject, <span class="kw-2">&amp;</span>PropertyKey, JsValue, <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;JsValue&gt;,
     <span class="kw">pub</span>(<span class="kw">crate</span>) __set__:
@@ -1403,13 +1403,13 @@
 /// [spec]: https://tc39.es/ecma262/#sec-ordinarydefineownproperty
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>ordinary_define_own_property(
     obj: <span class="kw-2">&amp;</span>JsObject,
-    key: PropertyKey,
+    key: <span class="kw-2">&amp;</span>PropertyKey,
     desc: PropertyDescriptor,
     context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
 ) -&gt; JsResult&lt;bool&gt; {
     <span class="kw">let </span>_timer = Profiler::global().start_event(<span class="string">&quot;Object::ordinary_define_own_property&quot;</span>, <span class="string">&quot;object&quot;</span>);
     <span class="comment">// 1. Let current be ? O.[[GetOwnProperty]](P).
-    </span><span class="kw">let </span>current = obj.__get_own_property__(<span class="kw-2">&amp;</span>key, context)<span class="question-mark">?</span>;
+    </span><span class="kw">let </span>current = obj.__get_own_property__(key, context)<span class="question-mark">?</span>;
 
     <span class="comment">// 2. Let extensible be ? IsExtensible(O).
     </span><span class="kw">let </span>extensible = obj.__is_extensible__(context)<span class="question-mark">?</span>;
@@ -1570,7 +1570,7 @@
             <span class="comment">// iii. Let valueDesc be the PropertyDescriptor { [[Value]]: V }.
             // iv. Return ? Receiver.[[DefineOwnProperty]](P, valueDesc).
             </span><span class="kw">return </span>receiver.__define_own_property__(
-                key,
+                <span class="kw-2">&amp;</span>key,
                 PropertyDescriptor::builder().value(value).build(),
                 context,
             );
@@ -1703,7 +1703,7 @@
 ///
 /// [spec]: https://tc39.es/ecma262/#sec-validateandapplypropertydescriptor
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>validate_and_apply_property_descriptor(
-    obj_and_key: <span class="prelude-ty">Option</span>&lt;(<span class="kw-2">&amp;</span>JsObject, PropertyKey)&gt;,
+    obj_and_key: <span class="prelude-ty">Option</span>&lt;(<span class="kw-2">&amp;</span>JsObject, <span class="kw-2">&amp;</span>PropertyKey)&gt;,
     extensible: bool,
     desc: PropertyDescriptor,
     current: <span class="prelude-ty">Option</span>&lt;PropertyDescriptor&gt;,
@@ -1723,7 +1723,7 @@
 
         </span><span class="kw">if let </span><span class="prelude-val">Some</span>((obj, key)) = obj_and_key {
             obj.borrow_mut().properties.insert(
-                <span class="kw-2">&amp;</span>key,
+                key,
                 <span class="comment">// c. If IsGenericDescriptor(Desc) is true or IsDataDescriptor(Desc) is true, then
                 </span><span class="kw">if </span>desc.is_generic_descriptor() || desc.is_data_descriptor() {
                     <span class="comment">// i. If O is not undefined, create an own data property named P of
@@ -1840,7 +1840,7 @@
         <span class="comment">// a. For each field of Desc that is present, set the corresponding attribute of the
         // property named P of object O to the value of the field.
         </span>current.fill_with(<span class="kw-2">&amp;</span>desc);
-        obj.borrow_mut().properties.insert(<span class="kw-2">&amp;</span>key, current);
+        obj.borrow_mut().properties.insert(key, current);
     }
 
     <span class="comment">// 10. Return true.

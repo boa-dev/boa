@@ -729,6 +729,17 @@
 <a href="#728" id="728">728</a>
 <a href="#729" id="729">729</a>
 <a href="#730" id="730">730</a>
+<a href="#731" id="731">731</a>
+<a href="#732" id="732">732</a>
+<a href="#733" id="733">733</a>
+<a href="#734" id="734">734</a>
+<a href="#735" id="735">735</a>
+<a href="#736" id="736">736</a>
+<a href="#737" id="737">737</a>
+<a href="#738" id="738">738</a>
+<a href="#739" id="739">739</a>
+<a href="#740" id="740">740</a>
+<a href="#741" id="741">741</a>
 </pre><pre class="rust"><code><span class="doccomment">//! Boa&#39;s implementation of ECMAScript&#39;s Property Descriptor.
 //!
 //! The Property Descriptor type is used to explain the manipulation and reification of `Object`
@@ -1298,6 +1309,17 @@
 
     <span class="doccomment">/// A numeric property key.
     </span>Index(u32),
+}
+
+<span class="kw">impl </span>From&lt;<span class="kw-2">&amp;</span>[u16]&gt; <span class="kw">for </span>PropertyKey {
+    <span class="attr">#[inline]
+    </span><span class="kw">fn </span>from(string: <span class="kw-2">&amp;</span>[u16]) -&gt; <span class="self">Self </span>{
+        <span class="macro">debug_assert!</span>(String::from_utf16(string)
+            .expect(<span class="string">&quot;should be ascii string&quot;</span>)
+            .parse::&lt;u32&gt;()
+            .is_err());
+        <span class="self">Self</span>::String(string.into())
+    }
 }
 
 <span class="kw">impl </span>From&lt;JsString&gt; <span class="kw">for </span>PropertyKey {

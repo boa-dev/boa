@@ -1066,6 +1066,17 @@
 <a href="#1065" id="1065">1065</a>
 <a href="#1066" id="1066">1066</a>
 <a href="#1067" id="1067">1067</a>
+<a href="#1068" id="1068">1068</a>
+<a href="#1069" id="1069">1069</a>
+<a href="#1070" id="1070">1070</a>
+<a href="#1071" id="1071">1071</a>
+<a href="#1072" id="1072">1072</a>
+<a href="#1073" id="1073">1073</a>
+<a href="#1074" id="1074">1074</a>
+<a href="#1075" id="1075">1075</a>
+<a href="#1076" id="1076">1076</a>
+<a href="#1077" id="1077">1077</a>
+<a href="#1078" id="1078">1078</a>
 </pre><pre class="rust"><code><span class="doccomment">//! Boa&#39;s implementation of ECMAScript&#39;s global `DataView` object.
 //!
 //! More information:
@@ -1081,6 +1092,7 @@
     error::JsNativeError,
     object::{internal_methods::get_prototype_from_constructor, JsObject, ObjectData},
     property::Attribute,
+    string::utf16,
     symbol::JsSymbol,
     value::JsValue,
     Context, JsArgs, JsResult,
@@ -1117,9 +1129,19 @@
             .build();
 
         BuiltInBuilder::from_standard_constructor::&lt;<span class="self">Self</span>&gt;(intrinsics)
-            .accessor(<span class="string">&quot;buffer&quot;</span>, <span class="prelude-val">Some</span>(get_buffer), <span class="prelude-val">None</span>, flag_attributes)
-            .accessor(<span class="string">&quot;byteLength&quot;</span>, <span class="prelude-val">Some</span>(get_byte_length), <span class="prelude-val">None</span>, flag_attributes)
-            .accessor(<span class="string">&quot;byteOffset&quot;</span>, <span class="prelude-val">Some</span>(get_byte_offset), <span class="prelude-val">None</span>, flag_attributes)
+            .accessor(<span class="macro">utf16!</span>(<span class="string">&quot;buffer&quot;</span>), <span class="prelude-val">Some</span>(get_buffer), <span class="prelude-val">None</span>, flag_attributes)
+            .accessor(
+                <span class="macro">utf16!</span>(<span class="string">&quot;byteLength&quot;</span>),
+                <span class="prelude-val">Some</span>(get_byte_length),
+                <span class="prelude-val">None</span>,
+                flag_attributes,
+            )
+            .accessor(
+                <span class="macro">utf16!</span>(<span class="string">&quot;byteOffset&quot;</span>),
+                <span class="prelude-val">Some</span>(get_byte_offset),
+                <span class="prelude-val">None</span>,
+                flag_attributes,
+            )
             .method(<span class="self">Self</span>::get_big_int64, <span class="string">&quot;getBigInt64&quot;</span>, <span class="number">1</span>)
             .method(<span class="self">Self</span>::get_big_uint64, <span class="string">&quot;getBigUint64&quot;</span>, <span class="number">1</span>)
             .method(<span class="self">Self</span>::get_float32, <span class="string">&quot;getFloat32&quot;</span>, <span class="number">1</span>)

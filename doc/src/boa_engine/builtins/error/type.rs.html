@@ -125,6 +125,7 @@
 <a href="#124" id="124">124</a>
 <a href="#125" id="125">125</a>
 <a href="#126" id="126">126</a>
+<a href="#127" id="127">127</a>
 </pre><pre class="rust"><code><span class="doccomment">//! This module implements the global `TypeError` object.
 //!
 //! The `TypeError` object represents an error when an operation could not be performed,
@@ -151,6 +152,7 @@
     native_function::NativeFunction,
     object::{internal_methods::get_prototype_from_constructor, JsObject, ObjectData},
     property::Attribute,
+    string::utf16,
     Context, JsArgs, JsResult, JsValue,
 };
 <span class="kw">use </span>boa_profiler::Profiler;
@@ -169,8 +171,8 @@
         BuiltInBuilder::from_standard_constructor::&lt;<span class="self">Self</span>&gt;(intrinsics)
             .prototype(intrinsics.constructors().error().constructor())
             .inherits(<span class="prelude-val">Some</span>(intrinsics.constructors().error().prototype()))
-            .property(<span class="string">&quot;name&quot;</span>, <span class="self">Self</span>::NAME, attribute)
-            .property(<span class="string">&quot;message&quot;</span>, <span class="string">&quot;&quot;</span>, attribute)
+            .property(<span class="macro">utf16!</span>(<span class="string">&quot;name&quot;</span>), <span class="self">Self</span>::NAME, attribute)
+            .property(<span class="macro">utf16!</span>(<span class="string">&quot;message&quot;</span>), <span class="string">&quot;&quot;</span>, attribute)
             .build();
     }
 
@@ -208,7 +210,7 @@
             </span><span class="kw">let </span>msg = message.to_string(context)<span class="question-mark">?</span>;
 
             <span class="comment">// b. Perform CreateNonEnumerableDataPropertyOrThrow(O, &quot;message&quot;, msg).
-            </span>o.create_non_enumerable_data_property_or_throw(<span class="string">&quot;message&quot;</span>, msg, context);
+            </span>o.create_non_enumerable_data_property_or_throw(<span class="macro">utf16!</span>(<span class="string">&quot;message&quot;</span>), msg, context);
         }
 
         <span class="comment">// 4. Perform ? InstallErrorCause(O, options).
@@ -235,8 +237,8 @@
 
         <span class="kw">let </span>obj = BuiltInBuilder::with_intrinsic::&lt;<span class="self">Self</span>&gt;(intrinsics)
             .prototype(intrinsics.constructors().function().prototype())
-            .static_property(<span class="string">&quot;name&quot;</span>, <span class="string">&quot;ThrowTypeError&quot;</span>, Attribute::empty())
-            .static_property(<span class="string">&quot;length&quot;</span>, <span class="number">0</span>, Attribute::empty())
+            .static_property(<span class="macro">utf16!</span>(<span class="string">&quot;name&quot;</span>), <span class="string">&quot;ThrowTypeError&quot;</span>, Attribute::empty())
+            .static_property(<span class="macro">utf16!</span>(<span class="string">&quot;length&quot;</span>), <span class="number">0</span>, Attribute::empty())
             .build();
 
         <span class="kw">let </span><span class="kw-2">mut </span>obj = obj.borrow_mut();

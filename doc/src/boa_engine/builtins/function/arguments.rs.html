@@ -292,10 +292,12 @@
 <a href="#291" id="291">291</a>
 <a href="#292" id="292">292</a>
 <a href="#293" id="293">293</a>
+<a href="#294" id="294">294</a>
 </pre><pre class="rust"><code><span class="kw">use crate</span>::{
     environments::DeclarativeEnvironment,
     object::{JsObject, ObjectData},
     property::PropertyDescriptor,
+    string::utf16,
     symbol::{<span class="self">self</span>, JsSymbol},
     Context, JsValue,
 };
@@ -381,7 +383,7 @@
         <span class="comment">// 4. Perform DefinePropertyOrThrow(obj, &quot;length&quot;, PropertyDescriptor { [[Value]]: 𝔽(len),
         // [[Writable]]: true, [[Enumerable]]: false, [[Configurable]]: true }).
         </span>obj.define_property_or_throw(
-            <span class="string">&quot;length&quot;</span>,
+            <span class="macro">utf16!</span>(<span class="string">&quot;length&quot;</span>),
             PropertyDescriptor::builder()
                 .value(len)
                 .writable(<span class="bool-val">true</span>)
@@ -423,7 +425,7 @@
         // [[Get]]: %ThrowTypeError%, [[Set]]: %ThrowTypeError%, [[Enumerable]]: false,
         // [[Configurable]]: false }).
         </span>obj.define_property_or_throw(
-            <span class="string">&quot;callee&quot;</span>,
+            <span class="macro">utf16!</span>(<span class="string">&quot;callee&quot;</span>),
             PropertyDescriptor::builder()
                 .get(throw_type_error.clone())
                 .set(throw_type_error)
@@ -543,7 +545,7 @@
         <span class="comment">// 16. Perform ! DefinePropertyOrThrow(obj, &quot;length&quot;, PropertyDescriptor { [[Value]]: 𝔽(len),
         // [[Writable]]: true, [[Enumerable]]: false, [[Configurable]]: true }).
         </span>obj.define_property_or_throw(
-            <span class="string">&quot;length&quot;</span>,
+            <span class="macro">utf16!</span>(<span class="string">&quot;length&quot;</span>),
             PropertyDescriptor::builder()
                 .value(len)
                 .writable(<span class="bool-val">true</span>)
@@ -571,7 +573,7 @@
         <span class="comment">// 21. Perform ! DefinePropertyOrThrow(obj, &quot;callee&quot;, PropertyDescriptor {
         // [[Value]]: func, [[Writable]]: true, [[Enumerable]]: false, [[Configurable]]: true }).
         </span>obj.define_property_or_throw(
-            <span class="string">&quot;callee&quot;</span>,
+            <span class="macro">utf16!</span>(<span class="string">&quot;callee&quot;</span>),
             PropertyDescriptor::builder()
                 .value(func.clone())
                 .writable(<span class="bool-val">true</span>)

@@ -270,6 +270,7 @@
 <a href="#269" id="269">269</a>
 <a href="#270" id="270">270</a>
 <a href="#271" id="271">271</a>
+<a href="#272" id="272">272</a>
 </pre><pre class="rust"><code><span class="doccomment">//! Boa&#39;s implementation of ECMAScript&#39;s `WeakMap` builtin object.
 //!
 //! More information:
@@ -287,6 +288,7 @@
     context::intrinsics::{Intrinsics, StandardConstructor, StandardConstructors},
     object::{internal_methods::get_prototype_from_constructor, JsObject, ObjectData},
     property::Attribute,
+    string::utf16,
     symbol::JsSymbol,
     Context, JsArgs, JsNativeError, JsResult, JsValue,
 };
@@ -364,7 +366,7 @@
         }
 
         <span class="comment">// 5. Let adder be ? Get(map, &quot;set&quot;).
-        </span><span class="kw">let </span>adder = map.get(<span class="string">&quot;set&quot;</span>, context)<span class="question-mark">?</span>;
+        </span><span class="kw">let </span>adder = map.get(<span class="macro">utf16!</span>(<span class="string">&quot;set&quot;</span>), context)<span class="question-mark">?</span>;
 
         <span class="comment">// 6. If IsCallable(adder) is false, throw a TypeError exception.
         </span><span class="kw">if </span>!adder.is_callable() {

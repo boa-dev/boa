@@ -497,6 +497,8 @@
 <a href="#496" id="496">496</a>
 <a href="#497" id="497">497</a>
 <a href="#498" id="498">498</a>
+<a href="#499" id="499">499</a>
+<a href="#500" id="500">500</a>
 </pre><pre class="rust"><code><span class="kw">use </span>std::fmt::Write;
 
 <span class="kw">use </span>boa_profiler::Profiler;
@@ -509,6 +511,7 @@
     context::intrinsics::{Intrinsics, StandardConstructor, StandardConstructors},
     object::{internal_methods::get_prototype_from_constructor, JsObject, ObjectData},
     property::Attribute,
+    string::utf16,
     symbol::JsSymbol,
     Context, JsArgs, JsNativeError, JsResult, JsString, JsValue,
 };
@@ -609,8 +612,9 @@
 
         <span class="comment">// 5. Let opt be a new Record.
         // 6. Let matcher be ? GetOption(options, &quot;localeMatcher&quot;, string, « &quot;lookup&quot;, &quot;best fit&quot; », &quot;best fit&quot;).
-        </span><span class="kw">let </span>matcher = get_option::&lt;LocaleMatcher&gt;(<span class="kw-2">&amp;</span>options, <span class="string">&quot;localeMatcher&quot;</span>, <span class="bool-val">false</span>, context)<span class="question-mark">?
-            </span>.unwrap_or_default();
+        </span><span class="kw">let </span>matcher =
+            get_option::&lt;LocaleMatcher&gt;(<span class="kw-2">&amp;</span>options, <span class="macro">utf16!</span>(<span class="string">&quot;localeMatcher&quot;</span>), <span class="bool-val">false</span>, context)<span class="question-mark">?
+                </span>.unwrap_or_default();
 
         <span class="comment">// 7. Set opt.[[localeMatcher]] to matcher.
         // 8. Let localeData be %ListFormat%.[[LocaleData]].
@@ -627,12 +631,12 @@
 
         <span class="comment">// 11. Let type be ? GetOption(options, &quot;type&quot;, string, « &quot;conjunction&quot;, &quot;disjunction&quot;, &quot;unit&quot; », &quot;conjunction&quot;).
         // 12. Set listFormat.[[Type]] to type.
-        </span><span class="kw">let </span>typ =
-            get_option::&lt;ListFormatType&gt;(<span class="kw-2">&amp;</span>options, <span class="string">&quot;type&quot;</span>, <span class="bool-val">false</span>, context)<span class="question-mark">?</span>.unwrap_or_default();
+        </span><span class="kw">let </span>typ = get_option::&lt;ListFormatType&gt;(<span class="kw-2">&amp;</span>options, <span class="macro">utf16!</span>(<span class="string">&quot;type&quot;</span>), <span class="bool-val">false</span>, context)<span class="question-mark">?
+            </span>.unwrap_or_default();
 
         <span class="comment">// 13. Let style be ? GetOption(options, &quot;style&quot;, string, « &quot;long&quot;, &quot;short&quot;, &quot;narrow&quot; », &quot;long&quot;).
         // 14. Set listFormat.[[Style]] to style.
-        </span><span class="kw">let </span>style = get_option::&lt;ListLength&gt;(<span class="kw-2">&amp;</span>options, <span class="string">&quot;style&quot;</span>, <span class="bool-val">false</span>, context)<span class="question-mark">?
+        </span><span class="kw">let </span>style = get_option::&lt;ListLength&gt;(<span class="kw-2">&amp;</span>options, <span class="macro">utf16!</span>(<span class="string">&quot;style&quot;</span>), <span class="bool-val">false</span>, context)<span class="question-mark">?
             </span>.unwrap_or(ListLength::Wide);
 
         <span class="comment">// 15. Let dataLocale be r.[[dataLocale]].
@@ -860,11 +864,11 @@
             );
 
             <span class="comment">// b. Perform ! CreateDataPropertyOrThrow(O, &quot;type&quot;, part.[[Type]]).
-            </span>o.create_data_property_or_throw(<span class="string">&quot;type&quot;</span>, part.typ(), context)
+            </span>o.create_data_property_or_throw(<span class="macro">utf16!</span>(<span class="string">&quot;type&quot;</span>), part.typ(), context)
                 .expect(<span class="string">&quot;operation must not fail per the spec&quot;</span>);
 
             <span class="comment">// c. Perform ! CreateDataPropertyOrThrow(O, &quot;value&quot;, part.[[Value]]).
-            </span>o.create_data_property_or_throw(<span class="string">&quot;value&quot;</span>, part.value(), context)
+            </span>o.create_data_property_or_throw(<span class="macro">utf16!</span>(<span class="string">&quot;value&quot;</span>), part.value(), context)
                 .expect(<span class="string">&quot;operation must not fail per the spec&quot;</span>);
 
             <span class="comment">// d. Perform ! CreateDataPropertyOrThrow(result, ! ToString(n), O).
@@ -917,11 +921,11 @@
         //     c. Assert: v is not undefined.
         //     d. Perform ! CreateDataPropertyOrThrow(options, p, v).
         </span>options
-            .create_data_property_or_throw(<span class="string">&quot;locale&quot;</span>, lf.locale.to_string(), context)
+            .create_data_property_or_throw(<span class="macro">utf16!</span>(<span class="string">&quot;locale&quot;</span>), lf.locale.to_string(), context)
             .expect(<span class="string">&quot;operation must not fail per the spec&quot;</span>);
         options
             .create_data_property_or_throw(
-                <span class="string">&quot;type&quot;</span>,
+                <span class="macro">utf16!</span>(<span class="string">&quot;type&quot;</span>),
                 <span class="kw">match </span>lf.typ {
                     ListFormatType::Conjunction =&gt; <span class="string">&quot;conjunction&quot;</span>,
                     ListFormatType::Disjunction =&gt; <span class="string">&quot;disjunction&quot;</span>,
@@ -932,7 +936,7 @@
             .expect(<span class="string">&quot;operation must not fail per the spec&quot;</span>);
         options
             .create_data_property_or_throw(
-                <span class="string">&quot;style&quot;</span>,
+                <span class="macro">utf16!</span>(<span class="string">&quot;style&quot;</span>),
                 <span class="kw">match </span>lf.style {
                     ListLength::Wide =&gt; <span class="string">&quot;long&quot;</span>,
                     ListLength::Short =&gt; <span class="string">&quot;short&quot;</span>,

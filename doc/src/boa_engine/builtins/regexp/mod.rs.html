@@ -1668,6 +1668,26 @@
 <a href="#1667" id="1667">1667</a>
 <a href="#1668" id="1668">1668</a>
 <a href="#1669" id="1669">1669</a>
+<a href="#1670" id="1670">1670</a>
+<a href="#1671" id="1671">1671</a>
+<a href="#1672" id="1672">1672</a>
+<a href="#1673" id="1673">1673</a>
+<a href="#1674" id="1674">1674</a>
+<a href="#1675" id="1675">1675</a>
+<a href="#1676" id="1676">1676</a>
+<a href="#1677" id="1677">1677</a>
+<a href="#1678" id="1678">1678</a>
+<a href="#1679" id="1679">1679</a>
+<a href="#1680" id="1680">1680</a>
+<a href="#1681" id="1681">1681</a>
+<a href="#1682" id="1682">1682</a>
+<a href="#1683" id="1683">1683</a>
+<a href="#1684" id="1684">1684</a>
+<a href="#1685" id="1685">1685</a>
+<a href="#1686" id="1686">1686</a>
+<a href="#1687" id="1687">1687</a>
+<a href="#1688" id="1688">1688</a>
+<a href="#1689" id="1689">1689</a>
 </pre><pre class="rust"><code><span class="doccomment">//! Boa&#39;s implementation of ECMAScript&#39;s global `RegExp` object.
 //!
 //! The `RegExp` object is used for matching text with a pattern.
@@ -1767,7 +1787,7 @@
                 <span class="prelude-val">None</span>,
                 Attribute::CONFIGURABLE,
             )
-            .property(<span class="string">&quot;lastIndex&quot;</span>, <span class="number">0</span>, Attribute::all())
+            .property(<span class="macro">utf16!</span>(<span class="string">&quot;lastIndex&quot;</span>), <span class="number">0</span>, Attribute::all())
             .method(<span class="self">Self</span>::test, <span class="string">&quot;test&quot;</span>, <span class="number">1</span>)
             .method(<span class="self">Self</span>::exec, <span class="string">&quot;exec&quot;</span>, <span class="number">1</span>)
             .method(<span class="self">Self</span>::to_string, <span class="string">&quot;toString&quot;</span>, <span class="number">0</span>)
@@ -1780,15 +1800,30 @@
             .method(<span class="self">Self</span>::replace, (JsSymbol::replace(), <span class="string">&quot;[Symbol.replace]&quot;</span>), <span class="number">2</span>)
             .method(<span class="self">Self</span>::search, (JsSymbol::search(), <span class="string">&quot;[Symbol.search]&quot;</span>), <span class="number">1</span>)
             .method(<span class="self">Self</span>::split, (JsSymbol::split(), <span class="string">&quot;[Symbol.split]&quot;</span>), <span class="number">2</span>)
-            .accessor(<span class="string">&quot;hasIndices&quot;</span>, <span class="prelude-val">Some</span>(get_has_indices), <span class="prelude-val">None</span>, flag_attributes)
-            .accessor(<span class="string">&quot;global&quot;</span>, <span class="prelude-val">Some</span>(get_global), <span class="prelude-val">None</span>, flag_attributes)
-            .accessor(<span class="string">&quot;ignoreCase&quot;</span>, <span class="prelude-val">Some</span>(get_ignore_case), <span class="prelude-val">None</span>, flag_attributes)
-            .accessor(<span class="string">&quot;multiline&quot;</span>, <span class="prelude-val">Some</span>(get_multiline), <span class="prelude-val">None</span>, flag_attributes)
-            .accessor(<span class="string">&quot;dotAll&quot;</span>, <span class="prelude-val">Some</span>(get_dot_all), <span class="prelude-val">None</span>, flag_attributes)
-            .accessor(<span class="string">&quot;unicode&quot;</span>, <span class="prelude-val">Some</span>(get_unicode), <span class="prelude-val">None</span>, flag_attributes)
-            .accessor(<span class="string">&quot;sticky&quot;</span>, <span class="prelude-val">Some</span>(get_sticky), <span class="prelude-val">None</span>, flag_attributes)
-            .accessor(<span class="string">&quot;flags&quot;</span>, <span class="prelude-val">Some</span>(get_flags), <span class="prelude-val">None</span>, flag_attributes)
-            .accessor(<span class="string">&quot;source&quot;</span>, <span class="prelude-val">Some</span>(get_source), <span class="prelude-val">None</span>, flag_attributes)
+            .accessor(
+                <span class="macro">utf16!</span>(<span class="string">&quot;hasIndices&quot;</span>),
+                <span class="prelude-val">Some</span>(get_has_indices),
+                <span class="prelude-val">None</span>,
+                flag_attributes,
+            )
+            .accessor(<span class="macro">utf16!</span>(<span class="string">&quot;global&quot;</span>), <span class="prelude-val">Some</span>(get_global), <span class="prelude-val">None</span>, flag_attributes)
+            .accessor(
+                <span class="macro">utf16!</span>(<span class="string">&quot;ignoreCase&quot;</span>),
+                <span class="prelude-val">Some</span>(get_ignore_case),
+                <span class="prelude-val">None</span>,
+                flag_attributes,
+            )
+            .accessor(
+                <span class="macro">utf16!</span>(<span class="string">&quot;multiline&quot;</span>),
+                <span class="prelude-val">Some</span>(get_multiline),
+                <span class="prelude-val">None</span>,
+                flag_attributes,
+            )
+            .accessor(<span class="macro">utf16!</span>(<span class="string">&quot;dotAll&quot;</span>), <span class="prelude-val">Some</span>(get_dot_all), <span class="prelude-val">None</span>, flag_attributes)
+            .accessor(<span class="macro">utf16!</span>(<span class="string">&quot;unicode&quot;</span>), <span class="prelude-val">Some</span>(get_unicode), <span class="prelude-val">None</span>, flag_attributes)
+            .accessor(<span class="macro">utf16!</span>(<span class="string">&quot;sticky&quot;</span>), <span class="prelude-val">Some</span>(get_sticky), <span class="prelude-val">None</span>, flag_attributes)
+            .accessor(<span class="macro">utf16!</span>(<span class="string">&quot;flags&quot;</span>), <span class="prelude-val">Some</span>(get_flags), <span class="prelude-val">None</span>, flag_attributes)
+            .accessor(<span class="macro">utf16!</span>(<span class="string">&quot;source&quot;</span>), <span class="prelude-val">Some</span>(get_source), <span class="prelude-val">None</span>, flag_attributes)
             .build();
     }
 
@@ -1889,7 +1924,7 @@
 
         <span class="comment">// 2. Perform ! DefinePropertyOrThrow(obj, &quot;lastIndex&quot;, PropertyDescriptor { [[Writable]]: true, [[Enumerable]]: false, [[Configurable]]: false }).
         </span>obj.define_property_or_throw(
-            <span class="string">&quot;lastIndex&quot;</span>,
+            <span class="macro">utf16!</span>(<span class="string">&quot;lastIndex&quot;</span>),
             PropertyDescriptorBuilder::new()
                 .writable(<span class="bool-val">true</span>)
                 .enumerable(<span class="bool-val">false</span>)
@@ -1968,7 +2003,7 @@
         obj.borrow_mut().data = ObjectData::reg_exp(Box::new(regexp));
 
         <span class="comment">// 16. Perform ? Set(obj, &quot;lastIndex&quot;, +0𝔽, true).
-        </span>obj.set(<span class="string">&quot;lastIndex&quot;</span>, <span class="number">0</span>, <span class="bool-val">true</span>, context)<span class="question-mark">?</span>;
+        </span>obj.set(<span class="macro">utf16!</span>(<span class="string">&quot;lastIndex&quot;</span>), <span class="number">0</span>, <span class="bool-val">true</span>, context)<span class="question-mark">?</span>;
 
         <span class="comment">// 16. Return obj.
         </span><span class="prelude-val">Ok</span>(obj.into())
@@ -2198,41 +2233,41 @@
 
             <span class="comment">// 4. Let hasIndices be ToBoolean(? Get(R, &quot;hasIndices&quot;)).
             // 5. If hasIndices is true, append the code unit 0x0064 (LATIN SMALL LETTER D) as the last code unit of result.
-            </span><span class="kw">if </span>object.get(<span class="string">&quot;hasIndices&quot;</span>, context)<span class="question-mark">?</span>.to_boolean() {
+            </span><span class="kw">if </span>object.get(<span class="macro">utf16!</span>(<span class="string">&quot;hasIndices&quot;</span>), context)<span class="question-mark">?</span>.to_boolean() {
                 result.push(<span class="string">&#39;d&#39;</span>);
             }
 
             <span class="comment">// 6. Let global be ! ToBoolean(? Get(R, &quot;global&quot;)).
             // 7. If global is true, append the code unit 0x0067 (LATIN SMALL LETTER G) as the last code unit of result.
-            </span><span class="kw">if </span>object.get(<span class="string">&quot;global&quot;</span>, context)<span class="question-mark">?</span>.to_boolean() {
+            </span><span class="kw">if </span>object.get(<span class="macro">utf16!</span>(<span class="string">&quot;global&quot;</span>), context)<span class="question-mark">?</span>.to_boolean() {
                 result.push(<span class="string">&#39;g&#39;</span>);
             }
             <span class="comment">// 8. Let ignoreCase be ! ToBoolean(? Get(R, &quot;ignoreCase&quot;)).
             // 9. If ignoreCase is true, append the code unit 0x0069 (LATIN SMALL LETTER I) as the last code unit of result.
-            </span><span class="kw">if </span>object.get(<span class="string">&quot;ignoreCase&quot;</span>, context)<span class="question-mark">?</span>.to_boolean() {
+            </span><span class="kw">if </span>object.get(<span class="macro">utf16!</span>(<span class="string">&quot;ignoreCase&quot;</span>), context)<span class="question-mark">?</span>.to_boolean() {
                 result.push(<span class="string">&#39;i&#39;</span>);
             }
 
             <span class="comment">// 10. Let multiline be ! ToBoolean(? Get(R, &quot;multiline&quot;)).
             // 11. If multiline is true, append the code unit 0x006D (LATIN SMALL LETTER M) as the last code unit of result.
-            </span><span class="kw">if </span>object.get(<span class="string">&quot;multiline&quot;</span>, context)<span class="question-mark">?</span>.to_boolean() {
+            </span><span class="kw">if </span>object.get(<span class="macro">utf16!</span>(<span class="string">&quot;multiline&quot;</span>), context)<span class="question-mark">?</span>.to_boolean() {
                 result.push(<span class="string">&#39;m&#39;</span>);
             }
 
             <span class="comment">// 12. Let dotAll be ! ToBoolean(? Get(R, &quot;dotAll&quot;)).
             // 13. If dotAll is true, append the code unit 0x0073 (LATIN SMALL LETTER S) as the last code unit of result.
-            </span><span class="kw">if </span>object.get(<span class="string">&quot;dotAll&quot;</span>, context)<span class="question-mark">?</span>.to_boolean() {
+            </span><span class="kw">if </span>object.get(<span class="macro">utf16!</span>(<span class="string">&quot;dotAll&quot;</span>), context)<span class="question-mark">?</span>.to_boolean() {
                 result.push(<span class="string">&#39;s&#39;</span>);
             }
             <span class="comment">// 14. Let unicode be ! ToBoolean(? Get(R, &quot;unicode&quot;)).
             // 15. If unicode is true, append the code unit 0x0075 (LATIN SMALL LETTER U) as the last code unit of result.
-            </span><span class="kw">if </span>object.get(<span class="string">&quot;unicode&quot;</span>, context)<span class="question-mark">?</span>.to_boolean() {
+            </span><span class="kw">if </span>object.get(<span class="macro">utf16!</span>(<span class="string">&quot;unicode&quot;</span>), context)<span class="question-mark">?</span>.to_boolean() {
                 result.push(<span class="string">&#39;u&#39;</span>);
             }
 
             <span class="comment">// 16. Let sticky be ! ToBoolean(? Get(R, &quot;sticky&quot;)).
             // 17. If sticky is true, append the code unit 0x0079 (LATIN SMALL LETTER Y) as the last code unit of result.
-            </span><span class="kw">if </span>object.get(<span class="string">&quot;sticky&quot;</span>, context)<span class="question-mark">?</span>.to_boolean() {
+            </span><span class="kw">if </span>object.get(<span class="macro">utf16!</span>(<span class="string">&quot;sticky&quot;</span>), context)<span class="question-mark">?</span>.to_boolean() {
                 result.push(<span class="string">&#39;y&#39;</span>);
             }
 
@@ -2417,7 +2452,7 @@
         // 2. Assert: Type(S) is String.
 
         // 3. Let exec be ? Get(R, &quot;exec&quot;).
-        </span><span class="kw">let </span>exec = this.get(<span class="string">&quot;exec&quot;</span>, context)<span class="question-mark">?</span>;
+        </span><span class="kw">let </span>exec = this.get(<span class="macro">utf16!</span>(<span class="string">&quot;exec&quot;</span>), context)<span class="question-mark">?</span>;
 
         <span class="comment">// 4. If IsCallable(exec) is true, then
         </span><span class="kw">if let </span><span class="prelude-val">Some</span>(exec) = exec.as_callable() {
@@ -2475,7 +2510,7 @@
         </span><span class="kw">let </span>length = input.len() <span class="kw">as </span>u64;
 
         <span class="comment">// 4. Let lastIndex be ℝ(? ToLength(? Get(R, &quot;lastIndex&quot;))).
-        </span><span class="kw">let </span><span class="kw-2">mut </span>last_index = this.get(<span class="string">&quot;lastIndex&quot;</span>, context)<span class="question-mark">?</span>.to_length(context)<span class="question-mark">?</span>;
+        </span><span class="kw">let </span><span class="kw-2">mut </span>last_index = this.get(<span class="macro">utf16!</span>(<span class="string">&quot;lastIndex&quot;</span>), context)<span class="question-mark">?</span>.to_length(context)<span class="question-mark">?</span>;
 
         <span class="comment">// 5. Let flags be R.[[OriginalFlags]].
         </span><span class="kw">let </span>flags = <span class="kw-2">&amp;</span>rx.original_flags;
@@ -2505,7 +2540,7 @@
                 <span class="comment">// i. If global is true or sticky is true, then
                 </span><span class="kw">if </span>global || sticky {
                     <span class="comment">// 1. Perform ? Set(R, &quot;lastIndex&quot;, +0𝔽, true).
-                    </span>this.set(<span class="string">&quot;lastIndex&quot;</span>, <span class="number">0</span>, <span class="bool-val">true</span>, context)<span class="question-mark">?</span>;
+                    </span>this.set(<span class="macro">utf16!</span>(<span class="string">&quot;lastIndex&quot;</span>), <span class="number">0</span>, <span class="bool-val">true</span>, context)<span class="question-mark">?</span>;
                 }
 
                 <span class="comment">// ii. Return null.
@@ -2533,7 +2568,7 @@
                     <span class="comment">// i. If sticky is true, then
                     </span><span class="kw">if </span>sticky {
                         <span class="comment">// 1. Perform ? Set(R, &quot;lastIndex&quot;, +0𝔽, true).
-                        </span>this.set(<span class="string">&quot;lastIndex&quot;</span>, <span class="number">0</span>, <span class="bool-val">true</span>, context)<span class="question-mark">?</span>;
+                        </span>this.set(<span class="macro">utf16!</span>(<span class="string">&quot;lastIndex&quot;</span>), <span class="number">0</span>, <span class="bool-val">true</span>, context)<span class="question-mark">?</span>;
 
                         <span class="comment">// 2. Return null.
                         </span><span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>);
@@ -2550,7 +2585,7 @@
                         <span class="comment">// i. If sticky is true, then
                         </span><span class="kw">if </span>sticky {
                             <span class="comment">// 1. Perform ? Set(R, &quot;lastIndex&quot;, +0𝔽, true).
-                            </span>this.set(<span class="string">&quot;lastIndex&quot;</span>, <span class="number">0</span>, <span class="bool-val">true</span>, context)<span class="question-mark">?</span>;
+                            </span>this.set(<span class="macro">utf16!</span>(<span class="string">&quot;lastIndex&quot;</span>), <span class="number">0</span>, <span class="bool-val">true</span>, context)<span class="question-mark">?</span>;
 
                             <span class="comment">// 2. Return null.
                             </span><span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>);
@@ -2586,7 +2621,7 @@
         </span><span class="kw">if </span>global || sticky {
             <span class="comment">// a. Perform ? Set(R, &quot;lastIndex&quot;, 𝔽(e), true).
             </span>this.set(
-                <span class="string">&quot;lastIndex&quot;</span>,
+                <span class="macro">utf16!</span>(<span class="string">&quot;lastIndex&quot;</span>),
                 lossy_input[..e].encode_utf16().count(),
                 <span class="bool-val">true</span>,
                 context,
@@ -2603,11 +2638,11 @@
         </span><span class="kw">let </span>a = Array::array_create(n + <span class="number">1</span>, <span class="prelude-val">None</span>, context)<span class="question-mark">?</span>;
 
         <span class="comment">// 20. Perform ! CreateDataPropertyOrThrow(A, &quot;index&quot;, 𝔽(lastIndex)).
-        </span>a.create_data_property_or_throw(<span class="string">&quot;index&quot;</span>, match_value.start(), context)
+        </span>a.create_data_property_or_throw(<span class="macro">utf16!</span>(<span class="string">&quot;index&quot;</span>), match_value.start(), context)
             .expect(<span class="string">&quot;this CreateDataPropertyOrThrow call must not fail&quot;</span>);
 
         <span class="comment">// 21. Perform ! CreateDataPropertyOrThrow(A, &quot;input&quot;, S).
-        </span>a.create_data_property_or_throw(<span class="string">&quot;input&quot;</span>, input.clone(), context)
+        </span>a.create_data_property_or_throw(<span class="macro">utf16!</span>(<span class="string">&quot;input&quot;</span>), input.clone(), context)
             .expect(<span class="string">&quot;this CreateDataPropertyOrThrow call must not fail&quot;</span>);
 
         <span class="comment">// 22. Let matchedSubstr be the substring of S from lastIndex to e.
@@ -2645,7 +2680,7 @@
         };
 
         <span class="comment">// 26. Perform ! CreateDataPropertyOrThrow(A, &quot;groups&quot;, groups).
-        </span>a.create_data_property_or_throw(<span class="string">&quot;groups&quot;</span>, groups, context)
+        </span>a.create_data_property_or_throw(<span class="macro">utf16!</span>(<span class="string">&quot;groups&quot;</span>), groups, context)
             .expect(<span class="string">&quot;this CreateDataPropertyOrThrow call must not fail&quot;</span>);
 
         <span class="comment">// 27. For each integer i such that i ≥ 1 and i ≤ n, in ascending order, do
@@ -2696,7 +2731,7 @@
         </span><span class="kw">let </span>arg_str = args.get_or_undefined(<span class="number">0</span>).to_string(context)<span class="question-mark">?</span>;
 
         <span class="comment">// 4. Let global be ! ToBoolean(? Get(rx, &quot;global&quot;)).
-        </span><span class="kw">let </span>global = rx.get(<span class="string">&quot;global&quot;</span>, context)<span class="question-mark">?</span>.to_boolean();
+        </span><span class="kw">let </span>global = rx.get(<span class="macro">utf16!</span>(<span class="string">&quot;global&quot;</span>), context)<span class="question-mark">?</span>.to_boolean();
 
         <span class="comment">// 5. If global is false, then
         </span><span class="attr">#[allow(clippy::if_not_else)]
@@ -2709,10 +2744,10 @@
             <span class="comment">// a. Assert: global is true.
 
             // b. Let fullUnicode be ! ToBoolean(? Get(rx, &quot;unicode&quot;)).
-            </span><span class="kw">let </span>unicode = rx.get(<span class="string">&quot;unicode&quot;</span>, context)<span class="question-mark">?</span>.to_boolean();
+            </span><span class="kw">let </span>unicode = rx.get(<span class="macro">utf16!</span>(<span class="string">&quot;unicode&quot;</span>), context)<span class="question-mark">?</span>.to_boolean();
 
             <span class="comment">// c. Perform ? Set(rx, &quot;lastIndex&quot;, +0𝔽, true).
-            </span>rx.set(<span class="string">&quot;lastIndex&quot;</span>, <span class="number">0</span>, <span class="bool-val">true</span>, context)<span class="question-mark">?</span>;
+            </span>rx.set(<span class="macro">utf16!</span>(<span class="string">&quot;lastIndex&quot;</span>), <span class="number">0</span>, <span class="bool-val">true</span>, context)<span class="question-mark">?</span>;
 
             <span class="comment">// d. Let A be ! ArrayCreate(0).
             </span><span class="kw">let </span>a =
@@ -2730,7 +2765,7 @@
                 // iii. Else,
                 </span><span class="kw">if let </span><span class="prelude-val">Some</span>(result) = result {
                     <span class="comment">// 1. Let matchStr be ? ToString(? Get(result, &quot;0&quot;)).
-                    </span><span class="kw">let </span>match_str = result.get(<span class="string">&quot;0&quot;</span>, context)<span class="question-mark">?</span>.to_string(context)<span class="question-mark">?</span>;
+                    </span><span class="kw">let </span>match_str = result.get(<span class="number">0</span>, context)<span class="question-mark">?</span>.to_string(context)<span class="question-mark">?</span>;
 
                     <span class="comment">// 2. Perform ! CreateDataPropertyOrThrow(A, ! ToString(𝔽(n)), matchStr).
                     </span>a.create_data_property_or_throw(n, match_str.clone(), context)
@@ -2739,13 +2774,14 @@
                     <span class="comment">// 3. If matchStr is the empty String, then
                     </span><span class="kw">if </span>match_str.is_empty() {
                         <span class="comment">// a. Let thisIndex be ℝ(? ToLength(? Get(rx, &quot;lastIndex&quot;))).
-                        </span><span class="kw">let </span>this_index = rx.get(<span class="string">&quot;lastIndex&quot;</span>, context)<span class="question-mark">?</span>.to_length(context)<span class="question-mark">?</span>;
+                        </span><span class="kw">let </span>this_index =
+                            rx.get(<span class="macro">utf16!</span>(<span class="string">&quot;lastIndex&quot;</span>), context)<span class="question-mark">?</span>.to_length(context)<span class="question-mark">?</span>;
 
                         <span class="comment">// b. Let nextIndex be AdvanceStringIndex(S, thisIndex, fullUnicode).
                         </span><span class="kw">let </span>next_index = advance_string_index(<span class="kw-2">&amp;</span>arg_str, this_index, unicode);
 
                         <span class="comment">// c. Perform ? Set(rx, &quot;lastIndex&quot;, 𝔽(nextIndex), true).
-                        </span>rx.set(<span class="string">&quot;lastIndex&quot;</span>, JsValue::new(next_index), <span class="bool-val">true</span>, context)<span class="question-mark">?</span>;
+                        </span>rx.set(<span class="macro">utf16!</span>(<span class="string">&quot;lastIndex&quot;</span>), JsValue::new(next_index), <span class="bool-val">true</span>, context)<span class="question-mark">?</span>;
                     }
 
                     <span class="comment">// 4. Set n to n + 1.
@@ -2827,16 +2863,18 @@
         </span><span class="kw">let </span>c = regexp.species_constructor(StandardConstructors::regexp, context)<span class="question-mark">?</span>;
 
         <span class="comment">// 5. Let flags be ? ToString(? Get(R, &quot;flags&quot;)).
-        </span><span class="kw">let </span>flags = regexp.get(<span class="string">&quot;flags&quot;</span>, context)<span class="question-mark">?</span>.to_string(context)<span class="question-mark">?</span>;
+        </span><span class="kw">let </span>flags = regexp.get(<span class="macro">utf16!</span>(<span class="string">&quot;flags&quot;</span>), context)<span class="question-mark">?</span>.to_string(context)<span class="question-mark">?</span>;
 
         <span class="comment">// 6. Let matcher be ? Construct(C, « R, flags »).
         </span><span class="kw">let </span>matcher = c.construct(<span class="kw-2">&amp;</span>[this.clone(), flags.clone().into()], <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span>c), context)<span class="question-mark">?</span>;
 
         <span class="comment">// 7. Let lastIndex be ? ToLength(? Get(R, &quot;lastIndex&quot;)).
-        </span><span class="kw">let </span>last_index = regexp.get(<span class="string">&quot;lastIndex&quot;</span>, context)<span class="question-mark">?</span>.to_length(context)<span class="question-mark">?</span>;
+        </span><span class="kw">let </span>last_index = regexp
+            .get(<span class="macro">utf16!</span>(<span class="string">&quot;lastIndex&quot;</span>), context)<span class="question-mark">?
+            </span>.to_length(context)<span class="question-mark">?</span>;
 
         <span class="comment">// 8. Perform ? Set(matcher, &quot;lastIndex&quot;, lastIndex, true).
-        </span>matcher.set(<span class="string">&quot;lastIndex&quot;</span>, last_index, <span class="bool-val">true</span>, context)<span class="question-mark">?</span>;
+        </span>matcher.set(<span class="macro">utf16!</span>(<span class="string">&quot;lastIndex&quot;</span>), last_index, <span class="bool-val">true</span>, context)<span class="question-mark">?</span>;
 
         <span class="comment">// 9. If flags contains &quot;g&quot;, let global be true.
         // 10. Else, let global be false.
@@ -2898,16 +2936,16 @@
         };
 
         <span class="comment">// 7. Let global be ! ToBoolean(? Get(rx, &quot;global&quot;)).
-        </span><span class="kw">let </span>global = rx.get(<span class="string">&quot;global&quot;</span>, context)<span class="question-mark">?</span>.to_boolean();
+        </span><span class="kw">let </span>global = rx.get(<span class="macro">utf16!</span>(<span class="string">&quot;global&quot;</span>), context)<span class="question-mark">?</span>.to_boolean();
 
         <span class="comment">// 8. If global is true, then
         </span><span class="kw">let </span><span class="kw-2">mut </span>unicode = <span class="bool-val">false</span>;
         <span class="kw">if </span>global {
             <span class="comment">// a. Let fullUnicode be ! ToBoolean(? Get(rx, &quot;unicode&quot;)).
-            </span>unicode = rx.get(<span class="string">&quot;unicode&quot;</span>, context)<span class="question-mark">?</span>.to_boolean();
+            </span>unicode = rx.get(<span class="macro">utf16!</span>(<span class="string">&quot;unicode&quot;</span>), context)<span class="question-mark">?</span>.to_boolean();
 
             <span class="comment">// b. Perform ? Set(rx, &quot;lastIndex&quot;, +0𝔽, true).
-            </span>rx.set(<span class="string">&quot;lastIndex&quot;</span>, <span class="number">0</span>, <span class="bool-val">true</span>, context)<span class="question-mark">?</span>;
+            </span>rx.set(<span class="macro">utf16!</span>(<span class="string">&quot;lastIndex&quot;</span>), <span class="number">0</span>, <span class="bool-val">true</span>, context)<span class="question-mark">?</span>;
         }
 
         <span class="comment">//  9. Let results be a new empty List.
@@ -2932,18 +2970,18 @@
                 }
                 <span class="comment">// iii. Else,
                 // 1. Let matchStr be ? ToString(? Get(result, &quot;0&quot;)).
-                </span><span class="kw">let </span>match_str = result.get(<span class="string">&quot;0&quot;</span>, context)<span class="question-mark">?</span>.to_string(context)<span class="question-mark">?</span>;
+                </span><span class="kw">let </span>match_str = result.get(<span class="number">0</span>, context)<span class="question-mark">?</span>.to_string(context)<span class="question-mark">?</span>;
 
                 <span class="comment">// 2. If matchStr is the empty String, then
                 </span><span class="kw">if </span>match_str.is_empty() {
                     <span class="comment">// a. Let thisIndex be ℝ(? ToLength(? Get(rx, &quot;lastIndex&quot;))).
-                    </span><span class="kw">let </span>this_index = rx.get(<span class="string">&quot;lastIndex&quot;</span>, context)<span class="question-mark">?</span>.to_length(context)<span class="question-mark">?</span>;
+                    </span><span class="kw">let </span>this_index = rx.get(<span class="macro">utf16!</span>(<span class="string">&quot;lastIndex&quot;</span>), context)<span class="question-mark">?</span>.to_length(context)<span class="question-mark">?</span>;
 
                     <span class="comment">// b. Let nextIndex be AdvanceStringIndex(S, thisIndex, fullUnicode).
                     </span><span class="kw">let </span>next_index = advance_string_index(<span class="kw-2">&amp;</span>arg_str, this_index, unicode);
 
                     <span class="comment">// c. Perform ? Set(rx, &quot;lastIndex&quot;, 𝔽(nextIndex), true).
-                    </span>rx.set(<span class="string">&quot;lastIndex&quot;</span>, JsValue::new(next_index), <span class="bool-val">true</span>, context)<span class="question-mark">?</span>;
+                    </span>rx.set(<span class="macro">utf16!</span>(<span class="string">&quot;lastIndex&quot;</span>), JsValue::new(next_index), <span class="bool-val">true</span>, context)<span class="question-mark">?</span>;
                 }
             } <span class="kw">else </span>{
                 <span class="kw">break</span>;
@@ -2965,14 +3003,14 @@
             </span><span class="kw">let </span>n_captures = std::cmp::max(result_length - <span class="number">1</span>, <span class="number">0</span>);
 
             <span class="comment">// c. Let matched be ? ToString(? Get(result, &quot;0&quot;)).
-            </span><span class="kw">let </span>matched = result.get(<span class="string">&quot;0&quot;</span>, context)<span class="question-mark">?</span>.to_string(context)<span class="question-mark">?</span>;
+            </span><span class="kw">let </span>matched = result.get(<span class="number">0</span>, context)<span class="question-mark">?</span>.to_string(context)<span class="question-mark">?</span>;
 
             <span class="comment">// d. Let matchLength be the number of code units in matched.
             </span><span class="kw">let </span>match_length = matched.len();
 
             <span class="comment">// e. Let position be ? ToIntegerOrInfinity(? Get(result, &quot;index&quot;)).
             </span><span class="kw">let </span>position = result
-                .get(<span class="string">&quot;index&quot;</span>, context)<span class="question-mark">?
+                .get(<span class="macro">utf16!</span>(<span class="string">&quot;index&quot;</span>), context)<span class="question-mark">?
                 </span>.to_integer_or_infinity(context)<span class="question-mark">?</span>;
 
             <span class="comment">// f. Set position to the result of clamping position between 0 and lengthS.
@@ -3001,7 +3039,7 @@
             </span>}
 
             <span class="comment">// j. Let namedCaptures be ? Get(result, &quot;groups&quot;).
-            </span><span class="kw">let </span><span class="kw-2">mut </span>named_captures = result.get(<span class="string">&quot;groups&quot;</span>, context)<span class="question-mark">?</span>;
+            </span><span class="kw">let </span><span class="kw-2">mut </span>named_captures = result.get(<span class="macro">utf16!</span>(<span class="string">&quot;groups&quot;</span>), context)<span class="question-mark">?</span>;
 
             <span class="comment">// k. If functionalReplace is true, then
             </span><span class="kw">let </span>replacement = <span class="kw">match </span>replace {
@@ -3100,31 +3138,31 @@
         </span><span class="kw">let </span>arg_str = args.get_or_undefined(<span class="number">0</span>).to_string(context)<span class="question-mark">?</span>;
 
         <span class="comment">// 4. Let previousLastIndex be ? Get(rx, &quot;lastIndex&quot;).
-        </span><span class="kw">let </span>previous_last_index = rx.get(<span class="string">&quot;lastIndex&quot;</span>, context)<span class="question-mark">?</span>;
+        </span><span class="kw">let </span>previous_last_index = rx.get(<span class="macro">utf16!</span>(<span class="string">&quot;lastIndex&quot;</span>), context)<span class="question-mark">?</span>;
 
         <span class="comment">// 5. If SameValue(previousLastIndex, +0𝔽) is false, then
         </span><span class="kw">if </span>!JsValue::same_value(<span class="kw-2">&amp;</span>previous_last_index, <span class="kw-2">&amp;</span>JsValue::new(<span class="number">0</span>)) {
             <span class="comment">// a. Perform ? Set(rx, &quot;lastIndex&quot;, +0𝔽, true).
-            </span>rx.set(<span class="string">&quot;lastIndex&quot;</span>, <span class="number">0</span>, <span class="bool-val">true</span>, context)<span class="question-mark">?</span>;
+            </span>rx.set(<span class="macro">utf16!</span>(<span class="string">&quot;lastIndex&quot;</span>), <span class="number">0</span>, <span class="bool-val">true</span>, context)<span class="question-mark">?</span>;
         }
 
         <span class="comment">// 6. Let result be ? RegExpExec(rx, S).
         </span><span class="kw">let </span>result = <span class="self">Self</span>::abstract_exec(rx, arg_str, context)<span class="question-mark">?</span>;
 
         <span class="comment">// 7. Let currentLastIndex be ? Get(rx, &quot;lastIndex&quot;).
-        </span><span class="kw">let </span>current_last_index = rx.get(<span class="string">&quot;lastIndex&quot;</span>, context)<span class="question-mark">?</span>;
+        </span><span class="kw">let </span>current_last_index = rx.get(<span class="macro">utf16!</span>(<span class="string">&quot;lastIndex&quot;</span>), context)<span class="question-mark">?</span>;
 
         <span class="comment">// 8. If SameValue(currentLastIndex, previousLastIndex) is false, then
         </span><span class="kw">if </span>!JsValue::same_value(<span class="kw-2">&amp;</span>current_last_index, <span class="kw-2">&amp;</span>previous_last_index) {
             <span class="comment">// a. Perform ? Set(rx, &quot;lastIndex&quot;, previousLastIndex, true).
-            </span>rx.set(<span class="string">&quot;lastIndex&quot;</span>, previous_last_index, <span class="bool-val">true</span>, context)<span class="question-mark">?</span>;
+            </span>rx.set(<span class="macro">utf16!</span>(<span class="string">&quot;lastIndex&quot;</span>), previous_last_index, <span class="bool-val">true</span>, context)<span class="question-mark">?</span>;
         }
 
         <span class="comment">// 9. If result is null, return -1𝔽.
         // 10. Return ? Get(result, &quot;index&quot;).
         </span>result.map_or_else(
             || <span class="prelude-val">Ok</span>(JsValue::new(-<span class="number">1</span>)),
-            |result| result.get(<span class="string">&quot;index&quot;</span>, context),
+            |result| result.get(<span class="macro">utf16!</span>(<span class="string">&quot;index&quot;</span>), context),
         )
     }
 
@@ -3157,7 +3195,7 @@
         </span><span class="kw">let </span>constructor = rx.species_constructor(StandardConstructors::regexp, context)<span class="question-mark">?</span>;
 
         <span class="comment">// 5. Let flags be ? ToString(? Get(rx, &quot;flags&quot;)).
-        </span><span class="kw">let </span>flags = rx.get(<span class="string">&quot;flags&quot;</span>, context)<span class="question-mark">?</span>.to_string(context)<span class="question-mark">?</span>;
+        </span><span class="kw">let </span>flags = rx.get(<span class="macro">utf16!</span>(<span class="string">&quot;flags&quot;</span>), context)<span class="question-mark">?</span>.to_string(context)<span class="question-mark">?</span>;
 
         <span class="comment">// 6. If flags contains &quot;u&quot;, let unicodeMatching be true.
         // 7. Else, let unicodeMatching be false.
@@ -3226,7 +3264,7 @@
         <span class="comment">// 19. Repeat, while q &lt; size,
         </span><span class="kw">while </span>q &lt; size {
             <span class="comment">// a. Perform ? Set(splitter, &quot;lastIndex&quot;, 𝔽(q), true).
-            </span>splitter.set(<span class="string">&quot;lastIndex&quot;</span>, JsValue::new(q), <span class="bool-val">true</span>, context)<span class="question-mark">?</span>;
+            </span>splitter.set(<span class="macro">utf16!</span>(<span class="string">&quot;lastIndex&quot;</span>), JsValue::new(q), <span class="bool-val">true</span>, context)<span class="question-mark">?</span>;
 
             <span class="comment">// b. Let z be ? RegExpExec(splitter, S).
             </span><span class="kw">let </span>result = <span class="self">Self</span>::abstract_exec(<span class="kw-2">&amp;</span>splitter, arg_str.clone(), context)<span class="question-mark">?</span>;
@@ -3235,7 +3273,9 @@
             // d. Else,
             </span><span class="kw">if let </span><span class="prelude-val">Some</span>(result) = result {
                 <span class="comment">// i. Let e be ℝ(? ToLength(? Get(splitter, &quot;lastIndex&quot;))).
-                </span><span class="kw">let </span><span class="kw-2">mut </span>e = splitter.get(<span class="string">&quot;lastIndex&quot;</span>, context)<span class="question-mark">?</span>.to_length(context)<span class="question-mark">?</span>;
+                </span><span class="kw">let </span><span class="kw-2">mut </span>e = splitter
+                    .get(<span class="macro">utf16!</span>(<span class="string">&quot;lastIndex&quot;</span>), context)<span class="question-mark">?
+                    </span>.to_length(context)<span class="question-mark">?</span>;
 
                 <span class="comment">// ii. Set e to min(e, size).
                 </span>e = std::cmp::min(e, size);

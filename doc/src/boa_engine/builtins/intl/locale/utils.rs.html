@@ -607,6 +607,7 @@
 <a href="#606" id="606">606</a>
 <a href="#607" id="607">607</a>
 <a href="#608" id="608">608</a>
+<a href="#609" id="609">609</a>
 </pre><pre class="rust"><code><span class="kw">use crate</span>::{
     builtins::{
         intl::{
@@ -617,6 +618,7 @@
     },
     context::{icu::Icu, BoaProvider},
     object::JsObject,
+    string::utf16,
     Context, JsNativeError, JsResult, JsValue,
 };
 
@@ -1106,8 +1108,8 @@
     </span><span class="kw">let </span>options = coerce_options_to_object(options, context)<span class="question-mark">?</span>;
 
     <span class="comment">// 2. Let matcher be ? GetOption(options, &quot;localeMatcher&quot;, string, « &quot;lookup&quot;, &quot;best fit&quot; », &quot;best fit&quot;).
-    </span><span class="kw">let </span>matcher =
-        get_option::&lt;LocaleMatcher&gt;(<span class="kw-2">&amp;</span>options, <span class="string">&quot;localeMatcher&quot;</span>, <span class="bool-val">false</span>, context)<span class="question-mark">?</span>.unwrap_or_default();
+    </span><span class="kw">let </span>matcher = get_option::&lt;LocaleMatcher&gt;(<span class="kw-2">&amp;</span>options, <span class="macro">utf16!</span>(<span class="string">&quot;localeMatcher&quot;</span>), <span class="bool-val">false</span>, context)<span class="question-mark">?
+        </span>.unwrap_or_default();
 
     <span class="kw">let </span>elements = <span class="kw">match </span>matcher {
         <span class="comment">// 4. Else,

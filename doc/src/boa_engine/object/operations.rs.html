@@ -1209,12 +1209,14 @@
 <a href="#1208" id="1208">1208</a>
 <a href="#1209" id="1209">1209</a>
 <a href="#1210" id="1210">1210</a>
+<a href="#1211" id="1211">1211</a>
 </pre><pre class="rust"><code><span class="kw">use crate</span>::{
     builtins::{function::ClassFieldDefinition, Array},
     context::intrinsics::{StandardConstructor, StandardConstructors},
     error::JsNativeError,
-    object::{JsObject, PrivateElement},
+    object::{JsObject, PrivateElement, PROTOTYPE},
     property::{PropertyDescriptor, PropertyDescriptorBuilder, PropertyKey, PropertyNameKind},
+    string::utf16,
     value::Type,
     Context, JsResult, JsSymbol, JsValue,
 };
@@ -1344,7 +1346,7 @@
             .enumerable(<span class="bool-val">true</span>)
             .configurable(<span class="bool-val">true</span>);
         <span class="comment">// 4. Return ? O.[[DefineOwnProperty]](P, newDesc).
-        </span><span class="self">self</span>.__define_own_property__(key.into(), new_desc.into(), context)
+        </span><span class="self">self</span>.__define_own_property__(<span class="kw-2">&amp;</span>key.into(), new_desc.into(), context)
     }
 
     <span class="comment">// todo: CreateMethodProperty
@@ -1437,7 +1439,7 @@
         <span class="comment">// 1. Assert: Type(O) is Object.
         // 2. Assert: IsPropertyKey(P) is true.
         // 3. Let success be ? O.[[DefineOwnProperty]](P, desc).
-        </span><span class="kw">let </span>success = <span class="self">self</span>.__define_own_property__(key.clone(), desc.into(), context)<span class="question-mark">?</span>;
+        </span><span class="kw">let </span>success = <span class="self">self</span>.__define_own_property__(<span class="kw-2">&amp;</span>key, desc.into(), context)<span class="question-mark">?</span>;
         <span class="comment">// 4. If success is false, throw a TypeError exception.
         </span><span class="kw">if </span>!success {
             <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::typ()
@@ -1686,7 +1688,7 @@
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>length_of_array_like(<span class="kw-2">&amp;</span><span class="self">self</span>, context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;u64&gt; {
         <span class="comment">// 1. Assert: Type(obj) is Object.
         // 2. Return ℝ(? ToLength(? Get(obj, &quot;length&quot;))).
-        </span><span class="self">self</span>.get(<span class="string">&quot;length&quot;</span>, context)<span class="question-mark">?</span>.to_length(context)
+        </span><span class="self">self</span>.get(<span class="macro">utf16!</span>(<span class="string">&quot;length&quot;</span>), context)<span class="question-mark">?</span>.to_length(context)
     }
 
     <span class="doccomment">/// `7.3.22 SpeciesConstructor ( O, defaultConstructor )`
@@ -2395,7 +2397,7 @@
         };
 
         <span class="comment">// 4. Let P be ? Get(C, &quot;prototype&quot;).
-        </span><span class="kw">let </span>prototype = function.get(<span class="string">&quot;prototype&quot;</span>, context)<span class="question-mark">?</span>;
+        </span><span class="kw">let </span>prototype = function.get(PROTOTYPE, context)<span class="question-mark">?</span>;
 
         <span class="comment">// 5. If Type(P) is not Object, throw a TypeError exception.
         </span><span class="kw">let </span>prototype = prototype.as_object().ok_or_else(|| {

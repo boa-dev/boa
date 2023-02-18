@@ -87,6 +87,7 @@
 <a href="#86" id="86">86</a>
 <a href="#87" id="87">87</a>
 <a href="#88" id="88">88</a>
+<a href="#89" id="89">89</a>
 </pre><pre class="rust"><code><span class="doccomment">//! This module implements the global `SyntaxError` object.
 //!
 //! The `SyntaxError` object represents an error when trying to interpret syntactically invalid code.
@@ -105,6 +106,7 @@
     context::intrinsics::{Intrinsics, StandardConstructor, StandardConstructors},
     object::{internal_methods::get_prototype_from_constructor, JsObject, ObjectData},
     property::Attribute,
+    string::utf16,
     Context, JsArgs, JsResult, JsValue,
 };
 <span class="kw">use </span>boa_profiler::Profiler;
@@ -123,8 +125,8 @@
         BuiltInBuilder::from_standard_constructor::&lt;<span class="self">Self</span>&gt;(intrinsics)
             .prototype(intrinsics.constructors().error().constructor())
             .inherits(<span class="prelude-val">Some</span>(intrinsics.constructors().error().prototype()))
-            .property(<span class="string">&quot;name&quot;</span>, <span class="self">Self</span>::NAME, attribute)
-            .property(<span class="string">&quot;message&quot;</span>, <span class="string">&quot;&quot;</span>, attribute)
+            .property(<span class="macro">utf16!</span>(<span class="string">&quot;name&quot;</span>), <span class="self">Self</span>::NAME, attribute)
+            .property(<span class="macro">utf16!</span>(<span class="string">&quot;message&quot;</span>), <span class="string">&quot;&quot;</span>, attribute)
             .build();
     }
 
@@ -165,7 +167,7 @@
             </span><span class="kw">let </span>msg = message.to_string(context)<span class="question-mark">?</span>;
 
             <span class="comment">// b. Perform CreateNonEnumerableDataPropertyOrThrow(O, &quot;message&quot;, msg).
-            </span>o.create_non_enumerable_data_property_or_throw(<span class="string">&quot;message&quot;</span>, msg, context);
+            </span>o.create_non_enumerable_data_property_or_throw(<span class="macro">utf16!</span>(<span class="string">&quot;message&quot;</span>), msg, context);
         }
 
         <span class="comment">// 4. Perform ? InstallErrorCause(O, options).

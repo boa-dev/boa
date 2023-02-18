@@ -225,12 +225,14 @@
 <a href="#224" id="224">224</a>
 <a href="#225" id="225">225</a>
 <a href="#226" id="226">226</a>
+<a href="#227" id="227">227</a>
 </pre><pre class="rust"><code><span class="kw">use crate</span>::{
     builtins::{
         async_generator::{AsyncGenerator, AsyncGeneratorState},
         iterable::IteratorRecord,
     },
     error::JsNativeError,
+    string::utf16,
     vm::{
         call_frame::{FinallyReturn, GeneratorResumeKind},
         opcode::Operation,
@@ -378,14 +380,14 @@
                 <span class="kw">let </span>result = result.as_object().ok_or_else(|| {
                     JsNativeError::typ().with_message(<span class="string">&quot;generator next method returned non-object&quot;</span>)
                 })<span class="question-mark">?</span>;
-                <span class="kw">let </span>done = result.get(<span class="string">&quot;done&quot;</span>, context)<span class="question-mark">?</span>.to_boolean();
+                <span class="kw">let </span>done = result.get(<span class="macro">utf16!</span>(<span class="string">&quot;done&quot;</span>), context)<span class="question-mark">?</span>.to_boolean();
                 <span class="kw">if </span>done {
                     context.vm.frame_mut().pc = done_address <span class="kw">as </span>usize;
-                    <span class="kw">let </span>value = result.get(<span class="string">&quot;value&quot;</span>, context)<span class="question-mark">?</span>;
+                    <span class="kw">let </span>value = result.get(<span class="macro">utf16!</span>(<span class="string">&quot;value&quot;</span>), context)<span class="question-mark">?</span>;
                     context.vm.push(value);
                     <span class="kw">return </span><span class="prelude-val">Ok</span>(ShouldExit::False);
                 }
-                <span class="kw">let </span>value = result.get(<span class="string">&quot;value&quot;</span>, context)<span class="question-mark">?</span>;
+                <span class="kw">let </span>value = result.get(<span class="macro">utf16!</span>(<span class="string">&quot;value&quot;</span>), context)<span class="question-mark">?</span>;
                 context.vm.push(iterator.clone());
                 context.vm.push(next_method.clone());
                 context.vm.push(done);
@@ -393,21 +395,21 @@
                 <span class="prelude-val">Ok</span>(ShouldExit::Yield)
             }
             GeneratorResumeKind::Throw =&gt; {
-                <span class="kw">let </span>throw = iterator.get_method(<span class="string">&quot;throw&quot;</span>, context)<span class="question-mark">?</span>;
+                <span class="kw">let </span>throw = iterator.get_method(<span class="macro">utf16!</span>(<span class="string">&quot;throw&quot;</span>), context)<span class="question-mark">?</span>;
                 <span class="kw">if let </span><span class="prelude-val">Some</span>(throw) = throw {
                     <span class="kw">let </span>result = throw.call(<span class="kw-2">&amp;</span>iterator.clone().into(), <span class="kw-2">&amp;</span>[received], context)<span class="question-mark">?</span>;
                     <span class="kw">let </span>result_object = result.as_object().ok_or_else(|| {
                         JsNativeError::typ()
                             .with_message(<span class="string">&quot;generator throw method returned non-object&quot;</span>)
                     })<span class="question-mark">?</span>;
-                    <span class="kw">let </span>done = result_object.get(<span class="string">&quot;done&quot;</span>, context)<span class="question-mark">?</span>.to_boolean();
+                    <span class="kw">let </span>done = result_object.get(<span class="macro">utf16!</span>(<span class="string">&quot;done&quot;</span>), context)<span class="question-mark">?</span>.to_boolean();
                     <span class="kw">if </span>done {
                         context.vm.frame_mut().pc = done_address <span class="kw">as </span>usize;
-                        <span class="kw">let </span>value = result_object.get(<span class="string">&quot;value&quot;</span>, context)<span class="question-mark">?</span>;
+                        <span class="kw">let </span>value = result_object.get(<span class="macro">utf16!</span>(<span class="string">&quot;value&quot;</span>), context)<span class="question-mark">?</span>;
                         context.vm.push(value);
                         <span class="kw">return </span><span class="prelude-val">Ok</span>(ShouldExit::False);
                     }
-                    <span class="kw">let </span>value = result_object.get(<span class="string">&quot;value&quot;</span>, context)<span class="question-mark">?</span>;
+                    <span class="kw">let </span>value = result_object.get(<span class="macro">utf16!</span>(<span class="string">&quot;value&quot;</span>), context)<span class="question-mark">?</span>;
                     context.vm.push(iterator.clone());
                     context.vm.push(next_method.clone());
                     context.vm.push(done);
@@ -423,21 +425,21 @@
                     .into())
             }
             GeneratorResumeKind::Return =&gt; {
-                <span class="kw">let </span>r#return = iterator.get_method(<span class="string">&quot;return&quot;</span>, context)<span class="question-mark">?</span>;
+                <span class="kw">let </span>r#return = iterator.get_method(<span class="macro">utf16!</span>(<span class="string">&quot;return&quot;</span>), context)<span class="question-mark">?</span>;
                 <span class="kw">if let </span><span class="prelude-val">Some</span>(r#return) = r#return {
                     <span class="kw">let </span>result = r#return.call(<span class="kw-2">&amp;</span>iterator.clone().into(), <span class="kw-2">&amp;</span>[received], context)<span class="question-mark">?</span>;
                     <span class="kw">let </span>result_object = result.as_object().ok_or_else(|| {
                         JsNativeError::typ()
                             .with_message(<span class="string">&quot;generator return method returned non-object&quot;</span>)
                     })<span class="question-mark">?</span>;
-                    <span class="kw">let </span>done = result_object.get(<span class="string">&quot;done&quot;</span>, context)<span class="question-mark">?</span>.to_boolean();
+                    <span class="kw">let </span>done = result_object.get(<span class="macro">utf16!</span>(<span class="string">&quot;done&quot;</span>), context)<span class="question-mark">?</span>.to_boolean();
                     <span class="kw">if </span>done {
                         context.vm.frame_mut().pc = done_address <span class="kw">as </span>usize;
-                        <span class="kw">let </span>value = result_object.get(<span class="string">&quot;value&quot;</span>, context)<span class="question-mark">?</span>;
+                        <span class="kw">let </span>value = result_object.get(<span class="macro">utf16!</span>(<span class="string">&quot;value&quot;</span>), context)<span class="question-mark">?</span>;
                         context.vm.push(value);
                         <span class="kw">return </span><span class="prelude-val">Ok</span>(ShouldExit::True);
                     }
-                    <span class="kw">let </span>value = result_object.get(<span class="string">&quot;value&quot;</span>, context)<span class="question-mark">?</span>;
+                    <span class="kw">let </span>value = result_object.get(<span class="macro">utf16!</span>(<span class="string">&quot;value&quot;</span>), context)<span class="question-mark">?</span>;
                     context.vm.push(iterator.clone());
                     context.vm.push(next_method.clone());
                     context.vm.push(done);

@@ -384,7 +384,7 @@
             .and_then(PropertyDescriptor::set)
             .cloned();
         object.__define_own_property__(
-            name,
+            <span class="kw-2">&amp;</span>name,
             PropertyDescriptor::builder()
                 .maybe_get(<span class="prelude-val">Some</span>(value))
                 .maybe_set(set)
@@ -420,7 +420,7 @@
             .and_then(PropertyDescriptor::set)
             .cloned();
         object.__define_own_property__(
-            name,
+            <span class="kw-2">&amp;</span>name,
             PropertyDescriptor::builder()
                 .maybe_get(<span class="prelude-val">Some</span>(value))
                 .maybe_set(set)
@@ -461,7 +461,7 @@
             .and_then(PropertyDescriptor::get)
             .cloned();
         object.__define_own_property__(
-            name,
+            <span class="kw-2">&amp;</span>name,
             PropertyDescriptor::builder()
                 .maybe_set(<span class="prelude-val">Some</span>(value))
                 .maybe_get(get)
@@ -497,7 +497,7 @@
             .and_then(PropertyDescriptor::get)
             .cloned();
         object.__define_own_property__(
-            name,
+            <span class="kw-2">&amp;</span>name,
             PropertyDescriptor::builder()
                 .maybe_set(<span class="prelude-val">Some</span>(value))
                 .maybe_get(get)

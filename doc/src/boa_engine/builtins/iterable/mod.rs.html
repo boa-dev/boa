@@ -558,6 +558,7 @@
 <a href="#557" id="557">557</a>
 <a href="#558" id="558">558</a>
 <a href="#559" id="559">559</a>
+<a href="#560" id="560">560</a>
 </pre><pre class="rust"><code><span class="doccomment">//! Boa&#39;s implementation of ECMAScript&#39;s `IteratorRecord` and iterator prototype objects.
 
 </span><span class="kw">use crate</span>::{
@@ -565,6 +566,7 @@
     context::intrinsics::Intrinsics,
     error::JsNativeError,
     object::JsObject,
+    string::utf16,
     symbol::JsSymbol,
     Context, JsResult, JsValue,
 };
@@ -748,10 +750,10 @@
     </span><span class="kw">let </span>obj = JsObject::with_object_proto(context);
 
     <span class="comment">// 3. Perform ! CreateDataPropertyOrThrow(obj, &quot;value&quot;, value).
-    </span>obj.create_data_property_or_throw(<span class="string">&quot;value&quot;</span>, value, context)
+    </span>obj.create_data_property_or_throw(<span class="macro">utf16!</span>(<span class="string">&quot;value&quot;</span>), value, context)
         .expect(<span class="string">&quot;this CreateDataPropertyOrThrow call must not fail&quot;</span>);
     <span class="comment">// 4. Perform ! CreateDataPropertyOrThrow(obj, &quot;done&quot;, done).
-    </span>obj.create_data_property_or_throw(<span class="string">&quot;done&quot;</span>, done, context)
+    </span>obj.create_data_property_or_throw(<span class="macro">utf16!</span>(<span class="string">&quot;done&quot;</span>), done, context)
         .expect(<span class="string">&quot;this CreateDataPropertyOrThrow call must not fail&quot;</span>);
     <span class="comment">// 5. Return obj.
     </span>obj.into()
@@ -825,7 +827,7 @@
         })<span class="question-mark">?</span>;
 
         <span class="comment">// 5. Let nextMethod be ? GetV(iterator, &quot;next&quot;).
-        </span><span class="kw">let </span>next_method = iterator.get_v(<span class="string">&quot;next&quot;</span>, context)<span class="question-mark">?</span>;
+        </span><span class="kw">let </span>next_method = iterator.get_v(<span class="macro">utf16!</span>(<span class="string">&quot;next&quot;</span>), context)<span class="question-mark">?</span>;
 
         <span class="comment">// 6. Let iteratorRecord be the Record { [[Iterator]]: iterator, [[NextMethod]]: nextMethod, [[Done]]: false }.
         // 7. Return iteratorRecord.
@@ -861,7 +863,7 @@
     </span><span class="attr">#[inline]
     </span><span class="kw">pub fn </span>complete(<span class="kw-2">&amp;</span><span class="self">self</span>, context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;bool&gt; {
         <span class="comment">// 1. Return ToBoolean(? Get(iterResult, &quot;done&quot;)).
-        </span><span class="prelude-val">Ok</span>(<span class="self">self</span>.object.get(<span class="string">&quot;done&quot;</span>, context)<span class="question-mark">?</span>.to_boolean())
+        </span><span class="prelude-val">Ok</span>(<span class="self">self</span>.object.get(<span class="macro">utf16!</span>(<span class="string">&quot;done&quot;</span>), context)<span class="question-mark">?</span>.to_boolean())
     }
 
     <span class="doccomment">/// `IteratorValue ( iterResult )`
@@ -877,7 +879,7 @@
     </span><span class="attr">#[inline]
     </span><span class="kw">pub fn </span>value(<span class="kw-2">&amp;</span><span class="self">self</span>, context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;JsValue&gt; {
         <span class="comment">// 1. Return ? Get(iterResult, &quot;value&quot;).
-        </span><span class="self">self</span>.object.get(<span class="string">&quot;value&quot;</span>, context)
+        </span><span class="self">self</span>.object.get(<span class="macro">utf16!</span>(<span class="string">&quot;value&quot;</span>), context)
     }
 }
 
@@ -1038,7 +1040,7 @@
         </span><span class="kw">let </span>iterator = <span class="kw-2">&amp;</span><span class="self">self</span>.iterator;
 
         <span class="comment">// 3. Let innerResult be Completion(GetMethod(iterator, &quot;return&quot;)).
-        </span><span class="kw">let </span>inner_result = iterator.get_method(<span class="string">&quot;return&quot;</span>, context);
+        </span><span class="kw">let </span>inner_result = iterator.get_method(<span class="macro">utf16!</span>(<span class="string">&quot;return&quot;</span>), context);
 
         <span class="comment">// 4. If innerResult.[[Type]] is normal, then
         </span><span class="kw">let </span>inner_result = <span class="kw">match </span>inner_result {

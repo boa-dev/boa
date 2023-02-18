@@ -1452,7 +1452,7 @@
         BuiltInBuilder::from_standard_constructor::&lt;<span class="self">Self</span>&gt;(intrinsics)
             .inherits(<span class="prelude-val">None</span>)
             .accessor(
-                <span class="string">&quot;__proto__&quot;</span>,
+                <span class="macro">utf16!</span>(<span class="string">&quot;__proto__&quot;</span>),
                 <span class="prelude-val">Some</span>(legacy_proto_getter),
                 <span class="prelude-val">Some</span>(legacy_setter_proto),
                 Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
@@ -1918,42 +1918,42 @@
         <span class="comment">// 4. If Desc has a [[Value]] field, then
         </span><span class="kw">if let </span><span class="prelude-val">Some</span>(value) = desc.value() {
             <span class="comment">// a. Perform ! CreateDataPropertyOrThrow(obj, &quot;value&quot;, Desc.[[Value]]).
-            </span>obj.create_data_property_or_throw(<span class="string">&quot;value&quot;</span>, value.clone(), context)
+            </span>obj.create_data_property_or_throw(<span class="macro">utf16!</span>(<span class="string">&quot;value&quot;</span>), value.clone(), context)
                 .expect(<span class="string">&quot;CreateDataPropertyOrThrow cannot fail here&quot;</span>);
         }
 
         <span class="comment">// 5. If Desc has a [[Writable]] field, then
         </span><span class="kw">if let </span><span class="prelude-val">Some</span>(writable) = desc.writable() {
             <span class="comment">// a. Perform ! CreateDataPropertyOrThrow(obj, &quot;writable&quot;, Desc.[[Writable]]).
-            </span>obj.create_data_property_or_throw(<span class="string">&quot;writable&quot;</span>, writable, context)
+            </span>obj.create_data_property_or_throw(<span class="macro">utf16!</span>(<span class="string">&quot;writable&quot;</span>), writable, context)
                 .expect(<span class="string">&quot;CreateDataPropertyOrThrow cannot fail here&quot;</span>);
         }
 
         <span class="comment">// 6. If Desc has a [[Get]] field, then
         </span><span class="kw">if let </span><span class="prelude-val">Some</span>(get) = desc.get() {
             <span class="comment">// a. Perform ! CreateDataPropertyOrThrow(obj, &quot;get&quot;, Desc.[[Get]]).
-            </span>obj.create_data_property_or_throw(<span class="string">&quot;get&quot;</span>, get.clone(), context)
+            </span>obj.create_data_property_or_throw(<span class="macro">utf16!</span>(<span class="string">&quot;get&quot;</span>), get.clone(), context)
                 .expect(<span class="string">&quot;CreateDataPropertyOrThrow cannot fail here&quot;</span>);
         }
 
         <span class="comment">// 7. If Desc has a [[Set]] field, then
         </span><span class="kw">if let </span><span class="prelude-val">Some</span>(set) = desc.set() {
             <span class="comment">// a. Perform ! CreateDataPropertyOrThrow(obj, &quot;set&quot;, Desc.[[Set]]).
-            </span>obj.create_data_property_or_throw(<span class="string">&quot;set&quot;</span>, set.clone(), context)
+            </span>obj.create_data_property_or_throw(<span class="macro">utf16!</span>(<span class="string">&quot;set&quot;</span>), set.clone(), context)
                 .expect(<span class="string">&quot;CreateDataPropertyOrThrow cannot fail here&quot;</span>);
         }
 
         <span class="comment">// 8. If Desc has an [[Enumerable]] field, then
         </span><span class="kw">if let </span><span class="prelude-val">Some</span>(enumerable) = desc.enumerable() {
             <span class="comment">// a. Perform ! CreateDataPropertyOrThrow(obj, &quot;enumerable&quot;, Desc.[[Enumerable]]).
-            </span>obj.create_data_property_or_throw(<span class="string">&quot;enumerable&quot;</span>, enumerable, context)
+            </span>obj.create_data_property_or_throw(<span class="macro">utf16!</span>(<span class="string">&quot;enumerable&quot;</span>), enumerable, context)
                 .expect(<span class="string">&quot;CreateDataPropertyOrThrow cannot fail here&quot;</span>);
         }
 
         <span class="comment">// 9. If Desc has a [[Configurable]] field, then
         </span><span class="kw">if let </span><span class="prelude-val">Some</span>(configurable) = desc.configurable() {
             <span class="comment">// a. Perform ! CreateDataPropertyOrThrow(obj, &quot;configurable&quot;, Desc.[[Configurable]]).
-            </span>obj.create_data_property_or_throw(<span class="string">&quot;configurable&quot;</span>, configurable, context)
+            </span>obj.create_data_property_or_throw(<span class="macro">utf16!</span>(<span class="string">&quot;configurable&quot;</span>), configurable, context)
                 .expect(<span class="string">&quot;CreateDataPropertyOrThrow cannot fail here&quot;</span>);
         }
 
@@ -2235,7 +2235,7 @@
     ) -&gt; JsResult&lt;JsValue&gt; {
         <span class="comment">// 1. Let O be the this value.
         // 2. Return ? Invoke(O, &quot;toString&quot;).
-        </span>this.invoke(<span class="string">&quot;toString&quot;</span>, <span class="kw-2">&amp;</span>[], context)
+        </span>this.invoke(<span class="macro">utf16!</span>(<span class="string">&quot;toString&quot;</span>), <span class="kw-2">&amp;</span>[], context)
     }
 
     <span class="doccomment">/// `Object.prototype.hasOwnProperty( property )`

@@ -370,6 +370,19 @@
 <a href="#369" id="369">369</a>
 <a href="#370" id="370">370</a>
 <a href="#371" id="371">371</a>
+<a href="#372" id="372">372</a>
+<a href="#373" id="373">373</a>
+<a href="#374" id="374">374</a>
+<a href="#375" id="375">375</a>
+<a href="#376" id="376">376</a>
+<a href="#377" id="377">377</a>
+<a href="#378" id="378">378</a>
+<a href="#379" id="379">379</a>
+<a href="#380" id="380">380</a>
+<a href="#381" id="381">381</a>
+<a href="#382" id="382">382</a>
+<a href="#383" id="383">383</a>
+<a href="#384" id="384">384</a>
 </pre><pre class="rust"><code><span class="doccomment">//! Boa&#39;s implementation of ECMAScript&#39;s global `Symbol` object.
 //!
 //! The data type symbol is a primitive data type.
@@ -399,6 +412,7 @@
     js_string,
     object::JsObject,
     property::Attribute,
+    string::utf16,
     symbol::JsSymbol,
     value::JsValue,
     Context, JsArgs, JsResult, JsString,
@@ -495,23 +509,35 @@
         BuiltInBuilder::from_standard_constructor::&lt;<span class="self">Self</span>&gt;(intrinsics)
             .static_method(<span class="self">Self</span>::for_, <span class="string">&quot;for&quot;</span>, <span class="number">1</span>)
             .static_method(<span class="self">Self</span>::key_for, <span class="string">&quot;keyFor&quot;</span>, <span class="number">1</span>)
-            .static_property(<span class="string">&quot;asyncIterator&quot;</span>, symbol_async_iterator, attribute)
-            .static_property(<span class="string">&quot;hasInstance&quot;</span>, symbol_has_instance, attribute)
-            .static_property(<span class="string">&quot;isConcatSpreadable&quot;</span>, symbol_is_concat_spreadable, attribute)
-            .static_property(<span class="string">&quot;iterator&quot;</span>, symbol_iterator, attribute)
-            .static_property(<span class="string">&quot;match&quot;</span>, symbol_match, attribute)
-            .static_property(<span class="string">&quot;matchAll&quot;</span>, symbol_match_all, attribute)
-            .static_property(<span class="string">&quot;replace&quot;</span>, symbol_replace, attribute)
-            .static_property(<span class="string">&quot;search&quot;</span>, symbol_search, attribute)
-            .static_property(<span class="string">&quot;species&quot;</span>, symbol_species, attribute)
-            .static_property(<span class="string">&quot;split&quot;</span>, symbol_split, attribute)
-            .static_property(<span class="string">&quot;toPrimitive&quot;</span>, symbol_to_primitive.clone(), attribute)
-            .static_property(<span class="string">&quot;toStringTag&quot;</span>, symbol_to_string_tag.clone(), attribute)
-            .static_property(<span class="string">&quot;unscopables&quot;</span>, symbol_unscopables, attribute)
+            .static_property(<span class="macro">utf16!</span>(<span class="string">&quot;asyncIterator&quot;</span>), symbol_async_iterator, attribute)
+            .static_property(<span class="macro">utf16!</span>(<span class="string">&quot;hasInstance&quot;</span>), symbol_has_instance, attribute)
+            .static_property(
+                <span class="macro">utf16!</span>(<span class="string">&quot;isConcatSpreadable&quot;</span>),
+                symbol_is_concat_spreadable,
+                attribute,
+            )
+            .static_property(<span class="macro">utf16!</span>(<span class="string">&quot;iterator&quot;</span>), symbol_iterator, attribute)
+            .static_property(<span class="macro">utf16!</span>(<span class="string">&quot;match&quot;</span>), symbol_match, attribute)
+            .static_property(<span class="macro">utf16!</span>(<span class="string">&quot;matchAll&quot;</span>), symbol_match_all, attribute)
+            .static_property(<span class="macro">utf16!</span>(<span class="string">&quot;replace&quot;</span>), symbol_replace, attribute)
+            .static_property(<span class="macro">utf16!</span>(<span class="string">&quot;search&quot;</span>), symbol_search, attribute)
+            .static_property(<span class="macro">utf16!</span>(<span class="string">&quot;species&quot;</span>), symbol_species, attribute)
+            .static_property(<span class="macro">utf16!</span>(<span class="string">&quot;split&quot;</span>), symbol_split, attribute)
+            .static_property(
+                <span class="macro">utf16!</span>(<span class="string">&quot;toPrimitive&quot;</span>),
+                symbol_to_primitive.clone(),
+                attribute,
+            )
+            .static_property(
+                <span class="macro">utf16!</span>(<span class="string">&quot;toStringTag&quot;</span>),
+                symbol_to_string_tag.clone(),
+                attribute,
+            )
+            .static_property(<span class="macro">utf16!</span>(<span class="string">&quot;unscopables&quot;</span>), symbol_unscopables, attribute)
             .method(<span class="self">Self</span>::to_string, <span class="string">&quot;toString&quot;</span>, <span class="number">0</span>)
             .method(<span class="self">Self</span>::value_of, <span class="string">&quot;valueOf&quot;</span>, <span class="number">0</span>)
             .accessor(
-                <span class="string">&quot;description&quot;</span>,
+                <span class="macro">utf16!</span>(<span class="string">&quot;description&quot;</span>),
                 <span class="prelude-val">Some</span>(get_description),
                 <span class="prelude-val">None</span>,
                 Attribute::CONFIGURABLE | Attribute::NON_ENUMERABLE,

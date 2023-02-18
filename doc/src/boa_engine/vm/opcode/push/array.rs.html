@@ -105,8 +105,10 @@
 <a href="#104" id="104">104</a>
 <a href="#105" id="105">105</a>
 <a href="#106" id="106">106</a>
+<a href="#107" id="107">107</a>
 </pre><pre class="rust"><code><span class="kw">use crate</span>::{
     builtins::{iterable::IteratorRecord, Array},
+    string::utf16,
     vm::{opcode::Operation, ShouldExit},
     Context, JsResult,
 };
@@ -174,7 +176,7 @@
             .length_of_array_like(context)
             .expect(<span class="string">&quot;arrays should always have a &#39;length&#39; property&quot;</span>);
 
-        o.set(<span class="string">&quot;length&quot;</span>, len + <span class="number">1</span>, <span class="bool-val">true</span>, context)<span class="question-mark">?</span>;
+        o.set(<span class="macro">utf16!</span>(<span class="string">&quot;length&quot;</span>), len + <span class="number">1</span>, <span class="bool-val">true</span>, context)<span class="question-mark">?</span>;
         context.vm.push(array);
         <span class="prelude-val">Ok</span>(ShouldExit::False)
     }

@@ -244,7 +244,7 @@
             function_mut.set_class_object(class.clone());
         }
         class.__define_own_property__(
-            key,
+            <span class="kw-2">&amp;</span>key,
             PropertyDescriptor::builder()
                 .value(function)
                 .writable(<span class="bool-val">true</span>)
@@ -297,7 +297,7 @@
             function_mut.set_class_object(class);
         }
         class_proto.__define_own_property__(
-            key,
+            <span class="kw-2">&amp;</span>key,
             PropertyDescriptor::builder()
                 .value(function)
                 .writable(<span class="bool-val">true</span>)
@@ -393,7 +393,7 @@
             function_mut.set_class_object(class);
         }
         class_proto.__define_own_property__(
-            key,
+            <span class="kw-2">&amp;</span>key,
             PropertyDescriptor::builder()
                 .value(function)
                 .writable(<span class="bool-val">true</span>)

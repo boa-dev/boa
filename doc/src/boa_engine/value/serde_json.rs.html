@@ -290,6 +290,15 @@
 <a href="#289" id="289">289</a>
 <a href="#290" id="290">290</a>
 <a href="#291" id="291">291</a>
+<a href="#292" id="292">292</a>
+<a href="#293" id="293">293</a>
+<a href="#294" id="294">294</a>
+<a href="#295" id="295">295</a>
+<a href="#296" id="296">296</a>
+<a href="#297" id="297">297</a>
+<a href="#298" id="298">298</a>
+<a href="#299" id="299">299</a>
+<a href="#300" id="300">300</a>
 </pre><pre class="rust"><code><span class="doccomment">//! This module implements the conversions from and into [`serde_json::Value`].
 
 </span><span class="kw">use </span><span class="kw">super</span>::JsValue;
@@ -363,7 +372,7 @@
                         .writable(<span class="bool-val">true</span>)
                         .enumerable(<span class="bool-val">true</span>)
                         .configurable(<span class="bool-val">true</span>);
-                    js_obj.borrow_mut().insert(key.as_str(), property);
+                    js_obj.borrow_mut().insert(key.clone(), property);
                 }
 
                 <span class="prelude-val">Ok</span>(js_obj.into())
@@ -463,7 +472,7 @@
     <span class="kw">use </span>boa_parser::Source;
 
     <span class="kw">use </span><span class="kw">crate</span>::object::JsArray;
-    <span class="kw">use crate</span>::{Context, JsValue};
+    <span class="kw">use crate</span>::{string::utf16, Context, JsValue};
 
     <span class="attr">#[test]
     </span><span class="kw">fn </span>ut_json_conversions() {
@@ -491,17 +500,26 @@
         <span class="kw">let </span>value = JsValue::from_json(<span class="kw-2">&amp;</span>json, <span class="kw-2">&amp;mut </span>context).unwrap();
 
         <span class="kw">let </span>obj = value.as_object().unwrap();
-        <span class="macro">assert_eq!</span>(obj.get(<span class="string">&quot;name&quot;</span>, <span class="kw-2">&amp;mut </span>context).unwrap(), <span class="string">&quot;John Doe&quot;</span>.into());
-        <span class="macro">assert_eq!</span>(obj.get(<span class="string">&quot;age&quot;</span>, <span class="kw-2">&amp;mut </span>context).unwrap(), <span class="number">43_i32</span>.into());
-        <span class="macro">assert_eq!</span>(obj.get(<span class="string">&quot;minor&quot;</span>, <span class="kw-2">&amp;mut </span>context).unwrap(), <span class="bool-val">false</span>.into());
-        <span class="macro">assert_eq!</span>(obj.get(<span class="string">&quot;adult&quot;</span>, <span class="kw-2">&amp;mut </span>context).unwrap(), <span class="bool-val">true</span>.into());
+        <span class="macro">assert_eq!</span>(
+            obj.get(<span class="macro">utf16!</span>(<span class="string">&quot;name&quot;</span>), <span class="kw-2">&amp;mut </span>context).unwrap(),
+            <span class="string">&quot;John Doe&quot;</span>.into()
+        );
+        <span class="macro">assert_eq!</span>(obj.get(<span class="macro">utf16!</span>(<span class="string">&quot;age&quot;</span>), <span class="kw-2">&amp;mut </span>context).unwrap(), <span class="number">43_i32</span>.into());
+        <span class="macro">assert_eq!</span>(
+            obj.get(<span class="macro">utf16!</span>(<span class="string">&quot;minor&quot;</span>), <span class="kw-2">&amp;mut </span>context).unwrap(),
+            <span class="bool-val">false</span>.into()
+        );
+        <span class="macro">assert_eq!</span>(obj.get(<span class="macro">utf16!</span>(<span class="string">&quot;adult&quot;</span>), <span class="kw-2">&amp;mut </span>context).unwrap(), <span class="bool-val">true</span>.into());
         {
-            <span class="kw">let </span>extra = obj.get(<span class="string">&quot;extra&quot;</span>, <span class="kw-2">&amp;mut </span>context).unwrap();
+            <span class="kw">let </span>extra = obj.get(<span class="macro">utf16!</span>(<span class="string">&quot;extra&quot;</span>), <span class="kw-2">&amp;mut </span>context).unwrap();
             <span class="kw">let </span>extra = extra.as_object().unwrap();
-            <span class="macro">assert!</span>(extra.get(<span class="string">&quot;address&quot;</span>, <span class="kw-2">&amp;mut </span>context).unwrap().is_null());
+            <span class="macro">assert!</span>(extra
+                .get(<span class="macro">utf16!</span>(<span class="string">&quot;address&quot;</span>), <span class="kw-2">&amp;mut </span>context)
+                .unwrap()
+                .is_null());
         }
         {
-            <span class="kw">let </span>phones = obj.get(<span class="string">&quot;phones&quot;</span>, <span class="kw-2">&amp;mut </span>context).unwrap();
+            <span class="kw">let </span>phones = obj.get(<span class="macro">utf16!</span>(<span class="string">&quot;phones&quot;</span>), <span class="kw-2">&amp;mut </span>context).unwrap();
             <span class="kw">let </span>phones = phones.as_object().unwrap();
 
             <span class="kw">let </span>arr = JsArray::from_object(phones.clone()).unwrap();

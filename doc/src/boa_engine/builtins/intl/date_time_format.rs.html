@@ -263,6 +263,12 @@
 <a href="#262" id="262">262</a>
 <a href="#263" id="263">263</a>
 <a href="#264" id="264">264</a>
+<a href="#265" id="265">265</a>
+<a href="#266" id="266">266</a>
+<a href="#267" id="267">267</a>
+<a href="#268" id="268">268</a>
+<a href="#269" id="269">269</a>
+<a href="#270" id="270">270</a>
 </pre><pre class="rust"><code><span class="doccomment">//! This module implements the global `Intl.DateTimeFormat` object.
 //!
 //! `Intl.DateTimeFormat` is a built-in object that has properties and methods for date and time i18n.
@@ -278,6 +284,7 @@
     error::JsNativeError,
     js_string,
     object::{internal_methods::get_prototype_from_constructor, JsObject, ObjectData},
+    string::utf16,
     Context, JsResult, JsString, JsValue,
 };
 
@@ -447,7 +454,12 @@
     <span class="comment">// 4. If required is &quot;date&quot; or &quot;any&quot;, then
     </span><span class="kw">if </span>[DateTimeReqs::Date, DateTimeReqs::AnyAll].contains(required) {
         <span class="comment">// a. For each property name prop of « &quot;weekday&quot;, &quot;year&quot;, &quot;month&quot;, &quot;day&quot; », do
-        </span><span class="kw">for </span>property <span class="kw">in </span>[<span class="string">&quot;weekday&quot;</span>, <span class="string">&quot;year&quot;</span>, <span class="string">&quot;month&quot;</span>, <span class="string">&quot;day&quot;</span>] {
+        </span><span class="kw">for </span>property <span class="kw">in </span>[
+            <span class="macro">utf16!</span>(<span class="string">&quot;weekday&quot;</span>),
+            <span class="macro">utf16!</span>(<span class="string">&quot;year&quot;</span>),
+            <span class="macro">utf16!</span>(<span class="string">&quot;month&quot;</span>),
+            <span class="macro">utf16!</span>(<span class="string">&quot;day&quot;</span>),
+        ] {
             <span class="comment">// i. Let value be ? Get(options, prop).
             </span><span class="kw">let </span>value = options.get(property, context)<span class="question-mark">?</span>;
 
@@ -463,11 +475,11 @@
         <span class="comment">// a. For each property name prop of « &quot;dayPeriod&quot;, &quot;hour&quot;, &quot;minute&quot;, &quot;second&quot;,
         // &quot;fractionalSecondDigits&quot; », do
         </span><span class="kw">for </span>property <span class="kw">in </span>[
-            <span class="string">&quot;dayPeriod&quot;</span>,
-            <span class="string">&quot;hour&quot;</span>,
-            <span class="string">&quot;minute&quot;</span>,
-            <span class="string">&quot;second&quot;</span>,
-            <span class="string">&quot;fractionalSecondDigits&quot;</span>,
+            <span class="macro">utf16!</span>(<span class="string">&quot;dayPeriod&quot;</span>),
+            <span class="macro">utf16!</span>(<span class="string">&quot;hour&quot;</span>),
+            <span class="macro">utf16!</span>(<span class="string">&quot;minute&quot;</span>),
+            <span class="macro">utf16!</span>(<span class="string">&quot;second&quot;</span>),
+            <span class="macro">utf16!</span>(<span class="string">&quot;fractionalSecondDigits&quot;</span>),
         ] {
             <span class="comment">// i. Let value be ? Get(options, prop).
             </span><span class="kw">let </span>value = options.get(property, context)<span class="question-mark">?</span>;
@@ -480,10 +492,10 @@
     }
 
     <span class="comment">// 6. Let dateStyle be ? Get(options, &quot;dateStyle&quot;).
-    </span><span class="kw">let </span>date_style = options.get(<span class="string">&quot;dateStyle&quot;</span>, context)<span class="question-mark">?</span>;
+    </span><span class="kw">let </span>date_style = options.get(<span class="macro">utf16!</span>(<span class="string">&quot;dateStyle&quot;</span>), context)<span class="question-mark">?</span>;
 
     <span class="comment">// 7. Let timeStyle be ? Get(options, &quot;timeStyle&quot;).
-    </span><span class="kw">let </span>time_style = options.get(<span class="string">&quot;timeStyle&quot;</span>, context)<span class="question-mark">?</span>;
+    </span><span class="kw">let </span>time_style = options.get(<span class="macro">utf16!</span>(<span class="string">&quot;timeStyle&quot;</span>), context)<span class="question-mark">?</span>;
 
     <span class="comment">// 8. If dateStyle is not undefined or timeStyle is not undefined, let needDefaults be false.
     </span><span class="kw">if </span>!date_style.is_undefined() || !time_style.is_undefined() {
@@ -509,7 +521,7 @@
     <span class="comment">// 11. If needDefaults is true and defaults is either &quot;date&quot; or &quot;all&quot;, then
     </span><span class="kw">if </span>need_defaults &amp;&amp; [DateTimeReqs::Date, DateTimeReqs::AnyAll].contains(defaults) {
         <span class="comment">// a. For each property name prop of « &quot;year&quot;, &quot;month&quot;, &quot;day&quot; », do
-        </span><span class="kw">for </span>property <span class="kw">in </span>[<span class="string">&quot;year&quot;</span>, <span class="string">&quot;month&quot;</span>, <span class="string">&quot;day&quot;</span>] {
+        </span><span class="kw">for </span>property <span class="kw">in </span>[<span class="macro">utf16!</span>(<span class="string">&quot;year&quot;</span>), <span class="macro">utf16!</span>(<span class="string">&quot;month&quot;</span>), <span class="macro">utf16!</span>(<span class="string">&quot;day&quot;</span>)] {
             <span class="comment">// i. Perform ? CreateDataPropertyOrThrow(options, prop, &quot;numeric&quot;).
             </span>options.create_data_property_or_throw(property, <span class="string">&quot;numeric&quot;</span>, context)<span class="question-mark">?</span>;
         }
@@ -518,7 +530,7 @@
     <span class="comment">// 12. If needDefaults is true and defaults is either &quot;time&quot; or &quot;all&quot;, then
     </span><span class="kw">if </span>need_defaults &amp;&amp; [DateTimeReqs::Time, DateTimeReqs::AnyAll].contains(defaults) {
         <span class="comment">// a. For each property name prop of « &quot;hour&quot;, &quot;minute&quot;, &quot;second&quot; », do
-        </span><span class="kw">for </span>property <span class="kw">in </span>[<span class="string">&quot;hour&quot;</span>, <span class="string">&quot;minute&quot;</span>, <span class="string">&quot;second&quot;</span>] {
+        </span><span class="kw">for </span>property <span class="kw">in </span>[<span class="macro">utf16!</span>(<span class="string">&quot;hour&quot;</span>), <span class="macro">utf16!</span>(<span class="string">&quot;minute&quot;</span>), <span class="macro">utf16!</span>(<span class="string">&quot;second&quot;</span>)] {
             <span class="comment">// i. Perform ? CreateDataPropertyOrThrow(options, prop, &quot;numeric&quot;).
             </span>options.create_data_property_or_throw(property, <span class="string">&quot;numeric&quot;</span>, context)<span class="question-mark">?</span>;
         }

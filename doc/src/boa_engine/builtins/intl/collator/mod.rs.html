@@ -561,6 +561,20 @@
 <a href="#560" id="560">560</a>
 <a href="#561" id="561">561</a>
 <a href="#562" id="562">562</a>
+<a href="#563" id="563">563</a>
+<a href="#564" id="564">564</a>
+<a href="#565" id="565">565</a>
+<a href="#566" id="566">566</a>
+<a href="#567" id="567">567</a>
+<a href="#568" id="568">568</a>
+<a href="#569" id="569">569</a>
+<a href="#570" id="570">570</a>
+<a href="#571" id="571">571</a>
+<a href="#572" id="572">572</a>
+<a href="#573" id="573">573</a>
+<a href="#574" id="574">574</a>
+<a href="#575" id="575">575</a>
+<a href="#576" id="576">576</a>
 </pre><pre class="rust"><code><span class="kw">use </span>boa_gc::{custom_trace, Finalize, Trace};
 <span class="kw">use </span>boa_profiler::Profiler;
 <span class="kw">use </span>icu_collator::{
@@ -585,6 +599,7 @@
         JsObject, ObjectData,
     },
     property::Attribute,
+    string::utf16,
     symbol::JsSymbol,
     Context, JsArgs, JsNativeError, JsResult, JsValue,
 };
@@ -736,7 +751,12 @@
                 <span class="string">&quot;Intl.Collator&quot;</span>,
                 Attribute::CONFIGURABLE,
             )
-            .accessor(<span class="string">&quot;compare&quot;</span>, <span class="prelude-val">Some</span>(compare), <span class="prelude-val">None</span>, Attribute::CONFIGURABLE)
+            .accessor(
+                <span class="macro">utf16!</span>(<span class="string">&quot;compare&quot;</span>),
+                <span class="prelude-val">Some</span>(compare),
+                <span class="prelude-val">None</span>,
+                Attribute::CONFIGURABLE,
+            )
             .method(<span class="self">Self</span>::resolved_options, <span class="string">&quot;resolvedOptions&quot;</span>, <span class="number">0</span>)
             .build();
     }
@@ -797,29 +817,31 @@
         //     a. Let localeData be %Collator%.[[SortLocaleData]].
         // 6. Else,
         //     a. Let localeData be %Collator%.[[SearchLocaleData]].
-        </span><span class="kw">let </span>usage = get_option::&lt;Usage&gt;(<span class="kw-2">&amp;</span>options, <span class="string">&quot;usage&quot;</span>, <span class="bool-val">false</span>, context)<span class="question-mark">?</span>.unwrap_or_default();
+        </span><span class="kw">let </span>usage =
+            get_option::&lt;Usage&gt;(<span class="kw-2">&amp;</span>options, <span class="macro">utf16!</span>(<span class="string">&quot;usage&quot;</span>), <span class="bool-val">false</span>, context)<span class="question-mark">?</span>.unwrap_or_default();
 
         <span class="comment">// 7. Let opt be a new Record.
         // 8. Let matcher be ? GetOption(options, &quot;localeMatcher&quot;, string, « &quot;lookup&quot;, &quot;best fit&quot; », &quot;best fit&quot;).
         // 9. Set opt.[[localeMatcher]] to matcher.
-        </span><span class="kw">let </span>matcher = get_option::&lt;LocaleMatcher&gt;(<span class="kw-2">&amp;</span>options, <span class="string">&quot;localeMatcher&quot;</span>, <span class="bool-val">false</span>, context)<span class="question-mark">?
-            </span>.unwrap_or_default();
+        </span><span class="kw">let </span>matcher =
+            get_option::&lt;LocaleMatcher&gt;(<span class="kw-2">&amp;</span>options, <span class="macro">utf16!</span>(<span class="string">&quot;localeMatcher&quot;</span>), <span class="bool-val">false</span>, context)<span class="question-mark">?
+                </span>.unwrap_or_default();
 
         <span class="comment">// 10. Let collation be ? GetOption(options, &quot;collation&quot;, string, empty, undefined).
         // 11. If collation is not undefined, then
         //     a. If collation does not match the Unicode Locale Identifier type nonterminal, throw a RangeError exception.
         // 12. Set opt.[[co]] to collation.
-        </span><span class="kw">let </span>collation = get_option::&lt;Value&gt;(<span class="kw-2">&amp;</span>options, <span class="string">&quot;collation&quot;</span>, <span class="bool-val">false</span>, context)<span class="question-mark">?</span>;
+        </span><span class="kw">let </span>collation = get_option::&lt;Value&gt;(<span class="kw-2">&amp;</span>options, <span class="macro">utf16!</span>(<span class="string">&quot;collation&quot;</span>), <span class="bool-val">false</span>, context)<span class="question-mark">?</span>;
 
         <span class="comment">// 13. Let numeric be ? GetOption(options, &quot;numeric&quot;, boolean, empty, undefined).
         // 14. If numeric is not undefined, then
         //     a. Let numeric be ! ToString(numeric).
         // 15. Set opt.[[kn]] to numeric.
-        </span><span class="kw">let </span>numeric = get_option::&lt;bool&gt;(<span class="kw-2">&amp;</span>options, <span class="string">&quot;numeric&quot;</span>, <span class="bool-val">false</span>, context)<span class="question-mark">?</span>;
+        </span><span class="kw">let </span>numeric = get_option::&lt;bool&gt;(<span class="kw-2">&amp;</span>options, <span class="macro">utf16!</span>(<span class="string">&quot;numeric&quot;</span>), <span class="bool-val">false</span>, context)<span class="question-mark">?</span>;
 
         <span class="comment">// 16. Let caseFirst be ? GetOption(options, &quot;caseFirst&quot;, string, « &quot;upper&quot;, &quot;lower&quot;, &quot;false&quot; », undefined).
         // 17. Set opt.[[kf]] to caseFirst.
-        </span><span class="kw">let </span>case_first = get_option::&lt;CaseFirst&gt;(<span class="kw-2">&amp;</span>options, <span class="string">&quot;caseFirst&quot;</span>, <span class="bool-val">false</span>, context)<span class="question-mark">?</span>;
+        </span><span class="kw">let </span>case_first = get_option::&lt;CaseFirst&gt;(<span class="kw-2">&amp;</span>options, <span class="macro">utf16!</span>(<span class="string">&quot;caseFirst&quot;</span>), <span class="bool-val">false</span>, context)<span class="question-mark">?</span>;
 
         <span class="kw">let </span><span class="kw-2">mut </span>intl_options = IntlOptions {
             matcher,
@@ -868,20 +890,22 @@
 
         <span class="comment">// 26. Let sensitivity be ? GetOption(options, &quot;sensitivity&quot;, string, « &quot;base&quot;, &quot;accent&quot;, &quot;case&quot;, &quot;variant&quot; », undefined).
         // 28. Set collator.[[Sensitivity]] to sensitivity.
-        </span><span class="kw">let </span>sensitivity = get_option::&lt;Sensitivity&gt;(<span class="kw-2">&amp;</span>options, <span class="string">&quot;sensitivity&quot;</span>, <span class="bool-val">false</span>, context)<span class="question-mark">?
-            </span><span class="comment">// 27. If sensitivity is undefined, then
-            //     a. If usage is &quot;sort&quot;, then
-            //         i. Let sensitivity be &quot;variant&quot;.
-            //     b. Else,
-            //         i. Let dataLocale be r.[[dataLocale]].
-            //         ii. Let dataLocaleData be localeData.[[&lt;dataLocale&gt;]].
-            //         iii. Let sensitivity be dataLocaleData.[[sensitivity]].
-            </span>.or_else(|| (usage == Usage::Sort).then_some(Sensitivity::Variant));
+        </span><span class="kw">let </span>sensitivity =
+            get_option::&lt;Sensitivity&gt;(<span class="kw-2">&amp;</span>options, <span class="macro">utf16!</span>(<span class="string">&quot;sensitivity&quot;</span>), <span class="bool-val">false</span>, context)<span class="question-mark">?
+                </span><span class="comment">// 27. If sensitivity is undefined, then
+                //     a. If usage is &quot;sort&quot;, then
+                //         i. Let sensitivity be &quot;variant&quot;.
+                //     b. Else,
+                //         i. Let dataLocale be r.[[dataLocale]].
+                //         ii. Let dataLocaleData be localeData.[[&lt;dataLocale&gt;]].
+                //         iii. Let sensitivity be dataLocaleData.[[sensitivity]].
+                </span>.or_else(|| (usage == Usage::Sort).then_some(Sensitivity::Variant));
 
         <span class="comment">// 29. Let ignorePunctuation be ? GetOption(options, &quot;ignorePunctuation&quot;, boolean, empty, false).
         // 30. Set collator.[[IgnorePunctuation]] to ignorePunctuation.
         </span><span class="kw">let </span>ignore_punctuation =
-            get_option::&lt;bool&gt;(<span class="kw-2">&amp;</span>options, <span class="string">&quot;ignorePunctuation&quot;</span>, <span class="bool-val">false</span>, context)<span class="question-mark">?</span>.unwrap_or_default();
+            get_option::&lt;bool&gt;(<span class="kw-2">&amp;</span>options, <span class="macro">utf16!</span>(<span class="string">&quot;ignorePunctuation&quot;</span>), <span class="bool-val">false</span>, context)<span class="question-mark">?
+                </span>.unwrap_or_default();
 
         <span class="kw">let </span>(strength, case_level) = sensitivity.map(Sensitivity::to_collator_options).unzip();
 
@@ -1067,11 +1091,11 @@
         //         i. Perform ! CreateDataPropertyOrThrow(options, p, v).
         // 5. Return options.
         </span>options
-            .create_data_property_or_throw(<span class="string">&quot;locale&quot;</span>, collator.locale.to_string(), context)
+            .create_data_property_or_throw(<span class="macro">utf16!</span>(<span class="string">&quot;locale&quot;</span>), collator.locale.to_string(), context)
             .expect(<span class="string">&quot;operation must not fail per the spec&quot;</span>);
         options
             .create_data_property_or_throw(
-                <span class="string">&quot;usage&quot;</span>,
+                <span class="macro">utf16!</span>(<span class="string">&quot;usage&quot;</span>),
                 <span class="kw">match </span>collator.usage {
                     Usage::Search =&gt; <span class="string">&quot;search&quot;</span>,
                     Usage::Sort =&gt; <span class="string">&quot;sort&quot;</span>,
@@ -1081,7 +1105,7 @@
             .expect(<span class="string">&quot;operation must not fail per the spec&quot;</span>);
         options
             .create_data_property_or_throw(
-                <span class="string">&quot;sensitivity&quot;</span>,
+                <span class="macro">utf16!</span>(<span class="string">&quot;sensitivity&quot;</span>),
                 <span class="kw">match </span>collator.sensitivity {
                     Sensitivity::Base =&gt; <span class="string">&quot;base&quot;</span>,
                     Sensitivity::Accent =&gt; <span class="string">&quot;accent&quot;</span>,
@@ -1093,21 +1117,25 @@
             .expect(<span class="string">&quot;operation must not fail per the spec&quot;</span>);
         options
             .create_data_property_or_throw(
-                <span class="string">&quot;ignorePunctuation&quot;</span>,
+                <span class="macro">utf16!</span>(<span class="string">&quot;ignorePunctuation&quot;</span>),
                 collator.ignore_punctuation,
                 context,
             )
             .expect(<span class="string">&quot;operation must not fail per the spec&quot;</span>);
         options
-            .create_data_property_or_throw(<span class="string">&quot;collation&quot;</span>, collator.collation.to_string(), context)
+            .create_data_property_or_throw(
+                <span class="macro">utf16!</span>(<span class="string">&quot;collation&quot;</span>),
+                collator.collation.to_string(),
+                context,
+            )
             .expect(<span class="string">&quot;operation must not fail per the spec&quot;</span>);
         options
-            .create_data_property_or_throw(<span class="string">&quot;numeric&quot;</span>, collator.numeric, context)
+            .create_data_property_or_throw(<span class="macro">utf16!</span>(<span class="string">&quot;numeric&quot;</span>), collator.numeric, context)
             .expect(<span class="string">&quot;operation must not fail per the spec&quot;</span>);
         <span class="kw">if let </span><span class="prelude-val">Some</span>(kf) = collator.case_first {
             options
                 .create_data_property_or_throw(
-                    <span class="string">&quot;caseFirst&quot;</span>,
+                    <span class="macro">utf16!</span>(<span class="string">&quot;caseFirst&quot;</span>),
                     <span class="kw">match </span>kf {
                         CaseFirst::Off =&gt; <span class="string">&quot;false&quot;</span>,
                         CaseFirst::LowerFirst =&gt; <span class="string">&quot;lower&quot;</span>,

@@ -391,6 +391,7 @@
 <a href="#390" id="390">390</a>
 <a href="#391" id="391">391</a>
 <a href="#392" id="392">392</a>
+<a href="#393" id="393">393</a>
 </pre><pre class="rust"><code><span class="kw">use crate</span>::{
     builtins::{
         iterable::{create_iter_result_object, IteratorRecord, IteratorResult},
@@ -400,6 +401,7 @@
     context::intrinsics::Intrinsics,
     native_function::NativeFunction,
     object::{FunctionObjectBuilder, JsObject, ObjectData},
+    string::utf16,
     Context, JsArgs, JsNativeError, JsResult, JsValue,
 };
 <span class="kw">use </span>boa_gc::{Finalize, Trace};
@@ -463,7 +465,7 @@
 
         <span class="comment">// 3. Let nextMethod be ! Get(asyncIterator, &quot;next&quot;).
         </span><span class="kw">let </span>next_method = async_iterator
-            .get(<span class="string">&quot;next&quot;</span>, context)
+            .get(<span class="macro">utf16!</span>(<span class="string">&quot;next&quot;</span>), context)
             .expect(<span class="string">&quot;async from sync iterator prototype must have next method&quot;</span>);
 
         <span class="comment">// 4. Let iteratorRecord be the Iterator Record { [[Iterator]]: asyncIterator, [[NextMethod]]: nextMethod, [[Done]]: false }.
@@ -548,7 +550,7 @@
         .expect(<span class="string">&quot;cannot fail with promise constructor&quot;</span>);
 
         <span class="comment">// 5. Let return be Completion(GetMethod(syncIterator, &quot;return&quot;)).
-        </span><span class="kw">let </span>r#return = sync_iterator.get_method(<span class="string">&quot;return&quot;</span>, context);
+        </span><span class="kw">let </span>r#return = sync_iterator.get_method(<span class="macro">utf16!</span>(<span class="string">&quot;return&quot;</span>), context);
 
         <span class="comment">// 6. IfAbruptRejectPromise(return, promiseCapability).
         </span><span class="macro">if_abrupt_reject_promise!</span>(r#return, promise_capability, context);
@@ -646,7 +648,7 @@
         .expect(<span class="string">&quot;cannot fail with promise constructor&quot;</span>);
 
         <span class="comment">// 5. Let throw be Completion(GetMethod(syncIterator, &quot;throw&quot;)).
-        </span><span class="kw">let </span>throw = sync_iterator.get_method(<span class="string">&quot;throw&quot;</span>, context);
+        </span><span class="kw">let </span>throw = sync_iterator.get_method(<span class="macro">utf16!</span>(<span class="string">&quot;throw&quot;</span>), context);
 
         <span class="comment">// 6. IfAbruptRejectPromise(throw, promiseCapability).
         </span><span class="macro">if_abrupt_reject_promise!</span>(throw, promise_capability, context);
