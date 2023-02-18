@@ -471,7 +471,7 @@ fn test_invalid_break() {
     let string = forward(&mut context, src);
     assert_eq!(
         string,
-        "Uncaught SyntaxError: unlabeled break must be inside loop or switch"
+        "Uncaught SyntaxError: Syntax Error: illegal break statement at position: 1:1"
     );
 }
 
@@ -486,7 +486,7 @@ fn test_invalid_continue_target() {
     let string = forward(&mut context, src);
     assert_eq!(
         string,
-        "Uncaught SyntaxError: Cannot use the undeclared label 'nonexistent'"
+        "Uncaught SyntaxError: Syntax Error: undefined continue target: nonexistent at position: 1:1"
     );
 }
 
@@ -494,7 +494,10 @@ fn test_invalid_continue_target() {
 fn test_invalid_continue() {
     let mut context = Context::default();
     let string = forward(&mut context, r"continue;");
-    assert_eq!(string, "Uncaught SyntaxError: continue must be inside loop");
+    assert_eq!(
+        string,
+        "Uncaught SyntaxError: Syntax Error: illegal continue statement at position: 1:1"
+    );
 }
 
 #[test]

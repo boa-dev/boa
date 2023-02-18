@@ -1,16 +1,13 @@
-use boa_ast::statement::Break;
-
 use crate::{
     bytecompiler::{ByteCompiler, Label},
     vm::Opcode,
-    JsNativeError, JsResult,
 };
-
+use boa_ast::statement::Break;
 use boa_interner::Sym;
 
 impl ByteCompiler<'_, '_> {
     /// Compile a [`Break`] `boa_ast` node
-    pub(crate) fn compile_break(&mut self, node: Break) -> JsResult<()> {
+    pub(crate) fn compile_break(&mut self, node: Break) {
         if let Some(info) = self.jump_info.last().filter(|info| info.is_try_block()) {
             let in_finally = info.in_finally();
             let in_catch_no_finally = info.in_catch() && !info.has_finally();
@@ -27,11 +24,11 @@ impl ByteCompiler<'_, '_> {
                 self.emit_opcode_with_two_operands(Opcode::Break);
 
             if let Some(node_label) = node.label() {
-                self.search_jump_info_label(target_jump_label, node_label)?;
+                self.search_jump_info_label(target_jump_label, node_label);
 
                 if !has_finally_or_is_finally {
-                    self.search_jump_info_label(break_label, node_label)?;
-                    return Ok(());
+                    self.search_jump_info_label(break_label, node_label);
+                    return;
                 }
             } else {
                 self.jump_info
@@ -43,13 +40,11 @@ impl ByteCompiler<'_, '_> {
             let info = self
                 .jump_info
                 .last_mut()
-                // TODO: Currently would allow unlabelled breaks in try_blocks with no
-                // loops or switch. This can prevented by the early error referenced in line 66.
                 .expect("This try block must exist");
 
             info.push_break_label(break_label);
 
-            return Ok(());
+            return;
         }
 
         // Emit the break opcode -> (Label, Label)
@@ -58,27 +53,21 @@ impl ByteCompiler<'_, '_> {
             self.search_jump_info_label(
                 break_label,
                 node.label().expect("must exist in this block"),
-            )?;
-            self.search_jump_info_label(target_label, node.label().expect("must exist"))?;
-            return Ok(());
+            );
+            self.search_jump_info_label(target_label, node.label().expect("must exist"));
+            return;
         };
 
         let info = self
             .jump_info
             .last_mut()
-            // TODO: promote to an early error.
-            .ok_or_else(|| {
-                JsNativeError::syntax()
-                    .with_message("unlabeled break must be inside loop or switch")
-            })?;
+            .expect("unlabeled break must be inside loop or switch");
 
         info.push_break_label(break_label);
         info.push_break_label(target_label);
-
-        Ok(())
     }
 
-    fn search_jump_info_label(&mut self, address: Label, node_label: Sym) -> JsResult<()> {
+    fn search_jump_info_label(&mut self, address: Label, node_label: Sym) {
         let mut found = false;
         for info in self.jump_info.iter_mut().rev() {
             if info.label() == Some(node_label) {
@@ -87,16 +76,6 @@ impl ByteCompiler<'_, '_> {
                 break;
             }
         }
-        // TODO: promote to an early error.
-        if !found {
-            return Err(JsNativeError::syntax()
-                .with_message(format!(
-                    "Cannot use the undeclared label '{}'",
-                    self.interner().resolve_expect(node_label)
-                ))
-                .into());
-        }
-
-        Ok(())
+        assert!(found, "Cannot use the undeclared label");
     }
 }

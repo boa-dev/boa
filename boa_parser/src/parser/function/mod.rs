@@ -19,6 +19,10 @@ use crate::{
     },
     Error,
 };
+use ast::{
+    operations::{check_labels, contains_invalid_object_literal},
+    Position,
+};
 use boa_ast::{
     self as ast,
     declaration::Variable,
@@ -448,7 +452,7 @@ where
     fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult<Self::Output> {
         let _timer = Profiler::global().start_event("FunctionStatementList", "Parsing");
 
-        StatementList::new(
+        let statement_list = StatementList::new(
             self.allow_yield,
             self.allow_await,
             true,
@@ -456,6 +460,22 @@ where
             true,
             false,
         )
-        .parse(cursor, interner)
+        .parse(cursor, interner)?;
+
+        if let Err(error) = check_labels(&statement_list) {
+            return Err(Error::lex(LexError::Syntax(
+                error.message(interner).into(),
+                Position::new(1, 1),
+            )));
+        }
+
+        if contains_invalid_object_literal(&statement_list) {
+            return Err(Error::lex(LexError::Syntax(
+                "invalid object literal in function statement list".into(),
+                Position::new(1, 1),
+            )));
+        }
+
+        Ok(statement_list)
     }
 }

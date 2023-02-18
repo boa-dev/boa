@@ -1,22 +1,15 @@
+use crate::{
+    bytecompiler::{ByteCompiler, Label},
+    vm::{BindingOpcode, Opcode},
+};
 use boa_ast::{
     declaration::Binding,
     operations::bound_names,
     statement::{Finally, Try},
 };
 
-use crate::{
-    bytecompiler::{ByteCompiler, Label},
-    vm::{BindingOpcode, Opcode},
-    JsResult,
-};
-
 impl ByteCompiler<'_, '_> {
-    pub(crate) fn compile_try(
-        &mut self,
-        t: &Try,
-        use_expr: bool,
-        configurable_globals: bool,
-    ) -> JsResult<()> {
+    pub(crate) fn compile_try(&mut self, t: &Try, use_expr: bool, configurable_globals: bool) {
         let try_start = self.next_opcode_location();
         let (catch_start, finally_loc) = self.emit_opcode_with_two_operands(Opcode::TryStart);
         self.patch_jump_with_target(finally_loc, u32::MAX);
@@ -31,7 +24,7 @@ impl ByteCompiler<'_, '_> {
         let push_env = self.emit_opcode_with_two_operands(Opcode::PushDeclarativeEnvironment);
 
         self.create_script_decls(t.block().statement_list(), configurable_globals);
-        self.compile_statement_list(t.block().statement_list(), use_expr, configurable_globals)?;
+        self.compile_statement_list(t.block().statement_list(), use_expr, configurable_globals);
 
         let (num_bindings, compile_environment) = self.context.pop_compile_time_environment();
         let index_compile_environment = self.push_compile_environment(compile_environment);
@@ -44,7 +37,7 @@ impl ByteCompiler<'_, '_> {
         self.patch_jump(catch_start);
 
         if t.catch().is_some() {
-            self.compile_catch_stmt(t, use_expr, configurable_globals)?;
+            self.compile_catch_stmt(t, use_expr, configurable_globals);
         }
 
         self.patch_jump(finally);
@@ -58,13 +51,11 @@ impl ByteCompiler<'_, '_> {
             self.set_jump_control_start_address(finally_start);
             self.patch_jump_with_target(finally_loc, finally_start);
             // Compile finally statement body
-            self.compile_finally_stmt(finally, finally_end, configurable_globals)?;
+            self.compile_finally_stmt(finally, finally_end, configurable_globals);
         } else {
             let try_end = self.next_opcode_location();
             self.pop_try_control_info(try_end);
         }
-
-        Ok(())
     }
 
     pub(crate) fn compile_catch_stmt(
@@ -72,7 +63,7 @@ impl ByteCompiler<'_, '_> {
         parent_try: &Try,
         use_expr: bool,
         configurable_globals: bool,
-    ) -> JsResult<()> {
+    ) {
         let catch = parent_try
             .catch()
             .expect("Catch must exist for compile_catch_stmt to have been invoked");
@@ -92,7 +83,7 @@ impl ByteCompiler<'_, '_> {
                     for ident in bound_names(pattern) {
                         self.context.create_mutable_binding(ident, false, false);
                     }
-                    self.compile_declaration_pattern(pattern, BindingOpcode::InitLet)?;
+                    self.compile_declaration_pattern(pattern, BindingOpcode::InitLet);
                 }
             }
         } else {
@@ -104,7 +95,7 @@ impl ByteCompiler<'_, '_> {
             catch.block().statement_list(),
             use_expr,
             configurable_globals,
-        )?;
+        );
 
         let (num_bindings, compile_environment) = self.context.pop_compile_time_environment();
         let index_compile_environment = self.push_compile_environment(compile_environment);
@@ -119,8 +110,6 @@ impl ByteCompiler<'_, '_> {
 
         self.patch_jump(catch_end);
         self.set_jump_control_in_finally(false);
-
-        Ok(())
     }
 
     pub(crate) fn compile_finally_stmt(
@@ -128,7 +117,7 @@ impl ByteCompiler<'_, '_> {
         finally: &Finally,
         finally_end_label: Label,
         configurable_globals: bool,
-    ) -> JsResult<()> {
+    ) {
         self.context.push_compile_time_environment(false);
         let push_env = self.emit_opcode_with_two_operands(Opcode::PushDeclarativeEnvironment);
 
@@ -137,7 +126,7 @@ impl ByteCompiler<'_, '_> {
             finally.block().statement_list(),
             false,
             configurable_globals,
-        )?;
+        );
 
         let (num_bindings, compile_environment) = self.context.pop_compile_time_environment();
         let index_compile_environment = self.push_compile_environment(compile_environment);
@@ -148,7 +137,5 @@ impl ByteCompiler<'_, '_> {
         self.pop_finally_control_info();
         self.patch_jump(finally_end_label);
         self.emit_opcode(Opcode::FinallyEnd);
-
-        Ok(())
     }
 }

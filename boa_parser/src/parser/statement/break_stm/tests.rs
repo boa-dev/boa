@@ -1,7 +1,7 @@
 use crate::parser::tests::check_script_parser;
 use boa_ast::{
     expression::literal::Literal,
-    statement::{Block, Break, WhileLoop},
+    statement::{Block, Break, Labelled, LabelledItem, WhileLoop},
     Statement, StatementListItem,
 };
 use boa_interner::{Interner, Sym};
@@ -54,15 +54,18 @@ fn inline_block_semicolon_insertion() {
 fn new_line_semicolon_insertion() {
     let interner = &mut Interner::default();
     check_script_parser(
-        "while (true) {
+        "test: while (true) {
             break test
         }",
-        vec![Statement::WhileLoop(WhileLoop::new(
-            Literal::from(true).into(),
-            Block::from(vec![StatementListItem::Statement(Statement::Break(
-                Break::new(Some(interner.get_or_intern_static("test", utf16!("test")))),
-            ))])
-            .into(),
+        vec![Statement::Labelled(Labelled::new(
+            LabelledItem::Statement(Statement::WhileLoop(WhileLoop::new(
+                Literal::from(true).into(),
+                Block::from(vec![StatementListItem::Statement(Statement::Break(
+                    Break::new(Some(interner.get_or_intern_static("test", utf16!("test")))),
+                ))])
+                .into(),
+            ))),
+            interner.get_or_intern_static("test", utf16!("test")),
         ))
         .into()],
         interner,
@@ -89,15 +92,18 @@ fn inline_block() {
 fn new_line_block() {
     let interner = &mut Interner::default();
     check_script_parser(
-        "while (true) {
+        "test: while (true) {
             break test;
         }",
-        vec![Statement::WhileLoop(WhileLoop::new(
-            Literal::from(true).into(),
-            Block::from(vec![StatementListItem::Statement(Statement::Break(
-                Break::new(Some(interner.get_or_intern_static("test", utf16!("test")))),
-            ))])
-            .into(),
+        vec![Statement::Labelled(Labelled::new(
+            LabelledItem::Statement(Statement::WhileLoop(WhileLoop::new(
+                Literal::from(true).into(),
+                Block::from(vec![StatementListItem::Statement(Statement::Break(
+                    Break::new(Some(interner.get_or_intern_static("test", utf16!("test")))),
+                ))])
+                .into(),
+            ))),
+            interner.get_or_intern_static("test", utf16!("test")),
         ))
         .into()],
         interner,
@@ -108,15 +114,18 @@ fn new_line_block() {
 fn reserved_label() {
     let interner = &mut Interner::default();
     check_script_parser(
-        "while (true) {
+        "await: while (true) {
             break await;
         }",
-        vec![Statement::WhileLoop(WhileLoop::new(
-            Literal::from(true).into(),
-            Block::from(vec![StatementListItem::Statement(Statement::Break(
-                Break::new(Some(Sym::AWAIT)),
-            ))])
-            .into(),
+        vec![Statement::Labelled(Labelled::new(
+            LabelledItem::Statement(Statement::WhileLoop(WhileLoop::new(
+                Literal::from(true).into(),
+                Block::from(vec![StatementListItem::Statement(Statement::Break(
+                    Break::new(Some(Sym::AWAIT)),
+                ))])
+                .into(),
+            ))),
+            Sym::AWAIT,
         ))
         .into()],
         interner,
@@ -124,15 +133,18 @@ fn reserved_label() {
 
     let interner = &mut Interner::default();
     check_script_parser(
-        "while (true) {
+        "yield: while (true) {
             break yield;
         }",
-        vec![Statement::WhileLoop(WhileLoop::new(
-            Literal::from(true).into(),
-            Block::from(vec![StatementListItem::Statement(Statement::Break(
-                Break::new(Some(Sym::YIELD)),
-            ))])
-            .into(),
+        vec![Statement::Labelled(Labelled::new(
+            LabelledItem::Statement(Statement::WhileLoop(WhileLoop::new(
+                Literal::from(true).into(),
+                Block::from(vec![StatementListItem::Statement(Statement::Break(
+                    Break::new(Some(Sym::YIELD)),
+                ))])
+                .into(),
+            ))),
+            Sym::YIELD,
         ))
         .into()],
         interner,

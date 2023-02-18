@@ -250,7 +250,7 @@ impl Eval {
         // TODO: check if private identifiers inside `eval` are valid.
 
         // Compile and execute the eval statement list.
-        let code_block = context.compile_with_new_declarative(&body, strict)?;
+        let code_block = context.compile_with_new_declarative(&body, strict);
         // Indirect calls don't need extensions, because a non-strict indirect call modifies only
         // the global object.
         // Strict direct calls also don't need extensions, since all strict eval calls push a new

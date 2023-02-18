@@ -47,6 +47,10 @@ use crate::{
     },
     Error,
 };
+use ast::{
+    operations::{check_labels, contains_invalid_object_literal},
+    Position,
+};
 use boa_ast::{
     self as ast,
     pattern::{ArrayPattern, ArrayPatternElement, ObjectPatternElement},
@@ -193,7 +197,8 @@ where
                 cursor.advance(interner);
                 Ok(ast::Statement::Empty)
             }
-            TokenKind::IdentifierName(_) => {
+            TokenKind::IdentifierName(_)
+            | TokenKind::Keyword((Keyword::Await | Keyword::Yield, false)) => {
                 // Labelled Statement check
                 cursor.set_goal(InputElement::Div);
                 let tok = cursor.peek(1, interner)?;
@@ -890,7 +895,23 @@ where
     fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult<Self::Output> {
         let mut list = Vec::new();
         while cursor.peek(0, interner)?.is_some() {
-            list.push(ModuleItem.parse(cursor, interner)?);
+            let item = ModuleItem.parse(cursor, interner)?;
+
+            if let Err(error) = check_labels(&item) {
+                return Err(Error::lex(LexError::Syntax(
+                    error.message(interner).into(),
+                    Position::new(1, 1),
+                )));
+            }
+
+            if contains_invalid_object_literal(&item) {
+                return Err(Error::lex(LexError::Syntax(
+                    "invalid object literal in module item list".into(),
+                    Position::new(1, 1),
+                )));
+            }
+
+            list.push(item);
         }
 
         Ok(list.into())

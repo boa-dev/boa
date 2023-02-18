@@ -1,12 +1,10 @@
-use boa_ast::{
-    pattern::{ArrayPatternElement, ObjectPatternElement, Pattern},
-    property::PropertyName,
-};
-
 use crate::{
     bytecompiler::{Access, ByteCompiler, Literal},
     vm::{BindingOpcode, Opcode},
-    JsResult,
+};
+use boa_ast::{
+    pattern::{ArrayPatternElement, ObjectPatternElement, Pattern},
+    property::PropertyName,
 };
 
 impl ByteCompiler<'_, '_> {
@@ -14,7 +12,7 @@ impl ByteCompiler<'_, '_> {
         &mut self,
         pattern: &Pattern,
         def: BindingOpcode,
-    ) -> JsResult<()> {
+    ) {
         match pattern {
             Pattern::Object(pattern) => {
                 self.emit_opcode(Opcode::ValueNotNullOrUndefined);
@@ -44,7 +42,7 @@ impl ByteCompiler<'_, '_> {
                                     self.emit(Opcode::GetPropertyByName, &[index]);
                                 }
                                 PropertyName::Computed(node) => {
-                                    self.compile_expr(node, true)?;
+                                    self.compile_expr(node, true);
                                     if rest_exits {
                                         self.emit_opcode(Opcode::GetPropertyByValuePush);
                                     } else {
@@ -56,7 +54,7 @@ impl ByteCompiler<'_, '_> {
                             if let Some(init) = default_init {
                                 let skip =
                                     self.emit_opcode_with_operand(Opcode::JumpIfNotUndefined);
-                                self.compile_expr(init, true)?;
+                                self.compile_expr(init, true);
                                 self.patch_jump(skip);
                             }
                             self.emit_binding(def, *ident);
@@ -101,7 +99,7 @@ impl ByteCompiler<'_, '_> {
                                 Access::Property { access },
                                 false,
                                 ByteCompiler::access_set_top_of_stack_expr_fn,
-                            )?;
+                            );
                         }
                         AssignmentPropertyAccess {
                             name,
@@ -115,7 +113,7 @@ impl ByteCompiler<'_, '_> {
                                     self.emit(Opcode::GetPropertyByName, &[index]);
                                 }
                                 PropertyName::Computed(node) => {
-                                    self.compile_expr(node, true)?;
+                                    self.compile_expr(node, true);
                                     if rest_exits {
                                         self.emit_opcode(Opcode::GetPropertyByValuePush);
                                     } else {
@@ -127,7 +125,7 @@ impl ByteCompiler<'_, '_> {
                             if let Some(init) = default_init {
                                 let skip =
                                     self.emit_opcode_with_operand(Opcode::JumpIfNotUndefined);
-                                self.compile_expr(init, true)?;
+                                self.compile_expr(init, true);
                                 self.patch_jump(skip);
                             }
 
@@ -135,7 +133,7 @@ impl ByteCompiler<'_, '_> {
                                 Access::Property { access },
                                 false,
                                 ByteCompiler::access_set_top_of_stack_expr_fn,
-                            )?;
+                            );
 
                             if rest_exits && name.computed().is_some() {
                                 self.emit_opcode(Opcode::Swap);
@@ -154,7 +152,7 @@ impl ByteCompiler<'_, '_> {
                                     self.emit(Opcode::GetPropertyByName, &[index]);
                                 }
                                 PropertyName::Computed(node) => {
-                                    self.compile_expr(node, true)?;
+                                    self.compile_expr(node, true);
                                     self.emit_opcode(Opcode::GetPropertyByValue);
                                 }
                             }
@@ -162,11 +160,11 @@ impl ByteCompiler<'_, '_> {
                             if let Some(init) = default_init {
                                 let skip =
                                     self.emit_opcode_with_operand(Opcode::JumpIfNotUndefined);
-                                self.compile_expr(init, true)?;
+                                self.compile_expr(init, true);
                                 self.patch_jump(skip);
                             }
 
-                            self.compile_declaration_pattern(pattern, def)?;
+                            self.compile_declaration_pattern(pattern, def);
                         }
                     }
                 }
@@ -200,7 +198,7 @@ impl ByteCompiler<'_, '_> {
                             if let Some(init) = default_init {
                                 let skip =
                                     self.emit_opcode_with_operand(Opcode::JumpIfNotUndefined);
-                                self.compile_expr(init, true)?;
+                                self.compile_expr(init, true);
                                 self.patch_jump(skip);
                             }
                             self.emit_binding(def, *ident);
@@ -211,7 +209,7 @@ impl ByteCompiler<'_, '_> {
                                 Access::Property { access },
                                 false,
                                 ByteCompiler::access_set_top_of_stack_expr_fn,
-                            )?;
+                            );
                         }
                         // BindingElement : BindingPattern Initializer[opt]
                         Pattern {
@@ -223,11 +221,11 @@ impl ByteCompiler<'_, '_> {
                             if let Some(init) = default_init {
                                 let skip =
                                     self.emit_opcode_with_operand(Opcode::JumpIfNotUndefined);
-                                self.compile_expr(init, true)?;
+                                self.compile_expr(init, true);
                                 self.patch_jump(skip);
                             }
 
-                            self.compile_declaration_pattern(pattern, def)?;
+                            self.compile_declaration_pattern(pattern, def);
                         }
                         // BindingRestElement : ... BindingIdentifier
                         SingleNameRest { ident } => {
@@ -240,12 +238,12 @@ impl ByteCompiler<'_, '_> {
                                 Access::Property { access },
                                 false,
                                 ByteCompiler::access_set_top_of_stack_expr_fn,
-                            )?;
+                            );
                         }
                         // BindingRestElement : ... BindingPattern
                         PatternRest { pattern } => {
                             self.emit_opcode(Opcode::IteratorToArray);
-                            self.compile_declaration_pattern(pattern, def)?;
+                            self.compile_declaration_pattern(pattern, def);
                         }
                     }
                 }
@@ -253,6 +251,5 @@ impl ByteCompiler<'_, '_> {
                 self.emit_opcode(Opcode::IteratorClose);
             }
         }
-        Ok(())
     }
 }

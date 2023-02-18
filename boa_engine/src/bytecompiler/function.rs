@@ -2,7 +2,7 @@ use crate::{
     builtins::function::ThisMode,
     bytecompiler::ByteCompiler,
     vm::{BindingOpcode, CodeBlock, Opcode},
-    Context, JsResult,
+    Context,
 };
 use boa_ast::{
     declaration::Binding, function::FormalParameterList, operations::bound_names, StatementList,
@@ -91,7 +91,7 @@ impl FunctionCompiler {
         parameters: &FormalParameterList,
         body: &StatementList,
         context: &mut Context<'_>,
-    ) -> JsResult<Gc<CodeBlock>> {
+    ) -> Gc<CodeBlock> {
         self.strict = self.strict || body.strict();
 
         let length = parameters.length();
@@ -159,7 +159,7 @@ impl FunctionCompiler {
                     // TODO: throw custom error if ident is in init
                     if let Some(init) = parameter.variable().init() {
                         let skip = compiler.emit_opcode_with_operand(Opcode::JumpIfNotUndefined);
-                        compiler.compile_expr(init, true)?;
+                        compiler.compile_expr(init, true);
                         compiler.patch_jump(skip);
                     }
                     compiler.emit_binding(BindingOpcode::InitArg, *ident);
@@ -171,10 +171,10 @@ impl FunctionCompiler {
                     // TODO: throw custom error if ident is in init
                     if let Some(init) = parameter.variable().init() {
                         let skip = compiler.emit_opcode_with_operand(Opcode::JumpIfNotUndefined);
-                        compiler.compile_expr(init, true)?;
+                        compiler.compile_expr(init, true);
                         compiler.patch_jump(skip);
                     }
-                    compiler.compile_declaration_pattern(pattern, BindingOpcode::InitArg)?;
+                    compiler.compile_declaration_pattern(pattern, BindingOpcode::InitArg);
                 }
             }
         }
@@ -200,7 +200,7 @@ impl FunctionCompiler {
         }
 
         compiler.create_script_decls(body, false);
-        compiler.compile_statement_list(body, false, false)?;
+        compiler.compile_statement_list(body, false, false);
 
         if let Some(env_label) = env_label {
             let (num_bindings, compile_environment) =
@@ -234,6 +234,6 @@ impl FunctionCompiler {
         compiler.emit(Opcode::PushUndefined, &[]);
         compiler.emit(Opcode::Return, &[]);
 
-        Ok(Gc::new(compiler.finish()))
+        Gc::new(compiler.finish())
     }
 }
