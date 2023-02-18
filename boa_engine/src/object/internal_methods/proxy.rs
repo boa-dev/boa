@@ -430,7 +430,7 @@ pub(crate) fn proxy_exotic_define_own_property(
     }
 
     // 10. Let targetDesc be ? target.[[GetOwnProperty]](P).
-    let target_desc = target.__get_own_property__(&key, context)?;
+    let target_desc = target.__get_own_property__(key, context)?;
 
     // 11. Let extensibleTarget be ? IsExtensible(target).
     let extensible_target = target.is_extensible(context)?;

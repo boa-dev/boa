@@ -468,7 +468,7 @@ pub(crate) fn ordinary_define_own_property(
 ) -> JsResult<bool> {
     let _timer = Profiler::global().start_event("Object::ordinary_define_own_property", "object");
     // 1. Let current be ? O.[[GetOwnProperty]](P).
-    let current = obj.__get_own_property__(&key, context)?;
+    let current = obj.__get_own_property__(key, context)?;
 
     // 2. Let extensible be ? IsExtensible(O).
     let extensible = obj.__is_extensible__(context)?;
@@ -782,7 +782,7 @@ pub(crate) fn validate_and_apply_property_descriptor(
 
         if let Some((obj, key)) = obj_and_key {
             obj.borrow_mut().properties.insert(
-                &key,
+                key,
                 // c. If IsGenericDescriptor(Desc) is true or IsDataDescriptor(Desc) is true, then
                 if desc.is_generic_descriptor() || desc.is_data_descriptor() {
                     // i. If O is not undefined, create an own data property named P of
@@ -899,7 +899,7 @@ pub(crate) fn validate_and_apply_property_descriptor(
         // a. For each field of Desc that is present, set the corresponding attribute of the
         // property named P of object O to the value of the field.
         current.fill_with(&desc);
-        obj.borrow_mut().properties.insert(&key, current);
+        obj.borrow_mut().properties.insert(key, current);
     }
 
     // 10. Return true.

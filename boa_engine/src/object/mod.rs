@@ -83,10 +83,10 @@ pub(crate) trait JsObjectType:
 }
 
 /// Const `constructor`, usually set on prototypes as a key to point to their respective constructor object.
-pub const CONSTRUCTOR: &'static [u16] = utf16!("constructor");
+pub const CONSTRUCTOR: &[u16] = utf16!("constructor");
 
 /// Const `prototype`, usually set on constructors as a key to point to their respective prototype object.
-pub const PROTOTYPE: &'static [u16] = utf16!("prototype");
+pub const PROTOTYPE: &[u16] = utf16!("prototype");
 
 /// Common field names.
 

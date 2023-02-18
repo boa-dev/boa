@@ -32,15 +32,15 @@ pub(crate) fn array_exotic_define_own_property(
     context: &mut Context<'_>,
 ) -> JsResult<bool> {
     // 1. Assert: IsPropertyKey(P) is true.
-    match key {
+    match *key {
         // 2. If P is "length", then
-        &PropertyKey::String(ref s) if s == utf16!("length") => {
+        PropertyKey::String(ref s) if s == utf16!("length") => {
             // a. Return ? ArraySetLength(A, Desc).
 
             array_set_length(obj, desc, context)
         }
         // 3. Else if P is an array index, then
-        &PropertyKey::Index(index) if index < u32::MAX => {
+        PropertyKey::Index(index) if index < u32::MAX => {
             // a. Let oldLenDesc be OrdinaryGetOwnProperty(A, "length").
             let old_len_desc =
                 super::ordinary_get_own_property(obj, &utf16!("length").into(), context)?
