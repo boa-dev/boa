@@ -270,10 +270,6 @@
 <a href="#269" id="269">269</a>
 <a href="#270" id="270">270</a>
 <a href="#271" id="271">271</a>
-<a href="#272" id="272">272</a>
-<a href="#273" id="273">273</a>
-<a href="#274" id="274">274</a>
-<a href="#275" id="275">275</a>
 </pre><pre class="rust"><code><span class="kw">use crate</span>::{
     builtins::function::set_function_name,
     property::{PropertyDescriptor, PropertyKey},
@@ -305,11 +301,7 @@
         </span>};
 
         <span class="kw">let </span>name = context.vm.frame().code_block.names[index <span class="kw">as </span>usize];
-        <span class="kw">let </span>name: PropertyKey = context
-            .interner()
-            .resolve_expect(name.sym())
-            .into_common::&lt;JsString&gt;(<span class="bool-val">false</span>)
-            .into();
+        <span class="kw">let </span>name: PropertyKey = context.interner().resolve_expect(name.sym()).utf16().into();
 
         <span class="comment">//object.set(name, value.clone(), context.vm.frame().code.strict, context)?;
         </span><span class="kw">let </span>succeeded = object.__set__(name.clone(), value.clone(), receiver, context)<span class="question-mark">?</span>;

@@ -1152,9 +1152,9 @@
         Number,
     },
     error::JsNativeError,
-    js_string,
     object::{JsObject, ObjectData},
     property::{PropertyDescriptor, PropertyKey},
+    string::utf16,
     symbol::JsSymbol,
     Context, JsBigInt, JsResult, JsString,
 };
@@ -1657,7 +1657,7 @@
                     JsObject::from_proto_and_data(prototype, ObjectData::string(string.clone()));
                 <span class="comment">// Make sure the correct length is set on our new string object
                 </span>object.insert_property(
-                    <span class="macro">js_string!</span>(<span class="string">&quot;length&quot;</span>),
+                    <span class="macro">utf16!</span>(<span class="string">&quot;length&quot;</span>),
                     PropertyDescriptor::builder()
                         .value(string.len())
                         .writable(<span class="bool-val">false</span>)
