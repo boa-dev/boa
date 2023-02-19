@@ -1,7 +1,7 @@
 use crate::{
     value::{JsValue, Numeric},
-    vm::{opcode::Operation, ShouldExit},
-    Context, JsBigInt, JsResult,
+    vm::{ok_or_throw_completion, opcode::Operation, CompletionType},
+    Context, JsBigInt,
 };
 
 /// `Inc` implements the Opcode Operation for `Opcode::Inc`
@@ -15,20 +15,20 @@ impl Operation for Inc {
     const NAME: &'static str = "Inc";
     const INSTRUCTION: &'static str = "INST - Inc";
 
-    fn execute(context: &mut Context<'_>) -> JsResult<ShouldExit> {
+    fn execute(context: &mut Context<'_>) -> CompletionType {
         let value = context.vm.pop();
         match value {
             JsValue::Integer(number) if number < i32::MAX => {
                 context.vm.push(number + 1);
             }
-            _ => match value.to_numeric(context)? {
+            _ => match ok_or_throw_completion!(value.to_numeric(context), context) {
                 Numeric::Number(number) => context.vm.push(number + 1f64),
                 Numeric::BigInt(bigint) => {
                     context.vm.push(JsBigInt::add(&bigint, &JsBigInt::one()));
                 }
             },
         }
-        Ok(ShouldExit::False)
+        CompletionType::Normal
     }
 }
 
@@ -43,7 +43,7 @@ impl Operation for IncPost {
     const NAME: &'static str = "IncPost";
     const INSTRUCTION: &'static str = "INST - IncPost";
 
-    fn execute(context: &mut Context<'_>) -> JsResult<ShouldExit> {
+    fn execute(context: &mut Context<'_>) -> CompletionType {
         let value = context.vm.pop();
         match value {
             JsValue::Integer(number) if number < i32::MAX => {
@@ -51,7 +51,7 @@ impl Operation for IncPost {
                 context.vm.push(value);
             }
             _ => {
-                let value = value.to_numeric(context)?;
+                let value = ok_or_throw_completion!(value.to_numeric(context), context);
                 match value {
                     Numeric::Number(number) => context.vm.push(number + 1f64),
                     Numeric::BigInt(ref bigint) => {
@@ -61,6 +61,6 @@ impl Operation for IncPost {
                 context.vm.push(value);
             }
         }
-        Ok(ShouldExit::False)
+        CompletionType::Normal
     }
 }

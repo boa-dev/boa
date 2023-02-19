@@ -1,6 +1,6 @@
 use crate::{
-    vm::{call_frame::EnvStackEntry, opcode::Operation, ShouldExit},
-    Context, JsResult,
+    vm::{call_frame::EnvStackEntry, opcode::Operation, CompletionType},
+    Context,
 };
 
 /// `LoopStart` implements the Opcode Operation for `Opcode::LoopStart`
@@ -14,7 +14,7 @@ impl Operation for LoopStart {
     const NAME: &'static str = "LoopStart";
     const INSTRUCTION: &'static str = "INST - LoopStart";
 
-    fn execute(context: &mut Context<'_>) -> JsResult<ShouldExit> {
+    fn execute(context: &mut Context<'_>) -> CompletionType {
         let start = context.vm.read::<u32>();
         let exit = context.vm.read::<u32>();
 
@@ -23,7 +23,7 @@ impl Operation for LoopStart {
             .frame_mut()
             .env_stack
             .push(EnvStackEntry::new(start, exit).with_loop_flag());
-        Ok(ShouldExit::False)
+        CompletionType::Normal
     }
 }
 
@@ -38,7 +38,7 @@ impl Operation for LoopContinue {
     const NAME: &'static str = "LoopContinue";
     const INSTRUCTION: &'static str = "INST - LoopContinue";
 
-    fn execute(context: &mut Context<'_>) -> JsResult<ShouldExit> {
+    fn execute(context: &mut Context<'_>) -> CompletionType {
         let start = context.vm.read::<u32>();
         let exit = context.vm.read::<u32>();
 
@@ -67,7 +67,7 @@ impl Operation for LoopContinue {
             .env_stack
             .push(EnvStackEntry::new(start, exit).with_loop_flag());
 
-        Ok(ShouldExit::False)
+        CompletionType::Normal
     }
 }
 
@@ -82,7 +82,7 @@ impl Operation for LoopEnd {
     const NAME: &'static str = "LoopEnd";
     const INSTRUCTION: &'static str = "INST - LoopEnd";
 
-    fn execute(context: &mut Context<'_>) -> JsResult<ShouldExit> {
+    fn execute(context: &mut Context<'_>) -> CompletionType {
         let mut envs_to_pop = 0_usize;
         while let Some(env_entry) = context.vm.frame_mut().env_stack.pop() {
             envs_to_pop += env_entry.env_num();
@@ -95,6 +95,6 @@ impl Operation for LoopEnd {
         let env_truncation_len = context.realm.environments.len().saturating_sub(envs_to_pop);
         context.realm.environments.truncate(env_truncation_len);
 
-        Ok(ShouldExit::False)
+        CompletionType::Normal
     }
 }

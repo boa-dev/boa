@@ -1,7 +1,7 @@
 use crate::{
     error::JsNativeError,
-    vm::{opcode::Operation, ShouldExit},
-    Context, JsResult,
+    vm::{ok_or_throw_completion, opcode::Operation, CompletionType},
+    Context, JsError,
 };
 
 pub(crate) mod logical;
@@ -21,12 +21,12 @@ impl Operation for NotEq {
     const NAME: &'static str = "NotEq";
     const INSTRUCTION: &'static str = "INST - NotEq";
 
-    fn execute(context: &mut Context<'_>) -> JsResult<ShouldExit> {
+    fn execute(context: &mut Context<'_>) -> CompletionType {
         let rhs = context.vm.pop();
         let lhs = context.vm.pop();
-        let value = !lhs.equals(&rhs, context)?;
+        let value = !(ok_or_throw_completion!(lhs.equals(&rhs, context), context));
         context.vm.push(value);
-        Ok(ShouldExit::False)
+        CompletionType::Normal
     }
 }
 
@@ -41,11 +41,11 @@ impl Operation for StrictEq {
     const NAME: &'static str = "StrictEq";
     const INSTRUCTION: &'static str = "INST - StrictEq";
 
-    fn execute(context: &mut Context<'_>) -> JsResult<ShouldExit> {
+    fn execute(context: &mut Context<'_>) -> CompletionType {
         let rhs = context.vm.pop();
         let lhs = context.vm.pop();
         context.vm.push(lhs.strict_equals(&rhs));
-        Ok(ShouldExit::False)
+        CompletionType::Normal
     }
 }
 
@@ -60,11 +60,11 @@ impl Operation for StrictNotEq {
     const NAME: &'static str = "StrictNotEq";
     const INSTRUCTION: &'static str = "INST - StrictNotEq";
 
-    fn execute(context: &mut Context<'_>) -> JsResult<ShouldExit> {
+    fn execute(context: &mut Context<'_>) -> CompletionType {
         let rhs = context.vm.pop();
         let lhs = context.vm.pop();
         context.vm.push(!lhs.strict_equals(&rhs));
-        Ok(ShouldExit::False)
+        CompletionType::Normal
     }
 }
 
@@ -79,22 +79,25 @@ impl Operation for In {
     const NAME: &'static str = "In";
     const INSTRUCTION: &'static str = "INST - In";
 
-    fn execute(context: &mut Context<'_>) -> JsResult<ShouldExit> {
+    fn execute(context: &mut Context<'_>) -> CompletionType {
         let rhs = context.vm.pop();
         let lhs = context.vm.pop();
 
         let Some(rhs) = rhs.as_object() else {
-            return Err(JsNativeError::typ()
+            let err: JsError = JsNativeError::typ()
                 .with_message(format!(
                     "right-hand side of 'in' should be an object, got `{}`",
                     rhs.type_of()
                 ))
-                .into());
+                .into();
+            let err_as_value = err.to_opaque(context);
+            context.vm.push(err_as_value);
+            return CompletionType::Throw
         };
-        let key = lhs.to_property_key(context)?;
-        let value = rhs.has_property(key, context)?;
+        let key = ok_or_throw_completion!(lhs.to_property_key(context), context);
+        let value = ok_or_throw_completion!(rhs.has_property(key, context), context);
         context.vm.push(value);
-        Ok(ShouldExit::False)
+        CompletionType::Normal
     }
 }
 
@@ -109,18 +112,21 @@ impl Operation for InPrivate {
     const NAME: &'static str = "InPrivate";
     const INSTRUCTION: &'static str = "INST - InPrivate";
 
-    fn execute(context: &mut Context<'_>) -> JsResult<ShouldExit> {
+    fn execute(context: &mut Context<'_>) -> CompletionType {
         let index = context.vm.read::<u32>();
         let name = context.vm.frame().code_block.private_names[index as usize];
         let rhs = context.vm.pop();
 
         let Some(rhs) = rhs.as_object() else {
-            return Err(JsNativeError::typ()
+            let err: JsError = JsNativeError::typ()
                 .with_message(format!(
                     "right-hand side of 'in' should be an object, got `{}`",
                     rhs.type_of()
                 ))
-                .into());
+                .into();
+            let err_as_value = err.to_opaque(context);
+            context.vm.push(err_as_value);
+            return CompletionType::Throw;
         };
         if rhs.private_element_find(&name, true, true).is_some() {
             context.vm.push(true);
@@ -128,7 +134,7 @@ impl Operation for InPrivate {
             context.vm.push(false);
         }
 
-        Ok(ShouldExit::False)
+        CompletionType::Normal
     }
 }
 
@@ -143,12 +149,12 @@ impl Operation for InstanceOf {
     const NAME: &'static str = "InstanceOf";
     const INSTRUCTION: &'static str = "INST - InstanceOf";
 
-    fn execute(context: &mut Context<'_>) -> JsResult<ShouldExit> {
+    fn execute(context: &mut Context<'_>) -> CompletionType {
         let target = context.vm.pop();
         let v = context.vm.pop();
-        let value = v.instance_of(&target, context)?;
+        let value = ok_or_throw_completion!(v.instance_of(&target, context), context);
 
         context.vm.push(value);
-        Ok(ShouldExit::False)
+        CompletionType::Normal
     }
 }

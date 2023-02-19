@@ -1,6 +1,6 @@
 use crate::{
-    vm::{opcode::Operation, ShouldExit},
-    Context, JsResult,
+    vm::{ok_or_throw_completion, opcode::Operation, CompletionType},
+    Context,
 };
 
 /// `GetPrivateField` implements the Opcode Operation for `Opcode::GetPrivateField`
@@ -14,13 +14,13 @@ impl Operation for GetPrivateField {
     const NAME: &'static str = "GetPrivateField";
     const INSTRUCTION: &'static str = "INST - GetPrivateField";
 
-    fn execute(context: &mut Context<'_>) -> JsResult<ShouldExit> {
+    fn execute(context: &mut Context<'_>) -> CompletionType {
         let index = context.vm.read::<u32>();
         let name = context.vm.frame().code_block.private_names[index as usize];
         let value = context.vm.pop();
-        let base_obj = value.to_object(context)?;
-        let result = base_obj.private_get(&name, context)?;
+        let base_obj = ok_or_throw_completion!(value.to_object(context), context);
+        let result = ok_or_throw_completion!(base_obj.private_get(&name, context), context);
         context.vm.push(result);
-        Ok(ShouldExit::False)
+        CompletionType::Normal
     }
 }

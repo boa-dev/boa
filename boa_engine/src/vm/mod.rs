@@ -6,17 +6,21 @@
 
 use crate::{
     builtins::async_generator::{AsyncGenerator, AsyncGeneratorState},
-    vm::{call_frame::AbruptCompletionRecord, code_block::Readable},
-    Context, JsResult, JsValue,
+    vm::{
+        call_frame::AbruptCompletionRecord, code_block::Readable,
+        completion_record::CompletionRecord,
+    },
+    Context, JsError, JsValue,
 };
 #[cfg(feature = "fuzz")]
-use crate::{JsError, JsNativeError, JsNativeErrorKind};
+use crate::{JsNativeError, JsNativeErrorKind};
 use boa_interner::ToInternedString;
 use boa_profiler::Profiler;
 use std::{convert::TryInto, mem::size_of, time::Instant};
 
 mod call_frame;
 mod code_block;
+mod completion_record;
 mod opcode;
 
 #[cfg(feature = "flowgraph")]
@@ -105,24 +109,39 @@ impl Vm {
     }
 }
 
-/// Indicates if the execution should continue, exit or yield.
-#[derive(Debug, Clone, Copy)]
-pub(crate) enum ShouldExit {
-    True,
-    False,
-    Yield,
-    Await,
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub(crate) enum CompletionType {
+    Normal,
+    Return,
+    Throw,
 }
 
-/// Indicates if the execution of a codeblock has ended normally or has been yielded.
-#[derive(Debug, Clone, Copy)]
-pub(crate) enum ReturnType {
-    Normal,
-    Yield,
+macro_rules! ok_or_throw_completion {
+    ( $e:expr, $context:ident ) => {
+        match $e {
+            Ok(value) => value,
+            Err(value) => {
+                let error = value.to_opaque($context);
+                $context.vm.push(error);
+                return CompletionType::Throw;
+            }
+        }
+    };
 }
+
+macro_rules! throw_completion {
+    ($error:expr, $err_type:ty, $context:ident ) => {{
+        let err: $err_type = $error;
+        let value = err.to_opaque($context);
+        $context.vm.push(value);
+        return CompletionType::Throw;
+    }};
+}
+
+pub(crate) use {ok_or_throw_completion, throw_completion};
 
 impl Context<'_> {
-    fn execute_instruction(&mut self) -> JsResult<ShouldExit> {
+    fn execute_instruction(&mut self) -> CompletionType {
         let opcode: Opcode = {
             let _timer = Profiler::global().start_event("Opcode retrieval", "vm");
             let opcode = self.vm.frame().code_block.bytecode[self.vm.frame().pc]
@@ -134,12 +153,10 @@ impl Context<'_> {
 
         let _timer = Profiler::global().start_event(opcode.as_instruction_str(), "vm");
 
-        let result = opcode.execute(self)?;
-
-        Ok(result)
+        opcode.execute(self)
     }
 
-    pub(crate) fn run(&mut self) -> JsResult<(JsValue, ReturnType)> {
+    pub(crate) fn run(&mut self) -> CompletionRecord {
         const COLUMN_WIDTH: usize = 26;
         const TIME_COLUMN_WIDTH: usize = COLUMN_WIDTH / 2;
         const OPCODE_COLUMN_WIDTH: usize = COLUMN_WIDTH;
@@ -176,22 +193,260 @@ impl Context<'_> {
 
         let start_stack_size = self.vm.stack.len();
 
-        // If the current executing function is an async function we have to resolve/reject it's promise at the end.
-        // The relevant spec section is 3. in [AsyncBlockStart](https://tc39.es/ecma262/#sec-asyncblockstart).
-        let promise_capability = self
-            .realm
-            .environments
-            .current_function_slots()
-            .as_function_slots()
-            .and_then(|slots| {
-                let slots_borrow = slots.borrow();
-                let function_object = slots_borrow.function_object();
-                let function = function_object.borrow();
-                function
-                    .as_function()
-                    .and_then(|f| f.get_promise_capability().cloned())
-            });
+        let execution_completion = loop {
+            #[cfg(feature = "fuzz")]
+            {
+                if self.instructions_remaining == 0 {
+                    return Err(JsError::from_native(JsNativeError::no_instructions_remain()));
+                }
+                self.instructions_remaining -= 1;
+            }
 
+            // 1. Run the next instruction.
+            let result = if self.vm.trace {
+                let mut pc = self.vm.frame().pc;
+                let opcode: Opcode = self
+                    .vm
+                    .frame()
+                    .code_block
+                    .read::<u8>(pc)
+                    .try_into()
+                    .expect("invalid opcode");
+                let operands = self
+                    .vm
+                    .frame()
+                    .code_block
+                    .instruction_operands(&mut pc, self.interner());
+
+                let instant = Instant::now();
+                let result = self.execute_instruction();
+                let duration = instant.elapsed();
+
+                println!(
+                    "{:<TIME_COLUMN_WIDTH$} {:<OPCODE_COLUMN_WIDTH$} {operands:<OPERAND_COLUMN_WIDTH$} {}",
+                    format!("{}μs", duration.as_micros()),
+                    opcode.as_str(),
+                    match self.vm.stack.last() {
+                        Some(value) if value.is_callable() => "[function]".to_string(),
+                        Some(value) if value.is_object() => "[object]".to_string(),
+                        Some(value) => value.display().to_string(),
+                        None => "<empty>".to_string(),
+                    }
+                );
+
+                result
+            } else {
+                self.execute_instruction()
+            };
+
+            // 2. Evaluate the result of executing the instruction.
+            match result {
+                CompletionType::Normal => {}
+                CompletionType::Return => match self.vm.frame().abrupt_completion {
+                    Some(abrupt_record) if abrupt_record.is_return() => {
+                        break CompletionType::Normal
+                    }
+                    _ => break CompletionType::Return,
+                },
+                CompletionType::Throw => {
+                    // TODO: Adapt the below fuzz for the new execution loop
+                    #[cfg(feature = "fuzz")]
+                    {
+                        let error = self.vm.pop();
+                        let throw = if let Some(native_error) =
+                            JsError::from_opaque(error).as_native()
+                        {
+                            // If we hit the execution step limit, bubble up the error to the
+                            // (Rust) caller instead of trying to handle as an exception.
+                            if matches!(native_error.kind, JsNativeErrorKind::NoInstructionsRemain)
+                            {
+                                self.vm.push(error);
+                                return CompletionType::Throw;
+                            }
+                        };
+                        self.vm.push(error);
+                    }
+
+                    // 1. Find the viable catch and finally blocks
+                    let current_address = self.vm.frame().pc;
+                    let viable_catch_candidates =
+                        self.vm.frame().env_stack.iter().filter(|env| {
+                            env.is_try_env() && env.start_address() < env.exit_address()
+                        });
+
+                    if let Some(candidate) = viable_catch_candidates.last() {
+                        let catch_target = candidate.start_address();
+
+                        let mut env_to_pop = 0;
+                        let mut target_address = u32::MAX;
+                        while self.vm.frame().env_stack.len() > 1 {
+                            let env_entry = self
+                                .vm
+                                .frame_mut()
+                                .env_stack
+                                .last()
+                                .expect("EnvStackEntries must exist");
+
+                            if env_entry.is_try_env()
+                                && env_entry.start_address() < env_entry.exit_address()
+                            {
+                                target_address = env_entry.start_address();
+                                env_to_pop += env_entry.env_num();
+                                self.vm.frame_mut().env_stack.pop();
+                                break;
+                            } else if env_entry.is_finally_env() {
+                                if current_address > (env_entry.start_address() as usize) {
+                                    target_address = env_entry.exit_address();
+                                } else {
+                                    target_address = env_entry.start_address();
+                                }
+                                break;
+                            }
+                            env_to_pop += env_entry.env_num();
+                            self.vm.frame_mut().env_stack.pop();
+                        }
+
+                        let env_truncation_len =
+                            self.realm.environments.len().saturating_sub(env_to_pop);
+                        self.realm.environments.truncate(env_truncation_len);
+
+                        if target_address == catch_target {
+                            self.vm.frame_mut().pc = catch_target as usize;
+                        } else {
+                            self.vm.frame_mut().pc = target_address as usize;
+                        };
+
+                        for _ in 0..self.vm.frame().pop_on_return {
+                            self.vm.pop();
+                        }
+
+                        self.vm.frame_mut().pop_on_return = 0;
+                        let record =
+                            AbruptCompletionRecord::new_throw().with_initial_target(catch_target);
+                        self.vm.frame_mut().abrupt_completion = Some(record);
+                        continue;
+                    }
+
+                    let mut env_to_pop = 0;
+                    let mut target_address = None;
+                    let mut env_stack_to_pop = 0;
+                    for env_entry in self.vm.frame_mut().env_stack.iter_mut().rev() {
+                        if env_entry.is_finally_env() {
+                            if (env_entry.start_address() as usize) < current_address {
+                                target_address = Some(env_entry.exit_address() as usize);
+                            } else {
+                                target_address = Some(env_entry.start_address() as usize);
+                            }
+                            break;
+                        };
+
+                        env_to_pop += env_entry.env_num();
+                        if env_entry.is_global_env() {
+                            env_entry.clear_env_num();
+                            break;
+                        };
+
+                        env_stack_to_pop += 1;
+                    }
+
+                    if let Some(address) = target_address {
+                        for _ in 0..env_stack_to_pop {
+                            self.vm.frame_mut().env_stack.pop();
+                        }
+
+                        let env_truncation_len =
+                            self.realm.environments.len().saturating_sub(env_to_pop);
+                        self.realm.environments.truncate(env_truncation_len);
+
+                        let previous_stack_size = self
+                            .vm
+                            .stack
+                            .len()
+                            .saturating_sub(self.vm.frame().pop_on_return);
+                        self.vm.stack.truncate(previous_stack_size);
+                        self.vm.frame_mut().pop_on_return = 0;
+
+                        let record = AbruptCompletionRecord::new_throw();
+                        self.vm.frame_mut().abrupt_completion = Some(record);
+                        self.vm.frame_mut().pc = address;
+                        continue;
+                    }
+
+                    break CompletionType::Throw;
+                }
+            }
+
+            // 3. Exit the execution loop if program counter ever is equal to or exceeds the amount of instructions
+            if self.vm.frame().code_block.bytecode.len() <= self.vm.frame().pc {
+                break CompletionType::Normal;
+            }
+        };
+
+        if self.vm.trace {
+            println!("\nStack:");
+            if self.vm.stack.is_empty() {
+                println!("    <empty>");
+            } else {
+                for (i, value) in self.vm.stack.iter().enumerate() {
+                    println!(
+                        "{i:04}{:<width$} {}",
+                        "",
+                        if value.is_callable() {
+                            "[function]".to_string()
+                        } else if value.is_object() {
+                            "[object]".to_string()
+                        } else {
+                            value.display().to_string()
+                        },
+                        width = COLUMN_WIDTH / 2 - 4,
+                    );
+                }
+            }
+            println!("\n");
+        }
+
+        let execution_result = if self.vm.stack.len() <= start_stack_size {
+            JsValue::undefined()
+        } else {
+            let result = self.vm.pop();
+            self.vm.stack.truncate(start_stack_size);
+            result
+        };
+
+        if let Some(generator_object) = self.vm.frame().async_generator.clone() {
+            let mut generator_object_mut = generator_object.borrow_mut();
+            let generator = generator_object_mut
+                .as_async_generator_mut()
+                .expect("must be async generator");
+
+            generator.state = AsyncGeneratorState::Completed;
+
+            let next = generator
+                .queue
+                .pop_front()
+                .expect("must have item in queue");
+            drop(generator_object_mut);
+
+            if execution_completion == CompletionType::Normal && self.vm.frame().abrupt_completion.is_none() {
+                AsyncGenerator::complete_step(&next, Ok(JsValue::undefined()), true, self);
+            } else if execution_completion == CompletionType::Normal {
+                AsyncGenerator::complete_step(&next, Ok(execution_result), true, self);
+            } else if execution_completion == CompletionType::Throw {
+                AsyncGenerator::complete_step(
+                    &next,
+                    Err(JsError::from_opaque(execution_result)),
+                    true,
+                    self,
+                );
+            }
+            AsyncGenerator::drain_queue(&generator_object, self);
+
+            return CompletionRecord::new(CompletionType::Normal, JsValue::undefined());
+        }
+
+        CompletionRecord::new(execution_completion, execution_result)
+
+        /*
         // ---- Beginning of execution loop ----
         while self.vm.frame().pc < self.vm.frame().code_block.bytecode.len() {
             #[cfg(feature = "fuzz")]
@@ -238,6 +493,13 @@ impl Context<'_> {
                 self.execute_instruction()
             };
 
+            // Evaluate the progression of the execution by intruction
+            // If we evaludate the completion of an instruction at this level, then should we be implementing
+            // completions here?
+            //
+            // Are completions needed? Probably
+            //  - Execution loops return 3 values -> Normal, Throw, Return.
+            //  - Return is used as a flag for promises and async and await
             match result {
                 Ok(ShouldExit::True) => {
                     let result = self.vm.pop();
@@ -518,5 +780,6 @@ impl Context<'_> {
         }
 
         Ok((result, ReturnType::Normal))
+        */
     }
 }

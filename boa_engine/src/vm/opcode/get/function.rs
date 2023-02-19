@@ -1,6 +1,6 @@
 use crate::{
-    vm::{code_block::create_function_object, opcode::Operation, ShouldExit},
-    Context, JsResult,
+    vm::{code_block::create_function_object, opcode::Operation, CompletionType},
+    Context,
 };
 
 /// `GetArrowFunction` implements the Opcode Operation for `Opcode::GetArrowFunction`
@@ -14,13 +14,13 @@ impl Operation for GetArrowFunction {
     const NAME: &'static str = "GetArrowFunction";
     const INSTRUCTION: &'static str = "INST - GetArrowFunction";
 
-    fn execute(context: &mut Context<'_>) -> JsResult<ShouldExit> {
+    fn execute(context: &mut Context<'_>) -> CompletionType {
         let index = context.vm.read::<u32>();
         context.vm.read::<u8>();
         let code = context.vm.frame().code_block.functions[index as usize].clone();
         let function = create_function_object(code, false, true, None, false, context);
         context.vm.push(function);
-        Ok(ShouldExit::False)
+        CompletionType::Normal
     }
 }
 
@@ -35,13 +35,13 @@ impl Operation for GetAsyncArrowFunction {
     const NAME: &'static str = "GetAsyncArrowFunction";
     const INSTRUCTION: &'static str = "INST - GetAsyncArrowFunction";
 
-    fn execute(context: &mut Context<'_>) -> JsResult<ShouldExit> {
+    fn execute(context: &mut Context<'_>) -> CompletionType {
         let index = context.vm.read::<u32>();
         context.vm.read::<u8>();
         let code = context.vm.frame().code_block.functions[index as usize].clone();
         let function = create_function_object(code, true, true, None, false, context);
         context.vm.push(function);
-        Ok(ShouldExit::False)
+        CompletionType::Normal
     }
 }
 
@@ -56,13 +56,13 @@ impl Operation for GetFunction {
     const NAME: &'static str = "GetFunction";
     const INSTRUCTION: &'static str = "INST - GetFunction";
 
-    fn execute(context: &mut Context<'_>) -> JsResult<ShouldExit> {
+    fn execute(context: &mut Context<'_>) -> CompletionType {
         let index = context.vm.read::<u32>();
         let method = context.vm.read::<u8>() != 0;
         let code = context.vm.frame().code_block.functions[index as usize].clone();
         let function = create_function_object(code, false, false, None, method, context);
         context.vm.push(function);
-        Ok(ShouldExit::False)
+        CompletionType::Normal
     }
 }
 
@@ -77,12 +77,12 @@ impl Operation for GetFunctionAsync {
     const NAME: &'static str = "GetFunctionAsync";
     const INSTRUCTION: &'static str = "INST - GetFunctionAsync";
 
-    fn execute(context: &mut Context<'_>) -> JsResult<ShouldExit> {
+    fn execute(context: &mut Context<'_>) -> CompletionType {
         let index = context.vm.read::<u32>();
         let method = context.vm.read::<u8>() != 0;
         let code = context.vm.frame().code_block.functions[index as usize].clone();
         let function = create_function_object(code, true, false, None, method, context);
         context.vm.push(function);
-        Ok(ShouldExit::False)
+        CompletionType::Normal
     }
 }

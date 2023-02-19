@@ -1,5 +1,5 @@
 /// The opcodes of the vm.
-use crate::{vm::ShouldExit, Context, JsResult};
+use crate::{vm::CompletionType, Context};
 
 use num_enum::TryFromPrimitive;
 
@@ -139,11 +139,11 @@ macro_rules! generate_impl {
                 Self::INSTRUCTIONS[self as usize]
             }
 
-            const EXECUTE_FNS: &[fn(&mut Context<'_>) -> JsResult<ShouldExit>] = &[
+            const EXECUTE_FNS: &[fn(&mut Context<'_>) -> CompletionType] = &[
                 $($Variant::execute),*
             ];
 
-            pub(super) fn execute(self, context: &mut Context<'_>) -> JsResult<ShouldExit> {
+            pub(super) fn execute(self, context: &mut Context<'_>) -> CompletionType {
                 Self::EXECUTE_FNS[self as usize](context)
             }
         }
@@ -160,7 +160,7 @@ pub(crate) trait Operation {
     const NAME: &'static str;
     const INSTRUCTION: &'static str;
 
-    fn execute(context: &mut Context<'_>) -> JsResult<ShouldExit>;
+    fn execute(context: &mut Context<'_>) -> CompletionType;
 }
 
 generate_impl! {

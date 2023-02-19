@@ -1,7 +1,7 @@
 use crate::{
     error::JsNativeError,
-    vm::{opcode::Operation, ShouldExit},
-    Context, JsResult, JsString,
+    vm::{ok_or_throw_completion, opcode::Operation, throw_completion, CompletionType},
+    Context, JsError, JsString,
 };
 
 /// `SetName` implements the Opcode Operation for `Opcode::SetName`
@@ -15,14 +15,14 @@ impl Operation for SetName {
     const NAME: &'static str = "SetName";
     const INSTRUCTION: &'static str = "INST - SetName";
 
-    fn execute(context: &mut Context<'_>) -> JsResult<ShouldExit> {
+    fn execute(context: &mut Context<'_>) -> CompletionType {
         let index = context.vm.read::<u32>();
         let binding_locator = context.vm.frame().code_block.bindings[index as usize];
         let value = context.vm.pop();
         if binding_locator.is_silent() {
-            return Ok(ShouldExit::False);
+            return CompletionType::Normal;
         }
-        binding_locator.throw_mutate_immutable(context)?;
+        ok_or_throw_completion!(binding_locator.throw_mutate_immutable(context), context);
 
         if binding_locator.is_global() {
             if !context
@@ -37,27 +37,38 @@ impl Operation for SetName {
                 let exists = context.global_bindings_mut().contains_key(&key);
 
                 if !exists && context.vm.frame().code_block.strict {
-                    return Err(JsNativeError::reference()
-                        .with_message(format!(
-                            "assignment to undeclared variable {}",
-                            key.to_std_string_escaped()
-                        ))
-                        .into());
+                    throw_completion!(
+                        JsNativeError::reference()
+                            .with_message(format!(
+                                "assignment to undeclared variable {}",
+                                key.to_std_string_escaped()
+                            ))
+                            .into(),
+                        JsError,
+                        context
+                    );
                 }
 
-                let success = crate::object::internal_methods::global::global_set_no_receiver(
-                    &key.clone().into(),
-                    value,
-                    context,
-                )?;
+                let success = ok_or_throw_completion!(
+                    crate::object::internal_methods::global::global_set_no_receiver(
+                        &key.clone().into(),
+                        value,
+                        context,
+                    ),
+                    context
+                );
 
                 if !success && context.vm.frame().code_block.strict {
-                    return Err(JsNativeError::typ()
-                        .with_message(format!(
-                            "cannot set non-writable property: {}",
-                            key.to_std_string_escaped()
-                        ))
-                        .into());
+                    throw_completion!(
+                        JsNativeError::typ()
+                            .with_message(format!(
+                                "cannot set non-writable property: {}",
+                                key.to_std_string_escaped()
+                            ))
+                            .into(),
+                        JsError,
+                        context
+                    );
                 }
             }
         } else if !context.realm.environments.put_value_if_initialized(
@@ -66,15 +77,19 @@ impl Operation for SetName {
             binding_locator.name(),
             value,
         ) {
-            return Err(JsNativeError::reference()
-                .with_message(format!(
-                    "cannot access '{}' before initialization",
-                    context
-                        .interner()
-                        .resolve_expect(binding_locator.name().sym())
-                ))
-                .into());
+            throw_completion!(
+                JsNativeError::reference()
+                    .with_message(format!(
+                        "cannot access '{}' before initialization",
+                        context
+                            .interner()
+                            .resolve_expect(binding_locator.name().sym())
+                    ))
+                    .into(),
+                JsError,
+                context
+            );
         }
-        Ok(ShouldExit::False)
+        CompletionType::Normal
     }
 }

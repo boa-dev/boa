@@ -1,7 +1,7 @@
 use crate::{
     property::PropertyKey,
-    vm::{opcode::Operation, ShouldExit},
-    Context, JsResult,
+    vm::{ok_or_throw_completion, opcode::Operation, CompletionType},
+    Context,
 };
 
 /// `GetPropertyByName` implements the Opcode Operation for `Opcode::GetPropertyByName`
@@ -15,22 +15,22 @@ impl Operation for GetPropertyByName {
     const NAME: &'static str = "GetPropertyByName";
     const INSTRUCTION: &'static str = "INST - GetPropertyByName";
 
-    fn execute(context: &mut Context<'_>) -> JsResult<ShouldExit> {
+    fn execute(context: &mut Context<'_>) -> CompletionType {
         let index = context.vm.read::<u32>();
 
         let value = context.vm.pop();
         let object = if let Some(object) = value.as_object() {
             object.clone()
         } else {
-            value.to_object(context)?
+            ok_or_throw_completion!(value.to_object(context), context)
         };
 
         let name = context.vm.frame().code_block.names[index as usize];
         let key: PropertyKey = context.interner().resolve_expect(name.sym()).utf16().into();
-        let result = object.__get__(&key, value, context)?;
+        let result = ok_or_throw_completion!(object.__get__(&key, value, context), context);
 
         context.vm.push(result);
-        Ok(ShouldExit::False)
+        CompletionType::Normal
     }
 }
 
@@ -45,20 +45,20 @@ impl Operation for GetPropertyByValue {
     const NAME: &'static str = "GetPropertyByValue";
     const INSTRUCTION: &'static str = "INST - GetPropertyByValue";
 
-    fn execute(context: &mut Context<'_>) -> JsResult<ShouldExit> {
+    fn execute(context: &mut Context<'_>) -> CompletionType {
         let key = context.vm.pop();
         let value = context.vm.pop();
         let object = if let Some(object) = value.as_object() {
             object.clone()
         } else {
-            value.to_object(context)?
+            ok_or_throw_completion!(value.to_object(context), context)
         };
 
-        let key = key.to_property_key(context)?;
-        let result = object.__get__(&key, value, context)?;
+        let key = ok_or_throw_completion!(key.to_property_key(context), context);
+        let result = ok_or_throw_completion!(object.__get__(&key, value, context), context);
 
         context.vm.push(result);
-        Ok(ShouldExit::False)
+        CompletionType::Normal
     }
 }
 
@@ -73,20 +73,20 @@ impl Operation for GetPropertyByValuePush {
     const NAME: &'static str = "GetPropertyByValuePush";
     const INSTRUCTION: &'static str = "INST - GetPropertyByValuePush";
 
-    fn execute(context: &mut Context<'_>) -> JsResult<ShouldExit> {
+    fn execute(context: &mut Context<'_>) -> CompletionType {
         let key = context.vm.pop();
         let value = context.vm.pop();
         let object = if let Some(object) = value.as_object() {
             object.clone()
         } else {
-            value.to_object(context)?
+            ok_or_throw_completion!(value.to_object(context), context)
         };
 
-        let key = key.to_property_key(context)?;
-        let result = object.__get__(&key, value, context)?;
+        let key = ok_or_throw_completion!(key.to_property_key(context), context);
+        let result = ok_or_throw_completion!(object.__get__(&key, value, context), context);
 
         context.vm.push(key);
         context.vm.push(result);
-        Ok(ShouldExit::False)
+        CompletionType::Normal
     }
 }

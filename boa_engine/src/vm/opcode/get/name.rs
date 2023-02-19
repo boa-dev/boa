@@ -1,8 +1,8 @@
 use crate::{
     error::JsNativeError,
     property::DescriptorKind,
-    vm::{opcode::Operation, ShouldExit},
-    Context, JsResult, JsString, JsValue,
+    vm::{ok_or_throw_completion, opcode::Operation, throw_completion, CompletionType},
+    Context, JsError, JsString, JsValue,
 };
 
 /// `GetName` implements the Opcode Operation for `Opcode::GetName`
@@ -16,10 +16,10 @@ impl Operation for GetName {
     const NAME: &'static str = "GetName";
     const INSTRUCTION: &'static str = "INST - GetName";
 
-    fn execute(context: &mut Context<'_>) -> JsResult<ShouldExit> {
+    fn execute(context: &mut Context<'_>) -> CompletionType {
         let index = context.vm.read::<u32>();
         let binding_locator = context.vm.frame().code_block.bindings[index as usize];
-        binding_locator.throw_mutate_immutable(context)?;
+        ok_or_throw_completion!(binding_locator.throw_mutate_immutable(context), context);
 
         let value = if binding_locator.is_global() {
             if let Some(value) = context
@@ -40,21 +40,35 @@ impl Operation for GetName {
                         } => value.clone(),
                         DescriptorKind::Accessor { get: Some(get), .. } if !get.is_undefined() => {
                             let get = get.clone();
-                            get.call(&context.global_object().clone().into(), &[], context)?
+                            ok_or_throw_completion!(
+                                get.call(&context.global_object().clone().into(), &[], context),
+                                context
+                            )
                         }
                         _ => {
-                            return Err(JsNativeError::reference()
+                            throw_completion!(
+                                JsNativeError::reference()
+                                    .with_message(format!(
+                                        "{} is not defined",
+                                        key.to_std_string_escaped()
+                                    ))
+                                    .into(),
+                                JsError,
+                                context
+                            )
+                        }
+                    },
+                    _ => {
+                        throw_completion!(
+                            JsNativeError::reference()
                                 .with_message(format!(
                                     "{} is not defined",
                                     key.to_std_string_escaped()
                                 ))
-                                .into())
-                        }
-                    },
-                    _ => {
-                        return Err(JsNativeError::reference()
-                            .with_message(format!("{} is not defined", key.to_std_string_escaped()))
-                            .into())
+                                .into(),
+                            JsError,
+                            context
+                        )
                     }
                 }
             }
@@ -69,13 +83,17 @@ impl Operation for GetName {
                 .interner()
                 .resolve_expect(binding_locator.name().sym())
                 .to_string();
-            return Err(JsNativeError::reference()
-                .with_message(format!("{name} is not initialized"))
-                .into());
+            throw_completion!(
+                JsNativeError::reference()
+                    .with_message(format!("{name} is not initialized"))
+                    .into(),
+                JsError,
+                context
+            );
         };
 
         context.vm.push(value);
-        Ok(ShouldExit::False)
+        CompletionType::Normal
     }
 }
 
@@ -90,10 +108,10 @@ impl Operation for GetNameOrUndefined {
     const NAME: &'static str = "GetNameOrUndefined";
     const INSTRUCTION: &'static str = "INST - GetNameOrUndefined";
 
-    fn execute(context: &mut Context<'_>) -> JsResult<ShouldExit> {
+    fn execute(context: &mut Context<'_>) -> CompletionType {
         let index = context.vm.read::<u32>();
         let binding_locator = context.vm.frame().code_block.bindings[index as usize];
-        binding_locator.throw_mutate_immutable(context)?;
+        ok_or_throw_completion!(binding_locator.throw_mutate_immutable(context), context);
         let value = if binding_locator.is_global() {
             if let Some(value) = context
                 .realm
@@ -113,7 +131,10 @@ impl Operation for GetNameOrUndefined {
                         } => value.clone(),
                         DescriptorKind::Accessor { get: Some(get), .. } if !get.is_undefined() => {
                             let get = get.clone();
-                            get.call(&context.global_object().clone().into(), &[], context)?
+                            ok_or_throw_completion!(
+                                get.call(&context.global_object().clone().into(), &[], context),
+                                context
+                            )
                         }
                         _ => JsValue::undefined(),
                     },
@@ -131,6 +152,6 @@ impl Operation for GetNameOrUndefined {
         };
 
         context.vm.push(value);
-        Ok(ShouldExit::False)
+        CompletionType::Normal
     }
 }

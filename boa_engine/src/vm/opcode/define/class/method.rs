@@ -2,8 +2,8 @@ use crate::{
     builtins::function::set_function_name,
     object::CONSTRUCTOR,
     property::PropertyDescriptor,
-    vm::{opcode::Operation, ShouldExit},
-    Context, JsResult, JsString,
+    vm::{ok_or_throw_completion, opcode::Operation, CompletionType},
+    Context, JsString,
 };
 
 /// `DefineClassStaticMethodByName` implements the Opcode Operation for `Opcode::DefineClassStaticMethodByName`
@@ -17,7 +17,7 @@ impl Operation for DefineClassStaticMethodByName {
     const NAME: &'static str = "DefineClassStaticMethodByName";
     const INSTRUCTION: &'static str = "INST - DefineClassStaticMethodByName";
 
-    fn execute(context: &mut Context<'_>) -> JsResult<ShouldExit> {
+    fn execute(context: &mut Context<'_>) -> CompletionType {
         let index = context.vm.read::<u32>();
         let function = context.vm.pop();
         let class = context.vm.pop();
@@ -39,17 +39,20 @@ impl Operation for DefineClassStaticMethodByName {
             function_mut.set_home_object(class.clone());
             function_mut.set_class_object(class.clone());
         }
-        class.__define_own_property__(
-            &key,
-            PropertyDescriptor::builder()
-                .value(function)
-                .writable(true)
-                .enumerable(false)
-                .configurable(true)
-                .build(),
-            context,
-        )?;
-        Ok(ShouldExit::False)
+        ok_or_throw_completion!(
+            class.__define_own_property__(
+                &key,
+                PropertyDescriptor::builder()
+                    .value(function)
+                    .writable(true)
+                    .enumerable(false)
+                    .configurable(true)
+                    .build(),
+                context,
+            ),
+            context
+        );
+        CompletionType::Normal
     }
 }
 
@@ -64,7 +67,7 @@ impl Operation for DefineClassMethodByName {
     const NAME: &'static str = "DefineClassMethodByName";
     const INSTRUCTION: &'static str = "INST - DefineClassMethodByName";
 
-    fn execute(context: &mut Context<'_>) -> JsResult<ShouldExit> {
+    fn execute(context: &mut Context<'_>) -> CompletionType {
         let index = context.vm.read::<u32>();
         let function = context.vm.pop();
         let class_proto = context.vm.pop();
@@ -92,17 +95,20 @@ impl Operation for DefineClassMethodByName {
                 .clone();
             function_mut.set_class_object(class);
         }
-        class_proto.__define_own_property__(
-            &key,
-            PropertyDescriptor::builder()
-                .value(function)
-                .writable(true)
-                .enumerable(false)
-                .configurable(true)
-                .build(),
-            context,
-        )?;
-        Ok(ShouldExit::False)
+        ok_or_throw_completion!(
+            class_proto.__define_own_property__(
+                &key,
+                PropertyDescriptor::builder()
+                    .value(function)
+                    .writable(true)
+                    .enumerable(false)
+                    .configurable(true)
+                    .build(),
+                context,
+            ),
+            context
+        );
+        CompletionType::Normal
     }
 }
 
@@ -117,7 +123,7 @@ impl Operation for DefineClassStaticMethodByValue {
     const NAME: &'static str = "DefineClassStaticMethodByValue";
     const INSTRUCTION: &'static str = "INST - DefineClassStaticMethodByValue";
 
-    fn execute(context: &mut Context<'_>) -> JsResult<ShouldExit> {
+    fn execute(context: &mut Context<'_>) -> CompletionType {
         let function = context.vm.pop();
         let key = context.vm.pop();
         let class = context.vm.pop();
@@ -137,17 +143,20 @@ impl Operation for DefineClassStaticMethodByValue {
             function_mut.set_home_object(class.clone());
             function_mut.set_class_object(class.clone());
         }
-        class.define_property_or_throw(
-            key,
-            PropertyDescriptor::builder()
-                .value(function)
-                .writable(true)
-                .enumerable(false)
-                .configurable(true)
-                .build(),
-            context,
-        )?;
-        Ok(ShouldExit::False)
+        ok_or_throw_completion!(
+            class.define_property_or_throw(
+                key,
+                PropertyDescriptor::builder()
+                    .value(function)
+                    .writable(true)
+                    .enumerable(false)
+                    .configurable(true)
+                    .build(),
+                context,
+            ),
+            context
+        );
+        CompletionType::Normal
     }
 }
 
@@ -162,7 +171,7 @@ impl Operation for DefineClassMethodByValue {
     const NAME: &'static str = "DefineClassMethodByValue";
     const INSTRUCTION: &'static str = "INST - DefineClassMethodByValue";
 
-    fn execute(context: &mut Context<'_>) -> JsResult<ShouldExit> {
+    fn execute(context: &mut Context<'_>) -> CompletionType {
         let function = context.vm.pop();
         let key = context.vm.pop();
         let class_proto = context.vm.pop();
@@ -188,16 +197,19 @@ impl Operation for DefineClassMethodByValue {
                 .clone();
             function_mut.set_class_object(class);
         }
-        class_proto.__define_own_property__(
-            &key,
-            PropertyDescriptor::builder()
-                .value(function)
-                .writable(true)
-                .enumerable(false)
-                .configurable(true)
-                .build(),
-            context,
-        )?;
-        Ok(ShouldExit::False)
+        ok_or_throw_completion!(
+            class_proto.__define_own_property__(
+                &key,
+                PropertyDescriptor::builder()
+                    .value(function)
+                    .writable(true)
+                    .enumerable(false)
+                    .configurable(true)
+                    .build(),
+                context,
+            ),
+            context
+        );
+        CompletionType::Normal
     }
 }

@@ -1,7 +1,7 @@
 use crate::{
     property::PropertyDescriptor,
-    vm::{opcode::Operation, ShouldExit},
-    Context, JsResult, JsString, JsValue,
+    vm::{ok_or_throw_completion, opcode::Operation, CompletionType},
+    Context, JsString, JsValue,
 };
 
 pub(crate) mod class;
@@ -21,7 +21,7 @@ impl Operation for DefVar {
     const NAME: &'static str = "DefVar";
     const INSTRUCTION: &'static str = "INST - DefVar";
 
-    fn execute(context: &mut Context<'_>) -> JsResult<ShouldExit> {
+    fn execute(context: &mut Context<'_>) -> CompletionType {
         let index = context.vm.read::<u32>();
         let binding_locator = context.vm.frame().code_block.bindings[index as usize];
 
@@ -45,7 +45,7 @@ impl Operation for DefVar {
                 JsValue::Undefined,
             );
         }
-        Ok(ShouldExit::False)
+        CompletionType::Normal
     }
 }
 
@@ -60,14 +60,14 @@ impl Operation for DefInitVar {
     const NAME: &'static str = "DefInitVar";
     const INSTRUCTION: &'static str = "INST - DefInitVar";
 
-    fn execute(context: &mut Context<'_>) -> JsResult<ShouldExit> {
+    fn execute(context: &mut Context<'_>) -> CompletionType {
         let index = context.vm.read::<u32>();
         let value = context.vm.pop();
         let binding_locator = context.vm.frame().code_block.bindings[index as usize];
         if binding_locator.is_silent() {
-            return Ok(ShouldExit::False);
+            return CompletionType::Normal;
         }
-        binding_locator.throw_mutate_immutable(context)?;
+        ok_or_throw_completion!(binding_locator.throw_mutate_immutable(context), context);
 
         if binding_locator.is_global() {
             let key = context
@@ -75,7 +75,12 @@ impl Operation for DefInitVar {
                 .resolve_expect(binding_locator.name().sym())
                 .into_common::<JsString>(false)
                 .into();
-            crate::object::internal_methods::global::global_set_no_receiver(&key, value, context)?;
+            ok_or_throw_completion!(
+                crate::object::internal_methods::global::global_set_no_receiver(
+                    &key, value, context
+                ),
+                context
+            );
         } else {
             context.realm.environments.put_value(
                 binding_locator.environment_index(),
@@ -83,7 +88,7 @@ impl Operation for DefInitVar {
                 value,
             );
         }
-        Ok(ShouldExit::False)
+        CompletionType::Normal
     }
 }
 
@@ -98,7 +103,7 @@ impl Operation for DefLet {
     const NAME: &'static str = "DefLet";
     const INSTRUCTION: &'static str = "INST - DefLet";
 
-    fn execute(context: &mut Context<'_>) -> JsResult<ShouldExit> {
+    fn execute(context: &mut Context<'_>) -> CompletionType {
         let index = context.vm.read::<u32>();
         let binding_locator = context.vm.frame().code_block.bindings[index as usize];
         context.realm.environments.put_value(
@@ -106,7 +111,7 @@ impl Operation for DefLet {
             binding_locator.binding_index(),
             JsValue::Undefined,
         );
-        Ok(ShouldExit::False)
+        CompletionType::Normal
     }
 }
 
@@ -123,7 +128,7 @@ macro_rules! implement_declaritives {
             const NAME: &'static str = stringify!($name);
             const INSTRUCTION: &'static str = stringify!("INST - " + $name);
 
-            fn execute(context: &mut Context<'_>) -> JsResult<ShouldExit> {
+            fn execute(context: &mut Context<'_>) -> CompletionType {
                 let index = context.vm.read::<u32>();
                 let value = context.vm.pop();
                 let binding_locator = context.vm.frame().code_block.bindings[index as usize];
@@ -132,7 +137,7 @@ macro_rules! implement_declaritives {
                     binding_locator.binding_index(),
                     value,
                 );
-                Ok(ShouldExit::False)
+                CompletionType::Normal
             }
         }
     };

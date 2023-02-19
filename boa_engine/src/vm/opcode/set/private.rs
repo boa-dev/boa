@@ -2,8 +2,8 @@ use crate::{
     object::PrivateElement,
     property::PropertyDescriptor,
     string::utf16,
-    vm::{opcode::Operation, ShouldExit},
-    Context, JsResult,
+    vm::{ok_or_throw_completion, opcode::Operation, CompletionType},
+    Context,
 };
 
 /// `SetPrivateField` implements the Opcode Operation for `Opcode::SetPrivateField`
@@ -17,15 +17,15 @@ impl Operation for SetPrivateField {
     const NAME: &'static str = "SetPrivateField";
     const INSTRUCTION: &'static str = "INST - SetPrivateField";
 
-    fn execute(context: &mut Context<'_>) -> JsResult<ShouldExit> {
+    fn execute(context: &mut Context<'_>) -> CompletionType {
         let index = context.vm.read::<u32>();
         let name = context.vm.frame().code_block.private_names[index as usize];
         let value = context.vm.pop();
         let object = context.vm.pop();
-        let base_obj = object.to_object(context)?;
-        base_obj.private_set(&name, value.clone(), context)?;
+        let base_obj = ok_or_throw_completion!(object.to_object(context), context);
+        ok_or_throw_completion!(base_obj.private_set(&name, value.clone(), context), context);
         context.vm.push(value);
-        Ok(ShouldExit::False)
+        CompletionType::Normal
     }
 }
 
@@ -40,7 +40,7 @@ impl Operation for DefinePrivateField {
     const NAME: &'static str = "DefinePrivateField";
     const INSTRUCTION: &'static str = "INST - DefinePrivateField";
 
-    fn execute(context: &mut Context<'_>) -> JsResult<ShouldExit> {
+    fn execute(context: &mut Context<'_>) -> CompletionType {
         let index = context.vm.read::<u32>();
         let name = context.vm.frame().code_block.private_names[index as usize];
         let value = context.vm.pop();
@@ -52,7 +52,7 @@ impl Operation for DefinePrivateField {
             .borrow_mut()
             .append_private_element(name, PrivateElement::Field(value));
 
-        Ok(ShouldExit::False)
+        CompletionType::Normal
     }
 }
 
@@ -67,7 +67,7 @@ impl Operation for SetPrivateMethod {
     const NAME: &'static str = "SetPrivateMethod";
     const INSTRUCTION: &'static str = "INST - SetPrivateMethod";
 
-    fn execute(context: &mut Context<'_>) -> JsResult<ShouldExit> {
+    fn execute(context: &mut Context<'_>) -> CompletionType {
         let index = context.vm.read::<u32>();
         let name = context.vm.frame().code_block.private_names[index as usize];
         let value = context.vm.pop();
@@ -97,7 +97,7 @@ impl Operation for SetPrivateMethod {
             .expect("method must be a function");
         function.set_class_object(object.clone());
 
-        Ok(ShouldExit::False)
+        CompletionType::Normal
     }
 }
 
@@ -112,7 +112,7 @@ impl Operation for SetPrivateSetter {
     const NAME: &'static str = "SetPrivateSetter";
     const INSTRUCTION: &'static str = "INST - SetPrivateSetter";
 
-    fn execute(context: &mut Context<'_>) -> JsResult<ShouldExit> {
+    fn execute(context: &mut Context<'_>) -> CompletionType {
         let index = context.vm.read::<u32>();
         let name = context.vm.frame().code_block.private_names[index as usize];
         let value = context.vm.pop();
@@ -135,7 +135,7 @@ impl Operation for SetPrivateSetter {
             .expect("method must be a function");
         function.set_class_object(object.clone());
 
-        Ok(ShouldExit::False)
+        CompletionType::Normal
     }
 }
 
@@ -150,7 +150,7 @@ impl Operation for SetPrivateGetter {
     const NAME: &'static str = "SetPrivateGetter";
     const INSTRUCTION: &'static str = "INST - SetPrivateGetter";
 
-    fn execute(context: &mut Context<'_>) -> JsResult<ShouldExit> {
+    fn execute(context: &mut Context<'_>) -> CompletionType {
         let index = context.vm.read::<u32>();
         let name = context.vm.frame().code_block.private_names[index as usize];
         let value = context.vm.pop();
@@ -173,6 +173,6 @@ impl Operation for SetPrivateGetter {
             .expect("method must be a function");
         function.set_class_object(object.clone());
 
-        Ok(ShouldExit::False)
+        CompletionType::Normal
     }
 }

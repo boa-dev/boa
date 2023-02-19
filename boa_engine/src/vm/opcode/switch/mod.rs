@@ -1,6 +1,6 @@
 use crate::{
-    vm::{opcode::Operation, ShouldExit},
-    Context, JsResult,
+    vm::{opcode::Operation, CompletionType},
+    Context,
 };
 
 /// `Case` implements the Opcode Operation for `Opcode::Case`
@@ -15,7 +15,7 @@ impl Operation for Case {
     const NAME: &'static str = "Case";
     const INSTRUCTION: &'static str = "INST - Case";
 
-    fn execute(context: &mut Context<'_>) -> JsResult<ShouldExit> {
+    fn execute(context: &mut Context<'_>) -> CompletionType {
         let address = context.vm.read::<u32>();
         let cond = context.vm.pop();
         let value = context.vm.pop();
@@ -25,7 +25,7 @@ impl Operation for Case {
         } else {
             context.vm.push(value);
         }
-        Ok(ShouldExit::False)
+        CompletionType::Normal
     }
 }
 
@@ -40,10 +40,10 @@ impl Operation for Default {
     const NAME: &'static str = "Default";
     const INSTRUCTION: &'static str = "INST - Default";
 
-    fn execute(context: &mut Context<'_>) -> JsResult<ShouldExit> {
+    fn execute(context: &mut Context<'_>) -> CompletionType {
         let exit = context.vm.read::<u32>();
         let _val = context.vm.pop();
         context.vm.frame_mut().pc = exit as usize;
-        Ok(ShouldExit::False)
+        CompletionType::Normal
     }
 }

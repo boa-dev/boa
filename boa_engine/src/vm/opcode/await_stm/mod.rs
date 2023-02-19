@@ -4,8 +4,10 @@ use crate::{
     builtins::Promise,
     native_function::NativeFunction,
     object::FunctionObjectBuilder,
-    vm::{call_frame::GeneratorResumeKind, opcode::Operation, ShouldExit},
-    Context, JsArgs, JsResult, JsValue,
+    vm::{
+        call_frame::GeneratorResumeKind, ok_or_throw_completion, opcode::Operation, CompletionType,
+    },
+    Context, JsArgs, JsValue,
 };
 
 /// `Await` implements the Opcode Operation for `Opcode::Await`
@@ -19,15 +21,17 @@ impl Operation for Await {
     const NAME: &'static str = "Await";
     const INSTRUCTION: &'static str = "INST - Await";
 
-    fn execute(context: &mut Context<'_>) -> JsResult<ShouldExit> {
+    fn execute(context: &mut Context<'_>) -> CompletionType {
         let value = context.vm.pop();
 
         // 2. Let promise be ? PromiseResolve(%Promise%, value).
-        let promise = Promise::promise_resolve(
+        let resolve_result = Promise::promise_resolve(
             context.intrinsics().constructors().promise().constructor(),
             value,
             context,
-        )?;
+        );
+
+        let promise = ok_or_throw_completion!(resolve_result, context);
 
         // 3. Let fulfilledClosure be a new Abstract Closure with parameters (value) that captures asyncContext and performs the following steps when called:
         // 4. Let onFulfilled be CreateBuiltinFunction(fulfilledClosure, 1, "", « »).
@@ -50,7 +54,7 @@ impl Operation for Await {
 
                     context.vm.frame_mut().generator_resume_kind = GeneratorResumeKind::Normal;
                     context.vm.push(args.get_or_undefined(0).clone());
-                    context.run()?;
+                    context.run();
 
                     *frame = context
                         .vm
@@ -93,7 +97,7 @@ impl Operation for Await {
 
                     context.vm.frame_mut().generator_resume_kind = GeneratorResumeKind::Throw;
                     context.vm.push(args.get_or_undefined(0).clone());
-                    context.run()?;
+                    context.run();
 
                     *frame = context
                         .vm
@@ -125,6 +129,6 @@ impl Operation for Await {
         );
 
         context.vm.push(JsValue::undefined());
-        Ok(ShouldExit::Await)
+        CompletionType::Return
     }
 }

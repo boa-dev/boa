@@ -2,8 +2,8 @@ use crate::{
     builtins::function::{ConstructorKind, Function},
     error::JsNativeError,
     object::PROTOTYPE,
-    vm::{opcode::Operation, ShouldExit},
-    Context, JsResult, JsValue,
+    vm::{ok_or_throw_completion, opcode::Operation, throw_completion, CompletionType},
+    Context, JsError, JsValue,
 };
 
 pub(crate) mod field;
@@ -23,15 +23,19 @@ impl Operation for PushClassPrototype {
     const NAME: &'static str = "PushClassPrototype";
     const INSTRUCTION: &'static str = "INST - PushClassPrototype";
 
-    fn execute(context: &mut Context<'_>) -> JsResult<ShouldExit> {
+    fn execute(context: &mut Context<'_>) -> CompletionType {
         let superclass = context.vm.pop();
 
         if let Some(superclass) = superclass.as_constructor() {
-            let proto = superclass.get(PROTOTYPE, context)?;
+            let proto = ok_or_throw_completion!(superclass.get(PROTOTYPE, context), context);
             if !proto.is_object() && !proto.is_null() {
-                return Err(JsNativeError::typ()
-                    .with_message("superclass prototype must be an object or null")
-                    .into());
+                throw_completion!(
+                    JsNativeError::typ()
+                        .with_message("superclass prototype must be an object or null")
+                        .into(),
+                    JsError,
+                    context
+                );
             }
 
             let class = context.vm.pop();
@@ -53,14 +57,18 @@ impl Operation for PushClassPrototype {
 
             context.vm.push(class);
             context.vm.push(proto);
-            Ok(ShouldExit::False)
+            CompletionType::Normal
         } else if superclass.is_null() {
             context.vm.push(JsValue::Null);
-            Ok(ShouldExit::False)
+            CompletionType::Normal
         } else {
-            Err(JsNativeError::typ()
-                .with_message("superclass must be a constructor")
-                .into())
+            throw_completion!(
+                JsNativeError::typ()
+                    .with_message("superclass must be a constructor")
+                    .into(),
+                JsError,
+                context
+            )
         }
     }
 }

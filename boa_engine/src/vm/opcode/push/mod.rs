@@ -1,6 +1,6 @@
 use crate::{
-    vm::{opcode::Operation, ShouldExit},
-    Context, JsResult, JsValue,
+    vm::{opcode::Operation, CompletionType},
+    Context, JsValue,
 };
 
 pub(crate) mod array;
@@ -32,9 +32,9 @@ macro_rules! implement_push_generics {
             const NAME: &'static str = stringify!($name);
             const INSTRUCTION: &'static str = stringify!("INST - " + $name);
 
-            fn execute(context: &mut Context<'_>) -> JsResult<ShouldExit> {
+            fn execute(context: &mut Context<'_>) -> CompletionType {
                 context.vm.push($push_value);
-                Ok(ShouldExit::False)
+                CompletionType::Normal
             }
         }
     };

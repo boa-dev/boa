@@ -1,6 +1,6 @@
 use crate::{
-    vm::{opcode::Operation, ShouldExit},
-    Context, JsResult, JsString,
+    vm::{ok_or_throw_completion, opcode::Operation, CompletionType},
+    Context, JsString,
 };
 
 /// `ConcatToString` implements the Opcode Operation for `Opcode::ConcatToString`
@@ -14,11 +14,14 @@ impl Operation for ConcatToString {
     const NAME: &'static str = "ConcatToString";
     const INSTRUCTION: &'static str = "INST - ConcatToString";
 
-    fn execute(context: &mut Context<'_>) -> JsResult<ShouldExit> {
+    fn execute(context: &mut Context<'_>) -> CompletionType {
         let value_count = context.vm.read::<u32>();
         let mut strings = Vec::with_capacity(value_count as usize);
         for _ in 0..value_count {
-            strings.push(context.vm.pop().to_string(context)?);
+            strings.push(ok_or_throw_completion!(
+                context.vm.pop().to_string(context),
+                context
+            ));
         }
         strings.reverse();
         let s = JsString::concat_array(
@@ -28,6 +31,6 @@ impl Operation for ConcatToString {
                 .collect::<Vec<&[u16]>>(),
         );
         context.vm.push(s);
-        Ok(ShouldExit::False)
+        CompletionType::Normal
     }
 }

@@ -1,7 +1,7 @@
 use crate::{
     builtins::iterable::IteratorHint,
-    vm::{opcode::Operation, ShouldExit},
-    Context, JsResult,
+    vm::{ok_or_throw_completion, opcode::Operation, CompletionType},
+    Context,
 };
 
 /// `InitIterator` implements the Opcode Operation for `Opcode::InitIterator`
@@ -15,13 +15,13 @@ impl Operation for InitIterator {
     const NAME: &'static str = "InitIterator";
     const INSTRUCTION: &'static str = "INST - InitIterator";
 
-    fn execute(context: &mut Context<'_>) -> JsResult<ShouldExit> {
+    fn execute(context: &mut Context<'_>) -> CompletionType {
         let object = context.vm.pop();
-        let iterator = object.get_iterator(context, None, None)?;
+        let iterator = ok_or_throw_completion!(object.get_iterator(context, None, None), context);
         context.vm.push(iterator.iterator().clone());
         context.vm.push(iterator.next_method().clone());
         context.vm.push(iterator.done());
-        Ok(ShouldExit::False)
+        CompletionType::Normal
     }
 }
 
@@ -36,12 +36,15 @@ impl Operation for InitIteratorAsync {
     const NAME: &'static str = "InitIteratorAsync";
     const INSTRUCTION: &'static str = "INST - InitIteratorAsync";
 
-    fn execute(context: &mut Context<'_>) -> JsResult<ShouldExit> {
+    fn execute(context: &mut Context<'_>) -> CompletionType {
         let object = context.vm.pop();
-        let iterator = object.get_iterator(context, Some(IteratorHint::Async), None)?;
+        let iterator = ok_or_throw_completion!(
+            object.get_iterator(context, Some(IteratorHint::Async), None),
+            context
+        );
         context.vm.push(iterator.iterator().clone());
         context.vm.push(iterator.next_method().clone());
         context.vm.push(iterator.done());
-        Ok(ShouldExit::False)
+        CompletionType::Normal
     }
 }

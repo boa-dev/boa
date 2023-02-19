@@ -1,6 +1,6 @@
 use crate::{
-    vm::{opcode::Operation, ShouldExit},
-    Context, JsResult,
+    vm::{opcode::Operation, CompletionType},
+    Context,
 };
 
 /// `Yield` implements the Opcode Operation for `Opcode::Yield`
@@ -14,7 +14,7 @@ impl Operation for Yield {
     const NAME: &'static str = "Yield";
     const INSTRUCTION: &'static str = "INST - Yield";
 
-    fn execute(_context: &mut Context<'_>) -> JsResult<ShouldExit> {
-        Ok(ShouldExit::Yield)
+    fn execute(_context: &mut Context<'_>) -> CompletionType {
+        CompletionType::Return
     }
 }

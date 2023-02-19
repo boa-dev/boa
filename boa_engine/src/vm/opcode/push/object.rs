@@ -1,7 +1,7 @@
 use crate::{
     object::JsObject,
-    vm::{opcode::Operation, ShouldExit},
-    Context, JsResult,
+    vm::{opcode::Operation, CompletionType},
+    Context,
 };
 
 /// `PushEmptyObject` implements the Opcode Operation for `Opcode::PushEmptyObject`
@@ -15,9 +15,9 @@ impl Operation for PushEmptyObject {
     const NAME: &'static str = "PushEmptyObject";
     const INSTRUCTION: &'static str = "INST - PushEmptyObject";
 
-    fn execute(context: &mut Context<'_>) -> JsResult<ShouldExit> {
+    fn execute(context: &mut Context<'_>) -> CompletionType {
         let o = JsObject::with_object_proto(context);
         context.vm.push(o);
-        Ok(ShouldExit::False)
+        CompletionType::Normal
     }
 }

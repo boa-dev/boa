@@ -1,6 +1,6 @@
 use crate::{
-    vm::{call_frame::EnvStackEntry, opcode::Operation, ShouldExit},
-    Context, JsResult,
+    vm::{call_frame::EnvStackEntry, opcode::Operation, CompletionType},
+    Context,
 };
 
 /// `TryStart` implements the Opcode Operation for `Opcode::TryStart`
@@ -14,7 +14,7 @@ impl Operation for TryStart {
     const NAME: &'static str = "TryStart";
     const INSTRUCTION: &'static str = "INST - TryStart";
 
-    fn execute(context: &mut Context<'_>) -> JsResult<ShouldExit> {
+    fn execute(context: &mut Context<'_>) -> CompletionType {
         let catch = context.vm.read::<u32>();
         let finally = context.vm.read::<u32>();
 
@@ -33,7 +33,7 @@ impl Operation for TryStart {
             .env_stack
             .push(EnvStackEntry::new(catch, finally).with_try_flag());
 
-        Ok(ShouldExit::False)
+        CompletionType::Normal
     }
 }
 
@@ -48,7 +48,7 @@ impl Operation for TryEnd {
     const NAME: &'static str = "TryEnd";
     const INSTRUCTION: &'static str = "INST - TryEnd";
 
-    fn execute(context: &mut Context<'_>) -> JsResult<ShouldExit> {
+    fn execute(context: &mut Context<'_>) -> CompletionType {
         let mut envs_to_pop = 0_usize;
         while let Some(env_entry) = context.vm.frame_mut().env_stack.pop() {
             envs_to_pop += env_entry.env_num();
@@ -61,6 +61,6 @@ impl Operation for TryEnd {
         let env_truncation_len = context.realm.environments.len().saturating_sub(envs_to_pop);
         context.realm.environments.truncate(env_truncation_len);
 
-        Ok(ShouldExit::False)
+        CompletionType::Normal
     }
 }

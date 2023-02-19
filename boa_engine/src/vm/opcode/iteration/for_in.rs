@@ -3,8 +3,8 @@ use crate::{
     error::JsNativeError,
     js_string,
     property::PropertyDescriptor,
-    vm::{opcode::Operation, ShouldExit},
-    Context, JsResult, JsValue,
+    vm::{ok_or_throw_completion, opcode::Operation, CompletionType},
+    Context, JsValue,
 };
 
 /// `ForInLoopInitIterator` implements the Opcode Operation for `Opcode::ForInLoopInitIterator`
@@ -18,28 +18,31 @@ impl Operation for ForInLoopInitIterator {
     const NAME: &'static str = "ForInLoopInitIterator";
     const INSTRUCTION: &'static str = "INST - ForInLoopInitIterator";
 
-    fn execute(context: &mut Context<'_>) -> JsResult<ShouldExit> {
+    fn execute(context: &mut Context<'_>) -> CompletionType {
         let address = context.vm.read::<u32>();
 
         let object = context.vm.pop();
         if object.is_null_or_undefined() {
             context.vm.frame_mut().pc = address as usize;
-            return Ok(ShouldExit::False);
+            return CompletionType::Normal;
         }
 
-        let object = object.to_object(context)?;
+        let object = ok_or_throw_completion!(object.to_object(context), context);
         let iterator = ForInIterator::create_for_in_iterator(JsValue::new(object), context);
-        let next_method = iterator
-            .get_property(js_string!("next"))
-            .as_ref()
-            .map(PropertyDescriptor::expect_value)
-            .cloned()
-            .ok_or_else(|| JsNativeError::typ().with_message("Could not find property `next`"))?;
+        let next_method = ok_or_throw_completion!(
+            iterator
+                .get_property(js_string!("next"))
+                .as_ref()
+                .map(PropertyDescriptor::expect_value)
+                .cloned()
+                .ok_or_else(|| JsNativeError::typ().with_message("Could not find property `next`")),
+            context
+        );
 
         context.vm.push(iterator);
         context.vm.push(next_method);
         context.vm.push(false);
-        Ok(ShouldExit::False)
+        CompletionType::Normal
     }
 }
 
@@ -54,7 +57,7 @@ impl Operation for ForInLoopNext {
     const NAME: &'static str = "ForInLoopInitIterator";
     const INSTRUCTION: &'static str = "INST - ForInLoopInitIterator";
 
-    fn execute(context: &mut Context<'_>) -> JsResult<ShouldExit> {
+    fn execute(context: &mut Context<'_>) -> CompletionType {
         let address = context.vm.read::<u32>();
 
         let done = context
@@ -67,11 +70,11 @@ impl Operation for ForInLoopNext {
         let iterator = iterator.as_object().expect("iterator was not an object");
 
         let iterator_record = IteratorRecord::new(iterator.clone(), next_method.clone(), done);
-        if let Some(next) = iterator_record.step(context)? {
+        if let Some(next) = ok_or_throw_completion!(iterator_record.step(context), context) {
             context.vm.push(iterator.clone());
             context.vm.push(next_method);
             context.vm.push(done);
-            let value = next.value(context)?;
+            let value = ok_or_throw_completion!(next.value(context), context);
             context.vm.push(value);
         } else {
             context.vm.frame_mut().pc = address as usize;
@@ -81,6 +84,6 @@ impl Operation for ForInLoopNext {
             context.vm.push(next_method);
             context.vm.push(done);
         }
-        Ok(ShouldExit::False)
+        CompletionType::Normal
     }
 }

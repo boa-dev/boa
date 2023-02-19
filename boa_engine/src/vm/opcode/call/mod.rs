@@ -1,8 +1,8 @@
 use crate::{
     builtins::function::Function,
     error::JsNativeError,
-    vm::{opcode::Operation, ShouldExit},
-    Context, JsResult, JsValue,
+    vm::{ok_or_throw_completion, opcode::Operation, throw_completion, CompletionType},
+    Context, JsError, JsValue,
 };
 
 /// `CallEval` implements the Opcode Operation for `Opcode::CallEval`
@@ -16,11 +16,15 @@ impl Operation for CallEval {
     const NAME: &'static str = "CallEval";
     const INSTRUCTION: &'static str = "INST - CallEval";
 
-    fn execute(context: &mut Context<'_>) -> JsResult<ShouldExit> {
+    fn execute(context: &mut Context<'_>) -> CompletionType {
         if context.vm.stack_size_limit <= context.vm.stack.len() {
-            return Err(JsNativeError::range()
-                .with_message("Maximum call stack size exceeded")
-                .into());
+            throw_completion!(
+                JsNativeError::range()
+                    .with_message("Maximum call stack size exceeded")
+                    .into(),
+                JsError,
+                context
+            )
         }
         let argument_count = context.vm.read::<u32>();
         let mut arguments = Vec::with_capacity(argument_count as usize);
@@ -35,9 +39,13 @@ impl Operation for CallEval {
         let object = match func {
             JsValue::Object(ref object) if object.is_callable() => object.clone(),
             _ => {
-                return Err(JsNativeError::typ()
-                    .with_message("not a callable function")
-                    .into())
+                throw_completion!(
+                    JsNativeError::typ()
+                        .with_message("not a callable function")
+                        .into(),
+                    JsError,
+                    context
+                )
             }
         };
 
@@ -48,16 +56,20 @@ impl Operation for CallEval {
 
         if eval {
             if let Some(x) = arguments.get(0) {
-                let result = crate::builtins::eval::Eval::perform_eval(x, true, strict, context)?;
+                let result = ok_or_throw_completion!(
+                    crate::builtins::eval::Eval::perform_eval(x, true, strict, context),
+                    context
+                );
                 context.vm.push(result);
             } else {
                 context.vm.push(JsValue::Undefined);
             }
         } else {
-            let result = object.__call__(&this, &arguments, context)?;
+            let result =
+                ok_or_throw_completion!(object.__call__(&this, &arguments, context), context);
             context.vm.push(result);
         }
-        Ok(ShouldExit::False)
+        CompletionType::Normal
     }
 }
 
@@ -72,11 +84,15 @@ impl Operation for CallEvalSpread {
     const NAME: &'static str = "CallEvalSpread";
     const INSTRUCTION: &'static str = "INST - CallEvalSpread";
 
-    fn execute(context: &mut Context<'_>) -> JsResult<ShouldExit> {
+    fn execute(context: &mut Context<'_>) -> CompletionType {
         if context.vm.stack_size_limit <= context.vm.stack.len() {
-            return Err(JsNativeError::range()
-                .with_message("Maximum call stack size exceeded")
-                .into());
+            throw_completion!(
+                JsNativeError::range()
+                    .with_message("Maximum call stack size exceeded")
+                    .into(),
+                JsError,
+                context
+            )
         }
 
         // Get the arguments that are stored as an array object on the stack.
@@ -97,9 +113,13 @@ impl Operation for CallEvalSpread {
         let object = match func {
             JsValue::Object(ref object) if object.is_callable() => object.clone(),
             _ => {
-                return Err(JsNativeError::typ()
-                    .with_message("not a callable function")
-                    .into())
+                throw_completion!(
+                    JsNativeError::typ()
+                        .with_message("not a callable function")
+                        .into(),
+                    JsError,
+                    context
+                );
             }
         };
 
@@ -110,16 +130,20 @@ impl Operation for CallEvalSpread {
 
         if eval {
             if let Some(x) = arguments.get(0) {
-                let result = crate::builtins::eval::Eval::perform_eval(x, true, strict, context)?;
+                let result = ok_or_throw_completion!(
+                    crate::builtins::eval::Eval::perform_eval(x, true, strict, context),
+                    context
+                );
                 context.vm.push(result);
             } else {
                 context.vm.push(JsValue::Undefined);
             }
         } else {
-            let result = object.__call__(&this, &arguments, context)?;
+            let result =
+                ok_or_throw_completion!(object.__call__(&this, &arguments, context), context);
             context.vm.push(result);
         }
-        Ok(ShouldExit::False)
+        CompletionType::Normal
     }
 }
 
@@ -134,11 +158,15 @@ impl Operation for Call {
     const NAME: &'static str = "Call";
     const INSTRUCTION: &'static str = "INST - Call";
 
-    fn execute(context: &mut Context<'_>) -> JsResult<ShouldExit> {
+    fn execute(context: &mut Context<'_>) -> CompletionType {
         if context.vm.stack_size_limit <= context.vm.stack.len() {
-            return Err(JsNativeError::range()
-                .with_message("Maximum call stack size exceeded")
-                .into());
+            throw_completion!(
+                JsNativeError::range()
+                    .with_message("Maximum call stack size exceeded")
+                    .into(),
+                JsError,
+                context
+            );
         }
         let argument_count = context.vm.read::<u32>();
         let mut arguments = Vec::with_capacity(argument_count as usize);
@@ -153,16 +181,20 @@ impl Operation for Call {
         let object = match func {
             JsValue::Object(ref object) if object.is_callable() => object.clone(),
             _ => {
-                return Err(JsNativeError::typ()
-                    .with_message("not a callable function")
-                    .into())
+                throw_completion!(
+                    JsNativeError::typ()
+                        .with_message("not a callable function")
+                        .into(),
+                    JsError,
+                    context
+                );
             }
         };
 
-        let result = object.__call__(&this, &arguments, context)?;
+        let result = ok_or_throw_completion!(object.__call__(&this, &arguments, context), context);
 
         context.vm.push(result);
-        Ok(ShouldExit::False)
+        CompletionType::Normal
     }
 }
 
@@ -173,11 +205,15 @@ impl Operation for CallSpread {
     const NAME: &'static str = "CallSpread";
     const INSTRUCTION: &'static str = "INST - CallSpread";
 
-    fn execute(context: &mut Context<'_>) -> JsResult<ShouldExit> {
+    fn execute(context: &mut Context<'_>) -> CompletionType {
         if context.vm.stack_size_limit <= context.vm.stack.len() {
-            return Err(JsNativeError::range()
-                .with_message("Maximum call stack size exceeded")
-                .into());
+            throw_completion!(
+                JsNativeError::range()
+                    .with_message("Maximum call stack size exceeded")
+                    .into(),
+                JsError,
+                context
+            );
         }
 
         // Get the arguments that are stored as an array object on the stack.
@@ -198,15 +234,19 @@ impl Operation for CallSpread {
         let object = match func {
             JsValue::Object(ref object) if object.is_callable() => object.clone(),
             _ => {
-                return Err(JsNativeError::typ()
-                    .with_message("not a callable function")
-                    .into())
+                throw_completion!(
+                    JsNativeError::typ()
+                        .with_message("not a callable function")
+                        .into(),
+                    JsError,
+                    context
+                )
             }
         };
 
-        let result = object.__call__(&this, &arguments, context)?;
+        let result = ok_or_throw_completion!(object.__call__(&this, &arguments, context), context);
 
         context.vm.push(result);
-        Ok(ShouldExit::False)
+        CompletionType::Normal
     }
 }

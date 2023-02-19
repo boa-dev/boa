@@ -1,8 +1,8 @@
 use crate::{
     builtins::function::set_function_name,
     property::{PropertyDescriptor, PropertyKey},
-    vm::{opcode::Operation, ShouldExit},
-    Context, JsNativeError, JsResult, JsString, JsValue,
+    vm::{ok_or_throw_completion, opcode::Operation, throw_completion, CompletionType},
+    Context, JsError, JsNativeError, JsString, JsValue,
 };
 
 /// `SetPropertyByName` implements the Opcode Operation for `Opcode::SetPropertyByName`
@@ -16,7 +16,7 @@ impl Operation for SetPropertyByName {
     const NAME: &'static str = "SetPropertyByName";
     const INSTRUCTION: &'static str = "INST - SetPropertyByName";
 
-    fn execute(context: &mut Context<'_>) -> JsResult<ShouldExit> {
+    fn execute(context: &mut Context<'_>) -> CompletionType {
         let index = context.vm.read::<u32>();
 
         let value = context.vm.pop();
@@ -25,21 +25,28 @@ impl Operation for SetPropertyByName {
         let object = if let Some(object) = object.as_object() {
             object.clone()
         } else {
-            object.to_object(context)?
+            ok_or_throw_completion!(object.to_object(context), context)
         };
 
         let name = context.vm.frame().code_block.names[index as usize];
         let name: PropertyKey = context.interner().resolve_expect(name.sym()).utf16().into();
 
         //object.set(name, value.clone(), context.vm.frame().code.strict, context)?;
-        let succeeded = object.__set__(name.clone(), value.clone(), receiver, context)?;
+        let succeeded = ok_or_throw_completion!(
+            object.__set__(name.clone(), value.clone(), receiver, context),
+            context
+        );
         if !succeeded && context.vm.frame().code_block.strict {
-            return Err(JsNativeError::typ()
-                .with_message(format!("cannot set non-writable property: {name}"))
-                .into());
+            throw_completion!(
+                JsNativeError::typ()
+                    .with_message(format!("cannot set non-writable property: {name}"))
+                    .into(),
+                JsError,
+                context
+            );
         }
         context.vm.stack.push(value);
-        Ok(ShouldExit::False)
+        CompletionType::Normal
     }
 }
 
@@ -54,25 +61,28 @@ impl Operation for SetPropertyByValue {
     const NAME: &'static str = "SetPropertyByValue";
     const INSTRUCTION: &'static str = "INST - SetPropertyByValue";
 
-    fn execute(context: &mut Context<'_>) -> JsResult<ShouldExit> {
+    fn execute(context: &mut Context<'_>) -> CompletionType {
         let value = context.vm.pop();
         let key = context.vm.pop();
         let object = context.vm.pop();
         let object = if let Some(object) = object.as_object() {
             object.clone()
         } else {
-            object.to_object(context)?
+            ok_or_throw_completion!(object.to_object(context), context)
         };
 
-        let key = key.to_property_key(context)?;
-        object.set(
-            key,
-            value.clone(),
-            context.vm.frame().code_block.strict,
-            context,
-        )?;
+        let key = ok_or_throw_completion!(key.to_property_key(context), context);
+        ok_or_throw_completion!(
+            object.set(
+                key,
+                value.clone(),
+                context.vm.frame().code_block.strict,
+                context,
+            ),
+            context
+        );
         context.vm.stack.push(value);
-        Ok(ShouldExit::False)
+        CompletionType::Normal
     }
 }
 
@@ -87,33 +97,35 @@ impl Operation for SetPropertyGetterByName {
     const NAME: &'static str = "SetPropertyGetterByName";
     const INSTRUCTION: &'static str = "INST - SetPropertyGetterByName";
 
-    fn execute(context: &mut Context<'_>) -> JsResult<ShouldExit> {
+    fn execute(context: &mut Context<'_>) -> CompletionType {
         let index = context.vm.read::<u32>();
         let value = context.vm.pop();
         let object = context.vm.pop();
-        let object = object.to_object(context)?;
+        let object = ok_or_throw_completion!(object.to_object(context), context);
         let name = context.vm.frame().code_block.names[index as usize];
         let name = context
             .interner()
             .resolve_expect(name.sym())
             .into_common::<JsString>(false)
             .into();
-        let set = object
-            .__get_own_property__(&name, context)?
+        let set = ok_or_throw_completion!(object.__get_own_property__(&name, context), context)
             .as_ref()
             .and_then(PropertyDescriptor::set)
             .cloned();
-        object.__define_own_property__(
-            &name,
-            PropertyDescriptor::builder()
-                .maybe_get(Some(value))
-                .maybe_set(set)
-                .enumerable(true)
-                .configurable(true)
-                .build(),
-            context,
-        )?;
-        Ok(ShouldExit::False)
+        ok_or_throw_completion!(
+            object.__define_own_property__(
+                &name,
+                PropertyDescriptor::builder()
+                    .maybe_get(Some(value))
+                    .maybe_set(set)
+                    .enumerable(true)
+                    .configurable(true)
+                    .build(),
+                context,
+            ),
+            context
+        );
+        CompletionType::Normal
     }
 }
 
@@ -128,28 +140,30 @@ impl Operation for SetPropertyGetterByValue {
     const NAME: &'static str = "SetPropertyGetterByValue";
     const INSTRUCTION: &'static str = "INST - SetPropertyGetterByValue";
 
-    fn execute(context: &mut Context<'_>) -> JsResult<ShouldExit> {
+    fn execute(context: &mut Context<'_>) -> CompletionType {
         let value = context.vm.pop();
         let key = context.vm.pop();
         let object = context.vm.pop();
-        let object = object.to_object(context)?;
-        let name = key.to_property_key(context)?;
-        let set = object
-            .__get_own_property__(&name, context)?
+        let object = ok_or_throw_completion!(object.to_object(context), context);
+        let name = ok_or_throw_completion!(key.to_property_key(context), context);
+        let set = ok_or_throw_completion!(object.__get_own_property__(&name, context), context)
             .as_ref()
             .and_then(PropertyDescriptor::set)
             .cloned();
-        object.__define_own_property__(
-            &name,
-            PropertyDescriptor::builder()
-                .maybe_get(Some(value))
-                .maybe_set(set)
-                .enumerable(true)
-                .configurable(true)
-                .build(),
-            context,
-        )?;
-        Ok(ShouldExit::False)
+        ok_or_throw_completion!(
+            object.__define_own_property__(
+                &name,
+                PropertyDescriptor::builder()
+                    .maybe_get(Some(value))
+                    .maybe_set(set)
+                    .enumerable(true)
+                    .configurable(true)
+                    .build(),
+                context,
+            ),
+            context
+        );
+        CompletionType::Normal
     }
 }
 
@@ -164,33 +178,35 @@ impl Operation for SetPropertySetterByName {
     const NAME: &'static str = "SetPropertySetterByName";
     const INSTRUCTION: &'static str = "INST - SetPropertySetterByName";
 
-    fn execute(context: &mut Context<'_>) -> JsResult<ShouldExit> {
+    fn execute(context: &mut Context<'_>) -> CompletionType {
         let index = context.vm.read::<u32>();
         let value = context.vm.pop();
         let object = context.vm.pop();
-        let object = object.to_object(context)?;
+        let object = ok_or_throw_completion!(object.to_object(context), context);
         let name = context.vm.frame().code_block.names[index as usize];
         let name = context
             .interner()
             .resolve_expect(name.sym())
             .into_common::<JsString>(false)
             .into();
-        let get = object
-            .__get_own_property__(&name, context)?
+        let get = ok_or_throw_completion!(object.__get_own_property__(&name, context), context)
             .as_ref()
             .and_then(PropertyDescriptor::get)
             .cloned();
-        object.__define_own_property__(
-            &name,
-            PropertyDescriptor::builder()
-                .maybe_set(Some(value))
-                .maybe_get(get)
-                .enumerable(true)
-                .configurable(true)
-                .build(),
-            context,
-        )?;
-        Ok(ShouldExit::False)
+        ok_or_throw_completion!(
+            object.__define_own_property__(
+                &name,
+                PropertyDescriptor::builder()
+                    .maybe_set(Some(value))
+                    .maybe_get(get)
+                    .enumerable(true)
+                    .configurable(true)
+                    .build(),
+                context,
+            ),
+            context
+        );
+        CompletionType::Normal
     }
 }
 
@@ -205,28 +221,30 @@ impl Operation for SetPropertySetterByValue {
     const NAME: &'static str = "SetPropertySetterByValue";
     const INSTRUCTION: &'static str = "INST - SetPropertySetterByValue";
 
-    fn execute(context: &mut Context<'_>) -> JsResult<ShouldExit> {
+    fn execute(context: &mut Context<'_>) -> CompletionType {
         let value = context.vm.pop();
         let key = context.vm.pop();
         let object = context.vm.pop();
-        let object = object.to_object(context)?;
-        let name = key.to_property_key(context)?;
-        let get = object
-            .__get_own_property__(&name, context)?
+        let object = ok_or_throw_completion!(object.to_object(context), context);
+        let name = ok_or_throw_completion!(key.to_property_key(context), context);
+        let get = ok_or_throw_completion!(object.__get_own_property__(&name, context), context)
             .as_ref()
             .and_then(PropertyDescriptor::get)
             .cloned();
-        object.__define_own_property__(
-            &name,
-            PropertyDescriptor::builder()
-                .maybe_set(Some(value))
-                .maybe_get(get)
-                .enumerable(true)
-                .configurable(true)
-                .build(),
-            context,
-        )?;
-        Ok(ShouldExit::False)
+        ok_or_throw_completion!(
+            object.__define_own_property__(
+                &name,
+                PropertyDescriptor::builder()
+                    .maybe_set(Some(value))
+                    .maybe_get(get)
+                    .enumerable(true)
+                    .configurable(true)
+                    .build(),
+                context,
+            ),
+            context
+        );
+        CompletionType::Normal
     }
 }
 
@@ -241,7 +259,7 @@ impl Operation for SetFunctionName {
     const NAME: &'static str = "SetFunctionName";
     const INSTRUCTION: &'static str = "INST - SetFunctionName";
 
-    fn execute(context: &mut Context<'_>) -> JsResult<ShouldExit> {
+    fn execute(context: &mut Context<'_>) -> CompletionType {
         let prefix = context.vm.read::<u8>();
         let function = context.vm.pop();
         let name = context.vm.pop();
@@ -266,6 +284,6 @@ impl Operation for SetFunctionName {
         );
 
         context.vm.stack.push(function);
-        Ok(ShouldExit::False)
+        CompletionType::Normal
     }
 }

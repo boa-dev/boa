@@ -2,8 +2,8 @@ use crate::{
     object::PrivateElement,
     property::PropertyDescriptor,
     string::utf16,
-    vm::{opcode::Operation, ShouldExit},
-    Context, JsResult,
+    vm::{opcode::Operation, CompletionType},
+    Context,
 };
 
 /// `PushClassPrivateMethod` implements the Opcode Operation for `Opcode::PushClassPrivateMethod`
@@ -17,7 +17,7 @@ impl Operation for PushClassPrivateMethod {
     const NAME: &'static str = "PushClassPrivateMethod";
     const INSTRUCTION: &'static str = "INST - PushClassPrivateMethod";
 
-    fn execute(context: &mut Context<'_>) -> JsResult<ShouldExit> {
+    fn execute(context: &mut Context<'_>) -> CompletionType {
         let index = context.vm.read::<u32>();
         let name = context.vm.frame().code_block.private_names[index as usize];
         let method = context.vm.pop();
@@ -47,7 +47,7 @@ impl Operation for PushClassPrivateMethod {
             .as_function_mut()
             .expect("method must be function object");
         function.set_class_object(class_object.clone());
-        Ok(ShouldExit::False)
+        CompletionType::Normal
     }
 }
 
@@ -62,7 +62,7 @@ impl Operation for PushClassPrivateGetter {
     const NAME: &'static str = "PushClassPrivateGetter";
     const INSTRUCTION: &'static str = "INST - PushClassPrivateGetter";
 
-    fn execute(context: &mut Context<'_>) -> JsResult<ShouldExit> {
+    fn execute(context: &mut Context<'_>) -> CompletionType {
         let index = context.vm.read::<u32>();
         let name = context.vm.frame().code_block.private_names[index as usize];
         let getter = context.vm.pop();
@@ -85,7 +85,7 @@ impl Operation for PushClassPrivateGetter {
             .as_function_mut()
             .expect("getter must be function object");
         function.set_class_object(class_object.clone());
-        Ok(ShouldExit::False)
+        CompletionType::Normal
     }
 }
 
@@ -100,7 +100,7 @@ impl Operation for PushClassPrivateSetter {
     const NAME: &'static str = "PushClassPrivateSetter";
     const INSTRUCTION: &'static str = "INST - PushClassPrivateSetter";
 
-    fn execute(context: &mut Context<'_>) -> JsResult<ShouldExit> {
+    fn execute(context: &mut Context<'_>) -> CompletionType {
         let index = context.vm.read::<u32>();
         let name = context.vm.frame().code_block.private_names[index as usize];
         let setter = context.vm.pop();
@@ -123,6 +123,6 @@ impl Operation for PushClassPrivateSetter {
             .as_function_mut()
             .expect("setter must be function object");
         function.set_class_object(class_object.clone());
-        Ok(ShouldExit::False)
+        CompletionType::Normal
     }
 }

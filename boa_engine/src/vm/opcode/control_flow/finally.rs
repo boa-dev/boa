@@ -1,6 +1,6 @@
 use crate::{
-    vm::{opcode::Operation, ShouldExit},
-    Context, JsError, JsResult,
+    vm::{opcode::Operation, CompletionType},
+    Context,
 };
 
 /// `FinallyStart` implements the Opcode Operation for `Opcode::FinallyStart`
@@ -14,7 +14,7 @@ impl Operation for FinallyStart {
     const NAME: &'static str = "FinallyStart";
     const INSTRUCTION: &'static str = "INST - FinallyStart";
 
-    fn execute(context: &mut Context<'_>) -> JsResult<ShouldExit> {
+    fn execute(context: &mut Context<'_>) -> CompletionType {
         let exit = context.vm.read::<u32>();
 
         let finally_env = context
@@ -25,7 +25,7 @@ impl Operation for FinallyStart {
             .expect("EnvStackEntries must exist");
 
         finally_env.set_exit_address(exit);
-        Ok(ShouldExit::False)
+        CompletionType::Normal
     }
 }
 
@@ -40,7 +40,7 @@ impl Operation for FinallyEnd {
     const NAME: &'static str = "FinallyEnd";
     const INSTRUCTION: &'static str = "INST - FinallyEnd";
 
-    fn execute(context: &mut Context<'_>) -> JsResult<ShouldExit> {
+    fn execute(context: &mut Context<'_>) -> CompletionType {
         let finally_candidates = context.vm.frame().env_stack.iter().filter(|env| {
             env.is_finally_env() && context.vm.frame().pc < (env.start_address() as usize)
         });
@@ -137,17 +137,17 @@ impl Operation for FinallyEnd {
                     .saturating_sub(current_stack.env_num());
                 context.realm.environments.truncate(env_truncation_len);
 
-                return Err(JsError::from_opaque(context.vm.pop()));
+                return CompletionType::Throw;
             }
             Some(record) if record.is_return() => {
                 // TODO: Implement logic for return completions (Should probably function similar to throw)
-                return Ok(ShouldExit::True);
+                return CompletionType::Return;
             }
             _ => {
                 context.vm.frame_mut().env_stack.pop();
             }
         }
 
-        Ok(ShouldExit::False)
+        CompletionType::Normal
     }
 }
