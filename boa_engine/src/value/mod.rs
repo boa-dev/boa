@@ -21,9 +21,9 @@ use crate::{
         Number,
     },
     error::JsNativeError,
-    js_string,
     object::{JsObject, ObjectData},
     property::{PropertyDescriptor, PropertyKey},
+    string::utf16,
     symbol::JsSymbol,
     Context, JsBigInt, JsResult, JsString,
 };
@@ -526,7 +526,7 @@ impl JsValue {
                     JsObject::from_proto_and_data(prototype, ObjectData::string(string.clone()));
                 // Make sure the correct length is set on our new string object
                 object.insert_property(
-                    js_string!("length"),
+                    utf16!("length"),
                     PropertyDescriptor::builder()
                         .value(string.len())
                         .writable(false)
