@@ -7,7 +7,7 @@
 use crate::{
     builtins::async_generator::{AsyncGenerator, AsyncGeneratorState},
     vm::{
-        call_frame::AbruptCompletionRecord, code_block::Readable,
+        code_block::Readable,
         completion_record::CompletionRecord,
     },
     Context, JsError, JsValue,
@@ -248,10 +248,10 @@ impl Context<'_> {
                 }
                 CompletionType::Throw => {
                     // TODO: Adapt the below fuzz for the new execution loop
-                    let error = self.vm.pop();
                     #[cfg(feature = "fuzz")]
                     {
-                        let throw = if let Some(native_error) =
+                        let error = self.vm.pop();
+                        if let Some(native_error) =
                             JsError::from_opaque(error).as_native()
                         {
                             // If we hit the execution step limit, bubble up the error to the
@@ -262,116 +262,17 @@ impl Context<'_> {
                                 return CompletionType::Throw;
                             }
                         };
-                    }
-
-                    // 1. Find the viable catch and finally blocks
-                    let current_address = self.vm.frame().pc;
-                    let viable_catch_candidates =
-                        self.vm.frame().env_stack.iter().filter(|env| {
-                            env.is_try_env() && env.start_address() < env.exit_address()
-                        });
-
-                    if let Some(candidate) = viable_catch_candidates.last() {
-                        let catch_target = candidate.start_address();
-
-                        let mut env_to_pop = 0;
-                        let mut target_address = u32::MAX;
-                        while self.vm.frame().env_stack.len() > 1 {
-                            let env_entry = self
-                                .vm
-                                .frame_mut()
-                                .env_stack
-                                .last()
-                                .expect("EnvStackEntries must exist");
-
-                            if env_entry.is_try_env()
-                                && env_entry.start_address() < env_entry.exit_address()
-                            {
-                                target_address = env_entry.start_address();
-                                env_to_pop += env_entry.env_num();
-                                self.vm.frame_mut().env_stack.pop();
-                                break;
-                            } else if env_entry.is_finally_env() {
-                                if current_address > (env_entry.start_address() as usize) {
-                                    target_address = env_entry.exit_address();
-                                } else {
-                                    target_address = env_entry.start_address();
-                                }
-                                break;
-                            }
-                            env_to_pop += env_entry.env_num();
-                            self.vm.frame_mut().env_stack.pop();
-                        }
-
-                        let env_truncation_len =
-                            self.realm.environments.len().saturating_sub(env_to_pop);
-                        self.realm.environments.truncate(env_truncation_len);
-
-                        if target_address == catch_target {
-                            self.vm.frame_mut().pc = catch_target as usize;
-                        } else {
-                            self.vm.frame_mut().pc = target_address as usize;
-                        };
-
-                        for _ in 0..self.vm.frame().pop_on_return {
-                            self.vm.pop();
-                        }
-
-                        self.vm.frame_mut().pop_on_return = 0;
-                        let record =
-                            AbruptCompletionRecord::new_throw().with_initial_target(catch_target);
-                        self.vm.frame_mut().abrupt_completion = Some(record);
                         self.vm.push(error);
-                        continue;
                     }
 
-                    let mut env_to_pop = 0;
-                    let mut target_address = None;
-                    let mut env_stack_to_pop = 0;
-                    for env_entry in self.vm.frame_mut().env_stack.iter_mut().rev() {
-                        if env_entry.is_finally_env() {
-                            if (env_entry.start_address() as usize) < current_address {
-                                target_address = Some(env_entry.exit_address() as usize);
-                            } else {
-                                target_address = Some(env_entry.start_address() as usize);
-                            }
-                            break;
-                        };
-
-                        env_to_pop += env_entry.env_num();
-                        if env_entry.is_global_env() {
-                            env_entry.clear_env_num();
-                            break;
-                        };
-
-                        env_stack_to_pop += 1;
-                    }
-
-                    if let Some(address) = target_address {
-                        for _ in 0..env_stack_to_pop {
-                            self.vm.frame_mut().env_stack.pop();
+                    // If this frame has not evaluated the throw as an AbruptCompletion, then evaluate it
+                    if self.vm.frame().abrupt_completion.is_none() {
+                        let evaluation = Opcode::Throw.execute(self);
+                        if evaluation == CompletionType::Normal {
+                            continue;
                         }
-
-                        let env_truncation_len =
-                            self.realm.environments.len().saturating_sub(env_to_pop);
-                        self.realm.environments.truncate(env_truncation_len);
-
-                        let previous_stack_size = self
-                            .vm
-                            .stack
-                            .len()
-                            .saturating_sub(self.vm.frame().pop_on_return);
-                        self.vm.stack.truncate(previous_stack_size);
-                        self.vm.frame_mut().pop_on_return = 0;
-
-                        let record = AbruptCompletionRecord::new_throw();
-                        self.vm.frame_mut().abrupt_completion = Some(record);
-                        self.vm.frame_mut().pc = address;
-                        self.vm.push(error);
-                        continue;
                     }
 
-                    self.vm.push(error);
                     break CompletionType::Throw;
                 }
             }
@@ -405,6 +306,7 @@ impl Context<'_> {
             println!("\n");
         }
 
+        // Determine the execution result
         let execution_result = if execution_completion == CompletionType::Return {
             let result = self.vm.pop();
             self.vm.stack.truncate(self.vm.frame().fp);
@@ -417,6 +319,7 @@ impl Context<'_> {
             result
         };
 
+        // Evaluate frame as an AsyncGenerator
         if let Some(generator_object) = self.vm.frame().async_generator.clone() {
             let mut generator_object_mut = generator_object.borrow_mut();
             let generator = generator_object_mut
