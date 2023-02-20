@@ -873,12 +873,12 @@ impl JsObject {
                 );
 
                 let record = context.run();
-                context.vm.pop_frame().expect("must have frame");
 
+                context.vm.pop_frame().expect("must have frame");
                 std::mem::swap(&mut environments, &mut context.realm.environments);
                 environments.truncate(environments_len);
 
-                record.into()
+                record.convert(context)
             }
             Function::Async {
                 code,
@@ -1172,8 +1172,7 @@ impl JsObject {
                     }),
                 );
 
-                let result: JsResult<JsValue> = init_result.into();
-                result?;
+                init_result.convert(context)?;
 
                 Ok(generator.into())
             }
@@ -1328,8 +1327,7 @@ impl JsObject {
                     gen_context.call_frame.async_generator = Some(generator.clone());
                 }
 
-                let result: JsResult<JsValue> = init_result.into();
-                result?;
+                init_result.convert(context)?;
 
                 Ok(generator.into())
             }
@@ -1504,8 +1502,7 @@ impl JsObject {
                     environments.pop()
                 };
 
-                let conversion: JsResult<JsValue> = record.into();
-                let result = conversion?;
+                let result = record.convert(context)?;
 
                 if let Some(result) = result.as_object() {
                     Ok(result.clone())

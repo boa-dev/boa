@@ -191,7 +191,8 @@ impl Context<'_> {
             );
         }
 
-        let start_stack_size = self.vm.stack.len();
+        let stack_len = self.vm.stack.len();
+        self.vm.frame_mut().set_frame_pointer(stack_len);
 
         let execution_completion = loop {
             #[cfg(feature = "fuzz")]
@@ -241,18 +242,15 @@ impl Context<'_> {
 
             // 2. Evaluate the result of executing the instruction.
             match result {
-                CompletionType::Normal => {}
-                CompletionType::Return => match self.vm.frame().abrupt_completion {
-                    Some(abrupt_record) if abrupt_record.is_return() => {
-                        break CompletionType::Normal
-                    }
-                    _ => break CompletionType::Return,
-                },
+                CompletionType::Normal => {},
+                CompletionType::Return => {
+                    break CompletionType::Return;
+                }
                 CompletionType::Throw => {
                     // TODO: Adapt the below fuzz for the new execution loop
+                    let error = self.vm.pop();
                     #[cfg(feature = "fuzz")]
                     {
-                        let error = self.vm.pop();
                         let throw = if let Some(native_error) =
                             JsError::from_opaque(error).as_native()
                         {
@@ -264,7 +262,6 @@ impl Context<'_> {
                                 return CompletionType::Throw;
                             }
                         };
-                        self.vm.push(error);
                     }
 
                     // 1. Find the viable catch and finally blocks
@@ -324,6 +321,7 @@ impl Context<'_> {
                         let record =
                             AbruptCompletionRecord::new_throw().with_initial_target(catch_target);
                         self.vm.frame_mut().abrupt_completion = Some(record);
+                        self.vm.push(error);
                         continue;
                     }
 
@@ -369,9 +367,11 @@ impl Context<'_> {
                         let record = AbruptCompletionRecord::new_throw();
                         self.vm.frame_mut().abrupt_completion = Some(record);
                         self.vm.frame_mut().pc = address;
+                        self.vm.push(error);
                         continue;
                     }
 
+                    self.vm.push(error);
                     break CompletionType::Throw;
                 }
             }
@@ -405,11 +405,15 @@ impl Context<'_> {
             println!("\n");
         }
 
-        let execution_result = if self.vm.stack.len() <= start_stack_size {
+        let execution_result = if execution_completion == CompletionType::Return {
+            let result = self.vm.pop();
+            self.vm.stack.truncate(self.vm.frame().fp);
+            result
+        } else if self.vm.stack.len() <= self.vm.frame().fp {
             JsValue::undefined()
         } else {
             let result = self.vm.pop();
-            self.vm.stack.truncate(start_stack_size);
+            self.vm.stack.truncate(self.vm.frame().fp);
             result
         };
 
@@ -427,7 +431,9 @@ impl Context<'_> {
                 .expect("must have item in queue");
             drop(generator_object_mut);
 
-            if execution_completion == CompletionType::Normal && self.vm.frame().abrupt_completion.is_none() {
+            if execution_completion == CompletionType::Normal
+                && self.vm.frame().abrupt_completion.is_none()
+            {
                 AsyncGenerator::complete_step(&next, Ok(JsValue::undefined()), true, self);
             } else if execution_completion == CompletionType::Normal {
                 AsyncGenerator::complete_step(&next, Ok(execution_result), true, self);
@@ -444,6 +450,12 @@ impl Context<'_> {
             return CompletionRecord::new(CompletionType::Normal, JsValue::undefined());
         }
 
+        // Any valid return statement is re-evaluated as a normal completion vs. return (yield).
+        if execution_completion == CompletionType::Return
+            && self.vm.frame().abrupt_completion.is_some()
+        {
+            return CompletionRecord::new(CompletionType::Normal, execution_result);
+        }
         CompletionRecord::new(execution_completion, execution_result)
 
         /*

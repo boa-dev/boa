@@ -49,13 +49,7 @@ impl Operation for Continue {
         let new_record = AbruptCompletionRecord::new_continue().with_initial_target(target_address);
         context.vm.frame_mut().abrupt_completion = Some(new_record);
 
-        // 3. If a value exists on the stack, we store the value in our register.
-        if !context.vm.stack.is_empty() {
-            let new_value = context.vm.pop();
-            context.vm.frame_mut().completion_register = Some(new_value);
-        }
-
-        // 4. Set program counter and finally return fields.
+        // 3. Set program counter and finally return fields.
         context.vm.frame_mut().pc = jump_address as usize;
         CompletionType::Normal
     }

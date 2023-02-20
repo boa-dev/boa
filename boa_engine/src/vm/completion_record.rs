@@ -1,4 +1,4 @@
-use crate::{vm::CompletionType, JsError, JsResult, JsValue};
+use crate::{vm::CompletionType, Context, JsError, JsResult, JsValue};
 
 #[derive(Debug, Clone)]
 pub(crate) struct CompletionRecord {
@@ -34,13 +34,18 @@ impl CompletionRecord {
     pub(crate) fn value(&self) -> JsValue {
         self.value.clone()
     }
-}
 
-impl From<CompletionRecord> for JsResult<JsValue> {
-    fn from(val: CompletionRecord) -> Self {
-        match val.completion_type {
-            CompletionType::Throw => Err(JsError::from_opaque(val.value)),
-            _ => Ok(val.value),
+    pub(crate) fn convert(self, context: &mut Context<'_>) -> JsResult<JsValue> {
+        match self.completion_type {
+            CompletionType::Throw => {
+                let err = JsError::from_opaque(self.value);
+                if let Ok(native) = err.try_native(context) {
+                    Err(JsError::from_native(native))
+                } else {
+                    Err(err)
+                }
+            }
+            _ => Ok(self.value),
         }
     }
 }

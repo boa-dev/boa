@@ -2,8 +2,10 @@
 //!
 //! This module will provides everything needed to implement the `CallFrame`
 
-use crate::{object::JsObject, vm::CodeBlock, JsValue};
+use crate::{object::JsObject, vm::CodeBlock};
 use boa_gc::{Finalize, Gc, Trace};
+
+use core::cmp;
 
 mod abrupt_record;
 mod env_stack;
@@ -16,9 +18,9 @@ pub(crate) use env_stack::EnvStackEntry;
 pub struct CallFrame {
     pub(crate) code_block: Gc<CodeBlock>,
     pub(crate) pc: usize,
+    pub(crate) fp: usize,
     #[unsafe_ignore_trace]
     pub(crate) abrupt_completion: Option<AbruptCompletionRecord>,
-    pub(crate) completion_register: Option<JsValue>,
     pub(crate) pop_on_return: usize,
     // Tracks the number of environments in environment entry.
     // On abrupt returns this is used to decide how many environments need to be pop'ed.
@@ -42,10 +44,10 @@ impl CallFrame {
         Self {
             code_block,
             pc: 0,
+            fp: 0,
             pop_on_return: 0,
             env_stack: Vec::from([EnvStackEntry::new(0, max_length)]),
             abrupt_completion: None,
-            completion_register: None,
             param_count: 0,
             arg_count: 0,
             generator_resume_kind: GeneratorResumeKind::Normal,
@@ -68,6 +70,11 @@ impl CallFrame {
 
 /// ---- `CallFrame` stack methods ----
 impl CallFrame {
+    pub(crate) fn set_frame_pointer(&mut self, current_stack_len: usize) {
+        let max = cmp::max(self.arg_count, self.param_count);
+        self.fp = current_stack_len - max;
+    }
+
     /// Tracks that one environment has been pushed in the current loop block.
     pub(crate) fn inc_frame_env_stack(&mut self) {
         self.env_stack
