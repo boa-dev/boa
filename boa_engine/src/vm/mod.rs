@@ -296,6 +296,23 @@ impl Context<'_> {
 
         };
 
+        // Early return immediately after loop.
+        if let Some(early_return) = self.vm.frame().early_return {
+            match early_return {
+                EarlyReturnType::Await => {
+                    let result = self.vm.pop();
+                    self.vm.stack.truncate(self.vm.frame().fp);
+                    self.vm.frame_mut().early_return = None;
+                    return CompletionRecord::new(CompletionType::Normal, result);
+                }
+                EarlyReturnType::Yield => {
+                    let result = self.vm.stack.pop().unwrap_or(JsValue::Undefined);
+                    self.vm.frame_mut().early_return = None;
+                    return CompletionRecord::new(CompletionType::Return, result);
+                }
+            }
+        }
+
         if self.vm.trace {
             println!("\nStack:");
             if self.vm.stack.is_empty() {
@@ -317,22 +334,6 @@ impl Context<'_> {
                 }
             }
             println!("\n");
-        }
-
-        if let Some(early_return) = self.vm.frame().early_return {
-            match early_return {
-                EarlyReturnType::Await => {
-                    let result = self.vm.pop();
-                    self.vm.stack.truncate(self.vm.frame().fp);
-                    self.vm.frame_mut().early_return = None;
-                    return CompletionRecord::new(CompletionType::Normal, result);
-                }
-                EarlyReturnType::Yield => {
-                    let result = self.vm.stack.pop().unwrap_or(JsValue::Undefined);
-                    self.vm.frame_mut().early_return = None;
-                    return CompletionRecord::new(CompletionType::Return, result);
-                }
-            }
         }
 
         // Determine the execution result
