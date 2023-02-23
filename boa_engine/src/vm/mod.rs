@@ -325,12 +325,12 @@ impl Context<'_> {
                     let result = self.vm.pop();
                     self.vm.stack.truncate(self.vm.frame().fp);
                     self.vm.frame_mut().early_return = None;
-                    return CompletionRecord::new(execution_completion, result);
+                    return CompletionRecord::new(CompletionType::Normal, result);
                 }
                 EarlyReturnType::Yield => {
                     let result = self.vm.stack.pop().unwrap_or(JsValue::Undefined);
                     self.vm.frame_mut().early_return = None;
-                    return CompletionRecord::new(execution_completion, result);
+                    return CompletionRecord::new(CompletionType::Return, result);
                 }
             }
         }

@@ -5,8 +5,6 @@
 use crate::{object::JsObject, vm::CodeBlock};
 use boa_gc::{Finalize, Gc, Trace};
 
-use core::cmp;
-
 mod abrupt_record;
 mod env_stack;
 
@@ -79,9 +77,8 @@ impl CallFrame {
 
 /// ---- `CallFrame` stack methods ----
 impl CallFrame {
-    pub(crate) fn set_frame_pointer(&mut self, current_stack_len: usize) {
-        let max = cmp::max(self.arg_count, self.param_count);
-        self.fp = current_stack_len - max;
+    pub(crate) fn set_frame_pointer(&mut self, pointer: usize) {
+        self.fp = pointer;
     }
 
     /// Tracks that one environment has been pushed in the current loop block.
