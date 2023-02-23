@@ -188,8 +188,8 @@ impl Context<'_> {
             );
         }
 
-        let stack_len = self.vm.stack.len();
-        self.vm.frame_mut().set_frame_pointer(stack_len);
+        let current_stack_length = self.vm.stack.len();
+        self.vm.frame_mut().set_frame_pointer(current_stack_length);
 
         // If the current executing function is an async function we have to resolve/reject it's promise at the end.
         // The relevant spec section is 3. in [AsyncBlockStart](https://tc39.es/ecma262/#sec-asyncblockstart).
@@ -339,7 +339,7 @@ impl Context<'_> {
         let execution_result = if execution_completion == CompletionType::Return
             && self.vm.frame().abrupt_completion.is_some()
         {
-            // Add await or yield to the abrupt completion
+            self.vm.frame_mut().abrupt_completion = None;
             let result = self.vm.pop();
             self.vm.stack.truncate(self.vm.frame().fp);
             result

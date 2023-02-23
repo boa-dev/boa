@@ -869,7 +869,7 @@ impl JsObject {
                 context.vm.push_frame(
                     CallFrame::new(code)
                         .with_param_count(param_count)
-                        .with_arg_count(arg_count),
+                        .with_arg_count(arg_count)
                 );
 
                 let record = context.run();
@@ -991,7 +991,7 @@ impl JsObject {
                 context.vm.push_frame(
                     CallFrame::new(code)
                         .with_param_count(param_count)
-                        .with_arg_count(arg_count),
+                        .with_arg_count(arg_count)
                 );
 
                 let _result = context.run();
@@ -1104,11 +1104,11 @@ impl JsObject {
                 args.reverse();
 
                 let param_count = code.params.as_ref().len();
+                let mut stack = args;
 
                 let call_frame = CallFrame::new(code)
                     .with_param_count(param_count)
                     .with_arg_count(arg_count);
-                let mut stack = args;
 
                 std::mem::swap(&mut context.vm.stack, &mut stack);
                 context.vm.push_frame(call_frame);
@@ -1242,11 +1242,11 @@ impl JsObject {
                 args.reverse();
 
                 let param_count = code.params.as_ref().len();
+                let mut stack = args;
 
                 let call_frame = CallFrame::new(code)
                     .with_param_count(param_count)
                     .with_arg_count(arg_count);
-                let mut stack = args;
 
                 std::mem::swap(&mut context.vm.stack, &mut stack);
                 context.vm.push_frame(call_frame);

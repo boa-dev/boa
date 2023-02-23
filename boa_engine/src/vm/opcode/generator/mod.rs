@@ -6,7 +6,7 @@ use crate::{
     error::JsNativeError,
     string::utf16,
     vm::{
-        call_frame::{AbruptCompletionRecord, GeneratorResumeKind},
+        call_frame::{AbruptCompletionRecord, GeneratorResumeKind, EarlyReturnType},
         ok_or_throw_completion,
         opcode::Operation,
         throw_completion, CompletionType,
@@ -48,6 +48,8 @@ impl Operation for GeneratorNext {
                     return CompletionType::Normal;
                 }
 
+                let return_record = AbruptCompletionRecord::new_return();
+                context.vm.frame_mut().abrupt_completion = Some(return_record);
                 CompletionType::Return
             }
         }
@@ -170,6 +172,7 @@ impl Operation for GeneratorNextDelegate {
                 context.vm.push(next_method.clone());
                 context.vm.push(done);
                 context.vm.push(value);
+                context.vm.frame_mut().early_return = Some(EarlyReturnType::Yield);
                 CompletionType::Return
             }
             GeneratorResumeKind::Throw => {
@@ -209,6 +212,7 @@ impl Operation for GeneratorNextDelegate {
                     context.vm.push(next_method.clone());
                     context.vm.push(done);
                     context.vm.push(value);
+                    context.vm.frame_mut().early_return = Some(EarlyReturnType::Yield);
                     return CompletionType::Return;
                 }
                 context.vm.frame_mut().pc = done_address as usize;
@@ -265,6 +269,7 @@ impl Operation for GeneratorNextDelegate {
                     context.vm.push(next_method.clone());
                     context.vm.push(done);
                     context.vm.push(value);
+                    context.vm.frame_mut().early_return = Some(EarlyReturnType::Yield);
                     return CompletionType::Return;
                 }
                 context.vm.frame_mut().pc = done_address as usize;
