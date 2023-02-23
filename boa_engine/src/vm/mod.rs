@@ -6,10 +6,7 @@
 
 use crate::{
     builtins::async_generator::{AsyncGenerator, AsyncGeneratorState},
-    vm::{
-        code_block::Readable,
-        completion_record::CompletionRecord,
-    },
+    vm::{call_frame::EarlyReturnType, code_block::Readable, completion_record::CompletionRecord},
     Context, JsError, JsValue,
 };
 #[cfg(feature = "fuzz")]
@@ -194,7 +191,28 @@ impl Context<'_> {
         let stack_len = self.vm.stack.len();
         self.vm.frame_mut().set_frame_pointer(stack_len);
 
+        // If the current executing function is an async function we have to resolve/reject it's promise at the end.
+        // The relevant spec section is 3. in [AsyncBlockStart](https://tc39.es/ecma262/#sec-asyncblockstart).
+        let promise_capability = self
+            .realm
+            .environments
+            .current_function_slots()
+            .as_function_slots()
+            .and_then(|slots| {
+                let slots_borrow = slots.borrow();
+                let function_object = slots_borrow.function_object();
+                let function = function_object.borrow();
+                function
+                    .as_function()
+                    .and_then(|f| f.get_promise_capability().cloned())
+            });
+
         let execution_completion = loop {
+            // 1. Exit the execution loop if program counter ever is equal to or exceeds the amount of instructions
+            if self.vm.frame().code_block.bytecode.len() <= self.vm.frame().pc {
+                break CompletionType::Normal;
+            }
+
             #[cfg(feature = "fuzz")]
             {
                 if self.instructions_remaining == 0 {
@@ -242,7 +260,7 @@ impl Context<'_> {
 
             // 2. Evaluate the result of executing the instruction.
             match result {
-                CompletionType::Normal => {},
+                CompletionType::Normal => {}
                 CompletionType::Return => {
                     break CompletionType::Return;
                 }
@@ -251,9 +269,7 @@ impl Context<'_> {
                     #[cfg(feature = "fuzz")]
                     {
                         let error = self.vm.pop();
-                        if let Some(native_error) =
-                            JsError::from_opaque(error).as_native()
-                        {
+                        if let Some(native_error) = JsError::from_opaque(error).as_native() {
                             // If we hit the execution step limit, bubble up the error to the
                             // (Rust) caller instead of trying to handle as an exception.
                             if matches!(native_error.kind, JsNativeErrorKind::NoInstructionsRemain)
@@ -277,10 +293,7 @@ impl Context<'_> {
                 }
             }
 
-            // 3. Exit the execution loop if program counter ever is equal to or exceeds the amount of instructions
-            if self.vm.frame().code_block.bytecode.len() <= self.vm.frame().pc {
-                break CompletionType::Normal;
-            }
+
         };
 
         if self.vm.trace {
@@ -306,8 +319,27 @@ impl Context<'_> {
             println!("\n");
         }
 
+        if let Some(early_return) = self.vm.frame().early_return {
+            match early_return {
+                EarlyReturnType::Await => {
+                    let result = self.vm.pop();
+                    self.vm.stack.truncate(self.vm.frame().fp);
+                    self.vm.frame_mut().early_return = None;
+                    return CompletionRecord::new(execution_completion, result);
+                }
+                EarlyReturnType::Yield => {
+                    let result = self.vm.stack.pop().unwrap_or(JsValue::Undefined);
+                    self.vm.frame_mut().early_return = None;
+                    return CompletionRecord::new(execution_completion, result);
+                }
+            }
+        }
+
         // Determine the execution result
-        let execution_result = if execution_completion == CompletionType::Return {
+        let execution_result = if execution_completion == CompletionType::Return
+            && self.vm.frame().abrupt_completion.is_some()
+        {
+            // Add await or yield to the abrupt completion
             let result = self.vm.pop();
             self.vm.stack.truncate(self.vm.frame().fp);
             result
@@ -319,8 +351,29 @@ impl Context<'_> {
             result
         };
 
-        // Evaluate frame as an AsyncGenerator
-        if let Some(generator_object) = self.vm.frame().async_generator.clone() {
+        if let Some(promise) = promise_capability {
+            // Step 3.e-g in [AsyncGeneratorStart](https://tc39.es/ecma262/#sec-asyncgeneratorstart)
+            match execution_completion {
+                CompletionType::Normal => {
+                    promise
+                        .resolve()
+                        .call(&JsValue::undefined(), &[], self)
+                        .expect("cannot fail per spec");
+                }
+                CompletionType::Return => {
+                    promise
+                        .resolve()
+                        .call(&JsValue::undefined(), &[execution_result.clone()], self)
+                        .expect("cannot fail per spec");
+                }
+                CompletionType::Throw => {
+                    promise
+                        .reject()
+                        .call(&JsValue::undefined(), &[execution_result.clone()], self)
+                        .expect("cannot fail per spec");
+                }
+            }
+        } else if let Some(generator_object) = self.vm.frame().async_generator.clone() {
             let mut generator_object_mut = generator_object.borrow_mut();
             let generator = generator_object_mut
                 .as_async_generator_mut()

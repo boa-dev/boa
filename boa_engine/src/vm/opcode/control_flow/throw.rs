@@ -1,5 +1,5 @@
 use crate::{
-    vm::{opcode::Operation, CompletionType, call_frame::AbruptCompletionRecord},
+    vm::{call_frame::AbruptCompletionRecord, opcode::Operation, CompletionType},
     Context,
 };
 
@@ -18,10 +18,12 @@ impl Operation for Throw {
         let error = context.vm.pop();
         // 1. Find the viable catch and finally blocks
         let current_address = context.vm.frame().pc;
-        let viable_catch_candidates =
-            context.vm.frame().env_stack.iter().filter(|env| {
-                env.is_try_env() && env.start_address() < env.exit_address()
-            });
+        let viable_catch_candidates = context
+            .vm
+            .frame()
+            .env_stack
+            .iter()
+            .filter(|env| env.is_try_env() && env.start_address() < env.exit_address());
 
         if let Some(candidate) = viable_catch_candidates.last() {
             let catch_target = candidate.start_address();
@@ -36,9 +38,7 @@ impl Operation for Throw {
                     .last()
                     .expect("EnvStackEntries must exist");
 
-                if env_entry.is_try_env()
-                    && env_entry.start_address() < env_entry.exit_address()
-                {
+                if env_entry.is_try_env() && env_entry.start_address() < env_entry.exit_address() {
                     target_address = env_entry.start_address();
                     env_to_pop += env_entry.env_num();
                     context.vm.frame_mut().env_stack.pop();
@@ -55,8 +55,7 @@ impl Operation for Throw {
                 context.vm.frame_mut().env_stack.pop();
             }
 
-            let env_truncation_len =
-                context.realm.environments.len().saturating_sub(env_to_pop);
+            let env_truncation_len = context.realm.environments.len().saturating_sub(env_to_pop);
             context.realm.environments.truncate(env_truncation_len);
 
             if target_address == catch_target {
@@ -70,8 +69,7 @@ impl Operation for Throw {
             }
 
             context.vm.frame_mut().pop_on_return = 0;
-            let record =
-                AbruptCompletionRecord::new_throw().with_initial_target(catch_target);
+            let record = AbruptCompletionRecord::new_throw().with_initial_target(catch_target);
             context.vm.frame_mut().abrupt_completion = Some(record);
             context.vm.push(error);
             return CompletionType::Normal;
@@ -107,8 +105,7 @@ impl Operation for Throw {
                 context.vm.frame_mut().env_stack.pop();
             }
 
-            let env_truncation_len =
-                context.realm.environments.len().saturating_sub(env_to_pop);
+            let env_truncation_len = context.realm.environments.len().saturating_sub(env_to_pop);
             context.realm.environments.truncate(env_truncation_len);
 
             let previous_stack_size = context

@@ -156,11 +156,12 @@ impl Operation for GeneratorNextDelegate {
                     }),
                     context
                 );
-                let done =
-                    ok_or_throw_completion!(result.get(utf16!("done"), context), context).to_boolean();
+                let done = ok_or_throw_completion!(result.get(utf16!("done"), context), context)
+                    .to_boolean();
                 if done {
                     context.vm.frame_mut().pc = done_address as usize;
-                    let value = ok_or_throw_completion!(result.get(utf16!("value"), context), context);
+                    let value =
+                        ok_or_throw_completion!(result.get(utf16!("value"), context), context);
                     context.vm.push(value);
                     return CompletionType::Normal;
                 }
@@ -172,7 +173,8 @@ impl Operation for GeneratorNextDelegate {
                 CompletionType::Return
             }
             GeneratorResumeKind::Throw => {
-                let throw = ok_or_throw_completion!(iterator.get_method(utf16!("throw"), context), context);
+                let throw =
+                    ok_or_throw_completion!(iterator.get_method(utf16!("throw"), context), context);
                 if let Some(throw) = throw {
                     let result = ok_or_throw_completion!(
                         throw.call(&iterator.clone().into(), &[received], context),
@@ -185,17 +187,24 @@ impl Operation for GeneratorNextDelegate {
                         }),
                         context
                     );
-                    let done = ok_or_throw_completion!(result_object.get(utf16!("done"), context), context)
-                        .to_boolean();
+                    let done = ok_or_throw_completion!(
+                        result_object.get(utf16!("done"), context),
+                        context
+                    )
+                    .to_boolean();
                     if done {
                         context.vm.frame_mut().pc = done_address as usize;
-                        let value =
-                            ok_or_throw_completion!(result_object.get(utf16!("value"), context), context);
+                        let value = ok_or_throw_completion!(
+                            result_object.get(utf16!("value"), context),
+                            context
+                        );
                         context.vm.push(value);
                         return CompletionType::Normal;
                     }
-                    let value =
-                        ok_or_throw_completion!(result_object.get(utf16!("value"), context), context);
+                    let value = ok_or_throw_completion!(
+                        result_object.get(utf16!("value"), context),
+                        context
+                    );
                     context.vm.push(iterator.clone());
                     context.vm.push(next_method.clone());
                     context.vm.push(done);
@@ -218,8 +227,10 @@ impl Operation for GeneratorNextDelegate {
                 );
             }
             GeneratorResumeKind::Return => {
-                let r#return =
-                    ok_or_throw_completion!(iterator.get_method(utf16!("return"), context), context);
+                let r#return = ok_or_throw_completion!(
+                    iterator.get_method(utf16!("return"), context),
+                    context
+                );
                 if let Some(r#return) = r#return {
                     let result = ok_or_throw_completion!(
                         r#return.call(&iterator.clone().into(), &[received], context),
@@ -232,17 +243,24 @@ impl Operation for GeneratorNextDelegate {
                         }),
                         context
                     );
-                    let done = ok_or_throw_completion!(result_object.get(utf16!("done"), context), context)
-                        .to_boolean();
+                    let done = ok_or_throw_completion!(
+                        result_object.get(utf16!("done"), context),
+                        context
+                    )
+                    .to_boolean();
                     if done {
                         context.vm.frame_mut().pc = done_address as usize;
-                        let value =
-                            ok_or_throw_completion!(result_object.get(utf16!("value"), context), context);
+                        let value = ok_or_throw_completion!(
+                            result_object.get(utf16!("value"), context),
+                            context
+                        );
                         context.vm.push(value);
                         return CompletionType::Return;
                     }
-                    let value =
-                        ok_or_throw_completion!(result_object.get(utf16!("value"), context), context);
+                    let value = ok_or_throw_completion!(
+                        result_object.get(utf16!("value"), context),
+                        context
+                    );
                     context.vm.push(iterator.clone());
                     context.vm.push(next_method.clone());
                     context.vm.push(done);

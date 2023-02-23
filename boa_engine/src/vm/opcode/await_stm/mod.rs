@@ -5,7 +5,10 @@ use crate::{
     native_function::NativeFunction,
     object::FunctionObjectBuilder,
     vm::{
-        call_frame::GeneratorResumeKind, ok_or_throw_completion, opcode::Operation, CompletionType,
+        call_frame::{EarlyReturnType, GeneratorResumeKind},
+        ok_or_throw_completion,
+        opcode::Operation,
+        CompletionType,
     },
     Context, JsArgs, JsValue,
 };
@@ -129,6 +132,7 @@ impl Operation for Await {
         );
 
         context.vm.push(JsValue::undefined());
+        context.vm.frame_mut().early_return = Some(EarlyReturnType::Await);
         CompletionType::Return
     }
 }

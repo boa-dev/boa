@@ -12,7 +12,6 @@ mod env_stack;
 
 pub(crate) use abrupt_record::AbruptCompletionRecord;
 pub(crate) use env_stack::EnvStackEntry;
-
 /// A `CallFrame` holds the state of a function call.
 #[derive(Clone, Debug, Finalize, Trace)]
 pub struct CallFrame {
@@ -21,6 +20,8 @@ pub struct CallFrame {
     pub(crate) fp: usize,
     #[unsafe_ignore_trace]
     pub(crate) abrupt_completion: Option<AbruptCompletionRecord>,
+    #[unsafe_ignore_trace]
+    pub(crate) early_return: Option<EarlyReturnType>,
     pub(crate) pop_on_return: usize,
     // Tracks the number of environments in environment entry.
     // On abrupt returns this is used to decide how many environments need to be pop'ed.
@@ -48,6 +49,7 @@ impl CallFrame {
             pop_on_return: 0,
             env_stack: Vec::from([EnvStackEntry::new(0, max_length)]),
             abrupt_completion: None,
+            early_return: None,
             param_count: 0,
             arg_count: 0,
             generator_resume_kind: GeneratorResumeKind::Normal,
@@ -101,4 +103,11 @@ pub(crate) enum GeneratorResumeKind {
     Normal,
     Throw,
     Return,
+}
+
+// An enum to mark whether a return is early due to Async or Yield
+#[derive(Copy, Clone, Debug, PartialEq)]
+pub(crate) enum EarlyReturnType {
+    Await,
+    Yield,
 }

@@ -994,42 +994,7 @@ impl JsObject {
                         .with_arg_count(arg_count),
                 );
 
-                // If the current executing function is an async function we have to resolve/reject it's promise at the end.
-                // The relevant spec section is 3. in [AsyncBlockStart](https://tc39.es/ecma262/#sec-asyncblockstart).
-                let promise_capability = context
-                    .realm
-                    .environments
-                    .current_function_slots()
-                    .as_function_slots()
-                    .and_then(|slots| {
-                        let slots_borrow = slots.borrow();
-                        let function_object = slots_borrow.function_object();
-                        let function = function_object.borrow();
-                        function
-                            .as_function()
-                            .and_then(|f| f.get_promise_capability().cloned())
-                    })
-                    .expect("Promise capability must exist for an AsyncFunction");
-
-                let completion_record = context.run();
-
-                // Step 3.e-g in [AsyncGeneratorStart](https://tc39.es/ecma262/#sec-asyncgeneratorstart)
-                if completion_record.is_normal_completion() {
-                    promise_capability
-                        .resolve()
-                        .call(&JsValue::undefined(), &[], context)
-                        .expect("cannot fail per spec");
-                } else if completion_record.is_return_completion() {
-                    promise_capability
-                        .resolve()
-                        .call(&JsValue::undefined(), &[completion_record.value()], context)
-                        .expect("cannot fail per spec");
-                } else if completion_record.is_throw_completion() {
-                    promise_capability
-                        .reject()
-                        .call(&JsValue::undefined(), &[completion_record.value()], context)
-                        .expect("cannot fail per spec");
-                }
+                let _result = context.run();
 
                 context.vm.pop_frame().expect("must have frame");
 
@@ -1319,11 +1284,7 @@ impl JsObject {
                     let gen = generator_mut
                         .as_async_generator_mut()
                         .expect("must be object here");
-                    let mut gen_context = gen
-                        .context
-                        .as_ref()
-                        .expect("Generator must exist")
-                        .borrow_mut();
+                    let mut gen_context = gen.context.as_ref().expect("must exist").borrow_mut();
                     gen_context.call_frame.async_generator = Some(generator.clone());
                 }
 
