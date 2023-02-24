@@ -80,9 +80,9 @@ impl<'a> JobQueue for Queue<'a> {
 
             let jqueue = async {
                 loop {
-                    let Some(job) = self.jobs.borrow_mut().pop_front() else {
+                    if self.jobs.borrow().is_empty() {
                         finished.set(finished.get() | 0b10);
-                        if finished.get() == 0b11 {
+                        if finished.get() >= 0b11 {
                             // All possible futures and jobs were completed. Exit.
                             return;
                         }
@@ -94,10 +94,13 @@ impl<'a> JobQueue for Queue<'a> {
                     };
                     finished.set(finished.get() & 0b01);
 
-                    if let Err(e) = job.call(&mut context.borrow_mut()) {
-                        eprintln!("Uncaught {e}");
+                    let jobs = std::mem::take(&mut *self.jobs.borrow_mut());
+                    for job in jobs {
+                        if let Err(e) = job.call(&mut context.borrow_mut()) {
+                            eprintln!("Uncaught {e}");
+                        }
+                        future::yield_now().await;
                     }
-                    future::yield_now().await;
                 }
             };
 
@@ -136,14 +139,14 @@ fn main() {
 
     // Multiple calls to multiple async timers.
     let script = r#"
-    function print(elapsed) {
-        console.log(`Finished. elapsed time: ${elapsed * 1000} ms`)
-    }
-    delay(1000).then(print);
-    delay(500).then(print);
-    delay(200).then(print);
-    delay(600).then(print);
-    delay(30).then(print);
+        function print(elapsed) {
+            console.log(`Finished. elapsed time: ${elapsed * 1000} ms`)
+        }
+        delay(1000).then(print);
+        delay(500).then(print);
+        delay(200).then(print);
+        delay(600).then(print);
+        delay(30).then(print);
     "#;
 
     let now = Instant::now();
@@ -168,5 +171,5 @@ fn main() {
     // Finished. elapsed time: 1000.118099 ms
     // Total elapsed time: 1.002628715s
 
-    // The system concurrently drove several timers to completion!
+    // The queue concurrently drove several timers to completion!
 }
