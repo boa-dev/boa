@@ -2299,6 +2299,11 @@
 <a href="#2298" id="2298">2298</a>
 <a href="#2299" id="2299">2299</a>
 <a href="#2300" id="2300">2300</a>
+<a href="#2301" id="2301">2301</a>
+<a href="#2302" id="2302">2302</a>
+<a href="#2303" id="2303">2303</a>
+<a href="#2304" id="2304">2304</a>
+<a href="#2305" id="2305">2305</a>
 </pre><pre class="rust"><code><span class="doccomment">//! Boa&#39;s implementation of ECMAScript&#39;s global `Promise` object.
 
 </span><span class="attr">#[cfg(test)]
@@ -2639,16 +2644,11 @@
 
         <span class="kw">let </span>promise = JsObject::from_proto_and_data(
             promise,
-            ObjectData::promise(<span class="self">Self </span>{
-                <span class="comment">// 4. Set promise.[[PromiseState]] to pending.
-                </span>state: PromiseState::Pending,
-                <span class="comment">// 5. Set promise.[[PromiseFulfillReactions]] to a new empty List.
-                </span>fulfill_reactions: Vec::new(),
-                <span class="comment">// 6. Set promise.[[PromiseRejectReactions]] to a new empty List.
-                </span>reject_reactions: Vec::new(),
-                <span class="comment">// 7. Set promise.[[PromiseIsHandled]] to false.
-                </span>handled: <span class="bool-val">false</span>,
-            }),
+            <span class="comment">// 4. Set promise.[[PromiseState]] to pending.
+            // 5. Set promise.[[PromiseFulfillReactions]] to a new empty List.
+            // 6. Set promise.[[PromiseRejectReactions]] to a new empty List.
+            // 7. Set promise.[[PromiseIsHandled]] to false.
+            </span>ObjectData::promise(<span class="self">Self</span>::new()),
         );
 
         <span class="comment">// 8. Let resolvingFunctions be CreateResolvingFunctions(promise).
@@ -2679,12 +2679,22 @@
 }
 
 <span class="attr">#[derive(Debug)]
-</span><span class="kw">struct </span>ResolvingFunctionsRecord {
-    resolve: JsFunction,
-    reject: JsFunction,
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>ResolvingFunctionsRecord {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) resolve: JsFunction,
+    <span class="kw">pub</span>(<span class="kw">crate</span>) reject: JsFunction,
 }
 
 <span class="kw">impl </span>Promise {
+    <span class="doccomment">/// Creates a new, pending `Promise`.
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>new() -&gt; <span class="self">Self </span>{
+        Promise {
+            state: PromiseState::Pending,
+            fulfill_reactions: Vec::default(),
+            reject_reactions: Vec::default(),
+            handled: <span class="bool-val">false</span>,
+        }
+    }
+
     <span class="doccomment">/// Gets the current state of the promise.
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const fn </span>state(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>PromiseState {
         <span class="kw-2">&amp;</span><span class="self">self</span>.state
@@ -3567,7 +3577,7 @@
     ///  - [ECMAScript reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-createresolvingfunctions
-    </span><span class="kw">fn </span>create_resolving_functions(
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>create_resolving_functions(
         promise: <span class="kw-2">&amp;</span>JsObject,
         context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
     ) -&gt; ResolvingFunctionsRecord {

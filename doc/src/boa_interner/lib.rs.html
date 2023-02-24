@@ -606,7 +606,7 @@
 /// [`JSInternedStrRef::utf8`] returns an [`Option`], since not every `UTF-16` string is fully
 /// representable as a `UTF-8` string (because of unpaired surrogates). However, every `UTF-8`
 /// string is representable as a `UTF-16` string, so `JSInternedStrRef::utf8` returns a
-/// [&lt;code&gt;&amp;\[u16\]&lt;/code&gt;][std::slice].
+/// [&lt;code&gt;&amp;\[u16\]&lt;/code&gt;][core::slice].
 </span><span class="attr">#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 </span><span class="kw">pub struct </span>JSInternedStrRef&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;b</span>&gt; {
     utf8: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>str&gt;,

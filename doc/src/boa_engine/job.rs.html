@@ -219,6 +219,24 @@
 <a href="#218" id="218">218</a>
 <a href="#219" id="219">219</a>
 <a href="#220" id="220">220</a>
+<a href="#221" id="221">221</a>
+<a href="#222" id="222">222</a>
+<a href="#223" id="223">223</a>
+<a href="#224" id="224">224</a>
+<a href="#225" id="225">225</a>
+<a href="#226" id="226">226</a>
+<a href="#227" id="227">227</a>
+<a href="#228" id="228">228</a>
+<a href="#229" id="229">229</a>
+<a href="#230" id="230">230</a>
+<a href="#231" id="231">231</a>
+<a href="#232" id="232">232</a>
+<a href="#233" id="233">233</a>
+<a href="#234" id="234">234</a>
+<a href="#235" id="235">235</a>
+<a href="#236" id="236">236</a>
+<a href="#237" id="237">237</a>
+<a href="#238" id="238">238</a>
 </pre><pre class="rust"><code><span class="doccomment">//! Boa&#39;s API to create and customize `ECMAScript` jobs and job queues.
 //!
 //! [`NativeJob`] is an ECMAScript [Job], or a closure that runs an `ECMAScript` computation when
@@ -238,13 +256,16 @@
 //! [Job]: https://tc39.es/ecma262/#sec-jobs
 //! [JobCallback]: https://tc39.es/ecma262/#sec-jobcallback-records
 
-</span><span class="kw">use </span>std::{any::Any, cell::RefCell, collections::VecDeque, fmt::Debug};
+</span><span class="kw">use </span>std::{any::Any, cell::RefCell, collections::VecDeque, fmt::Debug, future::Future, pin::Pin};
 
 <span class="kw">use crate</span>::{
     object::{JsFunction, NativeObject},
     Context, JsResult, JsValue,
 };
 <span class="kw">use </span>boa_gc::{Finalize, Trace};
+
+<span class="doccomment">/// The [`Future`] job passed to the [`JobQueue::enqueue_future_job`] operation.
+</span><span class="kw">pub type </span>FutureJob = Pin&lt;Box&lt;<span class="kw">dyn </span>Future&lt;Output = NativeJob&gt; + <span class="lifetime">&#39;static</span>&gt;&gt;;
 
 <span class="doccomment">/// An ECMAScript [Job] closure.
 ///
@@ -307,7 +328,7 @@
     }
 }
 
-<span class="doccomment">/// [`JobCallback`][spec] records
+<span class="doccomment">/// [`JobCallback`][spec] records.
 ///
 /// [spec]: https://tc39.es/ecma262/#sec-jobcallback-records
 </span><span class="attr">#[derive(Trace, Finalize)]
@@ -371,6 +392,14 @@
     /// determines if the method should loop until there are no more queued jobs or if
     /// it should only run one iteration of the queue.
     </span><span class="kw">fn </span>run_jobs(<span class="kw-2">&amp;</span><span class="self">self</span>, context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;);
+
+    <span class="doccomment">/// Enqueues a new [`Future`] job on the job queue.
+    ///
+    /// On completion, `future` returns a new [`NativeJob`] that needs to be enqueued into the
+    /// job queue to update the state of the inner `Promise`, which is what ECMAScript sees. Failing
+    /// to do this will leave the inner `Promise` in the `pending` state, which won&#39;t call any `then`
+    /// or `catch` handlers, even if `future` was already completed.
+    </span><span class="kw">fn </span>enqueue_future_job(<span class="kw-2">&amp;</span><span class="self">self</span>, future: FutureJob, context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;);
 }
 
 <span class="doccomment">/// A job queue that does nothing.
@@ -386,6 +415,8 @@
     <span class="kw">fn </span>enqueue_promise_job(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="kw">_</span>: NativeJob, <span class="kw">_</span>: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) {}
 
     <span class="kw">fn </span>run_jobs(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="kw">_</span>: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) {}
+
+    <span class="kw">fn </span>enqueue_future_job(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="kw">_</span>: FutureJob, <span class="kw">_</span>: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) {}
 }
 
 <span class="doccomment">/// A simple FIFO job queue that bails on the first error.
@@ -437,6 +468,11 @@
             };
             next_job = <span class="self">self</span>.<span class="number">0</span>.borrow_mut().pop_front();
         }
+    }
+
+    <span class="kw">fn </span>enqueue_future_job(<span class="kw-2">&amp;</span><span class="self">self</span>, future: FutureJob, context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) {
+        <span class="kw">let </span>job = pollster::block_on(future);
+        <span class="self">self</span>.enqueue_promise_job(job, context);
     }
 }
 </code></pre></div>
