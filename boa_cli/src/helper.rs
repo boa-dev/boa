@@ -5,8 +5,8 @@ use rustyline::{
     error::ReadlineError,
     highlight::Highlighter,
     validate::{MatchingBracketValidator, ValidationContext, ValidationResult, Validator},
+    Completer, Helper, Hinter,
 };
-use rustyline_derive::{Completer, Helper, Hinter};
 use std::borrow::Cow;
 
 const STRING_COLOR: Color = Color::Green;
