@@ -5,7 +5,7 @@ use rustyline::{
     error::ReadlineError,
     highlight::Highlighter,
     validate::{MatchingBracketValidator, ValidationContext, ValidationResult, Validator},
-    Completer, Helper, Hinter
+    Completer, Helper, Hinter,
 };
 use std::borrow::Cow;
 
