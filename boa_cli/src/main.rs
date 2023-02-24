@@ -63,7 +63,7 @@ mod helper;
 use boa_ast::StatementList;
 use boa_engine::{
     context::ContextBuilder,
-    job::{JobQueue, NativeJob},
+    job::{FutureJob, JobQueue, NativeJob},
     vm::flowgraph::{Direction, Graph},
     Context, JsResult, Source,
 };
@@ -385,5 +385,10 @@ impl JobQueue for Jobs {
                 }
             }
         }
+    }
+
+    fn enqueue_future_job(&self, future: FutureJob, _: &mut Context<'_>) {
+        let job = pollster::block_on(future);
+        self.0.borrow_mut().push_front(job);
     }
 }

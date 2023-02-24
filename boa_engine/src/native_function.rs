@@ -3,9 +3,16 @@
 //! [`NativeFunction`] is the main type of this module, providing APIs to create native callables
 //! from native Rust functions and closures.
 
+use std::future::Future;
+
 use boa_gc::{custom_trace, Finalize, Gc, Trace};
 
-use crate::{Context, JsResult, JsValue};
+use crate::{
+    builtins::Promise,
+    job::NativeJob,
+    object::{JsObject, ObjectData},
+    Context, JsResult, JsValue,
+};
 
 /// The required signature for all native built-in function pointers.
 ///
@@ -111,6 +118,98 @@ impl NativeFunction {
         Self {
             inner: Inner::PointerFn(function),
         }
+    }
+
+    /// Creates a `NativeFunction` from a function returning a [`Future`].
+    ///
+    /// The returned `NativeFunction` will return an ECMAScript `Promise` that will be fulfilled
+    /// or rejected when the returned [`Future`] completes.
+    ///
+    /// # Caveats
+    ///
+    /// Consider the next snippet:
+    ///
+    /// ```compile_fail
+    /// # use boa_engine::{
+    /// #   JsValue,
+    /// #   Context,
+    /// #   JsResult,
+    /// #   NativeFunction
+    /// # };
+    /// async fn test(
+    ///     _this: &JsValue,
+    ///     args: &[JsValue],
+    ///     _context: &mut Context<'_>,
+    /// ) -> JsResult<JsValue> {
+    ///     let arg = args.get(0).cloned();
+    ///     std::future::ready(()).await;
+    ///     drop(arg);
+    ///     Ok(JsValue::null())
+    /// }
+    /// NativeFunction::from_async_fn(test);
+    /// ```
+    ///
+    /// Seems like a perfectly fine code, right? `args` is not used after the await point, which
+    /// in theory should make the whole future `'static` ... in theory ...
+    ///
+    /// This code unfortunately fails to compile at the moment. This is because `rustc` currently
+    /// cannot determine that `args` can be dropped before the await point, which would trivially
+    /// make the future `'static`. Track [this issue] for more information.
+    ///
+    /// In the meantime, a manual desugaring of the async function does the trick:
+    ///
+    /// ```
+    /// # use std::future::Future;
+    /// # use boa_engine::{
+    /// #   JsValue,
+    /// #   Context,
+    /// #   JsResult,
+    /// #   NativeFunction
+    /// # };
+    /// fn test(
+    ///     _this: &JsValue,
+    ///     args: &[JsValue],
+    ///     _context: &mut Context<'_>,
+    /// ) -> impl Future<Output = JsResult<JsValue>> {
+    ///     let arg = args.get(0).cloned();
+    ///     async move {
+    ///         std::future::ready(()).await;
+    ///         drop(arg);
+    ///         Ok(JsValue::null())
+    ///     }
+    /// }
+    /// NativeFunction::from_async_fn(test);
+    /// ```
+    /// [this issue]: https://github.com/rust-lang/rust/issues/69663
+    pub fn from_async_fn<Fut>(f: fn(&JsValue, &[JsValue], &mut Context<'_>) -> Fut) -> Self
+    where
+        Fut: Future<Output = JsResult<JsValue>> + 'static,
+    {
+        Self::from_copy_closure(move |this, args, context| {
+            let proto = context.intrinsics().constructors().promise().prototype();
+            let promise = JsObject::from_proto_and_data(proto, ObjectData::promise(Promise::new()));
+            let resolving_functions = Promise::create_resolving_functions(&promise, context);
+
+            let future = f(this, args, context);
+            let future = async move {
+                let result = future.await;
+                NativeJob::new(move |ctx| match result {
+                    Ok(v) => resolving_functions
+                        .resolve
+                        .call(&JsValue::undefined(), &[v], ctx),
+                    Err(e) => {
+                        let e = e.to_opaque(ctx);
+                        resolving_functions
+                            .reject
+                            .call(&JsValue::undefined(), &[e], ctx)
+                    }
+                })
+            };
+            context
+                .job_queue()
+                .enqueue_future_job(Box::pin(future), context);
+            Ok(promise.into())
+        })
     }
 
     /// Creates a `NativeFunction` from a `Copy` closure.
