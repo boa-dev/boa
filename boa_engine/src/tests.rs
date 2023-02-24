@@ -541,6 +541,20 @@ fn unary_pre() {
         --a === 4;
     "#;
     assert_eq!(&exec(execs_before_dec), "true");
+
+    let i32_limit_inc = r#"
+        let a = 2147483647;
+        ++a;
+        a;
+    "#;
+    assert_eq!(&exec(i32_limit_inc), "2147483648");
+
+    let i32_limit_dec = r#"
+        let a = -2147483648;
+        --a;
+        a;
+    "#;
+    assert_eq!(&exec(i32_limit_dec), "-2147483649");
 }
 
 #[test]
@@ -683,6 +697,32 @@ fn unary_post() {
         a-- === 5;
     "#;
     assert_eq!(&exec(execs_after_dec), "true");
+
+    let i32_limit_inc = r#"
+        let a = 2147483647;
+        a++;
+        a;
+    "#;
+    assert_eq!(&exec(i32_limit_inc), "2147483648");
+
+    let i32_limit_dec = r#"
+        let a = -2147483648;
+        a--;
+        a;
+    "#;
+    assert_eq!(&exec(i32_limit_dec), "-2147483649");
+
+    let to_numeric_inc = r#"
+        let a = {[Symbol.toPrimitive]() { return 123; }};
+        a++
+    "#;
+    assert_eq!(&exec(to_numeric_inc), "123");
+
+    let to_numeric_dec = r#"
+        let a = {[Symbol.toPrimitive]() { return 123; }};
+        a--
+    "#;
+    assert_eq!(&exec(to_numeric_dec), "123");
 }
 
 #[test]
