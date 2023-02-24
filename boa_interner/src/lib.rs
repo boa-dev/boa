@@ -142,7 +142,7 @@ impl<'a, const N: usize> From<&'a [u16; N]> for JStrRef<'a> {
 /// [`JSInternedStrRef::utf8`] returns an [`Option`], since not every `UTF-16` string is fully
 /// representable as a `UTF-8` string (because of unpaired surrogates). However, every `UTF-8`
 /// string is representable as a `UTF-16` string, so `JSInternedStrRef::utf8` returns a
-/// [<code>&\[u16\]</code>][std::slice].
+/// [<code>&\[u16\]</code>][core::slice].
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub struct JSInternedStrRef<'a, 'b> {
     utf8: Option<&'a str>,

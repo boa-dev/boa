@@ -130,6 +130,12 @@ impl NativeFunction {
     /// Consider the next snippet:
     ///
     /// ```compile_fail
+    /// # use boa_engine::{
+    /// #   JsValue,
+    /// #   Context,
+    /// #   JsResult,
+    /// #   NativeFunction
+    /// # };
     /// async fn test(
     ///     _this: &JsValue,
     ///     args: &[JsValue],
@@ -148,11 +154,18 @@ impl NativeFunction {
     ///
     /// This code unfortunately fails to compile at the moment. This is because `rustc` currently
     /// cannot determine that `args` can be dropped before the await point, which would trivially
-    /// make the future `'static`. Track [this issue] for more information on when this'll get fixed.
+    /// make the future `'static`. Track [this issue] for more information.
     ///
     /// In the meantime, a manual desugaring of the async function does the trick:
     ///
     /// ```
+    /// # use std::future::Future;
+    /// # use boa_engine::{
+    /// #   JsValue,
+    /// #   Context,
+    /// #   JsResult,
+    /// #   NativeFunction
+    /// # };
     /// fn test(
     ///     _this: &JsValue,
     ///     args: &[JsValue],
