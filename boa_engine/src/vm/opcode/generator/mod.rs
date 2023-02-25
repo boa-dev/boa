@@ -34,7 +34,6 @@ impl Operation for GeneratorNext {
             GeneratorResumeKind::Normal => CompletionType::Normal,
             GeneratorResumeKind::Throw => CompletionType::Throw,
             GeneratorResumeKind::Return => {
-                // TODO: Determine GeneratorResumeKind::Return can be called in a finally, in which case we would need to skip the first value.
                 let finally_entries = context
                     .vm
                     .frame()
@@ -42,10 +41,12 @@ impl Operation for GeneratorNext {
                     .iter()
                     .filter(|entry| entry.is_finally_env());
                 if let Some(next_finally) = finally_entries.rev().next() {
-                    context.vm.frame_mut().pc = next_finally.start_address() as usize;
-                    let return_record = AbruptCompletionRecord::new_return();
-                    context.vm.frame_mut().abrupt_completion = Some(return_record);
-                    return CompletionType::Normal;
+                    if context.vm.frame().pc < next_finally.start_address() as usize {
+                        context.vm.frame_mut().pc = next_finally.start_address() as usize;
+                        let return_record = AbruptCompletionRecord::new_return();
+                        context.vm.frame_mut().abrupt_completion = Some(return_record);
+                        return CompletionType::Normal;
+                    }
                 }
 
                 let return_record = AbruptCompletionRecord::new_return();

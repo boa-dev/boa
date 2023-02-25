@@ -106,6 +106,10 @@ impl Operation for FinallyEnd {
                     context.realm.environments.len().saturating_sub(envs_to_pop);
                 context.realm.environments.truncate(env_truncation_len);
             }
+            Some(record) if record.is_return() => {
+                // TODO: Implement logic for return completions (Should probably function similar to throw)
+                return CompletionType::Return;
+            }
             Some(record)
                 if record.is_throw_with_target()
                     && context.vm.frame().pc < record.target() as usize =>
@@ -138,10 +142,6 @@ impl Operation for FinallyEnd {
                 context.realm.environments.truncate(env_truncation_len);
 
                 return CompletionType::Throw;
-            }
-            Some(record) if record.is_return() => {
-                // TODO: Implement logic for return completions (Should probably function similar to throw)
-                return CompletionType::Return;
             }
             _ => {
                 context.vm.frame_mut().env_stack.pop();

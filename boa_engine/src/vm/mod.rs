@@ -282,12 +282,15 @@ impl Context<'_> {
                     }
 
                     // If this frame has not evaluated the throw as an AbruptCompletion, then evaluate it
-                    if self.vm.frame().abrupt_completion.is_none() {
-                        let evaluation = Opcode::Throw.execute(self);
-                        if evaluation == CompletionType::Normal {
-                            continue;
+                    match self.vm.frame().abrupt_completion {
+                        Some(abrupt) if abrupt.is_throw() =>{},
+                        _=>{
+                            let evaluation = Opcode::Throw.execute(self);
+                            if evaluation == CompletionType::Normal {
+                                continue;
+                            }
                         }
-                    }
+                    };
 
                     break CompletionType::Throw;
                 }
@@ -337,9 +340,7 @@ impl Context<'_> {
         }
 
         // Determine the execution result
-        let execution_result = if execution_completion == CompletionType::Return
-            && self.vm.frame().abrupt_completion.is_some()
-        {
+        let execution_result = if execution_completion != CompletionType::Normal {
             self.vm.frame_mut().abrupt_completion = None;
             let result = self.vm.pop();
             self.vm.stack.truncate(self.vm.frame().fp);
@@ -388,19 +389,15 @@ impl Context<'_> {
                 .expect("must have item in queue");
             drop(generator_object_mut);
 
-            if execution_completion == CompletionType::Normal
-                && self.vm.frame().abrupt_completion.is_none()
-            {
-                AsyncGenerator::complete_step(&next, Ok(JsValue::undefined()), true, self);
-            } else if execution_completion == CompletionType::Normal {
-                AsyncGenerator::complete_step(&next, Ok(execution_result), true, self);
-            } else if execution_completion == CompletionType::Throw {
+            if execution_completion == CompletionType::Throw {
                 AsyncGenerator::complete_step(
                     &next,
                     Err(JsError::from_opaque(execution_result)),
                     true,
                     self,
                 );
+            } else {
+                AsyncGenerator::complete_step(&next, Ok(execution_result), true, self);
             }
             AsyncGenerator::drain_queue(&generator_object, self);
 
@@ -409,7 +406,6 @@ impl Context<'_> {
 
         // Any valid return statement is re-evaluated as a normal completion vs. return (yield).
         if execution_completion == CompletionType::Return
-            && self.vm.frame().abrupt_completion.is_some()
         {
             return CompletionRecord::new(CompletionType::Normal, execution_result);
         }
