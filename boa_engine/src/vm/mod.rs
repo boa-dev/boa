@@ -281,8 +281,9 @@ impl Context<'_> {
                                 self.vm.push(err);
                                 break CompletionType::Throw;
                             }
+                            let err = native_error.to_opaque(self);
+                            self.vm.push(err);
                         };
-                        self.vm.push(error);
                     }
 
                     // If this frame has not evaluated the throw as an AbruptCompletion, then evaluate it
