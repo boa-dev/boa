@@ -996,7 +996,7 @@ impl JsObject {
 
                 let _result = context.run();
                 context.vm.pop_frame().expect("must have frame");
-                
+
                 std::mem::swap(&mut environments, &mut context.realm.environments);
                 environments.truncate(environments_len);
 
