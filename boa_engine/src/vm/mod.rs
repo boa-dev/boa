@@ -278,7 +278,7 @@ impl Context<'_> {
                             if matches!(native_error.kind, JsNativeErrorKind::NoInstructionsRemain)
                             {
                                 self.vm.push(error);
-                                return CompletionType::Throw;
+                                break CompletionType::Throw;
                             }
                         };
                         self.vm.push(error);
