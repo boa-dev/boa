@@ -66,13 +66,6 @@ impl CallFrame {
         self.arg_count = count;
         self
     }
-
-    /*
-    pub(crate) fn with_frame_pointer(mut self, stack_loc: usize) -> Self {
-        self.fp = stack_loc;
-        self
-    }
-    */
 }
 
 /// ---- `CallFrame` stack methods ----

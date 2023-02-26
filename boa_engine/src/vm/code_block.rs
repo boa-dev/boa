@@ -873,8 +873,8 @@ impl JsObject {
                 );
 
                 let record = context.run();
-
                 context.vm.pop_frame().expect("must have frame");
+
                 std::mem::swap(&mut environments, &mut context.realm.environments);
                 environments.truncate(environments_len);
 
@@ -995,9 +995,8 @@ impl JsObject {
                 );
 
                 let _result = context.run();
-
                 context.vm.pop_frame().expect("must have frame");
-
+                
                 std::mem::swap(&mut environments, &mut context.realm.environments);
                 environments.truncate(environments_len);
 
@@ -1104,11 +1103,11 @@ impl JsObject {
                 args.reverse();
 
                 let param_count = code.params.as_ref().len();
-                let mut stack = args;
 
                 let call_frame = CallFrame::new(code)
                     .with_param_count(param_count)
                     .with_arg_count(arg_count);
+                let mut stack = args;
 
                 std::mem::swap(&mut context.vm.stack, &mut stack);
                 context.vm.push_frame(call_frame);
@@ -1242,11 +1241,11 @@ impl JsObject {
                 args.reverse();
 
                 let param_count = code.params.as_ref().len();
-                let mut stack = args;
 
                 let call_frame = CallFrame::new(code)
                     .with_param_count(param_count)
                     .with_arg_count(arg_count);
+                let mut stack = args;
 
                 std::mem::swap(&mut context.vm.stack, &mut stack);
                 context.vm.push_frame(call_frame);
