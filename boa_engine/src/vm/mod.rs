@@ -277,7 +277,8 @@ impl Context<'_> {
                             // (Rust) caller instead of trying to handle as an exception.
                             if matches!(native_error.kind, JsNativeErrorKind::NoInstructionsRemain)
                             {
-                                self.vm.push(error);
+                                let err = native_error.to_opaque(self);
+                                self.vm.push(err);
                                 break CompletionType::Throw;
                             }
                         };
