@@ -216,7 +216,9 @@ impl Context<'_> {
             #[cfg(feature = "fuzz")]
             {
                 if self.instructions_remaining == 0 {
-                    return Err(JsError::from_native(JsNativeError::no_instructions_remain()));
+                    let err = JsError::from_native(JsNativeError::no_instructions_remain()).to_opaque(self);
+                    self.vm.push(err);
+                    break CompletionType::Throw;
                 }
                 self.instructions_remaining -= 1;
             }
