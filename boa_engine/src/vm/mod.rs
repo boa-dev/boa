@@ -283,8 +283,8 @@ impl Context<'_> {
 
                     // If this frame has not evaluated the throw as an AbruptCompletion, then evaluate it
                     match self.vm.frame().abrupt_completion {
-                        Some(abrupt) if abrupt.is_throw() =>{},
-                        _=>{
+                        Some(abrupt) if abrupt.is_throw() => {}
+                        _ => {
                             let evaluation = Opcode::Throw.execute(self);
                             if evaluation == CompletionType::Normal {
                                 continue;
@@ -295,8 +295,6 @@ impl Context<'_> {
                     break CompletionType::Throw;
                 }
             }
-
-
         };
 
         // Early return immediately after loop.
@@ -405,8 +403,7 @@ impl Context<'_> {
         }
 
         // Any valid return statement is re-evaluated as a normal completion vs. return (yield).
-        if execution_completion == CompletionType::Return
-        {
+        if execution_completion == CompletionType::Return {
             return CompletionRecord::new(CompletionType::Normal, execution_result);
         }
         CompletionRecord::new(execution_completion, execution_result)

@@ -6,7 +6,7 @@ use crate::{
     error::JsNativeError,
     string::utf16,
     vm::{
-        call_frame::{AbruptCompletionRecord, GeneratorResumeKind, EarlyReturnType},
+        call_frame::{AbruptCompletionRecord, EarlyReturnType, GeneratorResumeKind},
         ok_or_throw_completion,
         opcode::Operation,
         throw_completion, CompletionType,

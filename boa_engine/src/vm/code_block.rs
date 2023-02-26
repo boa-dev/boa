@@ -869,7 +869,7 @@ impl JsObject {
                 context.vm.push_frame(
                     CallFrame::new(code)
                         .with_param_count(param_count)
-                        .with_arg_count(arg_count)
+                        .with_arg_count(arg_count),
                 );
 
                 let record = context.run();
@@ -991,7 +991,7 @@ impl JsObject {
                 context.vm.push_frame(
                     CallFrame::new(code)
                         .with_param_count(param_count)
-                        .with_arg_count(arg_count)
+                        .with_arg_count(arg_count),
                 );
 
                 let _result = context.run();
