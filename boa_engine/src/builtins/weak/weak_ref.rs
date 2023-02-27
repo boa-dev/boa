@@ -141,39 +141,26 @@ impl WeakRef {
 
 #[cfg(test)]
 mod tests {
-    use boa_parser::Source;
+    use indoc::indoc;
 
-    use crate::{Context, JsValue};
+    use crate::{run_test, JsValue, TestAction};
 
     #[test]
     fn weak_ref_collected() {
-        let context = &mut Context::default();
-
-        assert!(context
-            .eval_script(Source::from_bytes(
-                r#"
-            var ptr;
-            {
-                let obj = {a: 5, b: 6};
-                ptr = new WeakRef(obj);
-            }
-            ptr.deref()
-        "#
-            ))
-            .unwrap()
-            .is_object());
-
-        boa_gc::force_collect();
-
-        assert_eq!(
-            context
-                .eval_script(Source::from_bytes(
-                    r#"
-            ptr.deref()
-        "#
-                ))
-                .unwrap(),
-            JsValue::undefined()
-        );
+        run_test([
+            TestAction::assert_with_op(
+                indoc! {r#"
+                    var ptr;
+                    {
+                        let obj = {a: 5, b: 6};
+                        ptr = new WeakRef(obj);
+                    }
+                    ptr.deref()
+                "#},
+                |v, _| v.is_object(),
+            ),
+            TestAction::inspect_context(|_| boa_gc::force_collect()),
+            TestAction::assert_eq("ptr.deref()", JsValue::undefined()),
+        ]);
     }
 }
