@@ -64,7 +64,10 @@ fn formatter_utf_8_checks() {
 #[test]
 fn formatter_trailing_format_leader_renders() {
     run_test([TestAction::inspect_context(|ctx| {
-        assert_eq!(formatter(&[JsValue::new("%%%%%"),], ctx).unwrap(), "%%% |");
+        assert_eq!(
+            formatter(&[JsValue::new("%%%%%"), JsValue::new("|")], ctx).unwrap(),
+            "%%% |"
+        );
     })]);
 }
 
