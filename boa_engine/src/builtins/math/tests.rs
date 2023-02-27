@@ -1,5 +1,3 @@
-#![allow(clippy::float_cmp)]
-
 use crate::{run_test, TestAction};
 
 #[test]
@@ -125,10 +123,18 @@ fn expm1() {
     run_test([
         TestAction::assert_eq("Math.expm1()", f64::NAN),
         TestAction::assert_eq("Math.expm1({})", f64::NAN),
-        TestAction::assert_eq("Math.expm1(1)", 1.718_281_828_459_045),
-        TestAction::assert_eq("Math.expm1(-1)", -0.632_120_558_828_557_7),
-        TestAction::assert_eq("Math.expm1(0)", 0.0),
-        TestAction::assert_eq("Math.expm1(2)", 6.389_056_098_930_65),
+        TestAction::assert_with_op("Math.expm1(1)", |v, _| {
+            float_cmp::approx_eq!(f64, v.as_number().unwrap(), 1.718_281_828_459_045)
+        }),
+        TestAction::assert_with_op("Math.expm1(-1)", |v, _| {
+            float_cmp::approx_eq!(f64, v.as_number().unwrap(), -0.632_120_558_828_557_7)
+        }),
+        TestAction::assert_with_op("Math.expm1(0)", |v, _| {
+            float_cmp::approx_eq!(f64, v.as_number().unwrap(), 0.0)
+        }),
+        TestAction::assert_with_op("Math.expm1(2)", |v, _| {
+            float_cmp::approx_eq!(f64, v.as_number().unwrap(), 6.389_056_098_930_65)
+        }),
     ]);
 }
 
@@ -291,10 +297,9 @@ fn sqrt() {
 
 #[test]
 fn tan() {
-    run_test([TestAction::assert_eq(
-        "Math.tan(1.1)",
-        1.964_759_657_248_652_3,
-    )]);
+    run_test([TestAction::assert_with_op("Math.tan(1.1)", |v, _| {
+        float_cmp::approx_eq!(f64, v.as_number().unwrap(), 1.964_759_657_248_652_5)
+    })]);
 }
 
 #[test]

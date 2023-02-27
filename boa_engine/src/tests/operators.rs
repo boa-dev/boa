@@ -119,8 +119,8 @@ fn unary_pre() {
         TestAction::assert_eq("{ const a = { b: 5 }; --a['b']; a.b }", 4),
         TestAction::assert_eq("{ let a = 5; ++a }", 6),
         TestAction::assert_eq("{ let a = 5; --a }", 4),
-        TestAction::assert_eq("{ let a = 2147483647; ++a }", 2147483648i64),
-        TestAction::assert_eq("{ let a = -2147483648; --a }", -2147483649i64),
+        TestAction::assert_eq("{ let a = 2147483647; ++a }", 2_147_483_648_i64),
+        TestAction::assert_eq("{ let a = -2147483648; --a }", -2_147_483_649_i64),
         TestAction::assert_eq(
             indoc! {r#"
                 let a = {[Symbol.toPrimitive]() { return 123; }};
@@ -215,8 +215,8 @@ fn unary_post() {
         TestAction::assert_eq("{ const a = { b: 5 }; a['b']--; a.b }", 4),
         TestAction::assert_eq("{ let a = 5; a++ }", 5),
         TestAction::assert_eq("{ let a = 5; a-- }", 5),
-        TestAction::assert_eq("{ let a = 2147483647; a++; a }", 2147483648i64),
-        TestAction::assert_eq("{ let a = -2147483648; a--; a }", -2147483649i64),
+        TestAction::assert_eq("{ let a = 2147483647; a++; a }", 2_147_483_648_i64),
+        TestAction::assert_eq("{ let a = -2147483648; a--; a }", -2_147_483_649_i64),
         TestAction::assert_eq(
             indoc! {r#"
                 let a = {[Symbol.toPrimitive]() { return 123; }};
