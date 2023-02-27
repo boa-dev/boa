@@ -1,191 +1,136 @@
-use crate::{forward, Context};
+use crate::{run_test, JsValue, TestAction};
+use indoc::indoc;
 
 #[test]
 fn apply() {
-    let mut context = Context::default();
-
-    let init = r#"
-        var called = {};
-        function f(n) { called.result = n };
-        Reflect.apply(f, undefined, [42]);
-        "#;
-
-    forward(&mut context, init);
-
-    assert_eq!(forward(&mut context, "called.result"), "42");
+    run_test([
+        TestAction::run(indoc! {r#"
+                var called = {};
+                function f(n) { called.result = n };
+                Reflect.apply(f, undefined, [42]);
+            "#}),
+        TestAction::assert_eq("called.result", 42),
+    ]);
 }
 
 #[test]
 fn construct() {
-    let mut context = Context::default();
-
-    let init = r#"
-        var called = {};
-        function f(n) { called.result = n };
-        Reflect.construct(f, [42]);
-        "#;
-
-    forward(&mut context, init);
-
-    assert_eq!(forward(&mut context, "called.result"), "42");
+    run_test([
+        TestAction::run(indoc! {r#"
+                var called = {};
+                function f(n) { called.result = n };
+                Reflect.construct(f, [42]);
+            "#}),
+        TestAction::assert_eq("called.result", 42),
+    ]);
 }
 
 #[test]
 fn define_property() {
-    let mut context = Context::default();
-
-    let init = r#"
-        let obj = {};
-        Reflect.defineProperty(obj, 'p', { value: 42 });
-        "#;
-
-    forward(&mut context, init);
-
-    assert_eq!(forward(&mut context, "obj.p"), "42");
+    run_test([
+        TestAction::run(indoc! {r#"
+                let obj = {};
+                Reflect.defineProperty(obj, 'p', { value: 42 });
+            "#}),
+        TestAction::assert_eq("obj.p", 42),
+    ]);
 }
 
 #[test]
 fn delete_property() {
-    let mut context = Context::default();
-
-    let init = r#"
-        let obj = { p: 42 };
-        let deleted = Reflect.deleteProperty(obj, 'p');
-        "#;
-
-    forward(&mut context, init);
-
-    assert_eq!(forward(&mut context, "obj.p"), "undefined");
-    assert_eq!(forward(&mut context, "deleted"), "true");
+    run_test([
+        TestAction::run("let obj = { p: 42 };"),
+        TestAction::assert("Reflect.deleteProperty(obj, 'p')"),
+        TestAction::assert_eq("obj.p", JsValue::undefined()),
+    ]);
 }
 
 #[test]
 fn get() {
-    let mut context = Context::default();
-
-    let init = r#"
-        let obj = { p: 42 }
-        let p = Reflect.get(obj, 'p');
-        "#;
-
-    forward(&mut context, init);
-
-    assert_eq!(forward(&mut context, "p"), "42");
+    run_test([
+        TestAction::run("let obj = { p: 42 };"),
+        TestAction::assert_eq("Reflect.get(obj, 'p')", 42),
+    ]);
 }
 
 #[test]
 fn get_own_property_descriptor() {
-    let mut context = Context::default();
-
-    let init = r#"
-        let obj = { p: 42 };
-        let desc = Reflect.getOwnPropertyDescriptor(obj, 'p');
-        "#;
-
-    forward(&mut context, init);
-
-    assert_eq!(forward(&mut context, "desc.value"), "42");
+    run_test([
+        TestAction::run("let obj = { p: 42 };"),
+        TestAction::assert_eq("Reflect.getOwnPropertyDescriptor(obj, 'p').value", 42),
+    ]);
 }
 
 #[test]
 fn get_prototype_of() {
-    let mut context = Context::default();
-
-    let init = r#"
-        function F() { this.p = 42 };
-        let f = new F();
-        let proto = Reflect.getPrototypeOf(f);
-        "#;
-
-    forward(&mut context, init);
-
-    assert_eq!(forward(&mut context, "proto.constructor.name"), "\"F\"");
+    run_test([
+        TestAction::run(indoc! {r#"
+                function F() { this.p = 42 };
+                let f = new F();
+            "#}),
+        TestAction::assert_eq("Reflect.getPrototypeOf(f).constructor.name", "F"),
+    ]);
 }
 
 #[test]
 fn has() {
-    let mut context = Context::default();
-
-    let init = r#"
-        let obj = { p: 42 };
-        let hasP = Reflect.has(obj, 'p');
-        let hasP2 = Reflect.has(obj, 'p2');
-        "#;
-
-    forward(&mut context, init);
-
-    assert_eq!(forward(&mut context, "hasP"), "true");
-    assert_eq!(forward(&mut context, "hasP2"), "false");
+    run_test([
+        TestAction::run("let obj = { p: 42 };"),
+        TestAction::assert("Reflect.has(obj, 'p')"),
+        TestAction::assert("!Reflect.has(obj, 'p2')"),
+    ]);
 }
 
 #[test]
 fn is_extensible() {
-    let mut context = Context::default();
-
-    let init = r#"
-        let obj = { p: 42 };
-        let isExtensible = Reflect.isExtensible(obj);
-        "#;
-
-    forward(&mut context, init);
-
-    assert_eq!(forward(&mut context, "isExtensible"), "true");
+    run_test([
+        TestAction::run("let obj = { p: 42 };"),
+        TestAction::assert("Reflect.isExtensible(obj)"),
+    ]);
 }
 
 #[test]
 fn own_keys() {
-    let mut context = Context::default();
-
-    let init = r#"
-        let obj = { p: 42 };
-        let ownKeys = Reflect.ownKeys(obj);
-        "#;
-
-    forward(&mut context, init);
-
-    assert_eq!(forward(&mut context, "ownKeys"), r#"[ "p" ]"#);
+    run_test([
+        TestAction::run_harness(),
+        TestAction::run("let obj = { p: 42 };"),
+        TestAction::assert(indoc! {r#"
+                arrayEquals(
+                    Reflect.ownKeys(obj),
+                    ["p"]
+                )
+            "#}),
+    ]);
 }
 
 #[test]
 fn prevent_extensions() {
-    let mut context = Context::default();
-
-    let init = r#"
-        let obj = { p: 42 };
-        let r = Reflect.preventExtensions(obj);
-        "#;
-
-    forward(&mut context, init);
-
-    assert_eq!(forward(&mut context, "r"), "true");
+    run_test([
+        TestAction::run("let obj = { p: 42 };"),
+        TestAction::assert("Reflect.preventExtensions(obj)"),
+        TestAction::assert("!Reflect.isExtensible(obj)"),
+    ]);
 }
 
 #[test]
 fn set() {
-    let mut context = Context::default();
-
-    let init = r#"
-        let obj = {};
-        Reflect.set(obj, 'p', 42);
-        "#;
-
-    forward(&mut context, init);
-
-    assert_eq!(forward(&mut context, "obj.p"), "42");
+    run_test([
+        TestAction::run(indoc! {r#"
+                let obj = {};
+                Reflect.set(obj, 'p', 42);
+            "#}),
+        TestAction::assert_eq("obj.p", 42),
+    ]);
 }
 
 #[test]
 fn set_prototype_of() {
-    let mut context = Context::default();
-
-    let init = r#"
-        function F() { this.p = 42 };
-        let obj = {}
-        Reflect.setPrototypeOf(obj, F);
-        let p = Reflect.getPrototypeOf(obj);
-        "#;
-
-    forward(&mut context, init);
-
-    assert_eq!(forward(&mut context, "p.name"), "\"F\"");
+    run_test([
+        TestAction::run(indoc! {r#"
+                function F() { this.p = 42 };
+                let obj = {}
+                Reflect.setPrototypeOf(obj, F);
+            "#}),
+        TestAction::assert_eq("Reflect.getPrototypeOf(obj).name", "F"),
+    ]);
 }
