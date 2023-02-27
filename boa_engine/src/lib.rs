@@ -239,7 +239,7 @@ impl TestAction {
         })
     }
 
-    /// Executes `op` in the currently executing context.
+    /// Executes `op` with the currently active context.
     ///
     /// Useful to make custom assertions that must be done from Rust code.
     pub(crate) fn inspect_context(op: fn(&mut Context<'_>)) -> Self {
