@@ -232,7 +232,7 @@ impl TestAction {
         Self(Inner::RunHarness)
     }
 
-    /// Runs `source`, panickinf if the execution throws.
+    /// Runs `source`, panicking if the execution throws.
     pub(crate) fn run(source: impl Into<Cow<'static, str>>) -> Self {
         Self(Inner::Run {
             source: source.into(),
@@ -310,15 +310,15 @@ impl TestAction {
 /// Executes a list of test actions on a new, default context.
 #[cfg(test)]
 #[track_caller]
-pub(crate) fn run_test(actions: impl IntoIterator<Item = TestAction>) {
+pub(crate) fn run_test_actions(actions: impl IntoIterator<Item = TestAction>) {
     let context = &mut Context::default();
-    run_test_with(actions, context);
+    run_test_actions_with(actions, context);
 }
 
 /// Executes a list of test actions on the provided context.
 #[cfg(test)]
 #[track_caller]
-pub(crate) fn run_test_with(
+pub(crate) fn run_test_actions_with(
     actions: impl IntoIterator<Item = TestAction>,
     context: &mut Context<'_>,
 ) {

@@ -172,7 +172,7 @@ mod tests {
     use serde_json::json;
 
     use crate::object::JsArray;
-    use crate::{run_test, TestAction};
+    use crate::{run_test_actions, TestAction};
     use crate::{string::utf16, JsValue};
 
     #[test]
@@ -195,7 +195,7 @@ mod tests {
             }
         "#};
 
-        run_test([TestAction::inspect_context(|ctx| {
+        run_test_actions([TestAction::inspect_context(|ctx| {
             let json: serde_json::Value = serde_json::from_str(DATA).unwrap();
             assert!(json.is_object());
 
@@ -227,7 +227,7 @@ mod tests {
 
     #[test]
     fn integer_ops_to_json() {
-        run_test([
+        run_test_actions([
             TestAction::assert_with_op("1000000 + 500", |v, ctx| {
                 v.to_json(ctx).unwrap() == json!(1_000_500)
             }),

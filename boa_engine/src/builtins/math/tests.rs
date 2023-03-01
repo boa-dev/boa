@@ -1,8 +1,8 @@
-use crate::{run_test, TestAction};
+use crate::{run_test_actions, TestAction};
 
 #[test]
 fn abs() {
-    run_test([
+    run_test_actions([
         TestAction::assert_eq("Math.abs(3 - 5)", 2.0),
         TestAction::assert_eq("Math.abs(1.23456 - 7.89012)", 6.655_559_999_999_999_5),
     ]);
@@ -10,7 +10,7 @@ fn abs() {
 
 #[test]
 fn acos() {
-    run_test([
+    run_test_actions([
         TestAction::assert_eq("Math.acos(8 / 10)", 0.643_501_108_793_284_3),
         TestAction::assert_eq("Math.acos(5 / 3)", f64::NAN),
         TestAction::assert_eq("Math.acos(1)", 0.0),
@@ -20,7 +20,7 @@ fn acos() {
 
 #[test]
 fn acosh() {
-    run_test([
+    run_test_actions([
         TestAction::assert_eq("Math.acosh(2)", 1.316_957_896_924_816_6),
         TestAction::assert_eq("Math.acosh(-1)", f64::NAN),
         TestAction::assert_eq("Math.acosh(0.5)", f64::NAN),
@@ -29,7 +29,7 @@ fn acosh() {
 
 #[test]
 fn asin() {
-    run_test([
+    run_test_actions([
         TestAction::assert_eq("Math.asin(6 / 10)", 0.643_501_108_793_284_4),
         TestAction::assert_eq("Math.asin(5 / 3)", f64::NAN),
     ]);
@@ -37,7 +37,7 @@ fn asin() {
 
 #[test]
 fn asinh() {
-    run_test([
+    run_test_actions([
         TestAction::assert_eq("Math.asinh(1)", 0.881_373_587_019_543),
         TestAction::assert_eq("Math.asinh(0)", 0.0),
     ]);
@@ -45,7 +45,7 @@ fn asinh() {
 
 #[test]
 fn atan() {
-    run_test([
+    run_test_actions([
         TestAction::assert_eq("Math.atan(1)", std::f64::consts::FRAC_PI_4),
         TestAction::assert_eq("Math.atan(0)", 0.0),
         TestAction::assert_eq("Math.atan(-0)", -0.0),
@@ -54,7 +54,7 @@ fn atan() {
 
 #[test]
 fn atan2() {
-    run_test([
+    run_test_actions([
         TestAction::assert_eq("Math.atan2(90, 15)", 1.405_647_649_380_269_9),
         TestAction::assert_eq("Math.atan2(15, 90)", 0.165_148_677_414_626_83),
     ]);
@@ -62,7 +62,7 @@ fn atan2() {
 
 #[test]
 fn cbrt() {
-    run_test([
+    run_test_actions([
         TestAction::assert_eq("Math.cbrt(64)", 4.0),
         TestAction::assert_eq("Math.cbrt(-1)", -1.0),
         TestAction::assert_eq("Math.cbrt(1)", 1.0),
@@ -71,7 +71,7 @@ fn cbrt() {
 
 #[test]
 fn ceil() {
-    run_test([
+    run_test_actions([
         TestAction::assert_eq("Math.ceil(1.95)", 2.0),
         TestAction::assert_eq("Math.ceil(4)", 4.0),
         TestAction::assert_eq("Math.ceil(-7.004)", -7.0),
@@ -80,7 +80,7 @@ fn ceil() {
 
 #[test]
 fn clz32() {
-    run_test([
+    run_test_actions([
         TestAction::assert_eq("Math.clz32()", 32),
         TestAction::assert_eq("Math.clz32({})", 32),
         TestAction::assert_eq("Math.clz32(-173)", 0),
@@ -94,7 +94,7 @@ fn clz32() {
 
 #[test]
 fn cos() {
-    run_test([
+    run_test_actions([
         TestAction::assert_eq("Math.cos(0)", 1.0),
         TestAction::assert_eq("Math.cos(1)", 0.540_302_305_868_139_8),
     ]);
@@ -102,7 +102,7 @@ fn cos() {
 
 #[test]
 fn cosh() {
-    run_test([
+    run_test_actions([
         TestAction::assert_eq("Math.cosh(0)", 1.0),
         TestAction::assert_eq("Math.cosh(1)", 1.543_080_634_815_243_7),
         TestAction::assert_eq("Math.cosh(-1)", 1.543_080_634_815_243_7),
@@ -111,7 +111,7 @@ fn cosh() {
 
 #[test]
 fn exp() {
-    run_test([
+    run_test_actions([
         TestAction::assert_eq("Math.exp(0)", 1.0),
         TestAction::assert_eq("Math.exp(-1)", 0.367_879_441_171_442_33),
         TestAction::assert_eq("Math.exp(2)", 7.389_056_098_930_65),
@@ -120,7 +120,7 @@ fn exp() {
 
 #[test]
 fn expm1() {
-    run_test([
+    run_test_actions([
         TestAction::assert_eq("Math.expm1()", f64::NAN),
         TestAction::assert_eq("Math.expm1({})", f64::NAN),
         TestAction::assert_with_op("Math.expm1(1)", |v, _| {
@@ -140,7 +140,7 @@ fn expm1() {
 
 #[test]
 fn floor() {
-    run_test([
+    run_test_actions([
         TestAction::assert_eq("Math.floor(1.95)", 1.0),
         TestAction::assert_eq("Math.floor(-3.01)", -4.0),
         TestAction::assert_eq("Math.floor(3.01)", 3.0),
@@ -149,7 +149,7 @@ fn floor() {
 
 #[test]
 fn fround() {
-    run_test([
+    run_test_actions([
         TestAction::assert_eq("Math.fround(NaN)", f64::NAN),
         TestAction::assert_eq("Math.fround(Infinity)", f64::INFINITY),
         TestAction::assert_eq("Math.fround(5)", 5.0),
@@ -162,7 +162,7 @@ fn fround() {
 
 #[test]
 fn hypot() {
-    run_test([
+    run_test_actions([
         TestAction::assert_eq("Math.hypot()", 0.0),
         TestAction::assert_eq("Math.hypot(3, 4)", 5.0),
         TestAction::assert_eq("Math.hypot(5, 12)", 13.0),
@@ -175,7 +175,7 @@ fn hypot() {
 
 #[test]
 fn imul() {
-    run_test([
+    run_test_actions([
         TestAction::assert_eq("Math.imul(3, 4)", 12),
         TestAction::assert_eq("Math.imul(-5, 12)", -60),
         TestAction::assert_eq("Math.imul(0xffffffff, 5)", -5),
@@ -187,7 +187,7 @@ fn imul() {
 
 #[test]
 fn log() {
-    run_test([
+    run_test_actions([
         TestAction::assert_eq("Math.log(1)", 0.0),
         TestAction::assert_eq("Math.log(10)", std::f64::consts::LN_10),
         TestAction::assert_eq("Math.log(-1)", f64::NAN),
@@ -196,7 +196,7 @@ fn log() {
 
 #[test]
 fn log1p() {
-    run_test([
+    run_test_actions([
         TestAction::assert_eq("Math.log1p(1)", std::f64::consts::LN_2),
         TestAction::assert_eq("Math.log1p(0)", 0.0),
         TestAction::assert_eq("Math.log1p(-0.9999999999999999)", -36.736_800_569_677_1),
@@ -209,7 +209,7 @@ fn log1p() {
 
 #[test]
 fn log10() {
-    run_test([
+    run_test_actions([
         TestAction::assert_eq("Math.log10(2)", std::f64::consts::LOG10_2),
         TestAction::assert_eq("Math.log10(1)", 0.0),
         TestAction::assert_eq("Math.log10(-2)", f64::NAN),
@@ -218,7 +218,7 @@ fn log10() {
 
 #[test]
 fn log2() {
-    run_test([
+    run_test_actions([
         TestAction::assert_eq("Math.log2(3)", 1.584_962_500_721_156),
         TestAction::assert_eq("Math.log2(1)", 0.0),
         TestAction::assert_eq("Math.log2(-2)", f64::NAN),
@@ -227,7 +227,7 @@ fn log2() {
 
 #[test]
 fn max() {
-    run_test([
+    run_test_actions([
         TestAction::assert_eq("Math.max(10, 20)", 20.0),
         TestAction::assert_eq("Math.max(-10, -20)", -10.0),
         TestAction::assert_eq("Math.max(-10, 20)", 20.0),
@@ -236,7 +236,7 @@ fn max() {
 
 #[test]
 fn min() {
-    run_test([
+    run_test_actions([
         TestAction::assert_eq("Math.min(10, 20)", 10.0),
         TestAction::assert_eq("Math.min(-10, -20)", -20.0),
         TestAction::assert_eq("Math.min(-10, 20)", -10.0),
@@ -245,7 +245,7 @@ fn min() {
 
 #[test]
 fn pow() {
-    run_test([
+    run_test_actions([
         TestAction::assert_eq("Math.pow(2, 10)", 1_024.0),
         TestAction::assert_eq("Math.pow(-7, 2)", 49.0),
         TestAction::assert_eq("Math.pow(4, 0.5)", 2.0),
@@ -255,7 +255,7 @@ fn pow() {
 
 #[test]
 fn round() {
-    run_test([
+    run_test_actions([
         TestAction::assert_eq("Math.round(20.5)", 21.0),
         TestAction::assert_eq("Math.round(-20.3)", -20.0),
     ]);
@@ -263,7 +263,7 @@ fn round() {
 
 #[test]
 fn sign() {
-    run_test([
+    run_test_actions([
         TestAction::assert_eq("Math.sign(3)", 1.0),
         TestAction::assert_eq("Math.sign(-3)", -1.0),
         TestAction::assert_eq("Math.sign(0)", 0.0),
@@ -272,7 +272,7 @@ fn sign() {
 
 #[test]
 fn sin() {
-    run_test([
+    run_test_actions([
         TestAction::assert_eq("Math.sin(0)", 0.0),
         TestAction::assert_eq("Math.sin(1)", 0.841_470_984_807_896_5),
     ]);
@@ -280,7 +280,7 @@ fn sin() {
 
 #[test]
 fn sinh() {
-    run_test([
+    run_test_actions([
         TestAction::assert_eq("Math.sinh(0)", 0.0),
         TestAction::assert_eq("Math.sinh(1)", 1.175_201_193_643_801_4),
     ]);
@@ -288,7 +288,7 @@ fn sinh() {
 
 #[test]
 fn sqrt() {
-    run_test([
+    run_test_actions([
         TestAction::assert_eq("Math.sqrt(0)", 0.0),
         TestAction::assert_eq("Math.sqrt(2)", std::f64::consts::SQRT_2),
         TestAction::assert_eq("Math.sqrt(9)", 3.0),
@@ -297,14 +297,14 @@ fn sqrt() {
 
 #[test]
 fn tan() {
-    run_test([TestAction::assert_with_op("Math.tan(1.1)", |v, _| {
+    run_test_actions([TestAction::assert_with_op("Math.tan(1.1)", |v, _| {
         float_cmp::approx_eq!(f64, v.as_number().unwrap(), 1.964_759_657_248_652_5)
     })]);
 }
 
 #[test]
 fn tanh() {
-    run_test([
+    run_test_actions([
         TestAction::assert_eq("Math.tanh(1)", 0.761_594_155_955_764_9),
         TestAction::assert_eq("Math.tanh(0)", 0.0),
     ]);
@@ -312,7 +312,7 @@ fn tanh() {
 
 #[test]
 fn trunc() {
-    run_test([
+    run_test_actions([
         TestAction::assert_eq("Math.trunc(13.37)", 13.0),
         TestAction::assert_eq("Math.trunc(0.123)", 0.0),
     ]);

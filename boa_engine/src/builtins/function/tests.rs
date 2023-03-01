@@ -7,13 +7,13 @@ use crate::{
     native_function::NativeFunction,
     object::{FunctionObjectBuilder, JsObject},
     property::{Attribute, PropertyDescriptor},
-    run_test, JsValue, TestAction,
+    run_test_actions, JsValue, TestAction,
 };
 
 #[allow(clippy::float_cmp)]
 #[test]
 fn arguments_object() {
-    run_test([
+    run_test_actions([
         TestAction::run(indoc! {r#"
                 function jason(a, b) {
                     return arguments[0];
@@ -25,7 +25,7 @@ fn arguments_object() {
 
 #[test]
 fn self_mutating_function_when_calling() {
-    run_test([
+    run_test_actions([
         TestAction::run(indoc! {r#"
                 function x() {
                     x.y = 3;
@@ -38,7 +38,7 @@ fn self_mutating_function_when_calling() {
 
 #[test]
 fn self_mutating_function_when_constructing() {
-    run_test([
+    run_test_actions([
         TestAction::run(indoc! {r#"
                 function x() {
                     x.y = 3;
@@ -51,7 +51,7 @@ fn self_mutating_function_when_constructing() {
 
 #[test]
 fn function_prototype() {
-    run_test([
+    run_test_actions([
         TestAction::assert_eq("Function.prototype.name", ""),
         TestAction::assert_eq("Function.prototype.length", 0),
         TestAction::assert_eq("Function.prototype()", JsValue::undefined()),
@@ -69,7 +69,7 @@ fn function_prototype() {
 
 #[test]
 fn function_prototype_call() {
-    run_test([TestAction::assert_eq(
+    run_test_actions([TestAction::assert_eq(
         "Object.prototype.toString.call(new Error())",
         "[object Error]",
     )]);
@@ -77,7 +77,7 @@ fn function_prototype_call() {
 
 #[test]
 fn function_prototype_call_throw() {
-    run_test([TestAction::assert_native_error(
+    run_test_actions([TestAction::assert_native_error(
         indoc! {r#"
             let call = Function.prototype.call;
             call(call)
@@ -89,7 +89,7 @@ fn function_prototype_call_throw() {
 
 #[test]
 fn function_prototype_call_multiple_args() {
-    run_test([
+    run_test_actions([
         TestAction::run(indoc! {r#"
             function f(a, b) {
                 this.a = a;
@@ -105,7 +105,7 @@ fn function_prototype_call_multiple_args() {
 
 #[test]
 fn function_prototype_apply() {
-    run_test([
+    run_test_actions([
         TestAction::run("const numbers = [6, 7, 3, 4, 2]"),
         TestAction::assert_eq("Math.max.apply(null, numbers)", 7),
         TestAction::assert_eq("Math.min.apply(null, numbers)", 2),
@@ -114,7 +114,7 @@ fn function_prototype_apply() {
 
 #[test]
 fn function_prototype_apply_on_object() {
-    run_test([
+    run_test_actions([
         TestAction::run(indoc! {r#"
                 function f(a, b) {
                     this.a = a;
@@ -130,7 +130,7 @@ fn function_prototype_apply_on_object() {
 
 #[test]
 fn closure_capture_clone() {
-    run_test([
+    run_test_actions([
         TestAction::inspect_context(|ctx| {
             let string = js_string!("Hello");
             let object = JsObject::with_object_proto(ctx);

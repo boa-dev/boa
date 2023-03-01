@@ -1,13 +1,13 @@
 use super::Array;
 use crate::{
     builtins::{error::ErrorKind, Number},
-    run_test, Context, JsValue, TestAction,
+    run_test_actions, Context, JsValue, TestAction,
 };
 use indoc::indoc;
 
 #[test]
 fn is_array() {
-    run_test([
+    run_test_actions([
         TestAction::assert("Array.isArray([])"),
         TestAction::assert("Array.isArray(new Array())"),
         TestAction::assert("Array.isArray(['a', 'b', 'c'])"),
@@ -27,7 +27,7 @@ fn is_array() {
 
 #[test]
 fn of() {
-    run_test([
+    run_test_actions([
         TestAction::run_harness(),
         TestAction::assert("arrayEquals(Array.of(1, 2, 3), [1, 2, 3])"),
         TestAction::assert(indoc! {r#"
@@ -48,7 +48,7 @@ fn of() {
 
 #[test]
 fn concat() {
-    run_test([
+    run_test_actions([
         TestAction::run_harness(),
         // Empty ++ Empty
         TestAction::assert("arrayEquals([].concat([]), [])"),
@@ -63,7 +63,7 @@ fn concat() {
 
 #[test]
 fn copy_within() {
-    run_test([
+    run_test_actions([
         TestAction::run_harness(),
         TestAction::assert("arrayEquals([1,2,3,4,5].copyWithin(-2), [1,2,3,1,2])"),
         TestAction::assert("arrayEquals([1,2,3,4,5].copyWithin(0, 3), [4,5,3,4,5])"),
@@ -74,7 +74,7 @@ fn copy_within() {
 
 #[test]
 fn join() {
-    run_test([
+    run_test_actions([
         TestAction::assert_eq("[].join('.')", ""),
         TestAction::assert_eq("['a'].join('.')", "a"),
         TestAction::assert_eq("['a', 'b', 'c'].join('.')", "a.b.c"),
@@ -83,7 +83,7 @@ fn join() {
 
 #[test]
 fn to_string() {
-    run_test([
+    run_test_actions([
         TestAction::assert_eq("[].toString()", ""),
         TestAction::assert_eq("['a'].toString()", "a"),
         TestAction::assert_eq("['a', 'b', 'c'].toString()", "a,b,c"),
@@ -93,7 +93,7 @@ fn to_string() {
 #[test]
 fn every() {
     // taken from https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/every
-    run_test([
+    run_test_actions([
         TestAction::run(indoc! {r#"
                 function appendingCallback(elem,index,arr) {
                     arr.push('new');
@@ -114,7 +114,7 @@ fn every() {
 
 #[test]
 fn find() {
-    run_test([TestAction::assert_eq(
+    run_test_actions([TestAction::assert_eq(
         "['a', 'b', 'c'].find(e => e == 'a')",
         "a",
     )]);
@@ -122,7 +122,7 @@ fn find() {
 
 #[test]
 fn find_index() {
-    run_test([
+    run_test_actions([
         TestAction::assert_eq("[1, 2, 3].findIndex(e => e == 2)", 1),
         TestAction::assert_eq("[].findIndex(e => e == 2)", -1),
         TestAction::assert_eq("[4, 5, 6].findIndex(e => e == 2)", -1),
@@ -131,7 +131,7 @@ fn find_index() {
 
 #[test]
 fn flat() {
-    run_test([
+    run_test_actions([
         TestAction::run_harness(),
         TestAction::assert("arrayEquals( [[]].flat(), [] )"),
         TestAction::assert(indoc! {r#"
@@ -152,7 +152,7 @@ fn flat() {
 
 #[test]
 fn flat_map() {
-    run_test([
+    run_test_actions([
         TestAction::run_harness(),
         TestAction::assert(indoc! {r#"
                 arrayEquals(
@@ -171,7 +171,7 @@ fn flat_map() {
 
 #[test]
 fn flat_map_with_hole() {
-    run_test([
+    run_test_actions([
         TestAction::run_harness(),
         TestAction::assert(indoc! {r#"
                 var arr = [0, 1, 2];
@@ -186,7 +186,7 @@ fn flat_map_with_hole() {
 
 #[test]
 fn flat_map_not_callable() {
-    run_test([TestAction::assert_native_error(
+    run_test_actions([TestAction::assert_native_error(
         indoc! {r#"
             var array = [1,2,3];
             array.flatMap("not a function");
@@ -198,7 +198,7 @@ fn flat_map_not_callable() {
 
 #[test]
 fn push() {
-    run_test([
+    run_test_actions([
         TestAction::run("var arr = [1, 2];"),
         TestAction::assert_eq("arr.push()", 2),
         TestAction::assert_eq("arr.push(3, 4)", 4),
@@ -209,7 +209,7 @@ fn push() {
 
 #[test]
 fn pop() {
-    run_test([
+    run_test_actions([
         TestAction::run_harness(),
         TestAction::run(indoc! {r#"
                 var one = [1];
@@ -225,7 +225,7 @@ fn pop() {
 
 #[test]
 fn shift() {
-    run_test([
+    run_test_actions([
         TestAction::run_harness(),
         TestAction::run(indoc! {r#"
                 var one = [1];
@@ -241,7 +241,7 @@ fn shift() {
 
 #[test]
 fn unshift() {
-    run_test([
+    run_test_actions([
         TestAction::run_harness(),
         TestAction::run("var arr = [3, 4];"),
         TestAction::assert_eq("arr.unshift()", 2),
@@ -252,7 +252,7 @@ fn unshift() {
 
 #[test]
 fn reverse() {
-    run_test([
+    run_test_actions([
         TestAction::run_harness(),
         TestAction::run("var arr = [1, 2];"),
         TestAction::assert("arrayEquals(arr.reverse(), [2, 1])"),
@@ -262,7 +262,7 @@ fn reverse() {
 
 #[test]
 fn index_of() {
-    run_test([
+    run_test_actions([
         TestAction::run(indoc! {r#"
                 var one = ["a"];
                 var many = ["a", "b", "c"];
@@ -303,7 +303,7 @@ fn index_of() {
 
 #[test]
 fn last_index_of() {
-    run_test([
+    run_test_actions([
         TestAction::run(indoc! {r#"
                 var one = ["a"];
                 var many = ["a", "b", "c"];
@@ -344,7 +344,7 @@ fn last_index_of() {
 
 #[test]
 fn fill_obj_ref() {
-    run_test([
+    run_test_actions([
         TestAction::run(indoc! {r#"
                 let obj = {};
                 let a = new Array(3).fill(obj);
@@ -356,7 +356,7 @@ fn fill_obj_ref() {
 
 #[test]
 fn fill() {
-    run_test([
+    run_test_actions([
         TestAction::run_harness(),
         TestAction::run("var a = [1, 2, 3];"),
         TestAction::assert("arrayEquals(a.fill(4), [4, 4, 4])"),
@@ -380,7 +380,7 @@ fn fill() {
 
 #[test]
 fn includes_value() {
-    run_test([
+    run_test_actions([
         TestAction::run(indoc! {r#"
                 var one = ["a"];
                 var many = ["a", "b", "c"];
@@ -405,7 +405,7 @@ fn includes_value() {
 
 #[test]
 fn map() {
-    run_test([
+    run_test_actions([
         TestAction::run_harness(),
         TestAction::run(indoc! {r#"
                 var one = ["x"];
@@ -443,7 +443,7 @@ fn map() {
 
 #[test]
 fn slice() {
-    run_test([
+    run_test_actions([
         TestAction::run_harness(),
         TestAction::assert("arrayEquals([].slice(), [])"),
         TestAction::assert("arrayEquals(['a'].slice(), ['a'])"),
@@ -470,7 +470,7 @@ fn slice() {
 
 #[test]
 fn for_each() {
-    run_test([
+    run_test_actions([
         TestAction::run(indoc! {r#"
                 var sum = 0;
                 var indexSum = 0;
@@ -490,7 +490,7 @@ fn for_each() {
 
 #[test]
 fn for_each_push_value() {
-    run_test([
+    run_test_actions([
         TestAction::run_harness(),
         TestAction::run(indoc! {r#"
                 var a = [1, 2, 3, 4];
@@ -507,7 +507,7 @@ fn for_each_push_value() {
 
 #[test]
 fn filter() {
-    run_test([
+    run_test_actions([
         TestAction::run_harness(),
         TestAction::run("var empty = [], one = ['1'], many = ['1', '0', '1'];"),
         // Empty
@@ -553,7 +553,7 @@ fn filter() {
 
 #[test]
 fn some() {
-    run_test([
+    run_test_actions([
         TestAction::run_harness(),
         TestAction::run("var array = [11, 23, 45];"),
         TestAction::assert("!array.some(e => e < 10)"),
@@ -595,7 +595,7 @@ fn some() {
 
 #[test]
 fn reduce() {
-    run_test([
+    run_test_actions([
         TestAction::run(indoc! {r#"
                 var arr = [1, 2, 3, 4];
                 function add(acc, x) {
@@ -667,7 +667,7 @@ fn reduce() {
 
 #[test]
 fn reduce_right() {
-    run_test([
+    run_test_actions([
         TestAction::run(indoc! {r#"
                 var arr = [1, 2, 3, 4];
                 function sub(acc, x) {
@@ -748,7 +748,7 @@ fn reduce_right() {
 
 #[test]
 fn call_array_constructor_with_one_argument() {
-    run_test([
+    run_test_actions([
         TestAction::run_harness(),
         TestAction::assert("arrayEquals(new Array(0), [])"),
         TestAction::assert("arrayEquals(new Array(5), [,,,,,])"),
@@ -758,7 +758,7 @@ fn call_array_constructor_with_one_argument() {
 
 #[test]
 fn array_values_simple() {
-    run_test([
+    run_test_actions([
         TestAction::run_harness(),
         TestAction::assert(indoc! {r#"
                 arrayEquals(
@@ -771,7 +771,7 @@ fn array_values_simple() {
 
 #[test]
 fn array_keys_simple() {
-    run_test([
+    run_test_actions([
         TestAction::run_harness(),
         TestAction::assert(indoc! {r#"
                 arrayEquals(
@@ -784,7 +784,7 @@ fn array_keys_simple() {
 
 #[test]
 fn array_entries_simple() {
-    run_test([
+    run_test_actions([
         TestAction::run_harness(),
         TestAction::assert(indoc! {r#"
                 arrayEquals(
@@ -801,7 +801,7 @@ fn array_entries_simple() {
 
 #[test]
 fn array_values_empty() {
-    run_test([
+    run_test_actions([
         TestAction::run_harness(),
         TestAction::assert(indoc! {r#"
                 arrayEquals(
@@ -814,7 +814,7 @@ fn array_values_empty() {
 
 #[test]
 fn array_values_sparse() {
-    run_test([
+    run_test_actions([
         TestAction::run_harness(),
         TestAction::assert(indoc! {r#"
                 var array = Array();
@@ -829,7 +829,7 @@ fn array_values_sparse() {
 
 #[test]
 fn array_symbol_iterator() {
-    run_test([
+    run_test_actions([
         TestAction::run_harness(),
         TestAction::assert(indoc! {r#"
                 arrayEquals(
@@ -842,7 +842,7 @@ fn array_symbol_iterator() {
 
 #[test]
 fn array_values_symbol_iterator() {
-    run_test([TestAction::assert(indoc! {r#"
+    run_test_actions([TestAction::assert(indoc! {r#"
                 var iterator = [1, 2, 3].values();
                 iterator === iterator[Symbol.iterator]();
             "#})]);
@@ -850,7 +850,7 @@ fn array_values_symbol_iterator() {
 
 #[test]
 fn array_spread_arrays() {
-    run_test([
+    run_test_actions([
         TestAction::run_harness(),
         TestAction::assert(indoc! {r#"
                 arrayEquals(
@@ -863,7 +863,7 @@ fn array_spread_arrays() {
 
 #[test]
 fn array_spread_non_iterable() {
-    run_test([TestAction::assert_native_error(
+    run_test_actions([TestAction::assert_native_error(
         "const array2 = [...5];",
         ErrorKind::Type,
         "value with type `number` is not iterable",
@@ -879,7 +879,7 @@ fn get_relative_start() {
             expected
         );
     }
-    run_test([TestAction::inspect_context(|ctx| {
+    run_test_actions([TestAction::inspect_context(|ctx| {
         assert(ctx, None, 10, 0);
         assert(ctx, Some(&JsValue::undefined()), 10, 0);
         assert(ctx, Some(&JsValue::new(f64::NEG_INFINITY)), 10, 0);
@@ -905,7 +905,7 @@ fn get_relative_end() {
             expected
         );
     }
-    run_test([TestAction::inspect_context(|ctx| {
+    run_test_actions([TestAction::inspect_context(|ctx| {
         assert(ctx, None, 10, 10);
         assert(ctx, Some(&JsValue::undefined()), 10, 10);
         assert(ctx, Some(&JsValue::new(f64::NEG_INFINITY)), 10, 0);
@@ -924,14 +924,14 @@ fn get_relative_end() {
 
 #[test]
 fn array_length_is_not_enumerable() {
-    run_test([TestAction::assert(
+    run_test_actions([TestAction::assert(
         "!Object.getOwnPropertyDescriptor([], 'length').enumerable",
     )]);
 }
 
 #[test]
 fn array_sort() {
-    run_test([
+    run_test_actions([
         TestAction::run_harness(),
         TestAction::run("let arr = ['80', '9', '700', 40, 1, 5, 200];"),
         TestAction::assert(indoc! {r#"

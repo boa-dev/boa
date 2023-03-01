@@ -1,9 +1,9 @@
-use crate::{builtins::error::ErrorKind, run_test, JsValue, TestAction};
+use crate::{builtins::error::ErrorKind, run_test_actions, JsValue, TestAction};
 use indoc::indoc;
 
 #[test]
 fn construct() {
-    run_test([
+    run_test_actions([
         TestAction::assert_eq("(new Map()).size", 0),
         TestAction::assert_eq("(new Map([['1', 'one'], ['2', 'two']])).size", 2),
     ]);
@@ -11,7 +11,7 @@ fn construct() {
 
 #[test]
 fn clone() {
-    run_test([
+    run_test_actions([
         TestAction::run(indoc! {r#"
                 let original = new Map([["1", "one"], ["2", "two"]]);
                 let clone = new Map(original);
@@ -24,7 +24,7 @@ fn clone() {
 
 #[test]
 fn symbol_iterator() {
-    run_test([
+    run_test_actions([
         TestAction::run_harness(),
         TestAction::run(indoc! {r#"
                 const map1 = new Map();
@@ -45,7 +45,7 @@ fn symbol_iterator() {
 // Should behave the same as symbol_iterator
 #[test]
 fn entries() {
-    run_test([
+    run_test_actions([
         TestAction::run_harness(),
         TestAction::run(indoc! {r#"
                 const map1 = new Map();
@@ -65,7 +65,7 @@ fn entries() {
 
 #[test]
 fn merge() {
-    run_test([
+    run_test_actions([
         TestAction::run(indoc! {r#"
                 let first = new Map([["1", "one"], ["2", "two"]]);
                 let second = new Map([["2", "second two"], ["3", "three"]]);
@@ -81,7 +81,7 @@ fn merge() {
 
 #[test]
 fn get() {
-    run_test([
+    run_test_actions([
         TestAction::run(indoc! {r#"
                 let map = new Map([["1", "one"], ["2", "two"]]);
             "#}),
@@ -94,7 +94,7 @@ fn get() {
 
 #[test]
 fn set() {
-    run_test([
+    run_test_actions([
         TestAction::run("let map = new Map();"),
         TestAction::assert("map.set(); map.has(undefined)"),
         TestAction::assert_eq("map.get()", JsValue::undefined()),
@@ -106,7 +106,7 @@ fn set() {
 
 #[test]
 fn clear() {
-    run_test([
+    run_test_actions([
         TestAction::run(indoc! {r#"
                 let map = new Map([["1", "one"], ["2", "two"]]);
                 map.clear();
@@ -117,7 +117,7 @@ fn clear() {
 
 #[test]
 fn delete() {
-    run_test([
+    run_test_actions([
         TestAction::run("let map = new Map([['1', 'one'], ['2', 'two']]);"),
         TestAction::assert_eq("map.size", 2),
         TestAction::assert("map.delete('1')"),
@@ -128,7 +128,7 @@ fn delete() {
 
 #[test]
 fn has() {
-    run_test([
+    run_test_actions([
         TestAction::run("let map = new Map([['1', 'one']]);"),
         TestAction::assert("!map.has()"),
         TestAction::assert("map.has('1')"),
@@ -138,7 +138,7 @@ fn has() {
 
 #[test]
 fn keys() {
-    run_test([
+    run_test_actions([
         TestAction::run(indoc! {r#"
                 const map1 = new Map();
                 map1.set('0', 'foo');
@@ -156,7 +156,7 @@ fn keys() {
 
 #[test]
 fn for_each() {
-    run_test([
+    run_test_actions([
         TestAction::run(indoc! {r#"
                 let map = new Map([[1, 5], [2, 10], [3, 15]]);
                 let valueSum = 0;
@@ -177,7 +177,7 @@ fn for_each() {
 
 #[test]
 fn values() {
-    run_test([
+    run_test_actions([
         TestAction::run(indoc! {r#"
                 const map1 = new Map();
                 map1.set('0', 'foo');
@@ -195,7 +195,7 @@ fn values() {
 
 #[test]
 fn modify_key() {
-    run_test([
+    run_test_actions([
         TestAction::run(indoc! {r#"
                 let obj = new Object();
                 let map = new Map([[obj, "one"]]);
@@ -207,7 +207,7 @@ fn modify_key() {
 
 #[test]
 fn order() {
-    run_test([
+    run_test_actions([
         TestAction::run_harness(),
         TestAction::run("let map = new Map([[1, 'one'], [2, 'two']]);"),
         TestAction::assert("arrayEquals(Array.from(map.keys()), [1, 2])"),
@@ -224,7 +224,7 @@ fn order() {
 
 #[test]
 fn recursive_display() {
-    run_test([
+    run_test_actions([
         TestAction::run(indoc! {r#"
                 let map = new Map();
                 let array = new Array([map]);
@@ -240,7 +240,7 @@ fn recursive_display() {
 
 #[test]
 fn not_a_function() {
-    run_test([TestAction::assert_native_error(
+    run_test_actions([TestAction::assert_native_error(
         "let map = Map()",
         ErrorKind::Type,
         "calling a builtin Map constructor without new is forbidden",
@@ -249,7 +249,7 @@ fn not_a_function() {
 
 #[test]
 fn for_each_delete() {
-    run_test([
+    run_test_actions([
         TestAction::run_harness(),
         TestAction::run(indoc! {r#"
                 let map = new Map([[0, "a"], [1, "b"], [2, "c"]]);
@@ -278,7 +278,7 @@ fn for_each_delete() {
 
 #[test]
 fn for_of_delete() {
-    run_test([
+    run_test_actions([
         TestAction::run_harness(),
         TestAction::run(indoc! {r#"
                 let map = new Map([[0, "a"], [1, "b"], [2, "c"]]);

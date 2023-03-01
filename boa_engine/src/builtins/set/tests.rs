@@ -1,9 +1,9 @@
-use crate::{builtins::error::ErrorKind, run_test, TestAction};
+use crate::{builtins::error::ErrorKind, run_test_actions, TestAction};
 use indoc::indoc;
 
 #[test]
 fn construct() {
-    run_test([
+    run_test_actions([
         TestAction::assert_eq("(new Set()).size", 0),
         TestAction::assert_eq("(new Set(['one', 'two'])).size", 2),
     ]);
@@ -11,7 +11,7 @@ fn construct() {
 
 #[test]
 fn clone() {
-    run_test([
+    run_test_actions([
         TestAction::run(indoc! {r#"
                 let original = new Set(["one", "two"]);
                 let clone = new Set(original);
@@ -30,7 +30,7 @@ fn clone() {
 
 #[test]
 fn symbol_iterator() {
-    run_test([
+    run_test_actions([
         TestAction::run_harness(),
         TestAction::run(indoc! {r#"
                 const set1 = new Set();
@@ -48,7 +48,7 @@ fn symbol_iterator() {
 
 #[test]
 fn entries() {
-    run_test([
+    run_test_actions([
         TestAction::run_harness(),
         TestAction::run(indoc! {r#"
                 const set1 = new Set();
@@ -66,7 +66,7 @@ fn entries() {
 
 #[test]
 fn merge() {
-    run_test([
+    run_test_actions([
         TestAction::run(indoc! {r#"
                 let first = new Set(["one", "two"]);
                 let second = new Set(["three", "four"]);
@@ -81,7 +81,7 @@ fn merge() {
 
 #[test]
 fn clear() {
-    run_test([
+    run_test_actions([
         TestAction::run(indoc! {r#"
             let set = new Set(["one", "two"]);
             set.clear();
@@ -92,7 +92,7 @@ fn clear() {
 
 #[test]
 fn delete() {
-    run_test([
+    run_test_actions([
         TestAction::run("let set = new Set(['one', 'two'])"),
         TestAction::assert("set.delete('one')"),
         TestAction::assert_eq("set.size", 1),
@@ -102,7 +102,7 @@ fn delete() {
 
 #[test]
 fn has() {
-    run_test([
+    run_test_actions([
         TestAction::run("let set = new Set(['one', 'two']);"),
         TestAction::assert("set.has('one')"),
         TestAction::assert("set.has('two')"),
@@ -113,7 +113,7 @@ fn has() {
 
 #[test]
 fn values_and_keys() {
-    run_test([
+    run_test_actions([
         TestAction::run_harness(),
         TestAction::run(indoc! {r#"
                 const set1 = new Set();
@@ -132,7 +132,7 @@ fn values_and_keys() {
 
 #[test]
 fn for_each() {
-    run_test([
+    run_test_actions([
         TestAction::run(indoc! {r#"
                 let set = new Set([5, 10, 15]);
                 let value1Sum = 0;
@@ -153,7 +153,7 @@ fn for_each() {
 
 #[test]
 fn recursive_display() {
-    run_test([
+    run_test_actions([
         TestAction::run(indoc! {r#"
                 let set = new Set();
                 let array = new Array([set]);
@@ -168,7 +168,7 @@ fn recursive_display() {
 
 #[test]
 fn not_a_function() {
-    run_test([TestAction::assert_native_error(
+    run_test_actions([TestAction::assert_native_error(
         "Set()",
         ErrorKind::Type,
         "calling a builtin Set constructor without new is forbidden",

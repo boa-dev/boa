@@ -1,11 +1,11 @@
 use indoc::indoc;
 
-use crate::{builtins::error::ErrorKind, js_string, run_test, JsValue, TestAction};
+use crate::{builtins::error::ErrorKind, js_string, run_test_actions, JsValue, TestAction};
 
 #[test]
 fn length() {
     //TEST262: https://github.com/tc39/test262/blob/master/test/built-ins/String/length.js
-    run_test([
+    run_test_actions([
         TestAction::run(indoc! {r#"
                 const a = new String(' ');
                 const b = new String('\ud834\udf06');
@@ -24,7 +24,7 @@ fn length() {
 
 #[test]
 fn new_string_has_length() {
-    run_test([
+    run_test_actions([
         TestAction::run("let a = new String(\"1234\");"),
         TestAction::assert_eq("a.length", 4),
     ]);
@@ -32,7 +32,7 @@ fn new_string_has_length() {
 
 #[test]
 fn new_string_has_length_not_enumerable() {
-    run_test([
+    run_test_actions([
         TestAction::run("let a = new String(\"1234\");"),
         TestAction::assert("!a.propertyIsEnumerable('length')"),
     ]);
@@ -40,7 +40,7 @@ fn new_string_has_length_not_enumerable() {
 
 #[test]
 fn new_utf8_string_has_length() {
-    run_test([
+    run_test_actions([
         TestAction::run("let a = new String(\"中文\");"),
         TestAction::assert_eq("a.length", 2),
     ]);
@@ -48,7 +48,7 @@ fn new_utf8_string_has_length() {
 
 #[test]
 fn concat() {
-    run_test([
+    run_test_actions([
         TestAction::run(indoc! {r#"
                 var hello = new String('Hello, ');
                 var world = new String('world! ');
@@ -64,7 +64,7 @@ fn concat() {
 
 #[test]
 fn generic_concat() {
-    run_test([
+    run_test_actions([
         TestAction::run(indoc! {r#"
                 Number.prototype.concat = String.prototype.concat;
                 let number = new Number(100);
@@ -77,7 +77,7 @@ fn generic_concat() {
 #[test]
 /// Test the correct type is returned from call and construct
 fn construct_and_call() {
-    run_test([
+    run_test_actions([
         TestAction::assert_with_op("new String('Hello')", |v, _| v.is_object()),
         TestAction::assert_with_op("String('world')", |v, _| v.is_string()),
     ]);
@@ -85,7 +85,7 @@ fn construct_and_call() {
 
 #[test]
 fn repeat() {
-    run_test([
+    run_test_actions([
         TestAction::run(indoc! {r#"
             var empty = new String('');
             var en = new String('english');
@@ -102,7 +102,7 @@ fn repeat() {
 
 #[test]
 fn repeat_throws_when_count_is_negative() {
-    run_test([TestAction::assert_native_error(
+    run_test_actions([TestAction::assert_native_error(
         "'x'.repeat(-1)",
         ErrorKind::Range,
         "repeat count must be a positive finite number \
@@ -112,7 +112,7 @@ fn repeat_throws_when_count_is_negative() {
 
 #[test]
 fn repeat_throws_when_count_is_infinity() {
-    run_test([TestAction::assert_native_error(
+    run_test_actions([TestAction::assert_native_error(
         "'x'.repeat(Infinity)",
         ErrorKind::Range,
         "repeat count must be a positive finite number \
@@ -122,7 +122,7 @@ fn repeat_throws_when_count_is_infinity() {
 
 #[test]
 fn repeat_throws_when_count_overflows_max_length() {
-    run_test([TestAction::assert_native_error(
+    run_test_actions([TestAction::assert_native_error(
         "'x'.repeat(2 ** 64)",
         ErrorKind::Range,
         "repeat count must be a positive finite number \
@@ -132,7 +132,7 @@ fn repeat_throws_when_count_overflows_max_length() {
 
 #[test]
 fn repeat_generic() {
-    run_test([
+    run_test_actions([
         TestAction::run("Number.prototype.repeat = String.prototype.repeat;"),
         TestAction::assert_eq("(0).repeat(0)", ""),
         TestAction::assert_eq("(1).repeat(1)", "1"),
@@ -143,7 +143,7 @@ fn repeat_generic() {
 
 #[test]
 fn replace() {
-    run_test([TestAction::assert_eq(
+    run_test_actions([TestAction::assert_eq(
         indoc! {r#"
             "abc".replace("a", "2")
         "#},
@@ -153,7 +153,7 @@ fn replace() {
 
 #[test]
 fn replace_no_match() {
-    run_test([TestAction::assert_eq(
+    run_test_actions([TestAction::assert_eq(
         indoc! {r#"
             "abc".replace(/d/, "$&$&")
         "#},
@@ -163,7 +163,7 @@ fn replace_no_match() {
 
 #[test]
 fn replace_with_capture_groups() {
-    run_test([TestAction::assert_eq(
+    run_test_actions([TestAction::assert_eq(
         indoc! {r#"
             "John Smith".replace(/(\w+)\s(\w+)/, '$2, $1')
         "#},
@@ -173,7 +173,7 @@ fn replace_with_capture_groups() {
 
 #[test]
 fn replace_with_tenth_capture_group() {
-    run_test([TestAction::assert_eq(
+    run_test_actions([TestAction::assert_eq(
         indoc! {r#"
             var re = /(\d)(\d)(\d)(\d)(\d)(\d)(\d)(\d)(\d)(\d)/;
             "0123456789".replace(re, '$10')
@@ -184,7 +184,7 @@ fn replace_with_tenth_capture_group() {
 
 #[test]
 fn replace_substitutions() {
-    run_test([
+    run_test_actions([
         TestAction::run(indoc! {r#"
             var re = / two /;
             var a = "one two three";
@@ -204,7 +204,7 @@ fn replace_substitutions() {
 
 #[test]
 fn replace_with_function() {
-    run_test([
+    run_test_actions([
         TestAction::run(indoc! {r#"
                 var p1, p2, p3, length;
                 var replacer = (match, cap1, cap2, cap3, len) => {
@@ -228,7 +228,7 @@ fn replace_with_function() {
 
 #[test]
 fn starts_with() {
-    run_test([
+    run_test_actions([
         TestAction::run(indoc! {r#"
                 var empty = '';
                 var en = 'english';
@@ -245,7 +245,7 @@ fn starts_with() {
 
 #[test]
 fn starts_with_with_regex_arg() {
-    run_test([TestAction::assert_native_error(
+    run_test_actions([TestAction::assert_native_error(
         "'Saturday night'.startsWith(/Saturday/)",
         ErrorKind::Type,
         "First argument to String.prototype.startsWith must not be a regular expression",
@@ -254,7 +254,7 @@ fn starts_with_with_regex_arg() {
 
 #[test]
 fn ends_with() {
-    run_test([
+    run_test_actions([
         TestAction::run(indoc! {r#"
                 var empty = '';
                 var en = 'english';
@@ -271,7 +271,7 @@ fn ends_with() {
 
 #[test]
 fn ends_with_with_regex_arg() {
-    run_test([TestAction::assert_native_error(
+    run_test_actions([TestAction::assert_native_error(
         "'Saturday night'.endsWith(/night/)",
         ErrorKind::Type,
         "First argument to String.prototype.endsWith must not be a regular expression",
@@ -280,7 +280,7 @@ fn ends_with_with_regex_arg() {
 
 #[test]
 fn includes() {
-    run_test([
+    run_test_actions([
         TestAction::run(indoc! {r#"
                 var empty = '';
                 var en = 'english';
@@ -297,7 +297,7 @@ fn includes() {
 
 #[test]
 fn includes_with_regex_arg() {
-    run_test([TestAction::assert_native_error(
+    run_test_actions([TestAction::assert_native_error(
         "'Saturday night'.includes(/day/)",
         ErrorKind::Type,
         "First argument to String.prototype.includes must not be a regular expression",
@@ -306,7 +306,7 @@ fn includes_with_regex_arg() {
 
 #[test]
 fn match_all_one() {
-    run_test([
+    run_test_actions([
         TestAction::run_harness(),
         TestAction::run(indoc! {r#"
             var groupMatches = 'test1test2'.matchAll(/t(e)(st(\d?))/g);
@@ -341,7 +341,7 @@ fn match_all_one() {
 
 #[test]
 fn match_all_two() {
-    run_test([
+    run_test_actions([
         TestAction::run_harness(),
         TestAction::run(indoc! {r#"
             var regexp = RegExp('foo[a-z]*','g');
@@ -378,7 +378,7 @@ fn match_all_two() {
 
 #[test]
 fn test_match() {
-    run_test([
+    run_test_actions([
         TestAction::run_harness(),
         TestAction::run(indoc! {r#"
                 var str = new String('The Quick Brown Fox Jumps Over The Lazy Dog');
@@ -426,7 +426,7 @@ fn test_match() {
 
 #[test]
 fn trim() {
-    run_test([
+    run_test_actions([
         TestAction::assert_eq(r"'Hello'.trim()", "Hello"),
         TestAction::assert_eq(r"' \nHello'.trim()", "Hello"),
         TestAction::assert_eq(r"'Hello \n\r'.trim()", "Hello"),
@@ -436,7 +436,7 @@ fn trim() {
 
 #[test]
 fn trim_start() {
-    run_test([
+    run_test_actions([
         TestAction::assert_eq(r"'Hello'.trimStart()", "Hello"),
         TestAction::assert_eq(r"' \nHello'.trimStart()", "Hello"),
         TestAction::assert_eq(r"'Hello \n\r'.trimStart()", "Hello \n\r"),
@@ -446,7 +446,7 @@ fn trim_start() {
 
 #[test]
 fn trim_end() {
-    run_test([
+    run_test_actions([
         TestAction::assert_eq(r"'Hello'.trimEnd()", "Hello"),
         TestAction::assert_eq(r"' \nHello'.trimEnd()", " \nHello"),
         TestAction::assert_eq(r"'Hello \n\r'.trimEnd()", "Hello"),
@@ -456,7 +456,7 @@ fn trim_end() {
 
 #[test]
 fn split() {
-    run_test([
+    run_test_actions([
         TestAction::run_harness(),
         TestAction::assert(indoc! {r#"
                 arrayEquals(
@@ -565,7 +565,7 @@ fn split() {
 
 #[test]
 fn split_with_symbol_split_method() {
-    run_test([
+    run_test_actions([
         TestAction::run_harness(),
         TestAction::assert_eq(
             indoc! {r#"
@@ -597,7 +597,7 @@ fn split_with_symbol_split_method() {
 
 #[test]
 fn index_of_with_no_arguments() {
-    run_test([
+    run_test_actions([
         TestAction::assert_eq("''.indexOf()", -1),
         TestAction::assert_eq("'undefined'.indexOf()", 0),
         TestAction::assert_eq("'a1undefined'.indexOf()", 2),
@@ -609,7 +609,7 @@ fn index_of_with_no_arguments() {
 
 #[test]
 fn index_of_with_string_search_string_argument() {
-    run_test([
+    run_test_actions([
         TestAction::assert_eq("''.indexOf('undefined')", -1),
         TestAction::assert_eq("'undefined'.indexOf('undefined')", 0),
         TestAction::assert_eq("'a1undefined'.indexOf('undefined')", 2),
@@ -621,7 +621,7 @@ fn index_of_with_string_search_string_argument() {
 
 #[test]
 fn index_of_with_non_string_search_string_argument() {
-    run_test([
+    run_test_actions([
         TestAction::assert_eq("''.indexOf(1)", -1),
         TestAction::assert_eq("'1'.indexOf(1)", 0),
         TestAction::assert_eq("'true'.indexOf(true)", 0),
@@ -633,7 +633,7 @@ fn index_of_with_non_string_search_string_argument() {
 
 #[test]
 fn index_of_with_from_index_argument() {
-    run_test([
+    run_test_actions([
         TestAction::assert_eq("''.indexOf('x', 2)", -1),
         TestAction::assert_eq("'x'.indexOf('x', 2)", -1),
         TestAction::assert_eq("'abcx'.indexOf('x', 2)", 3),
@@ -644,7 +644,7 @@ fn index_of_with_from_index_argument() {
 
 #[test]
 fn generic_index_of() {
-    run_test([
+    run_test_actions([
         TestAction::run("Number.prototype.indexOf = String.prototype.indexOf"),
         TestAction::assert_eq("'10'.indexOf(9)", -1),
         TestAction::assert_eq("'10'.indexOf(0)", 1),
@@ -654,7 +654,7 @@ fn generic_index_of() {
 
 #[test]
 fn index_of_empty_search_string() {
-    run_test([
+    run_test_actions([
         TestAction::assert_eq("''.indexOf('')", 0),
         TestAction::assert_eq("''.indexOf('', 10)", 0),
         TestAction::assert_eq("'ABC'.indexOf('', 1)", 1),
@@ -665,7 +665,7 @@ fn index_of_empty_search_string() {
 
 #[test]
 fn last_index_of_with_no_arguments() {
-    run_test([
+    run_test_actions([
         TestAction::assert_eq("''.lastIndexOf()", -1),
         TestAction::assert_eq("'undefined'.lastIndexOf()", 0),
         TestAction::assert_eq("'a1undefined'.lastIndexOf()", 2),
@@ -677,7 +677,7 @@ fn last_index_of_with_no_arguments() {
 
 #[test]
 fn last_index_of_with_string_search_string_argument() {
-    run_test([
+    run_test_actions([
         TestAction::assert_eq("''.lastIndexOf('hello')", -1),
         TestAction::assert_eq("'undefined'.lastIndexOf('undefined')", 0),
         TestAction::assert_eq("'a1undefined'.lastIndexOf('undefined')", 2),
@@ -689,7 +689,7 @@ fn last_index_of_with_string_search_string_argument() {
 
 #[test]
 fn last_index_of_with_non_string_search_string_argument() {
-    run_test([
+    run_test_actions([
         TestAction::assert_eq("''.lastIndexOf(1)", -1),
         TestAction::assert_eq("'1'.lastIndexOf(1)", 0),
         TestAction::assert_eq("'11'.lastIndexOf(1)", 1),
@@ -702,7 +702,7 @@ fn last_index_of_with_non_string_search_string_argument() {
 
 #[test]
 fn last_index_of_with_from_index_argument() {
-    run_test([
+    run_test_actions([
         TestAction::assert_eq("''.lastIndexOf('x', 2)", -1),
         TestAction::assert_eq("'x'.lastIndexOf('x', 2)", 0),
         TestAction::assert_eq("'abcxx'.lastIndexOf('x', 2)", -1),
@@ -713,7 +713,7 @@ fn last_index_of_with_from_index_argument() {
 
 #[test]
 fn last_index_with_empty_search_string() {
-    run_test([
+    run_test_actions([
         TestAction::assert_eq("''.lastIndexOf('')", 0),
         TestAction::assert_eq("'x'.lastIndexOf('', 2)", 1),
         TestAction::assert_eq("'abcxx'.lastIndexOf('', 4)", 4),
@@ -724,7 +724,7 @@ fn last_index_with_empty_search_string() {
 
 #[test]
 fn generic_last_index_of() {
-    run_test([
+    run_test_actions([
         TestAction::run("Number.prototype.lastIndexOf = String.prototype.lastIndexOf"),
         TestAction::assert_eq("(1001).lastIndexOf(9)", -1),
         TestAction::assert_eq("(1001).lastIndexOf(0)", 2),
@@ -734,7 +734,7 @@ fn generic_last_index_of() {
 
 #[test]
 fn last_index_non_integer_position_argument() {
-    run_test([
+    run_test_actions([
         TestAction::assert_eq("''.lastIndexOf('x', new Number(4))", -1),
         TestAction::assert_eq("'abc'.lastIndexOf('b', new Number(1))", 1),
         TestAction::assert_eq("'abcx'.lastIndexOf('x', new String('1'))", -1),
@@ -745,7 +745,7 @@ fn last_index_non_integer_position_argument() {
 
 #[test]
 fn char_at() {
-    run_test([
+    run_test_actions([
         TestAction::assert_eq("'abc'.charAt(-1)", ""),
         TestAction::assert_eq("'abc'.charAt(1)", "b"),
         TestAction::assert_eq("'abc'.charAt(9)", ""),
@@ -757,7 +757,7 @@ fn char_at() {
 
 #[test]
 fn char_code_at() {
-    run_test([
+    run_test_actions([
         TestAction::assert_eq("'abc'.charCodeAt-1", f64::NAN),
         TestAction::assert_eq("'abc'.charCodeAt(1)", 98),
         TestAction::assert_eq("'abc'.charCodeAt(9)", f64::NAN),
@@ -769,7 +769,7 @@ fn char_code_at() {
 
 #[test]
 fn code_point_at() {
-    run_test([
+    run_test_actions([
         TestAction::assert_eq("'abc'.codePointAt(-1)", JsValue::undefined()),
         TestAction::assert_eq("'abc'.codePointAt(1)", 98),
         TestAction::assert_eq("'abc'.codePointAt(9)", JsValue::undefined()),
@@ -788,7 +788,7 @@ fn code_point_at() {
 
 #[test]
 fn slice() {
-    run_test([
+    run_test_actions([
         TestAction::assert_eq("'abc'.slice()", "abc"),
         TestAction::assert_eq("'abc'.slice(1)", "bc"),
         TestAction::assert_eq("'abc'.slice(-1)", "c"),
@@ -799,7 +799,7 @@ fn slice() {
 
 #[test]
 fn empty_iter() {
-    run_test([
+    run_test_actions([
         TestAction::run(indoc! {r#"
                 let iter = new String()[Symbol.iterator]();
                 let next = iter.next();
@@ -811,7 +811,7 @@ fn empty_iter() {
 
 #[test]
 fn ascii_iter() {
-    run_test([
+    run_test_actions([
         TestAction::run_harness(),
         TestAction::assert(indoc! {r#"
                 arrayEquals(
@@ -824,7 +824,7 @@ fn ascii_iter() {
 
 #[test]
 fn unicode_iter() {
-    run_test([
+    run_test_actions([
         TestAction::run_harness(),
         TestAction::assert(indoc! {r#"
                 arrayEquals(
@@ -837,7 +837,7 @@ fn unicode_iter() {
 
 #[test]
 fn string_get_property() {
-    run_test([
+    run_test_actions([
         TestAction::assert_eq("'abc'[-1]", JsValue::undefined()),
         TestAction::assert_eq("'abc'[1]", "b"),
         TestAction::assert_eq("'abc'[2]", "c"),
@@ -849,7 +849,7 @@ fn string_get_property() {
 
 #[test]
 fn search() {
-    run_test([
+    run_test_actions([
         TestAction::assert_eq("'aa'.search(/b/)", -1),
         TestAction::assert_eq("'aa'.search(/a/)", 0),
         TestAction::assert_eq("'aa'.search(/a/g)", 0),

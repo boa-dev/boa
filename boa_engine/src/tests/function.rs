@@ -1,9 +1,9 @@
-use crate::{builtins::error::ErrorKind, run_test, JsValue, TestAction};
+use crate::{builtins::error::ErrorKind, run_test_actions, JsValue, TestAction};
 use indoc::indoc;
 
 #[test]
 fn function_declaration_returns_undefined() {
-    run_test([TestAction::assert_eq(
+    run_test_actions([TestAction::assert_eq(
         "function abc() {}",
         JsValue::undefined(),
     )]);
@@ -11,7 +11,7 @@ fn function_declaration_returns_undefined() {
 
 #[test]
 fn empty_function_returns_undefined() {
-    run_test([TestAction::assert_eq(
+    run_test_actions([TestAction::assert_eq(
         "(function () {}) ()",
         JsValue::undefined(),
     )]);
@@ -19,7 +19,7 @@ fn empty_function_returns_undefined() {
 
 #[test]
 fn property_accessor_member_expression_dot_notation_on_function() {
-    run_test([TestAction::assert_eq(
+    run_test_actions([TestAction::assert_eq(
         indoc! {r#"
             function asd () {};
             asd.name;
@@ -30,7 +30,7 @@ fn property_accessor_member_expression_dot_notation_on_function() {
 
 #[test]
 fn property_accessor_member_expression_bracket_notation_on_function() {
-    run_test([TestAction::assert_eq(
+    run_test_actions([TestAction::assert_eq(
         indoc! {r#"
             function asd () {};
             asd['name'];
@@ -41,7 +41,7 @@ fn property_accessor_member_expression_bracket_notation_on_function() {
 
 #[test]
 fn early_return() {
-    run_test([
+    run_test_actions([
         TestAction::assert(indoc! {r#"
                 function early_return() {
                     if (true) {
@@ -69,7 +69,7 @@ fn early_return() {
 
 #[test]
 fn should_set_this_value() {
-    run_test([
+    run_test_actions([
         TestAction::run(indoc! {r#"
                 function Foo() {
                     this.a = "a";
@@ -85,7 +85,7 @@ fn should_set_this_value() {
 
 #[test]
 fn should_type_error_when_new_is_not_constructor() {
-    run_test([TestAction::assert_native_error(
+    run_test_actions([TestAction::assert_native_error(
         "new ''()",
         ErrorKind::Type,
         "not a constructor",
@@ -95,7 +95,7 @@ fn should_type_error_when_new_is_not_constructor() {
 #[test]
 fn new_instance_should_point_to_prototype() {
     // A new instance should point to a prototype object created with the constructor function
-    run_test([
+    run_test_actions([
         TestAction::run(indoc! {r#"
                 function Foo() {}
                 var bar = new Foo();
@@ -106,7 +106,7 @@ fn new_instance_should_point_to_prototype() {
 
 #[test]
 fn calling_function_with_unspecified_arguments() {
-    run_test([TestAction::assert_eq(
+    run_test_actions([TestAction::assert_eq(
         indoc! {r#"
             function test(a, b) {
                 return b;
@@ -120,7 +120,7 @@ fn calling_function_with_unspecified_arguments() {
 
 #[test]
 fn not_a_function() {
-    run_test([
+    run_test_actions([
         TestAction::run(indoc! {r#"
                 let a = {};
                 let b = true;
@@ -135,7 +135,7 @@ fn not_a_function() {
 fn strict_mode_dup_func_parameters() {
     // Checks that a function cannot contain duplicate parameter
     // names in strict mode code as per https://tc39.es/ecma262/#sec-function-definitions-static-semantics-early-errors.
-    run_test([TestAction::assert_native_error(
+    run_test_actions([TestAction::assert_native_error(
         indoc! {r#"
             'use strict';
             function f(a, b, b) {}
@@ -147,7 +147,7 @@ fn strict_mode_dup_func_parameters() {
 
 #[test]
 fn duplicate_function_name() {
-    run_test([TestAction::assert_eq(
+    run_test_actions([TestAction::assert_eq(
         indoc! {r#"
             function f () {}
             function f () {return 12;}

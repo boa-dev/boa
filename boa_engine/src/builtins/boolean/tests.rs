@@ -1,11 +1,11 @@
-use crate::{run_test, TestAction};
+use crate::{run_test_actions, TestAction};
 use indoc::indoc;
 
 /// Test the correct type is returned from call and construct
 #[allow(clippy::unwrap_used)]
 #[test]
 fn construct_and_call() {
-    run_test([
+    run_test_actions([
         TestAction::assert_with_op("new Boolean(1)", |val, _| val.is_object()),
         TestAction::assert_with_op("Boolean(0)", |val, _| val.is_boolean()),
     ]);
@@ -13,7 +13,7 @@ fn construct_and_call() {
 
 #[test]
 fn constructor_gives_true_instance() {
-    run_test([
+    run_test_actions([
         TestAction::run(indoc! {r#"
                 var trueVal = new Boolean(true);
                 var trueNum = new Boolean(1);
@@ -35,7 +35,7 @@ fn constructor_gives_true_instance() {
 
 #[test]
 fn instances_have_correct_proto_set() {
-    run_test([TestAction::assert(
+    run_test_actions([TestAction::assert(
         "Object.getPrototypeOf(new Boolean(true)) === Boolean.prototype",
     )]);
 }

@@ -1,9 +1,9 @@
-use crate::{builtins::error::ErrorKind, object::JsObject, run_test, JsValue, TestAction};
+use crate::{builtins::error::ErrorKind, object::JsObject, run_test_actions, JsValue, TestAction};
 use indoc::indoc;
 
 #[test]
 fn constructors() {
-    run_test([
+    run_test_actions([
         TestAction::run(indoc! {r#"
                 var constructed = new RegExp("[0-9]+(\\.[0-9]+)?");
                 var literal = /[0-9]+(\.[0-9]+)?/;
@@ -17,7 +17,7 @@ fn constructors() {
 
 #[test]
 fn species() {
-    run_test([
+    run_test_actions([
         TestAction::run(indoc! {r#"
         var descriptor = Object.getOwnPropertyDescriptor(RegExp, Symbol.species);
         var accessor = descriptor.get;
@@ -49,7 +49,7 @@ fn species() {
 
 #[test]
 fn flags() {
-    run_test([
+    run_test_actions([
         TestAction::run(indoc! {r#"
                 var re_gi = /test/gi;
                 var re_sm = /test/sm;
@@ -74,7 +74,7 @@ fn flags() {
 
 #[test]
 fn last_index() {
-    run_test([
+    run_test_actions([
         TestAction::run(r"var regex = /[0-9]+(\.[0-9]+)?/g;"),
         TestAction::assert_eq("regex.lastIndex", 0),
         TestAction::assert("regex.test('1.0foo')"),
@@ -86,7 +86,7 @@ fn last_index() {
 
 #[test]
 fn exec() {
-    run_test([
+    run_test_actions([
         TestAction::run_harness(),
         TestAction::run(indoc! {r#"
                 var re = /quick\s(brown).+?(jumps)/ig;
@@ -108,7 +108,7 @@ fn exec() {
 
 #[test]
 fn to_string() {
-    run_test([
+    run_test_actions([
         TestAction::assert_eq("(new RegExp('a+b+c')).toString()", "/a+b+c/"),
         TestAction::assert_eq("(new RegExp('bar', 'g')).toString()", "/bar/g"),
         TestAction::assert_eq(r"(new RegExp('\\n', 'g')).toString()", r"/\n/g"),
@@ -120,7 +120,7 @@ fn to_string() {
 fn no_panic_on_invalid_character_escape() {
     // This used to panic, we now return an error
     // The line below should not cause Boa to panic
-    run_test([TestAction::assert_native_error(
+    run_test_actions([TestAction::assert_native_error(
         r"const a = /,\;/",
         ErrorKind::Syntax,
         "Invalid regular expression literal: Invalid character escape at position: 1:11",
@@ -130,7 +130,7 @@ fn no_panic_on_invalid_character_escape() {
 #[test]
 fn search() {
     const ERROR: &str = "RegExp.prototype[Symbol.search] method called on incompatible value";
-    run_test([
+    run_test_actions([
         TestAction::run(indoc! {r#"
                 var search = Object.getOwnPropertyDescriptor(RegExp.prototype, Symbol.search);
                 var length = Object.getOwnPropertyDescriptor(search.value, 'length');

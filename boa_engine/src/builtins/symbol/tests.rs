@@ -1,16 +1,16 @@
-use crate::{run_test, JsValue, TestAction};
+use crate::{run_test_actions, JsValue, TestAction};
 use indoc::indoc;
 
 #[test]
 fn call_symbol_and_check_return_type() {
-    run_test([TestAction::assert_with_op("Symbol()", |val, _| {
+    run_test_actions([TestAction::assert_with_op("Symbol()", |val, _| {
         val.is_symbol()
     })]);
 }
 
 #[test]
 fn print_symbol_expect_description() {
-    run_test([TestAction::assert_eq(
+    run_test_actions([TestAction::assert_eq(
         "String(Symbol('Hello'))",
         "Symbol(Hello)",
     )]);
@@ -18,7 +18,7 @@ fn print_symbol_expect_description() {
 
 #[test]
 fn symbol_access() {
-    run_test([
+    run_test_actions([
         TestAction::run(indoc! {r#"
                 var x = {};
                 var sym1 = Symbol("Hello");

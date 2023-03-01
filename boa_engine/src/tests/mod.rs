@@ -5,21 +5,21 @@ mod function;
 mod operators;
 mod spread;
 
-use crate::{builtins::error::ErrorKind, run_test, JsValue, TestAction};
+use crate::{builtins::error::ErrorKind, run_test_actions, JsValue, TestAction};
 
 #[test]
 fn length_correct_value_on_string_literal() {
-    run_test([TestAction::assert_eq("'hello'.length", 5)]);
+    run_test_actions([TestAction::assert_eq("'hello'.length", 5)]);
 }
 
 #[test]
 fn empty_let_decl_undefined() {
-    run_test([TestAction::assert_eq("let a; a", JsValue::undefined())]);
+    run_test_actions([TestAction::assert_eq("let a; a", JsValue::undefined())]);
 }
 
 #[test]
 fn semicolon_expression_stop() {
-    run_test([TestAction::assert_eq(
+    run_test_actions([TestAction::assert_eq(
         indoc! {r#"
             var a = 1;
             + 1;
@@ -31,12 +31,12 @@ fn semicolon_expression_stop() {
 
 #[test]
 fn empty_var_decl_undefined() {
-    run_test([TestAction::assert_eq("var a; a", JsValue::undefined())]);
+    run_test_actions([TestAction::assert_eq("var a; a", JsValue::undefined())]);
 }
 
 #[test]
 fn identifier_on_global_object_undefined() {
-    run_test([TestAction::assert_native_error(
+    run_test_actions([TestAction::assert_native_error(
         "bar;",
         ErrorKind::Reference,
         "bar is not defined",
@@ -45,7 +45,7 @@ fn identifier_on_global_object_undefined() {
 
 #[test]
 fn object_field_set() {
-    run_test([TestAction::assert_eq(
+    run_test_actions([TestAction::assert_eq(
         indoc! {r#"
             let m = {};
             m['key'] = 22;
@@ -57,7 +57,7 @@ fn object_field_set() {
 
 #[test]
 fn array_field_set() {
-    run_test([
+    run_test_actions([
         TestAction::run("let m;"),
         // element_changes
         TestAction::assert_eq(
@@ -100,17 +100,17 @@ fn array_field_set() {
 
 #[test]
 fn var_decl_hoisting_simple() {
-    run_test([TestAction::assert_eq("x = 5; var x; x", 5)]);
+    run_test_actions([TestAction::assert_eq("x = 5; var x; x", 5)]);
 }
 
 #[test]
 fn var_decl_hoisting_with_initialization() {
-    run_test([TestAction::assert_eq("x = 5; var x = 10; x", 10)]);
+    run_test_actions([TestAction::assert_eq("x = 5; var x = 10; x", 10)]);
 }
 
 #[test]
 fn var_decl_hoisting_2_variables_hoisting() {
-    run_test([TestAction::assert_eq(
+    run_test_actions([TestAction::assert_eq(
         indoc! {r#"
             x = y;
 
@@ -125,7 +125,7 @@ fn var_decl_hoisting_2_variables_hoisting() {
 
 #[test]
 fn var_decl_hoisting_2_variables_hoisting_2() {
-    run_test([TestAction::assert_eq(
+    run_test_actions([TestAction::assert_eq(
         indoc! {r#"
             var x = y;
 
@@ -138,7 +138,7 @@ fn var_decl_hoisting_2_variables_hoisting_2() {
 
 #[test]
 fn var_decl_hoisting_2_variables_hoisting_3() {
-    run_test([TestAction::assert_eq(
+    run_test_actions([TestAction::assert_eq(
         indoc! {r#"
             let y = x;
             x = 5;
@@ -152,7 +152,7 @@ fn var_decl_hoisting_2_variables_hoisting_3() {
 
 #[test]
 fn function_decl_hoisting() {
-    run_test([
+    run_test_actions([
         TestAction::assert_eq(
             indoc! {r#"
                 {
@@ -218,7 +218,7 @@ fn function_decl_hoisting() {
 
 #[test]
 fn check_this_binding_in_object_literal() {
-    run_test([TestAction::assert_eq(
+    run_test_actions([TestAction::assert_eq(
         indoc! {r#"
             var foo = {
                 a: 3,
@@ -233,7 +233,7 @@ fn check_this_binding_in_object_literal() {
 
 #[test]
 fn array_creation_benchmark() {
-    run_test([
+    run_test_actions([
         TestAction::run_harness(),
         TestAction::assert(indoc! {r#"
                 const finalArr = [ "p0", "p1", "p2", "p3", "p4", "p5", "p6", "p7", "p8", "p9", "p10",
@@ -299,7 +299,7 @@ fn array_creation_benchmark() {
 
 #[test]
 fn array_pop_benchmark() {
-    run_test([
+    run_test_actions([
         TestAction::run_harness(),
         TestAction::assert(indoc! {r#"
             let testArray = [83, 93, 27, 29, 2828, 234, 23, 56, 32, 56, 67, 77, 32,
@@ -330,7 +330,7 @@ fn array_pop_benchmark() {
 
 #[test]
 fn number_object_access_benchmark() {
-    run_test([TestAction::assert_eq(
+    run_test_actions([TestAction::assert_eq(
         indoc! {r#"
             new Number(
                 new Number(
@@ -346,7 +346,7 @@ fn number_object_access_benchmark() {
 
 #[test]
 fn multiline_str_concat() {
-    run_test([TestAction::assert_eq(
+    run_test_actions([TestAction::assert_eq(
         indoc! {r#"
             let a = 'hello ' +
                     'world';
@@ -358,17 +358,17 @@ fn multiline_str_concat() {
 
 #[test]
 fn result_of_empty_block() {
-    run_test([TestAction::assert_eq("{}", JsValue::undefined())]);
+    run_test_actions([TestAction::assert_eq("{}", JsValue::undefined())]);
 }
 
 #[test]
 fn undefined_constant() {
-    run_test([TestAction::assert_eq("undefined", JsValue::undefined())]);
+    run_test_actions([TestAction::assert_eq("undefined", JsValue::undefined())]);
 }
 
 #[test]
 fn identifier_op() {
-    run_test([TestAction::assert_native_error(
+    run_test_actions([TestAction::assert_native_error(
         "break = 1",
         ErrorKind::Syntax,
         r#"expected token 'identifier', got '=' in identifier parsing at line 1, col 7"#,
@@ -379,7 +379,7 @@ fn identifier_op() {
 fn strict_mode_octal() {
     // Checks as per https://tc39.es/ecma262/#sec-literals-numeric-literals that 0 prefix
     // octal number literal syntax is a syntax error in strict mode.
-    run_test([TestAction::assert_native_error(
+    run_test_actions([TestAction::assert_native_error(
         indoc! {r#"
             'use strict';
             var n = 023;
@@ -393,7 +393,7 @@ fn strict_mode_octal() {
 fn strict_mode_with() {
     // Checks as per https://tc39.es/ecma262/#sec-with-statement-static-semantics-early-errors
     // that a with statement is an error in strict mode code.
-    run_test([TestAction::assert_native_error(
+    run_test_actions([TestAction::assert_native_error(
         indoc! {r#"
             'use strict';
             function f(x, o) {
@@ -426,14 +426,14 @@ fn strict_mode_reserved_name() {
         ("var yield = 10;", "unexpected token 'yield', strict reserved word cannot be an identifier at line 1, col 19"),
     ];
 
-    run_test(cases.into_iter().map(|(case, msg)| {
+    run_test_actions(cases.into_iter().map(|(case, msg)| {
         TestAction::assert_native_error(format!("'use strict'; {case}"), ErrorKind::Syntax, msg)
     }));
 }
 
 #[test]
 fn empty_statement() {
-    run_test([TestAction::assert_eq(
+    run_test_actions([TestAction::assert_eq(
         indoc! {r#"
             ;;;let a = 10;;
             if(a) ;
@@ -445,7 +445,7 @@ fn empty_statement() {
 
 #[test]
 fn tagged_template() {
-    run_test([
+    run_test_actions([
         TestAction::run_harness(),
         TestAction::assert(indoc! {r#"
                 function tag(t, ...args) {
@@ -467,7 +467,7 @@ fn tagged_template() {
 
 #[test]
 fn template_literal() {
-    run_test([TestAction::assert_eq(
+    run_test_actions([TestAction::assert_eq(
         indoc! {r#"
             let a = 10;
             `result: ${a} and ${a+10}`;

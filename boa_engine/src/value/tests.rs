@@ -1,7 +1,7 @@
 use indoc::indoc;
 
 use super::*;
-use crate::{run_test, TestAction};
+use crate::{run_test_actions, TestAction};
 
 use std::collections::hash_map::DefaultHasher;
 use std::hash::{Hash, Hasher};
@@ -23,7 +23,7 @@ fn undefined() {
 
 #[test]
 fn get_set_field() {
-    run_test([TestAction::assert_context(|ctx| {
+    run_test_actions([TestAction::assert_context(|ctx| {
         let obj = &JsObject::with_object_proto(ctx);
         // Create string and convert it to a Value
         let s = JsValue::new("bar");
@@ -52,7 +52,7 @@ fn number_is_true() {
 // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Equality_comparisons_and_sameness
 #[test]
 fn abstract_equality_comparison() {
-    run_test([
+    run_test_actions([
         TestAction::assert("undefined == undefined"),
         TestAction::assert("null == null"),
         TestAction::assert("true == true"),
@@ -137,7 +137,7 @@ fn hash_object() {
 
 #[test]
 fn get_types() {
-    run_test([
+    run_test_actions([
         TestAction::assert_with_op("undefined", |value, _| value.get_type() == Type::Undefined),
         TestAction::assert_with_op("1", |value, _| value.get_type() == Type::Number),
         TestAction::assert_with_op("1.5", |value, _| value.get_type() == Type::Number),
@@ -197,7 +197,7 @@ fn float_display() {
 
 #[test]
 fn string_length_is_not_enumerable() {
-    run_test([TestAction::assert_context(|ctx| {
+    run_test_actions([TestAction::assert_context(|ctx| {
         let object = JsValue::new("foo").to_object(ctx).unwrap();
         let length_desc = object
             .__get_own_property__(&PropertyKey::from("length"), ctx)
@@ -209,7 +209,7 @@ fn string_length_is_not_enumerable() {
 
 #[test]
 fn string_length_is_in_utf16_codeunits() {
-    run_test([TestAction::assert_context(|ctx| {
+    run_test_actions([TestAction::assert_context(|ctx| {
         // 😀 is one Unicode code point, but 2 UTF-16 code units
         let object = JsValue::new("😀").to_object(ctx).unwrap();
         let length_desc = object
@@ -226,17 +226,17 @@ fn string_length_is_in_utf16_codeunits() {
 
 #[test]
 fn add_number_and_number() {
-    run_test([TestAction::assert_eq("1 + 2", 3)]);
+    run_test_actions([TestAction::assert_eq("1 + 2", 3)]);
 }
 
 #[test]
 fn add_number_and_string() {
-    run_test([TestAction::assert_eq("1 + \" + 2 = 3\"", "1 + 2 = 3")]);
+    run_test_actions([TestAction::assert_eq("1 + \" + 2 = 3\"", "1 + 2 = 3")]);
 }
 
 #[test]
 fn add_string_and_string() {
-    run_test([TestAction::assert_eq(
+    run_test_actions([TestAction::assert_eq(
         "\"Hello\" + \", world\"",
         "Hello, world",
     )]);
@@ -244,12 +244,12 @@ fn add_string_and_string() {
 
 #[test]
 fn add_number_object_and_number() {
-    run_test([TestAction::assert_eq("new Number(10) + 6", 16)]);
+    run_test_actions([TestAction::assert_eq("new Number(10) + 6", 16)]);
 }
 
 #[test]
 fn add_number_object_and_string_object() {
-    run_test([TestAction::assert_eq(
+    run_test_actions([TestAction::assert_eq(
         "new Number(10) + new String(\"0\")",
         "100",
     )]);
@@ -257,12 +257,12 @@ fn add_number_object_and_string_object() {
 
 #[test]
 fn sub_number_and_number() {
-    run_test([TestAction::assert_eq("1 - 999", -998)]);
+    run_test_actions([TestAction::assert_eq("1 - 999", -998)]);
 }
 
 #[test]
 fn sub_number_object_and_number_object() {
-    run_test([TestAction::assert_eq(
+    run_test_actions([TestAction::assert_eq(
         "new Number(1) - new Number(999)",
         -998,
     )]);
@@ -270,48 +270,48 @@ fn sub_number_object_and_number_object() {
 
 #[test]
 fn sub_string_and_number_object() {
-    run_test([TestAction::assert_eq("'Hello' - new Number(999)", f64::NAN)]);
+    run_test_actions([TestAction::assert_eq("'Hello' - new Number(999)", f64::NAN)]);
 }
 
 #[test]
 fn div_by_zero() {
-    run_test([TestAction::assert_eq("1 / 0", f64::INFINITY)]);
+    run_test_actions([TestAction::assert_eq("1 / 0", f64::INFINITY)]);
 }
 
 #[test]
 fn rem_by_zero() {
-    run_test([TestAction::assert_eq("1 % 0", f64::NAN)]);
+    run_test_actions([TestAction::assert_eq("1 % 0", f64::NAN)]);
 }
 
 #[test]
 fn bitand_integer_and_integer() {
-    run_test([TestAction::assert_eq("0xFFFF & 0xFF", 255)]);
+    run_test_actions([TestAction::assert_eq("0xFFFF & 0xFF", 255)]);
 }
 
 #[test]
 fn bitand_integer_and_rational() {
-    run_test([TestAction::assert_eq("0xFFFF & 255.5", 255)]);
+    run_test_actions([TestAction::assert_eq("0xFFFF & 255.5", 255)]);
 }
 
 #[test]
 fn bitand_rational_and_rational() {
-    run_test([TestAction::assert_eq("255.772 & 255.5", 255)]);
+    run_test_actions([TestAction::assert_eq("255.772 & 255.5", 255)]);
 }
 
 #[test]
 #[allow(clippy::float_cmp)]
 fn pow_number_and_number() {
-    run_test([TestAction::assert_eq("3 ** 3", 27.0)]);
+    run_test_actions([TestAction::assert_eq("3 ** 3", 27.0)]);
 }
 
 #[test]
 fn pow_number_and_string() {
-    run_test([TestAction::assert_eq("3 ** 'Hello'", f64::NAN)]);
+    run_test_actions([TestAction::assert_eq("3 ** 'Hello'", f64::NAN)]);
 }
 
 #[test]
 fn assign_pow_number_and_string() {
-    run_test([TestAction::assert_eq(
+    run_test_actions([TestAction::assert_eq(
         indoc! {r"
             let a = 3;
             a **= 'Hello'
@@ -330,14 +330,14 @@ fn display_string() {
 
 #[test]
 fn display_array_string() {
-    run_test([TestAction::assert_with_op("[\"Hello\"]", |v, _| {
+    run_test_actions([TestAction::assert_with_op("[\"Hello\"]", |v, _| {
         v.display().to_string() == "[ \"Hello\" ]"
     })]);
 }
 
 #[test]
 fn display_boolean_object() {
-    run_test([TestAction::assert_with_op(
+    run_test_actions([TestAction::assert_with_op(
         indoc! {r#"
             let bool = new Boolean(0);
             bool
@@ -348,7 +348,7 @@ fn display_boolean_object() {
 
 #[test]
 fn display_number_object() {
-    run_test([TestAction::assert_with_op(
+    run_test_actions([TestAction::assert_with_op(
         indoc! {r#"
             let num = new Number(3.14);
             num
@@ -359,7 +359,7 @@ fn display_number_object() {
 
 #[test]
 fn display_negative_zero_object() {
-    run_test([TestAction::assert_with_op(
+    run_test_actions([TestAction::assert_with_op(
         indoc! {r#"
             let num = new Number(-0);
             num
@@ -376,7 +376,7 @@ fn debug_object() {
     //
     // However, we want to make sure that no data is being left in the internal hashset, so
     // executing the formatting twice should result in the same output.
-    run_test([TestAction::assert_with_op(
+    run_test_actions([TestAction::assert_with_op(
         "new Array([new Date()])",
         |v, _| format!("{v:?}") == format!("{v:?}"),
     )]);
@@ -389,14 +389,14 @@ fn display_object() {
            a: "a"
         }"#
     };
-    run_test([TestAction::assert_with_op("({a: 'a'})", |v, _| {
+    run_test_actions([TestAction::assert_with_op("({a: 'a'})", |v, _| {
         v.display().to_string() == DISPLAY
     })]);
 }
 
 #[test]
 fn to_integer_or_infinity() {
-    run_test([TestAction::inspect_context(|ctx| {
+    run_test_actions([TestAction::inspect_context(|ctx| {
         assert_eq!(
             JsValue::undefined().to_integer_or_infinity(ctx).unwrap(),
             IntegerOrInfinity::Integer(0)
@@ -446,7 +446,7 @@ fn to_integer_or_infinity() {
 
 #[test]
 fn test_accessors() {
-    run_test([
+    run_test_actions([
         TestAction::run(indoc! {r#"
                 let arr = [];
                 let a = { get b() { return "c" }, set b(value) { arr = arr.concat([value]) }} ;
@@ -459,7 +459,7 @@ fn test_accessors() {
 
 #[test]
 fn to_primitive() {
-    run_test([
+    run_test_actions([
         TestAction::run(indoc! {r#"
                 let a = {};
                 a[Symbol.toPrimitive] = function() {
@@ -512,7 +512,7 @@ fn object_to_property_key() {
         };
         obj[to_str] = 5;
     "#;
-    run_test([
+    run_test_actions([
         TestAction::run(source),
         TestAction::assert_eq("obj[42]", 1),
         TestAction::assert_eq("obj[true]", 2),
@@ -524,7 +524,7 @@ fn object_to_property_key() {
 
 #[test]
 fn to_index() {
-    run_test([TestAction::inspect_context(|ctx| {
+    run_test_actions([TestAction::inspect_context(|ctx| {
         assert_eq!(JsValue::undefined().to_index(ctx).unwrap(), 0);
         assert!(JsValue::new(-1).to_index(ctx).is_err());
     })]);
@@ -532,7 +532,7 @@ fn to_index() {
 
 #[test]
 fn to_length() {
-    run_test([TestAction::inspect_context(|ctx| {
+    run_test_actions([TestAction::inspect_context(|ctx| {
         assert_eq!(JsValue::new(f64::NAN).to_length(ctx).unwrap(), 0);
         assert_eq!(JsValue::new(f64::NEG_INFINITY).to_length(ctx).unwrap(), 0);
         assert_eq!(
@@ -556,7 +556,7 @@ fn to_length() {
 
 #[test]
 fn to_int32() {
-    run_test([TestAction::inspect_context(|ctx| {
+    run_test_actions([TestAction::inspect_context(|ctx| {
         macro_rules! check_to_int32 {
             ($from:expr => $to:expr) => {
                 assert_eq!(JsValue::new($from).to_i32(ctx).unwrap(), $to);
@@ -669,7 +669,7 @@ fn to_int32() {
 
 #[test]
 fn to_string() {
-    run_test([TestAction::inspect_context(|ctx| {
+    run_test_actions([TestAction::inspect_context(|ctx| {
         assert_eq!(&JsValue::null().to_string(ctx).unwrap(), utf16!("null"));
         assert_eq!(
             &JsValue::undefined().to_string(ctx).unwrap(),
@@ -686,7 +686,7 @@ fn to_string() {
 
 #[test]
 fn to_bigint() {
-    run_test([TestAction::inspect_context(|ctx| {
+    run_test_actions([TestAction::inspect_context(|ctx| {
         assert!(JsValue::null().to_bigint(ctx).is_err());
         assert!(JsValue::undefined().to_bigint(ctx).is_err());
         assert!(JsValue::new(55).to_bigint(ctx).is_err());
@@ -705,7 +705,7 @@ mod cyclic_conversions {
 
     #[test]
     fn to_json_cyclic() {
-        run_test([TestAction::assert_native_error(
+        run_test_actions([TestAction::assert_native_error(
             indoc! {r#"
                 let a = [];
                 a[0] = a;
@@ -718,7 +718,7 @@ mod cyclic_conversions {
 
     #[test]
     fn to_json_noncyclic() {
-        run_test([TestAction::assert_eq(
+        run_test_actions([TestAction::assert_eq(
             indoc! {r#"
                 let b = [];
                 let a = [b, b];
@@ -733,7 +733,7 @@ mod cyclic_conversions {
 
     #[test]
     fn to_string_cyclic() {
-        run_test([TestAction::assert_eq(
+        run_test_actions([TestAction::assert_eq(
             indoc! {r#"
                 let a = [];
                 a[0] = a;
@@ -745,7 +745,7 @@ mod cyclic_conversions {
 
     #[test]
     fn to_number_cyclic() {
-        run_test([TestAction::assert_eq(
+        run_test_actions([TestAction::assert_eq(
             indoc! {r#"
                 let a = [];
                 a[0] = a;
@@ -758,7 +758,7 @@ mod cyclic_conversions {
     #[test]
     fn to_boolean_cyclic() {
         // this already worked before the mitigation, but we don't want to cause a regression
-        run_test([TestAction::assert(indoc! {r#"
+        run_test_actions([TestAction::assert(indoc! {r#"
                 let a = [];
                 a[0] = a;
                 !!a
@@ -767,7 +767,7 @@ mod cyclic_conversions {
 
     #[test]
     fn to_bigint_cyclic() {
-        run_test([TestAction::assert_eq(
+        run_test_actions([TestAction::assert_eq(
             indoc! {r#"
                 let a = [];
                 a[0] = a;
@@ -779,7 +779,7 @@ mod cyclic_conversions {
 
     #[test]
     fn to_u32_cyclic() {
-        run_test([TestAction::assert_eq(
+        run_test_actions([TestAction::assert_eq(
             indoc! {r#"
                     let a = [];
                     a[0] = a;
@@ -791,7 +791,7 @@ mod cyclic_conversions {
 
     #[test]
     fn console_log_cyclic() {
-        run_test([TestAction::run(indoc! {r#"
+        run_test_actions([TestAction::run(indoc! {r#"
                 let a = [1];
                 a[1] = a;
                 console.log(a);
@@ -807,7 +807,7 @@ mod abstract_relational_comparison {
 
     #[test]
     fn number_less_than_number() {
-        run_test([
+        run_test_actions([
             TestAction::assert("1 < 2"),
             TestAction::assert("!(2 < 2)"),
             TestAction::assert("!(3 < 2)"),
@@ -818,7 +818,7 @@ mod abstract_relational_comparison {
 
     #[test]
     fn string_less_than_number() {
-        run_test([
+        run_test_actions([
             TestAction::assert("'1' < 2"),
             TestAction::assert("!('2' < 2)"),
             TestAction::assert("!('3' < 2)"),
@@ -829,7 +829,7 @@ mod abstract_relational_comparison {
 
     #[test]
     fn number_less_than_string() {
-        run_test([
+        run_test_actions([
             TestAction::assert("1 < '2'"),
             TestAction::assert("!(2 < '2')"),
             TestAction::assert("!(3 < '2')"),
@@ -840,7 +840,7 @@ mod abstract_relational_comparison {
 
     #[test]
     fn number_object_less_than_number() {
-        run_test([
+        run_test_actions([
             TestAction::assert("new Number(1) < 2"),
             TestAction::assert("!(new Number(2) < 2)"),
             TestAction::assert("!(new Number(3) < 2)"),
@@ -851,7 +851,7 @@ mod abstract_relational_comparison {
 
     #[test]
     fn number_object_less_than_number_object() {
-        run_test([
+        run_test_actions([
             TestAction::assert("new Number(1) < new Number(2)"),
             TestAction::assert("!(new Number(2) < new Number(2))"),
             TestAction::assert("!(new Number(3) < new Number(2))"),
@@ -862,7 +862,7 @@ mod abstract_relational_comparison {
 
     #[test]
     fn string_less_than_string() {
-        run_test([
+        run_test_actions([
             TestAction::assert("!('hello' < 'hello')"),
             TestAction::assert("'hell' < 'hello'"),
             TestAction::assert("'hello, world' < 'world'"),
@@ -872,7 +872,7 @@ mod abstract_relational_comparison {
 
     #[test]
     fn string_object_less_than_string() {
-        run_test([
+        run_test_actions([
             TestAction::assert("!(new String('hello') < 'hello')"),
             TestAction::assert("new String('hell') < 'hello'"),
             TestAction::assert("new String('hello, world') < 'world'"),
@@ -882,7 +882,7 @@ mod abstract_relational_comparison {
 
     #[test]
     fn string_object_less_than_string_object() {
-        run_test([
+        run_test_actions([
             TestAction::assert("!(new String('hello') < new String('hello'))"),
             TestAction::assert("new String('hell') < new String('hello')"),
             TestAction::assert("new String('hello, world') < new String('world')"),
@@ -892,7 +892,7 @@ mod abstract_relational_comparison {
 
     #[test]
     fn bigint_less_than_number() {
-        run_test([
+        run_test_actions([
             TestAction::assert("1n < 10"),
             TestAction::assert("!(10n < 10)"),
             TestAction::assert("!(100n < 10)"),
@@ -902,7 +902,7 @@ mod abstract_relational_comparison {
 
     #[test]
     fn number_less_than_bigint() {
-        run_test([
+        run_test_actions([
             TestAction::assert("!(10 < 1n)"),
             TestAction::assert("!(1 < 1n)"),
             TestAction::assert("!(-1 < -1n)"),
@@ -912,7 +912,7 @@ mod abstract_relational_comparison {
 
     #[test]
     fn negative_infinity_less_than_bigint() {
-        run_test([
+        run_test_actions([
             TestAction::assert("-Infinity < -10000000000n"),
             TestAction::assert("-Infinity < (-1n << 100n)"),
         ]);
@@ -920,7 +920,7 @@ mod abstract_relational_comparison {
 
     #[test]
     fn bigint_less_than_infinity() {
-        run_test([
+        run_test_actions([
             TestAction::assert("!(1000n < NaN)"),
             TestAction::assert("!((1n << 100n) < NaN)"),
         ]);
@@ -928,7 +928,7 @@ mod abstract_relational_comparison {
 
     #[test]
     fn nan_less_than_bigint() {
-        run_test([
+        run_test_actions([
             TestAction::assert("!(NaN < -10000000000n)"),
             TestAction::assert("!(NaN < (-1n << 100n))"),
         ]);
@@ -936,7 +936,7 @@ mod abstract_relational_comparison {
 
     #[test]
     fn bigint_less_than_nan() {
-        run_test([
+        run_test_actions([
             TestAction::assert("1000n < Infinity"),
             TestAction::assert("(1n << 100n) < Infinity"),
         ]);
@@ -944,7 +944,7 @@ mod abstract_relational_comparison {
 
     #[test]
     fn bigint_less_than_string() {
-        run_test([
+        run_test_actions([
             TestAction::assert("!(1000n < '1000')"),
             TestAction::assert("1000n < '2000'"),
             TestAction::assert("!(1n < '-1')"),
@@ -955,7 +955,7 @@ mod abstract_relational_comparison {
 
     #[test]
     fn string_less_than_bigint() {
-        run_test([
+        run_test_actions([
             TestAction::assert("!('1000' < 1000n)"),
             TestAction::assert("!('2000' < 1000n)"),
             TestAction::assert("'500' < 1000n"),
@@ -969,7 +969,7 @@ mod abstract_relational_comparison {
 
     #[test]
     fn number_less_than_or_equal_number() {
-        run_test([
+        run_test_actions([
             TestAction::assert("1 <= 2"),
             TestAction::assert("2 <= 2"),
             TestAction::assert("!(3 <= 2)"),
@@ -980,7 +980,7 @@ mod abstract_relational_comparison {
 
     #[test]
     fn string_less_than_or_equal_number() {
-        run_test([
+        run_test_actions([
             TestAction::assert("'1' <= 2"),
             TestAction::assert("'2' <= 2"),
             TestAction::assert("!('3' <= 2)"),
@@ -991,7 +991,7 @@ mod abstract_relational_comparison {
 
     #[test]
     fn number_less_than_or_equal_string() {
-        run_test([
+        run_test_actions([
             TestAction::assert("1 <= '2'"),
             TestAction::assert("2 <= '2'"),
             TestAction::assert("!(3 <= '2')"),
@@ -1002,7 +1002,7 @@ mod abstract_relational_comparison {
 
     #[test]
     fn number_object_less_than_or_equal_number() {
-        run_test([
+        run_test_actions([
             TestAction::assert("new Number(1) <= '2'"),
             TestAction::assert("new Number(2) <= '2'"),
             TestAction::assert("!(new Number(3) <= '2')"),
@@ -1013,7 +1013,7 @@ mod abstract_relational_comparison {
 
     #[test]
     fn number_object_less_than_number_or_equal_object() {
-        run_test([
+        run_test_actions([
             TestAction::assert("new Number(1) <= new Number(2)"),
             TestAction::assert("new Number(2) <= new Number(2)"),
             TestAction::assert("!(new Number(3) <= new Number(2))"),
@@ -1024,7 +1024,7 @@ mod abstract_relational_comparison {
 
     #[test]
     fn string_less_than_or_equal_string() {
-        run_test([
+        run_test_actions([
             TestAction::assert("'hello' <= 'hello'"),
             TestAction::assert("'hell' <= 'hello'"),
             TestAction::assert("'hello, world' <= 'world'"),
@@ -1034,7 +1034,7 @@ mod abstract_relational_comparison {
 
     #[test]
     fn string_object_less_than_or_equal_string() {
-        run_test([
+        run_test_actions([
             TestAction::assert("new String('hello') <= 'hello'"),
             TestAction::assert("new String('hell') <= 'hello'"),
             TestAction::assert("new String('hello, world') <= 'world'"),
@@ -1044,7 +1044,7 @@ mod abstract_relational_comparison {
 
     #[test]
     fn string_object_less_than_string_or_equal_object() {
-        run_test([
+        run_test_actions([
             TestAction::assert("new String('hello') <= new String('hello')"),
             TestAction::assert("new String('hell') <= new String('hello')"),
             TestAction::assert("new String('hello, world') <= new String('world')"),
@@ -1054,7 +1054,7 @@ mod abstract_relational_comparison {
 
     #[test]
     fn bigint_less_than_or_equal_number() {
-        run_test([
+        run_test_actions([
             TestAction::assert("1n <= 10"),
             TestAction::assert("10n <= 10"),
             TestAction::assert("!(100n <= 10)"),
@@ -1064,7 +1064,7 @@ mod abstract_relational_comparison {
 
     #[test]
     fn number_less_than_or_equal_bigint() {
-        run_test([
+        run_test_actions([
             TestAction::assert("!(10 <= 1n)"),
             TestAction::assert("1 <= 1n"),
             TestAction::assert("-1 <= -1n"),
@@ -1074,7 +1074,7 @@ mod abstract_relational_comparison {
 
     #[test]
     fn negative_infinity_less_than_or_equal_bigint() {
-        run_test([
+        run_test_actions([
             TestAction::assert("-Infinity <= -10000000000n"),
             TestAction::assert("-Infinity <= (-1n << 100n)"),
         ]);
@@ -1082,7 +1082,7 @@ mod abstract_relational_comparison {
 
     #[test]
     fn bigint_less_than_or_equal_infinity() {
-        run_test([
+        run_test_actions([
             TestAction::assert("!(1000n <= NaN)"),
             TestAction::assert("!((1n << 100n) <= NaN)"),
         ]);
@@ -1090,7 +1090,7 @@ mod abstract_relational_comparison {
 
     #[test]
     fn nan_less_than_or_equal_bigint() {
-        run_test([
+        run_test_actions([
             TestAction::assert("!(NaN <= -10000000000n)"),
             TestAction::assert("!(NaN <= (-1n << 100n))"),
         ]);
@@ -1098,7 +1098,7 @@ mod abstract_relational_comparison {
 
     #[test]
     fn bigint_less_than_or_equal_nan() {
-        run_test([
+        run_test_actions([
             TestAction::assert("1000n <= Infinity"),
             TestAction::assert("(1n << 100n) <= Infinity"),
         ]);
@@ -1106,7 +1106,7 @@ mod abstract_relational_comparison {
 
     #[test]
     fn bigint_less_than_or_equal_string() {
-        run_test([
+        run_test_actions([
             TestAction::assert("1000n <= '1000'"),
             TestAction::assert("1000n <= '2000'"),
             TestAction::assert("!(1n <= '-1')"),
@@ -1117,7 +1117,7 @@ mod abstract_relational_comparison {
 
     #[test]
     fn string_less_than_or_equal_bigint() {
-        run_test([
+        run_test_actions([
             TestAction::assert("'1000' <= 1000n"),
             TestAction::assert("!('2000' <= 1000n)"),
             TestAction::assert("'500' <= 1000n"),
@@ -1131,7 +1131,7 @@ mod abstract_relational_comparison {
 
     #[test]
     fn number_greater_than_number() {
-        run_test([
+        run_test_actions([
             TestAction::assert("!(1 > 2)"),
             TestAction::assert("!(2 > 2)"),
             TestAction::assert("3 > 2"),
@@ -1142,7 +1142,7 @@ mod abstract_relational_comparison {
 
     #[test]
     fn string_greater_than_number() {
-        run_test([
+        run_test_actions([
             TestAction::assert("!('1' > 2)"),
             TestAction::assert("!('2' > 2)"),
             TestAction::assert("'3' > 2"),
@@ -1153,7 +1153,7 @@ mod abstract_relational_comparison {
 
     #[test]
     fn number_less_greater_string() {
-        run_test([
+        run_test_actions([
             TestAction::assert("!(1 > '2')"),
             TestAction::assert("!(2 > '2')"),
             TestAction::assert("3 > '2'"),
@@ -1164,7 +1164,7 @@ mod abstract_relational_comparison {
 
     #[test]
     fn number_object_greater_than_number() {
-        run_test([
+        run_test_actions([
             TestAction::assert("!(new Number(1) > '2')"),
             TestAction::assert("!(new Number(2) > '2')"),
             TestAction::assert("new Number(3) > '2'"),
@@ -1175,7 +1175,7 @@ mod abstract_relational_comparison {
 
     #[test]
     fn number_object_greater_than_number_object() {
-        run_test([
+        run_test_actions([
             TestAction::assert("!(new Number(1) > new Number(2))"),
             TestAction::assert("!(new Number(2) > new Number(2))"),
             TestAction::assert("3 > new Number(2)"),
@@ -1186,7 +1186,7 @@ mod abstract_relational_comparison {
 
     #[test]
     fn string_greater_than_string() {
-        run_test([
+        run_test_actions([
             TestAction::assert("!('hello' > 'hello')"),
             TestAction::assert("!('hell' > 'hello')"),
             TestAction::assert("!('hello, world' > 'world')"),
@@ -1197,7 +1197,7 @@ mod abstract_relational_comparison {
 
     #[test]
     fn string_object_greater_than_string() {
-        run_test([
+        run_test_actions([
             TestAction::assert("!(new String('hello') > 'hello')"),
             TestAction::assert("!(new String('hell') > 'hello')"),
             TestAction::assert("!(new String('hello, world') > 'world')"),
@@ -1208,7 +1208,7 @@ mod abstract_relational_comparison {
 
     #[test]
     fn string_object_greater_than_string_object() {
-        run_test([
+        run_test_actions([
             TestAction::assert("!(new String('hello') > new String('hello'))"),
             TestAction::assert("!(new String('hell') > new String('hello'))"),
             TestAction::assert("!(new String('hello, world') > new String('world'))"),
@@ -1219,7 +1219,7 @@ mod abstract_relational_comparison {
 
     #[test]
     fn bigint_greater_than_number() {
-        run_test([
+        run_test_actions([
             TestAction::assert("!(1n > 10)"),
             TestAction::assert("!(10n > 10)"),
             TestAction::assert("100n > 10"),
@@ -1229,7 +1229,7 @@ mod abstract_relational_comparison {
 
     #[test]
     fn number_greater_than_bigint() {
-        run_test([
+        run_test_actions([
             TestAction::assert("10 > 1n"),
             TestAction::assert("!(1 > 1n)"),
             TestAction::assert("!(-1 > -1n)"),
@@ -1239,7 +1239,7 @@ mod abstract_relational_comparison {
 
     #[test]
     fn negative_infinity_greater_than_bigint() {
-        run_test([
+        run_test_actions([
             TestAction::assert("!(-Infinity > -10000000000n)"),
             TestAction::assert("!(-Infinity > (-1n << 100n))"),
         ]);
@@ -1247,7 +1247,7 @@ mod abstract_relational_comparison {
 
     #[test]
     fn bigint_greater_than_infinity() {
-        run_test([
+        run_test_actions([
             TestAction::assert("!(1000n > NaN)"),
             TestAction::assert("!((1n << 100n) > NaN)"),
         ]);
@@ -1255,7 +1255,7 @@ mod abstract_relational_comparison {
 
     #[test]
     fn nan_greater_than_bigint() {
-        run_test([
+        run_test_actions([
             TestAction::assert("!(NaN > -10000000000n)"),
             TestAction::assert("!(NaN > (-1n << 100n))"),
         ]);
@@ -1263,7 +1263,7 @@ mod abstract_relational_comparison {
 
     #[test]
     fn bigint_greater_than_nan() {
-        run_test([
+        run_test_actions([
             TestAction::assert("!(1000n > Infinity)"),
             TestAction::assert("!((1n << 100n) > Infinity)"),
         ]);
@@ -1271,7 +1271,7 @@ mod abstract_relational_comparison {
 
     #[test]
     fn bigint_greater_than_string() {
-        run_test([
+        run_test_actions([
             TestAction::assert("!(1000n > '1000')"),
             TestAction::assert("!(1000n > '2000')"),
             TestAction::assert("1n > '-1'"),
@@ -1282,7 +1282,7 @@ mod abstract_relational_comparison {
 
     #[test]
     fn string_greater_than_bigint() {
-        run_test([
+        run_test_actions([
             TestAction::assert("!('1000' > 1000n)"),
             TestAction::assert("'2000' > 1000n"),
             TestAction::assert("!('500' > 1000n)"),
@@ -1296,7 +1296,7 @@ mod abstract_relational_comparison {
 
     #[test]
     fn number_greater_than_or_equal_number() {
-        run_test([
+        run_test_actions([
             TestAction::assert("!(1 >= 2)"),
             TestAction::assert("2 >= 2"),
             TestAction::assert("3 >= 2"),
@@ -1307,7 +1307,7 @@ mod abstract_relational_comparison {
 
     #[test]
     fn string_greater_than_or_equal_number() {
-        run_test([
+        run_test_actions([
             TestAction::assert("!('1' >= 2)"),
             TestAction::assert("'2' >= 2"),
             TestAction::assert("'3' >= 2"),
@@ -1318,7 +1318,7 @@ mod abstract_relational_comparison {
 
     #[test]
     fn number_less_greater_or_equal_string() {
-        run_test([
+        run_test_actions([
             TestAction::assert("!(1 >= '2')"),
             TestAction::assert("2 >= '2'"),
             TestAction::assert("3 >= '2'"),
@@ -1329,7 +1329,7 @@ mod abstract_relational_comparison {
 
     #[test]
     fn number_object_greater_than_or_equal_number() {
-        run_test([
+        run_test_actions([
             TestAction::assert("!(new Number(1) >= '2')"),
             TestAction::assert("new Number(2) >= '2'"),
             TestAction::assert("new Number(3) >= '2'"),
@@ -1340,7 +1340,7 @@ mod abstract_relational_comparison {
 
     #[test]
     fn number_object_greater_than_or_equal_number_object() {
-        run_test([
+        run_test_actions([
             TestAction::assert("!(new Number(1) >= new Number(2))"),
             TestAction::assert("new Number(2) >= new Number(2)"),
             TestAction::assert("new Number(3) >= new Number(2)"),
@@ -1351,7 +1351,7 @@ mod abstract_relational_comparison {
 
     #[test]
     fn string_greater_than_or_equal_string() {
-        run_test([
+        run_test_actions([
             TestAction::assert("'hello' >= 'hello'"),
             TestAction::assert("!('hell' >= 'hello')"),
             TestAction::assert("!('hello, world' >= 'world')"),
@@ -1362,7 +1362,7 @@ mod abstract_relational_comparison {
 
     #[test]
     fn string_object_greater_or_equal_than_string() {
-        run_test([
+        run_test_actions([
             TestAction::assert("new String('hello') >= 'hello'"),
             TestAction::assert("!(new String('hell') >= 'hello')"),
             TestAction::assert("!(new String('hello, world') >= 'world')"),
@@ -1373,7 +1373,7 @@ mod abstract_relational_comparison {
 
     #[test]
     fn string_object_greater_than_or_equal_string_object() {
-        run_test([
+        run_test_actions([
             TestAction::assert("new String('hello') >= new String('hello')"),
             TestAction::assert("!(new String('hell') >= new String('hello'))"),
             TestAction::assert("!(new String('hello, world') >= new String('world'))"),
@@ -1384,7 +1384,7 @@ mod abstract_relational_comparison {
 
     #[test]
     fn bigint_greater_than_or_equal_number() {
-        run_test([
+        run_test_actions([
             TestAction::assert("!(1n >= 10)"),
             TestAction::assert("10n >= 10"),
             TestAction::assert("100n >= 10"),
@@ -1394,7 +1394,7 @@ mod abstract_relational_comparison {
 
     #[test]
     fn number_greater_than_or_equal_bigint() {
-        run_test([
+        run_test_actions([
             TestAction::assert("10 >= 1n"),
             TestAction::assert("1 >= 1n"),
             TestAction::assert("-1 >= -1n"),
@@ -1404,7 +1404,7 @@ mod abstract_relational_comparison {
 
     #[test]
     fn negative_infinity_greater_or_equal_than_bigint() {
-        run_test([
+        run_test_actions([
             TestAction::assert("!(-Infinity >= -10000000000n)"),
             TestAction::assert("!(-Infinity >= (-1n << 100n))"),
         ]);
@@ -1412,7 +1412,7 @@ mod abstract_relational_comparison {
 
     #[test]
     fn bigint_greater_than_or_equal_infinity() {
-        run_test([
+        run_test_actions([
             TestAction::assert("!(1000n >= NaN)"),
             TestAction::assert("!((1n << 100n) >= NaN)"),
         ]);
@@ -1420,7 +1420,7 @@ mod abstract_relational_comparison {
 
     #[test]
     fn nan_greater_than_or_equal_bigint() {
-        run_test([
+        run_test_actions([
             TestAction::assert("!(NaN >= -10000000000n)"),
             TestAction::assert("!(NaN >= (-1n << 100n))"),
         ]);
@@ -1428,7 +1428,7 @@ mod abstract_relational_comparison {
 
     #[test]
     fn bigint_greater_than_or_equal_nan() {
-        run_test([
+        run_test_actions([
             TestAction::assert("!(1000n >= Infinity)"),
             TestAction::assert("!((1n << 100n) >= Infinity)"),
         ]);
@@ -1436,7 +1436,7 @@ mod abstract_relational_comparison {
 
     #[test]
     fn bigint_greater_than_or_equal_string() {
-        run_test([
+        run_test_actions([
             TestAction::assert("1000n >= '1000'"),
             TestAction::assert("!(1000n >= '2000')"),
             TestAction::assert("1n >= '-1'"),
@@ -1447,7 +1447,7 @@ mod abstract_relational_comparison {
 
     #[test]
     fn string_greater_than_or_equal_bigint() {
-        run_test([
+        run_test_actions([
             TestAction::assert("'1000' >= 1000n"),
             TestAction::assert("'2000' >= 1000n"),
             TestAction::assert("!('500' >= 1000n)"),

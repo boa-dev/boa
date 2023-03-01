@@ -1,9 +1,9 @@
-use crate::{builtins::error::ErrorKind, run_test, TestAction};
+use crate::{builtins::error::ErrorKind, run_test_actions, TestAction};
 use indoc::indoc;
 
 #[test]
 fn ordinary_has_instance_nonobject_prototype() {
-    run_test([TestAction::assert_native_error(
+    run_test_actions([TestAction::assert_native_error(
         indoc! {r#"
             function C() {}
             C.prototype = 1
@@ -16,7 +16,7 @@ fn ordinary_has_instance_nonobject_prototype() {
 
 #[test]
 fn object_properties_return_order() {
-    run_test([
+    run_test_actions([
         TestAction::run_harness(),
         TestAction::run(indoc! {r#"
                 var o = {

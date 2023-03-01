@@ -1,22 +1,22 @@
-use crate::{console::formatter, run_test, JsValue, TestAction};
+use crate::{console::formatter, run_test_actions, JsValue, TestAction};
 
 #[test]
 fn formatter_no_args_is_empty_string() {
-    run_test([TestAction::inspect_context(|ctx| {
+    run_test_actions([TestAction::inspect_context(|ctx| {
         assert_eq!(formatter(&[], ctx).unwrap(), "");
     })]);
 }
 
 #[test]
 fn formatter_empty_format_string_is_empty_string() {
-    run_test([TestAction::inspect_context(|ctx| {
+    run_test_actions([TestAction::inspect_context(|ctx| {
         assert_eq!(formatter(&[JsValue::new("")], ctx).unwrap(), "");
     })]);
 }
 
 #[test]
 fn formatter_format_without_args_renders_verbatim() {
-    run_test([TestAction::inspect_context(|ctx| {
+    run_test_actions([TestAction::inspect_context(|ctx| {
         assert_eq!(
             formatter(&[JsValue::new("%d %s %% %f")], ctx).unwrap(),
             "%d %s %% %f"
@@ -26,7 +26,7 @@ fn formatter_format_without_args_renders_verbatim() {
 
 #[test]
 fn formatter_empty_format_string_concatenates_rest_of_args() {
-    run_test([TestAction::inspect_context(|ctx| {
+    run_test_actions([TestAction::inspect_context(|ctx| {
         assert_eq!(
             formatter(
                 &[
@@ -44,7 +44,7 @@ fn formatter_empty_format_string_concatenates_rest_of_args() {
 
 #[test]
 fn formatter_utf_8_checks() {
-    run_test([TestAction::inspect_context(|ctx| {
+    run_test_actions([TestAction::inspect_context(|ctx| {
         assert_eq!(
             formatter(
                 &[
@@ -63,7 +63,7 @@ fn formatter_utf_8_checks() {
 
 #[test]
 fn formatter_trailing_format_leader_renders() {
-    run_test([TestAction::inspect_context(|ctx| {
+    run_test_actions([TestAction::inspect_context(|ctx| {
         assert_eq!(
             formatter(&[JsValue::new("%%%%%"), JsValue::new("|")], ctx).unwrap(),
             "%%% |"
@@ -74,7 +74,7 @@ fn formatter_trailing_format_leader_renders() {
 #[test]
 #[allow(clippy::approx_constant)]
 fn formatter_float_format_works() {
-    run_test([TestAction::inspect_context(|ctx| {
+    run_test_actions([TestAction::inspect_context(|ctx| {
         assert_eq!(
             formatter(&[JsValue::new("%f"), JsValue::new(3.1415)], ctx).unwrap(),
             "3.141500"

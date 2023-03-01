@@ -1,9 +1,9 @@
-use crate::{run_test, TestAction};
+use crate::{run_test_actions, TestAction};
 use indoc::indoc;
 
 #[test]
 fn error_to_string() {
-    run_test([
+    run_test_actions([
         TestAction::assert_eq("(new Error('1')).toString()", "Error: 1"),
         TestAction::assert_eq("(new RangeError('2')).toString()", "RangeError: 2"),
         TestAction::assert_eq("(new ReferenceError('3')).toString()", "ReferenceError: 3"),
@@ -33,7 +33,7 @@ fn error_to_string() {
 
 #[test]
 fn error_names() {
-    run_test([
+    run_test_actions([
         TestAction::assert_eq("Error.name", "Error"),
         TestAction::assert_eq("EvalError.name", "EvalError"),
         TestAction::assert_eq("RangeError.name", "RangeError"),
@@ -47,7 +47,7 @@ fn error_names() {
 
 #[test]
 fn error_lengths() {
-    run_test([
+    run_test_actions([
         TestAction::assert_eq("Error.length", 1),
         TestAction::assert_eq("EvalError.length", 1),
         TestAction::assert_eq("RangeError.length", 1),

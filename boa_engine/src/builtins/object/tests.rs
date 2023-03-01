@@ -1,19 +1,19 @@
-use crate::{builtins::error::ErrorKind, run_test, JsValue, TestAction};
+use crate::{builtins::error::ErrorKind, run_test_actions, JsValue, TestAction};
 use indoc::indoc;
 
 #[test]
 fn object_create_length() {
-    run_test([TestAction::assert_eq("Object.create.length", 2)]);
+    run_test_actions([TestAction::assert_eq("Object.create.length", 2)]);
 }
 
 #[test]
 fn object_create_with_regular_object() {
-    run_test([TestAction::assert_eq("Object.create({ a: 5 }).a", 5)]);
+    run_test_actions([TestAction::assert_eq("Object.create({ a: 5 }).a", 5)]);
 }
 
 #[test]
 fn object_create_with_undefined() {
-    run_test([TestAction::assert_native_error(
+    run_test_actions([TestAction::assert_native_error(
         "Object.create()",
         ErrorKind::Type,
         "Object prototype may only be an Object or null: undefined",
@@ -22,7 +22,7 @@ fn object_create_with_undefined() {
 
 #[test]
 fn object_create_with_number() {
-    run_test([TestAction::assert_native_error(
+    run_test_actions([TestAction::assert_native_error(
         "Object.create(5)",
         ErrorKind::Type,
         "Object prototype may only be an Object or null: 5",
@@ -31,7 +31,7 @@ fn object_create_with_number() {
 
 #[test]
 fn object_create_with_function() {
-    run_test([TestAction::assert(indoc! {r#"
+    run_test_actions([TestAction::assert(indoc! {r#"
             const x = function (){};
             const bar = Object.create(x);
             bar.__proto__ === x
@@ -40,7 +40,7 @@ fn object_create_with_function() {
 
 #[test]
 fn object_is() {
-    run_test([
+    run_test_actions([
         TestAction::run(indoc! {r#"
                 var foo = { a: 1};
                 var bar = { a: 1};
@@ -61,7 +61,7 @@ fn object_is() {
 
 #[test]
 fn object_has_own_property() {
-    run_test([
+    run_test_actions([
         TestAction::run(indoc! {r#"
             let symA = Symbol('a');
             let symB = Symbol('b');
@@ -87,7 +87,7 @@ fn object_has_own_property() {
 
 #[test]
 fn object_has_own() {
-    run_test([
+    run_test_actions([
         TestAction::run(indoc! {r#"
             let symA = Symbol('a');
             let symB = Symbol('b');
@@ -113,7 +113,7 @@ fn object_has_own() {
 
 #[test]
 fn object_property_is_enumerable() {
-    run_test([
+    run_test_actions([
         TestAction::run("let x = { enumerableProp: 'yes' };"),
         TestAction::assert("x.propertyIsEnumerable('enumerableProp')"),
         TestAction::assert("!x.propertyIsEnumerable('hasOwnProperty')"),
@@ -124,7 +124,7 @@ fn object_property_is_enumerable() {
 
 #[test]
 fn object_to_string() {
-    run_test([
+    run_test_actions([
         TestAction::run(indoc! {r#"
                 Array.prototype.toString = Object.prototype.toString;
                 Function.prototype.toString = Object.prototype.toString;
@@ -154,7 +154,7 @@ fn object_to_string() {
 
 #[test]
 fn define_symbol_property() {
-    run_test([
+    run_test_actions([
         TestAction::run(indoc! {r#"
                 let obj = {};
                 let sym = Symbol("key");
@@ -166,7 +166,7 @@ fn define_symbol_property() {
 
 #[test]
 fn get_own_property_descriptor_1_arg_returns_undefined() {
-    run_test([TestAction::assert_eq(
+    run_test_actions([TestAction::assert_eq(
         "Object.getOwnPropertyDescriptor({a: 2})",
         JsValue::undefined(),
     )]);
@@ -174,7 +174,7 @@ fn get_own_property_descriptor_1_arg_returns_undefined() {
 
 #[test]
 fn get_own_property_descriptor() {
-    run_test([
+    run_test_actions([
         TestAction::run(indoc! {r#"
                 let obj = {a: 2};
                 let prop = Object.getOwnPropertyDescriptor(obj, "a");
@@ -188,7 +188,7 @@ fn get_own_property_descriptor() {
 
 #[test]
 fn get_own_property_descriptors() {
-    run_test([
+    run_test_actions([
         TestAction::run(indoc! {r#"
                 let obj = {a: 1, b: 2};
                 let props = Object.getOwnPropertyDescriptors(obj);
@@ -206,7 +206,7 @@ fn get_own_property_descriptors() {
 
 #[test]
 fn object_define_properties() {
-    run_test([
+    run_test_actions([
         TestAction::run(indoc! {r#"
                 const obj = {};
 
@@ -228,7 +228,7 @@ fn object_define_properties() {
 
 #[test]
 fn object_is_prototype_of() {
-    run_test([TestAction::assert(
+    run_test_actions([TestAction::assert(
         "Object.prototype.isPrototypeOf(String.prototype)",
     )]);
 }
@@ -237,7 +237,7 @@ fn object_is_prototype_of() {
 fn object_get_own_property_names_invalid_args() {
     const ERROR: &str = "cannot convert 'null' or 'undefined' to object";
 
-    run_test([
+    run_test_actions([
         TestAction::assert_native_error("Object.getOwnPropertyNames()", ErrorKind::Type, ERROR),
         TestAction::assert_native_error("Object.getOwnPropertyNames(null)", ErrorKind::Type, ERROR),
         TestAction::assert_native_error(
@@ -250,7 +250,7 @@ fn object_get_own_property_names_invalid_args() {
 
 #[test]
 fn object_get_own_property_names() {
-    run_test([
+    run_test_actions([
         TestAction::run_harness(),
         TestAction::assert(indoc! {r#"
                 arrayEquals(
@@ -306,7 +306,7 @@ fn object_get_own_property_names() {
 fn object_get_own_property_symbols_invalid_args() {
     const ERROR: &str = "cannot convert 'null' or 'undefined' to object";
 
-    run_test([
+    run_test_actions([
         TestAction::assert_native_error("Object.getOwnPropertySymbols()", ErrorKind::Type, ERROR),
         TestAction::assert_native_error(
             "Object.getOwnPropertySymbols(null)",
@@ -323,7 +323,7 @@ fn object_get_own_property_symbols_invalid_args() {
 
 #[test]
 fn object_get_own_property_symbols() {
-    run_test([
+    run_test_actions([
         TestAction::run_harness(),
         TestAction::assert(indoc! {r#"
                 arrayEquals(
@@ -381,7 +381,7 @@ fn object_get_own_property_symbols() {
 fn object_from_entries_invalid_args() {
     const ERROR: &str = "cannot convert null or undefined to Object";
 
-    run_test([
+    run_test_actions([
         TestAction::assert_native_error("Object.fromEntries()", ErrorKind::Type, ERROR),
         TestAction::assert_native_error("Object.fromEntries(null)", ErrorKind::Type, ERROR),
         TestAction::assert_native_error("Object.fromEntries(undefined)", ErrorKind::Type, ERROR),
@@ -390,7 +390,7 @@ fn object_from_entries_invalid_args() {
 
 #[test]
 fn object_from_entries() {
-    run_test([
+    run_test_actions([
         TestAction::run(indoc! {r#"
                 let sym = Symbol("sym");
                 let map = Object.fromEntries([

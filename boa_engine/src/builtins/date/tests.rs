@@ -1,4 +1,4 @@
-use crate::{builtins::error::ErrorKind, run_test, TestAction};
+use crate::{builtins::error::ErrorKind, run_test_actions, TestAction};
 use chrono::{Local, NaiveDate, NaiveDateTime, NaiveTime, TimeZone};
 use indoc::indoc;
 
@@ -60,7 +60,7 @@ fn date_display() {
 
 #[test]
 fn date_this_time_value() {
-    run_test([TestAction::assert_native_error(
+    run_test_actions([TestAction::assert_native_error(
         "({toString: Date.prototype.toString}).toString()",
         ErrorKind::Type,
         "'this' is not a Date",
@@ -69,7 +69,7 @@ fn date_this_time_value() {
 
 #[test]
 fn date_ctor_call() {
-    run_test([
+    run_test_actions([
         TestAction::run("let a = new Date()"),
         TestAction::inspect_context(|_| std::thread::sleep(std::time::Duration::from_millis(1))),
         TestAction::assert("a.getTime() != new Date().getTime()"),
@@ -78,7 +78,7 @@ fn date_ctor_call() {
 
 #[test]
 fn date_ctor_call_string() {
-    run_test([TestAction::assert_eq(
+    run_test_actions([TestAction::assert_eq(
         "new Date('2020-06-08T09:16:15.779-06:30').getTime()",
         timestamp_from_utc(2020, 6, 8, 15, 46, 15, 779),
     )]);
@@ -86,7 +86,7 @@ fn date_ctor_call_string() {
 
 #[test]
 fn date_ctor_call_string_invalid() {
-    run_test([TestAction::assert_eq(
+    run_test_actions([TestAction::assert_eq(
         "new Date('nope').getTime()",
         f64::NAN,
     )]);
@@ -94,7 +94,7 @@ fn date_ctor_call_string_invalid() {
 
 #[test]
 fn date_ctor_call_number() {
-    run_test([TestAction::assert_eq(
+    run_test_actions([TestAction::assert_eq(
         "new Date(1594199775779).getTime()",
         timestamp_from_utc(2020, 7, 8, 9, 16, 15, 779),
     )]);
@@ -102,7 +102,7 @@ fn date_ctor_call_number() {
 
 #[test]
 fn date_ctor_call_date() {
-    run_test([TestAction::assert_eq(
+    run_test_actions([TestAction::assert_eq(
         "new Date(new Date(1594199775779)).getTime()",
         timestamp_from_utc(2020, 7, 8, 9, 16, 15, 779),
     )]);
@@ -110,7 +110,7 @@ fn date_ctor_call_date() {
 
 #[test]
 fn date_ctor_call_multiple() {
-    run_test([TestAction::assert_eq(
+    run_test_actions([TestAction::assert_eq(
         "new Date(2020, 6, 8, 9, 16, 15, 779).getTime()",
         timestamp_from_local(2020, 7, 8, 9, 16, 15, 779),
     )]);
@@ -118,7 +118,7 @@ fn date_ctor_call_multiple() {
 
 #[test]
 fn date_ctor_call_multiple_90s() {
-    run_test([TestAction::assert_eq(
+    run_test_actions([TestAction::assert_eq(
         "new Date(99, 6, 8, 9, 16, 15, 779).getTime()",
         timestamp_from_local(1999, 7, 8, 9, 16, 15, 779),
     )]);
@@ -126,7 +126,7 @@ fn date_ctor_call_multiple_90s() {
 
 #[test]
 fn date_ctor_call_multiple_nan() {
-    run_test([
+    run_test_actions([
         TestAction::assert_eq("new Date(1/0, 6, 8, 9, 16, 15, 779).getTime()", f64::NAN),
         TestAction::assert_eq("new Date(2020, 1/0, 8, 9, 16, 15, 779).getTime()", f64::NAN),
         TestAction::assert_eq("new Date(2020, 6, 1/0, 9, 16, 15, 779).getTime()", f64::NAN),
@@ -139,7 +139,7 @@ fn date_ctor_call_multiple_nan() {
 
 #[test]
 fn date_ctor_now_call() {
-    run_test([
+    run_test_actions([
         TestAction::run("let a = Date.now()"),
         TestAction::inspect_context(|_| std::thread::sleep(std::time::Duration::from_millis(1))),
         TestAction::assert("a != Date.now()"),
@@ -148,7 +148,7 @@ fn date_ctor_now_call() {
 
 #[test]
 fn date_ctor_parse_call() {
-    run_test([TestAction::assert_eq(
+    run_test_actions([TestAction::assert_eq(
         "Date.parse('2020-06-08T09:16:15.779-07:30')",
         1_591_634_775_779_i64,
     )]);
@@ -156,7 +156,7 @@ fn date_ctor_parse_call() {
 
 #[test]
 fn date_ctor_utc_call() {
-    run_test([TestAction::assert_eq(
+    run_test_actions([TestAction::assert_eq(
         "Date.UTC(2020, 6, 8, 9, 16, 15, 779)",
         1_594_199_775_779_i64,
     )]);
@@ -164,7 +164,7 @@ fn date_ctor_utc_call() {
 
 #[test]
 fn date_ctor_utc_call_nan() {
-    run_test([
+    run_test_actions([
         TestAction::assert_eq("Date.UTC(1/0, 6, 8, 9, 16, 15, 779)", f64::NAN),
         TestAction::assert_eq("Date.UTC(2020, 1/0, 8, 9, 16, 15, 779)", f64::NAN),
         TestAction::assert_eq("Date.UTC(2020, 6, 1/0, 9, 16, 15, 779)", f64::NAN),
@@ -177,7 +177,7 @@ fn date_ctor_utc_call_nan() {
 
 #[test]
 fn date_proto_get_date_call() {
-    run_test([
+    run_test_actions([
         TestAction::assert_eq("new Date(2020, 6, 8, 9, 16, 15, 779).getDate()", 8),
         TestAction::assert_eq("new Date(1/0).getDate()", f64::NAN),
     ]);
@@ -185,7 +185,7 @@ fn date_proto_get_date_call() {
 
 #[test]
 fn date_proto_get_day_call() {
-    run_test([
+    run_test_actions([
         TestAction::assert_eq("new Date(2020, 6, 8, 9, 16, 15, 779).getDay()", 3),
         TestAction::assert_eq("new Date(1/0).getDay()", f64::NAN),
     ]);
@@ -193,7 +193,7 @@ fn date_proto_get_day_call() {
 
 #[test]
 fn date_proto_get_full_year_call() {
-    run_test([
+    run_test_actions([
         TestAction::assert_eq("new Date(2020, 6, 8, 9, 16, 15, 779).getFullYear()", 2020),
         TestAction::assert_eq("new Date(1/0).getFullYear()", f64::NAN),
     ]);
@@ -201,7 +201,7 @@ fn date_proto_get_full_year_call() {
 
 #[test]
 fn date_proto_get_hours_call() {
-    run_test([
+    run_test_actions([
         TestAction::assert_eq("new Date(2020, 6, 8, 9, 16, 15, 779).getHours()", 9),
         TestAction::assert_eq("new Date(1/0).getHours()", f64::NAN),
     ]);
@@ -209,7 +209,7 @@ fn date_proto_get_hours_call() {
 
 #[test]
 fn date_proto_get_milliseconds_call() {
-    run_test([
+    run_test_actions([
         TestAction::assert_eq(
             "new Date(2020, 6, 8, 9, 16, 15, 779).getMilliseconds()",
             779,
@@ -220,7 +220,7 @@ fn date_proto_get_milliseconds_call() {
 
 #[test]
 fn date_proto_get_minutes_call() {
-    run_test([
+    run_test_actions([
         TestAction::assert_eq("new Date(2020, 6, 8, 9, 16, 15, 779).getMinutes()", 16),
         TestAction::assert_eq("new Date(1/0).getMinutes()", f64::NAN),
     ]);
@@ -228,7 +228,7 @@ fn date_proto_get_minutes_call() {
 
 #[test]
 fn date_proto_get_month() {
-    run_test([
+    run_test_actions([
         TestAction::assert_eq("new Date(2020, 6, 8, 9, 16, 15, 779).getMonth()", 6),
         TestAction::assert_eq("new Date(1/0).getMonth()", f64::NAN),
     ]);
@@ -236,7 +236,7 @@ fn date_proto_get_month() {
 
 #[test]
 fn date_proto_get_seconds() {
-    run_test([
+    run_test_actions([
         TestAction::assert_eq("new Date(2020, 6, 8, 9, 16, 15, 779).getSeconds()", 15),
         TestAction::assert_eq("new Date(1/0).getSeconds()", f64::NAN),
     ]);
@@ -244,7 +244,7 @@ fn date_proto_get_seconds() {
 
 #[test]
 fn date_proto_get_time() {
-    run_test([
+    run_test_actions([
         TestAction::assert_eq(
             "new Date(2020, 6, 8, 9, 16, 15, 779).getTime()",
             timestamp_from_local(2020, 7, 8, 9, 16, 15, 779),
@@ -255,7 +255,7 @@ fn date_proto_get_time() {
 
 #[test]
 fn date_proto_get_year() {
-    run_test([
+    run_test_actions([
         TestAction::assert_eq("new Date(2020, 6, 8, 9, 16, 15, 779).getYear()", 120),
         TestAction::assert_eq("new Date(1/0).getYear()", f64::NAN),
     ]);
@@ -263,7 +263,7 @@ fn date_proto_get_year() {
 
 #[test]
 fn date_proto_get_timezone_offset() {
-    run_test([
+    run_test_actions([
         TestAction::assert(indoc! {r#"
                 new Date('1975-08-19T23:15:30+07:00').getTimezoneOffset() ===
                 new Date('1975-08-19T23:15:30-02:00').getTimezoneOffset()
@@ -282,7 +282,7 @@ fn date_proto_get_timezone_offset() {
 
 #[test]
 fn date_proto_get_utc_date_call() {
-    run_test([
+    run_test_actions([
         TestAction::assert_eq(
             "new Date(Date.UTC(2020, 6, 8, 9, 16, 15, 779)).getUTCDate()",
             8,
@@ -293,7 +293,7 @@ fn date_proto_get_utc_date_call() {
 
 #[test]
 fn date_proto_get_utc_day_call() {
-    run_test([
+    run_test_actions([
         TestAction::assert_eq(
             "new Date(Date.UTC(2020, 6, 8, 9, 16, 15, 779)).getUTCDay()",
             3,
@@ -304,7 +304,7 @@ fn date_proto_get_utc_day_call() {
 
 #[test]
 fn date_proto_get_utc_full_year_call() {
-    run_test([
+    run_test_actions([
         TestAction::assert_eq(
             "new Date(Date.UTC(2020, 6, 8, 9, 16, 15, 779)).getUTCFullYear()",
             2020,
@@ -315,7 +315,7 @@ fn date_proto_get_utc_full_year_call() {
 
 #[test]
 fn date_proto_get_utc_hours_call() {
-    run_test([
+    run_test_actions([
         TestAction::assert_eq(
             "new Date(Date.UTC(2020, 6, 8, 9, 16, 15, 779)).getUTCHours()",
             9,
@@ -326,7 +326,7 @@ fn date_proto_get_utc_hours_call() {
 
 #[test]
 fn date_proto_get_utc_milliseconds_call() {
-    run_test([
+    run_test_actions([
         TestAction::assert_eq(
             "new Date(Date.UTC(2020, 6, 8, 9, 16, 15, 779)).getUTCMilliseconds()",
             779,
@@ -337,7 +337,7 @@ fn date_proto_get_utc_milliseconds_call() {
 
 #[test]
 fn date_proto_get_utc_minutes_call() {
-    run_test([
+    run_test_actions([
         TestAction::assert_eq(
             "new Date(Date.UTC(2020, 6, 8, 9, 16, 15, 779)).getUTCMinutes()",
             16,
@@ -348,7 +348,7 @@ fn date_proto_get_utc_minutes_call() {
 
 #[test]
 fn date_proto_get_utc_month() {
-    run_test([
+    run_test_actions([
         TestAction::assert_eq(
             "new Date(Date.UTC(2020, 6, 8, 9, 16, 15, 779)).getUTCMonth()",
             6,
@@ -359,7 +359,7 @@ fn date_proto_get_utc_month() {
 
 #[test]
 fn date_proto_get_utc_seconds() {
-    run_test([
+    run_test_actions([
         TestAction::assert_eq(
             "new Date(Date.UTC(2020, 6, 8, 9, 16, 15, 779)).getUTCSeconds()",
             15,
@@ -370,7 +370,7 @@ fn date_proto_get_utc_seconds() {
 
 #[test]
 fn date_proto_set_date() {
-    run_test([
+    run_test_actions([
         TestAction::assert_eq(
             "new Date(2020, 6, 8, 9, 16, 15, 779).setDate(21)",
             timestamp_from_local(2020, 7, 21, 9, 16, 15, 779),
@@ -389,7 +389,7 @@ fn date_proto_set_date() {
 
 #[test]
 fn date_proto_set_full_year() {
-    run_test([
+    run_test_actions([
         TestAction::assert_eq(
             "new Date(2020, 6, 8, 9, 16, 15, 779).setFullYear(2012)",
             timestamp_from_local(2012, 7, 8, 9, 16, 15, 779),
@@ -428,7 +428,7 @@ fn date_proto_set_full_year() {
 
 #[test]
 fn date_proto_set_hours() {
-    run_test([
+    run_test_actions([
         TestAction::assert_eq(
             "new Date(2020, 6, 8, 9, 16, 15, 779).setHours(11)",
             timestamp_from_local(2020, 7, 8, 11, 16, 15, 779),
@@ -459,7 +459,7 @@ fn date_proto_set_hours() {
 
 #[test]
 fn date_proto_set_milliseconds() {
-    run_test([
+    run_test_actions([
         TestAction::assert_eq(
             "new Date(2020, 6, 8, 9, 16, 15, 779).setMilliseconds(597)",
             timestamp_from_local(2020, 7, 8, 9, 16, 15, 597),
@@ -479,7 +479,7 @@ fn date_proto_set_milliseconds() {
 
 #[test]
 fn date_proto_set_minutes() {
-    run_test([
+    run_test_actions([
         TestAction::assert_eq(
             "new Date(2020, 6, 8, 9, 16, 15, 779).setMinutes(11)",
             timestamp_from_local(2020, 7, 8, 9, 11, 15, 779),
@@ -507,7 +507,7 @@ fn date_proto_set_minutes() {
 
 #[test]
 fn date_proto_set_month() {
-    run_test([
+    run_test_actions([
         TestAction::assert_eq(
             "new Date(2020, 6, 8, 9, 16, 15, 779).setMonth(11)",
             timestamp_from_local(2020, 12, 8, 9, 16, 15, 779),
@@ -531,7 +531,7 @@ fn date_proto_set_month() {
 
 #[test]
 fn date_proto_set_seconds() {
-    run_test([
+    run_test_actions([
         TestAction::assert_eq(
             "new Date(2020, 6, 8, 9, 16, 15, 779).setSeconds(11)",
             timestamp_from_local(2020, 7, 8, 9, 16, 11, 779),
@@ -555,7 +555,7 @@ fn date_proto_set_seconds() {
 
 #[test]
 fn set_year() {
-    run_test([
+    run_test_actions([
         TestAction::assert_eq(
             "new Date(2020, 6, 8, 9, 16, 15, 779).setYear(98)",
             timestamp_from_local(1998, 7, 8, 9, 16, 15, 779),
@@ -573,7 +573,7 @@ fn set_year() {
 
 #[test]
 fn date_proto_set_time() {
-    run_test([TestAction::assert_eq(
+    run_test_actions([TestAction::assert_eq(
         "new Date().setTime(new Date(2020, 6, 8, 9, 16, 15, 779).getTime())",
         timestamp_from_local(2020, 7, 8, 9, 16, 15, 779),
     )]);
@@ -581,7 +581,7 @@ fn date_proto_set_time() {
 
 #[test]
 fn date_proto_set_utc_date() {
-    run_test([
+    run_test_actions([
         TestAction::assert_eq(
             "new Date(Date.UTC(2020, 6, 8, 9, 16, 15, 779)).setUTCDate(21)",
             timestamp_from_utc(2020, 7, 21, 9, 16, 15, 779),
@@ -600,7 +600,7 @@ fn date_proto_set_utc_date() {
 
 #[test]
 fn date_proto_set_utc_full_year() {
-    run_test([
+    run_test_actions([
         TestAction::assert_eq(
             "new Date(Date.UTC(2020, 6, 8, 9, 16, 15, 779)).setUTCFullYear(2012)",
             timestamp_from_utc(2012, 7, 8, 9, 16, 15, 779),
@@ -639,7 +639,7 @@ fn date_proto_set_utc_full_year() {
 
 #[test]
 fn date_proto_set_utc_hours() {
-    run_test([
+    run_test_actions([
         TestAction::assert_eq(
             "new Date(2020, 6, 8, 9, 16, 15, 779).setUTCHours(11)",
             timestamp_from_utc(2020, 7, 8, 11, 16, 15, 779),
@@ -670,7 +670,7 @@ fn date_proto_set_utc_hours() {
 
 #[test]
 fn date_proto_set_utc_milliseconds() {
-    run_test([
+    run_test_actions([
         TestAction::assert_eq(
             "new Date(Date.UTC(2020, 6, 8, 9, 16, 15, 779)).setUTCMilliseconds(597)",
             timestamp_from_utc(2020, 7, 8, 9, 16, 15, 597),
@@ -690,7 +690,7 @@ fn date_proto_set_utc_milliseconds() {
 
 #[test]
 fn date_proto_set_utc_minutes() {
-    run_test([
+    run_test_actions([
         TestAction::assert_eq(
             "new Date(Date.UTC(2020, 6, 8, 9, 16, 15, 779)).setUTCMinutes(11)",
             timestamp_from_utc(2020, 7, 8, 9, 11, 15, 779),
@@ -718,7 +718,7 @@ fn date_proto_set_utc_minutes() {
 
 #[test]
 fn date_proto_set_utc_month() {
-    run_test([
+    run_test_actions([
         TestAction::assert_eq(
             "new Date(Date.UTC(2020, 6, 8, 9, 16, 15, 779)).setUTCMonth(11)",
             timestamp_from_utc(2020, 12, 8, 9, 16, 15, 779),
@@ -742,7 +742,7 @@ fn date_proto_set_utc_month() {
 
 #[test]
 fn date_proto_set_utc_seconds() {
-    run_test([
+    run_test_actions([
         TestAction::assert_eq(
             "new Date(Date.UTC(2020, 6, 8, 9, 16, 15, 779)).setUTCSeconds(11)",
             timestamp_from_utc(2020, 7, 8, 9, 16, 11, 779),
@@ -766,7 +766,7 @@ fn date_proto_set_utc_seconds() {
 
 #[test]
 fn date_proto_to_date_string() {
-    run_test([TestAction::assert_eq(
+    run_test_actions([TestAction::assert_eq(
         "new Date(2020, 6, 8, 9, 16, 15, 779).toDateString()",
         "Wed Jul 08 2020",
     )]);
@@ -774,7 +774,7 @@ fn date_proto_to_date_string() {
 
 #[test]
 fn date_proto_to_gmt_string() {
-    run_test([TestAction::assert_eq(
+    run_test_actions([TestAction::assert_eq(
         "new Date(Date.UTC(2020, 6, 8, 9, 16, 15, 779)).toGMTString()",
         "Wed, 08 Jul 2020 09:16:15 GMT",
     )]);
@@ -782,7 +782,7 @@ fn date_proto_to_gmt_string() {
 
 #[test]
 fn date_proto_to_iso_string() {
-    run_test([TestAction::assert_eq(
+    run_test_actions([TestAction::assert_eq(
         "new Date(Date.UTC(2020, 6, 8, 9, 16, 15, 779)).toISOString()",
         "2020-07-08T09:16:15.779Z",
     )]);
@@ -790,7 +790,7 @@ fn date_proto_to_iso_string() {
 
 #[test]
 fn date_proto_to_json() {
-    run_test([TestAction::assert_eq(
+    run_test_actions([TestAction::assert_eq(
         "new Date(Date.UTC(2020, 6, 8, 9, 16, 15, 779)).toJSON()",
         "2020-07-08T09:16:15.779Z",
     )]);
@@ -798,7 +798,7 @@ fn date_proto_to_json() {
 
 #[test]
 fn date_proto_to_string() {
-    run_test([TestAction::assert_eq(
+    run_test_actions([TestAction::assert_eq(
         "new Date(2020, 6, 8, 9, 16, 15, 779).toString()",
         Local
             .from_local_datetime(&NaiveDateTime::new(
@@ -814,7 +814,7 @@ fn date_proto_to_string() {
 
 #[test]
 fn date_proto_to_time_string() {
-    run_test([TestAction::assert_eq(
+    run_test_actions([TestAction::assert_eq(
         "new Date(2020, 6, 8, 9, 16, 15, 779).toTimeString()",
         Local
             .from_local_datetime(&NaiveDateTime::new(
@@ -830,7 +830,7 @@ fn date_proto_to_time_string() {
 
 #[test]
 fn date_proto_to_utc_string() {
-    run_test([TestAction::assert_eq(
+    run_test_actions([TestAction::assert_eq(
         "new Date(Date.UTC(2020, 6, 8, 9, 16, 15, 779)).toUTCString()",
         "Wed, 08 Jul 2020 09:16:15 GMT",
     )]);
@@ -838,7 +838,7 @@ fn date_proto_to_utc_string() {
 
 #[test]
 fn date_proto_value_of() {
-    run_test([TestAction::assert_eq(
+    run_test_actions([TestAction::assert_eq(
         "new Date(Date.UTC(2020, 6, 8, 9, 16, 15, 779)).valueOf()",
         1_594_199_775_779_i64,
     )]);
@@ -846,7 +846,7 @@ fn date_proto_value_of() {
 
 #[test]
 fn date_neg() {
-    run_test([TestAction::assert_eq(
+    run_test_actions([TestAction::assert_eq(
         "-new Date(Date.UTC(2020, 6, 8, 9, 16, 15, 779))",
         -1_594_199_775_779_i64,
     )]);
@@ -854,7 +854,7 @@ fn date_neg() {
 
 #[test]
 fn date_json() {
-    run_test([TestAction::assert_eq(
+    run_test_actions([TestAction::assert_eq(
         "JSON.stringify({ date: new Date(Date.UTC(2020, 6, 8, 9, 16, 15, 779)) })",
         r#"{"date":"2020-07-08T09:16:15.779Z"}"#,
     )]);

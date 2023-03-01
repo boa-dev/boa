@@ -1,11 +1,11 @@
 use indoc::indoc;
 mod loops;
 
-use crate::{builtins::error::ErrorKind, run_test, TestAction};
+use crate::{builtins::error::ErrorKind, run_test_actions, TestAction};
 
 #[test]
 fn test_invalid_break() {
-    run_test([TestAction::assert_native_error(
+    run_test_actions([TestAction::assert_native_error(
         "break;",
         ErrorKind::Syntax,
         "illegal break statement at position: 1:1",
@@ -14,7 +14,7 @@ fn test_invalid_break() {
 
 #[test]
 fn test_invalid_continue_target() {
-    run_test([TestAction::assert_native_error(
+    run_test_actions([TestAction::assert_native_error(
         indoc! {r#"
             while (false) {
                 continue nonexistent;
@@ -27,7 +27,7 @@ fn test_invalid_continue_target() {
 
 #[test]
 fn test_invalid_continue() {
-    run_test([TestAction::assert_native_error(
+    run_test_actions([TestAction::assert_native_error(
         "continue;",
         ErrorKind::Syntax,
         "illegal continue statement at position: 1:1",
@@ -36,7 +36,7 @@ fn test_invalid_continue() {
 
 #[test]
 fn test_labelled_block() {
-    run_test([TestAction::assert(indoc! {r#"
+    run_test_actions([TestAction::assert(indoc! {r#"
             let result = true;
             {
                 let x = 2;
@@ -54,7 +54,7 @@ fn test_labelled_block() {
 
 #[test]
 fn simple_try() {
-    run_test([TestAction::assert_eq(
+    run_test_actions([TestAction::assert_eq(
         indoc! {r#"
             let a = 10;
             try {
@@ -71,7 +71,7 @@ fn simple_try() {
 
 #[test]
 fn finally() {
-    run_test([TestAction::assert_eq(
+    run_test_actions([TestAction::assert_eq(
         indoc! {r#"
             let a = 10;
             try {
@@ -88,7 +88,7 @@ fn finally() {
 
 #[test]
 fn catch_finally() {
-    run_test([TestAction::assert_eq(
+    run_test_actions([TestAction::assert_eq(
         indoc! {r#"
             let a = 10;
             try {
@@ -107,7 +107,7 @@ fn catch_finally() {
 
 #[test]
 fn catch() {
-    run_test([TestAction::assert_eq(
+    run_test_actions([TestAction::assert_eq(
         indoc! {r#"
             let a = 10;
             try {
@@ -124,7 +124,7 @@ fn catch() {
 
 #[test]
 fn catch_binding() {
-    run_test([TestAction::assert_eq(
+    run_test_actions([TestAction::assert_eq(
         indoc! {r#"
             let a = 10;
             try {
@@ -141,7 +141,7 @@ fn catch_binding() {
 
 #[test]
 fn catch_binding_pattern_object() {
-    run_test([TestAction::assert_eq(
+    run_test_actions([TestAction::assert_eq(
         indoc! {r#"
             let a = 10;
             try {
@@ -160,7 +160,7 @@ fn catch_binding_pattern_object() {
 
 #[test]
 fn catch_binding_pattern_array() {
-    run_test([TestAction::assert_eq(
+    run_test_actions([TestAction::assert_eq(
         indoc! {r#"
             let a = 10;
             try {
@@ -177,7 +177,7 @@ fn catch_binding_pattern_array() {
 
 #[test]
 fn catch_binding_finally() {
-    run_test([TestAction::assert_eq(
+    run_test_actions([TestAction::assert_eq(
         indoc! {r#"
             let a = 10;
             try {
@@ -196,7 +196,7 @@ fn catch_binding_finally() {
 
 #[test]
 fn single_case_switch() {
-    run_test([TestAction::assert_eq(
+    run_test_actions([TestAction::assert_eq(
         indoc! {r#"
             let a = 10;
             switch (a) {
@@ -213,7 +213,7 @@ fn single_case_switch() {
 
 #[test]
 fn no_cases_switch() {
-    run_test([TestAction::assert_eq(
+    run_test_actions([TestAction::assert_eq(
         indoc! {r#"
             let a = 10;
             switch (a) {
@@ -227,7 +227,7 @@ fn no_cases_switch() {
 
 #[test]
 fn no_true_case_switch() {
-    run_test([TestAction::assert_eq(
+    run_test_actions([TestAction::assert_eq(
         indoc! {r#"
             let a = 10;
             switch (a) {
@@ -244,7 +244,7 @@ fn no_true_case_switch() {
 
 #[test]
 fn two_case_switch() {
-    run_test([TestAction::assert_eq(
+    run_test_actions([TestAction::assert_eq(
         indoc! {r#"
             let a = 10;
             switch (a) {
@@ -264,7 +264,7 @@ fn two_case_switch() {
 
 #[test]
 fn two_case_no_break_switch() {
-    run_test([TestAction::assert_eq(
+    run_test_actions([TestAction::assert_eq(
         indoc! {r#"
             let a = 10;
             let b = 10;
@@ -285,7 +285,7 @@ fn two_case_no_break_switch() {
 
 #[test]
 fn three_case_partial_fallthrough() {
-    run_test([TestAction::assert_eq(
+    run_test_actions([TestAction::assert_eq(
         indoc! {r#"
             let a = 10;
             let b = 10;
@@ -309,7 +309,7 @@ fn three_case_partial_fallthrough() {
 
 #[test]
 fn default_taken_switch() {
-    run_test([TestAction::assert_eq(
+    run_test_actions([TestAction::assert_eq(
         indoc! {r#"
             let a = 10;
 
@@ -329,7 +329,7 @@ fn default_taken_switch() {
 
 #[test]
 fn default_not_taken_switch() {
-    run_test([TestAction::assert_eq(
+    run_test_actions([TestAction::assert_eq(
         indoc! {r#"
             let a = 5;
 
@@ -349,7 +349,7 @@ fn default_not_taken_switch() {
 
 #[test]
 fn string_switch() {
-    run_test([TestAction::assert_eq(
+    run_test_actions([TestAction::assert_eq(
         indoc! {r#"
             let a = "hello";
 
@@ -369,7 +369,7 @@ fn string_switch() {
 
 #[test]
 fn bigger_switch_example() {
-    run_test([
+    run_test_actions([
         TestAction::run(indoc! {r#"
                 function f(a) {
                     let b;
@@ -412,7 +412,7 @@ fn bigger_switch_example() {
 
 #[test]
 fn break_labelled_if_statement() {
-    run_test([TestAction::assert_eq(
+    run_test_actions([TestAction::assert_eq(
         indoc! {r#"
             let result = "";
             bar: if(true) {
@@ -428,7 +428,7 @@ fn break_labelled_if_statement() {
 
 #[test]
 fn break_labelled_try_statement() {
-    run_test([TestAction::assert_eq(
+    run_test_actions([TestAction::assert_eq(
         indoc! {r#"
             let result = ""
             one: try {

@@ -1,9 +1,9 @@
-use crate::{builtins::error::ErrorKind, run_test, TestAction};
+use crate::{builtins::error::ErrorKind, run_test_actions, TestAction};
 use indoc::indoc;
 
 #[test]
 fn do_while_loop() {
-    run_test([
+    run_test_actions([
         TestAction::assert_eq(
             indoc! {r#"
                 a = 0;
@@ -31,7 +31,7 @@ fn do_while_loop() {
 
 #[test]
 fn do_while_loop_at_least_once() {
-    run_test([TestAction::assert_eq(
+    run_test_actions([TestAction::assert_eq(
         indoc! {r#"
             a = 0;
             do
@@ -47,7 +47,7 @@ fn do_while_loop_at_least_once() {
 
 #[test]
 fn do_while_post_inc() {
-    run_test([TestAction::assert_eq(
+    run_test_actions([TestAction::assert_eq(
         indoc! {r#"
             var i = 0;
             do {} while(i++ < 10) i;
@@ -58,7 +58,7 @@ fn do_while_post_inc() {
 
 #[test]
 fn do_while_in_block() {
-    run_test([TestAction::assert_eq(
+    run_test_actions([TestAction::assert_eq(
         indoc! {r#"
             {
                 var i = 0;
@@ -75,7 +75,7 @@ fn do_while_in_block() {
 
 #[test]
 fn for_loop() {
-    run_test([
+    run_test_actions([
         TestAction::assert_eq(
             indoc! {r#"
                 {
@@ -120,7 +120,7 @@ fn for_loop() {
 
 #[test]
 fn for_loop_iteration_variable_does_not_leak() {
-    run_test([TestAction::assert_native_error(
+    run_test_actions([TestAction::assert_native_error(
         indoc! {r#"
             for (let i = 0;false;) {}
             i
@@ -132,7 +132,7 @@ fn for_loop_iteration_variable_does_not_leak() {
 
 #[test]
 fn test_invalid_break_target() {
-    run_test([TestAction::assert_native_error(
+    run_test_actions([TestAction::assert_native_error(
         indoc! {r#"
             while (false) {
                 break nonexistent;
@@ -192,7 +192,7 @@ fn try_break_finally_edge_cases() {
         a + b
     "#;
 
-    run_test([TestAction::assert_eq(scenario, "foobar")]);
+    run_test_actions([TestAction::assert_eq(scenario, "foobar")]);
 }
 
 #[test]
@@ -228,7 +228,7 @@ fn try_break_labels() {
         }
     "#;
 
-    run_test([TestAction::assert_eq(scenario, "finally! :)")]);
+    run_test_actions([TestAction::assert_eq(scenario, "finally! :)")]);
 }
 
 #[test]
@@ -266,7 +266,7 @@ fn break_nested_labels_loops_and_try() {
         }
     "#;
 
-    run_test([
+    run_test_actions([
         TestAction::run(scenario),
         TestAction::assert_eq("nestedLabels(true)", "foobar broke-foo"),
         TestAction::assert_eq(
@@ -376,13 +376,13 @@ fn break_environment_gauntlet() {
         }
     "#;
 
-    run_test([TestAction::assert_eq(scenario, "5601try_block")]);
+    run_test_actions([TestAction::assert_eq(scenario, "5601try_block")]);
 }
 
 #[test]
 fn while_loop_late_break() {
     // Ordering with statement before the break.
-    run_test([TestAction::assert_eq(
+    run_test_actions([TestAction::assert_eq(
         indoc! {r#"
             let a = 1;
             while (a < 5) {
@@ -400,7 +400,7 @@ fn while_loop_late_break() {
 #[test]
 fn while_loop_early_break() {
     // Ordering with statements after the break.
-    run_test([TestAction::assert_eq(
+    run_test_actions([TestAction::assert_eq(
         indoc! {r#"
             let a = 1;
             while (a < 5) {
@@ -417,7 +417,7 @@ fn while_loop_early_break() {
 
 #[test]
 fn for_loop_break() {
-    run_test([TestAction::assert_eq(
+    run_test_actions([TestAction::assert_eq(
         indoc! {r#"
             let a = 1;
             for (; a < 5; a++) {
@@ -433,7 +433,7 @@ fn for_loop_break() {
 
 #[test]
 fn for_loop_return() {
-    run_test([TestAction::assert_eq(
+    run_test_actions([TestAction::assert_eq(
         indoc! {r#"
             function foo() {
                 for (let a = 1; a < 5; a++) {
@@ -451,7 +451,7 @@ fn for_loop_return() {
 #[test]
 fn do_loop_late_break() {
     // Ordering with statement before the break.
-    run_test([TestAction::assert_eq(
+    run_test_actions([TestAction::assert_eq(
         indoc! {r#"
             let a = 1;
             do {
@@ -469,7 +469,7 @@ fn do_loop_late_break() {
 #[test]
 fn do_loop_early_break() {
     // Ordering with statements after the break.
-    run_test([TestAction::assert_eq(
+    run_test_actions([TestAction::assert_eq(
         indoc! {r#"
             let a = 1;
             do {
@@ -486,7 +486,7 @@ fn do_loop_early_break() {
 
 #[test]
 fn break_out_of_inner_loop() {
-    run_test([
+    run_test_actions([
         TestAction::run(indoc! {r#"
                 var a = 0, b = 0;
                 for (let i = 0; i < 2; i++) {
@@ -506,7 +506,7 @@ fn break_out_of_inner_loop() {
 
 #[test]
 fn continue_inner_loop() {
-    run_test([
+    run_test_actions([
         TestAction::run(indoc! {r#"
                 var a = 0, b = 0;
                 for (let i = 0; i < 2; i++) {
@@ -526,7 +526,7 @@ fn continue_inner_loop() {
 
 #[test]
 fn for_loop_continue_out_of_switch() {
-    run_test([
+    run_test_actions([
         TestAction::run(indoc! {r#"
                 var a = 0, b = 0, c = 0;
                 for (let i = 0; i < 3; i++) {
@@ -551,7 +551,7 @@ fn for_loop_continue_out_of_switch() {
 
 #[test]
 fn while_loop_continue() {
-    run_test([
+    run_test_actions([
         TestAction::run(indoc! {r#"
                 var i = 0, a = 0, b = 0;
                 while (i < 3) {
@@ -570,7 +570,7 @@ fn while_loop_continue() {
 
 #[test]
 fn do_while_loop_continue() {
-    run_test([
+    run_test_actions([
         TestAction::run(indoc! {r#"
                 var i = 0, a = 0, b = 0;
                 do {
@@ -589,7 +589,7 @@ fn do_while_loop_continue() {
 
 #[test]
 fn for_of_loop_declaration() {
-    run_test([
+    run_test_actions([
         TestAction::run(indoc! {r#"
                 var result = 0;
                 for (i of [1, 2, 3]) {
@@ -603,7 +603,7 @@ fn for_of_loop_declaration() {
 
 #[test]
 fn for_of_loop_var() {
-    run_test([
+    run_test_actions([
         TestAction::run(indoc! {r#"
                 var result = 0;
                 for (var i of [1, 2, 3]) {
@@ -617,7 +617,7 @@ fn for_of_loop_var() {
 
 #[test]
 fn for_of_loop_let() {
-    run_test([
+    run_test_actions([
         TestAction::run(indoc! {r#"
                 var result = 0;
                 for (let i of [1, 2, 3]) {
@@ -631,7 +631,7 @@ fn for_of_loop_let() {
 
 #[test]
 fn for_of_loop_const() {
-    run_test([
+    run_test_actions([
         TestAction::run(indoc! {r#"
                 var result = 0;
                 for (let i of [1, 2, 3]) {
@@ -645,7 +645,7 @@ fn for_of_loop_const() {
 
 #[test]
 fn for_of_loop_break() {
-    run_test([
+    run_test_actions([
         TestAction::run(indoc! {r#"
                 var result = 0;
                 for (var i of [1, 2, 3]) {
@@ -661,7 +661,7 @@ fn for_of_loop_break() {
 
 #[test]
 fn for_of_loop_continue() {
-    run_test([
+    run_test_actions([
         TestAction::run(indoc! {r#"
                 var result = 0;
                 for (var i of [1, 2, 3]) {
@@ -677,7 +677,7 @@ fn for_of_loop_continue() {
 
 #[test]
 fn for_of_loop_return() {
-    run_test([
+    run_test_actions([
         TestAction::run(indoc! {r#"
                 function foo() {
                     for (i of [1, 2, 3]) {
@@ -692,7 +692,7 @@ fn for_of_loop_return() {
 
 #[test]
 fn for_loop_break_label() {
-    run_test([TestAction::assert_eq(
+    run_test_actions([TestAction::assert_eq(
         indoc! {r#"
             var str = "";
 
@@ -713,7 +713,7 @@ fn for_loop_break_label() {
 
 #[test]
 fn for_loop_continue_label() {
-    run_test([TestAction::assert_eq(
+    run_test_actions([TestAction::assert_eq(
         indoc! {r#"
             var count = 0;
             label: for (let x = 0; x < 10;) {
@@ -731,7 +731,7 @@ fn for_loop_continue_label() {
 
 #[test]
 fn for_in_declaration() {
-    run_test([
+    run_test_actions([
         TestAction::run_harness(),
         TestAction::run(indoc! {r#"
                 let result = [];
@@ -747,7 +747,7 @@ fn for_in_declaration() {
 
 #[test]
 fn for_in_var_object() {
-    run_test([
+    run_test_actions([
         TestAction::run_harness(),
         TestAction::run(indoc! {r#"
                 let result = [];
@@ -762,7 +762,7 @@ fn for_in_var_object() {
 
 #[test]
 fn for_in_var_array() {
-    run_test([
+    run_test_actions([
         TestAction::run_harness(),
         TestAction::run(indoc! {r#"
                 let result = [];
@@ -777,7 +777,7 @@ fn for_in_var_array() {
 
 #[test]
 fn for_in_let_object() {
-    run_test([
+    run_test_actions([
         TestAction::run_harness(),
         TestAction::run(indoc! {r#"
                 let result = [];
@@ -792,7 +792,7 @@ fn for_in_let_object() {
 
 #[test]
 fn for_in_const_array() {
-    run_test([
+    run_test_actions([
         TestAction::run_harness(),
         TestAction::run(indoc! {r#"
                 let result = [];
@@ -807,7 +807,7 @@ fn for_in_const_array() {
 
 #[test]
 fn for_in_break_label() {
-    run_test([TestAction::assert_eq(
+    run_test_actions([TestAction::assert_eq(
         indoc! {r#"
             var str = "";
 
@@ -828,7 +828,7 @@ fn for_in_break_label() {
 
 #[test]
 fn for_in_continue_label() {
-    run_test([TestAction::assert_eq(
+    run_test_actions([TestAction::assert_eq(
         indoc! {r#"
             var str = "";
 

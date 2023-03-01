@@ -2,19 +2,19 @@
 
 use crate::{
     builtins::{error::ErrorKind, Number},
-    run_test,
+    run_test_actions,
     value::AbstractRelation,
     TestAction,
 };
 
 #[test]
 fn integer_number_primitive_to_number_object() {
-    run_test([TestAction::assert_eq("(100).toString()", "100")]);
+    run_test_actions([TestAction::assert_eq("(100).toString()", "100")]);
 }
 
 #[test]
 fn call_number() {
-    run_test([
+    run_test_actions([
         TestAction::assert_eq("Number()", 0),
         TestAction::assert_eq("Number(1)", 1),
         TestAction::assert_eq("Number(2.1)", 2.1),
@@ -28,7 +28,7 @@ fn call_number() {
 
 #[test]
 fn to_exponential() {
-    run_test([
+    run_test_actions([
         TestAction::assert_eq("Number().toExponential()", "0e+0"),
         TestAction::assert_eq("Number(5).toExponential()", "5e+0"),
         TestAction::assert_eq("Number(1.234).toExponential()", "1.234e+0"),
@@ -40,7 +40,7 @@ fn to_exponential() {
 
 #[test]
 fn to_fixed() {
-    run_test([
+    run_test_actions([
         TestAction::assert_eq("Number().toFixed()", "0"),
         TestAction::assert_eq("Number('3.456e+4').toFixed()", "34560"),
         TestAction::assert_eq("Number('3.456e-4').toFixed()", "0"),
@@ -53,7 +53,7 @@ fn to_fixed() {
 fn to_locale_string() {
     // TODO: We don't actually do any locale checking here
     // To honor the spec we should print numbers according to user locale.
-    run_test([
+    run_test_actions([
         TestAction::assert_eq("Number().toLocaleString()", "0"),
         TestAction::assert_eq("Number(5).toLocaleString()", "5"),
         TestAction::assert_eq("Number('345600').toLocaleString()", "345600"),
@@ -64,7 +64,7 @@ fn to_locale_string() {
 #[test]
 fn to_precision() {
     const ERROR: &str = "precision must be an integer at least 1 and no greater than 100";
-    run_test([
+    run_test_actions([
         TestAction::assert_eq("(1/0).toPrecision(3)", "Infinity"),
         TestAction::assert_eq("Number().toPrecision()", "0"),
         TestAction::assert_eq("Number().toPrecision(undefined)", "0"),
@@ -90,7 +90,7 @@ fn to_precision() {
 
 #[test]
 fn to_string() {
-    run_test([
+    run_test_actions([
         TestAction::assert_eq("Number(NaN).toString()", "NaN"),
         TestAction::assert_eq("Number(1/0).toString()", "Infinity"),
         TestAction::assert_eq("Number(-1/0).toString()", "-Infinity"),
@@ -181,7 +181,7 @@ fn to_string() {
 
 #[test]
 fn num_to_string_exponential() {
-    run_test([
+    run_test_actions([
         TestAction::assert_eq("(0).toString()", "0"),
         TestAction::assert_eq("(-0).toString()", "0"),
         TestAction::assert_eq(
@@ -209,7 +209,7 @@ fn num_to_string_exponential() {
 fn value_of() {
     // TODO: In addition to parsing numbers from strings, parse them bare As of October 2019
     // the parser does not understand scientific e.g., Xe+Y or -Xe-Y notation.
-    run_test([
+    run_test_actions([
         TestAction::assert_eq("Number().valueOf()", 0),
         TestAction::assert_eq("Number('123').valueOf()", 123),
         TestAction::assert_eq("Number(1.234).valueOf()", 1.234),
@@ -279,7 +279,7 @@ fn same_value_zero() {
 
 #[test]
 fn from_bigint() {
-    run_test([
+    run_test_actions([
         TestAction::assert_eq("Number(0n)", 0),
         TestAction::assert_eq("Number(100000n)", 100_000),
         TestAction::assert_eq("Number(100000n)", 100_000),
@@ -289,7 +289,7 @@ fn from_bigint() {
 
 #[test]
 fn number_constants() {
-    run_test([
+    run_test_actions([
         TestAction::assert_eq("Number.EPSILON", f64::EPSILON),
         TestAction::assert_eq("Number.MAX_SAFE_INTEGER", Number::MAX_SAFE_INTEGER),
         TestAction::assert_eq("Number.MIN_SAFE_INTEGER", Number::MIN_SAFE_INTEGER),
@@ -302,7 +302,7 @@ fn number_constants() {
 
 #[test]
 fn parse_int() {
-    run_test([
+    run_test_actions([
         TestAction::assert_eq("parseInt('6')", 6),
         TestAction::assert_eq("parseInt('-9')", -9),
         TestAction::assert_eq("parseInt(100)", 100),
@@ -332,12 +332,12 @@ fn parse_int_varying_radix() {
         ]
     });
 
-    run_test(tests);
+    run_test_actions(tests);
 }
 
 #[test]
 fn parse_float() {
-    run_test([
+    run_test_actions([
         TestAction::assert_eq("parseFloat('6.5')", 6.5),
         TestAction::assert_eq("parseFloat(10)", 10),
         TestAction::assert_eq("parseFloat('8')", 8),
@@ -354,7 +354,7 @@ fn parse_float() {
 
 #[test]
 fn global_is_finite() {
-    run_test([
+    run_test_actions([
         TestAction::assert("!isFinite(Infinity)"),
         TestAction::assert("!isFinite(NaN)"),
         TestAction::assert("!isFinite(-Infinity)"),
@@ -369,7 +369,7 @@ fn global_is_finite() {
 
 #[test]
 fn global_is_nan() {
-    run_test([
+    run_test_actions([
         TestAction::assert("isNaN(NaN)"),
         TestAction::assert("isNaN('NaN')"),
         TestAction::assert("isNaN(undefined)"),
@@ -390,7 +390,7 @@ fn global_is_nan() {
 
 #[test]
 fn number_is_finite() {
-    run_test([
+    run_test_actions([
         TestAction::assert("!Number.isFinite(Infinity)"),
         TestAction::assert("!Number.isFinite(NaN)"),
         TestAction::assert("!Number.isFinite(-Infinity)"),
@@ -410,7 +410,7 @@ fn number_is_finite() {
 
 #[test]
 fn number_is_integer() {
-    run_test([
+    run_test_actions([
         TestAction::assert("Number.isInteger(0)"),
         TestAction::assert("Number.isInteger(1)"),
         TestAction::assert("Number.isInteger(-100000)"),
@@ -436,7 +436,7 @@ fn number_is_integer() {
 
 #[test]
 fn number_is_nan() {
-    run_test([
+    run_test_actions([
         TestAction::assert("Number.isNaN(NaN)"),
         TestAction::assert("Number.isNaN(Number.NaN)"),
         TestAction::assert("Number.isNaN(0 / 0)"),
@@ -463,7 +463,7 @@ fn number_is_nan() {
 
 #[test]
 fn number_is_safe_integer() {
-    run_test([
+    run_test_actions([
         TestAction::assert("Number.isSafeInteger(3)"),
         TestAction::assert("!Number.isSafeInteger(Math.pow(2, 53))"),
         TestAction::assert("Number.isSafeInteger(Math.pow(2, 53) - 1)"),

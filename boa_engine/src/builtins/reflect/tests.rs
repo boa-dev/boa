@@ -1,9 +1,9 @@
-use crate::{run_test, JsValue, TestAction};
+use crate::{run_test_actions, JsValue, TestAction};
 use indoc::indoc;
 
 #[test]
 fn apply() {
-    run_test([
+    run_test_actions([
         TestAction::run(indoc! {r#"
                 var called = {};
                 function f(n) { called.result = n };
@@ -15,7 +15,7 @@ fn apply() {
 
 #[test]
 fn construct() {
-    run_test([
+    run_test_actions([
         TestAction::run(indoc! {r#"
                 var called = {};
                 function f(n) { called.result = n };
@@ -27,7 +27,7 @@ fn construct() {
 
 #[test]
 fn define_property() {
-    run_test([
+    run_test_actions([
         TestAction::run(indoc! {r#"
                 let obj = {};
                 Reflect.defineProperty(obj, 'p', { value: 42 });
@@ -38,7 +38,7 @@ fn define_property() {
 
 #[test]
 fn delete_property() {
-    run_test([
+    run_test_actions([
         TestAction::run("let obj = { p: 42 };"),
         TestAction::assert("Reflect.deleteProperty(obj, 'p')"),
         TestAction::assert_eq("obj.p", JsValue::undefined()),
@@ -47,7 +47,7 @@ fn delete_property() {
 
 #[test]
 fn get() {
-    run_test([
+    run_test_actions([
         TestAction::run("let obj = { p: 42 };"),
         TestAction::assert_eq("Reflect.get(obj, 'p')", 42),
     ]);
@@ -55,7 +55,7 @@ fn get() {
 
 #[test]
 fn get_own_property_descriptor() {
-    run_test([
+    run_test_actions([
         TestAction::run("let obj = { p: 42 };"),
         TestAction::assert_eq("Reflect.getOwnPropertyDescriptor(obj, 'p').value", 42),
     ]);
@@ -63,7 +63,7 @@ fn get_own_property_descriptor() {
 
 #[test]
 fn get_prototype_of() {
-    run_test([
+    run_test_actions([
         TestAction::run(indoc! {r#"
                 function F() { this.p = 42 };
                 let f = new F();
@@ -74,7 +74,7 @@ fn get_prototype_of() {
 
 #[test]
 fn has() {
-    run_test([
+    run_test_actions([
         TestAction::run("let obj = { p: 42 };"),
         TestAction::assert("Reflect.has(obj, 'p')"),
         TestAction::assert("!Reflect.has(obj, 'p2')"),
@@ -83,7 +83,7 @@ fn has() {
 
 #[test]
 fn is_extensible() {
-    run_test([
+    run_test_actions([
         TestAction::run("let obj = { p: 42 };"),
         TestAction::assert("Reflect.isExtensible(obj)"),
     ]);
@@ -91,7 +91,7 @@ fn is_extensible() {
 
 #[test]
 fn own_keys() {
-    run_test([
+    run_test_actions([
         TestAction::run_harness(),
         TestAction::run("let obj = { p: 42 };"),
         TestAction::assert(indoc! {r#"
@@ -105,7 +105,7 @@ fn own_keys() {
 
 #[test]
 fn prevent_extensions() {
-    run_test([
+    run_test_actions([
         TestAction::run("let obj = { p: 42 };"),
         TestAction::assert("Reflect.preventExtensions(obj)"),
         TestAction::assert("!Reflect.isExtensible(obj)"),
@@ -114,7 +114,7 @@ fn prevent_extensions() {
 
 #[test]
 fn set() {
-    run_test([
+    run_test_actions([
         TestAction::run(indoc! {r#"
                 let obj = {};
                 Reflect.set(obj, 'p', 42);
@@ -125,7 +125,7 @@ fn set() {
 
 #[test]
 fn set_prototype_of() {
-    run_test([
+    run_test_actions([
         TestAction::run(indoc! {r#"
                 function F() { this.p = 42 };
                 let obj = {}

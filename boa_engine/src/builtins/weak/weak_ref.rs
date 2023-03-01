@@ -143,11 +143,11 @@ impl WeakRef {
 mod tests {
     use indoc::indoc;
 
-    use crate::{run_test, JsValue, TestAction};
+    use crate::{run_test_actions, JsValue, TestAction};
 
     #[test]
     fn weak_ref_collected() {
-        run_test([
+        run_test_actions([
             TestAction::assert_with_op(
                 indoc! {r#"
                     var ptr;

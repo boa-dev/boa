@@ -1,8 +1,8 @@
-use crate::{builtins::error::ErrorKind, run_test, JsBigInt, TestAction};
+use crate::{builtins::error::ErrorKind, run_test_actions, JsBigInt, TestAction};
 
 #[test]
 fn equality() {
-    run_test([
+    run_test_actions([
         TestAction::assert("0n == 0n"),
         TestAction::assert("!(1n == 0n)"),
         TestAction::assert(
@@ -35,7 +35,7 @@ fn equality() {
 
 #[test]
 fn bigint_function_conversion_from_integer() {
-    run_test([
+    run_test_actions([
         TestAction::assert_eq("BigInt(1000)", JsBigInt::from(1000)),
         TestAction::assert_eq(
             "BigInt(20000000000000000)",
@@ -50,7 +50,7 @@ fn bigint_function_conversion_from_integer() {
 
 #[test]
 fn bigint_function_conversion_from_rational() {
-    run_test([
+    run_test_actions([
         TestAction::assert_eq("BigInt(0.0)", JsBigInt::from(0)),
         TestAction::assert_eq("BigInt(1.0)", JsBigInt::from(1)),
         TestAction::assert_eq("BigInt(10000.0)", JsBigInt::from(10_000)),
@@ -59,7 +59,7 @@ fn bigint_function_conversion_from_rational() {
 
 #[test]
 fn bigint_function_throws() {
-    run_test([
+    run_test_actions([
         TestAction::assert_native_error(
             "BigInt(0.1)",
             ErrorKind::Range,
@@ -80,7 +80,7 @@ fn bigint_function_throws() {
 
 #[test]
 fn bigint_function_conversion_from_string() {
-    run_test([
+    run_test_actions([
         TestAction::assert_eq("BigInt('')", JsBigInt::from(0)),
         TestAction::assert_eq("BigInt('   ')", JsBigInt::from(0)),
         TestAction::assert_eq(
@@ -99,7 +99,7 @@ fn bigint_function_conversion_from_string() {
 
 #[test]
 fn operations() {
-    run_test([
+    run_test_actions([
         TestAction::assert_eq("10000n + 1000n", JsBigInt::from(11_000)),
         TestAction::assert_eq("10000n - 1000n", JsBigInt::from(9_000)),
         TestAction::assert_eq(
@@ -138,7 +138,7 @@ fn operations() {
 
 #[test]
 fn to_string() {
-    run_test([
+    run_test_actions([
         TestAction::assert_eq("1000n.toString()", "1000"),
         TestAction::assert_eq("1000n.toString(2)", "1111101000"),
         TestAction::assert_eq("255n.toString(16)", "ff"),
@@ -148,7 +148,7 @@ fn to_string() {
 
 #[test]
 fn to_string_invalid_radix() {
-    run_test([
+    run_test_actions([
         TestAction::assert_native_error(
             "10n.toString(null)",
             ErrorKind::Range,
@@ -169,7 +169,7 @@ fn to_string_invalid_radix() {
 
 #[test]
 fn as_int_n() {
-    run_test([
+    run_test_actions([
         TestAction::assert_eq("BigInt.asIntN(0, 1n)", JsBigInt::from(0)),
         TestAction::assert_eq("BigInt.asIntN(1, 1n)", JsBigInt::from(-1)),
         TestAction::assert_eq("BigInt.asIntN(3, 10n)", JsBigInt::from(2)),
@@ -216,7 +216,7 @@ fn as_int_n() {
 
 #[test]
 fn as_int_n_errors() {
-    run_test([
+    run_test_actions([
         TestAction::assert_native_error(
             "BigInt.asIntN(-1, 0n)",
             ErrorKind::Range,
@@ -242,7 +242,7 @@ fn as_int_n_errors() {
 
 #[test]
 fn as_uint_n() {
-    run_test([
+    run_test_actions([
         TestAction::assert_eq("BigInt.asUintN(0, -2n)", JsBigInt::from(0)),
         TestAction::assert_eq("BigInt.asUintN(0, -1n)", JsBigInt::from(0)),
         TestAction::assert_eq("BigInt.asUintN(0, 0n)", JsBigInt::from(0)),
@@ -289,7 +289,7 @@ fn as_uint_n() {
 
 #[test]
 fn as_uint_n_errors() {
-    run_test([
+    run_test_actions([
         TestAction::assert_native_error(
             "BigInt.asUintN(-1, 0n)",
             ErrorKind::Range,

@@ -1,14 +1,14 @@
-use crate::{builtins::error::ErrorKind, run_test, JsValue, TestAction};
+use crate::{builtins::error::ErrorKind, run_test_actions, JsValue, TestAction};
 use indoc::indoc;
 
 #[test]
 fn property_accessor_member_expression_dot_notation_on_string_literal() {
-    run_test([TestAction::assert_eq("typeof 'asd'.matchAll", "function")]);
+    run_test_actions([TestAction::assert_eq("typeof 'asd'.matchAll", "function")]);
 }
 
 #[test]
 fn property_accessor_member_expression_bracket_notation_on_string_literal() {
-    run_test([TestAction::assert_eq(
+    run_test_actions([TestAction::assert_eq(
         "typeof 'asd'['matchAll']",
         "function",
     )]);
@@ -16,7 +16,7 @@ fn property_accessor_member_expression_bracket_notation_on_string_literal() {
 
 #[test]
 fn short_circuit_evaluation() {
-    run_test([
+    run_test_actions([
         // OR operation
         TestAction::assert("true || true"),
         TestAction::assert("true || false"),
@@ -82,7 +82,7 @@ fn short_circuit_evaluation() {
 
 #[test]
 fn tilde_operator() {
-    run_test([
+    run_test_actions([
         // float
         TestAction::assert_eq("~(-1.2)", 0),
         // numeric
@@ -100,7 +100,7 @@ fn tilde_operator() {
 
 #[test]
 fn assign_operator_precedence() {
-    run_test([TestAction::assert_eq(
+    run_test_actions([TestAction::assert_eq(
         indoc! {r#"
             let a = 1;
             a = a + 1;
@@ -112,7 +112,7 @@ fn assign_operator_precedence() {
 
 #[test]
 fn unary_pre() {
-    run_test([
+    run_test_actions([
         TestAction::assert_eq("{ let a = 5; ++a; a }", 6),
         TestAction::assert_eq("{ let a = 5; --a; a }", 4),
         TestAction::assert_eq("{ const a = { b: 5 }; ++a.b; a['b'] }", 6),
@@ -140,7 +140,7 @@ fn unary_pre() {
 
 #[test]
 fn invalid_unary_access() {
-    run_test([
+    run_test_actions([
         TestAction::assert_native_error(
             "++[]",
             ErrorKind::Syntax,
@@ -167,7 +167,7 @@ fn invalid_unary_access() {
 #[test]
 fn unary_operations_on_this() {
     // https://tc39.es/ecma262/#sec-assignment-operators-static-semantics-early-errors
-    run_test([
+    run_test_actions([
         TestAction::assert_native_error(
             "++this",
             ErrorKind::Syntax,
@@ -193,7 +193,7 @@ fn unary_operations_on_this() {
 
 #[test]
 fn typeofs() {
-    run_test([
+    run_test_actions([
         TestAction::assert_eq("typeof String()", "string"),
         TestAction::assert_eq("typeof 5", "number"),
         TestAction::assert_eq("typeof 0.5", "number"),
@@ -208,7 +208,7 @@ fn typeofs() {
 
 #[test]
 fn unary_post() {
-    run_test([
+    run_test_actions([
         TestAction::assert_eq("{ let a = 5; a++; a }", 6),
         TestAction::assert_eq("{ let a = 5; a--; a }", 4),
         TestAction::assert_eq("{ const a = { b: 5 }; a.b++; a['b'] }", 6),
@@ -236,7 +236,7 @@ fn unary_post() {
 
 #[test]
 fn unary_void() {
-    run_test([
+    run_test_actions([
         TestAction::assert_eq("{ const a = 0; void a }", JsValue::undefined()),
         TestAction::assert_eq(
             indoc! {r#"
@@ -252,7 +252,7 @@ fn unary_void() {
 
 #[test]
 fn unary_delete() {
-    run_test([
+    run_test_actions([
         TestAction::assert("{ var a = 5; !(delete a) && a === 5 }"),
         TestAction::assert("{ const a = { b: 5 }; delete a.b && a.b === undefined }"),
         TestAction::assert("{ const a = { b: 5 }; delete a.c && a.b === 5 }"),
@@ -266,7 +266,7 @@ fn unary_delete() {
 
 #[test]
 fn comma_operator() {
-    run_test([
+    run_test_actions([
         TestAction::assert_eq(
             indoc! {r#"
                 var a, b;
@@ -297,7 +297,7 @@ fn assignment_to_non_assignable() {
     // [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Expressions_and_Operators#Assignment
     // [spec]: https://tc39.es/ecma262/#prod-AssignmentOperator
 
-    run_test(
+    run_test_actions(
         [
             "3 -= 5", "3 *= 5", "3 /= 5", "3 %= 5", "3 &= 5", "3 ^= 5", "3 |= 5", "3 += 5", "3 = 5",
         ]
@@ -314,7 +314,7 @@ fn assignment_to_non_assignable() {
 
 #[test]
 fn assignment_to_non_assignable_ctd() {
-    run_test(
+    run_test_actions(
         [
             "(()=>{})() -= 5",
             "(()=>{})() *= 5",
@@ -341,7 +341,7 @@ fn assignment_to_non_assignable_ctd() {
 fn multicharacter_assignment_to_non_assignable() {
     // Relates to the behaviour described at
     // https://tc39.es/ecma262/#sec-assignment-operators-static-semantics-early-errors
-    run_test(["3 **= 5", "3 <<= 5", "3 >>= 5"].into_iter().map(|src| {
+    run_test_actions(["3 **= 5", "3 <<= 5", "3 >>= 5"].into_iter().map(|src| {
         TestAction::assert_native_error(
             src,
             ErrorKind::Syntax,
@@ -352,7 +352,7 @@ fn multicharacter_assignment_to_non_assignable() {
 
 #[test]
 fn multicharacter_assignment_to_non_assignable_ctd() {
-    run_test(
+    run_test_actions(
         ["(()=>{})() **= 5", "(()=>{})() <<= 5", "(()=>{})() >>= 5"]
             .into_iter()
             .map(|src| {
@@ -367,7 +367,7 @@ fn multicharacter_assignment_to_non_assignable_ctd() {
 
 #[test]
 fn multicharacter_bitwise_assignment_to_non_assignable() {
-    run_test(
+    run_test_actions(
         ["3 >>>= 5", "3 &&= 5", "3 ||= 5", "3 ??= 5"]
             .into_iter()
             .map(|src| {
@@ -382,7 +382,7 @@ fn multicharacter_bitwise_assignment_to_non_assignable() {
 
 #[test]
 fn multicharacter_bitwise_assignment_to_non_assignable_ctd() {
-    run_test(
+    run_test_actions(
         [
             "(()=>{})() >>>= 5",
             "(()=>{})() &&= 5",
@@ -402,7 +402,7 @@ fn multicharacter_bitwise_assignment_to_non_assignable_ctd() {
 
 #[test]
 fn assign_to_array_decl() {
-    run_test([
+    run_test_actions([
         TestAction::assert_native_error(
             "[1] = [2]",
             ErrorKind::Syntax,
@@ -428,7 +428,7 @@ fn assign_to_array_decl() {
 
 #[test]
 fn assign_to_object_decl() {
-    run_test([TestAction::assert_native_error(
+    run_test_actions([TestAction::assert_native_error(
         "{a: 3} = {a: 5};",
         ErrorKind::Syntax,
         "unexpected token '=', primary expression at line 1, col 8",
@@ -437,7 +437,7 @@ fn assign_to_object_decl() {
 
 #[test]
 fn assignmentoperator_lhs_not_defined() {
-    run_test([TestAction::assert_native_error(
+    run_test_actions([TestAction::assert_native_error(
         "a += 5",
         ErrorKind::Reference,
         "a is not defined",
@@ -446,7 +446,7 @@ fn assignmentoperator_lhs_not_defined() {
 
 #[test]
 fn assignmentoperator_rhs_throws_error() {
-    run_test([TestAction::assert_native_error(
+    run_test_actions([TestAction::assert_native_error(
         "let a; a += b",
         ErrorKind::Reference,
         "b is not defined",
@@ -455,7 +455,7 @@ fn assignmentoperator_rhs_throws_error() {
 
 #[test]
 fn instanceofoperator_rhs_not_object() {
-    run_test([TestAction::assert_native_error(
+    run_test_actions([TestAction::assert_native_error(
         "let s = new String(); s instanceof 1",
         ErrorKind::Type,
         "right-hand side of 'instanceof' should be an object, got `number`",
@@ -464,7 +464,7 @@ fn instanceofoperator_rhs_not_object() {
 
 #[test]
 fn instanceofoperator_rhs_not_callable() {
-    run_test([TestAction::assert_native_error(
+    run_test_actions([TestAction::assert_native_error(
         "let s = new String(); s instanceof {}",
         ErrorKind::Type,
         "right-hand side of 'instanceof' is not callable",
@@ -473,7 +473,7 @@ fn instanceofoperator_rhs_not_callable() {
 
 #[test]
 fn logical_nullish_assignment() {
-    run_test([
+    run_test_actions([
         TestAction::assert_eq("{ let a = undefined; a ??= 10; a }", 10),
         TestAction::assert_eq("{ let a = 20; a ??= 10; a }", 20),
     ]);
@@ -481,7 +481,7 @@ fn logical_nullish_assignment() {
 
 #[test]
 fn logical_assignment() {
-    run_test([
+    run_test_actions([
         TestAction::assert("{ let a = false; a &&= 10; !a }"),
         TestAction::assert_eq("{ let a = 20; a &&= 10; a }", 10),
         TestAction::assert_eq("{ let a = null; a ||= 10; a }", 10),
@@ -491,14 +491,14 @@ fn logical_assignment() {
 
 #[test]
 fn conditional_op() {
-    run_test([TestAction::assert_eq("1 === 2 ? 'a' : 'b'", "b")]);
+    run_test_actions([TestAction::assert_eq("1 === 2 ? 'a' : 'b'", "b")]);
 }
 
 #[test]
 fn delete_variable_in_strict() {
     // Checks as per https://tc39.es/ecma262/#sec-delete-operator-static-semantics-early-errors
     // that delete on a variable name is an error in strict mode code.
-    run_test([TestAction::assert_native_error(
+    run_test_actions([TestAction::assert_native_error(
         indoc! {r#"
             'use strict';
             let x = 10;
@@ -511,7 +511,7 @@ fn delete_variable_in_strict() {
 
 #[test]
 fn delete_non_configurable() {
-    run_test([TestAction::assert_native_error(
+    run_test_actions([TestAction::assert_native_error(
         "'use strict'; delete Boolean.prototype",
         ErrorKind::Type,
         "Cannot delete property",
@@ -520,7 +520,7 @@ fn delete_non_configurable() {
 
 #[test]
 fn delete_non_configurable_in_function() {
-    run_test([TestAction::assert_native_error(
+    run_test_actions([TestAction::assert_native_error(
         indoc! {r#"
             function t() {
                 'use strict';
@@ -535,7 +535,7 @@ fn delete_non_configurable_in_function() {
 
 #[test]
 fn delete_after_strict_function() {
-    run_test([TestAction::assert_eq(
+    run_test_actions([TestAction::assert_eq(
         indoc! {r#"
             function t() {
                 'use strict';
@@ -549,7 +549,7 @@ fn delete_after_strict_function() {
 
 #[test]
 fn delete_in_function_global_strict() {
-    run_test([TestAction::assert_native_error(
+    run_test_actions([TestAction::assert_native_error(
         indoc! {r#"
             'use strict'
             function a(){
@@ -564,7 +564,7 @@ fn delete_in_function_global_strict() {
 
 #[test]
 fn delete_in_function_in_strict_function() {
-    run_test([TestAction::assert_eq(
+    run_test_actions([TestAction::assert_eq(
         indoc! {r#"
             function a(){
                 return delete Boolean.prototype;
@@ -581,7 +581,7 @@ fn delete_in_function_in_strict_function() {
 
 #[test]
 fn delete_in_strict_function_returned() {
-    run_test([TestAction::assert_native_error(
+    run_test_actions([TestAction::assert_native_error(
         indoc! {r#"
             function a() {
                 'use strict';
@@ -601,29 +601,29 @@ mod in_operator {
 
     #[test]
     fn propery_in_object() {
-        run_test([TestAction::assert("'a' in {a: 'x'}")]);
+        run_test_actions([TestAction::assert("'a' in {a: 'x'}")]);
     }
 
     #[test]
     fn property_in_property_chain() {
-        run_test([TestAction::assert("'toString' in {}")]);
+        run_test_actions([TestAction::assert("'toString' in {}")]);
     }
 
     #[test]
     fn property_not_in_object() {
-        run_test([TestAction::assert("!('b' in {a: 'a'})")]);
+        run_test_actions([TestAction::assert("!('b' in {a: 'a'})")]);
     }
 
     #[test]
     fn number_in_array() {
         // Note: this is valid because the LHS is converted to a prop key with ToPropertyKey
         // and arrays are just fancy objects like {'0': 'a'}
-        run_test([TestAction::assert("0 in ['a']")]);
+        run_test_actions([TestAction::assert("0 in ['a']")]);
     }
 
     #[test]
     fn symbol_in_object() {
-        run_test([TestAction::assert(indoc! {r#"
+        run_test_actions([TestAction::assert(indoc! {r#"
                 var sym = Symbol('hi');
                 sym in { [sym]: 'hello' }
             "#})]);
@@ -631,7 +631,7 @@ mod in_operator {
 
     #[test]
     fn should_type_error_when_rhs_not_object() {
-        run_test([TestAction::assert_native_error(
+        run_test_actions([TestAction::assert_native_error(
             "'fail' in undefined",
             ErrorKind::Type,
             "right-hand side of 'in' should be an object, got `undefined`",

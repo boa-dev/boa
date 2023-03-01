@@ -1,9 +1,9 @@
-use crate::{builtins::error::ErrorKind, run_test, TestAction};
+use crate::{builtins::error::ErrorKind, run_test_actions, TestAction};
 use indoc::indoc;
 
 #[test]
 fn let_is_block_scoped() {
-    run_test([TestAction::assert_native_error(
+    run_test_actions([TestAction::assert_native_error(
         indoc! {r#"
             {
               let bar = "bar";
@@ -17,7 +17,7 @@ fn let_is_block_scoped() {
 
 #[test]
 fn const_is_block_scoped() {
-    run_test([TestAction::assert_native_error(
+    run_test_actions([TestAction::assert_native_error(
         indoc! {r#"
             {
             const bar = "bar";
@@ -31,7 +31,7 @@ fn const_is_block_scoped() {
 
 #[test]
 fn var_not_block_scoped() {
-    run_test([TestAction::assert(indoc! {r#"
+    run_test_actions([TestAction::assert(indoc! {r#"
             {
               var bar = "bar";
             }
@@ -41,7 +41,7 @@ fn var_not_block_scoped() {
 
 #[test]
 fn functions_use_declaration_scope() {
-    run_test([TestAction::assert_native_error(
+    run_test_actions([TestAction::assert_native_error(
         indoc! {r#"
             function foo() {
                 bar;
@@ -58,7 +58,7 @@ fn functions_use_declaration_scope() {
 
 #[test]
 fn set_outer_var_in_block_scope() {
-    run_test([TestAction::assert(indoc! {r#"
+    run_test_actions([TestAction::assert(indoc! {r#"
             var bar;
             {
                 bar = "foo";
@@ -69,7 +69,7 @@ fn set_outer_var_in_block_scope() {
 
 #[test]
 fn set_outer_let_in_block_scope() {
-    run_test([TestAction::assert(indoc! {r#"
+    run_test_actions([TestAction::assert(indoc! {r#"
             let bar;
             {
                 bar = "foo";

@@ -1,9 +1,9 @@
-use crate::{run_test, JsValue, TestAction};
+use crate::{run_test_actions, JsValue, TestAction};
 use indoc::indoc;
 
 #[test]
 fn typeof_string() {
-    run_test([TestAction::assert_eq(
+    run_test_actions([TestAction::assert_eq(
         indoc! {r#"
             const a = "hello";
             typeof a;
@@ -14,7 +14,7 @@ fn typeof_string() {
 
 #[test]
 fn typeof_number() {
-    run_test([TestAction::assert_eq(
+    run_test_actions([TestAction::assert_eq(
         indoc! {r#"
             let a = 1234;
             typeof a;
@@ -25,7 +25,7 @@ fn typeof_number() {
 
 #[test]
 fn basic_op() {
-    run_test([TestAction::assert_eq(
+    run_test_actions([TestAction::assert_eq(
         indoc! {r#"
             const a = 1;
             const b = 2;
@@ -41,7 +41,7 @@ fn try_catch_finally_from_init() {
     //
     // here we test that the stack is not popped more than intended due to multiple catches in the
     // same function, which could lead to VM stack corruption
-    run_test([TestAction::assert_opaque_error(
+    run_test_actions([TestAction::assert_opaque_error(
         indoc! {r#"
             try {
                 [(() => {throw "h";})()];
@@ -57,7 +57,7 @@ fn try_catch_finally_from_init() {
 #[test]
 fn multiple_catches() {
     // see explanation on `try_catch_finally_from_init`
-    run_test([TestAction::assert_eq(
+    run_test_actions([TestAction::assert_eq(
         indoc! {r#"
             try {
                 try {
@@ -74,7 +74,7 @@ fn multiple_catches() {
 
 #[test]
 fn use_last_expr_try_block() {
-    run_test([TestAction::assert_eq(
+    run_test_actions([TestAction::assert_eq(
         indoc! {r#"
             try {
                 19;
@@ -91,7 +91,7 @@ fn use_last_expr_try_block() {
 
 #[test]
 fn use_last_expr_catch_block() {
-    run_test([TestAction::assert_eq(
+    run_test_actions([TestAction::assert_eq(
         indoc! {r#"
             try {
                 throw Error("generic error");
@@ -108,7 +108,7 @@ fn use_last_expr_catch_block() {
 
 #[test]
 fn no_use_last_expr_finally_block() {
-    run_test([TestAction::assert_eq(
+    run_test_actions([TestAction::assert_eq(
         indoc! {r#"
             try {
             } catch (y) {
@@ -122,7 +122,7 @@ fn no_use_last_expr_finally_block() {
 
 #[test]
 fn finally_block_binding_env() {
-    run_test([TestAction::assert_eq(
+    run_test_actions([TestAction::assert_eq(
         indoc! {r#"
             let buf = "Hey hey";
             try {
@@ -139,7 +139,7 @@ fn finally_block_binding_env() {
 
 #[test]
 fn run_super_method_in_object() {
-    run_test([TestAction::assert_eq(
+    run_test_actions([TestAction::assert_eq(
         indoc! {r#"
             let proto = {
                 m() { return "super"; }
@@ -156,7 +156,7 @@ fn run_super_method_in_object() {
 
 #[test]
 fn get_reference_by_super() {
-    run_test([TestAction::assert_eq(
+    run_test_actions([TestAction::assert_eq(
         indoc! {r#"
             var fromA, fromB;
             var A = { fromA: 'a', fromB: 'a' };
@@ -180,7 +180,7 @@ fn get_reference_by_super() {
 
 #[test]
 fn order_of_execution_in_assigment() {
-    run_test([
+    run_test_actions([
         TestAction::run(indoc! {r#"
                 let i = 0;
                 let array = [[]];
@@ -195,7 +195,7 @@ fn order_of_execution_in_assigment() {
 
 #[test]
 fn order_of_execution_in_assigment_with_comma_expressions() {
-    run_test([TestAction::assert_eq(
+    run_test_actions([TestAction::assert_eq(
         indoc! {r#"
             let result = "";
             function f(i) {

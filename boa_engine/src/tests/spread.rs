@@ -1,9 +1,9 @@
-use crate::{builtins::error::ErrorKind, run_test, JsValue, TestAction};
+use crate::{builtins::error::ErrorKind, run_test_actions, JsValue, TestAction};
 use indoc::indoc;
 
 #[test]
 fn object_spread() {
-    run_test([
+    run_test_actions([
         TestAction::run(indoc! {r#"
                 var b = {x: -1, z: -3}
                 var a = {x: 1, y: 2, ...b};
@@ -16,7 +16,7 @@ fn object_spread() {
 
 #[test]
 fn spread_with_arguments() {
-    run_test([
+    run_test_actions([
         TestAction::run(indoc! {r#"
                 const a = [1, "test", 3, 4];
                 function foo(...a) {
@@ -34,7 +34,7 @@ fn spread_with_arguments() {
 
 #[test]
 fn array_rest_with_arguments() {
-    run_test([
+    run_test_actions([
         TestAction::run_harness(),
         TestAction::run(indoc! {r#"
                 var b = [4, 5, 6]
@@ -46,7 +46,7 @@ fn array_rest_with_arguments() {
 
 #[test]
 fn spread_shallow_clone() {
-    run_test([TestAction::assert(indoc! {r#"
+    run_test_actions([TestAction::assert(indoc! {r#"
             var a = { x: {} };
             var aClone = { ...a };
 
@@ -56,7 +56,7 @@ fn spread_shallow_clone() {
 
 #[test]
 fn spread_merge() {
-    run_test([
+    run_test_actions([
         TestAction::run(indoc! {r#"
                 var a = { x: 1, y: 2 };
                 var b = { x: -1, z: -3, ...a };
@@ -69,7 +69,7 @@ fn spread_merge() {
 
 #[test]
 fn spread_overriding_properties() {
-    run_test([
+    run_test_actions([
         TestAction::run(indoc! {r#"
                 var a = { x: 0, y: 0 };
                 var aWithOverrides = { ...a, ...{ x: 1, y: 2 } };
@@ -81,7 +81,7 @@ fn spread_overriding_properties() {
 
 #[test]
 fn spread_getters_in_initializer() {
-    run_test([TestAction::assert_eq(
+    run_test_actions([TestAction::assert_eq(
         indoc! {r#"
                 var a = { x: 42 };
                 var aWithXGetter = { ...a, get x() { throw new Error('not thrown yet') } };
@@ -92,7 +92,7 @@ fn spread_getters_in_initializer() {
 
 #[test]
 fn spread_getters_in_object() {
-    run_test([TestAction::assert_native_error(
+    run_test_actions([TestAction::assert_native_error(
         indoc! {r#"
             var a = { x: 42 };
             var aWithXGetter = { ...a, ... { get x() { throw new Error('not thrown yet') } } };
@@ -104,7 +104,7 @@ fn spread_getters_in_object() {
 
 #[test]
 fn spread_setters() {
-    run_test([TestAction::assert_eq(
+    run_test_actions([TestAction::assert_eq(
         "var z = { set x(nexX) { throw new Error() }, ... { x: 1 } }",
         JsValue::undefined(),
     )]);
@@ -112,7 +112,7 @@ fn spread_setters() {
 
 #[test]
 fn spread_null_and_undefined_ignored() {
-    run_test([
+    run_test_actions([
         TestAction::run("var a = { ...null, ...undefined };"),
         TestAction::assert("!(undefined in a)"),
         TestAction::assert("!(null in a)"),
@@ -121,7 +121,7 @@ fn spread_null_and_undefined_ignored() {
 
 #[test]
 fn spread_with_new() {
-    run_test([TestAction::assert_eq(
+    run_test_actions([TestAction::assert_eq(
         indoc! {r#"
             function F(m) {
                 this.m = m;
@@ -137,7 +137,7 @@ fn spread_with_new() {
 
 #[test]
 fn spread_with_call() {
-    run_test([TestAction::assert_eq(
+    run_test_actions([TestAction::assert_eq(
         indoc! {r#"
             function f(m) {
                 return m;
