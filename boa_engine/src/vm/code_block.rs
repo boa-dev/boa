@@ -878,7 +878,7 @@ impl JsObject {
                 std::mem::swap(&mut environments, &mut context.realm.environments);
                 environments.truncate(environments_len);
 
-                record.convert(context)
+                record.consume()
             }
             Function::Async {
                 code,
@@ -1136,7 +1136,7 @@ impl JsObject {
                     }),
                 );
 
-                init_result.convert(context)?;
+                init_result.consume()?;
 
                 Ok(generator.into())
             }
@@ -1287,7 +1287,7 @@ impl JsObject {
                     gen_context.call_frame.async_generator = Some(generator.clone());
                 }
 
-                init_result.convert(context)?;
+                init_result.consume()?;
 
                 Ok(generator.into())
             }
@@ -1462,7 +1462,7 @@ impl JsObject {
                     environments.pop()
                 };
 
-                let result = record.convert(context)?;
+                let result = record.consume()?;
 
                 if let Some(result) = result.as_object() {
                     Ok(result.clone())

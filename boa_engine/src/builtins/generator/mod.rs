@@ -18,7 +18,7 @@ use crate::{
     property::Attribute,
     symbol::JsSymbol,
     value::JsValue,
-    vm::{CallFrame, GeneratorResumeKind},
+    vm::{CallFrame, CompletionRecord, GeneratorResumeKind},
     Context, JsArgs, JsError, JsResult,
 };
 use boa_gc::{Finalize, Gc, GcRefCell, Trace};
@@ -244,17 +244,21 @@ impl Generator {
             .as_generator_mut()
             .expect("already checked this object type");
 
-        if record.is_return_completion() {
-            generator.state = GeneratorState::SuspendedYield;
-            drop(generator_context);
-            generator.context = Some(generator_context_cell);
-            Ok(create_iter_result_object(record.value(), false, context))
-        } else if record.is_normal_completion() {
-            generator.state = GeneratorState::Completed;
-            Ok(create_iter_result_object(record.value(), true, context))
-        } else {
-            generator.state = GeneratorState::Completed;
-            Err(JsError::from_opaque(record.value()))
+        match record {
+            CompletionRecord::Return(value) => {
+                generator.state = GeneratorState::SuspendedYield;
+                drop(generator_context);
+                generator.context = Some(generator_context_cell);
+                Ok(create_iter_result_object(value, false, context))
+            }
+            CompletionRecord::Normal(value) => {
+                generator.state = GeneratorState::Completed;
+                Ok(create_iter_result_object(value, true, context))
+            }
+            CompletionRecord::Throw(err) => {
+                generator.state = GeneratorState::Completed;
+                Err(err)
+            }
         }
         // 8. Push genContext onto the execution context stack; genContext is now the running execution context.
         // 9. Resume the suspended evaluation of genContext using NormalCompletion(value) as the result of the operation that suspended it. Let result be the value returned by the resumed computation.
@@ -363,25 +367,21 @@ impl Generator {
             .as_generator_mut()
             .expect("already checked this object type");
 
-        if completion_record.is_return_completion() {
-            generator.state = GeneratorState::SuspendedYield;
-            drop(generator_context);
-            generator.context = Some(generator_context_cell);
-            Ok(create_iter_result_object(
-                completion_record.value(),
-                false,
-                context,
-            ))
-        } else if completion_record.is_normal_completion() {
-            generator.state = GeneratorState::Completed;
-            Ok(create_iter_result_object(
-                completion_record.value(),
-                true,
-                context,
-            ))
-        } else {
-            generator.state = GeneratorState::Completed;
-            Err(JsError::from_opaque(completion_record.value()))
+        match completion_record {
+            CompletionRecord::Return(value) => {
+                generator.state = GeneratorState::SuspendedYield;
+                drop(generator_context);
+                generator.context = Some(generator_context_cell);
+                Ok(create_iter_result_object(value, false, context))
+            }
+            CompletionRecord::Normal(value) => {
+                generator.state = GeneratorState::Completed;
+                Ok(create_iter_result_object(value, true, context))
+            }
+            CompletionRecord::Throw(err) => {
+                generator.state = GeneratorState::Completed;
+                Err(err)
+            }
         }
     }
 }

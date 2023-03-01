@@ -6,7 +6,7 @@
 
 use crate::{
     builtins::async_generator::{AsyncGenerator, AsyncGeneratorState},
-    vm::{call_frame::EarlyReturnType, code_block::Readable, completion_record::CompletionRecord},
+    vm::{call_frame::EarlyReturnType, code_block::Readable},
     Context, JsError, JsValue,
 };
 #[cfg(feature = "fuzz")]
@@ -28,6 +28,7 @@ pub use {call_frame::CallFrame, code_block::CodeBlock, opcode::Opcode};
 pub(crate) use {
     call_frame::GeneratorResumeKind,
     code_block::{create_function_object, create_generator_function_object},
+    completion_record::CompletionRecord,
     opcode::BindingOpcode,
 };
 

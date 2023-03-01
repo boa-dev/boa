@@ -264,7 +264,7 @@ impl Context<'_> {
         self.vm.pop_frame();
         self.clear_kept_objects();
 
-        record.convert(self)
+        record.consume()
     }
 
     /// Register a global property.
