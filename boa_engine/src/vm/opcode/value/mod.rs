@@ -1,7 +1,7 @@
 use crate::{
     error::JsNativeError,
-    vm::{opcode::Operation, throw_completion, CompletionType},
-    Context, JsError,
+    vm::{opcode::Operation, CompletionType},
+    Context, JsResult,
 };
 
 /// `ValueNotNullOrUndefined` implements the Opcode Operation for `Opcode::ValueNotNullOrUndefined`
@@ -15,27 +15,19 @@ impl Operation for ValueNotNullOrUndefined {
     const NAME: &'static str = "ValueNotNullOrUndefined";
     const INSTRUCTION: &'static str = "INST - ValueNotNullOrUndefined";
 
-    fn execute(context: &mut Context<'_>) -> CompletionType {
+    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
         let value = context.vm.pop();
         if value.is_null() {
-            throw_completion!(
-                JsNativeError::typ()
-                    .with_message("Cannot destructure 'null' value")
-                    .into(),
-                JsError,
-                context
-            );
+            return Err(JsNativeError::typ()
+                .with_message("Cannot destructure 'null' value")
+                .into());
         }
         if value.is_undefined() {
-            throw_completion!(
-                JsNativeError::typ()
-                    .with_message("Cannot destructure 'undefined' value")
-                    .into(),
-                JsError,
-                context
-            );
+            return Err(JsNativeError::typ()
+                .with_message("Cannot destructure 'undefined' value")
+                .into());
         }
         context.vm.push(value);
-        CompletionType::Normal
+        Ok(CompletionType::Normal)
     }
 }

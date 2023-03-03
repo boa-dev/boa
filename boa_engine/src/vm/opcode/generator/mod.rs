@@ -7,11 +7,10 @@ use crate::{
     string::utf16,
     vm::{
         call_frame::{AbruptCompletionRecord, EarlyReturnType, GeneratorResumeKind},
-        ok_or_throw_completion,
         opcode::Operation,
-        throw_completion, CompletionType,
+        CompletionType,
     },
-    Context, JsError, JsValue,
+    Context, JsError, JsResult, JsValue,
 };
 
 pub(crate) mod yield_stm;
@@ -29,10 +28,10 @@ impl Operation for GeneratorNext {
     const NAME: &'static str = "GeneratorNext";
     const INSTRUCTION: &'static str = "INST - GeneratorNext";
 
-    fn execute(context: &mut Context<'_>) -> CompletionType {
+    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
         match context.vm.frame().generator_resume_kind {
-            GeneratorResumeKind::Normal => CompletionType::Normal,
-            GeneratorResumeKind::Throw => CompletionType::Throw,
+            GeneratorResumeKind::Normal => Ok(CompletionType::Normal),
+            GeneratorResumeKind::Throw => Err(JsError::from_opaque(context.vm.pop())),
             GeneratorResumeKind::Return => {
                 let finally_entries = context
                     .vm
@@ -45,13 +44,13 @@ impl Operation for GeneratorNext {
                         context.vm.frame_mut().pc = next_finally.start_address() as usize;
                         let return_record = AbruptCompletionRecord::new_return();
                         context.vm.frame_mut().abrupt_completion = Some(return_record);
-                        return CompletionType::Normal;
+                        return Ok(CompletionType::Normal);
                     }
                 }
 
                 let return_record = AbruptCompletionRecord::new_return();
                 context.vm.frame_mut().abrupt_completion = Some(return_record);
-                CompletionType::Return
+                Ok(CompletionType::Return)
             }
         }
     }
@@ -68,9 +67,9 @@ impl Operation for AsyncGeneratorNext {
     const NAME: &'static str = "AsyncGeneratorNext";
     const INSTRUCTION: &'static str = "INST - AsyncGeneratorNext";
 
-    fn execute(context: &mut Context<'_>) -> CompletionType {
+    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
         if context.vm.frame().generator_resume_kind == GeneratorResumeKind::Throw {
-            return CompletionType::Throw;
+            return Err(JsError::from_opaque(context.vm.pop()));
         }
 
         let value = context.vm.pop();
@@ -107,9 +106,7 @@ impl Operation for AsyncGeneratorNext {
                 context.vm.push(value);
                 context.vm.push(true);
             } else {
-                context
-                    .vm
-                    .push(ok_or_throw_completion!(completion.clone(), context));
+                context.vm.push(completion.clone()?);
                 context.vm.push(false);
             }
 
@@ -119,7 +116,7 @@ impl Operation for AsyncGeneratorNext {
             context.vm.push(true);
             context.vm.push(true);
         }
-        CompletionType::Normal
+        Ok(CompletionType::Normal)
     }
 }
 
@@ -134,7 +131,7 @@ impl Operation for GeneratorNextDelegate {
     const NAME: &'static str = "GeneratorNextDelegate";
     const INSTRUCTION: &'static str = "INST - GeneratorNextDelegate";
 
-    fn execute(context: &mut Context<'_>) -> CompletionType {
+    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
         let done_address = context.vm.read::<u32>();
         let received = context.vm.pop();
         let done = context
@@ -148,134 +145,82 @@ impl Operation for GeneratorNextDelegate {
 
         match context.vm.frame().generator_resume_kind {
             GeneratorResumeKind::Normal => {
-                let result = ok_or_throw_completion!(
-                    next_method.call(&iterator.clone().into(), &[received], context),
-                    context
-                );
-                let result = ok_or_throw_completion!(
-                    result.as_object().ok_or_else(|| {
-                        JsNativeError::typ()
-                            .with_message("generator next method returned non-object")
-                    }),
-                    context
-                );
-                let done = ok_or_throw_completion!(result.get(utf16!("done"), context), context)
-                    .to_boolean();
+                let result = next_method.call(&iterator.clone().into(), &[received], context)?;
+                let result = result.as_object().ok_or_else(|| {
+                    JsNativeError::typ().with_message("generator next method returned non-object")
+                })?;
+                let done = result.get(utf16!("done"), context)?.to_boolean();
                 if done {
                     context.vm.frame_mut().pc = done_address as usize;
-                    let value =
-                        ok_or_throw_completion!(result.get(utf16!("value"), context), context);
+                    let value = result.get(utf16!("value"), context)?;
                     context.vm.push(value);
-                    return CompletionType::Normal;
+                    return Ok(CompletionType::Normal);
                 }
-                let value = ok_or_throw_completion!(result.get(utf16!("value"), context), context);
+                let value = result.get(utf16!("value"), context)?;
                 context.vm.push(iterator.clone());
                 context.vm.push(next_method.clone());
                 context.vm.push(done);
                 context.vm.push(value);
                 context.vm.frame_mut().early_return = Some(EarlyReturnType::Yield);
-                CompletionType::Return
+                Ok(CompletionType::Return)
             }
             GeneratorResumeKind::Throw => {
-                let throw =
-                    ok_or_throw_completion!(iterator.get_method(utf16!("throw"), context), context);
+                let throw = iterator.get_method(utf16!("throw"), context)?;
                 if let Some(throw) = throw {
-                    let result = ok_or_throw_completion!(
-                        throw.call(&iterator.clone().into(), &[received], context),
-                        context
-                    );
-                    let result_object = ok_or_throw_completion!(
-                        result.as_object().ok_or_else(|| {
-                            JsNativeError::typ()
-                                .with_message("generator throw method returned non-object")
-                        }),
-                        context
-                    );
-                    let done = ok_or_throw_completion!(
-                        result_object.get(utf16!("done"), context),
-                        context
-                    )
-                    .to_boolean();
+                    let result = throw.call(&iterator.clone().into(), &[received], context)?;
+                    let result_object = result.as_object().ok_or_else(|| {
+                        JsNativeError::typ()
+                            .with_message("generator throw method returned non-object")
+                    })?;
+                    let done = result_object.get(utf16!("done"), context)?.to_boolean();
                     if done {
                         context.vm.frame_mut().pc = done_address as usize;
-                        let value = ok_or_throw_completion!(
-                            result_object.get(utf16!("value"), context),
-                            context
-                        );
+                        let value = result_object.get(utf16!("value"), context)?;
                         context.vm.push(value);
-                        return CompletionType::Normal;
+                        return Ok(CompletionType::Normal);
                     }
-                    let value = ok_or_throw_completion!(
-                        result_object.get(utf16!("value"), context),
-                        context
-                    );
+                    let value = result_object.get(utf16!("value"), context)?;
                     context.vm.push(iterator.clone());
                     context.vm.push(next_method.clone());
                     context.vm.push(done);
                     context.vm.push(value);
                     context.vm.frame_mut().early_return = Some(EarlyReturnType::Yield);
-                    return CompletionType::Return;
+                    return Ok(CompletionType::Return);
                 }
                 context.vm.frame_mut().pc = done_address as usize;
                 let iterator_record = IteratorRecord::new(iterator.clone(), next_method, done);
-                ok_or_throw_completion!(
-                    iterator_record.close(Ok(JsValue::Undefined), context),
-                    context
-                );
+                iterator_record.close(Ok(JsValue::Undefined), context)?;
 
-                throw_completion!(
-                    JsNativeError::typ()
-                        .with_message("iterator does not have a throw method")
-                        .into(),
-                    JsError,
-                    context
-                );
+                Err(JsNativeError::typ()
+                    .with_message("iterator does not have a throw method")
+                    .into())
             }
             GeneratorResumeKind::Return => {
-                let r#return = ok_or_throw_completion!(
-                    iterator.get_method(utf16!("return"), context),
-                    context
-                );
+                let r#return = iterator.get_method(utf16!("return"), context)?;
                 if let Some(r#return) = r#return {
-                    let result = ok_or_throw_completion!(
-                        r#return.call(&iterator.clone().into(), &[received], context),
-                        context
-                    );
-                    let result_object = ok_or_throw_completion!(
-                        result.as_object().ok_or_else(|| {
-                            JsNativeError::typ()
-                                .with_message("generator return method returned non-object")
-                        }),
-                        context
-                    );
-                    let done = ok_or_throw_completion!(
-                        result_object.get(utf16!("done"), context),
-                        context
-                    )
-                    .to_boolean();
+                    let result = r#return.call(&iterator.clone().into(), &[received], context)?;
+                    let result_object = result.as_object().ok_or_else(|| {
+                        JsNativeError::typ()
+                            .with_message("generator return method returned non-object")
+                    })?;
+                    let done = result_object.get(utf16!("done"), context)?.to_boolean();
                     if done {
                         context.vm.frame_mut().pc = done_address as usize;
-                        let value = ok_or_throw_completion!(
-                            result_object.get(utf16!("value"), context),
-                            context
-                        );
+                        let value = result_object.get(utf16!("value"), context)?;
                         context.vm.push(value);
-                        return CompletionType::Return;
+                        return Ok(CompletionType::Return);
                     }
-                    let value = ok_or_throw_completion!(
-                        result_object.get(utf16!("value"), context),
-                        context
-                    );
+                    let value = result_object.get(utf16!("value"), context)?;
                     context.vm.push(iterator.clone());
                     context.vm.push(next_method.clone());
                     context.vm.push(done);
                     context.vm.push(value);
                     context.vm.frame_mut().early_return = Some(EarlyReturnType::Yield);
-                    return CompletionType::Return;
+                    return Ok(CompletionType::Return);
                 }
                 context.vm.frame_mut().pc = done_address as usize;
                 context.vm.push(received);
-                CompletionType::Return
+                Ok(CompletionType::Return)
             }
         }
     }

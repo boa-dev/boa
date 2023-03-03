@@ -1,6 +1,6 @@
 use crate::{
     vm::{call_frame::AbruptCompletionRecord, opcode::Operation, CompletionType},
-    Context,
+    Context, JsResult,
 };
 
 /// `Continue` implements the Opcode Operation for `Opcode::Continue`
@@ -17,7 +17,7 @@ impl Operation for Continue {
     const NAME: &'static str = "Continue";
     const INSTRUCTION: &'static str = "INST - Continue";
 
-    fn execute(context: &mut Context<'_>) -> CompletionType {
+    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
         let jump_address = context.vm.read::<u32>();
         let target_address = context.vm.read::<u32>();
 
@@ -51,6 +51,6 @@ impl Operation for Continue {
 
         // 3. Set program counter and finally return fields.
         context.vm.frame_mut().pc = jump_address as usize;
-        CompletionType::Normal
+        Ok(CompletionType::Normal)
     }
 }

@@ -1,6 +1,6 @@
 use crate::{
     vm::{opcode::Operation, CompletionType},
-    Context,
+    Context, JsResult,
 };
 
 /// `SetPrototype` implements the Opcode Operation for `Opcode::SetPrototype`
@@ -14,7 +14,7 @@ impl Operation for SetPrototype {
     const NAME: &'static str = "SetPrototype";
     const INSTRUCTION: &'static str = "INST - SetPrototype";
 
-    fn execute(context: &mut Context<'_>) -> CompletionType {
+    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
         let value = context.vm.pop();
         let object = context.vm.pop();
 
@@ -23,7 +23,7 @@ impl Operation for SetPrototype {
         } else if value.is_null() {
             None
         } else {
-            return CompletionType::Normal;
+            return Ok(CompletionType::Normal);
         };
 
         let object = object.as_object().expect("object is not an object");
@@ -31,6 +31,6 @@ impl Operation for SetPrototype {
             .__set_prototype_of__(prototype, context)
             .expect("cannot fail per spec");
 
-        CompletionType::Normal
+        Ok(CompletionType::Normal)
     }
 }

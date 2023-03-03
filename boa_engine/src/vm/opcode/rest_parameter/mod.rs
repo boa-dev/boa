@@ -1,7 +1,7 @@
 use crate::{
     builtins::Array,
     vm::{opcode::Operation, CompletionType},
-    Context,
+    Context, JsResult,
 };
 
 /// `RestParameterInit` implements the Opcode Operation for `Opcode::RestParameterInit`
@@ -15,7 +15,7 @@ impl Operation for RestParameterInit {
     const NAME: &'static str = "FunctionRestParameter";
     const INSTRUCTION: &'static str = "INST - FunctionRestParameter";
 
-    fn execute(context: &mut Context<'_>) -> CompletionType {
+    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
         let arg_count = context.vm.frame().arg_count;
         let param_count = context.vm.frame().param_count;
         if arg_count >= param_count {
@@ -34,7 +34,7 @@ impl Operation for RestParameterInit {
                 Array::array_create(0, None, context).expect("could not create an empty array");
             context.vm.push(array);
         }
-        CompletionType::Normal
+        Ok(CompletionType::Normal)
     }
 }
 
@@ -49,7 +49,7 @@ impl Operation for RestParameterPop {
     const NAME: &'static str = "RestParameterPop";
     const INSTRUCTION: &'static str = "INST - RestParameterPop";
 
-    fn execute(context: &mut Context<'_>) -> CompletionType {
+    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
         let arg_count = context.vm.frame().arg_count;
         let param_count = context.vm.frame().param_count;
         if arg_count > param_count {
@@ -57,6 +57,6 @@ impl Operation for RestParameterPop {
                 context.vm.pop();
             }
         }
-        CompletionType::Normal
+        Ok(CompletionType::Normal)
     }
 }

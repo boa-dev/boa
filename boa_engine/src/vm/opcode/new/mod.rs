@@ -1,7 +1,7 @@
 use crate::{
     error::JsNativeError,
-    vm::{ok_or_throw_completion, opcode::Operation, throw_completion, CompletionType},
-    Context, JsError,
+    vm::{opcode::Operation, CompletionType},
+    Context, JsResult,
 };
 
 /// `New` implements the Opcode Operation for `Opcode::New`
@@ -15,15 +15,11 @@ impl Operation for New {
     const NAME: &'static str = "New";
     const INSTRUCTION: &'static str = "INST - New";
 
-    fn execute(context: &mut Context<'_>) -> CompletionType {
+    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
         if context.vm.stack_size_limit <= context.vm.stack.len() {
-            throw_completion!(
-                JsNativeError::range()
-                    .with_message("Maximum call stack size exceeded")
-                    .into(),
-                JsError,
-                context
-            );
+            return Err(JsNativeError::range()
+                .with_message("Maximum call stack size exceeded")
+                .into());
         }
         let argument_count = context.vm.read::<u32>();
         let mut arguments = Vec::with_capacity(argument_count as usize);
@@ -33,19 +29,17 @@ impl Operation for New {
         arguments.reverse();
         let func = context.vm.pop();
 
-        let result = ok_or_throw_completion!(
-            func.as_constructor()
-                .ok_or_else(|| {
-                    JsNativeError::typ()
-                        .with_message("not a constructor")
-                        .into()
-                })
-                .and_then(|cons| cons.__construct__(&arguments, cons, context)),
-            context
-        );
+        let result = func
+            .as_constructor()
+            .ok_or_else(|| {
+                JsNativeError::typ()
+                    .with_message("not a constructor")
+                    .into()
+            })
+            .and_then(|cons| cons.__construct__(&arguments, cons, context))?;
 
         context.vm.push(result);
-        CompletionType::Normal
+        Ok(CompletionType::Normal)
     }
 }
 
@@ -60,15 +54,11 @@ impl Operation for NewSpread {
     const NAME: &'static str = "NewSpread";
     const INSTRUCTION: &'static str = "INST - NewSpread";
 
-    fn execute(context: &mut Context<'_>) -> CompletionType {
+    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
         if context.vm.stack_size_limit <= context.vm.stack.len() {
-            throw_completion!(
-                JsNativeError::range()
-                    .with_message("Maximum call stack size exceeded")
-                    .into(),
-                JsError,
-                context
-            );
+            return Err(JsNativeError::range()
+                .with_message("Maximum call stack size exceeded")
+                .into());
         }
         // Get the arguments that are stored as an array object on the stack.
         let arguments_array = context.vm.pop();
@@ -84,18 +74,16 @@ impl Operation for NewSpread {
 
         let func = context.vm.pop();
 
-        let result = ok_or_throw_completion!(
-            func.as_constructor()
-                .ok_or_else(|| {
-                    JsNativeError::typ()
-                        .with_message("not a constructor")
-                        .into()
-                })
-                .and_then(|cons| cons.__construct__(&arguments, cons, context)),
-            context
-        );
+        let result = func
+            .as_constructor()
+            .ok_or_else(|| {
+                JsNativeError::typ()
+                    .with_message("not a constructor")
+                    .into()
+            })
+            .and_then(|cons| cons.__construct__(&arguments, cons, context))?;
 
         context.vm.push(result);
-        CompletionType::Normal
+        Ok(CompletionType::Normal)
     }
 }

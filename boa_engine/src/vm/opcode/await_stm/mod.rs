@@ -6,11 +6,10 @@ use crate::{
     object::FunctionObjectBuilder,
     vm::{
         call_frame::{EarlyReturnType, GeneratorResumeKind},
-        ok_or_throw_completion,
         opcode::Operation,
         CompletionType,
     },
-    Context, JsArgs, JsValue,
+    Context, JsArgs, JsResult, JsValue,
 };
 
 /// `Await` implements the Opcode Operation for `Opcode::Await`
@@ -24,7 +23,7 @@ impl Operation for Await {
     const NAME: &'static str = "Await";
     const INSTRUCTION: &'static str = "INST - Await";
 
-    fn execute(context: &mut Context<'_>) -> CompletionType {
+    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
         let value = context.vm.pop();
 
         // 2. Let promise be ? PromiseResolve(%Promise%, value).
@@ -34,7 +33,7 @@ impl Operation for Await {
             context,
         );
 
-        let promise = ok_or_throw_completion!(resolve_result, context);
+        let promise = resolve_result?;
 
         // 3. Let fulfilledClosure be a new Abstract Closure with parameters (value) that captures asyncContext and performs the following steps when called:
         // 4. Let onFulfilled be CreateBuiltinFunction(fulfilledClosure, 1, "", « »).
@@ -133,6 +132,6 @@ impl Operation for Await {
 
         context.vm.push(JsValue::undefined());
         context.vm.frame_mut().early_return = Some(EarlyReturnType::Await);
-        CompletionType::Return
+        Ok(CompletionType::Return)
     }
 }

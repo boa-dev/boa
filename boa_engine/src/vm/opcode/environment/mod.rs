@@ -1,8 +1,8 @@
 use crate::{
     environments::EnvironmentSlots,
     error::JsNativeError,
-    vm::{ok_or_throw_completion, opcode::Operation, throw_completion, CompletionType},
-    Context, JsError, JsValue,
+    vm::{opcode::Operation, CompletionType},
+    Context, JsResult, JsValue,
 };
 
 /// `This` implements the Opcode Operation for `Opcode::This`
@@ -16,7 +16,7 @@ impl Operation for This {
     const NAME: &'static str = "This";
     const INSTRUCTION: &'static str = "INST - This";
 
-    fn execute(context: &mut Context<'_>) -> CompletionType {
+    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
         let env = context.realm.environments.get_this_environment();
         match env {
             EnvironmentSlots::Function(env) => {
@@ -24,7 +24,7 @@ impl Operation for This {
                     Ok(binding) => Ok(binding.clone()),
                     Err(e) => Err(e),
                 };
-                let function_binding = ok_or_throw_completion!(binding_result, context);
+                let function_binding = binding_result?;
                 context.vm.push(function_binding);
             }
             EnvironmentSlots::Global => {
@@ -32,7 +32,7 @@ impl Operation for This {
                 context.vm.push(this.clone());
             }
         }
-        CompletionType::Normal
+        Ok(CompletionType::Normal)
     }
 }
 
@@ -47,7 +47,7 @@ impl Operation for Super {
     const NAME: &'static str = "Super";
     const INSTRUCTION: &'static str = "INST - Super";
 
-    fn execute(context: &mut Context<'_>) -> CompletionType {
+    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
         let home_result = {
             let env = context
                 .realm
@@ -69,12 +69,10 @@ impl Operation for Super {
             }
         };
 
-        let home = ok_or_throw_completion!(home_result, context);
+        let home = home_result?;
 
         if let Some(home) = home {
-            if let Some(proto) =
-                ok_or_throw_completion!(home.__get_prototype_of__(context), context)
-            {
+            if let Some(proto) = home.__get_prototype_of__(context)? {
                 context.vm.push(JsValue::from(proto));
             } else {
                 context.vm.push(JsValue::Null);
@@ -82,7 +80,7 @@ impl Operation for Super {
         } else {
             context.vm.push(JsValue::Null);
         };
-        CompletionType::Normal
+        Ok(CompletionType::Normal)
     }
 }
 
@@ -97,7 +95,7 @@ impl Operation for SuperCall {
     const NAME: &'static str = "SuperCall";
     const INSTRUCTION: &'static str = "INST - SuperCall";
 
-    fn execute(context: &mut Context<'_>) -> CompletionType {
+    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
         let argument_count = context.vm.read::<u32>();
         let mut arguments = Vec::with_capacity(argument_count as usize);
         for _ in 0..argument_count {
@@ -126,19 +124,12 @@ impl Operation for SuperCall {
             .expect("function object must have prototype");
 
         if !super_constructor.is_constructor() {
-            throw_completion!(
-                JsNativeError::typ()
-                    .with_message("super constructor object must be constructor")
-                    .into(),
-                JsError,
-                context
-            );
+            return Err(JsNativeError::typ()
+                .with_message("super constructor object must be constructor")
+                .into());
         }
 
-        let result = ok_or_throw_completion!(
-            super_constructor.__construct__(&arguments, &new_target, context),
-            context
-        );
+        let result = super_constructor.__construct__(&arguments, &new_target, context)?;
 
         let this_env = context
             .realm
@@ -148,22 +139,15 @@ impl Operation for SuperCall {
             .expect("super call must be in function environment");
 
         if !this_env.borrow_mut().bind_this_value(&result) {
-            throw_completion!(
-                JsNativeError::reference()
-                    .with_message("this already initialized")
-                    .into(),
-                JsError,
-                context
-            );
+            return Err(JsNativeError::reference()
+                .with_message("this already initialized")
+                .into());
         }
 
-        ok_or_throw_completion!(
-            result.initialize_instance_elements(&active_function, context),
-            context
-        );
+        result.initialize_instance_elements(&active_function, context)?;
 
         context.vm.push(result);
-        CompletionType::Normal
+        Ok(CompletionType::Normal)
     }
 }
 
@@ -178,7 +162,7 @@ impl Operation for SuperCallSpread {
     const NAME: &'static str = "SuperCallWithRest";
     const INSTRUCTION: &'static str = "INST - SuperCallWithRest";
 
-    fn execute(context: &mut Context<'_>) -> CompletionType {
+    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
         // Get the arguments that are stored as an array object on the stack.
         let arguments_array = context.vm.pop();
         let arguments_array_object = arguments_array
@@ -212,19 +196,12 @@ impl Operation for SuperCallSpread {
             .expect("function object must have prototype");
 
         if !super_constructor.is_constructor() {
-            throw_completion!(
-                JsNativeError::typ()
-                    .with_message("super constructor object must be constructor")
-                    .into(),
-                JsError,
-                context
-            );
+            return Err(JsNativeError::typ()
+                .with_message("super constructor object must be constructor")
+                .into());
         }
 
-        let result = ok_or_throw_completion!(
-            super_constructor.__construct__(&arguments, &new_target, context),
-            context
-        );
+        let result = super_constructor.__construct__(&arguments, &new_target, context)?;
 
         let this_env = context
             .realm
@@ -234,22 +211,15 @@ impl Operation for SuperCallSpread {
             .expect("super call must be in function environment");
 
         if !this_env.borrow_mut().bind_this_value(&result) {
-            throw_completion!(
-                JsNativeError::reference()
-                    .with_message("this already initialized")
-                    .into(),
-                JsError,
-                context
-            );
+            return Err(JsNativeError::reference()
+                .with_message("this already initialized")
+                .into());
         }
 
-        ok_or_throw_completion!(
-            result.initialize_instance_elements(&active_function, context),
-            context
-        );
+        result.initialize_instance_elements(&active_function, context)?;
 
         context.vm.push(result);
-        CompletionType::Normal
+        Ok(CompletionType::Normal)
     }
 }
 
@@ -264,7 +234,7 @@ impl Operation for SuperCallDerived {
     const NAME: &'static str = "SuperCallDerived";
     const INSTRUCTION: &'static str = "INST - SuperCallDerived";
 
-    fn execute(context: &mut Context<'_>) -> CompletionType {
+    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
         let argument_count = context.vm.frame().arg_count;
         let mut arguments = Vec::with_capacity(argument_count);
         for _ in 0..argument_count {
@@ -293,19 +263,12 @@ impl Operation for SuperCallDerived {
             .expect("function object must have prototype");
 
         if !super_constructor.is_constructor() {
-            throw_completion!(
-                JsNativeError::typ()
-                    .with_message("super constructor object must be constructor")
-                    .into(),
-                JsError,
-                context
-            );
+            return Err(JsNativeError::typ()
+                .with_message("super constructor object must be constructor")
+                .into());
         }
 
-        let result = ok_or_throw_completion!(
-            super_constructor.__construct__(&arguments, &new_target, context),
-            context
-        );
+        let result = super_constructor.__construct__(&arguments, &new_target, context)?;
 
         let this_env = context
             .realm
@@ -315,21 +278,14 @@ impl Operation for SuperCallDerived {
             .expect("super call must be in function environment");
 
         if !this_env.borrow_mut().bind_this_value(&result) {
-            throw_completion!(
-                JsNativeError::reference()
-                    .with_message("this already initialized")
-                    .into(),
-                JsError,
-                context
-            );
+            return Err(JsNativeError::reference()
+                .with_message("this already initialized")
+                .into());
         }
 
-        ok_or_throw_completion!(
-            result.initialize_instance_elements(&active_function, context),
-            context
-        );
+        result.initialize_instance_elements(&active_function, context)?;
 
         context.vm.push(result);
-        CompletionType::Normal
+        Ok(CompletionType::Normal)
     }
 }

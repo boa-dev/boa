@@ -1,6 +1,6 @@
 use crate::{
     vm::{opcode::Operation, CompletionType},
-    Context,
+    Context, JsResult,
 };
 
 /// `Swap` implements the Opcode Operation for `Opcode::Swap`
@@ -14,13 +14,13 @@ impl Operation for Swap {
     const NAME: &'static str = "Swap";
     const INSTRUCTION: &'static str = "INST - Swap";
 
-    fn execute(context: &mut Context<'_>) -> CompletionType {
+    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
         let first = context.vm.pop();
         let second = context.vm.pop();
 
         context.vm.push(first);
         context.vm.push(second);
-        CompletionType::Normal
+        Ok(CompletionType::Normal)
     }
 }
 
@@ -35,11 +35,11 @@ impl Operation for RotateLeft {
     const NAME: &'static str = "RotateLeft";
     const INSTRUCTION: &'static str = "INST - RotateLeft";
 
-    fn execute(context: &mut Context<'_>) -> CompletionType {
+    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
         let n = context.vm.read::<u8>() as usize;
         let len = context.vm.stack.len();
         context.vm.stack[(len - n)..].rotate_left(1);
-        CompletionType::Normal
+        Ok(CompletionType::Normal)
     }
 }
 
@@ -54,10 +54,10 @@ impl Operation for RotateRight {
     const NAME: &'static str = "RotateRight";
     const INSTRUCTION: &'static str = "INST - RotateRight";
 
-    fn execute(context: &mut Context<'_>) -> CompletionType {
+    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
         let n = context.vm.read::<u8>() as usize;
         let len = context.vm.stack.len();
         context.vm.stack[(len - n)..].rotate_right(1);
-        CompletionType::Normal
+        Ok(CompletionType::Normal)
     }
 }

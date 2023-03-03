@@ -1,6 +1,6 @@
 use crate::{
     vm::{call_frame::AbruptCompletionRecord, opcode::Operation, CompletionType},
-    Context,
+    Context, JsResult,
 };
 
 /// `Throw` implements the Opcode Operation for `Opcode::Throw`
@@ -14,7 +14,7 @@ impl Operation for Throw {
     const NAME: &'static str = "Throw";
     const INSTRUCTION: &'static str = "INST - Throw";
 
-    fn execute(context: &mut Context<'_>) -> CompletionType {
+    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
         let error = context.vm.pop();
         // 1. Find the viable catch and finally blocks
         let current_address = context.vm.frame().pc;
@@ -72,7 +72,7 @@ impl Operation for Throw {
             let record = AbruptCompletionRecord::new_throw().with_initial_target(catch_target);
             context.vm.frame_mut().abrupt_completion = Some(record);
             context.vm.push(error);
-            return CompletionType::Normal;
+            return Ok(CompletionType::Normal);
         }
 
         let mut env_to_pop = 0;
@@ -118,10 +118,10 @@ impl Operation for Throw {
 
             context.vm.frame_mut().pc = address;
             context.vm.push(error);
-            return CompletionType::Normal;
+            return Ok(CompletionType::Normal);
         }
 
         context.vm.push(error);
-        CompletionType::Throw
+        Ok(CompletionType::Throw)
     }
 }

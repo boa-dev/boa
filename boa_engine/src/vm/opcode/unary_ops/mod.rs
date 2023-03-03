@@ -1,8 +1,8 @@
 use crate::{
     builtins::Number,
     value::Numeric,
-    vm::{ok_or_throw_completion, opcode::Operation, CompletionType},
-    Context, JsBigInt,
+    vm::{opcode::Operation, CompletionType},
+    Context, JsBigInt, JsResult,
 };
 use std::ops::Neg as StdNeg;
 
@@ -27,10 +27,10 @@ impl Operation for TypeOf {
     const NAME: &'static str = "TypeOf";
     const INSTRUCTION: &'static str = "INST - TypeOf";
 
-    fn execute(context: &mut Context<'_>) -> CompletionType {
+    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
         let value = context.vm.pop();
         context.vm.push(value.type_of());
-        CompletionType::Normal
+        Ok(CompletionType::Normal)
     }
 }
 
@@ -45,11 +45,11 @@ impl Operation for Pos {
     const NAME: &'static str = "Pos";
     const INSTRUCTION: &'static str = "INST - Pos";
 
-    fn execute(context: &mut Context<'_>) -> CompletionType {
+    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
         let value = context.vm.pop();
-        let value = ok_or_throw_completion!(value.to_number(context), context);
+        let value = value.to_number(context)?;
         context.vm.push(value);
-        CompletionType::Normal
+        Ok(CompletionType::Normal)
     }
 }
 
@@ -64,13 +64,13 @@ impl Operation for Neg {
     const NAME: &'static str = "Neg";
     const INSTRUCTION: &'static str = "INST - Neg";
 
-    fn execute(context: &mut Context<'_>) -> CompletionType {
+    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
         let value = context.vm.pop();
-        match ok_or_throw_completion!(value.to_numeric(context), context) {
+        match value.to_numeric(context)? {
             Numeric::Number(number) => context.vm.push(number.neg()),
             Numeric::BigInt(bigint) => context.vm.push(JsBigInt::neg(&bigint)),
         }
-        CompletionType::Normal
+        Ok(CompletionType::Normal)
     }
 }
 
@@ -85,12 +85,12 @@ impl Operation for BitNot {
     const NAME: &'static str = "BitNot";
     const INSTRUCTION: &'static str = "INST - BitNot";
 
-    fn execute(context: &mut Context<'_>) -> CompletionType {
+    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
         let value = context.vm.pop();
-        match ok_or_throw_completion!(value.to_numeric(context), context) {
+        match value.to_numeric(context)? {
             Numeric::Number(number) => context.vm.push(Number::not(number)),
             Numeric::BigInt(bigint) => context.vm.push(JsBigInt::not(&bigint)),
         }
-        CompletionType::Normal
+        Ok(CompletionType::Normal)
     }
 }

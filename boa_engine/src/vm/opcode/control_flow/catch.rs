@@ -1,6 +1,6 @@
 use crate::{
     vm::{call_frame::EnvStackEntry, opcode::Operation, CompletionType},
-    Context,
+    Context, JsResult,
 };
 
 /// `CatchStart` implements the Opcode Operation for `Opcode::CatchStart`
@@ -14,7 +14,7 @@ impl Operation for CatchStart {
     const NAME: &'static str = "CatchStart";
     const INSTRUCTION: &'static str = "INST - CatchStart";
 
-    fn execute(context: &mut Context<'_>) -> CompletionType {
+    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
         let start = context.vm.frame().pc as u32 - 1;
         let finally = context.vm.read::<u32>();
 
@@ -25,7 +25,7 @@ impl Operation for CatchStart {
             .push(EnvStackEntry::new(start, finally - 1).with_catch_flag());
 
         context.vm.frame_mut().abrupt_completion = None;
-        CompletionType::Normal
+        Ok(CompletionType::Normal)
     }
 }
 
@@ -40,7 +40,7 @@ impl Operation for CatchEnd {
     const NAME: &'static str = "CatchEnd";
     const INSTRUCTION: &'static str = "INST - CatchEnd";
 
-    fn execute(context: &mut Context<'_>) -> CompletionType {
+    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
         let mut envs_to_pop = 0_usize;
         while let Some(env_entry) = context.vm.frame_mut().env_stack.pop() {
             envs_to_pop += env_entry.env_num();
@@ -53,7 +53,7 @@ impl Operation for CatchEnd {
         let env_truncation_len = context.realm.environments.len().saturating_sub(envs_to_pop);
         context.realm.environments.truncate(env_truncation_len);
 
-        CompletionType::Normal
+        Ok(CompletionType::Normal)
     }
 }
 
@@ -68,7 +68,7 @@ impl Operation for CatchEnd2 {
     const NAME: &'static str = "CatchEnd2";
     const INSTRUCTION: &'static str = "INST - CatchEnd2";
 
-    fn execute(context: &mut Context<'_>) -> CompletionType {
+    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
         if let Some(catch_entry) = context
             .vm
             .frame()
@@ -86,6 +86,6 @@ impl Operation for CatchEnd2 {
             context.vm.frame_mut().env_stack.pop();
         }
 
-        CompletionType::Normal
+        Ok(CompletionType::Normal)
     }
 }

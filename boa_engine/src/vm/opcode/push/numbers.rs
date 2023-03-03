@@ -1,6 +1,6 @@
 use crate::{
     vm::{opcode::Operation, CompletionType},
-    Context,
+    Context, JsResult,
 };
 
 macro_rules! implement_push_numbers_with_conversion {
@@ -16,10 +16,10 @@ macro_rules! implement_push_numbers_with_conversion {
             const NAME: &'static str = stringify!($name);
             const INSTRUCTION: &'static str = stringify!("INST - " + $name);
 
-            fn execute(context: &mut Context<'_>) -> CompletionType {
+            fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
                 let value = context.vm.read::<$num_type>();
                 context.vm.push(i32::from(value));
-                CompletionType::Normal
+                Ok(CompletionType::Normal)
             }
         }
     };
@@ -38,10 +38,10 @@ macro_rules! implement_push_numbers_no_conversion {
             const NAME: &'static str = stringify!($name);
             const INSTRUCTION: &'static str = stringify!("INST - " + $name);
 
-            fn execute(context: &mut Context<'_>) -> CompletionType {
+            fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
                 let value = context.vm.read::<$num_type>();
                 context.vm.push(value);
-                CompletionType::Normal
+                Ok(CompletionType::Normal)
             }
         }
     };

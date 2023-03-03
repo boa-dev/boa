@@ -1,6 +1,6 @@
 use crate::{
-    vm::{ok_or_throw_completion, opcode::Operation, CompletionType},
-    Context,
+    vm::{opcode::Operation, CompletionType},
+    Context, JsResult,
 };
 
 /// `ToBoolean` implements the Opcode Operation for `Opcode::ToBoolean`
@@ -14,10 +14,10 @@ impl Operation for ToBoolean {
     const NAME: &'static str = "ToBoolean";
     const INSTRUCTION: &'static str = "INST - ToBoolean";
 
-    fn execute(context: &mut Context<'_>) -> CompletionType {
+    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
         let value = context.vm.pop();
         context.vm.push(value.to_boolean());
-        CompletionType::Normal
+        Ok(CompletionType::Normal)
     }
 }
 
@@ -32,10 +32,10 @@ impl Operation for ToPropertyKey {
     const NAME: &'static str = "ToPropertyKey";
     const INSTRUCTION: &'static str = "INST - ToPropertyKey";
 
-    fn execute(context: &mut Context<'_>) -> CompletionType {
+    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
         let value = context.vm.pop();
-        let key = ok_or_throw_completion!(value.to_property_key(context), context);
+        let key = value.to_property_key(context)?;
         context.vm.push(key);
-        CompletionType::Normal
+        Ok(CompletionType::Normal)
     }
 }

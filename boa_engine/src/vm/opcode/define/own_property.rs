@@ -1,7 +1,7 @@
 use crate::{
     property::PropertyDescriptor,
-    vm::{ok_or_throw_completion, opcode::Operation, throw_completion, CompletionType},
-    Context, JsError, JsNativeError, JsString,
+    vm::{opcode::Operation, CompletionType},
+    Context, JsNativeError, JsResult, JsString,
 };
 
 /// `DefineOwnPropertyByName` implements the Opcode Operation for `Opcode::DefineOwnPropertyByName`
@@ -15,34 +15,31 @@ impl Operation for DefineOwnPropertyByName {
     const NAME: &'static str = "DefineOwnPropertyByName";
     const INSTRUCTION: &'static str = "INST - DefineOwnPropertyByName";
 
-    fn execute(context: &mut Context<'_>) -> CompletionType {
+    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
         let index = context.vm.read::<u32>();
         let value = context.vm.pop();
         let object = context.vm.pop();
         let object = if let Some(object) = object.as_object() {
             object.clone()
         } else {
-            ok_or_throw_completion!(object.to_object(context), context)
+            object.to_object(context)?
         };
         let name = context.vm.frame().code_block.names[index as usize];
         let name = context
             .interner()
             .resolve_expect(name.sym())
             .into_common::<JsString>(false);
-        ok_or_throw_completion!(
-            object.__define_own_property__(
-                &name.into(),
-                PropertyDescriptor::builder()
-                    .value(value)
-                    .writable(true)
-                    .enumerable(true)
-                    .configurable(true)
-                    .build(),
-                context,
-            ),
-            context
-        );
-        CompletionType::Normal
+        object.__define_own_property__(
+            &name.into(),
+            PropertyDescriptor::builder()
+                .value(value)
+                .writable(true)
+                .enumerable(true)
+                .configurable(true)
+                .build(),
+            context,
+        )?;
+        Ok(CompletionType::Normal)
     }
 }
 
@@ -57,38 +54,31 @@ impl Operation for DefineOwnPropertyByValue {
     const NAME: &'static str = "DefineOwnPropertyByValue";
     const INSTRUCTION: &'static str = "INST - DefineOwnPropertyByValue";
 
-    fn execute(context: &mut Context<'_>) -> CompletionType {
+    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
         let value = context.vm.pop();
         let key = context.vm.pop();
         let object = context.vm.pop();
         let object = if let Some(object) = object.as_object() {
             object.clone()
         } else {
-            ok_or_throw_completion!(object.to_object(context), context)
+            object.to_object(context)?
         };
-        let key = ok_or_throw_completion!(key.to_property_key(context), context);
-        let success = ok_or_throw_completion!(
-            object.__define_own_property__(
-                &key,
-                PropertyDescriptor::builder()
-                    .value(value)
-                    .writable(true)
-                    .enumerable(true)
-                    .configurable(true)
-                    .build(),
-                context,
-            ),
-            context
-        );
+        let key = key.to_property_key(context)?;
+        let success = object.__define_own_property__(
+            &key,
+            PropertyDescriptor::builder()
+                .value(value)
+                .writable(true)
+                .enumerable(true)
+                .configurable(true)
+                .build(),
+            context,
+        )?;
         if !success {
-            throw_completion!(
-                JsNativeError::typ()
-                    .with_message("failed to defined own property")
-                    .into(),
-                JsError,
-                context
-            );
+            return Err(JsNativeError::typ()
+                .with_message("failed to defined own property")
+                .into());
         }
-        CompletionType::Normal
+        Ok(CompletionType::Normal)
     }
 }

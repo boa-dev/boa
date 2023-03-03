@@ -1,6 +1,6 @@
 use crate::{
     vm::{code_block::create_generator_function_object, opcode::Operation, CompletionType},
-    Context,
+    Context, JsResult,
 };
 
 /// `GetGenerator` implements the Opcode Operation for `Opcode::GetGenerator`
@@ -14,13 +14,13 @@ impl Operation for GetGenerator {
     const NAME: &'static str = "GetGenerator";
     const INSTRUCTION: &'static str = "INST - GetGenerator";
 
-    fn execute(context: &mut Context<'_>) -> CompletionType {
+    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
         let index = context.vm.read::<u32>();
         let method = context.vm.read::<u8>() != 0;
         let code = context.vm.frame().code_block.functions[index as usize].clone();
         let function = create_generator_function_object(code, false, method, context);
         context.vm.push(function);
-        CompletionType::Normal
+        Ok(CompletionType::Normal)
     }
 }
 
@@ -35,12 +35,12 @@ impl Operation for GetGeneratorAsync {
     const NAME: &'static str = "GetGeneratorAsync";
     const INSTRUCTION: &'static str = "INST - GetGeneratorAsync";
 
-    fn execute(context: &mut Context<'_>) -> CompletionType {
+    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
         let index = context.vm.read::<u32>();
         let method = context.vm.read::<u8>() != 0;
         let code = context.vm.frame().code_block.functions[index as usize].clone();
         let function = create_generator_function_object(code, true, method, context);
         context.vm.push(function);
-        CompletionType::Normal
+        Ok(CompletionType::Normal)
     }
 }

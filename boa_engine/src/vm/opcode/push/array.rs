@@ -1,8 +1,8 @@
 use crate::{
     builtins::{iterable::IteratorRecord, Array},
     string::utf16,
-    vm::{ok_or_throw_completion, opcode::Operation, CompletionType},
-    Context,
+    vm::{opcode::Operation, CompletionType},
+    Context, JsResult,
 };
 
 /// `PushNewArray` implements the Opcode Operation for `Opcode::PushNewArray`
@@ -16,11 +16,11 @@ impl Operation for PushNewArray {
     const NAME: &'static str = "PushNewArray";
     const INSTRUCTION: &'static str = "INST - PushNewArray";
 
-    fn execute(context: &mut Context<'_>) -> CompletionType {
+    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
         let array = Array::array_create(0, None, context)
             .expect("Array creation with 0 length should never fail");
         context.vm.push(array);
-        CompletionType::Normal
+        Ok(CompletionType::Normal)
     }
 }
 
@@ -35,7 +35,7 @@ impl Operation for PushValueToArray {
     const NAME: &'static str = "PushValueToArray";
     const INSTRUCTION: &'static str = "INST - PushValueToArray";
 
-    fn execute(context: &mut Context<'_>) -> CompletionType {
+    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
         let value = context.vm.pop();
         let array = context.vm.pop();
         let o = array.as_object().expect("should be an object");
@@ -45,7 +45,7 @@ impl Operation for PushValueToArray {
         o.create_data_property_or_throw(len, value, context)
             .expect("should be able to create new data property");
         context.vm.push(array);
-        CompletionType::Normal
+        Ok(CompletionType::Normal)
     }
 }
 
@@ -60,7 +60,7 @@ impl Operation for PushElisionToArray {
     const NAME: &'static str = "PushElisionToArray";
     const INSTRUCTION: &'static str = "INST - PushElisionToArray";
 
-    fn execute(context: &mut Context<'_>) -> CompletionType {
+    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
         let array = context.vm.pop();
         let o = array.as_object().expect("should always be an object");
 
@@ -68,9 +68,9 @@ impl Operation for PushElisionToArray {
             .length_of_array_like(context)
             .expect("arrays should always have a 'length' property");
 
-        ok_or_throw_completion!(o.set(utf16!("length"), len + 1, true, context), context);
+        o.set(utf16!("length"), len + 1, true, context)?;
         context.vm.push(array);
-        CompletionType::Normal
+        Ok(CompletionType::Normal)
     }
 }
 
@@ -85,7 +85,7 @@ impl Operation for PushIteratorToArray {
     const NAME: &'static str = "PushIteratorToArray";
     const INSTRUCTION: &'static str = "INST - PushIteratorToArray";
 
-    fn execute(context: &mut Context<'_>) -> CompletionType {
+    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
         let done = context
             .vm
             .pop()
@@ -97,12 +97,12 @@ impl Operation for PushIteratorToArray {
         let array = context.vm.pop();
 
         let iterator = IteratorRecord::new(iterator.clone(), next_method, done);
-        while let Some(next) = ok_or_throw_completion!(iterator.step(context), context) {
-            let next_value = ok_or_throw_completion!(next.value(context), context);
-            ok_or_throw_completion!(Array::push(&array, &[next_value], context), context);
+        while let Some(next) = iterator.step(context)? {
+            let next_value = next.value(context)?;
+            Array::push(&array, &[next_value], context)?;
         }
 
         context.vm.push(array);
-        CompletionType::Normal
+        Ok(CompletionType::Normal)
     }
 }

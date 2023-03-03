@@ -7,7 +7,7 @@
 use crate::{
     builtins::async_generator::{AsyncGenerator, AsyncGeneratorState},
     vm::{call_frame::EarlyReturnType, code_block::Readable},
-    Context, JsError, JsValue,
+    Context, JsError, JsResult, JsValue,
 };
 #[cfg(feature = "fuzz")]
 use crate::{JsNativeError, JsNativeErrorKind};
@@ -114,32 +114,8 @@ pub(crate) enum CompletionType {
     Throw,
 }
 
-macro_rules! ok_or_throw_completion {
-    ( $e:expr, $context:ident ) => {
-        match $e {
-            Ok(value) => value,
-            Err(value) => {
-                let error = value.to_opaque($context);
-                $context.vm.push(error);
-                return CompletionType::Throw;
-            }
-        }
-    };
-}
-
-macro_rules! throw_completion {
-    ($error:expr, $err_type:ty, $context:ident ) => {{
-        let err: $err_type = $error;
-        let value = err.to_opaque($context);
-        $context.vm.push(value);
-        return CompletionType::Throw;
-    }};
-}
-
-pub(crate) use {ok_or_throw_completion, throw_completion};
-
 impl Context<'_> {
-    fn execute_instruction(&mut self) -> CompletionType {
+    fn execute_instruction(&mut self) -> JsResult<CompletionType> {
         let opcode: Opcode = {
             let _timer = Profiler::global().start_event("Opcode retrieval", "vm");
             let opcode = self.vm.frame().code_block.bytecode[self.vm.frame().pc]
@@ -264,39 +240,39 @@ impl Context<'_> {
 
             // 2. Evaluate the result of executing the instruction.
             match result {
-                CompletionType::Normal => {}
-                CompletionType::Return => {
+                Ok(CompletionType::Normal) => {}
+                Ok(CompletionType::Return) => {
                     break CompletionType::Return;
                 }
-                CompletionType::Throw => {
-                    // TODO: Adapt the below fuzz for the new execution loop
+                Ok(CompletionType::Throw) => {
+                    break CompletionType::Throw;
+                }
+                Err(err) => {
                     #[cfg(feature = "fuzz")]
                     {
-                        let error = self.vm.pop();
-                        if let Some(native_error) = JsError::from_opaque(error).as_native() {
+                        if let Some(native_error) = err.as_native() {
                             // If we hit the execution step limit, bubble up the error to the
                             // (Rust) caller instead of trying to handle as an exception.
                             if matches!(native_error.kind, JsNativeErrorKind::NoInstructionsRemain)
                             {
-                                let err = native_error.to_opaque(self);
-                                self.vm.push(err);
+                                let error = native_error.to_opaque(self);
+                                self.vm.push(error);
                                 break CompletionType::Throw;
                             }
-                            let err = native_error.to_opaque(self);
-                            self.vm.push(err);
-                        };
+                        }
                     }
 
+                    let err_value = err.to_opaque(self);
+                    self.vm.push(err_value);
+
                     // If this frame has not evaluated the throw as an AbruptCompletion, then evaluate it
-                    match self.vm.frame().abrupt_completion {
-                        Some(abrupt) if abrupt.is_throw() => {}
-                        _ => {
-                            let evaluation = Opcode::Throw.execute(self);
-                            if evaluation == CompletionType::Normal {
-                                continue;
-                            }
-                        }
-                    };
+                    let evaluation = Opcode::Throw
+                        .execute(self)
+                        .expect("Opcode::Throw cannot return Err");
+
+                    if evaluation == CompletionType::Normal {
+                        continue;
+                    }
 
                     break CompletionType::Throw;
                 }
@@ -405,7 +381,7 @@ impl Context<'_> {
             }
             AsyncGenerator::drain_queue(&generator_object, self);
 
-            return CompletionRecord::new(CompletionType::Normal, JsValue::undefined());
+            return CompletionRecord::Normal(JsValue::undefined());
         }
 
         // Any valid return statement is re-evaluated as a normal completion vs. return (yield).

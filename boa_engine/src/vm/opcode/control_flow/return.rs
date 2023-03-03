@@ -1,6 +1,6 @@
 use crate::{
     vm::{call_frame::AbruptCompletionRecord, opcode::Operation, CompletionType},
-    Context,
+    Context, JsResult,
 };
 
 /// `Return` implements the Opcode Operation for `Opcode::Return`
@@ -14,7 +14,7 @@ impl Operation for Return {
     const NAME: &'static str = "Return";
     const INSTRUCTION: &'static str = "INST - Return";
 
-    fn execute(context: &mut Context<'_>) -> CompletionType {
+    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
         let current_address = context.vm.frame().pc;
         let mut env_to_pop = 0;
         let mut finally_address = None;
@@ -44,9 +44,9 @@ impl Operation for Return {
 
         if let Some(finally) = finally_address {
             context.vm.frame_mut().pc = finally;
-            return CompletionType::Normal;
+            return Ok(CompletionType::Normal);
         }
 
-        CompletionType::Return
+        Ok(CompletionType::Return)
     }
 }

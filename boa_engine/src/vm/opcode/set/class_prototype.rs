@@ -2,7 +2,7 @@ use crate::{
     object::{JsObject, ObjectData, CONSTRUCTOR, PROTOTYPE},
     property::PropertyDescriptorBuilder,
     vm::{opcode::Operation, CompletionType},
-    Context, JsValue,
+    Context, JsResult, JsValue,
 };
 
 /// `SetClassProtoType` implements the Opcode Operation for `Opcode::SetClassPrototype`
@@ -16,7 +16,7 @@ impl Operation for SetClassPrototype {
     const NAME: &'static str = "SetClassPrototype";
     const INSTRUCTION: &'static str = "INST - SetClassPrototype";
 
-    fn execute(context: &mut Context<'_>) -> CompletionType {
+    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
         let prototype_value = context.vm.pop();
         let prototype = match &prototype_value {
             JsValue::Object(proto) => Some(proto.clone()),
@@ -69,6 +69,6 @@ impl Operation for SetClassPrototype {
             .expect("cannot fail per spec");
 
         context.vm.push(proto);
-        CompletionType::Normal
+        Ok(CompletionType::Normal)
     }
 }

@@ -1,6 +1,6 @@
 use crate::{
     vm::{call_frame::AbruptCompletionRecord, opcode::Operation, CompletionType},
-    Context,
+    Context, JsResult,
 };
 
 /// `Break` implements the Opcode Operation for `Opcode::Break`
@@ -13,7 +13,7 @@ impl Operation for Break {
     const NAME: &'static str = "Break";
     const INSTRUCTION: &'static str = "INST - Break";
 
-    fn execute(context: &mut Context<'_>) -> CompletionType {
+    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
         let jump_address = context.vm.read::<u32>();
         let target_address = context.vm.read::<u32>();
 
@@ -43,6 +43,6 @@ impl Operation for Break {
 
         // 3. Set program counter and finally return fields.
         context.vm.frame_mut().pc = jump_address as usize;
-        CompletionType::Normal
+        Ok(CompletionType::Normal)
     }
 }

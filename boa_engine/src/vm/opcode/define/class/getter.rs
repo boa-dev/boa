@@ -2,8 +2,8 @@ use crate::{
     builtins::function::set_function_name,
     object::CONSTRUCTOR,
     property::PropertyDescriptor,
-    vm::{ok_or_throw_completion, opcode::Operation, CompletionType},
-    Context, JsString,
+    vm::{opcode::Operation, CompletionType},
+    Context, JsResult, JsString,
 };
 
 /// `DefineClassStaticGetterByName` implements the Opcode Operation for `Opcode::DefineClassStaticGetterByName`
@@ -17,7 +17,7 @@ impl Operation for DefineClassStaticGetterByName {
     const NAME: &'static str = "DefineClassStaticGetterByName";
     const INSTRUCTION: &'static str = "INST - DefineClassStaticGetterByName";
 
-    fn execute(context: &mut Context<'_>) -> CompletionType {
+    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
         let index = context.vm.read::<u32>();
         let function = context.vm.pop();
         let class = context.vm.pop();
@@ -39,24 +39,22 @@ impl Operation for DefineClassStaticGetterByName {
             function_mut.set_home_object(class.clone());
             function_mut.set_class_object(class.clone());
         }
-        let set = ok_or_throw_completion!(class.__get_own_property__(&key, context), context)
+        let set = class
+            .__get_own_property__(&key, context)?
             .as_ref()
             .and_then(PropertyDescriptor::set)
             .cloned();
-        ok_or_throw_completion!(
-            class.__define_own_property__(
-                &key,
-                PropertyDescriptor::builder()
-                    .maybe_get(Some(function))
-                    .maybe_set(set)
-                    .enumerable(false)
-                    .configurable(true)
-                    .build(),
-                context,
-            ),
-            context
-        );
-        CompletionType::Normal
+        class.__define_own_property__(
+            &key,
+            PropertyDescriptor::builder()
+                .maybe_get(Some(function))
+                .maybe_set(set)
+                .enumerable(false)
+                .configurable(true)
+                .build(),
+            context,
+        )?;
+        Ok(CompletionType::Normal)
     }
 }
 
@@ -71,7 +69,7 @@ impl Operation for DefineClassGetterByName {
     const NAME: &'static str = "DefineClassGetterByName";
     const INSTRUCTION: &'static str = "INST - DefineClassGetterByName";
 
-    fn execute(context: &mut Context<'_>) -> CompletionType {
+    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
         let index = context.vm.read::<u32>();
         let function = context.vm.pop();
         let class_proto = context.vm.pop();
@@ -99,24 +97,22 @@ impl Operation for DefineClassGetterByName {
                 .clone();
             function_mut.set_class_object(class);
         }
-        let set = ok_or_throw_completion!(class_proto.__get_own_property__(&key, context), context)
+        let set = class_proto
+            .__get_own_property__(&key, context)?
             .as_ref()
             .and_then(PropertyDescriptor::set)
             .cloned();
-        ok_or_throw_completion!(
-            class_proto.__define_own_property__(
-                &key,
-                PropertyDescriptor::builder()
-                    .maybe_get(Some(function))
-                    .maybe_set(set)
-                    .enumerable(false)
-                    .configurable(true)
-                    .build(),
-                context,
-            ),
-            context
-        );
-        CompletionType::Normal
+        class_proto.__define_own_property__(
+            &key,
+            PropertyDescriptor::builder()
+                .maybe_get(Some(function))
+                .maybe_set(set)
+                .enumerable(false)
+                .configurable(true)
+                .build(),
+            context,
+        )?;
+        Ok(CompletionType::Normal)
     }
 }
 
@@ -131,7 +127,7 @@ impl Operation for DefineClassStaticGetterByValue {
     const NAME: &'static str = "DefineClassStaticGetterByValue";
     const INSTRUCTION: &'static str = "INST - DefineClassStaticGetterByValue";
 
-    fn execute(context: &mut Context<'_>) -> CompletionType {
+    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
         let function = context.vm.pop();
         let key = context.vm.pop();
         let class = context.vm.pop();
@@ -151,24 +147,22 @@ impl Operation for DefineClassStaticGetterByValue {
             function_mut.set_home_object(class.clone());
             function_mut.set_class_object(class.clone());
         }
-        let set = ok_or_throw_completion!(class.__get_own_property__(&key, context), context)
+        let set = class
+            .__get_own_property__(&key, context)?
             .as_ref()
             .and_then(PropertyDescriptor::set)
             .cloned();
-        ok_or_throw_completion!(
-            class.define_property_or_throw(
-                key,
-                PropertyDescriptor::builder()
-                    .maybe_get(Some(function))
-                    .maybe_set(set)
-                    .enumerable(false)
-                    .configurable(true)
-                    .build(),
-                context,
-            ),
-            context
-        );
-        CompletionType::Normal
+        class.define_property_or_throw(
+            key,
+            PropertyDescriptor::builder()
+                .maybe_get(Some(function))
+                .maybe_set(set)
+                .enumerable(false)
+                .configurable(true)
+                .build(),
+            context,
+        )?;
+        Ok(CompletionType::Normal)
     }
 }
 
@@ -183,7 +177,7 @@ impl Operation for DefineClassGetterByValue {
     const NAME: &'static str = "DefineClassGetterByValue";
     const INSTRUCTION: &'static str = "INST - DefineClassGetterByValue";
 
-    fn execute(context: &mut Context<'_>) -> CompletionType {
+    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
         let function = context.vm.pop();
         let key = context.vm.pop();
         let class_proto = context.vm.pop();
@@ -209,23 +203,21 @@ impl Operation for DefineClassGetterByValue {
                 .clone();
             function_mut.set_class_object(class);
         }
-        let set = ok_or_throw_completion!(class_proto.__get_own_property__(&key, context), context)
+        let set = class_proto
+            .__get_own_property__(&key, context)?
             .as_ref()
             .and_then(PropertyDescriptor::set)
             .cloned();
-        ok_or_throw_completion!(
-            class_proto.__define_own_property__(
-                &key,
-                PropertyDescriptor::builder()
-                    .maybe_get(Some(function))
-                    .maybe_set(set)
-                    .enumerable(false)
-                    .configurable(true)
-                    .build(),
-                context,
-            ),
-            context
-        );
-        CompletionType::Normal
+        class_proto.__define_own_property__(
+            &key,
+            PropertyDescriptor::builder()
+                .maybe_get(Some(function))
+                .maybe_set(set)
+                .enumerable(false)
+                .configurable(true)
+                .build(),
+            context,
+        )?;
+        Ok(CompletionType::Normal)
     }
 }

@@ -1,8 +1,8 @@
 use crate::{
     builtins::iterable::IteratorResult,
     error::JsNativeError,
-    vm::{ok_or_throw_completion, opcode::Operation, CompletionType},
-    Context,
+    vm::{opcode::Operation, CompletionType},
+    Context, JsResult,
 };
 
 /// `ForAwaitOfLoopIterate` implements the Opcode Operation for `Opcode::ForAwaitOfLoopIterator`
@@ -16,26 +16,22 @@ impl Operation for ForAwaitOfLoopIterate {
     const NAME: &'static str = "ForAwaitOfLoopIterate";
     const INSTRUCTION: &'static str = "INST - ForAwaitOfLoopIterate";
 
-    fn execute(context: &mut Context<'_>) -> CompletionType {
+    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
         let _done = context
             .vm
             .pop()
             .as_boolean()
             .expect("iterator [[Done]] was not a boolean");
         let next_method = context.vm.pop();
-        let next_method_object = ok_or_throw_completion!(
-            next_method.as_callable().ok_or_else(|| {
-                JsNativeError::typ().with_message("iterable next method not a function")
-            }),
-            context
-        );
+        let next_method_object = next_method.as_callable().ok_or_else(|| {
+            JsNativeError::typ().with_message("iterable next method not a function")
+        })?;
         let iterator = context.vm.pop();
-        let next_result =
-            ok_or_throw_completion!(next_method_object.call(&iterator, &[], context), context);
+        let next_result = next_method_object.call(&iterator, &[], context)?;
         context.vm.push(iterator);
         context.vm.push(next_method);
         context.vm.push(next_result);
-        CompletionType::Normal
+        Ok(CompletionType::Normal)
     }
 }
 
@@ -50,29 +46,26 @@ impl Operation for ForAwaitOfLoopNext {
     const NAME: &'static str = "ForAwaitOfLoopNext";
     const INSTRUCTION: &'static str = "INST - ForAwaitOfLoopNext";
 
-    fn execute(context: &mut Context<'_>) -> CompletionType {
+    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
         let address = context.vm.read::<u32>();
 
         let next_result = context.vm.pop();
-        let next_result = ok_or_throw_completion!(
-            next_result
-                .as_object()
-                .cloned()
-                .map(IteratorResult::new)
-                .ok_or_else(|| JsNativeError::typ().with_message("next value should be an object")),
-            context
-        );
+        let next_result = next_result
+            .as_object()
+            .cloned()
+            .map(IteratorResult::new)
+            .ok_or_else(|| JsNativeError::typ().with_message("next value should be an object"))?;
 
-        if ok_or_throw_completion!(next_result.complete(context), context) {
+        if next_result.complete(context)? {
             context.vm.frame_mut().pc = address as usize;
             context.vm.frame_mut().dec_frame_env_stack();
             context.realm.environments.pop();
             context.vm.push(true);
         } else {
             context.vm.push(false);
-            let value = ok_or_throw_completion!(next_result.value(context), context);
+            let value = next_result.value(context)?;
             context.vm.push(value);
         }
-        CompletionType::Normal
+        Ok(CompletionType::Normal)
     }
 }

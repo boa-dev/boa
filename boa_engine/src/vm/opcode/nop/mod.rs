@@ -1,6 +1,6 @@
 use crate::{
     vm::{opcode::Operation, CompletionType},
-    Context,
+    Context, JsResult,
 };
 
 /// `Nop` implements the Opcode Operation for `Opcode::Nop`
@@ -14,7 +14,7 @@ impl Operation for Nop {
     const NAME: &'static str = "Nop";
     const INSTRUCTION: &'static str = "INST - Nop";
 
-    fn execute(_context: &mut Context<'_>) -> CompletionType {
-        CompletionType::Normal
+    fn execute(_: &mut Context<'_>) -> JsResult<CompletionType> {
+        Ok(CompletionType::Normal)
     }
 }

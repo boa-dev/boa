@@ -1,7 +1,7 @@
 use crate::{
     value::{JsValue, Numeric},
-    vm::{ok_or_throw_completion, opcode::Operation, CompletionType},
-    Context, JsBigInt,
+    vm::{opcode::Operation, CompletionType},
+    Context, JsBigInt, JsResult,
 };
 
 /// `Dec` implements the Opcode Operation for `Opcode::Dec`
@@ -15,20 +15,20 @@ impl Operation for Dec {
     const NAME: &'static str = "Dec";
     const INSTRUCTION: &'static str = "INST - Dec";
 
-    fn execute(context: &mut Context<'_>) -> CompletionType {
+    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
         let value = context.vm.pop();
         match value {
             JsValue::Integer(number) if number > i32::MIN => {
                 context.vm.push(number - 1);
             }
-            _ => match ok_or_throw_completion!(value.to_numeric(context), context) {
+            _ => match value.to_numeric(context)? {
                 Numeric::Number(number) => context.vm.push(number - 1f64),
                 Numeric::BigInt(bigint) => {
                     context.vm.push(JsBigInt::sub(&bigint, &JsBigInt::one()));
                 }
             },
         }
-        CompletionType::Normal
+        Ok(CompletionType::Normal)
     }
 }
 
@@ -43,7 +43,7 @@ impl Operation for DecPost {
     const NAME: &'static str = "DecPost";
     const INSTRUCTION: &'static str = "INST - DecPost";
 
-    fn execute(context: &mut Context<'_>) -> CompletionType {
+    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
         let value = context.vm.pop();
         match value {
             JsValue::Integer(number) if number > i32::MIN => {
@@ -51,7 +51,7 @@ impl Operation for DecPost {
                 context.vm.push(value);
             }
             _ => {
-                let value = ok_or_throw_completion!(value.to_numeric(context), context);
+                let value = value.to_numeric(context)?;
                 match value {
                     Numeric::Number(number) => context.vm.push(number - 1f64),
                     Numeric::BigInt(ref bigint) => {
@@ -61,6 +61,6 @@ impl Operation for DecPost {
                 context.vm.push(value);
             }
         }
-        CompletionType::Normal
+        Ok(CompletionType::Normal)
     }
 }

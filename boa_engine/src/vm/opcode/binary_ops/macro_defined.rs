@@ -1,6 +1,6 @@
 use crate::{
-    vm::{ok_or_throw_completion, opcode::Operation, CompletionType},
-    Context,
+    vm::{opcode::Operation, CompletionType},
+    Context, JsResult,
 };
 
 macro_rules! implement_bin_ops {
@@ -16,12 +16,12 @@ macro_rules! implement_bin_ops {
             const NAME: &'static str = stringify!($name);
             const INSTRUCTION: &'static str = stringify!("INST - " + $name);
 
-            fn execute(context: &mut Context<'_>) -> CompletionType {
+            fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
                 let rhs = context.vm.pop();
                 let lhs = context.vm.pop();
-                let value = ok_or_throw_completion!(lhs.$op(&rhs, context), context);
+                let value = lhs.$op(&rhs, context)?;
                 context.vm.push(value);
-                CompletionType::Normal
+                Ok(CompletionType::Normal)
             }
         }
     };

@@ -1,6 +1,6 @@
 use crate::{
     vm::{opcode::Operation, CompletionType},
-    Context,
+    Context, JsResult,
 };
 
 /// `FinallyStart` implements the Opcode Operation for `Opcode::FinallyStart`
@@ -14,7 +14,7 @@ impl Operation for FinallyStart {
     const NAME: &'static str = "FinallyStart";
     const INSTRUCTION: &'static str = "INST - FinallyStart";
 
-    fn execute(context: &mut Context<'_>) -> CompletionType {
+    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
         let exit = context.vm.read::<u32>();
 
         let finally_env = context
@@ -25,7 +25,7 @@ impl Operation for FinallyStart {
             .expect("EnvStackEntries must exist");
 
         finally_env.set_exit_address(exit);
-        CompletionType::Normal
+        Ok(CompletionType::Normal)
     }
 }
 
@@ -40,7 +40,7 @@ impl Operation for FinallyEnd {
     const NAME: &'static str = "FinallyEnd";
     const INSTRUCTION: &'static str = "INST - FinallyEnd";
 
-    fn execute(context: &mut Context<'_>) -> CompletionType {
+    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
         let finally_candidates = context.vm.frame().env_stack.iter().filter(|env| {
             env.is_finally_env() && context.vm.frame().pc < (env.start_address() as usize)
         });
@@ -107,8 +107,7 @@ impl Operation for FinallyEnd {
                 context.realm.environments.truncate(env_truncation_len);
             }
             Some(record) if record.is_return() => {
-                // TODO: Implement logic for return completions (Should probably function similar to throw)
-                return CompletionType::Return;
+                return Ok(CompletionType::Return);
             }
             Some(record)
                 if record.is_throw_with_target()
@@ -141,13 +140,13 @@ impl Operation for FinallyEnd {
                     .saturating_sub(current_stack.env_num());
                 context.realm.environments.truncate(env_truncation_len);
 
-                return CompletionType::Throw;
+                return Ok(CompletionType::Throw);
             }
             _ => {
                 context.vm.frame_mut().env_stack.pop();
             }
         }
 
-        CompletionType::Normal
+        Ok(CompletionType::Normal)
     }
 }

@@ -1,7 +1,7 @@
 use crate::{
     builtins::{iterable::IteratorRecord, Array},
-    vm::{ok_or_throw_completion, opcode::Operation, CompletionType},
-    Context, JsValue,
+    vm::{opcode::Operation, CompletionType},
+    Context, JsResult, JsValue,
 };
 
 /// `IteratorNext` implements the Opcode Operation for `Opcode::IteratorNext`
@@ -15,7 +15,7 @@ impl Operation for IteratorNext {
     const NAME: &'static str = "IteratorNext";
     const INSTRUCTION: &'static str = "INST - IteratorNext";
 
-    fn execute(context: &mut Context<'_>) -> CompletionType {
+    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
         let done = context
             .vm
             .pop()
@@ -26,19 +26,19 @@ impl Operation for IteratorNext {
         let iterator = iterator.as_object().expect("iterator was not an object");
 
         let iterator_record = IteratorRecord::new(iterator.clone(), next_method.clone(), done);
-        let next = ok_or_throw_completion!(iterator_record.step(context), context);
+        let next = iterator_record.step(context)?;
 
         context.vm.push(iterator.clone());
         context.vm.push(next_method);
         if let Some(next) = next {
-            let value = ok_or_throw_completion!(next.value(context), context);
+            let value = next.value(context)?;
             context.vm.push(false);
             context.vm.push(value);
         } else {
             context.vm.push(true);
             context.vm.push(JsValue::undefined());
         }
-        CompletionType::Normal
+        Ok(CompletionType::Normal)
     }
 }
 
@@ -53,7 +53,7 @@ impl Operation for IteratorClose {
     const NAME: &'static str = "IteratorClose";
     const INSTRUCTION: &'static str = "INST - IteratorClose";
 
-    fn execute(context: &mut Context<'_>) -> CompletionType {
+    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
         let done = context
             .vm
             .pop()
@@ -64,9 +64,9 @@ impl Operation for IteratorClose {
         let iterator = iterator.as_object().expect("iterator was not an object");
         if !done {
             let iterator_record = IteratorRecord::new(iterator.clone(), next_method, done);
-            ok_or_throw_completion!(iterator_record.close(Ok(JsValue::Null), context), context);
+            iterator_record.close(Ok(JsValue::Null), context)?;
         }
-        CompletionType::Normal
+        Ok(CompletionType::Normal)
     }
 }
 
@@ -81,7 +81,7 @@ impl Operation for IteratorToArray {
     const NAME: &'static str = "IteratorToArray";
     const INSTRUCTION: &'static str = "INST - IteratorToArray";
 
-    fn execute(context: &mut Context<'_>) -> CompletionType {
+    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
         let done = context
             .vm
             .pop()
@@ -94,8 +94,8 @@ impl Operation for IteratorToArray {
         let iterator_record = IteratorRecord::new(iterator.clone(), next_method.clone(), done);
         let mut values = Vec::new();
 
-        while let Some(result) = ok_or_throw_completion!(iterator_record.step(context), context) {
-            values.push(ok_or_throw_completion!(result.value(context), context));
+        while let Some(result) = iterator_record.step(context)? {
+            values.push(result.value(context)?);
         }
 
         let array = Array::create_array_from_list(values, context);
@@ -104,6 +104,6 @@ impl Operation for IteratorToArray {
         context.vm.push(next_method);
         context.vm.push(true);
         context.vm.push(array);
-        CompletionType::Normal
+        Ok(CompletionType::Normal)
     }
 }
