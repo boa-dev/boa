@@ -39,6 +39,7 @@ mod tests;
 pub struct Vm {
     pub(crate) frames: Vec<CallFrame>,
     pub(crate) stack: Vec<JsValue>,
+    pub(crate) err: Option<JsError>,
     pub(crate) trace: bool,
     pub(crate) stack_size_limit: usize,
 }
@@ -48,6 +49,7 @@ impl Default for Vm {
         Self {
             frames: Vec::with_capacity(16),
             stack: Vec::with_capacity(1024),
+            err: None,
             trace: false,
             stack_size_limit: 1024,
         }
@@ -193,9 +195,8 @@ impl Context<'_> {
             #[cfg(feature = "fuzz")]
             {
                 if self.instructions_remaining == 0 {
-                    let err = JsError::from_native(JsNativeError::no_instructions_remain())
-                        .to_opaque(self);
-                    self.vm.push(err);
+                    let err = JsError::from_native(JsNativeError::no_instructions_remain());
+                    self.vm.err = Some(err);
                     break CompletionType::Throw;
                 }
                 self.instructions_remaining -= 1;
@@ -255,15 +256,13 @@ impl Context<'_> {
                             // (Rust) caller instead of trying to handle as an exception.
                             if matches!(native_error.kind, JsNativeErrorKind::NoInstructionsRemain)
                             {
-                                let error = native_error.to_opaque(self);
-                                self.vm.push(error);
+                                self.vm.err = Some(err);
                                 break CompletionType::Throw;
                             }
                         }
                     }
 
-                    let err_value = err.to_opaque(self);
-                    self.vm.push(err_value);
+                    self.vm.err = Some(err);
 
                     // If this frame has not evaluated the throw as an AbruptCompletion, then evaluate it
                     let evaluation = Opcode::Throw
@@ -286,12 +285,12 @@ impl Context<'_> {
                     let result = self.vm.pop();
                     self.vm.stack.truncate(self.vm.frame().fp);
                     self.vm.frame_mut().early_return = None;
-                    return CompletionRecord::new(CompletionType::Normal, result);
+                    return CompletionRecord::Normal(result);
                 }
                 EarlyReturnType::Yield => {
                     let result = self.vm.stack.pop().unwrap_or(JsValue::Undefined);
                     self.vm.frame_mut().early_return = None;
-                    return CompletionRecord::new(CompletionType::Return, result);
+                    return CompletionRecord::Return(result);
                 }
             }
         }
@@ -320,7 +319,11 @@ impl Context<'_> {
         }
 
         // Determine the execution result
-        let execution_result = if execution_completion != CompletionType::Normal {
+        let execution_result = if execution_completion == CompletionType::Throw {
+            self.vm.frame_mut().abrupt_completion = None;
+            self.vm.stack.truncate(self.vm.frame().fp);
+            JsValue::undefined()
+        } else if execution_completion == CompletionType::Return {
             self.vm.frame_mut().abrupt_completion = None;
             let result = self.vm.pop();
             self.vm.stack.truncate(self.vm.frame().fp);
@@ -349,10 +352,12 @@ impl Context<'_> {
                         .expect("cannot fail per spec");
                 }
                 CompletionType::Throw => {
+                    let err = self.vm.err.take().expect("Take must exist on a Throw");
                     promise
                         .reject()
-                        .call(&JsValue::undefined(), &[execution_result.clone()], self)
+                        .call(&JsValue::undefined(), &[err.to_opaque(self)], self)
                         .expect("cannot fail per spec");
+                    self.vm.err = Some(err);
                 }
             }
         } else if let Some(generator_object) = self.vm.frame().async_generator.clone() {
@@ -372,7 +377,11 @@ impl Context<'_> {
             if execution_completion == CompletionType::Throw {
                 AsyncGenerator::complete_step(
                     &next,
-                    Err(JsError::from_opaque(execution_result)),
+                    Err(self
+                        .vm
+                        .err
+                        .take()
+                        .expect("err must exist on a Completion::Throw")),
                     true,
                     self,
                 );
@@ -385,9 +394,14 @@ impl Context<'_> {
         }
 
         // Any valid return statement is re-evaluated as a normal completion vs. return (yield).
-        if execution_completion == CompletionType::Return {
-            return CompletionRecord::new(CompletionType::Normal, execution_result);
+        if execution_completion == CompletionType::Throw {
+            return CompletionRecord::Throw(
+                self.vm
+                    .err
+                    .take()
+                    .expect("Err must exist for a CompletionType::Throw"),
+            );
         }
-        CompletionRecord::new(execution_completion, execution_result)
+        CompletionRecord::Normal(execution_result)
     }
 }

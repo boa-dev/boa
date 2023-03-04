@@ -1,6 +1,6 @@
 use crate::{
     vm::{opcode::Operation, CompletionType},
-    Context, JsResult,
+    Context, JsError, JsResult,
 };
 
 /// `FinallyStart` implements the Opcode Operation for `Opcode::FinallyStart`
@@ -140,6 +140,8 @@ impl Operation for FinallyEnd {
                     .saturating_sub(current_stack.env_num());
                 context.realm.environments.truncate(env_truncation_len);
 
+                let err = JsError::from_opaque(context.vm.pop());
+                context.vm.err = Some(err);
                 return Ok(CompletionType::Throw);
             }
             _ => {

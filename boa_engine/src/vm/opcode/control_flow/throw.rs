@@ -1,6 +1,6 @@
 use crate::{
     vm::{call_frame::AbruptCompletionRecord, opcode::Operation, CompletionType},
-    Context, JsResult,
+    Context, JsError, JsResult,
 };
 
 /// `Throw` implements the Opcode Operation for `Opcode::Throw`
@@ -15,7 +15,11 @@ impl Operation for Throw {
     const INSTRUCTION: &'static str = "INST - Throw";
 
     fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
-        let error = context.vm.pop();
+        let error = if let Some(err) = context.vm.err.take() {
+            err
+        } else {
+            JsError::from_opaque(context.vm.pop())
+        };
         // 1. Find the viable catch and finally blocks
         let current_address = context.vm.frame().pc;
         let viable_catch_candidates = context
@@ -71,7 +75,8 @@ impl Operation for Throw {
             context.vm.frame_mut().pop_on_return = 0;
             let record = AbruptCompletionRecord::new_throw().with_initial_target(catch_target);
             context.vm.frame_mut().abrupt_completion = Some(record);
-            context.vm.push(error);
+            let err = error.to_opaque(context);
+            context.vm.push(err);
             return Ok(CompletionType::Normal);
         }
 
@@ -117,11 +122,12 @@ impl Operation for Throw {
             context.vm.frame_mut().pop_on_return = 0;
 
             context.vm.frame_mut().pc = address;
-            context.vm.push(error);
+            let err = error.to_opaque(context);
+            context.vm.push(err);
             return Ok(CompletionType::Normal);
         }
 
-        context.vm.push(error);
+        context.vm.err = Some(error);
         Ok(CompletionType::Throw)
     }
 }
