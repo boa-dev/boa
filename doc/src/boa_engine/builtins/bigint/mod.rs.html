@@ -410,7 +410,7 @@
         <span class="comment">// 1. If IsIntegralNumber(number) is false, throw a RangeError exception.
         </span><span class="kw">if </span>number.is_nan() || number.is_infinite() || number.fract() != <span class="number">0.0 </span>{
             <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::range()
-                .with_message(<span class="macro">format!</span>(<span class="string">&quot;Cannot convert {number} to BigInt&quot;</span>))
+                .with_message(<span class="macro">format!</span>(<span class="string">&quot;cannot convert {number} to a BigInt&quot;</span>))
                 .into());
         }
 

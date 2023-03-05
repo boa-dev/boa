@@ -112,8 +112,8 @@
     <span class="attr">#[inline]
     </span><span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
         <span class="kw">match </span><span class="self">self </span>{
-            <span class="self">Self</span>::IO(e) =&gt; <span class="macro">write!</span>(f, <span class="string">&quot;I/O error: {e}&quot;</span>),
-            <span class="self">Self</span>::Syntax(e, pos) =&gt; <span class="macro">write!</span>(f, <span class="string">&quot;Syntax Error: {e} at position: {pos}&quot;</span>),
+            <span class="self">Self</span>::IO(e) =&gt; <span class="macro">write!</span>(f, <span class="string">&quot;{e}&quot;</span>),
+            <span class="self">Self</span>::Syntax(e, pos) =&gt; <span class="macro">write!</span>(f, <span class="string">&quot;{e} at position: {pos}&quot;</span>),
         }
     }
 }

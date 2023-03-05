@@ -417,7 +417,7 @@
                 position.line_number(),
                 position.column_number()
             ),
-            <span class="self">Self</span>::Lex { err } =&gt; fmt::Display::fmt(err, f),
+            <span class="self">Self</span>::Lex { err } =&gt; <span class="macro">write!</span>(f, <span class="string">&quot;{err}&quot;</span>),
         }
     }
 }
