@@ -182,85 +182,268 @@ impl JsArgs for [JsValue] {
     }
 }
 
-/// Execute the code using an existing `Context`.
-///
-/// The state of the `Context` is changed, and a string representation of the result is returned.
 #[cfg(test)]
-pub(crate) fn forward<S>(context: &mut Context<'_>, src: &S) -> String
-where
-    S: AsRef<[u8]> + ?Sized,
-{
-    context
-        .eval_script(Source::from_bytes(src))
-        .map_or_else(|e| format!("Uncaught {e}"), |v| v.display().to_string())
+use std::borrow::Cow;
+
+/// A test action executed in a test function.
+#[cfg(test)]
+#[derive(Clone)]
+pub(crate) struct TestAction(Inner);
+
+#[cfg(test)]
+#[derive(Clone)]
+enum Inner {
+    RunHarness,
+    Run {
+        source: Cow<'static, str>,
+    },
+    InspectContext {
+        op: fn(&mut Context<'_>),
+    },
+    Assert {
+        source: Cow<'static, str>,
+    },
+    AssertEq {
+        source: Cow<'static, str>,
+        expected: JsValue,
+    },
+    AssertWithOp {
+        source: Cow<'static, str>,
+        op: fn(JsValue, &mut Context<'_>) -> bool,
+    },
+    AssertOpaqueError {
+        source: Cow<'static, str>,
+        expected: JsValue,
+    },
+    AssertNativeError {
+        source: Cow<'static, str>,
+        kind: builtins::error::ErrorKind,
+        message: &'static str,
+    },
+    AssertContext {
+        op: fn(&mut Context<'_>) -> bool,
+    },
 }
 
-/// Execute the code using an existing Context.
-/// The str is consumed and the state of the Context is changed
-/// Similar to `forward`, except the current value is returned instead of the string
-/// If the interpreter fails parsing an error value is returned instead (error object)
-#[allow(clippy::unit_arg, clippy::drop_copy)]
 #[cfg(test)]
-pub(crate) fn forward_val<T: AsRef<[u8]> + ?Sized>(
-    context: &mut Context<'_>,
-    src: &T,
-) -> JsResult<JsValue> {
-    use boa_profiler::Profiler;
+impl TestAction {
+    /// Evaluates some utility functions used in tests.
+    pub(crate) const fn run_harness() -> Self {
+        Self(Inner::RunHarness)
+    }
 
-    let main_timer = Profiler::global().start_event("Main", "Main");
+    /// Runs `source`, panicking if the execution throws.
+    pub(crate) fn run(source: impl Into<Cow<'static, str>>) -> Self {
+        Self(Inner::Run {
+            source: source.into(),
+        })
+    }
 
-    let result = context.eval_script(Source::from_bytes(src));
+    /// Executes `op` with the currently active context.
+    ///
+    /// Useful to make custom assertions that must be done from Rust code.
+    pub(crate) fn inspect_context(op: fn(&mut Context<'_>)) -> Self {
+        Self(Inner::InspectContext { op })
+    }
 
-    // The main_timer needs to be dropped before the Profiler is.
-    drop(main_timer);
-    Profiler::global().drop();
+    /// Asserts that evaluating `source` returns the `true` value.
+    pub(crate) fn assert(source: impl Into<Cow<'static, str>>) -> Self {
+        Self(Inner::Assert {
+            source: source.into(),
+        })
+    }
 
-    result
-}
+    /// Asserts that the script returns `expected` when evaluating `source`.
+    pub(crate) fn assert_eq(
+        source: impl Into<Cow<'static, str>>,
+        expected: impl Into<JsValue>,
+    ) -> Self {
+        Self(Inner::AssertEq {
+            source: source.into(),
+            expected: expected.into(),
+        })
+    }
 
-/// Create a clean Context and execute the code
-#[cfg(test)]
-pub(crate) fn exec<T: AsRef<[u8]> + ?Sized>(src: &T) -> String {
-    match Context::default().eval_script(Source::from_bytes(src)) {
-        Ok(value) => value.display().to_string(),
-        Err(error) => error.to_string(),
+    /// Asserts that calling `op` with the value obtained from evaluating `source` returns `true`.
+    ///
+    /// Useful to check properties of the obtained value that cannot be checked from JS code.
+    pub(crate) fn assert_with_op(
+        source: impl Into<Cow<'static, str>>,
+        op: fn(JsValue, &mut Context<'_>) -> bool,
+    ) -> Self {
+        Self(Inner::AssertWithOp {
+            source: source.into(),
+            op,
+        })
+    }
+
+    /// Asserts that evaluating `source` throws the opaque error `value`.
+    pub(crate) fn assert_opaque_error(
+        source: impl Into<Cow<'static, str>>,
+        value: impl Into<JsValue>,
+    ) -> Self {
+        Self(Inner::AssertOpaqueError {
+            source: source.into(),
+            expected: value.into(),
+        })
+    }
+
+    /// Asserts that evaluating `source` throws a native error of `kind` and `message`.
+    pub(crate) fn assert_native_error(
+        source: impl Into<Cow<'static, str>>,
+        kind: builtins::error::ErrorKind,
+        message: &'static str,
+    ) -> Self {
+        Self(Inner::AssertNativeError {
+            source: source.into(),
+            kind,
+            message,
+        })
+    }
+
+    /// Asserts that calling `op` with the currently executing context returns `true`.
+    pub(crate) fn assert_context(op: fn(&mut Context<'_>) -> bool) -> Self {
+        Self(Inner::AssertContext { op })
     }
 }
 
-#[cfg(test)]
-pub(crate) enum TestAction {
-    Execute(&'static str),
-    TestEq(&'static str, &'static str),
-    TestStartsWith(&'static str, &'static str),
-}
-
-/// Create a clean Context, call "forward" for each action, and optionally
-/// assert equality of the returned value or if returned value starts with
-/// expected string.
+/// Executes a list of test actions on a new, default context.
 #[cfg(test)]
 #[track_caller]
-pub(crate) fn check_output(actions: &[TestAction]) {
-    let mut context = Context::default();
+pub(crate) fn run_test_actions(actions: impl IntoIterator<Item = TestAction>) {
+    let context = &mut Context::default();
+    run_test_actions_with(actions, context);
+}
 
+/// Executes a list of test actions on the provided context.
+#[cfg(test)]
+#[track_caller]
+pub(crate) fn run_test_actions_with(
+    actions: impl IntoIterator<Item = TestAction>,
+    context: &mut Context<'_>,
+) {
+    #[track_caller]
+    fn forward_val(context: &mut Context<'_>, source: &str) -> JsResult<JsValue> {
+        context.eval_script(Source::from_bytes(source))
+    }
+
+    #[track_caller]
+    fn fmt_test(source: &str, test: usize) -> String {
+        format!(
+            "\n\nTest case {test}: \n```\n{}\n```",
+            textwrap::indent(source, "    ")
+        )
+    }
+
+    // Some unwrapping patterns look weird because they're replaceable
+    // by simpler patterns like `unwrap_or_else` or `unwrap_err
     let mut i = 1;
-    for action in actions {
+    for action in actions.into_iter().map(|a| a.0) {
         match action {
-            TestAction::Execute(src) => {
-                forward(&mut context, src);
+            Inner::RunHarness => {
+                // add utility functions for testing
+                // TODO: extract to a file
+                forward_val(
+                    context,
+                    r#"
+                        function equals(a, b) {
+                            if (Array.isArray(a) && Array.isArray(b)) {
+                                return arrayEquals(a, b);
+                            }
+                            return a === b;
+                        }
+                        function arrayEquals(a, b) {
+                            return Array.isArray(a) &&
+                                Array.isArray(b) &&
+                                a.length === b.length &&
+                                a.every((val, index) => equals(val, b[index]));
+                        }
+                    "#,
+                )
+                .expect("failed to evaluate test harness");
             }
-            TestAction::TestEq(case, expected) => {
-                assert_eq!(
-                    &forward(&mut context, case),
-                    expected,
-                    "Test case {i} ('{case}')"
-                );
+            Inner::Run { source } => {
+                if let Err(e) = forward_val(context, &source) {
+                    panic!("{}\nUncaught {e}", fmt_test(&source, i));
+                }
+            }
+            Inner::InspectContext { op } => {
+                op(context);
+            }
+            Inner::Assert { source } => {
+                let val = match forward_val(context, &source) {
+                    Err(e) => panic!("{}\nUncaught {e}", fmt_test(&source, i)),
+                    Ok(v) => v,
+                };
+                let Some(val) = val.as_boolean() else {
+                    panic!(
+                        "{}\nTried to assert with the non-boolean value `{}`",
+                        fmt_test(&source, i),
+                        val.display()
+                    )
+                };
+                assert!(val, "{}", fmt_test(&source, i));
                 i += 1;
             }
-            TestAction::TestStartsWith(case, expected) => {
-                assert!(
-                    &forward(&mut context, case).starts_with(expected),
-                    "Test case {i} ('{case}')",
-                );
+            Inner::AssertEq { source, expected } => {
+                let val = match forward_val(context, &source) {
+                    Err(e) => panic!("{}\nUncaught {e}", fmt_test(&source, i)),
+                    Ok(v) => v,
+                };
+                assert_eq!(val, expected, "{}", fmt_test(&source, i));
+                i += 1;
+            }
+            Inner::AssertWithOp { source, op } => {
+                let val = match forward_val(context, &source) {
+                    Err(e) => panic!("{}\nUncaught {e}", fmt_test(&source, i)),
+                    Ok(v) => v,
+                };
+                assert!(op(val, context), "{}", fmt_test(&source, i));
+                i += 1;
+            }
+            Inner::AssertOpaqueError { source, expected } => {
+                let err = match forward_val(context, &source) {
+                    Ok(v) => panic!(
+                        "{}\nExpected error, got value `{}`",
+                        fmt_test(&source, i),
+                        v.display()
+                    ),
+                    Err(e) => e,
+                };
+                let Some(err) = err.as_opaque() else {
+                    panic!("{}\nExpected opaque error, got native error `{}`", fmt_test(&source, i), err)
+                };
+
+                assert_eq!(err, &expected, "{}", fmt_test(&source, i));
+                i += 1;
+            }
+            Inner::AssertNativeError {
+                source,
+                kind,
+                message,
+            } => {
+                let err = match forward_val(context, &source) {
+                    Ok(v) => panic!(
+                        "{}\nExpected error, got value `{}`",
+                        fmt_test(&source, i),
+                        v.display()
+                    ),
+                    Err(e) => e,
+                };
+                let native = match err.try_native(context) {
+                    Ok(err) => err,
+                    Err(e) => panic!(
+                        "{}\nCouldn't obtain a native error: {e}",
+                        fmt_test(&source, i)
+                    ),
+                };
+
+                assert_eq!(&native.kind, &kind, "{}", fmt_test(&source, i));
+                assert_eq!(native.message(), message, "{}", fmt_test(&source, i));
+                i += 1;
+            }
+            Inner::AssertContext { op } => {
+                assert!(op(context), "Test case {i}");
                 i += 1;
             }
         }

@@ -205,7 +205,7 @@ impl fmt::Display for Error {
                 position.line_number(),
                 position.column_number()
             ),
-            Self::Lex { err } => fmt::Display::fmt(err, f),
+            Self::Lex { err } => write!(f, "{err}"),
         }
     }
 }

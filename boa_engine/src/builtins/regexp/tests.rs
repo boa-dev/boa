@@ -1,240 +1,186 @@
-use crate::{forward, Context};
+use crate::{builtins::error::ErrorKind, object::JsObject, run_test_actions, JsValue, TestAction};
+use indoc::indoc;
 
 #[test]
 fn constructors() {
-    let mut context = Context::default();
-    let init = r#"
-        var constructed = new RegExp("[0-9]+(\\.[0-9]+)?");
-        var literal = /[0-9]+(\.[0-9]+)?/;
-        var ctor_literal = new RegExp(/[0-9]+(\.[0-9]+)?/);
-        "#;
-
-    eprintln!("{}", forward(&mut context, init));
-    assert_eq!(forward(&mut context, "constructed.test('1.0')"), "true");
-    assert_eq!(forward(&mut context, "literal.test('1.0')"), "true");
-    assert_eq!(forward(&mut context, "ctor_literal.test('1.0')"), "true");
+    run_test_actions([
+        TestAction::run(indoc! {r#"
+                var constructed = new RegExp("[0-9]+(\\.[0-9]+)?");
+                var literal = /[0-9]+(\.[0-9]+)?/;
+                var ctor_literal = new RegExp(/[0-9]+(\.[0-9]+)?/);
+            "#}),
+        TestAction::assert("constructed.test('1.0')"),
+        TestAction::assert("literal.test('1.0')"),
+        TestAction::assert("ctor_literal.test('1.0')"),
+    ]);
 }
 
 #[test]
 fn species() {
-    let mut context = Context::default();
-
-    let init = r#"
+    run_test_actions([
+        TestAction::run(indoc! {r#"
         var descriptor = Object.getOwnPropertyDescriptor(RegExp, Symbol.species);
-        var accessor = Object.getOwnPropertyDescriptor(RegExp, Symbol.species).get;
-        var name = Object.getOwnPropertyDescriptor(descriptor.get, "name");
-        var length = Object.getOwnPropertyDescriptor(descriptor.get, "length");
+        var accessor = descriptor.get;
+        var name = Object.getOwnPropertyDescriptor(accessor, "name");
+        var length = Object.getOwnPropertyDescriptor(accessor, "length");
         var thisVal = {};
-        "#;
-    eprintln!("{}", forward(&mut context, init));
-
-    // length
-    assert_eq!(forward(&mut context, "descriptor.get.length"), "0");
-    assert_eq!(forward(&mut context, "length.enumerable"), "false");
-    assert_eq!(forward(&mut context, "length.writable"), "false");
-    assert_eq!(forward(&mut context, "length.configurable"), "true");
-
-    // return-value
-    assert_eq!(
-        forward(&mut context, "Object.is(accessor.call(thisVal), thisVal)"),
-        "true"
-    );
-
-    // symbol-species-name
-    assert_eq!(
-        forward(&mut context, "descriptor.get.name"),
-        "\"get [Symbol.species]\""
-    );
-    assert_eq!(forward(&mut context, "name.enumerable"), "false");
-    assert_eq!(forward(&mut context, "name.writable"), "false");
-    assert_eq!(forward(&mut context, "name.configurable"), "true");
-
-    // symbol-species
-    assert_eq!(forward(&mut context, "descriptor.set"), "undefined");
-    assert_eq!(
-        forward(&mut context, "typeof descriptor.get"),
-        "\"function\""
-    );
-    assert_eq!(forward(&mut context, "descriptor.enumerable"), "false");
-    assert_eq!(forward(&mut context, "descriptor.configurable"), "true");
+        "#}),
+        // length
+        TestAction::assert_eq("length.value", 0),
+        TestAction::assert("!length.enumerable"),
+        TestAction::assert("!length.writable"),
+        TestAction::assert("length.configurable"),
+        // return-value
+        TestAction::assert("Object.is(accessor.call(thisVal), thisVal)"),
+        // symbol-species-name
+        TestAction::assert_eq("name.value", "get [Symbol.species]"),
+        TestAction::assert("!name.enumerable"),
+        TestAction::assert("!name.writable"),
+        TestAction::assert("name.configurable"),
+        // symbol-species
+        TestAction::assert_eq("descriptor.set", JsValue::undefined()),
+        TestAction::assert_with_op("accessor", |v, _| {
+            v.as_object().map_or(false, JsObject::is_function)
+        }),
+        TestAction::assert("!descriptor.enumerable"),
+        TestAction::assert("descriptor.configurable"),
+    ]);
 }
 
-// TODO: uncomment this test when property getters are supported
-
-//    #[test]
-//    fn flags() {
-//        let mut context = Context::default();
-//        let init = r#"
-//                var re_gi = /test/gi;
-//                var re_sm = /test/sm;
-//                "#;
-//
-//        eprintln!("{}", forward(&mut context, init));
-//        assert_eq!(forward(&mut context, "re_gi.global"), "true");
-//        assert_eq!(forward(&mut context, "re_gi.ignoreCase"), "true");
-//        assert_eq!(forward(&mut context, "re_gi.multiline"), "false");
-//        assert_eq!(forward(&mut context, "re_gi.dotAll"), "false");
-//        assert_eq!(forward(&mut context, "re_gi.unicode"), "false");
-//        assert_eq!(forward(&mut context, "re_gi.sticky"), "false");
-//        assert_eq!(forward(&mut context, "re_gi.flags"), "gi");
-//
-//        assert_eq!(forward(&mut context, "re_sm.global"), "false");
-//        assert_eq!(forward(&mut context, "re_sm.ignoreCase"), "false");
-//        assert_eq!(forward(&mut context, "re_sm.multiline"), "true");
-//        assert_eq!(forward(&mut context, "re_sm.dotAll"), "true");
-//        assert_eq!(forward(&mut context, "re_sm.unicode"), "false");
-//        assert_eq!(forward(&mut context, "re_sm.sticky"), "false");
-//        assert_eq!(forward(&mut context, "re_sm.flags"), "ms");
-//    }
+#[test]
+fn flags() {
+    run_test_actions([
+        TestAction::run(indoc! {r#"
+                var re_gi = /test/gi;
+                var re_sm = /test/sm;
+            "#}),
+        TestAction::assert("re_gi.global"),
+        TestAction::assert("re_gi.ignoreCase"),
+        TestAction::assert("!re_gi.multiline"),
+        TestAction::assert("!re_gi.dotAll"),
+        TestAction::assert("!re_gi.unicode"),
+        TestAction::assert("!re_gi.sticky"),
+        TestAction::assert_eq("re_gi.flags", "gi"),
+        //
+        TestAction::assert("!re_sm.global"),
+        TestAction::assert("!re_sm.ignoreCase"),
+        TestAction::assert("re_sm.multiline"),
+        TestAction::assert("re_sm.dotAll"),
+        TestAction::assert("!re_sm.unicode"),
+        TestAction::assert("!re_sm.sticky"),
+        TestAction::assert_eq("re_sm.flags", "ms"),
+    ]);
+}
 
 #[test]
 fn last_index() {
-    let mut context = Context::default();
-    let init = r#"
-        var regex = /[0-9]+(\.[0-9]+)?/g;
-        "#;
-
-    eprintln!("{}", forward(&mut context, init));
-    assert_eq!(forward(&mut context, "regex.lastIndex"), "0");
-    assert_eq!(forward(&mut context, "regex.test('1.0foo')"), "true");
-    assert_eq!(forward(&mut context, "regex.lastIndex"), "3");
-    assert_eq!(forward(&mut context, "regex.test('1.0foo')"), "false");
-    assert_eq!(forward(&mut context, "regex.lastIndex"), "0");
+    run_test_actions([
+        TestAction::run(r"var regex = /[0-9]+(\.[0-9]+)?/g;"),
+        TestAction::assert_eq("regex.lastIndex", 0),
+        TestAction::assert("regex.test('1.0foo')"),
+        TestAction::assert_eq("regex.lastIndex", 3),
+        TestAction::assert("!regex.test('1.0foo')"),
+        TestAction::assert_eq("regex.lastIndex", 0),
+    ]);
 }
 
 #[test]
 fn exec() {
-    let mut context = Context::default();
-    let init = r#"
-        var re = /quick\s(brown).+?(jumps)/ig;
-        var result = re.exec('The Quick Brown Fox Jumps Over The Lazy Dog');
-        "#;
-
-    eprintln!("{}", forward(&mut context, init));
-    assert_eq!(
-        forward(&mut context, "result[0]"),
-        "\"Quick Brown Fox Jumps\""
-    );
-    assert_eq!(forward(&mut context, "result[1]"), "\"Brown\"");
-    assert_eq!(forward(&mut context, "result[2]"), "\"Jumps\"");
-    assert_eq!(forward(&mut context, "result.index"), "4");
-    assert_eq!(
-        forward(&mut context, "result.input"),
-        "\"The Quick Brown Fox Jumps Over The Lazy Dog\""
-    );
+    run_test_actions([
+        TestAction::run_harness(),
+        TestAction::run(indoc! {r#"
+                var re = /quick\s(brown).+?(jumps)/ig;
+                var result = re.exec('The Quick Brown Fox Jumps Over The Lazy Dog');
+            "#}),
+        TestAction::assert(indoc! {r#"
+            arrayEquals(
+                result,
+                ["Quick Brown Fox Jumps", "Brown", "Jumps"]
+            )
+        "#}),
+        TestAction::assert_eq("result.index", 4),
+        TestAction::assert_eq(
+            "result.input",
+            "The Quick Brown Fox Jumps Over The Lazy Dog",
+        ),
+    ]);
 }
 
 #[test]
 fn to_string() {
-    let mut context = Context::default();
-
-    assert_eq!(
-        forward(&mut context, "(new RegExp('a+b+c')).toString()"),
-        "\"/a+b+c/\""
-    );
-    assert_eq!(
-        forward(&mut context, "(new RegExp('bar', 'g')).toString()"),
-        "\"/bar/g\""
-    );
-    assert_eq!(
-        forward(&mut context, "(new RegExp('\\\\n', 'g')).toString()"),
-        "\"/\\n/g\""
-    );
-    assert_eq!(forward(&mut context, "/\\n/g.toString()"), "\"/\\n/g\"");
+    run_test_actions([
+        TestAction::assert_eq("(new RegExp('a+b+c')).toString()", "/a+b+c/"),
+        TestAction::assert_eq("(new RegExp('bar', 'g')).toString()", "/bar/g"),
+        TestAction::assert_eq(r"(new RegExp('\\n', 'g')).toString()", r"/\n/g"),
+        TestAction::assert_eq(r"/\n/g.toString()", r"/\n/g"),
+    ]);
 }
 
 #[test]
 fn no_panic_on_invalid_character_escape() {
-    let mut context = Context::default();
-
     // This used to panic, we now return an error
     // The line below should not cause Boa to panic
-    forward(&mut context, r"const a = /,\;/");
+    run_test_actions([TestAction::assert_native_error(
+        r"const a = /,\;/",
+        ErrorKind::Syntax,
+        "Invalid regular expression literal: Invalid character escape at position: 1:11",
+    )]);
 }
 
 #[test]
 fn search() {
-    let mut context = Context::default();
-
-    // coerce-string
-    assert_eq!(
-        forward(
-            &mut context,
-            r#"
-        var obj = {
-            toString: function() {
-                return 'toString value';
-            }
-        };
-        /ring/[Symbol.search](obj)
-        "#
+    const ERROR: &str = "RegExp.prototype[Symbol.search] method called on incompatible value";
+    run_test_actions([
+        TestAction::run(indoc! {r#"
+                var search = Object.getOwnPropertyDescriptor(RegExp.prototype, Symbol.search);
+                var length = Object.getOwnPropertyDescriptor(search.value, 'length');
+                var name = Object.getOwnPropertyDescriptor(search.value, 'name');
+            "#}),
+        // prop-desc
+        TestAction::assert("!search.enumerable"),
+        TestAction::assert("search.writable"),
+        TestAction::assert("search.configurable"),
+        // length
+        TestAction::assert_eq("length.value", 1),
+        TestAction::assert("!length.enumerable"),
+        TestAction::assert("!length.writable"),
+        TestAction::assert("length.configurable"),
+        // name
+        TestAction::assert_eq("name.value", "[Symbol.search]"),
+        TestAction::assert("!name.enumerable"),
+        TestAction::assert("!name.writable"),
+        TestAction::assert("name.configurable"),
+        // success-return-val
+        TestAction::assert_eq("/a/[Symbol.search]('abc')", 0),
+        TestAction::assert_eq("/b/[Symbol.search]('abc')", 1),
+        TestAction::assert_eq("/c/[Symbol.search]('abc')", 2),
+        // failure-return-val
+        TestAction::assert_eq("/z/[Symbol.search]('a')", -1),
+        // coerce-string
+        TestAction::assert_eq(
+            indoc! {r#"
+                /ring/[Symbol.search]({
+                    toString: function() {
+                        return 'toString value';
+                    }
+                });
+            "#},
+            4,
         ),
-        "4"
-    );
-
-    // failure-return-val
-    assert_eq!(forward(&mut context, "/z/[Symbol.search]('a')"), "-1");
-
-    // length
-    assert_eq!(
-        forward(&mut context, "RegExp.prototype[Symbol.search].length"),
-        "1"
-    );
-
-    let init =
-        "var obj = Object.getOwnPropertyDescriptor(RegExp.prototype[Symbol.search], \"length\")";
-    eprintln!("{}", forward(&mut context, init));
-    assert_eq!(forward(&mut context, "obj.enumerable"), "false");
-    assert_eq!(forward(&mut context, "obj.writable"), "false");
-    assert_eq!(forward(&mut context, "obj.configurable"), "true");
-
-    // name
-    assert_eq!(
-        forward(&mut context, "RegExp.prototype[Symbol.search].name"),
-        "\"[Symbol.search]\""
-    );
-
-    let init =
-        "var obj = Object.getOwnPropertyDescriptor(RegExp.prototype[Symbol.search], \"name\")";
-    eprintln!("{}", forward(&mut context, init));
-    assert_eq!(forward(&mut context, "obj.enumerable"), "false");
-    assert_eq!(forward(&mut context, "obj.writable"), "false");
-    assert_eq!(forward(&mut context, "obj.configurable"), "true");
-
-    // prop-desc
-    let init = "var obj = Object.getOwnPropertyDescriptor(RegExp.prototype, Symbol.search)";
-    eprintln!("{}", forward(&mut context, init));
-    assert_eq!(forward(&mut context, "obj.enumerable"), "false");
-    assert_eq!(forward(&mut context, "obj.writable"), "true");
-    assert_eq!(forward(&mut context, "obj.configurable"), "true");
-
-    // success-return-val
-    assert_eq!(forward(&mut context, "/a/[Symbol.search]('abc')"), "0");
-    assert_eq!(forward(&mut context, "/b/[Symbol.search]('abc')"), "1");
-    assert_eq!(forward(&mut context, "/c/[Symbol.search]('abc')"), "2");
-
-    // this-val-non-obj
-    let error =
-        "Uncaught TypeError: RegExp.prototype[Symbol.search] method called on incompatible value";
-    let init = "var search = RegExp.prototype[Symbol.search]";
-    eprintln!("{}", forward(&mut context, init));
-    assert_eq!(forward(&mut context, "search.call()"), error);
-    assert_eq!(forward(&mut context, "search.call(undefined)"), error);
-    assert_eq!(forward(&mut context, "search.call(null)"), error);
-    assert_eq!(forward(&mut context, "search.call(true)"), error);
-    assert_eq!(forward(&mut context, "search.call('string')"), error);
-    assert_eq!(forward(&mut context, "search.call(Symbol.search)"), error);
-    assert_eq!(forward(&mut context, "search.call(86)"), error);
-
-    // u-lastindex-advance
-    assert_eq!(
-        forward(&mut context, "/\\udf06/u[Symbol.search]('\\ud834\\udf06')"),
-        "-1"
-    );
-
-    assert_eq!(forward(&mut context, "/a/[Symbol.search](\"a\")"), "0");
-    assert_eq!(forward(&mut context, "/a/[Symbol.search](\"ba\")"), "1");
-    assert_eq!(forward(&mut context, "/a/[Symbol.search](\"bb\")"), "-1");
-    assert_eq!(forward(&mut context, "/u/[Symbol.search](null)"), "1");
-    assert_eq!(forward(&mut context, "/d/[Symbol.search](undefined)"), "2");
+        // this-val-non-obj
+        TestAction::assert_native_error("search.value.call()", ErrorKind::Type, ERROR),
+        TestAction::assert_native_error("search.value.call(undefined)", ErrorKind::Type, ERROR),
+        TestAction::assert_native_error("search.value.call(null)", ErrorKind::Type, ERROR),
+        TestAction::assert_native_error("search.value.call(true)", ErrorKind::Type, ERROR),
+        TestAction::assert_native_error("search.value.call('string')", ErrorKind::Type, ERROR),
+        TestAction::assert_native_error("search.value.call(Symbol.search)", ErrorKind::Type, ERROR),
+        TestAction::assert_native_error("search.value.call(86)", ErrorKind::Type, ERROR),
+        // u-lastindex-advance
+        TestAction::assert_eq(r"/\udf06/u[Symbol.search]('\ud834\udf06')", -1),
+        TestAction::assert_eq("/a/[Symbol.search](\"a\")", 0),
+        TestAction::assert_eq("/a/[Symbol.search](\"ba\")", 1),
+        TestAction::assert_eq("/a/[Symbol.search](\"bb\")", -1),
+        TestAction::assert_eq("/u/[Symbol.search](null)", 1),
+        TestAction::assert_eq("/d/[Symbol.search](undefined)", 2),
+    ]);
 }

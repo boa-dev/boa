@@ -801,6 +801,22 @@ pub enum JsNativeErrorKind {
     NoInstructionsRemain,
 }
 
+impl PartialEq<ErrorKind> for JsNativeErrorKind {
+    fn eq(&self, other: &ErrorKind) -> bool {
+        matches!(
+            (self, other),
+            (Self::Aggregate(_), ErrorKind::Aggregate)
+                | (Self::Error, ErrorKind::Error)
+                | (Self::Eval, ErrorKind::Eval)
+                | (Self::Range, ErrorKind::Range)
+                | (Self::Reference, ErrorKind::Reference)
+                | (Self::Syntax, ErrorKind::Syntax)
+                | (Self::Type, ErrorKind::Type)
+                | (Self::Uri, ErrorKind::Uri)
+        )
+    }
+}
+
 impl std::fmt::Display for JsNativeErrorKind {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {

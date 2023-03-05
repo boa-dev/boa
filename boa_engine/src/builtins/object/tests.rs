@@ -1,430 +1,408 @@
-use boa_parser::Source;
+use crate::{builtins::error::ErrorKind, run_test_actions, JsValue, TestAction};
+use indoc::indoc;
 
-use crate::{check_output, forward, Context, JsValue, TestAction};
+#[test]
+fn object_create_length() {
+    run_test_actions([TestAction::assert_eq("Object.create.length", 2)]);
+}
 
 #[test]
 fn object_create_with_regular_object() {
-    let mut context = Context::default();
-
-    let init = r#"
-        const foo = { a: 5 };
-        const bar = Object.create(foo);
-        "#;
-
-    forward(&mut context, init);
-
-    assert_eq!(forward(&mut context, "bar.a"), "5");
-    assert_eq!(forward(&mut context, "Object.create.length"), "2");
+    run_test_actions([TestAction::assert_eq("Object.create({ a: 5 }).a", 5)]);
 }
 
 #[test]
 fn object_create_with_undefined() {
-    let mut context = Context::default();
-
-    let init = r#"
-        try {
-            const bar = Object.create();
-        } catch (err) {
-            err.toString()
-        }
-        "#;
-
-    let result = forward(&mut context, init);
-    assert_eq!(
-        result,
-        "\"TypeError: Object prototype may only be an Object or null: undefined\""
-    );
+    run_test_actions([TestAction::assert_native_error(
+        "Object.create()",
+        ErrorKind::Type,
+        "Object prototype may only be an Object or null: undefined",
+    )]);
 }
 
 #[test]
 fn object_create_with_number() {
-    let mut context = Context::default();
-
-    let init = r#"
-        try {
-            const bar = Object.create(5);
-        } catch (err) {
-            err.toString()
-        }
-        "#;
-
-    let result = forward(&mut context, init);
-    assert_eq!(
-        result,
-        "\"TypeError: Object prototype may only be an Object or null: 5\""
-    );
+    run_test_actions([TestAction::assert_native_error(
+        "Object.create(5)",
+        ErrorKind::Type,
+        "Object prototype may only be an Object or null: 5",
+    )]);
 }
 
 #[test]
-#[ignore]
-// TODO: to test on __proto__ somehow. __proto__ getter is not working as expected currently
 fn object_create_with_function() {
-    let mut context = Context::default();
-
-    let init = r#"
-        const x = function (){};
-        const bar = Object.create(5);
-        bar.__proto__
-        "#;
-
-    let result = forward(&mut context, init);
-    assert_eq!(result, "...something on __proto__...");
+    run_test_actions([TestAction::assert(indoc! {r#"
+            const x = function (){};
+            const bar = Object.create(x);
+            bar.__proto__ === x
+        "#})]);
 }
 
 #[test]
 fn object_is() {
-    let mut context = Context::default();
-
-    let init = r#"
-        var foo = { a: 1};
-        var bar = { a: 1};
-        "#;
-
-    forward(&mut context, init);
-
-    assert_eq!(forward(&mut context, "Object.is('foo', 'foo')"), "true");
-    assert_eq!(forward(&mut context, "Object.is('foo', 'bar')"), "false");
-    assert_eq!(forward(&mut context, "Object.is([], [])"), "false");
-    assert_eq!(forward(&mut context, "Object.is(foo, foo)"), "true");
-    assert_eq!(forward(&mut context, "Object.is(foo, bar)"), "false");
-    assert_eq!(forward(&mut context, "Object.is(null, null)"), "true");
-    assert_eq!(forward(&mut context, "Object.is(0, -0)"), "false");
-    assert_eq!(forward(&mut context, "Object.is(-0, -0)"), "true");
-    assert_eq!(forward(&mut context, "Object.is(NaN, 0/0)"), "true");
-    assert_eq!(forward(&mut context, "Object.is()"), "true");
-    assert_eq!(forward(&mut context, "Object.is(undefined)"), "true");
-    assert!(context.global_object().is_global());
+    run_test_actions([
+        TestAction::run(indoc! {r#"
+                var foo = { a: 1};
+                var bar = { a: 1};
+            "#}),
+        TestAction::assert("Object.is('foo', 'foo')"),
+        TestAction::assert("!Object.is('foo', 'bar')"),
+        TestAction::assert("!Object.is([], [])"),
+        TestAction::assert("Object.is(foo, foo)"),
+        TestAction::assert("!Object.is(foo, bar)"),
+        TestAction::assert("Object.is(null, null)"),
+        TestAction::assert("!Object.is(0, -0)"),
+        TestAction::assert("Object.is(-0, -0)"),
+        TestAction::assert("Object.is(NaN, 0/0)"),
+        TestAction::assert("Object.is()"),
+        TestAction::assert("Object.is(undefined)"),
+    ]);
 }
 
 #[test]
 fn object_has_own_property() {
-    let scenario = r#"
-        let symA = Symbol('a');
-        let symB = Symbol('b');
+    run_test_actions([
+        TestAction::run(indoc! {r#"
+            let symA = Symbol('a');
+            let symB = Symbol('b');
 
-        let x = {
-            undefinedProp: undefined,
-            nullProp: null,
-            someProp: 1,
-            [symA]: 2,
-            100: 3,
-        };
-    "#;
-
-    check_output(&[
-        TestAction::Execute(scenario),
-        TestAction::TestEq("x.hasOwnProperty('hasOwnProperty')", "false"),
-        TestAction::TestEq("x.hasOwnProperty('undefinedProp')", "true"),
-        TestAction::TestEq("x.hasOwnProperty('nullProp')", "true"),
-        TestAction::TestEq("x.hasOwnProperty('someProp')", "true"),
-        TestAction::TestEq("x.hasOwnProperty(symB)", "false"),
-        TestAction::TestEq("x.hasOwnProperty(symA)", "true"),
-        TestAction::TestEq("x.hasOwnProperty(1000)", "false"),
-        TestAction::TestEq("x.hasOwnProperty(100)", "true"),
+            let x = {
+                undefinedProp: undefined,
+                nullProp: null,
+                someProp: 1,
+                [symA]: 2,
+                100: 3,
+            };
+        "#}),
+        TestAction::assert("!x.hasOwnProperty('hasOwnProperty')"),
+        TestAction::assert("x.hasOwnProperty('undefinedProp')"),
+        TestAction::assert("x.hasOwnProperty('nullProp')"),
+        TestAction::assert("x.hasOwnProperty('someProp')"),
+        TestAction::assert("!x.hasOwnProperty(symB)"),
+        TestAction::assert("x.hasOwnProperty(symA)"),
+        TestAction::assert("!x.hasOwnProperty(1000)"),
+        TestAction::assert("x.hasOwnProperty(100)"),
     ]);
 }
 
 #[test]
 fn object_has_own() {
-    let scenario = r#"
-        let symA = Symbol('a');
-        let symB = Symbol('b');
+    run_test_actions([
+        TestAction::run(indoc! {r#"
+            let symA = Symbol('a');
+            let symB = Symbol('b');
 
-        let x = {
-            undefinedProp: undefined,
-            nullProp: null,
-            someProp: 1,
-            [symA]: 2,
-            100: 3,
-        };
-    "#;
-
-    check_output(&[
-        TestAction::Execute(scenario),
-        TestAction::TestEq("Object.hasOwn(x, 'hasOwnProperty')", "false"),
-        TestAction::TestEq("Object.hasOwn(x, 'undefinedProp')", "true"),
-        TestAction::TestEq("Object.hasOwn(x, 'nullProp')", "true"),
-        TestAction::TestEq("Object.hasOwn(x, 'someProp')", "true"),
-        TestAction::TestEq("Object.hasOwn(x, symB)", "false"),
-        TestAction::TestEq("Object.hasOwn(x, symA)", "true"),
-        TestAction::TestEq("Object.hasOwn(x, 1000)", "false"),
-        TestAction::TestEq("Object.hasOwn(x, 100)", "true"),
+            let x = {
+                undefinedProp: undefined,
+                nullProp: null,
+                someProp: 1,
+                [symA]: 2,
+                100: 3,
+            };
+        "#}),
+        TestAction::assert("!Object.hasOwn(x, 'hasOwnProperty')"),
+        TestAction::assert("Object.hasOwn(x, 'undefinedProp')"),
+        TestAction::assert("Object.hasOwn(x, 'nullProp')"),
+        TestAction::assert("Object.hasOwn(x, 'someProp')"),
+        TestAction::assert("!Object.hasOwn(x, symB)"),
+        TestAction::assert("Object.hasOwn(x, symA)"),
+        TestAction::assert("!Object.hasOwn(x, 1000)"),
+        TestAction::assert("Object.hasOwn(x, 100)"),
     ]);
 }
 
 #[test]
 fn object_property_is_enumerable() {
-    let mut context = Context::default();
-    let init = r#"
-        let x = { enumerableProp: 'yes' };
-    "#;
-    eprintln!("{}", forward(&mut context, init));
-    assert_eq!(
-        forward(&mut context, r#"x.propertyIsEnumerable('enumerableProp')"#),
-        "true"
-    );
-    assert_eq!(
-        forward(&mut context, r#"x.propertyIsEnumerable('hasOwnProperty')"#),
-        "false"
-    );
-    assert_eq!(
-        forward(&mut context, r#"x.propertyIsEnumerable('not_here')"#),
-        "false",
-    );
-    assert_eq!(
-        forward(&mut context, r#"x.propertyIsEnumerable()"#),
-        "false",
-    );
+    run_test_actions([
+        TestAction::run("let x = { enumerableProp: 'yes' };"),
+        TestAction::assert("x.propertyIsEnumerable('enumerableProp')"),
+        TestAction::assert("!x.propertyIsEnumerable('hasOwnProperty')"),
+        TestAction::assert("!x.propertyIsEnumerable('not_here')"),
+        TestAction::assert("!x.propertyIsEnumerable()"),
+    ]);
 }
 
 #[test]
 fn object_to_string() {
-    let mut context = Context::default();
-    let init = r#"
-        let u = undefined;
-        let n = null;
-        let a = [];
-        Array.prototype.toString = Object.prototype.toString;
-        let f = () => {};
-        Function.prototype.toString = Object.prototype.toString;
-        let e = new Error('test');
-        Error.prototype.toString = Object.prototype.toString;
-        let b = Boolean();
-        Boolean.prototype.toString = Object.prototype.toString;
-        let i = Number(42);
-        Number.prototype.toString = Object.prototype.toString;
-        let s = String('boa');
-        String.prototype.toString = Object.prototype.toString;
-        let d = new Date(Date.now());
-        Date.prototype.toString = Object.prototype.toString;
-        let re = /boa/;
-        RegExp.prototype.toString = Object.prototype.toString;
-        let o = Object();
-    "#;
-    eprintln!("{}", forward(&mut context, init));
-    assert_eq!(
-        forward(&mut context, "Object.prototype.toString.call(u)"),
-        "\"[object Undefined]\""
-    );
-    assert_eq!(
-        forward(&mut context, "Object.prototype.toString.call(n)"),
-        "\"[object Null]\""
-    );
-    assert_eq!(forward(&mut context, "a.toString()"), "\"[object Array]\"");
-    assert_eq!(
-        forward(&mut context, "f.toString()"),
-        "\"[object Function]\""
-    );
-    assert_eq!(forward(&mut context, "e.toString()"), "\"[object Error]\"");
-    assert_eq!(
-        forward(&mut context, "b.toString()"),
-        "\"[object Boolean]\""
-    );
-    assert_eq!(forward(&mut context, "i.toString()"), "\"[object Number]\"");
-    assert_eq!(forward(&mut context, "s.toString()"), "\"[object String]\"");
-    assert_eq!(forward(&mut context, "d.toString()"), "\"[object Date]\"");
-    assert_eq!(
-        forward(&mut context, "re.toString()"),
-        "\"[object RegExp]\""
-    );
-    assert_eq!(forward(&mut context, "o.toString()"), "\"[object Object]\"");
+    run_test_actions([
+        TestAction::run(indoc! {r#"
+                Array.prototype.toString = Object.prototype.toString;
+                Function.prototype.toString = Object.prototype.toString;
+                Error.prototype.toString = Object.prototype.toString;
+                Boolean.prototype.toString = Object.prototype.toString;
+                Number.prototype.toString = Object.prototype.toString;
+                String.prototype.toString = Object.prototype.toString;
+                Date.prototype.toString = Object.prototype.toString;
+                RegExp.prototype.toString = Object.prototype.toString;
+            "#}),
+        TestAction::assert_eq(
+            "Object.prototype.toString.call(undefined)",
+            "[object Undefined]",
+        ),
+        TestAction::assert_eq("Object.prototype.toString.call(null)", "[object Null]"),
+        TestAction::assert_eq("[].toString()", "[object Array]"),
+        TestAction::assert_eq("(() => {}).toString()", "[object Function]"),
+        TestAction::assert_eq("(new Error('')).toString()", "[object Error]"),
+        TestAction::assert_eq("Boolean().toString()", "[object Boolean]"),
+        TestAction::assert_eq("Number(42).toString()", "[object Number]"),
+        TestAction::assert_eq("String('boa').toString()", "[object String]"),
+        TestAction::assert_eq("(new Date()).toString()", "[object Date]"),
+        TestAction::assert_eq("/boa/.toString()", "[object RegExp]"),
+        TestAction::assert_eq("({}).toString()", "[object Object]"),
+    ]);
 }
 
 #[test]
 fn define_symbol_property() {
-    let mut context = Context::default();
-
-    let init = r#"
-        let obj = {};
-        let sym = Symbol("key");
-        Object.defineProperty(obj, sym, { value: "val" });
-    "#;
-    eprintln!("{}", forward(&mut context, init));
-
-    assert_eq!(forward(&mut context, "obj[sym]"), "\"val\"");
+    run_test_actions([
+        TestAction::run(indoc! {r#"
+                let obj = {};
+                let sym = Symbol("key");
+                Object.defineProperty(obj, sym, { value: "val" });
+            "#}),
+        TestAction::assert_eq("obj[sym]", "val"),
+    ]);
 }
 
 #[test]
 fn get_own_property_descriptor_1_arg_returns_undefined() {
-    let mut context = Context::default();
-    let code = r#"
-        let obj = {a: 2};
-        Object.getOwnPropertyDescriptor(obj)
-    "#;
-    assert_eq!(
-        context.eval_script(Source::from_bytes(code)).unwrap(),
-        JsValue::undefined()
-    );
+    run_test_actions([TestAction::assert_eq(
+        "Object.getOwnPropertyDescriptor({a: 2})",
+        JsValue::undefined(),
+    )]);
 }
 
 #[test]
 fn get_own_property_descriptor() {
-    let mut context = Context::default();
-    forward(
-        &mut context,
-        r#"
-        let obj = {a: 2};
-        let result = Object.getOwnPropertyDescriptor(obj, "a");
-    "#,
-    );
-
-    assert_eq!(forward(&mut context, "result.enumerable"), "true");
-    assert_eq!(forward(&mut context, "result.writable"), "true");
-    assert_eq!(forward(&mut context, "result.configurable"), "true");
-    assert_eq!(forward(&mut context, "result.value"), "2");
+    run_test_actions([
+        TestAction::run(indoc! {r#"
+                let obj = {a: 2};
+                let prop = Object.getOwnPropertyDescriptor(obj, "a");
+            "#}),
+        TestAction::assert("prop.enumerable"),
+        TestAction::assert("prop.writable"),
+        TestAction::assert("prop.configurable"),
+        TestAction::assert_eq("prop.value", 2),
+    ]);
 }
 
 #[test]
 fn get_own_property_descriptors() {
-    let mut context = Context::default();
-    forward(
-        &mut context,
-        r#"
-        let obj = {a: 1, b: 2};
-        let result = Object.getOwnPropertyDescriptors(obj);
-    "#,
-    );
-
-    assert_eq!(forward(&mut context, "result.a.enumerable"), "true");
-    assert_eq!(forward(&mut context, "result.a.writable"), "true");
-    assert_eq!(forward(&mut context, "result.a.configurable"), "true");
-    assert_eq!(forward(&mut context, "result.a.value"), "1");
-
-    assert_eq!(forward(&mut context, "result.b.enumerable"), "true");
-    assert_eq!(forward(&mut context, "result.b.writable"), "true");
-    assert_eq!(forward(&mut context, "result.b.configurable"), "true");
-    assert_eq!(forward(&mut context, "result.b.value"), "2");
+    run_test_actions([
+        TestAction::run(indoc! {r#"
+                let obj = {a: 1, b: 2};
+                let props = Object.getOwnPropertyDescriptors(obj);
+            "#}),
+        TestAction::assert("props.a.enumerable"),
+        TestAction::assert("props.a.writable"),
+        TestAction::assert("props.a.configurable"),
+        TestAction::assert_eq("props.a.value", 1),
+        TestAction::assert("props.b.enumerable"),
+        TestAction::assert("props.b.writable"),
+        TestAction::assert("props.b.configurable"),
+        TestAction::assert_eq("props.b.value", 2),
+    ]);
 }
 
 #[test]
 fn object_define_properties() {
-    let mut context = Context::default();
+    run_test_actions([
+        TestAction::run(indoc! {r#"
+                const obj = {};
 
-    let init = r#"
-        const obj = {};
+                Object.defineProperties(obj, {
+                    p: {
+                        value: 42,
+                        writable: true
+                    }
+                });
 
-        Object.defineProperties(obj, {
-            p: {
-                value: 42,
-                writable: true
-            }
-        });
-    "#;
-    eprintln!("{}", forward(&mut context, init));
-
-    assert_eq!(forward(&mut context, "obj.p"), "42");
+                const prop = Object.getOwnPropertyDescriptor(obj, 'p');
+            "#}),
+        TestAction::assert("!prop.enumerable"),
+        TestAction::assert("prop.writable"),
+        TestAction::assert("!prop.configurable"),
+        TestAction::assert_eq("prop.value", 42),
+    ]);
 }
 
 #[test]
 fn object_is_prototype_of() {
-    let mut context = Context::default();
-
-    let init = r#"
-        Object.prototype.isPrototypeOf(String.prototype)
-    "#;
-
-    assert_eq!(
-        context.eval_script(Source::from_bytes(init)).unwrap(),
-        JsValue::new(true)
-    );
+    run_test_actions([TestAction::assert(
+        "Object.prototype.isPrototypeOf(String.prototype)",
+    )]);
 }
 
 #[test]
 fn object_get_own_property_names_invalid_args() {
-    let error_message = "Uncaught TypeError: cannot convert 'null' or 'undefined' to object";
+    const ERROR: &str = "cannot convert 'null' or 'undefined' to object";
 
-    check_output(&[
-        TestAction::TestEq("Object.getOwnPropertyNames()", error_message),
-        TestAction::TestEq("Object.getOwnPropertyNames(null)", error_message),
-        TestAction::TestEq("Object.getOwnPropertyNames(undefined)", error_message),
+    run_test_actions([
+        TestAction::assert_native_error("Object.getOwnPropertyNames()", ErrorKind::Type, ERROR),
+        TestAction::assert_native_error("Object.getOwnPropertyNames(null)", ErrorKind::Type, ERROR),
+        TestAction::assert_native_error(
+            "Object.getOwnPropertyNames(undefined)",
+            ErrorKind::Type,
+            ERROR,
+        ),
     ]);
 }
 
 #[test]
 fn object_get_own_property_names() {
-    check_output(&[
-        TestAction::TestEq("Object.getOwnPropertyNames(0)", "[]"),
-        TestAction::TestEq("Object.getOwnPropertyNames(false)", "[]"),
-        TestAction::TestEq(r#"Object.getOwnPropertyNames(Symbol("a"))"#, "[]"),
-        TestAction::TestEq("Object.getOwnPropertyNames({})", "[]"),
-        TestAction::TestEq("Object.getOwnPropertyNames(NaN)", "[]"),
-        TestAction::TestEq(
-            "Object.getOwnPropertyNames([1, 2, 3])",
-            r#"[ "0", "1", "2", "length" ]"#,
-        ),
-        TestAction::TestEq(
-            r#"Object.getOwnPropertyNames({
-                "a": 1,
-                "b": 2,
-                [ Symbol("c") ]: 3,
-                [ Symbol("d") ]: 4,
-            })"#,
-            r#"[ "a", "b" ]"#,
-        ),
+    run_test_actions([
+        TestAction::run_harness(),
+        TestAction::assert(indoc! {r#"
+                arrayEquals(
+                    Object.getOwnPropertyNames(0),
+                    []
+                )
+            "#}),
+        TestAction::assert(indoc! {r#"
+                arrayEquals(
+                    Object.getOwnPropertyNames(false),
+                    []
+                )
+            "#}),
+        TestAction::assert(indoc! {r#"
+                arrayEquals(
+                    Object.getOwnPropertyNames(Symbol("a")),
+                    []
+                )
+            "#}),
+        TestAction::assert(indoc! {r#"
+                arrayEquals(
+                    Object.getOwnPropertyNames({}),
+                    []
+                )
+            "#}),
+        TestAction::assert(indoc! {r#"
+                arrayEquals(
+                    Object.getOwnPropertyNames(NaN),
+                    []
+                )
+            "#}),
+        TestAction::assert(indoc! {r#"
+                arrayEquals(
+                    Object.getOwnPropertyNames([1, 2, 3]),
+                    ["0", "1", "2", "length"]
+                )
+            "#}),
+        TestAction::assert(indoc! {r#"
+                arrayEquals(
+                    Object.getOwnPropertyNames({
+                        "a": 1,
+                        "b": 2,
+                        [ Symbol("c") ]: 3,
+                        [ Symbol("d") ]: 4,
+                    }),
+                    ["a", "b"]
+                )
+            "#}),
     ]);
 }
 
 #[test]
 fn object_get_own_property_symbols_invalid_args() {
-    let error_message = "Uncaught TypeError: cannot convert 'null' or 'undefined' to object";
+    const ERROR: &str = "cannot convert 'null' or 'undefined' to object";
 
-    check_output(&[
-        TestAction::TestEq("Object.getOwnPropertySymbols()", error_message),
-        TestAction::TestEq("Object.getOwnPropertySymbols(null)", error_message),
-        TestAction::TestEq("Object.getOwnPropertySymbols(undefined)", error_message),
-    ]);
-}
-
-#[test]
-fn object_get_own_property_symbols() {
-    check_output(&[
-        TestAction::TestEq("Object.getOwnPropertySymbols(0)", "[]"),
-        TestAction::TestEq("Object.getOwnPropertySymbols(false)", "[]"),
-        TestAction::TestEq(r#"Object.getOwnPropertySymbols(Symbol("a"))"#, "[]"),
-        TestAction::TestEq("Object.getOwnPropertySymbols({})", "[]"),
-        TestAction::TestEq("Object.getOwnPropertySymbols(NaN)", "[]"),
-        TestAction::TestEq("Object.getOwnPropertySymbols([1, 2, 3])", "[]"),
-        TestAction::TestEq(
-            r#"
-            Object.getOwnPropertySymbols({
-                "a": 1,
-                "b": 2,
-                [ Symbol("c") ]: 3,
-                [ Symbol("d") ]: 4,
-            })"#,
-            "[ Symbol(c), Symbol(d) ]",
+    run_test_actions([
+        TestAction::assert_native_error("Object.getOwnPropertySymbols()", ErrorKind::Type, ERROR),
+        TestAction::assert_native_error(
+            "Object.getOwnPropertySymbols(null)",
+            ErrorKind::Type,
+            ERROR,
+        ),
+        TestAction::assert_native_error(
+            "Object.getOwnPropertySymbols(undefined)",
+            ErrorKind::Type,
+            ERROR,
         ),
     ]);
 }
 
 #[test]
-fn object_from_entries_invalid_args() {
-    let error_message = "Uncaught TypeError: cannot convert null or undefined to Object";
+fn object_get_own_property_symbols() {
+    run_test_actions([
+        TestAction::run_harness(),
+        TestAction::assert(indoc! {r#"
+                arrayEquals(
+                    Object.getOwnPropertySymbols(0),
+                    []
+                )
+            "#}),
+        TestAction::assert(indoc! {r#"
+                arrayEquals(
+                    Object.getOwnPropertySymbols(false),
+                    []
+                )
+            "#}),
+        TestAction::assert(indoc! {r#"
+                arrayEquals(
+                    Object.getOwnPropertySymbols(Symbol("a")),
+                    []
+                )
+            "#}),
+        TestAction::assert(indoc! {r#"
+                arrayEquals(
+                    Object.getOwnPropertySymbols({}),
+                    []
+                )
+            "#}),
+        TestAction::assert(indoc! {r#"
+                arrayEquals(
+                    Object.getOwnPropertySymbols(NaN),
+                    []
+                )
+            "#}),
+        TestAction::assert(indoc! {r#"
+                arrayEquals(
+                    Object.getOwnPropertySymbols([1, 2, 3]),
+                    []
+                )
+            "#}),
+        TestAction::assert(indoc! {r#"
+                let c = Symbol("c");
+                let d = Symbol("d");
+                arrayEquals(
+                    Object.getOwnPropertySymbols({
+                        "a": 1,
+                        "b": 2,
+                        [ c ]: 3,
+                        [ d ]: 4,
+                    }),
+                    [c, d]
+                )
+            "#}),
+    ]);
+}
 
-    check_output(&[
-        TestAction::TestEq("Object.fromEntries()", error_message),
-        TestAction::TestEq("Object.fromEntries(null)", error_message),
-        TestAction::TestEq("Object.fromEntries(undefined)", error_message),
+#[test]
+fn object_from_entries_invalid_args() {
+    const ERROR: &str = "cannot convert null or undefined to Object";
+
+    run_test_actions([
+        TestAction::assert_native_error("Object.fromEntries()", ErrorKind::Type, ERROR),
+        TestAction::assert_native_error("Object.fromEntries(null)", ErrorKind::Type, ERROR),
+        TestAction::assert_native_error("Object.fromEntries(undefined)", ErrorKind::Type, ERROR),
     ]);
 }
 
 #[test]
 fn object_from_entries() {
-    let scenario = r#"
-        let sym = Symbol("sym");
-        let map = Object.fromEntries([
-            ["long key", 1],
-            ["short", 2],
-            [sym, 3],
-            [5, 4],
-        ]);
-    "#;
-
-    check_output(&[
-        TestAction::Execute(scenario),
-        TestAction::TestEq("map['long key']", "1"),
-        TestAction::TestEq("map.short", "2"),
-        TestAction::TestEq("map[sym]", "3"),
-        TestAction::TestEq("map[5]", "4"),
+    run_test_actions([
+        TestAction::run(indoc! {r#"
+                let sym = Symbol("sym");
+                let map = Object.fromEntries([
+                    ["long key", 1],
+                    ["short", 2],
+                    [sym, 3],
+                    [5, 4],
+                ]);
+            "#}),
+        TestAction::assert_eq("map['long key']", 1),
+        TestAction::assert_eq("map.short", 2),
+        TestAction::assert_eq("map[sym]", 3),
+        TestAction::assert_eq("map[5]", 4),
     ]);
 }

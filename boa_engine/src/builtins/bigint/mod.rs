@@ -114,7 +114,7 @@ impl BigInt {
         // 1. If IsIntegralNumber(number) is false, throw a RangeError exception.
         if number.is_nan() || number.is_infinite() || number.fract() != 0.0 {
             return Err(JsNativeError::range()
-                .with_message(format!("Cannot convert {number} to BigInt"))
+                .with_message(format!("cannot convert {number} to a BigInt"))
                 .into());
         }
 

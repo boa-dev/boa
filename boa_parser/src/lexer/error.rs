@@ -47,8 +47,8 @@ impl fmt::Display for Error {
     #[inline]
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            Self::IO(e) => write!(f, "I/O error: {e}"),
-            Self::Syntax(e, pos) => write!(f, "Syntax Error: {e} at position: {pos}"),
+            Self::IO(e) => write!(f, "{e}"),
+            Self::Syntax(e, pos) => write!(f, "{e} at position: {pos}"),
         }
     }
 }

@@ -131,7 +131,6 @@ impl Default for Context<'_> {
 }
 
 // ==== Public API ====
-
 impl Context<'_> {
     /// Create a new [`ContextBuilder`] to specify the [`Interner`] and/or
     /// the icu data provider.

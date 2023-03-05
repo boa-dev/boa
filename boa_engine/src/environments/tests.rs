@@ -1,92 +1,79 @@
-use crate::exec;
+use crate::{builtins::error::ErrorKind, run_test_actions, TestAction};
+use indoc::indoc;
 
 #[test]
 fn let_is_block_scoped() {
-    let scenario = r#"
-          {
-            let bar = "bar";
-          }
-
-          try{
+    run_test_actions([TestAction::assert_native_error(
+        indoc! {r#"
+            {
+              let bar = "bar";
+            }
             bar;
-          } catch (err) {
-            err.message
-          }
-        "#;
-
-    assert_eq!(&exec(scenario), "\"bar is not defined\"");
+        "#},
+        ErrorKind::Reference,
+        "bar is not defined",
+    )]);
 }
 
 #[test]
 fn const_is_block_scoped() {
-    let scenario = r#"
-          {
+    run_test_actions([TestAction::assert_native_error(
+        indoc! {r#"
+            {
             const bar = "bar";
-          }
-
-          try{
+            }
             bar;
-          } catch (err) {
-            err.message
-          }
-        "#;
-
-    assert_eq!(&exec(scenario), "\"bar is not defined\"");
+        "#},
+        ErrorKind::Reference,
+        "bar is not defined",
+    )]);
 }
 
 #[test]
 fn var_not_block_scoped() {
-    let scenario = r#"
-          {
-            var bar = "bar";
-          }
-          bar == "bar";
-        "#;
-
-    assert_eq!(&exec(scenario), "true");
+    run_test_actions([TestAction::assert(indoc! {r#"
+            {
+              var bar = "bar";
+            }
+            bar == "bar";
+        "#})]);
 }
 
 #[test]
 fn functions_use_declaration_scope() {
-    let scenario = r#"
-          function foo() {
-            try {
+    run_test_actions([TestAction::assert_native_error(
+        indoc! {r#"
+            function foo() {
                 bar;
-            } catch (err) {
-                return err.message;
             }
-          }
-          {
-            let bar = "bar";
-            foo();
-          }
-        "#;
-
-    assert_eq!(&exec(scenario), "\"bar is not defined\"");
+            {
+                let bar = "bar";
+                foo();
+            }
+        "#},
+        ErrorKind::Reference,
+        "bar is not defined",
+    )]);
 }
 
 #[test]
 fn set_outer_var_in_block_scope() {
-    let scenario = r#"
-          var bar;
-          {
-            bar = "foo";
-          }
-          bar == "foo";
-        "#;
-
-    assert_eq!(&exec(scenario), "true");
+    run_test_actions([TestAction::assert(indoc! {r#"
+            var bar;
+            {
+                bar = "foo";
+            }
+            bar == "foo";
+        "#})]);
 }
 
 #[test]
 fn set_outer_let_in_block_scope() {
-    let scenario = r#"
-          let bar;
-          {
-            bar = "foo";
-          }
-          bar == "foo";
-        "#;
-
-    assert_eq!(&exec(scenario), "true");
+    run_test_actions([TestAction::assert(indoc! {r#"
+            let bar;
+            {
+                bar = "foo";
+            }
+            bar == "foo";
+        "#})]);
 }

@@ -1,23 +1,25 @@
-use boa_parser::Source;
-
-use crate::{context::ContextBuilder, forward, job::SimpleJobQueue};
+use crate::{context::ContextBuilder, job::SimpleJobQueue, run_test_actions_with, TestAction};
+use indoc::indoc;
 
 #[test]
 fn promise() {
     let queue = SimpleJobQueue::new();
-    let mut context = ContextBuilder::new().job_queue(&queue).build().unwrap();
-    let init = r#"
-        let count = 0;
-        const promise = new Promise((resolve, reject) => {
-            count += 1;
-            resolve(undefined);
-        }).then((_) => (count += 1));
-        count += 1;
-        count;
-    "#;
-    let result = context.eval_script(Source::from_bytes(init)).unwrap();
-    assert_eq!(result.as_number(), Some(2_f64));
-    context.run_jobs();
-    let after_completion = forward(&mut context, "count");
-    assert_eq!(after_completion, String::from("3"));
+    let context = &mut ContextBuilder::new().job_queue(&queue).build().unwrap();
+    run_test_actions_with(
+        [
+            TestAction::run(indoc! {r#"
+                    let count = 0;
+                    const promise = new Promise((resolve, reject) => {
+                        count += 1;
+                        resolve(undefined);
+                    }).then((_) => (count += 1));
+                    count += 1;
+                "#}),
+            TestAction::assert_eq("count", 2),
+            #[allow(clippy::redundant_closure_for_method_calls)]
+            TestAction::inspect_context(|ctx| ctx.run_jobs()),
+            TestAction::assert_eq("count", 3),
+        ],
+        context,
+    );
 }

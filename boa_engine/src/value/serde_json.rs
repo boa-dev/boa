@@ -168,133 +168,84 @@ impl JsValue {
 
 #[cfg(test)]
 mod tests {
-    use boa_parser::Source;
+    use indoc::indoc;
+    use serde_json::json;
 
     use crate::object::JsArray;
-    use crate::{string::utf16, Context, JsValue};
+    use crate::{run_test_actions, TestAction};
+    use crate::{string::utf16, JsValue};
 
     #[test]
     fn ut_json_conversions() {
-        let data = r#"
-         {
-             "name": "John Doe",
-             "age": 43,
-             "minor": false,
-             "adult": true,
-             "extra": {
-                 "address": null
-             },
-             "phones": [
-                 "+44 1234567",
-                 -45,
-                 {},
-                 true
-             ]
-          }"#;
+        const DATA: &str = indoc! {r#"
+            {
+                "name": "John Doe",
+                "age": 43,
+                "minor": false,
+                "adult": true,
+                "extra": {
+                    "address": null
+                },
+                "phones": [
+                    "+44 1234567",
+                    -45,
+                    {},
+                    true
+                ]
+            }
+        "#};
 
-        let json: serde_json::Value = serde_json::from_str(data).unwrap();
-        assert!(json.is_object());
+        run_test_actions([TestAction::inspect_context(|ctx| {
+            let json: serde_json::Value = serde_json::from_str(DATA).unwrap();
+            assert!(json.is_object());
 
-        let mut context = Context::default();
-        let value = JsValue::from_json(&json, &mut context).unwrap();
+            let value = JsValue::from_json(&json, ctx).unwrap();
+            let obj = value.as_object().unwrap();
+            assert_eq!(obj.get(utf16!("name"), ctx).unwrap(), "John Doe".into());
+            assert_eq!(obj.get(utf16!("age"), ctx).unwrap(), 43_i32.into());
+            assert_eq!(obj.get(utf16!("minor"), ctx).unwrap(), false.into());
+            assert_eq!(obj.get(utf16!("adult"), ctx).unwrap(), true.into());
+            {
+                let extra = obj.get(utf16!("extra"), ctx).unwrap();
+                let extra = extra.as_object().unwrap();
+                assert!(extra.get(utf16!("address"), ctx).unwrap().is_null());
+            }
+            {
+                let phones = obj.get(utf16!("phones"), ctx).unwrap();
+                let phones = phones.as_object().unwrap();
 
-        let obj = value.as_object().unwrap();
-        assert_eq!(
-            obj.get(utf16!("name"), &mut context).unwrap(),
-            "John Doe".into()
-        );
-        assert_eq!(obj.get(utf16!("age"), &mut context).unwrap(), 43_i32.into());
-        assert_eq!(
-            obj.get(utf16!("minor"), &mut context).unwrap(),
-            false.into()
-        );
-        assert_eq!(obj.get(utf16!("adult"), &mut context).unwrap(), true.into());
-        {
-            let extra = obj.get(utf16!("extra"), &mut context).unwrap();
-            let extra = extra.as_object().unwrap();
-            assert!(extra
-                .get(utf16!("address"), &mut context)
-                .unwrap()
-                .is_null());
-        }
-        {
-            let phones = obj.get(utf16!("phones"), &mut context).unwrap();
-            let phones = phones.as_object().unwrap();
+                let arr = JsArray::from_object(phones.clone()).unwrap();
+                assert_eq!(arr.at(0, ctx).unwrap(), "+44 1234567".into());
+                assert_eq!(arr.at(1, ctx).unwrap(), JsValue::from(-45_i32));
+                assert!(arr.at(2, ctx).unwrap().is_object());
+                assert_eq!(arr.at(3, ctx).unwrap(), true.into());
+            }
 
-            let arr = JsArray::from_object(phones.clone()).unwrap();
-            assert_eq!(arr.at(0, &mut context).unwrap(), "+44 1234567".into());
-            assert_eq!(arr.at(1, &mut context).unwrap(), JsValue::from(-45_i32));
-            assert!(arr.at(2, &mut context).unwrap().is_object());
-            assert_eq!(arr.at(3, &mut context).unwrap(), true.into());
-        }
-
-        assert_eq!(json, value.to_json(&mut context).unwrap());
+            assert_eq!(json, value.to_json(ctx).unwrap());
+        })]);
     }
 
     #[test]
     fn integer_ops_to_json() {
-        let mut context = Context::default();
-
-        let add = context
-            .eval_script(Source::from_bytes(
-                r#"
-                1000000 + 500
-            "#,
-            ))
-            .unwrap();
-        let add: u32 = serde_json::from_value(add.to_json(&mut context).unwrap()).unwrap();
-        assert_eq!(add, 1_000_500);
-
-        let sub = context
-            .eval_script(Source::from_bytes(
-                r#"
-                1000000 - 500
-            "#,
-            ))
-            .unwrap();
-        let sub: u32 = serde_json::from_value(sub.to_json(&mut context).unwrap()).unwrap();
-        assert_eq!(sub, 999_500);
-
-        let mult = context
-            .eval_script(Source::from_bytes(
-                r#"
-                1000000 * 500
-            "#,
-            ))
-            .unwrap();
-        let mult: u32 = serde_json::from_value(mult.to_json(&mut context).unwrap()).unwrap();
-        assert_eq!(mult, 500_000_000);
-
-        let div = context
-            .eval_script(Source::from_bytes(
-                r#"
-                1000000 / 500
-            "#,
-            ))
-            .unwrap();
-        let div: u32 = serde_json::from_value(div.to_json(&mut context).unwrap()).unwrap();
-        assert_eq!(div, 2000);
-
-        let rem = context
-            .eval_script(Source::from_bytes(
-                r#"
-                233894 % 500
-            "#,
-            ))
-            .unwrap();
-        let rem: u32 = serde_json::from_value(rem.to_json(&mut context).unwrap()).unwrap();
-        assert_eq!(rem, 394);
-
-        let pow = context
-            .eval_script(Source::from_bytes(
-                r#"
-                36 ** 5
-            "#,
-            ))
-            .unwrap();
-
-        let pow: u32 = serde_json::from_value(pow.to_json(&mut context).unwrap()).unwrap();
-
-        assert_eq!(pow, 60_466_176);
+        run_test_actions([
+            TestAction::assert_with_op("1000000 + 500", |v, ctx| {
+                v.to_json(ctx).unwrap() == json!(1_000_500)
+            }),
+            TestAction::assert_with_op("1000000 - 500", |v, ctx| {
+                v.to_json(ctx).unwrap() == json!(999_500)
+            }),
+            TestAction::assert_with_op("1000000 * 500", |v, ctx| {
+                v.to_json(ctx).unwrap() == json!(500_000_000)
+            }),
+            TestAction::assert_with_op("1000000 / 500", |v, ctx| {
+                v.to_json(ctx).unwrap() == json!(2_000)
+            }),
+            TestAction::assert_with_op("233894 % 500", |v, ctx| {
+                v.to_json(ctx).unwrap() == json!(394)
+            }),
+            TestAction::assert_with_op("36 ** 5", |v, ctx| {
+                v.to_json(ctx).unwrap() == json!(60_466_176)
+            }),
+        ]);
     }
 }
