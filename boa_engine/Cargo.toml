@@ -82,7 +82,7 @@ sys-locale = { version = "0.2.3", optional = true }
 [dev-dependencies]
 criterion = "0.4.0"
 float-cmp = "0.9.0"
-indoc = "2.0.0"
+indoc = "2.0.1"
 textwrap = "0.16.0"
 
 [target.x86_64-unknown-linux-gnu.dev-dependencies]
