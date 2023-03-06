@@ -23,7 +23,7 @@ regex = "1.7.1"
 once_cell = "1.17.1"
 colored = "2.0.0"
 fxhash = "0.2.1"
-rayon = "1.6.1"
+rayon = "1.7.0"
 toml = "0.7.2"
 color-eyre = "0.6.2"
 
