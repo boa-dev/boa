@@ -225,7 +225,6 @@ pub(crate) fn integer_indexed_exotic_own_property_keys(
         // a. For each integer i starting with 0 such that i < O.[[ArrayLength]], in ascending order, do
         // i. Add ! ToString(𝔽(i)) as the last element of keys.
         (0..inner.array_length())
-            .into_iter()
             .map(|index| PropertyKey::Index(index as u32))
             .collect()
     };

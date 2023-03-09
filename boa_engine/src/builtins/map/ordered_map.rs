@@ -16,7 +16,7 @@ enum MapKey {
 }
 
 // This ensures that a MapKey::Key(value) hashes to the same as value. The derived PartialEq implementation still holds.
-#[allow(clippy::derive_hash_xor_eq)]
+#[allow(clippy::derived_hash_with_manual_eq)]
 impl Hash for MapKey {
     fn hash<H: Hasher>(&self, state: &mut H) {
         match self {
