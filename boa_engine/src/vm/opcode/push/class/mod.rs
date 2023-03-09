@@ -58,9 +58,9 @@ impl Operation for PushClassPrototype {
             context.vm.push(JsValue::Null);
             Ok(CompletionType::Normal)
         } else {
-            return Err(JsNativeError::typ()
+            Err(JsNativeError::typ()
                 .with_message("superclass must be a constructor")
-                .into());
+                .into())
         }
     }
 }
