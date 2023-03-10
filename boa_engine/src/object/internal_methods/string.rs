@@ -102,7 +102,7 @@ pub(crate) fn string_exotic_own_property_keys(
 
     // 5. For each integer i starting with 0 such that i < len, in ascending order, do
     // a. Add ! ToString(𝔽(i)) as the last element of keys.
-    keys.extend((0..len).into_iter().map(Into::into));
+    keys.extend((0..len).map(Into::into));
 
     // 6. For each own property key P of O such that P is an array index
     // and ! ToIntegerOrInfinity(P) ≥ len, in ascending numeric index order, do

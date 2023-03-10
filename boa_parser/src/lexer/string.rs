@@ -192,7 +192,7 @@ impl StringLiteral {
             0x005C /* \ */ => Some((0x005C /* \ */, None)),
             0x0030 /* 0 */ if cursor
                 .peek()?
-                .filter(|next_byte| (b'0'..=b'9').contains(next_byte))
+                .filter(u8::is_ascii_digit)
                 .is_none() =>
                 Some((0x0000 /* NULL */, None)),
             0x0078 /* x */ => {
