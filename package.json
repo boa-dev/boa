@@ -16,7 +16,7 @@
     "prettier": "^2.8.4",
     "style-loader": "^3.3.1",
     "terser-webpack-plugin": "^5.3.7",
-    "webpack": "^5.76.0",
+    "webpack": "^5.76.1",
     "webpack-cli": "^5.0.1",
     "webpack-dev-server": "^4.11.1"
   },
