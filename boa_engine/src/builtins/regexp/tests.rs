@@ -53,6 +53,7 @@ fn flags() {
         TestAction::run(indoc! {r#"
                 var re_gi = /test/gi;
                 var re_sm = /test/sm;
+                var re_u = /test/u;
             "#}),
         TestAction::assert("re_gi.global"),
         TestAction::assert("re_gi.ignoreCase"),
@@ -69,6 +70,14 @@ fn flags() {
         TestAction::assert("!re_sm.unicode"),
         TestAction::assert("!re_sm.sticky"),
         TestAction::assert_eq("re_sm.flags", "ms"),
+        //
+        TestAction::assert("!re_u.global"),
+        TestAction::assert("!re_u.ignoreCase"),
+        TestAction::assert("!re_u.multiline"),
+        TestAction::assert("!re_u.dotAll"),
+        TestAction::assert("re_u.unicode"),
+        TestAction::assert("!re_u.sticky"),
+        TestAction::assert_eq("re_u.flags", "u"),
     ]);
 }
 
@@ -102,6 +111,22 @@ fn exec() {
         TestAction::assert_eq(
             "result.input",
             "The Quick Brown Fox Jumps Over The Lazy Dog",
+        ),
+    ]);
+}
+
+#[test]
+fn no_panic_on_parse_fail() {
+    run_test_actions([
+        TestAction::assert_native_error(
+            r"var re = /]/u;",
+            ErrorKind::Syntax,
+            "Invalid regular expression literal: Unbalanced bracket at position: 1:10",
+        ),
+        TestAction::assert_native_error(
+            r"var re = /a{/u;",
+            ErrorKind::Syntax,
+            "Invalid regular expression literal: Invalid quantifier at position: 1:10",
         ),
     ]);
 }
