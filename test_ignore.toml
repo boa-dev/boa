@@ -31,6 +31,8 @@ features = [
     "Intl.Locale-info",
     # https://github.com/tc39/proposal-intl-enumeration
     "Intl-enumeration",
+    # https://github.com/tc39/proposal-array-from-async
+    "Array.fromAsync",
 
     # Non-standard
     "caller",
