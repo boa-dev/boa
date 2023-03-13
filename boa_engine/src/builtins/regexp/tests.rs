@@ -113,20 +113,9 @@ fn to_string() {
         TestAction::assert_eq("(new RegExp('bar', 'g')).toString()", "/bar/g"),
         TestAction::assert_eq(r"(new RegExp('\\n', 'g')).toString()", r"/\n/g"),
         TestAction::assert_eq(r"/\n/g.toString()", r"/\n/g"),
+        TestAction::assert_eq(r"/,\;/.toString()", r"/,\;/"),
     ]);
 }
-
-#[test]
-fn no_panic_on_invalid_character_escape() {
-    // This used to panic, we now return an error
-    // The line below should not cause Boa to panic
-    run_test_actions([TestAction::assert_native_error(
-        r"const a = /,\;/",
-        ErrorKind::Syntax,
-        "Invalid regular expression literal: Invalid character escape at position: 1:11",
-    )]);
-}
-
 #[test]
 fn search() {
     const ERROR: &str = "RegExp.prototype[Symbol.search] method called on incompatible value";
