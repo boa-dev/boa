@@ -856,3 +856,33 @@ fn search() {
         TestAction::assert_eq("'ba'.search(/a/)", 1),
     ]);
 }
+
+#[test]
+fn from_code_point() {
+    // Taken from https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/fromCodePoint
+    run_test_actions([
+        TestAction::assert_eq("String.fromCodePoint(42)", "*"),
+        TestAction::assert_eq("String.fromCodePoint(65, 90)", "AZ"),
+        TestAction::assert_eq("String.fromCodePoint(0x404)", "Є"),
+        TestAction::assert_eq(
+            "String.fromCodePoint(0x2f804)",
+            js_string!(&[0xD87E, 0xDC04]),
+        ),
+        TestAction::assert_eq(
+            "String.fromCodePoint(0x1D306, 0x1D307)",
+            js_string!(&[0xD834, 0xDF06, 0xD834, 0xDF07]),
+        ),
+        // Should encode to unpaired surrogates
+        TestAction::assert_eq(
+            "String.fromCharCode(0xD800, 0xD8FF)",
+            js_string!(&[0xD800, 0xD8FF]),
+        ),
+        TestAction::assert_eq("String.fromCodePoint(9731, 9733, 9842, 0x2F804)", "☃★♲你"),
+        TestAction::assert_native_error("String.fromCodePoint('_')", ErrorKind::Range, "codepoint `NaN` is not an integer"),
+        TestAction::assert_native_error("String.fromCodePoint(Infinity)", ErrorKind::Range, "codepoint `inf` is not an integer"),
+        TestAction::assert_native_error("String.fromCodePoint(-1)", ErrorKind::Range, "codepoint `-1` outside of Unicode range"),
+        TestAction::assert_native_error("String.fromCodePoint(3.14)", ErrorKind::Range, "codepoint `3.14` is not an integer"),
+        TestAction::assert_native_error("String.fromCodePoint(3e-2)", ErrorKind::Range, "codepoint `0.03` is not an integer"),
+        TestAction::assert_native_error("String.fromCodePoint(NaN)", ErrorKind::Range, "codepoint `NaN` is not an integer"),
+    ])
+}
