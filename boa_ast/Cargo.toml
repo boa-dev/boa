@@ -11,14 +11,14 @@ repository.workspace = true
 rust-version.workspace = true
 
 [features]
-serde = ["dep:serde", "boa_interner/serde"]
+serde = ["dep:serde", "boa_interner/serde", "bitflags/serde"]
 arbitrary = ["dep:arbitrary", "boa_interner/arbitrary", "num-bigint/arbitrary"]
 
 [dependencies]
 boa_interner.workspace = true
 boa_macros.workspace = true
 rustc-hash = "1.1.0"
-bitflags = { version = "2.0.0", features = ["serde"] }
+bitflags = "2.0.0"
 num-bigint = "0.4.3"
 serde = { version = "1.0.155", features = ["derive"], optional = true }
 arbitrary = { version = "1", features = ["derive"], optional = true }
