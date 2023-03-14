@@ -1,6 +1,6 @@
 use crate::{
     vm::{call_frame::AbruptCompletionRecord, opcode::Operation, CompletionType},
-    Context, JsError, JsResult,
+    Context, JsError, JsResult, JsNativeError,
 };
 
 /// `Throw` implements the Opcode Operation for `Opcode::Throw`
@@ -129,5 +129,29 @@ impl Operation for Throw {
 
         context.vm.err = Some(error);
         Ok(CompletionType::Throw)
+    }
+}
+
+/// `ThrowNewTypeError` implements the Opcode Operation for `Opcode::ThrowNewTypeError`
+///
+/// Operation:
+///  - Throws a `TypeError` exception.
+#[derive(Debug, Clone, Copy)]
+pub(crate) struct ThrowNewTypeError;
+
+impl Operation for ThrowNewTypeError {
+    const NAME: &'static str = "ThrowNewTypeError";
+    const INSTRUCTION: &'static str = "INST - ThrowNewTypeError";
+
+    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
+        let index = context.vm.read::<u32>();
+        let msg = context.vm.frame().code_block.literals[index as usize]
+            .as_string()
+            .expect("throw message must be a string")
+            .clone();
+        let msg = msg
+            .to_std_string()
+            .expect("throw message must be an ASCII string");
+        Err(JsNativeError::typ().with_message(msg).into())
     }
 }

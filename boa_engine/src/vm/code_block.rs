@@ -231,7 +231,9 @@ impl CodeBlock {
                 ryu_js::Buffer::new().format(operand).to_string()
             }
             Opcode::PushLiteral
+            | Opcode::ThrowNewTypeError
             | Opcode::Jump
+            | Opcode::JumpIfTrue
             | Opcode::JumpIfFalse
             | Opcode::JumpIfNotUndefined
             | Opcode::JumpIfNullOrUndefined
@@ -251,6 +253,7 @@ impl CodeBlock {
             | Opcode::ForInLoopNext
             | Opcode::ForAwaitOfLoopNext
             | Opcode::ConcatToString
+            | Opcode::AsyncGeneratorNextDelegate
             | Opcode::GeneratorNextDelegate => {
                 let result = self.read::<u32>(*pc).to_string();
                 *pc += size_of::<u32>();
@@ -304,6 +307,7 @@ impl CodeBlock {
                 )
             }
             Opcode::GetPropertyByName
+            | Opcode::GetMethod
             | Opcode::SetPropertyByName
             | Opcode::DefineOwnPropertyByName
             | Opcode::DefineClassStaticMethodByName
@@ -445,6 +449,7 @@ impl CodeBlock {
             | Opcode::ForAwaitOfLoopIterate
             | Opcode::SetPrototype
             | Opcode::PushObjectEnvironment
+            | Opcode::IsObject
             | Opcode::Nop => String::new(),
         }
     }

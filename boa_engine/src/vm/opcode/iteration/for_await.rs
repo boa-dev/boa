@@ -18,11 +18,8 @@ impl Operation for ForAwaitOfLoopIterate {
 
     fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
         let next_method = context.vm.pop();
-        let next_method_object = next_method.as_callable().ok_or_else(|| {
-            JsNativeError::typ().with_message("iterable next method not a function")
-        })?;
         let iterator = context.vm.pop();
-        let next_result = next_method_object.call(&iterator, &[], context)?;
+        let next_result = next_method.call(&iterator, &[], context)?;
         context.vm.push(iterator);
         context.vm.push(next_method);
         context.vm.push(next_result);

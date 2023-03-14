@@ -7,6 +7,7 @@ mod function;
 mod jump_control;
 mod module;
 mod statement;
+mod utils;
 
 use crate::{
     builtins::function::ThisMode,
@@ -508,23 +509,23 @@ impl<'b, 'host> ByteCompiler<'b, 'host> {
     }
 
     fn jump(&mut self) -> Label {
-        let index = self.next_opcode_location();
-        self.emit(Opcode::Jump, &[Self::DUMMY_ADDRESS]);
-        Label { index }
+        self.emit_opcode_with_operand(Opcode::Jump)
+    }
+
+    fn jump_if_true(&mut self) -> Label {
+        self.emit_opcode_with_operand(Opcode::JumpIfTrue)
     }
 
     fn jump_if_false(&mut self) -> Label {
-        let index = self.next_opcode_location();
-        self.emit(Opcode::JumpIfFalse, &[Self::DUMMY_ADDRESS]);
+        self.emit_opcode_with_operand(Opcode::JumpIfFalse)
+    }
 
-        Label { index }
+    fn jump_if_not_undefined(&mut self) -> Label {
+        self.emit_opcode_with_operand(Opcode::JumpIfNotUndefined)
     }
 
     fn jump_if_null_or_undefined(&mut self) -> Label {
-        let index = self.next_opcode_location();
-        self.emit(Opcode::JumpIfNullOrUndefined, &[Self::DUMMY_ADDRESS]);
-
-        Label { index }
+        self.emit_opcode_with_operand(Opcode::JumpIfNullOrUndefined)
     }
 
     /// Emit an opcode with a dummy operand.
@@ -900,7 +901,6 @@ impl<'b, 'host> ByteCompiler<'b, 'host> {
             self.patch_jump(label);
         }
 
-        self.emit_opcode(Opcode::Pop);
         self.emit_opcode(Opcode::PushUndefined);
 
         self.patch_jump(skip_undef);

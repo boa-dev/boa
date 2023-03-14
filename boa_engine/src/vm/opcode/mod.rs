@@ -717,6 +717,14 @@ generate_impl! {
         /// Stack: object **=>** value
         GetPropertyByName,
 
+        /// Get a property method or undefined if the property is null or undefined.
+        ///
+        /// Throws if the method is not a callable object.
+        ///
+        /// Operands: name_index: `u32`
+        /// Stack: object **=>** object, method
+        GetMethod,
+
         /// Get a property by value from an object an push it on the stack.
         ///
         /// Like `object[key]`
@@ -1056,6 +1064,17 @@ generate_impl! {
 
         /// Conditional jump to address.
         ///
+        /// If the value popped is [`truthy`][truthy] then jump to `address`.
+        ///
+        /// Operands: address: `u32`
+        ///
+        /// Stack: cond **=>**
+        ///
+        /// [falsy]: https://developer.mozilla.org/en-US/docs/Glossary/Truthy
+        JumpIfTrue,
+
+        /// Conditional jump to address.
+        ///
         /// If the value popped is [`falsy`][falsy] then jump to `address`.
         ///
         /// Operands: address: `u32`
@@ -1089,6 +1108,13 @@ generate_impl! {
         ///
         /// Stack: value **=>**
         Throw,
+
+        /// Throw a new `TypeError` exception
+        ///
+        /// Operands: message: u32
+        ///
+        /// Stack: **=>**
+        ThrowNewTypeError,
 
         /// Start of a try block.
         ///
@@ -1506,6 +1532,13 @@ generate_impl! {
         /// Stack: iterator, next_method, done, received **=>** iterator, next_method, done
         GeneratorNextDelegate,
 
+        /// Delegates the current async generator function to another async generator.
+        ///
+        /// Operands: done_address: `u32`
+        ///
+        /// Stack: iterator, next_method, received **=>** iterator, next_method
+        AsyncGeneratorNextDelegate,
+
         /// Stops the current async function and schedules it to resume later.
         ///
         /// Operands:
@@ -1519,6 +1552,13 @@ generate_impl! {
         ///
         /// Stack: **=>** new_target
         PushNewTarget,
+
+        /// Pushes `true` to the stack if the value is an object, or false otherwise.
+        ///
+        /// Operands:
+        ///
+        /// Stack: value **=>** is_object
+        IsObject,
 
         /// No-operation instruction, does nothing.
         ///

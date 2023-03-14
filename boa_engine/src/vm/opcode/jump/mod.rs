@@ -21,6 +21,26 @@ impl Operation for Jump {
     }
 }
 
+// `JumpIfTrue` implements the Opcode Operation for `Opcode::JumpIfTrue`
+///
+/// Operation:
+///  - Conditional jump to address.
+#[derive(Debug, Clone, Copy)]
+pub(crate) struct JumpIfTrue;
+
+impl Operation for JumpIfTrue {
+    const NAME: &'static str = "JumpIfTrue";
+    const INSTRUCTION: &'static str = "INST - JumpIfTrue";
+
+    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
+        let address = context.vm.read::<u32>();
+        if context.vm.pop().to_boolean() {
+            context.vm.frame_mut().pc = address as usize;
+        }
+        Ok(CompletionType::Normal)
+    }
+}
+
 /// `JumpIfFalse` implements the Opcode Operation for `Opcode::JumpIfFalse`
 ///
 /// Operation:
@@ -79,8 +99,9 @@ impl Operation for JumpIfNullOrUndefined {
         let value = context.vm.pop();
         if value.is_null_or_undefined() {
             context.vm.frame_mut().pc = address as usize;
+        } else {
+            context.vm.push(value);
         }
-        context.vm.push(value);
         Ok(CompletionType::Normal)
     }
 }

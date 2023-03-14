@@ -108,7 +108,9 @@ impl CodeBlock {
                         EdgeStyle::Line,
                     );
                 }
+
                 Opcode::JumpIfFalse
+                | Opcode::JumpIfTrue
                 | Opcode::JumpIfNotUndefined
                 | Opcode::JumpIfNullOrUndefined => {
                     let operand = self.read::<u32>(pc);
@@ -232,6 +234,7 @@ impl CodeBlock {
                 }
                 Opcode::ForInLoopNext
                 | Opcode::ForAwaitOfLoopNext
+                | Opcode::AsyncGeneratorNextDelegate
                 | Opcode::GeneratorNextDelegate => {
                     let address = self.read::<u32>(pc) as usize;
                     pc += size_of::<u32>();
@@ -371,6 +374,7 @@ impl CodeBlock {
                     graph.add_edge(previous_pc, pc, None, Color::None, EdgeStyle::Line);
                 }
                 Opcode::GetPropertyByName
+                | Opcode::GetMethod
                 | Opcode::SetPropertyByName
                 | Opcode::DefineOwnPropertyByName
                 | Opcode::DefineClassStaticMethodByName
@@ -402,7 +406,7 @@ impl CodeBlock {
                     graph.add_node(previous_pc, NodeShape::None, label.into(), Color::None);
                     graph.add_edge(previous_pc, pc, None, Color::None, EdgeStyle::Line);
                 }
-                Opcode::Throw => {
+                Opcode::Throw | Opcode::ThrowNewTypeError => {
                     graph.add_node(previous_pc, NodeShape::None, label.into(), Color::None);
                     if let Some((_try_pc, next, _finally)) = try_entries.last() {
                         graph.add_edge(
@@ -515,6 +519,7 @@ impl CodeBlock {
                 | Opcode::SuperCallSpread
                 | Opcode::ForAwaitOfLoopIterate
                 | Opcode::SetPrototype
+                | Opcode::IsObject
                 | Opcode::Nop
                 | Opcode::PushObjectEnvironment => {
                     graph.add_node(previous_pc, NodeShape::None, label.into(), Color::None);

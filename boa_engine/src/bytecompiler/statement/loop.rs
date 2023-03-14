@@ -326,7 +326,11 @@ impl ByteCompiler<'_, '_> {
         self.patch_jump(cont_exit_label);
         self.pop_loop_control_info();
         self.emit_opcode(Opcode::LoopEnd);
-        self.emit_opcode(Opcode::IteratorClose);
+        if for_of_loop.r#await() {
+            self.async_iterator_close();
+        } else {
+            self.emit_opcode(Opcode::IteratorClose);
+        }
     }
 
     pub(crate) fn compile_while_loop(
