@@ -18,7 +18,7 @@ arbitrary = ["dep:arbitrary", "boa_interner/arbitrary", "num-bigint/arbitrary"]
 boa_interner.workspace = true
 boa_macros.workspace = true
 rustc-hash = "1.1.0"
-bitflags = "1.3.2"
+bitflags = "2.0.0"
 num-bigint = "0.4.3"
 serde = { version = "1.0.155", features = ["derive"], optional = true }
 arbitrary = { version = "1", features = ["derive"], optional = true }
