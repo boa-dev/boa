@@ -386,7 +386,7 @@
 
 <span class="macro">bitflags! </span>{
     <span class="doccomment">/// Flags of a regular expression.
-    </span><span class="attr">#[derive(Default)]
+    </span><span class="attr">#[derive(Debug, Default, Copy, Clone)]
     </span><span class="kw">pub struct </span>RegExpFlags: u8 {
         <span class="doccomment">/// Whether to test the regular expression against all possible matches in a string,
         /// or only against the first.

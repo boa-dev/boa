@@ -573,6 +573,7 @@
 <a href="#572" id="572">572</a>
 <a href="#573" id="573">573</a>
 <a href="#574" id="574">574</a>
+<a href="#575" id="575">575</a>
 </pre><pre class="rust"><code><span class="doccomment">//! Test262 test runner
 //!
 //! This crate will run the full ECMAScript test suite (Test262) and report compliance of the
@@ -1019,7 +1020,8 @@
 }
 
 <span class="macro">bitflags! </span>{
-    <span class="kw">struct </span>TestFlags: u16 {
+    <span class="attr">#[derive(Debug, Clone, Copy)]
+    </span><span class="kw">struct </span>TestFlags: u16 {
         <span class="kw">const </span>STRICT = <span class="number">0b0_0000_0001</span>;
         <span class="kw">const </span>NO_STRICT = <span class="number">0b0_0000_0010</span>;
         <span class="kw">const </span>MODULE = <span class="number">0b0_0000_0100</span>;

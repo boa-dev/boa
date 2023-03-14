@@ -416,6 +416,7 @@
 <a href="#415" id="415">415</a>
 <a href="#416" id="416">416</a>
 <a href="#417" id="417">417</a>
+<a href="#418" id="418">418</a>
 </pre><pre class="rust"><code><span class="doccomment">//! `JumpControlInfo` tracks relevant jump information used during compilation.
 //!
 //! Primarily, jump control tracks information related to the compilation of [iteration
@@ -444,6 +445,7 @@
 
 <span class="macro">bitflags! </span>{
     <span class="doccomment">/// A bitflag that contains the type flags and relevant booleans for `JumpControlInfo`.
+    </span><span class="attr">#[derive(Debug, Clone, Copy)]
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>JumpControlInfoFlags: u8 {
         <span class="kw">const </span>LOOP = <span class="number">0b0000_0001</span>;
         <span class="kw">const </span>SWITCH = <span class="number">0b0000_0010</span>;

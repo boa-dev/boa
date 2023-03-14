@@ -464,7 +464,7 @@
 
 <span class="macro">bitflags! </span>{
     <span class="doccomment">/// Flags for a [`FormalParameterList`].
-    </span><span class="attr">#[allow(clippy::unsafe_derive_deserialize)]
+    </span><span class="attr">#[derive(Debug, Copy, Clone, PartialEq)]
     #[cfg_attr(feature = <span class="string">&quot;serde&quot;</span>, derive(serde::Serialize, serde::Deserialize))]
     </span><span class="kw">pub struct </span>FormalParameterListFlags: u8 {
         <span class="doccomment">/// Has only identifier parameters with no initialization expressions.
