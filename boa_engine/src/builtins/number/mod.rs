@@ -850,7 +850,7 @@ impl Number {
     /// Checks if the float argument is an integer.
     #[allow(clippy::float_cmp)]
     pub(crate) fn is_float_integer(number: f64) -> bool {
-        number.is_finite() && number.abs().floor() == number.abs()
+        number.is_finite() && number.trunc() == number
     }
 
     /// The abstract operation `Number::equal` takes arguments
