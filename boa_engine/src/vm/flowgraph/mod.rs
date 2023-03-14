@@ -488,7 +488,7 @@ impl CodeBlock {
                 | Opcode::LoopEnd
                 | Opcode::LabelledEnd
                 | Opcode::InitIterator
-                | Opcode::InitIteratorAsync
+                | Opcode::InitAsyncIterator
                 | Opcode::IteratorNext
                 | Opcode::IteratorClose
                 | Opcode::IteratorToArray

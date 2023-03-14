@@ -656,7 +656,7 @@ generate_impl! {
         ///
         /// Operands: name_index: `u32`
         ///
-        /// Stack: value, has_declarative_binding **=>**
+        /// Stack: value **=>**
         DefInitVar,
 
         /// Declare `let` type variable.
@@ -1382,8 +1382,8 @@ generate_impl! {
         ///
         /// Operands:
         ///
-        /// Stack: object **=>** iterator, next_method, done
-        InitIteratorAsync,
+        /// Stack: object **=>** iterator, next_method
+        InitAsyncIterator,
 
         /// Advance the iterator by one and put the value on the stack.
         ///
@@ -1419,14 +1419,14 @@ generate_impl! {
         ///
         /// Operands:
         ///
-        /// Stack: iterator, next_method, done **=>** iterator, next_method, next_result
+        /// Stack: iterator, next_method **=>** iterator, next_method, next_result
         ForAwaitOfLoopIterate,
 
         /// Get the value from a for await..of loop next result.
         ///
         /// Operands: address: `u32`
         ///
-        /// Stack: next_result **=>** done, value
+        /// Stack: next_result **=>** value
         ForAwaitOfLoopNext,
 
         /// Concat multiple stack objects into a string.

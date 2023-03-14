@@ -114,7 +114,7 @@ impl AsyncFromSyncIterator {
         // a. Let result be Completion(IteratorNext(syncIteratorRecord, value)).
         // 6. Else,
         // a. Let result be Completion(IteratorNext(syncIteratorRecord)).
-        let result = sync_iterator_record.next(args.get(0).cloned(), context);
+        let result = sync_iterator_record.next(args.get(0), context);
 
         // 7. IfAbruptRejectPromise(result, promiseCapability).
         if_abrupt_reject_promise!(result, promise_capability, context);

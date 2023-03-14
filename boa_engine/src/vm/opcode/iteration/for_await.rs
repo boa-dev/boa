@@ -17,11 +17,6 @@ impl Operation for ForAwaitOfLoopIterate {
     const INSTRUCTION: &'static str = "INST - ForAwaitOfLoopIterate";
 
     fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
-        let _done = context
-            .vm
-            .pop()
-            .as_boolean()
-            .expect("iterator [[Done]] was not a boolean");
         let next_method = context.vm.pop();
         let next_method_object = next_method.as_callable().ok_or_else(|| {
             JsNativeError::typ().with_message("iterable next method not a function")
@@ -60,9 +55,7 @@ impl Operation for ForAwaitOfLoopNext {
             context.vm.frame_mut().pc = address as usize;
             context.vm.frame_mut().dec_frame_env_stack();
             context.realm.environments.pop();
-            context.vm.push(true);
         } else {
-            context.vm.push(false);
             let value = next_result.value(context)?;
             context.vm.push(value);
         }

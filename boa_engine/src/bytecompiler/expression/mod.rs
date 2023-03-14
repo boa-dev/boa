@@ -163,7 +163,7 @@ impl ByteCompiler<'_, '_> {
 
                 if r#yield.delegate() {
                     if self.in_async_generator {
-                        self.emit_opcode(Opcode::InitIteratorAsync);
+                        self.emit_opcode(Opcode::InitAsyncIterator);
                     } else {
                         self.emit_opcode(Opcode::InitIterator);
                     }

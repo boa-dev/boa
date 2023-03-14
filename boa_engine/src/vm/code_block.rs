@@ -280,7 +280,7 @@ impl CodeBlock {
                 let operand = self.read::<u32>(*pc);
                 *pc += size_of::<u32>() + size_of::<u8>();
                 format!(
-                    "{operand:04}: '{:?}' (length: {})",
+                    "{operand:04}: '{}' (length: {})",
                     interner.resolve_expect(self.functions[operand as usize].name),
                     self.functions[operand as usize].length
                 )
@@ -417,7 +417,7 @@ impl CodeBlock {
             | Opcode::LoopEnd
             | Opcode::LabelledEnd
             | Opcode::InitIterator
-            | Opcode::InitIteratorAsync
+            | Opcode::InitAsyncIterator
             | Opcode::IteratorNext
             | Opcode::IteratorClose
             | Opcode::IteratorToArray

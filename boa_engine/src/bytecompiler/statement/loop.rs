@@ -228,7 +228,7 @@ impl ByteCompiler<'_, '_> {
         }
 
         if for_of_loop.r#await() {
-            self.emit_opcode(Opcode::InitIteratorAsync);
+            self.emit_opcode(Opcode::InitAsyncIterator);
         } else {
             self.emit_opcode(Opcode::InitIterator);
         }
