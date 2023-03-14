@@ -146,7 +146,7 @@ impl<R> Tokenizer<R> for RegexLiteral {
 
 bitflags! {
     /// Flags of a regular expression.
-    #[derive(Default)]
+    #[derive(Debug, Default, Copy, Clone)]
     pub struct RegExpFlags: u8 {
         /// Whether to test the regular expression against all possible matches in a string,
         /// or only against the first.

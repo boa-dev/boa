@@ -176,7 +176,7 @@ impl<'a> arbitrary::Arbitrary<'a> for FormalParameterList {
 
 bitflags! {
     /// Flags for a [`FormalParameterList`].
-    #[allow(clippy::unsafe_derive_deserialize)]
+    #[derive(Debug, Copy, Clone, PartialEq)]
     #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
     pub struct FormalParameterListFlags: u8 {
         /// Has only identifier parameters with no initialization expressions.

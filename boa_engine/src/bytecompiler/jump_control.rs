@@ -26,6 +26,7 @@ pub(crate) struct JumpControlInfo {
 
 bitflags! {
     /// A bitflag that contains the type flags and relevant booleans for `JumpControlInfo`.
+    #[derive(Debug, Clone, Copy)]
     pub(crate) struct JumpControlInfoFlags: u8 {
         const LOOP = 0b0000_0001;
         const SWITCH = 0b0000_0010;
