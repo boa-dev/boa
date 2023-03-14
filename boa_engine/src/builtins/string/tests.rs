@@ -878,11 +878,35 @@ fn from_code_point() {
             js_string!(&[0xD800, 0xD8FF]),
         ),
         TestAction::assert_eq("String.fromCodePoint(9731, 9733, 9842, 0x2F804)", "☃★♲你"),
-        TestAction::assert_native_error("String.fromCodePoint('_')", ErrorKind::Range, "codepoint `NaN` is not an integer"),
-        TestAction::assert_native_error("String.fromCodePoint(Infinity)", ErrorKind::Range, "codepoint `inf` is not an integer"),
-        TestAction::assert_native_error("String.fromCodePoint(-1)", ErrorKind::Range, "codepoint `-1` outside of Unicode range"),
-        TestAction::assert_native_error("String.fromCodePoint(3.14)", ErrorKind::Range, "codepoint `3.14` is not an integer"),
-        TestAction::assert_native_error("String.fromCodePoint(3e-2)", ErrorKind::Range, "codepoint `0.03` is not an integer"),
-        TestAction::assert_native_error("String.fromCodePoint(NaN)", ErrorKind::Range, "codepoint `NaN` is not an integer"),
+        TestAction::assert_native_error(
+            "String.fromCodePoint('_')",
+            ErrorKind::Range,
+            "codepoint `NaN` is not an integer",
+        ),
+        TestAction::assert_native_error(
+            "String.fromCodePoint(Infinity)",
+            ErrorKind::Range,
+            "codepoint `inf` is not an integer",
+        ),
+        TestAction::assert_native_error(
+            "String.fromCodePoint(-1)",
+            ErrorKind::Range,
+            "codepoint `-1` outside of Unicode range",
+        ),
+        TestAction::assert_native_error(
+            "String.fromCodePoint(3.14)",
+            ErrorKind::Range,
+            "codepoint `3.14` is not an integer",
+        ),
+        TestAction::assert_native_error(
+            "String.fromCodePoint(3e-2)",
+            ErrorKind::Range,
+            "codepoint `0.03` is not an integer",
+        ),
+        TestAction::assert_native_error(
+            "String.fromCodePoint(NaN)",
+            ErrorKind::Range,
+            "codepoint `NaN` is not an integer",
+        ),
     ])
 }
