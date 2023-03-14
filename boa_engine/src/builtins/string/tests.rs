@@ -877,7 +877,7 @@ fn from_code_point() {
             "String.fromCharCode(0xD800, 0xD8FF)",
             js_string!(&[0xD800, 0xD8FF]),
         ),
-        TestAction::assert_eq("String.fromCodePoint(9731, 9733, 9842, 0x2F804)", "☃★♲你"),
+        TestAction::assert_eq("String.fromCodePoint(9731, 9733, 9842, 0x4F60)", "☃★♲你"),
         TestAction::assert_native_error(
             "String.fromCodePoint('_')",
             ErrorKind::Range,
@@ -908,5 +908,5 @@ fn from_code_point() {
             ErrorKind::Range,
             "codepoint `NaN` is not an integer",
         ),
-    ])
+    ]);
 }
