@@ -255,22 +255,30 @@ impl String {
             // b. If ! IsIntegralNumber(nextCP) is false, throw a RangeError exception.
             if !Number::is_float_integer(nextcp) {
                 return Err(JsNativeError::range()
-                    .with_message(format!("invalid code point: {nextcp}"))
+                    .with_message(format!("codepoint `{nextcp}` is not an integer"))
                     .into());
             }
 
             // c. If ℝ(nextCP) < 0 or ℝ(nextCP) > 0x10FFFF, throw a RangeError exception.
             if nextcp < 0.0 || nextcp > f64::from(0x0010_FFFF) {
                 return Err(JsNativeError::range()
-                    .with_message(format!("invalid code point: {nextcp}"))
+                    .with_message(format!("codepoint `{nextcp}` outside of Unicode range"))
                     .into());
             }
 
-            let nextcp =
-                char::from_u32(nextcp as u32).expect("Checked above the range of `nextcp`");
+            // SAFETY:
+            // - `nextcp` is not NaN (by the call to `is_float_integer`).
+            // - `nextcp` is not infinite (by the call to `is_float_integer`).
+            // - `nextcp` is in the u32 range (by the check above).
+            let nextcp = unsafe { nextcp.to_int_unchecked::<u32>() };
 
             // d. Set result to the string-concatenation of result and ! UTF16EncodeCodePoint(ℝ(nextCP)).
-            result.extend_from_slice(nextcp.encode_utf16(&mut buf));
+            result.extend_from_slice(match u16::try_from(nextcp) {
+                Ok(ref cp) => std::slice::from_ref(cp),
+                Err(_) => char::from_u32(nextcp)
+                    .expect("u32 is in range and cannot be a surrogate by the conversion above")
+                    .encode_utf16(&mut buf),
+            });
         }
 
         // 3. Assert: If codePoints is empty, then result is the empty String.
