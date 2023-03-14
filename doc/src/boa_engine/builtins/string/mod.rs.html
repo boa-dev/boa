@@ -2378,6 +2378,14 @@
 <a href="#2377" id="2377">2377</a>
 <a href="#2378" id="2378">2378</a>
 <a href="#2379" id="2379">2379</a>
+<a href="#2380" id="2380">2380</a>
+<a href="#2381" id="2381">2381</a>
+<a href="#2382" id="2382">2382</a>
+<a href="#2383" id="2383">2383</a>
+<a href="#2384" id="2384">2384</a>
+<a href="#2385" id="2385">2385</a>
+<a href="#2386" id="2386">2386</a>
+<a href="#2387" id="2387">2387</a>
 </pre><pre class="rust"><code><span class="doccomment">//! Boa&#39;s implementation of ECMAScript&#39;s global `String` object.
 //!
 //! The `String` global object is a constructor for strings or a sequence of characters.
@@ -2635,22 +2643,30 @@
             <span class="comment">// b. If ! IsIntegralNumber(nextCP) is false, throw a RangeError exception.
             </span><span class="kw">if </span>!Number::is_float_integer(nextcp) {
                 <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::range()
-                    .with_message(<span class="macro">format!</span>(<span class="string">&quot;invalid code point: {nextcp}&quot;</span>))
+                    .with_message(<span class="macro">format!</span>(<span class="string">&quot;codepoint `{nextcp}` is not an integer&quot;</span>))
                     .into());
             }
 
             <span class="comment">// c. If ℝ(nextCP) &lt; 0 or ℝ(nextCP) &gt; 0x10FFFF, throw a RangeError exception.
             </span><span class="kw">if </span>nextcp &lt; <span class="number">0.0 </span>|| nextcp &gt; f64::from(<span class="number">0x0010_FFFF</span>) {
                 <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::range()
-                    .with_message(<span class="macro">format!</span>(<span class="string">&quot;invalid code point: {nextcp}&quot;</span>))
+                    .with_message(<span class="macro">format!</span>(<span class="string">&quot;codepoint `{nextcp}` outside of Unicode range&quot;</span>))
                     .into());
             }
 
-            <span class="kw">let </span>nextcp =
-                char::from_u32(nextcp <span class="kw">as </span>u32).expect(<span class="string">&quot;Checked above the range of `nextcp`&quot;</span>);
+            <span class="comment">// SAFETY:
+            // - `nextcp` is not NaN (by the call to `is_float_integer`).
+            // - `nextcp` is not infinite (by the call to `is_float_integer`).
+            // - `nextcp` is in the u32 range (by the check above).
+            </span><span class="kw">let </span>nextcp = <span class="kw">unsafe </span>{ nextcp.to_int_unchecked::&lt;u32&gt;() };
 
             <span class="comment">// d. Set result to the string-concatenation of result and ! UTF16EncodeCodePoint(ℝ(nextCP)).
-            </span>result.extend_from_slice(nextcp.encode_utf16(<span class="kw-2">&amp;mut </span>buf));
+            </span>result.extend_from_slice(<span class="kw">match </span>u16::try_from(nextcp) {
+                <span class="prelude-val">Ok</span>(<span class="kw-2">ref </span>cp) =&gt; std::slice::from_ref(cp),
+                <span class="prelude-val">Err</span>(<span class="kw">_</span>) =&gt; char::from_u32(nextcp)
+                    .expect(<span class="string">&quot;u32 is in range and cannot be a surrogate by the conversion above&quot;</span>)
+                    .encode_utf16(<span class="kw-2">&amp;mut </span>buf),
+            });
         }
 
         <span class="comment">// 3. Assert: If codePoints is empty, then result is the empty String.

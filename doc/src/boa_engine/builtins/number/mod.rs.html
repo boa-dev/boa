@@ -1789,7 +1789,7 @@
     <span class="doccomment">/// Checks if the float argument is an integer.
     </span><span class="attr">#[allow(clippy::float_cmp)]
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>is_float_integer(number: f64) -&gt; bool {
-        number.is_finite() &amp;&amp; number.abs().floor() == number.abs()
+        number.is_finite() &amp;&amp; number.trunc() == number
     }
 
     <span class="doccomment">/// The abstract operation `Number::equal` takes arguments
