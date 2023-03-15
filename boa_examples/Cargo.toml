@@ -18,4 +18,4 @@ boa_interner.workspace = true
 boa_gc.workspace = true
 boa_parser.workspace = true
 smol = "1.3.0"
-futures-util = "0.3.25"
+futures-util = "0.3.27"
