@@ -60,6 +60,13 @@ impl Unary {
     pub fn target(&self) -> &Expression {
         self.target.as_ref()
     }
+
+    /// Gets the target of this unary operator.
+    #[inline]
+    #[must_use]
+    pub fn target_mut(&mut self) -> &mut Expression {
+        self.target.as_mut()
+    }
 }
 
 impl ToInternedString for Unary {

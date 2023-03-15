@@ -64,6 +64,7 @@ use boa_ast::StatementList;
 use boa_engine::{
     context::ContextBuilder,
     job::{FutureJob, JobQueue, NativeJob},
+    optimizer::OptimizerOptions,
     vm::flowgraph::{Direction, Graph},
     Context, JsResult, Source,
 };
@@ -89,6 +90,7 @@ const READLINE_COLOR: Color = Color::Cyan;
 // https://docs.rs/structopt/0.3.11/structopt/#type-magic
 #[derive(Debug, Parser)]
 #[command(author, version, about, name = "boa")]
+#[allow(clippy::struct_excessive_bools)] // NOTE: Allow having more than 3 bools in struct
 struct Opt {
     /// The JavaScript file(s) to be evaluated.
     #[arg(name = "FILE", value_hint = ValueHint::FilePath)]
@@ -117,6 +119,12 @@ struct Opt {
     /// Use vi mode in the REPL
     #[arg(long = "vi")]
     vi_mode: bool,
+
+    #[arg(long, short = 'O', group = "optimizer")]
+    optimize: bool,
+
+    #[arg(long, requires = "optimizer")]
+    optimizer_statistics: bool,
 
     /// Generate instruction flowgraph. Default is Graphviz.
     #[arg(
@@ -207,7 +215,11 @@ where
     S: AsRef<[u8]> + ?Sized,
 {
     if let Some(ref arg) = args.dump_ast {
-        let ast = parse_tokens(src, context)?;
+        let mut ast = parse_tokens(src, context)?;
+
+        if args.optimize {
+            context.optimize_statement_list(&mut ast);
+        }
 
         match arg {
             Some(DumpFormat::Json) => println!(
@@ -251,31 +263,17 @@ fn generate_flowgraph(
     Ok(result)
 }
 
-fn main() -> Result<(), io::Error> {
-    let args = Opt::parse();
-
-    let queue = Jobs::default();
-    let mut context = ContextBuilder::new()
-        .job_queue(&queue)
-        .build()
-        .expect("cannot fail with default global object");
-
-    // Strict mode
-    context.strict(args.strict);
-
-    // Trace Output
-    context.set_trace(args.trace);
-
+fn evaluate_files(args: &Opt, context: &mut Context<'_>) -> Result<(), io::Error> {
     for file in &args.files {
         let buffer = read(file)?;
 
         if args.has_dump_flag() {
-            if let Err(e) = dump(&buffer, &args, &mut context) {
+            if let Err(e) = dump(&buffer, args, context) {
                 eprintln!("{e}");
             }
         } else if let Some(flowgraph) = args.flowgraph {
             match generate_flowgraph(
-                &mut context,
+                context,
                 &buffer,
                 flowgraph.unwrap_or(FlowgraphFormat::Graphviz),
                 args.flowgraph_direction,
@@ -291,6 +289,30 @@ fn main() -> Result<(), io::Error> {
             context.run_jobs();
         }
     }
+
+    Ok(())
+}
+
+fn main() -> Result<(), io::Error> {
+    let args = Opt::parse();
+
+    let queue = Jobs::default();
+    let mut context = ContextBuilder::new()
+        .job_queue(&queue)
+        .build()
+        .expect("cannot fail with default global object");
+
+    // Strict mode
+    context.strict(args.strict);
+
+    // Trace Output
+    context.set_trace(args.trace);
+
+    // Configure optimizer options
+    let mut optimizer_options = OptimizerOptions::empty();
+    optimizer_options.set(OptimizerOptions::STATISTICS, args.optimizer_statistics);
+    optimizer_options.set(OptimizerOptions::OPTIMIZE_ALL, args.optimize);
+    context.set_optimizer_options(optimizer_options);
 
     if args.files.is_empty() {
         let config = Config::builder()
@@ -365,6 +387,8 @@ fn main() -> Result<(), io::Error> {
         editor
             .save_history(CLI_HISTORY)
             .expect("could not save CLI history");
+    } else {
+        evaluate_files(&args, &mut context)?;
     }
 
     Ok(())

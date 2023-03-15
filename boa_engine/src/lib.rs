@@ -158,6 +158,8 @@ pub mod symbol;
 pub mod value;
 pub mod vm;
 
+pub mod optimizer;
+
 #[cfg(feature = "console")]
 pub mod console;
 

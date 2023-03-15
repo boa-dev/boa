@@ -23,6 +23,7 @@ use crate::{
     job::{IdleJobQueue, JobQueue, NativeJob},
     native_function::NativeFunction,
     object::{FunctionObjectBuilder, GlobalPropertyMap, JsObject},
+    optimizer::{Optimizer, OptimizerOptions, OptimizerStatistics},
     property::{Attribute, PropertyDescriptor, PropertyKey},
     realm::Realm,
     vm::{CallFrame, CodeBlock, Vm},
@@ -101,6 +102,8 @@ pub struct Context<'host> {
     host_hooks: &'host dyn HostHooks,
 
     job_queue: &'host dyn JobQueue,
+
+    optimizer_options: OptimizerOptions,
 }
 
 impl std::fmt::Debug for Context<'_> {
@@ -113,7 +116,8 @@ impl std::fmt::Debug for Context<'_> {
             .field("vm", &self.vm)
             .field("strict", &self.strict)
             .field("promise_job_queue", &"JobQueue")
-            .field("hooks", &"HostHooks");
+            .field("hooks", &"HostHooks")
+            .field("optimizer_options", &self.optimizer_options);
 
         #[cfg(feature = "intl")]
         debug.field("icu", &self.icu);
@@ -202,6 +206,15 @@ impl Context<'_> {
         result
     }
 
+    /// Applies optimizations to the [`StatementList`] inplace.
+    pub fn optimize_statement_list(
+        &mut self,
+        statement_list: &mut StatementList,
+    ) -> OptimizerStatistics {
+        let mut optimizer = Optimizer::new(self);
+        optimizer.apply(statement_list)
+    }
+
     /// Parse the given source script.
     pub fn parse_script<R: Read>(
         &mut self,
@@ -212,7 +225,11 @@ impl Context<'_> {
         if self.strict {
             parser.set_strict();
         }
-        parser.parse_script(&mut self.interner)
+        let mut result = parser.parse_script(&mut self.interner)?;
+        if !self.optimizer_options().is_empty() {
+            self.optimize_statement_list(&mut result);
+        }
+        Ok(result)
     }
 
     /// Parse the given source script.
@@ -425,6 +442,15 @@ impl Context<'_> {
     #[cfg(feature = "trace")]
     pub fn set_trace(&mut self, trace: bool) {
         self.vm.trace = trace;
+    }
+
+    /// Get optimizer options.
+    pub const fn optimizer_options(&self) -> OptimizerOptions {
+        self.optimizer_options
+    }
+    /// Enable or disable optimizations
+    pub fn set_optimizer_options(&mut self, optimizer_options: OptimizerOptions) {
+        self.optimizer_options = optimizer_options;
     }
 
     /// Changes the strictness mode of the context.
@@ -643,6 +669,7 @@ impl<'icu, 'hooks, 'queue> ContextBuilder<'icu, 'hooks, 'queue> {
             kept_alive: Vec::new(),
             host_hooks,
             job_queue: self.job_queue.unwrap_or(&IdleJobQueue),
+            optimizer_options: OptimizerOptions::OPTIMIZE_ALL,
         };
 
         builtins::set_default_global_bindings(&mut context)?;

@@ -76,6 +76,7 @@ use self::{
     results::{compare_results, write_json},
 };
 use bitflags::bitflags;
+use boa_engine::optimizer::OptimizerOptions;
 use clap::{ArgAction, Parser, ValueHint};
 use color_eyre::{
     eyre::{bail, eyre, WrapErr},
@@ -163,6 +164,10 @@ enum Cli {
         #[arg(short, long, default_value = "test", value_hint = ValueHint::AnyPath)]
         suite: PathBuf,
 
+        /// Enable optimizations
+        #[arg(long, short = 'O')]
+        optimize: bool,
+
         /// Optional output folder for the full results information.
         #[arg(short, long, value_hint = ValueHint::DirPath)]
         output: Option<PathBuf>,
@@ -208,6 +213,7 @@ fn main() -> Result<()> {
             test262_path,
             suite,
             output,
+            optimize,
             disable_parallelism,
             ignored: ignore,
             edition,
@@ -221,6 +227,11 @@ fn main() -> Result<()> {
             ignore.as_path(),
             edition.unwrap_or_default(),
             versioned,
+            if optimize {
+                OptimizerOptions::OPTIMIZE_ALL
+            } else {
+                OptimizerOptions::empty()
+            },
         ),
         Cli::Compare {
             base,
@@ -241,6 +252,7 @@ fn run_test_suite(
     ignore: &Path,
     edition: SpecEdition,
     versioned: bool,
+    optimizer_options: OptimizerOptions,
 ) -> Result<()> {
     if let Some(path) = output {
         if path.exists() {
@@ -275,7 +287,7 @@ fn run_test_suite(
             if verbose != 0 {
                 println!("Test loaded, starting...");
             }
-            test.run(&harness, verbose);
+            test.run(&harness, verbose, optimizer_options);
         } else {
             println!(
                 "Minimum spec edition of test is bigger than the specified edition. Skipping."
@@ -292,7 +304,7 @@ fn run_test_suite(
         if verbose != 0 {
             println!("Test suite loaded, starting tests...");
         }
-        let results = suite.run(&harness, verbose, parallel, edition);
+        let results = suite.run(&harness, verbose, parallel, edition, optimizer_options);
 
         if versioned {
             let mut table = comfy_table::Table::new();

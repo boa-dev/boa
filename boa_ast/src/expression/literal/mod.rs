@@ -110,6 +110,12 @@ pub enum Literal {
     /// [spec]: https://tc39.es/ecma262/#sec-null-value
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Glossary/null
     Null,
+
+    /// This represents the JavaScript `undefined` value, it does not reference the `undefined` global variable,
+    /// it will directly evaluate to `undefined`.
+    ///
+    /// NOTE: This is used for optimizations.
+    Undefined,
 }
 
 impl From<Sym> for Literal {
@@ -173,6 +179,7 @@ impl ToInternedString for Literal {
             Self::BigInt(ref num) => num.to_string(),
             Self::Bool(v) => v.to_string(),
             Self::Null => "null".to_owned(),
+            Self::Undefined => "undefined".to_owned(),
         }
     }
 }

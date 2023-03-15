@@ -8,8 +8,8 @@ use crate::{
 };
 use boa_engine::{
     context::ContextBuilder, job::SimpleJobQueue, native_function::NativeFunction,
-    object::FunctionObjectBuilder, property::Attribute, Context, JsArgs, JsNativeErrorKind,
-    JsValue, Source,
+    object::FunctionObjectBuilder, optimizer::OptimizerOptions, property::Attribute, Context,
+    JsArgs, JsNativeErrorKind, JsValue, Source,
 };
 use colored::Colorize;
 use fxhash::FxHashSet;
@@ -24,6 +24,7 @@ impl TestSuite {
         verbose: u8,
         parallel: bool,
         max_edition: SpecEdition,
+        optimizer_options: OptimizerOptions,
     ) -> SuiteResult {
         if verbose != 0 {
             println!("Suite {}:", self.path.display());
@@ -32,12 +33,12 @@ impl TestSuite {
         let suites: Vec<_> = if parallel {
             self.suites
                 .par_iter()
-                .map(|suite| suite.run(harness, verbose, parallel, max_edition))
+                .map(|suite| suite.run(harness, verbose, parallel, max_edition, optimizer_options))
                 .collect()
         } else {
             self.suites
                 .iter()
-                .map(|suite| suite.run(harness, verbose, parallel, max_edition))
+                .map(|suite| suite.run(harness, verbose, parallel, max_edition, optimizer_options))
                 .collect()
         };
 
@@ -45,13 +46,13 @@ impl TestSuite {
             self.tests
                 .par_iter()
                 .filter(|test| test.edition <= max_edition)
-                .flat_map(|test| test.run(harness, verbose))
+                .flat_map(|test| test.run(harness, verbose, optimizer_options))
                 .collect()
         } else {
             self.tests
                 .iter()
                 .filter(|test| test.edition <= max_edition)
-                .flat_map(|test| test.run(harness, verbose))
+                .flat_map(|test| test.run(harness, verbose, optimizer_options))
                 .collect()
         };
 
@@ -134,21 +135,32 @@ impl TestSuite {
 
 impl Test {
     /// Runs the test.
-    pub(crate) fn run(&self, harness: &Harness, verbose: u8) -> Vec<TestResult> {
+    pub(crate) fn run(
+        &self,
+        harness: &Harness,
+        verbose: u8,
+        optimizer_options: OptimizerOptions,
+    ) -> Vec<TestResult> {
         let mut results = Vec::new();
         if self.flags.contains(TestFlags::STRICT) && !self.flags.contains(TestFlags::RAW) {
-            results.push(self.run_once(harness, true, verbose));
+            results.push(self.run_once(harness, true, verbose, optimizer_options));
         }
 
         if self.flags.contains(TestFlags::NO_STRICT) || self.flags.contains(TestFlags::RAW) {
-            results.push(self.run_once(harness, false, verbose));
+            results.push(self.run_once(harness, false, verbose, optimizer_options));
         }
 
         results
     }
 
     /// Runs the test once, in strict or non-strict mode
-    fn run_once(&self, harness: &Harness, strict: bool, verbose: u8) -> TestResult {
+    fn run_once(
+        &self,
+        harness: &Harness,
+        strict: bool,
+        verbose: u8,
+        optimizer_options: OptimizerOptions,
+    ) -> TestResult {
         let Ok(source) = Source::from_filepath(&self.path) else {
             if verbose > 1 {
                 println!(
@@ -208,6 +220,7 @@ impl Test {
                     return (false, e);
                 }
                 context.strict(strict);
+                context.set_optimizer_options(optimizer_options);
 
                 // TODO: timeout
                 let value = match if self.is_module() {
@@ -247,6 +260,8 @@ impl Test {
 
                 let context = &mut Context::default();
                 context.strict(strict);
+                context.set_optimizer_options(OptimizerOptions::OPTIMIZE_ALL);
+
                 if self.is_module() {
                     match context.parse_module(source) {
                         Ok(module_item_list) => match context.compile_module(&module_item_list) {
@@ -275,6 +290,8 @@ impl Test {
             } => {
                 let context = &mut Context::default();
                 context.strict(strict);
+                context.set_optimizer_options(optimizer_options);
+
                 if let Err(e) = self.set_up_env(harness, context, AsyncResult::default()) {
                     return (false, e);
                 }
