@@ -550,7 +550,7 @@ impl CodeBlock {
 
         graph.add_node(pc, NodeShape::Diamond, "End".into(), Color::Red);
 
-        for function in &self.functions {
+        for function in self.functions.as_ref() {
             let subgraph = graph.subgraph(String::new());
             function.to_graph(interner, subgraph);
         }

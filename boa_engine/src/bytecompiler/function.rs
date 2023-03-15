@@ -9,7 +9,6 @@ use boa_ast::{
 };
 use boa_gc::Gc;
 use boa_interner::Sym;
-use rustc_hash::FxHashMap;
 
 /// `FunctionCompiler` is used to compile AST functions to bytecode.
 #[derive(Debug, Clone, Copy)]
@@ -95,23 +94,14 @@ impl FunctionCompiler {
         self.strict = self.strict || body.strict();
 
         let length = parameters.length();
-        let mut code = CodeBlock::new(self.name, length, self.strict);
+
+        let mut compiler = ByteCompiler::new(self.name, self.strict, false, context);
+        compiler.length = length;
+        compiler.in_async_generator = self.generator && self.r#async;
 
         if self.arrow {
-            code.this_mode = ThisMode::Lexical;
+            compiler.this_mode = ThisMode::Lexical;
         }
-
-        let mut compiler = ByteCompiler {
-            code_block: code,
-            literals_map: FxHashMap::default(),
-            names_map: FxHashMap::default(),
-            private_names_map: FxHashMap::default(),
-            bindings_map: FxHashMap::default(),
-            jump_info: Vec::new(),
-            in_async_generator: self.generator && self.r#async,
-            json_parse: false,
-            context,
-        };
 
         if let Some(class_name) = self.class_name {
             compiler.context.push_compile_time_environment(false);
@@ -121,7 +111,7 @@ impl FunctionCompiler {
         }
 
         if let Some(binding_identifier) = self.binding_identifier {
-            compiler.code_block.has_binding_identifier = true;
+            compiler.has_binding_identifier = true;
             compiler.context.push_compile_time_environment(false);
             compiler
                 .context
@@ -139,7 +129,7 @@ impl FunctionCompiler {
             compiler
                 .context
                 .create_mutable_binding(Sym::ARGUMENTS.into(), false, false);
-            compiler.code_block.arguments_binding = Some(
+            compiler.arguments_binding = Some(
                 compiler
                     .context
                     .initialize_mutable_binding(Sym::ARGUMENTS.into(), false),
@@ -184,10 +174,9 @@ impl FunctionCompiler {
         }
 
         let env_label = if parameters.has_expressions() {
-            compiler.code_block.num_bindings = compiler.context.get_binding_number();
+            compiler.num_bindings = compiler.context.get_binding_number();
             compiler.context.push_compile_time_environment(true);
-            compiler.code_block.function_environment_push_location =
-                compiler.next_opcode_location();
+            compiler.function_environment_push_location = compiler.next_opcode_location();
             Some(compiler.emit_opcode_with_two_operands(Opcode::PushFunctionEnvironment))
         } else {
             None
@@ -215,7 +204,7 @@ impl FunctionCompiler {
             let (num_bindings, compile_environment) =
                 compiler.context.pop_compile_time_environment();
             compiler.push_compile_environment(compile_environment);
-            compiler.code_block.num_bindings = num_bindings;
+            compiler.num_bindings = num_bindings;
         }
 
         if self.binding_identifier.is_some() {
@@ -228,7 +217,7 @@ impl FunctionCompiler {
             compiler.push_compile_environment(compile_environment);
         }
 
-        compiler.code_block.params = parameters.clone();
+        compiler.params = parameters.clone();
 
         // TODO These are redundant if a function returns so may need to check if a function returns and adding these if it doesn't
         compiler.emit(Opcode::PushUndefined, &[]);

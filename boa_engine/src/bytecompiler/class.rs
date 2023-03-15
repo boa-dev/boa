@@ -1,5 +1,5 @@
 use super::{ByteCompiler, Literal, NodeKind};
-use crate::vm::{BindingOpcode, CodeBlock, Opcode};
+use crate::vm::{BindingOpcode, Opcode};
 use boa_ast::{
     declaration::Binding,
     expression::Identifier,
@@ -9,7 +9,6 @@ use boa_ast::{
 };
 use boa_gc::Gc;
 use boa_interner::Sym;
-use rustc_hash::FxHashMap;
 
 impl ByteCompiler<'_, '_> {
     /// This function compiles a class declaration or expression.
@@ -20,22 +19,11 @@ impl ByteCompiler<'_, '_> {
     pub(crate) fn compile_class(&mut self, class: &Class, expression: bool) {
         let class_name = class.name().map_or(Sym::EMPTY_STRING, Identifier::sym);
 
-        let code = CodeBlock::new(class_name, 0, true);
-        let mut compiler = ByteCompiler {
-            code_block: code,
-            literals_map: FxHashMap::default(),
-            names_map: FxHashMap::default(),
-            private_names_map: FxHashMap::default(),
-            bindings_map: FxHashMap::default(),
-            jump_info: Vec::new(),
-            in_async_generator: false,
-            json_parse: self.json_parse,
-            context: self.context,
-        };
+        let mut compiler = ByteCompiler::new(class_name, true, self.json_parse, self.context);
 
         if let Some(class_name) = class.name() {
             if class.has_binding_identifier() {
-                compiler.code_block.has_binding_identifier = true;
+                compiler.has_binding_identifier = true;
                 compiler.context.push_compile_time_environment(false);
                 compiler.context.create_immutable_binding(class_name, true);
             }
@@ -44,12 +32,12 @@ impl ByteCompiler<'_, '_> {
         compiler.context.push_compile_time_environment(true);
 
         if let Some(expr) = class.constructor() {
-            compiler.code_block.length = expr.parameters().length();
-            compiler.code_block.params = expr.parameters().clone();
+            compiler.length = expr.parameters().length();
+            compiler.params = expr.parameters().clone();
             compiler
                 .context
                 .create_mutable_binding(Sym::ARGUMENTS.into(), false, false);
-            compiler.code_block.arguments_binding = Some(
+            compiler.arguments_binding = Some(
                 compiler
                     .context
                     .initialize_mutable_binding(Sym::ARGUMENTS.into(), false),
@@ -84,10 +72,9 @@ impl ByteCompiler<'_, '_> {
                 compiler.emit_opcode(Opcode::RestParameterPop);
             }
             let env_label = if expr.parameters().has_expressions() {
-                compiler.code_block.num_bindings = compiler.context.get_binding_number();
+                compiler.num_bindings = compiler.context.get_binding_number();
                 compiler.context.push_compile_time_environment(true);
-                compiler.code_block.function_environment_push_location =
-                    compiler.next_opcode_location();
+                compiler.function_environment_push_location = compiler.next_opcode_location();
                 Some(compiler.emit_opcode_with_two_operands(Opcode::PushFunctionEnvironment))
             } else {
                 None
@@ -107,8 +94,8 @@ impl ByteCompiler<'_, '_> {
                 let (num_bindings, compile_environment) =
                     compiler.context.pop_compile_time_environment();
                 compiler.push_compile_environment(compile_environment);
-                compiler.code_block.num_bindings = num_bindings;
-                compiler.code_block.is_class_constructor = true;
+                compiler.num_bindings = num_bindings;
+                compiler.is_class_constructor = true;
             }
         } else {
             if class.super_ref().is_some() {
@@ -117,8 +104,8 @@ impl ByteCompiler<'_, '_> {
             let (num_bindings, compile_environment) =
                 compiler.context.pop_compile_time_environment();
             compiler.push_compile_environment(compile_environment);
-            compiler.code_block.num_bindings = num_bindings;
-            compiler.code_block.is_class_constructor = true;
+            compiler.num_bindings = num_bindings;
+            compiler.is_class_constructor = true;
         }
 
         if class.name().is_some() && class.has_binding_identifier() {
@@ -130,8 +117,8 @@ impl ByteCompiler<'_, '_> {
         compiler.emit_opcode(Opcode::Return);
 
         let code = Gc::new(compiler.finish());
-        let index = self.code_block.functions.len() as u32;
-        self.code_block.functions.push(code);
+        let index = self.functions.len() as u32;
+        self.functions.push(code);
         self.emit(Opcode::GetFunction, &[index]);
         self.emit_u8(0);
 
@@ -279,18 +266,8 @@ impl ByteCompiler<'_, '_> {
                             self.compile_expr(name, true);
                         }
                     }
-                    let field_code = CodeBlock::new(Sym::EMPTY_STRING, 0, true);
-                    let mut field_compiler = ByteCompiler {
-                        code_block: field_code,
-                        literals_map: FxHashMap::default(),
-                        names_map: FxHashMap::default(),
-                        private_names_map: FxHashMap::default(),
-                        bindings_map: FxHashMap::default(),
-                        jump_info: Vec::new(),
-                        in_async_generator: false,
-                        json_parse: self.json_parse,
-                        context: self.context,
-                    };
+                    let mut field_compiler =
+                        ByteCompiler::new(Sym::EMPTY_STRING, true, self.json_parse, self.context);
                     field_compiler.context.push_compile_time_environment(false);
                     field_compiler
                         .context
@@ -307,14 +284,14 @@ impl ByteCompiler<'_, '_> {
                     let (_, compile_environment) =
                         field_compiler.context.pop_compile_time_environment();
                     field_compiler.push_compile_environment(compile_environment);
-                    field_compiler.code_block.num_bindings = num_bindings;
+                    field_compiler.num_bindings = num_bindings;
                     field_compiler.emit_opcode(Opcode::Return);
 
                     let mut code = field_compiler.finish();
                     code.class_field_initializer_name = Some(Sym::EMPTY_STRING);
                     let code = Gc::new(code);
-                    let index = self.code_block.functions.len() as u32;
-                    self.code_block.functions.push(code);
+                    let index = self.functions.len() as u32;
+                    self.functions.push(code);
                     self.emit(Opcode::GetFunction, &[index]);
                     self.emit_u8(0);
                     self.emit_opcode(Opcode::PushClassField);
@@ -322,18 +299,8 @@ impl ByteCompiler<'_, '_> {
                 ClassElement::PrivateFieldDefinition(name, field) => {
                     self.emit_opcode(Opcode::Dup);
                     let name_index = self.get_or_insert_private_name(*name);
-                    let field_code = CodeBlock::new(Sym::EMPTY_STRING, 0, true);
-                    let mut field_compiler = ByteCompiler {
-                        code_block: field_code,
-                        literals_map: FxHashMap::default(),
-                        names_map: FxHashMap::default(),
-                        private_names_map: FxHashMap::default(),
-                        bindings_map: FxHashMap::default(),
-                        jump_info: Vec::new(),
-                        in_async_generator: false,
-                        json_parse: self.json_parse,
-                        context: self.context,
-                    };
+                    let mut field_compiler =
+                        ByteCompiler::new(class_name, true, self.json_parse, self.context);
                     field_compiler.context.push_compile_time_environment(false);
                     field_compiler
                         .context
@@ -350,14 +317,14 @@ impl ByteCompiler<'_, '_> {
                     let (_, compile_environment) =
                         field_compiler.context.pop_compile_time_environment();
                     field_compiler.push_compile_environment(compile_environment);
-                    field_compiler.code_block.num_bindings = num_bindings;
+                    field_compiler.num_bindings = num_bindings;
                     field_compiler.emit_opcode(Opcode::Return);
 
                     let mut code = field_compiler.finish();
                     code.class_field_initializer_name = Some(Sym::EMPTY_STRING);
                     let code = Gc::new(code);
-                    let index = self.code_block.functions.len() as u32;
-                    self.code_block.functions.push(code);
+                    let index = self.functions.len() as u32;
+                    self.functions.push(code);
                     self.emit(Opcode::GetFunction, &[index]);
                     self.emit_u8(0);
                     self.emit(Opcode::PushClassFieldPrivate, &[name_index]);
@@ -375,18 +342,8 @@ impl ByteCompiler<'_, '_> {
                             None
                         }
                     };
-                    let field_code = CodeBlock::new(Sym::EMPTY_STRING, 0, true);
-                    let mut field_compiler = ByteCompiler {
-                        code_block: field_code,
-                        literals_map: FxHashMap::default(),
-                        names_map: FxHashMap::default(),
-                        private_names_map: FxHashMap::default(),
-                        bindings_map: FxHashMap::default(),
-                        jump_info: Vec::new(),
-                        in_async_generator: false,
-                        json_parse: self.json_parse,
-                        context: self.context,
-                    };
+                    let mut field_compiler =
+                        ByteCompiler::new(class_name, true, self.json_parse, self.context);
                     field_compiler.context.push_compile_time_environment(false);
                     field_compiler
                         .context
@@ -403,14 +360,14 @@ impl ByteCompiler<'_, '_> {
                     let (_, compile_environment) =
                         field_compiler.context.pop_compile_time_environment();
                     field_compiler.push_compile_environment(compile_environment);
-                    field_compiler.code_block.num_bindings = num_bindings;
+                    field_compiler.num_bindings = num_bindings;
                     field_compiler.emit_opcode(Opcode::Return);
 
                     let mut code = field_compiler.finish();
                     code.class_field_initializer_name = Some(Sym::EMPTY_STRING);
                     let code = Gc::new(code);
-                    let index = self.code_block.functions.len() as u32;
-                    self.code_block.functions.push(code);
+                    let index = self.functions.len() as u32;
+                    self.functions.push(code);
                     self.emit(Opcode::GetFunction, &[index]);
                     self.emit_u8(0);
                     self.emit_opcode(Opcode::SetHomeObject);
@@ -447,11 +404,11 @@ impl ByteCompiler<'_, '_> {
                     compiler.push_compile_environment(compile_environment);
                     let (_, compile_environment) = compiler.context.pop_compile_time_environment();
                     compiler.push_compile_environment(compile_environment);
-                    compiler.code_block.num_bindings = num_bindings;
+                    compiler.num_bindings = num_bindings;
 
                     let code = Gc::new(compiler.finish());
-                    let index = self.code_block.functions.len() as u32;
-                    self.code_block.functions.push(code);
+                    let index = self.functions.len() as u32;
+                    self.functions.push(code);
                     self.emit(Opcode::GetFunction, &[index]);
                     self.emit_u8(0);
                     self.emit_opcode(Opcode::SetHomeObject);
