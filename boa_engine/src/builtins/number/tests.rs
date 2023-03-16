@@ -294,7 +294,7 @@ fn number_constants() {
         TestAction::assert_eq("Number.MAX_SAFE_INTEGER", Number::MAX_SAFE_INTEGER),
         TestAction::assert_eq("Number.MIN_SAFE_INTEGER", Number::MIN_SAFE_INTEGER),
         TestAction::assert_eq("Number.MAX_VALUE", f64::MAX),
-        TestAction::assert_eq("Number.MIN_VALUE", f64::MIN_POSITIVE),
+        TestAction::assert_eq("Number.MIN_VALUE", Number::MIN_VALUE),
         TestAction::assert_eq("Number.POSITIVE_INFINITY", f64::INFINITY),
         TestAction::assert_eq("Number.NEGATIVE_INFINITY", -f64::INFINITY),
     ]);
