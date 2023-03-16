@@ -212,7 +212,7 @@ impl JsValue {
                 }
             }
             (Self::Integer(x), Self::Rational(y)) => {
-                if x.abs() == 1 && y.is_infinite() {
+                if x.wrapping_abs() == 1 && y.is_infinite() {
                     Self::nan()
                 } else {
                     Self::new(f64::from(*x).powf(*y))
