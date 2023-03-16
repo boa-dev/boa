@@ -202,11 +202,15 @@
 <a href="#201" id="201">201</a>
 <a href="#202" id="202">202</a>
 <a href="#203" id="203">203</a>
+<a href="#204" id="204">204</a>
+<a href="#205" id="205">205</a>
+<a href="#206" id="206">206</a>
+<a href="#207" id="207">207</a>
 </pre><pre class="rust"><code><span class="kw">use crate</span>::{
     builtins::function::set_function_name,
     object::CONSTRUCTOR,
     property::PropertyDescriptor,
-    vm::{opcode::Operation, ShouldExit},
+    vm::{opcode::Operation, CompletionType},
     Context, JsResult, JsString,
 };
 
@@ -221,7 +225,7 @@
     <span class="kw">const </span>NAME: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;DefineClassStaticMethodByName&quot;</span>;
     <span class="kw">const </span>INSTRUCTION: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;INST - DefineClassStaticMethodByName&quot;</span>;
 
-    <span class="kw">fn </span>execute(context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;ShouldExit&gt; {
+    <span class="kw">fn </span>execute(context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;CompletionType&gt; {
         <span class="kw">let </span>index = context.vm.read::&lt;u32&gt;();
         <span class="kw">let </span>function = context.vm.pop();
         <span class="kw">let </span>class = context.vm.pop();
@@ -243,6 +247,7 @@
             function_mut.set_home_object(class.clone());
             function_mut.set_class_object(class.clone());
         }
+
         class.__define_own_property__(
             <span class="kw-2">&amp;</span>key,
             PropertyDescriptor::builder()
@@ -253,7 +258,7 @@
                 .build(),
             context,
         )<span class="question-mark">?</span>;
-        <span class="prelude-val">Ok</span>(ShouldExit::False)
+        <span class="prelude-val">Ok</span>(CompletionType::Normal)
     }
 }
 
@@ -268,7 +273,7 @@
     <span class="kw">const </span>NAME: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;DefineClassMethodByName&quot;</span>;
     <span class="kw">const </span>INSTRUCTION: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;INST - DefineClassMethodByName&quot;</span>;
 
-    <span class="kw">fn </span>execute(context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;ShouldExit&gt; {
+    <span class="kw">fn </span>execute(context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;CompletionType&gt; {
         <span class="kw">let </span>index = context.vm.read::&lt;u32&gt;();
         <span class="kw">let </span>function = context.vm.pop();
         <span class="kw">let </span>class_proto = context.vm.pop();
@@ -296,6 +301,7 @@
                 .clone();
             function_mut.set_class_object(class);
         }
+
         class_proto.__define_own_property__(
             <span class="kw-2">&amp;</span>key,
             PropertyDescriptor::builder()
@@ -306,7 +312,7 @@
                 .build(),
             context,
         )<span class="question-mark">?</span>;
-        <span class="prelude-val">Ok</span>(ShouldExit::False)
+        <span class="prelude-val">Ok</span>(CompletionType::Normal)
     }
 }
 
@@ -321,7 +327,7 @@
     <span class="kw">const </span>NAME: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;DefineClassStaticMethodByValue&quot;</span>;
     <span class="kw">const </span>INSTRUCTION: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;INST - DefineClassStaticMethodByValue&quot;</span>;
 
-    <span class="kw">fn </span>execute(context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;ShouldExit&gt; {
+    <span class="kw">fn </span>execute(context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;CompletionType&gt; {
         <span class="kw">let </span>function = context.vm.pop();
         <span class="kw">let </span>key = context.vm.pop();
         <span class="kw">let </span>class = context.vm.pop();
@@ -341,6 +347,7 @@
             function_mut.set_home_object(class.clone());
             function_mut.set_class_object(class.clone());
         }
+
         class.define_property_or_throw(
             key,
             PropertyDescriptor::builder()
@@ -351,7 +358,7 @@
                 .build(),
             context,
         )<span class="question-mark">?</span>;
-        <span class="prelude-val">Ok</span>(ShouldExit::False)
+        <span class="prelude-val">Ok</span>(CompletionType::Normal)
     }
 }
 
@@ -366,7 +373,7 @@
     <span class="kw">const </span>NAME: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;DefineClassMethodByValue&quot;</span>;
     <span class="kw">const </span>INSTRUCTION: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;INST - DefineClassMethodByValue&quot;</span>;
 
-    <span class="kw">fn </span>execute(context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;ShouldExit&gt; {
+    <span class="kw">fn </span>execute(context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;CompletionType&gt; {
         <span class="kw">let </span>function = context.vm.pop();
         <span class="kw">let </span>key = context.vm.pop();
         <span class="kw">let </span>class_proto = context.vm.pop();
@@ -392,6 +399,7 @@
                 .clone();
             function_mut.set_class_object(class);
         }
+
         class_proto.__define_own_property__(
             <span class="kw-2">&amp;</span>key,
             PropertyDescriptor::builder()
@@ -402,7 +410,7 @@
                 .build(),
             context,
         )<span class="question-mark">?</span>;
-        <span class="prelude-val">Ok</span>(ShouldExit::False)
+        <span class="prelude-val">Ok</span>(CompletionType::Normal)
     }
 }
 </code></pre></div>

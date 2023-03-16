@@ -88,7 +88,7 @@
 <a href="#87" id="87">87</a>
 </pre><pre class="rust"><code><span class="kw">use crate</span>::{
     object::JsFunction,
-    vm::{opcode::Operation, ShouldExit},
+    vm::{opcode::Operation, CompletionType},
     Context, JsResult,
 };
 
@@ -103,7 +103,7 @@
     <span class="kw">const </span>NAME: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;PushClassField&quot;</span>;
     <span class="kw">const </span>INSTRUCTION: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;INST - PushClassField&quot;</span>;
 
-    <span class="kw">fn </span>execute(context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;ShouldExit&gt; {
+    <span class="kw">fn </span>execute(context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;CompletionType&gt; {
         <span class="kw">let </span>field_function_value = context.vm.pop();
         <span class="kw">let </span>field_name_value = context.vm.pop();
         <span class="kw">let </span>class_value = context.vm.pop();
@@ -129,7 +129,7 @@
                 field_name_key,
                 JsFunction::from_object_unchecked(field_function_object.clone()),
             );
-        <span class="prelude-val">Ok</span>(ShouldExit::False)
+        <span class="prelude-val">Ok</span>(CompletionType::Normal)
     }
 }
 
@@ -144,7 +144,7 @@
     <span class="kw">const </span>NAME: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;PushClassFieldPrivate&quot;</span>;
     <span class="kw">const </span>INSTRUCTION: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;INST - PushClassFieldPrivate&quot;</span>;
 
-    <span class="kw">fn </span>execute(context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;ShouldExit&gt; {
+    <span class="kw">fn </span>execute(context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;CompletionType&gt; {
         <span class="kw">let </span>index = context.vm.read::&lt;u32&gt;();
         <span class="kw">let </span>name = context.vm.frame().code_block.private_names[index <span class="kw">as </span>usize];
         <span class="kw">let </span>field_function_value = context.vm.pop();
@@ -170,7 +170,7 @@
                 name,
                 JsFunction::from_object_unchecked(field_function_object.clone()),
             );
-        <span class="prelude-val">Ok</span>(ShouldExit::False)
+        <span class="prelude-val">Ok</span>(CompletionType::Normal)
     }
 }
 </code></pre></div>

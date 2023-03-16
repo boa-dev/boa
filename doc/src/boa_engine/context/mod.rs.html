@@ -912,11 +912,11 @@
         <span class="self">self</span>.vm.push_frame(CallFrame::new(code_block));
 
         <span class="self">self</span>.realm.set_global_binding_number();
-        <span class="kw">let </span>result = <span class="self">self</span>.run();
+        <span class="kw">let </span>record = <span class="self">self</span>.run();
         <span class="self">self</span>.vm.pop_frame();
         <span class="self">self</span>.clear_kept_objects();
 
-        result.map(|r| r.<span class="number">0</span>)
+        record.consume()
     }
 
     <span class="doccomment">/// Register a global property.

@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"mod":[["break",""],["catch",""],["finally",""],["labelled",""],["try",""]]};
+window.SIDEBAR_ITEMS = {"mod":[["break",""],["catch",""],["continue",""],["finally",""],["labelled",""],["return",""],["throw",""],["try",""]]};

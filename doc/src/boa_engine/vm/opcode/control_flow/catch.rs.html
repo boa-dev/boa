@@ -90,14 +90,8 @@
 <a href="#89" id="89">89</a>
 <a href="#90" id="90">90</a>
 <a href="#91" id="91">91</a>
-<a href="#92" id="92">92</a>
-<a href="#93" id="93">93</a>
-<a href="#94" id="94">94</a>
-<a href="#95" id="95">95</a>
-<a href="#96" id="96">96</a>
-<a href="#97" id="97">97</a>
 </pre><pre class="rust"><code><span class="kw">use crate</span>::{
-    vm::{call_frame::EnvStackEntry, opcode::Operation, FinallyReturn, ShouldExit},
+    vm::{call_frame::EnvStackEntry, opcode::Operation, CompletionType},
     Context, JsResult,
 };
 
@@ -112,7 +106,7 @@
     <span class="kw">const </span>NAME: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;CatchStart&quot;</span>;
     <span class="kw">const </span>INSTRUCTION: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;INST - CatchStart&quot;</span>;
 
-    <span class="kw">fn </span>execute(context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;ShouldExit&gt; {
+    <span class="kw">fn </span>execute(context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;CompletionType&gt; {
         <span class="kw">let </span>start = context.vm.frame().pc <span class="kw">as </span>u32 - <span class="number">1</span>;
         <span class="kw">let </span>finally = context.vm.read::&lt;u32&gt;();
 
@@ -123,8 +117,7 @@
             .push(EnvStackEntry::new(start, finally - <span class="number">1</span>).with_catch_flag());
 
         context.vm.frame_mut().abrupt_completion = <span class="prelude-val">None</span>;
-        context.vm.frame_mut().finally_return = FinallyReturn::None;
-        <span class="prelude-val">Ok</span>(ShouldExit::False)
+        <span class="prelude-val">Ok</span>(CompletionType::Normal)
     }
 }
 
@@ -139,8 +132,7 @@
     <span class="kw">const </span>NAME: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;CatchEnd&quot;</span>;
     <span class="kw">const </span>INSTRUCTION: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;INST - CatchEnd&quot;</span>;
 
-    <span class="kw">fn </span>execute(context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;ShouldExit&gt; {
-        context.vm.frame_mut().try_catch.pop();
+    <span class="kw">fn </span>execute(context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;CompletionType&gt; {
         <span class="kw">let </span><span class="kw-2">mut </span>envs_to_pop = <span class="number">0_usize</span>;
         <span class="kw">while let </span><span class="prelude-val">Some</span>(env_entry) = context.vm.frame_mut().env_stack.pop() {
             envs_to_pop += env_entry.env_num();
@@ -153,8 +145,7 @@
         <span class="kw">let </span>env_truncation_len = context.realm.environments.len().saturating_sub(envs_to_pop);
         context.realm.environments.truncate(env_truncation_len);
 
-        context.vm.frame_mut().finally_return = FinallyReturn::None;
-        <span class="prelude-val">Ok</span>(ShouldExit::False)
+        <span class="prelude-val">Ok</span>(CompletionType::Normal)
     }
 }
 
@@ -169,7 +160,7 @@
     <span class="kw">const </span>NAME: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;CatchEnd2&quot;</span>;
     <span class="kw">const </span>INSTRUCTION: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;INST - CatchEnd2&quot;</span>;
 
-    <span class="kw">fn </span>execute(context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;ShouldExit&gt; {
+    <span class="kw">fn </span>execute(context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;CompletionType&gt; {
         <span class="kw">if let </span><span class="prelude-val">Some</span>(catch_entry) = context
             .vm
             .frame()
@@ -187,10 +178,7 @@
             context.vm.frame_mut().env_stack.pop();
         }
 
-        <span class="kw">if </span>context.vm.frame_mut().finally_return == FinallyReturn::Err {
-            context.vm.frame_mut().finally_return = FinallyReturn::None;
-        }
-        <span class="prelude-val">Ok</span>(ShouldExit::False)
+        <span class="prelude-val">Ok</span>(CompletionType::Normal)
     }
 }
 </code></pre></div>

@@ -69,7 +69,7 @@
     builtins::function::{ConstructorKind, Function},
     error::JsNativeError,
     object::PROTOTYPE,
-    vm::{opcode::Operation, ShouldExit},
+    vm::{opcode::Operation, CompletionType},
     Context, JsResult, JsValue,
 };
 
@@ -90,7 +90,7 @@
     <span class="kw">const </span>NAME: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;PushClassPrototype&quot;</span>;
     <span class="kw">const </span>INSTRUCTION: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;INST - PushClassPrototype&quot;</span>;
 
-    <span class="kw">fn </span>execute(context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;ShouldExit&gt; {
+    <span class="kw">fn </span>execute(context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;CompletionType&gt; {
         <span class="kw">let </span>superclass = context.vm.pop();
 
         <span class="kw">if let </span><span class="prelude-val">Some</span>(superclass) = superclass.as_constructor() {
@@ -120,10 +120,10 @@
 
             context.vm.push(class);
             context.vm.push(proto);
-            <span class="prelude-val">Ok</span>(ShouldExit::False)
+            <span class="prelude-val">Ok</span>(CompletionType::Normal)
         } <span class="kw">else if </span>superclass.is_null() {
             context.vm.push(JsValue::Null);
-            <span class="prelude-val">Ok</span>(ShouldExit::False)
+            <span class="prelude-val">Ok</span>(CompletionType::Normal)
         } <span class="kw">else </span>{
             <span class="prelude-val">Err</span>(JsNativeError::typ()
                 .with_message(<span class="string">&quot;superclass must be a constructor&quot;</span>)

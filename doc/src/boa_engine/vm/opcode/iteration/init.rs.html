@@ -48,7 +48,7 @@
 <a href="#47" id="47">47</a>
 </pre><pre class="rust"><code><span class="kw">use crate</span>::{
     builtins::iterable::IteratorHint,
-    vm::{opcode::Operation, ShouldExit},
+    vm::{opcode::Operation, CompletionType},
     Context, JsResult,
 };
 
@@ -63,13 +63,13 @@
     <span class="kw">const </span>NAME: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;InitIterator&quot;</span>;
     <span class="kw">const </span>INSTRUCTION: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;INST - InitIterator&quot;</span>;
 
-    <span class="kw">fn </span>execute(context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;ShouldExit&gt; {
+    <span class="kw">fn </span>execute(context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;CompletionType&gt; {
         <span class="kw">let </span>object = context.vm.pop();
         <span class="kw">let </span>iterator = object.get_iterator(context, <span class="prelude-val">None</span>, <span class="prelude-val">None</span>)<span class="question-mark">?</span>;
         context.vm.push(iterator.iterator().clone());
         context.vm.push(iterator.next_method().clone());
         context.vm.push(iterator.done());
-        <span class="prelude-val">Ok</span>(ShouldExit::False)
+        <span class="prelude-val">Ok</span>(CompletionType::Normal)
     }
 }
 
@@ -84,13 +84,13 @@
     <span class="kw">const </span>NAME: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;InitIteratorAsync&quot;</span>;
     <span class="kw">const </span>INSTRUCTION: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;INST - InitIteratorAsync&quot;</span>;
 
-    <span class="kw">fn </span>execute(context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;ShouldExit&gt; {
+    <span class="kw">fn </span>execute(context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;CompletionType&gt; {
         <span class="kw">let </span>object = context.vm.pop();
         <span class="kw">let </span>iterator = object.get_iterator(context, <span class="prelude-val">Some</span>(IteratorHint::Async), <span class="prelude-val">None</span>)<span class="question-mark">?</span>;
         context.vm.push(iterator.iterator().clone());
         context.vm.push(iterator.next_method().clone());
         context.vm.push(iterator.done());
-        <span class="prelude-val">Ok</span>(ShouldExit::False)
+        <span class="prelude-val">Ok</span>(CompletionType::Normal)
     }
 }
 </code></pre></div>

@@ -41,7 +41,7 @@
 <a href="#40" id="40">40</a>
 <a href="#41" id="41">41</a>
 </pre><pre class="rust"><code><span class="kw">use crate</span>::{
-    vm::{opcode::Operation, ShouldExit},
+    vm::{opcode::Operation, CompletionType},
     Context, JsResult,
 };
 
@@ -56,10 +56,10 @@
     <span class="kw">const </span>NAME: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;ToBoolean&quot;</span>;
     <span class="kw">const </span>INSTRUCTION: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;INST - ToBoolean&quot;</span>;
 
-    <span class="kw">fn </span>execute(context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;ShouldExit&gt; {
+    <span class="kw">fn </span>execute(context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;CompletionType&gt; {
         <span class="kw">let </span>value = context.vm.pop();
         context.vm.push(value.to_boolean());
-        <span class="prelude-val">Ok</span>(ShouldExit::False)
+        <span class="prelude-val">Ok</span>(CompletionType::Normal)
     }
 }
 
@@ -74,11 +74,11 @@
     <span class="kw">const </span>NAME: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;ToPropertyKey&quot;</span>;
     <span class="kw">const </span>INSTRUCTION: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;INST - ToPropertyKey&quot;</span>;
 
-    <span class="kw">fn </span>execute(context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;ShouldExit&gt; {
+    <span class="kw">fn </span>execute(context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;CompletionType&gt; {
         <span class="kw">let </span>value = context.vm.pop();
         <span class="kw">let </span>key = value.to_property_key(context)<span class="question-mark">?</span>;
         context.vm.push(key);
-        <span class="prelude-val">Ok</span>(ShouldExit::False)
+        <span class="prelude-val">Ok</span>(CompletionType::Normal)
     }
 }
 </code></pre></div>

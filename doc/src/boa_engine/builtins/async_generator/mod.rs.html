@@ -1257,7 +1257,7 @@
         drop(generator_context_mut);
 
         <span class="comment">// 8. Assert: result is never an abrupt completion.
-        </span><span class="macro">assert!</span>(result.is_ok());
+        </span><span class="macro">assert!</span>(!result.is_throw_completion());
 
         <span class="comment">// 9. Assert: When we return here, genContext has already been removed from the execution context stack and callerContext is the currently running execution context.
         // 10. Return unused.

@@ -1495,7 +1495,6 @@
 <a href="#1494" id="1494">1494</a>
 <a href="#1495" id="1495">1495</a>
 <a href="#1496" id="1496">1496</a>
-<a href="#1497" id="1497">1497</a>
 </pre><pre class="rust"><code><span class="doccomment">//! `CodeBlock`
 //!
 //! This module is for the `CodeBlock` which implements a function representation in the VM
@@ -2370,14 +2369,13 @@
                         .with_arg_count(arg_count),
                 );
 
-                <span class="kw">let </span>result = context.run();
+                <span class="kw">let </span>record = context.run();
                 context.vm.pop_frame().expect(<span class="string">&quot;must have frame&quot;</span>);
 
                 std::mem::swap(<span class="kw-2">&amp;mut </span>environments, <span class="kw-2">&amp;mut </span>context.realm.environments);
                 environments.truncate(environments_len);
 
-                <span class="kw">let </span>(result, <span class="kw">_</span>) = result<span class="question-mark">?</span>;
-                <span class="prelude-val">Ok</span>(result)
+                record.consume()
             }
             Function::Async {
                 code,
@@ -2635,7 +2633,7 @@
                     }),
                 );
 
-                init_result<span class="question-mark">?</span>;
+                init_result.consume()<span class="question-mark">?</span>;
 
                 <span class="prelude-val">Ok</span>(generator.into())
             }
@@ -2786,7 +2784,7 @@
                     gen_context.call_frame.async_generator = <span class="prelude-val">Some</span>(generator.clone());
                 }
 
-                init_result<span class="question-mark">?</span>;
+                init_result.consume()<span class="question-mark">?</span>;
 
                 <span class="prelude-val">Ok</span>(generator.into())
             }
@@ -2945,7 +2943,7 @@
                         .with_arg_count(arg_count),
                 );
 
-                <span class="kw">let </span>result = context.run();
+                <span class="kw">let </span>record = context.run();
 
                 context.vm.pop_frame();
 
@@ -2961,7 +2959,7 @@
                     environments.pop()
                 };
 
-                <span class="kw">let </span>(result, <span class="kw">_</span>) = result<span class="question-mark">?</span>;
+                <span class="kw">let </span>result = record.consume()<span class="question-mark">?</span>;
 
                 <span class="kw">if let </span><span class="prelude-val">Some</span>(result) = result.as_object() {
                     <span class="prelude-val">Ok</span>(result.clone())

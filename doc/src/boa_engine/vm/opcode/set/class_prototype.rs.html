@@ -76,7 +76,7 @@
 </pre><pre class="rust"><code><span class="kw">use crate</span>::{
     object::{JsObject, ObjectData, CONSTRUCTOR, PROTOTYPE},
     property::PropertyDescriptorBuilder,
-    vm::{opcode::Operation, ShouldExit},
+    vm::{opcode::Operation, CompletionType},
     Context, JsResult, JsValue,
 };
 
@@ -91,7 +91,7 @@
     <span class="kw">const </span>NAME: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;SetClassPrototype&quot;</span>;
     <span class="kw">const </span>INSTRUCTION: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;INST - SetClassPrototype&quot;</span>;
 
-    <span class="kw">fn </span>execute(context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;ShouldExit&gt; {
+    <span class="kw">fn </span>execute(context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;CompletionType&gt; {
         <span class="kw">let </span>prototype_value = context.vm.pop();
         <span class="kw">let </span>prototype = <span class="kw">match </span><span class="kw-2">&amp;</span>prototype_value {
             JsValue::Object(proto) =&gt; <span class="prelude-val">Some</span>(proto.clone()),
@@ -144,7 +144,7 @@
             .expect(<span class="string">&quot;cannot fail per spec&quot;</span>);
 
         context.vm.push(proto);
-        <span class="prelude-val">Ok</span>(ShouldExit::False)
+        <span class="prelude-val">Ok</span>(CompletionType::Normal)
     }
 }
 </code></pre></div>

@@ -1538,14 +1538,8 @@
 <a href="#1537" id="1537">1537</a>
 <a href="#1538" id="1538">1538</a>
 <a href="#1539" id="1539">1539</a>
-<a href="#1540" id="1540">1540</a>
-<a href="#1541" id="1541">1541</a>
-<a href="#1542" id="1542">1542</a>
-<a href="#1543" id="1543">1543</a>
-<a href="#1544" id="1544">1544</a>
-<a href="#1545" id="1545">1545</a>
 </pre><pre class="rust"><code><span class="doccomment">/// The opcodes of the vm.
-</span><span class="kw">use crate</span>::{vm::ShouldExit, Context, JsResult};
+</span><span class="kw">use crate</span>::{vm::CompletionType, Context, JsResult};
 
 <span class="kw">use </span>num_enum::TryFromPrimitive;
 
@@ -1570,11 +1564,9 @@
 <span class="kw">mod </span>push;
 <span class="kw">mod </span>require;
 <span class="kw">mod </span>rest_parameter;
-<span class="kw">mod </span>return_stm;
 <span class="kw">mod </span>set;
 <span class="kw">mod </span>swap;
 <span class="kw">mod </span>switch;
-<span class="kw">mod </span>throw;
 <span class="kw">mod </span>to;
 <span class="kw">mod </span>unary_ops;
 <span class="kw">mod </span>value;
@@ -1621,15 +1613,11 @@
 <span class="attr">#[doc(inline)]
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use </span>rest_parameter::<span class="kw-2">*</span>;
 <span class="attr">#[doc(inline)]
-</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use </span>return_stm::<span class="kw-2">*</span>;
-<span class="attr">#[doc(inline)]
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use </span>set::<span class="kw-2">*</span>;
 <span class="attr">#[doc(inline)]
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use </span>swap::<span class="kw-2">*</span>;
 <span class="attr">#[doc(inline)]
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use </span>switch::<span class="kw-2">*</span>;
-<span class="attr">#[doc(inline)]
-</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use </span>throw::<span class="kw-2">*</span>;
 <span class="attr">#[doc(inline)]
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use </span>to::<span class="kw-2">*</span>;
 <span class="attr">#[doc(inline)]
@@ -1691,11 +1679,11 @@
                 <span class="self">Self</span>::INSTRUCTIONS[<span class="self">self </span><span class="kw">as </span>usize]
             }
 
-            <span class="kw">const </span>EXECUTE_FNS: <span class="kw-2">&amp;</span>[<span class="kw">fn</span>(<span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;ShouldExit&gt;] = <span class="kw-2">&amp;</span>[
+            <span class="kw">const </span>EXECUTE_FNS: <span class="kw-2">&amp;</span>[<span class="kw">fn</span>(<span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;CompletionType&gt;] = <span class="kw-2">&amp;</span>[
                 $(<span class="macro-nonterminal">$Variant::execute</span>),*
             ];
 
-            <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>execute(<span class="self">self</span>, context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;ShouldExit&gt; {
+            <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>execute(<span class="self">self</span>, context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;CompletionType&gt; {
                 <span class="self">Self</span>::EXECUTE_FNS[<span class="self">self </span><span class="kw">as </span>usize](context)
             }
         }
@@ -1712,7 +1700,7 @@
     <span class="kw">const </span>NAME: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str;
     <span class="kw">const </span>INSTRUCTION: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str;
 
-    <span class="kw">fn </span>execute(context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;ShouldExit&gt;;
+    <span class="kw">fn </span>execute(context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;CompletionType&gt;;
 }
 
 <span class="macro">generate_impl! </span>{

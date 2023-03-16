@@ -106,10 +106,11 @@
 <a href="#105" id="105">105</a>
 <a href="#106" id="106">106</a>
 <a href="#107" id="107">107</a>
+<a href="#108" id="108">108</a>
 </pre><pre class="rust"><code><span class="kw">use crate</span>::{
     builtins::{iterable::IteratorRecord, Array},
     string::utf16,
-    vm::{opcode::Operation, ShouldExit},
+    vm::{opcode::Operation, CompletionType},
     Context, JsResult,
 };
 
@@ -124,11 +125,11 @@
     <span class="kw">const </span>NAME: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;PushNewArray&quot;</span>;
     <span class="kw">const </span>INSTRUCTION: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;INST - PushNewArray&quot;</span>;
 
-    <span class="kw">fn </span>execute(context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;ShouldExit&gt; {
+    <span class="kw">fn </span>execute(context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;CompletionType&gt; {
         <span class="kw">let </span>array = Array::array_create(<span class="number">0</span>, <span class="prelude-val">None</span>, context)
             .expect(<span class="string">&quot;Array creation with 0 length should never fail&quot;</span>);
         context.vm.push(array);
-        <span class="prelude-val">Ok</span>(ShouldExit::False)
+        <span class="prelude-val">Ok</span>(CompletionType::Normal)
     }
 }
 
@@ -143,7 +144,7 @@
     <span class="kw">const </span>NAME: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;PushValueToArray&quot;</span>;
     <span class="kw">const </span>INSTRUCTION: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;INST - PushValueToArray&quot;</span>;
 
-    <span class="kw">fn </span>execute(context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;ShouldExit&gt; {
+    <span class="kw">fn </span>execute(context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;CompletionType&gt; {
         <span class="kw">let </span>value = context.vm.pop();
         <span class="kw">let </span>array = context.vm.pop();
         <span class="kw">let </span>o = array.as_object().expect(<span class="string">&quot;should be an object&quot;</span>);
@@ -153,7 +154,7 @@
         o.create_data_property_or_throw(len, value, context)
             .expect(<span class="string">&quot;should be able to create new data property&quot;</span>);
         context.vm.push(array);
-        <span class="prelude-val">Ok</span>(ShouldExit::False)
+        <span class="prelude-val">Ok</span>(CompletionType::Normal)
     }
 }
 
@@ -168,7 +169,7 @@
     <span class="kw">const </span>NAME: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;PushElisionToArray&quot;</span>;
     <span class="kw">const </span>INSTRUCTION: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;INST - PushElisionToArray&quot;</span>;
 
-    <span class="kw">fn </span>execute(context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;ShouldExit&gt; {
+    <span class="kw">fn </span>execute(context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;CompletionType&gt; {
         <span class="kw">let </span>array = context.vm.pop();
         <span class="kw">let </span>o = array.as_object().expect(<span class="string">&quot;should always be an object&quot;</span>);
 
@@ -178,7 +179,7 @@
 
         o.set(<span class="macro">utf16!</span>(<span class="string">&quot;length&quot;</span>), len + <span class="number">1</span>, <span class="bool-val">true</span>, context)<span class="question-mark">?</span>;
         context.vm.push(array);
-        <span class="prelude-val">Ok</span>(ShouldExit::False)
+        <span class="prelude-val">Ok</span>(CompletionType::Normal)
     }
 }
 
@@ -193,7 +194,7 @@
     <span class="kw">const </span>NAME: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;PushIteratorToArray&quot;</span>;
     <span class="kw">const </span>INSTRUCTION: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;INST - PushIteratorToArray&quot;</span>;
 
-    <span class="kw">fn </span>execute(context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;ShouldExit&gt; {
+    <span class="kw">fn </span>execute(context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;CompletionType&gt; {
         <span class="kw">let </span>done = context
             .vm
             .pop()
@@ -206,11 +207,12 @@
 
         <span class="kw">let </span>iterator = IteratorRecord::new(iterator.clone(), next_method, done);
         <span class="kw">while let </span><span class="prelude-val">Some</span>(next) = iterator.step(context)<span class="question-mark">? </span>{
-            Array::push(<span class="kw-2">&amp;</span>array, <span class="kw-2">&amp;</span>[next.value(context)<span class="question-mark">?</span>], context)<span class="question-mark">?</span>;
+            <span class="kw">let </span>next_value = next.value(context)<span class="question-mark">?</span>;
+            Array::push(<span class="kw-2">&amp;</span>array, <span class="kw-2">&amp;</span>[next_value], context)<span class="question-mark">?</span>;
         }
 
         context.vm.push(array);
-        <span class="prelude-val">Ok</span>(ShouldExit::False)
+        <span class="prelude-val">Ok</span>(CompletionType::Normal)
     }
 }
 </code></pre></div>

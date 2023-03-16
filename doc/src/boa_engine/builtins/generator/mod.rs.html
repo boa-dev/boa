@@ -386,7 +386,6 @@
 <a href="#385" id="385">385</a>
 <a href="#386" id="386">386</a>
 <a href="#387" id="387">387</a>
-<a href="#388" id="388">388</a>
 </pre><pre class="rust"><code><span class="doccomment">//! Boa&#39;s implementation of ECMAScript&#39;s global `Generator` object.
 //!
 //! A Generator is an instance of a generator function and conforms to both the Iterator and Iterable interfaces.
@@ -407,7 +406,7 @@
     property::Attribute,
     symbol::JsSymbol,
     value::JsValue,
-    vm::{CallFrame, GeneratorResumeKind, ReturnType},
+    vm::{CallFrame, CompletionRecord, GeneratorResumeKind},
     Context, JsArgs, JsError, JsResult,
 };
 <span class="kw">use </span>boa_gc::{Finalize, Gc, GcRefCell, Trace};
@@ -616,7 +615,7 @@
 
         context.vm.frame_mut().generator_resume_kind = GeneratorResumeKind::Normal;
 
-        <span class="kw">let </span>result = context.run();
+        <span class="kw">let </span>record = context.run();
 
         generator_context.call_frame = context
             .vm
@@ -633,23 +632,22 @@
             .as_generator_mut()
             .expect(<span class="string">&quot;already checked this object type&quot;</span>);
 
-        <span class="kw">match </span>result {
-            <span class="prelude-val">Ok</span>((value, ReturnType::Yield)) =&gt; {
+        <span class="kw">match </span>record {
+            CompletionRecord::Return(value) =&gt; {
                 generator.state = GeneratorState::SuspendedYield;
                 drop(generator_context);
                 generator.context = <span class="prelude-val">Some</span>(generator_context_cell);
                 <span class="prelude-val">Ok</span>(create_iter_result_object(value, <span class="bool-val">false</span>, context))
             }
-            <span class="prelude-val">Ok</span>((value, <span class="kw">_</span>)) =&gt; {
+            CompletionRecord::Normal(value) =&gt; {
                 generator.state = GeneratorState::Completed;
                 <span class="prelude-val">Ok</span>(create_iter_result_object(value, <span class="bool-val">true</span>, context))
             }
-            <span class="prelude-val">Err</span>(value) =&gt; {
+            CompletionRecord::Throw(err) =&gt; {
                 generator.state = GeneratorState::Completed;
-                <span class="prelude-val">Err</span>(value)
+                <span class="prelude-val">Err</span>(err)
             }
         }
-
         <span class="comment">// 8. Push genContext onto the execution context stack; genContext is now the running execution context.
         // 9. Resume the suspended evaluation of genContext using NormalCompletion(value) as the result of the operation that suspended it. Let result be the value returned by the resumed computation.
         // 10. Assert: When we return here, genContext has already been removed from the execution context stack and methodContext is the currently running execution context.
@@ -729,7 +727,7 @@
         std::mem::swap(<span class="kw-2">&amp;mut </span>context.vm.stack, <span class="kw-2">&amp;mut </span>generator_context.stack);
         context.vm.push_frame(generator_context.call_frame.clone());
 
-        <span class="kw">let </span>result = <span class="kw">match </span>abrupt_completion {
+        <span class="kw">let </span>completion_record = <span class="kw">match </span>abrupt_completion {
             <span class="prelude-val">Ok</span>(value) =&gt; {
                 context.vm.push(value);
                 context.vm.frame_mut().generator_resume_kind = GeneratorResumeKind::Return;
@@ -757,20 +755,20 @@
             .as_generator_mut()
             .expect(<span class="string">&quot;already checked this object type&quot;</span>);
 
-        <span class="kw">match </span>result {
-            <span class="prelude-val">Ok</span>((value, ReturnType::Yield)) =&gt; {
+        <span class="kw">match </span>completion_record {
+            CompletionRecord::Return(value) =&gt; {
                 generator.state = GeneratorState::SuspendedYield;
                 drop(generator_context);
                 generator.context = <span class="prelude-val">Some</span>(generator_context_cell);
                 <span class="prelude-val">Ok</span>(create_iter_result_object(value, <span class="bool-val">false</span>, context))
             }
-            <span class="prelude-val">Ok</span>((value, <span class="kw">_</span>)) =&gt; {
+            CompletionRecord::Normal(value) =&gt; {
                 generator.state = GeneratorState::Completed;
                 <span class="prelude-val">Ok</span>(create_iter_result_object(value, <span class="bool-val">true</span>, context))
             }
-            <span class="prelude-val">Err</span>(value) =&gt; {
+            CompletionRecord::Throw(err) =&gt; {
                 generator.state = GeneratorState::Completed;
-                <span class="prelude-val">Err</span>(value)
+                <span class="prelude-val">Err</span>(err)
             }
         }
     }

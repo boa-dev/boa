@@ -90,7 +90,7 @@
 <a href="#89" id="89">89</a>
 </pre><pre class="rust"><code><span class="kw">use crate</span>::{
     error::JsNativeError,
-    vm::{opcode::Operation, ShouldExit},
+    vm::{opcode::Operation, CompletionType},
     Context, JsResult,
 };
 
@@ -105,7 +105,7 @@
     <span class="kw">const </span>NAME: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;New&quot;</span>;
     <span class="kw">const </span>INSTRUCTION: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;INST - New&quot;</span>;
 
-    <span class="kw">fn </span>execute(context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;ShouldExit&gt; {
+    <span class="kw">fn </span>execute(context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;CompletionType&gt; {
         <span class="kw">if </span>context.vm.stack_size_limit &lt;= context.vm.stack.len() {
             <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::range()
                 .with_message(<span class="string">&quot;Maximum call stack size exceeded&quot;</span>)
@@ -129,7 +129,7 @@
             .and_then(|cons| cons.__construct__(<span class="kw-2">&amp;</span>arguments, cons, context))<span class="question-mark">?</span>;
 
         context.vm.push(result);
-        <span class="prelude-val">Ok</span>(ShouldExit::False)
+        <span class="prelude-val">Ok</span>(CompletionType::Normal)
     }
 }
 
@@ -144,7 +144,7 @@
     <span class="kw">const </span>NAME: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;NewSpread&quot;</span>;
     <span class="kw">const </span>INSTRUCTION: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;INST - NewSpread&quot;</span>;
 
-    <span class="kw">fn </span>execute(context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;ShouldExit&gt; {
+    <span class="kw">fn </span>execute(context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;CompletionType&gt; {
         <span class="kw">if </span>context.vm.stack_size_limit &lt;= context.vm.stack.len() {
             <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::range()
                 .with_message(<span class="string">&quot;Maximum call stack size exceeded&quot;</span>)
@@ -174,7 +174,7 @@
             .and_then(|cons| cons.__construct__(<span class="kw-2">&amp;</span>arguments, cons, context))<span class="question-mark">?</span>;
 
         context.vm.push(result);
-        <span class="prelude-val">Ok</span>(ShouldExit::False)
+        <span class="prelude-val">Ok</span>(CompletionType::Normal)
     }
 }
 </code></pre></div>

@@ -279,10 +279,21 @@
 <a href="#278" id="278">278</a>
 <a href="#279" id="279">279</a>
 <a href="#280" id="280">280</a>
+<a href="#281" id="281">281</a>
+<a href="#282" id="282">282</a>
+<a href="#283" id="283">283</a>
+<a href="#284" id="284">284</a>
+<a href="#285" id="285">285</a>
+<a href="#286" id="286">286</a>
+<a href="#287" id="287">287</a>
+<a href="#288" id="288">288</a>
+<a href="#289" id="289">289</a>
+<a href="#290" id="290">290</a>
+<a href="#291" id="291">291</a>
 </pre><pre class="rust"><code><span class="kw">use crate</span>::{
     environments::EnvironmentSlots,
     error::JsNativeError,
-    vm::{opcode::Operation, ShouldExit},
+    vm::{opcode::Operation, CompletionType},
     Context, JsResult, JsValue,
 };
 
@@ -297,18 +308,23 @@
     <span class="kw">const </span>NAME: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;This&quot;</span>;
     <span class="kw">const </span>INSTRUCTION: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;INST - This&quot;</span>;
 
-    <span class="kw">fn </span>execute(context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;ShouldExit&gt; {
+    <span class="kw">fn </span>execute(context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;CompletionType&gt; {
         <span class="kw">let </span>env = context.realm.environments.get_this_environment();
         <span class="kw">match </span>env {
             EnvironmentSlots::Function(env) =&gt; {
-                context.vm.push(env.borrow().get_this_binding()<span class="question-mark">?</span>.clone());
+                <span class="kw">let </span>binding_result = <span class="kw">match </span>env.borrow().get_this_binding() {
+                    <span class="prelude-val">Ok</span>(binding) =&gt; <span class="prelude-val">Ok</span>(binding.clone()),
+                    <span class="prelude-val">Err</span>(e) =&gt; <span class="prelude-val">Err</span>(e),
+                };
+                <span class="kw">let </span>function_binding = binding_result<span class="question-mark">?</span>;
+                context.vm.push(function_binding);
             }
             EnvironmentSlots::Global =&gt; {
                 <span class="kw">let </span>this = context.realm.global_this();
                 context.vm.push(this.clone());
             }
         }
-        <span class="prelude-val">Ok</span>(ShouldExit::False)
+        <span class="prelude-val">Ok</span>(CompletionType::Normal)
     }
 }
 
@@ -323,8 +339,8 @@
     <span class="kw">const </span>NAME: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;Super&quot;</span>;
     <span class="kw">const </span>INSTRUCTION: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;INST - Super&quot;</span>;
 
-    <span class="kw">fn </span>execute(context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;ShouldExit&gt; {
-        <span class="kw">let </span>home = {
+    <span class="kw">fn </span>execute(context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;CompletionType&gt; {
+        <span class="kw">let </span>home_result = {
             <span class="kw">let </span>env = context
                 .realm
                 .environments
@@ -332,14 +348,20 @@
                 .as_function_slots()
                 .expect(<span class="string">&quot;super access must be in a function environment&quot;</span>);
             <span class="kw">let </span>env = env.borrow();
-            <span class="kw">let </span>this = env.get_this_binding()<span class="question-mark">?</span>;
-            <span class="kw">let </span>function_object = env.function_object().borrow();
-            <span class="kw">let </span>function = function_object
-                .as_function()
-                .expect(<span class="string">&quot;must be function object&quot;</span>);
+            <span class="kw">match </span>env.get_this_binding() {
+                <span class="prelude-val">Ok</span>(binding) =&gt; {
+                    <span class="kw">let </span>function_object = env.function_object().borrow();
+                    <span class="kw">let </span>function = function_object
+                        .as_function()
+                        .expect(<span class="string">&quot;must be function object&quot;</span>);
 
-            function.get_home_object().or(this.as_object()).cloned()
+                    <span class="prelude-val">Ok</span>(function.get_home_object().or(binding.as_object()).cloned())
+                }
+                <span class="prelude-val">Err</span>(e) =&gt; <span class="prelude-val">Err</span>(e),
+            }
         };
+
+        <span class="kw">let </span>home = home_result<span class="question-mark">?</span>;
 
         <span class="kw">if let </span><span class="prelude-val">Some</span>(home) = home {
             <span class="kw">if let </span><span class="prelude-val">Some</span>(proto) = home.__get_prototype_of__(context)<span class="question-mark">? </span>{
@@ -350,7 +372,7 @@
         } <span class="kw">else </span>{
             context.vm.push(JsValue::Null);
         };
-        <span class="prelude-val">Ok</span>(ShouldExit::False)
+        <span class="prelude-val">Ok</span>(CompletionType::Normal)
     }
 }
 
@@ -365,7 +387,7 @@
     <span class="kw">const </span>NAME: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;SuperCall&quot;</span>;
     <span class="kw">const </span>INSTRUCTION: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;INST - SuperCall&quot;</span>;
 
-    <span class="kw">fn </span>execute(context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;ShouldExit&gt; {
+    <span class="kw">fn </span>execute(context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;CompletionType&gt; {
         <span class="kw">let </span>argument_count = context.vm.read::&lt;u32&gt;();
         <span class="kw">let </span><span class="kw-2">mut </span>arguments = Vec::with_capacity(argument_count <span class="kw">as </span>usize);
         <span class="kw">for _ in </span><span class="number">0</span>..argument_count {
@@ -417,7 +439,7 @@
         result.initialize_instance_elements(<span class="kw-2">&amp;</span>active_function, context)<span class="question-mark">?</span>;
 
         context.vm.push(result);
-        <span class="prelude-val">Ok</span>(ShouldExit::False)
+        <span class="prelude-val">Ok</span>(CompletionType::Normal)
     }
 }
 
@@ -432,7 +454,7 @@
     <span class="kw">const </span>NAME: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;SuperCallWithRest&quot;</span>;
     <span class="kw">const </span>INSTRUCTION: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;INST - SuperCallWithRest&quot;</span>;
 
-    <span class="kw">fn </span>execute(context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;ShouldExit&gt; {
+    <span class="kw">fn </span>execute(context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;CompletionType&gt; {
         <span class="comment">// Get the arguments that are stored as an array object on the stack.
         </span><span class="kw">let </span>arguments_array = context.vm.pop();
         <span class="kw">let </span>arguments_array_object = arguments_array
@@ -489,7 +511,7 @@
         result.initialize_instance_elements(<span class="kw-2">&amp;</span>active_function, context)<span class="question-mark">?</span>;
 
         context.vm.push(result);
-        <span class="prelude-val">Ok</span>(ShouldExit::False)
+        <span class="prelude-val">Ok</span>(CompletionType::Normal)
     }
 }
 
@@ -504,7 +526,7 @@
     <span class="kw">const </span>NAME: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;SuperCallDerived&quot;</span>;
     <span class="kw">const </span>INSTRUCTION: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;INST - SuperCallDerived&quot;</span>;
 
-    <span class="kw">fn </span>execute(context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;ShouldExit&gt; {
+    <span class="kw">fn </span>execute(context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;CompletionType&gt; {
         <span class="kw">let </span>argument_count = context.vm.frame().arg_count;
         <span class="kw">let </span><span class="kw-2">mut </span>arguments = Vec::with_capacity(argument_count);
         <span class="kw">for _ in </span><span class="number">0</span>..argument_count {
@@ -556,7 +578,7 @@
         result.initialize_instance_elements(<span class="kw-2">&amp;</span>active_function, context)<span class="question-mark">?</span>;
 
         context.vm.push(result);
-        <span class="prelude-val">Ok</span>(ShouldExit::False)
+        <span class="prelude-val">Ok</span>(CompletionType::Normal)
     }
 }
 </code></pre></div>

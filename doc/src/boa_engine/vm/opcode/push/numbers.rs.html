@@ -54,7 +54,7 @@
 <a href="#53" id="53">53</a>
 <a href="#54" id="54">54</a>
 </pre><pre class="rust"><code><span class="kw">use crate</span>::{
-    vm::{opcode::Operation, ShouldExit},
+    vm::{opcode::Operation, CompletionType},
     Context, JsResult,
 };
 
@@ -71,10 +71,10 @@
             <span class="kw">const </span>NAME: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="macro">stringify!</span>(<span class="macro-nonterminal">$name</span>);
             <span class="kw">const </span>INSTRUCTION: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="macro">stringify!</span>(<span class="string">&quot;INST - &quot; </span>+ <span class="macro-nonterminal">$name</span>);
 
-            <span class="kw">fn </span>execute(context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;ShouldExit&gt; {
+            <span class="kw">fn </span>execute(context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;CompletionType&gt; {
                 <span class="kw">let </span>value = context.vm.read::&lt;<span class="macro-nonterminal">$num_type</span>&gt;();
                 context.vm.push(i32::from(value));
-                <span class="prelude-val">Ok</span>(ShouldExit::False)
+                <span class="prelude-val">Ok</span>(CompletionType::Normal)
             }
         }
     };
@@ -93,10 +93,10 @@
             <span class="kw">const </span>NAME: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="macro">stringify!</span>(<span class="macro-nonterminal">$name</span>);
             <span class="kw">const </span>INSTRUCTION: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="macro">stringify!</span>(<span class="string">&quot;INST - &quot; </span>+ <span class="macro-nonterminal">$name</span>);
 
-            <span class="kw">fn </span>execute(context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;ShouldExit&gt; {
+            <span class="kw">fn </span>execute(context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;CompletionType&gt; {
                 <span class="kw">let </span>value = context.vm.read::&lt;<span class="macro-nonterminal">$num_type</span>&gt;();
                 context.vm.push(value);
-                <span class="prelude-val">Ok</span>(ShouldExit::False)
+                <span class="prelude-val">Ok</span>(CompletionType::Normal)
             }
         }
     };

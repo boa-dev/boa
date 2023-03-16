@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"struct":[["Throw","`Throw` implements the Opcode Operation for `Opcode::Throw`"]]};

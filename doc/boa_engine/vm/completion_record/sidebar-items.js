@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"enum":[["CompletionRecord","An implementation of the ECMAScript’s `CompletionRecord` specification for Boa’s VM output Completion and Result."]]};

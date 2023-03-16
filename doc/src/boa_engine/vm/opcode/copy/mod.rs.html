@@ -42,7 +42,7 @@
 <a href="#41" id="41">41</a>
 <a href="#42" id="42">42</a>
 </pre><pre class="rust"><code><span class="kw">use crate</span>::{
-    vm::{opcode::Operation, ShouldExit},
+    vm::{opcode::Operation, CompletionType},
     Context, JsResult,
 };
 
@@ -57,7 +57,7 @@
     <span class="kw">const </span>NAME: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;CopyDataProperties&quot;</span>;
     <span class="kw">const </span>INSTRUCTION: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;INST - CopyDataProperties&quot;</span>;
 
-    <span class="kw">fn </span>execute(context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;ShouldExit&gt; {
+    <span class="kw">fn </span>execute(context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;CompletionType&gt; {
         <span class="kw">let </span>excluded_key_count = context.vm.read::&lt;u32&gt;();
         <span class="kw">let </span>excluded_key_count_computed = context.vm.read::&lt;u32&gt;();
         <span class="kw">let </span><span class="kw-2">mut </span>excluded_keys = Vec::with_capacity(excluded_key_count <span class="kw">as </span>usize);
@@ -80,7 +80,7 @@
         }
         object.copy_data_properties(<span class="kw-2">&amp;</span>source, excluded_keys, context)<span class="question-mark">?</span>;
         context.vm.push(value);
-        <span class="prelude-val">Ok</span>(ShouldExit::False)
+        <span class="prelude-val">Ok</span>(CompletionType::Normal)
     }
 }
 </code></pre></div>

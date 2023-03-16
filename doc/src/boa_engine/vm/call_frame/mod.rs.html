@@ -109,25 +109,6 @@
 <a href="#108" id="108">108</a>
 <a href="#109" id="109">109</a>
 <a href="#110" id="110">110</a>
-<a href="#111" id="111">111</a>
-<a href="#112" id="112">112</a>
-<a href="#113" id="113">113</a>
-<a href="#114" id="114">114</a>
-<a href="#115" id="115">115</a>
-<a href="#116" id="116">116</a>
-<a href="#117" id="117">117</a>
-<a href="#118" id="118">118</a>
-<a href="#119" id="119">119</a>
-<a href="#120" id="120">120</a>
-<a href="#121" id="121">121</a>
-<a href="#122" id="122">122</a>
-<a href="#123" id="123">123</a>
-<a href="#124" id="124">124</a>
-<a href="#125" id="125">125</a>
-<a href="#126" id="126">126</a>
-<a href="#127" id="127">127</a>
-<a href="#128" id="128">128</a>
-<a href="#129" id="129">129</a>
 </pre><pre class="rust"><code><span class="doccomment">//! `CallFrame`
 //!
 //! This module will provides everything needed to implement the `CallFrame`
@@ -140,18 +121,16 @@
 
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use </span>abrupt_record::AbruptCompletionRecord;
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use </span>env_stack::EnvStackEntry;
-
 <span class="doccomment">/// A `CallFrame` holds the state of a function call.
 </span><span class="attr">#[derive(Clone, Debug, Finalize, Trace)]
 </span><span class="kw">pub struct </span>CallFrame {
     <span class="kw">pub</span>(<span class="kw">crate</span>) code_block: Gc&lt;CodeBlock&gt;,
     <span class="kw">pub</span>(<span class="kw">crate</span>) pc: usize,
-    <span class="attr">#[unsafe_ignore_trace]
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) try_catch: Vec&lt;FinallyAddresses&gt;,
-    <span class="attr">#[unsafe_ignore_trace]
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) finally_return: FinallyReturn,
+    <span class="kw">pub</span>(<span class="kw">crate</span>) fp: usize,
     <span class="attr">#[unsafe_ignore_trace]
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) abrupt_completion: <span class="prelude-ty">Option</span>&lt;AbruptCompletionRecord&gt;,
+    <span class="attr">#[unsafe_ignore_trace]
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) early_return: <span class="prelude-ty">Option</span>&lt;EarlyReturnType&gt;,
     <span class="kw">pub</span>(<span class="kw">crate</span>) pop_on_return: usize,
     <span class="comment">// Tracks the number of environments in environment entry.
     // On abrupt returns this is used to decide how many environments need to be pop&#39;ed.
@@ -175,11 +154,11 @@
         <span class="self">Self </span>{
             code_block,
             pc: <span class="number">0</span>,
-            try_catch: Vec::new(),
-            finally_return: FinallyReturn::None,
+            fp: <span class="number">0</span>,
             pop_on_return: <span class="number">0</span>,
             env_stack: Vec::from([EnvStackEntry::new(<span class="number">0</span>, max_length)]),
             abrupt_completion: <span class="prelude-val">None</span>,
+            early_return: <span class="prelude-val">None</span>,
             param_count: <span class="number">0</span>,
             arg_count: <span class="number">0</span>,
             generator_resume_kind: GeneratorResumeKind::Normal,
@@ -202,6 +181,10 @@
 
 <span class="doccomment">/// ---- `CallFrame` stack methods ----
 </span><span class="kw">impl </span>CallFrame {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>set_frame_pointer(<span class="kw-2">&amp;mut </span><span class="self">self</span>, pointer: usize) {
+        <span class="self">self</span>.fp = pointer;
+    }
+
     <span class="doccomment">/// Tracks that one environment has been pushed in the current loop block.
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>inc_frame_env_stack(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
         <span class="self">self</span>.env_stack
@@ -222,40 +205,19 @@
     }
 }
 
-<span class="doccomment">/// Tracks the address that should be jumped to when an error is caught.
-///
-/// Additionally the address of a finally block is tracked, to allow for special handling if it exists.
-</span><span class="attr">#[derive(Copy, Clone, Debug)]
-</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>FinallyAddresses {
-    finally: <span class="prelude-ty">Option</span>&lt;u32&gt;,
-}
-
-<span class="kw">impl </span>FinallyAddresses {
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const fn </span>new(finally_address: <span class="prelude-ty">Option</span>&lt;u32&gt;) -&gt; <span class="self">Self </span>{
-        <span class="self">Self </span>{
-            finally: finally_address,
-        }
-    }
-
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const fn </span>finally(<span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;u32&gt; {
-        <span class="self">self</span>.finally
-    }
-}
-
-<span class="doccomment">/// Indicates if a function should return or throw at the end of a finally block.
-</span><span class="attr">#[derive(Copy, Clone, Debug, PartialEq)]
-</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">enum </span>FinallyReturn {
-    <span class="prelude-val">None</span>,
-    <span class="prelude-val">Ok</span>,
-    <span class="prelude-val">Err</span>,
-}
-
 <span class="doccomment">/// Indicates how a generator function that has been called/resumed should return.
 </span><span class="attr">#[derive(Copy, Clone, Debug, PartialEq)]
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">enum </span>GeneratorResumeKind {
     Normal,
     Throw,
     Return,
+}
+
+<span class="comment">// An enum to mark whether a return is early due to Async or Yield
+</span><span class="attr">#[derive(Copy, Clone, Debug, PartialEq)]
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">enum </span>EarlyReturnType {
+    Await,
+    Yield,
 }
 </code></pre></div>
 </section></main><div id="rustdoc-vars" data-root-path="../../../../" data-static-root-path="../../../../static.files/" data-current-crate="boa_engine" data-themes="" data-resource-suffix="" data-rustdoc-version="1.68.0 (2c8cc3432 2023-03-06)" data-search-js="search-98d53477a794af0b.js" data-settings-js="settings-c3c521c753752a1a.js" data-settings-css="settings-08ddfdda51b8ee2e.css" ></div></body></html>

@@ -153,32 +153,8 @@
 <a href="#152" id="152">152</a>
 <a href="#153" id="153">153</a>
 <a href="#154" id="154">154</a>
-<a href="#155" id="155">155</a>
-<a href="#156" id="156">156</a>
-<a href="#157" id="157">157</a>
-<a href="#158" id="158">158</a>
-<a href="#159" id="159">159</a>
-<a href="#160" id="160">160</a>
-<a href="#161" id="161">161</a>
-<a href="#162" id="162">162</a>
-<a href="#163" id="163">163</a>
-<a href="#164" id="164">164</a>
-<a href="#165" id="165">165</a>
-<a href="#166" id="166">166</a>
-<a href="#167" id="167">167</a>
-<a href="#168" id="168">168</a>
-<a href="#169" id="169">169</a>
-<a href="#170" id="170">170</a>
-<a href="#171" id="171">171</a>
-<a href="#172" id="172">172</a>
-<a href="#173" id="173">173</a>
-<a href="#174" id="174">174</a>
-<a href="#175" id="175">175</a>
-<a href="#176" id="176">176</a>
-<a href="#177" id="177">177</a>
-<a href="#178" id="178">178</a>
 </pre><pre class="rust"><code><span class="kw">use crate</span>::{
-    vm::{opcode::Operation, FinallyReturn, ShouldExit},
+    vm::{opcode::Operation, CompletionType},
     Context, JsError, JsResult,
 };
 
@@ -193,9 +169,8 @@
     <span class="kw">const </span>NAME: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;FinallyStart&quot;</span>;
     <span class="kw">const </span>INSTRUCTION: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;INST - FinallyStart&quot;</span>;
 
-    <span class="kw">fn </span>execute(context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;ShouldExit&gt; {
+    <span class="kw">fn </span>execute(context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;CompletionType&gt; {
         <span class="kw">let </span>exit = context.vm.read::&lt;u32&gt;();
-        context.vm.frame_mut().try_catch.pop();
 
         <span class="kw">let </span>finally_env = context
             .vm
@@ -205,7 +180,7 @@
             .expect(<span class="string">&quot;EnvStackEntries must exist&quot;</span>);
 
         finally_env.set_exit_address(exit);
-        <span class="prelude-val">Ok</span>(ShouldExit::False)
+        <span class="prelude-val">Ok</span>(CompletionType::Normal)
     }
 }
 
@@ -220,7 +195,7 @@
     <span class="kw">const </span>NAME: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;FinallyEnd&quot;</span>;
     <span class="kw">const </span>INSTRUCTION: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;INST - FinallyEnd&quot;</span>;
 
-    <span class="kw">fn </span>execute(context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;ShouldExit&gt; {
+    <span class="kw">fn </span>execute(context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;CompletionType&gt; {
         <span class="kw">let </span>finally_candidates = context.vm.frame().env_stack.iter().filter(|env| {
             env.is_finally_env() &amp;&amp; context.vm.frame().pc &lt; (env.start_address() <span class="kw">as </span>usize)
         });
@@ -230,112 +205,82 @@
             <span class="kw">_ </span>=&gt; u32::MAX,
         };
 
-        <span class="kw">let </span>abrupt_record = context.vm.frame_mut().abrupt_completion;
-        <span class="kw">match </span>context.vm.frame_mut().finally_return {
-            FinallyReturn::None =&gt; {
-                <span class="comment">// Check if there is an `AbruptCompletionRecord`.
-                </span><span class="kw">if let </span><span class="prelude-val">Some</span>(record) = abrupt_record {
-                    <span class="kw">let </span><span class="kw-2">mut </span>envs_to_pop = <span class="number">0</span>;
-                    <span class="kw">if </span>next_finally &lt; record.target() {
-                        context.vm.frame_mut().pc = next_finally <span class="kw">as </span>usize;
+        <span class="kw">let </span><span class="kw-2">mut </span>envs_to_pop = <span class="number">0</span>;
+        <span class="kw">match </span>context.vm.frame().abrupt_completion {
+            <span class="prelude-val">Some</span>(record) <span class="kw">if </span>next_finally &lt; record.target() =&gt; {
+                context.vm.frame_mut().pc = next_finally <span class="kw">as </span>usize;
 
-                        <span class="kw">while let </span><span class="prelude-val">Some</span>(env_entry) = context.vm.frame().env_stack.last() {
-                            <span class="kw">if </span>next_finally &lt;= env_entry.exit_address() {
-                                <span class="kw">break</span>;
-                            }
-
-                            envs_to_pop += env_entry.env_num();
-                            context.vm.frame_mut().env_stack.pop();
-                        }
-                    } <span class="kw">else if </span>record.is_break() &amp;&amp; context.vm.frame().pc &lt; record.target() <span class="kw">as </span>usize
-                    {
-                        <span class="comment">// handle the continuation of an abrupt break.
-                        </span>context.vm.frame_mut().pc = record.target() <span class="kw">as </span>usize;
-                        <span class="kw">while let </span><span class="prelude-val">Some</span>(env_entry) = context.vm.frame().env_stack.last() {
-                            <span class="kw">if </span>record.target() == env_entry.exit_address() {
-                                <span class="kw">break</span>;
-                            }
-
-                            envs_to_pop += env_entry.env_num();
-                            context.vm.frame_mut().env_stack.pop();
-                        }
-
-                        context.vm.frame_mut().abrupt_completion = <span class="prelude-val">None</span>;
-                    } <span class="kw">else if </span>record.is_continue()
-                        &amp;&amp; context.vm.frame().pc &gt; record.target() <span class="kw">as </span>usize
-                    {
-                        <span class="comment">// Handle the continuation of an abrupt continue
-                        </span>context.vm.frame_mut().pc = record.target() <span class="kw">as </span>usize;
-                        <span class="kw">while let </span><span class="prelude-val">Some</span>(env_entry) = context.vm.frame().env_stack.last() {
-                            <span class="kw">if </span>env_entry.start_address() == record.target() {
-                                <span class="kw">break</span>;
-                            }
-                            envs_to_pop += env_entry.env_num();
-                            context.vm.frame_mut().env_stack.pop();
-                        }
-
-                        context.vm.frame_mut().abrupt_completion = <span class="prelude-val">None</span>;
+                <span class="kw">while let </span><span class="prelude-val">Some</span>(env_entry) = context.vm.frame().env_stack.last() {
+                    <span class="kw">if </span>next_finally &lt;= env_entry.exit_address() {
+                        <span class="kw">break</span>;
                     }
 
-                    <span class="kw">let </span>env_truncation_len =
-                        context.realm.environments.len().saturating_sub(envs_to_pop);
-                    context.realm.environments.truncate(env_truncation_len);
-                } <span class="kw">else </span>{
+                    envs_to_pop += env_entry.env_num();
                     context.vm.frame_mut().env_stack.pop();
                 }
 
-                <span class="prelude-val">Ok</span>(ShouldExit::False)
+                <span class="kw">let </span>env_truncation_len =
+                    context.realm.environments.len().saturating_sub(envs_to_pop);
+                context.realm.environments.truncate(env_truncation_len);
             }
-            FinallyReturn::Ok =&gt; <span class="prelude-val">Ok</span>(ShouldExit::True),
-            FinallyReturn::Err =&gt; {
-                <span class="kw">if let </span><span class="prelude-val">Some</span>(record) = abrupt_record {
-                    <span class="kw">let </span><span class="kw-2">mut </span>envs_to_pop = <span class="number">0</span>;
-                    <span class="kw">if </span>next_finally &lt; record.target() {
-                        context.vm.frame_mut().pc = next_finally <span class="kw">as </span>usize;
-
-                        <span class="kw">while let </span><span class="prelude-val">Some</span>(env_entry) = context.vm.frame().env_stack.last() {
-                            <span class="kw">if </span>next_finally &lt;= env_entry.exit_address() {
-                                <span class="kw">break</span>;
-                            }
-
-                            envs_to_pop += env_entry.env_num();
-                            context.vm.frame_mut().env_stack.pop();
-                        }
-                    } <span class="kw">else if </span>record.is_throw_with_target()
-                        &amp;&amp; context.vm.frame().pc &lt; record.target() <span class="kw">as </span>usize
-                    {
-                        context.vm.frame_mut().pc = record.target() <span class="kw">as </span>usize;
-                        <span class="kw">while let </span><span class="prelude-val">Some</span>(env_entry) = context.vm.frame_mut().env_stack.pop() {
-                            envs_to_pop += env_entry.env_num();
-                            <span class="kw">if </span>env_entry.start_address() == record.target() {
-                                <span class="kw">break</span>;
-                            }
-                        }
-                        context.vm.frame_mut().abrupt_completion = <span class="prelude-val">None</span>;
-                    } <span class="kw">else if </span>!record.is_throw_with_target() {
-                        <span class="kw">let </span>current_stack = context
-                            .vm
-                            .frame_mut()
-                            .env_stack
-                            .pop()
-                            .expect(<span class="string">&quot;Popping current finally stack.&quot;</span>);
-
-                        <span class="kw">let </span>env_truncation_len = context
-                            .realm
-                            .environments
-                            .len()
-                            .saturating_sub(current_stack.env_num());
-                        context.realm.environments.truncate(env_truncation_len);
-
-                        <span class="kw">return </span><span class="prelude-val">Err</span>(JsError::from_opaque(context.vm.pop()));
+            <span class="prelude-val">Some</span>(record)
+                <span class="kw">if </span>record.is_break() &amp;&amp; context.vm.frame().pc &lt; record.target() <span class="kw">as </span>usize =&gt;
+            {
+                <span class="comment">// handle the continuation of an abrupt break.
+                </span>context.vm.frame_mut().pc = record.target() <span class="kw">as </span>usize;
+                <span class="kw">while let </span><span class="prelude-val">Some</span>(env_entry) = context.vm.frame().env_stack.last() {
+                    <span class="kw">if </span>record.target() == env_entry.exit_address() {
+                        <span class="kw">break</span>;
                     }
 
-                    <span class="kw">let </span>env_truncation_len =
-                        context.realm.environments.len().saturating_sub(envs_to_pop);
-                    context.realm.environments.truncate(env_truncation_len);
-
-                    <span class="kw">return </span><span class="prelude-val">Ok</span>(ShouldExit::False);
+                    envs_to_pop += env_entry.env_num();
+                    context.vm.frame_mut().env_stack.pop();
                 }
+
+                context.vm.frame_mut().abrupt_completion = <span class="prelude-val">None</span>;
+
+                <span class="kw">let </span>env_truncation_len =
+                    context.realm.environments.len().saturating_sub(envs_to_pop);
+                context.realm.environments.truncate(env_truncation_len);
+            }
+            <span class="prelude-val">Some</span>(record)
+                <span class="kw">if </span>record.is_continue() &amp;&amp; context.vm.frame().pc &gt; record.target() <span class="kw">as </span>usize =&gt;
+            {
+                <span class="comment">// Handle the continuation of an abrupt continue
+                </span>context.vm.frame_mut().pc = record.target() <span class="kw">as </span>usize;
+                <span class="kw">while let </span><span class="prelude-val">Some</span>(env_entry) = context.vm.frame().env_stack.last() {
+                    <span class="kw">if </span>env_entry.start_address() == record.target() {
+                        <span class="kw">break</span>;
+                    }
+                    envs_to_pop += env_entry.env_num();
+                    context.vm.frame_mut().env_stack.pop();
+                }
+
+                context.vm.frame_mut().abrupt_completion = <span class="prelude-val">None</span>;
+                <span class="kw">let </span>env_truncation_len =
+                    context.realm.environments.len().saturating_sub(envs_to_pop);
+                context.realm.environments.truncate(env_truncation_len);
+            }
+            <span class="prelude-val">Some</span>(record) <span class="kw">if </span>record.is_return() =&gt; {
+                <span class="kw">return </span><span class="prelude-val">Ok</span>(CompletionType::Return);
+            }
+            <span class="prelude-val">Some</span>(record)
+                <span class="kw">if </span>record.is_throw_with_target()
+                    &amp;&amp; context.vm.frame().pc &lt; record.target() <span class="kw">as </span>usize =&gt;
+            {
+                context.vm.frame_mut().pc = record.target() <span class="kw">as </span>usize;
+                <span class="kw">while let </span><span class="prelude-val">Some</span>(env_entry) = context.vm.frame_mut().env_stack.pop() {
+                    envs_to_pop += env_entry.env_num();
+                    <span class="kw">if </span>env_entry.start_address() == record.target() {
+                        <span class="kw">break</span>;
+                    }
+                }
+                context.vm.frame_mut().abrupt_completion = <span class="prelude-val">None</span>;
+                <span class="kw">let </span>env_truncation_len =
+                    context.realm.environments.len().saturating_sub(envs_to_pop);
+                context.realm.environments.truncate(env_truncation_len);
+            }
+            <span class="prelude-val">Some</span>(record) <span class="kw">if </span>!record.is_throw_with_target() =&gt; {
                 <span class="kw">let </span>current_stack = context
                     .vm
                     .frame_mut()
@@ -350,9 +295,16 @@
                     .saturating_sub(current_stack.env_num());
                 context.realm.environments.truncate(env_truncation_len);
 
-                <span class="prelude-val">Err</span>(JsError::from_opaque(context.vm.pop()))
+                <span class="kw">let </span>err = JsError::from_opaque(context.vm.pop());
+                context.vm.err = <span class="prelude-val">Some</span>(err);
+                <span class="kw">return </span><span class="prelude-val">Ok</span>(CompletionType::Throw);
+            }
+            <span class="kw">_ </span>=&gt; {
+                context.vm.frame_mut().env_stack.pop();
             }
         }
+
+        <span class="prelude-val">Ok</span>(CompletionType::Normal)
     }
 }
 </code></pre></div>

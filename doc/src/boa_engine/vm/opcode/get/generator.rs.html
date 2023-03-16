@@ -46,7 +46,7 @@
 <a href="#45" id="45">45</a>
 <a href="#46" id="46">46</a>
 </pre><pre class="rust"><code><span class="kw">use crate</span>::{
-    vm::{code_block::create_generator_function_object, opcode::Operation, ShouldExit},
+    vm::{code_block::create_generator_function_object, opcode::Operation, CompletionType},
     Context, JsResult,
 };
 
@@ -61,13 +61,13 @@
     <span class="kw">const </span>NAME: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;GetGenerator&quot;</span>;
     <span class="kw">const </span>INSTRUCTION: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;INST - GetGenerator&quot;</span>;
 
-    <span class="kw">fn </span>execute(context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;ShouldExit&gt; {
+    <span class="kw">fn </span>execute(context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;CompletionType&gt; {
         <span class="kw">let </span>index = context.vm.read::&lt;u32&gt;();
         <span class="kw">let </span>method = context.vm.read::&lt;u8&gt;() != <span class="number">0</span>;
         <span class="kw">let </span>code = context.vm.frame().code_block.functions[index <span class="kw">as </span>usize].clone();
         <span class="kw">let </span>function = create_generator_function_object(code, <span class="bool-val">false</span>, method, context);
         context.vm.push(function);
-        <span class="prelude-val">Ok</span>(ShouldExit::False)
+        <span class="prelude-val">Ok</span>(CompletionType::Normal)
     }
 }
 
@@ -82,13 +82,13 @@
     <span class="kw">const </span>NAME: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;GetGeneratorAsync&quot;</span>;
     <span class="kw">const </span>INSTRUCTION: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;INST - GetGeneratorAsync&quot;</span>;
 
-    <span class="kw">fn </span>execute(context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;ShouldExit&gt; {
+    <span class="kw">fn </span>execute(context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;CompletionType&gt; {
         <span class="kw">let </span>index = context.vm.read::&lt;u32&gt;();
         <span class="kw">let </span>method = context.vm.read::&lt;u8&gt;() != <span class="number">0</span>;
         <span class="kw">let </span>code = context.vm.frame().code_block.functions[index <span class="kw">as </span>usize].clone();
         <span class="kw">let </span>function = create_generator_function_object(code, <span class="bool-val">true</span>, method, context);
         context.vm.push(function);
-        <span class="prelude-val">Ok</span>(ShouldExit::False)
+        <span class="prelude-val">Ok</span>(CompletionType::Normal)
     }
 }
 </code></pre></div>

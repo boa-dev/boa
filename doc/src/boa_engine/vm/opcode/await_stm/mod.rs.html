@@ -129,13 +129,24 @@
 <a href="#128" id="128">128</a>
 <a href="#129" id="129">129</a>
 <a href="#130" id="130">130</a>
+<a href="#131" id="131">131</a>
+<a href="#132" id="132">132</a>
+<a href="#133" id="133">133</a>
+<a href="#134" id="134">134</a>
+<a href="#135" id="135">135</a>
+<a href="#136" id="136">136</a>
+<a href="#137" id="137">137</a>
 </pre><pre class="rust"><code><span class="kw">use </span>boa_gc::{Gc, GcRefCell};
 
 <span class="kw">use crate</span>::{
     builtins::Promise,
     native_function::NativeFunction,
     object::FunctionObjectBuilder,
-    vm::{call_frame::GeneratorResumeKind, opcode::Operation, ShouldExit},
+    vm::{
+        call_frame::{EarlyReturnType, GeneratorResumeKind},
+        opcode::Operation,
+        CompletionType,
+    },
     Context, JsArgs, JsResult, JsValue,
 };
 
@@ -150,15 +161,17 @@
     <span class="kw">const </span>NAME: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;Await&quot;</span>;
     <span class="kw">const </span>INSTRUCTION: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;INST - Await&quot;</span>;
 
-    <span class="kw">fn </span>execute(context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;ShouldExit&gt; {
+    <span class="kw">fn </span>execute(context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;CompletionType&gt; {
         <span class="kw">let </span>value = context.vm.pop();
 
         <span class="comment">// 2. Let promise be ? PromiseResolve(%Promise%, value).
-        </span><span class="kw">let </span>promise = Promise::promise_resolve(
+        </span><span class="kw">let </span>resolve_result = Promise::promise_resolve(
             context.intrinsics().constructors().promise().constructor(),
             value,
             context,
-        )<span class="question-mark">?</span>;
+        );
+
+        <span class="kw">let </span>promise = resolve_result<span class="question-mark">?</span>;
 
         <span class="comment">// 3. Let fulfilledClosure be a new Abstract Closure with parameters (value) that captures asyncContext and performs the following steps when called:
         // 4. Let onFulfilled be CreateBuiltinFunction(fulfilledClosure, 1, &quot;&quot;, « »).
@@ -181,7 +194,7 @@
 
                     context.vm.frame_mut().generator_resume_kind = GeneratorResumeKind::Normal;
                     context.vm.push(args.get_or_undefined(<span class="number">0</span>).clone());
-                    context.run()<span class="question-mark">?</span>;
+                    context.run();
 
                     <span class="kw-2">*</span>frame = context
                         .vm
@@ -224,7 +237,7 @@
 
                     context.vm.frame_mut().generator_resume_kind = GeneratorResumeKind::Throw;
                     context.vm.push(args.get_or_undefined(<span class="number">0</span>).clone());
-                    context.run()<span class="question-mark">?</span>;
+                    context.run();
 
                     <span class="kw-2">*</span>frame = context
                         .vm
@@ -256,7 +269,8 @@
         );
 
         context.vm.push(JsValue::undefined());
-        <span class="prelude-val">Ok</span>(ShouldExit::Await)
+        context.vm.frame_mut().early_return = <span class="prelude-val">Some</span>(EarlyReturnType::Await);
+        <span class="prelude-val">Ok</span>(CompletionType::Return)
     }
 }
 </code></pre></div>
