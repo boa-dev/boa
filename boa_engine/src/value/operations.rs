@@ -195,6 +195,8 @@ impl JsValue {
     }
 
     /// Perform the binary `**` operator on the value and return the result.
+    // NOTE: There are some cases in the spec where we have to compare floats
+    #[allow(clippy::float_cmp)]
     pub fn pow(&self, other: &Self, context: &mut Context<'_>) -> JsResult<Self> {
         Ok(match (self, other) {
             // Fast path:
@@ -202,15 +204,32 @@ impl JsValue {
                 .ok()
                 .and_then(|y| x.checked_pow(y))
                 .map_or_else(|| Self::new(f64::from(*x).powi(*y)), Self::new),
-            (Self::Rational(x), Self::Rational(y)) => Self::new(x.powf(*y)),
-            (Self::Integer(x), Self::Rational(y)) => Self::new(f64::from(*x).powf(*y)),
+            (Self::Rational(x), Self::Rational(y)) => {
+                if x.abs() == 1.0 && y.is_infinite() {
+                    Self::nan()
+                } else {
+                    Self::new(x.powf(*y))
+                }
+            }
+            (Self::Integer(x), Self::Rational(y)) => {
+                if x.abs() == 1 && y.is_infinite() {
+                    Self::nan()
+                } else {
+                    Self::new(f64::from(*x).powf(*y))
+                }
+            }
             (Self::Rational(x), Self::Integer(y)) => Self::new(x.powi(*y)),
-
             (Self::BigInt(ref a), Self::BigInt(ref b)) => Self::new(JsBigInt::pow(a, b)?),
 
             // Slow path:
             (_, _) => match (self.to_numeric(context)?, other.to_numeric(context)?) {
-                (Numeric::Number(a), Numeric::Number(b)) => Self::new(a.powf(b)),
+                (Numeric::Number(a), Numeric::Number(b)) => {
+                    if a.abs() == 1.0 && b.is_infinite() {
+                        Self::nan()
+                    } else {
+                        Self::new(a.powf(b))
+                    }
+                }
                 (Numeric::BigInt(ref a), Numeric::BigInt(ref b)) => Self::new(JsBigInt::pow(a, b)?),
                 (_, _) => {
                     return Err(JsNativeError::typ()
