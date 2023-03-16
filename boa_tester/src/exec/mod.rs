@@ -427,11 +427,19 @@ fn register_print_fn(context: &mut Context<'_>, async_result: AsyncResult) {
                     .get_or_undefined(0)
                     .to_string(context)?
                     .to_std_string_escaped();
-                if message == "Test262:AsyncTestComplete" {
-                    *async_result.inner.borrow_mut() = UninitResult::Ok(());
-                } else {
-                    *async_result.inner.borrow_mut() = UninitResult::Err(message);
+                let mut result = async_result.inner.borrow_mut();
+
+                match *result {
+                    UninitResult::Uninit | UninitResult::Ok(_) => {
+                        if message == "Test262:AsyncTestComplete" {
+                            *result = UninitResult::Ok(());
+                        } else {
+                            *result = UninitResult::Err(message);
+                        }
+                    }
+                    UninitResult::Err(_) => {}
                 }
+
                 Ok(JsValue::undefined())
             })
         },
