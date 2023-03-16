@@ -227,17 +227,6 @@
 <a href="#226" id="226">226</a>
 <a href="#227" id="227">227</a>
 <a href="#228" id="228">228</a>
-<a href="#229" id="229">229</a>
-<a href="#230" id="230">230</a>
-<a href="#231" id="231">231</a>
-<a href="#232" id="232">232</a>
-<a href="#233" id="233">233</a>
-<a href="#234" id="234">234</a>
-<a href="#235" id="235">235</a>
-<a href="#236" id="236">236</a>
-<a href="#237" id="237">237</a>
-<a href="#238" id="238">238</a>
-<a href="#239" id="239">239</a>
 </pre><pre class="rust"><code><span class="kw">use crate</span>::{
     builtins::function::ThisMode,
     bytecompiler::ByteCompiler,
@@ -249,7 +238,6 @@
 };
 <span class="kw">use </span>boa_gc::Gc;
 <span class="kw">use </span>boa_interner::Sym;
-<span class="kw">use </span>rustc_hash::FxHashMap;
 
 <span class="doccomment">/// `FunctionCompiler` is used to compile AST functions to bytecode.
 </span><span class="attr">#[derive(Debug, Clone, Copy)]
@@ -335,23 +323,14 @@
         <span class="self">self</span>.strict = <span class="self">self</span>.strict || body.strict();
 
         <span class="kw">let </span>length = parameters.length();
-        <span class="kw">let </span><span class="kw-2">mut </span>code = CodeBlock::new(<span class="self">self</span>.name, length, <span class="self">self</span>.strict);
+
+        <span class="kw">let </span><span class="kw-2">mut </span>compiler = ByteCompiler::new(<span class="self">self</span>.name, <span class="self">self</span>.strict, <span class="bool-val">false</span>, context);
+        compiler.length = length;
+        compiler.in_async_generator = <span class="self">self</span>.generator &amp;&amp; <span class="self">self</span>.r#async;
 
         <span class="kw">if </span><span class="self">self</span>.arrow {
-            code.this_mode = ThisMode::Lexical;
+            compiler.this_mode = ThisMode::Lexical;
         }
-
-        <span class="kw">let </span><span class="kw-2">mut </span>compiler = ByteCompiler {
-            code_block: code,
-            literals_map: FxHashMap::default(),
-            names_map: FxHashMap::default(),
-            private_names_map: FxHashMap::default(),
-            bindings_map: FxHashMap::default(),
-            jump_info: Vec::new(),
-            in_async_generator: <span class="self">self</span>.generator &amp;&amp; <span class="self">self</span>.r#async,
-            json_parse: <span class="bool-val">false</span>,
-            context,
-        };
 
         <span class="kw">if let </span><span class="prelude-val">Some</span>(class_name) = <span class="self">self</span>.class_name {
             compiler.context.push_compile_time_environment(<span class="bool-val">false</span>);
@@ -361,7 +340,7 @@
         }
 
         <span class="kw">if let </span><span class="prelude-val">Some</span>(binding_identifier) = <span class="self">self</span>.binding_identifier {
-            compiler.code_block.has_binding_identifier = <span class="bool-val">true</span>;
+            compiler.has_binding_identifier = <span class="bool-val">true</span>;
             compiler.context.push_compile_time_environment(<span class="bool-val">false</span>);
             compiler
                 .context
@@ -379,7 +358,7 @@
             compiler
                 .context
                 .create_mutable_binding(Sym::ARGUMENTS.into(), <span class="bool-val">false</span>, <span class="bool-val">false</span>);
-            compiler.code_block.arguments_binding = <span class="prelude-val">Some</span>(
+            compiler.arguments_binding = <span class="prelude-val">Some</span>(
                 compiler
                     .context
                     .initialize_mutable_binding(Sym::ARGUMENTS.into(), <span class="bool-val">false</span>),
@@ -424,10 +403,9 @@
         }
 
         <span class="kw">let </span>env_label = <span class="kw">if </span>parameters.has_expressions() {
-            compiler.code_block.num_bindings = compiler.context.get_binding_number();
+            compiler.num_bindings = compiler.context.get_binding_number();
             compiler.context.push_compile_time_environment(<span class="bool-val">true</span>);
-            compiler.code_block.function_environment_push_location =
-                compiler.next_opcode_location();
+            compiler.function_environment_push_location = compiler.next_opcode_location();
             <span class="prelude-val">Some</span>(compiler.emit_opcode_with_two_operands(Opcode::PushFunctionEnvironment))
         } <span class="kw">else </span>{
             <span class="prelude-val">None
@@ -455,7 +433,7 @@
             <span class="kw">let </span>(num_bindings, compile_environment) =
                 compiler.context.pop_compile_time_environment();
             compiler.push_compile_environment(compile_environment);
-            compiler.code_block.num_bindings = num_bindings;
+            compiler.num_bindings = num_bindings;
         }
 
         <span class="kw">if </span><span class="self">self</span>.binding_identifier.is_some() {
@@ -468,7 +446,7 @@
             compiler.push_compile_environment(compile_environment);
         }
 
-        compiler.code_block.params = parameters.clone();
+        compiler.params = parameters.clone();
 
         <span class="comment">// TODO These are redundant if a function returns so may need to check if a function returns and adding these if it doesn&#39;t
         </span>compiler.emit(Opcode::PushUndefined, <span class="kw-2">&amp;</span>[]);

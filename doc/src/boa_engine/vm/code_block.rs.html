@@ -1577,35 +1577,35 @@
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) params: FormalParameterList,
 
     <span class="doccomment">/// Bytecode
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) bytecode: Vec&lt;u8&gt;,
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) bytecode: Box&lt;[u8]&gt;,
 
     <span class="doccomment">/// Literals
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) literals: Vec&lt;JsValue&gt;,
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) literals: Box&lt;[JsValue]&gt;,
 
     <span class="doccomment">/// Property field names.
     </span><span class="attr">#[unsafe_ignore_trace]
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) names: Vec&lt;Identifier&gt;,
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) names: Box&lt;[Identifier]&gt;,
 
     <span class="doccomment">/// Private names.
     </span><span class="attr">#[unsafe_ignore_trace]
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) private_names: Vec&lt;PrivateName&gt;,
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) private_names: Box&lt;[PrivateName]&gt;,
 
     <span class="doccomment">/// Locators for all bindings in the codeblock.
     </span><span class="attr">#[unsafe_ignore_trace]
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) bindings: Vec&lt;BindingLocator&gt;,
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) bindings: Box&lt;[BindingLocator]&gt;,
 
     <span class="doccomment">/// Number of binding for the function environment.
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) num_bindings: usize,
 
     <span class="doccomment">/// Functions inside this function
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) functions: Vec&lt;Gc&lt;<span class="self">Self</span>&gt;&gt;,
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) functions: Box&lt;[Gc&lt;<span class="self">Self</span>&gt;]&gt;,
 
     <span class="doccomment">/// The `arguments` binding location of the function, if set.
     </span><span class="attr">#[unsafe_ignore_trace]
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) arguments_binding: <span class="prelude-ty">Option</span>&lt;BindingLocator&gt;,
 
     <span class="doccomment">/// Compile time environments in this function.
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) compile_environments: Vec&lt;Gc&lt;GcRefCell&lt;CompileTimeEnvironment&gt;&gt;&gt;,
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) compile_environments: Box&lt;[Gc&lt;GcRefCell&lt;CompileTimeEnvironment&gt;&gt;]&gt;,
 
     <span class="doccomment">/// The `[[IsClassConstructor]]` internal slot.
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) is_class_constructor: bool,
@@ -1626,13 +1626,13 @@
     </span><span class="attr">#[must_use]
     </span><span class="kw">pub fn </span>new(name: Sym, length: u32, strict: bool) -&gt; <span class="self">Self </span>{
         <span class="self">Self </span>{
-            bytecode: Vec::new(),
-            literals: Vec::new(),
-            names: Vec::new(),
-            private_names: Vec::new(),
-            bindings: Vec::new(),
+            bytecode: Box::default(),
+            literals: Box::default(),
+            names: Box::default(),
+            private_names: Box::default(),
+            bindings: Box::default(),
             num_bindings: <span class="number">0</span>,
-            functions: Vec::new(),
+            functions: Box::default(),
             name,
             has_binding_identifier: <span class="bool-val">false</span>,
             length,
@@ -1640,7 +1640,7 @@
             this_mode: ThisMode::Global,
             params: FormalParameterList::default(),
             arguments_binding: <span class="prelude-val">None</span>,
-            compile_environments: Vec::new(),
+            compile_environments: Box::default(),
             is_class_constructor: <span class="bool-val">false</span>,
             class_field_initializer_name: <span class="prelude-val">None</span>,
             function_environment_push_location: <span class="number">0</span>,

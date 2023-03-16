@@ -1109,7 +1109,7 @@
 
         graph.add_node(pc, NodeShape::Diamond, <span class="string">&quot;End&quot;</span>.into(), Color::Red);
 
-        <span class="kw">for </span>function <span class="kw">in </span><span class="kw-2">&amp;</span><span class="self">self</span>.functions {
+        <span class="kw">for </span>function <span class="kw">in </span><span class="self">self</span>.functions.as_ref() {
             <span class="kw">let </span>subgraph = graph.subgraph(String::new());
             function.to_graph(interner, subgraph);
         }

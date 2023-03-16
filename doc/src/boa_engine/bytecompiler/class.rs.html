@@ -565,51 +565,8 @@
 <a href="#564" id="564">564</a>
 <a href="#565" id="565">565</a>
 <a href="#566" id="566">566</a>
-<a href="#567" id="567">567</a>
-<a href="#568" id="568">568</a>
-<a href="#569" id="569">569</a>
-<a href="#570" id="570">570</a>
-<a href="#571" id="571">571</a>
-<a href="#572" id="572">572</a>
-<a href="#573" id="573">573</a>
-<a href="#574" id="574">574</a>
-<a href="#575" id="575">575</a>
-<a href="#576" id="576">576</a>
-<a href="#577" id="577">577</a>
-<a href="#578" id="578">578</a>
-<a href="#579" id="579">579</a>
-<a href="#580" id="580">580</a>
-<a href="#581" id="581">581</a>
-<a href="#582" id="582">582</a>
-<a href="#583" id="583">583</a>
-<a href="#584" id="584">584</a>
-<a href="#585" id="585">585</a>
-<a href="#586" id="586">586</a>
-<a href="#587" id="587">587</a>
-<a href="#588" id="588">588</a>
-<a href="#589" id="589">589</a>
-<a href="#590" id="590">590</a>
-<a href="#591" id="591">591</a>
-<a href="#592" id="592">592</a>
-<a href="#593" id="593">593</a>
-<a href="#594" id="594">594</a>
-<a href="#595" id="595">595</a>
-<a href="#596" id="596">596</a>
-<a href="#597" id="597">597</a>
-<a href="#598" id="598">598</a>
-<a href="#599" id="599">599</a>
-<a href="#600" id="600">600</a>
-<a href="#601" id="601">601</a>
-<a href="#602" id="602">602</a>
-<a href="#603" id="603">603</a>
-<a href="#604" id="604">604</a>
-<a href="#605" id="605">605</a>
-<a href="#606" id="606">606</a>
-<a href="#607" id="607">607</a>
-<a href="#608" id="608">608</a>
-<a href="#609" id="609">609</a>
 </pre><pre class="rust"><code><span class="kw">use super</span>::{ByteCompiler, Literal, NodeKind};
-<span class="kw">use </span><span class="kw">crate</span>::vm::{BindingOpcode, CodeBlock, Opcode};
+<span class="kw">use </span><span class="kw">crate</span>::vm::{BindingOpcode, Opcode};
 <span class="kw">use </span>boa_ast::{
     declaration::Binding,
     expression::Identifier,
@@ -619,7 +576,6 @@
 };
 <span class="kw">use </span>boa_gc::Gc;
 <span class="kw">use </span>boa_interner::Sym;
-<span class="kw">use </span>rustc_hash::FxHashMap;
 
 <span class="kw">impl </span>ByteCompiler&lt;<span class="lifetime">&#39;_</span>, <span class="lifetime">&#39;_</span>&gt; {
     <span class="doccomment">/// This function compiles a class declaration or expression.
@@ -630,22 +586,11 @@
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>compile_class(<span class="kw-2">&amp;mut </span><span class="self">self</span>, class: <span class="kw-2">&amp;</span>Class, expression: bool) {
         <span class="kw">let </span>class_name = class.name().map_or(Sym::EMPTY_STRING, Identifier::sym);
 
-        <span class="kw">let </span>code = CodeBlock::new(class_name, <span class="number">0</span>, <span class="bool-val">true</span>);
-        <span class="kw">let </span><span class="kw-2">mut </span>compiler = ByteCompiler {
-            code_block: code,
-            literals_map: FxHashMap::default(),
-            names_map: FxHashMap::default(),
-            private_names_map: FxHashMap::default(),
-            bindings_map: FxHashMap::default(),
-            jump_info: Vec::new(),
-            in_async_generator: <span class="bool-val">false</span>,
-            json_parse: <span class="self">self</span>.json_parse,
-            context: <span class="self">self</span>.context,
-        };
+        <span class="kw">let </span><span class="kw-2">mut </span>compiler = ByteCompiler::new(class_name, <span class="bool-val">true</span>, <span class="self">self</span>.json_parse, <span class="self">self</span>.context);
 
         <span class="kw">if let </span><span class="prelude-val">Some</span>(class_name) = class.name() {
             <span class="kw">if </span>class.has_binding_identifier() {
-                compiler.code_block.has_binding_identifier = <span class="bool-val">true</span>;
+                compiler.has_binding_identifier = <span class="bool-val">true</span>;
                 compiler.context.push_compile_time_environment(<span class="bool-val">false</span>);
                 compiler.context.create_immutable_binding(class_name, <span class="bool-val">true</span>);
             }
@@ -654,12 +599,12 @@
         compiler.context.push_compile_time_environment(<span class="bool-val">true</span>);
 
         <span class="kw">if let </span><span class="prelude-val">Some</span>(expr) = class.constructor() {
-            compiler.code_block.length = expr.parameters().length();
-            compiler.code_block.params = expr.parameters().clone();
+            compiler.length = expr.parameters().length();
+            compiler.params = expr.parameters().clone();
             compiler
                 .context
                 .create_mutable_binding(Sym::ARGUMENTS.into(), <span class="bool-val">false</span>, <span class="bool-val">false</span>);
-            compiler.code_block.arguments_binding = <span class="prelude-val">Some</span>(
+            compiler.arguments_binding = <span class="prelude-val">Some</span>(
                 compiler
                     .context
                     .initialize_mutable_binding(Sym::ARGUMENTS.into(), <span class="bool-val">false</span>),
@@ -694,10 +639,9 @@
                 compiler.emit_opcode(Opcode::RestParameterPop);
             }
             <span class="kw">let </span>env_label = <span class="kw">if </span>expr.parameters().has_expressions() {
-                compiler.code_block.num_bindings = compiler.context.get_binding_number();
+                compiler.num_bindings = compiler.context.get_binding_number();
                 compiler.context.push_compile_time_environment(<span class="bool-val">true</span>);
-                compiler.code_block.function_environment_push_location =
-                    compiler.next_opcode_location();
+                compiler.function_environment_push_location = compiler.next_opcode_location();
                 <span class="prelude-val">Some</span>(compiler.emit_opcode_with_two_operands(Opcode::PushFunctionEnvironment))
             } <span class="kw">else </span>{
                 <span class="prelude-val">None
@@ -717,8 +661,8 @@
                 <span class="kw">let </span>(num_bindings, compile_environment) =
                     compiler.context.pop_compile_time_environment();
                 compiler.push_compile_environment(compile_environment);
-                compiler.code_block.num_bindings = num_bindings;
-                compiler.code_block.is_class_constructor = <span class="bool-val">true</span>;
+                compiler.num_bindings = num_bindings;
+                compiler.is_class_constructor = <span class="bool-val">true</span>;
             }
         } <span class="kw">else </span>{
             <span class="kw">if </span>class.super_ref().is_some() {
@@ -727,8 +671,8 @@
             <span class="kw">let </span>(num_bindings, compile_environment) =
                 compiler.context.pop_compile_time_environment();
             compiler.push_compile_environment(compile_environment);
-            compiler.code_block.num_bindings = num_bindings;
-            compiler.code_block.is_class_constructor = <span class="bool-val">true</span>;
+            compiler.num_bindings = num_bindings;
+            compiler.is_class_constructor = <span class="bool-val">true</span>;
         }
 
         <span class="kw">if </span>class.name().is_some() &amp;&amp; class.has_binding_identifier() {
@@ -740,8 +684,8 @@
         compiler.emit_opcode(Opcode::Return);
 
         <span class="kw">let </span>code = Gc::new(compiler.finish());
-        <span class="kw">let </span>index = <span class="self">self</span>.code_block.functions.len() <span class="kw">as </span>u32;
-        <span class="self">self</span>.code_block.functions.push(code);
+        <span class="kw">let </span>index = <span class="self">self</span>.functions.len() <span class="kw">as </span>u32;
+        <span class="self">self</span>.functions.push(code);
         <span class="self">self</span>.emit(Opcode::GetFunction, <span class="kw-2">&amp;</span>[index]);
         <span class="self">self</span>.emit_u8(<span class="number">0</span>);
 
@@ -889,18 +833,8 @@
                             <span class="self">self</span>.compile_expr(name, <span class="bool-val">true</span>);
                         }
                     }
-                    <span class="kw">let </span>field_code = CodeBlock::new(Sym::EMPTY_STRING, <span class="number">0</span>, <span class="bool-val">true</span>);
-                    <span class="kw">let </span><span class="kw-2">mut </span>field_compiler = ByteCompiler {
-                        code_block: field_code,
-                        literals_map: FxHashMap::default(),
-                        names_map: FxHashMap::default(),
-                        private_names_map: FxHashMap::default(),
-                        bindings_map: FxHashMap::default(),
-                        jump_info: Vec::new(),
-                        in_async_generator: <span class="bool-val">false</span>,
-                        json_parse: <span class="self">self</span>.json_parse,
-                        context: <span class="self">self</span>.context,
-                    };
+                    <span class="kw">let </span><span class="kw-2">mut </span>field_compiler =
+                        ByteCompiler::new(Sym::EMPTY_STRING, <span class="bool-val">true</span>, <span class="self">self</span>.json_parse, <span class="self">self</span>.context);
                     field_compiler.context.push_compile_time_environment(<span class="bool-val">false</span>);
                     field_compiler
                         .context
@@ -917,14 +851,14 @@
                     <span class="kw">let </span>(<span class="kw">_</span>, compile_environment) =
                         field_compiler.context.pop_compile_time_environment();
                     field_compiler.push_compile_environment(compile_environment);
-                    field_compiler.code_block.num_bindings = num_bindings;
+                    field_compiler.num_bindings = num_bindings;
                     field_compiler.emit_opcode(Opcode::Return);
 
                     <span class="kw">let </span><span class="kw-2">mut </span>code = field_compiler.finish();
                     code.class_field_initializer_name = <span class="prelude-val">Some</span>(Sym::EMPTY_STRING);
                     <span class="kw">let </span>code = Gc::new(code);
-                    <span class="kw">let </span>index = <span class="self">self</span>.code_block.functions.len() <span class="kw">as </span>u32;
-                    <span class="self">self</span>.code_block.functions.push(code);
+                    <span class="kw">let </span>index = <span class="self">self</span>.functions.len() <span class="kw">as </span>u32;
+                    <span class="self">self</span>.functions.push(code);
                     <span class="self">self</span>.emit(Opcode::GetFunction, <span class="kw-2">&amp;</span>[index]);
                     <span class="self">self</span>.emit_u8(<span class="number">0</span>);
                     <span class="self">self</span>.emit_opcode(Opcode::PushClassField);
@@ -932,18 +866,8 @@
                 ClassElement::PrivateFieldDefinition(name, field) =&gt; {
                     <span class="self">self</span>.emit_opcode(Opcode::Dup);
                     <span class="kw">let </span>name_index = <span class="self">self</span>.get_or_insert_private_name(<span class="kw-2">*</span>name);
-                    <span class="kw">let </span>field_code = CodeBlock::new(Sym::EMPTY_STRING, <span class="number">0</span>, <span class="bool-val">true</span>);
-                    <span class="kw">let </span><span class="kw-2">mut </span>field_compiler = ByteCompiler {
-                        code_block: field_code,
-                        literals_map: FxHashMap::default(),
-                        names_map: FxHashMap::default(),
-                        private_names_map: FxHashMap::default(),
-                        bindings_map: FxHashMap::default(),
-                        jump_info: Vec::new(),
-                        in_async_generator: <span class="bool-val">false</span>,
-                        json_parse: <span class="self">self</span>.json_parse,
-                        context: <span class="self">self</span>.context,
-                    };
+                    <span class="kw">let </span><span class="kw-2">mut </span>field_compiler =
+                        ByteCompiler::new(class_name, <span class="bool-val">true</span>, <span class="self">self</span>.json_parse, <span class="self">self</span>.context);
                     field_compiler.context.push_compile_time_environment(<span class="bool-val">false</span>);
                     field_compiler
                         .context
@@ -960,14 +884,14 @@
                     <span class="kw">let </span>(<span class="kw">_</span>, compile_environment) =
                         field_compiler.context.pop_compile_time_environment();
                     field_compiler.push_compile_environment(compile_environment);
-                    field_compiler.code_block.num_bindings = num_bindings;
+                    field_compiler.num_bindings = num_bindings;
                     field_compiler.emit_opcode(Opcode::Return);
 
                     <span class="kw">let </span><span class="kw-2">mut </span>code = field_compiler.finish();
                     code.class_field_initializer_name = <span class="prelude-val">Some</span>(Sym::EMPTY_STRING);
                     <span class="kw">let </span>code = Gc::new(code);
-                    <span class="kw">let </span>index = <span class="self">self</span>.code_block.functions.len() <span class="kw">as </span>u32;
-                    <span class="self">self</span>.code_block.functions.push(code);
+                    <span class="kw">let </span>index = <span class="self">self</span>.functions.len() <span class="kw">as </span>u32;
+                    <span class="self">self</span>.functions.push(code);
                     <span class="self">self</span>.emit(Opcode::GetFunction, <span class="kw-2">&amp;</span>[index]);
                     <span class="self">self</span>.emit_u8(<span class="number">0</span>);
                     <span class="self">self</span>.emit(Opcode::PushClassFieldPrivate, <span class="kw-2">&amp;</span>[name_index]);
@@ -985,18 +909,8 @@
                             <span class="prelude-val">None
                         </span>}
                     };
-                    <span class="kw">let </span>field_code = CodeBlock::new(Sym::EMPTY_STRING, <span class="number">0</span>, <span class="bool-val">true</span>);
-                    <span class="kw">let </span><span class="kw-2">mut </span>field_compiler = ByteCompiler {
-                        code_block: field_code,
-                        literals_map: FxHashMap::default(),
-                        names_map: FxHashMap::default(),
-                        private_names_map: FxHashMap::default(),
-                        bindings_map: FxHashMap::default(),
-                        jump_info: Vec::new(),
-                        in_async_generator: <span class="bool-val">false</span>,
-                        json_parse: <span class="self">self</span>.json_parse,
-                        context: <span class="self">self</span>.context,
-                    };
+                    <span class="kw">let </span><span class="kw-2">mut </span>field_compiler =
+                        ByteCompiler::new(class_name, <span class="bool-val">true</span>, <span class="self">self</span>.json_parse, <span class="self">self</span>.context);
                     field_compiler.context.push_compile_time_environment(<span class="bool-val">false</span>);
                     field_compiler
                         .context
@@ -1013,14 +927,14 @@
                     <span class="kw">let </span>(<span class="kw">_</span>, compile_environment) =
                         field_compiler.context.pop_compile_time_environment();
                     field_compiler.push_compile_environment(compile_environment);
-                    field_compiler.code_block.num_bindings = num_bindings;
+                    field_compiler.num_bindings = num_bindings;
                     field_compiler.emit_opcode(Opcode::Return);
 
                     <span class="kw">let </span><span class="kw-2">mut </span>code = field_compiler.finish();
                     code.class_field_initializer_name = <span class="prelude-val">Some</span>(Sym::EMPTY_STRING);
                     <span class="kw">let </span>code = Gc::new(code);
-                    <span class="kw">let </span>index = <span class="self">self</span>.code_block.functions.len() <span class="kw">as </span>u32;
-                    <span class="self">self</span>.code_block.functions.push(code);
+                    <span class="kw">let </span>index = <span class="self">self</span>.functions.len() <span class="kw">as </span>u32;
+                    <span class="self">self</span>.functions.push(code);
                     <span class="self">self</span>.emit(Opcode::GetFunction, <span class="kw-2">&amp;</span>[index]);
                     <span class="self">self</span>.emit_u8(<span class="number">0</span>);
                     <span class="self">self</span>.emit_opcode(Opcode::SetHomeObject);
@@ -1057,11 +971,11 @@
                     compiler.push_compile_environment(compile_environment);
                     <span class="kw">let </span>(<span class="kw">_</span>, compile_environment) = compiler.context.pop_compile_time_environment();
                     compiler.push_compile_environment(compile_environment);
-                    compiler.code_block.num_bindings = num_bindings;
+                    compiler.num_bindings = num_bindings;
 
                     <span class="kw">let </span>code = Gc::new(compiler.finish());
-                    <span class="kw">let </span>index = <span class="self">self</span>.code_block.functions.len() <span class="kw">as </span>u32;
-                    <span class="self">self</span>.code_block.functions.push(code);
+                    <span class="kw">let </span>index = <span class="self">self</span>.functions.len() <span class="kw">as </span>u32;
+                    <span class="self">self</span>.functions.push(code);
                     <span class="self">self</span>.emit(Opcode::GetFunction, <span class="kw-2">&amp;</span>[index]);
                     <span class="self">self</span>.emit_u8(<span class="number">0</span>);
                     <span class="self">self</span>.emit_opcode(Opcode::SetHomeObject);
