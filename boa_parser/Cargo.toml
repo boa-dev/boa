@@ -19,6 +19,6 @@ boa_unicode.workspace = true
 rustc-hash = "1.1.0"
 fast-float = "0.2.0"
 num-traits = "0.2.15"
-bitflags = "2.0.0"
+bitflags = "2.0.1"
 num-bigint = "0.4.3"
 regress = "0.5.0"
