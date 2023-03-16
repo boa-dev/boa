@@ -658,6 +658,25 @@
 <a href="#657" id="657">657</a>
 <a href="#658" id="658">658</a>
 <a href="#659" id="659">659</a>
+<a href="#660" id="660">660</a>
+<a href="#661" id="661">661</a>
+<a href="#662" id="662">662</a>
+<a href="#663" id="663">663</a>
+<a href="#664" id="664">664</a>
+<a href="#665" id="665">665</a>
+<a href="#666" id="666">666</a>
+<a href="#667" id="667">667</a>
+<a href="#668" id="668">668</a>
+<a href="#669" id="669">669</a>
+<a href="#670" id="670">670</a>
+<a href="#671" id="671">671</a>
+<a href="#672" id="672">672</a>
+<a href="#673" id="673">673</a>
+<a href="#674" id="674">674</a>
+<a href="#675" id="675">675</a>
+<a href="#676" id="676">676</a>
+<a href="#677" id="677">677</a>
+<a href="#678" id="678">678</a>
 </pre><pre class="rust"><code><span class="kw">use crate</span>::{
     builtins::{
         number::{f64_to_int32, f64_to_uint32},
@@ -855,6 +874,8 @@
     }
 
     <span class="doccomment">/// Perform the binary `**` operator on the value and return the result.
+    </span><span class="comment">// NOTE: There are some cases in the spec where we have to compare floats
+    </span><span class="attr">#[allow(clippy::float_cmp)]
     </span><span class="kw">pub fn </span>pow(<span class="kw-2">&amp;</span><span class="self">self</span>, other: <span class="kw-2">&amp;</span><span class="self">Self</span>, context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;<span class="self">Self</span>&gt; {
         <span class="prelude-val">Ok</span>(<span class="kw">match </span>(<span class="self">self</span>, other) {
             <span class="comment">// Fast path:
@@ -862,15 +883,32 @@
                 .ok()
                 .and_then(|y| x.checked_pow(y))
                 .map_or_else(|| <span class="self">Self</span>::new(f64::from(<span class="kw-2">*</span>x).powi(<span class="kw-2">*</span>y)), <span class="self">Self</span>::new),
-            (<span class="self">Self</span>::Rational(x), <span class="self">Self</span>::Rational(y)) =&gt; <span class="self">Self</span>::new(x.powf(<span class="kw-2">*</span>y)),
-            (<span class="self">Self</span>::Integer(x), <span class="self">Self</span>::Rational(y)) =&gt; <span class="self">Self</span>::new(f64::from(<span class="kw-2">*</span>x).powf(<span class="kw-2">*</span>y)),
+            (<span class="self">Self</span>::Rational(x), <span class="self">Self</span>::Rational(y)) =&gt; {
+                <span class="kw">if </span>x.abs() == <span class="number">1.0 </span>&amp;&amp; y.is_infinite() {
+                    <span class="self">Self</span>::nan()
+                } <span class="kw">else </span>{
+                    <span class="self">Self</span>::new(x.powf(<span class="kw-2">*</span>y))
+                }
+            }
+            (<span class="self">Self</span>::Integer(x), <span class="self">Self</span>::Rational(y)) =&gt; {
+                <span class="kw">if </span>x.wrapping_abs() == <span class="number">1 </span>&amp;&amp; y.is_infinite() {
+                    <span class="self">Self</span>::nan()
+                } <span class="kw">else </span>{
+                    <span class="self">Self</span>::new(f64::from(<span class="kw-2">*</span>x).powf(<span class="kw-2">*</span>y))
+                }
+            }
             (<span class="self">Self</span>::Rational(x), <span class="self">Self</span>::Integer(y)) =&gt; <span class="self">Self</span>::new(x.powi(<span class="kw-2">*</span>y)),
-
             (<span class="self">Self</span>::BigInt(<span class="kw-2">ref </span>a), <span class="self">Self</span>::BigInt(<span class="kw-2">ref </span>b)) =&gt; <span class="self">Self</span>::new(JsBigInt::pow(a, b)<span class="question-mark">?</span>),
 
             <span class="comment">// Slow path:
             </span>(<span class="kw">_</span>, <span class="kw">_</span>) =&gt; <span class="kw">match </span>(<span class="self">self</span>.to_numeric(context)<span class="question-mark">?</span>, other.to_numeric(context)<span class="question-mark">?</span>) {
-                (Numeric::Number(a), Numeric::Number(b)) =&gt; <span class="self">Self</span>::new(a.powf(b)),
+                (Numeric::Number(a), Numeric::Number(b)) =&gt; {
+                    <span class="kw">if </span>a.abs() == <span class="number">1.0 </span>&amp;&amp; b.is_infinite() {
+                        <span class="self">Self</span>::nan()
+                    } <span class="kw">else </span>{
+                        <span class="self">Self</span>::new(a.powf(b))
+                    }
+                }
                 (Numeric::BigInt(<span class="kw-2">ref </span>a), Numeric::BigInt(<span class="kw-2">ref </span>b)) =&gt; <span class="self">Self</span>::new(JsBigInt::pow(a, b)<span class="question-mark">?</span>),
                 (<span class="kw">_</span>, <span class="kw">_</span>) =&gt; {
                     <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::typ()
