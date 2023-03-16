@@ -22,7 +22,7 @@ rust-version = "1.66"
 authors = ["boa-dev"]
 repository = "https://github.com/boa-dev/boa"
 license = "Unlicense/MIT"
-description = "Boa is a Javascript lexer, parser and Just-in-Time compiler written in Rust. Currently, it has support for some of the language."
+description = "Boa is a Javascript lexer, parser and compiler written in Rust. Currently, it has support for some of the language."
 
 [workspace.dependencies]
 boa_engine = { version = "0.16.0", path = "boa_engine" }
