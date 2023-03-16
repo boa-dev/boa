@@ -198,8 +198,12 @@ impl Test {
 
                 context.run_jobs();
 
-                if let Err(e) = async_result.inner.borrow().as_ref() {
-                    return (false, format!("Uncaught {e}"));
+                match *async_result.inner.borrow() {
+                    UninitResult::Err(ref e) => return (false, format!("Uncaught {e}")),
+                    UninitResult::Uninit if self.flags.contains(TestFlags::ASYNC) => {
+                        return (false, "async test didn't call `print`".to_string())
+                    }
+                    _ => {}
                 }
 
                 (true, value.display().to_string())
@@ -423,8 +427,10 @@ fn register_print_fn(context: &mut Context<'_>, async_result: AsyncResult) {
                     .get_or_undefined(0)
                     .to_string(context)?
                     .to_std_string_escaped();
-                if message != "Test262:AsyncTestComplete" {
-                    *async_result.inner.borrow_mut() = Err(message);
+                if message == "Test262:AsyncTestComplete" {
+                    *async_result.inner.borrow_mut() = UninitResult::Ok(());
+                } else {
+                    *async_result.inner.borrow_mut() = UninitResult::Err(message);
                 }
                 Ok(JsValue::undefined())
             })
@@ -440,17 +446,26 @@ fn register_print_fn(context: &mut Context<'_>, async_result: AsyncResult) {
         Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
     );
 }
+
+#[derive(Debug, Clone, Copy, Default)]
+enum UninitResult<T, E> {
+    #[default]
+    Uninit,
+    Ok(T),
+    Err(E),
+}
+
 /// Object which includes the result of the async operation.
 #[derive(Debug, Clone)]
 struct AsyncResult {
-    inner: Rc<RefCell<Result<(), String>>>,
+    inner: Rc<RefCell<UninitResult<(), String>>>,
 }
 
 impl Default for AsyncResult {
     #[inline]
     fn default() -> Self {
         Self {
-            inner: Rc::new(RefCell::new(Ok(()))),
+            inner: Rc::new(RefCell::new(UninitResult::default())),
         }
     }
 }
