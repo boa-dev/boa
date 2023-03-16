@@ -9,6 +9,7 @@ mod module;
 mod statement;
 
 use crate::{
+    builtins::function::ThisMode,
     environments::{BindingLocator, CompileTimeEnvironment},
     vm::{BindingOpcode, CodeBlock, Opcode},
     Context, JsBigInt, JsString, JsValue,
@@ -210,8 +211,65 @@ impl Access<'_> {
 
 /// The [`ByteCompiler`] is used to compile ECMAScript AST from [`boa_ast`] to bytecode.
 #[derive(Debug)]
+#[allow(clippy::struct_excessive_bools)]
 pub struct ByteCompiler<'b, 'host> {
-    code_block: CodeBlock,
+    /// Name of this function.
+    pub(crate) function_name: Sym,
+
+    /// Indicates if the function is an expression and has a binding identifier.
+    pub(crate) has_binding_identifier: bool,
+
+    /// The number of arguments expected.
+    pub(crate) length: u32,
+
+    /// Is this function in strict mode.
+    pub(crate) strict: bool,
+
+    /// \[\[ThisMode\]\]
+    pub(crate) this_mode: ThisMode,
+
+    /// Parameters passed to this function.
+    pub(crate) params: FormalParameterList,
+
+    /// Bytecode
+    pub(crate) bytecode: Vec<u8>,
+
+    /// Literals
+    pub(crate) literals: Vec<JsValue>,
+
+    /// Property field names.
+    pub(crate) names: Vec<Identifier>,
+
+    /// Private names.
+    pub(crate) private_names: Vec<PrivateName>,
+
+    /// Locators for all bindings in the codeblock.
+    pub(crate) bindings: Vec<BindingLocator>,
+
+    /// Number of binding for the function environment.
+    pub(crate) num_bindings: usize,
+
+    /// Functions inside this function
+    pub(crate) functions: Vec<Gc<CodeBlock>>,
+
+    /// The `arguments` binding location of the function, if set.
+    pub(crate) arguments_binding: Option<BindingLocator>,
+
+    /// Compile time environments in this function.
+    pub(crate) compile_environments: Vec<Gc<GcRefCell<CompileTimeEnvironment>>>,
+
+    /// The `[[IsClassConstructor]]` internal slot.
+    pub(crate) is_class_constructor: bool,
+
+    /// The `[[ClassFieldInitializerName]]` internal slot.
+    pub(crate) class_field_initializer_name: Option<Sym>,
+
+    /// Marks the location in the code where the function environment in pushed.
+    /// This is only relevant for functions with expressions in the parameters.
+    /// We execute the parameter expressions in the function code and push the function environment afterward.
+    /// When the execution of the parameter expressions throws an error, we do not need to pop the function environment.
+    pub(crate) function_environment_push_location: u32,
+
     literals_map: FxHashMap<Literal, u32>,
     names_map: FxHashMap<Identifier, u32>,
     private_names_map: FxHashMap<PrivateName, u32>,
@@ -226,7 +284,7 @@ impl<'b, 'host> ByteCompiler<'b, 'host> {
     /// Represents a placeholder address that will be patched later.
     const DUMMY_ADDRESS: u32 = u32::MAX;
 
-    /// Creates a new `ByteCompiler`.
+    /// Creates a new [`ByteCompiler`].
     #[inline]
     pub fn new(
         name: Sym,
@@ -235,7 +293,25 @@ impl<'b, 'host> ByteCompiler<'b, 'host> {
         context: &'b mut Context<'host>,
     ) -> ByteCompiler<'b, 'host> {
         Self {
-            code_block: CodeBlock::new(name, 0, strict),
+            function_name: name,
+            strict,
+            length: 0,
+            bytecode: Vec::default(),
+            literals: Vec::default(),
+            names: Vec::default(),
+            private_names: Vec::default(),
+            bindings: Vec::default(),
+            num_bindings: 0,
+            functions: Vec::default(),
+            has_binding_identifier: false,
+            this_mode: ThisMode::Global,
+            params: FormalParameterList::default(),
+            arguments_binding: None,
+            compile_environments: Vec::default(),
+            is_class_constructor: false,
+            class_field_initializer_name: None,
+            function_environment_push_location: 0,
+
             literals_map: FxHashMap::default(),
             names_map: FxHashMap::default(),
             private_names_map: FxHashMap::default(),
@@ -256,8 +332,8 @@ impl<'b, 'host> ByteCompiler<'b, 'host> {
         &mut self,
         environment: Gc<GcRefCell<CompileTimeEnvironment>>,
     ) -> usize {
-        let index = self.code_block.compile_environments.len();
-        self.code_block.compile_environments.push(environment);
+        let index = self.compile_environments.len();
+        self.compile_environments.push(environment);
         index
     }
 
@@ -271,8 +347,8 @@ impl<'b, 'host> ByteCompiler<'b, 'host> {
             Literal::BigInt(value) => JsValue::new(value),
         };
 
-        let index = self.code_block.literals.len() as u32;
-        self.code_block.literals.push(value);
+        let index = self.literals.len() as u32;
+        self.literals.push(value);
         self.literals_map.insert(literal, index);
         index
     }
@@ -282,8 +358,8 @@ impl<'b, 'host> ByteCompiler<'b, 'host> {
             return *index;
         }
 
-        let index = self.code_block.names.len() as u32;
-        self.code_block.names.push(name);
+        let index = self.names.len() as u32;
+        self.names.push(name);
         self.names_map.insert(name, index);
         index
     }
@@ -294,8 +370,8 @@ impl<'b, 'host> ByteCompiler<'b, 'host> {
             return *index;
         }
 
-        let index = self.code_block.private_names.len() as u32;
-        self.code_block.private_names.push(name);
+        let index = self.private_names.len() as u32;
+        self.private_names.push(name);
         self.private_names_map.insert(name, index);
         index
     }
@@ -306,8 +382,8 @@ impl<'b, 'host> ByteCompiler<'b, 'host> {
             return *index;
         }
 
-        let index = self.code_block.bindings.len() as u32;
-        self.code_block.bindings.push(binding);
+        let index = self.bindings.len() as u32;
+        self.bindings.push(binding);
         self.bindings_map.insert(binding, index);
         index
     }
@@ -357,8 +433,8 @@ impl<'b, 'host> ByteCompiler<'b, 'host> {
     }
 
     fn next_opcode_location(&mut self) -> u32 {
-        assert!(self.code_block.bytecode.len() < u32::MAX as usize);
-        self.code_block.bytecode.len() as u32
+        assert!(self.bytecode.len() < u32::MAX as usize);
+        self.bytecode.len() as u32
     }
 
     fn emit(&mut self, opcode: Opcode, operands: &[u32]) {
@@ -369,15 +445,15 @@ impl<'b, 'host> ByteCompiler<'b, 'host> {
     }
 
     fn emit_u64(&mut self, value: u64) {
-        self.code_block.bytecode.extend(value.to_ne_bytes());
+        self.bytecode.extend(value.to_ne_bytes());
     }
 
     fn emit_u32(&mut self, value: u32) {
-        self.code_block.bytecode.extend(value.to_ne_bytes());
+        self.bytecode.extend(value.to_ne_bytes());
     }
 
     fn emit_u16(&mut self, value: u16) {
-        self.code_block.bytecode.extend(value.to_ne_bytes());
+        self.bytecode.extend(value.to_ne_bytes());
     }
 
     fn emit_opcode(&mut self, opcode: Opcode) {
@@ -385,7 +461,7 @@ impl<'b, 'host> ByteCompiler<'b, 'host> {
     }
 
     fn emit_u8(&mut self, value: u8) {
-        self.code_block.bytecode.push(value);
+        self.bytecode.push(value);
     }
 
     fn emit_push_integer(&mut self, value: i32) {
@@ -473,10 +549,10 @@ impl<'b, 'host> ByteCompiler<'b, 'host> {
         let index = index as usize;
 
         let bytes = target.to_ne_bytes();
-        self.code_block.bytecode[index + 1] = bytes[0];
-        self.code_block.bytecode[index + 2] = bytes[1];
-        self.code_block.bytecode[index + 3] = bytes[2];
-        self.code_block.bytecode[index + 4] = bytes[3];
+        self.bytecode[index + 1] = bytes[0];
+        self.bytecode[index + 2] = bytes[1];
+        self.bytecode[index + 3] = bytes[2];
+        self.bytecode[index + 4] = bytes[3];
     }
 
     fn patch_jump(&mut self, label: Label) {
@@ -1042,13 +1118,13 @@ impl<'b, 'host> ByteCompiler<'b, 'host> {
             .name(name.map(Identifier::sym))
             .generator(generator)
             .r#async(r#async)
-            .strict(self.code_block.strict)
+            .strict(self.strict)
             .arrow(arrow)
             .binding_identifier(binding_identifier)
             .compile(parameters, body, self.context);
 
-        let index = self.code_block.functions.len() as u32;
-        self.code_block.functions.push(code);
+        let index = self.functions.len() as u32;
+        self.functions.push(code);
 
         if r#async && generator {
             self.emit(Opcode::GetGeneratorAsync, &[index]);
@@ -1121,8 +1197,8 @@ impl<'b, 'host> ByteCompiler<'b, 'host> {
             .class_name(class_name)
             .compile(parameters, body, self.context);
 
-        let index = self.code_block.functions.len() as u32;
-        self.code_block.functions.push(code);
+        let index = self.functions.len() as u32;
+        self.functions.push(code);
 
         if r#async && generator {
             self.emit(Opcode::GetGeneratorAsync, &[index]);
@@ -1228,7 +1304,26 @@ impl<'b, 'host> ByteCompiler<'b, 'host> {
     #[must_use]
     #[allow(clippy::missing_const_for_fn)]
     pub fn finish(self) -> CodeBlock {
-        self.code_block
+        CodeBlock {
+            name: self.function_name,
+            has_binding_identifier: self.has_binding_identifier,
+            length: self.length,
+            strict: self.strict,
+            this_mode: self.this_mode,
+            params: self.params,
+            bytecode: self.bytecode.into_boxed_slice(),
+            literals: self.literals.into_boxed_slice(),
+            names: self.names.into_boxed_slice(),
+            private_names: self.private_names.into_boxed_slice(),
+            bindings: self.bindings.into_boxed_slice(),
+            num_bindings: self.num_bindings,
+            functions: self.functions.into_boxed_slice(),
+            arguments_binding: self.arguments_binding,
+            compile_environments: self.compile_environments.into_boxed_slice(),
+            is_class_constructor: self.is_class_constructor,
+            class_field_initializer_name: self.class_field_initializer_name,
+            function_environment_push_location: self.function_environment_push_location,
+        }
     }
 
     fn compile_declaration_pattern(&mut self, pattern: &Pattern, def: BindingOpcode) {

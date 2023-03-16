@@ -80,35 +80,35 @@ pub struct CodeBlock {
     pub(crate) params: FormalParameterList,
 
     /// Bytecode
-    pub(crate) bytecode: Vec<u8>,
+    pub(crate) bytecode: Box<[u8]>,
 
     /// Literals
-    pub(crate) literals: Vec<JsValue>,
+    pub(crate) literals: Box<[JsValue]>,
 
     /// Property field names.
     #[unsafe_ignore_trace]
-    pub(crate) names: Vec<Identifier>,
+    pub(crate) names: Box<[Identifier]>,
 
     /// Private names.
     #[unsafe_ignore_trace]
-    pub(crate) private_names: Vec<PrivateName>,
+    pub(crate) private_names: Box<[PrivateName]>,
 
     /// Locators for all bindings in the codeblock.
     #[unsafe_ignore_trace]
-    pub(crate) bindings: Vec<BindingLocator>,
+    pub(crate) bindings: Box<[BindingLocator]>,
 
     /// Number of binding for the function environment.
     pub(crate) num_bindings: usize,
 
     /// Functions inside this function
-    pub(crate) functions: Vec<Gc<Self>>,
+    pub(crate) functions: Box<[Gc<Self>]>,
 
     /// The `arguments` binding location of the function, if set.
     #[unsafe_ignore_trace]
     pub(crate) arguments_binding: Option<BindingLocator>,
 
     /// Compile time environments in this function.
-    pub(crate) compile_environments: Vec<Gc<GcRefCell<CompileTimeEnvironment>>>,
+    pub(crate) compile_environments: Box<[Gc<GcRefCell<CompileTimeEnvironment>>]>,
 
     /// The `[[IsClassConstructor]]` internal slot.
     pub(crate) is_class_constructor: bool,
@@ -129,13 +129,13 @@ impl CodeBlock {
     #[must_use]
     pub fn new(name: Sym, length: u32, strict: bool) -> Self {
         Self {
-            bytecode: Vec::new(),
-            literals: Vec::new(),
-            names: Vec::new(),
-            private_names: Vec::new(),
-            bindings: Vec::new(),
+            bytecode: Box::default(),
+            literals: Box::default(),
+            names: Box::default(),
+            private_names: Box::default(),
+            bindings: Box::default(),
             num_bindings: 0,
-            functions: Vec::new(),
+            functions: Box::default(),
             name,
             has_binding_identifier: false,
             length,
@@ -143,7 +143,7 @@ impl CodeBlock {
             this_mode: ThisMode::Global,
             params: FormalParameterList::default(),
             arguments_binding: None,
-            compile_environments: Vec::new(),
+            compile_environments: Box::default(),
             is_class_constructor: false,
             class_field_initializer_name: None,
             function_environment_push_location: 0,
