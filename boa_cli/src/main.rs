@@ -166,13 +166,9 @@ enum DumpFormat {
 /// Represents the format of the instruction flowgraph.
 #[derive(Debug, Clone, Copy, ValueEnum)]
 enum FlowgraphFormat {
-    /// Generates in [graphviz][graphviz] format.
-    ///
-    /// [graphviz]: https://graphviz.org/
+    /// Generates in graphviz format: <https://graphviz.org/>.
     Graphviz,
-    /// Generates in [mermaid][mermaid] format.
-    ///
-    /// [mermaid]: https://mermaid-js.github.io/mermaid/#/
+    /// Generates in mermaid format: <https://mermaid-js.github.io/mermaid/>.
     Mermaid,
 }
 
