@@ -10,18 +10,16 @@ mod env_stack;
 
 pub(crate) use abrupt_record::AbruptCompletionRecord;
 pub(crate) use env_stack::EnvStackEntry;
-
 /// A `CallFrame` holds the state of a function call.
 #[derive(Clone, Debug, Finalize, Trace)]
 pub struct CallFrame {
     pub(crate) code_block: Gc<CodeBlock>,
     pub(crate) pc: usize,
-    #[unsafe_ignore_trace]
-    pub(crate) try_catch: Vec<FinallyAddresses>,
-    #[unsafe_ignore_trace]
-    pub(crate) finally_return: FinallyReturn,
+    pub(crate) fp: usize,
     #[unsafe_ignore_trace]
     pub(crate) abrupt_completion: Option<AbruptCompletionRecord>,
+    #[unsafe_ignore_trace]
+    pub(crate) early_return: Option<EarlyReturnType>,
     pub(crate) pop_on_return: usize,
     // Tracks the number of environments in environment entry.
     // On abrupt returns this is used to decide how many environments need to be pop'ed.
@@ -45,11 +43,11 @@ impl CallFrame {
         Self {
             code_block,
             pc: 0,
-            try_catch: Vec::new(),
-            finally_return: FinallyReturn::None,
+            fp: 0,
             pop_on_return: 0,
             env_stack: Vec::from([EnvStackEntry::new(0, max_length)]),
             abrupt_completion: None,
+            early_return: None,
             param_count: 0,
             arg_count: 0,
             generator_resume_kind: GeneratorResumeKind::Normal,
@@ -72,6 +70,10 @@ impl CallFrame {
 
 /// ---- `CallFrame` stack methods ----
 impl CallFrame {
+    pub(crate) fn set_frame_pointer(&mut self, pointer: usize) {
+        self.fp = pointer;
+    }
+
     /// Tracks that one environment has been pushed in the current loop block.
     pub(crate) fn inc_frame_env_stack(&mut self) {
         self.env_stack
@@ -92,38 +94,17 @@ impl CallFrame {
     }
 }
 
-/// Tracks the address that should be jumped to when an error is caught.
-///
-/// Additionally the address of a finally block is tracked, to allow for special handling if it exists.
-#[derive(Copy, Clone, Debug)]
-pub(crate) struct FinallyAddresses {
-    finally: Option<u32>,
-}
-
-impl FinallyAddresses {
-    pub(crate) const fn new(finally_address: Option<u32>) -> Self {
-        Self {
-            finally: finally_address,
-        }
-    }
-
-    pub(crate) const fn finally(self) -> Option<u32> {
-        self.finally
-    }
-}
-
-/// Indicates if a function should return or throw at the end of a finally block.
-#[derive(Copy, Clone, Debug, PartialEq)]
-pub(crate) enum FinallyReturn {
-    None,
-    Ok,
-    Err,
-}
-
 /// Indicates how a generator function that has been called/resumed should return.
 #[derive(Copy, Clone, Debug, PartialEq)]
 pub(crate) enum GeneratorResumeKind {
     Normal,
     Throw,
     Return,
+}
+
+// An enum to mark whether a return is early due to Async or Yield
+#[derive(Copy, Clone, Debug, PartialEq)]
+pub(crate) enum EarlyReturnType {
+    Await,
+    Yield,
 }

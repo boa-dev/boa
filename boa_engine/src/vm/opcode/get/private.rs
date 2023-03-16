@@ -1,5 +1,5 @@
 use crate::{
-    vm::{opcode::Operation, ShouldExit},
+    vm::{opcode::Operation, CompletionType},
     Context, JsResult,
 };
 
@@ -14,13 +14,13 @@ impl Operation for GetPrivateField {
     const NAME: &'static str = "GetPrivateField";
     const INSTRUCTION: &'static str = "INST - GetPrivateField";
 
-    fn execute(context: &mut Context<'_>) -> JsResult<ShouldExit> {
+    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
         let index = context.vm.read::<u32>();
         let name = context.vm.frame().code_block.private_names[index as usize];
         let value = context.vm.pop();
         let base_obj = value.to_object(context)?;
         let result = base_obj.private_get(&name, context)?;
         context.vm.push(result);
-        Ok(ShouldExit::False)
+        Ok(CompletionType::Normal)
     }
 }

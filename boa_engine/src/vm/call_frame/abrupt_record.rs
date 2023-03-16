@@ -5,6 +5,7 @@ pub(crate) enum AbruptKind {
     Continue,
     Break,
     Throw,
+    Return,
 }
 
 /// The `AbruptCompletionRecord` tracks the current `AbruptCompletion` and target address of completion.
@@ -40,6 +41,14 @@ impl AbruptCompletionRecord {
         }
     }
 
+    /// Creates an `AbruptCompletionRecord` for an abrupt `Return`.
+    pub(crate) const fn new_return() -> Self {
+        Self {
+            kind: AbruptKind::Return,
+            target: u32::MAX,
+        }
+    }
+
     /// Set the target field of the `AbruptCompletionRecord`.
     pub(crate) const fn with_initial_target(mut self, target: u32) -> Self {
         self.target = target;
@@ -57,6 +66,11 @@ impl AbruptCompletionRecord {
     /// Returns a boolean value for whether `AbruptCompletionRecord` is a continue.
     pub(crate) fn is_continue(self) -> bool {
         self.kind == AbruptKind::Continue
+    }
+
+    /// Returns a boolean value for whether `AbruptCompletionRecord` is a return.
+    pub(crate) fn is_return(self) -> bool {
+        self.kind == AbruptKind::Return
     }
 
     /// Returns a boolean value for whether `AbruptCompletionRecord` is a throw.

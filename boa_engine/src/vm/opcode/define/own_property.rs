@@ -1,6 +1,6 @@
 use crate::{
     property::PropertyDescriptor,
-    vm::{opcode::Operation, ShouldExit},
+    vm::{opcode::Operation, CompletionType},
     Context, JsNativeError, JsResult, JsString,
 };
 
@@ -15,7 +15,7 @@ impl Operation for DefineOwnPropertyByName {
     const NAME: &'static str = "DefineOwnPropertyByName";
     const INSTRUCTION: &'static str = "INST - DefineOwnPropertyByName";
 
-    fn execute(context: &mut Context<'_>) -> JsResult<ShouldExit> {
+    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
         let index = context.vm.read::<u32>();
         let value = context.vm.pop();
         let object = context.vm.pop();
@@ -39,7 +39,7 @@ impl Operation for DefineOwnPropertyByName {
                 .build(),
             context,
         )?;
-        Ok(ShouldExit::False)
+        Ok(CompletionType::Normal)
     }
 }
 
@@ -54,7 +54,7 @@ impl Operation for DefineOwnPropertyByValue {
     const NAME: &'static str = "DefineOwnPropertyByValue";
     const INSTRUCTION: &'static str = "INST - DefineOwnPropertyByValue";
 
-    fn execute(context: &mut Context<'_>) -> JsResult<ShouldExit> {
+    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
         let value = context.vm.pop();
         let key = context.vm.pop();
         let object = context.vm.pop();
@@ -79,6 +79,6 @@ impl Operation for DefineOwnPropertyByValue {
                 .with_message("failed to defined own property")
                 .into());
         }
-        Ok(ShouldExit::False)
+        Ok(CompletionType::Normal)
     }
 }

@@ -260,11 +260,11 @@ impl Context<'_> {
         self.vm.push_frame(CallFrame::new(code_block));
 
         self.realm.set_global_binding_number();
-        let result = self.run();
+        let record = self.run();
         self.vm.pop_frame();
         self.clear_kept_objects();
 
-        result.map(|r| r.0)
+        record.consume()
     }
 
     /// Register a global property.

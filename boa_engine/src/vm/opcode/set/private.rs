@@ -2,7 +2,7 @@ use crate::{
     object::PrivateElement,
     property::PropertyDescriptor,
     string::utf16,
-    vm::{opcode::Operation, ShouldExit},
+    vm::{opcode::Operation, CompletionType},
     Context, JsResult,
 };
 
@@ -17,7 +17,7 @@ impl Operation for SetPrivateField {
     const NAME: &'static str = "SetPrivateField";
     const INSTRUCTION: &'static str = "INST - SetPrivateField";
 
-    fn execute(context: &mut Context<'_>) -> JsResult<ShouldExit> {
+    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
         let index = context.vm.read::<u32>();
         let name = context.vm.frame().code_block.private_names[index as usize];
         let value = context.vm.pop();
@@ -25,7 +25,7 @@ impl Operation for SetPrivateField {
         let base_obj = object.to_object(context)?;
         base_obj.private_set(&name, value.clone(), context)?;
         context.vm.push(value);
-        Ok(ShouldExit::False)
+        Ok(CompletionType::Normal)
     }
 }
 
@@ -40,7 +40,7 @@ impl Operation for DefinePrivateField {
     const NAME: &'static str = "DefinePrivateField";
     const INSTRUCTION: &'static str = "INST - DefinePrivateField";
 
-    fn execute(context: &mut Context<'_>) -> JsResult<ShouldExit> {
+    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
         let index = context.vm.read::<u32>();
         let name = context.vm.frame().code_block.private_names[index as usize];
         let value = context.vm.pop();
@@ -52,7 +52,7 @@ impl Operation for DefinePrivateField {
             .borrow_mut()
             .append_private_element(name, PrivateElement::Field(value));
 
-        Ok(ShouldExit::False)
+        Ok(CompletionType::Normal)
     }
 }
 
@@ -67,7 +67,7 @@ impl Operation for SetPrivateMethod {
     const NAME: &'static str = "SetPrivateMethod";
     const INSTRUCTION: &'static str = "INST - SetPrivateMethod";
 
-    fn execute(context: &mut Context<'_>) -> JsResult<ShouldExit> {
+    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
         let index = context.vm.read::<u32>();
         let name = context.vm.frame().code_block.private_names[index as usize];
         let value = context.vm.pop();
@@ -97,7 +97,7 @@ impl Operation for SetPrivateMethod {
             .expect("method must be a function");
         function.set_class_object(object.clone());
 
-        Ok(ShouldExit::False)
+        Ok(CompletionType::Normal)
     }
 }
 
@@ -112,7 +112,7 @@ impl Operation for SetPrivateSetter {
     const NAME: &'static str = "SetPrivateSetter";
     const INSTRUCTION: &'static str = "INST - SetPrivateSetter";
 
-    fn execute(context: &mut Context<'_>) -> JsResult<ShouldExit> {
+    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
         let index = context.vm.read::<u32>();
         let name = context.vm.frame().code_block.private_names[index as usize];
         let value = context.vm.pop();
@@ -135,7 +135,7 @@ impl Operation for SetPrivateSetter {
             .expect("method must be a function");
         function.set_class_object(object.clone());
 
-        Ok(ShouldExit::False)
+        Ok(CompletionType::Normal)
     }
 }
 
@@ -150,7 +150,7 @@ impl Operation for SetPrivateGetter {
     const NAME: &'static str = "SetPrivateGetter";
     const INSTRUCTION: &'static str = "INST - SetPrivateGetter";
 
-    fn execute(context: &mut Context<'_>) -> JsResult<ShouldExit> {
+    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
         let index = context.vm.read::<u32>();
         let name = context.vm.frame().code_block.private_names[index as usize];
         let value = context.vm.pop();
@@ -173,6 +173,6 @@ impl Operation for SetPrivateGetter {
             .expect("method must be a function");
         function.set_class_object(object.clone());
 
-        Ok(ShouldExit::False)
+        Ok(CompletionType::Normal)
     }
 }

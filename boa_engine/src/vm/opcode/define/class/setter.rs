@@ -2,7 +2,7 @@ use crate::{
     builtins::function::set_function_name,
     object::CONSTRUCTOR,
     property::PropertyDescriptor,
-    vm::{opcode::Operation, ShouldExit},
+    vm::{opcode::Operation, CompletionType},
     Context, JsResult, JsString,
 };
 
@@ -17,7 +17,7 @@ impl Operation for DefineClassStaticSetterByName {
     const NAME: &'static str = "DefineClassStaticSetterByName";
     const INSTRUCTION: &'static str = "INST - DefineClassStaticSetterByName";
 
-    fn execute(context: &mut Context<'_>) -> JsResult<ShouldExit> {
+    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
         let index = context.vm.read::<u32>();
         let function = context.vm.pop();
         let class = context.vm.pop();
@@ -44,6 +44,7 @@ impl Operation for DefineClassStaticSetterByName {
             .as_ref()
             .and_then(PropertyDescriptor::get)
             .cloned();
+
         class.__define_own_property__(
             &key,
             PropertyDescriptor::builder()
@@ -54,7 +55,7 @@ impl Operation for DefineClassStaticSetterByName {
                 .build(),
             context,
         )?;
-        Ok(ShouldExit::False)
+        Ok(CompletionType::Normal)
     }
 }
 
@@ -69,7 +70,7 @@ impl Operation for DefineClassSetterByName {
     const NAME: &'static str = "DefineClassSetterByName";
     const INSTRUCTION: &'static str = "INST - DefineClassSetterByName";
 
-    fn execute(context: &mut Context<'_>) -> JsResult<ShouldExit> {
+    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
         let index = context.vm.read::<u32>();
         let function = context.vm.pop();
         let class_proto = context.vm.pop();
@@ -102,6 +103,7 @@ impl Operation for DefineClassSetterByName {
             .as_ref()
             .and_then(PropertyDescriptor::get)
             .cloned();
+
         class_proto.__define_own_property__(
             &key,
             PropertyDescriptor::builder()
@@ -112,7 +114,8 @@ impl Operation for DefineClassSetterByName {
                 .build(),
             context,
         )?;
-        Ok(ShouldExit::False)
+
+        Ok(CompletionType::Normal)
     }
 }
 
@@ -127,7 +130,7 @@ impl Operation for DefineClassStaticSetterByValue {
     const NAME: &'static str = "DefineClassStaticSetterByValue";
     const INSTRUCTION: &'static str = "INST - DefineClassStaticSetterByValue";
 
-    fn execute(context: &mut Context<'_>) -> JsResult<ShouldExit> {
+    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
         let function = context.vm.pop();
         let key = context.vm.pop();
         let class = context.vm.pop();
@@ -152,6 +155,7 @@ impl Operation for DefineClassStaticSetterByValue {
             .as_ref()
             .and_then(PropertyDescriptor::get)
             .cloned();
+
         class.define_property_or_throw(
             key,
             PropertyDescriptor::builder()
@@ -162,7 +166,8 @@ impl Operation for DefineClassStaticSetterByValue {
                 .build(),
             context,
         )?;
-        Ok(ShouldExit::False)
+
+        Ok(CompletionType::Normal)
     }
 }
 
@@ -177,7 +182,7 @@ impl Operation for DefineClassSetterByValue {
     const NAME: &'static str = "DefineClassSetterByValue";
     const INSTRUCTION: &'static str = "INST - DefineClassSetterByValue";
 
-    fn execute(context: &mut Context<'_>) -> JsResult<ShouldExit> {
+    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
         let function = context.vm.pop();
         let key = context.vm.pop();
         let class_proto = context.vm.pop();
@@ -208,6 +213,7 @@ impl Operation for DefineClassSetterByValue {
             .as_ref()
             .and_then(PropertyDescriptor::get)
             .cloned();
+
         class_proto.__define_own_property__(
             &key,
             PropertyDescriptor::builder()
@@ -218,6 +224,7 @@ impl Operation for DefineClassSetterByValue {
                 .build(),
             context,
         )?;
-        Ok(ShouldExit::False)
+
+        Ok(CompletionType::Normal)
     }
 }

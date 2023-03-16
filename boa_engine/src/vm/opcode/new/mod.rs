@@ -1,6 +1,6 @@
 use crate::{
     error::JsNativeError,
-    vm::{opcode::Operation, ShouldExit},
+    vm::{opcode::Operation, CompletionType},
     Context, JsResult,
 };
 
@@ -15,7 +15,7 @@ impl Operation for New {
     const NAME: &'static str = "New";
     const INSTRUCTION: &'static str = "INST - New";
 
-    fn execute(context: &mut Context<'_>) -> JsResult<ShouldExit> {
+    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
         if context.vm.stack_size_limit <= context.vm.stack.len() {
             return Err(JsNativeError::range()
                 .with_message("Maximum call stack size exceeded")
@@ -39,7 +39,7 @@ impl Operation for New {
             .and_then(|cons| cons.__construct__(&arguments, cons, context))?;
 
         context.vm.push(result);
-        Ok(ShouldExit::False)
+        Ok(CompletionType::Normal)
     }
 }
 
@@ -54,7 +54,7 @@ impl Operation for NewSpread {
     const NAME: &'static str = "NewSpread";
     const INSTRUCTION: &'static str = "INST - NewSpread";
 
-    fn execute(context: &mut Context<'_>) -> JsResult<ShouldExit> {
+    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
         if context.vm.stack_size_limit <= context.vm.stack.len() {
             return Err(JsNativeError::range()
                 .with_message("Maximum call stack size exceeded")
@@ -84,6 +84,6 @@ impl Operation for NewSpread {
             .and_then(|cons| cons.__construct__(&arguments, cons, context))?;
 
         context.vm.push(result);
-        Ok(ShouldExit::False)
+        Ok(CompletionType::Normal)
     }
 }

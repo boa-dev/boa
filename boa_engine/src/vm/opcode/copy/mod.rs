@@ -1,5 +1,5 @@
 use crate::{
-    vm::{opcode::Operation, ShouldExit},
+    vm::{opcode::Operation, CompletionType},
     Context, JsResult,
 };
 
@@ -14,7 +14,7 @@ impl Operation for CopyDataProperties {
     const NAME: &'static str = "CopyDataProperties";
     const INSTRUCTION: &'static str = "INST - CopyDataProperties";
 
-    fn execute(context: &mut Context<'_>) -> JsResult<ShouldExit> {
+    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
         let excluded_key_count = context.vm.read::<u32>();
         let excluded_key_count_computed = context.vm.read::<u32>();
         let mut excluded_keys = Vec::with_capacity(excluded_key_count as usize);
@@ -37,6 +37,6 @@ impl Operation for CopyDataProperties {
         }
         object.copy_data_properties(&source, excluded_keys, context)?;
         context.vm.push(value);
-        Ok(ShouldExit::False)
+        Ok(CompletionType::Normal)
     }
 }

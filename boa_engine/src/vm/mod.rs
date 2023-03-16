@@ -6,17 +6,18 @@
 
 use crate::{
     builtins::async_generator::{AsyncGenerator, AsyncGeneratorState},
-    vm::{call_frame::AbruptCompletionRecord, code_block::Readable},
-    Context, JsResult, JsValue,
+    vm::{call_frame::EarlyReturnType, code_block::Readable},
+    Context, JsError, JsResult, JsValue,
 };
 #[cfg(feature = "fuzz")]
-use crate::{JsError, JsNativeError, JsNativeErrorKind};
+use crate::{JsNativeError, JsNativeErrorKind};
 use boa_interner::ToInternedString;
 use boa_profiler::Profiler;
 use std::{convert::TryInto, mem::size_of, time::Instant};
 
 mod call_frame;
 mod code_block;
+mod completion_record;
 mod opcode;
 
 #[cfg(feature = "flowgraph")]
@@ -25,8 +26,9 @@ pub mod flowgraph;
 pub use {call_frame::CallFrame, code_block::CodeBlock, opcode::Opcode};
 
 pub(crate) use {
-    call_frame::{FinallyReturn, GeneratorResumeKind},
+    call_frame::GeneratorResumeKind,
     code_block::{create_function_object, create_generator_function_object},
+    completion_record::CompletionRecord,
     opcode::BindingOpcode,
 };
 
@@ -37,6 +39,7 @@ mod tests;
 pub struct Vm {
     pub(crate) frames: Vec<CallFrame>,
     pub(crate) stack: Vec<JsValue>,
+    pub(crate) err: Option<JsError>,
     pub(crate) trace: bool,
     pub(crate) stack_size_limit: usize,
 }
@@ -46,6 +49,7 @@ impl Default for Vm {
         Self {
             frames: Vec::with_capacity(16),
             stack: Vec::with_capacity(1024),
+            err: None,
             trace: false,
             stack_size_limit: 1024,
         }
@@ -105,24 +109,15 @@ impl Vm {
     }
 }
 
-/// Indicates if the execution should continue, exit or yield.
-#[derive(Debug, Clone, Copy)]
-pub(crate) enum ShouldExit {
-    True,
-    False,
-    Yield,
-    Await,
-}
-
-/// Indicates if the execution of a codeblock has ended normally or has been yielded.
-#[derive(Debug, Clone, Copy)]
-pub(crate) enum ReturnType {
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub(crate) enum CompletionType {
     Normal,
-    Yield,
+    Return,
+    Throw,
 }
 
 impl Context<'_> {
-    fn execute_instruction(&mut self) -> JsResult<ShouldExit> {
+    fn execute_instruction(&mut self) -> JsResult<CompletionType> {
         let opcode: Opcode = {
             let _timer = Profiler::global().start_event("Opcode retrieval", "vm");
             let opcode = self.vm.frame().code_block.bytecode[self.vm.frame().pc]
@@ -134,12 +129,10 @@ impl Context<'_> {
 
         let _timer = Profiler::global().start_event(opcode.as_instruction_str(), "vm");
 
-        let result = opcode.execute(self)?;
-
-        Ok(result)
+        opcode.execute(self)
     }
 
-    pub(crate) fn run(&mut self) -> JsResult<(JsValue, ReturnType)> {
+    pub(crate) fn run(&mut self) -> CompletionRecord {
         const COLUMN_WIDTH: usize = 26;
         const TIME_COLUMN_WIDTH: usize = COLUMN_WIDTH / 2;
         const OPCODE_COLUMN_WIDTH: usize = COLUMN_WIDTH;
@@ -174,7 +167,8 @@ impl Context<'_> {
             );
         }
 
-        let start_stack_size = self.vm.stack.len();
+        let current_stack_length = self.vm.stack.len();
+        self.vm.frame_mut().set_frame_pointer(current_stack_length);
 
         // If the current executing function is an async function we have to resolve/reject it's promise at the end.
         // The relevant spec section is 3. in [AsyncBlockStart](https://tc39.es/ecma262/#sec-asyncblockstart).
@@ -192,15 +186,23 @@ impl Context<'_> {
                     .and_then(|f| f.get_promise_capability().cloned())
             });
 
-        while self.vm.frame().pc < self.vm.frame().code_block.bytecode.len() {
+        let execution_completion = loop {
+            // 1. Exit the execution loop if program counter ever is equal to or exceeds the amount of instructions
+            if self.vm.frame().code_block.bytecode.len() <= self.vm.frame().pc {
+                break CompletionType::Normal;
+            }
+
             #[cfg(feature = "fuzz")]
             {
                 if self.instructions_remaining == 0 {
-                    return Err(JsError::from_native(JsNativeError::no_instructions_remain()));
+                    let err = JsError::from_native(JsNativeError::no_instructions_remain());
+                    self.vm.err = Some(err);
+                    break CompletionType::Throw;
                 }
                 self.instructions_remaining -= 1;
             }
 
+            // 1. Run the next instruction.
             let result = if self.vm.trace {
                 let mut pc = self.vm.frame().pc;
                 let opcode: Opcode = self
@@ -237,201 +239,58 @@ impl Context<'_> {
                 self.execute_instruction()
             };
 
+            // 2. Evaluate the result of executing the instruction.
             match result {
-                Ok(ShouldExit::True) => {
-                    let result = self.vm.pop();
-                    self.vm.stack.truncate(start_stack_size);
-
-                    // Step 3.e in [AsyncBlockStart](https://tc39.es/ecma262/#sec-asyncblockstart).
-                    if let Some(promise_capability) = promise_capability {
-                        promise_capability
-                            .resolve()
-                            .call(&JsValue::undefined(), &[result.clone()], self)
-                            .expect("cannot fail per spec");
-                    }
-                    // Step 4.e-j in [AsyncGeneratorStart](https://tc39.es/ecma262/#sec-asyncgeneratorstart)
-                    else if let Some(generator_object) = self.vm.frame().async_generator.clone() {
-                        let mut generator_object_mut = generator_object.borrow_mut();
-                        let generator = generator_object_mut
-                            .as_async_generator_mut()
-                            .expect("must be async generator");
-
-                        generator.state = AsyncGeneratorState::Completed;
-
-                        let next = generator
-                            .queue
-                            .pop_front()
-                            .expect("must have item in queue");
-                        drop(generator_object_mut);
-                        AsyncGenerator::complete_step(&next, Ok(result), true, self);
-                        AsyncGenerator::drain_queue(&generator_object, self);
-                        return Ok((JsValue::undefined(), ReturnType::Normal));
-                    }
-
-                    return Ok((result, ReturnType::Normal));
+                Ok(CompletionType::Normal) => {}
+                Ok(CompletionType::Return) => {
+                    break CompletionType::Return;
                 }
-                Ok(ShouldExit::Await) => {
-                    let result = self.vm.pop();
-                    self.vm.stack.truncate(start_stack_size);
-                    return Ok((result, ReturnType::Normal));
+                Ok(CompletionType::Throw) => {
+                    break CompletionType::Throw;
                 }
-                Ok(ShouldExit::False) => {}
-                Ok(ShouldExit::Yield) => {
-                    let result = self.vm.stack.pop().unwrap_or(JsValue::Undefined);
-                    return Ok((result, ReturnType::Yield));
-                }
-                Err(e) => {
+                Err(err) => {
                     #[cfg(feature = "fuzz")]
-                    if let Some(native_error) = e.as_native() {
-                        // If we hit the execution step limit, bubble up the error to the
-                        // (Rust) caller instead of trying to handle as an exception.
-                        if matches!(native_error.kind, JsNativeErrorKind::NoInstructionsRemain) {
-                            return Err(e);
+                    {
+                        if let Some(native_error) = err.as_native() {
+                            // If we hit the execution step limit, bubble up the error to the
+                            // (Rust) caller instead of trying to handle as an exception.
+                            if matches!(native_error.kind, JsNativeErrorKind::NoInstructionsRemain)
+                            {
+                                self.vm.err = Some(err);
+                                break CompletionType::Throw;
+                            }
                         }
                     }
-                    // 1. Find the viable catch and finally blocks
-                    let current_address = self.vm.frame().pc;
-                    let viable_catch_candidates =
-                        self.vm.frame().env_stack.iter().filter(|env| {
-                            env.is_try_env() && env.start_address() < env.exit_address()
-                        });
 
-                    if let Some(candidate) = viable_catch_candidates.last() {
-                        let catch_target = candidate.start_address();
+                    self.vm.err = Some(err);
 
-                        let mut env_to_pop = 0;
-                        let mut target_address = u32::MAX;
-                        while self.vm.frame().env_stack.len() > 1 {
-                            let env_entry = self
-                                .vm
-                                .frame_mut()
-                                .env_stack
-                                .last()
-                                .expect("EnvStackEntries must exist");
+                    // If this frame has not evaluated the throw as an AbruptCompletion, then evaluate it
+                    let evaluation = Opcode::Throw
+                        .execute(self)
+                        .expect("Opcode::Throw cannot return Err");
 
-                            if env_entry.is_try_env()
-                                && env_entry.start_address() < env_entry.exit_address()
-                            {
-                                target_address = env_entry.start_address();
-                                env_to_pop += env_entry.env_num();
-                                self.vm.frame_mut().env_stack.pop();
-                                break;
-                            } else if env_entry.is_finally_env() {
-                                if current_address > (env_entry.start_address() as usize) {
-                                    target_address = env_entry.exit_address();
-                                } else {
-                                    target_address = env_entry.start_address();
-                                }
-                                break;
-                            }
-                            env_to_pop += env_entry.env_num();
-                            self.vm.frame_mut().env_stack.pop();
-                        }
-
-                        let env_truncation_len =
-                            self.realm.environments.len().saturating_sub(env_to_pop);
-                        self.realm.environments.truncate(env_truncation_len);
-
-                        if target_address == catch_target {
-                            self.vm.frame_mut().pc = catch_target as usize;
-                        } else {
-                            self.vm.frame_mut().pc = target_address as usize;
-                        };
-
-                        for _ in 0..self.vm.frame().pop_on_return {
-                            self.vm.pop();
-                        }
-
-                        self.vm.frame_mut().pop_on_return = 0;
-                        let record =
-                            AbruptCompletionRecord::new_throw().with_initial_target(catch_target);
-                        self.vm.frame_mut().abrupt_completion = Some(record);
-                        self.vm.frame_mut().finally_return = FinallyReturn::Err;
-                        let err = e.to_opaque(self);
-                        self.vm.push(err);
-                    } else {
-                        let mut env_to_pop = 0;
-                        let mut target_address = None;
-                        let mut env_stack_to_pop = 0;
-                        for env_entry in self.vm.frame_mut().env_stack.iter_mut().rev() {
-                            if env_entry.is_finally_env() {
-                                if (env_entry.start_address() as usize) < current_address {
-                                    target_address = Some(env_entry.exit_address() as usize);
-                                } else {
-                                    target_address = Some(env_entry.start_address() as usize);
-                                }
-                                break;
-                            };
-
-                            env_to_pop += env_entry.env_num();
-                            if env_entry.is_global_env() {
-                                env_entry.clear_env_num();
-                                break;
-                            };
-
-                            env_stack_to_pop += 1;
-                        }
-
-                        if let Some(address) = target_address {
-                            for _ in 0..env_stack_to_pop {
-                                self.vm.frame_mut().env_stack.pop();
-                            }
-
-                            let env_truncation_len =
-                                self.realm.environments.len().saturating_sub(env_to_pop);
-                            self.realm.environments.truncate(env_truncation_len);
-
-                            let previous_stack_size = self
-                                .vm
-                                .stack
-                                .len()
-                                .saturating_sub(self.vm.frame().pop_on_return);
-                            self.vm.stack.truncate(previous_stack_size);
-                            self.vm.frame_mut().pop_on_return = 0;
-
-                            let record = AbruptCompletionRecord::new_throw();
-                            self.vm.frame_mut().abrupt_completion = Some(record);
-                            self.vm.frame_mut().pc = address;
-                            self.vm.frame_mut().finally_return = FinallyReturn::Err;
-                            let err = e.to_opaque(self);
-                            self.vm.push(err);
-                        } else {
-                            self.vm.stack.truncate(start_stack_size);
-
-                            // Step 3.f in [AsyncBlockStart](https://tc39.es/ecma262/#sec-asyncblockstart).
-                            if let Some(promise_capability) = promise_capability {
-                                let e = e.to_opaque(self);
-                                promise_capability
-                                    .reject()
-                                    .call(&JsValue::undefined(), &[e.clone()], self)
-                                    .expect("cannot fail per spec");
-
-                                return Ok((e, ReturnType::Normal));
-                            }
-                            // Step 4.e-j in [AsyncGeneratorStart](https://tc39.es/ecma262/#sec-asyncgeneratorstart)
-                            else if let Some(generator_object) =
-                                self.vm.frame().async_generator.clone()
-                            {
-                                let mut generator_object_mut = generator_object.borrow_mut();
-                                let generator = generator_object_mut
-                                    .as_async_generator_mut()
-                                    .expect("must be async generator");
-
-                                generator.state = AsyncGeneratorState::Completed;
-
-                                let next = generator
-                                    .queue
-                                    .pop_front()
-                                    .expect("must have item in queue");
-                                drop(generator_object_mut);
-                                AsyncGenerator::complete_step(&next, Err(e), true, self);
-                                AsyncGenerator::drain_queue(&generator_object, self);
-                                return Ok((JsValue::undefined(), ReturnType::Normal));
-                            }
-
-                            return Err(e);
-                        }
+                    if evaluation == CompletionType::Normal {
+                        continue;
                     }
+
+                    break CompletionType::Throw;
+                }
+            }
+        };
+
+        // Early return immediately after loop.
+        if let Some(early_return) = self.vm.frame().early_return {
+            match early_return {
+                EarlyReturnType::Await => {
+                    let result = self.vm.pop();
+                    self.vm.stack.truncate(self.vm.frame().fp);
+                    self.vm.frame_mut().early_return = None;
+                    return CompletionRecord::Normal(result);
+                }
+                EarlyReturnType::Yield => {
+                    let result = self.vm.stack.pop().unwrap_or(JsValue::Undefined);
+                    self.vm.frame_mut().early_return = None;
+                    return CompletionRecord::Return(result);
                 }
             }
         }
@@ -459,47 +318,49 @@ impl Context<'_> {
             println!("\n");
         }
 
-        if self.vm.stack.len() <= start_stack_size {
-            // Step 3.d in [AsyncBlockStart](https://tc39.es/ecma262/#sec-asyncblockstart).
-            if let Some(promise_capability) = promise_capability {
-                promise_capability
-                    .resolve()
-                    .call(&JsValue::undefined(), &[], self)
-                    .expect("cannot fail per spec");
+        // Determine the execution result
+        let execution_result = if execution_completion == CompletionType::Throw {
+            self.vm.frame_mut().abrupt_completion = None;
+            self.vm.stack.truncate(self.vm.frame().fp);
+            JsValue::undefined()
+        } else if execution_completion == CompletionType::Return {
+            self.vm.frame_mut().abrupt_completion = None;
+            let result = self.vm.pop();
+            self.vm.stack.truncate(self.vm.frame().fp);
+            result
+        } else if self.vm.stack.len() <= self.vm.frame().fp {
+            JsValue::undefined()
+        } else {
+            let result = self.vm.pop();
+            self.vm.stack.truncate(self.vm.frame().fp);
+            result
+        };
+
+        if let Some(promise) = promise_capability {
+            // Step 3.e-g in [AsyncGeneratorStart](https://tc39.es/ecma262/#sec-asyncgeneratorstart)
+            match execution_completion {
+                CompletionType::Normal => {
+                    promise
+                        .resolve()
+                        .call(&JsValue::undefined(), &[], self)
+                        .expect("cannot fail per spec");
+                }
+                CompletionType::Return => {
+                    promise
+                        .resolve()
+                        .call(&JsValue::undefined(), &[execution_result.clone()], self)
+                        .expect("cannot fail per spec");
+                }
+                CompletionType::Throw => {
+                    let err = self.vm.err.take().expect("Take must exist on a Throw");
+                    promise
+                        .reject()
+                        .call(&JsValue::undefined(), &[err.to_opaque(self)], self)
+                        .expect("cannot fail per spec");
+                    self.vm.err = Some(err);
+                }
             }
-            // Step 4.e-j in [AsyncGeneratorStart](https://tc39.es/ecma262/#sec-asyncgeneratorstart)
-            else if let Some(generator_object) = self.vm.frame().async_generator.clone() {
-                let mut generator_object_mut = generator_object.borrow_mut();
-                let generator = generator_object_mut
-                    .as_async_generator_mut()
-                    .expect("must be async generator");
-
-                generator.state = AsyncGeneratorState::Completed;
-
-                let next = generator
-                    .queue
-                    .pop_front()
-                    .expect("must have item in queue");
-                drop(generator_object_mut);
-                AsyncGenerator::complete_step(&next, Ok(JsValue::undefined()), true, self);
-                AsyncGenerator::drain_queue(&generator_object, self);
-            }
-
-            return Ok((JsValue::undefined(), ReturnType::Normal));
-        }
-
-        let result = self.vm.pop();
-        self.vm.stack.truncate(start_stack_size);
-
-        // Step 3.d in [AsyncBlockStart](https://tc39.es/ecma262/#sec-asyncblockstart).
-        if let Some(promise_capability) = promise_capability {
-            promise_capability
-                .resolve()
-                .call(&JsValue::undefined(), &[result.clone()], self)
-                .expect("cannot fail per spec");
-        }
-        // Step 4.e-j in [AsyncGeneratorStart](https://tc39.es/ecma262/#sec-asyncgeneratorstart)
-        else if let Some(generator_object) = self.vm.frame().async_generator.clone() {
+        } else if let Some(generator_object) = self.vm.frame().async_generator.clone() {
             let mut generator_object_mut = generator_object.borrow_mut();
             let generator = generator_object_mut
                 .as_async_generator_mut()
@@ -512,11 +373,35 @@ impl Context<'_> {
                 .pop_front()
                 .expect("must have item in queue");
             drop(generator_object_mut);
-            AsyncGenerator::complete_step(&next, Ok(result), true, self);
+
+            if execution_completion == CompletionType::Throw {
+                AsyncGenerator::complete_step(
+                    &next,
+                    Err(self
+                        .vm
+                        .err
+                        .take()
+                        .expect("err must exist on a Completion::Throw")),
+                    true,
+                    self,
+                );
+            } else {
+                AsyncGenerator::complete_step(&next, Ok(execution_result), true, self);
+            }
             AsyncGenerator::drain_queue(&generator_object, self);
-            return Ok((JsValue::undefined(), ReturnType::Normal));
+
+            return CompletionRecord::Normal(JsValue::undefined());
         }
 
-        Ok((result, ReturnType::Normal))
+        // Any valid return statement is re-evaluated as a normal completion vs. return (yield).
+        if execution_completion == CompletionType::Throw {
+            return CompletionRecord::Throw(
+                self.vm
+                    .err
+                    .take()
+                    .expect("Err must exist for a CompletionType::Throw"),
+            );
+        }
+        CompletionRecord::Normal(execution_result)
     }
 }

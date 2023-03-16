@@ -1,7 +1,7 @@
 use crate::{
     builtins::iterable::IteratorResult,
     error::JsNativeError,
-    vm::{opcode::Operation, ShouldExit},
+    vm::{opcode::Operation, CompletionType},
     Context, JsResult,
 };
 
@@ -16,7 +16,7 @@ impl Operation for ForAwaitOfLoopIterate {
     const NAME: &'static str = "ForAwaitOfLoopIterate";
     const INSTRUCTION: &'static str = "INST - ForAwaitOfLoopIterate";
 
-    fn execute(context: &mut Context<'_>) -> JsResult<ShouldExit> {
+    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
         let _done = context
             .vm
             .pop()
@@ -31,7 +31,7 @@ impl Operation for ForAwaitOfLoopIterate {
         context.vm.push(iterator);
         context.vm.push(next_method);
         context.vm.push(next_result);
-        Ok(ShouldExit::False)
+        Ok(CompletionType::Normal)
     }
 }
 
@@ -46,7 +46,7 @@ impl Operation for ForAwaitOfLoopNext {
     const NAME: &'static str = "ForAwaitOfLoopNext";
     const INSTRUCTION: &'static str = "INST - ForAwaitOfLoopNext";
 
-    fn execute(context: &mut Context<'_>) -> JsResult<ShouldExit> {
+    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
         let address = context.vm.read::<u32>();
 
         let next_result = context.vm.pop();
@@ -66,6 +66,6 @@ impl Operation for ForAwaitOfLoopNext {
             let value = next_result.value(context)?;
             context.vm.push(value);
         }
-        Ok(ShouldExit::False)
+        Ok(CompletionType::Normal)
     }
 }

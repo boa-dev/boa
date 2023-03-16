@@ -2,7 +2,7 @@ use crate::{
     builtins::function::{ConstructorKind, Function},
     error::JsNativeError,
     object::PROTOTYPE,
-    vm::{opcode::Operation, ShouldExit},
+    vm::{opcode::Operation, CompletionType},
     Context, JsResult, JsValue,
 };
 
@@ -23,7 +23,7 @@ impl Operation for PushClassPrototype {
     const NAME: &'static str = "PushClassPrototype";
     const INSTRUCTION: &'static str = "INST - PushClassPrototype";
 
-    fn execute(context: &mut Context<'_>) -> JsResult<ShouldExit> {
+    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
         let superclass = context.vm.pop();
 
         if let Some(superclass) = superclass.as_constructor() {
@@ -53,10 +53,10 @@ impl Operation for PushClassPrototype {
 
             context.vm.push(class);
             context.vm.push(proto);
-            Ok(ShouldExit::False)
+            Ok(CompletionType::Normal)
         } else if superclass.is_null() {
             context.vm.push(JsValue::Null);
-            Ok(ShouldExit::False)
+            Ok(CompletionType::Normal)
         } else {
             Err(JsNativeError::typ()
                 .with_message("superclass must be a constructor")

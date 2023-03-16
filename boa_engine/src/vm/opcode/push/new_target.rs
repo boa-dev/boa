@@ -1,5 +1,5 @@
 use crate::{
-    vm::{opcode::Operation, ShouldExit},
+    vm::{opcode::Operation, CompletionType},
     Context, JsResult, JsValue,
 };
 
@@ -14,7 +14,7 @@ impl Operation for PushNewTarget {
     const NAME: &'static str = "PushNewTarget";
     const INSTRUCTION: &'static str = "INST - PushNewTarget";
 
-    fn execute(context: &mut Context<'_>) -> JsResult<ShouldExit> {
+    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
         if let Some(env) = context
             .realm
             .environments
@@ -29,6 +29,6 @@ impl Operation for PushNewTarget {
         } else {
             context.vm.push(JsValue::undefined());
         }
-        Ok(ShouldExit::False)
+        Ok(CompletionType::Normal)
     }
 }

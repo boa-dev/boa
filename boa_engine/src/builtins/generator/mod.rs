@@ -18,7 +18,7 @@ use crate::{
     property::Attribute,
     symbol::JsSymbol,
     value::JsValue,
-    vm::{CallFrame, GeneratorResumeKind, ReturnType},
+    vm::{CallFrame, CompletionRecord, GeneratorResumeKind},
     Context, JsArgs, JsError, JsResult,
 };
 use boa_gc::{Finalize, Gc, GcRefCell, Trace};
@@ -227,7 +227,7 @@ impl Generator {
 
         context.vm.frame_mut().generator_resume_kind = GeneratorResumeKind::Normal;
 
-        let result = context.run();
+        let record = context.run();
 
         generator_context.call_frame = context
             .vm
@@ -244,23 +244,22 @@ impl Generator {
             .as_generator_mut()
             .expect("already checked this object type");
 
-        match result {
-            Ok((value, ReturnType::Yield)) => {
+        match record {
+            CompletionRecord::Return(value) => {
                 generator.state = GeneratorState::SuspendedYield;
                 drop(generator_context);
                 generator.context = Some(generator_context_cell);
                 Ok(create_iter_result_object(value, false, context))
             }
-            Ok((value, _)) => {
+            CompletionRecord::Normal(value) => {
                 generator.state = GeneratorState::Completed;
                 Ok(create_iter_result_object(value, true, context))
             }
-            Err(value) => {
+            CompletionRecord::Throw(err) => {
                 generator.state = GeneratorState::Completed;
-                Err(value)
+                Err(err)
             }
         }
-
         // 8. Push genContext onto the execution context stack; genContext is now the running execution context.
         // 9. Resume the suspended evaluation of genContext using NormalCompletion(value) as the result of the operation that suspended it. Let result be the value returned by the resumed computation.
         // 10. Assert: When we return here, genContext has already been removed from the execution context stack and methodContext is the currently running execution context.
@@ -340,7 +339,7 @@ impl Generator {
         std::mem::swap(&mut context.vm.stack, &mut generator_context.stack);
         context.vm.push_frame(generator_context.call_frame.clone());
 
-        let result = match abrupt_completion {
+        let completion_record = match abrupt_completion {
             Ok(value) => {
                 context.vm.push(value);
                 context.vm.frame_mut().generator_resume_kind = GeneratorResumeKind::Return;
@@ -368,20 +367,20 @@ impl Generator {
             .as_generator_mut()
             .expect("already checked this object type");
 
-        match result {
-            Ok((value, ReturnType::Yield)) => {
+        match completion_record {
+            CompletionRecord::Return(value) => {
                 generator.state = GeneratorState::SuspendedYield;
                 drop(generator_context);
                 generator.context = Some(generator_context_cell);
                 Ok(create_iter_result_object(value, false, context))
             }
-            Ok((value, _)) => {
+            CompletionRecord::Normal(value) => {
                 generator.state = GeneratorState::Completed;
                 Ok(create_iter_result_object(value, true, context))
             }
-            Err(value) => {
+            CompletionRecord::Throw(err) => {
                 generator.state = GeneratorState::Completed;
-                Err(value)
+                Err(err)
             }
         }
     }

@@ -3,7 +3,7 @@ use crate::{
     error::JsNativeError,
     js_string,
     property::PropertyDescriptor,
-    vm::{opcode::Operation, ShouldExit},
+    vm::{opcode::Operation, CompletionType},
     Context, JsResult, JsValue,
 };
 
@@ -18,13 +18,13 @@ impl Operation for ForInLoopInitIterator {
     const NAME: &'static str = "ForInLoopInitIterator";
     const INSTRUCTION: &'static str = "INST - ForInLoopInitIterator";
 
-    fn execute(context: &mut Context<'_>) -> JsResult<ShouldExit> {
+    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
         let address = context.vm.read::<u32>();
 
         let object = context.vm.pop();
         if object.is_null_or_undefined() {
             context.vm.frame_mut().pc = address as usize;
-            return Ok(ShouldExit::False);
+            return Ok(CompletionType::Normal);
         }
 
         let object = object.to_object(context)?;
@@ -39,7 +39,7 @@ impl Operation for ForInLoopInitIterator {
         context.vm.push(iterator);
         context.vm.push(next_method);
         context.vm.push(false);
-        Ok(ShouldExit::False)
+        Ok(CompletionType::Normal)
     }
 }
 
@@ -54,7 +54,7 @@ impl Operation for ForInLoopNext {
     const NAME: &'static str = "ForInLoopInitIterator";
     const INSTRUCTION: &'static str = "INST - ForInLoopInitIterator";
 
-    fn execute(context: &mut Context<'_>) -> JsResult<ShouldExit> {
+    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
         let address = context.vm.read::<u32>();
 
         let done = context
@@ -81,6 +81,6 @@ impl Operation for ForInLoopNext {
             context.vm.push(next_method);
             context.vm.push(done);
         }
-        Ok(ShouldExit::False)
+        Ok(CompletionType::Normal)
     }
 }

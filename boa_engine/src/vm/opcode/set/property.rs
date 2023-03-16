@@ -1,7 +1,7 @@
 use crate::{
     builtins::function::set_function_name,
     property::{PropertyDescriptor, PropertyKey},
-    vm::{opcode::Operation, ShouldExit},
+    vm::{opcode::Operation, CompletionType},
     Context, JsNativeError, JsResult, JsString, JsValue,
 };
 
@@ -16,7 +16,7 @@ impl Operation for SetPropertyByName {
     const NAME: &'static str = "SetPropertyByName";
     const INSTRUCTION: &'static str = "INST - SetPropertyByName";
 
-    fn execute(context: &mut Context<'_>) -> JsResult<ShouldExit> {
+    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
         let index = context.vm.read::<u32>();
 
         let value = context.vm.pop();
@@ -39,7 +39,7 @@ impl Operation for SetPropertyByName {
                 .into());
         }
         context.vm.stack.push(value);
-        Ok(ShouldExit::False)
+        Ok(CompletionType::Normal)
     }
 }
 
@@ -54,7 +54,7 @@ impl Operation for SetPropertyByValue {
     const NAME: &'static str = "SetPropertyByValue";
     const INSTRUCTION: &'static str = "INST - SetPropertyByValue";
 
-    fn execute(context: &mut Context<'_>) -> JsResult<ShouldExit> {
+    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
         let value = context.vm.pop();
         let key = context.vm.pop();
         let object = context.vm.pop();
@@ -72,7 +72,7 @@ impl Operation for SetPropertyByValue {
             context,
         )?;
         context.vm.stack.push(value);
-        Ok(ShouldExit::False)
+        Ok(CompletionType::Normal)
     }
 }
 
@@ -87,7 +87,7 @@ impl Operation for SetPropertyGetterByName {
     const NAME: &'static str = "SetPropertyGetterByName";
     const INSTRUCTION: &'static str = "INST - SetPropertyGetterByName";
 
-    fn execute(context: &mut Context<'_>) -> JsResult<ShouldExit> {
+    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
         let index = context.vm.read::<u32>();
         let value = context.vm.pop();
         let object = context.vm.pop();
@@ -113,7 +113,7 @@ impl Operation for SetPropertyGetterByName {
                 .build(),
             context,
         )?;
-        Ok(ShouldExit::False)
+        Ok(CompletionType::Normal)
     }
 }
 
@@ -128,7 +128,7 @@ impl Operation for SetPropertyGetterByValue {
     const NAME: &'static str = "SetPropertyGetterByValue";
     const INSTRUCTION: &'static str = "INST - SetPropertyGetterByValue";
 
-    fn execute(context: &mut Context<'_>) -> JsResult<ShouldExit> {
+    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
         let value = context.vm.pop();
         let key = context.vm.pop();
         let object = context.vm.pop();
@@ -149,7 +149,7 @@ impl Operation for SetPropertyGetterByValue {
                 .build(),
             context,
         )?;
-        Ok(ShouldExit::False)
+        Ok(CompletionType::Normal)
     }
 }
 
@@ -164,7 +164,7 @@ impl Operation for SetPropertySetterByName {
     const NAME: &'static str = "SetPropertySetterByName";
     const INSTRUCTION: &'static str = "INST - SetPropertySetterByName";
 
-    fn execute(context: &mut Context<'_>) -> JsResult<ShouldExit> {
+    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
         let index = context.vm.read::<u32>();
         let value = context.vm.pop();
         let object = context.vm.pop();
@@ -190,7 +190,7 @@ impl Operation for SetPropertySetterByName {
                 .build(),
             context,
         )?;
-        Ok(ShouldExit::False)
+        Ok(CompletionType::Normal)
     }
 }
 
@@ -205,7 +205,7 @@ impl Operation for SetPropertySetterByValue {
     const NAME: &'static str = "SetPropertySetterByValue";
     const INSTRUCTION: &'static str = "INST - SetPropertySetterByValue";
 
-    fn execute(context: &mut Context<'_>) -> JsResult<ShouldExit> {
+    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
         let value = context.vm.pop();
         let key = context.vm.pop();
         let object = context.vm.pop();
@@ -226,7 +226,7 @@ impl Operation for SetPropertySetterByValue {
                 .build(),
             context,
         )?;
-        Ok(ShouldExit::False)
+        Ok(CompletionType::Normal)
     }
 }
 
@@ -241,7 +241,7 @@ impl Operation for SetFunctionName {
     const NAME: &'static str = "SetFunctionName";
     const INSTRUCTION: &'static str = "INST - SetFunctionName";
 
-    fn execute(context: &mut Context<'_>) -> JsResult<ShouldExit> {
+    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
         let prefix = context.vm.read::<u8>();
         let function = context.vm.pop();
         let name = context.vm.pop();
@@ -266,6 +266,6 @@ impl Operation for SetFunctionName {
         );
 
         context.vm.stack.push(function);
-        Ok(ShouldExit::False)
+        Ok(CompletionType::Normal)
     }
 }

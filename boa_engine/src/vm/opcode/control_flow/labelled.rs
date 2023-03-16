@@ -1,5 +1,5 @@
 use crate::{
-    vm::{call_frame::EnvStackEntry, opcode::Operation, ShouldExit},
+    vm::{call_frame::EnvStackEntry, opcode::Operation, CompletionType},
     Context, JsResult,
 };
 
@@ -14,7 +14,7 @@ impl Operation for LabelledStart {
     const NAME: &'static str = "LabelledStart";
     const INSTRUCTION: &'static str = "INST - LabelledStart";
 
-    fn execute(context: &mut Context<'_>) -> JsResult<ShouldExit> {
+    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
         let start = context.vm.frame().pc as u32 - 1;
         let end = context.vm.read::<u32>();
         context
@@ -22,7 +22,7 @@ impl Operation for LabelledStart {
             .frame_mut()
             .env_stack
             .push(EnvStackEntry::new(start, end).with_labelled_flag());
-        Ok(ShouldExit::False)
+        Ok(CompletionType::Normal)
     }
 }
 
@@ -37,7 +37,7 @@ impl Operation for LabelledEnd {
     const NAME: &'static str = "LabelledEnd";
     const INSTRUCTION: &'static str = "INST - LabelledEnd";
 
-    fn execute(context: &mut Context<'_>) -> JsResult<ShouldExit> {
+    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
         let mut envs_to_pop = 0_usize;
         while let Some(env_entry) = context.vm.frame_mut().env_stack.pop() {
             envs_to_pop += env_entry.env_num();
@@ -50,6 +50,6 @@ impl Operation for LabelledEnd {
         let env_truncation_len = context.realm.environments.len().saturating_sub(envs_to_pop);
         context.realm.environments.truncate(env_truncation_len);
 
-        Ok(ShouldExit::False)
+        Ok(CompletionType::Normal)
     }
 }

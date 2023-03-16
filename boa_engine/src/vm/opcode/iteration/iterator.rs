@@ -1,6 +1,6 @@
 use crate::{
     builtins::{iterable::IteratorRecord, Array},
-    vm::{opcode::Operation, ShouldExit},
+    vm::{opcode::Operation, CompletionType},
     Context, JsResult, JsValue,
 };
 
@@ -15,7 +15,7 @@ impl Operation for IteratorNext {
     const NAME: &'static str = "IteratorNext";
     const INSTRUCTION: &'static str = "INST - IteratorNext";
 
-    fn execute(context: &mut Context<'_>) -> JsResult<ShouldExit> {
+    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
         let done = context
             .vm
             .pop()
@@ -38,7 +38,7 @@ impl Operation for IteratorNext {
             context.vm.push(true);
             context.vm.push(JsValue::undefined());
         }
-        Ok(ShouldExit::False)
+        Ok(CompletionType::Normal)
     }
 }
 
@@ -53,7 +53,7 @@ impl Operation for IteratorClose {
     const NAME: &'static str = "IteratorClose";
     const INSTRUCTION: &'static str = "INST - IteratorClose";
 
-    fn execute(context: &mut Context<'_>) -> JsResult<ShouldExit> {
+    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
         let done = context
             .vm
             .pop()
@@ -66,7 +66,7 @@ impl Operation for IteratorClose {
             let iterator_record = IteratorRecord::new(iterator.clone(), next_method, done);
             iterator_record.close(Ok(JsValue::Null), context)?;
         }
-        Ok(ShouldExit::False)
+        Ok(CompletionType::Normal)
     }
 }
 
@@ -81,7 +81,7 @@ impl Operation for IteratorToArray {
     const NAME: &'static str = "IteratorToArray";
     const INSTRUCTION: &'static str = "INST - IteratorToArray";
 
-    fn execute(context: &mut Context<'_>) -> JsResult<ShouldExit> {
+    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
         let done = context
             .vm
             .pop()
@@ -104,6 +104,6 @@ impl Operation for IteratorToArray {
         context.vm.push(next_method);
         context.vm.push(true);
         context.vm.push(array);
-        Ok(ShouldExit::False)
+        Ok(CompletionType::Normal)
     }
 }

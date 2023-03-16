@@ -1,5 +1,5 @@
 use crate::{
-    vm::{opcode::Operation, ShouldExit},
+    vm::{opcode::Operation, CompletionType},
     Context, JsResult, JsValue,
 };
 
@@ -14,9 +14,9 @@ impl Operation for Void {
     const NAME: &'static str = "Void";
     const INSTRUCTION: &'static str = "INST - Void";
 
-    fn execute(context: &mut Context<'_>) -> JsResult<ShouldExit> {
+    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
         let _old = context.vm.pop();
         context.vm.push(JsValue::undefined());
-        Ok(ShouldExit::False)
+        Ok(CompletionType::Normal)
     }
 }

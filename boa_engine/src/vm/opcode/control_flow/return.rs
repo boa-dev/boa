@@ -1,5 +1,5 @@
 use crate::{
-    vm::{opcode::Operation, FinallyReturn, ShouldExit},
+    vm::{call_frame::AbruptCompletionRecord, opcode::Operation, CompletionType},
     Context, JsResult,
 };
 
@@ -14,7 +14,7 @@ impl Operation for Return {
     const NAME: &'static str = "Return";
     const INSTRUCTION: &'static str = "INST - Return";
 
-    fn execute(context: &mut Context<'_>) -> JsResult<ShouldExit> {
+    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
         let current_address = context.vm.frame().pc;
         let mut env_to_pop = 0;
         let mut finally_address = None;
@@ -39,12 +39,14 @@ impl Operation for Return {
         let env_truncation_len = context.realm.environments.len().saturating_sub(env_to_pop);
         context.realm.environments.truncate(env_truncation_len);
 
+        let record = AbruptCompletionRecord::new_return();
+        context.vm.frame_mut().abrupt_completion = Some(record);
+
         if let Some(finally) = finally_address {
             context.vm.frame_mut().pc = finally;
-            context.vm.frame_mut().finally_return = FinallyReturn::Ok;
-            return Ok(ShouldExit::False);
+            return Ok(CompletionType::Normal);
         }
 
-        Ok(ShouldExit::True)
+        Ok(CompletionType::Return)
     }
 }

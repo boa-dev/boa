@@ -1,6 +1,6 @@
 use crate::{
     property::PropertyKey,
-    vm::{opcode::Operation, ShouldExit},
+    vm::{opcode::Operation, CompletionType},
     Context, JsResult,
 };
 
@@ -15,7 +15,7 @@ impl Operation for GetPropertyByName {
     const NAME: &'static str = "GetPropertyByName";
     const INSTRUCTION: &'static str = "INST - GetPropertyByName";
 
-    fn execute(context: &mut Context<'_>) -> JsResult<ShouldExit> {
+    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
         let index = context.vm.read::<u32>();
 
         let value = context.vm.pop();
@@ -30,7 +30,7 @@ impl Operation for GetPropertyByName {
         let result = object.__get__(&key, value, context)?;
 
         context.vm.push(result);
-        Ok(ShouldExit::False)
+        Ok(CompletionType::Normal)
     }
 }
 
@@ -45,7 +45,7 @@ impl Operation for GetPropertyByValue {
     const NAME: &'static str = "GetPropertyByValue";
     const INSTRUCTION: &'static str = "INST - GetPropertyByValue";
 
-    fn execute(context: &mut Context<'_>) -> JsResult<ShouldExit> {
+    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
         let key = context.vm.pop();
         let value = context.vm.pop();
         let object = if let Some(object) = value.as_object() {
@@ -58,7 +58,7 @@ impl Operation for GetPropertyByValue {
         let result = object.__get__(&key, value, context)?;
 
         context.vm.push(result);
-        Ok(ShouldExit::False)
+        Ok(CompletionType::Normal)
     }
 }
 
@@ -73,7 +73,7 @@ impl Operation for GetPropertyByValuePush {
     const NAME: &'static str = "GetPropertyByValuePush";
     const INSTRUCTION: &'static str = "INST - GetPropertyByValuePush";
 
-    fn execute(context: &mut Context<'_>) -> JsResult<ShouldExit> {
+    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
         let key = context.vm.pop();
         let value = context.vm.pop();
         let object = if let Some(object) = value.as_object() {
@@ -87,6 +87,6 @@ impl Operation for GetPropertyByValuePush {
 
         context.vm.push(key);
         context.vm.push(result);
-        Ok(ShouldExit::False)
+        Ok(CompletionType::Normal)
     }
 }

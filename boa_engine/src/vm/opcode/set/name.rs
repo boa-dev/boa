@@ -1,6 +1,6 @@
 use crate::{
     error::JsNativeError,
-    vm::{opcode::Operation, ShouldExit},
+    vm::{opcode::Operation, CompletionType},
     Context, JsResult, JsString,
 };
 
@@ -15,12 +15,12 @@ impl Operation for SetName {
     const NAME: &'static str = "SetName";
     const INSTRUCTION: &'static str = "INST - SetName";
 
-    fn execute(context: &mut Context<'_>) -> JsResult<ShouldExit> {
+    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
         let index = context.vm.read::<u32>();
         let binding_locator = context.vm.frame().code_block.bindings[index as usize];
         let value = context.vm.pop();
         if binding_locator.is_silent() {
-            return Ok(ShouldExit::False);
+            return Ok(CompletionType::Normal);
         }
         binding_locator.throw_mutate_immutable(context)?;
 
@@ -75,6 +75,6 @@ impl Operation for SetName {
                 ))
                 .into());
         }
-        Ok(ShouldExit::False)
+        Ok(CompletionType::Normal)
     }
 }

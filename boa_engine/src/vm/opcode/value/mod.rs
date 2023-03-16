@@ -1,6 +1,6 @@
 use crate::{
     error::JsNativeError,
-    vm::{opcode::Operation, ShouldExit},
+    vm::{opcode::Operation, CompletionType},
     Context, JsResult,
 };
 
@@ -15,7 +15,7 @@ impl Operation for ValueNotNullOrUndefined {
     const NAME: &'static str = "ValueNotNullOrUndefined";
     const INSTRUCTION: &'static str = "INST - ValueNotNullOrUndefined";
 
-    fn execute(context: &mut Context<'_>) -> JsResult<ShouldExit> {
+    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
         let value = context.vm.pop();
         if value.is_null() {
             return Err(JsNativeError::typ()
@@ -28,6 +28,6 @@ impl Operation for ValueNotNullOrUndefined {
                 .into());
         }
         context.vm.push(value);
-        Ok(ShouldExit::False)
+        Ok(CompletionType::Normal)
     }
 }

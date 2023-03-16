@@ -1,5 +1,5 @@
 use crate::{
-    vm::{opcode::Operation, ShouldExit},
+    vm::{opcode::Operation, CompletionType},
     Context, JsResult,
 };
 
@@ -14,9 +14,9 @@ impl Operation for Pop {
     const NAME: &'static str = "Pop";
     const INSTRUCTION: &'static str = "INST - Pop";
 
-    fn execute(context: &mut Context<'_>) -> JsResult<ShouldExit> {
+    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
         let _val = context.vm.pop();
-        Ok(ShouldExit::False)
+        Ok(CompletionType::Normal)
     }
 }
 
@@ -31,7 +31,7 @@ impl Operation for PopIfThrown {
     const NAME: &'static str = "PopIfThrown";
     const INSTRUCTION: &'static str = "INST - PopIfThrown";
 
-    fn execute(context: &mut Context<'_>) -> JsResult<ShouldExit> {
+    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
         let frame = context.vm.frame();
         match frame.abrupt_completion {
             Some(record) if record.is_throw() => {
@@ -39,7 +39,7 @@ impl Operation for PopIfThrown {
             }
             _ => {}
         };
-        Ok(ShouldExit::False)
+        Ok(CompletionType::Normal)
     }
 }
 
@@ -54,10 +54,10 @@ impl Operation for PopEnvironment {
     const NAME: &'static str = "PopEnvironment";
     const INSTRUCTION: &'static str = "INST - PopEnvironment";
 
-    fn execute(context: &mut Context<'_>) -> JsResult<ShouldExit> {
+    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
         context.realm.environments.pop();
         context.vm.frame_mut().dec_frame_env_stack();
-        Ok(ShouldExit::False)
+        Ok(CompletionType::Normal)
     }
 }
 
@@ -72,9 +72,9 @@ impl Operation for PopOnReturnAdd {
     const NAME: &'static str = "PopOnReturnAdd";
     const INSTRUCTION: &'static str = "INST - PopOnReturnAdd";
 
-    fn execute(context: &mut Context<'_>) -> JsResult<ShouldExit> {
+    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
         context.vm.frame_mut().pop_on_return += 1;
-        Ok(ShouldExit::False)
+        Ok(CompletionType::Normal)
     }
 }
 
@@ -89,8 +89,8 @@ impl Operation for PopOnReturnSub {
     const NAME: &'static str = "PopOnReturnSub";
     const INSTRUCTION: &'static str = "INST - PopOnReturnSub";
 
-    fn execute(context: &mut Context<'_>) -> JsResult<ShouldExit> {
+    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
         context.vm.frame_mut().pop_on_return -= 1;
-        Ok(ShouldExit::False)
+        Ok(CompletionType::Normal)
     }
 }

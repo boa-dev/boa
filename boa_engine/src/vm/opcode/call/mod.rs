@@ -1,7 +1,7 @@
 use crate::{
     builtins::function::Function,
     error::JsNativeError,
-    vm::{opcode::Operation, ShouldExit},
+    vm::{opcode::Operation, CompletionType},
     Context, JsResult, JsValue,
 };
 
@@ -16,7 +16,7 @@ impl Operation for CallEval {
     const NAME: &'static str = "CallEval";
     const INSTRUCTION: &'static str = "INST - CallEval";
 
-    fn execute(context: &mut Context<'_>) -> JsResult<ShouldExit> {
+    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
         if context.vm.stack_size_limit <= context.vm.stack.len() {
             return Err(JsNativeError::range()
                 .with_message("Maximum call stack size exceeded")
@@ -37,7 +37,7 @@ impl Operation for CallEval {
             _ => {
                 return Err(JsNativeError::typ()
                     .with_message("not a callable function")
-                    .into())
+                    .into());
             }
         };
 
@@ -57,7 +57,7 @@ impl Operation for CallEval {
             let result = object.__call__(&this, &arguments, context)?;
             context.vm.push(result);
         }
-        Ok(ShouldExit::False)
+        Ok(CompletionType::Normal)
     }
 }
 
@@ -72,7 +72,7 @@ impl Operation for CallEvalSpread {
     const NAME: &'static str = "CallEvalSpread";
     const INSTRUCTION: &'static str = "INST - CallEvalSpread";
 
-    fn execute(context: &mut Context<'_>) -> JsResult<ShouldExit> {
+    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
         if context.vm.stack_size_limit <= context.vm.stack.len() {
             return Err(JsNativeError::range()
                 .with_message("Maximum call stack size exceeded")
@@ -99,7 +99,7 @@ impl Operation for CallEvalSpread {
             _ => {
                 return Err(JsNativeError::typ()
                     .with_message("not a callable function")
-                    .into())
+                    .into());
             }
         };
 
@@ -119,7 +119,7 @@ impl Operation for CallEvalSpread {
             let result = object.__call__(&this, &arguments, context)?;
             context.vm.push(result);
         }
-        Ok(ShouldExit::False)
+        Ok(CompletionType::Normal)
     }
 }
 
@@ -134,7 +134,7 @@ impl Operation for Call {
     const NAME: &'static str = "Call";
     const INSTRUCTION: &'static str = "INST - Call";
 
-    fn execute(context: &mut Context<'_>) -> JsResult<ShouldExit> {
+    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
         if context.vm.stack_size_limit <= context.vm.stack.len() {
             return Err(JsNativeError::range()
                 .with_message("Maximum call stack size exceeded")
@@ -155,14 +155,14 @@ impl Operation for Call {
             _ => {
                 return Err(JsNativeError::typ()
                     .with_message("not a callable function")
-                    .into())
+                    .into());
             }
         };
 
         let result = object.__call__(&this, &arguments, context)?;
 
         context.vm.push(result);
-        Ok(ShouldExit::False)
+        Ok(CompletionType::Normal)
     }
 }
 
@@ -173,7 +173,7 @@ impl Operation for CallSpread {
     const NAME: &'static str = "CallSpread";
     const INSTRUCTION: &'static str = "INST - CallSpread";
 
-    fn execute(context: &mut Context<'_>) -> JsResult<ShouldExit> {
+    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
         if context.vm.stack_size_limit <= context.vm.stack.len() {
             return Err(JsNativeError::range()
                 .with_message("Maximum call stack size exceeded")
@@ -207,6 +207,6 @@ impl Operation for CallSpread {
         let result = object.__call__(&this, &arguments, context)?;
 
         context.vm.push(result);
-        Ok(ShouldExit::False)
+        Ok(CompletionType::Normal)
     }
 }

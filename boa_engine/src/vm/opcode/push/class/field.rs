@@ -1,6 +1,6 @@
 use crate::{
     object::JsFunction,
-    vm::{opcode::Operation, ShouldExit},
+    vm::{opcode::Operation, CompletionType},
     Context, JsResult,
 };
 
@@ -15,7 +15,7 @@ impl Operation for PushClassField {
     const NAME: &'static str = "PushClassField";
     const INSTRUCTION: &'static str = "INST - PushClassField";
 
-    fn execute(context: &mut Context<'_>) -> JsResult<ShouldExit> {
+    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
         let field_function_value = context.vm.pop();
         let field_name_value = context.vm.pop();
         let class_value = context.vm.pop();
@@ -41,7 +41,7 @@ impl Operation for PushClassField {
                 field_name_key,
                 JsFunction::from_object_unchecked(field_function_object.clone()),
             );
-        Ok(ShouldExit::False)
+        Ok(CompletionType::Normal)
     }
 }
 
@@ -56,7 +56,7 @@ impl Operation for PushClassFieldPrivate {
     const NAME: &'static str = "PushClassFieldPrivate";
     const INSTRUCTION: &'static str = "INST - PushClassFieldPrivate";
 
-    fn execute(context: &mut Context<'_>) -> JsResult<ShouldExit> {
+    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
         let index = context.vm.read::<u32>();
         let name = context.vm.frame().code_block.private_names[index as usize];
         let field_function_value = context.vm.pop();
@@ -82,6 +82,6 @@ impl Operation for PushClassFieldPrivate {
                 name,
                 JsFunction::from_object_unchecked(field_function_object.clone()),
             );
-        Ok(ShouldExit::False)
+        Ok(CompletionType::Normal)
     }
 }

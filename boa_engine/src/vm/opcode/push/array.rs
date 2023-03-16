@@ -1,7 +1,7 @@
 use crate::{
     builtins::{iterable::IteratorRecord, Array},
     string::utf16,
-    vm::{opcode::Operation, ShouldExit},
+    vm::{opcode::Operation, CompletionType},
     Context, JsResult,
 };
 
@@ -16,11 +16,11 @@ impl Operation for PushNewArray {
     const NAME: &'static str = "PushNewArray";
     const INSTRUCTION: &'static str = "INST - PushNewArray";
 
-    fn execute(context: &mut Context<'_>) -> JsResult<ShouldExit> {
+    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
         let array = Array::array_create(0, None, context)
             .expect("Array creation with 0 length should never fail");
         context.vm.push(array);
-        Ok(ShouldExit::False)
+        Ok(CompletionType::Normal)
     }
 }
 
@@ -35,7 +35,7 @@ impl Operation for PushValueToArray {
     const NAME: &'static str = "PushValueToArray";
     const INSTRUCTION: &'static str = "INST - PushValueToArray";
 
-    fn execute(context: &mut Context<'_>) -> JsResult<ShouldExit> {
+    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
         let value = context.vm.pop();
         let array = context.vm.pop();
         let o = array.as_object().expect("should be an object");
@@ -45,7 +45,7 @@ impl Operation for PushValueToArray {
         o.create_data_property_or_throw(len, value, context)
             .expect("should be able to create new data property");
         context.vm.push(array);
-        Ok(ShouldExit::False)
+        Ok(CompletionType::Normal)
     }
 }
 
@@ -60,7 +60,7 @@ impl Operation for PushElisionToArray {
     const NAME: &'static str = "PushElisionToArray";
     const INSTRUCTION: &'static str = "INST - PushElisionToArray";
 
-    fn execute(context: &mut Context<'_>) -> JsResult<ShouldExit> {
+    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
         let array = context.vm.pop();
         let o = array.as_object().expect("should always be an object");
 
@@ -70,7 +70,7 @@ impl Operation for PushElisionToArray {
 
         o.set(utf16!("length"), len + 1, true, context)?;
         context.vm.push(array);
-        Ok(ShouldExit::False)
+        Ok(CompletionType::Normal)
     }
 }
 
@@ -85,7 +85,7 @@ impl Operation for PushIteratorToArray {
     const NAME: &'static str = "PushIteratorToArray";
     const INSTRUCTION: &'static str = "INST - PushIteratorToArray";
 
-    fn execute(context: &mut Context<'_>) -> JsResult<ShouldExit> {
+    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
         let done = context
             .vm
             .pop()
@@ -98,10 +98,11 @@ impl Operation for PushIteratorToArray {
 
         let iterator = IteratorRecord::new(iterator.clone(), next_method, done);
         while let Some(next) = iterator.step(context)? {
-            Array::push(&array, &[next.value(context)?], context)?;
+            let next_value = next.value(context)?;
+            Array::push(&array, &[next_value], context)?;
         }
 
         context.vm.push(array);
-        Ok(ShouldExit::False)
+        Ok(CompletionType::Normal)
     }
 }

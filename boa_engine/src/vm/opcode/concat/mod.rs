@@ -1,5 +1,5 @@
 use crate::{
-    vm::{opcode::Operation, ShouldExit},
+    vm::{opcode::Operation, CompletionType},
     Context, JsResult, JsString,
 };
 
@@ -14,7 +14,7 @@ impl Operation for ConcatToString {
     const NAME: &'static str = "ConcatToString";
     const INSTRUCTION: &'static str = "INST - ConcatToString";
 
-    fn execute(context: &mut Context<'_>) -> JsResult<ShouldExit> {
+    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
         let value_count = context.vm.read::<u32>();
         let mut strings = Vec::with_capacity(value_count as usize);
         for _ in 0..value_count {
@@ -28,6 +28,6 @@ impl Operation for ConcatToString {
                 .collect::<Vec<&[u16]>>(),
         );
         context.vm.push(s);
-        Ok(ShouldExit::False)
+        Ok(CompletionType::Normal)
     }
 }

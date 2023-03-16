@@ -527,7 +527,7 @@ impl AsyncGenerator {
         drop(generator_context_mut);
 
         // 8. Assert: result is never an abrupt completion.
-        assert!(result.is_ok());
+        assert!(!result.is_throw_completion());
 
         // 9. Assert: When we return here, genContext has already been removed from the execution context stack and callerContext is the currently running execution context.
         // 10. Return unused.

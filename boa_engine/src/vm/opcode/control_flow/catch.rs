@@ -1,5 +1,5 @@
 use crate::{
-    vm::{call_frame::EnvStackEntry, opcode::Operation, FinallyReturn, ShouldExit},
+    vm::{call_frame::EnvStackEntry, opcode::Operation, CompletionType},
     Context, JsResult,
 };
 
@@ -14,7 +14,7 @@ impl Operation for CatchStart {
     const NAME: &'static str = "CatchStart";
     const INSTRUCTION: &'static str = "INST - CatchStart";
 
-    fn execute(context: &mut Context<'_>) -> JsResult<ShouldExit> {
+    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
         let start = context.vm.frame().pc as u32 - 1;
         let finally = context.vm.read::<u32>();
 
@@ -25,8 +25,7 @@ impl Operation for CatchStart {
             .push(EnvStackEntry::new(start, finally - 1).with_catch_flag());
 
         context.vm.frame_mut().abrupt_completion = None;
-        context.vm.frame_mut().finally_return = FinallyReturn::None;
-        Ok(ShouldExit::False)
+        Ok(CompletionType::Normal)
     }
 }
 
@@ -41,8 +40,7 @@ impl Operation for CatchEnd {
     const NAME: &'static str = "CatchEnd";
     const INSTRUCTION: &'static str = "INST - CatchEnd";
 
-    fn execute(context: &mut Context<'_>) -> JsResult<ShouldExit> {
-        context.vm.frame_mut().try_catch.pop();
+    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
         let mut envs_to_pop = 0_usize;
         while let Some(env_entry) = context.vm.frame_mut().env_stack.pop() {
             envs_to_pop += env_entry.env_num();
@@ -55,8 +53,7 @@ impl Operation for CatchEnd {
         let env_truncation_len = context.realm.environments.len().saturating_sub(envs_to_pop);
         context.realm.environments.truncate(env_truncation_len);
 
-        context.vm.frame_mut().finally_return = FinallyReturn::None;
-        Ok(ShouldExit::False)
+        Ok(CompletionType::Normal)
     }
 }
 
@@ -71,7 +68,7 @@ impl Operation for CatchEnd2 {
     const NAME: &'static str = "CatchEnd2";
     const INSTRUCTION: &'static str = "INST - CatchEnd2";
 
-    fn execute(context: &mut Context<'_>) -> JsResult<ShouldExit> {
+    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
         if let Some(catch_entry) = context
             .vm
             .frame()
@@ -89,9 +86,6 @@ impl Operation for CatchEnd2 {
             context.vm.frame_mut().env_stack.pop();
         }
 
-        if context.vm.frame_mut().finally_return == FinallyReturn::Err {
-            context.vm.frame_mut().finally_return = FinallyReturn::None;
-        }
-        Ok(ShouldExit::False)
+        Ok(CompletionType::Normal)
     }
 }

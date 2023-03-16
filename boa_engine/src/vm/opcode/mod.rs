@@ -1,5 +1,5 @@
 /// The opcodes of the vm.
-use crate::{vm::ShouldExit, Context, JsResult};
+use crate::{vm::CompletionType, Context, JsResult};
 
 use num_enum::TryFromPrimitive;
 
@@ -24,11 +24,9 @@ mod pop;
 mod push;
 mod require;
 mod rest_parameter;
-mod return_stm;
 mod set;
 mod swap;
 mod switch;
-mod throw;
 mod to;
 mod unary_ops;
 mod value;
@@ -75,15 +73,11 @@ pub(crate) use require::*;
 #[doc(inline)]
 pub(crate) use rest_parameter::*;
 #[doc(inline)]
-pub(crate) use return_stm::*;
-#[doc(inline)]
 pub(crate) use set::*;
 #[doc(inline)]
 pub(crate) use swap::*;
 #[doc(inline)]
 pub(crate) use switch::*;
-#[doc(inline)]
-pub(crate) use throw::*;
 #[doc(inline)]
 pub(crate) use to::*;
 #[doc(inline)]
@@ -145,11 +139,11 @@ macro_rules! generate_impl {
                 Self::INSTRUCTIONS[self as usize]
             }
 
-            const EXECUTE_FNS: &[fn(&mut Context<'_>) -> JsResult<ShouldExit>] = &[
+            const EXECUTE_FNS: &[fn(&mut Context<'_>) -> JsResult<CompletionType>] = &[
                 $($Variant::execute),*
             ];
 
-            pub(super) fn execute(self, context: &mut Context<'_>) -> JsResult<ShouldExit> {
+            pub(super) fn execute(self, context: &mut Context<'_>) -> JsResult<CompletionType> {
                 Self::EXECUTE_FNS[self as usize](context)
             }
         }
@@ -166,7 +160,7 @@ pub(crate) trait Operation {
     const NAME: &'static str;
     const INSTRUCTION: &'static str;
 
-    fn execute(context: &mut Context<'_>) -> JsResult<ShouldExit>;
+    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType>;
 }
 
 generate_impl! {

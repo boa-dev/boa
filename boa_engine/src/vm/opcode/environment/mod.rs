@@ -1,7 +1,7 @@
 use crate::{
     environments::EnvironmentSlots,
     error::JsNativeError,
-    vm::{opcode::Operation, ShouldExit},
+    vm::{opcode::Operation, CompletionType},
     Context, JsResult, JsValue,
 };
 
@@ -16,18 +16,23 @@ impl Operation for This {
     const NAME: &'static str = "This";
     const INSTRUCTION: &'static str = "INST - This";
 
-    fn execute(context: &mut Context<'_>) -> JsResult<ShouldExit> {
+    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
         let env = context.realm.environments.get_this_environment();
         match env {
             EnvironmentSlots::Function(env) => {
-                context.vm.push(env.borrow().get_this_binding()?.clone());
+                let binding_result = match env.borrow().get_this_binding() {
+                    Ok(binding) => Ok(binding.clone()),
+                    Err(e) => Err(e),
+                };
+                let function_binding = binding_result?;
+                context.vm.push(function_binding);
             }
             EnvironmentSlots::Global => {
                 let this = context.realm.global_this();
                 context.vm.push(this.clone());
             }
         }
-        Ok(ShouldExit::False)
+        Ok(CompletionType::Normal)
     }
 }
 
@@ -42,8 +47,8 @@ impl Operation for Super {
     const NAME: &'static str = "Super";
     const INSTRUCTION: &'static str = "INST - Super";
 
-    fn execute(context: &mut Context<'_>) -> JsResult<ShouldExit> {
-        let home = {
+    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
+        let home_result = {
             let env = context
                 .realm
                 .environments
@@ -51,14 +56,20 @@ impl Operation for Super {
                 .as_function_slots()
                 .expect("super access must be in a function environment");
             let env = env.borrow();
-            let this = env.get_this_binding()?;
-            let function_object = env.function_object().borrow();
-            let function = function_object
-                .as_function()
-                .expect("must be function object");
+            match env.get_this_binding() {
+                Ok(binding) => {
+                    let function_object = env.function_object().borrow();
+                    let function = function_object
+                        .as_function()
+                        .expect("must be function object");
 
-            function.get_home_object().or(this.as_object()).cloned()
+                    Ok(function.get_home_object().or(binding.as_object()).cloned())
+                }
+                Err(e) => Err(e),
+            }
         };
+
+        let home = home_result?;
 
         if let Some(home) = home {
             if let Some(proto) = home.__get_prototype_of__(context)? {
@@ -69,7 +80,7 @@ impl Operation for Super {
         } else {
             context.vm.push(JsValue::Null);
         };
-        Ok(ShouldExit::False)
+        Ok(CompletionType::Normal)
     }
 }
 
@@ -84,7 +95,7 @@ impl Operation for SuperCall {
     const NAME: &'static str = "SuperCall";
     const INSTRUCTION: &'static str = "INST - SuperCall";
 
-    fn execute(context: &mut Context<'_>) -> JsResult<ShouldExit> {
+    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
         let argument_count = context.vm.read::<u32>();
         let mut arguments = Vec::with_capacity(argument_count as usize);
         for _ in 0..argument_count {
@@ -136,7 +147,7 @@ impl Operation for SuperCall {
         result.initialize_instance_elements(&active_function, context)?;
 
         context.vm.push(result);
-        Ok(ShouldExit::False)
+        Ok(CompletionType::Normal)
     }
 }
 
@@ -151,7 +162,7 @@ impl Operation for SuperCallSpread {
     const NAME: &'static str = "SuperCallWithRest";
     const INSTRUCTION: &'static str = "INST - SuperCallWithRest";
 
-    fn execute(context: &mut Context<'_>) -> JsResult<ShouldExit> {
+    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
         // Get the arguments that are stored as an array object on the stack.
         let arguments_array = context.vm.pop();
         let arguments_array_object = arguments_array
@@ -208,7 +219,7 @@ impl Operation for SuperCallSpread {
         result.initialize_instance_elements(&active_function, context)?;
 
         context.vm.push(result);
-        Ok(ShouldExit::False)
+        Ok(CompletionType::Normal)
     }
 }
 
@@ -223,7 +234,7 @@ impl Operation for SuperCallDerived {
     const NAME: &'static str = "SuperCallDerived";
     const INSTRUCTION: &'static str = "INST - SuperCallDerived";
 
-    fn execute(context: &mut Context<'_>) -> JsResult<ShouldExit> {
+    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
         let argument_count = context.vm.frame().arg_count;
         let mut arguments = Vec::with_capacity(argument_count);
         for _ in 0..argument_count {
@@ -275,6 +286,6 @@ impl Operation for SuperCallDerived {
         result.initialize_instance_elements(&active_function, context)?;
 
         context.vm.push(result);
-        Ok(ShouldExit::False)
+        Ok(CompletionType::Normal)
     }
 }

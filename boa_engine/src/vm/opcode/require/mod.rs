@@ -1,5 +1,5 @@
 use crate::{
-    vm::{opcode::Operation, ShouldExit},
+    vm::{opcode::Operation, CompletionType},
     Context, JsResult,
 };
 
@@ -14,10 +14,10 @@ impl Operation for RequireObjectCoercible {
     const NAME: &'static str = "RequireObjectCoercible";
     const INSTRUCTION: &'static str = "INST - RequireObjectCoercible";
 
-    fn execute(context: &mut Context<'_>) -> JsResult<ShouldExit> {
+    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
         let value = context.vm.pop();
         let value = value.require_object_coercible()?;
         context.vm.push(value.clone());
-        Ok(ShouldExit::False)
+        Ok(CompletionType::Normal)
     }
 }

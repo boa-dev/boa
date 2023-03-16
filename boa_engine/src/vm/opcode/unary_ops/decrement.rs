@@ -1,6 +1,6 @@
 use crate::{
     value::{JsValue, Numeric},
-    vm::{opcode::Operation, ShouldExit},
+    vm::{opcode::Operation, CompletionType},
     Context, JsBigInt, JsResult,
 };
 
@@ -15,7 +15,7 @@ impl Operation for Dec {
     const NAME: &'static str = "Dec";
     const INSTRUCTION: &'static str = "INST - Dec";
 
-    fn execute(context: &mut Context<'_>) -> JsResult<ShouldExit> {
+    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
         let value = context.vm.pop();
         match value {
             JsValue::Integer(number) if number > i32::MIN => {
@@ -28,7 +28,7 @@ impl Operation for Dec {
                 }
             },
         }
-        Ok(ShouldExit::False)
+        Ok(CompletionType::Normal)
     }
 }
 
@@ -43,7 +43,7 @@ impl Operation for DecPost {
     const NAME: &'static str = "DecPost";
     const INSTRUCTION: &'static str = "INST - DecPost";
 
-    fn execute(context: &mut Context<'_>) -> JsResult<ShouldExit> {
+    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
         let value = context.vm.pop();
         match value {
             JsValue::Integer(number) if number > i32::MIN => {
@@ -61,6 +61,6 @@ impl Operation for DecPost {
                 context.vm.push(value);
             }
         }
-        Ok(ShouldExit::False)
+        Ok(CompletionType::Normal)
     }
 }

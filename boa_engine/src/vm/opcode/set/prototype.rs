@@ -1,5 +1,5 @@
 use crate::{
-    vm::{opcode::Operation, ShouldExit},
+    vm::{opcode::Operation, CompletionType},
     Context, JsResult,
 };
 
@@ -14,7 +14,7 @@ impl Operation for SetPrototype {
     const NAME: &'static str = "SetPrototype";
     const INSTRUCTION: &'static str = "INST - SetPrototype";
 
-    fn execute(context: &mut Context<'_>) -> JsResult<ShouldExit> {
+    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
         let value = context.vm.pop();
         let object = context.vm.pop();
 
@@ -23,7 +23,7 @@ impl Operation for SetPrototype {
         } else if value.is_null() {
             None
         } else {
-            return Ok(ShouldExit::False);
+            return Ok(CompletionType::Normal);
         };
 
         let object = object.as_object().expect("object is not an object");
@@ -31,6 +31,6 @@ impl Operation for SetPrototype {
             .__set_prototype_of__(prototype, context)
             .expect("cannot fail per spec");
 
-        Ok(ShouldExit::False)
+        Ok(CompletionType::Normal)
     }
 }

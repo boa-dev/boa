@@ -1,5 +1,5 @@
 use crate::{
-    vm::{opcode::Operation, ShouldExit},
+    vm::{opcode::Operation, CompletionType},
     Context, JsResult,
 };
 
@@ -14,10 +14,10 @@ impl Operation for PushLiteral {
     const NAME: &'static str = "PushLiteral";
     const INSTRUCTION: &'static str = "INST - PushLiteral";
 
-    fn execute(context: &mut Context<'_>) -> JsResult<ShouldExit> {
+    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
         let index = context.vm.read::<u32>() as usize;
         let value = context.vm.frame().code_block.literals[index].clone();
         context.vm.push(value);
-        Ok(ShouldExit::False)
+        Ok(CompletionType::Normal)
     }
 }

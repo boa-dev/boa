@@ -1,5 +1,5 @@
 use crate::{
-    vm::{opcode::Operation, ShouldExit},
+    vm::{opcode::Operation, CompletionType},
     Context, JsResult,
 };
 
@@ -14,7 +14,7 @@ impl Operation for SetHomeObject {
     const NAME: &'static str = "SetHomeObject";
     const INSTRUCTION: &'static str = "INST - SetHomeObject";
 
-    fn execute(context: &mut Context<'_>) -> JsResult<ShouldExit> {
+    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
         let function = context.vm.pop();
         let home = context.vm.pop();
 
@@ -31,6 +31,6 @@ impl Operation for SetHomeObject {
 
         context.vm.push(home);
         context.vm.push(function);
-        Ok(ShouldExit::False)
+        Ok(CompletionType::Normal)
     }
 }
