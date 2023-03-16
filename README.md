@@ -105,7 +105,7 @@ Options:
 
       --flowgraph-direction <FORMAT>
           Specifies the direction of the flowgraph. Default is TopToBottom
-          
+
           [possible values: top-to-bottom, bottom-to-top, left-to-right, right-to-left]
 
   -h, --help
