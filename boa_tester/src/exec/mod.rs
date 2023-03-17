@@ -201,7 +201,10 @@ impl Test {
                 match *async_result.inner.borrow() {
                     UninitResult::Err(ref e) => return (false, format!("Uncaught {e}")),
                     UninitResult::Uninit if self.flags.contains(TestFlags::ASYNC) => {
-                        return (false, "async test did not print \"Test262:AsyncTestComplete\"".to_string())
+                        return (
+                            false,
+                            "async test did not print \"Test262:AsyncTestComplete\"".to_string(),
+                        )
                     }
                     _ => {}
                 }
