@@ -249,9 +249,7 @@ impl CodeBlock {
             | Opcode::Call
             | Opcode::New
             | Opcode::SuperCall
-            | Opcode::ForInLoopInitIterator
-            | Opcode::ForInLoopNext
-            | Opcode::ForAwaitOfLoopNext
+            | Opcode::IteratorUnwrapNextOrJump
             | Opcode::ConcatToString
             | Opcode::AsyncGeneratorNextDelegate
             | Opcode::GeneratorNextDelegate => {
@@ -420,10 +418,12 @@ impl CodeBlock {
             | Opcode::PopEnvironment
             | Opcode::LoopEnd
             | Opcode::LabelledEnd
-            | Opcode::InitIterator
-            | Opcode::InitAsyncIterator
+            | Opcode::CreateForInIterator
+            | Opcode::GetIterator
+            | Opcode::GetAsyncIterator
             | Opcode::IteratorNext
-            | Opcode::IteratorClose
+            | Opcode::IteratorUnwrapNext
+            | Opcode::IteratorUnwrapValue
             | Opcode::IteratorToArray
             | Opcode::RequireObjectCoercible
             | Opcode::ValueNotNullOrUndefined
@@ -446,7 +446,6 @@ impl CodeBlock {
             | Opcode::CallSpread
             | Opcode::NewSpread
             | Opcode::SuperCallSpread
-            | Opcode::ForAwaitOfLoopIterate
             | Opcode::SetPrototype
             | Opcode::PushObjectEnvironment
             | Opcode::IsObject

@@ -109,7 +109,9 @@ impl ByteCompiler<'_, '_> {
             self.emit_opcode(Opcode::PopEnvironment);
         }
 
-        let early_exit = self.emit_opcode_with_operand(Opcode::ForInLoopInitIterator);
+        let early_exit = self.jump_if_null_or_undefined();
+        self.emit_opcode(Opcode::CreateForInIterator);
+        self.emit_opcode(Opcode::PushFalse);
 
         let (loop_start, exit_label) = self.emit_opcode_with_two_operands(Opcode::LoopStart);
         let start_address = self.next_opcode_location();
@@ -121,7 +123,9 @@ impl ByteCompiler<'_, '_> {
 
         self.context.push_compile_time_environment(false);
         let push_env = self.emit_opcode_with_two_operands(Opcode::PushDeclarativeEnvironment);
-        let exit = self.emit_opcode_with_operand(Opcode::ForInLoopNext);
+        self.emit_opcode(Opcode::Pop); // pop the `done` value.
+        self.emit_opcode(Opcode::IteratorNext);
+        let exit = self.emit_opcode_with_operand(Opcode::IteratorUnwrapNextOrJump);
 
         match for_in_loop.initializer() {
             IterableLoopInitializer::Identifier(ident) => {
@@ -197,7 +201,7 @@ impl ByteCompiler<'_, '_> {
         self.patch_jump(cont_exit_label);
         self.pop_loop_control_info();
         self.emit_opcode(Opcode::LoopEnd);
-        self.emit_opcode(Opcode::IteratorClose);
+        self.iterator_close(false);
 
         self.patch_jump(early_exit);
     }
@@ -228,10 +232,11 @@ impl ByteCompiler<'_, '_> {
         }
 
         if for_of_loop.r#await() {
-            self.emit_opcode(Opcode::InitAsyncIterator);
+            self.emit_opcode(Opcode::GetAsyncIterator);
         } else {
-            self.emit_opcode(Opcode::InitIterator);
+            self.emit_opcode(Opcode::GetIterator);
         }
+        self.emit_opcode(Opcode::PushFalse);
 
         let (loop_start, loop_exit) = self.emit_opcode_with_two_operands(Opcode::LoopStart);
         let start_address = self.next_opcode_location();
@@ -244,14 +249,13 @@ impl ByteCompiler<'_, '_> {
         self.context.push_compile_time_environment(false);
         let push_env = self.emit_opcode_with_two_operands(Opcode::PushDeclarativeEnvironment);
 
-        let exit = if for_of_loop.r#await() {
-            self.emit_opcode(Opcode::ForAwaitOfLoopIterate);
+        self.emit_opcode(Opcode::Pop); // pop the `done` value.
+        self.emit_opcode(Opcode::IteratorNext);
+        if for_of_loop.r#await() {
             self.emit_opcode(Opcode::Await);
             self.emit_opcode(Opcode::GeneratorNext);
-            self.emit_opcode_with_operand(Opcode::ForAwaitOfLoopNext)
-        } else {
-            self.emit_opcode_with_operand(Opcode::ForInLoopNext)
-        };
+        }
+        let exit = self.emit_opcode_with_operand(Opcode::IteratorUnwrapNextOrJump);
 
         match for_of_loop.initializer() {
             IterableLoopInitializer::Identifier(ref ident) => {
@@ -326,11 +330,7 @@ impl ByteCompiler<'_, '_> {
         self.patch_jump(cont_exit_label);
         self.pop_loop_control_info();
         self.emit_opcode(Opcode::LoopEnd);
-        if for_of_loop.r#await() {
-            self.async_iterator_close();
-        } else {
-            self.emit_opcode(Opcode::IteratorClose);
-        }
+        self.iterator_close(for_of_loop.r#await());
     }
 
     pub(crate) fn compile_while_loop(

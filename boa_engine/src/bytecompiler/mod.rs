@@ -957,7 +957,7 @@ impl<'b, 'host> ByteCompiler<'b, 'host> {
                     for arg in args {
                         self.compile_expr(arg, true);
                         if let Expression::Spread(_) = arg {
-                            self.emit_opcode(Opcode::InitIterator);
+                            self.emit_opcode(Opcode::GetIterator);
                             self.emit_opcode(Opcode::PushIteratorToArray);
                         } else {
                             self.emit_opcode(Opcode::PushValueToArray);
@@ -1274,7 +1274,7 @@ impl<'b, 'host> ByteCompiler<'b, 'host> {
             for arg in call.args() {
                 self.compile_expr(arg, true);
                 if let Expression::Spread(_) = arg {
-                    self.emit_opcode(Opcode::InitIterator);
+                    self.emit_opcode(Opcode::GetIterator);
                     self.emit_opcode(Opcode::PushIteratorToArray);
                 } else {
                     self.emit_opcode(Opcode::PushValueToArray);

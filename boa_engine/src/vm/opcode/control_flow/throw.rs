@@ -1,6 +1,6 @@
 use crate::{
     vm::{call_frame::AbruptCompletionRecord, opcode::Operation, CompletionType},
-    Context, JsError, JsResult, JsNativeError,
+    Context, JsError, JsNativeError, JsResult,
 };
 
 /// `Throw` implements the Opcode Operation for `Opcode::Throw`

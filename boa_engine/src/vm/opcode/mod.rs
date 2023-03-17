@@ -376,7 +376,7 @@ generate_impl! {
         ///
         /// Operands:
         ///
-        /// Stack: array, iterator, next_method, done **=>** array
+        /// Stack: array, iterator, next_method **=>** array
         PushIteratorToArray,
 
         /// Binary `+` operator.
@@ -1390,70 +1390,56 @@ generate_impl! {
         /// Stack: **=>**
         LabelledEnd,
 
-        /// Initialize the iterator for a for..in loop or jump to after the loop if object is null or undefined.
+        /// Creates the ForInIterator of an object.
         ///
-        /// Operands: address: `u32`
-        ///
-        /// Stack: object **=>** iterator, next_method, done
-        ForInLoopInitIterator,
+        /// Stack: object **=>** iterator, next_method
+        CreateForInIterator,
 
-        /// Initialize an iterator.
-        ///
-        /// Operands:
-        ///
-        /// Stack: object **=>** iterator, next_method, done
-        InitIterator,
-
-        /// Initialize an async iterator.
+        /// Gets the iterator of an object.
         ///
         /// Operands:
         ///
         /// Stack: object **=>** iterator, next_method
-        InitAsyncIterator,
+        GetIterator,
 
-        /// Advance the iterator by one and put the value on the stack.
+        /// Gets the async iterator of an object.
         ///
         /// Operands:
         ///
-        /// Stack: iterator, next_method, done **=>** iterator, next_method, done, next_value
+        /// Stack: object **=>** iterator, next_method
+        GetAsyncIterator,
+
+        /// Calls the `next` method of `iterator` and puts its return value on the stack.
+        ///
+        /// Operands:
+        ///
+        /// Stack: iterator, next_method **=>** iterator, next_method, next_value
         IteratorNext,
 
-        /// Close an iterator.
+        /// Gets the `value` and `done` properties of an iterator result.
         ///
-        /// Operands:
+        /// Stack: next_result **=>** done, next_value
+        IteratorUnwrapNext,
+
+        /// Gets the `value` property of an iterator result.
         ///
-        /// Stack: iterator, next_method, done **=>**
-        IteratorClose,
+        /// Stack: next_result **=>** next_value
+        IteratorUnwrapValue,
+
+        /// Gets the `value` and `done` properties of an iterator result, or jump to `address` if
+        /// `done` is true.
+        ///
+        /// Operands: address: `u32`
+        ///
+        /// Stack: next_result **=>** done, next_value ( if done != true  )
+        IteratorUnwrapNextOrJump,
 
         /// Consume the iterator and construct and array with all the values.
         ///
         /// Operands:
         ///
-        /// Stack: iterator, next_method, done **=>** iterator, next_method, done, array
+        /// Stack: iterator, next_method **=>** iterator, next_method, array
         IteratorToArray,
-
-        /// Move to the next value in a for..in loop or jump to exit of the loop if done.
-        ///
-        /// Note: next_result is only pushed if the iterator is not done.
-        ///
-        /// Operands: address: `u32`
-        ///
-        /// Stack: iterator, next_method, done **=>** iterator, next_method, done, next_result
-        ForInLoopNext,
-
-        /// Move to the next value in a for await..of loop.
-        ///
-        /// Operands:
-        ///
-        /// Stack: iterator, next_method **=>** iterator, next_method, next_result
-        ForAwaitOfLoopIterate,
-
-        /// Get the value from a for await..of loop next result.
-        ///
-        /// Operands: address: `u32`
-        ///
-        /// Stack: next_result **=>** value
-        ForAwaitOfLoopNext,
 
         /// Concat multiple stack objects into a string.
         ///

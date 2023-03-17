@@ -219,21 +219,7 @@ impl CodeBlock {
                     graph.add_node(previous_pc, NodeShape::None, label.into(), Color::None);
                     graph.add_edge(previous_pc, address, None, Color::None, EdgeStyle::Line);
                 }
-                Opcode::ForInLoopInitIterator => {
-                    let address = self.read::<u32>(pc) as usize;
-                    pc += size_of::<u32>();
-                    graph.add_node(previous_pc, NodeShape::None, label.into(), Color::None);
-                    graph.add_edge(previous_pc, pc, None, Color::None, EdgeStyle::Line);
-                    graph.add_edge(
-                        previous_pc,
-                        address,
-                        Some("NULL OR UNDEFINED".into()),
-                        Color::None,
-                        EdgeStyle::Line,
-                    );
-                }
-                Opcode::ForInLoopNext
-                | Opcode::ForAwaitOfLoopNext
+                Opcode::IteratorUnwrapNextOrJump
                 | Opcode::AsyncGeneratorNextDelegate
                 | Opcode::GeneratorNextDelegate => {
                     let address = self.read::<u32>(pc) as usize;
@@ -491,10 +477,12 @@ impl CodeBlock {
                 | Opcode::Super
                 | Opcode::LoopEnd
                 | Opcode::LabelledEnd
-                | Opcode::InitIterator
-                | Opcode::InitAsyncIterator
+                | Opcode::CreateForInIterator
+                | Opcode::GetIterator
+                | Opcode::GetAsyncIterator
                 | Opcode::IteratorNext
-                | Opcode::IteratorClose
+                | Opcode::IteratorUnwrapNext
+                | Opcode::IteratorUnwrapValue
                 | Opcode::IteratorToArray
                 | Opcode::RequireObjectCoercible
                 | Opcode::ValueNotNullOrUndefined
@@ -517,7 +505,6 @@ impl CodeBlock {
                 | Opcode::CallSpread
                 | Opcode::NewSpread
                 | Opcode::SuperCallSpread
-                | Opcode::ForAwaitOfLoopIterate
                 | Opcode::SetPrototype
                 | Opcode::IsObject
                 | Opcode::Nop

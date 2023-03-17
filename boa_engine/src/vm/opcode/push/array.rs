@@ -86,17 +86,12 @@ impl Operation for PushIteratorToArray {
     const INSTRUCTION: &'static str = "INST - PushIteratorToArray";
 
     fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
-        let done = context
-            .vm
-            .pop()
-            .as_boolean()
-            .expect("iterator [[Done]] was not a boolean");
         let next_method = context.vm.pop();
         let iterator = context.vm.pop();
         let iterator = iterator.as_object().expect("iterator was not an object");
         let array = context.vm.pop();
 
-        let iterator = IteratorRecord::new(iterator.clone(), next_method, done);
+        let iterator = IteratorRecord::new(iterator.clone(), next_method, false);
         while let Some(next) = iterator.step(context)? {
             let next_value = next.value(context)?;
             Array::push(&array, &[next_value], context)?;

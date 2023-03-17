@@ -104,7 +104,7 @@ impl ByteCompiler<'_, '_> {
                     if let Some(element) = element {
                         self.compile_expr(element, true);
                         if let Expression::Spread(_) = element {
-                            self.emit_opcode(Opcode::InitIterator);
+                            self.emit_opcode(Opcode::GetIterator);
                             self.emit_opcode(Opcode::PushIteratorToArray);
                         } else {
                             self.emit_opcode(Opcode::PushValueToArray);
@@ -163,9 +163,9 @@ impl ByteCompiler<'_, '_> {
 
                 if r#yield.delegate() {
                     if self.in_async_generator {
-                        self.emit_opcode(Opcode::InitAsyncIterator);
+                        self.emit_opcode(Opcode::GetAsyncIterator);
                     } else {
-                        self.emit_opcode(Opcode::InitIterator);
+                        self.emit_opcode(Opcode::GetIterator);
                     }
                     self.emit_opcode(Opcode::PushUndefined);
                     let start_address = self.next_opcode_location();
@@ -269,7 +269,7 @@ impl ByteCompiler<'_, '_> {
                     for arg in super_call.arguments() {
                         self.compile_expr(arg, true);
                         if let Expression::Spread(_) = arg {
-                            self.emit_opcode(Opcode::InitIterator);
+                            self.emit_opcode(Opcode::GetIterator);
                             self.emit_opcode(Opcode::PushIteratorToArray);
                         } else {
                             self.emit_opcode(Opcode::PushValueToArray);

@@ -321,34 +321,8 @@ impl JsValue {
         }
     }
 
-    /// Resolve the property in the object.
-    ///
-    /// A copy of the Property is returned.
-    pub(crate) fn get_property<Key>(&self, key: Key) -> Option<PropertyDescriptor>
-    where
-        Key: Into<PropertyKey>,
-    {
-        let key = key.into();
-        let _timer = Profiler::global().start_event("Value::get_property", "value");
-        match self {
-            Self::Object(ref object) => {
-                // TODO: had to skip `__get_own_properties__` since we don't have context here
-                let property = object.borrow().properties().get(&key);
-                if property.is_some() {
-                    return property;
-                }
-
-                object
-                    .prototype()
-                    .as_ref()
-                    .map_or(Self::Null, |obj| obj.clone().into())
-                    .get_property(key)
-            }
-            _ => None,
-        }
-    }
-
-    /// The abstract operation `ToPrimitive` takes an input argument and an optional argumen`PreferredType`pe.
+    /// The abstract operation `ToPrimitive` takes an input argument and an optional argument
+    /// `PreferredType`.
     ///
     /// <https://tc39.es/ecma262/#sec-toprimitive>
     pub fn to_primitive(

@@ -134,11 +134,6 @@ impl Operation for GeneratorNextDelegate {
     fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
         let done_address = context.vm.read::<u32>();
         let received = context.vm.pop();
-        let done = context
-            .vm
-            .pop()
-            .as_boolean()
-            .expect("iterator [[Done]] was not a boolean");
         let next_method = context.vm.pop();
         let iterator = context.vm.pop();
         let iterator = iterator.as_object().expect("iterator was not an object");
@@ -159,7 +154,6 @@ impl Operation for GeneratorNextDelegate {
                 let value = result.get(utf16!("value"), context)?;
                 context.vm.push(iterator.clone());
                 context.vm.push(next_method.clone());
-                context.vm.push(done);
                 context.vm.push(value);
                 context.vm.frame_mut().early_return = Some(EarlyReturnType::Yield);
                 Ok(CompletionType::Return)
@@ -182,13 +176,12 @@ impl Operation for GeneratorNextDelegate {
                     let value = result_object.get(utf16!("value"), context)?;
                     context.vm.push(iterator.clone());
                     context.vm.push(next_method.clone());
-                    context.vm.push(done);
                     context.vm.push(value);
                     context.vm.frame_mut().early_return = Some(EarlyReturnType::Yield);
                     return Ok(CompletionType::Return);
                 }
                 context.vm.frame_mut().pc = done_address as usize;
-                let iterator_record = IteratorRecord::new(iterator.clone(), next_method, done);
+                let iterator_record = IteratorRecord::new(iterator.clone(), next_method, false);
                 iterator_record.close(Ok(JsValue::Undefined), context)?;
 
                 Err(JsNativeError::typ()
@@ -213,7 +206,6 @@ impl Operation for GeneratorNextDelegate {
                     let value = result_object.get(utf16!("value"), context)?;
                     context.vm.push(iterator.clone());
                     context.vm.push(next_method.clone());
-                    context.vm.push(done);
                     context.vm.push(value);
                     context.vm.frame_mut().early_return = Some(EarlyReturnType::Yield);
                     return Ok(CompletionType::Return);
@@ -236,7 +228,7 @@ pub(crate) struct AsyncGeneratorNextDelegate;
 impl Operation for AsyncGeneratorNextDelegate {
     const NAME: &'static str = "AsyncGeneratorNextDelegate";
     const INSTRUCTION: &'static str = "INST - AsyncGeneratorNextDelegate";
-    
+
     fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
         let done_address = context.vm.read::<u32>();
         let received = context.vm.pop();
@@ -286,7 +278,7 @@ impl Operation for AsyncGeneratorNextDelegate {
                     return Ok(CompletionType::Return);
                 }
                 context.vm.frame_mut().pc = done_address as usize;
-                let iterator_record = IteratorRecord::new(iterator.clone(), next_method, true);
+                let iterator_record = IteratorRecord::new(iterator.clone(), next_method, false);
                 iterator_record.close(Ok(JsValue::Undefined), context)?;
 
                 Err(JsNativeError::typ()
