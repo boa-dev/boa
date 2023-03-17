@@ -455,6 +455,41 @@
 <a href="#454" id="454">454</a>
 <a href="#455" id="455">455</a>
 <a href="#456" id="456">456</a>
+<a href="#457" id="457">457</a>
+<a href="#458" id="458">458</a>
+<a href="#459" id="459">459</a>
+<a href="#460" id="460">460</a>
+<a href="#461" id="461">461</a>
+<a href="#462" id="462">462</a>
+<a href="#463" id="463">463</a>
+<a href="#464" id="464">464</a>
+<a href="#465" id="465">465</a>
+<a href="#466" id="466">466</a>
+<a href="#467" id="467">467</a>
+<a href="#468" id="468">468</a>
+<a href="#469" id="469">469</a>
+<a href="#470" id="470">470</a>
+<a href="#471" id="471">471</a>
+<a href="#472" id="472">472</a>
+<a href="#473" id="473">473</a>
+<a href="#474" id="474">474</a>
+<a href="#475" id="475">475</a>
+<a href="#476" id="476">476</a>
+<a href="#477" id="477">477</a>
+<a href="#478" id="478">478</a>
+<a href="#479" id="479">479</a>
+<a href="#480" id="480">480</a>
+<a href="#481" id="481">481</a>
+<a href="#482" id="482">482</a>
+<a href="#483" id="483">483</a>
+<a href="#484" id="484">484</a>
+<a href="#485" id="485">485</a>
+<a href="#486" id="486">486</a>
+<a href="#487" id="487">487</a>
+<a href="#488" id="488">488</a>
+<a href="#489" id="489">489</a>
+<a href="#490" id="490">490</a>
+<a href="#491" id="491">491</a>
 </pre><pre class="rust"><code><span class="doccomment">//! Execution module for the test runner.
 
 </span><span class="kw">mod </span>js262;
@@ -655,8 +690,15 @@
 
                 context.run_jobs();
 
-                <span class="kw">if let </span><span class="prelude-val">Err</span>(e) = async_result.inner.borrow().as_ref() {
-                    <span class="kw">return </span>(<span class="bool-val">false</span>, <span class="macro">format!</span>(<span class="string">&quot;Uncaught {e}&quot;</span>));
+                <span class="kw">match </span><span class="kw-2">*</span>async_result.inner.borrow() {
+                    UninitResult::Err(<span class="kw-2">ref </span>e) =&gt; <span class="kw">return </span>(<span class="bool-val">false</span>, <span class="macro">format!</span>(<span class="string">&quot;Uncaught {e}&quot;</span>)),
+                    UninitResult::Uninit <span class="kw">if </span><span class="self">self</span>.flags.contains(TestFlags::ASYNC) =&gt; {
+                        <span class="kw">return </span>(
+                            <span class="bool-val">false</span>,
+                            <span class="string">&quot;async test did not print \&quot;Test262:AsyncTestComplete\&quot;&quot;</span>.to_string(),
+                        )
+                    }
+                    <span class="kw">_ </span>=&gt; {}
                 }
 
                 (<span class="bool-val">true</span>, value.display().to_string())
@@ -880,9 +922,19 @@
                     .get_or_undefined(<span class="number">0</span>)
                     .to_string(context)<span class="question-mark">?
                     </span>.to_std_string_escaped();
-                <span class="kw">if </span>message != <span class="string">&quot;Test262:AsyncTestComplete&quot; </span>{
-                    <span class="kw-2">*</span>async_result.inner.borrow_mut() = <span class="prelude-val">Err</span>(message);
+                <span class="kw">let </span><span class="kw-2">mut </span>result = async_result.inner.borrow_mut();
+
+                <span class="kw">match </span><span class="kw-2">*</span>result {
+                    UninitResult::Uninit | UninitResult::Ok(<span class="kw">_</span>) =&gt; {
+                        <span class="kw">if </span>message == <span class="string">&quot;Test262:AsyncTestComplete&quot; </span>{
+                            <span class="kw-2">*</span>result = UninitResult::Ok(());
+                        } <span class="kw">else </span>{
+                            <span class="kw-2">*</span>result = UninitResult::Err(message);
+                        }
+                    }
+                    UninitResult::Err(<span class="kw">_</span>) =&gt; {}
                 }
+
                 <span class="prelude-val">Ok</span>(JsValue::undefined())
             })
         },
@@ -897,17 +949,35 @@
         Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
     );
 }
+
+<span class="doccomment">/// A `Result` value that is possibly uninitialized.
+///
+/// This is mainly used to check if an async test did call `print` to signal the termination of
+/// a test. Otherwise, all async tests that result in `UninitResult::Uninit` are considered
+/// as failed.
+///
+/// The Test262 [interpreting guide][guide] contains more information about how to run async tests.
+///
+/// [guide]: https://github.com/tc39/test262/blob/main/INTERPRETING.md#flags
+</span><span class="attr">#[derive(Debug, Clone, Copy, Default)]
+</span><span class="kw">enum </span>UninitResult&lt;T, E&gt; {
+    <span class="attr">#[default]
+    </span>Uninit,
+    <span class="prelude-val">Ok</span>(T),
+    <span class="prelude-val">Err</span>(E),
+}
+
 <span class="doccomment">/// Object which includes the result of the async operation.
 </span><span class="attr">#[derive(Debug, Clone)]
 </span><span class="kw">struct </span>AsyncResult {
-    inner: Rc&lt;RefCell&lt;<span class="prelude-ty">Result</span>&lt;(), String&gt;&gt;&gt;,
+    inner: Rc&lt;RefCell&lt;UninitResult&lt;(), String&gt;&gt;&gt;,
 }
 
 <span class="kw">impl </span>Default <span class="kw">for </span>AsyncResult {
     <span class="attr">#[inline]
     </span><span class="kw">fn </span>default() -&gt; <span class="self">Self </span>{
         <span class="self">Self </span>{
-            inner: Rc::new(RefCell::new(<span class="prelude-val">Ok</span>(()))),
+            inner: Rc::new(RefCell::new(UninitResult::default())),
         }
     }
 }
