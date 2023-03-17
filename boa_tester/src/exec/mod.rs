@@ -458,6 +458,15 @@ fn register_print_fn(context: &mut Context<'_>, async_result: AsyncResult) {
     );
 }
 
+/// A `Result` value that is possibly uninitialized.
+///
+/// This is mainly used to check if an async test did call `print` to signal the termination of
+/// a test. Otherwise, all async tests that result in `UninitResult::Uninit` are considered
+/// as failed.
+///
+/// The Test262 [interpreting guide][guide] contains more information about how to run async tests.
+///
+/// [guide]: https://github.com/tc39/test262/blob/main/INTERPRETING.md#flags
 #[derive(Debug, Clone, Copy, Default)]
 enum UninitResult<T, E> {
     #[default]
