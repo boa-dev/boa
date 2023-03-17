@@ -394,8 +394,8 @@
             <span class="kw">return </span><span class="self">Self</span>::number_to_bigint(number);
         }
 
-        <span class="comment">// 4. Otherwise, return ? ToBigInt(value).
-        </span><span class="prelude-val">Ok</span>(value.to_bigint(context)<span class="question-mark">?</span>.into())
+        <span class="comment">// 4. Otherwise, return ? ToBigInt(prim).
+        </span><span class="prelude-val">Ok</span>(prim.to_bigint(context)<span class="question-mark">?</span>.into())
     }
 }
 
