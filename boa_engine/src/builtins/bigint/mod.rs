@@ -98,8 +98,8 @@ impl BuiltInConstructor for BigInt {
             return Self::number_to_bigint(number);
         }
 
-        // 4. Otherwise, return ? ToBigInt(value).
-        Ok(value.to_bigint(context)?.into())
+        // 4. Otherwise, return ? ToBigInt(prim).
+        Ok(prim.to_bigint(context)?.into())
     }
 }
 
