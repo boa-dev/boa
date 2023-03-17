@@ -544,15 +544,16 @@ impl<'b, 'host> ByteCompiler<'b, 'host> {
     }
 
     fn patch_jump_with_target(&mut self, label: Label, target: u32) {
+        const U32_SIZE: usize = std::mem::size_of::<u32>();
+
         let Label { index } = label;
 
         let index = index as usize;
-
         let bytes = target.to_ne_bytes();
-        self.bytecode[index + 1] = bytes[0];
-        self.bytecode[index + 2] = bytes[1];
-        self.bytecode[index + 3] = bytes[2];
-        self.bytecode[index + 4] = bytes[3];
+
+        // This is done to avoid unneeded bounds checks.
+        assert!(self.bytecode.len() > index + U32_SIZE && usize::MAX - U32_SIZE >= index);
+        self.bytecode[index + 1..=index + U32_SIZE].copy_from_slice(bytes.as_slice());
     }
 
     fn patch_jump(&mut self, label: Label) {
