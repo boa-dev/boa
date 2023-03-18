@@ -94,6 +94,10 @@ struct Opt {
     #[arg(name = "FILE", value_hint = ValueHint::FilePath)]
     files: Vec<PathBuf>,
 
+    /// Run in strict mode.
+    #[arg(long)]
+    strict: bool,
+
     /// Dump the AST to stdout with the given format.
     #[arg(
         long,
@@ -255,6 +259,9 @@ fn main() -> Result<(), io::Error> {
         .job_queue(&queue)
         .build()
         .expect("cannot fail with default global object");
+
+    // Strict mode
+    context.strict(args.strict);
 
     // Trace Output
     context.set_trace(args.trace);

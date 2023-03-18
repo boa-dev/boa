@@ -82,6 +82,9 @@ Arguments:
           The JavaScript file(s) to be evaluated
 
 Options:
+      --strict
+          Run in strict mode
+
   -a, --dump-ast [<FORMAT>]
           Dump the AST to stdout with the given format
 
