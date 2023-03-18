@@ -251,7 +251,6 @@ impl CodeBlock {
             | Opcode::SuperCall
             | Opcode::IteratorUnwrapNextOrJump
             | Opcode::ConcatToString
-            | Opcode::AsyncGeneratorNextDelegate
             | Opcode::GeneratorNextDelegate => {
                 let result = self.read::<u32>(*pc).to_string();
                 *pc += size_of::<u32>();

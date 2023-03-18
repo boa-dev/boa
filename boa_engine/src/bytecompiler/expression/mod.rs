@@ -169,11 +169,7 @@ impl ByteCompiler<'_, '_> {
                     }
                     self.emit_opcode(Opcode::PushUndefined);
                     let start_address = self.next_opcode_location();
-                    let start = if self.in_async_generator {
-                        self.emit_opcode_with_operand(Opcode::AsyncGeneratorNextDelegate)
-                    } else {
-                        self.emit_opcode_with_operand(Opcode::GeneratorNextDelegate)
-                    };
+                    let start = self.emit_opcode_with_operand(Opcode::GeneratorNextDelegate);
                     self.emit(Opcode::Jump, &[start_address]);
                     self.patch_jump(start);
                 } else if self.in_async_generator {

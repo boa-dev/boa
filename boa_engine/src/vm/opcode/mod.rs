@@ -1070,7 +1070,7 @@ generate_impl! {
         ///
         /// Stack: cond **=>**
         ///
-        /// [falsy]: https://developer.mozilla.org/en-US/docs/Glossary/Truthy
+        /// [truthy]: https://developer.mozilla.org/en-US/docs/Glossary/Truthy
         JumpIfTrue,
 
         /// Conditional jump to address.
@@ -1511,19 +1511,12 @@ generate_impl! {
         /// Stack: received **=>** `Option<value>`, skip_0, skip_1
         AsyncGeneratorNext,
 
-        /// Delegates the current generator function another generator.
-        ///
-        /// Operands: done_address: `u32`
-        ///
-        /// Stack: iterator, next_method, done, received **=>** iterator, next_method, done
-        GeneratorNextDelegate,
-
-        /// Delegates the current async generator function to another async generator.
+        /// Delegates the current generator function to another generator.
         ///
         /// Operands: done_address: `u32`
         ///
         /// Stack: iterator, next_method, received **=>** iterator, next_method
-        AsyncGeneratorNextDelegate,
+        GeneratorNextDelegate,
 
         /// Stops the current async function and schedules it to resume later.
         ///
@@ -1539,7 +1532,7 @@ generate_impl! {
         /// Stack: **=>** new_target
         PushNewTarget,
 
-        /// Pushes `true` to the stack if the value is an object, or false otherwise.
+        /// Pushes `true` to the stack if the top stack value is an object, or `false` otherwise.
         ///
         /// Operands:
         ///
