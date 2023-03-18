@@ -57,16 +57,35 @@ impl TestSuite {
             println!();
         }
 
-        // Count passed tests
+        // Count passed tests and es specs
         let mut passed = 0;
         let mut ignored = 0;
         let mut panic = 0;
+        let mut es5_passed = 0;
+        let mut es6_passed = 0;
+        let mut es5_total = 0;
+        let mut es6_total = 0;
+
         for test in &tests {
             match test.result {
-                TestOutcomeResult::Passed => passed += 1,
+                TestOutcomeResult::Passed => {
+                    passed += 1;
+                    if test.es5 {
+                        es5_passed += 1;
+                    }
+                    if test.es6 {
+                        es6_passed += 1;
+                    }
+                }
                 TestOutcomeResult::Ignored => ignored += 1,
                 TestOutcomeResult::Panic => panic += 1,
                 TestOutcomeResult::Failed => {}
+            }
+            if test.es5 {
+                es5_total += 1;
+            }
+            if test.es6 {
+                es6_total += 1;
             }
         }
 
@@ -77,6 +96,10 @@ impl TestSuite {
             passed += suite.passed;
             ignored += suite.ignored;
             panic += suite.panic;
+            es5_total += suite.es5_total;
+            es6_total += suite.es6_total;
+            es5_passed += suite.es5_passed;
+            es6_passed += suite.es6_passed;
             features.append(&mut suite.features.clone());
         }
 
@@ -105,6 +128,10 @@ impl TestSuite {
             ignored,
             panic,
             suites,
+            es5_total,
+            es6_total,
+            es5_passed,
+            es6_passed,
             tests,
             features,
         }
@@ -141,6 +168,9 @@ impl Test {
             }
             return TestResult {
                 name: self.name.clone(),
+                es5: self.es5id.is_some(),
+                es6: self.es5id.is_some(),
+                spec_version: self.spec_version,
                 strict,
                 result: TestOutcomeResult::Failed,
                 result_text: Box::from("Could not read test file.")
@@ -159,6 +189,9 @@ impl Test {
             }
             return TestResult {
                 name: self.name.clone(),
+                es5: self.es5id.is_some(),
+                es6: self.es6id.is_some(),
+                spec_version: self.spec_version,
                 strict,
                 result: TestOutcomeResult::Ignored,
                 result_text: Box::default(),
@@ -357,6 +390,9 @@ impl Test {
 
         TestResult {
             name: self.name.clone(),
+            es5: self.es5id.is_some(),
+            es6: self.es6id.is_some(),
+            spec_version: self.spec_version,
             strict,
             result,
             result_text: result_text.into_boxed_str(),

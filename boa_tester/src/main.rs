@@ -286,6 +286,14 @@ fn run_test_suite(
             "Conformance: {:.2}%",
             (results.passed as f64 / results.total as f64) * 100.0
         );
+        println!(
+            "ES5 Conformance: {:.2}%",
+            (results.es5_passed as f64 / results.es5_total as f64) * 100.0
+        );
+        println!(
+            "ES6 Conformance: {:.2}%",
+            (results.es6_passed as f64 / results.es6_total as f64) * 100.0
+        );
 
         write_json(results, output, verbose)
             .wrap_err("could not write the results to the output JSON file")?;
@@ -331,6 +339,14 @@ struct SuiteResult {
     ignored: usize,
     #[serde(rename = "p")]
     panic: usize,
+    #[serde(rename = "5t", default)]
+    es5_total: usize,
+    #[serde(rename = "6t", default)]
+    es6_total: usize,
+    #[serde(rename = "5p", default)]
+    es5_passed: usize,
+    #[serde(rename = "6p", default)]
+    es6_passed: usize,
     #[serde(skip_serializing_if = "Vec::is_empty", default)]
     #[serde(rename = "s")]
     suites: Vec<SuiteResult>,
@@ -348,6 +364,12 @@ struct SuiteResult {
 struct TestResult {
     #[serde(rename = "n")]
     name: Box<str>,
+    #[serde(rename = "v", default)]
+    spec_version: Option<i8>,
+    #[serde(default)]
+    es5: bool,
+    #[serde(default)]
+    es6: bool,
     #[serde(rename = "s", default)]
     strict: bool,
     #[serde(skip)]
@@ -375,6 +397,9 @@ struct Test {
     name: Box<str>,
     description: Box<str>,
     esid: Option<Box<str>>,
+    spec_version: Option<i8>,
+    es5id: Option<Box<str>>,
+    es6id: Option<Box<str>>,
     flags: TestFlags,
     information: Box<str>,
     features: Box<[Box<str>]>,
@@ -392,10 +417,21 @@ impl Test {
         N: Into<Box<str>>,
         C: Into<Box<Path>>,
     {
+        let spec_version = if metadata.es5id.is_some() {
+            Some(5)
+        } else if metadata.es6id.is_some() {
+            Some(6)
+        } else {
+            None
+        };
+
         Self {
             name: name.into(),
             description: metadata.description,
             esid: metadata.esid,
+            spec_version,
+            es5id: metadata.es5id,
+            es6id: metadata.es6id,
             flags: metadata.flags.into(),
             information: metadata.info,
             features: metadata.features,
