@@ -7,6 +7,7 @@ jobs:
   publish:
     name: publish
     runs-on: ubuntu-latest
+    timeout-minutes: 60
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
@@ -32,9 +33,11 @@ jobs:
           git config --global user.email "runner@gha.local"
           git config --global user.name "Github Action"
           cargo workspaces publish --from-git --yes minor
+
   doc-publish:
     # needs: publish
     runs-on: ubuntu-latest
+    timeout-minutes: 60
     steps:
       - uses: actions/checkout@v3
       - name: Install wasm-pack
