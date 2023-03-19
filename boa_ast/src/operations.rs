@@ -945,6 +945,7 @@ where
                 Statement::Try(node) => self.visit_try(node),
                 Statement::Continue(node) => self.visit_continue(node),
                 Statement::Break(node) => self.visit_break(node),
+                Statement::With(with) => self.visit_with(with),
             }
         }
 

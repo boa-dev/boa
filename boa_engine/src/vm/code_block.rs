@@ -444,6 +444,7 @@ impl CodeBlock {
             | Opcode::SuperCallSpread
             | Opcode::ForAwaitOfLoopIterate
             | Opcode::SetPrototype
+            | Opcode::PushObjectEnvironment
             | Opcode::Nop => String::new(),
         }
     }
@@ -1474,6 +1475,8 @@ impl JsObject {
                         .into())
                 } else {
                     let function_env = environment
+                        .as_declarative()
+                        .expect("must be function environment")
                         .slots()
                         .expect("must be function environment")
                         .as_function_slots()

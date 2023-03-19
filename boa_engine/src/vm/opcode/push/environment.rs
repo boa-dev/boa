@@ -53,3 +53,24 @@ impl Operation for PushFunctionEnvironment {
         Ok(CompletionType::Normal)
     }
 }
+
+/// `PushObjectEnvironment` implements the Opcode Operation for `Opcode::PushObjectEnvironment`
+///
+/// Operation:
+///  - Push an object environment
+#[derive(Debug, Clone, Copy)]
+pub(crate) struct PushObjectEnvironment;
+
+impl Operation for PushObjectEnvironment {
+    const NAME: &'static str = "PushObjectEnvironment";
+    const INSTRUCTION: &'static str = "INST - PushObjectEnvironment";
+
+    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
+        let object = context.vm.pop();
+        let object = object.to_object(context)?;
+
+        context.realm.environments.push_object(object);
+        context.vm.frame_mut().inc_frame_env_stack();
+        Ok(CompletionType::Normal)
+    }
+}
