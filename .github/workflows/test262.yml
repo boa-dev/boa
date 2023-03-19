@@ -13,6 +13,7 @@ jobs:
   run_test262:
     name: Run the test262 test suite
     runs-on: ubuntu-latest
+    timeout-minutes: 60
     steps:
       - name: Checkout the repository
         uses: actions/checkout@v3

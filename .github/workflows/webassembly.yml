@@ -12,6 +12,7 @@ jobs:
   check_style:
     name: Check webassembly demo style
     runs-on: ubuntu-latest
+    timeout-minutes: 60
     steps:
       - name: Checkout
         uses: actions/checkout@v3
@@ -21,6 +22,7 @@ jobs:
   build:
     name: Build webassembly demo
     runs-on: ubuntu-latest
+    timeout-minutes: 60
     env:
       WASM_PACK_PATH: ~/.cargo/bin/wasm-pack
     steps:

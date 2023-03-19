@@ -10,6 +10,7 @@ jobs:
     if: contains(github.event.pull_request.labels.*.name, 'run-benchmark')
     name: run benchmark
     runs-on: ubuntu-latest
+    timeout-minutes: 120
     steps:
       - uses: actions/checkout@v3
         with:
