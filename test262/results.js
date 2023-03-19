@@ -1,5 +1,18 @@
 const formatter = new Intl.NumberFormat("en-GB");
 
+let hidePassingSuites = false;
+let currentData = null;
+
+document
+  .getElementById("info-options-hide-passing-switch")
+  .checked = false;
+document
+  .getElementById("info-options-hide-passing-switch")
+  .addEventListener("change", () => {
+    hidePassingSuites = !hidePassingSuites;
+    showData(currentData);
+  });
+
 loadMainData();
 loadMainResults();
 
@@ -222,7 +235,10 @@ function createInfoFromResults(resultsData, nodeID) {
 
 // Shows the full test data.
 function showData(data) {
+  currentData = data;
+
   const infoContainer = document.getElementById("info");
+  const infoOptionsContainer = document.getElementById("info-options");
   const progressInfoContainer = document.getElementById("progress-info");
 
   const totalTests = data.r.c;
@@ -231,6 +247,7 @@ function showData(data) {
   const failedTests = totalTests - passedTests - ignoredTests;
 
   infoContainer.innerHTML = "";
+  infoOptionsContainer.classList.remove("d-none");
   progressInfoContainer.innerHTML = `<div class="progress g-0">
     <div
       class="progress-bar progress-bar bg-success"
@@ -264,6 +281,10 @@ function showData(data) {
 }
 
 function addSuite(suite, parentID, namespace, upstream) {
+  if (hidePassingSuites && suite.o === suite.c) {
+    return;
+  }
+
   const newID = (parentID + suite.n).replaceAll(".", "-");
   const newInnerID = newID + "-inner";
   const headerID = newID + "header";
