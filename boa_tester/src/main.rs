@@ -361,6 +361,7 @@ impl Add for Statistics {
 struct SuiteResult {
     #[serde(rename = "n")]
     name: Box<str>,
+    #[serde(rename = "a")]
     all_stats: Statistics,
     #[serde(rename = "a5", default)]
     es5_stats: Statistics,
