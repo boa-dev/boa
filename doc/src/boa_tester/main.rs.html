@@ -574,6 +574,63 @@
 <a href="#573" id="573">573</a>
 <a href="#574" id="574">574</a>
 <a href="#575" id="575">575</a>
+<a href="#576" id="576">576</a>
+<a href="#577" id="577">577</a>
+<a href="#578" id="578">578</a>
+<a href="#579" id="579">579</a>
+<a href="#580" id="580">580</a>
+<a href="#581" id="581">581</a>
+<a href="#582" id="582">582</a>
+<a href="#583" id="583">583</a>
+<a href="#584" id="584">584</a>
+<a href="#585" id="585">585</a>
+<a href="#586" id="586">586</a>
+<a href="#587" id="587">587</a>
+<a href="#588" id="588">588</a>
+<a href="#589" id="589">589</a>
+<a href="#590" id="590">590</a>
+<a href="#591" id="591">591</a>
+<a href="#592" id="592">592</a>
+<a href="#593" id="593">593</a>
+<a href="#594" id="594">594</a>
+<a href="#595" id="595">595</a>
+<a href="#596" id="596">596</a>
+<a href="#597" id="597">597</a>
+<a href="#598" id="598">598</a>
+<a href="#599" id="599">599</a>
+<a href="#600" id="600">600</a>
+<a href="#601" id="601">601</a>
+<a href="#602" id="602">602</a>
+<a href="#603" id="603">603</a>
+<a href="#604" id="604">604</a>
+<a href="#605" id="605">605</a>
+<a href="#606" id="606">606</a>
+<a href="#607" id="607">607</a>
+<a href="#608" id="608">608</a>
+<a href="#609" id="609">609</a>
+<a href="#610" id="610">610</a>
+<a href="#611" id="611">611</a>
+<a href="#612" id="612">612</a>
+<a href="#613" id="613">613</a>
+<a href="#614" id="614">614</a>
+<a href="#615" id="615">615</a>
+<a href="#616" id="616">616</a>
+<a href="#617" id="617">617</a>
+<a href="#618" id="618">618</a>
+<a href="#619" id="619">619</a>
+<a href="#620" id="620">620</a>
+<a href="#621" id="621">621</a>
+<a href="#622" id="622">622</a>
+<a href="#623" id="623">623</a>
+<a href="#624" id="624">624</a>
+<a href="#625" id="625">625</a>
+<a href="#626" id="626">626</a>
+<a href="#627" id="627">627</a>
+<a href="#628" id="628">628</a>
+<a href="#629" id="629">629</a>
+<a href="#630" id="630">630</a>
+<a href="#631" id="631">631</a>
+<a href="#632" id="632">632</a>
 </pre><pre class="rust"><code><span class="doccomment">//! Test262 test runner
 //!
 //! This crate will run the full ECMAScript test suite (Test262) and report compliance of the
@@ -666,6 +723,7 @@
 <span class="kw">use </span>std::{
     fs::{<span class="self">self</span>, File},
     io::Read,
+    ops::Add,
     path::{Path, PathBuf},
 };
 
@@ -846,21 +904,32 @@
         }
         <span class="kw">let </span>results = suite.run(<span class="kw-2">&amp;</span>harness, verbose, parallel);
 
+        <span class="kw">let </span>total = results.all_stats.total;
+        <span class="kw">let </span>passed = results.all_stats.passed;
+        <span class="kw">let </span>ignored = results.all_stats.ignored;
+        <span class="kw">let </span>panicked = results.all_stats.panic;
+
         <span class="macro">println!</span>();
         <span class="macro">println!</span>(<span class="string">&quot;Results:&quot;</span>);
-        <span class="macro">println!</span>(<span class="string">&quot;Total tests: {}&quot;</span>, results.total);
-        <span class="macro">println!</span>(<span class="string">&quot;Passed tests: {}&quot;</span>, results.passed.to_string().green());
-        <span class="macro">println!</span>(<span class="string">&quot;Ignored tests: {}&quot;</span>, results.ignored.to_string().yellow());
+        <span class="macro">println!</span>(<span class="string">&quot;Total tests: {total}&quot;</span>);
+        <span class="macro">println!</span>(<span class="string">&quot;Passed tests: {}&quot;</span>, passed.to_string().green());
+        <span class="macro">println!</span>(<span class="string">&quot;Ignored tests: {}&quot;</span>, ignored.to_string().yellow());
         <span class="macro">println!</span>(
             <span class="string">&quot;Failed tests: {} (panics: {})&quot;</span>,
-            (results.total - results.passed - results.ignored)
-                .to_string()
-                .red(),
-            results.panic.to_string().red()
+            (total - passed - ignored).to_string().red(),
+            panicked.to_string().red()
         );
         <span class="macro">println!</span>(
             <span class="string">&quot;Conformance: {:.2}%&quot;</span>,
-            (results.passed <span class="kw">as </span>f64 / results.total <span class="kw">as </span>f64) * <span class="number">100.0
+            (passed <span class="kw">as </span>f64 / total <span class="kw">as </span>f64) * <span class="number">100.0
+        </span>);
+        <span class="macro">println!</span>(
+            <span class="string">&quot;ES5 Conformance: {:.2}%&quot;</span>,
+            (results.es5_stats.passed <span class="kw">as </span>f64 / results.es5_stats.total <span class="kw">as </span>f64) * <span class="number">100.0
+        </span>);
+        <span class="macro">println!</span>(
+            <span class="string">&quot;ES6 Conformance: {:.2}%&quot;</span>,
+            (results.es6_stats.passed <span class="kw">as </span>f64 / results.es6_stats.total <span class="kw">as </span>f64) * <span class="number">100.0
         </span>);
 
         write_json(results, output, verbose)
@@ -894,12 +963,10 @@
     tests: Box&lt;[Test]&gt;,
 }
 
-<span class="doccomment">/// Outcome of a test suite.
-</span><span class="attr">#[derive(Debug, Clone, Serialize, Deserialize)]
-</span><span class="kw">struct </span>SuiteResult {
-    <span class="attr">#[serde(rename = <span class="string">&quot;n&quot;</span>)]
-    </span>name: Box&lt;str&gt;,
-    <span class="attr">#[serde(rename = <span class="string">&quot;c&quot;</span>)]
+<span class="doccomment">/// Represents a tests statistic
+</span><span class="attr">#[derive(Default, Debug, Clone, Serialize, Deserialize)]
+</span><span class="kw">struct </span>Statistics {
+    <span class="attr">#[serde(rename = <span class="string">&quot;t&quot;</span>)]
     </span>total: usize,
     <span class="attr">#[serde(rename = <span class="string">&quot;o&quot;</span>)]
     </span>passed: usize,
@@ -907,6 +974,32 @@
     </span>ignored: usize,
     <span class="attr">#[serde(rename = <span class="string">&quot;p&quot;</span>)]
     </span>panic: usize,
+}
+
+<span class="kw">impl </span>Add <span class="kw">for </span>Statistics {
+    <span class="kw">type </span>Output = <span class="self">Self</span>;
+
+    <span class="kw">fn </span>add(<span class="self">self</span>, rhs: <span class="self">Self</span>) -&gt; <span class="self">Self</span>::Output {
+        <span class="self">Self </span>{
+            total: <span class="self">self</span>.total + rhs.total,
+            passed: <span class="self">self</span>.passed + rhs.passed,
+            ignored: <span class="self">self</span>.ignored + rhs.ignored,
+            panic: <span class="self">self</span>.panic + rhs.panic,
+        }
+    }
+}
+
+<span class="doccomment">/// Outcome of a test suite.
+</span><span class="attr">#[derive(Debug, Clone, Serialize, Deserialize)]
+</span><span class="kw">struct </span>SuiteResult {
+    <span class="attr">#[serde(rename = <span class="string">&quot;n&quot;</span>)]
+    </span>name: Box&lt;str&gt;,
+    <span class="attr">#[serde(rename = <span class="string">&quot;a&quot;</span>)]
+    </span>all_stats: Statistics,
+    <span class="attr">#[serde(rename = <span class="string">&quot;a5&quot;</span>, default)]
+    </span>es5_stats: Statistics,
+    <span class="attr">#[serde(rename = <span class="string">&quot;a6&quot;</span>, default)]
+    </span>es6_stats: Statistics,
     <span class="attr">#[serde(skip_serializing_if = <span class="string">&quot;Vec::is_empty&quot;</span>, default)]
     #[serde(rename = <span class="string">&quot;s&quot;</span>)]
     </span>suites: Vec&lt;SuiteResult&gt;,
@@ -924,6 +1017,8 @@
 </span><span class="kw">struct </span>TestResult {
     <span class="attr">#[serde(rename = <span class="string">&quot;n&quot;</span>)]
     </span>name: Box&lt;str&gt;,
+    <span class="attr">#[serde(rename = <span class="string">&quot;v&quot;</span>, default)]
+    </span>spec_version: SpecVersion,
     <span class="attr">#[serde(rename = <span class="string">&quot;s&quot;</span>, default)]
     </span>strict: bool,
     <span class="attr">#[serde(skip)]
@@ -944,6 +1039,15 @@
     </span>Panic,
 }
 
+<span class="attr">#[derive(Debug, Serialize, Clone, Copy, Deserialize, PartialEq, Default)]
+#[serde(untagged)]
+</span><span class="kw">enum </span>SpecVersion {
+    ES5 = <span class="number">5</span>,
+    ES6 = <span class="number">6</span>,
+    <span class="attr">#[default]
+    </span>ES13 = <span class="number">13</span>,
+}
+
 <span class="doccomment">/// Represents a test.
 </span><span class="attr">#[derive(Debug, Clone)]
 #[allow(dead_code)]
@@ -951,6 +1055,7 @@
     name: Box&lt;str&gt;,
     description: Box&lt;str&gt;,
     esid: <span class="prelude-ty">Option</span>&lt;Box&lt;str&gt;&gt;,
+    spec_version: SpecVersion,
     flags: TestFlags,
     information: Box&lt;str&gt;,
     features: Box&lt;[Box&lt;str&gt;]&gt;,
@@ -968,10 +1073,19 @@
         </span>N: Into&lt;Box&lt;str&gt;&gt;,
         C: Into&lt;Box&lt;Path&gt;&gt;,
     {
+        <span class="kw">let </span>spec_version = <span class="kw">if </span>metadata.es5id.is_some() {
+            SpecVersion::ES5
+        } <span class="kw">else if </span>metadata.es6id.is_some() {
+            SpecVersion::ES6
+        } <span class="kw">else </span>{
+            SpecVersion::ES13
+        };
+
         <span class="self">Self </span>{
             name: name.into(),
             description: metadata.description,
             esid: metadata.esid,
+            spec_version,
             flags: metadata.flags.into(),
             information: metadata.info,
             features: metadata.features,

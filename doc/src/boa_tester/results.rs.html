@@ -516,8 +516,9 @@
 <a href="#515" id="515">515</a>
 <a href="#516" id="516">516</a>
 <a href="#517" id="517">517</a>
-<a href="#518" id="518">518</a>
-</pre><pre class="rust"><code><span class="kw">use </span><span class="kw">super</span>::SuiteResult;
+</pre><pre class="rust"><code><span class="kw">use </span><span class="kw">crate</span>::Statistics;
+
+<span class="kw">use </span><span class="kw">super</span>::SuiteResult;
 <span class="kw">use </span>color_eyre::{eyre::WrapErr, <span class="prelude-ty">Result</span>};
 <span class="kw">use </span>serde::{Deserialize, Serialize};
 <span class="kw">use </span>std::{
@@ -544,14 +545,12 @@
     </span>commit: Box&lt;str&gt;,
     <span class="attr">#[serde(rename = <span class="string">&quot;u&quot;</span>)]
     </span>test262_commit: Box&lt;str&gt;,
-    <span class="attr">#[serde(rename = <span class="string">&quot;t&quot;</span>)]
-    </span>total: usize,
-    <span class="attr">#[serde(rename = <span class="string">&quot;o&quot;</span>)]
-    </span>passed: usize,
-    <span class="attr">#[serde(rename = <span class="string">&quot;i&quot;</span>)]
-    </span>ignored: usize,
-    <span class="attr">#[serde(rename = <span class="string">&quot;p&quot;</span>)]
-    </span>panic: usize,
+    <span class="attr">#[serde(rename = <span class="string">&quot;a&quot;</span>)]
+    </span>all_stats: Statistics,
+    <span class="attr">#[serde(rename = <span class="string">&quot;a5&quot;</span>, default)]
+    </span>es5_stats: Statistics,
+    <span class="attr">#[serde(rename = <span class="string">&quot;a6&quot;</span>, default)]
+    </span>es6_stats: Statistics,
 }
 
 <span class="kw">impl </span>From&lt;ResultInfo&gt; <span class="kw">for </span>ReducedResultInfo {
@@ -560,10 +559,9 @@
         <span class="self">Self </span>{
             commit: info.commit,
             test262_commit: info.test262_commit,
-            total: info.results.total,
-            passed: info.results.passed,
-            ignored: info.results.ignored,
-            panic: info.results.panic,
+            all_stats: info.results.all_stats,
+            es5_stats: info.results.es5_stats,
+            es6_stats: info.results.es6_stats,
         }
     }
 }
@@ -739,24 +737,24 @@
     ))
     .wrap_err(<span class="string">&quot;could not read the new results&quot;</span>)<span class="question-mark">?</span>;
 
-    <span class="kw">let </span>base_total = base_results.results.total <span class="kw">as </span>isize;
-    <span class="kw">let </span>new_total = new_results.results.total <span class="kw">as </span>isize;
+    <span class="kw">let </span>base_total = base_results.results.all_stats.total <span class="kw">as </span>isize;
+    <span class="kw">let </span>new_total = new_results.results.all_stats.total <span class="kw">as </span>isize;
     <span class="kw">let </span>total_diff = new_total - base_total;
 
-    <span class="kw">let </span>base_passed = base_results.results.passed <span class="kw">as </span>isize;
-    <span class="kw">let </span>new_passed = new_results.results.passed <span class="kw">as </span>isize;
+    <span class="kw">let </span>base_passed = base_results.results.all_stats.passed <span class="kw">as </span>isize;
+    <span class="kw">let </span>new_passed = new_results.results.all_stats.passed <span class="kw">as </span>isize;
     <span class="kw">let </span>passed_diff = new_passed - base_passed;
 
-    <span class="kw">let </span>base_ignored = base_results.results.ignored <span class="kw">as </span>isize;
-    <span class="kw">let </span>new_ignored = new_results.results.ignored <span class="kw">as </span>isize;
+    <span class="kw">let </span>base_ignored = base_results.results.all_stats.ignored <span class="kw">as </span>isize;
+    <span class="kw">let </span>new_ignored = new_results.results.all_stats.ignored <span class="kw">as </span>isize;
     <span class="kw">let </span>ignored_diff = new_ignored - base_ignored;
 
     <span class="kw">let </span>base_failed = base_total - base_passed - base_ignored;
     <span class="kw">let </span>new_failed = new_total - new_passed - new_ignored;
     <span class="kw">let </span>failed_diff = new_failed - base_failed;
 
-    <span class="kw">let </span>base_panics = base_results.results.panic <span class="kw">as </span>isize;
-    <span class="kw">let </span>new_panics = new_results.results.panic <span class="kw">as </span>isize;
+    <span class="kw">let </span>base_panics = base_results.results.all_stats.panic <span class="kw">as </span>isize;
+    <span class="kw">let </span>new_panics = new_results.results.all_stats.panic <span class="kw">as </span>isize;
     <span class="kw">let </span>panic_diff = new_panics - base_panics;
 
     <span class="kw">let </span>base_conformance = (base_passed <span class="kw">as </span>f64 / base_total <span class="kw">as </span>f64) * <span class="number">100_f64</span>;
