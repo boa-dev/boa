@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"struct":[["With","The `with` statement extends the scope chain for a statement."]]};

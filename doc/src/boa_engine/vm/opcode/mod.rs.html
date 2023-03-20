@@ -1538,6 +1538,13 @@
 <a href="#1537" id="1537">1537</a>
 <a href="#1538" id="1538">1538</a>
 <a href="#1539" id="1539">1539</a>
+<a href="#1540" id="1540">1540</a>
+<a href="#1541" id="1541">1541</a>
+<a href="#1542" id="1542">1542</a>
+<a href="#1543" id="1543">1543</a>
+<a href="#1544" id="1544">1544</a>
+<a href="#1545" id="1545">1545</a>
+<a href="#1546" id="1546">1546</a>
 </pre><pre class="rust"><code><span class="doccomment">/// The opcodes of the vm.
 </span><span class="kw">use crate</span>::{vm::CompletionType, Context, JsResult};
 
@@ -2847,6 +2854,13 @@
         ///
         /// Stack: **=&gt;**
         </span>PushDeclarativeEnvironment,
+
+        <span class="doccomment">/// Push an object environment.
+        ///
+        /// Operands:
+        ///
+        /// Stack: object **=&gt;**
+        </span>PushObjectEnvironment,
 
         <span class="doccomment">/// Push a function environment.
         ///

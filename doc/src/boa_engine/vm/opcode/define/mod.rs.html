@@ -142,6 +142,10 @@
 <a href="#141" id="141">141</a>
 <a href="#142" id="142">142</a>
 <a href="#143" id="143">143</a>
+<a href="#144" id="144">144</a>
+<a href="#145" id="145">145</a>
+<a href="#146" id="146">146</a>
+<a href="#147" id="147">147</a>
 </pre><pre class="rust"><code><span class="kw">use crate</span>::{
     property::PropertyDescriptor,
     vm::{opcode::Operation, CompletionType},
@@ -214,12 +218,16 @@
         binding_locator.throw_mutate_immutable(context)<span class="question-mark">?</span>;
 
         <span class="kw">if </span>binding_locator.is_global() {
-            <span class="kw">let </span>key = context
-                .interner()
-                .resolve_expect(binding_locator.name().sym())
-                .into_common::&lt;JsString&gt;(<span class="bool-val">false</span>)
-                .into();
-            <span class="kw">crate</span>::object::internal_methods::global::global_set_no_receiver(<span class="kw-2">&amp;</span>key, value, context)<span class="question-mark">?</span>;
+            <span class="kw">if </span>!context.put_value_if_global_poisoned(binding_locator.name(), <span class="kw-2">&amp;</span>value)<span class="question-mark">? </span>{
+                <span class="kw">let </span>key = context
+                    .interner()
+                    .resolve_expect(binding_locator.name().sym())
+                    .into_common::&lt;JsString&gt;(<span class="bool-val">false</span>)
+                    .into();
+                <span class="kw">crate</span>::object::internal_methods::global::global_set_no_receiver(
+                    <span class="kw-2">&amp;</span>key, value, context,
+                )<span class="question-mark">?</span>;
+            }
         } <span class="kw">else </span>{
             context.realm.environments.put_value(
                 binding_locator.environment_index(),

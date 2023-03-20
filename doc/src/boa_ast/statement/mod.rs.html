@@ -240,6 +240,13 @@
 <a href="#239" id="239">239</a>
 <a href="#240" id="240">240</a>
 <a href="#241" id="241">241</a>
+<a href="#242" id="242">242</a>
+<a href="#243" id="243">243</a>
+<a href="#244" id="244">244</a>
+<a href="#245" id="245">245</a>
+<a href="#246" id="246">246</a>
+<a href="#247" id="247">247</a>
+<a href="#248" id="248">248</a>
 </pre><pre class="rust"><code><span class="doccomment">//! The [`Statement`] Parse Node, as defined by the [spec].
 //!
 //! ECMAScript [statements] are mainly composed of control flow operations, such as [`If`],
@@ -256,6 +263,7 @@
 <span class="kw">mod </span>switch;
 <span class="kw">mod </span>throw;
 <span class="kw">mod </span>r#try;
+<span class="kw">mod </span>with;
 
 <span class="kw">pub mod </span>iteration;
 
@@ -268,6 +276,7 @@
     r#try::{Catch, ErrorHandler, Finally, Try},
     switch::{Case, Switch},
     throw::Throw,
+    with::With,
 };
 <span class="kw">use </span>core::ops::ControlFlow;
 
@@ -334,8 +343,7 @@
     <span class="doccomment">/// See [`Return`].
     </span>Return(Return),
 
-    <span class="comment">// TODO: Possibly add `with` statements.
-    </span><span class="doccomment">/// See [`Labelled`].
+    <span class="doccomment">/// See [`Labelled`].
     </span>Labelled(Labelled),
 
     <span class="doccomment">/// See [`Throw`].
@@ -343,6 +351,9 @@
 
     <span class="doccomment">/// See [`Try`].
     </span>Try(Try),
+
+    <span class="doccomment">/// See [`With`].
+    </span>With(With),
 }
 
 <span class="kw">impl </span>Statement {
@@ -371,6 +382,7 @@
             <span class="self">Self</span>::Labelled(labelled) =&gt; <span class="kw">return </span>labelled.to_interned_string(interner),
             <span class="self">Self</span>::Throw(throw) =&gt; throw.to_interned_string(interner),
             <span class="self">Self</span>::Try(try_catch) =&gt; <span class="kw">return </span>try_catch.to_indented_string(interner, indentation),
+            <span class="self">Self</span>::With(with) =&gt; <span class="kw">return </span>with.to_interned_string(interner),
         };
         s.push(<span class="string">&#39;;&#39;</span>);
         s
@@ -450,6 +462,7 @@
             <span class="self">Self</span>::Labelled(l) =&gt; visitor.visit_labelled(l),
             <span class="self">Self</span>::Throw(th) =&gt; visitor.visit_throw(th),
             <span class="self">Self</span>::Try(tr) =&gt; visitor.visit_try(tr),
+            <span class="self">Self</span>::With(with) =&gt; visitor.visit_with(with),
         }
     }
 
@@ -478,6 +491,7 @@
             <span class="self">Self</span>::Labelled(l) =&gt; visitor.visit_labelled_mut(l),
             <span class="self">Self</span>::Throw(th) =&gt; visitor.visit_throw_mut(th),
             <span class="self">Self</span>::Try(tr) =&gt; visitor.visit_try_mut(tr),
+            <span class="self">Self</span>::With(with) =&gt; visitor.visit_with_mut(with),
         }
     }
 }

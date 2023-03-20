@@ -127,14 +127,6 @@
 <a href="#126" id="126">126</a>
 <a href="#127" id="127">127</a>
 <a href="#128" id="128">128</a>
-<a href="#129" id="129">129</a>
-<a href="#130" id="130">130</a>
-<a href="#131" id="131">131</a>
-<a href="#132" id="132">132</a>
-<a href="#133" id="133">133</a>
-<a href="#134" id="134">134</a>
-<a href="#135" id="135">135</a>
-<a href="#136" id="136">136</a>
 </pre><pre class="rust"><code><span class="kw">use crate</span>::{
     error::JsNativeError,
     property::DescriptorKind,
@@ -159,11 +151,7 @@
         binding_locator.throw_mutate_immutable(context)<span class="question-mark">?</span>;
 
         <span class="kw">let </span>value = <span class="kw">if </span>binding_locator.is_global() {
-            <span class="kw">if let </span><span class="prelude-val">Some</span>(value) = context
-                .realm
-                .environments
-                .get_value_if_global_poisoned(binding_locator.name())
-            {
+            <span class="kw">if let </span><span class="prelude-val">Some</span>(value) = context.get_value_if_global_poisoned(binding_locator.name())<span class="question-mark">? </span>{
                 value
             } <span class="kw">else </span>{
                 <span class="kw">let </span>key: JsString = context
@@ -195,11 +183,11 @@
                     }
                 }
             }
-        } <span class="kw">else if let </span><span class="prelude-val">Some</span>(value) = context.realm.environments.get_value_optional(
+        } <span class="kw">else if let </span><span class="prelude-val">Some</span>(value) = context.get_value_optional(
             binding_locator.environment_index(),
             binding_locator.binding_index(),
             binding_locator.name(),
-        ) {
+        )<span class="question-mark">? </span>{
             value
         } <span class="kw">else </span>{
             <span class="kw">let </span>name = context
@@ -232,11 +220,7 @@
         <span class="kw">let </span>binding_locator = context.vm.frame().code_block.bindings[index <span class="kw">as </span>usize];
         binding_locator.throw_mutate_immutable(context)<span class="question-mark">?</span>;
         <span class="kw">let </span>value = <span class="kw">if </span>binding_locator.is_global() {
-            <span class="kw">if let </span><span class="prelude-val">Some</span>(value) = context
-                .realm
-                .environments
-                .get_value_if_global_poisoned(binding_locator.name())
-            {
+            <span class="kw">if let </span><span class="prelude-val">Some</span>(value) = context.get_value_if_global_poisoned(binding_locator.name())<span class="question-mark">? </span>{
                 value
             } <span class="kw">else </span>{
                 <span class="kw">let </span>key: JsString = context
@@ -257,11 +241,11 @@
                     <span class="kw">_ </span>=&gt; JsValue::undefined(),
                 }
             }
-        } <span class="kw">else if let </span><span class="prelude-val">Some</span>(value) = context.realm.environments.get_value_optional(
+        } <span class="kw">else if let </span><span class="prelude-val">Some</span>(value) = context.get_value_optional(
             binding_locator.environment_index(),
             binding_locator.binding_index(),
             binding_locator.name(),
-        ) {
+        )<span class="question-mark">? </span>{
             value
         } <span class="kw">else </span>{
             JsValue::undefined()

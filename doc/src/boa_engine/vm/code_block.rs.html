@@ -1495,6 +1495,8 @@
 <a href="#1494" id="1494">1494</a>
 <a href="#1495" id="1495">1495</a>
 <a href="#1496" id="1496">1496</a>
+<a href="#1497" id="1497">1497</a>
+<a href="#1498" id="1498">1498</a>
 </pre><pre class="rust"><code><span class="doccomment">//! `CodeBlock`
 //!
 //! This module is for the `CodeBlock` which implements a function representation in the VM
@@ -1941,6 +1943,7 @@
             | Opcode::SuperCallSpread
             | Opcode::ForAwaitOfLoopIterate
             | Opcode::SetPrototype
+            | Opcode::PushObjectEnvironment
             | Opcode::Nop =&gt; String::new(),
         }
     }
@@ -2971,6 +2974,7 @@
                         .into())
                 } <span class="kw">else </span>{
                     <span class="kw">let </span>function_env = environment
+                        .declarative_expect()
                         .slots()
                         .expect(<span class="string">&quot;must be function environment&quot;</span>)
                         .as_function_slots()

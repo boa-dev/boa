@@ -625,6 +625,8 @@
 <a href="#624" id="624">624</a>
 <a href="#625" id="625">625</a>
 <a href="#626" id="626">626</a>
+<a href="#627" id="627">627</a>
+<a href="#628" id="628">628</a>
 </pre><pre class="rust"><code><span class="doccomment">//! ECMAScript Abstract Syntax Tree visitors.
 //!
 //! This module contains visitors which can be used to inspect or modify AST nodes. This allows for
@@ -663,7 +665,7 @@
             IterableLoopInitializer, WhileLoop,
         },
         Block, Case, Catch, Finally, If, Labelled, LabelledItem, Return, Statement, Switch, Throw,
-        Try,
+        Try, With,
     },
     ModuleItem, ModuleItemList, StatementList, StatementListItem,
 };
@@ -868,6 +870,7 @@
     <span class="macro">define_visit!</span>(visit_labelled, Labelled);
     <span class="macro">define_visit!</span>(visit_throw, Throw);
     <span class="macro">define_visit!</span>(visit_try, Try);
+    <span class="macro">define_visit!</span>(visit_with, With);
     <span class="macro">define_visit!</span>(visit_identifier, Identifier);
     <span class="macro">define_visit!</span>(visit_formal_parameter_list, FormalParameterList);
     <span class="macro">define_visit!</span>(visit_class_element, ClassElement);
@@ -1061,6 +1064,7 @@
     <span class="macro">define_visit_mut!</span>(visit_labelled_mut, Labelled);
     <span class="macro">define_visit_mut!</span>(visit_throw_mut, Throw);
     <span class="macro">define_visit_mut!</span>(visit_try_mut, Try);
+    <span class="macro">define_visit_mut!</span>(visit_with_mut, With);
     <span class="macro">define_visit_mut!</span>(visit_identifier_mut, Identifier);
     <span class="macro">define_visit_mut!</span>(visit_formal_parameter_list_mut, FormalParameterList);
     <span class="macro">define_visit_mut!</span>(visit_class_element_mut, ClassElement);

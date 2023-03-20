@@ -1230,6 +1230,7 @@
 <a href="#1229" id="1229">1229</a>
 <a href="#1230" id="1230">1230</a>
 <a href="#1231" id="1231">1231</a>
+<a href="#1232" id="1232">1232</a>
 </pre><pre class="rust"><code><span class="doccomment">//! Definitions of various **Syntax-Directed Operations** used in the [spec].
 //!
 //! [spec]: https://tc39.es/ecma262/#sec-syntax-directed-operations
@@ -2177,6 +2178,7 @@
                 Statement::Try(node) =&gt; <span class="self">self</span>.visit_try(node),
                 Statement::Continue(node) =&gt; <span class="self">self</span>.visit_continue(node),
                 Statement::Break(node) =&gt; <span class="self">self</span>.visit_break(node),
+                Statement::With(with) =&gt; <span class="self">self</span>.visit_with(with),
             }
         }
 

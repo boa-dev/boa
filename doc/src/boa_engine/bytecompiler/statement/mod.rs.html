@@ -62,6 +62,8 @@
 <a href="#61" id="61">61</a>
 <a href="#62" id="62">62</a>
 <a href="#63" id="63">63</a>
+<a href="#64" id="64">64</a>
+<a href="#65" id="65">65</a>
 </pre><pre class="rust"><code><span class="kw">use crate</span>::{bytecompiler::ByteCompiler, vm::Opcode};
 
 <span class="kw">use </span>boa_ast::Statement;
@@ -74,6 +76,7 @@
 <span class="kw">mod </span>r#loop;
 <span class="kw">mod </span>switch;
 <span class="kw">mod </span>r#try;
+<span class="kw">mod </span>with;
 
 <span class="kw">impl </span>ByteCompiler&lt;<span class="lifetime">&#39;_</span>, <span class="lifetime">&#39;_</span>&gt; {
     <span class="doccomment">/// Compiles a [`Statement`] `boa_ast` node.
@@ -120,8 +123,9 @@
                 <span class="self">self</span>.emit(Opcode::Return, <span class="kw-2">&amp;</span>[]);
             }
             Statement::Try(t) =&gt; <span class="self">self</span>.compile_try(t, use_expr, configurable_globals),
-            Statement::Empty =&gt; {}
             Statement::Expression(expr) =&gt; <span class="self">self</span>.compile_expr(expr, use_expr),
+            Statement::With(with) =&gt; <span class="self">self</span>.compile_with(with, configurable_globals),
+            Statement::Empty =&gt; {}
         }
     }
 }

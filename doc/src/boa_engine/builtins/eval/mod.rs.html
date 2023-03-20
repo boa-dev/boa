@@ -268,7 +268,6 @@
 <a href="#267" id="267">267</a>
 <a href="#268" id="268">268</a>
 <a href="#269" id="269">269</a>
-<a href="#270" id="270">270</a>
 </pre><pre class="rust"><code><span class="doccomment">//! Boa&#39;s implementation of ECMAScript&#39;s global `eval` function.
 //!
 //! The `eval()` function evaluates ECMAScript code represented as a string.
@@ -281,13 +280,12 @@
 //! [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/eval
 
 </span><span class="kw">use crate</span>::{
-    builtins::BuiltInObject, context::intrinsics::Intrinsics, environments::DeclarativeEnvironment,
+    builtins::BuiltInObject, context::intrinsics::Intrinsics, environments::Environment,
     error::JsNativeError, object::JsObject, Context, JsArgs, JsResult, JsString, JsValue,
 };
 <span class="kw">use </span>boa_ast::operations::{
     contains, contains_arguments, top_level_var_declared_names, ContainsSymbol,
 };
-<span class="kw">use </span>boa_gc::Gc;
 <span class="kw">use </span>boa_parser::{Parser, Source};
 <span class="kw">use </span>boa_profiler::Profiler;
 
@@ -356,7 +354,7 @@
         </span><span class="attr">#[derive(Debug)]
         </span><span class="kw">enum </span>EnvStackAction {
             Truncate(usize),
-            Restore(Vec&lt;Gc&lt;DeclarativeEnvironment&gt;&gt;),
+            Restore(Vec&lt;Environment&gt;),
         }
 
         <span class="doccomment">/// Restores the environment after calling `eval` or after throwing an error.

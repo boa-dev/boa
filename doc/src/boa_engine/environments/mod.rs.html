@@ -37,6 +37,7 @@
 <a href="#36" id="36">36</a>
 <a href="#37" id="37">37</a>
 <a href="#38" id="38">38</a>
+<a href="#39" id="39">39</a>
 </pre><pre class="rust"><code><span class="doccomment">//! Boa&#39;s implementation of ECMAScript&#39;s `Environment Records`.
 //!
 //! Environments contain the bindings of identifiers to their values.
@@ -69,7 +70,8 @@
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use </span>{
     compile::CompileTimeEnvironment,
     runtime::{
-        BindingLocator, DeclarativeEnvironment, DeclarativeEnvironmentStack, EnvironmentSlots,
+        BindingLocator, DeclarativeEnvironment, DeclarativeEnvironmentStack, Environment,
+        EnvironmentSlots,
     },
 };
 

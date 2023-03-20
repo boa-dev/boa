@@ -138,6 +138,13 @@
 <a href="#137" id="137">137</a>
 <a href="#138" id="138">138</a>
 <a href="#139" id="139">139</a>
+<a href="#140" id="140">140</a>
+<a href="#141" id="141">141</a>
+<a href="#142" id="142">142</a>
+<a href="#143" id="143">143</a>
+<a href="#144" id="144">144</a>
+<a href="#145" id="145">145</a>
+<a href="#146" id="146">146</a>
 </pre><pre class="rust"><code><span class="kw">use crate</span>::{
     error::JsNativeError,
     vm::{opcode::Operation, CompletionType},
@@ -220,11 +227,18 @@
         binding_locator.throw_mutate_immutable(context)<span class="question-mark">?</span>;
 
         <span class="kw">let </span>deleted = <span class="kw">if </span>binding_locator.is_global()
-            &amp;&amp; context
+            &amp;&amp; !context
                 .realm
                 .environments
-                .is_only_global_property(binding_locator.name())
+                .binding_in_poisoned_environment(binding_locator.name())
         {
+            <span class="kw">let </span>(found, deleted) =
+                context.delete_binding_from_objet_environment(binding_locator.name())<span class="question-mark">?</span>;
+            <span class="kw">if </span>found {
+                context.vm.push(deleted);
+                <span class="kw">return </span><span class="prelude-val">Ok</span>(CompletionType::Normal);
+            }
+
             <span class="kw">let </span>key: JsString = context
                 .interner()
                 .resolve_expect(binding_locator.name().sym())
