@@ -384,7 +384,7 @@ struct SuiteResult {
 struct TestResult {
     #[serde(rename = "n")]
     name: Box<str>,
-    #[serde(rename = "v")]
+    #[serde(rename = "v", default)]
     spec_version: SpecVersion,
     #[serde(rename = "s", default)]
     strict: bool,
@@ -406,11 +406,12 @@ enum TestOutcomeResult {
     Panic,
 }
 
-#[derive(Debug, Serialize, Clone, Copy, Deserialize, PartialEq)]
+#[derive(Debug, Serialize, Clone, Copy, Deserialize, PartialEq, Default)]
 #[serde(untagged)]
 enum SpecVersion {
     ES5 = 5,
     ES6 = 6,
+    #[default]
     ES13 = 13,
 }
 
