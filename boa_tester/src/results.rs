@@ -1,3 +1,5 @@
+use crate::Statistics;
+
 use super::SuiteResult;
 use color_eyre::{eyre::WrapErr, Result};
 use serde::{Deserialize, Serialize};
@@ -25,14 +27,12 @@ struct ReducedResultInfo {
     commit: Box<str>,
     #[serde(rename = "u")]
     test262_commit: Box<str>,
-    #[serde(rename = "t")]
-    total: usize,
-    #[serde(rename = "o")]
-    passed: usize,
-    #[serde(rename = "i")]
-    ignored: usize,
-    #[serde(rename = "p")]
-    panic: usize,
+    #[serde(rename = "a")]
+    all_stats: Statistics,
+    #[serde(rename = "a5")]
+    es5_stats: Statistics,
+    #[serde(rename = "a6")]
+    es6_stats: Statistics,
 }
 
 impl From<ResultInfo> for ReducedResultInfo {
@@ -41,10 +41,9 @@ impl From<ResultInfo> for ReducedResultInfo {
         Self {
             commit: info.commit,
             test262_commit: info.test262_commit,
-            total: info.results.total,
-            passed: info.results.passed,
-            ignored: info.results.ignored,
-            panic: info.results.panic,
+            all_stats: info.results.all_stats,
+            es5_stats: info.results.es5_stats,
+            es6_stats: info.results.es6_stats,
         }
     }
 }
@@ -220,24 +219,24 @@ pub(crate) fn compare_results(base: &Path, new: &Path, markdown: bool) -> Result
     ))
     .wrap_err("could not read the new results")?;
 
-    let base_total = base_results.results.total as isize;
-    let new_total = new_results.results.total as isize;
+    let base_total = base_results.results.all_stats.total as isize;
+    let new_total = new_results.results.all_stats.total as isize;
     let total_diff = new_total - base_total;
 
-    let base_passed = base_results.results.passed as isize;
-    let new_passed = new_results.results.passed as isize;
+    let base_passed = base_results.results.all_stats.passed as isize;
+    let new_passed = new_results.results.all_stats.passed as isize;
     let passed_diff = new_passed - base_passed;
 
-    let base_ignored = base_results.results.ignored as isize;
-    let new_ignored = new_results.results.ignored as isize;
+    let base_ignored = base_results.results.all_stats.ignored as isize;
+    let new_ignored = new_results.results.all_stats.ignored as isize;
     let ignored_diff = new_ignored - base_ignored;
 
     let base_failed = base_total - base_passed - base_ignored;
     let new_failed = new_total - new_passed - new_ignored;
     let failed_diff = new_failed - base_failed;
 
-    let base_panics = base_results.results.panic as isize;
-    let new_panics = new_results.results.panic as isize;
+    let base_panics = base_results.results.all_stats.panic as isize;
+    let new_panics = new_results.results.all_stats.panic as isize;
     let panic_diff = new_panics - base_panics;
 
     let base_conformance = (base_passed as f64 / base_total as f64) * 100_f64;
