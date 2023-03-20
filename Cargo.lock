@@ -318,7 +318,7 @@ dependencies = [
  "boa_ast",
  "boa_engine",
  "boa_parser",
- "clap 4.1.9",
+ "clap 4.1.11",
  "colored",
  "jemallocator",
  "phf",
@@ -470,7 +470,7 @@ dependencies = [
  "bitflags 2.0.1",
  "boa_engine",
  "boa_gc",
- "clap 4.1.9",
+ "clap 4.1.11",
  "color-eyre",
  "colored",
  "fxhash",
@@ -678,11 +678,11 @@ dependencies = [
 
 [[package]]
 name = "clap"
-version = "4.1.9"
+version = "4.1.11"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "9a9d6ada83c1edcce028902ea27dd929069c70df4c7600b131b4d9a1ad2879cc"
+checksum = "42dfd32784433290c51d92c438bb72ea5063797fc3cc9a21a8c4346bebbb2098"
 dependencies = [
- "bitflags 1.3.2",
+ "bitflags 2.0.1",
  "clap_derive",
  "clap_lex 0.3.3",
  "is-terminal",
