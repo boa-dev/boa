@@ -18,7 +18,7 @@ use crate::{
     },
     property::PropertyDescriptor,
     string::utf16,
-    vm::{CallFrame, Opcode},
+    vm::CallFrame,
     Context, JsResult, JsString, JsValue,
 };
 use boa_ast::{
@@ -26,9 +26,14 @@ use boa_ast::{
     function::{FormalParameterList, PrivateName},
 };
 use boa_gc::{Finalize, Gc, GcRefCell, Trace};
-use boa_interner::{Interner, Sym, ToInternedString};
+use boa_interner::Sym;
 use boa_profiler::Profiler;
-use std::{collections::VecDeque, convert::TryInto, mem::size_of};
+use std::{collections::VecDeque, mem::size_of};
+
+#[cfg(any(feature = "trace", feature = "flowgraph"))]
+use crate::vm::Opcode;
+#[cfg(any(feature = "trace", feature = "flowgraph"))]
+use boa_interner::{Interner, ToInternedString};
 
 /// This represents whether a value can be read from [`CodeBlock`] code.
 ///
@@ -190,6 +195,7 @@ impl CodeBlock {
     /// Modifies the `pc` to point to the next instruction.
     ///
     /// Returns an empty `String` if no operands are present.
+    #[cfg(any(feature = "trace", feature = "flowgraph"))]
     pub(crate) fn instruction_operands(&self, pc: &mut usize, interner: &Interner) -> String {
         let opcode: Opcode = self.bytecode[*pc].try_into().expect("invalid opcode");
         *pc += size_of::<Opcode>();
@@ -450,6 +456,7 @@ impl CodeBlock {
     }
 }
 
+#[cfg(any(feature = "trace", feature = "flowgraph"))]
 impl ToInternedString for CodeBlock {
     fn to_interned_string(&self, interner: &Interner) -> String {
         let name = interner.resolve_expect(self.name);

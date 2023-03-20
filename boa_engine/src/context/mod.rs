@@ -422,6 +422,7 @@ impl Context<'_> {
     }
 
     /// Set the value of trace on the context
+    #[cfg(feature = "trace")]
     pub fn set_trace(&mut self, trace: bool) {
         self.vm.trace = trace;
     }
