@@ -22,11 +22,7 @@ impl Operation for GetName {
         binding_locator.throw_mutate_immutable(context)?;
 
         let value = if binding_locator.is_global() {
-            if let Some(value) = context
-                .realm
-                .environments
-                .get_value_if_global_poisoned(binding_locator.name())
-            {
+            if let Some(value) = context.get_value_if_global_poisoned(binding_locator.name())? {
                 value
             } else {
                 let key: JsString = context
@@ -58,11 +54,11 @@ impl Operation for GetName {
                     }
                 }
             }
-        } else if let Some(value) = context.realm.environments.get_value_optional(
+        } else if let Some(value) = context.get_value_optional(
             binding_locator.environment_index(),
             binding_locator.binding_index(),
             binding_locator.name(),
-        ) {
+        )? {
             value
         } else {
             let name = context
@@ -95,11 +91,7 @@ impl Operation for GetNameOrUndefined {
         let binding_locator = context.vm.frame().code_block.bindings[index as usize];
         binding_locator.throw_mutate_immutable(context)?;
         let value = if binding_locator.is_global() {
-            if let Some(value) = context
-                .realm
-                .environments
-                .get_value_if_global_poisoned(binding_locator.name())
-            {
+            if let Some(value) = context.get_value_if_global_poisoned(binding_locator.name())? {
                 value
             } else {
                 let key: JsString = context
@@ -120,11 +112,11 @@ impl Operation for GetNameOrUndefined {
                     _ => JsValue::undefined(),
                 }
             }
-        } else if let Some(value) = context.realm.environments.get_value_optional(
+        } else if let Some(value) = context.get_value_optional(
             binding_locator.environment_index(),
             binding_locator.binding_index(),
             binding_locator.name(),
-        ) {
+        )? {
             value
         } else {
             JsValue::undefined()

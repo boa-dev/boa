@@ -14,6 +14,7 @@ mod r#return;
 mod switch;
 mod throw;
 mod r#try;
+mod with;
 
 pub mod iteration;
 
@@ -26,6 +27,7 @@ pub use self::{
     r#try::{Catch, ErrorHandler, Finally, Try},
     switch::{Case, Switch},
     throw::Throw,
+    with::With,
 };
 use core::ops::ControlFlow;
 
@@ -92,7 +94,6 @@ pub enum Statement {
     /// See [`Return`].
     Return(Return),
 
-    // TODO: Possibly add `with` statements.
     /// See [`Labelled`].
     Labelled(Labelled),
 
@@ -101,6 +102,9 @@ pub enum Statement {
 
     /// See [`Try`].
     Try(Try),
+
+    /// See [`With`].
+    With(With),
 }
 
 impl Statement {
@@ -129,6 +133,7 @@ impl Statement {
             Self::Labelled(labelled) => return labelled.to_interned_string(interner),
             Self::Throw(throw) => throw.to_interned_string(interner),
             Self::Try(try_catch) => return try_catch.to_indented_string(interner, indentation),
+            Self::With(with) => return with.to_interned_string(interner),
         };
         s.push(';');
         s
@@ -208,6 +213,7 @@ impl VisitWith for Statement {
             Self::Labelled(l) => visitor.visit_labelled(l),
             Self::Throw(th) => visitor.visit_throw(th),
             Self::Try(tr) => visitor.visit_try(tr),
+            Self::With(with) => visitor.visit_with(with),
         }
     }
 
@@ -236,6 +242,7 @@ impl VisitWith for Statement {
             Self::Labelled(l) => visitor.visit_labelled_mut(l),
             Self::Throw(th) => visitor.visit_throw_mut(th),
             Self::Try(tr) => visitor.visit_try_mut(tr),
+            Self::With(with) => visitor.visit_with_mut(with),
         }
     }
 }

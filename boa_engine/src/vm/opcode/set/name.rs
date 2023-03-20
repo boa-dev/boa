@@ -25,11 +25,7 @@ impl Operation for SetName {
         binding_locator.throw_mutate_immutable(context)?;
 
         if binding_locator.is_global() {
-            if !context
-                .realm
-                .environments
-                .put_value_if_global_poisoned(binding_locator.name(), &value)
-            {
+            if !context.put_value_if_global_poisoned(binding_locator.name(), &value)? {
                 let key: JsString = context
                     .interner()
                     .resolve_expect(binding_locator.name().sym())
@@ -60,12 +56,12 @@ impl Operation for SetName {
                         .into());
                 }
             }
-        } else if !context.realm.environments.put_value_if_initialized(
+        } else if !context.put_value_if_initialized(
             binding_locator.environment_index(),
             binding_locator.binding_index(),
             binding_locator.name(),
             value,
-        ) {
+        )? {
             return Err(JsNativeError::reference()
                 .with_message(format!(
                     "cannot access '{}' before initialization",

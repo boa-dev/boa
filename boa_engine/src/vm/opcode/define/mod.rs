@@ -70,12 +70,16 @@ impl Operation for DefInitVar {
         binding_locator.throw_mutate_immutable(context)?;
 
         if binding_locator.is_global() {
-            let key = context
-                .interner()
-                .resolve_expect(binding_locator.name().sym())
-                .into_common::<JsString>(false)
-                .into();
-            crate::object::internal_methods::global::global_set_no_receiver(&key, value, context)?;
+            if !context.put_value_if_global_poisoned(binding_locator.name(), &value)? {
+                let key = context
+                    .interner()
+                    .resolve_expect(binding_locator.name().sym())
+                    .into_common::<JsString>(false)
+                    .into();
+                crate::object::internal_methods::global::global_set_no_receiver(
+                    &key, value, context,
+                )?;
+            }
         } else {
             context.realm.environments.put_value(
                 binding_locator.environment_index(),

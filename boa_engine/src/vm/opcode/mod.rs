@@ -1308,6 +1308,13 @@ generate_impl! {
         /// Stack: **=>**
         PushDeclarativeEnvironment,
 
+        /// Push an object environment.
+        ///
+        /// Operands:
+        ///
+        /// Stack: object **=>**
+        PushObjectEnvironment,
+
         /// Push a function environment.
         ///
         /// Operands: num_bindings: `u32`, compile_environments_index: `u32`

@@ -10,6 +10,7 @@ mod labelled;
 mod r#loop;
 mod switch;
 mod r#try;
+mod with;
 
 impl ByteCompiler<'_, '_> {
     /// Compiles a [`Statement`] `boa_ast` node.
@@ -56,8 +57,9 @@ impl ByteCompiler<'_, '_> {
                 self.emit(Opcode::Return, &[]);
             }
             Statement::Try(t) => self.compile_try(t, use_expr, configurable_globals),
-            Statement::Empty => {}
             Statement::Expression(expr) => self.compile_expr(expr, use_expr),
+            Statement::With(with) => self.compile_with(with, configurable_globals),
+            Statement::Empty => {}
         }
     }
 }

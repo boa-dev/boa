@@ -80,11 +80,18 @@ impl Operation for DeleteName {
         binding_locator.throw_mutate_immutable(context)?;
 
         let deleted = if binding_locator.is_global()
-            && context
+            && !context
                 .realm
                 .environments
-                .is_only_global_property(binding_locator.name())
+                .binding_in_poisoned_environment(binding_locator.name())
         {
+            let (found, deleted) =
+                context.delete_binding_from_objet_environment(binding_locator.name())?;
+            if found {
+                context.vm.push(deleted);
+                return Ok(CompletionType::Normal);
+            }
+
             let key: JsString = context
                 .interner()
                 .resolve_expect(binding_locator.name().sym())

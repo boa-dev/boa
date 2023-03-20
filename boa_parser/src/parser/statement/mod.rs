@@ -20,6 +20,7 @@ mod switch;
 mod throw;
 mod try_stm;
 mod variable;
+mod with;
 
 use self::{
     block::BlockStatement,
@@ -35,6 +36,7 @@ use self::{
     throw::ThrowStatement,
     try_stm::TryStatement,
     variable::VariableStatement,
+    with::WithStatement,
 };
 use crate::{
     lexer::{
@@ -124,6 +126,11 @@ where
         let tok = cursor.peek(0, interner).or_abrupt()?;
 
         match tok.kind() {
+            TokenKind::Keyword((Keyword::With, _)) => {
+                WithStatement::new(self.allow_yield, self.allow_await, self.allow_return)
+                    .parse(cursor, interner)
+                    .map(ast::Statement::from)
+            }
             TokenKind::Keyword((Keyword::If, _)) => {
                 IfStatement::new(self.allow_yield, self.allow_await, self.allow_return)
                     .parse(cursor, interner)

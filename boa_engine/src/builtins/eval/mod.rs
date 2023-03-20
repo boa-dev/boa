@@ -10,13 +10,12 @@
 //! [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/eval
 
 use crate::{
-    builtins::BuiltInObject, context::intrinsics::Intrinsics, environments::DeclarativeEnvironment,
+    builtins::BuiltInObject, context::intrinsics::Intrinsics, environments::Environment,
     error::JsNativeError, object::JsObject, Context, JsArgs, JsResult, JsString, JsValue,
 };
 use boa_ast::operations::{
     contains, contains_arguments, top_level_var_declared_names, ContainsSymbol,
 };
-use boa_gc::Gc;
 use boa_parser::{Parser, Source};
 use boa_profiler::Profiler;
 
@@ -85,7 +84,7 @@ impl Eval {
         #[derive(Debug)]
         enum EnvStackAction {
             Truncate(usize),
-            Restore(Vec<Gc<DeclarativeEnvironment>>),
+            Restore(Vec<Environment>),
         }
 
         /// Restores the environment after calling `eval` or after throwing an error.

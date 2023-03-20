@@ -403,7 +403,7 @@ fn strict_mode_with() {
             }
         "#},
         ErrorKind::Syntax,
-        "unexpected token 'with', primary expression at line 3, col 5",
+        "with statement not allowed in strict mode at line 3, col 5",
     )]);
 }
 

@@ -515,7 +515,8 @@ impl CodeBlock {
                 | Opcode::SuperCallSpread
                 | Opcode::ForAwaitOfLoopIterate
                 | Opcode::SetPrototype
-                | Opcode::Nop => {
+                | Opcode::Nop
+                | Opcode::PushObjectEnvironment => {
                     graph.add_node(previous_pc, NodeShape::None, label.into(), Color::None);
                     graph.add_edge(previous_pc, pc, None, Color::None, EdgeStyle::Line);
                 }
