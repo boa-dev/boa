@@ -129,7 +129,11 @@ impl BuiltInConstructor for Object {
         context: &mut Context<'_>,
     ) -> JsResult<JsValue> {
         // 1. If NewTarget is neither undefined nor the active function object, then
-        if !new_target.is_undefined() {
+        if !new_target.is_undefined()
+            && !new_target.as_object().map_or(false, |o| {
+                o.eq(&context.intrinsics().constructors().object().constructor())
+            })
+        {
             //     a. Return ? OrdinaryCreateFromConstructor(NewTarget, "%Object.prototype%").
             let prototype =
                 get_prototype_from_constructor(new_target, StandardConstructors::object, context)?;
