@@ -43,29 +43,30 @@ const versionListHTMLItems = await Promise.all(
   releaseTags.map(async (tag) => {
     const response = await fetch(`./refs/tags/${tag}/latest.json`);
     const json = await response.json();
+    const stats = json.r.a;
 
     releaseData.set(tag, json);
 
     return `<li class="list-group-item d-flex justify-content-between">
       <div class="d-flex align-items-center gap-1">
         <b>${tag}</b>
-        <span class="text-success">${formatter.format(json.r.o)}</span>
+        <span class="text-success">${formatter.format(stats.o)}</span>
         /
-        <span class="text-warning">${formatter.format(json.r.i)}</span>
+        <span class="text-warning">${formatter.format(stats.i)}</span>
         /
         <span class="text-danger">${formatter.format(
-          json.r.c - json.r.o - json.r.i
+          stats.t - stats.o - stats.i
         )}
         ${
           json.r.p !== 0
             ? ` (${formatter.format(
-                json.r.p
+                stats.p
               )} <i class="bi-exclamation-triangle"></i>)`
             : ""
         }</span>
         /
         <b>${formatter.format(
-          Math.round((10000 * json.r.o) / json.r.c) / 100
+          Math.round((10000 * stats.o) / stats.t) / 100
         )}%</b>
       </div>
       <button type="button" class="btn btn-outline-primary" id="old-version-${tag}">
@@ -110,11 +111,12 @@ async function loadMainResults() {
   new Chart(document.getElementById("main-graph"), {
     type: "line",
     data: {
-      labels: data.map((data) => data.c),
-      datasets: [
+      labels: data.map((data) => data.a.t),
+      datasets:
+      [
         {
           label: "Passed",
-          data: data.map((data) => data.o),
+          data: data.map((data) => data.a.o),
           backgroundColor: "#1fcb4a",
           borderColor: "#0f6524",
           borderWidth: 1,
@@ -122,7 +124,7 @@ async function loadMainResults() {
         },
         {
           label: "Ignored",
-          data: data.map((data) => data.i),
+          data: data.map((data) => data.a.i),
           backgroundColor: "#dfa800",
           borderColor: "#6f5400",
           borderWidth: 1,
@@ -130,7 +132,7 @@ async function loadMainResults() {
         },
         {
           label: "Panics",
-          data: data.map((data) => data.p),
+          data: data.map((data) => data.a.p),
           backgroundColor: "#a30000",
           borderColor: "#510000",
           borderWidth: 1,
@@ -138,7 +140,7 @@ async function loadMainResults() {
         },
         {
           label: "Failed",
-          data: data.map((data) => data.t - data.i - data.o - data.p),
+          data: data.map((data) => data.a.t - data.a.i - data.a.o - data.a.p),
           backgroundColor: "#ff4848",
           borderColor: "#a30000",
           borderWidth: 1,
@@ -192,6 +194,7 @@ async function loadLatestVersionResults(tag) {
 
 function createInfoFromResults(resultsData, nodeID) {
   const latest = resultsData[resultsData.length - 1];
+  const stats = latest.a;
 
   document.getElementById(nodeID).insertAdjacentHTML(
     "afterbegin",
@@ -202,32 +205,32 @@ function createInfoFromResults(resultsData, nodeID) {
       }" title="Check commit">${latest.c}</a>
     </li>
     <li class="list-group-item">
-      Total tests: <span>${formatter.format(latest.t)}</span>
+      Total tests: <span>${formatter.format(stats.t)}</span>
     </li>
     <li class="list-group-item">
       Passed tests: <span class="text-success">${formatter.format(
-        latest.o
+        stats.o
       )}</span>
     </li>
     <li class="list-group-item">
       Ignored tests: <span class="text-warning">${formatter.format(
-        latest.i
+        stats.i
       )}</span>
     </li>
     <li class="list-group-item">
       Failed tests: <span class="text-danger">${formatter.format(
-        latest.t - latest.o - latest.i
+        stats.t - stats.o - stats.i
       )}
       ${
-        latest.p !== 0
+        stats.p !== 0
           ? ` (${formatter.format(
-              latest.p
+              stats.p
             )} <i class="bi-exclamation-triangle"></i>)`
           : ""
       }</span>
     </li>
     <li class="list-group-item">
-      Conformance: <b>${Math.round((10000 * latest.o) / latest.t) / 100}%</b>
+      Conformance: <b>${Math.round((10000 * stats.o) / stats.t) / 100}%</b>
     </li>
   `
   );
@@ -241,9 +244,10 @@ function showData(data) {
   const infoOptionsContainer = document.getElementById("info-options");
   const progressInfoContainer = document.getElementById("progress-info");
 
-  const totalTests = data.r.c;
-  const passedTests = data.r.o;
-  const ignoredTests = data.r.i;
+  const stats = data.r.a;
+  const totalTests = stats.t;
+  const passedTests = stats.o;
+  const ignoredTests = stats.i;
   const failedTests = totalTests - passedTests - ignoredTests;
 
   infoContainer.innerHTML = "";
@@ -281,7 +285,8 @@ function showData(data) {
 }
 
 function addSuite(suite, parentID, namespace, upstream) {
-  if (hidePassingSuites && suite.o === suite.c) {
+  const stats = suite.a;
+  if (hidePassingSuites && stats.o === stats.t) {
     return;
   }
 
@@ -301,22 +306,22 @@ function addSuite(suite, parentID, namespace, upstream) {
       >
         <span class="data-overview">
           <span class="name">${suite.n}</span>
-          <span class="text-success">${formatter.format(suite.o)}</span>
+          <span class="text-success">${formatter.format(stats.o)}</span>
           /
-          <span class="text-warning">${formatter.format(suite.i)}</span>
+          <span class="text-warning">${formatter.format(stats.i)}</span>
           /
           <span class="text-danger">${formatter.format(
-            suite.c - suite.o - suite.i
+            stats.t - stats.o - stats.i
           )}
           ${
-            suite.p !== 0
+            stats.p !== 0
               ? ` (${formatter.format(
                   suite.p
                 )} <i class="bi-exclamation-triangle"></i>)`
               : ""
           }</span>
           /
-          <span>${formatter.format(suite.c)}</span>
+          <span>${formatter.format(stats.t)}</span>
         </span>
       </button>
     </h2>
