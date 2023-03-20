@@ -27,11 +27,10 @@ struct ReducedResultInfo {
     commit: Box<str>,
     #[serde(rename = "u")]
     test262_commit: Box<str>,
-    #[serde(rename = "a")]
     all_stats: Statistics,
-    #[serde(rename = "a5")]
+    #[serde(rename = "a5", default)]
     es5_stats: Statistics,
-    #[serde(rename = "a6")]
+    #[serde(rename = "a6", default)]
     es6_stats: Statistics,
 }
 

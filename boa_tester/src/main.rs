@@ -361,11 +361,10 @@ impl Add for Statistics {
 struct SuiteResult {
     #[serde(rename = "n")]
     name: Box<str>,
-    #[serde(rename = "a")]
     all_stats: Statistics,
-    #[serde(rename = "a5")]
+    #[serde(rename = "a5", default)]
     es5_stats: Statistics,
-    #[serde(rename = "a6")]
+    #[serde(rename = "a6", default)]
     es6_stats: Statistics,
     #[serde(skip_serializing_if = "Vec::is_empty", default)]
     #[serde(rename = "s")]
