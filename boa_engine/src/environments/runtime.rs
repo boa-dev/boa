@@ -241,6 +241,12 @@ impl Environment {
             Self::Object(_) => None,
         }
     }
+
+    /// Returns the declarative environment and panic if it is not one.
+    pub(crate) fn declarative_expect(&self) -> &Gc<DeclarativeEnvironment> {
+        self.as_declarative()
+            .expect("environment must be declarative")
+    }
 }
 
 impl DeclarativeEnvironmentStack {
@@ -560,8 +566,7 @@ impl DeclarativeEnvironmentStack {
         self.stack
             .last()
             .expect("global environment must always exist")
-            .as_declarative()
-            .expect("global environment must always exist")
+            .declarative_expect()
             .clone()
     }
 
@@ -643,8 +648,7 @@ impl DeclarativeEnvironmentStack {
         self.stack
             .get(environment_index)
             .expect("environment index must be in range")
-            .as_declarative()
-            .expect("environment must be declarative")
+            .declarative_expect()
             .bindings
             .borrow()
             .get(binding_index)
@@ -667,8 +671,7 @@ impl DeclarativeEnvironmentStack {
             .stack
             .get(environment_index)
             .expect("environment index must be in range")
-            .as_declarative()
-            .expect("environment must be declarative")
+            .declarative_expect()
             .bindings
             .borrow_mut();
         let binding = bindings
@@ -692,8 +695,7 @@ impl DeclarativeEnvironmentStack {
             .stack
             .get(environment_index)
             .expect("environment index must be in range")
-            .as_declarative()
-            .expect("environment must be declarative")
+            .declarative_expect()
             .bindings
             .borrow_mut();
         let binding = bindings
@@ -857,13 +859,7 @@ impl Context<'_> {
         name: Identifier,
     ) -> JsResult<Option<JsValue>> {
         for env_index in (environment_index + 1..self.realm.environments.stack.len()).rev() {
-            match self
-                .realm
-                .environments
-                .stack
-                .get(env_index)
-                .expect("environment index must be in range")
-            {
+            match self.environment_expect(env_index) {
                 Environment::Declarative(env) => {
                     if env.poisoned.get() {
                         let compile = env.compile.borrow();
@@ -898,13 +894,8 @@ impl Context<'_> {
         }
 
         Ok(self
-            .realm
-            .environments
-            .stack
-            .get(environment_index)
-            .expect("environment index must be in range")
-            .as_declarative()
-            .expect("environment must be declarative")
+            .environment_expect(environment_index)
+            .declarative_expect()
             .bindings
             .borrow()
             .get(binding_index)
@@ -921,12 +912,7 @@ impl Context<'_> {
         name: Identifier,
     ) -> JsResult<Option<JsValue>> {
         for env_index in (0..self.realm.environments.stack.len()).rev() {
-            let env = self
-                .realm
-                .environments
-                .stack
-                .get(env_index)
-                .expect("environment index must be in range");
+            let env = self.environment_expect(env_index);
 
             match env {
                 Environment::Declarative(env) => {
@@ -935,13 +921,8 @@ impl Context<'_> {
                         if compile.is_function() {
                             if let Some(b) = compile.get_binding(name) {
                                 return Ok(self
-                                    .realm
-                                    .environments
-                                    .stack
-                                    .get(b.environment_index)
-                                    .expect("environment index must be in range")
-                                    .as_declarative()
-                                    .expect("environment must be declarative")
+                                    .environment_expect(b.environment_index)
+                                    .declarative_expect()
                                     .bindings
                                     .borrow()
                                     .get(b.binding_index)
@@ -989,12 +970,8 @@ impl Context<'_> {
         value: JsValue,
     ) -> JsResult<bool> {
         for env_index in (environment_index + 1..self.realm.environments.stack.len()).rev() {
-            let env = self
-                .realm
-                .environments
-                .stack
-                .get(env_index)
-                .expect("environment index must be in range");
+            let env = self.environment_expect(env_index);
+
             match env {
                 Environment::Declarative(env) => {
                     if env.poisoned.get() {
@@ -1030,13 +1007,8 @@ impl Context<'_> {
         }
 
         let mut bindings = self
-            .realm
-            .environments
-            .stack
-            .get(environment_index)
-            .expect("environment index must be in range")
-            .as_declarative()
-            .expect("msg")
+            .environment_expect(environment_index)
+            .declarative_expect()
             .bindings
             .borrow_mut();
         let binding = bindings
@@ -1064,12 +1036,7 @@ impl Context<'_> {
         value: &JsValue,
     ) -> JsResult<bool> {
         for env_index in (0..self.realm.environments.stack.len()).rev() {
-            let env = self
-                .realm
-                .environments
-                .stack
-                .get(env_index)
-                .expect("environment index must be in range");
+            let env = self.environment_expect(env_index);
 
             match env {
                 Environment::Declarative(env) => {
@@ -1078,13 +1045,8 @@ impl Context<'_> {
                         if compile.is_function() {
                             if let Some(b) = compile.get_binding(name) {
                                 let mut bindings = self
-                                    .realm
-                                    .environments
-                                    .stack
-                                    .get(b.environment_index)
-                                    .expect("environment index must be in range")
-                                    .as_declarative()
-                                    .expect("environment must be declarative")
+                                    .environment_expect(b.environment_index)
+                                    .declarative_expect()
                                     .bindings
                                     .borrow_mut();
                                 let binding = bindings
@@ -1128,12 +1090,7 @@ impl Context<'_> {
         name: Identifier,
     ) -> JsResult<(bool, bool)> {
         for env_index in (0..self.realm.environments.stack.len()).rev() {
-            let env = self
-                .realm
-                .environments
-                .stack
-                .get(env_index)
-                .expect("environment index must be in range");
+            let env = self.environment_expect(env_index);
 
             match env {
                 Environment::Object(o) => {
@@ -1161,5 +1118,14 @@ impl Context<'_> {
         }
 
         Ok((false, false))
+    }
+
+    /// Return the environment at the given index. Panics if the index is out of range.
+    fn environment_expect(&self, index: usize) -> &Environment {
+        self.realm
+            .environments
+            .stack
+            .get(index)
+            .expect("environment index must be in range")
     }
 }

@@ -1475,8 +1475,7 @@ impl JsObject {
                         .into())
                 } else {
                     let function_env = environment
-                        .as_declarative()
-                        .expect("must be function environment")
+                        .declarative_expect()
                         .slots()
                         .expect("must be function environment")
                         .as_function_slots()
