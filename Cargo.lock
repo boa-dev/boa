@@ -268,9 +268,9 @@ checksum = "bef38d45163c2f1dde094a7dfd33ccf595c92905c8f8f4fdc18d06fb1037718a"
 
 [[package]]
 name = "bitflags"
-version = "2.0.1"
+version = "2.0.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "d5dd14596c0e5b954530d0e6f1fd99b89c03e313aa2086e8da4303701a09e1cf"
+checksum = "487f1e0fcbe47deb8b0574e646def1c903389d95241dd1bbcc6ce4a715dfc0c1"
 dependencies = [
  "serde",
 ]
@@ -303,7 +303,7 @@ name = "boa_ast"
 version = "0.16.0"
 dependencies = [
  "arbitrary",
- "bitflags 2.0.1",
+ "bitflags 2.0.2",
  "boa_interner",
  "boa_macros",
  "num-bigint",
@@ -332,7 +332,7 @@ dependencies = [
 name = "boa_engine"
 version = "0.16.0"
 dependencies = [
- "bitflags 2.0.1",
+ "bitflags 2.0.2",
  "boa_ast",
  "boa_gc",
  "boa_icu_provider",
@@ -441,7 +441,7 @@ dependencies = [
 name = "boa_parser"
 version = "0.16.0"
 dependencies = [
- "bitflags 2.0.1",
+ "bitflags 2.0.2",
  "boa_ast",
  "boa_interner",
  "boa_macros",
@@ -467,7 +467,7 @@ dependencies = [
 name = "boa_tester"
 version = "0.16.0"
 dependencies = [
- "bitflags 2.0.1",
+ "bitflags 2.0.2",
  "boa_engine",
  "boa_gc",
  "clap 4.1.11",
