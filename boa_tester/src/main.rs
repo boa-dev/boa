@@ -90,6 +90,7 @@ use serde::{
 use std::{
     fs::{self, File},
     io::Read,
+    ops::Add,
     path::{Path, PathBuf},
 };
 
@@ -270,21 +271,32 @@ fn run_test_suite(
         }
         let results = suite.run(&harness, verbose, parallel);
 
+        let total = results.all_stats.total;
+        let passed = results.all_stats.passed;
+        let ignored = results.all_stats.ignored;
+        let panicked = results.all_stats.panic;
+
         println!();
         println!("Results:");
-        println!("Total tests: {}", results.total);
-        println!("Passed tests: {}", results.passed.to_string().green());
-        println!("Ignored tests: {}", results.ignored.to_string().yellow());
+        println!("Total tests: {total}");
+        println!("Passed tests: {}", passed.to_string().green());
+        println!("Ignored tests: {}", ignored.to_string().yellow());
         println!(
             "Failed tests: {} (panics: {})",
-            (results.total - results.passed - results.ignored)
-                .to_string()
-                .red(),
-            results.panic.to_string().red()
+            (total - passed - ignored).to_string().red(),
+            panicked.to_string().red()
         );
         println!(
             "Conformance: {:.2}%",
-            (results.passed as f64 / results.total as f64) * 100.0
+            (passed as f64 / total as f64) * 100.0
+        );
+        println!(
+            "ES5 Conformance: {:.2}%",
+            (results.es5_stats.passed as f64 / results.es5_stats.total as f64) * 100.0
+        );
+        println!(
+            "ES6 Conformance: {:.2}%",
+            (results.es6_stats.passed as f64 / results.es6_stats.total as f64) * 100.0
         );
 
         write_json(results, output, verbose)
@@ -318,12 +330,10 @@ struct TestSuite {
     tests: Box<[Test]>,
 }
 
-/// Outcome of a test suite.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-struct SuiteResult {
-    #[serde(rename = "n")]
-    name: Box<str>,
-    #[serde(rename = "c")]
+/// Represents a tests statistic
+#[derive(Default, Debug, Clone, Serialize, Deserialize)]
+struct Statistics {
+    #[serde(rename = "t")]
     total: usize,
     #[serde(rename = "o")]
     passed: usize,
@@ -331,6 +341,32 @@ struct SuiteResult {
     ignored: usize,
     #[serde(rename = "p")]
     panic: usize,
+}
+
+impl Add for Statistics {
+    type Output = Self;
+
+    fn add(self, rhs: Self) -> Self::Output {
+        Self {
+            total: self.total + rhs.total,
+            passed: self.passed + rhs.passed,
+            ignored: self.ignored + rhs.ignored,
+            panic: self.panic + rhs.panic,
+        }
+    }
+}
+
+/// Outcome of a test suite.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+struct SuiteResult {
+    #[serde(rename = "n")]
+    name: Box<str>,
+    #[serde(rename = "a")]
+    all_stats: Statistics,
+    #[serde(rename = "a5", default)]
+    es5_stats: Statistics,
+    #[serde(rename = "a6", default)]
+    es6_stats: Statistics,
     #[serde(skip_serializing_if = "Vec::is_empty", default)]
     #[serde(rename = "s")]
     suites: Vec<SuiteResult>,
@@ -348,6 +384,8 @@ struct SuiteResult {
 struct TestResult {
     #[serde(rename = "n")]
     name: Box<str>,
+    #[serde(rename = "v", default)]
+    spec_version: SpecVersion,
     #[serde(rename = "s", default)]
     strict: bool,
     #[serde(skip)]
@@ -368,6 +406,15 @@ enum TestOutcomeResult {
     Panic,
 }
 
+#[derive(Debug, Serialize, Clone, Copy, Deserialize, PartialEq, Default)]
+#[serde(untagged)]
+enum SpecVersion {
+    ES5 = 5,
+    ES6 = 6,
+    #[default]
+    ES13 = 13,
+}
+
 /// Represents a test.
 #[derive(Debug, Clone)]
 #[allow(dead_code)]
@@ -375,6 +422,7 @@ struct Test {
     name: Box<str>,
     description: Box<str>,
     esid: Option<Box<str>>,
+    spec_version: SpecVersion,
     flags: TestFlags,
     information: Box<str>,
     features: Box<[Box<str>]>,
@@ -392,10 +440,19 @@ impl Test {
         N: Into<Box<str>>,
         C: Into<Box<Path>>,
     {
+        let spec_version = if metadata.es5id.is_some() {
+            SpecVersion::ES5
+        } else if metadata.es6id.is_some() {
+            SpecVersion::ES6
+        } else {
+            SpecVersion::ES13
+        };
+
         Self {
             name: name.into(),
             description: metadata.description,
             esid: metadata.esid,
+            spec_version,
             flags: metadata.flags.into(),
             information: metadata.info,
             features: metadata.features,

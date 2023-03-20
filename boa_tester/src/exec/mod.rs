@@ -3,8 +3,8 @@
 mod js262;
 
 use crate::{
-    read::ErrorType, Harness, Outcome, Phase, SuiteResult, Test, TestFlags, TestOutcomeResult,
-    TestResult, TestSuite,
+    read::ErrorType, Harness, Outcome, Phase, SpecVersion, Statistics, SuiteResult, Test,
+    TestFlags, TestOutcomeResult, TestResult, TestSuite,
 };
 use boa_engine::{
     context::ContextBuilder, job::SimpleJobQueue, native_function::NativeFunction,
@@ -57,53 +57,75 @@ impl TestSuite {
             println!();
         }
 
-        // Count passed tests
-        let mut passed = 0;
-        let mut ignored = 0;
-        let mut panic = 0;
+        // Count passed tests and es specs
+        let mut all = Statistics::default();
+        let mut es5 = Statistics::default();
+        let mut es6 = Statistics::default();
+
+        let mut append_stats = |spec_version: SpecVersion, f: &dyn Fn(&mut Statistics)| {
+            f(&mut all);
+            if spec_version == SpecVersion::ES5 {
+                f(&mut es5);
+            } else if spec_version == SpecVersion::ES6 {
+                f(&mut es6);
+            }
+        };
+
         for test in &tests {
             match test.result {
-                TestOutcomeResult::Passed => passed += 1,
-                TestOutcomeResult::Ignored => ignored += 1,
-                TestOutcomeResult::Panic => panic += 1,
+                TestOutcomeResult::Passed => {
+                    append_stats(test.spec_version, &|stats| {
+                        stats.passed += 1;
+                    });
+                }
+                TestOutcomeResult::Ignored => {
+                    append_stats(test.spec_version, &|stats| {
+                        stats.ignored += 1;
+                    });
+                }
+                TestOutcomeResult::Panic => {
+                    append_stats(test.spec_version, &|stats| {
+                        stats.panic += 1;
+                    });
+                }
                 TestOutcomeResult::Failed => {}
             }
+            append_stats(test.spec_version, &|stats| {
+                stats.total += 1;
+            });
         }
 
         // Count total tests
-        let mut total = tests.len();
         for suite in &suites {
-            total += suite.total;
-            passed += suite.passed;
-            ignored += suite.ignored;
-            panic += suite.panic;
+            all = all + suite.all_stats.clone();
+            es5 = es5 + suite.es5_stats.clone();
+            es6 = es6 + suite.es6_stats.clone();
             features.append(&mut suite.features.clone());
         }
 
         if verbose != 0 {
             println!(
-                "Suite {} results: total: {total}, passed: {}, ignored: {}, failed: {} (panics: \
+                "Suite {} results: total: {}, passed: {}, ignored: {}, failed: {} (panics: \
                     {}{}), conformance: {:.2}%",
+                all.total,
                 self.path.display(),
-                passed.to_string().green(),
-                ignored.to_string().yellow(),
-                (total - passed - ignored).to_string().red(),
-                if panic == 0 {
+                all.passed.to_string().green(),
+                all.ignored.to_string().yellow(),
+                (all.total - all.passed - all.ignored).to_string().red(),
+                if all.panic == 0 {
                     "0".normal()
                 } else {
-                    panic.to_string().red()
+                    all.panic.to_string().red()
                 },
-                if panic == 0 { "" } else { " ⚠" }.red(),
-                (passed as f64 / total as f64) * 100.0
+                if all.panic == 0 { "" } else { " ⚠" }.red(),
+                (all.passed as f64 / all.total as f64) * 100.0
             );
         }
-
         SuiteResult {
             name: self.name.clone(),
-            total,
-            passed,
-            ignored,
-            panic,
+            all_stats: all,
+            es5_stats: es5,
+            es6_stats: es6,
             suites,
             tests,
             features,
@@ -141,6 +163,7 @@ impl Test {
             }
             return TestResult {
                 name: self.name.clone(),
+                spec_version: self.spec_version,
                 strict,
                 result: TestOutcomeResult::Failed,
                 result_text: Box::from("Could not read test file.")
@@ -159,6 +182,7 @@ impl Test {
             }
             return TestResult {
                 name: self.name.clone(),
+                spec_version: self.spec_version,
                 strict,
                 result: TestOutcomeResult::Ignored,
                 result_text: Box::default(),
@@ -357,6 +381,7 @@ impl Test {
 
         TestResult {
             name: self.name.clone(),
+            spec_version: self.spec_version,
             strict,
             result,
             result_text: result_text.into_boxed_str(),
