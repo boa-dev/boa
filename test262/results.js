@@ -316,7 +316,7 @@ function addSuite(suite, parentID, namespace, upstream) {
           ${
             stats.p !== 0
               ? ` (${formatter.format(
-                  suite.p
+                  stats.p
                 )} <i class="bi-exclamation-triangle"></i>)`
               : ""
           }</span>
