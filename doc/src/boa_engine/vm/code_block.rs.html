@@ -1497,6 +1497,13 @@
 <a href="#1496" id="1496">1496</a>
 <a href="#1497" id="1497">1497</a>
 <a href="#1498" id="1498">1498</a>
+<a href="#1499" id="1499">1499</a>
+<a href="#1500" id="1500">1500</a>
+<a href="#1501" id="1501">1501</a>
+<a href="#1502" id="1502">1502</a>
+<a href="#1503" id="1503">1503</a>
+<a href="#1504" id="1504">1504</a>
+<a href="#1505" id="1505">1505</a>
 </pre><pre class="rust"><code><span class="doccomment">//! `CodeBlock`
 //!
 //! This module is for the `CodeBlock` which implements a function representation in the VM
@@ -1517,7 +1524,7 @@
     },
     property::PropertyDescriptor,
     string::utf16,
-    vm::{CallFrame, Opcode},
+    vm::CallFrame,
     Context, JsResult, JsString, JsValue,
 };
 <span class="kw">use </span>boa_ast::{
@@ -1525,9 +1532,14 @@
     function::{FormalParameterList, PrivateName},
 };
 <span class="kw">use </span>boa_gc::{Finalize, Gc, GcRefCell, Trace};
-<span class="kw">use </span>boa_interner::{Interner, Sym, ToInternedString};
+<span class="kw">use </span>boa_interner::Sym;
 <span class="kw">use </span>boa_profiler::Profiler;
-<span class="kw">use </span>std::{collections::VecDeque, convert::TryInto, mem::size_of};
+<span class="kw">use </span>std::{collections::VecDeque, mem::size_of};
+
+<span class="attr">#[cfg(any(feature = <span class="string">&quot;trace&quot;</span>, feature = <span class="string">&quot;flowgraph&quot;</span>))]
+</span><span class="kw">use </span><span class="kw">crate</span>::vm::Opcode;
+<span class="attr">#[cfg(any(feature = <span class="string">&quot;trace&quot;</span>, feature = <span class="string">&quot;flowgraph&quot;</span>))]
+</span><span class="kw">use </span>boa_interner::{Interner, ToInternedString};
 
 <span class="doccomment">/// This represents whether a value can be read from [`CodeBlock`] code.
 ///
@@ -1689,6 +1701,7 @@
     /// Modifies the `pc` to point to the next instruction.
     ///
     /// Returns an empty `String` if no operands are present.
+    </span><span class="attr">#[cfg(any(feature = <span class="string">&quot;trace&quot;</span>, feature = <span class="string">&quot;flowgraph&quot;</span>))]
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>instruction_operands(<span class="kw-2">&amp;</span><span class="self">self</span>, pc: <span class="kw-2">&amp;mut </span>usize, interner: <span class="kw-2">&amp;</span>Interner) -&gt; String {
         <span class="kw">let </span>opcode: Opcode = <span class="self">self</span>.bytecode[<span class="kw-2">*</span>pc].try_into().expect(<span class="string">&quot;invalid opcode&quot;</span>);
         <span class="kw-2">*</span>pc += size_of::&lt;Opcode&gt;();
@@ -1779,7 +1792,7 @@
                 <span class="kw">let </span>operand = <span class="self">self</span>.read::&lt;u32&gt;(<span class="kw-2">*</span>pc);
                 <span class="kw-2">*</span>pc += size_of::&lt;u32&gt;() + size_of::&lt;u8&gt;();
                 <span class="macro">format!</span>(
-                    <span class="string">&quot;{operand:04}: &#39;{:?}&#39; (length: {})&quot;</span>,
+                    <span class="string">&quot;{operand:04}: &#39;{}&#39; (length: {})&quot;</span>,
                     interner.resolve_expect(<span class="self">self</span>.functions[operand <span class="kw">as </span>usize].name),
                     <span class="self">self</span>.functions[operand <span class="kw">as </span>usize].length
                 )
@@ -1949,7 +1962,8 @@
     }
 }
 
-<span class="kw">impl </span>ToInternedString <span class="kw">for </span>CodeBlock {
+<span class="attr">#[cfg(any(feature = <span class="string">&quot;trace&quot;</span>, feature = <span class="string">&quot;flowgraph&quot;</span>))]
+</span><span class="kw">impl </span>ToInternedString <span class="kw">for </span>CodeBlock {
     <span class="kw">fn </span>to_interned_string(<span class="kw-2">&amp;</span><span class="self">self</span>, interner: <span class="kw-2">&amp;</span>Interner) -&gt; String {
         <span class="kw">let </span>name = interner.resolve_expect(<span class="self">self</span>.name);
         <span class="kw">let </span><span class="kw-2">mut </span>f = <span class="kw">if </span><span class="self">self</span>.name == Sym::MAIN {
