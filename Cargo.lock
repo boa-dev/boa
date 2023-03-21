@@ -409,7 +409,7 @@ dependencies = [
  "icu_provider_blob",
  "log",
  "once_cell",
- "simple_logger 4.0.0",
+ "simple_logger 4.1.0",
 ]
 
 [[package]]
@@ -682,7 +682,7 @@ version = "4.1.11"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "42dfd32784433290c51d92c438bb72ea5063797fc3cc9a21a8c4346bebbb2098"
 dependencies = [
- "bitflags 2.0.1",
+ "bitflags 2.0.2",
  "clap_derive",
  "clap_lex 0.3.3",
  "is-terminal",
@@ -3623,9 +3623,9 @@ dependencies = [
 
 [[package]]
 name = "simple_logger"
-version = "4.0.0"
+version = "4.1.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "e190a521c2044948158666916d9e872cbb9984f755e9bb3b5b75a836205affcd"
+checksum = "e78beb34673091ccf96a8816fce8bfd30d1292c7621ca2bcb5f2ba0fae4f558d"
 dependencies = [
  "atty",
  "colored",
