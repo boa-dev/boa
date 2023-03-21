@@ -146,7 +146,6 @@
 <a href="#145" id="145">145</a>
 <a href="#146" id="146">146</a>
 <a href="#147" id="147">147</a>
-<a href="#148" id="148">148</a>
 </pre><pre class="rust"><code><span class="doccomment">//! This module implements the `ForInIterator` object.
 //!
 //! More information:
@@ -218,16 +217,15 @@
     ///  - [ECMA reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-createforiniterator
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>create_for_in_iterator(object: JsValue, context: <span class="kw-2">&amp;</span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsValue {
-        <span class="kw">let </span>for_in_iterator = JsObject::from_proto_and_data(
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>create_for_in_iterator(object: JsValue, context: <span class="kw-2">&amp;</span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsObject {
+        JsObject::from_proto_and_data(
             context
                 .intrinsics()
                 .objects()
                 .iterator_prototypes()
                 .for_in(),
             ObjectData::for_in_iterator(<span class="self">Self</span>::new(object)),
-        );
-        for_in_iterator.into()
+        )
     }
 
     <span class="doccomment">/// %ForInIteratorPrototype%.next( )

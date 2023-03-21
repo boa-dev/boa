@@ -414,7 +414,7 @@
                     <span class="kw">if let </span><span class="prelude-val">Some</span>(element) = element {
                         <span class="self">self</span>.compile_expr(element, <span class="bool-val">true</span>);
                         <span class="kw">if let </span>Expression::Spread(<span class="kw">_</span>) = element {
-                            <span class="self">self</span>.emit_opcode(Opcode::InitIterator);
+                            <span class="self">self</span>.emit_opcode(Opcode::GetIterator);
                             <span class="self">self</span>.emit_opcode(Opcode::PushIteratorToArray);
                         } <span class="kw">else </span>{
                             <span class="self">self</span>.emit_opcode(Opcode::PushValueToArray);
@@ -473,9 +473,9 @@
 
                 <span class="kw">if </span>r#yield.delegate() {
                     <span class="kw">if </span><span class="self">self</span>.in_async_generator {
-                        <span class="self">self</span>.emit_opcode(Opcode::InitIteratorAsync);
+                        <span class="self">self</span>.emit_opcode(Opcode::GetAsyncIterator);
                     } <span class="kw">else </span>{
-                        <span class="self">self</span>.emit_opcode(Opcode::InitIterator);
+                        <span class="self">self</span>.emit_opcode(Opcode::GetIterator);
                     }
                     <span class="self">self</span>.emit_opcode(Opcode::PushUndefined);
                     <span class="kw">let </span>start_address = <span class="self">self</span>.next_opcode_location();
@@ -484,15 +484,15 @@
                     <span class="self">self</span>.patch_jump(start);
                 } <span class="kw">else if </span><span class="self">self</span>.in_async_generator {
                     <span class="self">self</span>.emit_opcode(Opcode::Await);
-                    <span class="self">self</span>.emit_opcode(Opcode::AsyncGeneratorNext);
-                    <span class="kw">let </span>jump_return = <span class="self">self</span>.emit_opcode_with_operand(Opcode::JumpIfFalse);
-                    <span class="kw">let </span>jump = <span class="self">self</span>.emit_opcode_with_operand(Opcode::JumpIfFalse);
+                    <span class="kw">let </span>(skip_yield, skip_yield_await) =
+                        <span class="self">self</span>.emit_opcode_with_two_operands(Opcode::AsyncGeneratorNext);
+                    <span class="self">self</span>.emit_opcode(Opcode::PushUndefined);
                     <span class="self">self</span>.emit_opcode(Opcode::Yield);
                     <span class="self">self</span>.emit_opcode(Opcode::GeneratorNext);
-                    <span class="self">self</span>.patch_jump(jump);
+                    <span class="self">self</span>.patch_jump(skip_yield);
                     <span class="self">self</span>.emit_opcode(Opcode::Await);
                     <span class="self">self</span>.emit_opcode(Opcode::GeneratorNext);
-                    <span class="self">self</span>.patch_jump(jump_return);
+                    <span class="self">self</span>.patch_jump(skip_yield_await);
                 } <span class="kw">else </span>{
                     <span class="self">self</span>.emit_opcode(Opcode::Yield);
                     <span class="self">self</span>.emit_opcode(Opcode::GeneratorNext);
@@ -575,7 +575,7 @@
                     <span class="kw">for </span>arg <span class="kw">in </span>super_call.arguments() {
                         <span class="self">self</span>.compile_expr(arg, <span class="bool-val">true</span>);
                         <span class="kw">if let </span>Expression::Spread(<span class="kw">_</span>) = arg {
-                            <span class="self">self</span>.emit_opcode(Opcode::InitIterator);
+                            <span class="self">self</span>.emit_opcode(Opcode::GetIterator);
                             <span class="self">self</span>.emit_opcode(Opcode::PushIteratorToArray);
                         } <span class="kw">else </span>{
                             <span class="self">self</span>.emit_opcode(Opcode::PushValueToArray);

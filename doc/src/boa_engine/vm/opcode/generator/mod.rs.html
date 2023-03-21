@@ -218,14 +218,6 @@
 <a href="#217" id="217">217</a>
 <a href="#218" id="218">218</a>
 <a href="#219" id="219">219</a>
-<a href="#220" id="220">220</a>
-<a href="#221" id="221">221</a>
-<a href="#222" id="222">222</a>
-<a href="#223" id="223">223</a>
-<a href="#224" id="224">224</a>
-<a href="#225" id="225">225</a>
-<a href="#226" id="226">226</a>
-<a href="#227" id="227">227</a>
 </pre><pre class="rust"><code><span class="kw">use crate</span>::{
     builtins::{
         async_generator::{AsyncGenerator, AsyncGeneratorState},
@@ -296,6 +288,9 @@
     <span class="kw">const </span>INSTRUCTION: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;INST - AsyncGeneratorNext&quot;</span>;
 
     <span class="kw">fn </span>execute(context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;CompletionType&gt; {
+        <span class="kw">let </span>skip_yield = context.vm.read::&lt;u32&gt;();
+        <span class="kw">let </span>skip_yield_await = context.vm.read::&lt;u32&gt;();
+
         <span class="kw">if </span>context.vm.frame().generator_resume_kind == GeneratorResumeKind::Throw {
             <span class="kw">return </span><span class="prelude-val">Err</span>(JsError::from_opaque(context.vm.pop()));
         }
@@ -332,17 +327,13 @@
                     <span class="prelude-val">Err</span>(e) =&gt; e.clone().to_opaque(context),
                 };
                 context.vm.push(value);
-                context.vm.push(<span class="bool-val">true</span>);
+                context.vm.frame_mut().pc = skip_yield <span class="kw">as </span>usize;
             } <span class="kw">else </span>{
                 context.vm.push(completion.clone()<span class="question-mark">?</span>);
-                context.vm.push(<span class="bool-val">false</span>);
+                context.vm.frame_mut().pc = skip_yield_await <span class="kw">as </span>usize;
             }
-
-            context.vm.push(<span class="bool-val">false</span>);
         } <span class="kw">else </span>{
             gen.state = AsyncGeneratorState::SuspendedYield;
-            context.vm.push(<span class="bool-val">true</span>);
-            context.vm.push(<span class="bool-val">true</span>);
         }
         <span class="prelude-val">Ok</span>(CompletionType::Normal)
     }
@@ -362,11 +353,6 @@
     <span class="kw">fn </span>execute(context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;CompletionType&gt; {
         <span class="kw">let </span>done_address = context.vm.read::&lt;u32&gt;();
         <span class="kw">let </span>received = context.vm.pop();
-        <span class="kw">let </span>done = context
-            .vm
-            .pop()
-            .as_boolean()
-            .expect(<span class="string">&quot;iterator [[Done]] was not a boolean&quot;</span>);
         <span class="kw">let </span>next_method = context.vm.pop();
         <span class="kw">let </span>iterator = context.vm.pop();
         <span class="kw">let </span>iterator = iterator.as_object().expect(<span class="string">&quot;iterator was not an object&quot;</span>);
@@ -377,7 +363,8 @@
                 <span class="kw">let </span>result = result.as_object().ok_or_else(|| {
                     JsNativeError::typ().with_message(<span class="string">&quot;generator next method returned non-object&quot;</span>)
                 })<span class="question-mark">?</span>;
-                <span class="kw">let </span>done = result.get(<span class="macro">utf16!</span>(<span class="string">&quot;done&quot;</span>), context)<span class="question-mark">?</span>.to_boolean();
+                <span class="comment">// TODO: This is wrong for async generators, since we need to await the result first.
+                </span><span class="kw">let </span>done = result.get(<span class="macro">utf16!</span>(<span class="string">&quot;done&quot;</span>), context)<span class="question-mark">?</span>.to_boolean();
                 <span class="kw">if </span>done {
                     context.vm.frame_mut().pc = done_address <span class="kw">as </span>usize;
                     <span class="kw">let </span>value = result.get(<span class="macro">utf16!</span>(<span class="string">&quot;value&quot;</span>), context)<span class="question-mark">?</span>;
@@ -387,7 +374,6 @@
                 <span class="kw">let </span>value = result.get(<span class="macro">utf16!</span>(<span class="string">&quot;value&quot;</span>), context)<span class="question-mark">?</span>;
                 context.vm.push(iterator.clone());
                 context.vm.push(next_method.clone());
-                context.vm.push(done);
                 context.vm.push(value);
                 context.vm.frame_mut().early_return = <span class="prelude-val">Some</span>(EarlyReturnType::Yield);
                 <span class="prelude-val">Ok</span>(CompletionType::Return)
@@ -410,13 +396,12 @@
                     <span class="kw">let </span>value = result_object.get(<span class="macro">utf16!</span>(<span class="string">&quot;value&quot;</span>), context)<span class="question-mark">?</span>;
                     context.vm.push(iterator.clone());
                     context.vm.push(next_method.clone());
-                    context.vm.push(done);
                     context.vm.push(value);
                     context.vm.frame_mut().early_return = <span class="prelude-val">Some</span>(EarlyReturnType::Yield);
                     <span class="kw">return </span><span class="prelude-val">Ok</span>(CompletionType::Return);
                 }
                 context.vm.frame_mut().pc = done_address <span class="kw">as </span>usize;
-                <span class="kw">let </span>iterator_record = IteratorRecord::new(iterator.clone(), next_method, done);
+                <span class="kw">let </span>iterator_record = IteratorRecord::new(iterator.clone(), next_method, <span class="bool-val">false</span>);
                 iterator_record.close(<span class="prelude-val">Ok</span>(JsValue::Undefined), context)<span class="question-mark">?</span>;
 
                 <span class="prelude-val">Err</span>(JsNativeError::typ()
@@ -441,7 +426,6 @@
                     <span class="kw">let </span>value = result_object.get(<span class="macro">utf16!</span>(<span class="string">&quot;value&quot;</span>), context)<span class="question-mark">?</span>;
                     context.vm.push(iterator.clone());
                     context.vm.push(next_method.clone());
-                    context.vm.push(done);
                     context.vm.push(value);
                     context.vm.frame_mut().early_return = <span class="prelude-val">Some</span>(EarlyReturnType::Yield);
                     <span class="kw">return </span><span class="prelude-val">Ok</span>(CompletionType::Return);

@@ -1524,6 +1524,7 @@
 <span class="kw">mod </span>jump_control;
 <span class="kw">mod </span>module;
 <span class="kw">mod </span>statement;
+<span class="kw">mod </span>utils;
 
 <span class="kw">use crate</span>::{
     builtins::function::ThisMode,
@@ -2025,23 +2026,23 @@
     }
 
     <span class="kw">fn </span>jump(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; Label {
-        <span class="kw">let </span>index = <span class="self">self</span>.next_opcode_location();
-        <span class="self">self</span>.emit(Opcode::Jump, <span class="kw-2">&amp;</span>[<span class="self">Self</span>::DUMMY_ADDRESS]);
-        Label { index }
+        <span class="self">self</span>.emit_opcode_with_operand(Opcode::Jump)
+    }
+
+    <span class="kw">fn </span>jump_if_true(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; Label {
+        <span class="self">self</span>.emit_opcode_with_operand(Opcode::JumpIfTrue)
     }
 
     <span class="kw">fn </span>jump_if_false(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; Label {
-        <span class="kw">let </span>index = <span class="self">self</span>.next_opcode_location();
-        <span class="self">self</span>.emit(Opcode::JumpIfFalse, <span class="kw-2">&amp;</span>[<span class="self">Self</span>::DUMMY_ADDRESS]);
+        <span class="self">self</span>.emit_opcode_with_operand(Opcode::JumpIfFalse)
+    }
 
-        Label { index }
+    <span class="kw">fn </span>jump_if_not_undefined(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; Label {
+        <span class="self">self</span>.emit_opcode_with_operand(Opcode::JumpIfNotUndefined)
     }
 
     <span class="kw">fn </span>jump_if_null_or_undefined(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; Label {
-        <span class="kw">let </span>index = <span class="self">self</span>.next_opcode_location();
-        <span class="self">self</span>.emit(Opcode::JumpIfNullOrUndefined, <span class="kw-2">&amp;</span>[<span class="self">Self</span>::DUMMY_ADDRESS]);
-
-        Label { index }
+        <span class="self">self</span>.emit_opcode_with_operand(Opcode::JumpIfNullOrUndefined)
     }
 
     <span class="doccomment">/// Emit an opcode with a dummy operand.
@@ -2417,7 +2418,6 @@
             <span class="self">self</span>.patch_jump(label);
         }
 
-        <span class="self">self</span>.emit_opcode(Opcode::Pop);
         <span class="self">self</span>.emit_opcode(Opcode::PushUndefined);
 
         <span class="self">self</span>.patch_jump(skip_undef);
@@ -2474,7 +2474,7 @@
                     <span class="kw">for </span>arg <span class="kw">in </span>args {
                         <span class="self">self</span>.compile_expr(arg, <span class="bool-val">true</span>);
                         <span class="kw">if let </span>Expression::Spread(<span class="kw">_</span>) = arg {
-                            <span class="self">self</span>.emit_opcode(Opcode::InitIterator);
+                            <span class="self">self</span>.emit_opcode(Opcode::GetIterator);
                             <span class="self">self</span>.emit_opcode(Opcode::PushIteratorToArray);
                         } <span class="kw">else </span>{
                             <span class="self">self</span>.emit_opcode(Opcode::PushValueToArray);
@@ -2791,7 +2791,7 @@
             <span class="kw">for </span>arg <span class="kw">in </span>call.args() {
                 <span class="self">self</span>.compile_expr(arg, <span class="bool-val">true</span>);
                 <span class="kw">if let </span>Expression::Spread(<span class="kw">_</span>) = arg {
-                    <span class="self">self</span>.emit_opcode(Opcode::InitIterator);
+                    <span class="self">self</span>.emit_opcode(Opcode::GetIterator);
                     <span class="self">self</span>.emit_opcode(Opcode::PushIteratorToArray);
                 } <span class="kw">else </span>{
                     <span class="self">self</span>.emit_opcode(Opcode::PushValueToArray);

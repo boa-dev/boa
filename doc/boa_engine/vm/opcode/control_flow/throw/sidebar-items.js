@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"struct":[["Throw","`Throw` implements the Opcode Operation for `Opcode::Throw`"]]};
+window.SIDEBAR_ITEMS = {"struct":[["Throw","`Throw` implements the Opcode Operation for `Opcode::Throw`"],["ThrowNewTypeError","`ThrowNewTypeError` implements the Opcode Operation for `Opcode::ThrowNewTypeError`"]]};

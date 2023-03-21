@@ -1504,6 +1504,9 @@
 <a href="#1503" id="1503">1503</a>
 <a href="#1504" id="1504">1504</a>
 <a href="#1505" id="1505">1505</a>
+<a href="#1506" id="1506">1506</a>
+<a href="#1507" id="1507">1507</a>
+<a href="#1508" id="1508">1508</a>
 </pre><pre class="rust"><code><span class="doccomment">//! `CodeBlock`
 //!
 //! This module is for the `CodeBlock` which implements a function representation in the VM
@@ -1743,7 +1746,9 @@
                 ryu_js::Buffer::new().format(operand).to_string()
             }
             Opcode::PushLiteral
+            | Opcode::ThrowNewTypeError
             | Opcode::Jump
+            | Opcode::JumpIfTrue
             | Opcode::JumpIfFalse
             | Opcode::JumpIfNotUndefined
             | Opcode::JumpIfNullOrUndefined
@@ -1759,9 +1764,7 @@
             | Opcode::Call
             | Opcode::New
             | Opcode::SuperCall
-            | Opcode::ForInLoopInitIterator
-            | Opcode::ForInLoopNext
-            | Opcode::ForAwaitOfLoopNext
+            | Opcode::IteratorUnwrapNextOrJump
             | Opcode::ConcatToString
             | Opcode::GeneratorNextDelegate =&gt; {
                 <span class="kw">let </span>result = <span class="self">self</span>.read::&lt;u32&gt;(<span class="kw-2">*</span>pc).to_string();
@@ -1776,7 +1779,8 @@
             | Opcode::Continue
             | Opcode::LoopContinue
             | Opcode::LoopStart
-            | Opcode::TryStart =&gt; {
+            | Opcode::TryStart
+            | Opcode::AsyncGeneratorNext =&gt; {
                 <span class="kw">let </span>operand1 = <span class="self">self</span>.read::&lt;u32&gt;(<span class="kw-2">*</span>pc);
                 <span class="kw-2">*</span>pc += size_of::&lt;u32&gt;();
                 <span class="kw">let </span>operand2 = <span class="self">self</span>.read::&lt;u32&gt;(<span class="kw-2">*</span>pc);
@@ -1816,6 +1820,7 @@
                 )
             }
             Opcode::GetPropertyByName
+            | Opcode::GetMethod
             | Opcode::SetPropertyByName
             | Opcode::DefineOwnPropertyByName
             | Opcode::DefineClassStaticMethodByName
@@ -1928,10 +1933,12 @@
             | Opcode::PopEnvironment
             | Opcode::LoopEnd
             | Opcode::LabelledEnd
-            | Opcode::InitIterator
-            | Opcode::InitIteratorAsync
+            | Opcode::CreateForInIterator
+            | Opcode::GetIterator
+            | Opcode::GetAsyncIterator
             | Opcode::IteratorNext
-            | Opcode::IteratorClose
+            | Opcode::IteratorUnwrapNext
+            | Opcode::IteratorUnwrapValue
             | Opcode::IteratorToArray
             | Opcode::RequireObjectCoercible
             | Opcode::ValueNotNullOrUndefined
@@ -1945,7 +1952,6 @@
             | Opcode::PopOnReturnSub
             | Opcode::Yield
             | Opcode::GeneratorNext
-            | Opcode::AsyncGeneratorNext
             | Opcode::PushClassField
             | Opcode::SuperCallDerived
             | Opcode::Await
@@ -1954,9 +1960,9 @@
             | Opcode::CallSpread
             | Opcode::NewSpread
             | Opcode::SuperCallSpread
-            | Opcode::ForAwaitOfLoopIterate
             | Opcode::SetPrototype
             | Opcode::PushObjectEnvironment
+            | Opcode::IsObject
             | Opcode::Nop =&gt; String::new(),
         }
     }

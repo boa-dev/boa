@@ -729,7 +729,7 @@
                     <span class="kw">return </span>CompletionRecord::Normal(result);
                 }
                 EarlyReturnType::Yield =&gt; {
-                    <span class="kw">let </span>result = <span class="self">self</span>.vm.stack.pop().unwrap_or(JsValue::Undefined);
+                    <span class="kw">let </span>result = <span class="self">self</span>.vm.pop();
                     <span class="self">self</span>.vm.frame_mut().early_return = <span class="prelude-val">None</span>;
                     <span class="kw">return </span>CompletionRecord::Return(result);
                 }

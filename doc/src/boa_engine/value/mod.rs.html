@@ -1103,32 +1103,6 @@
 <a href="#1102" id="1102">1102</a>
 <a href="#1103" id="1103">1103</a>
 <a href="#1104" id="1104">1104</a>
-<a href="#1105" id="1105">1105</a>
-<a href="#1106" id="1106">1106</a>
-<a href="#1107" id="1107">1107</a>
-<a href="#1108" id="1108">1108</a>
-<a href="#1109" id="1109">1109</a>
-<a href="#1110" id="1110">1110</a>
-<a href="#1111" id="1111">1111</a>
-<a href="#1112" id="1112">1112</a>
-<a href="#1113" id="1113">1113</a>
-<a href="#1114" id="1114">1114</a>
-<a href="#1115" id="1115">1115</a>
-<a href="#1116" id="1116">1116</a>
-<a href="#1117" id="1117">1117</a>
-<a href="#1118" id="1118">1118</a>
-<a href="#1119" id="1119">1119</a>
-<a href="#1120" id="1120">1120</a>
-<a href="#1121" id="1121">1121</a>
-<a href="#1122" id="1122">1122</a>
-<a href="#1123" id="1123">1123</a>
-<a href="#1124" id="1124">1124</a>
-<a href="#1125" id="1125">1125</a>
-<a href="#1126" id="1126">1126</a>
-<a href="#1127" id="1127">1127</a>
-<a href="#1128" id="1128">1128</a>
-<a href="#1129" id="1129">1129</a>
-<a href="#1130" id="1130">1130</a>
 </pre><pre class="rust"><code><span class="doccomment">//! Boa&#39;s ECMAScript Value implementation.
 //!
 //! Javascript values, utility methods and conversion between Javascript values and Rust values.
@@ -1452,34 +1426,8 @@
         }
     }
 
-    <span class="doccomment">/// Resolve the property in the object.
-    ///
-    /// A copy of the Property is returned.
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>get_property&lt;Key&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, key: Key) -&gt; <span class="prelude-ty">Option</span>&lt;PropertyDescriptor&gt;
-    <span class="kw">where
-        </span>Key: Into&lt;PropertyKey&gt;,
-    {
-        <span class="kw">let </span>key = key.into();
-        <span class="kw">let </span>_timer = Profiler::global().start_event(<span class="string">&quot;Value::get_property&quot;</span>, <span class="string">&quot;value&quot;</span>);
-        <span class="kw">match </span><span class="self">self </span>{
-            <span class="self">Self</span>::Object(<span class="kw-2">ref </span>object) =&gt; {
-                <span class="comment">// TODO: had to skip `__get_own_properties__` since we don&#39;t have context here
-                </span><span class="kw">let </span>property = object.borrow().properties().get(<span class="kw-2">&amp;</span>key);
-                <span class="kw">if </span>property.is_some() {
-                    <span class="kw">return </span>property;
-                }
-
-                object
-                    .prototype()
-                    .as_ref()
-                    .map_or(<span class="self">Self</span>::Null, |obj| obj.clone().into())
-                    .get_property(key)
-            }
-            <span class="kw">_ </span>=&gt; <span class="prelude-val">None</span>,
-        }
-    }
-
-    <span class="doccomment">/// The abstract operation `ToPrimitive` takes an input argument and an optional argumen`PreferredType`pe.
+    <span class="doccomment">/// The abstract operation `ToPrimitive` takes an input argument and an optional argument
+    /// `PreferredType`.
     ///
     /// &lt;https://tc39.es/ecma262/#sec-toprimitive&gt;
     </span><span class="kw">pub fn </span>to_primitive(

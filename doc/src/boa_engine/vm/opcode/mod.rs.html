@@ -1545,6 +1545,25 @@
 <a href="#1544" id="1544">1544</a>
 <a href="#1545" id="1545">1545</a>
 <a href="#1546" id="1546">1546</a>
+<a href="#1547" id="1547">1547</a>
+<a href="#1548" id="1548">1548</a>
+<a href="#1549" id="1549">1549</a>
+<a href="#1550" id="1550">1550</a>
+<a href="#1551" id="1551">1551</a>
+<a href="#1552" id="1552">1552</a>
+<a href="#1553" id="1553">1553</a>
+<a href="#1554" id="1554">1554</a>
+<a href="#1555" id="1555">1555</a>
+<a href="#1556" id="1556">1556</a>
+<a href="#1557" id="1557">1557</a>
+<a href="#1558" id="1558">1558</a>
+<a href="#1559" id="1559">1559</a>
+<a href="#1560" id="1560">1560</a>
+<a href="#1561" id="1561">1561</a>
+<a href="#1562" id="1562">1562</a>
+<a href="#1563" id="1563">1563</a>
+<a href="#1564" id="1564">1564</a>
+<a href="#1565" id="1565">1565</a>
 </pre><pre class="rust"><code><span class="doccomment">/// The opcodes of the vm.
 </span><span class="kw">use crate</span>::{vm::CompletionType, Context, JsResult};
 
@@ -1923,7 +1942,7 @@
         ///
         /// Operands:
         ///
-        /// Stack: array, iterator, next_method, done **=&gt;** array
+        /// Stack: array, iterator, next_method **=&gt;** array
         </span>PushIteratorToArray,
 
         <span class="doccomment">/// Binary `+` operator.
@@ -2203,7 +2222,7 @@
         ///
         /// Operands: name_index: `u32`
         ///
-        /// Stack: value, has_declarative_binding **=&gt;**
+        /// Stack: value **=&gt;**
         </span>DefInitVar,
 
         <span class="doccomment">/// Declare `let` type variable.
@@ -2263,6 +2282,14 @@
         ///
         /// Stack: object **=&gt;** value
         </span>GetPropertyByName,
+
+        <span class="doccomment">/// Get a property method or undefined if the property is null or undefined.
+        ///
+        /// Throws if the method is not a callable object.
+        ///
+        /// Operands: name_index: `u32`
+        /// Stack: object **=&gt;** object, method
+        </span>GetMethod,
 
         <span class="doccomment">/// Get a property by value from an object an push it on the stack.
         ///
@@ -2603,6 +2630,17 @@
 
         <span class="doccomment">/// Conditional jump to address.
         ///
+        /// If the value popped is [`truthy`][truthy] then jump to `address`.
+        ///
+        /// Operands: address: `u32`
+        ///
+        /// Stack: cond **=&gt;**
+        ///
+        /// [truthy]: https://developer.mozilla.org/en-US/docs/Glossary/Truthy
+        </span>JumpIfTrue,
+
+        <span class="doccomment">/// Conditional jump to address.
+        ///
         /// If the value popped is [`falsy`][falsy] then jump to `address`.
         ///
         /// Operands: address: `u32`
@@ -2636,6 +2674,13 @@
         ///
         /// Stack: value **=&gt;**
         </span>Throw,
+
+        <span class="doccomment">/// Throw a new `TypeError` exception
+        ///
+        /// Operands: message: u32
+        ///
+        /// Stack: **=&gt;**
+        </span>ThrowNewTypeError,
 
         <span class="doccomment">/// Start of a try block.
         ///
@@ -2911,70 +2956,56 @@
         /// Stack: **=&gt;**
         </span>LabelledEnd,
 
-        <span class="doccomment">/// Initialize the iterator for a for..in loop or jump to after the loop if object is null or undefined.
+        <span class="doccomment">/// Creates the ForInIterator of an object.
+        ///
+        /// Stack: object **=&gt;** iterator, next_method
+        </span>CreateForInIterator,
+
+        <span class="doccomment">/// Gets the iterator of an object.
+        ///
+        /// Operands:
+        ///
+        /// Stack: object **=&gt;** iterator, next_method
+        </span>GetIterator,
+
+        <span class="doccomment">/// Gets the async iterator of an object.
+        ///
+        /// Operands:
+        ///
+        /// Stack: object **=&gt;** iterator, next_method
+        </span>GetAsyncIterator,
+
+        <span class="doccomment">/// Calls the `next` method of `iterator` and puts its return value on the stack.
+        ///
+        /// Operands:
+        ///
+        /// Stack: iterator, next_method **=&gt;** iterator, next_method, next_value
+        </span>IteratorNext,
+
+        <span class="doccomment">/// Gets the `value` and `done` properties of an iterator result.
+        ///
+        /// Stack: next_result **=&gt;** done, next_value
+        </span>IteratorUnwrapNext,
+
+        <span class="doccomment">/// Gets the `value` property of an iterator result.
+        ///
+        /// Stack: next_result **=&gt;** next_value
+        </span>IteratorUnwrapValue,
+
+        <span class="doccomment">/// Gets the `value` and `done` properties of an iterator result, or jump to `address` if
+        /// `done` is true.
         ///
         /// Operands: address: `u32`
         ///
-        /// Stack: object **=&gt;** iterator, next_method, done
-        </span>ForInLoopInitIterator,
-
-        <span class="doccomment">/// Initialize an iterator.
-        ///
-        /// Operands:
-        ///
-        /// Stack: object **=&gt;** iterator, next_method, done
-        </span>InitIterator,
-
-        <span class="doccomment">/// Initialize an async iterator.
-        ///
-        /// Operands:
-        ///
-        /// Stack: object **=&gt;** iterator, next_method, done
-        </span>InitIteratorAsync,
-
-        <span class="doccomment">/// Advance the iterator by one and put the value on the stack.
-        ///
-        /// Operands:
-        ///
-        /// Stack: iterator, next_method, done **=&gt;** iterator, next_method, done, next_value
-        </span>IteratorNext,
-
-        <span class="doccomment">/// Close an iterator.
-        ///
-        /// Operands:
-        ///
-        /// Stack: iterator, next_method, done **=&gt;**
-        </span>IteratorClose,
+        /// Stack: next_result **=&gt;** done, next_value ( if done != true  )
+        </span>IteratorUnwrapNextOrJump,
 
         <span class="doccomment">/// Consume the iterator and construct and array with all the values.
         ///
         /// Operands:
         ///
-        /// Stack: iterator, next_method, done **=&gt;** iterator, next_method, done, array
+        /// Stack: iterator, next_method **=&gt;** iterator, next_method, array
         </span>IteratorToArray,
-
-        <span class="doccomment">/// Move to the next value in a for..in loop or jump to exit of the loop if done.
-        ///
-        /// Note: next_result is only pushed if the iterator is not done.
-        ///
-        /// Operands: address: `u32`
-        ///
-        /// Stack: iterator, next_method, done **=&gt;** iterator, next_method, done, next_result
-        </span>ForInLoopNext,
-
-        <span class="doccomment">/// Move to the next value in a for await..of loop.
-        ///
-        /// Operands:
-        ///
-        /// Stack: iterator, next_method, done **=&gt;** iterator, next_method, next_result
-        </span>ForAwaitOfLoopIterate,
-
-        <span class="doccomment">/// Get the value from a for await..of loop next result.
-        ///
-        /// Operands: address: `u32`
-        ///
-        /// Stack: next_result **=&gt;** done, value
-        </span>ForAwaitOfLoopNext,
 
         <span class="doccomment">/// Concat multiple stack objects into a string.
         ///
@@ -3041,16 +3072,16 @@
 
         <span class="doccomment">/// Resumes the current generator function.
         ///
-        /// Operands:
+        /// Operands: skip_yield: u32, skip_yield_await: u32
         ///
-        /// Stack: received **=&gt;** `Option&lt;value&gt;`, skip_0, skip_1
+        /// Stack: received **=&gt;** `Option&lt;value&gt;`
         </span>AsyncGeneratorNext,
 
-        <span class="doccomment">/// Delegates the current generator function another generator.
+        <span class="doccomment">/// Delegates the current generator function to another generator.
         ///
         /// Operands: done_address: `u32`
         ///
-        /// Stack: iterator, next_method, done, received **=&gt;** iterator, next_method, done
+        /// Stack: iterator, next_method, received **=&gt;** iterator, next_method
         </span>GeneratorNextDelegate,
 
         <span class="doccomment">/// Stops the current async function and schedules it to resume later.
@@ -3066,6 +3097,13 @@
         ///
         /// Stack: **=&gt;** new_target
         </span>PushNewTarget,
+
+        <span class="doccomment">/// Pushes `true` to the stack if the top stack value is an object, or `false` otherwise.
+        ///
+        /// Operands:
+        ///
+        /// Stack: value **=&gt;** is_object
+        </span>IsObject,
 
         <span class="doccomment">/// No-operation instruction, does nothing.
         ///

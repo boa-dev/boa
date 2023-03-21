@@ -85,6 +85,27 @@
 <a href="#84" id="84">84</a>
 <a href="#85" id="85">85</a>
 <a href="#86" id="86">86</a>
+<a href="#87" id="87">87</a>
+<a href="#88" id="88">88</a>
+<a href="#89" id="89">89</a>
+<a href="#90" id="90">90</a>
+<a href="#91" id="91">91</a>
+<a href="#92" id="92">92</a>
+<a href="#93" id="93">93</a>
+<a href="#94" id="94">94</a>
+<a href="#95" id="95">95</a>
+<a href="#96" id="96">96</a>
+<a href="#97" id="97">97</a>
+<a href="#98" id="98">98</a>
+<a href="#99" id="99">99</a>
+<a href="#100" id="100">100</a>
+<a href="#101" id="101">101</a>
+<a href="#102" id="102">102</a>
+<a href="#103" id="103">103</a>
+<a href="#104" id="104">104</a>
+<a href="#105" id="105">105</a>
+<a href="#106" id="106">106</a>
+<a href="#107" id="107">107</a>
 </pre><pre class="rust"><code><span class="kw">use crate</span>::{
     vm::{opcode::Operation, CompletionType},
     Context, JsResult,
@@ -104,6 +125,26 @@
     <span class="kw">fn </span>execute(context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;CompletionType&gt; {
         <span class="kw">let </span>address = context.vm.read::&lt;u32&gt;();
         context.vm.frame_mut().pc = address <span class="kw">as </span>usize;
+        <span class="prelude-val">Ok</span>(CompletionType::Normal)
+    }
+}
+
+<span class="comment">// `JumpIfTrue` implements the Opcode Operation for `Opcode::JumpIfTrue`
+</span><span class="doccomment">///
+/// Operation:
+///  - Conditional jump to address.
+</span><span class="attr">#[derive(Debug, Clone, Copy)]
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>JumpIfTrue;
+
+<span class="kw">impl </span>Operation <span class="kw">for </span>JumpIfTrue {
+    <span class="kw">const </span>NAME: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;JumpIfTrue&quot;</span>;
+    <span class="kw">const </span>INSTRUCTION: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;INST - JumpIfTrue&quot;</span>;
+
+    <span class="kw">fn </span>execute(context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;CompletionType&gt; {
+        <span class="kw">let </span>address = context.vm.read::&lt;u32&gt;();
+        <span class="kw">if </span>context.vm.pop().to_boolean() {
+            context.vm.frame_mut().pc = address <span class="kw">as </span>usize;
+        }
         <span class="prelude-val">Ok</span>(CompletionType::Normal)
     }
 }
@@ -166,8 +207,9 @@
         <span class="kw">let </span>value = context.vm.pop();
         <span class="kw">if </span>value.is_null_or_undefined() {
             context.vm.frame_mut().pc = address <span class="kw">as </span>usize;
+        } <span class="kw">else </span>{
+            context.vm.push(value);
         }
-        context.vm.push(value);
         <span class="prelude-val">Ok</span>(CompletionType::Normal)
     }
 }

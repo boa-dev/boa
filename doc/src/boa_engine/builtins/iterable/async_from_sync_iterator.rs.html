@@ -508,7 +508,7 @@
         // a. Let result be Completion(IteratorNext(syncIteratorRecord, value)).
         // 6. Else,
         // a. Let result be Completion(IteratorNext(syncIteratorRecord)).
-        </span><span class="kw">let </span>result = sync_iterator_record.next(args.get(<span class="number">0</span>).cloned(), context);
+        </span><span class="kw">let </span>result = sync_iterator_record.next(args.get(<span class="number">0</span>), context);
 
         <span class="comment">// 7. IfAbruptRejectPromise(result, promiseCapability).
         </span><span class="macro">if_abrupt_reject_promise!</span>(result, promise_capability, context);
