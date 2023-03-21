@@ -11,9 +11,13 @@ use crate::{
 };
 #[cfg(feature = "fuzz")]
 use crate::{JsNativeError, JsNativeErrorKind};
-use boa_interner::ToInternedString;
 use boa_profiler::Profiler;
-use std::{convert::TryInto, mem::size_of, time::Instant};
+use std::{convert::TryInto, mem::size_of};
+
+#[cfg(feature = "trace")]
+use boa_interner::ToInternedString;
+#[cfg(feature = "trace")]
+use std::time::Instant;
 
 mod call_frame;
 mod code_block;
@@ -40,6 +44,7 @@ pub struct Vm {
     pub(crate) frames: Vec<CallFrame>,
     pub(crate) stack: Vec<JsValue>,
     pub(crate) err: Option<JsError>,
+    #[cfg(feature = "trace")]
     pub(crate) trace: bool,
     pub(crate) stack_size_limit: usize,
 }
@@ -50,6 +55,7 @@ impl Default for Vm {
             frames: Vec::with_capacity(16),
             stack: Vec::with_capacity(1024),
             err: None,
+            #[cfg(feature = "trace")]
             trace: false,
             stack_size_limit: 1024,
         }
@@ -133,14 +139,20 @@ impl Context<'_> {
     }
 
     pub(crate) fn run(&mut self) -> CompletionRecord {
+        #[cfg(feature = "trace")]
         const COLUMN_WIDTH: usize = 26;
+        #[cfg(feature = "trace")]
         const TIME_COLUMN_WIDTH: usize = COLUMN_WIDTH / 2;
+        #[cfg(feature = "trace")]
         const OPCODE_COLUMN_WIDTH: usize = COLUMN_WIDTH;
+        #[cfg(feature = "trace")]
         const OPERAND_COLUMN_WIDTH: usize = COLUMN_WIDTH;
+        #[cfg(feature = "trace")]
         const NUMBER_OF_COLUMNS: usize = 4;
 
         let _timer = Profiler::global().start_event("run", "vm");
 
+        #[cfg(feature = "trace")]
         if self.vm.trace {
             let msg = if self.vm.frames.last().is_some() {
                 " Call Frame "
@@ -203,6 +215,7 @@ impl Context<'_> {
             }
 
             // 1. Run the next instruction.
+            #[cfg(feature = "trace")]
             let result = if self.vm.trace {
                 let mut pc = self.vm.frame().pc;
                 let opcode: Opcode = self
@@ -238,6 +251,9 @@ impl Context<'_> {
             } else {
                 self.execute_instruction()
             };
+
+            #[cfg(not(feature = "trace"))]
+            let result = self.execute_instruction();
 
             // 2. Evaluate the result of executing the instruction.
             match result {
@@ -295,6 +311,7 @@ impl Context<'_> {
             }
         }
 
+        #[cfg(feature = "trace")]
         if self.vm.trace {
             println!("\nStack:");
             if self.vm.stack.is_empty() {

@@ -33,6 +33,9 @@ fuzz = ["boa_ast/arbitrary", "boa_interner/arbitrary"]
 # Enable Boa's VM instruction flowgraph generator.
 flowgraph = []
 
+# Enable Boa's VM instruction tracing.
+trace = []
+
 # Enable Boa's WHATWG console object implementation.
 console = []
 
