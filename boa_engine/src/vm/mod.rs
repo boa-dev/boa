@@ -288,11 +288,7 @@ impl Context<'_> {
                     return CompletionRecord::Normal(result);
                 }
                 EarlyReturnType::Yield => {
-                    let result = self
-                        .vm
-                        .stack
-                        .pop()
-                        .expect("Yield must always return a result.");
+                    let result = self.vm.pop();
                     self.vm.frame_mut().early_return = None;
                     return CompletionRecord::Return(result);
                 }

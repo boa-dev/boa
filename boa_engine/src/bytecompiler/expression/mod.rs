@@ -176,6 +176,7 @@ impl ByteCompiler<'_, '_> {
                     self.emit_opcode(Opcode::Await);
                     let (skip_yield, skip_yield_await) =
                         self.emit_opcode_with_two_operands(Opcode::AsyncGeneratorNext);
+                    self.emit_opcode(Opcode::PushUndefined);
                     self.emit_opcode(Opcode::Yield);
                     self.emit_opcode(Opcode::GeneratorNext);
                     self.patch_jump(skip_yield);
