@@ -66,6 +66,7 @@
     clippy::cast_possible_wrap
 )]
 
+mod edition;
 mod exec;
 mod read;
 mod results;
@@ -81,6 +82,7 @@ use color_eyre::{
     Result,
 };
 use colored::Colorize;
+use edition::SpecEdition;
 use fxhash::{FxHashMap, FxHashSet};
 use read::ErrorType;
 use serde::{
@@ -172,6 +174,14 @@ enum Cli {
         /// Path to a TOML file with the ignored tests, features, flags and/or files.
         #[arg(short, long, default_value = "test_ignore.toml", value_hint = ValueHint::FilePath)]
         ignored: PathBuf,
+
+        /// Maximum ECMAScript edition to test for.
+        #[arg(long)]
+        edition: Option<SpecEdition>,
+
+        /// Displays the conformance results per ECMAScript edition.
+        #[arg(long)]
+        versioned: bool,
     },
     /// Compare two test suite results.
     Compare {
@@ -200,6 +210,8 @@ fn main() -> Result<()> {
             output,
             disable_parallelism,
             ignored: ignore,
+            edition,
+            versioned,
         } => run_test_suite(
             verbose,
             !disable_parallelism,
@@ -207,6 +219,8 @@ fn main() -> Result<()> {
             suite.as_path(),
             output.as_deref(),
             ignore.as_path(),
+            edition.unwrap_or_default(),
+            versioned,
         ),
         Cli::Compare {
             base,
@@ -217,13 +231,16 @@ fn main() -> Result<()> {
 }
 
 /// Runs the full test suite.
+#[allow(clippy::too_many_arguments)]
 fn run_test_suite(
     verbose: u8,
     parallel: bool,
-    test262_path: &Path,
+    test262: &Path,
     suite: &Path,
     output: Option<&Path>,
-    ignored: &Path,
+    ignore: &Path,
+    edition: SpecEdition,
+    versioned: bool,
 ) -> Result<()> {
     if let Some(path) = output {
         if path.exists() {
@@ -237,7 +254,7 @@ fn run_test_suite(
 
     let ignored = {
         let mut input = String::new();
-        let mut f = File::open(ignored).wrap_err("could not open ignored tests file")?;
+        let mut f = File::open(ignore).wrap_err("could not open ignored tests file")?;
         f.read_to_string(&mut input)
             .wrap_err("could not read ignored tests file")?;
         toml::from_str(&input).wrap_err("could not decode ignored tests file")?
@@ -246,22 +263,28 @@ fn run_test_suite(
     if verbose != 0 {
         println!("Loading the test suite...");
     }
-    let harness = read_harness(test262_path).wrap_err("could not read harness")?;
+    let harness = read_harness(test262).wrap_err("could not read harness")?;
 
     if suite.to_string_lossy().ends_with(".js") {
-        let test = read_test(&test262_path.join(suite)).wrap_err_with(|| {
+        let test = read_test(&test262.join(suite)).wrap_err_with(|| {
             let suite = suite.display();
             format!("could not read the test {suite}")
         })?;
 
-        if verbose != 0 {
-            println!("Test loaded, starting...");
+        if test.edition <= edition {
+            if verbose != 0 {
+                println!("Test loaded, starting...");
+            }
+            test.run(&harness, verbose);
+        } else {
+            println!(
+                "Minimum spec edition of test is bigger than the specified edition. Skipping."
+            );
         }
-        test.run(&harness, verbose);
 
         println!();
     } else {
-        let suite = read_suite(&test262_path.join(suite), &ignored, false).wrap_err_with(|| {
+        let suite = read_suite(&test262.join(suite), &ignored, false).wrap_err_with(|| {
             let suite = suite.display();
             format!("could not read the suite {suite}")
         })?;
@@ -269,41 +292,80 @@ fn run_test_suite(
         if verbose != 0 {
             println!("Test suite loaded, starting tests...");
         }
-        let results = suite.run(&harness, verbose, parallel);
+        let results = suite.run(&harness, verbose, parallel, edition);
 
-        let total = results.all_stats.total;
-        let passed = results.all_stats.passed;
-        let ignored = results.all_stats.ignored;
-        let panicked = results.all_stats.panic;
+        if versioned {
+            use comfy_table::Table;
 
-        println!();
-        println!("Results:");
-        println!("Total tests: {total}");
-        println!("Passed tests: {}", passed.to_string().green());
-        println!("Ignored tests: {}", ignored.to_string().yellow());
-        println!(
-            "Failed tests: {} (panics: {})",
-            (total - passed - ignored).to_string().red(),
-            panicked.to_string().red()
-        );
-        println!(
-            "Conformance: {:.2}%",
-            (passed as f64 / total as f64) * 100.0
-        );
-        println!(
-            "ES5 Conformance: {:.2}%",
-            (results.es5_stats.passed as f64 / results.es5_stats.total as f64) * 100.0
-        );
-        println!(
-            "ES6 Conformance: {:.2}%",
-            (results.es6_stats.passed as f64 / results.es6_stats.total as f64) * 100.0
-        );
+            let mut table = Table::new();
+            table.set_header(vec![
+                "Edition", "Total", "Passed", "Ignored", "Failed", "Panics", "%",
+            ]);
+            // TODO: fill all editions
+            for (v, stats) in SpecEdition::all_editions()
+                .filter(|v| *v <= edition)
+                .map(|v| match v {
+                    SpecEdition::ES5 => (v, results.es5_stats),
+                    SpecEdition::ES6 => (v, results.es6_stats),
+                    _ => (v, results.stats),
+                })
+            {
+                let Statistics {
+                    total,
+                    passed,
+                    ignored,
+                    panic,
+                } = stats;
+                let failed = total - passed - ignored;
+                let conformance = (passed as f64 / total as f64) * 100.0;
+                let conformance = format!("{conformance:.2}");
+                table.add_row(vec![
+                    v.to_string(),
+                    total.to_string(),
+                    passed.to_string(),
+                    ignored.to_string(),
+                    failed.to_string(),
+                    panic.to_string(),
+                    conformance,
+                ]);
+            }
+            println!("\n\nResults\n");
+            println!("{table}");
+        } else {
+            display_conformance(edition, results.stats);
+        }
 
-        write_json(results, output, verbose)
-            .wrap_err("could not write the results to the output JSON file")?;
+        if let Some(output) = output {
+            write_json(results, output, verbose)
+                .wrap_err("could not write the results to the output JSON file")?;
+        }
     }
 
     Ok(())
+}
+
+fn display_conformance(
+    edition: SpecEdition,
+    Statistics {
+        total,
+        passed,
+        ignored,
+        panic,
+    }: Statistics,
+) {
+    println!("\n\nResults ({edition}):");
+    println!("Total tests: {total}");
+    println!("Passed tests: {}", passed.to_string().green());
+    println!("Ignored tests: {}", ignored.to_string().yellow());
+    println!(
+        "Failed tests: {} (panics: {})",
+        (total - passed - ignored).to_string().red(),
+        panic.to_string().red()
+    );
+    println!(
+        "Conformance: {:.2}%",
+        (passed as f64 / total as f64) * 100.0
+    );
 }
 
 /// All the harness include files.
@@ -331,7 +393,7 @@ struct TestSuite {
 }
 
 /// Represents a tests statistic
-#[derive(Default, Debug, Clone, Serialize, Deserialize)]
+#[derive(Default, Debug, Copy, Clone, Serialize, Deserialize)]
 struct Statistics {
     #[serde(rename = "t")]
     total: usize,
@@ -362,7 +424,7 @@ struct SuiteResult {
     #[serde(rename = "n")]
     name: Box<str>,
     #[serde(rename = "a")]
-    all_stats: Statistics,
+    stats: Statistics,
     #[serde(rename = "a5", default)]
     es5_stats: Statistics,
     #[serde(rename = "a6", default)]
@@ -370,12 +432,12 @@ struct SuiteResult {
     #[serde(skip_serializing_if = "Vec::is_empty", default)]
     #[serde(rename = "s")]
     suites: Vec<SuiteResult>,
+    #[serde(skip_serializing_if = "Vec::is_empty", default)]
     #[serde(rename = "t")]
-    #[serde(skip_serializing_if = "Vec::is_empty", default)]
     tests: Vec<TestResult>,
+    #[serde(skip_serializing_if = "FxHashSet::is_empty", default)]
     #[serde(rename = "f")]
-    #[serde(skip_serializing_if = "Vec::is_empty", default)]
-    features: Vec<String>,
+    features: FxHashSet<String>,
 }
 
 /// Outcome of a test.
@@ -385,7 +447,7 @@ struct TestResult {
     #[serde(rename = "n")]
     name: Box<str>,
     #[serde(rename = "v", default)]
-    spec_version: SpecVersion,
+    edition: SpecEdition,
     #[serde(rename = "s", default)]
     strict: bool,
     #[serde(skip)]
@@ -406,30 +468,21 @@ enum TestOutcomeResult {
     Panic,
 }
 
-#[derive(Debug, Serialize, Clone, Copy, Deserialize, PartialEq, Default)]
-#[serde(untagged)]
-enum SpecVersion {
-    ES5 = 5,
-    ES6 = 6,
-    #[default]
-    ES13 = 13,
-}
-
 /// Represents a test.
 #[derive(Debug, Clone)]
 #[allow(dead_code)]
 struct Test {
     name: Box<str>,
+    path: Box<Path>,
     description: Box<str>,
     esid: Option<Box<str>>,
-    spec_version: SpecVersion,
+    edition: SpecEdition,
     flags: TestFlags,
     information: Box<str>,
-    features: Box<[Box<str>]>,
     expected_outcome: Outcome,
-    includes: Box<[Box<str>]>,
+    features: FxHashSet<Box<str>>,
+    includes: FxHashSet<Box<str>>,
     locale: Locale,
-    path: Box<Path>,
     ignored: bool,
 }
 
@@ -440,24 +493,16 @@ impl Test {
         N: Into<Box<str>>,
         C: Into<Box<Path>>,
     {
-        let spec_version = if metadata.es5id.is_some() {
-            SpecVersion::ES5
-        } else if metadata.es6id.is_some() {
-            SpecVersion::ES6
-        } else {
-            SpecVersion::ES13
-        };
-
         Self {
+            edition: SpecEdition::from_test_metadata(&metadata),
             name: name.into(),
             description: metadata.description,
             esid: metadata.esid,
-            spec_version,
             flags: metadata.flags.into(),
             information: metadata.info,
-            features: metadata.features,
+            features: metadata.features.into_vec().into_iter().collect(),
             expected_outcome: Outcome::from(metadata.negative),
-            includes: metadata.includes,
+            includes: metadata.includes.into_vec().into_iter().collect(),
             locale: metadata.locale,
             path: path.into(),
             ignored: false,

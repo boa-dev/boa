@@ -3,7 +3,7 @@
 mod js262;
 
 use crate::{
-    read::ErrorType, Harness, Outcome, Phase, SpecVersion, Statistics, SuiteResult, Test,
+    read::ErrorType, Harness, Outcome, Phase, SpecEdition, Statistics, SuiteResult, Test,
     TestFlags, TestOutcomeResult, TestResult, TestSuite,
 };
 use boa_engine::{
@@ -12,12 +12,19 @@ use boa_engine::{
     JsValue, Source,
 };
 use colored::Colorize;
+use fxhash::FxHashSet;
 use rayon::prelude::*;
 use std::{cell::RefCell, rc::Rc};
 
 impl TestSuite {
     /// Runs the test suite.
-    pub(crate) fn run(&self, harness: &Harness, verbose: u8, parallel: bool) -> SuiteResult {
+    pub(crate) fn run(
+        &self,
+        harness: &Harness,
+        verbose: u8,
+        parallel: bool,
+        max_edition: SpecEdition,
+    ) -> SuiteResult {
         if verbose != 0 {
             println!("Suite {}:", self.path.display());
         }
@@ -25,32 +32,32 @@ impl TestSuite {
         let suites: Vec<_> = if parallel {
             self.suites
                 .par_iter()
-                .map(|suite| suite.run(harness, verbose, parallel))
+                .map(|suite| suite.run(harness, verbose, parallel, max_edition))
                 .collect()
         } else {
             self.suites
                 .iter()
-                .map(|suite| suite.run(harness, verbose, parallel))
+                .map(|suite| suite.run(harness, verbose, parallel, max_edition))
                 .collect()
         };
 
         let tests: Vec<_> = if parallel {
             self.tests
                 .par_iter()
+                .filter(|test| test.edition <= max_edition)
                 .flat_map(|test| test.run(harness, verbose))
                 .collect()
         } else {
             self.tests
                 .iter()
+                .filter(|test| test.edition <= max_edition)
                 .flat_map(|test| test.run(harness, verbose))
                 .collect()
         };
 
-        let mut features = Vec::new();
+        let mut features = FxHashSet::default();
         for test_iter in self.tests.iter() {
-            for feature_iter in test_iter.features.iter() {
-                features.push(feature_iter.to_string());
-            }
+            features.extend(test_iter.features.iter().map(ToString::to_string));
         }
 
         if verbose != 0 {
@@ -58,72 +65,75 @@ impl TestSuite {
         }
 
         // Count passed tests and es specs
-        let mut all = Statistics::default();
         let mut es5 = Statistics::default();
         let mut es6 = Statistics::default();
+        let mut es13 = Statistics::default();
 
-        let mut append_stats = |spec_version: SpecVersion, f: &dyn Fn(&mut Statistics)| {
-            f(&mut all);
-            if spec_version == SpecVersion::ES5 {
+        let mut append_stats = |edition: SpecEdition, f: fn(&mut Statistics)| {
+            if edition <= SpecEdition::ES5 {
                 f(&mut es5);
-            } else if spec_version == SpecVersion::ES6 {
+            }
+            if edition <= SpecEdition::ES6 {
                 f(&mut es6);
+            }
+            if edition <= SpecEdition::ES13 {
+                f(&mut es13);
             }
         };
 
         for test in &tests {
             match test.result {
                 TestOutcomeResult::Passed => {
-                    append_stats(test.spec_version, &|stats| {
+                    append_stats(test.edition, |stats| {
                         stats.passed += 1;
                     });
                 }
                 TestOutcomeResult::Ignored => {
-                    append_stats(test.spec_version, &|stats| {
+                    append_stats(test.edition, |stats| {
                         stats.ignored += 1;
                     });
                 }
                 TestOutcomeResult::Panic => {
-                    append_stats(test.spec_version, &|stats| {
+                    append_stats(test.edition, |stats| {
                         stats.panic += 1;
                     });
                 }
                 TestOutcomeResult::Failed => {}
             }
-            append_stats(test.spec_version, &|stats| {
+            append_stats(test.edition, |stats| {
                 stats.total += 1;
             });
         }
 
         // Count total tests
         for suite in &suites {
-            all = all + suite.all_stats.clone();
-            es5 = es5 + suite.es5_stats.clone();
-            es6 = es6 + suite.es6_stats.clone();
-            features.append(&mut suite.features.clone());
+            es5 = es5 + suite.es5_stats;
+            es6 = es6 + suite.es6_stats;
+            es13 = es13 + suite.stats;
+            features.extend(suite.features.iter().cloned());
         }
 
         if verbose != 0 {
             println!(
                 "Suite {} results: total: {}, passed: {}, ignored: {}, failed: {} (panics: \
                     {}{}), conformance: {:.2}%",
-                all.total,
+                es13.total,
                 self.path.display(),
-                all.passed.to_string().green(),
-                all.ignored.to_string().yellow(),
-                (all.total - all.passed - all.ignored).to_string().red(),
-                if all.panic == 0 {
+                es13.passed.to_string().green(),
+                es13.ignored.to_string().yellow(),
+                (es13.total - es13.passed - es13.ignored).to_string().red(),
+                if es13.panic == 0 {
                     "0".normal()
                 } else {
-                    all.panic.to_string().red()
+                    es13.panic.to_string().red()
                 },
-                if all.panic == 0 { "" } else { " ⚠" }.red(),
-                (all.passed as f64 / all.total as f64) * 100.0
+                if es13.panic == 0 { "" } else { " ⚠" }.red(),
+                (es13.passed as f64 / es13.total as f64) * 100.0
             );
         }
         SuiteResult {
             name: self.name.clone(),
-            all_stats: all,
+            stats: es13,
             es5_stats: es5,
             es6_stats: es6,
             suites,
@@ -163,7 +173,7 @@ impl Test {
             }
             return TestResult {
                 name: self.name.clone(),
-                spec_version: self.spec_version,
+                edition: self.edition,
                 strict,
                 result: TestOutcomeResult::Failed,
                 result_text: Box::from("Could not read test file.")
@@ -182,7 +192,7 @@ impl Test {
             }
             return TestResult {
                 name: self.name.clone(),
-                spec_version: self.spec_version,
+                edition: self.edition,
                 strict,
                 result: TestOutcomeResult::Ignored,
                 result_text: Box::default(),
@@ -381,7 +391,7 @@ impl Test {
 
         TestResult {
             name: self.name.clone(),
-            spec_version: self.spec_version,
+            edition: self.edition,
             strict,
             result,
             result_text: result_text.into_boxed_str(),
@@ -428,7 +438,7 @@ impl Test {
                 .map_err(|e| format!("could not run doneprintHandle.js:\n{e}"))?;
         }
 
-        for include_name in self.includes.iter() {
+        for include_name in &self.includes {
             let include = harness
                 .includes
                 .get(include_name)

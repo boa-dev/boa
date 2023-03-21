@@ -68,7 +68,7 @@ impl ErrorType {
 }
 
 /// Individual test flag.
-#[derive(Debug, Clone, Copy, Deserialize)]
+#[derive(Debug, Clone, Copy, Eq, PartialEq, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub(super) enum TestFlag {
     OnlyStrict,
