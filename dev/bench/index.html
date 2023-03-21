@@ -195,16 +195,8 @@
       </div>
     </footer>
 
-    <script
-      src="https://cdn.jsdelivr.net/npm/chart.js@3.7.0/dist/chart.min.js"
-      integrity="sha256-Y26AMvaIfrZ1EQU49pf6H4QzVTrOI8m9wQYKkftBt4s="
-      crossorigin="anonymous"
-    ></script>
-    <script
-      src="https://cdn.jsdelivr.net/npm/mathjs@10.0.2/lib/browser/math.js"
-      integrity="sha256-LHWstSNU1qT7m9DNaY5QWstW2elTiZIwkDVk+zwjpbw="
-      crossorigin="anonymous"
-    ></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4/dist/chart.umd.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/mathjs@11/lib/browser/math.min.js"></script>
     <script src="data.js"></script>
     <script id="main-script">
       "use strict";
@@ -383,6 +375,7 @@
                     return timescale(d.bench.value, d.bench.unit, unit);
                   }),
                   borderColor: color,
+                  pointStyle: false,
                   backgroundColor: color + "60", // Add alpha for #rrggbbaa
                   fill: true,
                 },
