@@ -175,3 +175,19 @@ fn closure_capture_clone() {
         TestAction::assert_eq("closure()", "Hello world!"),
     ]);
 }
+
+#[test]
+fn function_constructor_early_errors_super() {
+    run_test_actions([
+        TestAction::assert_native_error(
+            "Function('super()')()",
+            ErrorKind::Syntax,
+            "invalid `super` call",
+        ),
+        TestAction::assert_native_error(
+            "Function('super.a')()",
+            ErrorKind::Syntax,
+            "invalid `super` reference",
+        ),
+    ]);
+}

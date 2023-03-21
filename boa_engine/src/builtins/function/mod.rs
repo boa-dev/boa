@@ -584,6 +584,20 @@ impl BuiltInFunctionObject {
                     .into());
             }
 
+            // It is a Syntax Error if FunctionBody Contains SuperProperty is true.
+            if contains(&body, ContainsSymbol::SuperProperty) {
+                return Err(JsNativeError::syntax()
+                    .with_message("invalid `super` reference")
+                    .into());
+            }
+
+            // It is a Syntax Error if FunctionBody Contains SuperCall is true.
+            if contains(&body, ContainsSymbol::SuperCall) {
+                return Err(JsNativeError::syntax()
+                    .with_message("invalid `super` call")
+                    .into());
+            }
+
             // It is a Syntax Error if any element of the BoundNames of FormalParameters
             // also occurs in the LexicallyDeclaredNames of FunctionBody.
             // https://tc39.es/ecma262/#sec-function-definitions-static-semantics-early-errors
