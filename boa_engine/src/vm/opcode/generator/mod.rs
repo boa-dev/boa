@@ -68,6 +68,9 @@ impl Operation for AsyncGeneratorNext {
     const INSTRUCTION: &'static str = "INST - AsyncGeneratorNext";
 
     fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
+        let skip_yield = context.vm.read::<u32>();
+        let skip_yield_await = context.vm.read::<u32>();
+
         if context.vm.frame().generator_resume_kind == GeneratorResumeKind::Throw {
             return Err(JsError::from_opaque(context.vm.pop()));
         }
@@ -104,17 +107,13 @@ impl Operation for AsyncGeneratorNext {
                     Err(e) => e.clone().to_opaque(context),
                 };
                 context.vm.push(value);
-                context.vm.push(true);
+                context.vm.frame_mut().pc = skip_yield as usize;
             } else {
                 context.vm.push(completion.clone()?);
-                context.vm.push(false);
+                context.vm.frame_mut().pc = skip_yield_await as usize;
             }
-
-            context.vm.push(false);
         } else {
             gen.state = AsyncGeneratorState::SuspendedYield;
-            context.vm.push(true);
-            context.vm.push(true);
         }
         Ok(CompletionType::Normal)
     }

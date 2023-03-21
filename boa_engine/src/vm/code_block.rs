@@ -264,7 +264,8 @@ impl CodeBlock {
             | Opcode::Continue
             | Opcode::LoopContinue
             | Opcode::LoopStart
-            | Opcode::TryStart => {
+            | Opcode::TryStart
+            | Opcode::AsyncGeneratorNext => {
                 let operand1 = self.read::<u32>(*pc);
                 *pc += size_of::<u32>();
                 let operand2 = self.read::<u32>(*pc);
@@ -436,7 +437,6 @@ impl CodeBlock {
             | Opcode::PopOnReturnSub
             | Opcode::Yield
             | Opcode::GeneratorNext
-            | Opcode::AsyncGeneratorNext
             | Opcode::PushClassField
             | Opcode::SuperCallDerived
             | Opcode::Await

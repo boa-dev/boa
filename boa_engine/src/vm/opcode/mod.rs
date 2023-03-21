@@ -1506,9 +1506,9 @@ generate_impl! {
 
         /// Resumes the current generator function.
         ///
-        /// Operands:
+        /// Operands: skip_yield: u32, skip_yield_await: u32
         ///
-        /// Stack: received **=>** `Option<value>`, skip_0, skip_1
+        /// Stack: received **=>** `Option<value>`
         AsyncGeneratorNext,
 
         /// Delegates the current generator function to another generator.
