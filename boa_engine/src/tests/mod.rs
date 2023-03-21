@@ -3,6 +3,7 @@ use indoc::indoc;
 mod control_flow;
 mod function;
 mod operators;
+mod promise;
 mod spread;
 
 use crate::{builtins::error::ErrorKind, run_test_actions, JsValue, TestAction};

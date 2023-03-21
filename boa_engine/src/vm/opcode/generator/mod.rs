@@ -68,6 +68,9 @@ impl Operation for AsyncGeneratorNext {
     const INSTRUCTION: &'static str = "INST - AsyncGeneratorNext";
 
     fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
+        let skip_yield = context.vm.read::<u32>();
+        let skip_yield_await = context.vm.read::<u32>();
+
         if context.vm.frame().generator_resume_kind == GeneratorResumeKind::Throw {
             return Err(JsError::from_opaque(context.vm.pop()));
         }
@@ -104,17 +107,13 @@ impl Operation for AsyncGeneratorNext {
                     Err(e) => e.clone().to_opaque(context),
                 };
                 context.vm.push(value);
-                context.vm.push(true);
+                context.vm.frame_mut().pc = skip_yield as usize;
             } else {
                 context.vm.push(completion.clone()?);
-                context.vm.push(false);
+                context.vm.frame_mut().pc = skip_yield_await as usize;
             }
-
-            context.vm.push(false);
         } else {
             gen.state = AsyncGeneratorState::SuspendedYield;
-            context.vm.push(true);
-            context.vm.push(true);
         }
         Ok(CompletionType::Normal)
     }
@@ -134,11 +133,6 @@ impl Operation for GeneratorNextDelegate {
     fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
         let done_address = context.vm.read::<u32>();
         let received = context.vm.pop();
-        let done = context
-            .vm
-            .pop()
-            .as_boolean()
-            .expect("iterator [[Done]] was not a boolean");
         let next_method = context.vm.pop();
         let iterator = context.vm.pop();
         let iterator = iterator.as_object().expect("iterator was not an object");
@@ -149,6 +143,7 @@ impl Operation for GeneratorNextDelegate {
                 let result = result.as_object().ok_or_else(|| {
                     JsNativeError::typ().with_message("generator next method returned non-object")
                 })?;
+                // TODO: This is wrong for async generators, since we need to await the result first.
                 let done = result.get(utf16!("done"), context)?.to_boolean();
                 if done {
                     context.vm.frame_mut().pc = done_address as usize;
@@ -159,7 +154,6 @@ impl Operation for GeneratorNextDelegate {
                 let value = result.get(utf16!("value"), context)?;
                 context.vm.push(iterator.clone());
                 context.vm.push(next_method.clone());
-                context.vm.push(done);
                 context.vm.push(value);
                 context.vm.frame_mut().early_return = Some(EarlyReturnType::Yield);
                 Ok(CompletionType::Return)
@@ -182,13 +176,12 @@ impl Operation for GeneratorNextDelegate {
                     let value = result_object.get(utf16!("value"), context)?;
                     context.vm.push(iterator.clone());
                     context.vm.push(next_method.clone());
-                    context.vm.push(done);
                     context.vm.push(value);
                     context.vm.frame_mut().early_return = Some(EarlyReturnType::Yield);
                     return Ok(CompletionType::Return);
                 }
                 context.vm.frame_mut().pc = done_address as usize;
-                let iterator_record = IteratorRecord::new(iterator.clone(), next_method, done);
+                let iterator_record = IteratorRecord::new(iterator.clone(), next_method, false);
                 iterator_record.close(Ok(JsValue::Undefined), context)?;
 
                 Err(JsNativeError::typ()
@@ -213,7 +206,6 @@ impl Operation for GeneratorNextDelegate {
                     let value = result_object.get(utf16!("value"), context)?;
                     context.vm.push(iterator.clone());
                     context.vm.push(next_method.clone());
-                    context.vm.push(done);
                     context.vm.push(value);
                     context.vm.frame_mut().early_return = Some(EarlyReturnType::Yield);
                     return Ok(CompletionType::Return);

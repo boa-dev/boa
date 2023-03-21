@@ -376,7 +376,7 @@ generate_impl! {
         ///
         /// Operands:
         ///
-        /// Stack: array, iterator, next_method, done **=>** array
+        /// Stack: array, iterator, next_method **=>** array
         PushIteratorToArray,
 
         /// Binary `+` operator.
@@ -656,7 +656,7 @@ generate_impl! {
         ///
         /// Operands: name_index: `u32`
         ///
-        /// Stack: value, has_declarative_binding **=>**
+        /// Stack: value **=>**
         DefInitVar,
 
         /// Declare `let` type variable.
@@ -716,6 +716,14 @@ generate_impl! {
         ///
         /// Stack: object **=>** value
         GetPropertyByName,
+
+        /// Get a property method or undefined if the property is null or undefined.
+        ///
+        /// Throws if the method is not a callable object.
+        ///
+        /// Operands: name_index: `u32`
+        /// Stack: object **=>** object, method
+        GetMethod,
 
         /// Get a property by value from an object an push it on the stack.
         ///
@@ -1056,6 +1064,17 @@ generate_impl! {
 
         /// Conditional jump to address.
         ///
+        /// If the value popped is [`truthy`][truthy] then jump to `address`.
+        ///
+        /// Operands: address: `u32`
+        ///
+        /// Stack: cond **=>**
+        ///
+        /// [truthy]: https://developer.mozilla.org/en-US/docs/Glossary/Truthy
+        JumpIfTrue,
+
+        /// Conditional jump to address.
+        ///
         /// If the value popped is [`falsy`][falsy] then jump to `address`.
         ///
         /// Operands: address: `u32`
@@ -1089,6 +1108,13 @@ generate_impl! {
         ///
         /// Stack: value **=>**
         Throw,
+
+        /// Throw a new `TypeError` exception
+        ///
+        /// Operands: message: u32
+        ///
+        /// Stack: **=>**
+        ThrowNewTypeError,
 
         /// Start of a try block.
         ///
@@ -1364,70 +1390,56 @@ generate_impl! {
         /// Stack: **=>**
         LabelledEnd,
 
-        /// Initialize the iterator for a for..in loop or jump to after the loop if object is null or undefined.
+        /// Creates the ForInIterator of an object.
+        ///
+        /// Stack: object **=>** iterator, next_method
+        CreateForInIterator,
+
+        /// Gets the iterator of an object.
+        ///
+        /// Operands:
+        ///
+        /// Stack: object **=>** iterator, next_method
+        GetIterator,
+
+        /// Gets the async iterator of an object.
+        ///
+        /// Operands:
+        ///
+        /// Stack: object **=>** iterator, next_method
+        GetAsyncIterator,
+
+        /// Calls the `next` method of `iterator` and puts its return value on the stack.
+        ///
+        /// Operands:
+        ///
+        /// Stack: iterator, next_method **=>** iterator, next_method, next_value
+        IteratorNext,
+
+        /// Gets the `value` and `done` properties of an iterator result.
+        ///
+        /// Stack: next_result **=>** done, next_value
+        IteratorUnwrapNext,
+
+        /// Gets the `value` property of an iterator result.
+        ///
+        /// Stack: next_result **=>** next_value
+        IteratorUnwrapValue,
+
+        /// Gets the `value` and `done` properties of an iterator result, or jump to `address` if
+        /// `done` is true.
         ///
         /// Operands: address: `u32`
         ///
-        /// Stack: object **=>** iterator, next_method, done
-        ForInLoopInitIterator,
-
-        /// Initialize an iterator.
-        ///
-        /// Operands:
-        ///
-        /// Stack: object **=>** iterator, next_method, done
-        InitIterator,
-
-        /// Initialize an async iterator.
-        ///
-        /// Operands:
-        ///
-        /// Stack: object **=>** iterator, next_method, done
-        InitIteratorAsync,
-
-        /// Advance the iterator by one and put the value on the stack.
-        ///
-        /// Operands:
-        ///
-        /// Stack: iterator, next_method, done **=>** iterator, next_method, done, next_value
-        IteratorNext,
-
-        /// Close an iterator.
-        ///
-        /// Operands:
-        ///
-        /// Stack: iterator, next_method, done **=>**
-        IteratorClose,
+        /// Stack: next_result **=>** done, next_value ( if done != true  )
+        IteratorUnwrapNextOrJump,
 
         /// Consume the iterator and construct and array with all the values.
         ///
         /// Operands:
         ///
-        /// Stack: iterator, next_method, done **=>** iterator, next_method, done, array
+        /// Stack: iterator, next_method **=>** iterator, next_method, array
         IteratorToArray,
-
-        /// Move to the next value in a for..in loop or jump to exit of the loop if done.
-        ///
-        /// Note: next_result is only pushed if the iterator is not done.
-        ///
-        /// Operands: address: `u32`
-        ///
-        /// Stack: iterator, next_method, done **=>** iterator, next_method, done, next_result
-        ForInLoopNext,
-
-        /// Move to the next value in a for await..of loop.
-        ///
-        /// Operands:
-        ///
-        /// Stack: iterator, next_method, done **=>** iterator, next_method, next_result
-        ForAwaitOfLoopIterate,
-
-        /// Get the value from a for await..of loop next result.
-        ///
-        /// Operands: address: `u32`
-        ///
-        /// Stack: next_result **=>** done, value
-        ForAwaitOfLoopNext,
 
         /// Concat multiple stack objects into a string.
         ///
@@ -1494,16 +1506,16 @@ generate_impl! {
 
         /// Resumes the current generator function.
         ///
-        /// Operands:
+        /// Operands: skip_yield: u32, skip_yield_await: u32
         ///
-        /// Stack: received **=>** `Option<value>`, skip_0, skip_1
+        /// Stack: received **=>** `Option<value>`
         AsyncGeneratorNext,
 
-        /// Delegates the current generator function another generator.
+        /// Delegates the current generator function to another generator.
         ///
         /// Operands: done_address: `u32`
         ///
-        /// Stack: iterator, next_method, done, received **=>** iterator, next_method, done
+        /// Stack: iterator, next_method, received **=>** iterator, next_method
         GeneratorNextDelegate,
 
         /// Stops the current async function and schedules it to resume later.
@@ -1519,6 +1531,13 @@ generate_impl! {
         ///
         /// Stack: **=>** new_target
         PushNewTarget,
+
+        /// Pushes `true` to the stack if the top stack value is an object, or `false` otherwise.
+        ///
+        /// Operands:
+        ///
+        /// Stack: value **=>** is_object
+        IsObject,
 
         /// No-operation instruction, does nothing.
         ///

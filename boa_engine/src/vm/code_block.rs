@@ -237,7 +237,9 @@ impl CodeBlock {
                 ryu_js::Buffer::new().format(operand).to_string()
             }
             Opcode::PushLiteral
+            | Opcode::ThrowNewTypeError
             | Opcode::Jump
+            | Opcode::JumpIfTrue
             | Opcode::JumpIfFalse
             | Opcode::JumpIfNotUndefined
             | Opcode::JumpIfNullOrUndefined
@@ -253,9 +255,7 @@ impl CodeBlock {
             | Opcode::Call
             | Opcode::New
             | Opcode::SuperCall
-            | Opcode::ForInLoopInitIterator
-            | Opcode::ForInLoopNext
-            | Opcode::ForAwaitOfLoopNext
+            | Opcode::IteratorUnwrapNextOrJump
             | Opcode::ConcatToString
             | Opcode::GeneratorNextDelegate => {
                 let result = self.read::<u32>(*pc).to_string();
@@ -270,7 +270,8 @@ impl CodeBlock {
             | Opcode::Continue
             | Opcode::LoopContinue
             | Opcode::LoopStart
-            | Opcode::TryStart => {
+            | Opcode::TryStart
+            | Opcode::AsyncGeneratorNext => {
                 let operand1 = self.read::<u32>(*pc);
                 *pc += size_of::<u32>();
                 let operand2 = self.read::<u32>(*pc);
@@ -310,6 +311,7 @@ impl CodeBlock {
                 )
             }
             Opcode::GetPropertyByName
+            | Opcode::GetMethod
             | Opcode::SetPropertyByName
             | Opcode::DefineOwnPropertyByName
             | Opcode::DefineClassStaticMethodByName
@@ -422,10 +424,12 @@ impl CodeBlock {
             | Opcode::PopEnvironment
             | Opcode::LoopEnd
             | Opcode::LabelledEnd
-            | Opcode::InitIterator
-            | Opcode::InitIteratorAsync
+            | Opcode::CreateForInIterator
+            | Opcode::GetIterator
+            | Opcode::GetAsyncIterator
             | Opcode::IteratorNext
-            | Opcode::IteratorClose
+            | Opcode::IteratorUnwrapNext
+            | Opcode::IteratorUnwrapValue
             | Opcode::IteratorToArray
             | Opcode::RequireObjectCoercible
             | Opcode::ValueNotNullOrUndefined
@@ -439,7 +443,6 @@ impl CodeBlock {
             | Opcode::PopOnReturnSub
             | Opcode::Yield
             | Opcode::GeneratorNext
-            | Opcode::AsyncGeneratorNext
             | Opcode::PushClassField
             | Opcode::SuperCallDerived
             | Opcode::Await
@@ -448,9 +451,9 @@ impl CodeBlock {
             | Opcode::CallSpread
             | Opcode::NewSpread
             | Opcode::SuperCallSpread
-            | Opcode::ForAwaitOfLoopIterate
             | Opcode::SetPrototype
             | Opcode::PushObjectEnvironment
+            | Opcode::IsObject
             | Opcode::Nop => String::new(),
         }
     }

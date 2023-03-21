@@ -104,7 +104,7 @@ impl ByteCompiler<'_, '_> {
                     if let Some(element) = element {
                         self.compile_expr(element, true);
                         if let Expression::Spread(_) = element {
-                            self.emit_opcode(Opcode::InitIterator);
+                            self.emit_opcode(Opcode::GetIterator);
                             self.emit_opcode(Opcode::PushIteratorToArray);
                         } else {
                             self.emit_opcode(Opcode::PushValueToArray);
@@ -163,9 +163,9 @@ impl ByteCompiler<'_, '_> {
 
                 if r#yield.delegate() {
                     if self.in_async_generator {
-                        self.emit_opcode(Opcode::InitIteratorAsync);
+                        self.emit_opcode(Opcode::GetAsyncIterator);
                     } else {
-                        self.emit_opcode(Opcode::InitIterator);
+                        self.emit_opcode(Opcode::GetIterator);
                     }
                     self.emit_opcode(Opcode::PushUndefined);
                     let start_address = self.next_opcode_location();
@@ -174,15 +174,15 @@ impl ByteCompiler<'_, '_> {
                     self.patch_jump(start);
                 } else if self.in_async_generator {
                     self.emit_opcode(Opcode::Await);
-                    self.emit_opcode(Opcode::AsyncGeneratorNext);
-                    let jump_return = self.emit_opcode_with_operand(Opcode::JumpIfFalse);
-                    let jump = self.emit_opcode_with_operand(Opcode::JumpIfFalse);
+                    let (skip_yield, skip_yield_await) =
+                        self.emit_opcode_with_two_operands(Opcode::AsyncGeneratorNext);
+                    self.emit_opcode(Opcode::PushUndefined);
                     self.emit_opcode(Opcode::Yield);
                     self.emit_opcode(Opcode::GeneratorNext);
-                    self.patch_jump(jump);
+                    self.patch_jump(skip_yield);
                     self.emit_opcode(Opcode::Await);
                     self.emit_opcode(Opcode::GeneratorNext);
-                    self.patch_jump(jump_return);
+                    self.patch_jump(skip_yield_await);
                 } else {
                     self.emit_opcode(Opcode::Yield);
                     self.emit_opcode(Opcode::GeneratorNext);
@@ -265,7 +265,7 @@ impl ByteCompiler<'_, '_> {
                     for arg in super_call.arguments() {
                         self.compile_expr(arg, true);
                         if let Expression::Spread(_) = arg {
-                            self.emit_opcode(Opcode::InitIterator);
+                            self.emit_opcode(Opcode::GetIterator);
                             self.emit_opcode(Opcode::PushIteratorToArray);
                         } else {
                             self.emit_opcode(Opcode::PushValueToArray);

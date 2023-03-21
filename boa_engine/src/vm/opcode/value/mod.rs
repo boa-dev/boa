@@ -31,3 +31,21 @@ impl Operation for ValueNotNullOrUndefined {
         Ok(CompletionType::Normal)
     }
 }
+
+/// `IsObject` implements the Opcode Operation for `Opcode::IsObject`
+///
+/// Operation:
+///  - Pushes `true` to the stack if the top stack value is an object, or `false` otherwise.
+#[derive(Debug, Clone, Copy)]
+pub(crate) struct IsObject;
+
+impl Operation for IsObject {
+    const NAME: &'static str = "IsObject";
+    const INSTRUCTION: &'static str = "INST - IsObject";
+
+    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
+        let value = context.vm.pop();
+        context.vm.push(value.is_object());
+        Ok(CompletionType::Normal)
+    }
+}

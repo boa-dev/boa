@@ -392,26 +392,20 @@ impl IteratorRecord {
     /// [spec]: https://tc39.es/ecma262/#sec-iteratornext
     pub(crate) fn next(
         &self,
-        value: Option<JsValue>,
+        value: Option<&JsValue>,
         context: &mut Context<'_>,
     ) -> JsResult<IteratorResult> {
         let _timer = Profiler::global().start_event("IteratorRecord::next", "iterator");
 
-        // Note: We check if iteratorRecord.[[NextMethod]] is callable here.
-        // This check would happen in `Call` according to the spec, but we do not implement call for `JsValue`.
-        let next_method = self.next_method.as_callable().ok_or_else(|| {
-            JsNativeError::typ().with_message("iterable next method not a function")
-        })?;
-
-        let result = if let Some(value) = value {
-            // 2. Else,
-            //     a. Let result be ? Call(iteratorRecord.[[NextMethod]], iteratorRecord.[[Iterator]], « value »).
-            next_method.call(&self.iterator.clone().into(), &[value], context)?
-        } else {
-            // 1. If value is not present, then
-            //     a. Let result be ? Call(iteratorRecord.[[NextMethod]], iteratorRecord.[[Iterator]]).
-            next_method.call(&self.iterator.clone().into(), &[], context)?
-        };
+        // 1. If value is not present, then
+        //     a. Let result be ? Call(iteratorRecord.[[NextMethod]], iteratorRecord.[[Iterator]]).
+        // 2. Else,
+        //     a. Let result be ? Call(iteratorRecord.[[NextMethod]], iteratorRecord.[[Iterator]], « value »).
+        let result = self.next_method.call(
+            &self.iterator.clone().into(),
+            value.map_or(&[], std::slice::from_ref),
+            context,
+        )?;
 
         // 3. If Type(result) is not Object, throw a TypeError exception.
         // 4. Return result.

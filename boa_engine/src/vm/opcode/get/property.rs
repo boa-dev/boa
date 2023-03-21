@@ -1,7 +1,8 @@
 use crate::{
+    js_string,
     property::PropertyKey,
     vm::{opcode::Operation, CompletionType},
-    Context, JsResult,
+    Context, JsResult, JsValue,
 };
 
 /// `GetPropertyByName` implements the Opcode Operation for `Opcode::GetPropertyByName`
@@ -58,6 +59,32 @@ impl Operation for GetPropertyByValue {
         let result = object.__get__(&key, value, context)?;
 
         context.vm.push(result);
+        Ok(CompletionType::Normal)
+    }
+}
+
+/// `GetMethod` implements the Opcode Operation for `Opcode::GetMethod`
+///
+/// Operation:
+///  - Get a property method or undefined if the property is null or undefined.
+#[derive(Debug, Clone, Copy)]
+pub(crate) struct GetMethod;
+
+impl Operation for GetMethod {
+    const NAME: &'static str = "GetMethod";
+    const INSTRUCTION: &'static str = "INST - GetMethod";
+
+    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
+        let index = context.vm.read::<u32>();
+        let name = context.vm.frame().code_block.names[index as usize];
+        let key = js_string!(context.interner().resolve_expect(name.sym()).utf16());
+        let value = context.vm.pop();
+
+        let method = value.get_method(key, context)?;
+        context.vm.push(value);
+        context
+            .vm
+            .push(method.map(JsValue::from).unwrap_or_default());
         Ok(CompletionType::Normal)
     }
 }

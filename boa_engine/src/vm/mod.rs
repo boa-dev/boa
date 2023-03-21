@@ -304,7 +304,7 @@ impl Context<'_> {
                     return CompletionRecord::Normal(result);
                 }
                 EarlyReturnType::Yield => {
-                    let result = self.vm.stack.pop().unwrap_or(JsValue::Undefined);
+                    let result = self.vm.pop();
                     self.vm.frame_mut().early_return = None;
                     return CompletionRecord::Return(result);
                 }

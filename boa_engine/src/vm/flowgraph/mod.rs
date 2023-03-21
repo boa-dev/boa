@@ -108,7 +108,9 @@ impl CodeBlock {
                         EdgeStyle::Line,
                     );
                 }
+
                 Opcode::JumpIfFalse
+                | Opcode::JumpIfTrue
                 | Opcode::JumpIfNotUndefined
                 | Opcode::JumpIfNullOrUndefined => {
                     let operand = self.read::<u32>(pc);
@@ -217,22 +219,7 @@ impl CodeBlock {
                     graph.add_node(previous_pc, NodeShape::None, label.into(), Color::None);
                     graph.add_edge(previous_pc, address, None, Color::None, EdgeStyle::Line);
                 }
-                Opcode::ForInLoopInitIterator => {
-                    let address = self.read::<u32>(pc) as usize;
-                    pc += size_of::<u32>();
-                    graph.add_node(previous_pc, NodeShape::None, label.into(), Color::None);
-                    graph.add_edge(previous_pc, pc, None, Color::None, EdgeStyle::Line);
-                    graph.add_edge(
-                        previous_pc,
-                        address,
-                        Some("NULL OR UNDEFINED".into()),
-                        Color::None,
-                        EdgeStyle::Line,
-                    );
-                }
-                Opcode::ForInLoopNext
-                | Opcode::ForAwaitOfLoopNext
-                | Opcode::GeneratorNextDelegate => {
+                Opcode::IteratorUnwrapNextOrJump | Opcode::GeneratorNextDelegate => {
                     let address = self.read::<u32>(pc) as usize;
                     pc += size_of::<u32>();
                     graph.add_node(previous_pc, NodeShape::None, label.into(), Color::None);
@@ -254,6 +241,29 @@ impl CodeBlock {
                     pc += size_of::<u32>();
                     graph.add_node(previous_pc, NodeShape::None, label.into(), Color::None);
                     graph.add_edge(previous_pc, pc, None, Color::None, EdgeStyle::Line);
+                }
+                Opcode::AsyncGeneratorNext => {
+                    let skip_yield = self.read::<u32>(pc);
+                    pc += size_of::<u32>();
+                    let skip_yield_await = self.read::<u32>(pc);
+                    pc += size_of::<u32>();
+                    graph.add_node(previous_pc, NodeShape::None, opcode_str.into(), Color::None);
+
+                    graph.add_edge(previous_pc, pc, None, Color::None, EdgeStyle::Line);
+                    graph.add_edge(
+                        previous_pc,
+                        skip_yield as usize,
+                        Some("return value pending".into()),
+                        Color::None,
+                        EdgeStyle::Line,
+                    );
+                    graph.add_edge(
+                        previous_pc,
+                        skip_yield_await as usize,
+                        Some("yield value pending".into()),
+                        Color::None,
+                        EdgeStyle::Line,
+                    );
                 }
                 Opcode::TryStart => {
                     let next_address = self.read::<u32>(pc);
@@ -371,6 +381,7 @@ impl CodeBlock {
                     graph.add_edge(previous_pc, pc, None, Color::None, EdgeStyle::Line);
                 }
                 Opcode::GetPropertyByName
+                | Opcode::GetMethod
                 | Opcode::SetPropertyByName
                 | Opcode::DefineOwnPropertyByName
                 | Opcode::DefineClassStaticMethodByName
@@ -402,7 +413,7 @@ impl CodeBlock {
                     graph.add_node(previous_pc, NodeShape::None, label.into(), Color::None);
                     graph.add_edge(previous_pc, pc, None, Color::None, EdgeStyle::Line);
                 }
-                Opcode::Throw => {
+                Opcode::Throw | Opcode::ThrowNewTypeError => {
                     graph.add_node(previous_pc, NodeShape::None, label.into(), Color::None);
                     if let Some((_try_pc, next, _finally)) = try_entries.last() {
                         graph.add_edge(
@@ -487,10 +498,12 @@ impl CodeBlock {
                 | Opcode::Super
                 | Opcode::LoopEnd
                 | Opcode::LabelledEnd
-                | Opcode::InitIterator
-                | Opcode::InitIteratorAsync
+                | Opcode::CreateForInIterator
+                | Opcode::GetIterator
+                | Opcode::GetAsyncIterator
                 | Opcode::IteratorNext
-                | Opcode::IteratorClose
+                | Opcode::IteratorUnwrapNext
+                | Opcode::IteratorUnwrapValue
                 | Opcode::IteratorToArray
                 | Opcode::RequireObjectCoercible
                 | Opcode::ValueNotNullOrUndefined
@@ -504,7 +517,6 @@ impl CodeBlock {
                 | Opcode::PopOnReturnSub
                 | Opcode::Yield
                 | Opcode::GeneratorNext
-                | Opcode::AsyncGeneratorNext
                 | Opcode::PushClassField
                 | Opcode::SuperCallDerived
                 | Opcode::Await
@@ -513,8 +525,8 @@ impl CodeBlock {
                 | Opcode::CallSpread
                 | Opcode::NewSpread
                 | Opcode::SuperCallSpread
-                | Opcode::ForAwaitOfLoopIterate
                 | Opcode::SetPrototype
+                | Opcode::IsObject
                 | Opcode::Nop
                 | Opcode::PushObjectEnvironment => {
                     graph.add_node(previous_pc, NodeShape::None, label.into(), Color::None);
