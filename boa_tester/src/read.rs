@@ -68,7 +68,7 @@ impl ErrorType {
 }
 
 /// Individual test flag.
-#[derive(Debug, Clone, Copy, Deserialize)]
+#[derive(Debug, Clone, Copy, Eq, PartialEq, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub(super) enum TestFlag {
     OnlyStrict,
@@ -187,26 +187,21 @@ pub(super) fn read_suite(
 }
 
 /// Reads information about a given test case.
-pub(super) fn read_test(path: &Path) -> io::Result<Test> {
+pub(super) fn read_test(path: &Path) -> Result<Test> {
     let name = path
         .file_stem()
-        .ok_or_else(|| {
-            io::Error::new(
-                io::ErrorKind::InvalidInput,
-                format!("test with no file name found: {}", path.display()),
-            )
-        })?
+        .ok_or_else(|| eyre!("path for test `{}` has no file name", path.display()))?
         .to_str()
         .ok_or_else(|| {
-            io::Error::new(
-                io::ErrorKind::InvalidInput,
-                format!("non-UTF-8 file name found: {}", path.display()),
+            eyre!(
+                "path for test `{}` is not a valid UTF-8 string",
+                path.display()
             )
         })?;
 
     let metadata = read_metadata(path)?;
 
-    Ok(Test::new(name, path, metadata))
+    Test::new(name, path, metadata).wrap_err("failed to read test")
 }
 
 /// Reads the metadata from the input test code.

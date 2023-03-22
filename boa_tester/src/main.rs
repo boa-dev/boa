@@ -66,6 +66,7 @@
     clippy::cast_possible_wrap
 )]
 
+mod edition;
 mod exec;
 mod read;
 mod results;
@@ -77,10 +78,11 @@ use self::{
 use bitflags::bitflags;
 use clap::{ArgAction, Parser, ValueHint};
 use color_eyre::{
-    eyre::{bail, WrapErr},
+    eyre::{bail, eyre, WrapErr},
     Result,
 };
 use colored::Colorize;
+use edition::SpecEdition;
 use fxhash::{FxHashMap, FxHashSet};
 use read::ErrorType;
 use serde::{
@@ -90,7 +92,7 @@ use serde::{
 use std::{
     fs::{self, File},
     io::Read,
-    ops::Add,
+    ops::{Add, AddAssign},
     path::{Path, PathBuf},
 };
 
@@ -172,6 +174,14 @@ enum Cli {
         /// Path to a TOML file with the ignored tests, features, flags and/or files.
         #[arg(short, long, default_value = "test_ignore.toml", value_hint = ValueHint::FilePath)]
         ignored: PathBuf,
+
+        /// Maximum ECMAScript edition to test for.
+        #[arg(long)]
+        edition: Option<SpecEdition>,
+
+        /// Displays the conformance results per ECMAScript edition.
+        #[arg(long)]
+        versioned: bool,
     },
     /// Compare two test suite results.
     Compare {
@@ -200,6 +210,8 @@ fn main() -> Result<()> {
             output,
             disable_parallelism,
             ignored: ignore,
+            edition,
+            versioned,
         } => run_test_suite(
             verbose,
             !disable_parallelism,
@@ -207,6 +219,8 @@ fn main() -> Result<()> {
             suite.as_path(),
             output.as_deref(),
             ignore.as_path(),
+            edition.unwrap_or_default(),
+            versioned,
         ),
         Cli::Compare {
             base,
@@ -217,13 +231,16 @@ fn main() -> Result<()> {
 }
 
 /// Runs the full test suite.
+#[allow(clippy::too_many_arguments)]
 fn run_test_suite(
     verbose: u8,
     parallel: bool,
-    test262_path: &Path,
+    test262: &Path,
     suite: &Path,
     output: Option<&Path>,
-    ignored: &Path,
+    ignore: &Path,
+    edition: SpecEdition,
+    versioned: bool,
 ) -> Result<()> {
     if let Some(path) = output {
         if path.exists() {
@@ -237,7 +254,7 @@ fn run_test_suite(
 
     let ignored = {
         let mut input = String::new();
-        let mut f = File::open(ignored).wrap_err("could not open ignored tests file")?;
+        let mut f = File::open(ignore).wrap_err("could not open ignored tests file")?;
         f.read_to_string(&mut input)
             .wrap_err("could not read ignored tests file")?;
         toml::from_str(&input).wrap_err("could not decode ignored tests file")?
@@ -246,22 +263,28 @@ fn run_test_suite(
     if verbose != 0 {
         println!("Loading the test suite...");
     }
-    let harness = read_harness(test262_path).wrap_err("could not read harness")?;
+    let harness = read_harness(test262).wrap_err("could not read harness")?;
 
     if suite.to_string_lossy().ends_with(".js") {
-        let test = read_test(&test262_path.join(suite)).wrap_err_with(|| {
+        let test = read_test(&test262.join(suite)).wrap_err_with(|| {
             let suite = suite.display();
             format!("could not read the test {suite}")
         })?;
 
-        if verbose != 0 {
-            println!("Test loaded, starting...");
+        if test.edition <= edition {
+            if verbose != 0 {
+                println!("Test loaded, starting...");
+            }
+            test.run(&harness, verbose);
+        } else {
+            println!(
+                "Minimum spec edition of test is bigger than the specified edition. Skipping."
+            );
         }
-        test.run(&harness, verbose);
 
         println!();
     } else {
-        let suite = read_suite(&test262_path.join(suite), &ignored, false).wrap_err_with(|| {
+        let suite = read_suite(&test262.join(suite), &ignored, false).wrap_err_with(|| {
             let suite = suite.display();
             format!("could not read the suite {suite}")
         })?;
@@ -269,38 +292,71 @@ fn run_test_suite(
         if verbose != 0 {
             println!("Test suite loaded, starting tests...");
         }
-        let results = suite.run(&harness, verbose, parallel);
+        let results = suite.run(&harness, verbose, parallel, edition);
 
-        let total = results.all_stats.total;
-        let passed = results.all_stats.passed;
-        let ignored = results.all_stats.ignored;
-        let panicked = results.all_stats.panic;
+        if versioned {
+            let mut table = comfy_table::Table::new();
+            table.load_preset(comfy_table::presets::UTF8_HORIZONTAL_ONLY);
+            table.set_header(vec![
+                "Edition", "Total", "Passed", "Ignored", "Failed", "Panics", "%",
+            ]);
+            for column in table.column_iter_mut().skip(1) {
+                column.set_cell_alignment(comfy_table::CellAlignment::Right);
+            }
+            for (v, stats) in SpecEdition::all_editions()
+                .filter(|v| *v <= edition)
+                .map(|v| {
+                    let stats = results.versioned_stats.get(v).unwrap_or(results.stats);
+                    (v, stats)
+                })
+            {
+                let Statistics {
+                    total,
+                    passed,
+                    ignored,
+                    panic,
+                } = stats;
+                let failed = total - passed - ignored;
+                let conformance = (passed as f64 / total as f64) * 100.0;
+                let conformance = format!("{conformance:.2}");
+                table.add_row(vec![
+                    v.to_string(),
+                    total.to_string(),
+                    passed.to_string(),
+                    ignored.to_string(),
+                    failed.to_string(),
+                    panic.to_string(),
+                    conformance,
+                ]);
+            }
+            println!("\n\nResults\n");
+            println!("{table}");
+        } else {
+            let Statistics {
+                total,
+                passed,
+                ignored,
+                panic,
+            } = results.stats;
+            println!("\n\nResults ({edition}):");
+            println!("Total tests: {total}");
+            println!("Passed tests: {}", passed.to_string().green());
+            println!("Ignored tests: {}", ignored.to_string().yellow());
+            println!(
+                "Failed tests: {} (panics: {})",
+                (total - passed - ignored).to_string().red(),
+                panic.to_string().red()
+            );
+            println!(
+                "Conformance: {:.2}%",
+                (passed as f64 / total as f64) * 100.0
+            );
+        }
 
-        println!();
-        println!("Results:");
-        println!("Total tests: {total}");
-        println!("Passed tests: {}", passed.to_string().green());
-        println!("Ignored tests: {}", ignored.to_string().yellow());
-        println!(
-            "Failed tests: {} (panics: {})",
-            (total - passed - ignored).to_string().red(),
-            panicked.to_string().red()
-        );
-        println!(
-            "Conformance: {:.2}%",
-            (passed as f64 / total as f64) * 100.0
-        );
-        println!(
-            "ES5 Conformance: {:.2}%",
-            (results.es5_stats.passed as f64 / results.es5_stats.total as f64) * 100.0
-        );
-        println!(
-            "ES6 Conformance: {:.2}%",
-            (results.es6_stats.passed as f64 / results.es6_stats.total as f64) * 100.0
-        );
-
-        write_json(results, output, verbose)
-            .wrap_err("could not write the results to the output JSON file")?;
+        if let Some(output) = output {
+            write_json(results, output, verbose)
+                .wrap_err("could not write the results to the output JSON file")?;
+        }
     }
 
     Ok(())
@@ -331,7 +387,7 @@ struct TestSuite {
 }
 
 /// Represents a tests statistic
-#[derive(Default, Debug, Clone, Serialize, Deserialize)]
+#[derive(Default, Debug, Copy, Clone, Serialize, Deserialize)]
 struct Statistics {
     #[serde(rename = "t")]
     total: usize,
@@ -356,26 +412,127 @@ impl Add for Statistics {
     }
 }
 
+impl AddAssign for Statistics {
+    fn add_assign(&mut self, rhs: Self) {
+        self.total += rhs.total;
+        self.passed += rhs.passed;
+        self.ignored += rhs.ignored;
+        self.panic += rhs.panic;
+    }
+}
+
+/// Represents tests statistics separated by ECMAScript edition
+#[derive(Default, Debug, Copy, Clone, Serialize, Deserialize)]
+struct VersionedStats {
+    es5: Statistics,
+    es6: Statistics,
+    es7: Statistics,
+    es8: Statistics,
+    es9: Statistics,
+    es10: Statistics,
+    es11: Statistics,
+    es12: Statistics,
+    es13: Statistics,
+}
+
+impl VersionedStats {
+    /// Applies `f` to all the statistics for which its edition is bigger or equal
+    /// than `min_edition`.
+    fn apply(&mut self, min_edition: SpecEdition, f: fn(&mut Statistics)) {
+        for edition in SpecEdition::all_editions().filter(|&edition| min_edition <= edition) {
+            if let Some(stats) = self.get_mut(edition) {
+                f(stats);
+            }
+        }
+    }
+
+    /// Gets the statistics corresponding to `edition`, returning `None` if `edition`
+    /// is `SpecEdition::ESNext`.
+    const fn get(&self, edition: SpecEdition) -> Option<Statistics> {
+        let stats = match edition {
+            SpecEdition::ES5 => self.es5,
+            SpecEdition::ES6 => self.es6,
+            SpecEdition::ES7 => self.es7,
+            SpecEdition::ES8 => self.es8,
+            SpecEdition::ES9 => self.es9,
+            SpecEdition::ES10 => self.es10,
+            SpecEdition::ES11 => self.es11,
+            SpecEdition::ES12 => self.es12,
+            SpecEdition::ES13 => self.es13,
+            SpecEdition::ESNext => return None,
+        };
+        Some(stats)
+    }
+
+    /// Gets a mutable reference to the statistics corresponding to `edition`, returning `None` if
+    /// `edition` is `SpecEdition::ESNext`.
+    fn get_mut(&mut self, edition: SpecEdition) -> Option<&mut Statistics> {
+        let stats = match edition {
+            SpecEdition::ES5 => &mut self.es5,
+            SpecEdition::ES6 => &mut self.es6,
+            SpecEdition::ES7 => &mut self.es7,
+            SpecEdition::ES8 => &mut self.es8,
+            SpecEdition::ES9 => &mut self.es9,
+            SpecEdition::ES10 => &mut self.es10,
+            SpecEdition::ES11 => &mut self.es11,
+            SpecEdition::ES12 => &mut self.es12,
+            SpecEdition::ES13 => &mut self.es13,
+            SpecEdition::ESNext => return None,
+        };
+        Some(stats)
+    }
+}
+
+impl Add for VersionedStats {
+    type Output = Self;
+
+    fn add(self, rhs: Self) -> Self::Output {
+        Self {
+            es5: self.es5 + rhs.es5,
+            es6: self.es6 + rhs.es6,
+            es7: self.es7 + rhs.es7,
+            es8: self.es8 + rhs.es8,
+            es9: self.es9 + rhs.es9,
+            es10: self.es10 + rhs.es10,
+            es11: self.es11 + rhs.es11,
+            es12: self.es12 + rhs.es12,
+            es13: self.es13 + rhs.es13,
+        }
+    }
+}
+
+impl AddAssign for VersionedStats {
+    fn add_assign(&mut self, rhs: Self) {
+        self.es5 += rhs.es5;
+        self.es6 += rhs.es6;
+        self.es7 += rhs.es7;
+        self.es8 += rhs.es8;
+        self.es9 += rhs.es9;
+        self.es10 += rhs.es10;
+        self.es11 += rhs.es11;
+        self.es12 += rhs.es12;
+        self.es13 += rhs.es13;
+    }
+}
+
 /// Outcome of a test suite.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 struct SuiteResult {
     #[serde(rename = "n")]
     name: Box<str>,
     #[serde(rename = "a")]
-    all_stats: Statistics,
-    #[serde(rename = "a5", default)]
-    es5_stats: Statistics,
-    #[serde(rename = "a6", default)]
-    es6_stats: Statistics,
+    stats: Statistics,
+    #[serde(rename = "av", default)]
+    versioned_stats: VersionedStats,
     #[serde(skip_serializing_if = "Vec::is_empty", default)]
     #[serde(rename = "s")]
     suites: Vec<SuiteResult>,
+    #[serde(skip_serializing_if = "Vec::is_empty", default)]
     #[serde(rename = "t")]
-    #[serde(skip_serializing_if = "Vec::is_empty", default)]
     tests: Vec<TestResult>,
+    #[serde(skip_serializing_if = "FxHashSet::is_empty", default)]
     #[serde(rename = "f")]
-    #[serde(skip_serializing_if = "Vec::is_empty", default)]
-    features: Vec<String>,
+    features: FxHashSet<String>,
 }
 
 /// Outcome of a test.
@@ -385,7 +542,7 @@ struct TestResult {
     #[serde(rename = "n")]
     name: Box<str>,
     #[serde(rename = "v", default)]
-    spec_version: SpecVersion,
+    edition: SpecEdition,
     #[serde(rename = "s", default)]
     strict: bool,
     #[serde(skip)]
@@ -406,62 +563,48 @@ enum TestOutcomeResult {
     Panic,
 }
 
-#[derive(Debug, Serialize, Clone, Copy, Deserialize, PartialEq, Default)]
-#[serde(untagged)]
-enum SpecVersion {
-    ES5 = 5,
-    ES6 = 6,
-    #[default]
-    ES13 = 13,
-}
-
 /// Represents a test.
 #[derive(Debug, Clone)]
 #[allow(dead_code)]
 struct Test {
     name: Box<str>,
+    path: Box<Path>,
     description: Box<str>,
     esid: Option<Box<str>>,
-    spec_version: SpecVersion,
+    edition: SpecEdition,
     flags: TestFlags,
     information: Box<str>,
-    features: Box<[Box<str>]>,
     expected_outcome: Outcome,
-    includes: Box<[Box<str>]>,
+    features: FxHashSet<Box<str>>,
+    includes: FxHashSet<Box<str>>,
     locale: Locale,
-    path: Box<Path>,
     ignored: bool,
 }
 
 impl Test {
     /// Creates a new test.
-    fn new<N, C>(name: N, path: C, metadata: MetaData) -> Self
+    fn new<N, C>(name: N, path: C, metadata: MetaData) -> Result<Self>
     where
         N: Into<Box<str>>,
         C: Into<Box<Path>>,
     {
-        let spec_version = if metadata.es5id.is_some() {
-            SpecVersion::ES5
-        } else if metadata.es6id.is_some() {
-            SpecVersion::ES6
-        } else {
-            SpecVersion::ES13
-        };
+        let edition = SpecEdition::from_test_metadata(&metadata)
+            .map_err(|feats| eyre!("test metadata contained unknown features: {feats:?}"))?;
 
-        Self {
+        Ok(Self {
+            edition,
             name: name.into(),
             description: metadata.description,
             esid: metadata.esid,
-            spec_version,
             flags: metadata.flags.into(),
             information: metadata.info,
-            features: metadata.features,
+            features: metadata.features.into_vec().into_iter().collect(),
             expected_outcome: Outcome::from(metadata.negative),
-            includes: metadata.includes,
+            includes: metadata.includes.into_vec().into_iter().collect(),
             locale: metadata.locale,
             path: path.into(),
             ignored: false,
-        }
+        })
     }
 
     /// Sets the test as ignored.

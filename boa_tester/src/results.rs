@@ -1,7 +1,8 @@
-use crate::Statistics;
+use crate::{Statistics, VersionedStats};
 
 use super::SuiteResult;
 use color_eyre::{eyre::WrapErr, Result};
+use fxhash::FxHashSet;
 use serde::{Deserialize, Serialize};
 use std::{
     env, fs,
@@ -28,11 +29,9 @@ struct ReducedResultInfo {
     #[serde(rename = "u")]
     test262_commit: Box<str>,
     #[serde(rename = "a")]
-    all_stats: Statistics,
-    #[serde(rename = "a5", default)]
-    es5_stats: Statistics,
-    #[serde(rename = "a6", default)]
-    es6_stats: Statistics,
+    stats: Statistics,
+    #[serde(rename = "av", default)]
+    versioned_stats: VersionedStats,
 }
 
 impl From<ResultInfo> for ReducedResultInfo {
@@ -41,9 +40,8 @@ impl From<ResultInfo> for ReducedResultInfo {
         Self {
             commit: info.commit,
             test262_commit: info.test262_commit,
-            all_stats: info.results.all_stats,
-            es5_stats: info.results.es5_stats,
-            es6_stats: info.results.es6_stats,
+            stats: info.results.stats,
+            versioned_stats: info.results.versioned_stats,
         }
     }
 }
@@ -57,14 +55,7 @@ struct FeaturesInfo {
     #[serde(rename = "n")]
     suite_name: Box<str>,
     #[serde(rename = "f")]
-    features: Vec<String>,
-}
-
-fn remove_duplicates(features_vec: &[String]) -> Vec<String> {
-    let mut result = features_vec.to_vec();
-    result.sort();
-    result.dedup();
-    result
+    features: FxHashSet<String>,
 }
 
 impl From<ResultInfo> for FeaturesInfo {
@@ -73,7 +64,7 @@ impl From<ResultInfo> for FeaturesInfo {
             commit: info.commit,
             test262_commit: info.test262_commit,
             suite_name: info.results.name,
-            features: remove_duplicates(&info.results.features),
+            features: info.results.features,
         }
     }
 }
@@ -90,82 +81,76 @@ const FEATURES_FILE_NAME: &str = "features.json";
 /// Writes the results of running the test suite to the given JSON output file.
 ///
 /// It will append the results to the ones already present, in an array.
-pub(crate) fn write_json(
-    results: SuiteResult,
-    output: Option<&Path>,
-    verbose: u8,
-) -> io::Result<()> {
-    if let Some(path) = output {
-        let mut branch = env::var("GITHUB_REF").unwrap_or_default();
-        if branch.starts_with("refs/pull") {
-            branch = "pull".to_owned();
-        }
+pub(crate) fn write_json(results: SuiteResult, output_dir: &Path, verbose: u8) -> io::Result<()> {
+    let mut branch = env::var("GITHUB_REF").unwrap_or_default();
+    if branch.starts_with("refs/pull") {
+        branch = "pull".to_owned();
+    }
 
-        let path = if branch.is_empty() {
-            path.to_path_buf()
-        } else {
-            let folder = path.join(branch);
-            fs::create_dir_all(&folder)?;
-            folder
-        };
+    let output_dir = if branch.is_empty() {
+        output_dir.to_path_buf()
+    } else {
+        let folder = output_dir.join(branch);
+        fs::create_dir_all(&folder)?;
+        folder
+    };
 
-        // We make sure we are using the latest commit information in GitHub pages:
-        update_gh_pages_repo(path.as_path(), verbose);
+    // We make sure we are using the latest commit information in GitHub pages:
+    update_gh_pages_repo(output_dir.as_path(), verbose);
 
-        if verbose != 0 {
-            println!("Writing the results to {}...", path.display());
-        }
+    if verbose != 0 {
+        println!("Writing the results to {}...", output_dir.display());
+    }
 
-        // Write the latest results.
+    // Write the latest results.
 
-        let latest_path = path.join(LATEST_FILE_NAME);
+    let latest = output_dir.join(LATEST_FILE_NAME);
 
-        let new_results = ResultInfo {
-            commit: env::var("GITHUB_SHA").unwrap_or_default().into_boxed_str(),
-            test262_commit: get_test262_commit(),
-            results,
-        };
+    let new_results = ResultInfo {
+        commit: env::var("GITHUB_SHA").unwrap_or_default().into_boxed_str(),
+        test262_commit: get_test262_commit(),
+        results,
+    };
 
-        let latest_output = BufWriter::new(fs::File::create(latest_path)?);
-        serde_json::to_writer(latest_output, &new_results)?;
+    let latest = BufWriter::new(fs::File::create(latest)?);
+    serde_json::to_writer(latest, &new_results)?;
 
-        // Write the full list of results, retrieving the existing ones first.
+    // Write the full list of results, retrieving the existing ones first.
 
-        let all_path = path.join(RESULTS_FILE_NAME);
+    let all_path = output_dir.join(RESULTS_FILE_NAME);
 
-        let mut all_results: Vec<ReducedResultInfo> = if all_path.exists() {
-            serde_json::from_reader(BufReader::new(fs::File::open(&all_path)?))?
-        } else {
-            Vec::new()
-        };
+    let mut all_results: Vec<ReducedResultInfo> = if all_path.exists() {
+        serde_json::from_reader(BufReader::new(fs::File::open(&all_path)?))?
+    } else {
+        Vec::new()
+    };
 
-        all_results.push(new_results.clone().into());
+    all_results.push(new_results.clone().into());
 
-        let output = BufWriter::new(fs::File::create(&all_path)?);
-        serde_json::to_writer(output, &all_results)?;
+    let output = BufWriter::new(fs::File::create(&all_path)?);
+    serde_json::to_writer(output, &all_results)?;
 
-        if verbose != 0 {
-            println!("Results written correctly");
-        }
+    if verbose != 0 {
+        println!("Results written correctly");
+    }
 
-        // Write the full list of features, existing features go first.
+    // Write the full list of features, existing features go first.
 
-        let features_path = path.join(FEATURES_FILE_NAME);
+    let features = output_dir.join(FEATURES_FILE_NAME);
 
-        let mut all_features: Vec<FeaturesInfo> = if features_path.exists() {
-            serde_json::from_reader(BufReader::new(fs::File::open(&features_path)?))?
-        } else {
-            Vec::new()
-        };
+    let mut all_features: Vec<FeaturesInfo> = if features.exists() {
+        serde_json::from_reader(BufReader::new(fs::File::open(&features)?))?
+    } else {
+        Vec::new()
+    };
 
-        all_features.push(new_results.into());
+    all_features.push(new_results.into());
 
-        let features_output = BufWriter::new(fs::File::create(&features_path)?);
-        serde_json::to_writer(features_output, &all_features)?;
+    let features = BufWriter::new(fs::File::create(&features)?);
+    serde_json::to_writer(features, &all_features)?;
 
-        if verbose != 0 {
-            println!("Features written correctly");
-        }
+    if verbose != 0 {
+        println!("Features written correctly");
     }
 
     Ok(())
@@ -219,24 +204,24 @@ pub(crate) fn compare_results(base: &Path, new: &Path, markdown: bool) -> Result
     ))
     .wrap_err("could not read the new results")?;
 
-    let base_total = base_results.results.all_stats.total as isize;
-    let new_total = new_results.results.all_stats.total as isize;
+    let base_total = base_results.results.stats.total as isize;
+    let new_total = new_results.results.stats.total as isize;
     let total_diff = new_total - base_total;
 
-    let base_passed = base_results.results.all_stats.passed as isize;
-    let new_passed = new_results.results.all_stats.passed as isize;
+    let base_passed = base_results.results.stats.passed as isize;
+    let new_passed = new_results.results.stats.passed as isize;
     let passed_diff = new_passed - base_passed;
 
-    let base_ignored = base_results.results.all_stats.ignored as isize;
-    let new_ignored = new_results.results.all_stats.ignored as isize;
+    let base_ignored = base_results.results.stats.ignored as isize;
+    let new_ignored = new_results.results.stats.ignored as isize;
     let ignored_diff = new_ignored - base_ignored;
 
     let base_failed = base_total - base_passed - base_ignored;
     let new_failed = new_total - new_passed - new_ignored;
     let failed_diff = new_failed - base_failed;
 
-    let base_panics = base_results.results.all_stats.panic as isize;
-    let new_panics = new_results.results.all_stats.panic as isize;
+    let base_panics = base_results.results.stats.panic as isize;
+    let new_panics = new_results.results.stats.panic as isize;
     let panic_diff = new_panics - base_panics;
 
     let base_conformance = (base_passed as f64 / base_total as f64) * 100_f64;
