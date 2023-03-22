@@ -12,10 +12,7 @@ use crate::{
     context::intrinsics::StandardConstructors,
     environments::{BindingLocator, CompileTimeEnvironment},
     error::JsNativeError,
-    object::{
-        internal_methods::get_prototype_from_constructor, JsObject, ObjectData, CONSTRUCTOR,
-        PROTOTYPE,
-    },
+    object::{internal_methods::get_prototype_from_constructor, JsObject, ObjectData, PROTOTYPE},
     property::PropertyDescriptor,
     realm::Realm,
     string::utf16,
@@ -576,6 +573,14 @@ impl ToInternedString for CodeBlock {
 }
 
 /// Creates a new function object.
+///
+/// This is used in cases that the prototype is not known if it's [`None`] or [`Some`].
+///
+/// If the prototype given is [`None`] it will use [`create_function_object_fast`]. Otherwise
+/// it will construct the function from template objects that have all the fields except the
+/// prototype, and will perform a prototype transition change to set the prototype.
+///
+/// This is slower than direct object template construction that is done in [`create_function_object_fast`].
 pub(crate) fn create_function_object(
     code: Gc<CodeBlock>,
     r#async: bool,
@@ -584,38 +589,20 @@ pub(crate) fn create_function_object(
     method: bool,
     context: &mut Context<'_>,
 ) -> JsObject {
-    let _timer = Profiler::global().start_event("JsVmFunction::new", "vm");
+    let _timer = Profiler::global().start_event("create_function_object", "vm");
 
-    let function_prototype = if let Some(prototype) = prototype {
-        prototype
-    } else if r#async {
-        context
-            .intrinsics()
-            .constructors()
-            .async_function()
-            .prototype()
-    } else {
-        context.intrinsics().constructors().function().prototype()
+    let Some(prototype) = prototype else {
+        // fast path
+        return create_function_object_fast(code, r#async, arrow, method, context);
     };
 
-    let name_property = PropertyDescriptor::builder()
-        .value(
-            context
-                .interner()
-                .resolve_expect(code.name)
-                .into_common::<JsString>(false),
-        )
-        .writable(false)
-        .enumerable(false)
-        .configurable(true)
-        .build();
+    let name: JsValue = context
+        .interner()
+        .resolve_expect(code.name)
+        .into_common::<JsString>(false)
+        .into();
 
-    let length_property = PropertyDescriptor::builder()
-        .value(code.length)
-        .writable(false)
-        .enumerable(false)
-        .configurable(true)
-        .build();
+    let length: JsValue = code.length.into();
 
     let function = if r#async {
         Function::new(
@@ -642,41 +629,114 @@ pub(crate) fn create_function_object(
         )
     };
 
-    let constructor =
-        JsObject::from_proto_and_data(function_prototype, ObjectData::function(function));
+    let data = ObjectData::function(function);
 
-    let constructor_property = PropertyDescriptor::builder()
-        .value(constructor.clone())
-        .writable(true)
-        .enumerable(false)
-        .configurable(true)
-        .build();
+    let templates = context.intrinsics().templates();
 
-    constructor
-        .define_property_or_throw(utf16!("length"), length_property, context)
-        .expect("failed to define the length property of the function");
-    constructor
-        .define_property_or_throw(utf16!("name"), name_property, context)
-        .expect("failed to define the name property of the function");
+    let (mut template, storage, constructor_prototype) = if r#async || arrow || method {
+        (
+            templates.function_without_proto().clone(),
+            vec![length, name],
+            None,
+        )
+    } else {
+        let constructor_prototype = templates
+            .function_prototype()
+            .create(ObjectData::ordinary(), vec![JsValue::undefined()]);
 
-    if !r#async && !arrow && !method {
-        let prototype = JsObject::with_object_proto(context.intrinsics());
-        prototype
-            .define_property_or_throw(CONSTRUCTOR, constructor_property, context)
-            .expect("failed to define the constructor property of the function");
+        let template = templates.function_with_prototype_without_proto();
 
-        let prototype_property = PropertyDescriptor::builder()
-            .value(prototype)
-            .writable(true)
-            .enumerable(false)
-            .configurable(false)
-            .build();
-        constructor
-            .define_property_or_throw(PROTOTYPE, prototype_property, context)
-            .expect("failed to define the prototype property of the function");
+        (
+            template.clone(),
+            vec![length, name, constructor_prototype.clone().into()],
+            Some(constructor_prototype),
+        )
+    };
+
+    template.set_prototype(prototype);
+
+    let contructor = template.create(data, storage);
+
+    if let Some(constructor_prototype) = &constructor_prototype {
+        constructor_prototype.borrow_mut().properties_mut().storage[0] = contructor.clone().into();
     }
+    contructor
+}
 
-    constructor
+/// Creates a new function object.
+///
+/// This is prefered over [`create_function_object`] if prototype is [`None`],
+/// because it constructs the funtion from a pre-initialized object template,
+/// with all the properties and prototype set.
+pub(crate) fn create_function_object_fast(
+    code: Gc<CodeBlock>,
+    r#async: bool,
+    arrow: bool,
+    method: bool,
+    context: &mut Context<'_>,
+) -> JsObject {
+    let _timer = Profiler::global().start_event("create_function_object_fast", "vm");
+
+    let name: JsValue = context
+        .interner()
+        .resolve_expect(code.name)
+        .into_common::<JsString>(false)
+        .into();
+
+    let length: JsValue = code.length.into();
+
+    let function = if r#async {
+        FunctionKind::Async {
+            code,
+            environments: context.vm.environments.clone(),
+            home_object: None,
+            class_object: None,
+        }
+    } else {
+        FunctionKind::Ordinary {
+            code,
+            environments: context.vm.environments.clone(),
+            constructor_kind: ConstructorKind::Base,
+            home_object: None,
+            fields: ThinVec::new(),
+            private_methods: ThinVec::new(),
+            class_object: None,
+        }
+    };
+
+    let function = Function::new(function, context.realm().clone());
+
+    let data = ObjectData::function(function);
+
+    if r#async {
+        context
+            .intrinsics()
+            .templates()
+            .async_function()
+            .create(data, vec![length, name])
+    } else if arrow || method {
+        context
+            .intrinsics()
+            .templates()
+            .function()
+            .create(data, vec![length, name])
+    } else {
+        let prototype = context
+            .intrinsics()
+            .templates()
+            .function_prototype()
+            .create(ObjectData::ordinary(), vec![JsValue::undefined()]);
+
+        let constructor = context
+            .intrinsics()
+            .templates()
+            .function_with_prototype()
+            .create(data, vec![length, name, prototype.clone().into()]);
+
+        prototype.borrow_mut().properties_mut().storage[0] = constructor.clone().into();
+
+        constructor
+    }
 }
 
 /// Creates a new generator function object.
@@ -722,7 +782,8 @@ pub(crate) fn create_generator_function_object(
         .configurable(true)
         .build();
 
-    let prototype = JsObject::from_proto_and_data(
+    let prototype = JsObject::from_proto_and_data_with_shared_shape(
+        context.root_shape(),
         if r#async {
             context.intrinsics().objects().async_generator()
         } else {
@@ -741,7 +802,8 @@ pub(crate) fn create_generator_function_object(
             },
             context.realm().clone(),
         );
-        JsObject::from_proto_and_data(
+        JsObject::from_proto_and_data_with_shared_shape(
+            context.root_shape(),
             function_prototype,
             ObjectData::async_generator_function(function),
         )
@@ -755,7 +817,11 @@ pub(crate) fn create_generator_function_object(
             },
             context.realm().clone(),
         );
-        JsObject::from_proto_and_data(function_prototype, ObjectData::generator_function(function))
+        JsObject::from_proto_and_data_with_shared_shape(
+            context.root_shape(),
+            function_prototype,
+            ObjectData::generator_function(function),
+        )
     };
 
     let prototype_property = PropertyDescriptor::builder()
@@ -1086,7 +1152,8 @@ impl JsObject {
                 })
             };
 
-            let generator = Self::from_proto_and_data(proto, data);
+            let generator =
+                Self::from_proto_and_data_with_shared_shape(context.root_shape(), proto, data);
 
             if async_ {
                 let gen_clone = generator.clone();
@@ -1146,7 +1213,11 @@ impl JsObject {
                                     StandardConstructors::object,
                                     context,
                                 )?;
-                                Ok(Self::from_proto_and_data(prototype, ObjectData::ordinary()))
+                                Ok(Self::from_proto_and_data_with_shared_shape(
+                                    context.root_shape(),
+                                    prototype,
+                                    ObjectData::ordinary(),
+                                ))
                             } else {
                                 Err(JsNativeError::typ()
                                 .with_message(
@@ -1178,7 +1249,11 @@ impl JsObject {
                         StandardConstructors::object,
                         context,
                     )?;
-                    let this = Self::from_proto_and_data(prototype, ObjectData::ordinary());
+                    let this = Self::from_proto_and_data_with_shared_shape(
+                        context.root_shape(),
+                        prototype,
+                        ObjectData::ordinary(),
+                    );
 
                     this.initialize_instance_elements(self, context)?;
 

@@ -273,30 +273,19 @@ pub(crate) fn integer_indexed_exotic_own_property_keys(
         vec![]
     } else {
         // 2. If IsDetachedBuffer(O.[[ViewedArrayBuffer]]) is false, then
-        // a. For each integer i starting with 0 such that i < O.[[ArrayLength]], in ascending order, do
-        // i. Add ! ToString(𝔽(i)) as the last element of keys.
+        //     a. For each integer i starting with 0 such that i < O.[[ArrayLength]], in ascending order, do
+        //         i. Add ! ToString(𝔽(i)) as the last element of keys.
         (0..inner.array_length())
             .map(|index| PropertyKey::Index(index as u32))
             .collect()
     };
 
     // 3. For each own property key P of O such that Type(P) is String and P is not an array index, in ascending chronological order of property creation, do
-    // a. Add P as the last element of keys.
-    keys.extend(
-        obj.properties
-            .string_property_keys()
-            .cloned()
-            .map(Into::into),
-    );
-
+    //     a. Add P as the last element of keys.
+    //
     // 4. For each own property key P of O such that Type(P) is Symbol, in ascending chronological order of property creation, do
-    // a. Add P as the last element of keys.
-    keys.extend(
-        obj.properties
-            .symbol_property_keys()
-            .cloned()
-            .map(Into::into),
-    );
+    //     a. Add P as the last element of keys.
+    keys.extend(obj.properties.shape.keys());
 
     // 5. Return keys.
     Ok(keys)

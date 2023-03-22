@@ -1,4 +1,12 @@
-use super::{PropertyDescriptor, PropertyKey};
+use super::{
+    shape::{
+        property_table::PropertyTableInner,
+        shared_shape::TransitionKey,
+        slot::{Slot, SlotAttributes},
+        ChangeTransitionAction, Shape, UniqueShape,
+    },
+    JsPrototype, ObjectStorage, PropertyDescriptor, PropertyKey,
+};
 use crate::{property::PropertyDescriptorBuilder, JsString, JsSymbol, JsValue};
 use boa_gc::{custom_trace, Finalize, Trace};
 use indexmap::IndexMap;
@@ -59,6 +67,10 @@ impl Default for IndexedProperties {
 }
 
 impl IndexedProperties {
+    fn new(elements: ThinVec<JsValue>) -> Self {
+        Self::Dense(elements)
+    }
+
     /// Get a property descriptor if it exists.
     fn get(&self, key: u32) -> Option<PropertyDescriptor> {
         match self {
@@ -95,9 +107,9 @@ impl IndexedProperties {
     }
 
     /// Inserts a property descriptor with the specified key.
-    fn insert(&mut self, key: u32, property: PropertyDescriptor) -> Option<PropertyDescriptor> {
+    fn insert(&mut self, key: u32, property: PropertyDescriptor) -> bool {
         let vec = match self {
-            Self::Sparse(map) => return map.insert(key, property),
+            Self::Sparse(map) => return map.insert(key, property).is_some(),
             Self::Dense(vec) => {
                 let len = vec.len() as u32;
                 if key <= len
@@ -118,19 +130,12 @@ impl IndexedProperties {
                     // Since the previous key is the current key - 1. Meaning that the elements are continuos.
                     if key == len {
                         vec.push(value);
-                        return None;
+                        return false;
                     }
 
                     // If it the key points in at a already taken index, swap and return it.
                     std::mem::swap(&mut vec[key as usize], &mut value);
-                    return Some(
-                        PropertyDescriptorBuilder::new()
-                            .writable(true)
-                            .enumerable(true)
-                            .configurable(true)
-                            .value(value)
-                            .build(),
-                    );
+                    return true;
                 }
 
                 vec
@@ -139,37 +144,32 @@ impl IndexedProperties {
 
         // Slow path: converting to sparse storage.
         let mut map = Self::convert_dense_to_sparse(vec);
-        let old_property = map.insert(key, property);
+        let replaced = map.insert(key, property).is_some();
         *self = Self::Sparse(Box::new(map));
 
-        old_property
+        replaced
     }
 
     /// Inserts a property descriptor with the specified key.
-    fn remove(&mut self, key: u32) -> Option<PropertyDescriptor> {
+    fn remove(&mut self, key: u32) -> bool {
         let vec = match self {
-            Self::Sparse(map) => return map.remove(&key),
+            Self::Sparse(map) => {
+                return map.remove(&key).is_some();
+            }
             Self::Dense(vec) => {
                 // Fast Path: contiguous storage.
 
                 // Has no elements or out of range, nothing to delete!
                 if vec.is_empty() || key as usize >= vec.len() {
-                    return None;
+                    return false;
                 }
 
-                // If the key is pointing at the last element, then we pop it and return it.
+                // If the key is pointing at the last element, then we pop it.
                 //
-                // It does not make the storage sparse
+                // It does not make the storage sparse.
                 if key as usize == vec.len().wrapping_sub(1) {
-                    let value = vec.pop().expect("Already checked if it is out of bounds");
-                    return Some(
-                        PropertyDescriptorBuilder::new()
-                            .writable(true)
-                            .enumerable(true)
-                            .configurable(true)
-                            .value(value)
-                            .build(),
-                    );
+                    vec.pop().expect("Already checked if it is out of bounds");
+                    return true;
                 }
 
                 vec
@@ -178,10 +178,10 @@ impl IndexedProperties {
 
         // Slow Path: conversion to sparse storage.
         let mut map = Self::convert_dense_to_sparse(vec);
-        let old_property = map.remove(&key);
+        let removed = map.remove(&key).is_some();
         *self = Self::Sparse(Box::new(map));
 
-        old_property
+        removed
     }
 
     /// Check if we contain the key to a property descriptor.
@@ -222,55 +222,185 @@ pub struct PropertyMap {
     /// Properties stored with integers as keys.
     indexed_properties: IndexedProperties,
 
-    /// Properties stored with `String`s a keys.
-    string_properties: OrderedHashMap<JsString>,
-
-    /// Properties stored with `Symbol`s a keys.
-    symbol_properties: OrderedHashMap<JsSymbol>,
+    pub(crate) shape: Shape,
+    pub(crate) storage: ObjectStorage,
 }
 
 impl PropertyMap {
     /// Create a new [`PropertyMap`].
     #[must_use]
     #[inline]
-    pub fn new() -> Self {
-        Self::default()
+    pub fn new(shape: Shape, elements: ThinVec<JsValue>) -> Self {
+        Self {
+            indexed_properties: IndexedProperties::new(elements),
+            shape,
+            storage: Vec::default(),
+        }
+    }
+
+    /// Construct a [`PropertyMap`] from with the given prototype with an unique [`Shape`].
+    #[must_use]
+    #[inline]
+    pub fn from_prototype_unique_shape(prototype: JsPrototype) -> Self {
+        Self {
+            indexed_properties: IndexedProperties::default(),
+            shape: Shape::unique(UniqueShape::new(prototype, PropertyTableInner::default())),
+            storage: Vec::default(),
+        }
+    }
+
+    /// Construct a [`PropertyMap`] from with the given prototype with a shared shape [`Shape`].
+    #[must_use]
+    #[inline]
+    pub fn from_prototype_with_shared_shape(mut root_shape: Shape, prototype: JsPrototype) -> Self {
+        root_shape = root_shape.change_prototype_transition(prototype);
+        Self {
+            indexed_properties: IndexedProperties::default(),
+            shape: root_shape,
+            storage: Vec::default(),
+        }
     }
 
     /// Get the property with the given key from the [`PropertyMap`].
     #[must_use]
     pub fn get(&self, key: &PropertyKey) -> Option<PropertyDescriptor> {
-        match key {
-            PropertyKey::Index(index) => self.indexed_properties.get(*index),
-            PropertyKey::String(string) => self.string_properties.0.get(string).cloned(),
-            PropertyKey::Symbol(symbol) => self.symbol_properties.0.get(symbol).cloned(),
+        if let PropertyKey::Index(index) = key {
+            return self.indexed_properties.get(*index);
         }
+        if let Some(slot) = self.shape.lookup(key) {
+            return Some(self.get_storage(slot));
+        }
+
+        None
+    }
+
+    /// Get the property with the given key from the [`PropertyMap`].
+    #[must_use]
+    pub(crate) fn get_storage(&self, Slot { index, attributes }: Slot) -> PropertyDescriptor {
+        let index = index as usize;
+        let mut builder = PropertyDescriptor::builder()
+            .configurable(attributes.contains(SlotAttributes::CONFIGURABLE))
+            .enumerable(attributes.contains(SlotAttributes::ENUMERABLE));
+        if attributes.is_accessor_descriptor() {
+            if attributes.has_get() {
+                builder = builder.get(self.storage[index].clone());
+            }
+            if attributes.has_set() {
+                builder = builder.set(self.storage[index + 1].clone());
+            }
+        } else {
+            builder = builder.writable(attributes.contains(SlotAttributes::WRITABLE));
+            builder = builder.value(self.storage[index].clone());
+        }
+        builder.build()
     }
 
     /// Insert the given property descriptor with the given key [`PropertyMap`].
-    pub fn insert(
-        &mut self,
-        key: &PropertyKey,
-        property: PropertyDescriptor,
-    ) -> Option<PropertyDescriptor> {
-        match &key {
-            PropertyKey::Index(index) => self.indexed_properties.insert(*index, property),
-            PropertyKey::String(string) => {
-                self.string_properties.0.insert(string.clone(), property)
-            }
-            PropertyKey::Symbol(symbol) => {
-                self.symbol_properties.0.insert(symbol.clone(), property)
-            }
+    pub fn insert(&mut self, key: &PropertyKey, property: PropertyDescriptor) -> bool {
+        if let PropertyKey::Index(index) = key {
+            return self.indexed_properties.insert(*index, property);
         }
+
+        let attributes = property.to_slot_attributes();
+
+        if let Some(slot) = self.shape.lookup(key) {
+            let index = slot.index as usize;
+
+            if slot.attributes != attributes {
+                let key = TransitionKey {
+                    property_key: key.clone(),
+                    attributes,
+                };
+                let transition = self.shape.change_attributes_transition(key);
+                self.shape = transition.shape;
+                match transition.action {
+                    ChangeTransitionAction::Nothing => {}
+                    ChangeTransitionAction::Remove => {
+                        self.storage.remove(slot.index as usize + 1);
+                    }
+                    ChangeTransitionAction::Insert => {
+                        // insert after index which is (index + 1).
+                        self.storage.insert(index, JsValue::undefined());
+                    }
+                }
+            }
+
+            if attributes.is_accessor_descriptor() {
+                if attributes.has_get() {
+                    self.storage[index] = property
+                        .get()
+                        .cloned()
+                        .map(JsValue::new)
+                        .unwrap_or_default();
+                }
+                if attributes.has_set() {
+                    self.storage[index + 1] = property
+                        .set()
+                        .cloned()
+                        .map(JsValue::new)
+                        .unwrap_or_default();
+                }
+            } else {
+                self.storage[index] = property.expect_value().clone();
+            }
+            return true;
+        }
+
+        let transition_key = TransitionKey {
+            property_key: key.clone(),
+            attributes,
+        };
+        self.shape = self.shape.insert_property_transition(transition_key);
+
+        // Make Sure that if we are inserting, it has the correct slot index.
+        debug_assert_eq!(
+            self.shape.lookup(key),
+            Some(Slot {
+                index: self.storage.len() as u32,
+                attributes
+            })
+        );
+
+        if attributes.is_accessor_descriptor() {
+            self.storage.push(
+                property
+                    .get()
+                    .cloned()
+                    .map(JsValue::new)
+                    .unwrap_or_default(),
+            );
+            self.storage.push(
+                property
+                    .set()
+                    .cloned()
+                    .map(JsValue::new)
+                    .unwrap_or_default(),
+            );
+        } else {
+            self.storage
+                .push(property.value().cloned().unwrap_or_default());
+        }
+
+        false
     }
 
     /// Remove the property with the given key from the [`PropertyMap`].
-    pub fn remove(&mut self, key: &PropertyKey) -> Option<PropertyDescriptor> {
-        match key {
-            PropertyKey::Index(index) => self.indexed_properties.remove(*index),
-            PropertyKey::String(string) => self.string_properties.0.shift_remove(string),
-            PropertyKey::Symbol(symbol) => self.symbol_properties.0.shift_remove(symbol),
+    pub fn remove(&mut self, key: &PropertyKey) -> bool {
+        if let PropertyKey::Index(index) = key {
+            return self.indexed_properties.remove(*index);
         }
+        if let Some(slot) = self.shape.lookup(key) {
+            // shift all elements when removing.
+            if slot.attributes.is_accessor_descriptor() {
+                self.storage.remove(slot.index as usize + 1);
+            }
+            self.storage.remove(slot.index as usize);
+
+            self.shape = self.shape.remove_property_transition(key);
+            return true;
+        }
+
+        false
     }
 
     /// Overrides all the indexed properties, setting it to dense storage.
@@ -294,65 +424,6 @@ impl PropertyMap {
         } else {
             None
         }
-    }
-
-    /// An iterator visiting all key-value pairs in arbitrary order. The iterator element type is `(PropertyKey, &'a Property)`.
-    ///
-    /// This iterator does not recurse down the prototype chain.
-    #[inline]
-    #[must_use]
-    pub fn iter(&self) -> Iter<'_> {
-        Iter {
-            indexed_properties: self.indexed_properties.iter(),
-            string_properties: self.string_properties.0.iter(),
-            symbol_properties: self.symbol_properties.0.iter(),
-        }
-    }
-
-    /// An iterator visiting all keys in arbitrary order. The iterator element type is `PropertyKey`.
-    ///
-    /// This iterator does not recurse down the prototype chain.
-    #[inline]
-    #[must_use]
-    pub fn keys(&self) -> Keys<'_> {
-        Keys(self.iter())
-    }
-
-    /// An iterator visiting all values in arbitrary order. The iterator element type is `&'a Property`.
-    ///
-    /// This iterator does not recurse down the prototype chain.
-    #[inline]
-    #[must_use]
-    pub fn values(&self) -> Values<'_> {
-        Values(self.iter())
-    }
-
-    /// An iterator visiting all symbol key-value pairs in arbitrary order. The iterator element type is `(&'a RcSymbol, &'a Property)`.
-    ///
-    ///
-    /// This iterator does not recurse down the prototype chain.
-    #[inline]
-    #[must_use]
-    pub fn symbol_properties(&self) -> SymbolProperties<'_> {
-        SymbolProperties(self.symbol_properties.0.iter())
-    }
-
-    /// An iterator visiting all symbol keys in arbitrary order. The iterator element type is `&'a RcSymbol`.
-    ///
-    /// This iterator does not recurse down the prototype chain.
-    #[inline]
-    #[must_use]
-    pub fn symbol_property_keys(&self) -> SymbolPropertyKeys<'_> {
-        SymbolPropertyKeys(self.symbol_properties.0.keys())
-    }
-
-    /// An iterator visiting all symbol values in arbitrary order. The iterator element type is `&'a Property`.
-    ///
-    /// This iterator does not recurse down the prototype chain.
-    #[inline]
-    #[must_use]
-    pub fn symbol_property_values(&self) -> SymbolPropertyValues<'_> {
-        SymbolPropertyValues(self.symbol_properties.0.values())
     }
 
     /// An iterator visiting all indexed key-value pairs in arbitrary order. The iterator element type is `(&'a u32, &'a Property)`.
@@ -382,42 +453,18 @@ impl PropertyMap {
         self.indexed_properties.values()
     }
 
-    /// An iterator visiting all string key-value pairs in arbitrary order. The iterator element type is `(&'a RcString, &'a Property)`.
-    ///
-    /// This iterator does not recurse down the prototype chain.
-    #[inline]
-    #[must_use]
-    pub fn string_properties(&self) -> StringProperties<'_> {
-        StringProperties(self.string_properties.0.iter())
-    }
-
-    /// An iterator visiting all string keys in arbitrary order. The iterator element type is `&'a RcString`.
-    ///
-    /// This iterator does not recurse down the prototype chain.
-    #[inline]
-    #[must_use]
-    pub fn string_property_keys(&self) -> StringPropertyKeys<'_> {
-        StringPropertyKeys(self.string_properties.0.keys())
-    }
-
-    /// An iterator visiting all string values in arbitrary order. The iterator element type is `&'a Property`.
-    ///
-    /// This iterator does not recurse down the prototype chain.
-    #[inline]
-    #[must_use]
-    pub fn string_property_values(&self) -> StringPropertyValues<'_> {
-        StringPropertyValues(self.string_properties.0.values())
-    }
-
     /// Returns `true` if the given key is contained in the [`PropertyMap`].
     #[inline]
     #[must_use]
     pub fn contains_key(&self, key: &PropertyKey) -> bool {
-        match key {
-            PropertyKey::Index(index) => self.indexed_properties.contains_key(*index),
-            PropertyKey::String(string) => self.string_properties.0.contains_key(string),
-            PropertyKey::Symbol(symbol) => self.symbol_properties.0.contains_key(symbol),
+        if let PropertyKey::Index(index) = key {
+            return self.indexed_properties.contains_key(*index);
         }
+        if self.shape.lookup(key).is_some() {
+            return true;
+        }
+
+        false
     }
 }
 
@@ -449,131 +496,6 @@ impl ExactSizeIterator for Iter<'_> {
         self.indexed_properties.len() + self.string_properties.len() + self.symbol_properties.len()
     }
 }
-
-impl FusedIterator for Iter<'_> {}
-
-/// An iterator over the keys (`PropertyKey`) of an `Object`.
-#[derive(Debug, Clone)]
-pub struct Keys<'a>(Iter<'a>);
-
-impl Iterator for Keys<'_> {
-    type Item = PropertyKey;
-    fn next(&mut self) -> Option<Self::Item> {
-        let (key, _) = self.0.next()?;
-        Some(key)
-    }
-}
-
-impl ExactSizeIterator for Keys<'_> {
-    #[inline]
-    fn len(&self) -> usize {
-        self.0.len()
-    }
-}
-
-impl FusedIterator for Keys<'_> {}
-
-/// An iterator over the values (`Property`) of an `Object`.
-#[derive(Debug, Clone)]
-pub struct Values<'a>(Iter<'a>);
-
-impl Iterator for Values<'_> {
-    type Item = PropertyDescriptor;
-    fn next(&mut self) -> Option<Self::Item> {
-        let (_, value) = self.0.next()?;
-        Some(value)
-    }
-}
-
-impl ExactSizeIterator for Values<'_> {
-    #[inline]
-    fn len(&self) -> usize {
-        self.0.len()
-    }
-}
-
-impl FusedIterator for Values<'_> {}
-
-/// An iterator over the `Symbol` property entries of an `Object`
-#[derive(Debug, Clone)]
-pub struct SymbolProperties<'a>(indexmap::map::Iter<'a, JsSymbol, PropertyDescriptor>);
-
-impl<'a> Iterator for SymbolProperties<'a> {
-    type Item = (&'a JsSymbol, &'a PropertyDescriptor);
-
-    #[inline]
-    fn next(&mut self) -> Option<Self::Item> {
-        self.0.next()
-    }
-
-    #[inline]
-    fn size_hint(&self) -> (usize, Option<usize>) {
-        self.0.size_hint()
-    }
-}
-
-impl ExactSizeIterator for SymbolProperties<'_> {
-    #[inline]
-    fn len(&self) -> usize {
-        self.0.len()
-    }
-}
-
-impl FusedIterator for SymbolProperties<'_> {}
-
-/// An iterator over the keys (`RcSymbol`) of an `Object`.
-#[derive(Debug, Clone)]
-pub struct SymbolPropertyKeys<'a>(indexmap::map::Keys<'a, JsSymbol, PropertyDescriptor>);
-
-impl<'a> Iterator for SymbolPropertyKeys<'a> {
-    type Item = &'a JsSymbol;
-
-    #[inline]
-    fn next(&mut self) -> Option<Self::Item> {
-        self.0.next()
-    }
-
-    #[inline]
-    fn size_hint(&self) -> (usize, Option<usize>) {
-        self.0.size_hint()
-    }
-}
-
-impl ExactSizeIterator for SymbolPropertyKeys<'_> {
-    #[inline]
-    fn len(&self) -> usize {
-        self.0.len()
-    }
-}
-
-impl FusedIterator for SymbolPropertyKeys<'_> {}
-
-/// An iterator over the `Symbol` values (`Property`) of an `Object`.
-#[derive(Debug, Clone)]
-pub struct SymbolPropertyValues<'a>(indexmap::map::Values<'a, JsSymbol, PropertyDescriptor>);
-
-impl<'a> Iterator for SymbolPropertyValues<'a> {
-    type Item = &'a PropertyDescriptor;
-
-    #[inline]
-    fn next(&mut self) -> Option<Self::Item> {
-        self.0.next()
-    }
-
-    #[inline]
-    fn size_hint(&self) -> (usize, Option<usize>) {
-        self.0.size_hint()
-    }
-}
-
-impl ExactSizeIterator for SymbolPropertyValues<'_> {
-    #[inline]
-    fn len(&self) -> usize {
-        self.0.len()
-    }
-}
-
-impl FusedIterator for SymbolPropertyValues<'_> {}
 
 /// An iterator over the indexed property entries of an `Object`.
 #[derive(Debug, Clone)]
@@ -713,86 +635,3 @@ impl ExactSizeIterator for IndexPropertyValues<'_> {
         }
     }
 }
-
-impl FusedIterator for IndexPropertyValues<'_> {}
-
-/// An iterator over the `String` property entries of an `Object`
-#[derive(Debug, Clone)]
-pub struct StringProperties<'a>(indexmap::map::Iter<'a, JsString, PropertyDescriptor>);
-
-impl<'a> Iterator for StringProperties<'a> {
-    type Item = (&'a JsString, &'a PropertyDescriptor);
-
-    #[inline]
-    fn next(&mut self) -> Option<Self::Item> {
-        self.0.next()
-    }
-
-    #[inline]
-    fn size_hint(&self) -> (usize, Option<usize>) {
-        self.0.size_hint()
-    }
-}
-
-impl ExactSizeIterator for StringProperties<'_> {
-    #[inline]
-    fn len(&self) -> usize {
-        self.0.len()
-    }
-}
-
-impl FusedIterator for StringProperties<'_> {}
-
-/// An iterator over the string keys (`RcString`) of an `Object`.
-#[derive(Debug, Clone)]
-pub struct StringPropertyKeys<'a>(indexmap::map::Keys<'a, JsString, PropertyDescriptor>);
-
-impl<'a> Iterator for StringPropertyKeys<'a> {
-    type Item = &'a JsString;
-
-    #[inline]
-    fn next(&mut self) -> Option<Self::Item> {
-        self.0.next()
-    }
-
-    #[inline]
-    fn size_hint(&self) -> (usize, Option<usize>) {
-        self.0.size_hint()
-    }
-}
-
-impl ExactSizeIterator for StringPropertyKeys<'_> {
-    #[inline]
-    fn len(&self) -> usize {
-        self.0.len()
-    }
-}
-
-impl FusedIterator for StringPropertyKeys<'_> {}
-
-/// An iterator over the string values (`Property`) of an `Object`.
-#[derive(Debug, Clone)]
-pub struct StringPropertyValues<'a>(indexmap::map::Values<'a, JsString, PropertyDescriptor>);
-
-impl<'a> Iterator for StringPropertyValues<'a> {
-    type Item = &'a PropertyDescriptor;
-
-    #[inline]
-    fn next(&mut self) -> Option<Self::Item> {
-        self.0.next()
-    }
-
-    #[inline]
-    fn size_hint(&self) -> (usize, Option<usize>) {
-        self.0.size_hint()
-    }
-}
-
-impl ExactSizeIterator for StringPropertyValues<'_> {
-    #[inline]
-    fn len(&self) -> usize {
-        self.0.len()
-    }
-}
-
-impl FusedIterator for StringPropertyValues<'_> {}

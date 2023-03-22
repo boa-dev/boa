@@ -340,14 +340,12 @@ pub(crate) fn ordinary_set_prototype_of(
     _: &mut Context<'_>,
 ) -> JsResult<bool> {
     // 1. Assert: Either Type(V) is Object or Type(V) is Null.
-    {
-        // 2. Let current be O.[[Prototype]].
-        let current = obj.prototype();
+    // 2. Let current be O.[[Prototype]].
+    let current = obj.prototype();
 
-        // 3. If SameValue(V, current) is true, return true.
-        if val == *current {
-            return Ok(true);
-        }
+    // 3. If SameValue(V, current) is true, return true.
+    if val == current {
+        return Ok(true);
     }
 
     // 4. Let extensible be O.[[Extensible]].
@@ -375,7 +373,7 @@ pub(crate) fn ordinary_set_prototype_of(
             break;
         }
         // ii. Else, set p to p.[[Prototype]].
-        p = proto.prototype().clone();
+        p = proto.prototype();
     }
 
     // 9. Set O.[[Prototype]] to V.
@@ -705,24 +703,11 @@ pub(crate) fn ordinary_own_property_keys(
     keys.extend(ordered_indexes.into_iter().map(Into::into));
 
     // 3. For each own property key P of O such that Type(P) is String and P is not an array index, in ascending chronological order of property creation, do
-    // a. Add P as the last element of keys.
-    keys.extend(
-        obj.borrow()
-            .properties
-            .string_property_keys()
-            .cloned()
-            .map(Into::into),
-    );
-
+    //     a. Add P as the last element of keys.
+    //
     // 4. For each own property key P of O such that Type(P) is Symbol, in ascending chronological order of property creation, do
-    // a. Add P as the last element of keys.
-    keys.extend(
-        obj.borrow()
-            .properties
-            .symbol_property_keys()
-            .cloned()
-            .map(Into::into),
-    );
+    //     a. Add P as the last element of keys.
+    keys.extend(obj.borrow().properties.shape.keys());
 
     // 5. Return keys.
     Ok(keys)

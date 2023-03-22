@@ -122,7 +122,8 @@ impl BuiltInConstructor for DateTimeFormat {
         // « [[InitializedDateTimeFormat]], [[Locale]], [[Calendar]], [[NumberingSystem]], [[TimeZone]], [[Weekday]],
         // [[Era]], [[Year]], [[Month]], [[Day]], [[DayPeriod]], [[Hour]], [[Minute]], [[Second]],
         // [[FractionalSecondDigits]], [[TimeZoneName]], [[HourCycle]], [[Pattern]], [[BoundFormat]] »).
-        let date_time_format = JsObject::from_proto_and_data(
+        let date_time_format = JsObject::from_proto_and_data_with_shared_shape(
+            context.root_shape(),
             prototype,
             ObjectData::date_time_format(Box::new(Self {
                 initialized_date_time_format: true,
@@ -192,7 +193,11 @@ pub(crate) fn to_date_time_options(
     } else {
         Some(options.to_object(context)?)
     };
-    let options = JsObject::from_proto_and_data(options, ObjectData::ordinary());
+    let options = JsObject::from_proto_and_data_with_shared_shape(
+        context.root_shape(),
+        options,
+        ObjectData::ordinary(),
+    );
 
     // 3. Let needDefaults be true.
     let mut need_defaults = true;

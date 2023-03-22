@@ -85,7 +85,8 @@ impl MapIterator {
                     map_iteration_kind: kind,
                     lock,
                 };
-                let map_iterator = JsObject::from_proto_and_data(
+                let map_iterator = JsObject::from_proto_and_data_with_shared_shape(
+                    context.root_shape(),
                     context.intrinsics().objects().iterator_prototypes().map(),
                     ObjectData::map_iterator(iter),
                 );

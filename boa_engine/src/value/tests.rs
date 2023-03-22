@@ -1,3 +1,4 @@
+use boa_macros::utf16;
 use indoc::indoc;
 
 use super::*;

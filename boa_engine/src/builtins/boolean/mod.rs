@@ -68,7 +68,11 @@ impl BuiltInConstructor for Boolean {
         }
         let prototype =
             get_prototype_from_constructor(new_target, StandardConstructors::boolean, context)?;
-        let boolean = JsObject::from_proto_and_data(prototype, ObjectData::boolean(data));
+        let boolean = JsObject::from_proto_and_data_with_shared_shape(
+            context.root_shape(),
+            prototype,
+            ObjectData::boolean(data),
+        );
 
         Ok(boolean.into())
     }

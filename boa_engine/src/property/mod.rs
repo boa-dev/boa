@@ -17,7 +17,7 @@
 
 mod attribute;
 
-use crate::{js_string, JsString, JsSymbol, JsValue};
+use crate::{js_string, object::shape::slot::SlotAttributes, JsString, JsSymbol, JsValue};
 use boa_gc::{Finalize, Trace};
 use std::{fmt, iter::FusedIterator};
 
@@ -338,6 +338,19 @@ impl PropertyDescriptor {
             self.configurable = Some(configurable);
         }
     }
+
+    pub(crate) fn to_slot_attributes(&self) -> SlotAttributes {
+        let mut attributes = SlotAttributes::empty();
+        attributes.set(SlotAttributes::CONFIGURABLE, self.expect_configurable());
+        attributes.set(SlotAttributes::ENUMERABLE, self.expect_enumerable());
+        if self.is_data_descriptor() {
+            attributes.set(SlotAttributes::WRITABLE, self.expect_writable());
+        } else {
+            attributes.set(SlotAttributes::GET, self.get().is_some());
+            attributes.set(SlotAttributes::SET, self.set().is_some());
+        }
+        attributes
+    }
 }
 
 /// A builder for [`PropertyDescriptor`].
@@ -557,7 +570,7 @@ impl From<PropertyDescriptorBuilder> for PropertyDescriptor {
 /// - [ECMAScript reference][spec]
 ///
 /// [spec]: https://tc39.es/ecma262/#sec-ispropertykey
-#[derive(PartialEq, Debug, Clone, Eq, Hash)]
+#[derive(Finalize, PartialEq, Debug, Clone, Eq, Hash)]
 pub enum PropertyKey {
     /// A string property key.
     String(JsString),

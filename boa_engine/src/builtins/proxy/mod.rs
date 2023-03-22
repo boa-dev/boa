@@ -36,9 +36,8 @@ impl IntrinsicObject for Proxy {
         let _timer = Profiler::global().start_event(Self::NAME, "init");
 
         BuiltInBuilder::from_standard_constructor::<Self>(realm)
-            .no_proto()
             .static_method(Self::revocable, "revocable", 2)
-            .build();
+            .build_without_prototype();
     }
 
     fn get(intrinsics: &Intrinsics) -> JsObject {
@@ -126,7 +125,8 @@ impl Proxy {
         // i. Set P.[[Construct]] as specified in 10.5.13.
         // 6. Set P.[[ProxyTarget]] to target.
         // 7. Set P.[[ProxyHandler]] to handler.
-        let p = JsObject::from_proto_and_data(
+        let p = JsObject::from_proto_and_data_with_shared_shape(
+            context.root_shape(),
             context.intrinsics().constructors().object().prototype(),
             ObjectData::proxy(
                 Self::new(target.clone(), handler.clone()),

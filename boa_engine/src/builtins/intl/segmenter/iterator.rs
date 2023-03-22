@@ -87,7 +87,8 @@ impl SegmentIterator {
         // 4. Set iterator.[[IteratedString]] to string.
         // 5. Set iterator.[[IteratedStringNextSegmentCodeUnitIndex]] to 0.
         // 6. Return iterator.
-        JsObject::from_proto_and_data(
+        JsObject::from_proto_and_data_with_shared_shape(
+            context.root_shape(),
             context
                 .intrinsics()
                 .objects()

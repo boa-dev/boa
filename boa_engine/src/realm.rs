@@ -9,7 +9,7 @@
 use crate::{
     context::{intrinsics::Intrinsics, HostHooks},
     environments::DeclarativeEnvironment,
-    object::JsObject,
+    object::{shape::shared_shape::SharedShape, JsObject},
 };
 use boa_gc::{Finalize, Gc, Trace};
 use boa_profiler::Profiler;
@@ -39,10 +39,10 @@ struct Inner {
 impl Realm {
     /// Create a new Realm.
     #[inline]
-    pub fn create(hooks: &dyn HostHooks) -> Self {
+    pub fn create(hooks: &dyn HostHooks, root_shape: &SharedShape) -> Self {
         let _timer = Profiler::global().start_event("Realm::create", "realm");
 
-        let intrinsics = Intrinsics::default();
+        let intrinsics = Intrinsics::new(root_shape);
         let global_object = hooks.create_global_object(&intrinsics);
         let global_this = hooks
             .create_global_this(&intrinsics)

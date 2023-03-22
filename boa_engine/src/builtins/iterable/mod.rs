@@ -5,7 +5,7 @@ use crate::{
     context::intrinsics::Intrinsics,
     error::JsNativeError,
     js_string,
-    object::JsObject,
+    object::{JsObject, ObjectData},
     realm::Realm,
     symbol::JsSymbol,
     Context, JsResult, JsValue,
@@ -201,14 +201,14 @@ pub fn create_iter_result_object(value: JsValue, done: bool, context: &mut Conte
 
     // 1. Assert: Type(done) is Boolean.
     // 2. Let obj be ! OrdinaryObjectCreate(%Object.prototype%).
-    let obj = JsObject::with_object_proto(context.intrinsics());
-
     // 3. Perform ! CreateDataPropertyOrThrow(obj, "value", value).
-    obj.create_data_property_or_throw(js_string!("value"), value, context)
-        .expect("this CreateDataPropertyOrThrow call must not fail");
     // 4. Perform ! CreateDataPropertyOrThrow(obj, "done", done).
-    obj.create_data_property_or_throw(js_string!("done"), done, context)
-        .expect("this CreateDataPropertyOrThrow call must not fail");
+    let obj = context
+        .intrinsics()
+        .templates()
+        .iterator_result()
+        .create(ObjectData::ordinary(), vec![value, done.into()]);
+
     // 5. Return obj.
     obj.into()
 }

@@ -51,8 +51,7 @@ macro_rules! typed_array {
             fn init(realm: &Realm) {
                 let _timer = Profiler::global().start_event(Self::NAME, "init");
 
-                let get_species = BuiltInBuilder::new(realm)
-                    .callable(TypedArray::get_species)
+                let get_species = BuiltInBuilder::callable(realm, TypedArray::get_species)
                     .name("get [Symbol.species]")
                     .build();
 
@@ -241,38 +240,31 @@ pub(crate) struct TypedArray;
 
 impl IntrinsicObject for TypedArray {
     fn init(realm: &Realm) {
-        let get_species = BuiltInBuilder::new(realm)
-            .callable(Self::get_species)
+        let get_species = BuiltInBuilder::callable(realm, Self::get_species)
             .name("get [Symbol.species]")
             .build();
 
-        let get_buffer = BuiltInBuilder::new(realm)
-            .callable(Self::buffer)
+        let get_buffer = BuiltInBuilder::callable(realm, Self::buffer)
             .name("get buffer")
             .build();
 
-        let get_byte_length = BuiltInBuilder::new(realm)
-            .callable(Self::byte_length)
+        let get_byte_length = BuiltInBuilder::callable(realm, Self::byte_length)
             .name("get byteLength")
             .build();
 
-        let get_byte_offset = BuiltInBuilder::new(realm)
-            .callable(Self::byte_offset)
+        let get_byte_offset = BuiltInBuilder::callable(realm, Self::byte_offset)
             .name("get byteOffset")
             .build();
 
-        let get_length = BuiltInBuilder::new(realm)
-            .callable(Self::length)
+        let get_length = BuiltInBuilder::callable(realm, Self::length)
             .name("get length")
             .build();
 
-        let get_to_string_tag = BuiltInBuilder::new(realm)
-            .callable(Self::to_string_tag)
+        let get_to_string_tag = BuiltInBuilder::callable(realm, Self::to_string_tag)
             .name("get [Symbol.toStringTag]")
             .build();
 
-        let values_function = BuiltInBuilder::new(realm)
-            .callable(Self::values)
+        let values_function = BuiltInBuilder::callable(realm, Self::values)
             .name("values")
             .length(0)
             .build();
@@ -283,11 +275,6 @@ impl IntrinsicObject for TypedArray {
                 Some(get_species),
                 None,
                 Attribute::CONFIGURABLE,
-            )
-            .property(
-                utf16!("length"),
-                0,
-                Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::PERMANENT,
             )
             .property(
                 JsSymbol::iterator(),
@@ -3205,7 +3192,11 @@ impl TypedArray {
         }
 
         // 2. Let obj be ! IntegerIndexedObjectCreate(proto).
-        let obj = JsObject::from_proto_and_data(proto, ObjectData::integer_indexed(indexed));
+        let obj = JsObject::from_proto_and_data_with_shared_shape(
+            context.root_shape(),
+            proto,
+            ObjectData::integer_indexed(indexed),
+        );
 
         // 9. Return obj.
         Ok(obj)

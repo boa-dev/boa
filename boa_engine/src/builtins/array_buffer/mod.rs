@@ -53,13 +53,11 @@ impl IntrinsicObject for ArrayBuffer {
 
         let flag_attributes = Attribute::CONFIGURABLE | Attribute::NON_ENUMERABLE;
 
-        let get_species = BuiltInBuilder::new(realm)
-            .callable(Self::get_species)
+        let get_species = BuiltInBuilder::callable(realm, Self::get_species)
             .name("get [Symbol.species]")
             .build();
 
-        let get_byte_length = BuiltInBuilder::new(realm)
-            .callable(Self::get_byte_length)
+        let get_byte_length = BuiltInBuilder::callable(realm, Self::get_byte_length)
             .name("get byteLength")
             .build();
 
@@ -355,7 +353,8 @@ impl ArrayBuffer {
 
         // 3. Set obj.[[ArrayBufferData]] to block.
         // 4. Set obj.[[ArrayBufferByteLength]] to byteLength.
-        let obj = JsObject::from_proto_and_data(
+        let obj = JsObject::from_proto_and_data_with_shared_shape(
+            context.root_shape(),
             prototype,
             ObjectData::array_buffer(Self {
                 array_buffer_data: Some(block),

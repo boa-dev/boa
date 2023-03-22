@@ -90,7 +90,11 @@ impl BuiltInConstructor for TypeError {
         // 2. Let O be ? OrdinaryCreateFromConstructor(newTarget, "%NativeError.prototype%", « [[ErrorData]] »).
         let prototype =
             get_prototype_from_constructor(new_target, StandardConstructors::type_error, context)?;
-        let o = JsObject::from_proto_and_data(prototype, ObjectData::error(ErrorKind::Type));
+        let o = JsObject::from_proto_and_data_with_shared_shape(
+            context.root_shape(),
+            prototype,
+            ObjectData::error(ErrorKind::Type),
+        );
 
         // 3. If message is not undefined, then
         let message = args.get_or_undefined(0);

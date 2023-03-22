@@ -163,8 +163,7 @@ impl IntrinsicObject for Collator {
     fn init(realm: &Realm) {
         let _timer = Profiler::global().start_event(Self::NAME, "init");
 
-        let compare = BuiltInBuilder::new(realm)
-            .callable(Self::compare)
+        let compare = BuiltInBuilder::callable(realm, Self::compare)
             .name("get compare")
             .build();
 
@@ -364,7 +363,8 @@ impl BuiltInConstructor for Collator {
 
         let prototype =
             get_prototype_from_constructor(new_target, StandardConstructors::collator, context)?;
-        let collator = JsObject::from_proto_and_data(
+        let collator = JsObject::from_proto_and_data_with_shared_shape(
+            context.root_shape(),
             prototype,
             ObjectData::collator(Self {
                 locale,
@@ -509,10 +509,11 @@ impl Collator {
         })?;
 
         // 3. Let options be OrdinaryObjectCreate(%Object.prototype%).
-        let options = JsObject::from_proto_and_data(
-            context.intrinsics().constructors().object().prototype(),
-            ObjectData::ordinary(),
-        );
+        let options = context
+            .intrinsics()
+            .templates()
+            .ordinary_object()
+            .create(ObjectData::ordinary(), vec![]);
 
         // 4. For each row of Table 4, except the header row, in table order, do
         //     a. Let p be the Property value of the current row.

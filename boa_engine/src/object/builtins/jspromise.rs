@@ -154,7 +154,8 @@ impl JsPromise {
     where
         F: FnOnce(&ResolvingFunctions, &mut Context<'_>) -> JsResult<JsValue>,
     {
-        let promise = JsObject::from_proto_and_data(
+        let promise = JsObject::from_proto_and_data_with_shared_shape(
+            context.root_shape(),
             context.intrinsics().constructors().promise().prototype(),
             ObjectData::promise(Promise::new()),
         );
@@ -201,7 +202,8 @@ impl JsPromise {
     /// ```
     #[inline]
     pub fn new_pending(context: &mut Context<'_>) -> (JsPromise, ResolvingFunctions) {
-        let promise = JsObject::from_proto_and_data(
+        let promise = JsObject::from_proto_and_data_with_shared_shape(
+            context.root_shape(),
             context.intrinsics().constructors().promise().prototype(),
             ObjectData::promise(Promise::new()),
         );

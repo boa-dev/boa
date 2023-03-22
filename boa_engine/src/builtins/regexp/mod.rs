@@ -51,47 +51,37 @@ impl IntrinsicObject for RegExp {
     fn init(realm: &Realm) {
         let _timer = Profiler::global().start_event(Self::NAME, "init");
 
-        let get_species = BuiltInBuilder::new(realm)
-            .callable(Self::get_species)
+        let get_species = BuiltInBuilder::callable(realm, Self::get_species)
             .name("get [Symbol.species]")
             .build();
 
         let flag_attributes = Attribute::CONFIGURABLE | Attribute::NON_ENUMERABLE;
 
-        let get_has_indices = BuiltInBuilder::new(realm)
-            .callable(Self::get_has_indices)
+        let get_has_indices = BuiltInBuilder::callable(realm, Self::get_has_indices)
             .name("get hasIndices")
             .build();
-        let get_global = BuiltInBuilder::new(realm)
-            .callable(Self::get_global)
+        let get_global = BuiltInBuilder::callable(realm, Self::get_global)
             .name("get global")
             .build();
-        let get_ignore_case = BuiltInBuilder::new(realm)
-            .callable(Self::get_ignore_case)
+        let get_ignore_case = BuiltInBuilder::callable(realm, Self::get_ignore_case)
             .name("get ignoreCase")
             .build();
-        let get_multiline = BuiltInBuilder::new(realm)
-            .callable(Self::get_multiline)
+        let get_multiline = BuiltInBuilder::callable(realm, Self::get_multiline)
             .name("get multiline")
             .build();
-        let get_dot_all = BuiltInBuilder::new(realm)
-            .callable(Self::get_dot_all)
+        let get_dot_all = BuiltInBuilder::callable(realm, Self::get_dot_all)
             .name("get dotAll")
             .build();
-        let get_unicode = BuiltInBuilder::new(realm)
-            .callable(Self::get_unicode)
+        let get_unicode = BuiltInBuilder::callable(realm, Self::get_unicode)
             .name("get unicode")
             .build();
-        let get_sticky = BuiltInBuilder::new(realm)
-            .callable(Self::get_sticky)
+        let get_sticky = BuiltInBuilder::callable(realm, Self::get_sticky)
             .name("get sticky")
             .build();
-        let get_flags = BuiltInBuilder::new(realm)
-            .callable(Self::get_flags)
+        let get_flags = BuiltInBuilder::callable(realm, Self::get_flags)
             .name("get flags")
             .build();
-        let get_source = BuiltInBuilder::new(realm)
-            .callable(Self::get_source)
+        let get_source = BuiltInBuilder::callable(realm, Self::get_source)
             .name("get source")
             .build();
         let regexp = BuiltInBuilder::from_standard_constructor::<Self>(realm)
@@ -238,7 +228,11 @@ impl RegExp {
         // 1. Let obj be ? OrdinaryCreateFromConstructor(newTarget, "%RegExp.prototype%", « [[RegExpMatcher]], [[OriginalSource]], [[OriginalFlags]] »).
         let proto =
             get_prototype_from_constructor(new_target, StandardConstructors::regexp, context)?;
-        let obj = JsObject::from_proto_and_data(proto, ObjectData::ordinary());
+        let obj = JsObject::from_proto_and_data_with_shared_shape(
+            context.root_shape(),
+            proto,
+            ObjectData::ordinary(),
+        );
 
         // 2. Perform ! DefinePropertyOrThrow(obj, "lastIndex", PropertyDescriptor { [[Writable]]: true, [[Enumerable]]: false, [[Configurable]]: false }).
         obj.define_property_or_throw(

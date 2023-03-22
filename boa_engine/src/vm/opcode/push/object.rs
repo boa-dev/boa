@@ -1,5 +1,5 @@
 use crate::{
-    object::JsObject,
+    object::ObjectData,
     vm::{opcode::Operation, CompletionType},
     Context, JsResult,
 };
@@ -16,7 +16,11 @@ impl Operation for PushEmptyObject {
     const INSTRUCTION: &'static str = "INST - PushEmptyObject";
 
     fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
-        let o = JsObject::with_object_proto(context.intrinsics());
+        let o = context
+            .intrinsics()
+            .templates()
+            .ordinary_object()
+            .create(ObjectData::ordinary(), Vec::default());
         context.vm.push(o);
         Ok(CompletionType::Normal)
     }

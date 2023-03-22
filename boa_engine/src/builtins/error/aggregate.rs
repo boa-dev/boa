@@ -83,7 +83,11 @@ impl BuiltInConstructor for AggregateError {
             StandardConstructors::aggregate_error,
             context,
         )?;
-        let o = JsObject::from_proto_and_data(prototype, ObjectData::error(ErrorKind::Aggregate));
+        let o = JsObject::from_proto_and_data_with_shared_shape(
+            context.root_shape(),
+            prototype,
+            ObjectData::error(ErrorKind::Aggregate),
+        );
 
         // 3. If message is not undefined, then
         let message = args.get_or_undefined(1);

@@ -96,14 +96,12 @@ impl IntrinsicObject for Date {
     fn init(realm: &Realm) {
         let _timer = Profiler::global().start_event(Self::NAME, "init");
 
-        let to_utc_string = BuiltInBuilder::new(realm)
-            .callable(Self::to_utc_string)
+        let to_utc_string = BuiltInBuilder::callable(realm, Self::to_utc_string)
             .name("toUTCString")
             .length(0)
             .build();
 
-        let to_primitive = BuiltInBuilder::new(realm)
-            .callable(Self::to_primitive)
+        let to_primitive = BuiltInBuilder::callable(realm, Self::to_primitive)
             .name("[Symbol.toPrimitive]")
             .length(1)
             .build();
@@ -289,7 +287,11 @@ impl BuiltInConstructor for Date {
             get_prototype_from_constructor(new_target, StandardConstructors::date, context)?;
 
         // 7. Set O.[[DateValue]] to dv.
-        let obj = JsObject::from_proto_and_data(prototype, ObjectData::date(dv));
+        let obj = JsObject::from_proto_and_data_with_shared_shape(
+            context.root_shape(),
+            prototype,
+            ObjectData::date(dv),
+        );
 
         // 8. Return O.
         Ok(obj.into())

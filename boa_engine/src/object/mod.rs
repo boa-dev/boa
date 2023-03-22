@@ -8,20 +8,23 @@ pub use operations::IntegrityLevel;
 pub use property_map::*;
 use thin_vec::ThinVec;
 
-use self::internal_methods::{
-    arguments::ARGUMENTS_EXOTIC_INTERNAL_METHODS,
-    array::ARRAY_EXOTIC_INTERNAL_METHODS,
-    bound_function::{
-        BOUND_CONSTRUCTOR_EXOTIC_INTERNAL_METHODS, BOUND_FUNCTION_EXOTIC_INTERNAL_METHODS,
+use self::{
+    internal_methods::{
+        arguments::ARGUMENTS_EXOTIC_INTERNAL_METHODS,
+        array::ARRAY_EXOTIC_INTERNAL_METHODS,
+        bound_function::{
+            BOUND_CONSTRUCTOR_EXOTIC_INTERNAL_METHODS, BOUND_FUNCTION_EXOTIC_INTERNAL_METHODS,
+        },
+        function::{CONSTRUCTOR_INTERNAL_METHODS, FUNCTION_INTERNAL_METHODS},
+        integer_indexed::INTEGER_INDEXED_EXOTIC_INTERNAL_METHODS,
+        proxy::{
+            PROXY_EXOTIC_INTERNAL_METHODS_ALL, PROXY_EXOTIC_INTERNAL_METHODS_BASIC,
+            PROXY_EXOTIC_INTERNAL_METHODS_WITH_CALL,
+        },
+        string::STRING_EXOTIC_INTERNAL_METHODS,
+        InternalObjectMethods, ORDINARY_INTERNAL_METHODS,
     },
-    function::{CONSTRUCTOR_INTERNAL_METHODS, FUNCTION_INTERNAL_METHODS},
-    integer_indexed::INTEGER_INDEXED_EXOTIC_INTERNAL_METHODS,
-    proxy::{
-        PROXY_EXOTIC_INTERNAL_METHODS_ALL, PROXY_EXOTIC_INTERNAL_METHODS_BASIC,
-        PROXY_EXOTIC_INTERNAL_METHODS_WITH_CALL,
-    },
-    string::STRING_EXOTIC_INTERNAL_METHODS,
-    InternalObjectMethods, ORDINARY_INTERNAL_METHODS,
+    shape::Shape,
 };
 #[cfg(feature = "intl")]
 use crate::builtins::intl::{
@@ -74,6 +77,7 @@ pub mod builtins;
 mod jsobject;
 mod operations;
 mod property_map;
+pub mod shape;
 
 pub(crate) use builtins::*;
 
@@ -96,6 +100,11 @@ pub const PROTOTYPE: &[u16] = utf16!("prototype");
 ///
 /// A `None` values means that the prototype is the `null` value.
 pub type JsPrototype = Option<JsObject>;
+
+/// The internal storage of an object's property values.
+///
+/// The [`shape::Shape`] contains the property names and attributes.
+pub(crate) type ObjectStorage = Vec<JsValue>;
 
 /// This trait allows Rust types to be passed around as objects.
 ///
@@ -125,8 +134,6 @@ pub struct Object {
     kind: ObjectKind,
     /// The collection of properties contained in the object
     properties: PropertyMap,
-    /// Instance prototype `__proto__`.
-    prototype: JsPrototype,
     /// Whether it can have new properties added to it.
     pub(crate) extensible: bool,
     /// The `[[PrivateElements]]` internal slot.
@@ -138,7 +145,6 @@ impl Default for Object {
         Self {
             kind: ObjectKind::Ordinary,
             properties: PropertyMap::default(),
-            prototype: None,
             extensible: true,
             private_elements: ThinVec::new(),
         }
@@ -149,7 +155,6 @@ unsafe impl Trace for Object {
     boa_gc::custom_trace!(this, {
         mark(&this.kind);
         mark(&this.properties);
-        mark(&this.prototype);
         for (_, element) in &this.private_elements {
             mark(element);
         }
@@ -838,6 +843,11 @@ impl Object {
         &mut self.kind
     }
 
+    /// Returns the shape of the object.
+    pub const fn shape(&self) -> &Shape {
+        &self.properties.shape
+    }
+
     /// Returns the kind of the object.
     #[inline]
     pub const fn kind(&self) -> &ObjectKind {
@@ -1478,8 +1488,8 @@ impl Object {
 
     /// Gets the prototype instance of this object.
     #[inline]
-    pub const fn prototype(&self) -> &JsPrototype {
-        &self.prototype
+    pub fn prototype(&self) -> JsPrototype {
+        self.properties.shape.prototype()
     }
 
     /// Sets the prototype instance of the object.
@@ -1491,12 +1501,12 @@ impl Object {
     pub fn set_prototype<O: Into<JsPrototype>>(&mut self, prototype: O) -> bool {
         let prototype = prototype.into();
         if self.extensible {
-            self.prototype = prototype;
+            self.properties.shape = self.properties.shape.change_prototype_transition(prototype);
             true
         } else {
             // If target is non-extensible, [[SetPrototypeOf]] must return false
             // unless V is the SameValue as the target's observed [[GetPrototypeOf]] value.
-            self.prototype == prototype
+            self.prototype() == prototype
         }
     }
 
@@ -1682,9 +1692,9 @@ impl Object {
 
     /// Inserts a field in the object `properties` without checking if it's writable.
     ///
-    /// If a field was already in the object with the same name, then a `Some` is returned
-    /// with that field's value, otherwise, `None` is returned.
-    pub(crate) fn insert<K, P>(&mut self, key: K, property: P) -> Option<PropertyDescriptor>
+    /// If a field was already in the object with the same name, then `true` is returned
+    /// otherwise, `false` is returned.
+    pub(crate) fn insert<K, P>(&mut self, key: K, property: P) -> bool
     where
         K: Into<PropertyKey>,
         P: Into<PropertyDescriptor>,
@@ -1692,9 +1702,11 @@ impl Object {
         self.properties.insert(&key.into(), property.into())
     }
 
-    /// Helper function for property removal.
+    /// Helper function for property removal without checking if it's configurable.
+    ///
+    /// Returns `true` if the property was removed, `false` otherwise.
     #[inline]
-    pub(crate) fn remove(&mut self, key: &PropertyKey) -> Option<PropertyDescriptor> {
+    pub(crate) fn remove(&mut self, key: &PropertyKey) -> bool {
         self.properties.remove(key)
     }
 
@@ -1848,28 +1860,19 @@ impl<'ctx, 'host> FunctionObjectBuilder<'ctx, 'host> {
 
     /// Build the function object.
     pub fn build(self) -> JsFunction {
-        let function = JsObject::from_proto_and_data(
-            self.context
-                .intrinsics()
-                .constructors()
-                .function()
-                .prototype(),
-            ObjectData::function(Function::new(
-                FunctionKind::Native {
-                    function: self.function,
-                    constructor: self.constructor,
-                },
-                self.context.realm().clone(),
-            )),
+        let function = Function::new(
+            FunctionKind::Native {
+                function: self.function,
+                constructor: self.constructor,
+            },
+            self.context.realm().clone(),
         );
-        let property = PropertyDescriptor::builder()
-            .writable(false)
-            .enumerable(false)
-            .configurable(true);
-        function.insert_property(utf16!("length"), property.clone().value(self.length));
-        function.insert_property(utf16!("name"), property.value(self.name));
+        let object = self.context.intrinsics().templates().function().create(
+            ObjectData::function(function),
+            vec![self.length.into(), self.name.into()],
+        );
 
-        JsFunction::from_object_unchecked(function)
+        JsFunction::from_object_unchecked(object)
     }
 }
 
@@ -1917,7 +1920,8 @@ impl<'ctx, 'host> ObjectInitializer<'ctx, 'host> {
 
     /// Create a new `ObjectBuilder` with custom [`NativeObject`] data.
     pub fn with_native<T: NativeObject>(data: T, context: &'ctx mut Context<'host>) -> Self {
-        let object = JsObject::from_proto_and_data(
+        let object = JsObject::from_proto_and_data_with_shared_shape(
+            context.root_shape(),
             context.intrinsics().constructors().object().prototype(),
             ObjectData::native_object(data),
         );
@@ -2025,14 +2029,12 @@ impl<'ctx, 'host> ConstructorBuilder<'ctx, 'host> {
             constructor_object: Object {
                 kind: ObjectKind::Ordinary,
                 properties: PropertyMap::default(),
-                prototype: None,
                 extensible: true,
                 private_elements: ThinVec::new(),
             },
             prototype: Object {
                 kind: ObjectKind::Ordinary,
                 properties: PropertyMap::default(),
-                prototype: None,
                 extensible: true,
                 private_elements: ThinVec::new(),
             },

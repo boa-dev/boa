@@ -111,14 +111,12 @@ impl IntrinsicObject for Symbol {
 
         let attribute = Attribute::READONLY | Attribute::NON_ENUMERABLE | Attribute::PERMANENT;
 
-        let to_primitive = BuiltInBuilder::new(realm)
-            .callable(Self::to_primitive)
+        let to_primitive = BuiltInBuilder::callable(realm, Self::to_primitive)
             .name("[Symbol.toPrimitive]")
             .length(1)
             .build();
 
-        let get_description = BuiltInBuilder::new(realm)
-            .callable(Self::get_description)
+        let get_description = BuiltInBuilder::callable(realm, Self::get_description)
             .name("get description")
             .build();
 

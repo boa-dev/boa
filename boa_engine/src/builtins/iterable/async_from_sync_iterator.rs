@@ -65,7 +65,8 @@ impl AsyncFromSyncIterator {
     ) -> IteratorRecord {
         // 1. Let asyncIterator be OrdinaryObjectCreate(%AsyncFromSyncIteratorPrototype%, « [[SyncIteratorRecord]] »).
         // 2. Set asyncIterator.[[SyncIteratorRecord]] to syncIteratorRecord.
-        let async_iterator = JsObject::from_proto_and_data(
+        let async_iterator = JsObject::from_proto_and_data_with_shared_shape(
+            context.root_shape(),
             context
                 .intrinsics()
                 .objects()

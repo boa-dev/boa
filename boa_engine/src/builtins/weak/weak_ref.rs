@@ -80,7 +80,8 @@ impl BuiltInConstructor for WeakRef {
 
         // 3. Let weakRef be ? OrdinaryCreateFromConstructor(NewTarget, "%WeakRef.prototype%", « [[WeakRefTarget]] »).
         // 5. Set weakRef.[[WeakRefTarget]] to target.
-        let weak_ref = JsObject::from_proto_and_data(
+        let weak_ref = JsObject::from_proto_and_data_with_shared_shape(
+            context.root_shape(),
             get_prototype_from_constructor(new_target, StandardConstructors::weak_ref, context)?,
             ObjectData::weak_ref(WeakGc::new(target.inner())),
         );
@@ -160,7 +161,10 @@ mod tests {
                 "#},
                 |v, _| v.is_object(),
             ),
-            TestAction::inspect_context(|_| boa_gc::force_collect()),
+            TestAction::inspect_context(|context| {
+                context.clear_kept_objects();
+                boa_gc::force_collect();
+            }),
             TestAction::assert_eq("ptr.deref()", JsValue::undefined()),
         ]);
     }

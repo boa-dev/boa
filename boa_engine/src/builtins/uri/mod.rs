@@ -82,8 +82,7 @@ pub(crate) struct DecodeUri;
 
 impl IntrinsicObject for DecodeUri {
     fn init(realm: &Realm) {
-        BuiltInBuilder::with_intrinsic::<Self>(realm)
-            .callable(decode_uri)
+        BuiltInBuilder::callable_with_intrinsic::<Self>(realm, decode_uri)
             .name(Self::NAME)
             .length(1)
             .build();
@@ -101,8 +100,7 @@ pub(crate) struct DecodeUriComponent;
 
 impl IntrinsicObject for DecodeUriComponent {
     fn init(realm: &Realm) {
-        BuiltInBuilder::with_intrinsic::<Self>(realm)
-            .callable(decode_uri_component)
+        BuiltInBuilder::callable_with_intrinsic::<Self>(realm, decode_uri_component)
             .name(Self::NAME)
             .length(1)
             .build();
@@ -124,8 +122,7 @@ pub(crate) struct EncodeUri;
 
 impl IntrinsicObject for EncodeUri {
     fn init(realm: &Realm) {
-        BuiltInBuilder::with_intrinsic::<Self>(realm)
-            .callable(encode_uri)
+        BuiltInBuilder::callable_with_intrinsic::<Self>(realm, encode_uri)
             .name(Self::NAME)
             .length(1)
             .build();
@@ -142,8 +139,7 @@ pub(crate) struct EncodeUriComponent;
 
 impl IntrinsicObject for EncodeUriComponent {
     fn init(realm: &Realm) {
-        BuiltInBuilder::with_intrinsic::<Self>(realm)
-            .callable(encode_uri_component)
+        BuiltInBuilder::callable_with_intrinsic::<Self>(realm, encode_uri_component)
             .name(Self::NAME)
             .length(1)
             .build();

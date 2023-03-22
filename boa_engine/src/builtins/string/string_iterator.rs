@@ -60,7 +60,8 @@ impl IntrinsicObject for StringIterator {
 impl StringIterator {
     /// Create a new `StringIterator`.
     pub fn create_string_iterator(string: JsString, context: &mut Context<'_>) -> JsObject {
-        JsObject::from_proto_and_data(
+        JsObject::from_proto_and_data_with_shared_shape(
+            context.root_shape(),
             context
                 .intrinsics()
                 .objects()

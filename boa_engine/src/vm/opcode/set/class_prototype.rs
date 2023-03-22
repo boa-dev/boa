@@ -25,7 +25,11 @@ impl Operation for SetClassPrototype {
             _ => unreachable!(),
         };
 
-        let proto = JsObject::from_proto_and_data(prototype, ObjectData::ordinary());
+        let proto = JsObject::from_proto_and_data_with_shared_shape(
+            context.root_shape(),
+            prototype,
+            ObjectData::ordinary(),
+        );
         let class = context.vm.pop();
 
         {

@@ -163,7 +163,11 @@ impl BuiltInConstructor for Segmenter {
         let proto =
             get_prototype_from_constructor(new_target, StandardConstructors::segmenter, context)?;
 
-        let segmenter = JsObject::from_proto_and_data(proto, ObjectData::segmenter(segmenter));
+        let segmenter = JsObject::from_proto_and_data_with_shared_shape(
+            context.root_shape(),
+            proto,
+            ObjectData::segmenter(segmenter),
+        );
 
         // 14. Return segmenter.
         Ok(segmenter.into())

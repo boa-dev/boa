@@ -1,5 +1,5 @@
 use crate::{
-    vm::{code_block::create_function_object, opcode::Operation, CompletionType},
+    vm::{code_block::create_function_object_fast, opcode::Operation, CompletionType},
     Context, JsResult,
 };
 
@@ -18,7 +18,7 @@ impl Operation for GetArrowFunction {
         let index = context.vm.read::<u32>();
         context.vm.read::<u8>();
         let code = context.vm.frame().code_block.functions[index as usize].clone();
-        let function = create_function_object(code, false, true, None, false, context);
+        let function = create_function_object_fast(code, false, true, false, context);
         context.vm.push(function);
         Ok(CompletionType::Normal)
     }
@@ -39,7 +39,7 @@ impl Operation for GetAsyncArrowFunction {
         let index = context.vm.read::<u32>();
         context.vm.read::<u8>();
         let code = context.vm.frame().code_block.functions[index as usize].clone();
-        let function = create_function_object(code, true, true, None, false, context);
+        let function = create_function_object_fast(code, true, true, false, context);
         context.vm.push(function);
         Ok(CompletionType::Normal)
     }
@@ -60,7 +60,7 @@ impl Operation for GetFunction {
         let index = context.vm.read::<u32>();
         let method = context.vm.read::<u8>() != 0;
         let code = context.vm.frame().code_block.functions[index as usize].clone();
-        let function = create_function_object(code, false, false, None, method, context);
+        let function = create_function_object_fast(code, false, false, method, context);
         context.vm.push(function);
         Ok(CompletionType::Normal)
     }
@@ -81,7 +81,7 @@ impl Operation for GetFunctionAsync {
         let index = context.vm.read::<u32>();
         let method = context.vm.read::<u8>() != 0;
         let code = context.vm.frame().code_block.functions[index as usize].clone();
-        let function = create_function_object(code, true, false, None, method, context);
+        let function = create_function_object_fast(code, true, false, method, context);
         context.vm.push(function);
         Ok(CompletionType::Normal)
     }
