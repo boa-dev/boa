@@ -4,7 +4,7 @@ mod js262;
 
 use crate::{
     read::ErrorType, Harness, Outcome, Phase, SpecEdition, Statistics, SuiteResult, Test,
-    TestFlags, TestOutcomeResult, TestResult, TestSuite,
+    TestFlags, TestOutcomeResult, TestResult, TestSuite, VersionedStats,
 };
 use boa_engine::{
     context::ContextBuilder, job::SimpleJobQueue, native_function::NativeFunction,
@@ -65,51 +65,41 @@ impl TestSuite {
         }
 
         // Count passed tests and es specs
-        let mut es5 = Statistics::default();
-        let mut es6 = Statistics::default();
-        let mut es13 = Statistics::default();
-
-        let mut append_stats = |edition: SpecEdition, f: fn(&mut Statistics)| {
-            if edition <= SpecEdition::ES5 {
-                f(&mut es5);
-            }
-            if edition <= SpecEdition::ES6 {
-                f(&mut es6);
-            }
-            if edition <= SpecEdition::ES13 {
-                f(&mut es13);
-            }
-        };
+        let mut versioned_stats = VersionedStats::default();
+        let mut es_next = Statistics::default();
 
         for test in &tests {
             match test.result {
                 TestOutcomeResult::Passed => {
-                    append_stats(test.edition, |stats| {
+                    versioned_stats.apply(test.edition, |stats| {
                         stats.passed += 1;
                     });
+                    es_next.passed += 1;
                 }
                 TestOutcomeResult::Ignored => {
-                    append_stats(test.edition, |stats| {
+                    versioned_stats.apply(test.edition, |stats| {
                         stats.ignored += 1;
                     });
+                    es_next.ignored += 1;
                 }
                 TestOutcomeResult::Panic => {
-                    append_stats(test.edition, |stats| {
+                    versioned_stats.apply(test.edition, |stats| {
                         stats.panic += 1;
                     });
+                    es_next.panic += 1;
                 }
                 TestOutcomeResult::Failed => {}
             }
-            append_stats(test.edition, |stats| {
+            versioned_stats.apply(test.edition, |stats| {
                 stats.total += 1;
             });
+            es_next.total += 1;
         }
 
         // Count total tests
         for suite in &suites {
-            es5 = es5 + suite.es5_stats;
-            es6 = es6 + suite.es6_stats;
-            es13 = es13 + suite.stats;
+            versioned_stats += suite.versioned_stats;
+            es_next += suite.stats;
             features.extend(suite.features.iter().cloned());
         }
 
@@ -117,25 +107,26 @@ impl TestSuite {
             println!(
                 "Suite {} results: total: {}, passed: {}, ignored: {}, failed: {} (panics: \
                     {}{}), conformance: {:.2}%",
-                es13.total,
+                es_next.total,
                 self.path.display(),
-                es13.passed.to_string().green(),
-                es13.ignored.to_string().yellow(),
-                (es13.total - es13.passed - es13.ignored).to_string().red(),
-                if es13.panic == 0 {
+                es_next.passed.to_string().green(),
+                es_next.ignored.to_string().yellow(),
+                (es_next.total - es_next.passed - es_next.ignored)
+                    .to_string()
+                    .red(),
+                if es_next.panic == 0 {
                     "0".normal()
                 } else {
-                    es13.panic.to_string().red()
+                    es_next.panic.to_string().red()
                 },
-                if es13.panic == 0 { "" } else { " ⚠" }.red(),
-                (es13.passed as f64 / es13.total as f64) * 100.0
+                if es_next.panic == 0 { "" } else { " ⚠" }.red(),
+                (es_next.passed as f64 / es_next.total as f64) * 100.0
             );
         }
         SuiteResult {
             name: self.name.clone(),
-            stats: es13,
-            es5_stats: es5,
-            es6_stats: es6,
+            stats: es_next,
+            versioned_stats,
             suites,
             tests,
             features,

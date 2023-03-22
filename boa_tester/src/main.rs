@@ -78,7 +78,7 @@ use self::{
 use bitflags::bitflags;
 use clap::{ArgAction, Parser, ValueHint};
 use color_eyre::{
-    eyre::{bail, WrapErr},
+    eyre::{bail, eyre, WrapErr},
     Result,
 };
 use colored::Colorize;
@@ -92,7 +92,7 @@ use serde::{
 use std::{
     fs::{self, File},
     io::Read,
-    ops::Add,
+    ops::{Add, AddAssign},
     path::{Path, PathBuf},
 };
 
@@ -295,19 +295,19 @@ fn run_test_suite(
         let results = suite.run(&harness, verbose, parallel, edition);
 
         if versioned {
-            use comfy_table::Table;
-
-            let mut table = Table::new();
+            let mut table = comfy_table::Table::new();
+            table.load_preset(comfy_table::presets::UTF8_HORIZONTAL_ONLY);
             table.set_header(vec![
                 "Edition", "Total", "Passed", "Ignored", "Failed", "Panics", "%",
             ]);
-            // TODO: fill all editions
+            for column in table.column_iter_mut().skip(1) {
+                column.set_cell_alignment(comfy_table::CellAlignment::Right);
+            }
             for (v, stats) in SpecEdition::all_editions()
                 .filter(|v| *v <= edition)
-                .map(|v| match v {
-                    SpecEdition::ES5 => (v, results.es5_stats),
-                    SpecEdition::ES6 => (v, results.es6_stats),
-                    _ => (v, results.stats),
+                .map(|v| {
+                    let stats = results.versioned_stats.get(v).unwrap_or(results.stats);
+                    (v, stats)
                 })
             {
                 let Statistics {
@@ -332,7 +332,25 @@ fn run_test_suite(
             println!("\n\nResults\n");
             println!("{table}");
         } else {
-            display_conformance(edition, results.stats);
+            let Statistics {
+                total,
+                passed,
+                ignored,
+                panic,
+            } = results.stats;
+            println!("\n\nResults ({edition}):");
+            println!("Total tests: {total}");
+            println!("Passed tests: {}", passed.to_string().green());
+            println!("Ignored tests: {}", ignored.to_string().yellow());
+            println!(
+                "Failed tests: {} (panics: {})",
+                (total - passed - ignored).to_string().red(),
+                panic.to_string().red()
+            );
+            println!(
+                "Conformance: {:.2}%",
+                (passed as f64 / total as f64) * 100.0
+            );
         }
 
         if let Some(output) = output {
@@ -342,30 +360,6 @@ fn run_test_suite(
     }
 
     Ok(())
-}
-
-fn display_conformance(
-    edition: SpecEdition,
-    Statistics {
-        total,
-        passed,
-        ignored,
-        panic,
-    }: Statistics,
-) {
-    println!("\n\nResults ({edition}):");
-    println!("Total tests: {total}");
-    println!("Passed tests: {}", passed.to_string().green());
-    println!("Ignored tests: {}", ignored.to_string().yellow());
-    println!(
-        "Failed tests: {} (panics: {})",
-        (total - passed - ignored).to_string().red(),
-        panic.to_string().red()
-    );
-    println!(
-        "Conformance: {:.2}%",
-        (passed as f64 / total as f64) * 100.0
-    );
 }
 
 /// All the harness include files.
@@ -418,6 +412,109 @@ impl Add for Statistics {
     }
 }
 
+impl AddAssign for Statistics {
+    fn add_assign(&mut self, rhs: Self) {
+        self.total += rhs.total;
+        self.passed += rhs.passed;
+        self.ignored += rhs.ignored;
+        self.panic += rhs.panic;
+    }
+}
+
+/// Represents tests statistics separated by ECMAScript edition
+#[derive(Default, Debug, Copy, Clone, Serialize, Deserialize)]
+struct VersionedStats {
+    es5: Statistics,
+    es6: Statistics,
+    es7: Statistics,
+    es8: Statistics,
+    es9: Statistics,
+    es10: Statistics,
+    es11: Statistics,
+    es12: Statistics,
+    es13: Statistics,
+}
+
+impl VersionedStats {
+    /// Applies `f` to all the statistics for which its edition is bigger or equal
+    /// than `min_edition`.
+    fn apply(&mut self, min_edition: SpecEdition, f: fn(&mut Statistics)) {
+        for edition in SpecEdition::all_editions().filter(|&edition| min_edition <= edition) {
+            if let Some(stats) = self.get_mut(edition) {
+                f(stats);
+            }
+        }
+    }
+
+    /// Gets the statistics corresponding to `edition`, returning `None` if `edition`
+    /// is `SpecEdition::ESNext`.
+    const fn get(&self, edition: SpecEdition) -> Option<Statistics> {
+        let stats = match edition {
+            SpecEdition::ES5 => self.es5,
+            SpecEdition::ES6 => self.es6,
+            SpecEdition::ES7 => self.es7,
+            SpecEdition::ES8 => self.es8,
+            SpecEdition::ES9 => self.es9,
+            SpecEdition::ES10 => self.es10,
+            SpecEdition::ES11 => self.es11,
+            SpecEdition::ES12 => self.es12,
+            SpecEdition::ES13 => self.es13,
+            SpecEdition::ESNext => return None,
+        };
+        Some(stats)
+    }
+
+    /// Gets a mutable reference to the statistics corresponding to `edition`, returning `None` if
+    /// `edition` is `SpecEdition::ESNext`.
+    fn get_mut(&mut self, edition: SpecEdition) -> Option<&mut Statistics> {
+        let stats = match edition {
+            SpecEdition::ES5 => &mut self.es5,
+            SpecEdition::ES6 => &mut self.es6,
+            SpecEdition::ES7 => &mut self.es7,
+            SpecEdition::ES8 => &mut self.es8,
+            SpecEdition::ES9 => &mut self.es9,
+            SpecEdition::ES10 => &mut self.es10,
+            SpecEdition::ES11 => &mut self.es11,
+            SpecEdition::ES12 => &mut self.es12,
+            SpecEdition::ES13 => &mut self.es13,
+            SpecEdition::ESNext => return None,
+        };
+        Some(stats)
+    }
+}
+
+impl Add for VersionedStats {
+    type Output = Self;
+
+    fn add(self, rhs: Self) -> Self::Output {
+        Self {
+            es5: self.es5 + rhs.es5,
+            es6: self.es6 + rhs.es6,
+            es7: self.es7 + rhs.es7,
+            es8: self.es8 + rhs.es8,
+            es9: self.es9 + rhs.es9,
+            es10: self.es10 + rhs.es10,
+            es11: self.es11 + rhs.es11,
+            es12: self.es12 + rhs.es12,
+            es13: self.es13 + rhs.es13,
+        }
+    }
+}
+
+impl AddAssign for VersionedStats {
+    fn add_assign(&mut self, rhs: Self) {
+        self.es5 += rhs.es5;
+        self.es6 += rhs.es6;
+        self.es7 += rhs.es7;
+        self.es8 += rhs.es8;
+        self.es9 += rhs.es9;
+        self.es10 += rhs.es10;
+        self.es11 += rhs.es11;
+        self.es12 += rhs.es12;
+        self.es13 += rhs.es13;
+    }
+}
+
 /// Outcome of a test suite.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 struct SuiteResult {
@@ -425,10 +522,8 @@ struct SuiteResult {
     name: Box<str>,
     #[serde(rename = "a")]
     stats: Statistics,
-    #[serde(rename = "a5", default)]
-    es5_stats: Statistics,
-    #[serde(rename = "a6", default)]
-    es6_stats: Statistics,
+    #[serde(rename = "av", default)]
+    versioned_stats: VersionedStats,
     #[serde(skip_serializing_if = "Vec::is_empty", default)]
     #[serde(rename = "s")]
     suites: Vec<SuiteResult>,
@@ -488,13 +583,16 @@ struct Test {
 
 impl Test {
     /// Creates a new test.
-    fn new<N, C>(name: N, path: C, metadata: MetaData) -> Self
+    fn new<N, C>(name: N, path: C, metadata: MetaData) -> Result<Self>
     where
         N: Into<Box<str>>,
         C: Into<Box<Path>>,
     {
-        Self {
-            edition: SpecEdition::from_test_metadata(&metadata),
+        let edition = SpecEdition::from_test_metadata(&metadata)
+            .ok_or_else(|| eyre!("couldn't find a minimum edition from the test metadata"))?;
+
+        Ok(Self {
+            edition,
             name: name.into(),
             description: metadata.description,
             esid: metadata.esid,
@@ -506,7 +604,7 @@ impl Test {
             locale: metadata.locale,
             path: path.into(),
             ignored: false,
-        }
+        })
     }
 
     /// Sets the test as ignored.

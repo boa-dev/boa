@@ -1,4 +1,4 @@
-use crate::Statistics;
+use crate::{Statistics, VersionedStats};
 
 use super::SuiteResult;
 use color_eyre::{eyre::WrapErr, Result};
@@ -29,11 +29,9 @@ struct ReducedResultInfo {
     #[serde(rename = "u")]
     test262_commit: Box<str>,
     #[serde(rename = "a")]
-    all_stats: Statistics,
-    #[serde(rename = "a5", default)]
-    es5_stats: Statistics,
-    #[serde(rename = "a6", default)]
-    es6_stats: Statistics,
+    stats: Statistics,
+    #[serde(rename = "av", default)]
+    versioned_stats: VersionedStats,
 }
 
 impl From<ResultInfo> for ReducedResultInfo {
@@ -42,9 +40,8 @@ impl From<ResultInfo> for ReducedResultInfo {
         Self {
             commit: info.commit,
             test262_commit: info.test262_commit,
-            all_stats: info.results.stats,
-            es5_stats: info.results.es5_stats,
-            es6_stats: info.results.es6_stats,
+            stats: info.results.stats,
+            versioned_stats: info.results.versioned_stats,
         }
     }
 }
