@@ -274,27 +274,27 @@ static FEATURE_EDITION: phf::Map<&'static str, SpecEdition> = phf::phf_map! {
 )]
 #[serde(untagged)]
 pub(crate) enum SpecEdition {
-    /// [ECMAScript 5.1 Edition][https://262.ecma-international.org/5.1]
+    /// [ECMAScript 5.1 Edition](https://262.ecma-international.org/5.1)
     ES5 = 5,
-    /// [ECMAScript 6th Edition][https://262.ecma-international.org/6.0]
+    /// [ECMAScript 6th Edition](https://262.ecma-international.org/6.0)
     ES6,
-    /// [ECMAScript 7th Edition][https://262.ecma-international.org/7.0]
+    /// [ECMAScript 7th Edition](https://262.ecma-international.org/7.0)
     ES7,
-    /// [ECMAScript 8th Edition][https://262.ecma-international.org/8.0]
+    /// [ECMAScript 8th Edition](https://262.ecma-international.org/8.0)
     ES8,
-    /// [ECMAScript 9th Edition][https://262.ecma-international.org/9.0]
+    /// [ECMAScript 9th Edition](https://262.ecma-international.org/9.0)
     ES9,
-    /// [ECMAScript 10th Edition][https://262.ecma-international.org/10.0]
+    /// [ECMAScript 10th Edition](https://262.ecma-international.org/10.0)
     ES10,
-    /// [ECMAScript 11th Edition][https://262.ecma-international.org/11.0]
+    /// [ECMAScript 11th Edition](https://262.ecma-international.org/11.0)
     ES11,
-    /// [ECMAScript 12th Edition][https://262.ecma-international.org/12.0]
+    /// [ECMAScript 12th Edition](https://262.ecma-international.org/12.0)
     ES12,
-    /// [ECMAScript 13th Edition][https://262.ecma-international.org/13.0]
+    /// [ECMAScript 13th Edition](https://262.ecma-international.org/13.0)
     ES13,
     /// The edition being worked on right now.
     ///
-    /// A draft is currently available in https://tc39.es/ecma262.
+    /// A draft is currently available in <https://tc39.es/ecma262>.
     #[default]
     ESNext,
 }
@@ -310,9 +310,11 @@ impl Display for SpecEdition {
 }
 
 impl SpecEdition {
-    /// Gets the minimum required ECMAScript edition of a test from its metadata,
-    /// returning `None` if the algorithm cannot determine its minimum edition.
-    pub(crate) fn from_test_metadata(metadata: &MetaData) -> Option<Self> {
+    /// Gets the minimum required ECMAScript edition of a test from its metadata.
+    ///
+    /// If the function finds unknown features in `metadata`, returns an `Err(Vec<&str>)` containing
+    /// the list of unknown features.
+    pub(crate) fn from_test_metadata(metadata: &MetaData) -> Result<Self, Vec<&str>> {
         let mut min_edition = if metadata.flags.contains(&TestFlag::Async) {
             Self::ES8
         } else if metadata.es6id.is_some() || metadata.flags.contains(&TestFlag::Module) {
@@ -321,13 +323,20 @@ impl SpecEdition {
             Self::ES5
         };
 
+        let mut unknowns = Vec::new();
         for feature in &*metadata.features {
-            let feature_edition = FEATURE_EDITION.get(feature).copied()?;
-
+            let Some(feature_edition) = FEATURE_EDITION.get(feature).copied() else {
+                unknowns.push(&**feature);
+                continue;
+            };
             min_edition = std::cmp::max(min_edition, feature_edition);
         }
 
-        Some(min_edition)
+        if unknowns.is_empty() {
+            Ok(min_edition)
+        } else {
+            Err(unknowns)
+        }
     }
 
     /// Gets an iterator of all currently available editions.

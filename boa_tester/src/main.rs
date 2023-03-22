@@ -589,7 +589,7 @@ impl Test {
         C: Into<Box<Path>>,
     {
         let edition = SpecEdition::from_test_metadata(&metadata)
-            .ok_or_else(|| eyre!("couldn't find a minimum edition from the test metadata"))?;
+            .map_err(|feats| eyre!("test metadata contained unknown features: {feats:?}"))?;
 
         Ok(Self {
             edition,
