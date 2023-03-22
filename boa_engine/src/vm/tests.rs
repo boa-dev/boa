@@ -1,4 +1,4 @@
-use crate::{run_test_actions, JsValue, TestAction};
+use crate::{builtins::error::ErrorKind, run_test_actions, JsValue, TestAction};
 use indoc::indoc;
 
 #[test]
@@ -176,6 +176,35 @@ fn get_reference_by_super() {
         "#},
         "ab",
     )]);
+}
+
+#[test]
+fn super_call_constructor_null() {
+    run_test_actions([TestAction::assert_native_error(
+        indoc! {r#"
+            class A extends Object {
+                constructor() {
+                    Object.setPrototypeOf(A, null);
+                    super(A);
+                }
+            }
+            new A();
+        "#},
+        ErrorKind::Type,
+        "super constructor object must be constructor",
+    )]);
+}
+
+#[test]
+fn super_call_get_constructor_before_arguments_execution() {
+    run_test_actions([TestAction::assert(indoc! {r#"
+        class A extends Object {
+            constructor() {
+                super(Object.setPrototypeOf(A, null));
+            }
+        }
+        new A() instanceof A;
+    "#})]);
 }
 
 #[test]

@@ -447,6 +447,7 @@ impl CodeBlock {
             | Opcode::SuperCallDerived
             | Opcode::Await
             | Opcode::PushNewTarget
+            | Opcode::SuperCallPrepare
             | Opcode::CallEvalSpread
             | Opcode::CallSpread
             | Opcode::NewSpread

@@ -525,6 +525,7 @@ impl CodeBlock {
                 | Opcode::CallSpread
                 | Opcode::NewSpread
                 | Opcode::SuperCallSpread
+                | Opcode::SuperCallPrepare
                 | Opcode::SetPrototype
                 | Opcode::IsObject
                 | Opcode::Nop

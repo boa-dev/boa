@@ -84,6 +84,46 @@ impl Operation for Super {
     }
 }
 
+/// `SuperCallPrepare` implements the Opcode Operation for `Opcode::SuperCallPrepare`
+///
+/// Operation:
+///  - Get the super constructor and the new target of the current environment.
+#[derive(Debug, Clone, Copy)]
+pub(crate) struct SuperCallPrepare;
+
+impl Operation for SuperCallPrepare {
+    const NAME: &'static str = "SuperCallPrepare";
+    const INSTRUCTION: &'static str = "INST - SuperCallPrepare";
+
+    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
+        let this_env = context
+            .realm
+            .environments
+            .get_this_environment()
+            .as_function_slots()
+            .expect("super call must be in function environment");
+        let this_env_borrow = this_env.borrow();
+        let new_target = this_env_borrow
+            .new_target()
+            .expect("must have new target")
+            .clone();
+        let active_function = this_env_borrow.function_object().clone();
+        drop(this_env_borrow);
+        let super_constructor = active_function
+            .__get_prototype_of__(context)
+            .expect("function object must have prototype");
+
+        if let Some(constructor) = super_constructor {
+            context.vm.push(constructor);
+        } else {
+            context.vm.push(JsValue::Null);
+        }
+        context.vm.push(new_target);
+
+        Ok(CompletionType::Normal)
+    }
+}
+
 /// `SuperCall` implements the Opcode Operation for `Opcode::SuperCall`
 ///
 /// Operation:
@@ -103,33 +143,20 @@ impl Operation for SuperCall {
         }
         arguments.reverse();
 
-        let (new_target, active_function) = {
-            let this_env = context
-                .realm
-                .environments
-                .get_this_environment()
-                .as_function_slots()
-                .expect("super call must be in function environment");
-            let this_env_borrow = this_env.borrow();
-            let new_target = this_env_borrow
-                .new_target()
-                .expect("must have new target")
-                .clone();
-            let active_function = this_env.borrow().function_object().clone();
-            (new_target, active_function)
-        };
-        let super_constructor = active_function
-            .__get_prototype_of__(context)
-            .expect("function object must have prototype")
-            .expect("function object must have prototype");
+        let new_target_value = context.vm.pop();
+        let super_constructor = context.vm.pop();
 
-        if !super_constructor.is_constructor() {
+        let new_target = new_target_value
+            .as_object()
+            .expect("new target must be object");
+
+        let Some(super_constructor) = super_constructor.as_constructor() else {
             return Err(JsNativeError::typ()
                 .with_message("super constructor object must be constructor")
                 .into());
-        }
+        };
 
-        let result = super_constructor.__construct__(&arguments, &new_target, context)?;
+        let result = super_constructor.__construct__(&arguments, new_target, context)?;
 
         let this_env = context
             .realm
@@ -143,6 +170,8 @@ impl Operation for SuperCall {
                 .with_message("this already initialized")
                 .into());
         }
+
+        let active_function = this_env.borrow().function_object().clone();
 
         result.initialize_instance_elements(&active_function, context)?;
 
@@ -175,33 +204,20 @@ impl Operation for SuperCallSpread {
             .expect("arguments array in call spread function must be dense")
             .clone();
 
-        let (new_target, active_function) = {
-            let this_env = context
-                .realm
-                .environments
-                .get_this_environment()
-                .as_function_slots()
-                .expect("super call must be in function environment");
-            let this_env_borrow = this_env.borrow();
-            let new_target = this_env_borrow
-                .new_target()
-                .expect("must have new target")
-                .clone();
-            let active_function = this_env.borrow().function_object().clone();
-            (new_target, active_function)
-        };
-        let super_constructor = active_function
-            .__get_prototype_of__(context)
-            .expect("function object must have prototype")
-            .expect("function object must have prototype");
+        let new_target_value = context.vm.pop();
+        let super_constructor = context.vm.pop();
 
-        if !super_constructor.is_constructor() {
+        let new_target = new_target_value
+            .as_object()
+            .expect("new target must be object");
+
+        let Some(super_constructor) = super_constructor.as_constructor() else {
             return Err(JsNativeError::typ()
                 .with_message("super constructor object must be constructor")
                 .into());
-        }
+        };
 
-        let result = super_constructor.__construct__(&arguments, &new_target, context)?;
+        let result = super_constructor.__construct__(&arguments, new_target, context)?;
 
         let this_env = context
             .realm
@@ -215,6 +231,8 @@ impl Operation for SuperCallSpread {
                 .with_message("this already initialized")
                 .into());
         }
+
+        let active_function = this_env.borrow().function_object().clone();
 
         result.initialize_instance_elements(&active_function, context)?;
 

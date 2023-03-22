@@ -1200,18 +1200,25 @@ generate_impl! {
         /// Stack: **=>** super
         Super,
 
+        /// Get the super constructor and the new target of the current environment.
+        ///
+        /// Operands:
+        ///
+        /// Stack: **=>** super_constructor, new_target
+        SuperCallPrepare,
+
         /// Execute the `super()` method.
         ///
         /// Operands: argument_count: `u32`
         ///
-        /// Stack: argument_1, ... argument_n **=>**
+        /// Stack: super_constructor, new_target, argument_1, ... argument_n **=>**
         SuperCall,
 
         /// Execute the `super()` method where the arguments contain spreads.
         ///
         /// Operands:
         ///
-        /// Stack: arguments_array **=>**
+        /// Stack: super_constructor, new_target, arguments_array **=>**
         SuperCallSpread,
 
         /// Execute the `super()` method when no constructor of the class is defined.
