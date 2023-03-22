@@ -501,25 +501,11 @@
 <a href="#500" id="500">500</a>
 <a href="#501" id="501">501</a>
 <a href="#502" id="502">502</a>
-<a href="#503" id="503">503</a>
-<a href="#504" id="504">504</a>
-<a href="#505" id="505">505</a>
-<a href="#506" id="506">506</a>
-<a href="#507" id="507">507</a>
-<a href="#508" id="508">508</a>
-<a href="#509" id="509">509</a>
-<a href="#510" id="510">510</a>
-<a href="#511" id="511">511</a>
-<a href="#512" id="512">512</a>
-<a href="#513" id="513">513</a>
-<a href="#514" id="514">514</a>
-<a href="#515" id="515">515</a>
-<a href="#516" id="516">516</a>
-<a href="#517" id="517">517</a>
-</pre><pre class="rust"><code><span class="kw">use </span><span class="kw">crate</span>::Statistics;
+</pre><pre class="rust"><code><span class="kw">use crate</span>::{Statistics, VersionedStats};
 
 <span class="kw">use </span><span class="kw">super</span>::SuiteResult;
 <span class="kw">use </span>color_eyre::{eyre::WrapErr, <span class="prelude-ty">Result</span>};
+<span class="kw">use </span>fxhash::FxHashSet;
 <span class="kw">use </span>serde::{Deserialize, Serialize};
 <span class="kw">use </span>std::{
     env, fs,
@@ -546,11 +532,9 @@
     <span class="attr">#[serde(rename = <span class="string">&quot;u&quot;</span>)]
     </span>test262_commit: Box&lt;str&gt;,
     <span class="attr">#[serde(rename = <span class="string">&quot;a&quot;</span>)]
-    </span>all_stats: Statistics,
-    <span class="attr">#[serde(rename = <span class="string">&quot;a5&quot;</span>, default)]
-    </span>es5_stats: Statistics,
-    <span class="attr">#[serde(rename = <span class="string">&quot;a6&quot;</span>, default)]
-    </span>es6_stats: Statistics,
+    </span>stats: Statistics,
+    <span class="attr">#[serde(rename = <span class="string">&quot;av&quot;</span>, default)]
+    </span>versioned_stats: VersionedStats,
 }
 
 <span class="kw">impl </span>From&lt;ResultInfo&gt; <span class="kw">for </span>ReducedResultInfo {
@@ -559,9 +543,8 @@
         <span class="self">Self </span>{
             commit: info.commit,
             test262_commit: info.test262_commit,
-            all_stats: info.results.all_stats,
-            es5_stats: info.results.es5_stats,
-            es6_stats: info.results.es6_stats,
+            stats: info.results.stats,
+            versioned_stats: info.results.versioned_stats,
         }
     }
 }
@@ -575,14 +558,7 @@
     <span class="attr">#[serde(rename = <span class="string">&quot;n&quot;</span>)]
     </span>suite_name: Box&lt;str&gt;,
     <span class="attr">#[serde(rename = <span class="string">&quot;f&quot;</span>)]
-    </span>features: Vec&lt;String&gt;,
-}
-
-<span class="kw">fn </span>remove_duplicates(features_vec: <span class="kw-2">&amp;</span>[String]) -&gt; Vec&lt;String&gt; {
-    <span class="kw">let </span><span class="kw-2">mut </span>result = features_vec.to_vec();
-    result.sort();
-    result.dedup();
-    result
+    </span>features: FxHashSet&lt;String&gt;,
 }
 
 <span class="kw">impl </span>From&lt;ResultInfo&gt; <span class="kw">for </span>FeaturesInfo {
@@ -591,7 +567,7 @@
             commit: info.commit,
             test262_commit: info.test262_commit,
             suite_name: info.results.name,
-            features: remove_duplicates(<span class="kw-2">&amp;</span>info.results.features),
+            features: info.results.features,
         }
     }
 }
@@ -608,82 +584,76 @@
 <span class="doccomment">/// Writes the results of running the test suite to the given JSON output file.
 ///
 /// It will append the results to the ones already present, in an array.
-</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>write_json(
-    results: SuiteResult,
-    output: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>Path&gt;,
-    verbose: u8,
-) -&gt; io::Result&lt;()&gt; {
-    <span class="kw">if let </span><span class="prelude-val">Some</span>(path) = output {
-        <span class="kw">let </span><span class="kw-2">mut </span>branch = env::var(<span class="string">&quot;GITHUB_REF&quot;</span>).unwrap_or_default();
-        <span class="kw">if </span>branch.starts_with(<span class="string">&quot;refs/pull&quot;</span>) {
-            branch = <span class="string">&quot;pull&quot;</span>.to_owned();
-        }
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>write_json(results: SuiteResult, output_dir: <span class="kw-2">&amp;</span>Path, verbose: u8) -&gt; io::Result&lt;()&gt; {
+    <span class="kw">let </span><span class="kw-2">mut </span>branch = env::var(<span class="string">&quot;GITHUB_REF&quot;</span>).unwrap_or_default();
+    <span class="kw">if </span>branch.starts_with(<span class="string">&quot;refs/pull&quot;</span>) {
+        branch = <span class="string">&quot;pull&quot;</span>.to_owned();
+    }
 
-        <span class="kw">let </span>path = <span class="kw">if </span>branch.is_empty() {
-            path.to_path_buf()
-        } <span class="kw">else </span>{
-            <span class="kw">let </span>folder = path.join(branch);
-            fs::create_dir_all(<span class="kw-2">&amp;</span>folder)<span class="question-mark">?</span>;
-            folder
-        };
+    <span class="kw">let </span>output_dir = <span class="kw">if </span>branch.is_empty() {
+        output_dir.to_path_buf()
+    } <span class="kw">else </span>{
+        <span class="kw">let </span>folder = output_dir.join(branch);
+        fs::create_dir_all(<span class="kw-2">&amp;</span>folder)<span class="question-mark">?</span>;
+        folder
+    };
 
-        <span class="comment">// We make sure we are using the latest commit information in GitHub pages:
-        </span>update_gh_pages_repo(path.as_path(), verbose);
+    <span class="comment">// We make sure we are using the latest commit information in GitHub pages:
+    </span>update_gh_pages_repo(output_dir.as_path(), verbose);
 
-        <span class="kw">if </span>verbose != <span class="number">0 </span>{
-            <span class="macro">println!</span>(<span class="string">&quot;Writing the results to {}...&quot;</span>, path.display());
-        }
+    <span class="kw">if </span>verbose != <span class="number">0 </span>{
+        <span class="macro">println!</span>(<span class="string">&quot;Writing the results to {}...&quot;</span>, output_dir.display());
+    }
 
-        <span class="comment">// Write the latest results.
+    <span class="comment">// Write the latest results.
 
-        </span><span class="kw">let </span>latest_path = path.join(LATEST_FILE_NAME);
+    </span><span class="kw">let </span>latest = output_dir.join(LATEST_FILE_NAME);
 
-        <span class="kw">let </span>new_results = ResultInfo {
-            commit: env::var(<span class="string">&quot;GITHUB_SHA&quot;</span>).unwrap_or_default().into_boxed_str(),
-            test262_commit: get_test262_commit(),
-            results,
-        };
+    <span class="kw">let </span>new_results = ResultInfo {
+        commit: env::var(<span class="string">&quot;GITHUB_SHA&quot;</span>).unwrap_or_default().into_boxed_str(),
+        test262_commit: get_test262_commit(),
+        results,
+    };
 
-        <span class="kw">let </span>latest_output = BufWriter::new(fs::File::create(latest_path)<span class="question-mark">?</span>);
-        serde_json::to_writer(latest_output, <span class="kw-2">&amp;</span>new_results)<span class="question-mark">?</span>;
+    <span class="kw">let </span>latest = BufWriter::new(fs::File::create(latest)<span class="question-mark">?</span>);
+    serde_json::to_writer(latest, <span class="kw-2">&amp;</span>new_results)<span class="question-mark">?</span>;
 
-        <span class="comment">// Write the full list of results, retrieving the existing ones first.
+    <span class="comment">// Write the full list of results, retrieving the existing ones first.
 
-        </span><span class="kw">let </span>all_path = path.join(RESULTS_FILE_NAME);
+    </span><span class="kw">let </span>all_path = output_dir.join(RESULTS_FILE_NAME);
 
-        <span class="kw">let </span><span class="kw-2">mut </span>all_results: Vec&lt;ReducedResultInfo&gt; = <span class="kw">if </span>all_path.exists() {
-            serde_json::from_reader(BufReader::new(fs::File::open(<span class="kw-2">&amp;</span>all_path)<span class="question-mark">?</span>))<span class="question-mark">?
-        </span>} <span class="kw">else </span>{
-            Vec::new()
-        };
+    <span class="kw">let </span><span class="kw-2">mut </span>all_results: Vec&lt;ReducedResultInfo&gt; = <span class="kw">if </span>all_path.exists() {
+        serde_json::from_reader(BufReader::new(fs::File::open(<span class="kw-2">&amp;</span>all_path)<span class="question-mark">?</span>))<span class="question-mark">?
+    </span>} <span class="kw">else </span>{
+        Vec::new()
+    };
 
-        all_results.push(new_results.clone().into());
+    all_results.push(new_results.clone().into());
 
-        <span class="kw">let </span>output = BufWriter::new(fs::File::create(<span class="kw-2">&amp;</span>all_path)<span class="question-mark">?</span>);
-        serde_json::to_writer(output, <span class="kw-2">&amp;</span>all_results)<span class="question-mark">?</span>;
+    <span class="kw">let </span>output = BufWriter::new(fs::File::create(<span class="kw-2">&amp;</span>all_path)<span class="question-mark">?</span>);
+    serde_json::to_writer(output, <span class="kw-2">&amp;</span>all_results)<span class="question-mark">?</span>;
 
-        <span class="kw">if </span>verbose != <span class="number">0 </span>{
-            <span class="macro">println!</span>(<span class="string">&quot;Results written correctly&quot;</span>);
-        }
+    <span class="kw">if </span>verbose != <span class="number">0 </span>{
+        <span class="macro">println!</span>(<span class="string">&quot;Results written correctly&quot;</span>);
+    }
 
-        <span class="comment">// Write the full list of features, existing features go first.
+    <span class="comment">// Write the full list of features, existing features go first.
 
-        </span><span class="kw">let </span>features_path = path.join(FEATURES_FILE_NAME);
+    </span><span class="kw">let </span>features = output_dir.join(FEATURES_FILE_NAME);
 
-        <span class="kw">let </span><span class="kw-2">mut </span>all_features: Vec&lt;FeaturesInfo&gt; = <span class="kw">if </span>features_path.exists() {
-            serde_json::from_reader(BufReader::new(fs::File::open(<span class="kw-2">&amp;</span>features_path)<span class="question-mark">?</span>))<span class="question-mark">?
-        </span>} <span class="kw">else </span>{
-            Vec::new()
-        };
+    <span class="kw">let </span><span class="kw-2">mut </span>all_features: Vec&lt;FeaturesInfo&gt; = <span class="kw">if </span>features.exists() {
+        serde_json::from_reader(BufReader::new(fs::File::open(<span class="kw-2">&amp;</span>features)<span class="question-mark">?</span>))<span class="question-mark">?
+    </span>} <span class="kw">else </span>{
+        Vec::new()
+    };
 
-        all_features.push(new_results.into());
+    all_features.push(new_results.into());
 
-        <span class="kw">let </span>features_output = BufWriter::new(fs::File::create(<span class="kw-2">&amp;</span>features_path)<span class="question-mark">?</span>);
-        serde_json::to_writer(features_output, <span class="kw-2">&amp;</span>all_features)<span class="question-mark">?</span>;
+    <span class="kw">let </span>features = BufWriter::new(fs::File::create(<span class="kw-2">&amp;</span>features)<span class="question-mark">?</span>);
+    serde_json::to_writer(features, <span class="kw-2">&amp;</span>all_features)<span class="question-mark">?</span>;
 
-        <span class="kw">if </span>verbose != <span class="number">0 </span>{
-            <span class="macro">println!</span>(<span class="string">&quot;Features written correctly&quot;</span>);
-        }
+    <span class="kw">if </span>verbose != <span class="number">0 </span>{
+        <span class="macro">println!</span>(<span class="string">&quot;Features written correctly&quot;</span>);
     }
 
     <span class="prelude-val">Ok</span>(())
@@ -737,24 +707,24 @@
     ))
     .wrap_err(<span class="string">&quot;could not read the new results&quot;</span>)<span class="question-mark">?</span>;
 
-    <span class="kw">let </span>base_total = base_results.results.all_stats.total <span class="kw">as </span>isize;
-    <span class="kw">let </span>new_total = new_results.results.all_stats.total <span class="kw">as </span>isize;
+    <span class="kw">let </span>base_total = base_results.results.stats.total <span class="kw">as </span>isize;
+    <span class="kw">let </span>new_total = new_results.results.stats.total <span class="kw">as </span>isize;
     <span class="kw">let </span>total_diff = new_total - base_total;
 
-    <span class="kw">let </span>base_passed = base_results.results.all_stats.passed <span class="kw">as </span>isize;
-    <span class="kw">let </span>new_passed = new_results.results.all_stats.passed <span class="kw">as </span>isize;
+    <span class="kw">let </span>base_passed = base_results.results.stats.passed <span class="kw">as </span>isize;
+    <span class="kw">let </span>new_passed = new_results.results.stats.passed <span class="kw">as </span>isize;
     <span class="kw">let </span>passed_diff = new_passed - base_passed;
 
-    <span class="kw">let </span>base_ignored = base_results.results.all_stats.ignored <span class="kw">as </span>isize;
-    <span class="kw">let </span>new_ignored = new_results.results.all_stats.ignored <span class="kw">as </span>isize;
+    <span class="kw">let </span>base_ignored = base_results.results.stats.ignored <span class="kw">as </span>isize;
+    <span class="kw">let </span>new_ignored = new_results.results.stats.ignored <span class="kw">as </span>isize;
     <span class="kw">let </span>ignored_diff = new_ignored - base_ignored;
 
     <span class="kw">let </span>base_failed = base_total - base_passed - base_ignored;
     <span class="kw">let </span>new_failed = new_total - new_passed - new_ignored;
     <span class="kw">let </span>failed_diff = new_failed - base_failed;
 
-    <span class="kw">let </span>base_panics = base_results.results.all_stats.panic <span class="kw">as </span>isize;
-    <span class="kw">let </span>new_panics = new_results.results.all_stats.panic <span class="kw">as </span>isize;
+    <span class="kw">let </span>base_panics = base_results.results.stats.panic <span class="kw">as </span>isize;
+    <span class="kw">let </span>new_panics = new_results.results.stats.panic <span class="kw">as </span>isize;
     <span class="kw">let </span>panic_diff = new_panics - base_panics;
 
     <span class="kw">let </span>base_conformance = (base_passed <span class="kw">as </span>f64 / base_total <span class="kw">as </span>f64) * <span class="number">100_f64</span>;

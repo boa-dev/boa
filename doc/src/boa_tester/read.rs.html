@@ -238,11 +238,6 @@
 <a href="#237" id="237">237</a>
 <a href="#238" id="238">238</a>
 <a href="#239" id="239">239</a>
-<a href="#240" id="240">240</a>
-<a href="#241" id="241">241</a>
-<a href="#242" id="242">242</a>
-<a href="#243" id="243">243</a>
-<a href="#244" id="244">244</a>
 </pre><pre class="rust"><code><span class="doccomment">//! Module to read the list of test suites from disk.
 
 </span><span class="kw">use crate</span>::{HarnessFile, Ignored};
@@ -313,7 +308,7 @@
 }
 
 <span class="doccomment">/// Individual test flag.
-</span><span class="attr">#[derive(Debug, Clone, Copy, Deserialize)]
+</span><span class="attr">#[derive(Debug, Clone, Copy, Eq, PartialEq, Deserialize)]
 #[serde(rename_all = <span class="string">&quot;camelCase&quot;</span>)]
 </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">enum </span>TestFlag {
     OnlyStrict,
@@ -432,26 +427,21 @@
 }
 
 <span class="doccomment">/// Reads information about a given test case.
-</span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>read_test(path: <span class="kw-2">&amp;</span>Path) -&gt; io::Result&lt;Test&gt; {
+</span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>read_test(path: <span class="kw-2">&amp;</span>Path) -&gt; <span class="prelude-ty">Result</span>&lt;Test&gt; {
     <span class="kw">let </span>name = path
         .file_stem()
-        .ok_or_else(|| {
-            io::Error::new(
-                io::ErrorKind::InvalidInput,
-                <span class="macro">format!</span>(<span class="string">&quot;test with no file name found: {}&quot;</span>, path.display()),
-            )
-        })<span class="question-mark">?
+        .ok_or_else(|| <span class="macro">eyre!</span>(<span class="string">&quot;path for test `{}` has no file name&quot;</span>, path.display()))<span class="question-mark">?
         </span>.to_str()
         .ok_or_else(|| {
-            io::Error::new(
-                io::ErrorKind::InvalidInput,
-                <span class="macro">format!</span>(<span class="string">&quot;non-UTF-8 file name found: {}&quot;</span>, path.display()),
+            <span class="macro">eyre!</span>(
+                <span class="string">&quot;path for test `{}` is not a valid UTF-8 string&quot;</span>,
+                path.display()
             )
         })<span class="question-mark">?</span>;
 
     <span class="kw">let </span>metadata = read_metadata(path)<span class="question-mark">?</span>;
 
-    <span class="prelude-val">Ok</span>(Test::new(name, path, metadata))
+    Test::new(name, path, metadata).wrap_err(<span class="string">&quot;failed to read test&quot;</span>)
 }
 
 <span class="doccomment">/// Reads the metadata from the input test code.

@@ -515,13 +515,14 @@
 <a href="#514" id="514">514</a>
 <a href="#515" id="515">515</a>
 <a href="#516" id="516">516</a>
+<a href="#517" id="517">517</a>
 </pre><pre class="rust"><code><span class="doccomment">//! Execution module for the test runner.
 
 </span><span class="kw">mod </span>js262;
 
 <span class="kw">use crate</span>::{
-    read::ErrorType, Harness, Outcome, Phase, SpecVersion, Statistics, SuiteResult, Test,
-    TestFlags, TestOutcomeResult, TestResult, TestSuite,
+    read::ErrorType, Harness, Outcome, Phase, SpecEdition, Statistics, SuiteResult, Test,
+    TestFlags, TestOutcomeResult, TestResult, TestSuite, VersionedStats,
 };
 <span class="kw">use </span>boa_engine::{
     context::ContextBuilder, job::SimpleJobQueue, native_function::NativeFunction,
@@ -529,12 +530,19 @@
     JsValue, Source,
 };
 <span class="kw">use </span>colored::Colorize;
+<span class="kw">use </span>fxhash::FxHashSet;
 <span class="kw">use </span>rayon::prelude::<span class="kw-2">*</span>;
 <span class="kw">use </span>std::{cell::RefCell, rc::Rc};
 
 <span class="kw">impl </span>TestSuite {
     <span class="doccomment">/// Runs the test suite.
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>run(<span class="kw-2">&amp;</span><span class="self">self</span>, harness: <span class="kw-2">&amp;</span>Harness, verbose: u8, parallel: bool) -&gt; SuiteResult {
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>run(
+        <span class="kw-2">&amp;</span><span class="self">self</span>,
+        harness: <span class="kw-2">&amp;</span>Harness,
+        verbose: u8,
+        parallel: bool,
+        max_edition: SpecEdition,
+    ) -&gt; SuiteResult {
         <span class="kw">if </span>verbose != <span class="number">0 </span>{
             <span class="macro">println!</span>(<span class="string">&quot;Suite {}:&quot;</span>, <span class="self">self</span>.path.display());
         }
@@ -542,32 +550,32 @@
         <span class="kw">let </span>suites: Vec&lt;<span class="kw">_</span>&gt; = <span class="kw">if </span>parallel {
             <span class="self">self</span>.suites
                 .par_iter()
-                .map(|suite| suite.run(harness, verbose, parallel))
+                .map(|suite| suite.run(harness, verbose, parallel, max_edition))
                 .collect()
         } <span class="kw">else </span>{
             <span class="self">self</span>.suites
                 .iter()
-                .map(|suite| suite.run(harness, verbose, parallel))
+                .map(|suite| suite.run(harness, verbose, parallel, max_edition))
                 .collect()
         };
 
         <span class="kw">let </span>tests: Vec&lt;<span class="kw">_</span>&gt; = <span class="kw">if </span>parallel {
             <span class="self">self</span>.tests
                 .par_iter()
+                .filter(|test| test.edition &lt;= max_edition)
                 .flat_map(|test| test.run(harness, verbose))
                 .collect()
         } <span class="kw">else </span>{
             <span class="self">self</span>.tests
                 .iter()
+                .filter(|test| test.edition &lt;= max_edition)
                 .flat_map(|test| test.run(harness, verbose))
                 .collect()
         };
 
-        <span class="kw">let </span><span class="kw-2">mut </span>features = Vec::new();
+        <span class="kw">let </span><span class="kw-2">mut </span>features = FxHashSet::default();
         <span class="kw">for </span>test_iter <span class="kw">in </span><span class="self">self</span>.tests.iter() {
-            <span class="kw">for </span>feature_iter <span class="kw">in </span>test_iter.features.iter() {
-                features.push(feature_iter.to_string());
-            }
+            features.extend(test_iter.features.iter().map(ToString::to_string));
         }
 
         <span class="kw">if </span>verbose != <span class="number">0 </span>{
@@ -575,74 +583,68 @@
         }
 
         <span class="comment">// Count passed tests and es specs
-        </span><span class="kw">let </span><span class="kw-2">mut </span>all = Statistics::default();
-        <span class="kw">let </span><span class="kw-2">mut </span>es5 = Statistics::default();
-        <span class="kw">let </span><span class="kw-2">mut </span>es6 = Statistics::default();
-
-        <span class="kw">let </span><span class="kw-2">mut </span>append_stats = |spec_version: SpecVersion, f: <span class="kw-2">&amp;</span><span class="kw">dyn </span>Fn(<span class="kw-2">&amp;mut </span>Statistics)| {
-            f(<span class="kw-2">&amp;mut </span>all);
-            <span class="kw">if </span>spec_version == SpecVersion::ES5 {
-                f(<span class="kw-2">&amp;mut </span>es5);
-            } <span class="kw">else if </span>spec_version == SpecVersion::ES6 {
-                f(<span class="kw-2">&amp;mut </span>es6);
-            }
-        };
+        </span><span class="kw">let </span><span class="kw-2">mut </span>versioned_stats = VersionedStats::default();
+        <span class="kw">let </span><span class="kw-2">mut </span>es_next = Statistics::default();
 
         <span class="kw">for </span>test <span class="kw">in </span><span class="kw-2">&amp;</span>tests {
             <span class="kw">match </span>test.result {
                 TestOutcomeResult::Passed =&gt; {
-                    append_stats(test.spec_version, <span class="kw-2">&amp;</span>|stats| {
+                    versioned_stats.apply(test.edition, |stats| {
                         stats.passed += <span class="number">1</span>;
                     });
+                    es_next.passed += <span class="number">1</span>;
                 }
                 TestOutcomeResult::Ignored =&gt; {
-                    append_stats(test.spec_version, <span class="kw-2">&amp;</span>|stats| {
+                    versioned_stats.apply(test.edition, |stats| {
                         stats.ignored += <span class="number">1</span>;
                     });
+                    es_next.ignored += <span class="number">1</span>;
                 }
                 TestOutcomeResult::Panic =&gt; {
-                    append_stats(test.spec_version, <span class="kw-2">&amp;</span>|stats| {
+                    versioned_stats.apply(test.edition, |stats| {
                         stats.panic += <span class="number">1</span>;
                     });
+                    es_next.panic += <span class="number">1</span>;
                 }
                 TestOutcomeResult::Failed =&gt; {}
             }
-            append_stats(test.spec_version, <span class="kw-2">&amp;</span>|stats| {
+            versioned_stats.apply(test.edition, |stats| {
                 stats.total += <span class="number">1</span>;
             });
+            es_next.total += <span class="number">1</span>;
         }
 
         <span class="comment">// Count total tests
         </span><span class="kw">for </span>suite <span class="kw">in </span><span class="kw-2">&amp;</span>suites {
-            all = all + suite.all_stats.clone();
-            es5 = es5 + suite.es5_stats.clone();
-            es6 = es6 + suite.es6_stats.clone();
-            features.append(<span class="kw-2">&amp;mut </span>suite.features.clone());
+            versioned_stats += suite.versioned_stats;
+            es_next += suite.stats;
+            features.extend(suite.features.iter().cloned());
         }
 
         <span class="kw">if </span>verbose != <span class="number">0 </span>{
             <span class="macro">println!</span>(
                 <span class="string">&quot;Suite {} results: total: {}, passed: {}, ignored: {}, failed: {} (panics: \
                     {}{}), conformance: {:.2}%&quot;</span>,
-                all.total,
+                es_next.total,
                 <span class="self">self</span>.path.display(),
-                all.passed.to_string().green(),
-                all.ignored.to_string().yellow(),
-                (all.total - all.passed - all.ignored).to_string().red(),
-                <span class="kw">if </span>all.panic == <span class="number">0 </span>{
+                es_next.passed.to_string().green(),
+                es_next.ignored.to_string().yellow(),
+                (es_next.total - es_next.passed - es_next.ignored)
+                    .to_string()
+                    .red(),
+                <span class="kw">if </span>es_next.panic == <span class="number">0 </span>{
                     <span class="string">&quot;0&quot;</span>.normal()
                 } <span class="kw">else </span>{
-                    all.panic.to_string().red()
+                    es_next.panic.to_string().red()
                 },
-                <span class="kw">if </span>all.panic == <span class="number">0 </span>{ <span class="string">&quot;&quot; </span>} <span class="kw">else </span>{ <span class="string">&quot; ⚠&quot; </span>}.red(),
-                (all.passed <span class="kw">as </span>f64 / all.total <span class="kw">as </span>f64) * <span class="number">100.0
+                <span class="kw">if </span>es_next.panic == <span class="number">0 </span>{ <span class="string">&quot;&quot; </span>} <span class="kw">else </span>{ <span class="string">&quot; ⚠&quot; </span>}.red(),
+                (es_next.passed <span class="kw">as </span>f64 / es_next.total <span class="kw">as </span>f64) * <span class="number">100.0
             </span>);
         }
         SuiteResult {
             name: <span class="self">self</span>.name.clone(),
-            all_stats: all,
-            es5_stats: es5,
-            es6_stats: es6,
+            stats: es_next,
+            versioned_stats,
             suites,
             tests,
             features,
@@ -680,7 +682,7 @@
             }
             <span class="kw">return </span>TestResult {
                 name: <span class="self">self</span>.name.clone(),
-                spec_version: <span class="self">self</span>.spec_version,
+                edition: <span class="self">self</span>.edition,
                 strict,
                 result: TestOutcomeResult::Failed,
                 result_text: Box::from(<span class="string">&quot;Could not read test file.&quot;</span>)
@@ -699,7 +701,7 @@
             }
             <span class="kw">return </span>TestResult {
                 name: <span class="self">self</span>.name.clone(),
-                spec_version: <span class="self">self</span>.spec_version,
+                edition: <span class="self">self</span>.edition,
                 strict,
                 result: TestOutcomeResult::Ignored,
                 result_text: Box::default(),
@@ -898,7 +900,7 @@
 
         TestResult {
             name: <span class="self">self</span>.name.clone(),
-            spec_version: <span class="self">self</span>.spec_version,
+            edition: <span class="self">self</span>.edition,
             strict,
             result,
             result_text: result_text.into_boxed_str(),
@@ -945,7 +947,7 @@
                 .map_err(|e| <span class="macro">format!</span>(<span class="string">&quot;could not run doneprintHandle.js:\n{e}&quot;</span>))<span class="question-mark">?</span>;
         }
 
-        <span class="kw">for </span>include_name <span class="kw">in </span><span class="self">self</span>.includes.iter() {
+        <span class="kw">for </span>include_name <span class="kw">in </span><span class="kw-2">&amp;</span><span class="self">self</span>.includes {
             <span class="kw">let </span>include = harness
                 .includes
                 .get(include_name)
