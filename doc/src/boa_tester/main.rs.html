@@ -1119,9 +1119,9 @@
             <span class="macro">println!</span>(<span class="string">&quot;Passed tests: {}&quot;</span>, passed.to_string().green());
             <span class="macro">println!</span>(<span class="string">&quot;Ignored tests: {}&quot;</span>, ignored.to_string().yellow());
             <span class="macro">println!</span>(
-                <span class="string">&quot;Failed tests: {} (panics: {})&quot;</span>,
+                <span class="string">&quot;Failed tests: {} ({})&quot;</span>,
                 (total - passed - ignored).to_string().red(),
-                panic.to_string().red()
+                <span class="macro">format!</span>(<span class="string">&quot;{panic} panics&quot;</span>).red()
             );
             <span class="macro">println!</span>(
                 <span class="string">&quot;Conformance: {:.2}%&quot;</span>,
