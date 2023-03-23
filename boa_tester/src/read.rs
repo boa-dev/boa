@@ -201,7 +201,7 @@ pub(super) fn read_test(path: &Path) -> Result<Test> {
 
     let metadata = read_metadata(path)?;
 
-    Test::new(name, path, metadata).wrap_err("failed to read test")
+    Test::new(name, path, metadata)
 }
 
 /// Reads the metadata from the input test code.
