@@ -52,7 +52,15 @@
 <a href="#51" id="51">51</a>
 <a href="#52" id="52">52</a>
 <a href="#53" id="53">53</a>
-</pre><pre class="rust"><code><span class="kw">use </span><span class="kw">super</span>::ByteCompiler;
+<a href="#54" id="54">54</a>
+<a href="#55" id="55">55</a>
+<a href="#56" id="56">56</a>
+<a href="#57" id="57">57</a>
+<a href="#58" id="58">58</a>
+<a href="#59" id="59">59</a>
+</pre><pre class="rust"><code><span class="kw">use crate</span>::{js_string, vm::Opcode};
+
+<span class="kw">use super</span>::{ByteCompiler, Literal};
 <span class="kw">use </span>boa_ast::{ModuleItem, ModuleItemList};
 
 <span class="kw">impl </span>ByteCompiler&lt;<span class="lifetime">&#39;_</span>, <span class="lifetime">&#39;_</span>&gt; {
@@ -66,13 +74,18 @@
 
     <span class="doccomment">/// Compiles a [`ModuleItem`].
     </span><span class="attr">#[inline]
-    #[allow(unused_variables, clippy::missing_panics_doc)] </span><span class="comment">// Unimplemented
+    #[allow(clippy::single_match_else)]
     </span><span class="kw">pub fn </span>compile_module_item(<span class="kw-2">&amp;mut </span><span class="self">self</span>, item: <span class="kw-2">&amp;</span>ModuleItem, configurable_globals: bool) {
         <span class="kw">match </span>item {
-            ModuleItem::ImportDeclaration(import) =&gt; <span class="macro">todo!</span>(<span class="string">&quot;import declaration compilation&quot;</span>),
-            ModuleItem::ExportDeclaration(export) =&gt; <span class="macro">todo!</span>(<span class="string">&quot;export declaration compilation&quot;</span>),
             ModuleItem::StatementListItem(stmt) =&gt; {
                 <span class="self">self</span>.compile_stmt_list_item(stmt, <span class="bool-val">false</span>, configurable_globals);
+            }
+            <span class="kw">_ </span>=&gt; {
+                <span class="comment">// TODO: Remove after implementing modules.
+                </span><span class="kw">let </span>msg = <span class="self">self</span>.get_or_insert_literal(Literal::String(<span class="macro">js_string!</span>(
+                    <span class="string">&quot;modules are unimplemented&quot;
+                </span>)));
+                <span class="self">self</span>.emit(Opcode::ThrowNewTypeError, <span class="kw-2">&amp;</span>[msg]);
             }
         }
     }
@@ -90,18 +103,17 @@
 
     <span class="doccomment">/// Creates the declarations from a [`ModuleItem`].
     </span><span class="attr">#[inline]
-    #[allow(unused_variables)] </span><span class="comment">// Unimplemented
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>create_decls_from_module_item(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
         item: <span class="kw-2">&amp;</span>ModuleItem,
         configurable_globals: bool,
     ) -&gt; bool {
         <span class="kw">match </span>item {
-            ModuleItem::ImportDeclaration(import) =&gt; <span class="macro">todo!</span>(<span class="string">&quot;import declaration generation&quot;</span>),
-            ModuleItem::ExportDeclaration(export) =&gt; <span class="macro">todo!</span>(<span class="string">&quot;export declaration generation&quot;</span>),
             ModuleItem::StatementListItem(stmt) =&gt; {
                 <span class="self">self</span>.create_decls_from_stmt_list_item(stmt, configurable_globals)
             }
+            <span class="comment">// TODO: Implement modules
+            </span><span class="kw">_ </span>=&gt; <span class="bool-val">false</span>,
         }
     }
 }
