@@ -100,12 +100,7 @@ impl AsyncFromSyncIterator {
 
         // 3. Let promiseCapability be ! NewPromiseCapability(%Promise%).
         let promise_capability = PromiseCapability::new(
-            &context
-                .intrinsics()
-                .constructors()
-                .promise()
-                .constructor()
-                .into(),
+            &context.intrinsics().constructors().promise().constructor(),
             context,
         )
         .expect("cannot fail with promise constructor");
@@ -145,12 +140,7 @@ impl AsyncFromSyncIterator {
 
         // 3. Let promiseCapability be ! NewPromiseCapability(%Promise%).
         let promise_capability = PromiseCapability::new(
-            &context
-                .intrinsics()
-                .constructors()
-                .promise()
-                .constructor()
-                .into(),
+            &context.intrinsics().constructors().promise().constructor(),
             context,
         )
         .expect("cannot fail with promise constructor");
@@ -243,12 +233,7 @@ impl AsyncFromSyncIterator {
 
         // 3. Let promiseCapability be ! NewPromiseCapability(%Promise%).
         let promise_capability = PromiseCapability::new(
-            &context
-                .intrinsics()
-                .constructors()
-                .promise()
-                .constructor()
-                .into(),
+            &context.intrinsics().constructors().promise().constructor(),
             context,
         )
         .expect("cannot fail with promise constructor");
@@ -348,7 +333,7 @@ impl AsyncFromSyncIterator {
 
         // 6. Let valueWrapper be Completion(PromiseResolve(%Promise%, value)).
         let value_wrapper = Promise::promise_resolve(
-            context.intrinsics().constructors().promise().constructor(),
+            &context.intrinsics().constructors().promise().constructor(),
             value,
             context,
         );
@@ -381,8 +366,8 @@ impl AsyncFromSyncIterator {
         // 11. Perform PerformPromiseThen(valueWrapper, onFulfilled, undefined, promiseCapability).
         Promise::perform_promise_then(
             &value_wrapper,
-            &on_fulfilled.into(),
-            &JsValue::Undefined,
+            Some(on_fulfilled),
+            None,
             Some(promise_capability.clone()),
             context,
         );

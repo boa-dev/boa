@@ -574,12 +574,7 @@ pub(crate) fn create_function_object(
 
     let function = if r#async {
         let promise_capability = PromiseCapability::new(
-            &context
-                .intrinsics()
-                .constructors()
-                .promise()
-                .constructor()
-                .into(),
+            &context.intrinsics().constructors().promise().constructor(),
             context,
         )
         .expect("cannot  fail per spec");

@@ -5,7 +5,7 @@ mod tests;
 
 use super::{iterable::IteratorRecord, BuiltInBuilder, BuiltInConstructor, IntrinsicObject};
 use crate::{
-    builtins::{error::ErrorKind, Array, BuiltInObject},
+    builtins::{Array, BuiltInObject},
     context::intrinsics::{Intrinsics, StandardConstructor, StandardConstructors},
     error::JsNativeError,
     job::{JobCallback, NativeJob},
@@ -14,7 +14,7 @@ use crate::{
         internal_methods::get_prototype_from_constructor, FunctionObjectBuilder, JsFunction,
         JsObject, ObjectData, CONSTRUCTOR,
     },
-    property::{Attribute, PropertyDescriptorBuilder},
+    property::Attribute,
     string::utf16,
     symbol::JsSymbol,
     value::JsValue,
@@ -24,6 +24,107 @@ use boa_gc::{Finalize, Gc, GcRefCell, Trace};
 use boa_profiler::Profiler;
 use std::{cell::Cell, rc::Rc};
 use tap::{Conv, Pipe};
+
+// ==================== Public API ====================
+
+/// The current state of a [`Promise`].
+#[derive(Debug, Clone, Trace, Finalize, PartialEq, Eq)]
+pub enum PromiseState {
+    /// The promise hasn't been resolved.
+    Pending,
+    /// The promise was fulfilled with a success value.
+    Fulfilled(JsValue),
+    /// The promise was rejected with a failure reason.
+    Rejected(JsValue),
+}
+
+impl PromiseState {
+    /// Gets the inner `JsValue` of a fulfilled promise state, or returns `None` if
+    /// the state is not `Fulfilled`.
+    pub const fn as_fulfilled(&self) -> Option<&JsValue> {
+        match self {
+            PromiseState::Fulfilled(v) => Some(v),
+            _ => None,
+        }
+    }
+
+    /// Gets the inner `JsValue` of a rejected promise state, or returns `None` if
+    /// the state is not `Rejected`.
+    pub const fn as_rejected(&self) -> Option<&JsValue> {
+        match self {
+            PromiseState::Rejected(v) => Some(v),
+            _ => None,
+        }
+    }
+}
+
+/// The internal representation of a `Promise` object.
+#[derive(Debug, Trace, Finalize)]
+pub struct Promise {
+    state: PromiseState,
+    fulfill_reactions: Vec<ReactionRecord>,
+    reject_reactions: Vec<ReactionRecord>,
+    handled: bool,
+}
+
+/// The operation type of the [`HostPromiseRejectionTracker`][fn] abstract operation.
+///
+/// # Note
+///
+/// Per the spec:
+///
+/// > If operation is "handle", an implementation should not hold a reference to promise in a way
+/// that would interfere with garbage collection. An implementation may hold a reference to promise
+/// if operation is "reject", since it is expected that rejections will be rare and not on hot code paths.
+///
+/// [fn]: https://tc39.es/ecma262/#sec-host-promise-rejection-tracker
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum OperationType {
+    /// A promise was rejected without any handlers.
+    Reject,
+    /// A handler was added to a rejected promise for the first time.
+    Handle,
+}
+
+/// Functions used to resolve a pending promise.
+///
+/// This is equivalent to the arguments `resolve` and `reject` of the [Resolver function] from
+/// the [`Promise()`] constructor.
+///
+/// Both functions are always associated with the promise from which they were created. This
+/// means that by simply calling `resolve.call()` or `reject.call()`, the state of the original
+/// promise will be updated with the resolution value.
+///
+/// [Resolve function]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise/Promise#resolver_function
+/// [`Promise()`]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise/Promise
+#[derive(Debug, Clone)]
+pub struct ResolvingFunctions {
+    /// Resolves the associated promise to `PromiseState::Fulfilled`.
+    pub resolve: JsFunction,
+    /// Resolves the associated promise to `PromiseState::Rejected`.
+    pub reject: JsFunction,
+}
+
+/// The internal `PromiseCapability` data type.
+///
+/// More information:
+///  - [ECMAScript reference][spec]
+///
+/// [spec]: https://tc39.es/ecma262/#sec-promisecapability-records
+#[derive(Debug, Clone, Trace, Finalize)]
+// TODO: make crate-only
+pub struct PromiseCapability {
+    /// The `[[Promise]]` field.
+    promise: JsObject,
+
+    /// The `[[Resolve]]` field.
+    resolve: JsFunction,
+
+    /// The `[[Reject]]` field.
+    reject: JsFunction,
+}
+
+// ==================== Private API ====================
 
 /// `IfAbruptRejectPromise ( value, capability )`
 ///
@@ -54,22 +155,6 @@ macro_rules! if_abrupt_reject_promise {
 }
 
 pub(crate) use if_abrupt_reject_promise;
-
-#[derive(Debug, Clone, Trace, Finalize)]
-pub(crate) enum PromiseState {
-    Pending,
-    Fulfilled(JsValue),
-    Rejected(JsValue),
-}
-
-/// The internal representation of a `Promise` object.
-#[derive(Debug, Trace, Finalize)]
-pub struct Promise {
-    state: PromiseState,
-    fulfill_reactions: Vec<ReactionRecord>,
-    reject_reactions: Vec<ReactionRecord>,
-    handled: bool,
-}
 
 /// The internal `PromiseReaction` data type.
 ///
@@ -102,43 +187,6 @@ enum ReactionType {
     Reject,
 }
 
-/// The operation type of the [`HostPromiseRejectionTracker`][fn] abstract operation.
-///
-/// # Note
-///
-/// Per the spec:
-///
-/// > If operation is "handle", an implementation should not hold a reference to promise in a way
-/// that would interfere with garbage collection. An implementation may hold a reference to promise
-/// if operation is "reject", since it is expected that rejections will be rare and not on hot code paths.
-///
-/// [fn]: https://tc39.es/ecma262/#sec-host-promise-rejection-tracker
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub enum OperationType {
-    /// A promise was rejected without any handlers.
-    Reject,
-    /// A handler was added to a rejected promise for the first time.
-    Handle,
-}
-
-/// The internal `PromiseCapability` data type.
-///
-/// More information:
-///  - [ECMAScript reference][spec]
-///
-/// [spec]: https://tc39.es/ecma262/#sec-promisecapability-records
-#[derive(Debug, Clone, Trace, Finalize)]
-pub struct PromiseCapability {
-    /// The `[[Promise]]` field.
-    promise: JsObject,
-
-    /// The `[[Resolve]]` field.
-    resolve: JsFunction,
-
-    /// The `[[Reject]]` field.
-    reject: JsFunction,
-}
-
 impl PromiseCapability {
     /// `NewPromiseCapability ( C )`
     ///
@@ -146,7 +194,7 @@ impl PromiseCapability {
     ///  - [ECMAScript reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-newpromisecapability
-    pub(crate) fn new(c: &JsValue, context: &mut Context<'_>) -> JsResult<Self> {
+    pub(crate) fn new(c: &JsObject, context: &mut Context<'_>) -> JsResult<Self> {
         #[derive(Debug, Clone, Trace, Finalize)]
         struct RejectResolve {
             reject: JsValue,
@@ -154,11 +202,11 @@ impl PromiseCapability {
         }
 
         // 1. If IsConstructor(C) is false, throw a TypeError exception.
-        let c = c.as_constructor().ok_or_else(|| {
-            JsNativeError::typ().with_message("PromiseCapability: expected constructor")
-        })?;
-
-        let c = c.clone();
+        if !c.is_constructor() {
+            return Err(JsNativeError::typ()
+                .with_message("PromiseCapability: expected constructor")
+                .into());
+        }
 
         // 2. NOTE: C is assumed to be a constructor function that supports the parameter conventions of the Promise constructor (see 27.2.3.1).
         // 3. Let promiseCapability be the PromiseCapability Record { [[Promise]]: undefined, [[Resolve]]: undefined, [[Reject]]: undefined }.
@@ -372,12 +420,6 @@ impl BuiltInConstructor for Promise {
     }
 }
 
-#[derive(Debug)]
-pub(crate) struct ResolvingFunctionsRecord {
-    pub(crate) resolve: JsFunction,
-    pub(crate) reject: JsFunction,
-}
-
 impl Promise {
     /// Creates a new, pending `Promise`.
     pub(crate) fn new() -> Self {
@@ -408,13 +450,12 @@ impl Promise {
         context: &mut Context<'_>,
     ) -> JsResult<JsValue> {
         // 1. Let C be the this value.
-        let c = this;
+        let c = this.as_object().ok_or_else(|| {
+            JsNativeError::typ().with_message("Promise.all() called on a non-object")
+        })?;
 
         // 2. Let promiseCapability be ? NewPromiseCapability(C).
         let promise_capability = PromiseCapability::new(c, context)?;
-
-        // Note: We already checked that `C` is a constructor in `NewPromiseCapability(C)`.
-        let c = c.as_object().expect("must be a constructor");
 
         // 3. Let promiseResolve be Completion(GetPromiseResolve(C)).
         let promise_resolve = Self::get_promise_resolve(c, context);
@@ -462,7 +503,7 @@ impl Promise {
     ///  - [ECMAScript reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-performpromiseall
-    fn perform_promise_all(
+    pub(crate) fn perform_promise_all(
         iterator_record: &mut IteratorRecord,
         constructor: &JsObject,
         result_capability: &PromiseCapability,
@@ -652,13 +693,12 @@ impl Promise {
         context: &mut Context<'_>,
     ) -> JsResult<JsValue> {
         // 1. Let C be the this value.
-        let c = this;
+        let c = this.as_object().ok_or_else(|| {
+            JsNativeError::typ().with_message("Promise.allSettled() called on a non-object")
+        })?;
 
         // 2. Let promiseCapability be ? NewPromiseCapability(C).
         let promise_capability = PromiseCapability::new(c, context)?;
-
-        // Note: We already checked that `C` is a constructor in `NewPromiseCapability(C)`.
-        let c = c.as_object().expect("must be a constructor");
 
         // 3. Let promiseResolve be Completion(GetPromiseResolve(C)).
         let promise_resolve = Self::get_promise_resolve(c, context);
@@ -706,7 +746,7 @@ impl Promise {
     ///  - [ECMAScript reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-performpromiseallsettled
-    fn perform_promise_all_settled(
+    pub(crate) fn perform_promise_all_settled(
         iterator_record: &mut IteratorRecord,
         constructor: &JsObject,
         result_capability: &PromiseCapability,
@@ -999,13 +1039,12 @@ impl Promise {
         context: &mut Context<'_>,
     ) -> JsResult<JsValue> {
         // 1. Let C be the this value.
-        let c = this;
+        let c = this.as_object().ok_or_else(|| {
+            JsNativeError::typ().with_message("Promise.any() called on a non-object")
+        })?;
 
         // 2. Let promiseCapability be ? NewPromiseCapability(C).
         let promise_capability = PromiseCapability::new(c, context)?;
-
-        // Note: We already checked that `C` is a constructor in `NewPromiseCapability(C)`.
-        let c = c.as_object().expect("must be a constructor");
 
         // 3. Let promiseResolve be Completion(GetPromiseResolve(C)).
         let promise_resolve = Self::get_promise_resolve(c, context);
@@ -1053,7 +1092,7 @@ impl Promise {
     ///  - [ECMAScript reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-performpromiseany
-    fn perform_promise_any(
+    pub(crate) fn perform_promise_any(
         iterator_record: &mut IteratorRecord,
         constructor: &JsObject,
         result_capability: &PromiseCapability,
@@ -1104,33 +1143,19 @@ impl Promise {
                     // iii. If remainingElementsCount.[[Value]] is 0, then
                     if remaining_elements_count.get() == 0 {
                         // 1. Let error be a newly created AggregateError object.
-                        let error = JsObject::from_proto_and_data(
-                            context
-                                .intrinsics()
-                                .constructors()
-                                .aggregate_error()
-                                .prototype(),
-                            ObjectData::error(ErrorKind::Aggregate),
-                        );
-
                         // 2. Perform ! DefinePropertyOrThrow(error, "errors", PropertyDescriptor { [[Configurable]]: true, [[Enumerable]]: false, [[Writable]]: true, [[Value]]: CreateArrayFromList(errors) }).
-                        error
-                            .define_property_or_throw(
-                                utf16!("errors"),
-                                PropertyDescriptorBuilder::new()
-                                    .configurable(true)
-                                    .enumerable(false)
-                                    .writable(true)
-                                    .value(Array::create_array_from_list(
-                                        errors.borrow().as_slice().iter().cloned(),
-                                        context,
-                                    )),
-                                context,
-                            )
-                            .expect("cannot fail per spec");
+                        let error = JsNativeError::aggregate(
+                            errors
+                                .borrow()
+                                .iter()
+                                .cloned()
+                                .map(JsError::from_opaque)
+                                .collect(),
+                        )
+                        .with_message("no promise in Promise.any was fulfilled.");
 
                         // 3. Return ThrowCompletion(error).
-                        return Err(JsError::from_opaque(error.into()));
+                        return Err(error.into());
                     }
 
                     // iv. Return resultCapability.[[Promise]].
@@ -1201,34 +1226,22 @@ impl Promise {
                         // 10. If remainingElementsCount.[[Value]] is 0, then
                         if captures.remaining_elements_count.get() == 0 {
                             // a. Let error be a newly created AggregateError object.
-                            let error = JsObject::from_proto_and_data(
-                                context
-                                    .intrinsics()
-                                    .constructors()
-                                    .aggregate_error()
-                                    .prototype(),
-                                ObjectData::error(ErrorKind::Aggregate),
-                            );
-
                             // b. Perform ! DefinePropertyOrThrow(error, "errors", PropertyDescriptor { [[Configurable]]: true, [[Enumerable]]: false, [[Writable]]: true, [[Value]]: CreateArrayFromList(errors) }).
-                            error
-                                .define_property_or_throw(
-                                    utf16!("errors"),
-                                    PropertyDescriptorBuilder::new()
-                                        .configurable(true)
-                                        .enumerable(false)
-                                        .writable(true)
-                                        .value(Array::create_array_from_list(
-                                            captures.errors.borrow().as_slice().iter().cloned(),
-                                            context,
-                                        )),
-                                    context,
-                                )
-                                .expect("cannot fail per spec");
+                            let error = JsNativeError::aggregate(
+                                captures
+                                    .errors
+                                    .borrow()
+                                    .iter()
+                                    .cloned()
+                                    .map(JsError::from_opaque)
+                                    .collect(),
+                            )
+                            .with_message("no promise in Promise.any was fulfilled.");
+
                             // c. Return ? Call(promiseCapability.[[Reject]], undefined, « error »).
                             return captures.capability_reject.call(
                                 &JsValue::undefined(),
-                                &[error.into()],
+                                &[error.to_opaque(context).into()],
                                 context,
                             );
                         }
@@ -1265,311 +1278,6 @@ impl Promise {
         }
     }
 
-    /// `CreateResolvingFunctions ( promise )`
-    ///
-    /// More information:
-    ///  - [ECMAScript reference][spec]
-    ///
-    /// [spec]: https://tc39.es/ecma262/#sec-createresolvingfunctions
-    pub(crate) fn create_resolving_functions(
-        promise: &JsObject,
-        context: &mut Context<'_>,
-    ) -> ResolvingFunctionsRecord {
-        #[derive(Debug, Trace, Finalize)]
-        struct RejectResolveCaptures {
-            promise: JsObject,
-            #[unsafe_ignore_trace]
-            already_resolved: Rc<Cell<bool>>,
-        }
-
-        // 1. Let alreadyResolved be the Record { [[Value]]: false }.
-        let already_resolved = Rc::new(Cell::new(false));
-
-        // 5. Set resolve.[[Promise]] to promise.
-        // 6. Set resolve.[[AlreadyResolved]] to alreadyResolved.
-        let resolve_captures = RejectResolveCaptures {
-            already_resolved: already_resolved.clone(),
-            promise: promise.clone(),
-        };
-
-        // 2. Let stepsResolve be the algorithm steps defined in Promise Resolve Functions.
-        // 3. Let lengthResolve be the number of non-optional parameters of the function definition in Promise Resolve Functions.
-        // 4. Let resolve be CreateBuiltinFunction(stepsResolve, lengthResolve, "", « [[Promise]], [[AlreadyResolved]] »).
-        let resolve = FunctionObjectBuilder::new(
-            context,
-            NativeFunction::from_copy_closure_with_captures(
-                |_this, args, captures, context| {
-                    // https://tc39.es/ecma262/#sec-promise-resolve-functions
-
-                    // 1. Let F be the active function object.
-                    // 2. Assert: F has a [[Promise]] internal slot whose value is an Object.
-                    // 3. Let promise be F.[[Promise]].
-                    // 4. Let alreadyResolved be F.[[AlreadyResolved]].
-                    let RejectResolveCaptures {
-                        promise,
-                        already_resolved,
-                    } = captures;
-
-                    // 5. If alreadyResolved.[[Value]] is true, return undefined.
-                    if already_resolved.get() {
-                        return Ok(JsValue::Undefined);
-                    }
-
-                    // 6. Set alreadyResolved.[[Value]] to true.
-                    already_resolved.set(true);
-
-                    let resolution = args.get_or_undefined(0);
-
-                    // 7. If SameValue(resolution, promise) is true, then
-                    if JsValue::same_value(resolution, &promise.clone().into()) {
-                        //   a. Let selfResolutionError be a newly created TypeError object.
-                        let self_resolution_error = JsNativeError::typ()
-                            .with_message("SameValue(resolution, promise) is true")
-                            .to_opaque(context);
-
-                        //   b. Perform RejectPromise(promise, selfResolutionError).
-                        Self::reject_promise(promise, self_resolution_error.into(), context);
-
-                        //   c. Return undefined.
-                        return Ok(JsValue::Undefined);
-                    }
-
-                    let Some(then) = resolution.as_object() else {
-                        // 8. If Type(resolution) is not Object, then
-                        //   a. Perform FulfillPromise(promise, resolution).
-                        Self::fulfill_promise(promise, resolution.clone(), context);
-
-                        //   b. Return undefined.
-                        return Ok(JsValue::Undefined);
-                    };
-
-                    // 9. Let then be Completion(Get(resolution, "then")).
-                    let then_action = match then.get(utf16!("then"), context) {
-                        // 10. If then is an abrupt completion, then
-                        Err(e) => {
-                            //   a. Perform RejectPromise(promise, then.[[Value]]).
-                            Self::reject_promise(promise, e.to_opaque(context), context);
-
-                            //   b. Return undefined.
-                            return Ok(JsValue::Undefined);
-                        }
-                        // 11. Let thenAction be then.[[Value]].
-                        Ok(then) => then,
-                    };
-
-                    // 12. If IsCallable(thenAction) is false, then
-                    let Some(then_action) = then_action.as_object().cloned().and_then(JsFunction::from_object) else {
-                        // a. Perform FulfillPromise(promise, resolution).
-                        Self::fulfill_promise(promise, resolution.clone(), context);
-
-                        //   b. Return undefined.
-                        return Ok(JsValue::Undefined);
-                    };
-
-                    // 13. Let thenJobCallback be HostMakeJobCallback(thenAction).
-                    let then_job_callback = context.host_hooks().make_job_callback(then_action, context);
-
-                    // 14. Let job be NewPromiseResolveThenableJob(promise, resolution, thenJobCallback).
-                    let job = new_promise_resolve_thenable_job(
-                        promise.clone(),
-                        resolution.clone(),
-                        then_job_callback,
-                    );
-
-                    // 15. Perform HostEnqueuePromiseJob(job.[[Job]], job.[[Realm]]).
-                    context.job_queue().enqueue_promise_job(job, context);
-
-                    // 16. Return undefined.
-                    Ok(JsValue::Undefined)
-                },
-                resolve_captures,
-            ),
-        )
-        .name("")
-        .length(1)
-        .constructor(false)
-        .build();
-
-        // 10. Set reject.[[Promise]] to promise.
-        // 11. Set reject.[[AlreadyResolved]] to alreadyResolved.
-        let reject_captures = RejectResolveCaptures {
-            promise: promise.clone(),
-            already_resolved,
-        };
-
-        // 7. Let stepsReject be the algorithm steps defined in Promise Reject Functions.
-        // 8. Let lengthReject be the number of non-optional parameters of the function definition in Promise Reject Functions.
-        // 9. Let reject be CreateBuiltinFunction(stepsReject, lengthReject, "", « [[Promise]], [[AlreadyResolved]] »).
-        let reject = FunctionObjectBuilder::new(
-            context,
-            NativeFunction::from_copy_closure_with_captures(
-                |_this, args, captures, context| {
-                    // https://tc39.es/ecma262/#sec-promise-reject-functions
-
-                    // 1. Let F be the active function object.
-                    // 2. Assert: F has a [[Promise]] internal slot whose value is an Object.
-                    // 3. Let promise be F.[[Promise]].
-                    // 4. Let alreadyResolved be F.[[AlreadyResolved]].
-                    let RejectResolveCaptures {
-                        promise,
-                        already_resolved,
-                    } = captures;
-
-                    // 5. If alreadyResolved.[[Value]] is true, return undefined.
-                    if already_resolved.get() {
-                        return Ok(JsValue::Undefined);
-                    }
-
-                    // 6. Set alreadyResolved.[[Value]] to true.
-                    already_resolved.set(true);
-
-                    // 7. Perform RejectPromise(promise, reason).
-                    Self::reject_promise(promise, args.get_or_undefined(0).clone(), context);
-
-                    // 8. Return undefined.
-                    Ok(JsValue::Undefined)
-                },
-                reject_captures,
-            ),
-        )
-        .name("")
-        .length(1)
-        .constructor(false)
-        .build();
-
-        // 12. Return the Record { [[Resolve]]: resolve, [[Reject]]: reject }.
-        ResolvingFunctionsRecord { resolve, reject }
-    }
-
-    /// `FulfillPromise ( promise, value )`
-    ///
-    /// The abstract operation `FulfillPromise` takes arguments `promise` and `value` and returns
-    /// `unused`.
-    ///
-    /// More information:
-    ///  - [ECMAScript reference][spec]
-    ///
-    /// [spec]: https://tc39.es/ecma262/#sec-fulfillpromise
-    ///
-    /// # Panics
-    ///
-    /// Panics if `Promise` is not pending.
-    fn fulfill_promise(promise: &JsObject, value: JsValue, context: &mut Context<'_>) {
-        let mut promise = promise.borrow_mut();
-        let promise = promise
-            .as_promise_mut()
-            .expect("IsPromise(promise) is false");
-
-        // 1. Assert: The value of promise.[[PromiseState]] is pending.
-        assert!(
-            matches!(promise.state, PromiseState::Pending),
-            "promise was not pending"
-        );
-
-        // reordering these statements does not affect the semantics
-
-        // 2. Let reactions be promise.[[PromiseFulfillReactions]].
-        // 4. Set promise.[[PromiseFulfillReactions]] to undefined.
-        let reactions = std::mem::take(&mut promise.fulfill_reactions);
-
-        // 5. Set promise.[[PromiseRejectReactions]] to undefined.
-        promise.reject_reactions.clear();
-
-        // 7. Perform TriggerPromiseReactions(reactions, value).
-        Self::trigger_promise_reactions(reactions, &value, context);
-
-        // 3. Set promise.[[PromiseResult]] to value.
-        // 6. Set promise.[[PromiseState]] to fulfilled.
-        promise.state = PromiseState::Fulfilled(value);
-
-        // 8. Return unused.
-    }
-
-    /// `RejectPromise ( promise, reason )`
-    ///
-    /// The abstract operation `RejectPromise` takes arguments `promise` and `reason` and returns
-    /// `unused`.
-    ///
-    /// More information:
-    ///  - [ECMAScript reference][spec]
-    ///
-    /// [spec]: https://tc39.es/ecma262/#sec-rejectpromise
-    ///
-    /// # Panics
-    ///
-    /// Panics if `Promise` is not pending.
-    pub fn reject_promise(promise: &JsObject, reason: JsValue, context: &mut Context<'_>) {
-        let handled = {
-            let mut promise = promise.borrow_mut();
-            let promise = promise
-                .as_promise_mut()
-                .expect("IsPromise(promise) is false");
-
-            // 1. Assert: The value of promise.[[PromiseState]] is pending.
-            assert!(
-                matches!(promise.state, PromiseState::Pending),
-                "Expected promise.[[PromiseState]] to be pending"
-            );
-
-            // reordering these statements does not affect the semantics
-
-            // 2. Let reactions be promise.[[PromiseRejectReactions]].
-            // 5. Set promise.[[PromiseRejectReactions]] to undefined.
-            let reactions = std::mem::take(&mut promise.reject_reactions);
-
-            // 4. Set promise.[[PromiseFulfillReactions]] to undefined.
-            promise.fulfill_reactions.clear();
-
-            // 8. Perform TriggerPromiseReactions(reactions, reason).
-            Self::trigger_promise_reactions(reactions, &reason, context);
-
-            // 3. Set promise.[[PromiseResult]] to reason.
-            // 6. Set promise.[[PromiseState]] to rejected.
-            promise.state = PromiseState::Rejected(reason);
-
-            promise.handled
-        };
-
-        // 7. If promise.[[PromiseIsHandled]] is false, perform HostPromiseRejectionTracker(promise, "reject").
-        if !handled {
-            context
-                .host_hooks()
-                .promise_rejection_tracker(promise, OperationType::Reject, context);
-        }
-
-        // 9. Return unused.
-    }
-
-    /// `TriggerPromiseReactions ( reactions, argument )`
-    ///
-    /// The abstract operation `TriggerPromiseReactions` takes arguments `reactions` (a `List` of
-    /// `PromiseReaction` Records) and `argument` and returns unused. It enqueues a new `Job` for
-    /// each record in `reactions`. Each such `Job` processes the `[[Type]]` and `[[Handler]]` of
-    /// the `PromiseReaction` Record, and if the `[[Handler]]` is not `empty`, calls it passing the
-    /// given argument. If the `[[Handler]]` is `empty`, the behaviour is determined by the
-    /// `[[Type]]`.
-    ///
-    /// More information:
-    ///  - [ECMAScript reference][spec]
-    ///
-    /// [spec]: https://tc39.es/ecma262/#sec-triggerpromisereactions
-    fn trigger_promise_reactions(
-        reactions: Vec<ReactionRecord>,
-        argument: &JsValue,
-        context: &mut Context<'_>,
-    ) {
-        // 1. For each element reaction of reactions, do
-        for reaction in reactions {
-            // a. Let job be NewPromiseReactionJob(reaction, argument).
-            let job = new_promise_reaction_job(reaction, argument.clone());
-
-            // b. Perform HostEnqueuePromiseJob(job.[[Job]], job.[[Realm]]).
-            context.job_queue().enqueue_promise_job(job, context);
-        }
-
-        // 2. Return unused.
-    }
-
     /// `Promise.race ( iterable )`
     ///
     /// The `race` function returns a new promise which is settled in the same way as the first
@@ -1581,18 +1289,23 @@ impl Promise {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-promise.race
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise/race
-    pub fn race(this: &JsValue, args: &[JsValue], context: &mut Context<'_>) -> JsResult<JsValue> {
+    pub(crate) fn race(
+        this: &JsValue,
+        args: &[JsValue],
+        context: &mut Context<'_>,
+    ) -> JsResult<JsValue> {
         let iterable = args.get_or_undefined(0);
 
         // 1. Let C be the this value.
-        let c = this;
+        let c = this.as_object().ok_or_else(|| {
+            JsNativeError::typ().with_message("Promise.race() called on a non-object")
+        })?;
 
         // 2. Let promiseCapability be ? NewPromiseCapability(C).
         let promise_capability = PromiseCapability::new(c, context)?;
 
         // 3. Let promiseResolve be Completion(GetPromiseResolve(C)).
-        let promise_resolve =
-            Self::get_promise_resolve(c.as_object().expect("this was not an object"), context);
+        let promise_resolve = Self::get_promise_resolve(c, context);
 
         // 4. IfAbruptRejectPromise(promiseResolve, promiseCapability).
         if_abrupt_reject_promise!(promise_resolve, promise_capability, context);
@@ -1642,13 +1355,14 @@ impl Promise {
     ///  - [ECMAScript reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-performpromiserace
-    fn perform_promise_race(
+    pub(crate) fn perform_promise_race(
         iterator_record: &mut IteratorRecord,
-        constructor: &JsValue,
+        constructor: &JsObject,
         result_capability: &PromiseCapability,
         promise_resolve: &JsObject,
         context: &mut Context<'_>,
     ) -> JsResult<JsObject> {
+        let constructor = constructor.clone().into();
         // 1. Repeat,
         loop {
             // a. Let next be Completion(IteratorStep(iteratorRecord)).
@@ -1683,7 +1397,7 @@ impl Promise {
             let next_value = next_value?;
 
             // h. Let nextPromise be ? Call(promiseResolve, constructor, « nextValue »).
-            let next_promise = promise_resolve.call(constructor, &[next_value], context)?;
+            let next_promise = promise_resolve.call(&constructor, &[next_value], context)?;
 
             // i. Perform ? Invoke(nextPromise, "then", « resultCapability.[[Resolve]], resultCapability.[[Reject]] »).
             next_promise.invoke(
@@ -1705,27 +1419,39 @@ impl Promise {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-promise.reject
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise/reject
-    pub fn reject(
+    pub(crate) fn reject(
         this: &JsValue,
         args: &[JsValue],
         context: &mut Context<'_>,
     ) -> JsResult<JsValue> {
-        let r = args.get_or_undefined(0);
+        let r = args.get_or_undefined(0).clone();
 
         // 1. Let C be the this value.
-        let c = this;
+        let c = this.as_object().ok_or_else(|| {
+            JsNativeError::typ().with_message("Promise.reject() called on a non-object")
+        })?;
+
+        Promise::promise_reject(c, &JsError::from_opaque(r), context).map(JsValue::from)
+    }
+
+    /// Utility function to create a rejected promise.
+    pub(crate) fn promise_reject(
+        c: &JsObject,
+        e: &JsError,
+        context: &mut Context<'_>,
+    ) -> JsResult<JsObject> {
+        let e = e.to_opaque(context);
 
         // 2. Let promiseCapability be ? NewPromiseCapability(C).
         let promise_capability = PromiseCapability::new(c, context)?;
 
         // 3. Perform ? Call(promiseCapability.[[Reject]], undefined, « r »).
-
         promise_capability
             .reject
-            .call(&JsValue::undefined(), &[r.clone()], context)?;
+            .call(&JsValue::undefined(), &[e], context)?;
 
         // 4. Return promiseCapability.[[Promise]].
-        Ok(promise_capability.promise.clone().into())
+        Ok(promise_capability.promise.clone())
     }
 
     /// `Promise.resolve ( x )`
@@ -1736,7 +1462,7 @@ impl Promise {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-promise.resolve
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise/resolve
-    pub fn resolve(
+    pub(crate) fn resolve(
         this: &JsValue,
         args: &[JsValue],
         context: &mut Context<'_>,
@@ -1744,17 +1470,53 @@ impl Promise {
         let x = args.get_or_undefined(0);
 
         // 1. Let C be the this value.
-        let c = this;
+        // 2. If Type(C) is not Object, throw a TypeError exception.
+        let c = this.as_object().ok_or_else(|| {
+            JsNativeError::typ().with_message("Promise.resolve() called on a non-object")
+        })?;
 
-        if let Some(c) = c.as_object() {
-            // 3. Return ? PromiseResolve(C, x).
-            Self::promise_resolve(c.clone(), x.clone(), context).map(JsValue::from)
-        } else {
-            // 2. If Type(C) is not Object, throw a TypeError exception.
-            Err(JsNativeError::typ()
-                .with_message("Promise.resolve() called on a non-object")
-                .into())
+        // 3. Return ? PromiseResolve(C, x).
+        Self::promise_resolve(c, x.clone(), context).map(JsValue::from)
+    }
+
+    /// `PromiseResolve ( C, x )`
+    ///
+    /// The abstract operation `PromiseResolve` takes arguments `C` (a constructor) and `x` (an
+    /// ECMAScript language value) and returns either a normal completion containing an ECMAScript
+    /// language value or a throw completion. It returns a new promise resolved with `x`.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-promise-resolve
+    pub(crate) fn promise_resolve(
+        c: &JsObject,
+        x: JsValue,
+        context: &mut Context<'_>,
+    ) -> JsResult<JsObject> {
+        // 1. If IsPromise(x) is true, then
+        if let Some(x) = x.as_promise() {
+            // a. Let xConstructor be ? Get(x, "constructor").
+            let x_constructor = x.get(CONSTRUCTOR, context)?;
+            // b. If SameValue(xConstructor, C) is true, return x.
+            if x_constructor
+                .as_object()
+                .map_or(false, |o| JsObject::equals(o, c))
+            {
+                return Ok(x.clone());
+            }
         }
+
+        // 2. Let promiseCapability be ? NewPromiseCapability(C).
+        let promise_capability = PromiseCapability::new(&c.clone(), context)?;
+
+        // 3. Perform ? Call(promiseCapability.[[Resolve]], undefined, « x »).
+        promise_capability
+            .resolve
+            .call(&JsValue::Undefined, &[x], context)?;
+
+        // 4. Return promiseCapability.[[Promise]].
+        Ok(promise_capability.promise.clone())
     }
 
     /// `get Promise [ @@species ]`
@@ -1781,7 +1543,11 @@ impl Promise {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-promise.prototype.catch
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise/catch
-    pub fn catch(this: &JsValue, args: &[JsValue], context: &mut Context<'_>) -> JsResult<JsValue> {
+    pub(crate) fn catch(
+        this: &JsValue,
+        args: &[JsValue],
+        context: &mut Context<'_>,
+    ) -> JsResult<JsValue> {
         let on_rejected = args.get_or_undefined(0);
 
         // 1. Let promise be the this value.
@@ -1802,7 +1568,7 @@ impl Promise {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-promise.prototype.finally
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise/finally
-    pub fn finally(
+    pub(crate) fn finally(
         this: &JsValue,
         args: &[JsValue],
         context: &mut Context<'_>,
@@ -1825,7 +1591,7 @@ impl Promise {
 
         let on_finally = args.get_or_undefined(0);
 
-        let Some(on_finally) = on_finally.as_callable() else {
+        let Some(on_finally) = on_finally.as_object().cloned().and_then(JsFunction::from_object) else {
             // 5. If IsCallable(onFinally) is false, then
             //    a. Let thenFinally be onFinally.
             //    b. Let catchFinally be onFinally.
@@ -1834,124 +1600,126 @@ impl Promise {
             return then.call(this, &[on_finally.clone(), on_finally.clone()], context);
         };
 
-        let (then_finally, catch_finally) = {
-            /// Capture object for the `thenFinallyClosure` abstract closure.
-            #[derive(Debug, Trace, Finalize)]
-            struct FinallyCaptures {
-                on_finally: JsObject,
-                c: JsObject,
-            }
-
-            // a. Let thenFinallyClosure be a new Abstract Closure with parameters (value) that captures onFinally and C and performs the following steps when called:
-            let then_finally_closure = FunctionObjectBuilder::new(
-                context,
-                NativeFunction::from_copy_closure_with_captures(
-                    |_this, args, captures, context| {
-                        /// Capture object for the abstract `returnValue` closure.
-                        #[derive(Debug, Trace, Finalize)]
-                        struct ReturnValueCaptures {
-                            value: JsValue,
-                        }
-
-                        let value = args.get_or_undefined(0);
-
-                        // i. Let result be ? Call(onFinally, undefined).
-                        let result =
-                            captures
-                                .on_finally
-                                .call(&JsValue::undefined(), &[], context)?;
-
-                        // ii. Let promise be ? PromiseResolve(C, result).
-                        let promise = Self::promise_resolve(captures.c.clone(), result, context)?;
-
-                        // iii. Let returnValue be a new Abstract Closure with no parameters that captures value and performs the following steps when called:
-                        let return_value = FunctionObjectBuilder::new(
-                            context,
-                            NativeFunction::from_copy_closure_with_captures(
-                                |_this, _args, captures, _context| {
-                                    // 1. Return value.
-                                    Ok(captures.value.clone())
-                                },
-                                ReturnValueCaptures {
-                                    value: value.clone(),
-                                },
-                            ),
-                        );
-
-                        // iv. Let valueThunk be CreateBuiltinFunction(returnValue, 0, "", « »).
-                        let value_thunk = return_value.length(0).name("").build();
-
-                        // v. Return ? Invoke(promise, "then", « valueThunk »).
-                        promise.invoke(utf16!("then"), &[value_thunk.into()], context)
-                    },
-                    FinallyCaptures {
-                        on_finally: on_finally.clone(),
-                        c: c.clone(),
-                    },
-                ),
-            );
-
-            // b. Let thenFinally be CreateBuiltinFunction(thenFinallyClosure, 1, "", « »).
-            let then_finally = then_finally_closure.length(1).name("").build();
-
-            // c. Let catchFinallyClosure be a new Abstract Closure with parameters (reason) that captures onFinally and C and performs the following steps when called:
-            let catch_finally_closure = FunctionObjectBuilder::new(
-                context,
-                NativeFunction::from_copy_closure_with_captures(
-                    |_this, args, captures, context| {
-                        /// Capture object for the abstract `throwReason` closure.
-                        #[derive(Debug, Trace, Finalize)]
-                        struct ThrowReasonCaptures {
-                            reason: JsValue,
-                        }
-
-                        let reason = args.get_or_undefined(0);
-
-                        // i. Let result be ? Call(onFinally, undefined).
-                        let result =
-                            captures
-                                .on_finally
-                                .call(&JsValue::undefined(), &[], context)?;
-
-                        // ii. Let promise be ? PromiseResolve(C, result).
-                        let promise = Self::promise_resolve(captures.c.clone(), result, context)?;
-
-                        // iii. Let throwReason be a new Abstract Closure with no parameters that captures reason and performs the following steps when called:
-                        let throw_reason = FunctionObjectBuilder::new(
-                            context,
-                            NativeFunction::from_copy_closure_with_captures(
-                                |_this, _args, captures, _context| {
-                                    // 1. Return ThrowCompletion(reason).
-                                    Err(JsError::from_opaque(captures.reason.clone()))
-                                },
-                                ThrowReasonCaptures {
-                                    reason: reason.clone(),
-                                },
-                            ),
-                        );
-
-                        // iv. Let thrower be CreateBuiltinFunction(throwReason, 0, "", « »).
-                        let thrower = throw_reason.length(0).name("").build();
-
-                        // v. Return ? Invoke(promise, "then", « thrower »).
-                        promise.invoke(utf16!("then"), &[thrower.into()], context)
-                    },
-                    FinallyCaptures {
-                        on_finally: on_finally.clone(),
-                        c,
-                    },
-                ),
-            );
-
-            // d. Let catchFinally be CreateBuiltinFunction(catchFinallyClosure, 1, "", « »).
-            let catch_finally = catch_finally_closure.length(1).name("").build();
-
-            (then_finally.into(), catch_finally.into())
-        };
+        let (then_finally, catch_finally) =
+            Self::then_catch_finally_closures(c, on_finally, context);
 
         // 7. Return ? Invoke(promise, "then", « thenFinally, catchFinally »).
         let then = promise.get(utf16!("then"), context)?;
-        then.call(this, &[then_finally, catch_finally], context)
+        then.call(this, &[then_finally.into(), catch_finally.into()], context)
+    }
+
+    pub(crate) fn then_catch_finally_closures(
+        c: JsObject,
+        on_finally: JsFunction,
+        context: &mut Context<'_>,
+    ) -> (JsFunction, JsFunction) {
+        /// Capture object for the `thenFinallyClosure` abstract closure.
+        #[derive(Debug, Trace, Finalize)]
+        struct FinallyCaptures {
+            on_finally: JsFunction,
+            c: JsObject,
+        }
+
+        // a. Let thenFinallyClosure be a new Abstract Closure with parameters (value) that captures onFinally and C and performs the following steps when called:
+        let then_finally_closure = FunctionObjectBuilder::new(
+            context,
+            NativeFunction::from_copy_closure_with_captures(
+                |_this, args, captures, context| {
+                    /// Capture object for the abstract `returnValue` closure.
+                    #[derive(Debug, Trace, Finalize)]
+                    struct ReturnValueCaptures {
+                        value: JsValue,
+                    }
+
+                    let value = args.get_or_undefined(0);
+
+                    // i. Let result be ? Call(onFinally, undefined).
+                    let result = captures
+                        .on_finally
+                        .call(&JsValue::undefined(), &[], context)?;
+
+                    // ii. Let promise be ? PromiseResolve(C, result).
+                    let promise = Self::promise_resolve(&captures.c, result, context)?;
+
+                    // iii. Let returnValue be a new Abstract Closure with no parameters that captures value and performs the following steps when called:
+                    let return_value = FunctionObjectBuilder::new(
+                        context,
+                        NativeFunction::from_copy_closure_with_captures(
+                            |_this, _args, captures, _context| {
+                                // 1. Return value.
+                                Ok(captures.value.clone())
+                            },
+                            ReturnValueCaptures {
+                                value: value.clone(),
+                            },
+                        ),
+                    );
+
+                    // iv. Let valueThunk be CreateBuiltinFunction(returnValue, 0, "", « »).
+                    let value_thunk = return_value.length(0).name("").build();
+
+                    // v. Return ? Invoke(promise, "then", « valueThunk »).
+                    promise.invoke(utf16!("then"), &[value_thunk.into()], context)
+                },
+                FinallyCaptures {
+                    on_finally: on_finally.clone(),
+                    c: c.clone(),
+                },
+            ),
+        );
+
+        // b. Let thenFinally be CreateBuiltinFunction(thenFinallyClosure, 1, "", « »).
+        let then_finally = then_finally_closure.length(1).name("").build();
+
+        // c. Let catchFinallyClosure be a new Abstract Closure with parameters (reason) that captures onFinally and C and performs the following steps when called:
+        let catch_finally_closure = FunctionObjectBuilder::new(
+            context,
+            NativeFunction::from_copy_closure_with_captures(
+                |_this, args, captures, context| {
+                    /// Capture object for the abstract `throwReason` closure.
+                    #[derive(Debug, Trace, Finalize)]
+                    struct ThrowReasonCaptures {
+                        reason: JsValue,
+                    }
+
+                    let reason = args.get_or_undefined(0);
+
+                    // i. Let result be ? Call(onFinally, undefined).
+                    let result = captures
+                        .on_finally
+                        .call(&JsValue::undefined(), &[], context)?;
+
+                    // ii. Let promise be ? PromiseResolve(C, result).
+                    let promise = Self::promise_resolve(&captures.c, result, context)?;
+
+                    // iii. Let throwReason be a new Abstract Closure with no parameters that captures reason and performs the following steps when called:
+                    let throw_reason = FunctionObjectBuilder::new(
+                        context,
+                        NativeFunction::from_copy_closure_with_captures(
+                            |_this, _args, captures, _context| {
+                                // 1. Return ThrowCompletion(reason).
+                                Err(JsError::from_opaque(captures.reason.clone()))
+                            },
+                            ThrowReasonCaptures {
+                                reason: reason.clone(),
+                            },
+                        ),
+                    );
+
+                    // iv. Let thrower be CreateBuiltinFunction(throwReason, 0, "", « »).
+                    let thrower = throw_reason.length(0).name("").build();
+
+                    // v. Return ? Invoke(promise, "then", « thrower »).
+                    promise.invoke(utf16!("then"), &[thrower.into()], context)
+                },
+                FinallyCaptures { on_finally, c },
+            ),
+        );
+
+        // d. Let catchFinally be CreateBuiltinFunction(catchFinallyClosure, 1, "", « »).
+        let catch_finally = catch_finally_closure.length(1).name("").build();
+
+        (then_finally, catch_finally)
     }
 
     /// `Promise.prototype.then ( onFulfilled, onRejected )`
@@ -1962,24 +1730,48 @@ impl Promise {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-promise.prototype.then
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise/then
-    pub fn then(this: &JsValue, args: &[JsValue], context: &mut Context<'_>) -> JsResult<JsValue> {
+    pub(crate) fn then(
+        this: &JsValue,
+        args: &[JsValue],
+        context: &mut Context<'_>,
+    ) -> JsResult<JsValue> {
         // 1. Let promise be the this value.
         let promise = this;
 
         // 2. If IsPromise(promise) is false, throw a TypeError exception.
         let promise = promise.as_promise().ok_or_else(|| {
-            JsNativeError::typ()
-                .with_message("Promise.prototype.then: provided value is not a promise")
+            JsNativeError::typ().with_message("Promise.prototype.then: this is not a promise")
         })?;
 
+        let on_fulfilled = args
+            .get_or_undefined(0)
+            .as_object()
+            .cloned()
+            .and_then(JsFunction::from_object);
+        let on_rejected = args
+            .get_or_undefined(1)
+            .as_object()
+            .cloned()
+            .and_then(JsFunction::from_object);
+
+        // continues in `Promise::inner_then`
+        Promise::inner_then(promise, on_fulfilled, on_rejected, context).map(JsValue::from)
+    }
+
+    /// Schedules callback functions for the eventual completion of `promise` — either fulfillment
+    /// or rejection.
+    pub(crate) fn inner_then(
+        promise: &JsObject,
+        on_fulfilled: Option<JsFunction>,
+        on_rejected: Option<JsFunction>,
+        context: &mut Context<'_>,
+    ) -> JsResult<JsObject> {
         // 3. Let C be ? SpeciesConstructor(promise, %Promise%).
         let c = promise.species_constructor(StandardConstructors::promise, context)?;
 
         // 4. Let resultCapability be ? NewPromiseCapability(C).
-        let result_capability = PromiseCapability::new(&c.into(), context)?;
-
-        let on_fulfilled = args.get_or_undefined(0);
-        let on_rejected = args.get_or_undefined(1);
+        let result_capability = PromiseCapability::new(&c, context)?;
+        let result_promise = result_capability.promise.clone();
 
         // 5. Return PerformPromiseThen(promise, onFulfilled, onRejected, resultCapability).
         Self::perform_promise_then(
@@ -1988,9 +1780,9 @@ impl Promise {
             on_rejected,
             Some(result_capability),
             context,
-        )
-        .map_or_else(JsValue::undefined, JsValue::from)
-        .pipe(Ok)
+        );
+
+        Ok(result_promise)
     }
 
     /// `PerformPromiseThen ( promise, onFulfilled, onRejected [ , resultCapability ] )`
@@ -2001,11 +1793,11 @@ impl Promise {
     /// [spec]: https://tc39.es/ecma262/#sec-performpromisethen
     pub(crate) fn perform_promise_then(
         promise: &JsObject,
-        on_fulfilled: &JsValue,
-        on_rejected: &JsValue,
+        on_fulfilled: Option<JsFunction>,
+        on_rejected: Option<JsFunction>,
         result_capability: Option<PromiseCapability>,
         context: &mut Context<'_>,
-    ) -> Option<JsObject> {
+    ) {
         // 1. Assert: IsPromise(promise) is true.
 
         // 2. If resultCapability is not present, then
@@ -2013,20 +1805,16 @@ impl Promise {
 
         // 3. If IsCallable(onFulfilled) is false, then
         //   a. Let onFulfilledJobCallback be empty.
+        // Argument already asserts this.
         let on_fulfilled_job_callback = on_fulfilled
-            .as_object()
-            .cloned()
-            .and_then(JsFunction::from_object)
             // 4. Else,
             //   a. Let onFulfilledJobCallback be HostMakeJobCallback(onFulfilled).
             .map(|f| context.host_hooks().make_job_callback(f, context));
 
         // 5. If IsCallable(onRejected) is false, then
         //   a. Let onRejectedJobCallback be empty.
+        // Argument already asserts this.
         let on_rejected_job_callback = on_rejected
-            .as_object()
-            .cloned()
-            .and_then(JsFunction::from_object)
             // 6. Else,
             //   a. Let onRejectedJobCallback be HostMakeJobCallback(onRejected).
             .map(|f| context.host_hooks().make_job_callback(f, context));
@@ -2040,7 +1828,7 @@ impl Promise {
 
         // 8. Let rejectReaction be the PromiseReaction { [[Capability]]: resultCapability, [[Type]]: Reject, [[Handler]]: onRejectedJobCallback }.
         let reject_reaction = ReactionRecord {
-            promise_capability: result_capability.clone(),
+            promise_capability: result_capability,
             reaction_type: ReactionType::Reject,
             handler: on_rejected_job_callback,
         };
@@ -2109,47 +1897,7 @@ impl Promise {
         //   a. Return undefined.
         // 14. Else,
         //   a. Return resultCapability.[[Promise]].
-        result_capability.map(|cap| cap.promise.clone())
-    }
-
-    /// `PromiseResolve ( C, x )`
-    ///
-    /// The abstract operation `PromiseResolve` takes arguments `C` (a constructor) and `x` (an
-    /// ECMAScript language value) and returns either a normal completion containing an ECMAScript
-    /// language value or a throw completion. It returns a new promise resolved with `x`.
-    ///
-    /// More information:
-    ///  - [ECMAScript reference][spec]
-    ///
-    /// [spec]: https://tc39.es/ecma262/#sec-promise-resolve
-    pub(crate) fn promise_resolve(
-        c: JsObject,
-        x: JsValue,
-        context: &mut Context<'_>,
-    ) -> JsResult<JsObject> {
-        // 1. If IsPromise(x) is true, then
-        if let Some(x) = x.as_promise() {
-            // a. Let xConstructor be ? Get(x, "constructor").
-            let x_constructor = x.get(CONSTRUCTOR, context)?;
-            // b. If SameValue(xConstructor, C) is true, return x.
-            if x_constructor
-                .as_object()
-                .map_or(false, |o| JsObject::equals(o, &c))
-            {
-                return Ok(x.clone());
-            }
-        }
-
-        // 2. Let promiseCapability be ? NewPromiseCapability(C).
-        let promise_capability = PromiseCapability::new(&c.into(), context)?;
-
-        // 3. Perform ? Call(promiseCapability.[[Resolve]], undefined, « x »).
-        promise_capability
-            .resolve
-            .call(&JsValue::Undefined, &[x], context)?;
-
-        // 4. Return promiseCapability.[[Promise]].
-        Ok(promise_capability.promise.clone())
+        // skipped because we can already access the promise from `result_capability`
     }
 
     /// `GetPromiseResolve ( promiseConstructor )`
@@ -2162,7 +1910,7 @@ impl Promise {
     ///  - [ECMAScript reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-getpromiseresolve
-    fn get_promise_resolve(
+    pub(crate) fn get_promise_resolve(
         promise_constructor: &JsObject,
         context: &mut Context<'_>,
     ) -> JsResult<JsObject> {
@@ -2175,6 +1923,312 @@ impl Promise {
                 .with_message("retrieving a non-callable promise resolver")
                 .into()
         })
+    }
+
+    /// `CreateResolvingFunctions ( promise )`
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-createresolvingfunctions
+    pub(crate) fn create_resolving_functions(
+        promise: &JsObject,
+        context: &mut Context<'_>,
+    ) -> ResolvingFunctions {
+        /// `TriggerPromiseReactions ( reactions, argument )`
+        ///
+        /// The abstract operation `TriggerPromiseReactions` takes arguments `reactions` (a `List` of
+        /// `PromiseReaction` Records) and `argument` and returns unused. It enqueues a new `Job` for
+        /// each record in `reactions`. Each such `Job` processes the `[[Type]]` and `[[Handler]]` of
+        /// the `PromiseReaction` Record, and if the `[[Handler]]` is not `empty`, calls it passing the
+        /// given argument. If the `[[Handler]]` is `empty`, the behaviour is determined by the
+        /// `[[Type]]`.
+        ///
+        /// More information:
+        ///  - [ECMAScript reference][spec]
+        ///
+        /// [spec]: https://tc39.es/ecma262/#sec-triggerpromisereactions
+        fn trigger_promise_reactions(
+            reactions: Vec<ReactionRecord>,
+            argument: &JsValue,
+            context: &mut Context<'_>,
+        ) {
+            // 1. For each element reaction of reactions, do
+            for reaction in reactions {
+                // a. Let job be NewPromiseReactionJob(reaction, argument).
+                let job = new_promise_reaction_job(reaction, argument.clone());
+
+                // b. Perform HostEnqueuePromiseJob(job.[[Job]], job.[[Realm]]).
+                context.job_queue().enqueue_promise_job(job, context);
+            }
+            // 2. Return unused.
+        }
+
+        /// `FulfillPromise ( promise, value )`
+        ///
+        /// The abstract operation `FulfillPromise` takes arguments `promise` and `value` and returns
+        /// `unused`.
+        ///
+        /// More information:
+        ///  - [ECMAScript reference][spec]
+        ///
+        /// [spec]: https://tc39.es/ecma262/#sec-fulfillpromise
+        ///
+        /// # Panics
+        ///
+        /// Panics if `Promise` is not pending.
+        fn fulfill_promise(promise: &JsObject, value: JsValue, context: &mut Context<'_>) {
+            let mut promise = promise.borrow_mut();
+            let promise = promise
+                .as_promise_mut()
+                .expect("IsPromise(promise) is false");
+
+            // 1. Assert: The value of promise.[[PromiseState]] is pending.
+            assert!(
+                matches!(promise.state, PromiseState::Pending),
+                "promise was not pending"
+            );
+
+            // reordering these statements does not affect the semantics
+
+            // 2. Let reactions be promise.[[PromiseFulfillReactions]].
+            // 4. Set promise.[[PromiseFulfillReactions]] to undefined.
+            let reactions = std::mem::take(&mut promise.fulfill_reactions);
+
+            // 5. Set promise.[[PromiseRejectReactions]] to undefined.
+            promise.reject_reactions.clear();
+
+            // 7. Perform TriggerPromiseReactions(reactions, value).
+            trigger_promise_reactions(reactions, &value, context);
+
+            // 3. Set promise.[[PromiseResult]] to value.
+            // 6. Set promise.[[PromiseState]] to fulfilled.
+            promise.state = PromiseState::Fulfilled(value);
+
+            // 8. Return unused.
+        }
+
+        /// `RejectPromise ( promise, reason )`
+        ///
+        /// The abstract operation `RejectPromise` takes arguments `promise` and `reason` and returns
+        /// `unused`.
+        ///
+        /// More information:
+        ///  - [ECMAScript reference][spec]
+        ///
+        /// [spec]: https://tc39.es/ecma262/#sec-rejectpromise
+        ///
+        /// # Panics
+        ///
+        /// Panics if `Promise` is not pending.
+        fn reject_promise(promise: &JsObject, reason: JsValue, context: &mut Context<'_>) {
+            let handled = {
+                let mut promise = promise.borrow_mut();
+                let promise = promise
+                    .as_promise_mut()
+                    .expect("IsPromise(promise) is false");
+
+                // 1. Assert: The value of promise.[[PromiseState]] is pending.
+                assert!(
+                    matches!(promise.state, PromiseState::Pending),
+                    "Expected promise.[[PromiseState]] to be pending"
+                );
+
+                // reordering these statements does not affect the semantics
+
+                // 2. Let reactions be promise.[[PromiseRejectReactions]].
+                // 5. Set promise.[[PromiseRejectReactions]] to undefined.
+                let reactions = std::mem::take(&mut promise.reject_reactions);
+
+                // 4. Set promise.[[PromiseFulfillReactions]] to undefined.
+                promise.fulfill_reactions.clear();
+
+                // 8. Perform TriggerPromiseReactions(reactions, reason).
+                trigger_promise_reactions(reactions, &reason, context);
+
+                // 3. Set promise.[[PromiseResult]] to reason.
+                // 6. Set promise.[[PromiseState]] to rejected.
+                promise.state = PromiseState::Rejected(reason);
+
+                promise.handled
+            };
+
+            // 7. If promise.[[PromiseIsHandled]] is false, perform HostPromiseRejectionTracker(promise, "reject").
+            if !handled {
+                context.host_hooks().promise_rejection_tracker(
+                    promise,
+                    OperationType::Reject,
+                    context,
+                );
+            }
+
+            // 9. Return unused.
+        }
+
+        #[derive(Debug, Trace, Finalize)]
+        struct RejectResolveCaptures {
+            promise: JsObject,
+            #[unsafe_ignore_trace]
+            already_resolved: Rc<Cell<bool>>,
+        }
+
+        // 1. Let alreadyResolved be the Record { [[Value]]: false }.
+        let already_resolved = Rc::new(Cell::new(false));
+
+        // 5. Set resolve.[[Promise]] to promise.
+        // 6. Set resolve.[[AlreadyResolved]] to alreadyResolved.
+        let resolve_captures = RejectResolveCaptures {
+            already_resolved: already_resolved.clone(),
+            promise: promise.clone(),
+        };
+
+        // 2. Let stepsResolve be the algorithm steps defined in Promise Resolve Functions.
+        // 3. Let lengthResolve be the number of non-optional parameters of the function definition in Promise Resolve Functions.
+        // 4. Let resolve be CreateBuiltinFunction(stepsResolve, lengthResolve, "", « [[Promise]], [[AlreadyResolved]] »).
+        let resolve = FunctionObjectBuilder::new(
+            context,
+            NativeFunction::from_copy_closure_with_captures(
+                |_this, args, captures, context| {
+                    // https://tc39.es/ecma262/#sec-promise-resolve-functions
+
+                    // 1. Let F be the active function object.
+                    // 2. Assert: F has a [[Promise]] internal slot whose value is an Object.
+                    // 3. Let promise be F.[[Promise]].
+                    // 4. Let alreadyResolved be F.[[AlreadyResolved]].
+                    let RejectResolveCaptures {
+                        promise,
+                        already_resolved,
+                    } = captures;
+
+                    // 5. If alreadyResolved.[[Value]] is true, return undefined.
+                    if already_resolved.get() {
+                        return Ok(JsValue::Undefined);
+                    }
+
+                    // 6. Set alreadyResolved.[[Value]] to true.
+                    already_resolved.set(true);
+
+                    let resolution = args.get_or_undefined(0);
+
+                    // 7. If SameValue(resolution, promise) is true, then
+                    if JsValue::same_value(resolution, &promise.clone().into()) {
+                        //   a. Let selfResolutionError be a newly created TypeError object.
+                        let self_resolution_error = JsNativeError::typ()
+                            .with_message("SameValue(resolution, promise) is true")
+                            .to_opaque(context);
+
+                        //   b. Perform RejectPromise(promise, selfResolutionError).
+                        reject_promise(promise, self_resolution_error.into(), context);
+
+                        //   c. Return undefined.
+                        return Ok(JsValue::Undefined);
+                    }
+
+                    let Some(then) = resolution.as_object() else {
+                        // 8. If Type(resolution) is not Object, then
+                        //   a. Perform FulfillPromise(promise, resolution).
+                        fulfill_promise(promise, resolution.clone(), context);
+
+                        //   b. Return undefined.
+                        return Ok(JsValue::Undefined);
+                    };
+
+                    // 9. Let then be Completion(Get(resolution, "then")).
+                    let then_action = match then.get(utf16!("then"), context) {
+                        // 10. If then is an abrupt completion, then
+                        Err(e) => {
+                            //   a. Perform RejectPromise(promise, then.[[Value]]).
+                            reject_promise(promise, e.to_opaque(context), context);
+
+                            //   b. Return undefined.
+                            return Ok(JsValue::Undefined);
+                        }
+                        // 11. Let thenAction be then.[[Value]].
+                        Ok(then) => then,
+                    };
+
+                    // 12. If IsCallable(thenAction) is false, then
+                    let Some(then_action) = then_action.as_object().cloned().and_then(JsFunction::from_object) else {
+                        // a. Perform FulfillPromise(promise, resolution).
+                        fulfill_promise(promise, resolution.clone(), context);
+
+                        //   b. Return undefined.
+                        return Ok(JsValue::Undefined);
+                    };
+
+                    // 13. Let thenJobCallback be HostMakeJobCallback(thenAction).
+                    let then_job_callback = context.host_hooks().make_job_callback(then_action, context);
+
+                    // 14. Let job be NewPromiseResolveThenableJob(promise, resolution, thenJobCallback).
+                    let job = new_promise_resolve_thenable_job(
+                        promise.clone(),
+                        resolution.clone(),
+                        then_job_callback,
+                    );
+
+                    // 15. Perform HostEnqueuePromiseJob(job.[[Job]], job.[[Realm]]).
+                    context.job_queue().enqueue_promise_job(job, context);
+
+                    // 16. Return undefined.
+                    Ok(JsValue::Undefined)
+                },
+                resolve_captures,
+            ),
+        )
+        .name("")
+        .length(1)
+        .constructor(false)
+        .build();
+
+        // 10. Set reject.[[Promise]] to promise.
+        // 11. Set reject.[[AlreadyResolved]] to alreadyResolved.
+        let reject_captures = RejectResolveCaptures {
+            promise: promise.clone(),
+            already_resolved,
+        };
+
+        // 7. Let stepsReject be the algorithm steps defined in Promise Reject Functions.
+        // 8. Let lengthReject be the number of non-optional parameters of the function definition in Promise Reject Functions.
+        // 9. Let reject be CreateBuiltinFunction(stepsReject, lengthReject, "", « [[Promise]], [[AlreadyResolved]] »).
+        let reject = FunctionObjectBuilder::new(
+            context,
+            NativeFunction::from_copy_closure_with_captures(
+                |_this, args, captures, context| {
+                    // https://tc39.es/ecma262/#sec-promise-reject-functions
+
+                    // 1. Let F be the active function object.
+                    // 2. Assert: F has a [[Promise]] internal slot whose value is an Object.
+                    // 3. Let promise be F.[[Promise]].
+                    // 4. Let alreadyResolved be F.[[AlreadyResolved]].
+                    let RejectResolveCaptures {
+                        promise,
+                        already_resolved,
+                    } = captures;
+
+                    // 5. If alreadyResolved.[[Value]] is true, return undefined.
+                    if already_resolved.get() {
+                        return Ok(JsValue::Undefined);
+                    }
+
+                    // 6. Set alreadyResolved.[[Value]] to true.
+                    already_resolved.set(true);
+
+                    // 7. Perform RejectPromise(promise, reason).
+                    reject_promise(promise, args.get_or_undefined(0).clone(), context);
+
+                    // 8. Return undefined.
+                    Ok(JsValue::Undefined)
+                },
+                reject_captures,
+            ),
+        )
+        .name("")
+        .length(1)
+        .constructor(false)
+        .build();
+
+        // 12. Return the Record { [[Resolve]]: resolve, [[Reject]]: reject }.
+        ResolvingFunctions { resolve, reject }
     }
 }
 

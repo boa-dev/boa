@@ -74,7 +74,6 @@ mod property_map;
 
 pub(crate) use builtins::*;
 
-pub use builtins::jsproxy::JsProxyBuilder;
 pub use jsobject::*;
 
 pub(crate) trait JsObjectType:

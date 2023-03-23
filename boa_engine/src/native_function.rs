@@ -7,12 +7,7 @@ use std::future::Future;
 
 use boa_gc::{custom_trace, Finalize, Gc, Trace};
 
-use crate::{
-    builtins::Promise,
-    job::NativeJob,
-    object::{JsObject, ObjectData},
-    Context, JsResult, JsValue,
-};
+use crate::{job::NativeJob, object::JsPromise, Context, JsResult, JsValue};
 
 /// The required signature for all native built-in function pointers.
 ///
@@ -186,22 +181,16 @@ impl NativeFunction {
         Fut: Future<Output = JsResult<JsValue>> + 'static,
     {
         Self::from_copy_closure(move |this, args, context| {
-            let proto = context.intrinsics().constructors().promise().prototype();
-            let promise = JsObject::from_proto_and_data(proto, ObjectData::promise(Promise::new()));
-            let resolving_functions = Promise::create_resolving_functions(&promise, context);
+            let (promise, resolvers) = JsPromise::new_pending(context);
 
             let future = f(this, args, context);
             let future = async move {
                 let result = future.await;
                 NativeJob::new(move |ctx| match result {
-                    Ok(v) => resolving_functions
-                        .resolve
-                        .call(&JsValue::undefined(), &[v], ctx),
+                    Ok(v) => resolvers.resolve.call(&JsValue::undefined(), &[v], ctx),
                     Err(e) => {
                         let e = e.to_opaque(ctx);
-                        resolving_functions
-                            .reject
-                            .call(&JsValue::undefined(), &[e], ctx)
+                        resolvers.reject.call(&JsValue::undefined(), &[e], ctx)
                     }
                 })
             };

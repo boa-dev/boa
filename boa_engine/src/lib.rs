@@ -151,6 +151,7 @@ pub use crate::{
     context::Context,
     error::{JsError, JsNativeError, JsNativeErrorKind},
     native_function::NativeFunction,
+    object::JsObject,
     string::JsString,
     symbol::JsSymbol,
     value::JsValue,

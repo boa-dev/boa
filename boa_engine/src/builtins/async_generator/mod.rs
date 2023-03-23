@@ -114,12 +114,7 @@ impl AsyncGenerator {
 
         // 2. Let promiseCapability be ! NewPromiseCapability(%Promise%).
         let promise_capability = PromiseCapability::new(
-            &context
-                .intrinsics()
-                .constructors()
-                .promise()
-                .constructor()
-                .into(),
+            &context.intrinsics().constructors().promise().constructor(),
             context,
         )
         .expect("cannot fail with promise constructor");
@@ -207,12 +202,7 @@ impl AsyncGenerator {
 
         // 2. Let promiseCapability be ! NewPromiseCapability(%Promise%).
         let promise_capability = PromiseCapability::new(
-            &context
-                .intrinsics()
-                .constructors()
-                .promise()
-                .constructor()
-                .into(),
+            &context.intrinsics().constructors().promise().constructor(),
             context,
         )
         .expect("cannot fail with promise constructor");
@@ -295,12 +285,7 @@ impl AsyncGenerator {
 
         // 2. Let promiseCapability be ! NewPromiseCapability(%Promise%).
         let promise_capability = PromiseCapability::new(
-            &context
-                .intrinsics()
-                .constructors()
-                .promise()
-                .constructor()
-                .into(),
+            &context.intrinsics().constructors().promise().constructor(),
             context,
         )
         .expect("cannot fail with promise constructor");
@@ -557,7 +542,7 @@ impl AsyncGenerator {
 
         // 6. Let promise be ? PromiseResolve(%Promise%, completion.[[Value]]).
         let promise_completion = Promise::promise_resolve(
-            context.intrinsics().constructors().promise().constructor(),
+            &context.intrinsics().constructors().promise().constructor(),
             value,
             context,
         );
@@ -653,8 +638,8 @@ impl AsyncGenerator {
         // 11. Perform PerformPromiseThen(promise, onFulfilled, onRejected).
         Promise::perform_promise_then(
             &promise,
-            &on_fulfilled.into(),
-            &on_rejected.into(),
+            Some(on_fulfilled),
+            Some(on_rejected),
             None,
             context,
         );
