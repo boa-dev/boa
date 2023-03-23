@@ -1,4 +1,6 @@
-use super::ByteCompiler;
+use crate::{js_string, vm::Opcode};
+
+use super::{ByteCompiler, Literal};
 use boa_ast::{ModuleItem, ModuleItemList};
 
 impl ByteCompiler<'_, '_> {
@@ -12,13 +14,18 @@ impl ByteCompiler<'_, '_> {
 
     /// Compiles a [`ModuleItem`].
     #[inline]
-    #[allow(unused_variables, clippy::missing_panics_doc)] // Unimplemented
+    #[allow(clippy::single_match_else)]
     pub fn compile_module_item(&mut self, item: &ModuleItem, configurable_globals: bool) {
         match item {
-            ModuleItem::ImportDeclaration(import) => todo!("import declaration compilation"),
-            ModuleItem::ExportDeclaration(export) => todo!("export declaration compilation"),
             ModuleItem::StatementListItem(stmt) => {
                 self.compile_stmt_list_item(stmt, false, configurable_globals);
+            }
+            _ => {
+                // TODO: Remove after implementing modules.
+                let msg = self.get_or_insert_literal(Literal::String(js_string!(
+                    "modules are unimplemented"
+                )));
+                self.emit(Opcode::ThrowNewTypeError, &[msg]);
             }
         }
     }
@@ -36,18 +43,17 @@ impl ByteCompiler<'_, '_> {
 
     /// Creates the declarations from a [`ModuleItem`].
     #[inline]
-    #[allow(unused_variables)] // Unimplemented
     pub(crate) fn create_decls_from_module_item(
         &mut self,
         item: &ModuleItem,
         configurable_globals: bool,
     ) -> bool {
         match item {
-            ModuleItem::ImportDeclaration(import) => todo!("import declaration generation"),
-            ModuleItem::ExportDeclaration(export) => todo!("export declaration generation"),
             ModuleItem::StatementListItem(stmt) => {
                 self.create_decls_from_stmt_list_item(stmt, configurable_globals)
             }
+            // TODO: Implement modules
+            _ => false,
         }
     }
 }
