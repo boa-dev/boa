@@ -270,7 +270,7 @@ impl Test {
             Outcome::Negative {
                 phase: Phase::Resolution,
                 error_type: _,
-            } => todo!("check module resolution errors"),
+            } => (false, "Modules are not implemented yet".to_string()),
             Outcome::Negative {
                 phase: Phase::Runtime,
                 error_type,
