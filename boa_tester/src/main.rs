@@ -343,9 +343,9 @@ fn run_test_suite(
             println!("Passed tests: {}", passed.to_string().green());
             println!("Ignored tests: {}", ignored.to_string().yellow());
             println!(
-                "Failed tests: {} (panics: {})",
+                "Failed tests: {} ({})",
                 (total - passed - ignored).to_string().red(),
-                panic.to_string().red()
+                format!("{panic} panics").red()
             );
             println!(
                 "Conformance: {:.2}%",

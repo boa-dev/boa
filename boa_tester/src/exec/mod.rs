@@ -105,21 +105,19 @@ impl TestSuite {
 
         if verbose != 0 {
             println!(
-                "Suite {} results: total: {}, passed: {}, ignored: {}, failed: {} (panics: \
-                    {}{}), conformance: {:.2}%",
-                es_next.total,
+                "Suite {} results: total: {}, passed: {}, ignored: {}, failed: {} {}, conformance: {:.2}%",
                 self.path.display(),
+                es_next.total,
                 es_next.passed.to_string().green(),
                 es_next.ignored.to_string().yellow(),
                 (es_next.total - es_next.passed - es_next.ignored)
                     .to_string()
                     .red(),
                 if es_next.panic == 0 {
-                    "0".normal()
+                    String::new()
                 } else {
-                    es_next.panic.to_string().red()
+                    format!("({})", format!("{} panics", es_next.panic).red())
                 },
-                if es_next.panic == 0 { "" } else { " ⚠" }.red(),
                 (es_next.passed as f64 / es_next.total as f64) * 100.0
             );
         }
