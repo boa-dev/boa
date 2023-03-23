@@ -303,7 +303,12 @@ impl Map {
         args: &[JsValue],
         _: &mut Context<'_>,
     ) -> JsResult<JsValue> {
+        const JS_ZERO: &JsValue = &JsValue::Integer(0);
         let key = args.get_or_undefined(0);
+        let key = match key.as_number() {
+            Some(n) if n.is_zero() => JS_ZERO,
+            _ => key,
+        };
 
         // 1. Let M be the this value.
         if let Some(object) = this.as_object() {
@@ -334,17 +339,10 @@ impl Map {
     /// [spec]: https://tc39.es/ecma262/#sec-map.prototype.get
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Map/get
     pub(crate) fn get(this: &JsValue, args: &[JsValue], _: &mut Context<'_>) -> JsResult<JsValue> {
-        const JS_ZERO: &JsValue = &JsValue::Rational(0f64);
-
+        const JS_ZERO: &JsValue = &JsValue::Integer(0);
         let key = args.get_or_undefined(0);
-        let key = match key {
-            JsValue::Rational(r) => {
-                if r.is_zero() {
-                    JS_ZERO
-                } else {
-                    key
-                }
-            }
+        let key = match key.as_number() {
+            Some(n) if n.is_zero() => JS_ZERO,
             _ => key,
         };
 
@@ -406,17 +404,10 @@ impl Map {
     /// [spec]: https://tc39.es/ecma262/#sec-map.prototype.has
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Map/has
     pub(crate) fn has(this: &JsValue, args: &[JsValue], _: &mut Context<'_>) -> JsResult<JsValue> {
-        const JS_ZERO: &JsValue = &JsValue::Rational(0f64);
-
+        const JS_ZERO: &JsValue = &JsValue::Integer(0);
         let key = args.get_or_undefined(0);
-        let key = match key {
-            JsValue::Rational(r) => {
-                if r.is_zero() {
-                    JS_ZERO
-                } else {
-                    key
-                }
-            }
+        let key = match key.as_number() {
+            Some(n) if n.is_zero() => JS_ZERO,
             _ => key,
         };
 
