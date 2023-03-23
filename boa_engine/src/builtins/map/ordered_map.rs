@@ -10,7 +10,7 @@ use std::{
 };
 
 #[derive(PartialEq, Eq, Clone, Debug)]
-enum MapKey {
+pub(crate) enum MapKey {
     Key(JsValue),
     Empty(usize), // Necessary to ensure empty keys are still unique.
 }

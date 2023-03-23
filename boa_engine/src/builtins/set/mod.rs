@@ -10,8 +10,16 @@
 //! [spec]: https://tc39.es/ecma262/#sec-set-objects
 //! [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Set
 
+mod set_iterator;
+
+#[cfg(test)]
+mod tests;
+
+pub mod ordered_set;
+
+use self::ordered_set::OrderedSet;
 use crate::{
-    builtins::BuiltInObject,
+    builtins::{BuiltInBuilder, BuiltInConstructor, BuiltInObject, IntrinsicObject},
     context::intrinsics::{Intrinsics, StandardConstructor, StandardConstructors},
     error::JsNativeError,
     object::{internal_methods::get_prototype_from_constructor, JsObject, ObjectData},
@@ -22,15 +30,7 @@ use crate::{
 };
 use boa_profiler::Profiler;
 
-use super::{BuiltInBuilder, BuiltInConstructor, IntrinsicObject};
-
-pub mod ordered_set;
-use self::ordered_set::OrderedSet;
-
-mod set_iterator;
 pub(crate) use set_iterator::SetIterator;
-#[cfg(test)]
-mod tests;
 
 #[derive(Debug, Clone)]
 pub(crate) struct Set;
@@ -51,10 +51,6 @@ impl IntrinsicObject for Set {
             .callable(Self::size_getter)
             .name("get size")
             .build();
-
-        let iterator_symbol = JsSymbol::iterator();
-
-        let to_string_tag = JsSymbol::to_string_tag();
 
         let values_function = BuiltInBuilder::new(intrinsics)
             .callable(Self::values)
@@ -91,12 +87,12 @@ impl IntrinsicObject for Set {
                 Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
             )
             .property(
-                iterator_symbol,
+                JsSymbol::iterator(),
                 values_function,
                 Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
             )
             .property(
-                to_string_tag,
+                JsSymbol::to_string_tag(),
                 Self::NAME,
                 Attribute::READONLY | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
             )
@@ -221,27 +217,39 @@ impl Set {
     /// [spec]: https://tc39.es/ecma262/#sec-set.prototype.add
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Set/add
     pub(crate) fn add(this: &JsValue, args: &[JsValue], _: &mut Context<'_>) -> JsResult<JsValue> {
-        let value = args.get_or_undefined(0);
-
-        if let Some(object) = this.as_object() {
-            if let Some(set) = object.borrow_mut().as_set_mut() {
-                set.add(if value.as_number().map_or(false, |n| n == -0f64) {
-                    JsValue::Integer(0)
-                } else {
-                    value.clone()
-                });
-            } else {
-                return Err(JsNativeError::typ()
-                    .with_message("'this' is not a Set")
-                    .into());
-            }
-        } else {
+        // 1. Let S be the this value.
+        // 2. Perform ? RequireInternalSlot(S, [[SetData]]).
+        let Some(mut object) = this.as_object().map(JsObject::borrow_mut) else {
             return Err(JsNativeError::typ()
-                .with_message("'this' is not a Set")
+                .with_message("Method Set.prototype.add called on incompatible receiver")
+                .into());
+        };
+        let Some(s) = object.as_set_mut() else {
+            return Err(JsNativeError::typ()
+                .with_message("Method Set.prototype.add called on incompatible receiver")
                 .into());
         };
 
+        // 3. For each element e of S.[[SetData]], do
+        // a. If e is not empty and SameValueZero(e, value) is true, then
+        // i. Return S.
+        // 4. If value is -0𝔽, set value to +0𝔽.
+        let value = args.get_or_undefined(0);
+        let value = if let Some(number) = args.get_or_undefined(0).as_number() {
+            if number == -0f64 {
+                JsValue::Integer(0)
+            } else {
+                value.clone()
+            }
+        } else {
+            value.clone()
+        };
+
+        // 5. Append value to S.[[SetData]].
+        s.add(value);
+
         Ok(this.clone())
+        // 6. Return S.
     }
 
     /// `Set.prototype.clear( )`
@@ -285,18 +293,36 @@ impl Set {
         args: &[JsValue],
         _: &mut Context<'_>,
     ) -> JsResult<JsValue> {
+        // 1. Let S be the this value.
+        // 2. Perform ? RequireInternalSlot(S, [[SetData]]).
+        let Some(mut object) = this.as_object().map(JsObject::borrow_mut) else {
+            return Err(JsNativeError::typ()
+                .with_message("Method Set.prototype.delete called on incompatible receiver")
+                .into());
+        };
+        let Some(s) = object.as_set_mut() else {
+            return Err(JsNativeError::typ()
+                .with_message("Method Set.prototype.delete called on incompatible receiver")
+                .into());
+        };
+
         let value = args.get_or_undefined(0);
+        let value = if let Some(number) = args.get_or_undefined(0).as_number() {
+            if number == -0f64 {
+                JsValue::Integer(0)
+            } else {
+                value.clone()
+            }
+        } else {
+            value.clone()
+        };
 
-        let mut object = this
-            .as_object()
-            .map(JsObject::borrow_mut)
-            .ok_or_else(|| JsNativeError::typ().with_message("'this' is not a Set"))?;
-
-        let set = object
-            .as_set_mut()
-            .ok_or_else(|| JsNativeError::typ().with_message("'this' is not a Set"))?;
-
-        Ok(set.delete(value).into())
+        // 3. For each element e of S.[[SetData]], do
+        // a. If e is not empty and SameValueZero(e, value) is true, then
+        // i. Replace the element of S.[[SetData]] whose value is e with an element whose value is empty.
+        // ii. Return true.
+        // 4. Return false.
+        Ok(s.delete(&value).into())
     }
 
     /// `Set.prototype.entries( )`
@@ -314,22 +340,16 @@ impl Set {
         _: &[JsValue],
         context: &mut Context<'_>,
     ) -> JsResult<JsValue> {
-        if let Some(object) = this.as_object() {
-            let object = object.borrow();
-            if !object.is_set() {
-                return Err(JsNativeError::typ()
-                    .with_message("Method Set.prototype.entries called on incompatible receiver")
-                    .into());
-            }
-        } else {
+        let Some(lock) = this.as_object().and_then(|o| o.borrow_mut().as_set_mut().map(|set| set.lock(o.clone()))) else {
             return Err(JsNativeError::typ()
                 .with_message("Method Set.prototype.entries called on incompatible receiver")
                 .into());
-        }
+        };
 
         Ok(SetIterator::create_set_iterator(
             this.clone(),
             PropertyNameKind::KeyAndValue,
+            lock,
             context,
         ))
     }
@@ -349,42 +369,54 @@ impl Set {
         args: &[JsValue],
         context: &mut Context<'_>,
     ) -> JsResult<JsValue> {
-        if args.is_empty() {
+        // 1. Let S be the this value.
+        // 2. Perform ? RequireInternalSlot(S, [[SetData]]).
+        let Some(lock) = this.as_object().and_then(|o| o.borrow_mut().as_set_mut().map(|set| set.lock(o.clone()))) else {
             return Err(JsNativeError::typ()
-                .with_message("Missing argument for Set.prototype.forEach")
+                .with_message("Method Set.prototype.forEach called on incompatible receiver")
                 .into());
-        }
-
-        let callback_arg = &args[0];
-        let this_arg = args.get_or_undefined(1);
-
-        // TODO: if condition should also check that we are not in strict mode
-        let this_arg = if this_arg.is_undefined() {
-            context.global_object().clone().into()
-        } else {
-            this_arg.clone()
         };
 
+        // 3. If IsCallable(callbackfn) is false, throw a TypeError exception.
+        let Some(callback_fn) = args.get_or_undefined(0).as_callable() else {
+            return Err(JsNativeError::typ()
+                .with_message("Method Set.prototype.forEach called with non-callable callback function")
+                .into());
+        };
+
+        // 4. Let entries be S.[[SetData]].
+        // 5. Let numEntries be the number of elements in entries.
+        // 6. Let index be 0.
         let mut index = 0;
 
-        while index < Self::get_size(this)? {
-            let arguments = this
-                .as_object()
-                .and_then(|obj| {
-                    obj.borrow().as_set().map(|set| {
-                        set.get_index(index)
-                            .map(|value| [value.clone(), value.clone(), this.clone()])
-                    })
-                })
-                .ok_or_else(|| JsNativeError::typ().with_message("'this' is not a Set"))?;
+        // 7. Repeat, while index < numEntries,
+        while index < Self::get_size_full(this)? {
+            // a. Let e be entries[index].
+            let Some(e) = this.as_object().and_then(|o| o.borrow().as_set().map(|s| s.get_index(index).cloned())) else {
+                return Err(JsNativeError::typ()
+                    .with_message("Method Set.prototype.forEach called on incompatible receiver")
+                    .into());
+            };
 
-            if let Some(arguments) = arguments {
-                callback_arg.call(&this_arg, &arguments, context)?;
-            }
-
+            // b. Set index to index + 1.
             index += 1;
+
+            // c. If e is not empty, then
+            if let Some(e) = e {
+                // i. Perform ? Call(callbackfn, thisArg, « e, e, S »).
+                // ii. NOTE: The number of elements in entries may have increased during execution of callbackfn.
+                // iii. Set numEntries to the number of elements in entries.
+                callback_fn.call(
+                    args.get_or_undefined(1),
+                    &[e.clone(), e.clone(), this.clone()],
+                    context,
+                )?;
+            }
         }
 
+        drop(lock);
+
+        // 8. Return undefined.
         Ok(JsValue::Undefined)
     }
 
@@ -399,15 +431,34 @@ impl Set {
     /// [spec]: https://tc39.es/ecma262/#sec-map.prototype.has
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Map/has
     pub(crate) fn has(this: &JsValue, args: &[JsValue], _: &mut Context<'_>) -> JsResult<JsValue> {
-        let value = args.get_or_undefined(0);
+        // 1. Let S be the this value.
+        // 2. Perform ? RequireInternalSlot(S, [[SetData]]).
+        let Some(mut object) = this.as_object().map(JsObject::borrow_mut) else {
+            return Err(JsNativeError::typ()
+                .with_message("Method Set.prototype.has called on incompatible receiver")
+                .into());
+        };
+        let Some(s) = object.as_set_mut() else {
+            return Err(JsNativeError::typ()
+                .with_message("Method Set.prototype.has called on incompatible receiver")
+                .into());
+        };
 
-        this.as_object()
-            .and_then(|obj| obj.borrow().as_set().map(|set| set.contains(value).into()))
-            .ok_or_else(|| {
-                JsNativeError::typ()
-                    .with_message("'this' is not a Set")
-                    .into()
-            })
+        let value = args.get_or_undefined(0);
+        let value = if let Some(number) = args.get_or_undefined(0).as_number() {
+            if number == -0f64 {
+                JsValue::Integer(0)
+            } else {
+                value.clone()
+            }
+        } else {
+            value.clone()
+        };
+
+        // 3. For each element e of S.[[SetData]], do
+        // a. If e is not empty and SameValueZero(e, value) is true, return true.
+        // 4. Return false.
+        Ok(s.contains(&value).into())
     }
 
     /// `Set.prototype.values( )`
@@ -425,22 +476,16 @@ impl Set {
         _: &[JsValue],
         context: &mut Context<'_>,
     ) -> JsResult<JsValue> {
-        if let Some(object) = this.as_object() {
-            let object = object.borrow();
-            if !object.is_set() {
-                return Err(JsNativeError::typ()
-                    .with_message("Method Set.prototype.values called on incompatible receiver")
-                    .into());
-            }
-        } else {
+        let Some(lock) = this.as_object().and_then(|o| o.borrow_mut().as_set_mut().map(|set| set.lock(o.clone()))) else {
             return Err(JsNativeError::typ()
                 .with_message("Method Set.prototype.values called on incompatible receiver")
                 .into());
-        }
+        };
 
         Ok(SetIterator::create_set_iterator(
             this.clone(),
             PropertyNameKind::Value,
+            lock,
             context,
         ))
     }
@@ -452,7 +497,18 @@ impl Set {
     /// Helper function to get the size of the `Set` object.
     pub(crate) fn get_size(set: &JsValue) -> JsResult<usize> {
         set.as_object()
-            .and_then(|obj| obj.borrow().as_set().map(OrderedSet::size))
+            .and_then(|obj| obj.borrow().as_set().map(OrderedSet::len))
+            .ok_or_else(|| {
+                JsNativeError::typ()
+                    .with_message("'this' is not a Set")
+                    .into()
+            })
+    }
+
+    /// Helper function to get the full size of the `Set` object.
+    pub(crate) fn get_size_full(set: &JsValue) -> JsResult<usize> {
+        set.as_object()
+            .and_then(|obj| obj.borrow().as_set().map(OrderedSet::full_len))
             .ok_or_else(|| {
                 JsNativeError::typ()
                     .with_message("'this' is not a Set")

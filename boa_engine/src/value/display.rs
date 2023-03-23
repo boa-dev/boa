@@ -183,7 +183,7 @@ pub(crate) fn log_string_from(x: &JsValue, print_internals: bool, print_children
                     }
                 }
                 ObjectKind::Set(ref set) => {
-                    let size = set.size();
+                    let size = set.len();
 
                     if size == 0 {
                         return String::from("Set(0)");
