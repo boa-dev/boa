@@ -441,7 +441,7 @@
 
     <span class="kw">let </span>metadata = read_metadata(path)<span class="question-mark">?</span>;
 
-    Test::new(name, path, metadata).wrap_err(<span class="string">&quot;failed to read test&quot;</span>)
+    Test::new(name, path, metadata)
 }
 
 <span class="doccomment">/// Reads the metadata from the input test code.
