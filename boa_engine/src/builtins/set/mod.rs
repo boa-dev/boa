@@ -29,6 +29,7 @@ use crate::{
     Context, JsArgs, JsResult, JsValue,
 };
 use boa_profiler::Profiler;
+use num_traits::Zero;
 
 pub(crate) use set_iterator::SetIterator;
 
@@ -217,6 +218,8 @@ impl Set {
     /// [spec]: https://tc39.es/ecma262/#sec-set.prototype.add
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Set/add
     pub(crate) fn add(this: &JsValue, args: &[JsValue], _: &mut Context<'_>) -> JsResult<JsValue> {
+        const JS_ZERO: &JsValue = &JsValue::Integer(0);
+
         // 1. Let S be the this value.
         // 2. Perform ? RequireInternalSlot(S, [[SetData]]).
         let Some(mut object) = this.as_object().map(JsObject::borrow_mut) else {
@@ -235,18 +238,13 @@ impl Set {
         // i. Return S.
         // 4. If value is -0𝔽, set value to +0𝔽.
         let value = args.get_or_undefined(0);
-        let value = if let Some(number) = args.get_or_undefined(0).as_number() {
-            if number == -0f64 {
-                JsValue::Integer(0)
-            } else {
-                value.clone()
-            }
-        } else {
-            value.clone()
+        let value = match value.as_number() {
+            Some(n) if n.is_zero() => JS_ZERO,
+            _ => value,
         };
 
         // 5. Append value to S.[[SetData]].
-        s.add(value);
+        s.add(value.clone());
 
         Ok(this.clone())
         // 6. Return S.
@@ -293,6 +291,8 @@ impl Set {
         args: &[JsValue],
         _: &mut Context<'_>,
     ) -> JsResult<JsValue> {
+        const JS_ZERO: &JsValue = &JsValue::Integer(0);
+
         // 1. Let S be the this value.
         // 2. Perform ? RequireInternalSlot(S, [[SetData]]).
         let Some(mut object) = this.as_object().map(JsObject::borrow_mut) else {
@@ -307,14 +307,9 @@ impl Set {
         };
 
         let value = args.get_or_undefined(0);
-        let value = if let Some(number) = args.get_or_undefined(0).as_number() {
-            if number == -0f64 {
-                JsValue::Integer(0)
-            } else {
-                value.clone()
-            }
-        } else {
-            value.clone()
+        let value = match value.as_number() {
+            Some(n) if n.is_zero() => JS_ZERO,
+            _ => value,
         };
 
         // 3. For each element e of S.[[SetData]], do
@@ -322,7 +317,7 @@ impl Set {
         // i. Replace the element of S.[[SetData]] whose value is e with an element whose value is empty.
         // ii. Return true.
         // 4. Return false.
-        Ok(s.delete(&value).into())
+        Ok(s.delete(value).into())
     }
 
     /// `Set.prototype.entries( )`
@@ -431,6 +426,8 @@ impl Set {
     /// [spec]: https://tc39.es/ecma262/#sec-map.prototype.has
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Map/has
     pub(crate) fn has(this: &JsValue, args: &[JsValue], _: &mut Context<'_>) -> JsResult<JsValue> {
+        const JS_ZERO: &JsValue = &JsValue::Integer(0);
+
         // 1. Let S be the this value.
         // 2. Perform ? RequireInternalSlot(S, [[SetData]]).
         let Some(mut object) = this.as_object().map(JsObject::borrow_mut) else {
@@ -445,20 +442,15 @@ impl Set {
         };
 
         let value = args.get_or_undefined(0);
-        let value = if let Some(number) = args.get_or_undefined(0).as_number() {
-            if number == -0f64 {
-                JsValue::Integer(0)
-            } else {
-                value.clone()
-            }
-        } else {
-            value.clone()
+        let value = match value.as_number() {
+            Some(n) if n.is_zero() => JS_ZERO,
+            _ => value,
         };
 
         // 3. For each element e of S.[[SetData]], do
         // a. If e is not empty and SameValueZero(e, value) is true, return true.
         // 4. Return false.
-        Ok(s.contains(&value).into())
+        Ok(s.contains(value).into())
     }
 
     /// `Set.prototype.values( )`
