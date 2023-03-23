@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"struct":[["OrderedSet","A type wrapping `indexmap::IndexSet`"]]};
+window.SIDEBAR_ITEMS = {"struct":[["OrderedSet","A type wrapping `indexmap::IndexSet`"],["SetLock","Increases the lock count of the set for the lifetime of the guard. This should not be dropped until iteration has completed."]]};

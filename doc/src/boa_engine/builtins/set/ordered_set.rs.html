@@ -152,58 +152,87 @@
 <a href="#151" id="151">151</a>
 <a href="#152" id="152">152</a>
 <a href="#153" id="153">153</a>
+<a href="#154" id="154">154</a>
+<a href="#155" id="155">155</a>
+<a href="#156" id="156">156</a>
+<a href="#157" id="157">157</a>
+<a href="#158" id="158">158</a>
+<a href="#159" id="159">159</a>
+<a href="#160" id="160">160</a>
+<a href="#161" id="161">161</a>
+<a href="#162" id="162">162</a>
+<a href="#163" id="163">163</a>
+<a href="#164" id="164">164</a>
+<a href="#165" id="165">165</a>
+<a href="#166" id="166">166</a>
+<a href="#167" id="167">167</a>
+<a href="#168" id="168">168</a>
+<a href="#169" id="169">169</a>
+<a href="#170" id="170">170</a>
+<a href="#171" id="171">171</a>
+<a href="#172" id="172">172</a>
+<a href="#173" id="173">173</a>
+<a href="#174" id="174">174</a>
+<a href="#175" id="175">175</a>
+<a href="#176" id="176">176</a>
+<a href="#177" id="177">177</a>
+<a href="#178" id="178">178</a>
+<a href="#179" id="179">179</a>
+<a href="#180" id="180">180</a>
+<a href="#181" id="181">181</a>
+<a href="#182" id="182">182</a>
+<a href="#183" id="183">183</a>
+<a href="#184" id="184">184</a>
+<a href="#185" id="185">185</a>
+<a href="#186" id="186">186</a>
+<a href="#187" id="187">187</a>
+<a href="#188" id="188">188</a>
+<a href="#189" id="189">189</a>
 </pre><pre class="rust"><code><span class="doccomment">//! Implements a set type that preserves insertion order.
 
-</span><span class="kw">use </span>boa_gc::{custom_trace, Finalize, Trace};
-<span class="kw">use </span>indexmap::{
-    set::{IntoIter, Iter},
-    IndexSet,
-};
-<span class="kw">use </span>std::{
-    collections::hash_map::RandomState,
-    fmt::Debug,
-    hash::{BuildHasher, Hash},
-};
+</span><span class="kw">use crate</span>::{builtins::map::ordered_map::MapKey, object::JsObject, JsValue};
+<span class="kw">use </span>boa_gc::{custom_trace, Finalize, Trace};
+<span class="kw">use </span>indexmap::IndexSet;
+<span class="kw">use </span>std::{collections::hash_map::RandomState, fmt::Debug, hash::BuildHasher};
 
 <span class="doccomment">/// A type wrapping `indexmap::IndexSet`
-</span><span class="attr">#[derive(Clone)]
-</span><span class="kw">pub struct </span>OrderedSet&lt;V, S = RandomState&gt;
-<span class="kw">where
-    </span>V: Hash + Eq,
-{
-    inner: IndexSet&lt;V, S&gt;,
+</span><span class="attr">#[derive(Clone, Finalize)]
+</span><span class="kw">pub struct </span>OrderedSet&lt;S = RandomState&gt; {
+    inner: IndexSet&lt;MapKey, S&gt;,
+    lock: u32,
+    empty_count: usize,
 }
 
-<span class="kw">impl</span>&lt;V: Eq + Hash + Trace, S: BuildHasher&gt; Finalize <span class="kw">for </span>OrderedSet&lt;V, S&gt; {}
-<span class="kw">unsafe impl</span>&lt;V: Eq + Hash + Trace, S: BuildHasher&gt; Trace <span class="kw">for </span>OrderedSet&lt;V, S&gt; {
+<span class="kw">unsafe impl</span>&lt;S: BuildHasher&gt; Trace <span class="kw">for </span>OrderedSet&lt;S&gt; {
     <span class="macro">custom_trace!</span>(this, {
         <span class="kw">for </span>v <span class="kw">in </span>this.inner.iter() {
-            mark(v);
+            <span class="kw">if let </span>MapKey::Key(v) = v {
+                mark(v);
+            }
         }
     });
 }
 
-<span class="kw">impl</span>&lt;V: Hash + Eq + Debug&gt; Debug <span class="kw">for </span>OrderedSet&lt;V&gt; {
+<span class="kw">impl </span>Debug <span class="kw">for </span>OrderedSet {
     <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, formatter: <span class="kw-2">&amp;mut </span>std::fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;(), std::fmt::Error&gt; {
         <span class="self">self</span>.inner.fmt(formatter)
     }
 }
 
-<span class="kw">impl</span>&lt;V: Hash + Eq&gt; Default <span class="kw">for </span>OrderedSet&lt;V&gt; {
+<span class="kw">impl </span>Default <span class="kw">for </span>OrderedSet {
     <span class="kw">fn </span>default() -&gt; <span class="self">Self </span>{
         <span class="self">Self</span>::new()
     }
 }
 
-<span class="kw">impl</span>&lt;V&gt; OrderedSet&lt;V&gt;
-<span class="kw">where
-    </span>V: Hash + Eq,
-{
+<span class="kw">impl </span>OrderedSet {
     <span class="doccomment">/// Creates a new empty `OrderedSet`.
     </span><span class="attr">#[must_use]
     </span><span class="kw">pub fn </span>new() -&gt; <span class="self">Self </span>{
         <span class="self">Self </span>{
             inner: IndexSet::new(),
+            lock: <span class="number">0</span>,
+            empty_count: <span class="number">0</span>,
         }
     }
 
@@ -212,18 +241,28 @@
     </span><span class="kw">pub fn </span>with_capacity(capacity: usize) -&gt; <span class="self">Self </span>{
         <span class="self">Self </span>{
             inner: IndexSet::with_capacity(capacity),
+            lock: <span class="number">0</span>,
+            empty_count: <span class="number">0</span>,
         }
     }
 
-    <span class="doccomment">/// Return the number of key-value pairs in the map.
+    <span class="doccomment">/// Return the number of elements in the set, including empty elements.
     ///
     /// Computes in **O(1)** time.
     </span><span class="attr">#[must_use]
-    </span><span class="kw">pub fn </span>size(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; usize {
+    </span><span class="kw">pub fn </span>full_len(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; usize {
         <span class="self">self</span>.inner.len()
     }
 
-    <span class="doccomment">/// Returns true if the map contains no elements.
+    <span class="doccomment">/// Return the number of elements in the set.
+    ///
+    /// Computes in **O(1)** time.
+    </span><span class="attr">#[must_use]
+    </span><span class="kw">pub fn </span>len(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; usize {
+        <span class="self">self</span>.inner.len() - <span class="self">self</span>.empty_count
+    }
+
+    <span class="doccomment">/// Returns true if the set contains no elements.
     ///
     /// Computes in **O(1)** time.
     </span><span class="attr">#[must_use]
@@ -239,23 +278,33 @@
     /// inserted, last in order, and false
     ///
     /// Computes in **O(1)** time (amortized average).
-    </span><span class="kw">pub fn </span>add(<span class="kw-2">&amp;mut </span><span class="self">self</span>, value: V) -&gt; bool {
-        <span class="self">self</span>.inner.insert(value)
+    </span><span class="kw">pub fn </span>add(<span class="kw-2">&amp;mut </span><span class="self">self</span>, value: JsValue) -&gt; bool {
+        <span class="self">self</span>.inner.insert(MapKey::Key(value))
     }
 
     <span class="doccomment">/// Delete the `value` from the set and return true if successful
     ///
-    /// Return `false` if `value` is not in map.
+    /// Return `false` if `value` is not in set.
     ///
     /// Computes in **O(n)** time (average).
-    </span><span class="kw">pub fn </span>delete(<span class="kw-2">&amp;mut </span><span class="self">self</span>, value: <span class="kw-2">&amp;</span>V) -&gt; bool {
-        <span class="self">self</span>.inner.shift_remove(value)
+    </span><span class="kw">pub fn </span>delete(<span class="kw-2">&amp;mut </span><span class="self">self</span>, value: <span class="kw-2">&amp;</span>JsValue) -&gt; bool {
+        <span class="kw">if </span><span class="self">self</span>.lock == <span class="number">0 </span>{
+            <span class="self">self</span>.inner.shift_remove(value)
+        } <span class="kw">else if </span><span class="self">self</span>.inner.contains(value) {
+            <span class="self">self</span>.inner.insert(MapKey::Empty(<span class="self">self</span>.empty_count));
+            <span class="self">self</span>.empty_count += <span class="number">1</span>;
+            <span class="self">self</span>.inner.swap_remove(value)
+        } <span class="kw">else </span>{
+            <span class="bool-val">false
+        </span>}
     }
 
     <span class="doccomment">/// Removes all elements in the set, while preserving its capacity.
     </span><span class="attr">#[inline]
     </span><span class="kw">pub fn </span>clear(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
         <span class="self">self</span>.inner.clear();
+        <span class="self">self</span>.inner.shrink_to_fit();
+        <span class="self">self</span>.empty_count = <span class="number">0</span>;
     }
 
     <span class="doccomment">/// Checks if a given value is present in the set
@@ -263,7 +312,7 @@
     /// Return `true` if `value` is present in set, false otherwise.
     ///
     /// Computes in **O(n)** time (average).
-    </span><span class="kw">pub fn </span>contains(<span class="kw-2">&amp;</span><span class="self">self</span>, value: <span class="kw-2">&amp;</span>V) -&gt; bool {
+    </span><span class="kw">pub fn </span>contains(<span class="kw-2">&amp;</span><span class="self">self</span>, value: <span class="kw-2">&amp;</span>JsValue) -&gt; bool {
         <span class="self">self</span>.inner.contains(value)
     }
 
@@ -271,39 +320,62 @@
     /// Valid indices are 0 &lt;= index &lt; self.len()
     /// Computes in O(1) time.
     </span><span class="attr">#[must_use]
-    </span><span class="kw">pub fn </span>get_index(<span class="kw-2">&amp;</span><span class="self">self</span>, index: usize) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>V&gt; {
-        <span class="self">self</span>.inner.get_index(index)
+    </span><span class="kw">pub fn </span>get_index(<span class="kw-2">&amp;</span><span class="self">self</span>, index: usize) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>JsValue&gt; {
+        <span class="kw">if let </span>MapKey::Key(value) = <span class="self">self</span>.inner.get_index(index)<span class="question-mark">? </span>{
+            <span class="prelude-val">Some</span>(value)
+        } <span class="kw">else </span>{
+            <span class="prelude-val">None
+        </span>}
     }
 
     <span class="doccomment">/// Return an iterator over the values of the set, in their order
-    </span><span class="attr">#[must_use]
-    </span><span class="kw">pub fn </span>iter(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Iter&lt;<span class="lifetime">&#39;_</span>, V&gt; {
-        <span class="self">self</span>.inner.iter()
+    </span><span class="kw">pub fn </span>iter(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw">impl </span>Iterator&lt;Item = <span class="kw-2">&amp;</span>JsValue&gt; {
+        <span class="self">self</span>.inner.iter().filter_map(|v| {
+            <span class="kw">if let </span>MapKey::Key(v) = v {
+                <span class="prelude-val">Some</span>(v)
+            } <span class="kw">else </span>{
+                <span class="prelude-val">None
+            </span>}
+        })
+    }
+
+    <span class="doccomment">/// Increases the lock counter and returns a lock object that will decrement the counter when dropped.
+    ///
+    /// This allows objects to be removed from the set during iteration without affecting the indexes until the iteration has completed.
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>lock(<span class="kw-2">&amp;mut </span><span class="self">self</span>, set: JsObject) -&gt; SetLock {
+        <span class="self">self</span>.lock += <span class="number">1</span>;
+        SetLock(set)
+    }
+
+    <span class="doccomment">/// Decreases the lock counter and, if 0, removes all empty entries.
+    </span><span class="kw">fn </span>unlock(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
+        <span class="self">self</span>.lock -= <span class="number">1</span>;
+        <span class="kw">if </span><span class="self">self</span>.lock == <span class="number">0 </span>{
+            <span class="self">self</span>.inner.retain(|k| <span class="macro">matches!</span>(k, MapKey::Key(<span class="kw">_</span>)));
+            <span class="self">self</span>.empty_count = <span class="number">0</span>;
+        }
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, V, S&gt; IntoIterator <span class="kw">for </span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>OrderedSet&lt;V, S&gt;
-<span class="kw">where
-    </span>V: Hash + Eq,
-    S: BuildHasher,
-{
-    <span class="kw">type </span>Item = <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>V;
-    <span class="kw">type </span>IntoIter = Iter&lt;<span class="lifetime">&#39;a</span>, V&gt;;
-    <span class="kw">fn </span>into_iter(<span class="self">self</span>) -&gt; <span class="self">Self</span>::IntoIter {
-        <span class="self">self</span>.inner.iter()
+<span class="doccomment">/// Increases the lock count of the set for the lifetime of the guard.
+/// This should not be dropped until iteration has completed.
+</span><span class="attr">#[derive(Debug, Trace)]
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>SetLock(JsObject);
+
+<span class="kw">impl </span>Clone <span class="kw">for </span>SetLock {
+    <span class="kw">fn </span>clone(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="self">Self </span>{
+        <span class="kw">let </span><span class="kw-2">mut </span>set = <span class="self">self</span>.<span class="number">0</span>.borrow_mut();
+        <span class="kw">let </span>set = set.as_set_mut().expect(<span class="string">&quot;SetLock does not point to a set&quot;</span>);
+        set.lock(<span class="self">self</span>.<span class="number">0</span>.clone())
     }
 }
 
-<span class="kw">impl</span>&lt;V, S&gt; IntoIterator <span class="kw">for </span>OrderedSet&lt;V, S&gt;
-<span class="kw">where
-    </span>V: Hash + Eq,
-    S: BuildHasher,
-{
-    <span class="kw">type </span>Item = V;
-    <span class="kw">type </span>IntoIter = IntoIter&lt;V&gt;;
-    <span class="kw">fn </span>into_iter(<span class="self">self</span>) -&gt; IntoIter&lt;V&gt; {
-        <span class="self">self</span>.inner.into_iter()
+<span class="kw">impl </span>Finalize <span class="kw">for </span>SetLock {
+    <span class="kw">fn </span>finalize(<span class="kw-2">&amp;</span><span class="self">self</span>) {
+        <span class="kw">let </span><span class="kw-2">mut </span>set = <span class="self">self</span>.<span class="number">0</span>.borrow_mut();
+        <span class="kw">let </span>set = set.as_set_mut().expect(<span class="string">&quot;SetLock does not point to a set&quot;</span>);
+        set.unlock();
     }
 }
 </code></pre></div>
-</section></main><div id="rustdoc-vars" data-root-path="../../../../" data-static-root-path="../../../../static.files/" data-current-crate="boa_engine" data-themes="" data-resource-suffix="" data-rustdoc-version="1.68.0 (2c8cc3432 2023-03-06)" data-search-js="search-98d53477a794af0b.js" data-settings-js="settings-c3c521c753752a1a.js" data-settings-css="settings-08ddfdda51b8ee2e.css" ></div></body></html>
+</section></main><div id="rustdoc-vars" data-root-path="../../../../" data-static-root-path="../../../../static.files/" data-current-crate="boa_engine" data-themes="" data-resource-suffix="" data-rustdoc-version="1.68.1 (8460ca823 2023-03-20)" data-search-js="search-98d53477a794af0b.js" data-settings-js="settings-c3c521c753752a1a.js" data-settings-css="settings-08ddfdda51b8ee2e.css" ></div></body></html>

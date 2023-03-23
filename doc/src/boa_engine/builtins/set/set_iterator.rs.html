@@ -155,6 +155,10 @@
 <a href="#154" id="154">154</a>
 <a href="#155" id="155">155</a>
 <a href="#156" id="156">156</a>
+<a href="#157" id="157">157</a>
+<a href="#158" id="158">158</a>
+<a href="#159" id="159">159</a>
+<a href="#160" id="160">160</a>
 </pre><pre class="rust"><code><span class="doccomment">//! This module implements the `SetIterator` object.
 //!
 //! More information:
@@ -162,7 +166,8 @@
 //!
 //! [spec]: https://tc39.es/ecma262/#sec-set-iterator-objects
 
-</span><span class="kw">use crate</span>::{
+</span><span class="kw">use </span><span class="kw">super</span>::ordered_set::SetLock;
+<span class="kw">use crate</span>::{
     builtins::{
         iterable::create_iter_result_object, Array, BuiltInBuilder, IntrinsicObject, JsValue,
     },
@@ -188,6 +193,7 @@
     next_index: usize,
     <span class="attr">#[unsafe_ignore_trace]
     </span>iteration_kind: PropertyNameKind,
+    lock: SetLock,
 }
 
 <span class="kw">impl </span>IntrinsicObject <span class="kw">for </span>SetIterator {
@@ -212,11 +218,12 @@
 
 <span class="kw">impl </span>SetIterator {
     <span class="doccomment">/// Constructs a new `SetIterator`, that will iterate over `set`, starting at index 0
-    </span><span class="kw">const fn </span>new(set: JsValue, kind: PropertyNameKind) -&gt; <span class="self">Self </span>{
+    </span><span class="kw">const fn </span>new(set: JsValue, kind: PropertyNameKind, lock: SetLock) -&gt; <span class="self">Self </span>{
         <span class="self">Self </span>{
             iterated_set: set,
             next_index: <span class="number">0</span>,
             iteration_kind: kind,
+            lock,
         }
     }
 
@@ -231,11 +238,12 @@
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>create_set_iterator(
         set: JsValue,
         kind: PropertyNameKind,
+        lock: SetLock,
         context: <span class="kw-2">&amp;</span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
     ) -&gt; JsValue {
         <span class="kw">let </span>set_iterator = JsObject::from_proto_and_data(
             context.intrinsics().objects().iterator_prototypes().set(),
-            ObjectData::set_iterator(<span class="self">Self</span>::new(set, kind)),
+            ObjectData::set_iterator(<span class="self">Self</span>::new(set, kind, lock)),
         );
         set_iterator.into()
     }
@@ -278,7 +286,7 @@
                 .and_then(|obj| obj.as_set())
                 .ok_or_else(|| JsNativeError::typ().with_message(<span class="string">&quot;&#39;this&#39; is not a Set&quot;</span>))<span class="question-mark">?</span>;
 
-            <span class="kw">let </span>num_entries = entries.size();
+            <span class="kw">let </span>num_entries = entries.full_len();
             <span class="kw">while </span>index &lt; num_entries {
                 <span class="kw">let </span>e = entries.get_index(index);
                 index += <span class="number">1</span>;
@@ -312,4 +320,4 @@
     }
 }
 </code></pre></div>
-</section></main><div id="rustdoc-vars" data-root-path="../../../../" data-static-root-path="../../../../static.files/" data-current-crate="boa_engine" data-themes="" data-resource-suffix="" data-rustdoc-version="1.68.0 (2c8cc3432 2023-03-06)" data-search-js="search-98d53477a794af0b.js" data-settings-js="settings-c3c521c753752a1a.js" data-settings-css="settings-08ddfdda51b8ee2e.css" ></div></body></html>
+</section></main><div id="rustdoc-vars" data-root-path="../../../../" data-static-root-path="../../../../static.files/" data-current-crate="boa_engine" data-themes="" data-resource-suffix="" data-rustdoc-version="1.68.1 (8460ca823 2023-03-20)" data-search-js="search-98d53477a794af0b.js" data-settings-js="settings-c3c521c753752a1a.js" data-settings-css="settings-08ddfdda51b8ee2e.css" ></div></body></html>

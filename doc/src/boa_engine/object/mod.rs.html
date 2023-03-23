@@ -2687,7 +2687,7 @@
     </span>GeneratorFunction(Function),
 
     <span class="doccomment">/// The `Set` object kind.
-    </span>Set(OrderedSet&lt;JsValue&gt;),
+    </span>Set(OrderedSet),
 
     <span class="doccomment">/// The `SetIterator` object kind.
     </span>SetIterator(SetIterator),
@@ -2980,7 +2980,7 @@
 
     <span class="doccomment">/// Create the `Set` object data
     </span><span class="attr">#[must_use]
-    </span><span class="kw">pub fn </span>set(set: OrderedSet&lt;JsValue&gt;) -&gt; <span class="self">Self </span>{
+    </span><span class="kw">pub fn </span>set(set: OrderedSet) -&gt; <span class="self">Self </span>{
         <span class="self">Self </span>{
             kind: ObjectKind::Set(set),
             internal_methods: <span class="kw-2">&amp;</span>ORDINARY_INTERNAL_METHODS,
@@ -3550,7 +3550,7 @@
 
     <span class="doccomment">/// Gets the set data if the object is a `Set`.
     </span><span class="attr">#[inline]
-    </span><span class="kw">pub const fn </span>as_set(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>OrderedSet&lt;JsValue&gt;&gt; {
+    </span><span class="kw">pub const fn </span>as_set(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>OrderedSet&gt; {
         <span class="kw">match </span><span class="self">self</span>.data {
             ObjectData {
                 kind: ObjectKind::Set(<span class="kw-2">ref </span>set),
@@ -3562,7 +3562,7 @@
 
     <span class="doccomment">/// Gets the mutable set data if the object is a `Set`.
     </span><span class="attr">#[inline]
-    </span><span class="kw">pub fn </span>as_set_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;mut </span>OrderedSet&lt;JsValue&gt;&gt; {
+    </span><span class="kw">pub fn </span>as_set_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;mut </span>OrderedSet&gt; {
         <span class="kw">match </span><span class="kw-2">&amp;mut </span><span class="self">self</span>.data {
             ObjectData {
                 kind: ObjectKind::Set(set),
@@ -4920,4 +4920,4 @@
     }
 }
 </code></pre></div>
-</section></main><div id="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="boa_engine" data-themes="" data-resource-suffix="" data-rustdoc-version="1.68.0 (2c8cc3432 2023-03-06)" data-search-js="search-98d53477a794af0b.js" data-settings-js="settings-c3c521c753752a1a.js" data-settings-css="settings-08ddfdda51b8ee2e.css" ></div></body></html>
+</section></main><div id="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="boa_engine" data-themes="" data-resource-suffix="" data-rustdoc-version="1.68.1 (8460ca823 2023-03-20)" data-search-js="search-98d53477a794af0b.js" data-settings-js="settings-c3c521c753752a1a.js" data-settings-css="settings-08ddfdda51b8ee2e.css" ></div></body></html>
