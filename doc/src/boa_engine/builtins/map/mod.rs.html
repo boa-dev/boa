@@ -590,15 +590,6 @@
 <a href="#589" id="589">589</a>
 <a href="#590" id="590">590</a>
 <a href="#591" id="591">591</a>
-<a href="#592" id="592">592</a>
-<a href="#593" id="593">593</a>
-<a href="#594" id="594">594</a>
-<a href="#595" id="595">595</a>
-<a href="#596" id="596">596</a>
-<a href="#597" id="597">597</a>
-<a href="#598" id="598">598</a>
-<a href="#599" id="599">599</a>
-<a href="#600" id="600">600</a>
 </pre><pre class="rust"><code><span class="doccomment">//! Boa&#39;s implementation of ECMAScript&#39;s global `Map` object.
 //!
 //! The ECMAScript `Map` class is a global object that is used in the construction of maps; which
@@ -904,7 +895,12 @@
         args: <span class="kw-2">&amp;</span>[JsValue],
         <span class="kw">_</span>: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
     ) -&gt; JsResult&lt;JsValue&gt; {
+        <span class="kw">const </span>JS_ZERO: <span class="kw-2">&amp;</span>JsValue = <span class="kw-2">&amp;</span>JsValue::Integer(<span class="number">0</span>);
         <span class="kw">let </span>key = args.get_or_undefined(<span class="number">0</span>);
+        <span class="kw">let </span>key = <span class="kw">match </span>key.as_number() {
+            <span class="prelude-val">Some</span>(n) <span class="kw">if </span>n.is_zero() =&gt; JS_ZERO,
+            <span class="kw">_ </span>=&gt; key,
+        };
 
         <span class="comment">// 1. Let M be the this value.
         </span><span class="kw">if let </span><span class="prelude-val">Some</span>(object) = this.as_object() {
@@ -935,17 +931,10 @@
     /// [spec]: https://tc39.es/ecma262/#sec-map.prototype.get
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Map/get
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>get(this: <span class="kw-2">&amp;</span>JsValue, args: <span class="kw-2">&amp;</span>[JsValue], <span class="kw">_</span>: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;JsValue&gt; {
-        <span class="kw">const </span>JS_ZERO: <span class="kw-2">&amp;</span>JsValue = <span class="kw-2">&amp;</span>JsValue::Rational(<span class="number">0f64</span>);
-
+        <span class="kw">const </span>JS_ZERO: <span class="kw-2">&amp;</span>JsValue = <span class="kw-2">&amp;</span>JsValue::Integer(<span class="number">0</span>);
         <span class="kw">let </span>key = args.get_or_undefined(<span class="number">0</span>);
-        <span class="kw">let </span>key = <span class="kw">match </span>key {
-            JsValue::Rational(r) =&gt; {
-                <span class="kw">if </span>r.is_zero() {
-                    JS_ZERO
-                } <span class="kw">else </span>{
-                    key
-                }
-            }
+        <span class="kw">let </span>key = <span class="kw">match </span>key.as_number() {
+            <span class="prelude-val">Some</span>(n) <span class="kw">if </span>n.is_zero() =&gt; JS_ZERO,
             <span class="kw">_ </span>=&gt; key,
         };
 
@@ -1007,17 +996,10 @@
     /// [spec]: https://tc39.es/ecma262/#sec-map.prototype.has
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Map/has
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>has(this: <span class="kw-2">&amp;</span>JsValue, args: <span class="kw-2">&amp;</span>[JsValue], <span class="kw">_</span>: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;JsValue&gt; {
-        <span class="kw">const </span>JS_ZERO: <span class="kw-2">&amp;</span>JsValue = <span class="kw-2">&amp;</span>JsValue::Rational(<span class="number">0f64</span>);
-
+        <span class="kw">const </span>JS_ZERO: <span class="kw-2">&amp;</span>JsValue = <span class="kw-2">&amp;</span>JsValue::Integer(<span class="number">0</span>);
         <span class="kw">let </span>key = args.get_or_undefined(<span class="number">0</span>);
-        <span class="kw">let </span>key = <span class="kw">match </span>key {
-            JsValue::Rational(r) =&gt; {
-                <span class="kw">if </span>r.is_zero() {
-                    JS_ZERO
-                } <span class="kw">else </span>{
-                    key
-                }
-            }
+        <span class="kw">let </span>key = <span class="kw">match </span>key.as_number() {
+            <span class="prelude-val">Some</span>(n) <span class="kw">if </span>n.is_zero() =&gt; JS_ZERO,
             <span class="kw">_ </span>=&gt; key,
         };
 
