@@ -226,7 +226,7 @@ pub enum ObjectKind {
     GeneratorFunction(Function),
 
     /// The `Set` object kind.
-    Set(OrderedSet<JsValue>),
+    Set(OrderedSet),
 
     /// The `SetIterator` object kind.
     SetIterator(SetIterator),
@@ -519,7 +519,7 @@ impl ObjectData {
 
     /// Create the `Set` object data
     #[must_use]
-    pub fn set(set: OrderedSet<JsValue>) -> Self {
+    pub fn set(set: OrderedSet) -> Self {
         Self {
             kind: ObjectKind::Set(set),
             internal_methods: &ORDINARY_INTERNAL_METHODS,
@@ -1089,7 +1089,7 @@ impl Object {
 
     /// Gets the set data if the object is a `Set`.
     #[inline]
-    pub const fn as_set(&self) -> Option<&OrderedSet<JsValue>> {
+    pub const fn as_set(&self) -> Option<&OrderedSet> {
         match self.data {
             ObjectData {
                 kind: ObjectKind::Set(ref set),
@@ -1101,7 +1101,7 @@ impl Object {
 
     /// Gets the mutable set data if the object is a `Set`.
     #[inline]
-    pub fn as_set_mut(&mut self) -> Option<&mut OrderedSet<JsValue>> {
+    pub fn as_set_mut(&mut self) -> Option<&mut OrderedSet> {
         match &mut self.data {
             ObjectData {
                 kind: ObjectKind::Set(set),

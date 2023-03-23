@@ -5,6 +5,7 @@
 //!
 //! [spec]: https://tc39.es/ecma262/#sec-set-iterator-objects
 
+use super::ordered_set::SetLock;
 use crate::{
     builtins::{
         iterable::create_iter_result_object, Array, BuiltInBuilder, IntrinsicObject, JsValue,
@@ -31,6 +32,7 @@ pub struct SetIterator {
     next_index: usize,
     #[unsafe_ignore_trace]
     iteration_kind: PropertyNameKind,
+    lock: SetLock,
 }
 
 impl IntrinsicObject for SetIterator {
@@ -55,11 +57,12 @@ impl IntrinsicObject for SetIterator {
 
 impl SetIterator {
     /// Constructs a new `SetIterator`, that will iterate over `set`, starting at index 0
-    const fn new(set: JsValue, kind: PropertyNameKind) -> Self {
+    const fn new(set: JsValue, kind: PropertyNameKind, lock: SetLock) -> Self {
         Self {
             iterated_set: set,
             next_index: 0,
             iteration_kind: kind,
+            lock,
         }
     }
 
@@ -74,11 +77,12 @@ impl SetIterator {
     pub(crate) fn create_set_iterator(
         set: JsValue,
         kind: PropertyNameKind,
+        lock: SetLock,
         context: &Context<'_>,
     ) -> JsValue {
         let set_iterator = JsObject::from_proto_and_data(
             context.intrinsics().objects().iterator_prototypes().set(),
-            ObjectData::set_iterator(Self::new(set, kind)),
+            ObjectData::set_iterator(Self::new(set, kind, lock)),
         );
         set_iterator.into()
     }
@@ -121,7 +125,7 @@ impl SetIterator {
                 .and_then(|obj| obj.as_set())
                 .ok_or_else(|| JsNativeError::typ().with_message("'this' is not a Set"))?;
 
-            let num_entries = entries.size();
+            let num_entries = entries.full_len();
             while index < num_entries {
                 let e = entries.get_index(index);
                 index += 1;
