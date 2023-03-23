@@ -314,7 +314,7 @@ pub(crate) enum SpecEdition {
     ES13,
     /// The edition being worked on right now.
     ///
-    /// A draft is currently available at <https://tc39.es/ecma262>.
+    /// A draft is currently available [here](https://tc39.es/ecma262).
     #[default]
     ESNext,
 }
