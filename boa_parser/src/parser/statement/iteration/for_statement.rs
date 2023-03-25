@@ -290,41 +290,50 @@ fn initializer_to_iterable_loop_initializer(
     strict: bool,
 ) -> ParseResult<IterableLoopInitializer> {
     match initializer {
-        ForLoopInitializer::Expression(expr) => match expr {
-            ast::Expression::Identifier(ident)
-                if strict && [Sym::EVAL, Sym::ARGUMENTS].contains(&ident.sym()) =>
-            {
-                Err(Error::lex(LexError::Syntax(
-                    "cannot use `eval` or `arguments` as iterable loop variable in strict code"
-                        .into(),
-                    position,
-                )))
+        ForLoopInitializer::Expression(mut expr) => {
+            while let ast::Expression::Parenthesized(p) = expr {
+                expr = p.expression().clone();
             }
-            ast::Expression::Identifier(ident) => Ok(IterableLoopInitializer::Identifier(ident)),
-            ast::Expression::ArrayLiteral(array) => array
-                .to_pattern(strict)
-                .ok_or_else(|| {
-                    Error::general(
-                        "invalid array destructuring pattern in iterable loop initializer",
+            match expr {
+                ast::Expression::Identifier(ident)
+                    if strict && [Sym::EVAL, Sym::ARGUMENTS].contains(&ident.sym()) =>
+                {
+                    Err(Error::lex(LexError::Syntax(
+                        "cannot use `eval` or `arguments` as iterable loop variable in strict code"
+                            .into(),
                         position,
-                    )
-                })
-                .map(|arr| IterableLoopInitializer::Pattern(arr.into())),
-            ast::Expression::ObjectLiteral(object) => object
-                .to_pattern(strict)
-                .ok_or_else(|| {
-                    Error::general(
-                        "invalid object destructuring pattern in iterable loop initializer",
-                        position,
-                    )
-                })
-                .map(|obj| IterableLoopInitializer::Pattern(obj.into())),
-            ast::Expression::PropertyAccess(access) => Ok(IterableLoopInitializer::Access(access)),
-            _ => Err(Error::lex(LexError::Syntax(
-                "invalid variable for iterable loop".into(),
-                position,
-            ))),
-        },
+                    )))
+                }
+                ast::Expression::Identifier(ident) => {
+                    Ok(IterableLoopInitializer::Identifier(ident))
+                }
+                ast::Expression::ArrayLiteral(array) => array
+                    .to_pattern(strict)
+                    .ok_or_else(|| {
+                        Error::general(
+                            "invalid array destructuring pattern in iterable loop initializer",
+                            position,
+                        )
+                    })
+                    .map(|arr| IterableLoopInitializer::Pattern(arr.into())),
+                ast::Expression::ObjectLiteral(object) => object
+                    .to_pattern(strict)
+                    .ok_or_else(|| {
+                        Error::general(
+                            "invalid object destructuring pattern in iterable loop initializer",
+                            position,
+                        )
+                    })
+                    .map(|obj| IterableLoopInitializer::Pattern(obj.into())),
+                ast::Expression::PropertyAccess(access) => {
+                    Ok(IterableLoopInitializer::Access(access))
+                }
+                _ => Err(Error::lex(LexError::Syntax(
+                    "invalid variable for iterable loop".into(),
+                    position,
+                ))),
+            }
+        }
         ForLoopInitializer::Lexical(decl) => match decl.variable_list().as_ref() {
             [declaration] => {
                 if declaration.init().is_some() {

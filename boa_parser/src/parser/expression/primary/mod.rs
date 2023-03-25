@@ -44,7 +44,7 @@ use boa_ast::{
     expression::{
         literal::Literal,
         operator::{assign::AssignTarget, binary::BinaryOp},
-        Call, Identifier, New,
+        Call, Identifier, New, Parenthesized,
     },
     function::{FormalParameter, FormalParameterList},
     operations::{contains, ContainsSymbol},
@@ -493,7 +493,9 @@ where
                 ));
             }
             if let InnerExpression::Expression(expression) = &expressions[0] {
-                return Ok(expression.clone());
+                return Ok(ast::Expression::Parenthesized(Parenthesized::new(
+                    expression.clone(),
+                )));
             }
             return Err(Error::unexpected(
                 Punctuator::CloseParen,

@@ -198,6 +198,7 @@ impl Access<'_> {
             Expression::Identifier(name) => Some(Access::Variable { name: *name }),
             Expression::PropertyAccess(access) => Some(Access::Property { access }),
             Expression::This => Some(Access::This),
+            Expression::Parenthesized(expr) => Self::from_expression(expr.expression()),
             _ => None,
         }
     }
@@ -869,7 +870,12 @@ impl<'b, 'host> ByteCompiler<'b, 'host> {
     fn compile_optional_preserve_this(&mut self, optional: &Optional) {
         let mut jumps = Vec::with_capacity(optional.chain().len());
 
-        match optional.target() {
+        let mut target = optional.target();
+        while let Expression::Parenthesized(p) = target {
+            target = p.expression();
+        }
+
+        match target {
             Expression::PropertyAccess(access) => {
                 self.compile_access_preserve_this(access);
             }
@@ -1239,15 +1245,17 @@ impl<'b, 'host> ByteCompiler<'b, 'host> {
             New,
         }
 
-        let (call, kind) = match callable {
-            Callable::Call(call) => match call.function() {
-                Expression::Identifier(ident) if *ident == Sym::EVAL => (call, CallKind::CallEval),
-                _ => (call, CallKind::Call),
-            },
+        let (call, mut kind) = match callable {
+            Callable::Call(call) => (call, CallKind::Call),
             Callable::New(new) => (new.call(), CallKind::New),
         };
 
-        match call.function() {
+        let mut function = call.function();
+        while let Expression::Parenthesized(p) = function {
+            function = p.expression();
+        }
+
+        match function {
             Expression::PropertyAccess(access) if kind == CallKind::Call => {
                 self.compile_access_preserve_this(access);
             }
@@ -1255,12 +1263,18 @@ impl<'b, 'host> ByteCompiler<'b, 'host> {
             Expression::Optional(opt) if kind == CallKind::Call => {
                 self.compile_optional_preserve_this(opt);
             }
+            expr if kind == CallKind::Call => {
+                if let Expression::Identifier(ident) = expr {
+                    if *ident == Sym::EVAL {
+                        kind = CallKind::CallEval;
+                    }
+                }
+                self.compile_expr(expr, true);
+                self.emit_opcode(Opcode::PushUndefined);
+                self.emit_opcode(Opcode::Swap);
+            }
             expr => {
                 self.compile_expr(expr, true);
-                if kind == CallKind::Call || kind == CallKind::CallEval {
-                    self.emit_opcode(Opcode::PushUndefined);
-                    self.emit_opcode(Opcode::Swap);
-                }
             }
         }
 
