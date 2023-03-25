@@ -2,9 +2,9 @@
 
 ## Supported Versions
 
-Until we reach the 1.0 version, we only support the lates released 0.x version and the current
-`main` branch. You can find the latest released version of Boa in the [GitHub releases][gh_releases]
-page or on [crates.io][crate].
+Until we reach the 1.0 version, we only support the latest 0.x release and the current `main`
+branch. You can find the latest release of Boa in the [GitHub releases][gh_releases] page or
+on [crates.io][crate].
 
 [gh_releases]: https://github.com/boa-dev/boa/releases
 [crate]: https://crates.io/crates/boa_engine/versions
