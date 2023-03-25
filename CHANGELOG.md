@@ -1087,7 +1087,7 @@ Cargo has great support for workspaces, so this shouldn't be an issue.
 
 ## Benchmarks
 
-We now have [benchmarks which run against master](https://boa-dev.github.io/boa/dev/bench)!
+We now have [benchmarks which run against master](https://boajs.dev/boa/dev/bench/)!
 Thanks to Github Actions these will run automatically a commit is merged.
 
 Feature enhancements:

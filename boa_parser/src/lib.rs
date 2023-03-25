@@ -24,9 +24,9 @@
 //! [spec]: https://tc39.es/ecma262
 //! [lex]: https://tc39.es/ecma262/#sec-ecmascript-language-lexical-grammar
 //! [grammar]: https://tc39.es/ecma262/#sec-ecmascript-language-expressions
-//! [boa-conformance]: https://boa-dev.github.io/boa/test262/
-//! [boa-web]: https://boa-dev.github.io/
-//! [boa-playground]: https://boa-dev.github.io/boa/playground/
+//! [boa-conformance]: https://boajs.dev/boa/test262/
+//! [boa-web]: https://boajs.dev/
+//! [boa-playground]: https://boajs.dev/boa/playground/
 
 #![doc(
     html_logo_url = "https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg",
