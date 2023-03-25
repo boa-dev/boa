@@ -1,3 +1,8 @@
+#![doc(
+    html_logo_url = "https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg",
+    html_favicon_url = "https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg"
+)]
+
 use std::{error::Error, fs::File};
 
 use boa_icu_provider::data_root;

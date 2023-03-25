@@ -15,6 +15,10 @@
 //! [`BufferProvider`]: icu_provider::BufferProvider
 //! [`AnyProvider`]: icu_provider::AnyProvider
 
+#![doc(
+    html_logo_url = "https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg",
+    html_favicon_url = "https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg"
+)]
 #![deny(
     // rustc lint groups https://doc.rust-lang.org/rustc/lints/groups.html
     warnings,
