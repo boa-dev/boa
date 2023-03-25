@@ -26,11 +26,11 @@
 <span class="kw">use </span>boa_ast::statement::If;
 
 <span class="kw">impl </span>ByteCompiler&lt;<span class="lifetime">&#39;_</span>, <span class="lifetime">&#39;_</span>&gt; {
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>compile_if(<span class="kw-2">&amp;mut </span><span class="self">self</span>, node: <span class="kw-2">&amp;</span>If, configurable_globals: bool) {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>compile_if(<span class="kw-2">&amp;mut </span><span class="self">self</span>, node: <span class="kw-2">&amp;</span>If, use_expr: bool, configurable_globals: bool) {
         <span class="self">self</span>.compile_expr(node.cond(), <span class="bool-val">true</span>);
         <span class="kw">let </span>jelse = <span class="self">self</span>.jump_if_false();
 
-        <span class="self">self</span>.compile_stmt(node.body(), <span class="bool-val">false</span>, configurable_globals);
+        <span class="self">self</span>.compile_stmt(node.body(), use_expr, configurable_globals);
 
         <span class="kw">match </span>node.else_node() {
             <span class="prelude-val">None </span>=&gt; {
@@ -39,7 +39,7 @@
             <span class="prelude-val">Some</span>(else_body) =&gt; {
                 <span class="kw">let </span>exit = <span class="self">self</span>.jump();
                 <span class="self">self</span>.patch_jump(jelse);
-                <span class="self">self</span>.compile_stmt(else_body, <span class="bool-val">false</span>, configurable_globals);
+                <span class="self">self</span>.compile_stmt(else_body, use_expr, configurable_globals);
                 <span class="self">self</span>.patch_jump(exit);
             }
         }
