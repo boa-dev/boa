@@ -17,7 +17,7 @@ impl ByteCompiler<'_, '_> {
     pub fn compile_stmt(&mut self, node: &Statement, use_expr: bool, configurable_globals: bool) {
         match node {
             Statement::Var(var) => self.compile_var_decl(var),
-            Statement::If(node) => self.compile_if(node, configurable_globals),
+            Statement::If(node) => self.compile_if(node, use_expr, configurable_globals),
             Statement::ForLoop(for_loop) => {
                 self.compile_for_loop(for_loop, None, configurable_globals);
             }
