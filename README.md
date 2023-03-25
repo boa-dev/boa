@@ -22,17 +22,14 @@ Currently, it has support for some of the language.
 
 ## Live Demo (WASM)
 
-<https://boa-dev.github.io/boa/playground/>
+<https://boajs.dev/boa/playground/>
 
 You can get more verbose errors when running from the command line.
 
-## Development documentation
-
-You can check the internal development docs at <https://boa-dev.github.io/boa/doc>.
-
 ## Conformance
 
-To know how much of the _ECMAScript_ specification does Boa cover, you can check out results running the _ECMASCript Test262_ test suite [here](https://boa-dev.github.io/boa/test262/).
+To know how much of the _ECMAScript_ specification does Boa cover, you can check out results
+running the _ECMASCript Test262_ test suite [here](https://boajs.dev/boa/test262/).
 
 ## Contributing
 
@@ -124,7 +121,7 @@ See [Milestones](https://github.com/boa-dev/boa/milestones).
 
 ## Benchmarks
 
-See [Benchmarks](https://boa-dev.github.io/boa/dev/bench/).
+See [Benchmarks](https://boajs.dev/boa/dev/bench/).
 
 ## Profiling
 

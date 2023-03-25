@@ -20,9 +20,9 @@
 //!  - **`boa_unicode`** - Boa's Unicode identifier.
 //!  - **`boa_icu_provider`** - Boa's ICU4X data provider.
 //!
-//! [boa-conformance]: https://boa-dev.github.io/boa/test262/
-//! [boa-web]: https://boa-dev.github.io/
-//! [boa-playground]: https://boa-dev.github.io/boa/playground/
+//! [boa-conformance]: https://boajs.dev/boa/test262/
+//! [boa-web]: https://boajs.dev/
+//! [boa-playground]: https://boajs.dev/boa/playground/
 
 #![doc(
     html_logo_url = "https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg",
