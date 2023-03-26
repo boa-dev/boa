@@ -450,20 +450,87 @@
 <a href="#449" id="449">449</a>
 <a href="#450" id="450">450</a>
 <a href="#451" id="451">451</a>
+<a href="#452" id="452">452</a>
+<a href="#453" id="453">453</a>
+<a href="#454" id="454">454</a>
+<a href="#455" id="455">455</a>
+<a href="#456" id="456">456</a>
+<a href="#457" id="457">457</a>
+<a href="#458" id="458">458</a>
+<a href="#459" id="459">459</a>
+<a href="#460" id="460">460</a>
+<a href="#461" id="461">461</a>
+<a href="#462" id="462">462</a>
+<a href="#463" id="463">463</a>
+<a href="#464" id="464">464</a>
+<a href="#465" id="465">465</a>
+<a href="#466" id="466">466</a>
+<a href="#467" id="467">467</a>
+<a href="#468" id="468">468</a>
+<a href="#469" id="469">469</a>
+<a href="#470" id="470">470</a>
+<a href="#471" id="471">471</a>
+<a href="#472" id="472">472</a>
+<a href="#473" id="473">473</a>
+<a href="#474" id="474">474</a>
+<a href="#475" id="475">475</a>
+<a href="#476" id="476">476</a>
+<a href="#477" id="477">477</a>
+<a href="#478" id="478">478</a>
+<a href="#479" id="479">479</a>
+<a href="#480" id="480">480</a>
+<a href="#481" id="481">481</a>
+<a href="#482" id="482">482</a>
+<a href="#483" id="483">483</a>
+<a href="#484" id="484">484</a>
+<a href="#485" id="485">485</a>
 </pre><pre class="rust"><code><span class="doccomment">//! Boa&#39;s **`boa_engine`** crate implements ECMAScript&#39;s standard library of builtin objects
 //! and an ECMAScript context, bytecompiler, and virtual machine for code execution.
 //!
+//! # About Boa
+//!
+//! Boa is an open-source, experimental ECMAScript Engine written in Rust for lexing, parsing and
+//! executing ECMAScript/JavaScript. Currently, Boa supports some of the [language][boa-conformance].
+//! More information can be viewed at [Boa&#39;s website][boa-web].
+//!
+//! Try out the most recent release with Boa&#39;s live demo [playground][boa-playground].
+//!
+//! # Example usage
+//!
+//! You can find multiple examples of the usage of Boa in the [`boa_examples`][examples] crate. In
+//! order to use Boa in your project, you will need to add the `boa_engine` crate to your
+//! `Cargo.toml` file. You will need to use a [`Source`] structure to handle the JavaScript code
+//! to execute, and a [`Context`] structure to execute the code:
+//!
+//! ```
+//! use boa_engine::{Context, Source};
+//!
+//! let js_code = &quot;console.log(&#39;Hello World from a JS code string!&#39;)&quot;;
+//!
+//! // Instantiate the execution context
+//! let mut context = Context::default();
+//!
+//! // Parse the source code
+//! match context.eval_script(Source::from_bytes(js_code)) {
+//!     Ok(res) =&gt; {
+//!         println!(
+//!             &quot;{}&quot;,
+//!             res.to_string(&amp;mut context).unwrap().to_std_string_escaped()
+//!         );
+//!     }
+//!     Err(e) =&gt; {
+//!         // Pretty print the error
+//!         eprintln!(&quot;Uncaught {e}&quot;);
+//!     }
+//! };
+//! ```
+//!
 //! # Crate Features
+//!
 //!  - **serde** - Enables serialization and deserialization of the AST (Abstract Syntax Tree).
 //!  - **console** - Enables `boa`&#39;s [WHATWG `console`][whatwg] object implementation.
 //!  - **profiler** - Enables profiling with measureme (this is mostly internal).
 //!  - **intl** - Enables `boa`&#39;s [ECMA-402 Internationalization API][ecma-402] (`Intl` object)
-//!
-//! # About Boa
-//! Boa is an open-source, experimental ECMAScript Engine written in Rust for lexing, parsing and executing ECMAScript/JavaScript. Currently, Boa
-//! supports some of the [language][boa-conformance]. More information can be viewed at [Boa&#39;s website][boa-web].
-//!
-//! Try out the most recent release with Boa&#39;s live demo [playground][boa-playground].  
 //!
 //! # Boa Crates
 //!  - **`boa_ast`** - Boa&#39;s ECMAScript Abstract Syntax Tree.
@@ -480,6 +547,7 @@
 //! [boa-conformance]: https://boajs.dev/boa/test262/
 //! [boa-web]: https://boajs.dev/
 //! [boa-playground]: https://boajs.dev/boa/playground/
+//! [examples]: https://github.com/boa-dev/boa/tree/main/boa_examples
 
 </span><span class="attr">#![doc(
     html_logo_url = <span class="string">&quot;https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg&quot;</span>,

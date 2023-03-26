@@ -1,6 +1,37 @@
 <!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Boa’s `boa_engine` crate implements ECMAScript’s standard library of builtin objects and an ECMAScript context, bytecompiler, and virtual machine for code execution."><meta name="keywords" content="rust, rustlang, rust-lang, boa_engine"><title>boa_engine - Rust</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../static.files/rustdoc-93196c7a1c3542a8.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../static.files/light-4743e13df3dfe8c4.css"><link rel="stylesheet" disabled href="../static.files/dark-0e1b889528bd466b.css"><link rel="stylesheet" disabled href="../static.files/ayu-65289d5d067c7c66.css"><script id="default-settings" ></script><script src="../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../crates.js"></script><script defer src="../static.files/main-3367e395607fafc1.js"></script><noscript><link rel="stylesheet" href="../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg"></head><body class="rustdoc mod crate"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="logo-container" href="../boa_engine/index.html"><img src="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg" alt="logo"></a><h2></h2></nav><nav class="sidebar"><a class="logo-container" href="../boa_engine/index.html">
-                <img src="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg" alt="logo"></a><h2 class="location"><a href="#">Crate boa_engine</a></h2><div class="sidebar-elems"><ul class="block"><li class="version">Version 0.16.0</li><li><a id="all-types" href="all.html">All Items</a></li></ul><section><ul class="block"><li><a href="#modules">Modules</a></li><li><a href="#macros">Macros</a></li><li><a href="#structs">Structs</a></li><li><a href="#enums">Enums</a></li><li><a href="#traits">Traits</a></li><li><a href="#types">Type Definitions</a></li></ul></section></div></nav><main><div class="width-limiter"><nav class="sub"><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="main-heading"><h1>Crate <a class="mod" href="#">boa_engine</a><button id="copy-path" onclick="copy_path(this)" title="Copy item path to clipboard"><img src="../static.files/clipboard-7571035ce49a181d.svg" width="19" height="18" alt="Copy item path"></button></h1><span class="out-of-band"><a class="srclink" href="../src/boa_engine/lib.rs.html#1-451">source</a> · <button id="toggle-all-docs" title="collapse all docs">[<span>&#x2212;</span>]</button></span></div><details class="toggle top-doc" open><summary class="hideme"><span>Expand description</span></summary><div class="docblock"><p>Boa’s <strong><code>boa_engine</code></strong> crate implements ECMAScript’s standard library of builtin objects
+                <img src="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg" alt="logo"></a><h2 class="location"><a href="#">Crate boa_engine</a></h2><div class="sidebar-elems"><ul class="block"><li class="version">Version 0.16.0</li><li><a id="all-types" href="all.html">All Items</a></li></ul><section><ul class="block"><li><a href="#modules">Modules</a></li><li><a href="#macros">Macros</a></li><li><a href="#structs">Structs</a></li><li><a href="#enums">Enums</a></li><li><a href="#traits">Traits</a></li><li><a href="#types">Type Definitions</a></li></ul></section></div></nav><main><div class="width-limiter"><nav class="sub"><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="main-heading"><h1>Crate <a class="mod" href="#">boa_engine</a><button id="copy-path" onclick="copy_path(this)" title="Copy item path to clipboard"><img src="../static.files/clipboard-7571035ce49a181d.svg" width="19" height="18" alt="Copy item path"></button></h1><span class="out-of-band"><a class="srclink" href="../src/boa_engine/lib.rs.html#1-485">source</a> · <button id="toggle-all-docs" title="collapse all docs">[<span>&#x2212;</span>]</button></span></div><details class="toggle top-doc" open><summary class="hideme"><span>Expand description</span></summary><div class="docblock"><p>Boa’s <strong><code>boa_engine</code></strong> crate implements ECMAScript’s standard library of builtin objects
 and an ECMAScript context, bytecompiler, and virtual machine for code execution.</p>
+<h2 id="about-boa"><a href="#about-boa">About Boa</a></h2>
+<p>Boa is an open-source, experimental ECMAScript Engine written in Rust for lexing, parsing and
+executing ECMAScript/JavaScript. Currently, Boa supports some of the <a href="https://boajs.dev/boa/test262/">language</a>.
+More information can be viewed at <a href="https://boajs.dev/">Boa’s website</a>.</p>
+<p>Try out the most recent release with Boa’s live demo <a href="https://boajs.dev/boa/playground/">playground</a>.</p>
+<h2 id="example-usage"><a href="#example-usage">Example usage</a></h2>
+<p>You can find multiple examples of the usage of Boa in the <a href="https://github.com/boa-dev/boa/tree/main/boa_examples"><code>boa_examples</code></a> crate. In
+order to use Boa in your project, you will need to add the <code>boa_engine</code> crate to your
+<code>Cargo.toml</code> file. You will need to use a <a href="struct.Source.html" title="Source"><code>Source</code></a> structure to handle the JavaScript code
+to execute, and a <a href="struct.Context.html" title="Context"><code>Context</code></a> structure to execute the code:</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use </span>boa_engine::{Context, Source};
+
+<span class="kw">let </span>js_code = <span class="string">&quot;console.log(&#39;Hello World from a JS code string!&#39;)&quot;</span>;
+
+<span class="comment">// Instantiate the execution context
+</span><span class="kw">let </span><span class="kw-2">mut </span>context = Context::default();
+
+<span class="comment">// Parse the source code
+</span><span class="kw">match </span>context.eval_script(Source::from_bytes(js_code)) {
+    <span class="prelude-val">Ok</span>(res) =&gt; {
+        <span class="macro">println!</span>(
+            <span class="string">&quot;{}&quot;</span>,
+            res.to_string(<span class="kw-2">&amp;mut </span>context).unwrap().to_std_string_escaped()
+        );
+    }
+    <span class="prelude-val">Err</span>(e) =&gt; {
+        <span class="comment">// Pretty print the error
+        </span><span class="macro">eprintln!</span>(<span class="string">&quot;Uncaught {e}&quot;</span>);
+    }
+};</code></pre></div>
 <h2 id="crate-features"><a href="#crate-features">Crate Features</a></h2>
 <ul>
 <li><strong>serde</strong> - Enables serialization and deserialization of the AST (Abstract Syntax Tree).</li>
@@ -8,10 +39,6 @@ and an ECMAScript context, bytecompiler, and virtual machine for code execution.
 <li><strong>profiler</strong> - Enables profiling with measureme (this is mostly internal).</li>
 <li><strong>intl</strong> - Enables <code>boa</code>’s <a href="https://tc39.es/ecma402">ECMA-402 Internationalization API</a> (<code>Intl</code> object)</li>
 </ul>
-<h2 id="about-boa"><a href="#about-boa">About Boa</a></h2>
-<p>Boa is an open-source, experimental ECMAScript Engine written in Rust for lexing, parsing and executing ECMAScript/JavaScript. Currently, Boa
-supports some of the <a href="https://boajs.dev/boa/test262/">language</a>. More information can be viewed at <a href="https://boajs.dev/">Boa’s website</a>.</p>
-<p>Try out the most recent release with Boa’s live demo <a href="https://boajs.dev/boa/playground/">playground</a>.</p>
 <h2 id="boa-crates"><a href="#boa-crates">Boa Crates</a></h2>
 <ul>
 <li><strong><code>boa_ast</code></strong> - Boa’s ECMAScript Abstract Syntax Tree.</li>
