@@ -1,17 +1,50 @@
 //! Boa's **`boa_engine`** crate implements ECMAScript's standard library of builtin objects
 //! and an ECMAScript context, bytecompiler, and virtual machine for code execution.
 //!
+//! # About Boa
+//!
+//! Boa is an open-source, experimental ECMAScript Engine written in Rust for lexing, parsing and
+//! executing ECMAScript/JavaScript. Currently, Boa supports some of the [language][boa-conformance].
+//! More information can be viewed at [Boa's website][boa-web].
+//!
+//! Try out the most recent release with Boa's live demo [playground][boa-playground].
+//!
+//! # Example usage
+//!
+//! You can find multiple examples of the usage of Boa in the [`boa_examples`][examples] crate. In
+//! order to use Boa in your project, you will need to add the `boa_engine` crate to your
+//! `Cargo.toml` file. You will need to use a [`Source`] structure to handle the JavaScript code
+//! to execute, and a [`Context`] structure to execute the code:
+//!
+//! ```
+//! use boa_engine::{Context, Source};
+//!
+//! let js_code = "console.log('Hello World from a JS code string!')";
+//!
+//! // Instantiate the execution context
+//! let mut context = Context::default();
+//!
+//! // Parse the source code
+//! match context.eval_script(Source::from_bytes(js_code)) {
+//!     Ok(res) => {
+//!         println!(
+//!             "{}",
+//!             res.to_string(&mut context).unwrap().to_std_string_escaped()
+//!         );
+//!     }
+//!     Err(e) => {
+//!         // Pretty print the error
+//!         eprintln!("Uncaught {e}");
+//!     }
+//! };
+//! ```
+//!
 //! # Crate Features
+//!
 //!  - **serde** - Enables serialization and deserialization of the AST (Abstract Syntax Tree).
 //!  - **console** - Enables `boa`'s [WHATWG `console`][whatwg] object implementation.
 //!  - **profiler** - Enables profiling with measureme (this is mostly internal).
 //!  - **intl** - Enables `boa`'s [ECMA-402 Internationalization API][ecma-402] (`Intl` object)
-//!
-//! # About Boa
-//! Boa is an open-source, experimental ECMAScript Engine written in Rust for lexing, parsing and executing ECMAScript/JavaScript. Currently, Boa
-//! supports some of the [language][boa-conformance]. More information can be viewed at [Boa's website][boa-web].
-//!
-//! Try out the most recent release with Boa's live demo [playground][boa-playground].  
 //!
 //! # Boa Crates
 //!  - **`boa_ast`** - Boa's ECMAScript Abstract Syntax Tree.
@@ -28,6 +61,7 @@
 //! [boa-conformance]: https://boajs.dev/boa/test262/
 //! [boa-web]: https://boajs.dev/
 //! [boa-playground]: https://boajs.dev/boa/playground/
+//! [examples]: https://github.com/boa-dev/boa/tree/main/boa_examples
 
 #![doc(
     html_logo_url = "https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg",
