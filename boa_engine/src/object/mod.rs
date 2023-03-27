@@ -6,6 +6,7 @@ use boa_ast::function::PrivateName;
 pub use jsobject::{RecursionLimiter, Ref, RefMut};
 pub use operations::IntegrityLevel;
 pub use property_map::*;
+use thin_vec::ThinVec;
 
 use self::internal_methods::{
     arguments::ARGUMENTS_EXOTIC_INTERNAL_METHODS,
@@ -128,7 +129,7 @@ pub struct Object {
     /// Whether it can have new properties added to it.
     extensible: bool,
     /// The `[[PrivateElements]]` internal slot.
-    private_elements: Vec<(PrivateName, PrivateElement)>,
+    private_elements: ThinVec<(PrivateName, PrivateElement)>,
 }
 
 unsafe impl Trace for Object {
@@ -782,7 +783,7 @@ impl Default for Object {
             properties: PropertyMap::default(),
             prototype: None,
             extensible: true,
-            private_elements: Vec::default(),
+            private_elements: ThinVec::default(),
         }
     }
 }

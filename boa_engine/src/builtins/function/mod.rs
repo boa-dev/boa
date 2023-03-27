@@ -36,6 +36,7 @@ use boa_gc::{self, custom_trace, Finalize, Gc, Trace};
 use boa_interner::Sym;
 use boa_parser::{Parser, Source};
 use boa_profiler::Profiler;
+use thin_vec::ThinVec;
 
 use std::fmt;
 
@@ -172,10 +173,10 @@ pub enum Function {
         home_object: Option<JsObject>,
 
         /// The `[[Fields]]` internal slot.
-        fields: Vec<ClassFieldDefinition>,
+        fields: ThinVec<ClassFieldDefinition>,
 
         /// The `[[PrivateMethods]]` internal slot.
-        private_methods: Vec<(PrivateName, PrivateElement)>,
+        private_methods: ThinVec<(PrivateName, PrivateElement)>,
 
         /// The class object that this function is associated with.
         class_object: Option<JsObject>,
@@ -238,7 +239,9 @@ unsafe impl Trace for Function {
                 mark(code);
                 mark(environments);
                 mark(home_object);
-                mark(fields);
+                for elem in fields {
+                    mark(elem);
+                }
                 for (_, elem) in private_methods {
                     mark(elem);
                 }
