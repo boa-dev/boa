@@ -2122,25 +2122,25 @@
         .configurable(<span class="bool-val">true</span>)
         .build();
 
-    <span class="kw">let </span>prototype = JsObject::with_object_proto(context);
-    prototype
-        .define_property_or_throw(CONSTRUCTOR, constructor_property, context)
-        .expect(<span class="string">&quot;failed to define the constructor property of the function&quot;</span>);
-
-    <span class="kw">let </span>prototype_property = PropertyDescriptor::builder()
-        .value(prototype)
-        .writable(<span class="bool-val">true</span>)
-        .enumerable(<span class="bool-val">false</span>)
-        .configurable(<span class="bool-val">false</span>)
-        .build();
-
     constructor
         .define_property_or_throw(<span class="macro">utf16!</span>(<span class="string">&quot;length&quot;</span>), length_property, context)
         .expect(<span class="string">&quot;failed to define the length property of the function&quot;</span>);
     constructor
         .define_property_or_throw(<span class="macro">utf16!</span>(<span class="string">&quot;name&quot;</span>), name_property, context)
         .expect(<span class="string">&quot;failed to define the name property of the function&quot;</span>);
+
     <span class="kw">if </span>!r#async &amp;&amp; !arrow &amp;&amp; !method {
+        <span class="kw">let </span>prototype = JsObject::with_object_proto(context);
+        prototype
+            .define_property_or_throw(CONSTRUCTOR, constructor_property, context)
+            .expect(<span class="string">&quot;failed to define the constructor property of the function&quot;</span>);
+
+        <span class="kw">let </span>prototype_property = PropertyDescriptor::builder()
+            .value(prototype)
+            .writable(<span class="bool-val">true</span>)
+            .enumerable(<span class="bool-val">false</span>)
+            .configurable(<span class="bool-val">false</span>)
+            .build();
         constructor
             .define_property_or_throw(PROTOTYPE, prototype_property, context)
             .expect(<span class="string">&quot;failed to define the prototype property of the function&quot;</span>);
