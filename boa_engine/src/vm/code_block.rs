@@ -613,25 +613,25 @@ pub(crate) fn create_function_object(
         .configurable(true)
         .build();
 
-    let prototype = JsObject::with_object_proto(context);
-    prototype
-        .define_property_or_throw(CONSTRUCTOR, constructor_property, context)
-        .expect("failed to define the constructor property of the function");
-
-    let prototype_property = PropertyDescriptor::builder()
-        .value(prototype)
-        .writable(true)
-        .enumerable(false)
-        .configurable(false)
-        .build();
-
     constructor
         .define_property_or_throw(utf16!("length"), length_property, context)
         .expect("failed to define the length property of the function");
     constructor
         .define_property_or_throw(utf16!("name"), name_property, context)
         .expect("failed to define the name property of the function");
+
     if !r#async && !arrow && !method {
+        let prototype = JsObject::with_object_proto(context);
+        prototype
+            .define_property_or_throw(CONSTRUCTOR, constructor_property, context)
+            .expect("failed to define the constructor property of the function");
+
+        let prototype_property = PropertyDescriptor::builder()
+            .value(prototype)
+            .writable(true)
+            .enumerable(false)
+            .configurable(false)
+            .build();
         constructor
             .define_property_or_throw(PROTOTYPE, prototype_property, context)
             .expect("failed to define the prototype property of the function");
