@@ -19,7 +19,7 @@ rustyline = { version = "11.0.0", features = ["derive"]}
 clap = { version = "4.1.13", features = ["derive"] }
 serde_json = "1.0.94"
 colored = "2.0.0"
-regex = "1.7.2"
+regex = "1.7.3"
 phf = { version = "0.11.1", features = ["macros"] }
 pollster = "0.3.0"
 
