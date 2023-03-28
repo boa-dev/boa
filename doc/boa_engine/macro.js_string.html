@@ -16,7 +16,7 @@
 <span class="kw">let </span>empty_str = <span class="macro">js_string!</span>();
 <span class="macro">assert!</span>(empty_str.is_empty());</code></pre></div>
 <p>You can create a <code>JsString</code> from a string literal, which completely skips the runtime
-conversion from <a href="https://doc.rust-lang.org/1.68.1/std/primitive.str.html" title="&amp;str"><code>&amp;str</code></a> to <code><a href="https://doc.rust-lang.org/1.68.1/std/primitive.slice.html" title="slice">&amp;[u16]</a></code>:</p>
+conversion from <a href="https://doc.rust-lang.org/1.68.2/std/primitive.str.html" title="&amp;str"><code>&amp;str</code></a> to <code><a href="https://doc.rust-lang.org/1.68.2/std/primitive.slice.html" title="slice">&amp;[u16]</a></code>:</p>
 
 <div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">let </span>hw = <span class="macro">js_string!</span>(<span class="string">&quot;Hello, world!&quot;</span>);
 <span class="macro">assert_eq!</span>(<span class="kw-2">&amp;</span>hw, <span class="macro">utf16!</span>(<span class="string">&quot;Hello, world!&quot;</span>));</code></pre></div>
@@ -31,4 +31,4 @@ the concatenation of every slice:</p>
 <span class="kw">let </span>msg = <span class="macro">js_string!</span>(<span class="kw-2">&amp;</span>greeting, <span class="kw-2">&amp;</span>NAME, <span class="macro">utf16!</span>(<span class="string">&quot;Nice to meet you!&quot;</span>));
 
 <span class="macro">assert_eq!</span>(<span class="kw-2">&amp;</span>msg, <span class="macro">utf16!</span>(<span class="string">&quot;Hello, human! Nice to meet you!&quot;</span>));</code></pre></div>
-</div></details></section></div></main><div id="rustdoc-vars" data-root-path="../" data-static-root-path="../static.files/" data-current-crate="boa_engine" data-themes="" data-resource-suffix="" data-rustdoc-version="1.68.1 (8460ca823 2023-03-20)" data-search-js="search-98d53477a794af0b.js" data-settings-js="settings-c3c521c753752a1a.js" data-settings-css="settings-08ddfdda51b8ee2e.css" ></div></body></html>
+</div></details></section></div></main><div id="rustdoc-vars" data-root-path="../" data-static-root-path="../static.files/" data-current-crate="boa_engine" data-themes="" data-resource-suffix="" data-rustdoc-version="1.68.2 (9eb3afe9e 2023-03-27)" data-search-js="search-98d53477a794af0b.js" data-settings-js="settings-c3c521c753752a1a.js" data-settings-css="settings-08ddfdda51b8ee2e.css" ></div></body></html>
