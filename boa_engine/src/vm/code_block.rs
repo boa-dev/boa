@@ -29,6 +29,7 @@ use boa_gc::{Finalize, Gc, GcRefCell, Trace};
 use boa_interner::Sym;
 use boa_profiler::Profiler;
 use std::{collections::VecDeque, mem::size_of};
+use thin_vec::ThinVec;
 
 #[cfg(any(feature = "trace", feature = "flowgraph"))]
 use crate::vm::Opcode;
@@ -597,8 +598,8 @@ pub(crate) fn create_function_object(
             environments: context.realm.environments.clone(),
             constructor_kind: ConstructorKind::Base,
             home_object: None,
-            fields: Vec::new(),
-            private_methods: Vec::new(),
+            fields: ThinVec::new(),
+            private_methods: ThinVec::new(),
             class_object: None,
         }
     };

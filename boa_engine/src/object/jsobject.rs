@@ -19,6 +19,7 @@ use std::{
     fmt::{self, Debug, Display},
     result::Result as StdResult,
 };
+use thin_vec::ThinVec;
 
 /// A wrapper type for an immutably borrowed type T.
 pub type Ref<'a, T> = boa_gc::GcRef<'a, T>;
@@ -74,7 +75,7 @@ impl JsObject {
                 prototype: prototype.into(),
                 extensible: true,
                 properties: PropertyMap::default(),
-                private_elements: Vec::new(),
+                private_elements: ThinVec::new(),
             })),
         }
     }
