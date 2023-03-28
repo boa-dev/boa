@@ -2459,6 +2459,7 @@
 <a href="#2458" id="2458">2458</a>
 <a href="#2459" id="2459">2459</a>
 <a href="#2460" id="2460">2460</a>
+<a href="#2461" id="2461">2461</a>
 </pre><pre class="rust"><code><span class="doccomment">//! Boa&#39;s representation of a JavaScript object and builtin object wrappers
 //!
 //! For the builtin object wrappers, please see [`object::builtins`][builtins] for implementors.
@@ -2467,6 +2468,7 @@
 <span class="kw">pub use </span>jsobject::{RecursionLimiter, Ref, RefMut};
 <span class="kw">pub use </span>operations::IntegrityLevel;
 <span class="kw">pub use </span>property_map::<span class="kw-2">*</span>;
+<span class="kw">use </span>thin_vec::ThinVec;
 
 <span class="kw">use </span><span class="self">self</span>::internal_methods::{
     arguments::ARGUMENTS_EXOTIC_INTERNAL_METHODS,
@@ -2589,7 +2591,7 @@
     <span class="doccomment">/// Whether it can have new properties added to it.
     </span>extensible: bool,
     <span class="doccomment">/// The `[[PrivateElements]]` internal slot.
-    </span>private_elements: Vec&lt;(PrivateName, PrivateElement)&gt;,
+    </span>private_elements: ThinVec&lt;(PrivateName, PrivateElement)&gt;,
 }
 
 <span class="kw">unsafe impl </span>Trace <span class="kw">for </span>Object {
@@ -3243,7 +3245,7 @@
             properties: PropertyMap::default(),
             prototype: <span class="prelude-val">None</span>,
             extensible: <span class="bool-val">true</span>,
-            private_elements: Vec::default(),
+            private_elements: ThinVec::default(),
         }
     }
 }

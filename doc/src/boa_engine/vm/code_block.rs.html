@@ -1507,6 +1507,7 @@
 <a href="#1506" id="1506">1506</a>
 <a href="#1507" id="1507">1507</a>
 <a href="#1508" id="1508">1508</a>
+<a href="#1509" id="1509">1509</a>
 </pre><pre class="rust"><code><span class="doccomment">//! `CodeBlock`
 //!
 //! This module is for the `CodeBlock` which implements a function representation in the VM
@@ -1538,6 +1539,7 @@
 <span class="kw">use </span>boa_interner::Sym;
 <span class="kw">use </span>boa_profiler::Profiler;
 <span class="kw">use </span>std::{collections::VecDeque, mem::size_of};
+<span class="kw">use </span>thin_vec::ThinVec;
 
 <span class="attr">#[cfg(any(feature = <span class="string">&quot;trace&quot;</span>, feature = <span class="string">&quot;flowgraph&quot;</span>))]
 </span><span class="kw">use </span><span class="kw">crate</span>::vm::Opcode;
@@ -2106,8 +2108,8 @@
             environments: context.realm.environments.clone(),
             constructor_kind: ConstructorKind::Base,
             home_object: <span class="prelude-val">None</span>,
-            fields: Vec::new(),
-            private_methods: Vec::new(),
+            fields: ThinVec::new(),
+            private_methods: ThinVec::new(),
             class_object: <span class="prelude-val">None</span>,
         }
     };

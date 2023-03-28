@@ -907,6 +907,7 @@
 <a href="#906" id="906">906</a>
 <a href="#907" id="907">907</a>
 <a href="#908" id="908">908</a>
+<a href="#909" id="909">909</a>
 </pre><pre class="rust"><code><span class="doccomment">//! This module implements the `JsObject` structure.
 //!
 //! The `JsObject` is a garbage collected Object.
@@ -928,6 +929,7 @@
     fmt::{<span class="self">self</span>, Debug, Display},
     result::Result <span class="kw">as </span>StdResult,
 };
+<span class="kw">use </span>thin_vec::ThinVec;
 
 <span class="doccomment">/// A wrapper type for an immutably borrowed type T.
 </span><span class="kw">pub type </span>Ref&lt;<span class="lifetime">&#39;a</span>, T&gt; = boa_gc::GcRef&lt;<span class="lifetime">&#39;a</span>, T&gt;;
@@ -983,7 +985,7 @@
                 prototype: prototype.into(),
                 extensible: <span class="bool-val">true</span>,
                 properties: PropertyMap::default(),
-                private_elements: Vec::new(),
+                private_elements: ThinVec::new(),
             })),
         }
     }

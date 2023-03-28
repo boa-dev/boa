@@ -1012,6 +1012,9 @@
 <a href="#1011" id="1011">1011</a>
 <a href="#1012" id="1012">1012</a>
 <a href="#1013" id="1013">1013</a>
+<a href="#1014" id="1014">1014</a>
+<a href="#1015" id="1015">1015</a>
+<a href="#1016" id="1016">1016</a>
 </pre><pre class="rust"><code><span class="doccomment">//! Boa&#39;s implementation of ECMAScript&#39;s global `Function` object and Native Functions.
 //!
 //! Objects wrap `Function`s and expose them via call/construct slots.
@@ -1050,6 +1053,7 @@
 <span class="kw">use </span>boa_interner::Sym;
 <span class="kw">use </span>boa_parser::{Parser, Source};
 <span class="kw">use </span>boa_profiler::Profiler;
+<span class="kw">use </span>thin_vec::ThinVec;
 
 <span class="kw">use </span>std::fmt;
 
@@ -1186,10 +1190,10 @@
         </span>home_object: <span class="prelude-ty">Option</span>&lt;JsObject&gt;,
 
         <span class="doccomment">/// The `[[Fields]]` internal slot.
-        </span>fields: Vec&lt;ClassFieldDefinition&gt;,
+        </span>fields: ThinVec&lt;ClassFieldDefinition&gt;,
 
         <span class="doccomment">/// The `[[PrivateMethods]]` internal slot.
-        </span>private_methods: Vec&lt;(PrivateName, PrivateElement)&gt;,
+        </span>private_methods: ThinVec&lt;(PrivateName, PrivateElement)&gt;,
 
         <span class="doccomment">/// The class object that this function is associated with.
         </span>class_object: <span class="prelude-ty">Option</span>&lt;JsObject&gt;,
@@ -1252,7 +1256,9 @@
                 mark(code);
                 mark(environments);
                 mark(home_object);
-                mark(fields);
+                <span class="kw">for </span>elem <span class="kw">in </span>fields {
+                    mark(elem);
+                }
                 <span class="kw">for </span>(<span class="kw">_</span>, elem) <span class="kw">in </span>private_methods {
                     mark(elem);
                 }
