@@ -88,20 +88,20 @@ pub enum OperationType {
 
 /// Functions used to resolve a pending promise.
 ///
-/// This is equivalent to the arguments `resolve` and `reject` of the [Resolver function] from
+/// This is equivalent to the parameters `resolveFunc` and `rejectFunc` of the executor passed to
 /// the [`Promise()`] constructor.
 ///
 /// Both functions are always associated with the promise from which they were created. This
-/// means that by simply calling `resolve.call()` or `reject.call()`, the state of the original
-/// promise will be updated with the resolution value.
+/// means that by simply calling `resolve.call(this, &[values], context)` or
+/// `reject.call(this, &[error], context)`, the state of the original promise will be updated with
+/// the resolution value.
 ///
-/// [Resolve function]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise/Promise#resolver_function
 /// [`Promise()`]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise/Promise
 #[derive(Debug, Clone)]
 pub struct ResolvingFunctions {
-    /// Resolves the associated promise to `PromiseState::Fulfilled`.
+    /// The `resolveFunc` parameter of the executor passed to `Promise()`.
     pub resolve: JsFunction,
-    /// Resolves the associated promise to `PromiseState::Rejected`.
+    /// The `rejectFunc` parameter of the executor passed to `Promise()`.
     pub reject: JsFunction,
 }
 

@@ -123,7 +123,7 @@ impl JsPromise {
     /// beforehand.
     ///
     /// `executor` receives as an argument the [`ResolvingFunctions`] needed to settle the promise,
-    /// which can be done by either resolving (`resolve`) it or rejecting (`reject`) it.
+    /// which can be done by either calling the `resolve` function or the `reject` function.
     ///
     /// # Examples
     ///
