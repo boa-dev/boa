@@ -27,13 +27,11 @@ impl Operation for Await {
         let value = context.vm.pop();
 
         // 2. Let promise be ? PromiseResolve(%Promise%, value).
-        let resolve_result = Promise::promise_resolve(
-            context.intrinsics().constructors().promise().constructor(),
+        let promise = Promise::promise_resolve(
+            &context.intrinsics().constructors().promise().constructor(),
             value,
             context,
-        );
-
-        let promise = resolve_result?;
+        )?;
 
         // 3. Let fulfilledClosure be a new Abstract Closure with parameters (value) that captures asyncContext and performs the following steps when called:
         // 4. Let onFulfilled be CreateBuiltinFunction(fulfilledClosure, 1, "", « »).
@@ -124,8 +122,8 @@ impl Operation for Await {
         // 7. Perform PerformPromiseThen(promise, onFulfilled, onRejected).
         Promise::perform_promise_then(
             &promise,
-            &on_fulfilled.into(),
-            &on_rejected.into(),
+            Some(on_fulfilled),
+            Some(on_rejected),
             None,
             context,
         );

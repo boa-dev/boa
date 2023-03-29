@@ -1,6 +1,6 @@
 //! All Rust API wrappers for Boa's ECMAScript objects.
 //!
-//! The structs available in this module provide functionality to interact with the implemented ECMAScript object from Rust.
+//! The structs available in this module provide functionality to interact with native ECMAScript objects from Rust.
 
 mod jsarray;
 mod jsarraybuffer;
@@ -10,7 +10,8 @@ mod jsfunction;
 mod jsgenerator;
 mod jsmap;
 mod jsmap_iterator;
-pub(crate) mod jsproxy;
+mod jspromise;
+mod jsproxy;
 mod jsregexp;
 mod jsset;
 mod jsset_iterator;
@@ -24,7 +25,8 @@ pub use jsfunction::*;
 pub use jsgenerator::*;
 pub use jsmap::*;
 pub use jsmap_iterator::*;
-pub use jsproxy::{JsProxy, JsRevocableProxy};
+pub use jspromise::*;
+pub use jsproxy::{JsProxy, JsProxyBuilder, JsRevocableProxy};
 pub use jsregexp::JsRegExp;
 pub use jsset::*;
 pub use jsset_iterator::*;
