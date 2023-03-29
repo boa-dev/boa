@@ -535,7 +535,7 @@
         !bi.ast()
             .attrs
             .iter()
-            .any(|attr| attr.path.is_ident(<span class="string">&quot;unsafe_ignore_trace&quot;</span>))
+            .any(|attr| attr.path().is_ident(<span class="string">&quot;unsafe_ignore_trace&quot;</span>))
     });
     <span class="kw">let </span>trace_body = s.each(|bi| <span class="macro">quote!</span>(mark(#bi)));
 
