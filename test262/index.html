@@ -141,14 +141,28 @@
       <div class="row">
         <div class="col-md-12" id="progress-info"></div>
       </div>
-      <div class="row">
-        <div class="col-md-12 d-none" id="info-options">
-          <div class="form-check form-switch">
+      <form class="d-none" id="info-options">
+        <div class="form-row d-flex">
+          <div class="form-group">
+            <select class="custom-select" id="info-options-es-version">
+              <option value="255" selected>All</option>
+              <option value="13">ES13</option>
+              <option value="12">ES12</option>
+              <option value="11">ES11</option>
+              <option value="10">ES10</option>
+              <option value="9">ES9</option>
+              <option value="8">ES8</option>
+              <option value="7">ES7</option>
+              <option value="6">ES6</option>
+              <option value="5">ES5</option>
+            </select>
+          </div>
+          <div class="form-check form-switch mx-5">
             <input class="form-check-input" type="checkbox" role="switch" id="info-options-hide-passing-switch">
-            <label class="form-check-label" for="info-options-hide-passing-switch">Hide passing test suites</label>
+            <label class="form-check-label" for="info-options-hide-passing-switch">Hide passing</label>
           </div>
         </div>
-      </div>
+      </form>
       <div class="row">
         <div class="accordion col-md-12" id="info"></div>
       </div>
