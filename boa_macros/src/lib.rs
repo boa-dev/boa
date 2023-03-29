@@ -225,7 +225,7 @@ fn derive_trace(mut s: Structure<'_>) -> proc_macro2::TokenStream {
         !bi.ast()
             .attrs
             .iter()
-            .any(|attr| attr.path.is_ident("unsafe_ignore_trace"))
+            .any(|attr| attr.path().is_ident("unsafe_ignore_trace"))
     });
     let trace_body = s.each(|bi| quote!(mark(#bi)));
 
