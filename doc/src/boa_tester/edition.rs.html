@@ -384,7 +384,7 @@
 
 </span><span class="kw">use </span>std::fmt::Display;
 
-<span class="kw">use </span>serde::{Deserialize, Serialize};
+<span class="kw">use </span>serde_repr::{Deserialize_repr, Serialize_repr};
 
 <span class="kw">use </span><span class="kw">crate</span>::read::{MetaData, TestFlag};
 
@@ -649,11 +649,11 @@
     PartialOrd,
     Ord,
     Default,
-    Serialize,
-    Deserialize,
+    Serialize_repr,
+    Deserialize_repr,
     clap::ValueEnum,
 )]
-#[serde(untagged)]
+#[repr(u8)]
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">enum </span>SpecEdition {
     <span class="doccomment">/// ECMAScript 5.1 Edition
     ///
