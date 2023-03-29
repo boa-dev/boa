@@ -30,9 +30,11 @@
 <a href="#29" id="29">29</a>
 <a href="#30" id="30">30</a>
 <a href="#31" id="31">31</a>
+<a href="#32" id="32">32</a>
+<a href="#33" id="33">33</a>
 </pre><pre class="rust"><code><span class="doccomment">//! All Rust API wrappers for Boa&#39;s ECMAScript objects.
 //!
-//! The structs available in this module provide functionality to interact with the implemented ECMAScript object from Rust.
+//! The structs available in this module provide functionality to interact with native ECMAScript objects from Rust.
 
 </span><span class="kw">mod </span>jsarray;
 <span class="kw">mod </span>jsarraybuffer;
@@ -42,7 +44,8 @@
 <span class="kw">mod </span>jsgenerator;
 <span class="kw">mod </span>jsmap;
 <span class="kw">mod </span>jsmap_iterator;
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">mod </span>jsproxy;
+<span class="kw">mod </span>jspromise;
+<span class="kw">mod </span>jsproxy;
 <span class="kw">mod </span>jsregexp;
 <span class="kw">mod </span>jsset;
 <span class="kw">mod </span>jsset_iterator;
@@ -56,7 +59,8 @@
 <span class="kw">pub use </span>jsgenerator::<span class="kw-2">*</span>;
 <span class="kw">pub use </span>jsmap::<span class="kw-2">*</span>;
 <span class="kw">pub use </span>jsmap_iterator::<span class="kw-2">*</span>;
-<span class="kw">pub use </span>jsproxy::{JsProxy, JsRevocableProxy};
+<span class="kw">pub use </span>jspromise::<span class="kw-2">*</span>;
+<span class="kw">pub use </span>jsproxy::{JsProxy, JsProxyBuilder, JsRevocableProxy};
 <span class="kw">pub use </span>jsregexp::JsRegExp;
 <span class="kw">pub use </span>jsset::<span class="kw-2">*</span>;
 <span class="kw">pub use </span>jsset_iterator::<span class="kw-2">*</span>;

@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"struct":[["JsPromise","An ECMAScript promise object."]]};

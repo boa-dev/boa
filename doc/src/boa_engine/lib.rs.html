@@ -484,6 +484,7 @@
 <a href="#483" id="483">483</a>
 <a href="#484" id="484">484</a>
 <a href="#485" id="485">485</a>
+<a href="#486" id="486">486</a>
 </pre><pre class="rust"><code><span class="doccomment">//! Boa&#39;s **`boa_engine`** crate implements ECMAScript&#39;s standard library of builtin objects
 //! and an ECMAScript context, bytecompiler, and virtual machine for code execution.
 //!
@@ -671,6 +672,7 @@
     context::Context,
     error::{JsError, JsNativeError, JsNativeErrorKind},
     native_function::NativeFunction,
+    object::JsObject,
     string::JsString,
     symbol::JsSymbol,
     value::JsValue,

@@ -1503,11 +1503,6 @@
 <a href="#1502" id="1502">1502</a>
 <a href="#1503" id="1503">1503</a>
 <a href="#1504" id="1504">1504</a>
-<a href="#1505" id="1505">1505</a>
-<a href="#1506" id="1506">1506</a>
-<a href="#1507" id="1507">1507</a>
-<a href="#1508" id="1508">1508</a>
-<a href="#1509" id="1509">1509</a>
 </pre><pre class="rust"><code><span class="doccomment">//! `CodeBlock`
 //!
 //! This module is for the `CodeBlock` which implements a function representation in the VM
@@ -2085,12 +2080,7 @@
 
     <span class="kw">let </span>function = <span class="kw">if </span>r#async {
         <span class="kw">let </span>promise_capability = PromiseCapability::new(
-            <span class="kw-2">&amp;</span>context
-                .intrinsics()
-                .constructors()
-                .promise()
-                .constructor()
-                .into(),
+            <span class="kw-2">&amp;</span>context.intrinsics().constructors().promise().constructor(),
             context,
         )
         .expect(<span class="string">&quot;cannot  fail per spec&quot;</span>);

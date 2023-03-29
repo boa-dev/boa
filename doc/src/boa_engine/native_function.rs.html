@@ -284,17 +284,6 @@
 <a href="#283" id="283">283</a>
 <a href="#284" id="284">284</a>
 <a href="#285" id="285">285</a>
-<a href="#286" id="286">286</a>
-<a href="#287" id="287">287</a>
-<a href="#288" id="288">288</a>
-<a href="#289" id="289">289</a>
-<a href="#290" id="290">290</a>
-<a href="#291" id="291">291</a>
-<a href="#292" id="292">292</a>
-<a href="#293" id="293">293</a>
-<a href="#294" id="294">294</a>
-<a href="#295" id="295">295</a>
-<a href="#296" id="296">296</a>
 </pre><pre class="rust"><code><span class="doccomment">//! Boa&#39;s wrappers for native Rust functions to be compatible with ECMAScript calls.
 //!
 //! [`NativeFunction`] is the main type of this module, providing APIs to create native callables
@@ -304,12 +293,7 @@
 
 <span class="kw">use </span>boa_gc::{custom_trace, Finalize, Gc, Trace};
 
-<span class="kw">use crate</span>::{
-    builtins::Promise,
-    job::NativeJob,
-    object::{JsObject, ObjectData},
-    Context, JsResult, JsValue,
-};
+<span class="kw">use crate</span>::{job::NativeJob, object::JsPromise, Context, JsResult, JsValue};
 
 <span class="doccomment">/// The required signature for all native built-in function pointers.
 ///
@@ -483,22 +467,16 @@
         </span>Fut: Future&lt;Output = JsResult&lt;JsValue&gt;&gt; + <span class="lifetime">&#39;static</span>,
     {
         <span class="self">Self</span>::from_copy_closure(<span class="kw">move </span>|this, args, context| {
-            <span class="kw">let </span>proto = context.intrinsics().constructors().promise().prototype();
-            <span class="kw">let </span>promise = JsObject::from_proto_and_data(proto, ObjectData::promise(Promise::new()));
-            <span class="kw">let </span>resolving_functions = Promise::create_resolving_functions(<span class="kw-2">&amp;</span>promise, context);
+            <span class="kw">let </span>(promise, resolvers) = JsPromise::new_pending(context);
 
             <span class="kw">let </span>future = f(this, args, context);
             <span class="kw">let </span>future = <span class="kw">async move </span>{
                 <span class="kw">let </span>result = future.<span class="kw">await</span>;
                 NativeJob::new(<span class="kw">move </span>|ctx| <span class="kw">match </span>result {
-                    <span class="prelude-val">Ok</span>(v) =&gt; resolving_functions
-                        .resolve
-                        .call(<span class="kw-2">&amp;</span>JsValue::undefined(), <span class="kw-2">&amp;</span>[v], ctx),
+                    <span class="prelude-val">Ok</span>(v) =&gt; resolvers.resolve.call(<span class="kw-2">&amp;</span>JsValue::undefined(), <span class="kw-2">&amp;</span>[v], ctx),
                     <span class="prelude-val">Err</span>(e) =&gt; {
                         <span class="kw">let </span>e = e.to_opaque(ctx);
-                        resolving_functions
-                            .reject
-                            .call(<span class="kw-2">&amp;</span>JsValue::undefined(), <span class="kw-2">&amp;</span>[e], ctx)
+                        resolvers.reject.call(<span class="kw-2">&amp;</span>JsValue::undefined(), <span class="kw-2">&amp;</span>[e], ctx)
                     }
                 })
             };

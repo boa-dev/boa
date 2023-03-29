@@ -134,8 +134,6 @@
 <a href="#133" id="133">133</a>
 <a href="#134" id="134">134</a>
 <a href="#135" id="135">135</a>
-<a href="#136" id="136">136</a>
-<a href="#137" id="137">137</a>
 </pre><pre class="rust"><code><span class="kw">use </span>boa_gc::{Gc, GcRefCell};
 
 <span class="kw">use crate</span>::{
@@ -165,13 +163,11 @@
         <span class="kw">let </span>value = context.vm.pop();
 
         <span class="comment">// 2. Let promise be ? PromiseResolve(%Promise%, value).
-        </span><span class="kw">let </span>resolve_result = Promise::promise_resolve(
-            context.intrinsics().constructors().promise().constructor(),
+        </span><span class="kw">let </span>promise = Promise::promise_resolve(
+            <span class="kw-2">&amp;</span>context.intrinsics().constructors().promise().constructor(),
             value,
             context,
-        );
-
-        <span class="kw">let </span>promise = resolve_result<span class="question-mark">?</span>;
+        )<span class="question-mark">?</span>;
 
         <span class="comment">// 3. Let fulfilledClosure be a new Abstract Closure with parameters (value) that captures asyncContext and performs the following steps when called:
         // 4. Let onFulfilled be CreateBuiltinFunction(fulfilledClosure, 1, &quot;&quot;, « »).
@@ -262,8 +258,8 @@
         <span class="comment">// 7. Perform PerformPromiseThen(promise, onFulfilled, onRejected).
         </span>Promise::perform_promise_then(
             <span class="kw-2">&amp;</span>promise,
-            <span class="kw-2">&amp;</span>on_fulfilled.into(),
-            <span class="kw-2">&amp;</span>on_rejected.into(),
+            <span class="prelude-val">Some</span>(on_fulfilled),
+            <span class="prelude-val">Some</span>(on_rejected),
             <span class="prelude-val">None</span>,
             context,
         );
