@@ -522,6 +522,7 @@ dependencies = [
  "regex",
  "serde",
  "serde_json",
+ "serde_repr",
  "serde_yaml",
  "toml 0.7.3",
 ]
@@ -3614,6 +3615,17 @@ dependencies = [
  "itoa",
  "ryu",
  "serde",
+]
+
+[[package]]
+name = "serde_repr"
+version = "0.1.12"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "bcec881020c684085e55a25f7fd888954d56609ef363479dc5a1305eb0d40cab"
+dependencies = [
+ "proc-macro2",
+ "quote",
+ "syn 2.0.11",
 ]
 
 [[package]]
