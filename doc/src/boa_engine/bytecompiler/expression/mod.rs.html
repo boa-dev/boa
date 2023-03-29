@@ -308,6 +308,8 @@
 <a href="#307" id="307">307</a>
 <a href="#308" id="308">308</a>
 <a href="#309" id="309">309</a>
+<a href="#310" id="310">310</a>
+<a href="#311" id="311">311</a>
 </pre><pre class="rust"><code><span class="kw">mod </span>assign;
 <span class="kw">mod </span>binary;
 <span class="kw">mod </span>object_literal;
@@ -565,6 +567,8 @@
             }
             Expression::Class(class) =&gt; <span class="self">self</span>.class(class, <span class="bool-val">true</span>),
             Expression::SuperCall(super_call) =&gt; {
+                <span class="self">self</span>.emit_opcode(Opcode::SuperCallPrepare);
+
                 <span class="kw">let </span>contains_spread = super_call
                     .arguments()
                     .iter()

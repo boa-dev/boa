@@ -290,6 +290,24 @@
 <a href="#289" id="289">289</a>
 <a href="#290" id="290">290</a>
 <a href="#291" id="291">291</a>
+<a href="#292" id="292">292</a>
+<a href="#293" id="293">293</a>
+<a href="#294" id="294">294</a>
+<a href="#295" id="295">295</a>
+<a href="#296" id="296">296</a>
+<a href="#297" id="297">297</a>
+<a href="#298" id="298">298</a>
+<a href="#299" id="299">299</a>
+<a href="#300" id="300">300</a>
+<a href="#301" id="301">301</a>
+<a href="#302" id="302">302</a>
+<a href="#303" id="303">303</a>
+<a href="#304" id="304">304</a>
+<a href="#305" id="305">305</a>
+<a href="#306" id="306">306</a>
+<a href="#307" id="307">307</a>
+<a href="#308" id="308">308</a>
+<a href="#309" id="309">309</a>
 </pre><pre class="rust"><code><span class="kw">use crate</span>::{
     environments::EnvironmentSlots,
     error::JsNativeError,
@@ -376,6 +394,46 @@
     }
 }
 
+<span class="doccomment">/// `SuperCallPrepare` implements the Opcode Operation for `Opcode::SuperCallPrepare`
+///
+/// Operation:
+///  - Get the super constructor and the new target of the current environment.
+</span><span class="attr">#[derive(Debug, Clone, Copy)]
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>SuperCallPrepare;
+
+<span class="kw">impl </span>Operation <span class="kw">for </span>SuperCallPrepare {
+    <span class="kw">const </span>NAME: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;SuperCallPrepare&quot;</span>;
+    <span class="kw">const </span>INSTRUCTION: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;INST - SuperCallPrepare&quot;</span>;
+
+    <span class="kw">fn </span>execute(context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;CompletionType&gt; {
+        <span class="kw">let </span>this_env = context
+            .realm
+            .environments
+            .get_this_environment()
+            .as_function_slots()
+            .expect(<span class="string">&quot;super call must be in function environment&quot;</span>);
+        <span class="kw">let </span>this_env_borrow = this_env.borrow();
+        <span class="kw">let </span>new_target = this_env_borrow
+            .new_target()
+            .expect(<span class="string">&quot;must have new target&quot;</span>)
+            .clone();
+        <span class="kw">let </span>active_function = this_env_borrow.function_object().clone();
+        drop(this_env_borrow);
+        <span class="kw">let </span>super_constructor = active_function
+            .__get_prototype_of__(context)
+            .expect(<span class="string">&quot;function object must have prototype&quot;</span>);
+
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(constructor) = super_constructor {
+            context.vm.push(constructor);
+        } <span class="kw">else </span>{
+            context.vm.push(JsValue::Null);
+        }
+        context.vm.push(new_target);
+
+        <span class="prelude-val">Ok</span>(CompletionType::Normal)
+    }
+}
+
 <span class="doccomment">/// `SuperCall` implements the Opcode Operation for `Opcode::SuperCall`
 ///
 /// Operation:
@@ -395,33 +453,20 @@
         }
         arguments.reverse();
 
-        <span class="kw">let </span>(new_target, active_function) = {
-            <span class="kw">let </span>this_env = context
-                .realm
-                .environments
-                .get_this_environment()
-                .as_function_slots()
-                .expect(<span class="string">&quot;super call must be in function environment&quot;</span>);
-            <span class="kw">let </span>this_env_borrow = this_env.borrow();
-            <span class="kw">let </span>new_target = this_env_borrow
-                .new_target()
-                .expect(<span class="string">&quot;must have new target&quot;</span>)
-                .clone();
-            <span class="kw">let </span>active_function = this_env.borrow().function_object().clone();
-            (new_target, active_function)
-        };
-        <span class="kw">let </span>super_constructor = active_function
-            .__get_prototype_of__(context)
-            .expect(<span class="string">&quot;function object must have prototype&quot;</span>)
-            .expect(<span class="string">&quot;function object must have prototype&quot;</span>);
+        <span class="kw">let </span>new_target_value = context.vm.pop();
+        <span class="kw">let </span>super_constructor = context.vm.pop();
 
-        <span class="kw">if </span>!super_constructor.is_constructor() {
+        <span class="kw">let </span>new_target = new_target_value
+            .as_object()
+            .expect(<span class="string">&quot;new target must be object&quot;</span>);
+
+        <span class="kw">let </span><span class="prelude-val">Some</span>(super_constructor) = super_constructor.as_constructor() <span class="kw">else </span>{
             <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::typ()
                 .with_message(<span class="string">&quot;super constructor object must be constructor&quot;</span>)
                 .into());
-        }
+        };
 
-        <span class="kw">let </span>result = super_constructor.__construct__(<span class="kw-2">&amp;</span>arguments, <span class="kw-2">&amp;</span>new_target, context)<span class="question-mark">?</span>;
+        <span class="kw">let </span>result = super_constructor.__construct__(<span class="kw-2">&amp;</span>arguments, new_target, context)<span class="question-mark">?</span>;
 
         <span class="kw">let </span>this_env = context
             .realm
@@ -435,6 +480,8 @@
                 .with_message(<span class="string">&quot;this already initialized&quot;</span>)
                 .into());
         }
+
+        <span class="kw">let </span>active_function = this_env.borrow().function_object().clone();
 
         result.initialize_instance_elements(<span class="kw-2">&amp;</span>active_function, context)<span class="question-mark">?</span>;
 
@@ -467,33 +514,20 @@
             .expect(<span class="string">&quot;arguments array in call spread function must be dense&quot;</span>)
             .clone();
 
-        <span class="kw">let </span>(new_target, active_function) = {
-            <span class="kw">let </span>this_env = context
-                .realm
-                .environments
-                .get_this_environment()
-                .as_function_slots()
-                .expect(<span class="string">&quot;super call must be in function environment&quot;</span>);
-            <span class="kw">let </span>this_env_borrow = this_env.borrow();
-            <span class="kw">let </span>new_target = this_env_borrow
-                .new_target()
-                .expect(<span class="string">&quot;must have new target&quot;</span>)
-                .clone();
-            <span class="kw">let </span>active_function = this_env.borrow().function_object().clone();
-            (new_target, active_function)
-        };
-        <span class="kw">let </span>super_constructor = active_function
-            .__get_prototype_of__(context)
-            .expect(<span class="string">&quot;function object must have prototype&quot;</span>)
-            .expect(<span class="string">&quot;function object must have prototype&quot;</span>);
+        <span class="kw">let </span>new_target_value = context.vm.pop();
+        <span class="kw">let </span>super_constructor = context.vm.pop();
 
-        <span class="kw">if </span>!super_constructor.is_constructor() {
+        <span class="kw">let </span>new_target = new_target_value
+            .as_object()
+            .expect(<span class="string">&quot;new target must be object&quot;</span>);
+
+        <span class="kw">let </span><span class="prelude-val">Some</span>(super_constructor) = super_constructor.as_constructor() <span class="kw">else </span>{
             <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::typ()
                 .with_message(<span class="string">&quot;super constructor object must be constructor&quot;</span>)
                 .into());
-        }
+        };
 
-        <span class="kw">let </span>result = super_constructor.__construct__(<span class="kw-2">&amp;</span>arguments, <span class="kw-2">&amp;</span>new_target, context)<span class="question-mark">?</span>;
+        <span class="kw">let </span>result = super_constructor.__construct__(<span class="kw-2">&amp;</span>arguments, new_target, context)<span class="question-mark">?</span>;
 
         <span class="kw">let </span>this_env = context
             .realm
@@ -507,6 +541,8 @@
                 .with_message(<span class="string">&quot;this already initialized&quot;</span>)
                 .into());
         }
+
+        <span class="kw">let </span>active_function = this_env.borrow().function_object().clone();
 
         result.initialize_instance_elements(<span class="kw-2">&amp;</span>active_function, context)<span class="question-mark">?</span>;
 

@@ -1564,6 +1564,13 @@
 <a href="#1563" id="1563">1563</a>
 <a href="#1564" id="1564">1564</a>
 <a href="#1565" id="1565">1565</a>
+<a href="#1566" id="1566">1566</a>
+<a href="#1567" id="1567">1567</a>
+<a href="#1568" id="1568">1568</a>
+<a href="#1569" id="1569">1569</a>
+<a href="#1570" id="1570">1570</a>
+<a href="#1571" id="1571">1571</a>
+<a href="#1572" id="1572">1572</a>
 </pre><pre class="rust"><code><span class="doccomment">/// The opcodes of the vm.
 </span><span class="kw">use crate</span>::{vm::CompletionType, Context, JsResult};
 
@@ -2766,18 +2773,25 @@
         /// Stack: **=&gt;** super
         </span>Super,
 
+        <span class="doccomment">/// Get the super constructor and the new target of the current environment.
+        ///
+        /// Operands:
+        ///
+        /// Stack: **=&gt;** super_constructor, new_target
+        </span>SuperCallPrepare,
+
         <span class="doccomment">/// Execute the `super()` method.
         ///
         /// Operands: argument_count: `u32`
         ///
-        /// Stack: argument_1, ... argument_n **=&gt;**
+        /// Stack: super_constructor, new_target, argument_1, ... argument_n **=&gt;**
         </span>SuperCall,
 
         <span class="doccomment">/// Execute the `super()` method where the arguments contain spreads.
         ///
         /// Operands:
         ///
-        /// Stack: arguments_array **=&gt;**
+        /// Stack: super_constructor, new_target, arguments_array **=&gt;**
         </span>SuperCallSpread,
 
         <span class="doccomment">/// Execute the `super()` method when no constructor of the class is defined.

@@ -1503,6 +1503,7 @@
 <a href="#1502" id="1502">1502</a>
 <a href="#1503" id="1503">1503</a>
 <a href="#1504" id="1504">1504</a>
+<a href="#1505" id="1505">1505</a>
 </pre><pre class="rust"><code><span class="doccomment">//! `CodeBlock`
 //!
 //! This module is for the `CodeBlock` which implements a function representation in the VM
@@ -1953,6 +1954,7 @@
             | Opcode::SuperCallDerived
             | Opcode::Await
             | Opcode::PushNewTarget
+            | Opcode::SuperCallPrepare
             | Opcode::CallEvalSpread
             | Opcode::CallSpread
             | Opcode::NewSpread
