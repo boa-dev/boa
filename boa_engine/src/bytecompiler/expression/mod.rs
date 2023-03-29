@@ -255,6 +255,8 @@ impl ByteCompiler<'_, '_> {
             }
             Expression::Class(class) => self.class(class, true),
             Expression::SuperCall(super_call) => {
+                self.emit_opcode(Opcode::SuperCallPrepare);
+
                 let contains_spread = super_call
                     .arguments()
                     .iter()
