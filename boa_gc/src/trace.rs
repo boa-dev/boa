@@ -308,6 +308,19 @@ unsafe impl<T: Trace> Trace for Vec<T> {
     });
 }
 
+#[cfg(feature = "thin-vec")]
+impl<T: Trace> Finalize for thin_vec::ThinVec<T> {}
+
+#[cfg(feature = "thin-vec")]
+// SAFETY: All the inner elements of the `Vec` are correctly marked.
+unsafe impl<T: Trace> Trace for thin_vec::ThinVec<T> {
+    custom_trace!(this, {
+        for e in this {
+            mark(e);
+        }
+    });
+}
+
 impl<T: Trace> Finalize for Option<T> {}
 // SAFETY: The inner value of the `Option` is correctly marked.
 unsafe impl<T: Trace> Trace for Option<T> {

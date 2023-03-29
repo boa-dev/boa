@@ -36,7 +36,7 @@ unsafe impl<K: Trace> Trace for OrderedHashMap<K> {
 /// - `Sparse` Storage
 ///
 /// By default it is dense storage.
-#[derive(Debug, Finalize)]
+#[derive(Debug, Trace, Finalize)]
 enum IndexedProperties {
     /// Dense storage holds a contiguous array of properties where the index in the array is the key of the property.
     /// These are known to be data descriptors with a value field, writable field set to `true`, configurable field set to `true`, enumerable field set to `true`.
@@ -53,19 +53,6 @@ enum IndexedProperties {
     /// This method uses more space, since we also have to store the property descriptors, not just the value.
     /// It is also slower because we need to to a hash lookup.
     Sparse(Box<FxHashMap<u32, PropertyDescriptor>>),
-}
-
-unsafe impl Trace for IndexedProperties {
-    custom_trace!(this, {
-        match this {
-            Self::Dense(vec) => {
-                for elem in vec.iter() {
-                    mark(elem);
-                }
-            }
-            Self::Sparse(map) => mark(map),
-        }
-    });
 }
 
 impl Default for IndexedProperties {
