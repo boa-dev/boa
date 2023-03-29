@@ -250,6 +250,17 @@ impl Expression {
             _ => false,
         }
     }
+
+    /// Returns the expression without any outer parenthesized expressions.
+    #[must_use]
+    #[inline]
+    pub const fn flatten(&self) -> &Self {
+        let mut expression = self;
+        while let Self::Parenthesized(p) = expression {
+            expression = p.expression();
+        }
+        expression
+    }
 }
 
 impl From<Expression> for Statement {

@@ -78,11 +78,7 @@ where
                 let position = cursor.peek(0, interner).or_abrupt()?.span().start();
                 let target = self.parse(cursor, interner)?;
 
-                let mut expression = &target;
-                while let Expression::Parenthesized(p) = expression {
-                    expression = p.expression();
-                }
-                match expression {
+                match target.flatten() {
                     Expression::Identifier(_) if cursor.strict_mode() => {
                         return Err(Error::lex(LexError::Syntax(
                             "cannot delete variables in strict mode".into(),

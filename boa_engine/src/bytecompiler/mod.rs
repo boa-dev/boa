@@ -870,12 +870,7 @@ impl<'b, 'host> ByteCompiler<'b, 'host> {
     fn compile_optional_preserve_this(&mut self, optional: &Optional) {
         let mut jumps = Vec::with_capacity(optional.chain().len());
 
-        let mut target = optional.target();
-        while let Expression::Parenthesized(p) = target {
-            target = p.expression();
-        }
-
-        match target {
+        match optional.target().flatten() {
             Expression::PropertyAccess(access) => {
                 self.compile_access_preserve_this(access);
             }
@@ -1250,12 +1245,7 @@ impl<'b, 'host> ByteCompiler<'b, 'host> {
             Callable::New(new) => (new.call(), CallKind::New),
         };
 
-        let mut function = call.function();
-        while let Expression::Parenthesized(p) = function {
-            function = p.expression();
-        }
-
-        match function {
+        match call.function().flatten() {
             Expression::PropertyAccess(access) if kind == CallKind::Call => {
                 self.compile_access_preserve_this(access);
             }
