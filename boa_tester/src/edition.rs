@@ -5,7 +5,7 @@
 
 use std::fmt::Display;
 
-use serde::{Deserialize, Serialize};
+use serde_repr::{Deserialize_repr, Serialize_repr};
 
 use crate::read::{MetaData, TestFlag};
 
@@ -270,11 +270,11 @@ static FEATURE_EDITION: phf::Map<&'static str, SpecEdition> = phf::phf_map! {
     PartialOrd,
     Ord,
     Default,
-    Serialize,
-    Deserialize,
+    Serialize_repr,
+    Deserialize_repr,
     clap::ValueEnum,
 )]
-#[serde(untagged)]
+#[repr(u8)]
 pub(crate) enum SpecEdition {
     /// ECMAScript 5.1 Edition
     ///
