@@ -1,17 +1,30 @@
 const formatter = new Intl.NumberFormat("en-GB");
+const esVersionPicker = document.getElementById("info-options-es-version");
+const hidePassingSwitch = document.getElementById("info-options-hide-passing-switch");
 
 let hidePassingSuites = false;
 let currentData = null;
+let esVersion = 255;
 
-document
-  .getElementById("info-options-hide-passing-switch")
-  .checked = false;
-document
-  .getElementById("info-options-hide-passing-switch")
+hidePassingSwitch.checked = false;
+hidePassingSwitch
   .addEventListener("change", () => {
     hidePassingSuites = !hidePassingSuites;
     showData(currentData);
   });
+
+esVersionPicker.getElementsByTagName('option')[0].selected = true;
+esVersionPicker.disabled = false;
+esVersionPicker.addEventListener("change", () => {
+  const version = Number.parseInt(esVersionPicker.value);
+  console.log(`selected version: ${version}`);
+
+  esVersion = version;
+
+  showData(currentData)
+});
+
+
 
 loadMainData();
 loadMainResults();
@@ -55,19 +68,18 @@ const versionListHTMLItems = await Promise.all(
         <span class="text-warning">${formatter.format(stats.i)}</span>
         /
         <span class="text-danger">${formatter.format(
-          stats.t - stats.o - stats.i
-        )}
-        ${
-          json.r.p !== 0
-            ? ` (${formatter.format(
-                stats.p
-              )} <i class="bi-exclamation-triangle"></i>)`
-            : ""
-        }</span>
+      stats.t - stats.o - stats.i
+    )}
+        ${json.r.p !== 0
+        ? ` (${formatter.format(
+          stats.p
+        )} <i class="bi-exclamation-triangle"></i>)`
+        : ""
+      }</span>
         /
         <b>${formatter.format(
-          Math.round((10000 * stats.o) / stats.t) / 100
-        )}%</b>
+        Math.round((10000 * stats.o) / stats.t) / 100
+      )}%</b>
       </div>
       <button type="button" class="btn btn-outline-primary" id="old-version-${tag}">
         Test Results
@@ -113,40 +125,40 @@ async function loadMainResults() {
     data: {
       labels: data.map((data) => data.a.t),
       datasets:
-      [
-        {
-          label: "Passed",
-          data: data.map((data) => data.a.o),
-          backgroundColor: "#1fcb4a",
-          borderColor: "#0f6524",
-          borderWidth: 1,
-          fill: true,
-        },
-        {
-          label: "Ignored",
-          data: data.map((data) => data.a.i),
-          backgroundColor: "#dfa800",
-          borderColor: "#6f5400",
-          borderWidth: 1,
-          fill: true,
-        },
-        {
-          label: "Panics",
-          data: data.map((data) => data.a.p),
-          backgroundColor: "#a30000",
-          borderColor: "#510000",
-          borderWidth: 1,
-          fill: true,
-        },
-        {
-          label: "Failed",
-          data: data.map((data) => data.a.t - data.a.i - data.a.o - data.a.p),
-          backgroundColor: "#ff4848",
-          borderColor: "#a30000",
-          borderWidth: 1,
-          fill: true,
-        },
-      ],
+        [
+          {
+            label: "Passed",
+            data: data.map((data) => data.a.o),
+            backgroundColor: "#1fcb4a",
+            borderColor: "#0f6524",
+            borderWidth: 1,
+            fill: true,
+          },
+          {
+            label: "Ignored",
+            data: data.map((data) => data.a.i),
+            backgroundColor: "#dfa800",
+            borderColor: "#6f5400",
+            borderWidth: 1,
+            fill: true,
+          },
+          {
+            label: "Panics",
+            data: data.map((data) => data.a.p),
+            backgroundColor: "#a30000",
+            borderColor: "#510000",
+            borderWidth: 1,
+            fill: true,
+          },
+          {
+            label: "Failed",
+            data: data.map((data) => data.a.t - data.a.i - data.a.o - data.a.p),
+            backgroundColor: "#ff4848",
+            borderColor: "#a30000",
+            borderWidth: 1,
+            fill: true,
+          },
+        ],
     },
     options: {
       elements: {
@@ -200,34 +212,32 @@ function createInfoFromResults(resultsData, nodeID) {
     "afterbegin",
     `
     <li class="list-group-item">
-      Latest commit: <a href="https://github.com/boa-dev/boa/commit/${
-        latest.c
-      }" title="Check commit">${latest.c}</a>
+      Latest commit: <a href="https://github.com/boa-dev/boa/commit/${latest.c
+    }" title="Check commit">${latest.c}</a>
     </li>
     <li class="list-group-item">
       Total tests: <span>${formatter.format(stats.t)}</span>
     </li>
     <li class="list-group-item">
       Passed tests: <span class="text-success">${formatter.format(
-        stats.o
-      )}</span>
+      stats.o
+    )}</span>
     </li>
     <li class="list-group-item">
       Ignored tests: <span class="text-warning">${formatter.format(
-        stats.i
-      )}</span>
+      stats.i
+    )}</span>
     </li>
     <li class="list-group-item">
       Failed tests: <span class="text-danger">${formatter.format(
-        stats.t - stats.o - stats.i
-      )}
-      ${
-        stats.p !== 0
-          ? ` (${formatter.format(
-              stats.p
-            )} <i class="bi-exclamation-triangle"></i>)`
-          : ""
-      }</span>
+      stats.t - stats.o - stats.i
+    )}
+      ${stats.p !== 0
+      ? ` (${formatter.format(
+        stats.p
+      )} <i class="bi-exclamation-triangle"></i>)`
+      : ""
+    }</span>
     </li>
     <li class="list-group-item">
       Conformance: <b>${Math.round((10000 * stats.o) / stats.t) / 100}%</b>
@@ -245,6 +255,12 @@ function showData(data) {
   const progressInfoContainer = document.getElementById("progress-info");
 
   const stats = data.r.a;
+  if (!data.r.av) {
+    esVersionPicker.getElementsByTagName('option')[0].selected = true;
+    esVersionPicker.disabled = true;
+  } else {
+    esVersionPicker.disabled = false;
+  }
   const totalTests = stats.t;
   const passedTests = stats.o;
   const ignoredTests = stats.i;
@@ -285,10 +301,32 @@ function showData(data) {
 }
 
 function addSuite(suite, parentID, namespace, upstream) {
-  const stats = suite.a;
-  if (hidePassingSuites && stats.o === stats.t) {
+
+  function shouldDisplayTest(test) {
+    if (hidePassingSuites && test.r === "O") {
+      return false;
+    }
+    return test.v ? test.v <= esVersion : true;
+  }
+
+  function shouldDisplaySuite(suite) {
+    const tests = suite.t ?? [];
+    const subSuites = suite.s ?? [];
+
+    const hasTests = tests.some(shouldDisplayTest);
+    const hasSubSuites = subSuites.some(shouldDisplaySuite);
+
+    return hasTests || hasSubSuites;
+  }
+
+
+  if (!shouldDisplaySuite(suite)) {
     return;
   }
+
+  const stats = suite?.av?.["es" + esVersion] ?? suite.a;
+  const tests = suite.t ? suite.t.filter(shouldDisplayTest) : [];
+  const subSuites = suite.s ?? [];
 
   const newID = (parentID + suite.n).replaceAll(".", "-");
   const newInnerID = newID + "-inner";
@@ -311,15 +349,14 @@ function addSuite(suite, parentID, namespace, upstream) {
           <span class="text-warning">${formatter.format(stats.i)}</span>
           /
           <span class="text-danger">${formatter.format(
-            stats.t - stats.o - stats.i
-          )}
-          ${
-            stats.p !== 0
-              ? ` (${formatter.format(
-                  stats.p
-                )} <i class="bi-exclamation-triangle"></i>)`
-              : ""
-          }</span>
+    stats.t - stats.o - stats.i
+  )}
+          ${stats.p !== 0
+      ? ` (${formatter.format(
+        stats.p
+      )} <i class="bi-exclamation-triangle"></i>)`
+      : ""
+    }</span>
           /
           <span>${formatter.format(stats.t)}</span>
         </span>
@@ -339,52 +376,48 @@ function addSuite(suite, parentID, namespace, upstream) {
   newContainer.addEventListener("show.bs.collapse", (event) => {
     event.stopPropagation();
 
-    if (typeof suite.t !== "undefined" && suite.t.length !== 0) {
-      const rows = suite.t.map((innerTest) => {
-        const panics = innerTest.r === "P";
-        let style;
-        switch (innerTest.r) {
-          case "O":
-            style = "bg-success";
-            break;
-          case "I":
-            style = "bg-warning";
-            break;
-          default:
-            style = "bg-danger";
-        }
+    if (tests.length != 0) {
+      const rows = tests
+        .map((innerTest) => {
+          const panics = innerTest.r === "P";
+          let style;
+          switch (innerTest.r) {
+            case "O":
+              style = "bg-success";
+              break;
+            case "I":
+              style = "bg-warning";
+              break;
+            default:
+              style = "bg-danger";
+          }
 
-        return `<a
-          title="${innerTest.n}"
-          class="card test embed-responsive ${style}${
-          panics ? "" : " embed-responsive-1by1"
-        }"
-          target="_blank"
-          href="https://github.com/tc39/test262/blob/${upstream}/${namespace}/${
-          innerTest.n
-        }.js"
-        >${panics ? '<i class="bi-exclamation-triangle"></i>' : ""}</a>`;
-      });
+          return `<a
+            title="${innerTest.n}"
+            class="card test embed-responsive ${style}${panics ? "" : " embed-responsive-1by1"
+            }"
+            target="_blank"
+            href="https://github.com/tc39/test262/blob/${upstream}/${namespace}/${innerTest.n
+            }.js"
+          >${panics ? '<i class="bi-exclamation-triangle"></i>' : ""}</a>`;
+        });
 
       const testsHTML = `<div class="card">
-        <div class="row card-body">
-          <h3>Direct tests:</h3>
-          ${rows.join("")}
-        </div>
-      </div>`;
+          <div class="row card-body">
+            <h3>Direct tests:</h3>
+            ${rows.join("")}
+          </div>
+        </div>`;
 
       newInnerContainer.insertAdjacentHTML("beforeend", testsHTML);
     }
-
-    if (typeof suite.s !== "undefined" && suite.s.length !== 0) {
-      for (const innerSuite of suite.s) {
-        addSuite(
-          innerSuite,
-          newInnerID,
-          namespace + "/" + innerSuite.n,
-          upstream
-        );
-      }
+    for (const innerSuite of subSuites) {
+      addSuite(
+        innerSuite,
+        newInnerID,
+        namespace + "/" + innerSuite.n,
+        upstream
+      );
     }
   });
 
