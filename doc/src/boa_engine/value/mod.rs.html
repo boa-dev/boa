@@ -1102,20 +1102,17 @@
 <a href="#1101" id="1101">1101</a>
 <a href="#1102" id="1102">1102</a>
 <a href="#1103" id="1103">1103</a>
-<a href="#1104" id="1104">1104</a>
 </pre><pre class="rust"><code><span class="doccomment">//! Boa&#39;s ECMAScript Value implementation.
 //!
 //! Javascript values, utility methods and conversion between Javascript values and Rust values.
 
 </span><span class="kw">mod </span>conversions;
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">mod </span>display;
 <span class="kw">mod </span>equality;
 <span class="kw">mod </span>hash;
 <span class="kw">mod </span>integer;
 <span class="kw">mod </span>operations;
-<span class="kw">mod </span>serde_json;
 <span class="kw">mod </span>r#type;
-
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">mod </span>display;
 
 <span class="attr">#[cfg(test)]
 </span><span class="kw">mod </span>tests;
@@ -1144,14 +1141,15 @@
     ops::Sub,
 };
 
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use </span>conversions::<span class="kw-2">*</span>;
+<span class="attr">#[doc(inline)]
+</span><span class="kw">pub use </span><span class="self">self</span>::{
+    conversions::try_from_js::TryFromJs, display::ValueDisplay, integer::IntegerOrInfinity,
+    operations::<span class="kw-2">*</span>, r#type::Type,
+};
+<span class="attr">#[doc(inline)]
+</span><span class="kw">pub use </span>boa_macros::TryFromJs;
 
-<span class="kw">pub use </span>display::ValueDisplay;
-<span class="kw">pub use </span>integer::IntegerOrInfinity;
-<span class="kw">pub use </span>operations::<span class="kw-2">*</span>;
-<span class="kw">pub use </span>r#type::Type;
-
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use </span><span class="self">self</span>::integer::IntegerOrNan;
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use </span><span class="self">self</span>::{conversions::IntoOrUndefined, integer::IntegerOrNan};
 
 <span class="kw">static </span>TWO_E_64: Lazy&lt;BigInt&gt; = Lazy::new(|| {
     <span class="kw">const </span>TWO_E_64: u128 = <span class="number">2u128</span>.pow(<span class="number">64</span>);
