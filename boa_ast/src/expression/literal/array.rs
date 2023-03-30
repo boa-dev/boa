@@ -159,6 +159,13 @@ impl AsRef<[Option<Expression>]> for ArrayLiteral {
     }
 }
 
+impl AsMut<[Option<Expression>]> for ArrayLiteral {
+    #[inline]
+    fn as_mut(&mut self) -> &mut [Option<Expression>] {
+        &mut self.arr
+    }
+}
+
 impl<T> From<T> for ArrayLiteral
 where
     T: Into<Box<[Option<Expression>]>>,

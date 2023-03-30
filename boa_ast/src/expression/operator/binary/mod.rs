@@ -71,6 +71,20 @@ impl Binary {
     pub const fn rhs(&self) -> &Expression {
         &self.rhs
     }
+
+    /// Gets the left hand side of the binary operation.
+    #[inline]
+    #[must_use]
+    pub fn lhs_mut(&mut self) -> &mut Expression {
+        &mut self.lhs
+    }
+
+    /// Gets the right hand side of the binary operation.
+    #[inline]
+    #[must_use]
+    pub fn rhs_mut(&mut self) -> &mut Expression {
+        &mut self.rhs
+    }
 }
 
 impl ToInternedString for Binary {

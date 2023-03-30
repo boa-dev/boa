@@ -499,8 +499,7 @@ impl<'b, 'host> ByteCompiler<'b, 'host> {
         }
 
         // Check if the f64 value can fit in an i32.
-        #[allow(clippy::float_cmp)]
-        if f64::from(value as i32) == value {
+        if f64::from(value as i32).to_bits() == value.to_bits() {
             self.emit_push_integer(value as i32);
         } else {
             self.emit_opcode(Opcode::PushRational);

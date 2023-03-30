@@ -1,6 +1,8 @@
 //! Benchmarks of the whole execution engine in Boa.
 
-use boa_engine::{context::DefaultHooks, realm::Realm, Context, Source};
+use boa_engine::{
+    context::DefaultHooks, optimizer::OptimizerOptions, realm::Realm, Context, Source,
+};
 use criterion::{criterion_group, criterion_main, Criterion};
 use std::hint::black_box;
 
@@ -24,6 +26,10 @@ macro_rules! full_benchmarks {
                 {
                     static CODE: &str = include_str!(concat!("bench_scripts/", stringify!($name), ".js"));
                     let mut context = Context::default();
+
+                    // Disable optimizations
+                    context.set_optimizer_options(OptimizerOptions::empty());
+
                     c.bench_function(concat!($id, " (Parser)"), move |b| {
                         b.iter(|| context.parse_script(black_box(Source::from_bytes(CODE))))
                     });
@@ -35,6 +41,10 @@ macro_rules! full_benchmarks {
                 {
                     static CODE: &str = include_str!(concat!("bench_scripts/", stringify!($name), ".js"));
                     let mut context = Context::default();
+
+                    // Disable optimizations
+                    context.set_optimizer_options(OptimizerOptions::empty());
+
                     let statement_list = context.parse_script(Source::from_bytes(CODE)).expect("parsing failed");
                     c.bench_function(concat!($id, " (Compiler)"), move |b| {
                         b.iter(|| {
@@ -49,6 +59,10 @@ macro_rules! full_benchmarks {
                 {
                     static CODE: &str = include_str!(concat!("bench_scripts/", stringify!($name), ".js"));
                     let mut context = Context::default();
+
+                    // Disable optimizations
+                    context.set_optimizer_options(OptimizerOptions::empty());
+
                     let statement_list = context.parse_script(Source::from_bytes(CODE)).expect("parsing failed");
                     let code_block = context.compile_script(&statement_list).unwrap();
                     c.bench_function(concat!($id, " (Execution)"), move |b| {
