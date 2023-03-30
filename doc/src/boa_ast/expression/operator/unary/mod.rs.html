@@ -100,6 +100,13 @@
 <a href="#99" id="99">99</a>
 <a href="#100" id="100">100</a>
 <a href="#101" id="101">101</a>
+<a href="#102" id="102">102</a>
+<a href="#103" id="103">103</a>
+<a href="#104" id="104">104</a>
+<a href="#105" id="105">105</a>
+<a href="#106" id="106">106</a>
+<a href="#107" id="107">107</a>
+<a href="#108" id="108">108</a>
 </pre><pre class="rust"><code><span class="doccomment">//! Unary expression nodes.
 //!
 //! A unary expression comprises any operation applied to a single expression. Some examples include:
@@ -161,6 +168,13 @@
     #[must_use]
     </span><span class="kw">pub fn </span>target(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>Expression {
         <span class="self">self</span>.target.as_ref()
+    }
+
+    <span class="doccomment">/// Gets the target of this unary operator.
+    </span><span class="attr">#[inline]
+    #[must_use]
+    </span><span class="kw">pub fn </span>target_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span>Expression {
+        <span class="self">self</span>.target.as_mut()
     }
 }
 

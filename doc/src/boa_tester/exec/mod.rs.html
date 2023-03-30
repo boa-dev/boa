@@ -514,6 +514,23 @@
 <a href="#513" id="513">513</a>
 <a href="#514" id="514">514</a>
 <a href="#515" id="515">515</a>
+<a href="#516" id="516">516</a>
+<a href="#517" id="517">517</a>
+<a href="#518" id="518">518</a>
+<a href="#519" id="519">519</a>
+<a href="#520" id="520">520</a>
+<a href="#521" id="521">521</a>
+<a href="#522" id="522">522</a>
+<a href="#523" id="523">523</a>
+<a href="#524" id="524">524</a>
+<a href="#525" id="525">525</a>
+<a href="#526" id="526">526</a>
+<a href="#527" id="527">527</a>
+<a href="#528" id="528">528</a>
+<a href="#529" id="529">529</a>
+<a href="#530" id="530">530</a>
+<a href="#531" id="531">531</a>
+<a href="#532" id="532">532</a>
 </pre><pre class="rust"><code><span class="doccomment">//! Execution module for the test runner.
 
 </span><span class="kw">mod </span>js262;
@@ -524,8 +541,8 @@
 };
 <span class="kw">use </span>boa_engine::{
     context::ContextBuilder, job::SimpleJobQueue, native_function::NativeFunction,
-    object::FunctionObjectBuilder, property::Attribute, Context, JsArgs, JsNativeErrorKind,
-    JsValue, Source,
+    object::FunctionObjectBuilder, optimizer::OptimizerOptions, property::Attribute, Context,
+    JsArgs, JsNativeErrorKind, JsValue, Source,
 };
 <span class="kw">use </span>colored::Colorize;
 <span class="kw">use </span>fxhash::FxHashSet;
@@ -540,6 +557,7 @@
         verbose: u8,
         parallel: bool,
         max_edition: SpecEdition,
+        optimizer_options: OptimizerOptions,
     ) -&gt; SuiteResult {
         <span class="kw">if </span>verbose != <span class="number">0 </span>{
             <span class="macro">println!</span>(<span class="string">&quot;Suite {}:&quot;</span>, <span class="self">self</span>.path.display());
@@ -548,12 +566,12 @@
         <span class="kw">let </span>suites: Vec&lt;<span class="kw">_</span>&gt; = <span class="kw">if </span>parallel {
             <span class="self">self</span>.suites
                 .par_iter()
-                .map(|suite| suite.run(harness, verbose, parallel, max_edition))
+                .map(|suite| suite.run(harness, verbose, parallel, max_edition, optimizer_options))
                 .collect()
         } <span class="kw">else </span>{
             <span class="self">self</span>.suites
                 .iter()
-                .map(|suite| suite.run(harness, verbose, parallel, max_edition))
+                .map(|suite| suite.run(harness, verbose, parallel, max_edition, optimizer_options))
                 .collect()
         };
 
@@ -561,13 +579,13 @@
             <span class="self">self</span>.tests
                 .par_iter()
                 .filter(|test| test.edition &lt;= max_edition)
-                .flat_map(|test| test.run(harness, verbose))
+                .flat_map(|test| test.run(harness, verbose, optimizer_options))
                 .collect()
         } <span class="kw">else </span>{
             <span class="self">self</span>.tests
                 .iter()
                 .filter(|test| test.edition &lt;= max_edition)
-                .flat_map(|test| test.run(harness, verbose))
+                .flat_map(|test| test.run(harness, verbose, optimizer_options))
                 .collect()
         };
 
@@ -650,21 +668,32 @@
 
 <span class="kw">impl </span>Test {
     <span class="doccomment">/// Runs the test.
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>run(<span class="kw-2">&amp;</span><span class="self">self</span>, harness: <span class="kw-2">&amp;</span>Harness, verbose: u8) -&gt; Vec&lt;TestResult&gt; {
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>run(
+        <span class="kw-2">&amp;</span><span class="self">self</span>,
+        harness: <span class="kw-2">&amp;</span>Harness,
+        verbose: u8,
+        optimizer_options: OptimizerOptions,
+    ) -&gt; Vec&lt;TestResult&gt; {
         <span class="kw">let </span><span class="kw-2">mut </span>results = Vec::new();
         <span class="kw">if </span><span class="self">self</span>.flags.contains(TestFlags::STRICT) &amp;&amp; !<span class="self">self</span>.flags.contains(TestFlags::RAW) {
-            results.push(<span class="self">self</span>.run_once(harness, <span class="bool-val">true</span>, verbose));
+            results.push(<span class="self">self</span>.run_once(harness, <span class="bool-val">true</span>, verbose, optimizer_options));
         }
 
         <span class="kw">if </span><span class="self">self</span>.flags.contains(TestFlags::NO_STRICT) || <span class="self">self</span>.flags.contains(TestFlags::RAW) {
-            results.push(<span class="self">self</span>.run_once(harness, <span class="bool-val">false</span>, verbose));
+            results.push(<span class="self">self</span>.run_once(harness, <span class="bool-val">false</span>, verbose, optimizer_options));
         }
 
         results
     }
 
     <span class="doccomment">/// Runs the test once, in strict or non-strict mode
-    </span><span class="kw">fn </span>run_once(<span class="kw-2">&amp;</span><span class="self">self</span>, harness: <span class="kw-2">&amp;</span>Harness, strict: bool, verbose: u8) -&gt; TestResult {
+    </span><span class="kw">fn </span>run_once(
+        <span class="kw-2">&amp;</span><span class="self">self</span>,
+        harness: <span class="kw-2">&amp;</span>Harness,
+        strict: bool,
+        verbose: u8,
+        optimizer_options: OptimizerOptions,
+    ) -&gt; TestResult {
         <span class="kw">let </span><span class="prelude-val">Ok</span>(source) = Source::from_filepath(<span class="kw-2">&amp;</span><span class="self">self</span>.path) <span class="kw">else </span>{
             <span class="kw">if </span>verbose &gt; <span class="number">1 </span>{
                 <span class="macro">println!</span>(
@@ -724,6 +753,7 @@
                     <span class="kw">return </span>(<span class="bool-val">false</span>, e);
                 }
                 context.strict(strict);
+                context.set_optimizer_options(optimizer_options);
 
                 <span class="comment">// TODO: timeout
                 </span><span class="kw">let </span>value = <span class="kw">match if </span><span class="self">self</span>.is_module() {
@@ -763,6 +793,8 @@
 
                 <span class="kw">let </span>context = <span class="kw-2">&amp;mut </span>Context::default();
                 context.strict(strict);
+                context.set_optimizer_options(OptimizerOptions::OPTIMIZE_ALL);
+
                 <span class="kw">if </span><span class="self">self</span>.is_module() {
                     <span class="kw">match </span>context.parse_module(source) {
                         <span class="prelude-val">Ok</span>(module_item_list) =&gt; <span class="kw">match </span>context.compile_module(<span class="kw-2">&amp;</span>module_item_list) {
@@ -791,6 +823,8 @@
             } =&gt; {
                 <span class="kw">let </span>context = <span class="kw-2">&amp;mut </span>Context::default();
                 context.strict(strict);
+                context.set_optimizer_options(optimizer_options);
+
                 <span class="kw">if let </span><span class="prelude-val">Err</span>(e) = <span class="self">self</span>.set_up_env(harness, context, AsyncResult::default()) {
                     <span class="kw">return </span>(<span class="bool-val">false</span>, e);
                 }

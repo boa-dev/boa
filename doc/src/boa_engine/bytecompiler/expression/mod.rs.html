@@ -310,6 +310,7 @@
 <a href="#309" id="309">309</a>
 <a href="#310" id="310">310</a>
 <a href="#311" id="311">311</a>
+<a href="#312" id="312">312</a>
 </pre><pre class="rust"><code><span class="kw">mod </span>assign;
 <span class="kw">mod </span>binary;
 <span class="kw">mod </span>object_literal;
@@ -345,6 +346,7 @@
             AstLiteral::Bool(<span class="bool-val">true</span>) =&gt; <span class="self">self</span>.emit(Opcode::PushTrue, <span class="kw-2">&amp;</span>[]),
             AstLiteral::Bool(<span class="bool-val">false</span>) =&gt; <span class="self">self</span>.emit(Opcode::PushFalse, <span class="kw-2">&amp;</span>[]),
             AstLiteral::Null =&gt; <span class="self">self</span>.emit(Opcode::PushNull, <span class="kw-2">&amp;</span>[]),
+            AstLiteral::Undefined =&gt; <span class="self">self</span>.emit(Opcode::PushUndefined, <span class="kw-2">&amp;</span>[]),
         }
 
         <span class="kw">if </span>!use_expr {

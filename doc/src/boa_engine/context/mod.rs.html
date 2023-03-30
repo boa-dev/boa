@@ -651,6 +651,33 @@
 <a href="#650" id="650">650</a>
 <a href="#651" id="651">651</a>
 <a href="#652" id="652">652</a>
+<a href="#653" id="653">653</a>
+<a href="#654" id="654">654</a>
+<a href="#655" id="655">655</a>
+<a href="#656" id="656">656</a>
+<a href="#657" id="657">657</a>
+<a href="#658" id="658">658</a>
+<a href="#659" id="659">659</a>
+<a href="#660" id="660">660</a>
+<a href="#661" id="661">661</a>
+<a href="#662" id="662">662</a>
+<a href="#663" id="663">663</a>
+<a href="#664" id="664">664</a>
+<a href="#665" id="665">665</a>
+<a href="#666" id="666">666</a>
+<a href="#667" id="667">667</a>
+<a href="#668" id="668">668</a>
+<a href="#669" id="669">669</a>
+<a href="#670" id="670">670</a>
+<a href="#671" id="671">671</a>
+<a href="#672" id="672">672</a>
+<a href="#673" id="673">673</a>
+<a href="#674" id="674">674</a>
+<a href="#675" id="675">675</a>
+<a href="#676" id="676">676</a>
+<a href="#677" id="677">677</a>
+<a href="#678" id="678">678</a>
+<a href="#679" id="679">679</a>
 </pre><pre class="rust"><code><span class="doccomment">//! The ECMAScript context.
 
 </span><span class="kw">mod </span>hooks;
@@ -676,6 +703,7 @@
     job::{IdleJobQueue, JobQueue, NativeJob},
     native_function::NativeFunction,
     object::{FunctionObjectBuilder, GlobalPropertyMap, JsObject},
+    optimizer::{Optimizer, OptimizerOptions, OptimizerStatistics},
     property::{Attribute, PropertyDescriptor, PropertyKey},
     realm::Realm,
     vm::{CallFrame, CodeBlock, Vm},
@@ -754,6 +782,8 @@
     host_hooks: <span class="kw-2">&amp;</span><span class="lifetime">&#39;host </span><span class="kw">dyn </span>HostHooks,
 
     job_queue: <span class="kw-2">&amp;</span><span class="lifetime">&#39;host </span><span class="kw">dyn </span>JobQueue,
+
+    optimizer_options: OptimizerOptions,
 }
 
 <span class="kw">impl </span>std::fmt::Debug <span class="kw">for </span>Context&lt;<span class="lifetime">&#39;_</span>&gt; {
@@ -766,7 +796,8 @@
             .field(<span class="string">&quot;vm&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.vm)
             .field(<span class="string">&quot;strict&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.strict)
             .field(<span class="string">&quot;promise_job_queue&quot;</span>, <span class="kw-2">&amp;</span><span class="string">&quot;JobQueue&quot;</span>)
-            .field(<span class="string">&quot;hooks&quot;</span>, <span class="kw-2">&amp;</span><span class="string">&quot;HostHooks&quot;</span>);
+            .field(<span class="string">&quot;hooks&quot;</span>, <span class="kw-2">&amp;</span><span class="string">&quot;HostHooks&quot;</span>)
+            .field(<span class="string">&quot;optimizer_options&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.optimizer_options);
 
         <span class="attr">#[cfg(feature = <span class="string">&quot;intl&quot;</span>)]
         </span>debug.field(<span class="string">&quot;icu&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.icu);
@@ -855,6 +886,15 @@
         result
     }
 
+    <span class="doccomment">/// Applies optimizations to the [`StatementList`] inplace.
+    </span><span class="kw">pub fn </span>optimize_statement_list(
+        <span class="kw-2">&amp;mut </span><span class="self">self</span>,
+        statement_list: <span class="kw-2">&amp;mut </span>StatementList,
+    ) -&gt; OptimizerStatistics {
+        <span class="kw">let </span><span class="kw-2">mut </span>optimizer = Optimizer::new(<span class="self">self</span>);
+        optimizer.apply(statement_list)
+    }
+
     <span class="doccomment">/// Parse the given source script.
     </span><span class="kw">pub fn </span>parse_script&lt;R: Read&gt;(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
@@ -865,7 +905,11 @@
         <span class="kw">if </span><span class="self">self</span>.strict {
             parser.set_strict();
         }
-        parser.parse_script(<span class="kw-2">&amp;mut </span><span class="self">self</span>.interner)
+        <span class="kw">let </span><span class="kw-2">mut </span>result = parser.parse_script(<span class="kw-2">&amp;mut </span><span class="self">self</span>.interner)<span class="question-mark">?</span>;
+        <span class="kw">if </span>!<span class="self">self</span>.optimizer_options().is_empty() {
+            <span class="self">self</span>.optimize_statement_list(<span class="kw-2">&amp;mut </span>result);
+        }
+        <span class="prelude-val">Ok</span>(result)
     }
 
     <span class="doccomment">/// Parse the given source script.
@@ -1078,6 +1122,15 @@
     </span><span class="attr">#[cfg(feature = <span class="string">&quot;trace&quot;</span>)]
     </span><span class="kw">pub fn </span>set_trace(<span class="kw-2">&amp;mut </span><span class="self">self</span>, trace: bool) {
         <span class="self">self</span>.vm.trace = trace;
+    }
+
+    <span class="doccomment">/// Get optimizer options.
+    </span><span class="kw">pub const fn </span>optimizer_options(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; OptimizerOptions {
+        <span class="self">self</span>.optimizer_options
+    }
+    <span class="doccomment">/// Enable or disable optimizations
+    </span><span class="kw">pub fn </span>set_optimizer_options(<span class="kw-2">&amp;mut </span><span class="self">self</span>, optimizer_options: OptimizerOptions) {
+        <span class="self">self</span>.optimizer_options = optimizer_options;
     }
 
     <span class="doccomment">/// Changes the strictness mode of the context.
@@ -1296,6 +1349,7 @@
             kept_alive: Vec::new(),
             host_hooks,
             job_queue: <span class="self">self</span>.job_queue.unwrap_or(<span class="kw-2">&amp;</span>IdleJobQueue),
+            optimizer_options: OptimizerOptions::OPTIMIZE_ALL,
         };
 
         builtins::set_default_global_bindings(<span class="kw-2">&amp;mut </span>context)<span class="question-mark">?</span>;

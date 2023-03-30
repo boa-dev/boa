@@ -201,6 +201,13 @@
 <a href="#200" id="200">200</a>
 <a href="#201" id="201">201</a>
 <a href="#202" id="202">202</a>
+<a href="#203" id="203">203</a>
+<a href="#204" id="204">204</a>
+<a href="#205" id="205">205</a>
+<a href="#206" id="206">206</a>
+<a href="#207" id="207">207</a>
+<a href="#208" id="208">208</a>
+<a href="#209" id="209">209</a>
 </pre><pre class="rust"><code><span class="doccomment">//! This module contains all literal expressions, which represents the primitive values in ECMAScript.
 //!
 //! More information:
@@ -313,6 +320,12 @@
     /// [spec]: https://tc39.es/ecma262/#sec-null-value
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Glossary/null
     </span>Null,
+
+    <span class="doccomment">/// This represents the JavaScript `undefined` value, it does not reference the `undefined` global variable,
+    /// it will directly evaluate to `undefined`.
+    ///
+    /// NOTE: This is used for optimizations.
+    </span>Undefined,
 }
 
 <span class="kw">impl </span>From&lt;Sym&gt; <span class="kw">for </span>Literal {
@@ -376,6 +389,7 @@
             <span class="self">Self</span>::BigInt(<span class="kw-2">ref </span>num) =&gt; num.to_string(),
             <span class="self">Self</span>::Bool(v) =&gt; v.to_string(),
             <span class="self">Self</span>::Null =&gt; <span class="string">&quot;null&quot;</span>.to_owned(),
+            <span class="self">Self</span>::Undefined =&gt; <span class="string">&quot;undefined&quot;</span>.to_owned(),
         }
     }
 }

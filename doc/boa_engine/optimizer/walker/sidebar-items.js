@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"struct":[["Walker","The utility structure that traverses the AST."]]};

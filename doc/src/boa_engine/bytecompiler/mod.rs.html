@@ -1514,7 +1514,6 @@
 <a href="#1513" id="1513">1513</a>
 <a href="#1514" id="1514">1514</a>
 <a href="#1515" id="1515">1515</a>
-<a href="#1516" id="1516">1516</a>
 </pre><pre class="rust"><code><span class="doccomment">//! This module contains the bytecode compiler.
 
 </span><span class="kw">mod </span>class;
@@ -2016,8 +2015,7 @@
         }
 
         <span class="comment">// Check if the f64 value can fit in an i32.
-        </span><span class="attr">#[allow(clippy::float_cmp)]
-        </span><span class="kw">if </span>f64::from(value <span class="kw">as </span>i32) == value {
+        </span><span class="kw">if </span>f64::from(value <span class="kw">as </span>i32).to_bits() == value.to_bits() {
             <span class="self">self</span>.emit_push_integer(value <span class="kw">as </span>i32);
         } <span class="kw">else </span>{
             <span class="self">self</span>.emit_opcode(Opcode::PushRational);
