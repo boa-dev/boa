@@ -25,7 +25,7 @@ impl ByteCompiler<'_, '_> {
             UnaryOp::Not => Some(Opcode::LogicalNot),
             UnaryOp::Tilde => Some(Opcode::BitNot),
             UnaryOp::TypeOf => {
-                match &unary.target() {
+                match unary.target().flatten() {
                     Expression::Identifier(identifier) => {
                         let binding = self.context.get_binding_value(*identifier);
                         let index = self.get_or_insert_binding(binding);

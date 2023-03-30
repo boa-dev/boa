@@ -27,6 +27,7 @@ mod call;
 mod identifier;
 mod new;
 mod optional;
+mod parenthesized;
 mod spread;
 mod tagged_template;
 mod r#yield;
@@ -36,6 +37,7 @@ pub use call::{Call, SuperCall};
 pub use identifier::{Identifier, RESERVED_IDENTIFIERS_STRICT};
 pub use new::New;
 pub use optional::{Optional, OptionalOperation, OptionalOperationKind};
+pub use parenthesized::Parenthesized;
 pub use r#await::Await;
 pub use r#yield::Yield;
 pub use spread::Spread;
@@ -154,6 +156,9 @@ pub enum Expression {
     /// See [`Yield`].
     Yield(Yield),
 
+    /// See [`Parenthesized`].
+    Parenthesized(Parenthesized),
+
     /// A FormalParameterList.
     ///
     /// This is only used in the parser itself.
@@ -198,6 +203,7 @@ impl Expression {
             Self::Conditional(cond) => cond.to_interned_string(interner),
             Self::Await(aw) => aw.to_interned_string(interner),
             Self::Yield(yi) => yi.to_interned_string(interner),
+            Self::Parenthesized(expr) => expr.to_interned_string(interner),
             Self::FormalParameterList(_) => unreachable!(),
         }
     }
@@ -240,8 +246,20 @@ impl Expression {
             Self::AsyncGenerator(f) => f.name().is_none(),
             Self::AsyncFunction(f) => f.name().is_none(),
             Self::Class(f) => f.name().is_none(),
+            Self::Parenthesized(p) => p.expression().is_anonymous_function_definition(),
             _ => false,
         }
+    }
+
+    /// Returns the expression without any outer parenthesized expressions.
+    #[must_use]
+    #[inline]
+    pub const fn flatten(&self) -> &Self {
+        let mut expression = self;
+        while let Self::Parenthesized(p) = expression {
+            expression = p.expression();
+        }
+        expression
     }
 }
 
@@ -292,6 +310,7 @@ impl VisitWith for Expression {
             Self::Conditional(c) => visitor.visit_conditional(c),
             Self::Await(a) => visitor.visit_await(a),
             Self::Yield(y) => visitor.visit_yield(y),
+            Self::Parenthesized(e) => visitor.visit_parenthesized(e),
             Self::FormalParameterList(fpl) => visitor.visit_formal_parameter_list(fpl),
             Self::This | Self::NewTarget => {
                 // do nothing; can be handled as special case by visitor
@@ -332,6 +351,7 @@ impl VisitWith for Expression {
             Self::Conditional(c) => visitor.visit_conditional_mut(c),
             Self::Await(a) => visitor.visit_await_mut(a),
             Self::Yield(y) => visitor.visit_yield_mut(y),
+            Self::Parenthesized(e) => visitor.visit_parenthesized_mut(e),
             Self::FormalParameterList(fpl) => visitor.visit_formal_parameter_list_mut(fpl),
             Self::This | Self::NewTarget => {
                 // do nothing; can be handled as special case by visitor

@@ -76,9 +76,9 @@ where
             TokenKind::Keyword((Keyword::Delete, false)) => {
                 cursor.advance(interner);
                 let position = cursor.peek(0, interner).or_abrupt()?.span().start();
-                let val = self.parse(cursor, interner)?;
+                let target = self.parse(cursor, interner)?;
 
-                match val {
+                match target.flatten() {
                     Expression::Identifier(_) if cursor.strict_mode() => {
                         return Err(Error::lex(LexError::Syntax(
                             "cannot delete variables in strict mode".into(),
@@ -94,7 +94,7 @@ where
                     _ => {}
                 }
 
-                Ok(Unary::new(UnaryOp::Delete, val).into())
+                Ok(Unary::new(UnaryOp::Delete, target).into())
             }
             TokenKind::Keyword((Keyword::Void, false)) => {
                 cursor.advance(interner);

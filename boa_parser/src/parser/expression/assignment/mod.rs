@@ -13,7 +13,6 @@ mod conditional;
 mod exponentiation;
 mod r#yield;
 
-use super::check_strict_arguments_or_eval;
 use crate::{
     lexer::{Error as LexError, InputElement, TokenKind},
     parser::{
@@ -238,17 +237,10 @@ where
         if let Some(tok) = cursor.peek(0, interner)?.cloned() {
             match tok.kind() {
                 TokenKind::Punctuator(Punctuator::Assign) => {
-                    if cursor.strict_mode() {
-                        if let Expression::Identifier(ident) = lhs {
-                            check_strict_arguments_or_eval(ident, position)?;
-                        }
-                    }
-
                     cursor.advance(interner);
                     cursor.set_goal(InputElement::RegExp);
 
-                    if let Some(target) =
-                        AssignTarget::from_expression(&lhs, cursor.strict_mode(), true)
+                    if let Some(target) = AssignTarget::from_expression(&lhs, cursor.strict_mode())
                     {
                         if let AssignTarget::Identifier(ident) = target {
                             self.name = Some(ident);
@@ -263,15 +255,9 @@ where
                     }
                 }
                 TokenKind::Punctuator(p) if p.as_assign_op().is_some() => {
-                    if cursor.strict_mode() {
-                        if let Expression::Identifier(ident) = lhs {
-                            check_strict_arguments_or_eval(ident, position)?;
-                        }
-                    }
-
                     cursor.advance(interner);
                     if let Some(target) =
-                        AssignTarget::from_expression(&lhs, cursor.strict_mode(), false)
+                        AssignTarget::from_expression_simple(&lhs, cursor.strict_mode())
                     {
                         let assignop = p.as_assign_op().expect("assignop disappeared");
                         if assignop == AssignOp::BoolAnd

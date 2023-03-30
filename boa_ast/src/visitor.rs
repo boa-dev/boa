@@ -22,7 +22,7 @@ use crate::{
             Binary, BinaryInPrivate, Conditional, Unary, Update,
         },
         Await, Call, Expression, Identifier, New, Optional, OptionalOperation,
-        OptionalOperationKind, Spread, SuperCall, TaggedTemplate, Yield,
+        OptionalOperationKind, Parenthesized, Spread, SuperCall, TaggedTemplate, Yield,
     },
     function::{
         ArrowFunction, AsyncArrowFunction, AsyncFunction, AsyncGenerator, Class, ClassElement,
@@ -173,6 +173,7 @@ node_ref! {
     Conditional,
     Await,
     Yield,
+    Parenthesized,
     ForLoopInitializer,
     IterableLoopInitializer,
     Case,
@@ -271,6 +272,7 @@ pub trait Visitor<'ast>: Sized {
     define_visit!(visit_conditional, Conditional);
     define_visit!(visit_await, Await);
     define_visit!(visit_yield, Yield);
+    define_visit!(visit_parenthesized, Parenthesized);
     define_visit!(visit_for_loop_initializer, ForLoopInitializer);
     define_visit!(visit_iterable_loop_initializer, IterableLoopInitializer);
     define_visit!(visit_case, Case);
@@ -365,6 +367,7 @@ pub trait Visitor<'ast>: Sized {
             NodeRef::Conditional(n) => self.visit_conditional(n),
             NodeRef::Await(n) => self.visit_await(n),
             NodeRef::Yield(n) => self.visit_yield(n),
+            NodeRef::Parenthesized(n) => self.visit_parenthesized(n),
             NodeRef::ForLoopInitializer(n) => self.visit_for_loop_initializer(n),
             NodeRef::IterableLoopInitializer(n) => self.visit_iterable_loop_initializer(n),
             NodeRef::Case(n) => self.visit_case(n),
@@ -465,6 +468,7 @@ pub trait VisitorMut<'ast>: Sized {
     define_visit_mut!(visit_conditional_mut, Conditional);
     define_visit_mut!(visit_await_mut, Await);
     define_visit_mut!(visit_yield_mut, Yield);
+    define_visit_mut!(visit_parenthesized_mut, Parenthesized);
     define_visit_mut!(visit_for_loop_initializer_mut, ForLoopInitializer);
     define_visit_mut!(visit_iterable_loop_initializer_mut, IterableLoopInitializer);
     define_visit_mut!(visit_case_mut, Case);
@@ -559,6 +563,7 @@ pub trait VisitorMut<'ast>: Sized {
             NodeRefMut::Conditional(n) => self.visit_conditional_mut(n),
             NodeRefMut::Await(n) => self.visit_await_mut(n),
             NodeRefMut::Yield(n) => self.visit_yield_mut(n),
+            NodeRefMut::Parenthesized(n) => self.visit_parenthesized_mut(n),
             NodeRefMut::ForLoopInitializer(n) => self.visit_for_loop_initializer_mut(n),
             NodeRefMut::IterableLoopInitializer(n) => self.visit_iterable_loop_initializer_mut(n),
             NodeRefMut::Case(n) => self.visit_case_mut(n),

@@ -16,7 +16,7 @@ use boa_ast::{
             update::{UpdateOp, UpdateTarget},
             Assign, Binary, Update,
         },
-        Call, Identifier, New,
+        Call, Identifier, New, Parenthesized,
     },
     function::{
         ArrowFunction, FormalParameter, FormalParameterList, FormalParameterListFlags, Function,
@@ -411,9 +411,12 @@ fn bracketed_expr() {
     let interner = &mut Interner::default();
     check_script_parser(
         s,
-        vec![Statement::Expression(Expression::from(Identifier::new(
-            interner.get_or_intern_static("b", utf16!("b")),
-        )))
+        vec![Statement::Expression(
+            Parenthesized::new(
+                Identifier::new(interner.get_or_intern_static("b", utf16!("b"))).into(),
+            )
+            .into(),
+        )
         .into()],
         interner,
     );
@@ -427,15 +430,21 @@ fn increment_in_comma_op() {
     let b = interner.get_or_intern_static("b", utf16!("b"));
     check_script_parser(
         s,
-        vec![Statement::Expression(Expression::from(Binary::new(
-            BinaryOp::Comma,
-            Update::new(
-                UpdateOp::IncrementPost,
-                UpdateTarget::Identifier(Identifier::new(b)),
+        vec![Statement::Expression(
+            Parenthesized::new(
+                Binary::new(
+                    BinaryOp::Comma,
+                    Update::new(
+                        UpdateOp::IncrementPost,
+                        UpdateTarget::Identifier(Identifier::new(b)),
+                    )
+                    .into(),
+                    Identifier::new(b).into(),
+                )
+                .into(),
             )
             .into(),
-            Identifier::new(b).into(),
-        )))
+        )
         .into()],
         interner,
     );

@@ -8,7 +8,7 @@ use boa_ast::{
             binary::{ArithmeticOp, BitwiseOp, LogicalOp, RelationalOp},
             Assign, Binary,
         },
-        Call, Identifier, New,
+        Call, Identifier, New, Parenthesized,
     },
     Declaration, Expression, Statement,
 };
@@ -257,10 +257,13 @@ fn check_complex_numeric_operations() {
                 Binary::new(
                     ArithmeticOp::Mul.into(),
                     Identifier::new(interner.get_or_intern_static("d", utf16!("d"))).into(),
-                    Binary::new(
-                        ArithmeticOp::Sub.into(),
-                        Identifier::new(interner.get_or_intern_static("b", utf16!("b"))).into(),
-                        Literal::from(3).into(),
+                    Parenthesized::new(
+                        Binary::new(
+                            ArithmeticOp::Sub.into(),
+                            Identifier::new(interner.get_or_intern_static("b", utf16!("b"))).into(),
+                            Literal::from(3).into(),
+                        )
+                        .into(),
                     )
                     .into(),
                 )
@@ -695,9 +698,13 @@ macro_rules! check_non_reserved_identifier {
         let interner = &mut Interner::default();
         check_script_parser(
             format!("({})", $keyword).as_str(),
-            vec![Statement::Expression(Expression::from(Identifier::new(
-                interner.get_or_intern_static($keyword, utf16!($keyword)),
-            )))
+            vec![Statement::Expression(
+                Parenthesized::new(
+                    Identifier::new(interner.get_or_intern_static($keyword, utf16!($keyword)))
+                        .into(),
+                )
+                .into(),
+            )
             .into()],
             interner,
         );

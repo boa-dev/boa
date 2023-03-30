@@ -305,6 +305,9 @@ impl ByteCompiler<'_, '_> {
                     self.emit_opcode(Opcode::Pop);
                 }
             }
+            Expression::Parenthesized(parenthesized) => {
+                self.compile_expr(parenthesized.expression(), use_expr);
+            }
             // TODO: try to remove this variant somehow
             Expression::FormalParameterList(_) => unreachable!(),
         }

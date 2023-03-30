@@ -80,6 +80,7 @@ fn as_simple(
         Expression::PropertyAccess(access) => {
             Ok(Some(UpdateTarget::PropertyAccess(access.clone())))
         }
+        Expression::Parenthesized(p) => as_simple(p.expression(), position, strict),
         _ => Ok(None),
     }
 }

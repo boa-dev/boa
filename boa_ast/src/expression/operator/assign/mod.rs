@@ -15,7 +15,7 @@ mod op;
 use core::ops::ControlFlow;
 pub use op::*;
 
-use boa_interner::{Interner, ToInternedString};
+use boa_interner::{Interner, Sym, ToInternedString};
 
 use crate::{
     expression::{access::PropertyAccess, identifier::Identifier, Expression},
@@ -127,22 +127,35 @@ impl AssignTarget {
     /// Converts the left-hand-side Expression of an assignment expression into an [`AssignTarget`].
     /// Returns `None` if the given Expression is an invalid left-hand-side for a assignment expression.
     #[must_use]
-    pub fn from_expression(
-        expression: &Expression,
-        strict: bool,
-        destructure: bool,
-    ) -> Option<Self> {
+    pub fn from_expression(expression: &Expression, strict: bool) -> Option<Self> {
         match expression {
-            Expression::Identifier(id) => Some(Self::Identifier(*id)),
-            Expression::PropertyAccess(access) => Some(Self::Access(access.clone())),
-            Expression::ObjectLiteral(object) if destructure => {
+            Expression::ObjectLiteral(object) => {
                 let pattern = object.to_pattern(strict)?;
                 Some(Self::Pattern(pattern.into()))
             }
-            Expression::ArrayLiteral(array) if destructure => {
+            Expression::ArrayLiteral(array) => {
                 let pattern = array.to_pattern(strict)?;
                 Some(Self::Pattern(pattern.into()))
             }
+            e => Self::from_expression_simple(e, strict),
+        }
+    }
+
+    /// Converts the left-hand-side Expression of an assignment expression into an [`AssignTarget`].
+    /// Returns `None` if the given Expression is an invalid left-hand-side for a assignment expression.
+    ///
+    /// The `AssignmentTargetType` of the expression must be `simple`.
+    #[must_use]
+    pub fn from_expression_simple(expression: &Expression, strict: bool) -> Option<Self> {
+        match expression {
+            Expression::Identifier(id)
+                if strict && (id.sym() == Sym::EVAL || id.sym() == Sym::ARGUMENTS) =>
+            {
+                None
+            }
+            Expression::Identifier(id) => Some(Self::Identifier(*id)),
+            Expression::PropertyAccess(access) => Some(Self::Access(access.clone())),
+            Expression::Parenthesized(p) => Self::from_expression_simple(p.expression(), strict),
             _ => None,
         }
     }
