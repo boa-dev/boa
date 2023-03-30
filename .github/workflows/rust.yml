@@ -22,9 +22,9 @@ jobs:
           toolchain: stable
           override: true
           profile: minimal
-      - uses: Swatinem/rust-cache@v2
-        with:
-          key: tarpaulin
+      # - uses: Swatinem/rust-cache@v2
+      #   with:
+      #     key: tarpaulin
       - name: Run cargo-tarpaulin
         uses: actions-rs/tarpaulin@v0.1
         with:

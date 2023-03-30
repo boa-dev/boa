@@ -201,7 +201,7 @@ fn parse_tokens<S>(src: &S, context: &mut Context<'_>) -> Result<StatementList, 
 where
     S: AsRef<[u8]> + ?Sized,
 {
-    boa_parser::Parser::new(boa_parser::Source::from_bytes(&src))
+    boa_parser::Parser::new(Source::from_bytes(&src))
         .parse_script(context.interner_mut())
         .map_err(|e| format!("Uncaught SyntaxError: {e}"))
 }
