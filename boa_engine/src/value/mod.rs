@@ -3,14 +3,12 @@
 //! Javascript values, utility methods and conversion between Javascript values and Rust values.
 
 mod conversions;
+pub(crate) mod display;
 mod equality;
 mod hash;
 mod integer;
 mod operations;
-mod serde_json;
 mod r#type;
-
-pub(crate) mod display;
 
 #[cfg(test)]
 mod tests;
@@ -39,14 +37,15 @@ use std::{
     ops::Sub,
 };
 
-pub(crate) use conversions::*;
+#[doc(inline)]
+pub use self::{
+    conversions::try_from_js::TryFromJs, display::ValueDisplay, integer::IntegerOrInfinity,
+    operations::*, r#type::Type,
+};
+#[doc(inline)]
+pub use boa_macros::TryFromJs;
 
-pub use display::ValueDisplay;
-pub use integer::IntegerOrInfinity;
-pub use operations::*;
-pub use r#type::Type;
-
-pub(crate) use self::integer::IntegerOrNan;
+pub(crate) use self::{conversions::IntoOrUndefined, integer::IntegerOrNan};
 
 static TWO_E_64: Lazy<BigInt> = Lazy::new(|| {
     const TWO_E_64: u128 = 2u128.pow(64);

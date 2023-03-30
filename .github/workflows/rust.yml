@@ -22,14 +22,18 @@ jobs:
           toolchain: stable
           override: true
           profile: minimal
+      - uses: actions-rs/install@v0.1
+        with:
+          crate: cargo-tarpaulin
+          version: latest
       - uses: Swatinem/rust-cache@v2
         with:
           key: tarpaulin
-      - name: Run cargo-tarpaulin
-        uses: actions-rs/tarpaulin@v0.1
+      - name: Run tarpaulin
+        uses: actions-rs/cargo@v1
         with:
-          version: 0.22.0
-          args: --features intl --ignore-tests --engine llvm
+          command: tarpaulin
+          args: --workspace --features intl --ignore-tests --engine llvm --out Xml
       - name: Upload to codecov.io
         uses: codecov/codecov-action@v3
 
