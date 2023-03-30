@@ -24,6 +24,7 @@ jobs:
           profile: minimal
       - uses: Swatinem/rust-cache@v2
         with:
+          cache-targets: false
           key: tarpaulin
       - name: Run cargo-tarpaulin
         uses: actions-rs/tarpaulin@v0.1
