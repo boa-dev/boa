@@ -190,6 +190,19 @@
 <a href="#189" id="189">189</a>
 <a href="#190" id="190">190</a>
 <a href="#191" id="191">191</a>
+<a href="#192" id="192">192</a>
+<a href="#193" id="193">193</a>
+<a href="#194" id="194">194</a>
+<a href="#195" id="195">195</a>
+<a href="#196" id="196">196</a>
+<a href="#197" id="197">197</a>
+<a href="#198" id="198">198</a>
+<a href="#199" id="199">199</a>
+<a href="#200" id="200">200</a>
+<a href="#201" id="201">201</a>
+<a href="#202" id="202">202</a>
+<a href="#203" id="203">203</a>
+<a href="#204" id="204">204</a>
 </pre><pre class="rust"><code><span class="doccomment">//! Assignment expression nodes, as defined by the [spec].
 //!
 //! An [assignment operator][mdn] assigns a value to its left operand based on the value of its right
@@ -207,7 +220,7 @@
 <span class="kw">use </span>core::ops::ControlFlow;
 <span class="kw">pub use </span>op::<span class="kw-2">*</span>;
 
-<span class="kw">use </span>boa_interner::{Interner, ToInternedString};
+<span class="kw">use </span>boa_interner::{Interner, Sym, ToInternedString};
 
 <span class="kw">use crate</span>::{
     expression::{access::PropertyAccess, identifier::Identifier, Expression},
@@ -319,22 +332,35 @@
     <span class="doccomment">/// Converts the left-hand-side Expression of an assignment expression into an [`AssignTarget`].
     /// Returns `None` if the given Expression is an invalid left-hand-side for a assignment expression.
     </span><span class="attr">#[must_use]
-    </span><span class="kw">pub fn </span>from_expression(
-        expression: <span class="kw-2">&amp;</span>Expression,
-        strict: bool,
-        destructure: bool,
-    ) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>&gt; {
+    </span><span class="kw">pub fn </span>from_expression(expression: <span class="kw-2">&amp;</span>Expression, strict: bool) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>&gt; {
         <span class="kw">match </span>expression {
-            Expression::Identifier(id) =&gt; <span class="prelude-val">Some</span>(<span class="self">Self</span>::Identifier(<span class="kw-2">*</span>id)),
-            Expression::PropertyAccess(access) =&gt; <span class="prelude-val">Some</span>(<span class="self">Self</span>::Access(access.clone())),
-            Expression::ObjectLiteral(object) <span class="kw">if </span>destructure =&gt; {
+            Expression::ObjectLiteral(object) =&gt; {
                 <span class="kw">let </span>pattern = object.to_pattern(strict)<span class="question-mark">?</span>;
                 <span class="prelude-val">Some</span>(<span class="self">Self</span>::Pattern(pattern.into()))
             }
-            Expression::ArrayLiteral(array) <span class="kw">if </span>destructure =&gt; {
+            Expression::ArrayLiteral(array) =&gt; {
                 <span class="kw">let </span>pattern = array.to_pattern(strict)<span class="question-mark">?</span>;
                 <span class="prelude-val">Some</span>(<span class="self">Self</span>::Pattern(pattern.into()))
             }
+            e =&gt; <span class="self">Self</span>::from_expression_simple(e, strict),
+        }
+    }
+
+    <span class="doccomment">/// Converts the left-hand-side Expression of an assignment expression into an [`AssignTarget`].
+    /// Returns `None` if the given Expression is an invalid left-hand-side for a assignment expression.
+    ///
+    /// The `AssignmentTargetType` of the expression must be `simple`.
+    </span><span class="attr">#[must_use]
+    </span><span class="kw">pub fn </span>from_expression_simple(expression: <span class="kw-2">&amp;</span>Expression, strict: bool) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>&gt; {
+        <span class="kw">match </span>expression {
+            Expression::Identifier(id)
+                <span class="kw">if </span>strict &amp;&amp; (id.sym() == Sym::EVAL || id.sym() == Sym::ARGUMENTS) =&gt;
+            {
+                <span class="prelude-val">None
+            </span>}
+            Expression::Identifier(id) =&gt; <span class="prelude-val">Some</span>(<span class="self">Self</span>::Identifier(<span class="kw-2">*</span>id)),
+            Expression::PropertyAccess(access) =&gt; <span class="prelude-val">Some</span>(<span class="self">Self</span>::Access(access.clone())),
+            Expression::Parenthesized(p) =&gt; <span class="self">Self</span>::from_expression_simple(p.expression(), strict),
             <span class="kw">_ </span>=&gt; <span class="prelude-val">None</span>,
         }
     }

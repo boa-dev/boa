@@ -213,9 +213,9 @@
             TokenKind::Keyword((Keyword::Delete, <span class="bool-val">false</span>)) =&gt; {
                 cursor.advance(interner);
                 <span class="kw">let </span>position = cursor.peek(<span class="number">0</span>, interner).or_abrupt()<span class="question-mark">?</span>.span().start();
-                <span class="kw">let </span>val = <span class="self">self</span>.parse(cursor, interner)<span class="question-mark">?</span>;
+                <span class="kw">let </span>target = <span class="self">self</span>.parse(cursor, interner)<span class="question-mark">?</span>;
 
-                <span class="kw">match </span>val {
+                <span class="kw">match </span>target.flatten() {
                     Expression::Identifier(<span class="kw">_</span>) <span class="kw">if </span>cursor.strict_mode() =&gt; {
                         <span class="kw">return </span><span class="prelude-val">Err</span>(Error::lex(LexError::Syntax(
                             <span class="string">&quot;cannot delete variables in strict mode&quot;</span>.into(),
@@ -231,7 +231,7 @@
                     <span class="kw">_ </span>=&gt; {}
                 }
 
-                <span class="prelude-val">Ok</span>(Unary::new(UnaryOp::Delete, val).into())
+                <span class="prelude-val">Ok</span>(Unary::new(UnaryOp::Delete, target).into())
             }
             TokenKind::Keyword((Keyword::Void, <span class="bool-val">false</span>)) =&gt; {
                 cursor.advance(interner);

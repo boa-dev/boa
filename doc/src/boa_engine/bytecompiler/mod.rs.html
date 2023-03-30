@@ -1514,6 +1514,10 @@
 <a href="#1513" id="1513">1513</a>
 <a href="#1514" id="1514">1514</a>
 <a href="#1515" id="1515">1515</a>
+<a href="#1516" id="1516">1516</a>
+<a href="#1517" id="1517">1517</a>
+<a href="#1518" id="1518">1518</a>
+<a href="#1519" id="1519">1519</a>
 </pre><pre class="rust"><code><span class="doccomment">//! This module contains the bytecode compiler.
 
 </span><span class="kw">mod </span>class;
@@ -1714,6 +1718,7 @@
             Expression::Identifier(name) =&gt; <span class="prelude-val">Some</span>(Access::Variable { name: <span class="kw-2">*</span>name }),
             Expression::PropertyAccess(access) =&gt; <span class="prelude-val">Some</span>(Access::Property { access }),
             Expression::This =&gt; <span class="prelude-val">Some</span>(Access::This),
+            Expression::Parenthesized(expr) =&gt; <span class="self">Self</span>::from_expression(expr.expression()),
             <span class="kw">_ </span>=&gt; <span class="prelude-val">None</span>,
         }
     }
@@ -2384,7 +2389,7 @@
     </span><span class="kw">fn </span>compile_optional_preserve_this(<span class="kw-2">&amp;mut </span><span class="self">self</span>, optional: <span class="kw-2">&amp;</span>Optional) {
         <span class="kw">let </span><span class="kw-2">mut </span>jumps = Vec::with_capacity(optional.chain().len());
 
-        <span class="kw">match </span>optional.target() {
+        <span class="kw">match </span>optional.target().flatten() {
             Expression::PropertyAccess(access) =&gt; {
                 <span class="self">self</span>.compile_access_preserve_this(access);
             }
@@ -2754,15 +2759,12 @@
             New,
         }
 
-        <span class="kw">let </span>(call, kind) = <span class="kw">match </span>callable {
-            Callable::Call(call) =&gt; <span class="kw">match </span>call.function() {
-                Expression::Identifier(ident) <span class="kw">if </span><span class="kw-2">*</span>ident == Sym::EVAL =&gt; (call, CallKind::CallEval),
-                <span class="kw">_ </span>=&gt; (call, CallKind::Call),
-            },
+        <span class="kw">let </span>(call, <span class="kw-2">mut </span>kind) = <span class="kw">match </span>callable {
+            Callable::Call(call) =&gt; (call, CallKind::Call),
             Callable::New(new) =&gt; (new.call(), CallKind::New),
         };
 
-        <span class="kw">match </span>call.function() {
+        <span class="kw">match </span>call.function().flatten() {
             Expression::PropertyAccess(access) <span class="kw">if </span>kind == CallKind::Call =&gt; {
                 <span class="self">self</span>.compile_access_preserve_this(access);
             }
@@ -2770,12 +2772,18 @@
             Expression::Optional(opt) <span class="kw">if </span>kind == CallKind::Call =&gt; {
                 <span class="self">self</span>.compile_optional_preserve_this(opt);
             }
+            expr <span class="kw">if </span>kind == CallKind::Call =&gt; {
+                <span class="kw">if let </span>Expression::Identifier(ident) = expr {
+                    <span class="kw">if </span><span class="kw-2">*</span>ident == Sym::EVAL {
+                        kind = CallKind::CallEval;
+                    }
+                }
+                <span class="self">self</span>.compile_expr(expr, <span class="bool-val">true</span>);
+                <span class="self">self</span>.emit_opcode(Opcode::PushUndefined);
+                <span class="self">self</span>.emit_opcode(Opcode::Swap);
+            }
             expr =&gt; {
                 <span class="self">self</span>.compile_expr(expr, <span class="bool-val">true</span>);
-                <span class="kw">if </span>kind == CallKind::Call || kind == CallKind::CallEval {
-                    <span class="self">self</span>.emit_opcode(Opcode::PushUndefined);
-                    <span class="self">self</span>.emit_opcode(Opcode::Swap);
-                }
             }
         }
 

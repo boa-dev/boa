@@ -369,6 +369,15 @@
 <a href="#368" id="368">368</a>
 <a href="#369" id="369">369</a>
 <a href="#370" id="370">370</a>
+<a href="#371" id="371">371</a>
+<a href="#372" id="372">372</a>
+<a href="#373" id="373">373</a>
+<a href="#374" id="374">374</a>
+<a href="#375" id="375">375</a>
+<a href="#376" id="376">376</a>
+<a href="#377" id="377">377</a>
+<a href="#378" id="378">378</a>
+<a href="#379" id="379">379</a>
 </pre><pre class="rust"><code><span class="doccomment">//! For statement parsing.
 //!
 //! More information:
@@ -661,41 +670,50 @@
     strict: bool,
 ) -&gt; ParseResult&lt;IterableLoopInitializer&gt; {
     <span class="kw">match </span>initializer {
-        ForLoopInitializer::Expression(expr) =&gt; <span class="kw">match </span>expr {
-            ast::Expression::Identifier(ident)
-                <span class="kw">if </span>strict &amp;&amp; [Sym::EVAL, Sym::ARGUMENTS].contains(<span class="kw-2">&amp;</span>ident.sym()) =&gt;
-            {
-                <span class="prelude-val">Err</span>(Error::lex(LexError::Syntax(
-                    <span class="string">&quot;cannot use `eval` or `arguments` as iterable loop variable in strict code&quot;
-                        </span>.into(),
-                    position,
-                )))
+        ForLoopInitializer::Expression(<span class="kw-2">mut </span>expr) =&gt; {
+            <span class="kw">while let </span>ast::Expression::Parenthesized(p) = expr {
+                expr = p.expression().clone();
             }
-            ast::Expression::Identifier(ident) =&gt; <span class="prelude-val">Ok</span>(IterableLoopInitializer::Identifier(ident)),
-            ast::Expression::ArrayLiteral(array) =&gt; array
-                .to_pattern(strict)
-                .ok_or_else(|| {
-                    Error::general(
-                        <span class="string">&quot;invalid array destructuring pattern in iterable loop initializer&quot;</span>,
+            <span class="kw">match </span>expr {
+                ast::Expression::Identifier(ident)
+                    <span class="kw">if </span>strict &amp;&amp; [Sym::EVAL, Sym::ARGUMENTS].contains(<span class="kw-2">&amp;</span>ident.sym()) =&gt;
+                {
+                    <span class="prelude-val">Err</span>(Error::lex(LexError::Syntax(
+                        <span class="string">&quot;cannot use `eval` or `arguments` as iterable loop variable in strict code&quot;
+                            </span>.into(),
                         position,
-                    )
-                })
-                .map(|arr| IterableLoopInitializer::Pattern(arr.into())),
-            ast::Expression::ObjectLiteral(object) =&gt; object
-                .to_pattern(strict)
-                .ok_or_else(|| {
-                    Error::general(
-                        <span class="string">&quot;invalid object destructuring pattern in iterable loop initializer&quot;</span>,
-                        position,
-                    )
-                })
-                .map(|obj| IterableLoopInitializer::Pattern(obj.into())),
-            ast::Expression::PropertyAccess(access) =&gt; <span class="prelude-val">Ok</span>(IterableLoopInitializer::Access(access)),
-            <span class="kw">_ </span>=&gt; <span class="prelude-val">Err</span>(Error::lex(LexError::Syntax(
-                <span class="string">&quot;invalid variable for iterable loop&quot;</span>.into(),
-                position,
-            ))),
-        },
+                    )))
+                }
+                ast::Expression::Identifier(ident) =&gt; {
+                    <span class="prelude-val">Ok</span>(IterableLoopInitializer::Identifier(ident))
+                }
+                ast::Expression::ArrayLiteral(array) =&gt; array
+                    .to_pattern(strict)
+                    .ok_or_else(|| {
+                        Error::general(
+                            <span class="string">&quot;invalid array destructuring pattern in iterable loop initializer&quot;</span>,
+                            position,
+                        )
+                    })
+                    .map(|arr| IterableLoopInitializer::Pattern(arr.into())),
+                ast::Expression::ObjectLiteral(object) =&gt; object
+                    .to_pattern(strict)
+                    .ok_or_else(|| {
+                        Error::general(
+                            <span class="string">&quot;invalid object destructuring pattern in iterable loop initializer&quot;</span>,
+                            position,
+                        )
+                    })
+                    .map(|obj| IterableLoopInitializer::Pattern(obj.into())),
+                ast::Expression::PropertyAccess(access) =&gt; {
+                    <span class="prelude-val">Ok</span>(IterableLoopInitializer::Access(access))
+                }
+                <span class="kw">_ </span>=&gt; <span class="prelude-val">Err</span>(Error::lex(LexError::Syntax(
+                    <span class="string">&quot;invalid variable for iterable loop&quot;</span>.into(),
+                    position,
+                ))),
+            }
+        }
         ForLoopInitializer::Lexical(decl) =&gt; <span class="kw">match </span>decl.variable_list().as_ref() {
             [declaration] =&gt; {
                 <span class="kw">if </span>declaration.init().is_some() {

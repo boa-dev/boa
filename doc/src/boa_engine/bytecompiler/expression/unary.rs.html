@@ -77,7 +77,7 @@
             UnaryOp::Not =&gt; <span class="prelude-val">Some</span>(Opcode::LogicalNot),
             UnaryOp::Tilde =&gt; <span class="prelude-val">Some</span>(Opcode::BitNot),
             UnaryOp::TypeOf =&gt; {
-                <span class="kw">match </span><span class="kw-2">&amp;</span>unary.target() {
+                <span class="kw">match </span>unary.target().flatten() {
                     Expression::Identifier(identifier) =&gt; {
                         <span class="kw">let </span>binding = <span class="self">self</span>.context.get_binding_value(<span class="kw-2">*</span>identifier);
                         <span class="kw">let </span>index = <span class="self">self</span>.get_or_insert_binding(binding);

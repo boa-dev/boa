@@ -341,6 +341,26 @@
 <a href="#340" id="340">340</a>
 <a href="#341" id="341">341</a>
 <a href="#342" id="342">342</a>
+<a href="#343" id="343">343</a>
+<a href="#344" id="344">344</a>
+<a href="#345" id="345">345</a>
+<a href="#346" id="346">346</a>
+<a href="#347" id="347">347</a>
+<a href="#348" id="348">348</a>
+<a href="#349" id="349">349</a>
+<a href="#350" id="350">350</a>
+<a href="#351" id="351">351</a>
+<a href="#352" id="352">352</a>
+<a href="#353" id="353">353</a>
+<a href="#354" id="354">354</a>
+<a href="#355" id="355">355</a>
+<a href="#356" id="356">356</a>
+<a href="#357" id="357">357</a>
+<a href="#358" id="358">358</a>
+<a href="#359" id="359">359</a>
+<a href="#360" id="360">360</a>
+<a href="#361" id="361">361</a>
+<a href="#362" id="362">362</a>
 </pre><pre class="rust"><code><span class="doccomment">//! The [`Expression`] Parse Node, as defined by the [spec].
 //!
 //! ECMAScript expressions include:
@@ -370,6 +390,7 @@
 <span class="kw">mod </span>identifier;
 <span class="kw">mod </span>new;
 <span class="kw">mod </span>optional;
+<span class="kw">mod </span>parenthesized;
 <span class="kw">mod </span>spread;
 <span class="kw">mod </span>tagged_template;
 <span class="kw">mod </span>r#yield;
@@ -379,6 +400,7 @@
 <span class="kw">pub use </span>identifier::{Identifier, RESERVED_IDENTIFIERS_STRICT};
 <span class="kw">pub use </span>new::New;
 <span class="kw">pub use </span>optional::{Optional, OptionalOperation, OptionalOperationKind};
+<span class="kw">pub use </span>parenthesized::Parenthesized;
 <span class="kw">pub use </span>r#await::Await;
 <span class="kw">pub use </span>r#yield::Yield;
 <span class="kw">pub use </span>spread::Spread;
@@ -497,6 +519,9 @@
     <span class="doccomment">/// See [`Yield`].
     </span>Yield(Yield),
 
+    <span class="doccomment">/// See [`Parenthesized`].
+    </span>Parenthesized(Parenthesized),
+
     <span class="doccomment">/// A FormalParameterList.
     ///
     /// This is only used in the parser itself.
@@ -541,6 +566,7 @@
             <span class="self">Self</span>::Conditional(cond) =&gt; cond.to_interned_string(interner),
             <span class="self">Self</span>::Await(aw) =&gt; aw.to_interned_string(interner),
             <span class="self">Self</span>::Yield(yi) =&gt; yi.to_interned_string(interner),
+            <span class="self">Self</span>::Parenthesized(expr) =&gt; expr.to_interned_string(interner),
             <span class="self">Self</span>::FormalParameterList(<span class="kw">_</span>) =&gt; <span class="macro">unreachable!</span>(),
         }
     }
@@ -583,8 +609,20 @@
             <span class="self">Self</span>::AsyncGenerator(f) =&gt; f.name().is_none(),
             <span class="self">Self</span>::AsyncFunction(f) =&gt; f.name().is_none(),
             <span class="self">Self</span>::Class(f) =&gt; f.name().is_none(),
+            <span class="self">Self</span>::Parenthesized(p) =&gt; p.expression().is_anonymous_function_definition(),
             <span class="kw">_ </span>=&gt; <span class="bool-val">false</span>,
         }
+    }
+
+    <span class="doccomment">/// Returns the expression without any outer parenthesized expressions.
+    </span><span class="attr">#[must_use]
+    #[inline]
+    </span><span class="kw">pub const fn </span>flatten(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="self">Self </span>{
+        <span class="kw">let </span><span class="kw-2">mut </span>expression = <span class="self">self</span>;
+        <span class="kw">while let </span><span class="self">Self</span>::Parenthesized(p) = expression {
+            expression = p.expression();
+        }
+        expression
     }
 }
 
@@ -635,6 +673,7 @@
             <span class="self">Self</span>::Conditional(c) =&gt; visitor.visit_conditional(c),
             <span class="self">Self</span>::Await(a) =&gt; visitor.visit_await(a),
             <span class="self">Self</span>::Yield(y) =&gt; visitor.visit_yield(y),
+            <span class="self">Self</span>::Parenthesized(e) =&gt; visitor.visit_parenthesized(e),
             <span class="self">Self</span>::FormalParameterList(fpl) =&gt; visitor.visit_formal_parameter_list(fpl),
             <span class="self">Self</span>::This | <span class="self">Self</span>::NewTarget =&gt; {
                 <span class="comment">// do nothing; can be handled as special case by visitor
@@ -675,6 +714,7 @@
             <span class="self">Self</span>::Conditional(c) =&gt; visitor.visit_conditional_mut(c),
             <span class="self">Self</span>::Await(a) =&gt; visitor.visit_await_mut(a),
             <span class="self">Self</span>::Yield(y) =&gt; visitor.visit_yield_mut(y),
+            <span class="self">Self</span>::Parenthesized(e) =&gt; visitor.visit_parenthesized_mut(e),
             <span class="self">Self</span>::FormalParameterList(fpl) =&gt; visitor.visit_formal_parameter_list_mut(fpl),
             <span class="self">Self</span>::This | <span class="self">Self</span>::NewTarget =&gt; {
                 <span class="comment">// do nothing; can be handled as special case by visitor

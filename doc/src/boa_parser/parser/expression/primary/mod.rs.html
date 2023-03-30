@@ -658,6 +658,8 @@
 <a href="#657" id="657">657</a>
 <a href="#658" id="658">658</a>
 <a href="#659" id="659">659</a>
+<a href="#660" id="660">660</a>
+<a href="#661" id="661">661</a>
 </pre><pre class="rust"><code><span class="doccomment">//! Primary expression parsing.
 //!
 //! More information:
@@ -704,7 +706,7 @@
     expression::{
         literal::Literal,
         operator::{assign::AssignTarget, binary::BinaryOp},
-        Call, Identifier, New,
+        Call, Identifier, New, Parenthesized,
     },
     function::{FormalParameter, FormalParameterList},
     operations::{contains, ContainsSymbol},
@@ -1153,7 +1155,9 @@
                 ));
             }
             <span class="kw">if let </span>InnerExpression::Expression(expression) = <span class="kw-2">&amp;</span>expressions[<span class="number">0</span>] {
-                <span class="kw">return </span><span class="prelude-val">Ok</span>(expression.clone());
+                <span class="kw">return </span><span class="prelude-val">Ok</span>(ast::Expression::Parenthesized(Parenthesized::new(
+                    expression.clone(),
+                )));
             }
             <span class="kw">return </span><span class="prelude-val">Err</span>(Error::unexpected(
                 Punctuator::CloseParen,

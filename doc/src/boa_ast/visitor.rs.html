@@ -627,6 +627,11 @@
 <a href="#626" id="626">626</a>
 <a href="#627" id="627">627</a>
 <a href="#628" id="628">628</a>
+<a href="#629" id="629">629</a>
+<a href="#630" id="630">630</a>
+<a href="#631" id="631">631</a>
+<a href="#632" id="632">632</a>
+<a href="#633" id="633">633</a>
 </pre><pre class="rust"><code><span class="doccomment">//! ECMAScript Abstract Syntax Tree visitors.
 //!
 //! This module contains visitors which can be used to inspect or modify AST nodes. This allows for
@@ -651,7 +656,7 @@
             Binary, BinaryInPrivate, Conditional, Unary, Update,
         },
         Await, Call, Expression, Identifier, New, Optional, OptionalOperation,
-        OptionalOperationKind, Spread, SuperCall, TaggedTemplate, Yield,
+        OptionalOperationKind, Parenthesized, Spread, SuperCall, TaggedTemplate, Yield,
     },
     function::{
         ArrowFunction, AsyncArrowFunction, AsyncFunction, AsyncGenerator, Class, ClassElement,
@@ -802,6 +807,7 @@
     Conditional,
     Await,
     Yield,
+    Parenthesized,
     ForLoopInitializer,
     IterableLoopInitializer,
     Case,
@@ -900,6 +906,7 @@
     <span class="macro">define_visit!</span>(visit_conditional, Conditional);
     <span class="macro">define_visit!</span>(visit_await, Await);
     <span class="macro">define_visit!</span>(visit_yield, Yield);
+    <span class="macro">define_visit!</span>(visit_parenthesized, Parenthesized);
     <span class="macro">define_visit!</span>(visit_for_loop_initializer, ForLoopInitializer);
     <span class="macro">define_visit!</span>(visit_iterable_loop_initializer, IterableLoopInitializer);
     <span class="macro">define_visit!</span>(visit_case, Case);
@@ -994,6 +1001,7 @@
             NodeRef::Conditional(n) =&gt; <span class="self">self</span>.visit_conditional(n),
             NodeRef::Await(n) =&gt; <span class="self">self</span>.visit_await(n),
             NodeRef::Yield(n) =&gt; <span class="self">self</span>.visit_yield(n),
+            NodeRef::Parenthesized(n) =&gt; <span class="self">self</span>.visit_parenthesized(n),
             NodeRef::ForLoopInitializer(n) =&gt; <span class="self">self</span>.visit_for_loop_initializer(n),
             NodeRef::IterableLoopInitializer(n) =&gt; <span class="self">self</span>.visit_iterable_loop_initializer(n),
             NodeRef::Case(n) =&gt; <span class="self">self</span>.visit_case(n),
@@ -1094,6 +1102,7 @@
     <span class="macro">define_visit_mut!</span>(visit_conditional_mut, Conditional);
     <span class="macro">define_visit_mut!</span>(visit_await_mut, Await);
     <span class="macro">define_visit_mut!</span>(visit_yield_mut, Yield);
+    <span class="macro">define_visit_mut!</span>(visit_parenthesized_mut, Parenthesized);
     <span class="macro">define_visit_mut!</span>(visit_for_loop_initializer_mut, ForLoopInitializer);
     <span class="macro">define_visit_mut!</span>(visit_iterable_loop_initializer_mut, IterableLoopInitializer);
     <span class="macro">define_visit_mut!</span>(visit_case_mut, Case);
@@ -1188,6 +1197,7 @@
             NodeRefMut::Conditional(n) =&gt; <span class="self">self</span>.visit_conditional_mut(n),
             NodeRefMut::Await(n) =&gt; <span class="self">self</span>.visit_await_mut(n),
             NodeRefMut::Yield(n) =&gt; <span class="self">self</span>.visit_yield_mut(n),
+            NodeRefMut::Parenthesized(n) =&gt; <span class="self">self</span>.visit_parenthesized_mut(n),
             NodeRefMut::ForLoopInitializer(n) =&gt; <span class="self">self</span>.visit_for_loop_initializer_mut(n),
             NodeRefMut::IterableLoopInitializer(n) =&gt; <span class="self">self</span>.visit_iterable_loop_initializer_mut(n),
             NodeRefMut::Case(n) =&gt; <span class="self">self</span>.visit_case_mut(n),
