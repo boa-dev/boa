@@ -10,6 +10,12 @@ license.workspace = true
 repository.workspace = true
 rust-version.workspace = true
 
+[features]
+# Enable default implementatio of trace and finalize thin-vec crate
+thinvec = ["thin-vec"]
+
 [dependencies]
 boa_profiler.workspace = true
 boa_macros.workspace = true
+
+thin-vec = { version = "0.2.12", optional = true }

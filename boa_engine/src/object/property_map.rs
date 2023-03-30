@@ -4,6 +4,7 @@ use boa_gc::{custom_trace, Finalize, Trace};
 use indexmap::IndexMap;
 use rustc_hash::{FxHashMap, FxHasher};
 use std::{collections::hash_map, hash::BuildHasherDefault, iter::FusedIterator};
+use thin_vec::ThinVec;
 
 /// Type alias to make it easier to work with the string properties on the global object.
 pub(crate) type GlobalPropertyMap =
@@ -44,20 +45,20 @@ enum IndexedProperties {
     /// the value field and construct the data property descriptor on demand.
     ///
     /// This storage method is used by default.
-    Dense(Vec<JsValue>),
+    Dense(ThinVec<JsValue>),
 
     /// Sparse storage this storage is used as a backup if the element keys are not continuous or the property descriptors
     /// are not data descriptors with with a value field, writable field set to `true`, configurable field set to `true`, enumerable field set to `true`.
     ///
     /// This method uses more space, since we also have to store the property descriptors, not just the value.
     /// It is also slower because we need to to a hash lookup.
-    Sparse(FxHashMap<u32, PropertyDescriptor>),
+    Sparse(Box<FxHashMap<u32, PropertyDescriptor>>),
 }
 
 impl Default for IndexedProperties {
     #[inline]
     fn default() -> Self {
-        Self::Dense(Vec::new())
+        Self::Dense(ThinVec::new())
     }
 }
 
@@ -78,7 +79,7 @@ impl IndexedProperties {
     }
 
     /// Helper function for converting from a dense storage type to sparse storage type.
-    fn convert_dense_to_sparse(vec: &mut Vec<JsValue>) -> FxHashMap<u32, PropertyDescriptor> {
+    fn convert_dense_to_sparse(vec: &mut ThinVec<JsValue>) -> FxHashMap<u32, PropertyDescriptor> {
         let data = std::mem::take(vec);
 
         data.into_iter()
@@ -143,7 +144,7 @@ impl IndexedProperties {
         // Slow path: converting to sparse storage.
         let mut map = Self::convert_dense_to_sparse(vec);
         let old_property = map.insert(key, property);
-        *self = Self::Sparse(map);
+        *self = Self::Sparse(Box::new(map));
 
         old_property
     }
@@ -182,7 +183,7 @@ impl IndexedProperties {
         // Slow Path: conversion to sparse storage.
         let mut map = Self::convert_dense_to_sparse(vec);
         let old_property = map.remove(&key);
-        *self = Self::Sparse(map);
+        *self = Self::Sparse(Box::new(map));
 
         old_property
     }
@@ -277,12 +278,12 @@ impl PropertyMap {
     }
 
     /// Overrides all the indexed properties, setting it to dense storage.
-    pub(crate) fn override_indexed_properties(&mut self, properties: Vec<JsValue>) {
+    pub(crate) fn override_indexed_properties(&mut self, properties: ThinVec<JsValue>) {
         self.indexed_properties = IndexedProperties::Dense(properties);
     }
 
     /// Returns the vec of dense indexed properties if they exist.
-    pub(crate) const fn dense_indexed_properties(&self) -> Option<&Vec<JsValue>> {
+    pub(crate) const fn dense_indexed_properties(&self) -> Option<&ThinVec<JsValue>> {
         if let IndexedProperties::Dense(properties) = &self.indexed_properties {
             Some(properties)
         } else {

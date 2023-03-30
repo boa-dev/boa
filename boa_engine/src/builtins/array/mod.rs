@@ -11,6 +11,7 @@
 
 use boa_macros::utf16;
 use boa_profiler::Profiler;
+use thin_vec::ThinVec;
 
 use crate::{
     builtins::iterable::{if_abrupt_close_iterator, IteratorHint},
@@ -284,7 +285,7 @@ impl Array {
         //     b. Set n to n + 1.
         //
         // NOTE: This deviates from the spec, but it should have the same behaviour.
-        let elements: Vec<_> = elements.into_iter().collect();
+        let elements: ThinVec<_> = elements.into_iter().collect();
         let length = elements.len();
         array
             .borrow_mut()

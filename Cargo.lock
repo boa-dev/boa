@@ -438,6 +438,7 @@ version = "0.16.0"
 dependencies = [
  "boa_macros",
  "boa_profiler",
+ "thin-vec",
 ]
 
 [[package]]
