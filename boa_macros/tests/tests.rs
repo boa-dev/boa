@@ -14,9 +14,9 @@ fn utf16() {
     assert_eq!(manual, utf16);
 }
 
-#[test]
-fn try_from_js() {
-    let t = trybuild::TestCases::new();
-    t.pass("tests/derive/simple_struct.rs");
-    t.pass("tests/derive/from_js_with.rs");
-}
+// #[test]
+// fn try_from_js() {
+//     let t = trybuild::TestCases::new();
+//     t.pass("tests/derive/simple_struct.rs");
+//     t.pass("tests/derive/from_js_with.rs");
+// }

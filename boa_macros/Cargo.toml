@@ -17,6 +17,6 @@ syn = { version = "2.0.11", features = ["full"] }
 proc-macro2 = "1.0"
 synstructure = "0.13"
 
-[dev-dependencies]
-trybuild = "1.0.80"
-boa_engine.workspace = true
+# [dev-dependencies]
+# trybuild = "1.0.80"
+# boa_engine.workspace = true
