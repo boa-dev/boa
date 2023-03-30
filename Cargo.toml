@@ -1,18 +1,19 @@
 [workspace]
 members = [
+    "boa_ast",
     "boa_cli",
     "boa_engine",
-    "boa_ast",
-    "boa_parser",
+    "boa_examples",
     "boa_gc",
+    "boa_icu_provider",
     "boa_interner",
+    "boa_macros",
+    "boa_macros_tests",
+    "boa_parser",
     "boa_profiler",
     "boa_tester",
     "boa_unicode",
     "boa_wasm",
-    "boa_examples",
-    "boa_macros",
-    "boa_icu_provider",
 ]
 
 [workspace.package]

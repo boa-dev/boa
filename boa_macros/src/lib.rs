@@ -57,11 +57,6 @@
     clippy::nursery,
 )]
 
-// #[cfg(test)]
-// use boa_engine as _;
-// #[cfg(test)]
-// use trybuild as _;
-
 use proc_macro::TokenStream;
 use quote::{quote, ToTokens};
 use syn::{

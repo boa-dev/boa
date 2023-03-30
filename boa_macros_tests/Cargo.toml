@@ -1,0 +1,16 @@
+[package]
+name = "boa_macros_tests"
+description = "Testing crate for boa_macros"
+keywords = ["javascript", "ECMASCript", "compiler", "tester"]
+publish = false
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+license.workspace = true
+repository.workspace = true
+rust-version.workspace = true
+
+[dev-dependencies]
+trybuild = "1.0.80"
+boa_macros.workspace = true
+boa_engine.workspace = true
