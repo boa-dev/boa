@@ -3008,6 +3008,7 @@
 <a href="#3007" id="3007">3007</a>
 <a href="#3008" id="3008">3008</a>
 <a href="#3009" id="3009">3009</a>
+<a href="#3010" id="3010">3010</a>
 </pre><pre class="rust"><code><span class="doccomment">//! Boa&#39;s implementation of ECMAScript&#39;s global `Array` object.
 //!
 //! The ECMAScript `Array` class is a global object that is used in the construction of arrays; which are high-level, list-like objects.
@@ -3021,6 +3022,7 @@
 
 </span><span class="kw">use </span>boa_macros::utf16;
 <span class="kw">use </span>boa_profiler::Profiler;
+<span class="kw">use </span>thin_vec::ThinVec;
 
 <span class="kw">use crate</span>::{
     builtins::iterable::{if_abrupt_close_iterator, IteratorHint},
@@ -3294,7 +3296,7 @@
         //     b. Set n to n + 1.
         //
         // NOTE: This deviates from the spec, but it should have the same behaviour.
-        </span><span class="kw">let </span>elements: Vec&lt;<span class="kw">_</span>&gt; = elements.into_iter().collect();
+        </span><span class="kw">let </span>elements: ThinVec&lt;<span class="kw">_</span>&gt; = elements.into_iter().collect();
         <span class="kw">let </span>length = elements.len();
         array
             .borrow_mut()

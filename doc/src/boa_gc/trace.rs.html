@@ -441,6 +441,19 @@
 <a href="#440" id="440">440</a>
 <a href="#441" id="441">441</a>
 <a href="#442" id="442">442</a>
+<a href="#443" id="443">443</a>
+<a href="#444" id="444">444</a>
+<a href="#445" id="445">445</a>
+<a href="#446" id="446">446</a>
+<a href="#447" id="447">447</a>
+<a href="#448" id="448">448</a>
+<a href="#449" id="449">449</a>
+<a href="#450" id="450">450</a>
+<a href="#451" id="451">451</a>
+<a href="#452" id="452">452</a>
+<a href="#453" id="453">453</a>
+<a href="#454" id="454">454</a>
+<a href="#455" id="455">455</a>
 </pre><pre class="rust"><code><span class="kw">use </span>std::{
     borrow::{Cow, ToOwned},
     cell::Cell,
@@ -744,6 +757,19 @@
 <span class="kw">impl</span>&lt;T: Trace&gt; Finalize <span class="kw">for </span>Vec&lt;T&gt; {}
 <span class="comment">// SAFETY: All the inner elements of the `Vec` are correctly marked.
 </span><span class="kw">unsafe impl</span>&lt;T: Trace&gt; Trace <span class="kw">for </span>Vec&lt;T&gt; {
+    <span class="macro">custom_trace!</span>(this, {
+        <span class="kw">for </span>e <span class="kw">in </span>this {
+            mark(e);
+        }
+    });
+}
+
+<span class="attr">#[cfg(feature = <span class="string">&quot;thin-vec&quot;</span>)]
+</span><span class="kw">impl</span>&lt;T: Trace&gt; Finalize <span class="kw">for </span>thin_vec::ThinVec&lt;T&gt; {}
+
+<span class="attr">#[cfg(feature = <span class="string">&quot;thin-vec&quot;</span>)]
+</span><span class="comment">// SAFETY: All the inner elements of the `Vec` are correctly marked.
+</span><span class="kw">unsafe impl</span>&lt;T: Trace&gt; Trace <span class="kw">for </span>thin_vec::ThinVec&lt;T&gt; {
     <span class="macro">custom_trace!</span>(this, {
         <span class="kw">for </span>e <span class="kw">in </span>this {
             mark(e);

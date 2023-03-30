@@ -799,12 +799,14 @@
 <a href="#798" id="798">798</a>
 <a href="#799" id="799">799</a>
 <a href="#800" id="800">800</a>
+<a href="#801" id="801">801</a>
 </pre><pre class="rust"><code><span class="kw">use super</span>::{PropertyDescriptor, PropertyKey};
 <span class="kw">use crate</span>::{property::PropertyDescriptorBuilder, JsString, JsSymbol, JsValue};
 <span class="kw">use </span>boa_gc::{custom_trace, Finalize, Trace};
 <span class="kw">use </span>indexmap::IndexMap;
 <span class="kw">use </span>rustc_hash::{FxHashMap, FxHasher};
 <span class="kw">use </span>std::{collections::hash_map, hash::BuildHasherDefault, iter::FusedIterator};
+<span class="kw">use </span>thin_vec::ThinVec;
 
 <span class="doccomment">/// Type alias to make it easier to work with the string properties on the global object.
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">type </span>GlobalPropertyMap =
@@ -845,20 +847,20 @@
     /// the value field and construct the data property descriptor on demand.
     ///
     /// This storage method is used by default.
-    </span>Dense(Vec&lt;JsValue&gt;),
+    </span>Dense(ThinVec&lt;JsValue&gt;),
 
     <span class="doccomment">/// Sparse storage this storage is used as a backup if the element keys are not continuous or the property descriptors
     /// are not data descriptors with with a value field, writable field set to `true`, configurable field set to `true`, enumerable field set to `true`.
     ///
     /// This method uses more space, since we also have to store the property descriptors, not just the value.
     /// It is also slower because we need to to a hash lookup.
-    </span>Sparse(FxHashMap&lt;u32, PropertyDescriptor&gt;),
+    </span>Sparse(Box&lt;FxHashMap&lt;u32, PropertyDescriptor&gt;&gt;),
 }
 
 <span class="kw">impl </span>Default <span class="kw">for </span>IndexedProperties {
     <span class="attr">#[inline]
     </span><span class="kw">fn </span>default() -&gt; <span class="self">Self </span>{
-        <span class="self">Self</span>::Dense(Vec::new())
+        <span class="self">Self</span>::Dense(ThinVec::new())
     }
 }
 
@@ -879,7 +881,7 @@
     }
 
     <span class="doccomment">/// Helper function for converting from a dense storage type to sparse storage type.
-    </span><span class="kw">fn </span>convert_dense_to_sparse(vec: <span class="kw-2">&amp;mut </span>Vec&lt;JsValue&gt;) -&gt; FxHashMap&lt;u32, PropertyDescriptor&gt; {
+    </span><span class="kw">fn </span>convert_dense_to_sparse(vec: <span class="kw-2">&amp;mut </span>ThinVec&lt;JsValue&gt;) -&gt; FxHashMap&lt;u32, PropertyDescriptor&gt; {
         <span class="kw">let </span>data = std::mem::take(vec);
 
         data.into_iter()
@@ -944,7 +946,7 @@
         <span class="comment">// Slow path: converting to sparse storage.
         </span><span class="kw">let </span><span class="kw-2">mut </span>map = <span class="self">Self</span>::convert_dense_to_sparse(vec);
         <span class="kw">let </span>old_property = map.insert(key, property);
-        <span class="kw-2">*</span><span class="self">self </span>= <span class="self">Self</span>::Sparse(map);
+        <span class="kw-2">*</span><span class="self">self </span>= <span class="self">Self</span>::Sparse(Box::new(map));
 
         old_property
     }
@@ -983,7 +985,7 @@
         <span class="comment">// Slow Path: conversion to sparse storage.
         </span><span class="kw">let </span><span class="kw-2">mut </span>map = <span class="self">Self</span>::convert_dense_to_sparse(vec);
         <span class="kw">let </span>old_property = map.remove(<span class="kw-2">&amp;</span>key);
-        <span class="kw-2">*</span><span class="self">self </span>= <span class="self">Self</span>::Sparse(map);
+        <span class="kw-2">*</span><span class="self">self </span>= <span class="self">Self</span>::Sparse(Box::new(map));
 
         old_property
     }
@@ -1078,12 +1080,12 @@
     }
 
     <span class="doccomment">/// Overrides all the indexed properties, setting it to dense storage.
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>override_indexed_properties(<span class="kw-2">&amp;mut </span><span class="self">self</span>, properties: Vec&lt;JsValue&gt;) {
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>override_indexed_properties(<span class="kw-2">&amp;mut </span><span class="self">self</span>, properties: ThinVec&lt;JsValue&gt;) {
         <span class="self">self</span>.indexed_properties = IndexedProperties::Dense(properties);
     }
 
     <span class="doccomment">/// Returns the vec of dense indexed properties if they exist.
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const fn </span>dense_indexed_properties(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>Vec&lt;JsValue&gt;&gt; {
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const fn </span>dense_indexed_properties(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>ThinVec&lt;JsValue&gt;&gt; {
         <span class="kw">if let </span>IndexedProperties::Dense(properties) = <span class="kw-2">&amp;</span><span class="self">self</span>.indexed_properties {
             <span class="prelude-val">Some</span>(properties)
         } <span class="kw">else </span>{
