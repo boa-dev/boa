@@ -764,6 +764,12 @@ pub struct IntrinsicObjects {
     /// [`%parseInt%`](https://tc39.es/ecma262/#sec-parseint-string-radix)
     parse_int: JsFunction,
 
+    /// [`%escape%`](https://tc39.es/ecma262/#sec-escape-string)
+    escape: JsFunction,
+
+    /// [`%unescape%`](https://tc39.es/ecma262/#sec-unescape-string)
+    unescape: JsFunction,
+
     /// [`%Intl%`](https://tc39.es/ecma402/#intl-object)
     #[cfg(feature = "intl")]
     intl: JsObject,
@@ -786,6 +792,8 @@ impl Default for IntrinsicObjects {
             is_nan: JsFunction::from_object_unchecked(JsObject::default()),
             parse_float: JsFunction::from_object_unchecked(JsObject::default()),
             parse_int: JsFunction::from_object_unchecked(JsObject::default()),
+            escape: JsFunction::from_object_unchecked(JsObject::default()),
+            unescape: JsFunction::from_object_unchecked(JsObject::default()),
             #[cfg(feature = "intl")]
             intl: JsObject::default(),
         }
@@ -890,6 +898,20 @@ impl IntrinsicObjects {
     /// [spec]: https://tc39.es/ecma262/#sec-parseint-string-radix
     pub fn parse_int(&self) -> JsFunction {
         self.parse_int.clone()
+    }
+
+    /// Gets the [`%escape%`][spec] intrinsic function.
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-escape-string
+    pub fn escape(&self) -> JsFunction {
+        self.escape.clone()
+    }
+
+    /// Gets the [`%unescape%`][spec] intrinsic function.
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-unescape-string
+    pub fn unescape(&self) -> JsFunction {
+        self.unescape.clone()
     }
 
     /// Gets the [`%Intl%`][spec] intrinsic object.
