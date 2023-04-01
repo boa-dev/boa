@@ -366,6 +366,7 @@ version = "0.16.0"
 dependencies = [
  "boa_ast",
  "boa_engine",
+ "boa_gc",
  "boa_parser",
  "clap 4.2.1",
  "colored",
