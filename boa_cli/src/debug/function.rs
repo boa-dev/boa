@@ -4,6 +4,7 @@ use boa_engine::{
     vm::flowgraph::{Direction, Graph},
     Context, JsArgs, JsNativeError, JsObject, JsResult, JsValue, NativeFunction,
 };
+use boa_interner::ToInternedString;
 
 use crate::FlowgraphFormat;
 
@@ -108,6 +109,39 @@ fn flowgraph(_this: &JsValue, args: &[JsValue], context: &mut Context<'_>) -> Js
     Ok(JsValue::new(result))
 }
 
+fn bytecode(_: &JsValue, args: &[JsValue], context: &mut Context<'_>) -> JsResult<JsValue> {
+    let Some(value) = args.get(0) else {
+        return Err(JsNativeError::typ()
+        .with_message("expected function argument")
+        .into());
+    };
+
+    let Some(object) = value.as_object() else {
+        return Err(JsNativeError::typ()
+        .with_message(format!("expected object, got {}", value.type_of()))
+        .into());
+    };
+    let object = object.borrow();
+    let Some(function) = object.as_function() else {
+        return Err(JsNativeError::typ()
+        .with_message("expected function object")
+        .into());
+    };
+    let code = match function {
+        Function::Ordinary { code, .. }
+        | Function::Async { code, .. }
+        | Function::Generator { code, .. }
+        | Function::AsyncGenerator { code, .. } => code,
+        Function::Native { .. } => {
+            return Err(JsNativeError::typ()
+                .with_message("native functions do not have bytecode")
+                .into())
+        }
+    };
+
+    Ok(code.to_interned_string(context.interner()).into())
+}
+
 /// Trace function.
 fn trace(_: &JsValue, args: &[JsValue], context: &mut Context<'_>) -> JsResult<JsValue> {
     let value = args.get_or_undefined(0);
@@ -130,6 +164,7 @@ fn trace(_: &JsValue, args: &[JsValue], context: &mut Context<'_>) -> JsResult<J
 pub(super) fn create_object(context: &mut Context<'_>) -> JsObject {
     ObjectInitializer::new(context)
         .function(NativeFunction::from_fn_ptr(flowgraph), "flowgraph", 1)
+        .function(NativeFunction::from_fn_ptr(bytecode), "bytecode", 1)
         .function(NativeFunction::from_fn_ptr(trace), "trace", 1)
         .build()
 }

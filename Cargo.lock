@@ -367,6 +367,7 @@ dependencies = [
  "boa_ast",
  "boa_engine",
  "boa_gc",
+ "boa_interner",
  "boa_parser",
  "clap 4.2.1",
  "colored",
