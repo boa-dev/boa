@@ -255,6 +255,8 @@ impl Intrinsics {
         WeakRef::init(&intrinsics);
         WeakMap::init(&intrinsics);
         WeakSet::init(&intrinsics);
+        Escape::init(&intrinsics);
+        Unescape::init(&intrinsics);
         #[cfg(feature = "intl")]
         {
             intl::Intl::init(&intrinsics);
