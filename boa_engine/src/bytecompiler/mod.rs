@@ -1327,6 +1327,8 @@ impl<'b, 'host> ByteCompiler<'b, 'host> {
             is_class_constructor: self.is_class_constructor,
             class_field_initializer_name: self.class_field_initializer_name,
             function_environment_push_location: self.function_environment_push_location,
+            #[cfg(feature = "trace")]
+            trace: std::cell::Cell::new(false),
         }
     }
 

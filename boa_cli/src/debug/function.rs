@@ -142,6 +142,28 @@ fn bytecode(_: &JsValue, args: &[JsValue], context: &mut Context<'_>) -> JsResul
     Ok(code.to_interned_string(context.interner()).into())
 }
 
+fn set_trace_flag_in_function_object(object: &JsObject, value: bool) -> JsResult<()> {
+    let object = object.borrow();
+    let Some(function) = object.as_function() else {
+        return Err(JsNativeError::typ()
+        .with_message("expected function object")
+        .into());
+    };
+    let code = match function {
+        Function::Ordinary { code, .. }
+        | Function::Async { code, .. }
+        | Function::Generator { code, .. }
+        | Function::AsyncGenerator { code, .. } => code,
+        Function::Native { .. } => {
+            return Err(JsNativeError::typ()
+                .with_message("native functions do not have bytecode")
+                .into())
+        }
+    };
+    code.set_trace(value);
+    Ok(())
+}
+
 /// Trace function.
 fn trace(_: &JsValue, args: &[JsValue], context: &mut Context<'_>) -> JsResult<JsValue> {
     let value = args.get_or_undefined(0);
@@ -155,9 +177,10 @@ fn trace(_: &JsValue, args: &[JsValue], context: &mut Context<'_>) -> JsResult<J
 
     let arguments = args.get(2..).unwrap_or(&[]);
 
-    context.set_trace(true);
+    set_trace_flag_in_function_object(callable, true)?;
     let result = callable.call(this, arguments, context);
-    context.set_trace(false);
+    set_trace_flag_in_function_object(callable, false)?;
+
     result
 }
 

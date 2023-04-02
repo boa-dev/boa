@@ -216,7 +216,7 @@ impl Context<'_> {
 
             // 1. Run the next instruction.
             #[cfg(feature = "trace")]
-            let result = if self.vm.trace {
+            let result = if self.vm.trace || self.vm.frame().code_block.trace.get() {
                 let mut pc = self.vm.frame().pc;
                 let opcode: Opcode = self
                     .vm
