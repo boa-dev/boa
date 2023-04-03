@@ -794,7 +794,9 @@ impl Default for IntrinsicObjects {
             is_nan: JsFunction::from_object_unchecked(JsObject::default()),
             parse_float: JsFunction::from_object_unchecked(JsObject::default()),
             parse_int: JsFunction::from_object_unchecked(JsObject::default()),
+            #[cfg(feature = "annex-b")]
             escape: JsFunction::from_object_unchecked(JsObject::default()),
+            #[cfg(feature = "annex-b")]
             unescape: JsFunction::from_object_unchecked(JsObject::default()),
             #[cfg(feature = "intl")]
             intl: JsObject::default(),
