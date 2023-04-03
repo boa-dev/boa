@@ -12,7 +12,7 @@ repository.workspace = true
 rust-version.workspace = true
 
 [dependencies]
-boa_engine.workspace = true 
+boa_engine = { workspace = true, features = ["annex-b"] }
 boa_gc.workspace = true
 clap = { version = "4.2.1", features = ["derive"] }
 serde = { version = "1.0.159", features = ["derive"] }

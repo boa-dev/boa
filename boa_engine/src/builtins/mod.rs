@@ -35,6 +35,9 @@ pub mod weak;
 pub mod weak_map;
 pub mod weak_set;
 
+#[cfg(feature = "annex-b")]
+pub mod escape;
+
 #[cfg(feature = "intl")]
 pub mod intl;
 
@@ -253,6 +256,13 @@ impl Intrinsics {
         WeakRef::init(&intrinsics);
         WeakMap::init(&intrinsics);
         WeakSet::init(&intrinsics);
+
+        #[cfg(feature = "annex-b")]
+        {
+            escape::Escape::init(&intrinsics);
+            escape::Unescape::init(&intrinsics);
+        }
+
         #[cfg(feature = "intl")]
         {
             intl::Intl::init(&intrinsics);
@@ -353,6 +363,12 @@ pub(crate) fn set_default_global_bindings(context: &mut Context<'_>) -> JsResult
     global_binding::<WeakRef>(context)?;
     global_binding::<WeakMap>(context)?;
     global_binding::<WeakSet>(context)?;
+
+    #[cfg(feature = "annex-b")]
+    {
+        global_binding::<escape::Escape>(context)?;
+        global_binding::<escape::Unescape>(context)?;
+    }
 
     #[cfg(feature = "intl")]
     global_binding::<intl::Intl>(context)?;
