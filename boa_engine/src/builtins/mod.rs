@@ -12,7 +12,6 @@ pub mod boolean;
 pub mod dataview;
 pub mod date;
 pub mod error;
-pub mod escape;
 pub mod eval;
 pub mod function;
 pub mod generator;
@@ -35,6 +34,9 @@ pub mod uri;
 pub mod weak;
 pub mod weak_map;
 pub mod weak_set;
+
+#[cfg(feature = "annex-b")]
+pub mod escape;
 
 #[cfg(feature = "intl")]
 pub mod intl;
@@ -77,7 +79,6 @@ use crate::{
         async_generator::AsyncGenerator,
         async_generator_function::AsyncGeneratorFunction,
         error::r#type::ThrowTypeError,
-        escape::{Escape, Unescape},
         generator::Generator,
         generator_function::GeneratorFunction,
         iterable::{AsyncFromSyncIterator, AsyncIterator, Iterator},
@@ -255,8 +256,13 @@ impl Intrinsics {
         WeakRef::init(&intrinsics);
         WeakMap::init(&intrinsics);
         WeakSet::init(&intrinsics);
-        Escape::init(&intrinsics);
-        Unescape::init(&intrinsics);
+
+        #[cfg(feature = "annex-b")]
+        {
+            escape::Escape::init(&intrinsics);
+            escape::Unescape::init(&intrinsics);
+        }
+
         #[cfg(feature = "intl")]
         {
             intl::Intl::init(&intrinsics);
@@ -357,8 +363,12 @@ pub(crate) fn set_default_global_bindings(context: &mut Context<'_>) -> JsResult
     global_binding::<WeakRef>(context)?;
     global_binding::<WeakMap>(context)?;
     global_binding::<WeakSet>(context)?;
-    global_binding::<Escape>(context)?;
-    global_binding::<Unescape>(context)?;
+
+    #[cfg(feature = "annex-b")]
+    {
+        global_binding::<escape::Escape>(context)?;
+        global_binding::<escape::Unescape>(context)?;
+    }
 
     #[cfg(feature = "intl")]
     global_binding::<intl::Intl>(context)?;

@@ -12,8 +12,8 @@ repository.workspace = true
 rust-version.workspace = true
 
 [dependencies]
-boa_engine = { workspace = true, features = ["deser", "console", "flowgraph", "trace"] }
-boa_ast = { workspace = true, features = ["serde"]}
+boa_engine = { workspace = true, features = ["deser", "console", "flowgraph", "trace", "annex-b"] }
+boa_ast = { workspace = true, features = ["serde"] }
 boa_parser.workspace = true
 rustyline = { version = "11.0.0", features = ["derive"]}
 clap = { version = "4.2.1", features = ["derive"] }
