@@ -6,10 +6,12 @@ use boa_engine::{object::ObjectInitializer, property::Attribute, Context, JsObje
 mod function;
 mod gc;
 mod object;
+mod optimizer;
 
 fn create_boa_object(context: &mut Context<'_>) -> JsObject {
     let function_module = function::create_object(context);
     let object_module = object::create_object(context);
+    let optimizer_module = optimizer::create_object(context);
     let gc_module = gc::create_object(context);
 
     ObjectInitializer::new(context)
@@ -21,6 +23,11 @@ fn create_boa_object(context: &mut Context<'_>) -> JsObject {
         .property(
             "object",
             object_module,
+            Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
+        )
+        .property(
+            "optimizer",
+            optimizer_module,
             Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
         )
         .property(

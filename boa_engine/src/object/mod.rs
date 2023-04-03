@@ -2124,6 +2124,33 @@ impl<'ctx, 'host> ObjectInitializer<'ctx, 'host> {
         self
     }
 
+    /// Add new accessor property to the object.
+    ///
+    /// # Panics
+    ///
+    /// If both getter or setter are [`None`].
+    pub fn accessor<K>(
+        &mut self,
+        key: K,
+        get: Option<JsFunction>,
+        set: Option<JsFunction>,
+        attribute: Attribute,
+    ) -> &mut Self
+    where
+        K: Into<PropertyKey>,
+    {
+        // Accessors should have at least one function.
+        assert!(set.is_some() || get.is_some());
+
+        let property = PropertyDescriptor::builder()
+            .maybe_get(get)
+            .maybe_set(set)
+            .enumerable(attribute.enumerable())
+            .configurable(attribute.configurable());
+        self.object.borrow_mut().insert(key, property);
+        self
+    }
+
     /// Build the object.
     #[inline]
     pub fn build(&mut self) -> JsObject {
