@@ -724,7 +724,7 @@
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>from_test_metadata(metadata: <span class="kw-2">&amp;</span>MetaData) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>, Vec&lt;<span class="kw-2">&amp;</span>str&gt;&gt; {
         <span class="kw">let </span><span class="kw-2">mut </span>min_edition = <span class="kw">if </span>metadata.flags.contains(<span class="kw-2">&amp;</span>TestFlag::Async) {
             <span class="self">Self</span>::ES8
-        } <span class="kw">else if </span>metadata.es6id.is_some() || metadata.flags.contains(<span class="kw-2">&amp;</span>TestFlag::Module) {
+        } <span class="kw">else if </span>metadata.flags.contains(<span class="kw-2">&amp;</span>TestFlag::Module) {
             <span class="self">Self</span>::ES6
         } <span class="kw">else </span>{
             <span class="self">Self</span>::ES5
