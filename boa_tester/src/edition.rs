@@ -47,6 +47,10 @@ static FEATURE_EDITION: phf::Map<&'static str, SpecEdition> = phf::phf_map! {
     // https://github.com/tc39/proposal-json-modules
     "json-modules"  => SpecEdition::ESNext,
 
+    // JSON.parse with source
+    // https://github.com/tc39/proposal-json-parse-with-source
+    "json-parse-with-source" => SpecEdition::ESNext,
+
     // Resizable Arraybuffer
     // https://github.com/tc39/proposal-resizablearraybuffer
     "resizable-arraybuffer" => SpecEdition::ESNext,
