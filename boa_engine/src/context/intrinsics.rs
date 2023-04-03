@@ -765,9 +765,11 @@ pub struct IntrinsicObjects {
     parse_int: JsFunction,
 
     /// [`%escape%`](https://tc39.es/ecma262/#sec-escape-string)
+    #[cfg(feature = "annex-b")]
     escape: JsFunction,
 
     /// [`%unescape%`](https://tc39.es/ecma262/#sec-unescape-string)
+    #[cfg(feature = "annex-b")]
     unescape: JsFunction,
 
     /// [`%Intl%`](https://tc39.es/ecma402/#intl-object)
@@ -903,6 +905,7 @@ impl IntrinsicObjects {
     /// Gets the [`%escape%`][spec] intrinsic function.
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-escape-string
+    #[cfg(feature = "annex-b")]
     pub fn escape(&self) -> JsFunction {
         self.escape.clone()
     }
@@ -910,6 +913,7 @@ impl IntrinsicObjects {
     /// Gets the [`%unescape%`][spec] intrinsic function.
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-unescape-string
+    #[cfg(feature = "annex-b")]
     pub fn unescape(&self) -> JsFunction {
         self.unescape.clone()
     }
