@@ -1,9 +1,9 @@
 # Boa Debug Object
 
-The `$boa` object that contains useful utilities that can be used to debug JavaScript in JavaScript.
+The `$boa` object contains useful utilities that can be used to debug JavaScript in JavaScript.
 
-It becomes available with the `--debug-object` command-line flag.
-It's injected into the context as global variable, the object is separated into modules.
+It's injected into the context as global variable with the `--debug-object` command-line flag,
+the object is separated into modules.
 
 ## Module `$boa.gc`
 
@@ -76,18 +76,14 @@ their instructions aren't traced.
 
 The `this` value can be changed as well as the arguments that are passed to the function.
 
-```JavaScript
-$boa.function.trace(func, this, ...args)
-```
-
 ## Function `$boa.function.flowgraph(func, options)`
 
-It can be used to get the instruction flowgraph, like the cli flag. This works on the
-function level, allows getting the flow graph without quiting the boa shell and
-adding the specified flags.
+It can be used to get the instruction flowgraph, like the command-line flag.
+This works on the function level, allows getting the flow graph without
+quiting the boa shell and adding the specified flags.
 
 Besides the function it also takes an argument that, can be a string or an object.
-If it is a string it represets the flowgraph format, otherwire if it's an object
+If it is a string it represets the flowgraph format, otherwire if it's an object:
 
 ```JavaScript
 // These are the defaults, if not specified.
@@ -142,10 +138,13 @@ This is and accessor property on the module, its getter returns `true` if enable
 Its setter can be used to enable/disable optimization statistics, which are printed to `stdout`.
 
 ```JavaScript
-$boa.optimizer.constantFolding = true
-$boa.optimizer.statistics = true
-1 + 1
+>> $boa.optimizer.constantFolding = true
+>> $boa.optimizer.statistics = true
+>> 1 + 1
 Optimizer {
     constant folding: 1 run(s), 2 pass(es) (1 mutating, 1 checking)
 }
+
+2
+>>
 ```
