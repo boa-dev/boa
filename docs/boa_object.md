@@ -121,3 +121,31 @@ $boa.object.id(o)    // '0x7F5B3251B718'
 // Geting the address of the $boa object in memory
 $boa.object.id($boa) // '0x7F5B3251B5D8'
 ```
+
+## Module `$boa.optimizer`
+
+This modules contains getters and setters for enabling and disabling optimizations.
+
+### Getter & Setter `$boa.optimizer.constantFolding`
+
+This is and accessor property on the module, its getter returns `true` if enabled or `false` otherwise.
+Its setter can be used to enable/disable the constant folding optimization.
+
+```JavaScript
+$boa.optimizer.constantFolding = true
+$boa.optimizer.constantFolding // true
+```
+
+### Getter & Setter `$boa.optimizer.statistics`
+
+This is and accessor property on the module, its getter returns `true` if enabled or `false` otherwise.
+Its setter can be used to enable/disable optimization statistics, which are printed to `stdout`.
+
+```JavaScript
+$boa.optimizer.constantFolding = true
+$boa.optimizer.statistics = true
+1 + 1
+Optimizer {
+    constant folding: 1 run(s), 2 pass(es) (1 mutating, 1 checking)
+}
+```
