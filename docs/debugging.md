@@ -82,6 +82,22 @@ for example `--flowgraph-direction=left-to-right`, the default is `top-to-bottom
 [gihub-mermaid]: https://docs.github.com/en/get-started/writing-on-github/working-with-advanced-formatting/creating-diagrams
 [graphviz]: https://graphviz.org/
 
+## Debugging through the debug object $boa
+
+Certain debugging actions stuff in JavaScript land are difficult to impossible, like triggering a GC collect.
+
+For such puroposes we have the `$boa` object that contains useful utilities that can be used to debug JavaScript in JavaScript.
+The debug object becomes available with the `--debug-object` cli flag,
+It injects the `$boa` debug object in the context as global variable,
+the object is separated into modules `gc`, `function`, `object`, etc.
+
+We can now do `$boa.gc.collect()`, which force triggers a GC collect.
+
+If you want to trace only a particular function (without being flodded by the `--trace` flag, that traces everything),
+for that we have the `$boa.function.trace(func, this, ...args)`.
+
+For full documentation of the debug object see [`boa_object.md`](./boa_object.md).
+
 ## Compiler panics
 
 In the case of a compiler panic, to get a full backtrace you will need to set
