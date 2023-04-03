@@ -125,14 +125,12 @@ fn unescape(_: &JsValue, args: &[JsValue], context: &mut Context<'_>) -> JsResul
     // 3. Let R be the empty String.
     let mut vec = Vec::with_capacity(string.len());
 
-    let mut codepoints = <BufferedIterator<_, 6>>::new(string.iter().copied().fuse());
+    let mut codepoints = <PeekableN<_, 6>>::new(string.iter().copied());
 
     // 2. Let len be the length of string.
     // 4. Let k be 0.
     // 5. Repeat, while k < len,
     loop {
-        vec.extend_from_slice(codepoints.reset_buffer());
-
         // a. Let C be the code unit at index k within string.
         let Some(cp) = codepoints.next() else {
             break;
@@ -140,50 +138,49 @@ fn unescape(_: &JsValue, args: &[JsValue], context: &mut Context<'_>) -> JsResul
 
         // b. If C is the code unit 0x0025 (PERCENT SIGN), then
         if cp != u16::from(b'%') {
+            vec.push(cp);
             continue;
         }
 
         //     i. Let hexDigits be the empty String.
         //     ii. Let optionalAdvance be 0.
-        let Some(next1) = codepoints.next() else {
+        // TODO: Try blocks :(
+        let Some(unescaped_cp) = (|| match *codepoints.peek_n(5) {
+            // iii. If k + 5 < len and the code unit at index k + 1 within string is the code unit
+            // 0x0075 (LATIN SMALL LETTER U), then
+            [u, n1, n2, n3, n4] if u == u16::from(b'u') => {
+                // 1. Set hexDigits to the substring of string from k + 2 to k + 6.
+                // 2. Set optionalAdvance to 5.
+                let n1 = to_hex_digit(n1)?;
+                let n2 = to_hex_digit(n2)?;
+                let n3 = to_hex_digit(n3)?;
+                let n4 = to_hex_digit(n4)?;
+
+                // TODO: https://github.com/rust-lang/rust/issues/77404
+                for _ in 0..5 {
+                    codepoints.next();
+                }
+
+                Some((n1 << 12) + (n2 << 8) + (n3 << 4) + n4)
+            }
+            // iv. Else if k + 3 ≤ len, then
+            [n1, n2, ..] => {
+                // 1. Set hexDigits to the substring of string from k + 1 to k + 3.
+                // 2. Set optionalAdvance to 2.
+                let n1 = to_hex_digit(n1)?;
+                let n2 = to_hex_digit(n2)?;
+
+                // TODO: https://github.com/rust-lang/rust/issues/77404
+                for _ in 0..2 {
+                    codepoints.next();
+                }
+
+                Some((n1 << 4) + n2)
+            }
+            _ => None
+        })() else {
+            vec.push(u16::from(b'%'));
             continue;
-        };
-
-        //     iii. If k + 5 < len and the code unit at index k + 1 within string is the code unit 0x0075 (LATIN SMALL LETTER U), then
-        let unescaped_cp = if next1 == u16::from(b'u') {
-            //         1. Set hexDigits to the substring of string from k + 2 to k + 6.
-            //         2. Set optionalAdvance to 5.
-            let Some(next1) = codepoints.next().and_then(to_hex_digit) else {
-                continue;
-            };
-
-            let Some(next2) = codepoints.next().and_then(to_hex_digit) else {
-                continue;
-            };
-
-            let Some(next3) = codepoints.next().and_then(to_hex_digit) else {
-                continue;
-            };
-
-            let Some(next4) = codepoints.next().and_then(to_hex_digit) else {
-                continue;
-            };
-
-            (next1 << 12) + (next2 << 8) + (next3 << 4) + next4
-        }
-        //     iv. Else if k + 3 ≤ len, then
-        else {
-            //         1. Set hexDigits to the substring of string from k + 1 to k + 3.
-            //         2. Set optionalAdvance to 2.
-            let Some(next1) = to_hex_digit(cp) else {
-                continue;
-            };
-
-            let Some(next2) = codepoints.next().and_then(to_hex_digit) else {
-                continue;
-            };
-
-            (next1 << 4) + next2
         };
 
         //     v. Let parseResult be ParseText(StringToCodePoints(hexDigits), HexDigits[~Sep]).
@@ -194,45 +191,53 @@ fn unescape(_: &JsValue, args: &[JsValue], context: &mut Context<'_>) -> JsResul
         // c. Set R to the string-concatenation of R and C.
         // d. Set k to k + 1.
         vec.push(unescaped_cp);
-        codepoints.reset_buffer();
     }
     // 6. Return R.
     Ok(js_string!(vec).into())
 }
 
-/// An iterator that buffers the result of `SIZE` items.
-struct BufferedIterator<I, const SIZE: usize>
+/// An iterator that can peek `N` items.
+struct PeekableN<I, const N: usize>
 where
     I: Iterator,
 {
     iterator: I,
-    buffer: [I::Item; SIZE],
-    buffered_count: usize,
+    buffer: [I::Item; N],
+    buffered_end: usize,
 }
 
-impl<I, const SIZE: usize> BufferedIterator<I, SIZE>
+impl<I, const N: usize> PeekableN<I, N>
 where
     I: Iterator,
     I::Item: Default + Copy,
 {
-    /// Creates a new `BufferedIterator`.
+    /// Creates a new `PeekableN`.
     fn new(iterator: I) -> Self {
         Self {
             iterator,
-            buffer: [I::Item::default(); SIZE],
-            buffered_count: 0,
+            buffer: [I::Item::default(); N],
+            buffered_end: 0,
         }
     }
 
-    /// Resets the inner buffer and returns the buffered items.
-    fn reset_buffer(&mut self) -> &[I::Item] {
-        let buffered = &self.buffer[..self.buffered_count];
-        self.buffered_count = 0;
-        buffered
+    /// Peeks `n` items from the iterator.
+    fn peek_n(&mut self, count: usize) -> &[I::Item] {
+        if count <= self.buffered_end {
+            return &self.buffer[..count];
+        }
+        for _ in 0..(count - self.buffered_end) {
+            let Some(next) = self.iterator.next() else {
+                return &self.buffer[..self.buffered_end];
+            };
+            self.buffer[self.buffered_end] = next;
+            self.buffered_end += 1;
+        }
+
+        &self.buffer[..count]
     }
 }
 
-impl<I, const SIZE: usize> Iterator for BufferedIterator<I, SIZE>
+impl<I, const N: usize> Iterator for PeekableN<I, N>
 where
     I: Iterator,
     I::Item: Copy,
@@ -240,9 +245,12 @@ where
     type Item = I::Item;
 
     fn next(&mut self) -> Option<Self::Item> {
-        let item = self.iterator.next()?;
-        self.buffer[self.buffered_count] = item;
-        self.buffered_count += 1;
-        Some(item)
+        if self.buffered_end > 0 {
+            let item = self.buffer[0];
+            self.buffer.rotate_left(1);
+            self.buffered_end -= 1;
+            return Some(item);
+        }
+        self.iterator.next()
     }
 }
