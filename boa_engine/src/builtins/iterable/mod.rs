@@ -186,7 +186,7 @@ pub fn create_iter_result_object(value: JsValue, done: bool, context: &mut Conte
 
     // 1. Assert: Type(done) is Boolean.
     // 2. Let obj be ! OrdinaryObjectCreate(%Object.prototype%).
-    let obj = JsObject::with_object_proto(context);
+    let obj = JsObject::with_object_proto(context.intrinsics());
 
     // 3. Perform ! CreateDataPropertyOrThrow(obj, "value", value).
     obj.create_data_property_or_throw(utf16!("value"), value, context)

@@ -632,7 +632,7 @@ pub(crate) fn create_function_object(
         .expect("failed to define the name property of the function");
 
     if !r#async && !arrow && !method {
-        let prototype = JsObject::with_object_proto(context);
+        let prototype = JsObject::with_object_proto(context.intrinsics());
         prototype
             .define_property_or_throw(CONSTRUCTOR, constructor_property, context)
             .expect("failed to define the constructor property of the function");
@@ -803,7 +803,7 @@ impl JsObject {
                 } else if code.strict {
                     Some(this.clone())
                 } else if this.is_null_or_undefined() {
-                    Some(context.global_object().clone().into())
+                    Some(context.global_object().into())
                 } else {
                     Some(
                         this.to_object(context)
@@ -925,7 +925,7 @@ impl JsObject {
                 } else if code.strict {
                     Some(this.clone())
                 } else if this.is_null_or_undefined() {
-                    Some(context.global_object().clone().into())
+                    Some(context.global_object().into())
                 } else {
                     Some(
                         this.to_object(context)
@@ -1044,7 +1044,7 @@ impl JsObject {
                 } else if code.strict {
                     Some(this.clone())
                 } else if this.is_null_or_undefined() {
-                    Some(context.global_object().clone().into())
+                    Some(context.global_object().into())
                 } else {
                     Some(
                         this.to_object(context)
@@ -1182,7 +1182,7 @@ impl JsObject {
                 } else if code.strict {
                     Some(this.clone())
                 } else if this.is_null_or_undefined() {
-                    Some(context.global_object().clone().into())
+                    Some(context.global_object().into())
                 } else {
                     Some(
                         this.to_object(context)

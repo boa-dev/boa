@@ -214,6 +214,15 @@ impl BuiltInConstructor for Collator {
         context: &mut Context<'_>,
     ) -> JsResult<JsValue> {
         // 1. If NewTarget is undefined, let newTarget be the active function object, else let newTarget be NewTarget.
+        let new_target = &if new_target.is_undefined() {
+            context
+                .vm
+                .active_function
+                .clone()
+                .map_or_else(JsValue::null, JsValue::from)
+        } else {
+            new_target.clone()
+        };
         // 2. Let internalSlotsList be « [[InitializedCollator]], [[Locale]], [[Usage]], [[Sensitivity]], [[IgnorePunctuation]], [[Collation]], [[BoundCompare]] ».
         // 3. If %Collator%.[[RelevantExtensionKeys]] contains "kn", then
         //     a. Append [[Numeric]] as the last element of internalSlotsList.

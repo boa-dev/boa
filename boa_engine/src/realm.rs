@@ -9,7 +9,7 @@
 use crate::{
     context::{intrinsics::Intrinsics, HostHooks},
     environments::{CompileTimeEnvironment, DeclarativeEnvironmentStack},
-    object::{GlobalPropertyMap, JsObject, PropertyMap},
+    object::JsObject,
 };
 use boa_gc::{Gc, GcRefCell};
 use boa_profiler::Profiler;
@@ -20,7 +20,6 @@ use boa_profiler::Profiler;
 #[derive(Debug)]
 pub struct Realm {
     pub(crate) intrinsics: Intrinsics,
-    pub(crate) global_property_map: PropertyMap,
     pub(crate) environments: DeclarativeEnvironmentStack,
     pub(crate) compile_env: Gc<GcRefCell<CompileTimeEnvironment>>,
     global_object: JsObject,
@@ -43,12 +42,10 @@ impl Realm {
         let global_compile_environment =
             Gc::new(GcRefCell::new(CompileTimeEnvironment::new_global()));
 
-        #[allow(unreachable_code)]
         Self {
             intrinsics,
             global_object,
             global_this,
-            global_property_map: PropertyMap::default(),
             environments: DeclarativeEnvironmentStack::new(global_compile_environment.clone()),
             compile_env: global_compile_environment,
         }
@@ -60,10 +57,6 @@ impl Realm {
 
     pub(crate) const fn global_this(&self) -> &JsObject {
         &self.global_this
-    }
-
-    pub(crate) fn global_bindings_mut(&mut self) -> &mut GlobalPropertyMap {
-        self.global_property_map.string_property_map_mut()
     }
 
     /// Set the number of bindings on the global environment.

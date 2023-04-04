@@ -121,7 +121,7 @@ impl<T: Class> ClassConstructor for T {
                 .into());
         }
 
-        let class = context.global_object().clone().get(T::NAME, context)?;
+        let class = context.global_object().get(T::NAME, context)?;
         let JsValue::Object(ref class_constructor) = class else {
             return Err(JsNativeError::typ()
                 .with_message(format!(

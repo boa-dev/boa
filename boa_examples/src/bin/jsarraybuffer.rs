@@ -54,7 +54,7 @@ fn main() -> JsResult<()> {
         "myArrayBuffer",
         array_buffer,
         Attribute::WRITABLE | Attribute::ENUMERABLE | Attribute::CONFIGURABLE,
-    );
+    ).unwrap();
 
     // We can also take the inner data from a JsArrayBuffer
     let data_block: Vec<u8> = (0..5).collect();

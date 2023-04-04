@@ -7,7 +7,7 @@ use boa_engine::{
 
 /// Creates the object $262 in the context.
 pub(super) fn register_js262(context: &mut Context<'_>) -> JsObject {
-    let global_obj = context.global_object().clone();
+    let global_obj = context.global_object();
 
     let js262 = ObjectInitializer::new(context)
         .function(NativeFunction::from_fn_ptr(create_realm), "createRealm", 0)
@@ -30,7 +30,7 @@ pub(super) fn register_js262(context: &mut Context<'_>) -> JsObject {
         "$262",
         js262.clone(),
         Attribute::WRITABLE | Attribute::CONFIGURABLE,
-    );
+    ).expect("shouldn't fail with the default global");
 
     js262
 }

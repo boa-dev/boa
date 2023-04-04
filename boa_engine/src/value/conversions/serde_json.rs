@@ -64,7 +64,7 @@ impl JsValue {
                 Ok(Array::create_array_from_list(arr, context).into())
             }
             Value::Object(obj) => {
-                let js_obj = JsObject::with_object_proto(context);
+                let js_obj = JsObject::with_object_proto(context.intrinsics());
                 for (key, value) in obj {
                     let property = PropertyDescriptor::builder()
                         .value(Self::from_json(value, context)?)

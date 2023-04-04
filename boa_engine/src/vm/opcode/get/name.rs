@@ -29,14 +29,14 @@ impl Operation for GetName {
                     .interner()
                     .resolve_expect(binding_locator.name().sym())
                     .into_common(false);
-                match context.global_bindings_mut().get(&key) {
+                match context.global_object().get_property(&key.clone().into()) {
                     Some(desc) => match desc.kind() {
                         DescriptorKind::Data {
                             value: Some(value), ..
                         } => value.clone(),
                         DescriptorKind::Accessor { get: Some(get), .. } if !get.is_undefined() => {
                             let get = get.clone();
-                            get.call(&context.global_object().clone().into(), &[], context)?
+                            get.call(&context.global_object().into(), &[], context)?
                         }
                         _ => {
                             return Err(JsNativeError::reference()
@@ -98,14 +98,14 @@ impl Operation for GetNameOrUndefined {
                     .interner()
                     .resolve_expect(binding_locator.name().sym())
                     .into_common(false);
-                match context.global_bindings_mut().get(&key) {
+                match context.global_object().get_property(&key.into()) {
                     Some(desc) => match desc.kind() {
                         DescriptorKind::Data {
                             value: Some(value), ..
                         } => value.clone(),
                         DescriptorKind::Accessor { get: Some(get), .. } if !get.is_undefined() => {
                             let get = get.clone();
-                            get.call(&context.global_object().clone().into(), &[], context)?
+                            get.call(&context.global_object().into(), &[], context)?
                         }
                         _ => JsValue::undefined(),
                     },

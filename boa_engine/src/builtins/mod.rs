@@ -168,7 +168,7 @@ fn global_binding<B: BuiltInObject>(context: &mut Context<'_>) -> JsResult<()> {
     let name = B::NAME;
     let attr = B::ATTRIBUTE;
     let intrinsic = B::get(context.intrinsics());
-    let global_object = context.global_object().clone();
+    let global_object = context.global_object();
 
     global_object.define_property_or_throw(
         name,
@@ -281,7 +281,7 @@ impl Intrinsics {
 ///
 /// [spec]: https://tc39.es/ecma262/#sec-setdefaultglobalbindings
 pub(crate) fn set_default_global_bindings(context: &mut Context<'_>) -> JsResult<()> {
-    let global_object = context.global_object().clone();
+    let global_object = context.global_object();
 
     global_object.define_property_or_throw(
         utf16!("globalThis"),
@@ -376,7 +376,7 @@ pub(crate) fn set_default_global_bindings(context: &mut Context<'_>) -> JsResult
     #[cfg(feature = "console")]
     {
         let object = Console::init(context);
-        let global_object = context.global_object().clone();
+        let global_object = context.global_object();
         global_object.define_property_or_throw(
             utf16!("console"),
             PropertyDescriptor::builder()

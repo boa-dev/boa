@@ -869,7 +869,7 @@ impl Promise {
                         // 8. Let remainingElementsCount be F.[[RemainingElements]].
 
                         // 9. Let obj be OrdinaryObjectCreate(%Object.prototype%).
-                        let obj = JsObject::with_object_proto(context);
+                        let obj = JsObject::with_object_proto(context.intrinsics());
 
                         // 10. Perform ! CreateDataPropertyOrThrow(obj, "status", "fulfilled").
                         obj.create_data_property_or_throw(utf16!("status"), "fulfilled", context)
@@ -955,7 +955,7 @@ impl Promise {
                         // 8. Let remainingElementsCount be F.[[RemainingElements]].
 
                         // 9. Let obj be OrdinaryObjectCreate(%Object.prototype%).
-                        let obj = JsObject::with_object_proto(context);
+                        let obj = JsObject::with_object_proto(context.intrinsics());
 
                         // 10. Perform ! CreateDataPropertyOrThrow(obj, "status", "rejected").
                         obj.create_data_property_or_throw(utf16!("status"), "rejected", context)

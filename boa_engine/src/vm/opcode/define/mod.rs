@@ -1,5 +1,4 @@
 use crate::{
-    property::PropertyDescriptor,
     vm::{opcode::Operation, CompletionType},
     Context, JsResult, JsString, JsValue,
 };
@@ -29,15 +28,13 @@ impl Operation for DefVar {
             let key = context
                 .interner()
                 .resolve_expect(binding_locator.name().sym())
-                .into_common(false);
-            context.global_bindings_mut().entry(key).or_insert(
-                PropertyDescriptor::builder()
-                    .value(JsValue::Undefined)
-                    .writable(true)
-                    .enumerable(true)
-                    .configurable(true)
-                    .build(),
-            );
+                .into_common::<JsString>(false);
+            context.global_object().set(
+                key,
+                JsValue::Undefined,
+                context.vm.frame().code_block.strict,
+                context,
+            )?;
         } else {
             context.realm.environments.put_value_if_uninitialized(
                 binding_locator.environment_index(),
@@ -74,11 +71,10 @@ impl Operation for DefInitVar {
                 let key = context
                     .interner()
                     .resolve_expect(binding_locator.name().sym())
-                    .into_common::<JsString>(false)
-                    .into();
-                crate::object::internal_methods::global::global_set_no_receiver(
-                    &key, value, context,
-                )?;
+                    .into_common::<JsString>(false);
+                context
+                    .global_object()
+                    .set(key, value, true, context)?;
             }
         } else {
             context.realm.environments.put_value(

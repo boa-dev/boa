@@ -6,10 +6,6 @@ use rustc_hash::{FxHashMap, FxHasher};
 use std::{collections::hash_map, hash::BuildHasherDefault, iter::FusedIterator};
 use thin_vec::ThinVec;
 
-/// Type alias to make it easier to work with the string properties on the global object.
-pub(crate) type GlobalPropertyMap =
-    IndexMap<JsString, PropertyDescriptor, BuildHasherDefault<FxHasher>>;
-
 /// Wrapper around `indexmap::IndexMap` for usage in `PropertyMap`.
 #[derive(Debug, Finalize)]
 struct OrderedHashMap<K: Trace>(IndexMap<K, PropertyDescriptor, BuildHasherDefault<FxHasher>>);
@@ -413,14 +409,6 @@ impl PropertyMap {
             PropertyKey::String(string) => self.string_properties.0.contains_key(string),
             PropertyKey::Symbol(symbol) => self.symbol_properties.0.contains_key(symbol),
         }
-    }
-
-    pub(crate) const fn string_property_map(&self) -> &GlobalPropertyMap {
-        &self.string_properties.0
-    }
-
-    pub(crate) fn string_property_map_mut(&mut self) -> &mut GlobalPropertyMap {
-        &mut self.string_properties.0
     }
 }
 

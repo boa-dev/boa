@@ -1,7 +1,7 @@
 use crate::{
     builtins::promise::OperationType,
     job::JobCallback,
-    object::{JsFunction, JsObject, ObjectData},
+    object::{JsFunction, JsObject},
     Context, JsResult, JsValue,
 };
 
@@ -149,10 +149,7 @@ pub trait HostHooks {
     ///
     /// [ihdr]: https://tc39.es/ecma262/#sec-initializehostdefinedrealm
     fn create_global_object(&self, intrinsics: &Intrinsics) -> JsObject {
-        JsObject::from_proto_and_data(
-            intrinsics.constructors().object().prototype(),
-            ObjectData::global(),
-        )
+        JsObject::with_object_proto(intrinsics)
     }
 
     /// Creates the global `this` of a new [`Context`] from the initial intrinsics.

@@ -86,7 +86,7 @@ impl Operation for DeleteName {
                 .binding_in_poisoned_environment(binding_locator.name())
         {
             let (found, deleted) =
-                context.delete_binding_from_objet_environment(binding_locator.name())?;
+                context.delete_binding_from_object_environment(binding_locator.name())?;
             if found {
                 context.vm.push(deleted);
                 return Ok(CompletionType::Normal);
@@ -96,10 +96,10 @@ impl Operation for DeleteName {
                 .interner()
                 .resolve_expect(binding_locator.name().sym())
                 .into_common(false);
-            let deleted = crate::object::internal_methods::global::global_delete_no_receiver(
-                &key.clone().into(),
-                context,
-            )?;
+            let deleted = context
+                .global_object()
+                
+                .delete_property_or_throw(key.clone(), context)?;
 
             if !deleted && context.vm.frame().code_block.strict {
                 return Err(JsNativeError::typ()

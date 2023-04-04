@@ -184,7 +184,7 @@ impl Proxy {
         let revoker = Self::revoker(p.clone(), context);
 
         // 5. Let result be ! OrdinaryObjectCreate(%Object.prototype%).
-        let result = JsObject::with_object_proto(context);
+        let result = JsObject::with_object_proto(context.intrinsics());
 
         // 6. Perform ! CreateDataPropertyOrThrow(result, "proxy", p).
         result

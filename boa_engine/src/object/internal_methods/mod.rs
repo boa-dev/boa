@@ -19,7 +19,6 @@ pub(super) mod arguments;
 pub(super) mod array;
 pub(super) mod bound_function;
 pub(super) mod function;
-pub(crate) mod global;
 pub(super) mod integer_indexed;
 pub(super) mod proxy;
 pub(super) mod string;
@@ -232,10 +231,15 @@ impl JsObject {
         context: &mut Context<'_>,
     ) -> JsResult<JsValue> {
         let _timer = Profiler::global().start_event("Object::__call__", "object");
+        let old_active = context.vm.active_function.replace(self.clone());
+
         let func = self.borrow().data.internal_methods.__call__;
-        func.expect("called `[[Call]]` for object without a `[[Call]]` internal method")(
+        let result = func
+            .expect("called `[[Call]]` for object without a `[[Call]]` internal method")(
             self, this, args, context,
-        )
+        );
+        context.vm.active_function = old_active;
+        result
     }
 
     /// Internal method `[[Construct]]`
@@ -254,10 +258,16 @@ impl JsObject {
         context: &mut Context<'_>,
     ) -> JsResult<Self> {
         let _timer = Profiler::global().start_event("Object::__construct__", "object");
+        let old_active = context.vm.active_function.replace(self.clone());
+
         let func = self.borrow().data.internal_methods.__construct__;
-        func.expect("called `[[Construct]]` for object without a `[[Construct]]` internal method")(
+        let result = func
+            .expect("called `[[Construct]]` for object without a `[[Construct]]` internal method")(
             self, args, new_target, context,
-        )
+        );
+
+        context.vm.active_function = old_active;
+        result
     }
 }
 

@@ -496,7 +496,7 @@ fn register_print_fn(context: &mut Context<'_>, async_result: AsyncResult) {
         "print",
         js_function,
         Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
-    );
+    ).expect("shouldn't fail with the default global");
 }
 
 /// A `Result` value that is possibly uninitialized.

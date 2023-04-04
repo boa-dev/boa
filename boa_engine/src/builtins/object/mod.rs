@@ -130,9 +130,12 @@ impl BuiltInConstructor for Object {
     ) -> JsResult<JsValue> {
         // 1. If NewTarget is neither undefined nor the active function object, then
         if !new_target.is_undefined()
-            && !new_target.as_object().map_or(false, |o| {
-                o.eq(&context.intrinsics().constructors().object().constructor())
-            })
+            && new_target
+                != &context
+                    .vm
+                    .active_function
+                    .clone()
+                    .map_or_else(JsValue::null, JsValue::from)
         {
             //     a. Return ? OrdinaryCreateFromConstructor(NewTarget, "%Object.prototype%").
             let prototype =
@@ -145,7 +148,7 @@ impl BuiltInConstructor for Object {
 
         // 2. If value is undefined or null, return OrdinaryObjectCreate(%Object.prototype%).
         if value.is_null_or_undefined() {
-            Ok(JsObject::with_object_proto(context).into())
+            Ok(JsObject::with_object_proto(context.intrinsics()).into())
         } else {
             // 3. Return ! ToObject(value).
             value.to_object(context).map(JsValue::from)
@@ -486,7 +489,7 @@ impl Object {
         let own_keys = obj.__own_property_keys__(context)?;
 
         // 3. Let descriptors be OrdinaryObjectCreate(%Object.prototype%).
-        let descriptors = JsObject::with_object_proto(context);
+        let descriptors = JsObject::with_object_proto(context.intrinsics());
 
         // 4. For each element key of ownKeys, do
         for key in own_keys {
@@ -525,7 +528,7 @@ impl Object {
 
         // 2. Let obj be ! OrdinaryObjectCreate(%Object.prototype%).
         // 3. Assert: obj is an extensible ordinary object with no own properties.
-        let obj = JsObject::with_object_proto(context);
+        let obj = JsObject::with_object_proto(context.intrinsics());
 
         // 4. If Desc has a [[Value]] field, then
         if let Some(value) = desc.value() {
@@ -1270,7 +1273,7 @@ impl Object {
 
         // 2. Let obj be ! OrdinaryObjectCreate(%Object.prototype%).
         // 3. Assert: obj is an extensible ordinary object with no own properties.
-        let obj = JsObject::with_object_proto(context);
+        let obj = JsObject::with_object_proto(context.intrinsics());
 
         // 4. Let closure be a new Abstract Closure with parameters (key, value) that captures
         // obj and performs the following steps when called:

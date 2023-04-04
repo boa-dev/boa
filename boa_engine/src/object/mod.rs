@@ -15,7 +15,6 @@ use self::internal_methods::{
         BOUND_CONSTRUCTOR_EXOTIC_INTERNAL_METHODS, BOUND_FUNCTION_EXOTIC_INTERNAL_METHODS,
     },
     function::{CONSTRUCTOR_INTERNAL_METHODS, FUNCTION_INTERNAL_METHODS},
-    global::GLOBAL_INTERNAL_METHODS,
     integer_indexed::INTEGER_INDEXED_EXOTIC_INTERNAL_METHODS,
     proxy::{
         PROXY_EXOTIC_INTERNAL_METHODS_ALL, PROXY_EXOTIC_INTERNAL_METHODS_BASIC,
@@ -606,15 +605,6 @@ impl ObjectData {
         Self {
             kind: ObjectKind::Date(date),
             internal_methods: &ORDINARY_INTERNAL_METHODS,
-        }
-    }
-
-    /// Create the `Global` object data
-    #[must_use]
-    pub fn global() -> Self {
-        Self {
-            kind: ObjectKind::Global,
-            internal_methods: &GLOBAL_INTERNAL_METHODS,
         }
     }
 
@@ -2073,7 +2063,7 @@ impl<'ctx, 'host> ObjectInitializer<'ctx, 'host> {
     /// Create a new `ObjectBuilder`.
     #[inline]
     pub fn new(context: &'ctx mut Context<'host>) -> Self {
-        let object = JsObject::with_object_proto(context);
+        let object = JsObject::with_object_proto(context.intrinsics());
         Self { context, object }
     }
 

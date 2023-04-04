@@ -34,7 +34,7 @@ fn main() -> Result<(), JsError> {
             // We return the moved variable as a `JsValue`.
             Ok(JsValue::new(variable))
         }),
-    );
+    ).unwrap();
 
     assert_eq!(
         context.eval_script(Source::from_bytes("closure()"))?,
@@ -52,7 +52,7 @@ fn main() -> Result<(), JsError> {
     }
 
     // We create a new `JsObject` with some data
-    let object = JsObject::with_object_proto(&mut context);
+    let object = JsObject::with_object_proto(context.intrinsics());
     object.define_property_or_throw(
         "name",
         PropertyDescriptor::builder()
@@ -117,7 +117,7 @@ fn main() -> Result<(), JsError> {
         js_function,
         // We assign to the "createMessage" property the desired attributes.
         Attribute::READONLY | Attribute::NON_ENUMERABLE | Attribute::PERMANENT,
-    );
+    ).unwrap();
 
     assert_eq!(
         context.eval_script(Source::from_bytes("createMessage()"))?,
@@ -167,7 +167,7 @@ fn main() -> Result<(), JsError> {
                 )
             })
         },
-    );
+    ).unwrap();
 
     // First call should return the array `[0]`.
     let result = context.eval_script(Source::from_bytes("enumerate()"))?;

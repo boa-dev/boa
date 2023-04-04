@@ -44,7 +44,7 @@ fn main() -> JsResult<()> {
         "myUint8Array",
         array,
         Attribute::WRITABLE | Attribute::ENUMERABLE | Attribute::CONFIGURABLE,
-    );
+    ).unwrap();
 
     Ok(())
 }

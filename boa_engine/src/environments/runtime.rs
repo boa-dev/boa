@@ -1085,7 +1085,7 @@ impl Context<'_> {
     /// Delete a binding form an object environment if it exists.
     ///
     /// Returns a tuple of `(found, deleted)`.
-    pub(crate) fn delete_binding_from_objet_environment(
+    pub(crate) fn delete_binding_from_object_environment(
         &mut self,
         name: Identifier,
     ) -> JsResult<(bool, bool)> {

@@ -10,7 +10,7 @@ use crate::{
 };
 use boa_ast::function::PrivateName;
 
-use super::CONSTRUCTOR;
+use super::{JsFunction, CONSTRUCTOR};
 
 /// Object integrity level.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -316,11 +316,11 @@ impl JsObject {
     ) -> JsResult<JsValue> {
         // 1. If argumentsList is not present, set argumentsList to a new empty List.
         // 2. If IsCallable(F) is false, throw a TypeError exception.
-        if !self.is_callable() {
-            return Err(JsNativeError::typ().with_message("not a function").into());
-        }
+        let function = JsFunction::from_object(self.clone())
+            .ok_or_else(|| JsNativeError::typ().with_message("not a function"))?;
+
         // 3. Return ? F.[[Call]](V, argumentsList).
-        self.__call__(this, args, context)
+        function.__call__(this, args, context)
     }
 
     /// `Construct ( F [ , argumentsList [ , newTarget ] ] )`

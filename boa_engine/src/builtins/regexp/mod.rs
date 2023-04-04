@@ -328,7 +328,7 @@ impl RegExp {
     pub(crate) fn create(p: &JsValue, f: &JsValue, context: &mut Context<'_>) -> JsResult<JsValue> {
         // 1. Let obj be ? RegExpAlloc(%RegExp%).
         let obj = Self::alloc(
-            &context.global_object().clone().get(Self::NAME, context)?,
+            &context.global_object().get(Self::NAME, context)?,
             context,
         )?;
 
