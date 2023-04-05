@@ -25,6 +25,7 @@ use crate::{
     string::utf16,
     symbol::JsSymbol,
     value::IntegerOrInfinity,
+    vm::CodeBlock,
     Context, JsArgs, JsResult, JsString, JsValue,
 };
 use boa_ast::{
@@ -155,7 +156,7 @@ pub(crate) enum FunctionKind {
     /// A bytecode function.
     Ordinary {
         /// The code block containing the compiled function.
-        code: Gc<crate::vm::CodeBlock>,
+        code: Gc<CodeBlock>,
 
         /// The `[[Environment]]` internal slot.
         environments: DeclarativeEnvironmentStack,
@@ -179,7 +180,7 @@ pub(crate) enum FunctionKind {
     /// A bytecode async function.
     Async {
         /// The code block containing the compiled function.
-        code: Gc<crate::vm::CodeBlock>,
+        code: Gc<CodeBlock>,
 
         /// The `[[Environment]]` internal slot.
         environments: DeclarativeEnvironmentStack,
@@ -197,7 +198,7 @@ pub(crate) enum FunctionKind {
     /// A bytecode generator function.
     Generator {
         /// The code block containing the compiled function.
-        code: Gc<crate::vm::CodeBlock>,
+        code: Gc<CodeBlock>,
 
         /// The `[[Environment]]` internal slot.
         environments: DeclarativeEnvironmentStack,
@@ -212,7 +213,7 @@ pub(crate) enum FunctionKind {
     /// A bytecode async generator function.
     AsyncGenerator {
         /// The code block containing the compiled function.
-        code: Gc<crate::vm::CodeBlock>,
+        code: Gc<CodeBlock>,
 
         /// The `[[Environment]]` internal slot.
         environments: DeclarativeEnvironmentStack,
@@ -307,6 +308,17 @@ impl Function {
             | FunctionKind::AsyncGenerator { .. }
             | FunctionKind::Async { .. } => false,
             FunctionKind::Ordinary { code, .. } => !(code.this_mode == ThisMode::Lexical),
+        }
+    }
+
+    /// Returns the codeblock of the function, or `None` if the function is a [`NativeFunction`].
+    pub fn codeblock(&self) -> Option<&CodeBlock> {
+        match &self.kind {
+            FunctionKind::Native { .. } => None,
+            FunctionKind::Ordinary { code, .. }
+            | FunctionKind::Async { code, .. }
+            | FunctionKind::Generator { code, .. }
+            | FunctionKind::AsyncGenerator { code, .. } => Some(code),
         }
     }
 

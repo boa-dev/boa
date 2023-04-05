@@ -40,9 +40,11 @@ fn create_boa_object(context: &mut Context<'_>) -> JsObject {
 
 pub(crate) fn init_boa_debug_object(context: &mut Context<'_>) {
     let boa_object = create_boa_object(context);
-    context.register_global_property(
-        "$boa",
-        boa_object,
-        Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
-    );
+    context
+        .register_global_property(
+            "$boa",
+            boa_object,
+            Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
+        )
+        .expect("cannot fail with the default object");
 }
