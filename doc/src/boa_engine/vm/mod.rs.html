@@ -641,7 +641,7 @@
 
             <span class="comment">// 1. Run the next instruction.
             </span><span class="attr">#[cfg(feature = <span class="string">&quot;trace&quot;</span>)]
-            </span><span class="kw">let </span>result = <span class="kw">if </span><span class="self">self</span>.vm.trace {
+            </span><span class="kw">let </span>result = <span class="kw">if </span><span class="self">self</span>.vm.trace || <span class="self">self</span>.vm.frame().code_block.trace.get() {
                 <span class="kw">let </span><span class="kw-2">mut </span>pc = <span class="self">self</span>.vm.frame().pc;
                 <span class="kw">let </span>opcode: Opcode = <span class="self">self
                     </span>.vm

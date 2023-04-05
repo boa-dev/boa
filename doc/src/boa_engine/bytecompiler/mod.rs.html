@@ -1518,6 +1518,8 @@
 <a href="#1517" id="1517">1517</a>
 <a href="#1518" id="1518">1518</a>
 <a href="#1519" id="1519">1519</a>
+<a href="#1520" id="1520">1520</a>
+<a href="#1521" id="1521">1521</a>
 </pre><pre class="rust"><code><span class="doccomment">//! This module contains the bytecode compiler.
 
 </span><span class="kw">mod </span>class;
@@ -2847,6 +2849,8 @@
             is_class_constructor: <span class="self">self</span>.is_class_constructor,
             class_field_initializer_name: <span class="self">self</span>.class_field_initializer_name,
             function_environment_push_location: <span class="self">self</span>.function_environment_push_location,
+            <span class="attr">#[cfg(feature = <span class="string">&quot;trace&quot;</span>)]
+            </span>trace: std::cell::Cell::new(<span class="bool-val">false</span>),
         }
     }
 

@@ -1504,6 +1504,20 @@
 <a href="#1503" id="1503">1503</a>
 <a href="#1504" id="1504">1504</a>
 <a href="#1505" id="1505">1505</a>
+<a href="#1506" id="1506">1506</a>
+<a href="#1507" id="1507">1507</a>
+<a href="#1508" id="1508">1508</a>
+<a href="#1509" id="1509">1509</a>
+<a href="#1510" id="1510">1510</a>
+<a href="#1511" id="1511">1511</a>
+<a href="#1512" id="1512">1512</a>
+<a href="#1513" id="1513">1513</a>
+<a href="#1514" id="1514">1514</a>
+<a href="#1515" id="1515">1515</a>
+<a href="#1516" id="1516">1516</a>
+<a href="#1517" id="1517">1517</a>
+<a href="#1518" id="1518">1518</a>
+<a href="#1519" id="1519">1519</a>
 </pre><pre class="rust"><code><span class="doccomment">//! `CodeBlock`
 //!
 //! This module is for the `CodeBlock` which implements a function representation in the VM
@@ -1634,6 +1648,11 @@
     /// We execute the parameter expressions in the function code and push the function environment afterward.
     /// When the execution of the parameter expressions throws an error, we do not need to pop the function environment.
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) function_environment_push_location: u32,
+
+    <span class="attr">#[cfg(feature = <span class="string">&quot;trace&quot;</span>)]
+    </span><span class="doccomment">/// Trace instruction execution to `stdout`.
+    </span><span class="attr">#[unsafe_ignore_trace]
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) trace: std::cell::Cell&lt;bool&gt;,
 }
 
 <span class="kw">impl </span>CodeBlock {
@@ -1659,7 +1678,16 @@
             is_class_constructor: <span class="bool-val">false</span>,
             class_field_initializer_name: <span class="prelude-val">None</span>,
             function_environment_push_location: <span class="number">0</span>,
+            <span class="attr">#[cfg(feature = <span class="string">&quot;trace&quot;</span>)]
+            </span>trace: std::cell::Cell::new(<span class="bool-val">false</span>),
         }
+    }
+
+    <span class="doccomment">/// Enable or disable instruction tracing to `stdout`.
+    </span><span class="attr">#[cfg(feature = <span class="string">&quot;trace&quot;</span>)]
+    #[inline]
+    </span><span class="kw">pub fn </span>set_trace(<span class="kw-2">&amp;</span><span class="self">self</span>, value: bool) {
+        <span class="self">self</span>.trace.set(value);
     }
 
     <span class="doccomment">/// Read type T from code.

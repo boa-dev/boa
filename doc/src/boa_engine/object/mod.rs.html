@@ -2459,6 +2459,33 @@
 <a href="#2458" id="2458">2458</a>
 <a href="#2459" id="2459">2459</a>
 <a href="#2460" id="2460">2460</a>
+<a href="#2461" id="2461">2461</a>
+<a href="#2462" id="2462">2462</a>
+<a href="#2463" id="2463">2463</a>
+<a href="#2464" id="2464">2464</a>
+<a href="#2465" id="2465">2465</a>
+<a href="#2466" id="2466">2466</a>
+<a href="#2467" id="2467">2467</a>
+<a href="#2468" id="2468">2468</a>
+<a href="#2469" id="2469">2469</a>
+<a href="#2470" id="2470">2470</a>
+<a href="#2471" id="2471">2471</a>
+<a href="#2472" id="2472">2472</a>
+<a href="#2473" id="2473">2473</a>
+<a href="#2474" id="2474">2474</a>
+<a href="#2475" id="2475">2475</a>
+<a href="#2476" id="2476">2476</a>
+<a href="#2477" id="2477">2477</a>
+<a href="#2478" id="2478">2478</a>
+<a href="#2479" id="2479">2479</a>
+<a href="#2480" id="2480">2480</a>
+<a href="#2481" id="2481">2481</a>
+<a href="#2482" id="2482">2482</a>
+<a href="#2483" id="2483">2483</a>
+<a href="#2484" id="2484">2484</a>
+<a href="#2485" id="2485">2485</a>
+<a href="#2486" id="2486">2486</a>
+<a href="#2487" id="2487">2487</a>
 </pre><pre class="rust"><code><span class="doccomment">//! Boa&#39;s representation of a JavaScript object and builtin object wrappers
 //!
 //! For the builtin object wrappers, please see [`object::builtins`][builtins] for implementors.
@@ -4579,6 +4606,33 @@
         <span class="kw">let </span>property = PropertyDescriptor::builder()
             .value(value)
             .writable(attribute.writable())
+            .enumerable(attribute.enumerable())
+            .configurable(attribute.configurable());
+        <span class="self">self</span>.object.borrow_mut().insert(key, property);
+        <span class="self">self
+    </span>}
+
+    <span class="doccomment">/// Add new accessor property to the object.
+    ///
+    /// # Panics
+    ///
+    /// If both getter or setter are [`None`].
+    </span><span class="kw">pub fn </span>accessor&lt;K&gt;(
+        <span class="kw-2">&amp;mut </span><span class="self">self</span>,
+        key: K,
+        get: <span class="prelude-ty">Option</span>&lt;JsFunction&gt;,
+        set: <span class="prelude-ty">Option</span>&lt;JsFunction&gt;,
+        attribute: Attribute,
+    ) -&gt; <span class="kw-2">&amp;mut </span><span class="self">Self
+    </span><span class="kw">where
+        </span>K: Into&lt;PropertyKey&gt;,
+    {
+        <span class="comment">// Accessors should have at least one function.
+        </span><span class="macro">assert!</span>(set.is_some() || get.is_some());
+
+        <span class="kw">let </span>property = PropertyDescriptor::builder()
+            .maybe_get(get)
+            .maybe_set(set)
             .enumerable(attribute.enumerable())
             .configurable(attribute.configurable());
         <span class="self">self</span>.object.borrow_mut().insert(key, property);
