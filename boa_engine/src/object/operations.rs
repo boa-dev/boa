@@ -256,7 +256,7 @@ impl JsObject {
         // 4. If success is false, throw a TypeError exception.
         if !success {
             return Err(JsNativeError::typ()
-                .with_message(format!("cannot delete property: {key}"))
+                .with_message(format!("cannot delete non-configurable property: {key}"))
                 .into());
         }
         // 5. Return success.

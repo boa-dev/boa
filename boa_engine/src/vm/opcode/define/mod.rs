@@ -21,20 +21,12 @@ impl Operation for DefVar {
     const INSTRUCTION: &'static str = "INST - DefVar";
 
     fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
+        // TODO: spec specifies to return `empty` on empty vars, but we're trying to initialize.
         let index = context.vm.read::<u32>();
         let binding_locator = context.vm.frame().code_block.bindings[index as usize];
 
         if binding_locator.is_global() {
-            let key = context
-                .interner()
-                .resolve_expect(binding_locator.name().sym())
-                .into_common::<JsString>(false);
-            context.global_object().set(
-                key,
-                JsValue::Undefined,
-                context.vm.frame().code_block.strict,
-                context,
-            )?;
+            // already initialized at compilation time
         } else {
             context.realm.environments.put_value_if_uninitialized(
                 binding_locator.environment_index(),
@@ -72,9 +64,7 @@ impl Operation for DefInitVar {
                     .interner()
                     .resolve_expect(binding_locator.name().sym())
                     .into_common::<JsString>(false);
-                context
-                    .global_object()
-                    .set(key, value, true, context)?;
+                context.global_object().set(key, value, true, context)?;
             }
         } else {
             context.realm.environments.put_value(

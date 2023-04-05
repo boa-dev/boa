@@ -95,11 +95,10 @@ impl Operation for DeleteName {
             let key: JsString = context
                 .interner()
                 .resolve_expect(binding_locator.name().sym())
-                .into_common(false);
+                .into_common::<JsString>(false);
             let deleted = context
                 .global_object()
-                
-                .delete_property_or_throw(key.clone(), context)?;
+                .__delete__(&key.clone().into(), context)?;
 
             if !deleted && context.vm.frame().code_block.strict {
                 return Err(JsNativeError::typ()
