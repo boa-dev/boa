@@ -128,6 +128,11 @@ pub struct CodeBlock {
     /// We execute the parameter expressions in the function code and push the function environment afterward.
     /// When the execution of the parameter expressions throws an error, we do not need to pop the function environment.
     pub(crate) function_environment_push_location: u32,
+
+    #[cfg(feature = "trace")]
+    /// Trace instruction execution to `stdout`.
+    #[unsafe_ignore_trace]
+    pub(crate) trace: std::cell::Cell<bool>,
 }
 
 impl CodeBlock {
@@ -153,7 +158,16 @@ impl CodeBlock {
             is_class_constructor: false,
             class_field_initializer_name: None,
             function_environment_push_location: 0,
+            #[cfg(feature = "trace")]
+            trace: std::cell::Cell::new(false),
         }
+    }
+
+    /// Enable or disable instruction tracing to `stdout`.
+    #[cfg(feature = "trace")]
+    #[inline]
+    pub fn set_trace(&self, value: bool) {
+        self.trace.set(value);
     }
 
     /// Read type T from code.

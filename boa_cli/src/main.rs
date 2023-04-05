@@ -58,6 +58,7 @@
 )]
 #![allow(clippy::option_if_let_else, clippy::redundant_pub_crate)]
 
+mod debug;
 mod helper;
 
 use boa_ast::StatementList;
@@ -70,6 +71,7 @@ use boa_engine::{
 };
 use clap::{Parser, ValueEnum, ValueHint};
 use colored::{Color, Colorize};
+use debug::init_boa_debug_object;
 use rustyline::{config::Config, error::ReadlineError, EditMode, Editor};
 use std::{cell::RefCell, collections::VecDeque, fs::read, fs::OpenOptions, io, path::PathBuf};
 
@@ -146,6 +148,10 @@ struct Opt {
         requires = "graph"
     )]
     flowgraph_direction: Option<FlowgraphDirection>,
+
+    /// Inject debugging object `$boa`.
+    #[arg(long)]
+    debug_object: bool,
 }
 
 impl Opt {
@@ -307,6 +313,10 @@ fn main() -> Result<(), io::Error> {
 
     // Trace Output
     context.set_trace(args.trace);
+
+    if args.debug_object {
+        init_boa_debug_object(&mut context);
+    }
 
     // Configure optimizer options
     let mut optimizer_options = OptimizerOptions::empty();
