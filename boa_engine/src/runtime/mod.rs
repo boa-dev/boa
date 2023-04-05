@@ -115,9 +115,10 @@ impl<'host> Runtime<'host> {
 #[derive(Default)]
 pub struct RuntimeBuilder<'icu, 'hooks> {
     host_hooks: Option<&'hooks dyn HostHooks>,
+    #[cfg(feature = "intl")]
     icu: Option<icu::Icu<'icu>>,
     #[cfg(not(feature = "intl"))]
-    icu: PhantomData<&'icu ()>,
+    icu: std::marker::PhantomData<&'icu ()>,
 }
 
 impl std::fmt::Debug for RuntimeBuilder<'_, '_> {

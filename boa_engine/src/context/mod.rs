@@ -470,6 +470,7 @@ impl<'host> Context<'host> {
 
 // ==== Private API ====
 
+#[allow(single_use_lifetimes)]
 impl<'host> Context<'host> {
     /// Abstract operation [`AddToKeptObjects ( object )`][add].
     ///
