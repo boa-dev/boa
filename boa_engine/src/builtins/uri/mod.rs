@@ -12,6 +12,8 @@
 
 mod consts;
 
+use boa_gc::{Finalize, Trace};
+
 use self::consts::{
     is_uri_reserved_or_number_sign, is_uri_reserved_or_uri_unescaped_or_number_sign,
     is_uri_unescaped,
@@ -29,7 +31,7 @@ use crate::{
 /// Intrinsics for the [`URI Handling Functions`][spec].
 ///
 /// [spec]: https://tc39.es/ecma262/multipage/global-object.html#sec-uri-handling-functions
-#[derive(Debug)]
+#[derive(Debug, Trace, Finalize)]
 pub struct UriFunctions {
     /// %decodeURI%
     decode_uri: JsFunction,

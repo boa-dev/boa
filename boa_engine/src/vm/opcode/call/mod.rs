@@ -1,5 +1,5 @@
 use crate::{
-    builtins::function::Function,
+    builtins::function::FunctionKind,
     error::JsNativeError,
     vm::{opcode::Operation, CompletionType},
     Context, JsResult, JsValue,
@@ -42,7 +42,11 @@ impl Operation for CallEval {
         };
 
         // A native function with the name "eval" implies, that is this the built-in eval function.
-        let eval = matches!(object.borrow().as_function(), Some(Function::Native { .. }));
+        let eval = object
+            .borrow()
+            .as_function()
+            .map(|f| matches!(f.kind(), FunctionKind::Native { .. }))
+            .unwrap_or_default();
 
         let strict = context.vm.frame().code_block.strict;
 
@@ -104,7 +108,11 @@ impl Operation for CallEvalSpread {
         };
 
         // A native function with the name "eval" implies, that is this the built-in eval function.
-        let eval = matches!(object.borrow().as_function(), Some(Function::Native { .. }));
+        let eval = object
+            .borrow()
+            .as_function()
+            .map(|f| matches!(f.kind(), FunctionKind::Native { .. }))
+            .unwrap_or_default();
 
         let strict = context.vm.frame().code_block.strict;
 

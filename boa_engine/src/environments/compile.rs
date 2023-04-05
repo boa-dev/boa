@@ -296,17 +296,15 @@ impl Context<'_> {
                 .has_own_property(name_str.clone(), self)
                 .unwrap_or_default()
             {
-                self.global_object()
-                    .borrow_mut()
-                    .insert(
-                        name_str,
-                        PropertyDescriptor::builder()
-                            .value(JsValue::Undefined)
-                            .writable(true)
-                            .enumerable(true)
-                            .configurable(configurable)
-                            .build(),
-                    );
+                self.global_object().borrow_mut().insert(
+                    name_str,
+                    PropertyDescriptor::builder()
+                        .value(JsValue::Undefined)
+                        .writable(true)
+                        .enumerable(true)
+                        .configurable(configurable)
+                        .build(),
+                );
             }
         }
     }

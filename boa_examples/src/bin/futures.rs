@@ -135,7 +135,9 @@ fn main() {
     let context = &mut ContextBuilder::new().job_queue(&queue).build().unwrap();
 
     // Bind the defined async function to the ECMAScript function "delay".
-    context.register_global_builtin_callable("delay", 1, NativeFunction::from_async_fn(delay)).unwrap();
+    context
+        .register_global_builtin_callable("delay", 1, NativeFunction::from_async_fn(delay))
+        .unwrap();
 
     // Multiple calls to multiple async timers.
     let script = r#"

@@ -423,7 +423,6 @@ impl Context<'_> {
             .configurable(T::ATTRIBUTES.configurable());
 
         self.global_object()
-            
             .define_property_or_throw(T::NAME, property, self)?;
 
         Ok(())
@@ -441,13 +440,13 @@ impl Context<'_> {
         &mut self.interner
     }
 
-    /// Return the global object.
+    /// Returns the global object.
     #[inline]
     pub fn global_object(&self) -> JsObject {
         self.realm.global_object().clone()
     }
 
-    /// Return the intrinsic constructors and objects.
+    /// Returns the intrinsic constructors and objects.
     #[inline]
     pub const fn intrinsics(&self) -> &Intrinsics {
         &self.realm.intrinsics

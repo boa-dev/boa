@@ -17,7 +17,8 @@
 
 use crate::{
     builtins::{
-        function::Function, BuiltInBuilder, BuiltInConstructor, BuiltInObject, IntrinsicObject,
+        function::{Function, FunctionKind},
+        BuiltInBuilder, BuiltInConstructor, BuiltInObject, IntrinsicObject,
     },
     context::intrinsics::{Intrinsics, StandardConstructor, StandardConstructors},
     error::JsNativeError,
@@ -124,10 +125,13 @@ impl IntrinsicObject for ThrowTypeError {
 
         let mut obj = obj.borrow_mut();
 
-        obj.data = ObjectData::function(Function::Native {
-            function: NativeFunction::from_fn_ptr(throw_type_error),
-            constructor: None,
-        });
+        obj.data = ObjectData::function(Function::new(
+            FunctionKind::Native {
+                function: NativeFunction::from_fn_ptr(throw_type_error),
+                constructor: None,
+            },
+            intrinsics.clone(),
+        ));
     }
 
     fn get(intrinsics: &Intrinsics) -> JsObject {

@@ -170,7 +170,8 @@ fn closure_capture_clone() {
             .name("closure")
             .build();
 
-            ctx.register_global_property("closure", func, Attribute::default()).unwrap();
+            ctx.register_global_property("closure", func, Attribute::default())
+                .unwrap();
         }),
         TestAction::assert_eq("closure()", "Hello world!"),
     ]);

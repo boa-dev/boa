@@ -1,13 +1,32 @@
 //! Data structures that contain intrinsic objects and constructors.
 
+use boa_gc::{Finalize, Gc, Trace};
+
 use crate::{
     builtins::{iterable::IteratorPrototypes, uri::UriFunctions},
     object::{JsFunction, JsObject, ObjectData},
 };
 
 /// The intrinsic objects and constructors.
-#[derive(Debug, Default)]
+///
+/// `Intrinsics` is internally stored using a `Gc`, which makes it cheapily clonable
+/// for multiple references to the same set of intrinsic objects.
+#[derive(Default, Clone, Trace, Finalize)]
 pub struct Intrinsics {
+    inner: Gc<Inner>,
+}
+
+impl std::fmt::Debug for Intrinsics {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("Intrinsics")
+            .field("constructors", self.constructors())
+            .field("objects", self.objects())
+            .finish()
+    }
+}
+
+#[derive(Default, Trace, Finalize)]
+struct Inner {
     /// Cached standard constructors
     pub(super) constructors: StandardConstructors,
     /// Cached intrinsic objects
@@ -17,19 +36,19 @@ pub struct Intrinsics {
 impl Intrinsics {
     /// Return the cached intrinsic objects.
     #[inline]
-    pub const fn objects(&self) -> &IntrinsicObjects {
-        &self.objects
+    pub fn objects(&self) -> &IntrinsicObjects {
+        &self.inner.objects
     }
 
     /// Return the cached standard constructors.
     #[inline]
-    pub const fn constructors(&self) -> &StandardConstructors {
-        &self.constructors
+    pub fn constructors(&self) -> &StandardConstructors {
+        &self.inner.constructors
     }
 }
 
 /// Store a builtin constructor (such as `Object`) and its corresponding prototype.
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Trace, Finalize)]
 pub struct StandardConstructor {
     pub(crate) constructor: JsObject,
     pub(crate) prototype: JsObject,
@@ -71,7 +90,7 @@ impl StandardConstructor {
 }
 
 /// Cached core standard constructors.
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Trace, Finalize)]
 pub struct StandardConstructors {
     object: StandardConstructor,
     proxy: StandardConstructor,
@@ -720,7 +739,7 @@ impl StandardConstructors {
 }
 
 /// Cached intrinsic objects
-#[derive(Debug)]
+#[derive(Debug, Trace, Finalize)]
 pub struct IntrinsicObjects {
     /// [`%Reflect%`](https://tc39.es/ecma262/#sec-reflect)
     reflect: JsObject,

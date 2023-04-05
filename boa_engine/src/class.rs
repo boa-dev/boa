@@ -175,7 +175,7 @@ impl<'ctx, 'host> ClassBuilder<'ctx, 'host> {
         Self { builder }
     }
 
-    pub(crate) fn build(mut self) -> JsFunction {
+    pub(crate) fn build(self) -> JsFunction {
         JsFunction::from_object_unchecked(self.builder.build().into())
     }
 

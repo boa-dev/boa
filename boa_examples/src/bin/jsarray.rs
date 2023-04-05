@@ -113,7 +113,6 @@ fn main() -> JsResult<()> {
 
     context
         .global_object()
-        
         .set("myArray", array, true, context)?;
 
     Ok(())

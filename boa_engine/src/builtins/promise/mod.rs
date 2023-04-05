@@ -105,25 +105,6 @@ pub struct ResolvingFunctions {
     pub reject: JsFunction,
 }
 
-/// The internal `PromiseCapability` data type.
-///
-/// More information:
-///  - [ECMAScript reference][spec]
-///
-/// [spec]: https://tc39.es/ecma262/#sec-promisecapability-records
-#[derive(Debug, Clone, Trace, Finalize)]
-// TODO: make crate-only
-pub struct PromiseCapability {
-    /// The `[[Promise]]` field.
-    promise: JsObject,
-
-    /// The `[[Resolve]]` field.
-    resolve: JsFunction,
-
-    /// The `[[Reject]]` field.
-    reject: JsFunction,
-}
-
 // ==================== Private API ====================
 
 /// `IfAbruptRejectPromise ( value, capability )`
@@ -155,6 +136,24 @@ macro_rules! if_abrupt_reject_promise {
 }
 
 pub(crate) use if_abrupt_reject_promise;
+
+/// The internal `PromiseCapability` data type.
+///
+/// More information:
+///  - [ECMAScript reference][spec]
+///
+/// [spec]: https://tc39.es/ecma262/#sec-promisecapability-records
+#[derive(Debug, Clone, Trace, Finalize)]
+pub(crate) struct PromiseCapability {
+    /// The `[[Promise]]` field.
+    promise: JsObject,
+
+    /// The `[[Resolve]]` field.
+    resolve: JsFunction,
+
+    /// The `[[Reject]]` field.
+    reject: JsFunction,
+}
 
 /// The internal `PromiseReaction` data type.
 ///

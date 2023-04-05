@@ -142,14 +142,8 @@ unsafe impl Trace for ClassFieldDefinition {
     }}
 }
 
-/// Boa representation of a Function Object.
-///
-/// `FunctionBody` is specific to this interpreter, it will either be Rust code or JavaScript code
-/// (AST Node).
-///
-/// <https://tc39.es/ecma262/#sec-ecmascript-function-objects>
 #[derive(Finalize)]
-pub enum Function {
+pub(crate) enum FunctionKind {
     /// A rust function.
     Native {
         /// The rust function.
@@ -231,7 +225,34 @@ pub enum Function {
     },
 }
 
-unsafe impl Trace for Function {
+impl fmt::Debug for FunctionKind {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            FunctionKind::Native {
+                function,
+                constructor,
+            } => f
+                .debug_struct("FunctionKind::Native")
+                .field("function", &function)
+                .field("constructor", &constructor)
+                .finish(),
+            FunctionKind::Ordinary { .. } => f
+                .debug_struct("FunctionKind::Ordinary")
+                .finish_non_exhaustive(),
+            FunctionKind::Async { .. } => f
+                .debug_struct("FunctionKind::Async")
+                .finish_non_exhaustive(),
+            FunctionKind::Generator { .. } => f
+                .debug_struct("FunctionKind::Generator")
+                .finish_non_exhaustive(),
+            FunctionKind::AsyncGenerator { .. } => f
+                .debug_struct("FunctionKind::AsyncGenerator")
+                .finish_non_exhaustive(),
+        }
+    }
+}
+
+unsafe impl Trace for FunctionKind {
     custom_trace! {this, {
         match this {
             Self::Native { function, .. } => {mark(function)}
@@ -265,27 +286,43 @@ unsafe impl Trace for Function {
     }}
 }
 
-impl fmt::Debug for Function {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "Function {{ ... }}")
-    }
+/// Boa representation of a Function Object.
+///
+/// `FunctionBody` is specific to this interpreter, it will either be Rust code or JavaScript code
+/// (AST Node).
+///
+/// <https://tc39.es/ecma262/#sec-ecmascript-function-objects>
+#[derive(Debug, Trace, Finalize)]
+pub struct Function {
+    kind: FunctionKind,
+    realm_intrinsics: Intrinsics,
 }
 
 impl Function {
     /// Returns true if the function object is a constructor.
     pub fn is_constructor(&self) -> bool {
-        match self {
-            Self::Native { constructor, .. } => constructor.is_some(),
-            Self::Generator { .. } | Self::AsyncGenerator { .. } | Self::Async { .. } => false,
-            Self::Ordinary { code, .. } => !(code.this_mode == ThisMode::Lexical),
+        match &self.kind {
+            FunctionKind::Native { constructor, .. } => constructor.is_some(),
+            FunctionKind::Generator { .. }
+            | FunctionKind::AsyncGenerator { .. }
+            | FunctionKind::Async { .. } => false,
+            FunctionKind::Ordinary { code, .. } => !(code.this_mode == ThisMode::Lexical),
+        }
+    }
+
+    /// Creates a new `Function`.
+    pub(crate) fn new(kind: FunctionKind, intrinsics: Intrinsics) -> Self {
+        Self {
+            kind,
+            realm_intrinsics: intrinsics,
         }
     }
 
     /// Returns true if the function object is a derived constructor.
     pub(crate) const fn is_derived_constructor(&self) -> bool {
-        if let Self::Ordinary {
+        if let FunctionKind::Ordinary {
             constructor_kind, ..
-        } = self
+        } = self.kind
         {
             constructor_kind.is_derived()
         } else {
@@ -295,7 +332,7 @@ impl Function {
 
     /// Returns the `[[ClassFieldInitializerName]]` internal slot of the function.
     pub(crate) fn class_field_initializer_name(&self) -> Option<Sym> {
-        if let Self::Ordinary { code, .. } = self {
+        if let FunctionKind::Ordinary { code, .. } = &self.kind {
             code.class_field_initializer_name
         } else {
             None
@@ -304,29 +341,29 @@ impl Function {
 
     /// Returns a reference to the function `[[HomeObject]]` slot if present.
     pub(crate) const fn get_home_object(&self) -> Option<&JsObject> {
-        match self {
-            Self::Ordinary { home_object, .. }
-            | Self::Async { home_object, .. }
-            | Self::Generator { home_object, .. }
-            | Self::AsyncGenerator { home_object, .. } => home_object.as_ref(),
-            Self::Native { .. } => None,
+        match &self.kind {
+            FunctionKind::Ordinary { home_object, .. }
+            | FunctionKind::Async { home_object, .. }
+            | FunctionKind::Generator { home_object, .. }
+            | FunctionKind::AsyncGenerator { home_object, .. } => home_object.as_ref(),
+            FunctionKind::Native { .. } => None,
         }
     }
 
     ///  Sets the `[[HomeObject]]` slot if present.
     pub(crate) fn set_home_object(&mut self, object: JsObject) {
-        match self {
-            Self::Ordinary { home_object, .. }
-            | Self::Async { home_object, .. }
-            | Self::Generator { home_object, .. }
-            | Self::AsyncGenerator { home_object, .. } => *home_object = Some(object),
-            Self::Native { .. } => {}
+        match &mut self.kind {
+            FunctionKind::Ordinary { home_object, .. }
+            | FunctionKind::Async { home_object, .. }
+            | FunctionKind::Generator { home_object, .. }
+            | FunctionKind::AsyncGenerator { home_object, .. } => *home_object = Some(object),
+            FunctionKind::Native { .. } => {}
         }
     }
 
     /// Returns the values of the `[[Fields]]` internal slot.
     pub(crate) fn get_fields(&self) -> &[ClassFieldDefinition] {
-        if let Self::Ordinary { fields, .. } = self {
+        if let FunctionKind::Ordinary { fields, .. } = &self.kind {
             fields
         } else {
             &[]
@@ -335,23 +372,23 @@ impl Function {
 
     /// Pushes a value to the `[[Fields]]` internal slot if present.
     pub(crate) fn push_field(&mut self, key: PropertyKey, value: JsFunction) {
-        if let Self::Ordinary { fields, .. } = self {
+        if let FunctionKind::Ordinary { fields, .. } = &mut self.kind {
             fields.push(ClassFieldDefinition::Public(key, value));
         }
     }
 
     /// Pushes a private value to the `[[Fields]]` internal slot if present.
     pub(crate) fn push_field_private(&mut self, key: PrivateName, value: JsFunction) {
-        if let Self::Ordinary { fields, .. } = self {
+        if let FunctionKind::Ordinary { fields, .. } = &mut self.kind {
             fields.push(ClassFieldDefinition::Private(key, value));
         }
     }
 
     /// Returns the values of the `[[PrivateMethods]]` internal slot.
     pub(crate) fn get_private_methods(&self) -> &[(PrivateName, PrivateElement)] {
-        if let Self::Ordinary {
+        if let FunctionKind::Ordinary {
             private_methods, ..
-        } = self
+        } = &self.kind
         {
             private_methods
         } else {
@@ -361,9 +398,9 @@ impl Function {
 
     /// Pushes a private method to the `[[PrivateMethods]]` internal slot if present.
     pub(crate) fn push_private_method(&mut self, name: PrivateName, method: PrivateElement) {
-        if let Self::Ordinary {
+        if let FunctionKind::Ordinary {
             private_methods, ..
-        } = self
+        } = &mut self.kind
         {
             private_methods.push((name, method));
         }
@@ -371,9 +408,9 @@ impl Function {
 
     /// Returns the promise capability if the function is an async function.
     pub(crate) const fn get_promise_capability(&self) -> Option<&PromiseCapability> {
-        if let Self::Async {
+        if let FunctionKind::Async {
             promise_capability, ..
-        } = self
+        } = &self.kind
         {
             Some(promise_capability)
         } else {
@@ -383,13 +420,28 @@ impl Function {
 
     ///  Sets the class object.
     pub(crate) fn set_class_object(&mut self, object: JsObject) {
-        match self {
-            Self::Ordinary { class_object, .. }
-            | Self::Async { class_object, .. }
-            | Self::Generator { class_object, .. }
-            | Self::AsyncGenerator { class_object, .. } => *class_object = Some(object),
-            Self::Native { .. } => {}
+        match &mut self.kind {
+            FunctionKind::Ordinary { class_object, .. }
+            | FunctionKind::Async { class_object, .. }
+            | FunctionKind::Generator { class_object, .. }
+            | FunctionKind::AsyncGenerator { class_object, .. } => *class_object = Some(object),
+            FunctionKind::Native { .. } => {}
         }
+    }
+
+    /// Gets the `Realm`'s intrinsic objects from where this function originates.
+    pub const fn realm_intrinsics(&self) -> &Intrinsics {
+        &self.realm_intrinsics
+    }
+
+    /// Gets a reference to the [`FunctionKind`] of the `Function`.
+    pub(crate) const fn kind(&self) -> &FunctionKind {
+        &self.kind
+    }
+
+    /// Gets a mutable reference to the [`FunctionKind`] of the `Function`.
+    pub(crate) fn kind_mut(&mut self) -> &mut FunctionKind {
+        &mut self.kind
     }
 }
 
@@ -854,17 +906,17 @@ impl BuiltInFunctionObject {
             .filter(|n| !n.is_empty())
             .unwrap_or_else(|| "anonymous".into());
 
-        match function {
-            Function::Native { .. } | Function::Ordinary { .. } => {
+        match function.kind {
+            FunctionKind::Native { .. } | FunctionKind::Ordinary { .. } => {
                 Ok(js_string!(utf16!("[Function: "), &name, utf16!("]")).into())
             }
-            Function::Async { .. } => {
+            FunctionKind::Async { .. } => {
                 Ok(js_string!(utf16!("[AsyncFunction: "), &name, utf16!("]")).into())
             }
-            Function::Generator { .. } => {
+            FunctionKind::Generator { .. } => {
                 Ok(js_string!(utf16!("[GeneratorFunction: "), &name, utf16!("]")).into())
             }
-            Function::AsyncGenerator { .. } => {
+            FunctionKind::AsyncGenerator { .. } => {
                 Ok(js_string!(utf16!("[AsyncGeneratorFunction: "), &name, utf16!("]")).into())
             }
         }

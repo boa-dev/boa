@@ -39,7 +39,7 @@ macro_rules! if_abrupt_close_iterator {
 pub(crate) use if_abrupt_close_iterator;
 
 /// The built-in iterator prototypes.
-#[derive(Debug, Default)]
+#[derive(Debug, Default, Trace, Finalize)]
 pub struct IteratorPrototypes {
     /// The `IteratorPrototype` object.
     iterator: JsObject,

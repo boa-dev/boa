@@ -5,7 +5,7 @@
 use crate::{
     builtins::{
         async_generator::{AsyncGenerator, AsyncGeneratorState},
-        function::{arguments::Arguments, ConstructorKind, Function, ThisMode},
+        function::{arguments::Arguments, ConstructorKind, Function, FunctionKind, ThisMode},
         generator::{Generator, GeneratorContext, GeneratorState},
         promise::PromiseCapability,
     },
@@ -595,23 +595,29 @@ pub(crate) fn create_function_object(
         )
         .expect("cannot  fail per spec");
 
-        Function::Async {
-            code,
-            environments: context.realm.environments.clone(),
-            home_object: None,
-            promise_capability,
-            class_object: None,
-        }
+        Function::new(
+            FunctionKind::Async {
+                code,
+                environments: context.realm.environments.clone(),
+                home_object: None,
+                promise_capability,
+                class_object: None,
+            },
+            context.intrinsics().clone(),
+        )
     } else {
-        Function::Ordinary {
-            code,
-            environments: context.realm.environments.clone(),
-            constructor_kind: ConstructorKind::Base,
-            home_object: None,
-            fields: ThinVec::new(),
-            private_methods: ThinVec::new(),
-            class_object: None,
-        }
+        Function::new(
+            FunctionKind::Ordinary {
+                code,
+                environments: context.realm.environments.clone(),
+                constructor_kind: ConstructorKind::Base,
+                home_object: None,
+                fields: ThinVec::new(),
+                private_methods: ThinVec::new(),
+                class_object: None,
+            },
+            context.intrinsics().clone(),
+        )
     };
 
     let constructor =
@@ -701,23 +707,29 @@ pub(crate) fn create_generator_function_object(
     );
 
     let constructor = if r#async {
-        let function = Function::AsyncGenerator {
-            code,
-            environments: context.realm.environments.clone(),
-            home_object: None,
-            class_object: None,
-        };
+        let function = Function::new(
+            FunctionKind::AsyncGenerator {
+                code,
+                environments: context.realm.environments.clone(),
+                home_object: None,
+                class_object: None,
+            },
+            context.intrinsics().clone(),
+        );
         JsObject::from_proto_and_data(
             function_prototype,
             ObjectData::async_generator_function(function),
         )
     } else {
-        let function = Function::Generator {
-            code,
-            environments: context.realm.environments.clone(),
-            home_object: None,
-            class_object: None,
-        };
+        let function = Function::new(
+            FunctionKind::Generator {
+                code,
+                environments: context.realm.environments.clone(),
+                home_object: None,
+                class_object: None,
+            },
+            context.intrinsics().clone(),
+        );
         JsObject::from_proto_and_data(function_prototype, ObjectData::generator_function(function))
     };
 
@@ -761,8 +773,8 @@ impl JsObject {
         let object = self.borrow();
         let function_object = object.as_function().expect("not a function");
 
-        match function_object {
-            Function::Native {
+        match function_object.kind() {
+            FunctionKind::Native {
                 function,
                 constructor,
             } => {
@@ -776,7 +788,7 @@ impl JsObject {
                     function.call(this, args, context)
                 }
             }
-            Function::Ordinary {
+            FunctionKind::Ordinary {
                 code,
                 environments,
                 class_object,
@@ -902,7 +914,7 @@ impl JsObject {
 
                 record.consume()
             }
-            Function::Async {
+            FunctionKind::Async {
                 code,
                 environments,
                 promise_capability,
@@ -1024,7 +1036,7 @@ impl JsObject {
 
                 Ok(promise.into())
             }
-            Function::Generator {
+            FunctionKind::Generator {
                 code,
                 environments,
                 class_object,
@@ -1162,7 +1174,7 @@ impl JsObject {
 
                 Ok(generator.into())
             }
-            Function::AsyncGenerator {
+            FunctionKind::AsyncGenerator {
                 code,
                 environments,
                 class_object,
@@ -1339,8 +1351,8 @@ impl JsObject {
         let object = self.borrow();
         let function_object = object.as_function().expect("not a function");
 
-        match function_object {
-            Function::Native {
+        match function_object.kind() {
+            FunctionKind::Native {
                 function,
                 constructor,
                 ..
@@ -1364,7 +1376,7 @@ impl JsObject {
                     }
                 }
             }
-            Function::Ordinary {
+            FunctionKind::Ordinary {
                 code,
                 environments,
                 constructor_kind,
@@ -1509,9 +1521,9 @@ impl JsObject {
                         .clone())
                 }
             }
-            Function::Generator { .. }
-            | Function::Async { .. }
-            | Function::AsyncGenerator { .. } => {
+            FunctionKind::Generator { .. }
+            | FunctionKind::Async { .. }
+            | FunctionKind::AsyncGenerator { .. } => {
                 unreachable!("not a constructor")
             }
         }

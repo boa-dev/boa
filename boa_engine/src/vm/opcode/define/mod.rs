@@ -26,7 +26,7 @@ impl Operation for DefVar {
         let binding_locator = context.vm.frame().code_block.bindings[index as usize];
 
         if binding_locator.is_global() {
-            // already initialized at compilation time
+            // already initialized at compile time
         } else {
             context.realm.environments.put_value_if_uninitialized(
                 binding_locator.environment_index(),
@@ -64,7 +64,12 @@ impl Operation for DefInitVar {
                     .interner()
                     .resolve_expect(binding_locator.name().sym())
                     .into_common::<JsString>(false);
-                context.global_object().set(key, value, true, context)?;
+                context.global_object().set(
+                    key,
+                    value,
+                    context.vm.frame().code_block.strict,
+                    context,
+                )?;
             }
         } else {
             context.realm.environments.put_value(

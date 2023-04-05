@@ -4,12 +4,13 @@
 
 use super::{JsPrototype, NativeObject, Object, PropertyMap};
 use crate::{
+    context::intrinsics::Intrinsics,
     error::JsNativeError,
     object::{ObjectData, ObjectKind},
     property::{PropertyDescriptor, PropertyKey},
     string::utf16,
     value::PreferredType,
-    Context, JsResult, JsValue, context::intrinsics::Intrinsics,
+    Context, JsResult, JsValue,
 };
 use boa_gc::{self, Finalize, Gc, GcRefCell, Trace};
 use std::{

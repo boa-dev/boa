@@ -7,7 +7,7 @@
 
 use super::{JsPrototype, PROTOTYPE};
 use crate::{
-    context::intrinsics::{StandardConstructor, StandardConstructors},
+    context::intrinsics::{Intrinsics, StandardConstructor, StandardConstructors},
     object::JsObject,
     property::{DescriptorKind, PropertyDescriptor, PropertyKey},
     value::JsValue,
@@ -937,14 +937,37 @@ where
     // The corresponding object must be an intrinsic that is intended to be used
     // as the [[Prototype]] value of an object.
     // 2. Let proto be ? Get(constructor, "prototype").
-    if let Some(object) = constructor.as_object() {
+    let intrinsics = if let Some(object) = constructor.as_object() {
         if let Some(proto) = object.get(PROTOTYPE, context)?.as_object() {
             return Ok(proto.clone());
         }
+        // 3. If Type(proto) is not Object, then
+        // a. Let realm be ? GetFunctionRealm(constructor).
+        // b. Set proto to realm's intrinsic object named intrinsicDefaultProto.
+        get_function_realm(object, context)?
+    } else {
+        context.intrinsics().clone()
+    };
+    Ok(default(intrinsics.constructors()).prototype())
+}
+
+fn get_function_realm(constructor: &JsObject, context: &mut Context<'_>) -> JsResult<Intrinsics> {
+    let constructor = constructor.borrow();
+    if let Some(fun) = constructor.as_function() {
+        return Ok(fun.realm_intrinsics().clone());
     }
-    // 3. If Type(proto) is not Object, then
-    // TODO: handle realms
-    // a. Let realm be ? GetFunctionRealm(constructor).
-    // b. Set proto to realm's intrinsic object named intrinsicDefaultProto.
-    Ok(default(context.intrinsics().constructors()).prototype())
+
+    if let Some(bound) = constructor.as_bound_function() {
+        let fun = bound.target_function().clone();
+        drop(constructor);
+        return get_function_realm(&fun, context);
+    }
+
+    if let Some(proxy) = constructor.as_proxy() {
+        let (fun, _) = proxy.try_data()?;
+        drop(constructor);
+        return get_function_realm(&fun, context);
+    }
+
+    Ok(context.intrinsics().clone())
 }

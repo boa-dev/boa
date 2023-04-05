@@ -222,7 +222,7 @@ impl DeclarativeEnvironment {
 /// Environments themselves are garbage collected,
 /// because they must be preserved for function calls.
 #[derive(Clone, Debug, Trace, Finalize)]
-pub struct DeclarativeEnvironmentStack {
+pub(crate) struct DeclarativeEnvironmentStack {
     stack: Vec<Environment>,
 }
 

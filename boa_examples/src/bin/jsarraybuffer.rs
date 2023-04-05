@@ -50,11 +50,13 @@ fn main() -> JsResult<()> {
     assert_eq!(second_byte, 2_u8);
 
     // We can also register it as a global property
-    context.register_global_property(
-        "myArrayBuffer",
-        array_buffer,
-        Attribute::WRITABLE | Attribute::ENUMERABLE | Attribute::CONFIGURABLE,
-    ).unwrap();
+    context
+        .register_global_property(
+            "myArrayBuffer",
+            array_buffer,
+            Attribute::WRITABLE | Attribute::ENUMERABLE | Attribute::CONFIGURABLE,
+        )
+        .unwrap();
 
     // We can also take the inner data from a JsArrayBuffer
     let data_block: Vec<u8> = (0..5).collect();

@@ -26,11 +26,13 @@ pub(super) fn register_js262(context: &mut Context<'_>) -> JsObject {
         // .property("agent", agent, Attribute::default())
         .build();
 
-    context.register_global_property(
-        "$262",
-        js262.clone(),
-        Attribute::WRITABLE | Attribute::CONFIGURABLE,
-    ).expect("shouldn't fail with the default global");
+    context
+        .register_global_property(
+            "$262",
+            js262.clone(),
+            Attribute::WRITABLE | Attribute::CONFIGURABLE,
+        )
+        .expect("shouldn't fail with the default global");
 
     js262
 }
