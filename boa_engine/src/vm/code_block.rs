@@ -1043,6 +1043,7 @@ impl JsObject {
                     },
                     Clone::clone,
                 );
+
             let data = if async_ {
                 ObjectData::async_generator(AsyncGenerator {
                     state: AsyncGeneratorState::SuspendedStart,
@@ -1057,14 +1058,15 @@ impl JsObject {
                 })
             } else {
                 ObjectData::generator(Generator {
-                    state: GeneratorState::SuspendedStart,
-                    context: Some(GeneratorContext::new(
-                        environments,
-                        stack,
-                        context.vm.active_function.clone(),
-                        call_frame,
-                        context.realm().clone(),
-                    )),
+                    state: GeneratorState::SuspendedStart {
+                        context: GeneratorContext::new(
+                            environments,
+                            stack,
+                            context.vm.active_function.clone(),
+                            call_frame,
+                            context.realm().clone(),
+                        ),
+                    },
                 })
             };
 
