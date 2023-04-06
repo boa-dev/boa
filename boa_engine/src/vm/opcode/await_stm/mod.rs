@@ -34,11 +34,11 @@ impl Operation for Await {
         )?;
 
         let generator_context = GeneratorContext {
-            environments: context.realm.environments.clone(),
+            environments: context.vm.environments.clone(),
             call_frame: context.vm.frame().clone(),
             stack: context.vm.stack.clone(),
             active_function: context.vm.active_function.clone(),
-            realm_intrinsics: context.realm.intrinsics.clone(),
+            realm: context.realm().clone(),
         };
 
         // 3. Let fulfilledClosure be a new Abstract Closure with parameters (value) that captures asyncContext and performs the following steps when called:
@@ -57,7 +57,7 @@ impl Operation for Await {
                     // f. Return undefined.
 
                     std::mem::swap(
-                        &mut context.realm.environments,
+                        &mut context.vm.environments,
                         &mut generator_context.environments,
                     );
                     std::mem::swap(&mut context.vm.stack, &mut generator_context.stack);
@@ -65,10 +65,7 @@ impl Operation for Await {
                         &mut context.vm.active_function,
                         &mut generator_context.active_function,
                     );
-                    std::mem::swap(
-                        &mut context.realm.intrinsics,
-                        &mut generator_context.realm_intrinsics,
-                    );
+                    let old_realm = context.enter_realm(generator_context.realm.clone());
                     context.vm.push_frame(generator_context.call_frame.clone());
 
                     context.vm.frame_mut().generator_resume_kind = GeneratorResumeKind::Normal;
@@ -80,7 +77,7 @@ impl Operation for Await {
                         .pop_frame()
                         .expect("generator call frame must exist");
                     std::mem::swap(
-                        &mut context.realm.environments,
+                        &mut context.vm.environments,
                         &mut generator_context.environments,
                     );
                     std::mem::swap(&mut context.vm.stack, &mut generator_context.stack);
@@ -88,10 +85,7 @@ impl Operation for Await {
                         &mut context.vm.active_function,
                         &mut generator_context.active_function,
                     );
-                    std::mem::swap(
-                        &mut context.realm.intrinsics,
-                        &mut generator_context.realm_intrinsics,
-                    );
+                    context.enter_realm(old_realm);
 
                     Ok(JsValue::undefined())
                 },
@@ -118,7 +112,7 @@ impl Operation for Await {
                     // f. Return undefined.
 
                     std::mem::swap(
-                        &mut context.realm.environments,
+                        &mut context.vm.environments,
                         &mut generator_context.environments,
                     );
                     std::mem::swap(&mut context.vm.stack, &mut generator_context.stack);
@@ -126,10 +120,7 @@ impl Operation for Await {
                         &mut context.vm.active_function,
                         &mut generator_context.active_function,
                     );
-                    std::mem::swap(
-                        &mut context.realm.intrinsics,
-                        &mut generator_context.realm_intrinsics,
-                    );
+                    let old_realm = context.enter_realm(generator_context.realm.clone());
                     context.vm.push_frame(generator_context.call_frame.clone());
 
                     context.vm.frame_mut().generator_resume_kind = GeneratorResumeKind::Throw;
@@ -141,7 +132,7 @@ impl Operation for Await {
                         .pop_frame()
                         .expect("generator call frame must exist");
                     std::mem::swap(
-                        &mut context.realm.environments,
+                        &mut context.vm.environments,
                         &mut generator_context.environments,
                     );
                     std::mem::swap(&mut context.vm.stack, &mut generator_context.stack);
@@ -149,10 +140,7 @@ impl Operation for Await {
                         &mut context.vm.active_function,
                         &mut generator_context.active_function,
                     );
-                    std::mem::swap(
-                        &mut context.realm.intrinsics,
-                        &mut generator_context.realm_intrinsics,
-                    );
+                    context.enter_realm(old_realm);
 
                     Ok(JsValue::undefined())
                 },

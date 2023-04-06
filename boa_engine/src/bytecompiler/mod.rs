@@ -2,6 +2,7 @@
 
 mod class;
 mod declaration;
+mod env;
 mod expression;
 mod function;
 mod jump_control;
@@ -214,7 +215,7 @@ impl Access<'_> {
 /// The [`ByteCompiler`] is used to compile ECMAScript AST from [`boa_ast`] to bytecode.
 #[derive(Debug)]
 #[allow(clippy::struct_excessive_bools)]
-pub struct ByteCompiler<'b, 'host> {
+pub struct ByteCompiler<'ctx, 'host> {
     /// Name of this function.
     pub(crate) function_name: Sym,
 
@@ -272,6 +273,12 @@ pub struct ByteCompiler<'b, 'host> {
     /// When the execution of the parameter expressions throws an error, we do not need to pop the function environment.
     pub(crate) function_environment_push_location: u32,
 
+    /// The environment that is currently active.
+    pub(crate) current_environment: Gc<GcRefCell<CompileTimeEnvironment>>,
+
+    /// The number of bindings in the parameters environment.
+    pub(crate) parameters_env_bindings: Option<usize>,
+
     literals_map: FxHashMap<Literal, u32>,
     names_map: FxHashMap<Identifier, u32>,
     private_names_map: FxHashMap<PrivateName, u32>,
@@ -279,21 +286,24 @@ pub struct ByteCompiler<'b, 'host> {
     jump_info: Vec<JumpControlInfo>,
     in_async_generator: bool,
     json_parse: bool,
-    context: &'b mut Context<'host>,
+    // TODO: remove when we separate scripts from the context
+    context: &'ctx mut Context<'host>,
 }
 
-impl<'b, 'host> ByteCompiler<'b, 'host> {
+impl<'ctx, 'host> ByteCompiler<'ctx, 'host> {
     /// Represents a placeholder address that will be patched later.
     const DUMMY_ADDRESS: u32 = u32::MAX;
 
     /// Creates a new [`ByteCompiler`].
     #[inline]
-    pub fn new(
+    pub(crate) fn new(
         name: Sym,
         strict: bool,
         json_parse: bool,
-        context: &'b mut Context<'host>,
-    ) -> ByteCompiler<'b, 'host> {
+        current_environment: Gc<GcRefCell<CompileTimeEnvironment>>,
+        // TODO: remove when we separate scripts from the context
+        context: &'ctx mut Context<'host>,
+    ) -> ByteCompiler<'ctx, 'host> {
         Self {
             function_name: name,
             strict,
@@ -313,6 +323,7 @@ impl<'b, 'host> ByteCompiler<'b, 'host> {
             is_class_constructor: false,
             class_field_initializer_name: None,
             function_environment_push_location: 0,
+            parameters_env_bindings: None,
 
             literals_map: FxHashMap::default(),
             names_map: FxHashMap::default(),
@@ -321,22 +332,13 @@ impl<'b, 'host> ByteCompiler<'b, 'host> {
             jump_info: Vec::new(),
             in_async_generator: false,
             json_parse,
+            current_environment,
             context,
         }
     }
 
     fn interner(&self) -> &Interner {
         self.context.interner()
-    }
-
-    /// Push a compile time environment to the current `CodeBlock` and return it's index.
-    fn push_compile_environment(
-        &mut self,
-        environment: Gc<GcRefCell<CompileTimeEnvironment>>,
-    ) -> usize {
-        let index = self.compile_environments.len();
-        self.compile_environments.push(environment);
-        index
     }
 
     fn get_or_insert_literal(&mut self, literal: Literal) -> u32 {
@@ -393,41 +395,41 @@ impl<'b, 'host> ByteCompiler<'b, 'host> {
     fn emit_binding(&mut self, opcode: BindingOpcode, name: Identifier) {
         match opcode {
             BindingOpcode::Var => {
-                let binding = self.context.initialize_mutable_binding(name, true);
+                let binding = self.initialize_mutable_binding(name, true);
                 let index = self.get_or_insert_binding(binding);
                 self.emit(Opcode::DefVar, &[index]);
             }
             BindingOpcode::Let => {
-                let binding = self.context.initialize_mutable_binding(name, false);
+                let binding = self.initialize_mutable_binding(name, false);
                 let index = self.get_or_insert_binding(binding);
                 self.emit(Opcode::DefLet, &[index]);
             }
             BindingOpcode::InitVar => {
-                let binding = if self.context.has_binding(name) {
-                    self.context.set_mutable_binding(name)
+                let binding = if self.has_binding(name) {
+                    self.set_mutable_binding(name)
                 } else {
-                    self.context.initialize_mutable_binding(name, true)
+                    self.initialize_mutable_binding(name, true)
                 };
                 let index = self.get_or_insert_binding(binding);
                 self.emit(Opcode::DefInitVar, &[index]);
             }
             BindingOpcode::InitLet => {
-                let binding = self.context.initialize_mutable_binding(name, false);
+                let binding = self.initialize_mutable_binding(name, false);
                 let index = self.get_or_insert_binding(binding);
                 self.emit(Opcode::DefInitLet, &[index]);
             }
             BindingOpcode::InitArg => {
-                let binding = self.context.initialize_mutable_binding(name, false);
+                let binding = self.initialize_mutable_binding(name, true);
                 let index = self.get_or_insert_binding(binding);
                 self.emit(Opcode::DefInitArg, &[index]);
             }
             BindingOpcode::InitConst => {
-                let binding = self.context.initialize_immutable_binding(name);
+                let binding = self.initialize_immutable_binding(name);
                 let index = self.get_or_insert_binding(binding);
                 self.emit(Opcode::DefInitConst, &[index]);
             }
             BindingOpcode::SetName => {
-                let binding = self.context.set_mutable_binding(name);
+                let binding = self.set_mutable_binding(name);
                 let index = self.get_or_insert_binding(binding);
                 self.emit(Opcode::SetName, &[index]);
             }
@@ -565,7 +567,7 @@ impl<'b, 'host> ByteCompiler<'b, 'host> {
     fn access_get(&mut self, access: Access<'_>, use_expr: bool) {
         match access {
             Access::Variable { name } => {
-                let binding = self.context.get_binding_value(name);
+                let binding = self.get_binding_value(name);
                 let index = self.get_or_insert_binding(binding);
                 self.emit(Opcode::GetName, &[index]);
             }
@@ -633,7 +635,7 @@ impl<'b, 'host> ByteCompiler<'b, 'host> {
                 if use_expr {
                     self.emit(Opcode::Dup, &[]);
                 }
-                let binding = self.context.set_mutable_binding(name);
+                let binding = self.set_mutable_binding(name);
                 let index = self.get_or_insert_binding(binding);
                 self.emit(Opcode::SetName, &[index]);
             }
@@ -717,7 +719,7 @@ impl<'b, 'host> ByteCompiler<'b, 'host> {
                 }
             },
             Access::Variable { name } => {
-                let binding = self.context.get_binding_value(name);
+                let binding = self.get_binding_value(name);
                 let index = self.get_or_insert_binding(binding);
                 self.emit(Opcode::DeleteName, &[index]);
             }
@@ -765,7 +767,7 @@ impl<'b, 'host> ByteCompiler<'b, 'host> {
         use_expr: bool,
         strict: bool,
     ) {
-        self.context.push_compile_time_environment(strict);
+        self.push_compile_environment(strict);
         let push_env = self.emit_opcode_with_two_operands(Opcode::PushDeclarativeEnvironment);
 
         self.create_script_decls(list, true);
@@ -793,10 +795,9 @@ impl<'b, 'host> ByteCompiler<'b, 'host> {
             }
         }
 
-        let (num_bindings, compile_environment) = self.context.pop_compile_time_environment();
-        let index_compile_environment = self.push_compile_environment(compile_environment);
-        self.patch_jump_with_target(push_env.0, num_bindings as u32);
-        self.patch_jump_with_target(push_env.1, index_compile_environment as u32);
+        let env_info = self.pop_compile_environment();
+        self.patch_jump_with_target(push_env.0, env_info.num_bindings as u32);
+        self.patch_jump_with_target(push_env.1, env_info.index as u32);
         self.emit_opcode(Opcode::PopEnvironment);
     }
 
@@ -1122,7 +1123,12 @@ impl<'b, 'host> ByteCompiler<'b, 'host> {
             .strict(self.strict)
             .arrow(arrow)
             .binding_identifier(binding_identifier)
-            .compile(parameters, body, self.context);
+            .compile(
+                parameters,
+                body,
+                self.current_environment.clone(),
+                self.context,
+            );
 
         let index = self.functions.len() as u32;
         self.functions.push(code);
@@ -1196,7 +1202,12 @@ impl<'b, 'host> ByteCompiler<'b, 'host> {
             .arrow(arrow)
             .binding_identifier(binding_identifier)
             .class_name(class_name)
-            .compile(parameters, body, self.context);
+            .compile(
+                parameters,
+                body,
+                self.current_environment.clone(),
+                self.context,
+            );
 
         let index = self.functions.len() as u32;
         self.functions.push(code);
@@ -1327,6 +1338,7 @@ impl<'b, 'host> ByteCompiler<'b, 'host> {
             is_class_constructor: self.is_class_constructor,
             class_field_initializer_name: self.class_field_initializer_name,
             function_environment_push_location: self.function_environment_push_location,
+            parameters_env_bindings: self.parameters_env_bindings,
             #[cfg(feature = "trace")]
             trace: std::cell::Cell::new(false),
         }
@@ -1336,7 +1348,7 @@ impl<'b, 'host> ByteCompiler<'b, 'host> {
         self.compile_declaration_pattern_impl(pattern, def);
     }
 
-    /// Creates the declarations for a sript.
+    /// Creates the declarations for a script.
     pub(crate) fn create_script_decls(
         &mut self,
         stmt_list: &StatementList,
@@ -1360,16 +1372,14 @@ impl<'b, 'host> ByteCompiler<'b, 'host> {
                     if *ident == Sym::ARGUMENTS {
                         has_identifier_argument = true;
                     }
-                    self.context
-                        .create_mutable_binding(*ident, true, configurable_globals);
+                    self.create_mutable_binding(*ident, true, configurable_globals);
                 }
                 Binding::Pattern(pattern) => {
                     for ident in bound_names(pattern) {
                         if ident == Sym::ARGUMENTS {
                             has_identifier_argument = true;
                         }
-                        self.context
-                            .create_mutable_binding(ident, true, configurable_globals);
+                        self.create_mutable_binding(ident, true, configurable_globals);
                     }
                 }
             }
@@ -1388,14 +1398,14 @@ impl<'b, 'host> ByteCompiler<'b, 'host> {
                             if *ident == Sym::ARGUMENTS {
                                 has_identifier_argument = true;
                             }
-                            self.context.create_mutable_binding(*ident, false, false);
+                            self.create_mutable_binding(*ident, false, false);
                         }
                         Binding::Pattern(pattern) => {
                             for ident in bound_names(pattern) {
                                 if ident == Sym::ARGUMENTS {
                                     has_identifier_argument = true;
                                 }
-                                self.context.create_mutable_binding(ident, false, false);
+                                self.create_mutable_binding(ident, false, false);
                             }
                         }
                     }
@@ -1409,14 +1419,14 @@ impl<'b, 'host> ByteCompiler<'b, 'host> {
                             if *ident == Sym::ARGUMENTS {
                                 has_identifier_argument = true;
                             }
-                            self.context.create_immutable_binding(*ident, true);
+                            self.create_immutable_binding(*ident, true);
                         }
                         Binding::Pattern(pattern) => {
                             for ident in bound_names(pattern) {
                                 if ident == Sym::ARGUMENTS {
                                     has_identifier_argument = true;
                                 }
-                                self.context.create_immutable_binding(ident, true);
+                                self.create_immutable_binding(ident, true);
                             }
                         }
                     }
@@ -1435,37 +1445,32 @@ impl<'b, 'host> ByteCompiler<'b, 'host> {
             Declaration::Lexical(decl) => self.create_decls_from_lexical_decl(decl),
             Declaration::Function(decl) => {
                 let ident = decl.name().expect("function declaration must have a name");
-                self.context
-                    .create_mutable_binding(ident, true, configurable_globals);
+                self.create_mutable_binding(ident, true, configurable_globals);
                 ident == Sym::ARGUMENTS
             }
             Declaration::Generator(decl) => {
                 let ident = decl.name().expect("generator declaration must have a name");
 
-                self.context
-                    .create_mutable_binding(ident, true, configurable_globals);
+                self.create_mutable_binding(ident, true, configurable_globals);
                 ident == Sym::ARGUMENTS
             }
             Declaration::AsyncFunction(decl) => {
                 let ident = decl
                     .name()
                     .expect("async function declaration must have a name");
-                self.context
-                    .create_mutable_binding(ident, true, configurable_globals);
+                self.create_mutable_binding(ident, true, configurable_globals);
                 ident == Sym::ARGUMENTS
             }
             Declaration::AsyncGenerator(decl) => {
                 let ident = decl
                     .name()
                     .expect("async generator declaration must have a name");
-                self.context
-                    .create_mutable_binding(ident, true, configurable_globals);
+                self.create_mutable_binding(ident, true, configurable_globals);
                 ident == Sym::ARGUMENTS
             }
             Declaration::Class(decl) => {
                 let ident = decl.name().expect("class declaration must have a name");
-                self.context
-                    .create_mutable_binding(ident, false, configurable_globals);
+                self.create_mutable_binding(ident, false, configurable_globals);
                 false
             }
         }

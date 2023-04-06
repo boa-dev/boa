@@ -22,7 +22,7 @@ impl ByteCompiler<'_, '_> {
 
         match Access::from_update_target(update.target()) {
             Access::Variable { name } => {
-                let binding = self.context.get_binding_value(name);
+                let binding = self.get_binding_value(name);
                 let index = self.get_or_insert_binding(binding);
                 self.emit(Opcode::GetName, &[index]);
 
@@ -33,7 +33,7 @@ impl ByteCompiler<'_, '_> {
                     self.emit_opcode(Opcode::Dup);
                 }
 
-                let binding = self.context.set_mutable_binding(name);
+                let binding = self.set_mutable_binding(name);
                 let index = self.get_or_insert_binding(binding);
                 self.emit(Opcode::SetName, &[index]);
             }

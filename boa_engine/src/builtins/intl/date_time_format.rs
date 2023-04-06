@@ -13,6 +13,7 @@ use crate::{
     error::JsNativeError,
     js_string,
     object::{internal_methods::get_prototype_from_constructor, JsObject, ObjectData},
+    realm::Realm,
     string::utf16,
     Context, JsResult, JsString, JsValue,
 };
@@ -62,10 +63,10 @@ pub struct DateTimeFormat {
 }
 
 impl IntrinsicObject for DateTimeFormat {
-    fn init(intrinsics: &Intrinsics) {
+    fn init(realm: &Realm) {
         let _timer = Profiler::global().start_event(Self::NAME, "init");
 
-        BuiltInBuilder::from_standard_constructor::<Self>(intrinsics).build();
+        BuiltInBuilder::from_standard_constructor::<Self>(realm).build();
     }
 
     fn get(intrinsics: &Intrinsics) -> JsObject {

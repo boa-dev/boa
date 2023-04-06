@@ -17,6 +17,7 @@ use crate::{
     context::intrinsics::{Intrinsics, StandardConstructor, StandardConstructors},
     error::JsNativeError,
     object::{internal_methods::get_prototype_from_constructor, JsObject, ObjectData},
+    realm::Realm,
     Context, JsResult, JsValue,
 };
 use boa_profiler::Profiler;
@@ -28,10 +29,10 @@ use super::{BuiltInBuilder, BuiltInConstructor, IntrinsicObject};
 pub(crate) struct Boolean;
 
 impl IntrinsicObject for Boolean {
-    fn init(intrinsics: &Intrinsics) {
+    fn init(realm: &Realm) {
         let _timer = Profiler::global().start_event(Self::NAME, "init");
 
-        BuiltInBuilder::from_standard_constructor::<Self>(intrinsics)
+        BuiltInBuilder::from_standard_constructor::<Self>(realm)
             .method(Self::to_string, "toString", 0)
             .method(Self::value_of, "valueOf", 0)
             .build();

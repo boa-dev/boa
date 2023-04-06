@@ -27,6 +27,7 @@ use crate::{
         JsObject, ObjectData, ObjectKind,
     },
     property::{Attribute, PropertyDescriptor, PropertyKey, PropertyNameKind},
+    realm::Realm,
     string::utf16,
     symbol::JsSymbol,
     value::JsValue,
@@ -44,20 +45,20 @@ mod tests;
 pub struct Object;
 
 impl IntrinsicObject for Object {
-    fn init(intrinsics: &Intrinsics) {
+    fn init(realm: &Realm) {
         let _timer = Profiler::global().start_event(Self::NAME, "init");
 
-        let legacy_proto_getter = BuiltInBuilder::new(intrinsics)
+        let legacy_proto_getter = BuiltInBuilder::new(realm)
             .callable(Self::legacy_proto_getter)
             .name("get __proto__")
             .build();
 
-        let legacy_setter_proto = BuiltInBuilder::new(intrinsics)
+        let legacy_setter_proto = BuiltInBuilder::new(realm)
             .callable(Self::legacy_proto_setter)
             .name("set __proto__")
             .build();
 
-        BuiltInBuilder::from_standard_constructor::<Self>(intrinsics)
+        BuiltInBuilder::from_standard_constructor::<Self>(realm)
             .inherits(None)
             .accessor(
                 utf16!("__proto__"),

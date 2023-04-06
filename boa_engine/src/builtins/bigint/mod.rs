@@ -18,6 +18,7 @@ use crate::{
     error::JsNativeError,
     object::JsObject,
     property::Attribute,
+    realm::Realm,
     symbol::JsSymbol,
     value::{IntegerOrInfinity, PreferredType},
     Context, JsArgs, JsBigInt, JsResult, JsValue,
@@ -35,10 +36,10 @@ mod tests;
 pub struct BigInt;
 
 impl IntrinsicObject for BigInt {
-    fn init(intrinsics: &Intrinsics) {
+    fn init(realm: &Realm) {
         let _timer = Profiler::global().start_event(Self::NAME, "init");
 
-        BuiltInBuilder::from_standard_constructor::<Self>(intrinsics)
+        BuiltInBuilder::from_standard_constructor::<Self>(realm)
             .method(Self::to_string, "toString", 0)
             .method(Self::value_of, "valueOf", 0)
             .static_method(Self::as_int_n, "asIntN", 2)

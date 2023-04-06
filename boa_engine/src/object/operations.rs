@@ -1,9 +1,10 @@
 use crate::{
     builtins::{function::ClassFieldDefinition, Array},
-    context::intrinsics::{Intrinsics, StandardConstructor, StandardConstructors},
+    context::intrinsics::{StandardConstructor, StandardConstructors},
     error::JsNativeError,
     object::{JsObject, PrivateElement, PROTOTYPE},
     property::{PropertyDescriptor, PropertyDescriptorBuilder, PropertyKey, PropertyNameKind},
+    realm::Realm,
     string::utf16,
     value::Type,
     Context, JsResult, JsSymbol, JsValue,
@@ -658,10 +659,10 @@ impl JsObject {
     /// Abstract operation [`GetFunctionRealm`][spec].
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-getfunctionrealm
-    pub(crate) fn get_function_realm(&self, context: &mut Context<'_>) -> JsResult<Intrinsics> {
+    pub(crate) fn get_function_realm(&self, context: &mut Context<'_>) -> JsResult<Realm> {
         let constructor = self.borrow();
         if let Some(fun) = constructor.as_function() {
-            return Ok(fun.realm_intrinsics().clone());
+            return Ok(fun.realm().clone());
         }
 
         if let Some(bound) = constructor.as_bound_function() {
@@ -676,7 +677,7 @@ impl JsObject {
             return fun.get_function_realm(context);
         }
 
-        Ok(context.intrinsics().clone())
+        Ok(context.realm().clone())
     }
 
     // todo: CopyDataProperties

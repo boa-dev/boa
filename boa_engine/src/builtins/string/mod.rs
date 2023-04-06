@@ -16,6 +16,7 @@ use crate::{
     js_string,
     object::{internal_methods::get_prototype_from_constructor, JsObject, ObjectData},
     property::{Attribute, PropertyDescriptor},
+    realm::Realm,
     string::utf16,
     string::{CodePoint, Utf16Trim},
     symbol::JsSymbol,
@@ -64,13 +65,13 @@ pub(crate) const fn is_trimmable_whitespace(c: char) -> bool {
 pub(crate) struct String;
 
 impl IntrinsicObject for String {
-    fn init(intrinsics: &Intrinsics) {
+    fn init(realm: &Realm) {
         let _timer = Profiler::global().start_event(Self::NAME, "init");
 
         let symbol_iterator = JsSymbol::iterator();
 
         let attribute = Attribute::READONLY | Attribute::NON_ENUMERABLE | Attribute::PERMANENT;
-        BuiltInBuilder::from_standard_constructor::<Self>(intrinsics)
+        BuiltInBuilder::from_standard_constructor::<Self>(realm)
             .property(utf16!("length"), 0, attribute)
             .static_method(Self::raw, "raw", 1)
             .static_method(Self::from_char_code, "fromCharCode", 1)

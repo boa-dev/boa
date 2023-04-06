@@ -25,6 +25,7 @@ use crate::{
     js_string,
     object::{internal_methods::get_prototype_from_constructor, JsObject, ObjectData},
     property::{Attribute, PropertyNameKind},
+    realm::Realm,
     string::utf16,
     symbol::JsSymbol,
     value::{IntegerOrInfinity, JsValue},
@@ -47,17 +48,25 @@ macro_rules! typed_array {
                 Self::STANDARD_CONSTRUCTOR(intrinsics.constructors()).constructor()
             }
 
-            fn init(intrinsics: &Intrinsics) {
+            fn init(realm: &Realm) {
                 let _timer = Profiler::global().start_event(Self::NAME, "init");
 
-                let get_species = BuiltInBuilder::new(intrinsics)
+                let get_species = BuiltInBuilder::new(realm)
                     .callable(TypedArray::get_species)
                     .name("get [Symbol.species]")
                     .build();
 
-                BuiltInBuilder::from_standard_constructor::<Self>(intrinsics)
-                    .prototype(intrinsics.constructors().typed_array().constructor())
-                    .inherits(Some(intrinsics.constructors().typed_array().prototype()))
+                BuiltInBuilder::from_standard_constructor::<Self>(realm)
+                    .prototype(
+                        realm
+                            .intrinsics()
+                            .constructors()
+                            .typed_array()
+                            .constructor(),
+                    )
+                    .inherits(Some(
+                        realm.intrinsics().constructors().typed_array().prototype(),
+                    ))
                     .static_accessor(
                         JsSymbol::species(),
                         Some(get_species),
@@ -231,44 +240,44 @@ macro_rules! typed_array {
 pub(crate) struct TypedArray;
 
 impl IntrinsicObject for TypedArray {
-    fn init(intrinsics: &Intrinsics) {
-        let get_species = BuiltInBuilder::new(intrinsics)
+    fn init(realm: &Realm) {
+        let get_species = BuiltInBuilder::new(realm)
             .callable(Self::get_species)
             .name("get [Symbol.species]")
             .build();
 
-        let get_buffer = BuiltInBuilder::new(intrinsics)
+        let get_buffer = BuiltInBuilder::new(realm)
             .callable(Self::buffer)
             .name("get buffer")
             .build();
 
-        let get_byte_length = BuiltInBuilder::new(intrinsics)
+        let get_byte_length = BuiltInBuilder::new(realm)
             .callable(Self::byte_length)
             .name("get byteLength")
             .build();
 
-        let get_byte_offset = BuiltInBuilder::new(intrinsics)
+        let get_byte_offset = BuiltInBuilder::new(realm)
             .callable(Self::byte_offset)
             .name("get byteOffset")
             .build();
 
-        let get_length = BuiltInBuilder::new(intrinsics)
+        let get_length = BuiltInBuilder::new(realm)
             .callable(Self::length)
             .name("get length")
             .build();
 
-        let get_to_string_tag = BuiltInBuilder::new(intrinsics)
+        let get_to_string_tag = BuiltInBuilder::new(realm)
             .callable(Self::to_string_tag)
             .name("get [Symbol.toStringTag]")
             .build();
 
-        let values_function = BuiltInBuilder::new(intrinsics)
+        let values_function = BuiltInBuilder::new(realm)
             .callable(Self::values)
             .name("values")
             .length(0)
             .build();
 
-        BuiltInBuilder::from_standard_constructor::<Self>(intrinsics)
+        BuiltInBuilder::from_standard_constructor::<Self>(realm)
             .static_accessor(
                 JsSymbol::species(),
                 Some(get_species),

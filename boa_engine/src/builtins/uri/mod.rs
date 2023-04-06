@@ -24,6 +24,7 @@ use crate::{
     context::intrinsics::Intrinsics,
     js_string,
     object::{JsFunction, JsObject},
+    realm::Realm,
     string::CodePoint,
     Context, JsArgs, JsNativeError, JsResult, JsString, JsValue,
 };
@@ -80,8 +81,8 @@ impl UriFunctions {
 pub(crate) struct DecodeUri;
 
 impl IntrinsicObject for DecodeUri {
-    fn init(intrinsics: &Intrinsics) {
-        BuiltInBuilder::with_intrinsic::<Self>(intrinsics)
+    fn init(realm: &Realm) {
+        BuiltInBuilder::with_intrinsic::<Self>(realm)
             .callable(decode_uri)
             .name(Self::NAME)
             .length(1)
@@ -99,8 +100,8 @@ impl BuiltInObject for DecodeUri {
 pub(crate) struct DecodeUriComponent;
 
 impl IntrinsicObject for DecodeUriComponent {
-    fn init(intrinsics: &Intrinsics) {
-        BuiltInBuilder::with_intrinsic::<Self>(intrinsics)
+    fn init(realm: &Realm) {
+        BuiltInBuilder::with_intrinsic::<Self>(realm)
             .callable(decode_uri_component)
             .name(Self::NAME)
             .length(1)
@@ -122,8 +123,8 @@ impl BuiltInObject for DecodeUriComponent {
 pub(crate) struct EncodeUri;
 
 impl IntrinsicObject for EncodeUri {
-    fn init(intrinsics: &Intrinsics) {
-        BuiltInBuilder::with_intrinsic::<Self>(intrinsics)
+    fn init(realm: &Realm) {
+        BuiltInBuilder::with_intrinsic::<Self>(realm)
             .callable(encode_uri)
             .name(Self::NAME)
             .length(1)
@@ -140,8 +141,8 @@ impl BuiltInObject for EncodeUri {
 pub(crate) struct EncodeUriComponent;
 
 impl IntrinsicObject for EncodeUriComponent {
-    fn init(intrinsics: &Intrinsics) {
-        BuiltInBuilder::with_intrinsic::<Self>(intrinsics)
+    fn init(realm: &Realm) {
+        BuiltInBuilder::with_intrinsic::<Self>(realm)
             .callable(encode_uri_component)
             .name(Self::NAME)
             .length(1)

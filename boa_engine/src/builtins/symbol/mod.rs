@@ -27,6 +27,7 @@ use crate::{
     js_string,
     object::JsObject,
     property::Attribute,
+    realm::Realm,
     string::utf16,
     symbol::JsSymbol,
     value::JsValue,
@@ -91,7 +92,7 @@ impl GlobalSymbolRegistry {
 pub struct Symbol;
 
 impl IntrinsicObject for Symbol {
-    fn init(intrinsics: &Intrinsics) {
+    fn init(realm: &Realm) {
         let _timer = Profiler::global().start_event(Self::NAME, "init");
 
         let symbol_async_iterator = JsSymbol::async_iterator();
@@ -110,18 +111,18 @@ impl IntrinsicObject for Symbol {
 
         let attribute = Attribute::READONLY | Attribute::NON_ENUMERABLE | Attribute::PERMANENT;
 
-        let to_primitive = BuiltInBuilder::new(intrinsics)
+        let to_primitive = BuiltInBuilder::new(realm)
             .callable(Self::to_primitive)
             .name("[Symbol.toPrimitive]")
             .length(1)
             .build();
 
-        let get_description = BuiltInBuilder::new(intrinsics)
+        let get_description = BuiltInBuilder::new(realm)
             .callable(Self::get_description)
             .name("get description")
             .build();
 
-        BuiltInBuilder::from_standard_constructor::<Self>(intrinsics)
+        BuiltInBuilder::from_standard_constructor::<Self>(realm)
             .static_method(Self::for_, "for", 1)
             .static_method(Self::key_for, "keyFor", 1)
             .static_property(utf16!("asyncIterator"), symbol_async_iterator, attribute)

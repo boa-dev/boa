@@ -6,11 +6,13 @@
 
 use crate::{
     builtins::async_generator::{AsyncGenerator, AsyncGeneratorState},
+    environments::{DeclarativeEnvironment, DeclarativeEnvironmentStack},
     vm::{call_frame::EarlyReturnType, code_block::Readable},
     Context, JsError, JsObject, JsResult, JsValue,
 };
 #[cfg(feature = "fuzz")]
 use crate::{JsNativeError, JsNativeErrorKind};
+use boa_gc::Gc;
 use boa_profiler::Profiler;
 use std::{convert::TryInto, mem::size_of};
 
@@ -44,17 +46,20 @@ pub struct Vm {
     pub(crate) frames: Vec<CallFrame>,
     pub(crate) stack: Vec<JsValue>,
     pub(crate) err: Option<JsError>,
+    pub(crate) environments: DeclarativeEnvironmentStack,
     #[cfg(feature = "trace")]
     pub(crate) trace: bool,
     pub(crate) stack_size_limit: usize,
     pub(crate) active_function: Option<JsObject>,
 }
 
-impl Default for Vm {
-    fn default() -> Self {
+impl Vm {
+    /// Creates a new virtual machine.
+    pub(crate) fn new(global: Gc<DeclarativeEnvironment>) -> Self {
         Self {
             frames: Vec::with_capacity(16),
             stack: Vec::with_capacity(1024),
+            environments: DeclarativeEnvironmentStack::new(global),
             err: None,
             #[cfg(feature = "trace")]
             trace: false,
@@ -62,9 +67,7 @@ impl Default for Vm {
             active_function: None,
         }
     }
-}
 
-impl Vm {
     /// Push a value on the stack.
     pub(crate) fn push<T>(&mut self, value: T)
     where
@@ -187,7 +190,7 @@ impl Context<'_> {
         // If the current executing function is an async function we have to resolve/reject it's promise at the end.
         // The relevant spec section is 3. in [AsyncBlockStart](https://tc39.es/ecma262/#sec-asyncblockstart).
         let promise_capability = self
-            .realm
+            .vm
             .environments
             .current_function_slots()
             .as_function_slots()
@@ -403,10 +406,11 @@ impl Context<'_> {
                         .take()
                         .expect("err must exist on a Completion::Throw")),
                     true,
+                    None,
                     self,
                 );
             } else {
-                AsyncGenerator::complete_step(&next, Ok(execution_result), true, self);
+                AsyncGenerator::complete_step(&next, Ok(execution_result), true, None, self);
             }
             AsyncGenerator::drain_queue(&generator_object, self);
 

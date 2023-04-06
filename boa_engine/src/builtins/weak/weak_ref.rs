@@ -6,6 +6,7 @@ use crate::{
     context::intrinsics::{Intrinsics, StandardConstructor, StandardConstructors},
     object::{internal_methods::get_prototype_from_constructor, JsObject, ObjectData},
     property::Attribute,
+    realm::Realm,
     symbol::JsSymbol,
     Context, JsArgs, JsNativeError, JsResult, JsValue,
 };
@@ -28,9 +29,9 @@ impl IntrinsicObject for WeakRef {
         Self::STANDARD_CONSTRUCTOR(intrinsics.constructors()).constructor()
     }
 
-    fn init(intrinsics: &Intrinsics) {
+    fn init(realm: &Realm) {
         let _timer = Profiler::global().start_event(Self::NAME, "init");
-        BuiltInBuilder::from_standard_constructor::<Self>(intrinsics)
+        BuiltInBuilder::from_standard_constructor::<Self>(realm)
             .property(
                 JsSymbol::to_string_tag(),
                 "WeakRef",

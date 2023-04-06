@@ -16,6 +16,7 @@ use crate::{
     error::JsNativeError,
     object::{internal_methods::get_prototype_from_constructor, JsObject, ObjectData},
     property::{Attribute, PropertyNameKind},
+    realm::Realm,
     string::utf16,
     symbol::JsSymbol,
     Context, JsArgs, JsResult, JsValue,
@@ -37,25 +38,25 @@ mod tests;
 pub(crate) struct Map;
 
 impl IntrinsicObject for Map {
-    fn init(intrinsics: &Intrinsics) {
+    fn init(realm: &Realm) {
         let _timer = Profiler::global().start_event(Self::NAME, "init");
 
-        let get_species = BuiltInBuilder::new(intrinsics)
+        let get_species = BuiltInBuilder::new(realm)
             .callable(Self::get_species)
             .name("get [Symbol.species]")
             .build();
 
-        let get_size = BuiltInBuilder::new(intrinsics)
+        let get_size = BuiltInBuilder::new(realm)
             .callable(Self::get_size)
             .name("get size")
             .build();
 
-        let entries_function = BuiltInBuilder::new(intrinsics)
+        let entries_function = BuiltInBuilder::new(realm)
             .callable(Self::entries)
             .name("entries")
             .build();
 
-        BuiltInBuilder::from_standard_constructor::<Self>(intrinsics)
+        BuiltInBuilder::from_standard_constructor::<Self>(realm)
             .static_accessor(
                 JsSymbol::species(),
                 Some(get_species),

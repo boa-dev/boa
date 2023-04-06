@@ -25,6 +25,7 @@ use crate::{
     js_string,
     object::{JsObject, RecursionLimiter},
     property::{Attribute, PropertyNameKind},
+    realm::Realm,
     string::{utf16, CodePoint},
     symbol::JsSymbol,
     value::IntegerOrInfinity,
@@ -137,13 +138,13 @@ where
 pub(crate) struct Json;
 
 impl IntrinsicObject for Json {
-    fn init(intrinsics: &Intrinsics) {
+    fn init(realm: &Realm) {
         let _timer = Profiler::global().start_event(Self::NAME, "init");
 
         let to_string_tag = JsSymbol::to_string_tag();
         let attribute = Attribute::READONLY | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE;
 
-        BuiltInBuilder::with_intrinsic::<Self>(intrinsics)
+        BuiltInBuilder::with_intrinsic::<Self>(realm)
             .static_method(Self::parse, "parse", 2)
             .static_method(Self::stringify, "stringify", 3)
             .static_property(to_string_tag, Self::NAME, attribute)

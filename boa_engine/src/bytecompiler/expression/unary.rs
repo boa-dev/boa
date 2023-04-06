@@ -27,7 +27,7 @@ impl ByteCompiler<'_, '_> {
             UnaryOp::TypeOf => {
                 match unary.target().flatten() {
                     Expression::Identifier(identifier) => {
-                        let binding = self.context.get_binding_value(*identifier);
+                        let binding = self.get_binding_value(*identifier);
                         let index = self.get_or_insert_binding(binding);
                         self.emit(Opcode::GetNameOrUndefined, &[index]);
                     }

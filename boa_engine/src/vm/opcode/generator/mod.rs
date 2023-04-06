@@ -92,7 +92,7 @@ impl Operation for AsyncGeneratorNext {
             .queue
             .pop_front()
             .expect("must have item in queue");
-        AsyncGenerator::complete_step(&next, completion, false, context);
+        AsyncGenerator::complete_step(&next, completion, false, None, context);
 
         let mut generator_object_mut = generator_object.borrow_mut();
         let gen = generator_object_mut

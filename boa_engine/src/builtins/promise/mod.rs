@@ -15,6 +15,7 @@ use crate::{
         JsObject, ObjectData, CONSTRUCTOR,
     },
     property::Attribute,
+    realm::Realm,
     string::utf16,
     symbol::JsSymbol,
     value::JsValue,
@@ -307,15 +308,15 @@ impl PromiseCapability {
 }
 
 impl IntrinsicObject for Promise {
-    fn init(intrinsics: &Intrinsics) {
+    fn init(realm: &Realm) {
         let _timer = Profiler::global().start_event(Self::NAME, "init");
 
-        let get_species = BuiltInBuilder::new(intrinsics)
+        let get_species = BuiltInBuilder::new(realm)
             .callable(Self::get_species)
             .name("get [Symbol.species]")
             .build();
 
-        BuiltInBuilder::from_standard_constructor::<Self>(intrinsics)
+        BuiltInBuilder::from_standard_constructor::<Self>(realm)
             .static_method(Self::all, "all", 1)
             .static_method(Self::all_settled, "allSettled", 1)
             .static_method(Self::any, "any", 1)
@@ -1856,7 +1857,8 @@ impl Promise {
             //   a. Let value be promise.[[PromiseResult]].
             PromiseState::Fulfilled(ref value) => {
                 //   b. Let fulfillJob be NewPromiseReactionJob(fulfillReaction, value).
-                let fulfill_job = new_promise_reaction_job(fulfill_reaction, value.clone());
+                let fulfill_job =
+                    new_promise_reaction_job(fulfill_reaction, value.clone(), context);
 
                 //   c. Perform HostEnqueuePromiseJob(fulfillJob.[[Job]], fulfillJob.[[Realm]]).
                 context
@@ -1878,7 +1880,7 @@ impl Promise {
                 }
 
                 //   d. Let rejectJob be NewPromiseReactionJob(rejectReaction, reason).
-                let reject_job = new_promise_reaction_job(reject_reaction, reason.clone());
+                let reject_job = new_promise_reaction_job(reject_reaction, reason.clone(), context);
 
                 //   e. Perform HostEnqueuePromiseJob(rejectJob.[[Job]], rejectJob.[[Realm]]).
                 context.job_queue().enqueue_promise_job(reject_job, context);
@@ -1955,7 +1957,7 @@ impl Promise {
             // 1. For each element reaction of reactions, do
             for reaction in reactions {
                 // a. Let job be NewPromiseReactionJob(reaction, argument).
-                let job = new_promise_reaction_job(reaction, argument.clone());
+                let job = new_promise_reaction_job(reaction, argument.clone(), context);
 
                 // b. Perform HostEnqueuePromiseJob(job.[[Job]], job.[[Realm]]).
                 context.job_queue().enqueue_promise_job(job, context);
@@ -2163,6 +2165,7 @@ impl Promise {
                         promise.clone(),
                         resolution.clone(),
                         then_job_callback,
+                        context
                     );
 
                     // 15. Perform HostEnqueuePromiseJob(job.[[Job]], job.[[Realm]]).
@@ -2235,7 +2238,26 @@ impl Promise {
 ///  - [ECMAScript reference][spec]
 ///
 /// [spec]: https://tc39.es/ecma262/#sec-newpromisereactionjob
-fn new_promise_reaction_job(mut reaction: ReactionRecord, argument: JsValue) -> NativeJob {
+fn new_promise_reaction_job(
+    mut reaction: ReactionRecord,
+    argument: JsValue,
+    context: &mut Context<'_>,
+) -> NativeJob {
+    // Inverting order since `job` captures `reaction` by value.
+
+    // 2. Let handlerRealm be null.
+    // 3. If reaction.[[Handler]] is not empty, then
+    //   a. Let getHandlerRealmResult be Completion(GetFunctionRealm(reaction.[[Handler]].[[Callback]])).
+    //   b. If getHandlerRealmResult is a normal completion, set handlerRealm to getHandlerRealmResult.[[Value]].
+    //   c. Else, set handlerRealm to the current Realm Record.
+    //   d. NOTE: handlerRealm is never null unless the handler is undefined. When the handler is a
+    // revoked Proxy and no ECMAScript code runs, handlerRealm is used to create error objects.
+    let realm = reaction
+        .handler
+        .as_ref()
+        .and_then(|handler| handler.callback().get_function_realm(context).ok())
+        .unwrap_or_else(|| context.realm().clone());
+
     // 1. Let job be a new Job Abstract Closure with no parameters that captures reaction and argument and performs the following steps when called:
     let job = move |context: &mut Context<'_>| {
         //   a. Let promiseCapability be reaction.[[Capability]].
@@ -2301,16 +2323,8 @@ fn new_promise_reaction_job(mut reaction: ReactionRecord, argument: JsValue) -> 
         }
     };
 
-    // TODO: handle realms
-    // 2. Let handlerRealm be null.
-    // 3. If reaction.[[Handler]] is not empty, then
-    //   a. Let getHandlerRealmResult be Completion(GetFunctionRealm(reaction.[[Handler]].[[Callback]])).
-    //   b. If getHandlerRealmResult is a normal completion, set handlerRealm to getHandlerRealmResult.[[Value]].
-    //   c. Else, set handlerRealm to the current Realm Record.
-    //   d. NOTE: handlerRealm is never null unless the handler is undefined. When the handler is a revoked Proxy and no ECMAScript code runs, handlerRealm is used to create error objects.
-
     // 4. Return the Record { [[Job]]: job, [[Realm]]: handlerRealm }.
-    NativeJob::new(job)
+    NativeJob::with_realm(job, realm)
 }
 
 /// More information:
@@ -2321,7 +2335,19 @@ fn new_promise_resolve_thenable_job(
     promise_to_resolve: JsObject,
     thenable: JsValue,
     then: JobCallback,
+    context: &mut Context<'_>,
 ) -> NativeJob {
+    // Inverting order since `job` captures variables by value.
+
+    // 2. Let getThenRealmResult be Completion(GetFunctionRealm(then.[[Callback]])).
+    // 3. If getThenRealmResult is a normal completion, let thenRealm be getThenRealmResult.[[Value]].
+    // 4. Else, let thenRealm be the current Realm Record.
+    // 5. NOTE: thenRealm is never null. When then.[[Callback]] is a revoked Proxy and no code runs, thenRealm is used to create error objects.
+    let realm = then
+        .callback()
+        .get_function_realm(context)
+        .unwrap_or_else(|_| context.realm().clone());
+
     // 1. Let job be a new Job Abstract Closure with no parameters that captures promiseToResolve, thenable, and then and performs the following steps when called:
     let job = move |context: &mut Context<'_>| {
         //    a. Let resolvingFunctions be CreateResolvingFunctions(promiseToResolve).
@@ -2351,12 +2377,6 @@ fn new_promise_resolve_thenable_job(
         then_call_result
     };
 
-    // TODO: handle realms
-    // 2. Let getThenRealmResult be Completion(GetFunctionRealm(then.[[Callback]])).
-    // 3. If getThenRealmResult is a normal completion, let thenRealm be getThenRealmResult.[[Value]].
-    // 4. Else, let thenRealm be the current Realm Record.
-    // 5. NOTE: thenRealm is never null. When then.[[Callback]] is a revoked Proxy and no code runs, thenRealm is used to create error objects.
-
     // 6. Return the Record { [[Job]]: job, [[Realm]]: thenRealm }.
-    NativeJob::new(job)
+    NativeJob::with_realm(job, realm)
 }

@@ -11,6 +11,7 @@ use crate::{
     builtins::{function::BuiltInFunctionObject, BuiltInObject},
     context::intrinsics::{Intrinsics, StandardConstructor, StandardConstructors},
     property::Attribute,
+    realm::Realm,
     symbol::JsSymbol,
     Context, JsResult, JsValue,
 };
@@ -23,12 +24,14 @@ use super::{BuiltInBuilder, BuiltInConstructor, IntrinsicObject};
 pub struct AsyncFunction;
 
 impl IntrinsicObject for AsyncFunction {
-    fn init(intrinsics: &Intrinsics) {
+    fn init(realm: &Realm) {
         let _timer = Profiler::global().start_event(Self::NAME, "init");
 
-        BuiltInBuilder::from_standard_constructor::<Self>(intrinsics)
-            .prototype(intrinsics.constructors().function().constructor())
-            .inherits(Some(intrinsics.constructors().function().prototype()))
+        BuiltInBuilder::from_standard_constructor::<Self>(realm)
+            .prototype(realm.intrinsics().constructors().function().constructor())
+            .inherits(Some(
+                realm.intrinsics().constructors().function().prototype(),
+            ))
             .property(
                 JsSymbol::to_string_tag(),
                 Self::NAME,

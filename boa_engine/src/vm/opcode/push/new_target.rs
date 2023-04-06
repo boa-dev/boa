@@ -15,20 +15,18 @@ impl Operation for PushNewTarget {
     const INSTRUCTION: &'static str = "INST - PushNewTarget";
 
     fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
-        if let Some(env) = context
-            .realm
+        let new_target = if let Some(new_target) = context
+            .vm
             .environments
             .get_this_environment()
             .as_function_slots()
+            .and_then(|env| env.borrow().new_target().cloned())
         {
-            if let Some(new_target) = env.borrow().new_target() {
-                context.vm.push(new_target.clone());
-            } else {
-                context.vm.push(JsValue::undefined());
-            }
+            new_target.into()
         } else {
-            context.vm.push(JsValue::undefined());
-        }
+            JsValue::undefined()
+        };
+        context.vm.push(new_target);
         Ok(CompletionType::Normal)
     }
 }

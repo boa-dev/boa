@@ -22,6 +22,7 @@ use crate::{
     js_string,
     object::{internal_methods::get_prototype_from_constructor, JsObject, ObjectData, CONSTRUCTOR},
     property::{Attribute, PropertyDescriptor, PropertyNameKind},
+    realm::Realm,
     symbol::JsSymbol,
     value::{IntegerOrInfinity, JsValue},
     Context, JsArgs, JsResult,
@@ -40,26 +41,28 @@ mod tests;
 pub(crate) struct Array;
 
 impl IntrinsicObject for Array {
-    fn init(intrinsics: &Intrinsics) {
+    fn init(realm: &Realm) {
         let _timer = Profiler::global().start_event(Self::NAME, "init");
 
         let symbol_iterator = JsSymbol::iterator();
         let symbol_unscopables = JsSymbol::unscopables();
 
-        let get_species = BuiltInBuilder::new(intrinsics)
+        let get_species = BuiltInBuilder::new(realm)
             .callable(Self::get_species)
             .name("get [Symbol.species]")
             .build();
 
-        let values_function =
-            BuiltInBuilder::with_object(intrinsics, intrinsics.objects().array_prototype_values())
-                .callable(Self::values)
-                .name("values")
-                .build();
+        let values_function = BuiltInBuilder::with_object(
+            realm,
+            realm.intrinsics().objects().array_prototype_values(),
+        )
+        .callable(Self::values)
+        .name("values")
+        .build();
 
         let unscopables_object = Self::unscopables_object();
 
-        BuiltInBuilder::from_standard_constructor::<Self>(intrinsics)
+        BuiltInBuilder::from_standard_constructor::<Self>(realm)
             .static_accessor(
                 JsSymbol::species(),
                 Some(get_species),
@@ -369,12 +372,14 @@ impl Array {
         // 4. If IsConstructor(C) is true, then
         if let Some(c) = c.as_constructor() {
             // a. Let thisRealm be the current Realm Record.
-            let this_realm = &context.intrinsics().clone();
+            let this_realm = context.realm().clone();
             // b. Let realmC be ? GetFunctionRealm(C).
-            let realm_c = &c.get_function_realm(context)?;
+            let realm_c = c.get_function_realm(context)?;
 
             // c. If thisRealm and realmC are not the same Realm Record, then
-            if this_realm != realm_c && *c == realm_c.constructors().array().constructor() {
+            if this_realm != realm_c
+                && *c == realm_c.intrinsics().constructors().array().constructor()
+            {
                 // i. If SameValue(C, realmC.[[Intrinsics]].[[%Array%]]) is true, set C to undefined.
                 // Note: fast path to step 6.
                 return Self::array_create(length, None, context);

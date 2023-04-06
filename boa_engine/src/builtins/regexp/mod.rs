@@ -16,6 +16,7 @@ use crate::{
     js_string,
     object::{internal_methods::get_prototype_from_constructor, JsObject, ObjectData, CONSTRUCTOR},
     property::{Attribute, PropertyDescriptorBuilder},
+    realm::Realm,
     string::{utf16, CodePoint},
     symbol::JsSymbol,
     value::JsValue,
@@ -44,53 +45,53 @@ pub struct RegExp {
 }
 
 impl IntrinsicObject for RegExp {
-    fn init(intrinsics: &Intrinsics) {
+    fn init(realm: &Realm) {
         let _timer = Profiler::global().start_event(Self::NAME, "init");
 
-        let get_species = BuiltInBuilder::new(intrinsics)
+        let get_species = BuiltInBuilder::new(realm)
             .callable(Self::get_species)
             .name("get [Symbol.species]")
             .build();
 
         let flag_attributes = Attribute::CONFIGURABLE | Attribute::NON_ENUMERABLE;
 
-        let get_has_indices = BuiltInBuilder::new(intrinsics)
+        let get_has_indices = BuiltInBuilder::new(realm)
             .callable(Self::get_has_indices)
             .name("get hasIndices")
             .build();
-        let get_global = BuiltInBuilder::new(intrinsics)
+        let get_global = BuiltInBuilder::new(realm)
             .callable(Self::get_global)
             .name("get global")
             .build();
-        let get_ignore_case = BuiltInBuilder::new(intrinsics)
+        let get_ignore_case = BuiltInBuilder::new(realm)
             .callable(Self::get_ignore_case)
             .name("get ignoreCase")
             .build();
-        let get_multiline = BuiltInBuilder::new(intrinsics)
+        let get_multiline = BuiltInBuilder::new(realm)
             .callable(Self::get_multiline)
             .name("get multiline")
             .build();
-        let get_dot_all = BuiltInBuilder::new(intrinsics)
+        let get_dot_all = BuiltInBuilder::new(realm)
             .callable(Self::get_dot_all)
             .name("get dotAll")
             .build();
-        let get_unicode = BuiltInBuilder::new(intrinsics)
+        let get_unicode = BuiltInBuilder::new(realm)
             .callable(Self::get_unicode)
             .name("get unicode")
             .build();
-        let get_sticky = BuiltInBuilder::new(intrinsics)
+        let get_sticky = BuiltInBuilder::new(realm)
             .callable(Self::get_sticky)
             .name("get sticky")
             .build();
-        let get_flags = BuiltInBuilder::new(intrinsics)
+        let get_flags = BuiltInBuilder::new(realm)
             .callable(Self::get_flags)
             .name("get flags")
             .build();
-        let get_source = BuiltInBuilder::new(intrinsics)
+        let get_source = BuiltInBuilder::new(realm)
             .callable(Self::get_source)
             .name("get source")
             .build();
-        BuiltInBuilder::from_standard_constructor::<Self>(intrinsics)
+        BuiltInBuilder::from_standard_constructor::<Self>(realm)
             .static_accessor(
                 JsSymbol::species(),
                 Some(get_species),

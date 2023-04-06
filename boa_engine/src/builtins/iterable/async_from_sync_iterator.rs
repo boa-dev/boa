@@ -7,6 +7,7 @@ use crate::{
     context::intrinsics::Intrinsics,
     native_function::NativeFunction,
     object::{FunctionObjectBuilder, JsObject, ObjectData},
+    realm::Realm,
     string::utf16,
     Context, JsArgs, JsNativeError, JsResult, JsValue,
 };
@@ -26,11 +27,17 @@ pub struct AsyncFromSyncIterator {
 }
 
 impl IntrinsicObject for AsyncFromSyncIterator {
-    fn init(intrinsics: &Intrinsics) {
+    fn init(realm: &Realm) {
         let _timer = Profiler::global().start_event("AsyncFromSyncIteratorPrototype", "init");
 
-        BuiltInBuilder::with_intrinsic::<Self>(intrinsics)
-            .prototype(intrinsics.objects().iterator_prototypes().async_iterator())
+        BuiltInBuilder::with_intrinsic::<Self>(realm)
+            .prototype(
+                realm
+                    .intrinsics()
+                    .objects()
+                    .iterator_prototypes()
+                    .async_iterator(),
+            )
             .static_method(Self::next, "next", 1)
             .static_method(Self::r#return, "return", 1)
             .static_method(Self::throw, "throw", 1)

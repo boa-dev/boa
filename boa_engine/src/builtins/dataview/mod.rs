@@ -13,6 +13,7 @@ use crate::{
     error::JsNativeError,
     object::{internal_methods::get_prototype_from_constructor, JsObject, ObjectData},
     property::Attribute,
+    realm::Realm,
     string::utf16,
     symbol::JsSymbol,
     value::JsValue,
@@ -31,25 +32,25 @@ pub struct DataView {
 }
 
 impl IntrinsicObject for DataView {
-    fn init(intrinsics: &Intrinsics) {
+    fn init(realm: &Realm) {
         let flag_attributes = Attribute::CONFIGURABLE | Attribute::NON_ENUMERABLE;
 
-        let get_buffer = BuiltInBuilder::new(intrinsics)
+        let get_buffer = BuiltInBuilder::new(realm)
             .callable(Self::get_buffer)
             .name("get buffer")
             .build();
 
-        let get_byte_length = BuiltInBuilder::new(intrinsics)
+        let get_byte_length = BuiltInBuilder::new(realm)
             .callable(Self::get_byte_length)
             .name("get byteLength")
             .build();
 
-        let get_byte_offset = BuiltInBuilder::new(intrinsics)
+        let get_byte_offset = BuiltInBuilder::new(realm)
             .callable(Self::get_byte_offset)
             .name("get byteOffset")
             .build();
 
-        BuiltInBuilder::from_standard_constructor::<Self>(intrinsics)
+        BuiltInBuilder::from_standard_constructor::<Self>(realm)
             .accessor(utf16!("buffer"), Some(get_buffer), None, flag_attributes)
             .accessor(
                 utf16!("byteLength"),

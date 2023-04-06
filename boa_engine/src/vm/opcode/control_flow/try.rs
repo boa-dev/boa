@@ -58,8 +58,8 @@ impl Operation for TryEnd {
             }
         }
 
-        let env_truncation_len = context.realm.environments.len().saturating_sub(envs_to_pop);
-        context.realm.environments.truncate(env_truncation_len);
+        let env_truncation_len = context.vm.environments.len().saturating_sub(envs_to_pop);
+        context.vm.environments.truncate(env_truncation_len);
 
         Ok(CompletionType::Normal)
     }

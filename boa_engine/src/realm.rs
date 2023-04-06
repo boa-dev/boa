@@ -8,20 +8,30 @@
 
 use crate::{
     context::{intrinsics::Intrinsics, HostHooks},
-    environments::{CompileTimeEnvironment, DeclarativeEnvironmentStack},
+    environments::DeclarativeEnvironment,
     object::JsObject,
 };
-use boa_gc::{Gc, GcRefCell};
+use boa_gc::{Finalize, Gc, Trace};
 use boa_profiler::Profiler;
 
 /// Representation of a Realm.
 ///
 /// In the specification these are called Realm Records.
-#[derive(Debug)]
+#[derive(Clone, Debug, Trace, Finalize)]
 pub struct Realm {
-    pub(crate) intrinsics: Intrinsics,
-    pub(crate) environments: DeclarativeEnvironmentStack,
-    pub(crate) compile_env: Gc<GcRefCell<CompileTimeEnvironment>>,
+    inner: Gc<Inner>,
+}
+
+impl PartialEq for Realm {
+    fn eq(&self, other: &Self) -> bool {
+        std::ptr::eq(&*self.inner, &*other.inner)
+    }
+}
+
+#[derive(Debug, Trace, Finalize)]
+struct Inner {
+    intrinsics: Intrinsics,
+    environment: Gc<DeclarativeEnvironment>,
     global_object: JsObject,
     global_this: JsObject,
 }
@@ -32,36 +42,50 @@ impl Realm {
     pub fn create(hooks: &dyn HostHooks) -> Self {
         let _timer = Profiler::global().start_event("Realm::create", "realm");
 
-        let intrinsics = Intrinsics::new();
-
+        let intrinsics = Intrinsics::default();
         let global_object = hooks.create_global_object(&intrinsics);
         let global_this = hooks
             .create_global_this(&intrinsics)
             .unwrap_or_else(|| global_object.clone());
 
-        let global_compile_environment =
-            Gc::new(GcRefCell::new(CompileTimeEnvironment::new_global()));
+        let realm = Self {
+            inner: Gc::new(Inner {
+                intrinsics,
+                environment: Gc::new(DeclarativeEnvironment::new_global()),
+                global_object,
+                global_this,
+            }),
+        };
 
-        Self {
-            intrinsics,
-            global_object,
-            global_this,
-            environments: DeclarativeEnvironmentStack::new(global_compile_environment.clone()),
-            compile_env: global_compile_environment,
+        realm.initialize();
+
+        realm
+    }
+
+    /// Gets the intrinsics of this `Realm`.
+    pub fn intrinsics(&self) -> &Intrinsics {
+        &self.inner.intrinsics
+    }
+
+    pub(crate) fn environment(&self) -> &Gc<DeclarativeEnvironment> {
+        &self.inner.environment
+    }
+
+    pub(crate) fn global_object(&self) -> &JsObject {
+        &self.inner.global_object
+    }
+
+    pub(crate) fn global_this(&self) -> &JsObject {
+        &self.inner.global_this
+    }
+
+    /// Resizes the number of bindings on the global environment.
+    pub(crate) fn resize_global_env(&self) {
+        let binding_number = self.environment().compile_env().borrow().num_bindings();
+
+        let mut bindings = self.environment().bindings().borrow_mut();
+        if bindings.len() < binding_number {
+            bindings.resize(binding_number, None);
         }
-    }
-
-    pub(crate) const fn global_object(&self) -> &JsObject {
-        &self.global_object
-    }
-
-    pub(crate) const fn global_this(&self) -> &JsObject {
-        &self.global_this
-    }
-
-    /// Set the number of bindings on the global environment.
-    pub(crate) fn set_global_binding_number(&mut self) {
-        let binding_number = self.compile_env.borrow().num_bindings();
-        self.environments.set_global_binding_number(binding_number);
     }
 }

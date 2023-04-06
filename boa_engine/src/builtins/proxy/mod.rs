@@ -16,6 +16,7 @@ use crate::{
     error::JsNativeError,
     native_function::NativeFunction,
     object::{FunctionObjectBuilder, JsFunction, JsObject, ObjectData},
+    realm::Realm,
     string::utf16,
     Context, JsArgs, JsResult, JsValue,
 };
@@ -31,10 +32,10 @@ pub struct Proxy {
 }
 
 impl IntrinsicObject for Proxy {
-    fn init(intrinsics: &Intrinsics) {
+    fn init(realm: &Realm) {
         let _timer = Profiler::global().start_event(Self::NAME, "init");
 
-        BuiltInBuilder::from_standard_constructor::<Self>(intrinsics)
+        BuiltInBuilder::from_standard_constructor::<Self>(realm)
             .no_proto()
             .static_method(Self::revocable, "revocable", 2)
             .build();

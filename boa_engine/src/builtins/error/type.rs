@@ -25,6 +25,7 @@ use crate::{
     native_function::NativeFunction,
     object::{internal_methods::get_prototype_from_constructor, JsObject, ObjectData},
     property::Attribute,
+    realm::Realm,
     string::utf16,
     Context, JsArgs, JsResult, JsValue,
 };
@@ -37,13 +38,13 @@ use super::{Error, ErrorKind};
 pub(crate) struct TypeError;
 
 impl IntrinsicObject for TypeError {
-    fn init(intrinsics: &Intrinsics) {
+    fn init(realm: &Realm) {
         let _timer = Profiler::global().start_event(Self::NAME, "init");
 
         let attribute = Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE;
-        BuiltInBuilder::from_standard_constructor::<Self>(intrinsics)
-            .prototype(intrinsics.constructors().error().constructor())
-            .inherits(Some(intrinsics.constructors().error().prototype()))
+        BuiltInBuilder::from_standard_constructor::<Self>(realm)
+            .prototype(realm.intrinsics().constructors().error().constructor())
+            .inherits(Some(realm.intrinsics().constructors().error().prototype()))
             .property(utf16!("name"), Self::NAME, attribute)
             .property(utf16!("message"), "", attribute)
             .build();
@@ -114,7 +115,7 @@ impl BuiltInConstructor for TypeError {
 pub(crate) struct ThrowTypeError;
 
 impl IntrinsicObject for ThrowTypeError {
-    fn init(intrinsics: &Intrinsics) {
+    fn init(realm: &Realm) {
         fn throw_type_error(_: &JsValue, _: &[JsValue], _: &mut Context<'_>) -> JsResult<JsValue> {
             Err(JsNativeError::typ()
                 .with_message(
@@ -124,8 +125,8 @@ impl IntrinsicObject for ThrowTypeError {
                 .into())
         }
 
-        let obj = BuiltInBuilder::with_intrinsic::<Self>(intrinsics)
-            .prototype(intrinsics.constructors().function().prototype())
+        let obj = BuiltInBuilder::with_intrinsic::<Self>(realm)
+            .prototype(realm.intrinsics().constructors().function().prototype())
             .static_property(utf16!("name"), "ThrowTypeError", Attribute::empty())
             .static_property(utf16!("length"), 0, Attribute::empty())
             .build();
@@ -137,7 +138,7 @@ impl IntrinsicObject for ThrowTypeError {
                 function: NativeFunction::from_fn_ptr(throw_type_error),
                 constructor: None,
             },
-            intrinsics.clone(),
+            realm.clone(),
         ));
     }
 
