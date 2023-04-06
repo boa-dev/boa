@@ -11,7 +11,7 @@
       "group": "build",
       "presentation": {
         "clear": true
-      },
+      }
     },
     {
       "type": "process",
