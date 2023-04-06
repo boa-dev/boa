@@ -21,14 +21,7 @@ impl Operation for SetClassPrototype {
         let prototype = match &prototype_value {
             JsValue::Object(proto) => Some(proto.clone()),
             JsValue::Null => None,
-            JsValue::Undefined => Some(
-                context
-                    .intrinsics()
-                    .constructors()
-                    .object()
-                    .prototype
-                    .clone(),
-            ),
+            JsValue::Undefined => Some(context.intrinsics().constructors().object().prototype()),
             _ => unreachable!(),
         };
 

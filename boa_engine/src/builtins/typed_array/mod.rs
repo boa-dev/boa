@@ -23,7 +23,7 @@ use crate::{
     context::intrinsics::{Intrinsics, StandardConstructor, StandardConstructors},
     error::JsNativeError,
     js_string,
-    object::{internal_methods::get_prototype_from_constructor, JsObject, ObjectData},
+    object::{internal_methods::get_prototype_from_constructor, JsObject, ObjectData, ObjectKind},
     property::{Attribute, PropertyNameKind},
     realm::Realm,
     string::utf16,
@@ -3349,7 +3349,7 @@ impl TypedArray {
         // 18. Set O.[[ByteOffset]] to 0.
         // 19. Set O.[[ArrayLength]] to elementLength.
         drop(o_obj);
-        o.borrow_mut().data = ObjectData::integer_indexed(IntegerIndexed::new(
+        *o.borrow_mut().kind_mut() = ObjectKind::IntegerIndexed(IntegerIndexed::new(
             Some(data),
             constructor_name,
             0,

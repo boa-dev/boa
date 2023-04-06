@@ -50,10 +50,10 @@ pub struct UriFunctions {
 impl Default for UriFunctions {
     fn default() -> Self {
         Self {
-            decode_uri: JsFunction::from_object_unchecked(JsObject::default()),
-            decode_uri_component: JsFunction::from_object_unchecked(JsObject::default()),
-            encode_uri: JsFunction::from_object_unchecked(JsObject::default()),
-            encode_uri_component: JsFunction::from_object_unchecked(JsObject::default()),
+            decode_uri: JsFunction::empty_intrinsic_function(false),
+            decode_uri_component: JsFunction::empty_intrinsic_function(false),
+            encode_uri: JsFunction::empty_intrinsic_function(false),
+            encode_uri_component: JsFunction::empty_intrinsic_function(false),
         }
     }
 }

@@ -54,7 +54,7 @@ impl IntrinsicObject for Array {
 
         let values_function = BuiltInBuilder::with_object(
             realm,
-            realm.intrinsics().objects().array_prototype_values(),
+            realm.intrinsics().objects().array_prototype_values().into(),
         )
         .callable(Self::values)
         .name("values")

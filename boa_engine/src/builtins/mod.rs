@@ -97,7 +97,8 @@ use crate::{
     js_string,
     native_function::{NativeFunction, NativeFunctionPointer},
     object::{
-        FunctionBinding, JsFunction, JsObject, JsPrototype, ObjectData, CONSTRUCTOR, PROTOTYPE,
+        FunctionBinding, JsFunction, JsObject, JsPrototype, Object, ObjectData, CONSTRUCTOR,
+        PROTOTYPE,
     },
     property::{Attribute, PropertyDescriptor, PropertyKey},
     realm::Realm,
@@ -390,6 +391,82 @@ pub(crate) fn set_default_global_bindings(context: &mut Context<'_>) -> JsResult
 
 // === Builder typestate ===
 
+#[derive(Debug)]
+enum BuiltInObjectInitializer {
+    Shared(JsObject),
+    Unique { object: Object, data: ObjectData },
+}
+
+impl BuiltInObjectInitializer {
+    /// Inserts a new property descriptor into the builtin.
+    fn insert<K, P>(&mut self, key: K, property: P)
+    where
+        K: Into<PropertyKey>,
+        P: Into<PropertyDescriptor>,
+    {
+        match self {
+            BuiltInObjectInitializer::Shared(obj) => obj.borrow_mut().insert(key, property),
+            BuiltInObjectInitializer::Unique { object, .. } => object.insert(key, property),
+        };
+    }
+
+    /// Sets the prototype of the builtin
+    fn set_prototype(&mut self, prototype: JsObject) {
+        match self {
+            BuiltInObjectInitializer::Shared(obj) => {
+                let mut obj = obj.borrow_mut();
+                obj.set_prototype(prototype);
+            }
+            BuiltInObjectInitializer::Unique { object, .. } => {
+                object.set_prototype(prototype);
+            }
+        }
+    }
+
+    /// Sets the `ObjectData` of the builtin.
+    ///
+    /// # Panics
+    ///
+    /// Panics if the builtin is a shared builtin and the data's vtable is not the same as the
+    /// builtin's vtable.
+    fn set_data(&mut self, new_data: ObjectData) {
+        match self {
+            BuiltInObjectInitializer::Shared(obj) => {
+                assert!(std::ptr::eq(obj.vtable(), new_data.internal_methods));
+                *obj.borrow_mut().kind_mut() = new_data.kind;
+            }
+            BuiltInObjectInitializer::Unique { ref mut data, .. } => *data = new_data,
+        }
+    }
+
+    /// Gets a shared object from the builtin, transitioning its state if it's necessary.
+    fn as_shared(&mut self) -> JsObject {
+        match std::mem::replace(
+            self,
+            BuiltInObjectInitializer::Unique {
+                object: Object::default(),
+                data: ObjectData::ordinary(),
+            },
+        ) {
+            BuiltInObjectInitializer::Shared(obj) => {
+                *self = BuiltInObjectInitializer::Shared(obj.clone());
+                obj
+            }
+            BuiltInObjectInitializer::Unique { mut object, data } => {
+                *object.kind_mut() = data.kind;
+                let obj = JsObject::from_object_and_vtable(object, data.internal_methods);
+                *self = BuiltInObjectInitializer::Shared(obj.clone());
+                obj
+            }
+        }
+    }
+
+    /// Converts the builtin into a shared object.
+    fn into_shared(mut self) -> JsObject {
+        self.as_shared()
+    }
+}
+
 /// Marker for a constructor function.
 struct Constructor {
     prototype: JsObject,
@@ -434,77 +511,78 @@ struct OrdinaryObject;
 
 /// Applies the pending builder data to the object.
 trait ApplyToObject {
-    fn apply_to(self, object: &JsObject);
+    fn apply_to(self, object: &mut BuiltInObjectInitializer);
 }
 
 impl ApplyToObject for Constructor {
-    fn apply_to(self, object: &JsObject) {
+    fn apply_to(self, object: &mut BuiltInObjectInitializer) {
+        object.insert(
+            PROTOTYPE,
+            PropertyDescriptor::builder()
+                .value(self.prototype.clone())
+                .writable(false)
+                .enumerable(false)
+                .configurable(false),
+        );
+
+        let object = object.as_shared();
+
         {
             let mut prototype = self.prototype.borrow_mut();
             prototype.set_prototype(self.inherits);
             prototype.insert(
                 CONSTRUCTOR,
                 PropertyDescriptor::builder()
-                    .value(object.clone())
+                    .value(object)
                     .writable(self.attributes.writable())
                     .enumerable(self.attributes.enumerable())
                     .configurable(self.attributes.configurable()),
             );
         }
-        let mut object = object.borrow_mut();
-        object.insert(
-            PROTOTYPE,
-            PropertyDescriptor::builder()
-                .value(self.prototype)
-                .writable(false)
-                .enumerable(false)
-                .configurable(false),
-        );
     }
 }
 
 impl ApplyToObject for ConstructorNoProto {
-    fn apply_to(self, _: &JsObject) {}
+    fn apply_to(self, _: &mut BuiltInObjectInitializer) {}
 }
 
 impl ApplyToObject for OrdinaryFunction {
-    fn apply_to(self, _: &JsObject) {}
+    fn apply_to(self, _: &mut BuiltInObjectInitializer) {}
 }
 
 impl<S: ApplyToObject + IsConstructor> ApplyToObject for Callable<S> {
-    fn apply_to(self, object: &JsObject) {
-        self.kind.apply_to(object);
-
-        let function = function::Function::new(
+    fn apply_to(self, object: &mut BuiltInObjectInitializer) {
+        let function = ObjectData::function(function::Function::new(
             function::FunctionKind::Native {
                 function: NativeFunction::from_fn_ptr(self.function),
                 constructor: S::IS_CONSTRUCTOR.then_some(function::ConstructorKind::Base),
             },
             self.realm,
+        ));
+        object.set_data(function);
+        object.insert(
+            utf16!("length"),
+            PropertyDescriptor::builder()
+                .value(self.length)
+                .writable(false)
+                .enumerable(false)
+                .configurable(true),
+        );
+        object.insert(
+            utf16!("name"),
+            PropertyDescriptor::builder()
+                .value(self.name)
+                .writable(false)
+                .enumerable(false)
+                .configurable(true),
         );
 
-        let length = PropertyDescriptor::builder()
-            .value(self.length)
-            .writable(false)
-            .enumerable(false)
-            .configurable(true);
-        let name = PropertyDescriptor::builder()
-            .value(self.name)
-            .writable(false)
-            .enumerable(false)
-            .configurable(true);
-
-        {
-            let mut constructor = object.borrow_mut();
-            constructor.data = ObjectData::function(function);
-            constructor.insert(utf16!("length"), length);
-            constructor.insert(utf16!("name"), name);
-        }
+        self.kind.apply_to(object);
     }
 }
 
 impl ApplyToObject for OrdinaryObject {
-    fn apply_to(self, _: &JsObject) {}
+    fn apply_to(self, _: &mut BuiltInObjectInitializer) {}
 }
 
 /// Builder for creating built-in objects, like `Array`.
@@ -515,7 +593,7 @@ impl ApplyToObject for OrdinaryObject {
 #[must_use = "You need to call the `build` method in order for this to correctly assign the inner data"]
 struct BuiltInBuilder<'ctx, Kind> {
     realm: &'ctx Realm,
-    object: JsObject,
+    object: BuiltInObjectInitializer,
     kind: Kind,
     prototype: JsObject,
 }
@@ -524,7 +602,10 @@ impl<'ctx> BuiltInBuilder<'ctx, OrdinaryObject> {
     fn new(realm: &'ctx Realm) -> BuiltInBuilder<'ctx, OrdinaryObject> {
         BuiltInBuilder {
             realm,
-            object: JsObject::with_null_proto(),
+            object: BuiltInObjectInitializer::Unique {
+                object: Object::default(),
+                data: ObjectData::ordinary(),
+            },
             kind: OrdinaryObject,
             prototype: realm.intrinsics().constructors().object().prototype(),
         }
@@ -535,7 +616,7 @@ impl<'ctx> BuiltInBuilder<'ctx, OrdinaryObject> {
     ) -> BuiltInBuilder<'ctx, OrdinaryObject> {
         BuiltInBuilder {
             realm,
-            object: I::get(realm.intrinsics()),
+            object: BuiltInObjectInitializer::Shared(I::get(realm.intrinsics())),
             kind: OrdinaryObject,
             prototype: realm.intrinsics().constructors().object().prototype(),
         }
@@ -544,7 +625,7 @@ impl<'ctx> BuiltInBuilder<'ctx, OrdinaryObject> {
     fn with_object(realm: &'ctx Realm, object: JsObject) -> BuiltInBuilder<'ctx, OrdinaryObject> {
         BuiltInBuilder {
             realm,
-            object,
+            object: BuiltInObjectInitializer::Shared(object),
             kind: OrdinaryObject,
             prototype: realm.intrinsics().constructors().object().prototype(),
         }
@@ -583,7 +664,7 @@ impl<'ctx> BuiltInBuilder<'ctx, Callable<Constructor>> {
         let constructor = SC::STANDARD_CONSTRUCTOR(realm.intrinsics().constructors());
         BuiltInBuilder {
             realm,
-            object: constructor.constructor(),
+            object: BuiltInObjectInitializer::Shared(constructor.constructor()),
             kind: Callable {
                 function: SC::constructor,
                 name: js_string!(SC::NAME),
@@ -617,7 +698,12 @@ impl<'ctx> BuiltInBuilder<'ctx, Callable<Constructor>> {
 
 impl<T> BuiltInBuilder<'_, T> {
     /// Adds a new static method to the builtin object.
-    fn static_method<B>(self, function: NativeFunctionPointer, binding: B, length: usize) -> Self
+    fn static_method<B>(
+        mut self,
+        function: NativeFunctionPointer,
+        binding: B,
+        length: usize,
+    ) -> Self
     where
         B: Into<FunctionBinding>,
     {
@@ -628,7 +714,7 @@ impl<T> BuiltInBuilder<'_, T> {
             .length(length)
             .build();
 
-        self.object.borrow_mut().insert(
+        self.object.insert(
             binding.binding,
             PropertyDescriptor::builder()
                 .value(function)
@@ -640,7 +726,7 @@ impl<T> BuiltInBuilder<'_, T> {
     }
 
     /// Adds a new static data property to the builtin object.
-    fn static_property<K, V>(self, key: K, value: V, attribute: Attribute) -> Self
+    fn static_property<K, V>(mut self, key: K, value: V, attribute: Attribute) -> Self
     where
         K: Into<PropertyKey>,
         V: Into<JsValue>,
@@ -650,13 +736,13 @@ impl<T> BuiltInBuilder<'_, T> {
             .writable(attribute.writable())
             .enumerable(attribute.enumerable())
             .configurable(attribute.configurable());
-        self.object.borrow_mut().insert(key, property);
+        self.object.insert(key, property);
         self
     }
 
     /// Adds a new static accessor property to the builtin object.
     fn static_accessor<K>(
-        self,
+        mut self,
         key: K,
         get: Option<JsFunction>,
         set: Option<JsFunction>,
@@ -670,7 +756,7 @@ impl<T> BuiltInBuilder<'_, T> {
             .maybe_set(set)
             .enumerable(attribute.enumerable())
             .configurable(attribute.configurable());
-        self.object.borrow_mut().insert(key, property);
+        self.object.insert(key, property);
         self
     }
 
@@ -779,28 +865,22 @@ impl<FnTyp> BuiltInBuilder<'_, Callable<FnTyp>> {
 
 impl BuiltInBuilder<'_, OrdinaryObject> {
     /// Build the builtin object.
-    fn build(self) -> JsObject {
-        self.kind.apply_to(&self.object);
+    fn build(mut self) -> JsObject {
+        self.kind.apply_to(&mut self.object);
 
-        {
-            let mut object = self.object.borrow_mut();
-            object.set_prototype(self.prototype);
-        }
+        self.object.set_prototype(self.prototype);
 
-        self.object
+        self.object.into_shared()
     }
 }
 
 impl<FnTyp: ApplyToObject + IsConstructor> BuiltInBuilder<'_, Callable<FnTyp>> {
     /// Build the builtin callable.
-    fn build(self) -> JsFunction {
-        self.kind.apply_to(&self.object);
+    fn build(mut self) -> JsFunction {
+        self.kind.apply_to(&mut self.object);
 
-        {
-            let mut object = self.object.borrow_mut();
-            object.set_prototype(self.prototype);
-        }
+        self.object.set_prototype(self.prototype);
 
-        JsFunction::from_object_unchecked(self.object)
+        JsFunction::from_object_unchecked(self.object.into_shared())
     }
 }

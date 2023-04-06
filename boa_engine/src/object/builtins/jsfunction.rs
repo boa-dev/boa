@@ -1,6 +1,9 @@
 //! A Rust API wrapper for Boa's `Function` Builtin ECMAScript Object
 use crate::{
-    object::{JsObject, JsObjectType},
+    object::{
+        internal_methods::function::{CONSTRUCTOR_INTERNAL_METHODS, FUNCTION_INTERNAL_METHODS},
+        JsObject, JsObjectType, Object,
+    },
     value::TryFromJs,
     Context, JsNativeError, JsResult, JsValue,
 };
@@ -14,11 +17,28 @@ pub struct JsFunction {
 }
 
 impl JsFunction {
+    /// Creates a new `JsFunction` from an object, without checking if the object is callable.
     pub(crate) fn from_object_unchecked(object: JsObject) -> Self {
         Self { inner: object }
     }
 
-    /// Create a [`JsFunction`] from a [`JsObject`], or return `None` if the object is not a function.
+    /// Creates a new, empty intrinsic function object with only its function internal methods set.
+    ///
+    /// Mainly used to initialize objects before a [`Context`] is available to do so.
+    pub(crate) fn empty_intrinsic_function(constructor: bool) -> Self {
+        Self {
+            inner: JsObject::from_object_and_vtable(
+                Object::default(),
+                if constructor {
+                    &CONSTRUCTOR_INTERNAL_METHODS
+                } else {
+                    &FUNCTION_INTERNAL_METHODS
+                },
+            ),
+        }
+    }
+
+    /// Creates a [`JsFunction`] from a [`JsObject`], or returns `None` if the object is not a function.
     ///
     /// This does not clone the fields of the function, it only does a shallow clone of the object.
     #[inline]

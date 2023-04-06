@@ -14,7 +14,10 @@ use crate::{
     context::intrinsics::{Intrinsics, StandardConstructor, StandardConstructors},
     error::JsNativeError,
     js_string,
-    object::{internal_methods::get_prototype_from_constructor, JsObject, ObjectData, CONSTRUCTOR},
+    object::{
+        internal_methods::get_prototype_from_constructor, JsObject, ObjectData, ObjectKind,
+        CONSTRUCTOR,
+    },
     property::{Attribute, PropertyDescriptorBuilder},
     realm::Realm,
     string::{utf16, CodePoint},
@@ -311,7 +314,9 @@ impl RegExp {
             original_source: p,
             original_flags: f,
         };
-        obj.borrow_mut().data = ObjectData::reg_exp(Box::new(regexp));
+
+        // Safe to directly initialize since previous assertions ensure `obj` is a `Regexp` object.
+        *obj.borrow_mut().kind_mut() = ObjectKind::RegExp(Box::new(regexp));
 
         // 16. Perform ? Set(obj, "lastIndex", +0𝔽, true).
         obj.set(utf16!("lastIndex"), 0, true, context)?;
@@ -367,7 +372,7 @@ impl RegExp {
 
             if JsObject::equals(
                 object,
-                &context.intrinsics().constructors().regexp().prototype,
+                &context.intrinsics().constructors().regexp().prototype(),
             ) {
                 return Ok(JsValue::undefined());
             }

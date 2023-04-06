@@ -36,14 +36,14 @@ impl Intrinsics {
 /// Store a builtin constructor (such as `Object`) and its corresponding prototype.
 #[derive(Debug, Trace, Finalize)]
 pub struct StandardConstructor {
-    pub(crate) constructor: JsObject,
-    pub(crate) prototype: JsObject,
+    constructor: JsFunction,
+    prototype: JsObject,
 }
 
 impl Default for StandardConstructor {
     fn default() -> Self {
         Self {
-            constructor: JsObject::with_null_proto(),
+            constructor: JsFunction::empty_intrinsic_function(true),
             prototype: JsObject::with_null_proto(),
         }
     }
@@ -53,7 +53,7 @@ impl StandardConstructor {
     /// Build a constructor with a defined prototype.
     fn with_prototype(prototype: JsObject) -> Self {
         Self {
-            constructor: JsObject::with_null_proto(),
+            constructor: JsFunction::empty_intrinsic_function(true),
             prototype,
         }
     }
@@ -71,7 +71,7 @@ impl StandardConstructor {
     /// This is the same as `Object`, `Array`, etc.
     #[inline]
     pub fn constructor(&self) -> JsObject {
-        self.constructor.clone()
+        self.constructor.clone().into()
     }
 }
 
@@ -138,7 +138,10 @@ impl Default for StandardConstructors {
             object: StandardConstructor::default(),
             proxy: StandardConstructor::default(),
             date: StandardConstructor::default(),
-            function: StandardConstructor::default(),
+            function: StandardConstructor {
+                constructor: JsFunction::empty_intrinsic_function(true),
+                prototype: JsFunction::empty_intrinsic_function(false).into(),
+            },
             async_function: StandardConstructor::default(),
             generator_function: StandardConstructor::default(),
             array: StandardConstructor::with_prototype(JsObject::from_proto_and_data(
@@ -740,7 +743,7 @@ pub struct IntrinsicObjects {
     throw_type_error: JsFunction,
 
     /// [`%Array.prototype.values%`](https://tc39.es/ecma262/#sec-array.prototype.values)
-    array_prototype_values: JsObject,
+    array_prototype_values: JsFunction,
 
     /// Cached iterator prototypes.
     iterator_prototypes: IteratorPrototypes,
@@ -788,21 +791,21 @@ impl Default for IntrinsicObjects {
             reflect: JsObject::default(),
             math: JsObject::default(),
             json: JsObject::default(),
-            throw_type_error: JsFunction::from_object_unchecked(JsObject::default()),
-            array_prototype_values: JsObject::default(),
+            throw_type_error: JsFunction::empty_intrinsic_function(false),
+            array_prototype_values: JsFunction::empty_intrinsic_function(false),
             iterator_prototypes: IteratorPrototypes::default(),
             generator: JsObject::default(),
             async_generator: JsObject::default(),
-            eval: JsFunction::from_object_unchecked(JsObject::default()),
+            eval: JsFunction::empty_intrinsic_function(false),
             uri_functions: UriFunctions::default(),
-            is_finite: JsFunction::from_object_unchecked(JsObject::default()),
-            is_nan: JsFunction::from_object_unchecked(JsObject::default()),
-            parse_float: JsFunction::from_object_unchecked(JsObject::default()),
-            parse_int: JsFunction::from_object_unchecked(JsObject::default()),
+            is_finite: JsFunction::empty_intrinsic_function(false),
+            is_nan: JsFunction::empty_intrinsic_function(false),
+            parse_float: JsFunction::empty_intrinsic_function(false),
+            parse_int: JsFunction::empty_intrinsic_function(false),
             #[cfg(feature = "annex-b")]
-            escape: JsFunction::from_object_unchecked(JsObject::default()),
+            escape: JsFunction::empty_intrinsic_function(false),
             #[cfg(feature = "annex-b")]
-            unescape: JsFunction::from_object_unchecked(JsObject::default()),
+            unescape: JsFunction::empty_intrinsic_function(false),
             #[cfg(feature = "intl")]
             intl: JsObject::default(),
         }
@@ -822,7 +825,7 @@ impl IntrinsicObjects {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-array.prototype.values
     #[inline]
-    pub fn array_prototype_values(&self) -> JsObject {
+    pub fn array_prototype_values(&self) -> JsFunction {
         self.array_prototype_values.clone()
     }
 
