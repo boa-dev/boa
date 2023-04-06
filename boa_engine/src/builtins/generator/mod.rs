@@ -21,7 +21,7 @@ use crate::{
     vm::{CallFrame, CompletionRecord, GeneratorResumeKind},
     Context, JsArgs, JsError, JsResult,
 };
-use boa_gc::{Finalize, Gc, GcRefCell, Trace};
+use boa_gc::{Finalize, Trace};
 use boa_profiler::Profiler;
 
 use super::{BuiltInBuilder, IntrinsicObject};
@@ -45,17 +45,19 @@ pub(crate) struct GeneratorContext {
     pub(crate) environments: DeclarativeEnvironmentStack,
     pub(crate) call_frame: CallFrame,
     pub(crate) stack: Vec<JsValue>,
+    pub(crate) active_function: Option<JsObject>,
+    pub(crate) realm_intrinsics: Intrinsics,
 }
 
 /// The internal representation of a `Generator` object.
-#[derive(Debug, Clone, Finalize, Trace)]
+#[derive(Debug, Finalize, Trace)]
 pub struct Generator {
     /// The `[[GeneratorState]]` internal slot.
     #[unsafe_ignore_trace]
     pub(crate) state: GeneratorState,
 
     /// The `[[GeneratorContext]]` internal slot.
-    pub(crate) context: Option<Gc<GcRefCell<GeneratorContext>>>,
+    pub(crate) context: Option<GeneratorContext>,
 }
 
 impl IntrinsicObject for Generator {
@@ -208,11 +210,10 @@ impl Generator {
         generator.state = GeneratorState::Executing;
         let first_execution = matches!(state, GeneratorState::SuspendedStart);
 
-        let generator_context_cell = generator
+        let mut generator_context = generator
             .context
             .take()
             .expect("generator context cannot be empty here");
-        let mut generator_context = generator_context_cell.borrow_mut();
         drop(generator_obj_mut);
 
         std::mem::swap(
@@ -220,6 +221,14 @@ impl Generator {
             &mut generator_context.environments,
         );
         std::mem::swap(&mut context.vm.stack, &mut generator_context.stack);
+        std::mem::swap(
+            &mut context.vm.active_function,
+            &mut generator_context.active_function,
+        );
+        std::mem::swap(
+            &mut context.realm.intrinsics,
+            &mut generator_context.realm_intrinsics,
+        );
         context.vm.push_frame(generator_context.call_frame.clone());
         if !first_execution {
             context.vm.push(value.clone());
@@ -238,6 +247,14 @@ impl Generator {
             &mut generator_context.environments,
         );
         std::mem::swap(&mut context.vm.stack, &mut generator_context.stack);
+        std::mem::swap(
+            &mut context.vm.active_function,
+            &mut generator_context.active_function,
+        );
+        std::mem::swap(
+            &mut context.realm.intrinsics,
+            &mut generator_context.realm_intrinsics,
+        );
 
         let mut generator_obj_mut = generator_obj.borrow_mut();
         let generator = generator_obj_mut
@@ -247,8 +264,7 @@ impl Generator {
         match record {
             CompletionRecord::Return(value) => {
                 generator.state = GeneratorState::SuspendedYield;
-                drop(generator_context);
-                generator.context = Some(generator_context_cell);
+                generator.context = Some(generator_context);
                 Ok(create_iter_result_object(value, false, context))
             }
             CompletionRecord::Normal(value) => {
@@ -323,11 +339,10 @@ impl Generator {
         // 10. Resume the suspended evaluation of genContext using abruptCompletion as the result of the operation that suspended it. Let result be the completion record returned by the resumed computation.
         // 11. Assert: When we return here, genContext has already been removed from the execution context stack and methodContext is the currently running execution context.
         // 12. Return Completion(result).
-        let generator_context_cell = generator
+        let mut generator_context = generator
             .context
             .take()
             .expect("generator context cannot be empty here");
-        let mut generator_context = generator_context_cell.borrow_mut();
 
         generator.state = GeneratorState::Executing;
         drop(generator_obj_mut);
@@ -337,6 +352,14 @@ impl Generator {
             &mut generator_context.environments,
         );
         std::mem::swap(&mut context.vm.stack, &mut generator_context.stack);
+        std::mem::swap(
+            &mut context.vm.active_function,
+            &mut generator_context.active_function,
+        );
+        std::mem::swap(
+            &mut context.realm.intrinsics,
+            &mut generator_context.realm_intrinsics,
+        );
         context.vm.push_frame(generator_context.call_frame.clone());
 
         let completion_record = match abrupt_completion {
@@ -361,6 +384,14 @@ impl Generator {
             &mut generator_context.environments,
         );
         std::mem::swap(&mut context.vm.stack, &mut generator_context.stack);
+        std::mem::swap(
+            &mut context.vm.active_function,
+            &mut generator_context.active_function,
+        );
+        std::mem::swap(
+            &mut context.realm.intrinsics,
+            &mut generator_context.realm_intrinsics,
+        );
 
         let mut generator_obj_mut = generator_obj.borrow_mut();
         let generator = generator_obj_mut
@@ -370,8 +401,7 @@ impl Generator {
         match completion_record {
             CompletionRecord::Return(value) => {
                 generator.state = GeneratorState::SuspendedYield;
-                drop(generator_context);
-                generator.context = Some(generator_context_cell);
+                generator.context = Some(generator_context);
                 Ok(create_iter_result_object(value, false, context))
             }
             CompletionRecord::Normal(value) => {

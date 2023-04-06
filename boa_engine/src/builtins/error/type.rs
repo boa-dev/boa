@@ -76,7 +76,14 @@ impl BuiltInConstructor for TypeError {
                 .vm
                 .active_function
                 .clone()
-                .map_or_else(JsValue::null, JsValue::from)
+                .unwrap_or_else(|| {
+                    context
+                        .intrinsics()
+                        .constructors()
+                        .type_error()
+                        .constructor()
+                })
+                .into()
         } else {
             new_target.clone()
         };

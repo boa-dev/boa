@@ -64,7 +64,14 @@ impl BuiltInConstructor for ReferenceError {
                 .vm
                 .active_function
                 .clone()
-                .map_or_else(JsValue::null, JsValue::from)
+                .unwrap_or_else(|| {
+                    context
+                        .intrinsics()
+                        .constructors()
+                        .reference_error()
+                        .constructor()
+                })
+                .into()
         } else {
             new_target.clone()
         };

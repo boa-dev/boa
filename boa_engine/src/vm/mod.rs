@@ -386,6 +386,7 @@ impl Context<'_> {
                 .expect("must be async generator");
 
             generator.state = AsyncGeneratorState::Completed;
+            generator.context = None;
 
             let next = generator
                 .queue

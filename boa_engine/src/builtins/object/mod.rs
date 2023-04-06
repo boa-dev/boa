@@ -135,7 +135,8 @@ impl BuiltInConstructor for Object {
                     .vm
                     .active_function
                     .clone()
-                    .map_or_else(JsValue::null, JsValue::from)
+                    .unwrap_or_else(|| context.intrinsics().constructors().object().constructor())
+                    .into()
         {
             //     a. Return ? OrdinaryCreateFromConstructor(NewTarget, "%Object.prototype%").
             let prototype =

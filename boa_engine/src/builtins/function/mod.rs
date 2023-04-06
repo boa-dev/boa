@@ -531,7 +531,13 @@ impl BuiltInConstructor for BuiltInFunctionObject {
         args: &[JsValue],
         context: &mut Context<'_>,
     ) -> JsResult<JsValue> {
-        Self::create_dynamic_function(new_target, args, false, false, context).map(Into::into)
+        let active_function = context
+            .vm
+            .active_function
+            .clone()
+            .unwrap_or_else(|| context.intrinsics().constructors().function().constructor());
+        Self::create_dynamic_function(active_function, new_target, args, false, false, context)
+            .map(Into::into)
     }
 }
 
@@ -543,23 +549,62 @@ impl BuiltInFunctionObject {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-createdynamicfunction
     pub(crate) fn create_dynamic_function(
+        constructor: JsObject,
         new_target: &JsValue,
         args: &[JsValue],
         r#async: bool,
         generator: bool,
         context: &mut Context<'_>,
     ) -> JsResult<JsObject> {
+        // 1. Let currentRealm be the current Realm Record.
+        // 2. Perform ? HostEnsureCanCompileStrings(currentRealm).
+        context.host_hooks().ensure_can_compile_strings(context)?;
+
+        // 3. If newTarget is undefined, set newTarget to constructor.
+        let new_target = if new_target.is_undefined() {
+            constructor.into()
+        } else {
+            new_target.clone()
+        };
+
         let default = if r#async && generator {
+            // 7. Else,
+            //     a. Assert: kind is asyncGenerator.
+            //     b. Let prefix be "async function*".
+            //     c. Let exprSym be the grammar symbol AsyncGeneratorExpression.
+            //     d. Let bodySym be the grammar symbol AsyncGeneratorBody.
+            //     e. Let parameterSym be the grammar symbol FormalParameters[+Yield, +Await].
+            //     f. Let fallbackProto be "%AsyncGeneratorFunction.prototype%".
             StandardConstructors::async_generator_function
         } else if r#async {
+            // 6. Else if kind is async, then
+            //     a. Let prefix be "async function".
+            //     b. Let exprSym be the grammar symbol AsyncFunctionExpression.
+            //     c. Let bodySym be the grammar symbol AsyncFunctionBody.
+            //     d. Let parameterSym be the grammar symbol FormalParameters[~Yield, +Await].
+            //     e. Let fallbackProto be "%AsyncFunction.prototype%".
             StandardConstructors::async_function
         } else if generator {
+            // 5. Else if kind is generator, then
+            //     a. Let prefix be "function*".
+            //     b. Let exprSym be the grammar symbol GeneratorExpression.
+            //     c. Let bodySym be the grammar symbol GeneratorBody.
+            //     d. Let parameterSym be the grammar symbol FormalParameters[+Yield, ~Await].
+            //     e. Let fallbackProto be "%GeneratorFunction.prototype%".
             StandardConstructors::generator_function
         } else {
+            // 4. If kind is normal, then
+            //     a. Let prefix be "function".
+            //     b. Let exprSym be the grammar symbol FunctionExpression.
+            //     c. Let bodySym be the grammar symbol FunctionBody[~Yield, ~Await].
+            //     d. Let parameterSym be the grammar symbol FormalParameters[~Yield, ~Await].
+            //     e. Let fallbackProto be "%Function.prototype%".
             StandardConstructors::function
         };
 
-        let prototype = get_prototype_from_constructor(new_target, default, context)?;
+        // 22. Let proto be ? GetPrototypeFromConstructor(newTarget, fallbackProto).
+        let prototype = get_prototype_from_constructor(&new_target, default, context)?;
+
         if let Some((body_arg, args)) = args.split_last() {
             let parameters = if args.is_empty() {
                 FormalParameterList::default()
@@ -691,7 +736,13 @@ impl BuiltInFunctionObject {
             let environments = context.realm.environments.pop_to_global();
 
             let function_object = if generator {
-                crate::vm::create_generator_function_object(code, r#async, false, context)
+                crate::vm::create_generator_function_object(
+                    code,
+                    r#async,
+                    false,
+                    Some(prototype),
+                    context,
+                )
             } else {
                 crate::vm::create_function_object(
                     code,
@@ -717,8 +768,13 @@ impl BuiltInFunctionObject {
                 );
 
             let environments = context.realm.environments.pop_to_global();
-            let function_object =
-                crate::vm::create_generator_function_object(code, r#async, false, context);
+            let function_object = crate::vm::create_generator_function_object(
+                code,
+                r#async,
+                false,
+                Some(prototype),
+                context,
+            );
             context.realm.environments.extend(environments);
 
             Ok(function_object)

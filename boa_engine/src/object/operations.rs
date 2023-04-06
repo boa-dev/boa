@@ -1,6 +1,6 @@
 use crate::{
     builtins::{function::ClassFieldDefinition, Array},
-    context::intrinsics::{StandardConstructor, StandardConstructors},
+    context::intrinsics::{Intrinsics, StandardConstructor, StandardConstructors},
     error::JsNativeError,
     object::{JsObject, PrivateElement, PROTOTYPE},
     property::{PropertyDescriptor, PropertyDescriptorBuilder, PropertyKey, PropertyNameKind},
@@ -655,7 +655,29 @@ impl JsObject {
         Ok(false)
     }
 
-    // todo: GetFunctionRealm
+    /// Abstract operation [`GetFunctionRealm`][spec].
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-getfunctionrealm
+    pub(crate) fn get_function_realm(&self, context: &mut Context<'_>) -> JsResult<Intrinsics> {
+        let constructor = self.borrow();
+        if let Some(fun) = constructor.as_function() {
+            return Ok(fun.realm_intrinsics().clone());
+        }
+
+        if let Some(bound) = constructor.as_bound_function() {
+            let fun = bound.target_function().clone();
+            drop(constructor);
+            return fun.get_function_realm(context);
+        }
+
+        if let Some(proxy) = constructor.as_proxy() {
+            let (fun, _) = proxy.try_data()?;
+            drop(constructor);
+            return fun.get_function_realm(context);
+        }
+
+        Ok(context.intrinsics().clone())
+    }
 
     // todo: CopyDataProperties
 

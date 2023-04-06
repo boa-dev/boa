@@ -1,7 +1,7 @@
-use boa_gc::{Gc, GcRefCell};
+use boa_gc::GcRefCell;
 
 use crate::{
-    builtins::Promise,
+    builtins::{generator::GeneratorContext, Promise},
     native_function::NativeFunction,
     object::FunctionObjectBuilder,
     vm::{
@@ -33,14 +33,22 @@ impl Operation for Await {
             context,
         )?;
 
+        let generator_context = GeneratorContext {
+            environments: context.realm.environments.clone(),
+            call_frame: context.vm.frame().clone(),
+            stack: context.vm.stack.clone(),
+            active_function: context.vm.active_function.clone(),
+            realm_intrinsics: context.realm.intrinsics.clone(),
+        };
+
         // 3. Let fulfilledClosure be a new Abstract Closure with parameters (value) that captures asyncContext and performs the following steps when called:
         // 4. Let onFulfilled be CreateBuiltinFunction(fulfilledClosure, 1, "", « »).
         let on_fulfilled = FunctionObjectBuilder::new(
             context,
             NativeFunction::from_copy_closure_with_captures(
                 |_this, args, captures, context| {
-                    let mut captures = captures.borrow_mut();
-                    let (environment, stack, frame) = &mut *captures;
+                    let mut generator_context = std::mem::take(&mut *captures.borrow_mut())
+                        .expect("function should only be called once");
                     // a. Let prevContext be the running execution context.
                     // b. Suspend prevContext.
                     // c. Push asyncContext onto the execution context stack; asyncContext is now the running execution context.
@@ -48,28 +56,46 @@ impl Operation for Await {
                     // e. Assert: When we reach this step, asyncContext has already been removed from the execution context stack and prevContext is the currently running execution context.
                     // f. Return undefined.
 
-                    std::mem::swap(&mut context.realm.environments, environment);
-                    std::mem::swap(&mut context.vm.stack, stack);
-                    context.vm.push_frame(frame.clone());
+                    std::mem::swap(
+                        &mut context.realm.environments,
+                        &mut generator_context.environments,
+                    );
+                    std::mem::swap(&mut context.vm.stack, &mut generator_context.stack);
+                    std::mem::swap(
+                        &mut context.vm.active_function,
+                        &mut generator_context.active_function,
+                    );
+                    std::mem::swap(
+                        &mut context.realm.intrinsics,
+                        &mut generator_context.realm_intrinsics,
+                    );
+                    context.vm.push_frame(generator_context.call_frame.clone());
 
                     context.vm.frame_mut().generator_resume_kind = GeneratorResumeKind::Normal;
                     context.vm.push(args.get_or_undefined(0).clone());
                     context.run();
 
-                    *frame = context
+                    context
                         .vm
                         .pop_frame()
                         .expect("generator call frame must exist");
-                    std::mem::swap(&mut context.realm.environments, environment);
-                    std::mem::swap(&mut context.vm.stack, stack);
+                    std::mem::swap(
+                        &mut context.realm.environments,
+                        &mut generator_context.environments,
+                    );
+                    std::mem::swap(&mut context.vm.stack, &mut generator_context.stack);
+                    std::mem::swap(
+                        &mut context.vm.active_function,
+                        &mut generator_context.active_function,
+                    );
+                    std::mem::swap(
+                        &mut context.realm.intrinsics,
+                        &mut generator_context.realm_intrinsics,
+                    );
 
                     Ok(JsValue::undefined())
                 },
-                Gc::new(GcRefCell::new((
-                    context.realm.environments.clone(),
-                    context.vm.stack.clone(),
-                    context.vm.frame().clone(),
-                ))),
+                GcRefCell::new(Some(generator_context.clone())),
             ),
         )
         .name("")
@@ -82,8 +108,8 @@ impl Operation for Await {
             context,
             NativeFunction::from_copy_closure_with_captures(
                 |_this, args, captures, context| {
-                    let mut captures = captures.borrow_mut();
-                    let (environment, stack, frame) = &mut *captures;
+                    let mut generator_context = std::mem::take(&mut *captures.borrow_mut())
+                        .expect("function should only be called once");
                     // a. Let prevContext be the running execution context.
                     // b. Suspend prevContext.
                     // c. Push asyncContext onto the execution context stack; asyncContext is now the running execution context.
@@ -91,28 +117,46 @@ impl Operation for Await {
                     // e. Assert: When we reach this step, asyncContext has already been removed from the execution context stack and prevContext is the currently running execution context.
                     // f. Return undefined.
 
-                    std::mem::swap(&mut context.realm.environments, environment);
-                    std::mem::swap(&mut context.vm.stack, stack);
-                    context.vm.push_frame(frame.clone());
+                    std::mem::swap(
+                        &mut context.realm.environments,
+                        &mut generator_context.environments,
+                    );
+                    std::mem::swap(&mut context.vm.stack, &mut generator_context.stack);
+                    std::mem::swap(
+                        &mut context.vm.active_function,
+                        &mut generator_context.active_function,
+                    );
+                    std::mem::swap(
+                        &mut context.realm.intrinsics,
+                        &mut generator_context.realm_intrinsics,
+                    );
+                    context.vm.push_frame(generator_context.call_frame.clone());
 
                     context.vm.frame_mut().generator_resume_kind = GeneratorResumeKind::Throw;
                     context.vm.push(args.get_or_undefined(0).clone());
                     context.run();
 
-                    *frame = context
+                    context
                         .vm
                         .pop_frame()
                         .expect("generator call frame must exist");
-                    std::mem::swap(&mut context.realm.environments, environment);
-                    std::mem::swap(&mut context.vm.stack, stack);
+                    std::mem::swap(
+                        &mut context.realm.environments,
+                        &mut generator_context.environments,
+                    );
+                    std::mem::swap(&mut context.vm.stack, &mut generator_context.stack);
+                    std::mem::swap(
+                        &mut context.vm.active_function,
+                        &mut generator_context.active_function,
+                    );
+                    std::mem::swap(
+                        &mut context.realm.intrinsics,
+                        &mut generator_context.realm_intrinsics,
+                    );
 
                     Ok(JsValue::undefined())
                 },
-                Gc::new(GcRefCell::new((
-                    context.realm.environments.clone(),
-                    context.vm.stack.clone(),
-                    context.vm.frame().clone(),
-                ))),
+                GcRefCell::new(Some(generator_context)),
             ),
         )
         .name("")

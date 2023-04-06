@@ -152,7 +152,8 @@ impl BuiltInConstructor for Array {
                 .vm
                 .active_function
                 .clone()
-                .map_or_else(JsValue::null, JsValue::from)
+                .unwrap_or_else(|| context.intrinsics().constructors().array().constructor())
+                .into()
         } else {
             new_target.clone()
         };
@@ -368,9 +369,12 @@ impl Array {
         // 4. If IsConstructor(C) is true, then
         if let Some(c) = c.as_constructor() {
             // a. Let thisRealm be the current Realm Record.
+            let this_realm = &context.intrinsics().clone();
             // b. Let realmC be ? GetFunctionRealm(C).
+            let realm_c = &c.get_function_realm(context)?;
+
             // c. If thisRealm and realmC are not the same Realm Record, then
-            if *c == context.intrinsics().constructors().array().constructor {
+            if this_realm != realm_c && *c == realm_c.constructors().array().constructor() {
                 // i. If SameValue(C, realmC.[[Intrinsics]].[[%Array%]]) is true, set C to undefined.
                 // Note: fast path to step 6.
                 return Self::array_create(length, None, context);

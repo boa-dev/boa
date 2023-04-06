@@ -2301,12 +2301,14 @@ fn new_promise_reaction_job(mut reaction: ReactionRecord, argument: JsValue) -> 
         }
     };
 
+    // TODO: handle realms
     // 2. Let handlerRealm be null.
     // 3. If reaction.[[Handler]] is not empty, then
     //   a. Let getHandlerRealmResult be Completion(GetFunctionRealm(reaction.[[Handler]].[[Callback]])).
     //   b. If getHandlerRealmResult is a normal completion, set handlerRealm to getHandlerRealmResult.[[Value]].
     //   c. Else, set handlerRealm to the current Realm Record.
     //   d. NOTE: handlerRealm is never null unless the handler is undefined. When the handler is a revoked Proxy and no ECMAScript code runs, handlerRealm is used to create error objects.
+
     // 4. Return the Record { [[Job]]: job, [[Realm]]: handlerRealm }.
     NativeJob::new(job)
 }
@@ -2349,10 +2351,12 @@ fn new_promise_resolve_thenable_job(
         then_call_result
     };
 
+    // TODO: handle realms
     // 2. Let getThenRealmResult be Completion(GetFunctionRealm(then.[[Callback]])).
     // 3. If getThenRealmResult is a normal completion, let thenRealm be getThenRealmResult.[[Value]].
     // 4. Else, let thenRealm be the current Realm Record.
     // 5. NOTE: thenRealm is never null. When then.[[Callback]] is a revoked Proxy and no code runs, thenRealm is used to create error objects.
+
     // 6. Return the Record { [[Job]]: job, [[Realm]]: thenRealm }.
     NativeJob::new(job)
 }

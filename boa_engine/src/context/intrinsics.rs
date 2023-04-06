@@ -16,6 +16,12 @@ pub struct Intrinsics {
     inner: Gc<Inner>,
 }
 
+impl PartialEq for Intrinsics {
+    fn eq(&self, other: &Self) -> bool {
+        std::ptr::eq(&*self.inner, &*other.inner)
+    }
+}
+
 impl std::fmt::Debug for Intrinsics {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         f.debug_struct("Intrinsics")

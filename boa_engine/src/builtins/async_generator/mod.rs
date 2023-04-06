@@ -20,7 +20,7 @@ use crate::{
     vm::GeneratorResumeKind,
     Context, JsArgs, JsError, JsResult,
 };
-use boa_gc::{Finalize, Gc, GcRefCell, Trace};
+use boa_gc::{Finalize, Trace};
 use boa_profiler::Profiler;
 use std::collections::VecDeque;
 
@@ -59,7 +59,7 @@ pub struct AsyncGenerator {
     pub(crate) state: AsyncGeneratorState,
 
     /// The `[[AsyncGeneratorContext]]` internal slot.
-    pub(crate) context: Option<Gc<GcRefCell<GeneratorContext>>>,
+    pub(crate) context: Option<GeneratorContext>,
 
     /// The `[[AsyncGeneratorQueue]]` internal slot.
     pub(crate) queue: VecDeque<AsyncGeneratorRequest>,
@@ -168,7 +168,7 @@ impl AsyncGenerator {
             // a. Perform AsyncGeneratorResume(generator, completion).
             let generator_context = generator
                 .context
-                .clone()
+                .take()
                 .expect("generator context cannot be empty here");
 
             drop(generator_obj_mut);
@@ -176,7 +176,7 @@ impl AsyncGenerator {
             Self::resume(
                 generator_object,
                 state,
-                &generator_context,
+                generator_context,
                 completion,
                 context,
             );
@@ -252,14 +252,14 @@ impl AsyncGenerator {
             // a. Perform AsyncGeneratorResume(generator, completion).
             let generator_context = generator
                 .context
-                .clone()
+                .take()
                 .expect("generator context cannot be empty here");
 
             drop(generator_obj_mut);
             Self::resume(
                 generator_object,
                 state,
-                &generator_context,
+                generator_context,
                 completion,
                 context,
             );
@@ -313,6 +313,7 @@ impl AsyncGenerator {
         if state == AsyncGeneratorState::SuspendedStart {
             // a. Set generator.[[AsyncGeneratorState]] to completed.
             generator.state = AsyncGeneratorState::Completed;
+            generator.context = None;
 
             // b. Set state to completed.
             state = AsyncGeneratorState::Completed;
@@ -349,7 +350,7 @@ impl AsyncGenerator {
         if state == AsyncGeneratorState::SuspendedYield {
             let generator_context = generator
                 .context
-                .clone()
+                .take()
                 .expect("generator context cannot be empty here");
             drop(generator_obj_mut);
 
@@ -357,7 +358,7 @@ impl AsyncGenerator {
             Self::resume(
                 generator_object,
                 state,
-                &generator_context,
+                generator_context,
                 completion,
                 context,
             );
@@ -449,7 +450,7 @@ impl AsyncGenerator {
     pub(crate) fn resume(
         generator: &JsObject,
         state: AsyncGeneratorState,
-        generator_context: &Gc<GcRefCell<GeneratorContext>>,
+        mut generator_context: GeneratorContext,
         completion: (JsResult<JsValue>, bool),
         context: &mut Context<'_>,
     ) {
@@ -460,7 +461,6 @@ impl AsyncGenerator {
         );
 
         // 2. Let genContext be generator.[[AsyncGeneratorContext]].
-        let mut generator_context_mut = generator_context.borrow_mut();
 
         // 3. Let callerContext be the running execution context.
         // 4. Suspend callerContext.
@@ -475,12 +475,19 @@ impl AsyncGenerator {
         // 6. Push genContext onto the execution context stack; genContext is now the running execution context.
         std::mem::swap(
             &mut context.realm.environments,
-            &mut generator_context_mut.environments,
+            &mut generator_context.environments,
         );
-        std::mem::swap(&mut context.vm.stack, &mut generator_context_mut.stack);
-        context
-            .vm
-            .push_frame(generator_context_mut.call_frame.clone());
+        std::mem::swap(&mut context.vm.stack, &mut generator_context.stack);
+        std::mem::swap(
+            &mut context.vm.active_function,
+            &mut generator_context.active_function,
+        );
+        std::mem::swap(
+            &mut context.realm.intrinsics,
+            &mut generator_context.realm_intrinsics,
+        );
+
+        context.vm.push_frame(generator_context.call_frame.clone());
 
         // 7. Resume the suspended evaluation of genContext using completion as the result of the operation that suspended it. Let result be the Completion Record returned by the resumed computation.
         match completion {
@@ -498,18 +505,28 @@ impl AsyncGenerator {
                 context.vm.frame_mut().generator_resume_kind = GeneratorResumeKind::Throw;
             }
         }
-        drop(generator_context_mut);
         let result = context.run();
 
-        let mut generator_context_mut = generator_context.borrow_mut();
         std::mem::swap(
             &mut context.realm.environments,
-            &mut generator_context_mut.environments,
+            &mut generator_context.environments,
         );
-        std::mem::swap(&mut context.vm.stack, &mut generator_context_mut.stack);
-        generator_context_mut.call_frame =
-            context.vm.pop_frame().expect("generator frame must exist");
-        drop(generator_context_mut);
+        std::mem::swap(&mut context.vm.stack, &mut generator_context.stack);
+        generator_context.call_frame = context.vm.pop_frame().expect("generator frame must exist");
+        std::mem::swap(
+            &mut context.vm.active_function,
+            &mut generator_context.active_function,
+        );
+        std::mem::swap(
+            &mut context.realm.intrinsics,
+            &mut generator_context.realm_intrinsics,
+        );
+
+        generator
+            .borrow_mut()
+            .as_async_generator_mut()
+            .expect("already checked before")
+            .context = Some(generator_context);
 
         // 8. Assert: result is never an abrupt completion.
         assert!(!result.is_throw_completion());
@@ -555,6 +572,7 @@ impl AsyncGenerator {
                     .as_async_generator_mut()
                     .expect("already checked before");
                 gen.state = AsyncGeneratorState::Completed;
+                gen.context = None;
                 let next = gen.queue.pop_front().expect("queue must not be empty");
                 drop(generator_borrow_mut);
                 Self::complete_step(&next, Err(value), true, context);
@@ -577,6 +595,7 @@ impl AsyncGenerator {
 
                         // a. Set generator.[[AsyncGeneratorState]] to completed.
                         gen.state = AsyncGeneratorState::Completed;
+                        gen.context = None;
 
                         gen.queue.pop_front().expect("must have one entry")
                     };
@@ -613,6 +632,7 @@ impl AsyncGenerator {
 
                     // a. Set generator.[[AsyncGeneratorState]] to completed.
                     gen.state = AsyncGeneratorState::Completed;
+                    gen.context = None;
 
                     // b. Let result be ThrowCompletion(reason).
                     let result = Err(JsError::from_opaque(args.get_or_undefined(0).clone()));

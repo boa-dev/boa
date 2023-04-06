@@ -10,8 +10,6 @@
 //! [spec]: https://tc39.es/ecma262/#sec-proxy-objects
 //! [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Proxy
 
-use std::cell::Cell;
-
 use crate::{
     builtins::BuiltInObject,
     context::intrinsics::{Intrinsics, StandardConstructor, StandardConstructors},
@@ -21,7 +19,7 @@ use crate::{
     string::utf16,
     Context, JsArgs, JsResult, JsValue,
 };
-use boa_gc::{Finalize, Trace};
+use boa_gc::{Finalize, GcRefCell, Trace};
 use boa_profiler::Profiler;
 
 use super::{BuiltInBuilder, BuiltInConstructor, IntrinsicObject};
@@ -150,7 +148,7 @@ impl Proxy {
                     // a. Let F be the active function object.
                     // b. Let p be F.[[RevocableProxy]].
                     // d. Set F.[[RevocableProxy]] to null.
-                    if let Some(p) = revocable_proxy.take() {
+                    if let Some(p) = std::mem::take(&mut *revocable_proxy.borrow_mut()) {
                         // e. Assert: p is a Proxy object.
                         // f. Set p.[[ProxyTarget]] to null.
                         // g. Set p.[[ProxyHandler]] to null.
@@ -164,7 +162,7 @@ impl Proxy {
                     // h. Return undefined.
                     Ok(JsValue::undefined())
                 },
-                Cell::new(Some(proxy)),
+                GcRefCell::new(Some(proxy)),
             ),
         )
         .build()

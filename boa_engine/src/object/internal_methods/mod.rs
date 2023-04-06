@@ -7,7 +7,7 @@
 
 use super::{JsPrototype, PROTOTYPE};
 use crate::{
-    context::intrinsics::{Intrinsics, StandardConstructor, StandardConstructors},
+    context::intrinsics::{StandardConstructor, StandardConstructors},
     object::JsObject,
     property::{DescriptorKind, PropertyDescriptor, PropertyKey},
     value::JsValue,
@@ -231,15 +231,11 @@ impl JsObject {
         context: &mut Context<'_>,
     ) -> JsResult<JsValue> {
         let _timer = Profiler::global().start_event("Object::__call__", "object");
-        let old_active = context.vm.active_function.replace(self.clone());
 
         let func = self.borrow().data.internal_methods.__call__;
-        let result = func
-            .expect("called `[[Call]]` for object without a `[[Call]]` internal method")(
+        func.expect("called `[[Call]]` for object without a `[[Call]]` internal method")(
             self, this, args, context,
-        );
-        context.vm.active_function = old_active;
-        result
+        )
     }
 
     /// Internal method `[[Construct]]`
@@ -258,16 +254,11 @@ impl JsObject {
         context: &mut Context<'_>,
     ) -> JsResult<Self> {
         let _timer = Profiler::global().start_event("Object::__construct__", "object");
-        let old_active = context.vm.active_function.replace(self.clone());
 
         let func = self.borrow().data.internal_methods.__construct__;
-        let result = func
-            .expect("called `[[Construct]]` for object without a `[[Construct]]` internal method")(
+        func.expect("called `[[Construct]]` for object without a `[[Construct]]` internal method")(
             self, args, new_target, context,
-        );
-
-        context.vm.active_function = old_active;
-        result
+        )
     }
 }
 
@@ -937,37 +928,16 @@ where
     // The corresponding object must be an intrinsic that is intended to be used
     // as the [[Prototype]] value of an object.
     // 2. Let proto be ? Get(constructor, "prototype").
-    let intrinsics = if let Some(object) = constructor.as_object() {
-        if let Some(proto) = object.get(PROTOTYPE, context)?.as_object() {
+    let intrinsics = if let Some(constructor) = constructor.as_object() {
+        if let Some(proto) = constructor.get(PROTOTYPE, context)?.as_object() {
             return Ok(proto.clone());
         }
         // 3. If Type(proto) is not Object, then
         // a. Let realm be ? GetFunctionRealm(constructor).
         // b. Set proto to realm's intrinsic object named intrinsicDefaultProto.
-        get_function_realm(object, context)?
+        constructor.get_function_realm(context)?
     } else {
         context.intrinsics().clone()
     };
     Ok(default(intrinsics.constructors()).prototype())
-}
-
-fn get_function_realm(constructor: &JsObject, context: &mut Context<'_>) -> JsResult<Intrinsics> {
-    let constructor = constructor.borrow();
-    if let Some(fun) = constructor.as_function() {
-        return Ok(fun.realm_intrinsics().clone());
-    }
-
-    if let Some(bound) = constructor.as_bound_function() {
-        let fun = bound.target_function().clone();
-        drop(constructor);
-        return get_function_realm(&fun, context);
-    }
-
-    if let Some(proxy) = constructor.as_proxy() {
-        let (fun, _) = proxy.try_data()?;
-        drop(constructor);
-        return get_function_realm(&fun, context);
-    }
-
-    Ok(context.intrinsics().clone())
 }

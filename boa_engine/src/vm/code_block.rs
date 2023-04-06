@@ -662,9 +662,12 @@ pub(crate) fn create_generator_function_object(
     code: Gc<CodeBlock>,
     r#async: bool,
     method: bool,
+    prototype: Option<JsObject>,
     context: &mut Context<'_>,
 ) -> JsObject {
-    let function_prototype = if r#async {
+    let function_prototype = if let Some(prototype) = prototype {
+        prototype
+    } else if r#async {
         context
             .intrinsics()
             .constructors()
@@ -769,11 +772,17 @@ impl JsObject {
                 .with_message("not a callable function")
                 .into());
         }
+        let old_active = context.vm.active_function.replace(self.clone());
 
         let object = self.borrow();
         let function_object = object.as_function().expect("not a function");
 
-        match function_object.kind() {
+        let old_intrinsics = std::mem::replace(
+            &mut context.realm.intrinsics,
+            function_object.realm_intrinsics().clone(),
+        );
+
+        let result = match function_object.kind() {
             FunctionKind::Native {
                 function,
                 constructor,
@@ -1162,11 +1171,13 @@ impl JsObject {
                     prototype,
                     ObjectData::generator(Generator {
                         state: GeneratorState::SuspendedStart,
-                        context: Some(Gc::new(GcRefCell::new(GeneratorContext {
+                        context: Some(GeneratorContext {
                             environments,
                             call_frame,
                             stack,
-                        }))),
+                            active_function: context.vm.active_function.clone(),
+                            realm_intrinsics: context.realm.intrinsics.clone(),
+                        }),
                     }),
                 );
 
@@ -1303,29 +1314,37 @@ impl JsObject {
                     prototype,
                     ObjectData::async_generator(AsyncGenerator {
                         state: AsyncGeneratorState::SuspendedStart,
-                        context: Some(Gc::new(GcRefCell::new(GeneratorContext {
+                        context: Some(GeneratorContext {
                             environments,
                             call_frame,
                             stack,
-                        }))),
+                            active_function: context.vm.active_function.clone(),
+                            realm_intrinsics: context.realm.intrinsics.clone(),
+                        }),
                         queue: VecDeque::new(),
                     }),
                 );
 
                 {
+                    let gen_clone = generator.clone();
                     let mut generator_mut = generator.borrow_mut();
                     let gen = generator_mut
                         .as_async_generator_mut()
                         .expect("must be object here");
-                    let mut gen_context = gen.context.as_ref().expect("must exist").borrow_mut();
-                    gen_context.call_frame.async_generator = Some(generator.clone());
+                    let gen_context = gen.context.as_mut().expect("must exist");
+                    gen_context.call_frame.async_generator = Some(gen_clone);
                 }
 
                 init_result.consume()?;
 
                 Ok(generator.into())
             }
-        }
+        };
+
+        context.vm.active_function = old_active;
+        context.realm.intrinsics = old_intrinsics;
+
+        result
     }
 
     pub(crate) fn construct_internal(
@@ -1348,10 +1367,17 @@ impl JsObject {
                 .into());
         }
 
+        let old_active = context.vm.active_function.replace(self.clone());
+
         let object = self.borrow();
         let function_object = object.as_function().expect("not a function");
 
-        match function_object.kind() {
+        let old_intrinsics = std::mem::replace(
+            &mut context.realm.intrinsics,
+            function_object.realm_intrinsics().clone(),
+        );
+
+        let result = match function_object.kind() {
             FunctionKind::Native {
                 function,
                 constructor,
@@ -1526,6 +1552,10 @@ impl JsObject {
             | FunctionKind::AsyncGenerator { .. } => {
                 unreachable!("not a constructor")
             }
-        }
+        };
+        context.vm.active_function = old_active;
+        context.realm.intrinsics = old_intrinsics;
+
+        result
     }
 }
