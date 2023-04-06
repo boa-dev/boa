@@ -432,7 +432,10 @@ impl BuiltInObjectInitializer {
     fn set_data(&mut self, new_data: ObjectData) {
         match self {
             BuiltInObjectInitializer::Shared(obj) => {
-                assert!(std::ptr::eq(obj.vtable(), new_data.internal_methods));
+                assert!(
+                    std::ptr::eq(obj.vtable(), new_data.internal_methods),
+                    "intrinsic object's vtable didn't match with new data"
+                );
                 *obj.borrow_mut().kind_mut() = new_data.kind;
             }
             BuiltInObjectInitializer::Unique { ref mut data, .. } => *data = new_data,
