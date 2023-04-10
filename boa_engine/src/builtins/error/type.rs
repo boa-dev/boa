@@ -127,12 +127,13 @@ impl IntrinsicObject for ThrowTypeError {
 
         let obj = BuiltInBuilder::with_intrinsic::<Self>(realm)
             .prototype(realm.intrinsics().constructors().function().prototype())
-            .static_property(utf16!("name"), "ThrowTypeError", Attribute::empty())
             .static_property(utf16!("length"), 0, Attribute::empty())
+            .static_property(utf16!("name"), "", Attribute::empty())
             .build();
 
         let mut obj = obj.borrow_mut();
 
+        obj.extensible = false;
         obj.data = ObjectData::function(Function::new(
             FunctionKind::Native {
                 function: NativeFunction::from_fn_ptr(throw_type_error),
