@@ -6,6 +6,7 @@ use crate::{
     builtins::{BuiltInBuilder, BuiltInConstructor, BuiltInObject, IntrinsicObject},
     context::intrinsics::{Intrinsics, StandardConstructor, StandardConstructors},
     object::JsObject,
+    realm::Realm,
     Context, JsResult, JsValue,
 };
 
@@ -17,10 +18,10 @@ pub(crate) use options::*;
 pub(crate) struct Segmenter;
 
 impl IntrinsicObject for Segmenter {
-    fn init(intrinsics: &Intrinsics) {
+    fn init(realm: &Realm) {
         let _timer = Profiler::global().start_event(Self::NAME, "init");
 
-        BuiltInBuilder::from_standard_constructor::<Self>(intrinsics).build();
+        BuiltInBuilder::from_standard_constructor::<Self>(realm).build();
     }
 
     fn get(intrinsics: &Intrinsics) -> JsObject {

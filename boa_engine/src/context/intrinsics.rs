@@ -1,6 +1,6 @@
 //! Data structures that contain intrinsic objects and constructors.
 
-use boa_gc::{Finalize, Gc, Trace};
+use boa_gc::{Finalize, Trace};
 
 use crate::{
     builtins::{iterable::IteratorPrototypes, uri::UriFunctions},
@@ -11,28 +11,8 @@ use crate::{
 ///
 /// `Intrinsics` is internally stored using a `Gc`, which makes it cheapily clonable
 /// for multiple references to the same set of intrinsic objects.
-#[derive(Default, Clone, Trace, Finalize)]
+#[derive(Debug, Default, Trace, Finalize)]
 pub struct Intrinsics {
-    inner: Gc<Inner>,
-}
-
-impl PartialEq for Intrinsics {
-    fn eq(&self, other: &Self) -> bool {
-        std::ptr::eq(&*self.inner, &*other.inner)
-    }
-}
-
-impl std::fmt::Debug for Intrinsics {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.debug_struct("Intrinsics")
-            .field("constructors", self.constructors())
-            .field("objects", self.objects())
-            .finish()
-    }
-}
-
-#[derive(Default, Trace, Finalize)]
-struct Inner {
     /// Cached standard constructors
     pub(super) constructors: StandardConstructors,
     /// Cached intrinsic objects
@@ -42,19 +22,19 @@ struct Inner {
 impl Intrinsics {
     /// Return the cached intrinsic objects.
     #[inline]
-    pub fn objects(&self) -> &IntrinsicObjects {
-        &self.inner.objects
+    pub const fn objects(&self) -> &IntrinsicObjects {
+        &self.objects
     }
 
     /// Return the cached standard constructors.
     #[inline]
-    pub fn constructors(&self) -> &StandardConstructors {
-        &self.inner.constructors
+    pub const fn constructors(&self) -> &StandardConstructors {
+        &self.constructors
     }
 }
 
 /// Store a builtin constructor (such as `Object`) and its corresponding prototype.
-#[derive(Debug, Clone, Trace, Finalize)]
+#[derive(Debug, Trace, Finalize)]
 pub struct StandardConstructor {
     pub(crate) constructor: JsObject,
     pub(crate) prototype: JsObject,
@@ -96,7 +76,7 @@ impl StandardConstructor {
 }
 
 /// Cached core standard constructors.
-#[derive(Debug, Clone, Trace, Finalize)]
+#[derive(Debug, Trace, Finalize)]
 pub struct StandardConstructors {
     object: StandardConstructor,
     proxy: StandardConstructor,

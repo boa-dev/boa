@@ -36,8 +36,8 @@ impl Operation for Return {
             context.vm.frame_mut().env_stack.pop();
         }
 
-        let env_truncation_len = context.realm.environments.len().saturating_sub(env_to_pop);
-        context.realm.environments.truncate(env_truncation_len);
+        let env_truncation_len = context.vm.environments.len().saturating_sub(env_to_pop);
+        context.vm.environments.truncate(env_truncation_len);
 
         let record = AbruptCompletionRecord::new_return();
         context.vm.frame_mut().abrupt_completion = Some(record);

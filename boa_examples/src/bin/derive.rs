@@ -21,7 +21,6 @@ fn main() {
         hello: "World",
         my_float: 2.9,
     };
-    
     x;
     "#;
     let js = Source::from_bytes(js_str);

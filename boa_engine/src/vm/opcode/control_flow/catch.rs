@@ -50,8 +50,8 @@ impl Operation for CatchEnd {
             }
         }
 
-        let env_truncation_len = context.realm.environments.len().saturating_sub(envs_to_pop);
-        context.realm.environments.truncate(env_truncation_len);
+        let env_truncation_len = context.vm.environments.len().saturating_sub(envs_to_pop);
+        context.vm.environments.truncate(env_truncation_len);
 
         Ok(CompletionType::Normal)
     }
@@ -77,11 +77,11 @@ impl Operation for CatchEnd2 {
             .filter(|entry| entry.is_catch_env())
         {
             let env_truncation_len = context
-                .realm
+                .vm
                 .environments
                 .len()
                 .saturating_sub(catch_entry.env_num());
-            context.realm.environments.truncate(env_truncation_len);
+            context.vm.environments.truncate(env_truncation_len);
 
             context.vm.frame_mut().env_stack.pop();
         }

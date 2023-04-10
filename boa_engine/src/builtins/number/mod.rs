@@ -19,6 +19,7 @@ use crate::{
     error::JsNativeError,
     object::{internal_methods::get_prototype_from_constructor, JsObject, ObjectData},
     property::Attribute,
+    realm::Realm,
     string::utf16,
     value::{AbstractRelation, IntegerOrInfinity, JsValue},
     Context, JsArgs, JsResult,
@@ -45,12 +46,12 @@ const BUF_SIZE: usize = 2200;
 pub(crate) struct Number;
 
 impl IntrinsicObject for Number {
-    fn init(intrinsics: &Intrinsics) {
+    fn init(realm: &Realm) {
         let _timer = Profiler::global().start_event(Self::NAME, "init");
 
         let attribute = Attribute::READONLY | Attribute::NON_ENUMERABLE | Attribute::PERMANENT;
 
-        BuiltInBuilder::from_standard_constructor::<Self>(intrinsics)
+        BuiltInBuilder::from_standard_constructor::<Self>(realm)
             .static_property(utf16!("EPSILON"), f64::EPSILON, attribute)
             .static_property(
                 utf16!("MAX_SAFE_INTEGER"),
@@ -69,12 +70,12 @@ impl IntrinsicObject for Number {
             .static_property(utf16!("NaN"), f64::NAN, attribute)
             .static_property(
                 utf16!("parseInt"),
-                intrinsics.objects().parse_int(),
+                realm.intrinsics().objects().parse_int(),
                 Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
             )
             .static_property(
                 utf16!("parseFloat"),
-                intrinsics.objects().parse_float(),
+                realm.intrinsics().objects().parse_float(),
                 Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
             )
             .static_method(Self::number_is_finite, "isFinite", 1)

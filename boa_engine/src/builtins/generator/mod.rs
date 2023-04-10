@@ -16,6 +16,7 @@ use crate::{
     error::JsNativeError,
     object::{JsObject, CONSTRUCTOR},
     property::Attribute,
+    realm::Realm,
     symbol::JsSymbol,
     value::JsValue,
     vm::{CallFrame, CompletionRecord, GeneratorResumeKind},
@@ -46,7 +47,7 @@ pub(crate) struct GeneratorContext {
     pub(crate) call_frame: CallFrame,
     pub(crate) stack: Vec<JsValue>,
     pub(crate) active_function: Option<JsObject>,
-    pub(crate) realm_intrinsics: Intrinsics,
+    pub(crate) realm: Realm,
 }
 
 /// The internal representation of a `Generator` object.
@@ -61,11 +62,17 @@ pub struct Generator {
 }
 
 impl IntrinsicObject for Generator {
-    fn init(intrinsics: &Intrinsics) {
+    fn init(realm: &Realm) {
         let _timer = Profiler::global().start_event(Self::NAME, "init");
 
-        BuiltInBuilder::with_intrinsic::<Self>(intrinsics)
-            .prototype(intrinsics.objects().iterator_prototypes().iterator())
+        BuiltInBuilder::with_intrinsic::<Self>(realm)
+            .prototype(
+                realm
+                    .intrinsics()
+                    .objects()
+                    .iterator_prototypes()
+                    .iterator(),
+            )
             .static_method(Self::next, "next", 1)
             .static_method(Self::r#return, "return", 1)
             .static_method(Self::throw, "throw", 1)
@@ -76,7 +83,11 @@ impl IntrinsicObject for Generator {
             )
             .static_property(
                 CONSTRUCTOR,
-                intrinsics.constructors().generator_function().prototype(),
+                realm
+                    .intrinsics()
+                    .constructors()
+                    .generator_function()
+                    .prototype(),
                 Attribute::CONFIGURABLE,
             )
             .build();
@@ -217,7 +228,7 @@ impl Generator {
         drop(generator_obj_mut);
 
         std::mem::swap(
-            &mut context.realm.environments,
+            &mut context.vm.environments,
             &mut generator_context.environments,
         );
         std::mem::swap(&mut context.vm.stack, &mut generator_context.stack);
@@ -225,10 +236,7 @@ impl Generator {
             &mut context.vm.active_function,
             &mut generator_context.active_function,
         );
-        std::mem::swap(
-            &mut context.realm.intrinsics,
-            &mut generator_context.realm_intrinsics,
-        );
+        let old_realm = context.enter_realm(generator_context.realm.clone());
         context.vm.push_frame(generator_context.call_frame.clone());
         if !first_execution {
             context.vm.push(value.clone());
@@ -243,7 +251,7 @@ impl Generator {
             .pop_frame()
             .expect("generator call frame must exist");
         std::mem::swap(
-            &mut context.realm.environments,
+            &mut context.vm.environments,
             &mut generator_context.environments,
         );
         std::mem::swap(&mut context.vm.stack, &mut generator_context.stack);
@@ -251,10 +259,7 @@ impl Generator {
             &mut context.vm.active_function,
             &mut generator_context.active_function,
         );
-        std::mem::swap(
-            &mut context.realm.intrinsics,
-            &mut generator_context.realm_intrinsics,
-        );
+        context.enter_realm(old_realm);
 
         let mut generator_obj_mut = generator_obj.borrow_mut();
         let generator = generator_obj_mut
@@ -348,7 +353,7 @@ impl Generator {
         drop(generator_obj_mut);
 
         std::mem::swap(
-            &mut context.realm.environments,
+            &mut context.vm.environments,
             &mut generator_context.environments,
         );
         std::mem::swap(&mut context.vm.stack, &mut generator_context.stack);
@@ -356,10 +361,7 @@ impl Generator {
             &mut context.vm.active_function,
             &mut generator_context.active_function,
         );
-        std::mem::swap(
-            &mut context.realm.intrinsics,
-            &mut generator_context.realm_intrinsics,
-        );
+        let old_realm = context.enter_realm(generator_context.realm.clone());
         context.vm.push_frame(generator_context.call_frame.clone());
 
         let completion_record = match abrupt_completion {
@@ -380,7 +382,7 @@ impl Generator {
             .pop_frame()
             .expect("generator call frame must exist");
         std::mem::swap(
-            &mut context.realm.environments,
+            &mut context.vm.environments,
             &mut generator_context.environments,
         );
         std::mem::swap(&mut context.vm.stack, &mut generator_context.stack);
@@ -388,10 +390,7 @@ impl Generator {
             &mut context.vm.active_function,
             &mut generator_context.active_function,
         );
-        std::mem::swap(
-            &mut context.realm.intrinsics,
-            &mut generator_context.realm_intrinsics,
-        );
+        context.enter_realm(old_realm);
 
         let mut generator_obj_mut = generator_obj.borrow_mut();
         let generator = generator_obj_mut

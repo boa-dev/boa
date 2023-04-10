@@ -20,16 +20,20 @@ use std::{
 
 use crate::{
     builtins::BuiltInObject,
+    bytecompiler::ByteCompiler,
     context::intrinsics::Intrinsics,
     error::JsNativeError,
     js_string,
     object::{JsObject, RecursionLimiter},
     property::{Attribute, PropertyNameKind},
+    realm::Realm,
     string::{utf16, CodePoint},
     symbol::JsSymbol,
     value::IntegerOrInfinity,
     Context, JsArgs, JsResult, JsString, JsValue,
 };
+use boa_gc::Gc;
+use boa_interner::Sym;
 use boa_parser::{Parser, Source};
 use boa_profiler::Profiler;
 
@@ -137,13 +141,13 @@ where
 pub(crate) struct Json;
 
 impl IntrinsicObject for Json {
-    fn init(intrinsics: &Intrinsics) {
+    fn init(realm: &Realm) {
         let _timer = Profiler::global().start_event(Self::NAME, "init");
 
         let to_string_tag = JsSymbol::to_string_tag();
         let attribute = Attribute::READONLY | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE;
 
-        BuiltInBuilder::with_intrinsic::<Self>(intrinsics)
+        BuiltInBuilder::with_intrinsic::<Self>(realm)
             .static_method(Self::parse, "parse", 2)
             .static_method(Self::stringify, "stringify", 3)
             .static_property(to_string_tag, Self::NAME, attribute)
@@ -206,7 +210,18 @@ impl Json {
         let mut parser = Parser::new(Source::from_bytes(&script_string));
         parser.set_json_parse();
         let statement_list = parser.parse_script(context.interner_mut())?;
-        let code_block = context.compile_json_parse(&statement_list);
+        let code_block = {
+            let mut compiler = ByteCompiler::new(
+                Sym::MAIN,
+                statement_list.strict(),
+                true,
+                context.realm().environment().compile_env(),
+                context,
+            );
+            compiler.create_script_decls(&statement_list, false);
+            compiler.compile_statement_list(&statement_list, true, false);
+            Gc::new(compiler.finish())
+        };
         let unfiltered = context.execute(code_block)?;
 
         // 11. If IsCallable(reviver) is true, then

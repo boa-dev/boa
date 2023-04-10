@@ -17,9 +17,10 @@ use crate::{
         PROTOTYPE,
     },
     property::PropertyDescriptor,
+    realm::Realm,
     string::utf16,
     vm::CallFrame,
-    Context, JsResult, JsString, JsValue,
+    Context, JsError, JsResult, JsString, JsValue,
 };
 use boa_ast::{
     expression::Identifier,
@@ -129,6 +130,9 @@ pub struct CodeBlock {
     /// When the execution of the parameter expressions throws an error, we do not need to pop the function environment.
     pub(crate) function_environment_push_location: u32,
 
+    /// The number of bindings in the parameters environment.
+    pub(crate) parameters_env_bindings: Option<usize>,
+
     #[cfg(feature = "trace")]
     /// Trace instruction execution to `stdout`.
     #[unsafe_ignore_trace]
@@ -158,6 +162,7 @@ impl CodeBlock {
             is_class_constructor: false,
             class_field_initializer_name: None,
             function_environment_push_location: 0,
+            parameters_env_bindings: None,
             #[cfg(feature = "trace")]
             trace: std::cell::Cell::new(false),
         }
@@ -598,25 +603,25 @@ pub(crate) fn create_function_object(
         Function::new(
             FunctionKind::Async {
                 code,
-                environments: context.realm.environments.clone(),
+                environments: context.vm.environments.clone(),
                 home_object: None,
                 promise_capability,
                 class_object: None,
             },
-            context.intrinsics().clone(),
+            context.realm().clone(),
         )
     } else {
         Function::new(
             FunctionKind::Ordinary {
                 code,
-                environments: context.realm.environments.clone(),
+                environments: context.vm.environments.clone(),
                 constructor_kind: ConstructorKind::Base,
                 home_object: None,
                 fields: ThinVec::new(),
                 private_methods: ThinVec::new(),
                 class_object: None,
             },
-            context.intrinsics().clone(),
+            context.realm().clone(),
         )
     };
 
@@ -713,11 +718,11 @@ pub(crate) fn create_generator_function_object(
         let function = Function::new(
             FunctionKind::AsyncGenerator {
                 code,
-                environments: context.realm.environments.clone(),
+                environments: context.vm.environments.clone(),
                 home_object: None,
                 class_object: None,
             },
-            context.intrinsics().clone(),
+            context.realm().clone(),
         );
         JsObject::from_proto_and_data(
             function_prototype,
@@ -727,11 +732,11 @@ pub(crate) fn create_generator_function_object(
         let function = Function::new(
             FunctionKind::Generator {
                 code,
-                environments: context.realm.environments.clone(),
+                environments: context.vm.environments.clone(),
                 home_object: None,
                 class_object: None,
             },
-            context.intrinsics().clone(),
+            context.realm().clone(),
         );
         JsObject::from_proto_and_data(function_prototype, ObjectData::generator_function(function))
     };
@@ -758,6 +763,49 @@ pub(crate) fn create_generator_function_object(
     constructor
 }
 
+struct ContextCleanupGuard<'a, 'host> {
+    context: &'a mut Context<'host>,
+    old_realm: Realm,
+    old_active_function: Option<JsObject>,
+}
+
+impl<'a, 'host> ContextCleanupGuard<'a, 'host> {
+    /// Creates a new guard that resets the realm of the context on exit.
+    fn new(context: &'a mut Context<'host>, realm: Realm, active_function: JsObject) -> Self {
+        let old_realm = context.enter_realm(realm);
+        let old_active_function = context.vm.active_function.replace(active_function);
+        Self {
+            context,
+            old_realm,
+            old_active_function,
+        }
+    }
+}
+
+impl Drop for ContextCleanupGuard<'_, '_> {
+    fn drop(&mut self) {
+        self.context.enter_realm(self.old_realm.clone());
+        std::mem::swap(
+            &mut self.context.vm.active_function,
+            &mut self.old_active_function,
+        );
+    }
+}
+
+impl<'host> std::ops::Deref for ContextCleanupGuard<'_, 'host> {
+    type Target = Context<'host>;
+
+    fn deref(&self) -> &Self::Target {
+        self.context
+    }
+}
+
+impl std::ops::DerefMut for ContextCleanupGuard<'_, '_> {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        self.context
+    }
+}
+
 impl JsObject {
     pub(crate) fn call_internal(
         &self,
@@ -766,552 +814,238 @@ impl JsObject {
         context: &mut Context<'_>,
     ) -> JsResult<JsValue> {
         let this_function_object = self.clone();
-
-        if !self.is_callable() {
-            return Err(JsNativeError::typ()
-                .with_message("not a callable function")
-                .into());
-        }
-        let old_active = context.vm.active_function.replace(self.clone());
-
+        let active_function = self.clone();
         let object = self.borrow();
         let function_object = object.as_function().expect("not a function");
+        let realm = function_object.realm().clone();
 
-        let old_intrinsics = std::mem::replace(
-            &mut context.realm.intrinsics,
-            function_object.realm_intrinsics().clone(),
+        let context = &mut ContextCleanupGuard::new(context, realm, active_function);
+
+        let (code, mut environments, class_object, promise, async_, gen) =
+            match function_object.kind() {
+                FunctionKind::Native {
+                    function,
+                    constructor,
+                } => {
+                    let function = function.clone();
+                    let constructor = *constructor;
+                    drop(object);
+
+                    return if constructor.is_some() {
+                        function.call(&JsValue::undefined(), args, context)
+                    } else {
+                        function.call(this, args, context)
+                    }
+                    .map_err(|err| err.inject_realm(context.realm().clone()));
+                }
+                FunctionKind::Ordinary {
+                    code,
+                    environments,
+                    class_object,
+                    ..
+                } => {
+                    let code = code.clone();
+                    if code.is_class_constructor {
+                        return Err(JsNativeError::typ()
+                            .with_message("class constructor cannot be invoked without 'new'")
+                            .with_realm(context.realm().clone())
+                            .into());
+                    }
+                    (
+                        code,
+                        environments.clone(),
+                        class_object.clone(),
+                        None,
+                        false,
+                        false,
+                    )
+                }
+
+                FunctionKind::Async {
+                    code,
+                    environments,
+                    promise_capability,
+                    class_object,
+                    ..
+                } => (
+                    code.clone(),
+                    environments.clone(),
+                    class_object.clone(),
+                    Some(promise_capability.promise().clone()),
+                    true,
+                    false,
+                ),
+                FunctionKind::Generator {
+                    code,
+                    environments,
+                    class_object,
+                    ..
+                } => (
+                    code.clone(),
+                    environments.clone(),
+                    class_object.clone(),
+                    None,
+                    false,
+                    true,
+                ),
+                FunctionKind::AsyncGenerator {
+                    code,
+                    environments,
+                    class_object,
+                    ..
+                } => (
+                    code.clone(),
+                    environments.clone(),
+                    class_object.clone(),
+                    None,
+                    true,
+                    true,
+                ),
+            };
+
+        drop(object);
+
+        std::mem::swap(&mut environments, &mut context.vm.environments);
+
+        let lexical_this_mode = code.this_mode == ThisMode::Lexical;
+
+        let this = if lexical_this_mode {
+            None
+        } else if code.strict {
+            Some(this.clone())
+        } else if this.is_null_or_undefined() {
+            Some(context.global_object().into())
+        } else {
+            Some(
+                this.to_object(context)
+                    .expect("conversion cannot fail")
+                    .into(),
+            )
+        };
+
+        let mut last_env = code.compile_environments.len() - 1;
+
+        if let Some(class_object) = class_object {
+            let index = context
+                .vm
+                .environments
+                .push_declarative(1, code.compile_environments[last_env].clone());
+            context
+                .vm
+                .environments
+                .put_value(index, 0, class_object.into());
+            last_env -= 1;
+        }
+
+        if code.has_binding_identifier {
+            let index = context
+                .vm
+                .environments
+                .push_declarative(1, code.compile_environments[last_env].clone());
+            context
+                .vm
+                .environments
+                .put_value(index, 0, self.clone().into());
+            last_env -= 1;
+        }
+
+        context.vm.environments.push_function(
+            code.num_bindings,
+            code.compile_environments[last_env].clone(),
+            this,
+            self.clone(),
+            None,
+            lexical_this_mode,
         );
 
-        let result = match function_object.kind() {
-            FunctionKind::Native {
-                function,
-                constructor,
-            } => {
-                let function = function.clone();
-                let constructor = *constructor;
-                drop(object);
+        if let Some(bindings) = code.parameters_env_bindings {
+            last_env -= 1;
+            context
+                .vm
+                .environments
+                .push_declarative(bindings, code.compile_environments[last_env].clone());
+        }
 
-                if constructor.is_some() {
-                    function.call(&JsValue::undefined(), args, context)
-                } else {
-                    function.call(this, args, context)
-                }
-            }
-            FunctionKind::Ordinary {
-                code,
-                environments,
-                class_object,
-                ..
-            } => {
-                let code = code.clone();
-                let mut environments = environments.clone();
-                let class_object = class_object.clone();
-                drop(object);
+        if let Some(binding) = code.arguments_binding {
+            let arguments_obj = if code.strict || !code.params.is_simple() {
+                Arguments::create_unmapped_arguments_object(args, context)
+            } else {
+                let env = context.vm.environments.current();
+                Arguments::create_mapped_arguments_object(
+                    &this_function_object,
+                    &code.params,
+                    args,
+                    &env,
+                    context,
+                )
+            };
+            context.vm.environments.put_value(
+                binding.environment_index(),
+                binding.binding_index(),
+                arguments_obj.into(),
+            );
+        }
 
-                if code.is_class_constructor {
-                    return Err(JsNativeError::typ()
-                        .with_message("Class constructor cannot be invoked without 'new'")
-                        .into());
-                }
+        let arg_count = args.len();
 
-                let environments_len = environments.len();
-                std::mem::swap(&mut environments, &mut context.realm.environments);
+        // Push function arguments to the stack.
+        let mut args = if code.params.as_ref().len() > args.len() {
+            let mut v = args.to_vec();
+            v.extend(vec![
+                JsValue::Undefined;
+                code.params.as_ref().len() - args.len()
+            ]);
+            v
+        } else {
+            args.to_vec()
+        };
+        args.reverse();
+        let mut stack = args;
 
-                let lexical_this_mode = code.this_mode == ThisMode::Lexical;
+        std::mem::swap(&mut context.vm.stack, &mut stack);
 
-                let this = if lexical_this_mode {
-                    None
-                } else if code.strict {
-                    Some(this.clone())
-                } else if this.is_null_or_undefined() {
-                    Some(context.global_object().into())
-                } else {
-                    Some(
-                        this.to_object(context)
-                            .expect("conversion cannot fail")
-                            .into(),
-                    )
-                };
+        let param_count = code.params.as_ref().len();
 
-                let compile_time_environment_index = usize::from(code.params.has_expressions());
+        context.vm.push_frame(
+            CallFrame::new(code)
+                .with_param_count(param_count)
+                .with_arg_count(arg_count),
+        );
 
-                if let Some(class_object) = class_object {
-                    let index = context.realm.environments.push_declarative(
-                        1,
-                        code.compile_environments[compile_time_environment_index
-                            + usize::from(code.has_binding_identifier)
-                            + 1]
-                        .clone(),
-                    );
-                    context
-                        .realm
-                        .environments
-                        .put_value(index, 0, class_object.into());
-                }
+        let result = context
+            .run()
+            .consume()
+            .map_err(|err| err.inject_realm(context.realm().clone()));
 
-                if code.has_binding_identifier {
-                    let index = context.realm.environments.push_declarative(
-                        1,
-                        code.compile_environments[compile_time_environment_index + 1].clone(),
-                    );
-                    context
-                        .realm
-                        .environments
-                        .put_value(index, 0, self.clone().into());
-                }
+        let call_frame = context.vm.pop_frame().expect("frame must exist");
+        std::mem::swap(&mut environments, &mut context.vm.environments);
+        std::mem::swap(&mut context.vm.stack, &mut stack);
 
-                context.realm.environments.push_function(
-                    code.num_bindings,
-                    code.compile_environments[compile_time_environment_index].clone(),
-                    this,
-                    self.clone(),
-                    None,
-                    lexical_this_mode,
+        if let Some(promise) = promise {
+            return Ok(promise.into());
+        }
+
+        let value = result?;
+
+        let value = if gen {
+            let proto = this_function_object
+                .get(PROTOTYPE, context)
+                .expect("generator must have a prototype property")
+                .as_object()
+                .map_or_else(
+                    || {
+                        if async_ {
+                            context.intrinsics().objects().async_generator()
+                        } else {
+                            context.intrinsics().objects().generator()
+                        }
+                    },
+                    Clone::clone,
                 );
 
-                if let Some(binding) = code.arguments_binding {
-                    let arguments_obj = if code.strict || !code.params.is_simple() {
-                        Arguments::create_unmapped_arguments_object(args, context)
-                    } else {
-                        let env = context.realm.environments.current();
-                        Arguments::create_mapped_arguments_object(
-                            &this_function_object,
-                            &code.params,
-                            args,
-                            &env,
-                            context,
-                        )
-                    };
-                    context.realm.environments.put_value(
-                        binding.environment_index(),
-                        binding.binding_index(),
-                        arguments_obj.into(),
-                    );
-                }
-
-                let arg_count = args.len();
-
-                // Push function arguments to the stack.
-                let args = if code.params.as_ref().len() > args.len() {
-                    let mut v = args.to_vec();
-                    v.extend(vec![
-                        JsValue::Undefined;
-                        code.params.as_ref().len() - args.len()
-                    ]);
-                    v
-                } else {
-                    args.to_vec()
-                };
-
-                for arg in args.iter().rev() {
-                    context.vm.push(arg.clone());
-                }
-
-                let param_count = code.params.as_ref().len();
-
-                context.vm.push_frame(
-                    CallFrame::new(code)
-                        .with_param_count(param_count)
-                        .with_arg_count(arg_count),
-                );
-
-                let record = context.run();
-                context.vm.pop_frame().expect("must have frame");
-
-                std::mem::swap(&mut environments, &mut context.realm.environments);
-                environments.truncate(environments_len);
-
-                record.consume()
-            }
-            FunctionKind::Async {
-                code,
-                environments,
-                promise_capability,
-                class_object,
-                ..
-            } => {
-                let code = code.clone();
-                let mut environments = environments.clone();
-                let promise = promise_capability.promise().clone();
-                let class_object = class_object.clone();
-                drop(object);
-
-                let environments_len = environments.len();
-                std::mem::swap(&mut environments, &mut context.realm.environments);
-
-                let lexical_this_mode = code.this_mode == ThisMode::Lexical;
-
-                let this = if lexical_this_mode {
-                    None
-                } else if code.strict {
-                    Some(this.clone())
-                } else if this.is_null_or_undefined() {
-                    Some(context.global_object().into())
-                } else {
-                    Some(
-                        this.to_object(context)
-                            .expect("conversion cannot fail")
-                            .into(),
-                    )
-                };
-
-                let compile_time_environment_index = usize::from(code.params.has_expressions());
-
-                if let Some(class_object) = class_object {
-                    let index = context.realm.environments.push_declarative(
-                        1,
-                        code.compile_environments[compile_time_environment_index
-                            + usize::from(code.has_binding_identifier)
-                            + 1]
-                        .clone(),
-                    );
-                    context
-                        .realm
-                        .environments
-                        .put_value(index, 0, class_object.into());
-                }
-
-                if code.has_binding_identifier {
-                    let index = context.realm.environments.push_declarative(
-                        1,
-                        code.compile_environments[compile_time_environment_index + 1].clone(),
-                    );
-                    context
-                        .realm
-                        .environments
-                        .put_value(index, 0, self.clone().into());
-                }
-
-                context.realm.environments.push_function(
-                    code.num_bindings,
-                    code.compile_environments[compile_time_environment_index].clone(),
-                    this,
-                    self.clone(),
-                    None,
-                    lexical_this_mode,
-                );
-
-                if let Some(binding) = code.arguments_binding {
-                    let arguments_obj = if code.strict || !code.params.is_simple() {
-                        Arguments::create_unmapped_arguments_object(args, context)
-                    } else {
-                        let env = context.realm.environments.current();
-                        Arguments::create_mapped_arguments_object(
-                            &this_function_object,
-                            &code.params,
-                            args,
-                            &env,
-                            context,
-                        )
-                    };
-                    context.realm.environments.put_value(
-                        binding.environment_index(),
-                        binding.binding_index(),
-                        arguments_obj.into(),
-                    );
-                }
-
-                let arg_count = args.len();
-
-                // Push function arguments to the stack.
-                let args = if code.params.as_ref().len() > args.len() {
-                    let mut v = args.to_vec();
-                    v.extend(vec![
-                        JsValue::Undefined;
-                        code.params.as_ref().len() - args.len()
-                    ]);
-                    v
-                } else {
-                    args.to_vec()
-                };
-
-                for arg in args.iter().rev() {
-                    context.vm.push(arg.clone());
-                }
-
-                let param_count = code.params.as_ref().len();
-
-                context.vm.push_frame(
-                    CallFrame::new(code)
-                        .with_param_count(param_count)
-                        .with_arg_count(arg_count),
-                );
-
-                let _result = context.run();
-                context.vm.pop_frame().expect("must have frame");
-
-                std::mem::swap(&mut environments, &mut context.realm.environments);
-                environments.truncate(environments_len);
-
-                Ok(promise.into())
-            }
-            FunctionKind::Generator {
-                code,
-                environments,
-                class_object,
-                ..
-            } => {
-                let code = code.clone();
-                let mut environments = environments.clone();
-                let class_object = class_object.clone();
-                drop(object);
-
-                std::mem::swap(&mut environments, &mut context.realm.environments);
-
-                let lexical_this_mode = code.this_mode == ThisMode::Lexical;
-
-                let this = if lexical_this_mode {
-                    None
-                } else if code.strict {
-                    Some(this.clone())
-                } else if this.is_null_or_undefined() {
-                    Some(context.global_object().into())
-                } else {
-                    Some(
-                        this.to_object(context)
-                            .expect("conversion cannot fail")
-                            .into(),
-                    )
-                };
-
-                let compile_time_environment_index = usize::from(code.params.has_expressions());
-
-                if let Some(class_object) = class_object {
-                    let index = context.realm.environments.push_declarative(
-                        1,
-                        code.compile_environments[compile_time_environment_index
-                            + usize::from(code.has_binding_identifier)
-                            + 1]
-                        .clone(),
-                    );
-                    context
-                        .realm
-                        .environments
-                        .put_value(index, 0, class_object.into());
-                }
-
-                if code.has_binding_identifier {
-                    let index = context.realm.environments.push_declarative(
-                        1,
-                        code.compile_environments[compile_time_environment_index + 1].clone(),
-                    );
-                    context
-                        .realm
-                        .environments
-                        .put_value(index, 0, self.clone().into());
-                }
-
-                context.realm.environments.push_function(
-                    code.num_bindings,
-                    code.compile_environments[compile_time_environment_index].clone(),
-                    this,
-                    self.clone(),
-                    None,
-                    lexical_this_mode,
-                );
-
-                if let Some(binding) = code.arguments_binding {
-                    let arguments_obj = if code.strict || !code.params.is_simple() {
-                        Arguments::create_unmapped_arguments_object(args, context)
-                    } else {
-                        let env = context.realm.environments.current();
-                        Arguments::create_mapped_arguments_object(
-                            &this_function_object,
-                            &code.params,
-                            args,
-                            &env,
-                            context,
-                        )
-                    };
-                    context.realm.environments.put_value(
-                        binding.environment_index(),
-                        binding.binding_index(),
-                        arguments_obj.into(),
-                    );
-                }
-
-                let arg_count = args.len();
-
-                // Push function arguments to the stack.
-                let mut args = if code.params.as_ref().len() > args.len() {
-                    let mut v = args.to_vec();
-                    v.extend(vec![
-                        JsValue::Undefined;
-                        code.params.as_ref().len() - args.len()
-                    ]);
-                    v
-                } else {
-                    args.to_vec()
-                };
-                args.reverse();
-
-                let param_count = code.params.as_ref().len();
-
-                let call_frame = CallFrame::new(code)
-                    .with_param_count(param_count)
-                    .with_arg_count(arg_count);
-                let mut stack = args;
-
-                std::mem::swap(&mut context.vm.stack, &mut stack);
-                context.vm.push_frame(call_frame);
-
-                let init_result = context.run();
-
-                let call_frame = context.vm.pop_frame().expect("frame must exist");
-                std::mem::swap(&mut environments, &mut context.realm.environments);
-                std::mem::swap(&mut context.vm.stack, &mut stack);
-
-                let prototype = this_function_object
-                    .get(PROTOTYPE, context)
-                    .expect("GeneratorFunction must have a prototype property")
-                    .as_object()
-                    .map_or_else(|| context.intrinsics().objects().generator(), Clone::clone);
-
-                let generator = Self::from_proto_and_data(
-                    prototype,
-                    ObjectData::generator(Generator {
-                        state: GeneratorState::SuspendedStart,
-                        context: Some(GeneratorContext {
-                            environments,
-                            call_frame,
-                            stack,
-                            active_function: context.vm.active_function.clone(),
-                            realm_intrinsics: context.realm.intrinsics.clone(),
-                        }),
-                    }),
-                );
-
-                init_result.consume()?;
-
-                Ok(generator.into())
-            }
-            FunctionKind::AsyncGenerator {
-                code,
-                environments,
-                class_object,
-                ..
-            } => {
-                let code = code.clone();
-                let mut environments = environments.clone();
-                let class_object = class_object.clone();
-                drop(object);
-
-                std::mem::swap(&mut environments, &mut context.realm.environments);
-
-                let lexical_this_mode = code.this_mode == ThisMode::Lexical;
-
-                let this = if lexical_this_mode {
-                    None
-                } else if code.strict {
-                    Some(this.clone())
-                } else if this.is_null_or_undefined() {
-                    Some(context.global_object().into())
-                } else {
-                    Some(
-                        this.to_object(context)
-                            .expect("conversion cannot fail")
-                            .into(),
-                    )
-                };
-
-                let compile_time_environment_index = usize::from(code.params.has_expressions());
-
-                if let Some(class_object) = class_object {
-                    let index = context.realm.environments.push_declarative(
-                        1,
-                        code.compile_environments[compile_time_environment_index
-                            + usize::from(code.has_binding_identifier)
-                            + 1]
-                        .clone(),
-                    );
-                    context
-                        .realm
-                        .environments
-                        .put_value(index, 0, class_object.into());
-                }
-
-                if code.has_binding_identifier {
-                    let index = context.realm.environments.push_declarative(
-                        1,
-                        code.compile_environments[compile_time_environment_index + 1].clone(),
-                    );
-                    context
-                        .realm
-                        .environments
-                        .put_value(index, 0, self.clone().into());
-                }
-
-                context.realm.environments.push_function(
-                    code.num_bindings,
-                    code.compile_environments[compile_time_environment_index].clone(),
-                    this,
-                    self.clone(),
-                    None,
-                    lexical_this_mode,
-                );
-
-                if let Some(binding) = code.arguments_binding {
-                    let arguments_obj = if code.strict || !code.params.is_simple() {
-                        Arguments::create_unmapped_arguments_object(args, context)
-                    } else {
-                        let env = context.realm.environments.current();
-                        Arguments::create_mapped_arguments_object(
-                            &this_function_object,
-                            &code.params,
-                            args,
-                            &env,
-                            context,
-                        )
-                    };
-                    context.realm.environments.put_value(
-                        binding.environment_index(),
-                        binding.binding_index(),
-                        arguments_obj.into(),
-                    );
-                }
-
-                let arg_count = args.len();
-
-                // Push function arguments to the stack.
-                let mut args = if code.params.as_ref().len() > args.len() {
-                    let mut v = args.to_vec();
-                    v.extend(vec![
-                        JsValue::Undefined;
-                        code.params.as_ref().len() - args.len()
-                    ]);
-                    v
-                } else {
-                    args.to_vec()
-                };
-                args.reverse();
-
-                let param_count = code.params.as_ref().len();
-
-                let call_frame = CallFrame::new(code)
-                    .with_param_count(param_count)
-                    .with_arg_count(arg_count);
-                let mut stack = args;
-
-                std::mem::swap(&mut context.vm.stack, &mut stack);
-                context.vm.push_frame(call_frame);
-
-                let init_result = context.run();
-
-                let call_frame = context.vm.pop_frame().expect("frame must exist");
-                std::mem::swap(&mut environments, &mut context.realm.environments);
-                std::mem::swap(&mut context.vm.stack, &mut stack);
-
-                let prototype = this_function_object
-                    .get(PROTOTYPE, context)
-                    .expect("AsyncGeneratorFunction must have a prototype property")
-                    .as_object()
-                    .map_or_else(
-                        || context.intrinsics().objects().async_generator(),
-                        Clone::clone,
-                    );
-
-                let generator = Self::from_proto_and_data(
-                    prototype,
+            let generator = Self::from_proto_and_data(
+                proto,
+                if async_ {
                     ObjectData::async_generator(AsyncGenerator {
                         state: AsyncGeneratorState::SuspendedStart,
                         context: Some(GeneratorContext {
@@ -1319,32 +1053,40 @@ impl JsObject {
                             call_frame,
                             stack,
                             active_function: context.vm.active_function.clone(),
-                            realm_intrinsics: context.realm.intrinsics.clone(),
+                            realm: context.realm().clone(),
                         }),
                         queue: VecDeque::new(),
-                    }),
-                );
+                    })
+                } else {
+                    ObjectData::generator(Generator {
+                        state: GeneratorState::SuspendedStart,
+                        context: Some(GeneratorContext {
+                            environments,
+                            call_frame,
+                            stack,
+                            active_function: context.vm.active_function.clone(),
+                            realm: context.realm().clone(),
+                        }),
+                    })
+                },
+            );
 
-                {
-                    let gen_clone = generator.clone();
-                    let mut generator_mut = generator.borrow_mut();
-                    let gen = generator_mut
-                        .as_async_generator_mut()
-                        .expect("must be object here");
-                    let gen_context = gen.context.as_mut().expect("must exist");
-                    gen_context.call_frame.async_generator = Some(gen_clone);
-                }
-
-                init_result.consume()?;
-
-                Ok(generator.into())
+            if async_ {
+                let gen_clone = generator.clone();
+                let mut generator_mut = generator.borrow_mut();
+                let gen = generator_mut
+                    .as_async_generator_mut()
+                    .expect("must be object here");
+                let gen_context = gen.context.as_mut().expect("must exist");
+                gen_context.call_frame.async_generator = Some(gen_clone);
             }
+
+            generator.into()
+        } else {
+            value
         };
 
-        context.vm.active_function = old_active;
-        context.realm.intrinsics = old_intrinsics;
-
-        result
+        Ok(value)
     }
 
     pub(crate) fn construct_internal(
@@ -1354,30 +1096,13 @@ impl JsObject {
         context: &mut Context<'_>,
     ) -> JsResult<Self> {
         let this_function_object = self.clone();
-
-        let create_this = |context| {
-            let prototype =
-                get_prototype_from_constructor(this_target, StandardConstructors::object, context)?;
-            Ok(Self::from_proto_and_data(prototype, ObjectData::ordinary()))
-        };
-
-        if !self.is_constructor() {
-            return Err(JsNativeError::typ()
-                .with_message("not a constructor function")
-                .into());
-        }
-
-        let old_active = context.vm.active_function.replace(self.clone());
-
+        let active_function = self.clone();
         let object = self.borrow();
         let function_object = object.as_function().expect("not a function");
+        let realm = function_object.realm().clone();
 
-        let old_intrinsics = std::mem::replace(
-            &mut context.realm.intrinsics,
-            function_object.realm_intrinsics().clone(),
-        );
-
-        let result = match function_object.kind() {
+        let context = &mut ContextCleanupGuard::new(context, realm, active_function);
+        match function_object.kind() {
             FunctionKind::Native {
                 function,
                 constructor,
@@ -1387,20 +1112,30 @@ impl JsObject {
                 let constructor = *constructor;
                 drop(object);
 
-                match function.call(this_target, args, context)? {
-                    JsValue::Object(ref o) => Ok(o.clone()),
-                    val => {
-                        if constructor.expect("hmm").is_base() || val.is_undefined() {
-                            create_this(context)
-                        } else {
-                            Err(JsNativeError::typ()
+                function
+                    .call(this_target, args, context)
+                    .map_err(|err| err.inject_realm(context.realm().clone()))
+                    .and_then(|v| match v {
+                        JsValue::Object(ref o) => Ok(o.clone()),
+                        val => {
+                            if constructor.expect("must be a constructor").is_base()
+                                || val.is_undefined()
+                            {
+                                let prototype = get_prototype_from_constructor(
+                                    this_target,
+                                    StandardConstructors::object,
+                                    context,
+                                )?;
+                                Ok(Self::from_proto_and_data(prototype, ObjectData::ordinary()))
+                            } else {
+                                Err(JsNativeError::typ()
                                 .with_message(
-                                    "Derived constructor can only return an Object or undefined",
+                                    "derived constructor can only return an Object or undefined",
                                 )
                                 .into())
+                            }
                         }
-                    }
-                }
+                    })
             }
             FunctionKind::Ordinary {
                 code,
@@ -1433,37 +1168,45 @@ impl JsObject {
                 };
 
                 let environments_len = environments.len();
-                std::mem::swap(&mut environments, &mut context.realm.environments);
+                std::mem::swap(&mut environments, &mut context.vm.environments);
 
                 let new_target = this_target.as_object().expect("must be object");
 
-                let compile_time_environment_index = usize::from(code.params.has_expressions());
+                let mut last_env = code.compile_environments.len() - 1;
 
                 if code.has_binding_identifier {
-                    let index = context.realm.environments.push_declarative(
-                        1,
-                        code.compile_environments[compile_time_environment_index + 1].clone(),
-                    );
+                    let index = context
+                        .vm
+                        .environments
+                        .push_declarative(1, code.compile_environments[last_env].clone());
                     context
-                        .realm
+                        .vm
                         .environments
                         .put_value(index, 0, self.clone().into());
+                    last_env -= 1;
                 }
 
-                context.realm.environments.push_function(
+                context.vm.environments.push_function(
                     code.num_bindings,
-                    code.compile_environments[compile_time_environment_index].clone(),
+                    code.compile_environments[last_env].clone(),
                     this.clone().map(Into::into),
                     self.clone(),
                     Some(new_target.clone()),
                     false,
                 );
 
+                if let Some(bindings) = code.parameters_env_bindings {
+                    context
+                        .vm
+                        .environments
+                        .push_declarative(bindings, code.compile_environments[0].clone());
+                }
+
                 if let Some(binding) = code.arguments_binding {
                     let arguments_obj = if code.strict || !code.params.is_simple() {
                         Arguments::create_unmapped_arguments_object(args, context)
                     } else {
-                        let env = context.realm.environments.current();
+                        let env = context.vm.environments.current();
                         Arguments::create_mapped_arguments_object(
                             &this_function_object,
                             &code.params,
@@ -1472,7 +1215,7 @@ impl JsObject {
                             context,
                         )
                     };
-                    context.realm.environments.put_value(
+                    context.vm.environments.put_value(
                         binding.environment_index(),
                         binding.binding_index(),
                         arguments_obj.into(),
@@ -1510,7 +1253,7 @@ impl JsObject {
 
                 context.vm.pop_frame();
 
-                std::mem::swap(&mut environments, &mut context.realm.environments);
+                std::mem::swap(&mut environments, &mut context.vm.environments);
 
                 let environment = if has_binding_identifier {
                     environments.truncate(environments_len + 2);
@@ -1522,7 +1265,9 @@ impl JsObject {
                     environments.pop()
                 };
 
-                let result = record.consume()?;
+                let result = record
+                    .consume()
+                    .map_err(|err| err.inject_realm(context.realm().clone()))?;
 
                 if let Some(result) = result.as_object() {
                     Ok(result.clone())
@@ -1530,7 +1275,7 @@ impl JsObject {
                     Ok(this)
                 } else if !result.is_undefined() {
                     Err(JsNativeError::typ()
-                        .with_message("Function constructor must not return non-object")
+                        .with_message("derived constructor can only return an Object or undefined")
                         .into())
                 } else {
                     let function_env = environment
@@ -1539,12 +1284,15 @@ impl JsObject {
                         .expect("must be function environment")
                         .as_function_slots()
                         .expect("must be function environment");
-                    Ok(function_env
+                    function_env
                         .borrow()
-                        .get_this_binding()?
-                        .as_object()
-                        .expect("this binding must be object")
-                        .clone())
+                        .get_this_binding()
+                        .map(|this| {
+                            this.as_object()
+                                .expect("this binding must be object")
+                                .clone()
+                        })
+                        .map_err(JsError::from)
                 }
             }
             FunctionKind::Generator { .. }
@@ -1552,10 +1300,6 @@ impl JsObject {
             | FunctionKind::AsyncGenerator { .. } => {
                 unreachable!("not a constructor")
             }
-        };
-        context.vm.active_function = old_active;
-        context.realm.intrinsics = old_intrinsics;
-
-        result
+        }
     }
 }

@@ -2004,7 +2004,7 @@ impl<'ctx, 'host> FunctionObjectBuilder<'ctx, 'host> {
                     function: self.function,
                     constructor: self.constructor,
                 },
-                self.context.intrinsics().clone(),
+                self.context.realm().clone(),
             )),
         );
         let property = PropertyDescriptor::builder()
@@ -2400,7 +2400,7 @@ impl<'ctx, 'host> ConstructorBuilder<'ctx, 'host> {
                 function: self.function,
                 constructor: self.constructor,
             },
-            self.context.intrinsics().clone(),
+            self.context.realm().clone(),
         );
 
         let length = PropertyDescriptor::builder()

@@ -17,6 +17,7 @@ use crate::{
     error::JsNativeError,
     object::JsObject,
     property::Attribute,
+    realm::Realm,
     symbol::JsSymbol,
     Context, JsArgs, JsResult, JsValue,
 };
@@ -30,12 +31,12 @@ mod tests;
 pub(crate) struct Reflect;
 
 impl IntrinsicObject for Reflect {
-    fn init(intrinsics: &Intrinsics) {
+    fn init(realm: &Realm) {
         let _timer = Profiler::global().start_event(Self::NAME, "init");
 
         let to_string_tag = JsSymbol::to_string_tag();
 
-        BuiltInBuilder::with_intrinsic::<Self>(intrinsics)
+        BuiltInBuilder::with_intrinsic::<Self>(realm)
             .static_method(Self::apply, "apply", 3)
             .static_method(Self::construct, "construct", 2)
             .static_method(Self::define_property, "defineProperty", 3)

@@ -106,7 +106,7 @@ impl Operation for IteratorUnwrapNextOrJump {
         if next_result.complete(context)? {
             context.vm.frame_mut().pc = address as usize;
             context.vm.frame_mut().dec_frame_env_stack();
-            context.realm.environments.pop();
+            context.vm.environments.pop();
             context.vm.push(true);
         } else {
             context.vm.push(false);

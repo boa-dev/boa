@@ -79,7 +79,7 @@ use boa_profiler::Profiler;
 /// ```
 pub struct Context<'host> {
     /// realm holds both the global object and the environment
-    pub(crate) realm: Realm,
+    realm: Realm,
 
     /// String interner in the context.
     interner: Interner,
@@ -135,7 +135,7 @@ impl Default for Context<'_> {
 }
 
 // ==== Public API ====
-impl Context<'_> {
+impl<'host> Context<'host> {
     /// Create a new [`ContextBuilder`] to specify the [`Interner`] and/or
     /// the icu data provider.
     #[must_use]
@@ -245,7 +245,13 @@ impl Context<'_> {
     /// Compile the script AST into a `CodeBlock` ready to be executed by the VM.
     pub fn compile_script(&mut self, statement_list: &StatementList) -> JsResult<Gc<CodeBlock>> {
         let _timer = Profiler::global().start_event("Script compilation", "Main");
-        let mut compiler = ByteCompiler::new(Sym::MAIN, statement_list.strict(), false, self);
+        let mut compiler = ByteCompiler::new(
+            Sym::MAIN,
+            statement_list.strict(),
+            false,
+            self.realm.environment().compile_env(),
+            self,
+        );
         compiler.create_script_decls(statement_list, false);
         compiler.compile_statement_list(statement_list, true, false);
         Ok(Gc::new(compiler.finish()))
@@ -255,7 +261,13 @@ impl Context<'_> {
     pub fn compile_module(&mut self, statement_list: &ModuleItemList) -> JsResult<Gc<CodeBlock>> {
         let _timer = Profiler::global().start_event("Module compilation", "Main");
 
-        let mut compiler = ByteCompiler::new(Sym::MAIN, true, false, self);
+        let mut compiler = ByteCompiler::new(
+            Sym::MAIN,
+            true,
+            false,
+            self.realm.environment().compile_env(),
+            self,
+        );
         compiler.create_module_decls(statement_list, false);
         compiler.compile_module_item_list(statement_list, false);
         Ok(Gc::new(compiler.finish()))
@@ -276,7 +288,9 @@ impl Context<'_> {
 
         self.vm.push_frame(CallFrame::new(code_block));
 
-        self.realm.set_global_binding_number();
+        // TODO: Here should be https://tc39.es/ecma262/#sec-globaldeclarationinstantiation
+
+        self.realm().resize_global_env();
         let record = self.run();
         self.vm.pop_frame();
         self.clear_kept_objects();
@@ -446,10 +460,16 @@ impl Context<'_> {
         self.realm.global_object().clone()
     }
 
-    /// Returns the intrinsic constructors and objects.
+    /// Returns the currently active intrinsic constructors and objects.
     #[inline]
-    pub const fn intrinsics(&self) -> &Intrinsics {
-        &self.realm.intrinsics
+    pub fn intrinsics(&self) -> &Intrinsics {
+        self.realm.intrinsics()
+    }
+
+    /// Returns the currently active realm.
+    #[inline]
+    pub const fn realm(&self) -> &Realm {
+        &self.realm
     }
 
     /// Set the value of trace on the context
@@ -494,46 +514,31 @@ impl Context<'_> {
     pub fn clear_kept_objects(&mut self) {
         self.kept_alive.clear();
     }
-}
 
-// ==== Private API ====
-
-impl Context<'_> {
-    /// Compile the AST into a `CodeBlock` ready to be executed by the VM in a `JSON.parse` context.
-    pub(crate) fn compile_json_parse(&mut self, statement_list: &StatementList) -> Gc<CodeBlock> {
-        let _timer = Profiler::global().start_event("Compilation", "Main");
-        let mut compiler = ByteCompiler::new(Sym::MAIN, statement_list.strict(), true, self);
-        compiler.create_script_decls(statement_list, false);
-        compiler.compile_statement_list(statement_list, true, false);
-        Gc::new(compiler.finish())
+    /// Replaces the currently active realm with `realm`, and returns the old realm.
+    pub fn enter_realm(&mut self, realm: Realm) -> Realm {
+        self.vm
+            .environments
+            .replace_global(realm.environment().clone());
+        std::mem::replace(&mut self.realm, realm)
     }
 
-    /// Compile the AST into a `CodeBlock` with an additional declarative environment.
-    pub(crate) fn compile_with_new_declarative(
-        &mut self,
-        statement_list: &StatementList,
-        strict: bool,
-    ) -> Gc<CodeBlock> {
-        let _timer = Profiler::global().start_event("Compilation", "Main");
-        let mut compiler = ByteCompiler::new(Sym::MAIN, statement_list.strict(), false, self);
-        compiler.compile_statement_list_with_new_declarative(statement_list, true, strict);
-        Gc::new(compiler.finish())
-    }
-}
-
-impl<'host> Context<'host> {
-    /// Get the host hooks.
+    /// Gets the host hooks.
     pub fn host_hooks(&self) -> &'host dyn HostHooks {
         self.host_hooks
     }
 
-    /// Get the job queue.
+    /// Gets the job queue.
     pub fn job_queue(&mut self) -> &'host dyn JobQueue {
         self.job_queue
     }
+}
 
+// ==== Private API ====
+
+#[cfg(feature = "intl")]
+impl<'host> Context<'host> {
     /// Get the ICU related utilities
-    #[cfg(feature = "intl")]
     pub(crate) const fn icu(&self) -> &icu::Icu<'host> {
         &self.icu
     }
@@ -662,11 +667,13 @@ impl<'icu, 'hooks, 'queue> ContextBuilder<'icu, 'hooks, 'queue> {
         'queue: 'host,
     {
         let host_hooks = self.host_hooks.unwrap_or(&DefaultHooks);
+        let realm = Realm::create(host_hooks);
+        let vm = Vm::new(realm.environment().clone());
 
         let mut context = Context {
-            realm: Realm::create(host_hooks),
+            realm,
             interner: self.interner.unwrap_or_default(),
-            vm: Vm::default(),
+            vm,
             strict: false,
             #[cfg(feature = "intl")]
             icu: self.icu.unwrap_or_else(|| {

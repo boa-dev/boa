@@ -100,6 +100,7 @@ use crate::{
         FunctionBinding, JsFunction, JsObject, JsPrototype, ObjectData, CONSTRUCTOR, PROTOTYPE,
     },
     property::{Attribute, PropertyDescriptor, PropertyKey},
+    realm::Realm,
     string::utf16,
     Context, JsResult, JsString, JsValue,
 };
@@ -118,7 +119,7 @@ pub(crate) trait IntrinsicObject {
     ///
     /// This is where the methods, properties, static methods and the constructor of a built-in must
     /// be initialized to be accessible from ECMAScript.
-    fn init(intrinsics: &Intrinsics);
+    fn init(realm: &Realm);
 
     /// Gets the intrinsic object.
     fn get(intrinsics: &Intrinsics) -> JsObject;
@@ -183,97 +184,93 @@ fn global_binding<B: BuiltInObject>(context: &mut Context<'_>) -> JsResult<()> {
     Ok(())
 }
 
-impl Intrinsics {
+impl Realm {
     /// Abstract operation [`CreateIntrinsics ( realmRec )`][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-createintrinsics
-    pub(crate) fn new() -> Self {
-        let intrinsics = Self::default();
-
-        BuiltInFunctionObject::init(&intrinsics);
-        BuiltInObjectObject::init(&intrinsics);
-        Iterator::init(&intrinsics);
-        AsyncIterator::init(&intrinsics);
-        AsyncFromSyncIterator::init(&intrinsics);
-        ForInIterator::init(&intrinsics);
-        Math::init(&intrinsics);
-        Json::init(&intrinsics);
-        Array::init(&intrinsics);
-        ArrayIterator::init(&intrinsics);
-        Proxy::init(&intrinsics);
-        ArrayBuffer::init(&intrinsics);
-        BigInt::init(&intrinsics);
-        Boolean::init(&intrinsics);
-        Date::init(&intrinsics);
-        DataView::init(&intrinsics);
-        Map::init(&intrinsics);
-        MapIterator::init(&intrinsics);
-        IsFinite::init(&intrinsics);
-        IsNaN::init(&intrinsics);
-        ParseInt::init(&intrinsics);
-        ParseFloat::init(&intrinsics);
-        Number::init(&intrinsics);
-        Eval::init(&intrinsics);
-        Set::init(&intrinsics);
-        SetIterator::init(&intrinsics);
-        String::init(&intrinsics);
-        StringIterator::init(&intrinsics);
-        RegExp::init(&intrinsics);
-        RegExpStringIterator::init(&intrinsics);
-        TypedArray::init(&intrinsics);
-        Int8Array::init(&intrinsics);
-        Uint8Array::init(&intrinsics);
-        Uint8ClampedArray::init(&intrinsics);
-        Int16Array::init(&intrinsics);
-        Uint16Array::init(&intrinsics);
-        Int32Array::init(&intrinsics);
-        Uint32Array::init(&intrinsics);
-        BigInt64Array::init(&intrinsics);
-        BigUint64Array::init(&intrinsics);
-        Float32Array::init(&intrinsics);
-        Float64Array::init(&intrinsics);
-        Symbol::init(&intrinsics);
-        Error::init(&intrinsics);
-        RangeError::init(&intrinsics);
-        ReferenceError::init(&intrinsics);
-        TypeError::init(&intrinsics);
-        ThrowTypeError::init(&intrinsics);
-        SyntaxError::init(&intrinsics);
-        EvalError::init(&intrinsics);
-        UriError::init(&intrinsics);
-        AggregateError::init(&intrinsics);
-        Reflect::init(&intrinsics);
-        Generator::init(&intrinsics);
-        GeneratorFunction::init(&intrinsics);
-        Promise::init(&intrinsics);
-        AsyncFunction::init(&intrinsics);
-        AsyncGenerator::init(&intrinsics);
-        AsyncGeneratorFunction::init(&intrinsics);
-        EncodeUri::init(&intrinsics);
-        EncodeUriComponent::init(&intrinsics);
-        DecodeUri::init(&intrinsics);
-        DecodeUriComponent::init(&intrinsics);
-        WeakRef::init(&intrinsics);
-        WeakMap::init(&intrinsics);
-        WeakSet::init(&intrinsics);
+    pub(crate) fn initialize(&self) {
+        BuiltInFunctionObject::init(self);
+        BuiltInObjectObject::init(self);
+        Iterator::init(self);
+        AsyncIterator::init(self);
+        AsyncFromSyncIterator::init(self);
+        ForInIterator::init(self);
+        Math::init(self);
+        Json::init(self);
+        Array::init(self);
+        ArrayIterator::init(self);
+        Proxy::init(self);
+        ArrayBuffer::init(self);
+        BigInt::init(self);
+        Boolean::init(self);
+        Date::init(self);
+        DataView::init(self);
+        Map::init(self);
+        MapIterator::init(self);
+        IsFinite::init(self);
+        IsNaN::init(self);
+        ParseInt::init(self);
+        ParseFloat::init(self);
+        Number::init(self);
+        Eval::init(self);
+        Set::init(self);
+        SetIterator::init(self);
+        String::init(self);
+        StringIterator::init(self);
+        RegExp::init(self);
+        RegExpStringIterator::init(self);
+        TypedArray::init(self);
+        Int8Array::init(self);
+        Uint8Array::init(self);
+        Uint8ClampedArray::init(self);
+        Int16Array::init(self);
+        Uint16Array::init(self);
+        Int32Array::init(self);
+        Uint32Array::init(self);
+        BigInt64Array::init(self);
+        BigUint64Array::init(self);
+        Float32Array::init(self);
+        Float64Array::init(self);
+        Symbol::init(self);
+        Error::init(self);
+        RangeError::init(self);
+        ReferenceError::init(self);
+        TypeError::init(self);
+        ThrowTypeError::init(self);
+        SyntaxError::init(self);
+        EvalError::init(self);
+        UriError::init(self);
+        AggregateError::init(self);
+        Reflect::init(self);
+        Generator::init(self);
+        GeneratorFunction::init(self);
+        Promise::init(self);
+        AsyncFunction::init(self);
+        AsyncGenerator::init(self);
+        AsyncGeneratorFunction::init(self);
+        EncodeUri::init(self);
+        EncodeUriComponent::init(self);
+        DecodeUri::init(self);
+        DecodeUriComponent::init(self);
+        WeakRef::init(self);
+        WeakMap::init(self);
+        WeakSet::init(self);
 
         #[cfg(feature = "annex-b")]
         {
-            escape::Escape::init(&intrinsics);
-            escape::Unescape::init(&intrinsics);
+            escape::Escape::init(self);
+            escape::Unescape::init(self);
         }
 
         #[cfg(feature = "intl")]
         {
-            intl::Intl::init(&intrinsics);
-            intl::Collator::init(&intrinsics);
-            intl::ListFormat::init(&intrinsics);
-            intl::Locale::init(&intrinsics);
-            intl::DateTimeFormat::init(&intrinsics);
-            intl::Segmenter::init(&intrinsics);
+            intl::Intl::init(self);
+            intl::Collator::init(self);
+            intl::ListFormat::init(self);
+            intl::Locale::init(self);
+            intl::DateTimeFormat::init(self);
+            intl::Segmenter::init(self);
         }
-
-        intrinsics
     }
 }
 
@@ -286,7 +283,7 @@ pub(crate) fn set_default_global_bindings(context: &mut Context<'_>) -> JsResult
     global_object.define_property_or_throw(
         utf16!("globalThis"),
         PropertyDescriptor::builder()
-            .value(context.realm.global_this().clone())
+            .value(context.realm().global_this().clone())
             .writable(true)
             .enumerable(false)
             .configurable(true),
@@ -429,7 +426,7 @@ struct Callable<Kind> {
     name: JsString,
     length: usize,
     kind: Kind,
-    intrinsics: Intrinsics,
+    realm: Realm,
 }
 
 /// Marker for an ordinary object.
@@ -483,7 +480,7 @@ impl<S: ApplyToObject + IsConstructor> ApplyToObject for Callable<S> {
                 function: NativeFunction::from_fn_ptr(self.function),
                 constructor: S::IS_CONSTRUCTOR.then_some(function::ConstructorKind::Base),
             },
-            self.intrinsics,
+            self.realm,
         );
 
         let length = PropertyDescriptor::builder()
@@ -517,42 +514,39 @@ impl ApplyToObject for OrdinaryObject {
 #[derive(Debug)]
 #[must_use = "You need to call the `build` method in order for this to correctly assign the inner data"]
 struct BuiltInBuilder<'ctx, Kind> {
-    intrinsics: &'ctx Intrinsics,
+    realm: &'ctx Realm,
     object: JsObject,
     kind: Kind,
     prototype: JsObject,
 }
 
 impl<'ctx> BuiltInBuilder<'ctx, OrdinaryObject> {
-    fn new(intrinsics: &'ctx Intrinsics) -> BuiltInBuilder<'ctx, OrdinaryObject> {
+    fn new(realm: &'ctx Realm) -> BuiltInBuilder<'ctx, OrdinaryObject> {
         BuiltInBuilder {
-            intrinsics,
+            realm,
             object: JsObject::with_null_proto(),
             kind: OrdinaryObject,
-            prototype: intrinsics.constructors().object().prototype(),
+            prototype: realm.intrinsics().constructors().object().prototype(),
         }
     }
 
     fn with_intrinsic<I: IntrinsicObject>(
-        intrinsics: &'ctx Intrinsics,
+        realm: &'ctx Realm,
     ) -> BuiltInBuilder<'ctx, OrdinaryObject> {
         BuiltInBuilder {
-            intrinsics,
-            object: I::get(intrinsics),
+            realm,
+            object: I::get(realm.intrinsics()),
             kind: OrdinaryObject,
-            prototype: intrinsics.constructors().object().prototype(),
+            prototype: realm.intrinsics().constructors().object().prototype(),
         }
     }
 
-    fn with_object(
-        intrinsics: &'ctx Intrinsics,
-        object: JsObject,
-    ) -> BuiltInBuilder<'ctx, OrdinaryObject> {
+    fn with_object(realm: &'ctx Realm, object: JsObject) -> BuiltInBuilder<'ctx, OrdinaryObject> {
         BuiltInBuilder {
-            intrinsics,
+            realm,
             object,
             kind: OrdinaryObject,
-            prototype: intrinsics.constructors().object().prototype(),
+            prototype: realm.intrinsics().constructors().object().prototype(),
         }
     }
 }
@@ -563,27 +557,32 @@ impl<'ctx> BuiltInBuilder<'ctx, OrdinaryObject> {
         function: NativeFunctionPointer,
     ) -> BuiltInBuilder<'ctx, Callable<OrdinaryFunction>> {
         BuiltInBuilder {
-            intrinsics: self.intrinsics,
+            realm: self.realm,
             object: self.object,
             kind: Callable {
                 function,
                 name: js_string!(""),
                 length: 0,
                 kind: OrdinaryFunction,
-                intrinsics: self.intrinsics.clone(),
+                realm: self.realm.clone(),
             },
-            prototype: self.intrinsics.constructors().function().prototype(),
+            prototype: self
+                .realm
+                .intrinsics()
+                .constructors()
+                .function()
+                .prototype(),
         }
     }
 }
 
 impl<'ctx> BuiltInBuilder<'ctx, Callable<Constructor>> {
     fn from_standard_constructor<SC: BuiltInConstructor>(
-        intrinsics: &'ctx Intrinsics,
+        realm: &'ctx Realm,
     ) -> BuiltInBuilder<'ctx, Callable<Constructor>> {
-        let constructor = SC::STANDARD_CONSTRUCTOR(intrinsics.constructors());
+        let constructor = SC::STANDARD_CONSTRUCTOR(realm.intrinsics().constructors());
         BuiltInBuilder {
-            intrinsics,
+            realm,
             object: constructor.constructor(),
             kind: Callable {
                 function: SC::constructor,
@@ -591,25 +590,25 @@ impl<'ctx> BuiltInBuilder<'ctx, Callable<Constructor>> {
                 length: SC::LENGTH,
                 kind: Constructor {
                     prototype: constructor.prototype(),
-                    inherits: Some(intrinsics.constructors().object().prototype()),
+                    inherits: Some(realm.intrinsics().constructors().object().prototype()),
                     attributes: Attribute::WRITABLE | Attribute::CONFIGURABLE,
                 },
-                intrinsics: intrinsics.clone(),
+                realm: realm.clone(),
             },
-            prototype: intrinsics.constructors().function().prototype(),
+            prototype: realm.intrinsics().constructors().function().prototype(),
         }
     }
 
     fn no_proto(self) -> BuiltInBuilder<'ctx, Callable<ConstructorNoProto>> {
         BuiltInBuilder {
-            intrinsics: self.intrinsics,
+            realm: self.realm,
             object: self.object,
             kind: Callable {
                 function: self.kind.function,
                 name: self.kind.name,
                 length: self.kind.length,
                 kind: ConstructorNoProto,
-                intrinsics: self.intrinsics.clone(),
+                realm: self.realm.clone(),
             },
             prototype: self.prototype,
         }
@@ -623,7 +622,7 @@ impl<T> BuiltInBuilder<'_, T> {
         B: Into<FunctionBinding>,
     {
         let binding = binding.into();
-        let function = BuiltInBuilder::new(self.intrinsics)
+        let function = BuiltInBuilder::new(self.realm)
             .callable(function)
             .name(binding.name)
             .length(length)
@@ -691,7 +690,7 @@ impl BuiltInBuilder<'_, Callable<Constructor>> {
         B: Into<FunctionBinding>,
     {
         let binding = binding.into();
-        let function = BuiltInBuilder::new(self.intrinsics)
+        let function = BuiltInBuilder::new(self.realm)
             .callable(function)
             .name(binding.name)
             .length(length)

@@ -4,6 +4,7 @@ use crate::{
     builtins::{string::is_trimmable_whitespace, BuiltInBuilder, BuiltInObject, IntrinsicObject},
     context::intrinsics::Intrinsics,
     object::JsObject,
+    realm::Realm,
     string::Utf16Trim,
     Context, JsArgs, JsResult, JsValue,
 };
@@ -36,8 +37,8 @@ fn is_finite(_: &JsValue, args: &[JsValue], context: &mut Context<'_>) -> JsResu
 pub(crate) struct IsFinite;
 
 impl IntrinsicObject for IsFinite {
-    fn init(intrinsics: &Intrinsics) {
-        BuiltInBuilder::with_intrinsic::<Self>(intrinsics)
+    fn init(realm: &Realm) {
+        BuiltInBuilder::with_intrinsic::<Self>(realm)
             .callable(is_finite)
             .name(Self::NAME)
             .length(1)
@@ -83,8 +84,8 @@ pub(crate) fn is_nan(
 pub(crate) struct IsNaN;
 
 impl IntrinsicObject for IsNaN {
-    fn init(intrinsics: &Intrinsics) {
-        BuiltInBuilder::with_intrinsic::<Self>(intrinsics)
+    fn init(realm: &Realm) {
+        BuiltInBuilder::with_intrinsic::<Self>(realm)
             .callable(is_nan)
             .name(Self::NAME)
             .length(1)
@@ -225,8 +226,8 @@ pub(crate) fn parse_int(
 pub(crate) struct ParseInt;
 
 impl IntrinsicObject for ParseInt {
-    fn init(intrinsics: &Intrinsics) {
-        BuiltInBuilder::with_intrinsic::<Self>(intrinsics)
+    fn init(realm: &Realm) {
+        BuiltInBuilder::with_intrinsic::<Self>(realm)
             .callable(parse_int)
             .name(Self::NAME)
             .length(2)
@@ -299,8 +300,8 @@ pub(crate) fn parse_float(
 pub(crate) struct ParseFloat;
 
 impl IntrinsicObject for ParseFloat {
-    fn init(intrinsics: &Intrinsics) {
-        BuiltInBuilder::with_intrinsic::<Self>(intrinsics)
+    fn init(realm: &Realm) {
+        BuiltInBuilder::with_intrinsic::<Self>(realm)
             .callable(parse_float)
             .name(Self::NAME)
             .length(1)

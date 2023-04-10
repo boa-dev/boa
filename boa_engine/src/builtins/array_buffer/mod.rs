@@ -16,6 +16,7 @@ use crate::{
     error::JsNativeError,
     object::{internal_methods::get_prototype_from_constructor, JsObject, ObjectData},
     property::Attribute,
+    realm::Realm,
     string::utf16,
     symbol::JsSymbol,
     value::{IntegerOrInfinity, Numeric},
@@ -47,22 +48,22 @@ impl ArrayBuffer {
 }
 
 impl IntrinsicObject for ArrayBuffer {
-    fn init(intrinsics: &Intrinsics) {
+    fn init(realm: &Realm) {
         let _timer = Profiler::global().start_event(Self::NAME, "init");
 
         let flag_attributes = Attribute::CONFIGURABLE | Attribute::NON_ENUMERABLE;
 
-        let get_species = BuiltInBuilder::new(intrinsics)
+        let get_species = BuiltInBuilder::new(realm)
             .callable(Self::get_species)
             .name("get [Symbol.species]")
             .build();
 
-        let get_byte_length = BuiltInBuilder::new(intrinsics)
+        let get_byte_length = BuiltInBuilder::new(realm)
             .callable(Self::get_byte_length)
             .name("get byteLength")
             .build();
 
-        BuiltInBuilder::from_standard_constructor::<Self>(intrinsics)
+        BuiltInBuilder::from_standard_constructor::<Self>(realm)
             .accessor(
                 utf16!("byteLength"),
                 Some(get_byte_length),

@@ -10,6 +10,7 @@ use crate::{
     context::intrinsics::{Intrinsics, StandardConstructor, StandardConstructors},
     object::{JsObject, PROTOTYPE},
     property::Attribute,
+    realm::Realm,
     symbol::JsSymbol,
     value::JsValue,
     Context, JsResult,
@@ -23,15 +24,17 @@ use super::{BuiltInBuilder, BuiltInConstructor, IntrinsicObject};
 pub struct AsyncGeneratorFunction;
 
 impl IntrinsicObject for AsyncGeneratorFunction {
-    fn init(intrinsics: &Intrinsics) {
+    fn init(realm: &Realm) {
         let _timer = Profiler::global().start_event(Self::NAME, "init");
 
-        BuiltInBuilder::from_standard_constructor::<Self>(intrinsics)
-            .inherits(Some(intrinsics.constructors().function().prototype()))
+        BuiltInBuilder::from_standard_constructor::<Self>(realm)
+            .inherits(Some(
+                realm.intrinsics().constructors().function().prototype(),
+            ))
             .constructor_attributes(Attribute::CONFIGURABLE)
             .property(
                 PROTOTYPE,
-                intrinsics.objects().async_generator(),
+                realm.intrinsics().objects().async_generator(),
                 Attribute::CONFIGURABLE,
             )
             .property(

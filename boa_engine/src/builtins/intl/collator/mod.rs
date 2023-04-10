@@ -22,6 +22,7 @@ use crate::{
         JsObject, ObjectData,
     },
     property::Attribute,
+    realm::Realm,
     string::utf16,
     symbol::JsSymbol,
     Context, JsArgs, JsNativeError, JsResult, JsValue,
@@ -159,15 +160,15 @@ impl Service for Collator {
 }
 
 impl IntrinsicObject for Collator {
-    fn init(intrinsics: &Intrinsics) {
+    fn init(realm: &Realm) {
         let _timer = Profiler::global().start_event(Self::NAME, "init");
 
-        let compare = BuiltInBuilder::new(intrinsics)
+        let compare = BuiltInBuilder::new(realm)
             .callable(Self::compare)
             .name("get compare")
             .build();
 
-        BuiltInBuilder::from_standard_constructor::<Self>(intrinsics)
+        BuiltInBuilder::from_standard_constructor::<Self>(realm)
             .static_method(Self::supported_locales_of, "supportedLocalesOf", 1)
             .property(
                 JsSymbol::to_string_tag(),

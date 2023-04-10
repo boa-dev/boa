@@ -42,8 +42,8 @@ impl Operation for Continue {
             context.vm.frame_mut().env_stack.pop();
         }
 
-        let env_truncation_len = context.realm.environments.len().saturating_sub(envs_to_pop);
-        context.realm.environments.truncate(env_truncation_len);
+        let env_truncation_len = context.vm.environments.len().saturating_sub(envs_to_pop);
+        context.vm.environments.truncate(env_truncation_len);
 
         // 2. Register target address in AbruptCompletionRecord.
         let new_record = AbruptCompletionRecord::new_continue().with_initial_target(target_address);

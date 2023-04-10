@@ -2,6 +2,7 @@ use crate::{
     builtins::promise::OperationType,
     job::JobCallback,
     object::{JsFunction, JsObject},
+    realm::Realm,
     Context, JsResult, JsValue,
 };
 
@@ -18,13 +19,20 @@ use super::intrinsics::Intrinsics;
 /// need to be redefined:
 ///
 /// ```
-/// use boa_engine::{JsNativeError, JsResult, context::{Context, ContextBuilder, HostHooks}, Source};
+/// use boa_engine::{
+///     context::{Context, ContextBuilder, HostHooks},
+///     JsNativeError,
+///     JsResult,
+///     realm::Realm,
+///     Source
+/// };
 ///
 /// struct Hooks;
 ///
 /// impl HostHooks for Hooks {
 ///     fn ensure_can_compile_strings(
 ///         &self,
+///         _realm: Realm,
 ///         context: &mut Context<'_>,
 ///     ) -> JsResult<()> {
 ///         Err(JsNativeError::typ().with_message("eval calls not available").into())
@@ -99,9 +107,11 @@ pub trait HostHooks {
     /// containing unused. This is already ensured by the return type.
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-hostensurecancompilestrings
+    // TODO: Track https://github.com/tc39/ecma262/issues/938
     fn ensure_can_compile_strings(
         &self,
-        /* Realm (WIP), */ _context: &mut Context<'_>,
+        _realm: Realm,
+        _context: &mut Context<'_>,
     ) -> JsResult<()> {
         // The default implementation of HostEnsureCanCompileStrings is to return NormalCompletion(unused).
         Ok(())

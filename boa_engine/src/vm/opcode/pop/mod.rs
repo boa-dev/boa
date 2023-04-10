@@ -55,7 +55,7 @@ impl Operation for PopEnvironment {
     const INSTRUCTION: &'static str = "INST - PopEnvironment";
 
     fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
-        context.realm.environments.pop();
+        context.vm.environments.pop();
         context.vm.frame_mut().dec_frame_env_stack();
         Ok(CompletionType::Normal)
     }

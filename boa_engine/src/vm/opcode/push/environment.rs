@@ -21,7 +21,7 @@ impl Operation for PushDeclarativeEnvironment {
             [compile_environments_index as usize]
             .clone();
         context
-            .realm
+            .vm
             .environments
             .push_declarative(num_bindings as usize, compile_environment);
         context.vm.frame_mut().inc_frame_env_stack();
@@ -47,7 +47,7 @@ impl Operation for PushFunctionEnvironment {
             [compile_environments_index as usize]
             .clone();
         context
-            .realm
+            .vm
             .environments
             .push_function_inherit(num_bindings as usize, compile_environment);
         Ok(CompletionType::Normal)
@@ -69,7 +69,7 @@ impl Operation for PushObjectEnvironment {
         let object = context.vm.pop();
         let object = object.to_object(context)?;
 
-        context.realm.environments.push_object(object);
+        context.vm.environments.push_object(object);
         context.vm.frame_mut().inc_frame_env_stack();
         Ok(CompletionType::Normal)
     }

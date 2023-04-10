@@ -928,16 +928,16 @@ where
     // The corresponding object must be an intrinsic that is intended to be used
     // as the [[Prototype]] value of an object.
     // 2. Let proto be ? Get(constructor, "prototype").
-    let intrinsics = if let Some(constructor) = constructor.as_object() {
+    let realm = if let Some(constructor) = constructor.as_object() {
         if let Some(proto) = constructor.get(PROTOTYPE, context)?.as_object() {
             return Ok(proto.clone());
         }
         // 3. If Type(proto) is not Object, then
         // a. Let realm be ? GetFunctionRealm(constructor).
-        // b. Set proto to realm's intrinsic object named intrinsicDefaultProto.
         constructor.get_function_realm(context)?
     } else {
-        context.intrinsics().clone()
+        context.realm().clone()
     };
-    Ok(default(intrinsics.constructors()).prototype())
+    // b. Set proto to realm's intrinsic object named intrinsicDefaultProto.
+    Ok(default(realm.intrinsics().constructors()).prototype())
 }

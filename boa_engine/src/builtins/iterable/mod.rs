@@ -5,6 +5,7 @@ use crate::{
     context::intrinsics::Intrinsics,
     error::JsNativeError,
     object::JsObject,
+    realm::Realm,
     string::utf16,
     symbol::JsSymbol,
     Context, JsResult, JsValue,
@@ -135,10 +136,10 @@ impl IteratorPrototypes {
 pub(crate) struct Iterator;
 
 impl IntrinsicObject for Iterator {
-    fn init(intrinsics: &Intrinsics) {
+    fn init(realm: &Realm) {
         let _timer = Profiler::global().start_event("Iterator Prototype", "init");
 
-        BuiltInBuilder::with_intrinsic::<Self>(intrinsics)
+        BuiltInBuilder::with_intrinsic::<Self>(realm)
             .static_method(
                 |v, _, _| Ok(v.clone()),
                 (JsSymbol::iterator(), "[Symbol.iterator]"),
@@ -161,10 +162,10 @@ impl IntrinsicObject for Iterator {
 pub(crate) struct AsyncIterator;
 
 impl IntrinsicObject for AsyncIterator {
-    fn init(intrinsics: &Intrinsics) {
+    fn init(realm: &Realm) {
         let _timer = Profiler::global().start_event("AsyncIteratorPrototype", "init");
 
-        BuiltInBuilder::with_intrinsic::<Self>(intrinsics)
+        BuiltInBuilder::with_intrinsic::<Self>(realm)
             .static_method(
                 |v, _, _| Ok(v.clone()),
                 (JsSymbol::async_iterator(), "[Symbol.asyncIterator]"),

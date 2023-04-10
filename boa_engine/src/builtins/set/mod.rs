@@ -24,6 +24,7 @@ use crate::{
     error::JsNativeError,
     object::{internal_methods::get_prototype_from_constructor, JsObject, ObjectData},
     property::{Attribute, PropertyNameKind},
+    realm::Realm,
     string::utf16,
     symbol::JsSymbol,
     Context, JsArgs, JsResult, JsValue,
@@ -40,25 +41,25 @@ impl IntrinsicObject for Set {
     fn get(intrinsics: &Intrinsics) -> JsObject {
         Self::STANDARD_CONSTRUCTOR(intrinsics.constructors()).constructor()
     }
-    fn init(intrinsics: &Intrinsics) {
+    fn init(realm: &Realm) {
         let _timer = Profiler::global().start_event(Self::NAME, "init");
 
-        let get_species = BuiltInBuilder::new(intrinsics)
+        let get_species = BuiltInBuilder::new(realm)
             .callable(Self::get_species)
             .name("get [Symbol.species]")
             .build();
 
-        let size_getter = BuiltInBuilder::new(intrinsics)
+        let size_getter = BuiltInBuilder::new(realm)
             .callable(Self::size_getter)
             .name("get size")
             .build();
 
-        let values_function = BuiltInBuilder::new(intrinsics)
+        let values_function = BuiltInBuilder::new(realm)
             .callable(Self::values)
             .name("values")
             .build();
 
-        BuiltInBuilder::from_standard_constructor::<Self>(intrinsics)
+        BuiltInBuilder::from_standard_constructor::<Self>(realm)
             .static_accessor(
                 JsSymbol::species(),
                 Some(get_species),

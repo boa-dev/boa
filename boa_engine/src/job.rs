@@ -21,6 +21,7 @@ use std::{any::Any, cell::RefCell, collections::VecDeque, fmt::Debug, future::Fu
 
 use crate::{
     object::{JsFunction, NativeObject},
+    realm::Realm,
     Context, JsResult, JsValue,
 };
 use boa_gc::{Finalize, Trace};
@@ -66,6 +67,7 @@ pub type FutureJob = Pin<Box<dyn Future<Output = NativeJob> + 'static>>;
 pub struct NativeJob {
     #[allow(clippy::type_complexity)]
     f: Box<dyn FnOnce(&mut Context<'_>) -> JsResult<JsValue>>,
+    realm: Option<Realm>,
 }
 
 impl Debug for NativeJob {
@@ -80,12 +82,43 @@ impl NativeJob {
     where
         F: FnOnce(&mut Context<'_>) -> JsResult<JsValue> + 'static,
     {
-        Self { f: Box::new(f) }
+        Self {
+            f: Box::new(f),
+            realm: None,
+        }
+    }
+
+    /// Creates a new `NativeJob` from a closure and an execution realm.
+    pub fn with_realm<F>(f: F, realm: Realm) -> Self
+    where
+        F: FnOnce(&mut Context<'_>) -> JsResult<JsValue> + 'static,
+    {
+        Self {
+            f: Box::new(f),
+            realm: Some(realm),
+        }
+    }
+
+    /// Gets a reference to the execution realm of the job.
+    pub const fn realm(&self) -> Option<&Realm> {
+        self.realm.as_ref()
     }
 
     /// Calls the native job with the specified [`Context`].
+    ///
+    /// # Note
+    ///
+    /// If the native job has an execution realm defined, this sets the running execution
+    /// context to the realm's before calling the inner closure, and resets it after execution.
     pub fn call(self, context: &mut Context<'_>) -> JsResult<JsValue> {
-        (self.f)(context)
+        if let Some(realm) = self.realm {
+            let old_realm = context.enter_realm(realm);
+            let result = (self.f)(context);
+            context.enter_realm(old_realm);
+            result
+        } else {
+            (self.f)(context)
+        }
     }
 }
 

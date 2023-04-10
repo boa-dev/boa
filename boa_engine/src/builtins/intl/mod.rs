@@ -14,6 +14,7 @@ use crate::{
     context::{intrinsics::Intrinsics, BoaProvider},
     object::JsObject,
     property::Attribute,
+    realm::Realm,
     symbol::JsSymbol,
     Context, JsArgs, JsResult, JsValue,
 };
@@ -39,10 +40,10 @@ mod options;
 pub(crate) struct Intl;
 
 impl IntrinsicObject for Intl {
-    fn init(intrinsics: &Intrinsics) {
+    fn init(realm: &Realm) {
         let _timer = Profiler::global().start_event(Self::NAME, "init");
 
-        BuiltInBuilder::with_intrinsic::<Self>(intrinsics)
+        BuiltInBuilder::with_intrinsic::<Self>(realm)
             .static_property(
                 JsSymbol::to_string_tag(),
                 Self::NAME,
@@ -50,27 +51,35 @@ impl IntrinsicObject for Intl {
             )
             .static_property(
                 Collator::NAME,
-                intrinsics.constructors().collator().constructor(),
+                realm.intrinsics().constructors().collator().constructor(),
                 Collator::ATTRIBUTE,
             )
             .static_property(
                 ListFormat::NAME,
-                intrinsics.constructors().list_format().constructor(),
+                realm
+                    .intrinsics()
+                    .constructors()
+                    .list_format()
+                    .constructor(),
                 ListFormat::ATTRIBUTE,
             )
             .static_property(
                 Locale::NAME,
-                intrinsics.constructors().locale().constructor(),
+                realm.intrinsics().constructors().locale().constructor(),
                 Locale::ATTRIBUTE,
             )
             .static_property(
                 Segmenter::NAME,
-                intrinsics.constructors().segmenter().constructor(),
+                realm.intrinsics().constructors().segmenter().constructor(),
                 Segmenter::ATTRIBUTE,
             )
             .static_property(
                 DateTimeFormat::NAME,
-                intrinsics.constructors().date_time_format().constructor(),
+                realm
+                    .intrinsics()
+                    .constructors()
+                    .date_time_format()
+                    .constructor(),
                 DateTimeFormat::ATTRIBUTE,
             )
             .static_method(Self::get_canonical_locales, "getCanonicalLocales", 1)

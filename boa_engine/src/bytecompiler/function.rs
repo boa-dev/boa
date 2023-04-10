@@ -1,13 +1,14 @@
 use crate::{
     builtins::function::ThisMode,
     bytecompiler::ByteCompiler,
+    environments::CompileTimeEnvironment,
     vm::{BindingOpcode, CodeBlock, Opcode},
     Context,
 };
 use boa_ast::{
     declaration::Binding, function::FormalParameterList, operations::bound_names, StatementList,
 };
-use boa_gc::Gc;
+use boa_gc::{Gc, GcRefCell};
 use boa_interner::Sym;
 
 /// `FunctionCompiler` is used to compile AST functions to bytecode.
@@ -89,13 +90,14 @@ impl FunctionCompiler {
         mut self,
         parameters: &FormalParameterList,
         body: &StatementList,
+        outer_env: Gc<GcRefCell<CompileTimeEnvironment>>,
         context: &mut Context<'_>,
     ) -> Gc<CodeBlock> {
         self.strict = self.strict || body.strict();
 
         let length = parameters.length();
 
-        let mut compiler = ByteCompiler::new(self.name, self.strict, false, context);
+        let mut compiler = ByteCompiler::new(self.name, self.strict, false, outer_env, context);
         compiler.length = length;
         compiler.in_async_generator = self.generator && self.r#async;
 
@@ -104,21 +106,23 @@ impl FunctionCompiler {
         }
 
         if let Some(class_name) = self.class_name {
-            compiler.context.push_compile_time_environment(false);
-            compiler
-                .context
-                .create_immutable_binding(class_name.into(), true);
+            compiler.push_compile_environment(false);
+            compiler.create_immutable_binding(class_name.into(), true);
         }
 
         if let Some(binding_identifier) = self.binding_identifier {
             compiler.has_binding_identifier = true;
-            compiler.context.push_compile_time_environment(false);
-            compiler
-                .context
-                .create_immutable_binding(binding_identifier.into(), self.strict);
+            compiler.push_compile_environment(false);
+            compiler.create_immutable_binding(binding_identifier.into(), self.strict);
         }
 
-        compiler.context.push_compile_time_environment(true);
+        // Function environment
+        compiler.push_compile_environment(true);
+
+        // Only used to initialize bindings
+        if !self.strict && parameters.has_expressions() {
+            compiler.push_compile_environment(false);
+        };
 
         // An arguments object is added when all of the following conditions are met
         // - If not in an arrow function (10.2.11.16)
@@ -126,14 +130,14 @@ impl FunctionCompiler {
         // Note: This following just means, that we add an extra environment for the arguments.
         // - If there are default parameters or if lexical names and function names do not contain `arguments` (10.2.11.18)
         if !(self.arrow) && !parameters.has_arguments() {
-            compiler
-                .context
-                .create_mutable_binding(Sym::ARGUMENTS.into(), false, false);
-            compiler.arguments_binding = Some(
-                compiler
-                    .context
-                    .initialize_mutable_binding(Sym::ARGUMENTS.into(), false),
-            );
+            let arguments = Sym::ARGUMENTS.into();
+            compiler.arguments_binding = Some(if self.strict {
+                compiler.create_immutable_binding(arguments, true);
+                compiler.initialize_immutable_binding(arguments)
+            } else {
+                compiler.create_mutable_binding(arguments, false, false);
+                compiler.initialize_mutable_binding(arguments, false)
+            });
         }
 
         for parameter in parameters.as_ref() {
@@ -143,20 +147,18 @@ impl FunctionCompiler {
 
             match parameter.variable().binding() {
                 Binding::Identifier(ident) => {
-                    compiler
-                        .context
-                        .create_mutable_binding(*ident, false, false);
+                    compiler.create_mutable_binding(*ident, false, false);
                     // TODO: throw custom error if ident is in init
                     if let Some(init) = parameter.variable().init() {
                         let skip = compiler.emit_opcode_with_operand(Opcode::JumpIfNotUndefined);
                         compiler.compile_expr(init, true);
                         compiler.patch_jump(skip);
                     }
-                    compiler.emit_binding(BindingOpcode::InitArg, *ident);
+                    compiler.emit_binding(BindingOpcode::InitLet, *ident);
                 }
                 Binding::Pattern(pattern) => {
                     for ident in bound_names(pattern) {
-                        compiler.context.create_mutable_binding(ident, false, false);
+                        compiler.create_mutable_binding(ident, false, false);
                     }
                     // TODO: throw custom error if ident is in init
                     if let Some(init) = parameter.variable().init() {
@@ -164,7 +166,7 @@ impl FunctionCompiler {
                         compiler.compile_expr(init, true);
                         compiler.patch_jump(skip);
                     }
-                    compiler.compile_declaration_pattern(pattern, BindingOpcode::InitArg);
+                    compiler.compile_declaration_pattern(pattern, BindingOpcode::InitLet);
                 }
             }
         }
@@ -174,8 +176,7 @@ impl FunctionCompiler {
         }
 
         let env_label = if parameters.has_expressions() {
-            compiler.num_bindings = compiler.context.get_binding_number();
-            compiler.context.push_compile_time_environment(true);
+            compiler.push_compile_environment(true);
             compiler.function_environment_push_location = compiler.next_opcode_location();
             Some(compiler.emit_opcode_with_two_operands(Opcode::PushFunctionEnvironment))
         } else {
@@ -192,29 +193,24 @@ impl FunctionCompiler {
         compiler.compile_statement_list(body, false, false);
 
         if let Some(env_label) = env_label {
-            let (num_bindings, compile_environment) =
-                compiler.context.pop_compile_time_environment();
-            let index_compile_environment = compiler.push_compile_environment(compile_environment);
-            compiler.patch_jump_with_target(env_label.0, num_bindings as u32);
-            compiler.patch_jump_with_target(env_label.1, index_compile_environment as u32);
-
-            let (_, compile_environment) = compiler.context.pop_compile_time_environment();
-            compiler.push_compile_environment(compile_environment);
-        } else {
-            let (num_bindings, compile_environment) =
-                compiler.context.pop_compile_time_environment();
-            compiler.push_compile_environment(compile_environment);
-            compiler.num_bindings = num_bindings;
+            let env_info = compiler.pop_compile_environment();
+            compiler.patch_jump_with_target(env_label.0, env_info.num_bindings as u32);
+            compiler.patch_jump_with_target(env_label.1, env_info.index as u32);
         }
 
+        if !self.strict && parameters.has_expressions() {
+            compiler.parameters_env_bindings =
+                Some(compiler.pop_compile_environment().num_bindings);
+        }
+
+        compiler.num_bindings = compiler.pop_compile_environment().num_bindings;
+
         if self.binding_identifier.is_some() {
-            let (_, compile_environment) = compiler.context.pop_compile_time_environment();
-            compiler.push_compile_environment(compile_environment);
+            compiler.pop_compile_environment();
         }
 
         if self.class_name.is_some() {
-            let (_, compile_environment) = compiler.context.pop_compile_time_environment();
-            compiler.push_compile_environment(compile_environment);
+            compiler.pop_compile_environment();
         }
 
         compiler.params = parameters.clone();

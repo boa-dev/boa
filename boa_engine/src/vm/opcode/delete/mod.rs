@@ -81,7 +81,7 @@ impl Operation for DeleteName {
 
         let deleted = if binding_locator.is_global()
             && !context
-                .realm
+                .vm
                 .environments
                 .binding_in_poisoned_environment(binding_locator.name())
         {
@@ -111,7 +111,7 @@ impl Operation for DeleteName {
             deleted
         } else {
             context
-                .realm
+                .vm
                 .environments
                 .get_value_optional(
                     binding_locator.environment_index(),

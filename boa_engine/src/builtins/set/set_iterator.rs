@@ -14,6 +14,7 @@ use crate::{
     error::JsNativeError,
     object::{JsObject, ObjectData},
     property::{Attribute, PropertyNameKind},
+    realm::Realm,
     symbol::JsSymbol,
     Context, JsResult,
 };
@@ -36,11 +37,17 @@ pub struct SetIterator {
 }
 
 impl IntrinsicObject for SetIterator {
-    fn init(intrinsics: &Intrinsics) {
+    fn init(realm: &Realm) {
         let _timer = Profiler::global().start_event("SetIterator", "init");
 
-        BuiltInBuilder::with_intrinsic::<Self>(intrinsics)
-            .prototype(intrinsics.objects().iterator_prototypes().iterator())
+        BuiltInBuilder::with_intrinsic::<Self>(realm)
+            .prototype(
+                realm
+                    .intrinsics()
+                    .objects()
+                    .iterator_prototypes()
+                    .iterator(),
+            )
             .static_method(Self::next, "next", 0)
             .static_property(
                 JsSymbol::to_string_tag(),

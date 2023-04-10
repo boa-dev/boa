@@ -17,7 +17,7 @@ impl Operation for This {
     const INSTRUCTION: &'static str = "INST - This";
 
     fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
-        let env = context.realm.environments.get_this_environment();
+        let env = context.vm.environments.get_this_environment();
         match env {
             EnvironmentSlots::Function(env) => {
                 let binding_result = match env.borrow().get_this_binding() {
@@ -28,7 +28,7 @@ impl Operation for This {
                 context.vm.push(function_binding);
             }
             EnvironmentSlots::Global => {
-                let this = context.realm.global_this();
+                let this = context.realm().global_this();
                 context.vm.push(this.clone());
             }
         }
@@ -50,7 +50,7 @@ impl Operation for Super {
     fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
         let home_result = {
             let env = context
-                .realm
+                .vm
                 .environments
                 .get_this_environment()
                 .as_function_slots()
@@ -97,7 +97,7 @@ impl Operation for SuperCallPrepare {
 
     fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
         let this_env = context
-            .realm
+            .vm
             .environments
             .get_this_environment()
             .as_function_slots()
@@ -159,7 +159,7 @@ impl Operation for SuperCall {
         let result = super_constructor.__construct__(&arguments, new_target, context)?;
 
         let this_env = context
-            .realm
+            .vm
             .environments
             .get_this_environment()
             .as_function_slots()
@@ -220,7 +220,7 @@ impl Operation for SuperCallSpread {
         let result = super_constructor.__construct__(&arguments, new_target, context)?;
 
         let this_env = context
-            .realm
+            .vm
             .environments
             .get_this_environment()
             .as_function_slots()
@@ -262,7 +262,7 @@ impl Operation for SuperCallDerived {
 
         let (new_target, active_function) = {
             let this_env = context
-                .realm
+                .vm
                 .environments
                 .get_this_environment()
                 .as_function_slots()
@@ -289,7 +289,7 @@ impl Operation for SuperCallDerived {
         let result = super_constructor.__construct__(&arguments, &new_target, context)?;
 
         let this_env = context
-            .realm
+            .vm
             .environments
             .get_this_environment()
             .as_function_slots()

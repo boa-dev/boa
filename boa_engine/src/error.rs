@@ -5,6 +5,7 @@ use crate::{
     object::JsObject,
     object::ObjectData,
     property::PropertyDescriptor,
+    realm::Realm,
     string::utf16,
     Context, JsString, JsValue,
 };
@@ -75,6 +76,10 @@ pub enum TryNativeError {
     #[error("property `message` cannot contain unpaired surrogates")]
     InvalidMessageEncoding,
 
+    /// The constructor property of the error object was invalid.
+    #[error("invalid `constructor` property of Error object")]
+    InvalidConstructor,
+
     /// A property of the error object is not accessible.
     #[error("could not access property `{property}`")]
     InaccessibleProperty {
@@ -98,6 +103,13 @@ pub enum TryNativeError {
     /// The error value is not an error object.
     #[error("opaque error of type `{:?}` is not an Error object", .0.get_type())]
     NotAnErrorObject(JsValue),
+
+    /// The original realm of the error object was inaccessible.
+    #[error("could not access realm of Error object")]
+    InaccessibleRealm {
+        /// The source error.
+        source: JsError,
+    },
 }
 
 impl std::error::Error for JsError {
@@ -283,10 +295,18 @@ impl JsError {
                     }
                 };
 
+                let realm = try_get_property("constructor", context)?
+                    .as_ref()
+                    .and_then(JsValue::as_constructor)
+                    .ok_or(TryNativeError::InvalidConstructor)?
+                    .get_function_realm(context)
+                    .map_err(|err| TryNativeError::InaccessibleRealm { source: err })?;
+
                 Ok(JsNativeError {
                     kind,
                     message,
                     cause: cause.map(|v| Box::new(Self::from_opaque(v))),
+                    realm: Some(realm),
                 })
             }
         }
@@ -332,10 +352,24 @@ impl JsError {
     /// assert!(error.as_native().is_none());
     /// ```
     pub const fn as_native(&self) -> Option<&JsNativeError> {
-        match self.inner {
-            Repr::Native(ref e) => Some(e),
+        match &self.inner {
+            Repr::Native(e) => Some(e),
             Repr::Opaque(_) => None,
         }
+    }
+
+    /// Injects a realm on the `realm` field of a native error.
+    ///
+    /// This is a no-op if the error is not native or if the `realm` field of the error is already
+    /// set.
+    pub(crate) fn inject_realm(mut self, realm: Realm) -> JsError {
+        match &mut self.inner {
+            Repr::Native(err) if err.realm.is_none() => {
+                err.realm = Some(realm);
+            }
+            _ => {}
+        }
+        self
     }
 }
 
@@ -391,6 +425,7 @@ pub struct JsNativeError {
     message: Box<str>,
     #[source]
     cause: Option<Box<JsError>>,
+    realm: Option<Realm>,
 }
 
 impl JsNativeError {
@@ -400,6 +435,7 @@ impl JsNativeError {
             kind,
             message,
             cause,
+            realm: None,
         }
     }
 
@@ -642,8 +678,12 @@ impl JsNativeError {
             kind,
             message,
             cause,
+            realm,
         } = self;
-        let constructors = context.intrinsics().constructors();
+        let constructors = realm.as_ref().map_or_else(
+            || context.intrinsics().constructors(),
+            |realm| realm.intrinsics().constructors(),
+        );
         let (prototype, tag) = match kind {
             JsNativeErrorKind::Aggregate(_) => (
                 constructors.aggregate_error().prototype(),
@@ -699,6 +739,12 @@ impl JsNativeError {
             .expect("The spec guarantees this succeeds for a newly created object ");
         }
         o
+    }
+
+    /// Sets the realm of this error.
+    pub(crate) fn with_realm(mut self, realm: Realm) -> Self {
+        self.realm = Some(realm);
+        self
     }
 }
 

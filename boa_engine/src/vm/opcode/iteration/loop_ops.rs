@@ -51,11 +51,11 @@ impl Operation for LoopContinue {
             .filter(|entry| entry.exit_address() == exit)
         {
             let env_truncation_len = context
-                .realm
+                .vm
                 .environments
                 .len()
                 .saturating_sub(entry.env_num());
-            context.realm.environments.truncate(env_truncation_len);
+            context.vm.environments.truncate(env_truncation_len);
 
             context.vm.frame_mut().env_stack.pop();
         }
@@ -92,8 +92,8 @@ impl Operation for LoopEnd {
             }
         }
 
-        let env_truncation_len = context.realm.environments.len().saturating_sub(envs_to_pop);
-        context.realm.environments.truncate(env_truncation_len);
+        let env_truncation_len = context.vm.environments.len().saturating_sub(envs_to_pop);
+        context.vm.environments.truncate(env_truncation_len);
 
         Ok(CompletionType::Normal)
     }

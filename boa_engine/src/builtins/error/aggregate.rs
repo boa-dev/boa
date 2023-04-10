@@ -15,6 +15,7 @@ use crate::{
     context::intrinsics::{Intrinsics, StandardConstructor, StandardConstructors},
     object::{internal_methods::get_prototype_from_constructor, JsObject, ObjectData},
     property::{Attribute, PropertyDescriptorBuilder},
+    realm::Realm,
     string::utf16,
     Context, JsArgs, JsResult, JsValue,
 };
@@ -26,13 +27,13 @@ use super::{Error, ErrorKind};
 pub(crate) struct AggregateError;
 
 impl IntrinsicObject for AggregateError {
-    fn init(intrinsics: &Intrinsics) {
+    fn init(realm: &Realm) {
         let _timer = Profiler::global().start_event(Self::NAME, "init");
 
         let attribute = Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE;
-        BuiltInBuilder::from_standard_constructor::<Self>(intrinsics)
-            .prototype(intrinsics.constructors().error().constructor())
-            .inherits(Some(intrinsics.constructors().error().prototype()))
+        BuiltInBuilder::from_standard_constructor::<Self>(realm)
+            .prototype(realm.intrinsics().constructors().error().constructor())
+            .inherits(Some(realm.intrinsics().constructors().error().prototype()))
             .property(utf16!("name"), Self::NAME, attribute)
             .property(utf16!("message"), "", attribute)
             .build();

@@ -64,9 +64,8 @@ impl Operation for FinallyEnd {
                     context.vm.frame_mut().env_stack.pop();
                 }
 
-                let env_truncation_len =
-                    context.realm.environments.len().saturating_sub(envs_to_pop);
-                context.realm.environments.truncate(env_truncation_len);
+                let env_truncation_len = context.vm.environments.len().saturating_sub(envs_to_pop);
+                context.vm.environments.truncate(env_truncation_len);
             }
             Some(record)
                 if record.is_break() && context.vm.frame().pc < record.target() as usize =>
@@ -84,9 +83,8 @@ impl Operation for FinallyEnd {
 
                 context.vm.frame_mut().abrupt_completion = None;
 
-                let env_truncation_len =
-                    context.realm.environments.len().saturating_sub(envs_to_pop);
-                context.realm.environments.truncate(env_truncation_len);
+                let env_truncation_len = context.vm.environments.len().saturating_sub(envs_to_pop);
+                context.vm.environments.truncate(env_truncation_len);
             }
             Some(record)
                 if record.is_continue() && context.vm.frame().pc > record.target() as usize =>
@@ -102,9 +100,8 @@ impl Operation for FinallyEnd {
                 }
 
                 context.vm.frame_mut().abrupt_completion = None;
-                let env_truncation_len =
-                    context.realm.environments.len().saturating_sub(envs_to_pop);
-                context.realm.environments.truncate(env_truncation_len);
+                let env_truncation_len = context.vm.environments.len().saturating_sub(envs_to_pop);
+                context.vm.environments.truncate(env_truncation_len);
             }
             Some(record) if record.is_return() => {
                 return Ok(CompletionType::Return);
@@ -121,9 +118,8 @@ impl Operation for FinallyEnd {
                     }
                 }
                 context.vm.frame_mut().abrupt_completion = None;
-                let env_truncation_len =
-                    context.realm.environments.len().saturating_sub(envs_to_pop);
-                context.realm.environments.truncate(env_truncation_len);
+                let env_truncation_len = context.vm.environments.len().saturating_sub(envs_to_pop);
+                context.vm.environments.truncate(env_truncation_len);
             }
             Some(record) if !record.is_throw_with_target() => {
                 let current_stack = context
@@ -134,11 +130,11 @@ impl Operation for FinallyEnd {
                     .expect("Popping current finally stack.");
 
                 let env_truncation_len = context
-                    .realm
+                    .vm
                     .environments
                     .len()
                     .saturating_sub(current_stack.env_num());
-                context.realm.environments.truncate(env_truncation_len);
+                context.vm.environments.truncate(env_truncation_len);
 
                 let err = JsError::from_opaque(context.vm.pop());
                 context.vm.err = Some(err);

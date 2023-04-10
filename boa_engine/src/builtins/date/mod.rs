@@ -19,6 +19,7 @@ use crate::{
     error::JsNativeError,
     js_string,
     object::{internal_methods::get_prototype_from_constructor, JsObject, ObjectData},
+    realm::Realm,
     string::utf16,
     symbol::JsSymbol,
     value::{IntegerOrNan, JsValue, PreferredType},
@@ -100,10 +101,10 @@ impl Default for Date {
 }
 
 impl IntrinsicObject for Date {
-    fn init(intrinsics: &Intrinsics) {
+    fn init(realm: &Realm) {
         let _timer = Profiler::global().start_event(Self::NAME, "init");
 
-        BuiltInBuilder::from_standard_constructor::<Self>(intrinsics)
+        BuiltInBuilder::from_standard_constructor::<Self>(realm)
             .method(Self::get_date::<true>, "getDate", 0)
             .method(Self::get_day::<true>, "getDay", 0)
             .method(Self::get_full_year::<true>, "getFullYear", 0)

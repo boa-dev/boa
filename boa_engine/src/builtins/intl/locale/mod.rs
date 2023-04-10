@@ -1,4 +1,4 @@
-use crate::string::utf16;
+use crate::{realm::Realm, string::utf16};
 use boa_profiler::Profiler;
 use icu_collator::CaseFirst;
 use icu_datetime::options::preferences::HourCycle;
@@ -32,60 +32,60 @@ use super::options::{coerce_options_to_object, get_option};
 pub(crate) struct Locale;
 
 impl IntrinsicObject for Locale {
-    fn init(intrinsics: &Intrinsics) {
+    fn init(realm: &Realm) {
         let _timer = Profiler::global().start_event(Self::NAME, "init");
 
-        let base_name = BuiltInBuilder::new(intrinsics)
+        let base_name = BuiltInBuilder::new(realm)
             .callable(Self::base_name)
             .name("get baseName")
             .build();
 
-        let calendar = BuiltInBuilder::new(intrinsics)
+        let calendar = BuiltInBuilder::new(realm)
             .callable(Self::calendar)
             .name("get calendar")
             .build();
 
-        let case_first = BuiltInBuilder::new(intrinsics)
+        let case_first = BuiltInBuilder::new(realm)
             .callable(Self::case_first)
             .name("get caseFirst")
             .build();
 
-        let collation = BuiltInBuilder::new(intrinsics)
+        let collation = BuiltInBuilder::new(realm)
             .callable(Self::collation)
             .name("get collation")
             .build();
 
-        let hour_cycle = BuiltInBuilder::new(intrinsics)
+        let hour_cycle = BuiltInBuilder::new(realm)
             .callable(Self::hour_cycle)
             .name("get hourCycle")
             .build();
 
-        let numeric = BuiltInBuilder::new(intrinsics)
+        let numeric = BuiltInBuilder::new(realm)
             .callable(Self::numeric)
             .name("get numeric")
             .build();
 
-        let numbering_system = BuiltInBuilder::new(intrinsics)
+        let numbering_system = BuiltInBuilder::new(realm)
             .callable(Self::numbering_system)
             .name("get numberingSystem")
             .build();
 
-        let language = BuiltInBuilder::new(intrinsics)
+        let language = BuiltInBuilder::new(realm)
             .callable(Self::language)
             .name("get language")
             .build();
 
-        let script = BuiltInBuilder::new(intrinsics)
+        let script = BuiltInBuilder::new(realm)
             .callable(Self::script)
             .name("get script")
             .build();
 
-        let region = BuiltInBuilder::new(intrinsics)
+        let region = BuiltInBuilder::new(realm)
             .callable(Self::region)
             .name("get region")
             .build();
 
-        BuiltInBuilder::from_standard_constructor::<Self>(intrinsics)
+        BuiltInBuilder::from_standard_constructor::<Self>(realm)
             .property(
                 JsSymbol::to_string_tag(),
                 "Intl.Locale",

@@ -1,6 +1,4 @@
-use crate::{
-    environments::runtime::BindingLocator, property::PropertyDescriptor, Context, JsString, JsValue,
-};
+use crate::environments::runtime::BindingLocator;
 use boa_ast::expression::Identifier;
 use boa_gc::{Finalize, Gc, GcRefCell, Trace};
 
@@ -30,13 +28,24 @@ pub(crate) struct CompileTimeEnvironment {
 }
 
 impl CompileTimeEnvironment {
-    /// Crate a new global compile time environment.
+    /// Creates a new global compile time environment.
     pub(crate) fn new_global() -> Self {
         Self {
             outer: None,
             environment_index: 0,
             bindings: FxHashMap::default(),
             function_scope: true,
+        }
+    }
+
+    /// Creates a new compile time environment.
+    pub(crate) fn new(parent: Gc<GcRefCell<Self>>, function_scope: bool) -> Self {
+        let index = parent.borrow().environment_index + 1;
+        Self {
+            outer: Some(parent),
+            environment_index: index,
+            bindings: FxHashMap::default(),
+            function_scope,
         }
     }
 
@@ -198,167 +207,14 @@ impl CompileTimeEnvironment {
             ),
         }
     }
-}
 
-impl Context<'_> {
-    /// Push either a new declarative or function environment on the compile time environment stack.
-    ///
-    /// Note: This function only works at bytecode compile time!
-    pub(crate) fn push_compile_time_environment(&mut self, function_scope: bool) {
-        let environment_index = self.realm.compile_env.borrow().environment_index + 1;
-        let outer = self.realm.compile_env.clone();
-
-        self.realm.compile_env = Gc::new(GcRefCell::new(CompileTimeEnvironment {
-            outer: Some(outer),
-            environment_index,
-            bindings: FxHashMap::default(),
-            function_scope,
-        }));
+    /// Gets the outer environment of this environment.
+    pub(crate) fn outer(&self) -> Option<Gc<GcRefCell<Self>>> {
+        self.outer.clone()
     }
 
-    /// Pop the last compile time environment from the stack.
-    ///
-    /// Note: This function only works at bytecode compile time!
-    ///
-    /// # Panics
-    ///
-    /// Panics if there are no more environments that can be pop'ed.
-    pub(crate) fn pop_compile_time_environment(
-        &mut self,
-    ) -> (usize, Gc<GcRefCell<CompileTimeEnvironment>>) {
-        let current_env_borrow = self.realm.compile_env.borrow();
-        if let Some(outer) = &current_env_borrow.outer {
-            let outer_clone = outer.clone();
-            let num_bindings = current_env_borrow.num_bindings();
-            drop(current_env_borrow);
-            let current = self.realm.compile_env.clone();
-            self.realm.compile_env = outer_clone;
-            (num_bindings, current)
-        } else {
-            panic!("cannot pop global environment")
-        }
-    }
-
-    /// Get the number of bindings for the current compile time environment.
-    ///
-    /// Note: This function only works at bytecode compile time!
-    ///
-    /// # Panics
-    ///
-    /// Panics if there are no environments on the compile time environment stack.
-    pub(crate) fn get_binding_number(&self) -> usize {
-        self.realm.compile_env.borrow().num_bindings()
-    }
-
-    /// Get the binding locator of the binding at bytecode compile time.
-    ///
-    /// Note: This function only works at bytecode compile time!
-    pub(crate) fn get_binding_value(&self, name: Identifier) -> BindingLocator {
-        self.realm.compile_env.borrow().get_binding_recursive(name)
-    }
-
-    /// Return if a declarative binding exists at bytecode compile time.
-    /// This does not include bindings on the global object.
-    ///
-    /// Note: This function only works at bytecode compile time!
-    pub(crate) fn has_binding(&self, name: Identifier) -> bool {
-        self.realm.compile_env.borrow().has_binding_recursive(name)
-    }
-
-    /// Create a mutable binding at bytecode compile time.
-    /// This function returns a syntax error, if the binding is a redeclaration.
-    ///
-    /// Note: This function only works at bytecode compile time!
-    ///
-    /// # Panics
-    ///
-    /// Panics if the global environment is not function scoped.
-    pub(crate) fn create_mutable_binding(
-        &mut self,
-        name: Identifier,
-        function_scope: bool,
-        configurable: bool,
-    ) {
-        if !self
-            .realm
-            .compile_env
-            .borrow_mut()
-            .create_mutable_binding(name, function_scope)
-        {
-            let name_str = self
-                .interner()
-                .resolve_expect(name.sym())
-                .into_common::<JsString>(false);
-
-            // TODO: defer global initialization to execution time.
-            if !self
-                .global_object()
-                .has_own_property(name_str.clone(), self)
-                .unwrap_or_default()
-            {
-                self.global_object().borrow_mut().insert(
-                    name_str,
-                    PropertyDescriptor::builder()
-                        .value(JsValue::Undefined)
-                        .writable(true)
-                        .enumerable(true)
-                        .configurable(configurable)
-                        .build(),
-                );
-            }
-        }
-    }
-
-    /// Initialize a mutable binding at bytecode compile time and return it's binding locator.
-    ///
-    /// Note: This function only works at bytecode compile time!
-    pub(crate) fn initialize_mutable_binding(
-        &self,
-        name: Identifier,
-        function_scope: bool,
-    ) -> BindingLocator {
-        self.realm
-            .compile_env
-            .borrow()
-            .initialize_mutable_binding(name, function_scope)
-    }
-
-    /// Create an immutable binding at bytecode compile time.
-    /// This function returns a syntax error, if the binding is a redeclaration.
-    ///
-    /// Note: This function only works at bytecode compile time!
-    ///
-    /// # Panics
-    ///
-    /// Panics if the global environment does not exist.
-    pub(crate) fn create_immutable_binding(&mut self, name: Identifier, strict: bool) {
-        self.realm
-            .compile_env
-            .borrow_mut()
-            .create_immutable_binding(name, strict);
-    }
-
-    /// Initialize an immutable binding at bytecode compile time and return it's binding locator.
-    ///
-    /// Note: This function only works at bytecode compile time!
-    ///
-    /// # Panics
-    ///
-    /// Panics if the global environment does not exist or a the binding was not created on the current environment.
-    pub(crate) fn initialize_immutable_binding(&self, name: Identifier) -> BindingLocator {
-        self.realm
-            .compile_env
-            .borrow()
-            .initialize_immutable_binding(name)
-    }
-
-    /// Return the binding locator for a set operation on an existing binding.
-    ///
-    /// Note: This function only works at bytecode compile time!
-    pub(crate) fn set_mutable_binding(&self, name: Identifier) -> BindingLocator {
-        self.realm
-            .compile_env
-            .borrow()
-            .set_mutable_binding_recursive(name)
+    /// Gets the environment index of this environment.
+    pub(crate) const fn environment_index(&self) -> usize {
+        self.environment_index
     }
 }

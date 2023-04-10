@@ -19,29 +19,30 @@ impl ByteCompiler<'_, '_> {
     pub(crate) fn compile_class(&mut self, class: &Class, expression: bool) {
         let class_name = class.name().map_or(Sym::EMPTY_STRING, Identifier::sym);
 
-        let mut compiler = ByteCompiler::new(class_name, true, self.json_parse, self.context);
+        let mut compiler = ByteCompiler::new(
+            class_name,
+            true,
+            self.json_parse,
+            self.current_environment.clone(),
+            self.context,
+        );
 
         if let Some(class_name) = class.name() {
             if class.has_binding_identifier() {
                 compiler.has_binding_identifier = true;
-                compiler.context.push_compile_time_environment(false);
-                compiler.context.create_immutable_binding(class_name, true);
+                compiler.push_compile_environment(false);
+                compiler.create_immutable_binding(class_name, true);
             }
         }
 
-        compiler.context.push_compile_time_environment(true);
+        compiler.push_compile_environment(true);
 
         if let Some(expr) = class.constructor() {
             compiler.length = expr.parameters().length();
             compiler.params = expr.parameters().clone();
-            compiler
-                .context
-                .create_mutable_binding(Sym::ARGUMENTS.into(), false, false);
-            compiler.arguments_binding = Some(
-                compiler
-                    .context
-                    .initialize_mutable_binding(Sym::ARGUMENTS.into(), false),
-            );
+            compiler.create_mutable_binding(Sym::ARGUMENTS.into(), false, false);
+            compiler.arguments_binding =
+                Some(compiler.initialize_mutable_binding(Sym::ARGUMENTS.into(), false));
             for parameter in expr.parameters().as_ref() {
                 if parameter.is_rest_param() {
                     compiler.emit_opcode(Opcode::RestParameterInit);
@@ -49,9 +50,7 @@ impl ByteCompiler<'_, '_> {
 
                 match parameter.variable().binding() {
                     Binding::Identifier(ident) => {
-                        compiler
-                            .context
-                            .create_mutable_binding(*ident, false, false);
+                        compiler.create_mutable_binding(*ident, false, false);
                         if let Some(init) = parameter.variable().init() {
                             let skip =
                                 compiler.emit_opcode_with_operand(Opcode::JumpIfNotUndefined);
@@ -62,7 +61,7 @@ impl ByteCompiler<'_, '_> {
                     }
                     Binding::Pattern(pattern) => {
                         for ident in bound_names(pattern) {
-                            compiler.context.create_mutable_binding(ident, false, false);
+                            compiler.create_mutable_binding(ident, false, false);
                         }
                         compiler.compile_declaration_pattern(pattern, BindingOpcode::InitArg);
                     }
@@ -72,8 +71,8 @@ impl ByteCompiler<'_, '_> {
                 compiler.emit_opcode(Opcode::RestParameterPop);
             }
             let env_label = if expr.parameters().has_expressions() {
-                compiler.num_bindings = compiler.context.get_binding_number();
-                compiler.context.push_compile_time_environment(true);
+                compiler.num_bindings = compiler.current_environment.borrow().num_bindings();
+                compiler.push_compile_environment(true);
                 compiler.function_environment_push_location = compiler.next_opcode_location();
                 Some(compiler.emit_opcode_with_two_operands(Opcode::PushFunctionEnvironment))
             } else {
@@ -81,36 +80,28 @@ impl ByteCompiler<'_, '_> {
             };
             compiler.create_script_decls(expr.body(), false);
             compiler.compile_statement_list(expr.body(), false, false);
+
+            let env_info = compiler.pop_compile_environment();
+
             if let Some(env_label) = env_label {
-                let (num_bindings, compile_environment) =
-                    compiler.context.pop_compile_time_environment();
-                let index_compile_environment =
-                    compiler.push_compile_environment(compile_environment);
-                compiler.patch_jump_with_target(env_label.0, num_bindings as u32);
-                compiler.patch_jump_with_target(env_label.1, index_compile_environment as u32);
-                let (_, compile_environment) = compiler.context.pop_compile_time_environment();
-                compiler.push_compile_environment(compile_environment);
+                compiler.patch_jump_with_target(env_label.0, env_info.num_bindings as u32);
+                compiler.patch_jump_with_target(env_label.1, env_info.index as u32);
+                compiler.pop_compile_environment();
             } else {
-                let (num_bindings, compile_environment) =
-                    compiler.context.pop_compile_time_environment();
-                compiler.push_compile_environment(compile_environment);
-                compiler.num_bindings = num_bindings;
+                compiler.num_bindings = env_info.num_bindings;
                 compiler.is_class_constructor = true;
             }
         } else {
             if class.super_ref().is_some() {
                 compiler.emit_opcode(Opcode::SuperCallDerived);
             }
-            let (num_bindings, compile_environment) =
-                compiler.context.pop_compile_time_environment();
-            compiler.push_compile_environment(compile_environment);
-            compiler.num_bindings = num_bindings;
+            let env_info = compiler.pop_compile_environment();
+            compiler.num_bindings = env_info.num_bindings;
             compiler.is_class_constructor = true;
         }
 
         if class.name().is_some() && class.has_binding_identifier() {
-            let (_, compile_environment) = compiler.context.pop_compile_time_environment();
-            compiler.push_compile_environment(compile_environment);
+            compiler.pop_compile_environment();
         }
 
         compiler.emit_opcode(Opcode::PushUndefined);
@@ -266,25 +257,24 @@ impl ByteCompiler<'_, '_> {
                             self.compile_expr(name, true);
                         }
                     }
-                    let mut field_compiler =
-                        ByteCompiler::new(Sym::EMPTY_STRING, true, self.json_parse, self.context);
-                    field_compiler.context.push_compile_time_environment(false);
-                    field_compiler
-                        .context
-                        .create_immutable_binding(class_name.into(), true);
-                    field_compiler.context.push_compile_time_environment(true);
+                    let mut field_compiler = ByteCompiler::new(
+                        Sym::EMPTY_STRING,
+                        true,
+                        self.json_parse,
+                        self.current_environment.clone(),
+                        self.context,
+                    );
+                    field_compiler.push_compile_environment(false);
+                    field_compiler.create_immutable_binding(class_name.into(), true);
+                    field_compiler.push_compile_environment(true);
                     if let Some(node) = field {
                         field_compiler.compile_expr(node, true);
                     } else {
                         field_compiler.emit_opcode(Opcode::PushUndefined);
                     }
-                    let (num_bindings, compile_environment) =
-                        field_compiler.context.pop_compile_time_environment();
-                    field_compiler.push_compile_environment(compile_environment);
-                    let (_, compile_environment) =
-                        field_compiler.context.pop_compile_time_environment();
-                    field_compiler.push_compile_environment(compile_environment);
-                    field_compiler.num_bindings = num_bindings;
+                    let env_info = field_compiler.pop_compile_environment();
+                    field_compiler.pop_compile_environment();
+                    field_compiler.num_bindings = env_info.num_bindings;
                     field_compiler.emit_opcode(Opcode::Return);
 
                     let mut code = field_compiler.finish();
@@ -299,25 +289,24 @@ impl ByteCompiler<'_, '_> {
                 ClassElement::PrivateFieldDefinition(name, field) => {
                     self.emit_opcode(Opcode::Dup);
                     let name_index = self.get_or_insert_private_name(*name);
-                    let mut field_compiler =
-                        ByteCompiler::new(class_name, true, self.json_parse, self.context);
-                    field_compiler.context.push_compile_time_environment(false);
-                    field_compiler
-                        .context
-                        .create_immutable_binding(class_name.into(), true);
-                    field_compiler.context.push_compile_time_environment(true);
+                    let mut field_compiler = ByteCompiler::new(
+                        class_name,
+                        true,
+                        self.json_parse,
+                        self.current_environment.clone(),
+                        self.context,
+                    );
+                    field_compiler.push_compile_environment(false);
+                    field_compiler.create_immutable_binding(class_name.into(), true);
+                    field_compiler.push_compile_environment(true);
                     if let Some(node) = field {
                         field_compiler.compile_expr(node, true);
                     } else {
                         field_compiler.emit_opcode(Opcode::PushUndefined);
                     }
-                    let (num_bindings, compile_environment) =
-                        field_compiler.context.pop_compile_time_environment();
-                    field_compiler.push_compile_environment(compile_environment);
-                    let (_, compile_environment) =
-                        field_compiler.context.pop_compile_time_environment();
-                    field_compiler.push_compile_environment(compile_environment);
-                    field_compiler.num_bindings = num_bindings;
+                    let env_info = field_compiler.pop_compile_environment();
+                    field_compiler.pop_compile_environment();
+                    field_compiler.num_bindings = env_info.num_bindings;
                     field_compiler.emit_opcode(Opcode::Return);
 
                     let mut code = field_compiler.finish();
@@ -342,25 +331,24 @@ impl ByteCompiler<'_, '_> {
                             None
                         }
                     };
-                    let mut field_compiler =
-                        ByteCompiler::new(class_name, true, self.json_parse, self.context);
-                    field_compiler.context.push_compile_time_environment(false);
-                    field_compiler
-                        .context
-                        .create_immutable_binding(class_name.into(), true);
-                    field_compiler.context.push_compile_time_environment(true);
+                    let mut field_compiler = ByteCompiler::new(
+                        class_name,
+                        true,
+                        self.json_parse,
+                        self.current_environment.clone(),
+                        self.context,
+                    );
+                    field_compiler.push_compile_environment(false);
+                    field_compiler.create_immutable_binding(class_name.into(), true);
+                    field_compiler.push_compile_environment(true);
                     if let Some(node) = field {
                         field_compiler.compile_expr(node, true);
                     } else {
                         field_compiler.emit_opcode(Opcode::PushUndefined);
                     }
-                    let (num_bindings, compile_environment) =
-                        field_compiler.context.pop_compile_time_environment();
-                    field_compiler.push_compile_environment(compile_environment);
-                    let (_, compile_environment) =
-                        field_compiler.context.pop_compile_time_environment();
-                    field_compiler.push_compile_environment(compile_environment);
-                    field_compiler.num_bindings = num_bindings;
+                    let env_info = field_compiler.pop_compile_environment();
+                    field_compiler.pop_compile_environment();
+                    field_compiler.num_bindings = env_info.num_bindings;
                     field_compiler.emit_opcode(Opcode::Return);
 
                     let mut code = field_compiler.finish();
@@ -390,21 +378,21 @@ impl ByteCompiler<'_, '_> {
                 }
                 ClassElement::StaticBlock(statement_list) => {
                     self.emit_opcode(Opcode::Dup);
-                    let mut compiler =
-                        ByteCompiler::new(Sym::EMPTY_STRING, true, false, self.context);
-                    compiler.context.push_compile_time_environment(false);
-                    compiler
-                        .context
-                        .create_immutable_binding(class_name.into(), true);
-                    compiler.context.push_compile_time_environment(true);
+                    let mut compiler = ByteCompiler::new(
+                        Sym::EMPTY_STRING,
+                        true,
+                        false,
+                        self.current_environment.clone(),
+                        self.context,
+                    );
+                    compiler.push_compile_environment(false);
+                    compiler.create_immutable_binding(class_name.into(), true);
+                    compiler.push_compile_environment(true);
                     compiler.create_script_decls(statement_list, false);
                     compiler.compile_statement_list(statement_list, false, false);
-                    let (num_bindings, compile_environment) =
-                        compiler.context.pop_compile_time_environment();
-                    compiler.push_compile_environment(compile_environment);
-                    let (_, compile_environment) = compiler.context.pop_compile_time_environment();
-                    compiler.push_compile_environment(compile_environment);
-                    compiler.num_bindings = num_bindings;
+                    let env_info = compiler.pop_compile_environment();
+                    compiler.pop_compile_environment();
+                    compiler.num_bindings = env_info.num_bindings;
 
                     let code = Gc::new(compiler.finish());
                     let index = self.functions.len() as u32;

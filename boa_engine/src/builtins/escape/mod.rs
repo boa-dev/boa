@@ -11,7 +11,8 @@
 //! [spec]: https://tc39.es/ecma262/#sec-additional-properties-of-the-global-object
 
 use crate::{
-    context::intrinsics::Intrinsics, js_string, Context, JsArgs, JsObject, JsResult, JsValue,
+    context::intrinsics::Intrinsics, js_string, realm::Realm, Context, JsArgs, JsObject, JsResult,
+    JsValue,
 };
 
 use super::{BuiltInBuilder, BuiltInObject, IntrinsicObject};
@@ -21,8 +22,8 @@ use super::{BuiltInBuilder, BuiltInObject, IntrinsicObject};
 pub(crate) struct Escape;
 
 impl IntrinsicObject for Escape {
-    fn init(intrinsics: &Intrinsics) {
-        BuiltInBuilder::with_intrinsic::<Self>(intrinsics)
+    fn init(realm: &Realm) {
+        BuiltInBuilder::with_intrinsic::<Self>(realm)
             .callable(escape)
             .name(Self::NAME)
             .length(1)
@@ -94,8 +95,8 @@ fn escape(_: &JsValue, args: &[JsValue], context: &mut Context<'_>) -> JsResult<
 pub(crate) struct Unescape;
 
 impl IntrinsicObject for Unescape {
-    fn init(intrinsics: &Intrinsics) {
-        BuiltInBuilder::with_intrinsic::<Self>(intrinsics)
+    fn init(realm: &Realm) {
+        BuiltInBuilder::with_intrinsic::<Self>(realm)
             .callable(unescape)
             .name(Self::NAME)
             .length(1)

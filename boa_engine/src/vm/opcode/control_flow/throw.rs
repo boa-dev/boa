@@ -59,8 +59,8 @@ impl Operation for Throw {
                 context.vm.frame_mut().env_stack.pop();
             }
 
-            let env_truncation_len = context.realm.environments.len().saturating_sub(env_to_pop);
-            context.realm.environments.truncate(env_truncation_len);
+            let env_truncation_len = context.vm.environments.len().saturating_sub(env_to_pop);
+            context.vm.environments.truncate(env_truncation_len);
 
             if target_address == catch_target {
                 context.vm.frame_mut().pc = catch_target as usize;
@@ -110,8 +110,8 @@ impl Operation for Throw {
                 context.vm.frame_mut().env_stack.pop();
             }
 
-            let env_truncation_len = context.realm.environments.len().saturating_sub(env_to_pop);
-            context.realm.environments.truncate(env_truncation_len);
+            let env_truncation_len = context.vm.environments.len().saturating_sub(env_to_pop);
+            context.vm.environments.truncate(env_truncation_len);
 
             let previous_stack_size = context
                 .vm

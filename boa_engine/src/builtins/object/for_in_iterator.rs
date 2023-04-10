@@ -14,6 +14,7 @@ use crate::{
     error::JsNativeError,
     object::{JsObject, ObjectData},
     property::PropertyKey,
+    realm::Realm,
     Context, JsResult, JsString, JsValue,
 };
 use boa_gc::{Finalize, Trace};
@@ -37,11 +38,17 @@ pub struct ForInIterator {
 }
 
 impl IntrinsicObject for ForInIterator {
-    fn init(intrinsics: &Intrinsics) {
+    fn init(realm: &Realm) {
         let _timer = Profiler::global().start_event("ForInIterator", "init");
 
-        BuiltInBuilder::with_intrinsic::<Self>(intrinsics)
-            .prototype(intrinsics.objects().iterator_prototypes().iterator())
+        BuiltInBuilder::with_intrinsic::<Self>(realm)
+            .prototype(
+                realm
+                    .intrinsics()
+                    .objects()
+                    .iterator_prototypes()
+                    .iterator(),
+            )
             .static_method(Self::next, "next", 0)
             .build();
     }

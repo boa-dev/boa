@@ -22,6 +22,7 @@ use crate::{
     object::{internal_methods::get_prototype_from_constructor, JsObject, Object, ObjectData},
     object::{JsFunction, PrivateElement},
     property::{Attribute, PropertyDescriptor, PropertyKey},
+    realm::Realm,
     string::utf16,
     symbol::JsSymbol,
     value::IntegerOrInfinity,
@@ -296,7 +297,7 @@ unsafe impl Trace for FunctionKind {
 #[derive(Debug, Trace, Finalize)]
 pub struct Function {
     kind: FunctionKind,
-    realm_intrinsics: Intrinsics,
+    realm: Realm,
 }
 
 impl Function {
@@ -323,11 +324,8 @@ impl Function {
     }
 
     /// Creates a new `Function`.
-    pub(crate) fn new(kind: FunctionKind, intrinsics: Intrinsics) -> Self {
-        Self {
-            kind,
-            realm_intrinsics: intrinsics,
-        }
+    pub(crate) fn new(kind: FunctionKind, realm: Realm) -> Self {
+        Self { kind, realm }
     }
 
     /// Returns true if the function object is a derived constructor.
@@ -441,9 +439,9 @@ impl Function {
         }
     }
 
-    /// Gets the `Realm`'s intrinsic objects from where this function originates.
-    pub const fn realm_intrinsics(&self) -> &Intrinsics {
-        &self.realm_intrinsics
+    /// Gets the `Realm` from where this function originates.
+    pub const fn realm(&self) -> &Realm {
+        &self.realm
     }
 
     /// Gets a reference to the [`FunctionKind`] of the `Function`.
@@ -462,24 +460,27 @@ impl Function {
 pub struct BuiltInFunctionObject;
 
 impl IntrinsicObject for BuiltInFunctionObject {
-    fn init(intrinsics: &Intrinsics) {
+    fn init(realm: &Realm) {
         let _timer = Profiler::global().start_event("function", "init");
 
-        BuiltInBuilder::with_object(intrinsics, intrinsics.constructors().function().prototype())
-            .callable(Self::prototype)
-            .name("")
-            .length(0)
-            .build();
+        BuiltInBuilder::with_object(
+            realm,
+            realm.intrinsics().constructors().function().prototype(),
+        )
+        .callable(Self::prototype)
+        .name("")
+        .length(0)
+        .build();
 
-        let has_instance = BuiltInBuilder::new(intrinsics)
+        let has_instance = BuiltInBuilder::new(realm)
             .callable(Self::has_instance)
             .name("[Symbol.iterator]")
             .length(1)
             .build();
 
-        let throw_type_error = intrinsics.objects().throw_type_error();
+        let throw_type_error = realm.intrinsics().objects().throw_type_error();
 
-        BuiltInBuilder::from_standard_constructor::<Self>(intrinsics)
+        BuiltInBuilder::from_standard_constructor::<Self>(realm)
             .method(Self::apply, "apply", 2)
             .method(Self::bind, "bind", 1)
             .method(Self::call, "call", 1)
@@ -558,7 +559,9 @@ impl BuiltInFunctionObject {
     ) -> JsResult<JsObject> {
         // 1. Let currentRealm be the current Realm Record.
         // 2. Perform ? HostEnsureCanCompileStrings(currentRealm).
-        context.host_hooks().ensure_can_compile_strings(context)?;
+        context
+            .host_hooks()
+            .ensure_can_compile_strings(context.realm().clone(), context)?;
 
         // 3. If newTarget is undefined, set newTarget to constructor.
         let new_target = if new_target.is_undefined() {
@@ -731,9 +734,14 @@ impl BuiltInFunctionObject {
                 .name(Sym::ANONYMOUS)
                 .generator(generator)
                 .r#async(r#async)
-                .compile(&parameters, &body, context);
+                .compile(
+                    &parameters,
+                    &body,
+                    context.realm().environment().compile_env(),
+                    context,
+                );
 
-            let environments = context.realm.environments.pop_to_global();
+            let environments = context.vm.environments.pop_to_global();
 
             let function_object = if generator {
                 crate::vm::create_generator_function_object(
@@ -754,7 +762,7 @@ impl BuiltInFunctionObject {
                 )
             };
 
-            context.realm.environments.extend(environments);
+            context.vm.environments.extend(environments);
 
             Ok(function_object)
         } else if generator {
@@ -764,10 +772,11 @@ impl BuiltInFunctionObject {
                 .compile(
                     &FormalParameterList::default(),
                     &StatementList::default(),
+                    context.realm().environment().compile_env(),
                     context,
                 );
 
-            let environments = context.realm.environments.pop_to_global();
+            let environments = context.vm.environments.pop_to_global();
             let function_object = crate::vm::create_generator_function_object(
                 code,
                 r#async,
@@ -775,17 +784,18 @@ impl BuiltInFunctionObject {
                 Some(prototype),
                 context,
             );
-            context.realm.environments.extend(environments);
+            context.vm.environments.extend(environments);
 
             Ok(function_object)
         } else {
             let code = FunctionCompiler::new().name(Sym::ANONYMOUS).compile(
                 &FormalParameterList::default(),
                 &StatementList::default(),
+                context.realm().environment().compile_env(),
                 context,
             );
 
-            let environments = context.realm.environments.pop_to_global();
+            let environments = context.vm.environments.pop_to_global();
             let function_object = crate::vm::create_function_object(
                 code,
                 r#async,
@@ -794,7 +804,7 @@ impl BuiltInFunctionObject {
                 false,
                 context,
             );
-            context.realm.environments.extend(environments);
+            context.vm.environments.extend(environments);
 
             Ok(function_object)
         }

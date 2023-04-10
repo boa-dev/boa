@@ -15,6 +15,7 @@ use crate::{
     native_function::NativeFunction,
     object::{FunctionObjectBuilder, JsObject, CONSTRUCTOR},
     property::Attribute,
+    realm::Realm,
     symbol::JsSymbol,
     value::JsValue,
     vm::GeneratorResumeKind,
@@ -66,11 +67,17 @@ pub struct AsyncGenerator {
 }
 
 impl IntrinsicObject for AsyncGenerator {
-    fn init(intrinsics: &Intrinsics) {
+    fn init(realm: &Realm) {
         let _timer = Profiler::global().start_event(Self::NAME, "init");
 
-        BuiltInBuilder::with_intrinsic::<Self>(intrinsics)
-            .prototype(intrinsics.objects().iterator_prototypes().async_iterator())
+        BuiltInBuilder::with_intrinsic::<Self>(realm)
+            .prototype(
+                realm
+                    .intrinsics()
+                    .objects()
+                    .iterator_prototypes()
+                    .async_iterator(),
+            )
             .static_method(Self::next, "next", 1)
             .static_method(Self::r#return, "return", 1)
             .static_method(Self::throw, "throw", 1)
@@ -81,7 +88,8 @@ impl IntrinsicObject for AsyncGenerator {
             )
             .static_property(
                 CONSTRUCTOR,
-                intrinsics
+                realm
+                    .intrinsics()
                     .constructors()
                     .async_generator_function()
                     .prototype(),
@@ -399,6 +407,7 @@ impl AsyncGenerator {
         next: &AsyncGeneratorRequest,
         completion: JsResult<JsValue>,
         done: bool,
+        realm: Option<Realm>,
         context: &mut Context<'_>,
     ) {
         // 1. Let queue be generator.[[AsyncGeneratorQueue]].
@@ -422,15 +431,24 @@ impl AsyncGenerator {
             Ok(value) => {
                 // a. Assert: completion.[[Type]] is normal.
 
-                // TODO: Realm handling not implemented yet.
                 // b. If realm is present, then
-                // i. Let oldRealm be the running execution context's Realm.
-                // ii. Set the running execution context's Realm to realm.
-                // iii. Let iteratorResult be CreateIterResultObject(value, done).
-                // iv. Set the running execution context's Realm to oldRealm.
-                // c. Else,
-                // i. Let iteratorResult be CreateIterResultObject(value, done).
-                let iterator_result = create_iter_result_object(value, done, context);
+                let iterator_result = if let Some(realm) = realm {
+                    // i. Let oldRealm be the running execution context's Realm.
+                    // ii. Set the running execution context's Realm to realm.
+                    let old_realm = context.enter_realm(realm);
+
+                    // iii. Let iteratorResult be CreateIterResultObject(value, done).
+                    let iterator_result = create_iter_result_object(value, done, context);
+
+                    // iv. Set the running execution context's Realm to oldRealm.
+                    context.enter_realm(old_realm);
+
+                    iterator_result
+                } else {
+                    // c. Else,
+                    // i. Let iteratorResult be CreateIterResultObject(value, done).
+                    create_iter_result_object(value, done, context)
+                };
 
                 // d. Perform ! Call(promiseCapability.[[Resolve]], undefined, « iteratorResult »).
                 promise_capability
@@ -474,7 +492,7 @@ impl AsyncGenerator {
 
         // 6. Push genContext onto the execution context stack; genContext is now the running execution context.
         std::mem::swap(
-            &mut context.realm.environments,
+            &mut context.vm.environments,
             &mut generator_context.environments,
         );
         std::mem::swap(&mut context.vm.stack, &mut generator_context.stack);
@@ -482,10 +500,7 @@ impl AsyncGenerator {
             &mut context.vm.active_function,
             &mut generator_context.active_function,
         );
-        std::mem::swap(
-            &mut context.realm.intrinsics,
-            &mut generator_context.realm_intrinsics,
-        );
+        let old_realm = context.enter_realm(generator_context.realm.clone());
 
         context.vm.push_frame(generator_context.call_frame.clone());
 
@@ -508,7 +523,7 @@ impl AsyncGenerator {
         let result = context.run();
 
         std::mem::swap(
-            &mut context.realm.environments,
+            &mut context.vm.environments,
             &mut generator_context.environments,
         );
         std::mem::swap(&mut context.vm.stack, &mut generator_context.stack);
@@ -517,10 +532,7 @@ impl AsyncGenerator {
             &mut context.vm.active_function,
             &mut generator_context.active_function,
         );
-        std::mem::swap(
-            &mut context.realm.intrinsics,
-            &mut generator_context.realm_intrinsics,
-        );
+        context.enter_realm(old_realm);
 
         generator
             .borrow_mut()
@@ -575,7 +587,7 @@ impl AsyncGenerator {
                 gen.context = None;
                 let next = gen.queue.pop_front().expect("queue must not be empty");
                 drop(generator_borrow_mut);
-                Self::complete_step(&next, Err(value), true, context);
+                Self::complete_step(&next, Err(value), true, None, context);
                 Self::drain_queue(&generator, context);
                 return;
             }
@@ -604,7 +616,7 @@ impl AsyncGenerator {
                     let result = Ok(args.get_or_undefined(0).clone());
 
                     // c. Perform AsyncGeneratorCompleteStep(generator, result, true).
-                    Self::complete_step(&next, result, true, context);
+                    Self::complete_step(&next, result, true, None, context);
 
                     // d. Perform AsyncGeneratorDrainQueue(generator).
                     Self::drain_queue(generator, context);
@@ -640,7 +652,7 @@ impl AsyncGenerator {
                     // c. Perform AsyncGeneratorCompleteStep(generator, result, true).
                     let next = gen.queue.pop_front().expect("must have one entry");
                     drop(generator_borrow_mut);
-                    Self::complete_step(&next, result, true, context);
+                    Self::complete_step(&next, result, true, None, context);
 
                     // d. Perform AsyncGeneratorDrainQueue(generator).
                     Self::drain_queue(generator, context);
@@ -721,7 +733,7 @@ impl AsyncGenerator {
 
                     // ii. Perform AsyncGeneratorCompleteStep(generator, completion, true).
                     let next = queue.pop_front().expect("must have entry");
-                    Self::complete_step(&next, completion, true, context);
+                    Self::complete_step(&next, completion, true, None, context);
 
                     // iii. If queue is empty, set done to true.
                     if queue.is_empty() {

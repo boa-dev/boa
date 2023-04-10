@@ -10,12 +10,15 @@
 //! [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/eval
 
 use crate::{
-    builtins::BuiltInObject, context::intrinsics::Intrinsics, environments::Environment,
-    error::JsNativeError, object::JsObject, Context, JsArgs, JsResult, JsString, JsValue,
+    builtins::BuiltInObject, bytecompiler::ByteCompiler, context::intrinsics::Intrinsics,
+    environments::Environment, error::JsNativeError, object::JsObject, realm::Realm, Context,
+    JsArgs, JsResult, JsString, JsValue,
 };
 use boa_ast::operations::{
     contains, contains_arguments, top_level_var_declared_names, ContainsSymbol,
 };
+use boa_gc::Gc;
+use boa_interner::Sym;
 use boa_parser::{Parser, Source};
 use boa_profiler::Profiler;
 
@@ -25,10 +28,10 @@ use super::{BuiltInBuilder, IntrinsicObject};
 pub(crate) struct Eval;
 
 impl IntrinsicObject for Eval {
-    fn init(intrinsics: &Intrinsics) {
+    fn init(realm: &Realm) {
         let _timer = Profiler::global().start_event(Self::NAME, "init");
 
-        BuiltInBuilder::with_intrinsic::<Self>(intrinsics)
+        BuiltInBuilder::with_intrinsic::<Self>(realm)
             .callable(Self::eval)
             .name(Self::NAME)
             .length(1)
@@ -91,12 +94,12 @@ impl Eval {
         fn restore_environment(context: &mut Context<'_>, action: EnvStackAction) {
             match action {
                 EnvStackAction::Truncate(size) => {
-                    context.realm.environments.truncate(size);
+                    context.vm.environments.truncate(size);
                 }
                 EnvStackAction::Restore(envs) => {
                     // Pop all environments created during the eval execution and restore the original stack.
-                    context.realm.environments.truncate(1);
-                    context.realm.environments.extend(envs);
+                    context.vm.environments.truncate(1);
+                    context.vm.environments.extend(envs);
                 }
             }
         }
@@ -112,8 +115,13 @@ impl Eval {
 
         // Because of implementation details the following code differs from the spec.
 
+        // 3. Let evalRealm be the current Realm Record.
+        // 4. NOTE: In the case of a direct eval, evalRealm is the realm of both the caller of eval
+        // and of the eval function itself.
         // 5. Perform ? HostEnsureCanCompileStrings(evalRealm).
-        context.host_hooks().ensure_can_compile_strings(context)?;
+        context
+            .host_hooks()
+            .ensure_can_compile_strings(context.realm().clone(), context)?;
 
         // 11. Perform the following substeps in an implementation-defined order, possibly interleaving parsing and error detection:
         //     a. Let script be ParseText(StringToCodePoints(x), Script).
@@ -132,7 +140,7 @@ impl Eval {
         // 9. Let inClassFieldInitializer be false.
         // a. Let thisEnvRec be GetThisEnvironment().
         let flags = match context
-            .realm
+            .vm
             .environments
             .get_this_environment()
             .as_function_slots()
@@ -203,28 +211,21 @@ impl Eval {
         let action = if direct {
             // If the call to eval is direct, the code is executed in the current environment.
 
-            // Poison the current environment, because it may contain new declarations after/during eval.
+            // Poison the last parent function environment, because it may contain new declarations after/during eval.
             if !strict {
-                context.realm.environments.poison_current();
+                context.vm.environments.poison_last_function();
             }
 
             // Set the compile time environment to the current running environment and save the number of current environments.
-            context.realm.compile_env = context.realm.environments.current_compile_environment();
-            let environments_len = context.realm.environments.len();
+            let environments_len = context.vm.environments.len();
 
             // Pop any added runtime environments that were not removed during the eval execution.
             EnvStackAction::Truncate(environments_len)
         } else {
             // If the call to eval is indirect, the code is executed in the global environment.
 
-            // Poison all environments, because the global environment may contain new declarations after/during eval.
-            if !strict {
-                context.realm.environments.poison_all();
-            }
-
             // Pop all environments before the eval execution.
-            let environments = context.realm.environments.pop_to_global();
-            context.realm.compile_env = context.realm.environments.current_compile_environment();
+            let environments = context.vm.environments.pop_to_global();
 
             // Restore all environments to the state from before the eval execution.
             EnvStackAction::Restore(environments)
@@ -235,7 +236,7 @@ impl Eval {
         if !strict {
             // Error if any var declaration in the eval code already exists as a let/const declaration in the current running environment.
             if let Some(name) = context
-                .realm
+                .vm
                 .environments
                 .has_lex_binding_until_function_environment(&top_level_var_declared_names(&body))
             {
@@ -249,16 +250,23 @@ impl Eval {
         // TODO: check if private identifiers inside `eval` are valid.
 
         // Compile and execute the eval statement list.
-        let code_block = context.compile_with_new_declarative(&body, strict);
+        let code_block = {
+            let mut compiler = ByteCompiler::new(
+                Sym::MAIN,
+                body.strict(),
+                false,
+                context.vm.environments.current_compile_environment(),
+                context,
+            );
+            compiler.compile_statement_list_with_new_declarative(&body, true, strict);
+            Gc::new(compiler.finish())
+        };
         // Indirect calls don't need extensions, because a non-strict indirect call modifies only
         // the global object.
         // Strict direct calls also don't need extensions, since all strict eval calls push a new
         // function environment before evaluating.
         if direct && !strict {
-            context
-                .realm
-                .environments
-                .extend_outer_function_environment();
+            context.vm.environments.extend_outer_function_environment();
         }
         let result = context.execute(code_block);
 

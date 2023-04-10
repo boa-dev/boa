@@ -13,7 +13,8 @@
 
 use crate::{
     builtins::BuiltInObject, context::intrinsics::Intrinsics, object::JsObject,
-    property::Attribute, string::utf16, symbol::JsSymbol, Context, JsArgs, JsResult, JsValue,
+    property::Attribute, realm::Realm, string::utf16, symbol::JsSymbol, Context, JsArgs, JsResult,
+    JsValue,
 };
 use boa_profiler::Profiler;
 
@@ -27,11 +28,11 @@ mod tests;
 pub(crate) struct Math;
 
 impl IntrinsicObject for Math {
-    fn init(intrinsics: &Intrinsics) {
+    fn init(realm: &Realm) {
         let _timer = Profiler::global().start_event(Self::NAME, "init");
 
         let attribute = Attribute::READONLY | Attribute::NON_ENUMERABLE | Attribute::PERMANENT;
-        BuiltInBuilder::with_intrinsic::<Self>(intrinsics)
+        BuiltInBuilder::with_intrinsic::<Self>(realm)
             .static_property(utf16!("E"), std::f64::consts::E, attribute)
             .static_property(utf16!("LN10"), std::f64::consts::LN_10, attribute)
             .static_property(utf16!("LN2"), std::f64::consts::LN_2, attribute)

@@ -38,6 +38,29 @@ pub(crate) struct DeclarativeEnvironment {
     slots: Option<EnvironmentSlots>,
 }
 
+impl DeclarativeEnvironment {
+    /// Creates a new, global `DeclarativeEnvironment`.
+    pub(crate) fn new_global() -> Self {
+        DeclarativeEnvironment {
+            bindings: GcRefCell::new(Vec::new()),
+            compile: Gc::new(GcRefCell::new(CompileTimeEnvironment::new_global())),
+            poisoned: Cell::new(false),
+            with: Cell::new(false),
+            slots: Some(EnvironmentSlots::Global),
+        }
+    }
+
+    /// Gets the compile time environment of this environment.
+    pub(crate) fn compile_env(&self) -> Gc<GcRefCell<CompileTimeEnvironment>> {
+        self.compile.clone()
+    }
+
+    /// Gets the bindings of this environment.
+    pub(crate) const fn bindings(&self) -> &GcRefCell<Vec<Option<JsValue>>> {
+        &self.bindings
+    }
+}
+
 /// Describes the different types of internal slot data that an environment can hold.
 #[derive(Clone, Debug, Trace, Finalize)]
 pub(crate) enum EnvironmentSlots {
@@ -250,17 +273,16 @@ impl Environment {
 }
 
 impl DeclarativeEnvironmentStack {
-    /// Create a new environment stack with the most outer declarative environment.
-    pub(crate) fn new(global_compile_environment: Gc<GcRefCell<CompileTimeEnvironment>>) -> Self {
+    /// Create a new environment stack.
+    pub(crate) fn new(global: Gc<DeclarativeEnvironment>) -> Self {
         Self {
-            stack: Vec::from([Environment::Declarative(Gc::new(DeclarativeEnvironment {
-                bindings: GcRefCell::new(Vec::new()),
-                compile: global_compile_environment,
-                poisoned: Cell::new(false),
-                with: Cell::new(false),
-                slots: Some(EnvironmentSlots::Global),
-            }))]),
+            stack: vec![Environment::Declarative(global)],
         }
+    }
+
+    /// Replaces the current global with a new global environment.
+    pub(crate) fn replace_global(&mut self, global: Gc<DeclarativeEnvironment>) {
+        self.stack[0] = Environment::Declarative(global);
     }
 
     /// Extends the length of the next outer function environment to the number of compiled bindings.
@@ -333,23 +355,6 @@ impl DeclarativeEnvironmentStack {
         self.stack.extend(other);
     }
 
-    /// Set the number of bindings on the global environment.
-    ///
-    /// # Panics
-    ///
-    /// Panics if no environment exists on the stack.
-    pub(crate) fn set_global_binding_number(&mut self, binding_number: usize) {
-        let environment = self
-            .stack
-            .get(0)
-            .and_then(Environment::as_declarative)
-            .expect("global environment must be declarative and exist");
-        let mut bindings = environment.bindings.borrow_mut();
-        if bindings.len() < binding_number {
-            bindings.resize(binding_number, None);
-        }
-    }
-
     /// `GetThisEnvironment`
     ///
     /// Returns the environment that currently provides a `this` biding.
@@ -396,6 +401,7 @@ impl DeclarativeEnvironmentStack {
     /// # Panics
     ///
     /// Panics if no environment exists on the stack.
+    #[track_caller]
     pub(crate) fn push_declarative(
         &mut self,
         num_bindings: usize,
@@ -437,6 +443,7 @@ impl DeclarativeEnvironmentStack {
     /// # Panics
     ///
     /// Panics if no environment exists on the stack.
+    #[track_caller]
     pub(crate) fn push_function(
         &mut self,
         num_bindings: usize,
@@ -488,16 +495,23 @@ impl DeclarativeEnvironmentStack {
             })));
     }
 
-    /// Push a function environment that inherits it's internal slots from the outer environment.
+    /// Push a function environment that inherits it's internal slots from the outer function
+    /// environment.
     ///
     /// # Panics
     ///
     /// Panics if no environment exists on the stack.
+    #[track_caller]
     pub(crate) fn push_function_inherit(
         &mut self,
         num_bindings: usize,
         compile_environment: Gc<GcRefCell<CompileTimeEnvironment>>,
     ) {
+        debug_assert!(
+            self.stack.len() == compile_environment.borrow().environment_index(),
+            "tried to push an invalid compile environment"
+        );
+
         let (poisoned, with, slots) = {
             let with = self
                 .stack
@@ -510,6 +524,7 @@ impl DeclarativeEnvironmentStack {
                 .stack
                 .iter()
                 .filter_map(Environment::as_declarative)
+                .filter(|e| e.slots().is_some())
                 .last()
                 .expect("global environment must always exist");
             (
@@ -585,29 +600,15 @@ impl DeclarativeEnvironmentStack {
             .clone()
     }
 
-    /// Mark that there may be added bindings in the current environment.
-    ///
-    /// # Panics
-    ///
-    /// Panics if no environment exists on the stack.
-    pub(crate) fn poison_current(&mut self) {
-        self.stack
-            .iter()
-            .filter_map(Environment::as_declarative)
-            .last()
-            .expect("global environment must always exist")
-            .poisoned
-            .set(true);
-    }
-
-    /// Mark that there may be added binding in all environments.
-    pub(crate) fn poison_all(&mut self) {
-        for env in &mut self.stack {
+    /// Mark that there may be added bindings from the current environment to the next function
+    /// environment.
+    pub(crate) fn poison_last_function(&mut self) {
+        for env in self.stack.iter_mut().rev() {
             if let Some(env) = env.as_declarative() {
-                if env.poisoned.get() {
+                if env.compile_env().borrow().is_function() {
+                    env.poisoned.set(true);
                     return;
                 }
-                env.poisoned.set(true);
             }
         }
     }
@@ -661,6 +662,7 @@ impl DeclarativeEnvironmentStack {
     /// # Panics
     ///
     /// Panics if the environment or binding index are out of range.
+    #[track_caller]
     pub(crate) fn put_value(
         &mut self,
         environment_index: usize,
@@ -685,6 +687,7 @@ impl DeclarativeEnvironmentStack {
     /// # Panics
     ///
     /// Panics if the environment or binding index are out of range.
+    #[track_caller]
     pub(crate) fn put_value_if_uninitialized(
         &mut self,
         environment_index: usize,
@@ -858,7 +861,7 @@ impl Context<'_> {
         mut binding_index: usize,
         name: Identifier,
     ) -> JsResult<Option<JsValue>> {
-        for env_index in (environment_index + 1..self.realm.environments.stack.len()).rev() {
+        for env_index in (environment_index + 1..self.vm.environments.stack.len()).rev() {
             match self.environment_expect(env_index) {
                 Environment::Declarative(env) => {
                     if env.poisoned.get() {
@@ -911,7 +914,7 @@ impl Context<'_> {
         &mut self,
         name: Identifier,
     ) -> JsResult<Option<JsValue>> {
-        for env_index in (0..self.realm.environments.stack.len()).rev() {
+        for env_index in (0..self.vm.environments.stack.len()).rev() {
             let env = self.environment_expect(env_index);
 
             match env {
@@ -969,7 +972,7 @@ impl Context<'_> {
         name: Identifier,
         value: JsValue,
     ) -> JsResult<bool> {
-        for env_index in (environment_index + 1..self.realm.environments.stack.len()).rev() {
+        for env_index in (environment_index + 1..self.vm.environments.stack.len()).rev() {
             let env = self.environment_expect(env_index);
 
             match env {
@@ -1035,7 +1038,7 @@ impl Context<'_> {
         name: Identifier,
         value: &JsValue,
     ) -> JsResult<bool> {
-        for env_index in (0..self.realm.environments.stack.len()).rev() {
+        for env_index in (0..self.vm.environments.stack.len()).rev() {
             let env = self.environment_expect(env_index);
 
             match env {
@@ -1089,7 +1092,7 @@ impl Context<'_> {
         &mut self,
         name: Identifier,
     ) -> JsResult<(bool, bool)> {
-        for env_index in (0..self.realm.environments.stack.len()).rev() {
+        for env_index in (0..self.vm.environments.stack.len()).rev() {
             let env = self.environment_expect(env_index);
 
             match env {
@@ -1122,7 +1125,7 @@ impl Context<'_> {
 
     /// Return the environment at the given index. Panics if the index is out of range.
     fn environment_expect(&self, index: usize) -> &Environment {
-        self.realm
+        self.vm
             .environments
             .stack
             .get(index)
