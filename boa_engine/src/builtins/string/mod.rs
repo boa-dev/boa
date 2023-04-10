@@ -2161,7 +2161,12 @@ impl String {
         _: &[JsValue],
         context: &mut Context<'_>,
     ) -> JsResult<JsValue> {
-        Ok(StringIterator::create_string_iterator(this.clone(), context).into())
+        // 1. Let O be ? RequireObjectCoercible(this value).
+        let o = this.require_object_coercible()?;
+        // 2. Let s be ? ToString(O).
+        let s = o.to_string(context)?;
+
+        Ok(StringIterator::create_string_iterator(s, context).into())
     }
 }
 

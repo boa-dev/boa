@@ -543,6 +543,7 @@ impl ObjectData {
     }
 
     /// Create the `StringIterator` object data
+    #[must_use]
     pub fn string_iterator(string_iterator: StringIterator) -> Self {
         Self {
             kind: ObjectKind::StringIterator(string_iterator),
