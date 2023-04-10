@@ -2391,6 +2391,10 @@
 <a href="#2390" id="2390">2390</a>
 <a href="#2391" id="2391">2391</a>
 <a href="#2392" id="2392">2392</a>
+<a href="#2393" id="2393">2393</a>
+<a href="#2394" id="2394">2394</a>
+<a href="#2395" id="2395">2395</a>
+<a href="#2396" id="2396">2396</a>
 </pre><pre class="rust"><code><span class="doccomment">//! Boa&#39;s implementation of ECMAScript&#39;s global `String` object.
 //!
 //! The `String` global object is a constructor for strings or a sequence of characters.
@@ -3323,11 +3327,16 @@
         args: <span class="kw-2">&amp;</span>[JsValue],
         context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
     ) -&gt; JsResult&lt;JsValue&gt; {
+        <span class="comment">// Helper enum.
+        </span><span class="kw">enum </span>CallableOrString&lt;<span class="lifetime">&#39;a</span>&gt; {
+            FunctionalReplace(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>JsObject),
+            ReplaceValue(JsString),
+        }
+
         <span class="comment">// 1. Let O be ? RequireObjectCoercible(this value).
-        </span>this.require_object_coercible()<span class="question-mark">?</span>;
+        </span><span class="kw">let </span>o = this.require_object_coercible()<span class="question-mark">?</span>;
 
         <span class="kw">let </span>search_value = args.get_or_undefined(<span class="number">0</span>);
-
         <span class="kw">let </span>replace_value = args.get_or_undefined(<span class="number">1</span>);
 
         <span class="comment">// 2. If searchValue is neither undefined nor null, then
@@ -3338,73 +3347,72 @@
             <span class="comment">// b. If replacer is not undefined, then
             </span><span class="kw">if let </span><span class="prelude-val">Some</span>(replacer) = replacer {
                 <span class="comment">// i. Return ? Call(replacer, searchValue, « O, replaceValue »).
-                </span><span class="kw">return </span>replacer.call(
-                    search_value,
-                    <span class="kw-2">&amp;</span>[this.clone(), replace_value.clone()],
-                    context,
-                );
+                </span><span class="kw">return </span>replacer.call(search_value, <span class="kw-2">&amp;</span>[o.clone(), replace_value.clone()], context);
             }
         }
 
         <span class="comment">// 3. Let string be ? ToString(O).
-        </span><span class="kw">let </span>this_str = this.to_string(context)<span class="question-mark">?</span>;
+        </span><span class="kw">let </span>string = o.to_string(context)<span class="question-mark">?</span>;
 
         <span class="comment">// 4. Let searchString be ? ToString(searchValue).
-        </span><span class="kw">let </span>search_str = search_value.to_string(context)<span class="question-mark">?</span>;
+        </span><span class="kw">let </span>search_string = search_value.to_string(context)<span class="question-mark">?</span>;
 
         <span class="comment">// 5. Let functionalReplace be IsCallable(replaceValue).
-        </span><span class="kw">let </span>replace_obj = replace_value.as_callable();
+        </span><span class="kw">let </span>functional_replace = replace_value.as_callable();
 
         <span class="comment">// 6. If functionalReplace is false, then
-        // a. Set replaceValue to ? ToString(replaceValue).
+        </span><span class="kw">let </span>replace_value = <span class="kw">if let </span><span class="prelude-val">Some</span>(callable) = functional_replace {
+            CallableOrString::FunctionalReplace(callable)
+        } <span class="kw">else </span>{
+            <span class="comment">// a. Set replaceValue to ? ToString(replaceValue).
+            </span>CallableOrString::ReplaceValue(replace_value.to_string(context)<span class="question-mark">?</span>)
+        };
 
-        // 7. Let searchLength be the length of searchString.
-        </span><span class="kw">let </span>search_length = search_str.len();
+        <span class="comment">// 7. Let searchLength be the length of searchString.
+        </span><span class="kw">let </span>search_length = search_string.len();
 
         <span class="comment">// 8. Let position be ! StringIndexOf(string, searchString, 0).
         // 9. If position is -1, return string.
-        </span><span class="kw">let </span><span class="prelude-val">Some</span>(position) = this_str.index_of(<span class="kw-2">&amp;</span>search_str, <span class="number">0</span>) <span class="kw">else </span>{
-            <span class="kw">return </span><span class="prelude-val">Ok</span>(this_str.into());
+        </span><span class="kw">let </span><span class="prelude-val">Some</span>(position) = string.index_of(<span class="kw-2">&amp;</span>search_string, <span class="number">0</span>) <span class="kw">else </span>{
+            <span class="kw">return </span><span class="prelude-val">Ok</span>(string.into());
         };
 
         <span class="comment">// 10. Let preserved be the substring of string from 0 to position.
-        </span><span class="kw">let </span>preserved = <span class="kw-2">&amp;</span>this_str[..position];
+        </span><span class="kw">let </span>preserved = <span class="kw-2">&amp;</span>string[..position];
 
-        <span class="comment">// 11. If functionalReplace is true, then
-        // 12. Else,
-        </span><span class="kw">let </span>replacement = <span class="kw">if let </span><span class="prelude-val">Some</span>(replace_fn) = replace_obj {
-            <span class="comment">// a. Let replacement be ? ToString(? Call(replaceValue, undefined, « searchString, 𝔽(position), string »)).
-            </span>replace_fn
-                .call(
+        <span class="kw">let </span>replacement = <span class="kw">match </span>replace_value {
+            <span class="comment">// 11. If functionalReplace is true, then
+            </span>CallableOrString::FunctionalReplace(replace_fn) =&gt; {
+                <span class="comment">// a. Let replacement be ? ToString(? Call(replaceValue, undefined, « searchString, 𝔽(position), string »)).
+                </span>replace_fn
+                    .call(
+                        <span class="kw-2">&amp;</span>JsValue::undefined(),
+                        <span class="kw-2">&amp;</span>[search_string.into(), position.into(), string.clone().into()],
+                        context,
+                    )<span class="question-mark">?
+                    </span>.to_string(context)<span class="question-mark">?
+            </span>}
+            <span class="comment">// 12. Else,
+            </span>CallableOrString::ReplaceValue(replace_value) =&gt; {
+                <span class="comment">// a. Assert: Type(replaceValue) is String.
+                // b. Let captures be a new empty List.
+                </span><span class="kw">let </span>captures = Vec::new();
+
+                <span class="comment">// c. Let replacement be ! GetSubstitution(searchString, string, position, captures, undefined, replaceValue).
+                </span>get_substitution(
+                    <span class="kw-2">&amp;</span>search_string,
+                    <span class="kw-2">&amp;</span>string,
+                    position,
+                    <span class="kw-2">&amp;</span>captures,
                     <span class="kw-2">&amp;</span>JsValue::undefined(),
-                    <span class="kw-2">&amp;</span>[search_str.into(), position.into(), this_str.clone().into()],
+                    <span class="kw-2">&amp;</span>replace_value,
                     context,
                 )<span class="question-mark">?
-                </span>.to_string(context)<span class="question-mark">?
-        </span>} <span class="kw">else </span>{
-            <span class="comment">// a. Assert: Type(replaceValue) is String.
-            // b. Let captures be a new empty List.
-            </span><span class="kw">let </span>captures = Vec::new();
-
-            <span class="comment">// c. Let replacement be ! GetSubstitution(searchString, string, position, captures, undefined, replaceValue).
-            </span>get_substitution(
-                <span class="kw-2">&amp;</span>search_str,
-                <span class="kw-2">&amp;</span>this_str,
-                position,
-                <span class="kw-2">&amp;</span>captures,
-                <span class="kw-2">&amp;</span>JsValue::undefined(),
-                <span class="kw-2">&amp;</span>replace_value.to_string(context)<span class="question-mark">?</span>,
-                context,
-            )<span class="question-mark">?
-        </span>};
+            </span>}
+        };
 
         <span class="comment">// 13. Return the string-concatenation of preserved, replacement, and the substring of string from position + searchLength.
-        </span><span class="prelude-val">Ok</span>(<span class="macro">js_string!</span>(
-            preserved,
-            <span class="kw-2">&amp;</span>replacement,
-            <span class="kw-2">&amp;</span>this_str[position + search_length..]
-        )
-        .into())
+        </span><span class="prelude-val">Ok</span>(<span class="macro">js_string!</span>(preserved, <span class="kw-2">&amp;</span>replacement, <span class="kw-2">&amp;</span>string[position + search_length..]).into())
     }
 
     <span class="doccomment">/// `22.1.3.18 String.prototype.replaceAll ( searchValue, replaceValue )`
