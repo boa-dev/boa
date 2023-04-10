@@ -1,5 +1,4 @@
 use boa_engine::{
-    builtins::function::Function,
     object::ObjectInitializer,
     vm::flowgraph::{Direction, Graph},
     Context, JsArgs, JsNativeError, JsObject, JsResult, JsValue, NativeFunction,
@@ -87,17 +86,9 @@ fn flowgraph(_this: &JsValue, args: &[JsValue], context: &mut Context<'_>) -> Js
         .into());
     };
 
-    let code = match function {
-        Function::Ordinary { code, .. }
-        | Function::Async { code, .. }
-        | Function::Generator { code, .. }
-        | Function::AsyncGenerator { code, .. } => code,
-        Function::Native { .. } => {
-            return Err(JsNativeError::typ()
-                .with_message("native functions do not have bytecode")
-                .into())
-        }
-    };
+    let code = function.codeblock().ok_or_else(|| {
+        JsNativeError::typ().with_message("native functions do not have bytecode")
+    })?;
 
     let mut graph = Graph::new(direction);
     code.to_graph(context.interner(), graph.subgraph(String::default()));
@@ -127,17 +118,9 @@ fn bytecode(_: &JsValue, args: &[JsValue], context: &mut Context<'_>) -> JsResul
         .with_message("expected function object")
         .into());
     };
-    let code = match function {
-        Function::Ordinary { code, .. }
-        | Function::Async { code, .. }
-        | Function::Generator { code, .. }
-        | Function::AsyncGenerator { code, .. } => code,
-        Function::Native { .. } => {
-            return Err(JsNativeError::typ()
-                .with_message("native functions do not have bytecode")
-                .into())
-        }
-    };
+    let code = function.codeblock().ok_or_else(|| {
+        JsNativeError::typ().with_message("native functions do not have bytecode")
+    })?;
 
     Ok(code.to_interned_string(context.interner()).into())
 }
@@ -149,17 +132,9 @@ fn set_trace_flag_in_function_object(object: &JsObject, value: bool) -> JsResult
         .with_message("expected function object")
         .into());
     };
-    let code = match function {
-        Function::Ordinary { code, .. }
-        | Function::Async { code, .. }
-        | Function::Generator { code, .. }
-        | Function::AsyncGenerator { code, .. } => code,
-        Function::Native { .. } => {
-            return Err(JsNativeError::typ()
-                .with_message("native functions do not have bytecode")
-                .into())
-        }
-    };
+    let code = function.codeblock().ok_or_else(|| {
+        JsNativeError::typ().with_message("native functions do not have bytecode")
+    })?;
     code.set_trace(value);
     Ok(())
 }

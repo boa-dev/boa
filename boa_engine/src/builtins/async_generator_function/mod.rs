@@ -68,7 +68,21 @@ impl BuiltInConstructor for AsyncGeneratorFunction {
         args: &[JsValue],
         context: &mut Context<'_>,
     ) -> JsResult<JsValue> {
-        BuiltInFunctionObject::create_dynamic_function(new_target, args, true, true, context)
-            .map(Into::into)
+        let active_function = context.vm.active_function.clone().unwrap_or_else(|| {
+            context
+                .intrinsics()
+                .constructors()
+                .generator_function()
+                .constructor()
+        });
+        BuiltInFunctionObject::create_dynamic_function(
+            active_function,
+            new_target,
+            args,
+            true,
+            true,
+            context,
+        )
+        .map(Into::into)
     }
 }

@@ -7,7 +7,7 @@
 use crate::{
     builtins::async_generator::{AsyncGenerator, AsyncGeneratorState},
     vm::{call_frame::EarlyReturnType, code_block::Readable},
-    Context, JsError, JsResult, JsValue,
+    Context, JsError, JsObject, JsResult, JsValue,
 };
 #[cfg(feature = "fuzz")]
 use crate::{JsNativeError, JsNativeErrorKind};
@@ -47,6 +47,7 @@ pub struct Vm {
     #[cfg(feature = "trace")]
     pub(crate) trace: bool,
     pub(crate) stack_size_limit: usize,
+    pub(crate) active_function: Option<JsObject>,
 }
 
 impl Default for Vm {
@@ -58,6 +59,7 @@ impl Default for Vm {
             #[cfg(feature = "trace")]
             trace: false,
             stack_size_limit: 1024,
+            active_function: None,
         }
     }
 }
@@ -384,6 +386,7 @@ impl Context<'_> {
                 .expect("must be async generator");
 
             generator.state = AsyncGeneratorState::Completed;
+            generator.context = None;
 
             let next = generator
                 .queue

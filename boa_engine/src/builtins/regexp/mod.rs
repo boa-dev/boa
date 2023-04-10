@@ -327,10 +327,7 @@ impl RegExp {
     /// [spec]: https://tc39.es/ecma262/#sec-regexpcreate
     pub(crate) fn create(p: &JsValue, f: &JsValue, context: &mut Context<'_>) -> JsResult<JsValue> {
         // 1. Let obj be ? RegExpAlloc(%RegExp%).
-        let obj = Self::alloc(
-            &context.global_object().clone().get(Self::NAME, context)?,
-            context,
-        )?;
+        let obj = Self::alloc(&context.global_object().get(Self::NAME, context)?, context)?;
 
         // 2. Return ? RegExpInitialize(obj, P, F).
         Self::initialize(obj, p, f, context)

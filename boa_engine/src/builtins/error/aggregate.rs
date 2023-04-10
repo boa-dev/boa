@@ -60,6 +60,22 @@ impl BuiltInConstructor for AggregateError {
         context: &mut Context<'_>,
     ) -> JsResult<JsValue> {
         // 1. If NewTarget is undefined, let newTarget be the active function object; else let newTarget be NewTarget.
+        let new_target = &if new_target.is_undefined() {
+            context
+                .vm
+                .active_function
+                .clone()
+                .unwrap_or_else(|| {
+                    context
+                        .intrinsics()
+                        .constructors()
+                        .aggregate_error()
+                        .constructor()
+                })
+                .into()
+        } else {
+            new_target.clone()
+        };
         // 2. Let O be ? OrdinaryCreateFromConstructor(newTarget, "%AggregateError.prototype%", « [[ErrorData]] »).
         let prototype = get_prototype_from_constructor(
             new_target,

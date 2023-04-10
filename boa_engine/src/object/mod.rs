@@ -15,7 +15,6 @@ use self::internal_methods::{
         BOUND_CONSTRUCTOR_EXOTIC_INTERNAL_METHODS, BOUND_FUNCTION_EXOTIC_INTERNAL_METHODS,
     },
     function::{CONSTRUCTOR_INTERNAL_METHODS, FUNCTION_INTERNAL_METHODS},
-    global::GLOBAL_INTERNAL_METHODS,
     integer_indexed::INTEGER_INDEXED_EXOTIC_INTERNAL_METHODS,
     proxy::{
         PROXY_EXOTIC_INTERNAL_METHODS_ALL, PROXY_EXOTIC_INTERNAL_METHODS_BASIC,
@@ -34,7 +33,7 @@ use crate::{
         array_buffer::ArrayBuffer,
         async_generator::AsyncGenerator,
         error::ErrorKind,
-        function::arguments::Arguments,
+        function::{arguments::Arguments, FunctionKind},
         function::{arguments::ParameterMap, BoundFunction, ConstructorKind, Function},
         generator::Generator,
         iterable::AsyncFromSyncIterator,
@@ -606,15 +605,6 @@ impl ObjectData {
         Self {
             kind: ObjectKind::Date(date),
             internal_methods: &ORDINARY_INTERNAL_METHODS,
-        }
-    }
-
-    /// Create the `Global` object data
-    #[must_use]
-    pub fn global() -> Self {
-        Self {
-            kind: ObjectKind::Global,
-            internal_methods: &GLOBAL_INTERNAL_METHODS,
         }
     }
 
@@ -1948,7 +1938,8 @@ where
 #[derive(Debug)]
 pub struct FunctionObjectBuilder<'ctx, 'host> {
     context: &'ctx mut Context<'host>,
-    function: Function,
+    function: NativeFunction,
+    constructor: Option<ConstructorKind>,
     name: JsString,
     length: usize,
 }
@@ -1959,10 +1950,8 @@ impl<'ctx, 'host> FunctionObjectBuilder<'ctx, 'host> {
     pub fn new(context: &'ctx mut Context<'host>, function: NativeFunction) -> Self {
         Self {
             context,
-            function: Function::Native {
-                function,
-                constructor: None,
-            },
+            function,
+            constructor: None,
             name: js_string!(),
             length: 0,
         }
@@ -1997,20 +1986,7 @@ impl<'ctx, 'host> FunctionObjectBuilder<'ctx, 'host> {
     /// The default is `false`.
     #[must_use]
     pub fn constructor(mut self, yes: bool) -> Self {
-        match self.function {
-            Function::Native {
-                ref mut constructor,
-                ..
-            } => {
-                *constructor = yes.then_some(ConstructorKind::Base);
-            }
-            Function::Ordinary { .. }
-            | Function::Generator { .. }
-            | Function::AsyncGenerator { .. }
-            | Function::Async { .. } => {
-                unreachable!("function must be native or closure");
-            }
-        }
+        self.constructor = yes.then_some(ConstructorKind::Base);
         self
     }
 
@@ -2022,7 +1998,13 @@ impl<'ctx, 'host> FunctionObjectBuilder<'ctx, 'host> {
                 .constructors()
                 .function()
                 .prototype(),
-            ObjectData::function(self.function),
+            ObjectData::function(Function::new(
+                FunctionKind::Native {
+                    function: self.function,
+                    constructor: self.constructor,
+                },
+                self.context.intrinsics().clone(),
+            )),
         );
         let property = PropertyDescriptor::builder()
             .writable(false)
@@ -2073,7 +2055,7 @@ impl<'ctx, 'host> ObjectInitializer<'ctx, 'host> {
     /// Create a new `ObjectBuilder`.
     #[inline]
     pub fn new(context: &'ctx mut Context<'host>) -> Self {
-        let object = JsObject::with_object_proto(context);
+        let object = JsObject::with_object_proto(context.intrinsics());
         Self { context, object }
     }
 
@@ -2410,12 +2392,15 @@ impl<'ctx, 'host> ConstructorBuilder<'ctx, 'host> {
     }
 
     /// Build the constructor function object.
-    pub fn build(&mut self) -> JsFunction {
+    pub fn build(mut self) -> JsFunction {
         // Create the native function
-        let function = Function::Native {
-            function: self.function.clone(),
-            constructor: self.constructor,
-        };
+        let function = Function::new(
+            FunctionKind::Native {
+                function: self.function,
+                constructor: self.constructor,
+            },
+            self.context.intrinsics().clone(),
+        );
 
         let length = PropertyDescriptor::builder()
             .value(self.length)
@@ -2482,6 +2467,6 @@ impl<'ctx, 'host> ConstructorBuilder<'ctx, 'host> {
             }
         }
 
-        JsFunction::from_object_unchecked(self.object.clone())
+        JsFunction::from_object_unchecked(self.object)
     }
 }

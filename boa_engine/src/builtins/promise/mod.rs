@@ -105,25 +105,6 @@ pub struct ResolvingFunctions {
     pub reject: JsFunction,
 }
 
-/// The internal `PromiseCapability` data type.
-///
-/// More information:
-///  - [ECMAScript reference][spec]
-///
-/// [spec]: https://tc39.es/ecma262/#sec-promisecapability-records
-#[derive(Debug, Clone, Trace, Finalize)]
-// TODO: make crate-only
-pub struct PromiseCapability {
-    /// The `[[Promise]]` field.
-    promise: JsObject,
-
-    /// The `[[Resolve]]` field.
-    resolve: JsFunction,
-
-    /// The `[[Reject]]` field.
-    reject: JsFunction,
-}
-
 // ==================== Private API ====================
 
 /// `IfAbruptRejectPromise ( value, capability )`
@@ -155,6 +136,24 @@ macro_rules! if_abrupt_reject_promise {
 }
 
 pub(crate) use if_abrupt_reject_promise;
+
+/// The internal `PromiseCapability` data type.
+///
+/// More information:
+///  - [ECMAScript reference][spec]
+///
+/// [spec]: https://tc39.es/ecma262/#sec-promisecapability-records
+#[derive(Debug, Clone, Trace, Finalize)]
+pub(crate) struct PromiseCapability {
+    /// The `[[Promise]]` field.
+    promise: JsObject,
+
+    /// The `[[Resolve]]` field.
+    resolve: JsFunction,
+
+    /// The `[[Reject]]` field.
+    reject: JsFunction,
+}
 
 /// The internal `PromiseReaction` data type.
 ///
@@ -869,7 +868,7 @@ impl Promise {
                         // 8. Let remainingElementsCount be F.[[RemainingElements]].
 
                         // 9. Let obj be OrdinaryObjectCreate(%Object.prototype%).
-                        let obj = JsObject::with_object_proto(context);
+                        let obj = JsObject::with_object_proto(context.intrinsics());
 
                         // 10. Perform ! CreateDataPropertyOrThrow(obj, "status", "fulfilled").
                         obj.create_data_property_or_throw(utf16!("status"), "fulfilled", context)
@@ -955,7 +954,7 @@ impl Promise {
                         // 8. Let remainingElementsCount be F.[[RemainingElements]].
 
                         // 9. Let obj be OrdinaryObjectCreate(%Object.prototype%).
-                        let obj = JsObject::with_object_proto(context);
+                        let obj = JsObject::with_object_proto(context.intrinsics());
 
                         // 10. Perform ! CreateDataPropertyOrThrow(obj, "status", "rejected").
                         obj.create_data_property_or_throw(utf16!("status"), "rejected", context)
@@ -2302,12 +2301,14 @@ fn new_promise_reaction_job(mut reaction: ReactionRecord, argument: JsValue) -> 
         }
     };
 
+    // TODO: handle realms
     // 2. Let handlerRealm be null.
     // 3. If reaction.[[Handler]] is not empty, then
     //   a. Let getHandlerRealmResult be Completion(GetFunctionRealm(reaction.[[Handler]].[[Callback]])).
     //   b. If getHandlerRealmResult is a normal completion, set handlerRealm to getHandlerRealmResult.[[Value]].
     //   c. Else, set handlerRealm to the current Realm Record.
     //   d. NOTE: handlerRealm is never null unless the handler is undefined. When the handler is a revoked Proxy and no ECMAScript code runs, handlerRealm is used to create error objects.
+
     // 4. Return the Record { [[Job]]: job, [[Realm]]: handlerRealm }.
     NativeJob::new(job)
 }
@@ -2350,10 +2351,12 @@ fn new_promise_resolve_thenable_job(
         then_call_result
     };
 
+    // TODO: handle realms
     // 2. Let getThenRealmResult be Completion(GetFunctionRealm(then.[[Callback]])).
     // 3. If getThenRealmResult is a normal completion, let thenRealm be getThenRealmResult.[[Value]].
     // 4. Else, let thenRealm be the current Realm Record.
     // 5. NOTE: thenRealm is never null. When then.[[Callback]] is a revoked Proxy and no code runs, thenRealm is used to create error objects.
+
     // 6. Return the Record { [[Job]]: job, [[Realm]]: thenRealm }.
     NativeJob::new(job)
 }

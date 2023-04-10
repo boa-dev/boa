@@ -5,7 +5,7 @@
 use crate::{
     builtins::{
         async_generator::{AsyncGenerator, AsyncGeneratorState},
-        function::{arguments::Arguments, ConstructorKind, Function, ThisMode},
+        function::{arguments::Arguments, ConstructorKind, Function, FunctionKind, ThisMode},
         generator::{Generator, GeneratorContext, GeneratorState},
         promise::PromiseCapability,
     },
@@ -595,23 +595,29 @@ pub(crate) fn create_function_object(
         )
         .expect("cannot  fail per spec");
 
-        Function::Async {
-            code,
-            environments: context.realm.environments.clone(),
-            home_object: None,
-            promise_capability,
-            class_object: None,
-        }
+        Function::new(
+            FunctionKind::Async {
+                code,
+                environments: context.realm.environments.clone(),
+                home_object: None,
+                promise_capability,
+                class_object: None,
+            },
+            context.intrinsics().clone(),
+        )
     } else {
-        Function::Ordinary {
-            code,
-            environments: context.realm.environments.clone(),
-            constructor_kind: ConstructorKind::Base,
-            home_object: None,
-            fields: ThinVec::new(),
-            private_methods: ThinVec::new(),
-            class_object: None,
-        }
+        Function::new(
+            FunctionKind::Ordinary {
+                code,
+                environments: context.realm.environments.clone(),
+                constructor_kind: ConstructorKind::Base,
+                home_object: None,
+                fields: ThinVec::new(),
+                private_methods: ThinVec::new(),
+                class_object: None,
+            },
+            context.intrinsics().clone(),
+        )
     };
 
     let constructor =
@@ -632,7 +638,7 @@ pub(crate) fn create_function_object(
         .expect("failed to define the name property of the function");
 
     if !r#async && !arrow && !method {
-        let prototype = JsObject::with_object_proto(context);
+        let prototype = JsObject::with_object_proto(context.intrinsics());
         prototype
             .define_property_or_throw(CONSTRUCTOR, constructor_property, context)
             .expect("failed to define the constructor property of the function");
@@ -656,9 +662,12 @@ pub(crate) fn create_generator_function_object(
     code: Gc<CodeBlock>,
     r#async: bool,
     method: bool,
+    prototype: Option<JsObject>,
     context: &mut Context<'_>,
 ) -> JsObject {
-    let function_prototype = if r#async {
+    let function_prototype = if let Some(prototype) = prototype {
+        prototype
+    } else if r#async {
         context
             .intrinsics()
             .constructors()
@@ -701,23 +710,29 @@ pub(crate) fn create_generator_function_object(
     );
 
     let constructor = if r#async {
-        let function = Function::AsyncGenerator {
-            code,
-            environments: context.realm.environments.clone(),
-            home_object: None,
-            class_object: None,
-        };
+        let function = Function::new(
+            FunctionKind::AsyncGenerator {
+                code,
+                environments: context.realm.environments.clone(),
+                home_object: None,
+                class_object: None,
+            },
+            context.intrinsics().clone(),
+        );
         JsObject::from_proto_and_data(
             function_prototype,
             ObjectData::async_generator_function(function),
         )
     } else {
-        let function = Function::Generator {
-            code,
-            environments: context.realm.environments.clone(),
-            home_object: None,
-            class_object: None,
-        };
+        let function = Function::new(
+            FunctionKind::Generator {
+                code,
+                environments: context.realm.environments.clone(),
+                home_object: None,
+                class_object: None,
+            },
+            context.intrinsics().clone(),
+        );
         JsObject::from_proto_and_data(function_prototype, ObjectData::generator_function(function))
     };
 
@@ -757,12 +772,18 @@ impl JsObject {
                 .with_message("not a callable function")
                 .into());
         }
+        let old_active = context.vm.active_function.replace(self.clone());
 
         let object = self.borrow();
         let function_object = object.as_function().expect("not a function");
 
-        match function_object {
-            Function::Native {
+        let old_intrinsics = std::mem::replace(
+            &mut context.realm.intrinsics,
+            function_object.realm_intrinsics().clone(),
+        );
+
+        let result = match function_object.kind() {
+            FunctionKind::Native {
                 function,
                 constructor,
             } => {
@@ -776,7 +797,7 @@ impl JsObject {
                     function.call(this, args, context)
                 }
             }
-            Function::Ordinary {
+            FunctionKind::Ordinary {
                 code,
                 environments,
                 class_object,
@@ -803,7 +824,7 @@ impl JsObject {
                 } else if code.strict {
                     Some(this.clone())
                 } else if this.is_null_or_undefined() {
-                    Some(context.global_object().clone().into())
+                    Some(context.global_object().into())
                 } else {
                     Some(
                         this.to_object(context)
@@ -902,7 +923,7 @@ impl JsObject {
 
                 record.consume()
             }
-            Function::Async {
+            FunctionKind::Async {
                 code,
                 environments,
                 promise_capability,
@@ -925,7 +946,7 @@ impl JsObject {
                 } else if code.strict {
                     Some(this.clone())
                 } else if this.is_null_or_undefined() {
-                    Some(context.global_object().clone().into())
+                    Some(context.global_object().into())
                 } else {
                     Some(
                         this.to_object(context)
@@ -1024,7 +1045,7 @@ impl JsObject {
 
                 Ok(promise.into())
             }
-            Function::Generator {
+            FunctionKind::Generator {
                 code,
                 environments,
                 class_object,
@@ -1044,7 +1065,7 @@ impl JsObject {
                 } else if code.strict {
                     Some(this.clone())
                 } else if this.is_null_or_undefined() {
-                    Some(context.global_object().clone().into())
+                    Some(context.global_object().into())
                 } else {
                     Some(
                         this.to_object(context)
@@ -1150,11 +1171,13 @@ impl JsObject {
                     prototype,
                     ObjectData::generator(Generator {
                         state: GeneratorState::SuspendedStart,
-                        context: Some(Gc::new(GcRefCell::new(GeneratorContext {
+                        context: Some(GeneratorContext {
                             environments,
                             call_frame,
                             stack,
-                        }))),
+                            active_function: context.vm.active_function.clone(),
+                            realm_intrinsics: context.realm.intrinsics.clone(),
+                        }),
                     }),
                 );
 
@@ -1162,7 +1185,7 @@ impl JsObject {
 
                 Ok(generator.into())
             }
-            Function::AsyncGenerator {
+            FunctionKind::AsyncGenerator {
                 code,
                 environments,
                 class_object,
@@ -1182,7 +1205,7 @@ impl JsObject {
                 } else if code.strict {
                     Some(this.clone())
                 } else if this.is_null_or_undefined() {
-                    Some(context.global_object().clone().into())
+                    Some(context.global_object().into())
                 } else {
                     Some(
                         this.to_object(context)
@@ -1291,29 +1314,37 @@ impl JsObject {
                     prototype,
                     ObjectData::async_generator(AsyncGenerator {
                         state: AsyncGeneratorState::SuspendedStart,
-                        context: Some(Gc::new(GcRefCell::new(GeneratorContext {
+                        context: Some(GeneratorContext {
                             environments,
                             call_frame,
                             stack,
-                        }))),
+                            active_function: context.vm.active_function.clone(),
+                            realm_intrinsics: context.realm.intrinsics.clone(),
+                        }),
                         queue: VecDeque::new(),
                     }),
                 );
 
                 {
+                    let gen_clone = generator.clone();
                     let mut generator_mut = generator.borrow_mut();
                     let gen = generator_mut
                         .as_async_generator_mut()
                         .expect("must be object here");
-                    let mut gen_context = gen.context.as_ref().expect("must exist").borrow_mut();
-                    gen_context.call_frame.async_generator = Some(generator.clone());
+                    let gen_context = gen.context.as_mut().expect("must exist");
+                    gen_context.call_frame.async_generator = Some(gen_clone);
                 }
 
                 init_result.consume()?;
 
                 Ok(generator.into())
             }
-        }
+        };
+
+        context.vm.active_function = old_active;
+        context.realm.intrinsics = old_intrinsics;
+
+        result
     }
 
     pub(crate) fn construct_internal(
@@ -1336,11 +1367,18 @@ impl JsObject {
                 .into());
         }
 
+        let old_active = context.vm.active_function.replace(self.clone());
+
         let object = self.borrow();
         let function_object = object.as_function().expect("not a function");
 
-        match function_object {
-            Function::Native {
+        let old_intrinsics = std::mem::replace(
+            &mut context.realm.intrinsics,
+            function_object.realm_intrinsics().clone(),
+        );
+
+        let result = match function_object.kind() {
+            FunctionKind::Native {
                 function,
                 constructor,
                 ..
@@ -1364,7 +1402,7 @@ impl JsObject {
                     }
                 }
             }
-            Function::Ordinary {
+            FunctionKind::Ordinary {
                 code,
                 environments,
                 constructor_kind,
@@ -1509,11 +1547,15 @@ impl JsObject {
                         .clone())
                 }
             }
-            Function::Generator { .. }
-            | Function::Async { .. }
-            | Function::AsyncGenerator { .. } => {
+            FunctionKind::Generator { .. }
+            | FunctionKind::Async { .. }
+            | FunctionKind::AsyncGenerator { .. } => {
                 unreachable!("not a constructor")
             }
-        }
+        };
+        context.vm.active_function = old_active;
+        context.realm.intrinsics = old_intrinsics;
+
+        result
     }
 }

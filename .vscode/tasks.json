@@ -5,6 +5,16 @@
   "tasks": [
     {
       "type": "process",
+      "label": "Cargo Build",
+      "command": "cargo",
+      "args": ["build"],
+      "group": "build",
+      "presentation": {
+        "clear": true
+      }
+    },
+    {
+      "type": "process",
       "label": "Cargo Run",
       "command": "cargo",
       "args": ["run", "--bin", "boa", "./tests/js/test.js"],

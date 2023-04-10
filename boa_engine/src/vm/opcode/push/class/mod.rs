@@ -1,5 +1,5 @@
 use crate::{
-    builtins::function::{ConstructorKind, Function},
+    builtins::function::{ConstructorKind, FunctionKind},
     error::JsNativeError,
     object::PROTOTYPE,
     vm::{opcode::Operation, CompletionType},
@@ -43,9 +43,9 @@ impl Operation for PushClassPrototype {
                 let class_function = class_object_mut
                     .as_function_mut()
                     .expect("class must be function object");
-                if let Function::Ordinary {
+                if let FunctionKind::Ordinary {
                     constructor_kind, ..
-                } = class_function
+                } = class_function.kind_mut()
                 {
                     *constructor_kind = ConstructorKind::Derived;
                 }

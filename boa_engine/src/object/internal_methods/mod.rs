@@ -19,7 +19,6 @@ pub(super) mod arguments;
 pub(super) mod array;
 pub(super) mod bound_function;
 pub(super) mod function;
-pub(crate) mod global;
 pub(super) mod integer_indexed;
 pub(super) mod proxy;
 pub(super) mod string;
@@ -232,6 +231,7 @@ impl JsObject {
         context: &mut Context<'_>,
     ) -> JsResult<JsValue> {
         let _timer = Profiler::global().start_event("Object::__call__", "object");
+
         let func = self.borrow().data.internal_methods.__call__;
         func.expect("called `[[Call]]` for object without a `[[Call]]` internal method")(
             self, this, args, context,
@@ -254,6 +254,7 @@ impl JsObject {
         context: &mut Context<'_>,
     ) -> JsResult<Self> {
         let _timer = Profiler::global().start_event("Object::__construct__", "object");
+
         let func = self.borrow().data.internal_methods.__construct__;
         func.expect("called `[[Construct]]` for object without a `[[Construct]]` internal method")(
             self, args, new_target, context,
@@ -927,14 +928,16 @@ where
     // The corresponding object must be an intrinsic that is intended to be used
     // as the [[Prototype]] value of an object.
     // 2. Let proto be ? Get(constructor, "prototype").
-    if let Some(object) = constructor.as_object() {
-        if let Some(proto) = object.get(PROTOTYPE, context)?.as_object() {
+    let intrinsics = if let Some(constructor) = constructor.as_object() {
+        if let Some(proto) = constructor.get(PROTOTYPE, context)?.as_object() {
             return Ok(proto.clone());
         }
-    }
-    // 3. If Type(proto) is not Object, then
-    // TODO: handle realms
-    // a. Let realm be ? GetFunctionRealm(constructor).
-    // b. Set proto to realm's intrinsic object named intrinsicDefaultProto.
-    Ok(default(context.intrinsics().constructors()).prototype())
+        // 3. If Type(proto) is not Object, then
+        // a. Let realm be ? GetFunctionRealm(constructor).
+        // b. Set proto to realm's intrinsic object named intrinsicDefaultProto.
+        constructor.get_function_realm(context)?
+    } else {
+        context.intrinsics().clone()
+    };
+    Ok(default(intrinsics.constructors()).prototype())
 }

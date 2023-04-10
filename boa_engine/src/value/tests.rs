@@ -24,7 +24,7 @@ fn undefined() {
 #[test]
 fn get_set_field() {
     run_test_actions([TestAction::assert_context(|ctx| {
-        let obj = &JsObject::with_object_proto(ctx);
+        let obj = &JsObject::with_object_proto(ctx.intrinsics());
         // Create string and convert it to a Value
         let s = JsValue::new("bar");
         obj.set("foo", s, false, ctx).unwrap();

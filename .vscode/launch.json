@@ -12,24 +12,9 @@
         "program": "${workspaceFolder}/target/debug/boa.exe"
       },
       "program": "${workspaceFolder}/target/debug/boa",
-      "args": ["${workspaceFolder}/tests/js/test.js"],
-      "sourceLanguages": ["rust"]
-    },
-    {
-      "type": "lldb",
-      "request": "launch",
-      "name": "Launch (VM)",
-      "cargo": {
-        "args": [
-          "run",
-          "--manifest-path",
-          "./boa_cli/Cargo.toml",
-          "--features",
-          "vm"
-        ]
-      },
-      "args": ["-t", "${workspaceFolder}/tests/js/test.js"],
-      "sourceLanguages": ["rust"]
+      "args": ["${workspaceFolder}/tests/js/test.js", "--debug-object"],
+      "sourceLanguages": ["rust"],
+      "preLaunchTask": "Cargo Build"
     }
   ]
 }

@@ -8,7 +8,7 @@
 //! [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/AsyncFunction
 
 use crate::{
-    builtins::BuiltInObject,
+    builtins::{function::BuiltInFunctionObject, BuiltInObject},
     context::intrinsics::{Intrinsics, StandardConstructor, StandardConstructors},
     property::Attribute,
     symbol::JsSymbol,
@@ -63,8 +63,20 @@ impl BuiltInConstructor for AsyncFunction {
         args: &[JsValue],
         context: &mut Context<'_>,
     ) -> JsResult<JsValue> {
-        crate::builtins::function::BuiltInFunctionObject::create_dynamic_function(
-            new_target, args, true, false, context,
+        let active_function = context.vm.active_function.clone().unwrap_or_else(|| {
+            context
+                .intrinsics()
+                .constructors()
+                .generator_function()
+                .constructor()
+        });
+        BuiltInFunctionObject::create_dynamic_function(
+            active_function,
+            new_target,
+            args,
+            true,
+            false,
+            context,
         )
         .map(Into::into)
     }

@@ -30,7 +30,9 @@ impl Operation for SetName {
                     .interner()
                     .resolve_expect(binding_locator.name().sym())
                     .into_common(false);
-                let exists = context.global_bindings_mut().contains_key(&key);
+                let exists = context
+                    .global_object()
+                    .has_own_property(key.clone(), context)?;
 
                 if !exists && context.vm.frame().code_block.strict {
                     return Err(JsNativeError::reference()
@@ -41,20 +43,12 @@ impl Operation for SetName {
                         .into());
                 }
 
-                let success = crate::object::internal_methods::global::global_set_no_receiver(
-                    &key.clone().into(),
+                context.global_object().set(
+                    key,
                     value,
+                    context.vm.frame().code_block.strict,
                     context,
                 )?;
-
-                if !success && context.vm.frame().code_block.strict {
-                    return Err(JsNativeError::typ()
-                        .with_message(format!(
-                            "cannot set non-writable property: {}",
-                            key.to_std_string_escaped()
-                        ))
-                        .into());
-                }
             }
         } else if !context.put_value_if_initialized(
             binding_locator.environment_index(),

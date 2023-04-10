@@ -40,11 +40,13 @@ fn main() -> JsResult<()> {
         JsValue::new(sum)
     );
 
-    context.register_global_property(
-        "myUint8Array",
-        array,
-        Attribute::WRITABLE | Attribute::ENUMERABLE | Attribute::CONFIGURABLE,
-    );
+    context
+        .register_global_property(
+            "myUint8Array",
+            array,
+            Attribute::WRITABLE | Attribute::ENUMERABLE | Attribute::CONFIGURABLE,
+        )
+        .unwrap();
 
     Ok(())
 }

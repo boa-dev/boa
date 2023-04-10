@@ -18,7 +18,7 @@ impl Operation for GetGenerator {
         let index = context.vm.read::<u32>();
         let method = context.vm.read::<u8>() != 0;
         let code = context.vm.frame().code_block.functions[index as usize].clone();
-        let function = create_generator_function_object(code, false, method, context);
+        let function = create_generator_function_object(code, false, method, None, context);
         context.vm.push(function);
         Ok(CompletionType::Normal)
     }
@@ -39,7 +39,7 @@ impl Operation for GetGeneratorAsync {
         let index = context.vm.read::<u32>();
         let method = context.vm.read::<u8>() != 0;
         let code = context.vm.frame().code_block.functions[index as usize].clone();
-        let function = create_generator_function_object(code, true, method, context);
+        let function = create_generator_function_object(code, true, method, None, context);
         context.vm.push(function);
         Ok(CompletionType::Normal)
     }

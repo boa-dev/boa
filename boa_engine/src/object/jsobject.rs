@@ -4,6 +4,7 @@
 
 use super::{JsPrototype, NativeObject, Object, PropertyMap};
 use crate::{
+    context::intrinsics::Intrinsics,
     error::JsNativeError,
     object::{ObjectData, ObjectKind},
     property::{PropertyDescriptor, PropertyKey},
@@ -42,9 +43,9 @@ impl JsObject {
     /// [call]: https://tc39.es/ecma262/#sec-ordinaryobjectcreate
     #[inline]
     #[must_use]
-    pub fn with_object_proto(context: &mut Context<'_>) -> Self {
+    pub fn with_object_proto(intrinsics: &Intrinsics) -> Self {
         Self::from_proto_and_data(
-            context.intrinsics().constructors().object().prototype(),
+            intrinsics.constructors().object().prototype(),
             ObjectData::ordinary(),
         )
     }

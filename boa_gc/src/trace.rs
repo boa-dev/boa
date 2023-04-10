@@ -1,6 +1,5 @@
 use std::{
     borrow::{Cow, ToOwned},
-    cell::Cell,
     collections::{BTreeMap, BTreeSet, BinaryHeap, HashMap, HashSet, LinkedList, VecDeque},
     hash::{BuildHasher, Hash},
     marker::PhantomData,
@@ -430,26 +429,6 @@ where
     custom_trace!(this, {
         if let Cow::Owned(ref v) = this {
             mark(v);
-        }
-    });
-}
-
-impl<T: Trace> Finalize for Cell<Option<T>> {
-    fn finalize(&self) {
-        if let Some(t) = self.take() {
-            t.finalize();
-            self.set(Some(t));
-        }
-    }
-}
-
-// SAFETY: This implementation is safe, because `take` leaves `None` in the
-// place of our value, making it possible to trace through it safely.
-unsafe impl<T: Trace> Trace for Cell<Option<T>> {
-    custom_trace!(this, {
-        if let Some(t) = this.take() {
-            mark(&t);
-            this.set(Some(t));
         }
     });
 }

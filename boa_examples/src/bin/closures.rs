@@ -22,19 +22,21 @@ fn main() -> Result<(), JsError> {
     let variable = 128 + 64 + 32 + 16 + 8 + 4 + 2 + 1;
 
     // We register a global closure function that has the name 'closure' with length 0.
-    context.register_global_callable(
-        "closure",
-        0,
-        NativeFunction::from_copy_closure(move |_, _, _| {
-            println!("Called `closure`");
-            // `variable` is captured from the main function.
-            println!("variable = {variable}");
-            println!();
+    context
+        .register_global_callable(
+            "closure",
+            0,
+            NativeFunction::from_copy_closure(move |_, _, _| {
+                println!("Called `closure`");
+                // `variable` is captured from the main function.
+                println!("variable = {variable}");
+                println!();
 
-            // We return the moved variable as a `JsValue`.
-            Ok(JsValue::new(variable))
-        }),
-    );
+                // We return the moved variable as a `JsValue`.
+                Ok(JsValue::new(variable))
+            }),
+        )
+        .unwrap();
 
     assert_eq!(
         context.eval_script(Source::from_bytes("closure()"))?,
@@ -52,7 +54,7 @@ fn main() -> Result<(), JsError> {
     }
 
     // We create a new `JsObject` with some data
-    let object = JsObject::with_object_proto(&mut context);
+    let object = JsObject::with_object_proto(context.intrinsics());
     object.define_property_or_throw(
         "name",
         PropertyDescriptor::builder()
@@ -109,15 +111,17 @@ fn main() -> Result<(), JsError> {
     .build();
 
     // We bind the newly constructed closure as a global property in Javascript.
-    context.register_global_property(
-        // We set the key to access the function the same as its name for
-        // consistency, but it may be different if needed.
-        "createMessage",
-        // We pass `js_function` as a property value.
-        js_function,
-        // We assign to the "createMessage" property the desired attributes.
-        Attribute::READONLY | Attribute::NON_ENUMERABLE | Attribute::PERMANENT,
-    );
+    context
+        .register_global_property(
+            // We set the key to access the function the same as its name for
+            // consistency, but it may be different if needed.
+            "createMessage",
+            // We pass `js_function` as a property value.
+            js_function,
+            // We assign to the "createMessage" property the desired attributes.
+            Attribute::READONLY | Attribute::NON_ENUMERABLE | Attribute::PERMANENT,
+        )
+        .unwrap();
 
     assert_eq!(
         context.eval_script(Source::from_bytes("createMessage()"))?,
@@ -142,32 +146,32 @@ fn main() -> Result<(), JsError> {
     let numbers = RefCell::new(Vec::new());
 
     // We register a global closure that is not `Copy`.
-    context.register_global_callable(
-        "enumerate",
-        0,
-        // Note that it is required to use `unsafe` code, since the compiler cannot verify that the
-        // types captured by the closure are not traceable.
-        unsafe {
-            NativeFunction::from_closure(move |_, _, context| {
-                println!("Called `enumerate`");
-                // `index` is captured from the main function.
-                println!("index = {}", index.get());
-                println!();
+    context
+        .register_global_callable(
+            "enumerate",
+            0,
+            // Note that it is required to use `unsafe` code, since the compiler cannot verify that the
+            // types captured by the closure are not traceable.
+            unsafe {
+                NativeFunction::from_closure(move |_, _, context| {
+                    println!("Called `enumerate`");
+                    // `index` is captured from the main function.
+                    println!("index = {}", index.get());
+                    println!();
 
-                numbers.borrow_mut().push(index.get());
-                index.set(index.get() + 1);
+                    numbers.borrow_mut().push(index.get());
+                    index.set(index.get() + 1);
 
-                // We return the moved variable as a `JsValue`.
-                Ok(
-                    JsArray::from_iter(
+                    // We return the moved variable as a `JsValue`.
+                    Ok(JsArray::from_iter(
                         numbers.borrow().iter().cloned().map(JsValue::from),
                         context,
                     )
-                    .into(),
-                )
-            })
-        },
-    );
+                    .into())
+                })
+            },
+        )
+        .unwrap();
 
     // First call should return the array `[0]`.
     let result = context.eval_script(Source::from_bytes("enumerate()"))?;

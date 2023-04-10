@@ -7,12 +7,14 @@ mod function;
 mod gc;
 mod object;
 mod optimizer;
+mod realm;
 
 fn create_boa_object(context: &mut Context<'_>) -> JsObject {
     let function_module = function::create_object(context);
     let object_module = object::create_object(context);
     let optimizer_module = optimizer::create_object(context);
     let gc_module = gc::create_object(context);
+    let realm_module = realm::create_object(context);
 
     ObjectInitializer::new(context)
         .property(
@@ -35,14 +37,21 @@ fn create_boa_object(context: &mut Context<'_>) -> JsObject {
             gc_module,
             Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
         )
+        .property(
+            "realm",
+            realm_module,
+            Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
+        )
         .build()
 }
 
 pub(crate) fn init_boa_debug_object(context: &mut Context<'_>) {
     let boa_object = create_boa_object(context);
-    context.register_global_property(
-        "$boa",
-        boa_object,
-        Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
-    );
+    context
+        .register_global_property(
+            "$boa",
+            boa_object,
+            Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
+        )
+        .expect("cannot fail with the default object");
 }

@@ -22,7 +22,7 @@ use crate::{
     class::{Class, ClassBuilder},
     job::{IdleJobQueue, JobQueue, NativeJob},
     native_function::NativeFunction,
-    object::{FunctionObjectBuilder, GlobalPropertyMap, JsObject},
+    object::{FunctionObjectBuilder, JsObject},
     optimizer::{Optimizer, OptimizerOptions, OptimizerStatistics},
     property::{Attribute, PropertyDescriptor, PropertyKey},
     realm::Realm,
@@ -304,20 +304,26 @@ impl Context<'_> {
     ///     .build();
     /// context.register_global_property("myObjectProperty", object, Attribute::all());
     /// ```
-    pub fn register_global_property<K, V>(&mut self, key: K, value: V, attribute: Attribute)
+    pub fn register_global_property<K, V>(
+        &mut self,
+        key: K,
+        value: V,
+        attribute: Attribute,
+    ) -> JsResult<()>
     where
         K: Into<PropertyKey>,
         V: Into<JsValue>,
     {
-        self.realm.global_property_map.insert(
-            &key.into(),
+        self.global_object().define_property_or_throw(
+            key,
             PropertyDescriptor::builder()
                 .value(value)
                 .writable(attribute.writable())
                 .enumerable(attribute.enumerable())
-                .configurable(attribute.configurable())
-                .build(),
-        );
+                .configurable(attribute.configurable()),
+            self,
+        )?;
+        Ok(())
     }
 
     /// Register a global native callable.
@@ -332,22 +338,28 @@ impl Context<'_> {
     ///
     /// If you wish to only create the function object without binding it to the global object, you
     /// can use the [`FunctionObjectBuilder`] API.
-    pub fn register_global_callable(&mut self, name: &str, length: usize, body: NativeFunction) {
+    pub fn register_global_callable(
+        &mut self,
+        name: &str,
+        length: usize,
+        body: NativeFunction,
+    ) -> JsResult<()> {
         let function = FunctionObjectBuilder::new(self, body)
             .name(name)
             .length(length)
             .constructor(true)
             .build();
 
-        self.global_bindings_mut().insert(
-            name.into(),
+        self.global_object().define_property_or_throw(
+            name,
             PropertyDescriptor::builder()
                 .value(function)
                 .writable(true)
                 .enumerable(false)
-                .configurable(true)
-                .build(),
-        );
+                .configurable(true),
+            self,
+        )?;
+        Ok(())
     }
 
     /// Register a global native function that is not a constructor.
@@ -364,22 +376,23 @@ impl Context<'_> {
         name: &str,
         length: usize,
         body: NativeFunction,
-    ) {
+    ) -> JsResult<()> {
         let function = FunctionObjectBuilder::new(self, body)
             .name(name)
             .length(length)
             .constructor(false)
             .build();
 
-        self.global_bindings_mut().insert(
-            name.into(),
+        self.global_object().define_property_or_throw(
+            name,
             PropertyDescriptor::builder()
                 .value(function)
                 .writable(true)
                 .enumerable(false)
-                .configurable(true)
-                .build(),
-        );
+                .configurable(true),
+            self,
+        )?;
+        Ok(())
     }
 
     /// Register a global class of type `T`, where `T` implements `Class`.
@@ -407,10 +420,11 @@ impl Context<'_> {
             .value(class)
             .writable(T::ATTRIBUTES.writable())
             .enumerable(T::ATTRIBUTES.enumerable())
-            .configurable(T::ATTRIBUTES.configurable())
-            .build();
+            .configurable(T::ATTRIBUTES.configurable());
 
-        self.global_bindings_mut().insert(T::NAME.into(), property);
+        self.global_object()
+            .define_property_or_throw(T::NAME, property, self)?;
+
         Ok(())
     }
 
@@ -426,13 +440,13 @@ impl Context<'_> {
         &mut self.interner
     }
 
-    /// Return the global object.
+    /// Returns the global object.
     #[inline]
-    pub const fn global_object(&self) -> &JsObject {
-        self.realm.global_object()
+    pub fn global_object(&self) -> JsObject {
+        self.realm.global_object().clone()
     }
 
-    /// Return the intrinsic constructors and objects.
+    /// Returns the intrinsic constructors and objects.
     #[inline]
     pub const fn intrinsics(&self) -> &Intrinsics {
         &self.realm.intrinsics
@@ -485,11 +499,6 @@ impl Context<'_> {
 // ==== Private API ====
 
 impl Context<'_> {
-    /// Return a mutable reference to the global object string bindings.
-    pub(crate) fn global_bindings_mut(&mut self) -> &mut GlobalPropertyMap {
-        self.realm.global_bindings_mut()
-    }
-
     /// Compile the AST into a `CodeBlock` ready to be executed by the VM in a `JSON.parse` context.
     pub(crate) fn compile_json_parse(&mut self, statement_list: &StatementList) -> Gc<CodeBlock> {
         let _timer = Profiler::global().start_event("Compilation", "Main");

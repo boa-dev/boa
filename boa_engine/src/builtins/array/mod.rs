@@ -147,6 +147,17 @@ impl BuiltInConstructor for Array {
         context: &mut Context<'_>,
     ) -> JsResult<JsValue> {
         // If NewTarget is undefined, let newTarget be the active function object; else let newTarget be NewTarget.
+        let new_target = &if new_target.is_undefined() {
+            context
+                .vm
+                .active_function
+                .clone()
+                .unwrap_or_else(|| context.intrinsics().constructors().array().constructor())
+                .into()
+        } else {
+            new_target.clone()
+        };
+
         // 2. Let proto be ? GetPrototypeFromConstructor(newTarget, "%Array.prototype%").
         let prototype =
             get_prototype_from_constructor(new_target, StandardConstructors::array, context)?;
@@ -358,9 +369,12 @@ impl Array {
         // 4. If IsConstructor(C) is true, then
         if let Some(c) = c.as_constructor() {
             // a. Let thisRealm be the current Realm Record.
+            let this_realm = &context.intrinsics().clone();
             // b. Let realmC be ? GetFunctionRealm(C).
+            let realm_c = &c.get_function_realm(context)?;
+
             // c. If thisRealm and realmC are not the same Realm Record, then
-            if *c == context.intrinsics().constructors().array().constructor {
+            if this_realm != realm_c && *c == realm_c.constructors().array().constructor() {
                 // i. If SameValue(C, realmC.[[Intrinsics]].[[%Array%]]) is true, set C to undefined.
                 // Note: fast path to step 6.
                 return Self::array_create(length, None, context);

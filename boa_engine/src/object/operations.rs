@@ -1,6 +1,6 @@
 use crate::{
     builtins::{function::ClassFieldDefinition, Array},
-    context::intrinsics::{StandardConstructor, StandardConstructors},
+    context::intrinsics::{Intrinsics, StandardConstructor, StandardConstructors},
     error::JsNativeError,
     object::{JsObject, PrivateElement, PROTOTYPE},
     property::{PropertyDescriptor, PropertyDescriptorBuilder, PropertyKey, PropertyNameKind},
@@ -10,7 +10,7 @@ use crate::{
 };
 use boa_ast::function::PrivateName;
 
-use super::CONSTRUCTOR;
+use super::{JsFunction, CONSTRUCTOR};
 
 /// Object integrity level.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -256,7 +256,7 @@ impl JsObject {
         // 4. If success is false, throw a TypeError exception.
         if !success {
             return Err(JsNativeError::typ()
-                .with_message(format!("cannot delete property: {key}"))
+                .with_message(format!("cannot delete non-configurable property: {key}"))
                 .into());
         }
         // 5. Return success.
@@ -316,11 +316,11 @@ impl JsObject {
     ) -> JsResult<JsValue> {
         // 1. If argumentsList is not present, set argumentsList to a new empty List.
         // 2. If IsCallable(F) is false, throw a TypeError exception.
-        if !self.is_callable() {
-            return Err(JsNativeError::typ().with_message("not a function").into());
-        }
+        let function = JsFunction::from_object(self.clone())
+            .ok_or_else(|| JsNativeError::typ().with_message("not a function"))?;
+
         // 3. Return ? F.[[Call]](V, argumentsList).
-        self.__call__(this, args, context)
+        function.__call__(this, args, context)
     }
 
     /// `Construct ( F [ , argumentsList [ , newTarget ] ] )`
@@ -655,7 +655,29 @@ impl JsObject {
         Ok(false)
     }
 
-    // todo: GetFunctionRealm
+    /// Abstract operation [`GetFunctionRealm`][spec].
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-getfunctionrealm
+    pub(crate) fn get_function_realm(&self, context: &mut Context<'_>) -> JsResult<Intrinsics> {
+        let constructor = self.borrow();
+        if let Some(fun) = constructor.as_function() {
+            return Ok(fun.realm_intrinsics().clone());
+        }
+
+        if let Some(bound) = constructor.as_bound_function() {
+            let fun = bound.target_function().clone();
+            drop(constructor);
+            return fun.get_function_realm(context);
+        }
+
+        if let Some(proxy) = constructor.as_proxy() {
+            let (fun, _) = proxy.try_data()?;
+            drop(constructor);
+            return fun.get_function_realm(context);
+        }
+
+        Ok(context.intrinsics().clone())
+    }
 
     // todo: CopyDataProperties
 

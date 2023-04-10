@@ -133,7 +133,7 @@ fn closure_capture_clone() {
     run_test_actions([
         TestAction::inspect_context(|ctx| {
             let string = js_string!("Hello");
-            let object = JsObject::with_object_proto(ctx);
+            let object = JsObject::with_object_proto(ctx.intrinsics());
             object
                 .define_property_or_throw(
                     "key",
@@ -170,7 +170,8 @@ fn closure_capture_clone() {
             .name("closure")
             .build();
 
-            ctx.register_global_property("closure", func, Attribute::default());
+            ctx.register_global_property("closure", func, Attribute::default())
+                .unwrap();
         }),
         TestAction::assert_eq("closure()", "Hello world!"),
     ]);

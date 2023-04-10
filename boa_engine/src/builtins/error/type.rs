@@ -17,7 +17,8 @@
 
 use crate::{
     builtins::{
-        function::Function, BuiltInBuilder, BuiltInConstructor, BuiltInObject, IntrinsicObject,
+        function::{Function, FunctionKind},
+        BuiltInBuilder, BuiltInConstructor, BuiltInObject, IntrinsicObject,
     },
     context::intrinsics::{Intrinsics, StandardConstructor, StandardConstructors},
     error::JsNativeError,
@@ -70,6 +71,22 @@ impl BuiltInConstructor for TypeError {
         context: &mut Context<'_>,
     ) -> JsResult<JsValue> {
         // 1. If NewTarget is undefined, let newTarget be the active function object; else let newTarget be NewTarget.
+        let new_target = &if new_target.is_undefined() {
+            context
+                .vm
+                .active_function
+                .clone()
+                .unwrap_or_else(|| {
+                    context
+                        .intrinsics()
+                        .constructors()
+                        .type_error()
+                        .constructor()
+                })
+                .into()
+        } else {
+            new_target.clone()
+        };
         // 2. Let O be ? OrdinaryCreateFromConstructor(newTarget, "%NativeError.prototype%", « [[ErrorData]] »).
         let prototype =
             get_prototype_from_constructor(new_target, StandardConstructors::type_error, context)?;
@@ -115,10 +132,13 @@ impl IntrinsicObject for ThrowTypeError {
 
         let mut obj = obj.borrow_mut();
 
-        obj.data = ObjectData::function(Function::Native {
-            function: NativeFunction::from_fn_ptr(throw_type_error),
-            constructor: None,
-        });
+        obj.data = ObjectData::function(Function::new(
+            FunctionKind::Native {
+                function: NativeFunction::from_fn_ptr(throw_type_error),
+                constructor: None,
+            },
+            intrinsics.clone(),
+        ));
     }
 
     fn get(intrinsics: &Intrinsics) -> JsObject {

@@ -96,6 +96,22 @@ impl BuiltInConstructor for DateTimeFormat {
         context: &mut Context<'_>,
     ) -> JsResult<JsValue> {
         // 1. If NewTarget is undefined, let newTarget be the active function object, else let newTarget be NewTarget.
+        let new_target = &if new_target.is_undefined() {
+            context
+                .vm
+                .active_function
+                .clone()
+                .unwrap_or_else(|| {
+                    context
+                        .intrinsics()
+                        .constructors()
+                        .date_time_format()
+                        .constructor()
+                })
+                .into()
+        } else {
+            new_target.clone()
+        };
         let prototype = get_prototype_from_constructor(
             new_target,
             StandardConstructors::date_time_format,

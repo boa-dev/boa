@@ -1,5 +1,4 @@
 use crate::{
-    property::PropertyDescriptor,
     vm::{opcode::Operation, CompletionType},
     Context, JsResult, JsString, JsValue,
 };
@@ -22,22 +21,12 @@ impl Operation for DefVar {
     const INSTRUCTION: &'static str = "INST - DefVar";
 
     fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
+        // TODO: spec specifies to return `empty` on empty vars, but we're trying to initialize.
         let index = context.vm.read::<u32>();
         let binding_locator = context.vm.frame().code_block.bindings[index as usize];
 
         if binding_locator.is_global() {
-            let key = context
-                .interner()
-                .resolve_expect(binding_locator.name().sym())
-                .into_common(false);
-            context.global_bindings_mut().entry(key).or_insert(
-                PropertyDescriptor::builder()
-                    .value(JsValue::Undefined)
-                    .writable(true)
-                    .enumerable(true)
-                    .configurable(true)
-                    .build(),
-            );
+            // already initialized at compile time
         } else {
             context.realm.environments.put_value_if_uninitialized(
                 binding_locator.environment_index(),
@@ -74,10 +63,12 @@ impl Operation for DefInitVar {
                 let key = context
                     .interner()
                     .resolve_expect(binding_locator.name().sym())
-                    .into_common::<JsString>(false)
-                    .into();
-                crate::object::internal_methods::global::global_set_no_receiver(
-                    &key, value, context,
+                    .into_common::<JsString>(false);
+                context.global_object().set(
+                    key,
+                    value,
+                    context.vm.frame().code_block.strict,
+                    context,
                 )?;
             }
         } else {

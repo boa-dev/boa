@@ -20,14 +20,16 @@ fn main() {
     let mut ctx = Context::default();
 
     // Adding custom implementation that mimics 'require'
-    ctx.register_global_callable("require", 0, NativeFunction::from_fn_ptr(require));
+    ctx.register_global_callable("require", 0, NativeFunction::from_fn_ptr(require))
+        .unwrap();
 
     // Adding custom object that mimics 'module.exports'
     let moduleobj = JsObject::default();
     moduleobj
         .set("exports", JsValue::from(" "), false, &mut ctx)
         .unwrap();
-    ctx.register_global_property("module", JsValue::from(moduleobj), Attribute::default());
+    ctx.register_global_property("module", JsValue::from(moduleobj), Attribute::default())
+        .unwrap();
 
     // Instantiating the engine with the execution context
     // Loading, parsing and executing the JS code from the source file
@@ -57,7 +59,7 @@ fn require(_: &JsValue, args: &[JsValue], ctx: &mut Context<'_>) -> JsResult<JsV
             .unwrap();
 
         // Access module.exports and return as ResultValue
-        let global_obj = ctx.global_object().to_owned();
+        let global_obj = ctx.global_object();
         let module = global_obj.get("module", ctx).unwrap();
         module.as_object().unwrap().get("exports", ctx)
     }

@@ -168,7 +168,7 @@ fn global_binding<B: BuiltInObject>(context: &mut Context<'_>) -> JsResult<()> {
     let name = B::NAME;
     let attr = B::ATTRIBUTE;
     let intrinsic = B::get(context.intrinsics());
-    let global_object = context.global_object().clone();
+    let global_object = context.global_object();
 
     global_object.define_property_or_throw(
         name,
@@ -281,7 +281,7 @@ impl Intrinsics {
 ///
 /// [spec]: https://tc39.es/ecma262/#sec-setdefaultglobalbindings
 pub(crate) fn set_default_global_bindings(context: &mut Context<'_>) -> JsResult<()> {
-    let global_object = context.global_object().clone();
+    let global_object = context.global_object();
 
     global_object.define_property_or_throw(
         utf16!("globalThis"),
@@ -376,7 +376,7 @@ pub(crate) fn set_default_global_bindings(context: &mut Context<'_>) -> JsResult
     #[cfg(feature = "console")]
     {
         let object = Console::init(context);
-        let global_object = context.global_object().clone();
+        let global_object = context.global_object();
         global_object.define_property_or_throw(
             utf16!("console"),
             PropertyDescriptor::builder()
@@ -429,6 +429,7 @@ struct Callable<Kind> {
     name: JsString,
     length: usize,
     kind: Kind,
+    intrinsics: Intrinsics,
 }
 
 /// Marker for an ordinary object.
@@ -477,10 +478,13 @@ impl<S: ApplyToObject + IsConstructor> ApplyToObject for Callable<S> {
     fn apply_to(self, object: &JsObject) {
         self.kind.apply_to(object);
 
-        let function = function::Function::Native {
-            function: NativeFunction::from_fn_ptr(self.function),
-            constructor: S::IS_CONSTRUCTOR.then_some(function::ConstructorKind::Base),
-        };
+        let function = function::Function::new(
+            function::FunctionKind::Native {
+                function: NativeFunction::from_fn_ptr(self.function),
+                constructor: S::IS_CONSTRUCTOR.then_some(function::ConstructorKind::Base),
+            },
+            self.intrinsics,
+        );
 
         let length = PropertyDescriptor::builder()
             .value(self.length)
@@ -566,6 +570,7 @@ impl<'ctx> BuiltInBuilder<'ctx, OrdinaryObject> {
                 name: js_string!(""),
                 length: 0,
                 kind: OrdinaryFunction,
+                intrinsics: self.intrinsics.clone(),
             },
             prototype: self.intrinsics.constructors().function().prototype(),
         }
@@ -589,6 +594,7 @@ impl<'ctx> BuiltInBuilder<'ctx, Callable<Constructor>> {
                     inherits: Some(intrinsics.constructors().object().prototype()),
                     attributes: Attribute::WRITABLE | Attribute::CONFIGURABLE,
                 },
+                intrinsics: intrinsics.clone(),
             },
             prototype: intrinsics.constructors().function().prototype(),
         }
@@ -603,6 +609,7 @@ impl<'ctx> BuiltInBuilder<'ctx, Callable<Constructor>> {
                 name: self.kind.name,
                 length: self.kind.length,
                 kind: ConstructorNoProto,
+                intrinsics: self.intrinsics.clone(),
             },
             prototype: self.prototype,
         }
