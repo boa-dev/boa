@@ -1,6 +1,7 @@
 use indoc::indoc;
 
 mod control_flow;
+mod env;
 mod function;
 mod operators;
 mod promise;
