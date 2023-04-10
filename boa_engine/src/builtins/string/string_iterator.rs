@@ -9,10 +9,11 @@ use crate::{
     builtins::{iterable::create_iter_result_object, BuiltInBuilder, IntrinsicObject},
     context::intrinsics::Intrinsics,
     error::JsNativeError,
+    js_string,
     object::{JsObject, ObjectData},
     property::Attribute,
     symbol::JsSymbol,
-    Context, JsResult, JsValue,
+    Context, JsResult, JsString, JsValue,
 };
 use boa_gc::{Finalize, Trace};
 use boa_profiler::Profiler;
@@ -25,7 +26,7 @@ use boa_profiler::Profiler;
 /// [spec]: https://tc39.es/ecma262/#sec-string-iterator-objects
 #[derive(Debug, Clone, Finalize, Trace)]
 pub struct StringIterator {
-    string: JsValue,
+    string: JsString,
     next_index: usize,
 }
 
@@ -51,7 +52,7 @@ impl IntrinsicObject for StringIterator {
 
 impl StringIterator {
     /// Create a new `StringIterator`.
-    pub fn create_string_iterator(string: JsValue, context: &mut Context<'_>) -> JsObject {
+    pub fn create_string_iterator(string: JsString, context: &mut Context<'_>) -> JsObject {
         JsObject::from_proto_and_data(
             context
                 .intrinsics()
@@ -73,18 +74,18 @@ impl StringIterator {
             .and_then(|obj| obj.as_string_iterator_mut())
             .ok_or_else(|| JsNativeError::typ().with_message("`this` is not an ArrayIterator"))?;
 
-        if string_iterator.string.is_undefined() {
+        if string_iterator.string.is_empty() {
             return Ok(create_iter_result_object(
                 JsValue::undefined(),
                 true,
                 context,
             ));
         }
-        let native_string = string_iterator.string.to_string(context)?;
+        let native_string = &string_iterator.string;
         let len = native_string.len();
         let position = string_iterator.next_index;
         if position >= len {
-            string_iterator.string = JsValue::undefined();
+            string_iterator.string = js_string!();
             return Ok(create_iter_result_object(
                 JsValue::undefined(),
                 true,
@@ -94,7 +95,7 @@ impl StringIterator {
         let code_point = native_string.code_point_at(position);
         string_iterator.next_index += code_point.code_unit_count();
         let result_string = crate::builtins::string::String::substring(
-            &string_iterator.string,
+            &string_iterator.string.clone().into(),
             &[position.into(), string_iterator.next_index.into()],
             context,
         )?;
