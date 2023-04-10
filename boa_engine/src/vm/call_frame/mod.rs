@@ -33,6 +33,9 @@ pub struct CallFrame {
     // When an async generator is resumed, the generator object is needed
     // to fulfill the steps 4.e-j in [AsyncGeneratorStart](https://tc39.es/ecma262/#sec-asyncgeneratorstart).
     pub(crate) async_generator: Option<JsObject>,
+
+    // Iterators and their `[[Done]]` flags that must be closed when an abrupt completion is thrown.
+    pub(crate) iterators: Vec<(JsObject, bool)>,
 }
 
 /// ---- `CallFrame` creation methods ----
@@ -52,6 +55,7 @@ impl CallFrame {
             arg_count: 0,
             generator_resume_kind: GeneratorResumeKind::Normal,
             async_generator: None,
+            iterators: Vec::new(),
         }
     }
 

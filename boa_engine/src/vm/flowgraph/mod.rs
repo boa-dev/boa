@@ -502,9 +502,12 @@ impl CodeBlock {
                 | Opcode::GetIterator
                 | Opcode::GetAsyncIterator
                 | Opcode::IteratorNext
+                | Opcode::IteratorNextSetDone
                 | Opcode::IteratorUnwrapNext
                 | Opcode::IteratorUnwrapValue
                 | Opcode::IteratorToArray
+                | Opcode::IteratorClosePush
+                | Opcode::IteratorClosePop
                 | Opcode::RequireObjectCoercible
                 | Opcode::ValueNotNullOrUndefined
                 | Opcode::RestParameterInit

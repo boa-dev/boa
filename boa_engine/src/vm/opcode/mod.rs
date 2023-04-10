@@ -1423,6 +1423,14 @@ generate_impl! {
         /// Stack: iterator, next_method **=>** iterator, next_method, next_value
         IteratorNext,
 
+        /// Calls the `next` method of `iterator`, puts its return value on the stack
+        /// and sets the `[[Done]]` value of the iterator on the call frame.
+        ///
+        /// Operands:
+        ///
+        /// Stack: iterator, next_method **=>** iterator, next_method, next_value
+        IteratorNextSetDone,
+
         /// Gets the `value` and `done` properties of an iterator result.
         ///
         /// Stack: next_result **=>** done, next_value
@@ -1447,6 +1455,20 @@ generate_impl! {
         ///
         /// Stack: iterator, next_method **=>** iterator, next_method, array
         IteratorToArray,
+
+        /// Push an iterator to the call frame close iterator stack.
+        ///
+        /// Operands:
+        ///
+        /// Stack: iterator, next_method => iterator, next_method
+        IteratorClosePush,
+
+        /// Pop an iterator from the call frame close iterator stack.
+        ///
+        /// Operands:
+        ///
+        /// Stack:
+        IteratorClosePop,
 
         /// Concat multiple stack objects into a string.
         ///
