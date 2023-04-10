@@ -19,13 +19,20 @@ use super::intrinsics::Intrinsics;
 /// need to be redefined:
 ///
 /// ```
-/// use boa_engine::{JsNativeError, JsResult, context::{Context, ContextBuilder, HostHooks}, Source};
+/// use boa_engine::{
+///     context::{Context, ContextBuilder, HostHooks},
+///     JsNativeError,
+///     JsResult,
+///     realm::Realm,
+///     Source
+/// };
 ///
 /// struct Hooks;
 ///
 /// impl HostHooks for Hooks {
 ///     fn ensure_can_compile_strings(
 ///         &self,
+///         _realm: Realm,
 ///         context: &mut Context<'_>,
 ///     ) -> JsResult<()> {
 ///         Err(JsNativeError::typ().with_message("eval calls not available").into())
