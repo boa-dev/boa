@@ -2599,7 +2599,7 @@
     <span class="doccomment">/// Instance prototype `__proto__`.
     </span>prototype: JsPrototype,
     <span class="doccomment">/// Whether it can have new properties added to it.
-    </span>extensible: bool,
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) extensible: bool,
     <span class="doccomment">/// The `[[PrivateElements]]` internal slot.
     </span>private_elements: ThinVec&lt;(PrivateName, PrivateElement)&gt;,
 }

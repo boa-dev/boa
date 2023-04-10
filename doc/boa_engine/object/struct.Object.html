@@ -3,7 +3,7 @@
     pub data: <a class="struct" href="struct.ObjectData.html" title="struct boa_engine::object::ObjectData">ObjectData</a>,
     properties: <a class="struct" href="property_map/struct.PropertyMap.html" title="struct boa_engine::object::property_map::PropertyMap">PropertyMap</a>,
     prototype: <a class="type" href="type.JsPrototype.html" title="type boa_engine::object::JsPrototype">JsPrototype</a>,
-    extensible: <a class="primitive" href="https://doc.rust-lang.org/1.68.2/std/primitive.bool.html">bool</a>,
+    pub(crate) extensible: <a class="primitive" href="https://doc.rust-lang.org/1.68.2/std/primitive.bool.html">bool</a>,
     private_elements: ThinVec&lt;(PrivateName, <a class="enum" href="enum.PrivateElement.html" title="enum boa_engine::object::PrivateElement">PrivateElement</a>)&gt;,
 }</code></pre></div><details class="toggle top-doc" open><summary class="hideme"><span>Expand description</span></summary><div class="docblock"><p>The internal representation of a JavaScript object.</p>
 </div></details><h2 id="fields" class="fields small-section-header">Fields<a href="#fields" class="anchor">§</a></h2><span id="structfield.data" class="structfield small-section-header"><a href="#structfield.data" class="anchor field">§</a><code>data: <a class="struct" href="struct.ObjectData.html" title="struct boa_engine::object::ObjectData">ObjectData</a></code></span><div class="docblock"><p>The type of the object.</p>
