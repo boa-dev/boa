@@ -71,7 +71,7 @@ impl IntrinsicObject for String {
         let symbol_iterator = JsSymbol::iterator();
 
         let attribute = Attribute::READONLY | Attribute::NON_ENUMERABLE | Attribute::PERMANENT;
-        BuiltInBuilder::from_standard_constructor::<Self>(realm)
+        let builder = BuiltInBuilder::from_standard_constructor::<Self>(realm)
             .property(utf16!("length"), 0, attribute)
             .static_method(Self::raw, "raw", 1)
             .static_method(Self::from_char_code, "fromCharCode", 1)
@@ -107,8 +107,29 @@ impl IntrinsicObject for String {
             .method(Self::replace_all, "replaceAll", 2)
             .method(Self::iterator, (symbol_iterator, "[Symbol.iterator]"), 0)
             .method(Self::search, "search", 1)
-            .method(Self::at, "at", 1)
-            .build();
+            .method(Self::at, "at", 1);
+
+        #[cfg(feature = "annex-b")]
+        {
+            builder
+                .method(Self::anchor, "anchor", 1)
+                .method(Self::big, "big", 0)
+                .method(Self::blink, "blink", 0)
+                .method(Self::bold, "bold", 0)
+                .method(Self::fixed, "fixed", 0)
+                .method(Self::fontcolor, "fontcolor", 1)
+                .method(Self::fontsize, "fontsize", 1)
+                .method(Self::italics, "italics", 0)
+                .method(Self::link, "link", 1)
+                .method(Self::small, "small", 0)
+                .method(Self::strike, "strike", 0)
+                .method(Self::sub, "sub", 0)
+                .method(Self::sup, "sup", 0)
+                .build();
+        }
+
+        #[cfg(not(feature = "annex-b"))]
+        builder.build();
     }
 
     fn get(intrinsics: &Intrinsics) -> JsObject {
@@ -2172,6 +2193,336 @@ impl String {
         let s = o.to_string(context)?;
 
         Ok(StringIterator::create_string_iterator(s, context).into())
+    }
+}
+
+#[cfg(feature = "annex-b")]
+impl String {
+    /// `CreateHTML(string, tag, attribute, value)`
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-createhtml
+    pub(crate) fn create_html(
+        string: &JsValue,
+        tag: &[u16],
+        attribute_and_value: Option<(&[u16], &JsValue)>,
+        context: &mut Context<'_>,
+    ) -> JsResult<JsValue> {
+        // 1. Let str be ? RequireObjectCoercible(string).
+        let str = string.require_object_coercible()?;
+
+        // 2. Let S be ? ToString(str).
+        let s = str.to_string(context)?;
+
+        // 3. Let p1 be the string-concatenation of "<" and tag.
+        let mut p1 = JsString::concat_array(&[utf16!("<"), tag]);
+
+        // 4. If attribute is not the empty String, then
+        if let Some((attribute, value)) = attribute_and_value {
+            // a. Let V be ? ToString(value).
+            let v = value.to_string(context)?;
+
+            // b. Let escapedV be the String value that is the same as V except that each occurrence
+            //    of the code unit 0x0022 (QUOTATION MARK) in V has been replaced with the six
+            //    code unit sequence "&quot;".
+            let mut escaped_v = Vec::with_capacity(v.len());
+            for c in v.as_slice().iter().copied() {
+                if c == 0x0022 {
+                    escaped_v.extend(utf16!("&quot;"));
+                    continue;
+                }
+                escaped_v.push(c);
+            }
+
+            // c. Set p1 to the string-concatenation of:
+            //    p1
+            //    the code unit 0x0020 (SPACE)
+            //    attribute
+            //    the code unit 0x003D (EQUALS SIGN)
+            //    the code unit 0x0022 (QUOTATION MARK)
+            //    escapedV
+            //    the code unit 0x0022 (QUOTATION MARK)
+            p1 = JsString::concat_array(&[
+                p1.as_slice(),
+                utf16!(" "),
+                attribute,
+                utf16!("=\""),
+                escaped_v.as_slice(),
+                utf16!("\""),
+            ]);
+        }
+
+        // 5. Let p2 be the string-concatenation of p1 and ">".
+        // 6. Let p3 be the string-concatenation of p2 and S.
+        // 7. Let p4 be the string-concatenation of p3, "</", tag, and ">".
+        let p4 = JsString::concat_array(&[
+            p1.as_slice(),
+            utf16!(">"),
+            s.as_slice(),
+            utf16!("</"),
+            tag,
+            utf16!(">"),
+        ]);
+
+        // 8. Return p4.
+        Ok(p4.into())
+    }
+
+    /// `String.prototype.anchor( name )`
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///  - [MDN documentation][mdn]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-string.prototype.anchor
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/anchor
+    pub(crate) fn anchor(
+        this: &JsValue,
+        args: &[JsValue],
+        context: &mut Context<'_>,
+    ) -> JsResult<JsValue> {
+        let name = args.get_or_undefined(0);
+
+        // 1. Let S be the this value.
+        let s = this;
+        // 2. Return ? CreateHTML(S, "a", "name", name).
+        Self::create_html(s, utf16!("a"), Some((utf16!("name"), name)), context)
+    }
+
+    /// `String.prototype.big( )`
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///  - [MDN documentation][mdn]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-string.prototype.big
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/big
+    pub(crate) fn big(
+        this: &JsValue,
+        _: &[JsValue],
+        context: &mut Context<'_>,
+    ) -> JsResult<JsValue> {
+        // 1. Let S be the this value.
+        let s = this;
+        // 2. Return ? CreateHTML(S, "big", "", "").
+        Self::create_html(s, utf16!("big"), None, context)
+    }
+
+    /// `String.prototype.blink( )`
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///  - [MDN documentation][mdn]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-string.prototype.blink
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/blink
+    pub(crate) fn blink(
+        this: &JsValue,
+        _: &[JsValue],
+        context: &mut Context<'_>,
+    ) -> JsResult<JsValue> {
+        // 1. Let S be the this value.
+        let s = this;
+        // 2. Return ? CreateHTML(S, "blink", "", "").
+        Self::create_html(s, utf16!("blink"), None, context)
+    }
+
+    /// `String.prototype.bold( )`
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///  - [MDN documentation][mdn]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-string.prototype.bold
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/bold
+    pub(crate) fn bold(
+        this: &JsValue,
+        _: &[JsValue],
+        context: &mut Context<'_>,
+    ) -> JsResult<JsValue> {
+        // 1. Let S be the this value.
+        let s = this;
+        // 2. Return ? CreateHTML(S, "b", "", "").
+        Self::create_html(s, utf16!("b"), None, context)
+    }
+
+    /// `String.prototype.fixed( )`
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///  - [MDN documentation][mdn]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-string.prototype.fixed
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/fixed
+    pub(crate) fn fixed(
+        this: &JsValue,
+        _: &[JsValue],
+        context: &mut Context<'_>,
+    ) -> JsResult<JsValue> {
+        // 1. Let S be the this value.
+        let s = this;
+        // 2. Return ? CreateHTML(S, "big", "", "").
+        Self::create_html(s, utf16!("tt"), None, context)
+    }
+
+    /// `String.prototype.fontcolor( color )`
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///  - [MDN documentation][mdn]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-string.prototype.fontcolor
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/fontcolor
+    pub(crate) fn fontcolor(
+        this: &JsValue,
+        args: &[JsValue],
+        context: &mut Context<'_>,
+    ) -> JsResult<JsValue> {
+        let color = args.get_or_undefined(0);
+
+        // 1. Let S be the this value.
+        let s = this;
+        // 2. Return ? CreateHTML(S, "font", "color", color).
+        Self::create_html(s, utf16!("font"), Some((utf16!("color"), color)), context)
+    }
+
+    /// `String.prototype.fontsize( size )`
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///  - [MDN documentation][mdn]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-string.prototype.fontsize
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/fontsize
+    pub(crate) fn fontsize(
+        this: &JsValue,
+        args: &[JsValue],
+        context: &mut Context<'_>,
+    ) -> JsResult<JsValue> {
+        let size = args.get_or_undefined(0);
+
+        // 1. Let S be the this value.
+        let s = this;
+        // 2. Return ? CreateHTML(S, "font", "size", size).
+        Self::create_html(s, utf16!("font"), Some((utf16!("size"), size)), context)
+    }
+
+    /// `String.prototype.italics( )`
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///  - [MDN documentation][mdn]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-string.prototype.italics
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/italics
+    pub(crate) fn italics(
+        this: &JsValue,
+        _: &[JsValue],
+        context: &mut Context<'_>,
+    ) -> JsResult<JsValue> {
+        // 1. Let S be the this value.
+        let s = this;
+        // 2. Return ? CreateHTML(S, "i", "", "").
+        Self::create_html(s, utf16!("i"), None, context)
+    }
+
+    /// `String.prototype.link( url )`
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///  - [MDN documentation][mdn]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-string.prototype.link
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/link
+    pub(crate) fn link(
+        this: &JsValue,
+        args: &[JsValue],
+        context: &mut Context<'_>,
+    ) -> JsResult<JsValue> {
+        let url = args.get_or_undefined(0);
+
+        // 1. Let S be the this value.
+        let s = this;
+        // 2. Return ? CreateHTML(S, "a", "href", url).
+        Self::create_html(s, utf16!("a"), Some((utf16!("href"), url)), context)
+    }
+
+    /// `String.prototype.small( )`
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///  - [MDN documentation][mdn]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-string.prototype.small
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/small
+    pub(crate) fn small(
+        this: &JsValue,
+        _: &[JsValue],
+        context: &mut Context<'_>,
+    ) -> JsResult<JsValue> {
+        // 1. Let S be the this value.
+        let s = this;
+        // 2. Return ? CreateHTML(S, "small", "", "").
+        Self::create_html(s, utf16!("small"), None, context)
+    }
+
+    /// `String.prototype.strike( )`
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///  - [MDN documentation][mdn]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-string.prototype.strike
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/strike
+    pub(crate) fn strike(
+        this: &JsValue,
+        _: &[JsValue],
+        context: &mut Context<'_>,
+    ) -> JsResult<JsValue> {
+        // 1. Let S be the this value.
+        let s = this;
+        // 2. Return ? CreateHTML(S, "strike", "", "").
+        Self::create_html(s, utf16!("strike"), None, context)
+    }
+
+    /// `String.prototype.sub( )`
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///  - [MDN documentation][mdn]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-string.prototype.sub
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/sub
+    pub(crate) fn sub(
+        this: &JsValue,
+        _: &[JsValue],
+        context: &mut Context<'_>,
+    ) -> JsResult<JsValue> {
+        // 1. Let S be the this value.
+        let s = this;
+        // 2. Return ? CreateHTML(S, "sub", "", "").
+        Self::create_html(s, utf16!("sub"), None, context)
+    }
+
+    /// `String.prototype.sup( )`
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///  - [MDN documentation][mdn]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-string.prototype.sup
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/sup
+    pub(crate) fn sup(
+        this: &JsValue,
+        _: &[JsValue],
+        context: &mut Context<'_>,
+    ) -> JsResult<JsValue> {
+        // 1. Let S be the this value.
+        let s = this;
+        // 2. Return ? CreateHTML(S, "sup", "", "").
+        Self::create_html(s, utf16!("sup"), None, context)
     }
 }
 
