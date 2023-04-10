@@ -536,24 +536,9 @@ impl<'host> Context<'host> {
 
 // ==== Private API ====
 
+#[cfg(feature = "intl")]
 impl<'host> Context<'host> {
-    /// Compile the AST into a `CodeBlock` ready to be executed by the VM in a `JSON.parse` context.
-    pub(crate) fn compile_json_parse(&mut self, statement_list: &StatementList) -> Gc<CodeBlock> {
-        let _timer = Profiler::global().start_event("Compilation", "Main");
-        let mut compiler = ByteCompiler::new(
-            Sym::MAIN,
-            statement_list.strict(),
-            true,
-            self.realm.environment().compile_env(),
-            self,
-        );
-        compiler.create_script_decls(statement_list, false);
-        compiler.compile_statement_list(statement_list, true, false);
-        Gc::new(compiler.finish())
-    }
-
     /// Get the ICU related utilities
-    #[cfg(feature = "intl")]
     pub(crate) const fn icu(&self) -> &icu::Icu<'host> {
         &self.icu
     }
