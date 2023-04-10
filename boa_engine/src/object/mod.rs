@@ -125,7 +125,7 @@ pub struct Object {
     /// Instance prototype `__proto__`.
     prototype: JsPrototype,
     /// Whether it can have new properties added to it.
-    extensible: bool,
+    pub(crate) extensible: bool,
     /// The `[[PrivateElements]]` internal slot.
     private_elements: ThinVec<(PrivateName, PrivateElement)>,
 }
