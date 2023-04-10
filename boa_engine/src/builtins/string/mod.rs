@@ -930,11 +930,16 @@ impl String {
         args: &[JsValue],
         context: &mut Context<'_>,
     ) -> JsResult<JsValue> {
+        // Helper enum.
+        enum CallableOrString<'a> {
+            FunctionalReplace(&'a JsObject),
+            ReplaceValue(JsString),
+        }
+
         // 1. Let O be ? RequireObjectCoercible(this value).
-        this.require_object_coercible()?;
+        let o = this.require_object_coercible()?;
 
         let search_value = args.get_or_undefined(0);
-
         let replace_value = args.get_or_undefined(1);
 
         // 2. If searchValue is neither undefined nor null, then
@@ -945,73 +950,72 @@ impl String {
             // b. If replacer is not undefined, then
             if let Some(replacer) = replacer {
                 // i. Return ? Call(replacer, searchValue, « O, replaceValue »).
-                return replacer.call(
-                    search_value,
-                    &[this.clone(), replace_value.clone()],
-                    context,
-                );
+                return replacer.call(search_value, &[o.clone(), replace_value.clone()], context);
             }
         }
 
         // 3. Let string be ? ToString(O).
-        let this_str = this.to_string(context)?;
+        let string = o.to_string(context)?;
 
         // 4. Let searchString be ? ToString(searchValue).
-        let search_str = search_value.to_string(context)?;
+        let search_string = search_value.to_string(context)?;
 
         // 5. Let functionalReplace be IsCallable(replaceValue).
-        let replace_obj = replace_value.as_callable();
+        let functional_replace = replace_value.as_callable();
 
         // 6. If functionalReplace is false, then
-        // a. Set replaceValue to ? ToString(replaceValue).
+        let replace_value = if let Some(callable) = functional_replace {
+            CallableOrString::FunctionalReplace(callable)
+        } else {
+            // a. Set replaceValue to ? ToString(replaceValue).
+            CallableOrString::ReplaceValue(replace_value.to_string(context)?)
+        };
 
         // 7. Let searchLength be the length of searchString.
-        let search_length = search_str.len();
+        let search_length = search_string.len();
 
         // 8. Let position be ! StringIndexOf(string, searchString, 0).
         // 9. If position is -1, return string.
-        let Some(position) = this_str.index_of(&search_str, 0) else {
-            return Ok(this_str.into());
+        let Some(position) = string.index_of(&search_string, 0) else {
+            return Ok(string.into());
         };
 
         // 10. Let preserved be the substring of string from 0 to position.
-        let preserved = &this_str[..position];
+        let preserved = &string[..position];
 
-        // 11. If functionalReplace is true, then
-        // 12. Else,
-        let replacement = if let Some(replace_fn) = replace_obj {
-            // a. Let replacement be ? ToString(? Call(replaceValue, undefined, « searchString, 𝔽(position), string »)).
-            replace_fn
-                .call(
+        let replacement = match replace_value {
+            // 11. If functionalReplace is true, then
+            CallableOrString::FunctionalReplace(replace_fn) => {
+                // a. Let replacement be ? ToString(? Call(replaceValue, undefined, « searchString, 𝔽(position), string »)).
+                replace_fn
+                    .call(
+                        &JsValue::undefined(),
+                        &[search_string.into(), position.into(), string.clone().into()],
+                        context,
+                    )?
+                    .to_string(context)?
+            }
+            // 12. Else,
+            CallableOrString::ReplaceValue(replace_value) => {
+                // a. Assert: Type(replaceValue) is String.
+                // b. Let captures be a new empty List.
+                let captures = Vec::new();
+
+                // c. Let replacement be ! GetSubstitution(searchString, string, position, captures, undefined, replaceValue).
+                get_substitution(
+                    &search_string,
+                    &string,
+                    position,
+                    &captures,
                     &JsValue::undefined(),
-                    &[search_str.into(), position.into(), this_str.clone().into()],
+                    &replace_value,
                     context,
                 )?
-                .to_string(context)?
-        } else {
-            // a. Assert: Type(replaceValue) is String.
-            // b. Let captures be a new empty List.
-            let captures = Vec::new();
-
-            // c. Let replacement be ! GetSubstitution(searchString, string, position, captures, undefined, replaceValue).
-            get_substitution(
-                &search_str,
-                &this_str,
-                position,
-                &captures,
-                &JsValue::undefined(),
-                &replace_value.to_string(context)?,
-                context,
-            )?
+            }
         };
 
         // 13. Return the string-concatenation of preserved, replacement, and the substring of string from position + searchLength.
-        Ok(js_string!(
-            preserved,
-            &replacement,
-            &this_str[position + search_length..]
-        )
-        .into())
+        Ok(js_string!(preserved, &replacement, &string[position + search_length..]).into())
     }
 
     /// `22.1.3.18 String.prototype.replaceAll ( searchValue, replaceValue )`
