@@ -569,6 +569,7 @@
 <a href="#568" id="568">568</a>
 <a href="#569" id="569">569</a>
 <a href="#570" id="570">570</a>
+<a href="#571" id="571">571</a>
 </pre><pre class="rust"><code><span class="doccomment">//! Boa&#39;s implementation of ECMAScript&#39;s URI Handling Functions.
 //!
 //! Uniform Resource Identifiers, or URIs, are Strings that identify resources (e.g. web pages or
@@ -595,6 +596,7 @@
     context::intrinsics::Intrinsics,
     js_string,
     object::{JsFunction, JsObject},
+    realm::Realm,
     string::CodePoint,
     Context, JsArgs, JsNativeError, JsResult, JsString, JsValue,
 };
@@ -651,8 +653,8 @@
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>DecodeUri;
 
 <span class="kw">impl </span>IntrinsicObject <span class="kw">for </span>DecodeUri {
-    <span class="kw">fn </span>init(intrinsics: <span class="kw-2">&amp;</span>Intrinsics) {
-        BuiltInBuilder::with_intrinsic::&lt;<span class="self">Self</span>&gt;(intrinsics)
+    <span class="kw">fn </span>init(realm: <span class="kw-2">&amp;</span>Realm) {
+        BuiltInBuilder::with_intrinsic::&lt;<span class="self">Self</span>&gt;(realm)
             .callable(decode_uri)
             .name(<span class="self">Self</span>::NAME)
             .length(<span class="number">1</span>)
@@ -670,8 +672,8 @@
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>DecodeUriComponent;
 
 <span class="kw">impl </span>IntrinsicObject <span class="kw">for </span>DecodeUriComponent {
-    <span class="kw">fn </span>init(intrinsics: <span class="kw-2">&amp;</span>Intrinsics) {
-        BuiltInBuilder::with_intrinsic::&lt;<span class="self">Self</span>&gt;(intrinsics)
+    <span class="kw">fn </span>init(realm: <span class="kw-2">&amp;</span>Realm) {
+        BuiltInBuilder::with_intrinsic::&lt;<span class="self">Self</span>&gt;(realm)
             .callable(decode_uri_component)
             .name(<span class="self">Self</span>::NAME)
             .length(<span class="number">1</span>)
@@ -693,8 +695,8 @@
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>EncodeUri;
 
 <span class="kw">impl </span>IntrinsicObject <span class="kw">for </span>EncodeUri {
-    <span class="kw">fn </span>init(intrinsics: <span class="kw-2">&amp;</span>Intrinsics) {
-        BuiltInBuilder::with_intrinsic::&lt;<span class="self">Self</span>&gt;(intrinsics)
+    <span class="kw">fn </span>init(realm: <span class="kw-2">&amp;</span>Realm) {
+        BuiltInBuilder::with_intrinsic::&lt;<span class="self">Self</span>&gt;(realm)
             .callable(encode_uri)
             .name(<span class="self">Self</span>::NAME)
             .length(<span class="number">1</span>)
@@ -711,8 +713,8 @@
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>EncodeUriComponent;
 
 <span class="kw">impl </span>IntrinsicObject <span class="kw">for </span>EncodeUriComponent {
-    <span class="kw">fn </span>init(intrinsics: <span class="kw-2">&amp;</span>Intrinsics) {
-        BuiltInBuilder::with_intrinsic::&lt;<span class="self">Self</span>&gt;(intrinsics)
+    <span class="kw">fn </span>init(realm: <span class="kw-2">&amp;</span>Realm) {
+        BuiltInBuilder::with_intrinsic::&lt;<span class="self">Self</span>&gt;(realm)
             .callable(encode_uri_component)
             .name(<span class="self">Self</span>::NAME)
             .length(<span class="number">1</span>)

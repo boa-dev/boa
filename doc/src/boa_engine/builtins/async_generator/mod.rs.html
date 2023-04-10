@@ -733,6 +733,18 @@
 <a href="#732" id="732">732</a>
 <a href="#733" id="733">733</a>
 <a href="#734" id="734">734</a>
+<a href="#735" id="735">735</a>
+<a href="#736" id="736">736</a>
+<a href="#737" id="737">737</a>
+<a href="#738" id="738">738</a>
+<a href="#739" id="739">739</a>
+<a href="#740" id="740">740</a>
+<a href="#741" id="741">741</a>
+<a href="#742" id="742">742</a>
+<a href="#743" id="743">743</a>
+<a href="#744" id="744">744</a>
+<a href="#745" id="745">745</a>
+<a href="#746" id="746">746</a>
 </pre><pre class="rust"><code><span class="doccomment">//! Boa&#39;s implementation of ECMAScript&#39;s global `AsyncGenerator` object.
 //!
 //! More information:
@@ -750,6 +762,7 @@
     native_function::NativeFunction,
     object::{FunctionObjectBuilder, JsObject, CONSTRUCTOR},
     property::Attribute,
+    realm::Realm,
     symbol::JsSymbol,
     value::JsValue,
     vm::GeneratorResumeKind,
@@ -801,11 +814,17 @@
 }
 
 <span class="kw">impl </span>IntrinsicObject <span class="kw">for </span>AsyncGenerator {
-    <span class="kw">fn </span>init(intrinsics: <span class="kw-2">&amp;</span>Intrinsics) {
+    <span class="kw">fn </span>init(realm: <span class="kw-2">&amp;</span>Realm) {
         <span class="kw">let </span>_timer = Profiler::global().start_event(<span class="self">Self</span>::NAME, <span class="string">&quot;init&quot;</span>);
 
-        BuiltInBuilder::with_intrinsic::&lt;<span class="self">Self</span>&gt;(intrinsics)
-            .prototype(intrinsics.objects().iterator_prototypes().async_iterator())
+        BuiltInBuilder::with_intrinsic::&lt;<span class="self">Self</span>&gt;(realm)
+            .prototype(
+                realm
+                    .intrinsics()
+                    .objects()
+                    .iterator_prototypes()
+                    .async_iterator(),
+            )
             .static_method(<span class="self">Self</span>::next, <span class="string">&quot;next&quot;</span>, <span class="number">1</span>)
             .static_method(<span class="self">Self</span>::r#return, <span class="string">&quot;return&quot;</span>, <span class="number">1</span>)
             .static_method(<span class="self">Self</span>::throw, <span class="string">&quot;throw&quot;</span>, <span class="number">1</span>)
@@ -816,7 +835,8 @@
             )
             .static_property(
                 CONSTRUCTOR,
-                intrinsics
+                realm
+                    .intrinsics()
                     .constructors()
                     .async_generator_function()
                     .prototype(),
@@ -1134,6 +1154,7 @@
         next: <span class="kw-2">&amp;</span>AsyncGeneratorRequest,
         completion: JsResult&lt;JsValue&gt;,
         done: bool,
+        realm: <span class="prelude-ty">Option</span>&lt;Realm&gt;,
         context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
     ) {
         <span class="comment">// 1. Let queue be generator.[[AsyncGeneratorQueue]].
@@ -1157,15 +1178,24 @@
             </span><span class="prelude-val">Ok</span>(value) =&gt; {
                 <span class="comment">// a. Assert: completion.[[Type]] is normal.
 
-                // TODO: Realm handling not implemented yet.
                 // b. If realm is present, then
-                // i. Let oldRealm be the running execution context&#39;s Realm.
-                // ii. Set the running execution context&#39;s Realm to realm.
-                // iii. Let iteratorResult be CreateIterResultObject(value, done).
-                // iv. Set the running execution context&#39;s Realm to oldRealm.
-                // c. Else,
-                // i. Let iteratorResult be CreateIterResultObject(value, done).
-                </span><span class="kw">let </span>iterator_result = create_iter_result_object(value, done, context);
+                </span><span class="kw">let </span>iterator_result = <span class="kw">if let </span><span class="prelude-val">Some</span>(realm) = realm {
+                    <span class="comment">// i. Let oldRealm be the running execution context&#39;s Realm.
+                    // ii. Set the running execution context&#39;s Realm to realm.
+                    </span><span class="kw">let </span>old_realm = context.enter_realm(realm);
+
+                    <span class="comment">// iii. Let iteratorResult be CreateIterResultObject(value, done).
+                    </span><span class="kw">let </span>iterator_result = create_iter_result_object(value, done, context);
+
+                    <span class="comment">// iv. Set the running execution context&#39;s Realm to oldRealm.
+                    </span>context.enter_realm(old_realm);
+
+                    iterator_result
+                } <span class="kw">else </span>{
+                    <span class="comment">// c. Else,
+                    // i. Let iteratorResult be CreateIterResultObject(value, done).
+                    </span>create_iter_result_object(value, done, context)
+                };
 
                 <span class="comment">// d. Perform ! Call(promiseCapability.[[Resolve]], undefined, « iteratorResult »).
                 </span>promise_capability
@@ -1209,7 +1239,7 @@
 
         <span class="comment">// 6. Push genContext onto the execution context stack; genContext is now the running execution context.
         </span>std::mem::swap(
-            <span class="kw-2">&amp;mut </span>context.realm.environments,
+            <span class="kw-2">&amp;mut </span>context.vm.environments,
             <span class="kw-2">&amp;mut </span>generator_context.environments,
         );
         std::mem::swap(<span class="kw-2">&amp;mut </span>context.vm.stack, <span class="kw-2">&amp;mut </span>generator_context.stack);
@@ -1217,10 +1247,7 @@
             <span class="kw-2">&amp;mut </span>context.vm.active_function,
             <span class="kw-2">&amp;mut </span>generator_context.active_function,
         );
-        std::mem::swap(
-            <span class="kw-2">&amp;mut </span>context.realm.intrinsics,
-            <span class="kw-2">&amp;mut </span>generator_context.realm_intrinsics,
-        );
+        <span class="kw">let </span>old_realm = context.enter_realm(generator_context.realm.clone());
 
         context.vm.push_frame(generator_context.call_frame.clone());
 
@@ -1243,7 +1270,7 @@
         <span class="kw">let </span>result = context.run();
 
         std::mem::swap(
-            <span class="kw-2">&amp;mut </span>context.realm.environments,
+            <span class="kw-2">&amp;mut </span>context.vm.environments,
             <span class="kw-2">&amp;mut </span>generator_context.environments,
         );
         std::mem::swap(<span class="kw-2">&amp;mut </span>context.vm.stack, <span class="kw-2">&amp;mut </span>generator_context.stack);
@@ -1252,10 +1279,7 @@
             <span class="kw-2">&amp;mut </span>context.vm.active_function,
             <span class="kw-2">&amp;mut </span>generator_context.active_function,
         );
-        std::mem::swap(
-            <span class="kw-2">&amp;mut </span>context.realm.intrinsics,
-            <span class="kw-2">&amp;mut </span>generator_context.realm_intrinsics,
-        );
+        context.enter_realm(old_realm);
 
         generator
             .borrow_mut()
@@ -1310,7 +1334,7 @@
                 gen.context = <span class="prelude-val">None</span>;
                 <span class="kw">let </span>next = gen.queue.pop_front().expect(<span class="string">&quot;queue must not be empty&quot;</span>);
                 drop(generator_borrow_mut);
-                <span class="self">Self</span>::complete_step(<span class="kw-2">&amp;</span>next, <span class="prelude-val">Err</span>(value), <span class="bool-val">true</span>, context);
+                <span class="self">Self</span>::complete_step(<span class="kw-2">&amp;</span>next, <span class="prelude-val">Err</span>(value), <span class="bool-val">true</span>, <span class="prelude-val">None</span>, context);
                 <span class="self">Self</span>::drain_queue(<span class="kw-2">&amp;</span>generator, context);
                 <span class="kw">return</span>;
             }
@@ -1339,7 +1363,7 @@
                     </span><span class="kw">let </span>result = <span class="prelude-val">Ok</span>(args.get_or_undefined(<span class="number">0</span>).clone());
 
                     <span class="comment">// c. Perform AsyncGeneratorCompleteStep(generator, result, true).
-                    </span><span class="self">Self</span>::complete_step(<span class="kw-2">&amp;</span>next, result, <span class="bool-val">true</span>, context);
+                    </span><span class="self">Self</span>::complete_step(<span class="kw-2">&amp;</span>next, result, <span class="bool-val">true</span>, <span class="prelude-val">None</span>, context);
 
                     <span class="comment">// d. Perform AsyncGeneratorDrainQueue(generator).
                     </span><span class="self">Self</span>::drain_queue(generator, context);
@@ -1375,7 +1399,7 @@
                     <span class="comment">// c. Perform AsyncGeneratorCompleteStep(generator, result, true).
                     </span><span class="kw">let </span>next = gen.queue.pop_front().expect(<span class="string">&quot;must have one entry&quot;</span>);
                     drop(generator_borrow_mut);
-                    <span class="self">Self</span>::complete_step(<span class="kw-2">&amp;</span>next, result, <span class="bool-val">true</span>, context);
+                    <span class="self">Self</span>::complete_step(<span class="kw-2">&amp;</span>next, result, <span class="bool-val">true</span>, <span class="prelude-val">None</span>, context);
 
                     <span class="comment">// d. Perform AsyncGeneratorDrainQueue(generator).
                     </span><span class="self">Self</span>::drain_queue(generator, context);
@@ -1456,7 +1480,7 @@
 
                     <span class="comment">// ii. Perform AsyncGeneratorCompleteStep(generator, completion, true).
                     </span><span class="kw">let </span>next = queue.pop_front().expect(<span class="string">&quot;must have entry&quot;</span>);
-                    <span class="self">Self</span>::complete_step(<span class="kw-2">&amp;</span>next, completion, <span class="bool-val">true</span>, context);
+                    <span class="self">Self</span>::complete_step(<span class="kw-2">&amp;</span>next, completion, <span class="bool-val">true</span>, <span class="prelude-val">None</span>, context);
 
                     <span class="comment">// iii. If queue is empty, set done to true.
                     </span><span class="kw">if </span>queue.is_empty() {

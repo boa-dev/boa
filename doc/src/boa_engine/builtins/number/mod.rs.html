@@ -937,6 +937,7 @@
 <a href="#936" id="936">936</a>
 <a href="#937" id="937">937</a>
 <a href="#938" id="938">938</a>
+<a href="#939" id="939">939</a>
 </pre><pre class="rust"><code><span class="doccomment">//! Boa&#39;s implementation of ECMAScript&#39;s global `Number` object.
 //!
 //! The `Number` ECMAScript object is a wrapper object allowing you to work with numerical values.
@@ -958,6 +959,7 @@
     error::JsNativeError,
     object::{internal_methods::get_prototype_from_constructor, JsObject, ObjectData},
     property::Attribute,
+    realm::Realm,
     string::utf16,
     value::{AbstractRelation, IntegerOrInfinity, JsValue},
     Context, JsArgs, JsResult,
@@ -984,12 +986,12 @@
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>Number;
 
 <span class="kw">impl </span>IntrinsicObject <span class="kw">for </span>Number {
-    <span class="kw">fn </span>init(intrinsics: <span class="kw-2">&amp;</span>Intrinsics) {
+    <span class="kw">fn </span>init(realm: <span class="kw-2">&amp;</span>Realm) {
         <span class="kw">let </span>_timer = Profiler::global().start_event(<span class="self">Self</span>::NAME, <span class="string">&quot;init&quot;</span>);
 
         <span class="kw">let </span>attribute = Attribute::READONLY | Attribute::NON_ENUMERABLE | Attribute::PERMANENT;
 
-        BuiltInBuilder::from_standard_constructor::&lt;<span class="self">Self</span>&gt;(intrinsics)
+        BuiltInBuilder::from_standard_constructor::&lt;<span class="self">Self</span>&gt;(realm)
             .static_property(<span class="macro">utf16!</span>(<span class="string">&quot;EPSILON&quot;</span>), f64::EPSILON, attribute)
             .static_property(
                 <span class="macro">utf16!</span>(<span class="string">&quot;MAX_SAFE_INTEGER&quot;</span>),
@@ -1008,12 +1010,12 @@
             .static_property(<span class="macro">utf16!</span>(<span class="string">&quot;NaN&quot;</span>), f64::NAN, attribute)
             .static_property(
                 <span class="macro">utf16!</span>(<span class="string">&quot;parseInt&quot;</span>),
-                intrinsics.objects().parse_int(),
+                realm.intrinsics().objects().parse_int(),
                 Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
             )
             .static_property(
                 <span class="macro">utf16!</span>(<span class="string">&quot;parseFloat&quot;</span>),
-                intrinsics.objects().parse_float(),
+                realm.intrinsics().objects().parse_float(),
                 Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
             )
             .static_method(<span class="self">Self</span>::number_is_finite, <span class="string">&quot;isFinite&quot;</span>, <span class="number">1</span>)

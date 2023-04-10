@@ -285,6 +285,7 @@
 <a href="#284" id="284">284</a>
 <a href="#285" id="285">285</a>
 <a href="#286" id="286">286</a>
+<a href="#287" id="287">287</a>
 </pre><pre class="rust"><code><span class="doccomment">//! This module implements the global `Intl.DateTimeFormat` object.
 //!
 //! `Intl.DateTimeFormat` is a built-in object that has properties and methods for date and time i18n.
@@ -300,6 +301,7 @@
     error::JsNativeError,
     js_string,
     object::{internal_methods::get_prototype_from_constructor, JsObject, ObjectData},
+    realm::Realm,
     string::utf16,
     Context, JsResult, JsString, JsValue,
 };
@@ -349,10 +351,10 @@
 }
 
 <span class="kw">impl </span>IntrinsicObject <span class="kw">for </span>DateTimeFormat {
-    <span class="kw">fn </span>init(intrinsics: <span class="kw-2">&amp;</span>Intrinsics) {
+    <span class="kw">fn </span>init(realm: <span class="kw-2">&amp;</span>Realm) {
         <span class="kw">let </span>_timer = Profiler::global().start_event(<span class="self">Self</span>::NAME, <span class="string">&quot;init&quot;</span>);
 
-        BuiltInBuilder::from_standard_constructor::&lt;<span class="self">Self</span>&gt;(intrinsics).build();
+        BuiltInBuilder::from_standard_constructor::&lt;<span class="self">Self</span>&gt;(realm).build();
     }
 
     <span class="kw">fn </span>get(intrinsics: <span class="kw-2">&amp;</span>Intrinsics) -&gt; JsObject {

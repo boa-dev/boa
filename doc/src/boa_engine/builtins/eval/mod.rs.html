@@ -268,6 +268,14 @@
 <a href="#267" id="267">267</a>
 <a href="#268" id="268">268</a>
 <a href="#269" id="269">269</a>
+<a href="#270" id="270">270</a>
+<a href="#271" id="271">271</a>
+<a href="#272" id="272">272</a>
+<a href="#273" id="273">273</a>
+<a href="#274" id="274">274</a>
+<a href="#275" id="275">275</a>
+<a href="#276" id="276">276</a>
+<a href="#277" id="277">277</a>
 </pre><pre class="rust"><code><span class="doccomment">//! Boa&#39;s implementation of ECMAScript&#39;s global `eval` function.
 //!
 //! The `eval()` function evaluates ECMAScript code represented as a string.
@@ -280,12 +288,15 @@
 //! [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/eval
 
 </span><span class="kw">use crate</span>::{
-    builtins::BuiltInObject, context::intrinsics::Intrinsics, environments::Environment,
-    error::JsNativeError, object::JsObject, Context, JsArgs, JsResult, JsString, JsValue,
+    builtins::BuiltInObject, bytecompiler::ByteCompiler, context::intrinsics::Intrinsics,
+    environments::Environment, error::JsNativeError, object::JsObject, realm::Realm, Context,
+    JsArgs, JsResult, JsString, JsValue,
 };
 <span class="kw">use </span>boa_ast::operations::{
     contains, contains_arguments, top_level_var_declared_names, ContainsSymbol,
 };
+<span class="kw">use </span>boa_gc::Gc;
+<span class="kw">use </span>boa_interner::Sym;
 <span class="kw">use </span>boa_parser::{Parser, Source};
 <span class="kw">use </span>boa_profiler::Profiler;
 
@@ -295,10 +306,10 @@
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>Eval;
 
 <span class="kw">impl </span>IntrinsicObject <span class="kw">for </span>Eval {
-    <span class="kw">fn </span>init(intrinsics: <span class="kw-2">&amp;</span>Intrinsics) {
+    <span class="kw">fn </span>init(realm: <span class="kw-2">&amp;</span>Realm) {
         <span class="kw">let </span>_timer = Profiler::global().start_event(<span class="self">Self</span>::NAME, <span class="string">&quot;init&quot;</span>);
 
-        BuiltInBuilder::with_intrinsic::&lt;<span class="self">Self</span>&gt;(intrinsics)
+        BuiltInBuilder::with_intrinsic::&lt;<span class="self">Self</span>&gt;(realm)
             .callable(<span class="self">Self</span>::eval)
             .name(<span class="self">Self</span>::NAME)
             .length(<span class="number">1</span>)
@@ -361,12 +372,12 @@
         </span><span class="kw">fn </span>restore_environment(context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;, action: EnvStackAction) {
             <span class="kw">match </span>action {
                 EnvStackAction::Truncate(size) =&gt; {
-                    context.realm.environments.truncate(size);
+                    context.vm.environments.truncate(size);
                 }
                 EnvStackAction::Restore(envs) =&gt; {
                     <span class="comment">// Pop all environments created during the eval execution and restore the original stack.
-                    </span>context.realm.environments.truncate(<span class="number">1</span>);
-                    context.realm.environments.extend(envs);
+                    </span>context.vm.environments.truncate(<span class="number">1</span>);
+                    context.vm.environments.extend(envs);
                 }
             }
         }
@@ -382,8 +393,13 @@
 
         <span class="comment">// Because of implementation details the following code differs from the spec.
 
+        // 3. Let evalRealm be the current Realm Record.
+        // 4. NOTE: In the case of a direct eval, evalRealm is the realm of both the caller of eval
+        // and of the eval function itself.
         // 5. Perform ? HostEnsureCanCompileStrings(evalRealm).
-        </span>context.host_hooks().ensure_can_compile_strings(context)<span class="question-mark">?</span>;
+        </span>context
+            .host_hooks()
+            .ensure_can_compile_strings(context.realm().clone(), context)<span class="question-mark">?</span>;
 
         <span class="comment">// 11. Perform the following substeps in an implementation-defined order, possibly interleaving parsing and error detection:
         //     a. Let script be ParseText(StringToCodePoints(x), Script).
@@ -402,7 +418,7 @@
         // 9. Let inClassFieldInitializer be false.
         // a. Let thisEnvRec be GetThisEnvironment().
         </span><span class="kw">let </span>flags = <span class="kw">match </span>context
-            .realm
+            .vm
             .environments
             .get_this_environment()
             .as_function_slots()
@@ -473,28 +489,21 @@
         </span><span class="kw">let </span>action = <span class="kw">if </span>direct {
             <span class="comment">// If the call to eval is direct, the code is executed in the current environment.
 
-            // Poison the current environment, because it may contain new declarations after/during eval.
+            // Poison the last parent function environment, because it may contain new declarations after/during eval.
             </span><span class="kw">if </span>!strict {
-                context.realm.environments.poison_current();
+                context.vm.environments.poison_last_function();
             }
 
             <span class="comment">// Set the compile time environment to the current running environment and save the number of current environments.
-            </span>context.realm.compile_env = context.realm.environments.current_compile_environment();
-            <span class="kw">let </span>environments_len = context.realm.environments.len();
+            </span><span class="kw">let </span>environments_len = context.vm.environments.len();
 
             <span class="comment">// Pop any added runtime environments that were not removed during the eval execution.
             </span>EnvStackAction::Truncate(environments_len)
         } <span class="kw">else </span>{
             <span class="comment">// If the call to eval is indirect, the code is executed in the global environment.
 
-            // Poison all environments, because the global environment may contain new declarations after/during eval.
-            </span><span class="kw">if </span>!strict {
-                context.realm.environments.poison_all();
-            }
-
-            <span class="comment">// Pop all environments before the eval execution.
-            </span><span class="kw">let </span>environments = context.realm.environments.pop_to_global();
-            context.realm.compile_env = context.realm.environments.current_compile_environment();
+            // Pop all environments before the eval execution.
+            </span><span class="kw">let </span>environments = context.vm.environments.pop_to_global();
 
             <span class="comment">// Restore all environments to the state from before the eval execution.
             </span>EnvStackAction::Restore(environments)
@@ -505,7 +514,7 @@
         </span><span class="kw">if </span>!strict {
             <span class="comment">// Error if any var declaration in the eval code already exists as a let/const declaration in the current running environment.
             </span><span class="kw">if let </span><span class="prelude-val">Some</span>(name) = context
-                .realm
+                .vm
                 .environments
                 .has_lex_binding_until_function_environment(<span class="kw-2">&amp;</span>top_level_var_declared_names(<span class="kw-2">&amp;</span>body))
             {
@@ -519,16 +528,23 @@
         <span class="comment">// TODO: check if private identifiers inside `eval` are valid.
 
         // Compile and execute the eval statement list.
-        </span><span class="kw">let </span>code_block = context.compile_with_new_declarative(<span class="kw-2">&amp;</span>body, strict);
+        </span><span class="kw">let </span>code_block = {
+            <span class="kw">let </span><span class="kw-2">mut </span>compiler = ByteCompiler::new(
+                Sym::MAIN,
+                body.strict(),
+                <span class="bool-val">false</span>,
+                context.vm.environments.current_compile_environment(),
+                context,
+            );
+            compiler.compile_statement_list_with_new_declarative(<span class="kw-2">&amp;</span>body, <span class="bool-val">true</span>, strict);
+            Gc::new(compiler.finish())
+        };
         <span class="comment">// Indirect calls don&#39;t need extensions, because a non-strict indirect call modifies only
         // the global object.
         // Strict direct calls also don&#39;t need extensions, since all strict eval calls push a new
         // function environment before evaluating.
         </span><span class="kw">if </span>direct &amp;&amp; !strict {
-            context
-                .realm
-                .environments
-                .extend_outer_function_environment();
+            context.vm.environments.extend_outer_function_environment();
         }
         <span class="kw">let </span>result = context.execute(code_block);
 

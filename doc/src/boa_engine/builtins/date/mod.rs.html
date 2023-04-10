@@ -1483,6 +1483,7 @@
 <a href="#1482" id="1482">1482</a>
 <a href="#1483" id="1483">1483</a>
 <a href="#1484" id="1484">1484</a>
+<a href="#1485" id="1485">1485</a>
 </pre><pre class="rust"><code><span class="doccomment">//! Boa&#39;s implementation of ECMAScript&#39;s `Date` object.
 //!
 //! More information:
@@ -1504,6 +1505,7 @@
     error::JsNativeError,
     js_string,
     object::{internal_methods::get_prototype_from_constructor, JsObject, ObjectData},
+    realm::Realm,
     string::utf16,
     symbol::JsSymbol,
     value::{IntegerOrNan, JsValue, PreferredType},
@@ -1585,10 +1587,10 @@
 }
 
 <span class="kw">impl </span>IntrinsicObject <span class="kw">for </span>Date {
-    <span class="kw">fn </span>init(intrinsics: <span class="kw-2">&amp;</span>Intrinsics) {
+    <span class="kw">fn </span>init(realm: <span class="kw-2">&amp;</span>Realm) {
         <span class="kw">let </span>_timer = Profiler::global().start_event(<span class="self">Self</span>::NAME, <span class="string">&quot;init&quot;</span>);
 
-        BuiltInBuilder::from_standard_constructor::&lt;<span class="self">Self</span>&gt;(intrinsics)
+        BuiltInBuilder::from_standard_constructor::&lt;<span class="self">Self</span>&gt;(realm)
             .method(<span class="self">Self</span>::get_date::&lt;<span class="bool-val">true</span>&gt;, <span class="string">&quot;getDate&quot;</span>, <span class="number">0</span>)
             .method(<span class="self">Self</span>::get_day::&lt;<span class="bool-val">true</span>&gt;, <span class="string">&quot;getDay&quot;</span>, <span class="number">0</span>)
             .method(<span class="self">Self</span>::get_full_year::&lt;<span class="bool-val">true</span>&gt;, <span class="string">&quot;getFullYear&quot;</span>, <span class="number">0</span>)

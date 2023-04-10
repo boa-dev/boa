@@ -377,6 +377,13 @@
 <a href="#376" id="376">376</a>
 <a href="#377" id="377">377</a>
 <a href="#378" id="378">378</a>
+<a href="#379" id="379">379</a>
+<a href="#380" id="380">380</a>
+<a href="#381" id="381">381</a>
+<a href="#382" id="382">382</a>
+<a href="#383" id="383">383</a>
+<a href="#384" id="384">384</a>
+<a href="#385" id="385">385</a>
 </pre><pre class="rust"><code><span class="kw">use crate</span>::{
     builtins::{
         iterable::{create_iter_result_object, IteratorRecord, IteratorResult},
@@ -386,6 +393,7 @@
     context::intrinsics::Intrinsics,
     native_function::NativeFunction,
     object::{FunctionObjectBuilder, JsObject, ObjectData},
+    realm::Realm,
     string::utf16,
     Context, JsArgs, JsNativeError, JsResult, JsValue,
 };
@@ -405,11 +413,17 @@
 }
 
 <span class="kw">impl </span>IntrinsicObject <span class="kw">for </span>AsyncFromSyncIterator {
-    <span class="kw">fn </span>init(intrinsics: <span class="kw-2">&amp;</span>Intrinsics) {
+    <span class="kw">fn </span>init(realm: <span class="kw-2">&amp;</span>Realm) {
         <span class="kw">let </span>_timer = Profiler::global().start_event(<span class="string">&quot;AsyncFromSyncIteratorPrototype&quot;</span>, <span class="string">&quot;init&quot;</span>);
 
-        BuiltInBuilder::with_intrinsic::&lt;<span class="self">Self</span>&gt;(intrinsics)
-            .prototype(intrinsics.objects().iterator_prototypes().async_iterator())
+        BuiltInBuilder::with_intrinsic::&lt;<span class="self">Self</span>&gt;(realm)
+            .prototype(
+                realm
+                    .intrinsics()
+                    .objects()
+                    .iterator_prototypes()
+                    .async_iterator(),
+            )
             .static_method(<span class="self">Self</span>::next, <span class="string">&quot;next&quot;</span>, <span class="number">1</span>)
             .static_method(<span class="self">Self</span>::r#return, <span class="string">&quot;return&quot;</span>, <span class="number">1</span>)
             .static_method(<span class="self">Self</span>::throw, <span class="string">&quot;throw&quot;</span>, <span class="number">1</span>)

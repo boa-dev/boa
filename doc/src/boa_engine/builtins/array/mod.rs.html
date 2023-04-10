@@ -3023,6 +3023,11 @@
 <a href="#3022" id="3022">3022</a>
 <a href="#3023" id="3023">3023</a>
 <a href="#3024" id="3024">3024</a>
+<a href="#3025" id="3025">3025</a>
+<a href="#3026" id="3026">3026</a>
+<a href="#3027" id="3027">3027</a>
+<a href="#3028" id="3028">3028</a>
+<a href="#3029" id="3029">3029</a>
 </pre><pre class="rust"><code><span class="doccomment">//! Boa&#39;s implementation of ECMAScript&#39;s global `Array` object.
 //!
 //! The ECMAScript `Array` class is a global object that is used in the construction of arrays; which are high-level, list-like objects.
@@ -3047,6 +3052,7 @@
     js_string,
     object::{internal_methods::get_prototype_from_constructor, JsObject, ObjectData, CONSTRUCTOR},
     property::{Attribute, PropertyDescriptor, PropertyNameKind},
+    realm::Realm,
     symbol::JsSymbol,
     value::{IntegerOrInfinity, JsValue},
     Context, JsArgs, JsResult,
@@ -3065,26 +3071,28 @@
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>Array;
 
 <span class="kw">impl </span>IntrinsicObject <span class="kw">for </span>Array {
-    <span class="kw">fn </span>init(intrinsics: <span class="kw-2">&amp;</span>Intrinsics) {
+    <span class="kw">fn </span>init(realm: <span class="kw-2">&amp;</span>Realm) {
         <span class="kw">let </span>_timer = Profiler::global().start_event(<span class="self">Self</span>::NAME, <span class="string">&quot;init&quot;</span>);
 
         <span class="kw">let </span>symbol_iterator = JsSymbol::iterator();
         <span class="kw">let </span>symbol_unscopables = JsSymbol::unscopables();
 
-        <span class="kw">let </span>get_species = BuiltInBuilder::new(intrinsics)
+        <span class="kw">let </span>get_species = BuiltInBuilder::new(realm)
             .callable(<span class="self">Self</span>::get_species)
             .name(<span class="string">&quot;get [Symbol.species]&quot;</span>)
             .build();
 
-        <span class="kw">let </span>values_function =
-            BuiltInBuilder::with_object(intrinsics, intrinsics.objects().array_prototype_values())
-                .callable(<span class="self">Self</span>::values)
-                .name(<span class="string">&quot;values&quot;</span>)
-                .build();
+        <span class="kw">let </span>values_function = BuiltInBuilder::with_object(
+            realm,
+            realm.intrinsics().objects().array_prototype_values(),
+        )
+        .callable(<span class="self">Self</span>::values)
+        .name(<span class="string">&quot;values&quot;</span>)
+        .build();
 
         <span class="kw">let </span>unscopables_object = <span class="self">Self</span>::unscopables_object();
 
-        BuiltInBuilder::from_standard_constructor::&lt;<span class="self">Self</span>&gt;(intrinsics)
+        BuiltInBuilder::from_standard_constructor::&lt;<span class="self">Self</span>&gt;(realm)
             .static_accessor(
                 JsSymbol::species(),
                 <span class="prelude-val">Some</span>(get_species),
@@ -3394,12 +3402,14 @@
         <span class="comment">// 4. If IsConstructor(C) is true, then
         </span><span class="kw">if let </span><span class="prelude-val">Some</span>(c) = c.as_constructor() {
             <span class="comment">// a. Let thisRealm be the current Realm Record.
-            </span><span class="kw">let </span>this_realm = <span class="kw-2">&amp;</span>context.intrinsics().clone();
+            </span><span class="kw">let </span>this_realm = context.realm().clone();
             <span class="comment">// b. Let realmC be ? GetFunctionRealm(C).
-            </span><span class="kw">let </span>realm_c = <span class="kw-2">&amp;</span>c.get_function_realm(context)<span class="question-mark">?</span>;
+            </span><span class="kw">let </span>realm_c = c.get_function_realm(context)<span class="question-mark">?</span>;
 
             <span class="comment">// c. If thisRealm and realmC are not the same Realm Record, then
-            </span><span class="kw">if </span>this_realm != realm_c &amp;&amp; <span class="kw-2">*</span>c == realm_c.constructors().array().constructor() {
+            </span><span class="kw">if </span>this_realm != realm_c
+                &amp;&amp; <span class="kw-2">*</span>c == realm_c.intrinsics().constructors().array().constructor()
+            {
                 <span class="comment">// i. If SameValue(C, realmC.[[Intrinsics]].[[%Array%]]) is true, set C to undefined.
                 // Note: fast path to step 6.
                 </span><span class="kw">return </span><span class="self">Self</span>::array_create(length, <span class="prelude-val">None</span>, context);

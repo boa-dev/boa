@@ -255,6 +255,7 @@
 <a href="#254" id="254">254</a>
 <a href="#255" id="255">255</a>
 <a href="#256" id="256">256</a>
+<a href="#257" id="257">257</a>
 </pre><pre class="rust"><code><span class="doccomment">//! Boa&#39;s implementation of ECMAScript&#39;s string escaping functions.
 //!
 //! The `escape()` function replaces all characters with escape sequences, with the exception of ASCII
@@ -268,7 +269,8 @@
 //! [spec]: https://tc39.es/ecma262/#sec-additional-properties-of-the-global-object
 
 </span><span class="kw">use crate</span>::{
-    context::intrinsics::Intrinsics, js_string, Context, JsArgs, JsObject, JsResult, JsValue,
+    context::intrinsics::Intrinsics, js_string, realm::Realm, Context, JsArgs, JsObject, JsResult,
+    JsValue,
 };
 
 <span class="kw">use super</span>::{BuiltInBuilder, BuiltInObject, IntrinsicObject};
@@ -278,8 +280,8 @@
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>Escape;
 
 <span class="kw">impl </span>IntrinsicObject <span class="kw">for </span>Escape {
-    <span class="kw">fn </span>init(intrinsics: <span class="kw-2">&amp;</span>Intrinsics) {
-        BuiltInBuilder::with_intrinsic::&lt;<span class="self">Self</span>&gt;(intrinsics)
+    <span class="kw">fn </span>init(realm: <span class="kw-2">&amp;</span>Realm) {
+        BuiltInBuilder::with_intrinsic::&lt;<span class="self">Self</span>&gt;(realm)
             .callable(escape)
             .name(<span class="self">Self</span>::NAME)
             .length(<span class="number">1</span>)
@@ -351,8 +353,8 @@
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>Unescape;
 
 <span class="kw">impl </span>IntrinsicObject <span class="kw">for </span>Unescape {
-    <span class="kw">fn </span>init(intrinsics: <span class="kw-2">&amp;</span>Intrinsics) {
-        BuiltInBuilder::with_intrinsic::&lt;<span class="self">Self</span>&gt;(intrinsics)
+    <span class="kw">fn </span>init(realm: <span class="kw-2">&amp;</span>Realm) {
+        BuiltInBuilder::with_intrinsic::&lt;<span class="self">Self</span>&gt;(realm)
             .callable(unescape)
             .name(<span class="self">Self</span>::NAME)
             .length(<span class="number">1</span>)

@@ -275,6 +275,7 @@
 <a href="#274" id="274">274</a>
 <a href="#275" id="275">275</a>
 <a href="#276" id="276">276</a>
+<a href="#277" id="277">277</a>
 </pre><pre class="rust"><code><span class="doccomment">//! Boa&#39;s implementation of ECMAScript&#39;s global `Error` object.
 //!
 //! Error objects are thrown when runtime errors occur.
@@ -294,6 +295,7 @@
     js_string,
     object::{internal_methods::get_prototype_from_constructor, JsObject, ObjectData},
     property::Attribute,
+    realm::Realm,
     string::utf16,
     Context, JsArgs, JsResult, JsValue,
 };
@@ -404,11 +406,11 @@
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>Error;
 
 <span class="kw">impl </span>IntrinsicObject <span class="kw">for </span>Error {
-    <span class="kw">fn </span>init(intrinsics: <span class="kw-2">&amp;</span>Intrinsics) {
+    <span class="kw">fn </span>init(realm: <span class="kw-2">&amp;</span>Realm) {
         <span class="kw">let </span>_timer = Profiler::global().start_event(<span class="self">Self</span>::NAME, <span class="string">&quot;init&quot;</span>);
 
         <span class="kw">let </span>attribute = Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE;
-        BuiltInBuilder::from_standard_constructor::&lt;<span class="self">Self</span>&gt;(intrinsics)
+        BuiltInBuilder::from_standard_constructor::&lt;<span class="self">Self</span>&gt;(realm)
             .property(<span class="macro">utf16!</span>(<span class="string">&quot;name&quot;</span>), <span class="self">Self</span>::NAME, attribute)
             .property(<span class="macro">utf16!</span>(<span class="string">&quot;message&quot;</span>), <span class="string">&quot;&quot;</span>, attribute)
             .method(<span class="self">Self</span>::to_string, <span class="string">&quot;toString&quot;</span>, <span class="number">0</span>)

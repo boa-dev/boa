@@ -1398,6 +1398,7 @@
 <a href="#1397" id="1397">1397</a>
 <a href="#1398" id="1398">1398</a>
 <a href="#1399" id="1399">1399</a>
+<a href="#1400" id="1400">1400</a>
 </pre><pre class="rust"><code><span class="doccomment">//! Boa&#39;s implementation of ECMAScript&#39;s global `Object` object.
 //!
 //! The `Object` class represents one of ECMAScript&#39;s data types.
@@ -1427,6 +1428,7 @@
         JsObject, ObjectData, ObjectKind,
     },
     property::{Attribute, PropertyDescriptor, PropertyKey, PropertyNameKind},
+    realm::Realm,
     string::utf16,
     symbol::JsSymbol,
     value::JsValue,
@@ -1444,20 +1446,20 @@
 </span><span class="kw">pub struct </span>Object;
 
 <span class="kw">impl </span>IntrinsicObject <span class="kw">for </span>Object {
-    <span class="kw">fn </span>init(intrinsics: <span class="kw-2">&amp;</span>Intrinsics) {
+    <span class="kw">fn </span>init(realm: <span class="kw-2">&amp;</span>Realm) {
         <span class="kw">let </span>_timer = Profiler::global().start_event(<span class="self">Self</span>::NAME, <span class="string">&quot;init&quot;</span>);
 
-        <span class="kw">let </span>legacy_proto_getter = BuiltInBuilder::new(intrinsics)
+        <span class="kw">let </span>legacy_proto_getter = BuiltInBuilder::new(realm)
             .callable(<span class="self">Self</span>::legacy_proto_getter)
             .name(<span class="string">&quot;get __proto__&quot;</span>)
             .build();
 
-        <span class="kw">let </span>legacy_setter_proto = BuiltInBuilder::new(intrinsics)
+        <span class="kw">let </span>legacy_setter_proto = BuiltInBuilder::new(realm)
             .callable(<span class="self">Self</span>::legacy_proto_setter)
             .name(<span class="string">&quot;set __proto__&quot;</span>)
             .build();
 
-        BuiltInBuilder::from_standard_constructor::&lt;<span class="self">Self</span>&gt;(intrinsics)
+        BuiltInBuilder::from_standard_constructor::&lt;<span class="self">Self</span>&gt;(realm)
             .inherits(<span class="prelude-val">None</span>)
             .accessor(
                 <span class="macro">utf16!</span>(<span class="string">&quot;__proto__&quot;</span>),

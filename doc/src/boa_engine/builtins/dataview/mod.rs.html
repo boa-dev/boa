@@ -1077,6 +1077,7 @@
 <a href="#1076" id="1076">1076</a>
 <a href="#1077" id="1077">1077</a>
 <a href="#1078" id="1078">1078</a>
+<a href="#1079" id="1079">1079</a>
 </pre><pre class="rust"><code><span class="doccomment">//! Boa&#39;s implementation of ECMAScript&#39;s global `DataView` object.
 //!
 //! More information:
@@ -1092,6 +1093,7 @@
     error::JsNativeError,
     object::{internal_methods::get_prototype_from_constructor, JsObject, ObjectData},
     property::Attribute,
+    realm::Realm,
     string::utf16,
     symbol::JsSymbol,
     value::JsValue,
@@ -1110,25 +1112,25 @@
 }
 
 <span class="kw">impl </span>IntrinsicObject <span class="kw">for </span>DataView {
-    <span class="kw">fn </span>init(intrinsics: <span class="kw-2">&amp;</span>Intrinsics) {
+    <span class="kw">fn </span>init(realm: <span class="kw-2">&amp;</span>Realm) {
         <span class="kw">let </span>flag_attributes = Attribute::CONFIGURABLE | Attribute::NON_ENUMERABLE;
 
-        <span class="kw">let </span>get_buffer = BuiltInBuilder::new(intrinsics)
+        <span class="kw">let </span>get_buffer = BuiltInBuilder::new(realm)
             .callable(<span class="self">Self</span>::get_buffer)
             .name(<span class="string">&quot;get buffer&quot;</span>)
             .build();
 
-        <span class="kw">let </span>get_byte_length = BuiltInBuilder::new(intrinsics)
+        <span class="kw">let </span>get_byte_length = BuiltInBuilder::new(realm)
             .callable(<span class="self">Self</span>::get_byte_length)
             .name(<span class="string">&quot;get byteLength&quot;</span>)
             .build();
 
-        <span class="kw">let </span>get_byte_offset = BuiltInBuilder::new(intrinsics)
+        <span class="kw">let </span>get_byte_offset = BuiltInBuilder::new(realm)
             .callable(<span class="self">Self</span>::get_byte_offset)
             .name(<span class="string">&quot;get byteOffset&quot;</span>)
             .build();
 
-        BuiltInBuilder::from_standard_constructor::&lt;<span class="self">Self</span>&gt;(intrinsics)
+        BuiltInBuilder::from_standard_constructor::&lt;<span class="self">Self</span>&gt;(realm)
             .accessor(<span class="macro">utf16!</span>(<span class="string">&quot;buffer&quot;</span>), <span class="prelude-val">Some</span>(get_buffer), <span class="prelude-val">None</span>, flag_attributes)
             .accessor(
                 <span class="macro">utf16!</span>(<span class="string">&quot;byteLength&quot;</span>),

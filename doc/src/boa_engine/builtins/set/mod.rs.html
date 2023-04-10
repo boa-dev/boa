@@ -509,6 +509,7 @@
 <a href="#508" id="508">508</a>
 <a href="#509" id="509">509</a>
 <a href="#510" id="510">510</a>
+<a href="#511" id="511">511</a>
 </pre><pre class="rust"><code><span class="doccomment">//! Boa&#39;s implementation of ECMAScript&#39;s global `Set` object.
 //!
 //! The ECMAScript `Set` class is a global object that is used in the construction of sets; which
@@ -535,6 +536,7 @@
     error::JsNativeError,
     object::{internal_methods::get_prototype_from_constructor, JsObject, ObjectData},
     property::{Attribute, PropertyNameKind},
+    realm::Realm,
     string::utf16,
     symbol::JsSymbol,
     Context, JsArgs, JsResult, JsValue,
@@ -551,25 +553,25 @@
     <span class="kw">fn </span>get(intrinsics: <span class="kw-2">&amp;</span>Intrinsics) -&gt; JsObject {
         <span class="self">Self</span>::STANDARD_CONSTRUCTOR(intrinsics.constructors()).constructor()
     }
-    <span class="kw">fn </span>init(intrinsics: <span class="kw-2">&amp;</span>Intrinsics) {
+    <span class="kw">fn </span>init(realm: <span class="kw-2">&amp;</span>Realm) {
         <span class="kw">let </span>_timer = Profiler::global().start_event(<span class="self">Self</span>::NAME, <span class="string">&quot;init&quot;</span>);
 
-        <span class="kw">let </span>get_species = BuiltInBuilder::new(intrinsics)
+        <span class="kw">let </span>get_species = BuiltInBuilder::new(realm)
             .callable(<span class="self">Self</span>::get_species)
             .name(<span class="string">&quot;get [Symbol.species]&quot;</span>)
             .build();
 
-        <span class="kw">let </span>size_getter = BuiltInBuilder::new(intrinsics)
+        <span class="kw">let </span>size_getter = BuiltInBuilder::new(realm)
             .callable(<span class="self">Self</span>::size_getter)
             .name(<span class="string">&quot;get size&quot;</span>)
             .build();
 
-        <span class="kw">let </span>values_function = BuiltInBuilder::new(intrinsics)
+        <span class="kw">let </span>values_function = BuiltInBuilder::new(realm)
             .callable(<span class="self">Self</span>::values)
             .name(<span class="string">&quot;values&quot;</span>)
             .build();
 
-        BuiltInBuilder::from_standard_constructor::&lt;<span class="self">Self</span>&gt;(intrinsics)
+        BuiltInBuilder::from_standard_constructor::&lt;<span class="self">Self</span>&gt;(realm)
             .static_accessor(
                 JsSymbol::species(),
                 <span class="prelude-val">Some</span>(get_species),

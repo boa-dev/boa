@@ -327,7 +327,7 @@
     <span class="kw">const </span>INSTRUCTION: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;INST - This&quot;</span>;
 
     <span class="kw">fn </span>execute(context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;CompletionType&gt; {
-        <span class="kw">let </span>env = context.realm.environments.get_this_environment();
+        <span class="kw">let </span>env = context.vm.environments.get_this_environment();
         <span class="kw">match </span>env {
             EnvironmentSlots::Function(env) =&gt; {
                 <span class="kw">let </span>binding_result = <span class="kw">match </span>env.borrow().get_this_binding() {
@@ -338,7 +338,7 @@
                 context.vm.push(function_binding);
             }
             EnvironmentSlots::Global =&gt; {
-                <span class="kw">let </span>this = context.realm.global_this();
+                <span class="kw">let </span>this = context.realm().global_this();
                 context.vm.push(this.clone());
             }
         }
@@ -360,7 +360,7 @@
     <span class="kw">fn </span>execute(context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;CompletionType&gt; {
         <span class="kw">let </span>home_result = {
             <span class="kw">let </span>env = context
-                .realm
+                .vm
                 .environments
                 .get_this_environment()
                 .as_function_slots()
@@ -407,7 +407,7 @@
 
     <span class="kw">fn </span>execute(context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;CompletionType&gt; {
         <span class="kw">let </span>this_env = context
-            .realm
+            .vm
             .environments
             .get_this_environment()
             .as_function_slots()
@@ -469,7 +469,7 @@
         <span class="kw">let </span>result = super_constructor.__construct__(<span class="kw-2">&amp;</span>arguments, new_target, context)<span class="question-mark">?</span>;
 
         <span class="kw">let </span>this_env = context
-            .realm
+            .vm
             .environments
             .get_this_environment()
             .as_function_slots()
@@ -530,7 +530,7 @@
         <span class="kw">let </span>result = super_constructor.__construct__(<span class="kw-2">&amp;</span>arguments, new_target, context)<span class="question-mark">?</span>;
 
         <span class="kw">let </span>this_env = context
-            .realm
+            .vm
             .environments
             .get_this_environment()
             .as_function_slots()
@@ -572,7 +572,7 @@
 
         <span class="kw">let </span>(new_target, active_function) = {
             <span class="kw">let </span>this_env = context
-                .realm
+                .vm
                 .environments
                 .get_this_environment()
                 .as_function_slots()
@@ -599,7 +599,7 @@
         <span class="kw">let </span>result = super_constructor.__construct__(<span class="kw-2">&amp;</span>arguments, <span class="kw-2">&amp;</span>new_target, context)<span class="question-mark">?</span>;
 
         <span class="kw">let </span>this_env = context
-            .realm
+            .vm
             .environments
             .get_this_environment()
             .as_function_slots()

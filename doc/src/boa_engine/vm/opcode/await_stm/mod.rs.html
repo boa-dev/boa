@@ -166,18 +166,6 @@
 <a href="#165" id="165">165</a>
 <a href="#166" id="166">166</a>
 <a href="#167" id="167">167</a>
-<a href="#168" id="168">168</a>
-<a href="#169" id="169">169</a>
-<a href="#170" id="170">170</a>
-<a href="#171" id="171">171</a>
-<a href="#172" id="172">172</a>
-<a href="#173" id="173">173</a>
-<a href="#174" id="174">174</a>
-<a href="#175" id="175">175</a>
-<a href="#176" id="176">176</a>
-<a href="#177" id="177">177</a>
-<a href="#178" id="178">178</a>
-<a href="#179" id="179">179</a>
 </pre><pre class="rust"><code><span class="kw">use </span>boa_gc::GcRefCell;
 
 <span class="kw">use crate</span>::{
@@ -214,11 +202,11 @@
         )<span class="question-mark">?</span>;
 
         <span class="kw">let </span>generator_context = GeneratorContext {
-            environments: context.realm.environments.clone(),
+            environments: context.vm.environments.clone(),
             call_frame: context.vm.frame().clone(),
             stack: context.vm.stack.clone(),
             active_function: context.vm.active_function.clone(),
-            realm_intrinsics: context.realm.intrinsics.clone(),
+            realm: context.realm().clone(),
         };
 
         <span class="comment">// 3. Let fulfilledClosure be a new Abstract Closure with parameters (value) that captures asyncContext and performs the following steps when called:
@@ -237,7 +225,7 @@
                     // f. Return undefined.
 
                     </span>std::mem::swap(
-                        <span class="kw-2">&amp;mut </span>context.realm.environments,
+                        <span class="kw-2">&amp;mut </span>context.vm.environments,
                         <span class="kw-2">&amp;mut </span>generator_context.environments,
                     );
                     std::mem::swap(<span class="kw-2">&amp;mut </span>context.vm.stack, <span class="kw-2">&amp;mut </span>generator_context.stack);
@@ -245,10 +233,7 @@
                         <span class="kw-2">&amp;mut </span>context.vm.active_function,
                         <span class="kw-2">&amp;mut </span>generator_context.active_function,
                     );
-                    std::mem::swap(
-                        <span class="kw-2">&amp;mut </span>context.realm.intrinsics,
-                        <span class="kw-2">&amp;mut </span>generator_context.realm_intrinsics,
-                    );
+                    <span class="kw">let </span>old_realm = context.enter_realm(generator_context.realm.clone());
                     context.vm.push_frame(generator_context.call_frame.clone());
 
                     context.vm.frame_mut().generator_resume_kind = GeneratorResumeKind::Normal;
@@ -260,7 +245,7 @@
                         .pop_frame()
                         .expect(<span class="string">&quot;generator call frame must exist&quot;</span>);
                     std::mem::swap(
-                        <span class="kw-2">&amp;mut </span>context.realm.environments,
+                        <span class="kw-2">&amp;mut </span>context.vm.environments,
                         <span class="kw-2">&amp;mut </span>generator_context.environments,
                     );
                     std::mem::swap(<span class="kw-2">&amp;mut </span>context.vm.stack, <span class="kw-2">&amp;mut </span>generator_context.stack);
@@ -268,10 +253,7 @@
                         <span class="kw-2">&amp;mut </span>context.vm.active_function,
                         <span class="kw-2">&amp;mut </span>generator_context.active_function,
                     );
-                    std::mem::swap(
-                        <span class="kw-2">&amp;mut </span>context.realm.intrinsics,
-                        <span class="kw-2">&amp;mut </span>generator_context.realm_intrinsics,
-                    );
+                    context.enter_realm(old_realm);
 
                     <span class="prelude-val">Ok</span>(JsValue::undefined())
                 },
@@ -298,7 +280,7 @@
                     // f. Return undefined.
 
                     </span>std::mem::swap(
-                        <span class="kw-2">&amp;mut </span>context.realm.environments,
+                        <span class="kw-2">&amp;mut </span>context.vm.environments,
                         <span class="kw-2">&amp;mut </span>generator_context.environments,
                     );
                     std::mem::swap(<span class="kw-2">&amp;mut </span>context.vm.stack, <span class="kw-2">&amp;mut </span>generator_context.stack);
@@ -306,10 +288,7 @@
                         <span class="kw-2">&amp;mut </span>context.vm.active_function,
                         <span class="kw-2">&amp;mut </span>generator_context.active_function,
                     );
-                    std::mem::swap(
-                        <span class="kw-2">&amp;mut </span>context.realm.intrinsics,
-                        <span class="kw-2">&amp;mut </span>generator_context.realm_intrinsics,
-                    );
+                    <span class="kw">let </span>old_realm = context.enter_realm(generator_context.realm.clone());
                     context.vm.push_frame(generator_context.call_frame.clone());
 
                     context.vm.frame_mut().generator_resume_kind = GeneratorResumeKind::Throw;
@@ -321,7 +300,7 @@
                         .pop_frame()
                         .expect(<span class="string">&quot;generator call frame must exist&quot;</span>);
                     std::mem::swap(
-                        <span class="kw-2">&amp;mut </span>context.realm.environments,
+                        <span class="kw-2">&amp;mut </span>context.vm.environments,
                         <span class="kw-2">&amp;mut </span>generator_context.environments,
                     );
                     std::mem::swap(<span class="kw-2">&amp;mut </span>context.vm.stack, <span class="kw-2">&amp;mut </span>generator_context.stack);
@@ -329,10 +308,7 @@
                         <span class="kw-2">&amp;mut </span>context.vm.active_function,
                         <span class="kw-2">&amp;mut </span>generator_context.active_function,
                     );
-                    std::mem::swap(
-                        <span class="kw-2">&amp;mut </span>context.realm.intrinsics,
-                        <span class="kw-2">&amp;mut </span>generator_context.realm_intrinsics,
-                    );
+                    context.enter_realm(old_realm);
 
                     <span class="prelude-val">Ok</span>(JsValue::undefined())
                 },

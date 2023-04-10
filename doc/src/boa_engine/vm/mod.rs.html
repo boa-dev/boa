@@ -426,6 +426,10 @@
 <a href="#425" id="425">425</a>
 <a href="#426" id="426">426</a>
 <a href="#427" id="427">427</a>
+<a href="#428" id="428">428</a>
+<a href="#429" id="429">429</a>
+<a href="#430" id="430">430</a>
+<a href="#431" id="431">431</a>
 </pre><pre class="rust"><code><span class="doccomment">//! Boa&#39;s ECMAScript Virtual Machine
 //!
 //! The Virtual Machine (VM) handles generating instructions, then executing them.
@@ -434,11 +438,13 @@
 
 </span><span class="kw">use crate</span>::{
     builtins::async_generator::{AsyncGenerator, AsyncGeneratorState},
+    environments::{DeclarativeEnvironment, DeclarativeEnvironmentStack},
     vm::{call_frame::EarlyReturnType, code_block::Readable},
     Context, JsError, JsObject, JsResult, JsValue,
 };
 <span class="attr">#[cfg(feature = <span class="string">&quot;fuzz&quot;</span>)]
 </span><span class="kw">use crate</span>::{JsNativeError, JsNativeErrorKind};
+<span class="kw">use </span>boa_gc::Gc;
 <span class="kw">use </span>boa_profiler::Profiler;
 <span class="kw">use </span>std::{convert::TryInto, mem::size_of};
 
@@ -472,17 +478,20 @@
     <span class="kw">pub</span>(<span class="kw">crate</span>) frames: Vec&lt;CallFrame&gt;,
     <span class="kw">pub</span>(<span class="kw">crate</span>) stack: Vec&lt;JsValue&gt;,
     <span class="kw">pub</span>(<span class="kw">crate</span>) err: <span class="prelude-ty">Option</span>&lt;JsError&gt;,
+    <span class="kw">pub</span>(<span class="kw">crate</span>) environments: DeclarativeEnvironmentStack,
     <span class="attr">#[cfg(feature = <span class="string">&quot;trace&quot;</span>)]
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) trace: bool,
     <span class="kw">pub</span>(<span class="kw">crate</span>) stack_size_limit: usize,
     <span class="kw">pub</span>(<span class="kw">crate</span>) active_function: <span class="prelude-ty">Option</span>&lt;JsObject&gt;,
 }
 
-<span class="kw">impl </span>Default <span class="kw">for </span>Vm {
-    <span class="kw">fn </span>default() -&gt; <span class="self">Self </span>{
+<span class="kw">impl </span>Vm {
+    <span class="doccomment">/// Creates a new virtual machine.
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>new(global: Gc&lt;DeclarativeEnvironment&gt;) -&gt; <span class="self">Self </span>{
         <span class="self">Self </span>{
             frames: Vec::with_capacity(<span class="number">16</span>),
             stack: Vec::with_capacity(<span class="number">1024</span>),
+            environments: DeclarativeEnvironmentStack::new(global),
             err: <span class="prelude-val">None</span>,
             <span class="attr">#[cfg(feature = <span class="string">&quot;trace&quot;</span>)]
             </span>trace: <span class="bool-val">false</span>,
@@ -490,9 +499,7 @@
             active_function: <span class="prelude-val">None</span>,
         }
     }
-}
 
-<span class="kw">impl </span>Vm {
     <span class="doccomment">/// Push a value on the stack.
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>push&lt;T&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, value: T)
     <span class="kw">where
@@ -615,7 +622,7 @@
         <span class="comment">// If the current executing function is an async function we have to resolve/reject it&#39;s promise at the end.
         // The relevant spec section is 3. in [AsyncBlockStart](https://tc39.es/ecma262/#sec-asyncblockstart).
         </span><span class="kw">let </span>promise_capability = <span class="self">self
-            </span>.realm
+            </span>.vm
             .environments
             .current_function_slots()
             .as_function_slots()
@@ -831,10 +838,11 @@
                         .take()
                         .expect(<span class="string">&quot;err must exist on a Completion::Throw&quot;</span>)),
                     <span class="bool-val">true</span>,
+                    <span class="prelude-val">None</span>,
                     <span class="self">self</span>,
                 );
             } <span class="kw">else </span>{
-                AsyncGenerator::complete_step(<span class="kw-2">&amp;</span>next, <span class="prelude-val">Ok</span>(execution_result), <span class="bool-val">true</span>, <span class="self">self</span>);
+                AsyncGenerator::complete_step(<span class="kw-2">&amp;</span>next, <span class="prelude-val">Ok</span>(execution_result), <span class="bool-val">true</span>, <span class="prelude-val">None</span>, <span class="self">self</span>);
             }
             AsyncGenerator::drain_queue(<span class="kw-2">&amp;</span>generator_object, <span class="self">self</span>);
 

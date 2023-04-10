@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"struct":[["PopEnvironmentInfo","Info returned by the [`ByteCompiler::pop_compile_environment`] method."]]};

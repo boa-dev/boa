@@ -316,12 +316,14 @@
 <a href="#315" id="315">315</a>
 <a href="#316" id="316">316</a>
 <a href="#317" id="317">317</a>
+<a href="#318" id="318">318</a>
 </pre><pre class="rust"><code><span class="kw">use </span>boa_macros::utf16;
 
 <span class="kw">use crate</span>::{
     builtins::{string::is_trimmable_whitespace, BuiltInBuilder, BuiltInObject, IntrinsicObject},
     context::intrinsics::Intrinsics,
     object::JsObject,
+    realm::Realm,
     string::Utf16Trim,
     Context, JsArgs, JsResult, JsValue,
 };
@@ -354,8 +356,8 @@
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>IsFinite;
 
 <span class="kw">impl </span>IntrinsicObject <span class="kw">for </span>IsFinite {
-    <span class="kw">fn </span>init(intrinsics: <span class="kw-2">&amp;</span>Intrinsics) {
-        BuiltInBuilder::with_intrinsic::&lt;<span class="self">Self</span>&gt;(intrinsics)
+    <span class="kw">fn </span>init(realm: <span class="kw-2">&amp;</span>Realm) {
+        BuiltInBuilder::with_intrinsic::&lt;<span class="self">Self</span>&gt;(realm)
             .callable(is_finite)
             .name(<span class="self">Self</span>::NAME)
             .length(<span class="number">1</span>)
@@ -401,8 +403,8 @@
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>IsNaN;
 
 <span class="kw">impl </span>IntrinsicObject <span class="kw">for </span>IsNaN {
-    <span class="kw">fn </span>init(intrinsics: <span class="kw-2">&amp;</span>Intrinsics) {
-        BuiltInBuilder::with_intrinsic::&lt;<span class="self">Self</span>&gt;(intrinsics)
+    <span class="kw">fn </span>init(realm: <span class="kw-2">&amp;</span>Realm) {
+        BuiltInBuilder::with_intrinsic::&lt;<span class="self">Self</span>&gt;(realm)
             .callable(is_nan)
             .name(<span class="self">Self</span>::NAME)
             .length(<span class="number">1</span>)
@@ -543,8 +545,8 @@
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>ParseInt;
 
 <span class="kw">impl </span>IntrinsicObject <span class="kw">for </span>ParseInt {
-    <span class="kw">fn </span>init(intrinsics: <span class="kw-2">&amp;</span>Intrinsics) {
-        BuiltInBuilder::with_intrinsic::&lt;<span class="self">Self</span>&gt;(intrinsics)
+    <span class="kw">fn </span>init(realm: <span class="kw-2">&amp;</span>Realm) {
+        BuiltInBuilder::with_intrinsic::&lt;<span class="self">Self</span>&gt;(realm)
             .callable(parse_int)
             .name(<span class="self">Self</span>::NAME)
             .length(<span class="number">2</span>)
@@ -617,8 +619,8 @@
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>ParseFloat;
 
 <span class="kw">impl </span>IntrinsicObject <span class="kw">for </span>ParseFloat {
-    <span class="kw">fn </span>init(intrinsics: <span class="kw-2">&amp;</span>Intrinsics) {
-        BuiltInBuilder::with_intrinsic::&lt;<span class="self">Self</span>&gt;(intrinsics)
+    <span class="kw">fn </span>init(realm: <span class="kw-2">&amp;</span>Realm) {
+        BuiltInBuilder::with_intrinsic::&lt;<span class="self">Self</span>&gt;(realm)
             .callable(parse_float)
             .name(<span class="self">Self</span>::NAME)
             .length(<span class="number">1</span>)

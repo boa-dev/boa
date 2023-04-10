@@ -1685,6 +1685,7 @@
 <a href="#1684" id="1684">1684</a>
 <a href="#1685" id="1685">1685</a>
 <a href="#1686" id="1686">1686</a>
+<a href="#1687" id="1687">1687</a>
 </pre><pre class="rust"><code><span class="doccomment">//! Boa&#39;s implementation of ECMAScript&#39;s global `RegExp` object.
 //!
 //! The `RegExp` object is used for matching text with a pattern.
@@ -1703,6 +1704,7 @@
     js_string,
     object::{internal_methods::get_prototype_from_constructor, JsObject, ObjectData, CONSTRUCTOR},
     property::{Attribute, PropertyDescriptorBuilder},
+    realm::Realm,
     string::{utf16, CodePoint},
     symbol::JsSymbol,
     value::JsValue,
@@ -1731,53 +1733,53 @@
 }
 
 <span class="kw">impl </span>IntrinsicObject <span class="kw">for </span>RegExp {
-    <span class="kw">fn </span>init(intrinsics: <span class="kw-2">&amp;</span>Intrinsics) {
+    <span class="kw">fn </span>init(realm: <span class="kw-2">&amp;</span>Realm) {
         <span class="kw">let </span>_timer = Profiler::global().start_event(<span class="self">Self</span>::NAME, <span class="string">&quot;init&quot;</span>);
 
-        <span class="kw">let </span>get_species = BuiltInBuilder::new(intrinsics)
+        <span class="kw">let </span>get_species = BuiltInBuilder::new(realm)
             .callable(<span class="self">Self</span>::get_species)
             .name(<span class="string">&quot;get [Symbol.species]&quot;</span>)
             .build();
 
         <span class="kw">let </span>flag_attributes = Attribute::CONFIGURABLE | Attribute::NON_ENUMERABLE;
 
-        <span class="kw">let </span>get_has_indices = BuiltInBuilder::new(intrinsics)
+        <span class="kw">let </span>get_has_indices = BuiltInBuilder::new(realm)
             .callable(<span class="self">Self</span>::get_has_indices)
             .name(<span class="string">&quot;get hasIndices&quot;</span>)
             .build();
-        <span class="kw">let </span>get_global = BuiltInBuilder::new(intrinsics)
+        <span class="kw">let </span>get_global = BuiltInBuilder::new(realm)
             .callable(<span class="self">Self</span>::get_global)
             .name(<span class="string">&quot;get global&quot;</span>)
             .build();
-        <span class="kw">let </span>get_ignore_case = BuiltInBuilder::new(intrinsics)
+        <span class="kw">let </span>get_ignore_case = BuiltInBuilder::new(realm)
             .callable(<span class="self">Self</span>::get_ignore_case)
             .name(<span class="string">&quot;get ignoreCase&quot;</span>)
             .build();
-        <span class="kw">let </span>get_multiline = BuiltInBuilder::new(intrinsics)
+        <span class="kw">let </span>get_multiline = BuiltInBuilder::new(realm)
             .callable(<span class="self">Self</span>::get_multiline)
             .name(<span class="string">&quot;get multiline&quot;</span>)
             .build();
-        <span class="kw">let </span>get_dot_all = BuiltInBuilder::new(intrinsics)
+        <span class="kw">let </span>get_dot_all = BuiltInBuilder::new(realm)
             .callable(<span class="self">Self</span>::get_dot_all)
             .name(<span class="string">&quot;get dotAll&quot;</span>)
             .build();
-        <span class="kw">let </span>get_unicode = BuiltInBuilder::new(intrinsics)
+        <span class="kw">let </span>get_unicode = BuiltInBuilder::new(realm)
             .callable(<span class="self">Self</span>::get_unicode)
             .name(<span class="string">&quot;get unicode&quot;</span>)
             .build();
-        <span class="kw">let </span>get_sticky = BuiltInBuilder::new(intrinsics)
+        <span class="kw">let </span>get_sticky = BuiltInBuilder::new(realm)
             .callable(<span class="self">Self</span>::get_sticky)
             .name(<span class="string">&quot;get sticky&quot;</span>)
             .build();
-        <span class="kw">let </span>get_flags = BuiltInBuilder::new(intrinsics)
+        <span class="kw">let </span>get_flags = BuiltInBuilder::new(realm)
             .callable(<span class="self">Self</span>::get_flags)
             .name(<span class="string">&quot;get flags&quot;</span>)
             .build();
-        <span class="kw">let </span>get_source = BuiltInBuilder::new(intrinsics)
+        <span class="kw">let </span>get_source = BuiltInBuilder::new(realm)
             .callable(<span class="self">Self</span>::get_source)
             .name(<span class="string">&quot;get source&quot;</span>)
             .build();
-        BuiltInBuilder::from_standard_constructor::&lt;<span class="self">Self</span>&gt;(intrinsics)
+        BuiltInBuilder::from_standard_constructor::&lt;<span class="self">Self</span>&gt;(realm)
             .static_accessor(
                 JsSymbol::species(),
                 <span class="prelude-val">Some</span>(get_species),

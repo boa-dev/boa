@@ -1232,12 +1232,14 @@
 <a href="#1231" id="1231">1231</a>
 <a href="#1232" id="1232">1232</a>
 <a href="#1233" id="1233">1233</a>
+<a href="#1234" id="1234">1234</a>
 </pre><pre class="rust"><code><span class="kw">use crate</span>::{
     builtins::{function::ClassFieldDefinition, Array},
-    context::intrinsics::{Intrinsics, StandardConstructor, StandardConstructors},
+    context::intrinsics::{StandardConstructor, StandardConstructors},
     error::JsNativeError,
     object::{JsObject, PrivateElement, PROTOTYPE},
     property::{PropertyDescriptor, PropertyDescriptorBuilder, PropertyKey, PropertyNameKind},
+    realm::Realm,
     string::utf16,
     value::Type,
     Context, JsResult, JsSymbol, JsValue,
@@ -1892,10 +1894,10 @@
     <span class="doccomment">/// Abstract operation [`GetFunctionRealm`][spec].
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-getfunctionrealm
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>get_function_realm(<span class="kw-2">&amp;</span><span class="self">self</span>, context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;Intrinsics&gt; {
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>get_function_realm(<span class="kw-2">&amp;</span><span class="self">self</span>, context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;Realm&gt; {
         <span class="kw">let </span>constructor = <span class="self">self</span>.borrow();
         <span class="kw">if let </span><span class="prelude-val">Some</span>(fun) = constructor.as_function() {
-            <span class="kw">return </span><span class="prelude-val">Ok</span>(fun.realm_intrinsics().clone());
+            <span class="kw">return </span><span class="prelude-val">Ok</span>(fun.realm().clone());
         }
 
         <span class="kw">if let </span><span class="prelude-val">Some</span>(bound) = constructor.as_bound_function() {
@@ -1910,7 +1912,7 @@
             <span class="kw">return </span>fun.get_function_realm(context);
         }
 
-        <span class="prelude-val">Ok</span>(context.intrinsics().clone())
+        <span class="prelude-val">Ok</span>(context.realm().clone())
     }
 
     <span class="comment">// todo: CopyDataProperties

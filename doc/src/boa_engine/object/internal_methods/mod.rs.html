@@ -1872,18 +1872,18 @@
     // The corresponding object must be an intrinsic that is intended to be used
     // as the [[Prototype]] value of an object.
     // 2. Let proto be ? Get(constructor, &quot;prototype&quot;).
-    </span><span class="kw">let </span>intrinsics = <span class="kw">if let </span><span class="prelude-val">Some</span>(constructor) = constructor.as_object() {
+    </span><span class="kw">let </span>realm = <span class="kw">if let </span><span class="prelude-val">Some</span>(constructor) = constructor.as_object() {
         <span class="kw">if let </span><span class="prelude-val">Some</span>(proto) = constructor.get(PROTOTYPE, context)<span class="question-mark">?</span>.as_object() {
             <span class="kw">return </span><span class="prelude-val">Ok</span>(proto.clone());
         }
         <span class="comment">// 3. If Type(proto) is not Object, then
         // a. Let realm be ? GetFunctionRealm(constructor).
-        // b. Set proto to realm&#39;s intrinsic object named intrinsicDefaultProto.
         </span>constructor.get_function_realm(context)<span class="question-mark">?
     </span>} <span class="kw">else </span>{
-        context.intrinsics().clone()
+        context.realm().clone()
     };
-    <span class="prelude-val">Ok</span>(default(intrinsics.constructors()).prototype())
+    <span class="comment">// b. Set proto to realm&#39;s intrinsic object named intrinsicDefaultProto.
+    </span><span class="prelude-val">Ok</span>(default(realm.intrinsics().constructors()).prototype())
 }
 </code></pre></div>
 </section></main><div id="rustdoc-vars" data-root-path="../../../../" data-static-root-path="../../../../static.files/" data-current-crate="boa_engine" data-themes="" data-resource-suffix="" data-rustdoc-version="1.68.2 (9eb3afe9e 2023-03-27)" data-search-js="search-98d53477a794af0b.js" data-settings-js="settings-c3c521c753752a1a.js" data-settings-css="settings-08ddfdda51b8ee2e.css" ></div></body></html>

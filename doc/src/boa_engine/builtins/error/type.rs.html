@@ -146,6 +146,7 @@
 <a href="#145" id="145">145</a>
 <a href="#146" id="146">146</a>
 <a href="#147" id="147">147</a>
+<a href="#148" id="148">148</a>
 </pre><pre class="rust"><code><span class="doccomment">//! This module implements the global `TypeError` object.
 //!
 //! The `TypeError` object represents an error when an operation could not be performed,
@@ -173,6 +174,7 @@
     native_function::NativeFunction,
     object::{internal_methods::get_prototype_from_constructor, JsObject, ObjectData},
     property::Attribute,
+    realm::Realm,
     string::utf16,
     Context, JsArgs, JsResult, JsValue,
 };
@@ -185,13 +187,13 @@
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>TypeError;
 
 <span class="kw">impl </span>IntrinsicObject <span class="kw">for </span>TypeError {
-    <span class="kw">fn </span>init(intrinsics: <span class="kw-2">&amp;</span>Intrinsics) {
+    <span class="kw">fn </span>init(realm: <span class="kw-2">&amp;</span>Realm) {
         <span class="kw">let </span>_timer = Profiler::global().start_event(<span class="self">Self</span>::NAME, <span class="string">&quot;init&quot;</span>);
 
         <span class="kw">let </span>attribute = Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE;
-        BuiltInBuilder::from_standard_constructor::&lt;<span class="self">Self</span>&gt;(intrinsics)
-            .prototype(intrinsics.constructors().error().constructor())
-            .inherits(<span class="prelude-val">Some</span>(intrinsics.constructors().error().prototype()))
+        BuiltInBuilder::from_standard_constructor::&lt;<span class="self">Self</span>&gt;(realm)
+            .prototype(realm.intrinsics().constructors().error().constructor())
+            .inherits(<span class="prelude-val">Some</span>(realm.intrinsics().constructors().error().prototype()))
             .property(<span class="macro">utf16!</span>(<span class="string">&quot;name&quot;</span>), <span class="self">Self</span>::NAME, attribute)
             .property(<span class="macro">utf16!</span>(<span class="string">&quot;message&quot;</span>), <span class="string">&quot;&quot;</span>, attribute)
             .build();
@@ -262,7 +264,7 @@
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>ThrowTypeError;
 
 <span class="kw">impl </span>IntrinsicObject <span class="kw">for </span>ThrowTypeError {
-    <span class="kw">fn </span>init(intrinsics: <span class="kw-2">&amp;</span>Intrinsics) {
+    <span class="kw">fn </span>init(realm: <span class="kw-2">&amp;</span>Realm) {
         <span class="kw">fn </span>throw_type_error(<span class="kw">_</span>: <span class="kw-2">&amp;</span>JsValue, <span class="kw">_</span>: <span class="kw-2">&amp;</span>[JsValue], <span class="kw">_</span>: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;JsValue&gt; {
             <span class="prelude-val">Err</span>(JsNativeError::typ()
                 .with_message(
@@ -272,8 +274,8 @@
                 .into())
         }
 
-        <span class="kw">let </span>obj = BuiltInBuilder::with_intrinsic::&lt;<span class="self">Self</span>&gt;(intrinsics)
-            .prototype(intrinsics.constructors().function().prototype())
+        <span class="kw">let </span>obj = BuiltInBuilder::with_intrinsic::&lt;<span class="self">Self</span>&gt;(realm)
+            .prototype(realm.intrinsics().constructors().function().prototype())
             .static_property(<span class="macro">utf16!</span>(<span class="string">&quot;name&quot;</span>), <span class="string">&quot;ThrowTypeError&quot;</span>, Attribute::empty())
             .static_property(<span class="macro">utf16!</span>(<span class="string">&quot;length&quot;</span>), <span class="number">0</span>, Attribute::empty())
             .build();
@@ -285,7 +287,7 @@
                 function: NativeFunction::from_fn_ptr(throw_type_error),
                 constructor: <span class="prelude-val">None</span>,
             },
-            intrinsics.clone(),
+            realm.clone(),
         ));
     }
 

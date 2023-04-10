@@ -79,7 +79,7 @@
             UnaryOp::TypeOf =&gt; {
                 <span class="kw">match </span>unary.target().flatten() {
                     Expression::Identifier(identifier) =&gt; {
-                        <span class="kw">let </span>binding = <span class="self">self</span>.context.get_binding_value(<span class="kw-2">*</span>identifier);
+                        <span class="kw">let </span>binding = <span class="self">self</span>.get_binding_value(<span class="kw-2">*</span>identifier);
                         <span class="kw">let </span>index = <span class="self">self</span>.get_or_insert_binding(binding);
                         <span class="self">self</span>.emit(Opcode::GetNameOrUndefined, <span class="kw-2">&amp;</span>[index]);
                     }

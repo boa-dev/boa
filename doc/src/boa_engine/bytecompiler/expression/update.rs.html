@@ -164,7 +164,7 @@
 
         <span class="kw">match </span>Access::from_update_target(update.target()) {
             Access::Variable { name } =&gt; {
-                <span class="kw">let </span>binding = <span class="self">self</span>.context.get_binding_value(name);
+                <span class="kw">let </span>binding = <span class="self">self</span>.get_binding_value(name);
                 <span class="kw">let </span>index = <span class="self">self</span>.get_or_insert_binding(binding);
                 <span class="self">self</span>.emit(Opcode::GetName, <span class="kw-2">&amp;</span>[index]);
 
@@ -175,7 +175,7 @@
                     <span class="self">self</span>.emit_opcode(Opcode::Dup);
                 }
 
-                <span class="kw">let </span>binding = <span class="self">self</span>.context.set_mutable_binding(name);
+                <span class="kw">let </span>binding = <span class="self">self</span>.set_mutable_binding(name);
                 <span class="kw">let </span>index = <span class="self">self</span>.get_or_insert_binding(binding);
                 <span class="self">self</span>.emit(Opcode::SetName, <span class="kw-2">&amp;</span>[index]);
             }

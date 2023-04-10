@@ -31,8 +31,6 @@
 <a href="#30" id="30">30</a>
 <a href="#31" id="31">31</a>
 <a href="#32" id="32">32</a>
-<a href="#33" id="33">33</a>
-<a href="#34" id="34">34</a>
 </pre><pre class="rust"><code><span class="kw">use crate</span>::{
     vm::{opcode::Operation, CompletionType},
     Context, JsResult, JsValue,
@@ -50,20 +48,18 @@
     <span class="kw">const </span>INSTRUCTION: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;INST - PushNewTarget&quot;</span>;
 
     <span class="kw">fn </span>execute(context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;CompletionType&gt; {
-        <span class="kw">if let </span><span class="prelude-val">Some</span>(env) = context
-            .realm
+        <span class="kw">let </span>new_target = <span class="kw">if let </span><span class="prelude-val">Some</span>(new_target) = context
+            .vm
             .environments
             .get_this_environment()
             .as_function_slots()
+            .and_then(|env| env.borrow().new_target().cloned())
         {
-            <span class="kw">if let </span><span class="prelude-val">Some</span>(new_target) = env.borrow().new_target() {
-                context.vm.push(new_target.clone());
-            } <span class="kw">else </span>{
-                context.vm.push(JsValue::undefined());
-            }
+            new_target.into()
         } <span class="kw">else </span>{
-            context.vm.push(JsValue::undefined());
-        }
+            JsValue::undefined()
+        };
+        context.vm.push(new_target);
         <span class="prelude-val">Ok</span>(CompletionType::Normal)
     }
 }

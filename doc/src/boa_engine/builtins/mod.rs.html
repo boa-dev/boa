@@ -805,7 +805,6 @@
 <a href="#804" id="804">804</a>
 <a href="#805" id="805">805</a>
 <a href="#806" id="806">806</a>
-<a href="#807" id="807">807</a>
 </pre><pre class="rust"><code><span class="doccomment">//! Boa&#39;s ECMAScript built-in object implementations, e.g. Object, String, Math, Array, etc.
 //!
 //! This module also contains a JavaScript Console implementation.
@@ -908,6 +907,7 @@
         FunctionBinding, JsFunction, JsObject, JsPrototype, ObjectData, CONSTRUCTOR, PROTOTYPE,
     },
     property::{Attribute, PropertyDescriptor, PropertyKey},
+    realm::Realm,
     string::utf16,
     Context, JsResult, JsString, JsValue,
 };
@@ -926,7 +926,7 @@
     ///
     /// This is where the methods, properties, static methods and the constructor of a built-in must
     /// be initialized to be accessible from ECMAScript.
-    </span><span class="kw">fn </span>init(intrinsics: <span class="kw-2">&amp;</span>Intrinsics);
+    </span><span class="kw">fn </span>init(realm: <span class="kw-2">&amp;</span>Realm);
 
     <span class="doccomment">/// Gets the intrinsic object.
     </span><span class="kw">fn </span>get(intrinsics: <span class="kw-2">&amp;</span>Intrinsics) -&gt; JsObject;
@@ -991,97 +991,93 @@
     <span class="prelude-val">Ok</span>(())
 }
 
-<span class="kw">impl </span>Intrinsics {
+<span class="kw">impl </span>Realm {
     <span class="doccomment">/// Abstract operation [`CreateIntrinsics ( realmRec )`][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-createintrinsics
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>new() -&gt; <span class="self">Self </span>{
-        <span class="kw">let </span>intrinsics = <span class="self">Self</span>::default();
-
-        BuiltInFunctionObject::init(<span class="kw-2">&amp;</span>intrinsics);
-        BuiltInObjectObject::init(<span class="kw-2">&amp;</span>intrinsics);
-        Iterator::init(<span class="kw-2">&amp;</span>intrinsics);
-        AsyncIterator::init(<span class="kw-2">&amp;</span>intrinsics);
-        AsyncFromSyncIterator::init(<span class="kw-2">&amp;</span>intrinsics);
-        ForInIterator::init(<span class="kw-2">&amp;</span>intrinsics);
-        Math::init(<span class="kw-2">&amp;</span>intrinsics);
-        Json::init(<span class="kw-2">&amp;</span>intrinsics);
-        Array::init(<span class="kw-2">&amp;</span>intrinsics);
-        ArrayIterator::init(<span class="kw-2">&amp;</span>intrinsics);
-        Proxy::init(<span class="kw-2">&amp;</span>intrinsics);
-        ArrayBuffer::init(<span class="kw-2">&amp;</span>intrinsics);
-        BigInt::init(<span class="kw-2">&amp;</span>intrinsics);
-        Boolean::init(<span class="kw-2">&amp;</span>intrinsics);
-        Date::init(<span class="kw-2">&amp;</span>intrinsics);
-        DataView::init(<span class="kw-2">&amp;</span>intrinsics);
-        Map::init(<span class="kw-2">&amp;</span>intrinsics);
-        MapIterator::init(<span class="kw-2">&amp;</span>intrinsics);
-        IsFinite::init(<span class="kw-2">&amp;</span>intrinsics);
-        IsNaN::init(<span class="kw-2">&amp;</span>intrinsics);
-        ParseInt::init(<span class="kw-2">&amp;</span>intrinsics);
-        ParseFloat::init(<span class="kw-2">&amp;</span>intrinsics);
-        Number::init(<span class="kw-2">&amp;</span>intrinsics);
-        Eval::init(<span class="kw-2">&amp;</span>intrinsics);
-        Set::init(<span class="kw-2">&amp;</span>intrinsics);
-        SetIterator::init(<span class="kw-2">&amp;</span>intrinsics);
-        String::init(<span class="kw-2">&amp;</span>intrinsics);
-        StringIterator::init(<span class="kw-2">&amp;</span>intrinsics);
-        RegExp::init(<span class="kw-2">&amp;</span>intrinsics);
-        RegExpStringIterator::init(<span class="kw-2">&amp;</span>intrinsics);
-        TypedArray::init(<span class="kw-2">&amp;</span>intrinsics);
-        Int8Array::init(<span class="kw-2">&amp;</span>intrinsics);
-        Uint8Array::init(<span class="kw-2">&amp;</span>intrinsics);
-        Uint8ClampedArray::init(<span class="kw-2">&amp;</span>intrinsics);
-        Int16Array::init(<span class="kw-2">&amp;</span>intrinsics);
-        Uint16Array::init(<span class="kw-2">&amp;</span>intrinsics);
-        Int32Array::init(<span class="kw-2">&amp;</span>intrinsics);
-        Uint32Array::init(<span class="kw-2">&amp;</span>intrinsics);
-        BigInt64Array::init(<span class="kw-2">&amp;</span>intrinsics);
-        BigUint64Array::init(<span class="kw-2">&amp;</span>intrinsics);
-        Float32Array::init(<span class="kw-2">&amp;</span>intrinsics);
-        Float64Array::init(<span class="kw-2">&amp;</span>intrinsics);
-        Symbol::init(<span class="kw-2">&amp;</span>intrinsics);
-        Error::init(<span class="kw-2">&amp;</span>intrinsics);
-        RangeError::init(<span class="kw-2">&amp;</span>intrinsics);
-        ReferenceError::init(<span class="kw-2">&amp;</span>intrinsics);
-        TypeError::init(<span class="kw-2">&amp;</span>intrinsics);
-        ThrowTypeError::init(<span class="kw-2">&amp;</span>intrinsics);
-        SyntaxError::init(<span class="kw-2">&amp;</span>intrinsics);
-        EvalError::init(<span class="kw-2">&amp;</span>intrinsics);
-        UriError::init(<span class="kw-2">&amp;</span>intrinsics);
-        AggregateError::init(<span class="kw-2">&amp;</span>intrinsics);
-        Reflect::init(<span class="kw-2">&amp;</span>intrinsics);
-        Generator::init(<span class="kw-2">&amp;</span>intrinsics);
-        GeneratorFunction::init(<span class="kw-2">&amp;</span>intrinsics);
-        Promise::init(<span class="kw-2">&amp;</span>intrinsics);
-        AsyncFunction::init(<span class="kw-2">&amp;</span>intrinsics);
-        AsyncGenerator::init(<span class="kw-2">&amp;</span>intrinsics);
-        AsyncGeneratorFunction::init(<span class="kw-2">&amp;</span>intrinsics);
-        EncodeUri::init(<span class="kw-2">&amp;</span>intrinsics);
-        EncodeUriComponent::init(<span class="kw-2">&amp;</span>intrinsics);
-        DecodeUri::init(<span class="kw-2">&amp;</span>intrinsics);
-        DecodeUriComponent::init(<span class="kw-2">&amp;</span>intrinsics);
-        WeakRef::init(<span class="kw-2">&amp;</span>intrinsics);
-        WeakMap::init(<span class="kw-2">&amp;</span>intrinsics);
-        WeakSet::init(<span class="kw-2">&amp;</span>intrinsics);
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>initialize(<span class="kw-2">&amp;</span><span class="self">self</span>) {
+        BuiltInFunctionObject::init(<span class="self">self</span>);
+        BuiltInObjectObject::init(<span class="self">self</span>);
+        Iterator::init(<span class="self">self</span>);
+        AsyncIterator::init(<span class="self">self</span>);
+        AsyncFromSyncIterator::init(<span class="self">self</span>);
+        ForInIterator::init(<span class="self">self</span>);
+        Math::init(<span class="self">self</span>);
+        Json::init(<span class="self">self</span>);
+        Array::init(<span class="self">self</span>);
+        ArrayIterator::init(<span class="self">self</span>);
+        Proxy::init(<span class="self">self</span>);
+        ArrayBuffer::init(<span class="self">self</span>);
+        BigInt::init(<span class="self">self</span>);
+        Boolean::init(<span class="self">self</span>);
+        Date::init(<span class="self">self</span>);
+        DataView::init(<span class="self">self</span>);
+        Map::init(<span class="self">self</span>);
+        MapIterator::init(<span class="self">self</span>);
+        IsFinite::init(<span class="self">self</span>);
+        IsNaN::init(<span class="self">self</span>);
+        ParseInt::init(<span class="self">self</span>);
+        ParseFloat::init(<span class="self">self</span>);
+        Number::init(<span class="self">self</span>);
+        Eval::init(<span class="self">self</span>);
+        Set::init(<span class="self">self</span>);
+        SetIterator::init(<span class="self">self</span>);
+        String::init(<span class="self">self</span>);
+        StringIterator::init(<span class="self">self</span>);
+        RegExp::init(<span class="self">self</span>);
+        RegExpStringIterator::init(<span class="self">self</span>);
+        TypedArray::init(<span class="self">self</span>);
+        Int8Array::init(<span class="self">self</span>);
+        Uint8Array::init(<span class="self">self</span>);
+        Uint8ClampedArray::init(<span class="self">self</span>);
+        Int16Array::init(<span class="self">self</span>);
+        Uint16Array::init(<span class="self">self</span>);
+        Int32Array::init(<span class="self">self</span>);
+        Uint32Array::init(<span class="self">self</span>);
+        BigInt64Array::init(<span class="self">self</span>);
+        BigUint64Array::init(<span class="self">self</span>);
+        Float32Array::init(<span class="self">self</span>);
+        Float64Array::init(<span class="self">self</span>);
+        Symbol::init(<span class="self">self</span>);
+        Error::init(<span class="self">self</span>);
+        RangeError::init(<span class="self">self</span>);
+        ReferenceError::init(<span class="self">self</span>);
+        TypeError::init(<span class="self">self</span>);
+        ThrowTypeError::init(<span class="self">self</span>);
+        SyntaxError::init(<span class="self">self</span>);
+        EvalError::init(<span class="self">self</span>);
+        UriError::init(<span class="self">self</span>);
+        AggregateError::init(<span class="self">self</span>);
+        Reflect::init(<span class="self">self</span>);
+        Generator::init(<span class="self">self</span>);
+        GeneratorFunction::init(<span class="self">self</span>);
+        Promise::init(<span class="self">self</span>);
+        AsyncFunction::init(<span class="self">self</span>);
+        AsyncGenerator::init(<span class="self">self</span>);
+        AsyncGeneratorFunction::init(<span class="self">self</span>);
+        EncodeUri::init(<span class="self">self</span>);
+        EncodeUriComponent::init(<span class="self">self</span>);
+        DecodeUri::init(<span class="self">self</span>);
+        DecodeUriComponent::init(<span class="self">self</span>);
+        WeakRef::init(<span class="self">self</span>);
+        WeakMap::init(<span class="self">self</span>);
+        WeakSet::init(<span class="self">self</span>);
 
         <span class="attr">#[cfg(feature = <span class="string">&quot;annex-b&quot;</span>)]
         </span>{
-            escape::Escape::init(<span class="kw-2">&amp;</span>intrinsics);
-            escape::Unescape::init(<span class="kw-2">&amp;</span>intrinsics);
+            escape::Escape::init(<span class="self">self</span>);
+            escape::Unescape::init(<span class="self">self</span>);
         }
 
         <span class="attr">#[cfg(feature = <span class="string">&quot;intl&quot;</span>)]
         </span>{
-            intl::Intl::init(<span class="kw-2">&amp;</span>intrinsics);
-            intl::Collator::init(<span class="kw-2">&amp;</span>intrinsics);
-            intl::ListFormat::init(<span class="kw-2">&amp;</span>intrinsics);
-            intl::Locale::init(<span class="kw-2">&amp;</span>intrinsics);
-            intl::DateTimeFormat::init(<span class="kw-2">&amp;</span>intrinsics);
-            intl::Segmenter::init(<span class="kw-2">&amp;</span>intrinsics);
+            intl::Intl::init(<span class="self">self</span>);
+            intl::Collator::init(<span class="self">self</span>);
+            intl::ListFormat::init(<span class="self">self</span>);
+            intl::Locale::init(<span class="self">self</span>);
+            intl::DateTimeFormat::init(<span class="self">self</span>);
+            intl::Segmenter::init(<span class="self">self</span>);
         }
-
-        intrinsics
     }
 }
 
@@ -1094,7 +1090,7 @@
     global_object.define_property_or_throw(
         <span class="macro">utf16!</span>(<span class="string">&quot;globalThis&quot;</span>),
         PropertyDescriptor::builder()
-            .value(context.realm.global_this().clone())
+            .value(context.realm().global_this().clone())
             .writable(<span class="bool-val">true</span>)
             .enumerable(<span class="bool-val">false</span>)
             .configurable(<span class="bool-val">true</span>),
@@ -1237,7 +1233,7 @@
     name: JsString,
     length: usize,
     kind: Kind,
-    intrinsics: Intrinsics,
+    realm: Realm,
 }
 
 <span class="doccomment">/// Marker for an ordinary object.
@@ -1291,7 +1287,7 @@
                 function: NativeFunction::from_fn_ptr(<span class="self">self</span>.function),
                 constructor: S::IS_CONSTRUCTOR.then_some(function::ConstructorKind::Base),
             },
-            <span class="self">self</span>.intrinsics,
+            <span class="self">self</span>.realm,
         );
 
         <span class="kw">let </span>length = PropertyDescriptor::builder()
@@ -1325,42 +1321,39 @@
 </span><span class="attr">#[derive(Debug)]
 #[must_use = <span class="string">&quot;You need to call the `build` method in order for this to correctly assign the inner data&quot;</span>]
 </span><span class="kw">struct </span>BuiltInBuilder&lt;<span class="lifetime">&#39;ctx</span>, Kind&gt; {
-    intrinsics: <span class="kw-2">&amp;</span><span class="lifetime">&#39;ctx </span>Intrinsics,
+    realm: <span class="kw-2">&amp;</span><span class="lifetime">&#39;ctx </span>Realm,
     object: JsObject,
     kind: Kind,
     prototype: JsObject,
 }
 
 <span class="kw">impl</span>&lt;<span class="lifetime">&#39;ctx</span>&gt; BuiltInBuilder&lt;<span class="lifetime">&#39;ctx</span>, OrdinaryObject&gt; {
-    <span class="kw">fn </span>new(intrinsics: <span class="kw-2">&amp;</span><span class="lifetime">&#39;ctx </span>Intrinsics) -&gt; BuiltInBuilder&lt;<span class="lifetime">&#39;ctx</span>, OrdinaryObject&gt; {
+    <span class="kw">fn </span>new(realm: <span class="kw-2">&amp;</span><span class="lifetime">&#39;ctx </span>Realm) -&gt; BuiltInBuilder&lt;<span class="lifetime">&#39;ctx</span>, OrdinaryObject&gt; {
         BuiltInBuilder {
-            intrinsics,
+            realm,
             object: JsObject::with_null_proto(),
             kind: OrdinaryObject,
-            prototype: intrinsics.constructors().object().prototype(),
+            prototype: realm.intrinsics().constructors().object().prototype(),
         }
     }
 
     <span class="kw">fn </span>with_intrinsic&lt;I: IntrinsicObject&gt;(
-        intrinsics: <span class="kw-2">&amp;</span><span class="lifetime">&#39;ctx </span>Intrinsics,
+        realm: <span class="kw-2">&amp;</span><span class="lifetime">&#39;ctx </span>Realm,
     ) -&gt; BuiltInBuilder&lt;<span class="lifetime">&#39;ctx</span>, OrdinaryObject&gt; {
         BuiltInBuilder {
-            intrinsics,
-            object: I::get(intrinsics),
+            realm,
+            object: I::get(realm.intrinsics()),
             kind: OrdinaryObject,
-            prototype: intrinsics.constructors().object().prototype(),
+            prototype: realm.intrinsics().constructors().object().prototype(),
         }
     }
 
-    <span class="kw">fn </span>with_object(
-        intrinsics: <span class="kw-2">&amp;</span><span class="lifetime">&#39;ctx </span>Intrinsics,
-        object: JsObject,
-    ) -&gt; BuiltInBuilder&lt;<span class="lifetime">&#39;ctx</span>, OrdinaryObject&gt; {
+    <span class="kw">fn </span>with_object(realm: <span class="kw-2">&amp;</span><span class="lifetime">&#39;ctx </span>Realm, object: JsObject) -&gt; BuiltInBuilder&lt;<span class="lifetime">&#39;ctx</span>, OrdinaryObject&gt; {
         BuiltInBuilder {
-            intrinsics,
+            realm,
             object,
             kind: OrdinaryObject,
-            prototype: intrinsics.constructors().object().prototype(),
+            prototype: realm.intrinsics().constructors().object().prototype(),
         }
     }
 }
@@ -1371,27 +1364,32 @@
         function: NativeFunctionPointer,
     ) -&gt; BuiltInBuilder&lt;<span class="lifetime">&#39;ctx</span>, Callable&lt;OrdinaryFunction&gt;&gt; {
         BuiltInBuilder {
-            intrinsics: <span class="self">self</span>.intrinsics,
+            realm: <span class="self">self</span>.realm,
             object: <span class="self">self</span>.object,
             kind: Callable {
                 function,
                 name: <span class="macro">js_string!</span>(<span class="string">&quot;&quot;</span>),
                 length: <span class="number">0</span>,
                 kind: OrdinaryFunction,
-                intrinsics: <span class="self">self</span>.intrinsics.clone(),
+                realm: <span class="self">self</span>.realm.clone(),
             },
-            prototype: <span class="self">self</span>.intrinsics.constructors().function().prototype(),
+            prototype: <span class="self">self
+                </span>.realm
+                .intrinsics()
+                .constructors()
+                .function()
+                .prototype(),
         }
     }
 }
 
 <span class="kw">impl</span>&lt;<span class="lifetime">&#39;ctx</span>&gt; BuiltInBuilder&lt;<span class="lifetime">&#39;ctx</span>, Callable&lt;Constructor&gt;&gt; {
     <span class="kw">fn </span>from_standard_constructor&lt;SC: BuiltInConstructor&gt;(
-        intrinsics: <span class="kw-2">&amp;</span><span class="lifetime">&#39;ctx </span>Intrinsics,
+        realm: <span class="kw-2">&amp;</span><span class="lifetime">&#39;ctx </span>Realm,
     ) -&gt; BuiltInBuilder&lt;<span class="lifetime">&#39;ctx</span>, Callable&lt;Constructor&gt;&gt; {
-        <span class="kw">let </span>constructor = SC::STANDARD_CONSTRUCTOR(intrinsics.constructors());
+        <span class="kw">let </span>constructor = SC::STANDARD_CONSTRUCTOR(realm.intrinsics().constructors());
         BuiltInBuilder {
-            intrinsics,
+            realm,
             object: constructor.constructor(),
             kind: Callable {
                 function: SC::constructor,
@@ -1399,25 +1397,25 @@
                 length: SC::LENGTH,
                 kind: Constructor {
                     prototype: constructor.prototype(),
-                    inherits: <span class="prelude-val">Some</span>(intrinsics.constructors().object().prototype()),
+                    inherits: <span class="prelude-val">Some</span>(realm.intrinsics().constructors().object().prototype()),
                     attributes: Attribute::WRITABLE | Attribute::CONFIGURABLE,
                 },
-                intrinsics: intrinsics.clone(),
+                realm: realm.clone(),
             },
-            prototype: intrinsics.constructors().function().prototype(),
+            prototype: realm.intrinsics().constructors().function().prototype(),
         }
     }
 
     <span class="kw">fn </span>no_proto(<span class="self">self</span>) -&gt; BuiltInBuilder&lt;<span class="lifetime">&#39;ctx</span>, Callable&lt;ConstructorNoProto&gt;&gt; {
         BuiltInBuilder {
-            intrinsics: <span class="self">self</span>.intrinsics,
+            realm: <span class="self">self</span>.realm,
             object: <span class="self">self</span>.object,
             kind: Callable {
                 function: <span class="self">self</span>.kind.function,
                 name: <span class="self">self</span>.kind.name,
                 length: <span class="self">self</span>.kind.length,
                 kind: ConstructorNoProto,
-                intrinsics: <span class="self">self</span>.intrinsics.clone(),
+                realm: <span class="self">self</span>.realm.clone(),
             },
             prototype: <span class="self">self</span>.prototype,
         }
@@ -1431,7 +1429,7 @@
         </span>B: Into&lt;FunctionBinding&gt;,
     {
         <span class="kw">let </span>binding = binding.into();
-        <span class="kw">let </span>function = BuiltInBuilder::new(<span class="self">self</span>.intrinsics)
+        <span class="kw">let </span>function = BuiltInBuilder::new(<span class="self">self</span>.realm)
             .callable(function)
             .name(binding.name)
             .length(length)
@@ -1499,7 +1497,7 @@
         </span>B: Into&lt;FunctionBinding&gt;,
     {
         <span class="kw">let </span>binding = binding.into();
-        <span class="kw">let </span>function = BuiltInBuilder::new(<span class="self">self</span>.intrinsics)
+        <span class="kw">let </span>function = BuiltInBuilder::new(<span class="self">self</span>.realm)
             .callable(function)
             .name(binding.name)
             .length(length)

@@ -423,6 +423,7 @@
 <a href="#422" id="422">422</a>
 <a href="#423" id="423">423</a>
 <a href="#424" id="424">424</a>
+<a href="#425" id="425">425</a>
 </pre><pre class="rust"><code><span class="doccomment">//! Boa&#39;s implementation of ECMAScript&#39;s global `Reflect` object.
 //!
 //! The `Reflect` global object is a built-in object that provides methods for interceptable
@@ -442,6 +443,7 @@
     error::JsNativeError,
     object::JsObject,
     property::Attribute,
+    realm::Realm,
     symbol::JsSymbol,
     Context, JsArgs, JsResult, JsValue,
 };
@@ -455,12 +457,12 @@
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>Reflect;
 
 <span class="kw">impl </span>IntrinsicObject <span class="kw">for </span>Reflect {
-    <span class="kw">fn </span>init(intrinsics: <span class="kw-2">&amp;</span>Intrinsics) {
+    <span class="kw">fn </span>init(realm: <span class="kw-2">&amp;</span>Realm) {
         <span class="kw">let </span>_timer = Profiler::global().start_event(<span class="self">Self</span>::NAME, <span class="string">&quot;init&quot;</span>);
 
         <span class="kw">let </span>to_string_tag = JsSymbol::to_string_tag();
 
-        BuiltInBuilder::with_intrinsic::&lt;<span class="self">Self</span>&gt;(intrinsics)
+        BuiltInBuilder::with_intrinsic::&lt;<span class="self">Self</span>&gt;(realm)
             .static_method(<span class="self">Self</span>::apply, <span class="string">&quot;apply&quot;</span>, <span class="number">3</span>)
             .static_method(<span class="self">Self</span>::construct, <span class="string">&quot;construct&quot;</span>, <span class="number">2</span>)
             .static_method(<span class="self">Self</span>::define_property, <span class="string">&quot;defineProperty&quot;</span>, <span class="number">3</span>)

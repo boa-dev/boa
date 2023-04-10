@@ -103,6 +103,13 @@
 <a href="#102" id="102">102</a>
 <a href="#103" id="103">103</a>
 <a href="#104" id="104">104</a>
+<a href="#105" id="105">105</a>
+<a href="#106" id="106">106</a>
+<a href="#107" id="107">107</a>
+<a href="#108" id="108">108</a>
+<a href="#109" id="109">109</a>
+<a href="#110" id="110">110</a>
+<a href="#111" id="111">111</a>
 </pre><pre class="rust"><code><span class="doccomment">//! This module implements the `StringIterator` object.
 //!
 //! More information:
@@ -117,6 +124,7 @@
     js_string,
     object::{JsObject, ObjectData},
     property::Attribute,
+    realm::Realm,
     symbol::JsSymbol,
     Context, JsResult, JsString, JsValue,
 };
@@ -136,11 +144,17 @@
 }
 
 <span class="kw">impl </span>IntrinsicObject <span class="kw">for </span>StringIterator {
-    <span class="kw">fn </span>init(intrinsics: <span class="kw-2">&amp;</span>Intrinsics) {
+    <span class="kw">fn </span>init(realm: <span class="kw-2">&amp;</span>Realm) {
         <span class="kw">let </span>_timer = Profiler::global().start_event(<span class="string">&quot;StringIterator&quot;</span>, <span class="string">&quot;init&quot;</span>);
 
-        BuiltInBuilder::with_intrinsic::&lt;<span class="self">Self</span>&gt;(intrinsics)
-            .prototype(intrinsics.objects().iterator_prototypes().iterator())
+        BuiltInBuilder::with_intrinsic::&lt;<span class="self">Self</span>&gt;(realm)
+            .prototype(
+                realm
+                    .intrinsics()
+                    .objects()
+                    .iterator_prototypes()
+                    .iterator(),
+            )
             .static_method(<span class="self">Self</span>::next, <span class="string">&quot;next&quot;</span>, <span class="number">0</span>)
             .static_property(
                 JsSymbol::to_string_tag(),

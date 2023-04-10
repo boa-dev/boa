@@ -227,7 +227,7 @@
 
         <span class="kw">let </span>deleted = <span class="kw">if </span>binding_locator.is_global()
             &amp;&amp; !context
-                .realm
+                .vm
                 .environments
                 .binding_in_poisoned_environment(binding_locator.name())
         {
@@ -257,7 +257,7 @@
             deleted
         } <span class="kw">else </span>{
             context
-                .realm
+                .vm
                 .environments
                 .get_value_optional(
                     binding_locator.environment_index(),

@@ -46,14 +46,13 @@
 <a href="#45" id="45">45</a>
 <a href="#46" id="46">46</a>
 <a href="#47" id="47">47</a>
-<a href="#48" id="48">48</a>
 </pre><pre class="rust"><code><span class="kw">use crate</span>::{bytecompiler::ByteCompiler, vm::Opcode};
 <span class="kw">use </span>boa_ast::statement::Switch;
 
 <span class="kw">impl </span>ByteCompiler&lt;<span class="lifetime">&#39;_</span>, <span class="lifetime">&#39;_</span>&gt; {
     <span class="doccomment">/// Compile a [`Switch`] `boa_ast` node
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>compile_switch(<span class="kw-2">&amp;mut </span><span class="self">self</span>, switch: <span class="kw-2">&amp;</span>Switch, configurable_globals: bool) {
-        <span class="self">self</span>.context.push_compile_time_environment(<span class="bool-val">false</span>);
+        <span class="self">self</span>.push_compile_environment(<span class="bool-val">false</span>);
         <span class="kw">let </span>push_env = <span class="self">self</span>.emit_opcode_with_two_operands(Opcode::PushDeclarativeEnvironment);
         <span class="kw">for </span>case <span class="kw">in </span>switch.cases() {
             <span class="self">self</span>.create_script_decls(case.body(), configurable_globals);
@@ -88,10 +87,9 @@
         <span class="self">self</span>.patch_jump(end_label);
         <span class="self">self</span>.emit_opcode(Opcode::LoopEnd);
 
-        <span class="kw">let </span>(num_bindings, compile_environment) = <span class="self">self</span>.context.pop_compile_time_environment();
-        <span class="kw">let </span>index_compile_environment = <span class="self">self</span>.push_compile_environment(compile_environment);
-        <span class="self">self</span>.patch_jump_with_target(push_env.<span class="number">0</span>, num_bindings <span class="kw">as </span>u32);
-        <span class="self">self</span>.patch_jump_with_target(push_env.<span class="number">1</span>, index_compile_environment <span class="kw">as </span>u32);
+        <span class="kw">let </span>env_info = <span class="self">self</span>.pop_compile_environment();
+        <span class="self">self</span>.patch_jump_with_target(push_env.<span class="number">0</span>, env_info.num_bindings <span class="kw">as </span>u32);
+        <span class="self">self</span>.patch_jump_with_target(push_env.<span class="number">1</span>, env_info.index <span class="kw">as </span>u32);
         <span class="self">self</span>.emit_opcode(Opcode::PopEnvironment);
     }
 }

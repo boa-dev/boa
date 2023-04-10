@@ -4478,7 +4478,7 @@
                     function: <span class="self">self</span>.function,
                     constructor: <span class="self">self</span>.constructor,
                 },
-                <span class="self">self</span>.context.intrinsics().clone(),
+                <span class="self">self</span>.context.realm().clone(),
             )),
         );
         <span class="kw">let </span>property = PropertyDescriptor::builder()
@@ -4874,7 +4874,7 @@
                 function: <span class="self">self</span>.function,
                 constructor: <span class="self">self</span>.constructor,
             },
-            <span class="self">self</span>.context.intrinsics().clone(),
+            <span class="self">self</span>.context.realm().clone(),
         );
 
         <span class="kw">let </span>length = PropertyDescriptor::builder()

@@ -83,8 +83,8 @@
             context.vm.frame_mut().env_stack.pop();
         }
 
-        <span class="kw">let </span>env_truncation_len = context.realm.environments.len().saturating_sub(envs_to_pop);
-        context.realm.environments.truncate(env_truncation_len);
+        <span class="kw">let </span>env_truncation_len = context.vm.environments.len().saturating_sub(envs_to_pop);
+        context.vm.environments.truncate(env_truncation_len);
 
         <span class="comment">// 2. Register target address in AbruptCompletionRecord.
         </span><span class="kw">let </span>new_record = AbruptCompletionRecord::new_break().with_initial_target(target_address);

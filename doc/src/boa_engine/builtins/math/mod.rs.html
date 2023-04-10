@@ -1027,6 +1027,7 @@
 <a href="#1026" id="1026">1026</a>
 <a href="#1027" id="1027">1027</a>
 <a href="#1028" id="1028">1028</a>
+<a href="#1029" id="1029">1029</a>
 </pre><pre class="rust"><code><span class="doccomment">//! Boa&#39;s implementation of ECMAScript&#39;s global `Math` object.
 //!
 //! `Math` is a built-in object that has properties and methods for mathematical constants and functions. It’s not a function object.
@@ -1042,7 +1043,8 @@
 
 </span><span class="kw">use crate</span>::{
     builtins::BuiltInObject, context::intrinsics::Intrinsics, object::JsObject,
-    property::Attribute, string::utf16, symbol::JsSymbol, Context, JsArgs, JsResult, JsValue,
+    property::Attribute, realm::Realm, string::utf16, symbol::JsSymbol, Context, JsArgs, JsResult,
+    JsValue,
 };
 <span class="kw">use </span>boa_profiler::Profiler;
 
@@ -1056,11 +1058,11 @@
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>Math;
 
 <span class="kw">impl </span>IntrinsicObject <span class="kw">for </span>Math {
-    <span class="kw">fn </span>init(intrinsics: <span class="kw-2">&amp;</span>Intrinsics) {
+    <span class="kw">fn </span>init(realm: <span class="kw-2">&amp;</span>Realm) {
         <span class="kw">let </span>_timer = Profiler::global().start_event(<span class="self">Self</span>::NAME, <span class="string">&quot;init&quot;</span>);
 
         <span class="kw">let </span>attribute = Attribute::READONLY | Attribute::NON_ENUMERABLE | Attribute::PERMANENT;
-        BuiltInBuilder::with_intrinsic::&lt;<span class="self">Self</span>&gt;(intrinsics)
+        BuiltInBuilder::with_intrinsic::&lt;<span class="self">Self</span>&gt;(realm)
             .static_property(<span class="macro">utf16!</span>(<span class="string">&quot;E&quot;</span>), std::f64::consts::E, attribute)
             .static_property(<span class="macro">utf16!</span>(<span class="string">&quot;LN10&quot;</span>), std::f64::consts::LN_10, attribute)
             .static_property(<span class="macro">utf16!</span>(<span class="string">&quot;LN2&quot;</span>), std::f64::consts::LN_2, attribute)

@@ -415,7 +415,6 @@
 <a href="#414" id="414">414</a>
 <a href="#415" id="415">415</a>
 <a href="#416" id="416">416</a>
-<a href="#417" id="417">417</a>
 </pre><pre class="rust"><code><span class="doccomment">//! Boa&#39;s implementation of ECMAScript&#39;s global `Generator` object.
 //!
 //! A Generator is an instance of a generator function and conforms to both the Iterator and Iterable interfaces.
@@ -434,6 +433,7 @@
     error::JsNativeError,
     object::{JsObject, CONSTRUCTOR},
     property::Attribute,
+    realm::Realm,
     symbol::JsSymbol,
     value::JsValue,
     vm::{CallFrame, CompletionRecord, GeneratorResumeKind},
@@ -464,7 +464,7 @@
     <span class="kw">pub</span>(<span class="kw">crate</span>) call_frame: CallFrame,
     <span class="kw">pub</span>(<span class="kw">crate</span>) stack: Vec&lt;JsValue&gt;,
     <span class="kw">pub</span>(<span class="kw">crate</span>) active_function: <span class="prelude-ty">Option</span>&lt;JsObject&gt;,
-    <span class="kw">pub</span>(<span class="kw">crate</span>) realm_intrinsics: Intrinsics,
+    <span class="kw">pub</span>(<span class="kw">crate</span>) realm: Realm,
 }
 
 <span class="doccomment">/// The internal representation of a `Generator` object.
@@ -479,11 +479,17 @@
 }
 
 <span class="kw">impl </span>IntrinsicObject <span class="kw">for </span>Generator {
-    <span class="kw">fn </span>init(intrinsics: <span class="kw-2">&amp;</span>Intrinsics) {
+    <span class="kw">fn </span>init(realm: <span class="kw-2">&amp;</span>Realm) {
         <span class="kw">let </span>_timer = Profiler::global().start_event(<span class="self">Self</span>::NAME, <span class="string">&quot;init&quot;</span>);
 
-        BuiltInBuilder::with_intrinsic::&lt;<span class="self">Self</span>&gt;(intrinsics)
-            .prototype(intrinsics.objects().iterator_prototypes().iterator())
+        BuiltInBuilder::with_intrinsic::&lt;<span class="self">Self</span>&gt;(realm)
+            .prototype(
+                realm
+                    .intrinsics()
+                    .objects()
+                    .iterator_prototypes()
+                    .iterator(),
+            )
             .static_method(<span class="self">Self</span>::next, <span class="string">&quot;next&quot;</span>, <span class="number">1</span>)
             .static_method(<span class="self">Self</span>::r#return, <span class="string">&quot;return&quot;</span>, <span class="number">1</span>)
             .static_method(<span class="self">Self</span>::throw, <span class="string">&quot;throw&quot;</span>, <span class="number">1</span>)
@@ -494,7 +500,11 @@
             )
             .static_property(
                 CONSTRUCTOR,
-                intrinsics.constructors().generator_function().prototype(),
+                realm
+                    .intrinsics()
+                    .constructors()
+                    .generator_function()
+                    .prototype(),
                 Attribute::CONFIGURABLE,
             )
             .build();
@@ -635,7 +645,7 @@
         drop(generator_obj_mut);
 
         std::mem::swap(
-            <span class="kw-2">&amp;mut </span>context.realm.environments,
+            <span class="kw-2">&amp;mut </span>context.vm.environments,
             <span class="kw-2">&amp;mut </span>generator_context.environments,
         );
         std::mem::swap(<span class="kw-2">&amp;mut </span>context.vm.stack, <span class="kw-2">&amp;mut </span>generator_context.stack);
@@ -643,10 +653,7 @@
             <span class="kw-2">&amp;mut </span>context.vm.active_function,
             <span class="kw-2">&amp;mut </span>generator_context.active_function,
         );
-        std::mem::swap(
-            <span class="kw-2">&amp;mut </span>context.realm.intrinsics,
-            <span class="kw-2">&amp;mut </span>generator_context.realm_intrinsics,
-        );
+        <span class="kw">let </span>old_realm = context.enter_realm(generator_context.realm.clone());
         context.vm.push_frame(generator_context.call_frame.clone());
         <span class="kw">if </span>!first_execution {
             context.vm.push(value.clone());
@@ -661,7 +668,7 @@
             .pop_frame()
             .expect(<span class="string">&quot;generator call frame must exist&quot;</span>);
         std::mem::swap(
-            <span class="kw-2">&amp;mut </span>context.realm.environments,
+            <span class="kw-2">&amp;mut </span>context.vm.environments,
             <span class="kw-2">&amp;mut </span>generator_context.environments,
         );
         std::mem::swap(<span class="kw-2">&amp;mut </span>context.vm.stack, <span class="kw-2">&amp;mut </span>generator_context.stack);
@@ -669,10 +676,7 @@
             <span class="kw-2">&amp;mut </span>context.vm.active_function,
             <span class="kw-2">&amp;mut </span>generator_context.active_function,
         );
-        std::mem::swap(
-            <span class="kw-2">&amp;mut </span>context.realm.intrinsics,
-            <span class="kw-2">&amp;mut </span>generator_context.realm_intrinsics,
-        );
+        context.enter_realm(old_realm);
 
         <span class="kw">let </span><span class="kw-2">mut </span>generator_obj_mut = generator_obj.borrow_mut();
         <span class="kw">let </span>generator = generator_obj_mut
@@ -766,7 +770,7 @@
         drop(generator_obj_mut);
 
         std::mem::swap(
-            <span class="kw-2">&amp;mut </span>context.realm.environments,
+            <span class="kw-2">&amp;mut </span>context.vm.environments,
             <span class="kw-2">&amp;mut </span>generator_context.environments,
         );
         std::mem::swap(<span class="kw-2">&amp;mut </span>context.vm.stack, <span class="kw-2">&amp;mut </span>generator_context.stack);
@@ -774,10 +778,7 @@
             <span class="kw-2">&amp;mut </span>context.vm.active_function,
             <span class="kw-2">&amp;mut </span>generator_context.active_function,
         );
-        std::mem::swap(
-            <span class="kw-2">&amp;mut </span>context.realm.intrinsics,
-            <span class="kw-2">&amp;mut </span>generator_context.realm_intrinsics,
-        );
+        <span class="kw">let </span>old_realm = context.enter_realm(generator_context.realm.clone());
         context.vm.push_frame(generator_context.call_frame.clone());
 
         <span class="kw">let </span>completion_record = <span class="kw">match </span>abrupt_completion {
@@ -798,7 +799,7 @@
             .pop_frame()
             .expect(<span class="string">&quot;generator call frame must exist&quot;</span>);
         std::mem::swap(
-            <span class="kw-2">&amp;mut </span>context.realm.environments,
+            <span class="kw-2">&amp;mut </span>context.vm.environments,
             <span class="kw-2">&amp;mut </span>generator_context.environments,
         );
         std::mem::swap(<span class="kw-2">&amp;mut </span>context.vm.stack, <span class="kw-2">&amp;mut </span>generator_context.stack);
@@ -806,10 +807,7 @@
             <span class="kw-2">&amp;mut </span>context.vm.active_function,
             <span class="kw-2">&amp;mut </span>generator_context.active_function,
         );
-        std::mem::swap(
-            <span class="kw-2">&amp;mut </span>context.realm.intrinsics,
-            <span class="kw-2">&amp;mut </span>generator_context.realm_intrinsics,
-        );
+        context.enter_realm(old_realm);
 
         <span class="kw">let </span><span class="kw-2">mut </span>generator_obj_mut = generator_obj.borrow_mut();
         <span class="kw">let </span>generator = generator_obj_mut

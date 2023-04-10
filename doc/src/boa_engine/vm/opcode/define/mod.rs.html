@@ -167,7 +167,7 @@
         <span class="kw">if </span>binding_locator.is_global() {
             <span class="comment">// already initialized at compile time
         </span>} <span class="kw">else </span>{
-            context.realm.environments.put_value_if_uninitialized(
+            context.vm.environments.put_value_if_uninitialized(
                 binding_locator.environment_index(),
                 binding_locator.binding_index(),
                 JsValue::Undefined,
@@ -211,7 +211,7 @@
                 )<span class="question-mark">?</span>;
             }
         } <span class="kw">else </span>{
-            context.realm.environments.put_value(
+            context.vm.environments.put_value(
                 binding_locator.environment_index(),
                 binding_locator.binding_index(),
                 value,
@@ -235,7 +235,7 @@
     <span class="kw">fn </span>execute(context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;CompletionType&gt; {
         <span class="kw">let </span>index = context.vm.read::&lt;u32&gt;();
         <span class="kw">let </span>binding_locator = context.vm.frame().code_block.bindings[index <span class="kw">as </span>usize];
-        context.realm.environments.put_value(
+        context.vm.environments.put_value(
             binding_locator.environment_index(),
             binding_locator.binding_index(),
             JsValue::Undefined,
@@ -244,7 +244,7 @@
     }
 }
 
-<span class="macro">macro_rules! </span>implement_declaritives {
+<span class="macro">macro_rules! </span>implement_declaratives {
     (<span class="macro-nonterminal">$name</span>:ident, <span class="macro-nonterminal">$doc_string</span>:literal) =&gt; {
         <span class="attr">#[doc= <span class="macro">concat!</span>(<span class="string">&quot;`&quot;</span>, <span class="macro">stringify!</span>(<span class="macro-nonterminal">$name</span>), <span class="string">&quot;` implements the OpCode Operation for `Opcode::&quot;</span>, <span class="macro">stringify!</span>(<span class="macro-nonterminal">$name</span>), <span class="string">&quot;`\n&quot;</span>)]
         #[doc= <span class="string">&quot;\n&quot;</span>]
@@ -261,7 +261,7 @@
                 <span class="kw">let </span>index = context.vm.read::&lt;u32&gt;();
                 <span class="kw">let </span>value = context.vm.pop();
                 <span class="kw">let </span>binding_locator = context.vm.frame().code_block.bindings[index <span class="kw">as </span>usize];
-                context.realm.environments.put_value(
+                context.vm.environments.put_value(
                     binding_locator.environment_index(),
                     binding_locator.binding_index(),
                     value,
@@ -272,8 +272,8 @@
     };
 }
 
-<span class="macro">implement_declaritives!</span>(DefInitLet, <span class="string">&quot;Declare and initialize `let` type variable&quot;</span>);
-<span class="macro">implement_declaritives!</span>(DefInitConst, <span class="string">&quot;Declare and initialize `const` type variable&quot;</span>);
-<span class="macro">implement_declaritives!</span>(DefInitArg, <span class="string">&quot;Declare and initialize function arguments&quot;</span>);
+<span class="macro">implement_declaratives!</span>(DefInitLet, <span class="string">&quot;Declare and initialize `let` type variable&quot;</span>);
+<span class="macro">implement_declaratives!</span>(DefInitConst, <span class="string">&quot;Declare and initialize `const` type variable&quot;</span>);
+<span class="macro">implement_declaratives!</span>(DefInitArg, <span class="string">&quot;Declare and initialize function arguments&quot;</span>);
 </code></pre></div>
 </section></main><div id="rustdoc-vars" data-root-path="../../../../../" data-static-root-path="../../../../../static.files/" data-current-crate="boa_engine" data-themes="" data-resource-suffix="" data-rustdoc-version="1.68.2 (9eb3afe9e 2023-03-27)" data-search-js="search-98d53477a794af0b.js" data-settings-js="settings-c3c521c753752a1a.js" data-settings-css="settings-08ddfdda51b8ee2e.css" ></div></body></html>

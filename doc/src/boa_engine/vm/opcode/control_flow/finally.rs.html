@@ -149,10 +149,6 @@
 <a href="#148" id="148">148</a>
 <a href="#149" id="149">149</a>
 <a href="#150" id="150">150</a>
-<a href="#151" id="151">151</a>
-<a href="#152" id="152">152</a>
-<a href="#153" id="153">153</a>
-<a href="#154" id="154">154</a>
 </pre><pre class="rust"><code><span class="kw">use crate</span>::{
     vm::{opcode::Operation, CompletionType},
     Context, JsError, JsResult,
@@ -219,9 +215,8 @@
                     context.vm.frame_mut().env_stack.pop();
                 }
 
-                <span class="kw">let </span>env_truncation_len =
-                    context.realm.environments.len().saturating_sub(envs_to_pop);
-                context.realm.environments.truncate(env_truncation_len);
+                <span class="kw">let </span>env_truncation_len = context.vm.environments.len().saturating_sub(envs_to_pop);
+                context.vm.environments.truncate(env_truncation_len);
             }
             <span class="prelude-val">Some</span>(record)
                 <span class="kw">if </span>record.is_break() &amp;&amp; context.vm.frame().pc &lt; record.target() <span class="kw">as </span>usize =&gt;
@@ -239,9 +234,8 @@
 
                 context.vm.frame_mut().abrupt_completion = <span class="prelude-val">None</span>;
 
-                <span class="kw">let </span>env_truncation_len =
-                    context.realm.environments.len().saturating_sub(envs_to_pop);
-                context.realm.environments.truncate(env_truncation_len);
+                <span class="kw">let </span>env_truncation_len = context.vm.environments.len().saturating_sub(envs_to_pop);
+                context.vm.environments.truncate(env_truncation_len);
             }
             <span class="prelude-val">Some</span>(record)
                 <span class="kw">if </span>record.is_continue() &amp;&amp; context.vm.frame().pc &gt; record.target() <span class="kw">as </span>usize =&gt;
@@ -257,9 +251,8 @@
                 }
 
                 context.vm.frame_mut().abrupt_completion = <span class="prelude-val">None</span>;
-                <span class="kw">let </span>env_truncation_len =
-                    context.realm.environments.len().saturating_sub(envs_to_pop);
-                context.realm.environments.truncate(env_truncation_len);
+                <span class="kw">let </span>env_truncation_len = context.vm.environments.len().saturating_sub(envs_to_pop);
+                context.vm.environments.truncate(env_truncation_len);
             }
             <span class="prelude-val">Some</span>(record) <span class="kw">if </span>record.is_return() =&gt; {
                 <span class="kw">return </span><span class="prelude-val">Ok</span>(CompletionType::Return);
@@ -276,9 +269,8 @@
                     }
                 }
                 context.vm.frame_mut().abrupt_completion = <span class="prelude-val">None</span>;
-                <span class="kw">let </span>env_truncation_len =
-                    context.realm.environments.len().saturating_sub(envs_to_pop);
-                context.realm.environments.truncate(env_truncation_len);
+                <span class="kw">let </span>env_truncation_len = context.vm.environments.len().saturating_sub(envs_to_pop);
+                context.vm.environments.truncate(env_truncation_len);
             }
             <span class="prelude-val">Some</span>(record) <span class="kw">if </span>!record.is_throw_with_target() =&gt; {
                 <span class="kw">let </span>current_stack = context
@@ -289,11 +281,11 @@
                     .expect(<span class="string">&quot;Popping current finally stack.&quot;</span>);
 
                 <span class="kw">let </span>env_truncation_len = context
-                    .realm
+                    .vm
                     .environments
                     .len()
                     .saturating_sub(current_stack.env_num());
-                context.realm.environments.truncate(env_truncation_len);
+                context.vm.environments.truncate(env_truncation_len);
 
                 <span class="kw">let </span>err = JsError::from_opaque(context.vm.pop());
                 context.vm.err = <span class="prelude-val">Some</span>(err);

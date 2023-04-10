@@ -44,6 +44,7 @@
 <a href="#43" id="43">43</a>
 <a href="#44" id="44">44</a>
 <a href="#45" id="45">45</a>
+<a href="#46" id="46">46</a>
 </pre><pre class="rust"><code><span class="comment">// TODO: implement `Segmenter` when https://github.com/unicode-org/icu4x/issues/2259 closes.
 
 </span><span class="kw">use </span>boa_profiler::Profiler;
@@ -52,6 +53,7 @@
     builtins::{BuiltInBuilder, BuiltInConstructor, BuiltInObject, IntrinsicObject},
     context::intrinsics::{Intrinsics, StandardConstructor, StandardConstructors},
     object::JsObject,
+    realm::Realm,
     Context, JsResult, JsValue,
 };
 
@@ -63,10 +65,10 @@
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>Segmenter;
 
 <span class="kw">impl </span>IntrinsicObject <span class="kw">for </span>Segmenter {
-    <span class="kw">fn </span>init(intrinsics: <span class="kw-2">&amp;</span>Intrinsics) {
+    <span class="kw">fn </span>init(realm: <span class="kw-2">&amp;</span>Realm) {
         <span class="kw">let </span>_timer = Profiler::global().start_event(<span class="self">Self</span>::NAME, <span class="string">&quot;init&quot;</span>);
 
-        BuiltInBuilder::from_standard_constructor::&lt;<span class="self">Self</span>&gt;(intrinsics).build();
+        BuiltInBuilder::from_standard_constructor::&lt;<span class="self">Self</span>&gt;(realm).build();
     }
 
     <span class="kw">fn </span>get(intrinsics: <span class="kw-2">&amp;</span>Intrinsics) -&gt; JsObject {

@@ -87,6 +87,9 @@
 <a href="#86" id="86">86</a>
 <a href="#87" id="87">87</a>
 <a href="#88" id="88">88</a>
+<a href="#89" id="89">89</a>
+<a href="#90" id="90">90</a>
+<a href="#91" id="91">91</a>
 </pre><pre class="rust"><code><span class="doccomment">//! Boa&#39;s implementation of ECMAScript&#39;s `AsyncGeneratorFunction` object.
 //!
 //! More information:
@@ -99,6 +102,7 @@
     context::intrinsics::{Intrinsics, StandardConstructor, StandardConstructors},
     object::{JsObject, PROTOTYPE},
     property::Attribute,
+    realm::Realm,
     symbol::JsSymbol,
     value::JsValue,
     Context, JsResult,
@@ -112,15 +116,17 @@
 </span><span class="kw">pub struct </span>AsyncGeneratorFunction;
 
 <span class="kw">impl </span>IntrinsicObject <span class="kw">for </span>AsyncGeneratorFunction {
-    <span class="kw">fn </span>init(intrinsics: <span class="kw-2">&amp;</span>Intrinsics) {
+    <span class="kw">fn </span>init(realm: <span class="kw-2">&amp;</span>Realm) {
         <span class="kw">let </span>_timer = Profiler::global().start_event(<span class="self">Self</span>::NAME, <span class="string">&quot;init&quot;</span>);
 
-        BuiltInBuilder::from_standard_constructor::&lt;<span class="self">Self</span>&gt;(intrinsics)
-            .inherits(<span class="prelude-val">Some</span>(intrinsics.constructors().function().prototype()))
+        BuiltInBuilder::from_standard_constructor::&lt;<span class="self">Self</span>&gt;(realm)
+            .inherits(<span class="prelude-val">Some</span>(
+                realm.intrinsics().constructors().function().prototype(),
+            ))
             .constructor_attributes(Attribute::CONFIGURABLE)
             .property(
                 PROTOTYPE,
-                intrinsics.objects().async_generator(),
+                realm.intrinsics().objects().async_generator(),
                 Attribute::CONFIGURABLE,
             )
             .property(

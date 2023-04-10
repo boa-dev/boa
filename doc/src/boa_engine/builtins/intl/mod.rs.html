@@ -147,6 +147,15 @@
 <a href="#146" id="146">146</a>
 <a href="#147" id="147">147</a>
 <a href="#148" id="148">148</a>
+<a href="#149" id="149">149</a>
+<a href="#150" id="150">150</a>
+<a href="#151" id="151">151</a>
+<a href="#152" id="152">152</a>
+<a href="#153" id="153">153</a>
+<a href="#154" id="154">154</a>
+<a href="#155" id="155">155</a>
+<a href="#156" id="156">156</a>
+<a href="#157" id="157">157</a>
 </pre><pre class="rust"><code><span class="doccomment">//! Boa&#39;s implementation of ECMAScript&#39;s global `Intl` object.
 //!
 //! `Intl` is a built-in object that has properties and methods for i18n. It&#39;s not a function object.
@@ -163,6 +172,7 @@
     context::{intrinsics::Intrinsics, BoaProvider},
     object::JsObject,
     property::Attribute,
+    realm::Realm,
     symbol::JsSymbol,
     Context, JsArgs, JsResult, JsValue,
 };
@@ -188,10 +198,10 @@
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>Intl;
 
 <span class="kw">impl </span>IntrinsicObject <span class="kw">for </span>Intl {
-    <span class="kw">fn </span>init(intrinsics: <span class="kw-2">&amp;</span>Intrinsics) {
+    <span class="kw">fn </span>init(realm: <span class="kw-2">&amp;</span>Realm) {
         <span class="kw">let </span>_timer = Profiler::global().start_event(<span class="self">Self</span>::NAME, <span class="string">&quot;init&quot;</span>);
 
-        BuiltInBuilder::with_intrinsic::&lt;<span class="self">Self</span>&gt;(intrinsics)
+        BuiltInBuilder::with_intrinsic::&lt;<span class="self">Self</span>&gt;(realm)
             .static_property(
                 JsSymbol::to_string_tag(),
                 <span class="self">Self</span>::NAME,
@@ -199,27 +209,35 @@
             )
             .static_property(
                 Collator::NAME,
-                intrinsics.constructors().collator().constructor(),
+                realm.intrinsics().constructors().collator().constructor(),
                 Collator::ATTRIBUTE,
             )
             .static_property(
                 ListFormat::NAME,
-                intrinsics.constructors().list_format().constructor(),
+                realm
+                    .intrinsics()
+                    .constructors()
+                    .list_format()
+                    .constructor(),
                 ListFormat::ATTRIBUTE,
             )
             .static_property(
                 Locale::NAME,
-                intrinsics.constructors().locale().constructor(),
+                realm.intrinsics().constructors().locale().constructor(),
                 Locale::ATTRIBUTE,
             )
             .static_property(
                 Segmenter::NAME,
-                intrinsics.constructors().segmenter().constructor(),
+                realm.intrinsics().constructors().segmenter().constructor(),
                 Segmenter::ATTRIBUTE,
             )
             .static_property(
                 DateTimeFormat::NAME,
-                intrinsics.constructors().date_time_format().constructor(),
+                realm
+                    .intrinsics()
+                    .constructors()
+                    .date_time_format()
+                    .constructor(),
                 DateTimeFormat::ATTRIBUTE,
             )
             .static_method(<span class="self">Self</span>::get_canonical_locales, <span class="string">&quot;getCanonicalLocales&quot;</span>, <span class="number">1</span>)

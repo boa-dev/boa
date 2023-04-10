@@ -100,6 +100,7 @@
 <a href="#99" id="99">99</a>
 <a href="#100" id="100">100</a>
 <a href="#101" id="101">101</a>
+<a href="#102" id="102">102</a>
 </pre><pre class="rust"><code><span class="doccomment">//! This module implements the global `URIError` object.
 //!
 //! The `URIError` object represents an error when a global URI handling
@@ -117,6 +118,7 @@
     context::intrinsics::{Intrinsics, StandardConstructor, StandardConstructors},
     object::{internal_methods::get_prototype_from_constructor, JsObject, ObjectData},
     property::Attribute,
+    realm::Realm,
     string::utf16,
     Context, JsArgs, JsResult, JsValue,
 };
@@ -129,13 +131,13 @@
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>UriError;
 
 <span class="kw">impl </span>IntrinsicObject <span class="kw">for </span>UriError {
-    <span class="kw">fn </span>init(intrinsics: <span class="kw-2">&amp;</span>Intrinsics) {
+    <span class="kw">fn </span>init(realm: <span class="kw-2">&amp;</span>Realm) {
         <span class="kw">let </span>_timer = Profiler::global().start_event(<span class="self">Self</span>::NAME, <span class="string">&quot;init&quot;</span>);
 
         <span class="kw">let </span>attribute = Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE;
-        BuiltInBuilder::from_standard_constructor::&lt;<span class="self">Self</span>&gt;(intrinsics)
-            .prototype(intrinsics.constructors().error().constructor())
-            .inherits(<span class="prelude-val">Some</span>(intrinsics.constructors().error().prototype()))
+        BuiltInBuilder::from_standard_constructor::&lt;<span class="self">Self</span>&gt;(realm)
+            .prototype(realm.intrinsics().constructors().error().constructor())
+            .inherits(<span class="prelude-val">Some</span>(realm.intrinsics().constructors().error().prototype()))
             .property(<span class="macro">utf16!</span>(<span class="string">&quot;name&quot;</span>), <span class="self">Self</span>::NAME, attribute)
             .property(<span class="macro">utf16!</span>(<span class="string">&quot;message&quot;</span>), <span class="string">&quot;&quot;</span>, attribute)
             .build();

@@ -312,7 +312,7 @@
             .queue
             .pop_front()
             .expect(<span class="string">&quot;must have item in queue&quot;</span>);
-        AsyncGenerator::complete_step(<span class="kw-2">&amp;</span>next, completion, <span class="bool-val">false</span>, context);
+        AsyncGenerator::complete_step(<span class="kw-2">&amp;</span>next, completion, <span class="bool-val">false</span>, <span class="prelude-val">None</span>, context);
 
         <span class="kw">let </span><span class="kw-2">mut </span>generator_object_mut = generator_object.borrow_mut();
         <span class="kw">let </span>gen = generator_object_mut

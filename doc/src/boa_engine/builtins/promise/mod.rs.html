@@ -2361,6 +2361,26 @@
 <a href="#2360" id="2360">2360</a>
 <a href="#2361" id="2361">2361</a>
 <a href="#2362" id="2362">2362</a>
+<a href="#2363" id="2363">2363</a>
+<a href="#2364" id="2364">2364</a>
+<a href="#2365" id="2365">2365</a>
+<a href="#2366" id="2366">2366</a>
+<a href="#2367" id="2367">2367</a>
+<a href="#2368" id="2368">2368</a>
+<a href="#2369" id="2369">2369</a>
+<a href="#2370" id="2370">2370</a>
+<a href="#2371" id="2371">2371</a>
+<a href="#2372" id="2372">2372</a>
+<a href="#2373" id="2373">2373</a>
+<a href="#2374" id="2374">2374</a>
+<a href="#2375" id="2375">2375</a>
+<a href="#2376" id="2376">2376</a>
+<a href="#2377" id="2377">2377</a>
+<a href="#2378" id="2378">2378</a>
+<a href="#2379" id="2379">2379</a>
+<a href="#2380" id="2380">2380</a>
+<a href="#2381" id="2381">2381</a>
+<a href="#2382" id="2382">2382</a>
 </pre><pre class="rust"><code><span class="doccomment">//! Boa&#39;s implementation of ECMAScript&#39;s global `Promise` object.
 
 </span><span class="attr">#[cfg(test)]
@@ -2378,6 +2398,7 @@
         JsObject, ObjectData, CONSTRUCTOR,
     },
     property::Attribute,
+    realm::Realm,
     string::utf16,
     symbol::JsSymbol,
     value::JsValue,
@@ -2670,15 +2691,15 @@
 }
 
 <span class="kw">impl </span>IntrinsicObject <span class="kw">for </span>Promise {
-    <span class="kw">fn </span>init(intrinsics: <span class="kw-2">&amp;</span>Intrinsics) {
+    <span class="kw">fn </span>init(realm: <span class="kw-2">&amp;</span>Realm) {
         <span class="kw">let </span>_timer = Profiler::global().start_event(<span class="self">Self</span>::NAME, <span class="string">&quot;init&quot;</span>);
 
-        <span class="kw">let </span>get_species = BuiltInBuilder::new(intrinsics)
+        <span class="kw">let </span>get_species = BuiltInBuilder::new(realm)
             .callable(<span class="self">Self</span>::get_species)
             .name(<span class="string">&quot;get [Symbol.species]&quot;</span>)
             .build();
 
-        BuiltInBuilder::from_standard_constructor::&lt;<span class="self">Self</span>&gt;(intrinsics)
+        BuiltInBuilder::from_standard_constructor::&lt;<span class="self">Self</span>&gt;(realm)
             .static_method(<span class="self">Self</span>::all, <span class="string">&quot;all&quot;</span>, <span class="number">1</span>)
             .static_method(<span class="self">Self</span>::all_settled, <span class="string">&quot;allSettled&quot;</span>, <span class="number">1</span>)
             .static_method(<span class="self">Self</span>::any, <span class="string">&quot;any&quot;</span>, <span class="number">1</span>)
@@ -4219,7 +4240,8 @@
             //   a. Let value be promise.[[PromiseResult]].
             </span>PromiseState::Fulfilled(<span class="kw-2">ref </span>value) =&gt; {
                 <span class="comment">//   b. Let fulfillJob be NewPromiseReactionJob(fulfillReaction, value).
-                </span><span class="kw">let </span>fulfill_job = new_promise_reaction_job(fulfill_reaction, value.clone());
+                </span><span class="kw">let </span>fulfill_job =
+                    new_promise_reaction_job(fulfill_reaction, value.clone(), context);
 
                 <span class="comment">//   c. Perform HostEnqueuePromiseJob(fulfillJob.[[Job]], fulfillJob.[[Realm]]).
                 </span>context
@@ -4241,7 +4263,7 @@
                 }
 
                 <span class="comment">//   d. Let rejectJob be NewPromiseReactionJob(rejectReaction, reason).
-                </span><span class="kw">let </span>reject_job = new_promise_reaction_job(reject_reaction, reason.clone());
+                </span><span class="kw">let </span>reject_job = new_promise_reaction_job(reject_reaction, reason.clone(), context);
 
                 <span class="comment">//   e. Perform HostEnqueuePromiseJob(rejectJob.[[Job]], rejectJob.[[Realm]]).
                 </span>context.job_queue().enqueue_promise_job(reject_job, context);
@@ -4318,7 +4340,7 @@
             <span class="comment">// 1. For each element reaction of reactions, do
             </span><span class="kw">for </span>reaction <span class="kw">in </span>reactions {
                 <span class="comment">// a. Let job be NewPromiseReactionJob(reaction, argument).
-                </span><span class="kw">let </span>job = new_promise_reaction_job(reaction, argument.clone());
+                </span><span class="kw">let </span>job = new_promise_reaction_job(reaction, argument.clone(), context);
 
                 <span class="comment">// b. Perform HostEnqueuePromiseJob(job.[[Job]], job.[[Realm]]).
                 </span>context.job_queue().enqueue_promise_job(job, context);
@@ -4526,6 +4548,7 @@
                         promise.clone(),
                         resolution.clone(),
                         then_job_callback,
+                        context
                     );
 
                     <span class="comment">// 15. Perform HostEnqueuePromiseJob(job.[[Job]], job.[[Realm]]).
@@ -4598,7 +4621,26 @@
 ///  - [ECMAScript reference][spec]
 ///
 /// [spec]: https://tc39.es/ecma262/#sec-newpromisereactionjob
-</span><span class="kw">fn </span>new_promise_reaction_job(<span class="kw-2">mut </span>reaction: ReactionRecord, argument: JsValue) -&gt; NativeJob {
+</span><span class="kw">fn </span>new_promise_reaction_job(
+    <span class="kw-2">mut </span>reaction: ReactionRecord,
+    argument: JsValue,
+    context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+) -&gt; NativeJob {
+    <span class="comment">// Inverting order since `job` captures `reaction` by value.
+
+    // 2. Let handlerRealm be null.
+    // 3. If reaction.[[Handler]] is not empty, then
+    //   a. Let getHandlerRealmResult be Completion(GetFunctionRealm(reaction.[[Handler]].[[Callback]])).
+    //   b. If getHandlerRealmResult is a normal completion, set handlerRealm to getHandlerRealmResult.[[Value]].
+    //   c. Else, set handlerRealm to the current Realm Record.
+    //   d. NOTE: handlerRealm is never null unless the handler is undefined. When the handler is a
+    // revoked Proxy and no ECMAScript code runs, handlerRealm is used to create error objects.
+    </span><span class="kw">let </span>realm = reaction
+        .handler
+        .as_ref()
+        .and_then(|handler| handler.callback().get_function_realm(context).ok())
+        .unwrap_or_else(|| context.realm().clone());
+
     <span class="comment">// 1. Let job be a new Job Abstract Closure with no parameters that captures reaction and argument and performs the following steps when called:
     </span><span class="kw">let </span>job = <span class="kw">move </span>|context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;| {
         <span class="comment">//   a. Let promiseCapability be reaction.[[Capability]].
@@ -4664,16 +4706,8 @@
         }
     };
 
-    <span class="comment">// TODO: handle realms
-    // 2. Let handlerRealm be null.
-    // 3. If reaction.[[Handler]] is not empty, then
-    //   a. Let getHandlerRealmResult be Completion(GetFunctionRealm(reaction.[[Handler]].[[Callback]])).
-    //   b. If getHandlerRealmResult is a normal completion, set handlerRealm to getHandlerRealmResult.[[Value]].
-    //   c. Else, set handlerRealm to the current Realm Record.
-    //   d. NOTE: handlerRealm is never null unless the handler is undefined. When the handler is a revoked Proxy and no ECMAScript code runs, handlerRealm is used to create error objects.
-
-    // 4. Return the Record { [[Job]]: job, [[Realm]]: handlerRealm }.
-    </span>NativeJob::new(job)
+    <span class="comment">// 4. Return the Record { [[Job]]: job, [[Realm]]: handlerRealm }.
+    </span>NativeJob::with_realm(job, realm)
 }
 
 <span class="doccomment">/// More information:
@@ -4684,7 +4718,19 @@
     promise_to_resolve: JsObject,
     thenable: JsValue,
     then: JobCallback,
+    context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
 ) -&gt; NativeJob {
+    <span class="comment">// Inverting order since `job` captures variables by value.
+
+    // 2. Let getThenRealmResult be Completion(GetFunctionRealm(then.[[Callback]])).
+    // 3. If getThenRealmResult is a normal completion, let thenRealm be getThenRealmResult.[[Value]].
+    // 4. Else, let thenRealm be the current Realm Record.
+    // 5. NOTE: thenRealm is never null. When then.[[Callback]] is a revoked Proxy and no code runs, thenRealm is used to create error objects.
+    </span><span class="kw">let </span>realm = then
+        .callback()
+        .get_function_realm(context)
+        .unwrap_or_else(|<span class="kw">_</span>| context.realm().clone());
+
     <span class="comment">// 1. Let job be a new Job Abstract Closure with no parameters that captures promiseToResolve, thenable, and then and performs the following steps when called:
     </span><span class="kw">let </span>job = <span class="kw">move </span>|context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;| {
         <span class="comment">//    a. Let resolvingFunctions be CreateResolvingFunctions(promiseToResolve).
@@ -4714,14 +4760,8 @@
         </span>then_call_result
     };
 
-    <span class="comment">// TODO: handle realms
-    // 2. Let getThenRealmResult be Completion(GetFunctionRealm(then.[[Callback]])).
-    // 3. If getThenRealmResult is a normal completion, let thenRealm be getThenRealmResult.[[Value]].
-    // 4. Else, let thenRealm be the current Realm Record.
-    // 5. NOTE: thenRealm is never null. When then.[[Callback]] is a revoked Proxy and no code runs, thenRealm is used to create error objects.
-
-    // 6. Return the Record { [[Job]]: job, [[Realm]]: thenRealm }.
-    </span>NativeJob::new(job)
+    <span class="comment">// 6. Return the Record { [[Job]]: job, [[Realm]]: thenRealm }.
+    </span>NativeJob::with_realm(job, realm)
 }
 </code></pre></div>
 </section></main><div id="rustdoc-vars" data-root-path="../../../../" data-static-root-path="../../../../static.files/" data-current-crate="boa_engine" data-themes="" data-resource-suffix="" data-rustdoc-version="1.68.2 (9eb3afe9e 2023-03-27)" data-search-js="search-98d53477a794af0b.js" data-settings-js="settings-c3c521c753752a1a.js" data-settings-css="settings-08ddfdda51b8ee2e.css" ></div></body></html>

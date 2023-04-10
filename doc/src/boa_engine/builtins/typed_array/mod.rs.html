@@ -3576,6 +3576,15 @@
 <a href="#3575" id="3575">3575</a>
 <a href="#3576" id="3576">3576</a>
 <a href="#3577" id="3577">3577</a>
+<a href="#3578" id="3578">3578</a>
+<a href="#3579" id="3579">3579</a>
+<a href="#3580" id="3580">3580</a>
+<a href="#3581" id="3581">3581</a>
+<a href="#3582" id="3582">3582</a>
+<a href="#3583" id="3583">3583</a>
+<a href="#3584" id="3584">3584</a>
+<a href="#3585" id="3585">3585</a>
+<a href="#3586" id="3586">3586</a>
 </pre><pre class="rust"><code><span class="doccomment">//! Boa&#39;s implementation of ECMAScript&#39;s global `TypedArray` objects.
 //!
 //! A `TypedArray` object describes an array-like view of an underlying binary data buffer.
@@ -3603,6 +3612,7 @@
     js_string,
     object::{internal_methods::get_prototype_from_constructor, JsObject, ObjectData},
     property::{Attribute, PropertyNameKind},
+    realm::Realm,
     string::utf16,
     symbol::JsSymbol,
     value::{IntegerOrInfinity, JsValue},
@@ -3625,17 +3635,25 @@
                 <span class="self">Self</span>::STANDARD_CONSTRUCTOR(intrinsics.constructors()).constructor()
             }
 
-            <span class="kw">fn </span>init(intrinsics: <span class="kw-2">&amp;</span>Intrinsics) {
+            <span class="kw">fn </span>init(realm: <span class="kw-2">&amp;</span>Realm) {
                 <span class="kw">let </span>_timer = Profiler::global().start_event(<span class="self">Self</span>::NAME, <span class="string">&quot;init&quot;</span>);
 
-                <span class="kw">let </span>get_species = BuiltInBuilder::new(intrinsics)
+                <span class="kw">let </span>get_species = BuiltInBuilder::new(realm)
                     .callable(TypedArray::get_species)
                     .name(<span class="string">&quot;get [Symbol.species]&quot;</span>)
                     .build();
 
-                BuiltInBuilder::from_standard_constructor::&lt;<span class="self">Self</span>&gt;(intrinsics)
-                    .prototype(intrinsics.constructors().typed_array().constructor())
-                    .inherits(<span class="prelude-val">Some</span>(intrinsics.constructors().typed_array().prototype()))
+                BuiltInBuilder::from_standard_constructor::&lt;<span class="self">Self</span>&gt;(realm)
+                    .prototype(
+                        realm
+                            .intrinsics()
+                            .constructors()
+                            .typed_array()
+                            .constructor(),
+                    )
+                    .inherits(<span class="prelude-val">Some</span>(
+                        realm.intrinsics().constructors().typed_array().prototype(),
+                    ))
                     .static_accessor(
                         JsSymbol::species(),
                         <span class="prelude-val">Some</span>(get_species),
@@ -3809,44 +3827,44 @@
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>TypedArray;
 
 <span class="kw">impl </span>IntrinsicObject <span class="kw">for </span>TypedArray {
-    <span class="kw">fn </span>init(intrinsics: <span class="kw-2">&amp;</span>Intrinsics) {
-        <span class="kw">let </span>get_species = BuiltInBuilder::new(intrinsics)
+    <span class="kw">fn </span>init(realm: <span class="kw-2">&amp;</span>Realm) {
+        <span class="kw">let </span>get_species = BuiltInBuilder::new(realm)
             .callable(<span class="self">Self</span>::get_species)
             .name(<span class="string">&quot;get [Symbol.species]&quot;</span>)
             .build();
 
-        <span class="kw">let </span>get_buffer = BuiltInBuilder::new(intrinsics)
+        <span class="kw">let </span>get_buffer = BuiltInBuilder::new(realm)
             .callable(<span class="self">Self</span>::buffer)
             .name(<span class="string">&quot;get buffer&quot;</span>)
             .build();
 
-        <span class="kw">let </span>get_byte_length = BuiltInBuilder::new(intrinsics)
+        <span class="kw">let </span>get_byte_length = BuiltInBuilder::new(realm)
             .callable(<span class="self">Self</span>::byte_length)
             .name(<span class="string">&quot;get byteLength&quot;</span>)
             .build();
 
-        <span class="kw">let </span>get_byte_offset = BuiltInBuilder::new(intrinsics)
+        <span class="kw">let </span>get_byte_offset = BuiltInBuilder::new(realm)
             .callable(<span class="self">Self</span>::byte_offset)
             .name(<span class="string">&quot;get byteOffset&quot;</span>)
             .build();
 
-        <span class="kw">let </span>get_length = BuiltInBuilder::new(intrinsics)
+        <span class="kw">let </span>get_length = BuiltInBuilder::new(realm)
             .callable(<span class="self">Self</span>::length)
             .name(<span class="string">&quot;get length&quot;</span>)
             .build();
 
-        <span class="kw">let </span>get_to_string_tag = BuiltInBuilder::new(intrinsics)
+        <span class="kw">let </span>get_to_string_tag = BuiltInBuilder::new(realm)
             .callable(<span class="self">Self</span>::to_string_tag)
             .name(<span class="string">&quot;get [Symbol.toStringTag]&quot;</span>)
             .build();
 
-        <span class="kw">let </span>values_function = BuiltInBuilder::new(intrinsics)
+        <span class="kw">let </span>values_function = BuiltInBuilder::new(realm)
             .callable(<span class="self">Self</span>::values)
             .name(<span class="string">&quot;values&quot;</span>)
             .length(<span class="number">0</span>)
             .build();
 
-        BuiltInBuilder::from_standard_constructor::&lt;<span class="self">Self</span>&gt;(intrinsics)
+        BuiltInBuilder::from_standard_constructor::&lt;<span class="self">Self</span>&gt;(realm)
             .static_accessor(
                 JsSymbol::species(),
                 <span class="prelude-val">Some</span>(get_species),

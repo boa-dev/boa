@@ -179,6 +179,13 @@
 <a href="#178" id="178">178</a>
 <a href="#179" id="179">179</a>
 <a href="#180" id="180">180</a>
+<a href="#181" id="181">181</a>
+<a href="#182" id="182">182</a>
+<a href="#183" id="183">183</a>
+<a href="#184" id="184">184</a>
+<a href="#185" id="185">185</a>
+<a href="#186" id="186">186</a>
+<a href="#187" id="187">187</a>
 </pre><pre class="rust"><code><span class="doccomment">//! This module implements the global `RegExp String Iterator` object.
 //!
 //! A `RegExp` String Iterator is an object, that represents a specific iteration over some
@@ -197,6 +204,7 @@
     error::JsNativeError,
     object::{JsObject, ObjectData},
     property::Attribute,
+    realm::Realm,
     string::utf16,
     symbol::JsSymbol,
     Context, JsResult, JsString, JsValue,
@@ -221,11 +229,17 @@
 }
 
 <span class="kw">impl </span>IntrinsicObject <span class="kw">for </span>RegExpStringIterator {
-    <span class="kw">fn </span>init(intrinsics: <span class="kw-2">&amp;</span>Intrinsics) {
+    <span class="kw">fn </span>init(realm: <span class="kw-2">&amp;</span>Realm) {
         <span class="kw">let </span>_timer = Profiler::global().start_event(<span class="string">&quot;RegExpStringIterator&quot;</span>, <span class="string">&quot;init&quot;</span>);
 
-        BuiltInBuilder::with_intrinsic::&lt;<span class="self">Self</span>&gt;(intrinsics)
-            .prototype(intrinsics.objects().iterator_prototypes().iterator())
+        BuiltInBuilder::with_intrinsic::&lt;<span class="self">Self</span>&gt;(realm)
+            .prototype(
+                realm
+                    .intrinsics()
+                    .objects()
+                    .iterator_prototypes()
+                    .iterator(),
+            )
             .static_method(<span class="self">Self</span>::next, <span class="string">&quot;next&quot;</span>, <span class="number">0</span>)
             .static_property(
                 JsSymbol::to_string_tag(),

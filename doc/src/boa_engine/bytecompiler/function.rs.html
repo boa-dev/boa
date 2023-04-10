@@ -223,20 +223,17 @@
 <a href="#222" id="222">222</a>
 <a href="#223" id="223">223</a>
 <a href="#224" id="224">224</a>
-<a href="#225" id="225">225</a>
-<a href="#226" id="226">226</a>
-<a href="#227" id="227">227</a>
-<a href="#228" id="228">228</a>
 </pre><pre class="rust"><code><span class="kw">use crate</span>::{
     builtins::function::ThisMode,
     bytecompiler::ByteCompiler,
+    environments::CompileTimeEnvironment,
     vm::{BindingOpcode, CodeBlock, Opcode},
     Context,
 };
 <span class="kw">use </span>boa_ast::{
     declaration::Binding, function::FormalParameterList, operations::bound_names, StatementList,
 };
-<span class="kw">use </span>boa_gc::Gc;
+<span class="kw">use </span>boa_gc::{Gc, GcRefCell};
 <span class="kw">use </span>boa_interner::Sym;
 
 <span class="doccomment">/// `FunctionCompiler` is used to compile AST functions to bytecode.
@@ -318,13 +315,14 @@
         <span class="kw-2">mut </span><span class="self">self</span>,
         parameters: <span class="kw-2">&amp;</span>FormalParameterList,
         body: <span class="kw-2">&amp;</span>StatementList,
+        outer_env: Gc&lt;GcRefCell&lt;CompileTimeEnvironment&gt;&gt;,
         context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
     ) -&gt; Gc&lt;CodeBlock&gt; {
         <span class="self">self</span>.strict = <span class="self">self</span>.strict || body.strict();
 
         <span class="kw">let </span>length = parameters.length();
 
-        <span class="kw">let </span><span class="kw-2">mut </span>compiler = ByteCompiler::new(<span class="self">self</span>.name, <span class="self">self</span>.strict, <span class="bool-val">false</span>, context);
+        <span class="kw">let </span><span class="kw-2">mut </span>compiler = ByteCompiler::new(<span class="self">self</span>.name, <span class="self">self</span>.strict, <span class="bool-val">false</span>, outer_env, context);
         compiler.length = length;
         compiler.in_async_generator = <span class="self">self</span>.generator &amp;&amp; <span class="self">self</span>.r#async;
 
@@ -333,21 +331,23 @@
         }
 
         <span class="kw">if let </span><span class="prelude-val">Some</span>(class_name) = <span class="self">self</span>.class_name {
-            compiler.context.push_compile_time_environment(<span class="bool-val">false</span>);
-            compiler
-                .context
-                .create_immutable_binding(class_name.into(), <span class="bool-val">true</span>);
+            compiler.push_compile_environment(<span class="bool-val">false</span>);
+            compiler.create_immutable_binding(class_name.into(), <span class="bool-val">true</span>);
         }
 
         <span class="kw">if let </span><span class="prelude-val">Some</span>(binding_identifier) = <span class="self">self</span>.binding_identifier {
             compiler.has_binding_identifier = <span class="bool-val">true</span>;
-            compiler.context.push_compile_time_environment(<span class="bool-val">false</span>);
-            compiler
-                .context
-                .create_immutable_binding(binding_identifier.into(), <span class="self">self</span>.strict);
+            compiler.push_compile_environment(<span class="bool-val">false</span>);
+            compiler.create_immutable_binding(binding_identifier.into(), <span class="self">self</span>.strict);
         }
 
-        compiler.context.push_compile_time_environment(<span class="bool-val">true</span>);
+        <span class="comment">// Function environment
+        </span>compiler.push_compile_environment(<span class="bool-val">true</span>);
+
+        <span class="comment">// Only used to initialize bindings
+        </span><span class="kw">if </span>!<span class="self">self</span>.strict &amp;&amp; parameters.has_expressions() {
+            compiler.push_compile_environment(<span class="bool-val">false</span>);
+        };
 
         <span class="comment">// An arguments object is added when all of the following conditions are met
         // - If not in an arrow function (10.2.11.16)
@@ -355,14 +355,14 @@
         // Note: This following just means, that we add an extra environment for the arguments.
         // - If there are default parameters or if lexical names and function names do not contain `arguments` (10.2.11.18)
         </span><span class="kw">if </span>!(<span class="self">self</span>.arrow) &amp;&amp; !parameters.has_arguments() {
-            compiler
-                .context
-                .create_mutable_binding(Sym::ARGUMENTS.into(), <span class="bool-val">false</span>, <span class="bool-val">false</span>);
-            compiler.arguments_binding = <span class="prelude-val">Some</span>(
-                compiler
-                    .context
-                    .initialize_mutable_binding(Sym::ARGUMENTS.into(), <span class="bool-val">false</span>),
-            );
+            <span class="kw">let </span>arguments = Sym::ARGUMENTS.into();
+            compiler.arguments_binding = <span class="prelude-val">Some</span>(<span class="kw">if </span><span class="self">self</span>.strict {
+                compiler.create_immutable_binding(arguments, <span class="bool-val">true</span>);
+                compiler.initialize_immutable_binding(arguments)
+            } <span class="kw">else </span>{
+                compiler.create_mutable_binding(arguments, <span class="bool-val">false</span>, <span class="bool-val">false</span>);
+                compiler.initialize_mutable_binding(arguments, <span class="bool-val">false</span>)
+            });
         }
 
         <span class="kw">for </span>parameter <span class="kw">in </span>parameters.as_ref() {
@@ -372,20 +372,18 @@
 
             <span class="kw">match </span>parameter.variable().binding() {
                 Binding::Identifier(ident) =&gt; {
-                    compiler
-                        .context
-                        .create_mutable_binding(<span class="kw-2">*</span>ident, <span class="bool-val">false</span>, <span class="bool-val">false</span>);
+                    compiler.create_mutable_binding(<span class="kw-2">*</span>ident, <span class="bool-val">false</span>, <span class="bool-val">false</span>);
                     <span class="comment">// TODO: throw custom error if ident is in init
                     </span><span class="kw">if let </span><span class="prelude-val">Some</span>(init) = parameter.variable().init() {
                         <span class="kw">let </span>skip = compiler.emit_opcode_with_operand(Opcode::JumpIfNotUndefined);
                         compiler.compile_expr(init, <span class="bool-val">true</span>);
                         compiler.patch_jump(skip);
                     }
-                    compiler.emit_binding(BindingOpcode::InitArg, <span class="kw-2">*</span>ident);
+                    compiler.emit_binding(BindingOpcode::InitLet, <span class="kw-2">*</span>ident);
                 }
                 Binding::Pattern(pattern) =&gt; {
                     <span class="kw">for </span>ident <span class="kw">in </span>bound_names(pattern) {
-                        compiler.context.create_mutable_binding(ident, <span class="bool-val">false</span>, <span class="bool-val">false</span>);
+                        compiler.create_mutable_binding(ident, <span class="bool-val">false</span>, <span class="bool-val">false</span>);
                     }
                     <span class="comment">// TODO: throw custom error if ident is in init
                     </span><span class="kw">if let </span><span class="prelude-val">Some</span>(init) = parameter.variable().init() {
@@ -393,7 +391,7 @@
                         compiler.compile_expr(init, <span class="bool-val">true</span>);
                         compiler.patch_jump(skip);
                     }
-                    compiler.compile_declaration_pattern(pattern, BindingOpcode::InitArg);
+                    compiler.compile_declaration_pattern(pattern, BindingOpcode::InitLet);
                 }
             }
         }
@@ -403,8 +401,7 @@
         }
 
         <span class="kw">let </span>env_label = <span class="kw">if </span>parameters.has_expressions() {
-            compiler.num_bindings = compiler.context.get_binding_number();
-            compiler.context.push_compile_time_environment(<span class="bool-val">true</span>);
+            compiler.push_compile_environment(<span class="bool-val">true</span>);
             compiler.function_environment_push_location = compiler.next_opcode_location();
             <span class="prelude-val">Some</span>(compiler.emit_opcode_with_two_operands(Opcode::PushFunctionEnvironment))
         } <span class="kw">else </span>{
@@ -421,29 +418,24 @@
         compiler.compile_statement_list(body, <span class="bool-val">false</span>, <span class="bool-val">false</span>);
 
         <span class="kw">if let </span><span class="prelude-val">Some</span>(env_label) = env_label {
-            <span class="kw">let </span>(num_bindings, compile_environment) =
-                compiler.context.pop_compile_time_environment();
-            <span class="kw">let </span>index_compile_environment = compiler.push_compile_environment(compile_environment);
-            compiler.patch_jump_with_target(env_label.<span class="number">0</span>, num_bindings <span class="kw">as </span>u32);
-            compiler.patch_jump_with_target(env_label.<span class="number">1</span>, index_compile_environment <span class="kw">as </span>u32);
-
-            <span class="kw">let </span>(<span class="kw">_</span>, compile_environment) = compiler.context.pop_compile_time_environment();
-            compiler.push_compile_environment(compile_environment);
-        } <span class="kw">else </span>{
-            <span class="kw">let </span>(num_bindings, compile_environment) =
-                compiler.context.pop_compile_time_environment();
-            compiler.push_compile_environment(compile_environment);
-            compiler.num_bindings = num_bindings;
+            <span class="kw">let </span>env_info = compiler.pop_compile_environment();
+            compiler.patch_jump_with_target(env_label.<span class="number">0</span>, env_info.num_bindings <span class="kw">as </span>u32);
+            compiler.patch_jump_with_target(env_label.<span class="number">1</span>, env_info.index <span class="kw">as </span>u32);
         }
 
+        <span class="kw">if </span>!<span class="self">self</span>.strict &amp;&amp; parameters.has_expressions() {
+            compiler.parameters_env_bindings =
+                <span class="prelude-val">Some</span>(compiler.pop_compile_environment().num_bindings);
+        }
+
+        compiler.num_bindings = compiler.pop_compile_environment().num_bindings;
+
         <span class="kw">if </span><span class="self">self</span>.binding_identifier.is_some() {
-            <span class="kw">let </span>(<span class="kw">_</span>, compile_environment) = compiler.context.pop_compile_time_environment();
-            compiler.push_compile_environment(compile_environment);
+            compiler.pop_compile_environment();
         }
 
         <span class="kw">if </span><span class="self">self</span>.class_name.is_some() {
-            <span class="kw">let </span>(<span class="kw">_</span>, compile_environment) = compiler.context.pop_compile_time_environment();
-            compiler.push_compile_environment(compile_environment);
+            compiler.pop_compile_environment();
         }
 
         compiler.params = parameters.clone();

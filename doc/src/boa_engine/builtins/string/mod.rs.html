@@ -2395,6 +2395,7 @@
 <a href="#2394" id="2394">2394</a>
 <a href="#2395" id="2395">2395</a>
 <a href="#2396" id="2396">2396</a>
+<a href="#2397" id="2397">2397</a>
 </pre><pre class="rust"><code><span class="doccomment">//! Boa&#39;s implementation of ECMAScript&#39;s global `String` object.
 //!
 //! The `String` global object is a constructor for strings or a sequence of characters.
@@ -2413,6 +2414,7 @@
     js_string,
     object::{internal_methods::get_prototype_from_constructor, JsObject, ObjectData},
     property::{Attribute, PropertyDescriptor},
+    realm::Realm,
     string::utf16,
     string::{CodePoint, Utf16Trim},
     symbol::JsSymbol,
@@ -2461,13 +2463,13 @@
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>String;
 
 <span class="kw">impl </span>IntrinsicObject <span class="kw">for </span>String {
-    <span class="kw">fn </span>init(intrinsics: <span class="kw-2">&amp;</span>Intrinsics) {
+    <span class="kw">fn </span>init(realm: <span class="kw-2">&amp;</span>Realm) {
         <span class="kw">let </span>_timer = Profiler::global().start_event(<span class="self">Self</span>::NAME, <span class="string">&quot;init&quot;</span>);
 
         <span class="kw">let </span>symbol_iterator = JsSymbol::iterator();
 
         <span class="kw">let </span>attribute = Attribute::READONLY | Attribute::NON_ENUMERABLE | Attribute::PERMANENT;
-        BuiltInBuilder::from_standard_constructor::&lt;<span class="self">Self</span>&gt;(intrinsics)
+        BuiltInBuilder::from_standard_constructor::&lt;<span class="self">Self</span>&gt;(realm)
             .property(<span class="macro">utf16!</span>(<span class="string">&quot;length&quot;</span>), <span class="number">0</span>, attribute)
             .static_method(<span class="self">Self</span>::raw, <span class="string">&quot;raw&quot;</span>, <span class="number">1</span>)
             .static_method(<span class="self">Self</span>::from_char_code, <span class="string">&quot;fromCharCode&quot;</span>, <span class="number">1</span>)

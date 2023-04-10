@@ -846,6 +846,7 @@
 <a href="#845" id="845">845</a>
 <a href="#846" id="846">846</a>
 <a href="#847" id="847">847</a>
+<a href="#848" id="848">848</a>
 </pre><pre class="rust"><code><span class="doccomment">//! Boa&#39;s implementation of ECMAScript&#39;s global `ArrayBuffer` object.
 //!
 //! More information:
@@ -864,6 +865,7 @@
     error::JsNativeError,
     object::{internal_methods::get_prototype_from_constructor, JsObject, ObjectData},
     property::Attribute,
+    realm::Realm,
     string::utf16,
     symbol::JsSymbol,
     value::{IntegerOrInfinity, Numeric},
@@ -895,22 +897,22 @@
 }
 
 <span class="kw">impl </span>IntrinsicObject <span class="kw">for </span>ArrayBuffer {
-    <span class="kw">fn </span>init(intrinsics: <span class="kw-2">&amp;</span>Intrinsics) {
+    <span class="kw">fn </span>init(realm: <span class="kw-2">&amp;</span>Realm) {
         <span class="kw">let </span>_timer = Profiler::global().start_event(<span class="self">Self</span>::NAME, <span class="string">&quot;init&quot;</span>);
 
         <span class="kw">let </span>flag_attributes = Attribute::CONFIGURABLE | Attribute::NON_ENUMERABLE;
 
-        <span class="kw">let </span>get_species = BuiltInBuilder::new(intrinsics)
+        <span class="kw">let </span>get_species = BuiltInBuilder::new(realm)
             .callable(<span class="self">Self</span>::get_species)
             .name(<span class="string">&quot;get [Symbol.species]&quot;</span>)
             .build();
 
-        <span class="kw">let </span>get_byte_length = BuiltInBuilder::new(intrinsics)
+        <span class="kw">let </span>get_byte_length = BuiltInBuilder::new(realm)
             .callable(<span class="self">Self</span>::get_byte_length)
             .name(<span class="string">&quot;get byteLength&quot;</span>)
             .build();
 
-        BuiltInBuilder::from_standard_constructor::&lt;<span class="self">Self</span>&gt;(intrinsics)
+        BuiltInBuilder::from_standard_constructor::&lt;<span class="self">Self</span>&gt;(realm)
             .accessor(
                 <span class="macro">utf16!</span>(<span class="string">&quot;byteLength&quot;</span>),
                 <span class="prelude-val">Some</span>(get_byte_length),

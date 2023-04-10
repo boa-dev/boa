@@ -835,6 +835,52 @@
 <a href="#834" id="834">834</a>
 <a href="#835" id="835">835</a>
 <a href="#836" id="836">836</a>
+<a href="#837" id="837">837</a>
+<a href="#838" id="838">838</a>
+<a href="#839" id="839">839</a>
+<a href="#840" id="840">840</a>
+<a href="#841" id="841">841</a>
+<a href="#842" id="842">842</a>
+<a href="#843" id="843">843</a>
+<a href="#844" id="844">844</a>
+<a href="#845" id="845">845</a>
+<a href="#846" id="846">846</a>
+<a href="#847" id="847">847</a>
+<a href="#848" id="848">848</a>
+<a href="#849" id="849">849</a>
+<a href="#850" id="850">850</a>
+<a href="#851" id="851">851</a>
+<a href="#852" id="852">852</a>
+<a href="#853" id="853">853</a>
+<a href="#854" id="854">854</a>
+<a href="#855" id="855">855</a>
+<a href="#856" id="856">856</a>
+<a href="#857" id="857">857</a>
+<a href="#858" id="858">858</a>
+<a href="#859" id="859">859</a>
+<a href="#860" id="860">860</a>
+<a href="#861" id="861">861</a>
+<a href="#862" id="862">862</a>
+<a href="#863" id="863">863</a>
+<a href="#864" id="864">864</a>
+<a href="#865" id="865">865</a>
+<a href="#866" id="866">866</a>
+<a href="#867" id="867">867</a>
+<a href="#868" id="868">868</a>
+<a href="#869" id="869">869</a>
+<a href="#870" id="870">870</a>
+<a href="#871" id="871">871</a>
+<a href="#872" id="872">872</a>
+<a href="#873" id="873">873</a>
+<a href="#874" id="874">874</a>
+<a href="#875" id="875">875</a>
+<a href="#876" id="876">876</a>
+<a href="#877" id="877">877</a>
+<a href="#878" id="878">878</a>
+<a href="#879" id="879">879</a>
+<a href="#880" id="880">880</a>
+<a href="#881" id="881">881</a>
+<a href="#882" id="882">882</a>
 </pre><pre class="rust"><code><span class="doccomment">//! Error-related types and conversions.
 
 </span><span class="kw">use crate</span>::{
@@ -842,6 +888,7 @@
     object::JsObject,
     object::ObjectData,
     property::PropertyDescriptor,
+    realm::Realm,
     string::utf16,
     Context, JsString, JsValue,
 };
@@ -912,6 +959,10 @@
     </span><span class="attr">#[error(<span class="string">&quot;property `message` cannot contain unpaired surrogates&quot;</span>)]
     </span>InvalidMessageEncoding,
 
+    <span class="doccomment">/// The constructor property of the error object was invalid.
+    </span><span class="attr">#[error(<span class="string">&quot;invalid `constructor` property of Error object&quot;</span>)]
+    </span>InvalidConstructor,
+
     <span class="doccomment">/// A property of the error object is not accessible.
     </span><span class="attr">#[error(<span class="string">&quot;could not access property `{property}`&quot;</span>)]
     </span>InaccessibleProperty {
@@ -935,6 +986,13 @@
     <span class="doccomment">/// The error value is not an error object.
     </span><span class="attr">#[error(<span class="string">&quot;opaque error of type `{:?}` is not an Error object&quot;</span>, .<span class="number">0</span>.get_type())]
     </span>NotAnErrorObject(JsValue),
+
+    <span class="doccomment">/// The original realm of the error object was inaccessible.
+    </span><span class="attr">#[error(<span class="string">&quot;could not access realm of Error object&quot;</span>)]
+    </span>InaccessibleRealm {
+        <span class="doccomment">/// The source error.
+        </span>source: JsError,
+    },
 }
 
 <span class="kw">impl </span>std::error::Error <span class="kw">for </span>JsError {
@@ -1120,10 +1178,18 @@
                     }
                 };
 
+                <span class="kw">let </span>realm = try_get_property(<span class="string">&quot;constructor&quot;</span>, context)<span class="question-mark">?
+                    </span>.as_ref()
+                    .and_then(JsValue::as_constructor)
+                    .ok_or(TryNativeError::InvalidConstructor)<span class="question-mark">?
+                    </span>.get_function_realm(context)
+                    .map_err(|err| TryNativeError::InaccessibleRealm { source: err })<span class="question-mark">?</span>;
+
                 <span class="prelude-val">Ok</span>(JsNativeError {
                     kind,
                     message,
                     cause: cause.map(|v| Box::new(<span class="self">Self</span>::from_opaque(v))),
+                    realm: <span class="prelude-val">Some</span>(realm),
                 })
             }
         }
@@ -1169,11 +1235,25 @@
     /// assert!(error.as_native().is_none());
     /// ```
     </span><span class="kw">pub const fn </span>as_native(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>JsNativeError&gt; {
-        <span class="kw">match </span><span class="self">self</span>.inner {
-            Repr::Native(<span class="kw-2">ref </span>e) =&gt; <span class="prelude-val">Some</span>(e),
+        <span class="kw">match </span><span class="kw-2">&amp;</span><span class="self">self</span>.inner {
+            Repr::Native(e) =&gt; <span class="prelude-val">Some</span>(e),
             Repr::Opaque(<span class="kw">_</span>) =&gt; <span class="prelude-val">None</span>,
         }
     }
+
+    <span class="doccomment">/// Injects a realm on the `realm` field of a native error.
+    ///
+    /// This is a no-op if the error is not native or if the `realm` field of the error is already
+    /// set.
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>inject_realm(<span class="kw-2">mut </span><span class="self">self</span>, realm: Realm) -&gt; JsError {
+        <span class="kw">match </span><span class="kw-2">&amp;mut </span><span class="self">self</span>.inner {
+            Repr::Native(err) <span class="kw">if </span>err.realm.is_none() =&gt; {
+                err.realm = <span class="prelude-val">Some</span>(realm);
+            }
+            <span class="kw">_ </span>=&gt; {}
+        }
+        <span class="self">self
+    </span>}
 }
 
 <span class="kw">impl </span>From&lt;boa_parser::Error&gt; <span class="kw">for </span>JsError {
@@ -1228,6 +1308,7 @@
     message: Box&lt;str&gt;,
     <span class="attr">#[source]
     </span>cause: <span class="prelude-ty">Option</span>&lt;Box&lt;JsError&gt;&gt;,
+    realm: <span class="prelude-ty">Option</span>&lt;Realm&gt;,
 }
 
 <span class="kw">impl </span>JsNativeError {
@@ -1237,6 +1318,7 @@
             kind,
             message,
             cause,
+            realm: <span class="prelude-val">None</span>,
         }
     }
 
@@ -1479,8 +1561,12 @@
             kind,
             message,
             cause,
+            realm,
         } = <span class="self">self</span>;
-        <span class="kw">let </span>constructors = context.intrinsics().constructors();
+        <span class="kw">let </span>constructors = realm.as_ref().map_or_else(
+            || context.intrinsics().constructors(),
+            |realm| realm.intrinsics().constructors(),
+        );
         <span class="kw">let </span>(prototype, tag) = <span class="kw">match </span>kind {
             JsNativeErrorKind::Aggregate(<span class="kw">_</span>) =&gt; (
                 constructors.aggregate_error().prototype(),
@@ -1537,6 +1623,12 @@
         }
         o
     }
+
+    <span class="doccomment">/// Sets the realm of this error.
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>with_realm(<span class="kw-2">mut </span><span class="self">self</span>, realm: Realm) -&gt; <span class="self">Self </span>{
+        <span class="self">self</span>.realm = <span class="prelude-val">Some</span>(realm);
+        <span class="self">self
+    </span>}
 }
 
 <span class="kw">impl </span>From&lt;boa_parser::Error&gt; <span class="kw">for </span>JsNativeError {

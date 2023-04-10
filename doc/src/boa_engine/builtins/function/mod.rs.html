@@ -1135,6 +1135,16 @@
 <a href="#1134" id="1134">1134</a>
 <a href="#1135" id="1135">1135</a>
 <a href="#1136" id="1136">1136</a>
+<a href="#1137" id="1137">1137</a>
+<a href="#1138" id="1138">1138</a>
+<a href="#1139" id="1139">1139</a>
+<a href="#1140" id="1140">1140</a>
+<a href="#1141" id="1141">1141</a>
+<a href="#1142" id="1142">1142</a>
+<a href="#1143" id="1143">1143</a>
+<a href="#1144" id="1144">1144</a>
+<a href="#1145" id="1145">1145</a>
+<a href="#1146" id="1146">1146</a>
 </pre><pre class="rust"><code><span class="doccomment">//! Boa&#39;s implementation of ECMAScript&#39;s global `Function` object and Native Functions.
 //!
 //! Objects wrap `Function`s and expose them via call/construct slots.
@@ -1159,6 +1169,7 @@
     object::{internal_methods::get_prototype_from_constructor, JsObject, Object, ObjectData},
     object::{JsFunction, PrivateElement},
     property::{Attribute, PropertyDescriptor, PropertyKey},
+    realm::Realm,
     string::utf16,
     symbol::JsSymbol,
     value::IntegerOrInfinity,
@@ -1433,7 +1444,7 @@
 </span><span class="attr">#[derive(Debug, Trace, Finalize)]
 </span><span class="kw">pub struct </span>Function {
     kind: FunctionKind,
-    realm_intrinsics: Intrinsics,
+    realm: Realm,
 }
 
 <span class="kw">impl </span>Function {
@@ -1460,11 +1471,8 @@
     }
 
     <span class="doccomment">/// Creates a new `Function`.
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>new(kind: FunctionKind, intrinsics: Intrinsics) -&gt; <span class="self">Self </span>{
-        <span class="self">Self </span>{
-            kind,
-            realm_intrinsics: intrinsics,
-        }
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>new(kind: FunctionKind, realm: Realm) -&gt; <span class="self">Self </span>{
+        <span class="self">Self </span>{ kind, realm }
     }
 
     <span class="doccomment">/// Returns true if the function object is a derived constructor.
@@ -1578,9 +1586,9 @@
         }
     }
 
-    <span class="doccomment">/// Gets the `Realm`&#39;s intrinsic objects from where this function originates.
-    </span><span class="kw">pub const fn </span>realm_intrinsics(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>Intrinsics {
-        <span class="kw-2">&amp;</span><span class="self">self</span>.realm_intrinsics
+    <span class="doccomment">/// Gets the `Realm` from where this function originates.
+    </span><span class="kw">pub const fn </span>realm(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>Realm {
+        <span class="kw-2">&amp;</span><span class="self">self</span>.realm
     }
 
     <span class="doccomment">/// Gets a reference to the [`FunctionKind`] of the `Function`.
@@ -1599,24 +1607,27 @@
 </span><span class="kw">pub struct </span>BuiltInFunctionObject;
 
 <span class="kw">impl </span>IntrinsicObject <span class="kw">for </span>BuiltInFunctionObject {
-    <span class="kw">fn </span>init(intrinsics: <span class="kw-2">&amp;</span>Intrinsics) {
+    <span class="kw">fn </span>init(realm: <span class="kw-2">&amp;</span>Realm) {
         <span class="kw">let </span>_timer = Profiler::global().start_event(<span class="string">&quot;function&quot;</span>, <span class="string">&quot;init&quot;</span>);
 
-        BuiltInBuilder::with_object(intrinsics, intrinsics.constructors().function().prototype())
-            .callable(<span class="self">Self</span>::prototype)
-            .name(<span class="string">&quot;&quot;</span>)
-            .length(<span class="number">0</span>)
-            .build();
+        BuiltInBuilder::with_object(
+            realm,
+            realm.intrinsics().constructors().function().prototype(),
+        )
+        .callable(<span class="self">Self</span>::prototype)
+        .name(<span class="string">&quot;&quot;</span>)
+        .length(<span class="number">0</span>)
+        .build();
 
-        <span class="kw">let </span>has_instance = BuiltInBuilder::new(intrinsics)
+        <span class="kw">let </span>has_instance = BuiltInBuilder::new(realm)
             .callable(<span class="self">Self</span>::has_instance)
             .name(<span class="string">&quot;[Symbol.iterator]&quot;</span>)
             .length(<span class="number">1</span>)
             .build();
 
-        <span class="kw">let </span>throw_type_error = intrinsics.objects().throw_type_error();
+        <span class="kw">let </span>throw_type_error = realm.intrinsics().objects().throw_type_error();
 
-        BuiltInBuilder::from_standard_constructor::&lt;<span class="self">Self</span>&gt;(intrinsics)
+        BuiltInBuilder::from_standard_constructor::&lt;<span class="self">Self</span>&gt;(realm)
             .method(<span class="self">Self</span>::apply, <span class="string">&quot;apply&quot;</span>, <span class="number">2</span>)
             .method(<span class="self">Self</span>::bind, <span class="string">&quot;bind&quot;</span>, <span class="number">1</span>)
             .method(<span class="self">Self</span>::call, <span class="string">&quot;call&quot;</span>, <span class="number">1</span>)
@@ -1695,7 +1706,9 @@
     ) -&gt; JsResult&lt;JsObject&gt; {
         <span class="comment">// 1. Let currentRealm be the current Realm Record.
         // 2. Perform ? HostEnsureCanCompileStrings(currentRealm).
-        </span>context.host_hooks().ensure_can_compile_strings(context)<span class="question-mark">?</span>;
+        </span>context
+            .host_hooks()
+            .ensure_can_compile_strings(context.realm().clone(), context)<span class="question-mark">?</span>;
 
         <span class="comment">// 3. If newTarget is undefined, set newTarget to constructor.
         </span><span class="kw">let </span>new_target = <span class="kw">if </span>new_target.is_undefined() {
@@ -1868,9 +1881,14 @@
                 .name(Sym::ANONYMOUS)
                 .generator(generator)
                 .r#async(r#async)
-                .compile(<span class="kw-2">&amp;</span>parameters, <span class="kw-2">&amp;</span>body, context);
+                .compile(
+                    <span class="kw-2">&amp;</span>parameters,
+                    <span class="kw-2">&amp;</span>body,
+                    context.realm().environment().compile_env(),
+                    context,
+                );
 
-            <span class="kw">let </span>environments = context.realm.environments.pop_to_global();
+            <span class="kw">let </span>environments = context.vm.environments.pop_to_global();
 
             <span class="kw">let </span>function_object = <span class="kw">if </span>generator {
                 <span class="kw">crate</span>::vm::create_generator_function_object(
@@ -1891,7 +1909,7 @@
                 )
             };
 
-            context.realm.environments.extend(environments);
+            context.vm.environments.extend(environments);
 
             <span class="prelude-val">Ok</span>(function_object)
         } <span class="kw">else if </span>generator {
@@ -1901,10 +1919,11 @@
                 .compile(
                     <span class="kw-2">&amp;</span>FormalParameterList::default(),
                     <span class="kw-2">&amp;</span>StatementList::default(),
+                    context.realm().environment().compile_env(),
                     context,
                 );
 
-            <span class="kw">let </span>environments = context.realm.environments.pop_to_global();
+            <span class="kw">let </span>environments = context.vm.environments.pop_to_global();
             <span class="kw">let </span>function_object = <span class="kw">crate</span>::vm::create_generator_function_object(
                 code,
                 r#async,
@@ -1912,17 +1931,18 @@
                 <span class="prelude-val">Some</span>(prototype),
                 context,
             );
-            context.realm.environments.extend(environments);
+            context.vm.environments.extend(environments);
 
             <span class="prelude-val">Ok</span>(function_object)
         } <span class="kw">else </span>{
             <span class="kw">let </span>code = FunctionCompiler::new().name(Sym::ANONYMOUS).compile(
                 <span class="kw-2">&amp;</span>FormalParameterList::default(),
                 <span class="kw-2">&amp;</span>StatementList::default(),
+                context.realm().environment().compile_env(),
                 context,
             );
 
-            <span class="kw">let </span>environments = context.realm.environments.pop_to_global();
+            <span class="kw">let </span>environments = context.vm.environments.pop_to_global();
             <span class="kw">let </span>function_object = <span class="kw">crate</span>::vm::create_function_object(
                 code,
                 r#async,
@@ -1931,7 +1951,7 @@
                 <span class="bool-val">false</span>,
                 context,
             );
-            context.realm.environments.extend(environments);
+            context.vm.environments.extend(environments);
 
             <span class="prelude-val">Ok</span>(function_object)
         }

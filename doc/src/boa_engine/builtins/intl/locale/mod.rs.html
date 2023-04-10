@@ -806,7 +806,7 @@
 <a href="#805" id="805">805</a>
 <a href="#806" id="806">806</a>
 <a href="#807" id="807">807</a>
-</pre><pre class="rust"><code><span class="kw">use </span><span class="kw">crate</span>::string::utf16;
+</pre><pre class="rust"><code><span class="kw">use crate</span>::{realm::Realm, string::utf16};
 <span class="kw">use </span>boa_profiler::Profiler;
 <span class="kw">use </span>icu_collator::CaseFirst;
 <span class="kw">use </span>icu_datetime::options::preferences::HourCycle;
@@ -840,60 +840,60 @@
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>Locale;
 
 <span class="kw">impl </span>IntrinsicObject <span class="kw">for </span>Locale {
-    <span class="kw">fn </span>init(intrinsics: <span class="kw-2">&amp;</span>Intrinsics) {
+    <span class="kw">fn </span>init(realm: <span class="kw-2">&amp;</span>Realm) {
         <span class="kw">let </span>_timer = Profiler::global().start_event(<span class="self">Self</span>::NAME, <span class="string">&quot;init&quot;</span>);
 
-        <span class="kw">let </span>base_name = BuiltInBuilder::new(intrinsics)
+        <span class="kw">let </span>base_name = BuiltInBuilder::new(realm)
             .callable(<span class="self">Self</span>::base_name)
             .name(<span class="string">&quot;get baseName&quot;</span>)
             .build();
 
-        <span class="kw">let </span>calendar = BuiltInBuilder::new(intrinsics)
+        <span class="kw">let </span>calendar = BuiltInBuilder::new(realm)
             .callable(<span class="self">Self</span>::calendar)
             .name(<span class="string">&quot;get calendar&quot;</span>)
             .build();
 
-        <span class="kw">let </span>case_first = BuiltInBuilder::new(intrinsics)
+        <span class="kw">let </span>case_first = BuiltInBuilder::new(realm)
             .callable(<span class="self">Self</span>::case_first)
             .name(<span class="string">&quot;get caseFirst&quot;</span>)
             .build();
 
-        <span class="kw">let </span>collation = BuiltInBuilder::new(intrinsics)
+        <span class="kw">let </span>collation = BuiltInBuilder::new(realm)
             .callable(<span class="self">Self</span>::collation)
             .name(<span class="string">&quot;get collation&quot;</span>)
             .build();
 
-        <span class="kw">let </span>hour_cycle = BuiltInBuilder::new(intrinsics)
+        <span class="kw">let </span>hour_cycle = BuiltInBuilder::new(realm)
             .callable(<span class="self">Self</span>::hour_cycle)
             .name(<span class="string">&quot;get hourCycle&quot;</span>)
             .build();
 
-        <span class="kw">let </span>numeric = BuiltInBuilder::new(intrinsics)
+        <span class="kw">let </span>numeric = BuiltInBuilder::new(realm)
             .callable(<span class="self">Self</span>::numeric)
             .name(<span class="string">&quot;get numeric&quot;</span>)
             .build();
 
-        <span class="kw">let </span>numbering_system = BuiltInBuilder::new(intrinsics)
+        <span class="kw">let </span>numbering_system = BuiltInBuilder::new(realm)
             .callable(<span class="self">Self</span>::numbering_system)
             .name(<span class="string">&quot;get numberingSystem&quot;</span>)
             .build();
 
-        <span class="kw">let </span>language = BuiltInBuilder::new(intrinsics)
+        <span class="kw">let </span>language = BuiltInBuilder::new(realm)
             .callable(<span class="self">Self</span>::language)
             .name(<span class="string">&quot;get language&quot;</span>)
             .build();
 
-        <span class="kw">let </span>script = BuiltInBuilder::new(intrinsics)
+        <span class="kw">let </span>script = BuiltInBuilder::new(realm)
             .callable(<span class="self">Self</span>::script)
             .name(<span class="string">&quot;get script&quot;</span>)
             .build();
 
-        <span class="kw">let </span>region = BuiltInBuilder::new(intrinsics)
+        <span class="kw">let </span>region = BuiltInBuilder::new(realm)
             .callable(<span class="self">Self</span>::region)
             .name(<span class="string">&quot;get region&quot;</span>)
             .build();
 
-        BuiltInBuilder::from_standard_constructor::&lt;<span class="self">Self</span>&gt;(intrinsics)
+        BuiltInBuilder::from_standard_constructor::&lt;<span class="self">Self</span>&gt;(realm)
             .property(
                 JsSymbol::to_string_tag(),
                 <span class="string">&quot;Intl.Locale&quot;</span>,

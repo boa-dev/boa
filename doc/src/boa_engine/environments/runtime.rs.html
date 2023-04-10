@@ -1130,6 +1130,9 @@
 <a href="#1129" id="1129">1129</a>
 <a href="#1130" id="1130">1130</a>
 <a href="#1131" id="1131">1131</a>
+<a href="#1132" id="1132">1132</a>
+<a href="#1133" id="1133">1133</a>
+<a href="#1134" id="1134">1134</a>
 </pre><pre class="rust"><code><span class="kw">use crate</span>::{
     environments::CompileTimeEnvironment, error::JsNativeError, object::JsObject, Context,
     JsResult, JsString, JsSymbol, JsValue,
@@ -1168,6 +1171,29 @@
     <span class="attr">#[unsafe_ignore_trace]
     </span>with: Cell&lt;bool&gt;,
     slots: <span class="prelude-ty">Option</span>&lt;EnvironmentSlots&gt;,
+}
+
+<span class="kw">impl </span>DeclarativeEnvironment {
+    <span class="doccomment">/// Creates a new, global `DeclarativeEnvironment`.
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>new_global() -&gt; <span class="self">Self </span>{
+        DeclarativeEnvironment {
+            bindings: GcRefCell::new(Vec::new()),
+            compile: Gc::new(GcRefCell::new(CompileTimeEnvironment::new_global())),
+            poisoned: Cell::new(<span class="bool-val">false</span>),
+            with: Cell::new(<span class="bool-val">false</span>),
+            slots: <span class="prelude-val">Some</span>(EnvironmentSlots::Global),
+        }
+    }
+
+    <span class="doccomment">/// Gets the compile time environment of this environment.
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>compile_env(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Gc&lt;GcRefCell&lt;CompileTimeEnvironment&gt;&gt; {
+        <span class="self">self</span>.compile.clone()
+    }
+
+    <span class="doccomment">/// Gets the bindings of this environment.
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const fn </span>bindings(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>GcRefCell&lt;Vec&lt;<span class="prelude-ty">Option</span>&lt;JsValue&gt;&gt;&gt; {
+        <span class="kw-2">&amp;</span><span class="self">self</span>.bindings
+    }
 }
 
 <span class="doccomment">/// Describes the different types of internal slot data that an environment can hold.
@@ -1382,17 +1408,16 @@
 }
 
 <span class="kw">impl </span>DeclarativeEnvironmentStack {
-    <span class="doccomment">/// Create a new environment stack with the most outer declarative environment.
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>new(global_compile_environment: Gc&lt;GcRefCell&lt;CompileTimeEnvironment&gt;&gt;) -&gt; <span class="self">Self </span>{
+    <span class="doccomment">/// Create a new environment stack.
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>new(global: Gc&lt;DeclarativeEnvironment&gt;) -&gt; <span class="self">Self </span>{
         <span class="self">Self </span>{
-            stack: Vec::from([Environment::Declarative(Gc::new(DeclarativeEnvironment {
-                bindings: GcRefCell::new(Vec::new()),
-                compile: global_compile_environment,
-                poisoned: Cell::new(<span class="bool-val">false</span>),
-                with: Cell::new(<span class="bool-val">false</span>),
-                slots: <span class="prelude-val">Some</span>(EnvironmentSlots::Global),
-            }))]),
+            stack: <span class="macro">vec!</span>[Environment::Declarative(global)],
         }
+    }
+
+    <span class="doccomment">/// Replaces the current global with a new global environment.
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>replace_global(<span class="kw-2">&amp;mut </span><span class="self">self</span>, global: Gc&lt;DeclarativeEnvironment&gt;) {
+        <span class="self">self</span>.stack[<span class="number">0</span>] = Environment::Declarative(global);
     }
 
     <span class="doccomment">/// Extends the length of the next outer function environment to the number of compiled bindings.
@@ -1465,23 +1490,6 @@
         <span class="self">self</span>.stack.extend(other);
     }
 
-    <span class="doccomment">/// Set the number of bindings on the global environment.
-    ///
-    /// # Panics
-    ///
-    /// Panics if no environment exists on the stack.
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>set_global_binding_number(<span class="kw-2">&amp;mut </span><span class="self">self</span>, binding_number: usize) {
-        <span class="kw">let </span>environment = <span class="self">self
-            </span>.stack
-            .get(<span class="number">0</span>)
-            .and_then(Environment::as_declarative)
-            .expect(<span class="string">&quot;global environment must be declarative and exist&quot;</span>);
-        <span class="kw">let </span><span class="kw-2">mut </span>bindings = environment.bindings.borrow_mut();
-        <span class="kw">if </span>bindings.len() &lt; binding_number {
-            bindings.resize(binding_number, <span class="prelude-val">None</span>);
-        }
-    }
-
     <span class="doccomment">/// `GetThisEnvironment`
     ///
     /// Returns the environment that currently provides a `this` biding.
@@ -1528,6 +1536,7 @@
     /// # Panics
     ///
     /// Panics if no environment exists on the stack.
+    </span><span class="attr">#[track_caller]
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>push_declarative(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
         num_bindings: usize,
@@ -1569,6 +1578,7 @@
     /// # Panics
     ///
     /// Panics if no environment exists on the stack.
+    </span><span class="attr">#[track_caller]
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>push_function(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
         num_bindings: usize,
@@ -1620,16 +1630,23 @@
             })));
     }
 
-    <span class="doccomment">/// Push a function environment that inherits it&#39;s internal slots from the outer environment.
+    <span class="doccomment">/// Push a function environment that inherits it&#39;s internal slots from the outer function
+    /// environment.
     ///
     /// # Panics
     ///
     /// Panics if no environment exists on the stack.
+    </span><span class="attr">#[track_caller]
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>push_function_inherit(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
         num_bindings: usize,
         compile_environment: Gc&lt;GcRefCell&lt;CompileTimeEnvironment&gt;&gt;,
     ) {
+        <span class="macro">debug_assert!</span>(
+            <span class="self">self</span>.stack.len() == compile_environment.borrow().environment_index(),
+            <span class="string">&quot;tried to push an invalid compile environment&quot;
+        </span>);
+
         <span class="kw">let </span>(poisoned, with, slots) = {
             <span class="kw">let </span>with = <span class="self">self
                 </span>.stack
@@ -1642,6 +1659,7 @@
                 </span>.stack
                 .iter()
                 .filter_map(Environment::as_declarative)
+                .filter(|e| e.slots().is_some())
                 .last()
                 .expect(<span class="string">&quot;global environment must always exist&quot;</span>);
             (
@@ -1717,29 +1735,15 @@
             .clone()
     }
 
-    <span class="doccomment">/// Mark that there may be added bindings in the current environment.
-    ///
-    /// # Panics
-    ///
-    /// Panics if no environment exists on the stack.
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>poison_current(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
-        <span class="self">self</span>.stack
-            .iter()
-            .filter_map(Environment::as_declarative)
-            .last()
-            .expect(<span class="string">&quot;global environment must always exist&quot;</span>)
-            .poisoned
-            .set(<span class="bool-val">true</span>);
-    }
-
-    <span class="doccomment">/// Mark that there may be added binding in all environments.
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>poison_all(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
-        <span class="kw">for </span>env <span class="kw">in </span><span class="kw-2">&amp;mut </span><span class="self">self</span>.stack {
+    <span class="doccomment">/// Mark that there may be added bindings from the current environment to the next function
+    /// environment.
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>poison_last_function(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
+        <span class="kw">for </span>env <span class="kw">in </span><span class="self">self</span>.stack.iter_mut().rev() {
             <span class="kw">if let </span><span class="prelude-val">Some</span>(env) = env.as_declarative() {
-                <span class="kw">if </span>env.poisoned.get() {
+                <span class="kw">if </span>env.compile_env().borrow().is_function() {
+                    env.poisoned.set(<span class="bool-val">true</span>);
                     <span class="kw">return</span>;
                 }
-                env.poisoned.set(<span class="bool-val">true</span>);
             }
         }
     }
@@ -1793,6 +1797,7 @@
     /// # Panics
     ///
     /// Panics if the environment or binding index are out of range.
+    </span><span class="attr">#[track_caller]
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>put_value(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
         environment_index: usize,
@@ -1817,6 +1822,7 @@
     /// # Panics
     ///
     /// Panics if the environment or binding index are out of range.
+    </span><span class="attr">#[track_caller]
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>put_value_if_uninitialized(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
         environment_index: usize,
@@ -1990,7 +1996,7 @@
         <span class="kw-2">mut </span>binding_index: usize,
         name: Identifier,
     ) -&gt; JsResult&lt;<span class="prelude-ty">Option</span>&lt;JsValue&gt;&gt; {
-        <span class="kw">for </span>env_index <span class="kw">in </span>(environment_index + <span class="number">1</span>..<span class="self">self</span>.realm.environments.stack.len()).rev() {
+        <span class="kw">for </span>env_index <span class="kw">in </span>(environment_index + <span class="number">1</span>..<span class="self">self</span>.vm.environments.stack.len()).rev() {
             <span class="kw">match </span><span class="self">self</span>.environment_expect(env_index) {
                 Environment::Declarative(env) =&gt; {
                     <span class="kw">if </span>env.poisoned.get() {
@@ -2043,7 +2049,7 @@
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
         name: Identifier,
     ) -&gt; JsResult&lt;<span class="prelude-ty">Option</span>&lt;JsValue&gt;&gt; {
-        <span class="kw">for </span>env_index <span class="kw">in </span>(<span class="number">0</span>..<span class="self">self</span>.realm.environments.stack.len()).rev() {
+        <span class="kw">for </span>env_index <span class="kw">in </span>(<span class="number">0</span>..<span class="self">self</span>.vm.environments.stack.len()).rev() {
             <span class="kw">let </span>env = <span class="self">self</span>.environment_expect(env_index);
 
             <span class="kw">match </span>env {
@@ -2101,7 +2107,7 @@
         name: Identifier,
         value: JsValue,
     ) -&gt; JsResult&lt;bool&gt; {
-        <span class="kw">for </span>env_index <span class="kw">in </span>(environment_index + <span class="number">1</span>..<span class="self">self</span>.realm.environments.stack.len()).rev() {
+        <span class="kw">for </span>env_index <span class="kw">in </span>(environment_index + <span class="number">1</span>..<span class="self">self</span>.vm.environments.stack.len()).rev() {
             <span class="kw">let </span>env = <span class="self">self</span>.environment_expect(env_index);
 
             <span class="kw">match </span>env {
@@ -2167,7 +2173,7 @@
         name: Identifier,
         value: <span class="kw-2">&amp;</span>JsValue,
     ) -&gt; JsResult&lt;bool&gt; {
-        <span class="kw">for </span>env_index <span class="kw">in </span>(<span class="number">0</span>..<span class="self">self</span>.realm.environments.stack.len()).rev() {
+        <span class="kw">for </span>env_index <span class="kw">in </span>(<span class="number">0</span>..<span class="self">self</span>.vm.environments.stack.len()).rev() {
             <span class="kw">let </span>env = <span class="self">self</span>.environment_expect(env_index);
 
             <span class="kw">match </span>env {
@@ -2221,7 +2227,7 @@
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
         name: Identifier,
     ) -&gt; JsResult&lt;(bool, bool)&gt; {
-        <span class="kw">for </span>env_index <span class="kw">in </span>(<span class="number">0</span>..<span class="self">self</span>.realm.environments.stack.len()).rev() {
+        <span class="kw">for </span>env_index <span class="kw">in </span>(<span class="number">0</span>..<span class="self">self</span>.vm.environments.stack.len()).rev() {
             <span class="kw">let </span>env = <span class="self">self</span>.environment_expect(env_index);
 
             <span class="kw">match </span>env {
@@ -2254,7 +2260,7 @@
 
     <span class="doccomment">/// Return the environment at the given index. Panics if the index is out of range.
     </span><span class="kw">fn </span>environment_expect(<span class="kw-2">&amp;</span><span class="self">self</span>, index: usize) -&gt; <span class="kw-2">&amp;</span>Environment {
-        <span class="self">self</span>.realm
+        <span class="self">self</span>.vm
             .environments
             .stack
             .get(index)

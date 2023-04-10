@@ -499,6 +499,7 @@
 <a href="#498" id="498">498</a>
 <a href="#499" id="499">499</a>
 <a href="#500" id="500">500</a>
+<a href="#501" id="501">501</a>
 </pre><pre class="rust"><code><span class="kw">use </span>std::fmt::Write;
 
 <span class="kw">use </span>boa_profiler::Profiler;
@@ -511,6 +512,7 @@
     context::intrinsics::{Intrinsics, StandardConstructor, StandardConstructors},
     object::{internal_methods::get_prototype_from_constructor, JsObject, ObjectData},
     property::Attribute,
+    realm::Realm,
     string::utf16,
     symbol::JsSymbol,
     Context, JsArgs, JsNativeError, JsResult, JsString, JsValue,
@@ -549,10 +551,10 @@
 }
 
 <span class="kw">impl </span>IntrinsicObject <span class="kw">for </span>ListFormat {
-    <span class="kw">fn </span>init(intrinsics: <span class="kw-2">&amp;</span>Intrinsics) {
+    <span class="kw">fn </span>init(realm: <span class="kw-2">&amp;</span>Realm) {
         <span class="kw">let </span>_timer = Profiler::global().start_event(<span class="self">Self</span>::NAME, <span class="string">&quot;init&quot;</span>);
 
-        BuiltInBuilder::from_standard_constructor::&lt;<span class="self">Self</span>&gt;(intrinsics)
+        BuiltInBuilder::from_standard_constructor::&lt;<span class="self">Self</span>&gt;(realm)
             .static_method(<span class="self">Self</span>::supported_locales_of, <span class="string">&quot;supportedLocalesOf&quot;</span>, <span class="number">1</span>)
             .property(
                 JsSymbol::to_string_tag(),
