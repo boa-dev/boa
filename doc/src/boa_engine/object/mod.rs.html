@@ -2471,6 +2471,7 @@
 <a href="#2470" id="2470">2470</a>
 <a href="#2471" id="2471">2471</a>
 <a href="#2472" id="2472">2472</a>
+<a href="#2473" id="2473">2473</a>
 </pre><pre class="rust"><code><span class="doccomment">//! Boa&#39;s representation of a JavaScript object and builtin object wrappers
 //!
 //! For the builtin object wrappers, please see [`object::builtins`][builtins] for implementors.
@@ -3016,6 +3017,7 @@
     }
 
     <span class="doccomment">/// Create the `StringIterator` object data
+    </span><span class="attr">#[must_use]
     </span><span class="kw">pub fn </span>string_iterator(string_iterator: StringIterator) -&gt; <span class="self">Self </span>{
         <span class="self">Self </span>{
             kind: ObjectKind::StringIterator(string_iterator),

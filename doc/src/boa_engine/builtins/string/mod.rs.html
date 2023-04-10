@@ -2386,6 +2386,11 @@
 <a href="#2385" id="2385">2385</a>
 <a href="#2386" id="2386">2386</a>
 <a href="#2387" id="2387">2387</a>
+<a href="#2388" id="2388">2388</a>
+<a href="#2389" id="2389">2389</a>
+<a href="#2390" id="2390">2390</a>
+<a href="#2391" id="2391">2391</a>
+<a href="#2392" id="2392">2392</a>
 </pre><pre class="rust"><code><span class="doccomment">//! Boa&#39;s implementation of ECMAScript&#39;s global `String` object.
 //!
 //! The `String` global object is a constructor for strings or a sequence of characters.
@@ -4549,7 +4554,12 @@
         <span class="kw">_</span>: <span class="kw-2">&amp;</span>[JsValue],
         context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
     ) -&gt; JsResult&lt;JsValue&gt; {
-        <span class="prelude-val">Ok</span>(StringIterator::create_string_iterator(this.clone(), context).into())
+        <span class="comment">// 1. Let O be ? RequireObjectCoercible(this value).
+        </span><span class="kw">let </span>o = this.require_object_coercible()<span class="question-mark">?</span>;
+        <span class="comment">// 2. Let s be ? ToString(O).
+        </span><span class="kw">let </span>s = o.to_string(context)<span class="question-mark">?</span>;
+
+        <span class="prelude-val">Ok</span>(StringIterator::create_string_iterator(s, context).into())
     }
 }
 

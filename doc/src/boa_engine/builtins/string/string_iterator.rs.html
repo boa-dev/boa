@@ -102,6 +102,7 @@
 <a href="#101" id="101">101</a>
 <a href="#102" id="102">102</a>
 <a href="#103" id="103">103</a>
+<a href="#104" id="104">104</a>
 </pre><pre class="rust"><code><span class="doccomment">//! This module implements the `StringIterator` object.
 //!
 //! More information:
@@ -113,10 +114,11 @@
     builtins::{iterable::create_iter_result_object, BuiltInBuilder, IntrinsicObject},
     context::intrinsics::Intrinsics,
     error::JsNativeError,
+    js_string,
     object::{JsObject, ObjectData},
     property::Attribute,
     symbol::JsSymbol,
-    Context, JsResult, JsValue,
+    Context, JsResult, JsString, JsValue,
 };
 <span class="kw">use </span>boa_gc::{Finalize, Trace};
 <span class="kw">use </span>boa_profiler::Profiler;
@@ -129,7 +131,7 @@
 /// [spec]: https://tc39.es/ecma262/#sec-string-iterator-objects
 </span><span class="attr">#[derive(Debug, Clone, Finalize, Trace)]
 </span><span class="kw">pub struct </span>StringIterator {
-    string: JsValue,
+    string: JsString,
     next_index: usize,
 }
 
@@ -155,7 +157,7 @@
 
 <span class="kw">impl </span>StringIterator {
     <span class="doccomment">/// Create a new `StringIterator`.
-    </span><span class="kw">pub fn </span>create_string_iterator(string: JsValue, context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsObject {
+    </span><span class="kw">pub fn </span>create_string_iterator(string: JsString, context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsObject {
         JsObject::from_proto_and_data(
             context
                 .intrinsics()
@@ -177,18 +179,18 @@
             .and_then(|obj| obj.as_string_iterator_mut())
             .ok_or_else(|| JsNativeError::typ().with_message(<span class="string">&quot;`this` is not an ArrayIterator&quot;</span>))<span class="question-mark">?</span>;
 
-        <span class="kw">if </span>string_iterator.string.is_undefined() {
+        <span class="kw">if </span>string_iterator.string.is_empty() {
             <span class="kw">return </span><span class="prelude-val">Ok</span>(create_iter_result_object(
                 JsValue::undefined(),
                 <span class="bool-val">true</span>,
                 context,
             ));
         }
-        <span class="kw">let </span>native_string = string_iterator.string.to_string(context)<span class="question-mark">?</span>;
+        <span class="kw">let </span>native_string = <span class="kw-2">&amp;</span>string_iterator.string;
         <span class="kw">let </span>len = native_string.len();
         <span class="kw">let </span>position = string_iterator.next_index;
         <span class="kw">if </span>position &gt;= len {
-            string_iterator.string = JsValue::undefined();
+            string_iterator.string = <span class="macro">js_string!</span>();
             <span class="kw">return </span><span class="prelude-val">Ok</span>(create_iter_result_object(
                 JsValue::undefined(),
                 <span class="bool-val">true</span>,
@@ -198,7 +200,7 @@
         <span class="kw">let </span>code_point = native_string.code_point_at(position);
         string_iterator.next_index += code_point.code_unit_count();
         <span class="kw">let </span>result_string = <span class="kw">crate</span>::builtins::string::String::substring(
-            <span class="kw-2">&amp;</span>string_iterator.string,
+            <span class="kw-2">&amp;</span>string_iterator.string.clone().into(),
             <span class="kw-2">&amp;</span>[position.into(), string_iterator.next_index.into()],
             context,
         )<span class="question-mark">?</span>;
