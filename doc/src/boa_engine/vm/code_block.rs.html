@@ -1518,6 +1518,48 @@
 <a href="#1517" id="1517">1517</a>
 <a href="#1518" id="1518">1518</a>
 <a href="#1519" id="1519">1519</a>
+<a href="#1520" id="1520">1520</a>
+<a href="#1521" id="1521">1521</a>
+<a href="#1522" id="1522">1522</a>
+<a href="#1523" id="1523">1523</a>
+<a href="#1524" id="1524">1524</a>
+<a href="#1525" id="1525">1525</a>
+<a href="#1526" id="1526">1526</a>
+<a href="#1527" id="1527">1527</a>
+<a href="#1528" id="1528">1528</a>
+<a href="#1529" id="1529">1529</a>
+<a href="#1530" id="1530">1530</a>
+<a href="#1531" id="1531">1531</a>
+<a href="#1532" id="1532">1532</a>
+<a href="#1533" id="1533">1533</a>
+<a href="#1534" id="1534">1534</a>
+<a href="#1535" id="1535">1535</a>
+<a href="#1536" id="1536">1536</a>
+<a href="#1537" id="1537">1537</a>
+<a href="#1538" id="1538">1538</a>
+<a href="#1539" id="1539">1539</a>
+<a href="#1540" id="1540">1540</a>
+<a href="#1541" id="1541">1541</a>
+<a href="#1542" id="1542">1542</a>
+<a href="#1543" id="1543">1543</a>
+<a href="#1544" id="1544">1544</a>
+<a href="#1545" id="1545">1545</a>
+<a href="#1546" id="1546">1546</a>
+<a href="#1547" id="1547">1547</a>
+<a href="#1548" id="1548">1548</a>
+<a href="#1549" id="1549">1549</a>
+<a href="#1550" id="1550">1550</a>
+<a href="#1551" id="1551">1551</a>
+<a href="#1552" id="1552">1552</a>
+<a href="#1553" id="1553">1553</a>
+<a href="#1554" id="1554">1554</a>
+<a href="#1555" id="1555">1555</a>
+<a href="#1556" id="1556">1556</a>
+<a href="#1557" id="1557">1557</a>
+<a href="#1558" id="1558">1558</a>
+<a href="#1559" id="1559">1559</a>
+<a href="#1560" id="1560">1560</a>
+<a href="#1561" id="1561">1561</a>
 </pre><pre class="rust"><code><span class="doccomment">//! `CodeBlock`
 //!
 //! This module is for the `CodeBlock` which implements a function representation in the VM
@@ -1525,7 +1567,7 @@
 </span><span class="kw">use crate</span>::{
     builtins::{
         async_generator::{AsyncGenerator, AsyncGeneratorState},
-        function::{arguments::Arguments, ConstructorKind, Function, ThisMode},
+        function::{arguments::Arguments, ConstructorKind, Function, FunctionKind, ThisMode},
         generator::{Generator, GeneratorContext, GeneratorState},
         promise::PromiseCapability,
     },
@@ -2115,23 +2157,29 @@
         )
         .expect(<span class="string">&quot;cannot  fail per spec&quot;</span>);
 
-        Function::Async {
-            code,
-            environments: context.realm.environments.clone(),
-            home_object: <span class="prelude-val">None</span>,
-            promise_capability,
-            class_object: <span class="prelude-val">None</span>,
-        }
+        Function::new(
+            FunctionKind::Async {
+                code,
+                environments: context.realm.environments.clone(),
+                home_object: <span class="prelude-val">None</span>,
+                promise_capability,
+                class_object: <span class="prelude-val">None</span>,
+            },
+            context.intrinsics().clone(),
+        )
     } <span class="kw">else </span>{
-        Function::Ordinary {
-            code,
-            environments: context.realm.environments.clone(),
-            constructor_kind: ConstructorKind::Base,
-            home_object: <span class="prelude-val">None</span>,
-            fields: ThinVec::new(),
-            private_methods: ThinVec::new(),
-            class_object: <span class="prelude-val">None</span>,
-        }
+        Function::new(
+            FunctionKind::Ordinary {
+                code,
+                environments: context.realm.environments.clone(),
+                constructor_kind: ConstructorKind::Base,
+                home_object: <span class="prelude-val">None</span>,
+                fields: ThinVec::new(),
+                private_methods: ThinVec::new(),
+                class_object: <span class="prelude-val">None</span>,
+            },
+            context.intrinsics().clone(),
+        )
     };
 
     <span class="kw">let </span>constructor =
@@ -2152,7 +2200,7 @@
         .expect(<span class="string">&quot;failed to define the name property of the function&quot;</span>);
 
     <span class="kw">if </span>!r#async &amp;&amp; !arrow &amp;&amp; !method {
-        <span class="kw">let </span>prototype = JsObject::with_object_proto(context);
+        <span class="kw">let </span>prototype = JsObject::with_object_proto(context.intrinsics());
         prototype
             .define_property_or_throw(CONSTRUCTOR, constructor_property, context)
             .expect(<span class="string">&quot;failed to define the constructor property of the function&quot;</span>);
@@ -2176,9 +2224,12 @@
     code: Gc&lt;CodeBlock&gt;,
     r#async: bool,
     method: bool,
+    prototype: <span class="prelude-ty">Option</span>&lt;JsObject&gt;,
     context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
 ) -&gt; JsObject {
-    <span class="kw">let </span>function_prototype = <span class="kw">if </span>r#async {
+    <span class="kw">let </span>function_prototype = <span class="kw">if let </span><span class="prelude-val">Some</span>(prototype) = prototype {
+        prototype
+    } <span class="kw">else if </span>r#async {
         context
             .intrinsics()
             .constructors()
@@ -2221,23 +2272,29 @@
     );
 
     <span class="kw">let </span>constructor = <span class="kw">if </span>r#async {
-        <span class="kw">let </span>function = Function::AsyncGenerator {
-            code,
-            environments: context.realm.environments.clone(),
-            home_object: <span class="prelude-val">None</span>,
-            class_object: <span class="prelude-val">None</span>,
-        };
+        <span class="kw">let </span>function = Function::new(
+            FunctionKind::AsyncGenerator {
+                code,
+                environments: context.realm.environments.clone(),
+                home_object: <span class="prelude-val">None</span>,
+                class_object: <span class="prelude-val">None</span>,
+            },
+            context.intrinsics().clone(),
+        );
         JsObject::from_proto_and_data(
             function_prototype,
             ObjectData::async_generator_function(function),
         )
     } <span class="kw">else </span>{
-        <span class="kw">let </span>function = Function::Generator {
-            code,
-            environments: context.realm.environments.clone(),
-            home_object: <span class="prelude-val">None</span>,
-            class_object: <span class="prelude-val">None</span>,
-        };
+        <span class="kw">let </span>function = Function::new(
+            FunctionKind::Generator {
+                code,
+                environments: context.realm.environments.clone(),
+                home_object: <span class="prelude-val">None</span>,
+                class_object: <span class="prelude-val">None</span>,
+            },
+            context.intrinsics().clone(),
+        );
         JsObject::from_proto_and_data(function_prototype, ObjectData::generator_function(function))
     };
 
@@ -2277,12 +2334,18 @@
                 .with_message(<span class="string">&quot;not a callable function&quot;</span>)
                 .into());
         }
+        <span class="kw">let </span>old_active = context.vm.active_function.replace(<span class="self">self</span>.clone());
 
         <span class="kw">let </span>object = <span class="self">self</span>.borrow();
         <span class="kw">let </span>function_object = object.as_function().expect(<span class="string">&quot;not a function&quot;</span>);
 
-        <span class="kw">match </span>function_object {
-            Function::Native {
+        <span class="kw">let </span>old_intrinsics = std::mem::replace(
+            <span class="kw-2">&amp;mut </span>context.realm.intrinsics,
+            function_object.realm_intrinsics().clone(),
+        );
+
+        <span class="kw">let </span>result = <span class="kw">match </span>function_object.kind() {
+            FunctionKind::Native {
                 function,
                 constructor,
             } =&gt; {
@@ -2296,7 +2359,7 @@
                     function.call(this, args, context)
                 }
             }
-            Function::Ordinary {
+            FunctionKind::Ordinary {
                 code,
                 environments,
                 class_object,
@@ -2323,7 +2386,7 @@
                 </span>} <span class="kw">else if </span>code.strict {
                     <span class="prelude-val">Some</span>(this.clone())
                 } <span class="kw">else if </span>this.is_null_or_undefined() {
-                    <span class="prelude-val">Some</span>(context.global_object().clone().into())
+                    <span class="prelude-val">Some</span>(context.global_object().into())
                 } <span class="kw">else </span>{
                     <span class="prelude-val">Some</span>(
                         this.to_object(context)
@@ -2422,7 +2485,7 @@
 
                 record.consume()
             }
-            Function::Async {
+            FunctionKind::Async {
                 code,
                 environments,
                 promise_capability,
@@ -2445,7 +2508,7 @@
                 </span>} <span class="kw">else if </span>code.strict {
                     <span class="prelude-val">Some</span>(this.clone())
                 } <span class="kw">else if </span>this.is_null_or_undefined() {
-                    <span class="prelude-val">Some</span>(context.global_object().clone().into())
+                    <span class="prelude-val">Some</span>(context.global_object().into())
                 } <span class="kw">else </span>{
                     <span class="prelude-val">Some</span>(
                         this.to_object(context)
@@ -2544,7 +2607,7 @@
 
                 <span class="prelude-val">Ok</span>(promise.into())
             }
-            Function::Generator {
+            FunctionKind::Generator {
                 code,
                 environments,
                 class_object,
@@ -2564,7 +2627,7 @@
                 </span>} <span class="kw">else if </span>code.strict {
                     <span class="prelude-val">Some</span>(this.clone())
                 } <span class="kw">else if </span>this.is_null_or_undefined() {
-                    <span class="prelude-val">Some</span>(context.global_object().clone().into())
+                    <span class="prelude-val">Some</span>(context.global_object().into())
                 } <span class="kw">else </span>{
                     <span class="prelude-val">Some</span>(
                         this.to_object(context)
@@ -2670,11 +2733,13 @@
                     prototype,
                     ObjectData::generator(Generator {
                         state: GeneratorState::SuspendedStart,
-                        context: <span class="prelude-val">Some</span>(Gc::new(GcRefCell::new(GeneratorContext {
+                        context: <span class="prelude-val">Some</span>(GeneratorContext {
                             environments,
                             call_frame,
                             stack,
-                        }))),
+                            active_function: context.vm.active_function.clone(),
+                            realm_intrinsics: context.realm.intrinsics.clone(),
+                        }),
                     }),
                 );
 
@@ -2682,7 +2747,7 @@
 
                 <span class="prelude-val">Ok</span>(generator.into())
             }
-            Function::AsyncGenerator {
+            FunctionKind::AsyncGenerator {
                 code,
                 environments,
                 class_object,
@@ -2702,7 +2767,7 @@
                 </span>} <span class="kw">else if </span>code.strict {
                     <span class="prelude-val">Some</span>(this.clone())
                 } <span class="kw">else if </span>this.is_null_or_undefined() {
-                    <span class="prelude-val">Some</span>(context.global_object().clone().into())
+                    <span class="prelude-val">Some</span>(context.global_object().into())
                 } <span class="kw">else </span>{
                     <span class="prelude-val">Some</span>(
                         this.to_object(context)
@@ -2811,29 +2876,37 @@
                     prototype,
                     ObjectData::async_generator(AsyncGenerator {
                         state: AsyncGeneratorState::SuspendedStart,
-                        context: <span class="prelude-val">Some</span>(Gc::new(GcRefCell::new(GeneratorContext {
+                        context: <span class="prelude-val">Some</span>(GeneratorContext {
                             environments,
                             call_frame,
                             stack,
-                        }))),
+                            active_function: context.vm.active_function.clone(),
+                            realm_intrinsics: context.realm.intrinsics.clone(),
+                        }),
                         queue: VecDeque::new(),
                     }),
                 );
 
                 {
+                    <span class="kw">let </span>gen_clone = generator.clone();
                     <span class="kw">let </span><span class="kw-2">mut </span>generator_mut = generator.borrow_mut();
                     <span class="kw">let </span>gen = generator_mut
                         .as_async_generator_mut()
                         .expect(<span class="string">&quot;must be object here&quot;</span>);
-                    <span class="kw">let </span><span class="kw-2">mut </span>gen_context = gen.context.as_ref().expect(<span class="string">&quot;must exist&quot;</span>).borrow_mut();
-                    gen_context.call_frame.async_generator = <span class="prelude-val">Some</span>(generator.clone());
+                    <span class="kw">let </span>gen_context = gen.context.as_mut().expect(<span class="string">&quot;must exist&quot;</span>);
+                    gen_context.call_frame.async_generator = <span class="prelude-val">Some</span>(gen_clone);
                 }
 
                 init_result.consume()<span class="question-mark">?</span>;
 
                 <span class="prelude-val">Ok</span>(generator.into())
             }
-        }
+        };
+
+        context.vm.active_function = old_active;
+        context.realm.intrinsics = old_intrinsics;
+
+        result
     }
 
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>construct_internal(
@@ -2856,11 +2929,18 @@
                 .into());
         }
 
+        <span class="kw">let </span>old_active = context.vm.active_function.replace(<span class="self">self</span>.clone());
+
         <span class="kw">let </span>object = <span class="self">self</span>.borrow();
         <span class="kw">let </span>function_object = object.as_function().expect(<span class="string">&quot;not a function&quot;</span>);
 
-        <span class="kw">match </span>function_object {
-            Function::Native {
+        <span class="kw">let </span>old_intrinsics = std::mem::replace(
+            <span class="kw-2">&amp;mut </span>context.realm.intrinsics,
+            function_object.realm_intrinsics().clone(),
+        );
+
+        <span class="kw">let </span>result = <span class="kw">match </span>function_object.kind() {
+            FunctionKind::Native {
                 function,
                 constructor,
                 ..
@@ -2884,7 +2964,7 @@
                     }
                 }
             }
-            Function::Ordinary {
+            FunctionKind::Ordinary {
                 code,
                 environments,
                 constructor_kind,
@@ -3029,12 +3109,16 @@
                         .clone())
                 }
             }
-            Function::Generator { .. }
-            | Function::Async { .. }
-            | Function::AsyncGenerator { .. } =&gt; {
+            FunctionKind::Generator { .. }
+            | FunctionKind::Async { .. }
+            | FunctionKind::AsyncGenerator { .. } =&gt; {
                 <span class="macro">unreachable!</span>(<span class="string">&quot;not a constructor&quot;</span>)
             }
-        }
+        };
+        context.vm.active_function = old_active;
+        context.realm.intrinsics = old_intrinsics;
+
+        result
     }
 }
 </code></pre></div>

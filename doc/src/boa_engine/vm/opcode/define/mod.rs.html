@@ -137,17 +137,7 @@
 <a href="#136" id="136">136</a>
 <a href="#137" id="137">137</a>
 <a href="#138" id="138">138</a>
-<a href="#139" id="139">139</a>
-<a href="#140" id="140">140</a>
-<a href="#141" id="141">141</a>
-<a href="#142" id="142">142</a>
-<a href="#143" id="143">143</a>
-<a href="#144" id="144">144</a>
-<a href="#145" id="145">145</a>
-<a href="#146" id="146">146</a>
-<a href="#147" id="147">147</a>
 </pre><pre class="rust"><code><span class="kw">use crate</span>::{
-    property::PropertyDescriptor,
     vm::{opcode::Operation, CompletionType},
     Context, JsResult, JsString, JsValue,
 };
@@ -170,23 +160,13 @@
     <span class="kw">const </span>INSTRUCTION: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;INST - DefVar&quot;</span>;
 
     <span class="kw">fn </span>execute(context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;CompletionType&gt; {
-        <span class="kw">let </span>index = context.vm.read::&lt;u32&gt;();
+        <span class="comment">// TODO: spec specifies to return `empty` on empty vars, but we&#39;re trying to initialize.
+        </span><span class="kw">let </span>index = context.vm.read::&lt;u32&gt;();
         <span class="kw">let </span>binding_locator = context.vm.frame().code_block.bindings[index <span class="kw">as </span>usize];
 
         <span class="kw">if </span>binding_locator.is_global() {
-            <span class="kw">let </span>key = context
-                .interner()
-                .resolve_expect(binding_locator.name().sym())
-                .into_common(<span class="bool-val">false</span>);
-            context.global_bindings_mut().entry(key).or_insert(
-                PropertyDescriptor::builder()
-                    .value(JsValue::Undefined)
-                    .writable(<span class="bool-val">true</span>)
-                    .enumerable(<span class="bool-val">true</span>)
-                    .configurable(<span class="bool-val">true</span>)
-                    .build(),
-            );
-        } <span class="kw">else </span>{
+            <span class="comment">// already initialized at compile time
+        </span>} <span class="kw">else </span>{
             context.realm.environments.put_value_if_uninitialized(
                 binding_locator.environment_index(),
                 binding_locator.binding_index(),
@@ -222,10 +202,12 @@
                 <span class="kw">let </span>key = context
                     .interner()
                     .resolve_expect(binding_locator.name().sym())
-                    .into_common::&lt;JsString&gt;(<span class="bool-val">false</span>)
-                    .into();
-                <span class="kw">crate</span>::object::internal_methods::global::global_set_no_receiver(
-                    <span class="kw-2">&amp;</span>key, value, context,
+                    .into_common::&lt;JsString&gt;(<span class="bool-val">false</span>);
+                context.global_object().set(
+                    key,
+                    value,
+                    context.vm.frame().code_block.strict,
+                    context,
                 )<span class="question-mark">?</span>;
             }
         } <span class="kw">else </span>{

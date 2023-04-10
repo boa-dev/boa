@@ -567,6 +567,8 @@
 <a href="#566" id="566">566</a>
 <a href="#567" id="567">567</a>
 <a href="#568" id="568">568</a>
+<a href="#569" id="569">569</a>
+<a href="#570" id="570">570</a>
 </pre><pre class="rust"><code><span class="doccomment">//! Boa&#39;s implementation of ECMAScript&#39;s URI Handling Functions.
 //!
 //! Uniform Resource Identifiers, or URIs, are Strings that identify resources (e.g. web pages or
@@ -580,6 +582,8 @@
 //! [spec]: https://tc39.es/ecma262/#sec-uri-handling-functions
 
 </span><span class="kw">mod </span>consts;
+
+<span class="kw">use </span>boa_gc::{Finalize, Trace};
 
 <span class="kw">use </span><span class="self">self</span>::consts::{
     is_uri_reserved_or_number_sign, is_uri_reserved_or_uri_unescaped_or_number_sign,
@@ -598,7 +602,7 @@
 <span class="doccomment">/// Intrinsics for the [`URI Handling Functions`][spec].
 ///
 /// [spec]: https://tc39.es/ecma262/multipage/global-object.html#sec-uri-handling-functions
-</span><span class="attr">#[derive(Debug)]
+</span><span class="attr">#[derive(Debug, Trace, Finalize)]
 </span><span class="kw">pub struct </span>UriFunctions {
     <span class="doccomment">/// %decodeURI%
     </span>decode_uri: JsFunction,

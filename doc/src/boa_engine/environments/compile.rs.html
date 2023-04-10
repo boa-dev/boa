@@ -362,6 +362,7 @@
 <a href="#361" id="361">361</a>
 <a href="#362" id="362">362</a>
 <a href="#363" id="363">363</a>
+<a href="#364" id="364">364</a>
 </pre><pre class="rust"><code><span class="kw">use crate</span>::{
     environments::runtime::BindingLocator, property::PropertyDescriptor, Context, JsString, JsValue,
 };
@@ -653,13 +654,14 @@
                 </span>.interner()
                 .resolve_expect(name.sym())
                 .into_common::&lt;JsString&gt;(<span class="bool-val">false</span>);
-            <span class="kw">let </span>desc = <span class="self">self
-                </span>.realm
-                .global_property_map
-                .string_property_map()
-                .get(<span class="kw-2">&amp;</span>name_str);
-            <span class="kw">if </span>desc.is_none() {
-                <span class="self">self</span>.global_bindings_mut().insert(
+
+            <span class="comment">// TODO: defer global initialization to execution time.
+            </span><span class="kw">if </span>!<span class="self">self
+                </span>.global_object()
+                .has_own_property(name_str.clone(), <span class="self">self</span>)
+                .unwrap_or_default()
+            {
+                <span class="self">self</span>.global_object().borrow_mut().insert(
                     name_str,
                     PropertyDescriptor::builder()
                         .value(JsValue::Undefined)

@@ -115,6 +115,8 @@
 <a href="#114" id="114">114</a>
 <a href="#115" id="115">115</a>
 <a href="#116" id="116">116</a>
+<a href="#117" id="117">117</a>
+<a href="#118" id="118">118</a>
 </pre><pre class="rust"><code><span class="kw">use </span>boa_engine::{
     native_function::NativeFunction,
     object::{JsObject, ObjectInitializer},
@@ -124,7 +126,7 @@
 
 <span class="doccomment">/// Creates the object $262 in the context.
 </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>register_js262(context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsObject {
-    <span class="kw">let </span>global_obj = context.global_object().clone();
+    <span class="kw">let </span>global_obj = context.global_object();
 
     <span class="kw">let </span>js262 = ObjectInitializer::new(context)
         .function(NativeFunction::from_fn_ptr(create_realm), <span class="string">&quot;createRealm&quot;</span>, <span class="number">0</span>)
@@ -143,11 +145,13 @@
         <span class="comment">// .property(&quot;agent&quot;, agent, Attribute::default())
         </span>.build();
 
-    context.register_global_property(
-        <span class="string">&quot;$262&quot;</span>,
-        js262.clone(),
-        Attribute::WRITABLE | Attribute::CONFIGURABLE,
-    );
+    context
+        .register_global_property(
+            <span class="string">&quot;$262&quot;</span>,
+            js262.clone(),
+            Attribute::WRITABLE | Attribute::CONFIGURABLE,
+        )
+        .expect(<span class="string">&quot;shouldn&#39;t fail with the default global&quot;</span>);
 
     js262
 }

@@ -73,6 +73,20 @@
 <a href="#72" id="72">72</a>
 <a href="#73" id="73">73</a>
 <a href="#74" id="74">74</a>
+<a href="#75" id="75">75</a>
+<a href="#76" id="76">76</a>
+<a href="#77" id="77">77</a>
+<a href="#78" id="78">78</a>
+<a href="#79" id="79">79</a>
+<a href="#80" id="80">80</a>
+<a href="#81" id="81">81</a>
+<a href="#82" id="82">82</a>
+<a href="#83" id="83">83</a>
+<a href="#84" id="84">84</a>
+<a href="#85" id="85">85</a>
+<a href="#86" id="86">86</a>
+<a href="#87" id="87">87</a>
+<a href="#88" id="88">88</a>
 </pre><pre class="rust"><code><span class="doccomment">//! Boa&#39;s implementation of ECMAScript&#39;s `AsyncGeneratorFunction` object.
 //!
 //! More information:
@@ -143,8 +157,22 @@
         args: <span class="kw-2">&amp;</span>[JsValue],
         context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
     ) -&gt; JsResult&lt;JsValue&gt; {
-        BuiltInFunctionObject::create_dynamic_function(new_target, args, <span class="bool-val">true</span>, <span class="bool-val">true</span>, context)
-            .map(Into::into)
+        <span class="kw">let </span>active_function = context.vm.active_function.clone().unwrap_or_else(|| {
+            context
+                .intrinsics()
+                .constructors()
+                .generator_function()
+                .constructor()
+        });
+        BuiltInFunctionObject::create_dynamic_function(
+            active_function,
+            new_target,
+            args,
+            <span class="bool-val">true</span>,
+            <span class="bool-val">true</span>,
+            context,
+        )
+        .map(Into::into)
     }
 }
 </code></pre></div>

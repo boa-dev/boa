@@ -929,16 +929,66 @@
 <a href="#928" id="928">928</a>
 <a href="#929" id="929">929</a>
 <a href="#930" id="930">930</a>
+<a href="#931" id="931">931</a>
+<a href="#932" id="932">932</a>
+<a href="#933" id="933">933</a>
+<a href="#934" id="934">934</a>
+<a href="#935" id="935">935</a>
+<a href="#936" id="936">936</a>
+<a href="#937" id="937">937</a>
+<a href="#938" id="938">938</a>
+<a href="#939" id="939">939</a>
+<a href="#940" id="940">940</a>
+<a href="#941" id="941">941</a>
+<a href="#942" id="942">942</a>
+<a href="#943" id="943">943</a>
+<a href="#944" id="944">944</a>
+<a href="#945" id="945">945</a>
+<a href="#946" id="946">946</a>
+<a href="#947" id="947">947</a>
+<a href="#948" id="948">948</a>
+<a href="#949" id="949">949</a>
+<a href="#950" id="950">950</a>
+<a href="#951" id="951">951</a>
+<a href="#952" id="952">952</a>
+<a href="#953" id="953">953</a>
+<a href="#954" id="954">954</a>
+<a href="#955" id="955">955</a>
 </pre><pre class="rust"><code><span class="doccomment">//! Data structures that contain intrinsic objects and constructors.
 
-</span><span class="kw">use crate</span>::{
+</span><span class="kw">use </span>boa_gc::{Finalize, Gc, Trace};
+
+<span class="kw">use crate</span>::{
     builtins::{iterable::IteratorPrototypes, uri::UriFunctions},
     object::{JsFunction, JsObject, ObjectData},
 };
 
 <span class="doccomment">/// The intrinsic objects and constructors.
-</span><span class="attr">#[derive(Debug, Default)]
+///
+/// `Intrinsics` is internally stored using a `Gc`, which makes it cheapily clonable
+/// for multiple references to the same set of intrinsic objects.
+</span><span class="attr">#[derive(Default, Clone, Trace, Finalize)]
 </span><span class="kw">pub struct </span>Intrinsics {
+    inner: Gc&lt;Inner&gt;,
+}
+
+<span class="kw">impl </span>PartialEq <span class="kw">for </span>Intrinsics {
+    <span class="kw">fn </span>eq(<span class="kw-2">&amp;</span><span class="self">self</span>, other: <span class="kw-2">&amp;</span><span class="self">Self</span>) -&gt; bool {
+        std::ptr::eq(<span class="kw-2">&amp;*</span><span class="self">self</span>.inner, <span class="kw-2">&amp;*</span>other.inner)
+    }
+}
+
+<span class="kw">impl </span>std::fmt::Debug <span class="kw">for </span>Intrinsics {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>std::fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; std::fmt::Result {
+        f.debug_struct(<span class="string">&quot;Intrinsics&quot;</span>)
+            .field(<span class="string">&quot;constructors&quot;</span>, <span class="self">self</span>.constructors())
+            .field(<span class="string">&quot;objects&quot;</span>, <span class="self">self</span>.objects())
+            .finish()
+    }
+}
+
+<span class="attr">#[derive(Default, Trace, Finalize)]
+</span><span class="kw">struct </span>Inner {
     <span class="doccomment">/// Cached standard constructors
     </span><span class="kw">pub</span>(<span class="kw">super</span>) constructors: StandardConstructors,
     <span class="doccomment">/// Cached intrinsic objects
@@ -948,19 +998,19 @@
 <span class="kw">impl </span>Intrinsics {
     <span class="doccomment">/// Return the cached intrinsic objects.
     </span><span class="attr">#[inline]
-    </span><span class="kw">pub const fn </span>objects(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>IntrinsicObjects {
-        <span class="kw-2">&amp;</span><span class="self">self</span>.objects
+    </span><span class="kw">pub fn </span>objects(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>IntrinsicObjects {
+        <span class="kw-2">&amp;</span><span class="self">self</span>.inner.objects
     }
 
     <span class="doccomment">/// Return the cached standard constructors.
     </span><span class="attr">#[inline]
-    </span><span class="kw">pub const fn </span>constructors(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>StandardConstructors {
-        <span class="kw-2">&amp;</span><span class="self">self</span>.constructors
+    </span><span class="kw">pub fn </span>constructors(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>StandardConstructors {
+        <span class="kw-2">&amp;</span><span class="self">self</span>.inner.constructors
     }
 }
 
 <span class="doccomment">/// Store a builtin constructor (such as `Object`) and its corresponding prototype.
-</span><span class="attr">#[derive(Debug, Clone)]
+</span><span class="attr">#[derive(Debug, Clone, Trace, Finalize)]
 </span><span class="kw">pub struct </span>StandardConstructor {
     <span class="kw">pub</span>(<span class="kw">crate</span>) constructor: JsObject,
     <span class="kw">pub</span>(<span class="kw">crate</span>) prototype: JsObject,
@@ -1002,7 +1052,7 @@
 }
 
 <span class="doccomment">/// Cached core standard constructors.
-</span><span class="attr">#[derive(Debug, Clone)]
+</span><span class="attr">#[derive(Debug, Clone, Trace, Finalize)]
 </span><span class="kw">pub struct </span>StandardConstructors {
     object: StandardConstructor,
     proxy: StandardConstructor,
@@ -1651,7 +1701,7 @@
 }
 
 <span class="doccomment">/// Cached intrinsic objects
-</span><span class="attr">#[derive(Debug)]
+</span><span class="attr">#[derive(Debug, Trace, Finalize)]
 </span><span class="kw">pub struct </span>IntrinsicObjects {
     <span class="doccomment">/// [`%Reflect%`](https://tc39.es/ecma262/#sec-reflect)
     </span>reflect: JsObject,

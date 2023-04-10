@@ -265,6 +265,16 @@
 <a href="#264" id="264">264</a>
 <a href="#265" id="265">265</a>
 <a href="#266" id="266">266</a>
+<a href="#267" id="267">267</a>
+<a href="#268" id="268">268</a>
+<a href="#269" id="269">269</a>
+<a href="#270" id="270">270</a>
+<a href="#271" id="271">271</a>
+<a href="#272" id="272">272</a>
+<a href="#273" id="273">273</a>
+<a href="#274" id="274">274</a>
+<a href="#275" id="275">275</a>
+<a href="#276" id="276">276</a>
 </pre><pre class="rust"><code><span class="doccomment">//! Boa&#39;s implementation of ECMAScript&#39;s global `Error` object.
 //!
 //! Error objects are thrown when runtime errors occur.
@@ -429,8 +439,18 @@
         context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
     ) -&gt; JsResult&lt;JsValue&gt; {
         <span class="comment">// 1. If NewTarget is undefined, let newTarget be the active function object; else let newTarget be NewTarget.
+        </span><span class="kw">let </span>new_target = <span class="kw-2">&amp;</span><span class="kw">if </span>new_target.is_undefined() {
+            context
+                .vm
+                .active_function
+                .clone()
+                .unwrap_or_else(|| context.intrinsics().constructors().error().constructor())
+                .into()
+        } <span class="kw">else </span>{
+            new_target.clone()
+        };
 
-        // 2. Let O be ? OrdinaryCreateFromConstructor(newTarget, &quot;%Error.prototype%&quot;, « [[ErrorData]] »).
+        <span class="comment">// 2. Let O be ? OrdinaryCreateFromConstructor(newTarget, &quot;%Error.prototype%&quot;, « [[ErrorData]] »).
         </span><span class="kw">let </span>prototype =
             get_prototype_from_constructor(new_target, StandardConstructors::error, context)<span class="question-mark">?</span>;
         <span class="kw">let </span>o = JsObject::from_proto_and_data(prototype, ObjectData::error(ErrorKind::Error));

@@ -799,6 +799,13 @@
 <a href="#798" id="798">798</a>
 <a href="#799" id="799">799</a>
 <a href="#800" id="800">800</a>
+<a href="#801" id="801">801</a>
+<a href="#802" id="802">802</a>
+<a href="#803" id="803">803</a>
+<a href="#804" id="804">804</a>
+<a href="#805" id="805">805</a>
+<a href="#806" id="806">806</a>
+<a href="#807" id="807">807</a>
 </pre><pre class="rust"><code><span class="doccomment">//! Boa&#39;s ECMAScript built-in object implementations, e.g. Object, String, Math, Array, etc.
 //!
 //! This module also contains a JavaScript Console implementation.
@@ -969,7 +976,7 @@
     <span class="kw">let </span>name = B::NAME;
     <span class="kw">let </span>attr = B::ATTRIBUTE;
     <span class="kw">let </span>intrinsic = B::get(context.intrinsics());
-    <span class="kw">let </span>global_object = context.global_object().clone();
+    <span class="kw">let </span>global_object = context.global_object();
 
     global_object.define_property_or_throw(
         name,
@@ -1082,7 +1089,7 @@
 ///
 /// [spec]: https://tc39.es/ecma262/#sec-setdefaultglobalbindings
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>set_default_global_bindings(context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;()&gt; {
-    <span class="kw">let </span>global_object = context.global_object().clone();
+    <span class="kw">let </span>global_object = context.global_object();
 
     global_object.define_property_or_throw(
         <span class="macro">utf16!</span>(<span class="string">&quot;globalThis&quot;</span>),
@@ -1177,7 +1184,7 @@
     <span class="attr">#[cfg(feature = <span class="string">&quot;console&quot;</span>)]
     </span>{
         <span class="kw">let </span>object = Console::init(context);
-        <span class="kw">let </span>global_object = context.global_object().clone();
+        <span class="kw">let </span>global_object = context.global_object();
         global_object.define_property_or_throw(
             <span class="macro">utf16!</span>(<span class="string">&quot;console&quot;</span>),
             PropertyDescriptor::builder()
@@ -1230,6 +1237,7 @@
     name: JsString,
     length: usize,
     kind: Kind,
+    intrinsics: Intrinsics,
 }
 
 <span class="doccomment">/// Marker for an ordinary object.
@@ -1278,10 +1286,13 @@
     <span class="kw">fn </span>apply_to(<span class="self">self</span>, object: <span class="kw-2">&amp;</span>JsObject) {
         <span class="self">self</span>.kind.apply_to(object);
 
-        <span class="kw">let </span>function = function::Function::Native {
-            function: NativeFunction::from_fn_ptr(<span class="self">self</span>.function),
-            constructor: S::IS_CONSTRUCTOR.then_some(function::ConstructorKind::Base),
-        };
+        <span class="kw">let </span>function = function::Function::new(
+            function::FunctionKind::Native {
+                function: NativeFunction::from_fn_ptr(<span class="self">self</span>.function),
+                constructor: S::IS_CONSTRUCTOR.then_some(function::ConstructorKind::Base),
+            },
+            <span class="self">self</span>.intrinsics,
+        );
 
         <span class="kw">let </span>length = PropertyDescriptor::builder()
             .value(<span class="self">self</span>.length)
@@ -1367,6 +1378,7 @@
                 name: <span class="macro">js_string!</span>(<span class="string">&quot;&quot;</span>),
                 length: <span class="number">0</span>,
                 kind: OrdinaryFunction,
+                intrinsics: <span class="self">self</span>.intrinsics.clone(),
             },
             prototype: <span class="self">self</span>.intrinsics.constructors().function().prototype(),
         }
@@ -1390,6 +1402,7 @@
                     inherits: <span class="prelude-val">Some</span>(intrinsics.constructors().object().prototype()),
                     attributes: Attribute::WRITABLE | Attribute::CONFIGURABLE,
                 },
+                intrinsics: intrinsics.clone(),
             },
             prototype: intrinsics.constructors().function().prototype(),
         }
@@ -1404,6 +1417,7 @@
                 name: <span class="self">self</span>.kind.name,
                 length: <span class="self">self</span>.kind.length,
                 kind: ConstructorNoProto,
+                intrinsics: <span class="self">self</span>.intrinsics.clone(),
             },
             prototype: <span class="self">self</span>.prototype,
         }

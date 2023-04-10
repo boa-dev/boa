@@ -199,8 +199,6 @@
 <a href="#198" id="198">198</a>
 <a href="#199" id="199">199</a>
 <a href="#200" id="200">200</a>
-<a href="#201" id="201">201</a>
-<a href="#202" id="202">202</a>
 </pre><pre class="rust"><code><span class="doccomment">//! Boa&#39;s implementation of ECMAScript&#39;s global `Proxy` object.
 //!
 //! The `Proxy` object enables you to create a proxy for another object,
@@ -213,9 +211,7 @@
 //! [spec]: https://tc39.es/ecma262/#sec-proxy-objects
 //! [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Proxy
 
-</span><span class="kw">use </span>std::cell::Cell;
-
-<span class="kw">use crate</span>::{
+</span><span class="kw">use crate</span>::{
     builtins::BuiltInObject,
     context::intrinsics::{Intrinsics, StandardConstructor, StandardConstructors},
     error::JsNativeError,
@@ -224,7 +220,7 @@
     string::utf16,
     Context, JsArgs, JsResult, JsValue,
 };
-<span class="kw">use </span>boa_gc::{Finalize, Trace};
+<span class="kw">use </span>boa_gc::{Finalize, GcRefCell, Trace};
 <span class="kw">use </span>boa_profiler::Profiler;
 
 <span class="kw">use super</span>::{BuiltInBuilder, BuiltInConstructor, IntrinsicObject};
@@ -353,7 +349,7 @@
                     <span class="comment">// a. Let F be the active function object.
                     // b. Let p be F.[[RevocableProxy]].
                     // d. Set F.[[RevocableProxy]] to null.
-                    </span><span class="kw">if let </span><span class="prelude-val">Some</span>(p) = revocable_proxy.take() {
+                    </span><span class="kw">if let </span><span class="prelude-val">Some</span>(p) = std::mem::take(<span class="kw-2">&amp;mut *</span>revocable_proxy.borrow_mut()) {
                         <span class="comment">// e. Assert: p is a Proxy object.
                         // f. Set p.[[ProxyTarget]] to null.
                         // g. Set p.[[ProxyHandler]] to null.
@@ -367,7 +363,7 @@
                     // h. Return undefined.
                     </span><span class="prelude-val">Ok</span>(JsValue::undefined())
                 },
-                Cell::new(<span class="prelude-val">Some</span>(proxy)),
+                GcRefCell::new(<span class="prelude-val">Some</span>(proxy)),
             ),
         )
         .build()
@@ -387,7 +383,7 @@
         </span><span class="kw">let </span>revoker = <span class="self">Self</span>::revoker(p.clone(), context);
 
         <span class="comment">// 5. Let result be ! OrdinaryObjectCreate(%Object.prototype%).
-        </span><span class="kw">let </span>result = JsObject::with_object_proto(context);
+        </span><span class="kw">let </span>result = JsObject::with_object_proto(context.intrinsics());
 
         <span class="comment">// 6. Perform ! CreateDataPropertyOrThrow(result, &quot;proxy&quot;, p).
         </span>result

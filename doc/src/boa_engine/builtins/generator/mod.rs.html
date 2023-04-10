@@ -386,6 +386,36 @@
 <a href="#385" id="385">385</a>
 <a href="#386" id="386">386</a>
 <a href="#387" id="387">387</a>
+<a href="#388" id="388">388</a>
+<a href="#389" id="389">389</a>
+<a href="#390" id="390">390</a>
+<a href="#391" id="391">391</a>
+<a href="#392" id="392">392</a>
+<a href="#393" id="393">393</a>
+<a href="#394" id="394">394</a>
+<a href="#395" id="395">395</a>
+<a href="#396" id="396">396</a>
+<a href="#397" id="397">397</a>
+<a href="#398" id="398">398</a>
+<a href="#399" id="399">399</a>
+<a href="#400" id="400">400</a>
+<a href="#401" id="401">401</a>
+<a href="#402" id="402">402</a>
+<a href="#403" id="403">403</a>
+<a href="#404" id="404">404</a>
+<a href="#405" id="405">405</a>
+<a href="#406" id="406">406</a>
+<a href="#407" id="407">407</a>
+<a href="#408" id="408">408</a>
+<a href="#409" id="409">409</a>
+<a href="#410" id="410">410</a>
+<a href="#411" id="411">411</a>
+<a href="#412" id="412">412</a>
+<a href="#413" id="413">413</a>
+<a href="#414" id="414">414</a>
+<a href="#415" id="415">415</a>
+<a href="#416" id="416">416</a>
+<a href="#417" id="417">417</a>
 </pre><pre class="rust"><code><span class="doccomment">//! Boa&#39;s implementation of ECMAScript&#39;s global `Generator` object.
 //!
 //! A Generator is an instance of a generator function and conforms to both the Iterator and Iterable interfaces.
@@ -409,7 +439,7 @@
     vm::{CallFrame, CompletionRecord, GeneratorResumeKind},
     Context, JsArgs, JsError, JsResult,
 };
-<span class="kw">use </span>boa_gc::{Finalize, Gc, GcRefCell, Trace};
+<span class="kw">use </span>boa_gc::{Finalize, Trace};
 <span class="kw">use </span>boa_profiler::Profiler;
 
 <span class="kw">use super</span>::{BuiltInBuilder, IntrinsicObject};
@@ -433,17 +463,19 @@
     <span class="kw">pub</span>(<span class="kw">crate</span>) environments: DeclarativeEnvironmentStack,
     <span class="kw">pub</span>(<span class="kw">crate</span>) call_frame: CallFrame,
     <span class="kw">pub</span>(<span class="kw">crate</span>) stack: Vec&lt;JsValue&gt;,
+    <span class="kw">pub</span>(<span class="kw">crate</span>) active_function: <span class="prelude-ty">Option</span>&lt;JsObject&gt;,
+    <span class="kw">pub</span>(<span class="kw">crate</span>) realm_intrinsics: Intrinsics,
 }
 
 <span class="doccomment">/// The internal representation of a `Generator` object.
-</span><span class="attr">#[derive(Debug, Clone, Finalize, Trace)]
+</span><span class="attr">#[derive(Debug, Finalize, Trace)]
 </span><span class="kw">pub struct </span>Generator {
     <span class="doccomment">/// The `[[GeneratorState]]` internal slot.
     </span><span class="attr">#[unsafe_ignore_trace]
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) state: GeneratorState,
 
     <span class="doccomment">/// The `[[GeneratorContext]]` internal slot.
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) context: <span class="prelude-ty">Option</span>&lt;Gc&lt;GcRefCell&lt;GeneratorContext&gt;&gt;&gt;,
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) context: <span class="prelude-ty">Option</span>&lt;GeneratorContext&gt;,
 }
 
 <span class="kw">impl </span>IntrinsicObject <span class="kw">for </span>Generator {
@@ -596,11 +628,10 @@
         </span>generator.state = GeneratorState::Executing;
         <span class="kw">let </span>first_execution = <span class="macro">matches!</span>(state, GeneratorState::SuspendedStart);
 
-        <span class="kw">let </span>generator_context_cell = generator
+        <span class="kw">let </span><span class="kw-2">mut </span>generator_context = generator
             .context
             .take()
             .expect(<span class="string">&quot;generator context cannot be empty here&quot;</span>);
-        <span class="kw">let </span><span class="kw-2">mut </span>generator_context = generator_context_cell.borrow_mut();
         drop(generator_obj_mut);
 
         std::mem::swap(
@@ -608,6 +639,14 @@
             <span class="kw-2">&amp;mut </span>generator_context.environments,
         );
         std::mem::swap(<span class="kw-2">&amp;mut </span>context.vm.stack, <span class="kw-2">&amp;mut </span>generator_context.stack);
+        std::mem::swap(
+            <span class="kw-2">&amp;mut </span>context.vm.active_function,
+            <span class="kw-2">&amp;mut </span>generator_context.active_function,
+        );
+        std::mem::swap(
+            <span class="kw-2">&amp;mut </span>context.realm.intrinsics,
+            <span class="kw-2">&amp;mut </span>generator_context.realm_intrinsics,
+        );
         context.vm.push_frame(generator_context.call_frame.clone());
         <span class="kw">if </span>!first_execution {
             context.vm.push(value.clone());
@@ -626,6 +665,14 @@
             <span class="kw-2">&amp;mut </span>generator_context.environments,
         );
         std::mem::swap(<span class="kw-2">&amp;mut </span>context.vm.stack, <span class="kw-2">&amp;mut </span>generator_context.stack);
+        std::mem::swap(
+            <span class="kw-2">&amp;mut </span>context.vm.active_function,
+            <span class="kw-2">&amp;mut </span>generator_context.active_function,
+        );
+        std::mem::swap(
+            <span class="kw-2">&amp;mut </span>context.realm.intrinsics,
+            <span class="kw-2">&amp;mut </span>generator_context.realm_intrinsics,
+        );
 
         <span class="kw">let </span><span class="kw-2">mut </span>generator_obj_mut = generator_obj.borrow_mut();
         <span class="kw">let </span>generator = generator_obj_mut
@@ -635,8 +682,7 @@
         <span class="kw">match </span>record {
             CompletionRecord::Return(value) =&gt; {
                 generator.state = GeneratorState::SuspendedYield;
-                drop(generator_context);
-                generator.context = <span class="prelude-val">Some</span>(generator_context_cell);
+                generator.context = <span class="prelude-val">Some</span>(generator_context);
                 <span class="prelude-val">Ok</span>(create_iter_result_object(value, <span class="bool-val">false</span>, context))
             }
             CompletionRecord::Normal(value) =&gt; {
@@ -711,11 +757,10 @@
         // 10. Resume the suspended evaluation of genContext using abruptCompletion as the result of the operation that suspended it. Let result be the completion record returned by the resumed computation.
         // 11. Assert: When we return here, genContext has already been removed from the execution context stack and methodContext is the currently running execution context.
         // 12. Return Completion(result).
-        </span><span class="kw">let </span>generator_context_cell = generator
+        </span><span class="kw">let </span><span class="kw-2">mut </span>generator_context = generator
             .context
             .take()
             .expect(<span class="string">&quot;generator context cannot be empty here&quot;</span>);
-        <span class="kw">let </span><span class="kw-2">mut </span>generator_context = generator_context_cell.borrow_mut();
 
         generator.state = GeneratorState::Executing;
         drop(generator_obj_mut);
@@ -725,6 +770,14 @@
             <span class="kw-2">&amp;mut </span>generator_context.environments,
         );
         std::mem::swap(<span class="kw-2">&amp;mut </span>context.vm.stack, <span class="kw-2">&amp;mut </span>generator_context.stack);
+        std::mem::swap(
+            <span class="kw-2">&amp;mut </span>context.vm.active_function,
+            <span class="kw-2">&amp;mut </span>generator_context.active_function,
+        );
+        std::mem::swap(
+            <span class="kw-2">&amp;mut </span>context.realm.intrinsics,
+            <span class="kw-2">&amp;mut </span>generator_context.realm_intrinsics,
+        );
         context.vm.push_frame(generator_context.call_frame.clone());
 
         <span class="kw">let </span>completion_record = <span class="kw">match </span>abrupt_completion {
@@ -749,6 +802,14 @@
             <span class="kw-2">&amp;mut </span>generator_context.environments,
         );
         std::mem::swap(<span class="kw-2">&amp;mut </span>context.vm.stack, <span class="kw-2">&amp;mut </span>generator_context.stack);
+        std::mem::swap(
+            <span class="kw-2">&amp;mut </span>context.vm.active_function,
+            <span class="kw-2">&amp;mut </span>generator_context.active_function,
+        );
+        std::mem::swap(
+            <span class="kw-2">&amp;mut </span>context.realm.intrinsics,
+            <span class="kw-2">&amp;mut </span>generator_context.realm_intrinsics,
+        );
 
         <span class="kw">let </span><span class="kw-2">mut </span>generator_obj_mut = generator_obj.borrow_mut();
         <span class="kw">let </span>generator = generator_obj_mut
@@ -758,8 +819,7 @@
         <span class="kw">match </span>completion_record {
             CompletionRecord::Return(value) =&gt; {
                 generator.state = GeneratorState::SuspendedYield;
-                drop(generator_context);
-                generator.context = <span class="prelude-val">Some</span>(generator_context_cell);
+                generator.context = <span class="prelude-val">Some</span>(generator_context);
                 <span class="prelude-val">Ok</span>(create_iter_result_object(value, <span class="bool-val">false</span>, context))
             }
             CompletionRecord::Normal(value) =&gt; {

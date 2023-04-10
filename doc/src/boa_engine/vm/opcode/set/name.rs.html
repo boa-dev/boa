@@ -69,12 +69,6 @@
 <a href="#68" id="68">68</a>
 <a href="#69" id="69">69</a>
 <a href="#70" id="70">70</a>
-<a href="#71" id="71">71</a>
-<a href="#72" id="72">72</a>
-<a href="#73" id="73">73</a>
-<a href="#74" id="74">74</a>
-<a href="#75" id="75">75</a>
-<a href="#76" id="76">76</a>
 </pre><pre class="rust"><code><span class="kw">use crate</span>::{
     error::JsNativeError,
     vm::{opcode::Operation, CompletionType},
@@ -107,7 +101,9 @@
                     .interner()
                     .resolve_expect(binding_locator.name().sym())
                     .into_common(<span class="bool-val">false</span>);
-                <span class="kw">let </span>exists = context.global_bindings_mut().contains_key(<span class="kw-2">&amp;</span>key);
+                <span class="kw">let </span>exists = context
+                    .global_object()
+                    .has_own_property(key.clone(), context)<span class="question-mark">?</span>;
 
                 <span class="kw">if </span>!exists &amp;&amp; context.vm.frame().code_block.strict {
                     <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::reference()
@@ -118,20 +114,12 @@
                         .into());
                 }
 
-                <span class="kw">let </span>success = <span class="kw">crate</span>::object::internal_methods::global::global_set_no_receiver(
-                    <span class="kw-2">&amp;</span>key.clone().into(),
+                context.global_object().set(
+                    key,
                     value,
+                    context.vm.frame().code_block.strict,
                     context,
                 )<span class="question-mark">?</span>;
-
-                <span class="kw">if </span>!success &amp;&amp; context.vm.frame().code_block.strict {
-                    <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::typ()
-                        .with_message(<span class="macro">format!</span>(
-                            <span class="string">&quot;cannot set non-writable property: {}&quot;</span>,
-                            key.to_std_string_escaped()
-                        ))
-                        .into());
-                }
             }
         } <span class="kw">else if </span>!context.put_value_if_initialized(
             binding_locator.environment_index(),

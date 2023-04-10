@@ -2358,6 +2358,9 @@
 <a href="#2357" id="2357">2357</a>
 <a href="#2358" id="2358">2358</a>
 <a href="#2359" id="2359">2359</a>
+<a href="#2360" id="2360">2360</a>
+<a href="#2361" id="2361">2361</a>
+<a href="#2362" id="2362">2362</a>
 </pre><pre class="rust"><code><span class="doccomment">//! Boa&#39;s implementation of ECMAScript&#39;s global `Promise` object.
 
 </span><span class="attr">#[cfg(test)]
@@ -2465,25 +2468,6 @@
     </span><span class="kw">pub </span>reject: JsFunction,
 }
 
-<span class="doccomment">/// The internal `PromiseCapability` data type.
-///
-/// More information:
-///  - [ECMAScript reference][spec]
-///
-/// [spec]: https://tc39.es/ecma262/#sec-promisecapability-records
-</span><span class="attr">#[derive(Debug, Clone, Trace, Finalize)]
-</span><span class="comment">// TODO: make crate-only
-</span><span class="kw">pub struct </span>PromiseCapability {
-    <span class="doccomment">/// The `[[Promise]]` field.
-    </span>promise: JsObject,
-
-    <span class="doccomment">/// The `[[Resolve]]` field.
-    </span>resolve: JsFunction,
-
-    <span class="doccomment">/// The `[[Reject]]` field.
-    </span>reject: JsFunction,
-}
-
 <span class="comment">// ==================== Private API ====================
 
 </span><span class="doccomment">/// `IfAbruptRejectPromise ( value, capability )`
@@ -2515,6 +2499,24 @@
 }
 
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use </span>if_abrupt_reject_promise;
+
+<span class="doccomment">/// The internal `PromiseCapability` data type.
+///
+/// More information:
+///  - [ECMAScript reference][spec]
+///
+/// [spec]: https://tc39.es/ecma262/#sec-promisecapability-records
+</span><span class="attr">#[derive(Debug, Clone, Trace, Finalize)]
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>PromiseCapability {
+    <span class="doccomment">/// The `[[Promise]]` field.
+    </span>promise: JsObject,
+
+    <span class="doccomment">/// The `[[Resolve]]` field.
+    </span>resolve: JsFunction,
+
+    <span class="doccomment">/// The `[[Reject]]` field.
+    </span>reject: JsFunction,
+}
 
 <span class="doccomment">/// The internal `PromiseReaction` data type.
 ///
@@ -3229,7 +3231,7 @@
                         // 8. Let remainingElementsCount be F.[[RemainingElements]].
 
                         // 9. Let obj be OrdinaryObjectCreate(%Object.prototype%).
-                        </span><span class="kw">let </span>obj = JsObject::with_object_proto(context);
+                        </span><span class="kw">let </span>obj = JsObject::with_object_proto(context.intrinsics());
 
                         <span class="comment">// 10. Perform ! CreateDataPropertyOrThrow(obj, &quot;status&quot;, &quot;fulfilled&quot;).
                         </span>obj.create_data_property_or_throw(<span class="macro">utf16!</span>(<span class="string">&quot;status&quot;</span>), <span class="string">&quot;fulfilled&quot;</span>, context)
@@ -3315,7 +3317,7 @@
                         // 8. Let remainingElementsCount be F.[[RemainingElements]].
 
                         // 9. Let obj be OrdinaryObjectCreate(%Object.prototype%).
-                        </span><span class="kw">let </span>obj = JsObject::with_object_proto(context);
+                        </span><span class="kw">let </span>obj = JsObject::with_object_proto(context.intrinsics());
 
                         <span class="comment">// 10. Perform ! CreateDataPropertyOrThrow(obj, &quot;status&quot;, &quot;rejected&quot;).
                         </span>obj.create_data_property_or_throw(<span class="macro">utf16!</span>(<span class="string">&quot;status&quot;</span>), <span class="string">&quot;rejected&quot;</span>, context)
@@ -4662,12 +4664,14 @@
         }
     };
 
-    <span class="comment">// 2. Let handlerRealm be null.
+    <span class="comment">// TODO: handle realms
+    // 2. Let handlerRealm be null.
     // 3. If reaction.[[Handler]] is not empty, then
     //   a. Let getHandlerRealmResult be Completion(GetFunctionRealm(reaction.[[Handler]].[[Callback]])).
     //   b. If getHandlerRealmResult is a normal completion, set handlerRealm to getHandlerRealmResult.[[Value]].
     //   c. Else, set handlerRealm to the current Realm Record.
     //   d. NOTE: handlerRealm is never null unless the handler is undefined. When the handler is a revoked Proxy and no ECMAScript code runs, handlerRealm is used to create error objects.
+
     // 4. Return the Record { [[Job]]: job, [[Realm]]: handlerRealm }.
     </span>NativeJob::new(job)
 }
@@ -4710,10 +4714,12 @@
         </span>then_call_result
     };
 
-    <span class="comment">// 2. Let getThenRealmResult be Completion(GetFunctionRealm(then.[[Callback]])).
+    <span class="comment">// TODO: handle realms
+    // 2. Let getThenRealmResult be Completion(GetFunctionRealm(then.[[Callback]])).
     // 3. If getThenRealmResult is a normal completion, let thenRealm be getThenRealmResult.[[Value]].
     // 4. Else, let thenRealm be the current Realm Record.
     // 5. NOTE: thenRealm is never null. When then.[[Callback]] is a revoked Proxy and no code runs, thenRealm is used to create error objects.
+
     // 6. Return the Record { [[Job]]: job, [[Realm]]: thenRealm }.
     </span>NativeJob::new(job)
 }

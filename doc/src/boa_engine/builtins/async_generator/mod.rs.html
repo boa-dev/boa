@@ -713,6 +713,26 @@
 <a href="#712" id="712">712</a>
 <a href="#713" id="713">713</a>
 <a href="#714" id="714">714</a>
+<a href="#715" id="715">715</a>
+<a href="#716" id="716">716</a>
+<a href="#717" id="717">717</a>
+<a href="#718" id="718">718</a>
+<a href="#719" id="719">719</a>
+<a href="#720" id="720">720</a>
+<a href="#721" id="721">721</a>
+<a href="#722" id="722">722</a>
+<a href="#723" id="723">723</a>
+<a href="#724" id="724">724</a>
+<a href="#725" id="725">725</a>
+<a href="#726" id="726">726</a>
+<a href="#727" id="727">727</a>
+<a href="#728" id="728">728</a>
+<a href="#729" id="729">729</a>
+<a href="#730" id="730">730</a>
+<a href="#731" id="731">731</a>
+<a href="#732" id="732">732</a>
+<a href="#733" id="733">733</a>
+<a href="#734" id="734">734</a>
 </pre><pre class="rust"><code><span class="doccomment">//! Boa&#39;s implementation of ECMAScript&#39;s global `AsyncGenerator` object.
 //!
 //! More information:
@@ -735,7 +755,7 @@
     vm::GeneratorResumeKind,
     Context, JsArgs, JsError, JsResult,
 };
-<span class="kw">use </span>boa_gc::{Finalize, Gc, GcRefCell, Trace};
+<span class="kw">use </span>boa_gc::{Finalize, Trace};
 <span class="kw">use </span>boa_profiler::Profiler;
 <span class="kw">use </span>std::collections::VecDeque;
 
@@ -774,7 +794,7 @@
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) state: AsyncGeneratorState,
 
     <span class="doccomment">/// The `[[AsyncGeneratorContext]]` internal slot.
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) context: <span class="prelude-ty">Option</span>&lt;Gc&lt;GcRefCell&lt;GeneratorContext&gt;&gt;&gt;,
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) context: <span class="prelude-ty">Option</span>&lt;GeneratorContext&gt;,
 
     <span class="doccomment">/// The `[[AsyncGeneratorQueue]]` internal slot.
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) queue: VecDeque&lt;AsyncGeneratorRequest&gt;,
@@ -883,7 +903,7 @@
             <span class="comment">// a. Perform AsyncGeneratorResume(generator, completion).
             </span><span class="kw">let </span>generator_context = generator
                 .context
-                .clone()
+                .take()
                 .expect(<span class="string">&quot;generator context cannot be empty here&quot;</span>);
 
             drop(generator_obj_mut);
@@ -891,7 +911,7 @@
             <span class="self">Self</span>::resume(
                 generator_object,
                 state,
-                <span class="kw-2">&amp;</span>generator_context,
+                generator_context,
                 completion,
                 context,
             );
@@ -967,14 +987,14 @@
             <span class="comment">// a. Perform AsyncGeneratorResume(generator, completion).
             </span><span class="kw">let </span>generator_context = generator
                 .context
-                .clone()
+                .take()
                 .expect(<span class="string">&quot;generator context cannot be empty here&quot;</span>);
 
             drop(generator_obj_mut);
             <span class="self">Self</span>::resume(
                 generator_object,
                 state,
-                <span class="kw-2">&amp;</span>generator_context,
+                generator_context,
                 completion,
                 context,
             );
@@ -1028,6 +1048,7 @@
         </span><span class="kw">if </span>state == AsyncGeneratorState::SuspendedStart {
             <span class="comment">// a. Set generator.[[AsyncGeneratorState]] to completed.
             </span>generator.state = AsyncGeneratorState::Completed;
+            generator.context = <span class="prelude-val">None</span>;
 
             <span class="comment">// b. Set state to completed.
             </span>state = AsyncGeneratorState::Completed;
@@ -1064,7 +1085,7 @@
         </span><span class="kw">if </span>state == AsyncGeneratorState::SuspendedYield {
             <span class="kw">let </span>generator_context = generator
                 .context
-                .clone()
+                .take()
                 .expect(<span class="string">&quot;generator context cannot be empty here&quot;</span>);
             drop(generator_obj_mut);
 
@@ -1072,7 +1093,7 @@
             </span><span class="self">Self</span>::resume(
                 generator_object,
                 state,
-                <span class="kw-2">&amp;</span>generator_context,
+                generator_context,
                 completion,
                 context,
             );
@@ -1164,7 +1185,7 @@
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>resume(
         generator: <span class="kw-2">&amp;</span>JsObject,
         state: AsyncGeneratorState,
-        generator_context: <span class="kw-2">&amp;</span>Gc&lt;GcRefCell&lt;GeneratorContext&gt;&gt;,
+        <span class="kw-2">mut </span>generator_context: GeneratorContext,
         completion: (JsResult&lt;JsValue&gt;, bool),
         context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
     ) {
@@ -1175,9 +1196,8 @@
         );
 
         <span class="comment">// 2. Let genContext be generator.[[AsyncGeneratorContext]].
-        </span><span class="kw">let </span><span class="kw-2">mut </span>generator_context_mut = generator_context.borrow_mut();
 
-        <span class="comment">// 3. Let callerContext be the running execution context.
+        // 3. Let callerContext be the running execution context.
         // 4. Suspend callerContext.
 
         // 5. Set generator.[[AsyncGeneratorState]] to executing.
@@ -1190,12 +1210,19 @@
         <span class="comment">// 6. Push genContext onto the execution context stack; genContext is now the running execution context.
         </span>std::mem::swap(
             <span class="kw-2">&amp;mut </span>context.realm.environments,
-            <span class="kw-2">&amp;mut </span>generator_context_mut.environments,
+            <span class="kw-2">&amp;mut </span>generator_context.environments,
         );
-        std::mem::swap(<span class="kw-2">&amp;mut </span>context.vm.stack, <span class="kw-2">&amp;mut </span>generator_context_mut.stack);
-        context
-            .vm
-            .push_frame(generator_context_mut.call_frame.clone());
+        std::mem::swap(<span class="kw-2">&amp;mut </span>context.vm.stack, <span class="kw-2">&amp;mut </span>generator_context.stack);
+        std::mem::swap(
+            <span class="kw-2">&amp;mut </span>context.vm.active_function,
+            <span class="kw-2">&amp;mut </span>generator_context.active_function,
+        );
+        std::mem::swap(
+            <span class="kw-2">&amp;mut </span>context.realm.intrinsics,
+            <span class="kw-2">&amp;mut </span>generator_context.realm_intrinsics,
+        );
+
+        context.vm.push_frame(generator_context.call_frame.clone());
 
         <span class="comment">// 7. Resume the suspended evaluation of genContext using completion as the result of the operation that suspended it. Let result be the Completion Record returned by the resumed computation.
         </span><span class="kw">match </span>completion {
@@ -1213,18 +1240,28 @@
                 context.vm.frame_mut().generator_resume_kind = GeneratorResumeKind::Throw;
             }
         }
-        drop(generator_context_mut);
         <span class="kw">let </span>result = context.run();
 
-        <span class="kw">let </span><span class="kw-2">mut </span>generator_context_mut = generator_context.borrow_mut();
         std::mem::swap(
             <span class="kw-2">&amp;mut </span>context.realm.environments,
-            <span class="kw-2">&amp;mut </span>generator_context_mut.environments,
+            <span class="kw-2">&amp;mut </span>generator_context.environments,
         );
-        std::mem::swap(<span class="kw-2">&amp;mut </span>context.vm.stack, <span class="kw-2">&amp;mut </span>generator_context_mut.stack);
-        generator_context_mut.call_frame =
-            context.vm.pop_frame().expect(<span class="string">&quot;generator frame must exist&quot;</span>);
-        drop(generator_context_mut);
+        std::mem::swap(<span class="kw-2">&amp;mut </span>context.vm.stack, <span class="kw-2">&amp;mut </span>generator_context.stack);
+        generator_context.call_frame = context.vm.pop_frame().expect(<span class="string">&quot;generator frame must exist&quot;</span>);
+        std::mem::swap(
+            <span class="kw-2">&amp;mut </span>context.vm.active_function,
+            <span class="kw-2">&amp;mut </span>generator_context.active_function,
+        );
+        std::mem::swap(
+            <span class="kw-2">&amp;mut </span>context.realm.intrinsics,
+            <span class="kw-2">&amp;mut </span>generator_context.realm_intrinsics,
+        );
+
+        generator
+            .borrow_mut()
+            .as_async_generator_mut()
+            .expect(<span class="string">&quot;already checked before&quot;</span>)
+            .context = <span class="prelude-val">Some</span>(generator_context);
 
         <span class="comment">// 8. Assert: result is never an abrupt completion.
         </span><span class="macro">assert!</span>(!result.is_throw_completion());
@@ -1270,6 +1307,7 @@
                     .as_async_generator_mut()
                     .expect(<span class="string">&quot;already checked before&quot;</span>);
                 gen.state = AsyncGeneratorState::Completed;
+                gen.context = <span class="prelude-val">None</span>;
                 <span class="kw">let </span>next = gen.queue.pop_front().expect(<span class="string">&quot;queue must not be empty&quot;</span>);
                 drop(generator_borrow_mut);
                 <span class="self">Self</span>::complete_step(<span class="kw-2">&amp;</span>next, <span class="prelude-val">Err</span>(value), <span class="bool-val">true</span>, context);
@@ -1292,6 +1330,7 @@
 
                         <span class="comment">// a. Set generator.[[AsyncGeneratorState]] to completed.
                         </span>gen.state = AsyncGeneratorState::Completed;
+                        gen.context = <span class="prelude-val">None</span>;
 
                         gen.queue.pop_front().expect(<span class="string">&quot;must have one entry&quot;</span>)
                     };
@@ -1328,6 +1367,7 @@
 
                     <span class="comment">// a. Set generator.[[AsyncGeneratorState]] to completed.
                     </span>gen.state = AsyncGeneratorState::Completed;
+                    gen.context = <span class="prelude-val">None</span>;
 
                     <span class="comment">// b. Let result be ThrowCompletion(reason).
                     </span><span class="kw">let </span>result = <span class="prelude-val">Err</span>(JsError::from_opaque(args.get_or_undefined(<span class="number">0</span>).clone()));

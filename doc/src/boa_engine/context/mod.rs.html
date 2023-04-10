@@ -678,6 +678,15 @@
 <a href="#677" id="677">677</a>
 <a href="#678" id="678">678</a>
 <a href="#679" id="679">679</a>
+<a href="#680" id="680">680</a>
+<a href="#681" id="681">681</a>
+<a href="#682" id="682">682</a>
+<a href="#683" id="683">683</a>
+<a href="#684" id="684">684</a>
+<a href="#685" id="685">685</a>
+<a href="#686" id="686">686</a>
+<a href="#687" id="687">687</a>
+<a href="#688" id="688">688</a>
 </pre><pre class="rust"><code><span class="doccomment">//! The ECMAScript context.
 
 </span><span class="kw">mod </span>hooks;
@@ -702,7 +711,7 @@
     class::{Class, ClassBuilder},
     job::{IdleJobQueue, JobQueue, NativeJob},
     native_function::NativeFunction,
-    object::{FunctionObjectBuilder, GlobalPropertyMap, JsObject},
+    object::{FunctionObjectBuilder, JsObject},
     optimizer::{Optimizer, OptimizerOptions, OptimizerStatistics},
     property::{Attribute, PropertyDescriptor, PropertyKey},
     realm::Realm,
@@ -984,20 +993,26 @@
     ///     .build();
     /// context.register_global_property(&quot;myObjectProperty&quot;, object, Attribute::all());
     /// ```
-    </span><span class="kw">pub fn </span>register_global_property&lt;K, V&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, key: K, value: V, attribute: Attribute)
+    </span><span class="kw">pub fn </span>register_global_property&lt;K, V&gt;(
+        <span class="kw-2">&amp;mut </span><span class="self">self</span>,
+        key: K,
+        value: V,
+        attribute: Attribute,
+    ) -&gt; JsResult&lt;()&gt;
     <span class="kw">where
         </span>K: Into&lt;PropertyKey&gt;,
         V: Into&lt;JsValue&gt;,
     {
-        <span class="self">self</span>.realm.global_property_map.insert(
-            <span class="kw-2">&amp;</span>key.into(),
+        <span class="self">self</span>.global_object().define_property_or_throw(
+            key,
             PropertyDescriptor::builder()
                 .value(value)
                 .writable(attribute.writable())
                 .enumerable(attribute.enumerable())
-                .configurable(attribute.configurable())
-                .build(),
-        );
+                .configurable(attribute.configurable()),
+            <span class="self">self</span>,
+        )<span class="question-mark">?</span>;
+        <span class="prelude-val">Ok</span>(())
     }
 
     <span class="doccomment">/// Register a global native callable.
@@ -1012,22 +1027,28 @@
     ///
     /// If you wish to only create the function object without binding it to the global object, you
     /// can use the [`FunctionObjectBuilder`] API.
-    </span><span class="kw">pub fn </span>register_global_callable(<span class="kw-2">&amp;mut </span><span class="self">self</span>, name: <span class="kw-2">&amp;</span>str, length: usize, body: NativeFunction) {
+    </span><span class="kw">pub fn </span>register_global_callable(
+        <span class="kw-2">&amp;mut </span><span class="self">self</span>,
+        name: <span class="kw-2">&amp;</span>str,
+        length: usize,
+        body: NativeFunction,
+    ) -&gt; JsResult&lt;()&gt; {
         <span class="kw">let </span>function = FunctionObjectBuilder::new(<span class="self">self</span>, body)
             .name(name)
             .length(length)
             .constructor(<span class="bool-val">true</span>)
             .build();
 
-        <span class="self">self</span>.global_bindings_mut().insert(
-            name.into(),
+        <span class="self">self</span>.global_object().define_property_or_throw(
+            name,
             PropertyDescriptor::builder()
                 .value(function)
                 .writable(<span class="bool-val">true</span>)
                 .enumerable(<span class="bool-val">false</span>)
-                .configurable(<span class="bool-val">true</span>)
-                .build(),
-        );
+                .configurable(<span class="bool-val">true</span>),
+            <span class="self">self</span>,
+        )<span class="question-mark">?</span>;
+        <span class="prelude-val">Ok</span>(())
     }
 
     <span class="doccomment">/// Register a global native function that is not a constructor.
@@ -1044,22 +1065,23 @@
         name: <span class="kw-2">&amp;</span>str,
         length: usize,
         body: NativeFunction,
-    ) {
+    ) -&gt; JsResult&lt;()&gt; {
         <span class="kw">let </span>function = FunctionObjectBuilder::new(<span class="self">self</span>, body)
             .name(name)
             .length(length)
             .constructor(<span class="bool-val">false</span>)
             .build();
 
-        <span class="self">self</span>.global_bindings_mut().insert(
-            name.into(),
+        <span class="self">self</span>.global_object().define_property_or_throw(
+            name,
             PropertyDescriptor::builder()
                 .value(function)
                 .writable(<span class="bool-val">true</span>)
                 .enumerable(<span class="bool-val">false</span>)
-                .configurable(<span class="bool-val">true</span>)
-                .build(),
-        );
+                .configurable(<span class="bool-val">true</span>),
+            <span class="self">self</span>,
+        )<span class="question-mark">?</span>;
+        <span class="prelude-val">Ok</span>(())
     }
 
     <span class="doccomment">/// Register a global class of type `T`, where `T` implements `Class`.
@@ -1087,10 +1109,11 @@
             .value(class)
             .writable(T::ATTRIBUTES.writable())
             .enumerable(T::ATTRIBUTES.enumerable())
-            .configurable(T::ATTRIBUTES.configurable())
-            .build();
+            .configurable(T::ATTRIBUTES.configurable());
 
-        <span class="self">self</span>.global_bindings_mut().insert(T::NAME.into(), property);
+        <span class="self">self</span>.global_object()
+            .define_property_or_throw(T::NAME, property, <span class="self">self</span>)<span class="question-mark">?</span>;
+
         <span class="prelude-val">Ok</span>(())
     }
 
@@ -1106,13 +1129,13 @@
         <span class="kw-2">&amp;mut </span><span class="self">self</span>.interner
     }
 
-    <span class="doccomment">/// Return the global object.
+    <span class="doccomment">/// Returns the global object.
     </span><span class="attr">#[inline]
-    </span><span class="kw">pub const fn </span>global_object(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>JsObject {
-        <span class="self">self</span>.realm.global_object()
+    </span><span class="kw">pub fn </span>global_object(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; JsObject {
+        <span class="self">self</span>.realm.global_object().clone()
     }
 
-    <span class="doccomment">/// Return the intrinsic constructors and objects.
+    <span class="doccomment">/// Returns the intrinsic constructors and objects.
     </span><span class="attr">#[inline]
     </span><span class="kw">pub const fn </span>intrinsics(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>Intrinsics {
         <span class="kw-2">&amp;</span><span class="self">self</span>.realm.intrinsics
@@ -1165,11 +1188,6 @@
 <span class="comment">// ==== Private API ====
 
 </span><span class="kw">impl </span>Context&lt;<span class="lifetime">&#39;_</span>&gt; {
-    <span class="doccomment">/// Return a mutable reference to the global object string bindings.
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>global_bindings_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span>GlobalPropertyMap {
-        <span class="self">self</span>.realm.global_bindings_mut()
-    }
-
     <span class="doccomment">/// Compile the AST into a `CodeBlock` ready to be executed by the VM in a `JSON.parse` context.
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>compile_json_parse(<span class="kw-2">&amp;mut </span><span class="self">self</span>, statement_list: <span class="kw-2">&amp;</span>StatementList) -&gt; Gc&lt;CodeBlock&gt; {
         <span class="kw">let </span>_timer = Profiler::global().start_event(<span class="string">&quot;Compilation&quot;</span>, <span class="string">&quot;Main&quot;</span>);

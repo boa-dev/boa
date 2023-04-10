@@ -788,18 +788,6 @@
 <a href="#787" id="787">787</a>
 <a href="#788" id="788">788</a>
 <a href="#789" id="789">789</a>
-<a href="#790" id="790">790</a>
-<a href="#791" id="791">791</a>
-<a href="#792" id="792">792</a>
-<a href="#793" id="793">793</a>
-<a href="#794" id="794">794</a>
-<a href="#795" id="795">795</a>
-<a href="#796" id="796">796</a>
-<a href="#797" id="797">797</a>
-<a href="#798" id="798">798</a>
-<a href="#799" id="799">799</a>
-<a href="#800" id="800">800</a>
-<a href="#801" id="801">801</a>
 </pre><pre class="rust"><code><span class="kw">use super</span>::{PropertyDescriptor, PropertyKey};
 <span class="kw">use crate</span>::{property::PropertyDescriptorBuilder, JsString, JsSymbol, JsValue};
 <span class="kw">use </span>boa_gc::{custom_trace, Finalize, Trace};
@@ -807,10 +795,6 @@
 <span class="kw">use </span>rustc_hash::{FxHashMap, FxHasher};
 <span class="kw">use </span>std::{collections::hash_map, hash::BuildHasherDefault, iter::FusedIterator};
 <span class="kw">use </span>thin_vec::ThinVec;
-
-<span class="doccomment">/// Type alias to make it easier to work with the string properties on the global object.
-</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">type </span>GlobalPropertyMap =
-    IndexMap&lt;JsString, PropertyDescriptor, BuildHasherDefault&lt;FxHasher&gt;&gt;;
 
 <span class="doccomment">/// Wrapper around `indexmap::IndexMap` for usage in `PropertyMap`.
 </span><span class="attr">#[derive(Debug, Finalize)]
@@ -1216,14 +1200,6 @@
             PropertyKey::Symbol(symbol) =&gt; <span class="self">self</span>.symbol_properties.<span class="number">0</span>.contains_key(symbol),
         }
     }
-
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const fn </span>string_property_map(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>GlobalPropertyMap {
-        <span class="kw-2">&amp;</span><span class="self">self</span>.string_properties.<span class="number">0
-    </span>}
-
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>string_property_map_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span>GlobalPropertyMap {
-        <span class="kw-2">&amp;mut </span><span class="self">self</span>.string_properties.<span class="number">0
-    </span>}
 }
 
 <span class="doccomment">/// An iterator over the property entries of an `Object`

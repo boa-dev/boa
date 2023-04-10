@@ -1354,7 +1354,7 @@
 /// Environments themselves are garbage collected,
 /// because they must be preserved for function calls.
 </span><span class="attr">#[derive(Clone, Debug, Trace, Finalize)]
-</span><span class="kw">pub struct </span>DeclarativeEnvironmentStack {
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>DeclarativeEnvironmentStack {
     stack: Vec&lt;Environment&gt;,
 }
 
@@ -2217,7 +2217,7 @@
     <span class="doccomment">/// Delete a binding form an object environment if it exists.
     ///
     /// Returns a tuple of `(found, deleted)`.
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>delete_binding_from_objet_environment(
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>delete_binding_from_object_environment(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
         name: Identifier,
     ) -&gt; JsResult&lt;(bool, bool)&gt; {

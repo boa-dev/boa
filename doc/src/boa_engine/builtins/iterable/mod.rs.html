@@ -594,7 +594,7 @@
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use </span>if_abrupt_close_iterator;
 
 <span class="doccomment">/// The built-in iterator prototypes.
-</span><span class="attr">#[derive(Debug, Default)]
+</span><span class="attr">#[derive(Debug, Default, Trace, Finalize)]
 </span><span class="kw">pub struct </span>IteratorPrototypes {
     <span class="doccomment">/// The `IteratorPrototype` object.
     </span>iterator: JsObject,
@@ -741,7 +741,7 @@
 
     <span class="comment">// 1. Assert: Type(done) is Boolean.
     // 2. Let obj be ! OrdinaryObjectCreate(%Object.prototype%).
-    </span><span class="kw">let </span>obj = JsObject::with_object_proto(context);
+    </span><span class="kw">let </span>obj = JsObject::with_object_proto(context.intrinsics());
 
     <span class="comment">// 3. Perform ! CreateDataPropertyOrThrow(obj, &quot;value&quot;, value).
     </span>obj.create_data_property_or_throw(<span class="macro">utf16!</span>(<span class="string">&quot;value&quot;</span>), value, context)

@@ -211,8 +211,16 @@
 <a href="#210" id="210">210</a>
 <a href="#211" id="211">211</a>
 <a href="#212" id="212">212</a>
+<a href="#213" id="213">213</a>
+<a href="#214" id="214">214</a>
+<a href="#215" id="215">215</a>
+<a href="#216" id="216">216</a>
+<a href="#217" id="217">217</a>
+<a href="#218" id="218">218</a>
+<a href="#219" id="219">219</a>
+<a href="#220" id="220">220</a>
 </pre><pre class="rust"><code><span class="kw">use crate</span>::{
-    builtins::function::Function,
+    builtins::function::FunctionKind,
     error::JsNativeError,
     vm::{opcode::Operation, CompletionType},
     Context, JsResult, JsValue,
@@ -255,7 +263,11 @@
         };
 
         <span class="comment">// A native function with the name &quot;eval&quot; implies, that is this the built-in eval function.
-        </span><span class="kw">let </span>eval = <span class="macro">matches!</span>(object.borrow().as_function(), <span class="prelude-val">Some</span>(Function::Native { .. }));
+        </span><span class="kw">let </span>eval = object
+            .borrow()
+            .as_function()
+            .map(|f| <span class="macro">matches!</span>(f.kind(), FunctionKind::Native { .. }))
+            .unwrap_or_default();
 
         <span class="kw">let </span>strict = context.vm.frame().code_block.strict;
 
@@ -317,7 +329,11 @@
         };
 
         <span class="comment">// A native function with the name &quot;eval&quot; implies, that is this the built-in eval function.
-        </span><span class="kw">let </span>eval = <span class="macro">matches!</span>(object.borrow().as_function(), <span class="prelude-val">Some</span>(Function::Native { .. }));
+        </span><span class="kw">let </span>eval = object
+            .borrow()
+            .as_function()
+            .map(|f| <span class="macro">matches!</span>(f.kind(), FunctionKind::Native { .. }))
+            .unwrap_or_default();
 
         <span class="kw">let </span>strict = context.vm.frame().code_block.strict;
 

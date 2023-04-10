@@ -908,12 +908,14 @@
 <a href="#907" id="907">907</a>
 <a href="#908" id="908">908</a>
 <a href="#909" id="909">909</a>
+<a href="#910" id="910">910</a>
 </pre><pre class="rust"><code><span class="doccomment">//! This module implements the `JsObject` structure.
 //!
 //! The `JsObject` is a garbage collected Object.
 
 </span><span class="kw">use super</span>::{JsPrototype, NativeObject, Object, PropertyMap};
 <span class="kw">use crate</span>::{
+    context::intrinsics::Intrinsics,
     error::JsNativeError,
     object::{ObjectData, ObjectKind},
     property::{PropertyDescriptor, PropertyKey},
@@ -952,9 +954,9 @@
     /// [call]: https://tc39.es/ecma262/#sec-ordinaryobjectcreate
     </span><span class="attr">#[inline]
     #[must_use]
-    </span><span class="kw">pub fn </span>with_object_proto(context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <span class="self">Self </span>{
+    </span><span class="kw">pub fn </span>with_object_proto(intrinsics: <span class="kw-2">&amp;</span>Intrinsics) -&gt; <span class="self">Self </span>{
         <span class="self">Self</span>::from_proto_and_data(
-            context.intrinsics().constructors().object().prototype(),
+            intrinsics.constructors().object().prototype(),
             ObjectData::ordinary(),
         )
     }

@@ -418,7 +418,7 @@
                 .into());
         }
 
-        <span class="kw">let </span>class = context.global_object().clone().get(T::NAME, context)<span class="question-mark">?</span>;
+        <span class="kw">let </span>class = context.global_object().get(T::NAME, context)<span class="question-mark">?</span>;
         <span class="kw">let </span>JsValue::Object(<span class="kw-2">ref </span>class_constructor) = class <span class="kw">else </span>{
             <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::typ()
                 .with_message(<span class="macro">format!</span>(
@@ -472,7 +472,7 @@
         <span class="self">Self </span>{ builder }
     }
 
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>build(<span class="kw-2">mut </span><span class="self">self</span>) -&gt; JsFunction {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>build(<span class="self">self</span>) -&gt; JsFunction {
         JsFunction::from_object_unchecked(<span class="self">self</span>.builder.build().into())
     }
 

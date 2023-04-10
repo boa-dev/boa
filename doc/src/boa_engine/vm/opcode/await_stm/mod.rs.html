@@ -134,10 +134,54 @@
 <a href="#133" id="133">133</a>
 <a href="#134" id="134">134</a>
 <a href="#135" id="135">135</a>
-</pre><pre class="rust"><code><span class="kw">use </span>boa_gc::{Gc, GcRefCell};
+<a href="#136" id="136">136</a>
+<a href="#137" id="137">137</a>
+<a href="#138" id="138">138</a>
+<a href="#139" id="139">139</a>
+<a href="#140" id="140">140</a>
+<a href="#141" id="141">141</a>
+<a href="#142" id="142">142</a>
+<a href="#143" id="143">143</a>
+<a href="#144" id="144">144</a>
+<a href="#145" id="145">145</a>
+<a href="#146" id="146">146</a>
+<a href="#147" id="147">147</a>
+<a href="#148" id="148">148</a>
+<a href="#149" id="149">149</a>
+<a href="#150" id="150">150</a>
+<a href="#151" id="151">151</a>
+<a href="#152" id="152">152</a>
+<a href="#153" id="153">153</a>
+<a href="#154" id="154">154</a>
+<a href="#155" id="155">155</a>
+<a href="#156" id="156">156</a>
+<a href="#157" id="157">157</a>
+<a href="#158" id="158">158</a>
+<a href="#159" id="159">159</a>
+<a href="#160" id="160">160</a>
+<a href="#161" id="161">161</a>
+<a href="#162" id="162">162</a>
+<a href="#163" id="163">163</a>
+<a href="#164" id="164">164</a>
+<a href="#165" id="165">165</a>
+<a href="#166" id="166">166</a>
+<a href="#167" id="167">167</a>
+<a href="#168" id="168">168</a>
+<a href="#169" id="169">169</a>
+<a href="#170" id="170">170</a>
+<a href="#171" id="171">171</a>
+<a href="#172" id="172">172</a>
+<a href="#173" id="173">173</a>
+<a href="#174" id="174">174</a>
+<a href="#175" id="175">175</a>
+<a href="#176" id="176">176</a>
+<a href="#177" id="177">177</a>
+<a href="#178" id="178">178</a>
+<a href="#179" id="179">179</a>
+</pre><pre class="rust"><code><span class="kw">use </span>boa_gc::GcRefCell;
 
 <span class="kw">use crate</span>::{
-    builtins::Promise,
+    builtins::{generator::GeneratorContext, Promise},
     native_function::NativeFunction,
     object::FunctionObjectBuilder,
     vm::{
@@ -169,14 +213,22 @@
             context,
         )<span class="question-mark">?</span>;
 
+        <span class="kw">let </span>generator_context = GeneratorContext {
+            environments: context.realm.environments.clone(),
+            call_frame: context.vm.frame().clone(),
+            stack: context.vm.stack.clone(),
+            active_function: context.vm.active_function.clone(),
+            realm_intrinsics: context.realm.intrinsics.clone(),
+        };
+
         <span class="comment">// 3. Let fulfilledClosure be a new Abstract Closure with parameters (value) that captures asyncContext and performs the following steps when called:
         // 4. Let onFulfilled be CreateBuiltinFunction(fulfilledClosure, 1, &quot;&quot;, « »).
         </span><span class="kw">let </span>on_fulfilled = FunctionObjectBuilder::new(
             context,
             NativeFunction::from_copy_closure_with_captures(
                 |_this, args, captures, context| {
-                    <span class="kw">let </span><span class="kw-2">mut </span>captures = captures.borrow_mut();
-                    <span class="kw">let </span>(environment, stack, frame) = <span class="kw-2">&amp;mut *</span>captures;
+                    <span class="kw">let </span><span class="kw-2">mut </span>generator_context = std::mem::take(<span class="kw-2">&amp;mut *</span>captures.borrow_mut())
+                        .expect(<span class="string">&quot;function should only be called once&quot;</span>);
                     <span class="comment">// a. Let prevContext be the running execution context.
                     // b. Suspend prevContext.
                     // c. Push asyncContext onto the execution context stack; asyncContext is now the running execution context.
@@ -184,28 +236,46 @@
                     // e. Assert: When we reach this step, asyncContext has already been removed from the execution context stack and prevContext is the currently running execution context.
                     // f. Return undefined.
 
-                    </span>std::mem::swap(<span class="kw-2">&amp;mut </span>context.realm.environments, environment);
-                    std::mem::swap(<span class="kw-2">&amp;mut </span>context.vm.stack, stack);
-                    context.vm.push_frame(frame.clone());
+                    </span>std::mem::swap(
+                        <span class="kw-2">&amp;mut </span>context.realm.environments,
+                        <span class="kw-2">&amp;mut </span>generator_context.environments,
+                    );
+                    std::mem::swap(<span class="kw-2">&amp;mut </span>context.vm.stack, <span class="kw-2">&amp;mut </span>generator_context.stack);
+                    std::mem::swap(
+                        <span class="kw-2">&amp;mut </span>context.vm.active_function,
+                        <span class="kw-2">&amp;mut </span>generator_context.active_function,
+                    );
+                    std::mem::swap(
+                        <span class="kw-2">&amp;mut </span>context.realm.intrinsics,
+                        <span class="kw-2">&amp;mut </span>generator_context.realm_intrinsics,
+                    );
+                    context.vm.push_frame(generator_context.call_frame.clone());
 
                     context.vm.frame_mut().generator_resume_kind = GeneratorResumeKind::Normal;
                     context.vm.push(args.get_or_undefined(<span class="number">0</span>).clone());
                     context.run();
 
-                    <span class="kw-2">*</span>frame = context
+                    context
                         .vm
                         .pop_frame()
                         .expect(<span class="string">&quot;generator call frame must exist&quot;</span>);
-                    std::mem::swap(<span class="kw-2">&amp;mut </span>context.realm.environments, environment);
-                    std::mem::swap(<span class="kw-2">&amp;mut </span>context.vm.stack, stack);
+                    std::mem::swap(
+                        <span class="kw-2">&amp;mut </span>context.realm.environments,
+                        <span class="kw-2">&amp;mut </span>generator_context.environments,
+                    );
+                    std::mem::swap(<span class="kw-2">&amp;mut </span>context.vm.stack, <span class="kw-2">&amp;mut </span>generator_context.stack);
+                    std::mem::swap(
+                        <span class="kw-2">&amp;mut </span>context.vm.active_function,
+                        <span class="kw-2">&amp;mut </span>generator_context.active_function,
+                    );
+                    std::mem::swap(
+                        <span class="kw-2">&amp;mut </span>context.realm.intrinsics,
+                        <span class="kw-2">&amp;mut </span>generator_context.realm_intrinsics,
+                    );
 
                     <span class="prelude-val">Ok</span>(JsValue::undefined())
                 },
-                Gc::new(GcRefCell::new((
-                    context.realm.environments.clone(),
-                    context.vm.stack.clone(),
-                    context.vm.frame().clone(),
-                ))),
+                GcRefCell::new(<span class="prelude-val">Some</span>(generator_context.clone())),
             ),
         )
         .name(<span class="string">&quot;&quot;</span>)
@@ -218,8 +288,8 @@
             context,
             NativeFunction::from_copy_closure_with_captures(
                 |_this, args, captures, context| {
-                    <span class="kw">let </span><span class="kw-2">mut </span>captures = captures.borrow_mut();
-                    <span class="kw">let </span>(environment, stack, frame) = <span class="kw-2">&amp;mut *</span>captures;
+                    <span class="kw">let </span><span class="kw-2">mut </span>generator_context = std::mem::take(<span class="kw-2">&amp;mut *</span>captures.borrow_mut())
+                        .expect(<span class="string">&quot;function should only be called once&quot;</span>);
                     <span class="comment">// a. Let prevContext be the running execution context.
                     // b. Suspend prevContext.
                     // c. Push asyncContext onto the execution context stack; asyncContext is now the running execution context.
@@ -227,28 +297,46 @@
                     // e. Assert: When we reach this step, asyncContext has already been removed from the execution context stack and prevContext is the currently running execution context.
                     // f. Return undefined.
 
-                    </span>std::mem::swap(<span class="kw-2">&amp;mut </span>context.realm.environments, environment);
-                    std::mem::swap(<span class="kw-2">&amp;mut </span>context.vm.stack, stack);
-                    context.vm.push_frame(frame.clone());
+                    </span>std::mem::swap(
+                        <span class="kw-2">&amp;mut </span>context.realm.environments,
+                        <span class="kw-2">&amp;mut </span>generator_context.environments,
+                    );
+                    std::mem::swap(<span class="kw-2">&amp;mut </span>context.vm.stack, <span class="kw-2">&amp;mut </span>generator_context.stack);
+                    std::mem::swap(
+                        <span class="kw-2">&amp;mut </span>context.vm.active_function,
+                        <span class="kw-2">&amp;mut </span>generator_context.active_function,
+                    );
+                    std::mem::swap(
+                        <span class="kw-2">&amp;mut </span>context.realm.intrinsics,
+                        <span class="kw-2">&amp;mut </span>generator_context.realm_intrinsics,
+                    );
+                    context.vm.push_frame(generator_context.call_frame.clone());
 
                     context.vm.frame_mut().generator_resume_kind = GeneratorResumeKind::Throw;
                     context.vm.push(args.get_or_undefined(<span class="number">0</span>).clone());
                     context.run();
 
-                    <span class="kw-2">*</span>frame = context
+                    context
                         .vm
                         .pop_frame()
                         .expect(<span class="string">&quot;generator call frame must exist&quot;</span>);
-                    std::mem::swap(<span class="kw-2">&amp;mut </span>context.realm.environments, environment);
-                    std::mem::swap(<span class="kw-2">&amp;mut </span>context.vm.stack, stack);
+                    std::mem::swap(
+                        <span class="kw-2">&amp;mut </span>context.realm.environments,
+                        <span class="kw-2">&amp;mut </span>generator_context.environments,
+                    );
+                    std::mem::swap(<span class="kw-2">&amp;mut </span>context.vm.stack, <span class="kw-2">&amp;mut </span>generator_context.stack);
+                    std::mem::swap(
+                        <span class="kw-2">&amp;mut </span>context.vm.active_function,
+                        <span class="kw-2">&amp;mut </span>generator_context.active_function,
+                    );
+                    std::mem::swap(
+                        <span class="kw-2">&amp;mut </span>context.realm.intrinsics,
+                        <span class="kw-2">&amp;mut </span>generator_context.realm_intrinsics,
+                    );
 
                     <span class="prelude-val">Ok</span>(JsValue::undefined())
                 },
-                Gc::new(GcRefCell::new((
-                    context.realm.environments.clone(),
-                    context.vm.stack.clone(),
-                    context.vm.frame().clone(),
-                ))),
+                GcRefCell::new(<span class="prelude-val">Some</span>(generator_context)),
             ),
         )
         .name(<span class="string">&quot;&quot;</span>)

@@ -2471,21 +2471,6 @@
 <a href="#2470" id="2470">2470</a>
 <a href="#2471" id="2471">2471</a>
 <a href="#2472" id="2472">2472</a>
-<a href="#2473" id="2473">2473</a>
-<a href="#2474" id="2474">2474</a>
-<a href="#2475" id="2475">2475</a>
-<a href="#2476" id="2476">2476</a>
-<a href="#2477" id="2477">2477</a>
-<a href="#2478" id="2478">2478</a>
-<a href="#2479" id="2479">2479</a>
-<a href="#2480" id="2480">2480</a>
-<a href="#2481" id="2481">2481</a>
-<a href="#2482" id="2482">2482</a>
-<a href="#2483" id="2483">2483</a>
-<a href="#2484" id="2484">2484</a>
-<a href="#2485" id="2485">2485</a>
-<a href="#2486" id="2486">2486</a>
-<a href="#2487" id="2487">2487</a>
 </pre><pre class="rust"><code><span class="doccomment">//! Boa&#39;s representation of a JavaScript object and builtin object wrappers
 //!
 //! For the builtin object wrappers, please see [`object::builtins`][builtins] for implementors.
@@ -2503,7 +2488,6 @@
         BOUND_CONSTRUCTOR_EXOTIC_INTERNAL_METHODS, BOUND_FUNCTION_EXOTIC_INTERNAL_METHODS,
     },
     function::{CONSTRUCTOR_INTERNAL_METHODS, FUNCTION_INTERNAL_METHODS},
-    global::GLOBAL_INTERNAL_METHODS,
     integer_indexed::INTEGER_INDEXED_EXOTIC_INTERNAL_METHODS,
     proxy::{
         PROXY_EXOTIC_INTERNAL_METHODS_ALL, PROXY_EXOTIC_INTERNAL_METHODS_BASIC,
@@ -2522,7 +2506,7 @@
         array_buffer::ArrayBuffer,
         async_generator::AsyncGenerator,
         error::ErrorKind,
-        function::arguments::Arguments,
+        function::{arguments::Arguments, FunctionKind},
         function::{arguments::ParameterMap, BoundFunction, ConstructorKind, Function},
         generator::Generator,
         iterable::AsyncFromSyncIterator,
@@ -3094,15 +3078,6 @@
         <span class="self">Self </span>{
             kind: ObjectKind::Date(date),
             internal_methods: <span class="kw-2">&amp;</span>ORDINARY_INTERNAL_METHODS,
-        }
-    }
-
-    <span class="doccomment">/// Create the `Global` object data
-    </span><span class="attr">#[must_use]
-    </span><span class="kw">pub fn </span>global() -&gt; <span class="self">Self </span>{
-        <span class="self">Self </span>{
-            kind: ObjectKind::Global,
-            internal_methods: <span class="kw-2">&amp;</span>GLOBAL_INTERNAL_METHODS,
         }
     }
 
@@ -4436,7 +4411,8 @@
 </span><span class="attr">#[derive(Debug)]
 </span><span class="kw">pub struct </span>FunctionObjectBuilder&lt;<span class="lifetime">&#39;ctx</span>, <span class="lifetime">&#39;host</span>&gt; {
     context: <span class="kw-2">&amp;</span><span class="lifetime">&#39;ctx </span><span class="kw-2">mut </span>Context&lt;<span class="lifetime">&#39;host</span>&gt;,
-    function: Function,
+    function: NativeFunction,
+    constructor: <span class="prelude-ty">Option</span>&lt;ConstructorKind&gt;,
     name: JsString,
     length: usize,
 }
@@ -4447,10 +4423,8 @@
     </span><span class="kw">pub fn </span>new(context: <span class="kw-2">&amp;</span><span class="lifetime">&#39;ctx </span><span class="kw-2">mut </span>Context&lt;<span class="lifetime">&#39;host</span>&gt;, function: NativeFunction) -&gt; <span class="self">Self </span>{
         <span class="self">Self </span>{
             context,
-            function: Function::Native {
-                function,
-                constructor: <span class="prelude-val">None</span>,
-            },
+            function,
+            constructor: <span class="prelude-val">None</span>,
             name: <span class="macro">js_string!</span>(),
             length: <span class="number">0</span>,
         }
@@ -4485,20 +4459,7 @@
     /// The default is `false`.
     </span><span class="attr">#[must_use]
     </span><span class="kw">pub fn </span>constructor(<span class="kw-2">mut </span><span class="self">self</span>, yes: bool) -&gt; <span class="self">Self </span>{
-        <span class="kw">match </span><span class="self">self</span>.function {
-            Function::Native {
-                <span class="kw-2">ref mut </span>constructor,
-                ..
-            } =&gt; {
-                <span class="kw-2">*</span>constructor = yes.then_some(ConstructorKind::Base);
-            }
-            Function::Ordinary { .. }
-            | Function::Generator { .. }
-            | Function::AsyncGenerator { .. }
-            | Function::Async { .. } =&gt; {
-                <span class="macro">unreachable!</span>(<span class="string">&quot;function must be native or closure&quot;</span>);
-            }
-        }
+        <span class="self">self</span>.constructor = yes.then_some(ConstructorKind::Base);
         <span class="self">self
     </span>}
 
@@ -4510,7 +4471,13 @@
                 .constructors()
                 .function()
                 .prototype(),
-            ObjectData::function(<span class="self">self</span>.function),
+            ObjectData::function(Function::new(
+                FunctionKind::Native {
+                    function: <span class="self">self</span>.function,
+                    constructor: <span class="self">self</span>.constructor,
+                },
+                <span class="self">self</span>.context.intrinsics().clone(),
+            )),
         );
         <span class="kw">let </span>property = PropertyDescriptor::builder()
             .writable(<span class="bool-val">false</span>)
@@ -4561,7 +4528,7 @@
     <span class="doccomment">/// Create a new `ObjectBuilder`.
     </span><span class="attr">#[inline]
     </span><span class="kw">pub fn </span>new(context: <span class="kw-2">&amp;</span><span class="lifetime">&#39;ctx </span><span class="kw-2">mut </span>Context&lt;<span class="lifetime">&#39;host</span>&gt;) -&gt; <span class="self">Self </span>{
-        <span class="kw">let </span>object = JsObject::with_object_proto(context);
+        <span class="kw">let </span>object = JsObject::with_object_proto(context.intrinsics());
         <span class="self">Self </span>{ context, object }
     }
 
@@ -4898,12 +4865,15 @@
     }
 
     <span class="doccomment">/// Build the constructor function object.
-    </span><span class="kw">pub fn </span>build(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; JsFunction {
+    </span><span class="kw">pub fn </span>build(<span class="kw-2">mut </span><span class="self">self</span>) -&gt; JsFunction {
         <span class="comment">// Create the native function
-        </span><span class="kw">let </span>function = Function::Native {
-            function: <span class="self">self</span>.function.clone(),
-            constructor: <span class="self">self</span>.constructor,
-        };
+        </span><span class="kw">let </span>function = Function::new(
+            FunctionKind::Native {
+                function: <span class="self">self</span>.function,
+                constructor: <span class="self">self</span>.constructor,
+            },
+            <span class="self">self</span>.context.intrinsics().clone(),
+        );
 
         <span class="kw">let </span>length = PropertyDescriptor::builder()
             .value(<span class="self">self</span>.length)
@@ -4970,7 +4940,7 @@
             }
         }
 
-        JsFunction::from_object_unchecked(<span class="self">self</span>.object.clone())
+        JsFunction::from_object_unchecked(<span class="self">self</span>.object)
     }
 }
 </code></pre></div>

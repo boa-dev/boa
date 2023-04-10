@@ -531,6 +531,8 @@
 <a href="#530" id="530">530</a>
 <a href="#531" id="531">531</a>
 <a href="#532" id="532">532</a>
+<a href="#533" id="533">533</a>
+<a href="#534" id="534">534</a>
 </pre><pre class="rust"><code><span class="doccomment">//! Execution module for the test runner.
 
 </span><span class="kw">mod </span>js262;
@@ -1025,11 +1027,13 @@
     .length(<span class="number">1</span>)
     .build();
 
-    context.register_global_property(
-        <span class="string">&quot;print&quot;</span>,
-        js_function,
-        Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
-    );
+    context
+        .register_global_property(
+            <span class="string">&quot;print&quot;</span>,
+            js_function,
+            Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
+        )
+        .expect(<span class="string">&quot;shouldn&#39;t fail with the default global&quot;</span>);
 }
 
 <span class="doccomment">/// A `Result` value that is possibly uninitialized.

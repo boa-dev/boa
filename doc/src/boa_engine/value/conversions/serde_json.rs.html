@@ -316,7 +316,7 @@
                 <span class="prelude-val">Ok</span>(Array::create_array_from_list(arr, context).into())
             }
             Value::Object(obj) =&gt; {
-                <span class="kw">let </span>js_obj = JsObject::with_object_proto(context);
+                <span class="kw">let </span>js_obj = JsObject::with_object_proto(context.intrinsics());
                 <span class="kw">for </span>(key, value) <span class="kw">in </span>obj {
                     <span class="kw">let </span>property = PropertyDescriptor::builder()
                         .value(<span class="self">Self</span>::from_json(value, context)<span class="question-mark">?</span>)

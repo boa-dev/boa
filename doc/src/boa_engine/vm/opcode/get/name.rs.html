@@ -158,14 +158,14 @@
                     .interner()
                     .resolve_expect(binding_locator.name().sym())
                     .into_common(<span class="bool-val">false</span>);
-                <span class="kw">match </span>context.global_bindings_mut().get(<span class="kw-2">&amp;</span>key) {
+                <span class="kw">match </span>context.global_object().get_property(<span class="kw-2">&amp;</span>key.clone().into()) {
                     <span class="prelude-val">Some</span>(desc) =&gt; <span class="kw">match </span>desc.kind() {
                         DescriptorKind::Data {
                             value: <span class="prelude-val">Some</span>(value), ..
                         } =&gt; value.clone(),
                         DescriptorKind::Accessor { get: <span class="prelude-val">Some</span>(get), .. } <span class="kw">if </span>!get.is_undefined() =&gt; {
                             <span class="kw">let </span>get = get.clone();
-                            get.call(<span class="kw-2">&amp;</span>context.global_object().clone().into(), <span class="kw-2">&amp;</span>[], context)<span class="question-mark">?
+                            get.call(<span class="kw-2">&amp;</span>context.global_object().into(), <span class="kw-2">&amp;</span>[], context)<span class="question-mark">?
                         </span>}
                         <span class="kw">_ </span>=&gt; {
                             <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::reference()
@@ -227,14 +227,14 @@
                     .interner()
                     .resolve_expect(binding_locator.name().sym())
                     .into_common(<span class="bool-val">false</span>);
-                <span class="kw">match </span>context.global_bindings_mut().get(<span class="kw-2">&amp;</span>key) {
+                <span class="kw">match </span>context.global_object().get_property(<span class="kw-2">&amp;</span>key.into()) {
                     <span class="prelude-val">Some</span>(desc) =&gt; <span class="kw">match </span>desc.kind() {
                         DescriptorKind::Data {
                             value: <span class="prelude-val">Some</span>(value), ..
                         } =&gt; value.clone(),
                         DescriptorKind::Accessor { get: <span class="prelude-val">Some</span>(get), .. } <span class="kw">if </span>!get.is_undefined() =&gt; {
                             <span class="kw">let </span>get = get.clone();
-                            get.call(<span class="kw-2">&amp;</span>context.global_object().clone().into(), <span class="kw-2">&amp;</span>[], context)<span class="question-mark">?
+                            get.call(<span class="kw-2">&amp;</span>context.global_object().into(), <span class="kw-2">&amp;</span>[], context)<span class="question-mark">?
                         </span>}
                         <span class="kw">_ </span>=&gt; JsValue::undefined(),
                     },

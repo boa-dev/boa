@@ -1394,6 +1394,10 @@
 <a href="#1393" id="1393">1393</a>
 <a href="#1394" id="1394">1394</a>
 <a href="#1395" id="1395">1395</a>
+<a href="#1396" id="1396">1396</a>
+<a href="#1397" id="1397">1397</a>
+<a href="#1398" id="1398">1398</a>
+<a href="#1399" id="1399">1399</a>
 </pre><pre class="rust"><code><span class="doccomment">//! Boa&#39;s implementation of ECMAScript&#39;s global `Object` object.
 //!
 //! The `Object` class represents one of ECMAScript&#39;s data types.
@@ -1526,9 +1530,13 @@
     ) -&gt; JsResult&lt;JsValue&gt; {
         <span class="comment">// 1. If NewTarget is neither undefined nor the active function object, then
         </span><span class="kw">if </span>!new_target.is_undefined()
-            &amp;&amp; !new_target.as_object().map_or(<span class="bool-val">false</span>, |o| {
-                o.eq(<span class="kw-2">&amp;</span>context.intrinsics().constructors().object().constructor())
-            })
+            &amp;&amp; new_target
+                != <span class="kw-2">&amp;</span>context
+                    .vm
+                    .active_function
+                    .clone()
+                    .unwrap_or_else(|| context.intrinsics().constructors().object().constructor())
+                    .into()
         {
             <span class="comment">//     a. Return ? OrdinaryCreateFromConstructor(NewTarget, &quot;%Object.prototype%&quot;).
             </span><span class="kw">let </span>prototype =
@@ -1541,7 +1549,7 @@
 
         <span class="comment">// 2. If value is undefined or null, return OrdinaryObjectCreate(%Object.prototype%).
         </span><span class="kw">if </span>value.is_null_or_undefined() {
-            <span class="prelude-val">Ok</span>(JsObject::with_object_proto(context).into())
+            <span class="prelude-val">Ok</span>(JsObject::with_object_proto(context.intrinsics()).into())
         } <span class="kw">else </span>{
             <span class="comment">// 3. Return ! ToObject(value).
             </span>value.to_object(context).map(JsValue::from)
@@ -1882,7 +1890,7 @@
         </span><span class="kw">let </span>own_keys = obj.__own_property_keys__(context)<span class="question-mark">?</span>;
 
         <span class="comment">// 3. Let descriptors be OrdinaryObjectCreate(%Object.prototype%).
-        </span><span class="kw">let </span>descriptors = JsObject::with_object_proto(context);
+        </span><span class="kw">let </span>descriptors = JsObject::with_object_proto(context.intrinsics());
 
         <span class="comment">// 4. For each element key of ownKeys, do
         </span><span class="kw">for </span>key <span class="kw">in </span>own_keys {
@@ -1921,7 +1929,7 @@
 
         <span class="comment">// 2. Let obj be ! OrdinaryObjectCreate(%Object.prototype%).
         // 3. Assert: obj is an extensible ordinary object with no own properties.
-        </span><span class="kw">let </span>obj = JsObject::with_object_proto(context);
+        </span><span class="kw">let </span>obj = JsObject::with_object_proto(context.intrinsics());
 
         <span class="comment">// 4. If Desc has a [[Value]] field, then
         </span><span class="kw">if let </span><span class="prelude-val">Some</span>(value) = desc.value() {
@@ -2666,7 +2674,7 @@
 
         <span class="comment">// 2. Let obj be ! OrdinaryObjectCreate(%Object.prototype%).
         // 3. Assert: obj is an extensible ordinary object with no own properties.
-        </span><span class="kw">let </span>obj = JsObject::with_object_proto(context);
+        </span><span class="kw">let </span>obj = JsObject::with_object_proto(context.intrinsics());
 
         <span class="comment">// 4. Let closure be a new Abstract Closure with parameters (key, value) that captures
         // obj and performs the following steps when called:
