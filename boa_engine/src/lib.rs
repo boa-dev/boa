@@ -45,9 +45,6 @@
 //!  - **console** - Enables `boa`'s [WHATWG `console`][whatwg] object implementation.
 //!  - **profiler** - Enables profiling with measureme (this is mostly internal).
 //!  - **intl** - Enables `boa`'s [ECMA-402 Internationalization API][ecma-402] (`Intl` object)
-//!  - **wasmbind** - Enables the `wasmbind` feature in the `chrono` crate, to enable retrieving
-//!    real-time clocks in web browsers. Note that enabling this feature can make build fail if
-//!    `wasm-bindgen` is not available in a Webassembly platform.
 //!
 //! # Boa Crates
 //!  - **`boa_ast`** - Boa's ECMAScript Abstract Syntax Tree.

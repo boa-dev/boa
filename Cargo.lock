@@ -560,6 +560,7 @@ name = "boa_wasm"
 version = "0.16.0"
 dependencies = [
  "boa_engine",
+ "chrono",
  "getrandom",
  "wasm-bindgen",
 ]

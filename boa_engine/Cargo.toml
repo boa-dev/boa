@@ -42,9 +42,6 @@ console = []
 # Enable Boa's additional ECMAScript features for web browsers.
 annex-b = []
 
-# Enables the wasmbind dependency of the `chrono` crate.
-wasmbind = ["chrono/wasmbind"]
-
 [dependencies]
 boa_interner.workspace = true
 boa_gc = { workspace = true, features = [ "thinvec" ] }
