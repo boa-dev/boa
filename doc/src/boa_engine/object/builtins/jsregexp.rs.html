@@ -280,10 +280,23 @@
 <a href="#279" id="279">279</a>
 <a href="#280" id="280">280</a>
 <a href="#281" id="281">281</a>
+<a href="#282" id="282">282</a>
+<a href="#283" id="283">283</a>
+<a href="#284" id="284">284</a>
+<a href="#285" id="285">285</a>
+<a href="#286" id="286">286</a>
+<a href="#287" id="287">287</a>
+<a href="#288" id="288">288</a>
+<a href="#289" id="289">289</a>
+<a href="#290" id="290">290</a>
+<a href="#291" id="291">291</a>
+<a href="#292" id="292">292</a>
+<a href="#293" id="293">293</a>
 </pre><pre class="rust"><code><span class="doccomment">//! A Rust API wrapper for Boa&#39;s `RegExp` Builtin ECMAScript Object
 </span><span class="kw">use crate</span>::{
     builtins::RegExp,
     object::{JsArray, JsObject, JsObjectType},
+    value::TryFromJs,
     Context, JsNativeError, JsResult, JsValue,
 };
 
@@ -361,7 +374,7 @@
     <span class="doccomment">/// Create a `JsRegExp` from a regular expression `JsObject`
     </span><span class="attr">#[inline]
     </span><span class="kw">pub fn </span>from_object(object: JsObject) -&gt; JsResult&lt;<span class="self">Self</span>&gt; {
-        <span class="kw">if </span>object.borrow().is_regexp() {
+        <span class="kw">if </span>object.is_regexp() {
             <span class="prelude-val">Ok</span>(<span class="self">Self </span>{ inner: object })
         } <span class="kw">else </span>{
             <span class="prelude-val">Err</span>(JsNativeError::typ()
@@ -561,5 +574,16 @@
 }
 
 <span class="kw">impl </span>JsObjectType <span class="kw">for </span>JsRegExp {}
+
+<span class="kw">impl </span>TryFromJs <span class="kw">for </span>JsRegExp {
+    <span class="kw">fn </span>try_from_js(value: <span class="kw-2">&amp;</span>JsValue, _context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;<span class="self">Self</span>&gt; {
+        <span class="kw">match </span>value {
+            JsValue::Object(o) =&gt; <span class="self">Self</span>::from_object(o.clone()),
+            <span class="kw">_ </span>=&gt; <span class="prelude-val">Err</span>(JsNativeError::typ()
+                .with_message(<span class="string">&quot;value is not a RegExp object&quot;</span>)
+                .into()),
+        }
+    }
+}
 </code></pre></div>
 </section></main><div id="rustdoc-vars" data-root-path="../../../../" data-static-root-path="../../../../static.files/" data-current-crate="boa_engine" data-themes="" data-resource-suffix="" data-rustdoc-version="1.68.2 (9eb3afe9e 2023-03-27)" data-search-js="search-98d53477a794af0b.js" data-settings-js="settings-c3c521c753752a1a.js" data-settings-css="settings-08ddfdda51b8ee2e.css" ></div></body></html>

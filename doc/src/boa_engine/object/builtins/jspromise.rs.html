@@ -884,6 +884,18 @@
 <a href="#883" id="883">883</a>
 <a href="#884" id="884">884</a>
 <a href="#885" id="885">885</a>
+<a href="#886" id="886">886</a>
+<a href="#887" id="887">887</a>
+<a href="#888" id="888">888</a>
+<a href="#889" id="889">889</a>
+<a href="#890" id="890">890</a>
+<a href="#891" id="891">891</a>
+<a href="#892" id="892">892</a>
+<a href="#893" id="893">893</a>
+<a href="#894" id="894">894</a>
+<a href="#895" id="895">895</a>
+<a href="#896" id="896">896</a>
+<a href="#897" id="897">897</a>
 </pre><pre class="rust"><code><span class="doccomment">//! A Rust API wrapper for Boa&#39;s promise Builtin ECMAScript Object
 
 </span><span class="attr">#![allow(missing_docs)]
@@ -897,6 +909,7 @@
     },
     context::intrinsics::StandardConstructors,
     object::{JsObject, JsObjectType, ObjectData},
+    value::TryFromJs,
     Context, JsError, JsNativeError, JsResult, JsValue,
 };
 
@@ -1129,13 +1142,13 @@
     /// # }
     /// ```
     </span><span class="attr">#[inline]
-    </span><span class="kw">pub fn </span>from_object(object: JsObject) -&gt; JsResult&lt;JsPromise&gt; {
+    </span><span class="kw">pub fn </span>from_object(object: JsObject) -&gt; JsResult&lt;<span class="self">Self</span>&gt; {
         <span class="kw">if </span>!object.is_promise() {
             <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::typ()
                 .with_message(<span class="string">&quot;`object` is not a Promise&quot;</span>)
                 .into());
         }
-        <span class="prelude-val">Ok</span>(JsPromise { inner: object })
+        <span class="prelude-val">Ok</span>(<span class="self">Self </span>{ inner: object })
     }
 
     <span class="doccomment">/// Resolves a `JsValue` into a `JsPromise`.
@@ -1769,5 +1782,16 @@
 }
 
 <span class="kw">impl </span>JsObjectType <span class="kw">for </span>JsPromise {}
+
+<span class="kw">impl </span>TryFromJs <span class="kw">for </span>JsPromise {
+    <span class="kw">fn </span>try_from_js(value: <span class="kw-2">&amp;</span>JsValue, _context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;<span class="self">Self</span>&gt; {
+        <span class="kw">match </span>value {
+            JsValue::Object(o) =&gt; <span class="self">Self</span>::from_object(o.clone()),
+            <span class="kw">_ </span>=&gt; <span class="prelude-val">Err</span>(JsNativeError::typ()
+                .with_message(<span class="string">&quot;value is not a Promise object&quot;</span>)
+                .into()),
+        }
+    }
+}
 </code></pre></div>
 </section></main><div id="rustdoc-vars" data-root-path="../../../../" data-static-root-path="../../../../static.files/" data-current-crate="boa_engine" data-themes="" data-resource-suffix="" data-rustdoc-version="1.68.2 (9eb3afe9e 2023-03-27)" data-search-js="search-98d53477a794af0b.js" data-settings-js="settings-c3c521c753752a1a.js" data-settings-css="settings-08ddfdda51b8ee2e.css" ></div></body></html>

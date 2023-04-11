@@ -517,6 +517,31 @@
 <a href="#516" id="516">516</a>
 <a href="#517" id="517">517</a>
 <a href="#518" id="518">518</a>
+<a href="#519" id="519">519</a>
+<a href="#520" id="520">520</a>
+<a href="#521" id="521">521</a>
+<a href="#522" id="522">522</a>
+<a href="#523" id="523">523</a>
+<a href="#524" id="524">524</a>
+<a href="#525" id="525">525</a>
+<a href="#526" id="526">526</a>
+<a href="#527" id="527">527</a>
+<a href="#528" id="528">528</a>
+<a href="#529" id="529">529</a>
+<a href="#530" id="530">530</a>
+<a href="#531" id="531">531</a>
+<a href="#532" id="532">532</a>
+<a href="#533" id="533">533</a>
+<a href="#534" id="534">534</a>
+<a href="#535" id="535">535</a>
+<a href="#536" id="536">536</a>
+<a href="#537" id="537">537</a>
+<a href="#538" id="538">538</a>
+<a href="#539" id="539">539</a>
+<a href="#540" id="540">540</a>
+<a href="#541" id="541">541</a>
+<a href="#542" id="542">542</a>
+<a href="#543" id="543">543</a>
 </pre><pre class="rust"><code><span class="doccomment">//! A Rust API wrapper for the `Proxy` Builtin ECMAScript Object
 </span><span class="kw">use </span>boa_gc::{Finalize, Trace};
 
@@ -525,7 +550,8 @@
     native_function::{NativeFunction, NativeFunctionPointer},
     object::{FunctionObjectBuilder, JsObject, JsObjectType, ObjectData},
     string::utf16,
-    Context, JsResult, JsValue,
+    value::TryFromJs,
+    Context, JsNativeError, JsResult, JsValue,
 };
 
 <span class="kw">use </span><span class="kw">super</span>::JsFunction;
@@ -551,6 +577,19 @@
     <span class="doccomment">/// Creates a new [`JsProxyBuilder`] to easily construct a [`JsProxy`].
     </span><span class="kw">pub fn </span>builder(target: JsObject) -&gt; JsProxyBuilder {
         JsProxyBuilder::new(target)
+    }
+
+    <span class="doccomment">/// Create a [`JsProxy`] from a [`JsObject`], if the object is not a `Proxy` throw a
+    /// `TypeError`.
+    </span><span class="attr">#[inline]
+    </span><span class="kw">pub fn </span>from_object(object: JsObject) -&gt; JsResult&lt;<span class="self">Self</span>&gt; {
+        <span class="kw">if </span>object.borrow().is_proxy() {
+            <span class="prelude-val">Ok</span>(<span class="self">Self </span>{ inner: object })
+        } <span class="kw">else </span>{
+            <span class="prelude-val">Err</span>(JsNativeError::typ()
+                .with_message(<span class="string">&quot;object is not a Proxy&quot;</span>)
+                .into())
+        }
     }
 }
 
@@ -578,6 +617,17 @@
 }
 
 <span class="kw">impl </span>JsObjectType <span class="kw">for </span>JsProxy {}
+
+<span class="kw">impl </span>TryFromJs <span class="kw">for </span>JsProxy {
+    <span class="kw">fn </span>try_from_js(value: <span class="kw-2">&amp;</span>JsValue, _context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;<span class="self">Self</span>&gt; {
+        <span class="kw">match </span>value {
+            JsValue::Object(o) =&gt; <span class="self">Self</span>::from_object(o.clone()),
+            <span class="kw">_ </span>=&gt; <span class="prelude-val">Err</span>(JsNativeError::typ()
+                .with_message(<span class="string">&quot;value is not a Proxy object&quot;</span>)
+                .into()),
+        }
+    }
+}
 
 <span class="doccomment">/// `JsRevocableProxy` provides a wrapper for `JsProxy` that can be disabled.
 ///

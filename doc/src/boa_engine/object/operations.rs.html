@@ -1233,6 +1233,10 @@
 <a href="#1232" id="1232">1232</a>
 <a href="#1233" id="1233">1233</a>
 <a href="#1234" id="1234">1234</a>
+<a href="#1235" id="1235">1235</a>
+<a href="#1236" id="1236">1236</a>
+<a href="#1237" id="1237">1237</a>
+<a href="#1238" id="1238">1238</a>
 </pre><pre class="rust"><code><span class="kw">use crate</span>::{
     builtins::{function::ClassFieldDefinition, Array},
     context::intrinsics::{StandardConstructor, StandardConstructors},
@@ -1535,13 +1539,16 @@
         </span><span class="prelude-val">Ok</span>(desc.is_some())
     }
 
-    <span class="doccomment">/// Call this object.
+    <span class="doccomment">/// `Call ( F, V [ , argumentsList ] )`
     ///
     /// # Panics
     ///
     /// Panics if the object is currently mutably borrowed.
-    </span><span class="comment">// &lt;https://tc39.es/ecma262/#sec-prepareforordinarycall&gt;
-    // &lt;https://tc39.es/ecma262/#sec-ecmascript-function-objects-call-thisargument-argumentslist&gt;
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-call
     </span><span class="attr">#[track_caller]
     #[inline]
     </span><span class="kw">pub fn </span>call(
@@ -1552,8 +1559,9 @@
     ) -&gt; JsResult&lt;JsValue&gt; {
         <span class="comment">// 1. If argumentsList is not present, set argumentsList to a new empty List.
         // 2. If IsCallable(F) is false, throw a TypeError exception.
-        </span><span class="kw">let </span>function = JsFunction::from_object(<span class="self">self</span>.clone())
-            .ok_or_else(|| JsNativeError::typ().with_message(<span class="string">&quot;not a function&quot;</span>))<span class="question-mark">?</span>;
+        </span><span class="kw">let </span>function = JsFunction::from_object(<span class="self">self</span>.clone()).ok_or_else(|| {
+            JsNativeError::typ().with_message(<span class="string">&quot;only callable objects / functions can be called&quot;</span>)
+        })<span class="question-mark">?</span>;
 
         <span class="comment">// 3. Return ? F.[[Call]](V, argumentsList).
         </span>function.__call__(this, args, context)

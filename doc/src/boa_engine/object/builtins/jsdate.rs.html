@@ -588,6 +588,30 @@
 <a href="#587" id="587">587</a>
 <a href="#588" id="588">588</a>
 <a href="#589" id="589">589</a>
+<a href="#590" id="590">590</a>
+<a href="#591" id="591">591</a>
+<a href="#592" id="592">592</a>
+<a href="#593" id="593">593</a>
+<a href="#594" id="594">594</a>
+<a href="#595" id="595">595</a>
+<a href="#596" id="596">596</a>
+<a href="#597" id="597">597</a>
+<a href="#598" id="598">598</a>
+<a href="#599" id="599">599</a>
+<a href="#600" id="600">600</a>
+<a href="#601" id="601">601</a>
+<a href="#602" id="602">602</a>
+<a href="#603" id="603">603</a>
+<a href="#604" id="604">604</a>
+<a href="#605" id="605">605</a>
+<a href="#606" id="606">606</a>
+<a href="#607" id="607">607</a>
+<a href="#608" id="608">608</a>
+<a href="#609" id="609">609</a>
+<a href="#610" id="610">610</a>
+<a href="#611" id="611">611</a>
+<a href="#612" id="612">612</a>
+<a href="#613" id="613">613</a>
 </pre><pre class="rust"><code><span class="doccomment">//! A Rust API wrapper for Boa&#39;s `Date` ECMAScript Builtin Object.
 </span><span class="kw">use </span>std::ops::Deref;
 
@@ -597,6 +621,7 @@
 <span class="kw">use crate</span>::{
     builtins::Date,
     object::{JsObject, JsObjectType, ObjectData},
+    value::TryFromJs,
     Context, JsNativeError, JsResult, JsValue,
 };
 
@@ -635,6 +660,18 @@
         <span class="kw">let </span>inner = JsObject::from_proto_and_data(prototype, ObjectData::date(Date::default()));
 
         <span class="self">Self </span>{ inner }
+    }
+
+    <span class="doccomment">/// Create a new `JsDate` object from an existing object.
+    </span><span class="attr">#[inline]
+    </span><span class="kw">pub fn </span>from_object(object: JsObject) -&gt; JsResult&lt;<span class="self">Self</span>&gt; {
+        <span class="kw">if </span>object.is_date() {
+            <span class="prelude-val">Ok</span>(<span class="self">Self </span>{ inner: object })
+        } <span class="kw">else </span>{
+            <span class="prelude-val">Err</span>(JsNativeError::typ()
+                .with_message(<span class="string">&quot;object is not a Date&quot;</span>)
+                .into())
+        }
     }
 
     <span class="doccomment">/// Return a `Number` representing the milliseconds elapsed since the UNIX epoch.
@@ -1177,5 +1214,16 @@
 }
 
 <span class="kw">impl </span>JsObjectType <span class="kw">for </span>JsDate {}
+
+<span class="kw">impl </span>TryFromJs <span class="kw">for </span>JsDate {
+    <span class="kw">fn </span>try_from_js(value: <span class="kw-2">&amp;</span>JsValue, _context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;<span class="self">Self</span>&gt; {
+        <span class="kw">match </span>value {
+            JsValue::Object(o) =&gt; <span class="self">Self</span>::from_object(o.clone()),
+            <span class="kw">_ </span>=&gt; <span class="prelude-val">Err</span>(JsNativeError::typ()
+                .with_message(<span class="string">&quot;value is not a Date object&quot;</span>)
+                .into()),
+        }
+    }
+}
 </code></pre></div>
 </section></main><div id="rustdoc-vars" data-root-path="../../../../" data-static-root-path="../../../../static.files/" data-current-crate="boa_engine" data-themes="" data-resource-suffix="" data-rustdoc-version="1.68.2 (9eb3afe9e 2023-03-27)" data-search-js="search-98d53477a794af0b.js" data-settings-js="settings-c3c521c753752a1a.js" data-settings-css="settings-08ddfdda51b8ee2e.css" ></div></body></html>

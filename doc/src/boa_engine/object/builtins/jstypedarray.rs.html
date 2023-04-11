@@ -453,31 +453,140 @@
 <a href="#452" id="452">452</a>
 <a href="#453" id="453">453</a>
 <a href="#454" id="454">454</a>
+<a href="#455" id="455">455</a>
+<a href="#456" id="456">456</a>
+<a href="#457" id="457">457</a>
+<a href="#458" id="458">458</a>
+<a href="#459" id="459">459</a>
+<a href="#460" id="460">460</a>
+<a href="#461" id="461">461</a>
+<a href="#462" id="462">462</a>
+<a href="#463" id="463">463</a>
+<a href="#464" id="464">464</a>
+<a href="#465" id="465">465</a>
+<a href="#466" id="466">466</a>
+<a href="#467" id="467">467</a>
+<a href="#468" id="468">468</a>
+<a href="#469" id="469">469</a>
+<a href="#470" id="470">470</a>
+<a href="#471" id="471">471</a>
+<a href="#472" id="472">472</a>
+<a href="#473" id="473">473</a>
+<a href="#474" id="474">474</a>
+<a href="#475" id="475">475</a>
+<a href="#476" id="476">476</a>
+<a href="#477" id="477">477</a>
+<a href="#478" id="478">478</a>
+<a href="#479" id="479">479</a>
+<a href="#480" id="480">480</a>
+<a href="#481" id="481">481</a>
+<a href="#482" id="482">482</a>
+<a href="#483" id="483">483</a>
+<a href="#484" id="484">484</a>
+<a href="#485" id="485">485</a>
+<a href="#486" id="486">486</a>
+<a href="#487" id="487">487</a>
+<a href="#488" id="488">488</a>
+<a href="#489" id="489">489</a>
+<a href="#490" id="490">490</a>
+<a href="#491" id="491">491</a>
+<a href="#492" id="492">492</a>
+<a href="#493" id="493">493</a>
+<a href="#494" id="494">494</a>
+<a href="#495" id="495">495</a>
+<a href="#496" id="496">496</a>
+<a href="#497" id="497">497</a>
+<a href="#498" id="498">498</a>
+<a href="#499" id="499">499</a>
+<a href="#500" id="500">500</a>
+<a href="#501" id="501">501</a>
+<a href="#502" id="502">502</a>
+<a href="#503" id="503">503</a>
+<a href="#504" id="504">504</a>
+<a href="#505" id="505">505</a>
+<a href="#506" id="506">506</a>
+<a href="#507" id="507">507</a>
+<a href="#508" id="508">508</a>
+<a href="#509" id="509">509</a>
+<a href="#510" id="510">510</a>
+<a href="#511" id="511">511</a>
+<a href="#512" id="512">512</a>
+<a href="#513" id="513">513</a>
+<a href="#514" id="514">514</a>
+<a href="#515" id="515">515</a>
+<a href="#516" id="516">516</a>
+<a href="#517" id="517">517</a>
+<a href="#518" id="518">518</a>
+<a href="#519" id="519">519</a>
+<a href="#520" id="520">520</a>
+<a href="#521" id="521">521</a>
+<a href="#522" id="522">522</a>
+<a href="#523" id="523">523</a>
+<a href="#524" id="524">524</a>
+<a href="#525" id="525">525</a>
+<a href="#526" id="526">526</a>
+<a href="#527" id="527">527</a>
+<a href="#528" id="528">528</a>
+<a href="#529" id="529">529</a>
+<a href="#530" id="530">530</a>
+<a href="#531" id="531">531</a>
+<a href="#532" id="532">532</a>
+<a href="#533" id="533">533</a>
+<a href="#534" id="534">534</a>
+<a href="#535" id="535">535</a>
+<a href="#536" id="536">536</a>
+<a href="#537" id="537">537</a>
+<a href="#538" id="538">538</a>
+<a href="#539" id="539">539</a>
+<a href="#540" id="540">540</a>
+<a href="#541" id="541">541</a>
+<a href="#542" id="542">542</a>
+<a href="#543" id="543">543</a>
+<a href="#544" id="544">544</a>
+<a href="#545" id="545">545</a>
+<a href="#546" id="546">546</a>
+<a href="#547" id="547">547</a>
+<a href="#548" id="548">548</a>
+<a href="#549" id="549">549</a>
+<a href="#550" id="550">550</a>
+<a href="#551" id="551">551</a>
+<a href="#552" id="552">552</a>
+<a href="#553" id="553">553</a>
+<a href="#554" id="554">554</a>
+<a href="#555" id="555">555</a>
+<a href="#556" id="556">556</a>
+<a href="#557" id="557">557</a>
+<a href="#558" id="558">558</a>
+<a href="#559" id="559">559</a>
+<a href="#560" id="560">560</a>
 </pre><pre class="rust"><code><span class="doccomment">//! Rust API wrappers for the `TypedArray` Builtin ECMAScript Objects
 </span><span class="kw">use crate</span>::{
     builtins::typed_array::TypedArray,
     builtins::BuiltInConstructor,
     error::JsNativeError,
     object::{JsArrayBuffer, JsFunction, JsObject, JsObjectType},
-    value::IntoOrUndefined,
+    value::{IntoOrUndefined, TryFromJs},
     Context, JsResult, JsString, JsValue,
 };
 <span class="kw">use </span>boa_gc::{Finalize, Trace};
 <span class="kw">use </span>std::ops::Deref;
 
-<span class="doccomment">/// `JsTypedArray` provides a wrapper for Boa&#39;s implementation of the ECMAScript `TypedArray` builtin object.
+<span class="doccomment">/// `JsTypedArray` provides a wrapper for Boa&#39;s implementation of the ECMAScript `TypedArray`
+/// builtin object.
 </span><span class="attr">#[derive(Debug, Clone, Trace, Finalize)]
 </span><span class="kw">pub struct </span>JsTypedArray {
     inner: JsValue,
 }
 
 <span class="kw">impl </span>JsTypedArray {
-    <span class="doccomment">/// Create a [`JsTypedArray`] from a [`JsObject`], if the object is not a typed array throw a `TypeError`.
+    <span class="doccomment">/// Create a [`JsTypedArray`] from a [`JsObject`], if the object is not a typed array throw a
+    /// `TypeError`.
     ///
-    /// This does not clone the fields of the typed array, it only does a shallow clone of the object.
+    /// This does not clone the fields of the typed array, it only does a shallow clone of the
+    /// object.
     </span><span class="attr">#[inline]
     </span><span class="kw">pub fn </span>from_object(object: JsObject) -&gt; JsResult&lt;<span class="self">Self</span>&gt; {
-        <span class="kw">if </span>object.borrow().is_typed_array() {
+        <span class="kw">if </span>object.is_typed_array() {
             <span class="prelude-val">Ok</span>(<span class="self">Self </span>{
                 inner: object.into(),
             })
@@ -801,15 +910,55 @@
 
 <span class="kw">impl </span>JsObjectType <span class="kw">for </span>JsTypedArray {}
 
+<span class="kw">impl </span>TryFromJs <span class="kw">for </span>JsTypedArray {
+    <span class="kw">fn </span>try_from_js(value: <span class="kw-2">&amp;</span>JsValue, _context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;<span class="self">Self</span>&gt; {
+        <span class="kw">match </span>value {
+            JsValue::Object(o) =&gt; <span class="self">Self</span>::from_object(o.clone()),
+            <span class="kw">_ </span>=&gt; <span class="prelude-val">Err</span>(JsNativeError::typ()
+                .with_message(<span class="string">&quot;value is not a TypedArray object&quot;</span>)
+                .into()),
+        }
+    }
+}
+
 <span class="macro">macro_rules! </span>JsTypedArrayType {
-    (<span class="macro-nonterminal">$name</span>:ident, <span class="macro-nonterminal">$constructor_function</span>:ident, <span class="macro-nonterminal">$constructor_object</span>:ident, <span class="macro-nonterminal">$element</span>:ty) =&gt; {
-        <span class="attr">#[doc = <span class="macro">concat!</span>(<span class="string">&quot;`&quot;</span>, <span class="macro">stringify!</span>(<span class="macro-nonterminal">$name</span>), <span class="string">&quot;` provides a wrapper for Boa&#39;s implementation of the ECMAScript `&quot;</span>, <span class="macro">stringify!</span>(<span class="macro-nonterminal">$constructor_function</span>) ,<span class="string">&quot;` builtin object.&quot;</span>)]
+    (
+        <span class="macro-nonterminal">$name</span>:ident,
+        <span class="macro-nonterminal">$constructor_function</span>:ident,
+        <span class="macro-nonterminal">$checker_function</span>:ident,
+        <span class="macro-nonterminal">$constructor_object</span>:ident,
+        <span class="macro-nonterminal">$element</span>:ty
+    ) =&gt; {
+
+        <span class="attr">#[doc = <span class="macro">concat!</span>(
+            <span class="string">&quot;`&quot;</span>, <span class="macro">stringify!</span>(<span class="macro-nonterminal">$name</span>),
+            <span class="string">&quot;` provides a wrapper for Boa&#39;s implementation of the ECMAScript `&quot;</span>,
+            <span class="macro">stringify!</span>(<span class="macro-nonterminal">$constructor_function</span>) ,<span class="string">&quot;` builtin object.&quot;
+        </span>)]
         #[derive(Debug, Clone, Trace, Finalize)]
         </span><span class="kw">pub struct </span><span class="macro-nonterminal">$name </span>{
             inner: JsTypedArray,
         }
 
         <span class="kw">impl </span><span class="macro-nonterminal">$name </span>{
+            <span class="attr">#[doc = <span class="macro">concat!</span>(<span class="string">&quot;Creates a `&quot;</span>, <span class="macro">stringify!</span>(<span class="macro-nonterminal">$name</span>),
+                <span class="string">&quot;` using a [`JsObject`]. It will make sure that the object is of the correct kind.&quot;
+            </span>)]
+            #[inline]
+            </span><span class="kw">pub fn </span>from_object(object: JsObject) -&gt; JsResult&lt;<span class="self">Self</span>&gt; {
+                <span class="kw">if </span>object.<span class="macro-nonterminal">$checker_function</span>() {
+                    <span class="prelude-val">Ok</span>(<span class="self">Self </span>{
+                        inner: JsTypedArray {
+                            inner: object.into(),
+                        },
+                    })
+                } <span class="kw">else </span>{
+                    <span class="prelude-val">Err</span>(JsNativeError::typ()
+                        .with_message(<span class="string">&quot;object is not a TypedArray&quot;</span>)
+                        .into())
+                }
+            }
+
             <span class="doccomment">/// Create the typed array from a [`JsArrayBuffer`].
             </span><span class="kw">pub fn </span>from_array_buffer(
                 array_buffer: JsArrayBuffer,
@@ -896,16 +1045,79 @@
                 <span class="kw-2">&amp;</span><span class="self">self</span>.inner
             }
         }
+
+        <span class="kw">impl </span>TryFromJs <span class="kw">for </span><span class="macro-nonterminal">$name </span>{
+            <span class="kw">fn </span>try_from_js(value: <span class="kw-2">&amp;</span>JsValue, _context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;<span class="self">Self</span>&gt; {
+                <span class="kw">match </span>value {
+                    JsValue::Object(o) =&gt; <span class="self">Self</span>::from_object(o.clone()),
+                    <span class="kw">_ </span>=&gt; <span class="prelude-val">Err</span>(JsNativeError::typ()
+                        .with_message(<span class="macro">concat!</span>(
+                            <span class="string">&quot;value is not a &quot;</span>,
+                            <span class="macro">stringify!</span>(<span class="macro-nonterminal">$constructor_function</span>),
+                            <span class="string">&quot; object&quot;
+                        </span>))
+                        .into()),
+                }
+            }
+        }
     };
 }
 
-<span class="macro">JsTypedArrayType!</span>(JsUint8Array, Uint8Array, typed_uint8_array, u8);
-<span class="macro">JsTypedArrayType!</span>(JsInt8Array, Int8Array, typed_int8_array, i8);
-<span class="macro">JsTypedArrayType!</span>(JsUint16Array, Uint16Array, typed_uint16_array, u16);
-<span class="macro">JsTypedArrayType!</span>(JsInt16Array, Int16Array, typed_int16_array, i16);
-<span class="macro">JsTypedArrayType!</span>(JsUint32Array, Uint32Array, typed_uint32_array, u32);
-<span class="macro">JsTypedArrayType!</span>(JsInt32Array, Int32Array, typed_int32_array, i32);
-<span class="macro">JsTypedArrayType!</span>(JsFloat32Array, Float32Array, typed_float32_array, f32);
-<span class="macro">JsTypedArrayType!</span>(JsFloat64Array, Float64Array, typed_float64_array, f64);
+<span class="macro">JsTypedArrayType!</span>(
+    JsUint8Array,
+    Uint8Array,
+    is_typed_uint8_array,
+    typed_uint8_array,
+    u8
+);
+<span class="macro">JsTypedArrayType!</span>(
+    JsInt8Array,
+    Int8Array,
+    is_typed_int8_array,
+    typed_int8_array,
+    i8
+);
+<span class="macro">JsTypedArrayType!</span>(
+    JsUint16Array,
+    Uint16Array,
+    is_typed_uint16_array,
+    typed_uint16_array,
+    u16
+);
+<span class="macro">JsTypedArrayType!</span>(
+    JsInt16Array,
+    Int16Array,
+    is_typed_int16_array,
+    typed_int16_array,
+    i16
+);
+<span class="macro">JsTypedArrayType!</span>(
+    JsUint32Array,
+    Uint32Array,
+    is_typed_uint32_array,
+    typed_uint32_array,
+    u32
+);
+<span class="macro">JsTypedArrayType!</span>(
+    JsInt32Array,
+    Int32Array,
+    is_typed_int32_array,
+    typed_int32_array,
+    i32
+);
+<span class="macro">JsTypedArrayType!</span>(
+    JsFloat32Array,
+    Float32Array,
+    is_typed_float32_array,
+    typed_float32_array,
+    f32
+);
+<span class="macro">JsTypedArrayType!</span>(
+    JsFloat64Array,
+    Float64Array,
+    is_typed_float64_array,
+    typed_float64_array,
+    f64
+);
 </code></pre></div>
 </section></main><div id="rustdoc-vars" data-root-path="../../../../" data-static-root-path="../../../../static.files/" data-current-crate="boa_engine" data-themes="" data-resource-suffix="" data-rustdoc-version="1.68.2 (9eb3afe9e 2023-03-27)" data-search-js="search-98d53477a794af0b.js" data-settings-js="settings-c3c521c753752a1a.js" data-settings-css="settings-08ddfdda51b8ee2e.css" ></div></body></html>
