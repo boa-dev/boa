@@ -2185,21 +2185,20 @@ impl String {
             length.to_integer_or_infinity(context)?
         };
 
-        // 8. Set intLength to the result of clamping intLength between 0 and size.
+        // 9. Set intLength to the result of clamping intLength between 0 and size.
         let int_length = match int_length {
             IntegerOrInfinity::NegativeInfinity => 0,
             IntegerOrInfinity::PositiveInfinity => size,
             IntegerOrInfinity::Integer(i) => i.clamp(0, size),
         } as usize;
 
-        // 9. Let intEnd be min(intStart + intLength, size).
+        // 10. Let intEnd be min(intStart + intLength, size).
         let int_end = min(int_start + int_length, size as usize);
 
+        // 11. Return the substring of S from intStart to intEnd.
         if let Some(substr) = s.get(int_start..int_end) {
-            // 11. Return the substring of S from intStart to intEnd.
             Ok(js_string!(substr).into())
         } else {
-            // 10. If intStart ≥ intEnd, return the empty String.
             Ok(js_string!().into())
         }
     }
