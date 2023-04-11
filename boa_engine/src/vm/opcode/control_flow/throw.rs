@@ -3,6 +3,7 @@ use crate::{
     vm::{call_frame::AbruptCompletionRecord, opcode::Operation, CompletionType},
     Context, JsError, JsNativeError, JsResult,
 };
+use thin_vec::ThinVec;
 
 /// `Throw` implements the Opcode Operation for `Opcode::Throw`
 ///
@@ -23,7 +24,7 @@ impl Operation for Throw {
         };
 
         // Close all iterators that are still open.
-        let mut iterators = Vec::new();
+        let mut iterators = ThinVec::new();
         std::mem::swap(&mut iterators, &mut context.vm.frame_mut().iterators);
         for (iterator, done) in iterators {
             if done {
