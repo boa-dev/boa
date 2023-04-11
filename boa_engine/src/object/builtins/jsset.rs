@@ -7,6 +7,7 @@ use crate::{
     builtins::Set,
     error::JsNativeError,
     object::{JsFunction, JsObject, JsObjectType, JsSetIterator},
+    value::TryFromJs,
     Context, JsResult, JsValue,
 };
 
@@ -143,7 +144,7 @@ impl JsSet {
     /// Utility: Creates `JsSet` from `JsObject`, if not a Set throw `TypeError`.
     #[inline]
     pub fn from_object(object: JsObject) -> JsResult<Self> {
-        if object.borrow().is_set() {
+        if object.is_set() {
             Ok(Self { inner: object })
         } else {
             Err(JsNativeError::typ()
@@ -185,3 +186,14 @@ impl Deref for JsSet {
 }
 
 impl JsObjectType for JsSet {}
+
+impl TryFromJs for JsSet {
+    fn try_from_js(value: &JsValue, _context: &mut Context<'_>) -> JsResult<Self> {
+        match value {
+            JsValue::Object(o) => Self::from_object(o.clone()),
+            _ => Err(JsNativeError::typ()
+                .with_message("value is not a Set object")
+                .into()),
+        }
+    }
+}

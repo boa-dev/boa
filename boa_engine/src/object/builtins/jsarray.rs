@@ -3,7 +3,7 @@ use crate::{
     builtins::Array,
     error::JsNativeError,
     object::{JsFunction, JsObject, JsObjectType},
-    value::IntoOrUndefined,
+    value::{IntoOrUndefined, TryFromJs},
     Context, JsResult, JsString, JsValue,
 };
 use boa_gc::{Finalize, Trace};
@@ -40,7 +40,7 @@ impl JsArray {
     /// This does not clone the fields of the array, it only does a shallow clone of the object.
     #[inline]
     pub fn from_object(object: JsObject) -> JsResult<Self> {
-        if object.borrow().is_array() {
+        if object.is_array() {
             Ok(Self { inner: object })
         } else {
             Err(JsNativeError::typ()
@@ -399,3 +399,14 @@ impl Deref for JsArray {
 }
 
 impl JsObjectType for JsArray {}
+
+impl TryFromJs for JsArray {
+    fn try_from_js(value: &JsValue, _context: &mut Context<'_>) -> JsResult<Self> {
+        match value {
+            JsValue::Object(o) => Self::from_object(o.clone()),
+            _ => Err(JsNativeError::typ()
+                .with_message("value is not an Array object")
+                .into()),
+        }
+    }
+}

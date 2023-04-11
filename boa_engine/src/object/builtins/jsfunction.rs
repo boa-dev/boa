@@ -1,7 +1,8 @@
 //! A Rust API wrapper for Boa's `Function` Builtin ECMAScript Object
 use crate::{
     object::{JsObject, JsObjectType},
-    JsValue,
+    value::TryFromJs,
+    Context, JsNativeError, JsResult, JsValue,
 };
 use boa_gc::{Finalize, Trace};
 use std::ops::Deref;
@@ -52,3 +53,18 @@ impl Deref for JsFunction {
 }
 
 impl JsObjectType for JsFunction {}
+
+impl TryFromJs for JsFunction {
+    fn try_from_js(value: &JsValue, _context: &mut Context<'_>) -> JsResult<Self> {
+        match value {
+            JsValue::Object(o) => Self::from_object(o.clone()).ok_or_else(|| {
+                JsNativeError::typ()
+                    .with_message("object is not a function")
+                    .into()
+            }),
+            _ => Err(JsNativeError::typ()
+                .with_message("value is not a Function object")
+                .into()),
+        }
+    }
+}

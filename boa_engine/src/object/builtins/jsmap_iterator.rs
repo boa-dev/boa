@@ -3,6 +3,7 @@ use crate::{
     builtins::map::MapIterator,
     error::JsNativeError,
     object::{JsObject, JsObjectType},
+    value::TryFromJs,
     Context, JsResult, JsValue,
 };
 
@@ -19,7 +20,7 @@ impl JsMapIterator {
     /// Create a [`JsMapIterator`] from a [`JsObject`]. If object is not a `MapIterator`, throw `TypeError`
     #[inline]
     pub fn from_object(object: JsObject) -> JsResult<Self> {
-        if object.borrow().is_map_iterator() {
+        if object.is_map_iterator() {
             Ok(Self { inner: object })
         } else {
             Err(JsNativeError::typ()
@@ -58,3 +59,14 @@ impl Deref for JsMapIterator {
 }
 
 impl JsObjectType for JsMapIterator {}
+
+impl TryFromJs for JsMapIterator {
+    fn try_from_js(value: &JsValue, _context: &mut Context<'_>) -> JsResult<Self> {
+        match value {
+            JsValue::Object(o) => Self::from_object(o.clone()),
+            _ => Err(JsNativeError::typ()
+                .with_message("value is not a MapIterator object")
+                .into()),
+        }
+    }
+}

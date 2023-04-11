@@ -300,13 +300,16 @@ impl JsObject {
         Ok(desc.is_some())
     }
 
-    /// Call this object.
+    /// `Call ( F, V [ , argumentsList ] )`
     ///
     /// # Panics
     ///
     /// Panics if the object is currently mutably borrowed.
-    // <https://tc39.es/ecma262/#sec-prepareforordinarycall>
-    // <https://tc39.es/ecma262/#sec-ecmascript-function-objects-call-thisargument-argumentslist>
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-call
     #[track_caller]
     #[inline]
     pub fn call(
@@ -317,8 +320,9 @@ impl JsObject {
     ) -> JsResult<JsValue> {
         // 1. If argumentsList is not present, set argumentsList to a new empty List.
         // 2. If IsCallable(F) is false, throw a TypeError exception.
-        let function = JsFunction::from_object(self.clone())
-            .ok_or_else(|| JsNativeError::typ().with_message("not a function"))?;
+        let function = JsFunction::from_object(self.clone()).ok_or_else(|| {
+            JsNativeError::typ().with_message("only callable objects / functions can be called")
+        })?;
 
         // 3. Return ? F.[[Call]](V, argumentsList).
         function.__call__(this, args, context)
