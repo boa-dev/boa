@@ -79,7 +79,7 @@ impl TryFromJs for JsProxy {
         match value {
             JsValue::Object(o) => Self::from_object(o.clone()),
             _ => Err(JsNativeError::typ()
-                .with_message("value is not a TypedArray object")
+                .with_message("value is not a Proxy object")
                 .into()),
         }
     }
