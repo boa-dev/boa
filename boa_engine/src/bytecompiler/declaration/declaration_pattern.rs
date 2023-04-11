@@ -176,6 +176,7 @@ impl ByteCompiler<'_, '_> {
             Pattern::Array(pattern) => {
                 self.emit_opcode(Opcode::ValueNotNullOrUndefined);
                 self.emit_opcode(Opcode::GetIterator);
+                self.emit_opcode(Opcode::IteratorClosePush);
                 match pattern.bindings().split_last() {
                     None => self.emit_opcode(Opcode::PushFalse),
                     Some((last, rest)) => {
@@ -185,6 +186,7 @@ impl ByteCompiler<'_, '_> {
                         self.compile_array_pattern_element(last, def, true);
                     }
                 }
+                self.emit_opcode(Opcode::IteratorClosePop);
                 self.iterator_close(false);
             }
         }
@@ -209,7 +211,7 @@ impl ByteCompiler<'_, '_> {
         match element {
             // ArrayBindingPattern : [ Elision ]
             Elision => {
-                self.emit_opcode(Opcode::IteratorNext);
+                self.emit_opcode(Opcode::IteratorNextSetDone);
                 if with_done {
                     self.emit_opcode(Opcode::IteratorUnwrapNext);
                 }
@@ -220,7 +222,7 @@ impl ByteCompiler<'_, '_> {
                 ident,
                 default_init,
             } => {
-                self.emit_opcode(Opcode::IteratorNext);
+                self.emit_opcode(Opcode::IteratorNextSetDone);
                 self.emit_opcode(unwrapping);
                 if let Some(init) = default_init {
                     let skip = self.emit_opcode_with_operand(Opcode::JumpIfNotUndefined);
@@ -230,20 +232,31 @@ impl ByteCompiler<'_, '_> {
                 self.emit_binding(def, *ident);
             }
             PropertyAccess { access } => {
-                self.emit_opcode(Opcode::IteratorNext);
-                self.emit_opcode(unwrapping);
-                self.access_set(
-                    Access::Property { access },
-                    false,
-                    ByteCompiler::access_set_top_of_stack_expr_fn,
-                );
+                self.access_set(Access::Property { access }, false, |compiler, level| {
+                    if level != 0 {
+                        compiler.emit_opcode(Opcode::RotateLeft);
+                        compiler.emit_u8(level + 2);
+                        compiler.emit_opcode(Opcode::RotateLeft);
+                        compiler.emit_u8(level + 2);
+                    }
+                    compiler.emit_opcode(Opcode::IteratorNextSetDone);
+                    compiler.emit_opcode(unwrapping);
+                    if level != 0 {
+                        compiler.emit_opcode(Opcode::RotateLeft);
+                        compiler.emit_u8(level + 3 + u8::from(with_done));
+                        compiler.emit_opcode(Opcode::RotateLeft);
+                        compiler.emit_u8(level + 3 + u8::from(with_done));
+                        compiler.emit_opcode(Opcode::RotateLeft);
+                        compiler.emit_u8(level + 1);
+                    }
+                });
             }
             // BindingElement : BindingPattern Initializer[opt]
             Pattern {
                 pattern,
                 default_init,
             } => {
-                self.emit_opcode(Opcode::IteratorNext);
+                self.emit_opcode(Opcode::IteratorNextSetDone);
                 self.emit_opcode(unwrapping);
 
                 if let Some(init) = default_init {
@@ -263,12 +276,23 @@ impl ByteCompiler<'_, '_> {
                 }
             }
             PropertyAccessRest { access } => {
-                self.emit_opcode(Opcode::IteratorToArray);
-                self.access_set(
-                    Access::Property { access },
-                    false,
-                    ByteCompiler::access_set_top_of_stack_expr_fn,
-                );
+                self.access_set(Access::Property { access }, false, |compiler, level| {
+                    if level != 0 {
+                        compiler.emit_opcode(Opcode::RotateLeft);
+                        compiler.emit_u8(level + 2);
+                        compiler.emit_opcode(Opcode::RotateLeft);
+                        compiler.emit_u8(level + 2);
+                    }
+                    compiler.emit_opcode(Opcode::IteratorToArray);
+                    if level != 0 {
+                        compiler.emit_opcode(Opcode::RotateLeft);
+                        compiler.emit_u8(level + 3);
+                        compiler.emit_opcode(Opcode::RotateLeft);
+                        compiler.emit_u8(level + 3);
+                        compiler.emit_opcode(Opcode::RotateLeft);
+                        compiler.emit_u8(level + 1);
+                    }
+                });
                 if with_done {
                     self.emit_opcode(Opcode::PushTrue);
                 }

@@ -1,7 +1,9 @@
 use crate::{
+    js_string,
     vm::{call_frame::AbruptCompletionRecord, opcode::Operation, CompletionType},
     Context, JsError, JsNativeError, JsResult,
 };
+use thin_vec::ThinVec;
 
 /// `Throw` implements the Opcode Operation for `Opcode::Throw`
 ///
@@ -20,6 +22,20 @@ impl Operation for Throw {
         } else {
             JsError::from_opaque(context.vm.pop())
         };
+
+        // Close all iterators that are still open.
+        let mut iterators = ThinVec::new();
+        std::mem::swap(&mut iterators, &mut context.vm.frame_mut().iterators);
+        for (iterator, done) in iterators {
+            if done {
+                continue;
+            }
+            if let Ok(Some(f)) = iterator.get_method(js_string!("return"), context) {
+                drop(f.call(&iterator.into(), &[], context));
+            }
+        }
+        context.vm.err.take();
+
         // 1. Find the viable catch and finally blocks
         let current_address = context.vm.frame().pc;
         let viable_catch_candidates = context

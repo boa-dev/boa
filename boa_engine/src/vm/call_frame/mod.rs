@@ -2,14 +2,16 @@
 //!
 //! This module will provides everything needed to implement the `CallFrame`
 
-use crate::{object::JsObject, vm::CodeBlock};
-use boa_gc::{Finalize, Gc, Trace};
-
 mod abrupt_record;
 mod env_stack;
 
+use crate::{object::JsObject, vm::CodeBlock};
+use boa_gc::{Finalize, Gc, Trace};
+use thin_vec::ThinVec;
+
 pub(crate) use abrupt_record::AbruptCompletionRecord;
 pub(crate) use env_stack::EnvStackEntry;
+
 /// A `CallFrame` holds the state of a function call.
 #[derive(Clone, Debug, Finalize, Trace)]
 pub struct CallFrame {
@@ -33,6 +35,9 @@ pub struct CallFrame {
     // When an async generator is resumed, the generator object is needed
     // to fulfill the steps 4.e-j in [AsyncGeneratorStart](https://tc39.es/ecma262/#sec-asyncgeneratorstart).
     pub(crate) async_generator: Option<JsObject>,
+
+    // Iterators and their `[[Done]]` flags that must be closed when an abrupt completion is thrown.
+    pub(crate) iterators: ThinVec<(JsObject, bool)>,
 }
 
 /// ---- `CallFrame` creation methods ----
@@ -52,6 +57,7 @@ impl CallFrame {
             arg_count: 0,
             generator_resume_kind: GeneratorResumeKind::Normal,
             async_generator: None,
+            iterators: ThinVec::new(),
         }
     }
 
