@@ -118,7 +118,7 @@ impl JsArrayBuffer {
     /// This does not clone the fields of the array buffer, it only does a shallow clone of the object.
     #[inline]
     pub fn from_object(object: JsObject) -> JsResult<Self> {
-        if object.borrow().is_array_buffer() {
+        if object.is_array_buffer() {
             Ok(Self { inner: object })
         } else {
             Err(JsNativeError::typ()

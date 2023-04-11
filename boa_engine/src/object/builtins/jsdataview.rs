@@ -112,7 +112,7 @@ impl JsDataView {
     /// Create a new `JsDataView` object from an existing object.
     #[inline]
     pub fn from_object(object: JsObject) -> JsResult<Self> {
-        if object.borrow().is_data_view() {
+        if object.is_data_view() {
             Ok(Self { inner: object })
         } else {
             Err(JsNativeError::typ()

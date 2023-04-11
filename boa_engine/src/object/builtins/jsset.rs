@@ -144,7 +144,7 @@ impl JsSet {
     /// Utility: Creates `JsSet` from `JsObject`, if not a Set throw `TypeError`.
     #[inline]
     pub fn from_object(object: JsObject) -> JsResult<Self> {
-        if object.borrow().is_set() {
+        if object.is_set() {
             Ok(Self { inner: object })
         } else {
             Err(JsNativeError::typ()

@@ -10,19 +10,22 @@ use crate::{
 use boa_gc::{Finalize, Trace};
 use std::ops::Deref;
 
-/// `JsTypedArray` provides a wrapper for Boa's implementation of the ECMAScript `TypedArray` builtin object.
+/// `JsTypedArray` provides a wrapper for Boa's implementation of the ECMAScript `TypedArray`
+/// builtin object.
 #[derive(Debug, Clone, Trace, Finalize)]
 pub struct JsTypedArray {
     inner: JsValue,
 }
 
 impl JsTypedArray {
-    /// Create a [`JsTypedArray`] from a [`JsObject`], if the object is not a typed array throw a `TypeError`.
+    /// Create a [`JsTypedArray`] from a [`JsObject`], if the object is not a typed array throw a
+    /// `TypeError`.
     ///
-    /// This does not clone the fields of the typed array, it only does a shallow clone of the object.
+    /// This does not clone the fields of the typed array, it only does a shallow clone of the
+    /// object.
     #[inline]
     pub fn from_object(object: JsObject) -> JsResult<Self> {
-        if object.borrow().is_typed_array() {
+        if object.is_typed_array() {
             Ok(Self {
                 inner: object.into(),
             })
@@ -358,14 +361,43 @@ impl TryFromJs for JsTypedArray {
 }
 
 macro_rules! JsTypedArrayType {
-    ($name:ident, $constructor_function:ident, $constructor_object:ident, $element:ty) => {
-        #[doc = concat!("`", stringify!($name), "` provides a wrapper for Boa's implementation of the ECMAScript `", stringify!($constructor_function) ,"` builtin object.")]
+    (
+        $name:ident,
+        $constructor_function:ident,
+        $checker_function:ident,
+        $constructor_object:ident,
+        $element:ty
+    ) => {
+
+        #[doc = concat!(
+            "`", stringify!($name),
+            "` provides a wrapper for Boa's implementation of the ECMAScript `",
+            stringify!($constructor_function) ,"` builtin object."
+        )]
         #[derive(Debug, Clone, Trace, Finalize)]
         pub struct $name {
             inner: JsTypedArray,
         }
 
         impl $name {
+            #[doc = concat!("Creates a `", stringify!($name),
+                "` using a [`JsObject`]. It will make sure that the object is of the correct kind."
+            )]
+            #[inline]
+            pub fn from_object(object: JsObject) -> JsResult<Self> {
+                if object.$checker_function() {
+                    Ok(Self {
+                        inner: JsTypedArray {
+                            inner: object.into(),
+                        },
+                    })
+                } else {
+                    Err(JsNativeError::typ()
+                        .with_message("object is not a TypedArray")
+                        .into())
+                }
+            }
+
             /// Create the typed array from a [`JsArrayBuffer`].
             pub fn from_array_buffer(
                 array_buffer: JsArrayBuffer,
@@ -452,14 +484,77 @@ macro_rules! JsTypedArrayType {
                 &self.inner
             }
         }
+
+        impl TryFromJs for $name {
+            fn try_from_js(value: &JsValue, _context: &mut Context<'_>) -> JsResult<Self> {
+                match value {
+                    JsValue::Object(o) => Self::from_object(o.clone()),
+                    _ => Err(JsNativeError::typ()
+                        .with_message(concat!(
+                            "value is not a ",
+                            stringify!($constructor_function),
+                            " object"
+                        ))
+                        .into()),
+                }
+            }
+        }
     };
 }
 
-JsTypedArrayType!(JsUint8Array, Uint8Array, typed_uint8_array, u8);
-JsTypedArrayType!(JsInt8Array, Int8Array, typed_int8_array, i8);
-JsTypedArrayType!(JsUint16Array, Uint16Array, typed_uint16_array, u16);
-JsTypedArrayType!(JsInt16Array, Int16Array, typed_int16_array, i16);
-JsTypedArrayType!(JsUint32Array, Uint32Array, typed_uint32_array, u32);
-JsTypedArrayType!(JsInt32Array, Int32Array, typed_int32_array, i32);
-JsTypedArrayType!(JsFloat32Array, Float32Array, typed_float32_array, f32);
-JsTypedArrayType!(JsFloat64Array, Float64Array, typed_float64_array, f64);
+JsTypedArrayType!(
+    JsUint8Array,
+    Uint8Array,
+    is_typed_uint8_array,
+    typed_uint8_array,
+    u8
+);
+JsTypedArrayType!(
+    JsInt8Array,
+    Int8Array,
+    is_typed_int8_array,
+    typed_int8_array,
+    i8
+);
+JsTypedArrayType!(
+    JsUint16Array,
+    Uint16Array,
+    is_typed_uint16_array,
+    typed_uint16_array,
+    u16
+);
+JsTypedArrayType!(
+    JsInt16Array,
+    Int16Array,
+    is_typed_int16_array,
+    typed_int16_array,
+    i16
+);
+JsTypedArrayType!(
+    JsUint32Array,
+    Uint32Array,
+    is_typed_uint32_array,
+    typed_uint32_array,
+    u32
+);
+JsTypedArrayType!(
+    JsInt32Array,
+    Int32Array,
+    is_typed_int32_array,
+    typed_int32_array,
+    i32
+);
+JsTypedArrayType!(
+    JsFloat32Array,
+    Float32Array,
+    is_typed_float32_array,
+    typed_float32_array,
+    f32
+);
+JsTypedArrayType!(
+    JsFloat64Array,
+    Float64Array,
+    is_typed_float64_array,
+    typed_float64_array,
+    f64
+);

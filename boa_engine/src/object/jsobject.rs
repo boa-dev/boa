@@ -309,6 +309,17 @@ impl JsObject {
         self.borrow().is_array()
     }
 
+    /// Checks if it's a `DataView` object.
+    ///
+    /// # Panics
+    ///
+    /// Panics if the object is currently mutably borrowed.
+    #[inline]
+    #[track_caller]
+    pub fn is_data_view(&self) -> bool {
+        self.borrow().is_data_view()
+    }
+
     /// Checks if it is an `ArrayIterator` object.
     ///
     /// # Panics
@@ -463,6 +474,17 @@ impl JsObject {
         self.borrow().is_bigint()
     }
 
+    /// Checks if it's a `Date` object.
+    ///
+    /// # Panics
+    ///
+    /// Panics if the object is currently mutably borrowed.
+    #[inline]
+    #[track_caller]
+    pub fn is_date(&self) -> bool {
+        self.borrow().is_date()
+    }
+
     /// Checks if it's a `RegExp` object.
     ///
     /// # Panics
@@ -485,6 +507,94 @@ impl JsObject {
         self.borrow().is_typed_array()
     }
 
+    /// Checks if it's a `Uint8Array` object.
+    ///
+    /// # Panics
+    ///
+    /// Panics if the object is currently mutably borrowed.
+    #[inline]
+    #[track_caller]
+    pub fn is_typed_uint8_array(&self) -> bool {
+        self.borrow().is_typed_uint8_array()
+    }
+
+    /// Checks if it's a `Int8Array` object.
+    ///
+    /// # Panics
+    ///
+    /// Panics if the object is currently mutably borrowed.
+    #[inline]
+    #[track_caller]
+    pub fn is_typed_int8_array(&self) -> bool {
+        self.borrow().is_typed_int8_array()
+    }
+
+    /// Checks if it's a `Uint16Array` object.
+    ///
+    /// # Panics
+    ///
+    /// Panics if the object is currently mutably borrowed.
+    #[inline]
+    #[track_caller]
+    pub fn is_typed_uint16_array(&self) -> bool {
+        self.borrow().is_typed_uint16_array()
+    }
+
+    /// Checks if it's a `Int16Array` object.
+    ///
+    /// # Panics
+    ///
+    /// Panics if the object is currently mutably borrowed.
+    #[inline]
+    #[track_caller]
+    pub fn is_typed_int16_array(&self) -> bool {
+        self.borrow().is_typed_int16_array()
+    }
+
+    /// Checks if it's a `Uint32Array` object.
+    ///
+    /// # Panics
+    ///
+    /// Panics if the object is currently mutably borrowed.
+    #[inline]
+    #[track_caller]
+    pub fn is_typed_uint32_array(&self) -> bool {
+        self.borrow().is_typed_uint32_array()
+    }
+
+    /// Checks if it's a `Int32Array` object.
+    ///
+    /// # Panics
+    ///
+    /// Panics if the object is currently mutably borrowed.
+    #[inline]
+    #[track_caller]
+    pub fn is_typed_int32_array(&self) -> bool {
+        self.borrow().is_typed_int32_array()
+    }
+
+    /// Checks if it's a `Float32Array` object.
+    ///
+    /// # Panics
+    ///
+    /// Panics if the object is currently mutably borrowed.
+    #[inline]
+    #[track_caller]
+    pub fn is_typed_float32_array(&self) -> bool {
+        self.borrow().is_typed_float32_array()
+    }
+
+    /// Checks if it's a `Float64Array` object.
+    ///
+    /// # Panics
+    ///
+    /// Panics if the object is currently mutably borrowed.
+    #[inline]
+    #[track_caller]
+    pub fn is_typed_float64_array(&self) -> bool {
+        self.borrow().is_typed_float64_array()
+    }
+
     /// Checks if it's a `Promise` object.
     ///
     /// # Panics
@@ -505,6 +615,17 @@ impl JsObject {
     #[track_caller]
     pub fn is_ordinary(&self) -> bool {
         self.borrow().is_ordinary()
+    }
+
+    /// Checks if it's a proxy object.
+    ///
+    /// # Panics
+    ///
+    /// Panics if the object is currently mutably borrowed.
+    #[inline]
+    #[track_caller]
+    pub fn is_proxy(&self) -> bool {
+        self.borrow().is_proxy()
     }
 
     /// Returns `true` if it holds an Rust type that implements `NativeObject`.

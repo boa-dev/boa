@@ -51,7 +51,7 @@ impl JsDate {
     /// Create a new `JsDataView` object from an existing object.
     #[inline]
     pub fn from_object(object: JsObject) -> JsResult<Self> {
-        if object.borrow().is_date() {
+        if object.is_date() {
             Ok(Self { inner: object })
         } else {
             Err(JsNativeError::typ()

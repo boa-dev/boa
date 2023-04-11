@@ -170,7 +170,7 @@ impl JsMap {
     /// ```
     #[inline]
     pub fn from_object(object: JsObject) -> JsResult<Self> {
-        if object.borrow().is_map() {
+        if object.is_map() {
             Ok(Self { inner: object })
         } else {
             Err(JsNativeError::typ()

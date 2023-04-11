@@ -20,7 +20,7 @@ impl JsMapIterator {
     /// Create a [`JsMapIterator`] from a [`JsObject`]. If object is not a `MapIterator`, throw `TypeError`
     #[inline]
     pub fn from_object(object: JsObject) -> JsResult<Self> {
-        if object.borrow().is_map_iterator() {
+        if object.is_map_iterator() {
             Ok(Self { inner: object })
         } else {
             Err(JsNativeError::typ()

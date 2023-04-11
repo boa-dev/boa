@@ -6,7 +6,8 @@ use crate::{
     native_function::{NativeFunction, NativeFunctionPointer},
     object::{FunctionObjectBuilder, JsObject, JsObjectType, ObjectData},
     string::utf16,
-    Context, JsResult, JsValue,
+    value::TryFromJs,
+    Context, JsNativeError, JsResult, JsValue,
 };
 
 use super::JsFunction;
@@ -32,6 +33,19 @@ impl JsProxy {
     /// Creates a new [`JsProxyBuilder`] to easily construct a [`JsProxy`].
     pub fn builder(target: JsObject) -> JsProxyBuilder {
         JsProxyBuilder::new(target)
+    }
+
+    /// Create a [`JsProxy`] from a [`JsObject`], if the object is not a `Proxy` throw a
+    /// `TypeError`.
+    #[inline]
+    pub fn from_object(object: JsObject) -> JsResult<Self> {
+        if object.borrow().is_proxy() {
+            Ok(Self { inner: object })
+        } else {
+            Err(JsNativeError::typ()
+                .with_message("object is not a Proxy")
+                .into())
+        }
     }
 }
 
@@ -59,6 +73,17 @@ impl std::ops::Deref for JsProxy {
 }
 
 impl JsObjectType for JsProxy {}
+
+impl TryFromJs for JsProxy {
+    fn try_from_js(value: &JsValue, _context: &mut Context<'_>) -> JsResult<Self> {
+        match value {
+            JsValue::Object(o) => Self::from_object(o.clone()),
+            _ => Err(JsNativeError::typ()
+                .with_message("value is not a TypedArray object")
+                .into()),
+        }
+    }
+}
 
 /// `JsRevocableProxy` provides a wrapper for `JsProxy` that can be disabled.
 ///

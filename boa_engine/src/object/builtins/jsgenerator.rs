@@ -35,7 +35,7 @@ impl JsGenerator {
     /// Create a `JsGenerator` from a regular expression `JsObject`
     #[inline]
     pub fn from_object(object: JsObject) -> JsResult<Self> {
-        if object.borrow().is_generator() {
+        if object.is_generator() {
             Ok(Self { inner: object })
         } else {
             Err(JsNativeError::typ()

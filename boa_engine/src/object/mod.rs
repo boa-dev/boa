@@ -45,7 +45,7 @@ use crate::{
         set::ordered_set::OrderedSet,
         set::SetIterator,
         string::StringIterator,
-        typed_array::integer_indexed_object::IntegerIndexed,
+        typed_array::{integer_indexed_object::IntegerIndexed, TypedArrayKind},
         DataView, Date, Promise, RegExp,
     },
     js_string,
@@ -1427,6 +1427,118 @@ impl Object {
                 ..
             }
         )
+    }
+
+    /// Checks if it a `Uint8Array` object.
+    #[inline]
+    pub const fn is_typed_uint8_array(&self) -> bool {
+        if let ObjectData {
+            kind: ObjectKind::IntegerIndexed(ref int),
+            ..
+        } = self.data
+        {
+            matches!(int.typed_array_name(), TypedArrayKind::Uint8)
+        } else {
+            false
+        }
+    }
+
+    /// Checks if it a `Int8Array` object.
+    #[inline]
+    pub const fn is_typed_int8_array(&self) -> bool {
+        if let ObjectData {
+            kind: ObjectKind::IntegerIndexed(ref int),
+            ..
+        } = self.data
+        {
+            matches!(int.typed_array_name(), TypedArrayKind::Int8)
+        } else {
+            false
+        }
+    }
+
+    /// Checks if it a `Uint16Array` object.
+    #[inline]
+    pub const fn is_typed_uint16_array(&self) -> bool {
+        if let ObjectData {
+            kind: ObjectKind::IntegerIndexed(ref int),
+            ..
+        } = self.data
+        {
+            matches!(int.typed_array_name(), TypedArrayKind::Uint16)
+        } else {
+            false
+        }
+    }
+
+    /// Checks if it a `Int16Array` object.
+    #[inline]
+    pub const fn is_typed_int16_array(&self) -> bool {
+        if let ObjectData {
+            kind: ObjectKind::IntegerIndexed(ref int),
+            ..
+        } = self.data
+        {
+            matches!(int.typed_array_name(), TypedArrayKind::Int16)
+        } else {
+            false
+        }
+    }
+
+    /// Checks if it a `Uint32Array` object.
+    #[inline]
+    pub const fn is_typed_uint32_array(&self) -> bool {
+        if let ObjectData {
+            kind: ObjectKind::IntegerIndexed(ref int),
+            ..
+        } = self.data
+        {
+            matches!(int.typed_array_name(), TypedArrayKind::Uint32)
+        } else {
+            false
+        }
+    }
+
+    /// Checks if it a `Int32Array` object.
+    #[inline]
+    pub const fn is_typed_int32_array(&self) -> bool {
+        if let ObjectData {
+            kind: ObjectKind::IntegerIndexed(ref int),
+            ..
+        } = self.data
+        {
+            matches!(int.typed_array_name(), TypedArrayKind::Int32)
+        } else {
+            false
+        }
+    }
+
+    /// Checks if it a `Float32Array` object.
+    #[inline]
+    pub const fn is_typed_float32_array(&self) -> bool {
+        if let ObjectData {
+            kind: ObjectKind::IntegerIndexed(ref int),
+            ..
+        } = self.data
+        {
+            matches!(int.typed_array_name(), TypedArrayKind::Float32)
+        } else {
+            false
+        }
+    }
+
+    /// Checks if it a `Float64Array` object.
+    #[inline]
+    pub const fn is_typed_float64_array(&self) -> bool {
+        if let ObjectData {
+            kind: ObjectKind::IntegerIndexed(ref int),
+            ..
+        } = self.data
+        {
+            matches!(int.typed_array_name(), TypedArrayKind::Float64)
+        } else {
+            false
+        }
     }
 
     /// Gets the data view data if the object is a `DataView`.
