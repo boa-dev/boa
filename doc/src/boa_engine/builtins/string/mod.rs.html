@@ -2747,6 +2747,11 @@
 <a href="#2746" id="2746">2746</a>
 <a href="#2747" id="2747">2747</a>
 <a href="#2748" id="2748">2748</a>
+<a href="#2749" id="2749">2749</a>
+<a href="#2750" id="2750">2750</a>
+<a href="#2751" id="2751">2751</a>
+<a href="#2752" id="2752">2752</a>
+<a href="#2753" id="2753">2753</a>
 </pre><pre class="rust"><code><span class="doccomment">//! Boa&#39;s implementation of ECMAScript&#39;s global `String` object.
 //!
 //! The `String` global object is a constructor for strings or a sequence of characters.
@@ -2848,7 +2853,6 @@
             .method(<span class="self">Self</span>::to_lowercase, <span class="string">&quot;toLowerCase&quot;</span>, <span class="number">0</span>)
             .method(<span class="self">Self</span>::to_uppercase, <span class="string">&quot;toUpperCase&quot;</span>, <span class="number">0</span>)
             .method(<span class="self">Self</span>::substring, <span class="string">&quot;substring&quot;</span>, <span class="number">2</span>)
-            .method(<span class="self">Self</span>::substr, <span class="string">&quot;substr&quot;</span>, <span class="number">2</span>)
             .method(<span class="self">Self</span>::split, <span class="string">&quot;split&quot;</span>, <span class="number">2</span>)
             .method(<span class="self">Self</span>::value_of, <span class="string">&quot;valueOf&quot;</span>, <span class="number">0</span>)
             .method(<span class="self">Self</span>::match_all, <span class="string">&quot;matchAll&quot;</span>, <span class="number">1</span>)
@@ -2861,6 +2865,7 @@
         <span class="attr">#[cfg(feature = <span class="string">&quot;annex-b&quot;</span>)]
         </span>{
             builder
+                .method(<span class="self">Self</span>::substr, <span class="string">&quot;substr&quot;</span>, <span class="number">2</span>)
                 .method(<span class="self">Self</span>::anchor, <span class="string">&quot;anchor&quot;</span>, <span class="number">1</span>)
                 .method(<span class="self">Self</span>::big, <span class="string">&quot;big&quot;</span>, <span class="number">0</span>)
                 .method(<span class="self">Self</span>::blink, <span class="string">&quot;blink&quot;</span>, <span class="number">0</span>)
@@ -4525,69 +4530,6 @@
         </span><span class="prelude-val">Ok</span>(<span class="macro">js_string!</span>(<span class="kw-2">&amp;</span>string[from..to]).into())
     }
 
-    <span class="doccomment">/// `String.prototype.substr( start[, length] )`
-    ///
-    /// The `substr()` method returns a portion of the string, starting at the specified index and extending for a given number of characters afterward.
-    ///
-    /// More information:
-    ///  - [ECMAScript reference][spec]
-    ///  - [MDN documentation][mdn]
-    ///
-    /// [spec]: https://tc39.es/ecma262/#sec-string.prototype.substr
-    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/substr
-    /// &lt;https://tc39.es/ecma262/#sec-string.prototype.substr&gt;
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>substr(
-        this: <span class="kw-2">&amp;</span>JsValue,
-        args: <span class="kw-2">&amp;</span>[JsValue],
-        context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
-    ) -&gt; JsResult&lt;JsValue&gt; {
-        <span class="comment">// 1. Let O be ? RequireObjectCoercible(this value).
-        </span><span class="kw">let </span>this = this.require_object_coercible()<span class="question-mark">?</span>;
-
-        <span class="comment">// 2. Let S be ? ToString(O).
-        </span><span class="kw">let </span>string = this.to_string(context)<span class="question-mark">?</span>;
-
-        <span class="comment">// 3. Let size be the length of S.
-        </span><span class="kw">let </span>size = string.len() <span class="kw">as </span>i64;
-
-        <span class="comment">// 4. Let intStart be ? ToIntegerOrInfinity(start).
-        </span><span class="kw">let </span>int_start = args.get_or_undefined(<span class="number">0</span>).to_integer_or_infinity(context)<span class="question-mark">?</span>;
-
-        <span class="comment">// 7. If length is undefined, let intLength be size; otherwise let intLength be ? ToIntegerOrInfinity(length).
-        // Moved it before to ensure an error throws before returning the empty string on `match int_start`
-        </span><span class="kw">let </span>int_length = <span class="kw">match </span>args.get_or_undefined(<span class="number">1</span>) {
-            <span class="kw-2">&amp;</span>JsValue::Undefined =&gt; IntegerOrInfinity::Integer(size),
-            val =&gt; val.to_integer_or_infinity(context)<span class="question-mark">?</span>,
-        };
-
-        <span class="kw">let </span>int_start = <span class="kw">match </span>int_start {
-            <span class="comment">// 6. Else if intStart &lt; 0, set intStart to max(size + intStart, 0).
-            </span>IntegerOrInfinity::Integer(i) <span class="kw">if </span>i &lt; <span class="number">0 </span>=&gt; max(size + i, <span class="number">0</span>),
-            IntegerOrInfinity::Integer(i) =&gt; i,
-            <span class="comment">// 8. If intStart is +∞, ... return the empty String
-            </span>IntegerOrInfinity::PositiveInfinity =&gt; <span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="macro">js_string!</span>().into()),
-            <span class="comment">// 5. If intStart is -∞, set intStart to 0.
-            </span>IntegerOrInfinity::NegativeInfinity =&gt; <span class="number">0</span>,
-        } <span class="kw">as </span>usize;
-
-        <span class="comment">// 8. If ... intLength ≤ 0, or intLength is +∞, return the empty String.
-        </span><span class="kw">let </span>int_length = <span class="kw">match </span>int_length {
-            IntegerOrInfinity::Integer(i) <span class="kw">if </span>i &gt; <span class="number">0 </span>=&gt; i,
-            <span class="kw">_ </span>=&gt; <span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="macro">js_string!</span>().into()),
-        } <span class="kw">as </span>usize;
-
-        <span class="comment">// 9. Let intEnd be min(intStart + intLength, size).
-        </span><span class="kw">let </span>int_end = min(int_start + int_length, size <span class="kw">as </span>usize);
-
-        <span class="kw">if let </span><span class="prelude-val">Some</span>(substr) = string.get(int_start..int_end) {
-            <span class="comment">// 11. Return the substring of S from intStart to intEnd.
-            </span><span class="prelude-val">Ok</span>(<span class="macro">js_string!</span>(substr).into())
-        } <span class="kw">else </span>{
-            <span class="comment">// 10. If intStart ≥ intEnd, return the empty String.
-            </span><span class="prelude-val">Ok</span>(<span class="macro">js_string!</span>().into())
-        }
-    }
-
     <span class="doccomment">/// `String.prototype.split ( separator, limit )`
     ///
     /// The split() method divides a String into an ordered list of substrings, puts these substrings into an array, and returns the array.
@@ -4947,6 +4889,74 @@
 
 <span class="attr">#[cfg(feature = <span class="string">&quot;annex-b&quot;</span>)]
 </span><span class="kw">impl </span>String {
+    <span class="doccomment">/// `String.prototype.substr( start[, length] )`
+    ///
+    /// The `substr()` method returns a portion of the string, starting at the specified index and extending for a given number of characters afterward.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///  - [MDN documentation][mdn]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-string.prototype.substr
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/substr
+    /// &lt;https://tc39.es/ecma262/#sec-string.prototype.substr&gt;
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>substr(
+        this: <span class="kw-2">&amp;</span>JsValue,
+        args: <span class="kw-2">&amp;</span>[JsValue],
+        context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+    ) -&gt; JsResult&lt;JsValue&gt; {
+        <span class="comment">// 1. Let O be ? RequireObjectCoercible(this value).
+        </span><span class="kw">let </span>o = this.require_object_coercible()<span class="question-mark">?</span>;
+
+        <span class="comment">// 2. Let S be ? ToString(O).
+        </span><span class="kw">let </span>s = o.to_string(context)<span class="question-mark">?</span>;
+
+        <span class="comment">// 3. Let size be the length of S.
+        </span><span class="kw">let </span>size = s.len() <span class="kw">as </span>i64;
+
+        <span class="comment">// 4. Let intStart be ? ToIntegerOrInfinity(start).
+        </span><span class="kw">let </span>start = args.get_or_undefined(<span class="number">0</span>);
+        <span class="kw">let </span>int_start = start.to_integer_or_infinity(context)<span class="question-mark">?</span>;
+
+        <span class="kw">let </span>int_start = <span class="kw">match </span>int_start {
+            <span class="comment">// 5. If intStart is -∞, set intStart to 0.
+            </span>IntegerOrInfinity::NegativeInfinity =&gt; <span class="number">0</span>,
+            <span class="comment">// 6. Else if intStart &lt; 0, set intStart to max(size + intStart, 0).
+            </span>IntegerOrInfinity::Integer(int_start) <span class="kw">if </span>int_start &lt; <span class="number">0 </span>=&gt; max(size + int_start, <span class="number">0</span>),
+            IntegerOrInfinity::Integer(int_start) =&gt; int_start,
+            <span class="comment">// 7. Else, set intStart to min(intStart, size).
+            //
+            // NOTE: size will always we smaller than +∞
+            </span>IntegerOrInfinity::PositiveInfinity =&gt; size,
+        } <span class="kw">as </span>usize;
+
+        <span class="comment">// 8. If length is undefined, let intLength be size;
+        //    otherwise let intLength be ? ToIntegerOrInfinity(length).
+        </span><span class="kw">let </span>length = args.get_or_undefined(<span class="number">1</span>);
+        <span class="kw">let </span>int_length = <span class="kw">if </span>length.is_undefined() {
+            IntegerOrInfinity::Integer(size)
+        } <span class="kw">else </span>{
+            length.to_integer_or_infinity(context)<span class="question-mark">?
+        </span>};
+
+        <span class="comment">// 9. Set intLength to the result of clamping intLength between 0 and size.
+        </span><span class="kw">let </span>int_length = <span class="kw">match </span>int_length {
+            IntegerOrInfinity::NegativeInfinity =&gt; <span class="number">0</span>,
+            IntegerOrInfinity::PositiveInfinity =&gt; size,
+            IntegerOrInfinity::Integer(i) =&gt; i.clamp(<span class="number">0</span>, size),
+        } <span class="kw">as </span>usize;
+
+        <span class="comment">// 10. Let intEnd be min(intStart + intLength, size).
+        </span><span class="kw">let </span>int_end = min(int_start + int_length, size <span class="kw">as </span>usize);
+
+        <span class="comment">// 11. Return the substring of S from intStart to intEnd.
+        </span><span class="kw">if let </span><span class="prelude-val">Some</span>(substr) = s.get(int_start..int_end) {
+            <span class="prelude-val">Ok</span>(<span class="macro">js_string!</span>(substr).into())
+        } <span class="kw">else </span>{
+            <span class="prelude-val">Ok</span>(<span class="macro">js_string!</span>().into())
+        }
+    }
+
     <span class="doccomment">/// `CreateHTML(string, tag, attribute, value)`
     ///
     /// More information:
