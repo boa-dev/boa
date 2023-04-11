@@ -99,7 +99,6 @@ impl IntrinsicObject for String {
             .method(Self::to_lowercase, "toLowerCase", 0)
             .method(Self::to_uppercase, "toUpperCase", 0)
             .method(Self::substring, "substring", 2)
-            .method(Self::substr, "substr", 2)
             .method(Self::split, "split", 2)
             .method(Self::value_of, "valueOf", 0)
             .method(Self::match_all, "matchAll", 1)
@@ -112,6 +111,7 @@ impl IntrinsicObject for String {
         #[cfg(feature = "annex-b")]
         {
             builder
+                .method(Self::substr, "substr", 2)
                 .method(Self::anchor, "anchor", 1)
                 .method(Self::big, "big", 0)
                 .method(Self::blink, "blink", 0)
@@ -1776,69 +1776,6 @@ impl String {
         Ok(js_string!(&string[from..to]).into())
     }
 
-    /// `String.prototype.substr( start[, length] )`
-    ///
-    /// The `substr()` method returns a portion of the string, starting at the specified index and extending for a given number of characters afterward.
-    ///
-    /// More information:
-    ///  - [ECMAScript reference][spec]
-    ///  - [MDN documentation][mdn]
-    ///
-    /// [spec]: https://tc39.es/ecma262/#sec-string.prototype.substr
-    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/substr
-    /// <https://tc39.es/ecma262/#sec-string.prototype.substr>
-    pub(crate) fn substr(
-        this: &JsValue,
-        args: &[JsValue],
-        context: &mut Context<'_>,
-    ) -> JsResult<JsValue> {
-        // 1. Let O be ? RequireObjectCoercible(this value).
-        let this = this.require_object_coercible()?;
-
-        // 2. Let S be ? ToString(O).
-        let string = this.to_string(context)?;
-
-        // 3. Let size be the length of S.
-        let size = string.len() as i64;
-
-        // 4. Let intStart be ? ToIntegerOrInfinity(start).
-        let int_start = args.get_or_undefined(0).to_integer_or_infinity(context)?;
-
-        // 7. If length is undefined, let intLength be size; otherwise let intLength be ? ToIntegerOrInfinity(length).
-        // Moved it before to ensure an error throws before returning the empty string on `match int_start`
-        let int_length = match args.get_or_undefined(1) {
-            &JsValue::Undefined => IntegerOrInfinity::Integer(size),
-            val => val.to_integer_or_infinity(context)?,
-        };
-
-        let int_start = match int_start {
-            // 6. Else if intStart < 0, set intStart to max(size + intStart, 0).
-            IntegerOrInfinity::Integer(i) if i < 0 => max(size + i, 0),
-            IntegerOrInfinity::Integer(i) => i,
-            // 8. If intStart is +∞, ... return the empty String
-            IntegerOrInfinity::PositiveInfinity => return Ok(js_string!().into()),
-            // 5. If intStart is -∞, set intStart to 0.
-            IntegerOrInfinity::NegativeInfinity => 0,
-        } as usize;
-
-        // 8. If ... intLength ≤ 0, or intLength is +∞, return the empty String.
-        let int_length = match int_length {
-            IntegerOrInfinity::Integer(i) if i > 0 => i,
-            _ => return Ok(js_string!().into()),
-        } as usize;
-
-        // 9. Let intEnd be min(intStart + intLength, size).
-        let int_end = min(int_start + int_length, size as usize);
-
-        if let Some(substr) = string.get(int_start..int_end) {
-            // 11. Return the substring of S from intStart to intEnd.
-            Ok(js_string!(substr).into())
-        } else {
-            // 10. If intStart ≥ intEnd, return the empty String.
-            Ok(js_string!().into())
-        }
-    }
-
     /// `String.prototype.split ( separator, limit )`
     ///
     /// The split() method divides a String into an ordered list of substrings, puts these substrings into an array, and returns the array.
@@ -2198,6 +2135,74 @@ impl String {
 
 #[cfg(feature = "annex-b")]
 impl String {
+    /// `String.prototype.substr( start[, length] )`
+    ///
+    /// The `substr()` method returns a portion of the string, starting at the specified index and extending for a given number of characters afterward.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///  - [MDN documentation][mdn]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-string.prototype.substr
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/substr
+    /// <https://tc39.es/ecma262/#sec-string.prototype.substr>
+    pub(crate) fn substr(
+        this: &JsValue,
+        args: &[JsValue],
+        context: &mut Context<'_>,
+    ) -> JsResult<JsValue> {
+        // 1. Let O be ? RequireObjectCoercible(this value).
+        let o = this.require_object_coercible()?;
+
+        // 2. Let S be ? ToString(O).
+        let s = o.to_string(context)?;
+
+        // 3. Let size be the length of S.
+        let size = s.len() as i64;
+
+        // 4. Let intStart be ? ToIntegerOrInfinity(start).
+        let start = args.get_or_undefined(0);
+        let int_start = start.to_integer_or_infinity(context)?;
+
+        let int_start = match int_start {
+            // 5. If intStart is -∞, set intStart to 0.
+            IntegerOrInfinity::NegativeInfinity => 0,
+            // 6. Else if intStart < 0, set intStart to max(size + intStart, 0).
+            IntegerOrInfinity::Integer(int_start) if int_start < 0 => max(size + int_start, 0),
+            IntegerOrInfinity::Integer(int_start) => int_start,
+            // 7. Else, set intStart to min(intStart, size).
+            //
+            // NOTE: size will always we smaller than +∞
+            IntegerOrInfinity::PositiveInfinity => size,
+        } as usize;
+
+        // 8. If length is undefined, let intLength be size;
+        //    otherwise let intLength be ? ToIntegerOrInfinity(length).
+        let length = args.get_or_undefined(1);
+        let int_length = if length.is_undefined() {
+            IntegerOrInfinity::Integer(size)
+        } else {
+            length.to_integer_or_infinity(context)?
+        };
+
+        // 9. Set intLength to the result of clamping intLength between 0 and size.
+        let int_length = match int_length {
+            IntegerOrInfinity::NegativeInfinity => 0,
+            IntegerOrInfinity::PositiveInfinity => size,
+            IntegerOrInfinity::Integer(i) => i.clamp(0, size),
+        } as usize;
+
+        // 10. Let intEnd be min(intStart + intLength, size).
+        let int_end = min(int_start + int_length, size as usize);
+
+        // 11. Return the substring of S from intStart to intEnd.
+        if let Some(substr) = s.get(int_start..int_end) {
+            Ok(js_string!(substr).into())
+        } else {
+            Ok(js_string!().into())
+        }
+    }
+
     /// `CreateHTML(string, tag, attribute, value)`
     ///
     /// More information:
