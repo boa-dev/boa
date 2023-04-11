@@ -285,6 +285,30 @@
 <a href="#284" id="284">284</a>
 <a href="#285" id="285">285</a>
 <a href="#286" id="286">286</a>
+<a href="#287" id="287">287</a>
+<a href="#288" id="288">288</a>
+<a href="#289" id="289">289</a>
+<a href="#290" id="290">290</a>
+<a href="#291" id="291">291</a>
+<a href="#292" id="292">292</a>
+<a href="#293" id="293">293</a>
+<a href="#294" id="294">294</a>
+<a href="#295" id="295">295</a>
+<a href="#296" id="296">296</a>
+<a href="#297" id="297">297</a>
+<a href="#298" id="298">298</a>
+<a href="#299" id="299">299</a>
+<a href="#300" id="300">300</a>
+<a href="#301" id="301">301</a>
+<a href="#302" id="302">302</a>
+<a href="#303" id="303">303</a>
+<a href="#304" id="304">304</a>
+<a href="#305" id="305">305</a>
+<a href="#306" id="306">306</a>
+<a href="#307" id="307">307</a>
+<a href="#308" id="308">308</a>
+<a href="#309" id="309">309</a>
+<a href="#310" id="310">310</a>
 </pre><pre class="rust"><code><span class="kw">use crate</span>::{
     bytecompiler::{Access, ByteCompiler, Literal},
     vm::{BindingOpcode, Opcode},
@@ -463,6 +487,7 @@
             Pattern::Array(pattern) =&gt; {
                 <span class="self">self</span>.emit_opcode(Opcode::ValueNotNullOrUndefined);
                 <span class="self">self</span>.emit_opcode(Opcode::GetIterator);
+                <span class="self">self</span>.emit_opcode(Opcode::IteratorClosePush);
                 <span class="kw">match </span>pattern.bindings().split_last() {
                     <span class="prelude-val">None </span>=&gt; <span class="self">self</span>.emit_opcode(Opcode::PushFalse),
                     <span class="prelude-val">Some</span>((last, rest)) =&gt; {
@@ -472,6 +497,7 @@
                         <span class="self">self</span>.compile_array_pattern_element(last, def, <span class="bool-val">true</span>);
                     }
                 }
+                <span class="self">self</span>.emit_opcode(Opcode::IteratorClosePop);
                 <span class="self">self</span>.iterator_close(<span class="bool-val">false</span>);
             }
         }
@@ -496,7 +522,7 @@
         <span class="kw">match </span>element {
             <span class="comment">// ArrayBindingPattern : [ Elision ]
             </span>Elision =&gt; {
-                <span class="self">self</span>.emit_opcode(Opcode::IteratorNext);
+                <span class="self">self</span>.emit_opcode(Opcode::IteratorNextSetDone);
                 <span class="kw">if </span>with_done {
                     <span class="self">self</span>.emit_opcode(Opcode::IteratorUnwrapNext);
                 }
@@ -507,7 +533,7 @@
                 ident,
                 default_init,
             } =&gt; {
-                <span class="self">self</span>.emit_opcode(Opcode::IteratorNext);
+                <span class="self">self</span>.emit_opcode(Opcode::IteratorNextSetDone);
                 <span class="self">self</span>.emit_opcode(unwrapping);
                 <span class="kw">if let </span><span class="prelude-val">Some</span>(init) = default_init {
                     <span class="kw">let </span>skip = <span class="self">self</span>.emit_opcode_with_operand(Opcode::JumpIfNotUndefined);
@@ -517,20 +543,31 @@
                 <span class="self">self</span>.emit_binding(def, <span class="kw-2">*</span>ident);
             }
             PropertyAccess { access } =&gt; {
-                <span class="self">self</span>.emit_opcode(Opcode::IteratorNext);
-                <span class="self">self</span>.emit_opcode(unwrapping);
-                <span class="self">self</span>.access_set(
-                    Access::Property { access },
-                    <span class="bool-val">false</span>,
-                    ByteCompiler::access_set_top_of_stack_expr_fn,
-                );
+                <span class="self">self</span>.access_set(Access::Property { access }, <span class="bool-val">false</span>, |compiler, level| {
+                    <span class="kw">if </span>level != <span class="number">0 </span>{
+                        compiler.emit_opcode(Opcode::RotateLeft);
+                        compiler.emit_u8(level + <span class="number">2</span>);
+                        compiler.emit_opcode(Opcode::RotateLeft);
+                        compiler.emit_u8(level + <span class="number">2</span>);
+                    }
+                    compiler.emit_opcode(Opcode::IteratorNextSetDone);
+                    compiler.emit_opcode(unwrapping);
+                    <span class="kw">if </span>level != <span class="number">0 </span>{
+                        compiler.emit_opcode(Opcode::RotateLeft);
+                        compiler.emit_u8(level + <span class="number">3 </span>+ u8::from(with_done));
+                        compiler.emit_opcode(Opcode::RotateLeft);
+                        compiler.emit_u8(level + <span class="number">3 </span>+ u8::from(with_done));
+                        compiler.emit_opcode(Opcode::RotateLeft);
+                        compiler.emit_u8(level + <span class="number">1</span>);
+                    }
+                });
             }
             <span class="comment">// BindingElement : BindingPattern Initializer[opt]
             </span>Pattern {
                 pattern,
                 default_init,
             } =&gt; {
-                <span class="self">self</span>.emit_opcode(Opcode::IteratorNext);
+                <span class="self">self</span>.emit_opcode(Opcode::IteratorNextSetDone);
                 <span class="self">self</span>.emit_opcode(unwrapping);
 
                 <span class="kw">if let </span><span class="prelude-val">Some</span>(init) = default_init {
@@ -550,12 +587,23 @@
                 }
             }
             PropertyAccessRest { access } =&gt; {
-                <span class="self">self</span>.emit_opcode(Opcode::IteratorToArray);
-                <span class="self">self</span>.access_set(
-                    Access::Property { access },
-                    <span class="bool-val">false</span>,
-                    ByteCompiler::access_set_top_of_stack_expr_fn,
-                );
+                <span class="self">self</span>.access_set(Access::Property { access }, <span class="bool-val">false</span>, |compiler, level| {
+                    <span class="kw">if </span>level != <span class="number">0 </span>{
+                        compiler.emit_opcode(Opcode::RotateLeft);
+                        compiler.emit_u8(level + <span class="number">2</span>);
+                        compiler.emit_opcode(Opcode::RotateLeft);
+                        compiler.emit_u8(level + <span class="number">2</span>);
+                    }
+                    compiler.emit_opcode(Opcode::IteratorToArray);
+                    <span class="kw">if </span>level != <span class="number">0 </span>{
+                        compiler.emit_opcode(Opcode::RotateLeft);
+                        compiler.emit_u8(level + <span class="number">3</span>);
+                        compiler.emit_opcode(Opcode::RotateLeft);
+                        compiler.emit_u8(level + <span class="number">3</span>);
+                        compiler.emit_opcode(Opcode::RotateLeft);
+                        compiler.emit_u8(level + <span class="number">1</span>);
+                    }
+                });
                 <span class="kw">if </span>with_done {
                     <span class="self">self</span>.emit_opcode(Opcode::PushTrue);
                 }

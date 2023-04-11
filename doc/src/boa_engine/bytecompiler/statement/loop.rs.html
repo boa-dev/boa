@@ -386,6 +386,23 @@
 <a href="#385" id="385">385</a>
 <a href="#386" id="386">386</a>
 <a href="#387" id="387">387</a>
+<a href="#388" id="388">388</a>
+<a href="#389" id="389">389</a>
+<a href="#390" id="390">390</a>
+<a href="#391" id="391">391</a>
+<a href="#392" id="392">392</a>
+<a href="#393" id="393">393</a>
+<a href="#394" id="394">394</a>
+<a href="#395" id="395">395</a>
+<a href="#396" id="396">396</a>
+<a href="#397" id="397">397</a>
+<a href="#398" id="398">398</a>
+<a href="#399" id="399">399</a>
+<a href="#400" id="400">400</a>
+<a href="#401" id="401">401</a>
+<a href="#402" id="402">402</a>
+<a href="#403" id="403">403</a>
+<a href="#404" id="404">404</a>
 </pre><pre class="rust"><code><span class="kw">use </span>boa_ast::{
     declaration::Binding,
     operations::bound_names,
@@ -477,15 +494,19 @@
         label: <span class="prelude-ty">Option</span>&lt;Sym&gt;,
         configurable_globals: bool,
     ) {
-        <span class="kw">let </span>init_bound_names = bound_names(for_in_loop.initializer());
-        <span class="kw">if </span>init_bound_names.is_empty() {
+        <span class="kw">let </span>initializer_bound_names = <span class="kw">match </span>for_in_loop.initializer() {
+            IterableLoopInitializer::Let(declaration)
+            | IterableLoopInitializer::Const(declaration) =&gt; bound_names(declaration),
+            <span class="kw">_ </span>=&gt; Vec::new(),
+        };
+        <span class="kw">if </span>initializer_bound_names.is_empty() {
             <span class="self">self</span>.compile_expr(for_in_loop.target(), <span class="bool-val">true</span>);
         } <span class="kw">else </span>{
             <span class="self">self</span>.push_compile_environment(<span class="bool-val">false</span>);
             <span class="kw">let </span>push_env = <span class="self">self</span>.emit_opcode_with_two_operands(Opcode::PushDeclarativeEnvironment);
 
-            <span class="kw">for </span>name <span class="kw">in </span>init_bound_names {
-                <span class="self">self</span>.create_mutable_binding(name, <span class="bool-val">false</span>, <span class="bool-val">false</span>);
+            <span class="kw">for </span>name <span class="kw">in </span><span class="kw-2">&amp;</span>initializer_bound_names {
+                <span class="self">self</span>.create_mutable_binding(<span class="kw-2">*</span>name, <span class="bool-val">false</span>, <span class="bool-val">false</span>);
             }
             <span class="self">self</span>.compile_expr(for_in_loop.target(), <span class="bool-val">true</span>);
 
@@ -507,11 +528,16 @@
         <span class="self">self</span>.patch_jump_with_target(continue_label, start_address);
         <span class="self">self</span>.patch_jump_with_target(loop_start, start_address);
 
-        <span class="self">self</span>.push_compile_environment(<span class="bool-val">false</span>);
-        <span class="kw">let </span>push_env = <span class="self">self</span>.emit_opcode_with_two_operands(Opcode::PushDeclarativeEnvironment);
         <span class="self">self</span>.emit_opcode(Opcode::Pop); <span class="comment">// pop the `done` value.
         </span><span class="self">self</span>.emit_opcode(Opcode::IteratorNext);
         <span class="kw">let </span>exit = <span class="self">self</span>.emit_opcode_with_operand(Opcode::IteratorUnwrapNextOrJump);
+
+        <span class="kw">let </span>iteration_environment = <span class="kw">if </span>initializer_bound_names.is_empty() {
+            <span class="prelude-val">None
+        </span>} <span class="kw">else </span>{
+            <span class="self">self</span>.push_compile_environment(<span class="bool-val">false</span>);
+            <span class="prelude-val">Some</span>(<span class="self">self</span>.emit_opcode_with_two_operands(Opcode::PushDeclarativeEnvironment))
+        };
 
         <span class="kw">match </span>for_in_loop.initializer() {
             IterableLoopInitializer::Identifier(ident) =&gt; {
@@ -564,19 +590,18 @@
                 }
             },
             IterableLoopInitializer::Pattern(pattern) =&gt; {
-                <span class="kw">for </span>ident <span class="kw">in </span>bound_names(pattern) {
-                    <span class="self">self</span>.create_mutable_binding(ident, <span class="bool-val">true</span>, <span class="bool-val">true</span>);
-                }
-                <span class="self">self</span>.compile_declaration_pattern(pattern, BindingOpcode::InitVar);
+                <span class="self">self</span>.compile_declaration_pattern(pattern, BindingOpcode::SetName);
             }
         }
 
         <span class="self">self</span>.compile_stmt(for_in_loop.body(), <span class="bool-val">false</span>, configurable_globals);
 
-        <span class="kw">let </span>env_info = <span class="self">self</span>.pop_compile_environment();
-        <span class="self">self</span>.patch_jump_with_target(push_env.<span class="number">0</span>, env_info.num_bindings <span class="kw">as </span>u32);
-        <span class="self">self</span>.patch_jump_with_target(push_env.<span class="number">1</span>, env_info.index <span class="kw">as </span>u32);
-        <span class="self">self</span>.emit_opcode(Opcode::PopEnvironment);
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(iteration_environment) = iteration_environment {
+            <span class="kw">let </span>env_info = <span class="self">self</span>.pop_compile_environment();
+            <span class="self">self</span>.patch_jump_with_target(iteration_environment.<span class="number">0</span>, env_info.num_bindings <span class="kw">as </span>u32);
+            <span class="self">self</span>.patch_jump_with_target(iteration_environment.<span class="number">1</span>, env_info.index <span class="kw">as </span>u32);
+            <span class="self">self</span>.emit_opcode(Opcode::PopEnvironment);
+        }
 
         <span class="self">self</span>.emit(Opcode::Jump, <span class="kw-2">&amp;</span>[start_address]);
 
@@ -585,7 +610,9 @@
         <span class="self">self</span>.patch_jump(cont_exit_label);
         <span class="self">self</span>.pop_loop_control_info();
         <span class="self">self</span>.emit_opcode(Opcode::LoopEnd);
-        <span class="self">self</span>.iterator_close(<span class="bool-val">false</span>);
+        <span class="self">self</span>.emit_opcode(Opcode::Pop);
+        <span class="self">self</span>.emit_opcode(Opcode::Pop);
+        <span class="self">self</span>.emit_opcode(Opcode::Pop);
 
         <span class="self">self</span>.patch_jump(early_exit);
     }
@@ -596,15 +623,19 @@
         label: <span class="prelude-ty">Option</span>&lt;Sym&gt;,
         configurable_globals: bool,
     ) {
-        <span class="kw">let </span>init_bound_names = bound_names(for_of_loop.initializer());
-        <span class="kw">if </span>init_bound_names.is_empty() {
+        <span class="kw">let </span>initializer_bound_names = <span class="kw">match </span>for_of_loop.initializer() {
+            IterableLoopInitializer::Let(declaration)
+            | IterableLoopInitializer::Const(declaration) =&gt; bound_names(declaration),
+            <span class="kw">_ </span>=&gt; Vec::new(),
+        };
+        <span class="kw">if </span>initializer_bound_names.is_empty() {
             <span class="self">self</span>.compile_expr(for_of_loop.iterable(), <span class="bool-val">true</span>);
         } <span class="kw">else </span>{
             <span class="self">self</span>.push_compile_environment(<span class="bool-val">false</span>);
             <span class="kw">let </span>push_env = <span class="self">self</span>.emit_opcode_with_two_operands(Opcode::PushDeclarativeEnvironment);
 
-            <span class="kw">for </span>name <span class="kw">in </span>init_bound_names {
-                <span class="self">self</span>.create_mutable_binding(name, <span class="bool-val">false</span>, <span class="bool-val">false</span>);
+            <span class="kw">for </span>name <span class="kw">in </span><span class="kw-2">&amp;</span>initializer_bound_names {
+                <span class="self">self</span>.create_mutable_binding(<span class="kw-2">*</span>name, <span class="bool-val">false</span>, <span class="bool-val">false</span>);
             }
             <span class="self">self</span>.compile_expr(for_of_loop.iterable(), <span class="bool-val">true</span>);
 
@@ -629,9 +660,6 @@
         <span class="self">self</span>.patch_jump_with_target(loop_start, start_address);
         <span class="self">self</span>.patch_jump_with_target(cont_label, start_address);
 
-        <span class="self">self</span>.push_compile_environment(<span class="bool-val">false</span>);
-        <span class="kw">let </span>push_env = <span class="self">self</span>.emit_opcode_with_two_operands(Opcode::PushDeclarativeEnvironment);
-
         <span class="self">self</span>.emit_opcode(Opcode::Pop); <span class="comment">// pop the `done` value.
         </span><span class="self">self</span>.emit_opcode(Opcode::IteratorNext);
         <span class="kw">if </span>for_of_loop.r#await() {
@@ -639,6 +667,13 @@
             <span class="self">self</span>.emit_opcode(Opcode::GeneratorNext);
         }
         <span class="kw">let </span>exit = <span class="self">self</span>.emit_opcode_with_operand(Opcode::IteratorUnwrapNextOrJump);
+
+        <span class="kw">let </span>iteration_environment = <span class="kw">if </span>initializer_bound_names.is_empty() {
+            <span class="prelude-val">None
+        </span>} <span class="kw">else </span>{
+            <span class="self">self</span>.push_compile_environment(<span class="bool-val">false</span>);
+            <span class="prelude-val">Some</span>(<span class="self">self</span>.emit_opcode_with_two_operands(Opcode::PushDeclarativeEnvironment))
+        };
 
         <span class="kw">match </span>for_of_loop.initializer() {
             IterableLoopInitializer::Identifier(<span class="kw-2">ref </span>ident) =&gt; {
@@ -691,19 +726,18 @@
                 }
             },
             IterableLoopInitializer::Pattern(pattern) =&gt; {
-                <span class="kw">for </span>ident <span class="kw">in </span>bound_names(pattern) {
-                    <span class="self">self</span>.create_mutable_binding(ident, <span class="bool-val">true</span>, <span class="bool-val">true</span>);
-                }
-                <span class="self">self</span>.compile_declaration_pattern(pattern, BindingOpcode::InitVar);
+                <span class="self">self</span>.compile_declaration_pattern(pattern, BindingOpcode::SetName);
             }
         }
 
         <span class="self">self</span>.compile_stmt(for_of_loop.body(), <span class="bool-val">false</span>, configurable_globals);
 
-        <span class="kw">let </span>env_info = <span class="self">self</span>.pop_compile_environment();
-        <span class="self">self</span>.patch_jump_with_target(push_env.<span class="number">0</span>, env_info.num_bindings <span class="kw">as </span>u32);
-        <span class="self">self</span>.patch_jump_with_target(push_env.<span class="number">1</span>, env_info.index <span class="kw">as </span>u32);
-        <span class="self">self</span>.emit_opcode(Opcode::PopEnvironment);
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(iteration_environment) = iteration_environment {
+            <span class="kw">let </span>env_info = <span class="self">self</span>.pop_compile_environment();
+            <span class="self">self</span>.patch_jump_with_target(iteration_environment.<span class="number">0</span>, env_info.num_bindings <span class="kw">as </span>u32);
+            <span class="self">self</span>.patch_jump_with_target(iteration_environment.<span class="number">1</span>, env_info.index <span class="kw">as </span>u32);
+            <span class="self">self</span>.emit_opcode(Opcode::PopEnvironment);
+        }
 
         <span class="self">self</span>.emit(Opcode::Jump, <span class="kw-2">&amp;</span>[start_address]);
 

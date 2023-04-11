@@ -1304,6 +1304,9 @@
 <a href="#1303" id="1303">1303</a>
 <a href="#1304" id="1304">1304</a>
 <a href="#1305" id="1305">1305</a>
+<a href="#1306" id="1306">1306</a>
+<a href="#1307" id="1307">1307</a>
+<a href="#1308" id="1308">1308</a>
 </pre><pre class="rust"><code><span class="doccomment">//! `CodeBlock`
 //!
 //! This module is for the `CodeBlock` which implements a function representation in the VM
@@ -1754,9 +1757,12 @@
             | Opcode::GetIterator
             | Opcode::GetAsyncIterator
             | Opcode::IteratorNext
+            | Opcode::IteratorNextSetDone
             | Opcode::IteratorUnwrapNext
             | Opcode::IteratorUnwrapValue
             | Opcode::IteratorToArray
+            | Opcode::IteratorClosePush
+            | Opcode::IteratorClosePop
             | Opcode::RequireObjectCoercible
             | Opcode::ValueNotNullOrUndefined
             | Opcode::RestParameterInit

@@ -1571,6 +1571,28 @@
 <a href="#1570" id="1570">1570</a>
 <a href="#1571" id="1571">1571</a>
 <a href="#1572" id="1572">1572</a>
+<a href="#1573" id="1573">1573</a>
+<a href="#1574" id="1574">1574</a>
+<a href="#1575" id="1575">1575</a>
+<a href="#1576" id="1576">1576</a>
+<a href="#1577" id="1577">1577</a>
+<a href="#1578" id="1578">1578</a>
+<a href="#1579" id="1579">1579</a>
+<a href="#1580" id="1580">1580</a>
+<a href="#1581" id="1581">1581</a>
+<a href="#1582" id="1582">1582</a>
+<a href="#1583" id="1583">1583</a>
+<a href="#1584" id="1584">1584</a>
+<a href="#1585" id="1585">1585</a>
+<a href="#1586" id="1586">1586</a>
+<a href="#1587" id="1587">1587</a>
+<a href="#1588" id="1588">1588</a>
+<a href="#1589" id="1589">1589</a>
+<a href="#1590" id="1590">1590</a>
+<a href="#1591" id="1591">1591</a>
+<a href="#1592" id="1592">1592</a>
+<a href="#1593" id="1593">1593</a>
+<a href="#1594" id="1594">1594</a>
 </pre><pre class="rust"><code><span class="doccomment">/// The opcodes of the vm.
 </span><span class="kw">use crate</span>::{vm::CompletionType, Context, JsResult};
 
@@ -2996,6 +3018,14 @@
         /// Stack: iterator, next_method **=&gt;** iterator, next_method, next_value
         </span>IteratorNext,
 
+        <span class="doccomment">/// Calls the `next` method of `iterator`, puts its return value on the stack
+        /// and sets the `[[Done]]` value of the iterator on the call frame.
+        ///
+        /// Operands:
+        ///
+        /// Stack: iterator, next_method **=&gt;** iterator, next_method, next_value
+        </span>IteratorNextSetDone,
+
         <span class="doccomment">/// Gets the `value` and `done` properties of an iterator result.
         ///
         /// Stack: next_result **=&gt;** done, next_value
@@ -3020,6 +3050,20 @@
         ///
         /// Stack: iterator, next_method **=&gt;** iterator, next_method, array
         </span>IteratorToArray,
+
+        <span class="doccomment">/// Push an iterator to the call frame close iterator stack.
+        ///
+        /// Operands:
+        ///
+        /// Stack: iterator, next_method =&gt; iterator, next_method
+        </span>IteratorClosePush,
+
+        <span class="doccomment">/// Pop an iterator from the call frame close iterator stack.
+        ///
+        /// Operands:
+        ///
+        /// Stack:
+        </span>IteratorClosePop,
 
         <span class="doccomment">/// Concat multiple stack objects into a string.
         ///

@@ -156,10 +156,28 @@
 <a href="#155" id="155">155</a>
 <a href="#156" id="156">156</a>
 <a href="#157" id="157">157</a>
+<a href="#158" id="158">158</a>
+<a href="#159" id="159">159</a>
+<a href="#160" id="160">160</a>
+<a href="#161" id="161">161</a>
+<a href="#162" id="162">162</a>
+<a href="#163" id="163">163</a>
+<a href="#164" id="164">164</a>
+<a href="#165" id="165">165</a>
+<a href="#166" id="166">166</a>
+<a href="#167" id="167">167</a>
+<a href="#168" id="168">168</a>
+<a href="#169" id="169">169</a>
+<a href="#170" id="170">170</a>
+<a href="#171" id="171">171</a>
+<a href="#172" id="172">172</a>
+<a href="#173" id="173">173</a>
 </pre><pre class="rust"><code><span class="kw">use crate</span>::{
+    js_string,
     vm::{call_frame::AbruptCompletionRecord, opcode::Operation, CompletionType},
     Context, JsError, JsNativeError, JsResult,
 };
+<span class="kw">use </span>thin_vec::ThinVec;
 
 <span class="doccomment">/// `Throw` implements the Opcode Operation for `Opcode::Throw`
 ///
@@ -178,6 +196,20 @@
         } <span class="kw">else </span>{
             JsError::from_opaque(context.vm.pop())
         };
+
+        <span class="comment">// Close all iterators that are still open.
+        </span><span class="kw">let </span><span class="kw-2">mut </span>iterators = ThinVec::new();
+        std::mem::swap(<span class="kw-2">&amp;mut </span>iterators, <span class="kw-2">&amp;mut </span>context.vm.frame_mut().iterators);
+        <span class="kw">for </span>(iterator, done) <span class="kw">in </span>iterators {
+            <span class="kw">if </span>done {
+                <span class="kw">continue</span>;
+            }
+            <span class="kw">if let </span><span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(f)) = iterator.get_method(<span class="macro">js_string!</span>(<span class="string">&quot;return&quot;</span>), context) {
+                drop(f.call(<span class="kw-2">&amp;</span>iterator.into(), <span class="kw-2">&amp;</span>[], context));
+            }
+        }
+        context.vm.err.take();
+
         <span class="comment">// 1. Find the viable catch and finally blocks
         </span><span class="kw">let </span>current_address = context.vm.frame().pc;
         <span class="kw">let </span>viable_catch_candidates = context

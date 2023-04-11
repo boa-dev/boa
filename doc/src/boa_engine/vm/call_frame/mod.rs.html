@@ -109,18 +109,26 @@
 <a href="#108" id="108">108</a>
 <a href="#109" id="109">109</a>
 <a href="#110" id="110">110</a>
+<a href="#111" id="111">111</a>
+<a href="#112" id="112">112</a>
+<a href="#113" id="113">113</a>
+<a href="#114" id="114">114</a>
+<a href="#115" id="115">115</a>
+<a href="#116" id="116">116</a>
 </pre><pre class="rust"><code><span class="doccomment">//! `CallFrame`
 //!
 //! This module will provides everything needed to implement the `CallFrame`
 
-</span><span class="kw">use crate</span>::{object::JsObject, vm::CodeBlock};
-<span class="kw">use </span>boa_gc::{Finalize, Gc, Trace};
-
-<span class="kw">mod </span>abrupt_record;
+</span><span class="kw">mod </span>abrupt_record;
 <span class="kw">mod </span>env_stack;
+
+<span class="kw">use crate</span>::{object::JsObject, vm::CodeBlock};
+<span class="kw">use </span>boa_gc::{Finalize, Gc, Trace};
+<span class="kw">use </span>thin_vec::ThinVec;
 
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use </span>abrupt_record::AbruptCompletionRecord;
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use </span>env_stack::EnvStackEntry;
+
 <span class="doccomment">/// A `CallFrame` holds the state of a function call.
 </span><span class="attr">#[derive(Clone, Debug, Finalize, Trace)]
 </span><span class="kw">pub struct </span>CallFrame {
@@ -144,6 +152,9 @@
     <span class="comment">// When an async generator is resumed, the generator object is needed
     // to fulfill the steps 4.e-j in [AsyncGeneratorStart](https://tc39.es/ecma262/#sec-asyncgeneratorstart).
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) async_generator: <span class="prelude-ty">Option</span>&lt;JsObject&gt;,
+
+    <span class="comment">// Iterators and their `[[Done]]` flags that must be closed when an abrupt completion is thrown.
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) iterators: ThinVec&lt;(JsObject, bool)&gt;,
 }
 
 <span class="doccomment">/// ---- `CallFrame` creation methods ----
@@ -163,6 +174,7 @@
             arg_count: <span class="number">0</span>,
             generator_resume_kind: GeneratorResumeKind::Normal,
             async_generator: <span class="prelude-val">None</span>,
+            iterators: ThinVec::new(),
         }
     }
 

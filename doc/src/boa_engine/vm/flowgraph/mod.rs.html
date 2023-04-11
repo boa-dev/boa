@@ -571,6 +571,9 @@
 <a href="#570" id="570">570</a>
 <a href="#571" id="571">571</a>
 <a href="#572" id="572">572</a>
+<a href="#573" id="573">573</a>
+<a href="#574" id="574">574</a>
+<a href="#575" id="575">575</a>
 </pre><pre class="rust"><code><span class="doccomment">//! This module is responsible for generating the vm instruction flowgraph.
 
 </span><span class="kw">use </span><span class="kw">crate</span>::vm::{CodeBlock, Opcode};
@@ -1075,9 +1078,12 @@
                 | Opcode::GetIterator
                 | Opcode::GetAsyncIterator
                 | Opcode::IteratorNext
+                | Opcode::IteratorNextSetDone
                 | Opcode::IteratorUnwrapNext
                 | Opcode::IteratorUnwrapValue
                 | Opcode::IteratorToArray
+                | Opcode::IteratorClosePush
+                | Opcode::IteratorClosePop
                 | Opcode::RequireObjectCoercible
                 | Opcode::ValueNotNullOrUndefined
                 | Opcode::RestParameterInit
