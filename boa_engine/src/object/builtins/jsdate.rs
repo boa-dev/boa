@@ -48,7 +48,7 @@ impl JsDate {
         Self { inner }
     }
 
-    /// Create a new `JsDataView` object from an existing object.
+    /// Create a new `JsDate` object from an existing object.
     #[inline]
     pub fn from_object(object: JsObject) -> JsResult<Self> {
         if object.is_date() {
