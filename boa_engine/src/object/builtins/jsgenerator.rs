@@ -2,6 +2,7 @@
 use crate::{
     builtins::generator::{Generator, GeneratorState},
     object::{JsObject, JsObjectType, ObjectData},
+    value::TryFromJs,
     Context, JsNativeError, JsResult, JsValue,
 };
 
@@ -99,3 +100,14 @@ impl Deref for JsGenerator {
 }
 
 impl JsObjectType for JsGenerator {}
+
+impl TryFromJs for JsGenerator {
+    fn try_from_js(value: &JsValue, _context: &mut Context<'_>) -> JsResult<Self> {
+        match value {
+            JsValue::Object(o) => Self::from_object(o.clone()),
+            _ => Err(JsNativeError::typ()
+                .with_message("value is not a Generator object")
+                .into()),
+        }
+    }
+}

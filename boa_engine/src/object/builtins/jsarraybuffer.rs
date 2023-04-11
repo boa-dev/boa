@@ -6,6 +6,7 @@ use crate::{
     object::{
         internal_methods::get_prototype_from_constructor, JsObject, JsObjectType, ObjectData,
     },
+    value::TryFromJs,
     Context, JsResult, JsValue,
 };
 use boa_gc::{Finalize, Trace};
@@ -222,3 +223,14 @@ impl Deref for JsArrayBuffer {
 }
 
 impl JsObjectType for JsArrayBuffer {}
+
+impl TryFromJs for JsArrayBuffer {
+    fn try_from_js(value: &JsValue, _context: &mut Context<'_>) -> JsResult<Self> {
+        match value {
+            JsValue::Object(o) => Self::from_object(o.clone()),
+            _ => Err(JsNativeError::typ()
+                .with_message("value is not an ArrayBuffer object")
+                .into()),
+        }
+    }
+}

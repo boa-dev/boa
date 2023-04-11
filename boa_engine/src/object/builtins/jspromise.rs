@@ -11,6 +11,7 @@ use crate::{
     },
     context::intrinsics::StandardConstructors,
     object::{JsObject, JsObjectType, ObjectData},
+    value::TryFromJs,
     Context, JsError, JsNativeError, JsResult, JsValue,
 };
 
@@ -243,13 +244,13 @@ impl JsPromise {
     /// # }
     /// ```
     #[inline]
-    pub fn from_object(object: JsObject) -> JsResult<JsPromise> {
+    pub fn from_object(object: JsObject) -> JsResult<Self> {
         if !object.is_promise() {
             return Err(JsNativeError::typ()
                 .with_message("`object` is not a Promise")
                 .into());
         }
-        Ok(JsPromise { inner: object })
+        Ok(Self { inner: object })
     }
 
     /// Resolves a `JsValue` into a `JsPromise`.
@@ -883,3 +884,14 @@ impl std::ops::Deref for JsPromise {
 }
 
 impl JsObjectType for JsPromise {}
+
+impl TryFromJs for JsPromise {
+    fn try_from_js(value: &JsValue, _context: &mut Context<'_>) -> JsResult<Self> {
+        match value {
+            JsValue::Object(o) => Self::from_object(o.clone()),
+            _ => Err(JsNativeError::typ()
+                .with_message("value is not a Promise object")
+                .into()),
+        }
+    }
+}

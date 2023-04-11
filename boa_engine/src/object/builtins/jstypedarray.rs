@@ -4,7 +4,7 @@ use crate::{
     builtins::BuiltInConstructor,
     error::JsNativeError,
     object::{JsArrayBuffer, JsFunction, JsObject, JsObjectType},
-    value::IntoOrUndefined,
+    value::{IntoOrUndefined, TryFromJs},
     Context, JsResult, JsString, JsValue,
 };
 use boa_gc::{Finalize, Trace};
@@ -345,6 +345,17 @@ impl Deref for JsTypedArray {
 }
 
 impl JsObjectType for JsTypedArray {}
+
+impl TryFromJs for JsTypedArray {
+    fn try_from_js(value: &JsValue, _context: &mut Context<'_>) -> JsResult<Self> {
+        match value {
+            JsValue::Object(o) => Self::from_object(o.clone()),
+            _ => Err(JsNativeError::typ()
+                .with_message("value is not a TypedArray object")
+                .into()),
+        }
+    }
+}
 
 macro_rules! JsTypedArrayType {
     ($name:ident, $constructor_function:ident, $constructor_object:ident, $element:ty) => {

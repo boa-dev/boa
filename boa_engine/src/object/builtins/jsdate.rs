@@ -7,6 +7,7 @@ use chrono::DateTime;
 use crate::{
     builtins::Date,
     object::{JsObject, JsObjectType, ObjectData},
+    value::TryFromJs,
     Context, JsNativeError, JsResult, JsValue,
 };
 
@@ -45,6 +46,18 @@ impl JsDate {
         let inner = JsObject::from_proto_and_data(prototype, ObjectData::date(Date::default()));
 
         Self { inner }
+    }
+
+    /// Create a new `JsDataView` object from an existing object.
+    #[inline]
+    pub fn from_object(object: JsObject) -> JsResult<Self> {
+        if object.borrow().is_date() {
+            Ok(Self { inner: object })
+        } else {
+            Err(JsNativeError::typ()
+                .with_message("object is not a Date")
+                .into())
+        }
     }
 
     /// Return a `Number` representing the milliseconds elapsed since the UNIX epoch.
@@ -587,3 +600,14 @@ impl Deref for JsDate {
 }
 
 impl JsObjectType for JsDate {}
+
+impl TryFromJs for JsDate {
+    fn try_from_js(value: &JsValue, _context: &mut Context<'_>) -> JsResult<Self> {
+        match value {
+            JsValue::Object(o) => Self::from_object(o.clone()),
+            _ => Err(JsNativeError::typ()
+                .with_message("value is not a Date object")
+                .into()),
+        }
+    }
+}

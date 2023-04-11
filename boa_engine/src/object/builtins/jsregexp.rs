@@ -2,6 +2,7 @@
 use crate::{
     builtins::RegExp,
     object::{JsArray, JsObject, JsObjectType},
+    value::TryFromJs,
     Context, JsNativeError, JsResult, JsValue,
 };
 
@@ -279,3 +280,14 @@ impl Deref for JsRegExp {
 }
 
 impl JsObjectType for JsRegExp {}
+
+impl TryFromJs for JsRegExp {
+    fn try_from_js(value: &JsValue, _context: &mut Context<'_>) -> JsResult<Self> {
+        match value {
+            JsValue::Object(o) => Self::from_object(o.clone()),
+            _ => Err(JsNativeError::typ()
+                .with_message("value is not a RegExp object")
+                .into()),
+        }
+    }
+}

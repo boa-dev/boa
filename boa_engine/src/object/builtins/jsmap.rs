@@ -5,6 +5,7 @@ use crate::{
     error::JsNativeError,
     object::{JsFunction, JsMapIterator, JsObject, JsObjectType, ObjectData},
     string::utf16,
+    value::TryFromJs,
     Context, JsResult, JsValue,
 };
 
@@ -422,3 +423,14 @@ impl Deref for JsMap {
 }
 
 impl JsObjectType for JsMap {}
+
+impl TryFromJs for JsMap {
+    fn try_from_js(value: &JsValue, _context: &mut Context<'_>) -> JsResult<Self> {
+        match value {
+            JsValue::Object(o) => Self::from_object(o.clone()),
+            _ => Err(JsNativeError::typ()
+                .with_message("value is not a Map object")
+                .into()),
+        }
+    }
+}
