@@ -7,7 +7,7 @@ use icu_locid::{
     locale, Locale,
 };
 use icu_plurals::provider::CardinalV1Marker;
-use icu_provider::{DataLocale, DataProvider, DataRequest, DataRequestMetadata};
+use icu_provider::{BufferProvider, DataLocale, DataProvider, DataRequest, DataRequestMetadata};
 
 use crate::{
     builtins::intl::{
@@ -73,7 +73,7 @@ impl Service for TestService {
 
 #[test]
 fn locale_resolution() {
-    let provider = boa_icu_provider::buffer();
+    let provider: &dyn BufferProvider = boa_icu_provider::buffer();
     let icu = Icu::new(BoaProvider::Buffer(provider)).unwrap();
     let mut default = default_locale(icu.locale_canonicalizer());
     default

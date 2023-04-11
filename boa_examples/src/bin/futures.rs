@@ -131,8 +131,8 @@ fn delay(
 fn main() {
     // Initialize the required executors and the context
     let executor = LocalExecutor::new();
-    let queue = Queue::new(executor);
-    let context = &mut ContextBuilder::new().job_queue(&queue).build().unwrap();
+    let queue: &dyn JobQueue = &Queue::new(executor);
+    let context = &mut ContextBuilder::new().job_queue(queue).build().unwrap();
 
     // Bind the defined async function to the ECMAScript function "delay".
     context

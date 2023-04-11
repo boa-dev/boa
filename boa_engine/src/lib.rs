@@ -151,14 +151,13 @@ pub mod error;
 pub mod job;
 pub mod native_function;
 pub mod object;
+pub mod optimizer;
 pub mod property;
 pub mod realm;
 pub mod string;
 pub mod symbol;
 pub mod value;
 pub mod vm;
-
-pub mod optimizer;
 
 #[cfg(feature = "console")]
 pub mod console;

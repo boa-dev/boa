@@ -547,7 +547,7 @@ pub(in crate::builtins::intl) fn validate_extension<M: KeyedDataMarker>(
 mod tests {
     use icu_locid::{langid, locale, Locale};
     use icu_plurals::provider::CardinalV1Marker;
-    use icu_provider::AsDeserializingBufferProvider;
+    use icu_provider::{AsDeserializingBufferProvider, BufferProvider};
 
     use crate::{
         builtins::intl::locale::utils::{
@@ -579,7 +579,7 @@ mod tests {
 
     #[test]
     fn lookup_match() {
-        let provider = boa_icu_provider::buffer();
+        let provider: &dyn BufferProvider = boa_icu_provider::buffer();
         let icu = Icu::new(BoaProvider::Buffer(provider)).unwrap();
 
         // requested: []

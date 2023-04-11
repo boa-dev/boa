@@ -302,9 +302,9 @@ fn evaluate_files(args: &Opt, context: &mut Context<'_>) -> Result<(), io::Error
 fn main() -> Result<(), io::Error> {
     let args = Opt::parse();
 
-    let queue = Jobs::default();
+    let queue: &dyn JobQueue = &Jobs::default();
     let mut context = ContextBuilder::new()
-        .job_queue(&queue)
+        .job_queue(queue)
         .build()
         .expect("cannot fail with default global object");
 

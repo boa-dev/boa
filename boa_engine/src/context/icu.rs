@@ -43,7 +43,7 @@ where
     M::Yokeable: ZeroFrom<'static, M::Yokeable> + MaybeSendSync,
 {
     fn load(&self, req: DataRequest<'_>) -> Result<DataResponse<M>, DataError> {
-        match *self {
+        match self {
             BoaProvider::Buffer(provider) => provider.as_deserializing().load(req),
             BoaProvider::Any(provider) => provider.as_downcasting().load(req),
         }
@@ -125,8 +125,8 @@ impl BoaProvider<'_> {
     }
 }
 
-/// Collection of tools initialized from a [`DataProvider`] that are used
-/// for the functionality of `Intl`.
+/// Collection of tools initialized from a [`DataProvider`] that are used for the functionality of
+/// `Intl`.
 pub(crate) struct Icu<'provider> {
     provider: BoaProvider<'provider>,
     locale_canonicalizer: LocaleCanonicalizer,
@@ -148,8 +148,7 @@ impl<'provider> Icu<'provider> {
     ///
     /// # Errors
     ///
-    /// This method will return an error if any of the tools
-    /// required cannot be constructed.
+    /// Returns an error if any of the tools required cannot be constructed.
     pub(crate) fn new(
         provider: BoaProvider<'provider>,
     ) -> Result<Icu<'provider>, LocaleTransformError> {
