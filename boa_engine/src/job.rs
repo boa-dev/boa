@@ -208,6 +208,7 @@ pub trait JobQueue {
 /// let context = ContextBuilder::new().job_queue(queue).build();
 /// ```
 ///
+/// [`ContextBuilder`]: crate::context::ContextBuilder
 #[derive(Debug, Clone, Copy)]
 pub struct IdleJobQueue;
 
