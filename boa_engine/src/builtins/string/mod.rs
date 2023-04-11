@@ -70,9 +70,37 @@ impl IntrinsicObject for String {
 
         let symbol_iterator = JsSymbol::iterator();
 
+        let trim_start = BuiltInBuilder::new(realm)
+            .callable(Self::trim_start)
+            .length(0)
+            .name("trimStart")
+            .build();
+
+        let trim_end = BuiltInBuilder::new(realm)
+            .callable(Self::trim_end)
+            .length(0)
+            .name("trimEnd")
+            .build();
+
+        #[cfg(feature = "annex-b")]
+        let trim_left = trim_start.clone();
+
+        #[cfg(feature = "annex-b")]
+        let trim_right = trim_end.clone();
+
         let attribute = Attribute::READONLY | Attribute::NON_ENUMERABLE | Attribute::PERMANENT;
         let builder = BuiltInBuilder::from_standard_constructor::<Self>(realm)
             .property(utf16!("length"), 0, attribute)
+            .property(
+                utf16!("trimStart"),
+                trim_start,
+                Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
+            )
+            .property(
+                utf16!("trimEnd"),
+                trim_end,
+                Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
+            )
             .static_method(Self::raw, "raw", 1)
             .static_method(Self::from_char_code, "fromCharCode", 1)
             .static_method(Self::from_code_point, "fromCodePoint", 1)
@@ -90,12 +118,10 @@ impl IntrinsicObject for String {
             .method(Self::last_index_of, "lastIndexOf", 1)
             .method(Self::locale_compare, "localeCompare", 1)
             .method(Self::r#match, "match", 1)
-            .method(Self::normalize, "normalize", 1)
+            .method(Self::normalize, "normalize", 0)
             .method(Self::pad_end, "padEnd", 1)
             .method(Self::pad_start, "padStart", 1)
             .method(Self::trim, "trim", 0)
-            .method(Self::trim_start, "trimStart", 0)
-            .method(Self::trim_end, "trimEnd", 0)
             .method(Self::to_lowercase, "toLowerCase", 0)
             .method(Self::to_uppercase, "toUpperCase", 0)
             .method(Self::substring, "substring", 2)
@@ -111,6 +137,16 @@ impl IntrinsicObject for String {
         #[cfg(feature = "annex-b")]
         {
             builder
+                .property(
+                    utf16!("trimLeft"),
+                    trim_left,
+                    Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
+                )
+                .property(
+                    utf16!("trimRight"),
+                    trim_right,
+                    Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
+                )
                 .method(Self::substr, "substr", 2)
                 .method(Self::anchor, "anchor", 1)
                 .method(Self::big, "big", 0)
