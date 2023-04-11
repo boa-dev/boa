@@ -587,7 +587,7 @@ impl std::fmt::Debug for ContextBuilder<'_, '_, '_> {
 
 impl<'icu, 'hooks, 'queue> ContextBuilder<'icu, 'hooks, 'queue> {
     /// Creates a new [`ContextBuilder`] with a default empty [`Interner`]
-    /// and a default [`BoaProvider`] if the `intl` feature is enabled.
+    /// and a default `BoaProvider` if the `intl` feature is enabled.
     #[must_use]
     pub fn new() -> Self {
         Self::default()
