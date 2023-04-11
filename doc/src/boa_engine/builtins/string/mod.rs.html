@@ -2752,6 +2752,42 @@
 <a href="#2751" id="2751">2751</a>
 <a href="#2752" id="2752">2752</a>
 <a href="#2753" id="2753">2753</a>
+<a href="#2754" id="2754">2754</a>
+<a href="#2755" id="2755">2755</a>
+<a href="#2756" id="2756">2756</a>
+<a href="#2757" id="2757">2757</a>
+<a href="#2758" id="2758">2758</a>
+<a href="#2759" id="2759">2759</a>
+<a href="#2760" id="2760">2760</a>
+<a href="#2761" id="2761">2761</a>
+<a href="#2762" id="2762">2762</a>
+<a href="#2763" id="2763">2763</a>
+<a href="#2764" id="2764">2764</a>
+<a href="#2765" id="2765">2765</a>
+<a href="#2766" id="2766">2766</a>
+<a href="#2767" id="2767">2767</a>
+<a href="#2768" id="2768">2768</a>
+<a href="#2769" id="2769">2769</a>
+<a href="#2770" id="2770">2770</a>
+<a href="#2771" id="2771">2771</a>
+<a href="#2772" id="2772">2772</a>
+<a href="#2773" id="2773">2773</a>
+<a href="#2774" id="2774">2774</a>
+<a href="#2775" id="2775">2775</a>
+<a href="#2776" id="2776">2776</a>
+<a href="#2777" id="2777">2777</a>
+<a href="#2778" id="2778">2778</a>
+<a href="#2779" id="2779">2779</a>
+<a href="#2780" id="2780">2780</a>
+<a href="#2781" id="2781">2781</a>
+<a href="#2782" id="2782">2782</a>
+<a href="#2783" id="2783">2783</a>
+<a href="#2784" id="2784">2784</a>
+<a href="#2785" id="2785">2785</a>
+<a href="#2786" id="2786">2786</a>
+<a href="#2787" id="2787">2787</a>
+<a href="#2788" id="2788">2788</a>
+<a href="#2789" id="2789">2789</a>
 </pre><pre class="rust"><code><span class="doccomment">//! Boa&#39;s implementation of ECMAScript&#39;s global `String` object.
 //!
 //! The `String` global object is a constructor for strings or a sequence of characters.
@@ -2824,9 +2860,37 @@
 
         <span class="kw">let </span>symbol_iterator = JsSymbol::iterator();
 
+        <span class="kw">let </span>trim_start = BuiltInBuilder::new(realm)
+            .callable(<span class="self">Self</span>::trim_start)
+            .length(<span class="number">0</span>)
+            .name(<span class="string">&quot;trimStart&quot;</span>)
+            .build();
+
+        <span class="kw">let </span>trim_end = BuiltInBuilder::new(realm)
+            .callable(<span class="self">Self</span>::trim_end)
+            .length(<span class="number">0</span>)
+            .name(<span class="string">&quot;trimEnd&quot;</span>)
+            .build();
+
+        <span class="attr">#[cfg(feature = <span class="string">&quot;annex-b&quot;</span>)]
+        </span><span class="kw">let </span>trim_left = trim_start.clone();
+
+        <span class="attr">#[cfg(feature = <span class="string">&quot;annex-b&quot;</span>)]
+        </span><span class="kw">let </span>trim_right = trim_end.clone();
+
         <span class="kw">let </span>attribute = Attribute::READONLY | Attribute::NON_ENUMERABLE | Attribute::PERMANENT;
         <span class="kw">let </span>builder = BuiltInBuilder::from_standard_constructor::&lt;<span class="self">Self</span>&gt;(realm)
             .property(<span class="macro">utf16!</span>(<span class="string">&quot;length&quot;</span>), <span class="number">0</span>, attribute)
+            .property(
+                <span class="macro">utf16!</span>(<span class="string">&quot;trimStart&quot;</span>),
+                trim_start,
+                Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
+            )
+            .property(
+                <span class="macro">utf16!</span>(<span class="string">&quot;trimEnd&quot;</span>),
+                trim_end,
+                Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
+            )
             .static_method(<span class="self">Self</span>::raw, <span class="string">&quot;raw&quot;</span>, <span class="number">1</span>)
             .static_method(<span class="self">Self</span>::from_char_code, <span class="string">&quot;fromCharCode&quot;</span>, <span class="number">1</span>)
             .static_method(<span class="self">Self</span>::from_code_point, <span class="string">&quot;fromCodePoint&quot;</span>, <span class="number">1</span>)
@@ -2844,12 +2908,10 @@
             .method(<span class="self">Self</span>::last_index_of, <span class="string">&quot;lastIndexOf&quot;</span>, <span class="number">1</span>)
             .method(<span class="self">Self</span>::locale_compare, <span class="string">&quot;localeCompare&quot;</span>, <span class="number">1</span>)
             .method(<span class="self">Self</span>::r#match, <span class="string">&quot;match&quot;</span>, <span class="number">1</span>)
-            .method(<span class="self">Self</span>::normalize, <span class="string">&quot;normalize&quot;</span>, <span class="number">1</span>)
+            .method(<span class="self">Self</span>::normalize, <span class="string">&quot;normalize&quot;</span>, <span class="number">0</span>)
             .method(<span class="self">Self</span>::pad_end, <span class="string">&quot;padEnd&quot;</span>, <span class="number">1</span>)
             .method(<span class="self">Self</span>::pad_start, <span class="string">&quot;padStart&quot;</span>, <span class="number">1</span>)
             .method(<span class="self">Self</span>::trim, <span class="string">&quot;trim&quot;</span>, <span class="number">0</span>)
-            .method(<span class="self">Self</span>::trim_start, <span class="string">&quot;trimStart&quot;</span>, <span class="number">0</span>)
-            .method(<span class="self">Self</span>::trim_end, <span class="string">&quot;trimEnd&quot;</span>, <span class="number">0</span>)
             .method(<span class="self">Self</span>::to_lowercase, <span class="string">&quot;toLowerCase&quot;</span>, <span class="number">0</span>)
             .method(<span class="self">Self</span>::to_uppercase, <span class="string">&quot;toUpperCase&quot;</span>, <span class="number">0</span>)
             .method(<span class="self">Self</span>::substring, <span class="string">&quot;substring&quot;</span>, <span class="number">2</span>)
@@ -2865,6 +2927,16 @@
         <span class="attr">#[cfg(feature = <span class="string">&quot;annex-b&quot;</span>)]
         </span>{
             builder
+                .property(
+                    <span class="macro">utf16!</span>(<span class="string">&quot;trimLeft&quot;</span>),
+                    trim_left,
+                    Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
+                )
+                .property(
+                    <span class="macro">utf16!</span>(<span class="string">&quot;trimRight&quot;</span>),
+                    trim_right,
+                    Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
+                )
                 .method(<span class="self">Self</span>::substr, <span class="string">&quot;substr&quot;</span>, <span class="number">2</span>)
                 .method(<span class="self">Self</span>::anchor, <span class="string">&quot;anchor&quot;</span>, <span class="number">1</span>)
                 .method(<span class="self">Self</span>::big, <span class="string">&quot;big&quot;</span>, <span class="number">0</span>)
