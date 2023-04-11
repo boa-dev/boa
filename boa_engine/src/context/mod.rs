@@ -12,7 +12,6 @@ pub(crate) mod icu;
 #[cfg(feature = "intl")]
 pub use icu::BoaProvider;
 
-use icu_provider::BufferProvider;
 use intrinsics::Intrinsics;
 
 #[cfg(not(feature = "intl"))]
@@ -595,7 +594,7 @@ impl std::fmt::Debug for ContextBuilder<'_, '_, '_> {
 
 impl<'icu, 'hooks, 'queue> ContextBuilder<'icu, 'hooks, 'queue> {
     /// Creates a new [`ContextBuilder`] with a default empty [`Interner`]
-    /// and a default [`BoaProvider`] if the `intl` feature is enabled.
+    /// and a default `BoaProvider` if the `intl` feature is enabled.
     #[must_use]
     pub fn new() -> Self {
         Self::default()
@@ -697,7 +696,7 @@ impl<'icu, 'hooks, 'queue> ContextBuilder<'icu, 'hooks, 'queue> {
             strict: false,
             #[cfg(feature = "intl")]
             icu: self.icu.unwrap_or_else(|| {
-                let buffer: &dyn BufferProvider = boa_icu_provider::buffer();
+                let buffer: &dyn icu_provider::BufferProvider = boa_icu_provider::buffer();
                 let provider = BoaProvider::Buffer(buffer);
                 icu::Icu::new(provider).expect("Failed to initialize default icu data.")
             }),
