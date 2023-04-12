@@ -1,18 +1,16 @@
 //! The ECMAScript context.
 
 mod hooks;
-pub mod intrinsics;
-mod maybe_shared;
-pub use hooks::{DefaultHooks, HostHooks};
-pub use maybe_shared::MaybeShared;
-
 #[cfg(feature = "intl")]
 pub(crate) mod icu;
+pub mod intrinsics;
+mod maybe_shared;
 
+pub use hooks::{DefaultHooks, HostHooks};
 #[cfg(feature = "intl")]
 pub use icu::BoaProvider;
-
 use intrinsics::Intrinsics;
+pub use maybe_shared::MaybeShared;
 
 #[cfg(not(feature = "intl"))]
 pub use std::marker::PhantomData;
