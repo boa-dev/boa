@@ -44,10 +44,70 @@ pub(crate) enum GeneratorState {
 #[derive(Debug, Clone, Finalize, Trace)]
 pub(crate) struct GeneratorContext {
     pub(crate) environments: DeclarativeEnvironmentStack,
-    pub(crate) call_frame: CallFrame,
     pub(crate) stack: Vec<JsValue>,
     pub(crate) active_function: Option<JsObject>,
+    pub(crate) call_frame: Option<CallFrame>,
     pub(crate) realm: Realm,
+}
+
+impl GeneratorContext {
+    /// Creates a new `GeneratorContext` from the raw `Context` state components.
+    pub(crate) fn new(
+        environments: DeclarativeEnvironmentStack,
+        stack: Vec<JsValue>,
+        active_function: Option<JsObject>,
+        call_frame: CallFrame,
+        realm: Realm,
+    ) -> Self {
+        Self {
+            environments,
+            stack,
+            active_function,
+            call_frame: Some(call_frame),
+            realm,
+        }
+    }
+
+    /// Creates a new `GeneratorContext` from the current `Context` state.
+    pub(crate) fn from_current(context: &mut Context<'_>) -> Self {
+        Self {
+            environments: context.vm.environments.clone(),
+            call_frame: Some(context.vm.frame().clone()),
+            stack: context.vm.stack.clone(),
+            active_function: context.vm.active_function.clone(),
+            realm: context.realm().clone(),
+        }
+    }
+
+    /// Resumes execution with `GeneratorContext` as the current execution context.
+    pub(crate) fn resume(
+        &mut self,
+        value: Option<JsValue>,
+        resume_kind: GeneratorResumeKind,
+        context: &mut Context<'_>,
+    ) -> CompletionRecord {
+        std::mem::swap(&mut context.vm.environments, &mut self.environments);
+        std::mem::swap(&mut context.vm.stack, &mut self.stack);
+        std::mem::swap(&mut context.vm.active_function, &mut self.active_function);
+        context.swap_realm(&mut self.realm);
+        context
+            .vm
+            .push_frame(self.call_frame.take().expect("should have a call frame"));
+        context.vm.frame_mut().generator_resume_kind = resume_kind;
+        if let Some(value) = value {
+            context.vm.push(value);
+        }
+
+        let result = context.run();
+
+        std::mem::swap(&mut context.vm.environments, &mut self.environments);
+        std::mem::swap(&mut context.vm.stack, &mut self.stack);
+        std::mem::swap(&mut context.vm.active_function, &mut self.active_function);
+        context.swap_realm(&mut self.realm);
+        self.call_frame = context.vm.pop_frame();
+        assert!(self.call_frame.is_some());
+        result
+    }
 }
 
 /// The internal representation of a `Generator` object.
@@ -117,15 +177,19 @@ impl Generator {
         args: &[JsValue],
         context: &mut Context<'_>,
     ) -> JsResult<JsValue> {
+        // Extracted `GeneratorValidate` since we don't need to worry about validation
+        // of async functions.
+        let generator = Self::generator_validate(this)?;
+
         // 1. Return ? GeneratorResume(this value, value, empty).
-        this.as_object().map_or_else(
-            || {
-                Err(JsNativeError::typ()
-                    .with_message("Generator.prototype.next called on non generator")
-                    .into())
-            },
-            |obj| Self::generator_resume(obj, args.get_or_undefined(0), context),
-        )
+        let completion =
+            Self::generator_resume(generator, args.get_or_undefined(0).clone(), context);
+
+        match completion {
+            CompletionRecord::Return(value) => Ok(create_iter_result_object(value, false, context)),
+            CompletionRecord::Normal(value) => Ok(create_iter_result_object(value, true, context)),
+            CompletionRecord::Throw(err) => Err(err),
+        }
     }
 
     /// `Generator.prototype.return ( value )`
@@ -144,9 +208,17 @@ impl Generator {
         context: &mut Context<'_>,
     ) -> JsResult<JsValue> {
         // 1. Let g be the this value.
+        let generator = Self::generator_validate(this)?;
         // 2. Let C be Completion { [[Type]]: return, [[Value]]: value, [[Target]]: empty }.
         // 3. Return ? GeneratorResumeAbrupt(g, C, empty).
-        Self::generator_resume_abrupt(this, Ok(args.get_or_undefined(0).clone()), context)
+        let completion =
+            Self::generator_resume_abrupt(generator, Ok(args.get_or_undefined(0).clone()), context);
+
+        match completion {
+            CompletionRecord::Return(value) => Ok(create_iter_result_object(value, false, context)),
+            CompletionRecord::Normal(value) => Ok(create_iter_result_object(value, true, context)),
+            CompletionRecord::Throw(err) => Err(err),
+        }
     }
 
     /// `Generator.prototype.throw ( exception )`
@@ -166,13 +238,44 @@ impl Generator {
         context: &mut Context<'_>,
     ) -> JsResult<JsValue> {
         // 1. Let g be the this value.
+        let generator = Self::generator_validate(this)?;
         // 2. Let C be ThrowCompletion(exception).
         // 3. Return ? GeneratorResumeAbrupt(g, C, empty).
-        Self::generator_resume_abrupt(
-            this,
+        let completion = Self::generator_resume_abrupt(
+            generator,
             Err(JsError::from_opaque(args.get_or_undefined(0).clone())),
             context,
-        )
+        );
+
+        match completion {
+            CompletionRecord::Return(value) => Ok(create_iter_result_object(value, false, context)),
+            CompletionRecord::Normal(value) => Ok(create_iter_result_object(value, true, context)),
+            CompletionRecord::Throw(err) => Err(err),
+        }
+    }
+
+    /// `27.5.3.3 GeneratorValidate ( generator, generatorBrand )`
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///
+    /// [spec]:https://tc39.es/ecma262/#sec-generatorvalidate
+    fn generator_validate(gen: &JsValue) -> JsResult<&JsObject> {
+        let generator_obj = gen.as_object().ok_or_else(|| {
+            JsNativeError::typ().with_message("Generator method called on non generator")
+        })?;
+        let mut generator_obj_mut = generator_obj.borrow_mut();
+        let generator = generator_obj_mut.as_generator_mut().ok_or_else(|| {
+            JsNativeError::typ().with_message("generator resumed on non generator object")
+        })?;
+
+        if generator.state == GeneratorState::Executing {
+            Err(JsNativeError::typ()
+                .with_message("Generator should not be executing")
+                .into())
+        } else {
+            Ok(generator_obj)
+        }
     }
 
     /// `27.5.3.3 GeneratorResume ( generator, value, generatorBrand )`
@@ -182,30 +285,20 @@ impl Generator {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-generatorresume
     pub(crate) fn generator_resume(
-        generator_obj: &JsObject,
-        value: &JsValue,
+        gen: &JsObject,
+        value: JsValue,
         context: &mut Context<'_>,
-    ) -> JsResult<JsValue> {
+    ) -> CompletionRecord {
         // 1. Let state be ? GeneratorValidate(generator, generatorBrand).
-        let mut generator_obj_mut = generator_obj.borrow_mut();
-        let generator = generator_obj_mut.as_generator_mut().ok_or_else(|| {
-            JsNativeError::typ().with_message("generator resumed on non generator object")
-        })?;
+        let mut generator_obj_mut = gen.borrow_mut();
+        let generator = generator_obj_mut
+            .as_generator_mut()
+            .expect("already validated that this is a generator");
         let state = generator.state;
-
-        if state == GeneratorState::Executing {
-            return Err(JsNativeError::typ()
-                .with_message("Generator should not be executing")
-                .into());
-        }
 
         // 2. If state is completed, return CreateIterResultObject(undefined, true).
         if state == GeneratorState::Completed {
-            return Ok(create_iter_result_object(
-                JsValue::undefined(),
-                true,
-                context,
-            ));
+            return CompletionRecord::Normal(JsValue::undefined());
         }
 
         // 3. Assert: state is either suspendedStart or suspendedYield.
@@ -227,64 +320,30 @@ impl Generator {
             .expect("generator context cannot be empty here");
         drop(generator_obj_mut);
 
-        std::mem::swap(
-            &mut context.vm.environments,
-            &mut generator_context.environments,
+        let record = generator_context.resume(
+            (!first_execution).then_some(value),
+            GeneratorResumeKind::Normal,
+            context,
         );
-        std::mem::swap(&mut context.vm.stack, &mut generator_context.stack);
-        std::mem::swap(
-            &mut context.vm.active_function,
-            &mut generator_context.active_function,
-        );
-        let old_realm = context.enter_realm(generator_context.realm.clone());
-        context.vm.push_frame(generator_context.call_frame.clone());
-        if !first_execution {
-            context.vm.push(value.clone());
-        }
 
-        context.vm.frame_mut().generator_resume_kind = GeneratorResumeKind::Normal;
-
-        let record = context.run();
-
-        generator_context.call_frame = context
-            .vm
-            .pop_frame()
-            .expect("generator call frame must exist");
-        std::mem::swap(
-            &mut context.vm.environments,
-            &mut generator_context.environments,
-        );
-        std::mem::swap(&mut context.vm.stack, &mut generator_context.stack);
-        std::mem::swap(
-            &mut context.vm.active_function,
-            &mut generator_context.active_function,
-        );
-        context.enter_realm(old_realm);
-
-        let mut generator_obj_mut = generator_obj.borrow_mut();
+        let mut generator_obj_mut = gen.borrow_mut();
         let generator = generator_obj_mut
             .as_generator_mut()
             .expect("already checked this object type");
 
-        match record {
-            CompletionRecord::Return(value) => {
-                generator.state = GeneratorState::SuspendedYield;
+        generator.state = match record {
+            CompletionRecord::Return(_) => {
                 generator.context = Some(generator_context);
-                Ok(create_iter_result_object(value, false, context))
+                GeneratorState::SuspendedYield
             }
-            CompletionRecord::Normal(value) => {
-                generator.state = GeneratorState::Completed;
-                Ok(create_iter_result_object(value, true, context))
-            }
-            CompletionRecord::Throw(err) => {
-                generator.state = GeneratorState::Completed;
-                Err(err)
-            }
-        }
+            CompletionRecord::Normal(_) | CompletionRecord::Throw(_) => GeneratorState::Completed,
+        };
+
         // 8. Push genContext onto the execution context stack; genContext is now the running execution context.
         // 9. Resume the suspended evaluation of genContext using NormalCompletion(value) as the result of the operation that suspended it. Let result be the value returned by the resumed computation.
         // 10. Assert: When we return here, genContext has already been removed from the execution context stack and methodContext is the currently running execution context.
         // 11. Return Completion(result).
+        record
     }
 
     /// `27.5.3.4 GeneratorResumeAbrupt ( generator, abruptCompletion, generatorBrand )`
@@ -294,25 +353,16 @@ impl Generator {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-generatorresumeabrupt
     pub(crate) fn generator_resume_abrupt(
-        this: &JsValue,
+        gen: &JsObject,
         abrupt_completion: JsResult<JsValue>,
         context: &mut Context<'_>,
-    ) -> JsResult<JsValue> {
+    ) -> CompletionRecord {
         // 1. Let state be ? GeneratorValidate(generator, generatorBrand).
-        let generator_obj = this.as_object().ok_or_else(|| {
-            JsNativeError::typ().with_message("generator resumed on non generator object")
-        })?;
-        let mut generator_obj_mut = generator_obj.borrow_mut();
-        let generator = generator_obj_mut.as_generator_mut().ok_or_else(|| {
-            JsNativeError::typ().with_message("generator resumed on non generator object")
-        })?;
+        let mut generator_obj_mut = gen.borrow_mut();
+        let generator = generator_obj_mut
+            .as_generator_mut()
+            .expect("already validated the generator object");
         let mut state = generator.state;
-
-        if state == GeneratorState::Executing {
-            return Err(JsNativeError::typ()
-                .with_message("Generator should not be executing")
-                .into());
-        }
 
         // 2. If state is suspendedStart, then
         if state == GeneratorState::SuspendedStart {
@@ -327,12 +377,10 @@ impl Generator {
         // 3. If state is completed, then
         if state == GeneratorState::Completed {
             // a. If abruptCompletion.[[Type]] is return, then
-            if let Ok(value) = abrupt_completion {
-                // i. Return CreateIterResultObject(abruptCompletion.[[Value]], true).
-                return Ok(create_iter_result_object(value, true, context));
-            }
+            // i. Return CreateIterResultObject(abruptCompletion.[[Value]], true).
             // b. Return Completion(abruptCompletion).
-            return abrupt_completion;
+            return abrupt_completion
+                .map_or_else(CompletionRecord::Throw, CompletionRecord::Normal);
         }
 
         // 4. Assert: state is suspendedYield.
@@ -352,65 +400,26 @@ impl Generator {
         generator.state = GeneratorState::Executing;
         drop(generator_obj_mut);
 
-        std::mem::swap(
-            &mut context.vm.environments,
-            &mut generator_context.environments,
-        );
-        std::mem::swap(&mut context.vm.stack, &mut generator_context.stack);
-        std::mem::swap(
-            &mut context.vm.active_function,
-            &mut generator_context.active_function,
-        );
-        let old_realm = context.enter_realm(generator_context.realm.clone());
-        context.vm.push_frame(generator_context.call_frame.clone());
-
-        let completion_record = match abrupt_completion {
-            Ok(value) => {
-                context.vm.push(value);
-                context.vm.frame_mut().generator_resume_kind = GeneratorResumeKind::Return;
-                context.run()
-            }
-            Err(value) => {
-                let value = value.to_opaque(context);
-                context.vm.push(value);
-                context.vm.frame_mut().generator_resume_kind = GeneratorResumeKind::Throw;
-                context.run()
-            }
+        let (value, resume_kind) = match abrupt_completion {
+            Ok(value) => (value, GeneratorResumeKind::Return),
+            Err(err) => (err.to_opaque(context), GeneratorResumeKind::Throw),
         };
-        generator_context.call_frame = context
-            .vm
-            .pop_frame()
-            .expect("generator call frame must exist");
-        std::mem::swap(
-            &mut context.vm.environments,
-            &mut generator_context.environments,
-        );
-        std::mem::swap(&mut context.vm.stack, &mut generator_context.stack);
-        std::mem::swap(
-            &mut context.vm.active_function,
-            &mut generator_context.active_function,
-        );
-        context.enter_realm(old_realm);
 
-        let mut generator_obj_mut = generator_obj.borrow_mut();
+        let record = generator_context.resume(Some(value), resume_kind, context);
+
+        let mut generator_obj_mut = gen.borrow_mut();
         let generator = generator_obj_mut
             .as_generator_mut()
             .expect("already checked this object type");
 
-        match completion_record {
-            CompletionRecord::Return(value) => {
-                generator.state = GeneratorState::SuspendedYield;
+        generator.state = match record {
+            CompletionRecord::Return(_) => {
                 generator.context = Some(generator_context);
-                Ok(create_iter_result_object(value, false, context))
+                GeneratorState::SuspendedYield
             }
-            CompletionRecord::Normal(value) => {
-                generator.state = GeneratorState::Completed;
-                Ok(create_iter_result_object(value, true, context))
-            }
-            CompletionRecord::Throw(err) => {
-                generator.state = GeneratorState::Completed;
-                Err(err)
-            }
-        }
+            CompletionRecord::Normal(_) | CompletionRecord::Throw(_) => GeneratorState::Completed,
+        };
+
+        record
     }
 }

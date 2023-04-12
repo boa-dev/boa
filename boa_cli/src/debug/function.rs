@@ -159,10 +159,26 @@ fn trace(_: &JsValue, args: &[JsValue], context: &mut Context<'_>) -> JsResult<J
     result
 }
 
+fn traceable(_: &JsValue, args: &[JsValue], _: &mut Context<'_>) -> JsResult<JsValue> {
+    let value = args.get_or_undefined(0);
+    let traceable = args.get_or_undefined(1).to_boolean();
+
+    let Some(callable) = value.as_callable() else {
+        return Err(JsNativeError::typ()
+        .with_message("expected callable object")
+        .into());
+    };
+
+    set_trace_flag_in_function_object(callable, traceable)?;
+
+    Ok(value.clone())
+}
+
 pub(super) fn create_object(context: &mut Context<'_>) -> JsObject {
     ObjectInitializer::new(context)
         .function(NativeFunction::from_fn_ptr(flowgraph), "flowgraph", 1)
         .function(NativeFunction::from_fn_ptr(bytecode), "bytecode", 1)
         .function(NativeFunction::from_fn_ptr(trace), "trace", 1)
+        .function(NativeFunction::from_fn_ptr(traceable), "traceable", 2)
         .build()
 }

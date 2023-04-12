@@ -1,5 +1,5 @@
 use crate::{
-    vm::{call_frame::EarlyReturnType, opcode::Operation, CompletionType},
+    vm::{opcode::Operation, CompletionType},
     Context, JsResult,
 };
 
@@ -15,7 +15,7 @@ impl Operation for Yield {
     const INSTRUCTION: &'static str = "INST - Yield";
 
     fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
-        context.vm.frame_mut().early_return = Some(EarlyReturnType::Yield);
+        context.vm.frame_mut().r#yield = true;
         Ok(CompletionType::Return)
     }
 }

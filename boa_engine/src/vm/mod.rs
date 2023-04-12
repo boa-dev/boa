@@ -7,7 +7,7 @@
 use crate::{
     builtins::async_generator::{AsyncGenerator, AsyncGeneratorState},
     environments::{DeclarativeEnvironment, DeclarativeEnvironmentStack},
-    vm::{call_frame::EarlyReturnType, code_block::Readable},
+    vm::code_block::Readable,
     Context, JsError, JsObject, JsResult, JsValue,
 };
 #[cfg(feature = "fuzz")]
@@ -98,6 +98,7 @@ impl Vm {
     /// # Panics
     ///
     /// If there is no frame, then this will panic.
+    #[track_caller]
     pub(crate) fn frame(&self) -> &CallFrame {
         self.frames.last().expect("no frame found")
     }
@@ -107,6 +108,7 @@ impl Vm {
     /// # Panics
     ///
     /// If there is no frame, then this will panic.
+    #[track_caller]
     pub(crate) fn frame_mut(&mut self) -> &mut CallFrame {
         self.frames.last_mut().expect("no frame found")
     }
@@ -189,19 +191,7 @@ impl Context<'_> {
 
         // If the current executing function is an async function we have to resolve/reject it's promise at the end.
         // The relevant spec section is 3. in [AsyncBlockStart](https://tc39.es/ecma262/#sec-asyncblockstart).
-        let promise_capability = self
-            .vm
-            .environments
-            .current_function_slots()
-            .as_function_slots()
-            .and_then(|slots| {
-                let slots_borrow = slots.borrow();
-                let function_object = slots_borrow.function_object();
-                let function = function_object.borrow();
-                function
-                    .as_function()
-                    .and_then(|f| f.get_promise_capability().cloned())
-            });
+        let promise_capability = self.vm.frame().promise_capability.clone();
 
         let execution_completion = loop {
             // 1. Exit the execution loop if program counter ever is equal to or exceeds the amount of instructions
@@ -300,20 +290,10 @@ impl Context<'_> {
         };
 
         // Early return immediately after loop.
-        if let Some(early_return) = self.vm.frame().early_return {
-            match early_return {
-                EarlyReturnType::Await => {
-                    let result = self.vm.pop();
-                    self.vm.stack.truncate(self.vm.frame().fp);
-                    self.vm.frame_mut().early_return = None;
-                    return CompletionRecord::Normal(result);
-                }
-                EarlyReturnType::Yield => {
-                    let result = self.vm.pop();
-                    self.vm.frame_mut().early_return = None;
-                    return CompletionRecord::Return(result);
-                }
-            }
+        if self.vm.frame().r#yield {
+            let result = self.vm.pop();
+            self.vm.frame_mut().r#yield = false;
+            return CompletionRecord::Return(result);
         }
 
         #[cfg(feature = "trace")]
@@ -359,7 +339,6 @@ impl Context<'_> {
         };
 
         if let Some(promise) = promise_capability {
-            // Step 3.e-g in [AsyncGeneratorStart](https://tc39.es/ecma262/#sec-asyncgeneratorstart)
             match execution_completion {
                 CompletionType::Normal => {
                     promise
@@ -383,6 +362,7 @@ impl Context<'_> {
                 }
             }
         } else if let Some(generator_object) = self.vm.frame().async_generator.clone() {
+            // Step 3.e-g in [AsyncGeneratorStart](https://tc39.es/ecma262/#sec-asyncgeneratorstart)
             let mut generator_object_mut = generator_object.borrow_mut();
             let generator = generator_object_mut
                 .as_async_generator_mut()

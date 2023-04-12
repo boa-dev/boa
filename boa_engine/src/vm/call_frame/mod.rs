@@ -5,7 +5,7 @@
 mod abrupt_record;
 mod env_stack;
 
-use crate::{object::JsObject, vm::CodeBlock};
+use crate::{builtins::promise::PromiseCapability, object::JsObject, vm::CodeBlock};
 use boa_gc::{Finalize, Gc, Trace};
 use thin_vec::ThinVec;
 
@@ -21,7 +21,7 @@ pub struct CallFrame {
     #[unsafe_ignore_trace]
     pub(crate) abrupt_completion: Option<AbruptCompletionRecord>,
     #[unsafe_ignore_trace]
-    pub(crate) early_return: Option<EarlyReturnType>,
+    pub(crate) r#yield: bool,
     pub(crate) pop_on_return: usize,
     // Tracks the number of environments in environment entry.
     // On abrupt returns this is used to decide how many environments need to be pop'ed.
@@ -31,6 +31,7 @@ pub struct CallFrame {
     pub(crate) arg_count: usize,
     #[unsafe_ignore_trace]
     pub(crate) generator_resume_kind: GeneratorResumeKind,
+    pub(crate) promise_capability: Option<PromiseCapability>,
 
     // When an async generator is resumed, the generator object is needed
     // to fulfill the steps 4.e-j in [AsyncGeneratorStart](https://tc39.es/ecma262/#sec-asyncgeneratorstart).
@@ -52,10 +53,11 @@ impl CallFrame {
             pop_on_return: 0,
             env_stack: Vec::from([EnvStackEntry::new(0, max_length)]),
             abrupt_completion: None,
-            early_return: None,
+            r#yield: false,
             param_count: 0,
             arg_count: 0,
             generator_resume_kind: GeneratorResumeKind::Normal,
+            promise_capability: None,
             async_generator: None,
             iterators: ThinVec::new(),
         }
@@ -106,11 +108,4 @@ pub(crate) enum GeneratorResumeKind {
     Normal,
     Throw,
     Return,
-}
-
-// An enum to mark whether a return is early due to Async or Yield
-#[derive(Copy, Clone, Debug, PartialEq)]
-pub(crate) enum EarlyReturnType {
-    Await,
-    Yield,
 }
