@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"enum":[["MaybeShared","A [`Cow`][std::borrow::Cow]-like pointer where the `Owned` variant is an [`Rc`]."]]};

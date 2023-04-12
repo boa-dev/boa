@@ -694,29 +694,50 @@
 <a href="#693" id="693">693</a>
 <a href="#694" id="694">694</a>
 <a href="#695" id="695">695</a>
+<a href="#696" id="696">696</a>
+<a href="#697" id="697">697</a>
+<a href="#698" id="698">698</a>
+<a href="#699" id="699">699</a>
+<a href="#700" id="700">700</a>
+<a href="#701" id="701">701</a>
+<a href="#702" id="702">702</a>
+<a href="#703" id="703">703</a>
+<a href="#704" id="704">704</a>
+<a href="#705" id="705">705</a>
+<a href="#706" id="706">706</a>
+<a href="#707" id="707">707</a>
+<a href="#708" id="708">708</a>
+<a href="#709" id="709">709</a>
+<a href="#710" id="710">710</a>
+<a href="#711" id="711">711</a>
+<a href="#712" id="712">712</a>
+<a href="#713" id="713">713</a>
+<a href="#714" id="714">714</a>
+<a href="#715" id="715">715</a>
+<a href="#716" id="716">716</a>
 </pre><pre class="rust"><code><span class="doccomment">//! The ECMAScript context.
 
 </span><span class="kw">mod </span>hooks;
-<span class="kw">pub mod </span>intrinsics;
-<span class="kw">pub use </span>hooks::{DefaultHooks, HostHooks};
-
 <span class="attr">#[cfg(feature = <span class="string">&quot;intl&quot;</span>)]
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">mod </span>icu;
+<span class="kw">pub mod </span>intrinsics;
+<span class="kw">mod </span>maybe_shared;
 
+<span class="kw">pub use </span>hooks::{DefaultHooks, HostHooks};
 <span class="attr">#[cfg(feature = <span class="string">&quot;intl&quot;</span>)]
 </span><span class="kw">pub use </span>icu::BoaProvider;
-
 <span class="kw">use </span>intrinsics::Intrinsics;
+<span class="kw">pub use </span>maybe_shared::MaybeShared;
 
-<span class="kw">use </span>std::io::Read;
 <span class="attr">#[cfg(not(feature = <span class="string">&quot;intl&quot;</span>))]
 </span><span class="kw">pub use </span>std::marker::PhantomData;
+<span class="kw">use </span>std::{io::Read, rc::Rc};
 
 <span class="kw">use crate</span>::{
     builtins,
     bytecompiler::ByteCompiler,
     class::{Class, ClassBuilder},
-    job::{IdleJobQueue, JobQueue, NativeJob},
+    job::{JobQueue, NativeJob, SimpleJobQueue},
     native_function::NativeFunction,
     object::{FunctionObjectBuilder, JsObject},
     optimizer::{Optimizer, OptimizerOptions, OptimizerStatistics},
@@ -795,9 +816,9 @@
     </span><span class="attr">#[cfg(feature = <span class="string">&quot;intl&quot;</span>)]
     </span>icu: icu::Icu&lt;<span class="lifetime">&#39;host</span>&gt;,
 
-    host_hooks: <span class="kw-2">&amp;</span><span class="lifetime">&#39;host </span><span class="kw">dyn </span>HostHooks,
+    host_hooks: MaybeShared&lt;<span class="lifetime">&#39;host</span>, <span class="kw">dyn </span>HostHooks&gt;,
 
-    job_queue: <span class="kw-2">&amp;</span><span class="lifetime">&#39;host </span><span class="kw">dyn </span>JobQueue,
+    job_queue: MaybeShared&lt;<span class="lifetime">&#39;host</span>, <span class="kw">dyn </span>JobQueue&gt;,
 
     optimizer_options: OptimizerOptions,
 }
@@ -1190,12 +1211,12 @@
 
     <span class="doccomment">/// Enqueues a [`NativeJob`] on the [`JobQueue`].
     </span><span class="kw">pub fn </span>enqueue_job(<span class="kw-2">&amp;mut </span><span class="self">self</span>, job: NativeJob) {
-        <span class="self">self</span>.job_queue.enqueue_promise_job(job, <span class="self">self</span>);
+        <span class="self">self</span>.job_queue().enqueue_promise_job(job, <span class="self">self</span>);
     }
 
     <span class="doccomment">/// Runs all the jobs in the job queue.
     </span><span class="kw">pub fn </span>run_jobs(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
-        <span class="self">self</span>.job_queue.run_jobs(<span class="self">self</span>);
+        <span class="self">self</span>.job_queue().run_jobs(<span class="self">self</span>);
         <span class="self">self</span>.clear_kept_objects();
     }
 
@@ -1220,13 +1241,13 @@
     }
 
     <span class="doccomment">/// Gets the host hooks.
-    </span><span class="kw">pub fn </span>host_hooks(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;host </span><span class="kw">dyn </span>HostHooks {
-        <span class="self">self</span>.host_hooks
+    </span><span class="kw">pub fn </span>host_hooks(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; MaybeShared&lt;<span class="lifetime">&#39;host</span>, <span class="kw">dyn </span>HostHooks&gt; {
+        <span class="self">self</span>.host_hooks.clone()
     }
 
     <span class="doccomment">/// Gets the job queue.
-    </span><span class="kw">pub fn </span>job_queue(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;host </span><span class="kw">dyn </span>JobQueue {
-        <span class="self">self</span>.job_queue
+    </span><span class="kw">pub fn </span>job_queue(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; MaybeShared&lt;<span class="lifetime">&#39;host</span>, <span class="kw">dyn </span>JobQueue&gt; {
+        <span class="self">self</span>.job_queue.clone()
     }
 }
 
@@ -1254,8 +1275,8 @@
 #[derive(Default)]
 </span><span class="kw">pub struct </span>ContextBuilder&lt;<span class="lifetime">&#39;icu</span>, <span class="lifetime">&#39;hooks</span>, <span class="lifetime">&#39;queue</span>&gt; {
     interner: <span class="prelude-ty">Option</span>&lt;Interner&gt;,
-    host_hooks: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;hooks </span><span class="kw">dyn </span>HostHooks&gt;,
-    job_queue: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;queue </span><span class="kw">dyn </span>JobQueue&gt;,
+    host_hooks: <span class="prelude-ty">Option</span>&lt;MaybeShared&lt;<span class="lifetime">&#39;hooks</span>, <span class="kw">dyn </span>HostHooks&gt;&gt;,
+    job_queue: <span class="prelude-ty">Option</span>&lt;MaybeShared&lt;<span class="lifetime">&#39;queue</span>, <span class="kw">dyn </span>JobQueue&gt;&gt;,
     <span class="attr">#[cfg(feature = <span class="string">&quot;intl&quot;</span>)]
     </span>icu: <span class="prelude-ty">Option</span>&lt;icu::Icu&lt;<span class="lifetime">&#39;icu</span>&gt;&gt;,
     <span class="attr">#[cfg(not(feature = <span class="string">&quot;intl&quot;</span>))]
@@ -1266,10 +1287,15 @@
 
 <span class="kw">impl </span>std::fmt::Debug <span class="kw">for </span>ContextBuilder&lt;<span class="lifetime">&#39;_</span>, <span class="lifetime">&#39;_</span>, <span class="lifetime">&#39;_</span>&gt; {
     <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>std::fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; std::fmt::Result {
+        <span class="attr">#[derive(Clone, Copy, Debug)]
+        </span><span class="kw">struct </span>JobQueue;
+        <span class="attr">#[derive(Clone, Copy, Debug)]
+        </span><span class="kw">struct </span>HostHooks;
         <span class="kw">let </span><span class="kw-2">mut </span>out = f.debug_struct(<span class="string">&quot;ContextBuilder&quot;</span>);
 
         out.field(<span class="string">&quot;interner&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.interner)
-            .field(<span class="string">&quot;host_hooks&quot;</span>, <span class="kw-2">&amp;</span><span class="string">&quot;HostHooks&quot;</span>);
+            .field(<span class="string">&quot;host_hooks&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.host_hooks.as_ref().map(|<span class="kw">_</span>| HostHooks))
+            .field(<span class="string">&quot;job_queue&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.job_queue.as_ref().map(|<span class="kw">_</span>| JobQueue));
 
         <span class="attr">#[cfg(feature = <span class="string">&quot;intl&quot;</span>)]
         </span>out.field(<span class="string">&quot;icu&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.icu);
@@ -1328,18 +1354,27 @@
     ///
     /// [`Host Hooks`]: https://tc39.es/ecma262/#sec-host-hooks-summary
     </span><span class="attr">#[must_use]
-    </span><span class="kw">pub fn </span>host_hooks(<span class="self">self</span>, host_hooks: <span class="kw-2">&amp;</span><span class="kw">dyn </span>HostHooks) -&gt; ContextBuilder&lt;<span class="lifetime">&#39;icu</span>, <span class="lifetime">&#39;_</span>, <span class="lifetime">&#39;queue</span>&gt; {
+    </span><span class="kw">pub fn </span>host_hooks&lt;<span class="lifetime">&#39;new_hooks</span>, H&gt;(
+        <span class="self">self</span>,
+        host_hooks: H,
+    ) -&gt; ContextBuilder&lt;<span class="lifetime">&#39;icu</span>, <span class="lifetime">&#39;new_hooks</span>, <span class="lifetime">&#39;queue</span>&gt;
+    <span class="kw">where
+        </span>H: Into&lt;MaybeShared&lt;<span class="lifetime">&#39;new_hooks</span>, <span class="kw">dyn </span>HostHooks&gt;&gt;,
+    {
         ContextBuilder {
-            host_hooks: <span class="prelude-val">Some</span>(host_hooks),
+            host_hooks: <span class="prelude-val">Some</span>(host_hooks.into()),
             ..<span class="self">self
         </span>}
     }
 
     <span class="doccomment">/// Initializes the [`JobQueue`] for the context.
     </span><span class="attr">#[must_use]
-    </span><span class="kw">pub fn </span>job_queue(<span class="self">self</span>, job_queue: <span class="kw-2">&amp;</span><span class="kw">dyn </span>JobQueue) -&gt; ContextBuilder&lt;<span class="lifetime">&#39;icu</span>, <span class="lifetime">&#39;hooks</span>, <span class="lifetime">&#39;_</span>&gt; {
+    </span><span class="kw">pub fn </span>job_queue&lt;<span class="lifetime">&#39;new_queue</span>, Q&gt;(<span class="self">self</span>, job_queue: Q) -&gt; ContextBuilder&lt;<span class="lifetime">&#39;icu</span>, <span class="lifetime">&#39;hooks</span>, <span class="lifetime">&#39;new_queue</span>&gt;
+    <span class="kw">where
+        </span>Q: Into&lt;MaybeShared&lt;<span class="lifetime">&#39;new_queue</span>, <span class="kw">dyn </span>JobQueue&gt;&gt;,
+    {
         ContextBuilder {
-            job_queue: <span class="prelude-val">Some</span>(job_queue),
+            job_queue: <span class="prelude-val">Some</span>(job_queue.into()),
             ..<span class="self">self
         </span>}
     }
@@ -1362,8 +1397,11 @@
         <span class="lifetime">&#39;hooks</span>: <span class="lifetime">&#39;host</span>,
         <span class="lifetime">&#39;queue</span>: <span class="lifetime">&#39;host</span>,
     {
-        <span class="kw">let </span>host_hooks = <span class="self">self</span>.host_hooks.unwrap_or(<span class="kw-2">&amp;</span>DefaultHooks);
-        <span class="kw">let </span>realm = Realm::create(host_hooks);
+        <span class="kw">let </span>host_hooks = <span class="self">self</span>.host_hooks.unwrap_or_else(|| {
+            <span class="kw">let </span>hooks: <span class="kw-2">&amp;</span><span class="kw">dyn </span>HostHooks = <span class="kw-2">&amp;</span>DefaultHooks;
+            hooks.into()
+        });
+        <span class="kw">let </span>realm = Realm::create(<span class="kw-2">&amp;*</span>host_hooks);
         <span class="kw">let </span>vm = Vm::new(realm.environment().clone());
 
         <span class="kw">let </span><span class="kw-2">mut </span>context = Context {
@@ -1373,14 +1411,18 @@
             strict: <span class="bool-val">false</span>,
             <span class="attr">#[cfg(feature = <span class="string">&quot;intl&quot;</span>)]
             </span>icu: <span class="self">self</span>.icu.unwrap_or_else(|| {
-                <span class="kw">let </span>provider = BoaProvider::Buffer(boa_icu_provider::buffer());
+                <span class="kw">let </span>buffer: <span class="kw-2">&amp;</span><span class="kw">dyn </span>icu_provider::BufferProvider = boa_icu_provider::buffer();
+                <span class="kw">let </span>provider = BoaProvider::Buffer(buffer);
                 icu::Icu::new(provider).expect(<span class="string">&quot;Failed to initialize default icu data.&quot;</span>)
             }),
             <span class="attr">#[cfg(feature = <span class="string">&quot;fuzz&quot;</span>)]
             </span>instructions_remaining: <span class="self">self</span>.instructions_remaining,
             kept_alive: Vec::new(),
             host_hooks,
-            job_queue: <span class="self">self</span>.job_queue.unwrap_or(<span class="kw-2">&amp;</span>IdleJobQueue),
+            job_queue: <span class="self">self</span>.job_queue.unwrap_or_else(|| {
+                <span class="kw">let </span>queue: Rc&lt;<span class="kw">dyn </span>JobQueue&gt; = Rc::new(SimpleJobQueue::new());
+                queue.into()
+            }),
             optimizer_options: OptimizerOptions::OPTIMIZE_ALL,
         };
 

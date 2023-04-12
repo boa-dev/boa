@@ -1157,7 +1157,7 @@
 </span><span class="kw">mod </span>tests {
     <span class="kw">use </span>icu_locid::{langid, locale, Locale};
     <span class="kw">use </span>icu_plurals::provider::CardinalV1Marker;
-    <span class="kw">use </span>icu_provider::AsDeserializingBufferProvider;
+    <span class="kw">use </span>icu_provider::{AsDeserializingBufferProvider, BufferProvider};
 
     <span class="kw">use crate</span>::{
         builtins::intl::locale::utils::{
@@ -1189,7 +1189,7 @@
 
     <span class="attr">#[test]
     </span><span class="kw">fn </span>lookup_match() {
-        <span class="kw">let </span>provider = boa_icu_provider::buffer();
+        <span class="kw">let </span>provider: <span class="kw-2">&amp;</span><span class="kw">dyn </span>BufferProvider = boa_icu_provider::buffer();
         <span class="kw">let </span>icu = Icu::new(BoaProvider::Buffer(provider)).unwrap();
 
         <span class="comment">// requested: []

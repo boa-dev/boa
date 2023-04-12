@@ -877,25 +877,6 @@
 <a href="#876" id="876">876</a>
 <a href="#877" id="877">877</a>
 <a href="#878" id="878">878</a>
-<a href="#879" id="879">879</a>
-<a href="#880" id="880">880</a>
-<a href="#881" id="881">881</a>
-<a href="#882" id="882">882</a>
-<a href="#883" id="883">883</a>
-<a href="#884" id="884">884</a>
-<a href="#885" id="885">885</a>
-<a href="#886" id="886">886</a>
-<a href="#887" id="887">887</a>
-<a href="#888" id="888">888</a>
-<a href="#889" id="889">889</a>
-<a href="#890" id="890">890</a>
-<a href="#891" id="891">891</a>
-<a href="#892" id="892">892</a>
-<a href="#893" id="893">893</a>
-<a href="#894" id="894">894</a>
-<a href="#895" id="895">895</a>
-<a href="#896" id="896">896</a>
-<a href="#897" id="897">897</a>
 </pre><pre class="rust"><code><span class="doccomment">//! A Rust API wrapper for Boa&#39;s promise Builtin ECMAScript Object
 
 </span><span class="attr">#![allow(missing_docs)]
@@ -925,7 +906,6 @@
 /// ```
 /// # use boa_engine::{
 /// #     builtins::promise::PromiseState,
-/// #     job::SimpleJobQueue,
 /// #     js_string,
 /// #     object::{builtins::JsPromise, FunctionObjectBuilder},
 /// #     property::Attribute,
@@ -933,8 +913,7 @@
 /// # };
 /// # use std::error::Error;
 /// # fn main() -&gt; Result&lt;(), Box&lt;dyn Error&gt;&gt; {
-/// let queue = &amp;SimpleJobQueue::new();
-/// let context = &amp;mut Context::builder().job_queue(queue).build()?;
+/// let context = &amp;mut Context::default();
 ///
 /// context.register_global_property(&quot;finally&quot;, false, Attribute::all());
 ///
@@ -1029,14 +1008,12 @@
     /// ```
     /// # use std::error::Error;
     /// # use boa_engine::{
-    /// #    job::SimpleJobQueue,
     /// #    object::builtins::JsPromise,
     /// #    builtins::promise::PromiseState,
     /// #    Context, JsValue, js_string
     /// # };
     /// # fn main() -&gt; Result&lt;(), Box&lt;dyn Error&gt;&gt; {
-    /// let queue = &amp;SimpleJobQueue::new();
-    /// let context = &amp;mut Context::builder().job_queue(queue).build()?;
+    /// let context = &amp;mut Context::default();
     ///
     /// let promise = JsPromise::new(|resolvers, context| {
     ///     let result = js_string!(&quot;hello world&quot;).into();
@@ -1291,14 +1268,12 @@
     /// # use std::error::Error;
     /// # use boa_engine::{
     /// #     builtins::promise::PromiseState,
-    /// #     job::SimpleJobQueue,
     /// #     js_string,
     /// #     object::{builtins::JsPromise, FunctionObjectBuilder},
     /// #     Context, JsArgs, JsError, JsValue, NativeFunction,
     /// # };
     /// # fn main() -&gt; Result&lt;(), Box&lt;dyn Error&gt;&gt; {
-    /// let queue = &amp;SimpleJobQueue::new();
-    /// let context = &amp;mut Context::builder().job_queue(queue).build()?;
+    /// let context = &amp;mut Context::default();
     ///
     /// let promise = JsPromise::new(
     ///     |resolvers, context| {
@@ -1359,13 +1334,11 @@
     /// # use boa_engine::{
     /// #     js_string,
     /// #     builtins::promise::PromiseState,
-    /// #     job::SimpleJobQueue,
     /// #     object::{builtins::JsPromise, FunctionObjectBuilder},
     /// #     Context, JsArgs, JsNativeError, JsValue, NativeFunction,
     /// # };
     /// # fn main() -&gt; Result&lt;(), Box&lt;dyn Error&gt;&gt; {
-    /// let queue = &amp;SimpleJobQueue::new();
-    /// let context = &amp;mut Context::builder().job_queue(queue).build()?;
+    /// let context = &amp;mut Context::default();
     ///
     /// let promise = JsPromise::new(
     ///     |resolvers, context| {
@@ -1422,14 +1395,12 @@
     /// ```
     /// # use std::error::Error;
     /// # use boa_engine::{
-    /// #     job::SimpleJobQueue,
     /// #     object::{builtins::JsPromise, FunctionObjectBuilder},
     /// #     property::Attribute,
     /// #     Context, JsNativeError, JsValue, NativeFunction,
     /// # };
     /// # fn main() -&gt; Result&lt;(), Box&lt;dyn Error&gt;&gt; {
-    /// let queue = &amp;SimpleJobQueue::new();
-    /// let context = &amp;mut Context::builder().job_queue(queue).build()?;
+    /// let context = &amp;mut Context::default();
     ///
     /// context.register_global_property(&quot;finally&quot;, false, Attribute::all());
     ///
@@ -1492,14 +1463,12 @@
     /// ```
     /// # use std::error::Error;
     /// # use boa_engine::{
-    /// #     job::SimpleJobQueue,
     /// #     js_string,
     /// #     object::builtins::{JsArray, JsPromise},
     /// #     Context, JsNativeError, JsValue,
     /// # };
     /// # fn main() -&gt; Result&lt;(), Box&lt;dyn Error&gt;&gt; {
-    /// let queue = &amp;SimpleJobQueue::new();
-    /// let context = &amp;mut Context::builder().job_queue(queue).build()?;
+    /// let context = &amp;mut Context::default();
     ///
     /// let promise1 = JsPromise::all(
     ///     [
@@ -1566,15 +1535,12 @@
     /// ```
     /// # use std::error::Error;
     /// # use boa_engine::{
-    /// #     job::SimpleJobQueue,
     /// #     js_string,
     /// #     object::builtins::{JsArray, JsPromise},
     /// #     Context, JsNativeError, JsValue,
     /// # };
     /// # fn main() -&gt; Result&lt;(), Box&lt;dyn Error&gt;&gt; {
-    /// let queue = &amp;SimpleJobQueue::new();
-    /// let context = &amp;mut Context::builder().job_queue(queue).build()?;
-    ///
+    /// let context = &amp;mut Context::default();
     ///
     /// let promise = JsPromise::all_settled(
     ///     [
@@ -1642,14 +1608,12 @@
     /// # use std::error::Error;
     /// # use boa_engine::{
     /// #     builtins::promise::PromiseState,
-    /// #     job::SimpleJobQueue,
     /// #     js_string,
     /// #     object::builtins::JsPromise,
     /// #     Context, JsNativeError,
     /// # };
     /// # fn main() -&gt; Result&lt;(), Box&lt;dyn Error&gt;&gt; {
-    /// let queue = &amp;SimpleJobQueue::new();
-    /// let context = &amp;mut Context::builder().job_queue(queue).build()?;
+    /// let context = &amp;mut Context::default();
     ///
     ///
     /// let promise = JsPromise::any(
@@ -1705,14 +1669,12 @@
     /// # use std::error::Error;
     /// # use boa_engine::{
     /// #     builtins::promise::PromiseState,
-    /// #     job::SimpleJobQueue,
     /// #     js_string,
     /// #     object::builtins::JsPromise,
     /// #     Context, JsValue,
     /// # };
     /// # fn main() -&gt; Result&lt;(), Box&lt;dyn Error&gt;&gt; {
-    /// let queue = &amp;SimpleJobQueue::new();
-    /// let context = &amp;mut Context::builder().job_queue(queue).build()?;
+    /// let context = &amp;mut Context::default();
     ///
     /// let (a, resolvers_a) = JsPromise::new_pending(context);
     /// let (b, resolvers_b) = JsPromise::new_pending(context);

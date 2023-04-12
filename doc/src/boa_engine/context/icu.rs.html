@@ -175,7 +175,6 @@
 <a href="#174" id="174">174</a>
 <a href="#175" id="175">175</a>
 <a href="#176" id="176">176</a>
-<a href="#177" id="177">177</a>
 </pre><pre class="rust"><code><span class="kw">use </span>std::fmt::Debug;
 
 <span class="kw">use </span>icu_collator::{Collator, CollatorError, CollatorOptions};
@@ -221,7 +220,7 @@
     M::Yokeable: ZeroFrom&lt;<span class="lifetime">&#39;static</span>, M::Yokeable&gt; + MaybeSendSync,
 {
     <span class="kw">fn </span>load(<span class="kw-2">&amp;</span><span class="self">self</span>, req: DataRequest&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;DataResponse&lt;M&gt;, DataError&gt; {
-        <span class="kw">match </span><span class="kw-2">*</span><span class="self">self </span>{
+        <span class="kw">match </span><span class="self">self </span>{
             BoaProvider::Buffer(provider) =&gt; provider.as_deserializing().load(req),
             BoaProvider::Any(provider) =&gt; provider.as_downcasting().load(req),
         }
@@ -303,8 +302,8 @@
     }
 }
 
-<span class="doccomment">/// Collection of tools initialized from a [`DataProvider`] that are used
-/// for the functionality of `Intl`.
+<span class="doccomment">/// Collection of tools initialized from a [`DataProvider`] that are used for the functionality of
+/// `Intl`.
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>Icu&lt;<span class="lifetime">&#39;provider</span>&gt; {
     provider: BoaProvider&lt;<span class="lifetime">&#39;provider</span>&gt;,
     locale_canonicalizer: LocaleCanonicalizer,
@@ -326,8 +325,7 @@
     ///
     /// # Errors
     ///
-    /// This method will return an error if any of the tools
-    /// required cannot be constructed.
+    /// Returns an error if any of the tools required cannot be constructed.
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>new(
         provider: BoaProvider&lt;<span class="lifetime">&#39;provider</span>&gt;,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;Icu&lt;<span class="lifetime">&#39;provider</span>&gt;, LocaleTransformError&gt; {
