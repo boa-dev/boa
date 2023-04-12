@@ -38,8 +38,8 @@ use super::intrinsics::Intrinsics;
 ///         Err(JsNativeError::typ().with_message("eval calls not available").into())
 ///     }
 /// }
-/// let hooks = Hooks; // Can have additional state.
-/// let context = &mut ContextBuilder::new().host_hooks(&hooks).build().unwrap();
+/// let hooks: &dyn HostHooks = &Hooks; // Can have additional state.
+/// let context = &mut ContextBuilder::new().host_hooks(hooks).build().unwrap();
 /// let result = context.eval_script(Source::from_bytes(r#"eval("let a = 5")"#));
 /// assert_eq!(result.unwrap_err().to_string(), "TypeError: eval calls not available");
 /// ```

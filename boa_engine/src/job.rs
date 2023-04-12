@@ -198,10 +198,17 @@ pub trait JobQueue {
 
 /// A job queue that does nothing.
 ///
-/// This is the default job queue for the [`Context`], and is useful if you want to disable
-/// the promise capabilities of the engine.
+/// This queue is mostly useful if you want to disable the promise capabilities of the engine. This
+/// can be done by passing a reference to it to the [`ContextBuilder`]:
 ///
-/// If you want to enable running promise jobs, see [`SimpleJobQueue`].
+/// ```
+/// use boa_engine::{context::ContextBuilder, job::{JobQueue, IdleJobQueue}};
+///
+/// let queue: &dyn JobQueue = &IdleJobQueue;
+/// let context = ContextBuilder::new().job_queue(queue).build();
+/// ```
+///
+/// [`ContextBuilder`]: crate::context::ContextBuilder
 #[derive(Debug, Clone, Copy)]
 pub struct IdleJobQueue;
 
@@ -215,16 +222,10 @@ impl JobQueue for IdleJobQueue {
 
 /// A simple FIFO job queue that bails on the first error.
 ///
-/// To enable running promise jobs on the engine, you need to pass it to the [`ContextBuilder`]:
+/// This is the default job queue for the [`Context`], but it is mostly pretty limited for
+/// custom event queues.
 ///
-/// ```
-/// use boa_engine::{context::ContextBuilder, job::SimpleJobQueue};
-///
-/// let queue = SimpleJobQueue::new();
-/// let context = ContextBuilder::new().job_queue(&queue).build();
-/// ```
-///
-/// [`ContextBuilder`]: crate::context::ContextBuilder
+/// To disable running promise jobs on the engine, see [`IdleJobQueue`].
 #[derive(Default)]
 pub struct SimpleJobQueue(RefCell<VecDeque<NativeJob>>);
 

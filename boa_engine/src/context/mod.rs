@@ -1,26 +1,26 @@
 //! The ECMAScript context.
 
 mod hooks;
-pub mod intrinsics;
-pub use hooks::{DefaultHooks, HostHooks};
-
 #[cfg(feature = "intl")]
 pub(crate) mod icu;
+pub mod intrinsics;
+mod maybe_shared;
 
+pub use hooks::{DefaultHooks, HostHooks};
 #[cfg(feature = "intl")]
 pub use icu::BoaProvider;
-
 use intrinsics::Intrinsics;
+pub use maybe_shared::MaybeShared;
 
-use std::io::Read;
 #[cfg(not(feature = "intl"))]
 pub use std::marker::PhantomData;
+use std::{io::Read, rc::Rc};
 
 use crate::{
     builtins,
     bytecompiler::ByteCompiler,
     class::{Class, ClassBuilder},
-    job::{IdleJobQueue, JobQueue, NativeJob},
+    job::{JobQueue, NativeJob, SimpleJobQueue},
     native_function::NativeFunction,
     object::{FunctionObjectBuilder, JsObject},
     optimizer::{Optimizer, OptimizerOptions, OptimizerStatistics},
@@ -99,9 +99,9 @@ pub struct Context<'host> {
     #[cfg(feature = "intl")]
     icu: icu::Icu<'host>,
 
-    host_hooks: &'host dyn HostHooks,
+    host_hooks: MaybeShared<'host, dyn HostHooks>,
 
-    job_queue: &'host dyn JobQueue,
+    job_queue: MaybeShared<'host, dyn JobQueue>,
 
     optimizer_options: OptimizerOptions,
 }
@@ -494,12 +494,12 @@ impl<'host> Context<'host> {
 
     /// Enqueues a [`NativeJob`] on the [`JobQueue`].
     pub fn enqueue_job(&mut self, job: NativeJob) {
-        self.job_queue.enqueue_promise_job(job, self);
+        self.job_queue().enqueue_promise_job(job, self);
     }
 
     /// Runs all the jobs in the job queue.
     pub fn run_jobs(&mut self) {
-        self.job_queue.run_jobs(self);
+        self.job_queue().run_jobs(self);
         self.clear_kept_objects();
     }
 
@@ -524,13 +524,13 @@ impl<'host> Context<'host> {
     }
 
     /// Gets the host hooks.
-    pub fn host_hooks(&self) -> &'host dyn HostHooks {
-        self.host_hooks
+    pub fn host_hooks(&self) -> MaybeShared<'host, dyn HostHooks> {
+        self.host_hooks.clone()
     }
 
     /// Gets the job queue.
-    pub fn job_queue(&mut self) -> &'host dyn JobQueue {
-        self.job_queue
+    pub fn job_queue(&self) -> MaybeShared<'host, dyn JobQueue> {
+        self.job_queue.clone()
     }
 }
 
@@ -558,8 +558,8 @@ impl<'host> Context<'host> {
 #[derive(Default)]
 pub struct ContextBuilder<'icu, 'hooks, 'queue> {
     interner: Option<Interner>,
-    host_hooks: Option<&'hooks dyn HostHooks>,
-    job_queue: Option<&'queue dyn JobQueue>,
+    host_hooks: Option<MaybeShared<'hooks, dyn HostHooks>>,
+    job_queue: Option<MaybeShared<'queue, dyn JobQueue>>,
     #[cfg(feature = "intl")]
     icu: Option<icu::Icu<'icu>>,
     #[cfg(not(feature = "intl"))]
@@ -570,10 +570,15 @@ pub struct ContextBuilder<'icu, 'hooks, 'queue> {
 
 impl std::fmt::Debug for ContextBuilder<'_, '_, '_> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        #[derive(Clone, Copy, Debug)]
+        struct JobQueue;
+        #[derive(Clone, Copy, Debug)]
+        struct HostHooks;
         let mut out = f.debug_struct("ContextBuilder");
 
         out.field("interner", &self.interner)
-            .field("host_hooks", &"HostHooks");
+            .field("host_hooks", &self.host_hooks.as_ref().map(|_| HostHooks))
+            .field("job_queue", &self.job_queue.as_ref().map(|_| JobQueue));
 
         #[cfg(feature = "intl")]
         out.field("icu", &self.icu);
@@ -632,18 +637,27 @@ impl<'icu, 'hooks, 'queue> ContextBuilder<'icu, 'hooks, 'queue> {
     ///
     /// [`Host Hooks`]: https://tc39.es/ecma262/#sec-host-hooks-summary
     #[must_use]
-    pub fn host_hooks(self, host_hooks: &dyn HostHooks) -> ContextBuilder<'icu, '_, 'queue> {
+    pub fn host_hooks<'new_hooks, H>(
+        self,
+        host_hooks: H,
+    ) -> ContextBuilder<'icu, 'new_hooks, 'queue>
+    where
+        H: Into<MaybeShared<'new_hooks, dyn HostHooks>>,
+    {
         ContextBuilder {
-            host_hooks: Some(host_hooks),
+            host_hooks: Some(host_hooks.into()),
             ..self
         }
     }
 
     /// Initializes the [`JobQueue`] for the context.
     #[must_use]
-    pub fn job_queue(self, job_queue: &dyn JobQueue) -> ContextBuilder<'icu, 'hooks, '_> {
+    pub fn job_queue<'new_queue, Q>(self, job_queue: Q) -> ContextBuilder<'icu, 'hooks, 'new_queue>
+    where
+        Q: Into<MaybeShared<'new_queue, dyn JobQueue>>,
+    {
         ContextBuilder {
-            job_queue: Some(job_queue),
+            job_queue: Some(job_queue.into()),
             ..self
         }
     }
@@ -666,8 +680,11 @@ impl<'icu, 'hooks, 'queue> ContextBuilder<'icu, 'hooks, 'queue> {
         'hooks: 'host,
         'queue: 'host,
     {
-        let host_hooks = self.host_hooks.unwrap_or(&DefaultHooks);
-        let realm = Realm::create(host_hooks);
+        let host_hooks = self.host_hooks.unwrap_or_else(|| {
+            let hooks: &dyn HostHooks = &DefaultHooks;
+            hooks.into()
+        });
+        let realm = Realm::create(&*host_hooks);
         let vm = Vm::new(realm.environment().clone());
 
         let mut context = Context {
@@ -677,14 +694,18 @@ impl<'icu, 'hooks, 'queue> ContextBuilder<'icu, 'hooks, 'queue> {
             strict: false,
             #[cfg(feature = "intl")]
             icu: self.icu.unwrap_or_else(|| {
-                let provider = BoaProvider::Buffer(boa_icu_provider::buffer());
+                let buffer: &dyn icu_provider::BufferProvider = boa_icu_provider::buffer();
+                let provider = BoaProvider::Buffer(buffer);
                 icu::Icu::new(provider).expect("Failed to initialize default icu data.")
             }),
             #[cfg(feature = "fuzz")]
             instructions_remaining: self.instructions_remaining,
             kept_alive: Vec::new(),
             host_hooks,
-            job_queue: self.job_queue.unwrap_or(&IdleJobQueue),
+            job_queue: self.job_queue.unwrap_or_else(|| {
+                let queue: Rc<dyn JobQueue> = Rc::new(SimpleJobQueue::new());
+                queue.into()
+            }),
             optimizer_options: OptimizerOptions::OPTIMIZE_ALL,
         };
 

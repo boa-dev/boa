@@ -7,9 +7,8 @@ use crate::{
     TestFlags, TestOutcomeResult, TestResult, TestSuite, VersionedStats,
 };
 use boa_engine::{
-    context::ContextBuilder, job::SimpleJobQueue, native_function::NativeFunction,
-    object::FunctionObjectBuilder, optimizer::OptimizerOptions, property::Attribute, Context,
-    JsArgs, JsNativeErrorKind, JsValue, Source,
+    native_function::NativeFunction, object::FunctionObjectBuilder, optimizer::OptimizerOptions,
+    property::Attribute, Context, JsArgs, JsNativeErrorKind, JsValue, Source,
 };
 use colored::Colorize;
 use fxhash::FxHashSet;
@@ -210,11 +209,7 @@ impl Test {
         let result = std::panic::catch_unwind(|| match self.expected_outcome {
             Outcome::Positive => {
                 let async_result = AsyncResult::default();
-                let queue = SimpleJobQueue::new();
-                let context = &mut ContextBuilder::new()
-                    .job_queue(&queue)
-                    .build()
-                    .expect("cannot fail with default global");
+                let context = &mut Context::default();
 
                 if let Err(e) = self.set_up_env(harness, context, async_result.clone()) {
                     return (false, e);

@@ -27,7 +27,6 @@ use super::{JsArray, JsFunction};
 /// ```
 /// # use boa_engine::{
 /// #     builtins::promise::PromiseState,
-/// #     job::SimpleJobQueue,
 /// #     js_string,
 /// #     object::{builtins::JsPromise, FunctionObjectBuilder},
 /// #     property::Attribute,
@@ -35,8 +34,7 @@ use super::{JsArray, JsFunction};
 /// # };
 /// # use std::error::Error;
 /// # fn main() -> Result<(), Box<dyn Error>> {
-/// let queue = &SimpleJobQueue::new();
-/// let context = &mut Context::builder().job_queue(queue).build()?;
+/// let context = &mut Context::default();
 ///
 /// context.register_global_property("finally", false, Attribute::all());
 ///
@@ -131,14 +129,12 @@ impl JsPromise {
     /// ```
     /// # use std::error::Error;
     /// # use boa_engine::{
-    /// #    job::SimpleJobQueue,
     /// #    object::builtins::JsPromise,
     /// #    builtins::promise::PromiseState,
     /// #    Context, JsValue, js_string
     /// # };
     /// # fn main() -> Result<(), Box<dyn Error>> {
-    /// let queue = &SimpleJobQueue::new();
-    /// let context = &mut Context::builder().job_queue(queue).build()?;
+    /// let context = &mut Context::default();
     ///
     /// let promise = JsPromise::new(|resolvers, context| {
     ///     let result = js_string!("hello world").into();
@@ -393,14 +389,12 @@ impl JsPromise {
     /// # use std::error::Error;
     /// # use boa_engine::{
     /// #     builtins::promise::PromiseState,
-    /// #     job::SimpleJobQueue,
     /// #     js_string,
     /// #     object::{builtins::JsPromise, FunctionObjectBuilder},
     /// #     Context, JsArgs, JsError, JsValue, NativeFunction,
     /// # };
     /// # fn main() -> Result<(), Box<dyn Error>> {
-    /// let queue = &SimpleJobQueue::new();
-    /// let context = &mut Context::builder().job_queue(queue).build()?;
+    /// let context = &mut Context::default();
     ///
     /// let promise = JsPromise::new(
     ///     |resolvers, context| {
@@ -461,13 +455,11 @@ impl JsPromise {
     /// # use boa_engine::{
     /// #     js_string,
     /// #     builtins::promise::PromiseState,
-    /// #     job::SimpleJobQueue,
     /// #     object::{builtins::JsPromise, FunctionObjectBuilder},
     /// #     Context, JsArgs, JsNativeError, JsValue, NativeFunction,
     /// # };
     /// # fn main() -> Result<(), Box<dyn Error>> {
-    /// let queue = &SimpleJobQueue::new();
-    /// let context = &mut Context::builder().job_queue(queue).build()?;
+    /// let context = &mut Context::default();
     ///
     /// let promise = JsPromise::new(
     ///     |resolvers, context| {
@@ -524,14 +516,12 @@ impl JsPromise {
     /// ```
     /// # use std::error::Error;
     /// # use boa_engine::{
-    /// #     job::SimpleJobQueue,
     /// #     object::{builtins::JsPromise, FunctionObjectBuilder},
     /// #     property::Attribute,
     /// #     Context, JsNativeError, JsValue, NativeFunction,
     /// # };
     /// # fn main() -> Result<(), Box<dyn Error>> {
-    /// let queue = &SimpleJobQueue::new();
-    /// let context = &mut Context::builder().job_queue(queue).build()?;
+    /// let context = &mut Context::default();
     ///
     /// context.register_global_property("finally", false, Attribute::all());
     ///
@@ -594,14 +584,12 @@ impl JsPromise {
     /// ```
     /// # use std::error::Error;
     /// # use boa_engine::{
-    /// #     job::SimpleJobQueue,
     /// #     js_string,
     /// #     object::builtins::{JsArray, JsPromise},
     /// #     Context, JsNativeError, JsValue,
     /// # };
     /// # fn main() -> Result<(), Box<dyn Error>> {
-    /// let queue = &SimpleJobQueue::new();
-    /// let context = &mut Context::builder().job_queue(queue).build()?;
+    /// let context = &mut Context::default();
     ///
     /// let promise1 = JsPromise::all(
     ///     [
@@ -668,15 +656,12 @@ impl JsPromise {
     /// ```
     /// # use std::error::Error;
     /// # use boa_engine::{
-    /// #     job::SimpleJobQueue,
     /// #     js_string,
     /// #     object::builtins::{JsArray, JsPromise},
     /// #     Context, JsNativeError, JsValue,
     /// # };
     /// # fn main() -> Result<(), Box<dyn Error>> {
-    /// let queue = &SimpleJobQueue::new();
-    /// let context = &mut Context::builder().job_queue(queue).build()?;
-    ///
+    /// let context = &mut Context::default();
     ///
     /// let promise = JsPromise::all_settled(
     ///     [
@@ -744,14 +729,12 @@ impl JsPromise {
     /// # use std::error::Error;
     /// # use boa_engine::{
     /// #     builtins::promise::PromiseState,
-    /// #     job::SimpleJobQueue,
     /// #     js_string,
     /// #     object::builtins::JsPromise,
     /// #     Context, JsNativeError,
     /// # };
     /// # fn main() -> Result<(), Box<dyn Error>> {
-    /// let queue = &SimpleJobQueue::new();
-    /// let context = &mut Context::builder().job_queue(queue).build()?;
+    /// let context = &mut Context::default();
     ///
     ///
     /// let promise = JsPromise::any(
@@ -807,14 +790,12 @@ impl JsPromise {
     /// # use std::error::Error;
     /// # use boa_engine::{
     /// #     builtins::promise::PromiseState,
-    /// #     job::SimpleJobQueue,
     /// #     js_string,
     /// #     object::builtins::JsPromise,
     /// #     Context, JsValue,
     /// # };
     /// # fn main() -> Result<(), Box<dyn Error>> {
-    /// let queue = &SimpleJobQueue::new();
-    /// let context = &mut Context::builder().job_queue(queue).build()?;
+    /// let context = &mut Context::default();
     ///
     /// let (a, resolvers_a) = JsPromise::new_pending(context);
     /// let (b, resolvers_b) = JsPromise::new_pending(context);
