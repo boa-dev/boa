@@ -1030,11 +1030,54 @@
 <a href="#1029" id="1029">1029</a>
 <a href="#1030" id="1030">1030</a>
 <a href="#1031" id="1031">1031</a>
+<a href="#1032" id="1032">1032</a>
+<a href="#1033" id="1033">1033</a>
+<a href="#1034" id="1034">1034</a>
+<a href="#1035" id="1035">1035</a>
+<a href="#1036" id="1036">1036</a>
+<a href="#1037" id="1037">1037</a>
+<a href="#1038" id="1038">1038</a>
+<a href="#1039" id="1039">1039</a>
+<a href="#1040" id="1040">1040</a>
+<a href="#1041" id="1041">1041</a>
+<a href="#1042" id="1042">1042</a>
+<a href="#1043" id="1043">1043</a>
+<a href="#1044" id="1044">1044</a>
+<a href="#1045" id="1045">1045</a>
+<a href="#1046" id="1046">1046</a>
+<a href="#1047" id="1047">1047</a>
+<a href="#1048" id="1048">1048</a>
+<a href="#1049" id="1049">1049</a>
+<a href="#1050" id="1050">1050</a>
+<a href="#1051" id="1051">1051</a>
+<a href="#1052" id="1052">1052</a>
+<a href="#1053" id="1053">1053</a>
+<a href="#1054" id="1054">1054</a>
+<a href="#1055" id="1055">1055</a>
+<a href="#1056" id="1056">1056</a>
+<a href="#1057" id="1057">1057</a>
+<a href="#1058" id="1058">1058</a>
+<a href="#1059" id="1059">1059</a>
+<a href="#1060" id="1060">1060</a>
+<a href="#1061" id="1061">1061</a>
+<a href="#1062" id="1062">1062</a>
+<a href="#1063" id="1063">1063</a>
+<a href="#1064" id="1064">1064</a>
+<a href="#1065" id="1065">1065</a>
+<a href="#1066" id="1066">1066</a>
+<a href="#1067" id="1067">1067</a>
+<a href="#1068" id="1068">1068</a>
+<a href="#1069" id="1069">1069</a>
+<a href="#1070" id="1070">1070</a>
+<a href="#1071" id="1071">1071</a>
+<a href="#1072" id="1072">1072</a>
 </pre><pre class="rust"><code><span class="doccomment">//! This module implements the `JsObject` structure.
 //!
 //! The `JsObject` is a garbage collected Object.
 
-</span><span class="kw">use super</span>::{JsPrototype, NativeObject, Object, PropertyMap};
+</span><span class="kw">use super</span>::{
+    internal_methods::InternalObjectMethods, JsPrototype, NativeObject, Object, PropertyMap,
+};
 <span class="kw">use crate</span>::{
     context::intrinsics::Intrinsics,
     error::JsNativeError,
@@ -1061,12 +1104,43 @@
 </span><span class="kw">pub type </span>RefMut&lt;<span class="lifetime">&#39;a</span>, T, U&gt; = boa_gc::GcRefMut&lt;<span class="lifetime">&#39;a</span>, T, U&gt;;
 
 <span class="doccomment">/// Garbage collected `Object`.
-</span><span class="attr">#[derive(Trace, Finalize, Clone, Default)]
+</span><span class="attr">#[derive(Trace, Finalize, Clone)]
 </span><span class="kw">pub struct </span>JsObject {
-    inner: Gc&lt;GcRefCell&lt;Object&gt;&gt;,
+    inner: Gc&lt;VTableObject&gt;,
+}
+
+<span class="doccomment">/// An `Object` that has an additional `vtable` with its internal methods.
+</span><span class="comment">// We have to skip implementing `Debug` for this because not using the
+// implementation of `Debug` for `JsObject` could easily cause stack overflows,
+// so we have to force our users to debug the `JsObject` instead.
+</span><span class="attr">#[allow(missing_debug_implementations)]
+#[derive(Trace, Finalize)]
+</span><span class="kw">pub struct </span>VTableObject {
+    object: GcRefCell&lt;Object&gt;,
+    <span class="attr">#[unsafe_ignore_trace]
+    </span>vtable: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>InternalObjectMethods,
+}
+
+<span class="kw">impl </span>Default <span class="kw">for </span>JsObject {
+    <span class="kw">fn </span>default() -&gt; <span class="self">Self </span>{
+        <span class="kw">let </span>data = ObjectData::ordinary();
+        <span class="self">Self</span>::from_object_and_vtable(Object::default(), data.internal_methods)
+    }
 }
 
 <span class="kw">impl </span>JsObject {
+    <span class="doccomment">/// Creates a new `JsObject` from its inner object and its vtable.
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>from_object_and_vtable(
+        object: Object,
+        vtable: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>InternalObjectMethods,
+    ) -&gt; <span class="self">Self </span>{
+        <span class="self">Self </span>{
+            inner: Gc::new(VTableObject {
+                object: GcRefCell::new(object),
+                vtable,
+            }),
+        }
+    }
     <span class="doccomment">/// Creates a new ordinary object with its prototype set to the `Object` prototype.
     ///
     /// This is equivalent to calling the specification&#39;s abstract operation
@@ -1103,13 +1177,16 @@
     /// [`OrdinaryObjectCreate`]: https://tc39.es/ecma262/#sec-ordinaryobjectcreate
     </span><span class="kw">pub fn </span>from_proto_and_data&lt;O: Into&lt;<span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>&gt;&gt;&gt;(prototype: O, data: ObjectData) -&gt; <span class="self">Self </span>{
         <span class="self">Self </span>{
-            inner: Gc::new(GcRefCell::new(Object {
-                data,
-                prototype: prototype.into(),
-                extensible: <span class="bool-val">true</span>,
-                properties: PropertyMap::default(),
-                private_elements: ThinVec::new(),
-            })),
+            inner: Gc::new(VTableObject {
+                object: GcRefCell::new(Object {
+                    kind: data.kind,
+                    properties: PropertyMap::default(),
+                    prototype: prototype.into(),
+                    extensible: <span class="bool-val">true</span>,
+                    private_elements: ThinVec::new(),
+                }),
+                vtable: data.internal_methods,
+            }),
         }
     }
 
@@ -1148,7 +1225,7 @@
     /// This is the non-panicking variant of [`borrow`](#method.borrow).
     </span><span class="attr">#[inline]
     </span><span class="kw">pub fn </span>try_borrow(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; StdResult&lt;Ref&lt;<span class="lifetime">&#39;_</span>, Object&gt;, BorrowError&gt; {
-        <span class="self">self</span>.inner.try_borrow().map_err(|<span class="kw">_</span>| BorrowError)
+        <span class="self">self</span>.inner.object.try_borrow().map_err(|<span class="kw">_</span>| BorrowError)
     }
 
     <span class="doccomment">/// Mutably borrows the object, returning an error if the value is currently borrowed.
@@ -1159,7 +1236,10 @@
     /// This is the non-panicking variant of [`borrow_mut`](#method.borrow_mut).
     </span><span class="attr">#[inline]
     </span><span class="kw">pub fn </span>try_borrow_mut(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; StdResult&lt;RefMut&lt;<span class="lifetime">&#39;_</span>, Object, Object&gt;, BorrowMutError&gt; {
-        <span class="self">self</span>.inner.try_borrow_mut().map_err(|<span class="kw">_</span>| BorrowMutError)
+        <span class="self">self</span>.inner
+            .object
+            .try_borrow_mut()
+            .map_err(|<span class="kw">_</span>| BorrowMutError)
     }
 
     <span class="doccomment">/// Checks if the garbage collected memory is the same.
@@ -1884,7 +1964,7 @@ Cannot both specify accessors and a value or writable attribute&quot;</span>,
     </span><span class="attr">#[inline]
     #[track_caller]
     </span><span class="kw">pub fn </span>is_callable(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
-        <span class="self">self</span>.borrow().data.internal_methods.__call__.is_some()
+        <span class="self">self</span>.inner.vtable.__call__.is_some()
     }
 
     <span class="doccomment">/// It determines if Object is a function object with a `[[Construct]]` internal method.
@@ -1896,21 +1976,19 @@ Cannot both specify accessors and a value or writable attribute&quot;</span>,
     </span><span class="attr">#[inline]
     #[track_caller]
     </span><span class="kw">pub fn </span>is_constructor(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
-        <span class="self">self</span>.borrow().data.internal_methods.__construct__.is_some()
+        <span class="self">self</span>.inner.vtable.__construct__.is_some()
     }
 
     <span class="doccomment">/// Returns true if the `JsObject` is the global for a Realm
     </span><span class="kw">pub fn </span>is_global(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
-        <span class="macro">matches!</span>(
-            <span class="self">self</span>.borrow().data,
-            ObjectData {
-                kind: ObjectKind::Global,
-                ..
-            }
-        )
+        <span class="macro">matches!</span>(<span class="self">self</span>.inner.object.borrow().kind, ObjectKind::Global)
     }
 
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const fn </span>inner(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>Gc&lt;GcRefCell&lt;Object&gt;&gt; {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>vtable(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>InternalObjectMethods {
+        <span class="self">self</span>.inner.vtable
+    }
+
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const fn </span>inner(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>Gc&lt;VTableObject&gt; {
         <span class="kw-2">&amp;</span><span class="self">self</span>.inner
     }
 }
@@ -1918,13 +1996,13 @@ Cannot both specify accessors and a value or writable attribute&quot;</span>,
 <span class="kw">impl </span>AsRef&lt;GcRefCell&lt;Object&gt;&gt; <span class="kw">for </span>JsObject {
     <span class="attr">#[inline]
     </span><span class="kw">fn </span>as_ref(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>GcRefCell&lt;Object&gt; {
-        <span class="kw-2">&amp;</span><span class="self">self</span>.inner
+        <span class="kw-2">&amp;</span><span class="self">self</span>.inner.object
     }
 }
 
-<span class="kw">impl </span>From&lt;Gc&lt;GcRefCell&lt;Object&gt;&gt;&gt; <span class="kw">for </span>JsObject {
+<span class="kw">impl </span>From&lt;Gc&lt;VTableObject&gt;&gt; <span class="kw">for </span>JsObject {
     <span class="attr">#[inline]
-    </span><span class="kw">fn </span>from(inner: Gc&lt;GcRefCell&lt;Object&gt;&gt;) -&gt; <span class="self">Self </span>{
+    </span><span class="kw">fn </span>from(inner: Gc&lt;VTableObject&gt;) -&gt; <span class="self">Self </span>{
         <span class="self">Self </span>{ inner }
     }
 }
@@ -2046,6 +2124,7 @@ Cannot both specify accessors and a value or writable attribute&quot;</span>,
 
 <span class="kw">impl </span>Debug <span class="kw">for </span>JsObject {
     <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; std::fmt::Result {
+        <span class="kw">let </span>ptr: <span class="kw-2">*const </span><span class="kw">_ </span>= <span class="self">self</span>.vtable();
         <span class="kw">let </span>limiter = RecursionLimiter::new(<span class="self">self</span>);
 
         <span class="comment">// Typically, using `!limiter.live` would be good enough here.
@@ -2055,7 +2134,10 @@ Cannot both specify accessors and a value or writable attribute&quot;</span>,
         // Instead, we check if the object has appeared before in the entire graph. This means that objects will appear
         // at most once, hopefully making things a bit clearer.
         </span><span class="kw">if </span>!limiter.visited &amp;&amp; !limiter.live {
-            f.debug_tuple(<span class="string">&quot;JsObject&quot;</span>).field(<span class="kw-2">&amp;</span><span class="self">self</span>.inner).finish()
+            f.debug_struct(<span class="string">&quot;JsObject&quot;</span>)
+                .field(<span class="string">&quot;vtable&quot;</span>, <span class="kw-2">&amp;</span>ptr)
+                .field(<span class="string">&quot;object&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.inner.object)
+                .finish()
         } <span class="kw">else </span>{
             f.write_str(<span class="string">&quot;{ ... }&quot;</span>)
         }

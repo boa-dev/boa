@@ -3610,7 +3610,7 @@
     context::intrinsics::{Intrinsics, StandardConstructor, StandardConstructors},
     error::JsNativeError,
     js_string,
-    object::{internal_methods::get_prototype_from_constructor, JsObject, ObjectData},
+    object::{internal_methods::get_prototype_from_constructor, JsObject, ObjectData, ObjectKind},
     property::{Attribute, PropertyNameKind},
     realm::Realm,
     string::utf16,
@@ -6936,7 +6936,7 @@
         // 18. Set O.[[ByteOffset]] to 0.
         // 19. Set O.[[ArrayLength]] to elementLength.
         </span>drop(o_obj);
-        o.borrow_mut().data = ObjectData::integer_indexed(IntegerIndexed::new(
+        <span class="kw-2">*</span>o.borrow_mut().kind_mut() = ObjectKind::IntegerIndexed(IntegerIndexed::new(
             <span class="prelude-val">Some</span>(data),
             constructor_name,
             <span class="number">0</span>,

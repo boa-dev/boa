@@ -622,10 +622,10 @@
 <span class="kw">impl </span>Default <span class="kw">for </span>UriFunctions {
     <span class="kw">fn </span>default() -&gt; <span class="self">Self </span>{
         <span class="self">Self </span>{
-            decode_uri: JsFunction::from_object_unchecked(JsObject::default()),
-            decode_uri_component: JsFunction::from_object_unchecked(JsObject::default()),
-            encode_uri: JsFunction::from_object_unchecked(JsObject::default()),
-            encode_uri_component: JsFunction::from_object_unchecked(JsObject::default()),
+            decode_uri: JsFunction::empty_intrinsic_function(<span class="bool-val">false</span>),
+            decode_uri_component: JsFunction::empty_intrinsic_function(<span class="bool-val">false</span>),
+            encode_uri: JsFunction::empty_intrinsic_function(<span class="bool-val">false</span>),
+            encode_uri_component: JsFunction::empty_intrinsic_function(<span class="bool-val">false</span>),
         }
     }
 }

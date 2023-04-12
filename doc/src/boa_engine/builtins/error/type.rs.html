@@ -147,7 +147,6 @@
 <a href="#146" id="146">146</a>
 <a href="#147" id="147">147</a>
 <a href="#148" id="148">148</a>
-<a href="#149" id="149">149</a>
 </pre><pre class="rust"><code><span class="doccomment">//! This module implements the global `TypeError` object.
 //!
 //! The `TypeError` object represents an error when an operation could not be performed,
@@ -172,12 +171,11 @@
     },
     context::intrinsics::{Intrinsics, StandardConstructor, StandardConstructors},
     error::JsNativeError,
-    native_function::NativeFunction,
-    object::{internal_methods::get_prototype_from_constructor, JsObject, ObjectData},
+    object::{internal_methods::get_prototype_from_constructor, JsObject, ObjectData, ObjectKind},
     property::Attribute,
     realm::Realm,
     string::utf16,
-    Context, JsArgs, JsResult, JsValue,
+    Context, JsArgs, JsResult, JsValue, NativeFunction,
 };
 <span class="kw">use </span>boa_profiler::Profiler;
 
@@ -284,7 +282,7 @@
         <span class="kw">let </span><span class="kw-2">mut </span>obj = obj.borrow_mut();
 
         obj.extensible = <span class="bool-val">false</span>;
-        obj.data = ObjectData::function(Function::new(
+        <span class="kw-2">*</span>obj.kind_mut() = ObjectKind::Function(Function::new(
             FunctionKind::Native {
                 function: NativeFunction::from_fn_ptr(throw_type_error),
                 constructor: <span class="prelude-val">None</span>,

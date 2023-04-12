@@ -934,6 +934,9 @@
 <a href="#933" id="933">933</a>
 <a href="#934" id="934">934</a>
 <a href="#935" id="935">935</a>
+<a href="#936" id="936">936</a>
+<a href="#937" id="937">937</a>
+<a href="#938" id="938">938</a>
 </pre><pre class="rust"><code><span class="doccomment">//! Data structures that contain intrinsic objects and constructors.
 
 </span><span class="kw">use </span>boa_gc::{Finalize, Trace};
@@ -972,14 +975,14 @@
 <span class="doccomment">/// Store a builtin constructor (such as `Object`) and its corresponding prototype.
 </span><span class="attr">#[derive(Debug, Trace, Finalize)]
 </span><span class="kw">pub struct </span>StandardConstructor {
-    <span class="kw">pub</span>(<span class="kw">crate</span>) constructor: JsObject,
-    <span class="kw">pub</span>(<span class="kw">crate</span>) prototype: JsObject,
+    constructor: JsFunction,
+    prototype: JsObject,
 }
 
 <span class="kw">impl </span>Default <span class="kw">for </span>StandardConstructor {
     <span class="kw">fn </span>default() -&gt; <span class="self">Self </span>{
         <span class="self">Self </span>{
-            constructor: JsObject::with_null_proto(),
+            constructor: JsFunction::empty_intrinsic_function(<span class="bool-val">true</span>),
             prototype: JsObject::with_null_proto(),
         }
     }
@@ -989,7 +992,7 @@
     <span class="doccomment">/// Build a constructor with a defined prototype.
     </span><span class="kw">fn </span>with_prototype(prototype: JsObject) -&gt; <span class="self">Self </span>{
         <span class="self">Self </span>{
-            constructor: JsObject::with_null_proto(),
+            constructor: JsFunction::empty_intrinsic_function(<span class="bool-val">true</span>),
             prototype,
         }
     }
@@ -1007,7 +1010,7 @@
     /// This is the same as `Object`, `Array`, etc.
     </span><span class="attr">#[inline]
     </span><span class="kw">pub fn </span>constructor(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; JsObject {
-        <span class="self">self</span>.constructor.clone()
+        <span class="self">self</span>.constructor.clone().into()
     }
 }
 
@@ -1074,7 +1077,10 @@
             object: StandardConstructor::default(),
             proxy: StandardConstructor::default(),
             date: StandardConstructor::default(),
-            function: StandardConstructor::default(),
+            function: StandardConstructor {
+                constructor: JsFunction::empty_intrinsic_function(<span class="bool-val">true</span>),
+                prototype: JsFunction::empty_intrinsic_function(<span class="bool-val">false</span>).into(),
+            },
             async_function: StandardConstructor::default(),
             generator_function: StandardConstructor::default(),
             array: StandardConstructor::with_prototype(JsObject::from_proto_and_data(
@@ -1676,7 +1682,7 @@
     </span>throw_type_error: JsFunction,
 
     <span class="doccomment">/// [`%Array.prototype.values%`](https://tc39.es/ecma262/#sec-array.prototype.values)
-    </span>array_prototype_values: JsObject,
+    </span>array_prototype_values: JsFunction,
 
     <span class="doccomment">/// Cached iterator prototypes.
     </span>iterator_prototypes: IteratorPrototypes,
@@ -1724,21 +1730,21 @@
             reflect: JsObject::default(),
             math: JsObject::default(),
             json: JsObject::default(),
-            throw_type_error: JsFunction::from_object_unchecked(JsObject::default()),
-            array_prototype_values: JsObject::default(),
+            throw_type_error: JsFunction::empty_intrinsic_function(<span class="bool-val">false</span>),
+            array_prototype_values: JsFunction::empty_intrinsic_function(<span class="bool-val">false</span>),
             iterator_prototypes: IteratorPrototypes::default(),
             generator: JsObject::default(),
             async_generator: JsObject::default(),
-            eval: JsFunction::from_object_unchecked(JsObject::default()),
+            eval: JsFunction::empty_intrinsic_function(<span class="bool-val">false</span>),
             uri_functions: UriFunctions::default(),
-            is_finite: JsFunction::from_object_unchecked(JsObject::default()),
-            is_nan: JsFunction::from_object_unchecked(JsObject::default()),
-            parse_float: JsFunction::from_object_unchecked(JsObject::default()),
-            parse_int: JsFunction::from_object_unchecked(JsObject::default()),
+            is_finite: JsFunction::empty_intrinsic_function(<span class="bool-val">false</span>),
+            is_nan: JsFunction::empty_intrinsic_function(<span class="bool-val">false</span>),
+            parse_float: JsFunction::empty_intrinsic_function(<span class="bool-val">false</span>),
+            parse_int: JsFunction::empty_intrinsic_function(<span class="bool-val">false</span>),
             <span class="attr">#[cfg(feature = <span class="string">&quot;annex-b&quot;</span>)]
-            </span>escape: JsFunction::from_object_unchecked(JsObject::default()),
+            </span>escape: JsFunction::empty_intrinsic_function(<span class="bool-val">false</span>),
             <span class="attr">#[cfg(feature = <span class="string">&quot;annex-b&quot;</span>)]
-            </span>unescape: JsFunction::from_object_unchecked(JsObject::default()),
+            </span>unescape: JsFunction::empty_intrinsic_function(<span class="bool-val">false</span>),
             <span class="attr">#[cfg(feature = <span class="string">&quot;intl&quot;</span>)]
             </span>intl: JsObject::default(),
         }
@@ -1758,7 +1764,7 @@
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-array.prototype.values
     </span><span class="attr">#[inline]
-    </span><span class="kw">pub fn </span>array_prototype_values(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; JsObject {
+    </span><span class="kw">pub fn </span>array_prototype_values(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; JsFunction {
         <span class="self">self</span>.array_prototype_values.clone()
     }
 

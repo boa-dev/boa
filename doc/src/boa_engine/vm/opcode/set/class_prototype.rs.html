@@ -66,13 +66,6 @@
 <a href="#65" id="65">65</a>
 <a href="#66" id="66">66</a>
 <a href="#67" id="67">67</a>
-<a href="#68" id="68">68</a>
-<a href="#69" id="69">69</a>
-<a href="#70" id="70">70</a>
-<a href="#71" id="71">71</a>
-<a href="#72" id="72">72</a>
-<a href="#73" id="73">73</a>
-<a href="#74" id="74">74</a>
 </pre><pre class="rust"><code><span class="kw">use crate</span>::{
     object::{JsObject, ObjectData, CONSTRUCTOR, PROTOTYPE},
     property::PropertyDescriptorBuilder,
@@ -96,14 +89,7 @@
         <span class="kw">let </span>prototype = <span class="kw">match </span><span class="kw-2">&amp;</span>prototype_value {
             JsValue::Object(proto) =&gt; <span class="prelude-val">Some</span>(proto.clone()),
             JsValue::Null =&gt; <span class="prelude-val">None</span>,
-            JsValue::Undefined =&gt; <span class="prelude-val">Some</span>(
-                context
-                    .intrinsics()
-                    .constructors()
-                    .object()
-                    .prototype
-                    .clone(),
-            ),
+            JsValue::Undefined =&gt; <span class="prelude-val">Some</span>(context.intrinsics().constructors().object().prototype()),
             <span class="kw">_ </span>=&gt; <span class="macro">unreachable!</span>(),
         };
 

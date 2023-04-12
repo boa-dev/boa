@@ -1686,6 +1686,11 @@
 <a href="#1685" id="1685">1685</a>
 <a href="#1686" id="1686">1686</a>
 <a href="#1687" id="1687">1687</a>
+<a href="#1688" id="1688">1688</a>
+<a href="#1689" id="1689">1689</a>
+<a href="#1690" id="1690">1690</a>
+<a href="#1691" id="1691">1691</a>
+<a href="#1692" id="1692">1692</a>
 </pre><pre class="rust"><code><span class="doccomment">//! Boa&#39;s implementation of ECMAScript&#39;s global `RegExp` object.
 //!
 //! The `RegExp` object is used for matching text with a pattern.
@@ -1702,7 +1707,10 @@
     context::intrinsics::{Intrinsics, StandardConstructor, StandardConstructors},
     error::JsNativeError,
     js_string,
-    object::{internal_methods::get_prototype_from_constructor, JsObject, ObjectData, CONSTRUCTOR},
+    object::{
+        internal_methods::get_prototype_from_constructor, JsObject, ObjectData, ObjectKind,
+        CONSTRUCTOR,
+    },
     property::{Attribute, PropertyDescriptorBuilder},
     realm::Realm,
     string::{utf16, CodePoint},
@@ -1999,7 +2007,9 @@
             original_source: p,
             original_flags: f,
         };
-        obj.borrow_mut().data = ObjectData::reg_exp(Box::new(regexp));
+
+        <span class="comment">// Safe to directly initialize since previous assertions ensure `obj` is a `Regexp` object.
+        </span><span class="kw-2">*</span>obj.borrow_mut().kind_mut() = ObjectKind::RegExp(Box::new(regexp));
 
         <span class="comment">// 16. Perform ? Set(obj, &quot;lastIndex&quot;, +0𝔽, true).
         </span>obj.set(<span class="macro">utf16!</span>(<span class="string">&quot;lastIndex&quot;</span>), <span class="number">0</span>, <span class="bool-val">true</span>, context)<span class="question-mark">?</span>;
@@ -2055,7 +2065,7 @@
 
             <span class="kw">if </span>JsObject::equals(
                 object,
-                <span class="kw-2">&amp;</span>context.intrinsics().constructors().regexp().prototype,
+                <span class="kw-2">&amp;</span>context.intrinsics().constructors().regexp().prototype(),
             ) {
                 <span class="kw">return </span><span class="prelude-val">Ok</span>(JsValue::undefined());
             }

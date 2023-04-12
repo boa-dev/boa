@@ -930,18 +930,6 @@
 <a href="#929" id="929">929</a>
 <a href="#930" id="930">930</a>
 <a href="#931" id="931">931</a>
-<a href="#932" id="932">932</a>
-<a href="#933" id="933">933</a>
-<a href="#934" id="934">934</a>
-<a href="#935" id="935">935</a>
-<a href="#936" id="936">936</a>
-<a href="#937" id="937">937</a>
-<a href="#938" id="938">938</a>
-<a href="#939" id="939">939</a>
-<a href="#940" id="940">940</a>
-<a href="#941" id="941">941</a>
-<a href="#942" id="942">942</a>
-<a href="#943" id="943">943</a>
 </pre><pre class="rust"><code><span class="doccomment">//! This module defines the object internal methods.
 //!
 //! More information:
@@ -979,8 +967,7 @@
     </span><span class="attr">#[track_caller]
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>__get_prototype_of__(<span class="kw-2">&amp;</span><span class="self">self</span>, context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;JsPrototype&gt; {
         <span class="kw">let </span>_timer = Profiler::global().start_event(<span class="string">&quot;Object::__get_prototype_of__&quot;</span>, <span class="string">&quot;object&quot;</span>);
-        <span class="kw">let </span>func = <span class="self">self</span>.borrow().data.internal_methods.__get_prototype_of__;
-        func(<span class="self">self</span>, context)
+        (<span class="self">self</span>.vtable().__get_prototype_of__)(<span class="self">self</span>, context)
     }
 
     <span class="doccomment">/// Internal method `[[SetPrototypeOf]]`
@@ -997,8 +984,7 @@
         context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
     ) -&gt; JsResult&lt;bool&gt; {
         <span class="kw">let </span>_timer = Profiler::global().start_event(<span class="string">&quot;Object::__set_prototype_of__&quot;</span>, <span class="string">&quot;object&quot;</span>);
-        <span class="kw">let </span>func = <span class="self">self</span>.borrow().data.internal_methods.__set_prototype_of__;
-        func(<span class="self">self</span>, val, context)
+        (<span class="self">self</span>.vtable().__set_prototype_of__)(<span class="self">self</span>, val, context)
     }
 
     <span class="doccomment">/// Internal method `[[IsExtensible]]`
@@ -1011,8 +997,7 @@
     /// [spec]: https://tc39.es/ecma262/#sec-ordinary-object-internal-methods-and-internal-slots-isextensible
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>__is_extensible__(<span class="kw-2">&amp;</span><span class="self">self</span>, context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;bool&gt; {
         <span class="kw">let </span>_timer = Profiler::global().start_event(<span class="string">&quot;Object::__is_extensible__&quot;</span>, <span class="string">&quot;object&quot;</span>);
-        <span class="kw">let </span>func = <span class="self">self</span>.borrow().data.internal_methods.__is_extensible__;
-        func(<span class="self">self</span>, context)
+        (<span class="self">self</span>.vtable().__is_extensible__)(<span class="self">self</span>, context)
     }
 
     <span class="doccomment">/// Internal method `[[PreventExtensions]]`
@@ -1025,8 +1010,7 @@
     /// [spec]: https://tc39.es/ecma262/#sec-ordinary-object-internal-methods-and-internal-slots-preventextensions
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>__prevent_extensions__(<span class="kw-2">&amp;</span><span class="self">self</span>, context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;bool&gt; {
         <span class="kw">let </span>_timer = Profiler::global().start_event(<span class="string">&quot;Object::__prevent_extensions__&quot;</span>, <span class="string">&quot;object&quot;</span>);
-        <span class="kw">let </span>func = <span class="self">self</span>.borrow().data.internal_methods.__prevent_extensions__;
-        func(<span class="self">self</span>, context)
+        (<span class="self">self</span>.vtable().__prevent_extensions__)(<span class="self">self</span>, context)
     }
 
     <span class="doccomment">/// Internal method `[[GetOwnProperty]]`
@@ -1043,8 +1027,7 @@
         context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
     ) -&gt; JsResult&lt;<span class="prelude-ty">Option</span>&lt;PropertyDescriptor&gt;&gt; {
         <span class="kw">let </span>_timer = Profiler::global().start_event(<span class="string">&quot;Object::__get_own_property__&quot;</span>, <span class="string">&quot;object&quot;</span>);
-        <span class="kw">let </span>func = <span class="self">self</span>.borrow().data.internal_methods.__get_own_property__;
-        func(<span class="self">self</span>, key, context)
+        (<span class="self">self</span>.vtable().__get_own_property__)(<span class="self">self</span>, key, context)
     }
 
     <span class="doccomment">/// Internal method `[[DefineOwnProperty]]`
@@ -1062,8 +1045,7 @@
         context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
     ) -&gt; JsResult&lt;bool&gt; {
         <span class="kw">let </span>_timer = Profiler::global().start_event(<span class="string">&quot;Object::__define_own_property__&quot;</span>, <span class="string">&quot;object&quot;</span>);
-        <span class="kw">let </span>func = <span class="self">self</span>.borrow().data.internal_methods.__define_own_property__;
-        func(<span class="self">self</span>, key, desc, context)
+        (<span class="self">self</span>.vtable().__define_own_property__)(<span class="self">self</span>, key, desc, context)
     }
 
     <span class="doccomment">/// Internal method `[[hasProperty]]`.
@@ -1080,8 +1062,7 @@
         context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
     ) -&gt; JsResult&lt;bool&gt; {
         <span class="kw">let </span>_timer = Profiler::global().start_event(<span class="string">&quot;Object::__has_property__&quot;</span>, <span class="string">&quot;object&quot;</span>);
-        <span class="kw">let </span>func = <span class="self">self</span>.borrow().data.internal_methods.__has_property__;
-        func(<span class="self">self</span>, key, context)
+        (<span class="self">self</span>.vtable().__has_property__)(<span class="self">self</span>, key, context)
     }
 
     <span class="doccomment">/// Internal method `[[Get]]`
@@ -1099,8 +1080,7 @@
         context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
     ) -&gt; JsResult&lt;JsValue&gt; {
         <span class="kw">let </span>_timer = Profiler::global().start_event(<span class="string">&quot;Object::__get__&quot;</span>, <span class="string">&quot;object&quot;</span>);
-        <span class="kw">let </span>func = <span class="self">self</span>.borrow().data.internal_methods.__get__;
-        func(<span class="self">self</span>, key, receiver, context)
+        (<span class="self">self</span>.vtable().__get__)(<span class="self">self</span>, key, receiver, context)
     }
 
     <span class="doccomment">/// Internal method `[[Set]]`
@@ -1119,8 +1099,7 @@
         context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
     ) -&gt; JsResult&lt;bool&gt; {
         <span class="kw">let </span>_timer = Profiler::global().start_event(<span class="string">&quot;Object::__set__&quot;</span>, <span class="string">&quot;object&quot;</span>);
-        <span class="kw">let </span>func = <span class="self">self</span>.borrow().data.internal_methods.__set__;
-        func(<span class="self">self</span>, key, value, receiver, context)
+        (<span class="self">self</span>.vtable().__set__)(<span class="self">self</span>, key, value, receiver, context)
     }
 
     <span class="doccomment">/// Internal method `[[Delete]]`
@@ -1137,8 +1116,7 @@
         context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
     ) -&gt; JsResult&lt;bool&gt; {
         <span class="kw">let </span>_timer = Profiler::global().start_event(<span class="string">&quot;Object::__delete__&quot;</span>, <span class="string">&quot;object&quot;</span>);
-        <span class="kw">let </span>func = <span class="self">self</span>.borrow().data.internal_methods.__delete__;
-        func(<span class="self">self</span>, key, context)
+        (<span class="self">self</span>.vtable().__delete__)(<span class="self">self</span>, key, context)
     }
 
     <span class="doccomment">/// Internal method `[[OwnPropertyKeys]]`
@@ -1155,8 +1133,7 @@
         context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
     ) -&gt; JsResult&lt;Vec&lt;PropertyKey&gt;&gt; {
         <span class="kw">let </span>_timer = Profiler::global().start_event(<span class="string">&quot;Object::__own_property_keys__&quot;</span>, <span class="string">&quot;object&quot;</span>);
-        <span class="kw">let </span>func = <span class="self">self</span>.borrow().data.internal_methods.__own_property_keys__;
-        func(<span class="self">self</span>, context)
+        (<span class="self">self</span>.vtable().__own_property_keys__)(<span class="self">self</span>, context)
     }
 
     <span class="doccomment">/// Internal method `[[Call]]`
@@ -1175,9 +1152,9 @@
         context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
     ) -&gt; JsResult&lt;JsValue&gt; {
         <span class="kw">let </span>_timer = Profiler::global().start_event(<span class="string">&quot;Object::__call__&quot;</span>, <span class="string">&quot;object&quot;</span>);
-
-        <span class="kw">let </span>func = <span class="self">self</span>.borrow().data.internal_methods.__call__;
-        func.expect(<span class="string">&quot;called `[[Call]]` for object without a `[[Call]]` internal method&quot;</span>)(
+        <span class="self">self</span>.vtable()
+            .__call__
+            .expect(<span class="string">&quot;called `[[Call]]` for object without a `[[Call]]` internal method&quot;</span>)(
             <span class="self">self</span>, this, args, context,
         )
     }
@@ -1198,9 +1175,9 @@
         context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
     ) -&gt; JsResult&lt;<span class="self">Self</span>&gt; {
         <span class="kw">let </span>_timer = Profiler::global().start_event(<span class="string">&quot;Object::__construct__&quot;</span>, <span class="string">&quot;object&quot;</span>);
-
-        <span class="kw">let </span>func = <span class="self">self</span>.borrow().data.internal_methods.__construct__;
-        func.expect(<span class="string">&quot;called `[[Construct]]` for object without a `[[Construct]]` internal method&quot;</span>)(
+        <span class="self">self</span>.vtable()
+            .__construct__
+            .expect(<span class="string">&quot;called `[[Construct]]` for object without a `[[Construct]]` internal method&quot;</span>)(
             <span class="self">self</span>, args, new_target, context,
         )
     }
@@ -1323,8 +1300,7 @@
         <span class="comment">// c. Else,
         // i. If p.[[GetPrototypeOf]] is not the ordinary object internal method defined
         // in 10.1.1, set done to true.
-        </span><span class="kw">else if </span>proto.borrow().data.internal_methods.__get_prototype_of__ <span class="kw">as </span>usize
-            != ordinary_get_prototype_of <span class="kw">as </span>usize
+        </span><span class="kw">else if </span>proto.vtable().__get_prototype_of__ <span class="kw">as </span>usize != ordinary_get_prototype_of <span class="kw">as </span>usize
         {
             <span class="kw">break</span>;
         }

@@ -3084,7 +3084,7 @@
 
         <span class="kw">let </span>values_function = BuiltInBuilder::with_object(
             realm,
-            realm.intrinsics().objects().array_prototype_values(),
+            realm.intrinsics().objects().array_prototype_values().into(),
         )
         .callable(<span class="self">Self</span>::values)
         .name(<span class="string">&quot;values&quot;</span>)

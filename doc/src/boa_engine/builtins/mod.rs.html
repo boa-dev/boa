@@ -805,6 +805,89 @@
 <a href="#804" id="804">804</a>
 <a href="#805" id="805">805</a>
 <a href="#806" id="806">806</a>
+<a href="#807" id="807">807</a>
+<a href="#808" id="808">808</a>
+<a href="#809" id="809">809</a>
+<a href="#810" id="810">810</a>
+<a href="#811" id="811">811</a>
+<a href="#812" id="812">812</a>
+<a href="#813" id="813">813</a>
+<a href="#814" id="814">814</a>
+<a href="#815" id="815">815</a>
+<a href="#816" id="816">816</a>
+<a href="#817" id="817">817</a>
+<a href="#818" id="818">818</a>
+<a href="#819" id="819">819</a>
+<a href="#820" id="820">820</a>
+<a href="#821" id="821">821</a>
+<a href="#822" id="822">822</a>
+<a href="#823" id="823">823</a>
+<a href="#824" id="824">824</a>
+<a href="#825" id="825">825</a>
+<a href="#826" id="826">826</a>
+<a href="#827" id="827">827</a>
+<a href="#828" id="828">828</a>
+<a href="#829" id="829">829</a>
+<a href="#830" id="830">830</a>
+<a href="#831" id="831">831</a>
+<a href="#832" id="832">832</a>
+<a href="#833" id="833">833</a>
+<a href="#834" id="834">834</a>
+<a href="#835" id="835">835</a>
+<a href="#836" id="836">836</a>
+<a href="#837" id="837">837</a>
+<a href="#838" id="838">838</a>
+<a href="#839" id="839">839</a>
+<a href="#840" id="840">840</a>
+<a href="#841" id="841">841</a>
+<a href="#842" id="842">842</a>
+<a href="#843" id="843">843</a>
+<a href="#844" id="844">844</a>
+<a href="#845" id="845">845</a>
+<a href="#846" id="846">846</a>
+<a href="#847" id="847">847</a>
+<a href="#848" id="848">848</a>
+<a href="#849" id="849">849</a>
+<a href="#850" id="850">850</a>
+<a href="#851" id="851">851</a>
+<a href="#852" id="852">852</a>
+<a href="#853" id="853">853</a>
+<a href="#854" id="854">854</a>
+<a href="#855" id="855">855</a>
+<a href="#856" id="856">856</a>
+<a href="#857" id="857">857</a>
+<a href="#858" id="858">858</a>
+<a href="#859" id="859">859</a>
+<a href="#860" id="860">860</a>
+<a href="#861" id="861">861</a>
+<a href="#862" id="862">862</a>
+<a href="#863" id="863">863</a>
+<a href="#864" id="864">864</a>
+<a href="#865" id="865">865</a>
+<a href="#866" id="866">866</a>
+<a href="#867" id="867">867</a>
+<a href="#868" id="868">868</a>
+<a href="#869" id="869">869</a>
+<a href="#870" id="870">870</a>
+<a href="#871" id="871">871</a>
+<a href="#872" id="872">872</a>
+<a href="#873" id="873">873</a>
+<a href="#874" id="874">874</a>
+<a href="#875" id="875">875</a>
+<a href="#876" id="876">876</a>
+<a href="#877" id="877">877</a>
+<a href="#878" id="878">878</a>
+<a href="#879" id="879">879</a>
+<a href="#880" id="880">880</a>
+<a href="#881" id="881">881</a>
+<a href="#882" id="882">882</a>
+<a href="#883" id="883">883</a>
+<a href="#884" id="884">884</a>
+<a href="#885" id="885">885</a>
+<a href="#886" id="886">886</a>
+<a href="#887" id="887">887</a>
+<a href="#888" id="888">888</a>
+<a href="#889" id="889">889</a>
 </pre><pre class="rust"><code><span class="doccomment">//! Boa&#39;s ECMAScript built-in object implementations, e.g. Object, String, Math, Array, etc.
 //!
 //! This module also contains a JavaScript Console implementation.
@@ -904,7 +987,8 @@
     js_string,
     native_function::{NativeFunction, NativeFunctionPointer},
     object::{
-        FunctionBinding, JsFunction, JsObject, JsPrototype, ObjectData, CONSTRUCTOR, PROTOTYPE,
+        FunctionBinding, JsFunction, JsObject, JsPrototype, Object, ObjectData, CONSTRUCTOR,
+        PROTOTYPE,
     },
     property::{Attribute, PropertyDescriptor, PropertyKey},
     realm::Realm,
@@ -1197,7 +1281,86 @@
 
 <span class="comment">// === Builder typestate ===
 
-</span><span class="doccomment">/// Marker for a constructor function.
+</span><span class="attr">#[derive(Debug)]
+</span><span class="kw">enum </span>BuiltInObjectInitializer {
+    Shared(JsObject),
+    Unique { object: Object, data: ObjectData },
+}
+
+<span class="kw">impl </span>BuiltInObjectInitializer {
+    <span class="doccomment">/// Inserts a new property descriptor into the builtin.
+    </span><span class="kw">fn </span>insert&lt;K, P&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, key: K, property: P)
+    <span class="kw">where
+        </span>K: Into&lt;PropertyKey&gt;,
+        P: Into&lt;PropertyDescriptor&gt;,
+    {
+        <span class="kw">match </span><span class="self">self </span>{
+            BuiltInObjectInitializer::Shared(obj) =&gt; obj.borrow_mut().insert(key, property),
+            BuiltInObjectInitializer::Unique { object, .. } =&gt; object.insert(key, property),
+        };
+    }
+
+    <span class="doccomment">/// Sets the prototype of the builtin
+    </span><span class="kw">fn </span>set_prototype(<span class="kw-2">&amp;mut </span><span class="self">self</span>, prototype: JsObject) {
+        <span class="kw">match </span><span class="self">self </span>{
+            BuiltInObjectInitializer::Shared(obj) =&gt; {
+                <span class="kw">let </span><span class="kw-2">mut </span>obj = obj.borrow_mut();
+                obj.set_prototype(prototype);
+            }
+            BuiltInObjectInitializer::Unique { object, .. } =&gt; {
+                object.set_prototype(prototype);
+            }
+        }
+    }
+
+    <span class="doccomment">/// Sets the `ObjectData` of the builtin.
+    ///
+    /// # Panics
+    ///
+    /// Panics if the builtin is a shared builtin and the data&#39;s vtable is not the same as the
+    /// builtin&#39;s vtable.
+    </span><span class="kw">fn </span>set_data(<span class="kw-2">&amp;mut </span><span class="self">self</span>, new_data: ObjectData) {
+        <span class="kw">match </span><span class="self">self </span>{
+            BuiltInObjectInitializer::Shared(obj) =&gt; {
+                <span class="macro">assert!</span>(
+                    std::ptr::eq(obj.vtable(), new_data.internal_methods),
+                    <span class="string">&quot;intrinsic object&#39;s vtable didn&#39;t match with new data&quot;
+                </span>);
+                <span class="kw-2">*</span>obj.borrow_mut().kind_mut() = new_data.kind;
+            }
+            BuiltInObjectInitializer::Unique { <span class="kw-2">ref mut </span>data, .. } =&gt; <span class="kw-2">*</span>data = new_data,
+        }
+    }
+
+    <span class="doccomment">/// Gets a shared object from the builtin, transitioning its state if it&#39;s necessary.
+    </span><span class="kw">fn </span>as_shared(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; JsObject {
+        <span class="kw">match </span>std::mem::replace(
+            <span class="self">self</span>,
+            BuiltInObjectInitializer::Unique {
+                object: Object::default(),
+                data: ObjectData::ordinary(),
+            },
+        ) {
+            BuiltInObjectInitializer::Shared(obj) =&gt; {
+                <span class="kw-2">*</span><span class="self">self </span>= BuiltInObjectInitializer::Shared(obj.clone());
+                obj
+            }
+            BuiltInObjectInitializer::Unique { <span class="kw-2">mut </span>object, data } =&gt; {
+                <span class="kw-2">*</span>object.kind_mut() = data.kind;
+                <span class="kw">let </span>obj = JsObject::from_object_and_vtable(object, data.internal_methods);
+                <span class="kw-2">*</span><span class="self">self </span>= BuiltInObjectInitializer::Shared(obj.clone());
+                obj
+            }
+        }
+    }
+
+    <span class="doccomment">/// Converts the builtin into a shared object.
+    </span><span class="kw">fn </span>into_shared(<span class="kw-2">mut </span><span class="self">self</span>) -&gt; JsObject {
+        <span class="self">self</span>.as_shared()
+    }
+}
+
+<span class="doccomment">/// Marker for a constructor function.
 </span><span class="kw">struct </span>Constructor {
     prototype: JsObject,
     inherits: JsPrototype,
@@ -1241,77 +1404,78 @@
 
 <span class="doccomment">/// Applies the pending builder data to the object.
 </span><span class="kw">trait </span>ApplyToObject {
-    <span class="kw">fn </span>apply_to(<span class="self">self</span>, object: <span class="kw-2">&amp;</span>JsObject);
+    <span class="kw">fn </span>apply_to(<span class="self">self</span>, object: <span class="kw-2">&amp;mut </span>BuiltInObjectInitializer);
 }
 
 <span class="kw">impl </span>ApplyToObject <span class="kw">for </span>Constructor {
-    <span class="kw">fn </span>apply_to(<span class="self">self</span>, object: <span class="kw-2">&amp;</span>JsObject) {
+    <span class="kw">fn </span>apply_to(<span class="self">self</span>, object: <span class="kw-2">&amp;mut </span>BuiltInObjectInitializer) {
+        object.insert(
+            PROTOTYPE,
+            PropertyDescriptor::builder()
+                .value(<span class="self">self</span>.prototype.clone())
+                .writable(<span class="bool-val">false</span>)
+                .enumerable(<span class="bool-val">false</span>)
+                .configurable(<span class="bool-val">false</span>),
+        );
+
+        <span class="kw">let </span>object = object.as_shared();
+
         {
             <span class="kw">let </span><span class="kw-2">mut </span>prototype = <span class="self">self</span>.prototype.borrow_mut();
             prototype.set_prototype(<span class="self">self</span>.inherits);
             prototype.insert(
                 CONSTRUCTOR,
                 PropertyDescriptor::builder()
-                    .value(object.clone())
+                    .value(object)
                     .writable(<span class="self">self</span>.attributes.writable())
                     .enumerable(<span class="self">self</span>.attributes.enumerable())
                     .configurable(<span class="self">self</span>.attributes.configurable()),
             );
         }
-        <span class="kw">let </span><span class="kw-2">mut </span>object = object.borrow_mut();
-        object.insert(
-            PROTOTYPE,
-            PropertyDescriptor::builder()
-                .value(<span class="self">self</span>.prototype)
-                .writable(<span class="bool-val">false</span>)
-                .enumerable(<span class="bool-val">false</span>)
-                .configurable(<span class="bool-val">false</span>),
-        );
     }
 }
 
 <span class="kw">impl </span>ApplyToObject <span class="kw">for </span>ConstructorNoProto {
-    <span class="kw">fn </span>apply_to(<span class="self">self</span>, <span class="kw">_</span>: <span class="kw-2">&amp;</span>JsObject) {}
+    <span class="kw">fn </span>apply_to(<span class="self">self</span>, <span class="kw">_</span>: <span class="kw-2">&amp;mut </span>BuiltInObjectInitializer) {}
 }
 
 <span class="kw">impl </span>ApplyToObject <span class="kw">for </span>OrdinaryFunction {
-    <span class="kw">fn </span>apply_to(<span class="self">self</span>, <span class="kw">_</span>: <span class="kw-2">&amp;</span>JsObject) {}
+    <span class="kw">fn </span>apply_to(<span class="self">self</span>, <span class="kw">_</span>: <span class="kw-2">&amp;mut </span>BuiltInObjectInitializer) {}
 }
 
 <span class="kw">impl</span>&lt;S: ApplyToObject + IsConstructor&gt; ApplyToObject <span class="kw">for </span>Callable&lt;S&gt; {
-    <span class="kw">fn </span>apply_to(<span class="self">self</span>, object: <span class="kw-2">&amp;</span>JsObject) {
-        <span class="self">self</span>.kind.apply_to(object);
-
-        <span class="kw">let </span>function = function::Function::new(
+    <span class="kw">fn </span>apply_to(<span class="self">self</span>, object: <span class="kw-2">&amp;mut </span>BuiltInObjectInitializer) {
+        <span class="kw">let </span>function = ObjectData::function(function::Function::new(
             function::FunctionKind::Native {
                 function: NativeFunction::from_fn_ptr(<span class="self">self</span>.function),
                 constructor: S::IS_CONSTRUCTOR.then_some(function::ConstructorKind::Base),
             },
             <span class="self">self</span>.realm,
+        ));
+        object.set_data(function);
+        object.insert(
+            <span class="macro">utf16!</span>(<span class="string">&quot;length&quot;</span>),
+            PropertyDescriptor::builder()
+                .value(<span class="self">self</span>.length)
+                .writable(<span class="bool-val">false</span>)
+                .enumerable(<span class="bool-val">false</span>)
+                .configurable(<span class="bool-val">true</span>),
+        );
+        object.insert(
+            <span class="macro">utf16!</span>(<span class="string">&quot;name&quot;</span>),
+            PropertyDescriptor::builder()
+                .value(<span class="self">self</span>.name)
+                .writable(<span class="bool-val">false</span>)
+                .enumerable(<span class="bool-val">false</span>)
+                .configurable(<span class="bool-val">true</span>),
         );
 
-        <span class="kw">let </span>length = PropertyDescriptor::builder()
-            .value(<span class="self">self</span>.length)
-            .writable(<span class="bool-val">false</span>)
-            .enumerable(<span class="bool-val">false</span>)
-            .configurable(<span class="bool-val">true</span>);
-        <span class="kw">let </span>name = PropertyDescriptor::builder()
-            .value(<span class="self">self</span>.name)
-            .writable(<span class="bool-val">false</span>)
-            .enumerable(<span class="bool-val">false</span>)
-            .configurable(<span class="bool-val">true</span>);
-
-        {
-            <span class="kw">let </span><span class="kw-2">mut </span>constructor = object.borrow_mut();
-            constructor.data = ObjectData::function(function);
-            constructor.insert(<span class="macro">utf16!</span>(<span class="string">&quot;length&quot;</span>), length);
-            constructor.insert(<span class="macro">utf16!</span>(<span class="string">&quot;name&quot;</span>), name);
-        }
+        <span class="self">self</span>.kind.apply_to(object);
     }
 }
 
 <span class="kw">impl </span>ApplyToObject <span class="kw">for </span>OrdinaryObject {
-    <span class="kw">fn </span>apply_to(<span class="self">self</span>, <span class="kw">_</span>: <span class="kw-2">&amp;</span>JsObject) {}
+    <span class="kw">fn </span>apply_to(<span class="self">self</span>, <span class="kw">_</span>: <span class="kw-2">&amp;mut </span>BuiltInObjectInitializer) {}
 }
 
 <span class="doccomment">/// Builder for creating built-in objects, like `Array`.
@@ -1322,7 +1486,7 @@
 #[must_use = <span class="string">&quot;You need to call the `build` method in order for this to correctly assign the inner data&quot;</span>]
 </span><span class="kw">struct </span>BuiltInBuilder&lt;<span class="lifetime">&#39;ctx</span>, Kind&gt; {
     realm: <span class="kw-2">&amp;</span><span class="lifetime">&#39;ctx </span>Realm,
-    object: JsObject,
+    object: BuiltInObjectInitializer,
     kind: Kind,
     prototype: JsObject,
 }
@@ -1331,7 +1495,10 @@
     <span class="kw">fn </span>new(realm: <span class="kw-2">&amp;</span><span class="lifetime">&#39;ctx </span>Realm) -&gt; BuiltInBuilder&lt;<span class="lifetime">&#39;ctx</span>, OrdinaryObject&gt; {
         BuiltInBuilder {
             realm,
-            object: JsObject::with_null_proto(),
+            object: BuiltInObjectInitializer::Unique {
+                object: Object::default(),
+                data: ObjectData::ordinary(),
+            },
             kind: OrdinaryObject,
             prototype: realm.intrinsics().constructors().object().prototype(),
         }
@@ -1342,7 +1509,7 @@
     ) -&gt; BuiltInBuilder&lt;<span class="lifetime">&#39;ctx</span>, OrdinaryObject&gt; {
         BuiltInBuilder {
             realm,
-            object: I::get(realm.intrinsics()),
+            object: BuiltInObjectInitializer::Shared(I::get(realm.intrinsics())),
             kind: OrdinaryObject,
             prototype: realm.intrinsics().constructors().object().prototype(),
         }
@@ -1351,7 +1518,7 @@
     <span class="kw">fn </span>with_object(realm: <span class="kw-2">&amp;</span><span class="lifetime">&#39;ctx </span>Realm, object: JsObject) -&gt; BuiltInBuilder&lt;<span class="lifetime">&#39;ctx</span>, OrdinaryObject&gt; {
         BuiltInBuilder {
             realm,
-            object,
+            object: BuiltInObjectInitializer::Shared(object),
             kind: OrdinaryObject,
             prototype: realm.intrinsics().constructors().object().prototype(),
         }
@@ -1390,7 +1557,7 @@
         <span class="kw">let </span>constructor = SC::STANDARD_CONSTRUCTOR(realm.intrinsics().constructors());
         BuiltInBuilder {
             realm,
-            object: constructor.constructor(),
+            object: BuiltInObjectInitializer::Shared(constructor.constructor()),
             kind: Callable {
                 function: SC::constructor,
                 name: <span class="macro">js_string!</span>(SC::NAME),
@@ -1424,7 +1591,12 @@
 
 <span class="kw">impl</span>&lt;T&gt; BuiltInBuilder&lt;<span class="lifetime">&#39;_</span>, T&gt; {
     <span class="doccomment">/// Adds a new static method to the builtin object.
-    </span><span class="kw">fn </span>static_method&lt;B&gt;(<span class="self">self</span>, function: NativeFunctionPointer, binding: B, length: usize) -&gt; <span class="self">Self
+    </span><span class="kw">fn </span>static_method&lt;B&gt;(
+        <span class="kw-2">mut </span><span class="self">self</span>,
+        function: NativeFunctionPointer,
+        binding: B,
+        length: usize,
+    ) -&gt; <span class="self">Self
     </span><span class="kw">where
         </span>B: Into&lt;FunctionBinding&gt;,
     {
@@ -1435,7 +1607,7 @@
             .length(length)
             .build();
 
-        <span class="self">self</span>.object.borrow_mut().insert(
+        <span class="self">self</span>.object.insert(
             binding.binding,
             PropertyDescriptor::builder()
                 .value(function)
@@ -1447,7 +1619,7 @@
     </span>}
 
     <span class="doccomment">/// Adds a new static data property to the builtin object.
-    </span><span class="kw">fn </span>static_property&lt;K, V&gt;(<span class="self">self</span>, key: K, value: V, attribute: Attribute) -&gt; <span class="self">Self
+    </span><span class="kw">fn </span>static_property&lt;K, V&gt;(<span class="kw-2">mut </span><span class="self">self</span>, key: K, value: V, attribute: Attribute) -&gt; <span class="self">Self
     </span><span class="kw">where
         </span>K: Into&lt;PropertyKey&gt;,
         V: Into&lt;JsValue&gt;,
@@ -1457,13 +1629,13 @@
             .writable(attribute.writable())
             .enumerable(attribute.enumerable())
             .configurable(attribute.configurable());
-        <span class="self">self</span>.object.borrow_mut().insert(key, property);
+        <span class="self">self</span>.object.insert(key, property);
         <span class="self">self
     </span>}
 
     <span class="doccomment">/// Adds a new static accessor property to the builtin object.
     </span><span class="kw">fn </span>static_accessor&lt;K&gt;(
-        <span class="self">self</span>,
+        <span class="kw-2">mut </span><span class="self">self</span>,
         key: K,
         get: <span class="prelude-ty">Option</span>&lt;JsFunction&gt;,
         set: <span class="prelude-ty">Option</span>&lt;JsFunction&gt;,
@@ -1477,7 +1649,7 @@
             .maybe_set(set)
             .enumerable(attribute.enumerable())
             .configurable(attribute.configurable());
-        <span class="self">self</span>.object.borrow_mut().insert(key, property);
+        <span class="self">self</span>.object.insert(key, property);
         <span class="self">self
     </span>}
 
@@ -1586,29 +1758,23 @@
 
 <span class="kw">impl </span>BuiltInBuilder&lt;<span class="lifetime">&#39;_</span>, OrdinaryObject&gt; {
     <span class="doccomment">/// Build the builtin object.
-    </span><span class="kw">fn </span>build(<span class="self">self</span>) -&gt; JsObject {
-        <span class="self">self</span>.kind.apply_to(<span class="kw-2">&amp;</span><span class="self">self</span>.object);
+    </span><span class="kw">fn </span>build(<span class="kw-2">mut </span><span class="self">self</span>) -&gt; JsObject {
+        <span class="self">self</span>.kind.apply_to(<span class="kw-2">&amp;mut </span><span class="self">self</span>.object);
 
-        {
-            <span class="kw">let </span><span class="kw-2">mut </span>object = <span class="self">self</span>.object.borrow_mut();
-            object.set_prototype(<span class="self">self</span>.prototype);
-        }
+        <span class="self">self</span>.object.set_prototype(<span class="self">self</span>.prototype);
 
-        <span class="self">self</span>.object
+        <span class="self">self</span>.object.into_shared()
     }
 }
 
 <span class="kw">impl</span>&lt;FnTyp: ApplyToObject + IsConstructor&gt; BuiltInBuilder&lt;<span class="lifetime">&#39;_</span>, Callable&lt;FnTyp&gt;&gt; {
     <span class="doccomment">/// Build the builtin callable.
-    </span><span class="kw">fn </span>build(<span class="self">self</span>) -&gt; JsFunction {
-        <span class="self">self</span>.kind.apply_to(<span class="kw-2">&amp;</span><span class="self">self</span>.object);
+    </span><span class="kw">fn </span>build(<span class="kw-2">mut </span><span class="self">self</span>) -&gt; JsFunction {
+        <span class="self">self</span>.kind.apply_to(<span class="kw-2">&amp;mut </span><span class="self">self</span>.object);
 
-        {
-            <span class="kw">let </span><span class="kw-2">mut </span>object = <span class="self">self</span>.object.borrow_mut();
-            object.set_prototype(<span class="self">self</span>.prototype);
-        }
+        <span class="self">self</span>.object.set_prototype(<span class="self">self</span>.prototype);
 
-        JsFunction::from_object_unchecked(<span class="self">self</span>.object)
+        JsFunction::from_object_unchecked(<span class="self">self</span>.object.into_shared())
     }
 }
 </code></pre></div>
