@@ -22,12 +22,11 @@ use crate::{
     },
     context::intrinsics::{Intrinsics, StandardConstructor, StandardConstructors},
     error::JsNativeError,
-    native_function::NativeFunction,
-    object::{internal_methods::get_prototype_from_constructor, JsObject, ObjectData},
+    object::{internal_methods::get_prototype_from_constructor, JsObject, ObjectData, ObjectKind},
     property::Attribute,
     realm::Realm,
     string::utf16,
-    Context, JsArgs, JsResult, JsValue,
+    Context, JsArgs, JsResult, JsValue, NativeFunction,
 };
 use boa_profiler::Profiler;
 
@@ -134,7 +133,7 @@ impl IntrinsicObject for ThrowTypeError {
         let mut obj = obj.borrow_mut();
 
         obj.extensible = false;
-        obj.data = ObjectData::function(Function::new(
+        *obj.kind_mut() = ObjectKind::Function(Function::new(
             FunctionKind::Native {
                 function: NativeFunction::from_fn_ptr(throw_type_error),
                 constructor: None,

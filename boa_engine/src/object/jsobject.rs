@@ -2,7 +2,9 @@
 //!
 //! The `JsObject` is a garbage collected Object.
 
-use super::{JsPrototype, NativeObject, Object, PropertyMap};
+use super::{
+    internal_methods::InternalObjectMethods, JsPrototype, NativeObject, Object, PropertyMap,
+};
 use crate::{
     context::intrinsics::Intrinsics,
     error::JsNativeError,
@@ -29,12 +31,43 @@ pub type Ref<'a, T> = boa_gc::GcRef<'a, T>;
 pub type RefMut<'a, T, U> = boa_gc::GcRefMut<'a, T, U>;
 
 /// Garbage collected `Object`.
-#[derive(Trace, Finalize, Clone, Default)]
+#[derive(Trace, Finalize, Clone)]
 pub struct JsObject {
-    inner: Gc<GcRefCell<Object>>,
+    inner: Gc<VTableObject>,
+}
+
+/// An `Object` that has an additional `vtable` with its internal methods.
+// We have to skip implementing `Debug` for this because not using the
+// implementation of `Debug` for `JsObject` could easily cause stack overflows,
+// so we have to force our users to debug the `JsObject` instead.
+#[allow(missing_debug_implementations)]
+#[derive(Trace, Finalize)]
+pub struct VTableObject {
+    object: GcRefCell<Object>,
+    #[unsafe_ignore_trace]
+    vtable: &'static InternalObjectMethods,
+}
+
+impl Default for JsObject {
+    fn default() -> Self {
+        let data = ObjectData::ordinary();
+        Self::from_object_and_vtable(Object::default(), data.internal_methods)
+    }
 }
 
 impl JsObject {
+    /// Creates a new `JsObject` from its inner object and its vtable.
+    pub(crate) fn from_object_and_vtable(
+        object: Object,
+        vtable: &'static InternalObjectMethods,
+    ) -> Self {
+        Self {
+            inner: Gc::new(VTableObject {
+                object: GcRefCell::new(object),
+                vtable,
+            }),
+        }
+    }
     /// Creates a new ordinary object with its prototype set to the `Object` prototype.
     ///
     /// This is equivalent to calling the specification's abstract operation
@@ -71,13 +104,16 @@ impl JsObject {
     /// [`OrdinaryObjectCreate`]: https://tc39.es/ecma262/#sec-ordinaryobjectcreate
     pub fn from_proto_and_data<O: Into<Option<Self>>>(prototype: O, data: ObjectData) -> Self {
         Self {
-            inner: Gc::new(GcRefCell::new(Object {
-                data,
-                prototype: prototype.into(),
-                extensible: true,
-                properties: PropertyMap::default(),
-                private_elements: ThinVec::new(),
-            })),
+            inner: Gc::new(VTableObject {
+                object: GcRefCell::new(Object {
+                    kind: data.kind,
+                    properties: PropertyMap::default(),
+                    prototype: prototype.into(),
+                    extensible: true,
+                    private_elements: ThinVec::new(),
+                }),
+                vtable: data.internal_methods,
+            }),
         }
     }
 
@@ -116,7 +152,7 @@ impl JsObject {
     /// This is the non-panicking variant of [`borrow`](#method.borrow).
     #[inline]
     pub fn try_borrow(&self) -> StdResult<Ref<'_, Object>, BorrowError> {
-        self.inner.try_borrow().map_err(|_| BorrowError)
+        self.inner.object.try_borrow().map_err(|_| BorrowError)
     }
 
     /// Mutably borrows the object, returning an error if the value is currently borrowed.
@@ -127,7 +163,10 @@ impl JsObject {
     /// This is the non-panicking variant of [`borrow_mut`](#method.borrow_mut).
     #[inline]
     pub fn try_borrow_mut(&self) -> StdResult<RefMut<'_, Object, Object>, BorrowMutError> {
-        self.inner.try_borrow_mut().map_err(|_| BorrowMutError)
+        self.inner
+            .object
+            .try_borrow_mut()
+            .map_err(|_| BorrowMutError)
     }
 
     /// Checks if the garbage collected memory is the same.
@@ -852,7 +891,7 @@ Cannot both specify accessors and a value or writable attribute",
     #[inline]
     #[track_caller]
     pub fn is_callable(&self) -> bool {
-        self.borrow().data.internal_methods.__call__.is_some()
+        self.inner.vtable.__call__.is_some()
     }
 
     /// It determines if Object is a function object with a `[[Construct]]` internal method.
@@ -864,21 +903,19 @@ Cannot both specify accessors and a value or writable attribute",
     #[inline]
     #[track_caller]
     pub fn is_constructor(&self) -> bool {
-        self.borrow().data.internal_methods.__construct__.is_some()
+        self.inner.vtable.__construct__.is_some()
     }
 
     /// Returns true if the `JsObject` is the global for a Realm
     pub fn is_global(&self) -> bool {
-        matches!(
-            self.borrow().data,
-            ObjectData {
-                kind: ObjectKind::Global,
-                ..
-            }
-        )
+        matches!(self.inner.object.borrow().kind, ObjectKind::Global)
     }
 
-    pub(crate) const fn inner(&self) -> &Gc<GcRefCell<Object>> {
+    pub(crate) fn vtable(&self) -> &'static InternalObjectMethods {
+        self.inner.vtable
+    }
+
+    pub(crate) const fn inner(&self) -> &Gc<VTableObject> {
         &self.inner
     }
 }
@@ -886,13 +923,13 @@ Cannot both specify accessors and a value or writable attribute",
 impl AsRef<GcRefCell<Object>> for JsObject {
     #[inline]
     fn as_ref(&self) -> &GcRefCell<Object> {
-        &self.inner
+        &self.inner.object
     }
 }
 
-impl From<Gc<GcRefCell<Object>>> for JsObject {
+impl From<Gc<VTableObject>> for JsObject {
     #[inline]
-    fn from(inner: Gc<GcRefCell<Object>>) -> Self {
+    fn from(inner: Gc<VTableObject>) -> Self {
         Self { inner }
     }
 }
@@ -1014,6 +1051,7 @@ impl RecursionLimiter {
 
 impl Debug for JsObject {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> std::fmt::Result {
+        let ptr: *const _ = self.vtable();
         let limiter = RecursionLimiter::new(self);
 
         // Typically, using `!limiter.live` would be good enough here.
@@ -1023,7 +1061,10 @@ impl Debug for JsObject {
         // Instead, we check if the object has appeared before in the entire graph. This means that objects will appear
         // at most once, hopefully making things a bit clearer.
         if !limiter.visited && !limiter.live {
-            f.debug_tuple("JsObject").field(&self.inner).finish()
+            f.debug_struct("JsObject")
+                .field("vtable", &ptr)
+                .field("object", &self.inner.object)
+                .finish()
         } else {
             f.write_str("{ ... }")
         }

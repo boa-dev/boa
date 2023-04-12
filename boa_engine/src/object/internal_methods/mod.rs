@@ -35,8 +35,7 @@ impl JsObject {
     #[track_caller]
     pub(crate) fn __get_prototype_of__(&self, context: &mut Context<'_>) -> JsResult<JsPrototype> {
         let _timer = Profiler::global().start_event("Object::__get_prototype_of__", "object");
-        let func = self.borrow().data.internal_methods.__get_prototype_of__;
-        func(self, context)
+        (self.vtable().__get_prototype_of__)(self, context)
     }
 
     /// Internal method `[[SetPrototypeOf]]`
@@ -53,8 +52,7 @@ impl JsObject {
         context: &mut Context<'_>,
     ) -> JsResult<bool> {
         let _timer = Profiler::global().start_event("Object::__set_prototype_of__", "object");
-        let func = self.borrow().data.internal_methods.__set_prototype_of__;
-        func(self, val, context)
+        (self.vtable().__set_prototype_of__)(self, val, context)
     }
 
     /// Internal method `[[IsExtensible]]`
@@ -67,8 +65,7 @@ impl JsObject {
     /// [spec]: https://tc39.es/ecma262/#sec-ordinary-object-internal-methods-and-internal-slots-isextensible
     pub(crate) fn __is_extensible__(&self, context: &mut Context<'_>) -> JsResult<bool> {
         let _timer = Profiler::global().start_event("Object::__is_extensible__", "object");
-        let func = self.borrow().data.internal_methods.__is_extensible__;
-        func(self, context)
+        (self.vtable().__is_extensible__)(self, context)
     }
 
     /// Internal method `[[PreventExtensions]]`
@@ -81,8 +78,7 @@ impl JsObject {
     /// [spec]: https://tc39.es/ecma262/#sec-ordinary-object-internal-methods-and-internal-slots-preventextensions
     pub(crate) fn __prevent_extensions__(&self, context: &mut Context<'_>) -> JsResult<bool> {
         let _timer = Profiler::global().start_event("Object::__prevent_extensions__", "object");
-        let func = self.borrow().data.internal_methods.__prevent_extensions__;
-        func(self, context)
+        (self.vtable().__prevent_extensions__)(self, context)
     }
 
     /// Internal method `[[GetOwnProperty]]`
@@ -99,8 +95,7 @@ impl JsObject {
         context: &mut Context<'_>,
     ) -> JsResult<Option<PropertyDescriptor>> {
         let _timer = Profiler::global().start_event("Object::__get_own_property__", "object");
-        let func = self.borrow().data.internal_methods.__get_own_property__;
-        func(self, key, context)
+        (self.vtable().__get_own_property__)(self, key, context)
     }
 
     /// Internal method `[[DefineOwnProperty]]`
@@ -118,8 +113,7 @@ impl JsObject {
         context: &mut Context<'_>,
     ) -> JsResult<bool> {
         let _timer = Profiler::global().start_event("Object::__define_own_property__", "object");
-        let func = self.borrow().data.internal_methods.__define_own_property__;
-        func(self, key, desc, context)
+        (self.vtable().__define_own_property__)(self, key, desc, context)
     }
 
     /// Internal method `[[hasProperty]]`.
@@ -136,8 +130,7 @@ impl JsObject {
         context: &mut Context<'_>,
     ) -> JsResult<bool> {
         let _timer = Profiler::global().start_event("Object::__has_property__", "object");
-        let func = self.borrow().data.internal_methods.__has_property__;
-        func(self, key, context)
+        (self.vtable().__has_property__)(self, key, context)
     }
 
     /// Internal method `[[Get]]`
@@ -155,8 +148,7 @@ impl JsObject {
         context: &mut Context<'_>,
     ) -> JsResult<JsValue> {
         let _timer = Profiler::global().start_event("Object::__get__", "object");
-        let func = self.borrow().data.internal_methods.__get__;
-        func(self, key, receiver, context)
+        (self.vtable().__get__)(self, key, receiver, context)
     }
 
     /// Internal method `[[Set]]`
@@ -175,8 +167,7 @@ impl JsObject {
         context: &mut Context<'_>,
     ) -> JsResult<bool> {
         let _timer = Profiler::global().start_event("Object::__set__", "object");
-        let func = self.borrow().data.internal_methods.__set__;
-        func(self, key, value, receiver, context)
+        (self.vtable().__set__)(self, key, value, receiver, context)
     }
 
     /// Internal method `[[Delete]]`
@@ -193,8 +184,7 @@ impl JsObject {
         context: &mut Context<'_>,
     ) -> JsResult<bool> {
         let _timer = Profiler::global().start_event("Object::__delete__", "object");
-        let func = self.borrow().data.internal_methods.__delete__;
-        func(self, key, context)
+        (self.vtable().__delete__)(self, key, context)
     }
 
     /// Internal method `[[OwnPropertyKeys]]`
@@ -211,8 +201,7 @@ impl JsObject {
         context: &mut Context<'_>,
     ) -> JsResult<Vec<PropertyKey>> {
         let _timer = Profiler::global().start_event("Object::__own_property_keys__", "object");
-        let func = self.borrow().data.internal_methods.__own_property_keys__;
-        func(self, context)
+        (self.vtable().__own_property_keys__)(self, context)
     }
 
     /// Internal method `[[Call]]`
@@ -231,9 +220,9 @@ impl JsObject {
         context: &mut Context<'_>,
     ) -> JsResult<JsValue> {
         let _timer = Profiler::global().start_event("Object::__call__", "object");
-
-        let func = self.borrow().data.internal_methods.__call__;
-        func.expect("called `[[Call]]` for object without a `[[Call]]` internal method")(
+        self.vtable()
+            .__call__
+            .expect("called `[[Call]]` for object without a `[[Call]]` internal method")(
             self, this, args, context,
         )
     }
@@ -254,9 +243,9 @@ impl JsObject {
         context: &mut Context<'_>,
     ) -> JsResult<Self> {
         let _timer = Profiler::global().start_event("Object::__construct__", "object");
-
-        let func = self.borrow().data.internal_methods.__construct__;
-        func.expect("called `[[Construct]]` for object without a `[[Construct]]` internal method")(
+        self.vtable()
+            .__construct__
+            .expect("called `[[Construct]]` for object without a `[[Construct]]` internal method")(
             self, args, new_target, context,
         )
     }
@@ -379,8 +368,7 @@ pub(crate) fn ordinary_set_prototype_of(
         // c. Else,
         // i. If p.[[GetPrototypeOf]] is not the ordinary object internal method defined
         // in 10.1.1, set done to true.
-        else if proto.borrow().data.internal_methods.__get_prototype_of__ as usize
-            != ordinary_get_prototype_of as usize
+        else if proto.vtable().__get_prototype_of__ as usize != ordinary_get_prototype_of as usize
         {
             break;
         }

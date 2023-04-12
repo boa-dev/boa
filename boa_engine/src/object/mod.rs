@@ -55,7 +55,7 @@ use crate::{
     Context, JsBigInt, JsString, JsSymbol, JsValue,
 };
 
-use boa_gc::{custom_trace, Finalize, GcRefCell, Trace, WeakGc};
+use boa_gc::{custom_trace, Finalize, Trace, WeakGc};
 use std::{
     any::Any,
     fmt::{self, Debug},
@@ -119,7 +119,7 @@ impl<T: Any + Trace> NativeObject for T {
 #[derive(Debug, Finalize)]
 pub struct Object {
     /// The type of the object.
-    pub data: ObjectData,
+    kind: ObjectKind,
     /// The collection of properties contained in the object
     properties: PropertyMap,
     /// Instance prototype `__proto__`.
@@ -130,9 +130,21 @@ pub struct Object {
     private_elements: ThinVec<(PrivateName, PrivateElement)>,
 }
 
+impl Default for Object {
+    fn default() -> Self {
+        Self {
+            kind: ObjectKind::Ordinary,
+            properties: PropertyMap::default(),
+            prototype: None,
+            extensible: true,
+            private_elements: ThinVec::new(),
+        }
+    }
+}
+
 unsafe impl Trace for Object {
     boa_gc::custom_trace!(this, {
-        mark(&this.data);
+        mark(&this.kind);
         mark(&this.properties);
         mark(&this.prototype);
         for (_, element) in &this.private_elements {
@@ -161,10 +173,19 @@ pub enum PrivateElement {
 }
 
 /// Defines the kind of an object and its internal methods
-#[derive(Trace, Finalize)]
 pub struct ObjectData {
-    kind: ObjectKind,
-    internal_methods: &'static InternalObjectMethods,
+    pub(crate) kind: ObjectKind,
+    pub(crate) internal_methods: &'static InternalObjectMethods,
+}
+
+impl Debug for ObjectData {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        let ptr: *const _ = self.internal_methods;
+        f.debug_struct("ObjectData")
+            .field("kind", &self.kind)
+            .field("internal_methods", &ptr)
+            .finish()
+    }
 }
 
 /// Defines the different types of objects.
@@ -270,13 +291,13 @@ pub enum ObjectKind {
     Promise(Promise),
 
     /// The `WeakRef` object kind.
-    WeakRef(WeakGc<GcRefCell<Object>>),
+    WeakRef(WeakGc<VTableObject>),
 
     /// The `WeakMap` object kind.
-    WeakMap(boa_gc::WeakMap<GcRefCell<Object>, JsValue>),
+    WeakMap(boa_gc::WeakMap<VTableObject, JsValue>),
 
     /// The `WeakSet` object kind.
-    WeakSet(boa_gc::WeakMap<GcRefCell<Object>, ()>),
+    WeakSet(boa_gc::WeakMap<VTableObject, ()>),
 
     /// The `Intl.Collator` object kind.
     #[cfg(feature = "intl")]
@@ -622,7 +643,7 @@ impl ObjectData {
     }
 
     /// Creates the `WeakRef` object data
-    pub fn weak_ref(weak_ref: WeakGc<GcRefCell<Object>>) -> Self {
+    pub fn weak_ref(weak_ref: WeakGc<VTableObject>) -> Self {
         Self {
             kind: ObjectKind::WeakRef(weak_ref),
             internal_methods: &ORDINARY_INTERNAL_METHODS,
@@ -631,7 +652,7 @@ impl ObjectData {
 
     /// Create the `WeakMap` object data
     #[must_use]
-    pub fn weak_map(weak_map: boa_gc::WeakMap<GcRefCell<Object>, JsValue>) -> Self {
+    pub fn weak_map(weak_map: boa_gc::WeakMap<VTableObject, JsValue>) -> Self {
         Self {
             kind: ObjectKind::WeakMap(weak_map),
             internal_methods: &ORDINARY_INTERNAL_METHODS,
@@ -640,7 +661,7 @@ impl ObjectData {
 
     /// Create the `WeakSet` object data
     #[must_use]
-    pub fn weak_set(weak_set: boa_gc::WeakMap<GcRefCell<Object>, ()>) -> Self {
+    pub fn weak_set(weak_set: boa_gc::WeakMap<VTableObject, ()>) -> Self {
         Self {
             kind: ObjectKind::WeakSet(weak_set),
             internal_methods: &ORDINARY_INTERNAL_METHODS,
@@ -756,55 +777,31 @@ impl Debug for ObjectKind {
     }
 }
 
-impl Debug for ObjectData {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        f.debug_struct("ObjectData")
-            .field("kind", &self.kind)
-            .finish_non_exhaustive()
-    }
-}
-
-impl Default for Object {
-    /// Return a new `ObjectData` struct, with `kind` set to Ordinary
-    #[inline]
-    fn default() -> Self {
-        Self {
-            data: ObjectData::ordinary(),
-            properties: PropertyMap::default(),
-            prototype: None,
-            extensible: true,
-            private_elements: ThinVec::default(),
-        }
-    }
-}
-
 impl Object {
+    /// Returns a mutable reference to the kind of an object.
+    pub(crate) fn kind_mut(&mut self) -> &mut ObjectKind {
+        &mut self.kind
+    }
+
     /// Returns the kind of the object.
     #[inline]
     pub const fn kind(&self) -> &ObjectKind {
-        &self.data.kind
+        &self.kind
     }
 
     /// Checks if it's an `AsyncFromSyncIterator` object.
     #[inline]
     pub const fn is_async_from_sync_iterator(&self) -> bool {
-        matches!(
-            self.data,
-            ObjectData {
-                kind: ObjectKind::AsyncFromSyncIterator(_),
-                ..
-            }
-        )
+        matches!(self.kind, ObjectKind::AsyncFromSyncIterator(_))
     }
 
     /// Returns a reference to the `AsyncFromSyncIterator` data on the object.
     #[inline]
     pub const fn as_async_from_sync_iterator(&self) -> Option<&AsyncFromSyncIterator> {
-        match self.data {
-            ObjectData {
-                kind: ObjectKind::AsyncFromSyncIterator(ref async_from_sync_iterator),
-                ..
-            } => Some(async_from_sync_iterator),
+        match self.kind {
+            ObjectKind::AsyncFromSyncIterator(ref async_from_sync_iterator) => {
+                Some(async_from_sync_iterator)
+            }
             _ => None,
         }
     }
@@ -812,23 +809,14 @@ impl Object {
     /// Checks if it's an `AsyncGenerator` object.
     #[inline]
     pub const fn is_async_generator(&self) -> bool {
-        matches!(
-            self.data,
-            ObjectData {
-                kind: ObjectKind::AsyncGenerator(_),
-                ..
-            }
-        )
+        matches!(self.kind, ObjectKind::AsyncGenerator(_))
     }
 
     /// Returns a reference to the async generator data on the object.
     #[inline]
     pub const fn as_async_generator(&self) -> Option<&AsyncGenerator> {
-        match self.data {
-            ObjectData {
-                kind: ObjectKind::AsyncGenerator(ref async_generator),
-                ..
-            } => Some(async_generator),
+        match self.kind {
+            ObjectKind::AsyncGenerator(ref async_generator) => Some(async_generator),
             _ => None,
         }
     }
@@ -836,11 +824,8 @@ impl Object {
     /// Returns a mutable reference to the async generator data on the object.
     #[inline]
     pub fn as_async_generator_mut(&mut self) -> Option<&mut AsyncGenerator> {
-        match self.data {
-            ObjectData {
-                kind: ObjectKind::AsyncGenerator(ref mut async_generator),
-                ..
-            } => Some(async_generator),
+        match self.kind {
+            ObjectKind::AsyncGenerator(ref mut async_generator) => Some(async_generator),
             _ => None,
         }
     }
@@ -848,13 +833,7 @@ impl Object {
     /// Checks if the object is a `Array` object.
     #[inline]
     pub const fn is_array(&self) -> bool {
-        matches!(
-            self.data,
-            ObjectData {
-                kind: ObjectKind::Array,
-                ..
-            }
-        )
+        matches!(self.kind, ObjectKind::Array)
     }
 
     #[inline]
@@ -865,35 +844,20 @@ impl Object {
     /// Checks if the object is a `DataView` object.
     #[inline]
     pub const fn is_data_view(&self) -> bool {
-        matches!(
-            self.data,
-            ObjectData {
-                kind: ObjectKind::DataView(_),
-                ..
-            }
-        )
+        matches!(self.kind, ObjectKind::DataView(_))
     }
 
     /// Checks if the object is a `ArrayBuffer` object.
     #[inline]
     pub const fn is_array_buffer(&self) -> bool {
-        matches!(
-            self.data,
-            ObjectData {
-                kind: ObjectKind::ArrayBuffer(_),
-                ..
-            }
-        )
+        matches!(self.kind, ObjectKind::ArrayBuffer(_))
     }
 
     /// Gets the array buffer data if the object is a `ArrayBuffer`.
     #[inline]
     pub const fn as_array_buffer(&self) -> Option<&ArrayBuffer> {
-        match &self.data {
-            ObjectData {
-                kind: ObjectKind::ArrayBuffer(buffer),
-                ..
-            } => Some(buffer),
+        match &self.kind {
+            ObjectKind::ArrayBuffer(buffer) => Some(buffer),
             _ => None,
         }
     }
@@ -901,11 +865,8 @@ impl Object {
     /// Gets the mutable array buffer data if the object is a `ArrayBuffer`.
     #[inline]
     pub fn as_array_buffer_mut(&mut self) -> Option<&mut ArrayBuffer> {
-        match &mut self.data {
-            ObjectData {
-                kind: ObjectKind::ArrayBuffer(buffer),
-                ..
-            } => Some(buffer),
+        match &mut self.kind {
+            ObjectKind::ArrayBuffer(buffer) => Some(buffer),
             _ => None,
         }
     }
@@ -913,23 +874,14 @@ impl Object {
     /// Checks if the object is a `ArrayIterator` object.
     #[inline]
     pub const fn is_array_iterator(&self) -> bool {
-        matches!(
-            self.data,
-            ObjectData {
-                kind: ObjectKind::ArrayIterator(_),
-                ..
-            }
-        )
+        matches!(self.kind, ObjectKind::ArrayIterator(_))
     }
 
     /// Gets the array-iterator data if the object is a `ArrayIterator`.
     #[inline]
     pub const fn as_array_iterator(&self) -> Option<&ArrayIterator> {
-        match self.data {
-            ObjectData {
-                kind: ObjectKind::ArrayIterator(ref iter),
-                ..
-            } => Some(iter),
+        match self.kind {
+            ObjectKind::ArrayIterator(ref iter) => Some(iter),
             _ => None,
         }
     }
@@ -937,11 +889,8 @@ impl Object {
     /// Gets the mutable array-iterator data if the object is a `ArrayIterator`.
     #[inline]
     pub fn as_array_iterator_mut(&mut self) -> Option<&mut ArrayIterator> {
-        match &mut self.data {
-            ObjectData {
-                kind: ObjectKind::ArrayIterator(iter),
-                ..
-            } => Some(iter),
+        match &mut self.kind {
+            ObjectKind::ArrayIterator(iter) => Some(iter),
             _ => None,
         }
     }
@@ -949,11 +898,8 @@ impl Object {
     /// Gets the mutable string-iterator data if the object is a `StringIterator`.
     #[inline]
     pub fn as_string_iterator_mut(&mut self) -> Option<&mut StringIterator> {
-        match &mut self.data {
-            ObjectData {
-                kind: ObjectKind::StringIterator(iter),
-                ..
-            } => Some(iter),
+        match &mut self.kind {
+            ObjectKind::StringIterator(iter) => Some(iter),
             _ => None,
         }
     }
@@ -961,11 +907,8 @@ impl Object {
     /// Gets the mutable regexp-string-iterator data if the object is a `RegExpStringIterator`.
     #[inline]
     pub fn as_regexp_string_iterator_mut(&mut self) -> Option<&mut RegExpStringIterator> {
-        match &mut self.data {
-            ObjectData {
-                kind: ObjectKind::RegExpStringIterator(iter),
-                ..
-            } => Some(iter),
+        match &mut self.kind {
+            ObjectKind::RegExpStringIterator(iter) => Some(iter),
             _ => None,
         }
     }
@@ -973,11 +916,8 @@ impl Object {
     /// Gets the for-in-iterator data if the object is a `ForInIterator`.
     #[inline]
     pub const fn as_for_in_iterator(&self) -> Option<&ForInIterator> {
-        match &self.data {
-            ObjectData {
-                kind: ObjectKind::ForInIterator(iter),
-                ..
-            } => Some(iter),
+        match &self.kind {
+            ObjectKind::ForInIterator(iter) => Some(iter),
             _ => None,
         }
     }
@@ -985,11 +925,8 @@ impl Object {
     /// Gets the mutable for-in-iterator data if the object is a `ForInIterator`.
     #[inline]
     pub fn as_for_in_iterator_mut(&mut self) -> Option<&mut ForInIterator> {
-        match &mut self.data {
-            ObjectData {
-                kind: ObjectKind::ForInIterator(iter),
-                ..
-            } => Some(iter),
+        match &mut self.kind {
+            ObjectKind::ForInIterator(iter) => Some(iter),
             _ => None,
         }
     }
@@ -997,23 +934,14 @@ impl Object {
     /// Checks if the object is a `Map` object.
     #[inline]
     pub const fn is_map(&self) -> bool {
-        matches!(
-            self.data,
-            ObjectData {
-                kind: ObjectKind::Map(_),
-                ..
-            }
-        )
+        matches!(self.kind, ObjectKind::Map(_))
     }
 
     /// Gets the map data if the object is a `Map`.
     #[inline]
     pub const fn as_map(&self) -> Option<&OrderedMap<JsValue>> {
-        match self.data {
-            ObjectData {
-                kind: ObjectKind::Map(ref map),
-                ..
-            } => Some(map),
+        match self.kind {
+            ObjectKind::Map(ref map) => Some(map),
             _ => None,
         }
     }
@@ -1021,11 +949,8 @@ impl Object {
     /// Gets the mutable map data if the object is a `Map`.
     #[inline]
     pub fn as_map_mut(&mut self) -> Option<&mut OrderedMap<JsValue>> {
-        match &mut self.data {
-            ObjectData {
-                kind: ObjectKind::Map(map),
-                ..
-            } => Some(map),
+        match &mut self.kind {
+            ObjectKind::Map(map) => Some(map),
             _ => None,
         }
     }
@@ -1033,23 +958,14 @@ impl Object {
     /// Checks if the object is a `MapIterator` object.
     #[inline]
     pub const fn is_map_iterator(&self) -> bool {
-        matches!(
-            self.data,
-            ObjectData {
-                kind: ObjectKind::MapIterator(_),
-                ..
-            }
-        )
+        matches!(self.kind, ObjectKind::MapIterator(_))
     }
 
     /// Gets the map iterator data if the object is a `MapIterator`.
     #[inline]
     pub const fn as_map_iterator_ref(&self) -> Option<&MapIterator> {
-        match &self.data {
-            ObjectData {
-                kind: ObjectKind::MapIterator(iter),
-                ..
-            } => Some(iter),
+        match &self.kind {
+            ObjectKind::MapIterator(iter) => Some(iter),
             _ => None,
         }
     }
@@ -1057,11 +973,8 @@ impl Object {
     /// Gets the mutable map iterator data if the object is a `MapIterator`.
     #[inline]
     pub fn as_map_iterator_mut(&mut self) -> Option<&mut MapIterator> {
-        match &mut self.data {
-            ObjectData {
-                kind: ObjectKind::MapIterator(iter),
-                ..
-            } => Some(iter),
+        match &mut self.kind {
+            ObjectKind::MapIterator(iter) => Some(iter),
             _ => None,
         }
     }
@@ -1069,23 +982,14 @@ impl Object {
     /// Checks if the object is a `Set` object.
     #[inline]
     pub const fn is_set(&self) -> bool {
-        matches!(
-            self.data,
-            ObjectData {
-                kind: ObjectKind::Set(_),
-                ..
-            }
-        )
+        matches!(self.kind, ObjectKind::Set(_))
     }
 
     /// Gets the set data if the object is a `Set`.
     #[inline]
     pub const fn as_set(&self) -> Option<&OrderedSet> {
-        match self.data {
-            ObjectData {
-                kind: ObjectKind::Set(ref set),
-                ..
-            } => Some(set),
+        match self.kind {
+            ObjectKind::Set(ref set) => Some(set),
             _ => None,
         }
     }
@@ -1093,11 +997,8 @@ impl Object {
     /// Gets the mutable set data if the object is a `Set`.
     #[inline]
     pub fn as_set_mut(&mut self) -> Option<&mut OrderedSet> {
-        match &mut self.data {
-            ObjectData {
-                kind: ObjectKind::Set(set),
-                ..
-            } => Some(set),
+        match &mut self.kind {
+            ObjectKind::Set(set) => Some(set),
             _ => None,
         }
     }
@@ -1105,23 +1006,14 @@ impl Object {
     /// Checks if the object is a `SetIterator` object.
     #[inline]
     pub const fn is_set_iterator(&self) -> bool {
-        matches!(
-            self.data,
-            ObjectData {
-                kind: ObjectKind::SetIterator(_),
-                ..
-            }
-        )
+        matches!(self.kind, ObjectKind::SetIterator(_))
     }
 
     /// Gets the mutable set iterator data if the object is a `SetIterator`.
     #[inline]
     pub fn as_set_iterator_mut(&mut self) -> Option<&mut SetIterator> {
-        match &mut self.data {
-            ObjectData {
-                kind: ObjectKind::SetIterator(iter),
-                ..
-            } => Some(iter),
+        match &mut self.kind {
+            ObjectKind::SetIterator(iter) => Some(iter),
             _ => None,
         }
     }
@@ -1129,23 +1021,14 @@ impl Object {
     /// Checks if the object is a `String` object.
     #[inline]
     pub const fn is_string(&self) -> bool {
-        matches!(
-            self.data,
-            ObjectData {
-                kind: ObjectKind::String(_),
-                ..
-            }
-        )
+        matches!(self.kind, ObjectKind::String(_))
     }
 
     /// Gets the string data if the object is a `String`.
     #[inline]
     pub fn as_string(&self) -> Option<JsString> {
-        match self.data {
-            ObjectData {
-                kind: ObjectKind::String(ref string),
-                ..
-            } => Some(string.clone()),
+        match self.kind {
+            ObjectKind::String(ref string) => Some(string.clone()),
             _ => None,
         }
     }
@@ -1153,24 +1036,16 @@ impl Object {
     /// Checks if the object is a `Function` object.
     #[inline]
     pub const fn is_function(&self) -> bool {
-        matches!(
-            self.data,
-            ObjectData {
-                kind: ObjectKind::Function(_),
-                ..
-            }
-        )
+        matches!(self.kind, ObjectKind::Function(_))
     }
 
     /// Gets the function data if the object is a `Function`.
     #[inline]
     pub const fn as_function(&self) -> Option<&Function> {
-        match self.data {
-            ObjectData {
-                kind:
-                    ObjectKind::Function(ref function) | ObjectKind::GeneratorFunction(ref function),
-                ..
-            } => Some(function),
+        match self.kind {
+            ObjectKind::Function(ref function) | ObjectKind::GeneratorFunction(ref function) => {
+                Some(function)
+            }
             _ => None,
         }
     }
@@ -1178,13 +1053,9 @@ impl Object {
     /// Gets the mutable function data if the object is a `Function`.
     #[inline]
     pub fn as_function_mut(&mut self) -> Option<&mut Function> {
-        match self.data {
-            ObjectData {
-                kind:
-                    ObjectKind::Function(ref mut function)
-                    | ObjectKind::GeneratorFunction(ref mut function),
-                ..
-            } => Some(function),
+        match self.kind {
+            ObjectKind::Function(ref mut function)
+            | ObjectKind::GeneratorFunction(ref mut function) => Some(function),
             _ => None,
         }
     }
@@ -1192,11 +1063,8 @@ impl Object {
     /// Gets the bound function data if the object is a `BoundFunction`.
     #[inline]
     pub const fn as_bound_function(&self) -> Option<&BoundFunction> {
-        match self.data {
-            ObjectData {
-                kind: ObjectKind::BoundFunction(ref bound_function),
-                ..
-            } => Some(bound_function),
+        match self.kind {
+            ObjectKind::BoundFunction(ref bound_function) => Some(bound_function),
             _ => None,
         }
     }
@@ -1204,23 +1072,14 @@ impl Object {
     /// Checks if the object is a `Generator` object.
     #[inline]
     pub const fn is_generator(&self) -> bool {
-        matches!(
-            self.data,
-            ObjectData {
-                kind: ObjectKind::Generator(_),
-                ..
-            }
-        )
+        matches!(self.kind, ObjectKind::Generator(_))
     }
 
     /// Gets the generator data if the object is a `Generator`.
     #[inline]
     pub const fn as_generator(&self) -> Option<&Generator> {
-        match self.data {
-            ObjectData {
-                kind: ObjectKind::Generator(ref generator),
-                ..
-            } => Some(generator),
+        match self.kind {
+            ObjectKind::Generator(ref generator) => Some(generator),
             _ => None,
         }
     }
@@ -1228,11 +1087,8 @@ impl Object {
     /// Gets the mutable generator data if the object is a `Generator`.
     #[inline]
     pub fn as_generator_mut(&mut self) -> Option<&mut Generator> {
-        match self.data {
-            ObjectData {
-                kind: ObjectKind::Generator(ref mut generator),
-                ..
-            } => Some(generator),
+        match self.kind {
+            ObjectKind::Generator(ref mut generator) => Some(generator),
             _ => None,
         }
     }
@@ -1240,23 +1096,14 @@ impl Object {
     /// Checks if the object is a `Symbol` object.
     #[inline]
     pub const fn is_symbol(&self) -> bool {
-        matches!(
-            self.data,
-            ObjectData {
-                kind: ObjectKind::Symbol(_),
-                ..
-            }
-        )
+        matches!(self.kind, ObjectKind::Symbol(_))
     }
 
     /// Gets the error data if the object is a `Symbol`.
     #[inline]
     pub fn as_symbol(&self) -> Option<JsSymbol> {
-        match self.data {
-            ObjectData {
-                kind: ObjectKind::Symbol(ref symbol),
-                ..
-            } => Some(symbol.clone()),
+        match self.kind {
+            ObjectKind::Symbol(ref symbol) => Some(symbol.clone()),
             _ => None,
         }
     }
@@ -1264,23 +1111,14 @@ impl Object {
     /// Checks if the object is a `Error` object.
     #[inline]
     pub const fn is_error(&self) -> bool {
-        matches!(
-            self.data,
-            ObjectData {
-                kind: ObjectKind::Error(_),
-                ..
-            }
-        )
+        matches!(self.kind, ObjectKind::Error(_))
     }
 
     /// Gets the error data if the object is a `Error`.
     #[inline]
     pub const fn as_error(&self) -> Option<ErrorKind> {
-        match self.data {
-            ObjectData {
-                kind: ObjectKind::Error(e),
-                ..
-            } => Some(e),
+        match self.kind {
+            ObjectKind::Error(e) => Some(e),
             _ => None,
         }
     }
@@ -1288,23 +1126,14 @@ impl Object {
     /// Checks if the object is a `Boolean` object.
     #[inline]
     pub const fn is_boolean(&self) -> bool {
-        matches!(
-            self.data,
-            ObjectData {
-                kind: ObjectKind::Boolean(_),
-                ..
-            }
-        )
+        matches!(self.kind, ObjectKind::Boolean(_))
     }
 
     /// Gets the boolean data if the object is a `Boolean`.
     #[inline]
     pub const fn as_boolean(&self) -> Option<bool> {
-        match self.data {
-            ObjectData {
-                kind: ObjectKind::Boolean(boolean),
-                ..
-            } => Some(boolean),
+        match self.kind {
+            ObjectKind::Boolean(boolean) => Some(boolean),
             _ => None,
         }
     }
@@ -1312,23 +1141,14 @@ impl Object {
     /// Checks if the object is a `Number` object.
     #[inline]
     pub const fn is_number(&self) -> bool {
-        matches!(
-            self.data,
-            ObjectData {
-                kind: ObjectKind::Number(_),
-                ..
-            }
-        )
+        matches!(self.kind, ObjectKind::Number(_))
     }
 
     /// Gets the number data if the object is a `Number`.
     #[inline]
     pub const fn as_number(&self) -> Option<f64> {
-        match self.data {
-            ObjectData {
-                kind: ObjectKind::Number(number),
-                ..
-            } => Some(number),
+        match self.kind {
+            ObjectKind::Number(number) => Some(number),
             _ => None,
         }
     }
@@ -1336,23 +1156,14 @@ impl Object {
     /// Checks if the object is a `BigInt` object.
     #[inline]
     pub const fn is_bigint(&self) -> bool {
-        matches!(
-            self.data,
-            ObjectData {
-                kind: ObjectKind::BigInt(_),
-                ..
-            }
-        )
+        matches!(self.kind, ObjectKind::BigInt(_))
     }
 
     /// Gets the bigint data if the object is a `BigInt`.
     #[inline]
     pub const fn as_bigint(&self) -> Option<&JsBigInt> {
-        match self.data {
-            ObjectData {
-                kind: ObjectKind::BigInt(ref bigint),
-                ..
-            } => Some(bigint),
+        match self.kind {
+            ObjectKind::BigInt(ref bigint) => Some(bigint),
             _ => None,
         }
     }
@@ -1360,23 +1171,14 @@ impl Object {
     /// Checks if the object is a `Date` object.
     #[inline]
     pub const fn is_date(&self) -> bool {
-        matches!(
-            self.data,
-            ObjectData {
-                kind: ObjectKind::Date(_),
-                ..
-            }
-        )
+        matches!(self.kind, ObjectKind::Date(_))
     }
 
     /// Gets the date data if the object is a `Date`.
     #[inline]
     pub const fn as_date(&self) -> Option<&Date> {
-        match self.data {
-            ObjectData {
-                kind: ObjectKind::Date(ref date),
-                ..
-            } => Some(date),
+        match self.kind {
+            ObjectKind::Date(ref date) => Some(date),
             _ => None,
         }
     }
@@ -1384,11 +1186,8 @@ impl Object {
     /// Gets the mutable date data if the object is a `Date`.
     #[inline]
     pub fn as_date_mut(&mut self) -> Option<&mut Date> {
-        match self.data {
-            ObjectData {
-                kind: ObjectKind::Date(ref mut date),
-                ..
-            } => Some(date),
+        match self.kind {
+            ObjectKind::Date(ref mut date) => Some(date),
             _ => None,
         }
     }
@@ -1396,23 +1195,14 @@ impl Object {
     /// Checks if it a `RegExp` object.
     #[inline]
     pub const fn is_regexp(&self) -> bool {
-        matches!(
-            self.data,
-            ObjectData {
-                kind: ObjectKind::RegExp(_),
-                ..
-            }
-        )
+        matches!(self.kind, ObjectKind::RegExp(_))
     }
 
     /// Gets the regexp data if the object is a regexp.
     #[inline]
     pub const fn as_regexp(&self) -> Option<&RegExp> {
-        match self.data {
-            ObjectData {
-                kind: ObjectKind::RegExp(ref regexp),
-                ..
-            } => Some(regexp),
+        match self.kind {
+            ObjectKind::RegExp(ref regexp) => Some(regexp),
             _ => None,
         }
     }
@@ -1420,23 +1210,13 @@ impl Object {
     /// Checks if it a `TypedArray` object.
     #[inline]
     pub const fn is_typed_array(&self) -> bool {
-        matches!(
-            self.data,
-            ObjectData {
-                kind: ObjectKind::IntegerIndexed(_),
-                ..
-            }
-        )
+        matches!(self.kind, ObjectKind::IntegerIndexed(_))
     }
 
     /// Checks if it a `Uint8Array` object.
     #[inline]
     pub const fn is_typed_uint8_array(&self) -> bool {
-        if let ObjectData {
-            kind: ObjectKind::IntegerIndexed(ref int),
-            ..
-        } = self.data
-        {
+        if let ObjectKind::IntegerIndexed(ref int) = self.kind {
             matches!(int.typed_array_name(), TypedArrayKind::Uint8)
         } else {
             false
@@ -1446,11 +1226,7 @@ impl Object {
     /// Checks if it a `Int8Array` object.
     #[inline]
     pub const fn is_typed_int8_array(&self) -> bool {
-        if let ObjectData {
-            kind: ObjectKind::IntegerIndexed(ref int),
-            ..
-        } = self.data
-        {
+        if let ObjectKind::IntegerIndexed(ref int) = self.kind {
             matches!(int.typed_array_name(), TypedArrayKind::Int8)
         } else {
             false
@@ -1460,11 +1236,7 @@ impl Object {
     /// Checks if it a `Uint16Array` object.
     #[inline]
     pub const fn is_typed_uint16_array(&self) -> bool {
-        if let ObjectData {
-            kind: ObjectKind::IntegerIndexed(ref int),
-            ..
-        } = self.data
-        {
+        if let ObjectKind::IntegerIndexed(ref int) = self.kind {
             matches!(int.typed_array_name(), TypedArrayKind::Uint16)
         } else {
             false
@@ -1474,11 +1246,7 @@ impl Object {
     /// Checks if it a `Int16Array` object.
     #[inline]
     pub const fn is_typed_int16_array(&self) -> bool {
-        if let ObjectData {
-            kind: ObjectKind::IntegerIndexed(ref int),
-            ..
-        } = self.data
-        {
+        if let ObjectKind::IntegerIndexed(ref int) = self.kind {
             matches!(int.typed_array_name(), TypedArrayKind::Int16)
         } else {
             false
@@ -1488,11 +1256,7 @@ impl Object {
     /// Checks if it a `Uint32Array` object.
     #[inline]
     pub const fn is_typed_uint32_array(&self) -> bool {
-        if let ObjectData {
-            kind: ObjectKind::IntegerIndexed(ref int),
-            ..
-        } = self.data
-        {
+        if let ObjectKind::IntegerIndexed(ref int) = self.kind {
             matches!(int.typed_array_name(), TypedArrayKind::Uint32)
         } else {
             false
@@ -1502,11 +1266,7 @@ impl Object {
     /// Checks if it a `Int32Array` object.
     #[inline]
     pub const fn is_typed_int32_array(&self) -> bool {
-        if let ObjectData {
-            kind: ObjectKind::IntegerIndexed(ref int),
-            ..
-        } = self.data
-        {
+        if let ObjectKind::IntegerIndexed(ref int) = self.kind {
             matches!(int.typed_array_name(), TypedArrayKind::Int32)
         } else {
             false
@@ -1516,11 +1276,7 @@ impl Object {
     /// Checks if it a `Float32Array` object.
     #[inline]
     pub const fn is_typed_float32_array(&self) -> bool {
-        if let ObjectData {
-            kind: ObjectKind::IntegerIndexed(ref int),
-            ..
-        } = self.data
-        {
+        if let ObjectKind::IntegerIndexed(ref int) = self.kind {
             matches!(int.typed_array_name(), TypedArrayKind::Float32)
         } else {
             false
@@ -1530,11 +1286,7 @@ impl Object {
     /// Checks if it a `Float64Array` object.
     #[inline]
     pub const fn is_typed_float64_array(&self) -> bool {
-        if let ObjectData {
-            kind: ObjectKind::IntegerIndexed(ref int),
-            ..
-        } = self.data
-        {
+        if let ObjectKind::IntegerIndexed(ref int) = self.kind {
             matches!(int.typed_array_name(), TypedArrayKind::Float64)
         } else {
             false
@@ -1544,11 +1296,8 @@ impl Object {
     /// Gets the data view data if the object is a `DataView`.
     #[inline]
     pub const fn as_data_view(&self) -> Option<&DataView> {
-        match &self.data {
-            ObjectData {
-                kind: ObjectKind::DataView(data_view),
-                ..
-            } => Some(data_view),
+        match &self.kind {
+            ObjectKind::DataView(data_view) => Some(data_view),
             _ => None,
         }
     }
@@ -1556,11 +1305,8 @@ impl Object {
     /// Gets the mutable data view data if the object is a `DataView`.
     #[inline]
     pub fn as_data_view_mut(&mut self) -> Option<&mut DataView> {
-        match &mut self.data {
-            ObjectData {
-                kind: ObjectKind::DataView(data_view),
-                ..
-            } => Some(data_view),
+        match &mut self.kind {
+            ObjectKind::DataView(data_view) => Some(data_view),
             _ => None,
         }
     }
@@ -1568,23 +1314,14 @@ impl Object {
     /// Checks if it is an `Arguments` object.
     #[inline]
     pub const fn is_arguments(&self) -> bool {
-        matches!(
-            self.data,
-            ObjectData {
-                kind: ObjectKind::Arguments(_),
-                ..
-            }
-        )
+        matches!(self.kind, ObjectKind::Arguments(_))
     }
 
     /// Gets the mapped arguments data if this is a mapped arguments object.
     #[inline]
     pub const fn as_mapped_arguments(&self) -> Option<&ParameterMap> {
-        match self.data {
-            ObjectData {
-                kind: ObjectKind::Arguments(Arguments::Mapped(ref args)),
-                ..
-            } => Some(args),
+        match self.kind {
+            ObjectKind::Arguments(Arguments::Mapped(ref args)) => Some(args),
             _ => None,
         }
     }
@@ -1592,11 +1329,8 @@ impl Object {
     /// Gets the mutable mapped arguments data if this is a mapped arguments object.
     #[inline]
     pub fn as_mapped_arguments_mut(&mut self) -> Option<&mut ParameterMap> {
-        match self.data {
-            ObjectData {
-                kind: ObjectKind::Arguments(Arguments::Mapped(ref mut args)),
-                ..
-            } => Some(args),
+        match self.kind {
+            ObjectKind::Arguments(Arguments::Mapped(ref mut args)) => Some(args),
             _ => None,
         }
     }
@@ -1604,11 +1338,8 @@ impl Object {
     /// Gets the typed array data (integer indexed object) if this is a typed array.
     #[inline]
     pub const fn as_typed_array(&self) -> Option<&IntegerIndexed> {
-        match self.data {
-            ObjectData {
-                kind: ObjectKind::IntegerIndexed(ref integer_indexed_object),
-                ..
-            } => Some(integer_indexed_object),
+        match self.kind {
+            ObjectKind::IntegerIndexed(ref integer_indexed_object) => Some(integer_indexed_object),
             _ => None,
         }
     }
@@ -1616,11 +1347,10 @@ impl Object {
     /// Gets the typed array data (integer indexed object) if this is a typed array.
     #[inline]
     pub fn as_typed_array_mut(&mut self) -> Option<&mut IntegerIndexed> {
-        match self.data {
-            ObjectData {
-                kind: ObjectKind::IntegerIndexed(ref mut integer_indexed_object),
-                ..
-            } => Some(integer_indexed_object),
+        match self.kind {
+            ObjectKind::IntegerIndexed(ref mut integer_indexed_object) => {
+                Some(integer_indexed_object)
+            }
             _ => None,
         }
     }
@@ -1628,35 +1358,20 @@ impl Object {
     /// Checks if it an ordinary object.
     #[inline]
     pub const fn is_ordinary(&self) -> bool {
-        matches!(
-            self.data,
-            ObjectData {
-                kind: ObjectKind::Ordinary,
-                ..
-            }
-        )
+        matches!(self.kind, ObjectKind::Ordinary)
     }
 
     /// Checks if it's an proxy object.
     #[inline]
     pub const fn is_proxy(&self) -> bool {
-        matches!(
-            self.data,
-            ObjectData {
-                kind: ObjectKind::Proxy(_),
-                ..
-            }
-        )
+        matches!(self.kind, ObjectKind::Proxy(_))
     }
 
     /// Gets the proxy data if the object is a `Proxy`.
     #[inline]
     pub const fn as_proxy(&self) -> Option<&Proxy> {
-        match self.data {
-            ObjectData {
-                kind: ObjectKind::Proxy(ref proxy),
-                ..
-            } => Some(proxy),
+        match self.kind {
+            ObjectKind::Proxy(ref proxy) => Some(proxy),
             _ => None,
         }
     }
@@ -1664,59 +1379,44 @@ impl Object {
     /// Gets the mutable proxy data if the object is a `Proxy`.
     #[inline]
     pub fn as_proxy_mut(&mut self) -> Option<&mut Proxy> {
-        match self.data {
-            ObjectData {
-                kind: ObjectKind::Proxy(ref mut proxy),
-                ..
-            } => Some(proxy),
+        match self.kind {
+            ObjectKind::Proxy(ref mut proxy) => Some(proxy),
             _ => None,
         }
     }
 
     /// Gets the weak map data if the object is a `WeakMap`.
     #[inline]
-    pub const fn as_weak_map(&self) -> Option<&boa_gc::WeakMap<GcRefCell<Object>, JsValue>> {
-        match self.data {
-            ObjectData {
-                kind: ObjectKind::WeakMap(ref weak_map),
-                ..
-            } => Some(weak_map),
+    pub const fn as_weak_map(&self) -> Option<&boa_gc::WeakMap<VTableObject, JsValue>> {
+        match self.kind {
+            ObjectKind::WeakMap(ref weak_map) => Some(weak_map),
             _ => None,
         }
     }
 
     /// Gets the mutable weak map data if the object is a `WeakMap`.
     #[inline]
-    pub fn as_weak_map_mut(&mut self) -> Option<&mut boa_gc::WeakMap<GcRefCell<Object>, JsValue>> {
-        match self.data {
-            ObjectData {
-                kind: ObjectKind::WeakMap(ref mut weak_map),
-                ..
-            } => Some(weak_map),
+    pub fn as_weak_map_mut(&mut self) -> Option<&mut boa_gc::WeakMap<VTableObject, JsValue>> {
+        match self.kind {
+            ObjectKind::WeakMap(ref mut weak_map) => Some(weak_map),
             _ => None,
         }
     }
 
     /// Gets the weak set data if the object is a `WeakSet`.
     #[inline]
-    pub const fn as_weak_set(&self) -> Option<&boa_gc::WeakMap<GcRefCell<Object>, ()>> {
-        match self.data {
-            ObjectData {
-                kind: ObjectKind::WeakSet(ref weak_set),
-                ..
-            } => Some(weak_set),
+    pub const fn as_weak_set(&self) -> Option<&boa_gc::WeakMap<VTableObject, ()>> {
+        match self.kind {
+            ObjectKind::WeakSet(ref weak_set) => Some(weak_set),
             _ => None,
         }
     }
 
     /// Gets the mutable weak set data if the object is a `WeakSet`.
     #[inline]
-    pub fn as_weak_set_mut(&mut self) -> Option<&mut boa_gc::WeakMap<GcRefCell<Object>, ()>> {
-        match self.data {
-            ObjectData {
-                kind: ObjectKind::WeakSet(ref mut weak_set),
-                ..
-            } => Some(weak_set),
+    pub fn as_weak_set_mut(&mut self) -> Option<&mut boa_gc::WeakMap<VTableObject, ()>> {
+        match self.kind {
+            ObjectKind::WeakSet(ref mut weak_set) => Some(weak_set),
             _ => None,
         }
     }
@@ -1748,23 +1448,14 @@ impl Object {
     /// Returns `true` if it holds an Rust type that implements `NativeObject`.
     #[inline]
     pub const fn is_native_object(&self) -> bool {
-        matches!(
-            self.data,
-            ObjectData {
-                kind: ObjectKind::NativeObject(_),
-                ..
-            }
-        )
+        matches!(self.kind, ObjectKind::NativeObject(_))
     }
 
     /// Gets the native object data if the object is a `NativeObject`.
     #[inline]
     pub fn as_native_object(&self) -> Option<&dyn NativeObject> {
-        match self.data {
-            ObjectData {
-                kind: ObjectKind::NativeObject(ref object),
-                ..
-            } => Some(object.as_ref()),
+        match self.kind {
+            ObjectKind::NativeObject(ref object) => Some(object.as_ref()),
             _ => None,
         }
     }
@@ -1772,23 +1463,14 @@ impl Object {
     /// Checks if it is a `Promise` object.
     #[inline]
     pub const fn is_promise(&self) -> bool {
-        matches!(
-            self.data,
-            ObjectData {
-                kind: ObjectKind::Promise(_),
-                ..
-            }
-        )
+        matches!(self.kind, ObjectKind::Promise(_))
     }
 
     /// Gets the promise data if the object is a `Promise`.
     #[inline]
     pub const fn as_promise(&self) -> Option<&Promise> {
-        match self.data {
-            ObjectData {
-                kind: ObjectKind::Promise(ref promise),
-                ..
-            } => Some(promise),
+        match self.kind {
+            ObjectKind::Promise(ref promise) => Some(promise),
             _ => None,
         }
     }
@@ -1796,23 +1478,17 @@ impl Object {
     /// Gets the mutable promise data if the object is a `Promise`.
     #[inline]
     pub fn as_promise_mut(&mut self) -> Option<&mut Promise> {
-        match self.data {
-            ObjectData {
-                kind: ObjectKind::Promise(ref mut promise),
-                ..
-            } => Some(promise),
+        match self.kind {
+            ObjectKind::Promise(ref mut promise) => Some(promise),
             _ => None,
         }
     }
 
     /// Gets the `WeakRef` data if the object is a `WeakRef`.
     #[inline]
-    pub const fn as_weak_ref(&self) -> Option<&WeakGc<GcRefCell<Self>>> {
-        match self.data {
-            ObjectData {
-                kind: ObjectKind::WeakRef(ref weak_ref),
-                ..
-            } => Some(weak_ref),
+    pub const fn as_weak_ref(&self) -> Option<&WeakGc<VTableObject>> {
+        match self.kind {
+            ObjectKind::WeakRef(ref weak_ref) => Some(weak_ref),
             _ => None,
         }
     }
@@ -1821,11 +1497,8 @@ impl Object {
     #[inline]
     #[cfg(feature = "intl")]
     pub const fn as_collator(&self) -> Option<&Collator> {
-        match self.data {
-            ObjectData {
-                kind: ObjectKind::Collator(ref collator),
-                ..
-            } => Some(collator),
+        match self.kind {
+            ObjectKind::Collator(ref collator) => Some(collator),
             _ => None,
         }
     }
@@ -1834,11 +1507,8 @@ impl Object {
     #[inline]
     #[cfg(feature = "intl")]
     pub fn as_collator_mut(&mut self) -> Option<&mut Collator> {
-        match self.data {
-            ObjectData {
-                kind: ObjectKind::Collator(ref mut collator),
-                ..
-            } => Some(collator),
+        match self.kind {
+            ObjectKind::Collator(ref mut collator) => Some(collator),
             _ => None,
         }
     }
@@ -1847,24 +1517,15 @@ impl Object {
     #[inline]
     #[cfg(feature = "intl")]
     pub const fn is_locale(&self) -> bool {
-        matches!(
-            self.data,
-            ObjectData {
-                kind: ObjectKind::Locale(_),
-                ..
-            }
-        )
+        matches!(self.kind, ObjectKind::Locale(_))
     }
 
     /// Gets the `Locale` data if the object is a `Locale`.
     #[inline]
     #[cfg(feature = "intl")]
     pub const fn as_locale(&self) -> Option<&icu_locid::Locale> {
-        match self.data {
-            ObjectData {
-                kind: ObjectKind::Locale(ref locale),
-                ..
-            } => Some(locale),
+        match self.kind {
+            ObjectKind::Locale(ref locale) => Some(locale),
             _ => None,
         }
     }
@@ -1873,11 +1534,8 @@ impl Object {
     #[inline]
     #[cfg(feature = "intl")]
     pub const fn as_list_format(&self) -> Option<&ListFormat> {
-        match self.data {
-            ObjectData {
-                kind: ObjectKind::ListFormat(ref lf),
-                ..
-            } => Some(lf),
+        match self.kind {
+            ObjectKind::ListFormat(ref lf) => Some(lf),
             _ => None,
         }
     }
@@ -1887,11 +1545,8 @@ impl Object {
     where
         T: NativeObject,
     {
-        match self.data {
-            ObjectData {
-                kind: ObjectKind::NativeObject(ref object),
-                ..
-            } => object.deref().as_any().is::<T>(),
+        match self.kind {
+            ObjectKind::NativeObject(ref object) => object.deref().as_any().is::<T>(),
             _ => false,
         }
     }
@@ -1902,11 +1557,8 @@ impl Object {
     where
         T: NativeObject,
     {
-        match self.data {
-            ObjectData {
-                kind: ObjectKind::NativeObject(ref object),
-                ..
-            } => object.deref().as_any().downcast_ref::<T>(),
+        match self.kind {
+            ObjectKind::NativeObject(ref object) => object.deref().as_any().downcast_ref::<T>(),
             _ => None,
         }
     }
@@ -1917,11 +1569,10 @@ impl Object {
     where
         T: NativeObject,
     {
-        match self.data {
-            ObjectData {
-                kind: ObjectKind::NativeObject(ref mut object),
-                ..
-            } => object.deref_mut().as_mut_any().downcast_mut::<T>(),
+        match self.kind {
+            ObjectKind::NativeObject(ref mut object) => {
+                object.deref_mut().as_mut_any().downcast_mut::<T>()
+            }
             _ => None,
         }
     }
@@ -2258,13 +1909,13 @@ impl<'ctx, 'host> ObjectInitializer<'ctx, 'host> {
 pub struct ConstructorBuilder<'ctx, 'host> {
     context: &'ctx mut Context<'host>,
     function: NativeFunction,
-    object: JsObject,
+    constructor_object: Object,
     has_prototype_property: bool,
-    prototype: JsObject,
+    prototype: Object,
     name: JsString,
     length: usize,
     callable: bool,
-    constructor: Option<ConstructorKind>,
+    kind: Option<ConstructorKind>,
     inherit: Option<JsPrototype>,
     custom_prototype: Option<JsPrototype>,
 }
@@ -2279,12 +1930,24 @@ impl<'ctx, 'host> ConstructorBuilder<'ctx, 'host> {
         Self {
             context,
             function,
-            object: JsObject::with_null_proto(),
-            prototype: JsObject::with_null_proto(),
+            constructor_object: Object {
+                kind: ObjectKind::Ordinary,
+                properties: PropertyMap::default(),
+                prototype: None,
+                extensible: true,
+                private_elements: ThinVec::new(),
+            },
+            prototype: Object {
+                kind: ObjectKind::Ordinary,
+                properties: PropertyMap::default(),
+                prototype: None,
+                extensible: true,
+                private_elements: ThinVec::new(),
+            },
             length: 0,
             name: js_string!(),
             callable: true,
-            constructor: Some(ConstructorKind::Base),
+            kind: Some(ConstructorKind::Base),
             inherit: None,
             custom_prototype: None,
             has_prototype_property: true,
@@ -2303,7 +1966,7 @@ impl<'ctx, 'host> ConstructorBuilder<'ctx, 'host> {
             .constructor(false)
             .build();
 
-        self.prototype.borrow_mut().insert(
+        self.prototype.insert(
             binding.binding,
             PropertyDescriptor::builder()
                 .value(function)
@@ -2331,7 +1994,7 @@ impl<'ctx, 'host> ConstructorBuilder<'ctx, 'host> {
             .constructor(false)
             .build();
 
-        self.object.borrow_mut().insert(
+        self.constructor_object.insert(
             binding.binding,
             PropertyDescriptor::builder()
                 .value(function)
@@ -2353,7 +2016,7 @@ impl<'ctx, 'host> ConstructorBuilder<'ctx, 'host> {
             .writable(attribute.writable())
             .enumerable(attribute.enumerable())
             .configurable(attribute.configurable());
-        self.prototype.borrow_mut().insert(key, property);
+        self.prototype.insert(key, property);
         self
     }
 
@@ -2368,7 +2031,7 @@ impl<'ctx, 'host> ConstructorBuilder<'ctx, 'host> {
             .writable(attribute.writable())
             .enumerable(attribute.enumerable())
             .configurable(attribute.configurable());
-        self.object.borrow_mut().insert(key, property);
+        self.constructor_object.insert(key, property);
         self
     }
 
@@ -2388,7 +2051,7 @@ impl<'ctx, 'host> ConstructorBuilder<'ctx, 'host> {
             .maybe_set(set)
             .enumerable(attribute.enumerable())
             .configurable(attribute.configurable());
-        self.prototype.borrow_mut().insert(key, property);
+        self.prototype.insert(key, property);
         self
     }
 
@@ -2408,7 +2071,7 @@ impl<'ctx, 'host> ConstructorBuilder<'ctx, 'host> {
             .maybe_set(set)
             .enumerable(attribute.enumerable())
             .configurable(attribute.configurable());
-        self.object.borrow_mut().insert(key, property);
+        self.constructor_object.insert(key, property);
         self
     }
 
@@ -2419,7 +2082,7 @@ impl<'ctx, 'host> ConstructorBuilder<'ctx, 'host> {
         P: Into<PropertyDescriptor>,
     {
         let property = property.into();
-        self.prototype.borrow_mut().insert(key, property);
+        self.prototype.insert(key, property);
         self
     }
 
@@ -2430,7 +2093,7 @@ impl<'ctx, 'host> ConstructorBuilder<'ctx, 'host> {
         P: Into<PropertyDescriptor>,
     {
         let property = property.into();
-        self.object.borrow_mut().insert(key, property);
+        self.constructor_object.insert(key, property);
         self
     }
 
@@ -2468,7 +2131,7 @@ impl<'ctx, 'host> ConstructorBuilder<'ctx, 'host> {
     /// Default is `true`
     #[inline]
     pub fn constructor(&mut self, constructor: bool) -> &mut Self {
-        self.constructor = constructor.then_some(ConstructorKind::Base);
+        self.kind = constructor.then_some(ConstructorKind::Base);
         self
     }
 
@@ -2510,7 +2173,7 @@ impl<'ctx, 'host> ConstructorBuilder<'ctx, 'host> {
         let function = Function::new(
             FunctionKind::Native {
                 function: self.function,
-                constructor: self.constructor,
+                constructor: self.kind,
             },
             self.context.realm().clone(),
         );
@@ -2526,11 +2189,29 @@ impl<'ctx, 'host> ConstructorBuilder<'ctx, 'host> {
             .enumerable(false)
             .configurable(true);
 
-        {
-            let mut constructor = self.object.borrow_mut();
-            constructor.data = ObjectData::function(function);
+        let prototype = {
+            if let Some(proto) = self.inherit.take() {
+                self.prototype.set_prototype(proto);
+            } else {
+                self.prototype.set_prototype(
+                    self.context
+                        .intrinsics()
+                        .constructors()
+                        .object()
+                        .prototype(),
+                );
+            }
+
+            JsObject::from_object_and_vtable(self.prototype, &ORDINARY_INTERNAL_METHODS)
+        };
+
+        let constructor = {
+            let mut constructor = self.constructor_object;
             constructor.insert(utf16!("length"), length);
             constructor.insert(utf16!("name"), name);
+            let data = ObjectData::function(function);
+
+            constructor.kind = data.kind;
 
             if let Some(proto) = self.custom_prototype.take() {
                 constructor.set_prototype(proto);
@@ -2548,38 +2229,28 @@ impl<'ctx, 'host> ConstructorBuilder<'ctx, 'host> {
                 constructor.insert(
                     PROTOTYPE,
                     PropertyDescriptor::builder()
-                        .value(self.prototype.clone())
+                        .value(prototype.clone())
                         .writable(false)
                         .enumerable(false)
                         .configurable(false),
                 );
             }
-        }
+
+            JsObject::from_object_and_vtable(constructor, data.internal_methods)
+        };
 
         {
-            let mut prototype = self.prototype.borrow_mut();
+            let mut prototype = prototype.borrow_mut();
             prototype.insert(
                 CONSTRUCTOR,
                 PropertyDescriptor::builder()
-                    .value(self.object.clone())
+                    .value(constructor.clone())
                     .writable(true)
                     .enumerable(false)
                     .configurable(true),
             );
-
-            if let Some(proto) = self.inherit.take() {
-                prototype.set_prototype(proto);
-            } else {
-                prototype.set_prototype(
-                    self.context
-                        .intrinsics()
-                        .constructors()
-                        .object()
-                        .prototype(),
-                );
-            }
         }
 
-        JsFunction::from_object_unchecked(self.object)
+        JsFunction::from_object_unchecked(constructor)
     }
 }
