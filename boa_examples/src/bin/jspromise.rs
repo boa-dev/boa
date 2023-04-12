@@ -20,15 +20,18 @@ Context, JsValue, js_string};
 
 fn main() -> Result<(), Box<dyn Error>> {
 
+    // Create a simple job queue to run the promise executor.
     let queue = &SimpleJobQueue::new();
+    // Create a new context with the job queue.
     let context = &mut Context::builder().job_queue(queue).build()?;
 
+    // Create a new promise object from an executor function.
     let promise = JsPromise::new(|resolvers, context| {
         let result = js_string!("hello world").into();
         resolvers.resolve.call(&JsValue::undefined(), &[result], context)?;
         Ok(JsValue::undefined())
     }, context)?;
-
+    // Run all the jobs in the queue.
     context.run_jobs();
 
     assert_eq!(promise.state()?, PromiseState::Fulfilled(js_string!("hello world").into()));
