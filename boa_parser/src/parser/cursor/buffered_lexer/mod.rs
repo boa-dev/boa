@@ -101,11 +101,19 @@ where
     }
 
     pub(super) const fn strict_mode(&self) -> bool {
-        self.lexer.strict_mode()
+        self.lexer.strict()
     }
 
     pub(super) fn set_strict_mode(&mut self, strict_mode: bool) {
-        self.lexer.set_strict_mode(strict_mode);
+        self.lexer.set_strict(strict_mode);
+    }
+
+    pub(super) const fn module(&self) -> bool {
+        self.lexer.module()
+    }
+
+    pub(super) fn set_module(&mut self, module: bool) {
+        self.lexer.set_module(module);
     }
 
     /// Fills the peeking buffer with the next token.

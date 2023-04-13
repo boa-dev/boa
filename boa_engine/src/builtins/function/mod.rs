@@ -614,10 +614,9 @@ impl BuiltInFunctionObject {
             } else {
                 let mut parameters = Vec::with_capacity(args.len());
                 for arg in args {
-                    parameters.push(arg.to_string(context)?.as_slice().to_owned());
+                    parameters.push(arg.to_string(context)?);
                 }
-                let mut parameters = parameters.join(utf16!(","));
-                parameters.push(u16::from(b')'));
+                let parameters = parameters.join(utf16!(","));
 
                 // TODO: make parser generic to u32 iterators
                 let parameters =

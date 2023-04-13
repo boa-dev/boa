@@ -89,7 +89,7 @@ impl<R> Tokenizer<R> for StringLiteral {
         let _timer = Profiler::global().start_event("StringLiteral", "Lexing");
 
         let (lit, span, escape_sequence) =
-            Self::take_string_characters(cursor, start_pos, self.terminator, cursor.strict_mode())?;
+            Self::take_string_characters(cursor, start_pos, self.terminator, cursor.strict())?;
 
         Ok(Token::new(
             TokenKind::string_literal(interner.get_or_intern(&lit[..]), escape_sequence),

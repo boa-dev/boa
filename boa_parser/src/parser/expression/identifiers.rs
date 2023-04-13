@@ -189,7 +189,7 @@ where
             ));
         }
 
-        if cursor.module_mode() && ident == Sym::AWAIT {
+        if cursor.module() && ident == Sym::AWAIT {
             return Err(Error::unexpected(
                 "await",
                 tok.span(),

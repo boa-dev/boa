@@ -401,7 +401,7 @@ where
     type Output = ModuleItemList;
 
     fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult<Self::Output> {
-        cursor.set_module_mode();
+        cursor.set_module();
 
         let items = if cursor.peek(0, interner)?.is_some() {
             self::statement::ModuleItemList.parse(cursor, interner)?

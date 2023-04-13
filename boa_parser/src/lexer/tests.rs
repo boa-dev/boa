@@ -1048,7 +1048,7 @@ fn string_legacy_octal_escape() {
     for (s, _) in &test_cases {
         let mut lexer = Lexer::new(s.as_bytes());
         let interner = &mut Interner::default();
-        lexer.set_strict_mode(true);
+        lexer.set_strict(true);
 
         if let Error::Syntax(_, pos) = lexer
             .next(interner)
@@ -1096,7 +1096,7 @@ fn string_non_octal_decimal_escape() {
     for (s, _) in &test_cases {
         let mut lexer = Lexer::new(s.as_bytes());
         let interner = &mut Interner::default();
-        lexer.set_strict_mode(true);
+        lexer.set_strict(true);
 
         if let Error::Syntax(_, pos) = lexer
             .next(interner)

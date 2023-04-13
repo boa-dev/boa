@@ -255,7 +255,7 @@ impl<R> Tokenizer<R> for NumberLiteral {
                         let ch = char::from(byte);
                         if ch.is_digit(8) {
                             // LegacyOctalIntegerLiteral, or a number with leading 0s.
-                            if cursor.strict_mode() {
+                            if cursor.strict() {
                                 // LegacyOctalIntegerLiteral is forbidden with strict mode true.
                                 return Err(Error::syntax(
                                     "implicit octal literals are not allowed in strict mode",
@@ -278,7 +278,7 @@ impl<R> Tokenizer<R> for NumberLiteral {
                             // Indicates a numerical digit comes after then 0 but it isn't an octal digit
                             // so therefore this must be a number with an unneeded leading 0. This is
                             // forbidden in strict mode.
-                            if cursor.strict_mode() {
+                            if cursor.strict() {
                                 return Err(Error::syntax(
                                     "leading 0's are not allowed in strict mode",
                                     start_pos,

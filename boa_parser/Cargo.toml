@@ -22,3 +22,6 @@ num-traits = "0.2.15"
 bitflags = "2.1.0"
 num-bigint = "0.4.3"
 regress = "0.5.0"
+
+[features]
+annex-b = []
