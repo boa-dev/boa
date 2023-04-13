@@ -159,7 +159,7 @@ where
             (Some(init), TokenKind::Keyword((kw @ (Keyword::In | Keyword::Of), false))) => {
                 let kw = *kw;
                 let init =
-                    initializer_to_iterable_loop_initializer(init, position, cursor.strict_mode())?;
+                    initializer_to_iterable_loop_initializer(init, position, cursor.strict())?;
 
                 cursor.advance(interner);
                 let expr = Expression::new(None, true, self.allow_yield, self.allow_await)

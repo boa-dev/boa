@@ -100,12 +100,12 @@ where
             .map_err(Error::from)
     }
 
-    pub(super) const fn strict_mode(&self) -> bool {
+    pub(super) const fn strict(&self) -> bool {
         self.lexer.strict()
     }
 
-    pub(super) fn set_strict_mode(&mut self, strict_mode: bool) {
-        self.lexer.set_strict(strict_mode);
+    pub(super) fn set_strict(&mut self, strict: bool) {
+        self.lexer.set_strict(strict);
     }
 
     pub(super) const fn module(&self) -> bool {

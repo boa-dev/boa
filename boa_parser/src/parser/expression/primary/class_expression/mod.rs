@@ -47,8 +47,8 @@ where
 
     fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult<Self::Output> {
         let _timer = Profiler::global().start_event("ClassExpression", "Parsing");
-        let strict = cursor.strict_mode();
-        cursor.set_strict_mode(true);
+        let strict = cursor.strict();
+        cursor.set_strict(true);
 
         let mut has_binding_identifier = false;
         let token = cursor.peek(0, interner).or_abrupt()?;
@@ -62,7 +62,7 @@ where
             }
             _ => self.name,
         };
-        cursor.set_strict_mode(strict);
+        cursor.set_strict(strict);
 
         ClassTail::new(
             name,

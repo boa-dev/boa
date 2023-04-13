@@ -208,7 +208,7 @@ impl<R> Parser<'_, R> {
     where
         R: Read,
     {
-        self.cursor.set_strict_mode(true);
+        self.cursor.set_strict(true);
     }
 
     /// Set the parser JSON mode to true.
@@ -246,8 +246,8 @@ where
     type Output = StatementList;
 
     fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult<Self::Output> {
-        let statement_list = ScriptBody::new(true, cursor.strict_mode(), self.direct_eval)
-            .parse(cursor, interner)?;
+        let statement_list =
+            ScriptBody::new(true, cursor.strict(), self.direct_eval).parse(cursor, interner)?;
 
         // It is a Syntax Error if the LexicallyDeclaredNames of ScriptBody contains any duplicate entries.
         let mut lexical_names = FxHashSet::default();

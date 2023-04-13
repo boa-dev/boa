@@ -515,7 +515,7 @@ where
                     expression_to_formal_parameters(
                         &node,
                         &mut parameters,
-                        cursor.strict_mode(),
+                        cursor.strict(),
                         start_span,
                     )?;
                 }

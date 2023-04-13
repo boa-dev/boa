@@ -294,7 +294,7 @@ where
         let _timer = Profiler::global().start_event("StatementList", "Parsing");
         let mut items = Vec::new();
 
-        let global_strict = cursor.strict_mode();
+        let global_strict = cursor.strict();
         let mut directive_prologues = self.directive_prologues;
         let mut strict = self.strict;
         let mut string_literal_escape_sequence = None;
@@ -326,7 +326,7 @@ where
                         |g| g == utf16!("use strict"),
                         true,
                     ) {
-                        cursor.set_strict_mode(true);
+                        cursor.set_strict(true);
                         strict = true;
 
                         if let Some((position, escape_sequence)) = string_literal_escape_sequence {
@@ -354,7 +354,7 @@ where
 
         items.sort_by(ast::StatementListItem::hoistable_order);
 
-        cursor.set_strict_mode(global_strict);
+        cursor.set_strict(global_strict);
 
         Ok(ast::StatementList::new(items, strict))
     }

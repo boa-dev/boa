@@ -62,7 +62,7 @@ where
             .start();
 
         // It is a Syntax Error if the source text matched by this production is contained in strict mode code.
-        if cursor.strict_mode() {
+        if cursor.strict() {
             return Err(Error::general(
                 "with statement not allowed in strict mode",
                 position,

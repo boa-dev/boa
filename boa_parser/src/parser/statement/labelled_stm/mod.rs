@@ -58,7 +58,7 @@ where
 
         cursor.expect(Punctuator::Colon, "Labelled Statement", interner)?;
 
-        let strict = cursor.strict_mode();
+        let strict = cursor.strict();
         let next_token = cursor.peek(0, interner).or_abrupt()?;
 
         let labelled_item = match next_token.kind() {

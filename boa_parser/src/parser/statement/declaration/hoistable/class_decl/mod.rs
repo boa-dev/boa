@@ -73,8 +73,8 @@ where
 
     fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult<Self::Output> {
         cursor.expect((Keyword::Class, false), "class declaration", interner)?;
-        let strict = cursor.strict_mode();
-        cursor.set_strict_mode(true);
+        let strict = cursor.strict();
+        cursor.set_strict(true);
 
         let mut has_binding_identifier = false;
         let token = cursor.peek(0, interner).or_abrupt()?;
@@ -94,7 +94,7 @@ where
                 ))
             }
         };
-        cursor.set_strict_mode(strict);
+        cursor.set_strict(strict);
 
         ClassTail::new(
             name,
@@ -166,11 +166,11 @@ where
         cursor.expect(Punctuator::OpenBlock, "class tail", interner)?;
 
         // Temporarily disable strict mode because "strict" may be parsed as a keyword.
-        let strict = cursor.strict_mode();
-        cursor.set_strict_mode(false);
+        let strict = cursor.strict();
+        cursor.set_strict(false);
         let is_close_block = cursor.peek(0, interner).or_abrupt()?.kind()
             == &TokenKind::Punctuator(Punctuator::CloseBlock);
-        cursor.set_strict_mode(strict);
+        cursor.set_strict(strict);
 
         if is_close_block {
             cursor.advance(interner);
@@ -264,11 +264,11 @@ where
             interner,
         )?;
 
-        let strict = cursor.strict_mode();
-        cursor.set_strict_mode(true);
+        let strict = cursor.strict();
+        cursor.set_strict(true);
         let lhs = LeftHandSideExpression::new(None, self.allow_yield, self.allow_await)
             .parse(cursor, interner)?;
-        cursor.set_strict_mode(strict);
+        cursor.set_strict(strict);
 
         Ok(lhs)
     }
@@ -316,8 +316,8 @@ where
 
         // The identifier "static" is forbidden in strict mode but used as a keyword in classes.
         // Because of this, strict mode has to temporarily be disabled while parsing class field names.
-        let strict = cursor.strict_mode();
-        cursor.set_strict_mode(false);
+        let strict = cursor.strict();
+        cursor.set_strict(false);
         loop {
             let token = cursor.peek(0, interner).or_abrupt()?;
             let position = token.span().start();
@@ -538,7 +538,7 @@ where
             }
         }
 
-        cursor.set_strict_mode(strict);
+        cursor.set_strict(strict);
 
         Ok((constructor, elements))
     }
@@ -641,8 +641,8 @@ where
         let element = match token.kind() {
             TokenKind::IdentifierName((Sym::CONSTRUCTOR, _)) if !r#static => {
                 cursor.advance(interner);
-                let strict = cursor.strict_mode();
-                cursor.set_strict_mode(true);
+                let strict = cursor.strict();
+                cursor.set_strict(true);
 
                 cursor.expect(Punctuator::OpenParen, "class constructor", interner)?;
                 let parameters = FormalParameters::new(self.allow_yield, self.allow_await)
@@ -660,7 +660,7 @@ where
                     "class constructor",
                     interner,
                 )?;
-                cursor.set_strict_mode(strict);
+                cursor.set_strict(strict);
 
                 return Ok((Some(Function::new(self.name, parameters, body)), None));
             }
@@ -672,8 +672,8 @@ where
                 {
                     ast::StatementList::default()
                 } else {
-                    let strict = cursor.strict_mode();
-                    cursor.set_strict_mode(true);
+                    let strict = cursor.strict();
+                    cursor.set_strict(true);
                     let position = cursor.peek(0, interner).or_abrupt()?.span().start();
                     let statement_list = StatementList::new(
                         false,
@@ -709,7 +709,7 @@ where
                         "class definition",
                         interner,
                     )?;
-                    cursor.set_strict_mode(strict);
+                    cursor.set_strict(strict);
                     statement_list
                 };
                 function::ClassElement::StaticBlock(statement_list)
@@ -725,12 +725,12 @@ where
                         ));
                     }
                 }
-                let strict = cursor.strict_mode();
-                cursor.set_strict_mode(true);
+                let strict = cursor.strict();
+                cursor.set_strict(true);
                 let (class_element_name, method) =
                     GeneratorMethod::new(self.allow_yield, self.allow_await)
                         .parse(cursor, interner)?;
-                cursor.set_strict_mode(strict);
+                cursor.set_strict(strict);
 
                 match class_element_name {
                     ClassElementName::PropertyName(property_name) if r#static => {
@@ -790,12 +790,12 @@ where
                             }
                             _ => {}
                         }
-                        let strict = cursor.strict_mode();
-                        cursor.set_strict_mode(true);
+                        let strict = cursor.strict();
+                        cursor.set_strict(true);
                         let (class_element_name, method) =
                             AsyncGeneratorMethod::new(self.allow_yield, self.allow_await)
                                 .parse(cursor, interner)?;
-                        cursor.set_strict_mode(strict);
+                        cursor.set_strict(strict);
                         match class_element_name {
                             ClassElementName::PropertyName(property_name) if r#static => {
                                 if property_name.literal() == Some(Sym::PROTOTYPE) {
@@ -834,12 +834,12 @@ where
                     }
                     _ => {
                         let name_position = token.span().start();
-                        let strict = cursor.strict_mode();
-                        cursor.set_strict_mode(true);
+                        let strict = cursor.strict();
+                        cursor.set_strict(true);
                         let (class_element_name, method) =
                             AsyncMethod::new(self.allow_yield, self.allow_await)
                                 .parse(cursor, interner)?;
-                        cursor.set_strict_mode(strict);
+                        cursor.set_strict(strict);
 
                         match class_element_name {
                             ClassElementName::PropertyName(property_name) if r#static => {
@@ -896,8 +896,8 @@ where
                     TokenKind::PrivateIdentifier(name) => {
                         let name = *name;
                         cursor.advance(interner);
-                        let strict = cursor.strict_mode();
-                        cursor.set_strict_mode(true);
+                        let strict = cursor.strict();
+                        cursor.set_strict(true);
                         let params =
                             UniqueFormalParameters::new(false, false).parse(cursor, interner)?;
                         cursor.expect(
@@ -921,7 +921,7 @@ where
                                 token.span().start(),
                         )));
                         }
-                        cursor.set_strict_mode(strict);
+                        cursor.set_strict(strict);
                         let method = MethodDefinition::Get(Function::new(None, params, body));
                         if r#static {
                             function::ClassElement::PrivateStaticMethodDefinition(
@@ -965,10 +965,10 @@ where
                             "class getter",
                             interner,
                         )?;
-                        let strict = cursor.strict_mode();
-                        cursor.set_strict_mode(true);
+                        let strict = cursor.strict();
+                        cursor.set_strict(true);
                         let body = FunctionBody::new(false, false).parse(cursor, interner)?;
-                        cursor.set_strict_mode(strict);
+                        cursor.set_strict(strict);
                         cursor.expect(
                             TokenKind::Punctuator(Punctuator::CloseBlock),
                             "class getter",
@@ -1027,8 +1027,8 @@ where
                     TokenKind::PrivateIdentifier(name) => {
                         let name = *name;
                         cursor.advance(interner);
-                        let strict = cursor.strict_mode();
-                        cursor.set_strict_mode(true);
+                        let strict = cursor.strict();
+                        cursor.set_strict(true);
                         let params =
                             UniqueFormalParameters::new(false, false).parse(cursor, interner)?;
                         cursor.expect(
@@ -1052,7 +1052,7 @@ where
                                 token.span().start(),
                         )));
                         }
-                        cursor.set_strict_mode(strict);
+                        cursor.set_strict(strict);
                         let method = MethodDefinition::Set(Function::new(None, params, body));
                         if r#static {
                             function::ClassElement::PrivateStaticMethodDefinition(
@@ -1081,8 +1081,8 @@ where
                         let name_position = token.span().start();
                         let name = PropertyName::new(self.allow_yield, self.allow_await)
                             .parse(cursor, interner)?;
-                        let strict = cursor.strict_mode();
-                        cursor.set_strict_mode(true);
+                        let strict = cursor.strict();
+                        cursor.set_strict(true);
                         let params =
                             UniqueFormalParameters::new(false, false).parse(cursor, interner)?;
                         cursor.expect(
@@ -1106,7 +1106,7 @@ where
                                 token.span().start(),
                         )));
                         }
-                        cursor.set_strict_mode(strict);
+                        cursor.set_strict(strict);
                         let method = MethodDefinition::Set(Function::new(None, params, body));
                         if r#static {
                             if name.literal() == Some(Sym::PROTOTYPE) {
@@ -1154,8 +1154,8 @@ where
                 match token.kind() {
                     TokenKind::Punctuator(Punctuator::Assign) => {
                         cursor.advance(interner);
-                        let strict = cursor.strict_mode();
-                        cursor.set_strict_mode(true);
+                        let strict = cursor.strict();
+                        cursor.set_strict(true);
                         let rhs = AssignmentExpression::new(
                             Some(name_private.into()),
                             true,
@@ -1164,7 +1164,7 @@ where
                         )
                         .parse(cursor, interner)?;
                         cursor.expect_semicolon("expected semicolon", interner)?;
-                        cursor.set_strict_mode(strict);
+                        cursor.set_strict(strict);
                         if r#static {
                             function::ClassElement::PrivateStaticFieldDefinition(
                                 PrivateName::new(name),
@@ -1178,8 +1178,8 @@ where
                         }
                     }
                     TokenKind::Punctuator(Punctuator::OpenParen) => {
-                        let strict = cursor.strict_mode();
-                        cursor.set_strict_mode(true);
+                        let strict = cursor.strict();
+                        cursor.set_strict(true);
                         let params =
                             UniqueFormalParameters::new(false, false).parse(cursor, interner)?;
                         cursor.expect(
@@ -1204,7 +1204,7 @@ where
                         )));
                         }
                         let method = MethodDefinition::Ordinary(Function::new(None, params, body));
-                        cursor.set_strict_mode(strict);
+                        cursor.set_strict(strict);
                         if r#static {
                             function::ClassElement::PrivateStaticMethodDefinition(
                                 PrivateName::new(name),
@@ -1261,8 +1261,8 @@ where
                             }
                         }
                         cursor.advance(interner);
-                        let strict = cursor.strict_mode();
-                        cursor.set_strict_mode(true);
+                        let strict = cursor.strict();
+                        cursor.set_strict(true);
                         let rhs = AssignmentExpression::new(
                             name.literal().map(Into::into),
                             true,
@@ -1271,7 +1271,7 @@ where
                         )
                         .parse(cursor, interner)?;
                         cursor.expect_semicolon("expected semicolon", interner)?;
-                        cursor.set_strict_mode(strict);
+                        cursor.set_strict(strict);
                         if r#static {
                             function::ClassElement::StaticFieldDefinition(name, Some(rhs))
                         } else {
@@ -1285,8 +1285,8 @@ where
                                 name_position,
                             ));
                         }
-                        let strict = cursor.strict_mode();
-                        cursor.set_strict_mode(true);
+                        let strict = cursor.strict();
+                        cursor.set_strict(true);
                         let params =
                             UniqueFormalParameters::new(false, false).parse(cursor, interner)?;
                         cursor.expect(
@@ -1311,7 +1311,7 @@ where
                         )));
                         }
                         let method = MethodDefinition::Ordinary(Function::new(None, params, body));
-                        cursor.set_strict_mode(strict);
+                        cursor.set_strict(strict);
                         if r#static {
                             function::ClassElement::StaticMethodDefinition(name, method)
                         } else {
