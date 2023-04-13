@@ -229,7 +229,22 @@ pub(crate) fn integer_indexed_exotic_delete(
         }
         // The following step is taken from https://tc39.es/ecma262/#sec-isvalidintegerindex :
         //     Step 3. If index is -0𝔽, return false.
-        PropertyKey::String(string) if string == utf16!("-0") => Ok(false),
+        PropertyKey::String(string) if string == utf16!("-0") => {
+            let obj = obj.borrow();
+            let inner = obj.as_typed_array().expect(
+                "integer indexed exotic method should only be callable from integer indexed objects",
+            );
+            // 1. If IsValidIntegerIndex(O, numericIndex) is false, return true; else return false.
+            //    From IsValidIntegerIndex:
+            //        1. If IsDetachedBuffer(O.[[ViewedArrayBuffer]]) is true, return false.
+            //        3. If index is -0𝔽, return false.
+            //
+            // NOTE: They are negated, so it should return true.
+            if inner.is_detached() {
+                return Ok(true);
+            }
+            Ok(true)
+        }
         key => {
             // 2. Return ? OrdinaryDelete(O, P).
             super::ordinary_delete(obj, key, context)
@@ -301,7 +316,7 @@ pub(crate) fn is_valid_integer_index(obj: &JsObject, index: u64) -> bool {
     // 1. If IsDetachedBuffer(O.[[ViewedArrayBuffer]]) is true, return false.
     //
     // SKIPPED: 2. If ! IsIntegralNumber(index) is false, return false.
-    // NOTE: This step has been already done when we construct a PropertyKey.
+    // NOTE: This step has already been done when we construct a PropertyKey.
     //
     // MOVED: 3. If index is -0𝔽, return false.
     // NOTE: This step has been moved into the callers of this functions,
