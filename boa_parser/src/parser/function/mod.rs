@@ -11,7 +11,7 @@
 mod tests;
 
 use crate::{
-    lexer::{Error as LexError, InputElement, Token, TokenKind},
+    lexer::{Error as LexError, InputElement, TokenKind},
     parser::{
         expression::{BindingIdentifier, Initializer},
         statement::{ArrayBindingPattern, ObjectBindingPattern, StatementList},
@@ -21,7 +21,7 @@ use crate::{
 };
 use ast::{
     operations::{check_labels, contains_invalid_object_literal},
-    Keyword, Position,
+    Position,
 };
 use boa_ast::{
     self as ast,
@@ -68,26 +68,15 @@ where
     type Output = FormalParameterList;
 
     fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult<Self::Output> {
-        /// Checks if the peeked token is the beginning of a parameter
-        const fn probe_parameter(token: &Token) -> bool {
-            matches!(
-                token.kind(),
-                TokenKind::Punctuator(
-                    Punctuator::Spread | Punctuator::OpenBracket | Punctuator::OpenBlock
-                ) | TokenKind::IdentifierName(_)
-                    | TokenKind::Keyword((Keyword::Yield | Keyword::Await, _))
-            )
-        }
-
         let _timer = Profiler::global().start_event("FormalParameters", "Parsing");
 
         cursor.set_goal(InputElement::RegExp);
 
         let Some(start_position) = cursor
             .peek(0, interner)?
-            .filter(|&tok| probe_parameter(tok))
+            .filter(|&tok| tok.kind() != &TokenKind::Punctuator(Punctuator::CloseParen))
             .map(|tok| tok.span().start()) else {
-            return Ok(FormalParameterList::default());
+            return Ok( FormalParameterList::default());
         };
 
         let mut params = Vec::new();
@@ -115,7 +104,7 @@ where
             params.push(next_param);
 
             if cursor.peek(0, interner)?.map_or(true, |tok| {
-                tok.kind() != &TokenKind::Punctuator(Punctuator::Comma)
+                tok.kind() == &TokenKind::Punctuator(Punctuator::CloseParen)
             }) {
                 break;
             }
@@ -130,10 +119,9 @@ where
             }
 
             cursor.expect(Punctuator::Comma, "parameter list", interner)?;
-            if cursor
-                .peek(0, interner)?
-                .map_or(true, |tok| !probe_parameter(tok))
-            {
+            if cursor.peek(0, interner)?.map_or(true, |tok| {
+                tok.kind() == &TokenKind::Punctuator(Punctuator::CloseParen)
+            }) {
                 break;
             }
         }
@@ -395,9 +383,9 @@ where
                 _ => {
                     let ident = BindingIdentifier::new(self.allow_yield, self.allow_await)
                         .parse(cursor, interner)?;
-                    let init = if *cursor.peek(0, interner).or_abrupt()?.kind()
-                        == TokenKind::Punctuator(Punctuator::Assign)
-                    {
+                    let init = if cursor.peek(0, interner)?.map_or(false, |tok| {
+                        tok.kind() == &TokenKind::Punctuator(Punctuator::Assign)
+                    }) {
                         Some(
                             Initializer::new(None, true, self.allow_yield, self.allow_await)
                                 .parse(cursor, interner)?,

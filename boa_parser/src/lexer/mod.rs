@@ -30,7 +30,7 @@ mod template;
 mod tests;
 
 use self::{
-    comment::{DelimitedComment, HTMLCloseComment, HashbangComment, SingleLineComment},
+    comment::{HashbangComment, MultiLineComment, SingleLineComment},
     cursor::Cursor,
     identifier::Identifier,
     number::NumberLiteral,
@@ -137,7 +137,7 @@ impl<R> Lexer<R> {
                 }
                 b'*' => {
                     self.cursor.next_byte()?.expect("* token vanished"); // Consume the '*'
-                    DelimitedComment.lex(&mut self.cursor, start, interner)
+                    MultiLineComment.lex(&mut self.cursor, start, interner)
                 }
                 ch => {
                     match self.get_goal() {
@@ -173,14 +173,38 @@ impl<R> Lexer<R> {
         }
     }
 
+    /// Skips an HTML close comment (`-->`) if the `annex-b` feature is enabled.
+    pub(crate) fn skip_html_close(&mut self, interner: &mut Interner) -> Result<(), Error>
+    where
+        R: Read,
+    {
+        if !cfg!(feature = "annex-b") || self.module() {
+            return Ok(());
+        }
+
+        while self.cursor.peek_char()?.map_or(false, is_whitespace) {
+            let _next = self.cursor.next_char();
+        }
+
+        if self.cursor.peek_n(3)? == [b'-', b'-', b'>'] {
+            let _next = self.cursor.next_byte();
+            let _next = self.cursor.next_byte();
+            let _next = self.cursor.next_byte();
+
+            let start = self.cursor.pos();
+            SingleLineComment.lex(&mut self.cursor, start, interner)?;
+        }
+
+        Ok(())
+    }
+
     /// Retrieves the next token from the lexer.
     ///
     /// # Errors
     ///
     /// Will return `Err` on invalid tokens and invalid reads of the bytes being lexed.
     // We intentionally don't implement Iterator trait as Result<Option> is cleaner to handle.
-    #[allow(clippy::should_implement_trait)]
-    pub fn next(&mut self, interner: &mut Interner) -> Result<Option<Token>, Error>
+    pub(crate) fn next_no_skip(&mut self, interner: &mut Interner) -> Result<Option<Token>, Error>
     where
         R: Read,
     {
@@ -211,12 +235,10 @@ impl<R> Lexer<R> {
 
         if let Ok(c) = char::try_from(next_ch) {
             let token = match c {
-                '\r' | '\n' | '\u{2028}' | '\u{2029}' => {
-                    let end = self.cursor.pos();
-                    HTMLCloseComment.lex(&mut self.cursor, start, interner)?;
-
-                    Ok(Token::new(TokenKind::LineTerminator, Span::new(start, end)))
-                }
+                '\r' | '\n' | '\u{2028}' | '\u{2029}' => Ok(Token::new(
+                    TokenKind::LineTerminator,
+                    Span::new(start, self.cursor.pos()),
+                )),
                 '"' | '\'' => StringLiteral::new(c).lex(&mut self.cursor, start, interner),
                 '`' => TemplateLiteral.lex(&mut self.cursor, start, interner),
                 ';' => Ok(Token::new(
@@ -311,6 +333,28 @@ impl<R> Lexer<R> {
                 ),
                 start,
             ))
+        }
+    }
+
+    /// Retrieves the next token from the lexer, skipping comments.
+    ///
+    /// # Errors
+    ///
+    /// Will return `Err` on invalid tokens and invalid reads of the bytes being lexed.
+    // We intentionally don't implement Iterator trait as Result<Option> is cleaner to handle.
+    #[allow(clippy::should_implement_trait)]
+    pub fn next(&mut self, interner: &mut Interner) -> Result<Option<Token>, Error>
+    where
+        R: Read,
+    {
+        loop {
+            let Some(next) = self.next_no_skip(interner)? else {
+                return Ok(None)
+            };
+
+            if next.kind() != &TokenKind::Comment {
+                return Ok(Some(next));
+            }
         }
     }
 

@@ -132,10 +132,13 @@ where
                 // We don't want to have multiple contiguous line terminators in the buffer, since
                 // they have no meaning.
                 let next = loop {
-                    let next = self.lexer.next(interner)?;
+                    self.lexer.skip_html_close(interner)?;
+                    let next = self.lexer.next_no_skip(interner)?;
                     if let Some(ref token) = next {
-                        if token.kind() != &TokenKind::LineTerminator {
-                            break next;
+                        match token.kind() {
+                            TokenKind::LineTerminator => { /* skip */ }
+                            TokenKind::Comment => self.lexer.skip_html_close(interner)?,
+                            _ => break next,
                         }
                     } else {
                         break None;
