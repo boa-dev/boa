@@ -125,7 +125,7 @@ impl IntrinsicObject for String {
             .method(Self::to_case::<false>, "toLowerCase", 0)
             .method(Self::to_case::<true>, "toUpperCase", 0)
             .method(Self::to_locale_case::<false>, "toLocaleLowerCase", 0)
-            .method(Self::to_locale_case::<true>, "toLocaleLowerCase", 0)
+            .method(Self::to_locale_case::<true>, "toLocaleUpperCase", 0)
             .method(Self::substring, "substring", 2)
             .method(Self::split, "split", 2)
             .method(Self::value_of, "valueOf", 0)
@@ -1658,7 +1658,6 @@ impl String {
     /// [upper]: https://tc39.es/ecma262/#sec-string.prototype.toUppercase
     /// [lower]: https://tc39.es/ecma262/#sec-string.prototype.toLowercase
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/toUpperCase
-    #[allow(clippy::wrong_self_convention)]
     pub(crate) fn to_case<const UPPER: bool>(
         this: &JsValue,
         _: &[JsValue],
