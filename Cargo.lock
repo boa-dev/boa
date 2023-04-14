@@ -5254,9 +5254,9 @@ checksum = "d1890f4022759daae28ed4fe62859b1236caebfc61ede2f63ed4e695f3f6d936"
 
 [[package]]
 name = "writeable"
-version = "0.5.1"
+version = "0.5.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "92d74a687e3b9a7a129db0a8c82b4d464eb9c36f5a66ca68572a7e5f1cfdb5bc"
+checksum = "60e49e42bdb1d5dc76f4cd78102f8f0714d32edfa3efb82286eb0f0b1fc0da0f"
 
 [[package]]
 name = "xattr"
