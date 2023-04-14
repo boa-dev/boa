@@ -100,12 +100,20 @@ where
             .map_err(Error::from)
     }
 
-    pub(super) const fn strict_mode(&self) -> bool {
-        self.lexer.strict_mode()
+    pub(super) const fn strict(&self) -> bool {
+        self.lexer.strict()
     }
 
-    pub(super) fn set_strict_mode(&mut self, strict_mode: bool) {
-        self.lexer.set_strict_mode(strict_mode);
+    pub(super) fn set_strict(&mut self, strict: bool) {
+        self.lexer.set_strict(strict);
+    }
+
+    pub(super) const fn module(&self) -> bool {
+        self.lexer.module()
+    }
+
+    pub(super) fn set_module(&mut self, module: bool) {
+        self.lexer.set_module(module);
     }
 
     /// Fills the peeking buffer with the next token.
@@ -124,10 +132,13 @@ where
                 // We don't want to have multiple contiguous line terminators in the buffer, since
                 // they have no meaning.
                 let next = loop {
-                    let next = self.lexer.next(interner)?;
+                    self.lexer.skip_html_close(interner)?;
+                    let next = self.lexer.next_no_skip(interner)?;
                     if let Some(ref token) = next {
-                        if token.kind() != &TokenKind::LineTerminator {
-                            break next;
+                        match token.kind() {
+                            TokenKind::LineTerminator => { /* skip */ }
+                            TokenKind::Comment => self.lexer.skip_html_close(interner)?,
+                            _ => break next,
                         }
                     } else {
                         break None;

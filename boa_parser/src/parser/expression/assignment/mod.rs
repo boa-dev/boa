@@ -240,8 +240,7 @@ where
                     cursor.advance(interner);
                     cursor.set_goal(InputElement::RegExp);
 
-                    if let Some(target) = AssignTarget::from_expression(&lhs, cursor.strict_mode())
-                    {
+                    if let Some(target) = AssignTarget::from_expression(&lhs, cursor.strict()) {
                         if let AssignTarget::Identifier(ident) = target {
                             self.name = Some(ident);
                         }
@@ -257,7 +256,7 @@ where
                 TokenKind::Punctuator(p) if p.as_assign_op().is_some() => {
                     cursor.advance(interner);
                     if let Some(target) =
-                        AssignTarget::from_expression_simple(&lhs, cursor.strict_mode())
+                        AssignTarget::from_expression_simple(&lhs, cursor.strict())
                     {
                         let assignop = p.as_assign_op().expect("assignop disappeared");
                         if assignop == AssignOp::BoolAnd

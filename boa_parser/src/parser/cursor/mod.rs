@@ -36,9 +36,6 @@ pub(super) struct Cursor<R> {
 
     /// Indicate if the cursor is used in `JSON.parse`.
     json_parse: bool,
-
-    /// Indicate if the cursor's **goal symbol** is a Module.
-    module: bool,
 }
 
 impl<R> Cursor<R>
@@ -53,19 +50,18 @@ where
             private_environment_root_index: 0,
             arrow: false,
             json_parse: false,
-            module: false,
         }
     }
 
     /// Sets the goal symbol of the cursor to `Module`.
     #[allow(unused)]
-    pub(super) fn set_module_mode(&mut self) {
-        self.module = true;
+    pub(super) fn set_module(&mut self) {
+        self.buffered_lexer.set_module(true);
     }
 
     /// Returns `true` if the cursor is currently parsing a `Module`.
-    pub(super) const fn module_mode(&self) -> bool {
-        self.module
+    pub(super) const fn module(&self) -> bool {
+        self.buffered_lexer.module()
     }
 
     pub(super) fn set_goal(&mut self, elm: InputElement) {
@@ -116,13 +112,13 @@ where
     }
 
     /// Gets the current strict mode for the cursor.
-    pub(super) const fn strict_mode(&self) -> bool {
-        self.buffered_lexer.strict_mode()
+    pub(super) const fn strict(&self) -> bool {
+        self.buffered_lexer.strict()
     }
 
     /// Sets the strict mode to strict or non-strict.
-    pub(super) fn set_strict_mode(&mut self, strict_mode: bool) {
-        self.buffered_lexer.set_strict_mode(strict_mode);
+    pub(super) fn set_strict(&mut self, strict: bool) {
+        self.buffered_lexer.set_strict(strict);
     }
 
     /// Returns if the cursor is currently in an arrow function declaration.

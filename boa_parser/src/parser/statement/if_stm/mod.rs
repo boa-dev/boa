@@ -71,7 +71,7 @@ where
             .span()
             .end();
 
-        let strict = cursor.strict_mode();
+        let strict = cursor.strict();
         let token = cursor.peek(0, interner).or_abrupt()?;
         let then_node = match token.kind() {
             TokenKind::Keyword((Keyword::Function, _)) => {
@@ -110,7 +110,7 @@ where
                 TokenKind::Keyword((Keyword::Else, false)) => {
                     cursor.advance(interner);
 
-                    let strict = cursor.strict_mode();
+                    let strict = cursor.strict();
                     let token = cursor.peek(0, interner).or_abrupt()?;
                     let position = token.span().start();
                     let stmt = match token.kind() {

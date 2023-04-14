@@ -84,7 +84,7 @@ where
         let mut lexical_names = FxHashMap::default();
         for (name, is_fn) in lexically_declared_names_legacy(&switch) {
             if let Some(is_fn_previous) = lexical_names.insert(name, is_fn) {
-                match (cursor.strict_mode(), is_fn, is_fn_previous) {
+                match (cursor.strict(), is_fn, is_fn_previous) {
                     (false, true, true) => {}
                     _ => {
                         return Err(Error::general(

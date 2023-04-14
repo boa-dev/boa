@@ -92,7 +92,7 @@ where
 
         // Early Error: If the source code matching FormalParameters is strict mode code,
         // the Early Error rules for UniqueFormalParameters : FormalParameters are applied.
-        if (cursor.strict_mode() || body.strict()) && params.has_duplicates() {
+        if (cursor.strict() || body.strict()) && params.has_duplicates() {
             return Err(Error::lex(LexError::Syntax(
                 "Duplicate parameter name not allowed in this context".into(),
                 params_start_position,
@@ -111,7 +111,7 @@ where
         // Early Error: If BindingIdentifier is present and the source code matching BindingIdentifier is strict mode code,
         // it is a Syntax Error if the StringValue of BindingIdentifier is "eval" or "arguments".
         if let Some(name) = name {
-            if (cursor.strict_mode() || body.strict())
+            if (cursor.strict() || body.strict())
                 && [Sym::EVAL, Sym::ARGUMENTS].contains(&name.sym())
             {
                 return Err(Error::lex(LexError::Syntax(

@@ -69,15 +69,17 @@ where
 
     fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult<Self::Output> {
         let _timer = Profiler::global().start_event("FormalParameters", "Parsing");
+
         cursor.set_goal(InputElement::RegExp);
 
-        let mut params = Vec::new();
+        let Some(start_position) = cursor
+            .peek(0, interner)?
+            .filter(|&tok| tok.kind() != &TokenKind::Punctuator(Punctuator::CloseParen))
+            .map(|tok| tok.span().start()) else {
+            return Ok( FormalParameterList::default());
+        };
 
-        let next_token = cursor.peek(0, interner).or_abrupt()?;
-        if next_token.kind() == &TokenKind::Punctuator(Punctuator::CloseParen) {
-            return Ok(FormalParameterList::default());
-        }
-        let start_position = next_token.span().start();
+        let mut params = Vec::new();
 
         loop {
             let mut rest_param = false;
@@ -101,9 +103,9 @@ where
 
             params.push(next_param);
 
-            if cursor.peek(0, interner).or_abrupt()?.kind()
-                == &TokenKind::Punctuator(Punctuator::CloseParen)
-            {
+            if cursor.peek(0, interner)?.map_or(true, |tok| {
+                tok.kind() == &TokenKind::Punctuator(Punctuator::CloseParen)
+            }) {
                 break;
             }
 
@@ -117,9 +119,9 @@ where
             }
 
             cursor.expect(Punctuator::Comma, "parameter list", interner)?;
-            if cursor.peek(0, interner).or_abrupt()?.kind()
-                == &TokenKind::Punctuator(Punctuator::CloseParen)
-            {
+            if cursor.peek(0, interner)?.map_or(true, |tok| {
+                tok.kind() == &TokenKind::Punctuator(Punctuator::CloseParen)
+            }) {
                 break;
             }
         }
@@ -381,9 +383,9 @@ where
                 _ => {
                     let ident = BindingIdentifier::new(self.allow_yield, self.allow_await)
                         .parse(cursor, interner)?;
-                    let init = if *cursor.peek(0, interner).or_abrupt()?.kind()
-                        == TokenKind::Punctuator(Punctuator::Assign)
-                    {
+                    let init = if cursor.peek(0, interner)?.map_or(false, |tok| {
+                        tok.kind() == &TokenKind::Punctuator(Punctuator::Assign)
+                    }) {
                         Some(
                             Initializer::new(None, true, self.allow_yield, self.allow_await)
                                 .parse(cursor, interner)?,

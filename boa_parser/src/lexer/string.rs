@@ -89,7 +89,7 @@ impl<R> Tokenizer<R> for StringLiteral {
         let _timer = Profiler::global().start_event("StringLiteral", "Lexing");
 
         let (lit, span, escape_sequence) =
-            Self::take_string_characters(cursor, start_pos, self.terminator, cursor.strict_mode())?;
+            Self::take_string_characters(cursor, start_pos, self.terminator, cursor.strict())?;
 
         Ok(Token::new(
             TokenKind::string_literal(interner.get_or_intern(&lit[..]), escape_sequence),
@@ -116,7 +116,7 @@ impl StringLiteral {
         cursor: &mut Cursor<R>,
         start_pos: Position,
         terminator: StringTerminator,
-        is_strict_mode: bool,
+        strict: bool,
     ) -> Result<(Vec<u16>, Span, Option<EscapeSequence>), Error>
     where
         R: Read,
@@ -139,7 +139,7 @@ impl StringLiteral {
                         Self::take_escape_sequence_or_line_continuation(
                             cursor,
                             ch_start_pos,
-                            is_strict_mode,
+                            strict,
                             false,
                         )?
                     {
@@ -167,7 +167,7 @@ impl StringLiteral {
     pub(super) fn take_escape_sequence_or_line_continuation<R>(
         cursor: &mut Cursor<R>,
         start_pos: Position,
-        is_strict_mode: bool,
+        strict: bool,
         is_template_literal: bool,
     ) -> Result<Option<(u32, Option<EscapeSequence>)>, Error>
     where
@@ -208,7 +208,7 @@ impl StringLiteral {
                         "\\8 and \\9 are not allowed in template literal",
                         start_pos,
                     ));
-                } else if is_strict_mode {
+                } else if strict {
                     return Err(Error::syntax(
                         "\\8 and \\9 are not allowed in strict mode",
                         start_pos,
@@ -224,7 +224,7 @@ impl StringLiteral {
                     ));
                 }
 
-                if is_strict_mode {
+                if strict {
                     return Err(Error::syntax(
                         "octal escape sequences are not allowed in strict mode",
                         start_pos,

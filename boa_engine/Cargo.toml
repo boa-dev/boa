@@ -40,7 +40,7 @@ trace = []
 console = []
 
 # Enable Boa's additional ECMAScript features for web browsers.
-annex-b = []
+annex-b = ["boa_parser/annex-b"]
 
 [dependencies]
 boa_interner.workspace = true

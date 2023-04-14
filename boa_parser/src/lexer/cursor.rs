@@ -8,7 +8,8 @@ use std::io::{self, Bytes, Error, ErrorKind, Read};
 pub(super) struct Cursor<R> {
     iter: InnerIter<R>,
     pos: Position,
-    strict_mode: bool,
+    module: bool,
+    strict: bool,
 }
 
 impl<R> Cursor<R> {
@@ -31,13 +32,24 @@ impl<R> Cursor<R> {
     }
 
     /// Returns if strict mode is currently active.
-    pub(super) const fn strict_mode(&self) -> bool {
-        self.strict_mode
+    pub(super) const fn strict(&self) -> bool {
+        self.strict
     }
 
     /// Sets the current strict mode.
-    pub(super) fn set_strict_mode(&mut self, strict_mode: bool) {
-        self.strict_mode = strict_mode;
+    pub(super) fn set_strict(&mut self, strict: bool) {
+        self.strict = strict;
+    }
+
+    /// Returns if the module mode is currently active.
+    pub(super) const fn module(&self) -> bool {
+        self.module
+    }
+
+    /// Sets the current goal symbol to module.
+    pub(super) fn set_module(&mut self, module: bool) {
+        self.module = module;
+        self.strict = module;
     }
 }
 
@@ -50,7 +62,8 @@ where
         Self {
             iter: InnerIter::new(inner.bytes()),
             pos: Position::new(1, 1),
-            strict_mode: false,
+            strict: false,
+            module: false,
         }
     }
 
@@ -59,7 +72,8 @@ where
         Self {
             iter: InnerIter::new(inner.bytes()),
             pos,
-            strict_mode: false,
+            strict: false,
+            module: false,
         }
     }
 

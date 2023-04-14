@@ -98,7 +98,7 @@ impl<R> Tokenizer<R> for MultiLineComment {
     }
 }
 
-///Lexes a first line Hashbang comment
+/// Lexes a first line Hashbang comment
 ///
 /// More information:
 ///  - [ECMAScript reference][spec]

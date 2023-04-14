@@ -106,7 +106,7 @@ where
                     .parse(cursor, interner)?;
 
                 // https://tc39.es/ecma262/#sec-update-expressions-static-semantics-early-errors
-                return (as_simple(&target, position, cursor.strict_mode())?).map_or_else(
+                return (as_simple(&target, position, cursor.strict())?).map_or_else(
                     || {
                         Err(Error::lex(LexError::Syntax(
                             "Invalid left-hand side in assignment".into(),
@@ -125,7 +125,7 @@ where
                     .parse(cursor, interner)?;
 
                 // https://tc39.es/ecma262/#sec-update-expressions-static-semantics-early-errors
-                return (as_simple(&target, position, cursor.strict_mode())?).map_or_else(
+                return (as_simple(&target, position, cursor.strict())?).map_or_else(
                     || {
                         Err(Error::lex(LexError::Syntax(
                             "Invalid left-hand side in assignment".into(),
@@ -154,7 +154,7 @@ where
                         .expect("Punctuator::Inc token disappeared");
 
                     // https://tc39.es/ecma262/#sec-update-expressions-static-semantics-early-errors
-                    return (as_simple(&lhs, position, cursor.strict_mode())?).map_or_else(
+                    return (as_simple(&lhs, position, cursor.strict())?).map_or_else(
                         || {
                             Err(Error::lex(LexError::Syntax(
                                 "Invalid left-hand side in assignment".into(),
@@ -170,7 +170,7 @@ where
                         .expect("Punctuator::Dec token disappeared");
 
                     // https://tc39.es/ecma262/#sec-update-expressions-static-semantics-early-errors
-                    return (as_simple(&lhs, position, cursor.strict_mode())?).map_or_else(
+                    return (as_simple(&lhs, position, cursor.strict())?).map_or_else(
                         || {
                             Err(Error::lex(LexError::Syntax(
                                 "Invalid left-hand side in assignment".into(),

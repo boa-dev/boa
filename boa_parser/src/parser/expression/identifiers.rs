@@ -109,7 +109,7 @@ where
         let span = cursor.peek(0, interner).or_abrupt()?.span();
         let ident = Identifier.parse(cursor, interner)?;
         match ident.sym() {
-            Sym::ARGUMENTS | Sym::EVAL if cursor.strict_mode() => {
+            Sym::ARGUMENTS | Sym::EVAL if cursor.strict() => {
                 let name = interner
                     .resolve_expect(ident.sym())
                     .utf8()
@@ -178,7 +178,7 @@ where
             }
         };
 
-        if cursor.strict_mode() && ident.is_strict_reserved_identifier() {
+        if cursor.strict() && ident.is_strict_reserved_identifier() {
             return Err(Error::unexpected(
                 interner
                     .resolve_expect(ident)
@@ -189,7 +189,7 @@ where
             ));
         }
 
-        if cursor.module_mode() && ident == Sym::AWAIT {
+        if cursor.module() && ident == Sym::AWAIT {
             return Err(Error::unexpected(
                 "await",
                 tok.span(),

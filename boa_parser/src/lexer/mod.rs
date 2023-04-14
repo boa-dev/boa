@@ -71,23 +71,6 @@ pub struct Lexer<R> {
 }
 
 impl<R> Lexer<R> {
-    /// Checks if a character is whitespace as per ECMAScript standards.
-    ///
-    /// The Rust `char::is_whitespace` function and the ECMAScript standard use different sets of
-    /// characters as whitespaces:
-    ///  * Rust uses `\p{White_Space}`,
-    ///  * ECMAScript standard uses `\{Space_Separator}` + `\u{0009}`, `\u{000B}`, `\u{000C}`, `\u{FEFF}`
-    ///
-    /// [More information](https://tc39.es/ecma262/#table-32)
-    const fn is_whitespace(ch: u32) -> bool {
-        matches!(
-            ch,
-            0x0020 | 0x0009 | 0x000B | 0x000C | 0x00A0 | 0xFEFF |
-            // Unicode Space_Seperator category (minus \u{0020} and \u{00A0} which are allready stated above)
-            0x1680 | 0x2000..=0x200A | 0x202F | 0x205F | 0x3000
-        )
-    }
-
     /// Sets the goal symbol for the lexer.
     pub(crate) fn set_goal(&mut self, elm: InputElement) {
         self.goal_symbol = elm;
@@ -99,13 +82,23 @@ impl<R> Lexer<R> {
     }
 
     /// Returns if strict mode is currently active.
-    pub(super) const fn strict_mode(&self) -> bool {
-        self.cursor.strict_mode()
+    pub(super) const fn strict(&self) -> bool {
+        self.cursor.strict()
     }
 
     /// Sets the current strict mode.
-    pub(super) fn set_strict_mode(&mut self, strict_mode: bool) {
-        self.cursor.set_strict_mode(strict_mode);
+    pub(super) fn set_strict(&mut self, strict: bool) {
+        self.cursor.set_strict(strict);
+    }
+
+    /// Returns if module mode is currently active.
+    pub(super) const fn module(&self) -> bool {
+        self.cursor.module()
+    }
+
+    /// Signals that the goal symbol is a module
+    pub(super) fn set_module(&mut self, module: bool) {
+        self.cursor.set_module(module);
     }
 
     /// Creates a new lexer.
@@ -180,14 +173,38 @@ impl<R> Lexer<R> {
         }
     }
 
+    /// Skips an HTML close comment (`-->`) if the `annex-b` feature is enabled.
+    pub(crate) fn skip_html_close(&mut self, interner: &mut Interner) -> Result<(), Error>
+    where
+        R: Read,
+    {
+        if !cfg!(feature = "annex-b") || self.module() {
+            return Ok(());
+        }
+
+        while self.cursor.peek_char()?.map_or(false, is_whitespace) {
+            let _next = self.cursor.next_char();
+        }
+
+        if self.cursor.peek_n(3)? == [b'-', b'-', b'>'] {
+            let _next = self.cursor.next_byte();
+            let _next = self.cursor.next_byte();
+            let _next = self.cursor.next_byte();
+
+            let start = self.cursor.pos();
+            SingleLineComment.lex(&mut self.cursor, start, interner)?;
+        }
+
+        Ok(())
+    }
+
     /// Retrieves the next token from the lexer.
     ///
     /// # Errors
     ///
     /// Will return `Err` on invalid tokens and invalid reads of the bytes being lexed.
     // We intentionally don't implement Iterator trait as Result<Option> is cleaner to handle.
-    #[allow(clippy::should_implement_trait)]
-    pub fn next(&mut self, interner: &mut Interner) -> Result<Option<Token>, Error>
+    pub(crate) fn next_no_skip(&mut self, interner: &mut Interner) -> Result<Option<Token>, Error>
     where
         R: Read,
     {
@@ -197,7 +214,7 @@ impl<R> Lexer<R> {
             let start = self.cursor.pos();
             if let Some(next_ch) = self.cursor.next_char()? {
                 // Ignore whitespace
-                if !Self::is_whitespace(next_ch) {
+                if !is_whitespace(next_ch) {
                     break (start, next_ch);
                 }
             } else {
@@ -269,6 +286,14 @@ impl<R> Lexer<R> {
                 )),
                 '#' => PrivateIdentifier::new().lex(&mut self.cursor, start, interner),
                 '/' => self.lex_slash_token(start, interner),
+                #[cfg(feature = "annex-b")]
+                '<' if !self.module() && self.cursor.peek_n(3)? == [b'!', b'-', b'-'] => {
+                    let _next = self.cursor.next_byte();
+                    let _next = self.cursor.next_byte();
+                    let _next = self.cursor.next_byte();
+                    let start = self.cursor.pos();
+                    SingleLineComment.lex(&mut self.cursor, start, interner)
+                }
                 #[allow(clippy::cast_possible_truncation)]
                 '=' | '*' | '+' | '-' | '%' | '|' | '&' | '^' | '<' | '>' | '!' | '~' | '?' => {
                     Operator::new(next_ch as u8).lex(&mut self.cursor, start, interner)
@@ -311,6 +336,28 @@ impl<R> Lexer<R> {
         }
     }
 
+    /// Retrieves the next token from the lexer, skipping comments.
+    ///
+    /// # Errors
+    ///
+    /// Will return `Err` on invalid tokens and invalid reads of the bytes being lexed.
+    // We intentionally don't implement Iterator trait as Result<Option> is cleaner to handle.
+    #[allow(clippy::should_implement_trait)]
+    pub fn next(&mut self, interner: &mut Interner) -> Result<Option<Token>, Error>
+    where
+        R: Read,
+    {
+        loop {
+            let Some(next) = self.next_no_skip(interner)? else {
+                return Ok(None)
+            };
+
+            if next.kind() != &TokenKind::Comment {
+                return Ok(Some(next));
+            }
+        }
+    }
+
     /// Performs the lexing of a template literal.
     pub(crate) fn lex_template(
         &mut self,
@@ -338,4 +385,21 @@ impl Default for InputElement {
     fn default() -> Self {
         Self::RegExp
     }
+}
+
+/// Checks if a character is whitespace as per ECMAScript standards.
+///
+/// The Rust `char::is_whitespace` function and the ECMAScript standard use different sets of
+/// characters as whitespaces:
+///  * Rust uses `\p{White_Space}`,
+///  * ECMAScript standard uses `\{Space_Separator}` + `\u{0009}`, `\u{000B}`, `\u{000C}`, `\u{FEFF}`
+///
+/// [More information](https://tc39.es/ecma262/#table-32)
+const fn is_whitespace(ch: u32) -> bool {
+    matches!(
+        ch,
+        0x0020 | 0x0009 | 0x000B | 0x000C | 0x00A0 | 0xFEFF |
+            // Unicode Space_Seperator category (minus \u{0020} and \u{00A0} which are allready stated above)
+            0x1680 | 0x2000..=0x200A | 0x202F | 0x205F | 0x3000
+    )
 }

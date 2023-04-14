@@ -79,7 +79,7 @@ where
                 let target = self.parse(cursor, interner)?;
 
                 match target.flatten() {
-                    Expression::Identifier(_) if cursor.strict_mode() => {
+                    Expression::Identifier(_) if cursor.strict() => {
                         return Err(Error::lex(LexError::Syntax(
                             "cannot delete variables in strict mode".into(),
                             token_start,
