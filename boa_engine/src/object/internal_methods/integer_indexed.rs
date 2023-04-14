@@ -1,3 +1,5 @@
+use boa_macros::utf16;
+
 use crate::{
     builtins::{array_buffer::SharedMemoryOrder, typed_array::integer_indexed_object::ContentType},
     object::JsObject,
@@ -39,23 +41,29 @@ pub(crate) fn integer_indexed_exotic_get_own_property(
     // 1. If Type(P) is String, then
     // a. Let numericIndex be ! CanonicalNumericIndexString(P).
     // b. If numericIndex is not undefined, then
-    if let PropertyKey::Index(index) = key {
-        // i. Let value be ! IntegerIndexedElementGet(O, numericIndex).
-        // ii. If value is undefined, return undefined.
-        // iii. Return the PropertyDescriptor { [[Value]]: value, [[Writable]]: true, [[Enumerable]]: true, [[Configurable]]: true }.
-        Ok(
-            integer_indexed_element_get(obj, u64::from(*index)).map(|v| {
-                PropertyDescriptor::builder()
-                    .value(v)
-                    .writable(true)
-                    .enumerable(true)
-                    .configurable(true)
-                    .build()
-            }),
-        )
-    } else {
-        // 2. Return OrdinaryGetOwnProperty(O, P).
-        super::ordinary_get_own_property(obj, key, context)
+    match key {
+        PropertyKey::Index(index) => {
+            // i. Let value be ! IntegerIndexedElementGet(O, numericIndex).
+            // ii. If value is undefined, return undefined.
+            // iii. Return the PropertyDescriptor { [[Value]]: value, [[Writable]]: true, [[Enumerable]]: true, [[Configurable]]: true }.
+            Ok(
+                integer_indexed_element_get(obj, u64::from(*index)).map(|v| {
+                    PropertyDescriptor::builder()
+                        .value(v)
+                        .writable(true)
+                        .enumerable(true)
+                        .configurable(true)
+                        .build()
+                }),
+            )
+        }
+        // The following step is taken from https://tc39.es/ecma262/#sec-isvalidintegerindex :
+        //     Step 3. If index is -0𝔽, return false.
+        PropertyKey::String(string) if string == utf16!("-0") => Ok(None),
+        key => {
+            // 2. Return OrdinaryGetOwnProperty(O, P).
+            super::ordinary_get_own_property(obj, key, context)
+        }
     }
 }
 
@@ -72,12 +80,18 @@ pub(crate) fn integer_indexed_exotic_has_property(
 ) -> JsResult<bool> {
     // 1. If Type(P) is String, then
     // a. Let numericIndex be ! CanonicalNumericIndexString(P).
-    if let PropertyKey::Index(index) = key {
-        // b. If numericIndex is not undefined, return ! IsValidIntegerIndex(O, numericIndex).
-        Ok(is_valid_integer_index(obj, u64::from(*index)))
-    } else {
-        // 2. Return ? OrdinaryHasProperty(O, P).
-        super::ordinary_has_property(obj, key, context)
+    match key {
+        PropertyKey::Index(index) => {
+            // b. If numericIndex is not undefined, return ! IsValidIntegerIndex(O, numericIndex).
+            Ok(is_valid_integer_index(obj, u64::from(*index)))
+        }
+        // The following step is taken from https://tc39.es/ecma262/#sec-isvalidintegerindex :
+        //     Step 3. If index is -0𝔽, return false.
+        PropertyKey::String(string) if string == utf16!("-0") => Ok(false),
+        key => {
+            // 2. Return ? OrdinaryHasProperty(O, P).
+            super::ordinary_has_property(obj, key, context)
+        }
     }
 }
 
@@ -96,33 +110,37 @@ pub(crate) fn integer_indexed_exotic_define_own_property(
     // 1. If Type(P) is String, then
     // a. Let numericIndex be ! CanonicalNumericIndexString(P).
     // b. If numericIndex is not undefined, then
-    if let &PropertyKey::Index(index) = key {
-        // i. If ! IsValidIntegerIndex(O, numericIndex) is false, return false.
-        // ii. If Desc has a [[Configurable]] field and if Desc.[[Configurable]] is false, return false.
-        // iii. If Desc has an [[Enumerable]] field and if Desc.[[Enumerable]] is false, return false.
-        // v. If Desc has a [[Writable]] field and if Desc.[[Writable]] is false, return false.
-        // iv. If ! IsAccessorDescriptor(Desc) is true, return false.
-        if !is_valid_integer_index(obj, u64::from(index))
-            || !desc
-                .configurable()
-                .or_else(|| desc.enumerable())
-                .or_else(|| desc.writable())
-                .unwrap_or(true)
-            || desc.is_accessor_descriptor()
-        {
-            return Ok(false);
-        }
+    match key {
+        &PropertyKey::Index(index) => {
+            // i. If ! IsValidIntegerIndex(O, numericIndex) is false, return false.
+            // ii. If Desc has a [[Configurable]] field and if Desc.[[Configurable]] is false, return false.
+            // iii. If Desc has an [[Enumerable]] field and if Desc.[[Enumerable]] is false, return false.
+            // v. If Desc has a [[Writable]] field and if Desc.[[Writable]] is false, return false.
+            // iv. If ! IsAccessorDescriptor(Desc) is true, return false.
+            if !is_valid_integer_index(obj, u64::from(index))
+                || !desc
+                    .configurable()
+                    .or_else(|| desc.enumerable())
+                    .or_else(|| desc.writable())
+                    .unwrap_or(true)
+                || desc.is_accessor_descriptor()
+            {
+                return Ok(false);
+            }
 
-        // vi. If Desc has a [[Value]] field, perform ? IntegerIndexedElementSet(O, numericIndex, Desc.[[Value]]).
-        if let Some(value) = desc.value() {
-            integer_indexed_element_set(obj, index as usize, value, context)?;
-        }
+            // vi. If Desc has a [[Value]] field, perform ? IntegerIndexedElementSet(O, numericIndex, Desc.[[Value]]).
+            if let Some(value) = desc.value() {
+                integer_indexed_element_set(obj, index as usize, value, context)?;
+            }
 
-        // vii. Return true.
-        Ok(true)
-    } else {
-        // 2. Return ! OrdinaryDefineOwnProperty(O, P, Desc).
-        super::ordinary_define_own_property(obj, key, desc, context)
+            // vii. Return true.
+            Ok(true)
+        }
+        PropertyKey::String(string) if string == utf16!("-0") => Ok(false),
+        key => {
+            // 2. Return ! OrdinaryDefineOwnProperty(O, P, Desc).
+            super::ordinary_define_own_property(obj, key, desc, context)
+        }
     }
 }
 
@@ -141,12 +159,18 @@ pub(crate) fn integer_indexed_exotic_get(
     // 1. If Type(P) is String, then
     // a. Let numericIndex be ! CanonicalNumericIndexString(P).
     // b. If numericIndex is not undefined, then
-    if let PropertyKey::Index(index) = key {
-        // i. Return ! IntegerIndexedElementGet(O, numericIndex).
-        Ok(integer_indexed_element_get(obj, u64::from(*index)).unwrap_or_default())
-    } else {
-        // 2. Return ? OrdinaryGet(O, P, Receiver).
-        super::ordinary_get(obj, key, receiver, context)
+    match key {
+        PropertyKey::Index(index) => {
+            // i. Return ! IntegerIndexedElementGet(O, numericIndex).
+            Ok(integer_indexed_element_get(obj, u64::from(*index)).unwrap_or_default())
+        }
+        // The following step is taken from https://tc39.es/ecma262/#sec-isvalidintegerindex :
+        //     Step 3. If index is -0𝔽, return false.
+        PropertyKey::String(string) if string == utf16!("-0") => Ok(JsValue::undefined()),
+        key => {
+            // 2. Return ? OrdinaryGet(O, P, Receiver).
+            super::ordinary_get(obj, key, receiver, context)
+        }
     }
 }
 
@@ -166,15 +190,21 @@ pub(crate) fn integer_indexed_exotic_set(
     // 1. If Type(P) is String, then
     // a. Let numericIndex be ! CanonicalNumericIndexString(P).
     // b. If numericIndex is not undefined, then
-    if let PropertyKey::Index(index) = key {
-        // i. Perform ? IntegerIndexedElementSet(O, numericIndex, V).
-        integer_indexed_element_set(obj, index as usize, &value, context)?;
+    match key {
+        PropertyKey::Index(index) => {
+            // i. Perform ? IntegerIndexedElementSet(O, numericIndex, V).
+            integer_indexed_element_set(obj, index as usize, &value, context)?;
 
-        // ii. Return true.
-        Ok(true)
-    } else {
-        // 2. Return ? OrdinarySet(O, P, V, Receiver).
-        super::ordinary_set(obj, key, value, receiver, context)
+            // ii. Return true.
+            Ok(true)
+        }
+        // The following step is taken from https://tc39.es/ecma262/#sec-isvalidintegerindex :
+        //     Step 3. If index is -0𝔽, return false.
+        PropertyKey::String(string) if &string == utf16!("-0") => Ok(false),
+        key => {
+            // 2. Return ? OrdinarySet(O, P, V, Receiver).
+            super::ordinary_set(obj, key, value, receiver, context)
+        }
     }
 }
 
@@ -192,12 +222,33 @@ pub(crate) fn integer_indexed_exotic_delete(
     // 1. If Type(P) is String, then
     // a. Let numericIndex be ! CanonicalNumericIndexString(P).
     // b. If numericIndex is not undefined, then
-    if let PropertyKey::Index(index) = key {
-        // i. If ! IsValidIntegerIndex(O, numericIndex) is false, return true; else return false.
-        Ok(!is_valid_integer_index(obj, u64::from(*index)))
-    } else {
-        // 2. Return ? OrdinaryDelete(O, P).
-        super::ordinary_delete(obj, key, context)
+    match key {
+        PropertyKey::Index(index) => {
+            // i. If ! IsValidIntegerIndex(O, numericIndex) is false, return true; else return false.
+            Ok(!is_valid_integer_index(obj, u64::from(*index)))
+        }
+        // The following step is taken from https://tc39.es/ecma262/#sec-isvalidintegerindex :
+        //     Step 3. If index is -0𝔽, return false.
+        PropertyKey::String(string) if string == utf16!("-0") => {
+            let obj = obj.borrow();
+            let inner = obj.as_typed_array().expect(
+                "integer indexed exotic method should only be callable from integer indexed objects",
+            );
+            // 1. If IsValidIntegerIndex(O, numericIndex) is false, return true; else return false.
+            //    From IsValidIntegerIndex:
+            //        1. If IsDetachedBuffer(O.[[ViewedArrayBuffer]]) is true, return false.
+            //        3. If index is -0𝔽, return false.
+            //
+            // NOTE: They are negated, so it should return true.
+            if inner.is_detached() {
+                return Ok(true);
+            }
+            Ok(true)
+        }
+        key => {
+            // 2. Return ? OrdinaryDelete(O, P).
+            super::ordinary_delete(obj, key, context)
+        }
     }
 }
 
@@ -263,10 +314,18 @@ pub(crate) fn is_valid_integer_index(obj: &JsObject, index: u64) -> bool {
         "integer indexed exotic method should only be callable from integer indexed objects",
     );
     // 1. If IsDetachedBuffer(O.[[ViewedArrayBuffer]]) is true, return false.
-    // 2. If ! IsIntegralNumber(index) is false, return false.
-    // 3. If index is -0𝔽, return false.
+    //
+    // SKIPPED: 2. If ! IsIntegralNumber(index) is false, return false.
+    // NOTE: This step has already been done when we construct a PropertyKey.
+    //
+    // MOVED: 3. If index is -0𝔽, return false.
+    // NOTE: This step has been moved into the callers of this functions,
+    //       once we get the index it is already converted into unsigned integer
+    //       index, it cannot be `-0`.
+
     // 4. If ℝ(index) < 0 or ℝ(index) ≥ O.[[ArrayLength]], return false.
     // 5. Return true.
+
     !inner.is_detached() && index < inner.array_length()
 }
 
