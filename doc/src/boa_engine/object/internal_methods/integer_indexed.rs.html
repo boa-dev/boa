@@ -382,7 +382,68 @@
 <a href="#381" id="381">381</a>
 <a href="#382" id="382">382</a>
 <a href="#383" id="383">383</a>
-</pre><pre class="rust"><code><span class="kw">use crate</span>::{
+<a href="#384" id="384">384</a>
+<a href="#385" id="385">385</a>
+<a href="#386" id="386">386</a>
+<a href="#387" id="387">387</a>
+<a href="#388" id="388">388</a>
+<a href="#389" id="389">389</a>
+<a href="#390" id="390">390</a>
+<a href="#391" id="391">391</a>
+<a href="#392" id="392">392</a>
+<a href="#393" id="393">393</a>
+<a href="#394" id="394">394</a>
+<a href="#395" id="395">395</a>
+<a href="#396" id="396">396</a>
+<a href="#397" id="397">397</a>
+<a href="#398" id="398">398</a>
+<a href="#399" id="399">399</a>
+<a href="#400" id="400">400</a>
+<a href="#401" id="401">401</a>
+<a href="#402" id="402">402</a>
+<a href="#403" id="403">403</a>
+<a href="#404" id="404">404</a>
+<a href="#405" id="405">405</a>
+<a href="#406" id="406">406</a>
+<a href="#407" id="407">407</a>
+<a href="#408" id="408">408</a>
+<a href="#409" id="409">409</a>
+<a href="#410" id="410">410</a>
+<a href="#411" id="411">411</a>
+<a href="#412" id="412">412</a>
+<a href="#413" id="413">413</a>
+<a href="#414" id="414">414</a>
+<a href="#415" id="415">415</a>
+<a href="#416" id="416">416</a>
+<a href="#417" id="417">417</a>
+<a href="#418" id="418">418</a>
+<a href="#419" id="419">419</a>
+<a href="#420" id="420">420</a>
+<a href="#421" id="421">421</a>
+<a href="#422" id="422">422</a>
+<a href="#423" id="423">423</a>
+<a href="#424" id="424">424</a>
+<a href="#425" id="425">425</a>
+<a href="#426" id="426">426</a>
+<a href="#427" id="427">427</a>
+<a href="#428" id="428">428</a>
+<a href="#429" id="429">429</a>
+<a href="#430" id="430">430</a>
+<a href="#431" id="431">431</a>
+<a href="#432" id="432">432</a>
+<a href="#433" id="433">433</a>
+<a href="#434" id="434">434</a>
+<a href="#435" id="435">435</a>
+<a href="#436" id="436">436</a>
+<a href="#437" id="437">437</a>
+<a href="#438" id="438">438</a>
+<a href="#439" id="439">439</a>
+<a href="#440" id="440">440</a>
+<a href="#441" id="441">441</a>
+<a href="#442" id="442">442</a>
+</pre><pre class="rust"><code><span class="kw">use </span>boa_macros::utf16;
+
+<span class="kw">use crate</span>::{
     builtins::{array_buffer::SharedMemoryOrder, typed_array::integer_indexed_object::ContentType},
     object::JsObject,
     property::{PropertyDescriptor, PropertyKey},
@@ -423,23 +484,29 @@
     <span class="comment">// 1. If Type(P) is String, then
     // a. Let numericIndex be ! CanonicalNumericIndexString(P).
     // b. If numericIndex is not undefined, then
-    </span><span class="kw">if let </span>PropertyKey::Index(index) = key {
-        <span class="comment">// i. Let value be ! IntegerIndexedElementGet(O, numericIndex).
-        // ii. If value is undefined, return undefined.
-        // iii. Return the PropertyDescriptor { [[Value]]: value, [[Writable]]: true, [[Enumerable]]: true, [[Configurable]]: true }.
-        </span><span class="prelude-val">Ok</span>(
-            integer_indexed_element_get(obj, u64::from(<span class="kw-2">*</span>index)).map(|v| {
-                PropertyDescriptor::builder()
-                    .value(v)
-                    .writable(<span class="bool-val">true</span>)
-                    .enumerable(<span class="bool-val">true</span>)
-                    .configurable(<span class="bool-val">true</span>)
-                    .build()
-            }),
-        )
-    } <span class="kw">else </span>{
-        <span class="comment">// 2. Return OrdinaryGetOwnProperty(O, P).
-        </span><span class="kw">super</span>::ordinary_get_own_property(obj, key, context)
+    </span><span class="kw">match </span>key {
+        PropertyKey::Index(index) =&gt; {
+            <span class="comment">// i. Let value be ! IntegerIndexedElementGet(O, numericIndex).
+            // ii. If value is undefined, return undefined.
+            // iii. Return the PropertyDescriptor { [[Value]]: value, [[Writable]]: true, [[Enumerable]]: true, [[Configurable]]: true }.
+            </span><span class="prelude-val">Ok</span>(
+                integer_indexed_element_get(obj, u64::from(<span class="kw-2">*</span>index)).map(|v| {
+                    PropertyDescriptor::builder()
+                        .value(v)
+                        .writable(<span class="bool-val">true</span>)
+                        .enumerable(<span class="bool-val">true</span>)
+                        .configurable(<span class="bool-val">true</span>)
+                        .build()
+                }),
+            )
+        }
+        <span class="comment">// The following step is taken from https://tc39.es/ecma262/#sec-isvalidintegerindex :
+        //     Step 3. If index is -0𝔽, return false.
+        </span>PropertyKey::String(string) <span class="kw">if </span>string == <span class="macro">utf16!</span>(<span class="string">&quot;-0&quot;</span>) =&gt; <span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>),
+        key =&gt; {
+            <span class="comment">// 2. Return OrdinaryGetOwnProperty(O, P).
+            </span><span class="kw">super</span>::ordinary_get_own_property(obj, key, context)
+        }
     }
 }
 
@@ -456,12 +523,18 @@
 ) -&gt; JsResult&lt;bool&gt; {
     <span class="comment">// 1. If Type(P) is String, then
     // a. Let numericIndex be ! CanonicalNumericIndexString(P).
-    </span><span class="kw">if let </span>PropertyKey::Index(index) = key {
-        <span class="comment">// b. If numericIndex is not undefined, return ! IsValidIntegerIndex(O, numericIndex).
-        </span><span class="prelude-val">Ok</span>(is_valid_integer_index(obj, u64::from(<span class="kw-2">*</span>index)))
-    } <span class="kw">else </span>{
-        <span class="comment">// 2. Return ? OrdinaryHasProperty(O, P).
-        </span><span class="kw">super</span>::ordinary_has_property(obj, key, context)
+    </span><span class="kw">match </span>key {
+        PropertyKey::Index(index) =&gt; {
+            <span class="comment">// b. If numericIndex is not undefined, return ! IsValidIntegerIndex(O, numericIndex).
+            </span><span class="prelude-val">Ok</span>(is_valid_integer_index(obj, u64::from(<span class="kw-2">*</span>index)))
+        }
+        <span class="comment">// The following step is taken from https://tc39.es/ecma262/#sec-isvalidintegerindex :
+        //     Step 3. If index is -0𝔽, return false.
+        </span>PropertyKey::String(string) <span class="kw">if </span>string == <span class="macro">utf16!</span>(<span class="string">&quot;-0&quot;</span>) =&gt; <span class="prelude-val">Ok</span>(<span class="bool-val">false</span>),
+        key =&gt; {
+            <span class="comment">// 2. Return ? OrdinaryHasProperty(O, P).
+            </span><span class="kw">super</span>::ordinary_has_property(obj, key, context)
+        }
     }
 }
 
@@ -480,33 +553,37 @@
     <span class="comment">// 1. If Type(P) is String, then
     // a. Let numericIndex be ! CanonicalNumericIndexString(P).
     // b. If numericIndex is not undefined, then
-    </span><span class="kw">if let </span><span class="kw-2">&amp;</span>PropertyKey::Index(index) = key {
-        <span class="comment">// i. If ! IsValidIntegerIndex(O, numericIndex) is false, return false.
-        // ii. If Desc has a [[Configurable]] field and if Desc.[[Configurable]] is false, return false.
-        // iii. If Desc has an [[Enumerable]] field and if Desc.[[Enumerable]] is false, return false.
-        // v. If Desc has a [[Writable]] field and if Desc.[[Writable]] is false, return false.
-        // iv. If ! IsAccessorDescriptor(Desc) is true, return false.
-        </span><span class="kw">if </span>!is_valid_integer_index(obj, u64::from(index))
-            || !desc
-                .configurable()
-                .or_else(|| desc.enumerable())
-                .or_else(|| desc.writable())
-                .unwrap_or(<span class="bool-val">true</span>)
-            || desc.is_accessor_descriptor()
-        {
-            <span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="bool-val">false</span>);
-        }
+    </span><span class="kw">match </span>key {
+        <span class="kw-2">&amp;</span>PropertyKey::Index(index) =&gt; {
+            <span class="comment">// i. If ! IsValidIntegerIndex(O, numericIndex) is false, return false.
+            // ii. If Desc has a [[Configurable]] field and if Desc.[[Configurable]] is false, return false.
+            // iii. If Desc has an [[Enumerable]] field and if Desc.[[Enumerable]] is false, return false.
+            // v. If Desc has a [[Writable]] field and if Desc.[[Writable]] is false, return false.
+            // iv. If ! IsAccessorDescriptor(Desc) is true, return false.
+            </span><span class="kw">if </span>!is_valid_integer_index(obj, u64::from(index))
+                || !desc
+                    .configurable()
+                    .or_else(|| desc.enumerable())
+                    .or_else(|| desc.writable())
+                    .unwrap_or(<span class="bool-val">true</span>)
+                || desc.is_accessor_descriptor()
+            {
+                <span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="bool-val">false</span>);
+            }
 
-        <span class="comment">// vi. If Desc has a [[Value]] field, perform ? IntegerIndexedElementSet(O, numericIndex, Desc.[[Value]]).
-        </span><span class="kw">if let </span><span class="prelude-val">Some</span>(value) = desc.value() {
-            integer_indexed_element_set(obj, index <span class="kw">as </span>usize, value, context)<span class="question-mark">?</span>;
-        }
+            <span class="comment">// vi. If Desc has a [[Value]] field, perform ? IntegerIndexedElementSet(O, numericIndex, Desc.[[Value]]).
+            </span><span class="kw">if let </span><span class="prelude-val">Some</span>(value) = desc.value() {
+                integer_indexed_element_set(obj, index <span class="kw">as </span>usize, value, context)<span class="question-mark">?</span>;
+            }
 
-        <span class="comment">// vii. Return true.
-        </span><span class="prelude-val">Ok</span>(<span class="bool-val">true</span>)
-    } <span class="kw">else </span>{
-        <span class="comment">// 2. Return ! OrdinaryDefineOwnProperty(O, P, Desc).
-        </span><span class="kw">super</span>::ordinary_define_own_property(obj, key, desc, context)
+            <span class="comment">// vii. Return true.
+            </span><span class="prelude-val">Ok</span>(<span class="bool-val">true</span>)
+        }
+        PropertyKey::String(string) <span class="kw">if </span>string == <span class="macro">utf16!</span>(<span class="string">&quot;-0&quot;</span>) =&gt; <span class="prelude-val">Ok</span>(<span class="bool-val">false</span>),
+        key =&gt; {
+            <span class="comment">// 2. Return ! OrdinaryDefineOwnProperty(O, P, Desc).
+            </span><span class="kw">super</span>::ordinary_define_own_property(obj, key, desc, context)
+        }
     }
 }
 
@@ -525,12 +602,18 @@
     <span class="comment">// 1. If Type(P) is String, then
     // a. Let numericIndex be ! CanonicalNumericIndexString(P).
     // b. If numericIndex is not undefined, then
-    </span><span class="kw">if let </span>PropertyKey::Index(index) = key {
-        <span class="comment">// i. Return ! IntegerIndexedElementGet(O, numericIndex).
-        </span><span class="prelude-val">Ok</span>(integer_indexed_element_get(obj, u64::from(<span class="kw-2">*</span>index)).unwrap_or_default())
-    } <span class="kw">else </span>{
-        <span class="comment">// 2. Return ? OrdinaryGet(O, P, Receiver).
-        </span><span class="kw">super</span>::ordinary_get(obj, key, receiver, context)
+    </span><span class="kw">match </span>key {
+        PropertyKey::Index(index) =&gt; {
+            <span class="comment">// i. Return ! IntegerIndexedElementGet(O, numericIndex).
+            </span><span class="prelude-val">Ok</span>(integer_indexed_element_get(obj, u64::from(<span class="kw-2">*</span>index)).unwrap_or_default())
+        }
+        <span class="comment">// The following step is taken from https://tc39.es/ecma262/#sec-isvalidintegerindex :
+        //     Step 3. If index is -0𝔽, return false.
+        </span>PropertyKey::String(string) <span class="kw">if </span>string == <span class="macro">utf16!</span>(<span class="string">&quot;-0&quot;</span>) =&gt; <span class="prelude-val">Ok</span>(JsValue::undefined()),
+        key =&gt; {
+            <span class="comment">// 2. Return ? OrdinaryGet(O, P, Receiver).
+            </span><span class="kw">super</span>::ordinary_get(obj, key, receiver, context)
+        }
     }
 }
 
@@ -550,15 +633,21 @@
     <span class="comment">// 1. If Type(P) is String, then
     // a. Let numericIndex be ! CanonicalNumericIndexString(P).
     // b. If numericIndex is not undefined, then
-    </span><span class="kw">if let </span>PropertyKey::Index(index) = key {
-        <span class="comment">// i. Perform ? IntegerIndexedElementSet(O, numericIndex, V).
-        </span>integer_indexed_element_set(obj, index <span class="kw">as </span>usize, <span class="kw-2">&amp;</span>value, context)<span class="question-mark">?</span>;
+    </span><span class="kw">match </span>key {
+        PropertyKey::Index(index) =&gt; {
+            <span class="comment">// i. Perform ? IntegerIndexedElementSet(O, numericIndex, V).
+            </span>integer_indexed_element_set(obj, index <span class="kw">as </span>usize, <span class="kw-2">&amp;</span>value, context)<span class="question-mark">?</span>;
 
-        <span class="comment">// ii. Return true.
-        </span><span class="prelude-val">Ok</span>(<span class="bool-val">true</span>)
-    } <span class="kw">else </span>{
-        <span class="comment">// 2. Return ? OrdinarySet(O, P, V, Receiver).
-        </span><span class="kw">super</span>::ordinary_set(obj, key, value, receiver, context)
+            <span class="comment">// ii. Return true.
+            </span><span class="prelude-val">Ok</span>(<span class="bool-val">true</span>)
+        }
+        <span class="comment">// The following step is taken from https://tc39.es/ecma262/#sec-isvalidintegerindex :
+        //     Step 3. If index is -0𝔽, return false.
+        </span>PropertyKey::String(string) <span class="kw">if </span><span class="kw-2">&amp;</span>string == <span class="macro">utf16!</span>(<span class="string">&quot;-0&quot;</span>) =&gt; <span class="prelude-val">Ok</span>(<span class="bool-val">false</span>),
+        key =&gt; {
+            <span class="comment">// 2. Return ? OrdinarySet(O, P, V, Receiver).
+            </span><span class="kw">super</span>::ordinary_set(obj, key, value, receiver, context)
+        }
     }
 }
 
@@ -576,12 +665,33 @@
     <span class="comment">// 1. If Type(P) is String, then
     // a. Let numericIndex be ! CanonicalNumericIndexString(P).
     // b. If numericIndex is not undefined, then
-    </span><span class="kw">if let </span>PropertyKey::Index(index) = key {
-        <span class="comment">// i. If ! IsValidIntegerIndex(O, numericIndex) is false, return true; else return false.
-        </span><span class="prelude-val">Ok</span>(!is_valid_integer_index(obj, u64::from(<span class="kw-2">*</span>index)))
-    } <span class="kw">else </span>{
-        <span class="comment">// 2. Return ? OrdinaryDelete(O, P).
-        </span><span class="kw">super</span>::ordinary_delete(obj, key, context)
+    </span><span class="kw">match </span>key {
+        PropertyKey::Index(index) =&gt; {
+            <span class="comment">// i. If ! IsValidIntegerIndex(O, numericIndex) is false, return true; else return false.
+            </span><span class="prelude-val">Ok</span>(!is_valid_integer_index(obj, u64::from(<span class="kw-2">*</span>index)))
+        }
+        <span class="comment">// The following step is taken from https://tc39.es/ecma262/#sec-isvalidintegerindex :
+        //     Step 3. If index is -0𝔽, return false.
+        </span>PropertyKey::String(string) <span class="kw">if </span>string == <span class="macro">utf16!</span>(<span class="string">&quot;-0&quot;</span>) =&gt; {
+            <span class="kw">let </span>obj = obj.borrow();
+            <span class="kw">let </span>inner = obj.as_typed_array().expect(
+                <span class="string">&quot;integer indexed exotic method should only be callable from integer indexed objects&quot;</span>,
+            );
+            <span class="comment">// 1. If IsValidIntegerIndex(O, numericIndex) is false, return true; else return false.
+            //    From IsValidIntegerIndex:
+            //        1. If IsDetachedBuffer(O.[[ViewedArrayBuffer]]) is true, return false.
+            //        3. If index is -0𝔽, return false.
+            //
+            // NOTE: They are negated, so it should return true.
+            </span><span class="kw">if </span>inner.is_detached() {
+                <span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="bool-val">true</span>);
+            }
+            <span class="prelude-val">Ok</span>(<span class="bool-val">true</span>)
+        }
+        key =&gt; {
+            <span class="comment">// 2. Return ? OrdinaryDelete(O, P).
+            </span><span class="kw">super</span>::ordinary_delete(obj, key, context)
+        }
     }
 }
 
@@ -647,10 +757,18 @@
         <span class="string">&quot;integer indexed exotic method should only be callable from integer indexed objects&quot;</span>,
     );
     <span class="comment">// 1. If IsDetachedBuffer(O.[[ViewedArrayBuffer]]) is true, return false.
-    // 2. If ! IsIntegralNumber(index) is false, return false.
-    // 3. If index is -0𝔽, return false.
+    //
+    // SKIPPED: 2. If ! IsIntegralNumber(index) is false, return false.
+    // NOTE: This step has already been done when we construct a PropertyKey.
+    //
+    // MOVED: 3. If index is -0𝔽, return false.
+    // NOTE: This step has been moved into the callers of this functions,
+    //       once we get the index it is already converted into unsigned integer
+    //       index, it cannot be `-0`.
+
     // 4. If ℝ(index) &lt; 0 or ℝ(index) ≥ O.[[ArrayLength]], return false.
     // 5. Return true.
+
     </span>!inner.is_detached() &amp;&amp; index &lt; inner.array_length()
 }
 
