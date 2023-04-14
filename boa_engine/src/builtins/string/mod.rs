@@ -1653,7 +1653,6 @@ impl String {
     /// The value will be **converted** to a string if it isn't one.
     ///
     /// More information:
-    ///  - [ECMAScript reference][spec]
     ///  - [MDN documentation][mdn]
     ///
     /// [upper]: https://tc39.es/ecma262/#sec-string.prototype.toUppercase
