@@ -1144,7 +1144,6 @@
 <a href="#1143" id="1143">1143</a>
 <a href="#1144" id="1144">1144</a>
 <a href="#1145" id="1145">1145</a>
-<a href="#1146" id="1146">1146</a>
 </pre><pre class="rust"><code><span class="doccomment">//! Boa&#39;s implementation of ECMAScript&#39;s global `Function` object and Native Functions.
 //!
 //! Objects wrap `Function`s and expose them via call/construct slots.
@@ -1761,10 +1760,9 @@
             } <span class="kw">else </span>{
                 <span class="kw">let </span><span class="kw-2">mut </span>parameters = Vec::with_capacity(args.len());
                 <span class="kw">for </span>arg <span class="kw">in </span>args {
-                    parameters.push(arg.to_string(context)<span class="question-mark">?</span>.as_slice().to_owned());
+                    parameters.push(arg.to_string(context)<span class="question-mark">?</span>);
                 }
-                <span class="kw">let </span><span class="kw-2">mut </span>parameters = parameters.join(<span class="macro">utf16!</span>(<span class="string">&quot;,&quot;</span>));
-                parameters.push(u16::from(<span class="string">b&#39;)&#39;</span>));
+                <span class="kw">let </span>parameters = parameters.join(<span class="macro">utf16!</span>(<span class="string">&quot;,&quot;</span>));
 
                 <span class="comment">// TODO: make parser generic to u32 iterators
                 </span><span class="kw">let </span>parameters =

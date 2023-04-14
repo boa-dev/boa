@@ -271,7 +271,7 @@
         <span class="comment">// If the source text matched by FormalParameters is strict mode code,
         // the Early Error rules for UniqueFormalParameters : FormalParameters are applied.
         // https://tc39.es/ecma262/#sec-generator-function-definitions-static-semantics-early-errors
-        </span><span class="kw">if </span>(cursor.strict_mode() || body.strict()) &amp;&amp; params.has_duplicates() {
+        </span><span class="kw">if </span>(cursor.strict() || body.strict()) &amp;&amp; params.has_duplicates() {
             <span class="kw">return </span><span class="prelude-val">Err</span>(Error::lex(LexError::Syntax(
                 <span class="string">&quot;Duplicate parameter name not allowed in this context&quot;</span>.into(),
                 params_start_position,
@@ -291,7 +291,7 @@
         <span class="comment">// Early Error: If BindingIdentifier is present and the source code matching BindingIdentifier is strict mode code,
         // it is a Syntax Error if the StringValue of BindingIdentifier is &quot;eval&quot; or &quot;arguments&quot;.
         </span><span class="kw">if let </span><span class="prelude-val">Some</span>(name) = name {
-            <span class="kw">if </span>(cursor.strict_mode() || body.strict())
+            <span class="kw">if </span>(cursor.strict() || body.strict())
                 &amp;&amp; [Sym::EVAL, Sym::ARGUMENTS].contains(<span class="kw-2">&amp;</span>name.sym())
             {
                 <span class="kw">return </span><span class="prelude-val">Err</span>(Error::lex(LexError::Syntax(

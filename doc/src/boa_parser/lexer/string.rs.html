@@ -439,7 +439,7 @@
         <span class="kw">let </span>_timer = Profiler::global().start_event(<span class="string">&quot;StringLiteral&quot;</span>, <span class="string">&quot;Lexing&quot;</span>);
 
         <span class="kw">let </span>(lit, span, escape_sequence) =
-            <span class="self">Self</span>::take_string_characters(cursor, start_pos, <span class="self">self</span>.terminator, cursor.strict_mode())<span class="question-mark">?</span>;
+            <span class="self">Self</span>::take_string_characters(cursor, start_pos, <span class="self">self</span>.terminator, cursor.strict())<span class="question-mark">?</span>;
 
         <span class="prelude-val">Ok</span>(Token::new(
             TokenKind::string_literal(interner.get_or_intern(<span class="kw-2">&amp;</span>lit[..]), escape_sequence),
@@ -466,7 +466,7 @@
         cursor: <span class="kw-2">&amp;mut </span>Cursor&lt;R&gt;,
         start_pos: Position,
         terminator: StringTerminator,
-        is_strict_mode: bool,
+        strict: bool,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;(Vec&lt;u16&gt;, Span, <span class="prelude-ty">Option</span>&lt;EscapeSequence&gt;), Error&gt;
     <span class="kw">where
         </span>R: Read,
@@ -489,7 +489,7 @@
                         <span class="self">Self</span>::take_escape_sequence_or_line_continuation(
                             cursor,
                             ch_start_pos,
-                            is_strict_mode,
+                            strict,
                             <span class="bool-val">false</span>,
                         )<span class="question-mark">?
                     </span>{
@@ -517,7 +517,7 @@
     <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>take_escape_sequence_or_line_continuation&lt;R&gt;(
         cursor: <span class="kw-2">&amp;mut </span>Cursor&lt;R&gt;,
         start_pos: Position,
-        is_strict_mode: bool,
+        strict: bool,
         is_template_literal: bool,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;(u32, <span class="prelude-ty">Option</span>&lt;EscapeSequence&gt;)&gt;, Error&gt;
     <span class="kw">where
@@ -558,7 +558,7 @@
                         <span class="string">&quot;\\8 and \\9 are not allowed in template literal&quot;</span>,
                         start_pos,
                     ));
-                } <span class="kw">else if </span>is_strict_mode {
+                } <span class="kw">else if </span>strict {
                     <span class="kw">return </span><span class="prelude-val">Err</span>(Error::syntax(
                         <span class="string">&quot;\\8 and \\9 are not allowed in strict mode&quot;</span>,
                         start_pos,
@@ -574,7 +574,7 @@
                     ));
                 }
 
-                <span class="kw">if </span>is_strict_mode {
+                <span class="kw">if </span>strict {
                     <span class="kw">return </span><span class="prelude-val">Err</span>(Error::syntax(
                         <span class="string">&quot;octal escape sequences are not allowed in strict mode&quot;</span>,
                         start_pos,

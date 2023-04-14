@@ -123,8 +123,8 @@
 
     <span class="kw">fn </span>parse(<span class="self">self</span>, cursor: <span class="kw-2">&amp;mut </span>Cursor&lt;R&gt;, interner: <span class="kw-2">&amp;mut </span>Interner) -&gt; ParseResult&lt;<span class="self">Self</span>::Output&gt; {
         <span class="kw">let </span>_timer = Profiler::global().start_event(<span class="string">&quot;ClassExpression&quot;</span>, <span class="string">&quot;Parsing&quot;</span>);
-        <span class="kw">let </span>strict = cursor.strict_mode();
-        cursor.set_strict_mode(<span class="bool-val">true</span>);
+        <span class="kw">let </span>strict = cursor.strict();
+        cursor.set_strict(<span class="bool-val">true</span>);
 
         <span class="kw">let </span><span class="kw-2">mut </span>has_binding_identifier = <span class="bool-val">false</span>;
         <span class="kw">let </span>token = cursor.peek(<span class="number">0</span>, interner).or_abrupt()<span class="question-mark">?</span>;
@@ -138,7 +138,7 @@
             }
             <span class="kw">_ </span>=&gt; <span class="self">self</span>.name,
         };
-        cursor.set_strict_mode(strict);
+        cursor.set_strict(strict);
 
         ClassTail::new(
             name,

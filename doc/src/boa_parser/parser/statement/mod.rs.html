@@ -1260,7 +1260,7 @@
         <span class="kw">let </span>_timer = Profiler::global().start_event(<span class="string">&quot;StatementList&quot;</span>, <span class="string">&quot;Parsing&quot;</span>);
         <span class="kw">let </span><span class="kw-2">mut </span>items = Vec::new();
 
-        <span class="kw">let </span>global_strict = cursor.strict_mode();
+        <span class="kw">let </span>global_strict = cursor.strict();
         <span class="kw">let </span><span class="kw-2">mut </span>directive_prologues = <span class="self">self</span>.directive_prologues;
         <span class="kw">let </span><span class="kw-2">mut </span>strict = <span class="self">self</span>.strict;
         <span class="kw">let </span><span class="kw-2">mut </span>string_literal_escape_sequence = <span class="prelude-val">None</span>;
@@ -1292,7 +1292,7 @@
                         |g| g == <span class="macro">utf16!</span>(<span class="string">&quot;use strict&quot;</span>),
                         <span class="bool-val">true</span>,
                     ) {
-                        cursor.set_strict_mode(<span class="bool-val">true</span>);
+                        cursor.set_strict(<span class="bool-val">true</span>);
                         strict = <span class="bool-val">true</span>;
 
                         <span class="kw">if let </span><span class="prelude-val">Some</span>((position, escape_sequence)) = string_literal_escape_sequence {
@@ -1320,7 +1320,7 @@
 
         items.sort_by(ast::StatementListItem::hoistable_order);
 
-        cursor.set_strict_mode(global_strict);
+        cursor.set_strict(global_strict);
 
         <span class="prelude-val">Ok</span>(ast::StatementList::new(items, strict))
     }

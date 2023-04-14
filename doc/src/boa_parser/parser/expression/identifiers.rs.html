@@ -323,7 +323,7 @@
         <span class="kw">let </span>span = cursor.peek(<span class="number">0</span>, interner).or_abrupt()<span class="question-mark">?</span>.span();
         <span class="kw">let </span>ident = Identifier.parse(cursor, interner)<span class="question-mark">?</span>;
         <span class="kw">match </span>ident.sym() {
-            Sym::ARGUMENTS | Sym::EVAL <span class="kw">if </span>cursor.strict_mode() =&gt; {
+            Sym::ARGUMENTS | Sym::EVAL <span class="kw">if </span>cursor.strict() =&gt; {
                 <span class="kw">let </span>name = interner
                     .resolve_expect(ident.sym())
                     .utf8()
@@ -392,7 +392,7 @@
             }
         };
 
-        <span class="kw">if </span>cursor.strict_mode() &amp;&amp; ident.is_strict_reserved_identifier() {
+        <span class="kw">if </span>cursor.strict() &amp;&amp; ident.is_strict_reserved_identifier() {
             <span class="kw">return </span><span class="prelude-val">Err</span>(Error::unexpected(
                 interner
                     .resolve_expect(ident)
@@ -403,7 +403,7 @@
             ));
         }
 
-        <span class="kw">if </span>cursor.module_mode() &amp;&amp; ident == Sym::AWAIT {
+        <span class="kw">if </span>cursor.module() &amp;&amp; ident == Sym::AWAIT {
             <span class="kw">return </span><span class="prelude-val">Err</span>(Error::unexpected(
                 <span class="string">&quot;await&quot;</span>,
                 tok.span(),

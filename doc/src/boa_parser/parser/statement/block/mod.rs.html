@@ -235,7 +235,7 @@
         </span><span class="kw">let </span><span class="kw-2">mut </span>lexical_names = FxHashMap::default();
         <span class="kw">for </span>(name, is_fn) <span class="kw">in </span>lexically_declared_names_legacy(<span class="kw-2">&amp;</span>statement_list) {
             <span class="kw">if let </span><span class="prelude-val">Some</span>(is_fn_previous) = lexical_names.insert(name, is_fn) {
-                <span class="kw">match </span>(cursor.strict_mode(), is_fn, is_fn_previous) {
+                <span class="kw">match </span>(cursor.strict(), is_fn, is_fn_previous) {
                     (<span class="bool-val">false</span>, <span class="bool-val">true</span>, <span class="bool-val">true</span>) =&gt; {}
                     <span class="kw">_ </span>=&gt; {
                         <span class="kw">return </span><span class="prelude-val">Err</span>(Error::general(

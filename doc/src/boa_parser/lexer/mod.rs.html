@@ -340,6 +340,70 @@
 <a href="#339" id="339">339</a>
 <a href="#340" id="340">340</a>
 <a href="#341" id="341">341</a>
+<a href="#342" id="342">342</a>
+<a href="#343" id="343">343</a>
+<a href="#344" id="344">344</a>
+<a href="#345" id="345">345</a>
+<a href="#346" id="346">346</a>
+<a href="#347" id="347">347</a>
+<a href="#348" id="348">348</a>
+<a href="#349" id="349">349</a>
+<a href="#350" id="350">350</a>
+<a href="#351" id="351">351</a>
+<a href="#352" id="352">352</a>
+<a href="#353" id="353">353</a>
+<a href="#354" id="354">354</a>
+<a href="#355" id="355">355</a>
+<a href="#356" id="356">356</a>
+<a href="#357" id="357">357</a>
+<a href="#358" id="358">358</a>
+<a href="#359" id="359">359</a>
+<a href="#360" id="360">360</a>
+<a href="#361" id="361">361</a>
+<a href="#362" id="362">362</a>
+<a href="#363" id="363">363</a>
+<a href="#364" id="364">364</a>
+<a href="#365" id="365">365</a>
+<a href="#366" id="366">366</a>
+<a href="#367" id="367">367</a>
+<a href="#368" id="368">368</a>
+<a href="#369" id="369">369</a>
+<a href="#370" id="370">370</a>
+<a href="#371" id="371">371</a>
+<a href="#372" id="372">372</a>
+<a href="#373" id="373">373</a>
+<a href="#374" id="374">374</a>
+<a href="#375" id="375">375</a>
+<a href="#376" id="376">376</a>
+<a href="#377" id="377">377</a>
+<a href="#378" id="378">378</a>
+<a href="#379" id="379">379</a>
+<a href="#380" id="380">380</a>
+<a href="#381" id="381">381</a>
+<a href="#382" id="382">382</a>
+<a href="#383" id="383">383</a>
+<a href="#384" id="384">384</a>
+<a href="#385" id="385">385</a>
+<a href="#386" id="386">386</a>
+<a href="#387" id="387">387</a>
+<a href="#388" id="388">388</a>
+<a href="#389" id="389">389</a>
+<a href="#390" id="390">390</a>
+<a href="#391" id="391">391</a>
+<a href="#392" id="392">392</a>
+<a href="#393" id="393">393</a>
+<a href="#394" id="394">394</a>
+<a href="#395" id="395">395</a>
+<a href="#396" id="396">396</a>
+<a href="#397" id="397">397</a>
+<a href="#398" id="398">398</a>
+<a href="#399" id="399">399</a>
+<a href="#400" id="400">400</a>
+<a href="#401" id="401">401</a>
+<a href="#402" id="402">402</a>
+<a href="#403" id="403">403</a>
+<a href="#404" id="404">404</a>
+<a href="#405" id="405">405</a>
 </pre><pre class="rust"><code><span class="doccomment">//! Boa&#39;s lexical analyzer(Lexer) for ECMAScript source code.
 //!
 //! The Lexer splits its input source code into a sequence of input elements called tokens,
@@ -413,23 +477,6 @@
 }
 
 <span class="kw">impl</span>&lt;R&gt; Lexer&lt;R&gt; {
-    <span class="doccomment">/// Checks if a character is whitespace as per ECMAScript standards.
-    ///
-    /// The Rust `char::is_whitespace` function and the ECMAScript standard use different sets of
-    /// characters as whitespaces:
-    ///  * Rust uses `\p{White_Space}`,
-    ///  * ECMAScript standard uses `\{Space_Separator}` + `\u{0009}`, `\u{000B}`, `\u{000C}`, `\u{FEFF}`
-    ///
-    /// [More information](https://tc39.es/ecma262/#table-32)
-    </span><span class="kw">const fn </span>is_whitespace(ch: u32) -&gt; bool {
-        <span class="macro">matches!</span>(
-            ch,
-            <span class="number">0x0020 </span>| <span class="number">0x0009 </span>| <span class="number">0x000B </span>| <span class="number">0x000C </span>| <span class="number">0x00A0 </span>| <span class="number">0xFEFF </span>|
-            <span class="comment">// Unicode Space_Seperator category (minus \u{0020} and \u{00A0} which are allready stated above)
-            </span><span class="number">0x1680 </span>| <span class="number">0x2000</span>..=<span class="number">0x200A </span>| <span class="number">0x202F </span>| <span class="number">0x205F </span>| <span class="number">0x3000
-        </span>)
-    }
-
     <span class="doccomment">/// Sets the goal symbol for the lexer.
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>set_goal(<span class="kw-2">&amp;mut </span><span class="self">self</span>, elm: InputElement) {
         <span class="self">self</span>.goal_symbol = elm;
@@ -441,13 +488,23 @@
     }
 
     <span class="doccomment">/// Returns if strict mode is currently active.
-    </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">const fn </span>strict_mode(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
-        <span class="self">self</span>.cursor.strict_mode()
+    </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">const fn </span>strict(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="self">self</span>.cursor.strict()
     }
 
     <span class="doccomment">/// Sets the current strict mode.
-    </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>set_strict_mode(<span class="kw-2">&amp;mut </span><span class="self">self</span>, strict_mode: bool) {
-        <span class="self">self</span>.cursor.set_strict_mode(strict_mode);
+    </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>set_strict(<span class="kw-2">&amp;mut </span><span class="self">self</span>, strict: bool) {
+        <span class="self">self</span>.cursor.set_strict(strict);
+    }
+
+    <span class="doccomment">/// Returns if module mode is currently active.
+    </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">const fn </span>module(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="self">self</span>.cursor.module()
+    }
+
+    <span class="doccomment">/// Signals that the goal symbol is a module
+    </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>set_module(<span class="kw-2">&amp;mut </span><span class="self">self</span>, module: bool) {
+        <span class="self">self</span>.cursor.set_module(module);
     }
 
     <span class="doccomment">/// Creates a new lexer.
@@ -522,14 +579,38 @@
         }
     }
 
+    <span class="doccomment">/// Skips an HTML close comment (`--&gt;`) if the `annex-b` feature is enabled.
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>skip_html_close(<span class="kw-2">&amp;mut </span><span class="self">self</span>, interner: <span class="kw-2">&amp;mut </span>Interner) -&gt; <span class="prelude-ty">Result</span>&lt;(), Error&gt;
+    <span class="kw">where
+        </span>R: Read,
+    {
+        <span class="kw">if </span>!<span class="macro">cfg!</span>(feature = <span class="string">&quot;annex-b&quot;</span>) || <span class="self">self</span>.module() {
+            <span class="kw">return </span><span class="prelude-val">Ok</span>(());
+        }
+
+        <span class="kw">while </span><span class="self">self</span>.cursor.peek_char()<span class="question-mark">?</span>.map_or(<span class="bool-val">false</span>, is_whitespace) {
+            <span class="kw">let </span>_next = <span class="self">self</span>.cursor.next_char();
+        }
+
+        <span class="kw">if </span><span class="self">self</span>.cursor.peek_n(<span class="number">3</span>)<span class="question-mark">? </span>== [<span class="string">b&#39;-&#39;</span>, <span class="string">b&#39;-&#39;</span>, <span class="string">b&#39;&gt;&#39;</span>] {
+            <span class="kw">let </span>_next = <span class="self">self</span>.cursor.next_byte();
+            <span class="kw">let </span>_next = <span class="self">self</span>.cursor.next_byte();
+            <span class="kw">let </span>_next = <span class="self">self</span>.cursor.next_byte();
+
+            <span class="kw">let </span>start = <span class="self">self</span>.cursor.pos();
+            SingleLineComment.lex(<span class="kw-2">&amp;mut </span><span class="self">self</span>.cursor, start, interner)<span class="question-mark">?</span>;
+        }
+
+        <span class="prelude-val">Ok</span>(())
+    }
+
     <span class="doccomment">/// Retrieves the next token from the lexer.
     ///
     /// # Errors
     ///
     /// Will return `Err` on invalid tokens and invalid reads of the bytes being lexed.
     </span><span class="comment">// We intentionally don&#39;t implement Iterator trait as Result&lt;Option&gt; is cleaner to handle.
-    </span><span class="attr">#[allow(clippy::should_implement_trait)]
-    </span><span class="kw">pub fn </span>next(<span class="kw-2">&amp;mut </span><span class="self">self</span>, interner: <span class="kw-2">&amp;mut </span>Interner) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;Token&gt;, Error&gt;
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>next_no_skip(<span class="kw-2">&amp;mut </span><span class="self">self</span>, interner: <span class="kw-2">&amp;mut </span>Interner) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;Token&gt;, Error&gt;
     <span class="kw">where
         </span>R: Read,
     {
@@ -539,7 +620,7 @@
             <span class="kw">let </span>start = <span class="self">self</span>.cursor.pos();
             <span class="kw">if let </span><span class="prelude-val">Some</span>(next_ch) = <span class="self">self</span>.cursor.next_char()<span class="question-mark">? </span>{
                 <span class="comment">// Ignore whitespace
-                </span><span class="kw">if </span>!<span class="self">Self</span>::is_whitespace(next_ch) {
+                </span><span class="kw">if </span>!is_whitespace(next_ch) {
                     <span class="kw">break </span>(start, next_ch);
                 }
             } <span class="kw">else </span>{
@@ -611,6 +692,14 @@
                 )),
                 <span class="string">&#39;#&#39; </span>=&gt; PrivateIdentifier::new().lex(<span class="kw-2">&amp;mut </span><span class="self">self</span>.cursor, start, interner),
                 <span class="string">&#39;/&#39; </span>=&gt; <span class="self">self</span>.lex_slash_token(start, interner),
+                <span class="attr">#[cfg(feature = <span class="string">&quot;annex-b&quot;</span>)]
+                </span><span class="string">&#39;&lt;&#39; </span><span class="kw">if </span>!<span class="self">self</span>.module() &amp;&amp; <span class="self">self</span>.cursor.peek_n(<span class="number">3</span>)<span class="question-mark">? </span>== [<span class="string">b&#39;!&#39;</span>, <span class="string">b&#39;-&#39;</span>, <span class="string">b&#39;-&#39;</span>] =&gt; {
+                    <span class="kw">let </span>_next = <span class="self">self</span>.cursor.next_byte();
+                    <span class="kw">let </span>_next = <span class="self">self</span>.cursor.next_byte();
+                    <span class="kw">let </span>_next = <span class="self">self</span>.cursor.next_byte();
+                    <span class="kw">let </span>start = <span class="self">self</span>.cursor.pos();
+                    SingleLineComment.lex(<span class="kw-2">&amp;mut </span><span class="self">self</span>.cursor, start, interner)
+                }
                 <span class="attr">#[allow(clippy::cast_possible_truncation)]
                 </span><span class="string">&#39;=&#39; </span>| <span class="string">&#39;*&#39; </span>| <span class="string">&#39;+&#39; </span>| <span class="string">&#39;-&#39; </span>| <span class="string">&#39;%&#39; </span>| <span class="string">&#39;|&#39; </span>| <span class="string">&#39;&amp;&#39; </span>| <span class="string">&#39;^&#39; </span>| <span class="string">&#39;&lt;&#39; </span>| <span class="string">&#39;&gt;&#39; </span>| <span class="string">&#39;!&#39; </span>| <span class="string">&#39;~&#39; </span>| <span class="string">&#39;?&#39; </span>=&gt; {
                     Operator::new(next_ch <span class="kw">as </span>u8).lex(<span class="kw-2">&amp;mut </span><span class="self">self</span>.cursor, start, interner)
@@ -653,6 +742,28 @@
         }
     }
 
+    <span class="doccomment">/// Retrieves the next token from the lexer, skipping comments.
+    ///
+    /// # Errors
+    ///
+    /// Will return `Err` on invalid tokens and invalid reads of the bytes being lexed.
+    </span><span class="comment">// We intentionally don&#39;t implement Iterator trait as Result&lt;Option&gt; is cleaner to handle.
+    </span><span class="attr">#[allow(clippy::should_implement_trait)]
+    </span><span class="kw">pub fn </span>next(<span class="kw-2">&amp;mut </span><span class="self">self</span>, interner: <span class="kw-2">&amp;mut </span>Interner) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;Token&gt;, Error&gt;
+    <span class="kw">where
+        </span>R: Read,
+    {
+        <span class="kw">loop </span>{
+            <span class="kw">let </span><span class="prelude-val">Some</span>(next) = <span class="self">self</span>.next_no_skip(interner)<span class="question-mark">? </span><span class="kw">else </span>{
+                <span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>)
+            };
+
+            <span class="kw">if </span>next.kind() != <span class="kw-2">&amp;</span>TokenKind::Comment {
+                <span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(next));
+            }
+        }
+    }
+
     <span class="doccomment">/// Performs the lexing of a template literal.
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>lex_template(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
@@ -680,6 +791,23 @@
     <span class="kw">fn </span>default() -&gt; <span class="self">Self </span>{
         <span class="self">Self</span>::RegExp
     }
+}
+
+<span class="doccomment">/// Checks if a character is whitespace as per ECMAScript standards.
+///
+/// The Rust `char::is_whitespace` function and the ECMAScript standard use different sets of
+/// characters as whitespaces:
+///  * Rust uses `\p{White_Space}`,
+///  * ECMAScript standard uses `\{Space_Separator}` + `\u{0009}`, `\u{000B}`, `\u{000C}`, `\u{FEFF}`
+///
+/// [More information](https://tc39.es/ecma262/#table-32)
+</span><span class="kw">const fn </span>is_whitespace(ch: u32) -&gt; bool {
+    <span class="macro">matches!</span>(
+        ch,
+        <span class="number">0x0020 </span>| <span class="number">0x0009 </span>| <span class="number">0x000B </span>| <span class="number">0x000C </span>| <span class="number">0x00A0 </span>| <span class="number">0xFEFF </span>|
+            <span class="comment">// Unicode Space_Seperator category (minus \u{0020} and \u{00A0} which are allready stated above)
+            </span><span class="number">0x1680 </span>| <span class="number">0x2000</span>..=<span class="number">0x200A </span>| <span class="number">0x202F </span>| <span class="number">0x205F </span>| <span class="number">0x3000
+    </span>)
 }
 </code></pre></div>
 </section></main><div id="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="boa_parser" data-themes="" data-resource-suffix="" data-rustdoc-version="1.68.2 (9eb3afe9e 2023-03-27)" data-search-js="search-98d53477a794af0b.js" data-settings-js="settings-c3c521c753752a1a.js" data-settings-css="settings-08ddfdda51b8ee2e.css" ></div></body></html>

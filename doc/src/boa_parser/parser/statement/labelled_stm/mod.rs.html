@@ -143,7 +143,7 @@
 
         cursor.expect(Punctuator::Colon, <span class="string">&quot;Labelled Statement&quot;</span>, interner)<span class="question-mark">?</span>;
 
-        <span class="kw">let </span>strict = cursor.strict_mode();
+        <span class="kw">let </span>strict = cursor.strict();
         <span class="kw">let </span>next_token = cursor.peek(<span class="number">0</span>, interner).or_abrupt()<span class="question-mark">?</span>;
 
         <span class="kw">let </span>labelled_item = <span class="kw">match </span>next_token.kind() {

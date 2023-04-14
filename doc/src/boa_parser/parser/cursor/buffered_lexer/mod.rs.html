@@ -248,6 +248,17 @@
 <a href="#247" id="247">247</a>
 <a href="#248" id="248">248</a>
 <a href="#249" id="249">249</a>
+<a href="#250" id="250">250</a>
+<a href="#251" id="251">251</a>
+<a href="#252" id="252">252</a>
+<a href="#253" id="253">253</a>
+<a href="#254" id="254">254</a>
+<a href="#255" id="255">255</a>
+<a href="#256" id="256">256</a>
+<a href="#257" id="257">257</a>
+<a href="#258" id="258">258</a>
+<a href="#259" id="259">259</a>
+<a href="#260" id="260">260</a>
 </pre><pre class="rust"><code><span class="kw">use crate</span>::{
     lexer::{InputElement, Lexer, Token, TokenKind},
     parser::ParseResult,
@@ -350,12 +361,20 @@
             .map_err(Error::from)
     }
 
-    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">const fn </span>strict_mode(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
-        <span class="self">self</span>.lexer.strict_mode()
+    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">const fn </span>strict(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="self">self</span>.lexer.strict()
     }
 
-    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>set_strict_mode(<span class="kw-2">&amp;mut </span><span class="self">self</span>, strict_mode: bool) {
-        <span class="self">self</span>.lexer.set_strict_mode(strict_mode);
+    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>set_strict(<span class="kw-2">&amp;mut </span><span class="self">self</span>, strict: bool) {
+        <span class="self">self</span>.lexer.set_strict(strict);
+    }
+
+    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">const fn </span>module(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="self">self</span>.lexer.module()
+    }
+
+    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>set_module(<span class="kw-2">&amp;mut </span><span class="self">self</span>, module: bool) {
+        <span class="self">self</span>.lexer.set_module(module);
     }
 
     <span class="doccomment">/// Fills the peeking buffer with the next token.
@@ -374,10 +393,13 @@
                 <span class="comment">// We don&#39;t want to have multiple contiguous line terminators in the buffer, since
                 // they have no meaning.
                 </span><span class="kw">let </span>next = <span class="kw">loop </span>{
-                    <span class="kw">let </span>next = <span class="self">self</span>.lexer.next(interner)<span class="question-mark">?</span>;
+                    <span class="self">self</span>.lexer.skip_html_close(interner)<span class="question-mark">?</span>;
+                    <span class="kw">let </span>next = <span class="self">self</span>.lexer.next_no_skip(interner)<span class="question-mark">?</span>;
                     <span class="kw">if let </span><span class="prelude-val">Some</span>(<span class="kw-2">ref </span>token) = next {
-                        <span class="kw">if </span>token.kind() != <span class="kw-2">&amp;</span>TokenKind::LineTerminator {
-                            <span class="kw">break </span>next;
+                        <span class="kw">match </span>token.kind() {
+                            TokenKind::LineTerminator =&gt; { <span class="comment">/* skip */ </span>}
+                            TokenKind::Comment =&gt; <span class="self">self</span>.lexer.skip_html_close(interner)<span class="question-mark">?</span>,
+                            <span class="kw">_ </span>=&gt; <span class="kw">break </span>next,
                         }
                     } <span class="kw">else </span>{
                         <span class="kw">break </span><span class="prelude-val">None</span>;

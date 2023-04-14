@@ -671,7 +671,7 @@
                         <span class="kw">let </span>ch = char::from(byte);
                         <span class="kw">if </span>ch.is_digit(<span class="number">8</span>) {
                             <span class="comment">// LegacyOctalIntegerLiteral, or a number with leading 0s.
-                            </span><span class="kw">if </span>cursor.strict_mode() {
+                            </span><span class="kw">if </span>cursor.strict() {
                                 <span class="comment">// LegacyOctalIntegerLiteral is forbidden with strict mode true.
                                 </span><span class="kw">return </span><span class="prelude-val">Err</span>(Error::syntax(
                                     <span class="string">&quot;implicit octal literals are not allowed in strict mode&quot;</span>,
@@ -694,7 +694,7 @@
                             <span class="comment">// Indicates a numerical digit comes after then 0 but it isn&#39;t an octal digit
                             // so therefore this must be a number with an unneeded leading 0. This is
                             // forbidden in strict mode.
-                            </span><span class="kw">if </span>cursor.strict_mode() {
+                            </span><span class="kw">if </span>cursor.strict() {
                                 <span class="kw">return </span><span class="prelude-val">Err</span>(Error::syntax(
                                     <span class="string">&quot;leading 0&#39;s are not allowed in strict mode&quot;</span>,
                                     start_pos,

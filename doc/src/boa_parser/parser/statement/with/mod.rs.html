@@ -152,7 +152,7 @@
             .start();
 
         <span class="comment">// It is a Syntax Error if the source text matched by this production is contained in strict mode code.
-        </span><span class="kw">if </span>cursor.strict_mode() {
+        </span><span class="kw">if </span>cursor.strict() {
             <span class="kw">return </span><span class="prelude-val">Err</span>(Error::general(
                 <span class="string">&quot;with statement not allowed in strict mode&quot;</span>,
                 position,

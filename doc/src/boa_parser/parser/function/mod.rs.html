@@ -480,6 +480,8 @@
 <a href="#479" id="479">479</a>
 <a href="#480" id="480">480</a>
 <a href="#481" id="481">481</a>
+<a href="#482" id="482">482</a>
+<a href="#483" id="483">483</a>
 </pre><pre class="rust"><code><span class="doccomment">//! Function definition parsing.
 //!
 //! More information:
@@ -551,15 +553,17 @@
 
     <span class="kw">fn </span>parse(<span class="self">self</span>, cursor: <span class="kw-2">&amp;mut </span>Cursor&lt;R&gt;, interner: <span class="kw-2">&amp;mut </span>Interner) -&gt; ParseResult&lt;<span class="self">Self</span>::Output&gt; {
         <span class="kw">let </span>_timer = Profiler::global().start_event(<span class="string">&quot;FormalParameters&quot;</span>, <span class="string">&quot;Parsing&quot;</span>);
+
         cursor.set_goal(InputElement::RegExp);
 
-        <span class="kw">let </span><span class="kw-2">mut </span>params = Vec::new();
+        <span class="kw">let </span><span class="prelude-val">Some</span>(start_position) = cursor
+            .peek(<span class="number">0</span>, interner)<span class="question-mark">?
+            </span>.filter(|<span class="kw-2">&amp;</span>tok| tok.kind() != <span class="kw-2">&amp;</span>TokenKind::Punctuator(Punctuator::CloseParen))
+            .map(|tok| tok.span().start()) <span class="kw">else </span>{
+            <span class="kw">return </span><span class="prelude-val">Ok</span>( FormalParameterList::default());
+        };
 
-        <span class="kw">let </span>next_token = cursor.peek(<span class="number">0</span>, interner).or_abrupt()<span class="question-mark">?</span>;
-        <span class="kw">if </span>next_token.kind() == <span class="kw-2">&amp;</span>TokenKind::Punctuator(Punctuator::CloseParen) {
-            <span class="kw">return </span><span class="prelude-val">Ok</span>(FormalParameterList::default());
-        }
-        <span class="kw">let </span>start_position = next_token.span().start();
+        <span class="kw">let </span><span class="kw-2">mut </span>params = Vec::new();
 
         <span class="kw">loop </span>{
             <span class="kw">let </span><span class="kw-2">mut </span>rest_param = <span class="bool-val">false</span>;
@@ -583,9 +587,9 @@
 
             params.push(next_param);
 
-            <span class="kw">if </span>cursor.peek(<span class="number">0</span>, interner).or_abrupt()<span class="question-mark">?</span>.kind()
-                == <span class="kw-2">&amp;</span>TokenKind::Punctuator(Punctuator::CloseParen)
-            {
+            <span class="kw">if </span>cursor.peek(<span class="number">0</span>, interner)<span class="question-mark">?</span>.map_or(<span class="bool-val">true</span>, |tok| {
+                tok.kind() == <span class="kw-2">&amp;</span>TokenKind::Punctuator(Punctuator::CloseParen)
+            }) {
                 <span class="kw">break</span>;
             }
 
@@ -599,9 +603,9 @@
             }
 
             cursor.expect(Punctuator::Comma, <span class="string">&quot;parameter list&quot;</span>, interner)<span class="question-mark">?</span>;
-            <span class="kw">if </span>cursor.peek(<span class="number">0</span>, interner).or_abrupt()<span class="question-mark">?</span>.kind()
-                == <span class="kw-2">&amp;</span>TokenKind::Punctuator(Punctuator::CloseParen)
-            {
+            <span class="kw">if </span>cursor.peek(<span class="number">0</span>, interner)<span class="question-mark">?</span>.map_or(<span class="bool-val">true</span>, |tok| {
+                tok.kind() == <span class="kw-2">&amp;</span>TokenKind::Punctuator(Punctuator::CloseParen)
+            }) {
                 <span class="kw">break</span>;
             }
         }
@@ -863,9 +867,9 @@
                 <span class="kw">_ </span>=&gt; {
                     <span class="kw">let </span>ident = BindingIdentifier::new(<span class="self">self</span>.allow_yield, <span class="self">self</span>.allow_await)
                         .parse(cursor, interner)<span class="question-mark">?</span>;
-                    <span class="kw">let </span>init = <span class="kw">if </span><span class="kw-2">*</span>cursor.peek(<span class="number">0</span>, interner).or_abrupt()<span class="question-mark">?</span>.kind()
-                        == TokenKind::Punctuator(Punctuator::Assign)
-                    {
+                    <span class="kw">let </span>init = <span class="kw">if </span>cursor.peek(<span class="number">0</span>, interner)<span class="question-mark">?</span>.map_or(<span class="bool-val">false</span>, |tok| {
+                        tok.kind() == <span class="kw-2">&amp;</span>TokenKind::Punctuator(Punctuator::Assign)
+                    }) {
                         <span class="prelude-val">Some</span>(
                             Initializer::new(<span class="prelude-val">None</span>, <span class="bool-val">true</span>, <span class="self">self</span>.allow_yield, <span class="self">self</span>.allow_await)
                                 .parse(cursor, interner)<span class="question-mark">?</span>,

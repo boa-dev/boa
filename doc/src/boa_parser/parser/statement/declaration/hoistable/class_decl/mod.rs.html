@@ -1473,8 +1473,8 @@
 
     <span class="kw">fn </span>parse(<span class="self">self</span>, cursor: <span class="kw-2">&amp;mut </span>Cursor&lt;R&gt;, interner: <span class="kw-2">&amp;mut </span>Interner) -&gt; ParseResult&lt;<span class="self">Self</span>::Output&gt; {
         cursor.expect((Keyword::Class, <span class="bool-val">false</span>), <span class="string">&quot;class declaration&quot;</span>, interner)<span class="question-mark">?</span>;
-        <span class="kw">let </span>strict = cursor.strict_mode();
-        cursor.set_strict_mode(<span class="bool-val">true</span>);
+        <span class="kw">let </span>strict = cursor.strict();
+        cursor.set_strict(<span class="bool-val">true</span>);
 
         <span class="kw">let </span><span class="kw-2">mut </span>has_binding_identifier = <span class="bool-val">false</span>;
         <span class="kw">let </span>token = cursor.peek(<span class="number">0</span>, interner).or_abrupt()<span class="question-mark">?</span>;
@@ -1494,7 +1494,7 @@
                 ))
             }
         };
-        cursor.set_strict_mode(strict);
+        cursor.set_strict(strict);
 
         ClassTail::new(
             name,
@@ -1566,11 +1566,11 @@
         cursor.expect(Punctuator::OpenBlock, <span class="string">&quot;class tail&quot;</span>, interner)<span class="question-mark">?</span>;
 
         <span class="comment">// Temporarily disable strict mode because &quot;strict&quot; may be parsed as a keyword.
-        </span><span class="kw">let </span>strict = cursor.strict_mode();
-        cursor.set_strict_mode(<span class="bool-val">false</span>);
+        </span><span class="kw">let </span>strict = cursor.strict();
+        cursor.set_strict(<span class="bool-val">false</span>);
         <span class="kw">let </span>is_close_block = cursor.peek(<span class="number">0</span>, interner).or_abrupt()<span class="question-mark">?</span>.kind()
             == <span class="kw-2">&amp;</span>TokenKind::Punctuator(Punctuator::CloseBlock);
-        cursor.set_strict_mode(strict);
+        cursor.set_strict(strict);
 
         <span class="kw">if </span>is_close_block {
             cursor.advance(interner);
@@ -1664,11 +1664,11 @@
             interner,
         )<span class="question-mark">?</span>;
 
-        <span class="kw">let </span>strict = cursor.strict_mode();
-        cursor.set_strict_mode(<span class="bool-val">true</span>);
+        <span class="kw">let </span>strict = cursor.strict();
+        cursor.set_strict(<span class="bool-val">true</span>);
         <span class="kw">let </span>lhs = LeftHandSideExpression::new(<span class="prelude-val">None</span>, <span class="self">self</span>.allow_yield, <span class="self">self</span>.allow_await)
             .parse(cursor, interner)<span class="question-mark">?</span>;
-        cursor.set_strict_mode(strict);
+        cursor.set_strict(strict);
 
         <span class="prelude-val">Ok</span>(lhs)
     }
@@ -1716,8 +1716,8 @@
 
         <span class="comment">// The identifier &quot;static&quot; is forbidden in strict mode but used as a keyword in classes.
         // Because of this, strict mode has to temporarily be disabled while parsing class field names.
-        </span><span class="kw">let </span>strict = cursor.strict_mode();
-        cursor.set_strict_mode(<span class="bool-val">false</span>);
+        </span><span class="kw">let </span>strict = cursor.strict();
+        cursor.set_strict(<span class="bool-val">false</span>);
         <span class="kw">loop </span>{
             <span class="kw">let </span>token = cursor.peek(<span class="number">0</span>, interner).or_abrupt()<span class="question-mark">?</span>;
             <span class="kw">let </span>position = token.span().start();
@@ -1938,7 +1938,7 @@
             }
         }
 
-        cursor.set_strict_mode(strict);
+        cursor.set_strict(strict);
 
         <span class="prelude-val">Ok</span>((constructor, elements))
     }
@@ -2041,8 +2041,8 @@
         <span class="kw">let </span>element = <span class="kw">match </span>token.kind() {
             TokenKind::IdentifierName((Sym::CONSTRUCTOR, <span class="kw">_</span>)) <span class="kw">if </span>!r#static =&gt; {
                 cursor.advance(interner);
-                <span class="kw">let </span>strict = cursor.strict_mode();
-                cursor.set_strict_mode(<span class="bool-val">true</span>);
+                <span class="kw">let </span>strict = cursor.strict();
+                cursor.set_strict(<span class="bool-val">true</span>);
 
                 cursor.expect(Punctuator::OpenParen, <span class="string">&quot;class constructor&quot;</span>, interner)<span class="question-mark">?</span>;
                 <span class="kw">let </span>parameters = FormalParameters::new(<span class="self">self</span>.allow_yield, <span class="self">self</span>.allow_await)
@@ -2060,7 +2060,7 @@
                     <span class="string">&quot;class constructor&quot;</span>,
                     interner,
                 )<span class="question-mark">?</span>;
-                cursor.set_strict_mode(strict);
+                cursor.set_strict(strict);
 
                 <span class="kw">return </span><span class="prelude-val">Ok</span>((<span class="prelude-val">Some</span>(Function::new(<span class="self">self</span>.name, parameters, body)), <span class="prelude-val">None</span>));
             }
@@ -2072,8 +2072,8 @@
                 {
                     ast::StatementList::default()
                 } <span class="kw">else </span>{
-                    <span class="kw">let </span>strict = cursor.strict_mode();
-                    cursor.set_strict_mode(<span class="bool-val">true</span>);
+                    <span class="kw">let </span>strict = cursor.strict();
+                    cursor.set_strict(<span class="bool-val">true</span>);
                     <span class="kw">let </span>position = cursor.peek(<span class="number">0</span>, interner).or_abrupt()<span class="question-mark">?</span>.span().start();
                     <span class="kw">let </span>statement_list = StatementList::new(
                         <span class="bool-val">false</span>,
@@ -2109,7 +2109,7 @@
                         <span class="string">&quot;class definition&quot;</span>,
                         interner,
                     )<span class="question-mark">?</span>;
-                    cursor.set_strict_mode(strict);
+                    cursor.set_strict(strict);
                     statement_list
                 };
                 function::ClassElement::StaticBlock(statement_list)
@@ -2125,12 +2125,12 @@
                         ));
                     }
                 }
-                <span class="kw">let </span>strict = cursor.strict_mode();
-                cursor.set_strict_mode(<span class="bool-val">true</span>);
+                <span class="kw">let </span>strict = cursor.strict();
+                cursor.set_strict(<span class="bool-val">true</span>);
                 <span class="kw">let </span>(class_element_name, method) =
                     GeneratorMethod::new(<span class="self">self</span>.allow_yield, <span class="self">self</span>.allow_await)
                         .parse(cursor, interner)<span class="question-mark">?</span>;
-                cursor.set_strict_mode(strict);
+                cursor.set_strict(strict);
 
                 <span class="kw">match </span>class_element_name {
                     ClassElementName::PropertyName(property_name) <span class="kw">if </span>r#static =&gt; {
@@ -2190,12 +2190,12 @@
                             }
                             <span class="kw">_ </span>=&gt; {}
                         }
-                        <span class="kw">let </span>strict = cursor.strict_mode();
-                        cursor.set_strict_mode(<span class="bool-val">true</span>);
+                        <span class="kw">let </span>strict = cursor.strict();
+                        cursor.set_strict(<span class="bool-val">true</span>);
                         <span class="kw">let </span>(class_element_name, method) =
                             AsyncGeneratorMethod::new(<span class="self">self</span>.allow_yield, <span class="self">self</span>.allow_await)
                                 .parse(cursor, interner)<span class="question-mark">?</span>;
-                        cursor.set_strict_mode(strict);
+                        cursor.set_strict(strict);
                         <span class="kw">match </span>class_element_name {
                             ClassElementName::PropertyName(property_name) <span class="kw">if </span>r#static =&gt; {
                                 <span class="kw">if </span>property_name.literal() == <span class="prelude-val">Some</span>(Sym::PROTOTYPE) {
@@ -2234,12 +2234,12 @@
                     }
                     <span class="kw">_ </span>=&gt; {
                         <span class="kw">let </span>name_position = token.span().start();
-                        <span class="kw">let </span>strict = cursor.strict_mode();
-                        cursor.set_strict_mode(<span class="bool-val">true</span>);
+                        <span class="kw">let </span>strict = cursor.strict();
+                        cursor.set_strict(<span class="bool-val">true</span>);
                         <span class="kw">let </span>(class_element_name, method) =
                             AsyncMethod::new(<span class="self">self</span>.allow_yield, <span class="self">self</span>.allow_await)
                                 .parse(cursor, interner)<span class="question-mark">?</span>;
-                        cursor.set_strict_mode(strict);
+                        cursor.set_strict(strict);
 
                         <span class="kw">match </span>class_element_name {
                             ClassElementName::PropertyName(property_name) <span class="kw">if </span>r#static =&gt; {
@@ -2296,8 +2296,8 @@
                     TokenKind::PrivateIdentifier(name) =&gt; {
                         <span class="kw">let </span>name = <span class="kw-2">*</span>name;
                         cursor.advance(interner);
-                        <span class="kw">let </span>strict = cursor.strict_mode();
-                        cursor.set_strict_mode(<span class="bool-val">true</span>);
+                        <span class="kw">let </span>strict = cursor.strict();
+                        cursor.set_strict(<span class="bool-val">true</span>);
                         <span class="kw">let </span>params =
                             UniqueFormalParameters::new(<span class="bool-val">false</span>, <span class="bool-val">false</span>).parse(cursor, interner)<span class="question-mark">?</span>;
                         cursor.expect(
@@ -2321,7 +2321,7 @@
                                 token.span().start(),
                         )));
                         }
-                        cursor.set_strict_mode(strict);
+                        cursor.set_strict(strict);
                         <span class="kw">let </span>method = MethodDefinition::Get(Function::new(<span class="prelude-val">None</span>, params, body));
                         <span class="kw">if </span>r#static {
                             function::ClassElement::PrivateStaticMethodDefinition(
@@ -2365,10 +2365,10 @@
                             <span class="string">&quot;class getter&quot;</span>,
                             interner,
                         )<span class="question-mark">?</span>;
-                        <span class="kw">let </span>strict = cursor.strict_mode();
-                        cursor.set_strict_mode(<span class="bool-val">true</span>);
+                        <span class="kw">let </span>strict = cursor.strict();
+                        cursor.set_strict(<span class="bool-val">true</span>);
                         <span class="kw">let </span>body = FunctionBody::new(<span class="bool-val">false</span>, <span class="bool-val">false</span>).parse(cursor, interner)<span class="question-mark">?</span>;
-                        cursor.set_strict_mode(strict);
+                        cursor.set_strict(strict);
                         cursor.expect(
                             TokenKind::Punctuator(Punctuator::CloseBlock),
                             <span class="string">&quot;class getter&quot;</span>,
@@ -2427,8 +2427,8 @@
                     TokenKind::PrivateIdentifier(name) =&gt; {
                         <span class="kw">let </span>name = <span class="kw-2">*</span>name;
                         cursor.advance(interner);
-                        <span class="kw">let </span>strict = cursor.strict_mode();
-                        cursor.set_strict_mode(<span class="bool-val">true</span>);
+                        <span class="kw">let </span>strict = cursor.strict();
+                        cursor.set_strict(<span class="bool-val">true</span>);
                         <span class="kw">let </span>params =
                             UniqueFormalParameters::new(<span class="bool-val">false</span>, <span class="bool-val">false</span>).parse(cursor, interner)<span class="question-mark">?</span>;
                         cursor.expect(
@@ -2452,7 +2452,7 @@
                                 token.span().start(),
                         )));
                         }
-                        cursor.set_strict_mode(strict);
+                        cursor.set_strict(strict);
                         <span class="kw">let </span>method = MethodDefinition::Set(Function::new(<span class="prelude-val">None</span>, params, body));
                         <span class="kw">if </span>r#static {
                             function::ClassElement::PrivateStaticMethodDefinition(
@@ -2481,8 +2481,8 @@
                         <span class="kw">let </span>name_position = token.span().start();
                         <span class="kw">let </span>name = PropertyName::new(<span class="self">self</span>.allow_yield, <span class="self">self</span>.allow_await)
                             .parse(cursor, interner)<span class="question-mark">?</span>;
-                        <span class="kw">let </span>strict = cursor.strict_mode();
-                        cursor.set_strict_mode(<span class="bool-val">true</span>);
+                        <span class="kw">let </span>strict = cursor.strict();
+                        cursor.set_strict(<span class="bool-val">true</span>);
                         <span class="kw">let </span>params =
                             UniqueFormalParameters::new(<span class="bool-val">false</span>, <span class="bool-val">false</span>).parse(cursor, interner)<span class="question-mark">?</span>;
                         cursor.expect(
@@ -2506,7 +2506,7 @@
                                 token.span().start(),
                         )));
                         }
-                        cursor.set_strict_mode(strict);
+                        cursor.set_strict(strict);
                         <span class="kw">let </span>method = MethodDefinition::Set(Function::new(<span class="prelude-val">None</span>, params, body));
                         <span class="kw">if </span>r#static {
                             <span class="kw">if </span>name.literal() == <span class="prelude-val">Some</span>(Sym::PROTOTYPE) {
@@ -2554,8 +2554,8 @@
                 <span class="kw">match </span>token.kind() {
                     TokenKind::Punctuator(Punctuator::Assign) =&gt; {
                         cursor.advance(interner);
-                        <span class="kw">let </span>strict = cursor.strict_mode();
-                        cursor.set_strict_mode(<span class="bool-val">true</span>);
+                        <span class="kw">let </span>strict = cursor.strict();
+                        cursor.set_strict(<span class="bool-val">true</span>);
                         <span class="kw">let </span>rhs = AssignmentExpression::new(
                             <span class="prelude-val">Some</span>(name_private.into()),
                             <span class="bool-val">true</span>,
@@ -2564,7 +2564,7 @@
                         )
                         .parse(cursor, interner)<span class="question-mark">?</span>;
                         cursor.expect_semicolon(<span class="string">&quot;expected semicolon&quot;</span>, interner)<span class="question-mark">?</span>;
-                        cursor.set_strict_mode(strict);
+                        cursor.set_strict(strict);
                         <span class="kw">if </span>r#static {
                             function::ClassElement::PrivateStaticFieldDefinition(
                                 PrivateName::new(name),
@@ -2578,8 +2578,8 @@
                         }
                     }
                     TokenKind::Punctuator(Punctuator::OpenParen) =&gt; {
-                        <span class="kw">let </span>strict = cursor.strict_mode();
-                        cursor.set_strict_mode(<span class="bool-val">true</span>);
+                        <span class="kw">let </span>strict = cursor.strict();
+                        cursor.set_strict(<span class="bool-val">true</span>);
                         <span class="kw">let </span>params =
                             UniqueFormalParameters::new(<span class="bool-val">false</span>, <span class="bool-val">false</span>).parse(cursor, interner)<span class="question-mark">?</span>;
                         cursor.expect(
@@ -2604,7 +2604,7 @@
                         )));
                         }
                         <span class="kw">let </span>method = MethodDefinition::Ordinary(Function::new(<span class="prelude-val">None</span>, params, body));
-                        cursor.set_strict_mode(strict);
+                        cursor.set_strict(strict);
                         <span class="kw">if </span>r#static {
                             function::ClassElement::PrivateStaticMethodDefinition(
                                 PrivateName::new(name),
@@ -2661,8 +2661,8 @@
                             }
                         }
                         cursor.advance(interner);
-                        <span class="kw">let </span>strict = cursor.strict_mode();
-                        cursor.set_strict_mode(<span class="bool-val">true</span>);
+                        <span class="kw">let </span>strict = cursor.strict();
+                        cursor.set_strict(<span class="bool-val">true</span>);
                         <span class="kw">let </span>rhs = AssignmentExpression::new(
                             name.literal().map(Into::into),
                             <span class="bool-val">true</span>,
@@ -2671,7 +2671,7 @@
                         )
                         .parse(cursor, interner)<span class="question-mark">?</span>;
                         cursor.expect_semicolon(<span class="string">&quot;expected semicolon&quot;</span>, interner)<span class="question-mark">?</span>;
-                        cursor.set_strict_mode(strict);
+                        cursor.set_strict(strict);
                         <span class="kw">if </span>r#static {
                             function::ClassElement::StaticFieldDefinition(name, <span class="prelude-val">Some</span>(rhs))
                         } <span class="kw">else </span>{
@@ -2685,8 +2685,8 @@
                                 name_position,
                             ));
                         }
-                        <span class="kw">let </span>strict = cursor.strict_mode();
-                        cursor.set_strict_mode(<span class="bool-val">true</span>);
+                        <span class="kw">let </span>strict = cursor.strict();
+                        cursor.set_strict(<span class="bool-val">true</span>);
                         <span class="kw">let </span>params =
                             UniqueFormalParameters::new(<span class="bool-val">false</span>, <span class="bool-val">false</span>).parse(cursor, interner)<span class="question-mark">?</span>;
                         cursor.expect(
@@ -2711,7 +2711,7 @@
                         )));
                         }
                         <span class="kw">let </span>method = MethodDefinition::Ordinary(Function::new(<span class="prelude-val">None</span>, params, body));
-                        cursor.set_strict_mode(strict);
+                        cursor.set_strict(strict);
                         <span class="kw">if </span>r#static {
                             function::ClassElement::StaticMethodDefinition(name, method)
                         } <span class="kw">else </span>{

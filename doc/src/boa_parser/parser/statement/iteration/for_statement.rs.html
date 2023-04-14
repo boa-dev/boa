@@ -539,7 +539,7 @@
             (<span class="prelude-val">Some</span>(init), TokenKind::Keyword((kw @ (Keyword::In | Keyword::Of), <span class="bool-val">false</span>))) =&gt; {
                 <span class="kw">let </span>kw = <span class="kw-2">*</span>kw;
                 <span class="kw">let </span>init =
-                    initializer_to_iterable_loop_initializer(init, position, cursor.strict_mode())<span class="question-mark">?</span>;
+                    initializer_to_iterable_loop_initializer(init, position, cursor.strict())<span class="question-mark">?</span>;
 
                 cursor.advance(interner);
                 <span class="kw">let </span>expr = Expression::new(<span class="prelude-val">None</span>, <span class="bool-val">true</span>, <span class="self">self</span>.allow_yield, <span class="self">self</span>.allow_await)
