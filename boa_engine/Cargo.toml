@@ -72,6 +72,7 @@ dashmap = "5.4.0"
 num_enum = "0.6.0"
 pollster = "0.3.0"
 thin-vec = "0.2.12"
+ic-cdk = "0.8.0-beta.0"
 
 # intl deps
 boa_icu_provider = { workspace = true, optional = true }
