@@ -1,5 +1,4 @@
 use chrono::{FixedOffset, Local, NaiveDateTime, Utc};
-
 use crate::{
     builtins::promise::OperationType,
     job::JobCallback,
