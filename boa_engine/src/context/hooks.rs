@@ -1,4 +1,3 @@
-use chrono::{FixedOffset, Local, NaiveDateTime, Utc};
 use crate::{
     builtins::promise::OperationType,
     job::JobCallback,
@@ -6,6 +5,7 @@ use crate::{
     realm::Realm,
     Context, JsResult, JsValue,
 };
+use chrono::{FixedOffset, Local, NaiveDateTime, Utc};
 
 use super::intrinsics::Intrinsics;
 
