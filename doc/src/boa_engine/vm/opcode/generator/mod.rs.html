@@ -226,7 +226,7 @@
     error::JsNativeError,
     string::utf16,
     vm::{
-        call_frame::{AbruptCompletionRecord, EarlyReturnType, GeneratorResumeKind},
+        call_frame::{AbruptCompletionRecord, GeneratorResumeKind},
         opcode::Operation,
         CompletionType,
     },
@@ -375,7 +375,7 @@
                 context.vm.push(iterator.clone());
                 context.vm.push(next_method.clone());
                 context.vm.push(value);
-                context.vm.frame_mut().early_return = <span class="prelude-val">Some</span>(EarlyReturnType::Yield);
+                context.vm.frame_mut().r#yield = <span class="bool-val">true</span>;
                 <span class="prelude-val">Ok</span>(CompletionType::Return)
             }
             GeneratorResumeKind::Throw =&gt; {
@@ -397,7 +397,7 @@
                     context.vm.push(iterator.clone());
                     context.vm.push(next_method.clone());
                     context.vm.push(value);
-                    context.vm.frame_mut().early_return = <span class="prelude-val">Some</span>(EarlyReturnType::Yield);
+                    context.vm.frame_mut().r#yield = <span class="bool-val">true</span>;
                     <span class="kw">return </span><span class="prelude-val">Ok</span>(CompletionType::Return);
                 }
                 context.vm.frame_mut().pc = done_address <span class="kw">as </span>usize;
@@ -427,7 +427,7 @@
                     context.vm.push(iterator.clone());
                     context.vm.push(next_method.clone());
                     context.vm.push(value);
-                    context.vm.frame_mut().early_return = <span class="prelude-val">Some</span>(EarlyReturnType::Yield);
+                    context.vm.frame_mut().r#yield = <span class="bool-val">true</span>;
                     <span class="kw">return </span><span class="prelude-val">Ok</span>(CompletionType::Return);
                 }
                 context.vm.frame_mut().pc = done_address <span class="kw">as </span>usize;

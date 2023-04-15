@@ -415,6 +415,15 @@
 <a href="#414" id="414">414</a>
 <a href="#415" id="415">415</a>
 <a href="#416" id="416">416</a>
+<a href="#417" id="417">417</a>
+<a href="#418" id="418">418</a>
+<a href="#419" id="419">419</a>
+<a href="#420" id="420">420</a>
+<a href="#421" id="421">421</a>
+<a href="#422" id="422">422</a>
+<a href="#423" id="423">423</a>
+<a href="#424" id="424">424</a>
+<a href="#425" id="425">425</a>
 </pre><pre class="rust"><code><span class="doccomment">//! Boa&#39;s implementation of ECMAScript&#39;s global `Generator` object.
 //!
 //! A Generator is an instance of a generator function and conforms to both the Iterator and Iterable interfaces.
@@ -461,10 +470,70 @@
 </span><span class="attr">#[derive(Debug, Clone, Finalize, Trace)]
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>GeneratorContext {
     <span class="kw">pub</span>(<span class="kw">crate</span>) environments: DeclarativeEnvironmentStack,
-    <span class="kw">pub</span>(<span class="kw">crate</span>) call_frame: CallFrame,
     <span class="kw">pub</span>(<span class="kw">crate</span>) stack: Vec&lt;JsValue&gt;,
     <span class="kw">pub</span>(<span class="kw">crate</span>) active_function: <span class="prelude-ty">Option</span>&lt;JsObject&gt;,
+    <span class="kw">pub</span>(<span class="kw">crate</span>) call_frame: <span class="prelude-ty">Option</span>&lt;CallFrame&gt;,
     <span class="kw">pub</span>(<span class="kw">crate</span>) realm: Realm,
+}
+
+<span class="kw">impl </span>GeneratorContext {
+    <span class="doccomment">/// Creates a new `GeneratorContext` from the raw `Context` state components.
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>new(
+        environments: DeclarativeEnvironmentStack,
+        stack: Vec&lt;JsValue&gt;,
+        active_function: <span class="prelude-ty">Option</span>&lt;JsObject&gt;,
+        call_frame: CallFrame,
+        realm: Realm,
+    ) -&gt; <span class="self">Self </span>{
+        <span class="self">Self </span>{
+            environments,
+            stack,
+            active_function,
+            call_frame: <span class="prelude-val">Some</span>(call_frame),
+            realm,
+        }
+    }
+
+    <span class="doccomment">/// Creates a new `GeneratorContext` from the current `Context` state.
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>from_current(context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <span class="self">Self </span>{
+        <span class="self">Self </span>{
+            environments: context.vm.environments.clone(),
+            call_frame: <span class="prelude-val">Some</span>(context.vm.frame().clone()),
+            stack: context.vm.stack.clone(),
+            active_function: context.vm.active_function.clone(),
+            realm: context.realm().clone(),
+        }
+    }
+
+    <span class="doccomment">/// Resumes execution with `GeneratorContext` as the current execution context.
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>resume(
+        <span class="kw-2">&amp;mut </span><span class="self">self</span>,
+        value: <span class="prelude-ty">Option</span>&lt;JsValue&gt;,
+        resume_kind: GeneratorResumeKind,
+        context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+    ) -&gt; CompletionRecord {
+        std::mem::swap(<span class="kw-2">&amp;mut </span>context.vm.environments, <span class="kw-2">&amp;mut </span><span class="self">self</span>.environments);
+        std::mem::swap(<span class="kw-2">&amp;mut </span>context.vm.stack, <span class="kw-2">&amp;mut </span><span class="self">self</span>.stack);
+        std::mem::swap(<span class="kw-2">&amp;mut </span>context.vm.active_function, <span class="kw-2">&amp;mut </span><span class="self">self</span>.active_function);
+        context.swap_realm(<span class="kw-2">&amp;mut </span><span class="self">self</span>.realm);
+        context
+            .vm
+            .push_frame(<span class="self">self</span>.call_frame.take().expect(<span class="string">&quot;should have a call frame&quot;</span>));
+        context.vm.frame_mut().generator_resume_kind = resume_kind;
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(value) = value {
+            context.vm.push(value);
+        }
+
+        <span class="kw">let </span>result = context.run();
+
+        std::mem::swap(<span class="kw-2">&amp;mut </span>context.vm.environments, <span class="kw-2">&amp;mut </span><span class="self">self</span>.environments);
+        std::mem::swap(<span class="kw-2">&amp;mut </span>context.vm.stack, <span class="kw-2">&amp;mut </span><span class="self">self</span>.stack);
+        std::mem::swap(<span class="kw-2">&amp;mut </span>context.vm.active_function, <span class="kw-2">&amp;mut </span><span class="self">self</span>.active_function);
+        context.swap_realm(<span class="kw-2">&amp;mut </span><span class="self">self</span>.realm);
+        <span class="self">self</span>.call_frame = context.vm.pop_frame();
+        <span class="macro">assert!</span>(<span class="self">self</span>.call_frame.is_some());
+        result
+    }
 }
 
 <span class="doccomment">/// The internal representation of a `Generator` object.
@@ -534,15 +603,19 @@
         args: <span class="kw-2">&amp;</span>[JsValue],
         context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
     ) -&gt; JsResult&lt;JsValue&gt; {
+        <span class="comment">// Extracted `GeneratorValidate` since we don&#39;t need to worry about validation
+        // of async functions.
+        </span><span class="kw">let </span>generator = <span class="self">Self</span>::generator_validate(this)<span class="question-mark">?</span>;
+
         <span class="comment">// 1. Return ? GeneratorResume(this value, value, empty).
-        </span>this.as_object().map_or_else(
-            || {
-                <span class="prelude-val">Err</span>(JsNativeError::typ()
-                    .with_message(<span class="string">&quot;Generator.prototype.next called on non generator&quot;</span>)
-                    .into())
-            },
-            |obj| <span class="self">Self</span>::generator_resume(obj, args.get_or_undefined(<span class="number">0</span>), context),
-        )
+        </span><span class="kw">let </span>completion =
+            <span class="self">Self</span>::generator_resume(generator, args.get_or_undefined(<span class="number">0</span>).clone(), context);
+
+        <span class="kw">match </span>completion {
+            CompletionRecord::Return(value) =&gt; <span class="prelude-val">Ok</span>(create_iter_result_object(value, <span class="bool-val">false</span>, context)),
+            CompletionRecord::Normal(value) =&gt; <span class="prelude-val">Ok</span>(create_iter_result_object(value, <span class="bool-val">true</span>, context)),
+            CompletionRecord::Throw(err) =&gt; <span class="prelude-val">Err</span>(err),
+        }
     }
 
     <span class="doccomment">/// `Generator.prototype.return ( value )`
@@ -561,9 +634,17 @@
         context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
     ) -&gt; JsResult&lt;JsValue&gt; {
         <span class="comment">// 1. Let g be the this value.
-        // 2. Let C be Completion { [[Type]]: return, [[Value]]: value, [[Target]]: empty }.
+        </span><span class="kw">let </span>generator = <span class="self">Self</span>::generator_validate(this)<span class="question-mark">?</span>;
+        <span class="comment">// 2. Let C be Completion { [[Type]]: return, [[Value]]: value, [[Target]]: empty }.
         // 3. Return ? GeneratorResumeAbrupt(g, C, empty).
-        </span><span class="self">Self</span>::generator_resume_abrupt(this, <span class="prelude-val">Ok</span>(args.get_or_undefined(<span class="number">0</span>).clone()), context)
+        </span><span class="kw">let </span>completion =
+            <span class="self">Self</span>::generator_resume_abrupt(generator, <span class="prelude-val">Ok</span>(args.get_or_undefined(<span class="number">0</span>).clone()), context);
+
+        <span class="kw">match </span>completion {
+            CompletionRecord::Return(value) =&gt; <span class="prelude-val">Ok</span>(create_iter_result_object(value, <span class="bool-val">false</span>, context)),
+            CompletionRecord::Normal(value) =&gt; <span class="prelude-val">Ok</span>(create_iter_result_object(value, <span class="bool-val">true</span>, context)),
+            CompletionRecord::Throw(err) =&gt; <span class="prelude-val">Err</span>(err),
+        }
     }
 
     <span class="doccomment">/// `Generator.prototype.throw ( exception )`
@@ -583,13 +664,44 @@
         context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
     ) -&gt; JsResult&lt;JsValue&gt; {
         <span class="comment">// 1. Let g be the this value.
-        // 2. Let C be ThrowCompletion(exception).
+        </span><span class="kw">let </span>generator = <span class="self">Self</span>::generator_validate(this)<span class="question-mark">?</span>;
+        <span class="comment">// 2. Let C be ThrowCompletion(exception).
         // 3. Return ? GeneratorResumeAbrupt(g, C, empty).
-        </span><span class="self">Self</span>::generator_resume_abrupt(
-            this,
+        </span><span class="kw">let </span>completion = <span class="self">Self</span>::generator_resume_abrupt(
+            generator,
             <span class="prelude-val">Err</span>(JsError::from_opaque(args.get_or_undefined(<span class="number">0</span>).clone())),
             context,
-        )
+        );
+
+        <span class="kw">match </span>completion {
+            CompletionRecord::Return(value) =&gt; <span class="prelude-val">Ok</span>(create_iter_result_object(value, <span class="bool-val">false</span>, context)),
+            CompletionRecord::Normal(value) =&gt; <span class="prelude-val">Ok</span>(create_iter_result_object(value, <span class="bool-val">true</span>, context)),
+            CompletionRecord::Throw(err) =&gt; <span class="prelude-val">Err</span>(err),
+        }
+    }
+
+    <span class="doccomment">/// `27.5.3.3 GeneratorValidate ( generator, generatorBrand )`
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///
+    /// [spec]:https://tc39.es/ecma262/#sec-generatorvalidate
+    </span><span class="kw">fn </span>generator_validate(gen: <span class="kw-2">&amp;</span>JsValue) -&gt; JsResult&lt;<span class="kw-2">&amp;</span>JsObject&gt; {
+        <span class="kw">let </span>generator_obj = gen.as_object().ok_or_else(|| {
+            JsNativeError::typ().with_message(<span class="string">&quot;Generator method called on non generator&quot;</span>)
+        })<span class="question-mark">?</span>;
+        <span class="kw">let </span><span class="kw-2">mut </span>generator_obj_mut = generator_obj.borrow_mut();
+        <span class="kw">let </span>generator = generator_obj_mut.as_generator_mut().ok_or_else(|| {
+            JsNativeError::typ().with_message(<span class="string">&quot;generator resumed on non generator object&quot;</span>)
+        })<span class="question-mark">?</span>;
+
+        <span class="kw">if </span>generator.state == GeneratorState::Executing {
+            <span class="prelude-val">Err</span>(JsNativeError::typ()
+                .with_message(<span class="string">&quot;Generator should not be executing&quot;</span>)
+                .into())
+        } <span class="kw">else </span>{
+            <span class="prelude-val">Ok</span>(generator_obj)
+        }
     }
 
     <span class="doccomment">/// `27.5.3.3 GeneratorResume ( generator, value, generatorBrand )`
@@ -599,30 +711,20 @@
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-generatorresume
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>generator_resume(
-        generator_obj: <span class="kw-2">&amp;</span>JsObject,
-        value: <span class="kw-2">&amp;</span>JsValue,
+        gen: <span class="kw-2">&amp;</span>JsObject,
+        value: JsValue,
         context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
-    ) -&gt; JsResult&lt;JsValue&gt; {
+    ) -&gt; CompletionRecord {
         <span class="comment">// 1. Let state be ? GeneratorValidate(generator, generatorBrand).
-        </span><span class="kw">let </span><span class="kw-2">mut </span>generator_obj_mut = generator_obj.borrow_mut();
-        <span class="kw">let </span>generator = generator_obj_mut.as_generator_mut().ok_or_else(|| {
-            JsNativeError::typ().with_message(<span class="string">&quot;generator resumed on non generator object&quot;</span>)
-        })<span class="question-mark">?</span>;
+        </span><span class="kw">let </span><span class="kw-2">mut </span>generator_obj_mut = gen.borrow_mut();
+        <span class="kw">let </span>generator = generator_obj_mut
+            .as_generator_mut()
+            .expect(<span class="string">&quot;already validated that this is a generator&quot;</span>);
         <span class="kw">let </span>state = generator.state;
-
-        <span class="kw">if </span>state == GeneratorState::Executing {
-            <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::typ()
-                .with_message(<span class="string">&quot;Generator should not be executing&quot;</span>)
-                .into());
-        }
 
         <span class="comment">// 2. If state is completed, return CreateIterResultObject(undefined, true).
         </span><span class="kw">if </span>state == GeneratorState::Completed {
-            <span class="kw">return </span><span class="prelude-val">Ok</span>(create_iter_result_object(
-                JsValue::undefined(),
-                <span class="bool-val">true</span>,
-                context,
-            ));
+            <span class="kw">return </span>CompletionRecord::Normal(JsValue::undefined());
         }
 
         <span class="comment">// 3. Assert: state is either suspendedStart or suspendedYield.
@@ -644,65 +746,31 @@
             .expect(<span class="string">&quot;generator context cannot be empty here&quot;</span>);
         drop(generator_obj_mut);
 
-        std::mem::swap(
-            <span class="kw-2">&amp;mut </span>context.vm.environments,
-            <span class="kw-2">&amp;mut </span>generator_context.environments,
+        <span class="kw">let </span>record = generator_context.resume(
+            (!first_execution).then_some(value),
+            GeneratorResumeKind::Normal,
+            context,
         );
-        std::mem::swap(<span class="kw-2">&amp;mut </span>context.vm.stack, <span class="kw-2">&amp;mut </span>generator_context.stack);
-        std::mem::swap(
-            <span class="kw-2">&amp;mut </span>context.vm.active_function,
-            <span class="kw-2">&amp;mut </span>generator_context.active_function,
-        );
-        <span class="kw">let </span>old_realm = context.enter_realm(generator_context.realm.clone());
-        context.vm.push_frame(generator_context.call_frame.clone());
-        <span class="kw">if </span>!first_execution {
-            context.vm.push(value.clone());
-        }
 
-        context.vm.frame_mut().generator_resume_kind = GeneratorResumeKind::Normal;
-
-        <span class="kw">let </span>record = context.run();
-
-        generator_context.call_frame = context
-            .vm
-            .pop_frame()
-            .expect(<span class="string">&quot;generator call frame must exist&quot;</span>);
-        std::mem::swap(
-            <span class="kw-2">&amp;mut </span>context.vm.environments,
-            <span class="kw-2">&amp;mut </span>generator_context.environments,
-        );
-        std::mem::swap(<span class="kw-2">&amp;mut </span>context.vm.stack, <span class="kw-2">&amp;mut </span>generator_context.stack);
-        std::mem::swap(
-            <span class="kw-2">&amp;mut </span>context.vm.active_function,
-            <span class="kw-2">&amp;mut </span>generator_context.active_function,
-        );
-        context.enter_realm(old_realm);
-
-        <span class="kw">let </span><span class="kw-2">mut </span>generator_obj_mut = generator_obj.borrow_mut();
+        <span class="kw">let </span><span class="kw-2">mut </span>generator_obj_mut = gen.borrow_mut();
         <span class="kw">let </span>generator = generator_obj_mut
             .as_generator_mut()
             .expect(<span class="string">&quot;already checked this object type&quot;</span>);
 
-        <span class="kw">match </span>record {
-            CompletionRecord::Return(value) =&gt; {
-                generator.state = GeneratorState::SuspendedYield;
+        generator.state = <span class="kw">match </span>record {
+            CompletionRecord::Return(<span class="kw">_</span>) =&gt; {
                 generator.context = <span class="prelude-val">Some</span>(generator_context);
-                <span class="prelude-val">Ok</span>(create_iter_result_object(value, <span class="bool-val">false</span>, context))
+                GeneratorState::SuspendedYield
             }
-            CompletionRecord::Normal(value) =&gt; {
-                generator.state = GeneratorState::Completed;
-                <span class="prelude-val">Ok</span>(create_iter_result_object(value, <span class="bool-val">true</span>, context))
-            }
-            CompletionRecord::Throw(err) =&gt; {
-                generator.state = GeneratorState::Completed;
-                <span class="prelude-val">Err</span>(err)
-            }
-        }
+            CompletionRecord::Normal(<span class="kw">_</span>) | CompletionRecord::Throw(<span class="kw">_</span>) =&gt; GeneratorState::Completed,
+        };
+
         <span class="comment">// 8. Push genContext onto the execution context stack; genContext is now the running execution context.
         // 9. Resume the suspended evaluation of genContext using NormalCompletion(value) as the result of the operation that suspended it. Let result be the value returned by the resumed computation.
         // 10. Assert: When we return here, genContext has already been removed from the execution context stack and methodContext is the currently running execution context.
         // 11. Return Completion(result).
-    </span>}
+        </span>record
+    }
 
     <span class="doccomment">/// `27.5.3.4 GeneratorResumeAbrupt ( generator, abruptCompletion, generatorBrand )`
     ///
@@ -711,25 +779,16 @@
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-generatorresumeabrupt
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>generator_resume_abrupt(
-        this: <span class="kw-2">&amp;</span>JsValue,
+        gen: <span class="kw-2">&amp;</span>JsObject,
         abrupt_completion: JsResult&lt;JsValue&gt;,
         context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
-    ) -&gt; JsResult&lt;JsValue&gt; {
+    ) -&gt; CompletionRecord {
         <span class="comment">// 1. Let state be ? GeneratorValidate(generator, generatorBrand).
-        </span><span class="kw">let </span>generator_obj = this.as_object().ok_or_else(|| {
-            JsNativeError::typ().with_message(<span class="string">&quot;generator resumed on non generator object&quot;</span>)
-        })<span class="question-mark">?</span>;
-        <span class="kw">let </span><span class="kw-2">mut </span>generator_obj_mut = generator_obj.borrow_mut();
-        <span class="kw">let </span>generator = generator_obj_mut.as_generator_mut().ok_or_else(|| {
-            JsNativeError::typ().with_message(<span class="string">&quot;generator resumed on non generator object&quot;</span>)
-        })<span class="question-mark">?</span>;
+        </span><span class="kw">let </span><span class="kw-2">mut </span>generator_obj_mut = gen.borrow_mut();
+        <span class="kw">let </span>generator = generator_obj_mut
+            .as_generator_mut()
+            .expect(<span class="string">&quot;already validated the generator object&quot;</span>);
         <span class="kw">let </span><span class="kw-2">mut </span>state = generator.state;
-
-        <span class="kw">if </span>state == GeneratorState::Executing {
-            <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::typ()
-                .with_message(<span class="string">&quot;Generator should not be executing&quot;</span>)
-                .into());
-        }
 
         <span class="comment">// 2. If state is suspendedStart, then
         </span><span class="kw">if </span>state == GeneratorState::SuspendedStart {
@@ -744,12 +803,10 @@
         <span class="comment">// 3. If state is completed, then
         </span><span class="kw">if </span>state == GeneratorState::Completed {
             <span class="comment">// a. If abruptCompletion.[[Type]] is return, then
-            </span><span class="kw">if let </span><span class="prelude-val">Ok</span>(value) = abrupt_completion {
-                <span class="comment">// i. Return CreateIterResultObject(abruptCompletion.[[Value]], true).
-                </span><span class="kw">return </span><span class="prelude-val">Ok</span>(create_iter_result_object(value, <span class="bool-val">true</span>, context));
-            }
-            <span class="comment">// b. Return Completion(abruptCompletion).
-            </span><span class="kw">return </span>abrupt_completion;
+            // i. Return CreateIterResultObject(abruptCompletion.[[Value]], true).
+            // b. Return Completion(abruptCompletion).
+            </span><span class="kw">return </span>abrupt_completion
+                .map_or_else(CompletionRecord::Throw, CompletionRecord::Normal);
         }
 
         <span class="comment">// 4. Assert: state is suspendedYield.
@@ -769,66 +826,27 @@
         generator.state = GeneratorState::Executing;
         drop(generator_obj_mut);
 
-        std::mem::swap(
-            <span class="kw-2">&amp;mut </span>context.vm.environments,
-            <span class="kw-2">&amp;mut </span>generator_context.environments,
-        );
-        std::mem::swap(<span class="kw-2">&amp;mut </span>context.vm.stack, <span class="kw-2">&amp;mut </span>generator_context.stack);
-        std::mem::swap(
-            <span class="kw-2">&amp;mut </span>context.vm.active_function,
-            <span class="kw-2">&amp;mut </span>generator_context.active_function,
-        );
-        <span class="kw">let </span>old_realm = context.enter_realm(generator_context.realm.clone());
-        context.vm.push_frame(generator_context.call_frame.clone());
-
-        <span class="kw">let </span>completion_record = <span class="kw">match </span>abrupt_completion {
-            <span class="prelude-val">Ok</span>(value) =&gt; {
-                context.vm.push(value);
-                context.vm.frame_mut().generator_resume_kind = GeneratorResumeKind::Return;
-                context.run()
-            }
-            <span class="prelude-val">Err</span>(value) =&gt; {
-                <span class="kw">let </span>value = value.to_opaque(context);
-                context.vm.push(value);
-                context.vm.frame_mut().generator_resume_kind = GeneratorResumeKind::Throw;
-                context.run()
-            }
+        <span class="kw">let </span>(value, resume_kind) = <span class="kw">match </span>abrupt_completion {
+            <span class="prelude-val">Ok</span>(value) =&gt; (value, GeneratorResumeKind::Return),
+            <span class="prelude-val">Err</span>(err) =&gt; (err.to_opaque(context), GeneratorResumeKind::Throw),
         };
-        generator_context.call_frame = context
-            .vm
-            .pop_frame()
-            .expect(<span class="string">&quot;generator call frame must exist&quot;</span>);
-        std::mem::swap(
-            <span class="kw-2">&amp;mut </span>context.vm.environments,
-            <span class="kw-2">&amp;mut </span>generator_context.environments,
-        );
-        std::mem::swap(<span class="kw-2">&amp;mut </span>context.vm.stack, <span class="kw-2">&amp;mut </span>generator_context.stack);
-        std::mem::swap(
-            <span class="kw-2">&amp;mut </span>context.vm.active_function,
-            <span class="kw-2">&amp;mut </span>generator_context.active_function,
-        );
-        context.enter_realm(old_realm);
 
-        <span class="kw">let </span><span class="kw-2">mut </span>generator_obj_mut = generator_obj.borrow_mut();
+        <span class="kw">let </span>record = generator_context.resume(<span class="prelude-val">Some</span>(value), resume_kind, context);
+
+        <span class="kw">let </span><span class="kw-2">mut </span>generator_obj_mut = gen.borrow_mut();
         <span class="kw">let </span>generator = generator_obj_mut
             .as_generator_mut()
             .expect(<span class="string">&quot;already checked this object type&quot;</span>);
 
-        <span class="kw">match </span>completion_record {
-            CompletionRecord::Return(value) =&gt; {
-                generator.state = GeneratorState::SuspendedYield;
+        generator.state = <span class="kw">match </span>record {
+            CompletionRecord::Return(<span class="kw">_</span>) =&gt; {
                 generator.context = <span class="prelude-val">Some</span>(generator_context);
-                <span class="prelude-val">Ok</span>(create_iter_result_object(value, <span class="bool-val">false</span>, context))
+                GeneratorState::SuspendedYield
             }
-            CompletionRecord::Normal(value) =&gt; {
-                generator.state = GeneratorState::Completed;
-                <span class="prelude-val">Ok</span>(create_iter_result_object(value, <span class="bool-val">true</span>, context))
-            }
-            CompletionRecord::Throw(err) =&gt; {
-                generator.state = GeneratorState::Completed;
-                <span class="prelude-val">Err</span>(err)
-            }
-        }
+            CompletionRecord::Normal(<span class="kw">_</span>) | CompletionRecord::Throw(<span class="kw">_</span>) =&gt; GeneratorState::Completed,
+        };
+
+        record
     }
 }
 </code></pre></div>

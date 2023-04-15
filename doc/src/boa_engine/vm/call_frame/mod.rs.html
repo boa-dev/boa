@@ -110,11 +110,6 @@
 <a href="#109" id="109">109</a>
 <a href="#110" id="110">110</a>
 <a href="#111" id="111">111</a>
-<a href="#112" id="112">112</a>
-<a href="#113" id="113">113</a>
-<a href="#114" id="114">114</a>
-<a href="#115" id="115">115</a>
-<a href="#116" id="116">116</a>
 </pre><pre class="rust"><code><span class="doccomment">//! `CallFrame`
 //!
 //! This module will provides everything needed to implement the `CallFrame`
@@ -122,7 +117,7 @@
 </span><span class="kw">mod </span>abrupt_record;
 <span class="kw">mod </span>env_stack;
 
-<span class="kw">use crate</span>::{object::JsObject, vm::CodeBlock};
+<span class="kw">use crate</span>::{builtins::promise::PromiseCapability, object::JsObject, vm::CodeBlock};
 <span class="kw">use </span>boa_gc::{Finalize, Gc, Trace};
 <span class="kw">use </span>thin_vec::ThinVec;
 
@@ -138,7 +133,7 @@
     <span class="attr">#[unsafe_ignore_trace]
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) abrupt_completion: <span class="prelude-ty">Option</span>&lt;AbruptCompletionRecord&gt;,
     <span class="attr">#[unsafe_ignore_trace]
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) early_return: <span class="prelude-ty">Option</span>&lt;EarlyReturnType&gt;,
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) r#yield: bool,
     <span class="kw">pub</span>(<span class="kw">crate</span>) pop_on_return: usize,
     <span class="comment">// Tracks the number of environments in environment entry.
     // On abrupt returns this is used to decide how many environments need to be pop&#39;ed.
@@ -148,6 +143,7 @@
     <span class="kw">pub</span>(<span class="kw">crate</span>) arg_count: usize,
     <span class="attr">#[unsafe_ignore_trace]
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) generator_resume_kind: GeneratorResumeKind,
+    <span class="kw">pub</span>(<span class="kw">crate</span>) promise_capability: <span class="prelude-ty">Option</span>&lt;PromiseCapability&gt;,
 
     <span class="comment">// When an async generator is resumed, the generator object is needed
     // to fulfill the steps 4.e-j in [AsyncGeneratorStart](https://tc39.es/ecma262/#sec-asyncgeneratorstart).
@@ -169,10 +165,11 @@
             pop_on_return: <span class="number">0</span>,
             env_stack: Vec::from([EnvStackEntry::new(<span class="number">0</span>, max_length)]),
             abrupt_completion: <span class="prelude-val">None</span>,
-            early_return: <span class="prelude-val">None</span>,
+            r#yield: <span class="bool-val">false</span>,
             param_count: <span class="number">0</span>,
             arg_count: <span class="number">0</span>,
             generator_resume_kind: GeneratorResumeKind::Normal,
+            promise_capability: <span class="prelude-val">None</span>,
             async_generator: <span class="prelude-val">None</span>,
             iterators: ThinVec::new(),
         }
@@ -223,13 +220,6 @@
     Normal,
     Throw,
     Return,
-}
-
-<span class="comment">// An enum to mark whether a return is early due to Async or Yield
-</span><span class="attr">#[derive(Copy, Clone, Debug, PartialEq)]
-</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">enum </span>EarlyReturnType {
-    Await,
-    Yield,
 }
 </code></pre></div>
 </section></main><div id="rustdoc-vars" data-root-path="../../../../" data-static-root-path="../../../../static.files/" data-current-crate="boa_engine" data-themes="" data-resource-suffix="" data-rustdoc-version="1.68.2 (9eb3afe9e 2023-03-27)" data-search-js="search-98d53477a794af0b.js" data-settings-js="settings-c3c521c753752a1a.js" data-settings-css="settings-08ddfdda51b8ee2e.css" ></div></body></html>

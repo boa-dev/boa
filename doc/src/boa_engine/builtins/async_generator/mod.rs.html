@@ -719,32 +719,6 @@
 <a href="#718" id="718">718</a>
 <a href="#719" id="719">719</a>
 <a href="#720" id="720">720</a>
-<a href="#721" id="721">721</a>
-<a href="#722" id="722">722</a>
-<a href="#723" id="723">723</a>
-<a href="#724" id="724">724</a>
-<a href="#725" id="725">725</a>
-<a href="#726" id="726">726</a>
-<a href="#727" id="727">727</a>
-<a href="#728" id="728">728</a>
-<a href="#729" id="729">729</a>
-<a href="#730" id="730">730</a>
-<a href="#731" id="731">731</a>
-<a href="#732" id="732">732</a>
-<a href="#733" id="733">733</a>
-<a href="#734" id="734">734</a>
-<a href="#735" id="735">735</a>
-<a href="#736" id="736">736</a>
-<a href="#737" id="737">737</a>
-<a href="#738" id="738">738</a>
-<a href="#739" id="739">739</a>
-<a href="#740" id="740">740</a>
-<a href="#741" id="741">741</a>
-<a href="#742" id="742">742</a>
-<a href="#743" id="743">743</a>
-<a href="#744" id="744">744</a>
-<a href="#745" id="745">745</a>
-<a href="#746" id="746">746</a>
 </pre><pre class="rust"><code><span class="doccomment">//! Boa&#39;s implementation of ECMAScript&#39;s global `AsyncGenerator` object.
 //!
 //! More information:
@@ -1237,51 +1211,24 @@
             .expect(<span class="string">&quot;already checked before&quot;</span>)
             .state = AsyncGeneratorState::Executing;
 
+        <span class="kw">let </span>(value, resume_kind) = <span class="kw">match </span>completion {
+            (<span class="prelude-val">Ok</span>(value), r#return) =&gt; (
+                value,
+                <span class="kw">if </span>r#return {
+                    GeneratorResumeKind::Return
+                } <span class="kw">else </span>{
+                    GeneratorResumeKind::Normal
+                },
+            ),
+            (<span class="prelude-val">Err</span>(value), <span class="kw">_</span>) =&gt; (value.to_opaque(context), GeneratorResumeKind::Throw),
+        };
         <span class="comment">// 6. Push genContext onto the execution context stack; genContext is now the running execution context.
-        </span>std::mem::swap(
-            <span class="kw-2">&amp;mut </span>context.vm.environments,
-            <span class="kw-2">&amp;mut </span>generator_context.environments,
-        );
-        std::mem::swap(<span class="kw-2">&amp;mut </span>context.vm.stack, <span class="kw-2">&amp;mut </span>generator_context.stack);
-        std::mem::swap(
-            <span class="kw-2">&amp;mut </span>context.vm.active_function,
-            <span class="kw-2">&amp;mut </span>generator_context.active_function,
-        );
-        <span class="kw">let </span>old_realm = context.enter_realm(generator_context.realm.clone());
 
-        context.vm.push_frame(generator_context.call_frame.clone());
+        </span><span class="kw">let </span>result = generator_context.resume(<span class="prelude-val">Some</span>(value), resume_kind, context);
 
         <span class="comment">// 7. Resume the suspended evaluation of genContext using completion as the result of the operation that suspended it. Let result be the Completion Record returned by the resumed computation.
-        </span><span class="kw">match </span>completion {
-            (<span class="prelude-val">Ok</span>(value), r#return) =&gt; {
-                context.vm.push(value);
-                <span class="kw">if </span>r#return {
-                    context.vm.frame_mut().generator_resume_kind = GeneratorResumeKind::Return;
-                } <span class="kw">else </span>{
-                    context.vm.frame_mut().generator_resume_kind = GeneratorResumeKind::Normal;
-                }
-            }
-            (<span class="prelude-val">Err</span>(value), <span class="kw">_</span>) =&gt; {
-                <span class="kw">let </span>value = value.to_opaque(context);
-                context.vm.push(value);
-                context.vm.frame_mut().generator_resume_kind = GeneratorResumeKind::Throw;
-            }
-        }
-        <span class="kw">let </span>result = context.run();
 
-        std::mem::swap(
-            <span class="kw-2">&amp;mut </span>context.vm.environments,
-            <span class="kw-2">&amp;mut </span>generator_context.environments,
-        );
-        std::mem::swap(<span class="kw-2">&amp;mut </span>context.vm.stack, <span class="kw-2">&amp;mut </span>generator_context.stack);
-        generator_context.call_frame = context.vm.pop_frame().expect(<span class="string">&quot;generator frame must exist&quot;</span>);
-        std::mem::swap(
-            <span class="kw-2">&amp;mut </span>context.vm.active_function,
-            <span class="kw-2">&amp;mut </span>generator_context.active_function,
-        );
-        context.enter_realm(old_realm);
-
-        generator
+        </span>generator
             .borrow_mut()
             .as_async_generator_mut()
             .expect(<span class="string">&quot;already checked before&quot;</span>)
@@ -1290,7 +1237,8 @@
         <span class="comment">// 8. Assert: result is never an abrupt completion.
         </span><span class="macro">assert!</span>(!result.is_throw_completion());
 
-        <span class="comment">// 9. Assert: When we return here, genContext has already been removed from the execution context stack and callerContext is the currently running execution context.
+        <span class="comment">// 9. Assert: When we return here, genContext has already been removed from the execution context stack and
+        // callerContext is the currently running execution context.
         // 10. Return unused.
     </span>}
 

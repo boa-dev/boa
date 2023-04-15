@@ -715,6 +715,13 @@
 <a href="#714" id="714">714</a>
 <a href="#715" id="715">715</a>
 <a href="#716" id="716">716</a>
+<a href="#717" id="717">717</a>
+<a href="#718" id="718">718</a>
+<a href="#719" id="719">719</a>
+<a href="#720" id="720">720</a>
+<a href="#721" id="721">721</a>
+<a href="#722" id="722">722</a>
+<a href="#723" id="723">723</a>
 </pre><pre class="rust"><code><span class="doccomment">//! The ECMAScript context.
 
 </span><span class="kw">mod </span>hooks;
@@ -1253,7 +1260,14 @@
 
 <span class="comment">// ==== Private API ====
 
-</span><span class="attr">#[cfg(feature = <span class="string">&quot;intl&quot;</span>)]
+</span><span class="kw">impl </span>Context&lt;<span class="lifetime">&#39;_</span>&gt; {
+    <span class="doccomment">/// Swaps the currently active realm with `realm`.
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>swap_realm(<span class="kw-2">&amp;mut </span><span class="self">self</span>, realm: <span class="kw-2">&amp;mut </span>Realm) {
+        std::mem::swap(<span class="kw-2">&amp;mut </span><span class="self">self</span>.realm, realm);
+    }
+}
+
+<span class="attr">#[cfg(feature = <span class="string">&quot;intl&quot;</span>)]
 </span><span class="kw">impl</span>&lt;<span class="lifetime">&#39;host</span>&gt; Context&lt;<span class="lifetime">&#39;host</span>&gt; {
     <span class="doccomment">/// Get the ICU related utilities
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const fn </span>icu(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>icu::Icu&lt;<span class="lifetime">&#39;host</span>&gt; {

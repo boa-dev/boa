@@ -1306,7 +1306,6 @@
 <a href="#1305" id="1305">1305</a>
 <a href="#1306" id="1306">1306</a>
 <a href="#1307" id="1307">1307</a>
-<a href="#1308" id="1308">1308</a>
 </pre><pre class="rust"><code><span class="doccomment">//! `CodeBlock`
 //!
 //! This module is for the `CodeBlock` which implements a function representation in the VM
@@ -2133,7 +2132,7 @@
 
         <span class="kw">let </span>context = <span class="kw-2">&amp;mut </span>ContextCleanupGuard::new(context, realm, active_function);
 
-        <span class="kw">let </span>(code, <span class="kw-2">mut </span>environments, class_object, promise, async_, gen) =
+        <span class="kw">let </span>(code, <span class="kw-2">mut </span>environments, class_object, promise_cap, async_, gen) =
             <span class="kw">match </span>function_object.kind() {
                 FunctionKind::Native {
                     function,
@@ -2183,7 +2182,7 @@
                     code.clone(),
                     environments.clone(),
                     class_object.clone(),
-                    <span class="prelude-val">Some</span>(promise_capability.promise().clone()),
+                    <span class="prelude-val">Some</span>(promise_capability.clone()),
                     <span class="bool-val">true</span>,
                     <span class="bool-val">false</span>,
                 ),
@@ -2318,11 +2317,12 @@
 
         <span class="kw">let </span>param_count = code.params.as_ref().len();
 
-        context.vm.push_frame(
-            CallFrame::new(code)
-                .with_param_count(param_count)
-                .with_arg_count(arg_count),
-        );
+        <span class="kw">let </span><span class="kw-2">mut </span>frame = CallFrame::new(code)
+            .with_param_count(param_count)
+            .with_arg_count(arg_count);
+        frame.promise_capability = promise_cap.clone();
+
+        context.vm.push_frame(frame);
 
         <span class="kw">let </span>result = context
             .run()
@@ -2333,13 +2333,10 @@
         std::mem::swap(<span class="kw-2">&amp;mut </span>environments, <span class="kw-2">&amp;mut </span>context.vm.environments);
         std::mem::swap(<span class="kw-2">&amp;mut </span>context.vm.stack, <span class="kw-2">&amp;mut </span>stack);
 
-        <span class="kw">if let </span><span class="prelude-val">Some</span>(promise) = promise {
-            <span class="kw">return </span><span class="prelude-val">Ok</span>(promise.into());
-        }
-
-        <span class="kw">let </span>value = result<span class="question-mark">?</span>;
-
-        <span class="kw">let </span>value = <span class="kw">if </span>gen {
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(promise_cap) = promise_cap {
+            <span class="prelude-val">Ok</span>(promise_cap.promise().clone().into())
+        } <span class="kw">else if </span>gen {
+            result<span class="question-mark">?</span>;
             <span class="kw">let </span>proto = this_function_object
                 .get(PROTOTYPE, context)
                 .expect(<span class="string">&quot;generator must have a prototype property&quot;</span>)
@@ -2354,34 +2351,32 @@
                     },
                     Clone::clone,
                 );
+            <span class="kw">let </span>data = <span class="kw">if </span>async_ {
+                ObjectData::async_generator(AsyncGenerator {
+                    state: AsyncGeneratorState::SuspendedStart,
+                    context: <span class="prelude-val">Some</span>(GeneratorContext::new(
+                        environments,
+                        stack,
+                        context.vm.active_function.clone(),
+                        call_frame,
+                        context.realm().clone(),
+                    )),
+                    queue: VecDeque::new(),
+                })
+            } <span class="kw">else </span>{
+                ObjectData::generator(Generator {
+                    state: GeneratorState::SuspendedStart,
+                    context: <span class="prelude-val">Some</span>(GeneratorContext::new(
+                        environments,
+                        stack,
+                        context.vm.active_function.clone(),
+                        call_frame,
+                        context.realm().clone(),
+                    )),
+                })
+            };
 
-            <span class="kw">let </span>generator = <span class="self">Self</span>::from_proto_and_data(
-                proto,
-                <span class="kw">if </span>async_ {
-                    ObjectData::async_generator(AsyncGenerator {
-                        state: AsyncGeneratorState::SuspendedStart,
-                        context: <span class="prelude-val">Some</span>(GeneratorContext {
-                            environments,
-                            call_frame,
-                            stack,
-                            active_function: context.vm.active_function.clone(),
-                            realm: context.realm().clone(),
-                        }),
-                        queue: VecDeque::new(),
-                    })
-                } <span class="kw">else </span>{
-                    ObjectData::generator(Generator {
-                        state: GeneratorState::SuspendedStart,
-                        context: <span class="prelude-val">Some</span>(GeneratorContext {
-                            environments,
-                            call_frame,
-                            stack,
-                            active_function: context.vm.active_function.clone(),
-                            realm: context.realm().clone(),
-                        }),
-                    })
-                },
-            );
+            <span class="kw">let </span>generator = <span class="self">Self</span>::from_proto_and_data(proto, data);
 
             <span class="kw">if </span>async_ {
                 <span class="kw">let </span>gen_clone = generator.clone();
@@ -2390,15 +2385,18 @@
                     .as_async_generator_mut()
                     .expect(<span class="string">&quot;must be object here&quot;</span>);
                 <span class="kw">let </span>gen_context = gen.context.as_mut().expect(<span class="string">&quot;must exist&quot;</span>);
-                gen_context.call_frame.async_generator = <span class="prelude-val">Some</span>(gen_clone);
+                <span class="comment">// TODO: try to move this to the context itself.
+                </span>gen_context
+                    .call_frame
+                    .as_mut()
+                    .expect(<span class="string">&quot;should have a call frame initialized&quot;</span>)
+                    .async_generator = <span class="prelude-val">Some</span>(gen_clone);
             }
 
-            generator.into()
+            <span class="prelude-val">Ok</span>(generator.into())
         } <span class="kw">else </span>{
-            value
-        };
-
-        <span class="prelude-val">Ok</span>(value)
+            result
+        }
     }
 
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>construct_internal(
