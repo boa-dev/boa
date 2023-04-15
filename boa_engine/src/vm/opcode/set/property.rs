@@ -1,3 +1,5 @@
+use boa_macros::utf16;
+
 use crate::{
     builtins::function::set_function_name,
     property::{PropertyDescriptor, PropertyKey},
@@ -31,7 +33,6 @@ impl Operation for SetPropertyByName {
         let name = context.vm.frame().code_block.names[index as usize];
         let name: PropertyKey = context.interner().resolve_expect(name.sym()).utf16().into();
 
-        //object.set(name, value.clone(), context.vm.frame().code.strict, context)?;
         let succeeded = object.__set__(name.clone(), value.clone(), receiver, context)?;
         if !succeeded && context.vm.frame().code_block.strict {
             return Err(JsNativeError::typ()
@@ -65,6 +66,50 @@ impl Operation for SetPropertyByValue {
         };
 
         let key = key.to_property_key(context)?;
+
+        // Fast Path:
+        if object.is_array() {
+            if let PropertyKey::Index(index) = &key {
+                let mut object_borrowed = object.borrow_mut();
+                if let Some(dense_elements) = object_borrowed
+                    .properties_mut()
+                    .dense_indexed_properties_mut()
+                {
+                    let index = *index as usize;
+                    if let Some(element) = dense_elements.get_mut(index) {
+                        *element = value;
+                        context.vm.push(element.clone());
+                        return Ok(CompletionType::Normal);
+                    } else if dense_elements.len() == index {
+                        dense_elements.push(value.clone());
+                        context.vm.push(value);
+
+                        let len = dense_elements.len();
+                        let length_key = PropertyKey::from(utf16!("length"));
+                        let length = object_borrowed
+                            .properties_mut()
+                            .get(&length_key)
+                            .expect("Arrays must have length property");
+                        if length.expect_writable() {
+                            object_borrowed.insert(
+                                length_key,
+                                PropertyDescriptor::builder()
+                                    .value(len)
+                                    .writable(true)
+                                    .enumerable(length.expect_enumerable())
+                                    .configurable(false)
+                                    .build(),
+                            );
+                        } else if context.vm.frame().code_block.strict {
+                            return Err(JsNativeError::typ().with_message("TypeError: Cannot assign to read only property 'length' of array object").into());
+                        }
+                        return Ok(CompletionType::Normal);
+                    }
+                }
+            }
+        }
+
+        // Slow path:
         object.set(
             key,
             value.clone(),
