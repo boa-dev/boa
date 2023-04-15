@@ -536,6 +536,13 @@ impl<'host> Context<'host> {
 
 // ==== Private API ====
 
+impl Context<'_> {
+    /// Swaps the currently active realm with `realm`.
+    pub(crate) fn swap_realm(&mut self, realm: &mut Realm) {
+        std::mem::swap(&mut self.realm, realm);
+    }
+}
+
 #[cfg(feature = "intl")]
 impl<'host> Context<'host> {
     /// Get the ICU related utilities

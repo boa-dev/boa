@@ -490,49 +490,22 @@ impl AsyncGenerator {
             .expect("already checked before")
             .state = AsyncGeneratorState::Executing;
 
+        let (value, resume_kind) = match completion {
+            (Ok(value), r#return) => (
+                value,
+                if r#return {
+                    GeneratorResumeKind::Return
+                } else {
+                    GeneratorResumeKind::Normal
+                },
+            ),
+            (Err(value), _) => (value.to_opaque(context), GeneratorResumeKind::Throw),
+        };
         // 6. Push genContext onto the execution context stack; genContext is now the running execution context.
-        std::mem::swap(
-            &mut context.vm.environments,
-            &mut generator_context.environments,
-        );
-        std::mem::swap(&mut context.vm.stack, &mut generator_context.stack);
-        std::mem::swap(
-            &mut context.vm.active_function,
-            &mut generator_context.active_function,
-        );
-        let old_realm = context.enter_realm(generator_context.realm.clone());
 
-        context.vm.push_frame(generator_context.call_frame.clone());
+        let result = generator_context.resume(Some(value), resume_kind, context);
 
         // 7. Resume the suspended evaluation of genContext using completion as the result of the operation that suspended it. Let result be the Completion Record returned by the resumed computation.
-        match completion {
-            (Ok(value), r#return) => {
-                context.vm.push(value);
-                if r#return {
-                    context.vm.frame_mut().generator_resume_kind = GeneratorResumeKind::Return;
-                } else {
-                    context.vm.frame_mut().generator_resume_kind = GeneratorResumeKind::Normal;
-                }
-            }
-            (Err(value), _) => {
-                let value = value.to_opaque(context);
-                context.vm.push(value);
-                context.vm.frame_mut().generator_resume_kind = GeneratorResumeKind::Throw;
-            }
-        }
-        let result = context.run();
-
-        std::mem::swap(
-            &mut context.vm.environments,
-            &mut generator_context.environments,
-        );
-        std::mem::swap(&mut context.vm.stack, &mut generator_context.stack);
-        generator_context.call_frame = context.vm.pop_frame().expect("generator frame must exist");
-        std::mem::swap(
-            &mut context.vm.active_function,
-            &mut generator_context.active_function,
-        );
-        context.enter_realm(old_realm);
 
         generator
             .borrow_mut()
@@ -543,7 +516,8 @@ impl AsyncGenerator {
         // 8. Assert: result is never an abrupt completion.
         assert!(!result.is_throw_completion());
 
-        // 9. Assert: When we return here, genContext has already been removed from the execution context stack and callerContext is the currently running execution context.
+        // 9. Assert: When we return here, genContext has already been removed from the execution context stack and
+        // callerContext is the currently running execution context.
         // 10. Return unused.
     }
 

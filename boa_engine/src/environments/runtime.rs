@@ -552,26 +552,6 @@ impl DeclarativeEnvironmentStack {
             .expect("environment stack is cannot be empty")
     }
 
-    /// Get the most outer function environment slots.
-    ///
-    /// # Panics
-    ///
-    /// Panics if no environment exists on the stack.
-    pub(crate) fn current_function_slots(&self) -> &EnvironmentSlots {
-        for env in self
-            .stack
-            .iter()
-            .filter_map(Environment::as_declarative)
-            .rev()
-        {
-            if let Some(slots) = &env.slots {
-                return slots;
-            }
-        }
-
-        panic!("global environment must exist")
-    }
-
     /// Get the most outer environment.
     ///
     /// # Panics

@@ -76,6 +76,45 @@ their instructions aren't traced.
 
 The `this` value can be changed as well as the arguments that are passed to the function.
 
+### Function `$boa.function.traceable(func, mode)`
+
+Marks a single function as traceable on all future executions of the function. Both useful to mark
+several functions as traceable and to trace functions that suspend their execution (async functions,
+generators, async generators).
+
+#### Input
+
+```Javascript
+function* g() {
+    yield 1;
+    yield 2;
+    yield 3;
+}
+$boa.function.traceable(g, true);
+var iter = g();
+iter.next();
+iter.next();
+iter.next();
+```
+
+#### Output
+
+```bash
+1μs           RestParameterPop                                      <empty>
+1μs           PushUndefined                                         undefined
+2μs           Yield                                                 undefined
+4μs           GetName                    0000: 'a'                  1
+0μs           Yield                                                 1
+1μs           GeneratorNext                                         undefined
+1μs           Pop                                                   <empty>
+15μs          GetName                    0001: 'b'                  2
+1μs           Yield                                                 2
+1μs           GeneratorNext                                         undefined
+1μs           Pop                                                   <empty>
+4μs           GetName                    0002: 'c'                  3
+1μs           Yield                                                 3
+```
+
 ## Function `$boa.function.flowgraph(func, options)`
 
 It can be used to get the instruction flowgraph, like the command-line flag.

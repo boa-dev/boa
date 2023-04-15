@@ -824,7 +824,7 @@ impl JsObject {
 
         let context = &mut ContextCleanupGuard::new(context, realm, active_function);
 
-        let (code, mut environments, class_object, promise, async_, gen) =
+        let (code, mut environments, class_object, promise_cap, async_, gen) =
             match function_object.kind() {
                 FunctionKind::Native {
                     function,
@@ -874,7 +874,7 @@ impl JsObject {
                     code.clone(),
                     environments.clone(),
                     class_object.clone(),
-                    Some(promise_capability.promise().clone()),
+                    Some(promise_capability.clone()),
                     true,
                     false,
                 ),
@@ -1009,11 +1009,12 @@ impl JsObject {
 
         let param_count = code.params.as_ref().len();
 
-        context.vm.push_frame(
-            CallFrame::new(code)
-                .with_param_count(param_count)
-                .with_arg_count(arg_count),
-        );
+        let mut frame = CallFrame::new(code)
+            .with_param_count(param_count)
+            .with_arg_count(arg_count);
+        frame.promise_capability = promise_cap.clone();
+
+        context.vm.push_frame(frame);
 
         let result = context
             .run()
@@ -1024,13 +1025,10 @@ impl JsObject {
         std::mem::swap(&mut environments, &mut context.vm.environments);
         std::mem::swap(&mut context.vm.stack, &mut stack);
 
-        if let Some(promise) = promise {
-            return Ok(promise.into());
-        }
-
-        let value = result?;
-
-        let value = if gen {
+        if let Some(promise_cap) = promise_cap {
+            Ok(promise_cap.promise().clone().into())
+        } else if gen {
+            result?;
             let proto = this_function_object
                 .get(PROTOTYPE, context)
                 .expect("generator must have a prototype property")
@@ -1045,34 +1043,32 @@ impl JsObject {
                     },
                     Clone::clone,
                 );
+            let data = if async_ {
+                ObjectData::async_generator(AsyncGenerator {
+                    state: AsyncGeneratorState::SuspendedStart,
+                    context: Some(GeneratorContext::new(
+                        environments,
+                        stack,
+                        context.vm.active_function.clone(),
+                        call_frame,
+                        context.realm().clone(),
+                    )),
+                    queue: VecDeque::new(),
+                })
+            } else {
+                ObjectData::generator(Generator {
+                    state: GeneratorState::SuspendedStart,
+                    context: Some(GeneratorContext::new(
+                        environments,
+                        stack,
+                        context.vm.active_function.clone(),
+                        call_frame,
+                        context.realm().clone(),
+                    )),
+                })
+            };
 
-            let generator = Self::from_proto_and_data(
-                proto,
-                if async_ {
-                    ObjectData::async_generator(AsyncGenerator {
-                        state: AsyncGeneratorState::SuspendedStart,
-                        context: Some(GeneratorContext {
-                            environments,
-                            call_frame,
-                            stack,
-                            active_function: context.vm.active_function.clone(),
-                            realm: context.realm().clone(),
-                        }),
-                        queue: VecDeque::new(),
-                    })
-                } else {
-                    ObjectData::generator(Generator {
-                        state: GeneratorState::SuspendedStart,
-                        context: Some(GeneratorContext {
-                            environments,
-                            call_frame,
-                            stack,
-                            active_function: context.vm.active_function.clone(),
-                            realm: context.realm().clone(),
-                        }),
-                    })
-                },
-            );
+            let generator = Self::from_proto_and_data(proto, data);
 
             if async_ {
                 let gen_clone = generator.clone();
@@ -1081,15 +1077,18 @@ impl JsObject {
                     .as_async_generator_mut()
                     .expect("must be object here");
                 let gen_context = gen.context.as_mut().expect("must exist");
-                gen_context.call_frame.async_generator = Some(gen_clone);
+                // TODO: try to move this to the context itself.
+                gen_context
+                    .call_frame
+                    .as_mut()
+                    .expect("should have a call frame initialized")
+                    .async_generator = Some(gen_clone);
             }
 
-            generator.into()
+            Ok(generator.into())
         } else {
-            value
-        };
-
-        Ok(value)
+            result
+        }
     }
 
     pub(crate) fn construct_internal(

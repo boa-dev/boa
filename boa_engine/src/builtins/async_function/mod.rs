@@ -70,7 +70,7 @@ impl BuiltInConstructor for AsyncFunction {
             context
                 .intrinsics()
                 .constructors()
-                .generator_function()
+                .async_function()
                 .constructor()
         });
         BuiltInFunctionObject::create_dynamic_function(

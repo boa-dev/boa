@@ -416,18 +416,6 @@ impl Function {
         }
     }
 
-    /// Returns the promise capability if the function is an async function.
-    pub(crate) const fn get_promise_capability(&self) -> Option<&PromiseCapability> {
-        if let FunctionKind::Async {
-            promise_capability, ..
-        } = &self.kind
-        {
-            Some(promise_capability)
-        } else {
-            None
-        }
-    }
-
     ///  Sets the class object.
     pub(crate) fn set_class_object(&mut self, object: JsObject) {
         match &mut self.kind {
