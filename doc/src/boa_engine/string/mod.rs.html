@@ -985,6 +985,75 @@
 <a href="#984" id="984">984</a>
 <a href="#985" id="985">985</a>
 <a href="#986" id="986">986</a>
+<a href="#987" id="987">987</a>
+<a href="#988" id="988">988</a>
+<a href="#989" id="989">989</a>
+<a href="#990" id="990">990</a>
+<a href="#991" id="991">991</a>
+<a href="#992" id="992">992</a>
+<a href="#993" id="993">993</a>
+<a href="#994" id="994">994</a>
+<a href="#995" id="995">995</a>
+<a href="#996" id="996">996</a>
+<a href="#997" id="997">997</a>
+<a href="#998" id="998">998</a>
+<a href="#999" id="999">999</a>
+<a href="#1000" id="1000">1000</a>
+<a href="#1001" id="1001">1001</a>
+<a href="#1002" id="1002">1002</a>
+<a href="#1003" id="1003">1003</a>
+<a href="#1004" id="1004">1004</a>
+<a href="#1005" id="1005">1005</a>
+<a href="#1006" id="1006">1006</a>
+<a href="#1007" id="1007">1007</a>
+<a href="#1008" id="1008">1008</a>
+<a href="#1009" id="1009">1009</a>
+<a href="#1010" id="1010">1010</a>
+<a href="#1011" id="1011">1011</a>
+<a href="#1012" id="1012">1012</a>
+<a href="#1013" id="1013">1013</a>
+<a href="#1014" id="1014">1014</a>
+<a href="#1015" id="1015">1015</a>
+<a href="#1016" id="1016">1016</a>
+<a href="#1017" id="1017">1017</a>
+<a href="#1018" id="1018">1018</a>
+<a href="#1019" id="1019">1019</a>
+<a href="#1020" id="1020">1020</a>
+<a href="#1021" id="1021">1021</a>
+<a href="#1022" id="1022">1022</a>
+<a href="#1023" id="1023">1023</a>
+<a href="#1024" id="1024">1024</a>
+<a href="#1025" id="1025">1025</a>
+<a href="#1026" id="1026">1026</a>
+<a href="#1027" id="1027">1027</a>
+<a href="#1028" id="1028">1028</a>
+<a href="#1029" id="1029">1029</a>
+<a href="#1030" id="1030">1030</a>
+<a href="#1031" id="1031">1031</a>
+<a href="#1032" id="1032">1032</a>
+<a href="#1033" id="1033">1033</a>
+<a href="#1034" id="1034">1034</a>
+<a href="#1035" id="1035">1035</a>
+<a href="#1036" id="1036">1036</a>
+<a href="#1037" id="1037">1037</a>
+<a href="#1038" id="1038">1038</a>
+<a href="#1039" id="1039">1039</a>
+<a href="#1040" id="1040">1040</a>
+<a href="#1041" id="1041">1041</a>
+<a href="#1042" id="1042">1042</a>
+<a href="#1043" id="1043">1043</a>
+<a href="#1044" id="1044">1044</a>
+<a href="#1045" id="1045">1045</a>
+<a href="#1046" id="1046">1046</a>
+<a href="#1047" id="1047">1047</a>
+<a href="#1048" id="1048">1048</a>
+<a href="#1049" id="1049">1049</a>
+<a href="#1050" id="1050">1050</a>
+<a href="#1051" id="1051">1051</a>
+<a href="#1052" id="1052">1052</a>
+<a href="#1053" id="1053">1053</a>
+<a href="#1054" id="1054">1054</a>
+<a href="#1055" id="1055">1055</a>
 </pre><pre class="rust"><code><span class="doccomment">//! A UTF-16–encoded, reference counted, immutable string.
 //!
 //! This module contains the [`JsString`] type, the [`js_string`][crate::js_string] macro and the
@@ -1024,6 +1093,7 @@
     cell::Cell,
     convert::Infallible,
     hash::{Hash, Hasher},
+    iter::Peekable,
     ops::{Deref, Index},
     process::abort,
     ptr::{<span class="self">self</span>, addr_of, addr_of_mut, NonNull},
@@ -1270,6 +1340,74 @@
     /// [`FromUtf16Error`][std::string::FromUtf16Error] if it contains any invalid data.
     </span><span class="kw">pub fn </span>to_std_string(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;String, std::string::FromUtf16Error&gt; {
         String::from_utf16(<span class="self">self</span>)
+    }
+
+    <span class="doccomment">/// Decodes a [`JsString`] into an iterator of [`Result&lt;String, u16&gt;`], returning surrogates as
+    /// errors.
+    </span><span class="kw">pub fn </span>to_std_string_with_surrogates(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw">impl </span>Iterator&lt;Item = <span class="prelude-ty">Result</span>&lt;String, u16&gt;&gt; + <span class="lifetime">&#39;_ </span>{
+        <span class="kw">struct </span>WideStringDecoderIterator&lt;I: Iterator&gt; {
+            codepoints: Peekable&lt;I&gt;,
+        }
+
+        <span class="kw">impl</span>&lt;I: Iterator&gt; WideStringDecoderIterator&lt;I&gt; {
+            <span class="kw">fn </span>new(iterator: I) -&gt; <span class="self">Self </span>{
+                WideStringDecoderIterator {
+                    codepoints: iterator.peekable(),
+                }
+            }
+        }
+
+        <span class="kw">impl</span>&lt;I&gt; Iterator <span class="kw">for </span>WideStringDecoderIterator&lt;I&gt;
+        <span class="kw">where
+            </span>I: Iterator&lt;Item = CodePoint&gt;,
+        {
+            <span class="kw">type </span>Item = <span class="prelude-ty">Result</span>&lt;String, u16&gt;;
+
+            <span class="kw">fn </span>next(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>::Item&gt; {
+                <span class="kw">let </span>cp = <span class="self">self</span>.codepoints.next()<span class="question-mark">?</span>;
+                <span class="kw">let </span>char = <span class="kw">match </span>cp {
+                    CodePoint::Unicode(c) =&gt; c,
+                    CodePoint::UnpairedSurrogate(surr) =&gt; <span class="kw">return </span><span class="prelude-val">Some</span>(<span class="prelude-val">Err</span>(surr)),
+                };
+
+                <span class="kw">let </span><span class="kw-2">mut </span>string = String::from(char);
+
+                <span class="kw">loop </span>{
+                    <span class="kw">let </span><span class="prelude-val">Some</span>(cp) = <span class="self">self</span>.codepoints.peek().and_then(|cp| <span class="kw">match </span>cp {
+                        CodePoint::Unicode(c) =&gt; <span class="prelude-val">Some</span>(<span class="kw-2">*</span>c),
+                        CodePoint::UnpairedSurrogate(<span class="kw">_</span>) =&gt; <span class="prelude-val">None</span>,
+                    }) <span class="kw">else </span>{ <span class="kw">break</span>; };
+
+                    string.push(cp);
+
+                    <span class="self">self</span>.codepoints
+                        .next()
+                        .expect(<span class="string">&quot;should exist by the check above&quot;</span>);
+                }
+
+                <span class="prelude-val">Some</span>(<span class="prelude-val">Ok</span>(string))
+            }
+        }
+
+        WideStringDecoderIterator::new(<span class="self">self</span>.code_points())
+    }
+
+    <span class="doccomment">/// Maps the valid segments of an UTF16 string and leaves the unpaired surrogates unchanged.
+    </span><span class="attr">#[must_use]
+    </span><span class="kw">pub fn </span>map_valid_segments&lt;F&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="kw-2">mut </span>f: F) -&gt; <span class="self">Self
+    </span><span class="kw">where
+        </span>F: FnMut(String) -&gt; String,
+    {
+        <span class="kw">let </span><span class="kw-2">mut </span>text = Vec::new();
+
+        <span class="kw">for </span>part <span class="kw">in </span><span class="self">self</span>.to_std_string_with_surrogates() {
+            <span class="kw">match </span>part {
+                <span class="prelude-val">Ok</span>(string) =&gt; text.extend(f(string).encode_utf16()),
+                <span class="prelude-val">Err</span>(surr) =&gt; text.push(surr),
+            }
+        }
+
+        <span class="macro">js_string!</span>(text)
     }
 
     <span class="doccomment">/// Gets an iterator of all the Unicode codepoints of a [`JsString`].

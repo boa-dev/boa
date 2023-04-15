@@ -26,6 +26,12 @@
 <a href="#25" id="25">25</a>
 <a href="#26" id="26">26</a>
 <a href="#27" id="27">27</a>
+<a href="#28" id="28">28</a>
+<a href="#29" id="29">29</a>
+<a href="#30" id="30">30</a>
+<a href="#31" id="31">31</a>
+<a href="#32" id="32">32</a>
+<a href="#33" id="33">33</a>
 </pre><pre class="rust"><code><span class="attr">#![doc(
     html_logo_url = <span class="string">&quot;https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg&quot;</span>,
     html_favicon_url = <span class="string">&quot;https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg&quot;
@@ -34,7 +40,7 @@
 </span><span class="kw">use </span>std::{error::Error, fs::File};
 
 <span class="kw">use </span>boa_icu_provider::data_root;
-<span class="kw">use </span>icu_datagen::{all_keys, datagen, CldrLocaleSubset, Out, SourceData};
+<span class="kw">use </span>icu_datagen::{all_keys_with_experimental, datagen, CldrLocaleSubset, Out, SourceData};
 
 <span class="kw">fn </span>main() -&gt; <span class="prelude-ty">Result</span>&lt;(), Box&lt;<span class="kw">dyn </span>Error&gt;&gt; {
     simple_logger::SimpleLogger::new()
@@ -51,7 +57,13 @@
         data_root().join(<span class="string">&quot;icudata.postcard&quot;</span>),
     )<span class="question-mark">?</span>));
 
-    datagen(<span class="prelude-val">None</span>, <span class="kw-2">&amp;</span>all_keys(), <span class="kw-2">&amp;</span>source_data, [blob_out].into()).map_err(Into::into)
+    datagen(
+        <span class="prelude-val">None</span>,
+        <span class="kw-2">&amp;</span>all_keys_with_experimental(),
+        <span class="kw-2">&amp;</span>source_data,
+        [blob_out].into(),
+    )
+    .map_err(Into::into)
 }
 </code></pre></div>
 </section></main><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="boa_datagen" data-themes="" data-resource-suffix="" data-rustdoc-version="1.68.2 (9eb3afe9e 2023-03-27)" data-search-js="search-98d53477a794af0b.js" data-settings-js="settings-c3c521c753752a1a.js" data-settings-css="settings-08ddfdda51b8ee2e.css" ></div></body></html>

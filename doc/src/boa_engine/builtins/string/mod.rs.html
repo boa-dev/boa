@@ -2785,9 +2785,6 @@
 <a href="#2784" id="2784">2784</a>
 <a href="#2785" id="2785">2785</a>
 <a href="#2786" id="2786">2786</a>
-<a href="#2787" id="2787">2787</a>
-<a href="#2788" id="2788">2788</a>
-<a href="#2789" id="2789">2789</a>
 </pre><pre class="rust"><code><span class="doccomment">//! Boa&#39;s implementation of ECMAScript&#39;s global `String` object.
 //!
 //! The `String` global object is a constructor for strings or a sequence of characters.
@@ -2912,8 +2909,10 @@
             .method(<span class="self">Self</span>::pad_end, <span class="string">&quot;padEnd&quot;</span>, <span class="number">1</span>)
             .method(<span class="self">Self</span>::pad_start, <span class="string">&quot;padStart&quot;</span>, <span class="number">1</span>)
             .method(<span class="self">Self</span>::trim, <span class="string">&quot;trim&quot;</span>, <span class="number">0</span>)
-            .method(<span class="self">Self</span>::to_lowercase, <span class="string">&quot;toLowerCase&quot;</span>, <span class="number">0</span>)
-            .method(<span class="self">Self</span>::to_uppercase, <span class="string">&quot;toUpperCase&quot;</span>, <span class="number">0</span>)
+            .method(<span class="self">Self</span>::to_case::&lt;<span class="bool-val">false</span>&gt;, <span class="string">&quot;toLowerCase&quot;</span>, <span class="number">0</span>)
+            .method(<span class="self">Self</span>::to_case::&lt;<span class="bool-val">true</span>&gt;, <span class="string">&quot;toUpperCase&quot;</span>, <span class="number">0</span>)
+            .method(<span class="self">Self</span>::to_locale_case::&lt;<span class="bool-val">false</span>&gt;, <span class="string">&quot;toLocaleLowerCase&quot;</span>, <span class="number">0</span>)
+            .method(<span class="self">Self</span>::to_locale_case::&lt;<span class="bool-val">true</span>&gt;, <span class="string">&quot;toLocaleUpperCase&quot;</span>, <span class="number">0</span>)
             .method(<span class="self">Self</span>::substring, <span class="string">&quot;substring&quot;</span>, <span class="number">2</span>)
             .method(<span class="self">Self</span>::split, <span class="string">&quot;split&quot;</span>, <span class="number">2</span>)
             .method(<span class="self">Self</span>::value_of, <span class="string">&quot;valueOf&quot;</span>, <span class="number">0</span>)
@@ -4434,18 +4433,19 @@
         <span class="prelude-val">Ok</span>(<span class="macro">js_string!</span>(string.trim_end()).into())
     }
 
-    <span class="doccomment">/// `String.prototype.toLowerCase()`
+    <span class="doccomment">/// [`String.prototype.toUpperCase()`][upper] and [`String.prototype.toLowerCase()`][lower]
     ///
-    /// The `toLowerCase()` method returns the calling string value converted to lower case.
+    /// The case methods return the calling string value converted to uppercase or lowercase.
+    ///
+    /// The value will be **converted** to a string if it isn&#39;t one.
     ///
     /// More information:
-    ///  - [ECMAScript reference][spec]
     ///  - [MDN documentation][mdn]
     ///
-    /// [spec]: https://tc39.es/ecma262/#sec-string.prototype.tolowercase
-    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/toLowerCase
-    </span><span class="attr">#[allow(clippy::wrong_self_convention)]
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>to_lowercase(
+    /// [upper]: https://tc39.es/ecma262/#sec-string.prototype.toUppercase
+    /// [lower]: https://tc39.es/ecma262/#sec-string.prototype.toLowercase
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/toUpperCase
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>to_case&lt;<span class="kw">const </span>UPPER: bool&gt;(
         this: <span class="kw-2">&amp;</span>JsValue,
         <span class="kw">_</span>: <span class="kw-2">&amp;</span>[JsValue],
         context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
@@ -4456,101 +4456,95 @@
         <span class="comment">// 2. Let S be ? ToString(O).
         </span><span class="kw">let </span>string = this.to_string(context)<span class="question-mark">?</span>;
 
-        <span class="kw">let </span><span class="kw-2">mut </span>code_points = string.code_points();
-        <span class="kw">let </span><span class="kw-2">mut </span>lower_text = Vec::with_capacity(string.len());
-        <span class="kw">let </span><span class="kw-2">mut </span>next_unpaired_surrogate = <span class="prelude-val">None</span>;
-
-        <span class="comment">// 3. Let sText be ! StringToCodePoints(S).
-        // 4. Let lowerText be the result of toLowercase(sText), according to
-        // the Unicode Default Case Conversion algorithm.
-        </span><span class="kw">loop </span>{
-            <span class="kw">let </span>only_chars = code_points
-                .by_ref()
-                .map_while(|cpoint| <span class="kw">match </span>cpoint {
-                    CodePoint::Unicode(c) =&gt; <span class="prelude-val">Some</span>(c),
-                    CodePoint::UnpairedSurrogate(s) =&gt; {
-                        next_unpaired_surrogate = <span class="prelude-val">Some</span>(s);
-                        <span class="prelude-val">None
-                    </span>}
-                })
-                .collect::&lt;std::string::String&gt;()
-                .to_lowercase();
-
-            lower_text.extend(only_chars.encode_utf16());
-
-            <span class="kw">if let </span><span class="prelude-val">Some</span>(surr) = next_unpaired_surrogate.take() {
-                lower_text.push(surr);
-            } <span class="kw">else </span>{
-                <span class="kw">break</span>;
-            }
-        }
-
-        <span class="comment">// 5. Let L be ! CodePointsToString(lowerText).
-        // 6. Return L.
-        </span><span class="prelude-val">Ok</span>(<span class="macro">js_string!</span>(lower_text).into())
-    }
-
-    <span class="doccomment">/// `String.prototype.toUpperCase()`
-    ///
-    /// The `toUpperCase()` method returns the calling string value converted to uppercase.
-    ///
-    /// The value will be **converted** to a string if it isn&#39;t one
-    ///
-    /// More information:
-    ///  - [ECMAScript reference][spec]
-    ///  - [MDN documentation][mdn]
-    ///
-    /// [spec]: https://tc39.es/ecma262/#sec-string.prototype.toUppercase
-    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/toUpperCase
-    </span><span class="attr">#[allow(clippy::wrong_self_convention)]
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>to_uppercase(
-        this: <span class="kw-2">&amp;</span>JsValue,
-        <span class="kw">_</span>: <span class="kw-2">&amp;</span>[JsValue],
-        context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
-    ) -&gt; JsResult&lt;JsValue&gt; {
-        <span class="comment">// This function behaves in exactly the same way as `String.prototype.toLowerCase`, except that the String is
-        // mapped using the toUppercase algorithm of the Unicode Default Case Conversion.
-
-        // Comments below are an adaptation of the `String.prototype.toLowerCase` documentation.
-
-        // 1. Let O be ? RequireObjectCoercible(this value).
-        </span><span class="kw">let </span>this = this.require_object_coercible()<span class="question-mark">?</span>;
-
-        <span class="comment">// 2. Let S be ? ToString(O).
-        </span><span class="kw">let </span>string = this.to_string(context)<span class="question-mark">?</span>;
-
-        <span class="kw">let </span><span class="kw-2">mut </span>code_points = string.code_points();
-        <span class="kw">let </span><span class="kw-2">mut </span>upper_text = Vec::with_capacity(string.len());
-        <span class="kw">let </span><span class="kw-2">mut </span>next_unpaired_surrogate = <span class="prelude-val">None</span>;
-
         <span class="comment">// 3. Let sText be ! StringToCodePoints(S).
         // 4. Let upperText be the result of toUppercase(sText), according to
         // the Unicode Default Case Conversion algorithm.
-        </span><span class="kw">loop </span>{
-            <span class="kw">let </span>only_chars = code_points
-                .by_ref()
-                .map_while(|cpoint| <span class="kw">match </span>cpoint {
-                    CodePoint::Unicode(c) =&gt; <span class="prelude-val">Some</span>(c),
-                    CodePoint::UnpairedSurrogate(s) =&gt; {
-                        next_unpaired_surrogate = <span class="prelude-val">Some</span>(s);
-                        <span class="prelude-val">None
-                    </span>}
-                })
-                .collect::&lt;std::string::String&gt;()
-                .to_uppercase();
-
-            upper_text.extend(only_chars.encode_utf16());
-
-            <span class="kw">if let </span><span class="prelude-val">Some</span>(surr) = next_unpaired_surrogate.take() {
-                upper_text.push(surr);
+        </span><span class="kw">let </span>text = string.map_valid_segments(|s| {
+            <span class="kw">if </span>UPPER {
+                s.to_uppercase()
             } <span class="kw">else </span>{
-                <span class="kw">break</span>;
+                s.to_lowercase()
             }
-        }
+        });
 
         <span class="comment">// 5. Let L be ! CodePointsToString(upperText).
         // 6. Return L.
-        </span><span class="prelude-val">Ok</span>(<span class="macro">js_string!</span>(upper_text).into())
+        </span><span class="prelude-val">Ok</span>(<span class="macro">js_string!</span>(text).into())
+    }
+
+    <span class="doccomment">/// [`String.prototype.toLocaleLowerCase ( [ locales ] )`][lower] and
+    /// [`String.prototype.toLocaleUpperCase ( [ locales ] )`][upper]
+    ///
+    /// [lower]: https://tc39.es/ecma402/#sup-string.prototype.tolocalelowercase
+    /// [upper]: https://tc39.es/ecma402/#sup-string.prototype.tolocaleuppercase
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>to_locale_case&lt;<span class="kw">const </span>UPPER: bool&gt;(
+        this: <span class="kw-2">&amp;</span>JsValue,
+        args: <span class="kw-2">&amp;</span>[JsValue],
+        context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+    ) -&gt; JsResult&lt;JsValue&gt; {
+        <span class="attr">#[cfg(feature = <span class="string">&quot;intl&quot;</span>)]
+        </span>{
+            <span class="kw">use </span><span class="kw">super</span>::intl::locale::{
+                best_available_locale, canonicalize_locale_list, default_locale,
+            };
+            <span class="kw">use </span>icu_casemapping::{provider::CaseMappingV1Marker, CaseMapping};
+            <span class="kw">use </span>icu_locid::LanguageIdentifier;
+
+            <span class="comment">// 1. Let O be ? RequireObjectCoercible(this value).
+            </span><span class="kw">let </span>this = this.require_object_coercible()<span class="question-mark">?</span>;
+
+            <span class="comment">// 2. Let S be ? ToString(O).
+            </span><span class="kw">let </span>string = this.to_string(context)<span class="question-mark">?</span>;
+
+            <span class="comment">// 3. Return ? TransformCase(S, locales, lower).
+
+            //  TransformCase ( S, locales, targetCase )
+            // https://tc39.es/ecma402/#sec-transform-case
+
+            // 1. Let requestedLocales be ? CanonicalizeLocaleList(locales).
+            // 2. If requestedLocales is not an empty List, then
+            //     a. Let requestedLocale be requestedLocales[0].
+            </span><span class="kw">let </span>lang = canonicalize_locale_list(args.get_or_undefined(<span class="number">0</span>), context)<span class="question-mark">?
+                </span>.into_iter()
+                .next()
+                <span class="comment">// 3. Else,
+                //     a. Let requestedLocale be ! DefaultLocale().
+                </span>.unwrap_or_else(|| default_locale(context.icu().locale_canonicalizer()))
+                .id;
+            <span class="comment">// 4. Let noExtensionsLocale be the String value that is requestedLocale with any Unicode locale extension sequences (6.2.1) removed.
+            // 5. Let availableLocales be a List with language tags that includes the languages for which the Unicode Character Database contains language sensitive case mappings. Implementations may add additional language tags if they support case mapping for additional locales.
+            // 6. Let locale be ! BestAvailableLocale(availableLocales, noExtensionsLocale).
+            // 7. If locale is undefined, set locale to &quot;und&quot;.
+            </span><span class="kw">let </span>lang =
+                best_available_locale::&lt;CaseMappingV1Marker&gt;(lang, <span class="kw-2">&amp;</span>context.icu().provider())
+                    .unwrap_or(LanguageIdentifier::UND);
+
+            <span class="kw">let </span>casemapper =
+                CaseMapping::try_new_with_locale(<span class="kw-2">&amp;</span>context.icu().provider(), <span class="kw-2">&amp;</span>lang.into())
+                    .map_err(|err| JsNativeError::typ().with_message(err.to_string()))<span class="question-mark">?</span>;
+
+            <span class="comment">// 8. Let codePoints be StringToCodePoints(S).
+            </span><span class="kw">let </span>result = string.map_valid_segments(|segment| {
+                <span class="kw">if </span>UPPER {
+                    <span class="comment">// 10. Else,
+                    //     a. Assert: targetCase is upper.
+                    //     b. Let newCodePoints be a List whose elements are the result of an uppercase transformation of codePoints according to an implementation-derived algorithm using locale or the Unicode Default Case Conversion algorithm.
+                    </span>casemapper.to_full_uppercase(<span class="kw-2">&amp;</span>segment)
+                } <span class="kw">else </span>{
+                    <span class="comment">// 9. If targetCase is lower, then
+                    //     a. Let newCodePoints be a List whose elements are the result of a lowercase transformation of codePoints according to an implementation-derived algorithm using locale or the Unicode Default Case Conversion algorithm.
+                    </span>casemapper.to_full_lowercase(<span class="kw-2">&amp;</span>segment)
+                }
+            });
+
+            <span class="comment">// 11. Return CodePointsToString(newCodePoints).
+            </span><span class="prelude-val">Ok</span>(result.into())
+        }
+
+        <span class="attr">#[cfg(not(feature = <span class="string">&quot;intl&quot;</span>))]
+        </span>{
+            <span class="self">Self</span>::to_case::&lt;UPPER&gt;(this, args, context)
+        }
     }
 
     <span class="doccomment">/// `String.prototype.substring( indexStart[, indexEnd] )`
