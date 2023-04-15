@@ -43,7 +43,10 @@ impl JsDate {
     #[inline]
     pub fn new(context: &mut Context<'_>) -> Self {
         let prototype = context.intrinsics().constructors().date().prototype();
-        let inner = JsObject::from_proto_and_data(prototype, ObjectData::date(Date::default()));
+        let inner = JsObject::from_proto_and_data(
+            prototype,
+            ObjectData::date(Date::utc_now(&*context.host_hooks())),
+        );
 
         Self { inner }
     }
@@ -468,7 +471,7 @@ impl JsDate {
     #[deprecated]
     #[inline]
     pub fn to_gmt_string(&self, context: &mut Context<'_>) -> JsResult<JsValue> {
-        Date::to_gmt_string(&self.inner.clone().into(), &[JsValue::Null], context)
+        Date::to_utc_string(&self.inner.clone().into(), &[JsValue::Null], context)
     }
 
     /// Returns the given date in the ISO 8601 format according to universal

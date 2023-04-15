@@ -1,4 +1,4 @@
-use chrono::{Datelike, Local, NaiveDateTime, TimeZone, Timelike};
+use chrono::{Datelike, FixedOffset, NaiveDateTime, TimeZone, Timelike};
 
 use crate::value::IntegerOrNan;
 
@@ -136,7 +136,7 @@ pub(super) struct DateParameters {
 pub(super) fn replace_params(
     datetime: NaiveDateTime,
     params: DateParameters,
-    local: bool,
+    offset: Option<FixedOffset>,
 ) -> Option<NaiveDateTime> {
     let DateParameters {
         year,
@@ -148,8 +148,8 @@ pub(super) fn replace_params(
         millisecond,
     } = params;
 
-    let datetime = if local {
-        Local.from_utc_datetime(&datetime).naive_local()
+    let datetime = if let Some(offset) = offset {
+        offset.from_utc_datetime(&datetime).naive_local()
     } else {
         datetime
     };
@@ -187,8 +187,8 @@ pub(super) fn replace_params(
     let new_time = make_time(hour, minute, second, millisecond)?;
     let mut ts = make_date(new_day, new_time)?;
 
-    if local {
-        ts = Local
+    if let Some(offset) = offset {
+        ts = offset
             .from_local_datetime(&NaiveDateTime::from_timestamp_millis(ts)?)
             .earliest()?
             .naive_utc()

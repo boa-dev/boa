@@ -15,10 +15,14 @@ mod tests;
 
 use crate::{
     builtins::BuiltInObject,
-    context::intrinsics::{Intrinsics, StandardConstructor, StandardConstructors},
+    context::{
+        intrinsics::{Intrinsics, StandardConstructor, StandardConstructors},
+        HostHooks,
+    },
     error::JsNativeError,
     js_string,
     object::{internal_methods::get_prototype_from_constructor, JsObject, ObjectData},
+    property::Attribute,
     realm::Realm,
     string::utf16,
     symbol::JsSymbol,
@@ -27,7 +31,6 @@ use crate::{
 };
 use boa_profiler::Profiler;
 use chrono::prelude::*;
-use std::fmt::Display;
 
 use super::{BuiltInBuilder, BuiltInConstructor, IntrinsicObject};
 
@@ -76,6 +79,11 @@ impl Date {
         Self(dt)
     }
 
+    /// Creates a new `Date` from the current UTC time of the host.
+    pub(crate) fn utc_now(hooks: &dyn HostHooks) -> Self {
+        Self(Some(hooks.utc_now()))
+    }
+
     /// Converts the `Date` into a `JsValue`, mapping `None` to `NaN` and `Some(datetime)` to
     /// `JsValue::from(datetime.timestamp_millis())`.
     fn as_value(&self) -> JsValue {
@@ -84,25 +92,15 @@ impl Date {
     }
 }
 
-impl Display for Date {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        if let Some(v) = self.to_local() {
-            write!(f, "{}", v.format("%a %b %d %Y %H:%M:%S GMT%:z"))
-        } else {
-            write!(f, "Invalid Date")
-        }
-    }
-}
-
-impl Default for Date {
-    fn default() -> Self {
-        Self(Some(Utc::now().naive_utc()))
-    }
-}
-
 impl IntrinsicObject for Date {
     fn init(realm: &Realm) {
         let _timer = Profiler::global().start_event(Self::NAME, "init");
+
+        let to_utc_string = BuiltInBuilder::new(realm)
+            .callable(Self::to_utc_string)
+            .name("toUTCString")
+            .length(0)
+            .build();
 
         BuiltInBuilder::from_standard_constructor::<Self>(realm)
             .method(Self::get_date::<true>, "getDate", 0)
@@ -143,7 +141,6 @@ impl IntrinsicObject for Date {
             .method(Self::set_seconds::<false>, "setUTCSeconds", 2)
             .method(Self::set_year, "setYear", 1)
             .method(Self::to_date_string, "toDateString", 0)
-            .method(Self::to_gmt_string, "toGMTString", 0)
             .method(Self::to_iso_string, "toISOString", 0)
             .method(Self::to_json, "toJSON", 1)
             .method(Self::to_locale_date_string, "toLocaleDateString", 0)
@@ -151,7 +148,16 @@ impl IntrinsicObject for Date {
             .method(Self::to_locale_time_string, "toLocaleTimeString", 0)
             .method(Self::to_string, "toString", 0)
             .method(Self::to_time_string, "toTimeString", 0)
-            .method(Self::to_utc_string, "toUTCString", 0)
+            .property(
+                "toGMTString",
+                to_utc_string.clone(),
+                Attribute::WRITABLE | Attribute::CONFIGURABLE,
+            )
+            .property(
+                "toUTCString",
+                to_utc_string,
+                Attribute::WRITABLE | Attribute::CONFIGURABLE,
+            )
             .static_method(Self::utc, "UTC", 7)
             .method(Self::value_of, "valueOf", 0)
             .method(
@@ -196,9 +202,12 @@ impl BuiltInConstructor for Date {
             // a. Let now be the time value (UTC) identifying the current time.
             // b. Return ToDateString(now).
             return Ok(JsValue::new(
-                Local::now()
-                    .format("%a %b %d %Y %H:%M:%S GMT%:z")
-                    .to_string(),
+                DateTime::<FixedOffset>::from_utc(
+                    context.host_hooks().utc_now(),
+                    context.host_hooks().tz_offset(),
+                )
+                .format("%a %b %d %Y %H:%M:%S GMT%:z")
+                .to_string(),
             ));
         }
         // 2. Let numberOfArgs be the number of elements in values.
@@ -206,7 +215,7 @@ impl BuiltInConstructor for Date {
             // 3. If numberOfArgs = 0, then
             [] => {
                 // a. Let dv be the time value (UTC) identifying the current time.
-                Self::default()
+                Self::utc_now(&*context.host_hooks())
             }
             // 4. Else if numberOfArgs = 1, then
             // a. Let value be values[0].
@@ -257,7 +266,13 @@ impl BuiltInConstructor for Date {
                 // Separating this into its own function to simplify the logic.
                 Self(
                     Self::construct_date(args, context)?
-                        .and_then(|dt| Local.from_local_datetime(&dt).earliest())
+                        .and_then(|dt| {
+                            context
+                                .host_hooks()
+                                .tz_offset()
+                                .from_local_datetime(&dt)
+                                .earliest()
+                        })
                         .map(|dt| dt.naive_utc()),
                 )
             }
@@ -372,8 +387,10 @@ impl Date {
     /// [spec]: https://tc39.es/ecma262/#sec-date.now
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/now
     #[allow(clippy::unnecessary_wraps)]
-    pub(crate) fn now(_: &JsValue, _: &[JsValue], _: &mut Context<'_>) -> JsResult<JsValue> {
-        Ok(JsValue::new(Utc::now().timestamp_millis()))
+    pub(crate) fn now(_: &JsValue, _: &[JsValue], context: &mut Context<'_>) -> JsResult<JsValue> {
+        Ok(JsValue::new(
+            context.host_hooks().utc_now().timestamp_millis(),
+        ))
     }
 
     /// `Date.parse()`
@@ -438,13 +455,17 @@ impl Date {
     pub(crate) fn get_date<const LOCAL: bool>(
         this: &JsValue,
         _args: &[JsValue],
-        _context: &mut Context<'_>,
+        context: &mut Context<'_>,
     ) -> JsResult<JsValue> {
         // 1. Let t be ? thisTimeValue(this value).
         // 2. If t is NaN, return NaN.
         let mut t = some_or_nan!(this_time_value(this)?);
         if LOCAL {
-            t = Local.from_utc_datetime(&t).naive_local();
+            t = context
+                .host_hooks()
+                .tz_offset()
+                .from_utc_datetime(&t)
+                .naive_local();
         }
 
         // 3. Return DateFromTime(LocalTime(t)).
@@ -462,13 +483,17 @@ impl Date {
     pub(crate) fn get_day<const LOCAL: bool>(
         this: &JsValue,
         _args: &[JsValue],
-        _context: &mut Context<'_>,
+        context: &mut Context<'_>,
     ) -> JsResult<JsValue> {
         // 1. Let t be ? thisTimeValue(this value).
         // 2. If t is NaN, return NaN.
         let mut t = some_or_nan!(this_time_value(this)?);
         if LOCAL {
-            t = Local.from_utc_datetime(&t).naive_local();
+            t = context
+                .host_hooks()
+                .tz_offset()
+                .from_utc_datetime(&t)
+                .naive_local();
         }
 
         // 3. Return WeekDay(LocalTime(t)).
@@ -489,14 +514,14 @@ impl Date {
     pub(crate) fn get_year(
         this: &JsValue,
         _args: &[JsValue],
-        _context: &mut Context<'_>,
+        context: &mut Context<'_>,
     ) -> JsResult<JsValue> {
         // 1. Let t be ? thisTimeValue(this value).
         // 2. If t is NaN, return NaN.
         let t = some_or_nan!(this_time_value(this)?);
 
         // 3. Return YearFromTime(LocalTime(t)) - 1900𝔽.
-        let local = Local.from_utc_datetime(&t);
+        let local = context.host_hooks().tz_offset().from_utc_datetime(&t);
         Ok(JsValue::from(local.year() - 1900))
     }
 
@@ -510,13 +535,17 @@ impl Date {
     pub(crate) fn get_full_year<const LOCAL: bool>(
         this: &JsValue,
         _args: &[JsValue],
-        _context: &mut Context<'_>,
+        context: &mut Context<'_>,
     ) -> JsResult<JsValue> {
         // 1. Let t be ? thisTimeValue(this value).
         // 2. If t is NaN, return NaN.
         let mut t = some_or_nan!(this_time_value(this)?);
         if LOCAL {
-            t = Local.from_utc_datetime(&t).naive_local();
+            t = context
+                .host_hooks()
+                .tz_offset()
+                .from_utc_datetime(&t)
+                .naive_local();
         }
 
         // 3. Return YearFromTime(LocalTime(t)).
@@ -533,13 +562,17 @@ impl Date {
     pub(crate) fn get_hours<const LOCAL: bool>(
         this: &JsValue,
         _args: &[JsValue],
-        _context: &mut Context<'_>,
+        context: &mut Context<'_>,
     ) -> JsResult<JsValue> {
         // 1. Let t be ? thisTimeValue(this value).
         // 2. If t is NaN, return NaN.
         let mut t = some_or_nan!(this_time_value(this)?);
         if LOCAL {
-            t = Local.from_utc_datetime(&t).naive_local();
+            t = context
+                .host_hooks()
+                .tz_offset()
+                .from_utc_datetime(&t)
+                .naive_local();
         }
 
         // 3. Return HourFromTime(LocalTime(t)).
@@ -556,13 +589,17 @@ impl Date {
     pub(crate) fn get_milliseconds<const LOCAL: bool>(
         this: &JsValue,
         _args: &[JsValue],
-        _context: &mut Context<'_>,
+        context: &mut Context<'_>,
     ) -> JsResult<JsValue> {
         // 1. Let t be ? thisTimeValue(this value).
         // 2. If t is NaN, return NaN.
         let mut t = some_or_nan!(this_time_value(this)?);
         if LOCAL {
-            t = Local.from_utc_datetime(&t).naive_local();
+            t = context
+                .host_hooks()
+                .tz_offset()
+                .from_utc_datetime(&t)
+                .naive_local();
         }
 
         // 3. Return msFromTime(LocalTime(t)).
@@ -579,13 +616,17 @@ impl Date {
     pub(crate) fn get_minutes<const LOCAL: bool>(
         this: &JsValue,
         _args: &[JsValue],
-        _context: &mut Context<'_>,
+        context: &mut Context<'_>,
     ) -> JsResult<JsValue> {
         // 1. Let t be ? thisTimeValue(this value).
         // 2. If t is NaN, return NaN.
         let mut t = some_or_nan!(this_time_value(this)?);
         if LOCAL {
-            t = Local.from_utc_datetime(&t).naive_local();
+            t = context
+                .host_hooks()
+                .tz_offset()
+                .from_utc_datetime(&t)
+                .naive_local();
         }
 
         // 3. Return MinFromTime(LocalTime(t)).
@@ -603,13 +644,17 @@ impl Date {
     pub(crate) fn get_month<const LOCAL: bool>(
         this: &JsValue,
         _args: &[JsValue],
-        _context: &mut Context<'_>,
+        context: &mut Context<'_>,
     ) -> JsResult<JsValue> {
         // 1. Let t be ? thisTimeValue(this value).
         // 2. If t is NaN, return NaN.
         let mut t = some_or_nan!(this_time_value(this)?);
         if LOCAL {
-            t = Local.from_utc_datetime(&t).naive_local();
+            t = context
+                .host_hooks()
+                .tz_offset()
+                .from_utc_datetime(&t)
+                .naive_local();
         }
 
         // 3. Return MonthFromTime(LocalTime(t)).
@@ -626,13 +671,17 @@ impl Date {
     pub(crate) fn get_seconds<const LOCAL: bool>(
         this: &JsValue,
         _args: &[JsValue],
-        _context: &mut Context<'_>,
+        context: &mut Context<'_>,
     ) -> JsResult<JsValue> {
         // 1. Let t be ? thisTimeValue(this value).
         // 2. If t is NaN, return NaN.
         let mut t = some_or_nan!(this_time_value(this)?);
         if LOCAL {
-            t = Local.from_utc_datetime(&t).naive_local();
+            t = context
+                .host_hooks()
+                .tz_offset()
+                .from_utc_datetime(&t)
+                .naive_local();
         }
 
         // 3. Return SecFromTime(LocalTime(t))
@@ -673,14 +722,16 @@ impl Date {
     pub(crate) fn get_timezone_offset(
         this: &JsValue,
         _: &[JsValue],
-        _: &mut Context<'_>,
+        context: &mut Context<'_>,
     ) -> JsResult<JsValue> {
         // 1. Let t be ? thisTimeValue(this value).
         // 2. If t is NaN, return NaN.
         some_or_nan!(this_time_value(this)?);
 
         // 3. Return (t - LocalTime(t)) / msPerMinute.
-        Ok(JsValue::from(-Local::now().offset().local_minus_utc() / 60))
+        Ok(JsValue::from(
+            -context.host_hooks().tz_offset().local_minus_utc() / 60,
+        ))
     }
 
     /// [`Date.prototype.setDate ( date )`][local] and
@@ -714,7 +765,7 @@ impl Date {
                 date: Some(date),
                 ..Default::default()
             },
-            LOCAL,
+            LOCAL.then(|| context.host_hooks().tz_offset()),
         );
 
         // 7. Set the [[DateValue]] internal slot of this Date object to u.
@@ -744,7 +795,7 @@ impl Date {
         let datetime = match t.0 {
             Some(dt) => dt,
             None if LOCAL => {
-                let Some(datetime) = Local
+                let Some(datetime) = context.host_hooks().tz_offset()
                     .from_local_datetime(&NaiveDateTime::default())
                     .earliest()
                     .as_ref()
@@ -782,7 +833,7 @@ impl Date {
                 date,
                 ..Default::default()
             },
-            LOCAL,
+            LOCAL.then(|| context.host_hooks().tz_offset()),
         );
 
         // 8. Set the [[DateValue]] internal slot of this Date object to u.
@@ -848,7 +899,7 @@ impl Date {
                 millisecond,
                 ..Default::default()
             },
-            LOCAL,
+            LOCAL.then(|| context.host_hooks().tz_offset()),
         );
 
         // 13. Set the [[DateValue]] internal slot of this Date object to u.
@@ -889,7 +940,7 @@ impl Date {
                 millisecond: Some(ms),
                 ..Default::default()
             },
-            LOCAL,
+            LOCAL.then(|| context.host_hooks().tz_offset()),
         );
 
         // 7. Set the [[DateValue]] internal slot of this Date object to u.
@@ -945,7 +996,7 @@ impl Date {
                 millisecond,
                 ..Default::default()
             },
-            LOCAL,
+            LOCAL.then(|| context.host_hooks().tz_offset()),
         );
 
         // 11. Set the [[DateValue]] internal slot of this Date object to u.
@@ -994,7 +1045,7 @@ impl Date {
                 date,
                 ..Default::default()
             },
-            LOCAL,
+            LOCAL.then(|| context.host_hooks().tz_offset()),
         );
 
         // 9. Set the [[DateValue]] internal slot of this Date object to u.
@@ -1042,7 +1093,7 @@ impl Date {
                 millisecond,
                 ..Default::default()
             },
-            LOCAL,
+            LOCAL.then(|| context.host_hooks().tz_offset()),
         );
 
         // 9. Set the [[DateValue]] internal slot of this Date object to u.
@@ -1080,7 +1131,7 @@ impl Date {
 
         // 3. If t is NaN, set t to +0𝔽; otherwise, set t to LocalTime(t).
         let Some(datetime) = t.0.or_else(|| {
-            Local
+            context.host_hooks().tz_offset()
                 .from_local_datetime(&NaiveDateTime::default())
                 .earliest()
                 .as_ref()
@@ -1113,7 +1164,7 @@ impl Date {
                 year: Some(IntegerOrNan::Integer(year)),
                 ..Default::default()
             },
-            true,
+            Some(context.host_hooks().tz_offset()),
         );
 
         // 10. Set the [[DateValue]] internal slot of this Date object to TimeClip(date).
@@ -1169,7 +1220,7 @@ impl Date {
     pub(crate) fn to_date_string(
         this: &JsValue,
         _: &[JsValue],
-        _: &mut Context<'_>,
+        context: &mut Context<'_>,
     ) -> JsResult<JsValue> {
         // 1. Let O be this Date object.
         // 2. Let tv be ? thisTimeValue(O).
@@ -1180,8 +1231,9 @@ impl Date {
 
         // 4. Let t be LocalTime(tv).
         // 5. Return DateString(t).
-        Ok(Local::now()
-            .timezone()
+        Ok(context
+            .host_hooks()
+            .tz_offset()
             .from_utc_datetime(&tv)
             .format("%a %b %d %Y")
             .to_string()
@@ -1206,8 +1258,7 @@ impl Date {
     ) -> JsResult<JsValue> {
         let t = this_time_value(this)?
             .ok_or_else(|| JsNativeError::range().with_message("Invalid time value"))?;
-        Ok(Utc::now()
-            .timezone()
+        Ok(Utc
             .from_utc_datetime(&t)
             .format("%Y-%m-%dT%H:%M:%S.%3fZ")
             .to_string()
@@ -1315,15 +1366,16 @@ impl Date {
     pub(crate) fn to_string(
         this: &JsValue,
         _: &[JsValue],
-        _: &mut Context<'_>,
+        context: &mut Context<'_>,
     ) -> JsResult<JsValue> {
         // 1. Let tv be ? thisTimeValue(this value).
         // 2. Return ToDateString(tv).
         let Some(t) = this_time_value(this)? else {
             return Ok(js_string!("Invalid Date").into());
         };
-        Ok(Local::now()
-            .timezone()
+        Ok(context
+            .host_hooks()
+            .tz_offset()
             .from_utc_datetime(&t)
             .format("%a %b %d %Y %H:%M:%S GMT%z")
             .to_string()
@@ -1343,7 +1395,7 @@ impl Date {
     pub(crate) fn to_time_string(
         this: &JsValue,
         _: &[JsValue],
-        _: &mut Context<'_>,
+        context: &mut Context<'_>,
     ) -> JsResult<JsValue> {
         // 1. Let O be this Date object.
         // 2. Let tv be ? thisTimeValue(O).
@@ -1354,8 +1406,9 @@ impl Date {
 
         // 4. Let t be LocalTime(tv).
         // 5. Return the string-concatenation of TimeString(t) and TimeZoneString(tv).
-        Ok(Local::now()
-            .timezone()
+        Ok(context
+            .host_hooks()
+            .tz_offset()
             .from_utc_datetime(&t)
             .format("%H:%M:%S GMT%z")
             .to_string()
@@ -1455,31 +1508,5 @@ impl Date {
 
         // 6. Return ? OrdinaryToPrimitive(O, tryFirst).
         o.ordinary_to_primitive(context, try_first)
-    }
-
-    /// [`Date.prototype.toGMTString ( )`][spec].
-    ///
-    /// The `toGMTString()` method converts a date to a string, using Internet Greenwich Mean Time
-    /// (GMT) conventions.
-    ///
-    /// More information:
-    ///  - [MDN documentation][mdn]
-    ///
-    /// [spec]: https://tc39.es/ecma262/#sec-date.prototype.togmtstring
-    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/toGMTString
-    pub(crate) fn to_gmt_string(
-        this: &JsValue,
-        _args: &[JsValue],
-        context: &mut Context<'_>,
-    ) -> JsResult<JsValue> {
-        // The initial value of the "toGMTString" property is %Date.prototype.toUTCString%
-        Self::to_utc_string(this, &[], context)
-    }
-
-    /// Converts the `Date` to a local `DateTime`.
-    ///
-    /// If the `Date` is invalid (i.e. NAN), this function will return `None`.
-    pub(crate) fn to_local(self) -> Option<DateTime<Local>> {
-        self.0.map(|utc| Local.from_utc_datetime(&utc))
     }
 }
