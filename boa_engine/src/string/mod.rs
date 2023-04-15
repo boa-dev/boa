@@ -37,6 +37,7 @@ use std::{
     cell::Cell,
     convert::Infallible,
     hash::{Hash, Hasher},
+    iter::Peekable,
     ops::{Deref, Index},
     process::abort,
     ptr::{self, addr_of, addr_of_mut, NonNull},
@@ -283,6 +284,74 @@ impl JsString {
     /// [`FromUtf16Error`][std::string::FromUtf16Error] if it contains any invalid data.
     pub fn to_std_string(&self) -> Result<String, std::string::FromUtf16Error> {
         String::from_utf16(self)
+    }
+
+    /// Decodes a [`JsString`] into an iterator of [`Result<String, u16>`], returning surrogates as
+    /// errors.
+    pub fn to_std_string_with_surrogates(&self) -> impl Iterator<Item = Result<String, u16>> + '_ {
+        struct WideStringDecoderIterator<I: Iterator> {
+            codepoints: Peekable<I>,
+        }
+
+        impl<I: Iterator> WideStringDecoderIterator<I> {
+            fn new(iterator: I) -> Self {
+                WideStringDecoderIterator {
+                    codepoints: iterator.peekable(),
+                }
+            }
+        }
+
+        impl<I> Iterator for WideStringDecoderIterator<I>
+        where
+            I: Iterator<Item = CodePoint>,
+        {
+            type Item = Result<String, u16>;
+
+            fn next(&mut self) -> Option<Self::Item> {
+                let cp = self.codepoints.next()?;
+                let char = match cp {
+                    CodePoint::Unicode(c) => c,
+                    CodePoint::UnpairedSurrogate(surr) => return Some(Err(surr)),
+                };
+
+                let mut string = String::from(char);
+
+                loop {
+                    let Some(cp) = self.codepoints.peek().and_then(|cp| match cp {
+                        CodePoint::Unicode(c) => Some(*c),
+                        CodePoint::UnpairedSurrogate(_) => None,
+                    }) else { break; };
+
+                    string.push(cp);
+
+                    self.codepoints
+                        .next()
+                        .expect("should exist by the check above");
+                }
+
+                Some(Ok(string))
+            }
+        }
+
+        WideStringDecoderIterator::new(self.code_points())
+    }
+
+    /// Maps the valid segments of an UTF16 string and leaves the unpaired surrogates unchanged.
+    #[must_use]
+    pub fn map_valid_segments<F>(&self, mut f: F) -> Self
+    where
+        F: FnMut(String) -> String,
+    {
+        let mut text = Vec::new();
+
+        for part in self.to_std_string_with_surrogates() {
+            match part {
+                Ok(string) => text.extend(f(string).encode_utf16()),
+                Err(surr) => text.push(surr),
+            }
+        }
+
+        js_string!(text)
     }
 
     /// Gets an iterator of all the Unicode codepoints of a [`JsString`].

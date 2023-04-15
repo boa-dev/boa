@@ -122,8 +122,10 @@ impl IntrinsicObject for String {
             .method(Self::pad_end, "padEnd", 1)
             .method(Self::pad_start, "padStart", 1)
             .method(Self::trim, "trim", 0)
-            .method(Self::to_lowercase, "toLowerCase", 0)
-            .method(Self::to_uppercase, "toUpperCase", 0)
+            .method(Self::to_case::<false>, "toLowerCase", 0)
+            .method(Self::to_case::<true>, "toUpperCase", 0)
+            .method(Self::to_locale_case::<false>, "toLocaleLowerCase", 0)
+            .method(Self::to_locale_case::<true>, "toLocaleUpperCase", 0)
             .method(Self::substring, "substring", 2)
             .method(Self::split, "split", 2)
             .method(Self::value_of, "valueOf", 0)
@@ -1644,123 +1646,118 @@ impl String {
         Ok(js_string!(string.trim_end()).into())
     }
 
-    /// `String.prototype.toLowerCase()`
+    /// [`String.prototype.toUpperCase()`][upper] and [`String.prototype.toLowerCase()`][lower]
     ///
-    /// The `toLowerCase()` method returns the calling string value converted to lower case.
+    /// The case methods return the calling string value converted to uppercase or lowercase.
     ///
-    /// More information:
-    ///  - [ECMAScript reference][spec]
-    ///  - [MDN documentation][mdn]
-    ///
-    /// [spec]: https://tc39.es/ecma262/#sec-string.prototype.tolowercase
-    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/toLowerCase
-    #[allow(clippy::wrong_self_convention)]
-    pub(crate) fn to_lowercase(
-        this: &JsValue,
-        _: &[JsValue],
-        context: &mut Context<'_>,
-    ) -> JsResult<JsValue> {
-        // 1. Let O be ? RequireObjectCoercible(this value).
-        let this = this.require_object_coercible()?;
-
-        // 2. Let S be ? ToString(O).
-        let string = this.to_string(context)?;
-
-        let mut code_points = string.code_points();
-        let mut lower_text = Vec::with_capacity(string.len());
-        let mut next_unpaired_surrogate = None;
-
-        // 3. Let sText be ! StringToCodePoints(S).
-        // 4. Let lowerText be the result of toLowercase(sText), according to
-        // the Unicode Default Case Conversion algorithm.
-        loop {
-            let only_chars = code_points
-                .by_ref()
-                .map_while(|cpoint| match cpoint {
-                    CodePoint::Unicode(c) => Some(c),
-                    CodePoint::UnpairedSurrogate(s) => {
-                        next_unpaired_surrogate = Some(s);
-                        None
-                    }
-                })
-                .collect::<std::string::String>()
-                .to_lowercase();
-
-            lower_text.extend(only_chars.encode_utf16());
-
-            if let Some(surr) = next_unpaired_surrogate.take() {
-                lower_text.push(surr);
-            } else {
-                break;
-            }
-        }
-
-        // 5. Let L be ! CodePointsToString(lowerText).
-        // 6. Return L.
-        Ok(js_string!(lower_text).into())
-    }
-
-    /// `String.prototype.toUpperCase()`
-    ///
-    /// The `toUpperCase()` method returns the calling string value converted to uppercase.
-    ///
-    /// The value will be **converted** to a string if it isn't one
+    /// The value will be **converted** to a string if it isn't one.
     ///
     /// More information:
-    ///  - [ECMAScript reference][spec]
     ///  - [MDN documentation][mdn]
     ///
-    /// [spec]: https://tc39.es/ecma262/#sec-string.prototype.toUppercase
+    /// [upper]: https://tc39.es/ecma262/#sec-string.prototype.toUppercase
+    /// [lower]: https://tc39.es/ecma262/#sec-string.prototype.toLowercase
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/toUpperCase
-    #[allow(clippy::wrong_self_convention)]
-    pub(crate) fn to_uppercase(
+    pub(crate) fn to_case<const UPPER: bool>(
         this: &JsValue,
         _: &[JsValue],
         context: &mut Context<'_>,
     ) -> JsResult<JsValue> {
-        // This function behaves in exactly the same way as `String.prototype.toLowerCase`, except that the String is
-        // mapped using the toUppercase algorithm of the Unicode Default Case Conversion.
-
-        // Comments below are an adaptation of the `String.prototype.toLowerCase` documentation.
-
         // 1. Let O be ? RequireObjectCoercible(this value).
         let this = this.require_object_coercible()?;
 
         // 2. Let S be ? ToString(O).
         let string = this.to_string(context)?;
-
-        let mut code_points = string.code_points();
-        let mut upper_text = Vec::with_capacity(string.len());
-        let mut next_unpaired_surrogate = None;
 
         // 3. Let sText be ! StringToCodePoints(S).
         // 4. Let upperText be the result of toUppercase(sText), according to
         // the Unicode Default Case Conversion algorithm.
-        loop {
-            let only_chars = code_points
-                .by_ref()
-                .map_while(|cpoint| match cpoint {
-                    CodePoint::Unicode(c) => Some(c),
-                    CodePoint::UnpairedSurrogate(s) => {
-                        next_unpaired_surrogate = Some(s);
-                        None
-                    }
-                })
-                .collect::<std::string::String>()
-                .to_uppercase();
-
-            upper_text.extend(only_chars.encode_utf16());
-
-            if let Some(surr) = next_unpaired_surrogate.take() {
-                upper_text.push(surr);
+        let text = string.map_valid_segments(|s| {
+            if UPPER {
+                s.to_uppercase()
             } else {
-                break;
+                s.to_lowercase()
             }
-        }
+        });
 
         // 5. Let L be ! CodePointsToString(upperText).
         // 6. Return L.
-        Ok(js_string!(upper_text).into())
+        Ok(js_string!(text).into())
+    }
+
+    /// [`String.prototype.toLocaleLowerCase ( [ locales ] )`][lower] and
+    /// [`String.prototype.toLocaleUpperCase ( [ locales ] )`][upper]
+    ///
+    /// [lower]: https://tc39.es/ecma402/#sup-string.prototype.tolocalelowercase
+    /// [upper]: https://tc39.es/ecma402/#sup-string.prototype.tolocaleuppercase
+    pub(crate) fn to_locale_case<const UPPER: bool>(
+        this: &JsValue,
+        args: &[JsValue],
+        context: &mut Context<'_>,
+    ) -> JsResult<JsValue> {
+        #[cfg(feature = "intl")]
+        {
+            use super::intl::locale::{
+                best_available_locale, canonicalize_locale_list, default_locale,
+            };
+            use icu_casemapping::{provider::CaseMappingV1Marker, CaseMapping};
+            use icu_locid::LanguageIdentifier;
+
+            // 1. Let O be ? RequireObjectCoercible(this value).
+            let this = this.require_object_coercible()?;
+
+            // 2. Let S be ? ToString(O).
+            let string = this.to_string(context)?;
+
+            // 3. Return ? TransformCase(S, locales, lower).
+
+            //  TransformCase ( S, locales, targetCase )
+            // https://tc39.es/ecma402/#sec-transform-case
+
+            // 1. Let requestedLocales be ? CanonicalizeLocaleList(locales).
+            // 2. If requestedLocales is not an empty List, then
+            //     a. Let requestedLocale be requestedLocales[0].
+            let lang = canonicalize_locale_list(args.get_or_undefined(0), context)?
+                .into_iter()
+                .next()
+                // 3. Else,
+                //     a. Let requestedLocale be ! DefaultLocale().
+                .unwrap_or_else(|| default_locale(context.icu().locale_canonicalizer()))
+                .id;
+            // 4. Let noExtensionsLocale be the String value that is requestedLocale with any Unicode locale extension sequences (6.2.1) removed.
+            // 5. Let availableLocales be a List with language tags that includes the languages for which the Unicode Character Database contains language sensitive case mappings. Implementations may add additional language tags if they support case mapping for additional locales.
+            // 6. Let locale be ! BestAvailableLocale(availableLocales, noExtensionsLocale).
+            // 7. If locale is undefined, set locale to "und".
+            let lang =
+                best_available_locale::<CaseMappingV1Marker>(lang, &context.icu().provider())
+                    .unwrap_or(LanguageIdentifier::UND);
+
+            let casemapper =
+                CaseMapping::try_new_with_locale(&context.icu().provider(), &lang.into())
+                    .map_err(|err| JsNativeError::typ().with_message(err.to_string()))?;
+
+            // 8. Let codePoints be StringToCodePoints(S).
+            let result = string.map_valid_segments(|segment| {
+                if UPPER {
+                    // 10. Else,
+                    //     a. Assert: targetCase is upper.
+                    //     b. Let newCodePoints be a List whose elements are the result of an uppercase transformation of codePoints according to an implementation-derived algorithm using locale or the Unicode Default Case Conversion algorithm.
+                    casemapper.to_full_uppercase(&segment)
+                } else {
+                    // 9. If targetCase is lower, then
+                    //     a. Let newCodePoints be a List whose elements are the result of a lowercase transformation of codePoints according to an implementation-derived algorithm using locale or the Unicode Default Case Conversion algorithm.
+                    casemapper.to_full_lowercase(&segment)
+                }
+            });
+
+            // 11. Return CodePointsToString(newCodePoints).
+            Ok(result.into())
+        }
+
+        #[cfg(not(feature = "intl"))]
+        {
+            Self::to_case::<UPPER>(this, args, context)
+        }
     }
 
     /// `String.prototype.substring( indexStart[, indexEnd] )`

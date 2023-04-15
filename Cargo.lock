@@ -406,6 +406,7 @@ dependencies = [
  "fast-float",
  "float-cmp",
  "icu_calendar",
+ "icu_casemapping",
  "icu_collator",
  "icu_datetime",
  "icu_list",

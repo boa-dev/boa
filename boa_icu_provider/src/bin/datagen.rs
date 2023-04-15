@@ -6,7 +6,7 @@
 use std::{error::Error, fs::File};
 
 use boa_icu_provider::data_root;
-use icu_datagen::{all_keys, datagen, CldrLocaleSubset, Out, SourceData};
+use icu_datagen::{all_keys_with_experimental, datagen, CldrLocaleSubset, Out, SourceData};
 
 fn main() -> Result<(), Box<dyn Error>> {
     simple_logger::SimpleLogger::new()
@@ -23,5 +23,11 @@ fn main() -> Result<(), Box<dyn Error>> {
         data_root().join("icudata.postcard"),
     )?));
 
-    datagen(None, &all_keys(), &source_data, [blob_out].into()).map_err(Into::into)
+    datagen(
+        None,
+        &all_keys_with_experimental(),
+        &source_data,
+        [blob_out].into(),
+    )
+    .map_err(Into::into)
 }
