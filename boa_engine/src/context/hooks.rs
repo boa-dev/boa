@@ -5,6 +5,7 @@ use crate::{
     realm::Realm,
     Context, JsResult, JsValue,
 };
+use chrono::{FixedOffset, Local, NaiveDateTime, Utc};
 
 use super::intrinsics::Intrinsics;
 
@@ -169,6 +170,26 @@ pub trait HostHooks {
     /// [ihdr]: https://tc39.es/ecma262/#sec-initializehostdefinedrealm
     fn create_global_this(&self, _intrinsics: &Intrinsics) -> Option<JsObject> {
         None
+    }
+
+    /// Gets the current UTC time of the host.
+    ///
+    /// Defaults to using [`Utc::now`] on all targets, which can cause panics if your platform
+    /// doesn't support [`SystemTime::now`][time].
+    ///
+    /// [time]: std::time::SystemTime::now
+    fn utc_now(&self) -> NaiveDateTime {
+        Utc::now().naive_utc()
+    }
+
+    /// Gets the current timezone as a fixed offset from UTC.
+    ///
+    /// Defaults to using [`Local::now`] on all targets, which can cause panics if your platform
+    /// doesn't support [`SystemTime::now`][time].
+    ///
+    /// [time]: std::time::SystemTime::now
+    fn tz_offset(&self) -> FixedOffset {
+        *Local::now().offset()
     }
 }
 

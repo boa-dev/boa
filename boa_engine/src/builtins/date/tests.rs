@@ -44,21 +44,6 @@ fn timestamp_from_utc(
 }
 
 #[test]
-fn date_display() {
-    let dt = super::Date(None);
-    assert_eq!("[Invalid Date]", format!("[{dt}]"));
-
-    let cd = super::Date::default();
-    assert_eq!(
-        format!(
-            "[{}]",
-            cd.to_local().unwrap().format("%a %b %d %Y %H:%M:%S GMT%:z")
-        ),
-        format!("[{cd}]")
-    );
-}
-
-#[test]
 fn date_this_time_value() {
     run_test_actions([TestAction::assert_native_error(
         "({toString: Date.prototype.toString}).toString()",
