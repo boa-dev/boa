@@ -198,7 +198,7 @@
 <a href="#197" id="197">197</a>
 <a href="#198" id="198">198</a>
 <a href="#199" id="199">199</a>
-</pre><pre class="rust"><code><span class="kw">use </span>chrono::{Datelike, Local, NaiveDateTime, TimeZone, Timelike};
+</pre><pre class="rust"><code><span class="kw">use </span>chrono::{Datelike, FixedOffset, NaiveDateTime, TimeZone, Timelike};
 
 <span class="kw">use </span><span class="kw">crate</span>::value::IntegerOrNan;
 
@@ -336,7 +336,7 @@
 </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>replace_params(
     datetime: NaiveDateTime,
     params: DateParameters,
-    local: bool,
+    offset: <span class="prelude-ty">Option</span>&lt;FixedOffset&gt;,
 ) -&gt; <span class="prelude-ty">Option</span>&lt;NaiveDateTime&gt; {
     <span class="kw">let </span>DateParameters {
         year,
@@ -348,8 +348,8 @@
         millisecond,
     } = params;
 
-    <span class="kw">let </span>datetime = <span class="kw">if </span>local {
-        Local.from_utc_datetime(<span class="kw-2">&amp;</span>datetime).naive_local()
+    <span class="kw">let </span>datetime = <span class="kw">if let </span><span class="prelude-val">Some</span>(offset) = offset {
+        offset.from_utc_datetime(<span class="kw-2">&amp;</span>datetime).naive_local()
     } <span class="kw">else </span>{
         datetime
     };
@@ -387,8 +387,8 @@
     <span class="kw">let </span>new_time = make_time(hour, minute, second, millisecond)<span class="question-mark">?</span>;
     <span class="kw">let </span><span class="kw-2">mut </span>ts = make_date(new_day, new_time)<span class="question-mark">?</span>;
 
-    <span class="kw">if </span>local {
-        ts = Local
+    <span class="kw">if let </span><span class="prelude-val">Some</span>(offset) = offset {
+        ts = offset
             .from_local_datetime(<span class="kw-2">&amp;</span>NaiveDateTime::from_timestamp_millis(ts)<span class="question-mark">?</span>)
             .earliest()<span class="question-mark">?
             </span>.naive_utc()

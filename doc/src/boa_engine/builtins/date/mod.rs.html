@@ -1484,6 +1484,33 @@
 <a href="#1483" id="1483">1483</a>
 <a href="#1484" id="1484">1484</a>
 <a href="#1485" id="1485">1485</a>
+<a href="#1486" id="1486">1486</a>
+<a href="#1487" id="1487">1487</a>
+<a href="#1488" id="1488">1488</a>
+<a href="#1489" id="1489">1489</a>
+<a href="#1490" id="1490">1490</a>
+<a href="#1491" id="1491">1491</a>
+<a href="#1492" id="1492">1492</a>
+<a href="#1493" id="1493">1493</a>
+<a href="#1494" id="1494">1494</a>
+<a href="#1495" id="1495">1495</a>
+<a href="#1496" id="1496">1496</a>
+<a href="#1497" id="1497">1497</a>
+<a href="#1498" id="1498">1498</a>
+<a href="#1499" id="1499">1499</a>
+<a href="#1500" id="1500">1500</a>
+<a href="#1501" id="1501">1501</a>
+<a href="#1502" id="1502">1502</a>
+<a href="#1503" id="1503">1503</a>
+<a href="#1504" id="1504">1504</a>
+<a href="#1505" id="1505">1505</a>
+<a href="#1506" id="1506">1506</a>
+<a href="#1507" id="1507">1507</a>
+<a href="#1508" id="1508">1508</a>
+<a href="#1509" id="1509">1509</a>
+<a href="#1510" id="1510">1510</a>
+<a href="#1511" id="1511">1511</a>
+<a href="#1512" id="1512">1512</a>
 </pre><pre class="rust"><code><span class="doccomment">//! Boa&#39;s implementation of ECMAScript&#39;s `Date` object.
 //!
 //! More information:
@@ -1501,10 +1528,14 @@
 
 <span class="kw">use crate</span>::{
     builtins::BuiltInObject,
-    context::intrinsics::{Intrinsics, StandardConstructor, StandardConstructors},
+    context::{
+        intrinsics::{Intrinsics, StandardConstructor, StandardConstructors},
+        HostHooks,
+    },
     error::JsNativeError,
     js_string,
     object::{internal_methods::get_prototype_from_constructor, JsObject, ObjectData},
+    property::Attribute,
     realm::Realm,
     string::utf16,
     symbol::JsSymbol,
@@ -1513,7 +1544,6 @@
 };
 <span class="kw">use </span>boa_profiler::Profiler;
 <span class="kw">use </span>chrono::prelude::<span class="kw-2">*</span>;
-<span class="kw">use </span>std::fmt::Display;
 
 <span class="kw">use super</span>::{BuiltInBuilder, BuiltInConstructor, IntrinsicObject};
 
@@ -1562,6 +1592,11 @@
         <span class="self">Self</span>(dt)
     }
 
+    <span class="doccomment">/// Creates a new `Date` from the current UTC time of the host.
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>utc_now(hooks: <span class="kw-2">&amp;</span><span class="kw">dyn </span>HostHooks) -&gt; <span class="self">Self </span>{
+        <span class="self">Self</span>(<span class="prelude-val">Some</span>(hooks.utc_now()))
+    }
+
     <span class="doccomment">/// Converts the `Date` into a `JsValue`, mapping `None` to `NaN` and `Some(datetime)` to
     /// `JsValue::from(datetime.timestamp_millis())`.
     </span><span class="kw">fn </span>as_value(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; JsValue {
@@ -1570,25 +1605,15 @@
     }
 }
 
-<span class="kw">impl </span>Display <span class="kw">for </span>Date {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>std::fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; std::fmt::Result {
-        <span class="kw">if let </span><span class="prelude-val">Some</span>(v) = <span class="self">self</span>.to_local() {
-            <span class="macro">write!</span>(f, <span class="string">&quot;{}&quot;</span>, v.format(<span class="string">&quot;%a %b %d %Y %H:%M:%S GMT%:z&quot;</span>))
-        } <span class="kw">else </span>{
-            <span class="macro">write!</span>(f, <span class="string">&quot;Invalid Date&quot;</span>)
-        }
-    }
-}
-
-<span class="kw">impl </span>Default <span class="kw">for </span>Date {
-    <span class="kw">fn </span>default() -&gt; <span class="self">Self </span>{
-        <span class="self">Self</span>(<span class="prelude-val">Some</span>(Utc::now().naive_utc()))
-    }
-}
-
 <span class="kw">impl </span>IntrinsicObject <span class="kw">for </span>Date {
     <span class="kw">fn </span>init(realm: <span class="kw-2">&amp;</span>Realm) {
         <span class="kw">let </span>_timer = Profiler::global().start_event(<span class="self">Self</span>::NAME, <span class="string">&quot;init&quot;</span>);
+
+        <span class="kw">let </span>to_utc_string = BuiltInBuilder::new(realm)
+            .callable(<span class="self">Self</span>::to_utc_string)
+            .name(<span class="string">&quot;toUTCString&quot;</span>)
+            .length(<span class="number">0</span>)
+            .build();
 
         BuiltInBuilder::from_standard_constructor::&lt;<span class="self">Self</span>&gt;(realm)
             .method(<span class="self">Self</span>::get_date::&lt;<span class="bool-val">true</span>&gt;, <span class="string">&quot;getDate&quot;</span>, <span class="number">0</span>)
@@ -1629,7 +1654,6 @@
             .method(<span class="self">Self</span>::set_seconds::&lt;<span class="bool-val">false</span>&gt;, <span class="string">&quot;setUTCSeconds&quot;</span>, <span class="number">2</span>)
             .method(<span class="self">Self</span>::set_year, <span class="string">&quot;setYear&quot;</span>, <span class="number">1</span>)
             .method(<span class="self">Self</span>::to_date_string, <span class="string">&quot;toDateString&quot;</span>, <span class="number">0</span>)
-            .method(<span class="self">Self</span>::to_gmt_string, <span class="string">&quot;toGMTString&quot;</span>, <span class="number">0</span>)
             .method(<span class="self">Self</span>::to_iso_string, <span class="string">&quot;toISOString&quot;</span>, <span class="number">0</span>)
             .method(<span class="self">Self</span>::to_json, <span class="string">&quot;toJSON&quot;</span>, <span class="number">1</span>)
             .method(<span class="self">Self</span>::to_locale_date_string, <span class="string">&quot;toLocaleDateString&quot;</span>, <span class="number">0</span>)
@@ -1637,7 +1661,16 @@
             .method(<span class="self">Self</span>::to_locale_time_string, <span class="string">&quot;toLocaleTimeString&quot;</span>, <span class="number">0</span>)
             .method(<span class="self">Self</span>::to_string, <span class="string">&quot;toString&quot;</span>, <span class="number">0</span>)
             .method(<span class="self">Self</span>::to_time_string, <span class="string">&quot;toTimeString&quot;</span>, <span class="number">0</span>)
-            .method(<span class="self">Self</span>::to_utc_string, <span class="string">&quot;toUTCString&quot;</span>, <span class="number">0</span>)
+            .property(
+                <span class="string">&quot;toGMTString&quot;</span>,
+                to_utc_string.clone(),
+                Attribute::WRITABLE | Attribute::CONFIGURABLE,
+            )
+            .property(
+                <span class="string">&quot;toUTCString&quot;</span>,
+                to_utc_string,
+                Attribute::WRITABLE | Attribute::CONFIGURABLE,
+            )
             .static_method(<span class="self">Self</span>::utc, <span class="string">&quot;UTC&quot;</span>, <span class="number">7</span>)
             .method(<span class="self">Self</span>::value_of, <span class="string">&quot;valueOf&quot;</span>, <span class="number">0</span>)
             .method(
@@ -1682,9 +1715,12 @@
             <span class="comment">// a. Let now be the time value (UTC) identifying the current time.
             // b. Return ToDateString(now).
             </span><span class="kw">return </span><span class="prelude-val">Ok</span>(JsValue::new(
-                Local::now()
-                    .format(<span class="string">&quot;%a %b %d %Y %H:%M:%S GMT%:z&quot;</span>)
-                    .to_string(),
+                DateTime::&lt;FixedOffset&gt;::from_utc(
+                    context.host_hooks().utc_now(),
+                    context.host_hooks().tz_offset(),
+                )
+                .format(<span class="string">&quot;%a %b %d %Y %H:%M:%S GMT%:z&quot;</span>)
+                .to_string(),
             ));
         }
         <span class="comment">// 2. Let numberOfArgs be the number of elements in values.
@@ -1692,7 +1728,7 @@
             <span class="comment">// 3. If numberOfArgs = 0, then
             </span>[] =&gt; {
                 <span class="comment">// a. Let dv be the time value (UTC) identifying the current time.
-                </span><span class="self">Self</span>::default()
+                </span><span class="self">Self</span>::utc_now(<span class="kw-2">&amp;*</span>context.host_hooks())
             }
             <span class="comment">// 4. Else if numberOfArgs = 1, then
             // a. Let value be values[0].
@@ -1743,7 +1779,13 @@
                 <span class="comment">// Separating this into its own function to simplify the logic.
                 </span><span class="self">Self</span>(
                     <span class="self">Self</span>::construct_date(args, context)<span class="question-mark">?
-                        </span>.and_then(|dt| Local.from_local_datetime(<span class="kw-2">&amp;</span>dt).earliest())
+                        </span>.and_then(|dt| {
+                            context
+                                .host_hooks()
+                                .tz_offset()
+                                .from_local_datetime(<span class="kw-2">&amp;</span>dt)
+                                .earliest()
+                        })
                         .map(|dt| dt.naive_utc()),
                 )
             }
@@ -1858,8 +1900,10 @@
     /// [spec]: https://tc39.es/ecma262/#sec-date.now
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/now
     </span><span class="attr">#[allow(clippy::unnecessary_wraps)]
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>now(<span class="kw">_</span>: <span class="kw-2">&amp;</span>JsValue, <span class="kw">_</span>: <span class="kw-2">&amp;</span>[JsValue], <span class="kw">_</span>: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;JsValue&gt; {
-        <span class="prelude-val">Ok</span>(JsValue::new(Utc::now().timestamp_millis()))
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>now(<span class="kw">_</span>: <span class="kw-2">&amp;</span>JsValue, <span class="kw">_</span>: <span class="kw-2">&amp;</span>[JsValue], context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;JsValue&gt; {
+        <span class="prelude-val">Ok</span>(JsValue::new(
+            context.host_hooks().utc_now().timestamp_millis(),
+        ))
     }
 
     <span class="doccomment">/// `Date.parse()`
@@ -1924,13 +1968,17 @@
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>get_date&lt;<span class="kw">const </span>LOCAL: bool&gt;(
         this: <span class="kw-2">&amp;</span>JsValue,
         _args: <span class="kw-2">&amp;</span>[JsValue],
-        _context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+        context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
     ) -&gt; JsResult&lt;JsValue&gt; {
         <span class="comment">// 1. Let t be ? thisTimeValue(this value).
         // 2. If t is NaN, return NaN.
         </span><span class="kw">let </span><span class="kw-2">mut </span>t = <span class="macro">some_or_nan!</span>(this_time_value(this)<span class="question-mark">?</span>);
         <span class="kw">if </span>LOCAL {
-            t = Local.from_utc_datetime(<span class="kw-2">&amp;</span>t).naive_local();
+            t = context
+                .host_hooks()
+                .tz_offset()
+                .from_utc_datetime(<span class="kw-2">&amp;</span>t)
+                .naive_local();
         }
 
         <span class="comment">// 3. Return DateFromTime(LocalTime(t)).
@@ -1948,13 +1996,17 @@
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>get_day&lt;<span class="kw">const </span>LOCAL: bool&gt;(
         this: <span class="kw-2">&amp;</span>JsValue,
         _args: <span class="kw-2">&amp;</span>[JsValue],
-        _context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+        context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
     ) -&gt; JsResult&lt;JsValue&gt; {
         <span class="comment">// 1. Let t be ? thisTimeValue(this value).
         // 2. If t is NaN, return NaN.
         </span><span class="kw">let </span><span class="kw-2">mut </span>t = <span class="macro">some_or_nan!</span>(this_time_value(this)<span class="question-mark">?</span>);
         <span class="kw">if </span>LOCAL {
-            t = Local.from_utc_datetime(<span class="kw-2">&amp;</span>t).naive_local();
+            t = context
+                .host_hooks()
+                .tz_offset()
+                .from_utc_datetime(<span class="kw-2">&amp;</span>t)
+                .naive_local();
         }
 
         <span class="comment">// 3. Return WeekDay(LocalTime(t)).
@@ -1975,14 +2027,14 @@
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>get_year(
         this: <span class="kw-2">&amp;</span>JsValue,
         _args: <span class="kw-2">&amp;</span>[JsValue],
-        _context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+        context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
     ) -&gt; JsResult&lt;JsValue&gt; {
         <span class="comment">// 1. Let t be ? thisTimeValue(this value).
         // 2. If t is NaN, return NaN.
         </span><span class="kw">let </span>t = <span class="macro">some_or_nan!</span>(this_time_value(this)<span class="question-mark">?</span>);
 
         <span class="comment">// 3. Return YearFromTime(LocalTime(t)) - 1900𝔽.
-        </span><span class="kw">let </span>local = Local.from_utc_datetime(<span class="kw-2">&amp;</span>t);
+        </span><span class="kw">let </span>local = context.host_hooks().tz_offset().from_utc_datetime(<span class="kw-2">&amp;</span>t);
         <span class="prelude-val">Ok</span>(JsValue::from(local.year() - <span class="number">1900</span>))
     }
 
@@ -1996,13 +2048,17 @@
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>get_full_year&lt;<span class="kw">const </span>LOCAL: bool&gt;(
         this: <span class="kw-2">&amp;</span>JsValue,
         _args: <span class="kw-2">&amp;</span>[JsValue],
-        _context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+        context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
     ) -&gt; JsResult&lt;JsValue&gt; {
         <span class="comment">// 1. Let t be ? thisTimeValue(this value).
         // 2. If t is NaN, return NaN.
         </span><span class="kw">let </span><span class="kw-2">mut </span>t = <span class="macro">some_or_nan!</span>(this_time_value(this)<span class="question-mark">?</span>);
         <span class="kw">if </span>LOCAL {
-            t = Local.from_utc_datetime(<span class="kw-2">&amp;</span>t).naive_local();
+            t = context
+                .host_hooks()
+                .tz_offset()
+                .from_utc_datetime(<span class="kw-2">&amp;</span>t)
+                .naive_local();
         }
 
         <span class="comment">// 3. Return YearFromTime(LocalTime(t)).
@@ -2019,13 +2075,17 @@
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>get_hours&lt;<span class="kw">const </span>LOCAL: bool&gt;(
         this: <span class="kw-2">&amp;</span>JsValue,
         _args: <span class="kw-2">&amp;</span>[JsValue],
-        _context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+        context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
     ) -&gt; JsResult&lt;JsValue&gt; {
         <span class="comment">// 1. Let t be ? thisTimeValue(this value).
         // 2. If t is NaN, return NaN.
         </span><span class="kw">let </span><span class="kw-2">mut </span>t = <span class="macro">some_or_nan!</span>(this_time_value(this)<span class="question-mark">?</span>);
         <span class="kw">if </span>LOCAL {
-            t = Local.from_utc_datetime(<span class="kw-2">&amp;</span>t).naive_local();
+            t = context
+                .host_hooks()
+                .tz_offset()
+                .from_utc_datetime(<span class="kw-2">&amp;</span>t)
+                .naive_local();
         }
 
         <span class="comment">// 3. Return HourFromTime(LocalTime(t)).
@@ -2042,13 +2102,17 @@
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>get_milliseconds&lt;<span class="kw">const </span>LOCAL: bool&gt;(
         this: <span class="kw-2">&amp;</span>JsValue,
         _args: <span class="kw-2">&amp;</span>[JsValue],
-        _context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+        context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
     ) -&gt; JsResult&lt;JsValue&gt; {
         <span class="comment">// 1. Let t be ? thisTimeValue(this value).
         // 2. If t is NaN, return NaN.
         </span><span class="kw">let </span><span class="kw-2">mut </span>t = <span class="macro">some_or_nan!</span>(this_time_value(this)<span class="question-mark">?</span>);
         <span class="kw">if </span>LOCAL {
-            t = Local.from_utc_datetime(<span class="kw-2">&amp;</span>t).naive_local();
+            t = context
+                .host_hooks()
+                .tz_offset()
+                .from_utc_datetime(<span class="kw-2">&amp;</span>t)
+                .naive_local();
         }
 
         <span class="comment">// 3. Return msFromTime(LocalTime(t)).
@@ -2065,13 +2129,17 @@
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>get_minutes&lt;<span class="kw">const </span>LOCAL: bool&gt;(
         this: <span class="kw-2">&amp;</span>JsValue,
         _args: <span class="kw-2">&amp;</span>[JsValue],
-        _context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+        context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
     ) -&gt; JsResult&lt;JsValue&gt; {
         <span class="comment">// 1. Let t be ? thisTimeValue(this value).
         // 2. If t is NaN, return NaN.
         </span><span class="kw">let </span><span class="kw-2">mut </span>t = <span class="macro">some_or_nan!</span>(this_time_value(this)<span class="question-mark">?</span>);
         <span class="kw">if </span>LOCAL {
-            t = Local.from_utc_datetime(<span class="kw-2">&amp;</span>t).naive_local();
+            t = context
+                .host_hooks()
+                .tz_offset()
+                .from_utc_datetime(<span class="kw-2">&amp;</span>t)
+                .naive_local();
         }
 
         <span class="comment">// 3. Return MinFromTime(LocalTime(t)).
@@ -2089,13 +2157,17 @@
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>get_month&lt;<span class="kw">const </span>LOCAL: bool&gt;(
         this: <span class="kw-2">&amp;</span>JsValue,
         _args: <span class="kw-2">&amp;</span>[JsValue],
-        _context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+        context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
     ) -&gt; JsResult&lt;JsValue&gt; {
         <span class="comment">// 1. Let t be ? thisTimeValue(this value).
         // 2. If t is NaN, return NaN.
         </span><span class="kw">let </span><span class="kw-2">mut </span>t = <span class="macro">some_or_nan!</span>(this_time_value(this)<span class="question-mark">?</span>);
         <span class="kw">if </span>LOCAL {
-            t = Local.from_utc_datetime(<span class="kw-2">&amp;</span>t).naive_local();
+            t = context
+                .host_hooks()
+                .tz_offset()
+                .from_utc_datetime(<span class="kw-2">&amp;</span>t)
+                .naive_local();
         }
 
         <span class="comment">// 3. Return MonthFromTime(LocalTime(t)).
@@ -2112,13 +2184,17 @@
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>get_seconds&lt;<span class="kw">const </span>LOCAL: bool&gt;(
         this: <span class="kw-2">&amp;</span>JsValue,
         _args: <span class="kw-2">&amp;</span>[JsValue],
-        _context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+        context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
     ) -&gt; JsResult&lt;JsValue&gt; {
         <span class="comment">// 1. Let t be ? thisTimeValue(this value).
         // 2. If t is NaN, return NaN.
         </span><span class="kw">let </span><span class="kw-2">mut </span>t = <span class="macro">some_or_nan!</span>(this_time_value(this)<span class="question-mark">?</span>);
         <span class="kw">if </span>LOCAL {
-            t = Local.from_utc_datetime(<span class="kw-2">&amp;</span>t).naive_local();
+            t = context
+                .host_hooks()
+                .tz_offset()
+                .from_utc_datetime(<span class="kw-2">&amp;</span>t)
+                .naive_local();
         }
 
         <span class="comment">// 3. Return SecFromTime(LocalTime(t))
@@ -2159,14 +2235,16 @@
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>get_timezone_offset(
         this: <span class="kw-2">&amp;</span>JsValue,
         <span class="kw">_</span>: <span class="kw-2">&amp;</span>[JsValue],
-        <span class="kw">_</span>: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+        context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
     ) -&gt; JsResult&lt;JsValue&gt; {
         <span class="comment">// 1. Let t be ? thisTimeValue(this value).
         // 2. If t is NaN, return NaN.
         </span><span class="macro">some_or_nan!</span>(this_time_value(this)<span class="question-mark">?</span>);
 
         <span class="comment">// 3. Return (t - LocalTime(t)) / msPerMinute.
-        </span><span class="prelude-val">Ok</span>(JsValue::from(-Local::now().offset().local_minus_utc() / <span class="number">60</span>))
+        </span><span class="prelude-val">Ok</span>(JsValue::from(
+            -context.host_hooks().tz_offset().local_minus_utc() / <span class="number">60</span>,
+        ))
     }
 
     <span class="doccomment">/// [`Date.prototype.setDate ( date )`][local] and
@@ -2200,7 +2278,7 @@
                 date: <span class="prelude-val">Some</span>(date),
                 ..Default::default()
             },
-            LOCAL,
+            LOCAL.then(|| context.host_hooks().tz_offset()),
         );
 
         <span class="comment">// 7. Set the [[DateValue]] internal slot of this Date object to u.
@@ -2230,7 +2308,7 @@
         </span><span class="kw">let </span>datetime = <span class="kw">match </span>t.<span class="number">0 </span>{
             <span class="prelude-val">Some</span>(dt) =&gt; dt,
             <span class="prelude-val">None </span><span class="kw">if </span>LOCAL =&gt; {
-                <span class="kw">let </span><span class="prelude-val">Some</span>(datetime) = Local
+                <span class="kw">let </span><span class="prelude-val">Some</span>(datetime) = context.host_hooks().tz_offset()
                     .from_local_datetime(<span class="kw-2">&amp;</span>NaiveDateTime::default())
                     .earliest()
                     .as_ref()
@@ -2268,7 +2346,7 @@
                 date,
                 ..Default::default()
             },
-            LOCAL,
+            LOCAL.then(|| context.host_hooks().tz_offset()),
         );
 
         <span class="comment">// 8. Set the [[DateValue]] internal slot of this Date object to u.
@@ -2334,7 +2412,7 @@
                 millisecond,
                 ..Default::default()
             },
-            LOCAL,
+            LOCAL.then(|| context.host_hooks().tz_offset()),
         );
 
         <span class="comment">// 13. Set the [[DateValue]] internal slot of this Date object to u.
@@ -2375,7 +2453,7 @@
                 millisecond: <span class="prelude-val">Some</span>(ms),
                 ..Default::default()
             },
-            LOCAL,
+            LOCAL.then(|| context.host_hooks().tz_offset()),
         );
 
         <span class="comment">// 7. Set the [[DateValue]] internal slot of this Date object to u.
@@ -2431,7 +2509,7 @@
                 millisecond,
                 ..Default::default()
             },
-            LOCAL,
+            LOCAL.then(|| context.host_hooks().tz_offset()),
         );
 
         <span class="comment">// 11. Set the [[DateValue]] internal slot of this Date object to u.
@@ -2480,7 +2558,7 @@
                 date,
                 ..Default::default()
             },
-            LOCAL,
+            LOCAL.then(|| context.host_hooks().tz_offset()),
         );
 
         <span class="comment">// 9. Set the [[DateValue]] internal slot of this Date object to u.
@@ -2528,7 +2606,7 @@
                 millisecond,
                 ..Default::default()
             },
-            LOCAL,
+            LOCAL.then(|| context.host_hooks().tz_offset()),
         );
 
         <span class="comment">// 9. Set the [[DateValue]] internal slot of this Date object to u.
@@ -2566,7 +2644,7 @@
 
         <span class="comment">// 3. If t is NaN, set t to +0𝔽; otherwise, set t to LocalTime(t).
         </span><span class="kw">let </span><span class="prelude-val">Some</span>(datetime) = t.<span class="number">0</span>.or_else(|| {
-            Local
+            context.host_hooks().tz_offset()
                 .from_local_datetime(<span class="kw-2">&amp;</span>NaiveDateTime::default())
                 .earliest()
                 .as_ref()
@@ -2599,7 +2677,7 @@
                 year: <span class="prelude-val">Some</span>(IntegerOrNan::Integer(year)),
                 ..Default::default()
             },
-            <span class="bool-val">true</span>,
+            <span class="prelude-val">Some</span>(context.host_hooks().tz_offset()),
         );
 
         <span class="comment">// 10. Set the [[DateValue]] internal slot of this Date object to TimeClip(date).
@@ -2655,7 +2733,7 @@
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>to_date_string(
         this: <span class="kw-2">&amp;</span>JsValue,
         <span class="kw">_</span>: <span class="kw-2">&amp;</span>[JsValue],
-        <span class="kw">_</span>: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+        context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
     ) -&gt; JsResult&lt;JsValue&gt; {
         <span class="comment">// 1. Let O be this Date object.
         // 2. Let tv be ? thisTimeValue(O).
@@ -2666,8 +2744,9 @@
 
         <span class="comment">// 4. Let t be LocalTime(tv).
         // 5. Return DateString(t).
-        </span><span class="prelude-val">Ok</span>(Local::now()
-            .timezone()
+        </span><span class="prelude-val">Ok</span>(context
+            .host_hooks()
+            .tz_offset()
             .from_utc_datetime(<span class="kw-2">&amp;</span>tv)
             .format(<span class="string">&quot;%a %b %d %Y&quot;</span>)
             .to_string()
@@ -2692,8 +2771,7 @@
     ) -&gt; JsResult&lt;JsValue&gt; {
         <span class="kw">let </span>t = this_time_value(this)<span class="question-mark">?
             </span>.ok_or_else(|| JsNativeError::range().with_message(<span class="string">&quot;Invalid time value&quot;</span>))<span class="question-mark">?</span>;
-        <span class="prelude-val">Ok</span>(Utc::now()
-            .timezone()
+        <span class="prelude-val">Ok</span>(Utc
             .from_utc_datetime(<span class="kw-2">&amp;</span>t)
             .format(<span class="string">&quot;%Y-%m-%dT%H:%M:%S.%3fZ&quot;</span>)
             .to_string()
@@ -2801,15 +2879,16 @@
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>to_string(
         this: <span class="kw-2">&amp;</span>JsValue,
         <span class="kw">_</span>: <span class="kw-2">&amp;</span>[JsValue],
-        <span class="kw">_</span>: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+        context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
     ) -&gt; JsResult&lt;JsValue&gt; {
         <span class="comment">// 1. Let tv be ? thisTimeValue(this value).
         // 2. Return ToDateString(tv).
         </span><span class="kw">let </span><span class="prelude-val">Some</span>(t) = this_time_value(this)<span class="question-mark">? </span><span class="kw">else </span>{
             <span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="macro">js_string!</span>(<span class="string">&quot;Invalid Date&quot;</span>).into());
         };
-        <span class="prelude-val">Ok</span>(Local::now()
-            .timezone()
+        <span class="prelude-val">Ok</span>(context
+            .host_hooks()
+            .tz_offset()
             .from_utc_datetime(<span class="kw-2">&amp;</span>t)
             .format(<span class="string">&quot;%a %b %d %Y %H:%M:%S GMT%z&quot;</span>)
             .to_string()
@@ -2829,7 +2908,7 @@
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>to_time_string(
         this: <span class="kw-2">&amp;</span>JsValue,
         <span class="kw">_</span>: <span class="kw-2">&amp;</span>[JsValue],
-        <span class="kw">_</span>: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+        context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
     ) -&gt; JsResult&lt;JsValue&gt; {
         <span class="comment">// 1. Let O be this Date object.
         // 2. Let tv be ? thisTimeValue(O).
@@ -2840,8 +2919,9 @@
 
         <span class="comment">// 4. Let t be LocalTime(tv).
         // 5. Return the string-concatenation of TimeString(t) and TimeZoneString(tv).
-        </span><span class="prelude-val">Ok</span>(Local::now()
-            .timezone()
+        </span><span class="prelude-val">Ok</span>(context
+            .host_hooks()
+            .tz_offset()
             .from_utc_datetime(<span class="kw-2">&amp;</span>t)
             .format(<span class="string">&quot;%H:%M:%S GMT%z&quot;</span>)
             .to_string()
@@ -2941,32 +3021,6 @@
 
         <span class="comment">// 6. Return ? OrdinaryToPrimitive(O, tryFirst).
         </span>o.ordinary_to_primitive(context, try_first)
-    }
-
-    <span class="doccomment">/// [`Date.prototype.toGMTString ( )`][spec].
-    ///
-    /// The `toGMTString()` method converts a date to a string, using Internet Greenwich Mean Time
-    /// (GMT) conventions.
-    ///
-    /// More information:
-    ///  - [MDN documentation][mdn]
-    ///
-    /// [spec]: https://tc39.es/ecma262/#sec-date.prototype.togmtstring
-    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/toGMTString
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>to_gmt_string(
-        this: <span class="kw-2">&amp;</span>JsValue,
-        _args: <span class="kw-2">&amp;</span>[JsValue],
-        context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
-    ) -&gt; JsResult&lt;JsValue&gt; {
-        <span class="comment">// The initial value of the &quot;toGMTString&quot; property is %Date.prototype.toUTCString%
-        </span><span class="self">Self</span>::to_utc_string(this, <span class="kw-2">&amp;</span>[], context)
-    }
-
-    <span class="doccomment">/// Converts the `Date` to a local `DateTime`.
-    ///
-    /// If the `Date` is invalid (i.e. NAN), this function will return `None`.
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>to_local(<span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;DateTime&lt;Local&gt;&gt; {
-        <span class="self">self</span>.<span class="number">0</span>.map(|utc| Local.from_utc_datetime(<span class="kw-2">&amp;</span>utc))
     }
 }
 </code></pre></div>

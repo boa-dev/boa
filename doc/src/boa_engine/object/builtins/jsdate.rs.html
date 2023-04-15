@@ -612,6 +612,9 @@
 <a href="#611" id="611">611</a>
 <a href="#612" id="612">612</a>
 <a href="#613" id="613">613</a>
+<a href="#614" id="614">614</a>
+<a href="#615" id="615">615</a>
+<a href="#616" id="616">616</a>
 </pre><pre class="rust"><code><span class="doccomment">//! A Rust API wrapper for Boa&#39;s `Date` ECMAScript Builtin Object.
 </span><span class="kw">use </span>std::ops::Deref;
 
@@ -657,7 +660,10 @@
     </span><span class="attr">#[inline]
     </span><span class="kw">pub fn </span>new(context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <span class="self">Self </span>{
         <span class="kw">let </span>prototype = context.intrinsics().constructors().date().prototype();
-        <span class="kw">let </span>inner = JsObject::from_proto_and_data(prototype, ObjectData::date(Date::default()));
+        <span class="kw">let </span>inner = JsObject::from_proto_and_data(
+            prototype,
+            ObjectData::date(Date::utc_now(<span class="kw-2">&amp;*</span>context.host_hooks())),
+        );
 
         <span class="self">Self </span>{ inner }
     }
@@ -1082,7 +1088,7 @@
     </span><span class="attr">#[deprecated]
     #[inline]
     </span><span class="kw">pub fn </span>to_gmt_string(<span class="kw-2">&amp;</span><span class="self">self</span>, context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;JsValue&gt; {
-        Date::to_gmt_string(<span class="kw-2">&amp;</span><span class="self">self</span>.inner.clone().into(), <span class="kw-2">&amp;</span>[JsValue::Null], context)
+        Date::to_utc_string(<span class="kw-2">&amp;</span><span class="self">self</span>.inner.clone().into(), <span class="kw-2">&amp;</span>[JsValue::Null], context)
     }
 
     <span class="doccomment">/// Returns the given date in the ISO 8601 format according to universal
