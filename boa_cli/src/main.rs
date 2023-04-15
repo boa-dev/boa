@@ -139,7 +139,7 @@ struct Opt {
     #[allow(clippy::option_option)]
     flowgraph: Option<Option<FlowgraphFormat>>,
 
-    /// Specifies the direction of the flowgraph. Default is TopToBottom.
+    /// Specifies the direction of the flowgraph. Default is top-top-bottom.
     #[arg(
         long,
         value_name = "FORMAT",
