@@ -70,7 +70,7 @@ sptr = "0.3.2"
 static_assertions = "1.1.0"
 thiserror = "1.0.40"
 dashmap = "5.4.0"
-num_enum = "0.6.0"
+num_enum = "0.6.1"
 pollster = "0.3.0"
 thin-vec = "0.2.12"
 
