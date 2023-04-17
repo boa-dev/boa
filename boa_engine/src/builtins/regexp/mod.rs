@@ -27,7 +27,7 @@ use crate::{
 };
 use boa_parser::lexer::regex::RegExpFlags;
 use boa_profiler::Profiler;
-use regress::Regex;
+use regress::{Flags, Regex};
 use std::str::FromStr;
 
 use super::{BuiltInBuilder, BuiltInConstructor, IntrinsicObject};
@@ -94,7 +94,7 @@ impl IntrinsicObject for RegExp {
             .callable(Self::get_source)
             .name("get source")
             .build();
-        BuiltInBuilder::from_standard_constructor::<Self>(realm)
+        let regexp = BuiltInBuilder::from_standard_constructor::<Self>(realm)
             .static_accessor(
                 JsSymbol::species(),
                 Some(get_species),
@@ -137,8 +137,12 @@ impl IntrinsicObject for RegExp {
             .accessor(utf16!("unicode"), Some(get_unicode), None, flag_attributes)
             .accessor(utf16!("sticky"), Some(get_sticky), None, flag_attributes)
             .accessor(utf16!("flags"), Some(get_flags), None, flag_attributes)
-            .accessor(utf16!("source"), Some(get_source), None, flag_attributes)
-            .build();
+            .accessor(utf16!("source"), Some(get_source), None, flag_attributes);
+
+        #[cfg(feature = "annex-b")]
+        let regexp = regexp.method(Self::compile, "compile", 2);
+
+        regexp.build();
     }
 
     fn get(intrinsics: &Intrinsics) -> JsObject {
@@ -288,7 +292,21 @@ impl RegExp {
             Ok(result) => result,
         };
 
-        // TODO: Correct UTF-16 handling in 6. - 8.
+        // 10. If u is true, then
+        let regexp = if flags.contains(RegExpFlags::UNICODE) {
+            //     a. Let patternText be StringToCodePoints(P).
+            Regex::from_unicode(
+                p.code_points().map(CodePoint::as_u32),
+                Flags::new(f.code_points().map(CodePoint::as_u32)),
+            )
+        } else {
+            // 11. Else,
+            //     a. Let patternText be the result of interpreting each of P's 16-bit elements as a Unicode BMP code point. UTF-16 decoding is not applied to the elements.
+            Regex::from_unicode(
+                p.iter().map(|surr| u32::from(*surr)),
+                Flags::new(f.code_points().map(CodePoint::as_u32)),
+            )
+        };
 
         // 9. Let parseResult be ParsePattern(patternText, u).
         // 10. If parseResult is a non-empty List of SyntaxError objects, throw a SyntaxError exception.
@@ -297,10 +315,7 @@ impl RegExp {
         // 13. Set obj.[[OriginalFlags]] to F.
         // 14. NOTE: The definitions of DotAll, IgnoreCase, Multiline, and Unicode in 22.2.2.1 refer to this value of obj.[[OriginalFlags]].
         // 15. Set obj.[[RegExpMatcher]] to CompilePattern of parseResult.
-        // TODO: add support for utf16 regex to remove this conversions.
-        let ps = p.to_std_string_escaped();
-        let fs = f.to_std_string_escaped();
-        let matcher = match Regex::with_flags(&ps, fs.as_ref()) {
+        let matcher = match regexp {
             Err(error) => {
                 return Err(JsNativeError::syntax()
                     .with_message(format!("failed to create matcher: {}", error.text))
@@ -308,6 +323,7 @@ impl RegExp {
             }
             Ok(val) => val,
         };
+
         let regexp = Self {
             matcher,
             flags,
@@ -1658,6 +1674,51 @@ impl RegExp {
 
         // 22. Return A.
         Ok(a.into())
+    }
+
+    /// [`RegExp.prototype.compile ( pattern, flags )`][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-regexp.prototype.compile
+    #[cfg(feature = "annex-b")]
+    fn compile(this: &JsValue, args: &[JsValue], context: &mut Context<'_>) -> JsResult<JsValue> {
+        // 1. Let O be the this value.
+        // 2. Perform ? RequireInternalSlot(O, [[RegExpMatcher]]).
+        let this = this
+            .as_object()
+            .filter(|o| o.borrow().is_regexp())
+            .cloned()
+            .ok_or_else(|| {
+                JsNativeError::typ()
+                    .with_message("`RegExp.prototype.compile` cannot be called for a non-object")
+            })?;
+        let pattern = args.get_or_undefined(0);
+        let flags = args.get_or_undefined(1);
+        // 3. If pattern is an Object and pattern has a [[RegExpMatcher]] internal slot, then
+        let (pattern, flags) = if let Some((p, f)) = pattern.as_object().and_then(|o| {
+            let o = o.borrow();
+            o.as_regexp()
+                .map(|rx| (rx.original_source.clone(), rx.original_flags.clone()))
+        }) {
+            //     a. If flags is not undefined, throw a TypeError exception.
+            if !flags.is_undefined() {
+                return Err(JsNativeError::typ()
+                    .with_message(
+                        "`RegExp.prototype.compile` cannot be \
+                called with both a RegExp initializer and new flags",
+                    )
+                    .into());
+            }
+            //     b. Let P be pattern.[[OriginalSource]].
+            //     c. Let F be pattern.[[OriginalFlags]].
+            (p.into(), f.into())
+        } else {
+            // 4. Else,
+            //     a. Let P be pattern.
+            //     b. Let F be flags.
+            (pattern.clone(), flags.clone())
+        };
+        // 5. Return ? RegExpInitialize(O, P, F).
+        Self::initialize(this, &pattern, &flags, context)
     }
 }
 
