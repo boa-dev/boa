@@ -16,7 +16,7 @@ pub struct JsGenerator {
 }
 
 impl JsGenerator {
-    /// Creates a `JsGenerator` from a regular expression `JsObject`
+    /// Creates a `JsGenerator` from a generator `JsObject`
     #[inline]
     pub fn from_object(object: JsObject) -> JsResult<Self> {
         if object.is_generator() {
