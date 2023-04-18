@@ -20,6 +20,7 @@ use icu_locid::{
 };
 use icu_locid_transform::LocaleCanonicalizer;
 use icu_provider::{DataLocale, DataProvider, DataRequest, DataRequestMetadata, KeyedDataMarker};
+use icu_segmenter::provider::WordBreakDataV1Marker;
 use indexmap::IndexSet;
 
 use tap::TapOptional;
@@ -115,9 +116,14 @@ pub(crate) fn canonicalize_locale_list(
             // iv. Else,
             else {
                 // 1. Let tag be ? ToString(kValue).
+                let k_value = k_value.to_string(context)?.to_std_string_escaped();
+                if k_value.contains('_') {
+                    return Err(JsNativeError::range()
+                        .with_message("locale is not a structurally valid language tag")
+                        .into());
+                }
+
                 k_value
-                    .to_string(context)?
-                    .to_std_string_escaped()
                     .parse()
                     // v. If IsStructurallyValidLanguageTag(tag) is false, throw a RangeError exception.
                     .map_err(|_| {
@@ -169,7 +175,11 @@ pub(crate) fn best_available_locale<M: KeyedDataMarker>(
             provider,
             DataRequest {
                 locale: &candidate,
-                metadata: DataRequestMetadata::default(),
+                metadata: {
+                    let mut metadata = DataRequestMetadata::default();
+                    metadata.silent = true;
+                    metadata
+                },
             },
         );
 
@@ -180,10 +190,15 @@ pub(crate) fn best_available_locale<M: KeyedDataMarker>(
             // the fallback algorithm, even if the used locale is exactly the same as the required
             // locale.
             match req.metadata.locale {
+                // TODO: ugly hack to accept locales that fallback to "und" in the collator/segmenter services
                 Some(loc)
                     if loc == candidate
-                // TODO: ugly hack to accept locales that fallback to "und" in the collator service
-                || (loc.is_empty() && M::KEY.path() == CollationMetadataV1Marker::KEY.path()) =>
+                        || (loc.is_empty()
+                            && [
+                                CollationMetadataV1Marker::KEY.path(),
+                                WordBreakDataV1Marker::KEY.path(),
+                            ]
+                            .contains(&M::KEY.path())) =>
                 {
                     return Some(candidate.into_locale().id)
                 }
@@ -242,8 +257,14 @@ pub(crate) fn best_locale_for_provider<M: KeyedDataMarker>(
         .metadata
         .locale
         .map(|dl| {
-            // TODO: ugly hack to accept locales that fallback to "und" in the collator service
-            if M::KEY.path() == CollationMetadataV1Marker::KEY.path() && dl.is_empty() {
+            // TODO: ugly hack to accept locales that fallback to "und" in the collator/segmenter services
+            if [
+                CollationMetadataV1Marker::KEY.path(),
+                WordBreakDataV1Marker::KEY.path(),
+            ]
+            .contains(&M::KEY.path())
+                && dl.is_empty()
+            {
                 candidate.clone()
             } else {
                 dl.into_locale().id

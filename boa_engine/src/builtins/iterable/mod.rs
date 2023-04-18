@@ -4,9 +4,9 @@ use crate::{
     builtins::{BuiltInBuilder, IntrinsicObject},
     context::intrinsics::Intrinsics,
     error::JsNativeError,
+    js_string,
     object::JsObject,
     realm::Realm,
-    string::utf16,
     symbol::JsSymbol,
     Context, JsResult, JsValue,
 };
@@ -68,6 +68,10 @@ pub struct IteratorPrototypes {
 
     /// The `ForInIteratorPrototype` prototype object.
     for_in: JsObject,
+
+    /// The `%SegmentIteratorPrototype%` prototype object.
+    #[cfg(feature = "intl")]
+    segment: JsObject,
 }
 
 impl IteratorPrototypes {
@@ -124,6 +128,13 @@ impl IteratorPrototypes {
     pub fn for_in(&self) -> JsObject {
         self.for_in.clone()
     }
+
+    /// Returns the `%SegmentIteratorPrototype%` object.
+    #[inline]
+    #[cfg(feature = "intl")]
+    pub fn segment(&self) -> JsObject {
+        self.segment.clone()
+    }
 }
 
 /// `%IteratorPrototype%` object
@@ -142,7 +153,7 @@ impl IntrinsicObject for Iterator {
         BuiltInBuilder::with_intrinsic::<Self>(realm)
             .static_method(
                 |v, _, _| Ok(v.clone()),
-                (JsSymbol::iterator(), "[Symbol.iterator]"),
+                (JsSymbol::iterator(), js_string!("[Symbol.iterator]")),
                 0,
             )
             .build();
@@ -168,7 +179,10 @@ impl IntrinsicObject for AsyncIterator {
         BuiltInBuilder::with_intrinsic::<Self>(realm)
             .static_method(
                 |v, _, _| Ok(v.clone()),
-                (JsSymbol::async_iterator(), "[Symbol.asyncIterator]"),
+                (
+                    JsSymbol::async_iterator(),
+                    js_string!("[Symbol.asyncIterator]"),
+                ),
                 0,
             )
             .build();
@@ -190,10 +204,10 @@ pub fn create_iter_result_object(value: JsValue, done: bool, context: &mut Conte
     let obj = JsObject::with_object_proto(context.intrinsics());
 
     // 3. Perform ! CreateDataPropertyOrThrow(obj, "value", value).
-    obj.create_data_property_or_throw(utf16!("value"), value, context)
+    obj.create_data_property_or_throw(js_string!("value"), value, context)
         .expect("this CreateDataPropertyOrThrow call must not fail");
     // 4. Perform ! CreateDataPropertyOrThrow(obj, "done", done).
-    obj.create_data_property_or_throw(utf16!("done"), done, context)
+    obj.create_data_property_or_throw(js_string!("done"), done, context)
         .expect("this CreateDataPropertyOrThrow call must not fail");
     // 5. Return obj.
     obj.into()
@@ -267,7 +281,7 @@ impl JsValue {
         })?;
 
         // 5. Let nextMethod be ? GetV(iterator, "next").
-        let next_method = iterator.get_v(utf16!("next"), context)?;
+        let next_method = iterator.get_v(js_string!("next"), context)?;
 
         // 6. Let iteratorRecord be the Record { [[Iterator]]: iterator, [[NextMethod]]: nextMethod, [[Done]]: false }.
         // 7. Return iteratorRecord.
@@ -303,7 +317,7 @@ impl IteratorResult {
     #[inline]
     pub fn complete(&self, context: &mut Context<'_>) -> JsResult<bool> {
         // 1. Return ToBoolean(? Get(iterResult, "done")).
-        Ok(self.object.get(utf16!("done"), context)?.to_boolean())
+        Ok(self.object.get(js_string!("done"), context)?.to_boolean())
     }
 
     /// `IteratorValue ( iterResult )`
@@ -319,7 +333,7 @@ impl IteratorResult {
     #[inline]
     pub fn value(&self, context: &mut Context<'_>) -> JsResult<JsValue> {
         // 1. Return ? Get(iterResult, "value").
-        self.object.get(utf16!("value"), context)
+        self.object.get(js_string!("value"), context)
     }
 }
 
@@ -474,7 +488,7 @@ impl IteratorRecord {
         let iterator = &self.iterator;
 
         // 3. Let innerResult be Completion(GetMethod(iterator, "return")).
-        let inner_result = iterator.get_method(utf16!("return"), context);
+        let inner_result = iterator.get_method(js_string!("return"), context);
 
         // 4. If innerResult.[[Type]] is normal, then
         let inner_result = match inner_result {

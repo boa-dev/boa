@@ -783,6 +783,10 @@ pub struct IntrinsicObjects {
     /// [`%Intl%`](https://tc39.es/ecma402/#intl-object)
     #[cfg(feature = "intl")]
     intl: JsObject,
+
+    /// [`%SegmentsPrototype%`](https://tc39.es/ecma402/#sec-%segmentsprototype%-object)
+    #[cfg(feature = "intl")]
+    segments_prototype: JsObject,
 }
 
 impl Default for IntrinsicObjects {
@@ -808,6 +812,8 @@ impl Default for IntrinsicObjects {
             unescape: JsFunction::empty_intrinsic_function(false),
             #[cfg(feature = "intl")]
             intl: JsObject::default(),
+            #[cfg(feature = "intl")]
+            segments_prototype: JsObject::default(),
         }
     }
 }
@@ -934,5 +940,13 @@ impl IntrinsicObjects {
     #[cfg(feature = "intl")]
     pub fn intl(&self) -> JsObject {
         self.intl.clone()
+    }
+
+    /// Gets the [`%SegmentsPrototype%`][spec] intrinsic object.
+    ///
+    /// [spec]: https://tc39.es/ecma402/#sec-%segmentsprototype%-object
+    #[cfg(feature = "intl")]
+    pub fn segments_prototype(&self) -> JsObject {
+        self.segments_prototype.clone()
     }
 }

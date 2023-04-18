@@ -7,11 +7,15 @@ use icu_provider::{
     AnyProvider, AsDeserializingBufferProvider, AsDowncastingAnyProvider, BufferProvider,
     DataError, DataLocale, DataProvider, DataRequest, DataResponse, KeyedDataMarker, MaybeSendSync,
 };
+use icu_segmenter::{GraphemeClusterSegmenter, SegmenterError, SentenceSegmenter, WordSegmenter};
 use serde::Deserialize;
 use yoke::{trait_hack::YokeTraitHack, Yokeable};
 use zerofrom::ZeroFrom;
 
-use crate::builtins::intl::list_format::ListFormatType;
+use crate::builtins::intl::{
+    list_format::ListFormatType,
+    segmenter::{Granularity, NativeSegmenter},
+};
 
 /// ICU4X data provider used in boa.
 ///
@@ -55,19 +59,19 @@ impl BoaProvider<'_> {
     pub(crate) fn try_new_locale_canonicalizer(
         &self,
     ) -> Result<LocaleCanonicalizer, LocaleTransformError> {
-        match self {
+        match *self {
             BoaProvider::Buffer(buffer) => {
-                LocaleCanonicalizer::try_new_with_buffer_provider(&**buffer)
+                LocaleCanonicalizer::try_new_with_buffer_provider(buffer)
             }
-            BoaProvider::Any(any) => LocaleCanonicalizer::try_new_with_any_provider(&**any),
+            BoaProvider::Any(any) => LocaleCanonicalizer::try_new_with_any_provider(any),
         }
     }
 
     /// Creates a new [`LocaleExpander`] from the provided [`DataProvider`].
     pub(crate) fn try_new_locale_expander(&self) -> Result<LocaleExpander, LocaleTransformError> {
-        match self {
-            BoaProvider::Buffer(buffer) => LocaleExpander::try_new_with_buffer_provider(&**buffer),
-            BoaProvider::Any(any) => LocaleExpander::try_new_with_any_provider(&**any),
+        match *self {
+            BoaProvider::Buffer(buffer) => LocaleExpander::try_new_with_buffer_provider(buffer),
+            BoaProvider::Any(any) => LocaleExpander::try_new_with_any_provider(any),
         }
     }
 
@@ -78,33 +82,27 @@ impl BoaProvider<'_> {
         typ: ListFormatType,
         style: ListLength,
     ) -> Result<ListFormatter, ListError> {
-        match self {
+        match *self {
             BoaProvider::Buffer(buf) => match typ {
                 ListFormatType::Conjunction => {
-                    ListFormatter::try_new_and_with_length_with_buffer_provider(
-                        &**buf, locale, style,
-                    )
+                    ListFormatter::try_new_and_with_length_with_buffer_provider(buf, locale, style)
                 }
                 ListFormatType::Disjunction => {
-                    ListFormatter::try_new_or_with_length_with_buffer_provider(
-                        &**buf, locale, style,
-                    )
+                    ListFormatter::try_new_or_with_length_with_buffer_provider(buf, locale, style)
                 }
                 ListFormatType::Unit => {
-                    ListFormatter::try_new_unit_with_length_with_buffer_provider(
-                        &**buf, locale, style,
-                    )
+                    ListFormatter::try_new_unit_with_length_with_buffer_provider(buf, locale, style)
                 }
             },
             BoaProvider::Any(any) => match typ {
                 ListFormatType::Conjunction => {
-                    ListFormatter::try_new_and_with_length_with_any_provider(&**any, locale, style)
+                    ListFormatter::try_new_and_with_length_with_any_provider(any, locale, style)
                 }
                 ListFormatType::Disjunction => {
-                    ListFormatter::try_new_or_with_length_with_any_provider(&**any, locale, style)
+                    ListFormatter::try_new_or_with_length_with_any_provider(any, locale, style)
                 }
                 ListFormatType::Unit => {
-                    ListFormatter::try_new_unit_with_length_with_any_provider(&**any, locale, style)
+                    ListFormatter::try_new_unit_with_length_with_any_provider(any, locale, style)
                 }
             },
         }
@@ -116,11 +114,37 @@ impl BoaProvider<'_> {
         locale: &DataLocale,
         options: CollatorOptions,
     ) -> Result<Collator, CollatorError> {
-        match self {
+        match *self {
             BoaProvider::Buffer(buf) => {
-                Collator::try_new_with_buffer_provider(&**buf, locale, options)
+                Collator::try_new_with_buffer_provider(buf, locale, options)
             }
-            BoaProvider::Any(any) => Collator::try_new_with_any_provider(&**any, locale, options),
+            BoaProvider::Any(any) => Collator::try_new_with_any_provider(any, locale, options),
+        }
+    }
+
+    /// Creates a new [`NativeSegmenter`] from the provided [`DataProvider`] and options.
+    pub(crate) fn try_new_segmenter(
+        &self,
+        granularity: Granularity,
+    ) -> Result<NativeSegmenter, SegmenterError> {
+        match granularity {
+            Granularity::Grapheme => match *self {
+                BoaProvider::Buffer(buf) => {
+                    GraphemeClusterSegmenter::try_new_with_buffer_provider(buf)
+                }
+                BoaProvider::Any(any) => GraphemeClusterSegmenter::try_new_with_any_provider(any),
+            }
+            .map(|seg| NativeSegmenter::Grapheme(Box::new(seg))),
+            Granularity::Word => match *self {
+                BoaProvider::Buffer(buf) => WordSegmenter::try_new_auto_with_buffer_provider(buf),
+                BoaProvider::Any(any) => WordSegmenter::try_new_auto_with_any_provider(any),
+            }
+            .map(|seg| NativeSegmenter::Word(Box::new(seg))),
+            Granularity::Sentence => match *self {
+                BoaProvider::Buffer(buf) => SentenceSegmenter::try_new_with_buffer_provider(buf),
+                BoaProvider::Any(any) => SentenceSegmenter::try_new_with_any_provider(any),
+            }
+            .map(|seg| NativeSegmenter::Sentence(Box::new(seg))),
         }
     }
 }

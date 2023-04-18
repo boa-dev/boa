@@ -25,7 +25,10 @@ use self::internal_methods::{
 };
 #[cfg(feature = "intl")]
 use crate::builtins::intl::{
-    collator::Collator, date_time_format::DateTimeFormat, list_format::ListFormat,
+    collator::Collator,
+    date_time_format::DateTimeFormat,
+    list_format::ListFormat,
+    segmenter::{SegmentIterator, Segmenter, Segments},
 };
 use crate::{
     builtins::{
@@ -314,6 +317,18 @@ pub enum ObjectKind {
     /// The `Intl.Locale` object kind.
     #[cfg(feature = "intl")]
     Locale(Box<icu_locid::Locale>),
+
+    /// The `Intl.Segmenter` object kind.
+    #[cfg(feature = "intl")]
+    Segmenter(Segmenter),
+
+    /// The `Segments` object kind.
+    #[cfg(feature = "intl")]
+    Segments(Segments),
+
+    /// The `Segment Iterator` object kind.
+    #[cfg(feature = "intl")]
+    SegmentIterator(SegmentIterator),
 }
 
 unsafe impl Trace for ObjectKind {
@@ -347,7 +362,11 @@ unsafe impl Trace for ObjectKind {
             #[cfg(feature = "intl")]
             Self::Collator(co) => mark(co),
             #[cfg(feature = "intl")]
-            Self::ListFormat(_) | Self::Locale(_) => {}
+            Self::Segments(seg) => mark(seg),
+            #[cfg(feature = "intl")]
+            Self::SegmentIterator(it) => mark(it),
+            #[cfg(feature = "intl")]
+            Self::ListFormat(_) | Self::Locale(_) | Self::Segmenter(_) => {}
             Self::RegExp(_)
             | Self::BigInt(_)
             | Self::Boolean(_)
@@ -724,6 +743,36 @@ impl ObjectData {
             internal_methods: &ORDINARY_INTERNAL_METHODS,
         }
     }
+
+    /// Create the `Segmenter` object data
+    #[cfg(feature = "intl")]
+    #[must_use]
+    pub fn segmenter(segmenter: Segmenter) -> Self {
+        Self {
+            kind: ObjectKind::Segmenter(segmenter),
+            internal_methods: &ORDINARY_INTERNAL_METHODS,
+        }
+    }
+
+    /// Create the `Segments` object data
+    #[cfg(feature = "intl")]
+    #[must_use]
+    pub fn segments(segments: Segments) -> Self {
+        Self {
+            kind: ObjectKind::Segments(segments),
+            internal_methods: &ORDINARY_INTERNAL_METHODS,
+        }
+    }
+
+    /// Create the `SegmentIterator` object data
+    #[cfg(feature = "intl")]
+    #[must_use]
+    pub fn segment_iterator(segment_iterator: SegmentIterator) -> Self {
+        Self {
+            kind: ObjectKind::SegmentIterator(segment_iterator),
+            internal_methods: &ORDINARY_INTERNAL_METHODS,
+        }
+    }
 }
 
 impl Debug for ObjectKind {
@@ -773,6 +822,12 @@ impl Debug for ObjectKind {
             Self::ListFormat(_) => "ListFormat",
             #[cfg(feature = "intl")]
             Self::Locale(_) => "Locale",
+            #[cfg(feature = "intl")]
+            Self::Segmenter(_) => "Segmenter",
+            #[cfg(feature = "intl")]
+            Self::Segments(_) => "Segments",
+            #[cfg(feature = "intl")]
+            Self::SegmentIterator(_) => "SegmentIterator",
         })
     }
 }
@@ -1540,6 +1595,43 @@ impl Object {
         }
     }
 
+    /// Checks if it is a `Segmenter` object.
+    #[inline]
+    #[cfg(feature = "intl")]
+    pub const fn is_segmenter(&self) -> bool {
+        matches!(self.kind, ObjectKind::Segmenter(_))
+    }
+
+    /// Gets the `Segmenter` data if the object is a `Segmenter`.
+    #[inline]
+    #[cfg(feature = "intl")]
+    pub const fn as_segmenter(&self) -> Option<&Segmenter> {
+        match self.kind {
+            ObjectKind::Segmenter(ref seg) => Some(seg),
+            _ => None,
+        }
+    }
+
+    /// Gets the `Segments` data if the object is a `Segments`.
+    #[inline]
+    #[cfg(feature = "intl")]
+    pub const fn as_segments(&self) -> Option<&Segments> {
+        match self.kind {
+            ObjectKind::Segments(ref seg) => Some(seg),
+            _ => None,
+        }
+    }
+
+    /// Gets the `SegmentIterator` data if the object is a `SegmentIterator`.
+    #[inline]
+    #[cfg(feature = "intl")]
+    pub fn as_segment_iterator_mut(&mut self) -> Option<&mut SegmentIterator> {
+        match &mut self.kind {
+            ObjectKind::SegmentIterator(it) => Some(it),
+            _ => None,
+        }
+    }
+
     /// Return `true` if it is a native object and the native type is `T`.
     pub fn is<T>(&self) -> bool
     where
@@ -1688,12 +1780,12 @@ impl From<JsString> for FunctionBinding {
 impl<B, N> From<(B, N)> for FunctionBinding
 where
     B: Into<PropertyKey>,
-    N: AsRef<str>,
+    N: Into<JsString>,
 {
     fn from((binding, name): (B, N)) -> Self {
         Self {
             binding: binding.into(),
-            name: name.as_ref().into(),
+            name: name.into(),
         }
     }
 }

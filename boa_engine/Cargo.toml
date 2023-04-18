@@ -25,6 +25,7 @@ intl = [
     "dep:icu_collator",
     "dep:icu_casemapping",
     "dep:icu_list",
+    "dep:icu_segmenter",
     "dep:writeable",
     "dep:sys-locale",
     "dep:yoke",
@@ -75,6 +76,7 @@ dashmap = "5.4.0"
 num_enum = "0.6.1"
 pollster = "0.3.0"
 thin-vec = "0.2.12"
+itertools = { version = "0.10.5", default-features = false }
 
 # intl deps
 boa_icu_provider = { workspace = true, optional = true }
@@ -87,6 +89,7 @@ icu_plurals = { version = "1.2.0", features = ["serde"], optional = true }
 icu_provider = { version = "1.2.0", optional = true }
 icu_list = { version = "1.2.0", features = ["serde"], optional = true }
 icu_casemapping = { version = "0.7.2", features = ["serde"], optional = true}
+icu_segmenter = { version = "1.2.1", features = ["serde"], optional = true }
 writeable = { version = "0.5.2", optional = true }
 yoke = { version = "0.7.1", optional = true }
 zerofrom = { version = "0.1.2", optional = true }
