@@ -63,17 +63,3 @@ opt-level = 1
 lto = "fat"
 # Makes sure that all code is compiled together, for LTO
 codegen-units = 1
-
-[patch.crates-io]
-icu_locid_transform = { git = "https://github.com/unicode-org/icu4x.git", branch = "sffc-patch-3" }
-icu_locid = { git = "https://github.com/unicode-org/icu4x.git", branch = "sffc-patch-3" }
-icu_datetime = { git = "https://github.com/unicode-org/icu4x.git", branch = "sffc-patch-3" }
-icu_plurals = { git = "https://github.com/unicode-org/icu4x.git", branch = "sffc-patch-3" }
-icu_provider = { git = "https://github.com/unicode-org/icu4x.git", branch = "sffc-patch-3" }
-icu_calendar = { git = "https://github.com/unicode-org/icu4x.git", branch = "sffc-patch-3" }
-icu_collator = { git = "https://github.com/unicode-org/icu4x.git", branch = "sffc-patch-3" }
-icu_casemapping = { git = "https://github.com/unicode-org/icu4x.git", branch = "sffc-patch-3" }
-icu_list = { git = "https://github.com/unicode-org/icu4x.git", branch = "sffc-patch-3" }
-writeable = { git = "https://github.com/unicode-org/icu4x.git", branch = "sffc-patch-3" }
-yoke = { git = "https://github.com/unicode-org/icu4x.git", branch = "sffc-patch-3" }
-zerofrom = { git = "https://github.com/unicode-org/icu4x.git", branch = "sffc-patch-3" }

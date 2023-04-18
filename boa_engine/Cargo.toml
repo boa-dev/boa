@@ -78,7 +78,7 @@ thin-vec = "0.2.12"
 
 # intl deps
 boa_icu_provider = { workspace = true, optional = true }
-icu_locid_transform = { version = "1.2.0", features = ["serde"], optional = true }
+icu_locid_transform = { version = "1.2.1", features = ["serde"], optional = true }
 icu_locid = { version = "1.2.0", features = ["serde"], optional = true }
 icu_datetime = { version = "1.2.0", features = ["serde", "experimental"], optional = true }
 icu_calendar = { version = "1.2.0", optional = true }

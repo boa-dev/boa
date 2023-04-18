@@ -1189,18 +1189,7 @@ version = "0.1.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "3feab871d671ecc2e912e83e3a64b9b3343a224c86b999334c4c99b07cf07f52"
 dependencies = [
- "databake-derive 0.1.4 (registry+https://github.com/rust-lang/crates.io-index)",
- "proc-macro2",
- "quote",
- "syn 1.0.109",
-]
-
-[[package]]
-name = "databake"
-version = "0.1.4"
-source = "git+https://github.com/unicode-org/icu4x.git?branch=sffc-patch-3#5d714befbdae08a5d6c712e43947eb31397228c7"
-dependencies = [
- "databake-derive 0.1.4 (git+https://github.com/unicode-org/icu4x.git?branch=sffc-patch-3)",
+ "databake-derive",
  "proc-macro2",
  "quote",
  "syn 1.0.109",
@@ -1219,20 +1208,10 @@ dependencies = [
 ]
 
 [[package]]
-name = "databake-derive"
-version = "0.1.4"
-source = "git+https://github.com/unicode-org/icu4x.git?branch=sffc-patch-3#5d714befbdae08a5d6c712e43947eb31397228c7"
-dependencies = [
- "proc-macro2",
- "quote",
- "syn 1.0.109",
- "synstructure 0.12.6",
-]
-
-[[package]]
 name = "deduplicating_array"
 version = "0.1.4"
-source = "git+https://github.com/unicode-org/icu4x.git?branch=sffc-patch-3#5d714befbdae08a5d6c712e43947eb31397228c7"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "0b5426e8a7610ceca8b2f2c40a25ddd4476606c96a0c1e3524fdfdbeb64c1331"
 dependencies = [
  "serde",
 ]
@@ -1505,16 +1484,6 @@ name = "fixed_decimal"
 version = "0.5.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "1c9eab2dd2aadbc55056ed228ccc4be42d07cd61aee72d48768f8ac2e4ab7d54"
-dependencies = [
- "displaydoc",
- "smallvec",
- "writeable",
-]
-
-[[package]]
-name = "fixed_decimal"
-version = "0.5.3"
-source = "git+https://github.com/unicode-org/icu4x.git?branch=sffc-patch-3#5d714befbdae08a5d6c712e43947eb31397228c7"
 dependencies = [
  "displaydoc",
  "smallvec",
@@ -1908,31 +1877,33 @@ dependencies = [
 [[package]]
 name = "icu_calendar"
 version = "1.2.0"
-source = "git+https://github.com/unicode-org/icu4x.git?branch=sffc-patch-3#5d714befbdae08a5d6c712e43947eb31397228c7"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "dee1e8c25ed44743d03e2d58ca1c0226786dc1aac1f9cb27485e2da2de5e0918"
 dependencies = [
- "databake 0.1.4 (git+https://github.com/unicode-org/icu4x.git?branch=sffc-patch-3)",
+ "databake",
  "displaydoc",
  "icu_locid",
  "icu_provider",
  "serde",
- "tinystr 0.7.1 (git+https://github.com/unicode-org/icu4x.git?branch=sffc-patch-3)",
+ "tinystr",
  "writeable",
- "zerovec 0.9.4 (git+https://github.com/unicode-org/icu4x.git?branch=sffc-patch-3)",
+ "zerovec",
 ]
 
 [[package]]
 name = "icu_casemapping"
 version = "0.7.2"
-source = "git+https://github.com/unicode-org/icu4x.git?branch=sffc-patch-3#5d714befbdae08a5d6c712e43947eb31397228c7"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "44be22dcbc418f34dbf0fc444a538fdeac5bd52c8688ad6f328603a90af9c2e0"
 dependencies = [
- "databake 0.1.4 (git+https://github.com/unicode-org/icu4x.git?branch=sffc-patch-3)",
+ "databake",
  "displaydoc",
- "icu_collections 1.2.0 (git+https://github.com/unicode-org/icu4x.git?branch=sffc-patch-3)",
+ "icu_collections",
  "icu_locid",
  "icu_provider",
  "serde",
  "yoke",
- "zerovec 0.9.4 (git+https://github.com/unicode-org/icu4x.git?branch=sffc-patch-3)",
+ "zerovec",
 ]
 
 [[package]]
@@ -1941,7 +1912,7 @@ version = "0.3.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "f848e681eee3907b3a5ecda6f1e6ce47e50cbafad37c5e85d2135e52bc481e80"
 dependencies = [
- "icu_collections 1.2.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "icu_collections",
  "lazy_static",
  "toml 0.5.11",
  "wasmer",
@@ -1951,20 +1922,21 @@ dependencies = [
 [[package]]
 name = "icu_collator"
 version = "1.2.0"
-source = "git+https://github.com/unicode-org/icu4x.git?branch=sffc-patch-3#5d714befbdae08a5d6c712e43947eb31397228c7"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "088882827079b243dc01883f92290dd3952b656faddc7a2972e6d3ab47e1fc7a"
 dependencies = [
- "databake 0.1.4 (git+https://github.com/unicode-org/icu4x.git?branch=sffc-patch-3)",
+ "databake",
  "displaydoc",
- "icu_collections 1.2.0 (git+https://github.com/unicode-org/icu4x.git?branch=sffc-patch-3)",
+ "icu_collections",
  "icu_locid",
- "icu_normalizer 1.2.0 (git+https://github.com/unicode-org/icu4x.git?branch=sffc-patch-3)",
- "icu_properties 1.2.0 (git+https://github.com/unicode-org/icu4x.git?branch=sffc-patch-3)",
+ "icu_normalizer",
+ "icu_properties",
  "icu_provider",
  "serde",
  "smallvec",
  "utf16_iter",
  "utf8_iter",
- "zerovec 0.9.4 (git+https://github.com/unicode-org/icu4x.git?branch=sffc-patch-3)",
+ "zerovec",
 ]
 
 [[package]]
@@ -1973,25 +1945,12 @@ version = "1.2.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "ef8302d8dfd6044d3ddb3f807a5ef3d7bbca9a574959c6d6e4dc39aa7012d0d5"
 dependencies = [
- "databake 0.1.4 (registry+https://github.com/rust-lang/crates.io-index)",
+ "databake",
  "displaydoc",
  "serde",
  "yoke",
  "zerofrom",
- "zerovec 0.9.4 (registry+https://github.com/rust-lang/crates.io-index)",
-]
-
-[[package]]
-name = "icu_collections"
-version = "1.2.0"
-source = "git+https://github.com/unicode-org/icu4x.git?branch=sffc-patch-3#5d714befbdae08a5d6c712e43947eb31397228c7"
-dependencies = [
- "databake 0.1.4 (git+https://github.com/unicode-org/icu4x.git?branch=sffc-patch-3)",
- "displaydoc",
- "serde",
- "yoke",
- "zerofrom",
- "zerovec 0.9.4 (git+https://github.com/unicode-org/icu4x.git?branch=sffc-patch-3)",
+ "zerovec",
 ]
 
 [[package]]
@@ -2000,15 +1959,15 @@ version = "0.2.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "c5beccaf2a6328d0860a8bca9b20d84a70af7c7d09536fa184f0c4401d044b57"
 dependencies = [
- "databake 0.1.4 (registry+https://github.com/rust-lang/crates.io-index)",
+ "databake",
  "displaydoc",
- "fixed_decimal 0.5.3 (registry+https://github.com/rust-lang/crates.io-index)",
- "icu_decimal 1.2.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "fixed_decimal",
+ "icu_decimal",
  "icu_plurals",
  "icu_provider",
  "serde",
  "writeable",
- "zerovec 0.9.4 (registry+https://github.com/rust-lang/crates.io-index)",
+ "zerovec",
 ]
 
 [[package]]
@@ -2020,7 +1979,7 @@ dependencies = [
  "cached-path",
  "clap 4.2.2",
  "crlify",
- "databake 0.1.4 (registry+https://github.com/rust-lang/crates.io-index)",
+ "databake",
  "displaydoc",
  "elsa",
  "eyre",
@@ -2028,24 +1987,24 @@ dependencies = [
  "icu_casemapping",
  "icu_codepointtrie_builder",
  "icu_collator",
- "icu_collections 1.2.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "icu_collections",
  "icu_compactdecimal",
  "icu_datetime",
- "icu_decimal 1.2.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "icu_decimal",
  "icu_displaynames",
  "icu_list",
  "icu_locid",
  "icu_locid_transform",
- "icu_normalizer 1.2.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "icu_normalizer",
  "icu_plurals",
- "icu_properties 1.2.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "icu_properties",
  "icu_provider",
  "icu_provider_adapters",
  "icu_provider_blob",
  "icu_provider_fs",
  "icu_relativetime",
  "icu_segmenter",
- "icu_timezone 1.2.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "icu_timezone",
  "itertools",
  "lazy_static",
  "log",
@@ -2059,34 +2018,35 @@ dependencies = [
  "serde_json",
  "simple_logger 1.16.0",
  "syn 1.0.109",
- "tinystr 0.7.1 (registry+https://github.com/rust-lang/crates.io-index)",
+ "tinystr",
  "toml 0.5.11",
  "writeable",
- "zerovec 0.9.4 (registry+https://github.com/rust-lang/crates.io-index)",
+ "zerovec",
  "zip",
 ]
 
 [[package]]
 name = "icu_datetime"
 version = "1.2.0"
-source = "git+https://github.com/unicode-org/icu4x.git?branch=sffc-patch-3#5d714befbdae08a5d6c712e43947eb31397228c7"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "a552f80b0f07c4cf45f9548e8b0b89ee4adb3be5fb2f49fb792cc178ed42be73"
 dependencies = [
- "databake 0.1.4 (git+https://github.com/unicode-org/icu4x.git?branch=sffc-patch-3)",
+ "databake",
  "displaydoc",
  "either",
- "fixed_decimal 0.5.3 (git+https://github.com/unicode-org/icu4x.git?branch=sffc-patch-3)",
+ "fixed_decimal",
  "icu_calendar",
- "icu_decimal 1.2.0 (git+https://github.com/unicode-org/icu4x.git?branch=sffc-patch-3)",
+ "icu_decimal",
  "icu_locid",
  "icu_plurals",
  "icu_provider",
- "icu_timezone 1.2.0 (git+https://github.com/unicode-org/icu4x.git?branch=sffc-patch-3)",
+ "icu_timezone",
  "litemap",
  "serde",
  "smallvec",
- "tinystr 0.7.1 (git+https://github.com/unicode-org/icu4x.git?branch=sffc-patch-3)",
+ "tinystr",
  "writeable",
- "zerovec 0.9.4 (git+https://github.com/unicode-org/icu4x.git?branch=sffc-patch-3)",
+ "zerovec",
 ]
 
 [[package]]
@@ -2095,22 +2055,9 @@ version = "1.2.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "839d40602460578482205f1def416a6442cf29a24dc366aa8cf8d9f95a53c9d2"
 dependencies = [
- "databake 0.1.4 (registry+https://github.com/rust-lang/crates.io-index)",
+ "databake",
  "displaydoc",
- "fixed_decimal 0.5.3 (registry+https://github.com/rust-lang/crates.io-index)",
- "icu_locid",
- "icu_provider",
- "serde",
- "writeable",
-]
-
-[[package]]
-name = "icu_decimal"
-version = "1.2.0"
-source = "git+https://github.com/unicode-org/icu4x.git?branch=sffc-patch-3#5d714befbdae08a5d6c712e43947eb31397228c7"
-dependencies = [
- "displaydoc",
- "fixed_decimal 0.5.3 (git+https://github.com/unicode-org/icu4x.git?branch=sffc-patch-3)",
+ "fixed_decimal",
  "icu_locid",
  "icu_provider",
  "serde",
@@ -2123,21 +2070,22 @@ version = "0.10.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "5a689e3da02298e6681cda6d02e30bb449f46e941664e5f372a64c15bf934369"
 dependencies = [
- "databake 0.1.4 (registry+https://github.com/rust-lang/crates.io-index)",
- "icu_collections 1.2.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "databake",
+ "icu_collections",
  "icu_locid",
  "icu_provider",
  "serde",
- "tinystr 0.7.1 (registry+https://github.com/rust-lang/crates.io-index)",
- "zerovec 0.9.4 (registry+https://github.com/rust-lang/crates.io-index)",
+ "tinystr",
+ "zerovec",
 ]
 
 [[package]]
 name = "icu_list"
 version = "1.2.0"
-source = "git+https://github.com/unicode-org/icu4x.git?branch=sffc-patch-3#5d714befbdae08a5d6c712e43947eb31397228c7"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "fd7ba7442d9235b689d4fdce17c452ea229934980fd81ba50cc28275752c9f90"
 dependencies = [
- "databake 0.1.4 (git+https://github.com/unicode-org/icu4x.git?branch=sffc-patch-3)",
+ "databake",
  "deduplicating_array",
  "displaydoc",
  "icu_provider",
@@ -2149,29 +2097,31 @@ dependencies = [
 [[package]]
 name = "icu_locid"
 version = "1.2.0"
-source = "git+https://github.com/unicode-org/icu4x.git?branch=sffc-patch-3#5d714befbdae08a5d6c712e43947eb31397228c7"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "3003f85dccfc0e238ff567693248c59153a46f4e6125ba4020b973cef4d1d335"
 dependencies = [
- "databake 0.1.4 (git+https://github.com/unicode-org/icu4x.git?branch=sffc-patch-3)",
+ "databake",
  "displaydoc",
  "litemap",
  "serde",
- "tinystr 0.7.1 (git+https://github.com/unicode-org/icu4x.git?branch=sffc-patch-3)",
+ "tinystr",
  "writeable",
- "zerovec 0.9.4 (git+https://github.com/unicode-org/icu4x.git?branch=sffc-patch-3)",
+ "zerovec",
 ]
 
 [[package]]
 name = "icu_locid_transform"
-version = "1.2.0"
-source = "git+https://github.com/unicode-org/icu4x.git?branch=sffc-patch-3#5d714befbdae08a5d6c712e43947eb31397228c7"
+version = "1.2.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "fd89f392982141a878a9321c9298cce46d14e1c17efc5f428dbfd96b443e57d0"
 dependencies = [
- "databake 0.1.4 (git+https://github.com/unicode-org/icu4x.git?branch=sffc-patch-3)",
+ "databake",
  "displaydoc",
  "icu_locid",
  "icu_provider",
  "serde",
- "tinystr 0.7.1 (git+https://github.com/unicode-org/icu4x.git?branch=sffc-patch-3)",
- "zerovec 0.9.4 (git+https://github.com/unicode-org/icu4x.git?branch=sffc-patch-3)",
+ "tinystr",
+ "zerovec",
 ]
 
 [[package]]
@@ -2180,49 +2130,32 @@ version = "1.2.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "652869735c9fb9f5a64ba180ee16f2c848390469c116deef517ecc53f4343598"
 dependencies = [
- "databake 0.1.4 (registry+https://github.com/rust-lang/crates.io-index)",
+ "databake",
  "displaydoc",
- "icu_collections 1.2.0 (registry+https://github.com/rust-lang/crates.io-index)",
- "icu_properties 1.2.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "icu_collections",
+ "icu_properties",
  "icu_provider",
  "serde",
  "smallvec",
  "utf16_iter",
  "utf8_iter",
  "write16",
- "zerovec 0.9.4 (registry+https://github.com/rust-lang/crates.io-index)",
-]
-
-[[package]]
-name = "icu_normalizer"
-version = "1.2.0"
-source = "git+https://github.com/unicode-org/icu4x.git?branch=sffc-patch-3#5d714befbdae08a5d6c712e43947eb31397228c7"
-dependencies = [
- "databake 0.1.4 (git+https://github.com/unicode-org/icu4x.git?branch=sffc-patch-3)",
- "displaydoc",
- "icu_collections 1.2.0 (git+https://github.com/unicode-org/icu4x.git?branch=sffc-patch-3)",
- "icu_properties 1.2.0 (git+https://github.com/unicode-org/icu4x.git?branch=sffc-patch-3)",
- "icu_provider",
- "serde",
- "smallvec",
- "utf16_iter",
- "utf8_iter",
- "write16",
- "zerovec 0.9.4 (git+https://github.com/unicode-org/icu4x.git?branch=sffc-patch-3)",
+ "zerovec",
 ]
 
 [[package]]
 name = "icu_plurals"
 version = "1.2.0"
-source = "git+https://github.com/unicode-org/icu4x.git?branch=sffc-patch-3#5d714befbdae08a5d6c712e43947eb31397228c7"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "a18fbe19656b3cbae9a40a27b0303f06b2b51165e3b06d596dfdff8f06bfce9a"
 dependencies = [
- "databake 0.1.4 (git+https://github.com/unicode-org/icu4x.git?branch=sffc-patch-3)",
+ "databake",
  "displaydoc",
- "fixed_decimal 0.5.3 (git+https://github.com/unicode-org/icu4x.git?branch=sffc-patch-3)",
+ "fixed_decimal",
  "icu_locid",
  "icu_provider",
  "serde",
- "zerovec 0.9.4 (git+https://github.com/unicode-org/icu4x.git?branch=sffc-patch-3)",
+ "zerovec",
 ]
 
 [[package]]
@@ -2231,36 +2164,23 @@ version = "1.2.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "ce0e1aa26851f16c9e04412a5911c86b7f8768dac8f8d4c5f1c568a7e5d7a434"
 dependencies = [
- "databake 0.1.4 (registry+https://github.com/rust-lang/crates.io-index)",
+ "databake",
  "displaydoc",
- "icu_collections 1.2.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "icu_collections",
  "icu_provider",
  "serde",
- "tinystr 0.7.1 (registry+https://github.com/rust-lang/crates.io-index)",
- "zerovec 0.9.4 (registry+https://github.com/rust-lang/crates.io-index)",
-]
-
-[[package]]
-name = "icu_properties"
-version = "1.2.0"
-source = "git+https://github.com/unicode-org/icu4x.git?branch=sffc-patch-3#5d714befbdae08a5d6c712e43947eb31397228c7"
-dependencies = [
- "databake 0.1.4 (git+https://github.com/unicode-org/icu4x.git?branch=sffc-patch-3)",
- "displaydoc",
- "icu_collections 1.2.0 (git+https://github.com/unicode-org/icu4x.git?branch=sffc-patch-3)",
- "icu_provider",
- "serde",
- "tinystr 0.7.1 (git+https://github.com/unicode-org/icu4x.git?branch=sffc-patch-3)",
- "zerovec 0.9.4 (git+https://github.com/unicode-org/icu4x.git?branch=sffc-patch-3)",
+ "tinystr",
+ "zerovec",
 ]
 
 [[package]]
 name = "icu_provider"
 version = "1.2.0"
-source = "git+https://github.com/unicode-org/icu4x.git?branch=sffc-patch-3#5d714befbdae08a5d6c712e43947eb31397228c7"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "8dc312a7b6148f7dfe098047ae2494d12d4034f48ade58d4f353000db376e305"
 dependencies = [
  "bincode",
- "databake 0.1.4 (git+https://github.com/unicode-org/icu4x.git?branch=sffc-patch-3)",
+ "databake",
  "displaydoc",
  "erased-serde",
  "icu_locid",
@@ -2273,7 +2193,7 @@ dependencies = [
  "writeable",
  "yoke",
  "zerofrom",
- "zerovec 0.9.4 (git+https://github.com/unicode-org/icu4x.git?branch=sffc-patch-3)",
+ "zerovec",
 ]
 
 [[package]]
@@ -2282,13 +2202,13 @@ version = "1.2.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "f4ae1e2bd0c41728b77e7c46e9afdec5e2127d1eedacc684724667d50c126bd3"
 dependencies = [
- "databake 0.1.4 (registry+https://github.com/rust-lang/crates.io-index)",
+ "databake",
  "icu_locid",
  "icu_provider",
  "serde",
- "tinystr 0.7.1 (registry+https://github.com/rust-lang/crates.io-index)",
+ "tinystr",
  "yoke",
- "zerovec 0.9.4 (registry+https://github.com/rust-lang/crates.io-index)",
+ "zerovec",
 ]
 
 [[package]]
@@ -2303,7 +2223,7 @@ dependencies = [
  "serde",
  "writeable",
  "yoke",
- "zerovec 0.9.4 (registry+https://github.com/rust-lang/crates.io-index)",
+ "zerovec",
 ]
 
 [[package]]
@@ -2327,7 +2247,8 @@ dependencies = [
 [[package]]
 name = "icu_provider_macros"
 version = "1.2.0"
-source = "git+https://github.com/unicode-org/icu4x.git?branch=sffc-patch-3#5d714befbdae08a5d6c712e43947eb31397228c7"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "dd8b728b9421e93eff1d9f8681101b78fa745e0748c95c655c83f337044a7e10"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -2340,15 +2261,15 @@ version = "0.1.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "28810733e575bda56b7b20581b202908138125904ed87fd5c3db242a79232471"
 dependencies = [
- "databake 0.1.4 (registry+https://github.com/rust-lang/crates.io-index)",
+ "databake",
  "displaydoc",
- "fixed_decimal 0.5.3 (registry+https://github.com/rust-lang/crates.io-index)",
- "icu_decimal 1.2.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "fixed_decimal",
+ "icu_decimal",
  "icu_plurals",
  "icu_provider",
  "serde",
  "writeable",
- "zerovec 0.9.4 (registry+https://github.com/rust-lang/crates.io-index)",
+ "zerovec",
 ]
 
 [[package]]
@@ -2357,15 +2278,15 @@ version = "1.2.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "4be93a865ced1d5efe783a127632eca71b9823681e90561e029124be26cd8567"
 dependencies = [
- "databake 0.1.4 (registry+https://github.com/rust-lang/crates.io-index)",
+ "databake",
  "displaydoc",
- "icu_collections 1.2.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "icu_collections",
  "icu_locid",
  "icu_provider",
  "num-traits",
  "serde",
  "utf8_iter",
- "zerovec 0.9.4 (registry+https://github.com/rust-lang/crates.io-index)",
+ "zerovec",
 ]
 
 [[package]]
@@ -2374,29 +2295,14 @@ version = "1.2.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "5e22da75a450de2d54161838efa9e1a1f5baa7bc1fffdb015f260e0992b01977"
 dependencies = [
- "databake 0.1.4 (registry+https://github.com/rust-lang/crates.io-index)",
+ "databake",
  "displaydoc",
  "icu_calendar",
  "icu_locid",
  "icu_provider",
  "serde",
- "tinystr 0.7.1 (registry+https://github.com/rust-lang/crates.io-index)",
- "zerovec 0.9.4 (registry+https://github.com/rust-lang/crates.io-index)",
-]
-
-[[package]]
-name = "icu_timezone"
-version = "1.2.0"
-source = "git+https://github.com/unicode-org/icu4x.git?branch=sffc-patch-3#5d714befbdae08a5d6c712e43947eb31397228c7"
-dependencies = [
- "databake 0.1.4 (git+https://github.com/unicode-org/icu4x.git?branch=sffc-patch-3)",
- "displaydoc",
- "icu_calendar",
- "icu_locid",
- "icu_provider",
- "serde",
- "tinystr 0.7.1 (git+https://github.com/unicode-org/icu4x.git?branch=sffc-patch-3)",
- "zerovec 0.9.4 (git+https://github.com/unicode-org/icu4x.git?branch=sffc-patch-3)",
+ "tinystr",
+ "zerovec",
 ]
 
 [[package]]
@@ -2593,7 +2499,8 @@ checksum = "d59d8c75012853d2e872fb56bc8a2e53718e2cafe1a4c823143141c6d90c322f"
 [[package]]
 name = "litemap"
 version = "0.7.0"
-source = "git+https://github.com/unicode-org/icu4x.git?branch=sffc-patch-3#5d714befbdae08a5d6c712e43947eb31397228c7"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "3a04a5b2b6f54acba899926491d0a6c59d98012938ca2ab5befb281c034e8f94"
 dependencies = [
  "serde",
 ]
@@ -4281,21 +4188,10 @@ version = "0.7.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "7ac3f5b6856e931e15e07b478e98c8045239829a65f9156d4fa7e7788197a5ef"
 dependencies = [
- "databake 0.1.4 (registry+https://github.com/rust-lang/crates.io-index)",
+ "databake",
  "displaydoc",
  "serde",
- "zerovec 0.9.4 (registry+https://github.com/rust-lang/crates.io-index)",
-]
-
-[[package]]
-name = "tinystr"
-version = "0.7.1"
-source = "git+https://github.com/unicode-org/icu4x.git?branch=sffc-patch-3#5d714befbdae08a5d6c712e43947eb31397228c7"
-dependencies = [
- "databake 0.1.4 (git+https://github.com/unicode-org/icu4x.git?branch=sffc-patch-3)",
- "displaydoc",
- "serde",
- "zerovec 0.9.4 (git+https://github.com/unicode-org/icu4x.git?branch=sffc-patch-3)",
+ "zerovec",
 ]
 
 [[package]]
@@ -5260,7 +5156,8 @@ checksum = "d1890f4022759daae28ed4fe62859b1236caebfc61ede2f63ed4e695f3f6d936"
 [[package]]
 name = "writeable"
 version = "0.5.2"
-source = "git+https://github.com/unicode-org/icu4x.git?branch=sffc-patch-3#5d714befbdae08a5d6c712e43947eb31397228c7"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "60e49e42bdb1d5dc76f4cd78102f8f0714d32edfa3efb82286eb0f0b1fc0da0f"
 
 [[package]]
 name = "xattr"
@@ -5274,7 +5171,8 @@ dependencies = [
 [[package]]
 name = "yoke"
 version = "0.7.1"
-source = "git+https://github.com/unicode-org/icu4x.git?branch=sffc-patch-3#5d714befbdae08a5d6c712e43947eb31397228c7"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "1848075a23a28f9773498ee9a0f2cf58fcbad4f8c0ccf84a210ab33c6ae495de"
 dependencies = [
  "serde",
  "stable_deref_trait",
@@ -5285,7 +5183,8 @@ dependencies = [
 [[package]]
 name = "yoke-derive"
 version = "0.7.1"
-source = "git+https://github.com/unicode-org/icu4x.git?branch=sffc-patch-3#5d714befbdae08a5d6c712e43947eb31397228c7"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "af46c169923ed7516eef0aa32b56d2651b229f57458ebe46b49ddd6efef5b7a2"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -5296,7 +5195,8 @@ dependencies = [
 [[package]]
 name = "zerofrom"
 version = "0.1.2"
-source = "git+https://github.com/unicode-org/icu4x.git?branch=sffc-patch-3#5d714befbdae08a5d6c712e43947eb31397228c7"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "df54d76c3251de27615dfcce21e636c172dafb2549cd7fd93e21c66f6ca6bea2"
 dependencies = [
  "zerofrom-derive",
 ]
@@ -5304,7 +5204,8 @@ dependencies = [
 [[package]]
 name = "zerofrom-derive"
 version = "0.1.2"
-source = "git+https://github.com/unicode-org/icu4x.git?branch=sffc-patch-3#5d714befbdae08a5d6c712e43947eb31397228c7"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "b4eae7c1f7d4b8eafce526bc0771449ddc2f250881ae31c50d22c032b5a1c499"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -5318,23 +5219,11 @@ version = "0.9.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "198f54134cd865f437820aa3b43d0ad518af4e68ee161b444cdd15d8e567c8ea"
 dependencies = [
- "databake 0.1.4 (registry+https://github.com/rust-lang/crates.io-index)",
+ "databake",
  "serde",
  "yoke",
  "zerofrom",
- "zerovec-derive 0.9.4 (registry+https://github.com/rust-lang/crates.io-index)",
-]
-
-[[package]]
-name = "zerovec"
-version = "0.9.4"
-source = "git+https://github.com/unicode-org/icu4x.git?branch=sffc-patch-3#5d714befbdae08a5d6c712e43947eb31397228c7"
-dependencies = [
- "databake 0.1.4 (git+https://github.com/unicode-org/icu4x.git?branch=sffc-patch-3)",
- "serde",
- "yoke",
- "zerofrom",
- "zerovec-derive 0.9.4 (git+https://github.com/unicode-org/icu4x.git?branch=sffc-patch-3)",
+ "zerovec-derive",
 ]
 
 [[package]]
@@ -5342,17 +5231,6 @@ name = "zerovec-derive"
 version = "0.9.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "486558732d5dde10d0f8cb2936507c1bb21bc539d924c949baf5f36a58e51bac"
-dependencies = [
- "proc-macro2",
- "quote",
- "syn 1.0.109",
- "synstructure 0.12.6",
-]
-
-[[package]]
-name = "zerovec-derive"
-version = "0.9.4"
-source = "git+https://github.com/unicode-org/icu4x.git?branch=sffc-patch-3#5d714befbdae08a5d6c712e43947eb31397228c7"
 dependencies = [
  "proc-macro2",
  "quote",
