@@ -55,7 +55,7 @@ pub struct SegmentIterator {
 
 impl IntrinsicObject for SegmentIterator {
     fn init(realm: &Realm) {
-        let _timer = Profiler::global().start_event("%SegmenterIteratorPrototype%", "init");
+        let _timer = Profiler::global().start_event("%SegmentIteratorPrototype%", "init");
 
         BuiltInBuilder::with_intrinsic::<Self>(realm)
             .static_property(
