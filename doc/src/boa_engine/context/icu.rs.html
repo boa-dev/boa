@@ -181,12 +181,12 @@
 <span class="kw">use </span>icu_list::{ListError, ListFormatter, ListLength};
 <span class="kw">use </span>icu_locid_transform::{LocaleCanonicalizer, LocaleExpander, LocaleTransformError};
 <span class="kw">use </span>icu_provider::{
-    yoke::{trait_hack::YokeTraitHack, Yokeable},
-    zerofrom::ZeroFrom,
     AnyProvider, AsDeserializingBufferProvider, AsDowncastingAnyProvider, BufferProvider,
     DataError, DataLocale, DataProvider, DataRequest, DataResponse, KeyedDataMarker, MaybeSendSync,
 };
 <span class="kw">use </span>serde::Deserialize;
+<span class="kw">use </span>yoke::{trait_hack::YokeTraitHack, Yokeable};
+<span class="kw">use </span>zerofrom::ZeroFrom;
 
 <span class="kw">use </span><span class="kw">crate</span>::builtins::intl::list_format::ListFormatType;
 
