@@ -1306,6 +1306,8 @@
 <a href="#1305" id="1305">1305</a>
 <a href="#1306" id="1306">1306</a>
 <a href="#1307" id="1307">1307</a>
+<a href="#1308" id="1308">1308</a>
+<a href="#1309" id="1309">1309</a>
 </pre><pre class="rust"><code><span class="doccomment">//! `CodeBlock`
 //!
 //! This module is for the `CodeBlock` which implements a function representation in the VM
@@ -2351,6 +2353,7 @@
                     },
                     Clone::clone,
                 );
+
             <span class="kw">let </span>data = <span class="kw">if </span>async_ {
                 ObjectData::async_generator(AsyncGenerator {
                     state: AsyncGeneratorState::SuspendedStart,
@@ -2365,14 +2368,15 @@
                 })
             } <span class="kw">else </span>{
                 ObjectData::generator(Generator {
-                    state: GeneratorState::SuspendedStart,
-                    context: <span class="prelude-val">Some</span>(GeneratorContext::new(
-                        environments,
-                        stack,
-                        context.vm.active_function.clone(),
-                        call_frame,
-                        context.realm().clone(),
-                    )),
+                    state: GeneratorState::SuspendedStart {
+                        context: GeneratorContext::new(
+                            environments,
+                            stack,
+                            context.vm.active_function.clone(),
+                            call_frame,
+                            context.realm().clone(),
+                        ),
+                    },
                 })
             };
 
