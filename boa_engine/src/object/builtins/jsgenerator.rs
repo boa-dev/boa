@@ -1,7 +1,7 @@
 //! A Rust API wrapper for Boa's `Generator` Builtin ECMAScript Object
 use crate::{
-    builtins::generator::{Generator, GeneratorState},
-    object::{JsObject, JsObjectType, ObjectData},
+    builtins::generator::Generator,
+    object::{JsObject, JsObjectType},
     value::TryFromJs,
     Context, JsNativeError, JsResult, JsValue,
 };
@@ -16,23 +16,7 @@ pub struct JsGenerator {
 }
 
 impl JsGenerator {
-    /// Create a new `JsGenerator` object
-    #[inline]
-    pub fn new(context: &mut Context<'_>) -> Self {
-        let prototype = context.intrinsics().objects().generator();
-
-        let generator = JsObject::from_proto_and_data(
-            prototype,
-            ObjectData::generator(Generator {
-                state: GeneratorState::Undefined,
-                context: None,
-            }),
-        );
-
-        Self { inner: generator }
-    }
-
-    /// Create a `JsGenerator` from a regular expression `JsObject`
+    /// Creates a `JsGenerator` from a generator `JsObject`
     #[inline]
     pub fn from_object(object: JsObject) -> JsResult<Self> {
         if object.is_generator() {

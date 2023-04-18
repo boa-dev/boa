@@ -22,26 +22,41 @@ use crate::{
     vm::{CallFrame, CompletionRecord, GeneratorResumeKind},
     Context, JsArgs, JsError, JsResult,
 };
-use boa_gc::{Finalize, Trace};
+use boa_gc::{custom_trace, Finalize, Trace};
 use boa_profiler::Profiler;
 
 use super::{BuiltInBuilder, IntrinsicObject};
 
 /// Indicates the state of a generator.
-#[derive(Debug, Clone, Copy, PartialEq)]
+#[derive(Debug, Clone, Finalize)]
 pub(crate) enum GeneratorState {
-    Undefined,
-    SuspendedStart,
-    SuspendedYield,
+    SuspendedStart {
+        /// The `[[GeneratorContext]]` internal slot.
+        context: GeneratorContext,
+    },
+    SuspendedYield {
+        /// The `[[GeneratorContext]]` internal slot.
+        context: GeneratorContext,
+    },
     Executing,
     Completed,
+}
+
+// Need to manually implement, since `Trace` adds a `Drop` impl which disallows destructuring.
+unsafe impl Trace for GeneratorState {
+    custom_trace!(this, {
+        match &this {
+            Self::SuspendedStart { context } | Self::SuspendedYield { context } => mark(context),
+            Self::Executing | Self::Completed => {}
+        }
+    });
 }
 
 /// Holds all information that a generator needs to continue it's execution.
 ///
 /// All of the fields must be changed with those that are currently present in the
 /// context/vm before the generator execution starts/resumes and after it has ended/yielded.
-#[derive(Debug, Clone, Finalize, Trace)]
+#[derive(Debug, Clone, Trace, Finalize)]
 pub(crate) struct GeneratorContext {
     pub(crate) environments: DeclarativeEnvironmentStack,
     pub(crate) stack: Vec<JsValue>,
@@ -114,11 +129,7 @@ impl GeneratorContext {
 #[derive(Debug, Finalize, Trace)]
 pub struct Generator {
     /// The `[[GeneratorState]]` internal slot.
-    #[unsafe_ignore_trace]
     pub(crate) state: GeneratorState,
-
-    /// The `[[GeneratorContext]]` internal slot.
-    pub(crate) context: Option<GeneratorContext>,
 }
 
 impl IntrinsicObject for Generator {
@@ -177,13 +188,8 @@ impl Generator {
         args: &[JsValue],
         context: &mut Context<'_>,
     ) -> JsResult<JsValue> {
-        // Extracted `GeneratorValidate` since we don't need to worry about validation
-        // of async functions.
-        let generator = Self::generator_validate(this)?;
-
         // 1. Return ? GeneratorResume(this value, value, empty).
-        let completion =
-            Self::generator_resume(generator, args.get_or_undefined(0).clone(), context);
+        let completion = Self::generator_resume(this, args.get_or_undefined(0).clone(), context);
 
         match completion {
             CompletionRecord::Return(value) => Ok(create_iter_result_object(value, false, context)),
@@ -208,11 +214,10 @@ impl Generator {
         context: &mut Context<'_>,
     ) -> JsResult<JsValue> {
         // 1. Let g be the this value.
-        let generator = Self::generator_validate(this)?;
         // 2. Let C be Completion { [[Type]]: return, [[Value]]: value, [[Target]]: empty }.
         // 3. Return ? GeneratorResumeAbrupt(g, C, empty).
         let completion =
-            Self::generator_resume_abrupt(generator, Ok(args.get_or_undefined(0).clone()), context);
+            Self::generator_resume_abrupt(this, Ok(args.get_or_undefined(0).clone()), context);
 
         match completion {
             CompletionRecord::Return(value) => Ok(create_iter_result_object(value, false, context)),
@@ -238,11 +243,10 @@ impl Generator {
         context: &mut Context<'_>,
     ) -> JsResult<JsValue> {
         // 1. Let g be the this value.
-        let generator = Self::generator_validate(this)?;
         // 2. Let C be ThrowCompletion(exception).
         // 3. Return ? GeneratorResumeAbrupt(g, C, empty).
         let completion = Self::generator_resume_abrupt(
-            generator,
+            this,
             Err(JsError::from_opaque(args.get_or_undefined(0).clone())),
             context,
         );
@@ -254,30 +258,6 @@ impl Generator {
         }
     }
 
-    /// `27.5.3.3 GeneratorValidate ( generator, generatorBrand )`
-    ///
-    /// More information:
-    ///  - [ECMAScript reference][spec]
-    ///
-    /// [spec]:https://tc39.es/ecma262/#sec-generatorvalidate
-    fn generator_validate(gen: &JsValue) -> JsResult<&JsObject> {
-        let generator_obj = gen.as_object().ok_or_else(|| {
-            JsNativeError::typ().with_message("Generator method called on non generator")
-        })?;
-        let mut generator_obj_mut = generator_obj.borrow_mut();
-        let generator = generator_obj_mut.as_generator_mut().ok_or_else(|| {
-            JsNativeError::typ().with_message("generator resumed on non generator object")
-        })?;
-
-        if generator.state == GeneratorState::Executing {
-            Err(JsNativeError::typ()
-                .with_message("Generator should not be executing")
-                .into())
-        } else {
-            Ok(generator_obj)
-        }
-    }
-
     /// `27.5.3.3 GeneratorResume ( generator, value, generatorBrand )`
     ///
     /// More information:
@@ -285,39 +265,50 @@ impl Generator {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-generatorresume
     pub(crate) fn generator_resume(
-        gen: &JsObject,
+        gen: &JsValue,
         value: JsValue,
         context: &mut Context<'_>,
     ) -> CompletionRecord {
         // 1. Let state be ? GeneratorValidate(generator, generatorBrand).
-        let mut generator_obj_mut = gen.borrow_mut();
-        let generator = generator_obj_mut
-            .as_generator_mut()
-            .expect("already validated that this is a generator");
-        let state = generator.state;
-
-        // 2. If state is completed, return CreateIterResultObject(undefined, true).
-        if state == GeneratorState::Completed {
-            return CompletionRecord::Normal(JsValue::undefined());
-        }
-
-        // 3. Assert: state is either suspendedStart or suspendedYield.
-        assert!(matches!(
-            state,
-            GeneratorState::SuspendedStart | GeneratorState::SuspendedYield
-        ));
+        let Some(generator_obj) = gen.as_object() else {
+            return CompletionRecord::Throw(
+                JsNativeError::typ()
+                    .with_message("Generator method called on non generator")
+                    .into()
+            );
+        };
+        let mut generator_obj_mut = generator_obj.borrow_mut();
+        let Some(generator) = generator_obj_mut.as_generator_mut() else {
+            return CompletionRecord::Throw(
+                JsNativeError::typ()
+                    .with_message("generator resumed on non generator object")
+                    .into()
+            );
+        };
 
         // 4. Let genContext be generator.[[GeneratorContext]].
         // 5. Let methodContext be the running execution context.
         // 6. Suspend methodContext.
         // 7. Set generator.[[GeneratorState]] to executing.
-        generator.state = GeneratorState::Executing;
-        let first_execution = matches!(state, GeneratorState::SuspendedStart);
+        let (mut generator_context, first_execution) =
+            match std::mem::replace(&mut generator.state, GeneratorState::Executing) {
+                GeneratorState::Executing => {
+                    return CompletionRecord::Throw(
+                        JsNativeError::typ()
+                            .with_message("Generator should not be executing")
+                            .into(),
+                    );
+                }
+                // 2. If state is completed, return CreateIterResultObject(undefined, true).
+                GeneratorState::Completed => {
+                    generator.state = GeneratorState::Completed;
+                    return CompletionRecord::Normal(JsValue::undefined());
+                }
+                // 3. Assert: state is either suspendedStart or suspendedYield.
+                GeneratorState::SuspendedStart { context } => (context, true),
+                GeneratorState::SuspendedYield { context } => (context, false),
+            };
 
-        let mut generator_context = generator
-            .context
-            .take()
-            .expect("generator context cannot be empty here");
         drop(generator_obj_mut);
 
         let record = generator_context.resume(
@@ -326,16 +317,15 @@ impl Generator {
             context,
         );
 
-        let mut generator_obj_mut = gen.borrow_mut();
+        let mut generator_obj_mut = generator_obj.borrow_mut();
         let generator = generator_obj_mut
             .as_generator_mut()
             .expect("already checked this object type");
 
         generator.state = match record {
-            CompletionRecord::Return(_) => {
-                generator.context = Some(generator_context);
-                GeneratorState::SuspendedYield
-            }
+            CompletionRecord::Return(_) => GeneratorState::SuspendedYield {
+                context: generator_context,
+            },
             CompletionRecord::Normal(_) | CompletionRecord::Throw(_) => GeneratorState::Completed,
         };
 
@@ -353,51 +343,64 @@ impl Generator {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-generatorresumeabrupt
     pub(crate) fn generator_resume_abrupt(
-        gen: &JsObject,
+        gen: &JsValue,
         abrupt_completion: JsResult<JsValue>,
         context: &mut Context<'_>,
     ) -> CompletionRecord {
         // 1. Let state be ? GeneratorValidate(generator, generatorBrand).
-        let mut generator_obj_mut = gen.borrow_mut();
-        let generator = generator_obj_mut
-            .as_generator_mut()
-            .expect("already validated the generator object");
-        let mut state = generator.state;
-
-        // 2. If state is suspendedStart, then
-        if state == GeneratorState::SuspendedStart {
-            // a. Set generator.[[GeneratorState]] to completed.
-            generator.state = GeneratorState::Completed;
-            // b. Once a generator enters the completed state it never leaves it and its associated execution context is never resumed. Any execution state associated with generator can be discarded at this point.
-            generator.context = None;
-            // c. Set state to completed.
-            state = GeneratorState::Completed;
-        }
-
-        // 3. If state is completed, then
-        if state == GeneratorState::Completed {
-            // a. If abruptCompletion.[[Type]] is return, then
-            // i. Return CreateIterResultObject(abruptCompletion.[[Value]], true).
-            // b. Return Completion(abruptCompletion).
-            return abrupt_completion
-                .map_or_else(CompletionRecord::Throw, CompletionRecord::Normal);
-        }
+        let Some(generator_obj) = gen.as_object() else {
+            return CompletionRecord::Throw(
+                JsNativeError::typ()
+                    .with_message("Generator method called on non generator")
+                    .into()
+            );
+        };
+        let mut generator_obj_mut = generator_obj.borrow_mut();
+        let Some(generator) = generator_obj_mut.as_generator_mut() else {
+            return CompletionRecord::Throw(
+                JsNativeError::typ()
+                    .with_message("generator resumed on non generator object")
+                    .into()
+            );
+        };
 
         // 4. Assert: state is suspendedYield.
         // 5. Let genContext be generator.[[GeneratorContext]].
         // 6. Let methodContext be the running execution context.
         // 7. Suspend methodContext.
         // 8. Set generator.[[GeneratorState]] to executing.
+        let mut generator_context =
+            match std::mem::replace(&mut generator.state, GeneratorState::Executing) {
+                GeneratorState::Executing => {
+                    return CompletionRecord::Throw(
+                        JsNativeError::typ()
+                            .with_message("Generator should not be executing")
+                            .into(),
+                    );
+                }
+                // 2. If state is suspendedStart, then
+                // 3. If state is completed, then
+                GeneratorState::SuspendedStart { .. } | GeneratorState::Completed => {
+                    // a. Set generator.[[GeneratorState]] to completed.
+                    generator.state = GeneratorState::Completed;
+
+                    // b. Once a generator enters the completed state it never leaves it and its
+                    // associated execution context is never resumed. Any execution state associated
+                    // with generator can be discarded at this point.
+
+                    // a. If abruptCompletion.[[Type]] is return, then
+                    // i. Return CreateIterResultObject(abruptCompletion.[[Value]], true).
+                    // b. Return Completion(abruptCompletion).
+                    return abrupt_completion
+                        .map_or_else(CompletionRecord::Throw, CompletionRecord::Normal);
+                }
+                GeneratorState::SuspendedYield { context } => context,
+            };
+
         // 9. Push genContext onto the execution context stack; genContext is now the running execution context.
         // 10. Resume the suspended evaluation of genContext using abruptCompletion as the result of the operation that suspended it. Let result be the completion record returned by the resumed computation.
         // 11. Assert: When we return here, genContext has already been removed from the execution context stack and methodContext is the currently running execution context.
         // 12. Return Completion(result).
-        let mut generator_context = generator
-            .context
-            .take()
-            .expect("generator context cannot be empty here");
-
-        generator.state = GeneratorState::Executing;
         drop(generator_obj_mut);
 
         let (value, resume_kind) = match abrupt_completion {
@@ -407,16 +410,15 @@ impl Generator {
 
         let record = generator_context.resume(Some(value), resume_kind, context);
 
-        let mut generator_obj_mut = gen.borrow_mut();
+        let mut generator_obj_mut = generator_obj.borrow_mut();
         let generator = generator_obj_mut
             .as_generator_mut()
             .expect("already checked this object type");
 
         generator.state = match record {
-            CompletionRecord::Return(_) => {
-                generator.context = Some(generator_context);
-                GeneratorState::SuspendedYield
-            }
+            CompletionRecord::Return(_) => GeneratorState::SuspendedYield {
+                context: generator_context,
+            },
             CompletionRecord::Normal(_) | CompletionRecord::Throw(_) => GeneratorState::Completed,
         };
 
