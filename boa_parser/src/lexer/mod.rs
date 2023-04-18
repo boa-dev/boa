@@ -318,12 +318,7 @@ impl<R> Lexer<R> {
                 }
             }?;
 
-            if token.kind() == &TokenKind::Comment {
-                // Skip comment
-                self.next(interner)
-            } else {
-                Ok(Some(token))
-            }
+            Ok(Some(token))
         } else {
             Err(Error::syntax(
                 format!(

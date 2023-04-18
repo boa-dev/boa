@@ -293,36 +293,27 @@ impl RegExp {
         };
 
         // 10. If u is true, then
-        let regexp = if flags.contains(RegExpFlags::UNICODE) {
-            //     a. Let patternText be StringToCodePoints(P).
-            Regex::from_unicode(
-                p.code_points().map(CodePoint::as_u32),
-                Flags::new(f.code_points().map(CodePoint::as_u32)),
-            )
-        } else {
-            // 11. Else,
-            //     a. Let patternText be the result of interpreting each of P's 16-bit elements as a Unicode BMP code point. UTF-16 decoding is not applied to the elements.
-            Regex::from_unicode(
-                p.iter().map(|surr| u32::from(*surr)),
-                Flags::new(f.code_points().map(CodePoint::as_u32)),
-            )
-        };
-
-        // 9. Let parseResult be ParsePattern(patternText, u).
-        // 10. If parseResult is a non-empty List of SyntaxError objects, throw a SyntaxError exception.
-        // 11. Assert: parseResult is a Pattern Parse Node.
-        // 12. Set obj.[[OriginalSource]] to P.
-        // 13. Set obj.[[OriginalFlags]] to F.
-        // 14. NOTE: The definitions of DotAll, IgnoreCase, Multiline, and Unicode in 22.2.2.1 refer to this value of obj.[[OriginalFlags]].
-        // 15. Set obj.[[RegExpMatcher]] to CompilePattern of parseResult.
-        let matcher = match regexp {
-            Err(error) => {
-                return Err(JsNativeError::syntax()
-                    .with_message(format!("failed to create matcher: {}", error.text))
-                    .into());
-            }
-            Ok(val) => val,
-        };
+        //     a. Let patternText be StringToCodePoints(P).
+        // 11. Else,
+        //     a. Let patternText be the result of interpreting each of P's 16-bit elements as a Unicode BMP code point. UTF-16 decoding is not applied to the elements.
+        // 12. Let parseResult be ParsePattern(patternText, u).
+        // 13. If parseResult is a non-empty List of SyntaxError objects, throw a SyntaxError exception.
+        // 14. Assert: parseResult is a Pattern Parse Node.
+        // 15. Set obj.[[OriginalSource]] to P.
+        // 16. Set obj.[[OriginalFlags]] to F.
+        // 17. Let capturingGroupsCount be CountLeftCapturingParensWithin(parseResult).
+        // 18. Let rer be the RegExp Record { [[IgnoreCase]]: i, [[Multiline]]: m, [[DotAll]]: s, [[Unicode]]: u, [[CapturingGroupsCount]]: capturingGroupsCount }.
+        // 19. Set obj.[[RegExpRecord]] to rer.
+        // 20. Set obj.[[RegExpMatcher]] to CompilePattern of parseResult with argument rer.
+        let matcher =
+            match Regex::from_unicode(p.code_points().map(CodePoint::as_u32), Flags::from(flags)) {
+                Err(error) => {
+                    return Err(JsNativeError::syntax()
+                        .with_message(format!("failed to create matcher: {}", error.text))
+                        .into());
+                }
+                Ok(val) => val,
+            };
 
         let regexp = Self {
             matcher,
