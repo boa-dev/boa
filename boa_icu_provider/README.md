@@ -8,5 +8,5 @@ used in the Boa engine to enable internationalization functionality.
 To regenerate the data:
 
 ```bash
-$ cargo run --bin boa-datagen --features bin
+$ cargo run --release --bin boa-datagen --features bin
 ```

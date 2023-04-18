@@ -4,12 +4,12 @@ use icu_collator::{Collator, CollatorError, CollatorOptions};
 use icu_list::{ListError, ListFormatter, ListLength};
 use icu_locid_transform::{LocaleCanonicalizer, LocaleExpander, LocaleTransformError};
 use icu_provider::{
-    yoke::{trait_hack::YokeTraitHack, Yokeable},
-    zerofrom::ZeroFrom,
     AnyProvider, AsDeserializingBufferProvider, AsDowncastingAnyProvider, BufferProvider,
     DataError, DataLocale, DataProvider, DataRequest, DataResponse, KeyedDataMarker, MaybeSendSync,
 };
 use serde::Deserialize;
+use yoke::{trait_hack::YokeTraitHack, Yokeable};
+use zerofrom::ZeroFrom;
 
 use crate::builtins::intl::list_format::ListFormatType;
 
