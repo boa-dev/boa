@@ -1690,9 +1690,9 @@ checksum = "d2fabcfbdc87f4758337ca535fb41a6d701b65693ce38287d856d1674551ec9b"
 
 [[package]]
 name = "h2"
-version = "0.3.17"
+version = "0.3.18"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "66b91535aa35fea1523ad1b86cb6b53c28e0ae566ba4a460f4457e936cad7c6f"
+checksum = "17f8a914c2987b688368b5138aa05321db91f4090cf26118185672ad588bce21"
 dependencies = [
  "bytes",
  "fnv",
@@ -1972,9 +1972,9 @@ dependencies = [
 
 [[package]]
 name = "icu_datagen"
-version = "1.2.0"
+version = "1.2.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "751d9e8b8103634214c9790b9cd569450fe151adf1c3f4aa37e1e7adb992b12f"
+checksum = "f474bd38639e5af76d2a70ce60ccb553454a3d3257677de15570c359d2116c5b"
 dependencies = [
  "cached-path",
  "clap 4.2.2",
@@ -2274,9 +2274,9 @@ dependencies = [
 
 [[package]]
 name = "icu_segmenter"
-version = "1.2.0"
+version = "1.2.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "4be93a865ced1d5efe783a127632eca71b9823681e90561e029124be26cd8567"
+checksum = "c3300a7b6bf187be98a57264ad094f11f2e062c2e8263132af010ff522ee5495"
 dependencies = [
  "databake",
  "displaydoc",
@@ -3415,9 +3415,9 @@ dependencies = [
 
 [[package]]
 name = "rustc-demangle"
-version = "0.1.22"
+version = "0.1.23"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "d4a36c42d1873f9a77c53bde094f9664d9891bc604a45b4798fd2c389ed12e5b"
+checksum = "d626bb9dae77e28219937af045c257c28bfd3f69333c512553507f5f9798cb76"
 
 [[package]]
 name = "rustc-hash"
