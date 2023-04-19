@@ -951,6 +951,7 @@ impl Context<'_> {
         mut binding_index: usize,
         name: Identifier,
         value: JsValue,
+        strict: bool,
     ) -> JsResult<bool> {
         for env_index in (environment_index + 1..self.vm.environments.stack.len()).rev() {
             let env = self.environment_expect(env_index);
@@ -983,7 +984,7 @@ impl Context<'_> {
                                 continue;
                             }
                         }
-                        return o.set(key, value, true, self);
+                        return o.set(key, value, strict, self);
                     }
                 }
             }
@@ -1017,6 +1018,7 @@ impl Context<'_> {
         &mut self,
         name: Identifier,
         value: &JsValue,
+        strict: bool,
     ) -> JsResult<bool> {
         for env_index in (0..self.vm.environments.stack.len()).rev() {
             let env = self.environment_expect(env_index);
@@ -1056,7 +1058,7 @@ impl Context<'_> {
                                 continue;
                             }
                         }
-                        return o.set(key, value.clone(), true, self);
+                        return o.set(key, value.clone(), strict, self);
                     }
                 }
             }
