@@ -68,12 +68,9 @@ where
             TokenKind::Keyword((Keyword::Function, _))
                 if cfg!(not(feature = "annex-b")) || strict =>
             {
-                return Err(Error::general(
-                    format!(
-                        "{}functions can only be declared at top level or inside a block.",
-                        if strict { "in strict mode code, " } else { "" },
-                    ),
+                return Err(Error::misplaced_function_declaration(
                     next_token.span().start(),
+                    strict,
                 ))
             }
             TokenKind::Keyword((Keyword::Function, _)) => {

@@ -78,7 +78,7 @@ where
                 // FunctionDeclarations in IfStatement Statement Clauses
                 // https://tc39.es/ecma262/#sec-functiondeclarations-in-ifstatement-statement-clauses
                 if cfg!(not(feature = "annex-b")) || strict {
-                    return Err(Error::function_declaration_in_if(position, strict));
+                    return Err(Error::misplaced_function_declaration(position, strict));
                 }
                 // Source text matched by this production is processed as if each matching
                 // occurrence of FunctionDeclaration[?Yield, ?Await, ~Default] was the sole
@@ -117,7 +117,9 @@ where
                             // FunctionDeclarations in IfStatement Statement Clauses
                             // https://tc39.es/ecma262/#sec-functiondeclarations-in-ifstatement-statement-clauses
                             if cfg!(not(feature = "annex-b")) || strict {
-                                return Err(Error::function_declaration_in_if(position, strict));
+                                return Err(Error::misplaced_function_declaration(
+                                    position, strict,
+                                ));
                             }
 
                             // Source text matched by this production is processed as if each matching
