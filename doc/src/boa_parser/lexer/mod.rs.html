@@ -399,11 +399,6 @@
 <a href="#398" id="398">398</a>
 <a href="#399" id="399">399</a>
 <a href="#400" id="400">400</a>
-<a href="#401" id="401">401</a>
-<a href="#402" id="402">402</a>
-<a href="#403" id="403">403</a>
-<a href="#404" id="404">404</a>
-<a href="#405" id="405">405</a>
 </pre><pre class="rust"><code><span class="doccomment">//! Boa&#39;s lexical analyzer(Lexer) for ECMAScript source code.
 //!
 //! The Lexer splits its input source code into a sequence of input elements called tokens,
@@ -724,12 +719,7 @@
                 }
             }<span class="question-mark">?</span>;
 
-            <span class="kw">if </span>token.kind() == <span class="kw-2">&amp;</span>TokenKind::Comment {
-                <span class="comment">// Skip comment
-                </span><span class="self">self</span>.next(interner)
-            } <span class="kw">else </span>{
-                <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(token))
-            }
+            <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(token))
         } <span class="kw">else </span>{
             <span class="prelude-val">Err</span>(Error::syntax(
                 <span class="macro">format!</span>(

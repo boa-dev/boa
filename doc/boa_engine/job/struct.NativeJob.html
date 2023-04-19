@@ -23,7 +23,7 @@ context stack is empty, the implementation must:
 <a href="../type.JsResult.html" title="JsResult"><code>JsResult</code></a>, but it’s okay because <code>NativeJob</code>s are handled by the host anyways; a host could
 pass a closure returning <code>Err</code> and handle the error on <a href="trait.JobQueue.html#tymethod.run_jobs" title="JobQueue::run_jobs"><code>JobQueue::run_jobs</code></a>, making the closure
 effectively run as if it never returned <code>Err</code>.</p>
-<h3 id="trace"><a href="#trace"><code>Trace</code>?</a></h3>
+<h3 id="trace"><a href="#trace">[<code>Trace</code>]?</a></h3>
 <p><code>NativeJob</code> doesn’t implement <code>Trace</code> because it doesn’t need to; all jobs can only be run once
 and putting a <a href="trait.JobQueue.html" title="JobQueue"><code>JobQueue</code></a> on a garbage collected object should definitely be discouraged.</p>
 <p>On the other hand, it seems like this type breaks all the safety checks of the

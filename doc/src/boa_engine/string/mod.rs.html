@@ -1411,7 +1411,7 @@
     }
 
     <span class="doccomment">/// Gets an iterator of all the Unicode codepoints of a [`JsString`].
-    </span><span class="kw">pub fn </span>code_points(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw">impl </span>Iterator&lt;Item = CodePoint&gt; + <span class="lifetime">&#39;_ </span>{
+    </span><span class="kw">pub fn </span>code_points(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw">impl </span>Iterator&lt;Item = CodePoint&gt; + Clone + <span class="lifetime">&#39;_ </span>{
         char::decode_utf16(<span class="self">self</span>.iter().copied()).map(|res| <span class="kw">match </span>res {
             <span class="prelude-val">Ok</span>(c) =&gt; CodePoint::Unicode(c),
             <span class="prelude-val">Err</span>(e) =&gt; CodePoint::UnpairedSurrogate(e.unpaired_surrogate()),

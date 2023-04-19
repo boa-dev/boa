@@ -1691,6 +1691,58 @@
 <a href="#1690" id="1690">1690</a>
 <a href="#1691" id="1691">1691</a>
 <a href="#1692" id="1692">1692</a>
+<a href="#1693" id="1693">1693</a>
+<a href="#1694" id="1694">1694</a>
+<a href="#1695" id="1695">1695</a>
+<a href="#1696" id="1696">1696</a>
+<a href="#1697" id="1697">1697</a>
+<a href="#1698" id="1698">1698</a>
+<a href="#1699" id="1699">1699</a>
+<a href="#1700" id="1700">1700</a>
+<a href="#1701" id="1701">1701</a>
+<a href="#1702" id="1702">1702</a>
+<a href="#1703" id="1703">1703</a>
+<a href="#1704" id="1704">1704</a>
+<a href="#1705" id="1705">1705</a>
+<a href="#1706" id="1706">1706</a>
+<a href="#1707" id="1707">1707</a>
+<a href="#1708" id="1708">1708</a>
+<a href="#1709" id="1709">1709</a>
+<a href="#1710" id="1710">1710</a>
+<a href="#1711" id="1711">1711</a>
+<a href="#1712" id="1712">1712</a>
+<a href="#1713" id="1713">1713</a>
+<a href="#1714" id="1714">1714</a>
+<a href="#1715" id="1715">1715</a>
+<a href="#1716" id="1716">1716</a>
+<a href="#1717" id="1717">1717</a>
+<a href="#1718" id="1718">1718</a>
+<a href="#1719" id="1719">1719</a>
+<a href="#1720" id="1720">1720</a>
+<a href="#1721" id="1721">1721</a>
+<a href="#1722" id="1722">1722</a>
+<a href="#1723" id="1723">1723</a>
+<a href="#1724" id="1724">1724</a>
+<a href="#1725" id="1725">1725</a>
+<a href="#1726" id="1726">1726</a>
+<a href="#1727" id="1727">1727</a>
+<a href="#1728" id="1728">1728</a>
+<a href="#1729" id="1729">1729</a>
+<a href="#1730" id="1730">1730</a>
+<a href="#1731" id="1731">1731</a>
+<a href="#1732" id="1732">1732</a>
+<a href="#1733" id="1733">1733</a>
+<a href="#1734" id="1734">1734</a>
+<a href="#1735" id="1735">1735</a>
+<a href="#1736" id="1736">1736</a>
+<a href="#1737" id="1737">1737</a>
+<a href="#1738" id="1738">1738</a>
+<a href="#1739" id="1739">1739</a>
+<a href="#1740" id="1740">1740</a>
+<a href="#1741" id="1741">1741</a>
+<a href="#1742" id="1742">1742</a>
+<a href="#1743" id="1743">1743</a>
+<a href="#1744" id="1744">1744</a>
 </pre><pre class="rust"><code><span class="doccomment">//! Boa&#39;s implementation of ECMAScript&#39;s global `RegExp` object.
 //!
 //! The `RegExp` object is used for matching text with a pattern.
@@ -1720,7 +1772,7 @@
 };
 <span class="kw">use </span>boa_parser::lexer::regex::RegExpFlags;
 <span class="kw">use </span>boa_profiler::Profiler;
-<span class="kw">use </span>regress::Regex;
+<span class="kw">use </span>regress::{Flags, Regex};
 <span class="kw">use </span>std::str::FromStr;
 
 <span class="kw">use super</span>::{BuiltInBuilder, BuiltInConstructor, IntrinsicObject};
@@ -1787,7 +1839,7 @@
             .callable(<span class="self">Self</span>::get_source)
             .name(<span class="string">&quot;get source&quot;</span>)
             .build();
-        BuiltInBuilder::from_standard_constructor::&lt;<span class="self">Self</span>&gt;(realm)
+        <span class="kw">let </span>regexp = BuiltInBuilder::from_standard_constructor::&lt;<span class="self">Self</span>&gt;(realm)
             .static_accessor(
                 JsSymbol::species(),
                 <span class="prelude-val">Some</span>(get_species),
@@ -1830,8 +1882,12 @@
             .accessor(<span class="macro">utf16!</span>(<span class="string">&quot;unicode&quot;</span>), <span class="prelude-val">Some</span>(get_unicode), <span class="prelude-val">None</span>, flag_attributes)
             .accessor(<span class="macro">utf16!</span>(<span class="string">&quot;sticky&quot;</span>), <span class="prelude-val">Some</span>(get_sticky), <span class="prelude-val">None</span>, flag_attributes)
             .accessor(<span class="macro">utf16!</span>(<span class="string">&quot;flags&quot;</span>), <span class="prelude-val">Some</span>(get_flags), <span class="prelude-val">None</span>, flag_attributes)
-            .accessor(<span class="macro">utf16!</span>(<span class="string">&quot;source&quot;</span>), <span class="prelude-val">Some</span>(get_source), <span class="prelude-val">None</span>, flag_attributes)
-            .build();
+            .accessor(<span class="macro">utf16!</span>(<span class="string">&quot;source&quot;</span>), <span class="prelude-val">Some</span>(get_source), <span class="prelude-val">None</span>, flag_attributes);
+
+        <span class="attr">#[cfg(feature = <span class="string">&quot;annex-b&quot;</span>)]
+        </span><span class="kw">let </span>regexp = regexp.method(<span class="self">Self</span>::compile, <span class="string">&quot;compile&quot;</span>, <span class="number">2</span>);
+
+        regexp.build();
     }
 
     <span class="kw">fn </span>get(intrinsics: <span class="kw-2">&amp;</span>Intrinsics) -&gt; JsObject {
@@ -1981,26 +2037,29 @@
             <span class="prelude-val">Ok</span>(result) =&gt; result,
         };
 
-        <span class="comment">// TODO: Correct UTF-16 handling in 6. - 8.
+        <span class="comment">// 10. If u is true, then
+        //     a. Let patternText be StringToCodePoints(P).
+        // 11. Else,
+        //     a. Let patternText be the result of interpreting each of P&#39;s 16-bit elements as a Unicode BMP code point. UTF-16 decoding is not applied to the elements.
+        // 12. Let parseResult be ParsePattern(patternText, u).
+        // 13. If parseResult is a non-empty List of SyntaxError objects, throw a SyntaxError exception.
+        // 14. Assert: parseResult is a Pattern Parse Node.
+        // 15. Set obj.[[OriginalSource]] to P.
+        // 16. Set obj.[[OriginalFlags]] to F.
+        // 17. Let capturingGroupsCount be CountLeftCapturingParensWithin(parseResult).
+        // 18. Let rer be the RegExp Record { [[IgnoreCase]]: i, [[Multiline]]: m, [[DotAll]]: s, [[Unicode]]: u, [[CapturingGroupsCount]]: capturingGroupsCount }.
+        // 19. Set obj.[[RegExpRecord]] to rer.
+        // 20. Set obj.[[RegExpMatcher]] to CompilePattern of parseResult with argument rer.
+        </span><span class="kw">let </span>matcher =
+            <span class="kw">match </span>Regex::from_unicode(p.code_points().map(CodePoint::as_u32), Flags::from(flags)) {
+                <span class="prelude-val">Err</span>(error) =&gt; {
+                    <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::syntax()
+                        .with_message(<span class="macro">format!</span>(<span class="string">&quot;failed to create matcher: {}&quot;</span>, error.text))
+                        .into());
+                }
+                <span class="prelude-val">Ok</span>(val) =&gt; val,
+            };
 
-        // 9. Let parseResult be ParsePattern(patternText, u).
-        // 10. If parseResult is a non-empty List of SyntaxError objects, throw a SyntaxError exception.
-        // 11. Assert: parseResult is a Pattern Parse Node.
-        // 12. Set obj.[[OriginalSource]] to P.
-        // 13. Set obj.[[OriginalFlags]] to F.
-        // 14. NOTE: The definitions of DotAll, IgnoreCase, Multiline, and Unicode in 22.2.2.1 refer to this value of obj.[[OriginalFlags]].
-        // 15. Set obj.[[RegExpMatcher]] to CompilePattern of parseResult.
-        // TODO: add support for utf16 regex to remove this conversions.
-        </span><span class="kw">let </span>ps = p.to_std_string_escaped();
-        <span class="kw">let </span>fs = f.to_std_string_escaped();
-        <span class="kw">let </span>matcher = <span class="kw">match </span>Regex::with_flags(<span class="kw-2">&amp;</span>ps, fs.as_ref()) {
-            <span class="prelude-val">Err</span>(error) =&gt; {
-                <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::syntax()
-                    .with_message(<span class="macro">format!</span>(<span class="string">&quot;failed to create matcher: {}&quot;</span>, error.text))
-                    .into());
-            }
-            <span class="prelude-val">Ok</span>(val) =&gt; val,
-        };
         <span class="kw">let </span>regexp = <span class="self">Self </span>{
             matcher,
             flags,
@@ -3351,6 +3410,51 @@
 
         <span class="comment">// 22. Return A.
         </span><span class="prelude-val">Ok</span>(a.into())
+    }
+
+    <span class="doccomment">/// [`RegExp.prototype.compile ( pattern, flags )`][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-regexp.prototype.compile
+    </span><span class="attr">#[cfg(feature = <span class="string">&quot;annex-b&quot;</span>)]
+    </span><span class="kw">fn </span>compile(this: <span class="kw-2">&amp;</span>JsValue, args: <span class="kw-2">&amp;</span>[JsValue], context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;JsValue&gt; {
+        <span class="comment">// 1. Let O be the this value.
+        // 2. Perform ? RequireInternalSlot(O, [[RegExpMatcher]]).
+        </span><span class="kw">let </span>this = this
+            .as_object()
+            .filter(|o| o.borrow().is_regexp())
+            .cloned()
+            .ok_or_else(|| {
+                JsNativeError::typ()
+                    .with_message(<span class="string">&quot;`RegExp.prototype.compile` cannot be called for a non-object&quot;</span>)
+            })<span class="question-mark">?</span>;
+        <span class="kw">let </span>pattern = args.get_or_undefined(<span class="number">0</span>);
+        <span class="kw">let </span>flags = args.get_or_undefined(<span class="number">1</span>);
+        <span class="comment">// 3. If pattern is an Object and pattern has a [[RegExpMatcher]] internal slot, then
+        </span><span class="kw">let </span>(pattern, flags) = <span class="kw">if let </span><span class="prelude-val">Some</span>((p, f)) = pattern.as_object().and_then(|o| {
+            <span class="kw">let </span>o = o.borrow();
+            o.as_regexp()
+                .map(|rx| (rx.original_source.clone(), rx.original_flags.clone()))
+        }) {
+            <span class="comment">//     a. If flags is not undefined, throw a TypeError exception.
+            </span><span class="kw">if </span>!flags.is_undefined() {
+                <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::typ()
+                    .with_message(
+                        <span class="string">&quot;`RegExp.prototype.compile` cannot be \
+                called with both a RegExp initializer and new flags&quot;</span>,
+                    )
+                    .into());
+            }
+            <span class="comment">//     b. Let P be pattern.[[OriginalSource]].
+            //     c. Let F be pattern.[[OriginalFlags]].
+            </span>(p.into(), f.into())
+        } <span class="kw">else </span>{
+            <span class="comment">// 4. Else,
+            //     a. Let P be pattern.
+            //     b. Let F be flags.
+            </span>(pattern.clone(), flags.clone())
+        };
+        <span class="comment">// 5. Return ? RegExpInitialize(O, P, F).
+        </span><span class="self">Self</span>::initialize(this, <span class="kw-2">&amp;</span>pattern, <span class="kw-2">&amp;</span>flags, context)
     }
 }
 

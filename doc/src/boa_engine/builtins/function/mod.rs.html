@@ -1132,6 +1132,10 @@
 <a href="#1131" id="1131">1131</a>
 <a href="#1132" id="1132">1132</a>
 <a href="#1133" id="1133">1133</a>
+<a href="#1134" id="1134">1134</a>
+<a href="#1135" id="1135">1135</a>
+<a href="#1136" id="1136">1136</a>
+<a href="#1137" id="1137">1137</a>
 </pre><pre class="rust"><code><span class="doccomment">//! Boa&#39;s implementation of ECMAScript&#39;s global `Function` object and Native Functions.
 //!
 //! Objects wrap `Function`s and expose them via call/construct slots.
@@ -1174,7 +1178,7 @@
 <span class="kw">use </span>boa_profiler::Profiler;
 <span class="kw">use </span>thin_vec::ThinVec;
 
-<span class="kw">use </span>std::fmt;
+<span class="kw">use </span>std::{fmt, io::Read};
 
 <span class="kw">use super</span>::{promise::PromiseCapability, BuiltInBuilder, BuiltInConstructor, IntrinsicObject};
 
@@ -1776,12 +1780,16 @@
                     .into());
             }
 
-            <span class="kw">let </span>body_arg = body_arg.to_string(context)<span class="question-mark">?</span>;
+            <span class="comment">// 11. Let bodyString be the string-concatenation of 0x000A (LINE FEED), ? ToString(bodyArg), and 0x000A (LINE FEED).
+            </span><span class="kw">let </span>body_arg = body_arg.to_string(context)<span class="question-mark">?</span>.to_std_string_escaped();
+            <span class="kw">let </span>body = <span class="string">b&quot;\n&quot;</span>.chain(body_arg.as_bytes()).chain(<span class="string">b&quot;\n&quot;</span>.as_slice());
 
             <span class="comment">// TODO: make parser generic to u32 iterators
-            </span><span class="kw">let </span>body = <span class="kw">match </span>Parser::new(Source::from_bytes(<span class="kw-2">&amp;</span>body_arg.to_std_string_escaped()))
-                .parse_function_body(context.interner_mut(), generator, r#async)
-            {
+            </span><span class="kw">let </span>body = <span class="kw">match </span>Parser::new(Source::from_reader(body, <span class="prelude-val">None</span>)).parse_function_body(
+                context.interner_mut(),
+                generator,
+                r#async,
+            ) {
                 <span class="prelude-val">Ok</span>(statement_list) =&gt; statement_list,
                 <span class="prelude-val">Err</span>(e) =&gt; {
                     <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::syntax()

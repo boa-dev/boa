@@ -413,8 +413,8 @@
         } <span class="kw">else </span>{
             <span class="self">self</span>.peeked[<span class="self">self</span>.write_index] = <span class="self">self</span>.lexer.next(interner)<span class="question-mark">?</span>;
         }
-        <span class="self">self</span>.write_index = (<span class="self">self</span>.write_index + <span class="number">1</span>) % PEEK_BUF_SIZE;
 
+        <span class="self">self</span>.write_index = (<span class="self">self</span>.write_index + <span class="number">1</span>) % PEEK_BUF_SIZE;
         <span class="macro">debug_assert_ne!</span>(
             <span class="self">self</span>.read_index, <span class="self">self</span>.write_index,
             <span class="string">&quot;we reached the read index with the write index&quot;
