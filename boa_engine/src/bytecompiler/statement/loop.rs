@@ -292,19 +292,22 @@ impl ByteCompiler<'_, '_> {
                     ByteCompiler::access_set_top_of_stack_expr_fn,
                 );
             }
-            // Can ignore initializers since those aren't allowed on for-of loops.
-            IterableLoopInitializer::Var(declaration) => match declaration.binding() {
-                Binding::Identifier(ident) => {
-                    self.create_mutable_binding(*ident, true, false);
-                    self.emit_binding(BindingOpcode::InitVar, *ident);
-                }
-                Binding::Pattern(pattern) => {
-                    for ident in bound_names(pattern) {
-                        self.create_mutable_binding(ident, true, false);
+            IterableLoopInitializer::Var(declaration) => {
+                // ignore initializers since those aren't allowed on for-of loops.
+                assert!(declaration.init().is_none());
+                match declaration.binding() {
+                    Binding::Identifier(ident) => {
+                        self.create_mutable_binding(*ident, true, false);
+                        self.emit_binding(BindingOpcode::InitVar, *ident);
                     }
-                    self.compile_declaration_pattern(pattern, BindingOpcode::InitVar);
+                    Binding::Pattern(pattern) => {
+                        for ident in bound_names(pattern) {
+                            self.create_mutable_binding(ident, true, false);
+                        }
+                        self.compile_declaration_pattern(pattern, BindingOpcode::InitVar);
+                    }
                 }
-            },
+            }
             IterableLoopInitializer::Let(declaration) => match declaration {
                 Binding::Identifier(ident) => {
                     self.create_mutable_binding(*ident, false, false);
