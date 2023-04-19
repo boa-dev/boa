@@ -1,5 +1,3 @@
-// TODO: implement `Segmenter` when https://github.com/unicode-org/icu4x/issues/2259 closes.
-
 use std::ops::Range;
 
 use boa_macros::utf16;
