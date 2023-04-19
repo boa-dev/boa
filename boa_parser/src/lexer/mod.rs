@@ -178,7 +178,7 @@ impl<R> Lexer<R> {
     where
         R: Read,
     {
-        if !cfg!(feature = "annex-b") || self.module() {
+        if cfg!(not(feature = "annex-b")) || self.module() {
             return Ok(());
         }
 

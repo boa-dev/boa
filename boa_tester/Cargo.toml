@@ -12,7 +12,7 @@ repository.workspace = true
 rust-version.workspace = true
 
 [dependencies]
-boa_engine = { workspace = true, features = ["annex-b"] }
+boa_engine.workspace = true
 boa_gc.workspace = true
 clap = { version = "4.2.4", features = ["derive"] }
 serde = { version = "1.0.160", features = ["derive"] }
@@ -31,5 +31,4 @@ comfy-table = "6.1.4"
 serde_repr = "0.1.12"
 
 [features]
-default = ["intl"]
-intl = ["boa_engine/intl"]
+default = ["boa_engine/intl", "boa_engine/annex-b"]

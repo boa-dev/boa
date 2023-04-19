@@ -17,7 +17,10 @@ use crate::{
     },
     Error,
 };
-use ast::operations::{bound_names, var_declared_names};
+use ast::{
+    declaration::Binding,
+    operations::{bound_names, var_declared_names},
+};
 use boa_ast::{
     self as ast,
     statement::{
@@ -157,9 +160,13 @@ where
                 ));
             }
             (Some(init), TokenKind::Keyword((kw @ (Keyword::In | Keyword::Of), false))) => {
-                let kw = *kw;
-                let init =
-                    initializer_to_iterable_loop_initializer(init, position, cursor.strict())?;
+                let in_loop = kw == &Keyword::In;
+                let init = initializer_to_iterable_loop_initializer(
+                    init,
+                    position,
+                    cursor.strict(),
+                    in_loop,
+                )?;
 
                 cursor.advance(interner);
                 let expr = Expression::new(None, true, self.allow_yield, self.allow_await)
@@ -208,7 +215,7 @@ where
                         }
                     }
                 }
-                return Ok(if kw == Keyword::In {
+                return Ok(if in_loop {
                     ForInLoop::new(init, expr, body).into()
                 } else {
                     ForOfLoop::new(init, expr, body, r#await).into()
@@ -288,7 +295,9 @@ fn initializer_to_iterable_loop_initializer(
     initializer: ForLoopInitializer,
     position: Position,
     strict: bool,
+    in_loop: bool,
 ) -> ParseResult<IterableLoopInitializer> {
+    let loop_type = if in_loop { "for-in" } else { "for-of" };
     match initializer {
         ForLoopInitializer::Expression(mut expr) => {
             while let ast::Expression::Parenthesized(p) = expr {
@@ -338,7 +347,7 @@ fn initializer_to_iterable_loop_initializer(
             [declaration] => {
                 if declaration.init().is_some() {
                     return Err(Error::lex(LexError::Syntax(
-                        "a declaration in the head of a for-of loop can't have an initializer"
+                        format!("a lexical declaration in the head of a {loop_type} loop can't have an initializer")
                             .into(),
                         position,
                     )));
@@ -353,25 +362,38 @@ fn initializer_to_iterable_loop_initializer(
                 })
             }
             _ => Err(Error::lex(LexError::Syntax(
-                "only one variable can be declared in the head of a for-of loop".into(),
+                format!("only one variable can be declared in the head of a {loop_type} loop")
+                    .into(),
                 position,
             ))),
         },
         ForLoopInitializer::Var(decl) => match decl.0.as_ref() {
             [declaration] => {
-                // TODO: implement initializers in ForIn heads
                 // https://tc39.es/ecma262/#sec-initializers-in-forin-statement-heads
-                if declaration.init().is_some() {
+                let is_pattern = matches!(declaration.binding(), Binding::Pattern(_));
+                if declaration.init().is_some()
+                    && (cfg!(not(feature = "annex-b")) || strict || !in_loop || is_pattern)
+                {
                     return Err(Error::lex(LexError::Syntax(
-                        "a declaration in the head of a for-of loop can't have an initializer"
-                            .into(),
+                        format!(
+                            "{}a {} declaration in the head of a {loop_type} loop \
+                            cannot have an initializer",
+                            if strict { "in strict mode, " } else { "" },
+                            if is_pattern {
+                                "binding pattern"
+                            } else {
+                                "binding declaration"
+                            }
+                        )
+                        .into(),
                         position,
                     )));
                 }
-                Ok(IterableLoopInitializer::Var(declaration.binding().clone()))
+                Ok(IterableLoopInitializer::Var(declaration.clone()))
             }
             _ => Err(Error::lex(LexError::Syntax(
-                "only one variable can be declared in the head of a for-of loop".into(),
+                format!("only one variable can be declared in the head of a {loop_type} loop")
+                    .into(),
                 position,
             ))),
         },

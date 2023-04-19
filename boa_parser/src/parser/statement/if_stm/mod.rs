@@ -77,9 +77,8 @@ where
             TokenKind::Keyword((Keyword::Function, _)) => {
                 // FunctionDeclarations in IfStatement Statement Clauses
                 // https://tc39.es/ecma262/#sec-functiondeclarations-in-ifstatement-statement-clauses
-                if strict {
-                    // This production only applies when parsing non-strict code.
-                    return Err(Error::wrong_function_declaration_non_strict(position));
+                if cfg!(not(feature = "annex-b")) || strict {
+                    return Err(Error::function_declaration_in_if(position, strict));
                 }
                 // Source text matched by this production is processed as if each matching
                 // occurrence of FunctionDeclaration[?Yield, ?Await, ~Default] was the sole
@@ -117,8 +116,8 @@ where
                         TokenKind::Keyword((Keyword::Function, _)) => {
                             // FunctionDeclarations in IfStatement Statement Clauses
                             // https://tc39.es/ecma262/#sec-functiondeclarations-in-ifstatement-statement-clauses
-                            if strict {
-                                return Err(Error::wrong_function_declaration_non_strict(position));
+                            if cfg!(not(feature = "annex-b")) || strict {
+                                return Err(Error::function_declaration_in_if(position, strict));
                             }
 
                             // Source text matched by this production is processed as if each matching
