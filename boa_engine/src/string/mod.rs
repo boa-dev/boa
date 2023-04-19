@@ -355,7 +355,7 @@ impl JsString {
     }
 
     /// Gets an iterator of all the Unicode codepoints of a [`JsString`].
-    pub fn code_points(&self) -> impl Iterator<Item = CodePoint> + '_ {
+    pub fn code_points(&self) -> impl Iterator<Item = CodePoint> + Clone + '_ {
         char::decode_utf16(self.iter().copied()).map(|res| match res {
             Ok(c) => CodePoint::Unicode(c),
             Err(e) => CodePoint::UnpairedSurrogate(e.unpaired_surrogate()),

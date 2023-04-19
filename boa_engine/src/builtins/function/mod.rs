@@ -40,7 +40,7 @@ use boa_parser::{Parser, Source};
 use boa_profiler::Profiler;
 use thin_vec::ThinVec;
 
-use std::fmt;
+use std::{fmt, io::Read};
 
 use super::{promise::PromiseCapability, BuiltInBuilder, BuiltInConstructor, IntrinsicObject};
 
@@ -642,12 +642,16 @@ impl BuiltInFunctionObject {
                     .into());
             }
 
-            let body_arg = body_arg.to_string(context)?;
+            // 11. Let bodyString be the string-concatenation of 0x000A (LINE FEED), ? ToString(bodyArg), and 0x000A (LINE FEED).
+            let body_arg = body_arg.to_string(context)?.to_std_string_escaped();
+            let body = b"\n".chain(body_arg.as_bytes()).chain(b"\n".as_slice());
 
             // TODO: make parser generic to u32 iterators
-            let body = match Parser::new(Source::from_bytes(&body_arg.to_std_string_escaped()))
-                .parse_function_body(context.interner_mut(), generator, r#async)
-            {
+            let body = match Parser::new(Source::from_reader(body, None)).parse_function_body(
+                context.interner_mut(),
+                generator,
+                r#async,
+            ) {
                 Ok(statement_list) => statement_list,
                 Err(e) => {
                     return Err(JsNativeError::syntax()

@@ -152,8 +152,8 @@ where
         } else {
             self.peeked[self.write_index] = self.lexer.next(interner)?;
         }
-        self.write_index = (self.write_index + 1) % PEEK_BUF_SIZE;
 
+        self.write_index = (self.write_index + 1) % PEEK_BUF_SIZE;
         debug_assert_ne!(
             self.read_index, self.write_index,
             "we reached the read index with the write index"

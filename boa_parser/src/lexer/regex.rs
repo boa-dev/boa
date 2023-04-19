@@ -5,7 +5,7 @@ use bitflags::bitflags;
 use boa_ast::Position;
 use boa_interner::{Interner, Sym};
 use boa_profiler::Profiler;
-use regress::Regex;
+use regress::{Flags, Regex};
 use std::{
     io::{self, ErrorKind, Read},
     str::{self, FromStr},
@@ -235,5 +235,17 @@ impl ToString for RegExpFlags {
             s.push('y');
         }
         s
+    }
+}
+
+impl From<RegExpFlags> for Flags {
+    fn from(value: RegExpFlags) -> Self {
+        Self {
+            icase: value.contains(RegExpFlags::IGNORE_CASE),
+            multiline: value.contains(RegExpFlags::MULTILINE),
+            dot_all: value.contains(RegExpFlags::DOT_ALL),
+            unicode: value.contains(RegExpFlags::UNICODE),
+            ..Self::default()
+        }
     }
 }
