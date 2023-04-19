@@ -569,13 +569,66 @@ pub enum PropertyKey {
     Index(u32),
 }
 
+fn parse_u32_index(input: &str) -> Option<u32> {
+    // min: 0             --> 1  char
+    // max: 4_294_967_296 --> 10 chars
+    //
+    // Max char range: [1, 10] inclusive.
+    const MIN_RANGE: usize = 1;
+    const MAX_RANGE: usize = 10;
+
+    let len = input.len();
+    let bytes = input.as_bytes();
+    if len == MIN_RANGE && bytes[0] == b'0' {
+        return Some(0);
+    }
+
+    let mut result: u32 = 0;
+    if (MIN_RANGE..MAX_RANGE).contains(&len) {
+        if bytes[0] == b'0' {
+            return None;
+        }
+
+        for c in bytes {
+            if !c.is_ascii_digit() {
+                return None;
+            }
+            let digit = c - b'0';
+
+            result = result * 10 + u32::from(digit);
+        }
+
+        return Some(result);
+    }
+
+    if len == MAX_RANGE {
+        if bytes[0] == b'0' {
+            return None;
+        }
+
+        for c in bytes {
+            if !c.is_ascii_digit() {
+                return None;
+            }
+            let digit = c - b'0';
+
+            result = result.checked_mul(10)?;
+            result = result.checked_add(u32::from(digit))?;
+        }
+
+        return Some(result);
+    }
+
+    None
+}
+
 impl From<&[u16]> for PropertyKey {
     #[inline]
     fn from(string: &[u16]) -> Self {
-        debug_assert!(String::from_utf16(string)
-            .expect("should be ascii string")
-            .parse::<u32>()
-            .is_err());
+        debug_assert!(parse_u32_index(
+            &String::from_utf16(string).expect("should be ascii string")
+        )
+        .is_none());
         Self::String(string.into())
     }
 }
@@ -586,7 +639,7 @@ impl From<JsString> for PropertyKey {
         string
             .to_std_string()
             .ok()
-            .and_then(|s| s.parse().ok())
+            .and_then(|s| parse_u32_index(&s))
             .map_or(Self::String(string), Self::Index)
     }
 }
@@ -594,27 +647,21 @@ impl From<JsString> for PropertyKey {
 impl From<&str> for PropertyKey {
     #[inline]
     fn from(string: &str) -> Self {
-        string
-            .parse()
-            .map_or_else(|_| Self::String(string.into()), Self::Index)
+        parse_u32_index(string).map_or_else(|| Self::String(string.into()), Self::Index)
     }
 }
 
 impl From<String> for PropertyKey {
     #[inline]
     fn from(string: String) -> Self {
-        string
-            .parse()
-            .map_or_else(|_| Self::String(string.into()), Self::Index)
+        parse_u32_index(&string).map_or_else(|| Self::String(string.into()), Self::Index)
     }
 }
 
 impl From<Box<str>> for PropertyKey {
     #[inline]
     fn from(string: Box<str>) -> Self {
-        string
-            .parse()
-            .map_or_else(|_| Self::String(string.as_ref().into()), Self::Index)
+        parse_u32_index(&string).map_or_else(|| Self::String(string.as_ref().into()), Self::Index)
     }
 }
 
