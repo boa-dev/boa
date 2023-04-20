@@ -59,7 +59,11 @@ impl Operation for DefInitVar {
         binding_locator.throw_mutate_immutable(context)?;
 
         if binding_locator.is_global() {
-            if !context.put_value_if_global_poisoned(binding_locator.name(), &value)? {
+            if !context.put_value_if_global_poisoned(
+                binding_locator.name(),
+                &value,
+                context.vm.frame().code_block.strict,
+            )? {
                 let key = context
                     .interner()
                     .resolve_expect(binding_locator.name().sym())
