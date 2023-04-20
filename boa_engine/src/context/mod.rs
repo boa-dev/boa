@@ -8,7 +8,7 @@ mod maybe_shared;
 
 pub use hooks::{DefaultHooks, HostHooks};
 #[cfg(feature = "intl")]
-pub use icu::BoaProvider;
+pub use icu::{BoaProvider, IcuError};
 use intrinsics::Intrinsics;
 pub use maybe_shared::MaybeShared;
 
@@ -633,7 +633,7 @@ impl<'icu, 'hooks, 'queue> ContextBuilder<'icu, 'hooks, 'queue> {
     pub fn icu_provider(
         self,
         provider: BoaProvider<'_>,
-    ) -> Result<ContextBuilder<'_, 'hooks, 'queue>, icu_locid_transform::LocaleTransformError> {
+    ) -> Result<ContextBuilder<'_, 'hooks, 'queue>, IcuError> {
         Ok(ContextBuilder {
             icu: Some(icu::Icu::new(provider)?),
             ..self

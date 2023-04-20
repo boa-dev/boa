@@ -41,7 +41,6 @@
     single_use_lifetimes,
     trivial_casts,
     trivial_numeric_casts,
-    unreachable_pub,
     unsafe_op_in_unsafe_fn,
     unused_import_braces,
     unused_lifetimes,
@@ -68,6 +67,7 @@
     clippy::pedantic,
     clippy::nursery,
 )]
+#![allow(elided_lifetimes_in_paths)]
 #![cfg_attr(not(feature = "bin"), no_std)]
 
 /// Gets the path to the directory where the generated data is stored.
@@ -78,14 +78,25 @@ pub fn data_root() -> std::path::PathBuf {
     std::path::PathBuf::from(std::env!("CARGO_MANIFEST_DIR")).join("data")
 }
 
-use icu_provider::BufferProvider;
-use icu_provider_adapters::fallback::LocaleFallbackProvider;
-use icu_provider_blob::BlobDataProvider;
-use once_cell::sync::Lazy;
-
-/// Gets a data provider that is stored as a [`BufferProvider`]
+/// Gets a minimal data provider that is used when the `intl` feature of `boa_engine` is
+/// disabled.
+// Could use `LocaleFallbackProvider` in the future, which would disallow the `const`.
 #[must_use]
-pub fn buffer() -> &'static impl BufferProvider {
+#[allow(clippy::missing_const_for_fn)]
+pub fn minimal() -> MinimalDataProvider {
+    MinimalDataProvider
+}
+
+/// Gets the default data provider stored as a [`BufferProvider`].
+///
+/// [`BufferProvider`]: icu_provider::BufferProvider
+#[cfg(feature = "full")]
+#[must_use]
+pub fn buffer() -> &'static impl icu_provider::BufferProvider {
+    use icu_provider_adapters::fallback::LocaleFallbackProvider;
+    use icu_provider_blob::BlobDataProvider;
+    use once_cell::sync::Lazy;
+
     static PROVIDER: Lazy<LocaleFallbackProvider<BlobDataProvider>> = Lazy::new(|| {
         let blob = BlobDataProvider::try_new_from_static_blob(include_bytes!(concat!(
             env!("CARGO_MANIFEST_DIR"),
@@ -97,4 +108,21 @@ pub fn buffer() -> &'static impl BufferProvider {
     });
 
     &*PROVIDER
+}
+
+#[doc(hidden)]
+#[non_exhaustive]
+#[derive(Clone, Copy, Debug)]
+pub struct MinimalDataProvider;
+
+#[allow(
+    unreachable_pub,
+    clippy::unreadable_literal,
+    clippy::unnecessary_lazy_evaluations,
+    clippy::module_name_repetitions,
+    rustdoc::private_doc_tests
+)]
+mod baked {
+    include!("../data/min/mod.rs");
+    impl_data_provider!(super::MinimalDataProvider);
 }

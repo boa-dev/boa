@@ -413,6 +413,7 @@ dependencies = [
  "icu_list",
  "icu_locid",
  "icu_locid_transform",
+ "icu_normalizer",
  "icu_plurals",
  "icu_provider",
  "icu_segmenter",
@@ -439,7 +440,6 @@ dependencies = [
  "textwrap",
  "thin-vec",
  "thiserror",
- "unicode-normalization",
  "writeable",
  "yoke",
  "zerofrom",
@@ -471,13 +471,16 @@ dependencies = [
 name = "boa_icu_provider"
 version = "0.16.0"
 dependencies = [
+ "icu_collections",
  "icu_datagen",
+ "icu_normalizer",
  "icu_provider",
  "icu_provider_adapters",
  "icu_provider_blob",
  "log",
  "once_cell",
- "simple_logger 4.1.0",
+ "simple_logger",
+ "zerovec",
 ]
 
 [[package]]
@@ -1974,9 +1977,9 @@ dependencies = [
 
 [[package]]
 name = "icu_datagen"
-version = "1.2.1"
+version = "1.2.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f474bd38639e5af76d2a70ce60ccb553454a3d3257677de15570c359d2116c5b"
+checksum = "3c20e7886449669257f4dfdad042b939a1a32ad618902a6b83936f7d9f7e8146"
 dependencies = [
  "cached-path",
  "clap 4.2.4",
@@ -2014,11 +2017,10 @@ dependencies = [
  "proc-macro2",
  "quote",
  "rayon",
- "rust-format",
  "serde",
  "serde-aux",
  "serde_json",
- "simple_logger 1.16.0",
+ "simple_logger",
  "syn 1.0.109",
  "tinystr",
  "toml 0.5.11",
@@ -3407,15 +3409,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "rust-format"
-version = "0.3.4"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "60e7c00b6c3bf5e38a880eec01d7e829d12ca682079f8238a464def3c4b31627"
-dependencies = [
- "proc-macro2",
-]
-
-[[package]]
 name = "rustc-demangle"
 version = "0.1.23"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -3763,17 +3756,6 @@ name = "simdutf8"
 version = "0.1.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "f27f6278552951f1f2b8cf9da965d10969b2efdea95a6ec47987ab46edfe263a"
-
-[[package]]
-name = "simple_logger"
-version = "1.16.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "45b60258a35dc3cb8a16890b8fd6723349bfa458d7960e25e633f1b1c19d7b5e"
-dependencies = [
- "atty",
- "log",
- "winapi",
-]
 
 [[package]]
 name = "simple_logger"

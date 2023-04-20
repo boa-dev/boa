@@ -24,12 +24,22 @@ use crate::{
     Context, JsArgs, JsResult, JsString, JsValue,
 };
 use boa_profiler::Profiler;
+use icu_normalizer::{ComposingNormalizer, DecomposingNormalizer};
 use std::cmp::{max, min};
 
 use super::{BuiltInBuilder, BuiltInConstructor, IntrinsicObject};
 
 mod string_iterator;
 pub(crate) use string_iterator::StringIterator;
+
+/// The set of normalizers required for the `String.prototype.normalize` function.
+#[derive(Debug)]
+pub(crate) struct StringNormalizers {
+    pub(crate) nfc: ComposingNormalizer,
+    pub(crate) nfkc: ComposingNormalizer,
+    pub(crate) nfd: DecomposingNormalizer,
+    pub(crate) nfkd: DecomposingNormalizer,
+}
 
 #[cfg(test)]
 mod tests;
@@ -2024,7 +2034,6 @@ impl String {
         args: &[JsValue],
         context: &mut Context<'_>,
     ) -> JsResult<JsValue> {
-        use unicode_normalization::UnicodeNormalization;
         /// Represents the type of normalization applied to a [`JsString`]
         #[derive(Clone, Copy)]
         pub(crate) enum Normalization {
@@ -2033,79 +2042,72 @@ impl String {
             Nfkc,
             Nfkd,
         }
+
         // 1. Let O be ? RequireObjectCoercible(this value).
         let this = this.require_object_coercible()?;
 
         // 2. Let S be ? ToString(O).
         let s = this.to_string(context)?;
 
-        let f = match args.get_or_undefined(0) {
-            // 3. If form is undefined, let f be "NFC".
-            &JsValue::Undefined => js_string!("NFC"),
-            // 4. Else, let f be ? ToString(form).
-            form => form.to_string(context)?,
-        };
-
         // 6. Let ns be the String value that is the result of normalizing S
         // into the normalization form named by f as specified in
         // https://unicode.org/reports/tr15/.
-        let normalization = match f {
-            ntype if &ntype == utf16!("NFC") => Normalization::Nfc,
-            ntype if &ntype == utf16!("NFD") => Normalization::Nfd,
-            ntype if &ntype == utf16!("NFKC") => Normalization::Nfkc,
-            ntype if &ntype == utf16!("NFKD") => Normalization::Nfkd,
-            // 5. If f is not one of "NFC", "NFD", "NFKC", or "NFKD", throw a RangeError exception.
-            _ => {
-                return Err(JsNativeError::range()
-                    .with_message("The normalization form should be one of NFC, NFD, NFKC, NFKD.")
-                    .into());
+        let normalization = match args.get_or_undefined(0) {
+            // 3. If form is undefined, let f be "NFC".
+            &JsValue::Undefined => Normalization::Nfc,
+            // 4. Else, let f be ? ToString(form).
+            f => match f.to_string(context)? {
+                ntype if &ntype == utf16!("NFC") => Normalization::Nfc,
+                ntype if &ntype == utf16!("NFD") => Normalization::Nfd,
+                ntype if &ntype == utf16!("NFKC") => Normalization::Nfkc,
+                ntype if &ntype == utf16!("NFKD") => Normalization::Nfkd,
+                // 5. If f is not one of "NFC", "NFD", "NFKC", or "NFKD", throw a RangeError exception.
+                _ => {
+                    return Err(JsNativeError::range()
+                        .with_message(
+                            "The normalization form should be one of NFC, NFD, NFKC, NFKD.",
+                        )
+                        .into());
+                }
+            },
+        };
+
+        let normalizers = {
+            #[cfg(not(feature = "intl"))]
+            {
+                use once_cell::sync::Lazy;
+                static NORMALIZERS: Lazy<StringNormalizers> = Lazy::new(|| {
+                    let provider = &boa_icu_provider::minimal();
+                    let nfc = ComposingNormalizer::try_new_nfc_unstable(provider)
+                        .expect("minimal data should always be updated");
+                    let nfkc = ComposingNormalizer::try_new_nfkc_unstable(provider)
+                        .expect("minimal data should always be updated");
+                    let nfd = DecomposingNormalizer::try_new_nfd_unstable(provider)
+                        .expect("minimal data should always be updated");
+                    let nfkd = DecomposingNormalizer::try_new_nfkd_unstable(provider)
+                        .expect("minimal data should always be updated");
+
+                    StringNormalizers {
+                        nfc,
+                        nfkc,
+                        nfd,
+                        nfkd,
+                    }
+                });
+                &*NORMALIZERS
+            }
+            #[cfg(feature = "intl")]
+            {
+                context.icu().string_normalizers()
             }
         };
 
-        let mut code_points = s.code_points();
-        let mut result = Vec::with_capacity(s.len());
-
-        let mut next_unpaired_surrogate = None;
-        let mut buf = [0; 2];
-
-        loop {
-            let only_chars = code_points.by_ref().map_while(|cpoint| match cpoint {
-                CodePoint::Unicode(c) => Some(c),
-                CodePoint::UnpairedSurrogate(s) => {
-                    next_unpaired_surrogate = Some(s);
-                    None
-                }
-            });
-
-            match normalization {
-                Normalization::Nfc => {
-                    for mapped in only_chars.nfc() {
-                        result.extend_from_slice(mapped.encode_utf16(&mut buf));
-                    }
-                }
-                Normalization::Nfd => {
-                    for mapped in only_chars.nfd() {
-                        result.extend_from_slice(mapped.encode_utf16(&mut buf));
-                    }
-                }
-                Normalization::Nfkc => {
-                    for mapped in only_chars.nfkc() {
-                        result.extend_from_slice(mapped.encode_utf16(&mut buf));
-                    }
-                }
-                Normalization::Nfkd => {
-                    for mapped in only_chars.nfkd() {
-                        result.extend_from_slice(mapped.encode_utf16(&mut buf));
-                    }
-                }
-            }
-
-            if let Some(surr) = next_unpaired_surrogate.take() {
-                result.push(surr);
-            } else {
-                break;
-            }
-        }
+        let result = match normalization {
+            Normalization::Nfc => normalizers.nfc.normalize_utf16(&s),
+            Normalization::Nfd => normalizers.nfd.normalize_utf16(&s),
+            Normalization::Nfkc => normalizers.nfkc.normalize_utf16(&s),
+            Normalization::Nfkd => normalizers.nfkd.normalize_utf16(&s),
+        };
 
         // 7. Return ns.
         Ok(js_string!(result).into())
