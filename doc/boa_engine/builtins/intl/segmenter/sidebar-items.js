@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"mod":[["options",""]],"struct":[["Segmenter",""]]};
+window.SIDEBAR_ITEMS = {"enum":[["NativeSegmenter",""]],"fn":[["create_segment_data_object","`CreateSegmentDataObject ( segmenter, string, startIndex, endIndex )`."]],"mod":[["iterator",""],["options",""],["segments",""]],"struct":[["Segmenter",""]]};

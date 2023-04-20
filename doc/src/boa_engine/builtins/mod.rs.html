@@ -888,6 +888,8 @@
 <a href="#887" id="887">887</a>
 <a href="#888" id="888">888</a>
 <a href="#889" id="889">889</a>
+<a href="#890" id="890">890</a>
+<a href="#891" id="891">891</a>
 </pre><pre class="rust"><code><span class="doccomment">//! Boa&#39;s ECMAScript built-in object implementations, e.g. Object, String, Math, Array, etc.
 //!
 //! This module also contains a JavaScript Console implementation.
@@ -1161,6 +1163,8 @@
             intl::Locale::init(<span class="self">self</span>);
             intl::DateTimeFormat::init(<span class="self">self</span>);
             intl::Segmenter::init(<span class="self">self</span>);
+            intl::segmenter::Segments::init(<span class="self">self</span>);
+            intl::segmenter::SegmentIterator::init(<span class="self">self</span>);
         }
     }
 }

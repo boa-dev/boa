@@ -554,15 +554,29 @@
 <a href="#553" id="553">553</a>
 <a href="#554" id="554">554</a>
 <a href="#555" id="555">555</a>
+<a href="#556" id="556">556</a>
+<a href="#557" id="557">557</a>
+<a href="#558" id="558">558</a>
+<a href="#559" id="559">559</a>
+<a href="#560" id="560">560</a>
+<a href="#561" id="561">561</a>
+<a href="#562" id="562">562</a>
+<a href="#563" id="563">563</a>
+<a href="#564" id="564">564</a>
+<a href="#565" id="565">565</a>
+<a href="#566" id="566">566</a>
+<a href="#567" id="567">567</a>
+<a href="#568" id="568">568</a>
+<a href="#569" id="569">569</a>
 </pre><pre class="rust"><code><span class="doccomment">//! Boa&#39;s implementation of ECMAScript&#39;s `IteratorRecord` and iterator prototype objects.
 
 </span><span class="kw">use crate</span>::{
     builtins::{BuiltInBuilder, IntrinsicObject},
     context::intrinsics::Intrinsics,
     error::JsNativeError,
+    js_string,
     object::JsObject,
     realm::Realm,
-    string::utf16,
     symbol::JsSymbol,
     Context, JsResult, JsValue,
 };
@@ -624,6 +638,10 @@
 
     <span class="doccomment">/// The `ForInIteratorPrototype` prototype object.
     </span>for_in: JsObject,
+
+    <span class="doccomment">/// The `%SegmentIteratorPrototype%` prototype object.
+    </span><span class="attr">#[cfg(feature = <span class="string">&quot;intl&quot;</span>)]
+    </span>segment: JsObject,
 }
 
 <span class="kw">impl </span>IteratorPrototypes {
@@ -680,6 +698,13 @@
     </span><span class="kw">pub fn </span>for_in(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; JsObject {
         <span class="self">self</span>.for_in.clone()
     }
+
+    <span class="doccomment">/// Returns the `%SegmentIteratorPrototype%` object.
+    </span><span class="attr">#[inline]
+    #[cfg(feature = <span class="string">&quot;intl&quot;</span>)]
+    </span><span class="kw">pub fn </span>segment(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; JsObject {
+        <span class="self">self</span>.segment.clone()
+    }
 }
 
 <span class="doccomment">/// `%IteratorPrototype%` object
@@ -698,7 +723,7 @@
         BuiltInBuilder::with_intrinsic::&lt;<span class="self">Self</span>&gt;(realm)
             .static_method(
                 |v, <span class="kw">_</span>, <span class="kw">_</span>| <span class="prelude-val">Ok</span>(v.clone()),
-                (JsSymbol::iterator(), <span class="string">&quot;[Symbol.iterator]&quot;</span>),
+                (JsSymbol::iterator(), <span class="macro">js_string!</span>(<span class="string">&quot;[Symbol.iterator]&quot;</span>)),
                 <span class="number">0</span>,
             )
             .build();
@@ -724,7 +749,10 @@
         BuiltInBuilder::with_intrinsic::&lt;<span class="self">Self</span>&gt;(realm)
             .static_method(
                 |v, <span class="kw">_</span>, <span class="kw">_</span>| <span class="prelude-val">Ok</span>(v.clone()),
-                (JsSymbol::async_iterator(), <span class="string">&quot;[Symbol.asyncIterator]&quot;</span>),
+                (
+                    JsSymbol::async_iterator(),
+                    <span class="macro">js_string!</span>(<span class="string">&quot;[Symbol.asyncIterator]&quot;</span>),
+                ),
                 <span class="number">0</span>,
             )
             .build();
@@ -746,10 +774,10 @@
     </span><span class="kw">let </span>obj = JsObject::with_object_proto(context.intrinsics());
 
     <span class="comment">// 3. Perform ! CreateDataPropertyOrThrow(obj, &quot;value&quot;, value).
-    </span>obj.create_data_property_or_throw(<span class="macro">utf16!</span>(<span class="string">&quot;value&quot;</span>), value, context)
+    </span>obj.create_data_property_or_throw(<span class="macro">js_string!</span>(<span class="string">&quot;value&quot;</span>), value, context)
         .expect(<span class="string">&quot;this CreateDataPropertyOrThrow call must not fail&quot;</span>);
     <span class="comment">// 4. Perform ! CreateDataPropertyOrThrow(obj, &quot;done&quot;, done).
-    </span>obj.create_data_property_or_throw(<span class="macro">utf16!</span>(<span class="string">&quot;done&quot;</span>), done, context)
+    </span>obj.create_data_property_or_throw(<span class="macro">js_string!</span>(<span class="string">&quot;done&quot;</span>), done, context)
         .expect(<span class="string">&quot;this CreateDataPropertyOrThrow call must not fail&quot;</span>);
     <span class="comment">// 5. Return obj.
     </span>obj.into()
@@ -823,7 +851,7 @@
         })<span class="question-mark">?</span>;
 
         <span class="comment">// 5. Let nextMethod be ? GetV(iterator, &quot;next&quot;).
-        </span><span class="kw">let </span>next_method = iterator.get_v(<span class="macro">utf16!</span>(<span class="string">&quot;next&quot;</span>), context)<span class="question-mark">?</span>;
+        </span><span class="kw">let </span>next_method = iterator.get_v(<span class="macro">js_string!</span>(<span class="string">&quot;next&quot;</span>), context)<span class="question-mark">?</span>;
 
         <span class="comment">// 6. Let iteratorRecord be the Record { [[Iterator]]: iterator, [[NextMethod]]: nextMethod, [[Done]]: false }.
         // 7. Return iteratorRecord.
@@ -859,7 +887,7 @@
     </span><span class="attr">#[inline]
     </span><span class="kw">pub fn </span>complete(<span class="kw-2">&amp;</span><span class="self">self</span>, context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;bool&gt; {
         <span class="comment">// 1. Return ToBoolean(? Get(iterResult, &quot;done&quot;)).
-        </span><span class="prelude-val">Ok</span>(<span class="self">self</span>.object.get(<span class="macro">utf16!</span>(<span class="string">&quot;done&quot;</span>), context)<span class="question-mark">?</span>.to_boolean())
+        </span><span class="prelude-val">Ok</span>(<span class="self">self</span>.object.get(<span class="macro">js_string!</span>(<span class="string">&quot;done&quot;</span>), context)<span class="question-mark">?</span>.to_boolean())
     }
 
     <span class="doccomment">/// `IteratorValue ( iterResult )`
@@ -875,7 +903,7 @@
     </span><span class="attr">#[inline]
     </span><span class="kw">pub fn </span>value(<span class="kw-2">&amp;</span><span class="self">self</span>, context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;JsValue&gt; {
         <span class="comment">// 1. Return ? Get(iterResult, &quot;value&quot;).
-        </span><span class="self">self</span>.object.get(<span class="macro">utf16!</span>(<span class="string">&quot;value&quot;</span>), context)
+        </span><span class="self">self</span>.object.get(<span class="macro">js_string!</span>(<span class="string">&quot;value&quot;</span>), context)
     }
 }
 
@@ -1030,7 +1058,7 @@
         </span><span class="kw">let </span>iterator = <span class="kw-2">&amp;</span><span class="self">self</span>.iterator;
 
         <span class="comment">// 3. Let innerResult be Completion(GetMethod(iterator, &quot;return&quot;)).
-        </span><span class="kw">let </span>inner_result = iterator.get_method(<span class="macro">utf16!</span>(<span class="string">&quot;return&quot;</span>), context);
+        </span><span class="kw">let </span>inner_result = iterator.get_method(<span class="macro">js_string!</span>(<span class="string">&quot;return&quot;</span>), context);
 
         <span class="comment">// 4. If innerResult.[[Type]] is normal, then
         </span><span class="kw">let </span>inner_result = <span class="kw">match </span>inner_result {

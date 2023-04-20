@@ -608,6 +608,27 @@
 <a href="#607" id="607">607</a>
 <a href="#608" id="608">608</a>
 <a href="#609" id="609">609</a>
+<a href="#610" id="610">610</a>
+<a href="#611" id="611">611</a>
+<a href="#612" id="612">612</a>
+<a href="#613" id="613">613</a>
+<a href="#614" id="614">614</a>
+<a href="#615" id="615">615</a>
+<a href="#616" id="616">616</a>
+<a href="#617" id="617">617</a>
+<a href="#618" id="618">618</a>
+<a href="#619" id="619">619</a>
+<a href="#620" id="620">620</a>
+<a href="#621" id="621">621</a>
+<a href="#622" id="622">622</a>
+<a href="#623" id="623">623</a>
+<a href="#624" id="624">624</a>
+<a href="#625" id="625">625</a>
+<a href="#626" id="626">626</a>
+<a href="#627" id="627">627</a>
+<a href="#628" id="628">628</a>
+<a href="#629" id="629">629</a>
+<a href="#630" id="630">630</a>
 </pre><pre class="rust"><code><span class="kw">use crate</span>::{
     builtins::{
         intl::{
@@ -630,6 +651,7 @@
 };
 <span class="kw">use </span>icu_locid_transform::LocaleCanonicalizer;
 <span class="kw">use </span>icu_provider::{DataLocale, DataProvider, DataRequest, DataRequestMetadata, KeyedDataMarker};
+<span class="kw">use </span>icu_segmenter::provider::WordBreakDataV1Marker;
 <span class="kw">use </span>indexmap::IndexSet;
 
 <span class="kw">use </span>tap::TapOptional;
@@ -725,9 +747,14 @@
             <span class="comment">// iv. Else,
             </span><span class="kw">else </span>{
                 <span class="comment">// 1. Let tag be ? ToString(kValue).
-                </span>k_value
-                    .to_string(context)<span class="question-mark">?
-                    </span>.to_std_string_escaped()
+                </span><span class="kw">let </span>k_value = k_value.to_string(context)<span class="question-mark">?</span>.to_std_string_escaped();
+                <span class="kw">if </span>k_value.contains(<span class="string">&#39;_&#39;</span>) {
+                    <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::range()
+                        .with_message(<span class="string">&quot;locale is not a structurally valid language tag&quot;</span>)
+                        .into());
+                }
+
+                k_value
                     .parse()
                     <span class="comment">// v. If IsStructurallyValidLanguageTag(tag) is false, throw a RangeError exception.
                     </span>.map_err(|<span class="kw">_</span>| {
@@ -779,7 +806,11 @@
             provider,
             DataRequest {
                 locale: <span class="kw-2">&amp;</span>candidate,
-                metadata: DataRequestMetadata::default(),
+                metadata: {
+                    <span class="kw">let </span><span class="kw-2">mut </span>metadata = DataRequestMetadata::default();
+                    metadata.silent = <span class="bool-val">true</span>;
+                    metadata
+                },
             },
         );
 
@@ -790,10 +821,15 @@
             // the fallback algorithm, even if the used locale is exactly the same as the required
             // locale.
             </span><span class="kw">match </span>req.metadata.locale {
-                <span class="prelude-val">Some</span>(loc)
+                <span class="comment">// TODO: ugly hack to accept locales that fallback to &quot;und&quot; in the collator/segmenter services
+                </span><span class="prelude-val">Some</span>(loc)
                     <span class="kw">if </span>loc == candidate
-                <span class="comment">// TODO: ugly hack to accept locales that fallback to &quot;und&quot; in the collator service
-                </span>|| (loc.is_empty() &amp;&amp; M::KEY.path() == CollationMetadataV1Marker::KEY.path()) =&gt;
+                        || (loc.is_empty()
+                            &amp;&amp; [
+                                CollationMetadataV1Marker::KEY.path(),
+                                WordBreakDataV1Marker::KEY.path(),
+                            ]
+                            .contains(<span class="kw-2">&amp;</span>M::KEY.path())) =&gt;
                 {
                     <span class="kw">return </span><span class="prelude-val">Some</span>(candidate.into_locale().id)
                 }
@@ -852,8 +888,14 @@
         .metadata
         .locale
         .map(|dl| {
-            <span class="comment">// TODO: ugly hack to accept locales that fallback to &quot;und&quot; in the collator service
-            </span><span class="kw">if </span>M::KEY.path() == CollationMetadataV1Marker::KEY.path() &amp;&amp; dl.is_empty() {
+            <span class="comment">// TODO: ugly hack to accept locales that fallback to &quot;und&quot; in the collator/segmenter services
+            </span><span class="kw">if </span>[
+                CollationMetadataV1Marker::KEY.path(),
+                WordBreakDataV1Marker::KEY.path(),
+            ]
+            .contains(<span class="kw-2">&amp;</span>M::KEY.path())
+                &amp;&amp; dl.is_empty()
+            {
                 candidate.clone()
             } <span class="kw">else </span>{
                 dl.into_locale().id

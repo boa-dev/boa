@@ -175,6 +175,30 @@
 <a href="#174" id="174">174</a>
 <a href="#175" id="175">175</a>
 <a href="#176" id="176">176</a>
+<a href="#177" id="177">177</a>
+<a href="#178" id="178">178</a>
+<a href="#179" id="179">179</a>
+<a href="#180" id="180">180</a>
+<a href="#181" id="181">181</a>
+<a href="#182" id="182">182</a>
+<a href="#183" id="183">183</a>
+<a href="#184" id="184">184</a>
+<a href="#185" id="185">185</a>
+<a href="#186" id="186">186</a>
+<a href="#187" id="187">187</a>
+<a href="#188" id="188">188</a>
+<a href="#189" id="189">189</a>
+<a href="#190" id="190">190</a>
+<a href="#191" id="191">191</a>
+<a href="#192" id="192">192</a>
+<a href="#193" id="193">193</a>
+<a href="#194" id="194">194</a>
+<a href="#195" id="195">195</a>
+<a href="#196" id="196">196</a>
+<a href="#197" id="197">197</a>
+<a href="#198" id="198">198</a>
+<a href="#199" id="199">199</a>
+<a href="#200" id="200">200</a>
 </pre><pre class="rust"><code><span class="kw">use </span>std::fmt::Debug;
 
 <span class="kw">use </span>icu_collator::{Collator, CollatorError, CollatorOptions};
@@ -184,11 +208,15 @@
     AnyProvider, AsDeserializingBufferProvider, AsDowncastingAnyProvider, BufferProvider,
     DataError, DataLocale, DataProvider, DataRequest, DataResponse, KeyedDataMarker, MaybeSendSync,
 };
+<span class="kw">use </span>icu_segmenter::{GraphemeClusterSegmenter, SegmenterError, SentenceSegmenter, WordSegmenter};
 <span class="kw">use </span>serde::Deserialize;
 <span class="kw">use </span>yoke::{trait_hack::YokeTraitHack, Yokeable};
 <span class="kw">use </span>zerofrom::ZeroFrom;
 
-<span class="kw">use </span><span class="kw">crate</span>::builtins::intl::list_format::ListFormatType;
+<span class="kw">use </span><span class="kw">crate</span>::builtins::intl::{
+    list_format::ListFormatType,
+    segmenter::{Granularity, NativeSegmenter},
+};
 
 <span class="doccomment">/// ICU4X data provider used in boa.
 ///
@@ -232,19 +260,19 @@
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>try_new_locale_canonicalizer(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;LocaleCanonicalizer, LocaleTransformError&gt; {
-        <span class="kw">match </span><span class="self">self </span>{
+        <span class="kw">match </span><span class="kw-2">*</span><span class="self">self </span>{
             BoaProvider::Buffer(buffer) =&gt; {
-                LocaleCanonicalizer::try_new_with_buffer_provider(<span class="kw-2">&amp;**</span>buffer)
+                LocaleCanonicalizer::try_new_with_buffer_provider(buffer)
             }
-            BoaProvider::Any(any) =&gt; LocaleCanonicalizer::try_new_with_any_provider(<span class="kw-2">&amp;**</span>any),
+            BoaProvider::Any(any) =&gt; LocaleCanonicalizer::try_new_with_any_provider(any),
         }
     }
 
     <span class="doccomment">/// Creates a new [`LocaleExpander`] from the provided [`DataProvider`].
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>try_new_locale_expander(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;LocaleExpander, LocaleTransformError&gt; {
-        <span class="kw">match </span><span class="self">self </span>{
-            BoaProvider::Buffer(buffer) =&gt; LocaleExpander::try_new_with_buffer_provider(<span class="kw-2">&amp;**</span>buffer),
-            BoaProvider::Any(any) =&gt; LocaleExpander::try_new_with_any_provider(<span class="kw-2">&amp;**</span>any),
+        <span class="kw">match </span><span class="kw-2">*</span><span class="self">self </span>{
+            BoaProvider::Buffer(buffer) =&gt; LocaleExpander::try_new_with_buffer_provider(buffer),
+            BoaProvider::Any(any) =&gt; LocaleExpander::try_new_with_any_provider(any),
         }
     }
 
@@ -255,33 +283,27 @@
         typ: ListFormatType,
         style: ListLength,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;ListFormatter, ListError&gt; {
-        <span class="kw">match </span><span class="self">self </span>{
+        <span class="kw">match </span><span class="kw-2">*</span><span class="self">self </span>{
             BoaProvider::Buffer(buf) =&gt; <span class="kw">match </span>typ {
                 ListFormatType::Conjunction =&gt; {
-                    ListFormatter::try_new_and_with_length_with_buffer_provider(
-                        <span class="kw-2">&amp;**</span>buf, locale, style,
-                    )
+                    ListFormatter::try_new_and_with_length_with_buffer_provider(buf, locale, style)
                 }
                 ListFormatType::Disjunction =&gt; {
-                    ListFormatter::try_new_or_with_length_with_buffer_provider(
-                        <span class="kw-2">&amp;**</span>buf, locale, style,
-                    )
+                    ListFormatter::try_new_or_with_length_with_buffer_provider(buf, locale, style)
                 }
                 ListFormatType::Unit =&gt; {
-                    ListFormatter::try_new_unit_with_length_with_buffer_provider(
-                        <span class="kw-2">&amp;**</span>buf, locale, style,
-                    )
+                    ListFormatter::try_new_unit_with_length_with_buffer_provider(buf, locale, style)
                 }
             },
             BoaProvider::Any(any) =&gt; <span class="kw">match </span>typ {
                 ListFormatType::Conjunction =&gt; {
-                    ListFormatter::try_new_and_with_length_with_any_provider(<span class="kw-2">&amp;**</span>any, locale, style)
+                    ListFormatter::try_new_and_with_length_with_any_provider(any, locale, style)
                 }
                 ListFormatType::Disjunction =&gt; {
-                    ListFormatter::try_new_or_with_length_with_any_provider(<span class="kw-2">&amp;**</span>any, locale, style)
+                    ListFormatter::try_new_or_with_length_with_any_provider(any, locale, style)
                 }
                 ListFormatType::Unit =&gt; {
-                    ListFormatter::try_new_unit_with_length_with_any_provider(<span class="kw-2">&amp;**</span>any, locale, style)
+                    ListFormatter::try_new_unit_with_length_with_any_provider(any, locale, style)
                 }
             },
         }
@@ -293,11 +315,37 @@
         locale: <span class="kw-2">&amp;</span>DataLocale,
         options: CollatorOptions,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;Collator, CollatorError&gt; {
-        <span class="kw">match </span><span class="self">self </span>{
+        <span class="kw">match </span><span class="kw-2">*</span><span class="self">self </span>{
             BoaProvider::Buffer(buf) =&gt; {
-                Collator::try_new_with_buffer_provider(<span class="kw-2">&amp;**</span>buf, locale, options)
+                Collator::try_new_with_buffer_provider(buf, locale, options)
             }
-            BoaProvider::Any(any) =&gt; Collator::try_new_with_any_provider(<span class="kw-2">&amp;**</span>any, locale, options),
+            BoaProvider::Any(any) =&gt; Collator::try_new_with_any_provider(any, locale, options),
+        }
+    }
+
+    <span class="doccomment">/// Creates a new [`NativeSegmenter`] from the provided [`DataProvider`] and options.
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>try_new_segmenter(
+        <span class="kw-2">&amp;</span><span class="self">self</span>,
+        granularity: Granularity,
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;NativeSegmenter, SegmenterError&gt; {
+        <span class="kw">match </span>granularity {
+            Granularity::Grapheme =&gt; <span class="kw">match </span><span class="kw-2">*</span><span class="self">self </span>{
+                BoaProvider::Buffer(buf) =&gt; {
+                    GraphemeClusterSegmenter::try_new_with_buffer_provider(buf)
+                }
+                BoaProvider::Any(any) =&gt; GraphemeClusterSegmenter::try_new_with_any_provider(any),
+            }
+            .map(|seg| NativeSegmenter::Grapheme(Box::new(seg))),
+            Granularity::Word =&gt; <span class="kw">match </span><span class="kw-2">*</span><span class="self">self </span>{
+                BoaProvider::Buffer(buf) =&gt; WordSegmenter::try_new_auto_with_buffer_provider(buf),
+                BoaProvider::Any(any) =&gt; WordSegmenter::try_new_auto_with_any_provider(any),
+            }
+            .map(|seg| NativeSegmenter::Word(Box::new(seg))),
+            Granularity::Sentence =&gt; <span class="kw">match </span><span class="kw-2">*</span><span class="self">self </span>{
+                BoaProvider::Buffer(buf) =&gt; SentenceSegmenter::try_new_with_buffer_provider(buf),
+                BoaProvider::Any(any) =&gt; SentenceSegmenter::try_new_with_any_provider(any),
+            }
+            .map(|seg| NativeSegmenter::Sentence(Box::new(seg))),
         }
     }
 }

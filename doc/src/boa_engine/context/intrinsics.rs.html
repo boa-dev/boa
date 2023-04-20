@@ -937,6 +937,20 @@
 <a href="#936" id="936">936</a>
 <a href="#937" id="937">937</a>
 <a href="#938" id="938">938</a>
+<a href="#939" id="939">939</a>
+<a href="#940" id="940">940</a>
+<a href="#941" id="941">941</a>
+<a href="#942" id="942">942</a>
+<a href="#943" id="943">943</a>
+<a href="#944" id="944">944</a>
+<a href="#945" id="945">945</a>
+<a href="#946" id="946">946</a>
+<a href="#947" id="947">947</a>
+<a href="#948" id="948">948</a>
+<a href="#949" id="949">949</a>
+<a href="#950" id="950">950</a>
+<a href="#951" id="951">951</a>
+<a href="#952" id="952">952</a>
 </pre><pre class="rust"><code><span class="doccomment">//! Data structures that contain intrinsic objects and constructors.
 
 </span><span class="kw">use </span>boa_gc::{Finalize, Trace};
@@ -1722,6 +1736,10 @@
     <span class="doccomment">/// [`%Intl%`](https://tc39.es/ecma402/#intl-object)
     </span><span class="attr">#[cfg(feature = <span class="string">&quot;intl&quot;</span>)]
     </span>intl: JsObject,
+
+    <span class="doccomment">/// [`%SegmentsPrototype%`](https://tc39.es/ecma402/#sec-%segmentsprototype%-object)
+    </span><span class="attr">#[cfg(feature = <span class="string">&quot;intl&quot;</span>)]
+    </span>segments_prototype: JsObject,
 }
 
 <span class="kw">impl </span>Default <span class="kw">for </span>IntrinsicObjects {
@@ -1747,6 +1765,8 @@
             </span>unescape: JsFunction::empty_intrinsic_function(<span class="bool-val">false</span>),
             <span class="attr">#[cfg(feature = <span class="string">&quot;intl&quot;</span>)]
             </span>intl: JsObject::default(),
+            <span class="attr">#[cfg(feature = <span class="string">&quot;intl&quot;</span>)]
+            </span>segments_prototype: JsObject::default(),
         }
     }
 }
@@ -1873,6 +1893,14 @@
     </span><span class="attr">#[cfg(feature = <span class="string">&quot;intl&quot;</span>)]
     </span><span class="kw">pub fn </span>intl(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; JsObject {
         <span class="self">self</span>.intl.clone()
+    }
+
+    <span class="doccomment">/// Gets the [`%SegmentsPrototype%`][spec] intrinsic object.
+    ///
+    /// [spec]: https://tc39.es/ecma402/#sec-%segmentsprototype%-object
+    </span><span class="attr">#[cfg(feature = <span class="string">&quot;intl&quot;</span>)]
+    </span><span class="kw">pub fn </span>segments_prototype(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; JsObject {
+        <span class="self">self</span>.segments_prototype.clone()
     }
 }
 </code></pre></div>
