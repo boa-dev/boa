@@ -7,7 +7,7 @@ use crate::{
     string::utf16,
     vm::{
         call_frame::{AbruptCompletionRecord, GeneratorResumeKind},
-        opcode::Operation,
+        opcode::{control_flow::Return, Operation},
         CompletionType,
     },
     Context, JsError, JsResult, JsValue,
@@ -139,8 +139,9 @@ impl Operation for GeneratorNextDelegate {
 
         match context.vm.frame().generator_resume_kind {
             GeneratorResumeKind::Normal => {
-                let result = next_method.call(&iterator.clone().into(), &[received], context)?;
-                let result = result.as_object().ok_or_else(|| {
+                let result_value =
+                    next_method.call(&iterator.clone().into(), &[received], context)?;
+                let result = result_value.as_object().ok_or_else(|| {
                     JsNativeError::typ().with_message("generator next method returned non-object")
                 })?;
                 // TODO: This is wrong for async generators, since we need to await the result first.
@@ -151,10 +152,9 @@ impl Operation for GeneratorNextDelegate {
                     context.vm.push(value);
                     return Ok(CompletionType::Normal);
                 }
-                let value = result.get(utf16!("value"), context)?;
                 context.vm.push(iterator.clone());
                 context.vm.push(next_method.clone());
-                context.vm.push(value);
+                context.vm.push(result_value);
                 context.vm.frame_mut().r#yield = true;
                 Ok(CompletionType::Return)
             }
@@ -173,10 +173,9 @@ impl Operation for GeneratorNextDelegate {
                         context.vm.push(value);
                         return Ok(CompletionType::Normal);
                     }
-                    let value = result_object.get(utf16!("value"), context)?;
                     context.vm.push(iterator.clone());
                     context.vm.push(next_method.clone());
-                    context.vm.push(value);
+                    context.vm.push(result);
                     context.vm.frame_mut().r#yield = true;
                     return Ok(CompletionType::Return);
                 }
@@ -198,21 +197,18 @@ impl Operation for GeneratorNextDelegate {
                     })?;
                     let done = result_object.get(utf16!("done"), context)?.to_boolean();
                     if done {
-                        context.vm.frame_mut().pc = done_address as usize;
                         let value = result_object.get(utf16!("value"), context)?;
                         context.vm.push(value);
-                        return Ok(CompletionType::Return);
+                        return Return::execute(context);
                     }
-                    let value = result_object.get(utf16!("value"), context)?;
                     context.vm.push(iterator.clone());
                     context.vm.push(next_method.clone());
-                    context.vm.push(value);
+                    context.vm.push(result);
                     context.vm.frame_mut().r#yield = true;
                     return Ok(CompletionType::Return);
                 }
-                context.vm.frame_mut().pc = done_address as usize;
                 context.vm.push(received);
-                Ok(CompletionType::Return)
+                Return::execute(context)
             }
         }
     }
