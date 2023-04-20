@@ -19,7 +19,7 @@ mod attribute;
 
 use crate::{js_string, JsString, JsSymbol, JsValue};
 use boa_gc::{Finalize, Trace};
-use std::fmt;
+use std::{fmt, iter::FusedIterator};
 
 pub use attribute::Attribute;
 
@@ -569,64 +569,70 @@ pub enum PropertyKey {
     Index(u32),
 }
 
-fn parse_u32_index(input: &str) -> Option<u32> {
+/// Utility function for parsing [`PropertyKey`].
+fn parse_u32_index<I, T>(mut input: I) -> Option<u32>
+where
+    I: Iterator<Item = T> + ExactSizeIterator + FusedIterator,
+    T: Into<u16>,
+{
     // min: 0             --> 1  char
     // max: 4_294_967_296 --> 10 chars
     //
     // Max char range: [1, 10] inclusive.
-    const MIN_RANGE: usize = 1;
-    const MAX_RANGE: usize = 10;
+    const MAX_CHAR_COUNT: usize = 10;
 
+    const CHAR_ZERO: u16 = b'0' as u16;
+    const CHAR_NINE: u16 = b'9' as u16;
+
+    // Eliminate any string if it's greater than the max char count.
     let len = input.len();
-    let bytes = input.as_bytes();
-    if len == MIN_RANGE && bytes[0] == b'0' {
-        return Some(0);
+    if len > MAX_CHAR_COUNT {
+        return None;
     }
 
-    let mut result: u32 = 0;
-    if (MIN_RANGE..MAX_RANGE).contains(&len) {
-        if bytes[0] == b'0' {
-            return None;
+    // Helper function, for converting character to digit [0, 9].
+    let to_digit = |c: u16| -> Option<u32> {
+        if matches!(c, CHAR_ZERO..=CHAR_NINE) {
+            Some(u32::from(c - CHAR_ZERO))
+        } else {
+            None
+        }
+    };
+
+    let byte = input.next()?.into();
+    if byte == CHAR_ZERO {
+        if len == 1 {
+            return Some(0);
         }
 
-        for c in bytes {
-            if !c.is_ascii_digit() {
-                return None;
-            }
-            let digit = c - b'0';
-
-            result = result * 10 + u32::from(digit);
-        }
-
-        return Some(result);
+        // String "012345" is not a valid index.
+        return None;
     }
 
-    if len == MAX_RANGE {
-        if bytes[0] == b'0' {
-            return None;
+    let mut result = to_digit(byte)?;
+
+    // If the len is equal to max chars, then we need to do checked opterations,
+    // in case of overflows. If less use unchecked versions.
+    if len == MAX_CHAR_COUNT {
+        for c in input {
+            result = result.checked_mul(10)?.checked_add(to_digit(c.into())?)?;
         }
-
-        for c in bytes {
-            if !c.is_ascii_digit() {
-                return None;
-            }
-            let digit = c - b'0';
-
-            result = result.checked_mul(10)?;
-            result = result.checked_add(u32::from(digit))?;
+    } else {
+        for c in input {
+            result = result * 10 + to_digit(c.into())?;
         }
-
-        return Some(result);
     }
 
-    None
+    Some(result)
 }
 
 impl From<&[u16]> for PropertyKey {
     #[inline]
     fn from(string: &[u16]) -> Self {
         debug_assert!(parse_u32_index(
-            &String::from_utf16(string).expect("should be ascii string")
+            String::from_utf16(string)
+                .expect("should be ascii string")
+                .bytes()
         )
         .is_none());
         Self::String(string.into())
@@ -636,32 +642,29 @@ impl From<&[u16]> for PropertyKey {
 impl From<JsString> for PropertyKey {
     #[inline]
     fn from(string: JsString) -> Self {
-        string
-            .to_std_string()
-            .ok()
-            .and_then(|s| parse_u32_index(&s))
-            .map_or(Self::String(string), Self::Index)
+        parse_u32_index(string.as_slice().iter().copied()).map_or(Self::String(string), Self::Index)
     }
 }
 
 impl From<&str> for PropertyKey {
     #[inline]
     fn from(string: &str) -> Self {
-        parse_u32_index(string).map_or_else(|| Self::String(string.into()), Self::Index)
+        parse_u32_index(string.bytes()).map_or_else(|| Self::String(string.into()), Self::Index)
     }
 }
 
 impl From<String> for PropertyKey {
     #[inline]
     fn from(string: String) -> Self {
-        parse_u32_index(&string).map_or_else(|| Self::String(string.into()), Self::Index)
+        parse_u32_index(string.bytes()).map_or_else(|| Self::String(string.into()), Self::Index)
     }
 }
 
 impl From<Box<str>> for PropertyKey {
     #[inline]
     fn from(string: Box<str>) -> Self {
-        parse_u32_index(&string).map_or_else(|| Self::String(string.as_ref().into()), Self::Index)
+        parse_u32_index(string.bytes())
+            .map_or_else(|| Self::String(string.as_ref().into()), Self::Index)
     }
 }
 
