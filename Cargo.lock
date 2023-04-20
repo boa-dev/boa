@@ -310,15 +310,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "bincode"
-version = "1.3.3"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b1f45e9417d87227c7a56d22e471c6206462cba514c7590c09aff4cf6d1ddcad"
-dependencies = [
- "serde",
-]
-
-[[package]]
 name = "bitflags"
 version = "1.3.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -477,7 +468,7 @@ dependencies = [
  "icu_provider_blob",
  "log",
  "once_cell",
- "simple_logger 4.1.0",
+ "simple_logger",
 ]
 
 [[package]]
@@ -1974,9 +1965,9 @@ dependencies = [
 
 [[package]]
 name = "icu_datagen"
-version = "1.2.1"
+version = "1.2.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f474bd38639e5af76d2a70ce60ccb553454a3d3257677de15570c359d2116c5b"
+checksum = "46120dab7d5a4c324c44f71de7c4cae94c71ab91459c8d8a981204bf9c29d54a"
 dependencies = [
  "cached-path",
  "clap 4.2.3",
@@ -2003,7 +1994,6 @@ dependencies = [
  "icu_provider",
  "icu_provider_adapters",
  "icu_provider_blob",
- "icu_provider_fs",
  "icu_relativetime",
  "icu_segmenter",
  "icu_timezone",
@@ -2018,7 +2008,7 @@ dependencies = [
  "serde",
  "serde-aux",
  "serde_json",
- "simple_logger 1.16.0",
+ "simple_logger",
  "syn 1.0.109",
  "tinystr",
  "toml 0.5.11",
@@ -2181,7 +2171,6 @@ version = "1.2.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "8dc312a7b6148f7dfe098047ae2494d12d4034f48ade58d4f353000db376e305"
 dependencies = [
- "bincode",
  "databake",
  "displaydoc",
  "erased-serde",
@@ -2190,7 +2179,6 @@ dependencies = [
  "log",
  "postcard",
  "serde",
- "serde_json",
  "stable_deref_trait",
  "writeable",
  "yoke",
@@ -2226,24 +2214,6 @@ dependencies = [
  "writeable",
  "yoke",
  "zerovec",
-]
-
-[[package]]
-name = "icu_provider_fs"
-version = "1.2.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "741a8b57997e99ee8a20da1219b6dad8e4e243f3b05d2397b931f432b2797ebc"
-dependencies = [
- "bincode",
- "crlify",
- "displaydoc",
- "icu_provider",
- "log",
- "postcard",
- "serde",
- "serde-json-core",
- "serde_json",
- "writeable",
 ]
 
 [[package]]
@@ -3597,16 +3567,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "serde-json-core"
-version = "0.4.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "8014aeea272bca0f0779778d43253f2f3375b414185b30e6ecc4d3e4a9994781"
-dependencies = [
- "ryu",
- "serde",
-]
-
-[[package]]
 name = "serde_bytes"
 version = "0.11.9"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -3763,17 +3723,6 @@ name = "simdutf8"
 version = "0.1.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "f27f6278552951f1f2b8cf9da965d10969b2efdea95a6ec47987ab46edfe263a"
-
-[[package]]
-name = "simple_logger"
-version = "1.16.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "45b60258a35dc3cb8a16890b8fd6723349bfa458d7960e25e633f1b1c19d7b5e"
-dependencies = [
- "atty",
- "log",
- "winapi",
-]
 
 [[package]]
 name = "simple_logger"
