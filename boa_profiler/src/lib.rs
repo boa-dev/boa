@@ -125,6 +125,7 @@ impl Profiler {
             .start_recording_interval_event(kind, id, thread_id)
     }
 
+    #[allow(clippy::significant_drop_tightening)]
     fn get_or_alloc_string(&self, s: &str) -> StringId {
         {
             // Check the cache only with the read lock first.
