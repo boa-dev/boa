@@ -204,9 +204,9 @@ mod tests {
         let a = Position::new(10, 30);
         let b = Position::new(10, 50);
 
-        let _ = Span::new(a, b);
-        let _ = Span::new(a, a);
-        let _ = Span::from(a);
+        Span::new(a, b);
+        Span::new(a, a);
+        Span::from(a);
     }
 
     /// Checks that the `PartialEq` implementation of `Span` is consistent.

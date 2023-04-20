@@ -176,7 +176,7 @@ impl<'a> arbitrary::Arbitrary<'a> for FormalParameterList {
 
 bitflags! {
     /// Flags for a [`FormalParameterList`].
-    #[derive(Debug, Copy, Clone, PartialEq)]
+    #[derive(Debug, Copy, Clone, Eq, PartialEq)]
     #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
     pub struct FormalParameterListFlags: u8 {
         /// Has only identifier parameters with no initialization expressions.
