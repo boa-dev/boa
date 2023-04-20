@@ -214,10 +214,6 @@
 <a href="#213" id="213">213</a>
 <a href="#214" id="214">214</a>
 <a href="#215" id="215">215</a>
-<a href="#216" id="216">216</a>
-<a href="#217" id="217">217</a>
-<a href="#218" id="218">218</a>
-<a href="#219" id="219">219</a>
 </pre><pre class="rust"><code><span class="kw">use crate</span>::{
     builtins::{
         async_generator::{AsyncGenerator, AsyncGeneratorState},
@@ -227,7 +223,7 @@
     string::utf16,
     vm::{
         call_frame::{AbruptCompletionRecord, GeneratorResumeKind},
-        opcode::Operation,
+        opcode::{control_flow::Return, Operation},
         CompletionType,
     },
     Context, JsError, JsResult, JsValue,
@@ -359,8 +355,9 @@
 
         <span class="kw">match </span>context.vm.frame().generator_resume_kind {
             GeneratorResumeKind::Normal =&gt; {
-                <span class="kw">let </span>result = next_method.call(<span class="kw-2">&amp;</span>iterator.clone().into(), <span class="kw-2">&amp;</span>[received], context)<span class="question-mark">?</span>;
-                <span class="kw">let </span>result = result.as_object().ok_or_else(|| {
+                <span class="kw">let </span>result_value =
+                    next_method.call(<span class="kw-2">&amp;</span>iterator.clone().into(), <span class="kw-2">&amp;</span>[received], context)<span class="question-mark">?</span>;
+                <span class="kw">let </span>result = result_value.as_object().ok_or_else(|| {
                     JsNativeError::typ().with_message(<span class="string">&quot;generator next method returned non-object&quot;</span>)
                 })<span class="question-mark">?</span>;
                 <span class="comment">// TODO: This is wrong for async generators, since we need to await the result first.
@@ -371,10 +368,9 @@
                     context.vm.push(value);
                     <span class="kw">return </span><span class="prelude-val">Ok</span>(CompletionType::Normal);
                 }
-                <span class="kw">let </span>value = result.get(<span class="macro">utf16!</span>(<span class="string">&quot;value&quot;</span>), context)<span class="question-mark">?</span>;
                 context.vm.push(iterator.clone());
                 context.vm.push(next_method.clone());
-                context.vm.push(value);
+                context.vm.push(result_value);
                 context.vm.frame_mut().r#yield = <span class="bool-val">true</span>;
                 <span class="prelude-val">Ok</span>(CompletionType::Return)
             }
@@ -393,10 +389,9 @@
                         context.vm.push(value);
                         <span class="kw">return </span><span class="prelude-val">Ok</span>(CompletionType::Normal);
                     }
-                    <span class="kw">let </span>value = result_object.get(<span class="macro">utf16!</span>(<span class="string">&quot;value&quot;</span>), context)<span class="question-mark">?</span>;
                     context.vm.push(iterator.clone());
                     context.vm.push(next_method.clone());
-                    context.vm.push(value);
+                    context.vm.push(result);
                     context.vm.frame_mut().r#yield = <span class="bool-val">true</span>;
                     <span class="kw">return </span><span class="prelude-val">Ok</span>(CompletionType::Return);
                 }
@@ -418,21 +413,18 @@
                     })<span class="question-mark">?</span>;
                     <span class="kw">let </span>done = result_object.get(<span class="macro">utf16!</span>(<span class="string">&quot;done&quot;</span>), context)<span class="question-mark">?</span>.to_boolean();
                     <span class="kw">if </span>done {
-                        context.vm.frame_mut().pc = done_address <span class="kw">as </span>usize;
                         <span class="kw">let </span>value = result_object.get(<span class="macro">utf16!</span>(<span class="string">&quot;value&quot;</span>), context)<span class="question-mark">?</span>;
                         context.vm.push(value);
-                        <span class="kw">return </span><span class="prelude-val">Ok</span>(CompletionType::Return);
+                        <span class="kw">return </span>Return::execute(context);
                     }
-                    <span class="kw">let </span>value = result_object.get(<span class="macro">utf16!</span>(<span class="string">&quot;value&quot;</span>), context)<span class="question-mark">?</span>;
                     context.vm.push(iterator.clone());
                     context.vm.push(next_method.clone());
-                    context.vm.push(value);
+                    context.vm.push(result);
                     context.vm.frame_mut().r#yield = <span class="bool-val">true</span>;
                     <span class="kw">return </span><span class="prelude-val">Ok</span>(CompletionType::Return);
                 }
-                context.vm.frame_mut().pc = done_address <span class="kw">as </span>usize;
                 context.vm.push(received);
-                <span class="prelude-val">Ok</span>(CompletionType::Return)
+                Return::execute(context)
             }
         }
     }

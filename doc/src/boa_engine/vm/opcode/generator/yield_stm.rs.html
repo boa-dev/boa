@@ -20,7 +20,12 @@
 <a href="#19" id="19">19</a>
 <a href="#20" id="20">20</a>
 <a href="#21" id="21">21</a>
+<a href="#22" id="22">22</a>
+<a href="#23" id="23">23</a>
+<a href="#24" id="24">24</a>
+<a href="#25" id="25">25</a>
 </pre><pre class="rust"><code><span class="kw">use crate</span>::{
+    builtins::iterable::create_iter_result_object,
     vm::{opcode::Operation, CompletionType},
     Context, JsResult,
 };
@@ -37,6 +42,9 @@
     <span class="kw">const </span>INSTRUCTION: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;INST - Yield&quot;</span>;
 
     <span class="kw">fn </span>execute(context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;CompletionType&gt; {
+        <span class="kw">let </span>value = context.vm.pop();
+        <span class="kw">let </span>value = create_iter_result_object(value, <span class="bool-val">false</span>, context);
+        context.vm.push(value);
         context.vm.frame_mut().r#yield = <span class="bool-val">true</span>;
         <span class="prelude-val">Ok</span>(CompletionType::Return)
     }
