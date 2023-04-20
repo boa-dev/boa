@@ -1,3 +1,7 @@
+use std::fmt::Display;
+
+use crate::builtins::intl::options::OptionTypeParsable;
+
 #[derive(Debug, Clone, Copy, Default)]
 pub(crate) enum Granularity {
     #[default]
@@ -6,10 +10,21 @@ pub(crate) enum Granularity {
     Sentence,
 }
 
+impl Display for Granularity {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Granularity::Grapheme => "grapheme",
+            Granularity::Word => "word",
+            Granularity::Sentence => "sentence",
+        }
+        .fmt(f)
+    }
+}
+
 #[derive(Debug)]
 pub(crate) struct ParseGranularityError;
 
-impl std::fmt::Display for ParseGranularityError {
+impl Display for ParseGranularityError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         f.write_str("provided string was not `grapheme`, `word` or `sentence`")
     }
@@ -27,3 +42,5 @@ impl std::str::FromStr for Granularity {
         }
     }
 }
+
+impl OptionTypeParsable for Granularity {}

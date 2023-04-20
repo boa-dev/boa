@@ -22,7 +22,6 @@ features = [
     "Intl.DurationFormat",
     "Intl.DisplayNames",
     "Intl.RelativeTimeFormat",
-    "Intl.Segmenter",
 
     # Stage 3 proposals
 
