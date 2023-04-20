@@ -1113,6 +1113,8 @@
 <a href="#1112" id="1112">1112</a>
 <a href="#1113" id="1113">1113</a>
 <a href="#1114" id="1114">1114</a>
+<a href="#1115" id="1115">1115</a>
+<a href="#1116" id="1116">1116</a>
 </pre><pre class="rust"><code><span class="kw">use crate</span>::{
     environments::CompileTimeEnvironment, error::JsNativeError, object::JsObject, Context,
     JsResult, JsString, JsSymbol, JsValue,
@@ -2066,6 +2068,7 @@
         <span class="kw-2">mut </span>binding_index: usize,
         name: Identifier,
         value: JsValue,
+        strict: bool,
     ) -&gt; JsResult&lt;bool&gt; {
         <span class="kw">for </span>env_index <span class="kw">in </span>(environment_index + <span class="number">1</span>..<span class="self">self</span>.vm.environments.stack.len()).rev() {
             <span class="kw">let </span>env = <span class="self">self</span>.environment_expect(env_index);
@@ -2098,7 +2101,7 @@
                                 <span class="kw">continue</span>;
                             }
                         }
-                        <span class="kw">return </span>o.set(key, value, <span class="bool-val">true</span>, <span class="self">self</span>);
+                        <span class="kw">return </span>o.set(key, value, strict, <span class="self">self</span>);
                     }
                 }
             }
@@ -2132,6 +2135,7 @@
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
         name: Identifier,
         value: <span class="kw-2">&amp;</span>JsValue,
+        strict: bool,
     ) -&gt; JsResult&lt;bool&gt; {
         <span class="kw">for </span>env_index <span class="kw">in </span>(<span class="number">0</span>..<span class="self">self</span>.vm.environments.stack.len()).rev() {
             <span class="kw">let </span>env = <span class="self">self</span>.environment_expect(env_index);
@@ -2171,7 +2175,7 @@
                                 <span class="kw">continue</span>;
                             }
                         }
-                        <span class="kw">return </span>o.set(key, value.clone(), <span class="bool-val">true</span>, <span class="self">self</span>);
+                        <span class="kw">return </span>o.set(key, value.clone(), strict, <span class="self">self</span>);
                     }
                 }
             }

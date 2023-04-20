@@ -137,6 +137,10 @@
 <a href="#136" id="136">136</a>
 <a href="#137" id="137">137</a>
 <a href="#138" id="138">138</a>
+<a href="#139" id="139">139</a>
+<a href="#140" id="140">140</a>
+<a href="#141" id="141">141</a>
+<a href="#142" id="142">142</a>
 </pre><pre class="rust"><code><span class="kw">use crate</span>::{
     vm::{opcode::Operation, CompletionType},
     Context, JsResult, JsString, JsValue,
@@ -198,7 +202,11 @@
         binding_locator.throw_mutate_immutable(context)<span class="question-mark">?</span>;
 
         <span class="kw">if </span>binding_locator.is_global() {
-            <span class="kw">if </span>!context.put_value_if_global_poisoned(binding_locator.name(), <span class="kw-2">&amp;</span>value)<span class="question-mark">? </span>{
+            <span class="kw">if </span>!context.put_value_if_global_poisoned(
+                binding_locator.name(),
+                <span class="kw-2">&amp;</span>value,
+                context.vm.frame().code_block.strict,
+            )<span class="question-mark">? </span>{
                 <span class="kw">let </span>key = context
                     .interner()
                     .resolve_expect(binding_locator.name().sym())
