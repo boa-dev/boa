@@ -379,7 +379,7 @@ dependencies = [
  "boa_gc",
  "boa_interner",
  "boa_parser",
- "clap 4.2.3",
+ "clap 4.2.4",
  "colored",
  "jemallocator",
  "phf",
@@ -547,7 +547,7 @@ dependencies = [
  "bitflags 2.2.0",
  "boa_engine",
  "boa_gc",
- "clap 4.2.3",
+ "clap 4.2.4",
  "color-eyre",
  "colored",
  "comfy-table",
@@ -755,9 +755,9 @@ dependencies = [
 
 [[package]]
 name = "clap"
-version = "4.2.3"
+version = "4.2.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "49f9152d70e42172fdb87de2efd7327160beee37886027cf86f30a233d5b30b4"
+checksum = "956ac1f6381d8d82ab4684768f89c0ea3afe66925ceadb4eeb3fc452ffc55d62"
 dependencies = [
  "clap_builder",
  "clap_derive",
@@ -766,9 +766,9 @@ dependencies = [
 
 [[package]]
 name = "clap_builder"
-version = "4.2.3"
+version = "4.2.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "e067b220911598876eb55d52725ddcc201ffe3f0904018195973bc5b012ea2ca"
+checksum = "84080e799e54cff944f4b4a4b0e71630b0e0443b25b985175c7dddc1a859b749"
 dependencies = [
  "anstream",
  "anstyle",
@@ -1979,7 +1979,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "f474bd38639e5af76d2a70ce60ccb553454a3d3257677de15570c359d2116c5b"
 dependencies = [
  "cached-path",
- "clap 4.2.3",
+ "clap 4.2.4",
  "crlify",
  "databake",
  "displaydoc",
