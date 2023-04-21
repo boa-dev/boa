@@ -5,7 +5,7 @@
     "build:prod": "webpack --mode=production"
   },
   "devDependencies": {
-    "@wasm-tool/wasm-pack-plugin": "^1.6.0",
+    "@wasm-tool/wasm-pack-plugin": "^1.7.0",
     "bootstrap": "^5.2.3",
     "clean-webpack-plugin": "^4.0.0",
     "copy-webpack-plugin": "^11.0.0",
