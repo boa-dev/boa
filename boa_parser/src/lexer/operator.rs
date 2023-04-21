@@ -121,7 +121,7 @@ impl<R> Tokenizer<R> for Operator {
                 );
                 match first {
                     Some(b'?') => {
-                        let _ = cursor.next_byte()?.expect("? vanished");
+                        cursor.next_byte()?.expect("? vanished");
                         op!(
                             cursor,
                             start_pos,
@@ -130,7 +130,7 @@ impl<R> Tokenizer<R> for Operator {
                         )
                     }
                     Some(b'.') if !matches!(second, Some(second) if second.is_ascii_digit()) => {
-                        let _ = cursor.next_byte()?.expect(". vanished");
+                        cursor.next_byte()?.expect(". vanished");
                         Ok(Token::new(
                             TokenKind::Punctuator(Punctuator::Optional),
                             Span::new(start_pos, cursor.pos()),

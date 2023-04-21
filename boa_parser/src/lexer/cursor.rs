@@ -104,7 +104,7 @@ where
 
         Ok(match self.peek()? {
             Some(next) if next == byte => {
-                let _ = self.next_byte()?;
+                self.next_byte()?;
                 true
             }
             _ => false,
