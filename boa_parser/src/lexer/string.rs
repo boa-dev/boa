@@ -329,14 +329,14 @@ impl StringLiteral {
         // Grammar: FourToSeven OctalDigit
         if let Some(byte) = cursor.peek()? {
             if (b'0'..=b'7').contains(&byte) {
-                let _ = cursor.next_byte()?;
+                cursor.next_byte()?;
                 code_point = (code_point * 8) + u32::from(byte - b'0');
 
                 if (b'0'..=b'3').contains(&init_byte) {
                     // Grammar: ZeroToThree OctalDigit OctalDigit
                     if let Some(byte) = cursor.peek()? {
                         if (b'0'..=b'7').contains(&byte) {
-                            let _ = cursor.next_byte()?;
+                            cursor.next_byte()?;
                             code_point = (code_point * 8) + u32::from(byte - b'0');
                         }
                     }

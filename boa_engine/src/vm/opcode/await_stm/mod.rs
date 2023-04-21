@@ -50,6 +50,19 @@ impl Operation for Await {
                         GeneratorResumeKind::Normal,
                         context,
                     );
+
+                    if let Some(async_generator) = gen
+                        .call_frame
+                        .as_ref()
+                        .and_then(|f| f.async_generator.clone())
+                    {
+                        async_generator
+                            .borrow_mut()
+                            .as_async_generator_mut()
+                            .expect("must be async generator")
+                            .context = Some(gen);
+                    }
+
                     // e. Assert: When we reach this step, asyncContext has already been removed from the execution context stack and prevContext is the currently running execution context.
                     // f. Return undefined.
                     Ok(JsValue::undefined())
@@ -81,6 +94,18 @@ impl Operation for Await {
                         GeneratorResumeKind::Throw,
                         context,
                     );
+
+                    if let Some(async_generator) = gen
+                        .call_frame
+                        .as_ref()
+                        .and_then(|f| f.async_generator.clone())
+                    {
+                        async_generator
+                            .borrow_mut()
+                            .as_async_generator_mut()
+                            .expect("must be async generator")
+                            .context = Some(gen);
+                    }
 
                     Ok(JsValue::undefined())
                 },

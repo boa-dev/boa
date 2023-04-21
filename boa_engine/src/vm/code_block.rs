@@ -277,12 +277,12 @@ impl CodeBlock {
             | Opcode::SuperCall
             | Opcode::IteratorUnwrapNextOrJump
             | Opcode::ConcatToString
+            | Opcode::GeneratorAsyncResumeYield
             | Opcode::GeneratorNextDelegate => {
                 let result = self.read::<u32>(*pc).to_string();
                 *pc += size_of::<u32>();
                 result
             }
-
             Opcode::PushDeclarativeEnvironment
             | Opcode::PushFunctionEnvironment
             | Opcode::CopyDataProperties
@@ -291,12 +291,22 @@ impl CodeBlock {
             | Opcode::LoopContinue
             | Opcode::LoopStart
             | Opcode::TryStart
-            | Opcode::AsyncGeneratorNext => {
+            | Opcode::AsyncGeneratorNext
+            | Opcode::GeneratorAsyncDelegateNext => {
                 let operand1 = self.read::<u32>(*pc);
                 *pc += size_of::<u32>();
                 let operand2 = self.read::<u32>(*pc);
                 *pc += size_of::<u32>();
                 format!("{operand1}, {operand2}")
+            }
+            Opcode::GeneratorAsyncDelegateResume => {
+                let operand1 = self.read::<u32>(*pc);
+                *pc += size_of::<u32>();
+                let operand2 = self.read::<u32>(*pc);
+                *pc += size_of::<u32>();
+                let operand3 = self.read::<u32>(*pc);
+                *pc += size_of::<u32>();
+                format!("{operand1}, {operand2}, {operand3}")
             }
             Opcode::GetArrowFunction
             | Opcode::GetAsyncArrowFunction
@@ -447,6 +457,7 @@ impl CodeBlock {
             | Opcode::CreateForInIterator
             | Opcode::GetIterator
             | Opcode::GetAsyncIterator
+            | Opcode::GeneratorResumeReturn
             | Opcode::IteratorNext
             | Opcode::IteratorNextSetDone
             | Opcode::IteratorUnwrapNext

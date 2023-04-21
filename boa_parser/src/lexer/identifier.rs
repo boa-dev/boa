@@ -128,7 +128,7 @@ impl Identifier {
                     }
                 }
                 Some(ch) if Self::is_identifier_part(ch) => {
-                    let _ = cursor.next_char()?;
+                    cursor.next_char()?;
                     ch
                 },
                 _ => break,

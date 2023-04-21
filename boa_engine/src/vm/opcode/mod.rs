@@ -1533,6 +1533,13 @@ generate_impl! {
         /// Stack: received **=>**
         GeneratorNext,
 
+        /// Resumes a generator with a return completion.
+        ///
+        /// Operands:
+        ///
+        /// Stack: **=>**
+        GeneratorResumeReturn,
+
         /// Resumes the current generator function.
         ///
         /// Operands: skip_yield: u32, skip_yield_await: u32
@@ -1540,12 +1547,33 @@ generate_impl! {
         /// Stack: received **=>** `Option<value>`
         AsyncGeneratorNext,
 
-        /// Delegates the current generator function to another generator.
+        /// Resumes the current async generator function after a yield.
+        ///
+        /// Operands: normal_completion: u32
+        ///
+        /// Stack: **=>**
+        GeneratorAsyncResumeYield,
+
+        /// Delegates the current generator function to another iterator.
         ///
         /// Operands: done_address: `u32`
         ///
         /// Stack: iterator, next_method, received **=>** iterator, next_method
         GeneratorNextDelegate,
+
+        /// Delegates the current async generator function to another iterator.
+        ///
+        /// Operands: throw_method_undefined: `u32`, return_method_undefined: `u32`
+        ///
+        /// Stack: iterator, next_method, received **=>** iterator, next_method, is_return, result
+        GeneratorAsyncDelegateNext,
+
+        /// Resume the async generator with yield delegate logic after it awaits a value.
+        ///
+        /// Operands: skip_yield: `u32`, normal_completion: `u32`, exit: `u32`
+        ///
+        /// Stack: is_return, received **=>** value
+        GeneratorAsyncDelegateResume,
 
         /// Stops the current async function and schedules it to resume later.
         ///
