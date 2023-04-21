@@ -42,7 +42,7 @@ use thin_vec::ThinVec;
 
 use std::{fmt, io::Read};
 
-use super::{promise::PromiseCapability, BuiltInBuilder, BuiltInConstructor, IntrinsicObject};
+use super::{BuiltInBuilder, BuiltInConstructor, IntrinsicObject};
 
 pub(crate) mod arguments;
 #[cfg(test)]
@@ -189,9 +189,6 @@ pub(crate) enum FunctionKind {
         /// The `[[HomeObject]]` internal slot.
         home_object: Option<JsObject>,
 
-        /// The promise capability record of the async function.
-        promise_capability: PromiseCapability,
-
         /// The class object that this function is associated with.
         class_object: Option<JsObject>,
     },
@@ -270,14 +267,8 @@ unsafe impl Trace for FunctionKind {
                 }
                 mark(class_object);
             }
-            Self::Async { code, environments, home_object, promise_capability, class_object } => {
-                mark(code);
-                mark(environments);
-                mark(home_object);
-                mark(promise_capability);
-                mark(class_object);
-            }
-            Self::Generator { code, environments, home_object, class_object}
+            Self::Async { code, environments, home_object, class_object }
+            | Self::Generator { code, environments, home_object, class_object}
             | Self::AsyncGenerator { code, environments, home_object, class_object} => {
                 mark(code);
                 mark(environments);

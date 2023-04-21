@@ -608,18 +608,11 @@ pub(crate) fn create_function_object(
         .build();
 
     let function = if r#async {
-        let promise_capability = PromiseCapability::new(
-            &context.intrinsics().constructors().promise().constructor(),
-            context,
-        )
-        .expect("cannot  fail per spec");
-
         Function::new(
             FunctionKind::Async {
                 code,
                 environments: context.vm.environments.clone(),
                 home_object: None,
-                promise_capability,
                 class_object: None,
             },
             context.realm().clone(),
@@ -835,89 +828,91 @@ impl JsObject {
 
         let context = &mut ContextCleanupGuard::new(context, realm, active_function);
 
-        let (code, mut environments, class_object, promise_cap, async_, gen) =
-            match function_object.kind() {
-                FunctionKind::Native {
-                    function,
-                    constructor,
-                } => {
-                    let function = function.clone();
-                    let constructor = *constructor;
-                    drop(object);
+        let (code, mut environments, class_object, async_, gen) = match function_object.kind() {
+            FunctionKind::Native {
+                function,
+                constructor,
+            } => {
+                let function = function.clone();
+                let constructor = *constructor;
+                drop(object);
 
-                    return if constructor.is_some() {
-                        function.call(&JsValue::undefined(), args, context)
-                    } else {
-                        function.call(this, args, context)
-                    }
-                    .map_err(|err| err.inject_realm(context.realm().clone()));
+                return if constructor.is_some() {
+                    function.call(&JsValue::undefined(), args, context)
+                } else {
+                    function.call(this, args, context)
                 }
-                FunctionKind::Ordinary {
+                .map_err(|err| err.inject_realm(context.realm().clone()));
+            }
+            FunctionKind::Ordinary {
+                code,
+                environments,
+                class_object,
+                ..
+            } => {
+                let code = code.clone();
+                if code.is_class_constructor {
+                    return Err(JsNativeError::typ()
+                        .with_message("class constructor cannot be invoked without 'new'")
+                        .with_realm(context.realm().clone())
+                        .into());
+                }
+                (
                     code,
-                    environments,
-                    class_object,
-                    ..
-                } => {
-                    let code = code.clone();
-                    if code.is_class_constructor {
-                        return Err(JsNativeError::typ()
-                            .with_message("class constructor cannot be invoked without 'new'")
-                            .with_realm(context.realm().clone())
-                            .into());
-                    }
-                    (
-                        code,
-                        environments.clone(),
-                        class_object.clone(),
-                        None,
-                        false,
-                        false,
-                    )
-                }
+                    environments.clone(),
+                    class_object.clone(),
+                    false,
+                    false,
+                )
+            }
 
-                FunctionKind::Async {
-                    code,
-                    environments,
-                    promise_capability,
-                    class_object,
-                    ..
-                } => (
-                    code.clone(),
-                    environments.clone(),
-                    class_object.clone(),
-                    Some(promise_capability.clone()),
-                    true,
-                    false,
-                ),
-                FunctionKind::Generator {
-                    code,
-                    environments,
-                    class_object,
-                    ..
-                } => (
-                    code.clone(),
-                    environments.clone(),
-                    class_object.clone(),
-                    None,
-                    false,
-                    true,
-                ),
-                FunctionKind::AsyncGenerator {
-                    code,
-                    environments,
-                    class_object,
-                    ..
-                } => (
-                    code.clone(),
-                    environments.clone(),
-                    class_object.clone(),
-                    None,
-                    true,
-                    true,
-                ),
-            };
+            FunctionKind::Async {
+                code,
+                environments,
+                class_object,
+                ..
+            } => (
+                code.clone(),
+                environments.clone(),
+                class_object.clone(),
+                true,
+                false,
+            ),
+            FunctionKind::Generator {
+                code,
+                environments,
+                class_object,
+                ..
+            } => (
+                code.clone(),
+                environments.clone(),
+                class_object.clone(),
+                false,
+                true,
+            ),
+            FunctionKind::AsyncGenerator {
+                code,
+                environments,
+                class_object,
+                ..
+            } => (
+                code.clone(),
+                environments.clone(),
+                class_object.clone(),
+                true,
+                true,
+            ),
+        };
 
         drop(object);
+
+        let promise_capability = (async_ && !gen).then(|| {
+            PromiseCapability::new(
+                &context.intrinsics().constructors().promise().constructor(),
+                context,
+            )
+            .expect("cannot  fail per spec")
+        });
 
         std::mem::swap(&mut environments, &mut context.vm.environments);
 
@@ -1023,7 +1018,7 @@ impl JsObject {
         let mut frame = CallFrame::new(code)
             .with_param_count(param_count)
             .with_arg_count(arg_count);
-        frame.promise_capability = promise_cap.clone();
+        frame.promise_capability = promise_capability.clone();
 
         context.vm.push_frame(frame);
 
@@ -1036,8 +1031,8 @@ impl JsObject {
         std::mem::swap(&mut environments, &mut context.vm.environments);
         std::mem::swap(&mut context.vm.stack, &mut stack);
 
-        if let Some(promise_cap) = promise_cap {
-            Ok(promise_cap.promise().clone().into())
+        if let Some(promise_capability) = promise_capability {
+            Ok(promise_capability.promise().clone().into())
         } else if gen {
             result?;
             let proto = this_function_object
