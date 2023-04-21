@@ -1314,11 +1314,6 @@
 <a href="#1313" id="1313">1313</a>
 <a href="#1314" id="1314">1314</a>
 <a href="#1315" id="1315">1315</a>
-<a href="#1316" id="1316">1316</a>
-<a href="#1317" id="1317">1317</a>
-<a href="#1318" id="1318">1318</a>
-<a href="#1319" id="1319">1319</a>
-<a href="#1320" id="1320">1320</a>
 </pre><pre class="rust"><code><span class="doccomment">//! `CodeBlock`
 //!
 //! This module is for the `CodeBlock` which implements a function representation in the VM
@@ -1929,18 +1924,11 @@
         .build();
 
     <span class="kw">let </span>function = <span class="kw">if </span>r#async {
-        <span class="kw">let </span>promise_capability = PromiseCapability::new(
-            <span class="kw-2">&amp;</span>context.intrinsics().constructors().promise().constructor(),
-            context,
-        )
-        .expect(<span class="string">&quot;cannot  fail per spec&quot;</span>);
-
         Function::new(
             FunctionKind::Async {
                 code,
                 environments: context.vm.environments.clone(),
                 home_object: <span class="prelude-val">None</span>,
-                promise_capability,
                 class_object: <span class="prelude-val">None</span>,
             },
             context.realm().clone(),
@@ -2156,89 +2144,91 @@
 
         <span class="kw">let </span>context = <span class="kw-2">&amp;mut </span>ContextCleanupGuard::new(context, realm, active_function);
 
-        <span class="kw">let </span>(code, <span class="kw-2">mut </span>environments, class_object, promise_cap, async_, gen) =
-            <span class="kw">match </span>function_object.kind() {
-                FunctionKind::Native {
-                    function,
-                    constructor,
-                } =&gt; {
-                    <span class="kw">let </span>function = function.clone();
-                    <span class="kw">let </span>constructor = <span class="kw-2">*</span>constructor;
-                    drop(object);
+        <span class="kw">let </span>(code, <span class="kw-2">mut </span>environments, class_object, async_, gen) = <span class="kw">match </span>function_object.kind() {
+            FunctionKind::Native {
+                function,
+                constructor,
+            } =&gt; {
+                <span class="kw">let </span>function = function.clone();
+                <span class="kw">let </span>constructor = <span class="kw-2">*</span>constructor;
+                drop(object);
 
-                    <span class="kw">return if </span>constructor.is_some() {
-                        function.call(<span class="kw-2">&amp;</span>JsValue::undefined(), args, context)
-                    } <span class="kw">else </span>{
-                        function.call(this, args, context)
-                    }
-                    .map_err(|err| err.inject_realm(context.realm().clone()));
+                <span class="kw">return if </span>constructor.is_some() {
+                    function.call(<span class="kw-2">&amp;</span>JsValue::undefined(), args, context)
+                } <span class="kw">else </span>{
+                    function.call(this, args, context)
                 }
-                FunctionKind::Ordinary {
+                .map_err(|err| err.inject_realm(context.realm().clone()));
+            }
+            FunctionKind::Ordinary {
+                code,
+                environments,
+                class_object,
+                ..
+            } =&gt; {
+                <span class="kw">let </span>code = code.clone();
+                <span class="kw">if </span>code.is_class_constructor {
+                    <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::typ()
+                        .with_message(<span class="string">&quot;class constructor cannot be invoked without &#39;new&#39;&quot;</span>)
+                        .with_realm(context.realm().clone())
+                        .into());
+                }
+                (
                     code,
-                    environments,
-                    class_object,
-                    ..
-                } =&gt; {
-                    <span class="kw">let </span>code = code.clone();
-                    <span class="kw">if </span>code.is_class_constructor {
-                        <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::typ()
-                            .with_message(<span class="string">&quot;class constructor cannot be invoked without &#39;new&#39;&quot;</span>)
-                            .with_realm(context.realm().clone())
-                            .into());
-                    }
-                    (
-                        code,
-                        environments.clone(),
-                        class_object.clone(),
-                        <span class="prelude-val">None</span>,
-                        <span class="bool-val">false</span>,
-                        <span class="bool-val">false</span>,
-                    )
-                }
+                    environments.clone(),
+                    class_object.clone(),
+                    <span class="bool-val">false</span>,
+                    <span class="bool-val">false</span>,
+                )
+            }
 
-                FunctionKind::Async {
-                    code,
-                    environments,
-                    promise_capability,
-                    class_object,
-                    ..
-                } =&gt; (
-                    code.clone(),
-                    environments.clone(),
-                    class_object.clone(),
-                    <span class="prelude-val">Some</span>(promise_capability.clone()),
-                    <span class="bool-val">true</span>,
-                    <span class="bool-val">false</span>,
-                ),
-                FunctionKind::Generator {
-                    code,
-                    environments,
-                    class_object,
-                    ..
-                } =&gt; (
-                    code.clone(),
-                    environments.clone(),
-                    class_object.clone(),
-                    <span class="prelude-val">None</span>,
-                    <span class="bool-val">false</span>,
-                    <span class="bool-val">true</span>,
-                ),
-                FunctionKind::AsyncGenerator {
-                    code,
-                    environments,
-                    class_object,
-                    ..
-                } =&gt; (
-                    code.clone(),
-                    environments.clone(),
-                    class_object.clone(),
-                    <span class="prelude-val">None</span>,
-                    <span class="bool-val">true</span>,
-                    <span class="bool-val">true</span>,
-                ),
-            };
+            FunctionKind::Async {
+                code,
+                environments,
+                class_object,
+                ..
+            } =&gt; (
+                code.clone(),
+                environments.clone(),
+                class_object.clone(),
+                <span class="bool-val">true</span>,
+                <span class="bool-val">false</span>,
+            ),
+            FunctionKind::Generator {
+                code,
+                environments,
+                class_object,
+                ..
+            } =&gt; (
+                code.clone(),
+                environments.clone(),
+                class_object.clone(),
+                <span class="bool-val">false</span>,
+                <span class="bool-val">true</span>,
+            ),
+            FunctionKind::AsyncGenerator {
+                code,
+                environments,
+                class_object,
+                ..
+            } =&gt; (
+                code.clone(),
+                environments.clone(),
+                class_object.clone(),
+                <span class="bool-val">true</span>,
+                <span class="bool-val">true</span>,
+            ),
+        };
 
         drop(object);
+
+        <span class="kw">let </span>promise_capability = (async_ &amp;&amp; !gen).then(|| {
+            PromiseCapability::new(
+                <span class="kw-2">&amp;</span>context.intrinsics().constructors().promise().constructor(),
+                context,
+            )
+            .expect(<span class="string">&quot;cannot  fail per spec&quot;</span>)
+        });
 
         std::mem::swap(<span class="kw-2">&amp;mut </span>environments, <span class="kw-2">&amp;mut </span>context.vm.environments);
 
@@ -2344,7 +2334,7 @@
         <span class="kw">let </span><span class="kw-2">mut </span>frame = CallFrame::new(code)
             .with_param_count(param_count)
             .with_arg_count(arg_count);
-        frame.promise_capability = promise_cap.clone();
+        frame.promise_capability = promise_capability.clone();
 
         context.vm.push_frame(frame);
 
@@ -2357,8 +2347,8 @@
         std::mem::swap(<span class="kw-2">&amp;mut </span>environments, <span class="kw-2">&amp;mut </span>context.vm.environments);
         std::mem::swap(<span class="kw-2">&amp;mut </span>context.vm.stack, <span class="kw-2">&amp;mut </span>stack);
 
-        <span class="kw">if let </span><span class="prelude-val">Some</span>(promise_cap) = promise_cap {
-            <span class="prelude-val">Ok</span>(promise_cap.promise().clone().into())
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(promise_capability) = promise_capability {
+            <span class="prelude-val">Ok</span>(promise_capability.promise().clone().into())
         } <span class="kw">else if </span>gen {
             result<span class="question-mark">?</span>;
             <span class="kw">let </span>proto = this_function_object

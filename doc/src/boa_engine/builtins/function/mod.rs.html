@@ -1127,15 +1127,6 @@
 <a href="#1126" id="1126">1126</a>
 <a href="#1127" id="1127">1127</a>
 <a href="#1128" id="1128">1128</a>
-<a href="#1129" id="1129">1129</a>
-<a href="#1130" id="1130">1130</a>
-<a href="#1131" id="1131">1131</a>
-<a href="#1132" id="1132">1132</a>
-<a href="#1133" id="1133">1133</a>
-<a href="#1134" id="1134">1134</a>
-<a href="#1135" id="1135">1135</a>
-<a href="#1136" id="1136">1136</a>
-<a href="#1137" id="1137">1137</a>
 </pre><pre class="rust"><code><span class="doccomment">//! Boa&#39;s implementation of ECMAScript&#39;s global `Function` object and Native Functions.
 //!
 //! Objects wrap `Function`s and expose them via call/construct slots.
@@ -1180,7 +1171,7 @@
 
 <span class="kw">use </span>std::{fmt, io::Read};
 
-<span class="kw">use super</span>::{promise::PromiseCapability, BuiltInBuilder, BuiltInConstructor, IntrinsicObject};
+<span class="kw">use super</span>::{BuiltInBuilder, BuiltInConstructor, IntrinsicObject};
 
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">mod </span>arguments;
 <span class="attr">#[cfg(test)]
@@ -1327,9 +1318,6 @@
         <span class="doccomment">/// The `[[HomeObject]]` internal slot.
         </span>home_object: <span class="prelude-ty">Option</span>&lt;JsObject&gt;,
 
-        <span class="doccomment">/// The promise capability record of the async function.
-        </span>promise_capability: PromiseCapability,
-
         <span class="doccomment">/// The class object that this function is associated with.
         </span>class_object: <span class="prelude-ty">Option</span>&lt;JsObject&gt;,
     },
@@ -1408,14 +1396,8 @@
                 }
                 mark(class_object);
             }
-            <span class="self">Self</span>::Async { code, environments, home_object, promise_capability, class_object } =&gt; {
-                mark(code);
-                mark(environments);
-                mark(home_object);
-                mark(promise_capability);
-                mark(class_object);
-            }
-            <span class="self">Self</span>::Generator { code, environments, home_object, class_object}
+            <span class="self">Self</span>::Async { code, environments, home_object, class_object }
+            | <span class="self">Self</span>::Generator { code, environments, home_object, class_object}
             | <span class="self">Self</span>::AsyncGenerator { code, environments, home_object, class_object} =&gt; {
                 mark(code);
                 mark(environments);
