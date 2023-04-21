@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"struct":[["ForInIterator","The `ForInIterator` object represents an iteration over some specific object. It implements the iterator protocol."]]};
+window.SIDEBAR_ITEMS = {"fn":["mark"],"struct":["ForInIterator"]};

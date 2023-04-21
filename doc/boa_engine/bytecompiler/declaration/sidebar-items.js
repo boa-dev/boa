@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"mod":[["declaration_pattern",""]]};
+window.SIDEBAR_ITEMS = {"mod":["declaration_pattern"]};

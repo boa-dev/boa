@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"struct":[["Await","`Await` implements the Opcode Operation for `Opcode::Await`"]]};
+window.SIDEBAR_ITEMS = {"struct":["Await"]};

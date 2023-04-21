@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"enum":[["Error","An enum which represents errors encountered during parsing an expression"]],"trait":[["ErrorContext",""]],"type":[["ParseResult","Result of a parsing operation."]]};
+window.SIDEBAR_ITEMS = {"enum":["Error"],"trait":["ErrorContext"],"type":["ParseResult"]};

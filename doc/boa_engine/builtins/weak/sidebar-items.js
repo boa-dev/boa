@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"mod":[["weak_ref",""]]};
+window.SIDEBAR_ITEMS = {"mod":["weak_ref"]};

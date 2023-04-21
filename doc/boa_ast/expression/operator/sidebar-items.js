@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"mod":[["assign","Assignment expression nodes, as defined by the spec."],["binary","Binary expression nodes."],["conditional",""],["unary","Unary expression nodes."],["update","Update expression nodes."]],"struct":[["Conditional","The `conditional` (ternary) operation is the only ECMAScript operation that takes three operands."]]};
+window.SIDEBAR_ITEMS = {"mod":["assign","binary","conditional","unary","update"],"struct":["Conditional"]};

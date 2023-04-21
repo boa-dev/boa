@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"struct":[["FunctionExpression","Function expression parsing."]]};
+window.SIDEBAR_ITEMS = {"struct":["FunctionExpression"]};

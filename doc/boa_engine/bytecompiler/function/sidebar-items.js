@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"struct":[["FunctionCompiler","`FunctionCompiler` is used to compile AST functions to bytecode."]]};
+window.SIDEBAR_ITEMS = {"struct":["FunctionCompiler"]};

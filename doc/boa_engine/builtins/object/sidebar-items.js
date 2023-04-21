@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"enum":[["PropertyKeyType","Type enum used in the abstract operation `GetOwnPropertyKeys`."]],"fn":[["get_own_property_keys","The abstract operation `GetOwnPropertyKeys`."],["object_define_properties","The abstract operation `ObjectDefineProperties`"]],"mod":[["for_in_iterator","This module implements the `ForInIterator` object."]],"struct":[["Object","The global JavaScript object."]]};
+window.SIDEBAR_ITEMS = {"enum":["PropertyKeyType"],"fn":["get_own_property_keys","object_define_properties"],"mod":["for_in_iterator"],"struct":["Object"]};

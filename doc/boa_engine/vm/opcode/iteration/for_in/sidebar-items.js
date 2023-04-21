@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"struct":[["CreateForInIterator","`CreateForInIterator` implements the Opcode Operation for `Opcode::CreateForInIterator`"]]};
+window.SIDEBAR_ITEMS = {"struct":["CreateForInIterator"]};

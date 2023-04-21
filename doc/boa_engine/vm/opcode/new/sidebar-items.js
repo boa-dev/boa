@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"struct":[["New","`New` implements the Opcode Operation for `Opcode::New`"],["NewSpread","`NewSpread` implements the Opcode Operation for `Opcode::NewSpread`"]]};
+window.SIDEBAR_ITEMS = {"struct":["New","NewSpread"]};

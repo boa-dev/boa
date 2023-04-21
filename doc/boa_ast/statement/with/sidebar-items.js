@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"struct":[["With","The `with` statement extends the scope chain for a statement."]]};
+window.SIDEBAR_ITEMS = {"constant":["RECURSIVE_COUNT_With"],"fn":["__getit","__init"],"static":["__KEY"],"struct":["With"]};

@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"struct":[["ThrowStatement","For statement parsing"]]};
+window.SIDEBAR_ITEMS = {"struct":["ThrowStatement"]};

@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"enum":[["LabelledItem","The set of Parse Nodes that can be preceded by a label, as defined by the spec."]],"struct":[["Labelled","Labelled statement nodes, as defined by the spec."]]};
+window.SIDEBAR_ITEMS = {"constant":["RECURSIVE_COUNT_Labelled","RECURSIVE_COUNT_LabelledItem"],"enum":["LabelledItem"],"fn":["__getit","__init"],"static":["__KEY"],"struct":["Labelled"]};

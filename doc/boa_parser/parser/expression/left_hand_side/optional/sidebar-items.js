@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"struct":[["OptionalExpression","Parses an optional expression."]]};
+window.SIDEBAR_ITEMS = {"fn":["parse_const_access"],"struct":["OptionalExpression"]};

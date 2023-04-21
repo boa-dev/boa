@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"enum":[["OptionalOperationKind","List of valid operations in an [`Optional`] chain."]],"struct":[["Optional","An optional chain expression, as defined by the spec."],["OptionalOperation","Operation within an [`Optional`] chain."]]};
+window.SIDEBAR_ITEMS = {"constant":["RECURSIVE_COUNT_Optional","RECURSIVE_COUNT_OptionalOperation","RECURSIVE_COUNT_OptionalOperationKind"],"enum":["OptionalOperationKind"],"fn":["__getit","__init"],"static":["__KEY"],"struct":["Optional","OptionalOperation"]};

@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"struct":[["DoWhileLoop","The `do...while` statement creates a loop that executes a specified statement until the test condition evaluates to false."]]};
+window.SIDEBAR_ITEMS = {"constant":["RECURSIVE_COUNT_DoWhileLoop"],"fn":["__getit","__init"],"static":["__KEY"],"struct":["DoWhileLoop"]};

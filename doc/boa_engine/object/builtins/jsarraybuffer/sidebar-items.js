@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"struct":[["JsArrayBuffer","`JsArrayBuffer` provides a wrapper for Boa’s implementation of the ECMAScript `ArrayBuffer` object"]]};
+window.SIDEBAR_ITEMS = {"fn":["mark"],"struct":["JsArrayBuffer"]};

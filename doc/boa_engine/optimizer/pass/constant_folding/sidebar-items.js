@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"fn":[["js_value_to_literal",""],["literal_to_js_value",""]],"struct":[["ConstantFolding",""]]};
+window.SIDEBAR_ITEMS = {"fn":["js_value_to_literal","literal_to_js_value"],"struct":["ConstantFolding"]};

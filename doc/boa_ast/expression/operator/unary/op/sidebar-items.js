@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"enum":[["UnaryOp","A unary operator is one that takes a single operand/argument and performs an operation."]]};
+window.SIDEBAR_ITEMS = {"constant":["RECURSIVE_COUNT_UnaryOp"],"enum":["UnaryOp"],"fn":["__getit","__init"],"static":["__KEY"]};

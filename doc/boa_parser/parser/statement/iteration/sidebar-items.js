@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"mod":[["do_while_statement","Do-while statement parsing."],["for_statement","For statement parsing."],["while_statement",""]]};
+window.SIDEBAR_ITEMS = {"mod":["do_while_statement","for_statement","while_statement"]};

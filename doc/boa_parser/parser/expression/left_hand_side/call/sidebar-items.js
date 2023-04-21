@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"struct":[["CallExpression","Parses a call expression."]]};
+window.SIDEBAR_ITEMS = {"struct":["CallExpression"]};

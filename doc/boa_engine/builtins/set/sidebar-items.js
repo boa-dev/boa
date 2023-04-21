@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"mod":[["ordered_set","Implements a set type that preserves insertion order."],["set_iterator","This module implements the `SetIterator` object."]],"struct":[["Set",""]]};
+window.SIDEBAR_ITEMS = {"constant":["JS_ZERO"],"mod":["ordered_set","set_iterator"],"struct":["Set"]};

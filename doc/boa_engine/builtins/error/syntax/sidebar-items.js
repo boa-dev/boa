@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"struct":[["SyntaxError","JavaScript `SyntaxError` implementation."]]};
+window.SIDEBAR_ITEMS = {"struct":["SyntaxError"]};

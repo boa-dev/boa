@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"enum":[["SemicolonResult","The result of a peek for a semicolon."]],"mod":[["buffered_lexer",""]],"struct":[["Cursor","Token cursor."]]};
+window.SIDEBAR_ITEMS = {"enum":["SemicolonResult"],"mod":["buffered_lexer"],"struct":["Cursor"]};

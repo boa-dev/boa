@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"struct":[["JsGenerator","`JsGenerator` provides a wrapper for Boa’s implementation of the ECMAScript `Generator` builtin object"]]};
+window.SIDEBAR_ITEMS = {"fn":["mark"],"struct":["JsGenerator"]};

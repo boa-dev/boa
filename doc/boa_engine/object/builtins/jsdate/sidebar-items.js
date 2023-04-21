@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"struct":[["JsDate","`JsDate` is a wrapper for JavaScript `JsDate` builtin object"]]};
+window.SIDEBAR_ITEMS = {"fn":["mark"],"struct":["JsDate"]};

@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"struct":[["MemberExpression","Parses a member expression."]]};
+window.SIDEBAR_ITEMS = {"struct":["MemberExpression"]};

@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"struct":[["FunctionDeclaration","Function declaration parsing."]]};
+window.SIDEBAR_ITEMS = {"struct":["FunctionDeclaration"]};

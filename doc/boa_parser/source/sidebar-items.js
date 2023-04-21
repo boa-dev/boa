@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"struct":[["Source","A source of ECMAScript code."]]};
+window.SIDEBAR_ITEMS = {"struct":["Source"]};

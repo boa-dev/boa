@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"struct":[["Conditional","The `conditional` (ternary) operation is the only ECMAScript operation that takes three operands."]]};
+window.SIDEBAR_ITEMS = {"constant":["RECURSIVE_COUNT_Conditional"],"fn":["__getit","__init"],"static":["__KEY"],"struct":["Conditional"]};

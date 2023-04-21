@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"struct":[["Break","The `break` statement terminates the current loop, switch, or label statement and transfers program control to the statement following the terminated statement."]]};
+window.SIDEBAR_ITEMS = {"constant":["RECURSIVE_COUNT_Break"],"fn":["__getit","__init"],"static":["__KEY"],"struct":["Break"]};

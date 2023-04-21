@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"struct":[["RangeError","JavaScript `RangeError` implementation."]]};
+window.SIDEBAR_ITEMS = {"struct":["RangeError"]};

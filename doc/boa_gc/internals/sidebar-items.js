@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"mod":[["ephemeron_box",""],["gc_box",""],["weak_map_box",""]]};
+window.SIDEBAR_ITEMS = {"mod":["ephemeron_box","gc_box","weak_map_box"]};

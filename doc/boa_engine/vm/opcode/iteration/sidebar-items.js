@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"mod":[["for_in",""],["get",""],["iterator",""],["loop_ops",""]]};
+window.SIDEBAR_ITEMS = {"mod":["for_in","get","iterator","loop_ops"]};

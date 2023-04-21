@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"struct":[["Jump","`Jump` implements the Opcode Operation for `Opcode::Jump`"],["JumpIfFalse","`JumpIfFalse` implements the Opcode Operation for `Opcode::JumpIfFalse`"],["JumpIfNotUndefined","`JumpIfNotUndefined` implements the Opcode Operation for `Opcode::JumpIfNotUndefined`"],["JumpIfNullOrUndefined","`JumpIfUndefined` implements the Opcode Operation for `Opcode::JumpIfUndefined`"],["JumpIfTrue","Operation:"]]};
+window.SIDEBAR_ITEMS = {"struct":["Jump","JumpIfFalse","JumpIfNotUndefined","JumpIfNullOrUndefined","JumpIfTrue"]};

@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"mod":[["function",""],["generator",""],["name",""],["private",""],["property",""]]};
+window.SIDEBAR_ITEMS = {"mod":["function","generator","name","private","property"]};

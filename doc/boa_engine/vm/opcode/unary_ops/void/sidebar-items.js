@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"struct":[["Void","`Void` implements the Opcode Operation for `Opcode::Void`"]]};
+window.SIDEBAR_ITEMS = {"struct":["Void"]};

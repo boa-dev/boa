@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"struct":[["ArrayLiteral","An array is an ordered collection of data (either primitive or object depending upon the language)."]]};
+window.SIDEBAR_ITEMS = {"constant":["RECURSIVE_COUNT_ArrayLiteral"],"fn":["__getit","__init"],"static":["__KEY"],"struct":["ArrayLiteral"]};

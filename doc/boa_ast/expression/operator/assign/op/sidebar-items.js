@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"enum":[["AssignOp","An assignment operator assigns a value to its left operand based on the value of its right operand."]]};
+window.SIDEBAR_ITEMS = {"constant":["RECURSIVE_COUNT_AssignOp"],"enum":["AssignOp"],"fn":["__getit","__init"],"static":["__KEY"]};

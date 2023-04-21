@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"struct":[["ForOfLoop","A `for...of` loop statement, as defined by the spec."]]};
+window.SIDEBAR_ITEMS = {"constant":["RECURSIVE_COUNT_ForOfLoop"],"fn":["__getit","__init"],"static":["__KEY"],"struct":["ForOfLoop"]};

@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"struct":[["RegExpStringIterator","The `RegExp String Iterator` object."]]};
+window.SIDEBAR_ITEMS = {"fn":["mark"],"struct":["RegExpStringIterator"]};

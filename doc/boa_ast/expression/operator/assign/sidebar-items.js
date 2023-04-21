@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"enum":[["AssignOp","An assignment operator assigns a value to its left operand based on the value of its right operand."],["AssignTarget","The valid left-hand-side expressions of an assignment operator. Also called `LeftHandSideExpression` in the spec."]],"mod":[["op",""]],"struct":[["Assign","An assignment operator expression."]]};
+window.SIDEBAR_ITEMS = {"constant":["RECURSIVE_COUNT_Assign","RECURSIVE_COUNT_AssignTarget"],"enum":["AssignOp","AssignTarget"],"fn":["__getit","__init"],"mod":["op"],"static":["__KEY"],"struct":["Assign"]};

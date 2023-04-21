@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"struct":[["SetHomeObject","`SetHomeObject` implements the Opcode Operation for `Opcode::SetHomeObject`"]]};
+window.SIDEBAR_ITEMS = {"struct":["SetHomeObject"]};

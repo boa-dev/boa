@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"mod":[["options",""],["utils",""]],"struct":[["Locale",""]]};
+window.SIDEBAR_ITEMS = {"constant":["R"],"mod":["options","utils"],"struct":["Locale"]};

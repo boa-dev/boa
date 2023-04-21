@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"struct":[["BindingIdentifier","Binding identifier parsing."],["Identifier","Identifier parsing."],["IdentifierReference","Identifier reference parsing."]],"type":[["LabelIdentifier","Label identifier parsing."]]};
+window.SIDEBAR_ITEMS = {"struct":["BindingIdentifier","Identifier","IdentifierReference"],"type":["LabelIdentifier"]};

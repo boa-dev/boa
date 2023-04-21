@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"struct":[["Case","A case clause inside a [`Switch`] statement, as defined by the spec."],["Switch","The `switch` statement evaluates an expression, matching the expression’s value to a case clause, and executes statements associated with that case, as well as statements in cases that follow the matching case."]]};
+window.SIDEBAR_ITEMS = {"constant":["RECURSIVE_COUNT_Case","RECURSIVE_COUNT_Switch"],"fn":["__getit","__init"],"static":["__KEY"],"struct":["Case","Switch"]};

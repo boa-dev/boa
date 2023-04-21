@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"fn":[["create_realm","The `$262.createRealm()` function."],["detach_array_buffer","The `$262.detachArrayBuffer()` function."],["eval_script","The `$262.evalScript()` function."],["gc","The `$262.gc()` function."],["register_js262","Creates the object $262 in the context."]]};
+window.SIDEBAR_ITEMS = {"fn":["create_realm","detach_array_buffer","eval_script","gc","register_js262","type_err"]};

@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"fn":[["f64_to_int32","Converts a 64-bit floating point number to an `i32` according to the `ToInt32` algorithm."],["f64_to_uint32","Converts a 64-bit floating point number to an `u32` according to the `ToUint32` algorithm."]]};
+window.SIDEBAR_ITEMS = {"constant":["DENORMAL_EXPONENT","EXPONENT_BIAS","EXPONENT_MASK","HIDDEN_BIT","PHYSICAL_SIGNIFICAND_SIZE","SIGNIFICAND_MASK","SIGNIFICAND_SIZE","SIGN_MASK"],"fn":["exponent","f64_to_int32","f64_to_uint32","is_denormal","sign","significand"]};

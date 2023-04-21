@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"struct":[["IdleJobQueue","A job queue that does nothing."],["JobCallback","`JobCallback` records."],["NativeJob","An ECMAScript Job closure."],["SimpleJobQueue","A simple FIFO job queue that bails on the first error."]],"trait":[["JobQueue","A queue of `ECMAscript` Jobs."]],"type":[["FutureJob","The [`Future`] job passed to the [`JobQueue::enqueue_future_job`] operation."]]};
+window.SIDEBAR_ITEMS = {"fn":["mark"],"struct":["IdleJobQueue","JobCallback","NativeJob","SimpleJobQueue"],"trait":["JobQueue"],"type":["FutureJob"]};

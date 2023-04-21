@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"constant":[["UNICODE_VERSION","The version of Unicode."]],"fn":[["table_binary_search",""]],"mod":[["tables","This module implements the unicode lookup tables for identifier and pattern syntax. Version: Unicode 15.0.0"]],"trait":[["UnicodeProperties","Extend a type of code point to query if a value belongs to a particular Unicode property."]]};
+window.SIDEBAR_ITEMS = {"constant":["UNICODE_VERSION"],"fn":["table_binary_search"],"mod":["tables"],"trait":["UnicodeProperties"]};

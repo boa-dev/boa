@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"enum":[["Color","Represents the color of a node or edge."]]};
+window.SIDEBAR_ITEMS = {"constant":["GOLDEN_RATIO_CONJUGATE"],"enum":["Color"]};

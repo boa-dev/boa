@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"struct":[["WhileStatement","While statement parsing"]]};
+window.SIDEBAR_ITEMS = {"struct":["WhileStatement"]};

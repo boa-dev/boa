@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"struct":[["Parenthesized","A parenthesized expression."]]};
+window.SIDEBAR_ITEMS = {"constant":["RECURSIVE_COUNT_Parenthesized"],"fn":["__getit","__init"],"static":["__KEY"],"struct":["Parenthesized"]};

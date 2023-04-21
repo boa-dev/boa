@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"struct":[["ArrowFunction","An arrow function expression, as defined by the spec."]]};
+window.SIDEBAR_ITEMS = {"constant":["RECURSIVE_COUNT_ArrowFunction"],"fn":["__getit","__init"],"static":["__KEY"],"struct":["ArrowFunction"]};

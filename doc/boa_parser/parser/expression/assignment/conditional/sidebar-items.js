@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"struct":[["ConditionalExpression","Conditional expression parsing."]]};
+window.SIDEBAR_ITEMS = {"struct":["ConditionalExpression"]};

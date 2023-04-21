@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"struct":[["GetArrowFunction","`GetArrowFunction` implements the Opcode Operation for `Opcode::GetArrowFunction`"],["GetAsyncArrowFunction","`GetAsyncArrowFunction` implements the Opcode Operation for `Opcode::GetAsyncArrowFunction`"],["GetFunction","`GetFunction` implements the Opcode Operation for `Opcode::GetFunction`"],["GetFunctionAsync","`GetFunctionAsync` implements the Opcode Operation for `Opcode::GetFunctionAsync`"]]};
+window.SIDEBAR_ITEMS = {"struct":["GetArrowFunction","GetAsyncArrowFunction","GetFunction","GetFunctionAsync"]};

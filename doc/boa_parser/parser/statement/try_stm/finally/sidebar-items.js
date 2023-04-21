@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"struct":[["Finally","Finally parsing"]]};
+window.SIDEBAR_ITEMS = {"struct":["Finally"]};

@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"struct":[["ObjectLiteral","Objects in ECMAScript may be defined as an unordered collection of related data, of primitive or reference types, in the form of “key: value” pairs."]]};
+window.SIDEBAR_ITEMS = {"constant":["RECURSIVE_COUNT_ObjectLiteral"],"fn":["__getit","__init"],"static":["__KEY"],"struct":["ObjectLiteral"]};

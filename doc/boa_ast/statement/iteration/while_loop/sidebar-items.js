@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"struct":[["WhileLoop","The `while` statement creates a loop that executes a specified statement as long as the test condition evaluates to `true`."]]};
+window.SIDEBAR_ITEMS = {"constant":["RECURSIVE_COUNT_WhileLoop"],"fn":["__getit","__init"],"static":["__KEY"],"struct":["WhileLoop"]};

@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"struct":[["AsyncFunction","An async function definition, as defined by the spec."]]};
+window.SIDEBAR_ITEMS = {"constant":["RECURSIVE_COUNT_AsyncFunction"],"fn":["__getit","__init"],"static":["__KEY"],"struct":["AsyncFunction"]};

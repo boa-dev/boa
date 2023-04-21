@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"struct":[["JumpControlInfo","Boa’s `ByteCompiler` jump information tracking struct."],["JumpControlInfoFlags","A bitflag that contains the type flags and relevant booleans for `JumpControlInfo`."]]};
+window.SIDEBAR_ITEMS = {"constant":["NUM_FLAGS","OPTIONS","OPTIONS_NAMES"],"struct":["InternalBitFlags","Iter","IterRaw","JumpControlInfo","JumpControlInfoFlags"]};

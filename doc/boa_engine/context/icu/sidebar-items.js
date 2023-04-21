@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"enum":[["BoaProvider","ICU4X data provider used in boa."]],"struct":[["Icu","Collection of tools initialized from a [`DataProvider`] that are used for the functionality of `Intl`."]]};
+window.SIDEBAR_ITEMS = {"enum":["BoaProvider"],"struct":["Icu"]};

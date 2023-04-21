@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"struct":[["JsFunction","JavaScript `Function` rust object."]]};
+window.SIDEBAR_ITEMS = {"fn":["mark"],"struct":["JsFunction"]};

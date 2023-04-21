@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"struct":[["Attribute","This struct constains the property flags as described in the ECMAScript specification."]]};
+window.SIDEBAR_ITEMS = {"constant":["NUM_FLAGS","OPTIONS","OPTIONS_NAMES"],"struct":["Attribute","InternalBitFlags","Iter","IterRaw"]};

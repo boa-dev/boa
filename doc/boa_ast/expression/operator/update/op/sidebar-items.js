@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"enum":[["UpdateOp","A update operator is one that takes a single operand/argument and performs an operation."]]};
+window.SIDEBAR_ITEMS = {"constant":["RECURSIVE_COUNT_UpdateOp"],"enum":["UpdateOp"],"fn":["__getit","__init"],"static":["__KEY"]};

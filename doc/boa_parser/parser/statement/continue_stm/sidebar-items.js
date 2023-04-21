@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"struct":[["ContinueStatement","For statement parsing"]]};
+window.SIDEBAR_ITEMS = {"struct":["ContinueStatement"]};

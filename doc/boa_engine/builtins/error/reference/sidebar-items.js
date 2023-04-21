@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"struct":[["ReferenceError",""]]};
+window.SIDEBAR_ITEMS = {"struct":["ReferenceError"]};

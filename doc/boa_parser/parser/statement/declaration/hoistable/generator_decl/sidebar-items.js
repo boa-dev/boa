@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"struct":[["GeneratorDeclaration","Generator declaration parsing."]]};
+window.SIDEBAR_ITEMS = {"struct":["GeneratorDeclaration"]};

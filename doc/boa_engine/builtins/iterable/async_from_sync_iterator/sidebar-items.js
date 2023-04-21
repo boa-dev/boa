@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"struct":[["AsyncFromSyncIterator","`%AsyncFromSyncIteratorPrototype%` object."]]};
+window.SIDEBAR_ITEMS = {"fn":["mark"],"struct":["AsyncFromSyncIterator"]};

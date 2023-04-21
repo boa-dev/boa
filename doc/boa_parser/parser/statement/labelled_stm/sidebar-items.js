@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"struct":[["LabelledStatement","Labelled Statement Parsing"]]};
+window.SIDEBAR_ITEMS = {"struct":["LabelledStatement"]};

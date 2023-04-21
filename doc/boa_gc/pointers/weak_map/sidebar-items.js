@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"struct":[["WeakMap","A map that holds weak references to its keys and is traced by the garbage collector."]]};
+window.SIDEBAR_ITEMS = {"fn":["mark"],"struct":["WeakMap"]};

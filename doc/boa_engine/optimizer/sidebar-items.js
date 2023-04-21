@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"enum":[["PassAction","The action to be performed after an optimization step."]],"mod":[["pass",""],["walker",""]],"struct":[["Optimizer","This represents an AST optimizer."],["OptimizerOptions","Optimizer options."],["OptimizerStatistics","Contains statistics about the optimizer execution."]]};
+window.SIDEBAR_ITEMS = {"constant":["NUM_FLAGS","OPTIONS","OPTIONS_NAMES"],"enum":["PassAction"],"mod":["pass","walker"],"struct":["InternalBitFlags","Iter","IterRaw","Optimizer","OptimizerOptions","OptimizerStatistics"]};

@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"enum":[["DateTimeReqs","Represents the `required` and `defaults` arguments in the abstract operation `toDateTimeOptions`."]],"fn":[["to_date_time_options","The abstract operation `toDateTimeOptions` is called with arguments `options`, `required` and `defaults`."]],"struct":[["DateTimeFormat","JavaScript `Intl.DateTimeFormat` object."]]};
+window.SIDEBAR_ITEMS = {"enum":["DateTimeReqs"],"fn":["mark","to_date_time_options"],"struct":["DateTimeFormat"]};

@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"struct":[["Dec","`Dec` implements the Opcode Operation for `Opcode::Dec`"],["DecPost","`DecPost` implements the Opcode Operation for `Opcode::DecPost`"]]};
+window.SIDEBAR_ITEMS = {"struct":["Dec","DecPost"]};

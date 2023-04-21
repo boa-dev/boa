@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"enum":[["Inner",""]],"struct":[["Closure",""],["NativeFunction","A callable Rust function that can be invoked by the engine."]],"trait":[["TraceableClosure",""]],"type":[["NativeFunctionPointer","The required signature for all native built-in function pointers."]]};
+window.SIDEBAR_ITEMS = {"enum":["Inner"],"fn":["mark"],"struct":["Closure","NativeFunction"],"trait":["TraceableClosure"],"type":["NativeFunctionPointer"]};

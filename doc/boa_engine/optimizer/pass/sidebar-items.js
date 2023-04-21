@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"mod":[["constant_folding",""]]};
+window.SIDEBAR_ITEMS = {"mod":["constant_folding"]};

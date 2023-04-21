@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"mod":[["getter",""],["method",""],["setter",""]]};
+window.SIDEBAR_ITEMS = {"mod":["getter","method","setter"]};

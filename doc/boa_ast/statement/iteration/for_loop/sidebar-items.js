@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"enum":[["ForLoopInitializer","A [`ForLoop`] initializer, as defined by the spec."]],"struct":[["ForLoop","The `for` statement creates a loop that consists of three optional expressions."],["InnerForLoop","Inner structure to avoid multiple indirections in the heap."]]};
+window.SIDEBAR_ITEMS = {"constant":["RECURSIVE_COUNT_ForLoop","RECURSIVE_COUNT_ForLoopInitializer","RECURSIVE_COUNT_InnerForLoop"],"enum":["ForLoopInitializer"],"fn":["__getit","__init"],"static":["__KEY"],"struct":["ForLoop","InnerForLoop"]};

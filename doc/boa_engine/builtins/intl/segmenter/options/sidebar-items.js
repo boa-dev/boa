@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"enum":[["Granularity",""]],"struct":[["ParseGranularityError",""]]};
+window.SIDEBAR_ITEMS = {"enum":["Granularity"],"struct":["ParseGranularityError"]};

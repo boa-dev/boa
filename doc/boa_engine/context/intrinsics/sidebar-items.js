@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"struct":[["IntrinsicObjects","Cached intrinsic objects"],["Intrinsics","The intrinsic objects and constructors."],["StandardConstructor","Store a builtin constructor (such as `Object`) and its corresponding prototype."],["StandardConstructors","Cached core standard constructors."]]};
+window.SIDEBAR_ITEMS = {"fn":["mark"],"struct":["IntrinsicObjects","Intrinsics","StandardConstructor","StandardConstructors"]};

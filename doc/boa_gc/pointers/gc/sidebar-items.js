@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"struct":[["Gc","A garbage-collected pointer type over an immutable value."]]};
+window.SIDEBAR_ITEMS = {"struct":["Gc"]};

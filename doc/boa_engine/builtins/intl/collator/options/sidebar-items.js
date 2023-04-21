@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"enum":[["Sensitivity",""],["Usage",""]],"struct":[["ParseSensitivityError",""],["ParseUsageError",""]]};
+window.SIDEBAR_ITEMS = {"enum":["Sensitivity","Usage"],"struct":["ParseSensitivityError","ParseUsageError"]};

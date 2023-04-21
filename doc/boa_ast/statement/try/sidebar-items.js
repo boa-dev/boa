@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"enum":[["ErrorHandler","The type of error handler in a [`Try`] statement."]],"struct":[["Catch","Catch block."],["Finally","Finally block."],["Try","The `try...catch` statement marks a block of statements to try and specifies a response should an exception be thrown."]]};
+window.SIDEBAR_ITEMS = {"constant":["RECURSIVE_COUNT_Catch","RECURSIVE_COUNT_ErrorHandler","RECURSIVE_COUNT_Finally","RECURSIVE_COUNT_Try"],"enum":["ErrorHandler"],"fn":["__getit","__init"],"static":["__KEY"],"struct":["Catch","Finally","Try"]};

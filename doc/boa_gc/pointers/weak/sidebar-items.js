@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"struct":[["WeakGc","A weak reference to a [`Gc`]."]]};
+window.SIDEBAR_ITEMS = {"fn":["mark"],"struct":["WeakGc"]};

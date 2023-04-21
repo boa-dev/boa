@@ -1,5 +1,5 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `boa_engine/src/vm/opcode/generator/mod.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>mod.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../../../static.files/rustdoc-93196c7a1c3542a8.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../../../static.files/light-4743e13df3dfe8c4.css"><link rel="stylesheet" disabled href="../../../../../static.files/dark-0e1b889528bd466b.css"><link rel="stylesheet" disabled href="../../../../../static.files/ayu-65289d5d067c7c66.css"><script id="default-settings" ></script><script src="../../../../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../../../../static.files/source-script-ea63cb6500f71309.js"></script><script defer src="../../../../../source-files.js"></script><script defer src="../../../../../static.files/main-3367e395607fafc1.js"></script><noscript><link rel="stylesheet" href="../../../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../../../boa_engine/index.html">
-                        <img src="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `boa_engine/src/vm/opcode/generator/mod.rs`."><title>mod.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../static.files/SourceSerif4-Bold-a2c9cd1067f8b328.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../../../static.files/rustdoc-c4dbdcde0fbd8430.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../../../static.files/light-db279b6232be9c13.css"><link rel="stylesheet" disabled href="../../../../../static.files/dark-cf923f49f397b216.css"><link rel="stylesheet" disabled href="../../../../../static.files/ayu-be46fdc453a55015.css"><script src="../../../../../static.files/storage-3891ce972e3a2bf8.js"></script><script defer src="../../../../../static.files/source-script-1b95b7cca98b26e5.js"></script><script defer src="../../../../../source-files.js"></script><script defer src="../../../../../static.files/main-98a684e84ae5b08b.js"></script><noscript><link rel="stylesheet" href="../../../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../../../boa_engine/index.html">
+                        <img src="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -214,7 +214,203 @@
 <a href="#213" id="213">213</a>
 <a href="#214" id="214">214</a>
 <a href="#215" id="215">215</a>
-</pre><pre class="rust"><code><span class="kw">use crate</span>::{
+<a href="#216" id="216">216</a>
+<a href="#217" id="217">217</a>
+<a href="#218" id="218">218</a>
+<a href="#219" id="219">219</a>
+<a href="#220" id="220">220</a>
+<a href="#221" id="221">221</a>
+<a href="#222" id="222">222</a>
+<a href="#223" id="223">223</a>
+<a href="#224" id="224">224</a>
+<a href="#225" id="225">225</a>
+<a href="#226" id="226">226</a>
+<a href="#227" id="227">227</a>
+<a href="#228" id="228">228</a>
+<a href="#229" id="229">229</a>
+<a href="#230" id="230">230</a>
+<a href="#231" id="231">231</a>
+<a href="#232" id="232">232</a>
+<a href="#233" id="233">233</a>
+<a href="#234" id="234">234</a>
+<a href="#235" id="235">235</a>
+<a href="#236" id="236">236</a>
+<a href="#237" id="237">237</a>
+<a href="#238" id="238">238</a>
+<a href="#239" id="239">239</a>
+<a href="#240" id="240">240</a>
+<a href="#241" id="241">241</a>
+<a href="#242" id="242">242</a>
+<a href="#243" id="243">243</a>
+<a href="#244" id="244">244</a>
+<a href="#245" id="245">245</a>
+<a href="#246" id="246">246</a>
+<a href="#247" id="247">247</a>
+<a href="#248" id="248">248</a>
+<a href="#249" id="249">249</a>
+<a href="#250" id="250">250</a>
+<a href="#251" id="251">251</a>
+<a href="#252" id="252">252</a>
+<a href="#253" id="253">253</a>
+<a href="#254" id="254">254</a>
+<a href="#255" id="255">255</a>
+<a href="#256" id="256">256</a>
+<a href="#257" id="257">257</a>
+<a href="#258" id="258">258</a>
+<a href="#259" id="259">259</a>
+<a href="#260" id="260">260</a>
+<a href="#261" id="261">261</a>
+<a href="#262" id="262">262</a>
+<a href="#263" id="263">263</a>
+<a href="#264" id="264">264</a>
+<a href="#265" id="265">265</a>
+<a href="#266" id="266">266</a>
+<a href="#267" id="267">267</a>
+<a href="#268" id="268">268</a>
+<a href="#269" id="269">269</a>
+<a href="#270" id="270">270</a>
+<a href="#271" id="271">271</a>
+<a href="#272" id="272">272</a>
+<a href="#273" id="273">273</a>
+<a href="#274" id="274">274</a>
+<a href="#275" id="275">275</a>
+<a href="#276" id="276">276</a>
+<a href="#277" id="277">277</a>
+<a href="#278" id="278">278</a>
+<a href="#279" id="279">279</a>
+<a href="#280" id="280">280</a>
+<a href="#281" id="281">281</a>
+<a href="#282" id="282">282</a>
+<a href="#283" id="283">283</a>
+<a href="#284" id="284">284</a>
+<a href="#285" id="285">285</a>
+<a href="#286" id="286">286</a>
+<a href="#287" id="287">287</a>
+<a href="#288" id="288">288</a>
+<a href="#289" id="289">289</a>
+<a href="#290" id="290">290</a>
+<a href="#291" id="291">291</a>
+<a href="#292" id="292">292</a>
+<a href="#293" id="293">293</a>
+<a href="#294" id="294">294</a>
+<a href="#295" id="295">295</a>
+<a href="#296" id="296">296</a>
+<a href="#297" id="297">297</a>
+<a href="#298" id="298">298</a>
+<a href="#299" id="299">299</a>
+<a href="#300" id="300">300</a>
+<a href="#301" id="301">301</a>
+<a href="#302" id="302">302</a>
+<a href="#303" id="303">303</a>
+<a href="#304" id="304">304</a>
+<a href="#305" id="305">305</a>
+<a href="#306" id="306">306</a>
+<a href="#307" id="307">307</a>
+<a href="#308" id="308">308</a>
+<a href="#309" id="309">309</a>
+<a href="#310" id="310">310</a>
+<a href="#311" id="311">311</a>
+<a href="#312" id="312">312</a>
+<a href="#313" id="313">313</a>
+<a href="#314" id="314">314</a>
+<a href="#315" id="315">315</a>
+<a href="#316" id="316">316</a>
+<a href="#317" id="317">317</a>
+<a href="#318" id="318">318</a>
+<a href="#319" id="319">319</a>
+<a href="#320" id="320">320</a>
+<a href="#321" id="321">321</a>
+<a href="#322" id="322">322</a>
+<a href="#323" id="323">323</a>
+<a href="#324" id="324">324</a>
+<a href="#325" id="325">325</a>
+<a href="#326" id="326">326</a>
+<a href="#327" id="327">327</a>
+<a href="#328" id="328">328</a>
+<a href="#329" id="329">329</a>
+<a href="#330" id="330">330</a>
+<a href="#331" id="331">331</a>
+<a href="#332" id="332">332</a>
+<a href="#333" id="333">333</a>
+<a href="#334" id="334">334</a>
+<a href="#335" id="335">335</a>
+<a href="#336" id="336">336</a>
+<a href="#337" id="337">337</a>
+<a href="#338" id="338">338</a>
+<a href="#339" id="339">339</a>
+<a href="#340" id="340">340</a>
+<a href="#341" id="341">341</a>
+<a href="#342" id="342">342</a>
+<a href="#343" id="343">343</a>
+<a href="#344" id="344">344</a>
+<a href="#345" id="345">345</a>
+<a href="#346" id="346">346</a>
+<a href="#347" id="347">347</a>
+<a href="#348" id="348">348</a>
+<a href="#349" id="349">349</a>
+<a href="#350" id="350">350</a>
+<a href="#351" id="351">351</a>
+<a href="#352" id="352">352</a>
+<a href="#353" id="353">353</a>
+<a href="#354" id="354">354</a>
+<a href="#355" id="355">355</a>
+<a href="#356" id="356">356</a>
+<a href="#357" id="357">357</a>
+<a href="#358" id="358">358</a>
+<a href="#359" id="359">359</a>
+<a href="#360" id="360">360</a>
+<a href="#361" id="361">361</a>
+<a href="#362" id="362">362</a>
+<a href="#363" id="363">363</a>
+<a href="#364" id="364">364</a>
+<a href="#365" id="365">365</a>
+<a href="#366" id="366">366</a>
+<a href="#367" id="367">367</a>
+<a href="#368" id="368">368</a>
+<a href="#369" id="369">369</a>
+<a href="#370" id="370">370</a>
+<a href="#371" id="371">371</a>
+<a href="#372" id="372">372</a>
+<a href="#373" id="373">373</a>
+<a href="#374" id="374">374</a>
+<a href="#375" id="375">375</a>
+<a href="#376" id="376">376</a>
+<a href="#377" id="377">377</a>
+<a href="#378" id="378">378</a>
+<a href="#379" id="379">379</a>
+<a href="#380" id="380">380</a>
+<a href="#381" id="381">381</a>
+<a href="#382" id="382">382</a>
+<a href="#383" id="383">383</a>
+<a href="#384" id="384">384</a>
+<a href="#385" id="385">385</a>
+<a href="#386" id="386">386</a>
+<a href="#387" id="387">387</a>
+<a href="#388" id="388">388</a>
+<a href="#389" id="389">389</a>
+<a href="#390" id="390">390</a>
+<a href="#391" id="391">391</a>
+<a href="#392" id="392">392</a>
+<a href="#393" id="393">393</a>
+<a href="#394" id="394">394</a>
+<a href="#395" id="395">395</a>
+<a href="#396" id="396">396</a>
+<a href="#397" id="397">397</a>
+<a href="#398" id="398">398</a>
+<a href="#399" id="399">399</a>
+<a href="#400" id="400">400</a>
+<a href="#401" id="401">401</a>
+<a href="#402" id="402">402</a>
+<a href="#403" id="403">403</a>
+<a href="#404" id="404">404</a>
+<a href="#405" id="405">405</a>
+<a href="#406" id="406">406</a>
+<a href="#407" id="407">407</a>
+<a href="#408" id="408">408</a>
+<a href="#409" id="409">409</a>
+</pre><pre class="rust"><code><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">mod </span>yield_stm;
+
+<span class="kw">use crate</span>::{
     builtins::{
         async_generator::{AsyncGenerator, AsyncGeneratorState},
         iterable::IteratorRecord,
@@ -228,8 +424,6 @@
     },
     Context, JsError, JsResult, JsValue,
 };
-
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">mod </span>yield_stm;
 
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use </span>yield_stm::<span class="kw-2">*</span>;
 
@@ -335,6 +529,50 @@
     }
 }
 
+<span class="doccomment">/// `GeneratorAsyncResumeYield` implements the Opcode Operation for `Opcode::GeneratorAsyncResumeYield`
+///
+/// Operation:
+///  - Resumes the current async generator function after a yield.
+</span><span class="attr">#[derive(Debug, Clone, Copy)]
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>GeneratorAsyncResumeYield;
+
+<span class="kw">impl </span>Operation <span class="kw">for </span>GeneratorAsyncResumeYield {
+    <span class="kw">const </span>NAME: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;GeneratorAsyncResumeYield&quot;</span>;
+    <span class="kw">const </span>INSTRUCTION: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;INST - GeneratorAsyncResumeYield&quot;</span>;
+
+    <span class="kw">fn </span>execute(context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;CompletionType&gt; {
+        <span class="kw">let </span>normal_completion = context.vm.read::&lt;u32&gt;();
+
+        <span class="kw">match </span>context.vm.frame().generator_resume_kind {
+            GeneratorResumeKind::Normal =&gt; {
+                context.vm.frame_mut().pc = normal_completion <span class="kw">as </span>usize;
+                <span class="prelude-val">Ok</span>(CompletionType::Normal)
+            }
+            GeneratorResumeKind::Throw =&gt; <span class="prelude-val">Err</span>(JsError::from_opaque(context.vm.pop())),
+            GeneratorResumeKind::Return =&gt; <span class="prelude-val">Ok</span>(CompletionType::Normal),
+        }
+    }
+}
+
+<span class="doccomment">/// `GeneratorResumeReturn` implements the Opcode Operation for `Opcode::GeneratorResumeReturn`
+///
+/// Operation:
+///  - Resumes a generator with a return completion.
+</span><span class="attr">#[derive(Debug, Clone, Copy)]
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>GeneratorResumeReturn;
+
+<span class="kw">impl </span>Operation <span class="kw">for </span>GeneratorResumeReturn {
+    <span class="kw">const </span>NAME: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;GeneratorResumeReturn&quot;</span>;
+    <span class="kw">const </span>INSTRUCTION: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;INST - GeneratorResumeReturn&quot;</span>;
+
+    <span class="kw">fn </span>execute(context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;CompletionType&gt; {
+        <span class="kw">if </span>context.vm.frame().generator_resume_kind == GeneratorResumeKind::Throw {
+            <span class="kw">return </span><span class="prelude-val">Err</span>(JsError::from_opaque(context.vm.pop()));
+        }
+        Return::execute(context)
+    }
+}
+
 <span class="doccomment">/// `GeneratorNextDelegate` implements the Opcode Operation for `Opcode::GeneratorNextDelegate`
 ///
 /// Operation:
@@ -360,8 +598,7 @@
                 <span class="kw">let </span>result = result_value.as_object().ok_or_else(|| {
                     JsNativeError::typ().with_message(<span class="string">&quot;generator next method returned non-object&quot;</span>)
                 })<span class="question-mark">?</span>;
-                <span class="comment">// TODO: This is wrong for async generators, since we need to await the result first.
-                </span><span class="kw">let </span>done = result.get(<span class="macro">utf16!</span>(<span class="string">&quot;done&quot;</span>), context)<span class="question-mark">?</span>.to_boolean();
+                <span class="kw">let </span>done = result.get(<span class="macro">utf16!</span>(<span class="string">&quot;done&quot;</span>), context)<span class="question-mark">?</span>.to_boolean();
                 <span class="kw">if </span>done {
                     context.vm.frame_mut().pc = done_address <span class="kw">as </span>usize;
                     <span class="kw">let </span>value = result.get(<span class="macro">utf16!</span>(<span class="string">&quot;value&quot;</span>), context)<span class="question-mark">?</span>;
@@ -429,5 +666,156 @@
         }
     }
 }
+
+<span class="doccomment">/// `GeneratorAsyncDelegateNext` implements the Opcode Operation for `Opcode::GeneratorAsyncDelegateNext`
+///
+/// Operation:
+///  - Delegates the current async generator function to another iterator.
+</span><span class="attr">#[derive(Debug, Clone, Copy)]
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>GeneratorAsyncDelegateNext;
+
+<span class="kw">impl </span>Operation <span class="kw">for </span>GeneratorAsyncDelegateNext {
+    <span class="kw">const </span>NAME: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;GeneratorAsyncDelegateNext&quot;</span>;
+    <span class="kw">const </span>INSTRUCTION: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;INST - GeneratorAsyncDelegateNext&quot;</span>;
+
+    <span class="kw">fn </span>execute(context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;CompletionType&gt; {
+        <span class="kw">let </span>throw_method_undefined = context.vm.read::&lt;u32&gt;();
+        <span class="kw">let </span>return_method_undefined = context.vm.read::&lt;u32&gt;();
+        <span class="kw">let </span>received = context.vm.pop();
+        <span class="kw">let </span>next_method = context.vm.pop();
+        <span class="kw">let </span>iterator = context.vm.pop();
+        <span class="kw">let </span>iterator = iterator.as_object().expect(<span class="string">&quot;iterator was not an object&quot;</span>);
+
+        <span class="kw">match </span>context.vm.frame().generator_resume_kind {
+            GeneratorResumeKind::Normal =&gt; {
+                <span class="kw">let </span>result_value =
+                    next_method.call(<span class="kw-2">&amp;</span>iterator.clone().into(), <span class="kw-2">&amp;</span>[received], context)<span class="question-mark">?</span>;
+                context.vm.push(iterator.clone());
+                context.vm.push(next_method.clone());
+                context.vm.push(<span class="bool-val">false</span>);
+                context.vm.push(result_value);
+                <span class="prelude-val">Ok</span>(CompletionType::Normal)
+            }
+            GeneratorResumeKind::Throw =&gt; {
+                <span class="kw">let </span>throw = iterator.get_method(<span class="macro">utf16!</span>(<span class="string">&quot;throw&quot;</span>), context)<span class="question-mark">?</span>;
+                <span class="kw">if let </span><span class="prelude-val">Some</span>(throw) = throw {
+                    <span class="kw">let </span>result = throw.call(<span class="kw-2">&amp;</span>iterator.clone().into(), <span class="kw-2">&amp;</span>[received], context)<span class="question-mark">?</span>;
+                    context.vm.push(iterator.clone());
+                    context.vm.push(next_method.clone());
+                    context.vm.push(<span class="bool-val">false</span>);
+                    context.vm.push(result);
+                } <span class="kw">else </span>{
+                    <span class="kw">let </span>error = JsNativeError::typ()
+                        .with_message(<span class="string">&quot;iterator does not have a throw method&quot;</span>)
+                        .to_opaque(context);
+                    context.vm.push(error);
+                    context.vm.push(iterator.clone());
+                    context.vm.push(next_method.clone());
+                    context.vm.push(<span class="bool-val">false</span>);
+                    context.vm.frame_mut().pc = throw_method_undefined <span class="kw">as </span>usize;
+                }
+
+                <span class="prelude-val">Ok</span>(CompletionType::Normal)
+            }
+            GeneratorResumeKind::Return =&gt; {
+                <span class="kw">let </span>r#return = iterator.get_method(<span class="macro">utf16!</span>(<span class="string">&quot;return&quot;</span>), context)<span class="question-mark">?</span>;
+                <span class="kw">if let </span><span class="prelude-val">Some</span>(r#return) = r#return {
+                    <span class="kw">let </span>result = r#return.call(<span class="kw-2">&amp;</span>iterator.clone().into(), <span class="kw-2">&amp;</span>[received], context)<span class="question-mark">?</span>;
+                    context.vm.push(iterator.clone());
+                    context.vm.push(next_method.clone());
+                    context.vm.push(<span class="bool-val">true</span>);
+                    context.vm.push(result);
+                    <span class="kw">return </span><span class="prelude-val">Ok</span>(CompletionType::Normal);
+                }
+                context.vm.push(iterator.clone());
+                context.vm.push(next_method.clone());
+                context.vm.push(received);
+                context.vm.frame_mut().pc = return_method_undefined <span class="kw">as </span>usize;
+                <span class="prelude-val">Ok</span>(CompletionType::Normal)
+            }
+        }
+    }
+}
+
+<span class="doccomment">/// `GeneratorAsyncDelegateResume` implements the Opcode Operation for `Opcode::GeneratorAsyncDelegateResume`
+///
+/// Operation:
+///  - Resume the async generator with yield delegate logic after it awaits a value.
+</span><span class="attr">#[derive(Debug, Clone, Copy)]
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>GeneratorAsyncDelegateResume;
+
+<span class="kw">impl </span>Operation <span class="kw">for </span>GeneratorAsyncDelegateResume {
+    <span class="kw">const </span>NAME: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;GeneratorAsyncDelegateResume&quot;</span>;
+    <span class="kw">const </span>INSTRUCTION: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;INST - GeneratorAsyncDelegateResume&quot;</span>;
+
+    <span class="kw">fn </span>execute(context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;CompletionType&gt; {
+        <span class="kw">let </span>skip_yield = context.vm.read::&lt;u32&gt;();
+        <span class="kw">let </span>normal_completion = context.vm.read::&lt;u32&gt;();
+        <span class="kw">let </span>exit = context.vm.read::&lt;u32&gt;();
+
+        <span class="kw">if </span>context.vm.frame().generator_resume_kind == GeneratorResumeKind::Throw {
+            <span class="kw">return </span><span class="prelude-val">Err</span>(JsError::from_opaque(context.vm.pop()));
+        }
+
+        <span class="kw">let </span>received = context.vm.pop();
+        <span class="kw">let </span>is_return = context.vm.pop().to_boolean();
+
+        <span class="kw">let </span>result = received.as_object().ok_or_else(|| {
+            JsNativeError::typ().with_message(<span class="string">&quot;generator next method returned non-object&quot;</span>)
+        })<span class="question-mark">?</span>;
+        <span class="kw">let </span>done = result.get(<span class="macro">utf16!</span>(<span class="string">&quot;done&quot;</span>), context)<span class="question-mark">?</span>.to_boolean();
+        <span class="kw">let </span>value = result.get(<span class="macro">utf16!</span>(<span class="string">&quot;value&quot;</span>), context)<span class="question-mark">?</span>;
+        <span class="kw">if </span>done {
+            context.vm.push(value);
+
+            <span class="kw">if </span>is_return {
+                <span class="kw">return </span>Return::execute(context);
+            }
+
+            context.vm.frame_mut().pc = exit <span class="kw">as </span>usize;
+            <span class="kw">return </span><span class="prelude-val">Ok</span>(CompletionType::Normal);
+        }
+
+        <span class="kw">let </span>completion = <span class="prelude-val">Ok</span>(value);
+        <span class="kw">let </span>generator_object = context
+            .vm
+            .frame()
+            .async_generator
+            .as_ref()
+            .expect(<span class="string">&quot;must be in generator context here&quot;</span>)
+            .clone();
+        <span class="kw">let </span>next = generator_object
+            .borrow_mut()
+            .as_async_generator_mut()
+            .expect(<span class="string">&quot;must be async generator object&quot;</span>)
+            .queue
+            .pop_front()
+            .expect(<span class="string">&quot;must have item in queue&quot;</span>);
+        AsyncGenerator::complete_step(<span class="kw-2">&amp;</span>next, completion, <span class="bool-val">false</span>, <span class="prelude-val">None</span>, context);
+
+        <span class="kw">let </span><span class="kw-2">mut </span>generator_object_mut = generator_object.borrow_mut();
+        <span class="kw">let </span>gen = generator_object_mut
+            .as_async_generator_mut()
+            .expect(<span class="string">&quot;must be async generator object&quot;</span>);
+
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(next) = gen.queue.front() {
+            <span class="kw">let </span>(completion, r#return) = <span class="kw-2">&amp;</span>next.completion;
+            <span class="kw">if </span><span class="kw-2">*</span>r#return {
+                <span class="kw">let </span>value = <span class="kw">match </span>completion {
+                    <span class="prelude-val">Ok</span>(value) =&gt; value.clone(),
+                    <span class="prelude-val">Err</span>(e) =&gt; e.clone().to_opaque(context),
+                };
+                context.vm.push(value);
+                context.vm.frame_mut().pc = skip_yield <span class="kw">as </span>usize;
+            } <span class="kw">else </span>{
+                context.vm.push(completion.clone()<span class="question-mark">?</span>);
+                context.vm.frame_mut().pc = normal_completion <span class="kw">as </span>usize;
+            }
+        } <span class="kw">else </span>{
+            gen.state = AsyncGeneratorState::SuspendedYield;
+        }
+        <span class="prelude-val">Ok</span>(CompletionType::Normal)
+    }
+}
 </code></pre></div>
-</section></main><div id="rustdoc-vars" data-root-path="../../../../../" data-static-root-path="../../../../../static.files/" data-current-crate="boa_engine" data-themes="" data-resource-suffix="" data-rustdoc-version="1.68.2 (9eb3afe9e 2023-03-27)" data-search-js="search-98d53477a794af0b.js" data-settings-js="settings-c3c521c753752a1a.js" data-settings-css="settings-08ddfdda51b8ee2e.css" ></div></body></html>
+</section></main><div id="rustdoc-vars" data-root-path="../../../../../" data-static-root-path="../../../../../static.files/" data-current-crate="boa_engine" data-themes="" data-resource-suffix="" data-rustdoc-version="1.69.0 (84c898d65 2023-04-16)" data-search-js="search-8a59a8356673ec1f.js" data-settings-js="settings-f0c5c39777a9a2f6.js" data-settings-css="settings-0bcba95ff279c1db.css" ></div></body></html>

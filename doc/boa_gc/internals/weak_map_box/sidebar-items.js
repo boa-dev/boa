@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"struct":[["WeakMapBox","A box that is used to track [`WeakMap`][`crate::WeakMap`]s."]],"trait":[["ErasedWeakMapBox","A trait that is used to erase the type of a [`WeakMapBox`]."]]};
+window.SIDEBAR_ITEMS = {"struct":["WeakMapBox"],"trait":["ErasedWeakMapBox"]};

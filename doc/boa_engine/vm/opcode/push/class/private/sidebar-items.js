@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"struct":[["PushClassPrivateGetter","`PushClassPrivateGetter` implements the Opcode Operation for `Opcode::PushClassPrivateGetter`"],["PushClassPrivateMethod","`PushClassPrivateMethod` implements the Opcode Operation for `Opcode::PushClassPrivateMethod`"],["PushClassPrivateSetter","`PushClassPrivateSetter` implements the Opcode Operation for `Opcode::PushClassPrivateSetter`"]]};
+window.SIDEBAR_ITEMS = {"struct":["PushClassPrivateGetter","PushClassPrivateMethod","PushClassPrivateSetter"]};

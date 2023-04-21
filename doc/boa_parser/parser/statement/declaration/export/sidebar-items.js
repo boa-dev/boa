@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"struct":[["ExportDeclaration","Parses an export declaration."],["ExportSpecifier","Parses an export specifier."],["ModuleExportName","Parses a module export name."],["NamedExports","Parses a named export list."]]};
+window.SIDEBAR_ITEMS = {"struct":["ExportDeclaration","ExportSpecifier","ModuleExportName","NamedExports"]};

@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"struct":[["JsDataView","`JsDataView` provides a wrapper for Boa’s implementation of the ECMAScript `DataView` object"]]};
+window.SIDEBAR_ITEMS = {"fn":["mark"],"struct":["JsDataView"]};

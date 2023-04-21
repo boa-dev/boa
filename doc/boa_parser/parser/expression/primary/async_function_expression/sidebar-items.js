@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"struct":[["AsyncFunctionExpression","Async Function expression parsing."]]};
+window.SIDEBAR_ITEMS = {"struct":["AsyncFunctionExpression"]};

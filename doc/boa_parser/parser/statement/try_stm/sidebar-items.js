@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"mod":[["catch",""],["finally",""]],"struct":[["TryStatement","Try…catch statement parsing"]]};
+window.SIDEBAR_ITEMS = {"mod":["catch","finally"],"struct":["TryStatement"]};

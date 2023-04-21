@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"fn":[["create_function_object","Creates a new function object."],["create_generator_function_object","Creates a new generator function object."]],"struct":[["CodeBlock","The internal representation of a JavaScript function."],["ContextCleanupGuard",""]],"trait":[["Readable","This represents whether a value can be read from [`CodeBlock`] code."]]};
+window.SIDEBAR_ITEMS = {"fn":["create_function_object","create_generator_function_object","mark"],"struct":["CodeBlock","ContextCleanupGuard"],"trait":["Readable"]};

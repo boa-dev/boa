@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"enum":[["IntegrityLevel","Object integrity level."]]};
+window.SIDEBAR_ITEMS = {"enum":["IntegrityLevel"]};

@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"fn":[["add_entries_from_iterable","`AddEntriesFromIterable`"]],"mod":[["map_iterator","This module implements the `MapIterator` object."],["ordered_map","Implements a map type that preserves insertion order."]],"struct":[["Map",""]]};
+window.SIDEBAR_ITEMS = {"constant":["JS_ZERO"],"fn":["add_entries_from_iterable"],"mod":["map_iterator","ordered_map"],"struct":["Map"]};

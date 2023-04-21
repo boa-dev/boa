@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"enum":[["UninitResult","A `Result` value that is possibly uninitialized."]],"fn":[["register_print_fn","Registers the print function in the context."]],"mod":[["js262",""]],"struct":[["AsyncResult","Object which includes the result of the async operation."]]};
+window.SIDEBAR_ITEMS = {"enum":["UninitResult"],"fn":["register_print_fn"],"mod":["js262"],"struct":["AsyncResult"]};

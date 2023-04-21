@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"fn":[["as_simple","Check if the assignment target type is simple and return the target as an `UpdateTarget`."]],"struct":[["UpdateExpression","Parses an update expression."]]};
+window.SIDEBAR_ITEMS = {"fn":["as_simple"],"struct":["UpdateExpression"]};

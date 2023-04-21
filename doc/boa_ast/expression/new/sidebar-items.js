@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"struct":[["New","The `new` operator lets developers create an instance of a user-defined object type or of one of the built-in object types that has a constructor function."]]};
+window.SIDEBAR_ITEMS = {"constant":["RECURSIVE_COUNT_New"],"fn":["__getit","__init"],"static":["__KEY"],"struct":["New"]};

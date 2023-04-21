@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"struct":[["PushElisionToArray","`PushEllisionToArray` implements the Opcode Operation for `Opcode::PushEllisionToArray`"],["PushIteratorToArray","`PushIteratorToArray` implements the Opcode Operation for `Opcode::PushIteratorToArray`"],["PushNewArray","`PushNewArray` implements the Opcode Operation for `Opcode::PushNewArray`"],["PushValueToArray","`PushValueToArray` implements the Opcode Operation for `Opcode::PushValueToArray`"]]};
+window.SIDEBAR_ITEMS = {"struct":["PushElisionToArray","PushIteratorToArray","PushNewArray","PushValueToArray"]};

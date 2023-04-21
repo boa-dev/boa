@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"struct":[["WithStatement","With statement parsing."]]};
+window.SIDEBAR_ITEMS = {"struct":["WithStatement"]};
