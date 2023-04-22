@@ -418,6 +418,14 @@ where
                     interner,
                 )?;
 
+                // Catch early error for BindingIdentifier.
+                if body.strict() && contains(&parameters, ContainsSymbol::EvalOrArguments) {
+                    return Err(Error::lex(LexError::Syntax(
+                        "unexpected identifier 'eval' or 'arguments' in strict mode".into(),
+                        params_start_position,
+                    )));
+                }
+
                 // It is a Syntax Error if FunctionBodyContainsUseStrict of FunctionBody is true
                 // and IsSimpleParameterList of PropertySetParameterList is false.
                 // https://tc39.es/ecma262/#sec-method-definitions-static-semantics-early-errors
