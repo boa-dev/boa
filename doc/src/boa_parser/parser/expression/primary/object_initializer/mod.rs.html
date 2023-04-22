@@ -1074,6 +1074,14 @@
 <a href="#1073" id="1073">1073</a>
 <a href="#1074" id="1074">1074</a>
 <a href="#1075" id="1075">1075</a>
+<a href="#1076" id="1076">1076</a>
+<a href="#1077" id="1077">1077</a>
+<a href="#1078" id="1078">1078</a>
+<a href="#1079" id="1079">1079</a>
+<a href="#1080" id="1080">1080</a>
+<a href="#1081" id="1081">1081</a>
+<a href="#1082" id="1082">1082</a>
+<a href="#1083" id="1083">1083</a>
 </pre><pre class="rust"><code><span class="doccomment">//! Object initializer parsing.
 //!
 //! More information:
@@ -1493,6 +1501,14 @@
                     <span class="string">&quot;set method definition&quot;</span>,
                     interner,
                 )<span class="question-mark">?</span>;
+
+                <span class="comment">// Catch early error for BindingIdentifier.
+                </span><span class="kw">if </span>body.strict() &amp;&amp; contains(<span class="kw-2">&amp;</span>parameters, ContainsSymbol::EvalOrArguments) {
+                    <span class="kw">return </span><span class="prelude-val">Err</span>(Error::lex(LexError::Syntax(
+                        <span class="string">&quot;unexpected identifier &#39;eval&#39; or &#39;arguments&#39; in strict mode&quot;</span>.into(),
+                        params_start_position,
+                    )));
+                }
 
                 <span class="comment">// It is a Syntax Error if FunctionBodyContainsUseStrict of FunctionBody is true
                 // and IsSimpleParameterList of PropertySetParameterList is false.
