@@ -217,4 +217,18 @@ impl CompileTimeEnvironment {
     pub(crate) const fn environment_index(&self) -> usize {
         self.environment_index
     }
+
+    /// Gets the indices of all `var` bindings in this environment.
+    pub(crate) fn var_binding_indices(&self) -> Vec<usize> {
+        self.bindings
+            .iter()
+            .filter_map(|(_, binding)| {
+                if binding.lex {
+                    None
+                } else {
+                    Some(binding.index)
+                }
+            })
+            .collect()
+    }
 }

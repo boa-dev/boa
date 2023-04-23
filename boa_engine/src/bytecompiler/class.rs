@@ -113,6 +113,18 @@ impl ByteCompiler<'_, '_> {
         self.emit(Opcode::GetFunction, &[index]);
         self.emit_u8(0);
 
+        let class_env = if let Some(class_name) = class.name() {
+            if class.has_binding_identifier() {
+                self.push_compile_environment(false);
+                self.create_immutable_binding(class_name, true);
+                Some(self.emit_opcode_with_two_operands(Opcode::PushDeclarativeEnvironment))
+            } else {
+                None
+            }
+        } else {
+            None
+        };
+
         self.emit_opcode(Opcode::Dup);
         if let Some(node) = class.super_ref() {
             self.compile_expr(node, true);
@@ -543,6 +555,13 @@ impl ByteCompiler<'_, '_> {
         }
 
         self.emit_opcode(Opcode::Pop);
+
+        if let Some(class_env) = class_env {
+            let env_info = self.pop_compile_environment();
+            self.patch_jump_with_target(class_env.0, env_info.num_bindings as u32);
+            self.patch_jump_with_target(class_env.1, env_info.index as u32);
+            self.emit_opcode(Opcode::PopEnvironment);
+        }
 
         if !expression {
             self.emit_binding(
