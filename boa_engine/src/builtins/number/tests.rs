@@ -475,3 +475,12 @@ fn number_is_safe_integer() {
         TestAction::assert("!Number.isSafeInteger(new Number(5))"),
     ]);
 }
+
+// https://github.com/boa-dev/boa/issues/2717
+#[test]
+fn issue_2717() {
+    run_test_actions([
+        TestAction::assert_eq("(0.1600057092765239).toString(36)", "0.5rd85dm1ixq"),
+        TestAction::assert_eq("(0.23046743672210102).toString(36)", "0.8aoosla2phj"),
+    ]);
+}
