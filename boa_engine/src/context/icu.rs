@@ -3,18 +3,23 @@ use std::fmt::Debug;
 use icu_collator::{Collator, CollatorError, CollatorOptions};
 use icu_list::{ListError, ListFormatter, ListLength};
 use icu_locid_transform::{LocaleCanonicalizer, LocaleExpander, LocaleTransformError};
+use icu_normalizer::{ComposingNormalizer, DecomposingNormalizer, NormalizerError};
 use icu_provider::{
     AnyProvider, AsDeserializingBufferProvider, AsDowncastingAnyProvider, BufferProvider,
     DataError, DataLocale, DataProvider, DataRequest, DataResponse, KeyedDataMarker, MaybeSendSync,
 };
 use icu_segmenter::{GraphemeClusterSegmenter, SegmenterError, SentenceSegmenter, WordSegmenter};
 use serde::Deserialize;
+use thiserror::Error;
 use yoke::{trait_hack::YokeTraitHack, Yokeable};
 use zerofrom::ZeroFrom;
 
-use crate::builtins::intl::{
-    list_format::ListFormatType,
-    segmenter::{Granularity, NativeSegmenter},
+use crate::builtins::{
+    intl::{
+        list_format::ListFormatType,
+        segmenter::{Granularity, NativeSegmenter},
+    },
+    string::StringNormalizers,
 };
 
 /// ICU4X data provider used in boa.
@@ -147,6 +152,34 @@ impl BoaProvider<'_> {
             .map(|seg| NativeSegmenter::Sentence(Box::new(seg))),
         }
     }
+
+    pub(crate) fn try_new_string_normalizers(&self) -> Result<StringNormalizers, NormalizerError> {
+        Ok(match *self {
+            BoaProvider::Buffer(buf) => StringNormalizers {
+                nfc: ComposingNormalizer::try_new_nfc_with_buffer_provider(buf)?,
+                nfkc: ComposingNormalizer::try_new_nfkc_with_buffer_provider(buf)?,
+                nfd: DecomposingNormalizer::try_new_nfd_with_buffer_provider(buf)?,
+                nfkd: DecomposingNormalizer::try_new_nfkd_with_buffer_provider(buf)?,
+            },
+            BoaProvider::Any(any) => StringNormalizers {
+                nfc: ComposingNormalizer::try_new_nfc_with_any_provider(any)?,
+                nfkc: ComposingNormalizer::try_new_nfkc_with_any_provider(any)?,
+                nfd: DecomposingNormalizer::try_new_nfd_with_any_provider(any)?,
+                nfkd: DecomposingNormalizer::try_new_nfkd_with_any_provider(any)?,
+            },
+        })
+    }
+}
+
+/// Error thrown when the engine cannot initialize the ICU tools from a data provider.
+#[derive(Debug, Error)]
+pub enum IcuError {
+    /// Failed to create the locale transform tools.
+    #[error("could not construct the locale transform tools")]
+    LocaleTransform(#[from] LocaleTransformError),
+    /// Failed to create the string normalization tools.
+    #[error("could not construct the string normalization tools")]
+    Normalizer(#[from] NormalizerError),
 }
 
 /// Collection of tools initialized from a [`DataProvider`] that are used for the functionality of
@@ -155,14 +188,16 @@ pub(crate) struct Icu<'provider> {
     provider: BoaProvider<'provider>,
     locale_canonicalizer: LocaleCanonicalizer,
     locale_expander: LocaleExpander,
+    string_normalizers: StringNormalizers,
 }
 
 impl Debug for Icu<'_> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         f.debug_struct("Icu")
             .field("provider", &self.provider)
-            .field("locale_canonicalizer", &"LocaleCanonicalizer")
-            .field("locale_expander", &"LocaleExpander")
+            .field("locale_canonicalizer", &self.locale_canonicalizer)
+            .field("locale_expander", &self.locale_expander)
+            .field("string_normalizers", &self.string_normalizers)
             .finish()
     }
 }
@@ -173,12 +208,11 @@ impl<'provider> Icu<'provider> {
     /// # Errors
     ///
     /// Returns an error if any of the tools required cannot be constructed.
-    pub(crate) fn new(
-        provider: BoaProvider<'provider>,
-    ) -> Result<Icu<'provider>, LocaleTransformError> {
+    pub(crate) fn new(provider: BoaProvider<'provider>) -> Result<Icu<'provider>, IcuError> {
         Ok(Self {
             locale_canonicalizer: provider.try_new_locale_canonicalizer()?,
             locale_expander: provider.try_new_locale_expander()?,
+            string_normalizers: provider.try_new_string_normalizers()?,
             provider,
         })
     }
@@ -191,6 +225,11 @@ impl<'provider> Icu<'provider> {
     /// Gets the [`LocaleExpander`] tool.
     pub(crate) const fn locale_expander(&self) -> &LocaleExpander {
         &self.locale_expander
+    }
+
+    /// Gets the [`StringNormalizers`] tools.
+    pub(crate) const fn string_normalizers(&self) -> &StringNormalizers {
+        &self.string_normalizers
     }
 
     /// Gets the inner icu data provider
