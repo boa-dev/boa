@@ -740,6 +740,56 @@
 <a href="#739" id="739">739</a>
 <a href="#740" id="740">740</a>
 <a href="#741" id="741">741</a>
+<a href="#742" id="742">742</a>
+<a href="#743" id="743">743</a>
+<a href="#744" id="744">744</a>
+<a href="#745" id="745">745</a>
+<a href="#746" id="746">746</a>
+<a href="#747" id="747">747</a>
+<a href="#748" id="748">748</a>
+<a href="#749" id="749">749</a>
+<a href="#750" id="750">750</a>
+<a href="#751" id="751">751</a>
+<a href="#752" id="752">752</a>
+<a href="#753" id="753">753</a>
+<a href="#754" id="754">754</a>
+<a href="#755" id="755">755</a>
+<a href="#756" id="756">756</a>
+<a href="#757" id="757">757</a>
+<a href="#758" id="758">758</a>
+<a href="#759" id="759">759</a>
+<a href="#760" id="760">760</a>
+<a href="#761" id="761">761</a>
+<a href="#762" id="762">762</a>
+<a href="#763" id="763">763</a>
+<a href="#764" id="764">764</a>
+<a href="#765" id="765">765</a>
+<a href="#766" id="766">766</a>
+<a href="#767" id="767">767</a>
+<a href="#768" id="768">768</a>
+<a href="#769" id="769">769</a>
+<a href="#770" id="770">770</a>
+<a href="#771" id="771">771</a>
+<a href="#772" id="772">772</a>
+<a href="#773" id="773">773</a>
+<a href="#774" id="774">774</a>
+<a href="#775" id="775">775</a>
+<a href="#776" id="776">776</a>
+<a href="#777" id="777">777</a>
+<a href="#778" id="778">778</a>
+<a href="#779" id="779">779</a>
+<a href="#780" id="780">780</a>
+<a href="#781" id="781">781</a>
+<a href="#782" id="782">782</a>
+<a href="#783" id="783">783</a>
+<a href="#784" id="784">784</a>
+<a href="#785" id="785">785</a>
+<a href="#786" id="786">786</a>
+<a href="#787" id="787">787</a>
+<a href="#788" id="788">788</a>
+<a href="#789" id="789">789</a>
+<a href="#790" id="790">790</a>
+<a href="#791" id="791">791</a>
 </pre><pre class="rust"><code><span class="doccomment">//! Boa&#39;s implementation of ECMAScript&#39;s Property Descriptor.
 //!
 //! The Property Descriptor type is used to explain the manipulation and reification of `Object`
@@ -761,7 +811,7 @@
 
 <span class="kw">use crate</span>::{js_string, JsString, JsSymbol, JsValue};
 <span class="kw">use </span>boa_gc::{Finalize, Trace};
-<span class="kw">use </span>std::fmt;
+<span class="kw">use </span>std::{fmt, iter::FusedIterator};
 
 <span class="kw">pub use </span>attribute::Attribute;
 
@@ -1311,13 +1361,72 @@
     </span>Index(u32),
 }
 
+<span class="doccomment">/// Utility function for parsing [`PropertyKey`].
+</span><span class="kw">fn </span>parse_u32_index&lt;I, T&gt;(<span class="kw-2">mut </span>input: I) -&gt; <span class="prelude-ty">Option</span>&lt;u32&gt;
+<span class="kw">where
+    </span>I: Iterator&lt;Item = T&gt; + ExactSizeIterator + FusedIterator,
+    T: Into&lt;u16&gt;,
+{
+    <span class="comment">// min: 0             --&gt; 1  char
+    // max: 4_294_967_296 --&gt; 10 chars
+    //
+    // Max char range: [1, 10] inclusive.
+    </span><span class="kw">const </span>MAX_CHAR_COUNT: usize = <span class="number">10</span>;
+
+    <span class="kw">const </span>CHAR_ZERO: u16 = <span class="string">b&#39;0&#39; </span><span class="kw">as </span>u16;
+    <span class="kw">const </span>CHAR_NINE: u16 = <span class="string">b&#39;9&#39; </span><span class="kw">as </span>u16;
+
+    <span class="comment">// Eliminate any string if it&#39;s greater than the max char count.
+    </span><span class="kw">let </span>len = input.len();
+    <span class="kw">if </span>len &gt; MAX_CHAR_COUNT {
+        <span class="kw">return </span><span class="prelude-val">None</span>;
+    }
+
+    <span class="comment">// Helper function, for converting character to digit [0, 9].
+    </span><span class="kw">let </span>to_digit = |c: u16| -&gt; <span class="prelude-ty">Option</span>&lt;u32&gt; {
+        <span class="kw">if </span><span class="macro">matches!</span>(c, CHAR_ZERO..=CHAR_NINE) {
+            <span class="prelude-val">Some</span>(u32::from(c - CHAR_ZERO))
+        } <span class="kw">else </span>{
+            <span class="prelude-val">None
+        </span>}
+    };
+
+    <span class="kw">let </span>byte = input.next()<span class="question-mark">?</span>.into();
+    <span class="kw">if </span>byte == CHAR_ZERO {
+        <span class="kw">if </span>len == <span class="number">1 </span>{
+            <span class="kw">return </span><span class="prelude-val">Some</span>(<span class="number">0</span>);
+        }
+
+        <span class="comment">// String &quot;012345&quot; is not a valid index.
+        </span><span class="kw">return </span><span class="prelude-val">None</span>;
+    }
+
+    <span class="kw">let </span><span class="kw-2">mut </span>result = to_digit(byte)<span class="question-mark">?</span>;
+
+    <span class="comment">// If the len is equal to max chars, then we need to do checked opterations,
+    // in case of overflows. If less use unchecked versions.
+    </span><span class="kw">if </span>len == MAX_CHAR_COUNT {
+        <span class="kw">for </span>c <span class="kw">in </span>input {
+            result = result.checked_mul(<span class="number">10</span>)<span class="question-mark">?</span>.checked_add(to_digit(c.into())<span class="question-mark">?</span>)<span class="question-mark">?</span>;
+        }
+    } <span class="kw">else </span>{
+        <span class="kw">for </span>c <span class="kw">in </span>input {
+            result = result * <span class="number">10 </span>+ to_digit(c.into())<span class="question-mark">?</span>;
+        }
+    }
+
+    <span class="prelude-val">Some</span>(result)
+}
+
 <span class="kw">impl </span>From&lt;<span class="kw-2">&amp;</span>[u16]&gt; <span class="kw">for </span>PropertyKey {
     <span class="attr">#[inline]
     </span><span class="kw">fn </span>from(string: <span class="kw-2">&amp;</span>[u16]) -&gt; <span class="self">Self </span>{
-        <span class="macro">debug_assert!</span>(String::from_utf16(string)
-            .expect(<span class="string">&quot;should be ascii string&quot;</span>)
-            .parse::&lt;u32&gt;()
-            .is_err());
+        <span class="macro">debug_assert!</span>(parse_u32_index(
+            String::from_utf16(string)
+                .expect(<span class="string">&quot;should be ascii string&quot;</span>)
+                .bytes()
+        )
+        .is_none());
         <span class="self">Self</span>::String(string.into())
     }
 }
@@ -1325,38 +1434,29 @@
 <span class="kw">impl </span>From&lt;JsString&gt; <span class="kw">for </span>PropertyKey {
     <span class="attr">#[inline]
     </span><span class="kw">fn </span>from(string: JsString) -&gt; <span class="self">Self </span>{
-        string
-            .to_std_string()
-            .ok()
-            .and_then(|s| s.parse().ok())
-            .map_or(<span class="self">Self</span>::String(string), <span class="self">Self</span>::Index)
+        parse_u32_index(string.as_slice().iter().copied()).map_or(<span class="self">Self</span>::String(string), <span class="self">Self</span>::Index)
     }
 }
 
 <span class="kw">impl </span>From&lt;<span class="kw-2">&amp;</span>str&gt; <span class="kw">for </span>PropertyKey {
     <span class="attr">#[inline]
     </span><span class="kw">fn </span>from(string: <span class="kw-2">&amp;</span>str) -&gt; <span class="self">Self </span>{
-        string
-            .parse()
-            .map_or_else(|<span class="kw">_</span>| <span class="self">Self</span>::String(string.into()), <span class="self">Self</span>::Index)
+        parse_u32_index(string.bytes()).map_or_else(|| <span class="self">Self</span>::String(string.into()), <span class="self">Self</span>::Index)
     }
 }
 
 <span class="kw">impl </span>From&lt;String&gt; <span class="kw">for </span>PropertyKey {
     <span class="attr">#[inline]
     </span><span class="kw">fn </span>from(string: String) -&gt; <span class="self">Self </span>{
-        string
-            .parse()
-            .map_or_else(|<span class="kw">_</span>| <span class="self">Self</span>::String(string.into()), <span class="self">Self</span>::Index)
+        parse_u32_index(string.bytes()).map_or_else(|| <span class="self">Self</span>::String(string.into()), <span class="self">Self</span>::Index)
     }
 }
 
 <span class="kw">impl </span>From&lt;Box&lt;str&gt;&gt; <span class="kw">for </span>PropertyKey {
     <span class="attr">#[inline]
     </span><span class="kw">fn </span>from(string: Box&lt;str&gt;) -&gt; <span class="self">Self </span>{
-        string
-            .parse()
-            .map_or_else(|<span class="kw">_</span>| <span class="self">Self</span>::String(string.as_ref().into()), <span class="self">Self</span>::Index)
+        parse_u32_index(string.bytes())
+            .map_or_else(|| <span class="self">Self</span>::String(string.as_ref().into()), <span class="self">Self</span>::Index)
     }
 }
 
