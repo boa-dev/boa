@@ -1,5 +1,8 @@
-pub(crate) struct TimeZone {
-    initialized_temporal_time_zone: bool,
-    identifier: String,
-    offset_nanoseconds: u64,
+#![allow(dead_code)]
+
+#[derive(Debug)]
+pub struct TimeZone {
+    pub(crate) initialized_temporal_time_zone: bool,
+    pub(crate) identifier: String,
+    pub(crate) offset_nanoseconds: Option<i64>,
 }

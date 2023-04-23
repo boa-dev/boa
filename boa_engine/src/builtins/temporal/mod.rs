@@ -169,31 +169,39 @@ fn create_temporal_time_zone(
     // 2. Let object be ? OrdinaryCreateFromConstructor(newTarget, "%Temporal.TimeZone.prototype%", « [[InitializedTemporalTimeZone]], [[Identifier]], [[OffsetNanoseconds]] »).
     let prototype =
         get_prototype_from_constructor(&new_target, StandardConstructors::time_zone, context)?;
-    let object = JsObject::from_proto_and_data(prototype, ObjectData::time_zone(TimeZone {}));
 
     // 3. Let offsetNanosecondsResult be Completion(ParseTimeZoneOffsetString(identifier)).
     let offset_nanoseconds_result = parse_timezone_offset_string(&identifier, context);
 
     // 4. If offsetNanosecondsResult is an abrupt completion, then
-    if offset_nanoseconds_result.is_err() {
+    let (identifier, offset_nanoseconds) = if let Ok(offset_nanoseconds) = offset_nanoseconds_result
+    {
+        // Switched conditions for more idiomatic rust code structuring
+        // 5. Else,
+        // a. Set object.[[Identifier]] to ! FormatTimeZoneOffsetString(offsetNanosecondsResult.[[Value]]).
+        // b. Set object.[[OffsetNanoseconds]] to offsetNanosecondsResult.[[Value]].
+        (
+            format_time_zone_offset_string(offset_nanoseconds),
+            Some(offset_nanoseconds),
+        )
+    } else {
         // a. Assert: ! CanonicalizeTimeZoneName(identifier) is identifier.
         assert_eq!(canonicalize_time_zone_name(&identifier), identifier);
 
         // b. Set object.[[Identifier]] to identifier.
-        todo!();
-
         // c. Set object.[[OffsetNanoseconds]] to undefined.
-        todo!()
-    } else {
-        // 5. Else,
-        // a. Set object.[[Identifier]] to ! FormatTimeZoneOffsetString(offsetNanosecondsResult.[[Value]]).
-        todo!();
-
-        // b. Set object.[[OffsetNanoseconds]] to offsetNanosecondsResult.[[Value]].
-        todo!()
-    }
+        (identifier, None)
+    };
 
     // 6. Return object.
+    let object = JsObject::from_proto_and_data(
+        prototype,
+        ObjectData::time_zone(TimeZone {
+            initialized_temporal_time_zone: false,
+            identifier,
+            offset_nanoseconds,
+        }),
+    );
     Ok(object.into())
 }
 
@@ -299,6 +307,61 @@ fn parse_timezone_offset_string(_offset_string: &str, context: &mut Context<'_>)
     Ok(0)
 }
 
+/// Abstract operation `FormatTimeZoneOffsetString ( offsetNanoseconds )`
+fn format_time_zone_offset_string(offset_nanoseconds: i64) -> String {
+    // 1. Assert: offsetNanoseconds is an integer.
+
+    // 2. If offsetNanoseconds ≥ 0, let sign be "+"; otherwise, let sign be "-".
+    let sign = if offset_nanoseconds >= 0 { "+" } else { "-" };
+
+    // 3. Let offsetNanoseconds be abs(offsetNanoseconds).
+    let offset_nanoseconds = offset_nanoseconds.unsigned_abs();
+
+    // 4. Let nanoseconds be offsetNanoseconds modulo 10^9.
+    let nanoseconds = offset_nanoseconds % 1_000_000_000;
+
+    // 5. Let seconds be floor(offsetNanoseconds / 10^9) modulo 60.
+    let seconds = (offset_nanoseconds / 1_000_000_000) % 60;
+
+    // 6. Let minutes be floor(offsetNanoseconds / (6 × 10^10)) modulo 60.
+    let minutes = (offset_nanoseconds / 60_000_000_000) % 60;
+
+    // 7. Let hours be floor(offsetNanoseconds / (3.6 × 1012)).
+    let hours = (offset_nanoseconds / 3_600_000_000_000) % 60;
+
+    // 8. Let h be ToZeroPaddedDecimalString(hours, 2).
+    let h = to_zero_padded_decimal_string(hours, 2);
+
+    // 9. Let m be ToZeroPaddedDecimalString(minutes, 2).
+    let m = to_zero_padded_decimal_string(minutes, 2);
+
+    // 10. Let s be ToZeroPaddedDecimalString(seconds, 2).
+    let s = to_zero_padded_decimal_string(seconds, 2);
+
+    // 11. If nanoseconds ≠ 0, then
+    let post = if nanoseconds != 0 {
+        // a. Let fraction be ToZeroPaddedDecimalString(nanoseconds, 9).
+        let fraction = to_zero_padded_decimal_string(nanoseconds, 9);
+
+        // b. Set fraction to the longest possible substring of fraction starting at position 0 and not ending with the code unit 0x0030 (DIGIT ZERO).
+        let fraction = fraction.trim_end_matches('0');
+
+        // c. Let post be the string-concatenation of the code unit 0x003A (COLON), s, the code unit 0x002E (FULL STOP), and fraction.
+        format!(":{s}.{fraction}")
+    } else if seconds != 0 {
+        // 12. Else if seconds ≠ 0, then
+        // a. Let post be the string-concatenation of the code unit 0x003A (COLON) and s.
+        format!(":{s}")
+    } else {
+        // 13. Else,
+        // a. Let post be the empty String.
+        String::new()
+    };
+
+    // 14. Return the string-concatenation of sign, h, the code unit 0x003A (COLON), m, and post.
+    format!("{sign}{h}:{m}{post}")
+}
+
 /// Abstract operation `CanonicalizeTimeZoneName ( timeZone )`
 ///
 /// The abstract operation `CanonicalizeTimeZoneName` takes argument `timeZone` (a String that is a
@@ -312,4 +375,12 @@ fn canonicalize_time_zone_name(time_zone: &str) -> String {
     assert!(time_zone.to_ascii_uppercase() == "UTC");
     // 2. Return "UTC".
     "UTC".to_owned()
+}
+
+/// Abstract operation `ToZeroPaddedDecimalString ( n, minLength )`
+///
+/// The abstract operation `ToZeroPaddedDecimalString` takes arguments `n` (a non-negative integer)
+/// and `minLength` (a non-negative integer) and returns a String.
+fn to_zero_padded_decimal_string(n: u64, min_length: usize) -> String {
+    format!("{n:0min_length$}")
 }
