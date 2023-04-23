@@ -141,7 +141,7 @@ pub struct CodeBlock {
 
 /// ---- `CodeBlock` public API ----
 impl CodeBlock {
-    /// Retrieves the name associated with this code block.
+    /// Creates a new `CodeBlock`.
     #[must_use]
     pub fn new(name: Sym, length: u32, strict: bool) -> Self {
         Self {
@@ -169,7 +169,7 @@ impl CodeBlock {
         }
     }
 
-    /// Gets the name of the code block.
+    /// Retrieves the name associated with this code block.
     #[must_use]
     pub const fn name(&self) -> Sym {
         self.name
