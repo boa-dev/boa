@@ -1,5 +1,3 @@
-use indoc::indoc;
-
 use crate::{
     builtins::error::ErrorKind,
     error::JsNativeError,
@@ -9,6 +7,7 @@ use crate::{
     property::{Attribute, PropertyDescriptor},
     run_test_actions, JsValue, TestAction,
 };
+use indoc::indoc;
 
 #[allow(clippy::float_cmp)]
 #[test]

@@ -248,67 +248,69 @@ pub(crate) fn log_string_from(x: &JsValue, print_internals: bool, print_children
                         }
                     )
                 }
-                _ => display_obj(x, print_internals),
+                _ => x.display_obj(print_internals),
             }
         }
         _ => x.display().to_string(),
     }
 }
 
-/// A helper function for specifically printing object values
-pub(crate) fn display_obj(v: &JsValue, print_internals: bool) -> String {
-    // A simple helper for getting the address of a value
-    // TODO: Find a more general place for this, as it can be used in other situations as well
-    fn address_of<T>(t: &T) -> usize {
-        let my_ptr: *const T = t;
-        my_ptr as usize
-    }
-
-    fn display_obj_internal(
-        data: &JsValue,
-        encounters: &mut HashSet<usize>,
-        indent: usize,
-        print_internals: bool,
-    ) -> String {
-        if let JsValue::Object(ref v) = *data {
-            // The in-memory address of the current object
-            let addr = address_of(v.as_ref());
-
-            // We need not continue if this object has already been
-            // printed up the current chain
-            if encounters.contains(&addr) {
-                return String::from("[Cycle]");
-            }
-
-            // Mark the current object as encountered
-            encounters.insert(addr);
-
-            let result = if print_internals {
-                print_obj_value!(all of v, display_obj_internal, indent, encounters).join(",\n")
-            } else {
-                print_obj_value!(props of v, display_obj_internal, indent, encounters, print_internals)
-                        .join(",\n")
-            };
-
-            // If the current object is referenced in a different branch,
-            // it will not cause an infinite printing loop, so it is safe to be printed again
-            encounters.remove(&addr);
-
-            let closing_indent = String::from_utf8(vec![b' '; indent.wrapping_sub(4)])
-                .expect("Could not create the closing brace's indentation string");
-
-            format!("{{\n{result}\n{closing_indent}}}")
-        } else {
-            // Every other type of data is printed with the display method
-            data.display().to_string()
+impl JsValue {
+    /// A helper function for specifically printing object values
+    pub fn display_obj(&self, print_internals: bool) -> String {
+        // A simple helper for getting the address of a value
+        // TODO: Find a more general place for this, as it can be used in other situations as well
+        fn address_of<T>(t: &T) -> usize {
+            let my_ptr: *const T = t;
+            my_ptr as usize
         }
+
+        fn display_obj_internal(
+            data: &JsValue,
+            encounters: &mut HashSet<usize>,
+            indent: usize,
+            print_internals: bool,
+        ) -> String {
+            if let JsValue::Object(ref v) = *data {
+                // The in-memory address of the current object
+                let addr = address_of(v.as_ref());
+
+                // We need not continue if this object has already been
+                // printed up the current chain
+                if encounters.contains(&addr) {
+                    return String::from("[Cycle]");
+                }
+
+                // Mark the current object as encountered
+                encounters.insert(addr);
+
+                let result = if print_internals {
+                    print_obj_value!(all of v, display_obj_internal, indent, encounters).join(",\n")
+                } else {
+                    print_obj_value!(props of v, display_obj_internal, indent, encounters, print_internals)
+                        .join(",\n")
+                };
+
+                // If the current object is referenced in a different branch,
+                // it will not cause an infinite printing loop, so it is safe to be printed again
+                encounters.remove(&addr);
+
+                let closing_indent = String::from_utf8(vec![b' '; indent.wrapping_sub(4)])
+                    .expect("Could not create the closing brace's indentation string");
+
+                format!("{{\n{result}\n{closing_indent}}}")
+            } else {
+                // Every other type of data is printed with the display method
+                data.display().to_string()
+            }
+        }
+
+        // We keep track of which objects we have encountered by keeping their
+        // in-memory address in this set
+        let mut encounters = HashSet::new();
+
+        display_obj_internal(self, &mut encounters, 4, print_internals)
     }
-
-    // We keep track of which objects we have encountered by keeping their
-    // in-memory address in this set
-    let mut encounters = HashSet::new();
-
-    display_obj_internal(v, &mut encounters, 4, print_internals)
 }
 
 impl Display for ValueDisplay<'_> {

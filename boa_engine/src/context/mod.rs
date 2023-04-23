@@ -300,6 +300,8 @@ impl<'host> Context<'host> {
 
     /// Register a global property.
     ///
+    /// It will return an error if the property is already defined.
+    ///
     /// # Example
     /// ```
     /// use boa_engine::{
@@ -310,13 +312,17 @@ impl<'host> Context<'host> {
     ///
     /// let mut context = Context::default();
     ///
-    /// context.register_global_property("myPrimitiveProperty", 10, Attribute::all());
+    /// context
+    ///     .register_global_property("myPrimitiveProperty", 10, Attribute::all())
+    ///     .expect("property shouldn't exist");
     ///
     /// let object = ObjectInitializer::new(&mut context)
     ///     .property("x", 0, Attribute::all())
     ///     .property("y", 1, Attribute::all())
     ///     .build();
-    /// context.register_global_property("myObjectProperty", object, Attribute::all());
+    /// context
+    ///     .register_global_property("myObjectProperty", object, Attribute::all())
+    ///     .expect("property shouldn't exist");
     /// ```
     pub fn register_global_property<K, V>(
         &mut self,
@@ -410,6 +416,8 @@ impl<'host> Context<'host> {
     }
 
     /// Register a global class of type `T`, where `T` implements `Class`.
+    ///
+    /// It will return an error if the global property is already defined.
     ///
     /// # Example
     /// ```ignore
@@ -513,6 +521,11 @@ impl<'host> Context<'host> {
     /// [weak]: https://tc39.es/ecma262/multipage/managing-memory.html#sec-weak-ref-objects
     pub fn clear_kept_objects(&mut self) {
         self.kept_alive.clear();
+    }
+
+    /// Retrieves the current stack trace of the context.
+    pub fn stack_trace(&mut self) -> impl Iterator<Item = &CallFrame> {
+        self.vm.frames.iter().rev()
     }
 
     /// Replaces the currently active realm with `realm`, and returns the old realm.

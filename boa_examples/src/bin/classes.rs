@@ -8,6 +8,7 @@ use boa_engine::{
 };
 
 use boa_gc::{Finalize, Trace};
+use boa_runtime::Console;
 
 // We create a new struct that is going to represent a person.
 //
@@ -124,12 +125,26 @@ impl Class for Person {
     }
 }
 
+/// Adds the custom runtime to the context.
+fn add_runtime(context: &mut Context<'_>) {
+    // We first add the `console` object, to be able to call `console.log()`.
+    let console = Console::init(context);
+    context
+        .register_global_property(Console::NAME, console, Attribute::all())
+        .expect("the console builtin shouldn't exist");
+
+    // Then we need to register the global class `Person` inside `context`.
+    context
+        .register_global_class::<Person>()
+        .expect("the Person builtin shouldn't exist");
+}
+
 fn main() {
     // First we need to create a Javascript context.
     let mut context = Context::default();
 
-    // Then we need to register the global class `Person` inside `context`.
-    context.register_global_class::<Person>().unwrap();
+    // Then, we add our custom runtime.
+    add_runtime(&mut context);
 
     // Having done all of that, we can execute Javascript code with `eval`,
     // and access the `Person` class defined in Rust!

@@ -42,7 +42,6 @@
 //! # Crate Features
 //!
 //!  - **serde** - Enables serialization and deserialization of the AST (Abstract Syntax Tree).
-//!  - **console** - Enables `boa`'s [WHATWG `console`][whatwg] object implementation.
 //!  - **profiler** - Enables profiling with measureme (this is mostly internal).
 //!  - **intl** - Enables `boa`'s [ECMA-402 Internationalization API][ecma-402] (`Intl` object)
 //!
@@ -56,7 +55,6 @@
 //!  - **`boa_unicode`** - Boa's Unicode identifier.
 //!  - **`boa_icu_provider`** - Boa's ICU4X data provider.
 //!
-//! [whatwg]: https://console.spec.whatwg.org
 //! [ecma-402]: https://tc39.es/ecma402
 //! [boa-conformance]: https://boajs.dev/boa/test262/
 //! [boa-web]: https://boajs.dev/
@@ -156,15 +154,12 @@ pub mod property;
 pub mod realm;
 pub mod string;
 pub mod symbol;
-pub mod value;
-pub mod vm;
-
-#[cfg(feature = "console")]
-pub mod console;
-
-pub(crate) mod tagged;
+// pub(crate) mod tagged;
+mod tagged;
 #[cfg(test)]
 mod tests;
+pub mod value;
+pub mod vm;
 
 /// A convenience module that re-exports the most commonly-used Boa APIs
 pub mod prelude {
@@ -224,7 +219,7 @@ use std::borrow::Cow;
 /// A test action executed in a test function.
 #[cfg(test)]
 #[derive(Clone)]
-pub(crate) struct TestAction(Inner);
+struct TestAction(Inner);
 
 #[cfg(test)]
 #[derive(Clone)]
@@ -264,12 +259,12 @@ enum Inner {
 #[cfg(test)]
 impl TestAction {
     /// Evaluates some utility functions used in tests.
-    pub(crate) const fn run_harness() -> Self {
+    const fn run_harness() -> Self {
         Self(Inner::RunHarness)
     }
 
     /// Runs `source`, panicking if the execution throws.
-    pub(crate) fn run(source: impl Into<Cow<'static, str>>) -> Self {
+    fn run(source: impl Into<Cow<'static, str>>) -> Self {
         Self(Inner::Run {
             source: source.into(),
         })
@@ -278,22 +273,19 @@ impl TestAction {
     /// Executes `op` with the currently active context.
     ///
     /// Useful to make custom assertions that must be done from Rust code.
-    pub(crate) fn inspect_context(op: fn(&mut Context<'_>)) -> Self {
+    fn inspect_context(op: fn(&mut Context<'_>)) -> Self {
         Self(Inner::InspectContext { op })
     }
 
     /// Asserts that evaluating `source` returns the `true` value.
-    pub(crate) fn assert(source: impl Into<Cow<'static, str>>) -> Self {
+    fn assert(source: impl Into<Cow<'static, str>>) -> Self {
         Self(Inner::Assert {
             source: source.into(),
         })
     }
 
     /// Asserts that the script returns `expected` when evaluating `source`.
-    pub(crate) fn assert_eq(
-        source: impl Into<Cow<'static, str>>,
-        expected: impl Into<JsValue>,
-    ) -> Self {
+    fn assert_eq(source: impl Into<Cow<'static, str>>, expected: impl Into<JsValue>) -> Self {
         Self(Inner::AssertEq {
             source: source.into(),
             expected: expected.into(),
@@ -303,7 +295,7 @@ impl TestAction {
     /// Asserts that calling `op` with the value obtained from evaluating `source` returns `true`.
     ///
     /// Useful to check properties of the obtained value that cannot be checked from JS code.
-    pub(crate) fn assert_with_op(
+    fn assert_with_op(
         source: impl Into<Cow<'static, str>>,
         op: fn(JsValue, &mut Context<'_>) -> bool,
     ) -> Self {
@@ -314,7 +306,7 @@ impl TestAction {
     }
 
     /// Asserts that evaluating `source` throws the opaque error `value`.
-    pub(crate) fn assert_opaque_error(
+    fn assert_opaque_error(
         source: impl Into<Cow<'static, str>>,
         value: impl Into<JsValue>,
     ) -> Self {
@@ -325,7 +317,7 @@ impl TestAction {
     }
 
     /// Asserts that evaluating `source` throws a native error of `kind` and `message`.
-    pub(crate) fn assert_native_error(
+    fn assert_native_error(
         source: impl Into<Cow<'static, str>>,
         kind: builtins::error::ErrorKind,
         message: &'static str,
@@ -338,7 +330,7 @@ impl TestAction {
     }
 
     /// Asserts that calling `op` with the currently executing context returns `true`.
-    pub(crate) fn assert_context(op: fn(&mut Context<'_>) -> bool) -> Self {
+    fn assert_context(op: fn(&mut Context<'_>) -> bool) -> Self {
         Self(Inner::AssertContext { op })
     }
 }
@@ -346,7 +338,7 @@ impl TestAction {
 /// Executes a list of test actions on a new, default context.
 #[cfg(test)]
 #[track_caller]
-pub(crate) fn run_test_actions(actions: impl IntoIterator<Item = TestAction>) {
+fn run_test_actions(actions: impl IntoIterator<Item = TestAction>) {
     let context = &mut Context::default();
     run_test_actions_with(actions, context);
 }
@@ -354,10 +346,7 @@ pub(crate) fn run_test_actions(actions: impl IntoIterator<Item = TestAction>) {
 /// Executes a list of test actions on the provided context.
 #[cfg(test)]
 #[track_caller]
-pub(crate) fn run_test_actions_with(
-    actions: impl IntoIterator<Item = TestAction>,
-    context: &mut Context<'_>,
-) {
+fn run_test_actions_with(actions: impl IntoIterator<Item = TestAction>, context: &mut Context<'_>) {
     #[track_caller]
     fn forward_val(context: &mut Context<'_>, source: &str) -> JsResult<JsValue> {
         context.eval_script(Source::from_bytes(source))

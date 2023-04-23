@@ -8,8 +8,10 @@ use boa_engine::{
     context::ContextBuilder,
     job::{FutureJob, JobQueue, NativeJob},
     native_function::NativeFunction,
+    property::Attribute,
     Context, JsArgs, JsResult, JsValue, Source,
 };
+use boa_runtime::Console;
 use futures_util::{stream::FuturesUnordered, Future};
 use smol::{future, stream::StreamExt, LocalExecutor};
 
@@ -128,16 +130,28 @@ fn delay(
     }
 }
 
+/// Adds the custom runtime to the context.
+fn add_runtime(context: &mut Context<'_>) {
+    // First add the `console` object, to be able to call `console.log()`.
+    let console = Console::init(context);
+    context
+        .register_global_property(Console::NAME, console, Attribute::all())
+        .expect("the console builtin shouldn't exist");
+
+    // Then, bind the defined async function to the ECMAScript function "delay".
+    context
+        .register_global_builtin_callable("delay", 1, NativeFunction::from_async_fn(delay))
+        .expect("the delay builtin shouldn't exist");
+}
+
 fn main() {
     // Initialize the required executors and the context
     let executor = LocalExecutor::new();
     let queue: &dyn JobQueue = &Queue::new(executor);
     let context = &mut ContextBuilder::new().job_queue(queue).build().unwrap();
 
-    // Bind the defined async function to the ECMAScript function "delay".
-    context
-        .register_global_builtin_callable("delay", 1, NativeFunction::from_async_fn(delay))
-        .unwrap();
+    // Then, add a custom runtime.
+    add_runtime(context);
 
     // Multiple calls to multiple async timers.
     let script = r#"

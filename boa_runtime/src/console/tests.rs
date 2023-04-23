@@ -1,4 +1,7 @@
-use crate::{console::formatter, run_test_actions, JsValue, TestAction};
+use super::{formatter, Console};
+use crate::test::{run_test_actions, run_test_actions_with, TestAction};
+use boa_engine::{property::Attribute, Context, JsValue};
+use indoc::indoc;
 
 #[test]
 fn formatter_no_args_is_empty_string() {
@@ -80,4 +83,23 @@ fn formatter_float_format_works() {
             "3.141500"
         );
     })]);
+}
+
+#[test]
+fn console_log_cyclic() {
+    let mut context = Context::default();
+    let console = Console::init(&mut context);
+    context
+        .register_global_property(Console::NAME, console, Attribute::all())
+        .unwrap();
+
+    run_test_actions_with(
+        [TestAction::run(indoc! {r#"
+                let a = [1];
+                a[1] = a;
+                console.log(a);
+            "#})],
+        &mut context,
+    );
+    // Should not stack overflow
 }

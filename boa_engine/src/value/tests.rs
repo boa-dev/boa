@@ -788,16 +788,6 @@ mod cyclic_conversions {
             0.0,
         )]);
     }
-
-    #[test]
-    fn console_log_cyclic() {
-        run_test_actions([TestAction::run(indoc! {r#"
-                let a = [1];
-                a[1] = a;
-                console.log(a);
-            "#})]);
-        // Should not stack overflow
-    }
 }
 
 mod abstract_relational_comparison {

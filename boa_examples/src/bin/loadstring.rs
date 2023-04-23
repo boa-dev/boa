@@ -3,7 +3,7 @@
 use boa_engine::{Context, Source};
 
 fn main() {
-    let js_code = "console.log('Hello World from a JS code string!')";
+    let js_code = "'Hello World ' + 'from a JS code ' + 'string!'";
 
     // Instantiate the execution context
     let mut context = Context::default();

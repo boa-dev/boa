@@ -66,9 +66,11 @@ use boa_engine::{
     context::ContextBuilder,
     job::{FutureJob, JobQueue, NativeJob},
     optimizer::OptimizerOptions,
+    property::Attribute,
     vm::flowgraph::{Direction, Graph},
     Context, JsResult, Source,
 };
+use boa_runtime::Console;
 use clap::{Parser, ValueEnum, ValueHint};
 use colored::{Color, Colorize};
 use debug::init_boa_debug_object;
@@ -311,6 +313,9 @@ fn main() -> Result<(), io::Error> {
     // Strict mode
     context.strict(args.strict);
 
+    // Add `console`.
+    add_runtime(&mut context);
+
     // Trace Output
     context.set_trace(args.trace);
 
@@ -402,6 +407,14 @@ fn main() -> Result<(), io::Error> {
     }
 
     Ok(())
+}
+
+/// Adds the CLI runtime to the context.
+fn add_runtime(context: &mut Context<'_>) {
+    let console = Console::init(context);
+    context
+        .register_global_property(Console::NAME, console, Attribute::all())
+        .expect("the console object shouldn't exist");
 }
 
 #[derive(Default)]
