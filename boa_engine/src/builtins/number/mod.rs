@@ -590,14 +590,12 @@ impl Number {
                         } else {
                             let c: u8 = frac_buf[fraction_cursor];
                             // Reconstruct digit.
-                            let digit_0 = (c as char)
-                                .to_digit(10)
-                                .expect("character was not a valid digit");
-                            if digit_0 + 1 >= u32::from(radix) {
+                            let digit = if c > b'9' { c - b'a' + 10 } else { c - b'0' };
+                            if digit + 1 >= radix {
                                 continue;
                             }
                             frac_buf[fraction_cursor] =
-                                std::char::from_digit(digit_0 + 1, u32::from(radix))
+                                std::char::from_digit(u32::from(digit + 1), u32::from(radix))
                                     .expect("digit was not a valid number in the given radix")
                                     as u8;
                             fraction_cursor += 1;
