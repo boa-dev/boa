@@ -199,23 +199,67 @@
 <a href="#198" id="198">198</a>
 <a href="#199" id="199">199</a>
 <a href="#200" id="200">200</a>
+<a href="#201" id="201">201</a>
+<a href="#202" id="202">202</a>
+<a href="#203" id="203">203</a>
+<a href="#204" id="204">204</a>
+<a href="#205" id="205">205</a>
+<a href="#206" id="206">206</a>
+<a href="#207" id="207">207</a>
+<a href="#208" id="208">208</a>
+<a href="#209" id="209">209</a>
+<a href="#210" id="210">210</a>
+<a href="#211" id="211">211</a>
+<a href="#212" id="212">212</a>
+<a href="#213" id="213">213</a>
+<a href="#214" id="214">214</a>
+<a href="#215" id="215">215</a>
+<a href="#216" id="216">216</a>
+<a href="#217" id="217">217</a>
+<a href="#218" id="218">218</a>
+<a href="#219" id="219">219</a>
+<a href="#220" id="220">220</a>
+<a href="#221" id="221">221</a>
+<a href="#222" id="222">222</a>
+<a href="#223" id="223">223</a>
+<a href="#224" id="224">224</a>
+<a href="#225" id="225">225</a>
+<a href="#226" id="226">226</a>
+<a href="#227" id="227">227</a>
+<a href="#228" id="228">228</a>
+<a href="#229" id="229">229</a>
+<a href="#230" id="230">230</a>
+<a href="#231" id="231">231</a>
+<a href="#232" id="232">232</a>
+<a href="#233" id="233">233</a>
+<a href="#234" id="234">234</a>
+<a href="#235" id="235">235</a>
+<a href="#236" id="236">236</a>
+<a href="#237" id="237">237</a>
+<a href="#238" id="238">238</a>
+<a href="#239" id="239">239</a>
 </pre><pre class="rust"><code><span class="kw">use </span>std::fmt::Debug;
 
 <span class="kw">use </span>icu_collator::{Collator, CollatorError, CollatorOptions};
 <span class="kw">use </span>icu_list::{ListError, ListFormatter, ListLength};
 <span class="kw">use </span>icu_locid_transform::{LocaleCanonicalizer, LocaleExpander, LocaleTransformError};
+<span class="kw">use </span>icu_normalizer::{ComposingNormalizer, DecomposingNormalizer, NormalizerError};
 <span class="kw">use </span>icu_provider::{
     AnyProvider, AsDeserializingBufferProvider, AsDowncastingAnyProvider, BufferProvider,
     DataError, DataLocale, DataProvider, DataRequest, DataResponse, KeyedDataMarker, MaybeSendSync,
 };
 <span class="kw">use </span>icu_segmenter::{GraphemeClusterSegmenter, SegmenterError, SentenceSegmenter, WordSegmenter};
 <span class="kw">use </span>serde::Deserialize;
+<span class="kw">use </span>thiserror::Error;
 <span class="kw">use </span>yoke::{trait_hack::YokeTraitHack, Yokeable};
 <span class="kw">use </span>zerofrom::ZeroFrom;
 
-<span class="kw">use </span><span class="kw">crate</span>::builtins::intl::{
-    list_format::ListFormatType,
-    segmenter::{Granularity, NativeSegmenter},
+<span class="kw">use </span><span class="kw">crate</span>::builtins::{
+    intl::{
+        list_format::ListFormatType,
+        segmenter::{Granularity, NativeSegmenter},
+    },
+    string::StringNormalizers,
 };
 
 <span class="doccomment">/// ICU4X data provider used in boa.
@@ -348,6 +392,34 @@
             .map(|seg| NativeSegmenter::Sentence(Box::new(seg))),
         }
     }
+
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>try_new_string_normalizers(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;StringNormalizers, NormalizerError&gt; {
+        <span class="prelude-val">Ok</span>(<span class="kw">match </span><span class="kw-2">*</span><span class="self">self </span>{
+            BoaProvider::Buffer(buf) =&gt; StringNormalizers {
+                nfc: ComposingNormalizer::try_new_nfc_with_buffer_provider(buf)<span class="question-mark">?</span>,
+                nfkc: ComposingNormalizer::try_new_nfkc_with_buffer_provider(buf)<span class="question-mark">?</span>,
+                nfd: DecomposingNormalizer::try_new_nfd_with_buffer_provider(buf)<span class="question-mark">?</span>,
+                nfkd: DecomposingNormalizer::try_new_nfkd_with_buffer_provider(buf)<span class="question-mark">?</span>,
+            },
+            BoaProvider::Any(any) =&gt; StringNormalizers {
+                nfc: ComposingNormalizer::try_new_nfc_with_any_provider(any)<span class="question-mark">?</span>,
+                nfkc: ComposingNormalizer::try_new_nfkc_with_any_provider(any)<span class="question-mark">?</span>,
+                nfd: DecomposingNormalizer::try_new_nfd_with_any_provider(any)<span class="question-mark">?</span>,
+                nfkd: DecomposingNormalizer::try_new_nfkd_with_any_provider(any)<span class="question-mark">?</span>,
+            },
+        })
+    }
+}
+
+<span class="doccomment">/// Error thrown when the engine cannot initialize the ICU tools from a data provider.
+</span><span class="attr">#[derive(Debug, Error)]
+</span><span class="kw">pub enum </span>IcuError {
+    <span class="doccomment">/// Failed to create the locale transform tools.
+    </span><span class="attr">#[error(<span class="string">&quot;could not construct the locale transform tools&quot;</span>)]
+    </span>LocaleTransform(<span class="attr">#[from] </span>LocaleTransformError),
+    <span class="doccomment">/// Failed to create the string normalization tools.
+    </span><span class="attr">#[error(<span class="string">&quot;could not construct the string normalization tools&quot;</span>)]
+    </span>Normalizer(<span class="attr">#[from] </span>NormalizerError),
 }
 
 <span class="doccomment">/// Collection of tools initialized from a [`DataProvider`] that are used for the functionality of
@@ -356,14 +428,16 @@
     provider: BoaProvider&lt;<span class="lifetime">&#39;provider</span>&gt;,
     locale_canonicalizer: LocaleCanonicalizer,
     locale_expander: LocaleExpander,
+    string_normalizers: StringNormalizers,
 }
 
 <span class="kw">impl </span>Debug <span class="kw">for </span>Icu&lt;<span class="lifetime">&#39;_</span>&gt; {
     <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>std::fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; std::fmt::Result {
         f.debug_struct(<span class="string">&quot;Icu&quot;</span>)
             .field(<span class="string">&quot;provider&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.provider)
-            .field(<span class="string">&quot;locale_canonicalizer&quot;</span>, <span class="kw-2">&amp;</span><span class="string">&quot;LocaleCanonicalizer&quot;</span>)
-            .field(<span class="string">&quot;locale_expander&quot;</span>, <span class="kw-2">&amp;</span><span class="string">&quot;LocaleExpander&quot;</span>)
+            .field(<span class="string">&quot;locale_canonicalizer&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.locale_canonicalizer)
+            .field(<span class="string">&quot;locale_expander&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.locale_expander)
+            .field(<span class="string">&quot;string_normalizers&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.string_normalizers)
             .finish()
     }
 }
@@ -374,12 +448,11 @@
     /// # Errors
     ///
     /// Returns an error if any of the tools required cannot be constructed.
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>new(
-        provider: BoaProvider&lt;<span class="lifetime">&#39;provider</span>&gt;,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;Icu&lt;<span class="lifetime">&#39;provider</span>&gt;, LocaleTransformError&gt; {
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>new(provider: BoaProvider&lt;<span class="lifetime">&#39;provider</span>&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;Icu&lt;<span class="lifetime">&#39;provider</span>&gt;, IcuError&gt; {
         <span class="prelude-val">Ok</span>(<span class="self">Self </span>{
             locale_canonicalizer: provider.try_new_locale_canonicalizer()<span class="question-mark">?</span>,
             locale_expander: provider.try_new_locale_expander()<span class="question-mark">?</span>,
+            string_normalizers: provider.try_new_string_normalizers()<span class="question-mark">?</span>,
             provider,
         })
     }
@@ -392,6 +465,11 @@
     <span class="doccomment">/// Gets the [`LocaleExpander`] tool.
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const fn </span>locale_expander(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>LocaleExpander {
         <span class="kw-2">&amp;</span><span class="self">self</span>.locale_expander
+    }
+
+    <span class="doccomment">/// Gets the [`StringNormalizers`] tools.
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const fn </span>string_normalizers(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>StringNormalizers {
+        <span class="kw-2">&amp;</span><span class="self">self</span>.string_normalizers
     }
 
     <span class="doccomment">/// Gets the inner icu data provider

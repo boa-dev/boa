@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"enum":["BoaProvider"],"struct":["Icu"]};
+window.SIDEBAR_ITEMS = {"enum":["BoaProvider","IcuError"],"struct":["Icu"]};

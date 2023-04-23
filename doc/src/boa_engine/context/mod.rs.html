@@ -732,7 +732,7 @@
 
 <span class="kw">pub use </span>hooks::{DefaultHooks, HostHooks};
 <span class="attr">#[cfg(feature = <span class="string">&quot;intl&quot;</span>)]
-</span><span class="kw">pub use </span>icu::BoaProvider;
+</span><span class="kw">pub use </span>icu::{BoaProvider, IcuError};
 <span class="kw">use </span>intrinsics::Intrinsics;
 <span class="kw">pub use </span>maybe_shared::MaybeShared;
 
@@ -1357,7 +1357,7 @@
     </span><span class="kw">pub fn </span>icu_provider(
         <span class="self">self</span>,
         provider: BoaProvider&lt;<span class="lifetime">&#39;_</span>&gt;,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;ContextBuilder&lt;<span class="lifetime">&#39;_</span>, <span class="lifetime">&#39;hooks</span>, <span class="lifetime">&#39;queue</span>&gt;, icu_locid_transform::LocaleTransformError&gt; {
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;ContextBuilder&lt;<span class="lifetime">&#39;_</span>, <span class="lifetime">&#39;hooks</span>, <span class="lifetime">&#39;queue</span>&gt;, IcuError&gt; {
         <span class="prelude-val">Ok</span>(ContextBuilder {
             icu: <span class="prelude-val">Some</span>(icu::Icu::new(provider)<span class="question-mark">?</span>),
             ..<span class="self">self
