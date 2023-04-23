@@ -10,11 +10,15 @@ use icu_properties::sets::{CodePointSetData, CodePointSetDataBorrowed};
 use once_cell::sync::Lazy;
 use std::io::Read;
 
+/// List of codepoint sets that correspond to a specific [Unicode character property].
+///
+/// [Unicode character property]: https://unicode.org/reports/tr23/
 struct PropertySets {
     id_start: CodePointSetDataBorrowed<'static>,
     id_continue: CodePointSetDataBorrowed<'static>,
 }
 
+/// Static `PropertySets` derived from Boa's default ICU4X data.
 static PROPERTY_SETS: Lazy<PropertySets> = Lazy::new(|| {
     static ID_START: Lazy<CodePointSetData> = Lazy::new(|| {
         icu_properties::sets::load_id_start(&boa_icu_provider::minimal())
