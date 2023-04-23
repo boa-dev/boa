@@ -20,7 +20,7 @@ fn create_boa_object(context: &mut Context<'_>) -> JsObject {
     let realm_module = realm::create_object(context);
     let limits_module = limits::create_object(context);
 
-    ObjectInitializer::new(context)
+    ObjectInitializer::new(context.realm().clone())
         .property(
             js_string!("function"),
             function_module,

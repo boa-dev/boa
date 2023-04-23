@@ -374,6 +374,9 @@ pub(crate) fn set_default_global_bindings(context: &mut Context<'_>) -> JsResult
     #[cfg(feature = "intl")]
     global_binding::<intl::Intl>(context)?;
 
+    #[cfg(feature = "temporal")]
+    global_binding::<temporal::Temporal>(context)?;
+
     Ok(())
 }
 

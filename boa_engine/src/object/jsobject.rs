@@ -75,6 +75,7 @@ impl JsObject {
             }),
         }
     }
+
     /// Creates a new ordinary object with its prototype set to the `Object` prototype.
     ///
     /// This is equivalent to calling the specification's abstract operation

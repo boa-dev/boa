@@ -10,6 +10,7 @@ use std::fmt;
 /// Result of a parsing operation.
 pub type ParseResult<T> = Result<T, Error>;
 
+/// Adds context to a parser error.
 pub(crate) trait ErrorContext {
     /// Sets the context of the error, if possible.
     fn set_context(self, context: &'static str) -> Self;

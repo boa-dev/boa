@@ -166,6 +166,22 @@ pub struct StandardConstructors {
     segmenter: StandardConstructor,
     #[cfg(feature = "intl")]
     plural_rules: StandardConstructor,
+    #[cfg(feature = "temporal")]
+    instant: StandardConstructor,
+    #[cfg(feature = "temporal")]
+    plain_date_time: StandardConstructor,
+    #[cfg(feature = "temporal")]
+    plain_date: StandardConstructor,
+    #[cfg(feature = "temporal")]
+    plain_time: StandardConstructor,
+    #[cfg(feature = "temporal")]
+    plain_year_month: StandardConstructor,
+    #[cfg(feature = "temporal")]
+    plain_month_day: StandardConstructor,
+    #[cfg(feature = "temporal")]
+    time_zone: StandardConstructor,
+    #[cfg(feature = "temporal")]
+    duration: StandardConstructor,
 }
 
 impl Default for StandardConstructors {
@@ -242,6 +258,22 @@ impl Default for StandardConstructors {
             segmenter: StandardConstructor::default(),
             #[cfg(feature = "intl")]
             plural_rules: StandardConstructor::default(),
+            #[cfg(feature = "temporal")]
+            instant: StandardConstructor::default(),
+            #[cfg(feature = "temporal")]
+            plain_date_time: StandardConstructor::default(),
+            #[cfg(feature = "temporal")]
+            plain_date: StandardConstructor::default(),
+            #[cfg(feature = "temporal")]
+            plain_time: StandardConstructor::default(),
+            #[cfg(feature = "temporal")]
+            plain_year_month: StandardConstructor::default(),
+            #[cfg(feature = "temporal")]
+            plain_month_day: StandardConstructor::default(),
+            #[cfg(feature = "temporal")]
+            time_zone: StandardConstructor::default(),
+            #[cfg(feature = "temporal")]
+            duration: StandardConstructor::default(),
         }
     }
 }
@@ -827,6 +859,102 @@ impl StandardConstructors {
     pub const fn plural_rules(&self) -> &StandardConstructor {
         &self.plural_rules
     }
+
+    /// Returns the `Temporal.Instant` constructor.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/proposal-temporal/#sec-temporal.instant
+    #[inline]
+    #[cfg(feature = "temporal")]
+    pub const fn instant(&self) -> &StandardConstructor {
+        &self.instant
+    }
+
+    /// Returns the `Temporal.PlainDateTime` constructor.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/proposal-temporal/#sec-temporal.plaindatetime
+    #[inline]
+    #[cfg(feature = "temporal")]
+    pub const fn plain_date_time(&self) -> &StandardConstructor {
+        &self.plain_date_time
+    }
+
+    /// Returns the `Temporal.PlainDate` constructor.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/proposal-temporal/#sec-temporal.plaindate
+    #[inline]
+    #[cfg(feature = "temporal")]
+    pub const fn plain_date(&self) -> &StandardConstructor {
+        &self.plain_date
+    }
+
+    /// Returns the `Temporal.PlainTime` constructor.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/proposal-temporal/#sec-temporal.plaintime
+    #[inline]
+    #[cfg(feature = "temporal")]
+    pub const fn plain_time(&self) -> &StandardConstructor {
+        &self.plain_time
+    }
+
+    /// Returns the `Temporal.PlainYearMonth` constructor.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/proposal-temporal/#sec-temporal.plainyearmonth
+    #[inline]
+    #[cfg(feature = "temporal")]
+    pub const fn plain_year_month(&self) -> &StandardConstructor {
+        &self.plain_year_month
+    }
+
+    /// Returns the `Temporal.PlainMonthDay` constructor.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/proposal-temporal/#sec-temporal.plainmonthday
+    #[inline]
+    #[cfg(feature = "temporal")]
+    pub const fn plain_month_day(&self) -> &StandardConstructor {
+        &self.plain_month_day
+    }
+
+    /// Returns the `Temporal.TimeZone` constructor.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/proposal-temporal/#sec-temporal.timezone
+    #[inline]
+    #[cfg(feature = "temporal")]
+    pub const fn time_zone(&self) -> &StandardConstructor {
+        &self.time_zone
+    }
+
+    /// Returns the `Temporal.Duration` constructor.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/proposal-temporal/#sec-temporal.duration
+    #[inline]
+    #[cfg(feature = "temporal")]
+    pub const fn duration(&self) -> &StandardConstructor {
+        &self.duration
+    }
 }
 
 /// Cached intrinsic objects
@@ -892,6 +1020,10 @@ pub struct IntrinsicObjects {
     /// [`%SegmentsPrototype%`](https://tc39.es/ecma402/#sec-%segmentsprototype%-object)
     #[cfg(feature = "intl")]
     segments_prototype: JsObject,
+
+    /// [`%Temporal%`](https://tc39.es/proposal-temporal/#sec-temporal-objects)
+    #[cfg(feature = "temporal")]
+    temporal: JsObject,
 }
 
 impl Default for IntrinsicObjects {
@@ -920,6 +1052,8 @@ impl Default for IntrinsicObjects {
             intl: JsObject::default(),
             #[cfg(feature = "intl")]
             segments_prototype: JsObject::default(),
+            #[cfg(feature = "temporal")]
+            temporal: JsObject::default(),
         }
     }
 }
@@ -980,12 +1114,14 @@ impl IntrinsicObjects {
     /// Gets the [`%eval%`][spec] intrinsic function.
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-eval-x
+    #[inline]
     #[must_use]
     pub fn eval(&self) -> JsFunction {
         self.eval.clone()
     }
 
     /// Gets the URI intrinsic functions.
+    #[inline]
     #[must_use]
     pub const fn uri_functions(&self) -> &UriFunctions {
         &self.uri_functions
@@ -994,6 +1130,7 @@ impl IntrinsicObjects {
     /// Gets the [`%Reflect%`][spec] intrinsic object.
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-reflect
+    #[inline]
     #[must_use]
     pub fn reflect(&self) -> JsObject {
         self.reflect.clone()
@@ -1002,6 +1139,7 @@ impl IntrinsicObjects {
     /// Gets the [`%Math%`][spec] intrinsic object.
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-math
+    #[inline]
     #[must_use]
     pub fn math(&self) -> JsObject {
         self.math.clone()
@@ -1010,6 +1148,7 @@ impl IntrinsicObjects {
     /// Gets the [`%JSON%`][spec] intrinsic object.
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-json
+    #[inline]
     #[must_use]
     pub fn json(&self) -> JsObject {
         self.json.clone()
@@ -1018,6 +1157,7 @@ impl IntrinsicObjects {
     /// Gets the [`%isFinite%`][spec] intrinsic function.
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-isfinite-number
+    #[inline]
     #[must_use]
     pub fn is_finite(&self) -> JsFunction {
         self.is_finite.clone()
@@ -1026,6 +1166,7 @@ impl IntrinsicObjects {
     /// Gets the [`%isNaN%`][spec] intrinsic function.
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-isnan-number
+    #[inline]
     #[must_use]
     pub fn is_nan(&self) -> JsFunction {
         self.is_nan.clone()
@@ -1034,6 +1175,7 @@ impl IntrinsicObjects {
     /// Gets the [`%parseFloat%`][spec] intrinsic function.
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-parsefloat-string
+    #[inline]
     #[must_use]
     pub fn parse_float(&self) -> JsFunction {
         self.parse_float.clone()
@@ -1042,6 +1184,7 @@ impl IntrinsicObjects {
     /// Gets the [`%parseInt%`][spec] intrinsic function.
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-parseint-string-radix
+    #[inline]
     #[must_use]
     pub fn parse_int(&self) -> JsFunction {
         self.parse_int.clone()
@@ -1052,6 +1195,7 @@ impl IntrinsicObjects {
     /// [spec]: https://tc39.es/ecma262/#sec-escape-string
     #[must_use]
     #[cfg(feature = "annex-b")]
+    #[inline]
     pub fn escape(&self) -> JsFunction {
         self.escape.clone()
     }
@@ -1061,6 +1205,7 @@ impl IntrinsicObjects {
     /// [spec]: https://tc39.es/ecma262/#sec-unescape-string
     #[must_use]
     #[cfg(feature = "annex-b")]
+    #[inline]
     pub fn unescape(&self) -> JsFunction {
         self.unescape.clone()
     }
@@ -1070,6 +1215,7 @@ impl IntrinsicObjects {
     /// [spec]: https://tc39.es/ecma402/#intl-object
     #[must_use]
     #[cfg(feature = "intl")]
+    #[inline]
     pub fn intl(&self) -> JsObject {
         self.intl.clone()
     }
@@ -1081,6 +1227,15 @@ impl IntrinsicObjects {
     #[cfg(feature = "intl")]
     pub fn segments_prototype(&self) -> JsObject {
         self.segments_prototype.clone()
+    }
+
+    /// Gets the [`%Temporal%`][spec] intrinsic object.
+    ///
+    /// [spec]: https://tc39.es/proposal-temporal/#sec-temporal-objects
+    #[cfg(feature = "temporal")]
+    #[inline]
+    pub fn temporal(&self) -> JsObject {
+        self.temporal.clone()
     }
 }
 

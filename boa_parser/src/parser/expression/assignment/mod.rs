@@ -16,16 +16,16 @@ mod r#yield;
 use crate::{
     lexer::{Error as LexError, InputElement, TokenKind},
     parser::{
+        cursor::Cursor,
         expression::assignment::{
             arrow_function::{ArrowFunction, ConciseBody},
             async_arrow_function::AsyncArrowFunction,
             conditional::ConditionalExpression,
             r#yield::YieldExpression,
         },
-        name_in_lexically_declared_names, AllowAwait, AllowIn, AllowYield, Cursor, OrAbrupt,
-        ParseResult, TokenParser,
+        name_in_lexically_declared_names, AllowAwait, AllowIn, AllowYield, OrAbrupt, TokenParser,
     },
-    Error,
+    Error, ParseResult,
 };
 use boa_ast::{
     expression::{

@@ -3,6 +3,8 @@
 mod cursor;
 mod expression;
 mod statement;
+#[cfg(feature = "temporal")]
+pub mod temporal;
 
 pub(crate) mod function;
 
@@ -32,6 +34,9 @@ use rustc_hash::FxHashSet;
 use std::{io::Read, path::Path};
 
 use self::statement::ModuleItemList;
+
+#[cfg(feature = "temporal")]
+pub use self::temporal::TimeZoneNumericUTCOffset;
 
 /// Trait implemented by parsers.
 ///

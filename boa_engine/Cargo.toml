@@ -36,6 +36,7 @@ intl = [
 ]
 
 fuzz = ["boa_ast/arbitrary", "boa_interner/arbitrary"]
+temporal = ["boa_parser/temporal"]
 
 # Enable Boa's VM instruction flowgraph generator.
 flowgraph = []

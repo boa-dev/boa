@@ -10,7 +10,8 @@
 use super::AssignmentExpression;
 use crate::{
     lexer::TokenKind,
-    parser::{AllowAwait, AllowIn, Cursor, OrAbrupt, ParseResult, TokenParser},
+    parser::{cursor::Cursor, AllowAwait, AllowIn, OrAbrupt, TokenParser},
+    ParseResult,
 };
 use boa_ast::{expression::Yield, Expression, Keyword, Punctuator};
 use boa_interner::Interner;

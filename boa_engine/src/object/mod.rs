@@ -56,6 +56,7 @@ use crate::{
         set::ordered_set::OrderedSet,
         set::SetIterator,
         string::StringIterator,
+        temporal::TimeZone,
         typed_array::{integer_indexed_object::IntegerIndexed, TypedArrayKind},
         DataView, Date, Promise, RegExp,
     },
@@ -443,10 +444,41 @@ pub enum ObjectKind {
     /// The `Segment Iterator` object kind.
     #[cfg(feature = "intl")]
     SegmentIterator(SegmentIterator),
-
     /// The `PluralRules` object kind.
     #[cfg(feature = "intl")]
     PluralRules(PluralRules),
+
+    /// The `Temporal.Instant` object kind.
+    #[cfg(feature = "temporal")]
+    Instant,
+
+    /// The `Temporal.PlainDateTime` object kind.
+    #[cfg(feature = "temporal")]
+    PlainDateTime,
+
+    /// The `Temporal.PlainDate` object kind.
+    #[cfg(feature = "temporal")]
+    PlainDate,
+
+    /// The `Temporal.PlainTime` object kind.
+    #[cfg(feature = "temporal")]
+    PlainTime,
+
+    /// The `Temporal.PlainYearMonth` object kind.
+    #[cfg(feature = "temporal")]
+    PlainYearMonth,
+
+    /// The `Temporal.PlainMonthDay` object kind.
+    #[cfg(feature = "temporal")]
+    PlainMonthDay,
+
+    /// The `Temporal.TimeZone` object kind.
+    #[cfg(feature = "temporal")]
+    TimeZone(Box<TimeZone>),
+
+    /// The `Temporal.Duration` object kind.
+    #[cfg(feature = "temporal")]
+    Duration,
 }
 
 unsafe impl Trace for ObjectKind {
@@ -504,6 +536,8 @@ unsafe impl Trace for ObjectKind {
             | Self::Global
             | Self::Number(_)
             | Self::Symbol(_) => {}
+            #[cfg(feature = "temporal")]
+            Self::Instant | Self::PlainDateTime | Self::PlainDate | Self::PlainTime | Self::PlainYearMonth | Self::PlainMonthDay | Self::TimeZone(_) | Self::Duration => {}
         }
     }}
 }
@@ -958,6 +992,84 @@ impl ObjectData {
             internal_methods: &ORDINARY_INTERNAL_METHODS,
         }
     }
+
+    /// Create the `Instant` object data
+    #[cfg(feature = "temporal")]
+    #[must_use]
+    pub fn instant() -> Self {
+        Self {
+            kind: ObjectKind::Instant,
+            internal_methods: &ORDINARY_INTERNAL_METHODS,
+        }
+    }
+    /// Create the `PlainDateTime` object data
+    #[cfg(feature = "temporal")]
+    #[must_use]
+    pub fn plain_date_time() -> Self {
+        Self {
+            kind: ObjectKind::PlainDateTime,
+            internal_methods: &ORDINARY_INTERNAL_METHODS,
+        }
+    }
+    /// Create the `PlainDate` object data
+    #[cfg(feature = "temporal")]
+    #[must_use]
+    pub fn plain_date() -> Self {
+        Self {
+            kind: ObjectKind::PlainDate,
+            internal_methods: &ORDINARY_INTERNAL_METHODS,
+        }
+    }
+
+    /// Create the `PlainTime` object data
+    #[cfg(feature = "temporal")]
+    #[must_use]
+    pub fn plain_time() -> Self {
+        Self {
+            kind: ObjectKind::PlainTime,
+            internal_methods: &ORDINARY_INTERNAL_METHODS,
+        }
+    }
+
+    /// Create the `PlainYearMonth` object data
+    #[cfg(feature = "temporal")]
+    #[must_use]
+    pub fn plain_year_month() -> Self {
+        Self {
+            kind: ObjectKind::PlainYearMonth,
+            internal_methods: &ORDINARY_INTERNAL_METHODS,
+        }
+    }
+
+    /// Create the `PlainMonthDay` object data
+    #[cfg(feature = "temporal")]
+    #[must_use]
+    pub fn plain_month_day() -> Self {
+        Self {
+            kind: ObjectKind::PlainMonthDay,
+            internal_methods: &ORDINARY_INTERNAL_METHODS,
+        }
+    }
+
+    /// Create the `TimeZone` object data
+    #[cfg(feature = "temporal")]
+    #[must_use]
+    pub fn time_zone(time_zone: TimeZone) -> Self {
+        Self {
+            kind: ObjectKind::TimeZone(Box::new(time_zone)),
+            internal_methods: &ORDINARY_INTERNAL_METHODS,
+        }
+    }
+
+    /// Create the `Duration` object data
+    #[cfg(feature = "temporal")]
+    #[must_use]
+    pub fn duration() -> Self {
+        Self {
+            kind: ObjectKind::Duration,
+            internal_methods: &ORDINARY_INTERNAL_METHODS,
+        }
+    }
 }
 
 impl Debug for ObjectKind {
@@ -1017,6 +1129,22 @@ impl Debug for ObjectKind {
             Self::SegmentIterator(_) => "SegmentIterator",
             #[cfg(feature = "intl")]
             Self::PluralRules(_) => "PluralRules",
+            #[cfg(feature = "temporal")]
+            Self::Instant => "Instant",
+            #[cfg(feature = "temporal")]
+            Self::PlainDateTime => "PlainDateTime",
+            #[cfg(feature = "temporal")]
+            Self::PlainDate => "PlainDate",
+            #[cfg(feature = "temporal")]
+            Self::PlainTime => "PlainTime",
+            #[cfg(feature = "temporal")]
+            Self::PlainYearMonth => "PlainYearMonth",
+            #[cfg(feature = "temporal")]
+            Self::PlainMonthDay => "PlainMonthDay",
+            #[cfg(feature = "temporal")]
+            Self::TimeZone(_) => "TimeZone",
+            #[cfg(feature = "temporal")]
+            Self::Duration => "Duration",
         })
     }
 }
