@@ -471,6 +471,7 @@ dependencies = [
 name = "boa_icu_provider"
 version = "0.16.0"
 dependencies = [
+ "icu_casemapping",
  "icu_collections",
  "icu_datagen",
  "icu_normalizer",
