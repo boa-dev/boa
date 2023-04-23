@@ -4,6 +4,8 @@ mod fallback;
 #[clippy::msrv = "1.61"]
 mod normalizer;
 #[clippy::msrv = "1.61"]
+mod props;
+#[clippy::msrv = "1.61"]
 use icu_provider::prelude::*;
 /// Implement [`DataProvider<M>`] on the given struct using the data
 /// hardcoded in this module. This allows the struct to be used with
@@ -96,6 +98,32 @@ macro_rules! impl_data_provider {
             }
         }
         #[clippy::msrv = "1.61"]
+        impl DataProvider<::icu_properties::provider::IdContinueV1Marker> for $provider {
+            fn load(&self, req: DataRequest) -> Result<DataResponse<::icu_properties::provider::IdContinueV1Marker>, DataError> {
+                props::idc_v1::lookup(&req.locale)
+                    .map(zerofrom::ZeroFrom::zero_from)
+                    .map(DataPayload::from_owned)
+                    .map(|payload| DataResponse {
+                        metadata: Default::default(),
+                        payload: Some(payload),
+                    })
+                    .ok_or_else(|| DataErrorKind::MissingLocale.with_req(::icu_properties::provider::IdContinueV1Marker::KEY, req))
+            }
+        }
+        #[clippy::msrv = "1.61"]
+        impl DataProvider<::icu_properties::provider::IdStartV1Marker> for $provider {
+            fn load(&self, req: DataRequest) -> Result<DataResponse<::icu_properties::provider::IdStartV1Marker>, DataError> {
+                props::ids_v1::lookup(&req.locale)
+                    .map(zerofrom::ZeroFrom::zero_from)
+                    .map(DataPayload::from_owned)
+                    .map(|payload| DataResponse {
+                        metadata: Default::default(),
+                        payload: Some(payload),
+                    })
+                    .ok_or_else(|| DataErrorKind::MissingLocale.with_req(::icu_properties::provider::IdStartV1Marker::KEY, req))
+            }
+        }
+        #[clippy::msrv = "1.61"]
         impl DataProvider<::icu_provider_adapters::fallback::provider::CollationFallbackSupplementV1Marker> for $provider {
             fn load(
                 &self,
@@ -185,6 +213,8 @@ macro_rules! impl_any_provider {
                     ::icu_normalizer::provider::CompatibilityDecompositionSupplementV1Marker::KEY.hashed();
                 const COMPATIBILITYDECOMPOSITIONTABLESV1MARKER: ::icu_provider::DataKeyHash =
                     ::icu_normalizer::provider::CompatibilityDecompositionTablesV1Marker::KEY.hashed();
+                const IDCONTINUEV1MARKER: ::icu_provider::DataKeyHash = ::icu_properties::provider::IdContinueV1Marker::KEY.hashed();
+                const IDSTARTV1MARKER: ::icu_provider::DataKeyHash = ::icu_properties::provider::IdStartV1Marker::KEY.hashed();
                 const COLLATIONFALLBACKSUPPLEMENTV1MARKER: ::icu_provider::DataKeyHash =
                     ::icu_provider_adapters::fallback::provider::CollationFallbackSupplementV1Marker::KEY.hashed();
                 const LOCALEFALLBACKLIKELYSUBTAGSV1MARKER: ::icu_provider::DataKeyHash =
@@ -197,6 +227,8 @@ macro_rules! impl_any_provider {
                     CANONICALDECOMPOSITIONTABLESV1MARKER => normalizer::nfdex_v1::lookup(&req.locale).map(AnyPayload::from_static_ref),
                     COMPATIBILITYDECOMPOSITIONSUPPLEMENTV1MARKER => normalizer::nfkd_v1::lookup(&req.locale).map(AnyPayload::from_static_ref),
                     COMPATIBILITYDECOMPOSITIONTABLESV1MARKER => normalizer::nfkdex_v1::lookup(&req.locale).map(AnyPayload::from_static_ref),
+                    IDCONTINUEV1MARKER => props::idc_v1::lookup(&req.locale).map(AnyPayload::from_static_ref),
+                    IDSTARTV1MARKER => props::ids_v1::lookup(&req.locale).map(AnyPayload::from_static_ref),
                     COLLATIONFALLBACKSUPPLEMENTV1MARKER => fallback::supplement::co_v1::lookup(&req.locale).map(AnyPayload::from_static_ref),
                     LOCALEFALLBACKLIKELYSUBTAGSV1MARKER => fallback::likelysubtags_v1::lookup(&req.locale).map(AnyPayload::from_static_ref),
                     LOCALEFALLBACKPARENTSV1MARKER => fallback::parents_v1::lookup(&req.locale).map(AnyPayload::from_static_ref),

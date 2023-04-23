@@ -14,6 +14,7 @@ use icu_normalizer::provider::{
     CanonicalDecompositionTablesV1Marker, CompatibilityDecompositionSupplementV1Marker,
     CompatibilityDecompositionTablesV1Marker,
 };
+use icu_properties::provider::{IdContinueV1Marker, IdStartV1Marker};
 use icu_provider::KeyedDataMarker;
 use icu_provider_adapters::fallback::provider::{
     CollationFallbackSupplementV1Marker, LocaleFallbackLikelySubtagsV1Marker,
@@ -57,6 +58,8 @@ fn main() -> Result<(), Box<dyn Error>> {
             LocaleFallbackLikelySubtagsV1Marker::KEY,
             LocaleFallbackParentsV1Marker::KEY,
             CollationFallbackSupplementV1Marker::KEY,
+            IdContinueV1Marker::KEY,
+            IdStartV1Marker::KEY,
         ],
         &source_data,
         [normalization_out].into(),

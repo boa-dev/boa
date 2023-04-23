@@ -6,8 +6,30 @@ use crate::lexer::{
 use boa_ast::{Keyword, Position, Span};
 use boa_interner::Interner;
 use boa_profiler::Profiler;
-use boa_unicode::UnicodeProperties;
+use icu_properties::sets::{CodePointSetData, CodePointSetDataBorrowed};
+use once_cell::sync::Lazy;
 use std::io::Read;
+
+struct PropertySets {
+    id_start: CodePointSetDataBorrowed<'static>,
+    id_continue: CodePointSetDataBorrowed<'static>,
+}
+
+static PROPERTY_SETS: Lazy<PropertySets> = Lazy::new(|| {
+    static ID_START: Lazy<CodePointSetData> = Lazy::new(|| {
+        icu_properties::sets::load_id_start(&boa_icu_provider::minimal())
+            .expect("data should be valid")
+    });
+    static ID_CONTINUE: Lazy<CodePointSetData> = Lazy::new(|| {
+        icu_properties::sets::load_id_continue(&boa_icu_provider::minimal())
+            .expect("data should be valid")
+    });
+
+    PropertySets {
+        id_start: ID_START.as_borrowed(),
+        id_continue: ID_CONTINUE.as_borrowed(),
+    }
+});
 
 /// Identifier lexing.
 ///
@@ -35,8 +57,7 @@ impl Identifier {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-names-and-keywords
     pub(super) fn is_identifier_start(ch: u32) -> bool {
-        matches!(ch, 0x0024 /* $ */ | 0x005F /* _ */)
-            || char::try_from(ch).map_or(false, char::is_id_start)
+        matches!(ch, 0x0024 /* $ */ | 0x005F /* _ */) || PROPERTY_SETS.id_start.contains32(ch)
     }
 
     /// Checks if a character is `IdentifierPart` as per ECMAScript standards.
@@ -49,7 +70,7 @@ impl Identifier {
         matches!(
             ch,
             0x0024 /* $ */ | 0x005F /* _ */ | 0x200C /* <ZWNJ> */ | 0x200D /* <ZWJ> */
-        ) || char::try_from(ch).map_or(false, char::is_id_continue)
+        ) || PROPERTY_SETS.id_continue.contains32(ch)
     }
 }
 

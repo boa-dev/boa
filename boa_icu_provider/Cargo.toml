@@ -18,6 +18,7 @@ icu_provider_blob = "1.2.0"
 icu_provider_adapters = { version = "1.2.0", features = ["serde"] }
 icu_collections = "1.2.0"
 icu_normalizer = "1.2.0"
+icu_properties = "1.2.0"
 zerovec = "0.9.4"
 
 icu_datagen = { version = "1.2.3", optional = true }
