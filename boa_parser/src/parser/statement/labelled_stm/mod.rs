@@ -65,18 +65,22 @@ where
             // Early Error: It is a Syntax Error if any strict mode source code matches this rule.
             // https://tc39.es/ecma262/#sec-labelled-statements-static-semantics-early-errors
             // https://tc39.es/ecma262/#sec-labelled-function-declarations
-            TokenKind::Keyword((Keyword::Function, _)) if strict => {
-                return Err(Error::general(
-                    "In strict mode code, functions can only be declared at top level or inside a block.",
-                    next_token.span().start()
+            TokenKind::Keyword((Keyword::Function, _))
+                if cfg!(not(feature = "annex-b")) || strict =>
+            {
+                return Err(Error::misplaced_function_declaration(
+                    next_token.span().start(),
+                    strict,
                 ))
             }
             TokenKind::Keyword((Keyword::Function, _)) => {
                 FunctionDeclaration::new(self.allow_yield, self.allow_await, false)
-                .parse(cursor, interner)?
-                .into()
+                    .parse(cursor, interner)?
+                    .into()
             }
-            _ => Statement::new(self.allow_yield, self.allow_await, self.allow_return).parse(cursor, interner)?.into()
+            _ => Statement::new(self.allow_yield, self.allow_await, self.allow_return)
+                .parse(cursor, interner)?
+                .into(),
         };
 
         Ok(ast::statement::Labelled::new(labelled_item, label))

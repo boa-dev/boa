@@ -9,7 +9,7 @@ mod for_of_loop;
 mod while_loop;
 
 use crate::{
-    declaration::Binding,
+    declaration::{Binding, Variable},
     expression::{access::PropertyAccess, Identifier},
     pattern::Pattern,
 };
@@ -43,7 +43,7 @@ pub enum IterableLoopInitializer {
     /// A property access.
     Access(PropertyAccess),
     /// A new var declaration.
-    Var(Binding),
+    Var(Variable),
     /// A new let declaration.
     Let(Binding),
     /// A new const declaration.
@@ -58,12 +58,12 @@ impl ToInternedString for IterableLoopInitializer {
             Self::Identifier(ident) => return ident.to_interned_string(interner),
             Self::Pattern(pattern) => return pattern.to_interned_string(interner),
             Self::Access(access) => return access.to_interned_string(interner),
-            Self::Var(binding) => (binding, "var"),
-            Self::Let(binding) => (binding, "let"),
-            Self::Const(binding) => (binding, "const"),
+            Self::Var(binding) => (binding.to_interned_string(interner), "var"),
+            Self::Let(binding) => (binding.to_interned_string(interner), "let"),
+            Self::Const(binding) => (binding.to_interned_string(interner), "const"),
         };
 
-        format!("{pre} {}", binding.to_interned_string(interner))
+        format!("{pre} {binding}")
     }
 }
 
@@ -75,7 +75,8 @@ impl VisitWith for IterableLoopInitializer {
         match self {
             Self::Identifier(id) => visitor.visit_identifier(id),
             Self::Access(pa) => visitor.visit_property_access(pa),
-            Self::Var(b) | Self::Let(b) | Self::Const(b) => visitor.visit_binding(b),
+            Self::Var(b) => visitor.visit_variable(b),
+            Self::Let(b) | Self::Const(b) => visitor.visit_binding(b),
             Self::Pattern(p) => visitor.visit_pattern(p),
         }
     }
@@ -87,7 +88,8 @@ impl VisitWith for IterableLoopInitializer {
         match self {
             Self::Identifier(id) => visitor.visit_identifier_mut(id),
             Self::Access(pa) => visitor.visit_property_access_mut(pa),
-            Self::Var(b) | Self::Let(b) | Self::Const(b) => visitor.visit_binding_mut(b),
+            Self::Var(b) => visitor.visit_variable_mut(b),
+            Self::Let(b) | Self::Const(b) => visitor.visit_binding_mut(b),
             Self::Pattern(p) => visitor.visit_pattern_mut(p),
         }
     }

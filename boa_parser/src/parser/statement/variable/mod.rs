@@ -214,8 +214,13 @@ where
                     .is_some()
                 {
                     Some(
-                        Initializer::new(Some(ident), true, self.allow_yield, self.allow_await)
-                            .parse(cursor, interner)?,
+                        Initializer::new(
+                            Some(ident),
+                            self.allow_in,
+                            self.allow_yield,
+                            self.allow_await,
+                        )
+                        .parse(cursor, interner)?,
                     )
                 } else {
                     None

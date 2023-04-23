@@ -12,7 +12,7 @@ repository.workspace = true
 rust-version.workspace = true
 
 [dependencies]
-boa_engine = { workspace = true, features = ["deser", "console", "flowgraph", "trace", "annex-b"] }
+boa_engine = { workspace = true, features = ["deser", "flowgraph", "trace", "console"] }
 boa_ast = { workspace = true, features = ["serde"] }
 boa_parser.workspace = true
 boa_gc.workspace = true
@@ -26,8 +26,7 @@ phf = { version = "0.11.1", features = ["macros"] }
 pollster = "0.3.0"
 
 [features]
-default = ["intl"]
-intl = ["boa_engine/intl"]
+default = ["boa_engine/annex-b", "boa_engine/intl"]
 
 [target.x86_64-unknown-linux-gnu.dependencies]
 jemallocator = "0.5.0"

@@ -125,18 +125,22 @@ impl Error {
         }
     }
 
-    /// Creates a "general" parsing error with the specific error message for a wrong function declaration in non-strict mode.
-    pub(crate) fn wrong_function_declaration_non_strict(position: Position) -> Self {
+    /// Creates a "general" parsing error with the specific error message for a misplaced function declaration.
+    pub(crate) fn misplaced_function_declaration(position: Position, strict: bool) -> Self {
         Self::General {
-            message: "In non-strict mode code, functions can only be declared at top level, inside a block, or as the body of an if statement.".into(),
-            position
+            message: format!(
+                "{}functions can only be declared at the top level or inside a block.",
+                if strict { "in strict mode code, " } else { "" }
+            )
+            .into(),
+            position,
         }
     }
 
     /// Creates a "general" parsing error with the specific error message for a wrong function declaration with label.
     pub(crate) fn wrong_labelled_function_declaration(position: Position) -> Self {
         Self::General {
-            message: "Labelled functions can only be declared at top level or inside a block"
+            message: "labelled functions can only be declared at the top level or inside a block"
                 .into(),
             position,
         }

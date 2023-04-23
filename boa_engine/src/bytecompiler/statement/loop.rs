@@ -89,6 +89,16 @@ impl ByteCompiler<'_, '_> {
         label: Option<Sym>,
         configurable_globals: bool,
     ) {
+        // Handle https://tc39.es/ecma262/#prod-annexB-ForInOfStatement
+        if let IterableLoopInitializer::Var(var) = for_in_loop.initializer() {
+            if let Binding::Identifier(ident) = var.binding() {
+                if let Some(init) = var.init() {
+                    self.compile_expr(init, true);
+                    self.create_mutable_binding(*ident, true, true);
+                    self.emit_binding(BindingOpcode::InitVar, *ident);
+                }
+            }
+        }
         let initializer_bound_names = match for_in_loop.initializer() {
             IterableLoopInitializer::Let(declaration)
             | IterableLoopInitializer::Const(declaration) => bound_names(declaration),
@@ -137,9 +147,7 @@ impl ByteCompiler<'_, '_> {
         match for_in_loop.initializer() {
             IterableLoopInitializer::Identifier(ident) => {
                 self.create_mutable_binding(*ident, true, true);
-                let binding = self.set_mutable_binding(*ident);
-                let index = self.get_or_insert_binding(binding);
-                self.emit(Opcode::DefInitVar, &[index]);
+                self.emit_binding(BindingOpcode::InitVar, *ident);
             }
             IterableLoopInitializer::Access(access) => {
                 self.access_set(
@@ -148,7 +156,7 @@ impl ByteCompiler<'_, '_> {
                     ByteCompiler::access_set_top_of_stack_expr_fn,
                 );
             }
-            IterableLoopInitializer::Var(declaration) => match declaration {
+            IterableLoopInitializer::Var(declaration) => match declaration.binding() {
                 Binding::Identifier(ident) => {
                     self.create_mutable_binding(*ident, true, configurable_globals);
                     self.emit_binding(BindingOpcode::InitVar, *ident);
@@ -284,18 +292,22 @@ impl ByteCompiler<'_, '_> {
                     ByteCompiler::access_set_top_of_stack_expr_fn,
                 );
             }
-            IterableLoopInitializer::Var(declaration) => match declaration {
-                Binding::Identifier(ident) => {
-                    self.create_mutable_binding(*ident, true, false);
-                    self.emit_binding(BindingOpcode::InitVar, *ident);
-                }
-                Binding::Pattern(pattern) => {
-                    for ident in bound_names(pattern) {
-                        self.create_mutable_binding(ident, true, false);
+            IterableLoopInitializer::Var(declaration) => {
+                // ignore initializers since those aren't allowed on for-of loops.
+                assert!(declaration.init().is_none());
+                match declaration.binding() {
+                    Binding::Identifier(ident) => {
+                        self.create_mutable_binding(*ident, true, false);
+                        self.emit_binding(BindingOpcode::InitVar, *ident);
                     }
-                    self.compile_declaration_pattern(pattern, BindingOpcode::InitVar);
+                    Binding::Pattern(pattern) => {
+                        for ident in bound_names(pattern) {
+                            self.create_mutable_binding(ident, true, false);
+                        }
+                        self.compile_declaration_pattern(pattern, BindingOpcode::InitVar);
+                    }
                 }
-            },
+            }
             IterableLoopInitializer::Let(declaration) => match declaration {
                 Binding::Identifier(ident) => {
                     self.create_mutable_binding(*ident, false, false);
