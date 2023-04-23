@@ -579,7 +579,7 @@
     <span class="kw">where
         </span>R: Read,
     {
-        <span class="kw">if </span>!<span class="macro">cfg!</span>(feature = <span class="string">&quot;annex-b&quot;</span>) || <span class="self">self</span>.module() {
+        <span class="kw">if </span><span class="macro">cfg!</span>(not(feature = <span class="string">&quot;annex-b&quot;</span>)) || <span class="self">self</span>.module() {
             <span class="kw">return </span><span class="prelude-val">Ok</span>(());
         }
 

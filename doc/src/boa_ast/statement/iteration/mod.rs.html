@@ -93,6 +93,8 @@
 <a href="#92" id="92">92</a>
 <a href="#93" id="93">93</a>
 <a href="#94" id="94">94</a>
+<a href="#95" id="95">95</a>
+<a href="#96" id="96">96</a>
 </pre><pre class="rust"><code><span class="doccomment">//! Iteration nodes
 
 </span><span class="kw">mod </span>r#break;
@@ -104,7 +106,7 @@
 <span class="kw">mod </span>while_loop;
 
 <span class="kw">use crate</span>::{
-    declaration::Binding,
+    declaration::{Binding, Variable},
     expression::{access::PropertyAccess, Identifier},
     pattern::Pattern,
 };
@@ -138,7 +140,7 @@
     <span class="doccomment">/// A property access.
     </span>Access(PropertyAccess),
     <span class="doccomment">/// A new var declaration.
-    </span>Var(Binding),
+    </span>Var(Variable),
     <span class="doccomment">/// A new let declaration.
     </span>Let(Binding),
     <span class="doccomment">/// A new const declaration.
@@ -153,12 +155,12 @@
             <span class="self">Self</span>::Identifier(ident) =&gt; <span class="kw">return </span>ident.to_interned_string(interner),
             <span class="self">Self</span>::Pattern(pattern) =&gt; <span class="kw">return </span>pattern.to_interned_string(interner),
             <span class="self">Self</span>::Access(access) =&gt; <span class="kw">return </span>access.to_interned_string(interner),
-            <span class="self">Self</span>::Var(binding) =&gt; (binding, <span class="string">&quot;var&quot;</span>),
-            <span class="self">Self</span>::Let(binding) =&gt; (binding, <span class="string">&quot;let&quot;</span>),
-            <span class="self">Self</span>::Const(binding) =&gt; (binding, <span class="string">&quot;const&quot;</span>),
+            <span class="self">Self</span>::Var(binding) =&gt; (binding.to_interned_string(interner), <span class="string">&quot;var&quot;</span>),
+            <span class="self">Self</span>::Let(binding) =&gt; (binding.to_interned_string(interner), <span class="string">&quot;let&quot;</span>),
+            <span class="self">Self</span>::Const(binding) =&gt; (binding.to_interned_string(interner), <span class="string">&quot;const&quot;</span>),
         };
 
-        <span class="macro">format!</span>(<span class="string">&quot;{pre} {}&quot;</span>, binding.to_interned_string(interner))
+        <span class="macro">format!</span>(<span class="string">&quot;{pre} {binding}&quot;</span>)
     }
 }
 
@@ -170,7 +172,8 @@
         <span class="kw">match </span><span class="self">self </span>{
             <span class="self">Self</span>::Identifier(id) =&gt; visitor.visit_identifier(id),
             <span class="self">Self</span>::Access(pa) =&gt; visitor.visit_property_access(pa),
-            <span class="self">Self</span>::Var(b) | <span class="self">Self</span>::Let(b) | <span class="self">Self</span>::Const(b) =&gt; visitor.visit_binding(b),
+            <span class="self">Self</span>::Var(b) =&gt; visitor.visit_variable(b),
+            <span class="self">Self</span>::Let(b) | <span class="self">Self</span>::Const(b) =&gt; visitor.visit_binding(b),
             <span class="self">Self</span>::Pattern(p) =&gt; visitor.visit_pattern(p),
         }
     }
@@ -182,7 +185,8 @@
         <span class="kw">match </span><span class="self">self </span>{
             <span class="self">Self</span>::Identifier(id) =&gt; visitor.visit_identifier_mut(id),
             <span class="self">Self</span>::Access(pa) =&gt; visitor.visit_property_access_mut(pa),
-            <span class="self">Self</span>::Var(b) | <span class="self">Self</span>::Let(b) | <span class="self">Self</span>::Const(b) =&gt; visitor.visit_binding_mut(b),
+            <span class="self">Self</span>::Var(b) =&gt; visitor.visit_variable_mut(b),
+            <span class="self">Self</span>::Let(b) | <span class="self">Self</span>::Const(b) =&gt; visitor.visit_binding_mut(b),
             <span class="self">Self</span>::Pattern(p) =&gt; visitor.visit_pattern_mut(p),
         }
     }

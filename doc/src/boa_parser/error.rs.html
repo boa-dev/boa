@@ -210,6 +210,10 @@
 <a href="#209" id="209">209</a>
 <a href="#210" id="210">210</a>
 <a href="#211" id="211">211</a>
+<a href="#212" id="212">212</a>
+<a href="#213" id="213">213</a>
+<a href="#214" id="214">214</a>
+<a href="#215" id="215">215</a>
 </pre><pre class="rust"><code><span class="doccomment">//! Error and result implementation for the parser.
 
 </span><span class="kw">use </span><span class="kw">crate</span>::lexer::Error <span class="kw">as </span>LexError;
@@ -337,18 +341,22 @@
         }
     }
 
-    <span class="doccomment">/// Creates a &quot;general&quot; parsing error with the specific error message for a wrong function declaration in non-strict mode.
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>wrong_function_declaration_non_strict(position: Position) -&gt; <span class="self">Self </span>{
+    <span class="doccomment">/// Creates a &quot;general&quot; parsing error with the specific error message for a misplaced function declaration.
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>misplaced_function_declaration(position: Position, strict: bool) -&gt; <span class="self">Self </span>{
         <span class="self">Self</span>::General {
-            message: <span class="string">&quot;In non-strict mode code, functions can only be declared at top level, inside a block, or as the body of an if statement.&quot;</span>.into(),
-            position
+            message: <span class="macro">format!</span>(
+                <span class="string">&quot;{}functions can only be declared at the top level or inside a block.&quot;</span>,
+                <span class="kw">if </span>strict { <span class="string">&quot;in strict mode code, &quot; </span>} <span class="kw">else </span>{ <span class="string">&quot;&quot; </span>}
+            )
+            .into(),
+            position,
         }
     }
 
     <span class="doccomment">/// Creates a &quot;general&quot; parsing error with the specific error message for a wrong function declaration with label.
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>wrong_labelled_function_declaration(position: Position) -&gt; <span class="self">Self </span>{
         <span class="self">Self</span>::General {
-            message: <span class="string">&quot;Labelled functions can only be declared at top level or inside a block&quot;
+            message: <span class="string">&quot;labelled functions can only be declared at the top level or inside a block&quot;
                 </span>.into(),
             position,
         }

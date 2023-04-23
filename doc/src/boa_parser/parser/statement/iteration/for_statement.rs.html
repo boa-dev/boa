@@ -378,6 +378,28 @@
 <a href="#377" id="377">377</a>
 <a href="#378" id="378">378</a>
 <a href="#379" id="379">379</a>
+<a href="#380" id="380">380</a>
+<a href="#381" id="381">381</a>
+<a href="#382" id="382">382</a>
+<a href="#383" id="383">383</a>
+<a href="#384" id="384">384</a>
+<a href="#385" id="385">385</a>
+<a href="#386" id="386">386</a>
+<a href="#387" id="387">387</a>
+<a href="#388" id="388">388</a>
+<a href="#389" id="389">389</a>
+<a href="#390" id="390">390</a>
+<a href="#391" id="391">391</a>
+<a href="#392" id="392">392</a>
+<a href="#393" id="393">393</a>
+<a href="#394" id="394">394</a>
+<a href="#395" id="395">395</a>
+<a href="#396" id="396">396</a>
+<a href="#397" id="397">397</a>
+<a href="#398" id="398">398</a>
+<a href="#399" id="399">399</a>
+<a href="#400" id="400">400</a>
+<a href="#401" id="401">401</a>
 </pre><pre class="rust"><code><span class="doccomment">//! For statement parsing.
 //!
 //! More information:
@@ -397,7 +419,10 @@
     },
     Error,
 };
-<span class="kw">use </span>ast::operations::{bound_names, var_declared_names};
+<span class="kw">use </span>ast::{
+    declaration::Binding,
+    operations::{bound_names, var_declared_names},
+};
 <span class="kw">use </span>boa_ast::{
     <span class="self">self </span><span class="kw">as </span>ast,
     statement::{
@@ -537,9 +562,13 @@
                 ));
             }
             (<span class="prelude-val">Some</span>(init), TokenKind::Keyword((kw @ (Keyword::In | Keyword::Of), <span class="bool-val">false</span>))) =&gt; {
-                <span class="kw">let </span>kw = <span class="kw-2">*</span>kw;
-                <span class="kw">let </span>init =
-                    initializer_to_iterable_loop_initializer(init, position, cursor.strict())<span class="question-mark">?</span>;
+                <span class="kw">let </span>in_loop = kw == <span class="kw-2">&amp;</span>Keyword::In;
+                <span class="kw">let </span>init = initializer_to_iterable_loop_initializer(
+                    init,
+                    position,
+                    cursor.strict(),
+                    in_loop,
+                )<span class="question-mark">?</span>;
 
                 cursor.advance(interner);
                 <span class="kw">let </span>expr = Expression::new(<span class="prelude-val">None</span>, <span class="bool-val">true</span>, <span class="self">self</span>.allow_yield, <span class="self">self</span>.allow_await)
@@ -588,7 +617,7 @@
                         }
                     }
                 }
-                <span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="kw">if </span>kw == Keyword::In {
+                <span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="kw">if </span>in_loop {
                     ForInLoop::new(init, expr, body).into()
                 } <span class="kw">else </span>{
                     ForOfLoop::new(init, expr, body, r#await).into()
@@ -668,7 +697,9 @@
     initializer: ForLoopInitializer,
     position: Position,
     strict: bool,
+    in_loop: bool,
 ) -&gt; ParseResult&lt;IterableLoopInitializer&gt; {
+    <span class="kw">let </span>loop_type = <span class="kw">if </span>in_loop { <span class="string">&quot;for-in&quot; </span>} <span class="kw">else </span>{ <span class="string">&quot;for-of&quot; </span>};
     <span class="kw">match </span>initializer {
         ForLoopInitializer::Expression(<span class="kw-2">mut </span>expr) =&gt; {
             <span class="kw">while let </span>ast::Expression::Parenthesized(p) = expr {
@@ -718,8 +749,8 @@
             [declaration] =&gt; {
                 <span class="kw">if </span>declaration.init().is_some() {
                     <span class="kw">return </span><span class="prelude-val">Err</span>(Error::lex(LexError::Syntax(
-                        <span class="string">&quot;a declaration in the head of a for-of loop can&#39;t have an initializer&quot;
-                            </span>.into(),
+                        <span class="macro">format!</span>(<span class="string">&quot;a lexical declaration in the head of a {loop_type} loop can&#39;t have an initializer&quot;</span>)
+                            .into(),
                         position,
                     )));
                 }
@@ -733,25 +764,38 @@
                 })
             }
             <span class="kw">_ </span>=&gt; <span class="prelude-val">Err</span>(Error::lex(LexError::Syntax(
-                <span class="string">&quot;only one variable can be declared in the head of a for-of loop&quot;</span>.into(),
+                <span class="macro">format!</span>(<span class="string">&quot;only one variable can be declared in the head of a {loop_type} loop&quot;</span>)
+                    .into(),
                 position,
             ))),
         },
         ForLoopInitializer::Var(decl) =&gt; <span class="kw">match </span>decl.<span class="number">0</span>.as_ref() {
             [declaration] =&gt; {
-                <span class="comment">// TODO: implement initializers in ForIn heads
-                // https://tc39.es/ecma262/#sec-initializers-in-forin-statement-heads
-                </span><span class="kw">if </span>declaration.init().is_some() {
+                <span class="comment">// https://tc39.es/ecma262/#sec-initializers-in-forin-statement-heads
+                </span><span class="kw">let </span>is_pattern = <span class="macro">matches!</span>(declaration.binding(), Binding::Pattern(<span class="kw">_</span>));
+                <span class="kw">if </span>declaration.init().is_some()
+                    &amp;&amp; (<span class="macro">cfg!</span>(not(feature = <span class="string">&quot;annex-b&quot;</span>)) || strict || !in_loop || is_pattern)
+                {
                     <span class="kw">return </span><span class="prelude-val">Err</span>(Error::lex(LexError::Syntax(
-                        <span class="string">&quot;a declaration in the head of a for-of loop can&#39;t have an initializer&quot;
-                            </span>.into(),
+                        <span class="macro">format!</span>(
+                            <span class="string">&quot;{}a {} declaration in the head of a {loop_type} loop \
+                            cannot have an initializer&quot;</span>,
+                            <span class="kw">if </span>strict { <span class="string">&quot;in strict mode, &quot; </span>} <span class="kw">else </span>{ <span class="string">&quot;&quot; </span>},
+                            <span class="kw">if </span>is_pattern {
+                                <span class="string">&quot;binding pattern&quot;
+                            </span>} <span class="kw">else </span>{
+                                <span class="string">&quot;binding declaration&quot;
+                            </span>}
+                        )
+                        .into(),
                         position,
                     )));
                 }
-                <span class="prelude-val">Ok</span>(IterableLoopInitializer::Var(declaration.binding().clone()))
+                <span class="prelude-val">Ok</span>(IterableLoopInitializer::Var(declaration.clone()))
             }
             <span class="kw">_ </span>=&gt; <span class="prelude-val">Err</span>(Error::lex(LexError::Syntax(
-                <span class="string">&quot;only one variable can be declared in the head of a for-of loop&quot;</span>.into(),
+                <span class="macro">format!</span>(<span class="string">&quot;only one variable can be declared in the head of a {loop_type} loop&quot;</span>)
+                    .into(),
                 position,
             ))),
         },

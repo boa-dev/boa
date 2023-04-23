@@ -83,6 +83,10 @@
 <a href="#82" id="82">82</a>
 <a href="#83" id="83">83</a>
 <a href="#84" id="84">84</a>
+<a href="#85" id="85">85</a>
+<a href="#86" id="86">86</a>
+<a href="#87" id="87">87</a>
+<a href="#88" id="88">88</a>
 </pre><pre class="rust"><code><span class="kw">use crate</span>::{
     lexer::TokenKind,
     parser::{
@@ -150,18 +154,22 @@
             <span class="comment">// Early Error: It is a Syntax Error if any strict mode source code matches this rule.
             // https://tc39.es/ecma262/#sec-labelled-statements-static-semantics-early-errors
             // https://tc39.es/ecma262/#sec-labelled-function-declarations
-            </span>TokenKind::Keyword((Keyword::Function, <span class="kw">_</span>)) <span class="kw">if </span>strict =&gt; {
-                <span class="kw">return </span><span class="prelude-val">Err</span>(Error::general(
-                    <span class="string">&quot;In strict mode code, functions can only be declared at top level or inside a block.&quot;</span>,
-                    next_token.span().start()
+            </span>TokenKind::Keyword((Keyword::Function, <span class="kw">_</span>))
+                <span class="kw">if </span><span class="macro">cfg!</span>(not(feature = <span class="string">&quot;annex-b&quot;</span>)) || strict =&gt;
+            {
+                <span class="kw">return </span><span class="prelude-val">Err</span>(Error::misplaced_function_declaration(
+                    next_token.span().start(),
+                    strict,
                 ))
             }
             TokenKind::Keyword((Keyword::Function, <span class="kw">_</span>)) =&gt; {
                 FunctionDeclaration::new(<span class="self">self</span>.allow_yield, <span class="self">self</span>.allow_await, <span class="bool-val">false</span>)
-                .parse(cursor, interner)<span class="question-mark">?
-                </span>.into()
+                    .parse(cursor, interner)<span class="question-mark">?
+                    </span>.into()
             }
-            <span class="kw">_ </span>=&gt; Statement::new(<span class="self">self</span>.allow_yield, <span class="self">self</span>.allow_await, <span class="self">self</span>.allow_return).parse(cursor, interner)<span class="question-mark">?</span>.into()
+            <span class="kw">_ </span>=&gt; Statement::new(<span class="self">self</span>.allow_yield, <span class="self">self</span>.allow_await, <span class="self">self</span>.allow_return)
+                .parse(cursor, interner)<span class="question-mark">?
+                </span>.into(),
         };
 
         <span class="prelude-val">Ok</span>(ast::statement::Labelled::new(labelled_item, label))
