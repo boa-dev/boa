@@ -134,10 +134,11 @@ pub(super) struct DateParameters {
 
 /// Replaces some (or all) parameters of `date` with the specified parameters
 pub(super) fn replace_params(
-    datetime: NaiveDateTime,
+    datetime: i64,
     params: DateParameters,
     offset: Option<FixedOffset>,
-) -> Option<NaiveDateTime> {
+) -> Option<i64> {
+    let datetime = NaiveDateTime::from_timestamp_millis(datetime)?;
     let DateParameters {
         year,
         month,
@@ -195,5 +196,5 @@ pub(super) fn replace_params(
             .timestamp_millis();
     }
 
-    NaiveDateTime::from_timestamp_millis(time_clip(ts)?)
+    time_clip(ts)
 }
