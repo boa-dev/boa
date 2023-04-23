@@ -44,7 +44,7 @@ trace = []
 console = []
 
 # Enable Boa's additional ECMAScript features for web browsers.
-annex-b = ["boa_parser/annex-b"]
+annex-b = ["boa_parser/annex-b", "regress/annex-b"]
 
 [dependencies]
 boa_interner.workspace = true
@@ -57,7 +57,7 @@ serde = { version = "1.0.160", features = ["derive", "rc"] }
 serde_json = "1.0.96"
 rand = "0.8.5"
 num-traits = "0.2.15"
-regress = "0.5.0"
+regress = { git = "https://github.com/ridiculousfish/regress.git", branch = "fix/valid-character-sets" }
 rustc-hash = "1.1.0"
 num-bigint = { version = "0.4.3", features = ["serde"] }
 num-integer = "0.1.45"

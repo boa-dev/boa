@@ -21,7 +21,7 @@ fast-float = "0.2.0"
 num-traits = "0.2.15"
 bitflags = "2.2.0"
 num-bigint = "0.4.3"
-regress = "0.5.0"
+regress = { git = "https://github.com/ridiculousfish/regress.git", branch = "fix/valid-character-sets" }
 
 [features]
-annex-b = []
+annex-b = ["regress/annex-b"]

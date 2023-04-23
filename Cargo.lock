@@ -3334,8 +3334,7 @@ dependencies = [
 [[package]]
 name = "regress"
 version = "0.5.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "d995d590bd8ec096d1893f414bf3f5e8b0ee4c9eed9a5642b9766ef2c8e2e8e9"
+source = "git+https://github.com/ridiculousfish/regress.git?branch=fix/valid-character-sets#8fdd10ced6b1d000c0766247250e764c8e34dbc4"
 dependencies = [
  "hashbrown 0.13.2",
  "memchr",
