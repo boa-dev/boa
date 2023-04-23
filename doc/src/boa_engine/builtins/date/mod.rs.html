@@ -1511,6 +1511,12 @@
 <a href="#1510" id="1510">1510</a>
 <a href="#1511" id="1511">1511</a>
 <a href="#1512" id="1512">1512</a>
+<a href="#1513" id="1513">1513</a>
+<a href="#1514" id="1514">1514</a>
+<a href="#1515" id="1515">1515</a>
+<a href="#1516" id="1516">1516</a>
+<a href="#1517" id="1517">1517</a>
+<a href="#1518" id="1518">1518</a>
 </pre><pre class="rust"><code><span class="doccomment">//! Boa&#39;s implementation of ECMAScript&#39;s `Date` object.
 //!
 //! More information:
@@ -1615,7 +1621,16 @@
             .length(<span class="number">0</span>)
             .build();
 
+        <span class="kw">let </span>to_primitive = BuiltInBuilder::new(realm)
+            .callable(<span class="self">Self</span>::to_primitive)
+            .name(<span class="string">&quot;[Symbol.toPrimitive]&quot;</span>)
+            .length(<span class="number">1</span>)
+            .build();
+
         BuiltInBuilder::from_standard_constructor::&lt;<span class="self">Self</span>&gt;(realm)
+            .static_method(<span class="self">Self</span>::now, <span class="string">&quot;now&quot;</span>, <span class="number">0</span>)
+            .static_method(<span class="self">Self</span>::parse, <span class="string">&quot;parse&quot;</span>, <span class="number">1</span>)
+            .static_method(<span class="self">Self</span>::utc, <span class="string">&quot;UTC&quot;</span>, <span class="number">7</span>)
             .method(<span class="self">Self</span>::get_date::&lt;<span class="bool-val">true</span>&gt;, <span class="string">&quot;getDate&quot;</span>, <span class="number">0</span>)
             .method(<span class="self">Self</span>::get_day::&lt;<span class="bool-val">true</span>&gt;, <span class="string">&quot;getDay&quot;</span>, <span class="number">0</span>)
             .method(<span class="self">Self</span>::get_full_year::&lt;<span class="bool-val">true</span>&gt;, <span class="string">&quot;getFullYear&quot;</span>, <span class="number">0</span>)
@@ -1635,8 +1650,6 @@
             .method(<span class="self">Self</span>::get_month::&lt;<span class="bool-val">false</span>&gt;, <span class="string">&quot;getUTCMonth&quot;</span>, <span class="number">0</span>)
             .method(<span class="self">Self</span>::get_seconds::&lt;<span class="bool-val">false</span>&gt;, <span class="string">&quot;getUTCSeconds&quot;</span>, <span class="number">0</span>)
             .method(<span class="self">Self</span>::get_year, <span class="string">&quot;getYear&quot;</span>, <span class="number">0</span>)
-            .static_method(<span class="self">Self</span>::now, <span class="string">&quot;now&quot;</span>, <span class="number">0</span>)
-            .static_method(<span class="self">Self</span>::parse, <span class="string">&quot;parse&quot;</span>, <span class="number">1</span>)
             .method(<span class="self">Self</span>::set_date::&lt;<span class="bool-val">true</span>&gt;, <span class="string">&quot;setDate&quot;</span>, <span class="number">1</span>)
             .method(<span class="self">Self</span>::set_full_year::&lt;<span class="bool-val">true</span>&gt;, <span class="string">&quot;setFullYear&quot;</span>, <span class="number">3</span>)
             .method(<span class="self">Self</span>::set_hours::&lt;<span class="bool-val">true</span>&gt;, <span class="string">&quot;setHours&quot;</span>, <span class="number">4</span>)
@@ -1661,22 +1674,21 @@
             .method(<span class="self">Self</span>::to_locale_time_string, <span class="string">&quot;toLocaleTimeString&quot;</span>, <span class="number">0</span>)
             .method(<span class="self">Self</span>::to_string, <span class="string">&quot;toString&quot;</span>, <span class="number">0</span>)
             .method(<span class="self">Self</span>::to_time_string, <span class="string">&quot;toTimeString&quot;</span>, <span class="number">0</span>)
+            .method(<span class="self">Self</span>::value_of, <span class="string">&quot;valueOf&quot;</span>, <span class="number">0</span>)
             .property(
                 <span class="string">&quot;toGMTString&quot;</span>,
                 to_utc_string.clone(),
-                Attribute::WRITABLE | Attribute::CONFIGURABLE,
+                Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
             )
             .property(
                 <span class="string">&quot;toUTCString&quot;</span>,
                 to_utc_string,
-                Attribute::WRITABLE | Attribute::CONFIGURABLE,
+                Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
             )
-            .static_method(<span class="self">Self</span>::utc, <span class="string">&quot;UTC&quot;</span>, <span class="number">7</span>)
-            .method(<span class="self">Self</span>::value_of, <span class="string">&quot;valueOf&quot;</span>, <span class="number">0</span>)
-            .method(
-                <span class="self">Self</span>::to_primitive,
-                (JsSymbol::to_primitive(), <span class="string">&quot;[Symbol.toPrimitive]&quot;</span>),
-                <span class="number">1</span>,
+            .property(
+                JsSymbol::to_primitive(),
+                to_primitive,
+                Attribute::READONLY | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
             )
             .build();
     }
