@@ -952,7 +952,7 @@ impl JsObject {
             context
                 .vm
                 .environments
-                .put_value(index, 0, class_object.into());
+                .put_declarative_value(index, 0, class_object.into());
             last_env -= 1;
         }
 
@@ -964,7 +964,7 @@ impl JsObject {
             context
                 .vm
                 .environments
-                .put_value(index, 0, self.clone().into());
+                .put_declarative_value(index, 0, self.clone().into());
             last_env -= 1;
         }
 
@@ -994,11 +994,11 @@ impl JsObject {
                     &this_function_object,
                     &code.params,
                     args,
-                    &env,
+                    env.declarative_expect(),
                     context,
                 )
             };
-            context.vm.environments.put_value(
+            context.vm.environments.put_declarative_value(
                 binding.environment_index(),
                 binding.binding_index(),
                 arguments_obj.into(),
@@ -1202,7 +1202,7 @@ impl JsObject {
                     context
                         .vm
                         .environments
-                        .put_value(index, 0, self.clone().into());
+                        .put_declarative_value(index, 0, self.clone().into());
                     last_env -= 1;
                 }
 
@@ -1231,11 +1231,11 @@ impl JsObject {
                             &this_function_object,
                             &code.params,
                             args,
-                            &env,
+                            env.declarative_expect(),
                             context,
                         )
                     };
-                    context.vm.environments.put_value(
+                    context.vm.environments.put_declarative_value(
                         binding.environment_index(),
                         binding.binding_index(),
                         arguments_obj.into(),

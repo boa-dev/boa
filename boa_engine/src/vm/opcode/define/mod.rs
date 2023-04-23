@@ -1,6 +1,6 @@
 use crate::{
     vm::{opcode::Operation, CompletionType},
-    Context, JsResult, JsString, JsValue,
+    Context, JsResult, JsValue,
 };
 
 pub(crate) mod class;
@@ -52,36 +52,16 @@ impl Operation for DefInitVar {
     fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
         let index = context.vm.read::<u32>();
         let value = context.vm.pop();
-        let binding_locator = context.vm.frame().code_block.bindings[index as usize];
+        let mut binding_locator = context.vm.frame().code_block.bindings[index as usize];
         if binding_locator.is_silent() {
             return Ok(CompletionType::Normal);
         }
         binding_locator.throw_mutate_immutable(context)?;
 
-        if binding_locator.is_global() {
-            if !context.put_value_if_global_poisoned(
-                binding_locator.name(),
-                &value,
-                context.vm.frame().code_block.strict,
-            )? {
-                let key = context
-                    .interner()
-                    .resolve_expect(binding_locator.name().sym())
-                    .into_common::<JsString>(false);
-                context.global_object().set(
-                    key,
-                    value,
-                    context.vm.frame().code_block.strict,
-                    context,
-                )?;
-            }
-        } else {
-            context.vm.environments.put_value(
-                binding_locator.environment_index(),
-                binding_locator.binding_index(),
-                value,
-            );
-        }
+        context.find_runtime_binding(&mut binding_locator)?;
+
+        context.set_binding(binding_locator, value, context.vm.frame().code_block.strict)?;
+
         Ok(CompletionType::Normal)
     }
 }
@@ -100,7 +80,7 @@ impl Operation for DefLet {
     fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
         let index = context.vm.read::<u32>();
         let binding_locator = context.vm.frame().code_block.bindings[index as usize];
-        context.vm.environments.put_value(
+        context.vm.environments.put_declarative_value(
             binding_locator.environment_index(),
             binding_locator.binding_index(),
             JsValue::Undefined,
@@ -126,7 +106,7 @@ macro_rules! implement_declaratives {
                 let index = context.vm.read::<u32>();
                 let value = context.vm.pop();
                 let binding_locator = context.vm.frame().code_block.bindings[index as usize];
-                context.vm.environments.put_value(
+                context.vm.environments.put_declarative_value(
                     binding_locator.environment_index(),
                     binding_locator.binding_index(),
                     value,
