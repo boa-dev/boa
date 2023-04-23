@@ -198,6 +198,7 @@
 <a href="#197" id="197">197</a>
 <a href="#198" id="198">198</a>
 <a href="#199" id="199">199</a>
+<a href="#200" id="200">200</a>
 </pre><pre class="rust"><code><span class="kw">use </span>chrono::{Datelike, FixedOffset, NaiveDateTime, TimeZone, Timelike};
 
 <span class="kw">use </span><span class="kw">crate</span>::value::IntegerOrNan;
@@ -334,10 +335,11 @@
 
 <span class="doccomment">/// Replaces some (or all) parameters of `date` with the specified parameters
 </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>replace_params(
-    datetime: NaiveDateTime,
+    datetime: i64,
     params: DateParameters,
     offset: <span class="prelude-ty">Option</span>&lt;FixedOffset&gt;,
-) -&gt; <span class="prelude-ty">Option</span>&lt;NaiveDateTime&gt; {
+) -&gt; <span class="prelude-ty">Option</span>&lt;i64&gt; {
+    <span class="kw">let </span>datetime = NaiveDateTime::from_timestamp_millis(datetime)<span class="question-mark">?</span>;
     <span class="kw">let </span>DateParameters {
         year,
         month,
@@ -395,7 +397,7 @@
             .timestamp_millis();
     }
 
-    NaiveDateTime::from_timestamp_millis(time_clip(ts)<span class="question-mark">?</span>)
+    time_clip(ts)
 }
 </code></pre></div>
 </section></main><div id="rustdoc-vars" data-root-path="../../../../" data-static-root-path="../../../../static.files/" data-current-crate="boa_engine" data-themes="" data-resource-suffix="" data-rustdoc-version="1.69.0 (84c898d65 2023-04-16)" data-search-js="search-8a59a8356673ec1f.js" data-settings-js="settings-f0c5c39777a9a2f6.js" data-settings-css="settings-0bcba95ff279c1db.css" ></div></body></html>

@@ -1188,7 +1188,7 @@
             .map_err(|<span class="kw">_</span>| JsNativeError::typ().with_message(<span class="string">&quot;unpaired surrogate on date string&quot;</span>))<span class="question-mark">?</span>;
         <span class="kw">let </span>date_time = DateTime::parse_from_rfc3339(<span class="kw-2">&amp;</span>string)
             .map_err(|err| JsNativeError::typ().with_message(err.to_string()))<span class="question-mark">?</span>;
-        <span class="kw">let </span>date_time = Date::new(<span class="prelude-val">Some</span>(date_time.naive_local()));
+        <span class="kw">let </span>date_time = Date::new(<span class="prelude-val">Some</span>(date_time.naive_local().timestamp_millis()));
 
         <span class="prelude-val">Ok</span>(<span class="self">Self </span>{
             inner: JsObject::from_proto_and_data(prototype, ObjectData::date(date_time)),
