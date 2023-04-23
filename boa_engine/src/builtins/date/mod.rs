@@ -102,7 +102,16 @@ impl IntrinsicObject for Date {
             .length(0)
             .build();
 
+        let to_primitive = BuiltInBuilder::new(realm)
+            .callable(Self::to_primitive)
+            .name("[Symbol.toPrimitive]")
+            .length(1)
+            .build();
+
         BuiltInBuilder::from_standard_constructor::<Self>(realm)
+            .static_method(Self::now, "now", 0)
+            .static_method(Self::parse, "parse", 1)
+            .static_method(Self::utc, "UTC", 7)
             .method(Self::get_date::<true>, "getDate", 0)
             .method(Self::get_day::<true>, "getDay", 0)
             .method(Self::get_full_year::<true>, "getFullYear", 0)
@@ -122,8 +131,6 @@ impl IntrinsicObject for Date {
             .method(Self::get_month::<false>, "getUTCMonth", 0)
             .method(Self::get_seconds::<false>, "getUTCSeconds", 0)
             .method(Self::get_year, "getYear", 0)
-            .static_method(Self::now, "now", 0)
-            .static_method(Self::parse, "parse", 1)
             .method(Self::set_date::<true>, "setDate", 1)
             .method(Self::set_full_year::<true>, "setFullYear", 3)
             .method(Self::set_hours::<true>, "setHours", 4)
@@ -148,22 +155,21 @@ impl IntrinsicObject for Date {
             .method(Self::to_locale_time_string, "toLocaleTimeString", 0)
             .method(Self::to_string, "toString", 0)
             .method(Self::to_time_string, "toTimeString", 0)
+            .method(Self::value_of, "valueOf", 0)
             .property(
                 "toGMTString",
                 to_utc_string.clone(),
-                Attribute::WRITABLE | Attribute::CONFIGURABLE,
+                Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
             )
             .property(
                 "toUTCString",
                 to_utc_string,
-                Attribute::WRITABLE | Attribute::CONFIGURABLE,
+                Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
             )
-            .static_method(Self::utc, "UTC", 7)
-            .method(Self::value_of, "valueOf", 0)
-            .method(
-                Self::to_primitive,
-                (JsSymbol::to_primitive(), "[Symbol.toPrimitive]"),
-                1,
+            .property(
+                JsSymbol::to_primitive(),
+                to_primitive,
+                Attribute::READONLY | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
             )
             .build();
     }
