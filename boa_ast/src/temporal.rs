@@ -18,7 +18,7 @@ pub enum OffsetSign {
 pub struct UtcOffset {
     pub sign: OffsetSign,
     pub hour: String,
-    pub minute: String,
-    pub second: String,
-    pub fraction: String,
+    pub minute: Option<String>,
+    pub second: Option<String>,
+    pub fraction: Option<String>,
 }

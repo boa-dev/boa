@@ -16,7 +16,7 @@ use crate::{
     lexer::Error as LexError,
     parser::{
         cursor::Cursor,
-        function::{FormalParameters, FunctionStatementList},
+        function::{FormalParameters, FunctionStatementList}
     },
     Error, Source,
 };
@@ -36,12 +36,12 @@ use std::{io::Read, path::Path};
 use self::statement::ModuleItemList;
 
 #[cfg(feature = "temporal")]
-pub use self::temporal::TimeZoneNumericUTCOffset;
+pub use self::temporal::UTCOffset;
 
 /// Trait implemented by parsers.
 ///
 /// This makes it possible to abstract over the underlying implementation of a parser.
-trait TokenParser<R>: Sized
+pub trait TokenParser<R>: Sized
 where
     R: Read,
 {
@@ -51,6 +51,10 @@ where
     /// Parses the token stream using the current parser.
     ///
     /// This method needs to be provided by the implementor type.
+    ///
+    /// # Errors
+    ///
+    /// It will fail if the cursor is not placed at the beginning of the expected non-terminal.
     fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult<Self::Output>;
 }
 

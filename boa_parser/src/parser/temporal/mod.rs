@@ -5,7 +5,6 @@
 use crate::ParseResult;
 
 use super::{cursor::Cursor, TokenParser};
-use boa_ast::UtcOffset;
 use boa_interner::Interner;
 use std::io::Read;
 
@@ -16,13 +15,13 @@ use std::io::Read;
 ///
 /// [spec]: https://tc39.es/proposal-temporal/#prod-TimeZoneNumericUTCOffset
 #[derive(Debug, Clone, Copy)]
-pub struct TimeZoneNumericUTCOffset;
+pub struct UTCOffset;
 
-impl<R> TokenParser<R> for TimeZoneNumericUTCOffset
+impl<R> TokenParser<R> for UTCOffset
 where
     R: Read,
 {
-    type Output = UtcOffset;
+    type Output = boa_ast::UtcOffset;
 
     fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult<Self::Output> {
         todo!()
