@@ -571,7 +571,7 @@ impl JsDate {
             .map_err(|_| JsNativeError::typ().with_message("unpaired surrogate on date string"))?;
         let date_time = DateTime::parse_from_rfc3339(&string)
             .map_err(|err| JsNativeError::typ().with_message(err.to_string()))?;
-        let date_time = Date::new(Some(date_time.naive_local()));
+        let date_time = Date::new(Some(date_time.naive_local().timestamp_millis()));
 
         Ok(Self {
             inner: JsObject::from_proto_and_data(prototype, ObjectData::date(date_time)),

@@ -61,7 +61,7 @@ macro_rules! get_mut_date {
 /// Abstract operation [`thisTimeValue`][spec].
 ///
 /// [spec]: https://tc39.es/ecma262/#sec-thistimevalue
-pub(super) fn this_time_value(value: &JsValue) -> JsResult<Option<NaiveDateTime>> {
+pub(super) fn this_time_value(value: &JsValue) -> JsResult<Option<i64>> {
     Ok(value
         .as_object()
         .and_then(|obj| obj.borrow().as_date().copied())
@@ -71,24 +71,24 @@ pub(super) fn this_time_value(value: &JsValue) -> JsResult<Option<NaiveDateTime>
 
 /// The internal representation of a `Date` object.
 #[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
-pub struct Date(Option<NaiveDateTime>);
+pub struct Date(Option<i64>);
 
 impl Date {
     /// Creates a new `Date`.
-    pub(crate) const fn new(dt: Option<NaiveDateTime>) -> Self {
+    pub(crate) const fn new(dt: Option<i64>) -> Self {
         Self(dt)
     }
 
     /// Creates a new `Date` from the current UTC time of the host.
     pub(crate) fn utc_now(hooks: &dyn HostHooks) -> Self {
-        Self(Some(hooks.utc_now()))
+        let dt = hooks.utc_now();
+        Self(Some(dt.timestamp_millis()))
     }
 
     /// Converts the `Date` into a `JsValue`, mapping `None` to `NaN` and `Some(datetime)` to
     /// `JsValue::from(datetime.timestamp_millis())`.
     fn as_value(&self) -> JsValue {
-        self.0
-            .map_or_else(|| f64::NAN.into(), |dt| dt.timestamp_millis().into())
+        self.0.map_or_else(|| f64::NAN.into(), Into::into)
     }
 }
 
@@ -237,26 +237,25 @@ impl BuiltInConstructor for Date {
                             // 1. Assert: The next step never returns an abrupt completion because v is a String.
                             // 2. Let tv be the result of parsing v as a date, in exactly the same manner as for the
                             // parse method (21.4.3.2).
-                            Self(
-                                str.to_std_string()
-                                    .ok()
-                                    .and_then(|s| {
-                                        chrono::DateTime::parse_from_rfc3339(s.as_str()).ok()
-                                    })
-                                    .map(|dt| dt.naive_utc()),
-                            )
+
+                            let dt = str
+                                .to_std_string()
+                                .ok()
+                                .and_then(|s| chrono::DateTime::parse_from_rfc3339(s.as_str()).ok())
+                                .map(|dt| dt.naive_utc());
+                            Self::new(dt.map(|dt| dt.timestamp_millis()))
                         }
                         // iii. Else,
                         v => {
                             // Directly convert to integer
                             // 1. Let tv be ? ToNumber(v).
-                            Self(
-                                v.to_integer_or_nan(context)?
-                                    .as_integer()
-                                    // d. Let dv be TimeClip(tv).
-                                    .and_then(time_clip)
-                                    .and_then(NaiveDateTime::from_timestamp_millis),
-                            )
+
+                            let dt = v
+                                .to_integer_or_nan(context)?
+                                .as_integer()
+                                // d. Let dv be TimeClip(tv).
+                                .and_then(time_clip);
+                            Self(dt)
                         }
                     }
                 }
@@ -264,17 +263,18 @@ impl BuiltInConstructor for Date {
             // 5. Else,
             _ => {
                 // Separating this into its own function to simplify the logic.
-                Self(
-                    Self::construct_date(args, context)?
-                        .and_then(|dt| {
-                            context
-                                .host_hooks()
-                                .tz_offset()
-                                .from_local_datetime(&dt)
-                                .earliest()
-                        })
-                        .map(|dt| dt.naive_utc()),
-                )
+
+                let dt = Self::construct_date(args, context)?
+                    .and_then(|dt| {
+                        context
+                            .host_hooks()
+                            .tz_offset()
+                            .from_local_datetime(&dt)
+                            .earliest()
+                    })
+                    .map(|dt| dt.naive_utc());
+
+                Self(dt.map(|dt| dt.timestamp_millis()))
             }
         };
 
@@ -458,8 +458,10 @@ impl Date {
         context: &mut Context<'_>,
     ) -> JsResult<JsValue> {
         // 1. Let t be ? thisTimeValue(this value).
+        let t = this_time_value(this)?;
+
         // 2. If t is NaN, return NaN.
-        let mut t = some_or_nan!(this_time_value(this)?);
+        let mut t = some_or_nan!(t.and_then(NaiveDateTime::from_timestamp_millis));
         if LOCAL {
             t = context
                 .host_hooks()
@@ -486,8 +488,10 @@ impl Date {
         context: &mut Context<'_>,
     ) -> JsResult<JsValue> {
         // 1. Let t be ? thisTimeValue(this value).
+        let t = this_time_value(this)?;
+
         // 2. If t is NaN, return NaN.
-        let mut t = some_or_nan!(this_time_value(this)?);
+        let mut t = some_or_nan!(t.and_then(NaiveDateTime::from_timestamp_millis));
         if LOCAL {
             t = context
                 .host_hooks()
@@ -517,8 +521,10 @@ impl Date {
         context: &mut Context<'_>,
     ) -> JsResult<JsValue> {
         // 1. Let t be ? thisTimeValue(this value).
+        let t = this_time_value(this)?;
+
         // 2. If t is NaN, return NaN.
-        let t = some_or_nan!(this_time_value(this)?);
+        let t = some_or_nan!(t.and_then(NaiveDateTime::from_timestamp_millis));
 
         // 3. Return YearFromTime(LocalTime(t)) - 1900𝔽.
         let local = context.host_hooks().tz_offset().from_utc_datetime(&t);
@@ -538,8 +544,10 @@ impl Date {
         context: &mut Context<'_>,
     ) -> JsResult<JsValue> {
         // 1. Let t be ? thisTimeValue(this value).
+        let t = this_time_value(this)?;
+
         // 2. If t is NaN, return NaN.
-        let mut t = some_or_nan!(this_time_value(this)?);
+        let mut t = some_or_nan!(t.and_then(NaiveDateTime::from_timestamp_millis));
         if LOCAL {
             t = context
                 .host_hooks()
@@ -565,8 +573,10 @@ impl Date {
         context: &mut Context<'_>,
     ) -> JsResult<JsValue> {
         // 1. Let t be ? thisTimeValue(this value).
+        let t = this_time_value(this)?;
+
         // 2. If t is NaN, return NaN.
-        let mut t = some_or_nan!(this_time_value(this)?);
+        let mut t = some_or_nan!(t.and_then(NaiveDateTime::from_timestamp_millis));
         if LOCAL {
             t = context
                 .host_hooks()
@@ -592,8 +602,10 @@ impl Date {
         context: &mut Context<'_>,
     ) -> JsResult<JsValue> {
         // 1. Let t be ? thisTimeValue(this value).
+        let t = this_time_value(this)?;
+
         // 2. If t is NaN, return NaN.
-        let mut t = some_or_nan!(this_time_value(this)?);
+        let mut t = some_or_nan!(t.and_then(NaiveDateTime::from_timestamp_millis));
         if LOCAL {
             t = context
                 .host_hooks()
@@ -619,8 +631,10 @@ impl Date {
         context: &mut Context<'_>,
     ) -> JsResult<JsValue> {
         // 1. Let t be ? thisTimeValue(this value).
+        let t = this_time_value(this)?;
+
         // 2. If t is NaN, return NaN.
-        let mut t = some_or_nan!(this_time_value(this)?);
+        let mut t = some_or_nan!(t.and_then(NaiveDateTime::from_timestamp_millis));
         if LOCAL {
             t = context
                 .host_hooks()
@@ -647,8 +661,10 @@ impl Date {
         context: &mut Context<'_>,
     ) -> JsResult<JsValue> {
         // 1. Let t be ? thisTimeValue(this value).
+        let t = this_time_value(this)?;
+
         // 2. If t is NaN, return NaN.
-        let mut t = some_or_nan!(this_time_value(this)?);
+        let mut t = some_or_nan!(t.and_then(NaiveDateTime::from_timestamp_millis));
         if LOCAL {
             t = context
                 .host_hooks()
@@ -674,8 +690,10 @@ impl Date {
         context: &mut Context<'_>,
     ) -> JsResult<JsValue> {
         // 1. Let t be ? thisTimeValue(this value).
+        let t = this_time_value(this)?;
+
         // 2. If t is NaN, return NaN.
-        let mut t = some_or_nan!(this_time_value(this)?);
+        let mut t = some_or_nan!(t.and_then(NaiveDateTime::from_timestamp_millis));
         if LOCAL {
             t = context
                 .host_hooks()
@@ -704,8 +722,7 @@ impl Date {
         _context: &mut Context<'_>,
     ) -> JsResult<JsValue> {
         // 1. Return ? thisTimeValue(this value).
-        let t = some_or_nan!(this_time_value(this)?);
-        Ok(JsValue::from(t.timestamp_millis()))
+        Ok(this_time_value(this)?.map_or(JsValue::nan(), JsValue::from))
     }
 
     /// `Date.prototype.getTimeZoneOffset()`.
@@ -769,7 +786,7 @@ impl Date {
         );
 
         // 7. Set the [[DateValue]] internal slot of this Date object to u.
-        *t = Self(datetime);
+        *t = Self::new(datetime);
 
         // 8. Return u.
         Ok(t.as_value())
@@ -792,7 +809,7 @@ impl Date {
         get_mut_date!(let t = this);
 
         // 2. If t is NaN, set t to +0𝔽; otherwise, set t to LocalTime(t).
-        let datetime = match t.0 {
+        let datetime = match t.0.and_then(NaiveDateTime::from_timestamp_millis) {
             Some(dt) => dt,
             None if LOCAL => {
                 let Some(datetime) = context.host_hooks().tz_offset()
@@ -800,7 +817,7 @@ impl Date {
                     .earliest()
                     .as_ref()
                     .map(DateTime::naive_utc) else {
-                        *t = Self(None);
+                        *t = Self::new(None);
                         return Ok(t.as_value())
                     };
                 datetime
@@ -826,7 +843,7 @@ impl Date {
         // 6. Let newDate be MakeDate(MakeDay(y, m, dt), TimeWithinDay(t)).
         // 7. Let u be TimeClip(UTC(newDate)).
         let datetime = replace_params(
-            datetime,
+            datetime.timestamp_millis(),
             DateParameters {
                 year: Some(year),
                 month,
@@ -837,7 +854,7 @@ impl Date {
         );
 
         // 8. Set the [[DateValue]] internal slot of this Date object to u.
-        *t = Self(datetime);
+        *t = Self::new(datetime);
 
         // 9. Return u.
         Ok(t.as_value())
@@ -903,7 +920,7 @@ impl Date {
         );
 
         // 13. Set the [[DateValue]] internal slot of this Date object to u.
-        *t = Self(datetime);
+        *t = Self::new(datetime);
 
         // 14. Return u.
         Ok(t.as_value())
@@ -944,7 +961,7 @@ impl Date {
         );
 
         // 7. Set the [[DateValue]] internal slot of this Date object to u.
-        *t = Self(datetime);
+        *t = Self::new(datetime);
 
         // 8. Return u.
         Ok(t.as_value())
@@ -1000,7 +1017,7 @@ impl Date {
         );
 
         // 11. Set the [[DateValue]] internal slot of this Date object to u.
-        *t = Self(datetime);
+        *t = Self::new(datetime);
 
         // 12. Return u.
         Ok(t.as_value())
@@ -1049,7 +1066,7 @@ impl Date {
         );
 
         // 9. Set the [[DateValue]] internal slot of this Date object to u.
-        *t = Self(datetime);
+        *t = Self::new(datetime);
 
         // 10. Return u.
         Ok(t.as_value())
@@ -1097,7 +1114,7 @@ impl Date {
         );
 
         // 9. Set the [[DateValue]] internal slot of this Date object to u.
-        *t = Self(datetime);
+        *t = Self::new(datetime);
 
         // 10. Return u.
         Ok(t.as_value())
@@ -1130,21 +1147,21 @@ impl Date {
         let year = args.get_or_undefined(0).to_integer_or_nan(context)?;
 
         // 3. If t is NaN, set t to +0𝔽; otherwise, set t to LocalTime(t).
-        let Some(datetime) = t.0.or_else(|| {
+        let Some(datetime) = t.0.and_then(NaiveDateTime::from_timestamp_millis).or_else(|| {
             context.host_hooks().tz_offset()
                 .from_local_datetime(&NaiveDateTime::default())
                 .earliest()
                 .as_ref()
                 .map(DateTime::naive_utc)
         }) else {
-            *t = Self(None);
+            *t = Self::new(None);
             return Ok(t.as_value());
         };
 
         // 4. If y is NaN, then
         let Some(mut year) = year.as_integer() else {
             // a. Set the [[DateValue]] internal slot of this Date object to NaN.
-            *t = Self(None);
+            *t = Self::new(None);
 
             // b. Return NaN.
             return Ok(t.as_value());
@@ -1159,7 +1176,7 @@ impl Date {
         // 8. Let d be MakeDay(yyyy, MonthFromTime(t), DateFromTime(t)).
         // 9. Let date be UTC(MakeDate(d, TimeWithinDay(t))).
         let datetime = replace_params(
-            datetime,
+            datetime.timestamp_millis(),
             DateParameters {
                 year: Some(IntegerOrNan::Integer(year)),
                 ..Default::default()
@@ -1168,7 +1185,7 @@ impl Date {
         );
 
         // 10. Set the [[DateValue]] internal slot of this Date object to TimeClip(date).
-        *t = Self(datetime);
+        *t = Self::new(datetime);
 
         // 11. Return the value of the [[DateValue]] internal slot of this Date object.
         Ok(t.as_value())
@@ -1198,11 +1215,10 @@ impl Date {
             .get_or_undefined(0)
             .to_integer_or_nan(context)?
             .as_integer()
-            .and_then(time_clip)
-            .and_then(NaiveDateTime::from_timestamp_millis);
+            .and_then(time_clip);
 
         // 4. Set the [[DateValue]] internal slot of this Date object to v.
-        *t = Self(timestamp);
+        *t = Self::new(timestamp);
 
         // 5. Return v.
         Ok(t.as_value())
@@ -1224,7 +1240,7 @@ impl Date {
     ) -> JsResult<JsValue> {
         // 1. Let O be this Date object.
         // 2. Let tv be ? thisTimeValue(O).
-        let Some(tv) = this_time_value(this)? else {
+        let Some(tv) = this_time_value(this)?.and_then(NaiveDateTime::from_timestamp_millis) else {
             // 3. If tv is NaN, return "Invalid Date".
             return Ok(js_string!("Invalid Date").into());
         };
@@ -1257,6 +1273,7 @@ impl Date {
         _: &mut Context<'_>,
     ) -> JsResult<JsValue> {
         let t = this_time_value(this)?
+            .and_then(NaiveDateTime::from_timestamp_millis)
             .ok_or_else(|| JsNativeError::range().with_message("Invalid time value"))?;
         Ok(Utc
             .from_utc_datetime(&t)
@@ -1370,7 +1387,7 @@ impl Date {
     ) -> JsResult<JsValue> {
         // 1. Let tv be ? thisTimeValue(this value).
         // 2. Return ToDateString(tv).
-        let Some(t) = this_time_value(this)? else {
+        let Some(t) = this_time_value(this)?.and_then(NaiveDateTime::from_timestamp_millis) else {
             return Ok(js_string!("Invalid Date").into());
         };
         Ok(context
@@ -1399,7 +1416,7 @@ impl Date {
     ) -> JsResult<JsValue> {
         // 1. Let O be this Date object.
         // 2. Let tv be ? thisTimeValue(O).
-        let Some(t) = this_time_value(this)? else {
+        let Some(t) = this_time_value(this)?.and_then(NaiveDateTime::from_timestamp_millis) else {
             // 3. If tv is NaN, return "Invalid Date".
             return Ok(js_string!("Invalid Date").into());
         };
@@ -1430,7 +1447,7 @@ impl Date {
         _context: &mut Context<'_>,
     ) -> JsResult<JsValue> {
         // 1. Let O be this Date object.
-        let Some(t) = this_time_value(this)? else {
+        let Some(t) = this_time_value(this)?.and_then(NaiveDateTime::from_timestamp_millis) else {
             // 3. If tv is NaN, return "Invalid Date".
             return Ok(js_string!("Invalid Date").into())
         };
@@ -1464,7 +1481,7 @@ impl Date {
         _context: &mut Context<'_>,
     ) -> JsResult<JsValue> {
         // 1. Return ? thisTimeValue(this value).
-        Ok(Self(this_time_value(this)?).as_value())
+        Ok(Self::new(this_time_value(this)?).as_value())
     }
 
     /// [`Date.prototype [ @@toPrimitive ] ( hint )`][spec].
