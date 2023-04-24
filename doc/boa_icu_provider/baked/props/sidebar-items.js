@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"mod":["idc_v1","ids_v1"]};

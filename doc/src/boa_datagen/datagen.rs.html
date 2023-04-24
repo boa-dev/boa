@@ -66,12 +66,6 @@
 <a href="#65" id="65">65</a>
 <a href="#66" id="66">66</a>
 <a href="#67" id="67">67</a>
-<a href="#68" id="68">68</a>
-<a href="#69" id="69">69</a>
-<a href="#70" id="70">70</a>
-<a href="#71" id="71">71</a>
-<a href="#72" id="72">72</a>
-<a href="#73" id="73">73</a>
 </pre><pre class="rust"><code><span class="attr">#![doc(
     html_logo_url = <span class="string">&quot;https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg&quot;</span>,
     html_favicon_url = <span class="string">&quot;https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg&quot;
@@ -80,19 +74,15 @@
 </span><span class="kw">use </span>std::{error::Error, fs::File};
 
 <span class="kw">use </span>boa_icu_provider::data_root;
-<span class="kw">use </span>icu_datagen::{
-    all_keys_with_experimental, datagen, BakedOptions, CldrLocaleSubset, Out, SourceData,
-};
+<span class="kw">use </span>icu_casemapping::provider::CaseMappingV1Marker;
+<span class="kw">use </span>icu_datagen::{all_keys, datagen, BakedOptions, CoverageLevel, Out, SourceData};
 <span class="kw">use </span>icu_normalizer::provider::{
     CanonicalCompositionsV1Marker, CanonicalDecompositionDataV1Marker,
     CanonicalDecompositionTablesV1Marker, CompatibilityDecompositionSupplementV1Marker,
     CompatibilityDecompositionTablesV1Marker,
 };
+<span class="kw">use </span>icu_properties::provider::{IdContinueV1Marker, IdStartV1Marker};
 <span class="kw">use </span>icu_provider::KeyedDataMarker;
-<span class="kw">use </span>icu_provider_adapters::fallback::provider::{
-    CollationFallbackSupplementV1Marker, LocaleFallbackLikelySubtagsV1Marker,
-    LocaleFallbackParentsV1Marker,
-};
 
 <span class="kw">fn </span>main() -&gt; <span class="prelude-ty">Result</span>&lt;(), Box&lt;<span class="kw">dyn </span>Error&gt;&gt; {
     simple_logger::SimpleLogger::new()
@@ -101,7 +91,7 @@
         .init()<span class="question-mark">?</span>;
 
     <span class="kw">let </span>source_data = SourceData::default()
-        .with_cldr_for_tag(SourceData::LATEST_TESTED_CLDR_TAG, CldrLocaleSubset::Modern)<span class="question-mark">?
+        .with_cldr_for_tag(SourceData::LATEST_TESTED_CLDR_TAG, Default::default())<span class="question-mark">?
         </span>.with_icuexport_for_tag(SourceData::LATEST_TESTED_ICUEXPORT_TAG)<span class="question-mark">?
         </span>.with_collations(<span class="macro">vec!</span>[String::from(<span class="string">&quot;search*&quot;</span>)]);
 
@@ -120,28 +110,26 @@
         },
     };
 
+    <span class="kw">let </span>locales = source_data.locales(<span class="kw-2">&amp;</span>[CoverageLevel::Modern])<span class="question-mark">?</span>;
+
     datagen(
-        <span class="prelude-val">None</span>,
+        <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span>locales),
         <span class="kw-2">&amp;</span>[
             CanonicalDecompositionDataV1Marker::KEY,
             CanonicalDecompositionTablesV1Marker::KEY,
             CanonicalCompositionsV1Marker::KEY,
             CompatibilityDecompositionSupplementV1Marker::KEY,
             CompatibilityDecompositionTablesV1Marker::KEY,
-            LocaleFallbackLikelySubtagsV1Marker::KEY,
-            LocaleFallbackParentsV1Marker::KEY,
-            CollationFallbackSupplementV1Marker::KEY,
+            IdContinueV1Marker::KEY,
+            IdStartV1Marker::KEY,
         ],
         <span class="kw-2">&amp;</span>source_data,
         [normalization_out].into(),
     )<span class="question-mark">?</span>;
 
-    datagen(
-        <span class="prelude-val">None</span>,
-        <span class="kw-2">&amp;</span>all_keys_with_experimental(),
-        <span class="kw-2">&amp;</span>source_data,
-        [full_blob_out].into(),
-    )<span class="question-mark">?</span>;
+    <span class="kw">let </span>keys = <span class="kw-2">&amp;mut </span>all_keys();
+    keys.push(CaseMappingV1Marker::KEY);
+    datagen(<span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span>locales), keys, <span class="kw-2">&amp;</span>source_data, [full_blob_out].into())<span class="question-mark">?</span>;
 
     <span class="prelude-val">Ok</span>(())
 }

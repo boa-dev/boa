@@ -141,6 +141,31 @@
 <a href="#140" id="140">140</a>
 <a href="#141" id="141">141</a>
 <a href="#142" id="142">142</a>
+<a href="#143" id="143">143</a>
+<a href="#144" id="144">144</a>
+<a href="#145" id="145">145</a>
+<a href="#146" id="146">146</a>
+<a href="#147" id="147">147</a>
+<a href="#148" id="148">148</a>
+<a href="#149" id="149">149</a>
+<a href="#150" id="150">150</a>
+<a href="#151" id="151">151</a>
+<a href="#152" id="152">152</a>
+<a href="#153" id="153">153</a>
+<a href="#154" id="154">154</a>
+<a href="#155" id="155">155</a>
+<a href="#156" id="156">156</a>
+<a href="#157" id="157">157</a>
+<a href="#158" id="158">158</a>
+<a href="#159" id="159">159</a>
+<a href="#160" id="160">160</a>
+<a href="#161" id="161">161</a>
+<a href="#162" id="162">162</a>
+<a href="#163" id="163">163</a>
+<a href="#164" id="164">164</a>
+<a href="#165" id="165">165</a>
+<a href="#166" id="166">166</a>
+<a href="#167" id="167">167</a>
 </pre><pre class="rust"><code><span class="doccomment">//! This module implements lexing for identifiers (foo, myvar, etc.) used in ECMAScript.
 
 </span><span class="kw">use </span><span class="kw">crate</span>::lexer::{
@@ -149,8 +174,34 @@
 <span class="kw">use </span>boa_ast::{Keyword, Position, Span};
 <span class="kw">use </span>boa_interner::Interner;
 <span class="kw">use </span>boa_profiler::Profiler;
-<span class="kw">use </span>boa_unicode::UnicodeProperties;
+<span class="kw">use </span>icu_properties::sets::{CodePointSetData, CodePointSetDataBorrowed};
+<span class="kw">use </span>once_cell::sync::Lazy;
 <span class="kw">use </span>std::io::Read;
+
+<span class="doccomment">/// List of codepoint sets that correspond to a specific [Unicode character property].
+///
+/// [Unicode character property]: https://unicode.org/reports/tr23/
+</span><span class="kw">struct </span>PropertySets {
+    id_start: CodePointSetDataBorrowed&lt;<span class="lifetime">&#39;static</span>&gt;,
+    id_continue: CodePointSetDataBorrowed&lt;<span class="lifetime">&#39;static</span>&gt;,
+}
+
+<span class="doccomment">/// Static `PropertySets` derived from Boa&#39;s default ICU4X data.
+</span><span class="kw">static </span>PROPERTY_SETS: Lazy&lt;PropertySets&gt; = Lazy::new(|| {
+    <span class="kw">static </span>ID_START: Lazy&lt;CodePointSetData&gt; = Lazy::new(|| {
+        icu_properties::sets::load_id_start(<span class="kw-2">&amp;</span>boa_icu_provider::minimal())
+            .expect(<span class="string">&quot;data should be valid&quot;</span>)
+    });
+    <span class="kw">static </span>ID_CONTINUE: Lazy&lt;CodePointSetData&gt; = Lazy::new(|| {
+        icu_properties::sets::load_id_continue(<span class="kw-2">&amp;</span>boa_icu_provider::minimal())
+            .expect(<span class="string">&quot;data should be valid&quot;</span>)
+    });
+
+    PropertySets {
+        id_start: ID_START.as_borrowed(),
+        id_continue: ID_CONTINUE.as_borrowed(),
+    }
+});
 
 <span class="doccomment">/// Identifier lexing.
 ///
@@ -178,8 +229,7 @@
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-names-and-keywords
     </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>is_identifier_start(ch: u32) -&gt; bool {
-        <span class="macro">matches!</span>(ch, <span class="number">0x0024 </span><span class="comment">/* $ */ </span>| <span class="number">0x005F </span><span class="comment">/* _ */</span>)
-            || char::try_from(ch).map_or(<span class="bool-val">false</span>, char::is_id_start)
+        <span class="macro">matches!</span>(ch, <span class="number">0x0024 </span><span class="comment">/* $ */ </span>| <span class="number">0x005F </span><span class="comment">/* _ */</span>) || PROPERTY_SETS.id_start.contains32(ch)
     }
 
     <span class="doccomment">/// Checks if a character is `IdentifierPart` as per ECMAScript standards.
@@ -192,7 +242,7 @@
         <span class="macro">matches!</span>(
             ch,
             <span class="number">0x0024 </span><span class="comment">/* $ */ </span>| <span class="number">0x005F </span><span class="comment">/* _ */ </span>| <span class="number">0x200C </span><span class="comment">/* &lt;ZWNJ&gt; */ </span>| <span class="number">0x200D </span><span class="comment">/* &lt;ZWJ&gt; */
-        </span>) || char::try_from(ch).map_or(<span class="bool-val">false</span>, char::is_id_continue)
+        </span>) || PROPERTY_SETS.id_continue.contains32(ch)
     }
 }
 
