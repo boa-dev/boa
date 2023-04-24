@@ -110,6 +110,15 @@
 <a href="#109" id="109">109</a>
 <a href="#110" id="110">110</a>
 <a href="#111" id="111">111</a>
+<a href="#112" id="112">112</a>
+<a href="#113" id="113">113</a>
+<a href="#114" id="114">114</a>
+<a href="#115" id="115">115</a>
+<a href="#116" id="116">116</a>
+<a href="#117" id="117">117</a>
+<a href="#118" id="118">118</a>
+<a href="#119" id="119">119</a>
+<a href="#120" id="120">120</a>
 </pre><pre class="rust"><code><span class="doccomment">//! `CallFrame`
 //!
 //! This module will provides everything needed to implement the `CallFrame`
@@ -151,6 +160,15 @@
 
     <span class="comment">// Iterators and their `[[Done]]` flags that must be closed when an abrupt completion is thrown.
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) iterators: ThinVec&lt;(JsObject, bool)&gt;,
+}
+
+<span class="doccomment">/// ---- `CallFrame` public API ----
+</span><span class="kw">impl </span>CallFrame {
+    <span class="doccomment">/// Retrieves the [`CodeBlock`] of this call frame.
+    </span><span class="attr">#[inline]
+    </span><span class="kw">pub const fn </span>code_block(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>Gc&lt;CodeBlock&gt; {
+        <span class="kw-2">&amp;</span><span class="self">self</span>.code_block
+    }
 }
 
 <span class="doccomment">/// ---- `CallFrame` creation methods ----

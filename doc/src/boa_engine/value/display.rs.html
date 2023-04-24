@@ -345,6 +345,8 @@
 <a href="#344" id="344">344</a>
 <a href="#345" id="345">345</a>
 <a href="#346" id="346">346</a>
+<a href="#347" id="347">347</a>
+<a href="#348" id="348">348</a>
 </pre><pre class="rust"><code><span class="kw">use </span>std::borrow::Cow;
 
 <span class="kw">use crate</span>::{
@@ -595,67 +597,69 @@
                         }
                     )
                 }
-                <span class="kw">_ </span>=&gt; display_obj(x, print_internals),
+                <span class="kw">_ </span>=&gt; x.display_obj(print_internals),
             }
         }
         <span class="kw">_ </span>=&gt; x.display().to_string(),
     }
 }
 
-<span class="doccomment">/// A helper function for specifically printing object values
-</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>display_obj(v: <span class="kw-2">&amp;</span>JsValue, print_internals: bool) -&gt; String {
-    <span class="comment">// A simple helper for getting the address of a value
-    // TODO: Find a more general place for this, as it can be used in other situations as well
-    </span><span class="kw">fn </span>address_of&lt;T&gt;(t: <span class="kw-2">&amp;</span>T) -&gt; usize {
-        <span class="kw">let </span>my_ptr: <span class="kw-2">*const </span>T = t;
-        my_ptr <span class="kw">as </span>usize
-    }
-
-    <span class="kw">fn </span>display_obj_internal(
-        data: <span class="kw-2">&amp;</span>JsValue,
-        encounters: <span class="kw-2">&amp;mut </span>HashSet&lt;usize&gt;,
-        indent: usize,
-        print_internals: bool,
-    ) -&gt; String {
-        <span class="kw">if let </span>JsValue::Object(<span class="kw-2">ref </span>v) = <span class="kw-2">*</span>data {
-            <span class="comment">// The in-memory address of the current object
-            </span><span class="kw">let </span>addr = address_of(v.as_ref());
-
-            <span class="comment">// We need not continue if this object has already been
-            // printed up the current chain
-            </span><span class="kw">if </span>encounters.contains(<span class="kw-2">&amp;</span>addr) {
-                <span class="kw">return </span>String::from(<span class="string">&quot;[Cycle]&quot;</span>);
-            }
-
-            <span class="comment">// Mark the current object as encountered
-            </span>encounters.insert(addr);
-
-            <span class="kw">let </span>result = <span class="kw">if </span>print_internals {
-                <span class="macro">print_obj_value!</span>(all of v, display_obj_internal, indent, encounters).join(<span class="string">&quot;,\n&quot;</span>)
-            } <span class="kw">else </span>{
-                <span class="macro">print_obj_value!</span>(props of v, display_obj_internal, indent, encounters, print_internals)
-                        .join(<span class="string">&quot;,\n&quot;</span>)
-            };
-
-            <span class="comment">// If the current object is referenced in a different branch,
-            // it will not cause an infinite printing loop, so it is safe to be printed again
-            </span>encounters.remove(<span class="kw-2">&amp;</span>addr);
-
-            <span class="kw">let </span>closing_indent = String::from_utf8(<span class="macro">vec!</span>[<span class="string">b&#39; &#39;</span>; indent.wrapping_sub(<span class="number">4</span>)])
-                .expect(<span class="string">&quot;Could not create the closing brace&#39;s indentation string&quot;</span>);
-
-            <span class="macro">format!</span>(<span class="string">&quot;{{\n{result}\n{closing_indent}}}&quot;</span>)
-        } <span class="kw">else </span>{
-            <span class="comment">// Every other type of data is printed with the display method
-            </span>data.display().to_string()
+<span class="kw">impl </span>JsValue {
+    <span class="doccomment">/// A helper function for specifically printing object values
+    </span><span class="kw">pub fn </span>display_obj(<span class="kw-2">&amp;</span><span class="self">self</span>, print_internals: bool) -&gt; String {
+        <span class="comment">// A simple helper for getting the address of a value
+        // TODO: Find a more general place for this, as it can be used in other situations as well
+        </span><span class="kw">fn </span>address_of&lt;T&gt;(t: <span class="kw-2">&amp;</span>T) -&gt; usize {
+            <span class="kw">let </span>my_ptr: <span class="kw-2">*const </span>T = t;
+            my_ptr <span class="kw">as </span>usize
         }
+
+        <span class="kw">fn </span>display_obj_internal(
+            data: <span class="kw-2">&amp;</span>JsValue,
+            encounters: <span class="kw-2">&amp;mut </span>HashSet&lt;usize&gt;,
+            indent: usize,
+            print_internals: bool,
+        ) -&gt; String {
+            <span class="kw">if let </span>JsValue::Object(<span class="kw-2">ref </span>v) = <span class="kw-2">*</span>data {
+                <span class="comment">// The in-memory address of the current object
+                </span><span class="kw">let </span>addr = address_of(v.as_ref());
+
+                <span class="comment">// We need not continue if this object has already been
+                // printed up the current chain
+                </span><span class="kw">if </span>encounters.contains(<span class="kw-2">&amp;</span>addr) {
+                    <span class="kw">return </span>String::from(<span class="string">&quot;[Cycle]&quot;</span>);
+                }
+
+                <span class="comment">// Mark the current object as encountered
+                </span>encounters.insert(addr);
+
+                <span class="kw">let </span>result = <span class="kw">if </span>print_internals {
+                    <span class="macro">print_obj_value!</span>(all of v, display_obj_internal, indent, encounters).join(<span class="string">&quot;,\n&quot;</span>)
+                } <span class="kw">else </span>{
+                    <span class="macro">print_obj_value!</span>(props of v, display_obj_internal, indent, encounters, print_internals)
+                        .join(<span class="string">&quot;,\n&quot;</span>)
+                };
+
+                <span class="comment">// If the current object is referenced in a different branch,
+                // it will not cause an infinite printing loop, so it is safe to be printed again
+                </span>encounters.remove(<span class="kw-2">&amp;</span>addr);
+
+                <span class="kw">let </span>closing_indent = String::from_utf8(<span class="macro">vec!</span>[<span class="string">b&#39; &#39;</span>; indent.wrapping_sub(<span class="number">4</span>)])
+                    .expect(<span class="string">&quot;Could not create the closing brace&#39;s indentation string&quot;</span>);
+
+                <span class="macro">format!</span>(<span class="string">&quot;{{\n{result}\n{closing_indent}}}&quot;</span>)
+            } <span class="kw">else </span>{
+                <span class="comment">// Every other type of data is printed with the display method
+                </span>data.display().to_string()
+            }
+        }
+
+        <span class="comment">// We keep track of which objects we have encountered by keeping their
+        // in-memory address in this set
+        </span><span class="kw">let </span><span class="kw-2">mut </span>encounters = HashSet::new();
+
+        display_obj_internal(<span class="self">self</span>, <span class="kw-2">&amp;mut </span>encounters, <span class="number">4</span>, print_internals)
     }
-
-    <span class="comment">// We keep track of which objects we have encountered by keeping their
-    // in-memory address in this set
-    </span><span class="kw">let </span><span class="kw-2">mut </span>encounters = HashSet::new();
-
-    display_obj_internal(v, <span class="kw-2">&amp;mut </span>encounters, <span class="number">4</span>, print_internals)
 }
 
 <span class="kw">impl </span>Display <span class="kw">for </span>ValueDisplay&lt;<span class="lifetime">&#39;_</span>&gt; {

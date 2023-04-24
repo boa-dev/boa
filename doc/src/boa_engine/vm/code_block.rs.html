@@ -1314,6 +1314,16 @@
 <a href="#1313" id="1313">1313</a>
 <a href="#1314" id="1314">1314</a>
 <a href="#1315" id="1315">1315</a>
+<a href="#1316" id="1316">1316</a>
+<a href="#1317" id="1317">1317</a>
+<a href="#1318" id="1318">1318</a>
+<a href="#1319" id="1319">1319</a>
+<a href="#1320" id="1320">1320</a>
+<a href="#1321" id="1321">1321</a>
+<a href="#1322" id="1322">1322</a>
+<a href="#1323" id="1323">1323</a>
+<a href="#1324" id="1324">1324</a>
+<a href="#1325" id="1325">1325</a>
 </pre><pre class="rust"><code><span class="doccomment">//! `CodeBlock`
 //!
 //! This module is for the `CodeBlock` which implements a function representation in the VM
@@ -1455,8 +1465,9 @@
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) trace: std::cell::Cell&lt;bool&gt;,
 }
 
-<span class="kw">impl </span>CodeBlock {
-    <span class="doccomment">/// Constructs a new `CodeBlock`.
+<span class="doccomment">/// ---- `CodeBlock` public API ----
+</span><span class="kw">impl </span>CodeBlock {
+    <span class="doccomment">/// Creates a new `CodeBlock`.
     </span><span class="attr">#[must_use]
     </span><span class="kw">pub fn </span>new(name: Sym, length: u32, strict: bool) -&gt; <span class="self">Self </span>{
         <span class="self">Self </span>{
@@ -1484,13 +1495,22 @@
         }
     }
 
+    <span class="doccomment">/// Retrieves the name associated with this code block.
+    </span><span class="attr">#[must_use]
+    </span><span class="kw">pub const fn </span>name(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Sym {
+        <span class="self">self</span>.name
+    }
+
     <span class="doccomment">/// Enable or disable instruction tracing to `stdout`.
     </span><span class="attr">#[cfg(feature = <span class="string">&quot;trace&quot;</span>)]
     #[inline]
     </span><span class="kw">pub fn </span>set_trace(<span class="kw-2">&amp;</span><span class="self">self</span>, value: bool) {
         <span class="self">self</span>.trace.set(value);
     }
+}
 
+<span class="doccomment">/// ---- `CodeBlock` private API ----
+</span><span class="kw">impl </span>CodeBlock {
     <span class="doccomment">/// Read type T from code.
     ///
     /// # Safety

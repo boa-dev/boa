@@ -475,17 +475,6 @@
 <a href="#474" id="474">474</a>
 <a href="#475" id="475">475</a>
 <a href="#476" id="476">476</a>
-<a href="#477" id="477">477</a>
-<a href="#478" id="478">478</a>
-<a href="#479" id="479">479</a>
-<a href="#480" id="480">480</a>
-<a href="#481" id="481">481</a>
-<a href="#482" id="482">482</a>
-<a href="#483" id="483">483</a>
-<a href="#484" id="484">484</a>
-<a href="#485" id="485">485</a>
-<a href="#486" id="486">486</a>
-<a href="#487" id="487">487</a>
 </pre><pre class="rust"><code><span class="doccomment">//! Boa&#39;s **`boa_engine`** crate implements ECMAScript&#39;s standard library of builtin objects
 //! and an ECMAScript context, bytecompiler, and virtual machine for code execution.
 //!
@@ -530,7 +519,6 @@
 //! # Crate Features
 //!
 //!  - **serde** - Enables serialization and deserialization of the AST (Abstract Syntax Tree).
-//!  - **console** - Enables `boa`&#39;s [WHATWG `console`][whatwg] object implementation.
 //!  - **profiler** - Enables profiling with measureme (this is mostly internal).
 //!  - **intl** - Enables `boa`&#39;s [ECMA-402 Internationalization API][ecma-402] (`Intl` object)
 //!
@@ -544,7 +532,6 @@
 //!  - **`boa_unicode`** - Boa&#39;s Unicode identifier.
 //!  - **`boa_icu_provider`** - Boa&#39;s ICU4X data provider.
 //!
-//! [whatwg]: https://console.spec.whatwg.org
 //! [ecma-402]: https://tc39.es/ecma402
 //! [boa-conformance]: https://boajs.dev/boa/test262/
 //! [boa-web]: https://boajs.dev/
@@ -644,15 +631,12 @@
 <span class="kw">pub mod </span>realm;
 <span class="kw">pub mod </span>string;
 <span class="kw">pub mod </span>symbol;
-<span class="kw">pub mod </span>value;
-<span class="kw">pub mod </span>vm;
-
-<span class="attr">#[cfg(feature = <span class="string">&quot;console&quot;</span>)]
-</span><span class="kw">pub mod </span>console;
-
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">mod </span>tagged;
+<span class="comment">// pub(crate) mod tagged;
+</span><span class="kw">mod </span>tagged;
 <span class="attr">#[cfg(test)]
 </span><span class="kw">mod </span>tests;
+<span class="kw">pub mod </span>value;
+<span class="kw">pub mod </span>vm;
 
 <span class="doccomment">/// A convenience module that re-exports the most commonly-used Boa APIs
 </span><span class="kw">pub mod </span>prelude {
@@ -712,7 +696,7 @@
 <span class="doccomment">/// A test action executed in a test function.
 </span><span class="attr">#[cfg(test)]
 #[derive(Clone)]
-</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>TestAction(Inner);
+</span><span class="kw">struct </span>TestAction(Inner);
 
 <span class="attr">#[cfg(test)]
 #[derive(Clone)]
@@ -752,12 +736,12 @@
 <span class="attr">#[cfg(test)]
 </span><span class="kw">impl </span>TestAction {
     <span class="doccomment">/// Evaluates some utility functions used in tests.
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const fn </span>run_harness() -&gt; <span class="self">Self </span>{
+    </span><span class="kw">const fn </span>run_harness() -&gt; <span class="self">Self </span>{
         <span class="self">Self</span>(Inner::RunHarness)
     }
 
     <span class="doccomment">/// Runs `source`, panicking if the execution throws.
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>run(source: <span class="kw">impl </span>Into&lt;Cow&lt;<span class="lifetime">&#39;static</span>, str&gt;&gt;) -&gt; <span class="self">Self </span>{
+    </span><span class="kw">fn </span>run(source: <span class="kw">impl </span>Into&lt;Cow&lt;<span class="lifetime">&#39;static</span>, str&gt;&gt;) -&gt; <span class="self">Self </span>{
         <span class="self">Self</span>(Inner::Run {
             source: source.into(),
         })
@@ -766,22 +750,19 @@
     <span class="doccomment">/// Executes `op` with the currently active context.
     ///
     /// Useful to make custom assertions that must be done from Rust code.
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>inspect_context(op: <span class="kw">fn</span>(<span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;)) -&gt; <span class="self">Self </span>{
+    </span><span class="kw">fn </span>inspect_context(op: <span class="kw">fn</span>(<span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;)) -&gt; <span class="self">Self </span>{
         <span class="self">Self</span>(Inner::InspectContext { op })
     }
 
     <span class="doccomment">/// Asserts that evaluating `source` returns the `true` value.
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>assert(source: <span class="kw">impl </span>Into&lt;Cow&lt;<span class="lifetime">&#39;static</span>, str&gt;&gt;) -&gt; <span class="self">Self </span>{
+    </span><span class="kw">fn </span>assert(source: <span class="kw">impl </span>Into&lt;Cow&lt;<span class="lifetime">&#39;static</span>, str&gt;&gt;) -&gt; <span class="self">Self </span>{
         <span class="self">Self</span>(Inner::Assert {
             source: source.into(),
         })
     }
 
     <span class="doccomment">/// Asserts that the script returns `expected` when evaluating `source`.
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>assert_eq(
-        source: <span class="kw">impl </span>Into&lt;Cow&lt;<span class="lifetime">&#39;static</span>, str&gt;&gt;,
-        expected: <span class="kw">impl </span>Into&lt;JsValue&gt;,
-    ) -&gt; <span class="self">Self </span>{
+    </span><span class="kw">fn </span>assert_eq(source: <span class="kw">impl </span>Into&lt;Cow&lt;<span class="lifetime">&#39;static</span>, str&gt;&gt;, expected: <span class="kw">impl </span>Into&lt;JsValue&gt;) -&gt; <span class="self">Self </span>{
         <span class="self">Self</span>(Inner::AssertEq {
             source: source.into(),
             expected: expected.into(),
@@ -791,7 +772,7 @@
     <span class="doccomment">/// Asserts that calling `op` with the value obtained from evaluating `source` returns `true`.
     ///
     /// Useful to check properties of the obtained value that cannot be checked from JS code.
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>assert_with_op(
+    </span><span class="kw">fn </span>assert_with_op(
         source: <span class="kw">impl </span>Into&lt;Cow&lt;<span class="lifetime">&#39;static</span>, str&gt;&gt;,
         op: <span class="kw">fn</span>(JsValue, <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; bool,
     ) -&gt; <span class="self">Self </span>{
@@ -802,7 +783,7 @@
     }
 
     <span class="doccomment">/// Asserts that evaluating `source` throws the opaque error `value`.
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>assert_opaque_error(
+    </span><span class="kw">fn </span>assert_opaque_error(
         source: <span class="kw">impl </span>Into&lt;Cow&lt;<span class="lifetime">&#39;static</span>, str&gt;&gt;,
         value: <span class="kw">impl </span>Into&lt;JsValue&gt;,
     ) -&gt; <span class="self">Self </span>{
@@ -813,7 +794,7 @@
     }
 
     <span class="doccomment">/// Asserts that evaluating `source` throws a native error of `kind` and `message`.
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>assert_native_error(
+    </span><span class="kw">fn </span>assert_native_error(
         source: <span class="kw">impl </span>Into&lt;Cow&lt;<span class="lifetime">&#39;static</span>, str&gt;&gt;,
         kind: builtins::error::ErrorKind,
         message: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str,
@@ -826,7 +807,7 @@
     }
 
     <span class="doccomment">/// Asserts that calling `op` with the currently executing context returns `true`.
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>assert_context(op: <span class="kw">fn</span>(<span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; bool) -&gt; <span class="self">Self </span>{
+    </span><span class="kw">fn </span>assert_context(op: <span class="kw">fn</span>(<span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; bool) -&gt; <span class="self">Self </span>{
         <span class="self">Self</span>(Inner::AssertContext { op })
     }
 }
@@ -834,7 +815,7 @@
 <span class="doccomment">/// Executes a list of test actions on a new, default context.
 </span><span class="attr">#[cfg(test)]
 #[track_caller]
-</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>run_test_actions(actions: <span class="kw">impl </span>IntoIterator&lt;Item = TestAction&gt;) {
+</span><span class="kw">fn </span>run_test_actions(actions: <span class="kw">impl </span>IntoIterator&lt;Item = TestAction&gt;) {
     <span class="kw">let </span>context = <span class="kw-2">&amp;mut </span>Context::default();
     run_test_actions_with(actions, context);
 }
@@ -842,10 +823,7 @@
 <span class="doccomment">/// Executes a list of test actions on the provided context.
 </span><span class="attr">#[cfg(test)]
 #[track_caller]
-</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>run_test_actions_with(
-    actions: <span class="kw">impl </span>IntoIterator&lt;Item = TestAction&gt;,
-    context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
-) {
+</span><span class="kw">fn </span>run_test_actions_with(actions: <span class="kw">impl </span>IntoIterator&lt;Item = TestAction&gt;, context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) {
     <span class="attr">#[track_caller]
     </span><span class="kw">fn </span>forward_val(context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;, source: <span class="kw-2">&amp;</span>str) -&gt; JsResult&lt;JsValue&gt; {
         context.eval_script(Source::from_bytes(source))
