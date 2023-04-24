@@ -6,19 +6,15 @@
 use std::{error::Error, fs::File};
 
 use boa_icu_provider::data_root;
-use icu_datagen::{
-    all_keys_with_experimental, datagen, BakedOptions, CldrLocaleSubset, Out, SourceData,
-};
+use icu_casemapping::provider::CaseMappingV1Marker;
+use icu_datagen::{all_keys, datagen, BakedOptions, CoverageLevel, Out, SourceData};
 use icu_normalizer::provider::{
     CanonicalCompositionsV1Marker, CanonicalDecompositionDataV1Marker,
     CanonicalDecompositionTablesV1Marker, CompatibilityDecompositionSupplementV1Marker,
     CompatibilityDecompositionTablesV1Marker,
 };
+use icu_properties::provider::{IdContinueV1Marker, IdStartV1Marker};
 use icu_provider::KeyedDataMarker;
-use icu_provider_adapters::fallback::provider::{
-    CollationFallbackSupplementV1Marker, LocaleFallbackLikelySubtagsV1Marker,
-    LocaleFallbackParentsV1Marker,
-};
 
 fn main() -> Result<(), Box<dyn Error>> {
     simple_logger::SimpleLogger::new()
@@ -27,7 +23,7 @@ fn main() -> Result<(), Box<dyn Error>> {
         .init()?;
 
     let source_data = SourceData::default()
-        .with_cldr_for_tag(SourceData::LATEST_TESTED_CLDR_TAG, CldrLocaleSubset::Modern)?
+        .with_cldr_for_tag(SourceData::LATEST_TESTED_CLDR_TAG, Default::default())?
         .with_icuexport_for_tag(SourceData::LATEST_TESTED_ICUEXPORT_TAG)?
         .with_collations(vec![String::from("search*")]);
 
@@ -46,28 +42,26 @@ fn main() -> Result<(), Box<dyn Error>> {
         },
     };
 
+    let locales = source_data.locales(&[CoverageLevel::Modern])?;
+
     datagen(
-        None,
+        Some(&locales),
         &[
             CanonicalDecompositionDataV1Marker::KEY,
             CanonicalDecompositionTablesV1Marker::KEY,
             CanonicalCompositionsV1Marker::KEY,
             CompatibilityDecompositionSupplementV1Marker::KEY,
             CompatibilityDecompositionTablesV1Marker::KEY,
-            LocaleFallbackLikelySubtagsV1Marker::KEY,
-            LocaleFallbackParentsV1Marker::KEY,
-            CollationFallbackSupplementV1Marker::KEY,
+            IdContinueV1Marker::KEY,
+            IdStartV1Marker::KEY,
         ],
         &source_data,
         [normalization_out].into(),
     )?;
 
-    datagen(
-        None,
-        &all_keys_with_experimental(),
-        &source_data,
-        [full_blob_out].into(),
-    )?;
+    let keys = &mut all_keys();
+    keys.push(CaseMappingV1Marker::KEY);
+    datagen(Some(&locales), keys, &source_data, [full_blob_out].into())?;
 
     Ok(())
 }

@@ -14,22 +14,26 @@ rust-version.workspace = true
 
 [dependencies]
 icu_provider = { version = "1.2.0", features = ["serde", "sync"] }
-icu_provider_blob = "1.2.0"
-icu_provider_adapters = { version = "1.2.0", features = ["serde"] }
 icu_collections = "1.2.0"
 icu_normalizer = "1.2.0"
+icu_properties = "1.2.0"
 zerovec = "0.9.4"
 
 icu_datagen = { version = "1.2.3", optional = true }
-once_cell = {version = "1.17.1", default-features = false, features = ["critical-section"], optional = true }
+icu_provider_blob = { version = "1.2.0", optional = true }
+icu_provider_adapters = { version = "1.2.0", features = ["serde"], optional = true }
+once_cell = { version = "1.17.1", default-features = false, features = [
+    "critical-section",
+], optional = true }
 log = { version = "0.4.17", optional = true }
 simple_logger = { version = "4.1.0", optional = true }
+icu_casemapping = { version = "0.7.2", optional = true }
 
 [features]
 default = ["std"]
-full = ["dep:once_cell"]
+full = ["dep:once_cell", "dep:icu_provider_blob", "dep:icu_provider_adapters"]
 std = ["once_cell?/std"]
-bin = ["dep:icu_datagen", "dep:simple_logger", "dep:log"]
+bin = ["dep:icu_datagen", "dep:simple_logger", "dep:log", "dep:icu_casemapping"]
 
 [[bin]]
 name = "boa-datagen"
