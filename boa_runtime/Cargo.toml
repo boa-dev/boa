@@ -1,0 +1,21 @@
+[package]
+name = "boa_runtime"
+description = "Example runtime for the Boa JavaScript engine."
+keywords = ["javascript", "js", "runtime"]
+categories = ["command-line-utilities"]
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+license.workspace = true
+repository.workspace = true
+rust-version.workspace = true
+
+
+[dependencies]
+boa_engine.workspace = true
+boa_gc.workspace = true
+rustc-hash = "1.1.0"
+
+[dev-dependencies]
+indoc = "2.0.1"
+textwrap = "0.16.0"

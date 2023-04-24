@@ -41,6 +41,15 @@ pub struct CallFrame {
     pub(crate) iterators: ThinVec<(JsObject, bool)>,
 }
 
+/// ---- `CallFrame` public API ----
+impl CallFrame {
+    /// Retrieves the [`CodeBlock`] of this call frame.
+    #[inline]
+    pub const fn code_block(&self) -> &Gc<CodeBlock> {
+        &self.code_block
+    }
+}
+
 /// ---- `CallFrame` creation methods ----
 impl CallFrame {
     /// Creates a new `CallFrame` with the provided `CodeBlock`.

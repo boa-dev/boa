@@ -1,6 +1,4 @@
 //! Boa's ECMAScript built-in object implementations, e.g. Object, String, Math, Array, etc.
-//!
-//! This module also contains a JavaScript Console implementation.
 
 pub mod array;
 pub mod array_buffer;
@@ -105,9 +103,6 @@ use crate::{
     string::utf16,
     Context, JsResult, JsString, JsValue,
 };
-
-#[cfg(feature = "console")]
-use crate::console::Console;
 
 /// A [Well-Known Intrinsic Object].
 ///
@@ -372,21 +367,6 @@ pub(crate) fn set_default_global_bindings(context: &mut Context<'_>) -> JsResult
 
     #[cfg(feature = "intl")]
     global_binding::<intl::Intl>(context)?;
-
-    #[cfg(feature = "console")]
-    {
-        let object = Console::init(context);
-        let global_object = context.global_object();
-        global_object.define_property_or_throw(
-            utf16!("console"),
-            PropertyDescriptor::builder()
-                .value(object)
-                .writable(true)
-                .enumerable(true)
-                .configurable(true),
-            context,
-        )?;
-    }
 
     Ok(())
 }

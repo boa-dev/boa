@@ -139,8 +139,9 @@ pub struct CodeBlock {
     pub(crate) trace: std::cell::Cell<bool>,
 }
 
+/// ---- `CodeBlock` public API ----
 impl CodeBlock {
-    /// Constructs a new `CodeBlock`.
+    /// Creates a new `CodeBlock`.
     #[must_use]
     pub fn new(name: Sym, length: u32, strict: bool) -> Self {
         Self {
@@ -168,13 +169,22 @@ impl CodeBlock {
         }
     }
 
+    /// Retrieves the name associated with this code block.
+    #[must_use]
+    pub const fn name(&self) -> Sym {
+        self.name
+    }
+
     /// Enable or disable instruction tracing to `stdout`.
     #[cfg(feature = "trace")]
     #[inline]
     pub fn set_trace(&self, value: bool) {
         self.trace.set(value);
     }
+}
 
+/// ---- `CodeBlock` private API ----
+impl CodeBlock {
     /// Read type T from code.
     ///
     /// # Safety
