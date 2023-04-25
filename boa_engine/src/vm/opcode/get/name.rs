@@ -25,7 +25,7 @@ impl Operation for GetName {
                 .interner()
                 .resolve_expect(binding_locator.name().sym())
                 .to_string();
-            JsNativeError::reference().with_message(format!("{name} is not initialized"))
+            JsNativeError::reference().with_message(format!("{name} is not defined"))
         })?;
 
         context.vm.push(value);
