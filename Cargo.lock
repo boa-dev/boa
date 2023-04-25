@@ -794,7 +794,6 @@ dependencies = [
  "anstyle",
  "bitflags 1.3.2",
  "clap_lex 0.4.1",
- "once_cell",
  "strsim",
 ]
 
@@ -1994,9 +1993,9 @@ dependencies = [
 
 [[package]]
 name = "icu_datagen"
-version = "1.2.3"
+version = "1.2.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "3c20e7886449669257f4dfdad042b939a1a32ad618902a6b83936f7d9f7e8146"
+checksum = "4a9468f8e941739ba87b9b38e2f92bc88e5ee96d777ced1c769c5230032a53d5"
 dependencies = [
  "cached-path",
  "clap 4.2.4",
