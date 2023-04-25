@@ -930,6 +930,8 @@
 <a href="#929" id="929">929</a>
 <a href="#930" id="930">930</a>
 <a href="#931" id="931">931</a>
+<a href="#932" id="932">932</a>
+<a href="#933" id="933">933</a>
 </pre><pre class="rust"><code><span class="doccomment">//! This module defines the object internal methods.
 //!
 //! More information:
@@ -954,6 +956,8 @@
 <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">mod </span>integer_indexed;
 <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">mod </span>proxy;
 <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">mod </span>string;
+
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use </span>array::ARRAY_EXOTIC_INTERNAL_METHODS;
 
 <span class="kw">impl </span>JsObject {
     <span class="doccomment">/// Internal method `[[GetPrototypeOf]]`

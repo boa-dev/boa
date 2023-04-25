@@ -1068,15 +1068,13 @@
 <a href="#1067" id="1067">1067</a>
 <a href="#1068" id="1068">1068</a>
 <a href="#1069" id="1069">1069</a>
-<a href="#1070" id="1070">1070</a>
-<a href="#1071" id="1071">1071</a>
-<a href="#1072" id="1072">1072</a>
 </pre><pre class="rust"><code><span class="doccomment">//! This module implements the `JsObject` structure.
 //!
 //! The `JsObject` is a garbage collected Object.
 
 </span><span class="kw">use super</span>::{
-    internal_methods::InternalObjectMethods, JsPrototype, NativeObject, Object, PropertyMap,
+    internal_methods::{InternalObjectMethods, ARRAY_EXOTIC_INTERNAL_METHODS},
+    JsPrototype, NativeObject, Object, PropertyMap,
 };
 <span class="kw">use crate</span>::{
     context::intrinsics::Intrinsics,
@@ -1411,14 +1409,10 @@
     }
 
     <span class="doccomment">/// Checks if it&#39;s an `Array` object.
-    ///
-    /// # Panics
-    ///
-    /// Panics if the object is currently mutably borrowed.
     </span><span class="attr">#[inline]
     #[track_caller]
     </span><span class="kw">pub fn </span>is_array(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
-        <span class="self">self</span>.borrow().is_array()
+        std::ptr::eq(<span class="self">self</span>.vtable(), <span class="kw-2">&amp;</span>ARRAY_EXOTIC_INTERNAL_METHODS)
     }
 
     <span class="doccomment">/// Checks if it&#39;s a `DataView` object.

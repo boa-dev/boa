@@ -270,7 +270,79 @@
 <a href="#269" id="269">269</a>
 <a href="#270" id="270">270</a>
 <a href="#271" id="271">271</a>
-</pre><pre class="rust"><code><span class="kw">use crate</span>::{
+<a href="#272" id="272">272</a>
+<a href="#273" id="273">273</a>
+<a href="#274" id="274">274</a>
+<a href="#275" id="275">275</a>
+<a href="#276" id="276">276</a>
+<a href="#277" id="277">277</a>
+<a href="#278" id="278">278</a>
+<a href="#279" id="279">279</a>
+<a href="#280" id="280">280</a>
+<a href="#281" id="281">281</a>
+<a href="#282" id="282">282</a>
+<a href="#283" id="283">283</a>
+<a href="#284" id="284">284</a>
+<a href="#285" id="285">285</a>
+<a href="#286" id="286">286</a>
+<a href="#287" id="287">287</a>
+<a href="#288" id="288">288</a>
+<a href="#289" id="289">289</a>
+<a href="#290" id="290">290</a>
+<a href="#291" id="291">291</a>
+<a href="#292" id="292">292</a>
+<a href="#293" id="293">293</a>
+<a href="#294" id="294">294</a>
+<a href="#295" id="295">295</a>
+<a href="#296" id="296">296</a>
+<a href="#297" id="297">297</a>
+<a href="#298" id="298">298</a>
+<a href="#299" id="299">299</a>
+<a href="#300" id="300">300</a>
+<a href="#301" id="301">301</a>
+<a href="#302" id="302">302</a>
+<a href="#303" id="303">303</a>
+<a href="#304" id="304">304</a>
+<a href="#305" id="305">305</a>
+<a href="#306" id="306">306</a>
+<a href="#307" id="307">307</a>
+<a href="#308" id="308">308</a>
+<a href="#309" id="309">309</a>
+<a href="#310" id="310">310</a>
+<a href="#311" id="311">311</a>
+<a href="#312" id="312">312</a>
+<a href="#313" id="313">313</a>
+<a href="#314" id="314">314</a>
+<a href="#315" id="315">315</a>
+<a href="#316" id="316">316</a>
+<a href="#317" id="317">317</a>
+<a href="#318" id="318">318</a>
+<a href="#319" id="319">319</a>
+<a href="#320" id="320">320</a>
+<a href="#321" id="321">321</a>
+<a href="#322" id="322">322</a>
+<a href="#323" id="323">323</a>
+<a href="#324" id="324">324</a>
+<a href="#325" id="325">325</a>
+<a href="#326" id="326">326</a>
+<a href="#327" id="327">327</a>
+<a href="#328" id="328">328</a>
+<a href="#329" id="329">329</a>
+<a href="#330" id="330">330</a>
+<a href="#331" id="331">331</a>
+<a href="#332" id="332">332</a>
+<a href="#333" id="333">333</a>
+<a href="#334" id="334">334</a>
+<a href="#335" id="335">335</a>
+<a href="#336" id="336">336</a>
+<a href="#337" id="337">337</a>
+<a href="#338" id="338">338</a>
+<a href="#339" id="339">339</a>
+<a href="#340" id="340">340</a>
+<a href="#341" id="341">341</a>
+</pre><pre class="rust"><code><span class="kw">use </span>boa_macros::utf16;
+
+<span class="kw">use crate</span>::{
     builtins::function::set_function_name,
     property::{PropertyDescriptor, PropertyKey},
     vm::{opcode::Operation, CompletionType},
@@ -303,8 +375,7 @@
         <span class="kw">let </span>name = context.vm.frame().code_block.names[index <span class="kw">as </span>usize];
         <span class="kw">let </span>name: PropertyKey = context.interner().resolve_expect(name.sym()).utf16().into();
 
-        <span class="comment">//object.set(name, value.clone(), context.vm.frame().code.strict, context)?;
-        </span><span class="kw">let </span>succeeded = object.__set__(name.clone(), value.clone(), receiver, context)<span class="question-mark">?</span>;
+        <span class="kw">let </span>succeeded = object.__set__(name.clone(), value.clone(), receiver, context)<span class="question-mark">?</span>;
         <span class="kw">if </span>!succeeded &amp;&amp; context.vm.frame().code_block.strict {
             <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::typ()
                 .with_message(<span class="macro">format!</span>(<span class="string">&quot;cannot set non-writable property: {name}&quot;</span>))
@@ -337,7 +408,76 @@
         </span>};
 
         <span class="kw">let </span>key = key.to_property_key(context)<span class="question-mark">?</span>;
-        object.set(
+
+        <span class="comment">// Fast Path:
+        </span><span class="lifetime">&#39;fast_path</span>: {
+            <span class="kw">if </span>object.is_array() {
+                <span class="kw">if let </span>PropertyKey::Index(index) = <span class="kw-2">&amp;</span>key {
+                    <span class="kw">let </span><span class="kw-2">mut </span>object_borrowed = object.borrow_mut();
+
+                    <span class="comment">// Cannot modify if not extensible.
+                    </span><span class="kw">if </span>!object_borrowed.extensible {
+                        <span class="kw">break </span><span class="lifetime">&#39;fast_path</span>;
+                    }
+
+                    <span class="kw">let </span>prototype = object_borrowed.prototype().clone();
+
+                    <span class="kw">if let </span><span class="prelude-val">Some</span>(dense_elements) = object_borrowed
+                        .properties_mut()
+                        .dense_indexed_properties_mut()
+                    {
+                        <span class="kw">let </span>index = <span class="kw-2">*</span>index <span class="kw">as </span>usize;
+                        <span class="kw">if let </span><span class="prelude-val">Some</span>(element) = dense_elements.get_mut(index) {
+                            <span class="kw-2">*</span>element = value;
+                            context.vm.push(element.clone());
+                            <span class="kw">return </span><span class="prelude-val">Ok</span>(CompletionType::Normal);
+                        } <span class="kw">else if </span>dense_elements.len() == index {
+                            <span class="comment">// Cannot use fast path if the [[prototype]] is a proxy object,
+                            // because we have to the call prototypes [[set]] on non-existing property,
+                            // and proxy objects can override [[set]].
+                            </span><span class="kw">if </span>prototype.map_or(<span class="bool-val">false</span>, |x| x.is_proxy()) {
+                                <span class="kw">break </span><span class="lifetime">&#39;fast_path</span>;
+                            }
+
+                            dense_elements.push(value.clone());
+                            context.vm.push(value);
+
+                            <span class="kw">let </span>len = dense_elements.len() <span class="kw">as </span>u32;
+                            <span class="kw">let </span>length_key = PropertyKey::from(<span class="macro">utf16!</span>(<span class="string">&quot;length&quot;</span>));
+                            <span class="kw">let </span>length = object_borrowed
+                                .properties_mut()
+                                .get(<span class="kw-2">&amp;</span>length_key)
+                                .expect(<span class="string">&quot;Arrays must have length property&quot;</span>);
+
+                            <span class="kw">if </span>length.expect_writable() {
+                                <span class="comment">// We have to get the max of previous length and len(dense_elements) + 1,
+                                // this is needed if user spacifies `new Array(n)` then adds properties from 0, 1, etc.
+                                </span><span class="kw">let </span>len = length
+                                    .expect_value()
+                                    .to_u32(context)
+                                    .expect(<span class="string">&quot;length should have a u32 value&quot;</span>)
+                                    .max(len);
+                                object_borrowed.insert(
+                                    length_key,
+                                    PropertyDescriptor::builder()
+                                        .value(len)
+                                        .writable(<span class="bool-val">true</span>)
+                                        .enumerable(length.expect_enumerable())
+                                        .configurable(<span class="bool-val">false</span>)
+                                        .build(),
+                                );
+                            } <span class="kw">else if </span>context.vm.frame().code_block.strict {
+                                <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::typ().with_message(<span class="string">&quot;TypeError: Cannot assign to read only property &#39;length&#39; of array object&quot;</span>).into());
+                            }
+                            <span class="kw">return </span><span class="prelude-val">Ok</span>(CompletionType::Normal);
+                        }
+                    }
+                }
+            }
+        }
+
+        <span class="comment">// Slow path:
+        </span>object.set(
             key,
             value.clone(),
             context.vm.frame().code_block.strict,

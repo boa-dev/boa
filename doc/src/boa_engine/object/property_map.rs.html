@@ -788,6 +788,15 @@
 <a href="#787" id="787">787</a>
 <a href="#788" id="788">788</a>
 <a href="#789" id="789">789</a>
+<a href="#790" id="790">790</a>
+<a href="#791" id="791">791</a>
+<a href="#792" id="792">792</a>
+<a href="#793" id="793">793</a>
+<a href="#794" id="794">794</a>
+<a href="#795" id="795">795</a>
+<a href="#796" id="796">796</a>
+<a href="#797" id="797">797</a>
+<a href="#798" id="798">798</a>
 </pre><pre class="rust"><code><span class="kw">use super</span>::{PropertyDescriptor, PropertyKey};
 <span class="kw">use crate</span>::{property::PropertyDescriptorBuilder, JsString, JsSymbol, JsValue};
 <span class="kw">use </span>boa_gc::{custom_trace, Finalize, Trace};
@@ -1071,6 +1080,15 @@
     <span class="doccomment">/// Returns the vec of dense indexed properties if they exist.
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const fn </span>dense_indexed_properties(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>ThinVec&lt;JsValue&gt;&gt; {
         <span class="kw">if let </span>IndexedProperties::Dense(properties) = <span class="kw-2">&amp;</span><span class="self">self</span>.indexed_properties {
+            <span class="prelude-val">Some</span>(properties)
+        } <span class="kw">else </span>{
+            <span class="prelude-val">None
+        </span>}
+    }
+
+    <span class="doccomment">/// Returns the vec of dense indexed properties if they exist.
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>dense_indexed_properties_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;mut </span>ThinVec&lt;JsValue&gt;&gt; {
+        <span class="kw">if let </span>IndexedProperties::Dense(properties) = <span class="kw-2">&amp;mut </span><span class="self">self</span>.indexed_properties {
             <span class="prelude-val">Some</span>(properties)
         } <span class="kw">else </span>{
             <span class="prelude-val">None
