@@ -56,6 +56,23 @@ impl Operation for GetPropertyByValue {
         };
 
         let key = key.to_property_key(context)?;
+
+        // Fast Path
+        if object.is_array() {
+            if let PropertyKey::Index(index) = &key {
+                let object_borrowed = object.borrow();
+                if let Some(element) = object_borrowed
+                    .properties()
+                    .dense_indexed_properties()
+                    .and_then(|vec| vec.get(*index as usize))
+                {
+                    context.vm.push(element.clone());
+                    return Ok(CompletionType::Normal);
+                }
+            }
+        }
+
+        // Slow path:
         let result = object.__get__(&key, value, context)?;
 
         context.vm.push(result);
@@ -110,6 +127,24 @@ impl Operation for GetPropertyByValuePush {
         };
 
         let key = key.to_property_key(context)?;
+
+        // Fast path:
+        if object.is_array() {
+            if let PropertyKey::Index(index) = &key {
+                let object_borrowed = object.borrow();
+                if let Some(element) = object_borrowed
+                    .properties()
+                    .dense_indexed_properties()
+                    .and_then(|vec| vec.get(*index as usize))
+                {
+                    context.vm.push(key);
+                    context.vm.push(element.clone());
+                    return Ok(CompletionType::Normal);
+                }
+            }
+        }
+
+        // Slow path:
         let result = object.__get__(&key, value, context)?;
 
         context.vm.push(key);

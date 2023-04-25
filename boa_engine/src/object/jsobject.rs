@@ -3,7 +3,8 @@
 //! The `JsObject` is a garbage collected Object.
 
 use super::{
-    internal_methods::InternalObjectMethods, JsPrototype, NativeObject, Object, PropertyMap,
+    internal_methods::{InternalObjectMethods, ARRAY_EXOTIC_INTERNAL_METHODS},
+    JsPrototype, NativeObject, Object, PropertyMap,
 };
 use crate::{
     context::intrinsics::Intrinsics,
@@ -338,14 +339,10 @@ impl JsObject {
     }
 
     /// Checks if it's an `Array` object.
-    ///
-    /// # Panics
-    ///
-    /// Panics if the object is currently mutably borrowed.
     #[inline]
     #[track_caller]
     pub fn is_array(&self) -> bool {
-        self.borrow().is_array()
+        std::ptr::eq(self.vtable(), &ARRAY_EXOTIC_INTERNAL_METHODS)
     }
 
     /// Checks if it's a `DataView` object.

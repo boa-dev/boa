@@ -23,6 +23,8 @@ pub(super) mod integer_indexed;
 pub(super) mod proxy;
 pub(super) mod string;
 
+pub(crate) use array::ARRAY_EXOTIC_INTERNAL_METHODS;
+
 impl JsObject {
     /// Internal method `[[GetPrototypeOf]]`
     ///
