@@ -952,6 +952,16 @@
 <a href="#951" id="951">951</a>
 <a href="#952" id="952">952</a>
 <a href="#953" id="953">953</a>
+<a href="#954" id="954">954</a>
+<a href="#955" id="955">955</a>
+<a href="#956" id="956">956</a>
+<a href="#957" id="957">957</a>
+<a href="#958" id="958">958</a>
+<a href="#959" id="959">959</a>
+<a href="#960" id="960">960</a>
+<a href="#961" id="961">961</a>
+<a href="#962" id="962">962</a>
+<a href="#963" id="963">963</a>
 </pre><pre class="rust"><code><span class="kw">use crate</span>::{
     environments::CompileTimeEnvironment, error::JsNativeError, object::JsObject, Context,
     JsResult, JsString, JsSymbol, JsValue,
@@ -1435,9 +1445,14 @@
 
         <span class="kw">let </span>this = this.unwrap_or(JsValue::Null);
 
+        <span class="kw">let </span><span class="kw-2">mut </span>bindings = <span class="macro">vec!</span>[<span class="prelude-val">None</span>; num_bindings];
+        <span class="kw">for </span>index <span class="kw">in </span>compile_environment.borrow().var_binding_indices() {
+            bindings[index] = <span class="prelude-val">Some</span>(JsValue::Undefined);
+        }
+
         <span class="self">self</span>.stack
             .push(Environment::Declarative(Gc::new(DeclarativeEnvironment {
-                bindings: GcRefCell::new(<span class="macro">vec!</span>[<span class="prelude-val">None</span>; num_bindings]),
+                bindings: GcRefCell::new(bindings),
                 compile: compile_environment,
                 poisoned: Cell::new(poisoned),
                 with: Cell::new(with),
@@ -1488,9 +1503,14 @@
             )
         };
 
+        <span class="kw">let </span><span class="kw-2">mut </span>bindings = <span class="macro">vec!</span>[<span class="prelude-val">None</span>; num_bindings];
+        <span class="kw">for </span>index <span class="kw">in </span>compile_environment.borrow().var_binding_indices() {
+            bindings[index] = <span class="prelude-val">Some</span>(JsValue::Undefined);
+        }
+
         <span class="self">self</span>.stack
             .push(Environment::Declarative(Gc::new(DeclarativeEnvironment {
-                bindings: GcRefCell::new(<span class="macro">vec!</span>[<span class="prelude-val">None</span>; num_bindings]),
+                bindings: GcRefCell::new(bindings),
                 compile: compile_environment,
                 poisoned: Cell::new(poisoned),
                 with: Cell::new(with),

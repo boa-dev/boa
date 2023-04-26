@@ -553,6 +553,22 @@
 <a href="#552" id="552">552</a>
 <a href="#553" id="553">553</a>
 <a href="#554" id="554">554</a>
+<a href="#555" id="555">555</a>
+<a href="#556" id="556">556</a>
+<a href="#557" id="557">557</a>
+<a href="#558" id="558">558</a>
+<a href="#559" id="559">559</a>
+<a href="#560" id="560">560</a>
+<a href="#561" id="561">561</a>
+<a href="#562" id="562">562</a>
+<a href="#563" id="563">563</a>
+<a href="#564" id="564">564</a>
+<a href="#565" id="565">565</a>
+<a href="#566" id="566">566</a>
+<a href="#567" id="567">567</a>
+<a href="#568" id="568">568</a>
+<a href="#569" id="569">569</a>
+<a href="#570" id="570">570</a>
 </pre><pre class="rust"><code><span class="kw">use super</span>::{ByteCompiler, Literal, NodeKind};
 <span class="kw">use </span><span class="kw">crate</span>::vm::{BindingOpcode, Opcode};
 <span class="kw">use </span>boa_ast::{
@@ -667,6 +683,15 @@
         <span class="self">self</span>.functions.push(code);
         <span class="self">self</span>.emit(Opcode::GetFunction, <span class="kw-2">&amp;</span>[index]);
         <span class="self">self</span>.emit_u8(<span class="number">0</span>);
+
+        <span class="kw">let </span>class_env: <span class="prelude-ty">Option</span>&lt;(<span class="kw">super</span>::Label, <span class="kw">super</span>::Label)&gt; = <span class="kw">match </span>class.name() {
+            <span class="prelude-val">Some</span>(name) <span class="kw">if </span>class.has_binding_identifier() =&gt; {
+                <span class="self">self</span>.push_compile_environment(<span class="bool-val">false</span>);
+                <span class="self">self</span>.create_immutable_binding(name, <span class="bool-val">true</span>);
+                <span class="prelude-val">Some</span>(<span class="self">self</span>.emit_opcode_with_two_operands(Opcode::PushDeclarativeEnvironment))
+            }
+            <span class="kw">_ </span>=&gt; <span class="prelude-val">None</span>,
+        };
 
         <span class="self">self</span>.emit_opcode(Opcode::Dup);
         <span class="kw">if let </span><span class="prelude-val">Some</span>(node) = class.super_ref() {
@@ -1098,6 +1123,13 @@
         }
 
         <span class="self">self</span>.emit_opcode(Opcode::Pop);
+
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(class_env) = class_env {
+            <span class="kw">let </span>env_info = <span class="self">self</span>.pop_compile_environment();
+            <span class="self">self</span>.patch_jump_with_target(class_env.<span class="number">0</span>, env_info.num_bindings <span class="kw">as </span>u32);
+            <span class="self">self</span>.patch_jump_with_target(class_env.<span class="number">1</span>, env_info.index <span class="kw">as </span>u32);
+            <span class="self">self</span>.emit_opcode(Opcode::PopEnvironment);
+        }
 
         <span class="kw">if </span>!expression {
             <span class="self">self</span>.emit_binding(
