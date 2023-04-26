@@ -500,6 +500,9 @@
 <a href="#499" id="499">499</a>
 <a href="#500" id="500">500</a>
 <a href="#501" id="501">501</a>
+<a href="#502" id="502">502</a>
+<a href="#503" id="503">503</a>
+<a href="#504" id="504">504</a>
 </pre><pre class="rust"><code><span class="kw">use </span>std::fmt::Write;
 
 <span class="kw">use </span>boa_profiler::Profiler;
@@ -649,7 +652,8 @@
         // 2. Let listFormat be ? OrdinaryCreateFromConstructor(NewTarget, &quot;%ListFormat.prototype%&quot;, « [[InitializedListFormat]], [[Locale]], [[Type]], [[Style]], [[Templates]] »).
         </span><span class="kw">let </span>prototype =
             get_prototype_from_constructor(new_target, StandardConstructors::list_format, context)<span class="question-mark">?</span>;
-        <span class="kw">let </span>list_format = JsObject::from_proto_and_data(
+        <span class="kw">let </span>list_format = JsObject::from_proto_and_data_with_shared_shape(
+            context.root_shape(),
             prototype,
             ObjectData::list_format(<span class="self">Self </span>{
                 formatter: context
@@ -860,10 +864,11 @@
         // 4. For each Record { [[Type]], [[Value]] } part in parts, do
         </span><span class="kw">for </span>(n, part) <span class="kw">in </span>parts.<span class="number">0</span>.into_iter().enumerate() {
             <span class="comment">// a. Let O be OrdinaryObjectCreate(%Object.prototype%).
-            </span><span class="kw">let </span>o = JsObject::from_proto_and_data(
-                context.intrinsics().constructors().object().prototype(),
-                ObjectData::ordinary(),
-            );
+            </span><span class="kw">let </span>o = context
+                .intrinsics()
+                .templates()
+                .ordinary_object()
+                .create(ObjectData::ordinary(), <span class="macro">vec!</span>[]);
 
             <span class="comment">// b. Perform ! CreateDataPropertyOrThrow(O, &quot;type&quot;, part.[[Type]]).
             </span>o.create_data_property_or_throw(<span class="macro">utf16!</span>(<span class="string">&quot;type&quot;</span>), part.typ(), context)
@@ -912,10 +917,11 @@
         })<span class="question-mark">?</span>;
 
         <span class="comment">// 3. Let options be OrdinaryObjectCreate(%Object.prototype%).
-        </span><span class="kw">let </span>options = JsObject::from_proto_and_data(
-            context.intrinsics().constructors().object().prototype(),
-            ObjectData::ordinary(),
-        );
+        </span><span class="kw">let </span>options = context
+            .intrinsics()
+            .templates()
+            .ordinary_object()
+            .create(ObjectData::ordinary(), <span class="macro">vec!</span>[]);
 
         <span class="comment">// 4. For each row of Table 11, except the header row, in table order, do
         //     a. Let p be the Property value of the current row.

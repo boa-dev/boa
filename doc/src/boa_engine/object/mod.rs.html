@@ -2347,6 +2347,8 @@
 <a href="#2346" id="2346">2346</a>
 <a href="#2347" id="2347">2347</a>
 <a href="#2348" id="2348">2348</a>
+<a href="#2349" id="2349">2349</a>
+<a href="#2350" id="2350">2350</a>
 </pre><pre class="rust"><code><span class="doccomment">//! Boa&#39;s representation of a JavaScript object and builtin object wrappers
 //!
 //! For the builtin object wrappers, please see [`object::builtins`][builtins] for implementors.
@@ -2357,20 +2359,23 @@
 <span class="kw">pub use </span>property_map::<span class="kw-2">*</span>;
 <span class="kw">use </span>thin_vec::ThinVec;
 
-<span class="kw">use </span><span class="self">self</span>::internal_methods::{
-    arguments::ARGUMENTS_EXOTIC_INTERNAL_METHODS,
-    array::ARRAY_EXOTIC_INTERNAL_METHODS,
-    bound_function::{
-        BOUND_CONSTRUCTOR_EXOTIC_INTERNAL_METHODS, BOUND_FUNCTION_EXOTIC_INTERNAL_METHODS,
+<span class="kw">use </span><span class="self">self</span>::{
+    internal_methods::{
+        arguments::ARGUMENTS_EXOTIC_INTERNAL_METHODS,
+        array::ARRAY_EXOTIC_INTERNAL_METHODS,
+        bound_function::{
+            BOUND_CONSTRUCTOR_EXOTIC_INTERNAL_METHODS, BOUND_FUNCTION_EXOTIC_INTERNAL_METHODS,
+        },
+        function::{CONSTRUCTOR_INTERNAL_METHODS, FUNCTION_INTERNAL_METHODS},
+        integer_indexed::INTEGER_INDEXED_EXOTIC_INTERNAL_METHODS,
+        proxy::{
+            PROXY_EXOTIC_INTERNAL_METHODS_ALL, PROXY_EXOTIC_INTERNAL_METHODS_BASIC,
+            PROXY_EXOTIC_INTERNAL_METHODS_WITH_CALL,
+        },
+        string::STRING_EXOTIC_INTERNAL_METHODS,
+        InternalObjectMethods, ORDINARY_INTERNAL_METHODS,
     },
-    function::{CONSTRUCTOR_INTERNAL_METHODS, FUNCTION_INTERNAL_METHODS},
-    integer_indexed::INTEGER_INDEXED_EXOTIC_INTERNAL_METHODS,
-    proxy::{
-        PROXY_EXOTIC_INTERNAL_METHODS_ALL, PROXY_EXOTIC_INTERNAL_METHODS_BASIC,
-        PROXY_EXOTIC_INTERNAL_METHODS_WITH_CALL,
-    },
-    string::STRING_EXOTIC_INTERNAL_METHODS,
-    InternalObjectMethods, ORDINARY_INTERNAL_METHODS,
+    shape::Shape,
 };
 <span class="attr">#[cfg(feature = <span class="string">&quot;intl&quot;</span>)]
 </span><span class="kw">use </span><span class="kw">crate</span>::builtins::intl::{
@@ -2423,6 +2428,7 @@
 <span class="kw">mod </span>jsobject;
 <span class="kw">mod </span>operations;
 <span class="kw">mod </span>property_map;
+<span class="kw">pub mod </span>shape;
 
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use </span>builtins::<span class="kw-2">*</span>;
 
@@ -2445,6 +2451,11 @@
 ///
 /// A `None` values means that the prototype is the `null` value.
 </span><span class="kw">pub type </span>JsPrototype = <span class="prelude-ty">Option</span>&lt;JsObject&gt;;
+
+<span class="doccomment">/// The internal storage of an object&#39;s property values.
+///
+/// The [`shape::Shape`] contains the property names and attributes.
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">type </span>ObjectStorage = Vec&lt;JsValue&gt;;
 
 <span class="doccomment">/// This trait allows Rust types to be passed around as objects.
 ///
@@ -2474,8 +2485,6 @@
     </span>kind: ObjectKind,
     <span class="doccomment">/// The collection of properties contained in the object
     </span>properties: PropertyMap,
-    <span class="doccomment">/// Instance prototype `__proto__`.
-    </span>prototype: JsPrototype,
     <span class="doccomment">/// Whether it can have new properties added to it.
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) extensible: bool,
     <span class="doccomment">/// The `[[PrivateElements]]` internal slot.
@@ -2487,7 +2496,6 @@
         <span class="self">Self </span>{
             kind: ObjectKind::Ordinary,
             properties: PropertyMap::default(),
-            prototype: <span class="prelude-val">None</span>,
             extensible: <span class="bool-val">true</span>,
             private_elements: ThinVec::new(),
         }
@@ -2498,7 +2506,6 @@
     <span class="macro">boa_gc::custom_trace!</span>(this, {
         mark(<span class="kw-2">&amp;</span>this.kind);
         mark(<span class="kw-2">&amp;</span>this.properties);
-        mark(<span class="kw-2">&amp;</span>this.prototype);
         <span class="kw">for </span>(<span class="kw">_</span>, element) <span class="kw">in </span><span class="kw-2">&amp;</span>this.private_elements {
             mark(element);
         }
@@ -3187,6 +3194,11 @@
         <span class="kw-2">&amp;mut </span><span class="self">self</span>.kind
     }
 
+    <span class="doccomment">/// Returns the shape of the object.
+    </span><span class="kw">pub const fn </span>shape(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>Shape {
+        <span class="kw-2">&amp;</span><span class="self">self</span>.properties.shape
+    }
+
     <span class="doccomment">/// Returns the kind of the object.
     </span><span class="attr">#[inline]
     </span><span class="kw">pub const fn </span>kind(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>ObjectKind {
@@ -3827,8 +3839,8 @@
 
     <span class="doccomment">/// Gets the prototype instance of this object.
     </span><span class="attr">#[inline]
-    </span><span class="kw">pub const fn </span>prototype(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>JsPrototype {
-        <span class="kw-2">&amp;</span><span class="self">self</span>.prototype
+    </span><span class="kw">pub fn </span>prototype(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; JsPrototype {
+        <span class="self">self</span>.properties.shape.prototype()
     }
 
     <span class="doccomment">/// Sets the prototype instance of the object.
@@ -3840,12 +3852,12 @@
     </span><span class="kw">pub fn </span>set_prototype&lt;O: Into&lt;JsPrototype&gt;&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, prototype: O) -&gt; bool {
         <span class="kw">let </span>prototype = prototype.into();
         <span class="kw">if </span><span class="self">self</span>.extensible {
-            <span class="self">self</span>.prototype = prototype;
+            <span class="self">self</span>.properties.shape = <span class="self">self</span>.properties.shape.change_prototype_transition(prototype);
             <span class="bool-val">true
         </span>} <span class="kw">else </span>{
             <span class="comment">// If target is non-extensible, [[SetPrototypeOf]] must return false
             // unless V is the SameValue as the target&#39;s observed [[GetPrototypeOf]] value.
-            </span><span class="self">self</span>.prototype == prototype
+            </span><span class="self">self</span>.prototype() == prototype
         }
     }
 
@@ -4031,9 +4043,9 @@
 
     <span class="doccomment">/// Inserts a field in the object `properties` without checking if it&#39;s writable.
     ///
-    /// If a field was already in the object with the same name, then a `Some` is returned
-    /// with that field&#39;s value, otherwise, `None` is returned.
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>insert&lt;K, P&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, key: K, property: P) -&gt; <span class="prelude-ty">Option</span>&lt;PropertyDescriptor&gt;
+    /// If a field was already in the object with the same name, then `true` is returned
+    /// otherwise, `false` is returned.
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>insert&lt;K, P&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, key: K, property: P) -&gt; bool
     <span class="kw">where
         </span>K: Into&lt;PropertyKey&gt;,
         P: Into&lt;PropertyDescriptor&gt;,
@@ -4041,9 +4053,11 @@
         <span class="self">self</span>.properties.insert(<span class="kw-2">&amp;</span>key.into(), property.into())
     }
 
-    <span class="doccomment">/// Helper function for property removal.
+    <span class="doccomment">/// Helper function for property removal without checking if it&#39;s configurable.
+    ///
+    /// Returns `true` if the property was removed, `false` otherwise.
     </span><span class="attr">#[inline]
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>remove(<span class="kw-2">&amp;mut </span><span class="self">self</span>, key: <span class="kw-2">&amp;</span>PropertyKey) -&gt; <span class="prelude-ty">Option</span>&lt;PropertyDescriptor&gt; {
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>remove(<span class="kw-2">&amp;mut </span><span class="self">self</span>, key: <span class="kw-2">&amp;</span>PropertyKey) -&gt; bool {
         <span class="self">self</span>.properties.remove(key)
     }
 
@@ -4197,28 +4211,19 @@
 
     <span class="doccomment">/// Build the function object.
     </span><span class="kw">pub fn </span>build(<span class="self">self</span>) -&gt; JsFunction {
-        <span class="kw">let </span>function = JsObject::from_proto_and_data(
-            <span class="self">self</span>.context
-                .intrinsics()
-                .constructors()
-                .function()
-                .prototype(),
-            ObjectData::function(Function::new(
-                FunctionKind::Native {
-                    function: <span class="self">self</span>.function,
-                    constructor: <span class="self">self</span>.constructor,
-                },
-                <span class="self">self</span>.context.realm().clone(),
-            )),
+        <span class="kw">let </span>function = Function::new(
+            FunctionKind::Native {
+                function: <span class="self">self</span>.function,
+                constructor: <span class="self">self</span>.constructor,
+            },
+            <span class="self">self</span>.context.realm().clone(),
         );
-        <span class="kw">let </span>property = PropertyDescriptor::builder()
-            .writable(<span class="bool-val">false</span>)
-            .enumerable(<span class="bool-val">false</span>)
-            .configurable(<span class="bool-val">true</span>);
-        function.insert_property(<span class="macro">utf16!</span>(<span class="string">&quot;length&quot;</span>), property.clone().value(<span class="self">self</span>.length));
-        function.insert_property(<span class="macro">utf16!</span>(<span class="string">&quot;name&quot;</span>), property.value(<span class="self">self</span>.name));
+        <span class="kw">let </span>object = <span class="self">self</span>.context.intrinsics().templates().function().create(
+            ObjectData::function(function),
+            <span class="macro">vec!</span>[<span class="self">self</span>.length.into(), <span class="self">self</span>.name.into()],
+        );
 
-        JsFunction::from_object_unchecked(function)
+        JsFunction::from_object_unchecked(object)
     }
 }
 
@@ -4266,7 +4271,8 @@
 
     <span class="doccomment">/// Create a new `ObjectBuilder` with custom [`NativeObject`] data.
     </span><span class="kw">pub fn </span>with_native&lt;T: NativeObject&gt;(data: T, context: <span class="kw-2">&amp;</span><span class="lifetime">&#39;ctx </span><span class="kw-2">mut </span>Context&lt;<span class="lifetime">&#39;host</span>&gt;) -&gt; <span class="self">Self </span>{
-        <span class="kw">let </span>object = JsObject::from_proto_and_data(
+        <span class="kw">let </span>object = JsObject::from_proto_and_data_with_shared_shape(
+            context.root_shape(),
             context.intrinsics().constructors().object().prototype(),
             ObjectData::native_object(data),
         );
@@ -4374,14 +4380,12 @@
             constructor_object: Object {
                 kind: ObjectKind::Ordinary,
                 properties: PropertyMap::default(),
-                prototype: <span class="prelude-val">None</span>,
                 extensible: <span class="bool-val">true</span>,
                 private_elements: ThinVec::new(),
             },
             prototype: Object {
                 kind: ObjectKind::Ordinary,
                 properties: PropertyMap::default(),
-                prototype: <span class="prelude-val">None</span>,
                 extensible: <span class="bool-val">true</span>,
                 private_elements: ThinVec::new(),
             },

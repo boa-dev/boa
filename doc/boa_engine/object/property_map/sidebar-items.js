@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"enum":["IndexProperties","IndexPropertyKeys","IndexPropertyValues","IndexedProperties"],"fn":["mark"],"struct":["Iter","Keys","OrderedHashMap","PropertyMap","StringProperties","StringPropertyKeys","StringPropertyValues","SymbolProperties","SymbolPropertyKeys","SymbolPropertyValues","Values"]};
+window.SIDEBAR_ITEMS = {"enum":["IndexProperties","IndexPropertyKeys","IndexPropertyValues","IndexedProperties"],"fn":["mark"],"struct":["Iter","OrderedHashMap","PropertyMap"]};

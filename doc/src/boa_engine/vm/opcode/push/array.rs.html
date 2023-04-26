@@ -102,11 +102,16 @@
 <a href="#101" id="101">101</a>
 <a href="#102" id="102">102</a>
 <a href="#103" id="103">103</a>
+<a href="#104" id="104">104</a>
+<a href="#105" id="105">105</a>
+<a href="#106" id="106">106</a>
+<a href="#107" id="107">107</a>
 </pre><pre class="rust"><code><span class="kw">use crate</span>::{
     builtins::{iterable::IteratorRecord, Array},
+    object::ObjectData,
     string::utf16,
     vm::{opcode::Operation, CompletionType},
-    Context, JsResult,
+    Context, JsResult, JsValue,
 };
 
 <span class="doccomment">/// `PushNewArray` implements the Opcode Operation for `Opcode::PushNewArray`
@@ -121,8 +126,11 @@
     <span class="kw">const </span>INSTRUCTION: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;INST - PushNewArray&quot;</span>;
 
     <span class="kw">fn </span>execute(context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;CompletionType&gt; {
-        <span class="kw">let </span>array = Array::array_create(<span class="number">0</span>, <span class="prelude-val">None</span>, context)
-            .expect(<span class="string">&quot;Array creation with 0 length should never fail&quot;</span>);
+        <span class="kw">let </span>array = context
+            .intrinsics()
+            .templates()
+            .array()
+            .create(ObjectData::array(), <span class="macro">vec!</span>[JsValue::new(<span class="number">0</span>)]);
         context.vm.push(array);
         <span class="prelude-val">Ok</span>(CompletionType::Normal)
     }

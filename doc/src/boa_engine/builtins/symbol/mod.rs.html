@@ -382,8 +382,6 @@
 <a href="#381" id="381">381</a>
 <a href="#382" id="382">382</a>
 <a href="#383" id="383">383</a>
-<a href="#384" id="384">384</a>
-<a href="#385" id="385">385</a>
 </pre><pre class="rust"><code><span class="doccomment">//! Boa&#39;s implementation of ECMAScript&#39;s global `Symbol` object.
 //!
 //! The data type symbol is a primitive data type.
@@ -497,14 +495,12 @@
 
         <span class="kw">let </span>attribute = Attribute::READONLY | Attribute::NON_ENUMERABLE | Attribute::PERMANENT;
 
-        <span class="kw">let </span>to_primitive = BuiltInBuilder::new(realm)
-            .callable(<span class="self">Self</span>::to_primitive)
+        <span class="kw">let </span>to_primitive = BuiltInBuilder::callable(realm, <span class="self">Self</span>::to_primitive)
             .name(<span class="string">&quot;[Symbol.toPrimitive]&quot;</span>)
             .length(<span class="number">1</span>)
             .build();
 
-        <span class="kw">let </span>get_description = BuiltInBuilder::new(realm)
-            .callable(<span class="self">Self</span>::get_description)
+        <span class="kw">let </span>get_description = BuiltInBuilder::callable(realm, <span class="self">Self</span>::get_description)
             .name(<span class="string">&quot;get description&quot;</span>)
             .build();
 

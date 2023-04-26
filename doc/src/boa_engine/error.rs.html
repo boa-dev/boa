@@ -881,6 +881,10 @@
 <a href="#880" id="880">880</a>
 <a href="#881" id="881">881</a>
 <a href="#882" id="882">882</a>
+<a href="#883" id="883">883</a>
+<a href="#884" id="884">884</a>
+<a href="#885" id="885">885</a>
+<a href="#886" id="886">886</a>
 </pre><pre class="rust"><code><span class="doccomment">//! Error-related types and conversions.
 
 </span><span class="kw">use crate</span>::{
@@ -1592,7 +1596,11 @@
             }
         };
 
-        <span class="kw">let </span>o = JsObject::from_proto_and_data(prototype, ObjectData::error(tag));
+        <span class="kw">let </span>o = JsObject::from_proto_and_data_with_shared_shape(
+            context.root_shape(),
+            prototype,
+            ObjectData::error(tag),
+        );
 
         o.create_non_enumerable_data_property_or_throw(<span class="macro">utf16!</span>(<span class="string">&quot;message&quot;</span>), <span class="kw-2">&amp;**</span>message, context);
 

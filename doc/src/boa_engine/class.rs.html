@@ -295,6 +295,9 @@
 <a href="#294" id="294">294</a>
 <a href="#295" id="295">295</a>
 <a href="#296" id="296">296</a>
+<a href="#297" id="297">297</a>
+<a href="#298" id="298">298</a>
+<a href="#299" id="299">299</a>
 </pre><pre class="rust"><code><span class="doccomment">//! Traits and structs for implementing native classes.
 //!
 //! Native classes are implemented through the [`Class`][class-trait] trait.
@@ -448,8 +451,11 @@
             .unwrap_or_else(|| class_prototype.clone());
 
         <span class="kw">let </span>native_instance = <span class="self">Self</span>::constructor(this, args, context)<span class="question-mark">?</span>;
-        <span class="kw">let </span>object_instance =
-            JsObject::from_proto_and_data(prototype, ObjectData::native_object(native_instance));
+        <span class="kw">let </span>object_instance = JsObject::from_proto_and_data_with_shared_shape(
+            context.root_shape(),
+            prototype,
+            ObjectData::native_object(native_instance),
+        );
         <span class="prelude-val">Ok</span>(object_instance.into())
     }
 }

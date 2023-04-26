@@ -498,6 +498,7 @@
 <a href="#497" id="497">497</a>
 <a href="#498" id="498">498</a>
 <a href="#499" id="499">499</a>
+<a href="#500" id="500">500</a>
 </pre><pre class="rust"><code><span class="doccomment">//! A Rust API wrapper for Boa&#39;s `DataView` Builtin ECMAScript Object
 </span><span class="kw">use crate</span>::{
     builtins::DataView,
@@ -597,7 +598,8 @@
         <span class="kw">let </span>prototype =
             get_prototype_from_constructor(<span class="kw-2">&amp;</span>constructor, StandardConstructors::data_view, context)<span class="question-mark">?</span>;
 
-        <span class="kw">let </span>obj = JsObject::from_proto_and_data(
+        <span class="kw">let </span>obj = JsObject::from_proto_and_data_with_shared_shape(
+            context.root_shape(),
             prototype,
             ObjectData::data_view(DataView {
                 viewed_array_buffer: (<span class="kw-2">**</span>array_buffer).clone(),

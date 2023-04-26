@@ -171,17 +171,6 @@
 <a href="#170" id="170">170</a>
 <a href="#171" id="171">171</a>
 <a href="#172" id="172">172</a>
-<a href="#173" id="173">173</a>
-<a href="#174" id="174">174</a>
-<a href="#175" id="175">175</a>
-<a href="#176" id="176">176</a>
-<a href="#177" id="177">177</a>
-<a href="#178" id="178">178</a>
-<a href="#179" id="179">179</a>
-<a href="#180" id="180">180</a>
-<a href="#181" id="181">181</a>
-<a href="#182" id="182">182</a>
-<a href="#183" id="183">183</a>
 </pre><pre class="rust"><code><span class="kw">use crate</span>::{
     js_string,
     object::JsObject,
@@ -285,12 +274,12 @@
     </span><span class="kw">let </span><span class="kw-2">mut </span>keys = Vec::with_capacity(len);
 
     <span class="comment">// 5. For each integer i starting with 0 such that i &lt; len, in ascending order, do
-    // a. Add ! ToString(𝔽(i)) as the last element of keys.
+    //      a. Add ! ToString(𝔽(i)) as the last element of keys.
     </span>keys.extend((<span class="number">0</span>..len).map(Into::into));
 
     <span class="comment">// 6. For each own property key P of O such that P is an array index
     // and ! ToIntegerOrInfinity(P) ≥ len, in ascending numeric index order, do
-    // a. Add P as the last element of keys.
+    //      a. Add P as the last element of keys.
     </span><span class="kw">let </span><span class="kw-2">mut </span>remaining_indices: Vec&lt;<span class="kw">_</span>&gt; = obj
         .properties
         .index_property_keys()
@@ -301,23 +290,12 @@
 
     <span class="comment">// 7. For each own property key P of O such that Type(P) is String and P is not
     // an array index, in ascending chronological order of property creation, do
-    // a. Add P as the last element of keys.
-    </span>keys.extend(
-        obj.properties
-            .string_property_keys()
-            .cloned()
-            .map(Into::into),
-    );
+    //      a. Add P as the last element of keys.
 
-    <span class="comment">// 8. For each own property key P of O such that Type(P) is Symbol, in ascending
+    // 8. For each own property key P of O such that Type(P) is Symbol, in ascending
     // chronological order of property creation, do
-    // a. Add P as the last element of keys.
-    </span>keys.extend(
-        obj.properties
-            .symbol_property_keys()
-            .cloned()
-            .map(Into::into),
-    );
+    //      a. Add P as the last element of keys.
+    </span>keys.extend(obj.properties.shape.keys());
 
     <span class="comment">// 9. Return keys.
     </span><span class="prelude-val">Ok</span>(keys)

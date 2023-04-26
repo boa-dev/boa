@@ -1324,6 +1324,81 @@
 <a href="#1323" id="1323">1323</a>
 <a href="#1324" id="1324">1324</a>
 <a href="#1325" id="1325">1325</a>
+<a href="#1326" id="1326">1326</a>
+<a href="#1327" id="1327">1327</a>
+<a href="#1328" id="1328">1328</a>
+<a href="#1329" id="1329">1329</a>
+<a href="#1330" id="1330">1330</a>
+<a href="#1331" id="1331">1331</a>
+<a href="#1332" id="1332">1332</a>
+<a href="#1333" id="1333">1333</a>
+<a href="#1334" id="1334">1334</a>
+<a href="#1335" id="1335">1335</a>
+<a href="#1336" id="1336">1336</a>
+<a href="#1337" id="1337">1337</a>
+<a href="#1338" id="1338">1338</a>
+<a href="#1339" id="1339">1339</a>
+<a href="#1340" id="1340">1340</a>
+<a href="#1341" id="1341">1341</a>
+<a href="#1342" id="1342">1342</a>
+<a href="#1343" id="1343">1343</a>
+<a href="#1344" id="1344">1344</a>
+<a href="#1345" id="1345">1345</a>
+<a href="#1346" id="1346">1346</a>
+<a href="#1347" id="1347">1347</a>
+<a href="#1348" id="1348">1348</a>
+<a href="#1349" id="1349">1349</a>
+<a href="#1350" id="1350">1350</a>
+<a href="#1351" id="1351">1351</a>
+<a href="#1352" id="1352">1352</a>
+<a href="#1353" id="1353">1353</a>
+<a href="#1354" id="1354">1354</a>
+<a href="#1355" id="1355">1355</a>
+<a href="#1356" id="1356">1356</a>
+<a href="#1357" id="1357">1357</a>
+<a href="#1358" id="1358">1358</a>
+<a href="#1359" id="1359">1359</a>
+<a href="#1360" id="1360">1360</a>
+<a href="#1361" id="1361">1361</a>
+<a href="#1362" id="1362">1362</a>
+<a href="#1363" id="1363">1363</a>
+<a href="#1364" id="1364">1364</a>
+<a href="#1365" id="1365">1365</a>
+<a href="#1366" id="1366">1366</a>
+<a href="#1367" id="1367">1367</a>
+<a href="#1368" id="1368">1368</a>
+<a href="#1369" id="1369">1369</a>
+<a href="#1370" id="1370">1370</a>
+<a href="#1371" id="1371">1371</a>
+<a href="#1372" id="1372">1372</a>
+<a href="#1373" id="1373">1373</a>
+<a href="#1374" id="1374">1374</a>
+<a href="#1375" id="1375">1375</a>
+<a href="#1376" id="1376">1376</a>
+<a href="#1377" id="1377">1377</a>
+<a href="#1378" id="1378">1378</a>
+<a href="#1379" id="1379">1379</a>
+<a href="#1380" id="1380">1380</a>
+<a href="#1381" id="1381">1381</a>
+<a href="#1382" id="1382">1382</a>
+<a href="#1383" id="1383">1383</a>
+<a href="#1384" id="1384">1384</a>
+<a href="#1385" id="1385">1385</a>
+<a href="#1386" id="1386">1386</a>
+<a href="#1387" id="1387">1387</a>
+<a href="#1388" id="1388">1388</a>
+<a href="#1389" id="1389">1389</a>
+<a href="#1390" id="1390">1390</a>
+<a href="#1391" id="1391">1391</a>
+<a href="#1392" id="1392">1392</a>
+<a href="#1393" id="1393">1393</a>
+<a href="#1394" id="1394">1394</a>
+<a href="#1395" id="1395">1395</a>
+<a href="#1396" id="1396">1396</a>
+<a href="#1397" id="1397">1397</a>
+<a href="#1398" id="1398">1398</a>
+<a href="#1399" id="1399">1399</a>
+<a href="#1400" id="1400">1400</a>
 </pre><pre class="rust"><code><span class="doccomment">//! `CodeBlock`
 //!
 //! This module is for the `CodeBlock` which implements a function representation in the VM
@@ -1338,10 +1413,7 @@
     context::intrinsics::StandardConstructors,
     environments::{BindingLocator, CompileTimeEnvironment},
     error::JsNativeError,
-    object::{
-        internal_methods::get_prototype_from_constructor, JsObject, ObjectData, CONSTRUCTOR,
-        PROTOTYPE,
-    },
+    object::{internal_methods::get_prototype_from_constructor, JsObject, ObjectData, PROTOTYPE},
     property::PropertyDescriptor,
     realm::Realm,
     string::utf16,
@@ -1902,6 +1974,14 @@
 }
 
 <span class="doccomment">/// Creates a new function object.
+///
+/// This is used in cases that the prototype is not known if it&#39;s [`None`] or [`Some`].
+///
+/// If the prototype given is [`None`] it will use [`create_function_object_fast`]. Otherwise
+/// it will construct the function from template objects that have all the fields except the
+/// prototype, and will perform a prototype transition change to set the prototype.
+///
+/// This is slower than direct object template construction that is done in [`create_function_object_fast`].
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>create_function_object(
     code: Gc&lt;CodeBlock&gt;,
     r#async: bool,
@@ -1910,38 +1990,20 @@
     method: bool,
     context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
 ) -&gt; JsObject {
-    <span class="kw">let </span>_timer = Profiler::global().start_event(<span class="string">&quot;JsVmFunction::new&quot;</span>, <span class="string">&quot;vm&quot;</span>);
+    <span class="kw">let </span>_timer = Profiler::global().start_event(<span class="string">&quot;create_function_object&quot;</span>, <span class="string">&quot;vm&quot;</span>);
 
-    <span class="kw">let </span>function_prototype = <span class="kw">if let </span><span class="prelude-val">Some</span>(prototype) = prototype {
-        prototype
-    } <span class="kw">else if </span>r#async {
-        context
-            .intrinsics()
-            .constructors()
-            .async_function()
-            .prototype()
-    } <span class="kw">else </span>{
-        context.intrinsics().constructors().function().prototype()
+    <span class="kw">let </span><span class="prelude-val">Some</span>(prototype) = prototype <span class="kw">else </span>{
+        <span class="comment">// fast path
+        </span><span class="kw">return </span>create_function_object_fast(code, r#async, arrow, method, context);
     };
 
-    <span class="kw">let </span>name_property = PropertyDescriptor::builder()
-        .value(
-            context
-                .interner()
-                .resolve_expect(code.name)
-                .into_common::&lt;JsString&gt;(<span class="bool-val">false</span>),
-        )
-        .writable(<span class="bool-val">false</span>)
-        .enumerable(<span class="bool-val">false</span>)
-        .configurable(<span class="bool-val">true</span>)
-        .build();
+    <span class="kw">let </span>name: JsValue = context
+        .interner()
+        .resolve_expect(code.name)
+        .into_common::&lt;JsString&gt;(<span class="bool-val">false</span>)
+        .into();
 
-    <span class="kw">let </span>length_property = PropertyDescriptor::builder()
-        .value(code.length)
-        .writable(<span class="bool-val">false</span>)
-        .enumerable(<span class="bool-val">false</span>)
-        .configurable(<span class="bool-val">true</span>)
-        .build();
+    <span class="kw">let </span>length: JsValue = code.length.into();
 
     <span class="kw">let </span>function = <span class="kw">if </span>r#async {
         Function::new(
@@ -1968,41 +2030,114 @@
         )
     };
 
-    <span class="kw">let </span>constructor =
-        JsObject::from_proto_and_data(function_prototype, ObjectData::function(function));
+    <span class="kw">let </span>data = ObjectData::function(function);
 
-    <span class="kw">let </span>constructor_property = PropertyDescriptor::builder()
-        .value(constructor.clone())
-        .writable(<span class="bool-val">true</span>)
-        .enumerable(<span class="bool-val">false</span>)
-        .configurable(<span class="bool-val">true</span>)
-        .build();
+    <span class="kw">let </span>templates = context.intrinsics().templates();
 
-    constructor
-        .define_property_or_throw(<span class="macro">utf16!</span>(<span class="string">&quot;length&quot;</span>), length_property, context)
-        .expect(<span class="string">&quot;failed to define the length property of the function&quot;</span>);
-    constructor
-        .define_property_or_throw(<span class="macro">utf16!</span>(<span class="string">&quot;name&quot;</span>), name_property, context)
-        .expect(<span class="string">&quot;failed to define the name property of the function&quot;</span>);
+    <span class="kw">let </span>(<span class="kw-2">mut </span>template, storage, constructor_prototype) = <span class="kw">if </span>r#async || arrow || method {
+        (
+            templates.function_without_proto().clone(),
+            <span class="macro">vec!</span>[length, name],
+            <span class="prelude-val">None</span>,
+        )
+    } <span class="kw">else </span>{
+        <span class="kw">let </span>constructor_prototype = templates
+            .function_prototype()
+            .create(ObjectData::ordinary(), <span class="macro">vec!</span>[JsValue::undefined()]);
 
-    <span class="kw">if </span>!r#async &amp;&amp; !arrow &amp;&amp; !method {
-        <span class="kw">let </span>prototype = JsObject::with_object_proto(context.intrinsics());
-        prototype
-            .define_property_or_throw(CONSTRUCTOR, constructor_property, context)
-            .expect(<span class="string">&quot;failed to define the constructor property of the function&quot;</span>);
+        <span class="kw">let </span>template = templates.function_with_prototype_without_proto();
 
-        <span class="kw">let </span>prototype_property = PropertyDescriptor::builder()
-            .value(prototype)
-            .writable(<span class="bool-val">true</span>)
-            .enumerable(<span class="bool-val">false</span>)
-            .configurable(<span class="bool-val">false</span>)
-            .build();
-        constructor
-            .define_property_or_throw(PROTOTYPE, prototype_property, context)
-            .expect(<span class="string">&quot;failed to define the prototype property of the function&quot;</span>);
+        (
+            template.clone(),
+            <span class="macro">vec!</span>[length, name, constructor_prototype.clone().into()],
+            <span class="prelude-val">Some</span>(constructor_prototype),
+        )
+    };
+
+    template.set_prototype(prototype);
+
+    <span class="kw">let </span>contructor = template.create(data, storage);
+
+    <span class="kw">if let </span><span class="prelude-val">Some</span>(constructor_prototype) = <span class="kw-2">&amp;</span>constructor_prototype {
+        constructor_prototype.borrow_mut().properties_mut().storage[<span class="number">0</span>] = contructor.clone().into();
     }
+    contructor
+}
 
-    constructor
+<span class="doccomment">/// Creates a new function object.
+///
+/// This is prefered over [`create_function_object`] if prototype is [`None`],
+/// because it constructs the funtion from a pre-initialized object template,
+/// with all the properties and prototype set.
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>create_function_object_fast(
+    code: Gc&lt;CodeBlock&gt;,
+    r#async: bool,
+    arrow: bool,
+    method: bool,
+    context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+) -&gt; JsObject {
+    <span class="kw">let </span>_timer = Profiler::global().start_event(<span class="string">&quot;create_function_object_fast&quot;</span>, <span class="string">&quot;vm&quot;</span>);
+
+    <span class="kw">let </span>name: JsValue = context
+        .interner()
+        .resolve_expect(code.name)
+        .into_common::&lt;JsString&gt;(<span class="bool-val">false</span>)
+        .into();
+
+    <span class="kw">let </span>length: JsValue = code.length.into();
+
+    <span class="kw">let </span>function = <span class="kw">if </span>r#async {
+        FunctionKind::Async {
+            code,
+            environments: context.vm.environments.clone(),
+            home_object: <span class="prelude-val">None</span>,
+            class_object: <span class="prelude-val">None</span>,
+        }
+    } <span class="kw">else </span>{
+        FunctionKind::Ordinary {
+            code,
+            environments: context.vm.environments.clone(),
+            constructor_kind: ConstructorKind::Base,
+            home_object: <span class="prelude-val">None</span>,
+            fields: ThinVec::new(),
+            private_methods: ThinVec::new(),
+            class_object: <span class="prelude-val">None</span>,
+        }
+    };
+
+    <span class="kw">let </span>function = Function::new(function, context.realm().clone());
+
+    <span class="kw">let </span>data = ObjectData::function(function);
+
+    <span class="kw">if </span>r#async {
+        context
+            .intrinsics()
+            .templates()
+            .async_function()
+            .create(data, <span class="macro">vec!</span>[length, name])
+    } <span class="kw">else if </span>arrow || method {
+        context
+            .intrinsics()
+            .templates()
+            .function()
+            .create(data, <span class="macro">vec!</span>[length, name])
+    } <span class="kw">else </span>{
+        <span class="kw">let </span>prototype = context
+            .intrinsics()
+            .templates()
+            .function_prototype()
+            .create(ObjectData::ordinary(), <span class="macro">vec!</span>[JsValue::undefined()]);
+
+        <span class="kw">let </span>constructor = context
+            .intrinsics()
+            .templates()
+            .function_with_prototype()
+            .create(data, <span class="macro">vec!</span>[length, name, prototype.clone().into()]);
+
+        prototype.borrow_mut().properties_mut().storage[<span class="number">0</span>] = constructor.clone().into();
+
+        constructor
+    }
 }
 
 <span class="doccomment">/// Creates a new generator function object.
@@ -2048,7 +2183,8 @@
         .configurable(<span class="bool-val">true</span>)
         .build();
 
-    <span class="kw">let </span>prototype = JsObject::from_proto_and_data(
+    <span class="kw">let </span>prototype = JsObject::from_proto_and_data_with_shared_shape(
+        context.root_shape(),
         <span class="kw">if </span>r#async {
             context.intrinsics().objects().async_generator()
         } <span class="kw">else </span>{
@@ -2067,7 +2203,8 @@
             },
             context.realm().clone(),
         );
-        JsObject::from_proto_and_data(
+        JsObject::from_proto_and_data_with_shared_shape(
+            context.root_shape(),
             function_prototype,
             ObjectData::async_generator_function(function),
         )
@@ -2081,7 +2218,11 @@
             },
             context.realm().clone(),
         );
-        JsObject::from_proto_and_data(function_prototype, ObjectData::generator_function(function))
+        JsObject::from_proto_and_data_with_shared_shape(
+            context.root_shape(),
+            function_prototype,
+            ObjectData::generator_function(function),
+        )
     };
 
     <span class="kw">let </span>prototype_property = PropertyDescriptor::builder()
@@ -2412,7 +2553,8 @@
                 })
             };
 
-            <span class="kw">let </span>generator = <span class="self">Self</span>::from_proto_and_data(proto, data);
+            <span class="kw">let </span>generator =
+                <span class="self">Self</span>::from_proto_and_data_with_shared_shape(context.root_shape(), proto, data);
 
             <span class="kw">if </span>async_ {
                 <span class="kw">let </span>gen_clone = generator.clone();
@@ -2472,7 +2614,11 @@
                                     StandardConstructors::object,
                                     context,
                                 )<span class="question-mark">?</span>;
-                                <span class="prelude-val">Ok</span>(<span class="self">Self</span>::from_proto_and_data(prototype, ObjectData::ordinary()))
+                                <span class="prelude-val">Ok</span>(<span class="self">Self</span>::from_proto_and_data_with_shared_shape(
+                                    context.root_shape(),
+                                    prototype,
+                                    ObjectData::ordinary(),
+                                ))
                             } <span class="kw">else </span>{
                                 <span class="prelude-val">Err</span>(JsNativeError::typ()
                                 .with_message(
@@ -2504,7 +2650,11 @@
                         StandardConstructors::object,
                         context,
                     )<span class="question-mark">?</span>;
-                    <span class="kw">let </span>this = <span class="self">Self</span>::from_proto_and_data(prototype, ObjectData::ordinary());
+                    <span class="kw">let </span>this = <span class="self">Self</span>::from_proto_and_data_with_shared_shape(
+                        context.root_shape(),
+                        prototype,
+                        ObjectData::ordinary(),
+                    );
 
                     this.initialize_instance_elements(<span class="self">self</span>, context)<span class="question-mark">?</span>;
 

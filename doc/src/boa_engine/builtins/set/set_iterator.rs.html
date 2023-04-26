@@ -166,6 +166,7 @@
 <a href="#165" id="165">165</a>
 <a href="#166" id="166">166</a>
 <a href="#167" id="167">167</a>
+<a href="#168" id="168">168</a>
 </pre><pre class="rust"><code><span class="doccomment">//! This module implements the `SetIterator` object.
 //!
 //! More information:
@@ -255,7 +256,8 @@
         lock: SetLock,
         context: <span class="kw-2">&amp;</span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
     ) -&gt; JsValue {
-        <span class="kw">let </span>set_iterator = JsObject::from_proto_and_data(
+        <span class="kw">let </span>set_iterator = JsObject::from_proto_and_data_with_shared_shape(
+            context.root_shape(),
             context.intrinsics().objects().iterator_prototypes().set(),
             ObjectData::set_iterator(<span class="self">Self</span>::new(set, kind, lock)),
         );

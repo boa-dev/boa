@@ -102,6 +102,10 @@
 <a href="#101" id="101">101</a>
 <a href="#102" id="102">102</a>
 <a href="#103" id="103">103</a>
+<a href="#104" id="104">104</a>
+<a href="#105" id="105">105</a>
+<a href="#106" id="106">106</a>
+<a href="#107" id="107">107</a>
 </pre><pre class="rust"><code><span class="doccomment">//! This module implements the global `EvalError` object.
 //!
 //! Indicates an error regarding the global `eval()` function.
@@ -186,7 +190,11 @@
         <span class="comment">// 2. Let O be ? OrdinaryCreateFromConstructor(newTarget, &quot;%NativeError.prototype%&quot;, « [[ErrorData]] »).
         </span><span class="kw">let </span>prototype =
             get_prototype_from_constructor(new_target, StandardConstructors::eval_error, context)<span class="question-mark">?</span>;
-        <span class="kw">let </span>o = JsObject::from_proto_and_data(prototype, ObjectData::error(ErrorKind::Eval));
+        <span class="kw">let </span>o = JsObject::from_proto_and_data_with_shared_shape(
+            context.root_shape(),
+            prototype,
+            ObjectData::error(ErrorKind::Eval),
+        );
 
         <span class="comment">// 3. If message is not undefined, then
         </span><span class="kw">let </span>message = args.get_or_undefined(<span class="number">0</span>);

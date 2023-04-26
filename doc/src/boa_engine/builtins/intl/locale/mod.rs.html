@@ -806,6 +806,10 @@
 <a href="#805" id="805">805</a>
 <a href="#806" id="806">806</a>
 <a href="#807" id="807">807</a>
+<a href="#808" id="808">808</a>
+<a href="#809" id="809">809</a>
+<a href="#810" id="810">810</a>
+<a href="#811" id="811">811</a>
 </pre><pre class="rust"><code><span class="kw">use crate</span>::{realm::Realm, string::utf16};
 <span class="kw">use </span>boa_profiler::Profiler;
 <span class="kw">use </span>icu_collator::CaseFirst;
@@ -843,53 +847,43 @@
     <span class="kw">fn </span>init(realm: <span class="kw-2">&amp;</span>Realm) {
         <span class="kw">let </span>_timer = Profiler::global().start_event(<span class="self">Self</span>::NAME, <span class="string">&quot;init&quot;</span>);
 
-        <span class="kw">let </span>base_name = BuiltInBuilder::new(realm)
-            .callable(<span class="self">Self</span>::base_name)
+        <span class="kw">let </span>base_name = BuiltInBuilder::callable(realm, <span class="self">Self</span>::base_name)
             .name(<span class="string">&quot;get baseName&quot;</span>)
             .build();
 
-        <span class="kw">let </span>calendar = BuiltInBuilder::new(realm)
-            .callable(<span class="self">Self</span>::calendar)
+        <span class="kw">let </span>calendar = BuiltInBuilder::callable(realm, <span class="self">Self</span>::calendar)
             .name(<span class="string">&quot;get calendar&quot;</span>)
             .build();
 
-        <span class="kw">let </span>case_first = BuiltInBuilder::new(realm)
-            .callable(<span class="self">Self</span>::case_first)
+        <span class="kw">let </span>case_first = BuiltInBuilder::callable(realm, <span class="self">Self</span>::case_first)
             .name(<span class="string">&quot;get caseFirst&quot;</span>)
             .build();
 
-        <span class="kw">let </span>collation = BuiltInBuilder::new(realm)
-            .callable(<span class="self">Self</span>::collation)
+        <span class="kw">let </span>collation = BuiltInBuilder::callable(realm, <span class="self">Self</span>::collation)
             .name(<span class="string">&quot;get collation&quot;</span>)
             .build();
 
-        <span class="kw">let </span>hour_cycle = BuiltInBuilder::new(realm)
-            .callable(<span class="self">Self</span>::hour_cycle)
+        <span class="kw">let </span>hour_cycle = BuiltInBuilder::callable(realm, <span class="self">Self</span>::hour_cycle)
             .name(<span class="string">&quot;get hourCycle&quot;</span>)
             .build();
 
-        <span class="kw">let </span>numeric = BuiltInBuilder::new(realm)
-            .callable(<span class="self">Self</span>::numeric)
+        <span class="kw">let </span>numeric = BuiltInBuilder::callable(realm, <span class="self">Self</span>::numeric)
             .name(<span class="string">&quot;get numeric&quot;</span>)
             .build();
 
-        <span class="kw">let </span>numbering_system = BuiltInBuilder::new(realm)
-            .callable(<span class="self">Self</span>::numbering_system)
+        <span class="kw">let </span>numbering_system = BuiltInBuilder::callable(realm, <span class="self">Self</span>::numbering_system)
             .name(<span class="string">&quot;get numberingSystem&quot;</span>)
             .build();
 
-        <span class="kw">let </span>language = BuiltInBuilder::new(realm)
-            .callable(<span class="self">Self</span>::language)
+        <span class="kw">let </span>language = BuiltInBuilder::callable(realm, <span class="self">Self</span>::language)
             .name(<span class="string">&quot;get language&quot;</span>)
             .build();
 
-        <span class="kw">let </span>script = BuiltInBuilder::new(realm)
-            .callable(<span class="self">Self</span>::script)
+        <span class="kw">let </span>script = BuiltInBuilder::callable(realm, <span class="self">Self</span>::script)
             .name(<span class="string">&quot;get script&quot;</span>)
             .build();
 
-        <span class="kw">let </span>region = BuiltInBuilder::new(realm)
-            .callable(<span class="self">Self</span>::region)
+        <span class="kw">let </span>region = BuiltInBuilder::callable(realm, <span class="self">Self</span>::region)
             .name(<span class="string">&quot;get region&quot;</span>)
             .build();
 
@@ -1199,7 +1193,11 @@
         <span class="comment">// 6. Let locale be ? OrdinaryCreateFromConstructor(NewTarget, &quot;%Locale.prototype%&quot;, internalSlotsList).
         </span><span class="kw">let </span>prototype =
             get_prototype_from_constructor(new_target, StandardConstructors::locale, context)<span class="question-mark">?</span>;
-        <span class="kw">let </span>locale = JsObject::from_proto_and_data(prototype, ObjectData::locale(tag));
+        <span class="kw">let </span>locale = JsObject::from_proto_and_data_with_shared_shape(
+            context.root_shape(),
+            prototype,
+            ObjectData::locale(tag),
+        );
 
         <span class="comment">// 37. Return locale.
         </span><span class="prelude-val">Ok</span>(locale.into())
@@ -1237,7 +1235,12 @@
 
         <span class="comment">// 4. Return ! Construct(%Locale%, maximal).
         </span><span class="kw">let </span>prototype = context.intrinsics().constructors().locale().prototype();
-        <span class="prelude-val">Ok</span>(JsObject::from_proto_and_data(prototype, ObjectData::locale(loc)).into())
+        <span class="prelude-val">Ok</span>(JsObject::from_proto_and_data_with_shared_shape(
+            context.root_shape(),
+            prototype,
+            ObjectData::locale(loc),
+        )
+        .into())
     }
 
     <span class="doccomment">/// [`Intl.Locale.prototype.minimize ( )`][spec]
@@ -1270,7 +1273,12 @@
 
         <span class="comment">// 4. Return ! Construct(%Locale%, minimal).
         </span><span class="kw">let </span>prototype = context.intrinsics().constructors().locale().prototype();
-        <span class="prelude-val">Ok</span>(JsObject::from_proto_and_data(prototype, ObjectData::locale(loc)).into())
+        <span class="prelude-val">Ok</span>(JsObject::from_proto_and_data_with_shared_shape(
+            context.root_shape(),
+            prototype,
+            ObjectData::locale(loc),
+        )
+        .into())
     }
 
     <span class="doccomment">/// [`Intl.Locale.prototype.toString ( )`][spec].

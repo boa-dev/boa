@@ -101,7 +101,7 @@
 </span><span class="kw">use crate</span>::{
     context::{intrinsics::Intrinsics, HostHooks},
     environments::DeclarativeEnvironment,
-    object::JsObject,
+    object::{shape::shared_shape::SharedShape, JsObject},
 };
 <span class="kw">use </span>boa_gc::{Finalize, Gc, Trace};
 <span class="kw">use </span>boa_profiler::Profiler;
@@ -131,10 +131,10 @@
 <span class="kw">impl </span>Realm {
     <span class="doccomment">/// Create a new Realm.
     </span><span class="attr">#[inline]
-    </span><span class="kw">pub fn </span>create(hooks: <span class="kw-2">&amp;</span><span class="kw">dyn </span>HostHooks) -&gt; <span class="self">Self </span>{
+    </span><span class="kw">pub fn </span>create(hooks: <span class="kw-2">&amp;</span><span class="kw">dyn </span>HostHooks, root_shape: <span class="kw-2">&amp;</span>SharedShape) -&gt; <span class="self">Self </span>{
         <span class="kw">let </span>_timer = Profiler::global().start_event(<span class="string">&quot;Realm::create&quot;</span>, <span class="string">&quot;realm&quot;</span>);
 
-        <span class="kw">let </span>intrinsics = Intrinsics::default();
+        <span class="kw">let </span>intrinsics = Intrinsics::new(root_shape);
         <span class="kw">let </span>global_object = hooks.create_global_object(<span class="kw-2">&amp;</span>intrinsics);
         <span class="kw">let </span>global_this = hooks
             .create_global_this(<span class="kw-2">&amp;</span>intrinsics)

@@ -125,6 +125,10 @@
 <a href="#124" id="124">124</a>
 <a href="#125" id="125">125</a>
 <a href="#126" id="126">126</a>
+<a href="#127" id="127">127</a>
+<a href="#128" id="128">128</a>
+<a href="#129" id="129">129</a>
+<a href="#130" id="130">130</a>
 </pre><pre class="rust"><code><span class="doccomment">//! This module implements the global `AggregateError` object.
 //!
 //! More information:
@@ -210,7 +214,11 @@
             StandardConstructors::aggregate_error,
             context,
         )<span class="question-mark">?</span>;
-        <span class="kw">let </span>o = JsObject::from_proto_and_data(prototype, ObjectData::error(ErrorKind::Aggregate));
+        <span class="kw">let </span>o = JsObject::from_proto_and_data_with_shared_shape(
+            context.root_shape(),
+            prototype,
+            ObjectData::error(ErrorKind::Aggregate),
+        );
 
         <span class="comment">// 3. If message is not undefined, then
         </span><span class="kw">let </span>message = args.get_or_undefined(<span class="number">1</span>);

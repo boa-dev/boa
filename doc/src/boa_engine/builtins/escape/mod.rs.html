@@ -254,8 +254,6 @@
 <a href="#253" id="253">253</a>
 <a href="#254" id="254">254</a>
 <a href="#255" id="255">255</a>
-<a href="#256" id="256">256</a>
-<a href="#257" id="257">257</a>
 </pre><pre class="rust"><code><span class="doccomment">//! Boa&#39;s implementation of ECMAScript&#39;s string escaping functions.
 //!
 //! The `escape()` function replaces all characters with escape sequences, with the exception of ASCII
@@ -281,8 +279,7 @@
 
 <span class="kw">impl </span>IntrinsicObject <span class="kw">for </span>Escape {
     <span class="kw">fn </span>init(realm: <span class="kw-2">&amp;</span>Realm) {
-        BuiltInBuilder::with_intrinsic::&lt;<span class="self">Self</span>&gt;(realm)
-            .callable(escape)
+        BuiltInBuilder::callable_with_intrinsic::&lt;<span class="self">Self</span>&gt;(realm, escape)
             .name(<span class="self">Self</span>::NAME)
             .length(<span class="number">1</span>)
             .build();
@@ -354,8 +351,7 @@
 
 <span class="kw">impl </span>IntrinsicObject <span class="kw">for </span>Unescape {
     <span class="kw">fn </span>init(realm: <span class="kw-2">&amp;</span>Realm) {
-        BuiltInBuilder::with_intrinsic::&lt;<span class="self">Self</span>&gt;(realm)
-            .callable(unescape)
+        BuiltInBuilder::callable_with_intrinsic::&lt;<span class="self">Self</span>&gt;(realm, unescape)
             .name(<span class="self">Self</span>::NAME)
             .length(<span class="number">1</span>)
             .build();

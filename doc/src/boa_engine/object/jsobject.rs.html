@@ -1068,12 +1068,50 @@
 <a href="#1067" id="1067">1067</a>
 <a href="#1068" id="1068">1068</a>
 <a href="#1069" id="1069">1069</a>
+<a href="#1070" id="1070">1070</a>
+<a href="#1071" id="1071">1071</a>
+<a href="#1072" id="1072">1072</a>
+<a href="#1073" id="1073">1073</a>
+<a href="#1074" id="1074">1074</a>
+<a href="#1075" id="1075">1075</a>
+<a href="#1076" id="1076">1076</a>
+<a href="#1077" id="1077">1077</a>
+<a href="#1078" id="1078">1078</a>
+<a href="#1079" id="1079">1079</a>
+<a href="#1080" id="1080">1080</a>
+<a href="#1081" id="1081">1081</a>
+<a href="#1082" id="1082">1082</a>
+<a href="#1083" id="1083">1083</a>
+<a href="#1084" id="1084">1084</a>
+<a href="#1085" id="1085">1085</a>
+<a href="#1086" id="1086">1086</a>
+<a href="#1087" id="1087">1087</a>
+<a href="#1088" id="1088">1088</a>
+<a href="#1089" id="1089">1089</a>
+<a href="#1090" id="1090">1090</a>
+<a href="#1091" id="1091">1091</a>
+<a href="#1092" id="1092">1092</a>
+<a href="#1093" id="1093">1093</a>
+<a href="#1094" id="1094">1094</a>
+<a href="#1095" id="1095">1095</a>
+<a href="#1096" id="1096">1096</a>
+<a href="#1097" id="1097">1097</a>
+<a href="#1098" id="1098">1098</a>
+<a href="#1099" id="1099">1099</a>
+<a href="#1100" id="1100">1100</a>
+<a href="#1101" id="1101">1101</a>
+<a href="#1102" id="1102">1102</a>
+<a href="#1103" id="1103">1103</a>
+<a href="#1104" id="1104">1104</a>
+<a href="#1105" id="1105">1105</a>
+<a href="#1106" id="1106">1106</a>
 </pre><pre class="rust"><code><span class="doccomment">//! This module implements the `JsObject` structure.
 //!
 //! The `JsObject` is a garbage collected Object.
 
 </span><span class="kw">use super</span>::{
     internal_methods::{InternalObjectMethods, ARRAY_EXOTIC_INTERNAL_METHODS},
+    shape::{shared_shape::SharedShape, Shape},
     JsPrototype, NativeObject, Object, PropertyMap,
 };
 <span class="kw">use crate</span>::{
@@ -1091,6 +1129,7 @@
     collections::HashMap,
     error::Error,
     fmt::{<span class="self">self</span>, Debug, Display},
+    hash::Hash,
     result::Result <span class="kw">as </span>StdResult,
 };
 <span class="kw">use </span>thin_vec::ThinVec;
@@ -1178,8 +1217,35 @@
             inner: Gc::new(VTableObject {
                 object: GcRefCell::new(Object {
                     kind: data.kind,
-                    properties: PropertyMap::default(),
-                    prototype: prototype.into(),
+                    properties: PropertyMap::from_prototype_unique_shape(prototype.into()),
+                    extensible: <span class="bool-val">true</span>,
+                    private_elements: ThinVec::new(),
+                }),
+                vtable: data.internal_methods,
+            }),
+        }
+    }
+
+    <span class="doccomment">/// Creates a new object with the provided prototype and object data.
+    ///
+    /// This is equivalent to calling the specification&#39;s abstract operation [`OrdinaryObjectCreate`],
+    /// with the difference that the `additionalInternalSlotsList` parameter is automatically set by
+    /// the [`ObjectData`] provided.
+    ///
+    /// [`OrdinaryObjectCreate`]: https://tc39.es/ecma262/#sec-ordinaryobjectcreate
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>from_proto_and_data_with_shared_shape&lt;O: Into&lt;<span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>&gt;&gt;&gt;(
+        root_shape: SharedShape,
+        prototype: O,
+        data: ObjectData,
+    ) -&gt; <span class="self">Self </span>{
+        <span class="self">Self </span>{
+            inner: Gc::new(VTableObject {
+                object: GcRefCell::new(Object {
+                    kind: data.kind,
+                    properties: PropertyMap::from_prototype_with_shared_shape(
+                        Shape::shared(root_shape),
+                        prototype.into(),
+                    ),
                     extensible: <span class="bool-val">true</span>,
                     private_elements: ThinVec::new(),
                 }),
@@ -1384,8 +1450,8 @@
     /// Panics if the object is currently mutably borrowed.
     </span><span class="attr">#[inline]
     #[track_caller]
-    </span><span class="kw">pub fn </span>prototype(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Ref&lt;<span class="lifetime">&#39;_</span>, JsPrototype&gt; {
-        Ref::map(<span class="self">self</span>.borrow(), Object::prototype)
+    </span><span class="kw">pub fn </span>prototype(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; JsPrototype {
+        <span class="self">self</span>.borrow().prototype()
     }
 
     <span class="doccomment">/// Get the extensibility of the object.
@@ -1929,7 +1995,7 @@ Cannot both specify accessors and a value or writable attribute&quot;</span>,
 
     <span class="doccomment">/// Helper function for property insertion.
     </span><span class="attr">#[track_caller]
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>insert&lt;K, P&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, key: K, property: P) -&gt; <span class="prelude-ty">Option</span>&lt;PropertyDescriptor&gt;
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>insert&lt;K, P&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, key: K, property: P) -&gt; bool
     <span class="kw">where
         </span>K: Into&lt;PropertyKey&gt;,
         P: Into&lt;PropertyDescriptor&gt;,
@@ -1939,9 +2005,9 @@ Cannot both specify accessors and a value or writable attribute&quot;</span>,
 
     <span class="doccomment">/// Inserts a field in the object `properties` without checking if it&#39;s writable.
     ///
-    /// If a field was already in the object with the same name that a `Some` is returned
-    /// with that field, otherwise None is returned.
-    </span><span class="kw">pub fn </span>insert_property&lt;K, P&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, key: K, property: P) -&gt; <span class="prelude-ty">Option</span>&lt;PropertyDescriptor&gt;
+    /// If a field was already in the object with the same name, than `true` is returned
+    /// with that field, otherwise `false` is returned.
+    </span><span class="kw">pub fn </span>insert_property&lt;K, P&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, key: K, property: P) -&gt; bool
     <span class="kw">where
         </span>K: Into&lt;PropertyKey&gt;,
         P: Into&lt;PropertyDescriptor&gt;,
@@ -2004,6 +2070,14 @@ Cannot both specify accessors and a value or writable attribute&quot;</span>,
 <span class="kw">impl </span>PartialEq <span class="kw">for </span>JsObject {
     <span class="kw">fn </span>eq(<span class="kw-2">&amp;</span><span class="self">self</span>, other: <span class="kw-2">&amp;</span><span class="self">Self</span>) -&gt; bool {
         <span class="self">Self</span>::equals(<span class="self">self</span>, other)
+    }
+}
+
+<span class="kw">impl </span>Eq <span class="kw">for </span>JsObject {}
+
+<span class="kw">impl </span>Hash <span class="kw">for </span>JsObject {
+    <span class="kw">fn </span>hash&lt;H: std::hash::Hasher&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, state: <span class="kw-2">&amp;mut </span>H) {
+        std::ptr::hash(<span class="self">self</span>.as_ref(), state);
     }
 }
 

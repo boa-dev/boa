@@ -2694,8 +2694,7 @@
     <span class="kw">fn </span>init(realm: <span class="kw-2">&amp;</span>Realm) {
         <span class="kw">let </span>_timer = Profiler::global().start_event(<span class="self">Self</span>::NAME, <span class="string">&quot;init&quot;</span>);
 
-        <span class="kw">let </span>get_species = BuiltInBuilder::new(realm)
-            .callable(<span class="self">Self</span>::get_species)
+        <span class="kw">let </span>get_species = BuiltInBuilder::callable(realm, <span class="self">Self</span>::get_species)
             .name(<span class="string">&quot;get [Symbol.species]&quot;</span>)
             .build();
 
@@ -2767,7 +2766,8 @@
         </span><span class="kw">let </span>promise =
             get_prototype_from_constructor(new_target, StandardConstructors::promise, context)<span class="question-mark">?</span>;
 
-        <span class="kw">let </span>promise = JsObject::from_proto_and_data(
+        <span class="kw">let </span>promise = JsObject::from_proto_and_data_with_shared_shape(
+            context.root_shape(),
             promise,
             <span class="comment">// 4. Set promise.[[PromiseState]] to pending.
             // 5. Set promise.[[PromiseFulfillReactions]] to a new empty List.

@@ -384,6 +384,7 @@
 <a href="#383" id="383">383</a>
 <a href="#384" id="384">384</a>
 <a href="#385" id="385">385</a>
+<a href="#386" id="386">386</a>
 </pre><pre class="rust"><code><span class="kw">use crate</span>::{
     builtins::{
         iterable::{create_iter_result_object, IteratorRecord, IteratorResult},
@@ -451,7 +452,8 @@
     ) -&gt; IteratorRecord {
         <span class="comment">// 1. Let asyncIterator be OrdinaryObjectCreate(%AsyncFromSyncIteratorPrototype%, « [[SyncIteratorRecord]] »).
         // 2. Set asyncIterator.[[SyncIteratorRecord]] to syncIteratorRecord.
-        </span><span class="kw">let </span>async_iterator = JsObject::from_proto_and_data(
+        </span><span class="kw">let </span>async_iterator = JsObject::from_proto_and_data_with_shared_shape(
+            context.root_shape(),
             context
                 .intrinsics()
                 .objects()

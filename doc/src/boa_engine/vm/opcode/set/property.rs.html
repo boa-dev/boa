@@ -340,6 +340,7 @@
 <a href="#339" id="339">339</a>
 <a href="#340" id="340">340</a>
 <a href="#341" id="341">341</a>
+<a href="#342" id="342">342</a>
 </pre><pre class="rust"><code><span class="kw">use </span>boa_macros::utf16;
 
 <span class="kw">use crate</span>::{
@@ -420,7 +421,7 @@
                         <span class="kw">break </span><span class="lifetime">&#39;fast_path</span>;
                     }
 
-                    <span class="kw">let </span>prototype = object_borrowed.prototype().clone();
+                    <span class="kw">let </span>shape = object_borrowed.shape().clone();
 
                     <span class="kw">if let </span><span class="prelude-val">Some</span>(dense_elements) = object_borrowed
                         .properties_mut()
@@ -435,7 +436,8 @@
                             <span class="comment">// Cannot use fast path if the [[prototype]] is a proxy object,
                             // because we have to the call prototypes [[set]] on non-existing property,
                             // and proxy objects can override [[set]].
-                            </span><span class="kw">if </span>prototype.map_or(<span class="bool-val">false</span>, |x| x.is_proxy()) {
+                            </span><span class="kw">let </span>prototype = shape.prototype();
+                            <span class="kw">if </span>prototype.map_or(<span class="bool-val">false</span>, |x| x.is_proxy()) {
                                 <span class="kw">break </span><span class="lifetime">&#39;fast_path</span>;
                             }
 

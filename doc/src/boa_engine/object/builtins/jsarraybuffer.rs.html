@@ -235,6 +235,7 @@
 <a href="#234" id="234">234</a>
 <a href="#235" id="235">235</a>
 <a href="#236" id="236">236</a>
+<a href="#237" id="237">237</a>
 </pre><pre class="rust"><code><span class="doccomment">//! A Rust API wrapper for Boa&#39;s `ArrayBuffer` Builtin ECMAScript Object
 </span><span class="kw">use crate</span>::{
     builtins::array_buffer::ArrayBuffer,
@@ -338,7 +339,8 @@
 
         <span class="comment">// 3. Set obj.[[ArrayBufferData]] to block.
         // 4. Set obj.[[ArrayBufferByteLength]] to byteLength.
-        </span><span class="kw">let </span>obj = JsObject::from_proto_and_data(
+        </span><span class="kw">let </span>obj = JsObject::from_proto_and_data_with_shared_shape(
+            context.root_shape(),
             prototype,
             ObjectData::array_buffer(ArrayBuffer {
                 array_buffer_data: <span class="prelude-val">Some</span>(block),

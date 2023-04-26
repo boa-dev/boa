@@ -575,7 +575,7 @@
     context::intrinsics::Intrinsics,
     error::JsNativeError,
     js_string,
-    object::JsObject,
+    object::{JsObject, ObjectData},
     realm::Realm,
     symbol::JsSymbol,
     Context, JsResult, JsValue,
@@ -771,14 +771,14 @@
 
     <span class="comment">// 1. Assert: Type(done) is Boolean.
     // 2. Let obj be ! OrdinaryObjectCreate(%Object.prototype%).
-    </span><span class="kw">let </span>obj = JsObject::with_object_proto(context.intrinsics());
+    // 3. Perform ! CreateDataPropertyOrThrow(obj, &quot;value&quot;, value).
+    // 4. Perform ! CreateDataPropertyOrThrow(obj, &quot;done&quot;, done).
+    </span><span class="kw">let </span>obj = context
+        .intrinsics()
+        .templates()
+        .iterator_result()
+        .create(ObjectData::ordinary(), <span class="macro">vec!</span>[value, done.into()]);
 
-    <span class="comment">// 3. Perform ! CreateDataPropertyOrThrow(obj, &quot;value&quot;, value).
-    </span>obj.create_data_property_or_throw(<span class="macro">js_string!</span>(<span class="string">&quot;value&quot;</span>), value, context)
-        .expect(<span class="string">&quot;this CreateDataPropertyOrThrow call must not fail&quot;</span>);
-    <span class="comment">// 4. Perform ! CreateDataPropertyOrThrow(obj, &quot;done&quot;, done).
-    </span>obj.create_data_property_or_throw(<span class="macro">js_string!</span>(<span class="string">&quot;done&quot;</span>), done, context)
-        .expect(<span class="string">&quot;this CreateDataPropertyOrThrow call must not fail&quot;</span>);
     <span class="comment">// 5. Return obj.
     </span>obj.into()
 }

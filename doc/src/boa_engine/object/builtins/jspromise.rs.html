@@ -877,6 +877,8 @@
 <a href="#876" id="876">876</a>
 <a href="#877" id="877">877</a>
 <a href="#878" id="878">878</a>
+<a href="#879" id="879">879</a>
+<a href="#880" id="880">880</a>
 </pre><pre class="rust"><code><span class="doccomment">//! A Rust API wrapper for Boa&#39;s promise Builtin ECMAScript Object
 
 </span><span class="attr">#![allow(missing_docs)]
@@ -1033,7 +1035,8 @@
     <span class="kw">where
         </span>F: FnOnce(<span class="kw-2">&amp;</span>ResolvingFunctions, <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;JsValue&gt;,
     {
-        <span class="kw">let </span>promise = JsObject::from_proto_and_data(
+        <span class="kw">let </span>promise = JsObject::from_proto_and_data_with_shared_shape(
+            context.root_shape(),
             context.intrinsics().constructors().promise().prototype(),
             ObjectData::promise(Promise::new()),
         );
@@ -1080,7 +1083,8 @@
     /// ```
     </span><span class="attr">#[inline]
     </span><span class="kw">pub fn </span>new_pending(context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; (JsPromise, ResolvingFunctions) {
-        <span class="kw">let </span>promise = JsObject::from_proto_and_data(
+        <span class="kw">let </span>promise = JsObject::from_proto_and_data_with_shared_shape(
+            context.root_shape(),
             context.intrinsics().constructors().promise().prototype(),
             ObjectData::promise(Promise::new()),
         );

@@ -1080,28 +1080,6 @@
 <a href="#1079" id="1079">1079</a>
 <a href="#1080" id="1080">1080</a>
 <a href="#1081" id="1081">1081</a>
-<a href="#1082" id="1082">1082</a>
-<a href="#1083" id="1083">1083</a>
-<a href="#1084" id="1084">1084</a>
-<a href="#1085" id="1085">1085</a>
-<a href="#1086" id="1086">1086</a>
-<a href="#1087" id="1087">1087</a>
-<a href="#1088" id="1088">1088</a>
-<a href="#1089" id="1089">1089</a>
-<a href="#1090" id="1090">1090</a>
-<a href="#1091" id="1091">1091</a>
-<a href="#1092" id="1092">1092</a>
-<a href="#1093" id="1093">1093</a>
-<a href="#1094" id="1094">1094</a>
-<a href="#1095" id="1095">1095</a>
-<a href="#1096" id="1096">1096</a>
-<a href="#1097" id="1097">1097</a>
-<a href="#1098" id="1098">1098</a>
-<a href="#1099" id="1099">1099</a>
-<a href="#1100" id="1100">1100</a>
-<a href="#1101" id="1101">1101</a>
-<a href="#1102" id="1102">1102</a>
-<a href="#1103" id="1103">1103</a>
 </pre><pre class="rust"><code><span class="doccomment">//! Boa&#39;s ECMAScript Value implementation.
 //!
 //! Javascript values, utility methods and conversion between Javascript values and Rust values.
@@ -1125,7 +1103,6 @@
     error::JsNativeError,
     object::{JsObject, ObjectData},
     property::{PropertyDescriptor, PropertyKey},
-    string::utf16,
     symbol::JsSymbol,
     Context, JsBigInt, JsResult, JsString,
 };
@@ -1571,61 +1548,40 @@
     ///
     /// See: &lt;https://tc39.es/ecma262/#sec-toobject&gt;
     </span><span class="kw">pub fn </span>to_object(<span class="kw-2">&amp;</span><span class="self">self</span>, context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;JsObject&gt; {
-        <span class="kw">match </span><span class="self">self </span>{
+        <span class="comment">// TODO: add fast paths with object template
+        </span><span class="kw">match </span><span class="self">self </span>{
             <span class="self">Self</span>::Undefined | <span class="self">Self</span>::Null =&gt; <span class="prelude-val">Err</span>(JsNativeError::typ()
                 .with_message(<span class="string">&quot;cannot convert &#39;null&#39; or &#39;undefined&#39; to object&quot;</span>)
                 .into()),
-            <span class="self">Self</span>::Boolean(boolean) =&gt; {
-                <span class="kw">let </span>prototype = context.intrinsics().constructors().boolean().prototype();
-                <span class="prelude-val">Ok</span>(JsObject::from_proto_and_data(
-                    prototype,
-                    ObjectData::boolean(<span class="kw-2">*</span>boolean),
-                ))
-            }
-            <span class="self">Self</span>::Integer(integer) =&gt; {
-                <span class="kw">let </span>prototype = context.intrinsics().constructors().number().prototype();
-                <span class="prelude-val">Ok</span>(JsObject::from_proto_and_data(
-                    prototype,
-                    ObjectData::number(f64::from(<span class="kw-2">*</span>integer)),
-                ))
-            }
-            <span class="self">Self</span>::Rational(rational) =&gt; {
-                <span class="kw">let </span>prototype = context.intrinsics().constructors().number().prototype();
-                <span class="prelude-val">Ok</span>(JsObject::from_proto_and_data(
-                    prototype,
-                    ObjectData::number(<span class="kw-2">*</span>rational),
-                ))
-            }
-            <span class="self">Self</span>::String(<span class="kw-2">ref </span>string) =&gt; {
-                <span class="kw">let </span>prototype = context.intrinsics().constructors().string().prototype();
-
-                <span class="kw">let </span>object =
-                    JsObject::from_proto_and_data(prototype, ObjectData::string(string.clone()));
-                <span class="comment">// Make sure the correct length is set on our new string object
-                </span>object.insert_property(
-                    <span class="macro">utf16!</span>(<span class="string">&quot;length&quot;</span>),
-                    PropertyDescriptor::builder()
-                        .value(string.len())
-                        .writable(<span class="bool-val">false</span>)
-                        .enumerable(<span class="bool-val">false</span>)
-                        .configurable(<span class="bool-val">false</span>),
-                );
-                <span class="prelude-val">Ok</span>(object)
-            }
-            <span class="self">Self</span>::Symbol(<span class="kw-2">ref </span>symbol) =&gt; {
-                <span class="kw">let </span>prototype = context.intrinsics().constructors().symbol().prototype();
-                <span class="prelude-val">Ok</span>(JsObject::from_proto_and_data(
-                    prototype,
-                    ObjectData::symbol(symbol.clone()),
-                ))
-            }
-            <span class="self">Self</span>::BigInt(<span class="kw-2">ref </span>bigint) =&gt; {
-                <span class="kw">let </span>prototype = context.intrinsics().constructors().bigint().prototype();
-                <span class="prelude-val">Ok</span>(JsObject::from_proto_and_data(
-                    prototype,
-                    ObjectData::big_int(bigint.clone()),
-                ))
-            }
+            <span class="self">Self</span>::Boolean(boolean) =&gt; <span class="prelude-val">Ok</span>(context
+                .intrinsics()
+                .templates()
+                .boolean()
+                .create(ObjectData::boolean(<span class="kw-2">*</span>boolean), Vec::default())),
+            <span class="self">Self</span>::Integer(integer) =&gt; <span class="prelude-val">Ok</span>(context
+                .intrinsics()
+                .templates()
+                .number()
+                .create(ObjectData::number(f64::from(<span class="kw-2">*</span>integer)), Vec::default())),
+            <span class="self">Self</span>::Rational(rational) =&gt; <span class="prelude-val">Ok</span>(context
+                .intrinsics()
+                .templates()
+                .number()
+                .create(ObjectData::number(<span class="kw-2">*</span>rational), Vec::default())),
+            <span class="self">Self</span>::String(<span class="kw-2">ref </span>string) =&gt; <span class="prelude-val">Ok</span>(context.intrinsics().templates().string().create(
+                ObjectData::string(string.clone()),
+                <span class="macro">vec!</span>[string.len().into()],
+            )),
+            <span class="self">Self</span>::Symbol(<span class="kw-2">ref </span>symbol) =&gt; <span class="prelude-val">Ok</span>(context
+                .intrinsics()
+                .templates()
+                .symbol()
+                .create(ObjectData::symbol(symbol.clone()), Vec::default())),
+            <span class="self">Self</span>::BigInt(<span class="kw-2">ref </span>bigint) =&gt; <span class="prelude-val">Ok</span>(context
+                .intrinsics()
+                .templates()
+                .bigint()
+                .create(ObjectData::big_int(bigint.clone()), Vec::default())),
             <span class="self">Self</span>::Object(jsobject) =&gt; <span class="prelude-val">Ok</span>(jsobject.clone()),
         }
     }

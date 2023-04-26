@@ -275,7 +275,6 @@
 <a href="#274" id="274">274</a>
 <a href="#275" id="275">275</a>
 <a href="#276" id="276">276</a>
-<a href="#277" id="277">277</a>
 </pre><pre class="rust"><code><span class="doccomment">//! Boa&#39;s implementation of ECMAScript&#39;s global `eval` function.
 //!
 //! The `eval()` function evaluates ECMAScript code represented as a string.
@@ -309,8 +308,7 @@
     <span class="kw">fn </span>init(realm: <span class="kw-2">&amp;</span>Realm) {
         <span class="kw">let </span>_timer = Profiler::global().start_event(<span class="self">Self</span>::NAME, <span class="string">&quot;init&quot;</span>);
 
-        BuiltInBuilder::with_intrinsic::&lt;<span class="self">Self</span>&gt;(realm)
-            .callable(<span class="self">Self</span>::eval)
+        BuiltInBuilder::callable_with_intrinsic::&lt;<span class="self">Self</span>&gt;(realm, <span class="self">Self</span>::eval)
             .name(<span class="self">Self</span>::NAME)
             .length(<span class="number">1</span>)
             .build();

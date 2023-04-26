@@ -66,6 +66,10 @@
 <a href="#65" id="65">65</a>
 <a href="#66" id="66">66</a>
 <a href="#67" id="67">67</a>
+<a href="#68" id="68">68</a>
+<a href="#69" id="69">69</a>
+<a href="#70" id="70">70</a>
+<a href="#71" id="71">71</a>
 </pre><pre class="rust"><code><span class="kw">use crate</span>::{
     object::{JsObject, ObjectData, CONSTRUCTOR, PROTOTYPE},
     property::PropertyDescriptorBuilder,
@@ -93,7 +97,11 @@
             <span class="kw">_ </span>=&gt; <span class="macro">unreachable!</span>(),
         };
 
-        <span class="kw">let </span>proto = JsObject::from_proto_and_data(prototype, ObjectData::ordinary());
+        <span class="kw">let </span>proto = JsObject::from_proto_and_data_with_shared_shape(
+            context.root_shape(),
+            prototype,
+            ObjectData::ordinary(),
+        );
         <span class="kw">let </span>class = context.vm.pop();
 
         {

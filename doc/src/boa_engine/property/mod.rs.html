@@ -790,6 +790,19 @@
 <a href="#789" id="789">789</a>
 <a href="#790" id="790">790</a>
 <a href="#791" id="791">791</a>
+<a href="#792" id="792">792</a>
+<a href="#793" id="793">793</a>
+<a href="#794" id="794">794</a>
+<a href="#795" id="795">795</a>
+<a href="#796" id="796">796</a>
+<a href="#797" id="797">797</a>
+<a href="#798" id="798">798</a>
+<a href="#799" id="799">799</a>
+<a href="#800" id="800">800</a>
+<a href="#801" id="801">801</a>
+<a href="#802" id="802">802</a>
+<a href="#803" id="803">803</a>
+<a href="#804" id="804">804</a>
 </pre><pre class="rust"><code><span class="doccomment">//! Boa&#39;s implementation of ECMAScript&#39;s Property Descriptor.
 //!
 //! The Property Descriptor type is used to explain the manipulation and reification of `Object`
@@ -809,7 +822,7 @@
 
 </span><span class="kw">mod </span>attribute;
 
-<span class="kw">use crate</span>::{js_string, JsString, JsSymbol, JsValue};
+<span class="kw">use crate</span>::{js_string, object::shape::slot::SlotAttributes, JsString, JsSymbol, JsValue};
 <span class="kw">use </span>boa_gc::{Finalize, Trace};
 <span class="kw">use </span>std::{fmt, iter::FusedIterator};
 
@@ -1130,6 +1143,19 @@
             <span class="self">self</span>.configurable = <span class="prelude-val">Some</span>(configurable);
         }
     }
+
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>to_slot_attributes(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; SlotAttributes {
+        <span class="kw">let </span><span class="kw-2">mut </span>attributes = SlotAttributes::empty();
+        attributes.set(SlotAttributes::CONFIGURABLE, <span class="self">self</span>.expect_configurable());
+        attributes.set(SlotAttributes::ENUMERABLE, <span class="self">self</span>.expect_enumerable());
+        <span class="kw">if </span><span class="self">self</span>.is_data_descriptor() {
+            attributes.set(SlotAttributes::WRITABLE, <span class="self">self</span>.expect_writable());
+        } <span class="kw">else </span>{
+            attributes.set(SlotAttributes::GET, <span class="self">self</span>.get().is_some());
+            attributes.set(SlotAttributes::SET, <span class="self">self</span>.set().is_some());
+        }
+        attributes
+    }
 }
 
 <span class="doccomment">/// A builder for [`PropertyDescriptor`].
@@ -1349,7 +1375,7 @@
 /// - [ECMAScript reference][spec]
 ///
 /// [spec]: https://tc39.es/ecma262/#sec-ispropertykey
-</span><span class="attr">#[derive(PartialEq, Debug, Clone, Eq, Hash)]
+</span><span class="attr">#[derive(Finalize, PartialEq, Debug, Clone, Eq, Hash)]
 </span><span class="kw">pub enum </span>PropertyKey {
     <span class="doccomment">/// A string property key.
     </span>String(JsString),

@@ -250,6 +250,11 @@
 <a href="#249" id="249">249</a>
 <a href="#250" id="250">250</a>
 <a href="#251" id="251">251</a>
+<a href="#252" id="252">252</a>
+<a href="#253" id="253">253</a>
+<a href="#254" id="254">254</a>
+<a href="#255" id="255">255</a>
+<a href="#256" id="256">256</a>
 </pre><pre class="rust"><code><span class="doccomment">//! This module implements the conversions from and into [`serde_json::Value`].
 
 </span><span class="kw">use </span><span class="kw">super</span>::JsValue;
@@ -389,8 +394,8 @@
                     <span class="prelude-val">Ok</span>(Value::Array(arr))
                 } <span class="kw">else </span>{
                     <span class="kw">let </span><span class="kw-2">mut </span>map = Map::new();
-                    <span class="kw">for </span>(key, property) <span class="kw">in </span>obj.borrow().properties().iter() {
-                        <span class="kw">let </span>key = <span class="kw">match </span><span class="kw-2">&amp;</span>key {
+                    <span class="kw">for </span>property_key <span class="kw">in </span>obj.borrow().properties().shape.keys() {
+                        <span class="kw">let </span>key = <span class="kw">match </span><span class="kw-2">&amp;</span>property_key {
                             PropertyKey::String(string) =&gt; string.to_std_string_escaped(),
                             PropertyKey::Index(i) =&gt; i.to_string(),
                             PropertyKey::Symbol(_sym) =&gt; {
@@ -400,7 +405,12 @@
                             }
                         };
 
-                        <span class="kw">let </span>value = <span class="kw">match </span>property.value() {
+                        <span class="kw">let </span>value = <span class="kw">match </span>obj
+                            .borrow()
+                            .properties()
+                            .get(<span class="kw-2">&amp;</span>property_key)
+                            .and_then(|x| x.value().cloned())
+                        {
                             <span class="prelude-val">Some</span>(val) =&gt; val.to_json(context)<span class="question-mark">?</span>,
                             <span class="prelude-val">None </span>=&gt; Value::Null,
                         };

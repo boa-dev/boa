@@ -615,6 +615,11 @@
 <a href="#614" id="614">614</a>
 <a href="#615" id="615">615</a>
 <a href="#616" id="616">616</a>
+<a href="#617" id="617">617</a>
+<a href="#618" id="618">618</a>
+<a href="#619" id="619">619</a>
+<a href="#620" id="620">620</a>
+<a href="#621" id="621">621</a>
 </pre><pre class="rust"><code><span class="doccomment">//! A Rust API wrapper for Boa&#39;s `Date` ECMAScript Builtin Object.
 </span><span class="kw">use </span>std::ops::Deref;
 
@@ -660,7 +665,8 @@
     </span><span class="attr">#[inline]
     </span><span class="kw">pub fn </span>new(context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <span class="self">Self </span>{
         <span class="kw">let </span>prototype = context.intrinsics().constructors().date().prototype();
-        <span class="kw">let </span>inner = JsObject::from_proto_and_data(
+        <span class="kw">let </span>inner = JsObject::from_proto_and_data_with_shared_shape(
+            context.root_shape(),
             prototype,
             ObjectData::date(Date::utc_now(<span class="kw-2">&amp;*</span>context.host_hooks())),
         );
@@ -1191,7 +1197,11 @@
         <span class="kw">let </span>date_time = Date::new(<span class="prelude-val">Some</span>(date_time.naive_local().timestamp_millis()));
 
         <span class="prelude-val">Ok</span>(<span class="self">Self </span>{
-            inner: JsObject::from_proto_and_data(prototype, ObjectData::date(date_time)),
+            inner: JsObject::from_proto_and_data_with_shared_shape(
+                context.root_shape(),
+                prototype,
+                ObjectData::date(date_time),
+            ),
         })
     }
 }

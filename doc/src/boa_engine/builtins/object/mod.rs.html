@@ -1399,6 +1399,9 @@
 <a href="#1398" id="1398">1398</a>
 <a href="#1399" id="1399">1399</a>
 <a href="#1400" id="1400">1400</a>
+<a href="#1401" id="1401">1401</a>
+<a href="#1402" id="1402">1402</a>
+<a href="#1403" id="1403">1403</a>
 </pre><pre class="rust"><code><span class="doccomment">//! Boa&#39;s implementation of ECMAScript&#39;s global `Object` object.
 //!
 //! The `Object` class represents one of ECMAScript&#39;s data types.
@@ -1449,13 +1452,11 @@
     <span class="kw">fn </span>init(realm: <span class="kw-2">&amp;</span>Realm) {
         <span class="kw">let </span>_timer = Profiler::global().start_event(<span class="self">Self</span>::NAME, <span class="string">&quot;init&quot;</span>);
 
-        <span class="kw">let </span>legacy_proto_getter = BuiltInBuilder::new(realm)
-            .callable(<span class="self">Self</span>::legacy_proto_getter)
+        <span class="kw">let </span>legacy_proto_getter = BuiltInBuilder::callable(realm, <span class="self">Self</span>::legacy_proto_getter)
             .name(<span class="string">&quot;get __proto__&quot;</span>)
             .build();
 
-        <span class="kw">let </span>legacy_setter_proto = BuiltInBuilder::new(realm)
-            .callable(<span class="self">Self</span>::legacy_proto_setter)
+        <span class="kw">let </span>legacy_setter_proto = BuiltInBuilder::callable(realm, <span class="self">Self</span>::legacy_proto_setter)
             .name(<span class="string">&quot;set __proto__&quot;</span>)
             .build();
 
@@ -1543,7 +1544,11 @@
             <span class="comment">//     a. Return ? OrdinaryCreateFromConstructor(NewTarget, &quot;%Object.prototype%&quot;).
             </span><span class="kw">let </span>prototype =
                 get_prototype_from_constructor(new_target, StandardConstructors::object, context)<span class="question-mark">?</span>;
-            <span class="kw">let </span>object = JsObject::from_proto_and_data(prototype, ObjectData::ordinary());
+            <span class="kw">let </span>object = JsObject::from_proto_and_data_with_shared_shape(
+                context.root_shape(),
+                prototype,
+                ObjectData::ordinary(),
+            );
             <span class="kw">return </span><span class="prelude-val">Ok</span>(object.into());
         }
 
@@ -1820,7 +1825,8 @@
         <span class="kw">let </span>properties = args.get_or_undefined(<span class="number">1</span>);
 
         <span class="kw">let </span>obj = <span class="kw">match </span>prototype {
-            JsValue::Object(<span class="kw">_</span>) | JsValue::Null =&gt; JsObject::from_proto_and_data(
+            JsValue::Object(<span class="kw">_</span>) | JsValue::Null =&gt; JsObject::from_proto_and_data_with_shared_shape(
+                context.root_shape(),
                 prototype.as_object().cloned(),
                 ObjectData::ordinary(),
             ),

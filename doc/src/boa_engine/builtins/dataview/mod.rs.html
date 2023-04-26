@@ -1076,8 +1076,6 @@
 <a href="#1075" id="1075">1075</a>
 <a href="#1076" id="1076">1076</a>
 <a href="#1077" id="1077">1077</a>
-<a href="#1078" id="1078">1078</a>
-<a href="#1079" id="1079">1079</a>
 </pre><pre class="rust"><code><span class="doccomment">//! Boa&#39;s implementation of ECMAScript&#39;s global `DataView` object.
 //!
 //! More information:
@@ -1115,18 +1113,15 @@
     <span class="kw">fn </span>init(realm: <span class="kw-2">&amp;</span>Realm) {
         <span class="kw">let </span>flag_attributes = Attribute::CONFIGURABLE | Attribute::NON_ENUMERABLE;
 
-        <span class="kw">let </span>get_buffer = BuiltInBuilder::new(realm)
-            .callable(<span class="self">Self</span>::get_buffer)
+        <span class="kw">let </span>get_buffer = BuiltInBuilder::callable(realm, <span class="self">Self</span>::get_buffer)
             .name(<span class="string">&quot;get buffer&quot;</span>)
             .build();
 
-        <span class="kw">let </span>get_byte_length = BuiltInBuilder::new(realm)
-            .callable(<span class="self">Self</span>::get_byte_length)
+        <span class="kw">let </span>get_byte_length = BuiltInBuilder::callable(realm, <span class="self">Self</span>::get_byte_length)
             .name(<span class="string">&quot;get byteLength&quot;</span>)
             .build();
 
-        <span class="kw">let </span>get_byte_offset = BuiltInBuilder::new(realm)
-            .callable(<span class="self">Self</span>::get_byte_offset)
+        <span class="kw">let </span>get_byte_offset = BuiltInBuilder::callable(realm, <span class="self">Self</span>::get_byte_offset)
             .name(<span class="string">&quot;get byteOffset&quot;</span>)
             .build();
 
@@ -1274,7 +1269,8 @@
                 .into());
         }
 
-        <span class="kw">let </span>obj = JsObject::from_proto_and_data(
+        <span class="kw">let </span>obj = JsObject::from_proto_and_data_with_shared_shape(
+            context.root_shape(),
             prototype,
             ObjectData::data_view(<span class="self">Self </span>{
                 <span class="comment">// 11. Set O.[[ViewedArrayBuffer]] to buffer.

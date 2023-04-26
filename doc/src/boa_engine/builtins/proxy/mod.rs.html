@@ -238,9 +238,8 @@
         <span class="kw">let </span>_timer = Profiler::global().start_event(<span class="self">Self</span>::NAME, <span class="string">&quot;init&quot;</span>);
 
         BuiltInBuilder::from_standard_constructor::&lt;<span class="self">Self</span>&gt;(realm)
-            .no_proto()
             .static_method(<span class="self">Self</span>::revocable, <span class="string">&quot;revocable&quot;</span>, <span class="number">2</span>)
-            .build();
+            .build_without_prototype();
     }
 
     <span class="kw">fn </span>get(intrinsics: <span class="kw-2">&amp;</span>Intrinsics) -&gt; JsObject {
@@ -328,7 +327,8 @@
         // i. Set P.[[Construct]] as specified in 10.5.13.
         // 6. Set P.[[ProxyTarget]] to target.
         // 7. Set P.[[ProxyHandler]] to handler.
-        </span><span class="kw">let </span>p = JsObject::from_proto_and_data(
+        </span><span class="kw">let </span>p = JsObject::from_proto_and_data_with_shared_shape(
+            context.root_shape(),
             context.intrinsics().constructors().object().prototype(),
             ObjectData::proxy(
                 <span class="self">Self</span>::new(target.clone(), handler.clone()),

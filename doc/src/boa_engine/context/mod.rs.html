@@ -735,6 +735,14 @@
 <a href="#734" id="734">734</a>
 <a href="#735" id="735">735</a>
 <a href="#736" id="736">736</a>
+<a href="#737" id="737">737</a>
+<a href="#738" id="738">738</a>
+<a href="#739" id="739">739</a>
+<a href="#740" id="740">740</a>
+<a href="#741" id="741">741</a>
+<a href="#742" id="742">742</a>
+<a href="#743" id="743">743</a>
+<a href="#744" id="744">744</a>
 </pre><pre class="rust"><code><span class="doccomment">//! The ECMAScript context.
 
 </span><span class="kw">mod </span>hooks;
@@ -759,7 +767,7 @@
     class::{Class, ClassBuilder},
     job::{JobQueue, NativeJob, SimpleJobQueue},
     native_function::NativeFunction,
-    object::{FunctionObjectBuilder, JsObject},
+    object::{shape::SharedShape, FunctionObjectBuilder, JsObject},
     optimizer::{Optimizer, OptimizerOptions, OptimizerStatistics},
     property::{Attribute, PropertyDescriptor, PropertyKey},
     realm::Realm,
@@ -841,6 +849,7 @@
     job_queue: MaybeShared&lt;<span class="lifetime">&#39;host</span>, <span class="kw">dyn </span>JobQueue&gt;,
 
     optimizer_options: OptimizerOptions,
+    root_shape: SharedShape,
 }
 
 <span class="kw">impl </span>std::fmt::Debug <span class="kw">for </span>Context&lt;<span class="lifetime">&#39;_</span>&gt; {
@@ -1273,6 +1282,10 @@
         std::mem::replace(<span class="kw-2">&amp;mut </span><span class="self">self</span>.realm, realm)
     }
 
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>root_shape(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; SharedShape {
+        <span class="self">self</span>.root_shape.clone()
+    }
+
     <span class="doccomment">/// Gets the host hooks.
     </span><span class="kw">pub fn </span>host_hooks(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; MaybeShared&lt;<span class="lifetime">&#39;host</span>, <span class="kw">dyn </span>HostHooks&gt; {
         <span class="self">self</span>.host_hooks.clone()
@@ -1437,11 +1450,13 @@
         <span class="lifetime">&#39;hooks</span>: <span class="lifetime">&#39;host</span>,
         <span class="lifetime">&#39;queue</span>: <span class="lifetime">&#39;host</span>,
     {
+        <span class="kw">let </span>root_shape = SharedShape::root();
+
         <span class="kw">let </span>host_hooks = <span class="self">self</span>.host_hooks.unwrap_or_else(|| {
             <span class="kw">let </span>hooks: <span class="kw-2">&amp;</span><span class="kw">dyn </span>HostHooks = <span class="kw-2">&amp;</span>DefaultHooks;
             hooks.into()
         });
-        <span class="kw">let </span>realm = Realm::create(<span class="kw-2">&amp;*</span>host_hooks);
+        <span class="kw">let </span>realm = Realm::create(<span class="kw-2">&amp;*</span>host_hooks, <span class="kw-2">&amp;</span>root_shape);
         <span class="kw">let </span>vm = Vm::new(realm.environment().clone());
 
         <span class="kw">let </span><span class="kw-2">mut </span>context = Context {
@@ -1464,6 +1479,7 @@
                 queue.into()
             }),
             optimizer_options: OptimizerOptions::OPTIMIZE_ALL,
+            root_shape,
         };
 
         builtins::set_default_global_bindings(<span class="kw-2">&amp;mut </span>context)<span class="question-mark">?</span>;

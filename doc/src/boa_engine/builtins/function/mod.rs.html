@@ -1571,17 +1571,7 @@
     <span class="kw">fn </span>init(realm: <span class="kw-2">&amp;</span>Realm) {
         <span class="kw">let </span>_timer = Profiler::global().start_event(<span class="string">&quot;function&quot;</span>, <span class="string">&quot;init&quot;</span>);
 
-        BuiltInBuilder::with_object(
-            realm,
-            realm.intrinsics().constructors().function().prototype(),
-        )
-        .callable(<span class="self">Self</span>::prototype)
-        .name(<span class="string">&quot;&quot;</span>)
-        .length(<span class="number">0</span>)
-        .build();
-
-        <span class="kw">let </span>has_instance = BuiltInBuilder::new(realm)
-            .callable(<span class="self">Self</span>::has_instance)
+        <span class="kw">let </span>has_instance = BuiltInBuilder::callable(realm, <span class="self">Self</span>::has_instance)
             .name(<span class="string">&quot;[Symbol.iterator]&quot;</span>)
             .length(<span class="number">1</span>)
             .build();
@@ -1607,6 +1597,15 @@
                 Attribute::CONFIGURABLE,
             )
             .build();
+
+        <span class="kw">let </span>prototype = realm.intrinsics().constructors().function().prototype();
+
+        BuiltInBuilder::callable_with_object(realm, prototype.clone(), <span class="self">Self</span>::prototype)
+            .name(<span class="string">&quot;&quot;</span>)
+            .length(<span class="number">0</span>)
+            .build();
+
+        prototype.set_prototype(<span class="prelude-val">Some</span>(realm.intrinsics().constructors().object().prototype()));
     }
 
     <span class="kw">fn </span>get(intrinsics: <span class="kw-2">&amp;</span>Intrinsics) -&gt; JsObject {
@@ -2227,7 +2226,8 @@
         // 8. Set obj.[[BoundThis]] to boundThis.
         // 9. Set obj.[[BoundArguments]] to boundArgs.
         // 10. Return obj.
-        </span><span class="prelude-val">Ok</span>(JsObject::from_proto_and_data(
+        </span><span class="prelude-val">Ok</span>(JsObject::from_proto_and_data_with_shared_shape(
+            context.root_shape(),
             proto,
             ObjectData::bound_function(
                 <span class="self">Self </span>{

@@ -936,6 +936,10 @@
 <a href="#935" id="935">935</a>
 <a href="#936" id="936">936</a>
 <a href="#937" id="937">937</a>
+<a href="#938" id="938">938</a>
+<a href="#939" id="939">939</a>
+<a href="#940" id="940">940</a>
+<a href="#941" id="941">941</a>
 </pre><pre class="rust"><code><span class="doccomment">//! Boa&#39;s implementation of ECMAScript&#39;s global `Number` object.
 //!
 //! The `Number` ECMAScript object is a wrapper object allowing you to work with numerical values.
@@ -1059,7 +1063,11 @@
         }
         <span class="kw">let </span>prototype =
             get_prototype_from_constructor(new_target, StandardConstructors::number, context)<span class="question-mark">?</span>;
-        <span class="kw">let </span>this = JsObject::from_proto_and_data(prototype, ObjectData::number(data));
+        <span class="kw">let </span>this = JsObject::from_proto_and_data_with_shared_shape(
+            context.root_shape(),
+            prototype,
+            ObjectData::number(data),
+        );
         <span class="prelude-val">Ok</span>(this.into())
     }
 }

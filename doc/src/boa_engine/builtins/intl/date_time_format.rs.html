@@ -286,6 +286,11 @@
 <a href="#285" id="285">285</a>
 <a href="#286" id="286">286</a>
 <a href="#287" id="287">287</a>
+<a href="#288" id="288">288</a>
+<a href="#289" id="289">289</a>
+<a href="#290" id="290">290</a>
+<a href="#291" id="291">291</a>
+<a href="#292" id="292">292</a>
 </pre><pre class="rust"><code><span class="doccomment">//! This module implements the global `Intl.DateTimeFormat` object.
 //!
 //! `Intl.DateTimeFormat` is a built-in object that has properties and methods for date and time i18n.
@@ -410,7 +415,8 @@
         // « [[InitializedDateTimeFormat]], [[Locale]], [[Calendar]], [[NumberingSystem]], [[TimeZone]], [[Weekday]],
         // [[Era]], [[Year]], [[Month]], [[Day]], [[DayPeriod]], [[Hour]], [[Minute]], [[Second]],
         // [[FractionalSecondDigits]], [[TimeZoneName]], [[HourCycle]], [[Pattern]], [[BoundFormat]] »).
-        </span><span class="kw">let </span>date_time_format = JsObject::from_proto_and_data(
+        </span><span class="kw">let </span>date_time_format = JsObject::from_proto_and_data_with_shared_shape(
+            context.root_shape(),
             prototype,
             ObjectData::date_time_format(Box::new(<span class="self">Self </span>{
                 initialized_date_time_format: <span class="bool-val">true</span>,
@@ -480,7 +486,11 @@
     </span>} <span class="kw">else </span>{
         <span class="prelude-val">Some</span>(options.to_object(context)<span class="question-mark">?</span>)
     };
-    <span class="kw">let </span>options = JsObject::from_proto_and_data(options, ObjectData::ordinary());
+    <span class="kw">let </span>options = JsObject::from_proto_and_data_with_shared_shape(
+        context.root_shape(),
+        options,
+        ObjectData::ordinary(),
+    );
 
     <span class="comment">// 3. Let needDefaults be true.
     </span><span class="kw">let </span><span class="kw-2">mut </span>need_defaults = <span class="bool-val">true</span>;

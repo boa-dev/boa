@@ -127,6 +127,10 @@
 <a href="#126" id="126">126</a>
 <a href="#127" id="127">127</a>
 <a href="#128" id="128">128</a>
+<a href="#129" id="129">129</a>
+<a href="#130" id="130">130</a>
+<a href="#131" id="131">131</a>
+<a href="#132" id="132">132</a>
 </pre><pre class="rust"><code><span class="doccomment">//! Boa&#39;s implementation of ECMAScript&#39;s global `Boolean` object.
 //!
 //! The `Boolean` object is an object wrapper for a boolean value.
@@ -197,7 +201,11 @@
         }
         <span class="kw">let </span>prototype =
             get_prototype_from_constructor(new_target, StandardConstructors::boolean, context)<span class="question-mark">?</span>;
-        <span class="kw">let </span>boolean = JsObject::from_proto_and_data(prototype, ObjectData::boolean(data));
+        <span class="kw">let </span>boolean = JsObject::from_proto_and_data_with_shared_shape(
+            context.root_shape(),
+            prototype,
+            ObjectData::boolean(data),
+        );
 
         <span class="prelude-val">Ok</span>(boolean.into())
     }

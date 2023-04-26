@@ -254,6 +254,7 @@
 <a href="#253" id="253">253</a>
 <a href="#254" id="254">254</a>
 <a href="#255" id="255">255</a>
+<a href="#256" id="256">256</a>
 </pre><pre class="rust"><code><span class="doccomment">//! Boa&#39;s implementation of ECMAScript&#39;s `WeakSet` builtin object.
 //!
 //! More information:
@@ -334,7 +335,8 @@
 
         <span class="comment">// 2. Let set be ? OrdinaryCreateFromConstructor(NewTarget, &quot;%WeakSet.prototype%&quot;, « [[WeakSetData]] »).
         // 3. Set set.[[WeakSetData]] to a new empty List.
-        </span><span class="kw">let </span>weak_set = JsObject::from_proto_and_data(
+        </span><span class="kw">let </span>weak_set = JsObject::from_proto_and_data_with_shared_shape(
+            context.root_shape(),
             get_prototype_from_constructor(new_target, StandardConstructors::weak_set, context)<span class="question-mark">?</span>,
             ObjectData::weak_set(WeakMap::new()),
         );

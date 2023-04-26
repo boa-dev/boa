@@ -317,6 +317,10 @@
 <a href="#316" id="316">316</a>
 <a href="#317" id="317">317</a>
 <a href="#318" id="318">318</a>
+<a href="#319" id="319">319</a>
+<a href="#320" id="320">320</a>
+<a href="#321" id="321">321</a>
+<a href="#322" id="322">322</a>
 </pre><pre class="rust"><code><span class="kw">use </span>std::ops::Range;
 
 <span class="kw">use </span>boa_macros::utf16;
@@ -482,7 +486,11 @@
         </span><span class="kw">let </span>proto =
             get_prototype_from_constructor(new_target, StandardConstructors::segmenter, context)<span class="question-mark">?</span>;
 
-        <span class="kw">let </span>segmenter = JsObject::from_proto_and_data(proto, ObjectData::segmenter(segmenter));
+        <span class="kw">let </span>segmenter = JsObject::from_proto_and_data_with_shared_shape(
+            context.root_shape(),
+            proto,
+            ObjectData::segmenter(segmenter),
+        );
 
         <span class="comment">// 14. Return segmenter.
         </span><span class="prelude-val">Ok</span>(segmenter.into())

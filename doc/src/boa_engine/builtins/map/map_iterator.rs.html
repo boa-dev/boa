@@ -155,6 +155,7 @@
 <a href="#154" id="154">154</a>
 <a href="#155" id="155">155</a>
 <a href="#156" id="156">156</a>
+<a href="#157" id="157">157</a>
 </pre><pre class="rust"><code><span class="doccomment">//! This module implements the `MapIterator` object.
 //!
 //! More information:
@@ -242,7 +243,8 @@
                     map_iteration_kind: kind,
                     lock,
                 };
-                <span class="kw">let </span>map_iterator = JsObject::from_proto_and_data(
+                <span class="kw">let </span>map_iterator = JsObject::from_proto_and_data_with_shared_shape(
+                    context.root_shape(),
                     context.intrinsics().objects().iterator_prototypes().map(),
                     ObjectData::map_iterator(iter),
                 );

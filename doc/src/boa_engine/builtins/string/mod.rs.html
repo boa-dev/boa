@@ -2787,6 +2787,8 @@
 <a href="#2786" id="2786">2786</a>
 <a href="#2787" id="2787">2787</a>
 <a href="#2788" id="2788">2788</a>
+<a href="#2789" id="2789">2789</a>
+<a href="#2790" id="2790">2790</a>
 </pre><pre class="rust"><code><span class="doccomment">//! Boa&#39;s implementation of ECMAScript&#39;s global `String` object.
 //!
 //! The `String` global object is a constructor for strings or a sequence of characters.
@@ -2869,14 +2871,12 @@
 
         <span class="kw">let </span>symbol_iterator = JsSymbol::iterator();
 
-        <span class="kw">let </span>trim_start = BuiltInBuilder::new(realm)
-            .callable(<span class="self">Self</span>::trim_start)
+        <span class="kw">let </span>trim_start = BuiltInBuilder::callable(realm, <span class="self">Self</span>::trim_start)
             .length(<span class="number">0</span>)
             .name(<span class="string">&quot;trimStart&quot;</span>)
             .build();
 
-        <span class="kw">let </span>trim_end = BuiltInBuilder::new(realm)
-            .callable(<span class="self">Self</span>::trim_end)
+        <span class="kw">let </span>trim_end = BuiltInBuilder::callable(realm, <span class="self">Self</span>::trim_end)
             .length(<span class="number">0</span>)
             .name(<span class="string">&quot;trimEnd&quot;</span>)
             .build();
@@ -3044,7 +3044,11 @@
         // 4. Set S.[[GetOwnProperty]] as specified in 10.4.3.1.
         // 5. Set S.[[DefineOwnProperty]] as specified in 10.4.3.2.
         // 6. Set S.[[OwnPropertyKeys]] as specified in 10.4.3.3.
-        </span><span class="kw">let </span>s = JsObject::from_proto_and_data(prototype, ObjectData::string(value));
+        </span><span class="kw">let </span>s = JsObject::from_proto_and_data_with_shared_shape(
+            context.root_shape(),
+            prototype,
+            ObjectData::string(value),
+        );
 
         <span class="comment">// 8. Perform ! DefinePropertyOrThrow(S, &quot;length&quot;, PropertyDescriptor { [[Value]]: 𝔽(length),
         // [[Writable]]: false, [[Enumerable]]: false, [[Configurable]]: false }).

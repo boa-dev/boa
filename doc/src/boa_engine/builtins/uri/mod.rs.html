@@ -566,10 +566,6 @@
 <a href="#565" id="565">565</a>
 <a href="#566" id="566">566</a>
 <a href="#567" id="567">567</a>
-<a href="#568" id="568">568</a>
-<a href="#569" id="569">569</a>
-<a href="#570" id="570">570</a>
-<a href="#571" id="571">571</a>
 </pre><pre class="rust"><code><span class="doccomment">//! Boa&#39;s implementation of ECMAScript&#39;s URI Handling Functions.
 //!
 //! Uniform Resource Identifiers, or URIs, are Strings that identify resources (e.g. web pages or
@@ -654,8 +650,7 @@
 
 <span class="kw">impl </span>IntrinsicObject <span class="kw">for </span>DecodeUri {
     <span class="kw">fn </span>init(realm: <span class="kw-2">&amp;</span>Realm) {
-        BuiltInBuilder::with_intrinsic::&lt;<span class="self">Self</span>&gt;(realm)
-            .callable(decode_uri)
+        BuiltInBuilder::callable_with_intrinsic::&lt;<span class="self">Self</span>&gt;(realm, decode_uri)
             .name(<span class="self">Self</span>::NAME)
             .length(<span class="number">1</span>)
             .build();
@@ -673,8 +668,7 @@
 
 <span class="kw">impl </span>IntrinsicObject <span class="kw">for </span>DecodeUriComponent {
     <span class="kw">fn </span>init(realm: <span class="kw-2">&amp;</span>Realm) {
-        BuiltInBuilder::with_intrinsic::&lt;<span class="self">Self</span>&gt;(realm)
-            .callable(decode_uri_component)
+        BuiltInBuilder::callable_with_intrinsic::&lt;<span class="self">Self</span>&gt;(realm, decode_uri_component)
             .name(<span class="self">Self</span>::NAME)
             .length(<span class="number">1</span>)
             .build();
@@ -696,8 +690,7 @@
 
 <span class="kw">impl </span>IntrinsicObject <span class="kw">for </span>EncodeUri {
     <span class="kw">fn </span>init(realm: <span class="kw-2">&amp;</span>Realm) {
-        BuiltInBuilder::with_intrinsic::&lt;<span class="self">Self</span>&gt;(realm)
-            .callable(encode_uri)
+        BuiltInBuilder::callable_with_intrinsic::&lt;<span class="self">Self</span>&gt;(realm, encode_uri)
             .name(<span class="self">Self</span>::NAME)
             .length(<span class="number">1</span>)
             .build();
@@ -714,8 +707,7 @@
 
 <span class="kw">impl </span>IntrinsicObject <span class="kw">for </span>EncodeUriComponent {
     <span class="kw">fn </span>init(realm: <span class="kw-2">&amp;</span>Realm) {
-        BuiltInBuilder::with_intrinsic::&lt;<span class="self">Self</span>&gt;(realm)
-            .callable(encode_uri_component)
+        BuiltInBuilder::callable_with_intrinsic::&lt;<span class="self">Self</span>&gt;(realm, encode_uri_component)
             .name(<span class="self">Self</span>::NAME)
             .length(<span class="number">1</span>)
             .build();

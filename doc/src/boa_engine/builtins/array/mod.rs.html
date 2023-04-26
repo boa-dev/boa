@@ -3028,6 +3028,32 @@
 <a href="#3027" id="3027">3027</a>
 <a href="#3028" id="3028">3028</a>
 <a href="#3029" id="3029">3029</a>
+<a href="#3030" id="3030">3030</a>
+<a href="#3031" id="3031">3031</a>
+<a href="#3032" id="3032">3032</a>
+<a href="#3033" id="3033">3033</a>
+<a href="#3034" id="3034">3034</a>
+<a href="#3035" id="3035">3035</a>
+<a href="#3036" id="3036">3036</a>
+<a href="#3037" id="3037">3037</a>
+<a href="#3038" id="3038">3038</a>
+<a href="#3039" id="3039">3039</a>
+<a href="#3040" id="3040">3040</a>
+<a href="#3041" id="3041">3041</a>
+<a href="#3042" id="3042">3042</a>
+<a href="#3043" id="3043">3043</a>
+<a href="#3044" id="3044">3044</a>
+<a href="#3045" id="3045">3045</a>
+<a href="#3046" id="3046">3046</a>
+<a href="#3047" id="3047">3047</a>
+<a href="#3048" id="3048">3048</a>
+<a href="#3049" id="3049">3049</a>
+<a href="#3050" id="3050">3050</a>
+<a href="#3051" id="3051">3051</a>
+<a href="#3052" id="3052">3052</a>
+<a href="#3053" id="3053">3053</a>
+<a href="#3054" id="3054">3054</a>
+<a href="#3055" id="3055">3055</a>
 </pre><pre class="rust"><code><span class="doccomment">//! Boa&#39;s implementation of ECMAScript&#39;s global `Array` object.
 //!
 //! The ECMAScript `Array` class is a global object that is used in the construction of arrays; which are high-level, list-like objects.
@@ -3077,16 +3103,15 @@
         <span class="kw">let </span>symbol_iterator = JsSymbol::iterator();
         <span class="kw">let </span>symbol_unscopables = JsSymbol::unscopables();
 
-        <span class="kw">let </span>get_species = BuiltInBuilder::new(realm)
-            .callable(<span class="self">Self</span>::get_species)
+        <span class="kw">let </span>get_species = BuiltInBuilder::callable(realm, <span class="self">Self</span>::get_species)
             .name(<span class="string">&quot;get [Symbol.species]&quot;</span>)
             .build();
 
-        <span class="kw">let </span>values_function = BuiltInBuilder::with_object(
+        <span class="kw">let </span>values_function = BuiltInBuilder::callable_with_object(
             realm,
             realm.intrinsics().objects().array_prototype_values().into(),
+            <span class="self">Self</span>::values,
         )
-        .callable(<span class="self">Self</span>::values)
         .name(<span class="string">&quot;values&quot;</span>)
         .build();
 
@@ -3247,17 +3272,18 @@
 
             <span class="comment">// b. Let array be ? ArrayCreate(numberOfArgs, proto).
             </span><span class="kw">let </span>array = <span class="self">Self</span>::array_create(number_of_args <span class="kw">as </span>u64, <span class="prelude-val">Some</span>(prototype), context)<span class="question-mark">?</span>;
+
             <span class="comment">// c. Let k be 0.
             // d. Repeat, while k &lt; numberOfArgs,
-            </span><span class="kw">for </span>(i, item) <span class="kw">in </span>args.iter().cloned().enumerate() {
-                <span class="comment">// i. Let Pk be ! ToString(𝔽(k)).
-                // ii. Let itemK be values[k].
-                // iii. Perform ! CreateDataPropertyOrThrow(array, Pk, itemK).
-                </span>array
-                    .create_data_property_or_throw(i, item, context)
-                    .expect(<span class="string">&quot;this CreateDataPropertyOrThrow must not fail&quot;</span>);
-                <span class="comment">// iv. Set k to k + 1.
-            </span>}
+            //    i. Let Pk be ! ToString(𝔽(k)).
+            //    ii. Let itemK be values[k].
+            //    iii. Perform ! CreateDataPropertyOrThrow(array, Pk, itemK).
+            //    iv. Set k to k + 1.
+            </span>array
+                .borrow_mut()
+                .properties_mut()
+                .override_indexed_properties(args.iter().cloned().collect());
+
             <span class="comment">// e. Assert: The mathematical value of array&#39;s &quot;length&quot; property is numberOfArgs.
             // f. Return array.
             </span><span class="prelude-val">Ok</span>(array.into())
@@ -3283,6 +3309,16 @@
                 .with_message(<span class="string">&quot;array exceeded max size&quot;</span>)
                 .into());
         }
+
+        <span class="comment">// Fast path:
+        </span><span class="kw">if </span>prototype.is_none() {
+            <span class="kw">return </span><span class="prelude-val">Ok</span>(context
+                .intrinsics()
+                .templates()
+                .array()
+                .create(ObjectData::array(), <span class="macro">vec!</span>[JsValue::new(length)]));
+        }
+
         <span class="comment">// 7. Return A.
         // 2. If proto is not present, set proto to %Array.prototype%.
         // 3. Let A be ! MakeBasicObject(« [[Prototype]], [[Extensible]] »).
@@ -3290,7 +3326,26 @@
         // 5. Set A.[[DefineOwnProperty]] as specified in 10.4.2.1.
         </span><span class="kw">let </span>prototype =
             prototype.unwrap_or_else(|| context.intrinsics().constructors().array().prototype());
-        <span class="kw">let </span>array = JsObject::from_proto_and_data(prototype, ObjectData::array());
+
+        <span class="comment">// Fast path:
+        </span><span class="kw">if </span>context
+            .intrinsics()
+            .templates()
+            .array()
+            .has_prototype(<span class="kw-2">&amp;</span>prototype)
+        {
+            <span class="kw">return </span><span class="prelude-val">Ok</span>(context
+                .intrinsics()
+                .templates()
+                .array()
+                .create(ObjectData::array(), <span class="macro">vec!</span>[JsValue::new(length)]));
+        }
+
+        <span class="kw">let </span>array = JsObject::from_proto_and_data_with_shared_shape(
+            context.root_shape(),
+            prototype,
+            ObjectData::array(),
+        );
 
         <span class="comment">// 6. Perform ! OrdinaryDefineOwnProperty(A, &quot;length&quot;, PropertyDescriptor { [[Value]]: 𝔽(length), [[Writable]]: true, [[Enumerable]]: false, [[Configurable]]: false }).
         </span><span class="kw">crate</span>::object::internal_methods::ordinary_define_own_property(
@@ -3320,27 +3375,24 @@
     {
         <span class="comment">// 1. Assert: elements is a List whose elements are all ECMAScript language values.
         // 2. Let array be ! ArrayCreate(0).
-        </span><span class="kw">let </span>array = <span class="self">Self</span>::array_create(<span class="number">0</span>, <span class="prelude-val">None</span>, context)
-            .expect(<span class="string">&quot;creating an empty array with the default prototype must not fail&quot;</span>);
-
-        <span class="comment">// 3. Let n be 0.
+        // 3. Let n be 0.
         // 4. For each element e of elements, do
         //     a. Perform ! CreateDataPropertyOrThrow(array, ! ToString(𝔽(n)), e).
         //     b. Set n to n + 1.
-        //
+        // 5. Return array.
         // NOTE: This deviates from the spec, but it should have the same behaviour.
         </span><span class="kw">let </span>elements: ThinVec&lt;<span class="kw">_</span>&gt; = elements.into_iter().collect();
         <span class="kw">let </span>length = elements.len();
-        array
-            .borrow_mut()
-            .properties_mut()
-            .override_indexed_properties(elements);
-        array
-            .set(<span class="macro">utf16!</span>(<span class="string">&quot;length&quot;</span>), length, <span class="bool-val">true</span>, context)
-            .expect(<span class="string">&quot;Should not fail&quot;</span>);
 
-        <span class="comment">// 5. Return array.
-        </span>array
+        context
+            .intrinsics()
+            .templates()
+            .array()
+            .create_with_indexed_properties(
+                ObjectData::array(),
+                <span class="macro">vec!</span>[JsValue::new(length)],
+                elements,
+            )
     }
 
     <span class="doccomment">/// Utility function for concatenating array objects.

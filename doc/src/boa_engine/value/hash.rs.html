@@ -97,7 +97,7 @@
             <span class="self">Self</span>::BigInt(<span class="kw-2">ref </span>bigint) =&gt; bigint.hash(state),
             <span class="self">Self</span>::Rational(rational) =&gt; RationalHashable(<span class="kw-2">*</span>rational).hash(state),
             <span class="self">Self</span>::Symbol(<span class="kw-2">ref </span>symbol) =&gt; Hash::hash(symbol, state),
-            <span class="self">Self</span>::Object(<span class="kw-2">ref </span>object) =&gt; std::ptr::hash(object.as_ref(), state),
+            <span class="self">Self</span>::Object(<span class="kw-2">ref </span>object) =&gt; object.hash(state),
         }
     }
 }

@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"constant":["NUM_FLAGS","OPTIONS","OPTIONS_NAMES"],"struct":["InternalBitFlags","Iter","IterRaw","Slot","SlotAttributes"],"type":["SlotIndex"]};

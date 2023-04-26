@@ -147,6 +147,10 @@
 <a href="#146" id="146">146</a>
 <a href="#147" id="147">147</a>
 <a href="#148" id="148">148</a>
+<a href="#149" id="149">149</a>
+<a href="#150" id="150">150</a>
+<a href="#151" id="151">151</a>
+<a href="#152" id="152">152</a>
 </pre><pre class="rust"><code><span class="doccomment">//! This module implements the global `TypeError` object.
 //!
 //! The `TypeError` object represents an error when an operation could not be performed,
@@ -239,7 +243,11 @@
         <span class="comment">// 2. Let O be ? OrdinaryCreateFromConstructor(newTarget, &quot;%NativeError.prototype%&quot;, « [[ErrorData]] »).
         </span><span class="kw">let </span>prototype =
             get_prototype_from_constructor(new_target, StandardConstructors::type_error, context)<span class="question-mark">?</span>;
-        <span class="kw">let </span>o = JsObject::from_proto_and_data(prototype, ObjectData::error(ErrorKind::Type));
+        <span class="kw">let </span>o = JsObject::from_proto_and_data_with_shared_shape(
+            context.root_shape(),
+            prototype,
+            ObjectData::error(ErrorKind::Type),
+        );
 
         <span class="comment">// 3. If message is not undefined, then
         </span><span class="kw">let </span>message = args.get_or_undefined(<span class="number">0</span>);

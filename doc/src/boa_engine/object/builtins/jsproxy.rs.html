@@ -542,6 +542,7 @@
 <a href="#541" id="541">541</a>
 <a href="#542" id="542">542</a>
 <a href="#543" id="543">543</a>
+<a href="#544" id="544">544</a>
 </pre><pre class="rust"><code><span class="doccomment">//! A Rust API wrapper for the `Proxy` Builtin ECMAScript Object
 </span><span class="kw">use </span>boa_gc::{Finalize, Trace};
 
@@ -1062,7 +1063,8 @@
         <span class="kw">let </span>callable = <span class="self">self</span>.target.is_callable();
         <span class="kw">let </span>constructor = <span class="self">self</span>.target.is_constructor();
 
-        <span class="kw">let </span>proxy = JsObject::from_proto_and_data(
+        <span class="kw">let </span>proxy = JsObject::from_proto_and_data_with_shared_shape(
+            context.root_shape(),
             context.intrinsics().constructors().object().prototype(),
             ObjectData::proxy(Proxy::new(<span class="self">self</span>.target, handler), callable, constructor),
         );

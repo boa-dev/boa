@@ -341,12 +341,6 @@
 <a href="#340" id="340">340</a>
 <a href="#341" id="341">341</a>
 <a href="#342" id="342">342</a>
-<a href="#343" id="343">343</a>
-<a href="#344" id="344">344</a>
-<a href="#345" id="345">345</a>
-<a href="#346" id="346">346</a>
-<a href="#347" id="347">347</a>
-<a href="#348" id="348">348</a>
 </pre><pre class="rust"><code><span class="kw">use </span>std::borrow::Cow;
 
 <span class="kw">use crate</span>::{
@@ -416,15 +410,19 @@
         }
     };
     (props of <span class="macro-nonterminal">$obj</span>:expr, <span class="macro-nonterminal">$display_fn</span>:ident, <span class="macro-nonterminal">$indent</span>:expr, <span class="macro-nonterminal">$encounters</span>:expr, <span class="macro-nonterminal">$print_internals</span>:expr) =&gt; {
-        <span class="macro">print_obj_value!</span>(<span class="kw">impl </span><span class="macro-nonterminal">$obj</span>, |(key, val)| {
+        {<span class="kw">let </span><span class="kw-2">mut </span>keys: Vec&lt;<span class="kw">_</span>&gt; = <span class="macro-nonterminal">$obj</span>.borrow().properties().index_property_keys().map(<span class="kw">crate</span>::property::PropertyKey::Index).collect();
+        keys.extend(<span class="macro-nonterminal">$obj</span>.borrow().properties().shape.keys());
+        <span class="kw">let </span><span class="kw-2">mut </span>result = Vec::default();
+        <span class="kw">for </span>key <span class="kw">in </span>keys {
+            <span class="kw">let </span>val = <span class="macro-nonterminal">$obj</span>.borrow().properties().get(<span class="kw-2">&amp;</span>key).expect(<span class="string">&quot;There should be a value&quot;</span>);
             <span class="kw">if </span>val.is_data_descriptor() {
                 <span class="kw">let </span>v = <span class="kw-2">&amp;</span>val.expect_value();
-                <span class="macro">format!</span>(
+                result.push(<span class="macro">format!</span>(
                     <span class="string">&quot;{:&gt;width$}: {}&quot;</span>,
                     key,
                     <span class="macro-nonterminal">$display_fn</span>(v, <span class="macro-nonterminal">$encounters</span>, <span class="macro-nonterminal">$indent</span>.wrapping_add(<span class="number">4</span>), <span class="macro-nonterminal">$print_internals</span>),
                     width = <span class="macro-nonterminal">$indent</span>,
-                )
+                ));
             } <span class="kw">else </span>{
                <span class="kw">let </span>display = <span class="kw">match </span>(val.set().is_some(), val.get().is_some()) {
                     (<span class="bool-val">true</span>, <span class="bool-val">true</span>) =&gt; <span class="string">&quot;Getter &amp; Setter&quot;</span>,
@@ -432,20 +430,10 @@
                     (<span class="bool-val">false</span>, <span class="bool-val">true</span>) =&gt; <span class="string">&quot;Getter&quot;</span>,
                     <span class="kw">_ </span>=&gt; <span class="string">&quot;No Getter/Setter&quot;
                 </span>};
-               <span class="macro">format!</span>(<span class="string">&quot;{:&gt;width$}: {}&quot;</span>, key, display, width = <span class="macro-nonterminal">$indent</span>)
+               result.push(<span class="macro">format!</span>(<span class="string">&quot;{:&gt;width$}: {}&quot;</span>, key, display, width = <span class="macro-nonterminal">$indent</span>));
             }
-        })
-    };
-
-    <span class="comment">// A private overload of the macro
-    // DO NOT use directly
-    </span>(<span class="kw">impl </span><span class="macro-nonterminal">$v</span>:expr, <span class="macro-nonterminal">$f</span>:expr) =&gt; {
-        <span class="macro-nonterminal">$v
-            </span>.borrow()
-            .properties()
-            .iter()
-            .map(<span class="macro-nonterminal">$f</span>)
-            .collect::&lt;Vec&lt;String&gt;&gt;()
+        }
+        result}
     };
 }
 

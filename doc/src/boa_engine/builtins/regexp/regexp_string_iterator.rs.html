@@ -186,6 +186,7 @@
 <a href="#185" id="185">185</a>
 <a href="#186" id="186">186</a>
 <a href="#187" id="187">187</a>
+<a href="#188" id="188">188</a>
 </pre><pre class="rust"><code><span class="doccomment">//! This module implements the global `RegExp String Iterator` object.
 //!
 //! A `RegExp` String Iterator is an object, that represents a specific iteration over some
@@ -291,7 +292,8 @@
 
         // 5. Return ! CreateIteratorFromClosure(closure, &quot;%RegExpStringIteratorPrototype%&quot;, %RegExpStringIteratorPrototype%).
 
-        </span><span class="kw">let </span>regexp_string_iterator = JsObject::from_proto_and_data(
+        </span><span class="kw">let </span>regexp_string_iterator = JsObject::from_proto_and_data_with_shared_shape(
+            context.root_shape(),
             context
                 .intrinsics()
                 .objects()

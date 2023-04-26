@@ -591,6 +591,7 @@
 <a href="#590" id="590">590</a>
 <a href="#591" id="591">591</a>
 <a href="#592" id="592">592</a>
+<a href="#593" id="593">593</a>
 </pre><pre class="rust"><code><span class="doccomment">//! Boa&#39;s implementation of ECMAScript&#39;s global `Map` object.
 //!
 //! The ECMAScript `Map` class is a global object that is used in the construction of maps; which
@@ -634,18 +635,15 @@
     <span class="kw">fn </span>init(realm: <span class="kw-2">&amp;</span>Realm) {
         <span class="kw">let </span>_timer = Profiler::global().start_event(<span class="self">Self</span>::NAME, <span class="string">&quot;init&quot;</span>);
 
-        <span class="kw">let </span>get_species = BuiltInBuilder::new(realm)
-            .callable(<span class="self">Self</span>::get_species)
+        <span class="kw">let </span>get_species = BuiltInBuilder::callable(realm, <span class="self">Self</span>::get_species)
             .name(<span class="string">&quot;get [Symbol.species]&quot;</span>)
             .build();
 
-        <span class="kw">let </span>get_size = BuiltInBuilder::new(realm)
-            .callable(<span class="self">Self</span>::get_size)
+        <span class="kw">let </span>get_size = BuiltInBuilder::callable(realm, <span class="self">Self</span>::get_size)
             .name(<span class="string">&quot;get size&quot;</span>)
             .build();
 
-        <span class="kw">let </span>entries_function = BuiltInBuilder::new(realm)
-            .callable(<span class="self">Self</span>::entries)
+        <span class="kw">let </span>entries_function = BuiltInBuilder::callable(realm, <span class="self">Self</span>::entries)
             .name(<span class="string">&quot;entries&quot;</span>)
             .build();
 
@@ -729,7 +727,11 @@
         // 3. Set map.[[MapData]] to a new empty List.
         </span><span class="kw">let </span>prototype =
             get_prototype_from_constructor(new_target, StandardConstructors::map, context)<span class="question-mark">?</span>;
-        <span class="kw">let </span>map = JsObject::from_proto_and_data(prototype, ObjectData::map(OrderedMap::new()));
+        <span class="kw">let </span>map = JsObject::from_proto_and_data_with_shared_shape(
+            context.root_shape(),
+            prototype,
+            ObjectData::map(OrderedMap::new()),
+        );
 
         <span class="comment">// 4. If iterable is either undefined or null, return map.
         </span><span class="kw">let </span>iterable = <span class="kw">match </span>args.get_or_undefined(<span class="number">0</span>) {

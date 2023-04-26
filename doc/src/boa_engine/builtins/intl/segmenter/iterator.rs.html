@@ -151,6 +151,7 @@
 <a href="#150" id="150">150</a>
 <a href="#151" id="151">151</a>
 <a href="#152" id="152">152</a>
+<a href="#153" id="153">153</a>
 </pre><pre class="rust"><code><span class="kw">use </span>boa_gc::{Finalize, Trace};
 <span class="kw">use </span>boa_profiler::Profiler;
 <span class="kw">use </span>icu_segmenter::{
@@ -240,7 +241,8 @@
         // 4. Set iterator.[[IteratedString]] to string.
         // 5. Set iterator.[[IteratedStringNextSegmentCodeUnitIndex]] to 0.
         // 6. Return iterator.
-        </span>JsObject::from_proto_and_data(
+        </span>JsObject::from_proto_and_data_with_shared_shape(
+            context.root_shape(),
             context
                 .intrinsics()
                 .objects()

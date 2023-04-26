@@ -251,6 +251,10 @@
 <a href="#250" id="250">250</a>
 <a href="#251" id="251">251</a>
 <a href="#252" id="252">252</a>
+<a href="#253" id="253">253</a>
+<a href="#254" id="254">254</a>
+<a href="#255" id="255">255</a>
+<a href="#256" id="256">256</a>
 </pre><pre class="rust"><code><span class="kw">use </span>std::{fmt::Display, str::FromStr};
 
 <span class="kw">use </span>icu_collator::CaseFirst;
@@ -497,7 +501,11 @@
     <span class="comment">// If options is undefined, then
     </span><span class="kw">if </span>options.is_undefined() {
         <span class="comment">// a. Return OrdinaryObjectCreate(null).
-        </span><span class="kw">return </span><span class="prelude-val">Ok</span>(JsObject::from_proto_and_data(<span class="prelude-val">None</span>, ObjectData::ordinary()));
+        </span><span class="kw">return </span><span class="prelude-val">Ok</span>(JsObject::from_proto_and_data_with_shared_shape(
+            context.root_shape(),
+            <span class="prelude-val">None</span>,
+            ObjectData::ordinary(),
+        ));
     }
 
     <span class="comment">// 2. Return ? ToObject(options).

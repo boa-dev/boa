@@ -105,6 +105,10 @@
 <a href="#104" id="104">104</a>
 <a href="#105" id="105">105</a>
 <a href="#106" id="106">106</a>
+<a href="#107" id="107">107</a>
+<a href="#108" id="108">108</a>
+<a href="#109" id="109">109</a>
+<a href="#110" id="110">110</a>
 </pre><pre class="rust"><code><span class="doccomment">//! This module implements the global `SyntaxError` object.
 //!
 //! The `SyntaxError` object represents an error when trying to interpret syntactically invalid code.
@@ -192,7 +196,11 @@
             StandardConstructors::syntax_error,
             context,
         )<span class="question-mark">?</span>;
-        <span class="kw">let </span>o = JsObject::from_proto_and_data(prototype, ObjectData::error(ErrorKind::Syntax));
+        <span class="kw">let </span>o = JsObject::from_proto_and_data_with_shared_shape(
+            context.root_shape(),
+            prototype,
+            ObjectData::error(ErrorKind::Syntax),
+        );
 
         <span class="comment">// 3. If message is not undefined, then
         </span><span class="kw">let </span>message = args.get_or_undefined(<span class="number">0</span>);

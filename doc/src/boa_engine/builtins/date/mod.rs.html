@@ -1534,6 +1534,8 @@
 <a href="#1533" id="1533">1533</a>
 <a href="#1534" id="1534">1534</a>
 <a href="#1535" id="1535">1535</a>
+<a href="#1536" id="1536">1536</a>
+<a href="#1537" id="1537">1537</a>
 </pre><pre class="rust"><code><span class="doccomment">//! Boa&#39;s implementation of ECMAScript&#39;s `Date` object.
 //!
 //! More information:
@@ -1632,14 +1634,12 @@
     <span class="kw">fn </span>init(realm: <span class="kw-2">&amp;</span>Realm) {
         <span class="kw">let </span>_timer = Profiler::global().start_event(<span class="self">Self</span>::NAME, <span class="string">&quot;init&quot;</span>);
 
-        <span class="kw">let </span>to_utc_string = BuiltInBuilder::new(realm)
-            .callable(<span class="self">Self</span>::to_utc_string)
+        <span class="kw">let </span>to_utc_string = BuiltInBuilder::callable(realm, <span class="self">Self</span>::to_utc_string)
             .name(<span class="string">&quot;toUTCString&quot;</span>)
             .length(<span class="number">0</span>)
             .build();
 
-        <span class="kw">let </span>to_primitive = BuiltInBuilder::new(realm)
-            .callable(<span class="self">Self</span>::to_primitive)
+        <span class="kw">let </span>to_primitive = BuiltInBuilder::callable(realm, <span class="self">Self</span>::to_primitive)
             .name(<span class="string">&quot;[Symbol.toPrimitive]&quot;</span>)
             .length(<span class="number">1</span>)
             .build();
@@ -1825,7 +1825,11 @@
             get_prototype_from_constructor(new_target, StandardConstructors::date, context)<span class="question-mark">?</span>;
 
         <span class="comment">// 7. Set O.[[DateValue]] to dv.
-        </span><span class="kw">let </span>obj = JsObject::from_proto_and_data(prototype, ObjectData::date(dv));
+        </span><span class="kw">let </span>obj = JsObject::from_proto_and_data_with_shared_shape(
+            context.root_shape(),
+            prototype,
+            ObjectData::date(dv),
+        );
 
         <span class="comment">// 8. Return O.
         </span><span class="prelude-val">Ok</span>(obj.into())

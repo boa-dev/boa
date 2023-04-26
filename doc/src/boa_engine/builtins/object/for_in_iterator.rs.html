@@ -153,6 +153,7 @@
 <a href="#152" id="152">152</a>
 <a href="#153" id="153">153</a>
 <a href="#154" id="154">154</a>
+<a href="#155" id="155">155</a>
 </pre><pre class="rust"><code><span class="doccomment">//! This module implements the `ForInIterator` object.
 //!
 //! More information:
@@ -232,7 +233,8 @@
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-createforiniterator
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>create_for_in_iterator(object: JsValue, context: <span class="kw-2">&amp;</span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsObject {
-        JsObject::from_proto_and_data(
+        JsObject::from_proto_and_data_with_shared_shape(
+            context.root_shape(),
             context
                 .intrinsics()
                 .objects()
