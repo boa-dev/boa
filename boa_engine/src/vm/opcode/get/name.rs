@@ -1,8 +1,7 @@
 use crate::{
     error::JsNativeError,
-    property::DescriptorKind,
     vm::{opcode::Operation, CompletionType},
-    Context, JsResult, JsString, JsValue,
+    Context, JsResult,
 };
 
 /// `GetName` implements the Opcode Operation for `Opcode::GetName`
@@ -18,57 +17,16 @@ impl Operation for GetName {
 
     fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
         let index = context.vm.read::<u32>();
-        let binding_locator = context.vm.frame().code_block.bindings[index as usize];
+        let mut binding_locator = context.vm.frame().code_block.bindings[index as usize];
         binding_locator.throw_mutate_immutable(context)?;
-
-        let value = if binding_locator.is_global() {
-            if let Some(value) = context.get_value_if_global_poisoned(binding_locator.name())? {
-                value
-            } else {
-                let key: JsString = context
-                    .interner()
-                    .resolve_expect(binding_locator.name().sym())
-                    .into_common(false);
-                match context.global_object().get_property(&key.clone().into()) {
-                    Some(desc) => match desc.kind() {
-                        DescriptorKind::Data {
-                            value: Some(value), ..
-                        } => value.clone(),
-                        DescriptorKind::Accessor { get: Some(get), .. } if !get.is_undefined() => {
-                            let get = get.clone();
-                            get.call(&context.global_object().into(), &[], context)?
-                        }
-                        _ => {
-                            return Err(JsNativeError::reference()
-                                .with_message(format!(
-                                    "{} is not defined",
-                                    key.to_std_string_escaped()
-                                ))
-                                .into())
-                        }
-                    },
-                    _ => {
-                        return Err(JsNativeError::reference()
-                            .with_message(format!("{} is not defined", key.to_std_string_escaped()))
-                            .into())
-                    }
-                }
-            }
-        } else if let Some(value) = context.get_value_optional(
-            binding_locator.environment_index(),
-            binding_locator.binding_index(),
-            binding_locator.name(),
-        )? {
-            value
-        } else {
+        context.find_runtime_binding(&mut binding_locator)?;
+        let value = context.get_binding(binding_locator)?.ok_or_else(|| {
             let name = context
                 .interner()
                 .resolve_expect(binding_locator.name().sym())
                 .to_string();
-            return Err(JsNativeError::reference()
-                .with_message(format!("{name} is not initialized"))
-                .into());
-        };
+            JsNativeError::reference().with_message(format!("{name} is not defined"))
+        })?;
 
         context.vm.push(value);
         Ok(CompletionType::Normal)
@@ -88,39 +46,12 @@ impl Operation for GetNameOrUndefined {
 
     fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
         let index = context.vm.read::<u32>();
-        let binding_locator = context.vm.frame().code_block.bindings[index as usize];
+        let mut binding_locator = context.vm.frame().code_block.bindings[index as usize];
         binding_locator.throw_mutate_immutable(context)?;
-        let value = if binding_locator.is_global() {
-            if let Some(value) = context.get_value_if_global_poisoned(binding_locator.name())? {
-                value
-            } else {
-                let key: JsString = context
-                    .interner()
-                    .resolve_expect(binding_locator.name().sym())
-                    .into_common(false);
-                match context.global_object().get_property(&key.into()) {
-                    Some(desc) => match desc.kind() {
-                        DescriptorKind::Data {
-                            value: Some(value), ..
-                        } => value.clone(),
-                        DescriptorKind::Accessor { get: Some(get), .. } if !get.is_undefined() => {
-                            let get = get.clone();
-                            get.call(&context.global_object().into(), &[], context)?
-                        }
-                        _ => JsValue::undefined(),
-                    },
-                    _ => JsValue::undefined(),
-                }
-            }
-        } else if let Some(value) = context.get_value_optional(
-            binding_locator.environment_index(),
-            binding_locator.binding_index(),
-            binding_locator.name(),
-        )? {
-            value
-        } else {
-            JsValue::undefined()
-        };
+
+        context.find_runtime_binding(&mut binding_locator)?;
+
+        let value = context.get_binding(binding_locator)?.unwrap_or_default();
 
         context.vm.push(value);
         Ok(CompletionType::Normal)

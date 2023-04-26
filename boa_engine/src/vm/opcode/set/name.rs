@@ -1,7 +1,6 @@
 use crate::{
-    error::JsNativeError,
     vm::{opcode::Operation, CompletionType},
-    Context, JsResult, JsString,
+    Context, JsNativeError, JsResult,
 };
 
 /// `SetName` implements the Opcode Operation for `Opcode::SetName`
@@ -17,59 +16,43 @@ impl Operation for SetName {
 
     fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
         let index = context.vm.read::<u32>();
-        let binding_locator = context.vm.frame().code_block.bindings[index as usize];
+        let mut binding_locator = context.vm.frame().code_block.bindings[index as usize];
         let value = context.vm.pop();
         if binding_locator.is_silent() {
             return Ok(CompletionType::Normal);
         }
         binding_locator.throw_mutate_immutable(context)?;
 
-        if binding_locator.is_global() {
-            if !context.put_value_if_global_poisoned(
-                binding_locator.name(),
-                &value,
-                context.vm.frame().code_block.strict,
-            )? {
-                let key: JsString = context
+        context.find_runtime_binding(&mut binding_locator)?;
+
+        if !context.is_initialized_binding(&binding_locator)? {
+            if binding_locator.is_global() && context.vm.frame().code_block.strict {
+                let key = context
                     .interner()
                     .resolve_expect(binding_locator.name().sym())
-                    .into_common(false);
-                let exists = context
-                    .global_object()
-                    .has_own_property(key.clone(), context)?;
+                    .to_string();
 
-                if !exists && context.vm.frame().code_block.strict {
-                    return Err(JsNativeError::reference()
-                        .with_message(format!(
-                            "assignment to undeclared variable {}",
-                            key.to_std_string_escaped()
-                        ))
-                        .into());
-                }
-
-                context.global_object().set(
-                    key,
-                    value,
-                    context.vm.frame().code_block.strict,
-                    context,
-                )?;
+                return Err(JsNativeError::reference()
+                    .with_message(format!(
+                        "cannot assign to uninitialized global property `{key}`"
+                    ))
+                    .into());
             }
-        } else if !context.put_value_if_initialized(
-            binding_locator.environment_index(),
-            binding_locator.binding_index(),
-            binding_locator.name(),
-            value,
-            context.vm.frame().code_block.strict,
-        )? {
-            return Err(JsNativeError::reference()
-                .with_message(format!(
-                    "cannot access '{}' before initialization",
-                    context
-                        .interner()
-                        .resolve_expect(binding_locator.name().sym())
-                ))
-                .into());
+
+            if !binding_locator.is_global() {
+                let key = context
+                    .interner()
+                    .resolve_expect(binding_locator.name().sym())
+                    .to_string();
+
+                return Err(JsNativeError::reference()
+                    .with_message(format!("cannot assign to uninitialized binding `{key}`"))
+                    .into());
+            }
         }
+
+        context.set_binding(binding_locator, value, context.vm.frame().code_block.strict)?;
+
         Ok(CompletionType::Normal)
     }
 }

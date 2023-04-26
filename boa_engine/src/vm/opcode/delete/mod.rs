@@ -76,50 +76,12 @@ impl Operation for DeleteName {
 
     fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
         let index = context.vm.read::<u32>();
-        let binding_locator = context.vm.frame().code_block.bindings[index as usize];
+        let mut binding_locator = context.vm.frame().code_block.bindings[index as usize];
         binding_locator.throw_mutate_immutable(context)?;
 
-        let deleted = if binding_locator.is_global()
-            && !context
-                .vm
-                .environments
-                .binding_in_poisoned_environment(binding_locator.name())
-        {
-            let (found, deleted) =
-                context.delete_binding_from_object_environment(binding_locator.name())?;
-            if found {
-                context.vm.push(deleted);
-                return Ok(CompletionType::Normal);
-            }
+        context.find_runtime_binding(&mut binding_locator)?;
 
-            let key: JsString = context
-                .interner()
-                .resolve_expect(binding_locator.name().sym())
-                .into_common::<JsString>(false);
-            let deleted = context
-                .global_object()
-                .__delete__(&key.clone().into(), context)?;
-
-            if !deleted && context.vm.frame().code_block.strict {
-                return Err(JsNativeError::typ()
-                    .with_message(format!(
-                        "property `{}` is non-configurable and cannot be deleted",
-                        key.to_std_string_escaped()
-                    ))
-                    .into());
-            }
-            deleted
-        } else {
-            context
-                .vm
-                .environments
-                .get_value_optional(
-                    binding_locator.environment_index(),
-                    binding_locator.binding_index(),
-                    binding_locator.name(),
-                )
-                .is_none()
-        };
+        let deleted = context.delete_binding(binding_locator)?;
 
         context.vm.push(deleted);
         Ok(CompletionType::Normal)
