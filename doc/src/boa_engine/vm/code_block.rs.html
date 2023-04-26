@@ -2278,7 +2278,7 @@
             context
                 .vm
                 .environments
-                .put_value(index, <span class="number">0</span>, class_object.into());
+                .put_declarative_value(index, <span class="number">0</span>, class_object.into());
             last_env -= <span class="number">1</span>;
         }
 
@@ -2290,7 +2290,7 @@
             context
                 .vm
                 .environments
-                .put_value(index, <span class="number">0</span>, <span class="self">self</span>.clone().into());
+                .put_declarative_value(index, <span class="number">0</span>, <span class="self">self</span>.clone().into());
             last_env -= <span class="number">1</span>;
         }
 
@@ -2320,11 +2320,11 @@
                     <span class="kw-2">&amp;</span>this_function_object,
                     <span class="kw-2">&amp;</span>code.params,
                     args,
-                    <span class="kw-2">&amp;</span>env,
+                    env.declarative_expect(),
                     context,
                 )
             };
-            context.vm.environments.put_value(
+            context.vm.environments.put_declarative_value(
                 binding.environment_index(),
                 binding.binding_index(),
                 arguments_obj.into(),
@@ -2528,7 +2528,7 @@
                     context
                         .vm
                         .environments
-                        .put_value(index, <span class="number">0</span>, <span class="self">self</span>.clone().into());
+                        .put_declarative_value(index, <span class="number">0</span>, <span class="self">self</span>.clone().into());
                     last_env -= <span class="number">1</span>;
                 }
 
@@ -2557,11 +2557,11 @@
                             <span class="kw-2">&amp;</span>this_function_object,
                             <span class="kw-2">&amp;</span>code.params,
                             args,
-                            <span class="kw-2">&amp;</span>env,
+                            env.declarative_expect(),
                             context,
                         )
                     };
-                    context.vm.environments.put_value(
+                    context.vm.environments.put_declarative_value(
                         binding.environment_index(),
                         binding.binding_index(),
                         arguments_obj.into(),

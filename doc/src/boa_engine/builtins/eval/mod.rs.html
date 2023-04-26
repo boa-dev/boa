@@ -491,7 +491,7 @@
 
             // Poison the last parent function environment, because it may contain new declarations after/during eval.
             </span><span class="kw">if </span>!strict {
-                context.vm.environments.poison_last_function();
+                context.vm.environments.poison_until_last_function();
             }
 
             <span class="comment">// Set the compile time environment to the current running environment and save the number of current environments.

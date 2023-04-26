@@ -58,80 +58,10 @@
 <a href="#57" id="57">57</a>
 <a href="#58" id="58">58</a>
 <a href="#59" id="59">59</a>
-<a href="#60" id="60">60</a>
-<a href="#61" id="61">61</a>
-<a href="#62" id="62">62</a>
-<a href="#63" id="63">63</a>
-<a href="#64" id="64">64</a>
-<a href="#65" id="65">65</a>
-<a href="#66" id="66">66</a>
-<a href="#67" id="67">67</a>
-<a href="#68" id="68">68</a>
-<a href="#69" id="69">69</a>
-<a href="#70" id="70">70</a>
-<a href="#71" id="71">71</a>
-<a href="#72" id="72">72</a>
-<a href="#73" id="73">73</a>
-<a href="#74" id="74">74</a>
-<a href="#75" id="75">75</a>
-<a href="#76" id="76">76</a>
-<a href="#77" id="77">77</a>
-<a href="#78" id="78">78</a>
-<a href="#79" id="79">79</a>
-<a href="#80" id="80">80</a>
-<a href="#81" id="81">81</a>
-<a href="#82" id="82">82</a>
-<a href="#83" id="83">83</a>
-<a href="#84" id="84">84</a>
-<a href="#85" id="85">85</a>
-<a href="#86" id="86">86</a>
-<a href="#87" id="87">87</a>
-<a href="#88" id="88">88</a>
-<a href="#89" id="89">89</a>
-<a href="#90" id="90">90</a>
-<a href="#91" id="91">91</a>
-<a href="#92" id="92">92</a>
-<a href="#93" id="93">93</a>
-<a href="#94" id="94">94</a>
-<a href="#95" id="95">95</a>
-<a href="#96" id="96">96</a>
-<a href="#97" id="97">97</a>
-<a href="#98" id="98">98</a>
-<a href="#99" id="99">99</a>
-<a href="#100" id="100">100</a>
-<a href="#101" id="101">101</a>
-<a href="#102" id="102">102</a>
-<a href="#103" id="103">103</a>
-<a href="#104" id="104">104</a>
-<a href="#105" id="105">105</a>
-<a href="#106" id="106">106</a>
-<a href="#107" id="107">107</a>
-<a href="#108" id="108">108</a>
-<a href="#109" id="109">109</a>
-<a href="#110" id="110">110</a>
-<a href="#111" id="111">111</a>
-<a href="#112" id="112">112</a>
-<a href="#113" id="113">113</a>
-<a href="#114" id="114">114</a>
-<a href="#115" id="115">115</a>
-<a href="#116" id="116">116</a>
-<a href="#117" id="117">117</a>
-<a href="#118" id="118">118</a>
-<a href="#119" id="119">119</a>
-<a href="#120" id="120">120</a>
-<a href="#121" id="121">121</a>
-<a href="#122" id="122">122</a>
-<a href="#123" id="123">123</a>
-<a href="#124" id="124">124</a>
-<a href="#125" id="125">125</a>
-<a href="#126" id="126">126</a>
-<a href="#127" id="127">127</a>
-<a href="#128" id="128">128</a>
 </pre><pre class="rust"><code><span class="kw">use crate</span>::{
     error::JsNativeError,
-    property::DescriptorKind,
     vm::{opcode::Operation, CompletionType},
-    Context, JsResult, JsString, JsValue,
+    Context, JsResult,
 };
 
 <span class="doccomment">/// `GetName` implements the Opcode Operation for `Opcode::GetName`
@@ -147,57 +77,16 @@
 
     <span class="kw">fn </span>execute(context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;CompletionType&gt; {
         <span class="kw">let </span>index = context.vm.read::&lt;u32&gt;();
-        <span class="kw">let </span>binding_locator = context.vm.frame().code_block.bindings[index <span class="kw">as </span>usize];
+        <span class="kw">let </span><span class="kw-2">mut </span>binding_locator = context.vm.frame().code_block.bindings[index <span class="kw">as </span>usize];
         binding_locator.throw_mutate_immutable(context)<span class="question-mark">?</span>;
-
-        <span class="kw">let </span>value = <span class="kw">if </span>binding_locator.is_global() {
-            <span class="kw">if let </span><span class="prelude-val">Some</span>(value) = context.get_value_if_global_poisoned(binding_locator.name())<span class="question-mark">? </span>{
-                value
-            } <span class="kw">else </span>{
-                <span class="kw">let </span>key: JsString = context
-                    .interner()
-                    .resolve_expect(binding_locator.name().sym())
-                    .into_common(<span class="bool-val">false</span>);
-                <span class="kw">match </span>context.global_object().get_property(<span class="kw-2">&amp;</span>key.clone().into()) {
-                    <span class="prelude-val">Some</span>(desc) =&gt; <span class="kw">match </span>desc.kind() {
-                        DescriptorKind::Data {
-                            value: <span class="prelude-val">Some</span>(value), ..
-                        } =&gt; value.clone(),
-                        DescriptorKind::Accessor { get: <span class="prelude-val">Some</span>(get), .. } <span class="kw">if </span>!get.is_undefined() =&gt; {
-                            <span class="kw">let </span>get = get.clone();
-                            get.call(<span class="kw-2">&amp;</span>context.global_object().into(), <span class="kw-2">&amp;</span>[], context)<span class="question-mark">?
-                        </span>}
-                        <span class="kw">_ </span>=&gt; {
-                            <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::reference()
-                                .with_message(<span class="macro">format!</span>(
-                                    <span class="string">&quot;{} is not defined&quot;</span>,
-                                    key.to_std_string_escaped()
-                                ))
-                                .into())
-                        }
-                    },
-                    <span class="kw">_ </span>=&gt; {
-                        <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::reference()
-                            .with_message(<span class="macro">format!</span>(<span class="string">&quot;{} is not defined&quot;</span>, key.to_std_string_escaped()))
-                            .into())
-                    }
-                }
-            }
-        } <span class="kw">else if let </span><span class="prelude-val">Some</span>(value) = context.get_value_optional(
-            binding_locator.environment_index(),
-            binding_locator.binding_index(),
-            binding_locator.name(),
-        )<span class="question-mark">? </span>{
-            value
-        } <span class="kw">else </span>{
+        context.find_runtime_binding(<span class="kw-2">&amp;mut </span>binding_locator)<span class="question-mark">?</span>;
+        <span class="kw">let </span>value = context.get_binding(binding_locator)<span class="question-mark">?</span>.ok_or_else(|| {
             <span class="kw">let </span>name = context
                 .interner()
                 .resolve_expect(binding_locator.name().sym())
                 .to_string();
-            <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::reference()
-                .with_message(<span class="macro">format!</span>(<span class="string">&quot;{name} is not initialized&quot;</span>))
-                .into());
-        };
+            JsNativeError::reference().with_message(<span class="macro">format!</span>(<span class="string">&quot;{name} is not defined&quot;</span>))
+        })<span class="question-mark">?</span>;
 
         context.vm.push(value);
         <span class="prelude-val">Ok</span>(CompletionType::Normal)
@@ -217,39 +106,12 @@
 
     <span class="kw">fn </span>execute(context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;CompletionType&gt; {
         <span class="kw">let </span>index = context.vm.read::&lt;u32&gt;();
-        <span class="kw">let </span>binding_locator = context.vm.frame().code_block.bindings[index <span class="kw">as </span>usize];
+        <span class="kw">let </span><span class="kw-2">mut </span>binding_locator = context.vm.frame().code_block.bindings[index <span class="kw">as </span>usize];
         binding_locator.throw_mutate_immutable(context)<span class="question-mark">?</span>;
-        <span class="kw">let </span>value = <span class="kw">if </span>binding_locator.is_global() {
-            <span class="kw">if let </span><span class="prelude-val">Some</span>(value) = context.get_value_if_global_poisoned(binding_locator.name())<span class="question-mark">? </span>{
-                value
-            } <span class="kw">else </span>{
-                <span class="kw">let </span>key: JsString = context
-                    .interner()
-                    .resolve_expect(binding_locator.name().sym())
-                    .into_common(<span class="bool-val">false</span>);
-                <span class="kw">match </span>context.global_object().get_property(<span class="kw-2">&amp;</span>key.into()) {
-                    <span class="prelude-val">Some</span>(desc) =&gt; <span class="kw">match </span>desc.kind() {
-                        DescriptorKind::Data {
-                            value: <span class="prelude-val">Some</span>(value), ..
-                        } =&gt; value.clone(),
-                        DescriptorKind::Accessor { get: <span class="prelude-val">Some</span>(get), .. } <span class="kw">if </span>!get.is_undefined() =&gt; {
-                            <span class="kw">let </span>get = get.clone();
-                            get.call(<span class="kw-2">&amp;</span>context.global_object().into(), <span class="kw-2">&amp;</span>[], context)<span class="question-mark">?
-                        </span>}
-                        <span class="kw">_ </span>=&gt; JsValue::undefined(),
-                    },
-                    <span class="kw">_ </span>=&gt; JsValue::undefined(),
-                }
-            }
-        } <span class="kw">else if let </span><span class="prelude-val">Some</span>(value) = context.get_value_optional(
-            binding_locator.environment_index(),
-            binding_locator.binding_index(),
-            binding_locator.name(),
-        )<span class="question-mark">? </span>{
-            value
-        } <span class="kw">else </span>{
-            JsValue::undefined()
-        };
+
+        context.find_runtime_binding(<span class="kw-2">&amp;mut </span>binding_locator)<span class="question-mark">?</span>;
+
+        <span class="kw">let </span>value = context.get_binding(binding_locator)<span class="question-mark">?</span>.unwrap_or_default();
 
         context.vm.push(value);
         <span class="prelude-val">Ok</span>(CompletionType::Normal)

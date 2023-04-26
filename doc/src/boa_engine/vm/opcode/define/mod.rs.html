@@ -121,29 +121,9 @@
 <a href="#120" id="120">120</a>
 <a href="#121" id="121">121</a>
 <a href="#122" id="122">122</a>
-<a href="#123" id="123">123</a>
-<a href="#124" id="124">124</a>
-<a href="#125" id="125">125</a>
-<a href="#126" id="126">126</a>
-<a href="#127" id="127">127</a>
-<a href="#128" id="128">128</a>
-<a href="#129" id="129">129</a>
-<a href="#130" id="130">130</a>
-<a href="#131" id="131">131</a>
-<a href="#132" id="132">132</a>
-<a href="#133" id="133">133</a>
-<a href="#134" id="134">134</a>
-<a href="#135" id="135">135</a>
-<a href="#136" id="136">136</a>
-<a href="#137" id="137">137</a>
-<a href="#138" id="138">138</a>
-<a href="#139" id="139">139</a>
-<a href="#140" id="140">140</a>
-<a href="#141" id="141">141</a>
-<a href="#142" id="142">142</a>
 </pre><pre class="rust"><code><span class="kw">use crate</span>::{
     vm::{opcode::Operation, CompletionType},
-    Context, JsResult, JsString, JsValue,
+    Context, JsResult, JsValue,
 };
 
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">mod </span>class;
@@ -195,36 +175,16 @@
     <span class="kw">fn </span>execute(context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;CompletionType&gt; {
         <span class="kw">let </span>index = context.vm.read::&lt;u32&gt;();
         <span class="kw">let </span>value = context.vm.pop();
-        <span class="kw">let </span>binding_locator = context.vm.frame().code_block.bindings[index <span class="kw">as </span>usize];
+        <span class="kw">let </span><span class="kw-2">mut </span>binding_locator = context.vm.frame().code_block.bindings[index <span class="kw">as </span>usize];
         <span class="kw">if </span>binding_locator.is_silent() {
             <span class="kw">return </span><span class="prelude-val">Ok</span>(CompletionType::Normal);
         }
         binding_locator.throw_mutate_immutable(context)<span class="question-mark">?</span>;
 
-        <span class="kw">if </span>binding_locator.is_global() {
-            <span class="kw">if </span>!context.put_value_if_global_poisoned(
-                binding_locator.name(),
-                <span class="kw-2">&amp;</span>value,
-                context.vm.frame().code_block.strict,
-            )<span class="question-mark">? </span>{
-                <span class="kw">let </span>key = context
-                    .interner()
-                    .resolve_expect(binding_locator.name().sym())
-                    .into_common::&lt;JsString&gt;(<span class="bool-val">false</span>);
-                context.global_object().set(
-                    key,
-                    value,
-                    context.vm.frame().code_block.strict,
-                    context,
-                )<span class="question-mark">?</span>;
-            }
-        } <span class="kw">else </span>{
-            context.vm.environments.put_value(
-                binding_locator.environment_index(),
-                binding_locator.binding_index(),
-                value,
-            );
-        }
+        context.find_runtime_binding(<span class="kw-2">&amp;mut </span>binding_locator)<span class="question-mark">?</span>;
+
+        context.set_binding(binding_locator, value, context.vm.frame().code_block.strict)<span class="question-mark">?</span>;
+
         <span class="prelude-val">Ok</span>(CompletionType::Normal)
     }
 }
@@ -243,7 +203,7 @@
     <span class="kw">fn </span>execute(context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;CompletionType&gt; {
         <span class="kw">let </span>index = context.vm.read::&lt;u32&gt;();
         <span class="kw">let </span>binding_locator = context.vm.frame().code_block.bindings[index <span class="kw">as </span>usize];
-        context.vm.environments.put_value(
+        context.vm.environments.put_declarative_value(
             binding_locator.environment_index(),
             binding_locator.binding_index(),
             JsValue::Undefined,
@@ -269,7 +229,7 @@
                 <span class="kw">let </span>index = context.vm.read::&lt;u32&gt;();
                 <span class="kw">let </span>value = context.vm.pop();
                 <span class="kw">let </span>binding_locator = context.vm.frame().code_block.bindings[index <span class="kw">as </span>usize];
-                context.vm.environments.put_value(
+                context.vm.environments.put_declarative_value(
                     binding_locator.environment_index(),
                     binding_locator.binding_index(),
                     value,
