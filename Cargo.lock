@@ -1993,9 +1993,9 @@ dependencies = [
 
 [[package]]
 name = "icu_datagen"
-version = "1.2.4"
+version = "1.2.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "4a9468f8e941739ba87b9b38e2f92bc88e5ee96d777ced1c769c5230032a53d5"
+checksum = "3533f2d19ca2842eec28f8ba60bc6cd0053a6215e97b19ffe74256cd347e5e0f"
 dependencies = [
  "cached-path",
  "clap 4.2.4",
