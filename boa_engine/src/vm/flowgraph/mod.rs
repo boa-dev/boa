@@ -403,6 +403,7 @@ impl CodeBlock {
                 | Opcode::DefInitLet
                 | Opcode::DefInitConst
                 | Opcode::GetName
+                | Opcode::GetNameAndLocator
                 | Opcode::GetNameOrUndefined
                 | Opcode::SetName
                 | Opcode::DeleteName => {
@@ -566,6 +567,7 @@ impl CodeBlock {
                 | Opcode::SuperCallPrepare
                 | Opcode::SetPrototype
                 | Opcode::IsObject
+                | Opcode::SetNameByBinding
                 | Opcode::Nop
                 | Opcode::PushObjectEnvironment => {
                     graph.add_node(previous_pc, NodeShape::None, label.into(), Color::None);

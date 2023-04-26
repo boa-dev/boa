@@ -123,7 +123,6 @@ impl Json {
                 context.realm().environment().compile_env(),
                 context,
             );
-            compiler.create_script_decls(&statement_list, false);
             compiler.compile_statement_list(&statement_list, true, false);
             Gc::new(compiler.finish())
         };

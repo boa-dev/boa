@@ -3,7 +3,7 @@ use crate::{
     JsResult, JsString, JsSymbol, JsValue,
 };
 use boa_ast::expression::Identifier;
-use boa_gc::{Finalize, Gc, GcRefCell, Trace};
+use boa_gc::{empty_trace, Finalize, Gc, GcRefCell, Trace};
 use rustc_hash::FxHashSet;
 use std::cell::Cell;
 
@@ -663,7 +663,7 @@ impl DeclarativeEnvironmentStack {
 /// A binding locator contains all information about a binding that is needed to resolve it at runtime.
 ///
 /// Binding locators get created at bytecode compile time and are accessible at runtime via the [`crate::vm::CodeBlock`].
-#[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
+#[derive(Clone, Copy, Debug, Eq, Hash, PartialEq, Finalize)]
 pub(crate) struct BindingLocator {
     name: Identifier,
     environment_index: usize,
@@ -671,6 +671,10 @@ pub(crate) struct BindingLocator {
     global: bool,
     mutate_immutable: bool,
     silent: bool,
+}
+
+unsafe impl Trace for BindingLocator {
+    empty_trace!();
 }
 
 impl BindingLocator {
@@ -691,7 +695,7 @@ impl BindingLocator {
     }
 
     /// Creates a binding locator that indicates that the binding is on the global object.
-    pub(in crate::environments) const fn global(name: Identifier) -> Self {
+    pub(crate) const fn global(name: Identifier) -> Self {
         Self {
             name,
             environment_index: 0,
@@ -844,7 +848,13 @@ impl Context<'_> {
                 Environment::Declarative(env) => {
                     Ok(env.bindings.borrow()[locator.binding_index].is_some())
                 }
-                Environment::Object(_) => Ok(true),
+                Environment::Object(obj) => {
+                    let key: JsString = self
+                        .interner()
+                        .resolve_expect(locator.name.sym())
+                        .into_common(false);
+                    obj.clone().has_property(key, self)
+                }
             }
         }
     }
@@ -884,6 +894,8 @@ impl Context<'_> {
     }
 
     /// Sets the value of a binding.
+    ///
+    /// #
     ///
     /// # Panics
     ///
@@ -953,7 +965,7 @@ impl Context<'_> {
     }
 
     /// Return the environment at the given index. Panics if the index is out of range.
-    fn environment_expect(&self, index: usize) -> &Environment {
+    pub(crate) fn environment_expect(&self, index: usize) -> &Environment {
         self.vm
             .environments
             .stack

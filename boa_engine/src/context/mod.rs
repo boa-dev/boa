@@ -253,7 +253,6 @@ impl<'host> Context<'host> {
             self.realm.environment().compile_env(),
             self,
         );
-        compiler.create_script_decls(statement_list, false);
         compiler.compile_statement_list(statement_list, true, false);
         Ok(Gc::new(compiler.finish()))
     }

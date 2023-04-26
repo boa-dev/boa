@@ -4,10 +4,15 @@ use boa_ast::statement::Switch;
 impl ByteCompiler<'_, '_> {
     /// Compile a [`Switch`] `boa_ast` node
     pub(crate) fn compile_switch(&mut self, switch: &Switch, configurable_globals: bool) {
+        self.compile_expr(switch.val(), true);
+
         self.push_compile_environment(false);
         let push_env = self.emit_opcode_with_two_operands(Opcode::PushDeclarativeEnvironment);
         for case in switch.cases() {
-            self.create_script_decls(case.body(), configurable_globals);
+            self.create_declarations(case.body(), configurable_globals);
+        }
+        if let Some(body) = switch.default() {
+            self.create_declarations(body, configurable_globals);
         }
         let (start_label, end_label) = self.emit_opcode_with_two_operands(Opcode::LoopStart);
 
@@ -15,7 +20,6 @@ impl ByteCompiler<'_, '_> {
         self.push_switch_control_info(None, start_address);
         self.patch_jump_with_target(start_label, start_address);
 
-        self.compile_expr(switch.val(), true);
         let mut labels = Vec::with_capacity(switch.cases().len());
         for case in switch.cases() {
             self.compile_expr(case.condition(), true);
@@ -26,13 +30,16 @@ impl ByteCompiler<'_, '_> {
 
         for (label, case) in labels.into_iter().zip(switch.cases()) {
             self.patch_jump(label);
-            self.compile_statement_list(case.body(), false, configurable_globals);
+            for item in case.body().statements() {
+                self.compile_stmt_list_item(item, false, configurable_globals);
+            }
         }
 
         self.patch_jump(exit);
         if let Some(body) = switch.default() {
-            self.create_script_decls(body, configurable_globals);
-            self.compile_statement_list(body, false, configurable_globals);
+            for item in body.statements() {
+                self.compile_stmt_list_item(item, false, configurable_globals);
+            }
         }
 
         self.pop_switch_control_info();

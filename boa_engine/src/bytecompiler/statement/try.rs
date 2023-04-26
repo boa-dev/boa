@@ -23,7 +23,6 @@ impl ByteCompiler<'_, '_> {
         self.push_compile_environment(false);
         let push_env = self.emit_opcode_with_two_operands(Opcode::PushDeclarativeEnvironment);
 
-        self.create_script_decls(t.block().statement_list(), configurable_globals);
         self.compile_statement_list(t.block().statement_list(), use_expr, configurable_globals);
 
         let env_info = self.pop_compile_environment();
@@ -89,7 +88,6 @@ impl ByteCompiler<'_, '_> {
             self.emit_opcode(Opcode::Pop);
         }
 
-        self.create_script_decls(catch.block().statement_list(), configurable_globals);
         self.compile_statement_list(
             catch.block().statement_list(),
             use_expr,
@@ -119,7 +117,6 @@ impl ByteCompiler<'_, '_> {
         self.push_compile_environment(false);
         let push_env = self.emit_opcode_with_two_operands(Opcode::PushDeclarativeEnvironment);
 
-        self.create_script_decls(finally.block().statement_list(), configurable_globals);
         self.compile_statement_list(
             finally.block().statement_list(),
             false,

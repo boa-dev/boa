@@ -56,6 +56,17 @@ impl CompileTimeEnvironment {
             .map_or(false, |binding| binding.lex)
     }
 
+    /// Checks if `name` is a lexical binding.
+    pub(crate) fn is_lex_binding(&self, name: Identifier) -> bool {
+        if let Some(binding) = self.bindings.get(&name) {
+            binding.lex
+        } else if let Some(outer) = &self.outer {
+            outer.borrow().is_lex_binding(name)
+        } else {
+            false
+        }
+    }
+
     /// Returns the number of bindings in this environment.
     pub(crate) fn num_bindings(&self) -> usize {
         self.bindings.len()

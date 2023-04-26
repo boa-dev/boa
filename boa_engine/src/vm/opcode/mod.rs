@@ -687,6 +687,14 @@ generate_impl! {
         /// Stack: **=>** value
         GetName,
 
+        /// Find a binding on the environment chain and push its value, storing the found binding locator
+        /// in the `current_binding` register.
+        ///
+        /// Operands: name_index: `u32`
+        ///
+        /// Stack: **=>** value
+        GetNameAndLocator,
+
         /// Find a binding on the environment chain and push its value. If the binding does not exist push undefined.
         ///
         /// Operands: name_index: `u32`
@@ -700,6 +708,11 @@ generate_impl! {
         ///
         /// Stack: value **=>**
         SetName,
+
+        /// Assigns a value to the binding pointed by the `current_binding` register.
+        ///
+        /// Stack: value **=>**
+        SetNameByBinding,
 
         /// Deletes a property of the global object.
         ///

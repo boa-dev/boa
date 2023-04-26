@@ -335,6 +335,7 @@ impl CodeBlock {
             | Opcode::DefInitLet
             | Opcode::DefInitConst
             | Opcode::GetName
+            | Opcode::GetNameAndLocator
             | Opcode::GetNameOrUndefined
             | Opcode::SetName
             | Opcode::DeleteName => {
@@ -495,6 +496,7 @@ impl CodeBlock {
             | Opcode::SetPrototype
             | Opcode::PushObjectEnvironment
             | Opcode::IsObject
+            | Opcode::SetNameByBinding
             | Opcode::Nop => String::new(),
         }
     }
@@ -1099,6 +1101,7 @@ impl JsObject {
                         context.vm.active_function.clone(),
                         call_frame,
                         context.realm().clone(),
+                        context.vm.bindings_stack.clone(),
                     )),
                     queue: VecDeque::new(),
                 })
@@ -1111,6 +1114,7 @@ impl JsObject {
                             context.vm.active_function.clone(),
                             call_frame,
                             context.realm().clone(),
+                            context.vm.bindings_stack.clone(),
                         ),
                     },
                 })
