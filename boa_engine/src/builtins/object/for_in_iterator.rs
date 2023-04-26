@@ -77,7 +77,8 @@ impl ForInIterator {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-createforiniterator
     pub(crate) fn create_for_in_iterator(object: JsValue, context: &Context<'_>) -> JsObject {
-        JsObject::from_proto_and_data(
+        JsObject::from_proto_and_data_with_shared_shape(
+            context.root_shape(),
             context
                 .intrinsics()
                 .objects()

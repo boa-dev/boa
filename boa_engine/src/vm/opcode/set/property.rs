@@ -78,7 +78,7 @@ impl Operation for SetPropertyByValue {
                         break 'fast_path;
                     }
 
-                    let prototype = object_borrowed.prototype().clone();
+                    let shape = object_borrowed.shape().clone();
 
                     if let Some(dense_elements) = object_borrowed
                         .properties_mut()
@@ -93,6 +93,7 @@ impl Operation for SetPropertyByValue {
                             // Cannot use fast path if the [[prototype]] is a proxy object,
                             // because we have to the call prototypes [[set]] on non-existing property,
                             // and proxy objects can override [[set]].
+                            let prototype = shape.prototype();
                             if prototype.map_or(false, |x| x.is_proxy()) {
                                 break 'fast_path;
                             }

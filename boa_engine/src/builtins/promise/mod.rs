@@ -311,8 +311,7 @@ impl IntrinsicObject for Promise {
     fn init(realm: &Realm) {
         let _timer = Profiler::global().start_event(Self::NAME, "init");
 
-        let get_species = BuiltInBuilder::new(realm)
-            .callable(Self::get_species)
+        let get_species = BuiltInBuilder::callable(realm, Self::get_species)
             .name("get [Symbol.species]")
             .build();
 
@@ -384,7 +383,8 @@ impl BuiltInConstructor for Promise {
         let promise =
             get_prototype_from_constructor(new_target, StandardConstructors::promise, context)?;
 
-        let promise = JsObject::from_proto_and_data(
+        let promise = JsObject::from_proto_and_data_with_shared_shape(
+            context.root_shape(),
             promise,
             // 4. Set promise.[[PromiseState]] to pending.
             // 5. Set promise.[[PromiseFulfillReactions]] to a new empty List.

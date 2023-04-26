@@ -21,7 +21,6 @@ use crate::{
     error::JsNativeError,
     object::{JsObject, ObjectData},
     property::{PropertyDescriptor, PropertyKey},
-    string::utf16,
     symbol::JsSymbol,
     Context, JsBigInt, JsResult, JsString,
 };
@@ -467,61 +466,40 @@ impl JsValue {
     ///
     /// See: <https://tc39.es/ecma262/#sec-toobject>
     pub fn to_object(&self, context: &mut Context<'_>) -> JsResult<JsObject> {
+        // TODO: add fast paths with object template
         match self {
             Self::Undefined | Self::Null => Err(JsNativeError::typ()
                 .with_message("cannot convert 'null' or 'undefined' to object")
                 .into()),
-            Self::Boolean(boolean) => {
-                let prototype = context.intrinsics().constructors().boolean().prototype();
-                Ok(JsObject::from_proto_and_data(
-                    prototype,
-                    ObjectData::boolean(*boolean),
-                ))
-            }
-            Self::Integer(integer) => {
-                let prototype = context.intrinsics().constructors().number().prototype();
-                Ok(JsObject::from_proto_and_data(
-                    prototype,
-                    ObjectData::number(f64::from(*integer)),
-                ))
-            }
-            Self::Rational(rational) => {
-                let prototype = context.intrinsics().constructors().number().prototype();
-                Ok(JsObject::from_proto_and_data(
-                    prototype,
-                    ObjectData::number(*rational),
-                ))
-            }
-            Self::String(ref string) => {
-                let prototype = context.intrinsics().constructors().string().prototype();
-
-                let object =
-                    JsObject::from_proto_and_data(prototype, ObjectData::string(string.clone()));
-                // Make sure the correct length is set on our new string object
-                object.insert_property(
-                    utf16!("length"),
-                    PropertyDescriptor::builder()
-                        .value(string.len())
-                        .writable(false)
-                        .enumerable(false)
-                        .configurable(false),
-                );
-                Ok(object)
-            }
-            Self::Symbol(ref symbol) => {
-                let prototype = context.intrinsics().constructors().symbol().prototype();
-                Ok(JsObject::from_proto_and_data(
-                    prototype,
-                    ObjectData::symbol(symbol.clone()),
-                ))
-            }
-            Self::BigInt(ref bigint) => {
-                let prototype = context.intrinsics().constructors().bigint().prototype();
-                Ok(JsObject::from_proto_and_data(
-                    prototype,
-                    ObjectData::big_int(bigint.clone()),
-                ))
-            }
+            Self::Boolean(boolean) => Ok(context
+                .intrinsics()
+                .templates()
+                .boolean()
+                .create(ObjectData::boolean(*boolean), Vec::default())),
+            Self::Integer(integer) => Ok(context
+                .intrinsics()
+                .templates()
+                .number()
+                .create(ObjectData::number(f64::from(*integer)), Vec::default())),
+            Self::Rational(rational) => Ok(context
+                .intrinsics()
+                .templates()
+                .number()
+                .create(ObjectData::number(*rational), Vec::default())),
+            Self::String(ref string) => Ok(context.intrinsics().templates().string().create(
+                ObjectData::string(string.clone()),
+                vec![string.len().into()],
+            )),
+            Self::Symbol(ref symbol) => Ok(context
+                .intrinsics()
+                .templates()
+                .symbol()
+                .create(ObjectData::symbol(symbol.clone()), Vec::default())),
+            Self::BigInt(ref bigint) => Ok(context
+                .intrinsics()
+                .templates()
+                .bigint()
+                .create(ObjectData::big_int(bigint.clone()), Vec::default())),
             Self::Object(jsobject) => Ok(jsobject.clone()),
         }
     }

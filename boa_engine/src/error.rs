@@ -709,7 +709,11 @@ impl JsNativeError {
             }
         };
 
-        let o = JsObject::from_proto_and_data(prototype, ObjectData::error(tag));
+        let o = JsObject::from_proto_and_data_with_shared_shape(
+            context.root_shape(),
+            prototype,
+            ObjectData::error(tag),
+        );
 
         o.create_non_enumerable_data_property_or_throw(utf16!("message"), &**message, context);
 

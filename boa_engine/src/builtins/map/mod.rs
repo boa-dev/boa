@@ -41,18 +41,15 @@ impl IntrinsicObject for Map {
     fn init(realm: &Realm) {
         let _timer = Profiler::global().start_event(Self::NAME, "init");
 
-        let get_species = BuiltInBuilder::new(realm)
-            .callable(Self::get_species)
+        let get_species = BuiltInBuilder::callable(realm, Self::get_species)
             .name("get [Symbol.species]")
             .build();
 
-        let get_size = BuiltInBuilder::new(realm)
-            .callable(Self::get_size)
+        let get_size = BuiltInBuilder::callable(realm, Self::get_size)
             .name("get size")
             .build();
 
-        let entries_function = BuiltInBuilder::new(realm)
-            .callable(Self::entries)
+        let entries_function = BuiltInBuilder::callable(realm, Self::entries)
             .name("entries")
             .build();
 
@@ -136,7 +133,11 @@ impl BuiltInConstructor for Map {
         // 3. Set map.[[MapData]] to a new empty List.
         let prototype =
             get_prototype_from_constructor(new_target, StandardConstructors::map, context)?;
-        let map = JsObject::from_proto_and_data(prototype, ObjectData::map(OrderedMap::new()));
+        let map = JsObject::from_proto_and_data_with_shared_shape(
+            context.root_shape(),
+            prototype,
+            ObjectData::map(OrderedMap::new()),
+        );
 
         // 4. If iterable is either undefined or null, return map.
         let iterable = match args.get_or_undefined(0) {

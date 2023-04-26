@@ -442,17 +442,7 @@ impl IntrinsicObject for BuiltInFunctionObject {
     fn init(realm: &Realm) {
         let _timer = Profiler::global().start_event("function", "init");
 
-        BuiltInBuilder::with_object(
-            realm,
-            realm.intrinsics().constructors().function().prototype(),
-        )
-        .callable(Self::prototype)
-        .name("")
-        .length(0)
-        .build();
-
-        let has_instance = BuiltInBuilder::new(realm)
-            .callable(Self::has_instance)
+        let has_instance = BuiltInBuilder::callable(realm, Self::has_instance)
             .name("[Symbol.iterator]")
             .length(1)
             .build();
@@ -478,6 +468,15 @@ impl IntrinsicObject for BuiltInFunctionObject {
                 Attribute::CONFIGURABLE,
             )
             .build();
+
+        let prototype = realm.intrinsics().constructors().function().prototype();
+
+        BuiltInBuilder::callable_with_object(realm, prototype.clone(), Self::prototype)
+            .name("")
+            .length(0)
+            .build();
+
+        prototype.set_prototype(Some(realm.intrinsics().constructors().object().prototype()));
     }
 
     fn get(intrinsics: &Intrinsics) -> JsObject {
@@ -1098,7 +1097,8 @@ impl BoundFunction {
         // 8. Set obj.[[BoundThis]] to boundThis.
         // 9. Set obj.[[BoundArguments]] to boundArgs.
         // 10. Return obj.
-        Ok(JsObject::from_proto_and_data(
+        Ok(JsObject::from_proto_and_data_with_shared_shape(
+            context.root_shape(),
             proto,
             ObjectData::bound_function(
                 Self {

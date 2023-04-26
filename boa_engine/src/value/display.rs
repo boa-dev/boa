@@ -67,15 +67,19 @@ macro_rules! print_obj_value {
         }
     };
     (props of $obj:expr, $display_fn:ident, $indent:expr, $encounters:expr, $print_internals:expr) => {
-        print_obj_value!(impl $obj, |(key, val)| {
+        {let mut keys: Vec<_> = $obj.borrow().properties().index_property_keys().map(crate::property::PropertyKey::Index).collect();
+        keys.extend($obj.borrow().properties().shape.keys());
+        let mut result = Vec::default();
+        for key in keys {
+            let val = $obj.borrow().properties().get(&key).expect("There should be a value");
             if val.is_data_descriptor() {
                 let v = &val.expect_value();
-                format!(
+                result.push(format!(
                     "{:>width$}: {}",
                     key,
                     $display_fn(v, $encounters, $indent.wrapping_add(4), $print_internals),
                     width = $indent,
-                )
+                ));
             } else {
                let display = match (val.set().is_some(), val.get().is_some()) {
                     (true, true) => "Getter & Setter",
@@ -83,20 +87,10 @@ macro_rules! print_obj_value {
                     (false, true) => "Getter",
                     _ => "No Getter/Setter"
                 };
-               format!("{:>width$}: {}", key, display, width = $indent)
+               result.push(format!("{:>width$}: {}", key, display, width = $indent));
             }
-        })
-    };
-
-    // A private overload of the macro
-    // DO NOT use directly
-    (impl $v:expr, $f:expr) => {
-        $v
-            .borrow()
-            .properties()
-            .iter()
-            .map($f)
-            .collect::<Vec<String>>()
+        }
+        result}
     };
 }
 

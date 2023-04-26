@@ -87,7 +87,8 @@ impl SetIterator {
         lock: SetLock,
         context: &Context<'_>,
     ) -> JsValue {
-        let set_iterator = JsObject::from_proto_and_data(
+        let set_iterator = JsObject::from_proto_and_data_with_shared_shape(
+            context.root_shape(),
             context.intrinsics().objects().iterator_prototypes().set(),
             ObjectData::set_iterator(Self::new(set, kind, lock)),
         );

@@ -101,12 +101,12 @@ pub(crate) fn string_exotic_own_property_keys(
     let mut keys = Vec::with_capacity(len);
 
     // 5. For each integer i starting with 0 such that i < len, in ascending order, do
-    // a. Add ! ToString(𝔽(i)) as the last element of keys.
+    //      a. Add ! ToString(𝔽(i)) as the last element of keys.
     keys.extend((0..len).map(Into::into));
 
     // 6. For each own property key P of O such that P is an array index
     // and ! ToIntegerOrInfinity(P) ≥ len, in ascending numeric index order, do
-    // a. Add P as the last element of keys.
+    //      a. Add P as the last element of keys.
     let mut remaining_indices: Vec<_> = obj
         .properties
         .index_property_keys()
@@ -117,23 +117,12 @@ pub(crate) fn string_exotic_own_property_keys(
 
     // 7. For each own property key P of O such that Type(P) is String and P is not
     // an array index, in ascending chronological order of property creation, do
-    // a. Add P as the last element of keys.
-    keys.extend(
-        obj.properties
-            .string_property_keys()
-            .cloned()
-            .map(Into::into),
-    );
+    //      a. Add P as the last element of keys.
 
     // 8. For each own property key P of O such that Type(P) is Symbol, in ascending
     // chronological order of property creation, do
-    // a. Add P as the last element of keys.
-    keys.extend(
-        obj.properties
-            .symbol_property_keys()
-            .cloned()
-            .map(Into::into),
-    );
+    //      a. Add P as the last element of keys.
+    keys.extend(obj.properties.shape.keys());
 
     // 9. Return keys.
     Ok(keys)

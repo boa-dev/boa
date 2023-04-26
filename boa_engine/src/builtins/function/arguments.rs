@@ -1,9 +1,6 @@
 use crate::{
     environments::DeclarativeEnvironment,
     object::{JsObject, ObjectData},
-    property::PropertyDescriptor,
-    string::utf16,
-    symbol::{self, JsSymbol},
     Context, JsValue,
 };
 use boa_ast::{function::FormalParameterList, operations::bound_names};
@@ -77,68 +74,42 @@ impl Arguments {
         // 1. Let len be the number of elements in argumentsList.
         let len = arguments_list.len();
 
+        let values_function = context.intrinsics().objects().array_prototype_values();
+        let throw_type_error = context.intrinsics().objects().throw_type_error();
+
         // 2. Let obj be ! OrdinaryObjectCreate(%Object.prototype%, « [[ParameterMap]] »).
         // 3. Set obj.[[ParameterMap]] to undefined.
         // skipped because the `Arguments` enum ensures ordinary argument objects don't have a `[[ParameterMap]]`
-        let obj = JsObject::from_proto_and_data(
-            context.intrinsics().constructors().object().prototype(),
-            ObjectData::arguments(Self::Unmapped),
-        );
-
-        // 4. Perform DefinePropertyOrThrow(obj, "length", PropertyDescriptor { [[Value]]: 𝔽(len),
-        // [[Writable]]: true, [[Enumerable]]: false, [[Configurable]]: true }).
-        obj.define_property_or_throw(
-            utf16!("length"),
-            PropertyDescriptor::builder()
-                .value(len)
-                .writable(true)
-                .enumerable(false)
-                .configurable(true),
-            context,
-        )
-        .expect("Defining new own properties for a new ordinary object cannot fail");
+        let obj = context
+            .intrinsics()
+            .templates()
+            .unmapped_arguments()
+            .create(
+                ObjectData::arguments(Self::Unmapped),
+                vec![
+                    // 4. Perform DefinePropertyOrThrow(obj, "length", PropertyDescriptor { [[Value]]: 𝔽(len),
+                    // [[Writable]]: true, [[Enumerable]]: false, [[Configurable]]: true }).
+                    len.into(),
+                    // 7. Perform ! DefinePropertyOrThrow(obj, @@iterator, PropertyDescriptor {
+                    // [[Value]]: %Array.prototype.values%, [[Writable]]: true, [[Enumerable]]: false,
+                    // [[Configurable]]: true }).
+                    values_function.into(),
+                    // 8. Perform ! DefinePropertyOrThrow(obj, "callee", PropertyDescriptor {
+                    // [[Get]]: %ThrowTypeError%, [[Set]]: %ThrowTypeError%, [[Enumerable]]: false,
+                    // [[Configurable]]: false }).
+                    throw_type_error.clone().into(), // get
+                    throw_type_error.into(),         // set
+                ],
+            );
 
         // 5. Let index be 0.
         // 6. Repeat, while index < len,
-        for (index, value) in arguments_list.iter().cloned().enumerate() {
-            // a. Let val be argumentsList[index].
-            // b. Perform ! CreateDataPropertyOrThrow(obj, ! ToString(𝔽(index)), val).
-            obj.create_data_property_or_throw(index, value, context)
-                .expect("Defining new own properties for a new ordinary object cannot fail");
-
-            // c. Set index to index + 1.
-        }
-
-        // 7. Perform ! DefinePropertyOrThrow(obj, @@iterator, PropertyDescriptor {
-        // [[Value]]: %Array.prototype.values%, [[Writable]]: true, [[Enumerable]]: false,
-        // [[Configurable]]: true }).
-        let values_function = context.intrinsics().objects().array_prototype_values();
-        obj.define_property_or_throw(
-            symbol::JsSymbol::iterator(),
-            PropertyDescriptor::builder()
-                .value(values_function)
-                .writable(true)
-                .enumerable(false)
-                .configurable(true),
-            context,
-        )
-        .expect("Defining new own properties for a new ordinary object cannot fail");
-
-        let throw_type_error = context.intrinsics().objects().throw_type_error();
-
-        // 8. Perform ! DefinePropertyOrThrow(obj, "callee", PropertyDescriptor {
-        // [[Get]]: %ThrowTypeError%, [[Set]]: %ThrowTypeError%, [[Enumerable]]: false,
-        // [[Configurable]]: false }).
-        obj.define_property_or_throw(
-            utf16!("callee"),
-            PropertyDescriptor::builder()
-                .get(throw_type_error.clone())
-                .set(throw_type_error)
-                .enumerable(false)
-                .configurable(false),
-            context,
-        )
-        .expect("Defining new own properties for a new ordinary object cannot fail");
+        //    a. Let val be argumentsList[index].
+        //    b. Perform ! CreateDataPropertyOrThrow(obj, ! ToString(𝔽(index)), val).
+        //    c. Set index to index + 1.
+        obj.borrow_mut()
+            .properties_mut()
+            .override_indexed_properties(arguments_list.iter().cloned().collect());
 
         // 9. Return obj.
         obj
@@ -222,71 +193,36 @@ impl Arguments {
             map.binding_indices[*property_index] = Some(*binding_index);
         }
 
+        // %Array.prototype.values%
+        let values_function = context.intrinsics().objects().array_prototype_values();
+
         // 11. Set obj.[[ParameterMap]] to map.
-        let obj = JsObject::from_proto_and_data(
-            context.intrinsics().constructors().object().prototype(),
+        let obj = context.intrinsics().templates().mapped_arguments().create(
             ObjectData::arguments(Self::Mapped(map)),
+            vec![
+                // 16. Perform ! DefinePropertyOrThrow(obj, "length", PropertyDescriptor { [[Value]]: 𝔽(len),
+                // [[Writable]]: true, [[Enumerable]]: false, [[Configurable]]: true }).
+                len.into(),
+                // 20. Perform ! DefinePropertyOrThrow(obj, @@iterator, PropertyDescriptor {
+                // [[Value]]: %Array.prototype.values%, [[Writable]]: true, [[Enumerable]]: false,
+                // [[Configurable]]: true }).
+                values_function.into(),
+                // 21. Perform ! DefinePropertyOrThrow(obj, "callee", PropertyDescriptor {
+                // [[Value]]: func, [[Writable]]: true, [[Enumerable]]: false, [[Configurable]]: true }).
+                func.clone().into(),
+            ],
         );
 
         // 14. Let index be 0.
         // 15. Repeat, while index < len,
-        for (index, val) in arguments_list.iter().cloned().enumerate() {
-            // a. Let val be argumentsList[index].
-            // b. Perform ! CreateDataPropertyOrThrow(obj, ! ToString(𝔽(index)), val).
-            // Note: Insert is used here because `CreateDataPropertyOrThrow` would cause a panic while executing
-            // exotic argument object set methods before the variables in the environment are initialized.
-            obj.insert(
-                index,
-                PropertyDescriptor::builder()
-                    .value(val)
-                    .writable(true)
-                    .enumerable(true)
-                    .configurable(true)
-                    .build(),
-            );
-            // c. Set index to index + 1.
-        }
-
-        // 16. Perform ! DefinePropertyOrThrow(obj, "length", PropertyDescriptor { [[Value]]: 𝔽(len),
-        // [[Writable]]: true, [[Enumerable]]: false, [[Configurable]]: true }).
-        obj.define_property_or_throw(
-            utf16!("length"),
-            PropertyDescriptor::builder()
-                .value(len)
-                .writable(true)
-                .enumerable(false)
-                .configurable(true),
-            context,
-        )
-        .expect("Defining new own properties for a new ordinary object cannot fail");
-
-        // 20. Perform ! DefinePropertyOrThrow(obj, @@iterator, PropertyDescriptor {
-        // [[Value]]: %Array.prototype.values%, [[Writable]]: true, [[Enumerable]]: false,
-        // [[Configurable]]: true }).
-        let values_function = context.intrinsics().objects().array_prototype_values();
-        obj.define_property_or_throw(
-            JsSymbol::iterator(),
-            PropertyDescriptor::builder()
-                .value(values_function)
-                .writable(true)
-                .enumerable(false)
-                .configurable(true),
-            context,
-        )
-        .expect("Defining new own properties for a new ordinary object cannot fail");
-
-        // 21. Perform ! DefinePropertyOrThrow(obj, "callee", PropertyDescriptor {
-        // [[Value]]: func, [[Writable]]: true, [[Enumerable]]: false, [[Configurable]]: true }).
-        obj.define_property_or_throw(
-            utf16!("callee"),
-            PropertyDescriptor::builder()
-                .value(func.clone())
-                .writable(true)
-                .enumerable(false)
-                .configurable(true),
-            context,
-        )
-        .expect("Defining new own properties for a new ordinary object cannot fail");
+        //     a. Let val be argumentsList[index].
+        //     b. Perform ! CreateDataPropertyOrThrow(obj, ! ToString(𝔽(index)), val).
+        //     Note: Direct initialization of indexed array is used here because `CreateDataPropertyOrThrow`
+        //     would cause a panic while executing exotic argument object set methods before the variables
+        //     in the environment are initialized.
+        obj.borrow_mut()
+            .properties_mut()
+            .override_indexed_properties(arguments_list.iter().cloned().collect());
 
         // 22. Return obj.
         obj

@@ -4,6 +4,7 @@
 
 use super::{
     internal_methods::{InternalObjectMethods, ARRAY_EXOTIC_INTERNAL_METHODS},
+    shape::{shared_shape::SharedShape, Shape},
     JsPrototype, NativeObject, Object, PropertyMap,
 };
 use crate::{
@@ -21,6 +22,7 @@ use std::{
     collections::HashMap,
     error::Error,
     fmt::{self, Debug, Display},
+    hash::Hash,
     result::Result as StdResult,
 };
 use thin_vec::ThinVec;
@@ -108,8 +110,35 @@ impl JsObject {
             inner: Gc::new(VTableObject {
                 object: GcRefCell::new(Object {
                     kind: data.kind,
-                    properties: PropertyMap::default(),
-                    prototype: prototype.into(),
+                    properties: PropertyMap::from_prototype_unique_shape(prototype.into()),
+                    extensible: true,
+                    private_elements: ThinVec::new(),
+                }),
+                vtable: data.internal_methods,
+            }),
+        }
+    }
+
+    /// Creates a new object with the provided prototype and object data.
+    ///
+    /// This is equivalent to calling the specification's abstract operation [`OrdinaryObjectCreate`],
+    /// with the difference that the `additionalInternalSlotsList` parameter is automatically set by
+    /// the [`ObjectData`] provided.
+    ///
+    /// [`OrdinaryObjectCreate`]: https://tc39.es/ecma262/#sec-ordinaryobjectcreate
+    pub(crate) fn from_proto_and_data_with_shared_shape<O: Into<Option<Self>>>(
+        root_shape: SharedShape,
+        prototype: O,
+        data: ObjectData,
+    ) -> Self {
+        Self {
+            inner: Gc::new(VTableObject {
+                object: GcRefCell::new(Object {
+                    kind: data.kind,
+                    properties: PropertyMap::from_prototype_with_shared_shape(
+                        Shape::shared(root_shape),
+                        prototype.into(),
+                    ),
                     extensible: true,
                     private_elements: ThinVec::new(),
                 }),
@@ -314,8 +343,8 @@ impl JsObject {
     /// Panics if the object is currently mutably borrowed.
     #[inline]
     #[track_caller]
-    pub fn prototype(&self) -> Ref<'_, JsPrototype> {
-        Ref::map(self.borrow(), Object::prototype)
+    pub fn prototype(&self) -> JsPrototype {
+        self.borrow().prototype()
     }
 
     /// Get the extensibility of the object.
@@ -859,7 +888,7 @@ Cannot both specify accessors and a value or writable attribute",
 
     /// Helper function for property insertion.
     #[track_caller]
-    pub(crate) fn insert<K, P>(&self, key: K, property: P) -> Option<PropertyDescriptor>
+    pub(crate) fn insert<K, P>(&self, key: K, property: P) -> bool
     where
         K: Into<PropertyKey>,
         P: Into<PropertyDescriptor>,
@@ -869,9 +898,9 @@ Cannot both specify accessors and a value or writable attribute",
 
     /// Inserts a field in the object `properties` without checking if it's writable.
     ///
-    /// If a field was already in the object with the same name that a `Some` is returned
-    /// with that field, otherwise None is returned.
-    pub fn insert_property<K, P>(&self, key: K, property: P) -> Option<PropertyDescriptor>
+    /// If a field was already in the object with the same name, than `true` is returned
+    /// with that field, otherwise `false` is returned.
+    pub fn insert_property<K, P>(&self, key: K, property: P) -> bool
     where
         K: Into<PropertyKey>,
         P: Into<PropertyDescriptor>,
@@ -934,6 +963,14 @@ impl From<Gc<VTableObject>> for JsObject {
 impl PartialEq for JsObject {
     fn eq(&self, other: &Self) -> bool {
         Self::equals(self, other)
+    }
+}
+
+impl Eq for JsObject {}
+
+impl Hash for JsObject {
+    fn hash<H: std::hash::Hasher>(&self, state: &mut H) {
+        std::ptr::hash(self.as_ref(), state);
     }
 }
 

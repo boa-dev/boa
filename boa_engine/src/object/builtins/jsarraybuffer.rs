@@ -101,7 +101,8 @@ impl JsArrayBuffer {
 
         // 3. Set obj.[[ArrayBufferData]] to block.
         // 4. Set obj.[[ArrayBufferByteLength]] to byteLength.
-        let obj = JsObject::from_proto_and_data(
+        let obj = JsObject::from_proto_and_data_with_shared_shape(
+            context.root_shape(),
             prototype,
             ObjectData::array_buffer(ArrayBuffer {
                 array_buffer_data: Some(block),

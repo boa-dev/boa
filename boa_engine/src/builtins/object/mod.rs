@@ -48,13 +48,11 @@ impl IntrinsicObject for Object {
     fn init(realm: &Realm) {
         let _timer = Profiler::global().start_event(Self::NAME, "init");
 
-        let legacy_proto_getter = BuiltInBuilder::new(realm)
-            .callable(Self::legacy_proto_getter)
+        let legacy_proto_getter = BuiltInBuilder::callable(realm, Self::legacy_proto_getter)
             .name("get __proto__")
             .build();
 
-        let legacy_setter_proto = BuiltInBuilder::new(realm)
-            .callable(Self::legacy_proto_setter)
+        let legacy_setter_proto = BuiltInBuilder::callable(realm, Self::legacy_proto_setter)
             .name("set __proto__")
             .build();
 
@@ -142,7 +140,11 @@ impl BuiltInConstructor for Object {
             //     a. Return ? OrdinaryCreateFromConstructor(NewTarget, "%Object.prototype%").
             let prototype =
                 get_prototype_from_constructor(new_target, StandardConstructors::object, context)?;
-            let object = JsObject::from_proto_and_data(prototype, ObjectData::ordinary());
+            let object = JsObject::from_proto_and_data_with_shared_shape(
+                context.root_shape(),
+                prototype,
+                ObjectData::ordinary(),
+            );
             return Ok(object.into());
         }
 
@@ -419,7 +421,8 @@ impl Object {
         let properties = args.get_or_undefined(1);
 
         let obj = match prototype {
-            JsValue::Object(_) | JsValue::Null => JsObject::from_proto_and_data(
+            JsValue::Object(_) | JsValue::Null => JsObject::from_proto_and_data_with_shared_shape(
+                context.root_shape(),
                 prototype.as_object().cloned(),
                 ObjectData::ordinary(),
             ),

@@ -518,7 +518,8 @@ impl JsProxyBuilder {
         let callable = self.target.is_callable();
         let constructor = self.target.is_constructor();
 
-        let proxy = JsObject::from_proto_and_data(
+        let proxy = JsObject::from_proto_and_data_with_shared_shape(
+            context.root_shape(),
             context.intrinsics().constructors().object().prototype(),
             ObjectData::proxy(Proxy::new(self.target, handler), callable, constructor),
         );

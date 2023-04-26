@@ -47,16 +47,15 @@ impl IntrinsicObject for Array {
         let symbol_iterator = JsSymbol::iterator();
         let symbol_unscopables = JsSymbol::unscopables();
 
-        let get_species = BuiltInBuilder::new(realm)
-            .callable(Self::get_species)
+        let get_species = BuiltInBuilder::callable(realm, Self::get_species)
             .name("get [Symbol.species]")
             .build();
 
-        let values_function = BuiltInBuilder::with_object(
+        let values_function = BuiltInBuilder::callable_with_object(
             realm,
             realm.intrinsics().objects().array_prototype_values().into(),
+            Self::values,
         )
-        .callable(Self::values)
         .name("values")
         .build();
 
@@ -217,17 +216,18 @@ impl BuiltInConstructor for Array {
 
             // b. Let array be ? ArrayCreate(numberOfArgs, proto).
             let array = Self::array_create(number_of_args as u64, Some(prototype), context)?;
+
             // c. Let k be 0.
             // d. Repeat, while k < numberOfArgs,
-            for (i, item) in args.iter().cloned().enumerate() {
-                // i. Let Pk be ! ToString(𝔽(k)).
-                // ii. Let itemK be values[k].
-                // iii. Perform ! CreateDataPropertyOrThrow(array, Pk, itemK).
-                array
-                    .create_data_property_or_throw(i, item, context)
-                    .expect("this CreateDataPropertyOrThrow must not fail");
-                // iv. Set k to k + 1.
-            }
+            //    i. Let Pk be ! ToString(𝔽(k)).
+            //    ii. Let itemK be values[k].
+            //    iii. Perform ! CreateDataPropertyOrThrow(array, Pk, itemK).
+            //    iv. Set k to k + 1.
+            array
+                .borrow_mut()
+                .properties_mut()
+                .override_indexed_properties(args.iter().cloned().collect());
+
             // e. Assert: The mathematical value of array's "length" property is numberOfArgs.
             // f. Return array.
             Ok(array.into())
@@ -253,6 +253,16 @@ impl Array {
                 .with_message("array exceeded max size")
                 .into());
         }
+
+        // Fast path:
+        if prototype.is_none() {
+            return Ok(context
+                .intrinsics()
+                .templates()
+                .array()
+                .create(ObjectData::array(), vec![JsValue::new(length)]));
+        }
+
         // 7. Return A.
         // 2. If proto is not present, set proto to %Array.prototype%.
         // 3. Let A be ! MakeBasicObject(« [[Prototype]], [[Extensible]] »).
@@ -260,7 +270,26 @@ impl Array {
         // 5. Set A.[[DefineOwnProperty]] as specified in 10.4.2.1.
         let prototype =
             prototype.unwrap_or_else(|| context.intrinsics().constructors().array().prototype());
-        let array = JsObject::from_proto_and_data(prototype, ObjectData::array());
+
+        // Fast path:
+        if context
+            .intrinsics()
+            .templates()
+            .array()
+            .has_prototype(&prototype)
+        {
+            return Ok(context
+                .intrinsics()
+                .templates()
+                .array()
+                .create(ObjectData::array(), vec![JsValue::new(length)]));
+        }
+
+        let array = JsObject::from_proto_and_data_with_shared_shape(
+            context.root_shape(),
+            prototype,
+            ObjectData::array(),
+        );
 
         // 6. Perform ! OrdinaryDefineOwnProperty(A, "length", PropertyDescriptor { [[Value]]: 𝔽(length), [[Writable]]: true, [[Enumerable]]: false, [[Configurable]]: false }).
         crate::object::internal_methods::ordinary_define_own_property(
@@ -290,27 +319,24 @@ impl Array {
     {
         // 1. Assert: elements is a List whose elements are all ECMAScript language values.
         // 2. Let array be ! ArrayCreate(0).
-        let array = Self::array_create(0, None, context)
-            .expect("creating an empty array with the default prototype must not fail");
-
         // 3. Let n be 0.
         // 4. For each element e of elements, do
         //     a. Perform ! CreateDataPropertyOrThrow(array, ! ToString(𝔽(n)), e).
         //     b. Set n to n + 1.
-        //
+        // 5. Return array.
         // NOTE: This deviates from the spec, but it should have the same behaviour.
         let elements: ThinVec<_> = elements.into_iter().collect();
         let length = elements.len();
-        array
-            .borrow_mut()
-            .properties_mut()
-            .override_indexed_properties(elements);
-        array
-            .set(utf16!("length"), length, true, context)
-            .expect("Should not fail");
 
-        // 5. Return array.
-        array
+        context
+            .intrinsics()
+            .templates()
+            .array()
+            .create_with_indexed_properties(
+                ObjectData::array(),
+                vec![JsValue::new(length)],
+                elements,
+            )
     }
 
     /// Utility function for concatenating array objects.

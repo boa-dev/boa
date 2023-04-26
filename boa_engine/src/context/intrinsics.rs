@@ -4,22 +4,40 @@ use boa_gc::{Finalize, Trace};
 
 use crate::{
     builtins::{iterable::IteratorPrototypes, uri::UriFunctions},
-    object::{JsFunction, JsObject, ObjectData},
+    object::{
+        shape::shared_shape::{template::ObjectTemplate, SharedShape},
+        JsFunction, JsObject, ObjectData, CONSTRUCTOR, PROTOTYPE,
+    },
+    property::{Attribute, PropertyKey},
+    JsSymbol,
 };
 
 /// The intrinsic objects and constructors.
 ///
 /// `Intrinsics` is internally stored using a `Gc`, which makes it cheapily clonable
 /// for multiple references to the same set of intrinsic objects.
-#[derive(Debug, Default, Trace, Finalize)]
+#[derive(Debug, Trace, Finalize)]
 pub struct Intrinsics {
     /// Cached standard constructors
     pub(super) constructors: StandardConstructors,
     /// Cached intrinsic objects
     pub(super) objects: IntrinsicObjects,
+    /// Cached object templates.
+    pub(super) templates: ObjectTemplates,
 }
 
 impl Intrinsics {
+    pub(crate) fn new(root_shape: &SharedShape) -> Self {
+        let constructors = StandardConstructors::default();
+        let templates = ObjectTemplates::new(root_shape, &constructors);
+
+        Self {
+            constructors,
+            objects: IntrinsicObjects::default(),
+            templates,
+        }
+    }
+
     /// Return the cached intrinsic objects.
     #[inline]
     pub const fn objects(&self) -> &IntrinsicObjects {
@@ -30,6 +48,10 @@ impl Intrinsics {
     #[inline]
     pub const fn constructors(&self) -> &StandardConstructors {
         &self.constructors
+    }
+
+    pub(crate) const fn templates(&self) -> &ObjectTemplates {
+        &self.templates
     }
 }
 
@@ -948,5 +970,319 @@ impl IntrinsicObjects {
     #[cfg(feature = "intl")]
     pub fn segments_prototype(&self) -> JsObject {
         self.segments_prototype.clone()
+    }
+}
+
+/// Contains commonly used [`ObjectTemplate`]s.
+#[derive(Debug, Trace, Finalize)]
+pub(crate) struct ObjectTemplates {
+    iterator_result: ObjectTemplate,
+    ordinary_object: ObjectTemplate,
+    array: ObjectTemplate,
+    number: ObjectTemplate,
+    string: ObjectTemplate,
+    symbol: ObjectTemplate,
+    bigint: ObjectTemplate,
+    boolean: ObjectTemplate,
+
+    unmapped_arguments: ObjectTemplate,
+    mapped_arguments: ObjectTemplate,
+
+    function_with_prototype: ObjectTemplate,
+    function_prototype: ObjectTemplate,
+
+    function: ObjectTemplate,
+    async_function: ObjectTemplate,
+
+    function_without_proto: ObjectTemplate,
+    function_with_prototype_without_proto: ObjectTemplate,
+}
+
+impl ObjectTemplates {
+    pub(crate) fn new(root_shape: &SharedShape, constructors: &StandardConstructors) -> Self {
+        // pre-initialize used shapes.
+        let ordinary_object =
+            ObjectTemplate::with_prototype(root_shape, constructors.object().prototype());
+        let mut array = ObjectTemplate::new(root_shape);
+        let length_property_key: PropertyKey = "length".into();
+        array.property(
+            length_property_key.clone(),
+            Attribute::WRITABLE | Attribute::PERMANENT | Attribute::NON_ENUMERABLE,
+        );
+        array.set_prototype(constructors.array().prototype());
+
+        let number = ObjectTemplate::with_prototype(root_shape, constructors.number().prototype());
+        let symbol = ObjectTemplate::with_prototype(root_shape, constructors.symbol().prototype());
+        let bigint = ObjectTemplate::with_prototype(root_shape, constructors.bigint().prototype());
+        let boolean =
+            ObjectTemplate::with_prototype(root_shape, constructors.boolean().prototype());
+        let mut string = ObjectTemplate::new(root_shape);
+        string.property(
+            length_property_key.clone(),
+            Attribute::READONLY | Attribute::PERMANENT | Attribute::NON_ENUMERABLE,
+        );
+        string.set_prototype(constructors.string().prototype());
+
+        let name_property_key: PropertyKey = "name".into();
+        let mut function = ObjectTemplate::new(root_shape);
+        function.property(
+            length_property_key.clone(),
+            Attribute::READONLY | Attribute::CONFIGURABLE | Attribute::NON_ENUMERABLE,
+        );
+        function.property(
+            name_property_key,
+            Attribute::READONLY | Attribute::CONFIGURABLE | Attribute::NON_ENUMERABLE,
+        );
+
+        let function_without_proto = function.clone();
+        let mut async_function = function.clone();
+        let mut function_with_prototype = function.clone();
+
+        function_with_prototype.property(
+            PROTOTYPE.into(),
+            Attribute::WRITABLE | Attribute::PERMANENT | Attribute::NON_ENUMERABLE,
+        );
+
+        let function_with_prototype_without_proto = function_with_prototype.clone();
+
+        function.set_prototype(constructors.function().prototype());
+        function_with_prototype.set_prototype(constructors.function().prototype());
+        async_function.set_prototype(constructors.async_function().prototype());
+
+        let mut function_prototype = ordinary_object.clone();
+        function_prototype.property(
+            CONSTRUCTOR.into(),
+            Attribute::WRITABLE | Attribute::CONFIGURABLE | Attribute::NON_ENUMERABLE,
+        );
+
+        let mut unmapped_arguments = ordinary_object.clone();
+
+        // 4. Perform DefinePropertyOrThrow(obj, "length", PropertyDescriptor { [[Value]]: 𝔽(len),
+        // [[Writable]]: true, [[Enumerable]]: false, [[Configurable]]: true }).
+        unmapped_arguments.property(
+            length_property_key,
+            Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
+        );
+
+        // 7. Perform ! DefinePropertyOrThrow(obj, @@iterator, PropertyDescriptor {
+        // [[Value]]: %Array.prototype.values%, [[Writable]]: true, [[Enumerable]]: false,
+        // [[Configurable]]: true }).
+        unmapped_arguments.property(
+            JsSymbol::iterator().into(),
+            Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
+        );
+
+        let mut mapped_arguments = unmapped_arguments.clone();
+
+        // 8. Perform ! DefinePropertyOrThrow(obj, "callee", PropertyDescriptor {
+        // [[Get]]: %ThrowTypeError%, [[Set]]: %ThrowTypeError%, [[Enumerable]]: false,
+        // [[Configurable]]: false }).
+        unmapped_arguments.accessor(
+            "callee".into(),
+            true,
+            true,
+            Attribute::NON_ENUMERABLE | Attribute::PERMANENT,
+        );
+
+        // 21. Perform ! DefinePropertyOrThrow(obj, "callee", PropertyDescriptor {
+        // [[Value]]: func, [[Writable]]: true, [[Enumerable]]: false, [[Configurable]]: true }).
+        mapped_arguments.property(
+            "callee".into(),
+            Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
+        );
+
+        let mut iterator_result = ordinary_object.clone();
+        iterator_result.property(
+            "value".into(),
+            Attribute::WRITABLE | Attribute::CONFIGURABLE | Attribute::ENUMERABLE,
+        );
+        iterator_result.property(
+            "done".into(),
+            Attribute::WRITABLE | Attribute::CONFIGURABLE | Attribute::ENUMERABLE,
+        );
+
+        Self {
+            iterator_result,
+            ordinary_object,
+            array,
+            number,
+            string,
+            symbol,
+            bigint,
+            boolean,
+            unmapped_arguments,
+            mapped_arguments,
+            function_with_prototype,
+            function_prototype,
+            function,
+            async_function,
+            function_without_proto,
+            function_with_prototype_without_proto,
+        }
+    }
+
+    /// Cached iterator result template.
+    ///
+    /// Transitions:
+    ///
+    /// 1. `__proto__`: `Object.prototype`
+    /// 2. `"done"`: (`WRITABLE`, `CONFIGURABLE`, `ENUMERABLE`)
+    /// 3. `"value"`: (`WRITABLE`, `CONFIGURABLE`, `ENUMERABLE`)
+    pub(crate) const fn iterator_result(&self) -> &ObjectTemplate {
+        &self.iterator_result
+    }
+
+    /// Cached ordinary object template.
+    ///
+    /// Transitions:
+    ///
+    /// 1. `__proto__`: `Object.prototype`
+    pub(crate) const fn ordinary_object(&self) -> &ObjectTemplate {
+        &self.ordinary_object
+    }
+
+    /// Cached array object template.
+    ///
+    /// Transitions:
+    ///
+    /// 1. `"length"`: (`WRITABLE`, `PERMANENT`,`NON_ENUMERABLE`)
+    /// 2. `__proto__`: `Array.prototype`
+    pub(crate) const fn array(&self) -> &ObjectTemplate {
+        &self.array
+    }
+
+    /// Cached number object template.
+    ///
+    /// Transitions:
+    ///
+    /// 1. `__proto__`: `Number.prototype`
+    pub(crate) const fn number(&self) -> &ObjectTemplate {
+        &self.number
+    }
+
+    /// Cached string object template.
+    ///
+    /// Transitions:
+    ///
+    /// 1. `"length"`: (`READONLY`, `PERMANENT`,`NON_ENUMERABLE`)
+    /// 2. `__proto__`: `String.prototype`
+    pub(crate) const fn string(&self) -> &ObjectTemplate {
+        &self.string
+    }
+
+    /// Cached symbol object template.
+    ///
+    /// Transitions:
+    ///
+    /// 1. `__proto__`: `Symbol.prototype`
+    pub(crate) const fn symbol(&self) -> &ObjectTemplate {
+        &self.symbol
+    }
+
+    /// Cached bigint object template.
+    ///
+    /// Transitions:
+    ///
+    /// 1. `__proto__`: `BigInt.prototype`
+    pub(crate) const fn bigint(&self) -> &ObjectTemplate {
+        &self.bigint
+    }
+
+    /// Cached boolean object template.
+    ///
+    /// Transitions:
+    ///
+    /// 1. `__proto__`: `Boolean.prototype`
+    pub(crate) const fn boolean(&self) -> &ObjectTemplate {
+        &self.boolean
+    }
+
+    /// Cached unmapped arguments object template.
+    ///
+    /// Transitions:
+    ///
+    /// 1. `__proto__`: `Object.prototype`
+    /// 2. `"length"`: (`WRITABLE`, `NON_ENUMERABLE`, `CONFIGURABLE`)
+    /// 3. `@@iterator`: (`WRITABLE`, `NON_ENUMERABLE`, `CONFIGURABLE`)
+    /// 4. `get/set` `"callee"`: (`NON_ENUMERABLE`, `PERMANENT`)
+    pub(crate) const fn unmapped_arguments(&self) -> &ObjectTemplate {
+        &self.unmapped_arguments
+    }
+
+    /// Cached mapped arguments object template.
+    ///
+    /// Transitions:
+    ///
+    /// 1. `__proto__`: `Object.prototype`
+    /// 2. `"length"`: (`WRITABLE`, `NON_ENUMERABLE`, `CONFIGURABLE`)
+    /// 3. `@@iterator`: (`WRITABLE`, `NON_ENUMERABLE`, `CONFIGURABLE`)
+    /// 4. `"callee"`: (`WRITABLE`, `NON_ENUMERABLE`, `CONFIGURABLE`)
+    pub(crate) const fn mapped_arguments(&self) -> &ObjectTemplate {
+        &self.mapped_arguments
+    }
+
+    /// Cached function object with `"prototype"` property template.
+    ///
+    /// Transitions:
+    ///
+    /// 1. `"length"`: (`READONLY`, `NON_ENUMERABLE`, `CONFIGURABLE`)
+    /// 2. `"name"`: (`READONLY`, `NON_ENUMERABLE`, `CONFIGURABLE`)
+    /// 3. `"prototype"`: (`WRITABLE`, `PERMANENT`, `NON_ENUMERABLE`)
+    /// 4. `__proto__`: `Function.prototype`
+    pub(crate) const fn function_with_prototype(&self) -> &ObjectTemplate {
+        &self.function_with_prototype
+    }
+
+    /// Cached constructor function object template.
+    ///
+    /// Transitions:
+    ///
+    /// 1. `__proto__`: `Object.prototype`
+    /// 2. `"contructor"`: (`WRITABLE`, `CONFIGURABLE`, `NON_ENUMERABLE`)
+    pub(crate) const fn function_prototype(&self) -> &ObjectTemplate {
+        &self.function_prototype
+    }
+
+    /// Cached function object property template.
+    ///
+    /// Transitions:
+    ///
+    /// 1. `"length"`: (`READONLY`, `NON_ENUMERABLE`, `CONFIGURABLE`)
+    /// 2. `"name"`: (`READONLY`, `NON_ENUMERABLE`, `CONFIGURABLE`)
+    /// 3. `__proto__`: `Function.prototype`
+    pub(crate) const fn function(&self) -> &ObjectTemplate {
+        &self.function
+    }
+
+    /// Cached function object property template.
+    ///
+    /// Transitions:
+    ///
+    /// 1. `"length"`: (`READONLY`, `NON_ENUMERABLE`, `CONFIGURABLE`)
+    /// 2. `"name"`: (`READONLY`, `NON_ENUMERABLE`, `CONFIGURABLE`)
+    /// 3. `__proto__`: `AsyncFunction.prototype`
+    pub(crate) const fn async_function(&self) -> &ObjectTemplate {
+        &self.async_function
+    }
+
+    /// Cached function object without `__proto__` template.
+    ///
+    /// Transitions:
+    ///
+    /// 1. `"length"`: (`READONLY`, `NON_ENUMERABLE`, `CONFIGURABLE`)
+    /// 2. `"name"`: (`READONLY`, `NON_ENUMERABLE`, `CONFIGURABLE`)
+    pub(crate) const fn function_without_proto(&self) -> &ObjectTemplate {
+        &self.function_without_proto
+    }
+
+    /// Cached function object with `"prototype"` and without `__proto__` template.
+    ///
+    /// Transitions:
+    ///
+    /// 1. `"length"`: (`READONLY`, `NON_ENUMERABLE`, `CONFIGURABLE`)
+    /// 2. `"name"`: (`READONLY`, `NON_ENUMERABLE`, `CONFIGURABLE`)
+    /// 3. `"prototype"`: (`WRITABLE`, `PERMANENT`, `NON_ENUMERABLE`)
+    pub(crate) const fn function_with_prototype_without_proto(&self) -> &ObjectTemplate {
+        &self.function_with_prototype_without_proto
     }
 }

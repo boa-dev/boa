@@ -1,8 +1,9 @@
 use crate::{
     builtins::{iterable::IteratorRecord, Array},
+    object::ObjectData,
     string::utf16,
     vm::{opcode::Operation, CompletionType},
-    Context, JsResult,
+    Context, JsResult, JsValue,
 };
 
 /// `PushNewArray` implements the Opcode Operation for `Opcode::PushNewArray`
@@ -17,8 +18,11 @@ impl Operation for PushNewArray {
     const INSTRUCTION: &'static str = "INST - PushNewArray";
 
     fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
-        let array = Array::array_create(0, None, context)
-            .expect("Array creation with 0 length should never fail");
+        let array = context
+            .intrinsics()
+            .templates()
+            .array()
+            .create(ObjectData::array(), vec![JsValue::new(0)]);
         context.vm.push(array);
         Ok(CompletionType::Normal)
     }

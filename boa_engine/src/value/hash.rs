@@ -45,7 +45,7 @@ impl Hash for JsValue {
             Self::BigInt(ref bigint) => bigint.hash(state),
             Self::Rational(rational) => RationalHashable(*rational).hash(state),
             Self::Symbol(ref symbol) => Hash::hash(symbol, state),
-            Self::Object(ref object) => std::ptr::hash(object.as_ref(), state),
+            Self::Object(ref object) => object.hash(state),
         }
     }
 }

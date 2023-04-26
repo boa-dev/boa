@@ -8,10 +8,12 @@ mod gc;
 mod object;
 mod optimizer;
 mod realm;
+mod shape;
 
 fn create_boa_object(context: &mut Context<'_>) -> JsObject {
     let function_module = function::create_object(context);
     let object_module = object::create_object(context);
+    let shape_module = shape::create_object(context);
     let optimizer_module = optimizer::create_object(context);
     let gc_module = gc::create_object(context);
     let realm_module = realm::create_object(context);
@@ -25,6 +27,11 @@ fn create_boa_object(context: &mut Context<'_>) -> JsObject {
         .property(
             "object",
             object_module,
+            Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
+        )
+        .property(
+            "shape",
+            shape_module,
             Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
         )
         .property(

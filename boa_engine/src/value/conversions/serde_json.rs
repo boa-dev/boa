@@ -137,8 +137,8 @@ impl JsValue {
                     Ok(Value::Array(arr))
                 } else {
                     let mut map = Map::new();
-                    for (key, property) in obj.borrow().properties().iter() {
-                        let key = match &key {
+                    for property_key in obj.borrow().properties().shape.keys() {
+                        let key = match &property_key {
                             PropertyKey::String(string) => string.to_std_string_escaped(),
                             PropertyKey::Index(i) => i.to_string(),
                             PropertyKey::Symbol(_sym) => {
@@ -148,7 +148,12 @@ impl JsValue {
                             }
                         };
 
-                        let value = match property.value() {
+                        let value = match obj
+                            .borrow()
+                            .properties()
+                            .get(&property_key)
+                            .and_then(|x| x.value().cloned())
+                        {
                             Some(val) => val.to_json(context)?,
                             None => Value::Null,
                         };

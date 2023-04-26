@@ -22,7 +22,7 @@ use crate::{
     class::{Class, ClassBuilder},
     job::{JobQueue, NativeJob, SimpleJobQueue},
     native_function::NativeFunction,
-    object::{FunctionObjectBuilder, JsObject},
+    object::{shape::SharedShape, FunctionObjectBuilder, JsObject},
     optimizer::{Optimizer, OptimizerOptions, OptimizerStatistics},
     property::{Attribute, PropertyDescriptor, PropertyKey},
     realm::Realm,
@@ -104,6 +104,7 @@ pub struct Context<'host> {
     job_queue: MaybeShared<'host, dyn JobQueue>,
 
     optimizer_options: OptimizerOptions,
+    root_shape: SharedShape,
 }
 
 impl std::fmt::Debug for Context<'_> {
@@ -536,6 +537,10 @@ impl<'host> Context<'host> {
         std::mem::replace(&mut self.realm, realm)
     }
 
+    pub(crate) fn root_shape(&self) -> SharedShape {
+        self.root_shape.clone()
+    }
+
     /// Gets the host hooks.
     pub fn host_hooks(&self) -> MaybeShared<'host, dyn HostHooks> {
         self.host_hooks.clone()
@@ -700,11 +705,13 @@ impl<'icu, 'hooks, 'queue> ContextBuilder<'icu, 'hooks, 'queue> {
         'hooks: 'host,
         'queue: 'host,
     {
+        let root_shape = SharedShape::root();
+
         let host_hooks = self.host_hooks.unwrap_or_else(|| {
             let hooks: &dyn HostHooks = &DefaultHooks;
             hooks.into()
         });
-        let realm = Realm::create(&*host_hooks);
+        let realm = Realm::create(&*host_hooks, &root_shape);
         let vm = Vm::new(realm.environment().clone());
 
         let mut context = Context {
@@ -727,6 +734,7 @@ impl<'icu, 'hooks, 'queue> ContextBuilder<'icu, 'hooks, 'queue> {
                 queue.into()
             }),
             optimizer_options: OptimizerOptions::OPTIMIZE_ALL,
+            root_shape,
         };
 
         builtins::set_default_global_bindings(&mut context)?;

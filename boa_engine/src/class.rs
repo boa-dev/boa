@@ -151,8 +151,11 @@ impl<T: Class> ClassConstructor for T {
             .unwrap_or_else(|| class_prototype.clone());
 
         let native_instance = Self::constructor(this, args, context)?;
-        let object_instance =
-            JsObject::from_proto_and_data(prototype, ObjectData::native_object(native_instance));
+        let object_instance = JsObject::from_proto_and_data_with_shared_shape(
+            context.root_shape(),
+            prototype,
+            ObjectData::native_object(native_instance),
+        );
         Ok(object_instance.into())
     }
 }

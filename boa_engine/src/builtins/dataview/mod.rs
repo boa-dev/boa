@@ -35,18 +35,15 @@ impl IntrinsicObject for DataView {
     fn init(realm: &Realm) {
         let flag_attributes = Attribute::CONFIGURABLE | Attribute::NON_ENUMERABLE;
 
-        let get_buffer = BuiltInBuilder::new(realm)
-            .callable(Self::get_buffer)
+        let get_buffer = BuiltInBuilder::callable(realm, Self::get_buffer)
             .name("get buffer")
             .build();
 
-        let get_byte_length = BuiltInBuilder::new(realm)
-            .callable(Self::get_byte_length)
+        let get_byte_length = BuiltInBuilder::callable(realm, Self::get_byte_length)
             .name("get byteLength")
             .build();
 
-        let get_byte_offset = BuiltInBuilder::new(realm)
-            .callable(Self::get_byte_offset)
+        let get_byte_offset = BuiltInBuilder::callable(realm, Self::get_byte_offset)
             .name("get byteOffset")
             .build();
 
@@ -194,7 +191,8 @@ impl BuiltInConstructor for DataView {
                 .into());
         }
 
-        let obj = JsObject::from_proto_and_data(
+        let obj = JsObject::from_proto_and_data_with_shared_shape(
+            context.root_shape(),
             prototype,
             ObjectData::data_view(Self {
                 // 11. Set O.[[ViewedArrayBuffer]] to buffer.

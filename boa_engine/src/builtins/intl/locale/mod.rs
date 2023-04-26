@@ -35,53 +35,43 @@ impl IntrinsicObject for Locale {
     fn init(realm: &Realm) {
         let _timer = Profiler::global().start_event(Self::NAME, "init");
 
-        let base_name = BuiltInBuilder::new(realm)
-            .callable(Self::base_name)
+        let base_name = BuiltInBuilder::callable(realm, Self::base_name)
             .name("get baseName")
             .build();
 
-        let calendar = BuiltInBuilder::new(realm)
-            .callable(Self::calendar)
+        let calendar = BuiltInBuilder::callable(realm, Self::calendar)
             .name("get calendar")
             .build();
 
-        let case_first = BuiltInBuilder::new(realm)
-            .callable(Self::case_first)
+        let case_first = BuiltInBuilder::callable(realm, Self::case_first)
             .name("get caseFirst")
             .build();
 
-        let collation = BuiltInBuilder::new(realm)
-            .callable(Self::collation)
+        let collation = BuiltInBuilder::callable(realm, Self::collation)
             .name("get collation")
             .build();
 
-        let hour_cycle = BuiltInBuilder::new(realm)
-            .callable(Self::hour_cycle)
+        let hour_cycle = BuiltInBuilder::callable(realm, Self::hour_cycle)
             .name("get hourCycle")
             .build();
 
-        let numeric = BuiltInBuilder::new(realm)
-            .callable(Self::numeric)
+        let numeric = BuiltInBuilder::callable(realm, Self::numeric)
             .name("get numeric")
             .build();
 
-        let numbering_system = BuiltInBuilder::new(realm)
-            .callable(Self::numbering_system)
+        let numbering_system = BuiltInBuilder::callable(realm, Self::numbering_system)
             .name("get numberingSystem")
             .build();
 
-        let language = BuiltInBuilder::new(realm)
-            .callable(Self::language)
+        let language = BuiltInBuilder::callable(realm, Self::language)
             .name("get language")
             .build();
 
-        let script = BuiltInBuilder::new(realm)
-            .callable(Self::script)
+        let script = BuiltInBuilder::callable(realm, Self::script)
             .name("get script")
             .build();
 
-        let region = BuiltInBuilder::new(realm)
-            .callable(Self::region)
+        let region = BuiltInBuilder::callable(realm, Self::region)
             .name("get region")
             .build();
 
@@ -391,7 +381,11 @@ impl BuiltInConstructor for Locale {
         // 6. Let locale be ? OrdinaryCreateFromConstructor(NewTarget, "%Locale.prototype%", internalSlotsList).
         let prototype =
             get_prototype_from_constructor(new_target, StandardConstructors::locale, context)?;
-        let locale = JsObject::from_proto_and_data(prototype, ObjectData::locale(tag));
+        let locale = JsObject::from_proto_and_data_with_shared_shape(
+            context.root_shape(),
+            prototype,
+            ObjectData::locale(tag),
+        );
 
         // 37. Return locale.
         Ok(locale.into())
@@ -429,7 +423,12 @@ impl Locale {
 
         // 4. Return ! Construct(%Locale%, maximal).
         let prototype = context.intrinsics().constructors().locale().prototype();
-        Ok(JsObject::from_proto_and_data(prototype, ObjectData::locale(loc)).into())
+        Ok(JsObject::from_proto_and_data_with_shared_shape(
+            context.root_shape(),
+            prototype,
+            ObjectData::locale(loc),
+        )
+        .into())
     }
 
     /// [`Intl.Locale.prototype.minimize ( )`][spec]
@@ -462,7 +461,12 @@ impl Locale {
 
         // 4. Return ! Construct(%Locale%, minimal).
         let prototype = context.intrinsics().constructors().locale().prototype();
-        Ok(JsObject::from_proto_and_data(prototype, ObjectData::locale(loc)).into())
+        Ok(JsObject::from_proto_and_data_with_shared_shape(
+            context.root_shape(),
+            prototype,
+            ObjectData::locale(loc),
+        )
+        .into())
     }
 
     /// [`Intl.Locale.prototype.toString ( )`][spec].

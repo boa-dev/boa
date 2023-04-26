@@ -15,7 +15,7 @@ bitflags! {
     ///  - `[[Configurable]]` (`CONFIGURABLE`) - If `false`, attempts to delete the property,
     /// change the property to be an `accessor property`, or change its attributes (other than `[[Value]]`,
     /// or changing `[[Writable]]` to `false`) will fail.
-    #[derive(Debug, Clone, Copy)]
+    #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
     pub struct Attribute: u8 {
         /// The `Writable` attribute decides whether the value associated with the property can be changed or not, from its initial value.
         const WRITABLE = 0b0000_0001;
