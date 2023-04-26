@@ -208,12 +208,11 @@ impl BuiltInConstructor for Date {
             // a. Let now be the time value (UTC) identifying the current time.
             // b. Return ToDateString(now).
             return Ok(JsValue::new(
-                DateTime::<FixedOffset>::from_utc(
-                    context.host_hooks().utc_now(),
-                    context.host_hooks().tz_offset(),
-                )
-                .format("%a %b %d %Y %H:%M:%S GMT%:z")
-                .to_string(),
+                context
+                    .host_hooks()
+                    .local_from_utc(context.host_hooks().utc_now())
+                    .format("%a %b %d %Y %H:%M:%S GMT%:z")
+                    .to_string(),
             ));
         }
         // 2. Let numberOfArgs be the number of elements in values.
@@ -271,14 +270,7 @@ impl BuiltInConstructor for Date {
                 // Separating this into its own function to simplify the logic.
 
                 let dt = Self::construct_date(args, context)?
-                    .and_then(|dt| {
-                        context
-                            .host_hooks()
-                            .tz_offset()
-                            .from_local_datetime(&dt)
-                            .earliest()
-                    })
-                    .map(|dt| dt.naive_utc());
+                    .and_then(|dt| context.host_hooks().local_from_naive_local(dt).earliest());
 
                 Self(dt.map(|dt| dt.timestamp_millis()))
             }
@@ -467,14 +459,13 @@ impl Date {
         let t = this_time_value(this)?;
 
         // 2. If t is NaN, return NaN.
-        let mut t = some_or_nan!(t.and_then(NaiveDateTime::from_timestamp_millis));
-        if LOCAL {
-            t = context
-                .host_hooks()
-                .tz_offset()
-                .from_utc_datetime(&t)
-                .naive_local();
-        }
+        let t = some_or_nan!(t
+            .and_then(NaiveDateTime::from_timestamp_millis)
+            .map(|dt| if LOCAL {
+                context.host_hooks().local_from_utc(dt).naive_local()
+            } else {
+                dt
+            }));
 
         // 3. Return DateFromTime(LocalTime(t)).
         Ok(JsValue::new(t.day()))
@@ -497,14 +488,13 @@ impl Date {
         let t = this_time_value(this)?;
 
         // 2. If t is NaN, return NaN.
-        let mut t = some_or_nan!(t.and_then(NaiveDateTime::from_timestamp_millis));
-        if LOCAL {
-            t = context
-                .host_hooks()
-                .tz_offset()
-                .from_utc_datetime(&t)
-                .naive_local();
-        }
+        let t = some_or_nan!(t
+            .and_then(NaiveDateTime::from_timestamp_millis)
+            .map(|dt| if LOCAL {
+                context.host_hooks().local_from_utc(dt).naive_local()
+            } else {
+                dt
+            }));
 
         // 3. Return WeekDay(LocalTime(t)).
         Ok(JsValue::new(t.weekday().num_days_from_sunday()))
@@ -533,7 +523,7 @@ impl Date {
         let t = some_or_nan!(t.and_then(NaiveDateTime::from_timestamp_millis));
 
         // 3. Return YearFromTime(LocalTime(t)) - 1900𝔽.
-        let local = context.host_hooks().tz_offset().from_utc_datetime(&t);
+        let local = context.host_hooks().local_from_utc(t);
         Ok(JsValue::from(local.year() - 1900))
     }
 
@@ -553,14 +543,13 @@ impl Date {
         let t = this_time_value(this)?;
 
         // 2. If t is NaN, return NaN.
-        let mut t = some_or_nan!(t.and_then(NaiveDateTime::from_timestamp_millis));
-        if LOCAL {
-            t = context
-                .host_hooks()
-                .tz_offset()
-                .from_utc_datetime(&t)
-                .naive_local();
-        }
+        let t = some_or_nan!(t
+            .and_then(NaiveDateTime::from_timestamp_millis)
+            .map(|dt| if LOCAL {
+                context.host_hooks().local_from_utc(dt).naive_local()
+            } else {
+                dt
+            }));
 
         // 3. Return YearFromTime(LocalTime(t)).
         Ok(JsValue::new(t.year()))
@@ -582,14 +571,13 @@ impl Date {
         let t = this_time_value(this)?;
 
         // 2. If t is NaN, return NaN.
-        let mut t = some_or_nan!(t.and_then(NaiveDateTime::from_timestamp_millis));
-        if LOCAL {
-            t = context
-                .host_hooks()
-                .tz_offset()
-                .from_utc_datetime(&t)
-                .naive_local();
-        }
+        let t = some_or_nan!(t
+            .and_then(NaiveDateTime::from_timestamp_millis)
+            .map(|dt| if LOCAL {
+                context.host_hooks().local_from_utc(dt).naive_local()
+            } else {
+                dt
+            }));
 
         // 3. Return HourFromTime(LocalTime(t)).
         Ok(JsValue::new(t.hour()))
@@ -611,14 +599,13 @@ impl Date {
         let t = this_time_value(this)?;
 
         // 2. If t is NaN, return NaN.
-        let mut t = some_or_nan!(t.and_then(NaiveDateTime::from_timestamp_millis));
-        if LOCAL {
-            t = context
-                .host_hooks()
-                .tz_offset()
-                .from_utc_datetime(&t)
-                .naive_local();
-        }
+        let t = some_or_nan!(t
+            .and_then(NaiveDateTime::from_timestamp_millis)
+            .map(|dt| if LOCAL {
+                context.host_hooks().local_from_utc(dt).naive_local()
+            } else {
+                dt
+            }));
 
         // 3. Return msFromTime(LocalTime(t)).
         Ok(JsValue::new(t.timestamp_subsec_millis()))
@@ -640,14 +627,13 @@ impl Date {
         let t = this_time_value(this)?;
 
         // 2. If t is NaN, return NaN.
-        let mut t = some_or_nan!(t.and_then(NaiveDateTime::from_timestamp_millis));
-        if LOCAL {
-            t = context
-                .host_hooks()
-                .tz_offset()
-                .from_utc_datetime(&t)
-                .naive_local();
-        }
+        let t = some_or_nan!(t
+            .and_then(NaiveDateTime::from_timestamp_millis)
+            .map(|dt| if LOCAL {
+                context.host_hooks().local_from_utc(dt).naive_local()
+            } else {
+                dt
+            }));
 
         // 3. Return MinFromTime(LocalTime(t)).
         Ok(JsValue::new(t.minute()))
@@ -670,14 +656,13 @@ impl Date {
         let t = this_time_value(this)?;
 
         // 2. If t is NaN, return NaN.
-        let mut t = some_or_nan!(t.and_then(NaiveDateTime::from_timestamp_millis));
-        if LOCAL {
-            t = context
-                .host_hooks()
-                .tz_offset()
-                .from_utc_datetime(&t)
-                .naive_local();
-        }
+        let t = some_or_nan!(t
+            .and_then(NaiveDateTime::from_timestamp_millis)
+            .map(|dt| if LOCAL {
+                context.host_hooks().local_from_utc(dt).naive_local()
+            } else {
+                dt
+            }));
 
         // 3. Return MonthFromTime(LocalTime(t)).
         Ok(JsValue::new(t.month0()))
@@ -699,14 +684,13 @@ impl Date {
         let t = this_time_value(this)?;
 
         // 2. If t is NaN, return NaN.
-        let mut t = some_or_nan!(t.and_then(NaiveDateTime::from_timestamp_millis));
-        if LOCAL {
-            t = context
-                .host_hooks()
-                .tz_offset()
-                .from_utc_datetime(&t)
-                .naive_local();
-        }
+        let t = some_or_nan!(t
+            .and_then(NaiveDateTime::from_timestamp_millis)
+            .map(|dt| if LOCAL {
+                context.host_hooks().local_from_utc(dt).naive_local()
+            } else {
+                dt
+            }));
 
         // 3. Return SecFromTime(LocalTime(t))
         Ok(JsValue::new(t.second()))
@@ -749,11 +733,16 @@ impl Date {
     ) -> JsResult<JsValue> {
         // 1. Let t be ? thisTimeValue(this value).
         // 2. If t is NaN, return NaN.
-        some_or_nan!(this_time_value(this)?);
+        let t = some_or_nan!(this_time_value(this)?.and_then(NaiveDateTime::from_timestamp_millis));
 
         // 3. Return (t - LocalTime(t)) / msPerMinute.
         Ok(JsValue::from(
-            -context.host_hooks().tz_offset().local_minus_utc() / 60,
+            -context
+                .host_hooks()
+                .local_from_utc(t)
+                .offset()
+                .local_minus_utc()
+                / 60,
         ))
     }
 
@@ -782,13 +771,13 @@ impl Date {
         // 4. Set t to LocalTime(t).
         // 5. Let newDate be MakeDate(MakeDay(YearFromTime(t), MonthFromTime(t), dt), TimeWithinDay(t)).
         // 6. Let u be TimeClip(UTC(newDate)).
-        let datetime = replace_params(
+        let datetime = replace_params::<LOCAL>(
             datetime,
             DateParameters {
                 date: Some(date),
                 ..Default::default()
             },
-            LOCAL.then(|| context.host_hooks().tz_offset()),
+            &*context.host_hooks(),
         );
 
         // 7. Set the [[DateValue]] internal slot of this Date object to u.
@@ -815,21 +804,20 @@ impl Date {
         get_mut_date!(let t = this);
 
         // 2. If t is NaN, set t to +0𝔽; otherwise, set t to LocalTime(t).
-        let datetime = match t.0.and_then(NaiveDateTime::from_timestamp_millis) {
-            Some(dt) => dt,
-            None if LOCAL => {
-                let Some(datetime) = context.host_hooks().tz_offset()
-                    .from_local_datetime(&NaiveDateTime::default())
-                    .earliest()
-                    .as_ref()
-                    .map(DateTime::naive_utc) else {
-                        *t = Self::new(None);
-                        return Ok(t.as_value())
-                    };
-                datetime
-            }
-            None => NaiveDateTime::default(),
-        };
+        let datetime =
+            t.0.and_then(NaiveDateTime::from_timestamp_millis)
+                .or_else(|| {
+                    if LOCAL {
+                        context
+                            .host_hooks()
+                            .local_from_naive_local(NaiveDateTime::default())
+                            .earliest()
+                            .map(|dt| dt.naive_utc())
+                    } else {
+                        Some(NaiveDateTime::default())
+                    }
+                });
+        let datetime = some_or_nan!(datetime);
 
         // 3. Let y be ? ToNumber(year).
         let year = args.get_or_undefined(0).to_integer_or_nan(context)?;
@@ -848,7 +836,7 @@ impl Date {
 
         // 6. Let newDate be MakeDate(MakeDay(y, m, dt), TimeWithinDay(t)).
         // 7. Let u be TimeClip(UTC(newDate)).
-        let datetime = replace_params(
+        let datetime = replace_params::<LOCAL>(
             datetime.timestamp_millis(),
             DateParameters {
                 year: Some(year),
@@ -856,7 +844,7 @@ impl Date {
                 date,
                 ..Default::default()
             },
-            LOCAL.then(|| context.host_hooks().tz_offset()),
+            &*context.host_hooks(),
         );
 
         // 8. Set the [[DateValue]] internal slot of this Date object to u.
@@ -913,7 +901,7 @@ impl Date {
         // 10. If ms is not present, let milli be msFromTime(t).
         // 11. Let date be MakeDate(Day(t), MakeTime(h, m, s, milli)).
         // 12. Let u be TimeClip(UTC(date)).
-        let datetime = replace_params(
+        let datetime = replace_params::<LOCAL>(
             datetime,
             DateParameters {
                 hour: Some(hour),
@@ -922,7 +910,7 @@ impl Date {
                 millisecond,
                 ..Default::default()
             },
-            LOCAL.then(|| context.host_hooks().tz_offset()),
+            &*context.host_hooks(),
         );
 
         // 13. Set the [[DateValue]] internal slot of this Date object to u.
@@ -957,13 +945,13 @@ impl Date {
         // 4. Set t to LocalTime(t).
         // 5. Let time be MakeTime(HourFromTime(t), MinFromTime(t), SecFromTime(t), ms).
         // 6. Let u be TimeClip(UTC(MakeDate(Day(t), time))).
-        let datetime = replace_params(
+        let datetime = replace_params::<LOCAL>(
             datetime,
             DateParameters {
                 millisecond: Some(ms),
                 ..Default::default()
             },
-            LOCAL.then(|| context.host_hooks().tz_offset()),
+            &*context.host_hooks(),
         );
 
         // 7. Set the [[DateValue]] internal slot of this Date object to u.
@@ -1011,7 +999,7 @@ impl Date {
         // 8. If ms is not present, let milli be msFromTime(t).
         // 9. Let date be MakeDate(Day(t), MakeTime(HourFromTime(t), m, s, milli)).
         // 10. Let u be TimeClip(UTC(date)).
-        let datetime = replace_params(
+        let datetime = replace_params::<LOCAL>(
             datetime,
             DateParameters {
                 minute: Some(minute),
@@ -1019,7 +1007,7 @@ impl Date {
                 millisecond,
                 ..Default::default()
             },
-            LOCAL.then(|| context.host_hooks().tz_offset()),
+            &*context.host_hooks(),
         );
 
         // 11. Set the [[DateValue]] internal slot of this Date object to u.
@@ -1061,14 +1049,14 @@ impl Date {
         // 6. If date is not present, let dt be DateFromTime(t).
         // 7. Let newDate be MakeDate(MakeDay(YearFromTime(t), m, dt), TimeWithinDay(t)).
         // 8. Let u be TimeClip(UTC(newDate)).
-        let datetime = replace_params(
+        let datetime = replace_params::<LOCAL>(
             datetime,
             DateParameters {
                 month: Some(month),
                 date,
                 ..Default::default()
             },
-            LOCAL.then(|| context.host_hooks().tz_offset()),
+            &*context.host_hooks(),
         );
 
         // 9. Set the [[DateValue]] internal slot of this Date object to u.
@@ -1109,14 +1097,14 @@ impl Date {
         // 6. If ms is not present, let milli be msFromTime(t).
         // 7. Let date be MakeDate(Day(t), MakeTime(HourFromTime(t), MinFromTime(t), s, milli)).
         // 8. Let u be TimeClip(UTC(date)).
-        let datetime = replace_params(
+        let datetime = replace_params::<LOCAL>(
             datetime,
             DateParameters {
                 second: Some(second),
                 millisecond,
                 ..Default::default()
             },
-            LOCAL.then(|| context.host_hooks().tz_offset()),
+            &*context.host_hooks(),
         );
 
         // 9. Set the [[DateValue]] internal slot of this Date object to u.
@@ -1153,16 +1141,16 @@ impl Date {
         let year = args.get_or_undefined(0).to_integer_or_nan(context)?;
 
         // 3. If t is NaN, set t to +0𝔽; otherwise, set t to LocalTime(t).
-        let Some(datetime) = t.0.and_then(NaiveDateTime::from_timestamp_millis).or_else(|| {
-            context.host_hooks().tz_offset()
-                .from_local_datetime(&NaiveDateTime::default())
-                .earliest()
-                .as_ref()
-                .map(DateTime::naive_utc)
-        }) else {
-            *t = Self::new(None);
-            return Ok(t.as_value());
-        };
+        let datetime =
+            t.0.and_then(NaiveDateTime::from_timestamp_millis)
+                .or_else(|| {
+                    context
+                        .host_hooks()
+                        .local_from_naive_local(NaiveDateTime::default())
+                        .earliest()
+                        .map(|dt| dt.naive_utc())
+                });
+        let datetime = some_or_nan!(datetime);
 
         // 4. If y is NaN, then
         let Some(mut year) = year.as_integer() else {
@@ -1181,13 +1169,13 @@ impl Date {
 
         // 8. Let d be MakeDay(yyyy, MonthFromTime(t), DateFromTime(t)).
         // 9. Let date be UTC(MakeDate(d, TimeWithinDay(t))).
-        let datetime = replace_params(
+        let datetime = replace_params::<true>(
             datetime.timestamp_millis(),
             DateParameters {
                 year: Some(IntegerOrNan::Integer(year)),
                 ..Default::default()
             },
-            Some(context.host_hooks().tz_offset()),
+            &*context.host_hooks(),
         );
 
         // 10. Set the [[DateValue]] internal slot of this Date object to TimeClip(date).
@@ -1255,8 +1243,7 @@ impl Date {
         // 5. Return DateString(t).
         Ok(context
             .host_hooks()
-            .tz_offset()
-            .from_utc_datetime(&tv)
+            .local_from_utc(tv)
             .format("%a %b %d %Y")
             .to_string()
             .into())
@@ -1393,13 +1380,12 @@ impl Date {
     ) -> JsResult<JsValue> {
         // 1. Let tv be ? thisTimeValue(this value).
         // 2. Return ToDateString(tv).
-        let Some(t) = this_time_value(this)?.and_then(NaiveDateTime::from_timestamp_millis) else {
+        let Some(tv) = this_time_value(this)?.and_then(NaiveDateTime::from_timestamp_millis) else {
             return Ok(js_string!("Invalid Date").into());
         };
         Ok(context
             .host_hooks()
-            .tz_offset()
-            .from_utc_datetime(&t)
+            .local_from_utc(tv)
             .format("%a %b %d %Y %H:%M:%S GMT%z")
             .to_string()
             .into())
@@ -1422,7 +1408,7 @@ impl Date {
     ) -> JsResult<JsValue> {
         // 1. Let O be this Date object.
         // 2. Let tv be ? thisTimeValue(O).
-        let Some(t) = this_time_value(this)?.and_then(NaiveDateTime::from_timestamp_millis) else {
+        let Some(tv) = this_time_value(this)?.and_then(NaiveDateTime::from_timestamp_millis) else {
             // 3. If tv is NaN, return "Invalid Date".
             return Ok(js_string!("Invalid Date").into());
         };
@@ -1431,8 +1417,7 @@ impl Date {
         // 5. Return the string-concatenation of TimeString(t) and TimeZoneString(tv).
         Ok(context
             .host_hooks()
-            .tz_offset()
-            .from_utc_datetime(&t)
+            .local_from_utc(tv)
             .format("%H:%M:%S GMT%z")
             .to_string()
             .into())
