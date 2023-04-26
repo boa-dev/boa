@@ -481,9 +481,14 @@ impl DeclarativeEnvironmentStack {
 
         let this = this.unwrap_or(JsValue::Null);
 
+        let mut bindings = vec![None; num_bindings];
+        for index in compile_environment.borrow().var_binding_indices() {
+            bindings[index] = Some(JsValue::Undefined);
+        }
+
         self.stack
             .push(Environment::Declarative(Gc::new(DeclarativeEnvironment {
-                bindings: GcRefCell::new(vec![None; num_bindings]),
+                bindings: GcRefCell::new(bindings),
                 compile: compile_environment,
                 poisoned: Cell::new(poisoned),
                 with: Cell::new(with),
@@ -534,9 +539,14 @@ impl DeclarativeEnvironmentStack {
             )
         };
 
+        let mut bindings = vec![None; num_bindings];
+        for index in compile_environment.borrow().var_binding_indices() {
+            bindings[index] = Some(JsValue::Undefined);
+        }
+
         self.stack
             .push(Environment::Declarative(Gc::new(DeclarativeEnvironment {
-                bindings: GcRefCell::new(vec![None; num_bindings]),
+                bindings: GcRefCell::new(bindings),
                 compile: compile_environment,
                 poisoned: Cell::new(poisoned),
                 with: Cell::new(with),
