@@ -44,7 +44,7 @@ impl ByteCompiler<'_, '_> {
                     let index = self.get_or_insert_binding(binding);
                     self.emit(Opcode::SetName, &[index]);
                 } else {
-                    self.emit_opcode(Opcode::SetNameByBinding);
+                    self.emit_opcode(Opcode::SetNameByLocator);
                 }
             }
             Access::Property { access } => match access {

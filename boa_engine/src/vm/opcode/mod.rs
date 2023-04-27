@@ -709,10 +709,10 @@ generate_impl! {
         /// Stack: value **=>**
         SetName,
 
-        /// Assigns a value to the binding pointed by the `current_binding` register.
+        /// Assigns a value to the binding pointed by the top of the `bindings_stack`.
         ///
         /// Stack: value **=>**
-        SetNameByBinding,
+        SetNameByLocator,
 
         /// Deletes a property of the global object.
         ///

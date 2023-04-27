@@ -567,7 +567,7 @@ impl CodeBlock {
                 | Opcode::SuperCallPrepare
                 | Opcode::SetPrototype
                 | Opcode::IsObject
-                | Opcode::SetNameByBinding
+                | Opcode::SetNameByLocator
                 | Opcode::Nop
                 | Opcode::PushObjectEnvironment => {
                     graph.add_node(previous_pc, NodeShape::None, label.into(), Color::None);

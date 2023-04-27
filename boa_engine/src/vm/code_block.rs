@@ -496,7 +496,7 @@ impl CodeBlock {
             | Opcode::SetPrototype
             | Opcode::PushObjectEnvironment
             | Opcode::IsObject
-            | Opcode::SetNameByBinding
+            | Opcode::SetNameByLocator
             | Opcode::Nop => String::new(),
         }
     }

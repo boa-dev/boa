@@ -34,16 +34,16 @@ impl Operation for SetName {
     }
 }
 
-/// `SetNameByBinding` implements the Opcode Operation for `Opcode::SetNameByBinding`
+/// `SetNameByLocator` implements the Opcode Operation for `Opcode::SetNameByLocator`
 ///
 /// Operation:
-///  - Assigns a value to the binding pointed by the `current_binding` register.
+///  - Assigns a value to the binding pointed by the top of the `bindings_stack`.
 #[derive(Debug, Clone, Copy)]
-pub(crate) struct SetNameByBinding;
+pub(crate) struct SetNameByLocator;
 
-impl Operation for SetNameByBinding {
-    const NAME: &'static str = "SetNameByBinding";
-    const INSTRUCTION: &'static str = "INST - SetNameByBinding";
+impl Operation for SetNameByLocator {
+    const NAME: &'static str = "SetNameByLocator";
+    const INSTRUCTION: &'static str = "INST - SetNameByLocator";
 
     fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
         let binding_locator = context
