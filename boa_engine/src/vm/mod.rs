@@ -67,7 +67,7 @@ impl Vm {
             trace: false,
             stack_size_limit: 1024,
             active_function: None,
-            bindings_stack: Vec::default(),
+            bindings_stack: Vec::with_capacity(16),
         }
     }
 
