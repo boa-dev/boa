@@ -36,7 +36,8 @@ impl Operation for GetName {
 /// `GetNameAndLocator` implements the Opcode Operation for `Opcode::GetNameAndLocator`
 ///
 /// Operation:
-///  - Find a binding on the environment chain and push its value.
+///  - Find a binding on the environment chain and push its value to the stack and its
+/// `BindingLocator` to the `bindings_stack`.
 #[derive(Debug, Clone, Copy)]
 pub(crate) struct GetNameAndLocator;
 
