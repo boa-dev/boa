@@ -6,7 +6,7 @@
 
 use crate::{
     builtins::async_generator::{AsyncGenerator, AsyncGeneratorState},
-    environments::{BindingLocator, DeclarativeEnvironment, DeclarativeEnvironmentStack},
+    environments::{DeclarativeEnvironment, DeclarativeEnvironmentStack},
     vm::code_block::Readable,
     Context, JsError, JsObject, JsResult, JsValue,
 };
@@ -52,7 +52,6 @@ pub struct Vm {
     pub(crate) trace: bool,
     pub(crate) stack_size_limit: usize,
     pub(crate) active_function: Option<JsObject>,
-    pub(crate) bindings_stack: Vec<BindingLocator>,
 }
 
 impl Vm {
@@ -67,7 +66,6 @@ impl Vm {
             trace: false,
             stack_size_limit: 1024,
             active_function: None,
-            bindings_stack: Vec::with_capacity(16),
         }
     }
 

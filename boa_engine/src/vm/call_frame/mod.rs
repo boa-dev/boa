@@ -5,8 +5,12 @@
 mod abrupt_record;
 mod env_stack;
 
-use crate::{builtins::promise::PromiseCapability, object::JsObject, vm::CodeBlock};
+use crate::{
+    builtins::promise::PromiseCapability, environments::BindingLocator, object::JsObject,
+    vm::CodeBlock,
+};
 use boa_gc::{Finalize, Gc, Trace};
+use boa_interner::Sym;
 use thin_vec::ThinVec;
 
 pub(crate) use abrupt_record::AbruptCompletionRecord;
@@ -39,6 +43,9 @@ pub struct CallFrame {
 
     // Iterators and their `[[Done]]` flags that must be closed when an abrupt completion is thrown.
     pub(crate) iterators: ThinVec<(JsObject, bool)>,
+
+    // The current binding being updated.
+    pub(crate) current_binding: BindingLocator,
 }
 
 /// ---- `CallFrame` public API ----
@@ -69,6 +76,7 @@ impl CallFrame {
             promise_capability: None,
             async_generator: None,
             iterators: ThinVec::new(),
+            current_binding: BindingLocator::global(Sym::EMPTY_STRING.into()),
         }
     }
 

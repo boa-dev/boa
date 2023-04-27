@@ -36,8 +36,8 @@ impl Operation for GetName {
 /// `GetNameAndLocator` implements the Opcode Operation for `Opcode::GetNameAndLocator`
 ///
 /// Operation:
-///  - Find a binding on the environment chain and push its value to the stack and its
-/// `BindingLocator` to the `bindings_stack`.
+///  - Find a binding on the environment chain and push its value to the stack, setting the
+/// `current_binding` of the current frame.
 #[derive(Debug, Clone, Copy)]
 pub(crate) struct GetNameAndLocator;
 
@@ -58,7 +58,7 @@ impl Operation for GetNameAndLocator {
             JsNativeError::reference().with_message(format!("{name} is not defined"))
         })?;
 
-        context.vm.bindings_stack.push(binding_locator);
+        context.vm.frame_mut().current_binding = binding_locator;
         context.vm.push(value);
         Ok(CompletionType::Normal)
     }

@@ -37,7 +37,7 @@ impl Operation for SetName {
 /// `SetNameByLocator` implements the Opcode Operation for `Opcode::SetNameByLocator`
 ///
 /// Operation:
-///  - Assigns a value to the binding pointed by the top of the `bindings_stack`.
+///  - Assigns a value to the binding pointed by the `current_binding` of the current frame.
 #[derive(Debug, Clone, Copy)]
 pub(crate) struct SetNameByLocator;
 
@@ -46,11 +46,7 @@ impl Operation for SetNameByLocator {
     const INSTRUCTION: &'static str = "INST - SetNameByLocator";
 
     fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
-        let binding_locator = context
-            .vm
-            .bindings_stack
-            .pop()
-            .expect("a binding should have been pushed before");
+        let binding_locator = context.vm.frame().current_binding;
         let value = context.vm.pop();
         if binding_locator.is_silent() {
             return Ok(CompletionType::Normal);

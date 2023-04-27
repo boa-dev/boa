@@ -12,7 +12,7 @@
 use crate::{
     builtins::iterable::create_iter_result_object,
     context::intrinsics::Intrinsics,
-    environments::{BindingLocator, DeclarativeEnvironmentStack},
+    environments::DeclarativeEnvironmentStack,
     error::JsNativeError,
     object::{JsObject, CONSTRUCTOR},
     property::Attribute,
@@ -63,7 +63,6 @@ pub(crate) struct GeneratorContext {
     pub(crate) active_function: Option<JsObject>,
     pub(crate) call_frame: Option<CallFrame>,
     pub(crate) realm: Realm,
-    pub(crate) bindings_stack: Vec<BindingLocator>,
 }
 
 impl GeneratorContext {
@@ -74,7 +73,6 @@ impl GeneratorContext {
         active_function: Option<JsObject>,
         call_frame: CallFrame,
         realm: Realm,
-        bindings_stack: Vec<BindingLocator>,
     ) -> Self {
         Self {
             environments,
@@ -82,7 +80,6 @@ impl GeneratorContext {
             active_function,
             call_frame: Some(call_frame),
             realm,
-            bindings_stack,
         }
     }
 
@@ -94,7 +91,6 @@ impl GeneratorContext {
             stack: context.vm.stack.clone(),
             active_function: context.vm.active_function.clone(),
             realm: context.realm().clone(),
-            bindings_stack: context.vm.bindings_stack.clone(),
         }
     }
 
@@ -108,7 +104,6 @@ impl GeneratorContext {
         std::mem::swap(&mut context.vm.environments, &mut self.environments);
         std::mem::swap(&mut context.vm.stack, &mut self.stack);
         std::mem::swap(&mut context.vm.active_function, &mut self.active_function);
-        std::mem::swap(&mut context.vm.bindings_stack, &mut self.bindings_stack);
         context.swap_realm(&mut self.realm);
         context
             .vm
@@ -123,7 +118,6 @@ impl GeneratorContext {
         std::mem::swap(&mut context.vm.environments, &mut self.environments);
         std::mem::swap(&mut context.vm.stack, &mut self.stack);
         std::mem::swap(&mut context.vm.active_function, &mut self.active_function);
-        std::mem::swap(&mut context.vm.bindings_stack, &mut self.bindings_stack);
         context.swap_realm(&mut self.realm);
         self.call_frame = context.vm.pop_frame();
         assert!(self.call_frame.is_some());
