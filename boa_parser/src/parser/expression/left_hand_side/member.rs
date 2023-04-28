@@ -104,14 +104,16 @@ where
                 } else {
                     let lhs_inner = self.parse(cursor, interner)?;
                     let args = match cursor.peek(0, interner)? {
-                        Some(next) if next.kind() == &TokenKind::Punctuator(Punctuator::OpenParen) => {
+                        Some(next)
+                            if next.kind() == &TokenKind::Punctuator(Punctuator::OpenParen) =>
+                        {
                             Arguments::new(self.allow_yield, self.allow_await)
                                 .parse(cursor, interner)?
                         }
                         _ => Box::new([]),
                     };
                     let call_node = Call::new(lhs_inner, args);
-        
+
                     ast::Expression::from(New::from(call_node))
                 };
                 lhs_new_target

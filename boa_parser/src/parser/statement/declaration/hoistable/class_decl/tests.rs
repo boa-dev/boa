@@ -1,9 +1,14 @@
 use crate::parser::tests::check_script_parser;
 use boa_ast::{
-    expression::literal::Literal,
+    declaration::{LexicalDeclaration, Variable, VariableList},
+    expression::{
+        access::{PropertyAccess, SimplePropertyAccess},
+        literal::Literal,
+        Call, Identifier,
+    },
     function::{Class, ClassElement, FormalParameterList, Function},
     property::{MethodDefinition, PropertyName},
-    Declaration, StatementList,
+    Declaration, Expression, Statement, StatementList, StatementListItem,
 };
 use boa_interner::Interner;
 use boa_macros::utf16;
@@ -91,70 +96,75 @@ fn check_async_field() {
     );
 }
 
-// #[test]
-// fn check_new_target_with_property_access() {
-//     let interner = &mut Interner::default();
+#[test]
+fn check_new_target_with_property_access() {
+    let interner = &mut Interner::default();
 
-//     let constructor_body = StatementList {
-//         statements: vec![
-//             Statement::Expression(
-//                 Expression::Call(
-//                     Call::new(
-//                         Expression::Identifier(
-//                             Identifier::new(
-//                                 interner.get_or_intern_static("console", utf16!("console")),
-//                             ),
-//                         ),
-//                         vec![
-//                             Expression::Member(
-//                                 Box::new(Expression::NewTarget),
-//                                 Box::new(Expression::Identifier(
-//                                     Identifier::new(
-//                                         interner.get_or_intern_static("name", utf16!("name")),
-//                                     ),
-//                                 )),
-//                             ),
-//                         ]
-//                         .into_iter()
-//                         .collect::<Vec<_>>()
-//                         .into_boxed_slice(),
-//                     ),
-//                 ),
-//             ),
-//         ]
-//         .into_iter()
-//         .map(StatementListItem::from)
-//         .collect::<Vec<_>>()
-//         .into_boxed_slice(),
-//         strict: false,
-//     };
-    
-//     let elements = vec![ClassElement::MethodDefinition(
-//         PropertyName::Identifier(interner.get_or_intern_static("constructor", utf16!("constructor"))),
-//         MethodDefinition::Ordinary(Function::new(
-//             None,
-//             Vec::new(),
-//             constructor_body,
-//         )),
-//     )];
+    let new_target = Expression::PropertyAccess(
+        SimplePropertyAccess::new(
+            Expression::NewTarget,
+            interner.get_or_intern_static("name", utf16!("name")),
+        )
+        .into(),
+    );
 
-//     check_script_parser(
-//         r#"
-//             class A {
-//                 constructor() {
-//                     console.log(new.target.name);
-//                 }
-//             }
-//             const a = new A();
-//         "#,
-//         [Declaration::Class(Class::new(
-//             Some(interner.get_or_intern_static("A", utf16!("A")).into()),
-//             None,
-//             None,
-//             elements.into(),
-//             true,
-//         ))
-//         .into()],
-//         interner,
-//     );
-// }
+    let console = Expression::Call(Call::new(
+        PropertyAccess::Simple(SimplePropertyAccess::new(
+            Identifier::from(interner.get_or_intern_static("console", utf16!("console"))).into(),
+            interner.get_or_intern_static("log", utf16!("log")),
+        ))
+        .into(),
+        [new_target].into(),
+    ));
+
+    let constructor = Function::new(
+        Some(interner.get_or_intern_static("A", utf16!("A")).into()),
+        FormalParameterList::default(),
+        StatementList::new([Statement::Expression(console).into()], false),
+    );
+
+    let class = Class::new(
+        Some(interner.get("A").unwrap().into()),
+        None,
+        Some(constructor),
+        Box::default(),
+        true,
+    );
+
+    let instantiation = Expression::New(
+        Call::new(
+            Identifier::from(interner.get("A").unwrap()).into(),
+            Box::default(),
+        )
+        .into(),
+    );
+
+    let const_decl = LexicalDeclaration::Const(
+        VariableList::new(
+            [Variable::from_identifier(
+                interner.get_or_intern_static("a", utf16!("a")).into(),
+                Some(instantiation),
+            )]
+            .into(),
+        )
+        .unwrap(),
+    );
+
+    let script = [
+        StatementListItem::Declaration(class.into()),
+        StatementListItem::Declaration(const_decl.into()),
+    ];
+
+    check_script_parser(
+        r#"
+            class A {
+                constructor() {
+                    console.log(new.target.name);
+                }
+            }
+            const a = new A();
+        "#,
+        script,
+        interner,
+    );
+}
