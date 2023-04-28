@@ -62,11 +62,12 @@ impl Realm {
         let global_this = hooks
             .create_global_this(&intrinsics)
             .unwrap_or_else(|| global_object.clone());
+        let environment = Gc::new(DeclarativeEnvironment::global(global_this.clone()));
 
         let realm = Self {
             inner: Gc::new(Inner {
                 intrinsics,
-                environment: Gc::new(DeclarativeEnvironment::new_global()),
+                environment,
                 global_object,
                 global_this,
             }),
@@ -97,8 +98,14 @@ impl Realm {
     /// Resizes the number of bindings on the global environment.
     pub(crate) fn resize_global_env(&self) {
         let binding_number = self.environment().compile_env().borrow().num_bindings();
+        let env = self
+            .environment()
+            .kind()
+            .as_global()
+            .expect("Realm should only store global environments")
+            .poisonable_environment();
+        let mut bindings = env.bindings().borrow_mut();
 
-        let mut bindings = self.environment().bindings().borrow_mut();
         if bindings.len() < binding_number {
             bindings.resize(binding_number, None);
         }

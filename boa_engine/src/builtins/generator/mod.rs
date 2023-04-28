@@ -12,7 +12,7 @@
 use crate::{
     builtins::iterable::create_iter_result_object,
     context::intrinsics::Intrinsics,
-    environments::DeclarativeEnvironmentStack,
+    environments::EnvironmentStack,
     error::JsNativeError,
     object::{JsObject, CONSTRUCTOR},
     property::Attribute,
@@ -58,7 +58,7 @@ unsafe impl Trace for GeneratorState {
 /// context/vm before the generator execution starts/resumes and after it has ended/yielded.
 #[derive(Debug, Clone, Trace, Finalize)]
 pub(crate) struct GeneratorContext {
-    pub(crate) environments: DeclarativeEnvironmentStack,
+    pub(crate) environments: EnvironmentStack,
     pub(crate) stack: Vec<JsValue>,
     pub(crate) active_function: Option<JsObject>,
     pub(crate) call_frame: Option<CallFrame>,
@@ -68,7 +68,7 @@ pub(crate) struct GeneratorContext {
 impl GeneratorContext {
     /// Creates a new `GeneratorContext` from the raw `Context` state components.
     pub(crate) fn new(
-        environments: DeclarativeEnvironmentStack,
+        environments: EnvironmentStack,
         stack: Vec<JsValue>,
         active_function: Option<JsObject>,
         call_frame: CallFrame,

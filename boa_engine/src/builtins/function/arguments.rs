@@ -33,10 +33,8 @@ impl ParameterMap {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-makearggetter
     pub(crate) fn get(&self, index: usize) -> Option<JsValue> {
-        if let Some(Some(binding_index)) = self.binding_indices.get(index) {
-            return Some(self.environment.get(*binding_index));
-        }
-        None
+        let binding_index = self.binding_indices.get(index).copied().flatten()?;
+        self.environment.get(binding_index)
     }
 
     /// Set the value of the binding at the given index in the function environment.
@@ -48,8 +46,8 @@ impl ParameterMap {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-makeargsetter
     pub(crate) fn set(&self, index: usize, value: &JsValue) {
-        if let Some(Some(binding_index)) = self.binding_indices.get(index) {
-            self.environment.set(*binding_index, value.clone());
+        if let Some(binding_index) = self.binding_indices.get(index).copied().flatten() {
+            self.environment.set(binding_index, value.clone());
         }
     }
 }

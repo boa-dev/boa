@@ -10,7 +10,7 @@ use crate::{
         promise::PromiseCapability,
     },
     context::intrinsics::StandardConstructors,
-    environments::{BindingLocator, CompileTimeEnvironment},
+    environments::{BindingLocator, CompileTimeEnvironment, FunctionSlots, ThisBindingStatus},
     error::JsNativeError,
     object::{internal_methods::get_prototype_from_constructor, JsObject, ObjectData, PROTOTYPE},
     property::PropertyDescriptor,
@@ -952,13 +952,13 @@ impl JsObject {
         let lexical_this_mode = code.this_mode == ThisMode::Lexical;
 
         let this = if lexical_this_mode {
-            None
+            ThisBindingStatus::Lexical
         } else if code.strict {
-            Some(this.clone())
+            ThisBindingStatus::Initialized(this.clone())
         } else if this.is_null_or_undefined() {
-            Some(context.global_object().into())
+            ThisBindingStatus::Initialized(context.realm().global_this().clone().into())
         } else {
-            Some(
+            ThisBindingStatus::Initialized(
                 this.to_object(context)
                     .expect("conversion cannot fail")
                     .into(),
@@ -971,7 +971,7 @@ impl JsObject {
             let index = context
                 .vm
                 .environments
-                .push_declarative(1, code.compile_environments[last_env].clone());
+                .push_lexical(1, code.compile_environments[last_env].clone());
             context
                 .vm
                 .environments
@@ -983,7 +983,7 @@ impl JsObject {
             let index = context
                 .vm
                 .environments
-                .push_declarative(1, code.compile_environments[last_env].clone());
+                .push_lexical(1, code.compile_environments[last_env].clone());
             context
                 .vm
                 .environments
@@ -994,10 +994,7 @@ impl JsObject {
         context.vm.environments.push_function(
             code.num_bindings,
             code.compile_environments[last_env].clone(),
-            this,
-            self.clone(),
-            None,
-            lexical_this_mode,
+            FunctionSlots::new(this, self.clone(), None),
         );
 
         if let Some(bindings) = code.parameters_env_bindings {
@@ -1005,7 +1002,7 @@ impl JsObject {
             context
                 .vm
                 .environments
-                .push_declarative(bindings, code.compile_environments[last_env].clone());
+                .push_lexical(bindings, code.compile_environments[last_env].clone());
         }
 
         if let Some(binding) = code.arguments_binding {
@@ -1239,7 +1236,7 @@ impl JsObject {
                     let index = context
                         .vm
                         .environments
-                        .push_declarative(1, code.compile_environments[last_env].clone());
+                        .push_lexical(1, code.compile_environments[last_env].clone());
                     context
                         .vm
                         .environments
@@ -1250,17 +1247,20 @@ impl JsObject {
                 context.vm.environments.push_function(
                     code.num_bindings,
                     code.compile_environments[last_env].clone(),
-                    this.clone().map(Into::into),
-                    self.clone(),
-                    Some(new_target.clone()),
-                    false,
+                    FunctionSlots::new(
+                        this.clone().map_or(ThisBindingStatus::Uninitialized, |o| {
+                            ThisBindingStatus::Initialized(o.into())
+                        }),
+                        self.clone(),
+                        Some(new_target.clone()),
+                    ),
                 );
 
                 if let Some(bindings) = code.parameters_env_bindings {
                     context
                         .vm
                         .environments
-                        .push_declarative(bindings, code.compile_environments[0].clone());
+                        .push_lexical(bindings, code.compile_environments[0].clone());
                 }
 
                 if let Some(binding) = code.arguments_binding {
@@ -1341,15 +1341,14 @@ impl JsObject {
                 } else {
                     let function_env = environment
                         .declarative_expect()
-                        .slots()
-                        .expect("must be function environment")
-                        .as_function_slots()
+                        .kind()
+                        .as_function()
                         .expect("must be function environment");
                     function_env
-                        .borrow()
                         .get_this_binding()
-                        .map(|this| {
-                            this.as_object()
+                        .map(|v| {
+                            v.expect("constructors cannot be arrow functions")
+                                .as_object()
                                 .expect("this binding must be object")
                                 .clone()
                         })

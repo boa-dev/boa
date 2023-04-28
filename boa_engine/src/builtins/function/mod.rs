@@ -15,7 +15,7 @@ use crate::{
     builtins::BuiltInObject,
     bytecompiler::FunctionCompiler,
     context::intrinsics::{Intrinsics, StandardConstructor, StandardConstructors},
-    environments::DeclarativeEnvironmentStack,
+    environments::EnvironmentStack,
     error::JsNativeError,
     js_string,
     native_function::NativeFunction,
@@ -160,7 +160,7 @@ pub(crate) enum FunctionKind {
         code: Gc<CodeBlock>,
 
         /// The `[[Environment]]` internal slot.
-        environments: DeclarativeEnvironmentStack,
+        environments: EnvironmentStack,
 
         /// The `[[ConstructorKind]]` internal slot.
         constructor_kind: ConstructorKind,
@@ -184,7 +184,7 @@ pub(crate) enum FunctionKind {
         code: Gc<CodeBlock>,
 
         /// The `[[Environment]]` internal slot.
-        environments: DeclarativeEnvironmentStack,
+        environments: EnvironmentStack,
 
         /// The `[[HomeObject]]` internal slot.
         home_object: Option<JsObject>,
@@ -199,7 +199,7 @@ pub(crate) enum FunctionKind {
         code: Gc<CodeBlock>,
 
         /// The `[[Environment]]` internal slot.
-        environments: DeclarativeEnvironmentStack,
+        environments: EnvironmentStack,
 
         /// The `[[HomeObject]]` internal slot.
         home_object: Option<JsObject>,
@@ -214,7 +214,7 @@ pub(crate) enum FunctionKind {
         code: Gc<CodeBlock>,
 
         /// The `[[Environment]]` internal slot.
-        environments: DeclarativeEnvironmentStack,
+        environments: EnvironmentStack,
 
         /// The `[[HomeObject]]` internal slot.
         home_object: Option<JsObject>,

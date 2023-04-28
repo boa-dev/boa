@@ -1,5 +1,4 @@
 use crate::{
-    environments::EnvironmentSlots,
     error::JsNativeError,
     vm::{opcode::Operation, CompletionType},
     Context, JsResult, JsValue,
@@ -17,21 +16,8 @@ impl Operation for This {
     const INSTRUCTION: &'static str = "INST - This";
 
     fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
-        let env = context.vm.environments.get_this_environment();
-        match env {
-            EnvironmentSlots::Function(env) => {
-                let binding_result = match env.borrow().get_this_binding() {
-                    Ok(binding) => Ok(binding.clone()),
-                    Err(e) => Err(e),
-                };
-                let function_binding = binding_result?;
-                context.vm.push(function_binding);
-            }
-            EnvironmentSlots::Global => {
-                let this = context.realm().global_this();
-                context.vm.push(this.clone());
-            }
-        }
+        let this = context.vm.environments.get_this_binding()?;
+        context.vm.push(this);
         Ok(CompletionType::Normal)
     }
 }
@@ -48,38 +34,30 @@ impl Operation for Super {
     const INSTRUCTION: &'static str = "INST - Super";
 
     fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
-        let home_result = {
+        let home_object = {
             let env = context
                 .vm
                 .environments
                 .get_this_environment()
-                .as_function_slots()
+                .as_function()
                 .expect("super access must be in a function environment");
-            let env = env.borrow();
-            match env.get_this_binding() {
-                Ok(binding) => {
-                    let function_object = env.function_object().borrow();
-                    let function = function_object
-                        .as_function()
-                        .expect("must be function object");
-
-                    Ok(function.get_home_object().or(binding.as_object()).cloned())
-                }
-                Err(e) => Err(e),
-            }
+            let this = env
+                .get_this_binding()?
+                .expect("`get_this_environment` ensures this returns `Some`");
+            let function_object = env.slots().function_object().borrow();
+            let function = function_object
+                .as_function()
+                .expect("must be function object");
+            function.get_home_object().or(this.as_object()).cloned()
         };
 
-        let home = home_result?;
+        let value = home_object
+            .map(|o| o.__get_prototype_of__(context))
+            .transpose()?
+            .flatten()
+            .map_or_else(JsValue::null, JsValue::from);
 
-        if let Some(home) = home {
-            if let Some(proto) = home.__get_prototype_of__(context)? {
-                context.vm.push(JsValue::from(proto));
-            } else {
-                context.vm.push(JsValue::Null);
-            }
-        } else {
-            context.vm.push(JsValue::Null);
-        };
+        context.vm.push(value);
         Ok(CompletionType::Normal)
     }
 }
@@ -100,15 +78,14 @@ impl Operation for SuperCallPrepare {
             .vm
             .environments
             .get_this_environment()
-            .as_function_slots()
+            .as_function()
             .expect("super call must be in function environment");
-        let this_env_borrow = this_env.borrow();
-        let new_target = this_env_borrow
+        let new_target = this_env
+            .slots()
             .new_target()
             .expect("must have new target")
             .clone();
-        let active_function = this_env_borrow.function_object().clone();
-        drop(this_env_borrow);
+        let active_function = this_env.slots().function_object().clone();
         let super_constructor = active_function
             .__get_prototype_of__(context)
             .expect("function object must have prototype");
@@ -162,18 +139,13 @@ impl Operation for SuperCall {
             .vm
             .environments
             .get_this_environment()
-            .as_function_slots()
+            .as_function()
             .expect("super call must be in function environment");
 
-        if !this_env.borrow_mut().bind_this_value(&result) {
-            return Err(JsNativeError::reference()
-                .with_message("this already initialized")
-                .into());
-        }
+        this_env.bind_this_value(result.clone())?;
+        let function_object = this_env.slots().function_object().clone();
 
-        let active_function = this_env.borrow().function_object().clone();
-
-        result.initialize_instance_elements(&active_function, context)?;
+        result.initialize_instance_elements(&function_object, context)?;
 
         context.vm.push(result);
         Ok(CompletionType::Normal)
@@ -223,18 +195,13 @@ impl Operation for SuperCallSpread {
             .vm
             .environments
             .get_this_environment()
-            .as_function_slots()
+            .as_function()
             .expect("super call must be in function environment");
 
-        if !this_env.borrow_mut().bind_this_value(&result) {
-            return Err(JsNativeError::reference()
-                .with_message("this already initialized")
-                .into());
-        }
+        this_env.bind_this_value(result.clone())?;
+        let function_object = this_env.slots().function_object().clone();
 
-        let active_function = this_env.borrow().function_object().clone();
-
-        result.initialize_instance_elements(&active_function, context)?;
+        result.initialize_instance_elements(&function_object, context)?;
 
         context.vm.push(result);
         Ok(CompletionType::Normal)
@@ -260,21 +227,18 @@ impl Operation for SuperCallDerived {
         }
         arguments.reverse();
 
-        let (new_target, active_function) = {
-            let this_env = context
-                .vm
-                .environments
-                .get_this_environment()
-                .as_function_slots()
-                .expect("super call must be in function environment");
-            let this_env_borrow = this_env.borrow();
-            let new_target = this_env_borrow
-                .new_target()
-                .expect("must have new target")
-                .clone();
-            let active_function = this_env.borrow().function_object().clone();
-            (new_target, active_function)
-        };
+        let this_env = context
+            .vm
+            .environments
+            .get_this_environment()
+            .as_function()
+            .expect("super call must be in function environment");
+        let new_target = this_env
+            .slots()
+            .new_target()
+            .expect("must have new target")
+            .clone();
+        let active_function = this_env.slots().function_object().clone();
         let super_constructor = active_function
             .__get_prototype_of__(context)
             .expect("function object must have prototype")
@@ -292,14 +256,10 @@ impl Operation for SuperCallDerived {
             .vm
             .environments
             .get_this_environment()
-            .as_function_slots()
+            .as_function()
             .expect("super call must be in function environment");
 
-        if !this_env.borrow_mut().bind_this_value(&result) {
-            return Err(JsNativeError::reference()
-                .with_message("this already initialized")
-                .into());
-        }
+        this_env.bind_this_value(result.clone())?;
 
         result.initialize_instance_elements(&active_function, context)?;
 
