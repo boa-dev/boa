@@ -246,6 +246,9 @@
 <a href="#245" id="245">245</a>
 <a href="#246" id="246">246</a>
 <a href="#247" id="247">247</a>
+<a href="#248" id="248">248</a>
+<a href="#249" id="249">249</a>
+<a href="#250" id="250">250</a>
 </pre><pre class="rust"><code><span class="doccomment">//! Member expression parsing.
 //!
 //! More information:
@@ -330,7 +333,7 @@
             TokenKind::Keyword((Keyword::New, <span class="bool-val">false</span>)) =&gt; {
                 cursor.advance(interner);
 
-                <span class="kw">if </span>cursor.next_if(Punctuator::Dot, interner)<span class="question-mark">?</span>.is_some() {
+                <span class="kw">let </span>lhs_new_target = <span class="kw">if </span>cursor.next_if(Punctuator::Dot, interner)<span class="question-mark">?</span>.is_some() {
                     <span class="kw">let </span>token = cursor.next(interner).or_abrupt()<span class="question-mark">?</span>;
                     <span class="kw">match </span>token.kind() {
                         TokenKind::IdentifierName((Sym::TARGET, ContainsEscapeSequence(<span class="bool-val">true</span>))) =&gt; {
@@ -340,7 +343,7 @@
                             ));
                         }
                         TokenKind::IdentifierName((Sym::TARGET, ContainsEscapeSequence(<span class="bool-val">false</span>))) =&gt; {
-                            <span class="kw">return </span><span class="prelude-val">Ok</span>(ast::Expression::NewTarget)
+                            ast::Expression::NewTarget
                         }
                         <span class="kw">_ </span>=&gt; {
                             <span class="kw">return </span><span class="prelude-val">Err</span>(Error::general(
@@ -349,19 +352,22 @@
                             ));
                         }
                     }
-                }
+                } <span class="kw">else </span>{
+                    <span class="kw">let </span>lhs_inner = <span class="self">self</span>.parse(cursor, interner)<span class="question-mark">?</span>;
+                    <span class="kw">let </span>args = <span class="kw">match </span>cursor.peek(<span class="number">0</span>, interner)<span class="question-mark">? </span>{
+                        <span class="prelude-val">Some</span>(next)
+                            <span class="kw">if </span>next.kind() == <span class="kw-2">&amp;</span>TokenKind::Punctuator(Punctuator::OpenParen) =&gt;
+                        {
+                            Arguments::new(<span class="self">self</span>.allow_yield, <span class="self">self</span>.allow_await)
+                                .parse(cursor, interner)<span class="question-mark">?
+                        </span>}
+                        <span class="kw">_ </span>=&gt; Box::new([]),
+                    };
+                    <span class="kw">let </span>call_node = Call::new(lhs_inner, args);
 
-                <span class="kw">let </span>lhs = <span class="self">self</span>.parse(cursor, interner)<span class="question-mark">?</span>;
-                <span class="kw">let </span>args = <span class="kw">match </span>cursor.peek(<span class="number">0</span>, interner)<span class="question-mark">? </span>{
-                    <span class="prelude-val">Some</span>(next) <span class="kw">if </span>next.kind() == <span class="kw-2">&amp;</span>TokenKind::Punctuator(Punctuator::OpenParen) =&gt; {
-                        Arguments::new(<span class="self">self</span>.allow_yield, <span class="self">self</span>.allow_await)
-                            .parse(cursor, interner)<span class="question-mark">?
-                    </span>}
-                    <span class="kw">_ </span>=&gt; Box::new([]),
+                    ast::Expression::from(New::from(call_node))
                 };
-                <span class="kw">let </span>call_node = Call::new(lhs, args);
-
-                ast::Expression::from(New::from(call_node))
+                lhs_new_target
             }
             TokenKind::Keyword((Keyword::Super, <span class="kw">_</span>)) =&gt; {
                 cursor.advance(interner);
