@@ -82,7 +82,7 @@ where
             TokenKind::Keyword((Keyword::New, false)) => {
                 cursor.advance(interner);
 
-                if cursor.next_if(Punctuator::Dot, interner)?.is_some() {
+                let lhs_new_target = if cursor.next_if(Punctuator::Dot, interner)?.is_some() {
                     let token = cursor.next(interner).or_abrupt()?;
                     match token.kind() {
                         TokenKind::IdentifierName((Sym::TARGET, ContainsEscapeSequence(true))) => {
@@ -92,7 +92,7 @@ where
                             ));
                         }
                         TokenKind::IdentifierName((Sym::TARGET, ContainsEscapeSequence(false))) => {
-                            return Ok(ast::Expression::NewTarget)
+                            ast::Expression::NewTarget
                         }
                         _ => {
                             return Err(Error::general(
@@ -101,19 +101,22 @@ where
                             ));
                         }
                     }
-                }
+                } else {
+                    let lhs_inner = self.parse(cursor, interner)?;
+                    let args = match cursor.peek(0, interner)? {
+                        Some(next)
+                            if next.kind() == &TokenKind::Punctuator(Punctuator::OpenParen) =>
+                        {
+                            Arguments::new(self.allow_yield, self.allow_await)
+                                .parse(cursor, interner)?
+                        }
+                        _ => Box::new([]),
+                    };
+                    let call_node = Call::new(lhs_inner, args);
 
-                let lhs = self.parse(cursor, interner)?;
-                let args = match cursor.peek(0, interner)? {
-                    Some(next) if next.kind() == &TokenKind::Punctuator(Punctuator::OpenParen) => {
-                        Arguments::new(self.allow_yield, self.allow_await)
-                            .parse(cursor, interner)?
-                    }
-                    _ => Box::new([]),
+                    ast::Expression::from(New::from(call_node))
                 };
-                let call_node = Call::new(lhs, args);
-
-                ast::Expression::from(New::from(call_node))
+                lhs_new_target
             }
             TokenKind::Keyword((Keyword::Super, _)) => {
                 cursor.advance(interner);
