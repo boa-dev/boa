@@ -10,7 +10,7 @@
 use crate::{
     lexer::{Error as LexError, TokenKind},
     parser::{
-        expression::Expression,
+        expression::{AssignmentExpression, Expression},
         statement::declaration::LexicalDeclaration,
         statement::{variable::VariableDeclarationList, Statement},
         AllowAwait, AllowReturn, AllowYield, Cursor, OrAbrupt, ParseResult, TokenParser,
@@ -169,8 +169,13 @@ where
                 )?;
 
                 cursor.advance(interner);
-                let expr = Expression::new(None, true, self.allow_yield, self.allow_await)
-                    .parse(cursor, interner)?;
+                let expr = if in_loop {
+                    Expression::new(None, true, self.allow_yield, self.allow_await)
+                        .parse(cursor, interner)?
+                } else {
+                    AssignmentExpression::new(None, true, self.allow_yield, self.allow_await)
+                        .parse(cursor, interner)?
+                };
 
                 cursor.expect(Punctuator::CloseParen, "for in/of statement", interner)?;
 
