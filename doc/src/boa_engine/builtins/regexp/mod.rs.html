@@ -1737,6 +1737,13 @@
 <a href="#1736" id="1736">1736</a>
 <a href="#1737" id="1737">1737</a>
 <a href="#1738" id="1738">1738</a>
+<a href="#1739" id="1739">1739</a>
+<a href="#1740" id="1740">1740</a>
+<a href="#1741" id="1741">1741</a>
+<a href="#1742" id="1742">1742</a>
+<a href="#1743" id="1743">1743</a>
+<a href="#1744" id="1744">1744</a>
+<a href="#1745" id="1745">1745</a>
 </pre><pre class="rust"><code><span class="doccomment">//! Boa&#39;s implementation of ECMAScript&#39;s global `RegExp` object.
 //!
 //! The `RegExp` object is used for matching text with a pattern.
@@ -1910,13 +1917,20 @@
         // 3. Else, let newTarget be NewTarget.
         </span><span class="kw">if </span>new_target.is_undefined() {
             <span class="comment">// a. Let newTarget be the active function object.
-            // b. If patternIsRegExp is true and flags is undefined, then
+            </span><span class="kw">let </span>new_target = context
+                .vm
+                .active_function
+                .clone()
+                .map_or(JsValue::undefined(), JsValue::new);
+
+            <span class="comment">// b. If patternIsRegExp is true and flags is undefined, then
             </span><span class="kw">if let </span><span class="prelude-val">Some</span>(pattern) = pattern_is_regexp {
                 <span class="kw">if </span>flags.is_undefined() {
                     <span class="comment">// i. Let patternConstructor be ? Get(pattern, &quot;constructor&quot;).
                     </span><span class="kw">let </span>pattern_constructor = pattern.get(CONSTRUCTOR, context)<span class="question-mark">?</span>;
+
                     <span class="comment">// ii. If SameValue(newTarget, patternConstructor) is true, return pattern.
-                    </span><span class="kw">if </span>JsValue::same_value(new_target, <span class="kw-2">&amp;</span>pattern_constructor) {
+                    </span><span class="kw">if </span>JsValue::same_value(<span class="kw-2">&amp;</span>new_target, <span class="kw-2">&amp;</span>pattern_constructor) {
                         <span class="kw">return </span><span class="prelude-val">Ok</span>(pattern.clone().into());
                     }
                 }
