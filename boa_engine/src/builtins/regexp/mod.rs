@@ -171,13 +171,20 @@ impl BuiltInConstructor for RegExp {
         // 3. Else, let newTarget be NewTarget.
         if new_target.is_undefined() {
             // a. Let newTarget be the active function object.
+            let new_target = context
+                .vm
+                .active_function
+                .clone()
+                .map_or(JsValue::undefined(), JsValue::new);
+
             // b. If patternIsRegExp is true and flags is undefined, then
             if let Some(pattern) = pattern_is_regexp {
                 if flags.is_undefined() {
                     // i. Let patternConstructor be ? Get(pattern, "constructor").
                     let pattern_constructor = pattern.get(CONSTRUCTOR, context)?;
+
                     // ii. If SameValue(newTarget, patternConstructor) is true, return pattern.
-                    if JsValue::same_value(new_target, &pattern_constructor) {
+                    if JsValue::same_value(&new_target, &pattern_constructor) {
                         return Ok(pattern.clone().into());
                     }
                 }
