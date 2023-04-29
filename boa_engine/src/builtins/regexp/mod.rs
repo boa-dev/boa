@@ -192,24 +192,25 @@ impl BuiltInConstructor for RegExp {
         }
 
         // 4. If Type(pattern) is Object and pattern has a [[RegExpMatcher]] internal slot, then
-        // 6. Else,
         let (p, f) = if let Some(pattern) = pattern_is_regexp {
-            let obj = pattern.borrow();
-            let regexp = obj
-                .as_regexp()
-                .expect("already checked that IsRegExp returns true");
+            let mut original_source = JsValue::undefined();
+            let mut original_flags = JsValue::undefined();
+
+            if let Some(regexp) = pattern.borrow().as_regexp() {
+                original_source = regexp.original_source.clone().into();
+                original_flags = regexp.original_flags.clone().into();
+            };
 
             // a. Let P be pattern.[[OriginalSource]].
             // b. If flags is undefined, let F be pattern.[[OriginalFlags]].
             // c. Else, let F be flags.
             if flags.is_undefined() {
-                (
-                    JsValue::new(regexp.original_source.clone()),
-                    JsValue::new(regexp.original_flags.clone()),
-                )
+                (original_source, original_flags)
             } else {
-                (JsValue::new(regexp.original_source.clone()), flags.clone())
+                (original_source, flags.clone())
             }
+
+        // 6. Else,
         } else {
             // a. Let P be pattern.
             // b. Let F be flags.
