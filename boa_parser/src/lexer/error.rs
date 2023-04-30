@@ -34,7 +34,7 @@ impl From<io::Error> for Error {
 impl Error {
     /// Creates a new syntax error.
     #[inline]
-    pub(super) fn syntax<M, P>(err: M, pos: P) -> Self
+    pub(crate) fn syntax<M, P>(err: M, pos: P) -> Self
     where
         M: Into<Box<str>>,
         P: Into<Position>,
@@ -47,8 +47,13 @@ impl fmt::Display for Error {
     #[inline]
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            Self::IO(e) => write!(f, "{e}"),
-            Self::Syntax(e, pos) => write!(f, "{e} at position: {pos}"),
+            Self::IO(e) => e.fmt(f),
+            Self::Syntax(e, pos) => write!(
+                f,
+                "{e} at line {}, col {}",
+                pos.line_number(),
+                pos.column_number()
+            ),
         }
     }
 }
@@ -60,5 +65,47 @@ impl error::Error for Error {
             Self::IO(err) => Some(err),
             Self::Syntax(_, _) => None,
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use std::{error::Error as _, io};
+
+    #[test]
+    fn ut_syntax() {
+        let err = Error::syntax("testing", Position::new(1, 1));
+        if let Error::Syntax(err, pos) = err {
+            assert_eq!(err.as_ref(), "testing");
+            assert_eq!(pos, Position::new(1, 1));
+        } else {
+            unreachable!()
+        }
+
+        let err = Error::syntax("testing", Position::new(1, 1));
+        assert_eq!(err.to_string(), "testing at line 1, col 1");
+        assert!(err.source().is_none());
+    }
+
+    #[test]
+    fn ut_io() {
+        let custom_error = io::Error::new(io::ErrorKind::Other, "I/O error");
+        let err = custom_error.into();
+        if let Error::IO(err) = err {
+            assert_eq!(err.to_string(), "I/O error");
+        } else {
+            unreachable!()
+        }
+
+        let custom_error = io::Error::new(io::ErrorKind::Other, "I/O error");
+        let err: Error = custom_error.into();
+        assert_eq!(err.to_string(), "I/O error");
+        err.source().map_or_else(
+            || unreachable!(),
+            |io_err| {
+                assert_eq!(io_err.to_string(), "I/O error");
+            },
+        );
     }
 }

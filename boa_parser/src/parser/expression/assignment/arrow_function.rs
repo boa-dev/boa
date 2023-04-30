@@ -98,7 +98,7 @@ where
             let params_start_position = next_token.span().start();
             let param = BindingIdentifier::new(self.allow_yield, self.allow_await)
                 .parse(cursor, interner)
-                .context("arrow function")?;
+                .set_context("arrow function")?;
             (
                 FormalParameterList::try_from(FormalParameter::new(
                     Variable::from_identifier(param, None),

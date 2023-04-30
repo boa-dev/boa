@@ -86,3 +86,58 @@ impl<'path, R: Read> Source<'path, R> {
         Self { reader, path }
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use std::{fs, io::Cursor};
+
+    #[test]
+    fn ut_from_bytes() {
+        let mut source = Source::from_bytes("'Hello' + 'World';");
+
+        assert!(source.path.is_none());
+
+        let mut content = String::new();
+        source.reader.read_to_string(&mut content).unwrap();
+
+        assert_eq!(content, "'Hello' + 'World';");
+    }
+
+    #[test]
+    fn ut_from_filepath() {
+        fs::write("test.js", "'Hello' + 'World';").unwrap();
+        let mut source = Source::from_filepath("test.js".as_ref()).unwrap();
+
+        assert_eq!(source.path, Some("test.js".as_ref()));
+
+        let mut content = String::new();
+        source.reader.read_to_string(&mut content).unwrap();
+
+        assert_eq!(content, "'Hello' + 'World';");
+    }
+
+    #[test]
+    fn ut_from_reader() {
+        // Without path
+        let mut source = Source::from_reader(Cursor::new("'Hello' + 'World';"), None);
+
+        assert!(source.path.is_none());
+
+        let mut content = String::new();
+        source.reader.read_to_string(&mut content).unwrap();
+
+        assert_eq!(content, "'Hello' + 'World';");
+
+        // With path
+        let mut source =
+            Source::from_reader(Cursor::new("'Hello' + 'World';"), Some("test.js".as_ref()));
+
+        assert_eq!(source.path, Some("test.js".as_ref()));
+
+        let mut content = String::new();
+        source.reader.read_to_string(&mut content).unwrap();
+
+        assert_eq!(content, "'Hello' + 'World';");
+    }
+}
