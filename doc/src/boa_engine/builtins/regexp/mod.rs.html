@@ -1744,6 +1744,41 @@
 <a href="#1743" id="1743">1743</a>
 <a href="#1744" id="1744">1744</a>
 <a href="#1745" id="1745">1745</a>
+<a href="#1746" id="1746">1746</a>
+<a href="#1747" id="1747">1747</a>
+<a href="#1748" id="1748">1748</a>
+<a href="#1749" id="1749">1749</a>
+<a href="#1750" id="1750">1750</a>
+<a href="#1751" id="1751">1751</a>
+<a href="#1752" id="1752">1752</a>
+<a href="#1753" id="1753">1753</a>
+<a href="#1754" id="1754">1754</a>
+<a href="#1755" id="1755">1755</a>
+<a href="#1756" id="1756">1756</a>
+<a href="#1757" id="1757">1757</a>
+<a href="#1758" id="1758">1758</a>
+<a href="#1759" id="1759">1759</a>
+<a href="#1760" id="1760">1760</a>
+<a href="#1761" id="1761">1761</a>
+<a href="#1762" id="1762">1762</a>
+<a href="#1763" id="1763">1763</a>
+<a href="#1764" id="1764">1764</a>
+<a href="#1765" id="1765">1765</a>
+<a href="#1766" id="1766">1766</a>
+<a href="#1767" id="1767">1767</a>
+<a href="#1768" id="1768">1768</a>
+<a href="#1769" id="1769">1769</a>
+<a href="#1770" id="1770">1770</a>
+<a href="#1771" id="1771">1771</a>
+<a href="#1772" id="1772">1772</a>
+<a href="#1773" id="1773">1773</a>
+<a href="#1774" id="1774">1774</a>
+<a href="#1775" id="1775">1775</a>
+<a href="#1776" id="1776">1776</a>
+<a href="#1777" id="1777">1777</a>
+<a href="#1778" id="1778">1778</a>
+<a href="#1779" id="1779">1779</a>
+<a href="#1780" id="1780">1780</a>
 </pre><pre class="rust"><code><span class="doccomment">//! Boa&#39;s implementation of ECMAScript&#39;s global `RegExp` object.
 //!
 //! The `RegExp` object is used for matching text with a pattern.
@@ -1911,7 +1946,7 @@
         <span class="kw">let </span>flags = args.get_or_undefined(<span class="number">1</span>);
 
         <span class="comment">// 1. Let patternIsRegExp be ? IsRegExp(pattern).
-        </span><span class="kw">let </span>pattern_is_regexp = pattern.as_object().filter(|obj| obj.is_regexp());
+        </span><span class="kw">let </span>pattern_is_regexp = <span class="self">Self</span>::is_reg_exp(pattern, context)<span class="question-mark">?</span>;
 
         <span class="comment">// 2. If NewTarget is undefined, then
         // 3. Else, let newTarget be NewTarget.
@@ -1938,25 +1973,26 @@
         }
 
         <span class="comment">// 4. If Type(pattern) is Object and pattern has a [[RegExpMatcher]] internal slot, then
-        // 6. Else,
         </span><span class="kw">let </span>(p, f) = <span class="kw">if let </span><span class="prelude-val">Some</span>(pattern) = pattern_is_regexp {
-            <span class="kw">let </span>obj = pattern.borrow();
-            <span class="kw">let </span>regexp = obj
-                .as_regexp()
-                .expect(<span class="string">&quot;already checked that IsRegExp returns true&quot;</span>);
+            <span class="kw">let </span><span class="kw-2">mut </span>original_source = JsValue::undefined();
+            <span class="kw">let </span><span class="kw-2">mut </span>original_flags = JsValue::undefined();
+
+            <span class="kw">if let </span><span class="prelude-val">Some</span>(regexp) = pattern.borrow().as_regexp() {
+                original_source = regexp.original_source.clone().into();
+                original_flags = regexp.original_flags.clone().into();
+            };
 
             <span class="comment">// a. Let P be pattern.[[OriginalSource]].
             // b. If flags is undefined, let F be pattern.[[OriginalFlags]].
             // c. Else, let F be flags.
             </span><span class="kw">if </span>flags.is_undefined() {
-                (
-                    JsValue::new(regexp.original_source.clone()),
-                    JsValue::new(regexp.original_flags.clone()),
-                )
+                (original_source, original_flags)
             } <span class="kw">else </span>{
-                (JsValue::new(regexp.original_source.clone()), flags.clone())
+                (original_source, flags.clone())
             }
-        } <span class="kw">else </span>{
+
+        <span class="comment">// 6. Else,
+        </span>} <span class="kw">else </span>{
             <span class="comment">// a. Let P be pattern.
             // b. Let F be flags.
             </span>(pattern.clone(), flags.clone())
@@ -1971,6 +2007,40 @@
 }
 
 <span class="kw">impl </span>RegExp {
+    <span class="doccomment">/// `7.2.8 IsRegExp ( argument )`
+    ///
+    /// This modified to return the object if it&#39;s `true`, [`None`] otherwise.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-isregexp
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>is_reg_exp&lt;<span class="lifetime">&#39;a</span>&gt;(
+        argument: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>JsValue,
+        context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+    ) -&gt; JsResult&lt;<span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>JsObject&gt;&gt; {
+        <span class="comment">// 1. If argument is not an Object, return false.
+        </span><span class="kw">let </span><span class="prelude-val">Some</span>(argument) = argument.as_object() <span class="kw">else </span>{
+            <span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>);
+        };
+
+        <span class="comment">// 2. Let matcher be ? Get(argument, @@match).
+        </span><span class="kw">let </span>matcher = argument.get(JsSymbol::r#match(), context)<span class="question-mark">?</span>;
+
+        <span class="comment">// 3. If matcher is not undefined, return ToBoolean(matcher).
+        </span><span class="kw">if </span>!matcher.is_undefined() {
+            <span class="kw">return </span><span class="prelude-val">Ok</span>(matcher.to_boolean().then_some(argument));
+        }
+
+        <span class="comment">// 4. If argument has a [[RegExpMatcher]] internal slot, return true.
+        </span><span class="kw">if </span>argument.is_regexp() {
+            <span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(argument));
+        }
+
+        <span class="comment">// 5. Return false.
+        </span><span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>)
+    }
+
     <span class="doccomment">/// `22.2.3.2.1 RegExpAlloc ( newTarget )`
     ///
     /// More information:

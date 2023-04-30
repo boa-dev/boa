@@ -2759,36 +2759,6 @@
 <a href="#2758" id="2758">2758</a>
 <a href="#2759" id="2759">2759</a>
 <a href="#2760" id="2760">2760</a>
-<a href="#2761" id="2761">2761</a>
-<a href="#2762" id="2762">2762</a>
-<a href="#2763" id="2763">2763</a>
-<a href="#2764" id="2764">2764</a>
-<a href="#2765" id="2765">2765</a>
-<a href="#2766" id="2766">2766</a>
-<a href="#2767" id="2767">2767</a>
-<a href="#2768" id="2768">2768</a>
-<a href="#2769" id="2769">2769</a>
-<a href="#2770" id="2770">2770</a>
-<a href="#2771" id="2771">2771</a>
-<a href="#2772" id="2772">2772</a>
-<a href="#2773" id="2773">2773</a>
-<a href="#2774" id="2774">2774</a>
-<a href="#2775" id="2775">2775</a>
-<a href="#2776" id="2776">2776</a>
-<a href="#2777" id="2777">2777</a>
-<a href="#2778" id="2778">2778</a>
-<a href="#2779" id="2779">2779</a>
-<a href="#2780" id="2780">2780</a>
-<a href="#2781" id="2781">2781</a>
-<a href="#2782" id="2782">2782</a>
-<a href="#2783" id="2783">2783</a>
-<a href="#2784" id="2784">2784</a>
-<a href="#2785" id="2785">2785</a>
-<a href="#2786" id="2786">2786</a>
-<a href="#2787" id="2787">2787</a>
-<a href="#2788" id="2788">2788</a>
-<a href="#2789" id="2789">2789</a>
-<a href="#2790" id="2790">2790</a>
 </pre><pre class="rust"><code><span class="doccomment">//! Boa&#39;s implementation of ECMAScript&#39;s global `String` object.
 //!
 //! The `String` global object is a constructor for strings or a sequence of characters.
@@ -3616,7 +3586,7 @@
 
         <span class="comment">// 3. Let isRegExp be ? IsRegExp(searchString).
         // 4. If isRegExp is true, throw a TypeError exception.
-        </span><span class="kw">if </span>is_reg_exp(search_string, context)<span class="question-mark">? </span>{
+        </span><span class="kw">if </span>RegExp::is_reg_exp(search_string, context)<span class="question-mark">?</span>.is_some() {
             <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::typ().with_message(
                 <span class="string">&quot;First argument to String.prototype.startsWith must not be a regular expression&quot;</span>,
             ).into());
@@ -3684,7 +3654,7 @@
         <span class="kw">let </span>search_str = <span class="kw">match </span>args.get_or_undefined(<span class="number">0</span>) {
             <span class="comment">// 3. Let isRegExp be ? IsRegExp(searchString).
             // 4. If isRegExp is true, throw a TypeError exception.
-            </span>search_string <span class="kw">if </span>is_reg_exp(search_string, context)<span class="question-mark">? </span>=&gt; {
+            </span>search_string <span class="kw">if </span>RegExp::is_reg_exp(search_string, context)<span class="question-mark">?</span>.is_some() =&gt; {
                 <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::typ().with_message(
                     <span class="string">&quot;First argument to String.prototype.endsWith must not be a regular expression&quot;</span>,
                 ).into());
@@ -3749,7 +3719,7 @@
 
         <span class="kw">let </span>search_str = <span class="kw">match </span>args.get_or_undefined(<span class="number">0</span>) {
             <span class="comment">// 3. Let isRegExp be ? IsRegExp(searchString).
-            </span>search_string <span class="kw">if </span>is_reg_exp(search_string, context)<span class="question-mark">? </span>=&gt; {
+            </span>search_string <span class="kw">if </span>RegExp::is_reg_exp(search_string, context)<span class="question-mark">?</span>.is_some() =&gt; {
                 <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::typ().with_message(
                     <span class="comment">// 4. If isRegExp is true, throw a TypeError exception.
                     </span><span class="string">&quot;First argument to String.prototype.includes must not be a regular expression&quot;</span>,
@@ -3911,21 +3881,21 @@
         <span class="comment">// 2. If searchValue is neither undefined nor null, then
         </span><span class="kw">if </span>!search_value.is_null_or_undefined() {
             <span class="comment">// a. Let isRegExp be ? IsRegExp(searchValue).
-            </span><span class="kw">if let </span><span class="prelude-val">Some</span>(obj) = search_value.as_object() {
-                <span class="comment">// b. If isRegExp is true, then
-                </span><span class="kw">if </span>is_reg_exp_object(obj, context)<span class="question-mark">? </span>{
-                    <span class="comment">// i. Let flags be ? Get(searchValue, &quot;flags&quot;).
-                    </span><span class="kw">let </span>flags = obj.get(<span class="macro">utf16!</span>(<span class="string">&quot;flags&quot;</span>), context)<span class="question-mark">?</span>;
+            // b. If isRegExp is true, then
+            </span><span class="kw">if let </span><span class="prelude-val">Some</span>(obj) = RegExp::is_reg_exp(search_value, context)<span class="question-mark">? </span>{
+                <span class="comment">// i. Let flags be ? Get(searchValue, &quot;flags&quot;).
+                </span><span class="kw">let </span>flags = obj.get(<span class="macro">utf16!</span>(<span class="string">&quot;flags&quot;</span>), context)<span class="question-mark">?</span>;
 
-                    <span class="comment">// ii. Perform ? RequireObjectCoercible(flags).
-                    </span>flags.require_object_coercible()<span class="question-mark">?</span>;
+                <span class="comment">// ii. Perform ? RequireObjectCoercible(flags).
+                </span>flags.require_object_coercible()<span class="question-mark">?</span>;
 
-                    <span class="comment">// iii. If ? ToString(flags) does not contain &quot;g&quot;, throw a TypeError exception.
-                    </span><span class="kw">if </span>!flags.to_string(context)<span class="question-mark">?</span>.contains(<span class="kw-2">&amp;</span>u16::from(<span class="string">b&#39;g&#39;</span>)) {
-                        <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::typ().with_message(
+                <span class="comment">// iii. If ? ToString(flags) does not contain &quot;g&quot;, throw a TypeError exception.
+                </span><span class="kw">if </span>!flags.to_string(context)<span class="question-mark">?</span>.contains(<span class="kw-2">&amp;</span>u16::from(<span class="string">b&#39;g&#39;</span>)) {
+                    <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::typ()
+                        .with_message(
                             <span class="string">&quot;String.prototype.replaceAll called with a non-global RegExp argument&quot;</span>,
-                        ).into());
-                    }
+                        )
+                        .into());
                 }
             }
 
@@ -4776,22 +4746,20 @@
         <span class="kw">if </span>!regexp.is_null_or_undefined() {
             <span class="comment">// a. Let isRegExp be ? IsRegExp(regexp).
             // b. If isRegExp is true, then
-            </span><span class="kw">if let </span><span class="prelude-val">Some</span>(regexp_obj) = regexp.as_object() {
-                <span class="kw">if </span>is_reg_exp_object(regexp_obj, context)<span class="question-mark">? </span>{
-                    <span class="comment">// i. Let flags be ? Get(regexp, &quot;flags&quot;).
-                    </span><span class="kw">let </span>flags = regexp_obj.get(<span class="macro">utf16!</span>(<span class="string">&quot;flags&quot;</span>), context)<span class="question-mark">?</span>;
+            </span><span class="kw">if let </span><span class="prelude-val">Some</span>(regexp) = RegExp::is_reg_exp(regexp, context)<span class="question-mark">? </span>{
+                <span class="comment">// i. Let flags be ? Get(regexp, &quot;flags&quot;).
+                </span><span class="kw">let </span>flags = regexp.get(<span class="macro">utf16!</span>(<span class="string">&quot;flags&quot;</span>), context)<span class="question-mark">?</span>;
 
-                    <span class="comment">// ii. Perform ? RequireObjectCoercible(flags).
-                    </span>flags.require_object_coercible()<span class="question-mark">?</span>;
+                <span class="comment">// ii. Perform ? RequireObjectCoercible(flags).
+                </span>flags.require_object_coercible()<span class="question-mark">?</span>;
 
-                    <span class="comment">// iii. If ? ToString(flags) does not contain &quot;g&quot;, throw a TypeError exception.
-                    </span><span class="kw">if </span>!flags.to_string(context)<span class="question-mark">?</span>.contains(<span class="kw-2">&amp;</span>u16::from(<span class="string">b&#39;g&#39;</span>)) {
-                        <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::typ()
+                <span class="comment">// iii. If ? ToString(flags) does not contain &quot;g&quot;, throw a TypeError exception.
+                </span><span class="kw">if </span>!flags.to_string(context)<span class="question-mark">?</span>.contains(<span class="kw-2">&amp;</span>u16::from(<span class="string">b&#39;g&#39;</span>)) {
+                    <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::typ()
                         .with_message(
                             <span class="string">&quot;String.prototype.matchAll called with a non-global RegExp argument&quot;</span>,
                         )
                         .into());
-                    }
                 }
             }
             <span class="comment">// c. Let matcher be ? GetMethod(regexp, @@matchAll).
@@ -5550,34 +5518,6 @@
 
     <span class="comment">// 11. Return result.
     </span><span class="prelude-val">Ok</span>(<span class="macro">js_string!</span>(result))
-}
-
-<span class="doccomment">/// Abstract operation `IsRegExp( argument )`
-///
-/// More information:
-/// [ECMAScript reference][spec]
-///
-/// [spec]: https://tc39.es/ecma262/#sec-isregexp
-</span><span class="kw">fn </span>is_reg_exp(argument: <span class="kw-2">&amp;</span>JsValue, context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;bool&gt; {
-    <span class="comment">// 1. If Type(argument) is not Object, return false.
-    </span><span class="kw">let </span>JsValue::Object(argument) = argument <span class="kw">else </span>{
-        <span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="bool-val">false</span>);
-    };
-
-    is_reg_exp_object(argument, context)
-}
-<span class="kw">fn </span>is_reg_exp_object(argument: <span class="kw-2">&amp;</span>JsObject, context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;bool&gt; {
-    <span class="comment">// 2. Let matcher be ? Get(argument, @@match).
-    </span><span class="kw">let </span>matcher = argument.get(JsSymbol::r#match(), context)<span class="question-mark">?</span>;
-
-    <span class="comment">// 3. If matcher is not undefined, return ! ToBoolean(matcher).
-    </span><span class="kw">if </span>!matcher.is_undefined() {
-        <span class="kw">return </span><span class="prelude-val">Ok</span>(matcher.to_boolean());
-    }
-
-    <span class="comment">// 4. If argument has a [[RegExpMatcher]] internal slot, return true.
-    // 5. Return false.
-    </span><span class="prelude-val">Ok</span>(argument.is_regexp())
 }
 </code></pre></div>
 </section></main><div id="rustdoc-vars" data-root-path="../../../../" data-static-root-path="../../../../static.files/" data-current-crate="boa_engine" data-themes="" data-resource-suffix="" data-rustdoc-version="1.69.0 (84c898d65 2023-04-16)" data-search-js="search-8a59a8356673ec1f.js" data-settings-js="settings-f0c5c39777a9a2f6.js" data-settings-css="settings-0bcba95ff279c1db.css" ></div></body></html>
