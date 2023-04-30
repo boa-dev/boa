@@ -165,7 +165,7 @@ impl BuiltInConstructor for RegExp {
         let flags = args.get_or_undefined(1);
 
         // 1. Let patternIsRegExp be ? IsRegExp(pattern).
-        let pattern_is_regexp = pattern.as_object().filter(|obj| obj.is_regexp());
+        let pattern_is_regexp = Self::is_reg_exp(pattern, context)?;
 
         // 2. If NewTarget is undefined, then
         // 3. Else, let newTarget be NewTarget.
@@ -192,24 +192,25 @@ impl BuiltInConstructor for RegExp {
         }
 
         // 4. If Type(pattern) is Object and pattern has a [[RegExpMatcher]] internal slot, then
-        // 6. Else,
         let (p, f) = if let Some(pattern) = pattern_is_regexp {
-            let obj = pattern.borrow();
-            let regexp = obj
-                .as_regexp()
-                .expect("already checked that IsRegExp returns true");
+            let mut original_source = JsValue::undefined();
+            let mut original_flags = JsValue::undefined();
+
+            if let Some(regexp) = pattern.borrow().as_regexp() {
+                original_source = regexp.original_source.clone().into();
+                original_flags = regexp.original_flags.clone().into();
+            };
 
             // a. Let P be pattern.[[OriginalSource]].
             // b. If flags is undefined, let F be pattern.[[OriginalFlags]].
             // c. Else, let F be flags.
             if flags.is_undefined() {
-                (
-                    JsValue::new(regexp.original_source.clone()),
-                    JsValue::new(regexp.original_flags.clone()),
-                )
+                (original_source, original_flags)
             } else {
-                (JsValue::new(regexp.original_source.clone()), flags.clone())
+                (original_source, flags.clone())
             }
+
+        // 6. Else,
         } else {
             // a. Let P be pattern.
             // b. Let F be flags.
@@ -225,6 +226,40 @@ impl BuiltInConstructor for RegExp {
 }
 
 impl RegExp {
+    /// `7.2.8 IsRegExp ( argument )`
+    ///
+    /// This modified to return the object if it's `true`, [`None`] otherwise.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-isregexp
+    pub(crate) fn is_reg_exp<'a>(
+        argument: &'a JsValue,
+        context: &mut Context<'_>,
+    ) -> JsResult<Option<&'a JsObject>> {
+        // 1. If argument is not an Object, return false.
+        let Some(argument) = argument.as_object() else {
+            return Ok(None);
+        };
+
+        // 2. Let matcher be ? Get(argument, @@match).
+        let matcher = argument.get(JsSymbol::r#match(), context)?;
+
+        // 3. If matcher is not undefined, return ToBoolean(matcher).
+        if !matcher.is_undefined() {
+            return Ok(matcher.to_boolean().then_some(argument));
+        }
+
+        // 4. If argument has a [[RegExpMatcher]] internal slot, return true.
+        if argument.is_regexp() {
+            return Ok(Some(argument));
+        }
+
+        // 5. Return false.
+        Ok(None)
+    }
+
     /// `22.2.3.2.1 RegExpAlloc ( newTarget )`
     ///
     /// More information:

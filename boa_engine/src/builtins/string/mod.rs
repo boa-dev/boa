@@ -825,7 +825,7 @@ impl String {
 
         // 3. Let isRegExp be ? IsRegExp(searchString).
         // 4. If isRegExp is true, throw a TypeError exception.
-        if is_reg_exp(search_string, context)? {
+        if RegExp::is_reg_exp(search_string, context)?.is_some() {
             return Err(JsNativeError::typ().with_message(
                 "First argument to String.prototype.startsWith must not be a regular expression",
             ).into());
@@ -893,7 +893,7 @@ impl String {
         let search_str = match args.get_or_undefined(0) {
             // 3. Let isRegExp be ? IsRegExp(searchString).
             // 4. If isRegExp is true, throw a TypeError exception.
-            search_string if is_reg_exp(search_string, context)? => {
+            search_string if RegExp::is_reg_exp(search_string, context)?.is_some() => {
                 return Err(JsNativeError::typ().with_message(
                     "First argument to String.prototype.endsWith must not be a regular expression",
                 ).into());
@@ -958,7 +958,7 @@ impl String {
 
         let search_str = match args.get_or_undefined(0) {
             // 3. Let isRegExp be ? IsRegExp(searchString).
-            search_string if is_reg_exp(search_string, context)? => {
+            search_string if RegExp::is_reg_exp(search_string, context)?.is_some() => {
                 return Err(JsNativeError::typ().with_message(
                     // 4. If isRegExp is true, throw a TypeError exception.
                     "First argument to String.prototype.includes must not be a regular expression",
@@ -1120,21 +1120,21 @@ impl String {
         // 2. If searchValue is neither undefined nor null, then
         if !search_value.is_null_or_undefined() {
             // a. Let isRegExp be ? IsRegExp(searchValue).
-            if let Some(obj) = search_value.as_object() {
-                // b. If isRegExp is true, then
-                if is_reg_exp_object(obj, context)? {
-                    // i. Let flags be ? Get(searchValue, "flags").
-                    let flags = obj.get(utf16!("flags"), context)?;
+            // b. If isRegExp is true, then
+            if let Some(obj) = RegExp::is_reg_exp(search_value, context)? {
+                // i. Let flags be ? Get(searchValue, "flags").
+                let flags = obj.get(utf16!("flags"), context)?;
 
-                    // ii. Perform ? RequireObjectCoercible(flags).
-                    flags.require_object_coercible()?;
+                // ii. Perform ? RequireObjectCoercible(flags).
+                flags.require_object_coercible()?;
 
-                    // iii. If ? ToString(flags) does not contain "g", throw a TypeError exception.
-                    if !flags.to_string(context)?.contains(&u16::from(b'g')) {
-                        return Err(JsNativeError::typ().with_message(
+                // iii. If ? ToString(flags) does not contain "g", throw a TypeError exception.
+                if !flags.to_string(context)?.contains(&u16::from(b'g')) {
+                    return Err(JsNativeError::typ()
+                        .with_message(
                             "String.prototype.replaceAll called with a non-global RegExp argument",
-                        ).into());
-                    }
+                        )
+                        .into());
                 }
             }
 
@@ -1985,22 +1985,20 @@ impl String {
         if !regexp.is_null_or_undefined() {
             // a. Let isRegExp be ? IsRegExp(regexp).
             // b. If isRegExp is true, then
-            if let Some(regexp_obj) = regexp.as_object() {
-                if is_reg_exp_object(regexp_obj, context)? {
-                    // i. Let flags be ? Get(regexp, "flags").
-                    let flags = regexp_obj.get(utf16!("flags"), context)?;
+            if let Some(regexp) = RegExp::is_reg_exp(regexp, context)? {
+                // i. Let flags be ? Get(regexp, "flags").
+                let flags = regexp.get(utf16!("flags"), context)?;
 
-                    // ii. Perform ? RequireObjectCoercible(flags).
-                    flags.require_object_coercible()?;
+                // ii. Perform ? RequireObjectCoercible(flags).
+                flags.require_object_coercible()?;
 
-                    // iii. If ? ToString(flags) does not contain "g", throw a TypeError exception.
-                    if !flags.to_string(context)?.contains(&u16::from(b'g')) {
-                        return Err(JsNativeError::typ()
+                // iii. If ? ToString(flags) does not contain "g", throw a TypeError exception.
+                if !flags.to_string(context)?.contains(&u16::from(b'g')) {
+                    return Err(JsNativeError::typ()
                         .with_message(
                             "String.prototype.matchAll called with a non-global RegExp argument",
                         )
                         .into());
-                    }
                 }
             }
             // c. Let matcher be ? GetMethod(regexp, @@matchAll).
@@ -2759,32 +2757,4 @@ pub(crate) fn get_substitution(
 
     // 11. Return result.
     Ok(js_string!(result))
-}
-
-/// Abstract operation `IsRegExp( argument )`
-///
-/// More information:
-/// [ECMAScript reference][spec]
-///
-/// [spec]: https://tc39.es/ecma262/#sec-isregexp
-fn is_reg_exp(argument: &JsValue, context: &mut Context<'_>) -> JsResult<bool> {
-    // 1. If Type(argument) is not Object, return false.
-    let JsValue::Object(argument) = argument else {
-        return Ok(false);
-    };
-
-    is_reg_exp_object(argument, context)
-}
-fn is_reg_exp_object(argument: &JsObject, context: &mut Context<'_>) -> JsResult<bool> {
-    // 2. Let matcher be ? Get(argument, @@match).
-    let matcher = argument.get(JsSymbol::r#match(), context)?;
-
-    // 3. If matcher is not undefined, return ! ToBoolean(matcher).
-    if !matcher.is_undefined() {
-        return Ok(matcher.to_boolean());
-    }
-
-    // 4. If argument has a [[RegExpMatcher]] internal slot, return true.
-    // 5. Return false.
-    Ok(argument.is_regexp())
 }
