@@ -139,7 +139,7 @@ fn test_invalid_break_target() {
             }
         "#},
         ErrorKind::Syntax,
-        "undefined break target: nonexistent at position: 1:1",
+        "undefined break target: nonexistent at line 1, col 1",
     )]);
 }
 

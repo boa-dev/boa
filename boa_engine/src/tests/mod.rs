@@ -387,7 +387,7 @@ fn strict_mode_octal() {
             var n = 023;
         "#},
         ErrorKind::Syntax,
-        "implicit octal literals are not allowed in strict mode at position: 2:9",
+        "implicit octal literals are not allowed in strict mode at line 2, col 9",
     )]);
 }
 

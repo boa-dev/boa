@@ -141,7 +141,7 @@ fn strict_mode_dup_func_parameters() {
             function f(a, b, b) {}
         "#},
         ErrorKind::Syntax,
-        "Duplicate parameter name not allowed in this context at position: 2:12",
+        "Duplicate parameter name not allowed in this context at line 2, col 12",
     )]);
 }
 
