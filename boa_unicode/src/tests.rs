@@ -14,6 +14,24 @@ fn ut_is_id_start() {
     for c in 'A'..='Z' {
         assert!(c.is_id_start());
     }
+    for c in '\u{00E0}'..='\u{00F6}' {
+        assert!(c.is_id_start());
+    }
+    for c in '\u{02B0}'..='\u{02C1}' {
+        assert!(c.is_id_start());
+    }
+    for c in '\u{05D0}'..='\u{05DE}' {
+        assert!(c.is_id_start());
+    }
+    for c in '\u{1F88}'..='\u{1F89}' {
+        assert!(c.is_id_start());
+    }
+    for c in '\u{0391}'..='\u{039F}' {
+        assert!(c.is_id_start());
+    }
+    for c in '\u{2160}'..='\u{216F}' {
+        assert!(c.is_id_start());
+    }
 
     // Rainy day
     for c in '0'..='9' {
@@ -44,19 +62,23 @@ fn ut_is_id_continue() {
     for c in '0'..='9' {
         assert!(c.is_id_continue());
     }
-    assert!('_'.is_id_continue());
+    for c in '\u{0300}'..='\u{036F}' {
+        assert!(c.is_id_continue());
+    }
+    for c in '\u{093E}'..='\u{094F}' {
+        assert!(c.is_id_continue());
+    }
+    for c in '\u{0660}'..='\u{0669}' {
+        assert!(c.is_id_continue());
+    }
+    for c in ['_', '\u{203F}', '\u{2040}', '\u{2054}', '\u{FE33}'] {
+        assert!(c.is_id_continue());
+    }
 
     // Rainy day
-    assert!(!' '.is_id_continue());
-    assert!(!'\n'.is_id_continue());
-    assert!(!'\t'.is_id_continue());
-    assert!(!'!'.is_id_continue());
-    assert!(!';'.is_id_continue());
-    assert!(!'-'.is_id_continue());
-    assert!(!'='.is_id_continue());
-    assert!(!'+'.is_id_continue());
-    assert!(!'('.is_id_continue());
-    assert!(!'('.is_id_continue());
+    for c in [' ', '\n', '\t', '!', ';', '-', '=', '+', '(', '('] {
+        assert!(!c.is_id_continue());
+    }
 }
 
 #[test]

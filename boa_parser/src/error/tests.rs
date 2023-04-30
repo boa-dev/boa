@@ -1,7 +1,7 @@
 use super::*;
 
 #[test]
-fn ut_result_context() {
+fn ut_context() {
     let result: ParseResult<String> = ParseResult::Err(Error::expected(
         ["testing".to_owned()],
         "nottesting",
@@ -30,6 +30,11 @@ fn ut_result_context() {
     } else {
         unreachable!();
     }
+
+    let err = Error::AbruptEnd;
+    assert!(err.context().is_none());
+    let err = err.set_context("ignored");
+    assert!(err.context().is_none());
 }
 
 #[test]
@@ -106,6 +111,33 @@ fn ut_display() {
     assert_eq!(
         err.to_string(),
         "expected one of 'testing' or 'more', got 'nottesting' in context at line 1, col 1"
+    );
+
+    let err = Error::expected(
+        ["testing".to_owned(), "more".to_owned(), "tokens".to_owned()],
+        "nottesting",
+        Span::new(Position::new(1, 1), Position::new(1, 3)),
+        "context",
+    );
+    assert_eq!(
+        err.to_string(),
+        "expected one of 'testing', 'more' or 'tokens', got 'nottesting' in context at line 1, col 1"
+    );
+
+    let err = Error::expected(
+        [
+            "testing".to_owned(),
+            "more".to_owned(),
+            "tokens".to_owned(),
+            "extra".to_owned(),
+        ],
+        "nottesting",
+        Span::new(Position::new(1, 1), Position::new(1, 3)),
+        "context",
+    );
+    assert_eq!(
+        err.to_string(),
+        "expected one of 'testing', 'more', 'tokens' or 'extra', got 'nottesting' in context at line 1, col 1"
     );
 
     let err = Error::unexpected(
