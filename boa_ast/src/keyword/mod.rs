@@ -14,6 +14,9 @@ use boa_interner::Sym;
 use boa_macros::utf16;
 use std::{convert::TryFrom, error, fmt, str::FromStr};
 
+#[cfg(test)]
+mod tests;
+
 /// List of keywords recognized by the JavaScript grammar.
 ///
 /// See the [module-level documentation][self] for more details.
@@ -604,11 +607,8 @@ impl fmt::Display for KeywordError {
 }
 
 // This is important for other errors to wrap this one.
-impl error::Error for KeywordError {
-    fn description(&self) -> &str {
-        "invalid token"
-    }
-}
+impl error::Error for KeywordError {}
+
 impl FromStr for Keyword {
     type Err = KeywordError;
     fn from_str(s: &str) -> Result<Self, Self::Err> {
