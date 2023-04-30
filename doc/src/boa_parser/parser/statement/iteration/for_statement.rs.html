@@ -400,6 +400,11 @@
 <a href="#399" id="399">399</a>
 <a href="#400" id="400">400</a>
 <a href="#401" id="401">401</a>
+<a href="#402" id="402">402</a>
+<a href="#403" id="403">403</a>
+<a href="#404" id="404">404</a>
+<a href="#405" id="405">405</a>
+<a href="#406" id="406">406</a>
 </pre><pre class="rust"><code><span class="doccomment">//! For statement parsing.
 //!
 //! More information:
@@ -412,7 +417,7 @@
 </span><span class="kw">use crate</span>::{
     lexer::{Error <span class="kw">as </span>LexError, TokenKind},
     parser::{
-        expression::Expression,
+        expression::{AssignmentExpression, Expression},
         statement::declaration::LexicalDeclaration,
         statement::{variable::VariableDeclarationList, Statement},
         AllowAwait, AllowReturn, AllowYield, Cursor, OrAbrupt, ParseResult, TokenParser,
@@ -571,8 +576,13 @@
                 )<span class="question-mark">?</span>;
 
                 cursor.advance(interner);
-                <span class="kw">let </span>expr = Expression::new(<span class="prelude-val">None</span>, <span class="bool-val">true</span>, <span class="self">self</span>.allow_yield, <span class="self">self</span>.allow_await)
-                    .parse(cursor, interner)<span class="question-mark">?</span>;
+                <span class="kw">let </span>expr = <span class="kw">if </span>in_loop {
+                    Expression::new(<span class="prelude-val">None</span>, <span class="bool-val">true</span>, <span class="self">self</span>.allow_yield, <span class="self">self</span>.allow_await)
+                        .parse(cursor, interner)<span class="question-mark">?
+                </span>} <span class="kw">else </span>{
+                    AssignmentExpression::new(<span class="prelude-val">None</span>, <span class="bool-val">true</span>, <span class="self">self</span>.allow_yield, <span class="self">self</span>.allow_await)
+                        .parse(cursor, interner)<span class="question-mark">?
+                </span>};
 
                 cursor.expect(Punctuator::CloseParen, <span class="string">&quot;for in/of statement&quot;</span>, interner)<span class="question-mark">?</span>;
 
