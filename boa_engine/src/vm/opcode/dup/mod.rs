@@ -21,3 +21,28 @@ impl Operation for Dup {
         Ok(CompletionType::Normal)
     }
 }
+
+/// `DupKey` implements the Opcode Operation for `Opcode::DupKey`
+///
+/// Operation:
+/// - Duplicates the top of the property keys stack
+#[derive(Debug, Clone, Copy)]
+pub(crate) struct DupKey;
+
+impl Operation for DupKey {
+    const NAME: &'static str = "DupKey";
+    const INSTRUCTION: &'static str = "INST - DupKey";
+
+    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
+        let key = context
+            .vm
+            .frame_mut()
+            .keys
+            .last()
+            .expect("keys stack must not be empty")
+            .clone();
+
+        context.vm.frame_mut().keys.push(key);
+        Ok(CompletionType::Normal)
+    }
+}

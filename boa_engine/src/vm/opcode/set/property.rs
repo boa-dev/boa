@@ -4,7 +4,7 @@ use crate::{
     builtins::function::set_function_name,
     property::{PropertyDescriptor, PropertyKey},
     vm::{opcode::Operation, CompletionType},
-    Context, JsNativeError, JsResult, JsString, JsValue,
+    Context, JsNativeError, JsResult, JsString,
 };
 
 /// `SetPropertyByName` implements the Opcode Operation for `Opcode::SetPropertyByName`
@@ -23,12 +23,7 @@ impl Operation for SetPropertyByName {
 
         let value = context.vm.pop();
         let receiver = context.vm.pop();
-        let object = context.vm.pop();
-        let object = if let Some(object) = object.as_object() {
-            object.clone()
-        } else {
-            object.to_object(context)?
-        };
+        let object = context.vm.pop().to_object(context)?;
 
         let name = context.vm.frame().code_block.names[index as usize];
         let name: PropertyKey = context.interner().resolve_expect(name.sym()).utf16().into();
@@ -57,15 +52,14 @@ impl Operation for SetPropertyByValue {
 
     fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
         let value = context.vm.pop();
-        let key = context.vm.pop();
-        let object = context.vm.pop();
-        let object = if let Some(object) = object.as_object() {
-            object.clone()
-        } else {
-            object.to_object(context)?
-        };
+        let key = context
+            .vm
+            .frame_mut()
+            .keys
+            .pop()
+            .expect("property key should have been pushed");
 
-        let key = key.to_property_key(context)?;
+        let object = context.vm.pop().to_object(context)?;
 
         // Fast Path:
         'fast_path: {
@@ -201,17 +195,20 @@ impl Operation for SetPropertyGetterByValue {
 
     fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
         let value = context.vm.pop();
-        let key = context.vm.pop();
-        let object = context.vm.pop();
-        let object = object.to_object(context)?;
-        let name = key.to_property_key(context)?;
+        let key = context
+            .vm
+            .frame_mut()
+            .keys
+            .pop()
+            .expect("property key should have been pushed");
+        let object = context.vm.pop().to_object(context)?;
         let set = object
-            .__get_own_property__(&name, context)?
+            .__get_own_property__(&key, context)?
             .as_ref()
             .and_then(PropertyDescriptor::set)
             .cloned();
         object.__define_own_property__(
-            &name,
+            &key,
             PropertyDescriptor::builder()
                 .maybe_get(Some(value))
                 .maybe_set(set)
@@ -278,17 +275,20 @@ impl Operation for SetPropertySetterByValue {
 
     fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
         let value = context.vm.pop();
-        let key = context.vm.pop();
-        let object = context.vm.pop();
-        let object = object.to_object(context)?;
-        let name = key.to_property_key(context)?;
+        let key = context
+            .vm
+            .frame_mut()
+            .keys
+            .pop()
+            .expect("property key should have been pushed");
+        let object = context.vm.pop().to_object(context)?;
         let get = object
-            .__get_own_property__(&name, context)?
+            .__get_own_property__(&key, context)?
             .as_ref()
             .and_then(PropertyDescriptor::get)
             .cloned();
         object.__define_own_property__(
-            &name,
+            &key,
             PropertyDescriptor::builder()
                 .maybe_set(Some(value))
                 .maybe_get(get)
@@ -314,14 +314,13 @@ impl Operation for SetFunctionName {
 
     fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
         let prefix = context.vm.read::<u8>();
-        let function = context.vm.pop();
-        let name = context.vm.pop();
-
-        let name = match name {
-            JsValue::String(name) => name.into(),
-            JsValue::Symbol(name) => name.into(),
-            _ => unreachable!(),
-        };
+        let function = context.vm.pop().to_object(context)?;
+        let name = context
+            .vm
+            .frame_mut()
+            .keys
+            .pop()
+            .expect("property key should have been pushed");
 
         let prefix = match prefix {
             1 => Some(JsString::from("get")),
@@ -329,14 +328,9 @@ impl Operation for SetFunctionName {
             _ => None,
         };
 
-        set_function_name(
-            function.as_object().expect("function is not an object"),
-            &name,
-            prefix,
-            context,
-        );
+        set_function_name(&function, &name, prefix, context);
 
-        context.vm.stack.push(function);
+        context.vm.push(function);
         Ok(CompletionType::Normal)
     }
 }

@@ -121,12 +121,14 @@ impl Operation for DefineClassStaticMethodByValue {
 
     fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
         let function = context.vm.pop();
-        let key = context.vm.pop();
+        let key = context
+            .vm
+            .frame_mut()
+            .keys
+            .pop()
+            .expect("property key should have been pushed");
         let class = context.vm.pop();
         let class = class.as_object().expect("class must be object");
-        let key = key
-            .to_property_key(context)
-            .expect("property key must already be valid");
         {
             let function_object = function
                 .as_object()
@@ -167,12 +169,14 @@ impl Operation for DefineClassMethodByValue {
 
     fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
         let function = context.vm.pop();
-        let key = context.vm.pop();
+        let key = context
+            .vm
+            .frame_mut()
+            .keys
+            .pop()
+            .expect("property key should have been pushed");
         let class_proto = context.vm.pop();
         let class_proto = class_proto.as_object().expect("class must be object");
-        let key = key
-            .to_property_key(context)
-            .expect("property key must already be valid");
         {
             let function_object = function
                 .as_object()

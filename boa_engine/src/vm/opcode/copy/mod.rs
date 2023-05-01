@@ -29,11 +29,13 @@ impl Operation for CopyDataProperties {
         let object = value.as_object().expect("not an object");
         let source = context.vm.pop();
         for _ in 0..excluded_key_count_computed {
-            let key = context.vm.pop();
-            excluded_keys.push(
-                key.to_property_key(context)
-                    .expect("key must be property key"),
-            );
+            let key = context
+                .vm
+                .frame_mut()
+                .keys
+                .pop()
+                .expect("property key should have been pushed");
+            excluded_keys.push(key);
         }
         object.copy_data_properties(&source, excluded_keys, context)?;
         context.vm.push(value);

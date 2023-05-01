@@ -35,7 +35,7 @@ impl Operation for ToPropertyKey {
     fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
         let value = context.vm.pop();
         let key = value.to_property_key(context)?;
-        context.vm.push(key);
+        context.vm.frame_mut().keys.push(key);
         Ok(CompletionType::Normal)
     }
 }

@@ -48,11 +48,15 @@ impl Operation for DeletePropertyByValue {
     const INSTRUCTION: &'static str = "INST - DeletePropertyByValue";
 
     fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
-        let key_value = context.vm.pop();
+        let key = context
+            .vm
+            .frame_mut()
+            .keys
+            .pop()
+            .expect("property key should have been pushed");
         let value = context.vm.pop();
         let object = value.to_object(context)?;
-        let property_key = key_value.to_property_key(context)?;
-        let result = object.__delete__(&property_key, context)?;
+        let result = object.__delete__(&key, context)?;
         if !result && context.vm.frame().code_block.strict {
             return Err(JsNativeError::typ()
                 .with_message("Cannot delete property")

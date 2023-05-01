@@ -56,14 +56,18 @@ impl Operation for DefineOwnPropertyByValue {
 
     fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
         let value = context.vm.pop();
-        let key = context.vm.pop();
+        let key = context
+            .vm
+            .frame_mut()
+            .keys
+            .pop()
+            .expect("property key should have been pushed");
         let object = context.vm.pop();
         let object = if let Some(object) = object.as_object() {
             object.clone()
         } else {
             object.to_object(context)?
         };
-        let key = key.to_property_key(context)?;
         let success = object.__define_own_property__(
             &key,
             PropertyDescriptor::builder()

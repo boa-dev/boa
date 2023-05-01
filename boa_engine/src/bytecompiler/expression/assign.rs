@@ -108,11 +108,14 @@ impl ByteCompiler<'_, '_> {
                         PropertyAccessField::Expr(expr) => {
                             self.compile_expr(access.target(), true);
                             self.emit_opcode(Opcode::Dup);
-                            self.compile_expr(expr, true);
 
-                            self.emit_opcode(Opcode::GetPropertyByValuePush);
+                            self.compile_expr(expr, true);
+                            self.emit_opcode(Opcode::ToPropertyKey);
+                            self.emit_opcode(Opcode::DupKey);
+
+                            self.emit_opcode(Opcode::GetPropertyByValue);
                             if short_circuit {
-                                pop_count = 2;
+                                pop_count = 1;
                                 early_exit = Some(self.emit_opcode_with_operand(opcode));
                                 self.compile_expr(assign.rhs(), true);
                             } else {
@@ -172,11 +175,15 @@ impl ByteCompiler<'_, '_> {
                         PropertyAccessField::Expr(expr) => {
                             self.emit_opcode(Opcode::Super);
                             self.emit_opcode(Opcode::Dup);
-                            self.compile_expr(expr, true);
 
-                            self.emit_opcode(Opcode::GetPropertyByValuePush);
+                            self.compile_expr(expr, true);
+                            self.emit_opcode(Opcode::ToPropertyKey);
+                            self.emit_opcode(Opcode::DupKey);
+
+                            self.emit_opcode(Opcode::GetPropertyByValue);
+
                             if short_circuit {
-                                pop_count = 2;
+                                pop_count = 1;
                                 early_exit = Some(self.emit_opcode_with_operand(opcode));
                                 self.compile_expr(assign.rhs(), true);
                             } else {
@@ -184,7 +191,7 @@ impl ByteCompiler<'_, '_> {
                                 self.emit_opcode(opcode);
                             }
 
-                            self.emit(Opcode::SetPropertyByValue, &[]);
+                            self.emit_opcode(Opcode::SetPropertyByValue);
                             if !use_expr {
                                 self.emit_opcode(Opcode::Pop);
                             }

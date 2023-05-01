@@ -335,7 +335,7 @@ impl ByteCompiler<'_, '_> {
                         }
                         PropertyName::Computed(name) => {
                             self.compile_expr(name, true);
-                            self.emit_opcode(Opcode::Swap);
+                            self.emit_opcode(Opcode::ToPropertyKey);
                             None
                         }
                     };

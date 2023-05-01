@@ -465,6 +465,7 @@ impl CodeBlock {
                 Opcode::Pop
                 | Opcode::PopIfThrown
                 | Opcode::Dup
+                | Opcode::DupKey
                 | Opcode::Swap
                 | Opcode::PushZero
                 | Opcode::PushOne
@@ -512,7 +513,6 @@ impl CodeBlock {
                 | Opcode::Dec
                 | Opcode::DecPost
                 | Opcode::GetPropertyByValue
-                | Opcode::GetPropertyByValuePush
                 | Opcode::SetPropertyByValue
                 | Opcode::DefineOwnPropertyByValue
                 | Opcode::DefineClassStaticMethodByValue

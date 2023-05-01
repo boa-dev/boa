@@ -20,11 +20,7 @@ impl Operation for GetPropertyByName {
         let index = context.vm.read::<u32>();
 
         let value = context.vm.pop();
-        let object = if let Some(object) = value.as_object() {
-            object.clone()
-        } else {
-            value.to_object(context)?
-        };
+        let object = value.to_object(context)?;
 
         let name = context.vm.frame().code_block.names[index as usize];
         let key: PropertyKey = context.interner().resolve_expect(name.sym()).utf16().into();
@@ -47,15 +43,15 @@ impl Operation for GetPropertyByValue {
     const INSTRUCTION: &'static str = "INST - GetPropertyByValue";
 
     fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
-        let key = context.vm.pop();
-        let value = context.vm.pop();
-        let object = if let Some(object) = value.as_object() {
-            object.clone()
-        } else {
-            value.to_object(context)?
-        };
+        let key = context
+            .vm
+            .frame_mut()
+            .keys
+            .pop()
+            .expect("property key should have been pushed");
 
-        let key = key.to_property_key(context)?;
+        let value = context.vm.pop();
+        let object = value.to_object(context)?;
 
         // Fast Path
         if object.is_array() {
@@ -102,53 +98,6 @@ impl Operation for GetMethod {
         context
             .vm
             .push(method.map(JsValue::from).unwrap_or_default());
-        Ok(CompletionType::Normal)
-    }
-}
-
-/// `GetPropertyByValuePush` implements the Opcode Operation for `Opcode::GetPropertyByValuePush`
-///
-/// Operation:
-///  - Get a property by value from an object an push the key and value on the stack.
-#[derive(Debug, Clone, Copy)]
-pub(crate) struct GetPropertyByValuePush;
-
-impl Operation for GetPropertyByValuePush {
-    const NAME: &'static str = "GetPropertyByValuePush";
-    const INSTRUCTION: &'static str = "INST - GetPropertyByValuePush";
-
-    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
-        let key = context.vm.pop();
-        let value = context.vm.pop();
-        let object = if let Some(object) = value.as_object() {
-            object.clone()
-        } else {
-            value.to_object(context)?
-        };
-
-        let key = key.to_property_key(context)?;
-
-        // Fast path:
-        if object.is_array() {
-            if let PropertyKey::Index(index) = &key {
-                let object_borrowed = object.borrow();
-                if let Some(element) = object_borrowed
-                    .properties()
-                    .dense_indexed_properties()
-                    .and_then(|vec| vec.get(*index as usize))
-                {
-                    context.vm.push(key);
-                    context.vm.push(element.clone());
-                    return Ok(CompletionType::Normal);
-                }
-            }
-        }
-
-        // Slow path:
-        let result = object.__get__(&key, value, context)?;
-
-        context.vm.push(key);
-        context.vm.push(result);
         Ok(CompletionType::Normal)
     }
 }

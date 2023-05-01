@@ -581,7 +581,9 @@ impl<'ctx, 'host> ByteCompiler<'ctx, 'host> {
                     PropertyAccessField::Expr(expr) => {
                         self.compile_expr(access.target(), true);
                         self.compile_expr(expr, true);
-                        self.emit(Opcode::GetPropertyByValue, &[]);
+
+                        self.emit_opcode(Opcode::ToPropertyKey);
+                        self.emit_opcode(Opcode::GetPropertyByValue);
                     }
                 },
                 PropertyAccess::Private(access) => {
@@ -598,6 +600,8 @@ impl<'ctx, 'host> ByteCompiler<'ctx, 'host> {
                     PropertyAccessField::Expr(expr) => {
                         self.emit_opcode(Opcode::Super);
                         self.compile_expr(expr, true);
+
+                        self.emit_opcode(Opcode::ToPropertyKey);
                         self.emit_opcode(Opcode::GetPropertyByValue);
                     }
                 },
@@ -668,8 +672,12 @@ impl<'ctx, 'host> ByteCompiler<'ctx, 'host> {
                     PropertyAccessField::Expr(expr) => {
                         self.compile_expr(access.target(), true);
                         self.compile_expr(expr, true);
-                        expr_fn(self, 2);
-                        self.emit(Opcode::SetPropertyByValue, &[]);
+
+                        self.emit_opcode(Opcode::ToPropertyKey);
+
+                        expr_fn(self, 1);
+
+                        self.emit_opcode(Opcode::SetPropertyByValue);
                         if !use_expr {
                             self.emit(Opcode::Pop, &[]);
                         }
@@ -688,7 +696,7 @@ impl<'ctx, 'host> ByteCompiler<'ctx, 'host> {
                     PropertyAccessField::Const(name) => {
                         self.emit_opcode(Opcode::Super);
                         self.emit_opcode(Opcode::This);
-                        expr_fn(self, 1);
+                        expr_fn(self, 2);
                         let index = self.get_or_insert_name((*name).into());
                         self.emit(Opcode::SetPropertyByName, &[index]);
                         if !use_expr {
@@ -698,8 +706,12 @@ impl<'ctx, 'host> ByteCompiler<'ctx, 'host> {
                     PropertyAccessField::Expr(expr) => {
                         self.emit(Opcode::Super, &[]);
                         self.compile_expr(expr, true);
-                        expr_fn(self, 0);
-                        self.emit(Opcode::SetPropertyByValue, &[]);
+
+                        self.emit_opcode(Opcode::ToPropertyKey);
+
+                        expr_fn(self, 1);
+
+                        self.emit_opcode(Opcode::SetPropertyByValue);
                         if !use_expr {
                             self.emit(Opcode::Pop, &[]);
                         }
@@ -722,10 +734,10 @@ impl<'ctx, 'host> ByteCompiler<'ctx, 'host> {
                     PropertyAccessField::Expr(expr) => {
                         self.compile_expr(access.target(), true);
                         self.compile_expr(expr, true);
+                        self.emit_opcode(Opcode::ToPropertyKey);
                         self.emit_opcode(Opcode::DeletePropertyByValue);
                     }
                 },
-                // TODO: throw ReferenceError on super deletion.
                 PropertyAccess::Super(_) => self.emit_opcode(Opcode::DeleteSuperThrow),
                 PropertyAccess::Private(_) => {
                     unreachable!("deleting private properties should always throw early errors.")
@@ -843,6 +855,9 @@ impl<'ctx, 'host> ByteCompiler<'ctx, 'host> {
                     }
                     PropertyAccessField::Expr(field) => {
                         self.compile_expr(field, true);
+
+                        self.emit_opcode(Opcode::ToPropertyKey);
+
                         self.emit_opcode(Opcode::GetPropertyByValue);
                     }
                 }
@@ -863,6 +878,8 @@ impl<'ctx, 'host> ByteCompiler<'ctx, 'host> {
                     }
                     PropertyAccessField::Expr(expr) => {
                         self.compile_expr(expr, true);
+
+                        self.emit_opcode(Opcode::ToPropertyKey);
                         self.emit_opcode(Opcode::GetPropertyByValue);
                     }
                 }
@@ -948,7 +965,8 @@ impl<'ctx, 'host> ByteCompiler<'ctx, 'host> {
                     }
                     PropertyAccessField::Expr(expr) => {
                         self.compile_expr(expr, true);
-                        self.emit(Opcode::GetPropertyByValue, &[]);
+                        self.emit_opcode(Opcode::ToPropertyKey);
+                        self.emit_opcode(Opcode::GetPropertyByValue);
                     }
                 }
                 self.emit_opcode(Opcode::RotateLeft);
