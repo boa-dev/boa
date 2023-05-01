@@ -561,9 +561,17 @@ impl Context<'_> {
     }
 }
 
-#[cfg(feature = "intl")]
 impl<'host> Context<'host> {
+    /// Creates a `ContextCleanupGuard` that executes some cleanup after being dropped.
+    pub(crate) fn guard<F>(&mut self, cleanup: F) -> ContextCleanupGuard<'_, 'host, F>
+    where
+        F: FnOnce(&mut Context<'_>) + 'static,
+    {
+        ContextCleanupGuard::new(self, cleanup)
+    }
+
     /// Get the ICU related utilities
+    #[cfg(feature = "intl")]
     pub(crate) const fn icu(&self) -> &icu::Icu<'host> {
         &self.icu
     }
@@ -740,5 +748,59 @@ impl<'icu, 'hooks, 'queue> ContextBuilder<'icu, 'hooks, 'queue> {
         builtins::set_default_global_bindings(&mut context)?;
 
         Ok(context)
+    }
+}
+
+/// A cleanup guard for a [`Context`] that is executed when dropped.
+#[derive(Debug)]
+pub(crate) struct ContextCleanupGuard<'a, 'host, F>
+where
+    F: FnOnce(&mut Context<'_>) + 'static,
+{
+    context: &'a mut Context<'host>,
+    cleanup: Option<F>,
+}
+
+impl<'a, 'host, F> ContextCleanupGuard<'a, 'host, F>
+where
+    F: FnOnce(&mut Context<'_>) + 'static,
+{
+    /// Creates a new `ContextCleanupGuard` from the current context and its cleanup operation.
+    pub(crate) fn new(context: &'a mut Context<'host>, cleanup: F) -> Self {
+        Self {
+            context,
+            cleanup: Some(cleanup),
+        }
+    }
+}
+
+impl<'host, F> std::ops::Deref for ContextCleanupGuard<'_, 'host, F>
+where
+    F: FnOnce(&mut Context<'_>) + 'static,
+{
+    type Target = Context<'host>;
+
+    fn deref(&self) -> &Self::Target {
+        self.context
+    }
+}
+
+impl<F> std::ops::DerefMut for ContextCleanupGuard<'_, '_, F>
+where
+    F: FnOnce(&mut Context<'_>) + 'static,
+{
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        self.context
+    }
+}
+
+impl<F> Drop for ContextCleanupGuard<'_, '_, F>
+where
+    F: FnOnce(&mut Context<'_>) + 'static,
+{
+    fn drop(&mut self) {
+        if let Some(cleanup) = self.cleanup.take() {
+            cleanup(self.context);
+        }
     }
 }

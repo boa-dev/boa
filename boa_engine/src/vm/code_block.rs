@@ -14,7 +14,6 @@ use crate::{
     error::JsNativeError,
     object::{internal_methods::get_prototype_from_constructor, JsObject, ObjectData, PROTOTYPE},
     property::PropertyDescriptor,
-    realm::Realm,
     string::utf16,
     vm::CallFrame,
     Context, JsError, JsResult, JsString, JsValue,
@@ -846,49 +845,6 @@ pub(crate) fn create_generator_function_object(
     constructor
 }
 
-struct ContextCleanupGuard<'a, 'host> {
-    context: &'a mut Context<'host>,
-    old_realm: Realm,
-    old_active_function: Option<JsObject>,
-}
-
-impl<'a, 'host> ContextCleanupGuard<'a, 'host> {
-    /// Creates a new guard that resets the realm of the context on exit.
-    fn new(context: &'a mut Context<'host>, realm: Realm, active_function: JsObject) -> Self {
-        let old_realm = context.enter_realm(realm);
-        let old_active_function = context.vm.active_function.replace(active_function);
-        Self {
-            context,
-            old_realm,
-            old_active_function,
-        }
-    }
-}
-
-impl Drop for ContextCleanupGuard<'_, '_> {
-    fn drop(&mut self) {
-        self.context.enter_realm(self.old_realm.clone());
-        std::mem::swap(
-            &mut self.context.vm.active_function,
-            &mut self.old_active_function,
-        );
-    }
-}
-
-impl<'host> std::ops::Deref for ContextCleanupGuard<'_, 'host> {
-    type Target = Context<'host>;
-
-    fn deref(&self) -> &Self::Target {
-        self.context
-    }
-}
-
-impl std::ops::DerefMut for ContextCleanupGuard<'_, '_> {
-    fn deref_mut(&mut self) -> &mut Self::Target {
-        self.context
-    }
-}
-
 impl JsObject {
     pub(crate) fn call_internal(
         &self,
@@ -896,13 +852,22 @@ impl JsObject {
         args: &[JsValue],
         context: &mut Context<'_>,
     ) -> JsResult<JsValue> {
+        let old_realm = context.realm().clone();
+        let old_active_fn = context.vm.active_function.clone();
+
+        let context = &mut context.guard(move |ctx| {
+            ctx.enter_realm(old_realm);
+            ctx.vm.active_function = old_active_fn;
+        });
+
         let this_function_object = self.clone();
         let active_function = self.clone();
         let object = self.borrow();
         let function_object = object.as_function().expect("not a function");
         let realm = function_object.realm().clone();
 
-        let context = &mut ContextCleanupGuard::new(context, realm, active_function);
+        context.enter_realm(realm);
+        context.vm.active_function = Some(active_function);
 
         let (code, mut environments, class_object, async_, gen) = match function_object.kind() {
             FunctionKind::Native {
@@ -941,7 +906,6 @@ impl JsObject {
                     false,
                 )
             }
-
             FunctionKind::Async {
                 code,
                 environments,
@@ -1182,13 +1146,22 @@ impl JsObject {
         this_target: &JsValue,
         context: &mut Context<'_>,
     ) -> JsResult<Self> {
+        let old_realm = context.realm().clone();
+        let old_active_fn = context.vm.active_function.clone();
+        let context = &mut context.guard(move |ctx| {
+            ctx.enter_realm(old_realm);
+            ctx.vm.active_function = old_active_fn;
+        });
+
         let this_function_object = self.clone();
         let active_function = self.clone();
         let object = self.borrow();
         let function_object = object.as_function().expect("not a function");
         let realm = function_object.realm().clone();
 
-        let context = &mut ContextCleanupGuard::new(context, realm, active_function);
+        context.enter_realm(realm);
+        context.vm.active_function = Some(active_function);
+
         match function_object.kind() {
             FunctionKind::Native {
                 function,
