@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"constant":["NUM_FLAGS","OPTIONS","OPTIONS_NAMES"],"enum":["EnvStackAction"],"fn":["restore_environment"],"struct":["Eval","Flags","InternalBitFlags","Iter","IterRaw"]};
+window.SIDEBAR_ITEMS = {"constant":["NUM_FLAGS","OPTIONS","OPTIONS_NAMES"],"enum":["EnvStackAction"],"struct":["Eval","Flags","InternalBitFlags","Iter","IterRaw"]};

@@ -1372,33 +1372,6 @@
 <a href="#1371" id="1371">1371</a>
 <a href="#1372" id="1372">1372</a>
 <a href="#1373" id="1373">1373</a>
-<a href="#1374" id="1374">1374</a>
-<a href="#1375" id="1375">1375</a>
-<a href="#1376" id="1376">1376</a>
-<a href="#1377" id="1377">1377</a>
-<a href="#1378" id="1378">1378</a>
-<a href="#1379" id="1379">1379</a>
-<a href="#1380" id="1380">1380</a>
-<a href="#1381" id="1381">1381</a>
-<a href="#1382" id="1382">1382</a>
-<a href="#1383" id="1383">1383</a>
-<a href="#1384" id="1384">1384</a>
-<a href="#1385" id="1385">1385</a>
-<a href="#1386" id="1386">1386</a>
-<a href="#1387" id="1387">1387</a>
-<a href="#1388" id="1388">1388</a>
-<a href="#1389" id="1389">1389</a>
-<a href="#1390" id="1390">1390</a>
-<a href="#1391" id="1391">1391</a>
-<a href="#1392" id="1392">1392</a>
-<a href="#1393" id="1393">1393</a>
-<a href="#1394" id="1394">1394</a>
-<a href="#1395" id="1395">1395</a>
-<a href="#1396" id="1396">1396</a>
-<a href="#1397" id="1397">1397</a>
-<a href="#1398" id="1398">1398</a>
-<a href="#1399" id="1399">1399</a>
-<a href="#1400" id="1400">1400</a>
 </pre><pre class="rust"><code><span class="doccomment">//! `CodeBlock`
 //!
 //! This module is for the `CodeBlock` which implements a function representation in the VM
@@ -1415,7 +1388,6 @@
     error::JsNativeError,
     object::{internal_methods::get_prototype_from_constructor, JsObject, ObjectData, PROTOTYPE},
     property::PropertyDescriptor,
-    realm::Realm,
     string::utf16,
     vm::CallFrame,
     Context, JsError, JsResult, JsString, JsValue,
@@ -2247,49 +2219,6 @@
     constructor
 }
 
-<span class="kw">struct </span>ContextCleanupGuard&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;host</span>&gt; {
-    context: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span>Context&lt;<span class="lifetime">&#39;host</span>&gt;,
-    old_realm: Realm,
-    old_active_function: <span class="prelude-ty">Option</span>&lt;JsObject&gt;,
-}
-
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;host</span>&gt; ContextCleanupGuard&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;host</span>&gt; {
-    <span class="doccomment">/// Creates a new guard that resets the realm of the context on exit.
-    </span><span class="kw">fn </span>new(context: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span>Context&lt;<span class="lifetime">&#39;host</span>&gt;, realm: Realm, active_function: JsObject) -&gt; <span class="self">Self </span>{
-        <span class="kw">let </span>old_realm = context.enter_realm(realm);
-        <span class="kw">let </span>old_active_function = context.vm.active_function.replace(active_function);
-        <span class="self">Self </span>{
-            context,
-            old_realm,
-            old_active_function,
-        }
-    }
-}
-
-<span class="kw">impl </span>Drop <span class="kw">for </span>ContextCleanupGuard&lt;<span class="lifetime">&#39;_</span>, <span class="lifetime">&#39;_</span>&gt; {
-    <span class="kw">fn </span>drop(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
-        <span class="self">self</span>.context.enter_realm(<span class="self">self</span>.old_realm.clone());
-        std::mem::swap(
-            <span class="kw-2">&amp;mut </span><span class="self">self</span>.context.vm.active_function,
-            <span class="kw-2">&amp;mut </span><span class="self">self</span>.old_active_function,
-        );
-    }
-}
-
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;host</span>&gt; std::ops::Deref <span class="kw">for </span>ContextCleanupGuard&lt;<span class="lifetime">&#39;_</span>, <span class="lifetime">&#39;host</span>&gt; {
-    <span class="kw">type </span>Target = Context&lt;<span class="lifetime">&#39;host</span>&gt;;
-
-    <span class="kw">fn </span>deref(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="self">Self</span>::Target {
-        <span class="self">self</span>.context
-    }
-}
-
-<span class="kw">impl </span>std::ops::DerefMut <span class="kw">for </span>ContextCleanupGuard&lt;<span class="lifetime">&#39;_</span>, <span class="lifetime">&#39;_</span>&gt; {
-    <span class="kw">fn </span>deref_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span><span class="self">Self</span>::Target {
-        <span class="self">self</span>.context
-    }
-}
-
 <span class="kw">impl </span>JsObject {
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>call_internal(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
@@ -2297,13 +2226,22 @@
         args: <span class="kw-2">&amp;</span>[JsValue],
         context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
     ) -&gt; JsResult&lt;JsValue&gt; {
+        <span class="kw">let </span>old_realm = context.realm().clone();
+        <span class="kw">let </span>old_active_fn = context.vm.active_function.clone();
+
+        <span class="kw">let </span>context = <span class="kw-2">&amp;mut </span>context.guard(<span class="kw">move </span>|ctx| {
+            ctx.enter_realm(old_realm);
+            ctx.vm.active_function = old_active_fn;
+        });
+
         <span class="kw">let </span>this_function_object = <span class="self">self</span>.clone();
         <span class="kw">let </span>active_function = <span class="self">self</span>.clone();
         <span class="kw">let </span>object = <span class="self">self</span>.borrow();
         <span class="kw">let </span>function_object = object.as_function().expect(<span class="string">&quot;not a function&quot;</span>);
         <span class="kw">let </span>realm = function_object.realm().clone();
 
-        <span class="kw">let </span>context = <span class="kw-2">&amp;mut </span>ContextCleanupGuard::new(context, realm, active_function);
+        context.enter_realm(realm);
+        context.vm.active_function = <span class="prelude-val">Some</span>(active_function);
 
         <span class="kw">let </span>(code, <span class="kw-2">mut </span>environments, class_object, async_, gen) = <span class="kw">match </span>function_object.kind() {
             FunctionKind::Native {
@@ -2342,7 +2280,6 @@
                     <span class="bool-val">false</span>,
                 )
             }
-
             FunctionKind::Async {
                 code,
                 environments,
@@ -2583,13 +2520,22 @@
         this_target: <span class="kw-2">&amp;</span>JsValue,
         context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
     ) -&gt; JsResult&lt;<span class="self">Self</span>&gt; {
+        <span class="kw">let </span>old_realm = context.realm().clone();
+        <span class="kw">let </span>old_active_fn = context.vm.active_function.clone();
+        <span class="kw">let </span>context = <span class="kw-2">&amp;mut </span>context.guard(<span class="kw">move </span>|ctx| {
+            ctx.enter_realm(old_realm);
+            ctx.vm.active_function = old_active_fn;
+        });
+
         <span class="kw">let </span>this_function_object = <span class="self">self</span>.clone();
         <span class="kw">let </span>active_function = <span class="self">self</span>.clone();
         <span class="kw">let </span>object = <span class="self">self</span>.borrow();
         <span class="kw">let </span>function_object = object.as_function().expect(<span class="string">&quot;not a function&quot;</span>);
         <span class="kw">let </span>realm = function_object.realm().clone();
 
-        <span class="kw">let </span>context = <span class="kw-2">&amp;mut </span>ContextCleanupGuard::new(context, realm, active_function);
+        context.enter_realm(realm);
+        context.vm.active_function = <span class="prelude-val">Some</span>(active_function);
+
         <span class="kw">match </span>function_object.kind() {
             FunctionKind::Native {
                 function,
