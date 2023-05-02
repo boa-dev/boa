@@ -46,7 +46,12 @@ impl Operation for SetNameByLocator {
     const INSTRUCTION: &'static str = "INST - SetNameByLocator";
 
     fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
-        let binding_locator = context.vm.frame().current_binding;
+        let binding_locator = context
+            .vm
+            .frame_mut()
+            .binding_stack
+            .pop()
+            .expect("locator should have been popped before");
         let value = context.vm.pop();
         if binding_locator.is_silent() {
             return Ok(CompletionType::Normal);

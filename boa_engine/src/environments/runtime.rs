@@ -695,7 +695,7 @@ impl BindingLocator {
     }
 
     /// Creates a binding locator that indicates that the binding is on the global object.
-    pub(crate) const fn global(name: Identifier) -> Self {
+    pub(super) const fn global(name: Identifier) -> Self {
         Self {
             name,
             environment_index: 0,
