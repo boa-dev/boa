@@ -297,15 +297,14 @@ where
         let global_strict = cursor.strict();
         let mut directive_prologues = self.directive_prologues;
         let mut strict = self.strict;
-        let mut string_literal_escape_sequence = None;
+        let mut directives_stack = Vec::new();
 
         loop {
             match cursor.peek(0, interner)? {
                 Some(token) if self.break_nodes.contains(token.kind()) => break,
-                Some(token) if directive_prologues && string_literal_escape_sequence.is_none() => {
-                    if let TokenKind::StringLiteral((_, Some(escape_sequence))) = token.kind() {
-                        string_literal_escape_sequence =
-                            Some((token.span().start(), *escape_sequence));
+                Some(token) if directive_prologues => {
+                    if let TokenKind::StringLiteral((_, escape)) = token.kind() {
+                        directives_stack.push((token.span().start(), *escape));
                     }
                 }
                 None => break,
@@ -317,35 +316,50 @@ where
                     .parse(cursor, interner)?;
 
             if directive_prologues {
-                if let ast::StatementListItem::Statement(ast::Statement::Expression(
-                    ast::Expression::Literal(ast::expression::literal::Literal::String(string)),
-                )) = &item
-                {
-                    if interner.resolve_expect(*string).join(
-                        |s| s == "use strict",
-                        |g| g == utf16!("use strict"),
-                        true,
-                    ) {
-                        cursor.set_strict(true);
-                        strict = true;
+                match &item {
+                    ast::StatementListItem::Statement(ast::Statement::Expression(
+                        ast::Expression::Literal(ast::expression::literal::Literal::String(string)),
+                    )) if !strict => {
+                        if interner.resolve_expect(*string).join(
+                            |s| s == "use strict",
+                            |g| g == utf16!("use strict"),
+                            true,
+                        ) && directives_stack.last().expect("token should exist").1
+                            == EscapeSequence::empty()
+                        {
+                            cursor.set_strict(true);
+                            strict = true;
 
-                        if let Some((position, escape_sequence)) = string_literal_escape_sequence {
-                            match escape_sequence {
-                                EscapeSequence::LegacyOctal => return Err(Error::general(
-                                    "legacy octal escape sequences are not allowed in strict mode",
-                                    position,
-                                )),
-                                EscapeSequence::NonOctalDecimal => {
+                            directives_stack.pop();
+
+                            for (position, escape) in std::mem::take(&mut directives_stack) {
+                                if escape.contains(EscapeSequence::LEGACY_OCTAL) {
+                                    return Err(Error::general(
+                                        "legacy octal escape sequences are not allowed in strict mode",
+                                        position,
+                                    ));
+                                }
+
+                                if escape.contains(EscapeSequence::NON_OCTAL_DECIMAL) {
                                     return Err(Error::general(
                                         "decimal escape sequences are not allowed in strict mode",
                                         position,
-                                    ))
+                                    ));
                                 }
                             }
                         }
                     }
-                } else {
-                    directive_prologues = false;
+                    ast::StatementListItem::Statement(ast::Statement::Expression(
+                        ast::Expression::Literal(ast::expression::literal::Literal::String(
+                            _string,
+                        )),
+                    )) => {
+                        // TODO: should store directives in some place
+                    }
+                    _ => {
+                        directive_prologues = false;
+                        directives_stack.clear();
+                    }
                 }
             }
 

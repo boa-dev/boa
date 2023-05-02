@@ -6,6 +6,7 @@
 //! [spec]: https://tc39.es/ecma262/#sec-tokens
 
 use crate::lexer::template::TemplateString;
+use bitflags::bitflags;
 use boa_ast::{Keyword, Punctuator, Span};
 use boa_interner::{Interner, Sym};
 use num_bigint::BigInt;
@@ -128,7 +129,7 @@ pub enum TokenKind {
     /// A [**string literal**][spec].
     ///
     /// [spec]: https://tc39.es/ecma262/#prod-StringLiteral
-    StringLiteral((Sym, Option<EscapeSequence>)),
+    StringLiteral((Sym, EscapeSequence)),
 
     /// A part of a template literal without substitution.
     TemplateNoSubstitution(TemplateString),
@@ -217,7 +218,7 @@ impl TokenKind {
     /// Creates a `StringLiteral` token type.
     #[inline]
     #[must_use]
-    pub const fn string_literal(lit: Sym, escape_sequence: Option<EscapeSequence>) -> Self {
+    pub const fn string_literal(lit: Sym, escape_sequence: EscapeSequence) -> Self {
         Self::StringLiteral((lit, escape_sequence))
     }
 
@@ -287,25 +288,37 @@ impl TokenKind {
     }
 }
 
-/// Indicates the type of an escape sequence.
-#[cfg_attr(feature = "deser", derive(serde::Serialize, serde::Deserialize))]
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
-pub enum EscapeSequence {
-    /// A legacy escape sequence starting with `0` - `7`.
-    ///
-    /// More information:
-    ///  - [ECMAScript reference][spec]
-    ///
-    /// [spec]: https://tc39.es/ecma262/#prod-LegacyOctalEscapeSequence
-    LegacyOctal,
+bitflags! {
+    /// Indicates the set of escape sequences a string contains.
+    #[cfg_attr(feature = "deser", derive(serde::Serialize, serde::Deserialize))]
+    #[derive(Clone, Copy, Debug, PartialEq, Eq)]
+    pub struct EscapeSequence: u8 {
+        /// A legacy escape sequence starting with `0` - `7`.
+        ///
+        /// More information:
+        ///  - [ECMAScript reference][spec]
+        ///
+        /// [spec]: https://tc39.es/ecma262/#prod-LegacyOctalEscapeSequence
+        const LEGACY_OCTAL = 0b0000_0001;
 
-    /// A octal escape sequence starting with `8` - `9`.
-    ///
-    /// More information:
-    ///  - [ECMAScript reference][spec]
-    ///
-    /// [spec]: https://tc39.es/ecma262/#prod-NonOctalDecimalEscapeSequence
-    NonOctalDecimal,
+        /// A octal escape sequence starting with `8` - `9`.
+        ///
+        /// More information:
+        ///  - [ECMAScript reference][spec]
+        ///
+        /// [spec]: https://tc39.es/ecma262/#prod-NonOctalDecimalEscapeSequence
+        const NON_OCTAL_DECIMAL = 0b0000_0010;
+
+        /// A generic escape sequence, either single (`\t`), unicode (`\u1238`)
+        /// or a line continuation (`\<LF>`)
+        ///
+        /// More information:
+        /// - [ECMAScript reference][spec]
+        ///
+        /// [spec]: https://tc39.es/ecma262/#prod-LineContinuation
+        const OTHER = 0b0000_0100;
+    }
+
 }
 
 /// Indicates if an identifier contains an escape sequence.
