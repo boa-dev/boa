@@ -335,6 +335,7 @@ impl CodeBlock {
             | Opcode::DefInitLet
             | Opcode::DefInitConst
             | Opcode::GetName
+            | Opcode::GetLocator
             | Opcode::GetNameAndLocator
             | Opcode::GetNameOrUndefined
             | Opcode::SetName

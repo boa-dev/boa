@@ -687,6 +687,13 @@ generate_impl! {
         /// Stack: **=>** value
         GetName,
 
+        /// Find a binding on the environment and set the `current_binding` of the current frame.
+        ///
+        /// Operands: name_index: `u32`
+        ///
+        /// Stack: **=>**
+        GetLocator,
+
         ///  Find a binding on the environment chain and push its value to the stack and its
         /// `BindingLocator` to the `bindings_stack`.
         ///

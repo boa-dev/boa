@@ -631,13 +631,26 @@ impl<'ctx, 'host> ByteCompiler<'ctx, 'host> {
     {
         match access {
             Access::Variable { name } => {
+                let binding = self.get_binding_value(name);
+                let index = self.get_or_insert_binding(binding);
+                let lex = self.current_environment.borrow().is_lex_binding(name);
+
+                if !lex {
+                    self.emit(Opcode::GetLocator, &[index]);
+                }
+
                 expr_fn(self, 0);
                 if use_expr {
                     self.emit(Opcode::Dup, &[]);
                 }
-                let binding = self.set_mutable_binding(name);
-                let index = self.get_or_insert_binding(binding);
-                self.emit(Opcode::SetName, &[index]);
+
+                if lex {
+                    let binding = self.set_mutable_binding(name);
+                    let index = self.get_or_insert_binding(binding);
+                    self.emit(Opcode::SetName, &[index]);
+                } else {
+                    self.emit_opcode(Opcode::SetNameByLocator);
+                }
             }
             Access::Property { access } => match access {
                 PropertyAccess::Simple(access) => match access.field() {

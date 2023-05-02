@@ -33,6 +33,28 @@ impl Operation for GetName {
     }
 }
 
+/// `GetLocator` implements the Opcode Operation for `Opcode::GetLocator`
+///
+/// Operation:
+///  - Find a binding on the environment and set the `current_binding` of the current frame.
+#[derive(Debug, Clone, Copy)]
+pub(crate) struct GetLocator;
+
+impl Operation for GetLocator {
+    const NAME: &'static str = "GetLocator";
+    const INSTRUCTION: &'static str = "INST - GetLocator";
+
+    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
+        let index = context.vm.read::<u32>();
+        let mut binding_locator = context.vm.frame().code_block.bindings[index as usize];
+        context.find_runtime_binding(&mut binding_locator)?;
+
+        context.vm.frame_mut().current_binding = binding_locator;
+
+        Ok(CompletionType::Normal)
+    }
+}
+
 /// `GetNameAndLocator` implements the Opcode Operation for `Opcode::GetNameAndLocator`
 ///
 /// Operation:
