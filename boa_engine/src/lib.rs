@@ -9,7 +9,7 @@
 //!
 //! Try out the most recent release with Boa's live demo [playground][boa-playground].
 //!
-//! For information related to Web API features, please see [boa_runtime](runtime-docs)
+//! For information related to Web API features, please see [boa_runtime](runtime-docs).
 //!
 //! # Example usage
 //!
