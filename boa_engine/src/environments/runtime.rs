@@ -895,8 +895,6 @@ impl Context<'_> {
 
     /// Sets the value of a binding.
     ///
-    /// #
-    ///
     /// # Panics
     ///
     /// Panics if the environment or binding index are out of range.
