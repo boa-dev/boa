@@ -89,20 +89,6 @@ impl Eval {
             Restore(Vec<Environment>),
         }
 
-        /// Restores the environment after calling `eval` or after throwing an error.
-        fn restore_environment(context: &mut Context<'_>, action: EnvStackAction) {
-            match action {
-                EnvStackAction::Truncate(size) => {
-                    context.vm.environments.truncate(size);
-                }
-                EnvStackAction::Restore(envs) => {
-                    // Pop all environments created during the eval execution and restore the original stack.
-                    context.vm.environments.truncate(1);
-                    context.vm.environments.extend(envs);
-                }
-            }
-        }
-
         // 1. Assert: If direct is false, then strictCaller is also false.
         debug_assert!(direct || !strict);
 
@@ -230,6 +216,14 @@ impl Eval {
             EnvStackAction::Restore(environments)
         };
 
+        let context = &mut context.guard(move |ctx| match action {
+            EnvStackAction::Truncate(len) => ctx.vm.environments.truncate(len),
+            EnvStackAction::Restore(envs) => {
+                ctx.vm.environments.truncate(1);
+                ctx.vm.environments.extend(envs);
+            }
+        });
+
         // Only need to check on non-strict mode since strict mode automatically creates a function
         // environment for all eval calls.
         if !strict {
@@ -239,7 +233,6 @@ impl Eval {
                 .environments
                 .has_lex_binding_until_function_environment(&top_level_var_declared_names(&body))
             {
-                restore_environment(context, action);
                 let name = context.interner().resolve_expect(name.sym());
                 let msg = format!("variable declaration {name} in eval function already exists as a lexical variable");
                 return Err(JsNativeError::syntax().with_message(msg).into());
@@ -267,10 +260,7 @@ impl Eval {
         if direct && !strict {
             context.vm.environments.extend_outer_function_environment();
         }
-        let result = context.execute(code_block);
 
-        restore_environment(context, action);
-
-        result
+        context.execute(code_block)
     }
 }
