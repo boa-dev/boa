@@ -222,7 +222,7 @@
                         <span class="bool-val">true</span>,
                     )<span class="question-mark">?</span>;
 
-                    <span class="kw">if let </span><span class="prelude-val">Some</span>((escape_value, <span class="kw">_</span>)) = escape_value {
+                    <span class="kw">if let </span>(<span class="prelude-val">Some</span>(escape_value), <span class="kw">_</span>) = escape_value {
                         buf.push_code_point(escape_value);
                     }
                 }

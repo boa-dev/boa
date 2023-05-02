@@ -964,6 +964,20 @@
 <a href="#963" id="963">963</a>
 <a href="#964" id="964">964</a>
 <a href="#965" id="965">965</a>
+<a href="#966" id="966">966</a>
+<a href="#967" id="967">967</a>
+<a href="#968" id="968">968</a>
+<a href="#969" id="969">969</a>
+<a href="#970" id="970">970</a>
+<a href="#971" id="971">971</a>
+<a href="#972" id="972">972</a>
+<a href="#973" id="973">973</a>
+<a href="#974" id="974">974</a>
+<a href="#975" id="975">975</a>
+<a href="#976" id="976">976</a>
+<a href="#977" id="977">977</a>
+<a href="#978" id="978">978</a>
+<a href="#979" id="979">979</a>
 </pre><pre class="rust"><code><span class="doccomment">//! Statement and declaration parsing.
 //!
 //! More information:
@@ -1263,15 +1277,14 @@
         <span class="kw">let </span>global_strict = cursor.strict();
         <span class="kw">let </span><span class="kw-2">mut </span>directive_prologues = <span class="self">self</span>.directive_prologues;
         <span class="kw">let </span><span class="kw-2">mut </span>strict = <span class="self">self</span>.strict;
-        <span class="kw">let </span><span class="kw-2">mut </span>string_literal_escape_sequence = <span class="prelude-val">None</span>;
+        <span class="kw">let </span><span class="kw-2">mut </span>directives_stack = Vec::new();
 
         <span class="kw">loop </span>{
             <span class="kw">match </span>cursor.peek(<span class="number">0</span>, interner)<span class="question-mark">? </span>{
                 <span class="prelude-val">Some</span>(token) <span class="kw">if </span><span class="self">self</span>.break_nodes.contains(token.kind()) =&gt; <span class="kw">break</span>,
-                <span class="prelude-val">Some</span>(token) <span class="kw">if </span>directive_prologues &amp;&amp; string_literal_escape_sequence.is_none() =&gt; {
-                    <span class="kw">if let </span>TokenKind::StringLiteral((<span class="kw">_</span>, <span class="prelude-val">Some</span>(escape_sequence))) = token.kind() {
-                        string_literal_escape_sequence =
-                            <span class="prelude-val">Some</span>((token.span().start(), <span class="kw-2">*</span>escape_sequence));
+                <span class="prelude-val">Some</span>(token) <span class="kw">if </span>directive_prologues =&gt; {
+                    <span class="kw">if let </span>TokenKind::StringLiteral((<span class="kw">_</span>, escape)) = token.kind() {
+                        directives_stack.push((token.span().start(), <span class="kw-2">*</span>escape));
                     }
                 }
                 <span class="prelude-val">None </span>=&gt; <span class="kw">break</span>,
@@ -1283,35 +1296,50 @@
                     .parse(cursor, interner)<span class="question-mark">?</span>;
 
             <span class="kw">if </span>directive_prologues {
-                <span class="kw">if let </span>ast::StatementListItem::Statement(ast::Statement::Expression(
-                    ast::Expression::Literal(ast::expression::literal::Literal::String(string)),
-                )) = <span class="kw-2">&amp;</span>item
-                {
-                    <span class="kw">if </span>interner.resolve_expect(<span class="kw-2">*</span>string).join(
-                        |s| s == <span class="string">&quot;use strict&quot;</span>,
-                        |g| g == <span class="macro">utf16!</span>(<span class="string">&quot;use strict&quot;</span>),
-                        <span class="bool-val">true</span>,
-                    ) {
-                        cursor.set_strict(<span class="bool-val">true</span>);
-                        strict = <span class="bool-val">true</span>;
+                <span class="kw">match </span><span class="kw-2">&amp;</span>item {
+                    ast::StatementListItem::Statement(ast::Statement::Expression(
+                        ast::Expression::Literal(ast::expression::literal::Literal::String(string)),
+                    )) <span class="kw">if </span>!strict =&gt; {
+                        <span class="kw">if </span>interner.resolve_expect(<span class="kw-2">*</span>string).join(
+                            |s| s == <span class="string">&quot;use strict&quot;</span>,
+                            |g| g == <span class="macro">utf16!</span>(<span class="string">&quot;use strict&quot;</span>),
+                            <span class="bool-val">true</span>,
+                        ) &amp;&amp; directives_stack.last().expect(<span class="string">&quot;token should exist&quot;</span>).<span class="number">1
+                            </span>== EscapeSequence::empty()
+                        {
+                            cursor.set_strict(<span class="bool-val">true</span>);
+                            strict = <span class="bool-val">true</span>;
 
-                        <span class="kw">if let </span><span class="prelude-val">Some</span>((position, escape_sequence)) = string_literal_escape_sequence {
-                            <span class="kw">match </span>escape_sequence {
-                                EscapeSequence::LegacyOctal =&gt; <span class="kw">return </span><span class="prelude-val">Err</span>(Error::general(
-                                    <span class="string">&quot;legacy octal escape sequences are not allowed in strict mode&quot;</span>,
-                                    position,
-                                )),
-                                EscapeSequence::NonOctalDecimal =&gt; {
+                            directives_stack.pop();
+
+                            <span class="kw">for </span>(position, escape) <span class="kw">in </span>std::mem::take(<span class="kw-2">&amp;mut </span>directives_stack) {
+                                <span class="kw">if </span>escape.contains(EscapeSequence::LEGACY_OCTAL) {
+                                    <span class="kw">return </span><span class="prelude-val">Err</span>(Error::general(
+                                        <span class="string">&quot;legacy octal escape sequences are not allowed in strict mode&quot;</span>,
+                                        position,
+                                    ));
+                                }
+
+                                <span class="kw">if </span>escape.contains(EscapeSequence::NON_OCTAL_DECIMAL) {
                                     <span class="kw">return </span><span class="prelude-val">Err</span>(Error::general(
                                         <span class="string">&quot;decimal escape sequences are not allowed in strict mode&quot;</span>,
                                         position,
-                                    ))
+                                    ));
                                 }
                             }
                         }
                     }
-                } <span class="kw">else </span>{
-                    directive_prologues = <span class="bool-val">false</span>;
+                    ast::StatementListItem::Statement(ast::Statement::Expression(
+                        ast::Expression::Literal(ast::expression::literal::Literal::String(
+                            _string,
+                        )),
+                    )) =&gt; {
+                        <span class="comment">// TODO: should store directives in some place
+                    </span>}
+                    <span class="kw">_ </span>=&gt; {
+                        directive_prologues = <span class="bool-val">false</span>;
+                        directives_stack.clear();
+                    }
                 }
             }
 

@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"enum":["EscapeSequence","Numeric","TokenKind"],"struct":["ContainsEscapeSequence","Token"]};
+window.SIDEBAR_ITEMS = {"constant":["NUM_FLAGS","OPTIONS","OPTIONS_NAMES"],"enum":["Numeric","TokenKind"],"struct":["ContainsEscapeSequence","EscapeSequence","InternalBitFlags","Iter","IterRaw","Token"]};

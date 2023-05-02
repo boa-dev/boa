@@ -348,6 +348,7 @@
 <a href="#347" id="347">347</a>
 <a href="#348" id="348">348</a>
 <a href="#349" id="349">349</a>
+<a href="#350" id="350">350</a>
 </pre><pre class="rust"><code><span class="doccomment">//! Boa&#39;s lexing for ECMAScript string literals.
 
 </span><span class="kw">use </span><span class="kw">crate</span>::lexer::{token::EscapeSequence, Cursor, Error, Token, TokenKind, Tokenizer};
@@ -467,12 +468,12 @@
         start_pos: Position,
         terminator: StringTerminator,
         strict: bool,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;(Vec&lt;u16&gt;, Span, <span class="prelude-ty">Option</span>&lt;EscapeSequence&gt;), Error&gt;
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;(Vec&lt;u16&gt;, Span, EscapeSequence), Error&gt;
     <span class="kw">where
         </span>R: Read,
     {
         <span class="kw">let </span><span class="kw-2">mut </span>buf = Vec::new();
-        <span class="kw">let </span><span class="kw-2">mut </span>escape_sequence = <span class="prelude-val">None</span>;
+        <span class="kw">let </span><span class="kw-2">mut </span>escape_sequence = EscapeSequence::empty();
 
         <span class="kw">loop </span>{
             <span class="kw">let </span>ch_start_pos = cursor.pos();
@@ -485,15 +486,16 @@
                     <span class="kw">let </span>_timer =
                         Profiler::global().start_event(<span class="string">&quot;StringLiteral - escape sequence&quot;</span>, <span class="string">&quot;Lexing&quot;</span>);
 
-                    <span class="kw">if let </span><span class="prelude-val">Some</span>((escape_value, escape)) =
-                        <span class="self">Self</span>::take_escape_sequence_or_line_continuation(
-                            cursor,
-                            ch_start_pos,
-                            strict,
-                            <span class="bool-val">false</span>,
-                        )<span class="question-mark">?
-                    </span>{
-                        escape_sequence = escape_sequence.or(escape);
+                    <span class="kw">let </span>(escape_value, escape) = <span class="self">Self</span>::take_escape_sequence_or_line_continuation(
+                        cursor,
+                        ch_start_pos,
+                        strict,
+                        <span class="bool-val">false</span>,
+                    )<span class="question-mark">?</span>;
+
+                    escape_sequence |= escape;
+
+                    <span class="kw">if let </span><span class="prelude-val">Some</span>(escape_value) = escape_value {
                         buf.push_code_point(escape_value);
                     }
                 }
@@ -519,7 +521,7 @@
         start_pos: Position,
         strict: bool,
         is_template_literal: bool,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;(u32, <span class="prelude-ty">Option</span>&lt;EscapeSequence&gt;)&gt;, Error&gt;
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;(<span class="prelude-ty">Option</span>&lt;u32&gt;, EscapeSequence), Error&gt;
     <span class="kw">where
         </span>R: Read,
     {
@@ -531,25 +533,25 @@
         })<span class="question-mark">?</span>;
 
         <span class="kw">let </span>escape_value = <span class="kw">match </span>escape_ch {
-            <span class="number">0x0062 </span><span class="comment">/* b */ </span>=&gt; <span class="prelude-val">Some</span>((<span class="number">0x0008 </span><span class="comment">/* &lt;BS&gt; */</span>, <span class="prelude-val">None</span>)),
-            <span class="number">0x0074 </span><span class="comment">/* t */ </span>=&gt; <span class="prelude-val">Some</span>((<span class="number">0x0009 </span><span class="comment">/* &lt;HT&gt; */</span>, <span class="prelude-val">None</span>)),
-            <span class="number">0x006E </span><span class="comment">/* n */ </span>=&gt; <span class="prelude-val">Some</span>((<span class="number">0x000A </span><span class="comment">/* &lt;LF&gt; */</span>, <span class="prelude-val">None</span>)),
-            <span class="number">0x0076 </span><span class="comment">/* v */ </span>=&gt; <span class="prelude-val">Some</span>((<span class="number">0x000B </span><span class="comment">/* &lt;VT&gt; */</span>, <span class="prelude-val">None</span>)),
-            <span class="number">0x0066 </span><span class="comment">/* f */ </span>=&gt; <span class="prelude-val">Some</span>((<span class="number">0x000C </span><span class="comment">/* &lt;FF&gt; */</span>, <span class="prelude-val">None</span>)),
-            <span class="number">0x0072 </span><span class="comment">/* r */ </span>=&gt; <span class="prelude-val">Some</span>((<span class="number">0x000D </span><span class="comment">/* &lt;CR&gt; */</span>, <span class="prelude-val">None</span>)),
-            <span class="number">0x0022 </span><span class="comment">/* &quot; */ </span>=&gt; <span class="prelude-val">Some</span>((<span class="number">0x0022 </span><span class="comment">/* &quot; */</span>, <span class="prelude-val">None</span>)),
-            <span class="number">0x0027 </span><span class="comment">/* &#39; */ </span>=&gt; <span class="prelude-val">Some</span>((<span class="number">0x0027 </span><span class="comment">/* &#39; */</span>, <span class="prelude-val">None</span>)),
-            <span class="number">0x005C </span><span class="comment">/* \ */ </span>=&gt; <span class="prelude-val">Some</span>((<span class="number">0x005C </span><span class="comment">/* \ */</span>, <span class="prelude-val">None</span>)),
+            <span class="number">0x0062 </span><span class="comment">/* b */ </span>=&gt; (<span class="prelude-val">Some</span>(<span class="number">0x0008 </span><span class="comment">/* &lt;BS&gt; */</span>), EscapeSequence::OTHER),
+            <span class="number">0x0074 </span><span class="comment">/* t */ </span>=&gt; (<span class="prelude-val">Some</span>(<span class="number">0x0009 </span><span class="comment">/* &lt;HT&gt; */</span>), EscapeSequence::OTHER),
+            <span class="number">0x006E </span><span class="comment">/* n */ </span>=&gt; (<span class="prelude-val">Some</span>(<span class="number">0x000A </span><span class="comment">/* &lt;LF&gt; */</span>), EscapeSequence::OTHER),
+            <span class="number">0x0076 </span><span class="comment">/* v */ </span>=&gt; (<span class="prelude-val">Some</span>(<span class="number">0x000B </span><span class="comment">/* &lt;VT&gt; */</span>), EscapeSequence::OTHER),
+            <span class="number">0x0066 </span><span class="comment">/* f */ </span>=&gt; (<span class="prelude-val">Some</span>(<span class="number">0x000C </span><span class="comment">/* &lt;FF&gt; */</span>), EscapeSequence::OTHER),
+            <span class="number">0x0072 </span><span class="comment">/* r */ </span>=&gt; (<span class="prelude-val">Some</span>(<span class="number">0x000D </span><span class="comment">/* &lt;CR&gt; */</span>), EscapeSequence::OTHER),
+            <span class="number">0x0022 </span><span class="comment">/* &quot; */ </span>=&gt; (<span class="prelude-val">Some</span>(<span class="number">0x0022 </span><span class="comment">/* &quot; */</span>), EscapeSequence::OTHER),
+            <span class="number">0x0027 </span><span class="comment">/* &#39; */ </span>=&gt; (<span class="prelude-val">Some</span>(<span class="number">0x0027 </span><span class="comment">/* &#39; */</span>), EscapeSequence::OTHER),
+            <span class="number">0x005C </span><span class="comment">/* \ */ </span>=&gt; (<span class="prelude-val">Some</span>(<span class="number">0x005C </span><span class="comment">/* \ */</span>), EscapeSequence::OTHER),
             <span class="number">0x0030 </span><span class="comment">/* 0 */ </span><span class="kw">if </span>cursor
                 .peek()<span class="question-mark">?
                 </span>.filter(u8::is_ascii_digit)
                 .is_none() =&gt;
-                <span class="prelude-val">Some</span>((<span class="number">0x0000 </span><span class="comment">/* NULL */</span>, <span class="prelude-val">None</span>)),
+                (<span class="prelude-val">Some</span>(<span class="number">0x0000 </span><span class="comment">/* NULL */</span>), EscapeSequence::OTHER),
             <span class="number">0x0078 </span><span class="comment">/* x */ </span>=&gt; {
-                <span class="prelude-val">Some</span>((<span class="self">Self</span>::take_hex_escape_sequence(cursor, start_pos)<span class="question-mark">?</span>, <span class="prelude-val">None</span>))
+                (<span class="prelude-val">Some</span>(<span class="self">Self</span>::take_hex_escape_sequence(cursor, start_pos)<span class="question-mark">?</span>), EscapeSequence::OTHER)
             }
             <span class="number">0x0075 </span><span class="comment">/* u */ </span>=&gt; {
-                <span class="prelude-val">Some</span>((<span class="self">Self</span>::take_unicode_escape_sequence(cursor, start_pos)<span class="question-mark">?</span>, <span class="prelude-val">None</span>))
+                (<span class="prelude-val">Some</span>(<span class="self">Self</span>::take_unicode_escape_sequence(cursor, start_pos)<span class="question-mark">?</span>), EscapeSequence::OTHER)
             }
             <span class="number">0x0038 </span><span class="comment">/* 8 */ </span>| <span class="number">0x0039 </span><span class="comment">/* 9 */ </span>=&gt; {
                 <span class="comment">// Grammar: NonOctalDecimalEscapeSequence
@@ -564,7 +566,7 @@
                         start_pos,
                     ));
                 }
-                    <span class="prelude-val">Some</span>((escape_ch, <span class="prelude-val">Some</span>(EscapeSequence::NonOctalDecimal)))
+                    (<span class="prelude-val">Some</span>(escape_ch), EscapeSequence::NON_OCTAL_DECIMAL)
             }
             <span class="kw">_ if </span>(<span class="number">0x0030</span>..=<span class="number">0x0037 </span><span class="comment">/* &#39;0&#39;..=&#39;7&#39; */</span>).contains(<span class="kw-2">&amp;</span>escape_ch) =&gt; {
                 <span class="kw">if </span>is_template_literal {
@@ -581,19 +583,19 @@
                     ));
                 }
 
-                <span class="prelude-val">Some</span>((<span class="self">Self</span>::take_legacy_octal_escape_sequence(
+                (<span class="prelude-val">Some</span>(<span class="self">Self</span>::take_legacy_octal_escape_sequence(
                     cursor,
                     escape_ch.try_into().expect(<span class="string">&quot;an ascii char must not fail to convert&quot;</span>),
-                )<span class="question-mark">?</span>, <span class="prelude-val">Some</span>(EscapeSequence::LegacyOctal)))
+                )<span class="question-mark">?</span>), EscapeSequence::LEGACY_OCTAL)
             }
             <span class="kw">_ if </span><span class="self">Self</span>::is_line_terminator(escape_ch) =&gt; {
                 <span class="comment">// Grammar: LineContinuation
                 // Grammar: \ LineTerminatorSequence
                 // LineContinuation is the empty String.
-                </span><span class="prelude-val">None
-            </span>}
+                </span>(<span class="prelude-val">None</span>, EscapeSequence::OTHER)
+            }
             <span class="kw">_ </span>=&gt; {
-                <span class="prelude-val">Some</span>((escape_ch, <span class="prelude-val">None</span>))
+                (<span class="prelude-val">Some</span>(escape_ch), EscapeSequence::OTHER)
             }
         };
 
