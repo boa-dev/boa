@@ -151,8 +151,8 @@ fn check_string() {
     let a_sym = interner.get_or_intern_static("aaa", utf16!("aaa"));
     let b_sym = interner.get_or_intern_static("bbb", utf16!("bbb"));
     let expected = [
-        TokenKind::string_literal(a_sym, None),
-        TokenKind::string_literal(b_sym, None),
+        TokenKind::string_literal(a_sym, EscapeSequence::empty()),
+        TokenKind::string_literal(b_sym, EscapeSequence::empty()),
     ];
 
     expect_tokens(&mut lexer, &expected, interner);
@@ -315,7 +315,7 @@ fn check_variable_definition_tokens() {
         TokenKind::Keyword((Keyword::Let, false)),
         TokenKind::identifier(a_sym),
         TokenKind::Punctuator(Punctuator::Assign),
-        TokenKind::string_literal(hello_sym, None),
+        TokenKind::string_literal(hello_sym, EscapeSequence::empty()),
         TokenKind::Punctuator(Punctuator::Semicolon),
     ];
 
@@ -953,7 +953,7 @@ fn string_unicode() {
 
     let sym = interner.get_or_intern_static("中文", utf16!("中文"));
     let expected = [
-        TokenKind::StringLiteral((sym, None)),
+        TokenKind::StringLiteral((sym, EscapeSequence::empty())),
         TokenKind::Punctuator(Punctuator::Semicolon),
     ];
 
@@ -967,7 +967,7 @@ fn string_unicode_escape_with_braces() {
 
     let sym =
         interner.get_or_intern_static("{\u{20ac}\u{a0}\u{a0}}", utf16!("{\u{20ac}\u{a0}\u{a0}}"));
-    let expected = [TokenKind::StringLiteral((sym, None))];
+    let expected = [TokenKind::StringLiteral((sym, EscapeSequence::OTHER))];
 
     expect_tokens(&mut lexer, &expected, interner);
 
@@ -1002,7 +1002,7 @@ fn string_unicode_escape_with_braces_2() {
     let interner = &mut Interner::default();
 
     let sym = interner.get_or_intern_static("\u{20ac}\u{a0}\u{a0}", utf16!("\u{20ac}\u{a0}\u{a0}"));
-    let expected = [TokenKind::StringLiteral((sym, None))];
+    let expected = [TokenKind::StringLiteral((sym, EscapeSequence::OTHER))];
 
     expect_tokens(&mut lexer, &expected, interner);
 }
@@ -1015,7 +1015,7 @@ fn string_with_single_escape() {
     let interner = &mut Interner::default();
 
     let sym = interner.get_or_intern_static("Б", utf16!("Б"));
-    let expected = [TokenKind::StringLiteral((sym, None))];
+    let expected = [TokenKind::StringLiteral((sym, EscapeSequence::OTHER))];
 
     expect_tokens(&mut lexer, &expected, interner);
 }
@@ -1039,7 +1039,7 @@ fn string_legacy_octal_escape() {
         let sym = interner.get_or_intern(expected.encode_utf16().collect::<Vec<_>>().as_slice());
         let expected_tokens = [TokenKind::StringLiteral((
             sym,
-            Some(EscapeSequence::LegacyOctal),
+            EscapeSequence::LEGACY_OCTAL,
         ))];
 
         expect_tokens(&mut lexer, &expected_tokens, interner);
@@ -1070,7 +1070,7 @@ fn string_zero_escape() {
         let interner = &mut Interner::default();
 
         let sym = interner.get_or_intern(expected.encode_utf16().collect::<Vec<_>>().as_slice());
-        let expected_tokens = [TokenKind::StringLiteral((sym, None))];
+        let expected_tokens = [TokenKind::StringLiteral((sym, EscapeSequence::OTHER))];
 
         expect_tokens(&mut lexer, &expected_tokens, interner);
     }
@@ -1087,7 +1087,7 @@ fn string_non_octal_decimal_escape() {
         let sym = interner.get_or_intern(expected.encode_utf16().collect::<Vec<_>>().as_slice());
         let expected_tokens = [TokenKind::StringLiteral((
             sym,
-            Some(EscapeSequence::NonOctalDecimal),
+            EscapeSequence::NON_OCTAL_DECIMAL,
         ))];
 
         expect_tokens(&mut lexer, &expected_tokens, interner);
@@ -1117,7 +1117,7 @@ fn string_line_continuation() {
     let interner = &mut Interner::default();
 
     let sym = interner.get_or_intern_static("hello world", utf16!("hello world"));
-    let expected_tokens = [TokenKind::StringLiteral((sym, None))];
+    let expected_tokens = [TokenKind::StringLiteral((sym, EscapeSequence::OTHER))];
 
     expect_tokens(&mut lexer, &expected_tokens, interner);
 }

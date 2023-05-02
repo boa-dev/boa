@@ -117,12 +117,12 @@ impl StringLiteral {
         start_pos: Position,
         terminator: StringTerminator,
         strict: bool,
-    ) -> Result<(Vec<u16>, Span, Option<EscapeSequence>), Error>
+    ) -> Result<(Vec<u16>, Span, EscapeSequence), Error>
     where
         R: Read,
     {
         let mut buf = Vec::new();
-        let mut escape_sequence = None;
+        let mut escape_sequence = EscapeSequence::empty();
 
         loop {
             let ch_start_pos = cursor.pos();
@@ -135,15 +135,16 @@ impl StringLiteral {
                     let _timer =
                         Profiler::global().start_event("StringLiteral - escape sequence", "Lexing");
 
-                    if let Some((escape_value, escape)) =
-                        Self::take_escape_sequence_or_line_continuation(
-                            cursor,
-                            ch_start_pos,
-                            strict,
-                            false,
-                        )?
-                    {
-                        escape_sequence = escape_sequence.or(escape);
+                    let (escape_value, escape) = Self::take_escape_sequence_or_line_continuation(
+                        cursor,
+                        ch_start_pos,
+                        strict,
+                        false,
+                    )?;
+
+                    escape_sequence |= escape;
+
+                    if let Some(escape_value) = escape_value {
                         buf.push_code_point(escape_value);
                     }
                 }
@@ -169,7 +170,7 @@ impl StringLiteral {
         start_pos: Position,
         strict: bool,
         is_template_literal: bool,
-    ) -> Result<Option<(u32, Option<EscapeSequence>)>, Error>
+    ) -> Result<(Option<u32>, EscapeSequence), Error>
     where
         R: Read,
     {
@@ -181,25 +182,25 @@ impl StringLiteral {
         })?;
 
         let escape_value = match escape_ch {
-            0x0062 /* b */ => Some((0x0008 /* <BS> */, None)),
-            0x0074 /* t */ => Some((0x0009 /* <HT> */, None)),
-            0x006E /* n */ => Some((0x000A /* <LF> */, None)),
-            0x0076 /* v */ => Some((0x000B /* <VT> */, None)),
-            0x0066 /* f */ => Some((0x000C /* <FF> */, None)),
-            0x0072 /* r */ => Some((0x000D /* <CR> */, None)),
-            0x0022 /* " */ => Some((0x0022 /* " */, None)),
-            0x0027 /* ' */ => Some((0x0027 /* ' */, None)),
-            0x005C /* \ */ => Some((0x005C /* \ */, None)),
+            0x0062 /* b */ => (Some(0x0008 /* <BS> */), EscapeSequence::OTHER),
+            0x0074 /* t */ => (Some(0x0009 /* <HT> */), EscapeSequence::OTHER),
+            0x006E /* n */ => (Some(0x000A /* <LF> */), EscapeSequence::OTHER),
+            0x0076 /* v */ => (Some(0x000B /* <VT> */), EscapeSequence::OTHER),
+            0x0066 /* f */ => (Some(0x000C /* <FF> */), EscapeSequence::OTHER),
+            0x0072 /* r */ => (Some(0x000D /* <CR> */), EscapeSequence::OTHER),
+            0x0022 /* " */ => (Some(0x0022 /* " */), EscapeSequence::OTHER),
+            0x0027 /* ' */ => (Some(0x0027 /* ' */), EscapeSequence::OTHER),
+            0x005C /* \ */ => (Some(0x005C /* \ */), EscapeSequence::OTHER),
             0x0030 /* 0 */ if cursor
                 .peek()?
                 .filter(u8::is_ascii_digit)
                 .is_none() =>
-                Some((0x0000 /* NULL */, None)),
+                (Some(0x0000 /* NULL */), EscapeSequence::OTHER),
             0x0078 /* x */ => {
-                Some((Self::take_hex_escape_sequence(cursor, start_pos)?, None))
+                (Some(Self::take_hex_escape_sequence(cursor, start_pos)?), EscapeSequence::OTHER)
             }
             0x0075 /* u */ => {
-                Some((Self::take_unicode_escape_sequence(cursor, start_pos)?, None))
+                (Some(Self::take_unicode_escape_sequence(cursor, start_pos)?), EscapeSequence::OTHER)
             }
             0x0038 /* 8 */ | 0x0039 /* 9 */ => {
                 // Grammar: NonOctalDecimalEscapeSequence
@@ -214,7 +215,7 @@ impl StringLiteral {
                         start_pos,
                     ));
                 }
-                    Some((escape_ch, Some(EscapeSequence::NonOctalDecimal)))
+                    (Some(escape_ch), EscapeSequence::NON_OCTAL_DECIMAL)
             }
             _ if (0x0030..=0x0037 /* '0'..='7' */).contains(&escape_ch) => {
                 if is_template_literal {
@@ -231,19 +232,19 @@ impl StringLiteral {
                     ));
                 }
 
-                Some((Self::take_legacy_octal_escape_sequence(
+                (Some(Self::take_legacy_octal_escape_sequence(
                     cursor,
                     escape_ch.try_into().expect("an ascii char must not fail to convert"),
-                )?, Some(EscapeSequence::LegacyOctal)))
+                )?), EscapeSequence::LEGACY_OCTAL)
             }
             _ if Self::is_line_terminator(escape_ch) => {
                 // Grammar: LineContinuation
                 // Grammar: \ LineTerminatorSequence
                 // LineContinuation is the empty String.
-                None
+                (None, EscapeSequence::OTHER)
             }
             _ => {
-                Some((escape_ch, None))
+                (Some(escape_ch), EscapeSequence::OTHER)
             }
         };
 
