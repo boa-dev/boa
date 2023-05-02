@@ -9,7 +9,7 @@
 //!
 //! Try out the most recent release with Boa's live demo [playground][boa-playground].
 //!
-//! For information related to Web API features, please see [`boa_runtime`]
+//! For information related to Web API features, please see [boa_runtime](runtime-docs)
 //!
 //! # Example usage
 //!
@@ -66,6 +66,7 @@
 //! [boa-conformance]: https://boajs.dev/boa/test262/
 //! [boa-web]: https://boajs.dev/
 //! [boa-playground]: https://boajs.dev/boa/playground/
+//! [runtime-docs]: https://boajs.dev/boa/doc/boa_runtime/index.html
 //! [examples]: https://github.com/boa-dev/boa/tree/main/boa_examples
 
 #![doc(
