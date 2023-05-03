@@ -33,16 +33,17 @@
 //!
 //! // Parse the source code
 //! match context.eval_script(Source::from_bytes(js_code)) {
-//!    Ok(res) => {
-//!        println!(
-//!            "{}",
-//!            res.to_string(&mut context).unwrap().to_std_string_escaped()
-//!        );
-//!    }
-//!    Err(e) => {
-//!        // Pretty print the error
-//!        eprintln!("Uncaught {e}");
-//!    }
+//!     Ok(res) => {
+//!         println!(
+//!             "{}",
+//!             res.to_string(&mut context).unwrap().to_std_string_escaped()
+//!         );
+//!     }
+//!     Err(e) => {
+//!         // Pretty print the error
+//!         eprintln!("Uncaught {e}");
+//!         # panic!("An error occured in boa_runtime's js_code");
+//!     }
 //! };
 //!
 //! ```

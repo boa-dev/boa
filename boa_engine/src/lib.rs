@@ -42,6 +42,7 @@
 //!     Err(e) => {
 //!         // Pretty print the error
 //!         eprintln!("Uncaught {e}");
+//!         # panic!("There was an error in boa_engine's introduction example.");
 //!     }
 //! };
 //! ```
