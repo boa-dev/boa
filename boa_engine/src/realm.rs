@@ -6,6 +6,8 @@
 //!
 //! A realm is represented in this implementation as a Realm struct with the fields specified from the spec.
 
+use std::fmt;
+
 use crate::{
     context::{intrinsics::Intrinsics, HostHooks},
     environments::DeclarativeEnvironment,
@@ -17,9 +19,20 @@ use boa_profiler::Profiler;
 /// Representation of a Realm.
 ///
 /// In the specification these are called Realm Records.
-#[derive(Clone, Debug, Trace, Finalize)]
+#[derive(Clone, Trace, Finalize)]
 pub struct Realm {
     inner: Gc<Inner>,
+}
+
+impl fmt::Debug for Realm {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.debug_struct("Realm")
+            .field("intrinsics", &self.inner.intrinsics)
+            .field("environment", &self.inner.environment)
+            .field("global_object", &self.inner.global_object)
+            .field("global_this", &self.inner.global_this)
+            .finish()
+    }
 }
 
 impl PartialEq for Realm {
@@ -28,7 +41,7 @@ impl PartialEq for Realm {
     }
 }
 
-#[derive(Debug, Trace, Finalize)]
+#[derive(Trace, Finalize)]
 struct Inner {
     intrinsics: Intrinsics,
     environment: Gc<DeclarativeEnvironment>,
