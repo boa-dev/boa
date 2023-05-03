@@ -528,7 +528,7 @@ mod tests {
 
     /// Checks that the `decode_byte()` function works as expected.
     #[test]
-    fn ut_decode_byte() {
+    fn decode_byte() {
         // Sunny day tests
         assert_eq!(
             decode_hex_byte(u16::from(b'2'), u16::from(b'0')).unwrap(),

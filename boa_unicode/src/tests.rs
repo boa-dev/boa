@@ -8,7 +8,7 @@ fn check_unicode_version() {
 }
 
 #[test]
-fn ut_is_id_start() {
+fn is_id_start() {
     // Sunny day
     for c in 'a'..='z' {
         assert!(c.is_id_start());
@@ -53,7 +53,7 @@ fn ut_is_id_start() {
 }
 
 #[test]
-fn ut_is_id_continue() {
+fn is_id_continue() {
     // Sunny day
     for c in 'a'..='z' {
         assert!(c.is_id_continue());
@@ -84,7 +84,7 @@ fn ut_is_id_continue() {
 }
 
 #[test]
-fn ut_is_orther_id_start() {
+fn is_orther_id_start() {
     // Sunny day
     for c in tables::OTHER_ID_START {
         assert!(c.is_other_id_start());
@@ -97,7 +97,7 @@ fn ut_is_orther_id_start() {
 }
 
 #[test]
-fn ut_is_orther_id_continue() {
+fn is_orther_id_continue() {
     // Sunny day
     for c in tables::OTHER_ID_CONTINUE {
         assert!(c.is_other_id_continue());
@@ -110,7 +110,7 @@ fn ut_is_orther_id_continue() {
 }
 
 #[test]
-fn ut_is_pattern_syntax() {
+fn is_pattern_syntax() {
     // Sunny day
     for c in tables::PATTERN_SYNTAX {
         assert!(c.is_pattern_syntax());
@@ -123,7 +123,7 @@ fn ut_is_pattern_syntax() {
 }
 
 #[test]
-fn ut_is_pattern_whitespace() {
+fn is_pattern_whitespace() {
     // Sunny day
     for c in tables::PATTERN_WHITE_SPACE {
         assert!(c.is_pattern_whitespace());

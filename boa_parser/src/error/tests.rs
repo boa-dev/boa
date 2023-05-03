@@ -1,7 +1,7 @@
 use super::*;
 
 #[test]
-fn ut_context() {
+fn context() {
     let result: ParseResult<String> = ParseResult::Err(Error::expected(
         ["testing".to_owned()],
         "nottesting",
@@ -38,7 +38,7 @@ fn ut_context() {
 }
 
 #[test]
-fn ut_from_lex_error() {
+fn from_lex_error() {
     let lex_err = LexError::syntax("testing", Position::new(1, 1));
     let parse_err: Error = lex_err.into();
 
@@ -51,7 +51,7 @@ fn ut_from_lex_error() {
 }
 
 #[test]
-fn ut_misplaced_function_declaration() {
+fn misplaced_function_declaration() {
     let err = Error::misplaced_function_declaration(Position::new(1, 1), false);
     if let Error::General { message, position } = err {
         assert_eq!(
@@ -76,7 +76,7 @@ fn ut_misplaced_function_declaration() {
 }
 
 #[test]
-fn ut_wrong_labelled_function_declaration() {
+fn wrong_labelled_function_declaration() {
     let err = Error::wrong_labelled_function_declaration(Position::new(1, 1));
     if let Error::General { message, position } = err {
         assert_eq!(
@@ -90,7 +90,7 @@ fn ut_wrong_labelled_function_declaration() {
 }
 
 #[test]
-fn ut_display() {
+fn display() {
     let err = Error::expected(
         ["testing".to_owned()],
         "nottesting",

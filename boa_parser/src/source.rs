@@ -93,7 +93,7 @@ mod tests {
     use std::{fs, io::Cursor};
 
     #[test]
-    fn ut_from_bytes() {
+    fn from_bytes() {
         let mut source = Source::from_bytes("'Hello' + 'World';");
 
         assert!(source.path.is_none());
@@ -105,7 +105,7 @@ mod tests {
     }
 
     #[test]
-    fn ut_from_filepath() {
+    fn from_filepath() {
         fs::write("test.js", "'Hello' + 'World';").unwrap();
         let mut source = Source::from_filepath("test.js".as_ref()).unwrap();
 
@@ -118,7 +118,7 @@ mod tests {
     }
 
     #[test]
-    fn ut_from_reader() {
+    fn from_reader() {
         // Without path
         let mut source = Source::from_reader(Cursor::new("'Hello' + 'World';"), None);
 

@@ -74,7 +74,7 @@ mod tests {
     use std::{error::Error as _, io};
 
     #[test]
-    fn ut_syntax() {
+    fn syntax() {
         let err = Error::syntax("testing", Position::new(1, 1));
         if let Error::Syntax(err, pos) = err {
             assert_eq!(err.as_ref(), "testing");
@@ -89,7 +89,7 @@ mod tests {
     }
 
     #[test]
-    fn ut_io() {
+    fn io() {
         let custom_error = io::Error::new(io::ErrorKind::Other, "I/O error");
         let err = custom_error.into();
         if let Error::IO(err) = err {
