@@ -417,7 +417,7 @@ impl std::fmt::Display for JsError {
 ///
 /// assert_eq!(native_error.message(), "cannot decode uri");
 /// ```
-#[derive(Debug, Clone, Trace, Finalize, Error)]
+#[derive(Clone, Trace, Finalize, Error)]
 #[error("{kind}: {message}")]
 pub struct JsNativeError {
     /// The kind of native error (e.g. `TypeError`, `SyntaxError`, etc.)
@@ -426,6 +426,16 @@ pub struct JsNativeError {
     #[source]
     cause: Option<Box<JsError>>,
     realm: Option<Realm>,
+}
+
+impl std::fmt::Debug for JsNativeError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("JsNativeError")
+            .field("kind", &self.kind)
+            .field("message", &self.message)
+            .field("cause", &self.cause)
+            .finish_non_exhaustive()
+    }
 }
 
 impl JsNativeError {
