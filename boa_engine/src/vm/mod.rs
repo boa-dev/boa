@@ -40,6 +40,7 @@ pub(crate) use {
 
 #[cfg(test)]
 mod tests;
+
 /// Virtual Machine.
 #[derive(Debug)]
 pub struct Vm {

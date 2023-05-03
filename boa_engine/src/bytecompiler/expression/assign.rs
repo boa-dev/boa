@@ -56,7 +56,13 @@ impl ByteCompiler<'_, '_> {
                 Access::Variable { name } => {
                     let binding = self.get_binding_value(name);
                     let index = self.get_or_insert_binding(binding);
-                    self.emit(Opcode::GetName, &[index]);
+                    let lex = self.current_environment.borrow().is_lex_binding(name);
+
+                    if lex {
+                        self.emit(Opcode::GetName, &[index]);
+                    } else {
+                        self.emit(Opcode::GetNameAndLocator, &[index]);
+                    }
 
                     if short_circuit {
                         early_exit = Some(self.emit_opcode_with_operand(opcode));
@@ -68,10 +74,13 @@ impl ByteCompiler<'_, '_> {
                     if use_expr {
                         self.emit_opcode(Opcode::Dup);
                     }
-
-                    let binding = self.set_mutable_binding(name);
-                    let index = self.get_or_insert_binding(binding);
-                    self.emit(Opcode::SetName, &[index]);
+                    if lex {
+                        let binding = self.set_mutable_binding(name);
+                        let index = self.get_or_insert_binding(binding);
+                        self.emit(Opcode::SetName, &[index]);
+                    } else {
+                        self.emit_opcode(Opcode::SetNameByLocator);
+                    }
                 }
                 Access::Property { access } => match access {
                     PropertyAccess::Simple(access) => match access.field() {

@@ -78,7 +78,6 @@ impl ByteCompiler<'_, '_> {
             } else {
                 None
             };
-            compiler.create_script_decls(expr.body(), false);
             compiler.compile_statement_list(expr.body(), false, false);
 
             let env_info = compiler.pop_compile_environment();
@@ -397,7 +396,7 @@ impl ByteCompiler<'_, '_> {
                     compiler.push_compile_environment(false);
                     compiler.create_immutable_binding(class_name.into(), true);
                     compiler.push_compile_environment(true);
-                    compiler.create_script_decls(statement_list, false);
+                    compiler.create_declarations(statement_list, false);
                     compiler.compile_statement_list(statement_list, false, false);
                     let env_info = compiler.pop_compile_environment();
                     compiler.pop_compile_environment();

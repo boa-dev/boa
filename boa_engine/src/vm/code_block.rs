@@ -335,6 +335,8 @@ impl CodeBlock {
             | Opcode::DefInitLet
             | Opcode::DefInitConst
             | Opcode::GetName
+            | Opcode::GetLocator
+            | Opcode::GetNameAndLocator
             | Opcode::GetNameOrUndefined
             | Opcode::SetName
             | Opcode::DeleteName => {
@@ -495,6 +497,7 @@ impl CodeBlock {
             | Opcode::SetPrototype
             | Opcode::PushObjectEnvironment
             | Opcode::IsObject
+            | Opcode::SetNameByLocator
             | Opcode::Nop => String::new(),
         }
     }

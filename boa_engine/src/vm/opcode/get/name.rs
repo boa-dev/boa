@@ -33,6 +33,59 @@ impl Operation for GetName {
     }
 }
 
+/// `GetLocator` implements the Opcode Operation for `Opcode::GetLocator`
+///
+/// Operation:
+///  - Find a binding on the environment and set the `current_binding` of the current frame.
+#[derive(Debug, Clone, Copy)]
+pub(crate) struct GetLocator;
+
+impl Operation for GetLocator {
+    const NAME: &'static str = "GetLocator";
+    const INSTRUCTION: &'static str = "INST - GetLocator";
+
+    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
+        let index = context.vm.read::<u32>();
+        let mut binding_locator = context.vm.frame().code_block.bindings[index as usize];
+        context.find_runtime_binding(&mut binding_locator)?;
+
+        context.vm.frame_mut().binding_stack.push(binding_locator);
+
+        Ok(CompletionType::Normal)
+    }
+}
+
+/// `GetNameAndLocator` implements the Opcode Operation for `Opcode::GetNameAndLocator`
+///
+/// Operation:
+///  - Find a binding on the environment chain and push its value to the stack, setting the
+/// `current_binding` of the current frame.
+#[derive(Debug, Clone, Copy)]
+pub(crate) struct GetNameAndLocator;
+
+impl Operation for GetNameAndLocator {
+    const NAME: &'static str = "GetNameAndLocator";
+    const INSTRUCTION: &'static str = "INST - GetNameAndLocator";
+
+    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
+        let index = context.vm.read::<u32>();
+        let mut binding_locator = context.vm.frame().code_block.bindings[index as usize];
+        binding_locator.throw_mutate_immutable(context)?;
+        context.find_runtime_binding(&mut binding_locator)?;
+        let value = context.get_binding(binding_locator)?.ok_or_else(|| {
+            let name = context
+                .interner()
+                .resolve_expect(binding_locator.name().sym())
+                .to_string();
+            JsNativeError::reference().with_message(format!("{name} is not defined"))
+        })?;
+
+        context.vm.frame_mut().binding_stack.push(binding_locator);
+        context.vm.push(value);
+        Ok(CompletionType::Normal)
+    }
+}
+
 /// `GetNameOrUndefined` implements the Opcode Operation for `Opcode::GetNameOrUndefined`
 ///
 /// Operation:
