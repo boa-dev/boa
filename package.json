@@ -21,6 +21,6 @@
     "webpack-dev-server": "^4.13.3"
   },
   "dependencies": {
-    "monaco-editor": "^0.37.1"
+    "monaco-editor": "^0.38.0"
   }
 }
