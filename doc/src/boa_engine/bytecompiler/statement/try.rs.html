@@ -134,9 +134,6 @@
 <a href="#133" id="133">133</a>
 <a href="#134" id="134">134</a>
 <a href="#135" id="135">135</a>
-<a href="#136" id="136">136</a>
-<a href="#137" id="137">137</a>
-<a href="#138" id="138">138</a>
 </pre><pre class="rust"><code><span class="kw">use crate</span>::{
     bytecompiler::{ByteCompiler, Label},
     vm::{BindingOpcode, Opcode},
@@ -162,7 +159,6 @@
         <span class="self">self</span>.push_compile_environment(<span class="bool-val">false</span>);
         <span class="kw">let </span>push_env = <span class="self">self</span>.emit_opcode_with_two_operands(Opcode::PushDeclarativeEnvironment);
 
-        <span class="self">self</span>.create_script_decls(t.block().statement_list(), configurable_globals);
         <span class="self">self</span>.compile_statement_list(t.block().statement_list(), use_expr, configurable_globals);
 
         <span class="kw">let </span>env_info = <span class="self">self</span>.pop_compile_environment();
@@ -228,7 +224,6 @@
             <span class="self">self</span>.emit_opcode(Opcode::Pop);
         }
 
-        <span class="self">self</span>.create_script_decls(catch.block().statement_list(), configurable_globals);
         <span class="self">self</span>.compile_statement_list(
             catch.block().statement_list(),
             use_expr,
@@ -258,7 +253,6 @@
         <span class="self">self</span>.push_compile_environment(<span class="bool-val">false</span>);
         <span class="kw">let </span>push_env = <span class="self">self</span>.emit_opcode_with_two_operands(Opcode::PushDeclarativeEnvironment);
 
-        <span class="self">self</span>.create_script_decls(finally.block().statement_list(), configurable_globals);
         <span class="self">self</span>.compile_statement_list(
             finally.block().statement_list(),
             <span class="bool-val">false</span>,

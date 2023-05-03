@@ -568,7 +568,6 @@
 <a href="#567" id="567">567</a>
 <a href="#568" id="568">568</a>
 <a href="#569" id="569">569</a>
-<a href="#570" id="570">570</a>
 </pre><pre class="rust"><code><span class="kw">use super</span>::{ByteCompiler, Literal, NodeKind};
 <span class="kw">use </span><span class="kw">crate</span>::vm::{BindingOpcode, Opcode};
 <span class="kw">use </span>boa_ast::{
@@ -649,7 +648,6 @@
             } <span class="kw">else </span>{
                 <span class="prelude-val">None
             </span>};
-            compiler.create_script_decls(expr.body(), <span class="bool-val">false</span>);
             compiler.compile_statement_list(expr.body(), <span class="bool-val">false</span>, <span class="bool-val">false</span>);
 
             <span class="kw">let </span>env_info = compiler.pop_compile_environment();
@@ -968,7 +966,7 @@
                     compiler.push_compile_environment(<span class="bool-val">false</span>);
                     compiler.create_immutable_binding(class_name.into(), <span class="bool-val">true</span>);
                     compiler.push_compile_environment(<span class="bool-val">true</span>);
-                    compiler.create_script_decls(statement_list, <span class="bool-val">false</span>);
+                    compiler.create_declarations(statement_list, <span class="bool-val">false</span>);
                     compiler.compile_statement_list(statement_list, <span class="bool-val">false</span>, <span class="bool-val">false</span>);
                     <span class="kw">let </span>env_info = compiler.pop_compile_environment();
                     compiler.pop_compile_environment();

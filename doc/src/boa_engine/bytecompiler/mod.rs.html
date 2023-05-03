@@ -1525,6 +1525,20 @@
 <a href="#1524" id="1524">1524</a>
 <a href="#1525" id="1525">1525</a>
 <a href="#1526" id="1526">1526</a>
+<a href="#1527" id="1527">1527</a>
+<a href="#1528" id="1528">1528</a>
+<a href="#1529" id="1529">1529</a>
+<a href="#1530" id="1530">1530</a>
+<a href="#1531" id="1531">1531</a>
+<a href="#1532" id="1532">1532</a>
+<a href="#1533" id="1533">1533</a>
+<a href="#1534" id="1534">1534</a>
+<a href="#1535" id="1535">1535</a>
+<a href="#1536" id="1536">1536</a>
+<a href="#1537" id="1537">1537</a>
+<a href="#1538" id="1538">1538</a>
+<a href="#1539" id="1539">1539</a>
+<a href="#1540" id="1540">1540</a>
 </pre><pre class="rust"><code><span class="doccomment">//! This module contains the bytecode compiler.
 
 </span><span class="kw">mod </span>class;
@@ -2158,13 +2172,26 @@
     {
         <span class="kw">match </span>access {
             Access::Variable { name } =&gt; {
+                <span class="kw">let </span>binding = <span class="self">self</span>.get_binding_value(name);
+                <span class="kw">let </span>index = <span class="self">self</span>.get_or_insert_binding(binding);
+                <span class="kw">let </span>lex = <span class="self">self</span>.current_environment.borrow().is_lex_binding(name);
+
+                <span class="kw">if </span>!lex {
+                    <span class="self">self</span>.emit(Opcode::GetLocator, <span class="kw-2">&amp;</span>[index]);
+                }
+
                 expr_fn(<span class="self">self</span>, <span class="number">0</span>);
                 <span class="kw">if </span>use_expr {
                     <span class="self">self</span>.emit(Opcode::Dup, <span class="kw-2">&amp;</span>[]);
                 }
-                <span class="kw">let </span>binding = <span class="self">self</span>.set_mutable_binding(name);
-                <span class="kw">let </span>index = <span class="self">self</span>.get_or_insert_binding(binding);
-                <span class="self">self</span>.emit(Opcode::SetName, <span class="kw-2">&amp;</span>[index]);
+
+                <span class="kw">if </span>lex {
+                    <span class="kw">let </span>binding = <span class="self">self</span>.set_mutable_binding(name);
+                    <span class="kw">let </span>index = <span class="self">self</span>.get_or_insert_binding(binding);
+                    <span class="self">self</span>.emit(Opcode::SetName, <span class="kw-2">&amp;</span>[index]);
+                } <span class="kw">else </span>{
+                    <span class="self">self</span>.emit_opcode(Opcode::SetNameByLocator);
+                }
             }
             Access::Property { access } =&gt; <span class="kw">match </span>access {
                 PropertyAccess::Simple(access) =&gt; <span class="kw">match </span>access.field() {
@@ -2263,6 +2290,7 @@
         use_expr: bool,
         configurable_globals: bool,
     ) {
+        <span class="self">self</span>.create_declarations(list, configurable_globals);
         <span class="kw">if </span>use_expr {
             <span class="kw">let </span>expr_index = list
                 .statements()
@@ -2297,7 +2325,7 @@
         <span class="self">self</span>.push_compile_environment(strict);
         <span class="kw">let </span>push_env = <span class="self">self</span>.emit_opcode_with_two_operands(Opcode::PushDeclarativeEnvironment);
 
-        <span class="self">self</span>.create_script_decls(list, <span class="bool-val">true</span>);
+        <span class="self">self</span>.create_declarations(list, <span class="bool-val">true</span>);
 
         <span class="kw">if </span>use_expr {
             <span class="kw">let </span>expr_index = list
@@ -2876,7 +2904,7 @@
     }
 
     <span class="doccomment">/// Creates the declarations for a script.
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>create_script_decls(
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>create_declarations(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
         stmt_list: <span class="kw-2">&amp;</span>StatementList,
         configurable_globals: bool,

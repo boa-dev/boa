@@ -816,7 +816,6 @@
 <a href="#815" id="815">815</a>
 <a href="#816" id="816">816</a>
 <a href="#817" id="817">817</a>
-<a href="#818" id="818">818</a>
 </pre><pre class="rust"><code><span class="doccomment">//! Boa&#39;s implementation of ECMAScript&#39;s global `JSON` object.
 //!
 //! The `JSON` object contains methods for parsing [JavaScript Object Notation (JSON)][spec]
@@ -942,7 +941,6 @@
                 context.realm().environment().compile_env(),
                 context,
             );
-            compiler.create_script_decls(<span class="kw-2">&amp;</span>statement_list, <span class="bool-val">false</span>);
             compiler.compile_statement_list(<span class="kw-2">&amp;</span>statement_list, <span class="bool-val">true</span>, <span class="bool-val">false</span>);
             Gc::new(compiler.finish())
         };

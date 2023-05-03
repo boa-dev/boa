@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"struct":["GetName","GetNameOrUndefined"]};
+window.SIDEBAR_ITEMS = {"struct":["GetLocator","GetName","GetNameAndLocator","GetNameOrUndefined"]};

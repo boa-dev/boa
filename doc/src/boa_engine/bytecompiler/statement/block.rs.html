@@ -23,7 +23,6 @@
 <a href="#22" id="22">22</a>
 <a href="#23" id="23">23</a>
 <a href="#24" id="24">24</a>
-<a href="#25" id="25">25</a>
 </pre><pre class="rust"><code><span class="kw">use crate</span>::{bytecompiler::ByteCompiler, vm::Opcode};
 
 <span class="kw">use </span>boa_ast::statement::Block;
@@ -39,7 +38,6 @@
         <span class="self">self</span>.push_compile_environment(<span class="bool-val">false</span>);
         <span class="kw">let </span>push_env = <span class="self">self</span>.emit_opcode_with_two_operands(Opcode::PushDeclarativeEnvironment);
 
-        <span class="self">self</span>.create_script_decls(block.statement_list(), configurable_globals);
         <span class="self">self</span>.compile_statement_list(block.statement_list(), use_expr, configurable_globals);
 
         <span class="kw">let </span>env_info = <span class="self">self</span>.pop_compile_environment();

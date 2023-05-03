@@ -202,6 +202,15 @@
 <a href="#201" id="201">201</a>
 <a href="#202" id="202">202</a>
 <a href="#203" id="203">203</a>
+<a href="#204" id="204">204</a>
+<a href="#205" id="205">205</a>
+<a href="#206" id="206">206</a>
+<a href="#207" id="207">207</a>
+<a href="#208" id="208">208</a>
+<a href="#209" id="209">209</a>
+<a href="#210" id="210">210</a>
+<a href="#211" id="211">211</a>
+<a href="#212" id="212">212</a>
 </pre><pre class="rust"><code><span class="kw">use crate</span>::{
     bytecompiler::{Access, ByteCompiler},
     vm::{BindingOpcode, Opcode},
@@ -260,7 +269,13 @@
                 Access::Variable { name } =&gt; {
                     <span class="kw">let </span>binding = <span class="self">self</span>.get_binding_value(name);
                     <span class="kw">let </span>index = <span class="self">self</span>.get_or_insert_binding(binding);
-                    <span class="self">self</span>.emit(Opcode::GetName, <span class="kw-2">&amp;</span>[index]);
+                    <span class="kw">let </span>lex = <span class="self">self</span>.current_environment.borrow().is_lex_binding(name);
+
+                    <span class="kw">if </span>lex {
+                        <span class="self">self</span>.emit(Opcode::GetName, <span class="kw-2">&amp;</span>[index]);
+                    } <span class="kw">else </span>{
+                        <span class="self">self</span>.emit(Opcode::GetNameAndLocator, <span class="kw-2">&amp;</span>[index]);
+                    }
 
                     <span class="kw">if </span>short_circuit {
                         early_exit = <span class="prelude-val">Some</span>(<span class="self">self</span>.emit_opcode_with_operand(opcode));
@@ -272,10 +287,13 @@
                     <span class="kw">if </span>use_expr {
                         <span class="self">self</span>.emit_opcode(Opcode::Dup);
                     }
-
-                    <span class="kw">let </span>binding = <span class="self">self</span>.set_mutable_binding(name);
-                    <span class="kw">let </span>index = <span class="self">self</span>.get_or_insert_binding(binding);
-                    <span class="self">self</span>.emit(Opcode::SetName, <span class="kw-2">&amp;</span>[index]);
+                    <span class="kw">if </span>lex {
+                        <span class="kw">let </span>binding = <span class="self">self</span>.set_mutable_binding(name);
+                        <span class="kw">let </span>index = <span class="self">self</span>.get_or_insert_binding(binding);
+                        <span class="self">self</span>.emit(Opcode::SetName, <span class="kw-2">&amp;</span>[index]);
+                    } <span class="kw">else </span>{
+                        <span class="self">self</span>.emit_opcode(Opcode::SetNameByLocator);
+                    }
                 }
                 Access::Property { access } =&gt; <span class="kw">match </span>access {
                     PropertyAccess::Simple(access) =&gt; <span class="kw">match </span>access.field() {

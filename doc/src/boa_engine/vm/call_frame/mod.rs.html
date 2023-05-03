@@ -119,6 +119,13 @@
 <a href="#118" id="118">118</a>
 <a href="#119" id="119">119</a>
 <a href="#120" id="120">120</a>
+<a href="#121" id="121">121</a>
+<a href="#122" id="122">122</a>
+<a href="#123" id="123">123</a>
+<a href="#124" id="124">124</a>
+<a href="#125" id="125">125</a>
+<a href="#126" id="126">126</a>
+<a href="#127" id="127">127</a>
 </pre><pre class="rust"><code><span class="doccomment">//! `CallFrame`
 //!
 //! This module will provides everything needed to implement the `CallFrame`
@@ -126,7 +133,10 @@
 </span><span class="kw">mod </span>abrupt_record;
 <span class="kw">mod </span>env_stack;
 
-<span class="kw">use crate</span>::{builtins::promise::PromiseCapability, object::JsObject, vm::CodeBlock};
+<span class="kw">use crate</span>::{
+    builtins::promise::PromiseCapability, environments::BindingLocator, object::JsObject,
+    vm::CodeBlock,
+};
 <span class="kw">use </span>boa_gc::{Finalize, Gc, Trace};
 <span class="kw">use </span>thin_vec::ThinVec;
 
@@ -160,6 +170,9 @@
 
     <span class="comment">// Iterators and their `[[Done]]` flags that must be closed when an abrupt completion is thrown.
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) iterators: ThinVec&lt;(JsObject, bool)&gt;,
+
+    <span class="comment">// The stack of bindings being updated.
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) binding_stack: Vec&lt;BindingLocator&gt;,
 }
 
 <span class="doccomment">/// ---- `CallFrame` public API ----
@@ -190,6 +203,7 @@
             promise_capability: <span class="prelude-val">None</span>,
             async_generator: <span class="prelude-val">None</span>,
             iterators: ThinVec::new(),
+            binding_stack: Vec::new(),
         }
     }
 

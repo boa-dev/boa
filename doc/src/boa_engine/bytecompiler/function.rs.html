@@ -222,7 +222,6 @@
 <a href="#221" id="221">221</a>
 <a href="#222" id="222">222</a>
 <a href="#223" id="223">223</a>
-<a href="#224" id="224">224</a>
 </pre><pre class="rust"><code><span class="kw">use crate</span>::{
     builtins::function::ThisMode,
     bytecompiler::ByteCompiler,
@@ -414,7 +413,6 @@
             compiler.emit_opcode(Opcode::Yield);
         }
 
-        compiler.create_script_decls(body, <span class="bool-val">false</span>);
         compiler.compile_statement_list(body, <span class="bool-val">false</span>, <span class="bool-val">false</span>);
 
         <span class="kw">if let </span><span class="prelude-val">Some</span>(env_label) = env_label {
