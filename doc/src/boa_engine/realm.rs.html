@@ -90,6 +90,19 @@
 <a href="#89" id="89">89</a>
 <a href="#90" id="90">90</a>
 <a href="#91" id="91">91</a>
+<a href="#92" id="92">92</a>
+<a href="#93" id="93">93</a>
+<a href="#94" id="94">94</a>
+<a href="#95" id="95">95</a>
+<a href="#96" id="96">96</a>
+<a href="#97" id="97">97</a>
+<a href="#98" id="98">98</a>
+<a href="#99" id="99">99</a>
+<a href="#100" id="100">100</a>
+<a href="#101" id="101">101</a>
+<a href="#102" id="102">102</a>
+<a href="#103" id="103">103</a>
+<a href="#104" id="104">104</a>
 </pre><pre class="rust"><code><span class="doccomment">//! Boa&#39;s implementation of ECMAScript&#39;s `Realm Records`
 //!
 //! Conceptually, a realm consists of a set of intrinsic objects, an ECMAScript global environment,
@@ -98,7 +111,9 @@
 //!
 //! A realm is represented in this implementation as a Realm struct with the fields specified from the spec.
 
-</span><span class="kw">use crate</span>::{
+</span><span class="kw">use </span>std::fmt;
+
+<span class="kw">use crate</span>::{
     context::{intrinsics::Intrinsics, HostHooks},
     environments::DeclarativeEnvironment,
     object::{shape::shared_shape::SharedShape, JsObject},
@@ -109,9 +124,20 @@
 <span class="doccomment">/// Representation of a Realm.
 ///
 /// In the specification these are called Realm Records.
-</span><span class="attr">#[derive(Clone, Debug, Trace, Finalize)]
+</span><span class="attr">#[derive(Clone, Trace, Finalize)]
 </span><span class="kw">pub struct </span>Realm {
     inner: Gc&lt;Inner&gt;,
+}
+
+<span class="kw">impl </span>fmt::Debug <span class="kw">for </span>Realm {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
+        f.debug_struct(<span class="string">&quot;Realm&quot;</span>)
+            .field(<span class="string">&quot;intrinsics&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.inner.intrinsics)
+            .field(<span class="string">&quot;environment&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.inner.environment)
+            .field(<span class="string">&quot;global_object&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.inner.global_object)
+            .field(<span class="string">&quot;global_this&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.inner.global_this)
+            .finish()
+    }
 }
 
 <span class="kw">impl </span>PartialEq <span class="kw">for </span>Realm {
@@ -120,7 +146,7 @@
     }
 }
 
-<span class="attr">#[derive(Debug, Trace, Finalize)]
+<span class="attr">#[derive(Trace, Finalize)]
 </span><span class="kw">struct </span>Inner {
     intrinsics: Intrinsics,
     environment: Gc&lt;DeclarativeEnvironment&gt;,
