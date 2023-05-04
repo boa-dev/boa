@@ -51,7 +51,7 @@ fn all_keywords() -> impl Iterator<Item = Keyword> {
 }
 
 #[test]
-fn ut_as_binary_op() {
+fn as_binary_op() {
     for k in all_keywords() {
         match k.as_binary_op() {
             Some(BinaryOp::Relational(RelationalOp::InstanceOf)) => {
@@ -68,7 +68,7 @@ fn ut_as_binary_op() {
 }
 
 #[test]
-fn ut_as_str() {
+fn as_str() {
     for k in all_keywords() {
         match k.as_str() {
             ("await", utf16) => {
@@ -241,7 +241,7 @@ fn ut_as_str() {
 }
 
 #[test]
-fn ut_to_sym() {
+fn to_sym() {
     for k in all_keywords() {
         match k.to_sym() {
             Sym::AWAIT => assert_eq!(k, Keyword::Await),
@@ -291,7 +291,7 @@ fn ut_to_sym() {
 }
 
 #[test]
-fn ut_try_into_binary_op() {
+fn try_into_binary_op() {
     for k in all_keywords() {
         match k {
             Keyword::InstanceOf | Keyword::In => assert!(BinaryOp::try_from(k).is_ok()),
@@ -339,7 +339,7 @@ fn ut_try_into_binary_op() {
 }
 
 #[test]
-fn ut_from_str() {
+fn from_str() {
     for k in all_keywords() {
         let str = k.as_str().0;
         assert_eq!(str.parse::<Keyword>().unwrap(), k);
