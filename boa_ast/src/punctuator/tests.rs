@@ -67,7 +67,7 @@ fn all_punctuators() -> impl Iterator<Item = Punctuator> {
 }
 
 #[test]
-fn ut_as_assign_op() {
+fn as_assign_op() {
     for p in all_punctuators() {
         match p.as_assign_op() {
             Some(AssignOp::Assign) => assert_eq!(p, Punctuator::Assign),
@@ -110,7 +110,7 @@ fn ut_as_assign_op() {
 }
 
 #[test]
-fn ut_as_binary_op() {
+fn as_binary_op() {
     for p in all_punctuators() {
         match p.as_binary_op() {
             Some(BinaryOp::Arithmetic(ArithmeticOp::Add)) => assert_eq!(p, Punctuator::Add),
@@ -185,7 +185,7 @@ fn ut_as_binary_op() {
 }
 
 #[test]
-fn ut_as_str() {
+fn as_str() {
     for p in all_punctuators() {
         match p.as_str() {
             "+" => assert_eq!(p, Punctuator::Add),
@@ -251,7 +251,7 @@ fn ut_as_str() {
 }
 
 #[test]
-fn ut_try_into_assign_op() {
+fn try_into_assign_op() {
     for p in all_punctuators() {
         if p.as_assign_op().is_some() {
             assert!(TryInto::<AssignOp>::try_into(p).is_ok());
@@ -262,7 +262,7 @@ fn ut_try_into_assign_op() {
 }
 
 #[test]
-fn ut_try_into_binary_op() {
+fn try_into_binary_op() {
     for p in all_punctuators() {
         if p.as_binary_op().is_some() {
             assert!(TryInto::<BinaryOp>::try_into(p).is_ok());
@@ -273,14 +273,14 @@ fn ut_try_into_binary_op() {
 }
 
 #[test]
-fn ut_display() {
+fn display() {
     for p in all_punctuators() {
         assert_eq!(p.as_str(), p.to_string());
     }
 }
 
 #[test]
-fn ut_into_box() {
+fn into_box() {
     for p in all_punctuators() {
         assert_eq!(p.as_str(), Box::<str>::from(p).as_ref());
     }
