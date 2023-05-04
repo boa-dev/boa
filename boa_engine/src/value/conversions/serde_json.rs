@@ -181,7 +181,7 @@ mod tests {
     use crate::{string::utf16, JsValue};
 
     #[test]
-    fn ut_json_conversions() {
+    fn json_conversions() {
         const DATA: &str = indoc! {r#"
             {
                 "name": "John Doe",

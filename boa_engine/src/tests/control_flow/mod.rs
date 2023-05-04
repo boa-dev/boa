@@ -8,7 +8,7 @@ fn test_invalid_break() {
     run_test_actions([TestAction::assert_native_error(
         "break;",
         ErrorKind::Syntax,
-        "illegal break statement at position: 1:1",
+        "illegal break statement at line 1, col 1",
     )]);
 }
 
@@ -21,7 +21,7 @@ fn test_invalid_continue_target() {
             }
         "#},
         ErrorKind::Syntax,
-        "undefined continue target: nonexistent at position: 1:1",
+        "undefined continue target: nonexistent at line 1, col 1",
     )]);
 }
 
@@ -30,7 +30,7 @@ fn test_invalid_continue() {
     run_test_actions([TestAction::assert_native_error(
         "continue;",
         ErrorKind::Syntax,
-        "illegal continue statement at position: 1:1",
+        "illegal continue statement at line 1, col 1",
     )]);
 }
 

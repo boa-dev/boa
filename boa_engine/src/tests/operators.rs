@@ -144,22 +144,22 @@ fn invalid_unary_access() {
         TestAction::assert_native_error(
             "++[]",
             ErrorKind::Syntax,
-            "Invalid left-hand side in assignment at position: 1:1",
+            "Invalid left-hand side in assignment at line 1, col 1",
         ),
         TestAction::assert_native_error(
             "[]++",
             ErrorKind::Syntax,
-            "Invalid left-hand side in assignment at position: 1:3",
+            "Invalid left-hand side in assignment at line 1, col 3",
         ),
         TestAction::assert_native_error(
             "--[]",
             ErrorKind::Syntax,
-            "Invalid left-hand side in assignment at position: 1:1",
+            "Invalid left-hand side in assignment at line 1, col 1",
         ),
         TestAction::assert_native_error(
             "[]--",
             ErrorKind::Syntax,
-            "Invalid left-hand side in assignment at position: 1:3",
+            "Invalid left-hand side in assignment at line 1, col 3",
         ),
     ]);
 }
@@ -171,22 +171,22 @@ fn unary_operations_on_this() {
         TestAction::assert_native_error(
             "++this",
             ErrorKind::Syntax,
-            "Invalid left-hand side in assignment at position: 1:1",
+            "Invalid left-hand side in assignment at line 1, col 1",
         ),
         TestAction::assert_native_error(
             "--this",
             ErrorKind::Syntax,
-            "Invalid left-hand side in assignment at position: 1:1",
+            "Invalid left-hand side in assignment at line 1, col 1",
         ),
         TestAction::assert_native_error(
             "this++",
             ErrorKind::Syntax,
-            "Invalid left-hand side in assignment at position: 1:5",
+            "Invalid left-hand side in assignment at line 1, col 5",
         ),
         TestAction::assert_native_error(
             "this--",
             ErrorKind::Syntax,
-            "Invalid left-hand side in assignment at position: 1:5",
+            "Invalid left-hand side in assignment at line 1, col 5",
         ),
     ]);
 }
@@ -306,7 +306,7 @@ fn assignment_to_non_assignable() {
             TestAction::assert_native_error(
                 src,
                 ErrorKind::Syntax,
-                "Invalid left-hand side in assignment at position: 1:3",
+                "Invalid left-hand side in assignment at line 1, col 3",
             )
         }),
     );
@@ -331,7 +331,7 @@ fn assignment_to_non_assignable_ctd() {
             TestAction::assert_native_error(
                 src,
                 ErrorKind::Syntax,
-                "Invalid left-hand side in assignment at position: 1:13",
+                "Invalid left-hand side in assignment at line 1, col 13",
             )
         }),
     );
@@ -345,7 +345,7 @@ fn multicharacter_assignment_to_non_assignable() {
         TestAction::assert_native_error(
             src,
             ErrorKind::Syntax,
-            "Invalid left-hand side in assignment at position: 1:3",
+            "Invalid left-hand side in assignment at line 1, col 3",
         )
     }));
 }
@@ -359,7 +359,7 @@ fn multicharacter_assignment_to_non_assignable_ctd() {
                 TestAction::assert_native_error(
                     src,
                     ErrorKind::Syntax,
-                    "Invalid left-hand side in assignment at position: 1:13",
+                    "Invalid left-hand side in assignment at line 1, col 13",
                 )
             }),
     );
@@ -374,7 +374,7 @@ fn multicharacter_bitwise_assignment_to_non_assignable() {
                 TestAction::assert_native_error(
                     src,
                     ErrorKind::Syntax,
-                    "Invalid left-hand side in assignment at position: 1:3",
+                    "Invalid left-hand side in assignment at line 1, col 3",
                 )
             }),
     );
@@ -394,7 +394,7 @@ fn multicharacter_bitwise_assignment_to_non_assignable_ctd() {
             TestAction::assert_native_error(
                 src,
                 ErrorKind::Syntax,
-                "Invalid left-hand side in assignment at position: 1:13",
+                "Invalid left-hand side in assignment at line 1, col 13",
             )
         }),
     );
@@ -406,22 +406,22 @@ fn assign_to_array_decl() {
         TestAction::assert_native_error(
             "[1] = [2]",
             ErrorKind::Syntax,
-            "Invalid left-hand side in assignment at position: 1:5",
+            "Invalid left-hand side in assignment at line 1, col 5",
         ),
         TestAction::assert_native_error(
             "[3, 5] = [7, 8]",
             ErrorKind::Syntax,
-            "Invalid left-hand side in assignment at position: 1:8",
+            "Invalid left-hand side in assignment at line 1, col 8",
         ),
         TestAction::assert_native_error(
             "[6, 8] = [2]",
             ErrorKind::Syntax,
-            "Invalid left-hand side in assignment at position: 1:8",
+            "Invalid left-hand side in assignment at line 1, col 8",
         ),
         TestAction::assert_native_error(
             "[6] = [2, 9]",
             ErrorKind::Syntax,
-            "Invalid left-hand side in assignment at position: 1:5",
+            "Invalid left-hand side in assignment at line 1, col 5",
         ),
     ]);
 }
@@ -505,7 +505,7 @@ fn delete_variable_in_strict() {
             delete x;
         "#},
         ErrorKind::Syntax,
-        "cannot delete variables in strict mode at position: 3:1",
+        "cannot delete variables in strict mode at line 3, col 1",
     )]);
 }
 

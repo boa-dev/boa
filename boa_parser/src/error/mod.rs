@@ -1,5 +1,8 @@
 //! Error and result implementation for the parser.
 
+#[cfg(test)]
+mod tests;
+
 use crate::lexer::Error as LexError;
 use boa_ast::{Position, Span};
 use std::fmt;
@@ -8,12 +11,20 @@ use std::fmt;
 pub type ParseResult<T> = Result<T, Error>;
 
 pub(crate) trait ErrorContext {
-    fn context(self, context: &'static str) -> Self;
+    /// Sets the context of the error, if possible.
+    fn set_context(self, context: &'static str) -> Self;
+
+    /// Gets the context of the error, if any.
+    fn context(&self) -> Option<&'static str>;
 }
 
 impl<T> ErrorContext for ParseResult<T> {
-    fn context(self, context: &'static str) -> Self {
-        self.map_err(|e| e.context(context))
+    fn set_context(self, context: &'static str) -> Self {
+        self.map_err(|e| e.set_context(context))
+    }
+
+    fn context(&self) -> Option<&'static str> {
+        self.as_ref().err().and_then(Error::context)
     }
 }
 
@@ -75,7 +86,7 @@ pub enum Error {
 
 impl Error {
     /// Changes the context of the error, if any.
-    fn context(self, new_context: &'static str) -> Self {
+    fn set_context(self, new_context: &'static str) -> Self {
         match self {
             Self::Expected {
                 expected,
@@ -87,14 +98,26 @@ impl Error {
         }
     }
 
+    /// Gets the context of the error, if any.
+    const fn context(&self) -> Option<&'static str> {
+        if let Self::Expected { context, .. } = self {
+            Some(context)
+        } else {
+            None
+        }
+    }
+
     /// Creates an `Expected` parsing error.
     pub(crate) fn expected<E, F>(expected: E, found: F, span: Span, context: &'static str) -> Self
     where
         E: Into<Box<[String]>>,
         F: Into<Box<str>>,
     {
+        let expected = expected.into();
+        debug_assert_ne!(expected.len(), 0);
+
         Self::Expected {
-            expected: expected.into(),
+            expected,
             found: found.into(),
             span,
             context,
@@ -209,7 +232,7 @@ impl fmt::Display for Error {
                 position.line_number(),
                 position.column_number()
             ),
-            Self::Lex { err } => write!(f, "{err}"),
+            Self::Lex { err } => err.fmt(f),
         }
     }
 }
