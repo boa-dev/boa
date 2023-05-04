@@ -1,8 +1,67 @@
-//! Example runtime for Boa
+//! Boa's **boa_runtime** crate contains an example runtime and basic runtime features and functionality for the `boa_engine` crate for
+//! runtime implementors.
 //!
-//! This crate contains an example runtime for the `boa_engine` crate, so that it can be used as a
-//! template for runtime implementors. It contains some basic functionality that can be used by
-//! other crates.
+//! # About Boa
+//!
+//! Boa is an open-source, experimental ECMAScript Engine written in Rust for lexing, parsing and
+//! executing ECMAScript/JavaScript. Currently, Boa supports some of the [language][boa-conformance].
+//! More information can be viewed at [Boa's website][boa-web].
+//!
+//! Try out the most recent release with Boa's live demo [playground][boa-playground].
+//!
+//! # Example: Adding Web API's Console Object
+//!
+//! 1. Add **boa_runtime** as a dependency to your project along with **boa_engine**.
+//!
+//! ```
+//! use boa_engine::{ Context, Source, property::Attribute };
+//! use boa_runtime::Console;
+//!
+//! // Create the context.
+//! let mut context = Context::default();
+//!
+//! // Initialize the Console object.
+//! let console = Console::init(&mut context);
+//!
+//! // Register the console as a global property to the context.
+//! context
+//!     .register_global_property(Console::NAME, console, Attribute::all())
+//!     .expect("the console object shouldn't exist yet");
+//!
+//! // JavaScript source for parsing.
+//! let js_code = "console.log('Hello World from a JS code string!')";
+//!
+//! // Parse the source code
+//! match context.eval_script(Source::from_bytes(js_code)) {
+//!     Ok(res) => {
+//!         println!(
+//!             "{}",
+//!             res.to_string(&mut context).unwrap().to_std_string_escaped()
+//!         );
+//!     }
+//!     Err(e) => {
+//!         // Pretty print the error
+//!         eprintln!("Uncaught {e}");
+//!         # panic!("An error occured in boa_runtime's js_code");
+//!     }
+//! };
+//!
+//! ```
+//!
+//! # Boa Crates
+//!  - **`boa_ast`** - Boa's ECMAScript Abstract Syntax Tree.
+//!  - **`boa_engine`** - Boa's implementation of ECMAScript builtin objects and execution.
+//!  - **`boa_gc`** - Boa's garbage collector.
+//!  - **`boa_interner`** - Boa's string interner.
+//!  - **`boa_parser`** - Boa's lexer and parser.
+//!  - **`boa_profiler`** - Boa's code profiler.
+//!  - **`boa_unicode`** - Boa's Unicode identifier.
+//!  - **`boa_icu_provider`** - Boa's ICU4X data provider.
+//!
+//! [ecma-402]: https://tc39.es/ecma402
+//! [boa-conformance]: https://boajs.dev/boa/test262/
+//! [boa-web]: https://boajs.dev/
+//! [boa-playground]: https://boajs.dev/boa/playground/
 
 #![doc(
     html_logo_url = "https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg",

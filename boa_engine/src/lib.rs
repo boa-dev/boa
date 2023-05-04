@@ -9,6 +9,8 @@
 //!
 //! Try out the most recent release with Boa's live demo [playground][boa-playground].
 //!
+//! For information related to Web API features, please see [boa_runtime](runtime-docs).
+//!
 //! # Example usage
 //!
 //! You can find multiple examples of the usage of Boa in the [`boa_examples`][examples] crate. In
@@ -19,7 +21,12 @@
 //! ```
 //! use boa_engine::{Context, Source};
 //!
-//! let js_code = "console.log('Hello World from a JS code string!')";
+//! let js_code = r#"
+//!     let two = 1 + 1;
+//!     let definitely_not_four = two + "2";
+//!
+//!     definitely_not_four
+//! "#;
 //!
 //! // Instantiate the execution context
 //! let mut context = Context::default();
@@ -35,6 +42,7 @@
 //!     Err(e) => {
 //!         // Pretty print the error
 //!         eprintln!("Uncaught {e}");
+//!         # panic!("There was an error in boa_engine's introduction example.");
 //!     }
 //! };
 //! ```
@@ -59,6 +67,7 @@
 //! [boa-conformance]: https://boajs.dev/boa/test262/
 //! [boa-web]: https://boajs.dev/
 //! [boa-playground]: https://boajs.dev/boa/playground/
+//! [runtime-docs]: https://boajs.dev/boa/doc/boa_runtime/index.html
 //! [examples]: https://github.com/boa-dev/boa/tree/main/boa_examples
 
 #![doc(
