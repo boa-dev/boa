@@ -475,6 +475,15 @@
 <a href="#474" id="474">474</a>
 <a href="#475" id="475">475</a>
 <a href="#476" id="476">476</a>
+<a href="#477" id="477">477</a>
+<a href="#478" id="478">478</a>
+<a href="#479" id="479">479</a>
+<a href="#480" id="480">480</a>
+<a href="#481" id="481">481</a>
+<a href="#482" id="482">482</a>
+<a href="#483" id="483">483</a>
+<a href="#484" id="484">484</a>
+<a href="#485" id="485">485</a>
 </pre><pre class="rust"><code><span class="doccomment">//! Boa&#39;s **`boa_engine`** crate implements ECMAScript&#39;s standard library of builtin objects
 //! and an ECMAScript context, bytecompiler, and virtual machine for code execution.
 //!
@@ -486,6 +495,8 @@
 //!
 //! Try out the most recent release with Boa&#39;s live demo [playground][boa-playground].
 //!
+//! For information related to Web API features, please see [boa_runtime](runtime-docs).
+//!
 //! # Example usage
 //!
 //! You can find multiple examples of the usage of Boa in the [`boa_examples`][examples] crate. In
@@ -496,7 +507,12 @@
 //! ```
 //! use boa_engine::{Context, Source};
 //!
-//! let js_code = &quot;console.log(&#39;Hello World from a JS code string!&#39;)&quot;;
+//! let js_code = r#&quot;
+//!     let two = 1 + 1;
+//!     let definitely_not_four = two + &quot;2&quot;;
+//!
+//!     definitely_not_four
+//! &quot;#;
 //!
 //! // Instantiate the execution context
 //! let mut context = Context::default();
@@ -512,6 +528,7 @@
 //!     Err(e) =&gt; {
 //!         // Pretty print the error
 //!         eprintln!(&quot;Uncaught {e}&quot;);
+//!         # panic!(&quot;There was an error in boa_engine&#39;s introduction example.&quot;);
 //!     }
 //! };
 //! ```
@@ -536,6 +553,7 @@
 //! [boa-conformance]: https://boajs.dev/boa/test262/
 //! [boa-web]: https://boajs.dev/
 //! [boa-playground]: https://boajs.dev/boa/playground/
+//! [runtime-docs]: https://boajs.dev/boa/doc/boa_runtime/index.html
 //! [examples]: https://github.com/boa-dev/boa/tree/main/boa_examples
 
 </span><span class="attr">#![doc(

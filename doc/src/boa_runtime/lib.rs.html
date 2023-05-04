@@ -276,11 +276,129 @@
 <a href="#275" id="275">275</a>
 <a href="#276" id="276">276</a>
 <a href="#277" id="277">277</a>
-</pre><pre class="rust"><code><span class="doccomment">//! Example runtime for Boa
+<a href="#278" id="278">278</a>
+<a href="#279" id="279">279</a>
+<a href="#280" id="280">280</a>
+<a href="#281" id="281">281</a>
+<a href="#282" id="282">282</a>
+<a href="#283" id="283">283</a>
+<a href="#284" id="284">284</a>
+<a href="#285" id="285">285</a>
+<a href="#286" id="286">286</a>
+<a href="#287" id="287">287</a>
+<a href="#288" id="288">288</a>
+<a href="#289" id="289">289</a>
+<a href="#290" id="290">290</a>
+<a href="#291" id="291">291</a>
+<a href="#292" id="292">292</a>
+<a href="#293" id="293">293</a>
+<a href="#294" id="294">294</a>
+<a href="#295" id="295">295</a>
+<a href="#296" id="296">296</a>
+<a href="#297" id="297">297</a>
+<a href="#298" id="298">298</a>
+<a href="#299" id="299">299</a>
+<a href="#300" id="300">300</a>
+<a href="#301" id="301">301</a>
+<a href="#302" id="302">302</a>
+<a href="#303" id="303">303</a>
+<a href="#304" id="304">304</a>
+<a href="#305" id="305">305</a>
+<a href="#306" id="306">306</a>
+<a href="#307" id="307">307</a>
+<a href="#308" id="308">308</a>
+<a href="#309" id="309">309</a>
+<a href="#310" id="310">310</a>
+<a href="#311" id="311">311</a>
+<a href="#312" id="312">312</a>
+<a href="#313" id="313">313</a>
+<a href="#314" id="314">314</a>
+<a href="#315" id="315">315</a>
+<a href="#316" id="316">316</a>
+<a href="#317" id="317">317</a>
+<a href="#318" id="318">318</a>
+<a href="#319" id="319">319</a>
+<a href="#320" id="320">320</a>
+<a href="#321" id="321">321</a>
+<a href="#322" id="322">322</a>
+<a href="#323" id="323">323</a>
+<a href="#324" id="324">324</a>
+<a href="#325" id="325">325</a>
+<a href="#326" id="326">326</a>
+<a href="#327" id="327">327</a>
+<a href="#328" id="328">328</a>
+<a href="#329" id="329">329</a>
+<a href="#330" id="330">330</a>
+<a href="#331" id="331">331</a>
+<a href="#332" id="332">332</a>
+<a href="#333" id="333">333</a>
+<a href="#334" id="334">334</a>
+<a href="#335" id="335">335</a>
+<a href="#336" id="336">336</a>
+</pre><pre class="rust"><code><span class="doccomment">//! Boa&#39;s **boa_runtime** crate contains an example runtime and basic runtime features and functionality for the `boa_engine` crate for
+//! runtime implementors.
 //!
-//! This crate contains an example runtime for the `boa_engine` crate, so that it can be used as a
-//! template for runtime implementors. It contains some basic functionality that can be used by
-//! other crates.
+//! # About Boa
+//!
+//! Boa is an open-source, experimental ECMAScript Engine written in Rust for lexing, parsing and
+//! executing ECMAScript/JavaScript. Currently, Boa supports some of the [language][boa-conformance].
+//! More information can be viewed at [Boa&#39;s website][boa-web].
+//!
+//! Try out the most recent release with Boa&#39;s live demo [playground][boa-playground].
+//!
+//! # Example: Adding Web API&#39;s Console Object
+//!
+//! 1. Add **boa_runtime** as a dependency to your project along with **boa_engine**.
+//!
+//! ```
+//! use boa_engine::{ Context, Source, property::Attribute };
+//! use boa_runtime::Console;
+//!
+//! // Create the context.
+//! let mut context = Context::default();
+//!
+//! // Initialize the Console object.
+//! let console = Console::init(&amp;mut context);
+//!
+//! // Register the console as a global property to the context.
+//! context
+//!     .register_global_property(Console::NAME, console, Attribute::all())
+//!     .expect(&quot;the console object shouldn&#39;t exist yet&quot;);
+//!
+//! // JavaScript source for parsing.
+//! let js_code = &quot;console.log(&#39;Hello World from a JS code string!&#39;)&quot;;
+//!
+//! // Parse the source code
+//! match context.eval_script(Source::from_bytes(js_code)) {
+//!     Ok(res) =&gt; {
+//!         println!(
+//!             &quot;{}&quot;,
+//!             res.to_string(&amp;mut context).unwrap().to_std_string_escaped()
+//!         );
+//!     }
+//!     Err(e) =&gt; {
+//!         // Pretty print the error
+//!         eprintln!(&quot;Uncaught {e}&quot;);
+//!         # panic!(&quot;An error occured in boa_runtime&#39;s js_code&quot;);
+//!     }
+//! };
+//!
+//! ```
+//!
+//! # Boa Crates
+//!  - **`boa_ast`** - Boa&#39;s ECMAScript Abstract Syntax Tree.
+//!  - **`boa_engine`** - Boa&#39;s implementation of ECMAScript builtin objects and execution.
+//!  - **`boa_gc`** - Boa&#39;s garbage collector.
+//!  - **`boa_interner`** - Boa&#39;s string interner.
+//!  - **`boa_parser`** - Boa&#39;s lexer and parser.
+//!  - **`boa_profiler`** - Boa&#39;s code profiler.
+//!  - **`boa_unicode`** - Boa&#39;s Unicode identifier.
+//!  - **`boa_icu_provider`** - Boa&#39;s ICU4X data provider.
+//!
+//! [ecma-402]: https://tc39.es/ecma402
+//! [boa-conformance]: https://boajs.dev/boa/test262/
+//! [boa-web]: https://boajs.dev/
+//! [boa-playground]: https://boajs.dev/boa/playground/
 
 </span><span class="attr">#![doc(
     html_logo_url = <span class="string">&quot;https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg&quot;</span>,
