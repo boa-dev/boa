@@ -345,7 +345,7 @@
             <span class="kw">let </span>params_start_position = next_token.span().start();
             <span class="kw">let </span>param = BindingIdentifier::new(<span class="self">self</span>.allow_yield, <span class="self">self</span>.allow_await)
                 .parse(cursor, interner)
-                .context(<span class="string">&quot;arrow function&quot;</span>)<span class="question-mark">?</span>;
+                .set_context(<span class="string">&quot;arrow function&quot;</span>)<span class="question-mark">?</span>;
             (
                 FormalParameterList::try_from(FormalParameter::new(
                     Variable::from_identifier(param, <span class="prelude-val">None</span>),
