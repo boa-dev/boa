@@ -83,11 +83,11 @@ bytecode into a value.</p>
 </div></details><details class="toggle method-toggle" open><summary><section id="method.parse_script" class="method"><a class="srclink rightside" href="../src/boa_engine/context/mod.rs.html#220-234">source</a><h4 class="code-header">pub fn <a href="#method.parse_script" class="fn">parse_script</a>&lt;R: <a class="trait" href="https://doc.rust-lang.org/1.69.0/std/io/trait.Read.html" title="trait std::io::Read">Read</a>&gt;(
     &amp;mut self,
     src: <a class="struct" href="struct.Source.html" title="struct boa_engine::Source">Source</a>&lt;'_, R&gt;
-) -&gt; <a class="enum" href="https://doc.rust-lang.org/1.69.0/core/result/enum.Result.html" title="enum core::result::Result">Result</a>&lt;StatementList, ParseError&gt;</h4></section></summary><div class="docblock"><p>Parse the given source script.</p>
+) -&gt; <a class="enum" href="https://doc.rust-lang.org/1.69.0/core/result/enum.Result.html" title="enum core::result::Result">Result</a>&lt;StatementList, <a class="enum" href="../boa_parser/error/enum.Error.html" title="enum boa_parser::error::Error">ParseError</a>&gt;</h4></section></summary><div class="docblock"><p>Parse the given source script.</p>
 </div></details><details class="toggle method-toggle" open><summary><section id="method.parse_module" class="method"><a class="srclink rightside" href="../src/boa_engine/context/mod.rs.html#237-244">source</a><h4 class="code-header">pub fn <a href="#method.parse_module" class="fn">parse_module</a>&lt;R: <a class="trait" href="https://doc.rust-lang.org/1.69.0/std/io/trait.Read.html" title="trait std::io::Read">Read</a>&gt;(
     &amp;mut self,
     src: <a class="struct" href="struct.Source.html" title="struct boa_engine::Source">Source</a>&lt;'_, R&gt;
-) -&gt; <a class="enum" href="https://doc.rust-lang.org/1.69.0/core/result/enum.Result.html" title="enum core::result::Result">Result</a>&lt;ModuleItemList, ParseError&gt;</h4></section></summary><div class="docblock"><p>Parse the given source script.</p>
+) -&gt; <a class="enum" href="https://doc.rust-lang.org/1.69.0/core/result/enum.Result.html" title="enum core::result::Result">Result</a>&lt;ModuleItemList, <a class="enum" href="../boa_parser/error/enum.Error.html" title="enum boa_parser::error::Error">ParseError</a>&gt;</h4></section></summary><div class="docblock"><p>Parse the given source script.</p>
 </div></details><details class="toggle method-toggle" open><summary><section id="method.compile_script" class="method"><a class="srclink rightside" href="../src/boa_engine/context/mod.rs.html#247-258">source</a><h4 class="code-header">pub fn <a href="#method.compile_script" class="fn">compile_script</a>(
     &amp;mut self,
     statement_list: &amp;StatementList
