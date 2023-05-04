@@ -9,17 +9,20 @@ use boa_interner::{Interner, Sym};
 use rustc_hash::{FxHashMap, FxHashSet};
 
 use crate::{
-    declaration::{ExportDeclaration, ImportDeclaration, VarDeclaration},
+    declaration::{ExportDeclaration, ImportDeclaration, VarDeclaration, Variable},
     expression::{access::SuperPropertyAccess, Await, Identifier, SuperCall, Yield},
     function::{
         ArrowFunction, AsyncArrowFunction, AsyncFunction, AsyncGenerator, Class, ClassElement,
         Function, Generator, PrivateName,
     },
     property::{MethodDefinition, PropertyDefinition},
-    statement::LabelledItem,
+    statement::{
+        iteration::{ForLoopInitializer, IterableLoopInitializer},
+        LabelledItem,
+    },
     try_break,
     visitor::{NodeRef, VisitWith, Visitor, VisitorMut},
-    Declaration, Expression, Statement, StatementList, StatementListItem,
+    Declaration, Expression, ModuleItem, Statement, StatementList, StatementListItem,
 };
 
 /// Represents all the possible symbols searched for by the [`Contains`][contains] operation.
@@ -555,23 +558,123 @@ struct VarDeclaredNamesVisitor<'a>(&'a mut FxHashSet<Identifier>);
 impl<'ast> Visitor<'ast> for VarDeclaredNamesVisitor<'_> {
     type BreakTy = Infallible;
 
-    fn visit_expression(&mut self, _: &'ast Expression) -> ControlFlow<Self::BreakTy> {
-        ControlFlow::Continue(())
+    fn visit_statement(&mut self, node: &'ast Statement) -> ControlFlow<Self::BreakTy> {
+        match node {
+            Statement::Empty
+            | Statement::Expression(_)
+            | Statement::Continue(_)
+            | Statement::Break(_)
+            | Statement::Return(_)
+            | Statement::Throw(_) => ControlFlow::Continue(()),
+            Statement::Block(node) => self.visit(node),
+            Statement::Var(node) => self.visit(node),
+            Statement::If(node) => self.visit(node),
+            Statement::DoWhileLoop(node) => self.visit(node),
+            Statement::WhileLoop(node) => self.visit(node),
+            Statement::ForLoop(node) => self.visit(node),
+            Statement::ForInLoop(node) => self.visit(node),
+            Statement::ForOfLoop(node) => self.visit(node),
+            Statement::Switch(node) => self.visit(node),
+            Statement::Labelled(node) => self.visit(node),
+            Statement::Try(node) => self.visit(node),
+            Statement::With(node) => self.visit(node),
+        }
     }
 
-    fn visit_declaration(&mut self, _: &'ast Declaration) -> ControlFlow<Self::BreakTy> {
-        ControlFlow::Continue(())
+    fn visit_statement_list_item(
+        &mut self,
+        node: &'ast StatementListItem,
+    ) -> ControlFlow<Self::BreakTy> {
+        match node {
+            StatementListItem::Statement(stmt) => self.visit_statement(stmt),
+            StatementListItem::Declaration(_) => ControlFlow::Continue(()),
+        }
     }
 
-    fn visit_var_declaration(&mut self, node: &'ast VarDeclaration) -> ControlFlow<Self::BreakTy> {
-        BoundNamesVisitor(self.0).visit_var_declaration(node)
+    fn visit_variable(&mut self, node: &'ast Variable) -> ControlFlow<Self::BreakTy> {
+        BoundNamesVisitor(self.0).visit_variable(node)
+    }
+
+    fn visit_if(&mut self, node: &'ast crate::statement::If) -> ControlFlow<Self::BreakTy> {
+        if let Some(node) = node.else_node() {
+            self.visit(node);
+        }
+        self.visit(node.body())
+    }
+
+    fn visit_do_while_loop(
+        &mut self,
+        node: &'ast crate::statement::DoWhileLoop,
+    ) -> ControlFlow<Self::BreakTy> {
+        self.visit(node.body())
+    }
+
+    fn visit_while_loop(
+        &mut self,
+        node: &'ast crate::statement::WhileLoop,
+    ) -> ControlFlow<Self::BreakTy> {
+        self.visit(node.body())
+    }
+
+    fn visit_for_loop(
+        &mut self,
+        node: &'ast crate::statement::ForLoop,
+    ) -> ControlFlow<Self::BreakTy> {
+        if let Some(ForLoopInitializer::Var(node)) = node.init() {
+            BoundNamesVisitor(self.0).visit_var_declaration(node);
+        }
+        self.visit(node.body())
+    }
+
+    fn visit_for_in_loop(
+        &mut self,
+        node: &'ast crate::statement::ForInLoop,
+    ) -> ControlFlow<Self::BreakTy> {
+        if let IterableLoopInitializer::Var(node) = node.initializer() {
+            BoundNamesVisitor(self.0).visit_variable(node);
+        }
+        self.visit(node.body())
+    }
+
+    fn visit_for_of_loop(
+        &mut self,
+        node: &'ast crate::statement::ForOfLoop,
+    ) -> ControlFlow<Self::BreakTy> {
+        if let IterableLoopInitializer::Var(node) = node.initializer() {
+            BoundNamesVisitor(self.0).visit_variable(node);
+        }
+        self.visit(node.body())
+    }
+
+    fn visit_with(&mut self, node: &'ast crate::statement::With) -> ControlFlow<Self::BreakTy> {
+        self.visit(node.statement())
+    }
+
+    fn visit_switch(&mut self, node: &'ast crate::statement::Switch) -> ControlFlow<Self::BreakTy> {
+        for case in node.cases() {
+            self.visit(case);
+        }
+        if let Some(node) = node.default() {
+            self.visit(node);
+        }
+        ControlFlow::Continue(())
     }
 
     fn visit_labelled_item(&mut self, node: &'ast LabelledItem) -> ControlFlow<Self::BreakTy> {
         match node {
             LabelledItem::Function(_) => ControlFlow::Continue(()),
-            LabelledItem::Statement(stmt) => stmt.visit_with(self),
+            LabelledItem::Statement(stmt) => self.visit(stmt),
         }
+    }
+
+    fn visit_try(&mut self, node: &'ast crate::statement::Try) -> ControlFlow<Self::BreakTy> {
+        if let Some(node) = node.finally() {
+            self.visit(node);
+        }
+        if let Some(node) = node.catch() {
+            self.visit(node.block());
+        }
+        self.visit(node.block())
     }
 
     fn visit_function(&mut self, node: &'ast Function) -> ControlFlow<Self::BreakTy> {
@@ -590,19 +693,6 @@ impl<'ast> Visitor<'ast> for VarDeclaredNamesVisitor<'_> {
     }
 
     fn visit_async_generator(&mut self, node: &'ast AsyncGenerator) -> ControlFlow<Self::BreakTy> {
-        top_level_vars(node.body(), self.0);
-        ControlFlow::Continue(())
-    }
-
-    fn visit_arrow_function(&mut self, node: &'ast ArrowFunction) -> ControlFlow<Self::BreakTy> {
-        top_level_vars(node.body(), self.0);
-        ControlFlow::Continue(())
-    }
-
-    fn visit_async_arrow_function(
-        &mut self,
-        node: &'ast AsyncArrowFunction,
-    ) -> ControlFlow<Self::BreakTy> {
         top_level_vars(node.body(), self.0);
         ControlFlow::Continue(())
     }
@@ -1173,10 +1263,7 @@ where
             ControlFlow::Continue(())
         }
 
-        fn visit_module_item(
-            &mut self,
-            node: &'ast crate::ModuleItem,
-        ) -> ControlFlow<Self::BreakTy> {
+        fn visit_module_item(&mut self, node: &'ast ModuleItem) -> ControlFlow<Self::BreakTy> {
             match node {
                 crate::ModuleItem::ImportDeclaration(_)
                 | crate::ModuleItem::ExportDeclaration(_) => ControlFlow::Continue(()),
@@ -1229,4 +1316,350 @@ where
     let mut visitor = ContainsInvalidObjectLiteral {};
 
     node.visit_with(&mut visitor).is_break()
+}
+
+/// Returns a list of lexically scoped declarations of the given node.
+///
+/// This is equivalent to the [`LexicallyScopedDeclarations`][spec] syntax operation in the spec.
+///
+/// [spec]: https://tc39.es/ecma262/#sec-static-semantics-lexicallyscopeddeclarations
+#[must_use]
+pub fn lexically_scoped_declarations<'a, N>(node: &'a N) -> Vec<Declaration>
+where
+    &'a N: Into<NodeRef<'a>>,
+{
+    let mut declarations = Vec::new();
+    LexicallyScopedDeclarationsVisitor(&mut declarations).visit(node.into());
+    declarations
+}
+
+/// The [`Visitor`] used to obtain the lexically scoped declarations of a node.
+#[derive(Debug)]
+struct LexicallyScopedDeclarationsVisitor<'a>(&'a mut Vec<Declaration>);
+
+impl<'ast> Visitor<'ast> for LexicallyScopedDeclarationsVisitor<'_> {
+    type BreakTy = Infallible;
+
+    fn visit_statement_list_item(
+        &mut self,
+        node: &'ast StatementListItem,
+    ) -> ControlFlow<Self::BreakTy> {
+        match node {
+            StatementListItem::Statement(Statement::Labelled(labelled)) => {
+                self.visit_labelled(labelled)
+            }
+            StatementListItem::Statement(_) => ControlFlow::Continue(()),
+            StatementListItem::Declaration(declaration) => {
+                self.0.push(declaration.clone());
+                ControlFlow::Continue(())
+            }
+        }
+    }
+
+    fn visit_labelled_item(&mut self, node: &'ast LabelledItem) -> ControlFlow<Self::BreakTy> {
+        match node {
+            LabelledItem::Function(f) => {
+                self.0.push(f.clone().into());
+                ControlFlow::Continue(())
+            }
+            LabelledItem::Statement(_) => ControlFlow::Continue(()),
+        }
+    }
+
+    fn visit_module_item(&mut self, node: &'ast ModuleItem) -> ControlFlow<Self::BreakTy> {
+        match node {
+            ModuleItem::StatementListItem(item) => self.visit_statement_list_item(item),
+            ModuleItem::ExportDeclaration(ExportDeclaration::Declaration(declaration)) => {
+                self.0.push(declaration.clone());
+                ControlFlow::Continue(())
+            }
+            ModuleItem::ExportDeclaration(ExportDeclaration::DefaultFunction(f)) => {
+                self.0.push(f.clone().into());
+                ControlFlow::Continue(())
+            }
+            ModuleItem::ExportDeclaration(ExportDeclaration::DefaultGenerator(f)) => {
+                self.0.push(f.clone().into());
+                ControlFlow::Continue(())
+            }
+            ModuleItem::ExportDeclaration(ExportDeclaration::DefaultAsyncFunction(f)) => {
+                self.0.push(f.clone().into());
+                ControlFlow::Continue(())
+            }
+            ModuleItem::ExportDeclaration(ExportDeclaration::DefaultAsyncGenerator(f)) => {
+                self.0.push(f.clone().into());
+                ControlFlow::Continue(())
+            }
+            ModuleItem::ExportDeclaration(ExportDeclaration::DefaultClassDeclaration(f)) => {
+                self.0.push(f.clone().into());
+                ControlFlow::Continue(())
+            }
+            ModuleItem::ImportDeclaration(_) | ModuleItem::ExportDeclaration(_) => {
+                ControlFlow::Continue(())
+            }
+        }
+    }
+}
+
+/// The type of a var scoped declaration.
+#[derive(Clone, Debug)]
+pub enum VarScopedDeclaration {
+    /// See [`VarDeclaration`]
+    VariableDeclaration(Variable),
+
+    /// See [`Function`]
+    Function(Function),
+
+    /// See [`Generator`]
+    Generator(Generator),
+
+    /// See [`AsyncFunction`]
+    AsyncFunction(AsyncFunction),
+
+    /// See [`AsyncGenerator`]
+    AsyncGenerator(AsyncGenerator),
+}
+
+impl VarScopedDeclaration {
+    /// Return the bound names of the declaration.
+    #[must_use]
+    pub fn bound_names(&self) -> Vec<Identifier> {
+        match self {
+            Self::VariableDeclaration(v) => bound_names(v),
+            Self::Function(f) => bound_names(f),
+            Self::Generator(g) => bound_names(g),
+            Self::AsyncFunction(f) => bound_names(f),
+            Self::AsyncGenerator(g) => bound_names(g),
+        }
+    }
+}
+
+/// Returns a list of var scoped declarations of the given node.
+///
+/// This is equivalent to the [`VarScopedDeclarations`][spec] syntax operation in the spec.
+///
+/// [spec]: https://tc39.es/ecma262/#sec-static-semantics-varscopeddeclarations
+#[must_use]
+pub fn var_scoped_declarations<'a, N>(node: &'a N) -> Vec<VarScopedDeclaration>
+where
+    &'a N: Into<NodeRef<'a>>,
+{
+    let mut declarations = Vec::new();
+    VarScopedDeclarationsVisitor(&mut declarations).visit(node.into());
+    declarations
+}
+
+/// The [`Visitor`] used to obtain the var scoped declarations of a node.
+#[derive(Debug)]
+struct VarScopedDeclarationsVisitor<'a>(&'a mut Vec<VarScopedDeclaration>);
+
+impl<'ast> Visitor<'ast> for VarScopedDeclarationsVisitor<'_> {
+    type BreakTy = Infallible;
+
+    fn visit_statement(&mut self, node: &'ast Statement) -> ControlFlow<Self::BreakTy> {
+        match node {
+            Statement::Block(s) => self.visit(s),
+            Statement::Var(s) => self.visit(s),
+            Statement::If(s) => self.visit(s),
+            Statement::DoWhileLoop(s) => self.visit(s),
+            Statement::WhileLoop(s) => self.visit(s),
+            Statement::ForLoop(s) => self.visit(s),
+            Statement::ForInLoop(s) => self.visit(s),
+            Statement::ForOfLoop(s) => self.visit(s),
+            Statement::Switch(s) => self.visit(s),
+            Statement::Labelled(s) => self.visit(s),
+            Statement::Try(s) => self.visit(s),
+            Statement::With(s) => self.visit(s),
+            Statement::Empty
+            | Statement::Expression(_)
+            | Statement::Continue(_)
+            | Statement::Break(_)
+            | Statement::Return(_)
+            | Statement::Throw(_) => ControlFlow::Continue(()),
+        }
+    }
+
+    fn visit_statement_list_item(
+        &mut self,
+        node: &'ast StatementListItem,
+    ) -> ControlFlow<Self::BreakTy> {
+        match node {
+            StatementListItem::Declaration(_) => ControlFlow::Continue(()),
+            StatementListItem::Statement(s) => self.visit(s),
+        }
+    }
+
+    fn visit_var_declaration(&mut self, node: &'ast VarDeclaration) -> ControlFlow<Self::BreakTy> {
+        for var in node.0.as_ref() {
+            self.0
+                .push(VarScopedDeclaration::VariableDeclaration(var.clone()));
+        }
+        ControlFlow::Continue(())
+    }
+
+    fn visit_if(&mut self, node: &'ast crate::statement::If) -> ControlFlow<Self::BreakTy> {
+        self.visit(node.body());
+        if let Some(else_node) = node.else_node() {
+            self.visit(else_node);
+        }
+        ControlFlow::Continue(())
+    }
+
+    fn visit_do_while_loop(
+        &mut self,
+        node: &'ast crate::statement::DoWhileLoop,
+    ) -> ControlFlow<Self::BreakTy> {
+        self.visit(node.body());
+        ControlFlow::Continue(())
+    }
+
+    fn visit_while_loop(
+        &mut self,
+        node: &'ast crate::statement::WhileLoop,
+    ) -> ControlFlow<Self::BreakTy> {
+        self.visit(node.body());
+        ControlFlow::Continue(())
+    }
+
+    fn visit_for_loop(
+        &mut self,
+        node: &'ast crate::statement::ForLoop,
+    ) -> ControlFlow<Self::BreakTy> {
+        if let Some(ForLoopInitializer::Var(v)) = node.init() {
+            self.visit(v);
+        }
+        self.visit(node.body());
+        ControlFlow::Continue(())
+    }
+
+    fn visit_for_in_loop(
+        &mut self,
+        node: &'ast crate::statement::ForInLoop,
+    ) -> ControlFlow<Self::BreakTy> {
+        if let IterableLoopInitializer::Var(var) = node.initializer() {
+            self.0
+                .push(VarScopedDeclaration::VariableDeclaration(var.clone()));
+        }
+        self.visit(node.body());
+        ControlFlow::Continue(())
+    }
+
+    fn visit_for_of_loop(
+        &mut self,
+        node: &'ast crate::statement::ForOfLoop,
+    ) -> ControlFlow<Self::BreakTy> {
+        if let IterableLoopInitializer::Var(var) = node.initializer() {
+            self.0
+                .push(VarScopedDeclaration::VariableDeclaration(var.clone()));
+        }
+        self.visit(node.body());
+        ControlFlow::Continue(())
+    }
+
+    fn visit_with(&mut self, node: &'ast crate::statement::With) -> ControlFlow<Self::BreakTy> {
+        self.visit(node.statement());
+        ControlFlow::Continue(())
+    }
+
+    fn visit_switch(&mut self, node: &'ast crate::statement::Switch) -> ControlFlow<Self::BreakTy> {
+        for case in node.cases() {
+            self.visit(case);
+        }
+        if let Some(default) = node.default() {
+            self.visit(default);
+        }
+        ControlFlow::Continue(())
+    }
+
+    fn visit_case(&mut self, node: &'ast crate::statement::Case) -> ControlFlow<Self::BreakTy> {
+        self.visit(node.body());
+        ControlFlow::Continue(())
+    }
+
+    fn visit_labelled_item(&mut self, node: &'ast LabelledItem) -> ControlFlow<Self::BreakTy> {
+        match node {
+            LabelledItem::Statement(s) => self.visit(s),
+            LabelledItem::Function(_) => ControlFlow::Continue(()),
+        }
+    }
+
+    fn visit_catch(&mut self, node: &'ast crate::statement::Catch) -> ControlFlow<Self::BreakTy> {
+        self.visit(node.block());
+        ControlFlow::Continue(())
+    }
+
+    fn visit_module_item(&mut self, node: &'ast ModuleItem) -> ControlFlow<Self::BreakTy> {
+        match node {
+            ModuleItem::ExportDeclaration(ExportDeclaration::VarStatement(var)) => self.visit(var),
+            ModuleItem::StatementListItem(item) => self.visit(item),
+            _ => ControlFlow::Continue(()),
+        }
+    }
+}
+
+/// Returns a list of top level var scoped declarations of the given node.
+///
+/// This is equivalent to the [`TopLevelVarScopedDeclarations`][spec] syntax operation in the spec.
+///
+/// [spec]: https://tc39.es/ecma262/#sec-static-semantics-toplevelvarscopeddeclarations
+#[must_use]
+pub fn top_level_var_scoped_declarations<'a, N>(node: &'a N) -> Vec<VarScopedDeclaration>
+where
+    &'a N: Into<NodeRef<'a>>,
+{
+    let mut declarations = Vec::new();
+    TopLevelVarScopedDeclarationsVisitor(&mut declarations).visit(node.into());
+    declarations
+}
+
+/// The [`Visitor`] used to obtain the top level var scoped declarations of a node.
+#[derive(Debug)]
+struct TopLevelVarScopedDeclarationsVisitor<'a>(&'a mut Vec<VarScopedDeclaration>);
+
+impl<'ast> Visitor<'ast> for TopLevelVarScopedDeclarationsVisitor<'_> {
+    type BreakTy = Infallible;
+
+    fn visit_statement_list_item(
+        &mut self,
+        node: &'ast StatementListItem,
+    ) -> ControlFlow<Self::BreakTy> {
+        match node {
+            StatementListItem::Declaration(d) => {
+                match d {
+                    Declaration::Function(f) => {
+                        self.0.push(VarScopedDeclaration::Function(f.clone()));
+                    }
+                    Declaration::Generator(f) => {
+                        self.0.push(VarScopedDeclaration::Generator(f.clone()));
+                    }
+                    Declaration::AsyncFunction(f) => {
+                        self.0.push(VarScopedDeclaration::AsyncFunction(f.clone()));
+                    }
+                    Declaration::AsyncGenerator(f) => {
+                        self.0.push(VarScopedDeclaration::AsyncGenerator(f.clone()));
+                    }
+                    _ => {}
+                }
+                ControlFlow::Continue(())
+            }
+            StatementListItem::Statement(Statement::Labelled(s)) => self.visit(s),
+            StatementListItem::Statement(s) => {
+                VarScopedDeclarationsVisitor(self.0).visit(s);
+                ControlFlow::Continue(())
+            }
+        }
+    }
+
+    fn visit_labelled_item(&mut self, node: &'ast LabelledItem) -> ControlFlow<Self::BreakTy> {
+        match node {
+            LabelledItem::Statement(Statement::Labelled(s)) => self.visit(s),
+            LabelledItem::Statement(s) => {
+                VarScopedDeclarationsVisitor(self.0).visit(s);
+                ControlFlow::Continue(())
+            }
+            LabelledItem::Function(f) => {
+                self.0.push(VarScopedDeclaration::Function(f.clone()));
+                ControlFlow::Continue(())
+            }
+        }
+    }
 }

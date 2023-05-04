@@ -1,10 +1,8 @@
 use super::{ByteCompiler, Literal, NodeKind};
 use crate::vm::{BindingOpcode, Opcode};
 use boa_ast::{
-    declaration::Binding,
     expression::Identifier,
-    function::{Class, ClassElement},
-    operations::bound_names,
+    function::{Class, ClassElement, FormalParameterList},
     property::{MethodDefinition, PropertyName},
 };
 use boa_gc::Gc;
@@ -40,51 +38,22 @@ impl ByteCompiler<'_, '_> {
         if let Some(expr) = class.constructor() {
             compiler.length = expr.parameters().length();
             compiler.params = expr.parameters().clone();
-            compiler.create_mutable_binding(Sym::ARGUMENTS.into(), false, false);
-            compiler.arguments_binding =
-                Some(compiler.initialize_mutable_binding(Sym::ARGUMENTS.into(), false));
-            for parameter in expr.parameters().as_ref() {
-                if parameter.is_rest_param() {
-                    compiler.emit_opcode(Opcode::RestParameterInit);
-                }
 
-                match parameter.variable().binding() {
-                    Binding::Identifier(ident) => {
-                        compiler.create_mutable_binding(*ident, false, false);
-                        if let Some(init) = parameter.variable().init() {
-                            let skip =
-                                compiler.emit_opcode_with_operand(Opcode::JumpIfNotUndefined);
-                            compiler.compile_expr(init, true);
-                            compiler.patch_jump(skip);
-                        }
-                        compiler.emit_binding(BindingOpcode::InitArg, *ident);
-                    }
-                    Binding::Pattern(pattern) => {
-                        for ident in bound_names(pattern) {
-                            compiler.create_mutable_binding(ident, false, false);
-                        }
-                        compiler.compile_declaration_pattern(pattern, BindingOpcode::InitArg);
-                    }
-                }
-            }
-            if !expr.parameters().has_rest_parameter() {
-                compiler.emit_opcode(Opcode::RestParameterPop);
-            }
-            let env_label = if expr.parameters().has_expressions() {
-                compiler.num_bindings = compiler.current_environment.borrow().num_bindings();
-                compiler.push_compile_environment(true);
-                compiler.function_environment_push_location = compiler.next_opcode_location();
-                Some(compiler.emit_opcode_with_two_operands(Opcode::PushFunctionEnvironment))
-            } else {
-                None
-            };
-            compiler.compile_statement_list(expr.body(), false, false);
+            let (env_labels, _) = compiler.function_declaration_instantiation(
+                expr.body(),
+                expr.parameters(),
+                false,
+                true,
+                false,
+            );
+
+            compiler.compile_statement_list(expr.body(), false);
 
             let env_info = compiler.pop_compile_environment();
 
-            if let Some(env_label) = env_label {
-                compiler.patch_jump_with_target(env_label.0, env_info.num_bindings as u32);
-                compiler.patch_jump_with_target(env_label.1, env_info.index as u32);
+            if let Some(env_labels) = env_labels {
+                compiler.patch_jump_with_target(env_labels.0, env_info.num_bindings as u32);
+                compiler.patch_jump_with_target(env_labels.1, env_info.index as u32);
                 compiler.pop_compile_environment();
             } else {
                 compiler.num_bindings = env_info.num_bindings;
@@ -396,8 +365,16 @@ impl ByteCompiler<'_, '_> {
                     compiler.push_compile_environment(false);
                     compiler.create_immutable_binding(class_name.into(), true);
                     compiler.push_compile_environment(true);
-                    compiler.create_declarations(statement_list, false);
-                    compiler.compile_statement_list(statement_list, false, false);
+
+                    compiler.function_declaration_instantiation(
+                        statement_list,
+                        &FormalParameterList::default(),
+                        false,
+                        true,
+                        false,
+                    );
+
+                    compiler.compile_statement_list(statement_list, false);
                     let env_info = compiler.pop_compile_environment();
                     compiler.pop_compile_environment();
                     compiler.num_bindings = env_info.num_bindings;

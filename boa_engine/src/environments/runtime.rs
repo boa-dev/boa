@@ -336,6 +336,22 @@ impl DeclarativeEnvironmentStack {
         None
     }
 
+    /// Check if the next outer function environment is the global environment.
+    pub(crate) fn is_next_outer_function_environment_global(&self) -> bool {
+        for env in self
+            .stack
+            .iter()
+            .rev()
+            .filter_map(Environment::as_declarative)
+        {
+            let compile = env.compile.borrow();
+            if compile.is_function() {
+                return compile.outer().is_none();
+            }
+        }
+        true
+    }
+
     /// Pop all current environments except the global environment.
     pub(crate) fn pop_to_global(&mut self) -> Vec<Environment> {
         self.stack.split_off(1)
@@ -481,14 +497,9 @@ impl DeclarativeEnvironmentStack {
 
         let this = this.unwrap_or(JsValue::Null);
 
-        let mut bindings = vec![None; num_bindings];
-        for index in compile_environment.borrow().var_binding_indices() {
-            bindings[index] = Some(JsValue::Undefined);
-        }
-
         self.stack
             .push(Environment::Declarative(Gc::new(DeclarativeEnvironment {
-                bindings: GcRefCell::new(bindings),
+                bindings: GcRefCell::new(vec![None; num_bindings]),
                 compile: compile_environment,
                 poisoned: Cell::new(poisoned),
                 with: Cell::new(with),
@@ -539,14 +550,9 @@ impl DeclarativeEnvironmentStack {
             )
         };
 
-        let mut bindings = vec![None; num_bindings];
-        for index in compile_environment.borrow().var_binding_indices() {
-            bindings[index] = Some(JsValue::Undefined);
-        }
-
         self.stack
             .push(Environment::Declarative(Gc::new(DeclarativeEnvironment {
-                bindings: GcRefCell::new(bindings),
+                bindings: GcRefCell::new(vec![None; num_bindings]),
                 compile: compile_environment,
                 poisoned: Cell::new(poisoned),
                 with: Cell::new(with),

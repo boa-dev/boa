@@ -366,8 +366,6 @@ where
             items.push(item);
         }
 
-        items.sort_by(ast::StatementListItem::hoistable_order);
-
         cursor.set_strict(global_strict);
 
         Ok(ast::StatementList::new(items, strict))

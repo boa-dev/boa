@@ -100,9 +100,7 @@ fn assign_operator_precedence() {
 #[test]
 fn hoisting() {
     let interner = &mut Interner::default();
-    let hello = interner
-        .get_or_intern_static("hello", utf16!("hello"))
-        .into();
+    let hello = interner.get_or_intern_static("hello", utf16!("hello"));
     let a = interner.get_or_intern_static("a", utf16!("a"));
     check_script_parser(
         r"
@@ -111,16 +109,10 @@ fn hoisting() {
 
             function hello() { return 10 }",
         vec![
-            Declaration::Function(Function::new(
-                Some(hello),
-                FormalParameterList::default(),
-                vec![Statement::Return(Return::new(Some(Literal::from(10).into()))).into()].into(),
-            ))
-            .into(),
             Statement::Var(VarDeclaration(
                 vec![Variable::from_identifier(
                     a.into(),
-                    Some(Call::new(hello.into(), Box::default()).into()),
+                    Some(Call::new(Identifier::new(hello).into(), Box::default()).into()),
                 )]
                 .try_into()
                 .unwrap(),
@@ -130,6 +122,12 @@ fn hoisting() {
                 UpdateOp::IncrementPost,
                 UpdateTarget::Identifier(Identifier::new(a)),
             )))
+            .into(),
+            Declaration::Function(Function::new(
+                Some(hello.into()),
+                FormalParameterList::default(),
+                vec![Statement::Return(Return::new(Some(Literal::from(10).into()))).into()].into(),
+            ))
             .into(),
         ],
         interner,

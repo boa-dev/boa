@@ -119,15 +119,6 @@ fn hoisting() {
             function hello() { return 10 }
         }",
         vec![
-            Declaration::Function(Function::new(
-                Some(hello.into()),
-                FormalParameterList::default(),
-                vec![StatementListItem::Statement(Statement::Return(
-                    Return::new(Some(Literal::from(10).into())),
-                ))]
-                .into(),
-            ))
-            .into(),
             Statement::Var(VarDeclaration(
                 vec![Variable::from_identifier(
                     a.into(),
@@ -141,6 +132,15 @@ fn hoisting() {
                 UpdateOp::IncrementPost,
                 UpdateTarget::Identifier(Identifier::new(a)),
             )))
+            .into(),
+            Declaration::Function(Function::new(
+                Some(hello.into()),
+                FormalParameterList::default(),
+                vec![StatementListItem::Statement(Statement::Return(
+                    Return::new(Some(Literal::from(10).into())),
+                ))]
+                .into(),
+            ))
             .into(),
         ],
         interner,

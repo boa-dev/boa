@@ -18,7 +18,7 @@ use std::{io::Read, rc::Rc};
 
 use crate::{
     builtins,
-    bytecompiler::ByteCompiler,
+    bytecompiler::{ByteCompiler, NodeKind},
     class::{Class, ClassBuilder},
     job::{JobQueue, NativeJob, SimpleJobQueue},
     native_function::NativeFunction,
@@ -26,10 +26,15 @@ use crate::{
     optimizer::{Optimizer, OptimizerOptions, OptimizerStatistics},
     property::{Attribute, PropertyDescriptor, PropertyKey},
     realm::Realm,
-    vm::{CallFrame, CodeBlock, Vm},
+    vm::{CallFrame, CodeBlock, Opcode, Vm},
     JsResult, JsValue, Source,
 };
-use boa_ast::{ModuleItemList, StatementList};
+use boa_ast::{
+    declaration::LexicalDeclaration,
+    expression::Identifier,
+    operations::{bound_names, lexically_scoped_declarations, var_scoped_declarations},
+    Declaration, ModuleItemList, StatementList,
+};
 use boa_gc::Gc;
 use boa_interner::{Interner, Sym};
 use boa_parser::{Error as ParseError, Parser};
@@ -246,6 +251,7 @@ impl<'host> Context<'host> {
     /// Compile the script AST into a `CodeBlock` ready to be executed by the VM.
     pub fn compile_script(&mut self, statement_list: &StatementList) -> JsResult<Gc<CodeBlock>> {
         let _timer = Profiler::global().start_event("Script compilation", "Main");
+
         let mut compiler = ByteCompiler::new(
             Sym::MAIN,
             statement_list.strict(),
@@ -253,7 +259,8 @@ impl<'host> Context<'host> {
             self.realm.environment().compile_env(),
             self,
         );
-        compiler.compile_statement_list(statement_list, true, false);
+        compiler.global_declaration_instantiation(statement_list)?;
+        compiler.compile_statement_list(statement_list, true);
         Ok(Gc::new(compiler.finish()))
     }
 
@@ -268,8 +275,67 @@ impl<'host> Context<'host> {
             self.realm.environment().compile_env(),
             self,
         );
-        compiler.create_module_decls(statement_list, false);
-        compiler.compile_module_item_list(statement_list, false);
+        let var_declarations = var_scoped_declarations(statement_list);
+        let mut declared_var_names = Vec::new();
+        for var in var_declarations {
+            for name in var.bound_names() {
+                if !declared_var_names.contains(&name) {
+                    compiler.create_mutable_binding(name, false);
+                    let binding = compiler.initialize_mutable_binding(name, false);
+                    let index = compiler.get_or_insert_binding(binding);
+                    compiler.emit_opcode(Opcode::PushUndefined);
+                    compiler.emit(Opcode::DefInitVar, &[index]);
+                    declared_var_names.push(name);
+                }
+            }
+        }
+
+        let lex_declarations = lexically_scoped_declarations(statement_list);
+        for declaration in lex_declarations {
+            match &declaration {
+                Declaration::Lexical(LexicalDeclaration::Const(declaration)) => {
+                    for name in bound_names(declaration) {
+                        compiler.create_immutable_binding(name, true);
+                    }
+                }
+                Declaration::Lexical(LexicalDeclaration::Let(declaration)) => {
+                    for name in bound_names(declaration) {
+                        compiler.create_mutable_binding(name, false);
+                    }
+                }
+                Declaration::Function(function) => {
+                    for name in bound_names(function) {
+                        compiler.create_mutable_binding(name, false);
+                    }
+                    compiler.function(function.into(), NodeKind::Declaration, false);
+                }
+                Declaration::Generator(function) => {
+                    for name in bound_names(function) {
+                        compiler.create_mutable_binding(name, false);
+                    }
+                    compiler.function(function.into(), NodeKind::Declaration, false);
+                }
+                Declaration::AsyncFunction(function) => {
+                    for name in bound_names(function) {
+                        compiler.create_mutable_binding(name, false);
+                    }
+                    compiler.function(function.into(), NodeKind::Declaration, false);
+                }
+                Declaration::AsyncGenerator(function) => {
+                    for name in bound_names(function) {
+                        compiler.create_mutable_binding(name, false);
+                    }
+                    compiler.function(function.into(), NodeKind::Declaration, false);
+                }
+                Declaration::Class(class) => {
+                    for name in bound_names(class) {
+                        compiler.create_mutable_binding(name, false);
+                    }
+                }
+            }
+        }
+
+        compiler.compile_module_item_list(statement_list);
         Ok(Gc::new(compiler.finish()))
     }
 
@@ -557,6 +623,163 @@ impl Context<'_> {
     /// Swaps the currently active realm with `realm`.
     pub(crate) fn swap_realm(&mut self, realm: &mut Realm) {
         std::mem::swap(&mut self.realm, realm);
+    }
+
+    /// `CanDeclareGlobalFunction ( N )`
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-candeclareglobalfunction
+    pub(crate) fn can_declare_global_function(&mut self, name: Identifier) -> JsResult<bool> {
+        // 1. Let ObjRec be envRec.[[ObjectRecord]].
+        // 2. Let globalObject be ObjRec.[[BindingObject]].
+        let global_object = self.realm().global_object().clone();
+
+        // 3. Let existingProp be ? globalObject.[[GetOwnProperty]](N).
+        let name = self.interner().resolve_expect(name.sym()).utf16().into();
+        let existing_prop = global_object.__get_own_property__(&name, self)?;
+
+        // 4. If existingProp is undefined, return ? IsExtensible(globalObject).
+        let Some(existing_prop) = existing_prop else {
+            return global_object.is_extensible(self);
+        };
+
+        // 5. If existingProp.[[Configurable]] is true, return true.
+        if existing_prop.configurable() == Some(true) {
+            return Ok(true);
+        }
+
+        // 6. If IsDataDescriptor(existingProp) is true and existingProp has attribute values { [[Writable]]: true, [[Enumerable]]: true }, return true.
+        if existing_prop.is_data_descriptor()
+            && existing_prop.writable() == Some(true)
+            && existing_prop.enumerable() == Some(true)
+        {
+            return Ok(true);
+        }
+
+        // 7. Return false.
+        Ok(false)
+    }
+
+    /// `CanDeclareGlobalVar ( N )`
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-candeclareglobalvar
+    pub(crate) fn can_declare_global_var(&mut self, name: Identifier) -> JsResult<bool> {
+        // 1. Let ObjRec be envRec.[[ObjectRecord]].
+        // 2. Let globalObject be ObjRec.[[BindingObject]].
+        let global_object = self.realm().global_object().clone();
+
+        // 3. Let hasProperty be ? HasOwnProperty(globalObject, N).
+        let name = PropertyKey::from(self.interner().resolve_expect(name.sym()).utf16());
+        let has_property = global_object.has_own_property(name, self)?;
+
+        // 4. If hasProperty is true, return true.
+        if has_property {
+            return Ok(true);
+        }
+
+        // 5. Return ? IsExtensible(globalObject).
+        global_object.is_extensible(self)
+    }
+
+    /// `CreateGlobalVarBinding ( N, D )`
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-createglobalvarbinding
+    pub(crate) fn create_global_var_binding(
+        &mut self,
+        name: Identifier,
+        configurable: bool,
+    ) -> JsResult<()> {
+        // 1. Let ObjRec be envRec.[[ObjectRecord]].
+        // 2. Let globalObject be ObjRec.[[BindingObject]].
+        let global_object = self.realm().global_object().clone();
+
+        // 3. Let hasProperty be ? HasOwnProperty(globalObject, N).
+        let name = PropertyKey::from(self.interner().resolve_expect(name.sym()).utf16());
+        let has_property = global_object.has_own_property(name.clone(), self)?;
+
+        // 4. Let extensible be ? IsExtensible(globalObject).
+        let extensible = global_object.is_extensible(self)?;
+
+        // 5. If hasProperty is false and extensible is true, then
+        if !has_property && extensible {
+            // a. Perform ? ObjRec.CreateMutableBinding(N, D).
+            // b. Perform ? ObjRec.InitializeBinding(N, undefined).
+            global_object.define_property_or_throw(
+                name,
+                PropertyDescriptor::builder()
+                    .value(JsValue::undefined())
+                    .writable(true)
+                    .enumerable(true)
+                    .configurable(configurable)
+                    .build(),
+                self,
+            )?;
+        }
+
+        // 6. If envRec.[[VarNames]] does not contain N, then
+        //     a. Append N to envRec.[[VarNames]].
+        // 7. Return unused.
+        Ok(())
+    }
+
+    /// `CreateGlobalFunctionBinding ( N, V, D )`
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-createglobalfunctionbinding
+    pub(crate) fn create_global_function_binding(
+        &mut self,
+        name: Identifier,
+        function: JsObject,
+        configurable: bool,
+    ) -> JsResult<()> {
+        // 1. Let ObjRec be envRec.[[ObjectRecord]].
+        // 2. Let globalObject be ObjRec.[[BindingObject]].
+        let global_object = self.realm().global_object().clone();
+
+        // 3. Let existingProp be ? globalObject.[[GetOwnProperty]](N).
+        let name = PropertyKey::from(self.interner().resolve_expect(name.sym()).utf16());
+        let existing_prop = global_object.__get_own_property__(&name, self)?;
+
+        // 4. If existingProp is undefined or existingProp.[[Configurable]] is true, then
+        let desc = if existing_prop.is_none()
+            || existing_prop.and_then(|p| p.configurable()) == Some(true)
+        {
+            // a. Let desc be the PropertyDescriptor { [[Value]]: V, [[Writable]]: true, [[Enumerable]]: true, [[Configurable]]: D }.
+            PropertyDescriptor::builder()
+                .value(function.clone())
+                .writable(true)
+                .enumerable(true)
+                .configurable(configurable)
+                .build()
+        }
+        // 5. Else,
+        else {
+            // a. Let desc be the PropertyDescriptor { [[Value]]: V }.
+            PropertyDescriptor::builder()
+                .value(function.clone())
+                .build()
+        };
+
+        // 6. Perform ? DefinePropertyOrThrow(globalObject, N, desc).
+        global_object.define_property_or_throw(name.clone(), desc, self)?;
+
+        // 7. Perform ? Set(globalObject, N, V, false).
+        global_object.set(name, function, false, self)?;
+
+        // 8. If envRec.[[VarNames]] does not contain N, then
+        //     a. Append N to envRec.[[VarNames]].
+        // 9. Return unused.
+        Ok(())
     }
 }
 

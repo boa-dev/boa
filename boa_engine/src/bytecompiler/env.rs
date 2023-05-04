@@ -1,13 +1,7 @@
+use super::ByteCompiler;
+use crate::environments::{BindingLocator, CompileTimeEnvironment};
 use boa_ast::expression::Identifier;
 use boa_gc::{Gc, GcRefCell};
-
-use crate::{
-    environments::{BindingLocator, CompileTimeEnvironment},
-    property::PropertyDescriptor,
-    JsString, JsValue,
-};
-
-use super::ByteCompiler;
 
 /// Info returned by the [`ByteCompiler::pop_compile_environment`] method.
 #[derive(Debug, Clone, Copy)]
@@ -64,47 +58,25 @@ impl ByteCompiler<'_, '_> {
             .has_binding_recursive(name)
     }
 
+    /// Check if a binding name exists in a environment.
+    /// If strict is `false` check until a function scope is reached.
+    pub(crate) fn has_binding_eval(&self, name: Identifier, strict: bool) -> bool {
+        self.current_environment
+            .borrow()
+            .has_binding_eval(name, strict)
+    }
+
     /// Create a mutable binding at bytecode compile time.
     /// This function returns a syntax error, if the binding is a redeclaration.
     ///
     /// # Panics
     ///
     /// Panics if the global environment is not function scoped.
-    pub(crate) fn create_mutable_binding(
-        &mut self,
-        name: Identifier,
-        function_scope: bool,
-        configurable: bool,
-    ) {
-        if !self
+    pub(crate) fn create_mutable_binding(&mut self, name: Identifier, function_scope: bool) {
+        assert!(self
             .current_environment
             .borrow_mut()
-            .create_mutable_binding(name, function_scope)
-        {
-            let name_str = self
-                .context
-                .interner()
-                .resolve_expect(name.sym())
-                .into_common::<JsString>(false);
-
-            let global_obj = self.context.global_object();
-
-            // TODO: defer global initialization to execution time.
-            if !global_obj
-                .has_own_property(name_str.clone(), self.context)
-                .unwrap_or_default()
-            {
-                global_obj.borrow_mut().insert(
-                    name_str,
-                    PropertyDescriptor::builder()
-                        .value(JsValue::Undefined)
-                        .writable(true)
-                        .enumerable(true)
-                        .configurable(configurable)
-                        .build(),
-                );
-            }
-        }
+            .create_mutable_binding(name, function_scope));
     }
 
     /// Initialize a mutable binding at bytecode compile time and return it's binding locator.

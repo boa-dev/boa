@@ -33,7 +33,9 @@ pub use {call_frame::CallFrame, code_block::CodeBlock, opcode::Opcode};
 
 pub(crate) use {
     call_frame::GeneratorResumeKind,
-    code_block::{create_function_object, create_generator_function_object},
+    code_block::{
+        create_function_object, create_function_object_fast, create_generator_function_object,
+    },
     completion_record::CompletionRecord,
     opcode::BindingOpcode,
 };

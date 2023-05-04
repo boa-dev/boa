@@ -9,8 +9,6 @@ use crate::{
 use boa_interner::{Interner, ToIndentedString};
 use core::ops::ControlFlow;
 
-use std::cmp::Ordering;
-
 /// An item inside a [`StatementList`] Parse Node, as defined by the [spec].
 ///
 /// Items in a `StatementList` can be either [`Declaration`]s (functions, classes, let/const declarations)
@@ -25,34 +23,6 @@ pub enum StatementListItem {
     Statement(Statement),
     /// See [`Declaration`].
     Declaration(Declaration),
-}
-
-impl StatementListItem {
-    /// Returns a node ordering based on the hoistability of each statement.
-    #[must_use]
-    pub const fn hoistable_order(a: &Self, b: &Self) -> Ordering {
-        match (a, b) {
-            (
-                _,
-                Self::Declaration(
-                    Declaration::Function(_)
-                    | Declaration::Generator(_)
-                    | Declaration::AsyncFunction(_)
-                    | Declaration::AsyncGenerator(_),
-                ),
-            ) => Ordering::Greater,
-            (
-                Self::Declaration(
-                    Declaration::Function(_)
-                    | Declaration::Generator(_)
-                    | Declaration::AsyncFunction(_)
-                    | Declaration::AsyncGenerator(_),
-                ),
-                _,
-            ) => Ordering::Less,
-            (_, _) => Ordering::Equal,
-        }
-    }
 }
 
 impl ToIndentedString for StatementListItem {

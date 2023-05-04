@@ -1,5 +1,5 @@
 use boa_ast::{
-    declaration::Binding,
+    declaration::{Binding, LexicalDeclaration},
     operations::bound_names,
     statement::{
         iteration::{ForLoopInitializer, IterableLoopInitializer},
@@ -14,12 +14,7 @@ use crate::{
 };
 
 impl ByteCompiler<'_, '_> {
-    pub(crate) fn compile_for_loop(
-        &mut self,
-        for_loop: &ForLoop,
-        label: Option<Sym>,
-        configurable_globals: bool,
-    ) {
+    pub(crate) fn compile_for_loop(&mut self, for_loop: &ForLoop, label: Option<Sym>) {
         self.push_compile_environment(false);
         let push_env = self.emit_opcode_with_two_operands(Opcode::PushDeclarativeEnvironment);
         self.push_empty_loop_jump_control();
@@ -28,11 +23,21 @@ impl ByteCompiler<'_, '_> {
             match init {
                 ForLoopInitializer::Expression(expr) => self.compile_expr(expr, false),
                 ForLoopInitializer::Var(decl) => {
-                    self.create_decls_from_var_decl(decl, configurable_globals);
                     self.compile_var_decl(decl);
                 }
                 ForLoopInitializer::Lexical(decl) => {
-                    self.create_decls_from_lexical_decl(decl);
+                    match decl {
+                        LexicalDeclaration::Const(decl) => {
+                            for name in bound_names(decl) {
+                                self.create_immutable_binding(name, true);
+                            }
+                        }
+                        LexicalDeclaration::Let(decl) => {
+                            for name in bound_names(decl) {
+                                self.create_mutable_binding(name, false);
+                            }
+                        }
+                    }
                     self.compile_lexical_decl(decl);
                 }
             }
@@ -67,7 +72,7 @@ impl ByteCompiler<'_, '_> {
         }
         let exit = self.jump_if_false();
 
-        self.compile_stmt(for_loop.body(), false, configurable_globals);
+        self.compile_stmt(for_loop.body(), false);
 
         self.emit(Opcode::Jump, &[start_address]);
 
@@ -83,18 +88,12 @@ impl ByteCompiler<'_, '_> {
         self.emit_opcode(Opcode::PopEnvironment);
     }
 
-    pub(crate) fn compile_for_in_loop(
-        &mut self,
-        for_in_loop: &ForInLoop,
-        label: Option<Sym>,
-        configurable_globals: bool,
-    ) {
+    pub(crate) fn compile_for_in_loop(&mut self, for_in_loop: &ForInLoop, label: Option<Sym>) {
         // Handle https://tc39.es/ecma262/#prod-annexB-ForInOfStatement
         if let IterableLoopInitializer::Var(var) = for_in_loop.initializer() {
             if let Binding::Identifier(ident) = var.binding() {
                 if let Some(init) = var.init() {
                     self.compile_expr(init, true);
-                    self.create_mutable_binding(*ident, true, true);
                     self.emit_binding(BindingOpcode::InitVar, *ident);
                 }
             }
@@ -111,7 +110,7 @@ impl ByteCompiler<'_, '_> {
             let push_env = self.emit_opcode_with_two_operands(Opcode::PushDeclarativeEnvironment);
 
             for name in &initializer_bound_names {
-                self.create_mutable_binding(*name, false, false);
+                self.create_mutable_binding(*name, false);
             }
             self.compile_expr(for_in_loop.target(), true);
 
@@ -146,7 +145,6 @@ impl ByteCompiler<'_, '_> {
 
         match for_in_loop.initializer() {
             IterableLoopInitializer::Identifier(ident) => {
-                self.create_mutable_binding(*ident, true, true);
                 self.emit_binding(BindingOpcode::InitVar, *ident);
             }
             IterableLoopInitializer::Access(access) => {
@@ -158,24 +156,20 @@ impl ByteCompiler<'_, '_> {
             }
             IterableLoopInitializer::Var(declaration) => match declaration.binding() {
                 Binding::Identifier(ident) => {
-                    self.create_mutable_binding(*ident, true, configurable_globals);
                     self.emit_binding(BindingOpcode::InitVar, *ident);
                 }
                 Binding::Pattern(pattern) => {
-                    for ident in bound_names(pattern) {
-                        self.create_mutable_binding(ident, true, false);
-                    }
                     self.compile_declaration_pattern(pattern, BindingOpcode::InitVar);
                 }
             },
             IterableLoopInitializer::Let(declaration) => match declaration {
                 Binding::Identifier(ident) => {
-                    self.create_mutable_binding(*ident, false, false);
+                    self.create_mutable_binding(*ident, false);
                     self.emit_binding(BindingOpcode::InitLet, *ident);
                 }
                 Binding::Pattern(pattern) => {
                     for ident in bound_names(pattern) {
-                        self.create_mutable_binding(ident, false, false);
+                        self.create_mutable_binding(ident, false);
                     }
                     self.compile_declaration_pattern(pattern, BindingOpcode::InitLet);
                 }
@@ -197,7 +191,7 @@ impl ByteCompiler<'_, '_> {
             }
         }
 
-        self.compile_stmt(for_in_loop.body(), false, configurable_globals);
+        self.compile_stmt(for_in_loop.body(), false);
 
         if let Some(iteration_environment) = iteration_environment {
             let env_info = self.pop_compile_environment();
@@ -220,12 +214,7 @@ impl ByteCompiler<'_, '_> {
         self.patch_jump(early_exit);
     }
 
-    pub(crate) fn compile_for_of_loop(
-        &mut self,
-        for_of_loop: &ForOfLoop,
-        label: Option<Sym>,
-        configurable_globals: bool,
-    ) {
+    pub(crate) fn compile_for_of_loop(&mut self, for_of_loop: &ForOfLoop, label: Option<Sym>) {
         let initializer_bound_names = match for_of_loop.initializer() {
             IterableLoopInitializer::Let(declaration)
             | IterableLoopInitializer::Const(declaration) => bound_names(declaration),
@@ -238,7 +227,7 @@ impl ByteCompiler<'_, '_> {
             let push_env = self.emit_opcode_with_two_operands(Opcode::PushDeclarativeEnvironment);
 
             for name in &initializer_bound_names {
-                self.create_mutable_binding(*name, false, false);
+                self.create_mutable_binding(*name, false);
             }
             self.compile_expr(for_of_loop.iterable(), true);
 
@@ -280,7 +269,6 @@ impl ByteCompiler<'_, '_> {
 
         match for_of_loop.initializer() {
             IterableLoopInitializer::Identifier(ref ident) => {
-                self.create_mutable_binding(*ident, true, true);
                 let binding = self.set_mutable_binding(*ident);
                 let index = self.get_or_insert_binding(binding);
                 self.emit(Opcode::DefInitVar, &[index]);
@@ -297,25 +285,21 @@ impl ByteCompiler<'_, '_> {
                 assert!(declaration.init().is_none());
                 match declaration.binding() {
                     Binding::Identifier(ident) => {
-                        self.create_mutable_binding(*ident, true, false);
                         self.emit_binding(BindingOpcode::InitVar, *ident);
                     }
                     Binding::Pattern(pattern) => {
-                        for ident in bound_names(pattern) {
-                            self.create_mutable_binding(ident, true, false);
-                        }
                         self.compile_declaration_pattern(pattern, BindingOpcode::InitVar);
                     }
                 }
             }
             IterableLoopInitializer::Let(declaration) => match declaration {
                 Binding::Identifier(ident) => {
-                    self.create_mutable_binding(*ident, false, false);
+                    self.create_mutable_binding(*ident, false);
                     self.emit_binding(BindingOpcode::InitLet, *ident);
                 }
                 Binding::Pattern(pattern) => {
                     for ident in bound_names(pattern) {
-                        self.create_mutable_binding(ident, false, false);
+                        self.create_mutable_binding(ident, false);
                     }
                     self.compile_declaration_pattern(pattern, BindingOpcode::InitLet);
                 }
@@ -337,7 +321,7 @@ impl ByteCompiler<'_, '_> {
             }
         }
 
-        self.compile_stmt(for_of_loop.body(), false, configurable_globals);
+        self.compile_stmt(for_of_loop.body(), false);
 
         if let Some(iteration_environment) = iteration_environment {
             let env_info = self.pop_compile_environment();
@@ -356,12 +340,7 @@ impl ByteCompiler<'_, '_> {
         self.iterator_close(for_of_loop.r#await());
     }
 
-    pub(crate) fn compile_while_loop(
-        &mut self,
-        while_loop: &WhileLoop,
-        label: Option<Sym>,
-        configurable_globals: bool,
-    ) {
+    pub(crate) fn compile_while_loop(&mut self, while_loop: &WhileLoop, label: Option<Sym>) {
         let (loop_start, loop_exit) = self.emit_opcode_with_two_operands(Opcode::LoopStart);
         let start_address = self.next_opcode_location();
         let (continue_start, continue_exit) =
@@ -372,7 +351,7 @@ impl ByteCompiler<'_, '_> {
 
         self.compile_expr(while_loop.condition(), true);
         let exit = self.jump_if_false();
-        self.compile_stmt(while_loop.body(), false, configurable_globals);
+        self.compile_stmt(while_loop.body(), false);
         self.emit(Opcode::Jump, &[start_address]);
 
         self.patch_jump(exit);
@@ -386,7 +365,6 @@ impl ByteCompiler<'_, '_> {
         &mut self,
         do_while_loop: &DoWhileLoop,
         label: Option<Sym>,
-        configurable_globals: bool,
     ) {
         let (loop_start, loop_exit) = self.emit_opcode_with_two_operands(Opcode::LoopStart);
         let initial_label = self.jump();
@@ -404,7 +382,7 @@ impl ByteCompiler<'_, '_> {
 
         self.patch_jump(initial_label);
 
-        self.compile_stmt(do_while_loop.body(), false, configurable_globals);
+        self.compile_stmt(do_while_loop.body(), false);
         self.emit(Opcode::Jump, &[condition_label_address]);
         self.patch_jump(exit);
         self.patch_jump(loop_exit);
