@@ -895,6 +895,99 @@
 <a href="#894" id="894">894</a>
 <a href="#895" id="895">895</a>
 <a href="#896" id="896">896</a>
+<a href="#897" id="897">897</a>
+<a href="#898" id="898">898</a>
+<a href="#899" id="899">899</a>
+<a href="#900" id="900">900</a>
+<a href="#901" id="901">901</a>
+<a href="#902" id="902">902</a>
+<a href="#903" id="903">903</a>
+<a href="#904" id="904">904</a>
+<a href="#905" id="905">905</a>
+<a href="#906" id="906">906</a>
+<a href="#907" id="907">907</a>
+<a href="#908" id="908">908</a>
+<a href="#909" id="909">909</a>
+<a href="#910" id="910">910</a>
+<a href="#911" id="911">911</a>
+<a href="#912" id="912">912</a>
+<a href="#913" id="913">913</a>
+<a href="#914" id="914">914</a>
+<a href="#915" id="915">915</a>
+<a href="#916" id="916">916</a>
+<a href="#917" id="917">917</a>
+<a href="#918" id="918">918</a>
+<a href="#919" id="919">919</a>
+<a href="#920" id="920">920</a>
+<a href="#921" id="921">921</a>
+<a href="#922" id="922">922</a>
+<a href="#923" id="923">923</a>
+<a href="#924" id="924">924</a>
+<a href="#925" id="925">925</a>
+<a href="#926" id="926">926</a>
+<a href="#927" id="927">927</a>
+<a href="#928" id="928">928</a>
+<a href="#929" id="929">929</a>
+<a href="#930" id="930">930</a>
+<a href="#931" id="931">931</a>
+<a href="#932" id="932">932</a>
+<a href="#933" id="933">933</a>
+<a href="#934" id="934">934</a>
+<a href="#935" id="935">935</a>
+<a href="#936" id="936">936</a>
+<a href="#937" id="937">937</a>
+<a href="#938" id="938">938</a>
+<a href="#939" id="939">939</a>
+<a href="#940" id="940">940</a>
+<a href="#941" id="941">941</a>
+<a href="#942" id="942">942</a>
+<a href="#943" id="943">943</a>
+<a href="#944" id="944">944</a>
+<a href="#945" id="945">945</a>
+<a href="#946" id="946">946</a>
+<a href="#947" id="947">947</a>
+<a href="#948" id="948">948</a>
+<a href="#949" id="949">949</a>
+<a href="#950" id="950">950</a>
+<a href="#951" id="951">951</a>
+<a href="#952" id="952">952</a>
+<a href="#953" id="953">953</a>
+<a href="#954" id="954">954</a>
+<a href="#955" id="955">955</a>
+<a href="#956" id="956">956</a>
+<a href="#957" id="957">957</a>
+<a href="#958" id="958">958</a>
+<a href="#959" id="959">959</a>
+<a href="#960" id="960">960</a>
+<a href="#961" id="961">961</a>
+<a href="#962" id="962">962</a>
+<a href="#963" id="963">963</a>
+<a href="#964" id="964">964</a>
+<a href="#965" id="965">965</a>
+<a href="#966" id="966">966</a>
+<a href="#967" id="967">967</a>
+<a href="#968" id="968">968</a>
+<a href="#969" id="969">969</a>
+<a href="#970" id="970">970</a>
+<a href="#971" id="971">971</a>
+<a href="#972" id="972">972</a>
+<a href="#973" id="973">973</a>
+<a href="#974" id="974">974</a>
+<a href="#975" id="975">975</a>
+<a href="#976" id="976">976</a>
+<a href="#977" id="977">977</a>
+<a href="#978" id="978">978</a>
+<a href="#979" id="979">979</a>
+<a href="#980" id="980">980</a>
+<a href="#981" id="981">981</a>
+<a href="#982" id="982">982</a>
+<a href="#983" id="983">983</a>
+<a href="#984" id="984">984</a>
+<a href="#985" id="985">985</a>
+<a href="#986" id="986">986</a>
+<a href="#987" id="987">987</a>
+<a href="#988" id="988">988</a>
+<a href="#989" id="989">989</a>
 </pre><pre class="rust"><code><span class="doccomment">//! Error-related types and conversions.
 
 </span><span class="kw">use crate</span>::{
@@ -941,7 +1034,7 @@
 /// let kind = &amp;native_error.as_native().unwrap().kind;
 /// assert!(matches!(kind, JsNativeErrorKind::Type));
 /// ```
-</span><span class="attr">#[derive(Debug, Clone, Trace, Finalize)]
+</span><span class="attr">#[derive(Debug, Clone, Trace, Finalize, PartialEq, Eq)]
 </span><span class="kw">pub struct </span>JsError {
     inner: Repr,
 }
@@ -956,7 +1049,7 @@
 /// This should never be used outside of this module. If that&#39;s not the case,
 /// you should add methods to either `JsError` or `JsNativeError` to
 /// represent that special use case.
-</span><span class="attr">#[derive(Debug, Clone, Trace, Finalize)]
+</span><span class="attr">#[derive(Debug, Clone, Trace, Finalize, PartialEq, Eq)]
 </span><span class="kw">enum </span>Repr {
     Native(JsNativeError),
     Opaque(JsValue),
@@ -1314,7 +1407,7 @@
 ///
 /// assert_eq!(native_error.message(), &quot;cannot decode uri&quot;);
 /// ```
-</span><span class="attr">#[derive(Clone, Trace, Finalize, Error)]
+</span><span class="attr">#[derive(Clone, Trace, Finalize, Error, PartialEq, Eq)]
 #[error(<span class="string">&quot;{kind}: {message}&quot;</span>)]
 </span><span class="kw">pub struct </span>JsNativeError {
     <span class="doccomment">/// The kind of native error (e.g. `TypeError`, `SyntaxError`, etc.)
@@ -1365,8 +1458,15 @@
     /// ));
     /// ```
     </span><span class="attr">#[must_use]
+    #[inline]
     </span><span class="kw">pub fn </span>aggregate(errors: Vec&lt;JsError&gt;) -&gt; <span class="self">Self </span>{
         <span class="self">Self</span>::new(JsNativeErrorKind::Aggregate(errors), Box::default(), <span class="prelude-val">None</span>)
+    }
+
+    <span class="doccomment">/// Check if it&#39;s a [`JsNativeErrorKind::Aggregate`].
+    </span><span class="attr">#[inline]
+    </span><span class="kw">pub const fn </span>is_aggregate(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="macro">matches!</span>(<span class="self">self</span>.kind, JsNativeErrorKind::Aggregate(<span class="kw">_</span>))
     }
 
     <span class="doccomment">/// Creates a new `JsNativeError` of kind `Error`, with empty `message` and undefined `cause`.
@@ -1380,8 +1480,15 @@
     /// assert!(matches!(error.kind, JsNativeErrorKind::Error));
     /// ```
     </span><span class="attr">#[must_use]
+    #[inline]
     </span><span class="kw">pub fn </span>error() -&gt; <span class="self">Self </span>{
         <span class="self">Self</span>::new(JsNativeErrorKind::Error, Box::default(), <span class="prelude-val">None</span>)
+    }
+
+    <span class="doccomment">/// Check if it&#39;s a [`JsNativeErrorKind::Error`].
+    </span><span class="attr">#[inline]
+    </span><span class="kw">pub const fn </span>is_error(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="macro">matches!</span>(<span class="self">self</span>.kind, JsNativeErrorKind::Error)
     }
 
     <span class="doccomment">/// Creates a new `JsNativeError` of kind `EvalError`, with empty `message` and undefined `cause`.
@@ -1395,8 +1502,15 @@
     /// assert!(matches!(error.kind, JsNativeErrorKind::Eval));
     /// ```
     </span><span class="attr">#[must_use]
+    #[inline]
     </span><span class="kw">pub fn </span>eval() -&gt; <span class="self">Self </span>{
         <span class="self">Self</span>::new(JsNativeErrorKind::Eval, Box::default(), <span class="prelude-val">None</span>)
+    }
+
+    <span class="doccomment">/// Check if it&#39;s a [`JsNativeErrorKind::Eval`].
+    </span><span class="attr">#[inline]
+    </span><span class="kw">pub const fn </span>is_eval(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="macro">matches!</span>(<span class="self">self</span>.kind, JsNativeErrorKind::Eval)
     }
 
     <span class="doccomment">/// Creates a new `JsNativeError` of kind `RangeError`, with empty `message` and undefined `cause`.
@@ -1410,8 +1524,15 @@
     /// assert!(matches!(error.kind, JsNativeErrorKind::Range));
     /// ```
     </span><span class="attr">#[must_use]
+    #[inline]
     </span><span class="kw">pub fn </span>range() -&gt; <span class="self">Self </span>{
         <span class="self">Self</span>::new(JsNativeErrorKind::Range, Box::default(), <span class="prelude-val">None</span>)
+    }
+
+    <span class="doccomment">/// Check if it&#39;s a [`JsNativeErrorKind::Range`].
+    </span><span class="attr">#[inline]
+    </span><span class="kw">pub const fn </span>is_range(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="macro">matches!</span>(<span class="self">self</span>.kind, JsNativeErrorKind::Range)
     }
 
     <span class="doccomment">/// Creates a new `JsNativeError` of kind `ReferenceError`, with empty `message` and undefined `cause`.
@@ -1425,8 +1546,15 @@
     /// assert!(matches!(error.kind, JsNativeErrorKind::Reference));
     /// ```
     </span><span class="attr">#[must_use]
+    #[inline]
     </span><span class="kw">pub fn </span>reference() -&gt; <span class="self">Self </span>{
         <span class="self">Self</span>::new(JsNativeErrorKind::Reference, Box::default(), <span class="prelude-val">None</span>)
+    }
+
+    <span class="doccomment">/// Check if it&#39;s a [`JsNativeErrorKind::Reference`].
+    </span><span class="attr">#[inline]
+    </span><span class="kw">pub const fn </span>is_reference(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="macro">matches!</span>(<span class="self">self</span>.kind, JsNativeErrorKind::Reference)
     }
 
     <span class="doccomment">/// Creates a new `JsNativeError` of kind `SyntaxError`, with empty `message` and undefined `cause`.
@@ -1440,8 +1568,15 @@
     /// assert!(matches!(error.kind, JsNativeErrorKind::Syntax));
     /// ```
     </span><span class="attr">#[must_use]
+    #[inline]
     </span><span class="kw">pub fn </span>syntax() -&gt; <span class="self">Self </span>{
         <span class="self">Self</span>::new(JsNativeErrorKind::Syntax, Box::default(), <span class="prelude-val">None</span>)
+    }
+
+    <span class="doccomment">/// Check if it&#39;s a [`JsNativeErrorKind::Syntax`].
+    </span><span class="attr">#[inline]
+    </span><span class="kw">pub const fn </span>is_syntax(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="macro">matches!</span>(<span class="self">self</span>.kind, JsNativeErrorKind::Syntax)
     }
 
     <span class="doccomment">/// Creates a new `JsNativeError` of kind `TypeError`, with empty `message` and undefined `cause`.
@@ -1455,8 +1590,15 @@
     /// assert!(matches!(error.kind, JsNativeErrorKind::Type));
     /// ```
     </span><span class="attr">#[must_use]
+    #[inline]
     </span><span class="kw">pub fn </span>typ() -&gt; <span class="self">Self </span>{
         <span class="self">Self</span>::new(JsNativeErrorKind::Type, Box::default(), <span class="prelude-val">None</span>)
+    }
+
+    <span class="doccomment">/// Check if it&#39;s a [`JsNativeErrorKind::Type`].
+    </span><span class="attr">#[inline]
+    </span><span class="kw">pub const fn </span>is_type(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="macro">matches!</span>(<span class="self">self</span>.kind, JsNativeErrorKind::Type)
     }
 
     <span class="doccomment">/// Creates a new `JsNativeError` of kind `UriError`, with empty `message` and undefined `cause`.
@@ -1470,8 +1612,15 @@
     /// assert!(matches!(error.kind, JsNativeErrorKind::Uri));
     /// ```
     </span><span class="attr">#[must_use]
+    #[inline]
     </span><span class="kw">pub fn </span>uri() -&gt; <span class="self">Self </span>{
         <span class="self">Self</span>::new(JsNativeErrorKind::Uri, Box::default(), <span class="prelude-val">None</span>)
+    }
+
+    <span class="doccomment">/// Check if it&#39;s a [`JsNativeErrorKind::Uri`].
+    </span><span class="attr">#[inline]
+    </span><span class="kw">pub const fn </span>is_uri(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="macro">matches!</span>(<span class="self">self</span>.kind, JsNativeErrorKind::Uri)
     }
 
     <span class="doccomment">/// Creates a new `JsNativeError` that indicates that the context hit its execution limit. This
@@ -1486,6 +1635,26 @@
         )
     }
 
+    <span class="doccomment">/// Check if it&#39;s a [`JsNativeErrorKind::NoInstructionsRemain`].
+    </span><span class="attr">#[inline]
+    #[cfg(feature = <span class="string">&quot;fuzz&quot;</span>)]
+    </span><span class="kw">pub const fn </span>is_no_instructions_remain(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="macro">matches!</span>(<span class="self">self</span>.kind, JsNativeErrorKind::NoInstructionsRemain)
+    }
+
+    <span class="doccomment">/// Creates a new `JsNativeError` that indicates that the context exceeded the runtime limits.
+    </span><span class="attr">#[must_use]
+    #[inline]
+    </span><span class="kw">pub fn </span>runtime_limit() -&gt; <span class="self">Self </span>{
+        <span class="self">Self</span>::new(JsNativeErrorKind::RuntimeLimit, Box::default(), <span class="prelude-val">None</span>)
+    }
+
+    <span class="doccomment">/// Check if it&#39;s a [`JsNativeErrorKind::RuntimeLimit`].
+    </span><span class="attr">#[inline]
+    </span><span class="kw">pub const fn </span>is_runtime_limit(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="macro">matches!</span>(<span class="self">self</span>.kind, JsNativeErrorKind::RuntimeLimit)
+    }
+
     <span class="doccomment">/// Sets the message of this error.
     ///
     /// # Examples
@@ -1497,6 +1666,7 @@
     /// assert_eq!(error.message(), &quot;number too large&quot;);
     /// ```
     </span><span class="attr">#[must_use]
+    #[inline]
     </span><span class="kw">pub fn </span>with_message&lt;S&gt;(<span class="kw-2">mut </span><span class="self">self</span>, message: S) -&gt; <span class="self">Self
     </span><span class="kw">where
         </span>S: Into&lt;Box&lt;str&gt;&gt;,
@@ -1517,6 +1687,7 @@
     /// assert!(error.cause().unwrap().as_native().is_some());
     /// ```
     </span><span class="attr">#[must_use]
+    #[inline]
     </span><span class="kw">pub fn </span>with_cause&lt;V&gt;(<span class="kw-2">mut </span><span class="self">self</span>, cause: V) -&gt; <span class="self">Self
     </span><span class="kw">where
         </span>V: Into&lt;JsError&gt;,
@@ -1541,6 +1712,7 @@
     /// assert_eq!(error.message(), &quot;number too large&quot;);
     /// ```
     </span><span class="attr">#[must_use]
+    #[inline]
     </span><span class="kw">pub const fn </span>message(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>str {
         <span class="kw-2">&amp;</span><span class="self">self</span>.message
     }
@@ -1562,6 +1734,7 @@
     /// assert!(error.cause().unwrap().as_native().is_some());
     /// ```
     </span><span class="attr">#[must_use]
+    #[inline]
     </span><span class="kw">pub fn </span>cause(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>JsError&gt; {
         <span class="self">self</span>.cause.as_deref()
     }
@@ -1580,6 +1753,11 @@
     /// assert!(error_obj.borrow().is_error());
     /// assert_eq!(error_obj.get(&quot;message&quot;, context).unwrap(), &quot;error!&quot;.into())
     /// ```
+    ///
+    /// # Panics
+    ///
+    /// If converting a [`JsNativeErrorKind::RuntimeLimit`] to an opaque object.
+    </span><span class="attr">#[inline]
     </span><span class="kw">pub fn </span>to_opaque(<span class="kw-2">&amp;</span><span class="self">self</span>, context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsObject {
         <span class="kw">let </span><span class="self">Self </span>{
             kind,
@@ -1613,6 +1791,9 @@
                 <span class="macro">unreachable!</span>(
                     <span class="string">&quot;The NoInstructionsRemain native error cannot be converted to an opaque type.&quot;
                 </span>)
+            }
+            JsNativeErrorKind::RuntimeLimit =&gt; {
+                <span class="macro">panic!</span>(<span class="string">&quot;The RuntimeLimit native error cannot be converted to an opaque type.&quot;</span>)
             }
         };
 
@@ -1673,7 +1854,7 @@
 ///
 /// [spec]: https://tc39.es/ecma262/#sec-error-objects
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error
-</span><span class="attr">#[derive(Debug, Clone, Trace, Finalize)]
+</span><span class="attr">#[derive(Debug, Clone, Trace, Finalize, PartialEq, Eq)]
 #[non_exhaustive]
 </span><span class="kw">pub enum </span>JsNativeErrorKind {
     <span class="doccomment">/// A collection of errors wrapped in a single error.
@@ -1752,10 +1933,14 @@
     /// [e_uri]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/encodeURI
     /// [d_uri]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/decodeURI
     </span>Uri,
+
     <span class="doccomment">/// Error thrown when no instructions remain. Only used in a fuzzing context; not a valid JS
     /// error variant.
     </span><span class="attr">#[cfg(feature = <span class="string">&quot;fuzz&quot;</span>)]
     </span>NoInstructionsRemain,
+
+    <span class="doccomment">/// Error thrown when a runtime limit is exceeded. It&#39;s not a valid JS error variant.
+    </span>RuntimeLimit,
 }
 
 <span class="kw">impl </span>PartialEq&lt;ErrorKind&gt; <span class="kw">for </span>JsNativeErrorKind {
@@ -1785,6 +1970,7 @@
             <span class="self">Self</span>::Syntax =&gt; <span class="string">&quot;SyntaxError&quot;</span>,
             <span class="self">Self</span>::Type =&gt; <span class="string">&quot;TypeError&quot;</span>,
             <span class="self">Self</span>::Uri =&gt; <span class="string">&quot;UriError&quot;</span>,
+            <span class="self">Self</span>::RuntimeLimit =&gt; <span class="string">&quot;RuntimeLimit&quot;</span>,
             <span class="attr">#[cfg(feature = <span class="string">&quot;fuzz&quot;</span>)]
             </span><span class="self">Self</span>::NoInstructionsRemain =&gt; <span class="string">&quot;NoInstructionsRemain&quot;</span>,
         }

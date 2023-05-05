@@ -393,6 +393,8 @@
 <a href="#392" id="392">392</a>
 <a href="#393" id="393">393</a>
 <a href="#394" id="394">394</a>
+<a href="#395" id="395">395</a>
+<a href="#396" id="396">396</a>
 </pre><pre class="rust"><code><span class="kw">use </span>boa_ast::{
     declaration::{Binding, LexicalDeclaration},
     operations::bound_names,
@@ -451,6 +453,7 @@
 
         <span class="kw">let </span>(continue_start, continue_exit) =
             <span class="self">self</span>.emit_opcode_with_two_operands(Opcode::LoopContinue);
+
         <span class="self">self</span>.patch_jump_with_target(loop_start, start_address);
         <span class="self">self</span>.patch_jump_with_target(continue_start, start_address);
 
@@ -740,6 +743,7 @@
         <span class="kw">let </span>start_address = <span class="self">self</span>.next_opcode_location();
         <span class="kw">let </span>(continue_start, continue_exit) =
             <span class="self">self</span>.emit_opcode_with_two_operands(Opcode::LoopContinue);
+
         <span class="self">self</span>.push_loop_control_info(label, start_address);
         <span class="self">self</span>.patch_jump_with_target(loop_start, start_address);
         <span class="self">self</span>.patch_jump_with_target(continue_start, start_address);

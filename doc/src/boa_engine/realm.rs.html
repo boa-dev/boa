@@ -103,6 +103,8 @@
 <a href="#102" id="102">102</a>
 <a href="#103" id="103">103</a>
 <a href="#104" id="104">104</a>
+<a href="#105" id="105">105</a>
+<a href="#106" id="106">106</a>
 </pre><pre class="rust"><code><span class="doccomment">//! Boa&#39;s implementation of ECMAScript&#39;s `Realm Records`
 //!
 //! Conceptually, a realm consists of a set of intrinsic objects, an ECMAScript global environment,
@@ -129,6 +131,14 @@
     inner: Gc&lt;Inner&gt;,
 }
 
+<span class="kw">impl </span>Eq <span class="kw">for </span>Realm {}
+
+<span class="kw">impl </span>PartialEq <span class="kw">for </span>Realm {
+    <span class="kw">fn </span>eq(<span class="kw-2">&amp;</span><span class="self">self</span>, other: <span class="kw-2">&amp;</span><span class="self">Self</span>) -&gt; bool {
+        Gc::ptr_eq(<span class="kw-2">&amp;</span><span class="self">self</span>.inner, <span class="kw-2">&amp;</span>other.inner)
+    }
+}
+
 <span class="kw">impl </span>fmt::Debug <span class="kw">for </span>Realm {
     <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
         f.debug_struct(<span class="string">&quot;Realm&quot;</span>)
@@ -137,12 +147,6 @@
             .field(<span class="string">&quot;global_object&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.inner.global_object)
             .field(<span class="string">&quot;global_this&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.inner.global_this)
             .finish()
-    }
-}
-
-<span class="kw">impl </span>PartialEq <span class="kw">for </span>Realm {
-    <span class="kw">fn </span>eq(<span class="kw-2">&amp;</span><span class="self">self</span>, other: <span class="kw-2">&amp;</span><span class="self">Self</span>) -&gt; bool {
-        std::ptr::eq(<span class="kw-2">&amp;*</span><span class="self">self</span>.inner, <span class="kw-2">&amp;*</span>other.inner)
     }
 }
 

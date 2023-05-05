@@ -142,12 +142,26 @@
 <a href="#141" id="141">141</a>
 <a href="#142" id="142">142</a>
 <a href="#143" id="143">143</a>
+<a href="#144" id="144">144</a>
+<a href="#145" id="145">145</a>
+<a href="#146" id="146">146</a>
+<a href="#147" id="147">147</a>
+<a href="#148" id="148">148</a>
+<a href="#149" id="149">149</a>
+<a href="#150" id="150">150</a>
+<a href="#151" id="151">151</a>
+<a href="#152" id="152">152</a>
+<a href="#153" id="153">153</a>
+<a href="#154" id="154">154</a>
 </pre><pre class="rust"><code><span class="doccomment">//! Module for implementing a `CallFrame`&#39;s environment stacks
 
 </span><span class="attr">#[derive(Clone, Copy, Debug, PartialEq)]
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">enum </span>EnvEntryKind {
     Global,
-    Loop,
+    Loop {
+        <span class="doccomment">/// This is used to keep track of how many iterations a loop has done.
+        </span>iteration_count: u64,
+    },
     Try,
     Catch,
     Finally,
@@ -193,8 +207,9 @@
     </span>}
 
     <span class="doccomment">/// Returns calling `EnvStackEntry` with `kind` field of `Loop`.
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const fn </span>with_loop_flag(<span class="kw-2">mut </span><span class="self">self</span>) -&gt; <span class="self">Self </span>{
-        <span class="self">self</span>.kind = EnvEntryKind::Loop;
+    /// And the loop iteration set to zero.
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const fn </span>with_loop_flag(<span class="kw-2">mut </span><span class="self">self</span>, iteration_count: u64) -&gt; <span class="self">Self </span>{
+        <span class="self">self</span>.kind = EnvEntryKind::Loop { iteration_count };
         <span class="self">self
     </span>}
 
@@ -239,9 +254,16 @@
     }
 
     <span class="doccomment">/// Returns true if an `EnvStackEntry` is a loop
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>is_loop_env(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
-        <span class="self">self</span>.kind == EnvEntryKind::Loop
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const fn </span>is_loop_env(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="macro">matches!</span>(<span class="self">self</span>.kind, EnvEntryKind::Loop { .. })
     }
+
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const fn </span>as_loop_iteration_count(<span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;u64&gt; {
+        <span class="kw">if let </span>EnvEntryKind::Loop { iteration_count } = <span class="self">self</span>.kind {
+            <span class="kw">return </span><span class="prelude-val">Some</span>(iteration_count);
+        }
+        <span class="prelude-val">None
+    </span>}
 
     <span class="doccomment">/// Returns true if an `EnvStackEntry` is a try block
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>is_try_env(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {

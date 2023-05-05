@@ -1027,6 +1027,37 @@
 <a href="#1026" id="1026">1026</a>
 <a href="#1027" id="1027">1027</a>
 <a href="#1028" id="1028">1028</a>
+<a href="#1029" id="1029">1029</a>
+<a href="#1030" id="1030">1030</a>
+<a href="#1031" id="1031">1031</a>
+<a href="#1032" id="1032">1032</a>
+<a href="#1033" id="1033">1033</a>
+<a href="#1034" id="1034">1034</a>
+<a href="#1035" id="1035">1035</a>
+<a href="#1036" id="1036">1036</a>
+<a href="#1037" id="1037">1037</a>
+<a href="#1038" id="1038">1038</a>
+<a href="#1039" id="1039">1039</a>
+<a href="#1040" id="1040">1040</a>
+<a href="#1041" id="1041">1041</a>
+<a href="#1042" id="1042">1042</a>
+<a href="#1043" id="1043">1043</a>
+<a href="#1044" id="1044">1044</a>
+<a href="#1045" id="1045">1045</a>
+<a href="#1046" id="1046">1046</a>
+<a href="#1047" id="1047">1047</a>
+<a href="#1048" id="1048">1048</a>
+<a href="#1049" id="1049">1049</a>
+<a href="#1050" id="1050">1050</a>
+<a href="#1051" id="1051">1051</a>
+<a href="#1052" id="1052">1052</a>
+<a href="#1053" id="1053">1053</a>
+<a href="#1054" id="1054">1054</a>
+<a href="#1055" id="1055">1055</a>
+<a href="#1056" id="1056">1056</a>
+<a href="#1057" id="1057">1057</a>
+<a href="#1058" id="1058">1058</a>
+<a href="#1059" id="1059">1059</a>
 </pre><pre class="rust"><code><span class="doccomment">//! The ECMAScript context.
 
 </span><span class="kw">mod </span>hooks;
@@ -1068,6 +1099,8 @@
 <span class="kw">use </span>boa_interner::{Interner, Sym};
 <span class="kw">use </span>boa_parser::{Error <span class="kw">as </span>ParseError, Parser};
 <span class="kw">use </span>boa_profiler::Profiler;
+
+<span class="kw">use </span><span class="kw">crate</span>::vm::RuntimeLimits;
 
 <span class="doccomment">/// ECMAScript context. It is the primary way to interact with the runtime.
 ///
@@ -1577,30 +1610,36 @@
 
     <span class="doccomment">/// Set the value of trace on the context
     </span><span class="attr">#[cfg(feature = <span class="string">&quot;trace&quot;</span>)]
+    #[inline]
     </span><span class="kw">pub fn </span>set_trace(<span class="kw-2">&amp;mut </span><span class="self">self</span>, trace: bool) {
         <span class="self">self</span>.vm.trace = trace;
     }
 
     <span class="doccomment">/// Get optimizer options.
+    </span><span class="attr">#[inline]
     </span><span class="kw">pub const fn </span>optimizer_options(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; OptimizerOptions {
         <span class="self">self</span>.optimizer_options
     }
     <span class="doccomment">/// Enable or disable optimizations
+    </span><span class="attr">#[inline]
     </span><span class="kw">pub fn </span>set_optimizer_options(<span class="kw-2">&amp;mut </span><span class="self">self</span>, optimizer_options: OptimizerOptions) {
         <span class="self">self</span>.optimizer_options = optimizer_options;
     }
 
     <span class="doccomment">/// Changes the strictness mode of the context.
+    </span><span class="attr">#[inline]
     </span><span class="kw">pub fn </span>strict(<span class="kw-2">&amp;mut </span><span class="self">self</span>, strict: bool) {
         <span class="self">self</span>.strict = strict;
     }
 
     <span class="doccomment">/// Enqueues a [`NativeJob`] on the [`JobQueue`].
+    </span><span class="attr">#[inline]
     </span><span class="kw">pub fn </span>enqueue_job(<span class="kw-2">&amp;mut </span><span class="self">self</span>, job: NativeJob) {
         <span class="self">self</span>.job_queue().enqueue_promise_job(job, <span class="self">self</span>);
     }
 
     <span class="doccomment">/// Runs all the jobs in the job queue.
+    </span><span class="attr">#[inline]
     </span><span class="kw">pub fn </span>run_jobs(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
         <span class="self">self</span>.job_queue().run_jobs(<span class="self">self</span>);
         <span class="self">self</span>.clear_kept_objects();
@@ -1614,16 +1653,19 @@
     /// [clear]: https://tc39.es/ecma262/multipage/executable-code-and-execution-contexts.html#sec-clear-kept-objects
     /// [add]: https://tc39.es/ecma262/multipage/executable-code-and-execution-contexts.html#sec-addtokeptobjects
     /// [weak]: https://tc39.es/ecma262/multipage/managing-memory.html#sec-weak-ref-objects
+    </span><span class="attr">#[inline]
     </span><span class="kw">pub fn </span>clear_kept_objects(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
         <span class="self">self</span>.kept_alive.clear();
     }
 
     <span class="doccomment">/// Retrieves the current stack trace of the context.
+    </span><span class="attr">#[inline]
     </span><span class="kw">pub fn </span>stack_trace(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw">impl </span>Iterator&lt;Item = <span class="kw-2">&amp;</span>CallFrame&gt; {
         <span class="self">self</span>.vm.frames.iter().rev()
     }
 
     <span class="doccomment">/// Replaces the currently active realm with `realm`, and returns the old realm.
+    </span><span class="attr">#[inline]
     </span><span class="kw">pub fn </span>enter_realm(<span class="kw-2">&amp;mut </span><span class="self">self</span>, realm: Realm) -&gt; Realm {
         <span class="self">self</span>.vm
             .environments
@@ -1636,13 +1678,33 @@
     }
 
     <span class="doccomment">/// Gets the host hooks.
+    </span><span class="attr">#[inline]
     </span><span class="kw">pub fn </span>host_hooks(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; MaybeShared&lt;<span class="lifetime">&#39;host</span>, <span class="kw">dyn </span>HostHooks&gt; {
         <span class="self">self</span>.host_hooks.clone()
     }
 
     <span class="doccomment">/// Gets the job queue.
+    </span><span class="attr">#[inline]
     </span><span class="kw">pub fn </span>job_queue(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; MaybeShared&lt;<span class="lifetime">&#39;host</span>, <span class="kw">dyn </span>JobQueue&gt; {
         <span class="self">self</span>.job_queue.clone()
+    }
+
+    <span class="doccomment">/// Get the [`RuntimeLimits`].
+    </span><span class="attr">#[inline]
+    </span><span class="kw">pub const fn </span>runtime_limits(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; RuntimeLimits {
+        <span class="self">self</span>.vm.runtime_limits
+    }
+
+    <span class="doccomment">/// Set the [`RuntimeLimits`].
+    </span><span class="attr">#[inline]
+    </span><span class="kw">pub fn </span>set_runtime_limits(<span class="kw-2">&amp;mut </span><span class="self">self</span>, runtime_limits: RuntimeLimits) {
+        <span class="self">self</span>.vm.runtime_limits = runtime_limits;
+    }
+
+    <span class="doccomment">/// Get a mutable reference to the [`RuntimeLimits`].
+    </span><span class="attr">#[inline]
+    </span><span class="kw">pub fn </span>runtime_limits_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span>RuntimeLimits {
+        <span class="kw-2">&amp;mut </span><span class="self">self</span>.vm.runtime_limits
     }
 }
 

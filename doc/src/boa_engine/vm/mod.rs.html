@@ -413,20 +413,33 @@
 <a href="#412" id="412">412</a>
 <a href="#413" id="413">413</a>
 <a href="#414" id="414">414</a>
+<a href="#415" id="415">415</a>
+<a href="#416" id="416">416</a>
+<a href="#417" id="417">417</a>
+<a href="#418" id="418">418</a>
+<a href="#419" id="419">419</a>
+<a href="#420" id="420">420</a>
+<a href="#421" id="421">421</a>
+<a href="#422" id="422">422</a>
+<a href="#423" id="423">423</a>
+<a href="#424" id="424">424</a>
+<a href="#425" id="425">425</a>
+<a href="#426" id="426">426</a>
 </pre><pre class="rust"><code><span class="doccomment">//! Boa&#39;s ECMAScript Virtual Machine
 //!
 //! The Virtual Machine (VM) handles generating instructions, then executing them.
 //! This module will provide an instruction set for the AST to use, various traits,
 //! plus an interpreter to execute those instructions
 
-</span><span class="kw">use crate</span>::{
+</span><span class="attr">#[cfg(feature = <span class="string">&quot;fuzz&quot;</span>)]
+</span><span class="kw">use </span><span class="kw">crate</span>::JsNativeError;
+<span class="kw">use crate</span>::{
     builtins::async_generator::{AsyncGenerator, AsyncGeneratorState},
     environments::{DeclarativeEnvironment, DeclarativeEnvironmentStack},
     vm::code_block::Readable,
     Context, JsError, JsObject, JsResult, JsValue,
 };
-<span class="attr">#[cfg(feature = <span class="string">&quot;fuzz&quot;</span>)]
-</span><span class="kw">use crate</span>::{JsNativeError, JsNativeErrorKind};
+
 <span class="kw">use </span>boa_gc::Gc;
 <span class="kw">use </span>boa_profiler::Profiler;
 <span class="kw">use </span>std::{convert::TryInto, mem::size_of};
@@ -441,9 +454,12 @@
 <span class="kw">mod </span>completion_record;
 <span class="kw">mod </span>opcode;
 
+<span class="kw">mod </span>runtime_limits;
+
 <span class="attr">#[cfg(feature = <span class="string">&quot;flowgraph&quot;</span>)]
 </span><span class="kw">pub mod </span>flowgraph;
 
+<span class="kw">pub use </span>runtime_limits::RuntimeLimits;
 <span class="kw">pub use </span>{call_frame::CallFrame, code_block::CodeBlock, opcode::Opcode};
 
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use </span>{
@@ -467,7 +483,7 @@
     <span class="kw">pub</span>(<span class="kw">crate</span>) environments: DeclarativeEnvironmentStack,
     <span class="attr">#[cfg(feature = <span class="string">&quot;trace&quot;</span>)]
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) trace: bool,
-    <span class="kw">pub</span>(<span class="kw">crate</span>) stack_size_limit: usize,
+    <span class="kw">pub</span>(<span class="kw">crate</span>) runtime_limits: RuntimeLimits,
     <span class="kw">pub</span>(<span class="kw">crate</span>) active_function: <span class="prelude-ty">Option</span>&lt;JsObject&gt;,
 }
 
@@ -481,7 +497,7 @@
             err: <span class="prelude-val">None</span>,
             <span class="attr">#[cfg(feature = <span class="string">&quot;trace&quot;</span>)]
             </span>trace: <span class="bool-val">false</span>,
-            stack_size_limit: <span class="number">1024</span>,
+            runtime_limits: RuntimeLimits::default(),
             active_function: <span class="prelude-val">None</span>,
         }
     }
@@ -683,11 +699,19 @@
                         <span class="kw">if let </span><span class="prelude-val">Some</span>(native_error) = err.as_native() {
                             <span class="comment">// If we hit the execution step limit, bubble up the error to the
                             // (Rust) caller instead of trying to handle as an exception.
-                            </span><span class="kw">if </span><span class="macro">matches!</span>(native_error.kind, JsNativeErrorKind::NoInstructionsRemain)
-                            {
+                            </span><span class="kw">if </span>native_error.is_no_instructions_remain() {
                                 <span class="self">self</span>.vm.err = <span class="prelude-val">Some</span>(err);
                                 <span class="kw">break </span>CompletionType::Throw;
                             }
+                        }
+                    }
+
+                    <span class="kw">if let </span><span class="prelude-val">Some</span>(native_error) = err.as_native() {
+                        <span class="comment">// If we hit the execution step limit, bubble up the error to the
+                        // (Rust) caller instead of trying to handle as an exception.
+                        </span><span class="kw">if </span>native_error.is_runtime_limit() {
+                            <span class="self">self</span>.vm.err = <span class="prelude-val">Some</span>(err);
+                            <span class="kw">break </span>CompletionType::Throw;
                         }
                     }
 

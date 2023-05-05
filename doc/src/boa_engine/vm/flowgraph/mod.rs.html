@@ -611,7 +611,6 @@
 <a href="#610" id="610">610</a>
 <a href="#611" id="611">611</a>
 <a href="#612" id="612">612</a>
-<a href="#613" id="613">613</a>
 </pre><pre class="rust"><code><span class="doccomment">//! This module is responsible for generating the vm instruction flowgraph.
 
 </span><span class="kw">use </span><span class="kw">crate</span>::vm::{CodeBlock, Opcode};
@@ -722,7 +721,6 @@
                         EdgeStyle::Line,
                     );
                 }
-
                 Opcode::JumpIfFalse
                 | Opcode::JumpIfTrue
                 | Opcode::JumpIfNotUndefined

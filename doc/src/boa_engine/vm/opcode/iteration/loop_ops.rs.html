@@ -99,7 +99,27 @@
 <a href="#98" id="98">98</a>
 <a href="#99" id="99">99</a>
 <a href="#100" id="100">100</a>
-</pre><pre class="rust"><code><span class="kw">use crate</span>::{
+<a href="#101" id="101">101</a>
+<a href="#102" id="102">102</a>
+<a href="#103" id="103">103</a>
+<a href="#104" id="104">104</a>
+<a href="#105" id="105">105</a>
+<a href="#106" id="106">106</a>
+<a href="#107" id="107">107</a>
+<a href="#108" id="108">108</a>
+<a href="#109" id="109">109</a>
+<a href="#110" id="110">110</a>
+<a href="#111" id="111">111</a>
+<a href="#112" id="112">112</a>
+<a href="#113" id="113">113</a>
+<a href="#114" id="114">114</a>
+<a href="#115" id="115">115</a>
+<a href="#116" id="116">116</a>
+<a href="#117" id="117">117</a>
+<a href="#118" id="118">118</a>
+<a href="#119" id="119">119</a>
+</pre><pre class="rust"><code><span class="kw">use </span><span class="kw">crate</span>::JsNativeError;
+<span class="kw">use crate</span>::{
     vm::{call_frame::EnvStackEntry, opcode::Operation, CompletionType},
     Context, JsResult,
 };
@@ -119,13 +139,27 @@
         <span class="kw">let </span>start = context.vm.read::&lt;u32&gt;();
         <span class="kw">let </span>exit = context.vm.read::&lt;u32&gt;();
 
-        context
-            .vm
-            .frame_mut()
-            .env_stack
-            .push(EnvStackEntry::new(start, exit).with_loop_flag());
+        <span class="comment">// Create and push loop evironment entry.
+        </span><span class="kw">let </span>entry = EnvStackEntry::new(start, exit).with_loop_flag(<span class="number">1</span>);
+        context.vm.frame_mut().env_stack.push(entry);
         <span class="prelude-val">Ok</span>(CompletionType::Normal)
     }
+}
+
+<span class="doccomment">/// This is a helper function used to clean the loop environment created by the
+/// [`LoopStart`] and [`LoopContinue`] opcodes.
+</span><span class="kw">fn </span>cleanup_loop_environment(context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) {
+    <span class="kw">let </span><span class="kw-2">mut </span>envs_to_pop = <span class="number">0_usize</span>;
+    <span class="kw">while let </span><span class="prelude-val">Some</span>(env_entry) = context.vm.frame_mut().env_stack.pop() {
+        envs_to_pop += env_entry.env_num();
+
+        <span class="kw">if </span>env_entry.is_loop_env() {
+            <span class="kw">break</span>;
+        }
+    }
+
+    <span class="kw">let </span>env_truncation_len = context.vm.environments.len().saturating_sub(envs_to_pop);
+    context.vm.environments.truncate(env_truncation_len);
 }
 
 <span class="doccomment">/// `LoopContinue` implements the Opcode Operation for `Opcode::LoopContinue`.
@@ -143,6 +177,8 @@
         <span class="kw">let </span>start = context.vm.read::&lt;u32&gt;();
         <span class="kw">let </span>exit = context.vm.read::&lt;u32&gt;();
 
+        <span class="kw">let </span><span class="kw-2">mut </span>iteration_count = <span class="number">0</span>;
+
         <span class="comment">// 1. Clean up the previous environment.
         </span><span class="kw">if let </span><span class="prelude-val">Some</span>(entry) = context
             .vm
@@ -158,15 +194,28 @@
                 .saturating_sub(entry.env_num());
             context.vm.environments.truncate(env_truncation_len);
 
-            context.vm.frame_mut().env_stack.pop();
+            <span class="comment">// Pop loop environment and get it&#39;s iteration count.
+            </span><span class="kw">let </span>previous_entry = context.vm.frame_mut().env_stack.pop();
+            <span class="kw">if let </span><span class="prelude-val">Some</span>(previous_iteration_count) =
+                previous_entry.and_then(EnvStackEntry::as_loop_iteration_count)
+            {
+                iteration_count = previous_iteration_count.wrapping_add(<span class="number">1</span>);
+
+                <span class="kw">let </span>max = context.vm.runtime_limits.loop_iteration_limit();
+                <span class="kw">if </span>previous_iteration_count &gt; max {
+                    cleanup_loop_environment(context);
+
+                    <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::runtime_limit()
+                        .with_message(<span class="macro">format!</span>(<span class="string">&quot;max loop iteration limit {max} exceeded&quot;</span>))
+                        .into());
+                }
+            }
         }
 
         <span class="comment">// 2. Push a new clean EnvStack.
-        </span>context
-            .vm
-            .frame_mut()
-            .env_stack
-            .push(EnvStackEntry::new(start, exit).with_loop_flag());
+        </span><span class="kw">let </span>entry = EnvStackEntry::new(start, exit).with_loop_flag(iteration_count);
+
+        context.vm.frame_mut().env_stack.push(entry);
 
         <span class="prelude-val">Ok</span>(CompletionType::Normal)
     }
@@ -184,18 +233,7 @@
     <span class="kw">const </span>INSTRUCTION: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;INST - LoopEnd&quot;</span>;
 
     <span class="kw">fn </span>execute(context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;CompletionType&gt; {
-        <span class="kw">let </span><span class="kw-2">mut </span>envs_to_pop = <span class="number">0_usize</span>;
-        <span class="kw">while let </span><span class="prelude-val">Some</span>(env_entry) = context.vm.frame_mut().env_stack.pop() {
-            envs_to_pop += env_entry.env_num();
-
-            <span class="kw">if </span>env_entry.is_loop_env() {
-                <span class="kw">break</span>;
-            }
-        }
-
-        <span class="kw">let </span>env_truncation_len = context.vm.environments.len().saturating_sub(envs_to_pop);
-        context.vm.environments.truncate(env_truncation_len);
-
+        cleanup_loop_environment(context);
         <span class="prelude-val">Ok</span>(CompletionType::Normal)
     }
 }

@@ -743,7 +743,7 @@
     },
     AssertNativeError {
         source: Cow&lt;<span class="lifetime">&#39;static</span>, str&gt;,
-        kind: builtins::error::ErrorKind,
+        kind: JsNativeErrorKind,
         message: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str,
     },
     AssertContext {
@@ -814,7 +814,7 @@
     <span class="doccomment">/// Asserts that evaluating `source` throws a native error of `kind` and `message`.
     </span><span class="kw">fn </span>assert_native_error(
         source: <span class="kw">impl </span>Into&lt;Cow&lt;<span class="lifetime">&#39;static</span>, str&gt;&gt;,
-        kind: builtins::error::ErrorKind,
+        kind: JsNativeErrorKind,
         message: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str,
     ) -&gt; <span class="self">Self </span>{
         <span class="self">Self</span>(Inner::AssertNativeError {
