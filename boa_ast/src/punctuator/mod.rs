@@ -9,10 +9,10 @@ use crate::expression::operator::{
     assign::AssignOp,
     binary::{ArithmeticOp, BinaryOp, BitwiseOp, LogicalOp, RelationalOp},
 };
-use std::{
-    convert::TryInto,
-    fmt::{Display, Error, Formatter},
-};
+use std::fmt::{Display, Error, Formatter};
+
+#[cfg(test)]
+mod tests;
 
 /// All of the punctuators used in ECMAScript.
 ///
@@ -177,6 +177,7 @@ impl Punctuator {
             Self::Mul => Some(BinaryOp::Arithmetic(ArithmeticOp::Mul)),
             Self::Div => Some(BinaryOp::Arithmetic(ArithmeticOp::Div)),
             Self::Mod => Some(BinaryOp::Arithmetic(ArithmeticOp::Mod)),
+            Self::Exp => Some(BinaryOp::Arithmetic(ArithmeticOp::Exp)),
             Self::And => Some(BinaryOp::Bitwise(BitwiseOp::And)),
             Self::Or => Some(BinaryOp::Bitwise(BitwiseOp::Or)),
             Self::Xor => Some(BinaryOp::Bitwise(BitwiseOp::Xor)),
@@ -264,17 +265,31 @@ impl Punctuator {
     }
 }
 
-impl TryInto<BinaryOp> for Punctuator {
+impl TryFrom<Punctuator> for AssignOp {
+    // TO-DO: proper error type
     type Error = String;
-    fn try_into(self) -> Result<BinaryOp, Self::Error> {
-        self.as_binary_op()
-            .ok_or_else(|| format!("No binary operation for {self}"))
+
+    fn try_from(punct: Punctuator) -> Result<Self, Self::Error> {
+        punct
+            .as_assign_op()
+            .ok_or_else(|| format!("No assignment operator for {punct}"))
+    }
+}
+
+impl TryFrom<Punctuator> for BinaryOp {
+    // TO-DO: proper error type
+    type Error = String;
+
+    fn try_from(punct: Punctuator) -> Result<Self, Self::Error> {
+        punct
+            .as_binary_op()
+            .ok_or_else(|| format!("No binary operator for {punct}"))
     }
 }
 
 impl Display for Punctuator {
     fn fmt(&self, f: &mut Formatter<'_>) -> Result<(), Error> {
-        write!(f, "{}", self.as_str())
+        f.write_str(self.as_str())
     }
 }
 
