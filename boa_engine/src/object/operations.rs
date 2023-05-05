@@ -480,6 +480,18 @@ impl JsObject {
     /// [spec]: https://tc39.es/ecma262/#sec-lengthofarraylike
     pub(crate) fn length_of_array_like(&self, context: &mut Context<'_>) -> JsResult<u64> {
         // 1. Assert: Type(obj) is Object.
+
+        // NOTE: This is an optimization, most of the cases that `LengthOfArrayLike` will be called
+        //       is for arrays. The "length" property of an array is stored in the first index.
+        if self.is_array() {
+            let borrowed_object = self.borrow();
+            // NOTE: using `to_u32` instead of `to_length` is an optimization,
+            //       since arrays are limited to [0, 2^32 - 1] range.
+            return borrowed_object.properties().storage[0]
+                .to_u32(context)
+                .map(u64::from);
+        }
+
         // 2. Return ℝ(? ToLength(? Get(obj, "length"))).
         self.get(utf16!("length"), context)?.to_length(context)
     }

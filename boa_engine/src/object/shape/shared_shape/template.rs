@@ -46,6 +46,11 @@ impl ObjectTemplate {
         self
     }
 
+    /// Returns the inner shape of the [`ObjectTemplate`].
+    pub(crate) const fn shape(&self) -> &SharedShape {
+        &self.shape
+    }
+
     /// Add a data property to the [`ObjectTemplate`].
     ///
     /// This assumes that the property with the given key was not previously set
@@ -58,7 +63,6 @@ impl ObjectTemplate {
             property_key: key,
             attributes,
         });
-
         self
     }
 
@@ -97,7 +101,6 @@ impl ObjectTemplate {
             property_key: key,
             attributes,
         });
-
         self
     }
 
