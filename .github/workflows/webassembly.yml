@@ -5,6 +5,8 @@ on:
   push:
     branches:
       - main
+  merge_group:
+    types: [checks_requested]
 
 name: Webassembly demo
 
