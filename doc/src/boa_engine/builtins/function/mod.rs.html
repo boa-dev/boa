@@ -1572,7 +1572,7 @@
         <span class="kw">let </span>_timer = Profiler::global().start_event(<span class="string">&quot;function&quot;</span>, <span class="string">&quot;init&quot;</span>);
 
         <span class="kw">let </span>has_instance = BuiltInBuilder::callable(realm, <span class="self">Self</span>::has_instance)
-            .name(<span class="string">&quot;[Symbol.iterator]&quot;</span>)
+            .name(<span class="string">&quot;[Symbol.hasInstance]&quot;</span>)
             .length(<span class="number">1</span>)
             .build();
 
