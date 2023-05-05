@@ -11,12 +11,10 @@
 
 use crate::{
     builtins::BuiltInObject, bytecompiler::ByteCompiler, context::intrinsics::Intrinsics,
-    environments::Environment, error::JsNativeError, object::JsObject, realm::Realm, Context,
-    JsArgs, JsResult, JsString, JsValue,
+    environments::Environment, error::JsNativeError, object::JsObject, realm::Realm, vm::Opcode,
+    Context, JsArgs, JsResult, JsString, JsValue,
 };
-use boa_ast::operations::{
-    contains, contains_arguments, top_level_var_declared_names, ContainsSymbol,
-};
+use boa_ast::operations::{contains, contains_arguments, ContainsSymbol};
 use boa_gc::Gc;
 use boa_interner::Sym;
 use boa_parser::{Parser, Source};
@@ -224,35 +222,27 @@ impl Eval {
             }
         });
 
-        // Only need to check on non-strict mode since strict mode automatically creates a function
-        // environment for all eval calls.
-        if !strict {
-            // Error if any var declaration in the eval code already exists as a let/const declaration in the current running environment.
-            if let Some(name) = context
-                .vm
-                .environments
-                .has_lex_binding_until_function_environment(&top_level_var_declared_names(&body))
-            {
-                let name = context.interner().resolve_expect(name.sym());
-                let msg = format!("variable declaration {name} in eval function already exists as a lexical variable");
-                return Err(JsNativeError::syntax().with_message(msg).into());
-            }
-        }
+        let mut compiler = ByteCompiler::new(
+            Sym::MAIN,
+            body.strict(),
+            false,
+            context.vm.environments.current_compile_environment(),
+            context,
+        );
 
-        // TODO: check if private identifiers inside `eval` are valid.
+        compiler.push_compile_environment(strict);
+        let push_env = compiler.emit_opcode_with_two_operands(Opcode::PushDeclarativeEnvironment);
 
-        // Compile and execute the eval statement list.
-        let code_block = {
-            let mut compiler = ByteCompiler::new(
-                Sym::MAIN,
-                body.strict(),
-                false,
-                context.vm.environments.current_compile_environment(),
-                context,
-            );
-            compiler.compile_statement_list_with_new_declarative(&body, true, strict);
-            Gc::new(compiler.finish())
-        };
+        compiler.eval_declaration_instantiation(&body, strict)?;
+        compiler.compile_statement_list(&body, true);
+
+        let env_info = compiler.pop_compile_environment();
+        compiler.patch_jump_with_target(push_env.0, env_info.num_bindings as u32);
+        compiler.patch_jump_with_target(push_env.1, env_info.index as u32);
+        compiler.emit_opcode(Opcode::PopEnvironment);
+
+        let code_block = Gc::new(compiler.finish());
+
         // Indirect calls don't need extensions, because a non-strict indirect call modifies only
         // the global object.
         // Strict direct calls also don't need extensions, since all strict eval calls push a new

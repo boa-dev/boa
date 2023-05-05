@@ -176,7 +176,7 @@ impl Arguments {
             if property_index >= len {
                 break;
             }
-            let binding_index = bindings.len() + 1;
+            let binding_index = bindings.len();
             let entry = bindings
                 .entry(name)
                 .or_insert((binding_index, property_index));

@@ -2,6 +2,7 @@
 
 mod class;
 mod declaration;
+mod declarations;
 mod env;
 mod expression;
 mod function;
@@ -27,7 +28,6 @@ use boa_ast::{
         ArrowFunction, AsyncArrowFunction, AsyncFunction, AsyncGenerator, Class,
         FormalParameterList, Function, Generator, PrivateName,
     },
-    operations::bound_names,
     pattern::Pattern,
     Declaration, Expression, Statement, StatementList, StatementListItem,
 };
@@ -40,7 +40,7 @@ pub(crate) use jump_control::JumpControlInfo;
 
 /// Describes how a node has been defined in the source code.
 #[derive(Debug, Clone, Copy, PartialEq)]
-enum NodeKind {
+pub(crate) enum NodeKind {
     Declaration,
     Expression,
 }
@@ -59,9 +59,9 @@ enum FunctionKind {
 /// Describes the complete specification of a function node.
 #[derive(Debug, Clone, Copy, PartialEq)]
 #[allow(single_use_lifetimes)]
-struct FunctionSpec<'a> {
+pub(crate) struct FunctionSpec<'a> {
     kind: FunctionKind,
-    name: Option<Identifier>,
+    pub(crate) name: Option<Identifier>,
     parameters: &'a FormalParameterList,
     body: &'a StatementList,
     has_binding_identifier: bool,
@@ -286,6 +286,7 @@ pub struct ByteCompiler<'ctx, 'host> {
     jump_info: Vec<JumpControlInfo>,
     in_async_generator: bool,
     json_parse: bool,
+
     // TODO: remove when we separate scripts from the context
     context: &'ctx mut Context<'host>,
 }
@@ -381,7 +382,7 @@ impl<'ctx, 'host> ByteCompiler<'ctx, 'host> {
     }
 
     #[inline]
-    fn get_or_insert_binding(&mut self, binding: BindingLocator) -> u32 {
+    pub(crate) fn get_or_insert_binding(&mut self, binding: BindingLocator) -> u32 {
         if let Some(index) = self.bindings_map.get(&binding) {
             return *index;
         }
@@ -418,11 +419,6 @@ impl<'ctx, 'host> ByteCompiler<'ctx, 'host> {
                 let index = self.get_or_insert_binding(binding);
                 self.emit(Opcode::DefInitLet, &[index]);
             }
-            BindingOpcode::InitArg => {
-                let binding = self.initialize_mutable_binding(name, true);
-                let index = self.get_or_insert_binding(binding);
-                self.emit(Opcode::DefInitArg, &[index]);
-            }
             BindingOpcode::InitConst => {
                 let binding = self.initialize_immutable_binding(name);
                 let index = self.get_or_insert_binding(binding);
@@ -441,7 +437,7 @@ impl<'ctx, 'host> ByteCompiler<'ctx, 'host> {
         self.bytecode.len() as u32
     }
 
-    fn emit(&mut self, opcode: Opcode, operands: &[u32]) {
+    pub(crate) fn emit(&mut self, opcode: Opcode, operands: &[u32]) {
         self.emit_opcode(opcode);
         for operand in operands {
             self.emit_u32(*operand);
@@ -460,7 +456,7 @@ impl<'ctx, 'host> ByteCompiler<'ctx, 'host> {
         self.bytecode.extend(value.to_ne_bytes());
     }
 
-    fn emit_opcode(&mut self, opcode: Opcode) {
+    pub(crate) fn emit_opcode(&mut self, opcode: Opcode) {
         self.emit_u8(opcode as u8);
     }
 
@@ -540,13 +536,13 @@ impl<'ctx, 'host> ByteCompiler<'ctx, 'host> {
 
     /// Emit an opcode with two dummy operands.
     /// Return the `Label`s of the two operands.
-    fn emit_opcode_with_two_operands(&mut self, opcode: Opcode) -> (Label, Label) {
+    pub(crate) fn emit_opcode_with_two_operands(&mut self, opcode: Opcode) -> (Label, Label) {
         let index = self.next_opcode_location();
         self.emit(opcode, &[Self::DUMMY_ADDRESS, Self::DUMMY_ADDRESS]);
         (Label { index }, Label { index: index + 4 })
     }
 
-    fn patch_jump_with_target(&mut self, label: Label, target: u32) {
+    pub(crate) fn patch_jump_with_target(&mut self, label: Label, target: u32) {
         const U32_SIZE: usize = std::mem::size_of::<u32>();
 
         let Label { index } = label;
@@ -743,13 +739,7 @@ impl<'ctx, 'host> ByteCompiler<'ctx, 'host> {
     }
 
     /// Compile a [`StatementList`].
-    pub fn compile_statement_list(
-        &mut self,
-        list: &StatementList,
-        use_expr: bool,
-        configurable_globals: bool,
-    ) {
-        self.create_declarations(list, configurable_globals);
+    pub fn compile_statement_list(&mut self, list: &StatementList, use_expr: bool) {
         if use_expr {
             let expr_index = list
                 .statements()
@@ -765,54 +755,13 @@ impl<'ctx, 'host> ByteCompiler<'ctx, 'host> {
                 .count();
 
             for (i, item) in list.statements().iter().enumerate() {
-                self.compile_stmt_list_item(item, i + 1 == expr_index, configurable_globals);
+                self.compile_stmt_list_item(item, i + 1 == expr_index);
             }
         } else {
             for item in list.statements() {
-                self.compile_stmt_list_item(item, false, configurable_globals);
+                self.compile_stmt_list_item(item, false);
             }
         }
-    }
-
-    /// Compile a statement list in a new declarative environment.
-    pub(crate) fn compile_statement_list_with_new_declarative(
-        &mut self,
-        list: &StatementList,
-        use_expr: bool,
-        strict: bool,
-    ) {
-        self.push_compile_environment(strict);
-        let push_env = self.emit_opcode_with_two_operands(Opcode::PushDeclarativeEnvironment);
-
-        self.create_declarations(list, true);
-
-        if use_expr {
-            let expr_index = list
-                .statements()
-                .iter()
-                .rev()
-                .skip_while(|item| {
-                    matches!(
-                        item,
-                        &&StatementListItem::Statement(Statement::Empty | Statement::Var(_))
-                            | &&StatementListItem::Declaration(_)
-                    )
-                })
-                .count();
-
-            for (i, item) in list.statements().iter().enumerate() {
-                self.compile_stmt_list_item(item, i + 1 == expr_index, true);
-            }
-        } else {
-            for item in list.statements() {
-                self.compile_stmt_list_item(item, false, true);
-            }
-        }
-
-        let env_info = self.pop_compile_environment();
-        self.patch_jump_with_target(push_env.0, env_info.num_bindings as u32);
-        self.patch_jump_with_target(push_env.1, env_info.index as u32);
-        self.emit_opcode(Opcode::PopEnvironment);
     }
 
     /// Compile an [`Expression`].
@@ -1071,15 +1020,10 @@ impl<'ctx, 'host> ByteCompiler<'ctx, 'host> {
     }
 
     /// Compile a [`StatementListItem`].
-    fn compile_stmt_list_item(
-        &mut self,
-        item: &StatementListItem,
-        use_expr: bool,
-        configurable_globals: bool,
-    ) {
+    fn compile_stmt_list_item(&mut self, item: &StatementListItem, use_expr: bool) {
         match item {
             StatementListItem::Statement(stmt) => {
-                self.compile_stmt(stmt, use_expr, configurable_globals);
+                self.compile_stmt(stmt, use_expr);
             }
             StatementListItem::Declaration(decl) => self.compile_decl(decl),
         }
@@ -1088,25 +1032,19 @@ impl<'ctx, 'host> ByteCompiler<'ctx, 'host> {
     /// Compile a [`Declaration`].
     pub fn compile_decl(&mut self, decl: &Declaration) {
         match decl {
-            Declaration::Function(function) => {
-                self.function(function.into(), NodeKind::Declaration, false);
-            }
-            Declaration::Generator(function) => {
-                self.function(function.into(), NodeKind::Declaration, false);
-            }
-            Declaration::AsyncFunction(function) => {
-                self.function(function.into(), NodeKind::Declaration, false);
-            }
-            Declaration::AsyncGenerator(function) => {
-                self.function(function.into(), NodeKind::Declaration, false);
-            }
             Declaration::Class(class) => self.class(class, false),
             Declaration::Lexical(lexical) => self.compile_lexical_decl(lexical),
+            _ => {}
         }
     }
 
     /// Compile a function AST Node into bytecode.
-    fn function(&mut self, function: FunctionSpec<'_>, node_kind: NodeKind, use_expr: bool) {
+    pub(crate) fn function(
+        &mut self,
+        function: FunctionSpec<'_>,
+        node_kind: NodeKind,
+        use_expr: bool,
+    ) {
         let (generator, r#async, arrow) = (
             function.is_generator(),
             function.is_async(),
@@ -1360,178 +1298,6 @@ impl<'ctx, 'host> ByteCompiler<'ctx, 'host> {
 
     fn compile_declaration_pattern(&mut self, pattern: &Pattern, def: BindingOpcode) {
         self.compile_declaration_pattern_impl(pattern, def);
-    }
-
-    /// Creates the declarations for a script.
-    pub(crate) fn create_declarations(
-        &mut self,
-        stmt_list: &StatementList,
-        configurable_globals: bool,
-    ) {
-        for node in stmt_list.statements() {
-            self.create_decls_from_stmt_list_item(node, configurable_globals);
-        }
-    }
-
-    pub(crate) fn create_decls_from_var_decl(
-        &mut self,
-        list: &VarDeclaration,
-        configurable_globals: bool,
-    ) -> bool {
-        let mut has_identifier_argument = false;
-        for decl in list.0.as_ref() {
-            match decl.binding() {
-                Binding::Identifier(ident) => {
-                    let ident = ident;
-                    if *ident == Sym::ARGUMENTS {
-                        has_identifier_argument = true;
-                    }
-                    self.create_mutable_binding(*ident, true, configurable_globals);
-                }
-                Binding::Pattern(pattern) => {
-                    for ident in bound_names(pattern) {
-                        if ident == Sym::ARGUMENTS {
-                            has_identifier_argument = true;
-                        }
-                        self.create_mutable_binding(ident, true, configurable_globals);
-                    }
-                }
-            }
-        }
-        has_identifier_argument
-    }
-
-    pub(crate) fn create_decls_from_lexical_decl(&mut self, list: &LexicalDeclaration) -> bool {
-        let mut has_identifier_argument = false;
-        match list {
-            LexicalDeclaration::Let(list) => {
-                for decl in list.as_ref() {
-                    match decl.binding() {
-                        Binding::Identifier(ident) => {
-                            let ident = ident;
-                            if *ident == Sym::ARGUMENTS {
-                                has_identifier_argument = true;
-                            }
-                            self.create_mutable_binding(*ident, false, false);
-                        }
-                        Binding::Pattern(pattern) => {
-                            for ident in bound_names(pattern) {
-                                if ident == Sym::ARGUMENTS {
-                                    has_identifier_argument = true;
-                                }
-                                self.create_mutable_binding(ident, false, false);
-                            }
-                        }
-                    }
-                }
-            }
-            LexicalDeclaration::Const(list) => {
-                for decl in list.as_ref() {
-                    match decl.binding() {
-                        Binding::Identifier(ident) => {
-                            let ident = ident;
-                            if *ident == Sym::ARGUMENTS {
-                                has_identifier_argument = true;
-                            }
-                            self.create_immutable_binding(*ident, true);
-                        }
-                        Binding::Pattern(pattern) => {
-                            for ident in bound_names(pattern) {
-                                if ident == Sym::ARGUMENTS {
-                                    has_identifier_argument = true;
-                                }
-                                self.create_immutable_binding(ident, true);
-                            }
-                        }
-                    }
-                }
-            }
-        }
-        has_identifier_argument
-    }
-
-    pub(crate) fn create_decls_from_decl(
-        &mut self,
-        declaration: &Declaration,
-        configurable_globals: bool,
-    ) -> bool {
-        match declaration {
-            Declaration::Lexical(decl) => self.create_decls_from_lexical_decl(decl),
-            Declaration::Function(decl) => {
-                let ident = decl.name().expect("function declaration must have a name");
-                self.create_mutable_binding(ident, true, configurable_globals);
-                ident == Sym::ARGUMENTS
-            }
-            Declaration::Generator(decl) => {
-                let ident = decl.name().expect("generator declaration must have a name");
-
-                self.create_mutable_binding(ident, true, configurable_globals);
-                ident == Sym::ARGUMENTS
-            }
-            Declaration::AsyncFunction(decl) => {
-                let ident = decl
-                    .name()
-                    .expect("async function declaration must have a name");
-                self.create_mutable_binding(ident, true, configurable_globals);
-                ident == Sym::ARGUMENTS
-            }
-            Declaration::AsyncGenerator(decl) => {
-                let ident = decl
-                    .name()
-                    .expect("async generator declaration must have a name");
-                self.create_mutable_binding(ident, true, configurable_globals);
-                ident == Sym::ARGUMENTS
-            }
-            Declaration::Class(decl) => {
-                let ident = decl.name().expect("class declaration must have a name");
-                self.create_mutable_binding(ident, false, configurable_globals);
-                false
-            }
-        }
-    }
-
-    pub(crate) fn create_decls_from_stmt(
-        &mut self,
-        statement: &Statement,
-        configurable_globals: bool,
-    ) -> bool {
-        match statement {
-            Statement::Var(var) => self.create_decls_from_var_decl(var, configurable_globals),
-            Statement::DoWhileLoop(do_while_loop) => {
-                if !matches!(do_while_loop.body(), Statement::Block(_)) {
-                    self.create_decls_from_stmt(do_while_loop.body(), configurable_globals);
-                }
-                false
-            }
-            Statement::ForInLoop(for_in_loop) => {
-                if !matches!(for_in_loop.body(), Statement::Block(_)) {
-                    self.create_decls_from_stmt(for_in_loop.body(), configurable_globals);
-                }
-                false
-            }
-            Statement::ForOfLoop(for_of_loop) => {
-                if !matches!(for_of_loop.body(), Statement::Block(_)) {
-                    self.create_decls_from_stmt(for_of_loop.body(), configurable_globals);
-                }
-                false
-            }
-            _ => false,
-        }
-    }
-
-    pub(crate) fn create_decls_from_stmt_list_item(
-        &mut self,
-        item: &StatementListItem,
-        configurable_globals: bool,
-    ) -> bool {
-        match item {
-            StatementListItem::Declaration(decl) => {
-                self.create_decls_from_decl(decl, configurable_globals)
-            }
-            StatementListItem::Statement(stmt) => {
-                self.create_decls_from_stmt(stmt, configurable_globals)
-            }
-        }
     }
 
     fn class(&mut self, class: &Class, expression: bool) {

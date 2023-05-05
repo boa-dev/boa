@@ -9,7 +9,7 @@ use boa_ast::{
 };
 
 impl ByteCompiler<'_, '_> {
-    pub(crate) fn compile_try(&mut self, t: &Try, use_expr: bool, configurable_globals: bool) {
+    pub(crate) fn compile_try(&mut self, t: &Try, use_expr: bool) {
         let try_start = self.next_opcode_location();
         let (catch_start, finally_loc) = self.emit_opcode_with_two_operands(Opcode::TryStart);
         self.patch_jump_with_target(finally_loc, u32::MAX);
@@ -20,22 +20,15 @@ impl ByteCompiler<'_, '_> {
         }
         self.push_try_control_info(t.finally().is_some(), try_start);
 
-        self.push_compile_environment(false);
-        let push_env = self.emit_opcode_with_two_operands(Opcode::PushDeclarativeEnvironment);
+        self.compile_block(t.block(), use_expr);
 
-        self.compile_statement_list(t.block().statement_list(), use_expr, configurable_globals);
-
-        let env_info = self.pop_compile_environment();
-        self.patch_jump_with_target(push_env.0, env_info.num_bindings as u32);
-        self.patch_jump_with_target(push_env.1, env_info.index as u32);
-        self.emit_opcode(Opcode::PopEnvironment);
         self.emit_opcode(Opcode::TryEnd);
 
         let finally = self.jump();
         self.patch_jump(catch_start);
 
         if t.catch().is_some() {
-            self.compile_catch_stmt(t, use_expr, configurable_globals);
+            self.compile_catch_stmt(t, use_expr);
         }
 
         self.patch_jump(finally);
@@ -49,19 +42,14 @@ impl ByteCompiler<'_, '_> {
             self.set_jump_control_start_address(finally_start);
             self.patch_jump_with_target(finally_loc, finally_start);
             // Compile finally statement body
-            self.compile_finally_stmt(finally, finally_end, configurable_globals);
+            self.compile_finally_stmt(finally, finally_end);
         } else {
             let try_end = self.next_opcode_location();
             self.pop_try_control_info(try_end);
         }
     }
 
-    pub(crate) fn compile_catch_stmt(
-        &mut self,
-        parent_try: &Try,
-        use_expr: bool,
-        configurable_globals: bool,
-    ) {
+    pub(crate) fn compile_catch_stmt(&mut self, parent_try: &Try, use_expr: bool) {
         let catch = parent_try
             .catch()
             .expect("Catch must exist for compile_catch_stmt to have been invoked");
@@ -74,12 +62,12 @@ impl ByteCompiler<'_, '_> {
         if let Some(binding) = catch.parameter() {
             match binding {
                 Binding::Identifier(ident) => {
-                    self.create_mutable_binding(*ident, false, false);
+                    self.create_mutable_binding(*ident, false);
                     self.emit_binding(BindingOpcode::InitLet, *ident);
                 }
                 Binding::Pattern(pattern) => {
                     for ident in bound_names(pattern) {
-                        self.create_mutable_binding(ident, false, false);
+                        self.create_mutable_binding(ident, false);
                     }
                     self.compile_declaration_pattern(pattern, BindingOpcode::InitLet);
                 }
@@ -88,11 +76,7 @@ impl ByteCompiler<'_, '_> {
             self.emit_opcode(Opcode::Pop);
         }
 
-        self.compile_statement_list(
-            catch.block().statement_list(),
-            use_expr,
-            configurable_globals,
-        );
+        self.compile_block(catch.block(), use_expr);
 
         let env_info = self.pop_compile_environment();
         self.patch_jump_with_target(push_env.0, env_info.num_bindings as u32);
@@ -108,26 +92,9 @@ impl ByteCompiler<'_, '_> {
         self.set_jump_control_in_finally(false);
     }
 
-    pub(crate) fn compile_finally_stmt(
-        &mut self,
-        finally: &Finally,
-        finally_end_label: Label,
-        configurable_globals: bool,
-    ) {
-        self.push_compile_environment(false);
-        let push_env = self.emit_opcode_with_two_operands(Opcode::PushDeclarativeEnvironment);
+    pub(crate) fn compile_finally_stmt(&mut self, finally: &Finally, finally_end_label: Label) {
+        self.compile_block(finally.block(), false);
 
-        self.compile_statement_list(
-            finally.block().statement_list(),
-            false,
-            configurable_globals,
-        );
-
-        let env_info = self.pop_compile_environment();
-        self.patch_jump_with_target(push_env.0, env_info.num_bindings as u32);
-        self.patch_jump_with_target(push_env.1, env_info.index as u32);
-
-        self.emit_opcode(Opcode::PopEnvironment);
         self.pop_finally_control_info();
         self.patch_jump(finally_end_label);
         self.emit_opcode(Opcode::FinallyEnd);

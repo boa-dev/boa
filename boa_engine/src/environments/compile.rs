@@ -106,6 +106,23 @@ impl CompileTimeEnvironment {
         }
     }
 
+    /// Check if a binding name exists in a environment.
+    /// If strict is `false` check until a function scope is reached.
+    pub(crate) fn has_binding_eval(&self, name: Identifier, strict: bool) -> bool {
+        let exists = self.bindings.contains_key(&name);
+        if exists || strict {
+            return exists;
+        }
+        if self.function_scope {
+            return false;
+        }
+        if let Some(outer) = &self.outer {
+            outer.borrow().has_binding_eval(name, false)
+        } else {
+            false
+        }
+    }
+
     /// Create a mutable binding.
     ///
     /// If the binding is a function scope binding and this is a declarative environment, try the outer environment.
@@ -227,19 +244,5 @@ impl CompileTimeEnvironment {
     /// Gets the environment index of this environment.
     pub(crate) const fn environment_index(&self) -> usize {
         self.environment_index
-    }
-
-    /// Gets the indices of all `var` bindings in this environment.
-    pub(crate) fn var_binding_indices(&self) -> Vec<usize> {
-        self.bindings
-            .iter()
-            .filter_map(|(_, binding)| {
-                if binding.lex {
-                    None
-                } else {
-                    Some(binding.index)
-                }
-            })
-            .collect()
     }
 }

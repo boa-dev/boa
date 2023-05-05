@@ -14,30 +14,30 @@ mod with;
 
 impl ByteCompiler<'_, '_> {
     /// Compiles a [`Statement`] `boa_ast` node.
-    pub fn compile_stmt(&mut self, node: &Statement, use_expr: bool, configurable_globals: bool) {
+    pub fn compile_stmt(&mut self, node: &Statement, use_expr: bool) {
         match node {
             Statement::Var(var) => self.compile_var_decl(var),
-            Statement::If(node) => self.compile_if(node, use_expr, configurable_globals),
+            Statement::If(node) => self.compile_if(node, use_expr),
             Statement::ForLoop(for_loop) => {
-                self.compile_for_loop(for_loop, None, configurable_globals);
+                self.compile_for_loop(for_loop, None);
             }
             Statement::ForInLoop(for_in_loop) => {
-                self.compile_for_in_loop(for_in_loop, None, configurable_globals);
+                self.compile_for_in_loop(for_in_loop, None);
             }
             Statement::ForOfLoop(for_of_loop) => {
-                self.compile_for_of_loop(for_of_loop, None, configurable_globals);
+                self.compile_for_of_loop(for_of_loop, None);
             }
             Statement::WhileLoop(while_loop) => {
-                self.compile_while_loop(while_loop, None, configurable_globals);
+                self.compile_while_loop(while_loop, None);
             }
             Statement::DoWhileLoop(do_while_loop) => {
-                self.compile_do_while_loop(do_while_loop, None, configurable_globals);
+                self.compile_do_while_loop(do_while_loop, None);
             }
             Statement::Block(block) => {
-                self.compile_block(block, use_expr, configurable_globals);
+                self.compile_block(block, use_expr);
             }
             Statement::Labelled(labelled) => {
-                self.compile_labelled(labelled, use_expr, configurable_globals);
+                self.compile_labelled(labelled, use_expr);
             }
             Statement::Continue(node) => self.compile_continue(*node),
             Statement::Break(node) => self.compile_break(*node),
@@ -46,7 +46,7 @@ impl ByteCompiler<'_, '_> {
                 self.emit(Opcode::Throw, &[]);
             }
             Statement::Switch(switch) => {
-                self.compile_switch(switch, configurable_globals);
+                self.compile_switch(switch);
             }
             Statement::Return(ret) => {
                 if let Some(expr) = ret.target() {
@@ -56,9 +56,9 @@ impl ByteCompiler<'_, '_> {
                 }
                 self.emit(Opcode::Return, &[]);
             }
-            Statement::Try(t) => self.compile_try(t, use_expr, configurable_globals),
+            Statement::Try(t) => self.compile_try(t, use_expr),
             Statement::Expression(expr) => self.compile_expr(expr, use_expr),
-            Statement::With(with) => self.compile_with(with, configurable_globals),
+            Statement::With(with) => self.compile_with(with),
             Statement::Empty => {}
         }
     }
