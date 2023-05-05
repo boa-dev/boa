@@ -1,7 +1,7 @@
 use crate::{
     error::JsNativeError,
     vm::{opcode::Operation, CompletionType},
-    Context, JsResult,
+    Context, JsResult, JsValue,
 };
 
 /// `GetName` implements the Opcode Operation for `Opcode::GetName`
@@ -102,9 +102,23 @@ impl Operation for GetNameOrUndefined {
         let mut binding_locator = context.vm.frame().code_block.bindings[index as usize];
         binding_locator.throw_mutate_immutable(context)?;
 
+        let is_global = binding_locator.is_global();
+
         context.find_runtime_binding(&mut binding_locator)?;
 
-        let value = context.get_binding(binding_locator)?.unwrap_or_default();
+        let value = if let Some(value) = context.get_binding(binding_locator)? {
+            value
+        } else if is_global {
+            JsValue::undefined()
+        } else {
+            let name = context
+                .interner()
+                .resolve_expect(binding_locator.name().sym())
+                .to_string();
+            return Err(JsNativeError::reference()
+                .with_message(format!("{name} is not defined"))
+                .into());
+        };
 
         context.vm.push(value);
         Ok(CompletionType::Normal)
