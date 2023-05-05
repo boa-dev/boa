@@ -236,6 +236,28 @@ impl BuiltInConstructor for Array {
 }
 
 impl Array {
+    /// Optimized helper function, that sets the length of the array.
+    fn set_length(o: &JsObject, len: u64, context: &mut Context<'_>) -> JsResult<()> {
+        if o.is_array() && len < (2u64.pow(32) - 1) {
+            let mut borrowed_object = o.borrow_mut();
+            if borrowed_object.properties().shape.to_addr_usize()
+                == context
+                    .intrinsics()
+                    .templates()
+                    .array()
+                    .shape()
+                    .to_addr_usize()
+            {
+                // NOTE: The "length" property is the first element.
+                borrowed_object.properties_mut().storage[0] = JsValue::new(len);
+                return Ok(());
+            }
+        }
+
+        o.set(utf16!("length"), len, true, context)?;
+        Ok(())
+    }
+
     /// Utility for constructing `Array` objects.
     ///
     /// More information:
@@ -655,7 +677,7 @@ impl Array {
         }
 
         // 8. Perform ? Set(A, "length", lenNumber, true).
-        a.set(utf16!("length"), len, true, context)?;
+        Self::set_length(&a, len as u64, context)?;
 
         // 9. Return A.
         Ok(a.into())
@@ -779,7 +801,7 @@ impl Array {
             }
         }
         // 6. Perform ? Set(A, "length", 𝔽(n), true).
-        arr.set(utf16!("length"), n, true, context)?;
+        Self::set_length(&arr, n, context)?;
 
         // 7. Return A.
         Ok(JsValue::new(arr))
@@ -824,7 +846,8 @@ impl Array {
             len += 1;
         }
         // 6. Perform ? Set(O, "length", 𝔽(len), true).
-        o.set(utf16!("length"), len, true, context)?;
+        Self::set_length(&o, len, context)?;
+
         // 7. Return 𝔽(len).
         Ok(len.into())
     }
@@ -851,7 +874,8 @@ impl Array {
         // 3. If len = 0, then
         if len == 0 {
             // a. Perform ? Set(O, "length", +0𝔽, true).
-            o.set(utf16!("length"), 0, true, context)?;
+            Self::set_length(&o, 0, context)?;
+
             // b. Return undefined.
             Ok(JsValue::undefined())
         // 4. Else,
@@ -866,7 +890,7 @@ impl Array {
             // e. Perform ? DeletePropertyOrThrow(O, index).
             o.delete_property_or_throw(index, context)?;
             // f. Perform ? Set(O, "length", newLen, true).
-            o.set(utf16!("length"), new_len, true, context)?;
+            Self::set_length(&o, new_len, context)?;
             // g. Return element.
             Ok(element)
         }
@@ -1107,7 +1131,8 @@ impl Array {
         // 3. If len = 0, then
         if len == 0 {
             // a. Perform ? Set(O, "length", +0𝔽, true).
-            o.set(utf16!("length"), 0, true, context)?;
+            Self::set_length(&o, 0, context)?;
+
             // b. Return undefined.
             return Ok(JsValue::undefined());
         }
@@ -1139,7 +1164,7 @@ impl Array {
         // 7. Perform ? DeletePropertyOrThrow(O, ! ToString(𝔽(len - 1))).
         o.delete_property_or_throw(len - 1, context)?;
         // 8. Perform ? Set(O, "length", 𝔽(len - 1), true).
-        o.set(utf16!("length"), len - 1, true, context)?;
+        Self::set_length(&o, len - 1, context)?;
         // 9. Return first.
         Ok(first)
     }
@@ -1209,7 +1234,8 @@ impl Array {
             }
         }
         // 5. Perform ? Set(O, "length", 𝔽(len + argCount), true).
-        o.set(utf16!("length"), len + arg_count, true, context)?;
+        Self::set_length(&o, len + arg_count, context)?;
+
         // 6. Return 𝔽(len + argCount).
         Ok((len + arg_count).into())
     }
@@ -2088,7 +2114,7 @@ impl Array {
         }
 
         // 15. Perform ? Set(A, "length", 𝔽(n), true).
-        a.set(utf16!("length"), n, true, context)?;
+        Self::set_length(&a, n, context)?;
 
         // 16. Return A.
         Ok(a.into())
@@ -2243,7 +2269,7 @@ impl Array {
         }
 
         // 14. Perform ? Set(A, "length", 𝔽(actualDeleteCount), true).
-        arr.set(utf16!("length"), actual_delete_count, true, context)?;
+        Self::set_length(&arr, actual_delete_count, context)?;
 
         // 15. Let itemCount be the number of elements in items.
         let item_count = items.len() as u64;
@@ -2328,12 +2354,7 @@ impl Array {
         }
 
         // 20. Perform ? Set(O, "length", 𝔽(len - actualDeleteCount + itemCount), true).
-        o.set(
-            utf16!("length"),
-            len - actual_delete_count + item_count,
-            true,
-            context,
-        )?;
+        Self::set_length(&o, len - actual_delete_count + item_count, context)?;
 
         // 21. Return A.
         Ok(JsValue::from(arr))
