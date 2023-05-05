@@ -1,4 +1,4 @@
-use crate::{builtins::error::ErrorKind, run_test_actions, JsValue, TestAction};
+use crate::{run_test_actions, JsNativeErrorKind, JsValue, TestAction};
 use indoc::indoc;
 
 #[test]
@@ -87,7 +87,7 @@ fn should_set_this_value() {
 fn should_type_error_when_new_is_not_constructor() {
     run_test_actions([TestAction::assert_native_error(
         "new ''()",
-        ErrorKind::Type,
+        JsNativeErrorKind::Type,
         "not a constructor",
     )]);
 }
@@ -125,9 +125,13 @@ fn not_a_function() {
                 let a = {};
                 let b = true;
             "#}),
-        TestAction::assert_native_error("a()", ErrorKind::Type, "not a callable function"),
-        TestAction::assert_native_error("a.a()", ErrorKind::Type, "not a callable function"),
-        TestAction::assert_native_error("b()", ErrorKind::Type, "not a callable function"),
+        TestAction::assert_native_error("a()", JsNativeErrorKind::Type, "not a callable function"),
+        TestAction::assert_native_error(
+            "a.a()",
+            JsNativeErrorKind::Type,
+            "not a callable function",
+        ),
+        TestAction::assert_native_error("b()", JsNativeErrorKind::Type, "not a callable function"),
     ]);
 }
 
@@ -140,7 +144,7 @@ fn strict_mode_dup_func_parameters() {
             'use strict';
             function f(a, b, b) {}
         "#},
-        ErrorKind::Syntax,
+        JsNativeErrorKind::Syntax,
         "Duplicate parameter name not allowed in this context at line 2, col 12",
     )]);
 }

@@ -1,4 +1,4 @@
-use crate::{builtins::error::ErrorKind, run_test_actions, JsBigInt, TestAction};
+use crate::{run_test_actions, JsBigInt, JsNativeErrorKind, TestAction};
 
 #[test]
 fn equality() {
@@ -62,17 +62,17 @@ fn bigint_function_throws() {
     run_test_actions([
         TestAction::assert_native_error(
             "BigInt(0.1)",
-            ErrorKind::Range,
+            JsNativeErrorKind::Range,
             "cannot convert 0.1 to a BigInt",
         ),
         TestAction::assert_native_error(
             "BigInt(null)",
-            ErrorKind::Type,
+            JsNativeErrorKind::Type,
             "cannot convert null to a BigInt",
         ),
         TestAction::assert_native_error(
             "BigInt(undefined)",
-            ErrorKind::Type,
+            JsNativeErrorKind::Type,
             "cannot convert undefined to a BigInt",
         ),
     ]);
@@ -108,29 +108,37 @@ fn operations() {
         ),
         TestAction::assert_eq("15000n / 50n", JsBigInt::from(300)),
         TestAction::assert_eq("15001n / 50n", JsBigInt::from(300)),
-        TestAction::assert_native_error("1n/0n", ErrorKind::Range, "BigInt division by zero"),
+        TestAction::assert_native_error(
+            "1n/0n",
+            JsNativeErrorKind::Range,
+            "BigInt division by zero",
+        ),
         TestAction::assert_eq("15007n % 10n", JsBigInt::from(7)),
-        TestAction::assert_native_error("1n % 0n", ErrorKind::Range, "BigInt division by zero"),
+        TestAction::assert_native_error(
+            "1n % 0n",
+            JsNativeErrorKind::Range,
+            "BigInt division by zero",
+        ),
         TestAction::assert_eq(
             "100n ** 10n",
             JsBigInt::from_string("100000000000000000000").unwrap(),
         ),
         TestAction::assert_native_error(
             "10n ** (-10n)",
-            ErrorKind::Range,
+            JsNativeErrorKind::Range,
             "BigInt negative exponent",
         ),
         TestAction::assert_eq("8n << 2n", JsBigInt::from(32)),
         TestAction::assert_native_error(
             "1000n << 1000000000000000n",
-            ErrorKind::Range,
+            JsNativeErrorKind::Range,
             "Maximum BigInt size exceeded",
         ),
         TestAction::assert_eq("8n >> 2n", JsBigInt::from(2)),
         // TODO: this should return 0n instead of throwing
         TestAction::assert_native_error(
             "1000n >> 1000000000000000n",
-            ErrorKind::Range,
+            JsNativeErrorKind::Range,
             "Maximum BigInt size exceeded",
         ),
     ]);
@@ -151,17 +159,17 @@ fn to_string_invalid_radix() {
     run_test_actions([
         TestAction::assert_native_error(
             "10n.toString(null)",
-            ErrorKind::Range,
+            JsNativeErrorKind::Range,
             "radix must be an integer at least 2 and no greater than 36",
         ),
         TestAction::assert_native_error(
             "10n.toString(-1)",
-            ErrorKind::Range,
+            JsNativeErrorKind::Range,
             "radix must be an integer at least 2 and no greater than 36",
         ),
         TestAction::assert_native_error(
             "10n.toString(37)",
-            ErrorKind::Range,
+            JsNativeErrorKind::Range,
             "radix must be an integer at least 2 and no greater than 36",
         ),
     ]);
@@ -219,22 +227,22 @@ fn as_int_n_errors() {
     run_test_actions([
         TestAction::assert_native_error(
             "BigInt.asIntN(-1, 0n)",
-            ErrorKind::Range,
+            JsNativeErrorKind::Range,
             "Index must be between 0 and  2^53 - 1",
         ),
         TestAction::assert_native_error(
             "BigInt.asIntN(-2.5, 0n)",
-            ErrorKind::Range,
+            JsNativeErrorKind::Range,
             "Index must be between 0 and  2^53 - 1",
         ),
         TestAction::assert_native_error(
             "BigInt.asIntN(9007199254740992, 0n)",
-            ErrorKind::Range,
+            JsNativeErrorKind::Range,
             "Index must be between 0 and  2^53 - 1",
         ),
         TestAction::assert_native_error(
             "BigInt.asIntN(0n, 0n)",
-            ErrorKind::Type,
+            JsNativeErrorKind::Type,
             "argument must not be a bigint",
         ),
     ]);
@@ -292,22 +300,22 @@ fn as_uint_n_errors() {
     run_test_actions([
         TestAction::assert_native_error(
             "BigInt.asUintN(-1, 0n)",
-            ErrorKind::Range,
+            JsNativeErrorKind::Range,
             "Index must be between 0 and  2^53 - 1",
         ),
         TestAction::assert_native_error(
             "BigInt.asUintN(-2.5, 0n)",
-            ErrorKind::Range,
+            JsNativeErrorKind::Range,
             "Index must be between 0 and  2^53 - 1",
         ),
         TestAction::assert_native_error(
             "BigInt.asUintN(9007199254740992, 0n)",
-            ErrorKind::Range,
+            JsNativeErrorKind::Range,
             "Index must be between 0 and  2^53 - 1",
         ),
         TestAction::assert_native_error(
             "BigInt.asUintN(0n, 0n)",
-            ErrorKind::Type,
+            JsNativeErrorKind::Type,
             "argument must not be a bigint",
         ),
     ]);

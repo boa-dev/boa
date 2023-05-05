@@ -4,14 +4,15 @@
 //! This module will provide an instruction set for the AST to use, various traits,
 //! plus an interpreter to execute those instructions
 
+#[cfg(feature = "fuzz")]
+use crate::JsNativeError;
 use crate::{
     builtins::async_generator::{AsyncGenerator, AsyncGeneratorState},
     environments::{DeclarativeEnvironment, DeclarativeEnvironmentStack},
     vm::code_block::Readable,
     Context, JsError, JsObject, JsResult, JsValue,
 };
-#[cfg(feature = "fuzz")]
-use crate::{JsNativeError, JsNativeErrorKind};
+
 use boa_gc::Gc;
 use boa_profiler::Profiler;
 use std::{convert::TryInto, mem::size_of};
@@ -26,9 +27,12 @@ mod code_block;
 mod completion_record;
 mod opcode;
 
+mod runtime_limits;
+
 #[cfg(feature = "flowgraph")]
 pub mod flowgraph;
 
+pub use runtime_limits::RuntimeLimits;
 pub use {call_frame::CallFrame, code_block::CodeBlock, opcode::Opcode};
 
 pub(crate) use {
@@ -50,7 +54,7 @@ pub struct Vm {
     pub(crate) environments: DeclarativeEnvironmentStack,
     #[cfg(feature = "trace")]
     pub(crate) trace: bool,
-    pub(crate) stack_size_limit: usize,
+    pub(crate) runtime_limits: RuntimeLimits,
     pub(crate) active_function: Option<JsObject>,
 }
 
@@ -64,7 +68,7 @@ impl Vm {
             err: None,
             #[cfg(feature = "trace")]
             trace: false,
-            stack_size_limit: 1024,
+            runtime_limits: RuntimeLimits::default(),
             active_function: None,
         }
     }
@@ -266,11 +270,19 @@ impl Context<'_> {
                         if let Some(native_error) = err.as_native() {
                             // If we hit the execution step limit, bubble up the error to the
                             // (Rust) caller instead of trying to handle as an exception.
-                            if matches!(native_error.kind, JsNativeErrorKind::NoInstructionsRemain)
-                            {
+                            if native_error.is_no_instructions_remain() {
                                 self.vm.err = Some(err);
                                 break CompletionType::Throw;
                             }
+                        }
+                    }
+
+                    if let Some(native_error) = err.as_native() {
+                        // If we hit the execution step limit, bubble up the error to the
+                        // (Rust) caller instead of trying to handle as an exception.
+                        if native_error.is_runtime_limit() {
+                            self.vm.err = Some(err);
+                            break CompletionType::Throw;
                         }
                     }
 

@@ -1,13 +1,13 @@
 use indoc::indoc;
 mod loops;
 
-use crate::{builtins::error::ErrorKind, run_test_actions, TestAction};
+use crate::{run_test_actions, JsNativeErrorKind, TestAction};
 
 #[test]
 fn test_invalid_break() {
     run_test_actions([TestAction::assert_native_error(
         "break;",
-        ErrorKind::Syntax,
+        JsNativeErrorKind::Syntax,
         "illegal break statement at line 1, col 1",
     )]);
 }
@@ -20,7 +20,7 @@ fn test_invalid_continue_target() {
                 continue nonexistent;
             }
         "#},
-        ErrorKind::Syntax,
+        JsNativeErrorKind::Syntax,
         "undefined continue target: nonexistent at line 1, col 1",
     )]);
 }
@@ -29,7 +29,7 @@ fn test_invalid_continue_target() {
 fn test_invalid_continue() {
     run_test_actions([TestAction::assert_native_error(
         "continue;",
-        ErrorKind::Syntax,
+        JsNativeErrorKind::Syntax,
         "illegal continue statement at line 1, col 1",
     )]);
 }

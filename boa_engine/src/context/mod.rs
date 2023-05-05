@@ -35,6 +35,8 @@ use boa_interner::{Interner, Sym};
 use boa_parser::{Error as ParseError, Parser};
 use boa_profiler::Profiler;
 
+use crate::vm::RuntimeLimits;
+
 /// ECMAScript context. It is the primary way to interact with the runtime.
 ///
 /// `Context`s constructed in a thread share the same runtime, therefore it
@@ -482,30 +484,36 @@ impl<'host> Context<'host> {
 
     /// Set the value of trace on the context
     #[cfg(feature = "trace")]
+    #[inline]
     pub fn set_trace(&mut self, trace: bool) {
         self.vm.trace = trace;
     }
 
     /// Get optimizer options.
+    #[inline]
     pub const fn optimizer_options(&self) -> OptimizerOptions {
         self.optimizer_options
     }
     /// Enable or disable optimizations
+    #[inline]
     pub fn set_optimizer_options(&mut self, optimizer_options: OptimizerOptions) {
         self.optimizer_options = optimizer_options;
     }
 
     /// Changes the strictness mode of the context.
+    #[inline]
     pub fn strict(&mut self, strict: bool) {
         self.strict = strict;
     }
 
     /// Enqueues a [`NativeJob`] on the [`JobQueue`].
+    #[inline]
     pub fn enqueue_job(&mut self, job: NativeJob) {
         self.job_queue().enqueue_promise_job(job, self);
     }
 
     /// Runs all the jobs in the job queue.
+    #[inline]
     pub fn run_jobs(&mut self) {
         self.job_queue().run_jobs(self);
         self.clear_kept_objects();
@@ -519,16 +527,19 @@ impl<'host> Context<'host> {
     /// [clear]: https://tc39.es/ecma262/multipage/executable-code-and-execution-contexts.html#sec-clear-kept-objects
     /// [add]: https://tc39.es/ecma262/multipage/executable-code-and-execution-contexts.html#sec-addtokeptobjects
     /// [weak]: https://tc39.es/ecma262/multipage/managing-memory.html#sec-weak-ref-objects
+    #[inline]
     pub fn clear_kept_objects(&mut self) {
         self.kept_alive.clear();
     }
 
     /// Retrieves the current stack trace of the context.
+    #[inline]
     pub fn stack_trace(&mut self) -> impl Iterator<Item = &CallFrame> {
         self.vm.frames.iter().rev()
     }
 
     /// Replaces the currently active realm with `realm`, and returns the old realm.
+    #[inline]
     pub fn enter_realm(&mut self, realm: Realm) -> Realm {
         self.vm
             .environments
@@ -541,13 +552,33 @@ impl<'host> Context<'host> {
     }
 
     /// Gets the host hooks.
+    #[inline]
     pub fn host_hooks(&self) -> MaybeShared<'host, dyn HostHooks> {
         self.host_hooks.clone()
     }
 
     /// Gets the job queue.
+    #[inline]
     pub fn job_queue(&self) -> MaybeShared<'host, dyn JobQueue> {
         self.job_queue.clone()
+    }
+
+    /// Get the [`RuntimeLimits`].
+    #[inline]
+    pub const fn runtime_limits(&self) -> RuntimeLimits {
+        self.vm.runtime_limits
+    }
+
+    /// Set the [`RuntimeLimits`].
+    #[inline]
+    pub fn set_runtime_limits(&mut self, runtime_limits: RuntimeLimits) {
+        self.vm.runtime_limits = runtime_limits;
+    }
+
+    /// Get a mutable reference to the [`RuntimeLimits`].
+    #[inline]
+    pub fn runtime_limits_mut(&mut self) -> &mut RuntimeLimits {
+        &mut self.vm.runtime_limits
     }
 }
 

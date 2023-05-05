@@ -700,7 +700,7 @@ fn to_bigint() {
 /// Relevant mitigation for these are in `JsObject::ordinary_to_primitive` and
 /// `JsObject::to_json`
 mod cyclic_conversions {
-    use crate::builtins::error::ErrorKind;
+    use crate::JsNativeErrorKind;
 
     use super::*;
 
@@ -712,7 +712,7 @@ mod cyclic_conversions {
                 a[0] = a;
                 JSON.stringify(a)
             "#},
-            ErrorKind::Type,
+            JsNativeErrorKind::Type,
             "cyclic object value",
         )]);
     }

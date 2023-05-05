@@ -1,8 +1,5 @@
 use super::Array;
-use crate::{
-    builtins::{error::ErrorKind, Number},
-    run_test_actions, Context, JsValue, TestAction,
-};
+use crate::{builtins::Number, run_test_actions, Context, JsNativeErrorKind, JsValue, TestAction};
 use indoc::indoc;
 
 #[test]
@@ -191,7 +188,7 @@ fn flat_map_not_callable() {
             var array = [1,2,3];
             array.flatMap("not a function");
         "#},
-        ErrorKind::Type,
+        JsNativeErrorKind::Type,
         "flatMap mapper function is not callable",
     )]);
 }
@@ -639,7 +636,7 @@ fn reduce() {
         // Empty array
         TestAction::assert_native_error(
             "[].reduce((acc, x) => acc + x);",
-            ErrorKind::Type,
+            JsNativeErrorKind::Type,
             "Array.prototype.reduce: called on an empty array and with no initial value",
         ),
         // Array with no defined elements
@@ -650,7 +647,7 @@ fn reduce() {
                 delete deleteArr[1];
                 deleteArr.reduce((acc, x) => acc + x);
             "#},
-            ErrorKind::Type,
+            JsNativeErrorKind::Type,
             "Array.prototype.reduce: called on an empty array and with no initial value",
         ),
         // No callback
@@ -659,7 +656,7 @@ fn reduce() {
                 var someArr = [0, 1];
                 someArr.reduce('');
             "#},
-            ErrorKind::Type,
+            JsNativeErrorKind::Type,
             "Array.prototype.reduce: callback function is not callable",
         ),
     ]);
@@ -720,7 +717,7 @@ fn reduce_right() {
         // Empty array
         TestAction::assert_native_error(
             "[].reduceRight((acc, x) => acc + x);",
-            ErrorKind::Type,
+            JsNativeErrorKind::Type,
             "Array.prototype.reduceRight: called on an empty array and with no initial value",
         ),
         // Array with no defined elements
@@ -731,7 +728,7 @@ fn reduce_right() {
                 delete deleteArr[1];
                 deleteArr.reduceRight((acc, x) => acc + x);
             "#},
-            ErrorKind::Type,
+            JsNativeErrorKind::Type,
             "Array.prototype.reduceRight: called on an empty array and with no initial value",
         ),
         // No callback
@@ -740,7 +737,7 @@ fn reduce_right() {
                 var otherArr = [0, 1];
                 otherArr.reduceRight("");
             "#},
-            ErrorKind::Type,
+            JsNativeErrorKind::Type,
             "Array.prototype.reduceRight: callback function is not callable",
         ),
     ]);
@@ -865,7 +862,7 @@ fn array_spread_arrays() {
 fn array_spread_non_iterable() {
     run_test_actions([TestAction::assert_native_error(
         "const array2 = [...5];",
-        ErrorKind::Type,
+        JsNativeErrorKind::Type,
         "value with type `number` is not iterable",
     )]);
 }

@@ -257,7 +257,7 @@ enum Inner {
     },
     AssertNativeError {
         source: Cow<'static, str>,
-        kind: builtins::error::ErrorKind,
+        kind: JsNativeErrorKind,
         message: &'static str,
     },
     AssertContext {
@@ -328,7 +328,7 @@ impl TestAction {
     /// Asserts that evaluating `source` throws a native error of `kind` and `message`.
     fn assert_native_error(
         source: impl Into<Cow<'static, str>>,
-        kind: builtins::error::ErrorKind,
+        kind: JsNativeErrorKind,
         message: &'static str,
     ) -> Self {
         Self(Inner::AssertNativeError {

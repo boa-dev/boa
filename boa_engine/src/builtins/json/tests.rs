@@ -1,6 +1,6 @@
 use indoc::indoc;
 
-use crate::{builtins::error::ErrorKind, run_test_actions, JsValue, TestAction};
+use crate::{run_test_actions, JsNativeErrorKind, JsValue, TestAction};
 
 #[test]
 fn json_sanity() {
@@ -307,7 +307,7 @@ fn json_fields_should_be_enumerable() {
 fn json_parse_with_no_args_throws_syntax_error() {
     run_test_actions([TestAction::assert_native_error(
         "JSON.parse();",
-        ErrorKind::Syntax,
+        JsNativeErrorKind::Syntax,
         "expected value at line 1 column 1",
     )]);
 }

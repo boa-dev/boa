@@ -1,10 +1,7 @@
 #![allow(clippy::float_cmp)]
 
 use crate::{
-    builtins::{error::ErrorKind, Number},
-    run_test_actions,
-    value::AbstractRelation,
-    TestAction,
+    builtins::Number, run_test_actions, value::AbstractRelation, JsNativeErrorKind, TestAction,
 };
 
 #[test]
@@ -81,10 +78,10 @@ fn to_precision() {
             "(1/3).toPrecision(60)",
             "0.333333333333333314829616256247390992939472198486328125000000",
         ),
-        TestAction::assert_native_error("(1).toPrecision(101)", ErrorKind::Range, ERROR),
-        TestAction::assert_native_error("(1).toPrecision(0)", ErrorKind::Range, ERROR),
-        TestAction::assert_native_error("(1).toPrecision(-2000)", ErrorKind::Range, ERROR),
-        TestAction::assert_native_error("(1).toPrecision('%')", ErrorKind::Range, ERROR),
+        TestAction::assert_native_error("(1).toPrecision(101)", JsNativeErrorKind::Range, ERROR),
+        TestAction::assert_native_error("(1).toPrecision(0)", JsNativeErrorKind::Range, ERROR),
+        TestAction::assert_native_error("(1).toPrecision(-2000)", JsNativeErrorKind::Range, ERROR),
+        TestAction::assert_native_error("(1).toPrecision('%')", JsNativeErrorKind::Range, ERROR),
     ]);
 }
 

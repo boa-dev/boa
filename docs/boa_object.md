@@ -173,7 +173,7 @@ $boa.optimizer.constantFolding // true
 
 ### Getter & Setter `$boa.optimizer.statistics`
 
-This is and accessor property on the module, its getter returns `true` if enabled or `false` otherwise.
+This is an accessor property on the module, its getter returns `true` if enabled or `false` otherwise.
 Its setter can be used to enable/disable optimization statistics, which are printed to `stdout`.
 
 ```JavaScript
@@ -190,7 +190,7 @@ Optimizer {
 
 ## Module `$boa.realm`
 
-This modules contains realm utilities to test cross-realm behaviour.
+This module contains realm utilities to test cross-realm behaviour.
 
 ### `$boa.realm.create`
 
@@ -239,4 +239,19 @@ $boa.shape.same(o1, o2) // true
 
 o2.y = 200
 $boa.shape.same(o1, o2) // false
+```
+
+## Module `$boa.limits`
+
+This module contains utilities for changing runtime limits.
+
+### Getter & Setter `$boa.limits.loop`
+
+This is an accessor property on the module, its getter returns the loop iteration limit before an error is thrown.
+Its setter can be used to set the loop iteration limit.
+
+```javascript
+$boa.limits.loop = 10;
+
+while (true) {} // RuntimeLimit: max loop iteration limit 10 exceeded
 ```

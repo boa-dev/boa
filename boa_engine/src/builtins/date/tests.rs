@@ -1,4 +1,4 @@
-use crate::{builtins::error::ErrorKind, run_test_actions, TestAction};
+use crate::{run_test_actions, JsNativeErrorKind, TestAction};
 use chrono::{Local, NaiveDate, NaiveDateTime, NaiveTime, TimeZone};
 use indoc::indoc;
 
@@ -47,7 +47,7 @@ fn timestamp_from_utc(
 fn date_this_time_value() {
     run_test_actions([TestAction::assert_native_error(
         "({toString: Date.prototype.toString}).toString()",
-        ErrorKind::Type,
+        JsNativeErrorKind::Type,
         "'this' is not a Date",
     )]);
 }

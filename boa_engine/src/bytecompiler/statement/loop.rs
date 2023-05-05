@@ -51,6 +51,7 @@ impl ByteCompiler<'_, '_> {
 
         let (continue_start, continue_exit) =
             self.emit_opcode_with_two_operands(Opcode::LoopContinue);
+
         self.patch_jump_with_target(loop_start, start_address);
         self.patch_jump_with_target(continue_start, start_address);
 
@@ -366,6 +367,7 @@ impl ByteCompiler<'_, '_> {
         let start_address = self.next_opcode_location();
         let (continue_start, continue_exit) =
             self.emit_opcode_with_two_operands(Opcode::LoopContinue);
+
         self.push_loop_control_info(label, start_address);
         self.patch_jump_with_target(loop_start, start_address);
         self.patch_jump_with_target(continue_start, start_address);

@@ -1,4 +1,4 @@
-use crate::{builtins::error::ErrorKind, run_test_actions, JsValue, TestAction};
+use crate::{run_test_actions, JsNativeErrorKind, JsValue, TestAction};
 use indoc::indoc;
 
 #[test]
@@ -190,7 +190,7 @@ fn super_call_constructor_null() {
             }
             new A();
         "#},
-        ErrorKind::Type,
+        JsNativeErrorKind::Type,
         "super constructor object must be constructor",
     )]);
 }
@@ -236,4 +236,39 @@ fn order_of_execution_in_assigment_with_comma_expressions() {
         "#},
         "1234",
     )]);
+}
+
+#[test]
+fn loop_runtime_limit() {
+    run_test_actions([
+        TestAction::assert_eq(
+            indoc! {r#"
+                for (let i = 0; i < 20; ++i) { }
+            "#},
+            JsValue::undefined(),
+        ),
+        TestAction::inspect_context(|context| {
+            context.runtime_limits_mut().set_loop_iteration_limit(10);
+        }),
+        TestAction::assert_native_error(
+            indoc! {r#"
+                for (let i = 0; i < 20; ++i) { }
+            "#},
+            JsNativeErrorKind::RuntimeLimit,
+            "max loop iteration limit 10 exceeded",
+        ),
+        TestAction::assert_eq(
+            indoc! {r#"
+                for (let i = 0; i < 10; ++i) { }
+            "#},
+            JsValue::undefined(),
+        ),
+        TestAction::assert_native_error(
+            indoc! {r#"
+                while (1) { }
+            "#},
+            JsNativeErrorKind::RuntimeLimit,
+            "max loop iteration limit 10 exceeded",
+        ),
+    ]);
 }

@@ -1,4 +1,4 @@
-use crate::{builtins::error::ErrorKind, run_test_actions, TestAction};
+use crate::{run_test_actions, JsNativeErrorKind, TestAction};
 use indoc::indoc;
 
 #[test]
@@ -9,7 +9,7 @@ fn ordinary_has_instance_nonobject_prototype() {
             C.prototype = 1
             String instanceof C
         "#},
-        ErrorKind::Type,
+        JsNativeErrorKind::Type,
         "function has non-object prototype in instanceof check",
     )]);
 }

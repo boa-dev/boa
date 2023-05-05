@@ -7,7 +7,7 @@ mod operators;
 mod promise;
 mod spread;
 
-use crate::{builtins::error::ErrorKind, run_test_actions, JsValue, TestAction};
+use crate::{run_test_actions, JsNativeErrorKind, JsValue, TestAction};
 
 #[test]
 fn length_correct_value_on_string_literal() {
@@ -40,7 +40,7 @@ fn empty_var_decl_undefined() {
 fn identifier_on_global_object_undefined() {
     run_test_actions([TestAction::assert_native_error(
         "bar;",
-        ErrorKind::Reference,
+        JsNativeErrorKind::Reference,
         "bar is not defined",
     )]);
 }
@@ -372,7 +372,7 @@ fn undefined_constant() {
 fn identifier_op() {
     run_test_actions([TestAction::assert_native_error(
         "break = 1",
-        ErrorKind::Syntax,
+        JsNativeErrorKind::Syntax,
         r#"expected token 'identifier', got '=' in identifier parsing at line 1, col 7"#,
     )]);
 }
@@ -386,7 +386,7 @@ fn strict_mode_octal() {
             'use strict';
             var n = 023;
         "#},
-        ErrorKind::Syntax,
+        JsNativeErrorKind::Syntax,
         "implicit octal literals are not allowed in strict mode at line 2, col 9",
     )]);
 }
@@ -404,7 +404,7 @@ fn strict_mode_with() {
                 }
             }
         "#},
-        ErrorKind::Syntax,
+        JsNativeErrorKind::Syntax,
         "with statement not allowed in strict mode at line 3, col 5",
     )]);
 }
@@ -429,7 +429,11 @@ fn strict_mode_reserved_name() {
     ];
 
     run_test_actions(cases.into_iter().map(|(case, msg)| {
-        TestAction::assert_native_error(format!("'use strict'; {case}"), ErrorKind::Syntax, msg)
+        TestAction::assert_native_error(
+            format!("'use strict'; {case}"),
+            JsNativeErrorKind::Syntax,
+            msg,
+        )
     }));
 }
 

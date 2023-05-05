@@ -44,7 +44,7 @@ use thiserror::Error;
 /// let kind = &native_error.as_native().unwrap().kind;
 /// assert!(matches!(kind, JsNativeErrorKind::Type));
 /// ```
-#[derive(Debug, Clone, Trace, Finalize)]
+#[derive(Debug, Clone, Trace, Finalize, PartialEq, Eq)]
 pub struct JsError {
     inner: Repr,
 }
@@ -59,7 +59,7 @@ pub struct JsError {
 /// This should never be used outside of this module. If that's not the case,
 /// you should add methods to either `JsError` or `JsNativeError` to
 /// represent that special use case.
-#[derive(Debug, Clone, Trace, Finalize)]
+#[derive(Debug, Clone, Trace, Finalize, PartialEq, Eq)]
 enum Repr {
     Native(JsNativeError),
     Opaque(JsValue),
@@ -417,7 +417,7 @@ impl std::fmt::Display for JsError {
 ///
 /// assert_eq!(native_error.message(), "cannot decode uri");
 /// ```
-#[derive(Clone, Trace, Finalize, Error)]
+#[derive(Clone, Trace, Finalize, Error, PartialEq, Eq)]
 #[error("{kind}: {message}")]
 pub struct JsNativeError {
     /// The kind of native error (e.g. `TypeError`, `SyntaxError`, etc.)
@@ -468,8 +468,15 @@ impl JsNativeError {
     /// ));
     /// ```
     #[must_use]
+    #[inline]
     pub fn aggregate(errors: Vec<JsError>) -> Self {
         Self::new(JsNativeErrorKind::Aggregate(errors), Box::default(), None)
+    }
+
+    /// Check if it's a [`JsNativeErrorKind::Aggregate`].
+    #[inline]
+    pub const fn is_aggregate(&self) -> bool {
+        matches!(self.kind, JsNativeErrorKind::Aggregate(_))
     }
 
     /// Creates a new `JsNativeError` of kind `Error`, with empty `message` and undefined `cause`.
@@ -483,8 +490,15 @@ impl JsNativeError {
     /// assert!(matches!(error.kind, JsNativeErrorKind::Error));
     /// ```
     #[must_use]
+    #[inline]
     pub fn error() -> Self {
         Self::new(JsNativeErrorKind::Error, Box::default(), None)
+    }
+
+    /// Check if it's a [`JsNativeErrorKind::Error`].
+    #[inline]
+    pub const fn is_error(&self) -> bool {
+        matches!(self.kind, JsNativeErrorKind::Error)
     }
 
     /// Creates a new `JsNativeError` of kind `EvalError`, with empty `message` and undefined `cause`.
@@ -498,8 +512,15 @@ impl JsNativeError {
     /// assert!(matches!(error.kind, JsNativeErrorKind::Eval));
     /// ```
     #[must_use]
+    #[inline]
     pub fn eval() -> Self {
         Self::new(JsNativeErrorKind::Eval, Box::default(), None)
+    }
+
+    /// Check if it's a [`JsNativeErrorKind::Eval`].
+    #[inline]
+    pub const fn is_eval(&self) -> bool {
+        matches!(self.kind, JsNativeErrorKind::Eval)
     }
 
     /// Creates a new `JsNativeError` of kind `RangeError`, with empty `message` and undefined `cause`.
@@ -513,8 +534,15 @@ impl JsNativeError {
     /// assert!(matches!(error.kind, JsNativeErrorKind::Range));
     /// ```
     #[must_use]
+    #[inline]
     pub fn range() -> Self {
         Self::new(JsNativeErrorKind::Range, Box::default(), None)
+    }
+
+    /// Check if it's a [`JsNativeErrorKind::Range`].
+    #[inline]
+    pub const fn is_range(&self) -> bool {
+        matches!(self.kind, JsNativeErrorKind::Range)
     }
 
     /// Creates a new `JsNativeError` of kind `ReferenceError`, with empty `message` and undefined `cause`.
@@ -528,8 +556,15 @@ impl JsNativeError {
     /// assert!(matches!(error.kind, JsNativeErrorKind::Reference));
     /// ```
     #[must_use]
+    #[inline]
     pub fn reference() -> Self {
         Self::new(JsNativeErrorKind::Reference, Box::default(), None)
+    }
+
+    /// Check if it's a [`JsNativeErrorKind::Reference`].
+    #[inline]
+    pub const fn is_reference(&self) -> bool {
+        matches!(self.kind, JsNativeErrorKind::Reference)
     }
 
     /// Creates a new `JsNativeError` of kind `SyntaxError`, with empty `message` and undefined `cause`.
@@ -543,8 +578,15 @@ impl JsNativeError {
     /// assert!(matches!(error.kind, JsNativeErrorKind::Syntax));
     /// ```
     #[must_use]
+    #[inline]
     pub fn syntax() -> Self {
         Self::new(JsNativeErrorKind::Syntax, Box::default(), None)
+    }
+
+    /// Check if it's a [`JsNativeErrorKind::Syntax`].
+    #[inline]
+    pub const fn is_syntax(&self) -> bool {
+        matches!(self.kind, JsNativeErrorKind::Syntax)
     }
 
     /// Creates a new `JsNativeError` of kind `TypeError`, with empty `message` and undefined `cause`.
@@ -558,8 +600,15 @@ impl JsNativeError {
     /// assert!(matches!(error.kind, JsNativeErrorKind::Type));
     /// ```
     #[must_use]
+    #[inline]
     pub fn typ() -> Self {
         Self::new(JsNativeErrorKind::Type, Box::default(), None)
+    }
+
+    /// Check if it's a [`JsNativeErrorKind::Type`].
+    #[inline]
+    pub const fn is_type(&self) -> bool {
+        matches!(self.kind, JsNativeErrorKind::Type)
     }
 
     /// Creates a new `JsNativeError` of kind `UriError`, with empty `message` and undefined `cause`.
@@ -573,8 +622,15 @@ impl JsNativeError {
     /// assert!(matches!(error.kind, JsNativeErrorKind::Uri));
     /// ```
     #[must_use]
+    #[inline]
     pub fn uri() -> Self {
         Self::new(JsNativeErrorKind::Uri, Box::default(), None)
+    }
+
+    /// Check if it's a [`JsNativeErrorKind::Uri`].
+    #[inline]
+    pub const fn is_uri(&self) -> bool {
+        matches!(self.kind, JsNativeErrorKind::Uri)
     }
 
     /// Creates a new `JsNativeError` that indicates that the context hit its execution limit. This
@@ -589,6 +645,26 @@ impl JsNativeError {
         )
     }
 
+    /// Check if it's a [`JsNativeErrorKind::NoInstructionsRemain`].
+    #[inline]
+    #[cfg(feature = "fuzz")]
+    pub const fn is_no_instructions_remain(&self) -> bool {
+        matches!(self.kind, JsNativeErrorKind::NoInstructionsRemain)
+    }
+
+    /// Creates a new `JsNativeError` that indicates that the context exceeded the runtime limits.
+    #[must_use]
+    #[inline]
+    pub fn runtime_limit() -> Self {
+        Self::new(JsNativeErrorKind::RuntimeLimit, Box::default(), None)
+    }
+
+    /// Check if it's a [`JsNativeErrorKind::RuntimeLimit`].
+    #[inline]
+    pub const fn is_runtime_limit(&self) -> bool {
+        matches!(self.kind, JsNativeErrorKind::RuntimeLimit)
+    }
+
     /// Sets the message of this error.
     ///
     /// # Examples
@@ -600,6 +676,7 @@ impl JsNativeError {
     /// assert_eq!(error.message(), "number too large");
     /// ```
     #[must_use]
+    #[inline]
     pub fn with_message<S>(mut self, message: S) -> Self
     where
         S: Into<Box<str>>,
@@ -620,6 +697,7 @@ impl JsNativeError {
     /// assert!(error.cause().unwrap().as_native().is_some());
     /// ```
     #[must_use]
+    #[inline]
     pub fn with_cause<V>(mut self, cause: V) -> Self
     where
         V: Into<JsError>,
@@ -644,6 +722,7 @@ impl JsNativeError {
     /// assert_eq!(error.message(), "number too large");
     /// ```
     #[must_use]
+    #[inline]
     pub const fn message(&self) -> &str {
         &self.message
     }
@@ -665,6 +744,7 @@ impl JsNativeError {
     /// assert!(error.cause().unwrap().as_native().is_some());
     /// ```
     #[must_use]
+    #[inline]
     pub fn cause(&self) -> Option<&JsError> {
         self.cause.as_deref()
     }
@@ -683,6 +763,11 @@ impl JsNativeError {
     /// assert!(error_obj.borrow().is_error());
     /// assert_eq!(error_obj.get("message", context).unwrap(), "error!".into())
     /// ```
+    ///
+    /// # Panics
+    ///
+    /// If converting a [`JsNativeErrorKind::RuntimeLimit`] to an opaque object.
+    #[inline]
     pub fn to_opaque(&self, context: &mut Context<'_>) -> JsObject {
         let Self {
             kind,
@@ -716,6 +801,9 @@ impl JsNativeError {
                 unreachable!(
                     "The NoInstructionsRemain native error cannot be converted to an opaque type."
                 )
+            }
+            JsNativeErrorKind::RuntimeLimit => {
+                panic!("The RuntimeLimit native error cannot be converted to an opaque type.")
             }
         };
 
@@ -776,7 +864,7 @@ impl From<boa_parser::Error> for JsNativeError {
 ///
 /// [spec]: https://tc39.es/ecma262/#sec-error-objects
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error
-#[derive(Debug, Clone, Trace, Finalize)]
+#[derive(Debug, Clone, Trace, Finalize, PartialEq, Eq)]
 #[non_exhaustive]
 pub enum JsNativeErrorKind {
     /// A collection of errors wrapped in a single error.
@@ -855,10 +943,14 @@ pub enum JsNativeErrorKind {
     /// [e_uri]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/encodeURI
     /// [d_uri]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/decodeURI
     Uri,
+
     /// Error thrown when no instructions remain. Only used in a fuzzing context; not a valid JS
     /// error variant.
     #[cfg(feature = "fuzz")]
     NoInstructionsRemain,
+
+    /// Error thrown when a runtime limit is exceeded. It's not a valid JS error variant.
+    RuntimeLimit,
 }
 
 impl PartialEq<ErrorKind> for JsNativeErrorKind {
@@ -888,6 +980,7 @@ impl std::fmt::Display for JsNativeErrorKind {
             Self::Syntax => "SyntaxError",
             Self::Type => "TypeError",
             Self::Uri => "UriError",
+            Self::RuntimeLimit => "RuntimeLimit",
             #[cfg(feature = "fuzz")]
             Self::NoInstructionsRemain => "NoInstructionsRemain",
         }

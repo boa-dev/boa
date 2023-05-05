@@ -1,3 +1,4 @@
+use crate::JsNativeError;
 use crate::{
     vm::{call_frame::EnvStackEntry, opcode::Operation, CompletionType},
     Context, JsResult,
@@ -18,13 +19,27 @@ impl Operation for LoopStart {
         let start = context.vm.read::<u32>();
         let exit = context.vm.read::<u32>();
 
-        context
-            .vm
-            .frame_mut()
-            .env_stack
-            .push(EnvStackEntry::new(start, exit).with_loop_flag());
+        // Create and push loop evironment entry.
+        let entry = EnvStackEntry::new(start, exit).with_loop_flag(1);
+        context.vm.frame_mut().env_stack.push(entry);
         Ok(CompletionType::Normal)
     }
+}
+
+/// This is a helper function used to clean the loop environment created by the
+/// [`LoopStart`] and [`LoopContinue`] opcodes.
+fn cleanup_loop_environment(context: &mut Context<'_>) {
+    let mut envs_to_pop = 0_usize;
+    while let Some(env_entry) = context.vm.frame_mut().env_stack.pop() {
+        envs_to_pop += env_entry.env_num();
+
+        if env_entry.is_loop_env() {
+            break;
+        }
+    }
+
+    let env_truncation_len = context.vm.environments.len().saturating_sub(envs_to_pop);
+    context.vm.environments.truncate(env_truncation_len);
 }
 
 /// `LoopContinue` implements the Opcode Operation for `Opcode::LoopContinue`.
@@ -42,6 +57,8 @@ impl Operation for LoopContinue {
         let start = context.vm.read::<u32>();
         let exit = context.vm.read::<u32>();
 
+        let mut iteration_count = 0;
+
         // 1. Clean up the previous environment.
         if let Some(entry) = context
             .vm
@@ -57,15 +74,28 @@ impl Operation for LoopContinue {
                 .saturating_sub(entry.env_num());
             context.vm.environments.truncate(env_truncation_len);
 
-            context.vm.frame_mut().env_stack.pop();
+            // Pop loop environment and get it's iteration count.
+            let previous_entry = context.vm.frame_mut().env_stack.pop();
+            if let Some(previous_iteration_count) =
+                previous_entry.and_then(EnvStackEntry::as_loop_iteration_count)
+            {
+                iteration_count = previous_iteration_count.wrapping_add(1);
+
+                let max = context.vm.runtime_limits.loop_iteration_limit();
+                if previous_iteration_count > max {
+                    cleanup_loop_environment(context);
+
+                    return Err(JsNativeError::runtime_limit()
+                        .with_message(format!("max loop iteration limit {max} exceeded"))
+                        .into());
+                }
+            }
         }
 
         // 2. Push a new clean EnvStack.
-        context
-            .vm
-            .frame_mut()
-            .env_stack
-            .push(EnvStackEntry::new(start, exit).with_loop_flag());
+        let entry = EnvStackEntry::new(start, exit).with_loop_flag(iteration_count);
+
+        context.vm.frame_mut().env_stack.push(entry);
 
         Ok(CompletionType::Normal)
     }
@@ -83,18 +113,7 @@ impl Operation for LoopEnd {
     const INSTRUCTION: &'static str = "INST - LoopEnd";
 
     fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
-        let mut envs_to_pop = 0_usize;
-        while let Some(env_entry) = context.vm.frame_mut().env_stack.pop() {
-            envs_to_pop += env_entry.env_num();
-
-            if env_entry.is_loop_env() {
-                break;
-            }
-        }
-
-        let env_truncation_len = context.vm.environments.len().saturating_sub(envs_to_pop);
-        context.vm.environments.truncate(env_truncation_len);
-
+        cleanup_loop_environment(context);
         Ok(CompletionType::Normal)
     }
 }

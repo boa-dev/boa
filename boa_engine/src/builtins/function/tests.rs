@@ -1,11 +1,10 @@
 use crate::{
-    builtins::error::ErrorKind,
     error::JsNativeError,
     js_string,
     native_function::NativeFunction,
     object::{FunctionObjectBuilder, JsObject},
     property::{Attribute, PropertyDescriptor},
-    run_test_actions, JsValue, TestAction,
+    run_test_actions, JsNativeErrorKind, JsValue, TestAction,
 };
 use indoc::indoc;
 
@@ -60,7 +59,7 @@ fn function_prototype() {
         ),
         TestAction::assert_native_error(
             "new Function.prototype()",
-            ErrorKind::Type,
+            JsNativeErrorKind::Type,
             "not a constructor",
         ),
     ]);
@@ -81,7 +80,7 @@ fn function_prototype_call_throw() {
             let call = Function.prototype.call;
             call(call)
         "#},
-        ErrorKind::Type,
+        JsNativeErrorKind::Type,
         "undefined is not a function",
     )]);
 }
@@ -181,12 +180,12 @@ fn function_constructor_early_errors_super() {
     run_test_actions([
         TestAction::assert_native_error(
             "Function('super()')()",
-            ErrorKind::Syntax,
+            JsNativeErrorKind::Syntax,
             "invalid `super` call",
         ),
         TestAction::assert_native_error(
             "Function('super.a')()",
-            ErrorKind::Syntax,
+            JsNativeErrorKind::Syntax,
             "invalid `super` reference",
         ),
     ]);
