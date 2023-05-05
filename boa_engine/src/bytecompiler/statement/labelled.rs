@@ -17,19 +17,19 @@ impl ByteCompiler<'_, '_> {
         match labelled.item() {
             LabelledItem::Statement(stmt) => match stmt {
                 Statement::ForLoop(for_loop) => {
-                    self.compile_for_loop(for_loop, Some(labelled.label()));
+                    self.compile_for_loop(for_loop, Some(labelled.label()), use_expr);
                 }
                 Statement::ForInLoop(for_in_loop) => {
-                    self.compile_for_in_loop(for_in_loop, Some(labelled.label()));
+                    self.compile_for_in_loop(for_in_loop, Some(labelled.label()), use_expr);
                 }
                 Statement::ForOfLoop(for_of_loop) => {
-                    self.compile_for_of_loop(for_of_loop, Some(labelled.label()));
+                    self.compile_for_of_loop(for_of_loop, Some(labelled.label()), use_expr);
                 }
                 Statement::WhileLoop(while_loop) => {
-                    self.compile_while_loop(while_loop, Some(labelled.label()));
+                    self.compile_while_loop(while_loop, Some(labelled.label()), use_expr);
                 }
                 Statement::DoWhileLoop(do_while_loop) => {
-                    self.compile_do_while_loop(do_while_loop, Some(labelled.label()));
+                    self.compile_do_while_loop(do_while_loop, Some(labelled.label()), use_expr);
                 }
                 stmt => self.compile_stmt(stmt, use_expr),
             },

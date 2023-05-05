@@ -3,7 +3,7 @@ use boa_ast::statement::Switch;
 
 impl ByteCompiler<'_, '_> {
     /// Compile a [`Switch`] `boa_ast` node
-    pub(crate) fn compile_switch(&mut self, switch: &Switch) {
+    pub(crate) fn compile_switch(&mut self, switch: &Switch, use_expr: bool) {
         self.compile_expr(switch.val(), true);
 
         self.push_compile_environment(false);
@@ -43,7 +43,10 @@ impl ByteCompiler<'_, '_> {
                 label
             };
             self.patch_jump(label);
-            self.compile_statement_list(case.body(), false, true);
+            self.compile_statement_list(case.body(), true, true);
+            if !case.body().statements().is_empty() {
+                self.emit_opcode(Opcode::LoopUpdateReturnValue);
+            }
         }
 
         if !default_label_set {
@@ -53,6 +56,9 @@ impl ByteCompiler<'_, '_> {
         self.pop_switch_control_info();
         self.patch_jump(end_label);
         self.emit_opcode(Opcode::LoopEnd);
+        if !use_expr {
+            self.emit_opcode(Opcode::Pop);
+        }
 
         let env_info = self.pop_compile_environment();
         self.patch_jump_with_target(push_env.0, env_info.num_bindings as u32);

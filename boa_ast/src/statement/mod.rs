@@ -162,6 +162,17 @@ impl Statement {
             _ => false,
         }
     }
+
+    /// Returns `true` if the statement returns a value.
+    #[inline]
+    #[must_use]
+    pub const fn returns_value(&self) -> bool {
+        match self {
+            Self::Block(block) if block.statement_list().statements().is_empty() => false,
+            Self::Empty | Self::Var(_) | Self::Break(_) | Self::Continue(_) => false,
+            _ => true,
+        }
+    }
 }
 
 impl ToIndentedString for Statement {

@@ -1168,14 +1168,14 @@ generate_impl! {
         ///
         /// Operands: Jump Address: u32, Target address: u32
         ///
-        /// Stack: **=>**
+        /// Stack: loop_return_value **=>**
         Break,
 
         /// Sets the `AbruptCompletionRecord` for a delayed continue
         ///
         /// Operands: Jump Address: u32, Target address: u32,
         ///
-        /// Stack: **=>**
+        /// Stack: loop_return_value **=>**
         Continue,
 
         /// Pops value converts it to boolean and pushes it back.
@@ -1370,17 +1370,24 @@ generate_impl! {
 
         /// Clean up environments when a loop continues.
         ///
-        /// Operands: Start Address: `u32`, Exit Address: `u32`
+        /// Operands:
         ///
         /// Stack: **=>**
         LoopContinue,
 
-        /// Clean up environments at the end of a loop.
+        /// Clean up environments at the end of a loop and return it's value.
         ///
         /// Operands:
         ///
-        /// Stack: **=>**
+        /// Stack: **=>** value
         LoopEnd,
+
+        /// Update the return value of a loop.
+        ///
+        /// Operands:
+        ///
+        /// Stack: loop_return_value **=>**
+        LoopUpdateReturnValue,
 
         /// Push labelled start marker.
         ///

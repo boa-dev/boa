@@ -20,7 +20,13 @@ impl ByteCompiler<'_, '_> {
         }
         self.push_try_control_info(t.finally().is_some(), try_start);
 
-        self.compile_block(t.block(), use_expr);
+        self.compile_block(t.block(), true);
+        if t.block().statement_list().statements().is_empty() {
+            self.emit_opcode(Opcode::PushUndefined);
+        }
+        if !use_expr {
+            self.emit_opcode(Opcode::Pop);
+        }
 
         self.emit_opcode(Opcode::TryEnd);
 
@@ -76,12 +82,19 @@ impl ByteCompiler<'_, '_> {
             self.emit_opcode(Opcode::Pop);
         }
 
-        self.compile_block(catch.block(), use_expr);
+        self.compile_block(catch.block(), true);
+        if catch.block().statement_list().statements().is_empty() {
+            self.emit_opcode(Opcode::PushUndefined);
+        }
+        if !use_expr {
+            self.emit_opcode(Opcode::Pop);
+        }
 
         let env_info = self.pop_compile_environment();
         self.patch_jump_with_target(push_env.0, env_info.num_bindings as u32);
         self.patch_jump_with_target(push_env.1, env_info.index as u32);
         self.emit_opcode(Opcode::PopEnvironment);
+
         if parent_try.finally().is_some() {
             self.emit_opcode(Opcode::CatchEnd);
         } else {
@@ -93,7 +106,10 @@ impl ByteCompiler<'_, '_> {
     }
 
     pub(crate) fn compile_finally_stmt(&mut self, finally: &Finally, finally_end_label: Label) {
-        self.compile_block(finally.block(), false);
+        self.compile_block(finally.block(), true);
+        if !finally.block().statement_list().statements().is_empty() {
+            self.emit_opcode(Opcode::Pop);
+        }
 
         self.pop_finally_control_info();
         self.patch_jump(finally_end_label);
