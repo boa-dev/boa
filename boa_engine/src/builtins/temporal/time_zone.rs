@@ -4,19 +4,250 @@ use boa_ast::{temporal::OffsetSign, UtcOffset};
 use boa_parser::parser::UTCOffset;
 
 use crate::{
-    builtins::temporal::to_zero_padded_decimal_string,
-    context::intrinsics::StandardConstructors,
-    object::{internal_methods::get_prototype_from_constructor, ObjectData},
-    value::IntegerOrInfinity,
-    Context, JsNativeError, JsObject, JsResult, JsValue,
+    builtins::{
+        temporal::to_zero_padded_decimal_string, BuiltInBuilder, BuiltInConstructor, BuiltInObject,
+        IntrinsicObject,
+    },
+    context::intrinsics::{Intrinsics, StandardConstructor, StandardConstructors},
+    js_string,
+    object::{
+        internal_methods::get_prototype_from_constructor, ConstructorBuilder,
+        FunctionObjectBuilder, ObjectData, ObjectInitializer, CONSTRUCTOR,
+    },
+    property::Attribute,
+    realm::Realm,
+    string::utf16,
+    value::{AbstractRelation, IntegerOrInfinity},
+    Context, JsArgs, JsNativeError, JsObject, JsResult, JsString, JsSymbol, JsValue,
 };
+use boa_profiler::Profiler;
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct TimeZone {
     pub(crate) initialized_temporal_time_zone: bool,
     pub(crate) identifier: String,
     pub(crate) offset_nanoseconds: Option<i64>,
 }
+
+impl BuiltInObject for TimeZone {
+    const NAME: &'static str = "Temporal.TimeZone";
+}
+
+impl IntrinsicObject for TimeZone {
+    fn init(realm: &Realm) {
+        let _timer = Profiler::global().start_event(Self::NAME, "init");
+
+        let get_id = BuiltInBuilder::new(realm)
+            .callable(Self::get_id)
+            .name("get Id")
+            .build();
+
+        BuiltInBuilder::from_standard_constructor::<Self>(realm)
+            .method(
+                Self::get_offset_nanoseconds_for,
+                "getOffsetNanosecondsFor",
+                1,
+            )
+            .method(Self::get_offset_string_for, "getOffsetStringFor", 1)
+            .method(Self::get_plain_date_time_for, "getPlainDateTimeFor", 2)
+            .method(Self::get_instant_for, "getInstantFor", 2)
+            .method(Self::get_possible_instants_for, "getPossibleInstantFor", 1)
+            .method(Self::get_next_transition, "getNextTransition", 1)
+            .method(Self::get_previous_transition, "getPreviousTransition", 1)
+            .method(Self::to_string, "toString", 0)
+            .method(Self::to_string, "toJSON", 0)
+            .static_property(
+                JsSymbol::to_string_tag(),
+                Self::NAME,
+                Attribute::READONLY | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
+            )
+            .static_property(
+                CONSTRUCTOR,
+                realm.intrinsics().constructors().time_zone().prototype(),
+                Attribute::default(),
+            )
+            .accessor(utf16!("id"), Some(get_id), None, Attribute::default())
+            .build();
+    }
+
+    fn get(intrinsics: &Intrinsics) -> JsObject {
+        Self::STANDARD_CONSTRUCTOR(intrinsics.constructors()).constructor()
+    }
+}
+
+impl BuiltInConstructor for TimeZone {
+    const LENGTH: usize = 1;
+
+    const STANDARD_CONSTRUCTOR: fn(&StandardConstructors) -> &StandardConstructor =
+        StandardConstructors::time_zone;
+
+    fn constructor(
+        new_target: &JsValue,
+        args: &[JsValue],
+        context: &mut Context<'_>,
+    ) -> JsResult<JsValue> {
+        // 1. If NewTarget is undefined, then
+        // 1a. Throw a TypeError exception.
+        if new_target.is_undefined() {
+            return Err(JsNativeError::typ()
+                .with_message("newTarget cannot be undefined for Temporal.TimeZone constructor")
+                .into());
+        };
+
+        // 2. Set identifier to ? ToString(identifier).
+        let identifier = args.get_or_undefined(0);
+        if identifier.is_undefined() {
+            return Err(JsNativeError::range()
+                .with_message("Temporal.TimeZone must be called with a valid initializer")
+                .into());
+        }
+
+        // 3. If IsTimeZoneOffsetString(identifier) is false, then
+        //    a. If IsAvailableTimeZoneName(identifier) is false, then
+        //        i. Throw a RangeError exception.
+        //    b. Set identifier to ! CanonicalizeTimeZoneName(identifier).
+        // 4. Return ? CreateTemporalTimeZone(identifier, NewTarget).
+        create_temporal_time_zone(
+            identifier.to_string(context)?.to_std_string_escaped(),
+            Some(new_target.clone()),
+            context,
+        )
+    }
+}
+
+impl TimeZone {
+    // NOTE: id, toJSON, toString currently share the exact same implementation -> Consolidate into one function and define multiple accesors?
+    pub(crate) fn get_id(this: &JsValue, _: &[JsValue], _: &mut Context<'_>) -> JsResult<JsValue> {
+        let o = this
+            .as_object()
+            .ok_or_else(|| {
+                JsNativeError::typ().with_message("this value must be a Temporal.TimeZone")
+            })?;
+        let o = o.borrow();
+        let tz = o
+            .as_time_zone()
+            .ok_or_else(|| {
+                JsNativeError::typ().with_message("this value must be a Temporal.TimeZone")
+            })?;
+        Ok(tz.identifier.clone().into())
+    }
+
+    pub(crate) fn get_offset_nanoseconds_for(
+        this: &JsValue,
+        args: &[JsValue],
+        _: &mut Context<'_>,
+    ) -> JsResult<JsValue> {
+        // 1. Let timeZone be the this value.
+        // 2. Perform ? RequireInternalSlot(timeZone, [[InitializedTemporalTimeZone]]).
+        let _tz = this
+            .as_object()
+            .ok_or_else(|| {
+                JsNativeError::typ().with_message("this value must be a Temporal.TimeZone")
+            })?
+            .borrow()
+            .as_time_zone()
+            .ok_or_else(|| {
+                JsNativeError::typ().with_message("this value must be a Temporal.TimeZone")
+            })?;
+        // 3. Set instant to ? ToTemporalInstant(instant).
+        let _i = args.get_or_undefined(0);
+        // TODO: to_temporal_instant is abstract operation for Temporal.Instant objects.
+        // let instant = to_temporal_instant(i)?;
+        todo!()
+
+        // 4. If timeZone.[[OffsetNanoseconds]] is not undefined, return 𝔽(timeZone.[[OffsetNanoseconds]]).
+        // 5. Return 𝔽(GetNamedTimeZoneOffsetNanoseconds(timeZone.[[Identifier]], instant.[[Nanoseconds]])).
+    }
+
+    pub(crate) fn get_offset_string_for(
+        this: &JsValue,
+        args: &[JsValue],
+        _: &mut Context<'_>,
+    ) -> JsResult<JsValue> {
+        // 1. Let timeZone be the this value.
+        // 2. Perform ? RequireInternalSlot(timeZone, [[InitializedTemporalTimeZone]]).
+        let _tz = this
+            .as_object()
+            .ok_or_else(|| {
+                JsNativeError::typ().with_message("this value must be a Temporal.TimeZone")
+            })?
+            .borrow()
+            .as_time_zone()
+            .ok_or_else(|| {
+                JsNativeError::typ().with_message("this value must be a Temporal.TimeZone")
+            })?;
+        // 3. Set instant to ? ToTemporalInstant(instant).
+        let _i = args.get_or_undefined(0);
+        // TODO: to_temporal_instant is abstract operation for Temporal.Instant objects.
+        // let instant = to_temporal_instant(i)?;
+        todo!()
+
+        // 4. Return ? GetOffsetStringFor(timeZone, instant).
+    }
+
+    pub(crate) fn get_plain_date_time_for(
+        _: &JsValue,
+        _: &[JsValue],
+        _: &mut Context<'_>,
+    ) -> JsResult<JsValue> {
+        todo!()
+    }
+
+    pub(crate) fn get_instant_for(
+        _: &JsValue,
+        _: &[JsValue],
+        _: &mut Context<'_>,
+    ) -> JsResult<JsValue> {
+        todo!()
+    }
+
+    pub(crate) fn get_possible_instants_for(
+        _: &JsValue,
+        _: &[JsValue],
+        _: &mut Context<'_>,
+    ) -> JsResult<JsValue> {
+        todo!()
+    }
+
+    pub(crate) fn get_next_transition(
+        _: &JsValue,
+        _: &[JsValue],
+        _: &mut Context<'_>,
+    ) -> JsResult<JsValue> {
+        todo!()
+    }
+
+    pub(crate) fn get_previous_transition(
+        _: &JsValue,
+        _: &[JsValue],
+        _: &mut Context<'_>,
+    ) -> JsResult<JsValue> {
+        todo!()
+    }
+
+    pub(crate) fn to_string(
+        this: &JsValue,
+        _: &[JsValue],
+        _: &mut Context<'_>,
+    ) -> JsResult<JsValue> {
+        // 1. Let timeZone be the this value.
+        // 2. Perform ? RequireInternalSlot(timeZone, [[InitializedTemporalTimeZone]]).
+        let o = this
+            .as_object()
+            .ok_or_else(|| {
+                JsNativeError::typ().with_message("this value must be a Temporal.TimeZone")
+            })?;
+        let o = o.borrow();
+        let tz = o.as_time_zone()
+            .ok_or_else(|| {
+                JsNativeError::typ().with_message("this value must be a Temporal.TimeZone")
+            })?;
+        // 3. Return timeZone.[[Identifier]].
+        Ok(tz.identifier.clone().into())
+    }
+}
+
+// -- TimeZone Abstract Operations --
 
 /// Abstract operation `DefaultTimeZone ( )`
 ///
