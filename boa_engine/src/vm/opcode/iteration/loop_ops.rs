@@ -86,7 +86,7 @@ impl Operation for LoopContinue {
                     cleanup_loop_environment(context);
 
                     return Err(JsNativeError::runtime_limit()
-                        .with_message(format!("max loop iteration limit {max} exceeded"))
+                        .with_message(format!("Maximum loop iteration limit {max} exceeded"))
                         .into());
                 }
             }

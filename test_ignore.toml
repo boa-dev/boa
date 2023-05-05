@@ -7,7 +7,6 @@ features = [
     "SharedArrayBuffer",
     "resizable-arraybuffer",
     "Temporal",
-    "tail-call-optimization",
     "ShadowRealm",
     "FinalizationRegistry",
     "Atomics",
