@@ -12,9 +12,8 @@
 //! [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math
 
 use crate::{
-    builtins::BuiltInObject, context::intrinsics::Intrinsics, object::JsObject,
-    property::Attribute, realm::Realm, string::utf16, symbol::JsSymbol, Context, JsArgs, JsResult,
-    JsValue,
+    builtins::BuiltInObject, context::intrinsics::Intrinsics, object::JsObject, realm::Realm,
+    Context, JsArgs, JsResult, JsValue,
 };
 use boa_profiler::Profiler;
 
@@ -31,61 +30,55 @@ impl IntrinsicObject for Math {
     fn init(realm: &Realm) {
         let _timer = Profiler::global().start_event(Self::NAME, "init");
 
-        let attribute = Attribute::READONLY | Attribute::NON_ENUMERABLE | Attribute::PERMANENT;
-        BuiltInBuilder::with_intrinsic::<Self>(realm)
-            .static_property(utf16!("E"), std::f64::consts::E, attribute)
-            .static_property(utf16!("LN10"), std::f64::consts::LN_10, attribute)
-            .static_property(utf16!("LN2"), std::f64::consts::LN_2, attribute)
-            .static_property(utf16!("LOG10E"), std::f64::consts::LOG10_E, attribute)
-            .static_property(utf16!("LOG2E"), std::f64::consts::LOG2_E, attribute)
-            .static_property(utf16!("PI"), std::f64::consts::PI, attribute)
-            .static_property(
-                utf16!("SQRT1_2"),
-                std::f64::consts::FRAC_1_SQRT_2,
-                attribute,
-            )
-            .static_property(utf16!("SQRT2"), std::f64::consts::SQRT_2, attribute)
-            .static_method(Self::abs, "abs", 1)
-            .static_method(Self::acos, "acos", 1)
-            .static_method(Self::acosh, "acosh", 1)
-            .static_method(Self::asin, "asin", 1)
-            .static_method(Self::asinh, "asinh", 1)
-            .static_method(Self::atan, "atan", 1)
-            .static_method(Self::atanh, "atanh", 1)
-            .static_method(Self::atan2, "atan2", 2)
-            .static_method(Self::cbrt, "cbrt", 1)
-            .static_method(Self::ceil, "ceil", 1)
-            .static_method(Self::clz32, "clz32", 1)
-            .static_method(Self::cos, "cos", 1)
-            .static_method(Self::cosh, "cosh", 1)
-            .static_method(Self::exp, "exp", 1)
-            .static_method(Self::expm1, "expm1", 1)
-            .static_method(Self::floor, "floor", 1)
-            .static_method(Self::fround, "fround", 1)
-            .static_method(Self::hypot, "hypot", 2)
-            .static_method(Self::imul, "imul", 2)
-            .static_method(Self::log, "log", 1)
-            .static_method(Self::log1p, "log1p", 1)
-            .static_method(Self::log10, "log10", 1)
-            .static_method(Self::log2, "log2", 1)
-            .static_method(Self::max, "max", 2)
-            .static_method(Self::min, "min", 2)
-            .static_method(Self::pow, "pow", 2)
-            .static_method(Self::random, "random", 0)
-            .static_method(Self::round, "round", 1)
-            .static_method(Self::sign, "sign", 1)
-            .static_method(Self::sin, "sin", 1)
-            .static_method(Self::sinh, "sinh", 1)
-            .static_method(Self::sqrt, "sqrt", 1)
-            .static_method(Self::tan, "tan", 1)
-            .static_method(Self::tanh, "tanh", 1)
-            .static_method(Self::trunc, "trunc", 1)
-            .static_property(
-                JsSymbol::to_string_tag(),
-                Self::NAME,
-                Attribute::READONLY | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
-            )
-            .build();
+        BuiltInBuilder::with_intrinsic_static_shape::<Self>(
+            realm,
+            &boa_builtins::MATH_OBJECT_STATIC_SHAPE,
+        )
+        .static_property(std::f64::consts::E)
+        .static_property(std::f64::consts::LN_10)
+        .static_property(std::f64::consts::LN_2)
+        .static_property(std::f64::consts::LOG10_E)
+        .static_property(std::f64::consts::LOG2_E)
+        .static_property(std::f64::consts::PI)
+        .static_property(std::f64::consts::FRAC_1_SQRT_2)
+        .static_property(std::f64::consts::SQRT_2)
+        .static_method(Self::abs, 1)
+        .static_method(Self::acos, 1)
+        .static_method(Self::acosh, 1)
+        .static_method(Self::asin, 1)
+        .static_method(Self::asinh, 1)
+        .static_method(Self::atan, 1)
+        .static_method(Self::atanh, 1)
+        .static_method(Self::atan2, 2)
+        .static_method(Self::cbrt, 1)
+        .static_method(Self::ceil, 1)
+        .static_method(Self::clz32, 1)
+        .static_method(Self::cos, 1)
+        .static_method(Self::cosh, 1)
+        .static_method(Self::exp, 1)
+        .static_method(Self::expm1, 1)
+        .static_method(Self::floor, 1)
+        .static_method(Self::fround, 1)
+        .static_method(Self::hypot, 2)
+        .static_method(Self::imul, 2)
+        .static_method(Self::log, 1)
+        .static_method(Self::log1p, 1)
+        .static_method(Self::log10, 1)
+        .static_method(Self::log2, 1)
+        .static_method(Self::max, 2)
+        .static_method(Self::min, 2)
+        .static_method(Self::pow, 2)
+        .static_method(Self::random, 0)
+        .static_method(Self::round, 1)
+        .static_method(Self::sign, 1)
+        .static_method(Self::sin, 1)
+        .static_method(Self::sinh, 1)
+        .static_method(Self::sqrt, 1)
+        .static_method(Self::tan, 1)
+        .static_method(Self::tanh, 1)
+        .static_method(Self::trunc, 1)
+        .static_property(Self::NAME)
+        .build();
     }
 
     fn get(intrinsics: &Intrinsics) -> JsObject {

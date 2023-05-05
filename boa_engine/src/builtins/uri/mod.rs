@@ -50,10 +50,10 @@ pub struct UriFunctions {
 impl Default for UriFunctions {
     fn default() -> Self {
         Self {
-            decode_uri: JsFunction::empty_intrinsic_function(false),
-            decode_uri_component: JsFunction::empty_intrinsic_function(false),
-            encode_uri: JsFunction::empty_intrinsic_function(false),
-            encode_uri_component: JsFunction::empty_intrinsic_function(false),
+            decode_uri: JsFunction::empty_intrinsic_function_static_shape(false),
+            decode_uri_component: JsFunction::empty_intrinsic_function_static_shape(false),
+            encode_uri: JsFunction::empty_intrinsic_function_static_shape(false),
+            encode_uri_component: JsFunction::empty_intrinsic_function_static_shape(false),
         }
     }
 }
@@ -82,7 +82,7 @@ pub(crate) struct DecodeUri;
 
 impl IntrinsicObject for DecodeUri {
     fn init(realm: &Realm) {
-        BuiltInBuilder::callable_with_intrinsic::<Self>(realm, decode_uri)
+        BuiltInBuilder::callable_intrinsic::<Self>(realm, decode_uri)
             .name(Self::NAME)
             .length(1)
             .build();
@@ -100,7 +100,7 @@ pub(crate) struct DecodeUriComponent;
 
 impl IntrinsicObject for DecodeUriComponent {
     fn init(realm: &Realm) {
-        BuiltInBuilder::callable_with_intrinsic::<Self>(realm, decode_uri_component)
+        BuiltInBuilder::callable_intrinsic::<Self>(realm, decode_uri_component)
             .name(Self::NAME)
             .length(1)
             .build();
@@ -122,7 +122,7 @@ pub(crate) struct EncodeUri;
 
 impl IntrinsicObject for EncodeUri {
     fn init(realm: &Realm) {
-        BuiltInBuilder::callable_with_intrinsic::<Self>(realm, encode_uri)
+        BuiltInBuilder::callable_intrinsic::<Self>(realm, encode_uri)
             .name(Self::NAME)
             .length(1)
             .build();
@@ -139,7 +139,7 @@ pub(crate) struct EncodeUriComponent;
 
 impl IntrinsicObject for EncodeUriComponent {
     fn init(realm: &Realm) {
-        BuiltInBuilder::callable_with_intrinsic::<Self>(realm, encode_uri_component)
+        BuiltInBuilder::callable_intrinsic::<Self>(realm, encode_uri_component)
             .name(Self::NAME)
             .length(1)
             .build();

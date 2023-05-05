@@ -314,7 +314,21 @@ impl PropertyMap {
                     property_key: key.clone(),
                     attributes,
                 };
-                let transition = self.shape.change_attributes_transition(key);
+
+                let transition = if let Some(shape) = self.shape.as_static() {
+                    let prototype = self
+                        .storage
+                        .pop()
+                        .as_ref()
+                        .and_then(JsValue::as_object)
+                        .cloned();
+                    shape
+                        .to_unique(prototype)
+                        .change_attributes_transition(&key)
+                } else {
+                    self.shape.change_attributes_transition(key)
+                };
+
                 self.shape = transition.shape;
                 match transition.action {
                     ChangeTransitionAction::Nothing => {}
@@ -347,6 +361,17 @@ impl PropertyMap {
                 self.storage[index] = property.expect_value().clone();
             }
             return true;
+        }
+
+        // TODO: optimization, we could inline `insert_property_transition` to avoid the check
+        if let Some(shape) = self.shape.as_static() {
+            let prototype = self
+                .storage
+                .pop()
+                .as_ref()
+                .and_then(JsValue::as_object)
+                .cloned();
+            self.shape = shape.to_unique(prototype).into();
         }
 
         let transition_key = TransitionKey {
@@ -393,6 +418,17 @@ impl PropertyMap {
             return self.indexed_properties.remove(*index);
         }
         if let Some(slot) = self.shape.lookup(key) {
+            if let Some(shape) = self.shape.as_static() {
+                let prototype = self
+                    .storage
+                    .pop()
+                    .as_ref()
+                    .and_then(JsValue::as_object)
+                    .cloned();
+
+                self.shape = shape.to_unique(prototype).into();
+            }
+
             // shift all elements when removing.
             if slot.attributes.is_accessor_descriptor() {
                 self.storage.remove(slot.index as usize + 1);

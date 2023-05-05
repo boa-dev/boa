@@ -19,12 +19,14 @@ use crate::{
     error::JsNativeError,
     js_string,
     native_function::NativeFunction,
-    object::{internal_methods::get_prototype_from_constructor, JsObject, Object, ObjectData},
-    object::{JsFunction, PrivateElement, PrivateName},
-    property::{Attribute, PropertyDescriptor, PropertyKey},
+    object::{
+        internal_methods::get_prototype_from_constructor, JsObject, Object, ObjectData, ObjectKind,
+        PrivateName,
+    },
+    object::{JsFunction, PrivateElement},
+    property::{PropertyDescriptor, PropertyKey},
     realm::Realm,
     string::utf16,
-    symbol::JsSymbol,
     value::IntegerOrInfinity,
     vm::{ActiveRunnable, CodeBlock},
     Context, JsArgs, JsResult, JsString, JsValue,
@@ -468,33 +470,65 @@ impl IntrinsicObject for BuiltInFunctionObject {
 
         let throw_type_error = realm.intrinsics().objects().throw_type_error();
 
-        BuiltInBuilder::from_standard_constructor::<Self>(realm)
-            .method(Self::apply, "apply", 2)
-            .method(Self::bind, "bind", 1)
-            .method(Self::call, "call", 1)
-            .method(Self::to_string, "toString", 0)
-            .property(JsSymbol::has_instance(), has_instance, Attribute::default())
-            .accessor(
-                utf16!("caller"),
-                Some(throw_type_error.clone()),
-                Some(throw_type_error.clone()),
-                Attribute::CONFIGURABLE,
-            )
-            .accessor(
-                utf16!("arguments"),
-                Some(throw_type_error.clone()),
-                Some(throw_type_error),
-                Attribute::CONFIGURABLE,
-            )
-            .build();
+        // BuiltInBuilder::from_standard_constructor::<Self>(realm)
+        //     .method(Self::apply, "apply", 2)
+        //     .method(Self::bind, "bind", 1)
+        //     .method(Self::call, "call", 1)
+        //     .method(Self::to_string, "toString", 0)
+        //     .property(JsSymbol::has_instance(), has_instance, Attribute::default())
+        //     .accessor(
+        //         utf16!("caller"),
+        //         Some(throw_type_error.clone()),
+        //         Some(throw_type_error.clone()),
+        //         Attribute::CONFIGURABLE,
+        //     )
+        //     .accessor(
+        //         utf16!("arguments"),
+        //         Some(throw_type_error.clone()),
+        //         Some(throw_type_error),
+        //         Attribute::CONFIGURABLE,
+        //     )
+        //     .build();
+
+        // BuiltInBuilder::callable_with_object(realm, prototype.clone(), Self::prototype)
+        //     .name("")
+        //     .length(0)
+        //     .build();
+
+        // prototype.set_prototype(Some(realm.intrinsics().constructors().object().prototype()));
+
+        BuiltInBuilder::from_standard_constructor_static_shape::<Self>(
+            realm,
+            &boa_builtins::FUNCTION_CONSTRUCTOR_STATIC_SHAPE,
+            &boa_builtins::FUNCTION_PROTOTYPE_STATIC_SHAPE,
+        )
+        .property(0)
+        .property("")
+        .method(Self::apply, 2)
+        .method(Self::bind, 1)
+        .method(Self::call, 1)
+        .method(Self::to_string, 0)
+        .property(has_instance)
+        .accessor(
+            Some(throw_type_error.clone()),
+            Some(throw_type_error.clone()),
+        )
+        .accessor(Some(throw_type_error.clone()), Some(throw_type_error))
+        .build();
 
         let prototype = realm.intrinsics().constructors().function().prototype();
-
-        BuiltInBuilder::callable_with_object(realm, prototype.clone(), Self::prototype)
-            .name("")
-            .length(0)
-            .build();
-
+        {
+            let mut prototype = prototype.borrow_mut();
+            let function = Function::new(
+                FunctionKind::Native {
+                    function: NativeFunction::from_fn_ptr(Self::prototype),
+                    constructor: (true).then_some(ConstructorKind::Base),
+                },
+                realm.clone(),
+            );
+            *prototype.kind_mut() = ObjectKind::Function(function);
+        }
+        // TODO: improve this, because it's converting the static shape into a unique one, on initialization.
         prototype.set_prototype(Some(realm.intrinsics().constructors().object().prototype()));
     }
 
@@ -1013,6 +1047,7 @@ impl BuiltInFunctionObject {
         Ok(JsValue::ordinary_has_instance(this, args.get_or_undefined(0), context)?.into())
     }
 
+    #[allow(dead_code)]
     #[allow(clippy::unnecessary_wraps)]
     fn prototype(_: &JsValue, _: &[JsValue], _: &mut Context<'_>) -> JsResult<JsValue> {
         Ok(JsValue::undefined())

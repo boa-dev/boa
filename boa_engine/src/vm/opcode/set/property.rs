@@ -94,9 +94,11 @@ impl Operation for SetPropertyByValue {
                             // Cannot use fast path if the [[prototype]] is a proxy object,
                             // because we have to the call prototypes [[set]] on non-existing property,
                             // and proxy objects can override [[set]].
-                            let prototype = shape.prototype();
-                            if prototype.map_or(false, |x| x.is_proxy()) {
-                                break 'fast_path;
+                            if !shape.is_static() {
+                                let prototype = shape.prototype();
+                                if prototype.map_or(false, |x| x.is_proxy()) {
+                                    break 'fast_path;
+                                }
                             }
 
                             dense_elements.push(value.clone());

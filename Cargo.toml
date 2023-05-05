@@ -1,6 +1,7 @@
 [workspace]
 members = [
     "boa_ast",
+    "boa_builtins",
     "boa_cli",
     "boa_engine",
     "boa_examples",
@@ -28,6 +29,7 @@ description = "Boa is a Javascript lexer, parser and compiler written in Rust. C
 
 [workspace.dependencies]
 boa_ast = { version = "0.16.0", path = "boa_ast" }
+boa_builtins = { version = "0.16.0", path = "boa_builtins" }
 boa_engine = { version = "0.16.0", path = "boa_engine" }
 boa_gc = { version = "0.16.0", path = "boa_gc" }
 boa_icu_provider = { version = "0.16.0", path = "boa_icu_provider" }

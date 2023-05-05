@@ -18,9 +18,7 @@ use crate::{
     context::intrinsics::{Intrinsics, StandardConstructor, StandardConstructors},
     error::JsNativeError,
     object::{internal_methods::get_prototype_from_constructor, JsObject, ObjectData},
-    property::Attribute,
     realm::Realm,
-    string::utf16,
     value::{AbstractRelation, IntegerOrInfinity, JsValue},
     Context, JsArgs, JsResult,
 };
@@ -49,46 +47,32 @@ impl IntrinsicObject for Number {
     fn init(realm: &Realm) {
         let _timer = Profiler::global().start_event(Self::NAME, "init");
 
-        let attribute = Attribute::READONLY | Attribute::NON_ENUMERABLE | Attribute::PERMANENT;
-
-        BuiltInBuilder::from_standard_constructor::<Self>(realm)
-            .static_property(utf16!("EPSILON"), f64::EPSILON, attribute)
-            .static_property(
-                utf16!("MAX_SAFE_INTEGER"),
-                Self::MAX_SAFE_INTEGER,
-                attribute,
-            )
-            .static_property(
-                utf16!("MIN_SAFE_INTEGER"),
-                Self::MIN_SAFE_INTEGER,
-                attribute,
-            )
-            .static_property(utf16!("MAX_VALUE"), Self::MAX_VALUE, attribute)
-            .static_property(utf16!("MIN_VALUE"), Self::MIN_VALUE, attribute)
-            .static_property(utf16!("NEGATIVE_INFINITY"), f64::NEG_INFINITY, attribute)
-            .static_property(utf16!("POSITIVE_INFINITY"), f64::INFINITY, attribute)
-            .static_property(utf16!("NaN"), f64::NAN, attribute)
-            .static_property(
-                utf16!("parseInt"),
-                realm.intrinsics().objects().parse_int(),
-                Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
-            )
-            .static_property(
-                utf16!("parseFloat"),
-                realm.intrinsics().objects().parse_float(),
-                Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
-            )
-            .static_method(Self::number_is_finite, "isFinite", 1)
-            .static_method(Self::number_is_nan, "isNaN", 1)
-            .static_method(Self::is_safe_integer, "isSafeInteger", 1)
-            .static_method(Self::number_is_integer, "isInteger", 1)
-            .method(Self::to_exponential, "toExponential", 1)
-            .method(Self::to_fixed, "toFixed", 1)
-            .method(Self::to_locale_string, "toLocaleString", 0)
-            .method(Self::to_precision, "toPrecision", 1)
-            .method(Self::to_string, "toString", 1)
-            .method(Self::value_of, "valueOf", 0)
-            .build();
+        BuiltInBuilder::from_standard_constructor_static_shape::<Self>(
+            realm,
+            &boa_builtins::NUMBER_CONSTRUCTOR_STATIC_SHAPE,
+            &boa_builtins::NUMBER_PROTOTYPE_STATIC_SHAPE,
+        )
+        .static_property(f64::EPSILON)
+        .static_property(Self::MAX_SAFE_INTEGER)
+        .static_property(Self::MIN_SAFE_INTEGER)
+        .static_property(Self::MAX_VALUE)
+        .static_property(Self::MIN_VALUE)
+        .static_property(f64::NEG_INFINITY)
+        .static_property(f64::INFINITY)
+        .static_property(f64::NAN)
+        .static_property(realm.intrinsics().objects().parse_int())
+        .static_property(realm.intrinsics().objects().parse_float())
+        .static_method(Self::number_is_finite, 1)
+        .static_method(Self::number_is_nan, 1)
+        .static_method(Self::is_safe_integer, 1)
+        .static_method(Self::number_is_integer, 1)
+        .method(Self::to_exponential, 1)
+        .method(Self::to_fixed, 1)
+        .method(Self::to_locale_string, 0)
+        .method(Self::to_precision, 1)
+        .method(Self::to_string, 1)
+        .method(Self::value_of, 0)
+        .build();
     }
 
     fn get(intrinsics: &Intrinsics) -> JsObject {

@@ -14,10 +14,9 @@ use crate::{
     builtins::{BuiltInBuilder, BuiltInConstructor, BuiltInObject, IntrinsicObject},
     context::intrinsics::{Intrinsics, StandardConstructor, StandardConstructors},
     object::{internal_methods::get_prototype_from_constructor, JsObject, ObjectData},
-    property::Attribute,
     realm::Realm,
     string::utf16,
-    Context, JsArgs, JsResult, JsValue,
+    Context, JsArgs, JsResult, JsString, JsValue,
 };
 use boa_profiler::Profiler;
 
@@ -31,13 +30,16 @@ impl IntrinsicObject for UriError {
     fn init(realm: &Realm) {
         let _timer = Profiler::global().start_event(Self::NAME, "init");
 
-        let attribute = Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE;
-        BuiltInBuilder::from_standard_constructor::<Self>(realm)
-            .prototype(realm.intrinsics().constructors().error().constructor())
-            .inherits(Some(realm.intrinsics().constructors().error().prototype()))
-            .property(utf16!("name"), Self::NAME, attribute)
-            .property(utf16!("message"), "", attribute)
-            .build();
+        BuiltInBuilder::from_standard_constructor_static_shape::<Self>(
+            realm,
+            &boa_builtins::NATIVE_ERROR_CONSTRUCTOR_STATIC_SHAPE,
+            &boa_builtins::NATIVE_ERROR_PROTOTYPE_STATIC_SHAPE,
+        )
+        .prototype(realm.intrinsics().constructors().error().constructor())
+        .inherits(Some(realm.intrinsics().constructors().error().prototype()))
+        .property(Self::NAME)
+        .property(JsString::default())
+        .build();
     }
 
     fn get(intrinsics: &Intrinsics) -> JsObject {

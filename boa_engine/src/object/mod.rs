@@ -26,7 +26,7 @@ use self::{
         string::STRING_EXOTIC_INTERNAL_METHODS,
         InternalObjectMethods, ORDINARY_INTERNAL_METHODS,
     },
-    shape::Shape,
+    shape::{static_shape::StaticShape, Shape},
 };
 #[cfg(feature = "intl")]
 use crate::builtins::intl::{
@@ -873,6 +873,18 @@ impl Debug for ObjectKind {
 }
 
 impl Object {
+    fn with_empty_shape() -> Self {
+        Self {
+            kind: ObjectKind::Ordinary,
+            properties: PropertyMap::new(
+                StaticShape::new(&boa_builtins::EMPTY_OBJECT_STATIC_SHAPE).into(),
+                ThinVec::default(),
+            ),
+            extensible: true,
+            private_elements: ThinVec::new(),
+        }
+    }
+
     /// Returns a mutable reference to the kind of an object.
     pub(crate) fn kind_mut(&mut self) -> &mut ObjectKind {
         &mut self.kind
@@ -1524,6 +1536,12 @@ impl Object {
     /// Gets the prototype instance of this object.
     #[inline]
     pub fn prototype(&self) -> JsPrototype {
+        // If it is static then the prototype is stored on the (len - 1) position.
+        if self.properties.shape.is_static() {
+            return self.properties.storage[self.properties.storage.len() - 1]
+                .as_object()
+                .cloned();
+        }
         self.properties.shape.prototype()
     }
 
@@ -1536,7 +1554,14 @@ impl Object {
     pub fn set_prototype<O: Into<JsPrototype>>(&mut self, prototype: O) -> bool {
         let prototype = prototype.into();
         if self.extensible {
-            self.properties.shape = self.properties.shape.change_prototype_transition(prototype);
+            if let Some(shape) = self.properties.shape.as_static() {
+                self.properties.storage.pop();
+                self.properties.shape = shape.to_unique(prototype).into();
+            } else {
+                self.properties.shape =
+                    self.properties.shape.change_prototype_transition(prototype);
+            }
+
             true
         } else {
             // If target is non-extensible, [[SetPrototypeOf]] must return false

@@ -18,7 +18,7 @@ use crate::{
         internal_methods::get_prototype_from_constructor, JsObject, ObjectData, ObjectKind,
         CONSTRUCTOR,
     },
-    property::{Attribute, PropertyDescriptorBuilder},
+    property::PropertyDescriptorBuilder,
     realm::Realm,
     string::{utf16, CodePoint},
     symbol::JsSymbol,
@@ -55,8 +55,6 @@ impl IntrinsicObject for RegExp {
             .name("get [Symbol.species]")
             .build();
 
-        let flag_attributes = Attribute::CONFIGURABLE | Attribute::NON_ENUMERABLE;
-
         let get_has_indices = BuiltInBuilder::callable(realm, Self::get_has_indices)
             .name("get hasIndices")
             .build();
@@ -84,53 +82,34 @@ impl IntrinsicObject for RegExp {
         let get_source = BuiltInBuilder::callable(realm, Self::get_source)
             .name("get source")
             .build();
-        let regexp = BuiltInBuilder::from_standard_constructor::<Self>(realm)
-            .static_accessor(
-                JsSymbol::species(),
-                Some(get_species),
-                None,
-                Attribute::CONFIGURABLE,
-            )
-            .property(utf16!("lastIndex"), 0, Attribute::all())
-            .method(Self::test, "test", 1)
-            .method(Self::exec, "exec", 1)
-            .method(Self::to_string, "toString", 0)
-            .method(Self::r#match, (JsSymbol::r#match(), "[Symbol.match]"), 1)
-            .method(
-                Self::match_all,
-                (JsSymbol::match_all(), "[Symbol.matchAll]"),
-                1,
-            )
-            .method(Self::replace, (JsSymbol::replace(), "[Symbol.replace]"), 2)
-            .method(Self::search, (JsSymbol::search(), "[Symbol.search]"), 1)
-            .method(Self::split, (JsSymbol::split(), "[Symbol.split]"), 2)
-            .accessor(
-                utf16!("hasIndices"),
-                Some(get_has_indices),
-                None,
-                flag_attributes,
-            )
-            .accessor(utf16!("global"), Some(get_global), None, flag_attributes)
-            .accessor(
-                utf16!("ignoreCase"),
-                Some(get_ignore_case),
-                None,
-                flag_attributes,
-            )
-            .accessor(
-                utf16!("multiline"),
-                Some(get_multiline),
-                None,
-                flag_attributes,
-            )
-            .accessor(utf16!("dotAll"), Some(get_dot_all), None, flag_attributes)
-            .accessor(utf16!("unicode"), Some(get_unicode), None, flag_attributes)
-            .accessor(utf16!("sticky"), Some(get_sticky), None, flag_attributes)
-            .accessor(utf16!("flags"), Some(get_flags), None, flag_attributes)
-            .accessor(utf16!("source"), Some(get_source), None, flag_attributes);
+
+        let regexp = BuiltInBuilder::from_standard_constructor_static_shape::<Self>(
+            realm,
+            &boa_builtins::REGEXP_CONSTRUCTOR_STATIC_SHAPE,
+            &boa_builtins::REGEXP_PROTOTYPE_STATIC_SHAPE,
+        )
+        .static_accessor(Some(get_species), None)
+        .property(0)
+        .method(Self::test, 1)
+        .method(Self::exec, 1)
+        .method(Self::to_string, 0)
+        .method_with_name(Self::r#match, js_string!("[Symbol.match]"), 1)
+        .method_with_name(Self::match_all, js_string!("[Symbol.matchAll]"), 1)
+        .method_with_name(Self::replace, js_string!("[Symbol.replace]"), 2)
+        .method_with_name(Self::search, js_string!("[Symbol.search]"), 1)
+        .method_with_name(Self::split, js_string!("[Symbol.split]"), 2)
+        .accessor(Some(get_has_indices), None)
+        .accessor(Some(get_global), None)
+        .accessor(Some(get_ignore_case), None)
+        .accessor(Some(get_multiline), None)
+        .accessor(Some(get_dot_all), None)
+        .accessor(Some(get_unicode), None)
+        .accessor(Some(get_sticky), None)
+        .accessor(Some(get_flags), None)
+        .accessor(Some(get_source), None);
 
         #[cfg(feature = "annex-b")]
-        let regexp = regexp.method(Self::compile, "compile", 2);
+        let regexp = regexp.method(Self::compile, 2);
 
         regexp.build();
     }

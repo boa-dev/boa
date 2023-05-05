@@ -23,10 +23,9 @@ use crate::{
     context::intrinsics::{Intrinsics, StandardConstructor, StandardConstructors},
     error::JsNativeError,
     object::{internal_methods::get_prototype_from_constructor, JsObject, ObjectData},
-    property::{Attribute, PropertyNameKind},
+    property::PropertyNameKind,
     realm::Realm,
     string::utf16,
-    symbol::JsSymbol,
     Context, JsArgs, JsResult, JsValue,
 };
 use boa_profiler::Profiler;
@@ -56,46 +55,24 @@ impl IntrinsicObject for Set {
             .name("values")
             .build();
 
-        BuiltInBuilder::from_standard_constructor::<Self>(realm)
-            .static_accessor(
-                JsSymbol::species(),
-                Some(get_species),
-                None,
-                Attribute::CONFIGURABLE,
-            )
-            .method(Self::add, "add", 1)
-            .method(Self::clear, "clear", 0)
-            .method(Self::delete, "delete", 1)
-            .method(Self::entries, "entries", 0)
-            .method(Self::for_each, "forEach", 1)
-            .method(Self::has, "has", 1)
-            .property(
-                utf16!("keys"),
-                values_function.clone(),
-                Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
-            )
-            .accessor(
-                utf16!("size"),
-                Some(size_getter),
-                None,
-                Attribute::CONFIGURABLE,
-            )
-            .property(
-                utf16!("values"),
-                values_function.clone(),
-                Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
-            )
-            .property(
-                JsSymbol::iterator(),
-                values_function,
-                Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
-            )
-            .property(
-                JsSymbol::to_string_tag(),
-                Self::NAME,
-                Attribute::READONLY | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
-            )
-            .build();
+        BuiltInBuilder::from_standard_constructor_static_shape::<Self>(
+            realm,
+            &boa_builtins::SET_CONSTRUCTOR_STATIC_SHAPE,
+            &boa_builtins::SET_PROTOTYPE_STATIC_SHAPE,
+        )
+        .static_accessor(Some(get_species), None)
+        .method(Self::add, 1)
+        .method(Self::clear, 0)
+        .method(Self::delete, 1)
+        .method(Self::entries, 0)
+        .method(Self::for_each, 1)
+        .method(Self::has, 1)
+        .property(values_function.clone())
+        .accessor(Some(size_getter), None)
+        .property(values_function.clone())
+        .property(values_function)
+        .property(Self::NAME)
+        .build();
     }
 }
 

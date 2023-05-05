@@ -1,0 +1,25 @@
+[package]
+name = "boa_builtins"
+description = "Builtins of the Boa JavaScript engine."
+publish = true
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+license.workspace = true
+repository.workspace = true
+rust-version.workspace = true
+build = "build.rs"
+
+[features]
+annex-b = []
+
+[dependencies]
+bitflags = "2.1.0"
+phf = "^0.11.1"
+phf_shared = "^0.11.1"
+
+[build-dependencies]
+boa_macros.workspace = true
+phf_codegen = "^0.11.1"
+phf_shared = "^0.11.1"
+bitflags = "2.1.0"

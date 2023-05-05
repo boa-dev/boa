@@ -26,7 +26,7 @@ use crate::{
         internal_methods::get_prototype_from_constructor, FunctionObjectBuilder, IntegrityLevel,
         JsObject, ObjectData, ObjectKind,
     },
-    property::{Attribute, PropertyDescriptor, PropertyKey, PropertyNameKind},
+    property::{PropertyDescriptor, PropertyKey, PropertyNameKind},
     realm::Realm,
     string::utf16,
     symbol::JsSymbol,
@@ -56,55 +56,46 @@ impl IntrinsicObject for Object {
             .name("set __proto__")
             .build();
 
-        BuiltInBuilder::from_standard_constructor::<Self>(realm)
-            .inherits(None)
-            .accessor(
-                utf16!("__proto__"),
-                Some(legacy_proto_getter),
-                Some(legacy_setter_proto),
-                Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
-            )
-            .method(Self::has_own_property, "hasOwnProperty", 1)
-            .method(Self::property_is_enumerable, "propertyIsEnumerable", 1)
-            .method(Self::to_string, "toString", 0)
-            .method(Self::to_locale_string, "toLocaleString", 0)
-            .method(Self::value_of, "valueOf", 0)
-            .method(Self::is_prototype_of, "isPrototypeOf", 1)
-            .method(Self::legacy_define_getter, "__defineGetter__", 2)
-            .method(Self::legacy_define_setter, "__defineSetter__", 2)
-            .method(Self::legacy_lookup_getter, "__lookupGetter__", 1)
-            .method(Self::legacy_lookup_setter, "__lookupSetter__", 1)
-            .static_method(Self::create, "create", 2)
-            .static_method(Self::set_prototype_of, "setPrototypeOf", 2)
-            .static_method(Self::get_prototype_of, "getPrototypeOf", 1)
-            .static_method(Self::define_property, "defineProperty", 3)
-            .static_method(Self::define_properties, "defineProperties", 2)
-            .static_method(Self::assign, "assign", 2)
-            .static_method(Self::is, "is", 2)
-            .static_method(Self::keys, "keys", 1)
-            .static_method(Self::values, "values", 1)
-            .static_method(Self::entries, "entries", 1)
-            .static_method(Self::seal, "seal", 1)
-            .static_method(Self::is_sealed, "isSealed", 1)
-            .static_method(Self::freeze, "freeze", 1)
-            .static_method(Self::is_frozen, "isFrozen", 1)
-            .static_method(Self::prevent_extensions, "preventExtensions", 1)
-            .static_method(Self::is_extensible, "isExtensible", 1)
-            .static_method(
-                Self::get_own_property_descriptor,
-                "getOwnPropertyDescriptor",
-                2,
-            )
-            .static_method(
-                Self::get_own_property_descriptors,
-                "getOwnPropertyDescriptors",
-                1,
-            )
-            .static_method(Self::get_own_property_names, "getOwnPropertyNames", 1)
-            .static_method(Self::get_own_property_symbols, "getOwnPropertySymbols", 1)
-            .static_method(Self::has_own, "hasOwn", 2)
-            .static_method(Self::from_entries, "fromEntries", 1)
-            .build();
+        BuiltInBuilder::from_standard_constructor_static_shape::<Self>(
+            realm,
+            &boa_builtins::OBJECT_CONSTRUCTOR_STATIC_SHAPE,
+            &boa_builtins::OBJECT_PROTOTYPE_STATIC_SHAPE,
+        )
+        .inherits(None)
+        .accessor(Some(legacy_proto_getter), Some(legacy_setter_proto))
+        .method(Self::has_own_property, 1)
+        .method(Self::property_is_enumerable, 1)
+        .method(Self::to_string, 0)
+        .method(Self::to_locale_string, 0)
+        .method(Self::value_of, 0)
+        .method(Self::is_prototype_of, 1)
+        .method(Self::legacy_define_getter, 2)
+        .method(Self::legacy_define_setter, 2)
+        .method(Self::legacy_lookup_getter, 1)
+        .method(Self::legacy_lookup_setter, 1)
+        .static_method(Self::create, 2)
+        .static_method(Self::set_prototype_of, 2)
+        .static_method(Self::get_prototype_of, 1)
+        .static_method(Self::define_property, 3)
+        .static_method(Self::define_properties, 2)
+        .static_method(Self::assign, 2)
+        .static_method(Self::is, 2)
+        .static_method(Self::keys, 1)
+        .static_method(Self::values, 1)
+        .static_method(Self::entries, 1)
+        .static_method(Self::seal, 1)
+        .static_method(Self::is_sealed, 1)
+        .static_method(Self::freeze, 1)
+        .static_method(Self::is_frozen, 1)
+        .static_method(Self::prevent_extensions, 1)
+        .static_method(Self::is_extensible, 1)
+        .static_method(Self::get_own_property_descriptor, 2)
+        .static_method(Self::get_own_property_descriptors, 1)
+        .static_method(Self::get_own_property_names, 1)
+        .static_method(Self::get_own_property_symbols, 1)
+        .static_method(Self::has_own, 2)
+        .static_method(Self::from_entries, 1)
+        .build();
     }
 
     fn get(intrinsics: &Intrinsics) -> JsObject {

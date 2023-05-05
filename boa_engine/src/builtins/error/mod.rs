@@ -16,7 +16,6 @@ use crate::{
     error::JsNativeError,
     js_string,
     object::{internal_methods::get_prototype_from_constructor, JsObject, ObjectData},
-    property::Attribute,
     realm::Realm,
     string::utf16,
     Context, JsArgs, JsResult, JsValue,
@@ -131,12 +130,15 @@ impl IntrinsicObject for Error {
     fn init(realm: &Realm) {
         let _timer = Profiler::global().start_event(Self::NAME, "init");
 
-        let attribute = Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE;
-        BuiltInBuilder::from_standard_constructor::<Self>(realm)
-            .property(utf16!("name"), Self::NAME, attribute)
-            .property(utf16!("message"), "", attribute)
-            .method(Self::to_string, "toString", 0)
-            .build();
+        BuiltInBuilder::from_standard_constructor_static_shape::<Self>(
+            realm,
+            &boa_builtins::ERROR_CONSTRUCTOR_STATIC_SHAPE,
+            &boa_builtins::ERROR_PROTOTYPE_STATIC_SHAPE,
+        )
+        .property(Self::NAME)
+        .property(js_string!(""))
+        .method(Self::to_string, 0)
+        .build();
     }
 
     fn get(intrinsics: &Intrinsics) -> JsObject {

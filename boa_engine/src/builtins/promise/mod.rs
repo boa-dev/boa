@@ -14,10 +14,8 @@ use crate::{
         internal_methods::get_prototype_from_constructor, FunctionObjectBuilder, JsFunction,
         JsObject, ObjectData, CONSTRUCTOR,
     },
-    property::Attribute,
     realm::Realm,
     string::utf16,
-    symbol::JsSymbol,
     value::JsValue,
     Context, JsArgs, JsError, JsResult,
 };
@@ -324,29 +322,24 @@ impl IntrinsicObject for Promise {
             .name("get [Symbol.species]")
             .build();
 
-        BuiltInBuilder::from_standard_constructor::<Self>(realm)
-            .static_method(Self::all, "all", 1)
-            .static_method(Self::all_settled, "allSettled", 1)
-            .static_method(Self::any, "any", 1)
-            .static_method(Self::race, "race", 1)
-            .static_method(Self::reject, "reject", 1)
-            .static_method(Self::resolve, "resolve", 1)
-            .static_accessor(
-                JsSymbol::species(),
-                Some(get_species),
-                None,
-                Attribute::CONFIGURABLE,
-            )
-            .method(Self::then, "then", 2)
-            .method(Self::catch, "catch", 1)
-            .method(Self::finally, "finally", 1)
-            // <https://tc39.es/ecma262/#sec-promise.prototype-@@tostringtag>
-            .property(
-                JsSymbol::to_string_tag(),
-                Self::NAME,
-                Attribute::READONLY | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
-            )
-            .build();
+        BuiltInBuilder::from_standard_constructor_static_shape::<Self>(
+            realm,
+            &boa_builtins::PROMISE_CONSTRUCTOR_STATIC_SHAPE,
+            &boa_builtins::PROMISE_PROTOTYPE_STATIC_SHAPE,
+        )
+        .static_method(Self::all, 1)
+        .static_method(Self::all_settled, 1)
+        .static_method(Self::any, 1)
+        .static_method(Self::race, 1)
+        .static_method(Self::reject, 1)
+        .static_method(Self::resolve, 1)
+        .static_accessor(Some(get_species), None)
+        .method(Self::then, 2)
+        .method(Self::catch, 1)
+        .method(Self::finally, 1)
+        // <https://tc39.es/ecma262/#sec-promise.prototype-@@tostringtag>
+        .property(Self::NAME)
+        .build();
     }
 
     fn get(intrinsics: &Intrinsics) -> JsObject {

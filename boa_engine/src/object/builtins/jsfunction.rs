@@ -40,6 +40,19 @@ impl JsFunction {
         }
     }
 
+    pub(crate) fn empty_intrinsic_function_static_shape(constructor: bool) -> Self {
+        Self {
+            inner: JsObject::from_object_and_vtable(
+                Object::with_empty_shape(),
+                if constructor {
+                    &CONSTRUCTOR_INTERNAL_METHODS
+                } else {
+                    &FUNCTION_INTERNAL_METHODS
+                },
+            ),
+        }
+    }
+
     /// Creates a [`JsFunction`] from a [`JsObject`], or returns `None` if the object is not a function.
     ///
     /// This does not clone the fields of the function, it only does a shallow clone of the object.

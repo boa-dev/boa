@@ -14,7 +14,6 @@ use crate::{
     property::Attribute,
     realm::Realm,
     string::utf16,
-    symbol::JsSymbol,
     Context, JsArgs, JsNativeError, JsResult, JsValue,
 };
 use boa_gc::{Finalize, Trace, WeakMap};
@@ -30,16 +29,16 @@ impl IntrinsicObject for WeakSet {
 
     fn init(realm: &Realm) {
         let _timer = Profiler::global().start_event(Self::NAME, "init");
-        BuiltInBuilder::from_standard_constructor::<Self>(realm)
-            .property(
-                JsSymbol::to_string_tag(),
-                Self::NAME,
-                Attribute::READONLY | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
-            )
-            .method(Self::add, "add", 1)
-            .method(Self::delete, "delete", 1)
-            .method(Self::has, "has", 1)
-            .build();
+        BuiltInBuilder::from_standard_constructor_static_shape::<Self>(
+            realm,
+            &boa_builtins::WEAK_SET_CONSTRUCTOR_STATIC_SHAPE,
+            &boa_builtins::WEAK_SET_PROTOTYPE_STATIC_SHAPE,
+        )
+        .property(Self::NAME)
+        .method(Self::add, 1)
+        .method(Self::delete, 1)
+        .method(Self::has, 1)
+        .build();
     }
 }
 

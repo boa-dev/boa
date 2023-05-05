@@ -4,7 +4,7 @@
 
 use super::{
     internal_methods::{InternalObjectMethods, ARRAY_EXOTIC_INTERNAL_METHODS},
-    shape::RootShape,
+    shape::{static_shape::StaticShape, RootShape},
     JsPrototype, NativeObject, Object, PrivateName, PropertyMap,
 };
 use crate::{
@@ -60,6 +60,12 @@ impl Default for JsObject {
 }
 
 impl JsObject {
+    /// TODO: doc
+    pub(crate) fn default_with_static_shape() -> Self {
+        let data = ObjectData::ordinary();
+        Self::from_object_and_vtable(Object::with_empty_shape(), data.internal_methods)
+    }
+
     /// Creates a new `JsObject` from its inner object and its vtable.
     pub(crate) fn from_object_and_vtable(
         object: Object,
@@ -112,6 +118,23 @@ impl JsObject {
                 object: GcRefCell::new(Object {
                     kind: data.kind,
                     properties: PropertyMap::from_prototype_unique_shape(prototype.into()),
+                    extensible: true,
+                    private_elements: ThinVec::new(),
+                }),
+                vtable: data.internal_methods,
+            }),
+        }
+    }
+
+    pub(crate) fn from_data_and_empty_static_shape(data: ObjectData) -> Self {
+        Self {
+            inner: Gc::new(VTableObject {
+                object: GcRefCell::new(Object {
+                    kind: data.kind,
+                    properties: PropertyMap::new(
+                        StaticShape::new(&boa_builtins::EMPTY_OBJECT_STATIC_SHAPE).into(),
+                        ThinVec::default(),
+                    ),
                     extensible: true,
                     private_elements: ThinVec::new(),
                 }),

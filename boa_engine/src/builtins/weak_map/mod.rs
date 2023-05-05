@@ -17,7 +17,6 @@ use crate::{
     property::Attribute,
     realm::Realm,
     string::utf16,
-    symbol::JsSymbol,
     Context, JsArgs, JsNativeError, JsResult, JsValue,
 };
 use boa_gc::{Finalize, Trace};
@@ -33,17 +32,17 @@ impl IntrinsicObject for WeakMap {
 
     fn init(realm: &Realm) {
         let _timer = Profiler::global().start_event(Self::NAME, "init");
-        BuiltInBuilder::from_standard_constructor::<Self>(realm)
-            .property(
-                JsSymbol::to_string_tag(),
-                Self::NAME,
-                Attribute::READONLY | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
-            )
-            .method(Self::delete, "delete", 1)
-            .method(Self::get, "get", 1)
-            .method(Self::has, "has", 1)
-            .method(Self::set, "set", 2)
-            .build();
+        BuiltInBuilder::from_standard_constructor_static_shape::<Self>(
+            realm,
+            &boa_builtins::WEAK_MAP_CONSTRUCTOR_STATIC_SHAPE,
+            &boa_builtins::WEAK_MAP_PROTOTYPE_STATIC_SHAPE,
+        )
+        .property(Self::NAME)
+        .method(Self::delete, 1)
+        .method(Self::get, 1)
+        .method(Self::has, 1)
+        .method(Self::set, 2)
+        .build();
     }
 }
 

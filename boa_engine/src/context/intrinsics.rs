@@ -75,8 +75,15 @@ impl StandardConstructor {
     /// Build a constructor with a defined prototype.
     fn with_prototype(prototype: JsObject) -> Self {
         Self {
-            constructor: JsFunction::empty_intrinsic_function(true),
+            constructor: JsFunction::empty_intrinsic_function_static_shape(true),
             prototype,
+        }
+    }
+
+    fn default_static_shape() -> Self {
+        Self {
+            constructor: JsFunction::empty_intrinsic_function_static_shape(true),
+            prototype: JsObject::default_with_static_shape(),
         }
     }
 
@@ -156,67 +163,62 @@ pub struct StandardConstructors {
 impl Default for StandardConstructors {
     fn default() -> Self {
         Self {
-            object: StandardConstructor::with_prototype(JsObject::from_proto_and_data(
-                None,
-                ObjectData::object_prototype(),
-            )),
+            object: StandardConstructor::with_prototype(
+                JsObject::from_data_and_empty_static_shape(ObjectData::object_prototype()),
+            ),
             async_generator_function: StandardConstructor::default(),
             proxy: StandardConstructor::default(),
-            date: StandardConstructor::default(),
+            date: StandardConstructor::default_static_shape(),
             function: StandardConstructor {
-                constructor: JsFunction::empty_intrinsic_function(true),
-                prototype: JsFunction::empty_intrinsic_function(false).into(),
+                constructor: JsFunction::empty_intrinsic_function_static_shape(true),
+                prototype: JsFunction::empty_intrinsic_function_static_shape(false).into(),
             },
             async_function: StandardConstructor::default(),
             generator_function: StandardConstructor::default(),
-            array: StandardConstructor::with_prototype(JsObject::from_proto_and_data(
-                None,
+            array: StandardConstructor::with_prototype(JsObject::from_data_and_empty_static_shape(
                 ObjectData::array(),
             )),
-            bigint: StandardConstructor::default(),
-            number: StandardConstructor::with_prototype(JsObject::from_proto_and_data(
-                None,
-                ObjectData::number(0.0),
-            )),
-            boolean: StandardConstructor::with_prototype(JsObject::from_proto_and_data(
-                None,
-                ObjectData::boolean(false),
-            )),
-            string: StandardConstructor::with_prototype(JsObject::from_proto_and_data(
-                None,
-                ObjectData::string("".into()),
-            )),
-            regexp: StandardConstructor::default(),
-            symbol: StandardConstructor::default(),
-            error: StandardConstructor::default(),
-            type_error: StandardConstructor::default(),
-            reference_error: StandardConstructor::default(),
-            range_error: StandardConstructor::default(),
-            syntax_error: StandardConstructor::default(),
-            eval_error: StandardConstructor::default(),
-            uri_error: StandardConstructor::default(),
-            aggregate_error: StandardConstructor::default(),
-            map: StandardConstructor::default(),
-            set: StandardConstructor::default(),
-            typed_array: StandardConstructor::default(),
-            typed_int8_array: StandardConstructor::default(),
-            typed_uint8_array: StandardConstructor::default(),
-            typed_uint8clamped_array: StandardConstructor::default(),
-            typed_int16_array: StandardConstructor::default(),
-            typed_uint16_array: StandardConstructor::default(),
-            typed_int32_array: StandardConstructor::default(),
-            typed_uint32_array: StandardConstructor::default(),
-            typed_bigint64_array: StandardConstructor::default(),
-            typed_biguint64_array: StandardConstructor::default(),
-            typed_float32_array: StandardConstructor::default(),
-            typed_float64_array: StandardConstructor::default(),
-            array_buffer: StandardConstructor::default(),
-            data_view: StandardConstructor::default(),
+            bigint: StandardConstructor::default_static_shape(),
+            number: StandardConstructor::with_prototype(
+                JsObject::from_data_and_empty_static_shape(ObjectData::number(0.0)),
+            ),
+            boolean: StandardConstructor::with_prototype(
+                JsObject::from_data_and_empty_static_shape(ObjectData::boolean(false)),
+            ),
+            string: StandardConstructor::with_prototype(
+                JsObject::from_data_and_empty_static_shape(ObjectData::string("".into())),
+            ),
+            regexp: StandardConstructor::default_static_shape(),
+            symbol: StandardConstructor::default_static_shape(),
+            error: StandardConstructor::default_static_shape(),
+            type_error: StandardConstructor::default_static_shape(),
+            reference_error: StandardConstructor::default_static_shape(),
+            range_error: StandardConstructor::default_static_shape(),
+            syntax_error: StandardConstructor::default_static_shape(),
+            eval_error: StandardConstructor::default_static_shape(),
+            uri_error: StandardConstructor::default_static_shape(),
+            aggregate_error: StandardConstructor::default_static_shape(),
+            map: StandardConstructor::default_static_shape(),
+            set: StandardConstructor::default_static_shape(),
+            typed_array: StandardConstructor::default_static_shape(),
+            typed_int8_array: StandardConstructor::default_static_shape(),
+            typed_uint8_array: StandardConstructor::default_static_shape(),
+            typed_uint8clamped_array: StandardConstructor::default_static_shape(),
+            typed_int16_array: StandardConstructor::default_static_shape(),
+            typed_uint16_array: StandardConstructor::default_static_shape(),
+            typed_int32_array: StandardConstructor::default_static_shape(),
+            typed_uint32_array: StandardConstructor::default_static_shape(),
+            typed_bigint64_array: StandardConstructor::default_static_shape(),
+            typed_biguint64_array: StandardConstructor::default_static_shape(),
+            typed_float32_array: StandardConstructor::default_static_shape(),
+            typed_float64_array: StandardConstructor::default_static_shape(),
+            array_buffer: StandardConstructor::default_static_shape(),
+            data_view: StandardConstructor::default_static_shape(),
             date_time_format: StandardConstructor::default(),
-            promise: StandardConstructor::default(),
-            weak_ref: StandardConstructor::default(),
-            weak_map: StandardConstructor::default(),
-            weak_set: StandardConstructor::default(),
+            promise: StandardConstructor::default_static_shape(),
+            weak_ref: StandardConstructor::default_static_shape(),
+            weak_map: StandardConstructor::default_static_shape(),
+            weak_set: StandardConstructor::default_static_shape(),
             #[cfg(feature = "intl")]
             collator: StandardConstructor::default(),
             #[cfg(feature = "intl")]
@@ -817,24 +819,24 @@ pub struct IntrinsicObjects {
 impl Default for IntrinsicObjects {
     fn default() -> Self {
         Self {
-            reflect: JsObject::default(),
-            math: JsObject::default(),
-            json: JsObject::default(),
+            reflect: JsObject::default_with_static_shape(),
+            math: JsObject::default_with_static_shape(),
+            json: JsObject::default_with_static_shape(),
             throw_type_error: JsFunction::empty_intrinsic_function(false),
-            array_prototype_values: JsFunction::empty_intrinsic_function(false),
+            array_prototype_values: JsFunction::empty_intrinsic_function_static_shape(false),
             iterator_prototypes: IteratorPrototypes::default(),
             generator: JsObject::default(),
             async_generator: JsObject::default(),
-            eval: JsFunction::empty_intrinsic_function(false),
+            eval: JsFunction::empty_intrinsic_function_static_shape(false),
             uri_functions: UriFunctions::default(),
-            is_finite: JsFunction::empty_intrinsic_function(false),
-            is_nan: JsFunction::empty_intrinsic_function(false),
-            parse_float: JsFunction::empty_intrinsic_function(false),
-            parse_int: JsFunction::empty_intrinsic_function(false),
+            is_finite: JsFunction::empty_intrinsic_function_static_shape(false),
+            is_nan: JsFunction::empty_intrinsic_function_static_shape(false),
+            parse_float: JsFunction::empty_intrinsic_function_static_shape(false),
+            parse_int: JsFunction::empty_intrinsic_function_static_shape(false),
             #[cfg(feature = "annex-b")]
-            escape: JsFunction::empty_intrinsic_function(false),
+            escape: JsFunction::empty_intrinsic_function_static_shape(false),
             #[cfg(feature = "annex-b")]
-            unescape: JsFunction::empty_intrinsic_function(false),
+            unescape: JsFunction::empty_intrinsic_function_static_shape(false),
             #[cfg(feature = "intl")]
             intl: JsObject::default(),
             #[cfg(feature = "intl")]

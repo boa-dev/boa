@@ -28,6 +28,7 @@ use crate::{
     tagged::{Tagged, UnwrappedTagged},
     JsBigInt,
 };
+use boa_builtins::{StaticString, RAW_STATICS};
 use boa_gc::{empty_trace, Finalize, Trace};
 pub use boa_macros::utf16;
 
@@ -614,6 +615,27 @@ impl JsString {
         Self {
             // Safety: `allocate_inner` guarantees `ptr` is a valid heap pointer.
             ptr: Tagged::from_non_null(ptr),
+        }
+    }
+
+    pub(crate) fn as_static_string_index(&self) -> Option<u16> {
+        if let UnwrappedTagged::Tag(index) = self.ptr.unwrap() {
+            return Some(index as u16);
+        }
+        None
+    }
+    pub(crate) const unsafe fn from_index(index: u16) -> Self {
+        debug_assert!((index as usize) < RAW_STATICS.len());
+        Self {
+            ptr: Tagged::from_tag(index as usize),
+        }
+    }
+}
+
+impl From<StaticString> for JsString {
+    fn from(string: StaticString) -> Self {
+        Self {
+            ptr: Tagged::from_tag(string.index() as usize),
         }
     }
 }

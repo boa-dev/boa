@@ -15,10 +15,9 @@ use crate::{
     context::intrinsics::{Intrinsics, StandardConstructor, StandardConstructors},
     error::JsNativeError,
     object::{internal_methods::get_prototype_from_constructor, JsObject, ObjectData},
-    property::{Attribute, PropertyNameKind},
+    property::PropertyNameKind,
     realm::Realm,
     string::utf16,
-    symbol::JsSymbol,
     Context, JsArgs, JsResult, JsValue,
 };
 use boa_profiler::Profiler;
@@ -53,43 +52,25 @@ impl IntrinsicObject for Map {
             .name("entries")
             .build();
 
-        BuiltInBuilder::from_standard_constructor::<Self>(realm)
-            .static_accessor(
-                JsSymbol::species(),
-                Some(get_species),
-                None,
-                Attribute::CONFIGURABLE,
-            )
-            .property(
-                utf16!("entries"),
-                entries_function.clone(),
-                Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
-            )
-            .property(
-                JsSymbol::iterator(),
-                entries_function,
-                Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
-            )
-            .property(
-                JsSymbol::to_string_tag(),
-                Self::NAME,
-                Attribute::READONLY | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
-            )
-            .method(Self::clear, "clear", 0)
-            .method(Self::delete, "delete", 1)
-            .method(Self::for_each, "forEach", 1)
-            .method(Self::get, "get", 1)
-            .method(Self::has, "has", 1)
-            .method(Self::keys, "keys", 0)
-            .method(Self::set, "set", 2)
-            .method(Self::values, "values", 0)
-            .accessor(
-                utf16!("size"),
-                Some(get_size),
-                None,
-                Attribute::CONFIGURABLE,
-            )
-            .build();
+        BuiltInBuilder::from_standard_constructor_static_shape::<Self>(
+            realm,
+            &boa_builtins::MAP_CONSTRUCTOR_STATIC_SHAPE,
+            &boa_builtins::MAP_PROTOTYPE_STATIC_SHAPE,
+        )
+        .static_accessor(Some(get_species), None)
+        .property(entries_function.clone())
+        .property(entries_function)
+        .property(Self::NAME)
+        .method(Self::clear, 0)
+        .method(Self::delete, 1)
+        .method(Self::for_each, 1)
+        .method(Self::get, 1)
+        .method(Self::has, 1)
+        .method(Self::keys, 0)
+        .method(Self::set, 2)
+        .method(Self::values, 0)
+        .accessor(Some(get_size), None)
+        .build();
     }
 
     fn get(intrinsics: &Intrinsics) -> JsObject {

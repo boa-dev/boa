@@ -378,6 +378,17 @@ dependencies = [
 ]
 
 [[package]]
+name = "boa_builtins"
+version = "0.16.0"
+dependencies = [
+ "bitflags 2.3.1",
+ "boa_macros",
+ "phf",
+ "phf_codegen",
+ "phf_shared",
+]
+
+[[package]]
 name = "boa_cli"
 version = "0.16.0"
 dependencies = [
@@ -403,6 +414,7 @@ version = "0.16.0"
 dependencies = [
  "bitflags 2.3.1",
  "boa_ast",
+ "boa_builtins",
  "boa_gc",
  "boa_icu_provider",
  "boa_interner",
@@ -3015,6 +3027,16 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "928c6535de93548188ef63bb7c4036bd415cd8f36ad25af44b9789b2ee72a48c"
 dependencies = [
  "phf_macros",
+ "phf_shared",
+]
+
+[[package]]
+name = "phf_codegen"
+version = "0.11.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "a56ac890c5e3ca598bbdeaa99964edb5b0258a583a9eb6ef4e89fc85d9224770"
+dependencies = [
+ "phf_generator",
  "phf_shared",
 ]
 

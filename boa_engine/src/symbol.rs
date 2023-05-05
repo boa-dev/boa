@@ -61,7 +61,7 @@ fn get_id() -> Option<u64> {
 /// List of well known symbols.
 #[derive(Debug, Clone, Copy, TryFromPrimitive, IntoPrimitive)]
 #[repr(u8)]
-enum WellKnown {
+pub(crate) enum WellKnown {
     AsyncIterator,
     HasInstance,
     IsConcatSpreadable,

@@ -26,7 +26,6 @@ use crate::{
     object::{internal_methods::get_prototype_from_constructor, JsObject, ObjectData, ObjectKind},
     property::{Attribute, PropertyNameKind},
     realm::Realm,
-    string::utf16,
     symbol::JsSymbol,
     value::{IntegerOrInfinity, JsValue},
     Context, JsArgs, JsResult,
@@ -55,34 +54,25 @@ macro_rules! typed_array {
                     .name("get [Symbol.species]")
                     .build();
 
-                BuiltInBuilder::from_standard_constructor::<Self>(realm)
-                    .prototype(
-                        realm
-                            .intrinsics()
-                            .constructors()
-                            .typed_array()
-                            .constructor(),
-                    )
-                    .inherits(Some(
-                        realm.intrinsics().constructors().typed_array().prototype(),
-                    ))
-                    .static_accessor(
-                        JsSymbol::species(),
-                        Some(get_species),
-                        None,
-                        Attribute::CONFIGURABLE,
-                    )
-                    .property(
-                        utf16!("BYTES_PER_ELEMENT"),
-                        TypedArrayKind::$variant.element_size(),
-                        Attribute::READONLY | Attribute::NON_ENUMERABLE | Attribute::PERMANENT,
-                    )
-                    .static_property(
-                        utf16!("BYTES_PER_ELEMENT"),
-                        TypedArrayKind::$variant.element_size(),
-                        Attribute::READONLY | Attribute::NON_ENUMERABLE | Attribute::PERMANENT,
-                    )
-                    .build();
+                BuiltInBuilder::from_standard_constructor_static_shape::<Self>(
+                    realm,
+                    &boa_builtins::TYPED_ARRAY_INSTANCE_CONSTRUCTOR_STATIC_SHAPE,
+                    &boa_builtins::TYPED_ARRAY_INSTANCE_PROTOTYPE_STATIC_SHAPE,
+                )
+                .prototype(
+                    realm
+                        .intrinsics()
+                        .constructors()
+                        .typed_array()
+                        .constructor(),
+                )
+                .inherits(Some(
+                    realm.intrinsics().constructors().typed_array().prototype(),
+                ))
+                .static_accessor(Some(get_species), None)
+                .property(TypedArrayKind::$variant.element_size())
+                .static_property(TypedArrayKind::$variant.element_size())
+                .build();
             }
         }
 
@@ -269,79 +259,49 @@ impl IntrinsicObject for TypedArray {
             .length(0)
             .build();
 
-        BuiltInBuilder::from_standard_constructor::<Self>(realm)
-            .static_accessor(
-                JsSymbol::species(),
-                Some(get_species),
-                None,
-                Attribute::CONFIGURABLE,
-            )
-            .property(
-                JsSymbol::iterator(),
-                values_function,
-                Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
-            )
-            .accessor(
-                utf16!("buffer"),
-                Some(get_buffer),
-                None,
-                Attribute::CONFIGURABLE | Attribute::NON_ENUMERABLE,
-            )
-            .accessor(
-                utf16!("byteLength"),
-                Some(get_byte_length),
-                None,
-                Attribute::CONFIGURABLE | Attribute::NON_ENUMERABLE,
-            )
-            .accessor(
-                utf16!("byteOffset"),
-                Some(get_byte_offset),
-                None,
-                Attribute::CONFIGURABLE | Attribute::NON_ENUMERABLE,
-            )
-            .accessor(
-                utf16!("length"),
-                Some(get_length),
-                None,
-                Attribute::CONFIGURABLE | Attribute::NON_ENUMERABLE,
-            )
-            .accessor(
-                JsSymbol::to_string_tag(),
-                Some(get_to_string_tag),
-                None,
-                Attribute::CONFIGURABLE | Attribute::NON_ENUMERABLE,
-            )
-            .static_method(Self::from, "from", 1)
-            .static_method(Self::of, "of", 0)
-            .method(Self::at, "at", 1)
-            .method(Self::copy_within, "copyWithin", 2)
-            .method(Self::entries, "entries", 0)
-            .method(Self::every, "every", 1)
-            .method(Self::fill, "fill", 1)
-            .method(Self::filter, "filter", 1)
-            .method(Self::find, "find", 1)
-            .method(Self::findindex, "findIndex", 1)
-            .method(Self::foreach, "forEach", 1)
-            .method(Self::includes, "includes", 1)
-            .method(Self::index_of, "indexOf", 1)
-            .method(Self::join, "join", 1)
-            .method(Self::keys, "keys", 0)
-            .method(Self::last_index_of, "lastIndexOf", 1)
-            .method(Self::map, "map", 1)
-            .method(Self::reduce, "reduce", 1)
-            .method(Self::reduceright, "reduceRight", 1)
-            .method(Self::reverse, "reverse", 0)
-            .method(Self::set, "set", 1)
-            .method(Self::slice, "slice", 2)
-            .method(Self::some, "some", 1)
-            .method(Self::sort, "sort", 1)
-            .method(Self::subarray, "subarray", 2)
-            .method(Self::values, "values", 0)
-            // 23.2.3.29 %TypedArray%.prototype.toString ( )
-            // The initial value of the %TypedArray%.prototype.toString data property is the same
-            // built-in function object as the Array.prototype.toString method defined in 23.1.3.30.
-            .method(Array::to_string, "toString", 0)
-            .build();
+        BuiltInBuilder::from_standard_constructor_static_shape::<Self>(
+            realm,
+            &boa_builtins::TYPED_ARRAY_CONSTRUCTOR_STATIC_SHAPE,
+            &boa_builtins::TYPED_ARRAY_PROTOTYPE_STATIC_SHAPE,
+        )
+        .static_accessor(Some(get_species), None)
+        .property(values_function)
+        .accessor(Some(get_buffer), None)
+        .accessor(Some(get_byte_length), None)
+        .accessor(Some(get_byte_offset), None)
+        .accessor(Some(get_length), None)
+        .accessor(Some(get_to_string_tag), None)
+        .static_method(Self::from, 1)
+        .static_method(Self::of, 0)
+        .method(Self::at, 1)
+        .method(Self::copy_within, 2)
+        .method(Self::entries, 0)
+        .method(Self::every, 1)
+        .method(Self::fill, 1)
+        .method(Self::filter, 1)
+        .method(Self::find, 1)
+        .method(Self::findindex, 1)
+        .method(Self::foreach, 1)
+        .method(Self::includes, 1)
+        .method(Self::index_of, 1)
+        .method(Self::join, 1)
+        .method(Self::keys, 0)
+        .method(Self::last_index_of, 1)
+        .method(Self::map, 1)
+        .method(Self::reduce, 1)
+        .method(Self::reduceright, 1)
+        .method(Self::reverse, 0)
+        .method(Self::set, 1)
+        .method(Self::slice, 2)
+        .method(Self::some, 1)
+        .method(Self::sort, 1)
+        .method(Self::subarray, 2)
+        .method(Self::values, 0)
+        // 23.2.3.29 %TypedArray%.prototype.toString ( )
+        // The initial value of the %TypedArray%.prototype.toString data property is the same
+        // built-in function object as the Array.prototype.toString method defined in 23.1.3.30.
+        .method(Array::to_string, 0)
+        .build();
     }
 
     fn get(intrinsics: &Intrinsics) -> JsObject {

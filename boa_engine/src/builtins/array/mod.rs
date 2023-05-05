@@ -21,7 +21,7 @@ use crate::{
     error::JsNativeError,
     js_string,
     object::{internal_methods::get_prototype_from_constructor, JsObject, ObjectData, CONSTRUCTOR},
-    property::{Attribute, PropertyDescriptor, PropertyNameKind},
+    property::{PropertyDescriptor, PropertyNameKind},
     realm::Realm,
     symbol::JsSymbol,
     value::{IntegerOrInfinity, JsValue},
@@ -44,9 +44,6 @@ impl IntrinsicObject for Array {
     fn init(realm: &Realm) {
         let _timer = Profiler::global().start_event(Self::NAME, "init");
 
-        let symbol_iterator = JsSymbol::iterator();
-        let symbol_unscopables = JsSymbol::unscopables();
-
         let get_species = BuiltInBuilder::callable(realm, Self::get_species)
             .name("get [Symbol.species]")
             .build();
@@ -61,71 +58,54 @@ impl IntrinsicObject for Array {
 
         let unscopables_object = Self::unscopables_object();
 
-        BuiltInBuilder::from_standard_constructor::<Self>(realm)
-            .static_accessor(
-                JsSymbol::species(),
-                Some(get_species),
-                None,
-                Attribute::CONFIGURABLE,
-            )
-            .property(
-                utf16!("length"),
-                0,
-                Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::PERMANENT,
-            )
-            .property(
-                utf16!("values"),
-                values_function.clone(),
-                Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
-            )
-            .property(
-                symbol_iterator,
-                values_function,
-                Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
-            )
-            .property(
-                symbol_unscopables,
-                unscopables_object,
-                Attribute::READONLY | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
-            )
-            .method(Self::at, "at", 1)
-            .method(Self::concat, "concat", 1)
-            .method(Self::push, "push", 1)
-            .method(Self::index_of, "indexOf", 1)
-            .method(Self::last_index_of, "lastIndexOf", 1)
-            .method(Self::includes_value, "includes", 1)
-            .method(Self::map, "map", 1)
-            .method(Self::fill, "fill", 1)
-            .method(Self::for_each, "forEach", 1)
-            .method(Self::filter, "filter", 1)
-            .method(Self::pop, "pop", 0)
-            .method(Self::join, "join", 1)
-            .method(Self::to_string, "toString", 0)
-            .method(Self::reverse, "reverse", 0)
-            .method(Self::shift, "shift", 0)
-            .method(Self::unshift, "unshift", 1)
-            .method(Self::every, "every", 1)
-            .method(Self::find, "find", 1)
-            .method(Self::find_index, "findIndex", 1)
-            .method(Self::find_last, "findLast", 1)
-            .method(Self::find_last_index, "findLastIndex", 1)
-            .method(Self::flat, "flat", 0)
-            .method(Self::flat_map, "flatMap", 1)
-            .method(Self::slice, "slice", 2)
-            .method(Self::some, "some", 1)
-            .method(Self::sort, "sort", 1)
-            .method(Self::splice, "splice", 2)
-            .method(Self::to_locale_string, "toLocaleString", 0)
-            .method(Self::reduce, "reduce", 1)
-            .method(Self::reduce_right, "reduceRight", 1)
-            .method(Self::keys, "keys", 0)
-            .method(Self::entries, "entries", 0)
-            .method(Self::copy_within, "copyWithin", 2)
-            // Static Methods
-            .static_method(Self::from, "from", 1)
-            .static_method(Self::is_array, "isArray", 1)
-            .static_method(Self::of, "of", 0)
-            .build();
+        BuiltInBuilder::from_standard_constructor_static_shape::<Self>(
+            realm,
+            &boa_builtins::ARRAY_CONSTRUCTOR_STATIC_SHAPE,
+            &boa_builtins::ARRAY_PROTOTYPE_STATIC_SHAPE,
+        )
+        .property(0)
+        .property(values_function.clone())
+        .property(values_function)
+        .property(unscopables_object)
+        .method(Self::at, 1)
+        .method(Self::concat, 1)
+        .method(Self::push, 1)
+        .method(Self::index_of, 1)
+        .method(Self::last_index_of, 1)
+        .method(Self::includes_value, 1)
+        .method(Self::map, 1)
+        .method(Self::fill, 1)
+        .method(Self::for_each, 1)
+        .method(Self::filter, 1)
+        .method(Self::pop, 0)
+        .method(Self::join, 1)
+        .method(Self::to_string, 0)
+        .method(Self::reverse, 0)
+        .method(Self::shift, 0)
+        .method(Self::unshift, 1)
+        .method(Self::every, 1)
+        .method(Self::find, 1)
+        .method(Self::find_index, 1)
+        .method(Self::find_last, 1)
+        .method(Self::find_last_index, 1)
+        .method(Self::flat, 0)
+        .method(Self::flat_map, 1)
+        .method(Self::slice, 2)
+        .method(Self::some, 1)
+        .method(Self::sort, 1)
+        .method(Self::splice, 2)
+        .method(Self::to_locale_string, 0)
+        .method(Self::reduce, 1)
+        .method(Self::reduce_right, 1)
+        .method(Self::keys, 0)
+        .method(Self::entries, 0)
+        .method(Self::copy_within, 2)
+        // Static Methods
+        .static_accessor(Some(get_species), None)
+        .static_method(Self::from, 1)
+        .static_method(Self::is_array, 1)
+        .static_method(Self::of, 0)
+        .build();
     }
 
     fn get(intrinsics: &Intrinsics) -> JsObject {

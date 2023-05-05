@@ -16,9 +16,7 @@ use crate::{
     context::intrinsics::Intrinsics,
     error::JsNativeError,
     object::JsObject,
-    property::Attribute,
     realm::Realm,
-    symbol::JsSymbol,
     Context, JsArgs, JsResult, JsValue,
 };
 use boa_profiler::Profiler;
@@ -34,32 +32,25 @@ impl IntrinsicObject for Reflect {
     fn init(realm: &Realm) {
         let _timer = Profiler::global().start_event(Self::NAME, "init");
 
-        let to_string_tag = JsSymbol::to_string_tag();
-
-        BuiltInBuilder::with_intrinsic::<Self>(realm)
-            .static_method(Self::apply, "apply", 3)
-            .static_method(Self::construct, "construct", 2)
-            .static_method(Self::define_property, "defineProperty", 3)
-            .static_method(Self::delete_property, "deleteProperty", 2)
-            .static_method(Self::get, "get", 2)
-            .static_method(
-                Self::get_own_property_descriptor,
-                "getOwnPropertyDescriptor",
-                2,
-            )
-            .static_method(Self::get_prototype_of, "getPrototypeOf", 1)
-            .static_method(Self::has, "has", 2)
-            .static_method(Self::is_extensible, "isExtensible", 1)
-            .static_method(Self::own_keys, "ownKeys", 1)
-            .static_method(Self::prevent_extensions, "preventExtensions", 1)
-            .static_method(Self::set, "set", 3)
-            .static_method(Self::set_prototype_of, "setPrototypeOf", 2)
-            .static_property(
-                to_string_tag,
-                Self::NAME,
-                Attribute::READONLY | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
-            )
-            .build();
+        BuiltInBuilder::with_intrinsic_static_shape::<Self>(
+            realm,
+            &boa_builtins::REFLECT_OBJECT_STATIC_SHAPE,
+        )
+        .static_method(Self::apply, 3)
+        .static_method(Self::construct, 2)
+        .static_method(Self::define_property, 3)
+        .static_method(Self::delete_property, 2)
+        .static_method(Self::get, 2)
+        .static_method(Self::get_own_property_descriptor, 2)
+        .static_method(Self::get_prototype_of, 1)
+        .static_method(Self::has, 2)
+        .static_method(Self::is_extensible, 1)
+        .static_method(Self::own_keys, 1)
+        .static_method(Self::prevent_extensions, 1)
+        .static_method(Self::set, 3)
+        .static_method(Self::set_prototype_of, 2)
+        .static_property(Self::NAME)
+        .build();
     }
 
     fn get(intrinsics: &Intrinsics) -> JsObject {

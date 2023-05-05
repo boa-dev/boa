@@ -4,6 +4,7 @@ pub(crate) mod property_table;
 mod root_shape;
 pub(crate) mod shared_shape;
 pub(crate) mod slot;
+pub(crate) mod static_shape;
 pub(crate) mod unique_shape;
 
 pub use root_shape::RootShape;
@@ -16,7 +17,7 @@ use boa_gc::{Finalize, Trace};
 
 use crate::property::PropertyKey;
 
-use self::{shared_shape::TransitionKey, slot::Slot};
+use self::{shared_shape::TransitionKey, slot::Slot, static_shape::StaticShape};
 
 use super::JsPrototype;
 
@@ -56,6 +57,7 @@ pub(crate) struct ChangeTransition<T> {
 enum Inner {
     Unique(UniqueShape),
     Shared(SharedShape),
+    Static(StaticShape),
 }
 
 /// Represents the shape of an object.
@@ -84,10 +86,24 @@ impl Shape {
         matches!(self.inner, Inner::Shared(_))
     }
 
+    /// Returns `true` if it's a static shape, `false` otherwise.
+    pub(crate) const fn as_static(&self) -> Option<&StaticShape> {
+        if let Inner::Static(shape) = &self.inner {
+            return Some(shape);
+        }
+        None
+    }
+
     /// Returns `true` if it's a unique shape, `false` otherwise.
     #[inline]
     pub const fn is_unique(&self) -> bool {
         matches!(self.inner, Inner::Unique(_))
+    }
+
+    /// Returns `true` if it's a static shape, `false` otherwise.
+    #[inline]
+    pub const fn is_static(&self) -> bool {
+        matches!(self.inner, Inner::Static(_))
     }
 
     pub(crate) const fn as_unique(&self) -> Option<&UniqueShape> {
@@ -110,6 +126,7 @@ impl Shape {
                 shape.into()
             }
             Inner::Unique(shape) => shape.insert_property_transition(key).into(),
+            Inner::Static(shape) => shape.insert_property_transition(key).into(),
         }
     }
 
@@ -136,6 +153,7 @@ impl Shape {
                 }
             }
             Inner::Unique(shape) => shape.change_attributes_transition(&key),
+            Inner::Static(shape) => shape.change_attributes_transition(&key),
         }
     }
 
@@ -152,6 +170,7 @@ impl Shape {
                 shape.into()
             }
             Inner::Unique(shape) => shape.remove_property_transition(key).into(),
+            Inner::Static(shape) => shape.remove_property_transition(key).into(),
         }
     }
 
@@ -166,14 +185,16 @@ impl Shape {
                 shape.into()
             }
             Inner::Unique(shape) => shape.change_prototype_transition(prototype).into(),
+            Inner::Static(shape) => shape.change_prototype_transition(prototype).into(),
         }
     }
 
     /// Get the [`JsPrototype`] of the [`Shape`].
-    pub fn prototype(&self) -> JsPrototype {
+    pub(crate) fn prototype(&self) -> JsPrototype {
         match &self.inner {
             Inner::Shared(shape) => shape.prototype(),
             Inner::Unique(shape) => shape.prototype(),
+            Inner::Static(_) => unreachable!("Static shapes don't have prototypes in them"),
         }
     }
 
@@ -183,6 +204,7 @@ impl Shape {
         match &self.inner {
             Inner::Shared(shape) => shape.lookup(key),
             Inner::Unique(shape) => shape.lookup(key),
+            Inner::Static(shape) => shape.lookup(key),
         }
     }
 
@@ -192,6 +214,7 @@ impl Shape {
         match &self.inner {
             Inner::Shared(shape) => shape.keys(),
             Inner::Unique(shape) => shape.keys(),
+            Inner::Static(shape) => shape.keys(),
         }
     }
 
@@ -201,6 +224,7 @@ impl Shape {
         match &self.inner {
             Inner::Shared(shape) => shape.to_addr_usize(),
             Inner::Unique(shape) => shape.to_addr_usize(),
+            Inner::Static(shape) => shape.to_addr_usize(),
         }
     }
 }
@@ -217,6 +241,14 @@ impl From<SharedShape> for Shape {
     fn from(shape: SharedShape) -> Self {
         Self {
             inner: Inner::Shared(shape),
+        }
+    }
+}
+
+impl From<StaticShape> for Shape {
+    fn from(shape: StaticShape) -> Self {
+        Self {
+            inner: Inner::Static(shape),
         }
     }
 }

@@ -17,9 +17,7 @@ use crate::{
     context::intrinsics::{Intrinsics, StandardConstructor, StandardConstructors},
     error::JsNativeError,
     object::JsObject,
-    property::Attribute,
     realm::Realm,
-    symbol::JsSymbol,
     value::{IntegerOrInfinity, PreferredType},
     Context, JsArgs, JsBigInt, JsResult, JsValue,
 };
@@ -39,17 +37,17 @@ impl IntrinsicObject for BigInt {
     fn init(realm: &Realm) {
         let _timer = Profiler::global().start_event(Self::NAME, "init");
 
-        BuiltInBuilder::from_standard_constructor::<Self>(realm)
-            .method(Self::to_string, "toString", 0)
-            .method(Self::value_of, "valueOf", 0)
-            .static_method(Self::as_int_n, "asIntN", 2)
-            .static_method(Self::as_uint_n, "asUintN", 2)
-            .property(
-                JsSymbol::to_string_tag(),
-                Self::NAME,
-                Attribute::READONLY | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
-            )
-            .build();
+        BuiltInBuilder::from_standard_constructor_static_shape::<Self>(
+            realm,
+            &boa_builtins::BIGINT_CONSTRUCTOR_STATIC_SHAPE,
+            &boa_builtins::BIGINT_PROTOTYPE_STATIC_SHAPE,
+        )
+        .method(Self::to_string, 0)
+        .method(Self::value_of, 0)
+        .static_method(Self::as_int_n, 2)
+        .static_method(Self::as_uint_n, 2)
+        .property(Self::NAME)
+        .build();
     }
 
     fn get(intrinsics: &Intrinsics) -> JsObject {

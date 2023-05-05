@@ -23,7 +23,7 @@ pub(crate) struct Escape;
 
 impl IntrinsicObject for Escape {
     fn init(realm: &Realm) {
-        BuiltInBuilder::callable_with_intrinsic::<Self>(realm, escape)
+        BuiltInBuilder::callable_intrinsic::<Self>(realm, escape)
             .name(Self::NAME)
             .length(1)
             .build();
@@ -95,7 +95,7 @@ pub(crate) struct Unescape;
 
 impl IntrinsicObject for Unescape {
     fn init(realm: &Realm) {
-        BuiltInBuilder::callable_with_intrinsic::<Self>(realm, unescape)
+        BuiltInBuilder::callable_intrinsic::<Self>(realm, unescape)
             .name(Self::NAME)
             .length(1)
             .build();

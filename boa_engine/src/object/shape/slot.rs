@@ -42,7 +42,7 @@ impl SlotAttributes {
 ///
 /// Slots can have different width depending on its attributes, accessors properties have width `2`,
 /// while data properties have width `1`.
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub(crate) struct Slot {
     pub(crate) index: SlotIndex,
     pub(crate) attributes: SlotAttributes,

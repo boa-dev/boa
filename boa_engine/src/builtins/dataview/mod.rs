@@ -12,10 +12,7 @@ use crate::{
     context::intrinsics::{Intrinsics, StandardConstructor, StandardConstructors},
     error::JsNativeError,
     object::{internal_methods::get_prototype_from_constructor, JsObject, ObjectData},
-    property::Attribute,
     realm::Realm,
-    string::utf16,
-    symbol::JsSymbol,
     value::JsValue,
     Context, JsArgs, JsResult,
 };
@@ -33,8 +30,6 @@ pub struct DataView {
 
 impl IntrinsicObject for DataView {
     fn init(realm: &Realm) {
-        let flag_attributes = Attribute::CONFIGURABLE | Attribute::NON_ENUMERABLE;
-
         let get_buffer = BuiltInBuilder::callable(realm, Self::get_buffer)
             .name("get buffer")
             .build();
@@ -47,46 +42,36 @@ impl IntrinsicObject for DataView {
             .name("get byteOffset")
             .build();
 
-        BuiltInBuilder::from_standard_constructor::<Self>(realm)
-            .accessor(utf16!("buffer"), Some(get_buffer), None, flag_attributes)
-            .accessor(
-                utf16!("byteLength"),
-                Some(get_byte_length),
-                None,
-                flag_attributes,
-            )
-            .accessor(
-                utf16!("byteOffset"),
-                Some(get_byte_offset),
-                None,
-                flag_attributes,
-            )
-            .method(Self::get_big_int64, "getBigInt64", 1)
-            .method(Self::get_big_uint64, "getBigUint64", 1)
-            .method(Self::get_float32, "getFloat32", 1)
-            .method(Self::get_float64, "getFloat64", 1)
-            .method(Self::get_int8, "getInt8", 1)
-            .method(Self::get_int16, "getInt16", 1)
-            .method(Self::get_int32, "getInt32", 1)
-            .method(Self::get_uint8, "getUint8", 1)
-            .method(Self::get_uint16, "getUint16", 1)
-            .method(Self::get_uint32, "getUint32", 1)
-            .method(Self::set_big_int64, "setBigInt64", 2)
-            .method(Self::set_big_uint64, "setBigUint64", 2)
-            .method(Self::set_float32, "setFloat32", 2)
-            .method(Self::set_float64, "setFloat64", 2)
-            .method(Self::set_int8, "setInt8", 2)
-            .method(Self::set_int16, "setInt16", 2)
-            .method(Self::set_int32, "setInt32", 2)
-            .method(Self::set_uint8, "setUint8", 2)
-            .method(Self::set_uint16, "setUint16", 2)
-            .method(Self::set_uint32, "setUint32", 2)
-            .property(
-                JsSymbol::to_string_tag(),
-                Self::NAME,
-                Attribute::READONLY | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
-            )
-            .build();
+        BuiltInBuilder::from_standard_constructor_static_shape::<Self>(
+            realm,
+            &boa_builtins::DATA_VIEW_CONSTRUCTOR_STATIC_SHAPE,
+            &boa_builtins::DATA_VIEW_PROTOTYPE_STATIC_SHAPE,
+        )
+        .accessor(Some(get_buffer), None)
+        .accessor(Some(get_byte_length), None)
+        .accessor(Some(get_byte_offset), None)
+        .method(Self::get_big_int64, 1)
+        .method(Self::get_big_uint64, 1)
+        .method(Self::get_float32, 1)
+        .method(Self::get_float64, 1)
+        .method(Self::get_int8, 1)
+        .method(Self::get_int16, 1)
+        .method(Self::get_int32, 1)
+        .method(Self::get_uint8, 1)
+        .method(Self::get_uint16, 1)
+        .method(Self::get_uint32, 1)
+        .method(Self::set_big_int64, 2)
+        .method(Self::set_big_uint64, 2)
+        .method(Self::set_float32, 2)
+        .method(Self::set_float64, 2)
+        .method(Self::set_int8, 2)
+        .method(Self::set_int16, 2)
+        .method(Self::set_int32, 2)
+        .method(Self::set_uint8, 2)
+        .method(Self::set_uint16, 2)
+        .method(Self::set_uint32, 2)
+        .property(Self::NAME)
+        .build();
     }
 
     fn get(intrinsics: &Intrinsics) -> JsObject {

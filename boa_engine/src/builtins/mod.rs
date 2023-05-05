@@ -39,6 +39,8 @@ pub mod escape;
 #[cfg(feature = "intl")]
 pub mod intl;
 
+use boa_builtins::StaticShape as RawStaticShape;
+
 pub(crate) use self::{
     array::Array,
     async_function::AsyncFunction,
@@ -95,7 +97,9 @@ use crate::{
     js_string,
     native_function::{NativeFunction, NativeFunctionPointer},
     object::{
-        shape::{property_table::PropertyTableInner, slot::SlotAttributes},
+        shape::{
+            property_table::PropertyTableInner, slot::SlotAttributes, static_shape::StaticShape,
+        },
         FunctionBinding, JsFunction, JsObject, JsPrototype, Object, ObjectData, ObjectKind,
         CONSTRUCTOR, PROTOTYPE,
     },
@@ -587,19 +591,318 @@ struct BuiltInBuilder<'ctx, Kind> {
     prototype: JsObject,
 }
 
-impl<'ctx> BuiltInBuilder<'ctx, OrdinaryObject> {
-    // fn new(realm: &'ctx Realm) -> BuiltInBuilder<'ctx, OrdinaryObject> {
-    //     BuiltInBuilder {
-    //         realm,
-    //         object: BuiltInObjectInitializer::Unique {
-    //             object: Object::default(),
-    //             data: ObjectData::ordinary(),
-    //         },
-    //         kind: OrdinaryObject,
-    //         prototype: realm.intrinsics().constructors().object().prototype(),
-    //     }
-    // }
+struct BuiltInBuilderCallableIntrinsic<'ctx> {
+    realm: &'ctx Realm,
+    function: NativeFunctionPointer,
+    object: JsObject,
+    name: JsString,
+    length: usize,
+}
 
+impl BuiltInBuilderCallableIntrinsic<'_> {
+    fn name<N: Into<JsString>>(mut self, name: N) -> Self {
+        self.name = name.into();
+        self
+    }
+    /// Specify how many arguments the constructor function takes.
+    ///
+    /// Default is `0`.
+    const fn length(mut self, length: usize) -> Self {
+        self.length = length;
+        self
+    }
+    fn build(self) {
+        let function = function::Function::new(
+            function::FunctionKind::Native {
+                function: NativeFunction::from_fn_ptr(self.function),
+                constructor: (true).then_some(function::ConstructorKind::Base),
+            },
+            self.realm.clone(),
+        );
+
+        let mut object = self.object.borrow_mut();
+        object.properties_mut().shape = self
+            .realm
+            .intrinsics()
+            .templates()
+            .function()
+            .shape()
+            .clone()
+            .into();
+        object.properties_mut().storage = vec![self.length.into(), self.name.into()];
+        *object.kind_mut() = ObjectKind::Function(function);
+    }
+}
+
+struct BuiltInBuilderConstructorStaticShape<'ctx> {
+    realm: &'ctx Realm,
+    function: NativeFunctionPointer,
+
+    constructor_property_index: usize,
+    constructor_object: JsObject,
+    constructor_shape: &'static RawStaticShape,
+    constructor_storage: Vec<JsValue>,
+
+    prototype_property_index: usize,
+    prototype_object: JsObject,
+    prototype_shape: &'static RawStaticShape,
+    prototype_storage: Vec<JsValue>,
+
+    __proto__: JsPrototype,
+    inherits: Option<JsObject>,
+}
+
+impl<'ctx> BuiltInBuilder<'ctx, Callable<Constructor>> {
+    fn from_standard_constructor_static_shape<SC: BuiltInConstructor>(
+        realm: &'ctx Realm,
+        constructor_shape: &'static RawStaticShape,
+        prototype_shape: &'static RawStaticShape,
+    ) -> BuiltInBuilderConstructorStaticShape<'ctx> {
+        let constructor = SC::STANDARD_CONSTRUCTOR(realm.intrinsics().constructors());
+        // println!("{constructor_shape:#?}");
+        // println!("{prototype_shape:#?}");
+        let mut this = BuiltInBuilderConstructorStaticShape {
+            realm,
+            function: SC::constructor,
+
+            constructor_property_index: 0,
+            constructor_shape,
+            constructor_storage: Vec::with_capacity(constructor_shape.storage_len),
+            constructor_object: constructor.constructor(),
+
+            prototype_property_index: 0,
+            prototype_shape,
+            prototype_storage: Vec::with_capacity(prototype_shape.storage_len),
+            prototype_object: constructor.prototype(),
+
+            __proto__: Some(realm.intrinsics().constructors().function().prototype()),
+            inherits: Some(realm.intrinsics().constructors().object().prototype()),
+        };
+
+        this.constructor_storage.push(SC::LENGTH.into());
+        this.constructor_storage.push(js_string!(SC::NAME).into());
+        this.constructor_storage
+            .push(this.prototype_object.clone().into());
+        this.constructor_property_index += 3;
+
+        this.prototype_storage
+            .push(this.constructor_object.clone().into());
+        this.prototype_property_index += 1;
+
+        this
+    }
+}
+
+#[allow(dead_code)]
+impl BuiltInBuilderConstructorStaticShape<'_> {
+    /// Adds a new static method to the builtin object.
+    fn static_method(mut self, function: NativeFunctionPointer, length: usize) -> Self {
+        let name = self
+            .constructor_shape
+            .get_string_key_expect(self.constructor_property_index);
+
+        let function = BuiltInBuilder::callable(self.realm, function)
+            .name(name)
+            .length(length)
+            .build();
+
+        self.constructor_storage.push(function.into());
+        self.constructor_property_index += 1;
+        self
+    }
+
+    /// Adds a new static data property to the builtin object.
+    fn static_property<V>(mut self, value: V) -> Self
+    where
+        V: Into<JsValue>,
+    {
+        self.constructor_storage.push(value.into());
+        self.constructor_property_index += 1;
+        self
+    }
+
+    /// Specify the `[[Prototype]]` internal field of the builtin object.
+    ///
+    /// Default is `Function.prototype` for constructors and `Object.prototype` for statics.
+    fn prototype(mut self, prototype: JsObject) -> Self {
+        self.__proto__ = Some(prototype);
+        self
+    }
+
+    /// Adds a new method to the constructor's prototype.
+    fn method(mut self, function: NativeFunctionPointer, length: usize) -> Self {
+        let name = self
+            .prototype_shape
+            .get_string_key_expect(self.prototype_property_index);
+
+        let function = BuiltInBuilder::callable(self.realm, function)
+            .name(name)
+            .length(length)
+            .build();
+
+        self.prototype_storage.push(function.into());
+        self.prototype_property_index += 1;
+        self
+    }
+
+    fn method_with_name(
+        mut self,
+        function: NativeFunctionPointer,
+        name: JsString,
+        length: usize,
+    ) -> Self {
+        let function = BuiltInBuilder::callable(self.realm, function)
+            .name(name)
+            .length(length)
+            .build();
+
+        self.prototype_storage.push(function.into());
+        self.prototype_property_index += 1;
+        self
+    }
+
+    /// Adds a new data property to the constructor's prototype.
+    fn property<V>(mut self, value: V) -> Self
+    where
+        V: Into<JsValue>,
+    {
+        self.prototype_storage.push(value.into());
+        self.prototype_property_index += 1;
+        self
+    }
+
+    /// Adds new accessor property to the constructor's prototype.
+    fn accessor(mut self, get: Option<JsFunction>, set: Option<JsFunction>) -> Self {
+        self.prototype_storage.extend([
+            get.map(JsValue::new).unwrap_or_default(),
+            set.map(JsValue::new).unwrap_or_default(),
+        ]);
+        self.prototype_property_index += 1;
+        self
+    }
+
+    fn static_accessor(mut self, get: Option<JsFunction>, set: Option<JsFunction>) -> Self {
+        self.constructor_storage.extend([
+            get.map(JsValue::new).unwrap_or_default(),
+            set.map(JsValue::new).unwrap_or_default(),
+        ]);
+        self.constructor_property_index += 1;
+        self
+    }
+
+    /// Specifies the parent prototype which objects created by this constructor inherit from.
+    ///
+    /// Default is `Object.prototype`.
+    #[allow(clippy::missing_const_for_fn)]
+    fn inherits(mut self, prototype: JsPrototype) -> Self {
+        self.inherits = prototype;
+        self
+    }
+
+    fn build(mut self) {
+        debug_assert_eq!(
+            self.constructor_storage.len() + 1,
+            self.constructor_shape.storage_len
+        );
+        debug_assert_eq!(
+            self.constructor_storage.capacity(),
+            self.constructor_shape.storage_len
+        );
+
+        let function = function::Function::new(
+            function::FunctionKind::Native {
+                function: NativeFunction::from_fn_ptr(self.function),
+                constructor: (true).then_some(function::ConstructorKind::Base),
+            },
+            self.realm.clone(),
+        );
+
+        let mut object = self.constructor_object.borrow_mut();
+        *object.kind_mut() = ObjectKind::Function(function);
+        object.properties_mut().shape = StaticShape::new(self.constructor_shape).into();
+        self.constructor_storage.push(
+            self.__proto__
+                .unwrap_or_else(|| {
+                    self.realm
+                        .intrinsics()
+                        .constructors()
+                        .function()
+                        .prototype()
+                })
+                .into(),
+        );
+        object.properties_mut().storage = self.constructor_storage;
+
+        debug_assert_eq!(
+            self.prototype_storage.len() + 1,
+            self.prototype_shape.storage_len
+        );
+        debug_assert_eq!(
+            self.prototype_storage.capacity(),
+            self.prototype_shape.storage_len
+        );
+        let mut prototype = self.prototype_object.borrow_mut();
+        prototype.properties_mut().shape = StaticShape::new(self.prototype_shape).into();
+        self.prototype_storage
+            .push(self.inherits.map(JsValue::new).unwrap_or_default());
+        prototype.properties_mut().storage = self.prototype_storage;
+    }
+}
+
+struct BuiltInBuilderStaticShape<'ctx> {
+    realm: &'ctx Realm,
+    shape: &'static RawStaticShape,
+    object: JsObject,
+    property_index: usize,
+    storage: Vec<JsValue>,
+}
+
+impl BuiltInBuilderStaticShape<'_> {
+    /// Adds a new static method to the builtin object.
+    fn static_method(mut self, function: NativeFunctionPointer, length: usize) -> Self {
+        let name = self.shape.get_string_key_expect(self.property_index);
+
+        let function = BuiltInBuilder::callable(self.realm, function)
+            .name(name)
+            .length(length)
+            .build();
+
+        self.storage.push(function.into());
+        self.property_index += 1;
+        self
+    }
+
+    /// Adds a new static data property to the builtin object.
+    fn static_property<V>(mut self, value: V) -> Self
+    where
+        V: Into<JsValue>,
+    {
+        self.storage.push(value.into());
+        self.property_index += 1;
+        self
+    }
+
+    fn build(mut self) {
+        debug_assert_eq!(self.storage.len(), self.shape.len());
+
+        debug_assert_eq!(self.storage.len() + 1, self.shape.storage_len);
+        debug_assert_eq!(self.storage.capacity(), self.shape.storage_len);
+
+        let mut object = self.object.borrow_mut();
+        object.properties_mut().shape = StaticShape::new(self.shape).into();
+        self.storage.push(
+            self.realm
+                .intrinsics()
+                .constructors()
+                .object()
+                .prototype()
+                .into(),
+        );
+        object.properties_mut().storage = self.storage;
+    }
+}
+
+impl<'ctx> BuiltInBuilder<'ctx, OrdinaryObject> {
     fn with_intrinsic<I: IntrinsicObject>(
         realm: &'ctx Realm,
     ) -> BuiltInBuilder<'ctx, OrdinaryObject> {
@@ -608,6 +911,19 @@ impl<'ctx> BuiltInBuilder<'ctx, OrdinaryObject> {
             object: BuiltInObjectInitializer::Shared(I::get(realm.intrinsics())),
             kind: OrdinaryObject,
             prototype: realm.intrinsics().constructors().object().prototype(),
+        }
+    }
+
+    fn with_intrinsic_static_shape<I: IntrinsicObject>(
+        realm: &'ctx Realm,
+        shape: &'static boa_builtins::StaticShape,
+    ) -> BuiltInBuilderStaticShape<'ctx> {
+        BuiltInBuilderStaticShape {
+            realm,
+            shape,
+            object: I::get(realm.intrinsics()),
+            storage: Vec::with_capacity(shape.storage_len),
+            property_index: 0,
         }
     }
 }
@@ -625,6 +941,7 @@ struct BuiltInConstructorWithPrototype<'ctx> {
     prototype_property_table: PropertyTableInner,
     prototype_storage: Vec<JsValue>,
     prototype: JsObject,
+
     __proto__: JsPrototype,
     inherits: Option<JsObject>,
     attributes: Attribute,
@@ -943,21 +1260,16 @@ impl<'ctx> BuiltInBuilder<'ctx, OrdinaryObject> {
         }
     }
 
-    fn callable_with_intrinsic<I: IntrinsicObject>(
+    fn callable_intrinsic<I: IntrinsicObject>(
         realm: &'ctx Realm,
         function: NativeFunctionPointer,
-    ) -> BuiltInBuilder<'ctx, Callable<OrdinaryFunction>> {
-        BuiltInBuilder {
+    ) -> BuiltInBuilderCallableIntrinsic<'ctx> {
+        BuiltInBuilderCallableIntrinsic {
             realm,
-            object: BuiltInObjectInitializer::Shared(I::get(realm.intrinsics())),
-            kind: Callable {
-                function,
-                name: js_string!(""),
-                length: 0,
-                kind: OrdinaryFunction,
-                realm: realm.clone(),
-            },
-            prototype: realm.intrinsics().constructors().function().prototype(),
+            function,
+            object: I::get(realm.intrinsics()),
+            name: JsString::default(),
+            length: 0,
         }
     }
 
@@ -1057,15 +1369,6 @@ impl<T> BuiltInBuilder<'_, T> {
 }
 
 impl<FnTyp> BuiltInBuilder<'_, Callable<FnTyp>> {
-    /// Specify how many arguments the constructor function takes.
-    ///
-    /// Default is `0`.
-    #[inline]
-    const fn length(mut self, length: usize) -> Self {
-        self.kind.length = length;
-        self
-    }
-
     /// Specify the name of the constructor function.
     ///
     /// Default is `""`

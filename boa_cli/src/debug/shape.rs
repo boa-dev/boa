@@ -31,8 +31,12 @@ fn r#type(_: &JsValue, args: &[JsValue], _: &mut Context<'_>) -> JsResult<JsValu
 
     Ok(if shape.is_shared() {
         js_string!("shared")
-    } else {
+    } else if shape.is_unique() {
         js_string!("unique")
+    } else if shape.is_static() {
+        js_string!("static")
+    } else {
+        unreachable!("shapes can only be shared, unique, or static")
     }
     .into())
 }

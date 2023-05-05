@@ -1,4 +1,5 @@
 use boa_gc::{Finalize, Trace, WeakGc};
+use boa_macros::utf16;
 use boa_profiler::Profiler;
 
 use crate::{
@@ -7,7 +8,6 @@ use crate::{
     object::{internal_methods::get_prototype_from_constructor, JsObject, ObjectData},
     property::Attribute,
     realm::Realm,
-    symbol::JsSymbol,
     Context, JsArgs, JsNativeError, JsResult, JsValue,
 };
 
@@ -31,14 +31,14 @@ impl IntrinsicObject for WeakRef {
 
     fn init(realm: &Realm) {
         let _timer = Profiler::global().start_event(Self::NAME, "init");
-        BuiltInBuilder::from_standard_constructor::<Self>(realm)
-            .property(
-                JsSymbol::to_string_tag(),
-                "WeakRef",
-                Attribute::CONFIGURABLE,
-            )
-            .method(Self::deref, "deref", 0)
-            .build();
+        BuiltInBuilder::from_standard_constructor_static_shape::<Self>(
+            realm,
+            &boa_builtins::WEAK_REF_CONSTRUCTOR_STATIC_SHAPE,
+            &boa_builtins::WEAK_REF_PROTOTYPE_STATIC_SHAPE,
+        )
+        .property(utf16!("WeakRef"))
+        .method(Self::deref, 0)
+        .build();
     }
 }
 

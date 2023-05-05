@@ -26,9 +26,7 @@ use crate::{
     error::JsNativeError,
     js_string,
     object::JsObject,
-    property::Attribute,
     realm::Realm,
-    string::utf16,
     symbol::JsSymbol,
     value::JsValue,
     Context, JsArgs, JsResult, JsString,
@@ -109,8 +107,6 @@ impl IntrinsicObject for Symbol {
         let symbol_to_string_tag = JsSymbol::to_string_tag();
         let symbol_unscopables = JsSymbol::unscopables();
 
-        let attribute = Attribute::READONLY | Attribute::NON_ENUMERABLE | Attribute::PERMANENT;
-
         let to_primitive = BuiltInBuilder::callable(realm, Self::to_primitive)
             .name("[Symbol.toPrimitive]")
             .length(1)
@@ -120,53 +116,32 @@ impl IntrinsicObject for Symbol {
             .name("get description")
             .build();
 
-        BuiltInBuilder::from_standard_constructor::<Self>(realm)
-            .static_method(Self::for_, "for", 1)
-            .static_method(Self::key_for, "keyFor", 1)
-            .static_property(utf16!("asyncIterator"), symbol_async_iterator, attribute)
-            .static_property(utf16!("hasInstance"), symbol_has_instance, attribute)
-            .static_property(
-                utf16!("isConcatSpreadable"),
-                symbol_is_concat_spreadable,
-                attribute,
-            )
-            .static_property(utf16!("iterator"), symbol_iterator, attribute)
-            .static_property(utf16!("match"), symbol_match, attribute)
-            .static_property(utf16!("matchAll"), symbol_match_all, attribute)
-            .static_property(utf16!("replace"), symbol_replace, attribute)
-            .static_property(utf16!("search"), symbol_search, attribute)
-            .static_property(utf16!("species"), symbol_species, attribute)
-            .static_property(utf16!("split"), symbol_split, attribute)
-            .static_property(
-                utf16!("toPrimitive"),
-                symbol_to_primitive.clone(),
-                attribute,
-            )
-            .static_property(
-                utf16!("toStringTag"),
-                symbol_to_string_tag.clone(),
-                attribute,
-            )
-            .static_property(utf16!("unscopables"), symbol_unscopables, attribute)
-            .method(Self::to_string, "toString", 0)
-            .method(Self::value_of, "valueOf", 0)
-            .accessor(
-                utf16!("description"),
-                Some(get_description),
-                None,
-                Attribute::CONFIGURABLE | Attribute::NON_ENUMERABLE,
-            )
-            .property(
-                symbol_to_string_tag,
-                Self::NAME,
-                Attribute::READONLY | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
-            )
-            .property(
-                symbol_to_primitive,
-                to_primitive,
-                Attribute::READONLY | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
-            )
-            .build();
+        BuiltInBuilder::from_standard_constructor_static_shape::<Self>(
+            realm,
+            &boa_builtins::SYMBOL_CONSTRUCTOR_STATIC_SHAPE,
+            &boa_builtins::SYMBOL_PROTOTYPE_STATIC_SHAPE,
+        )
+        .static_method(Self::for_, 1)
+        .static_method(Self::key_for, 1)
+        .static_property(symbol_async_iterator)
+        .static_property(symbol_has_instance)
+        .static_property(symbol_is_concat_spreadable)
+        .static_property(symbol_iterator)
+        .static_property(symbol_match)
+        .static_property(symbol_match_all)
+        .static_property(symbol_replace)
+        .static_property(symbol_search)
+        .static_property(symbol_species)
+        .static_property(symbol_split)
+        .static_property(symbol_to_primitive)
+        .static_property(symbol_to_string_tag)
+        .static_property(symbol_unscopables)
+        .method(Self::to_string, 0)
+        .method(Self::value_of, 0)
+        .accessor(Some(get_description), None)
+        .property(Self::NAME)
+        .property(to_primitive)
+        .build();
     }
 
     fn get(intrinsics: &Intrinsics) -> JsObject {

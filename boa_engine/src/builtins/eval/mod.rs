@@ -35,7 +35,7 @@ impl IntrinsicObject for Eval {
     fn init(realm: &Realm) {
         let _timer = Profiler::global().start_event(Self::NAME, "init");
 
-        BuiltInBuilder::callable_with_intrinsic::<Self>(realm, Self::eval)
+        BuiltInBuilder::callable_intrinsic::<Self>(realm, Self::eval)
             .name(Self::NAME)
             .length(1)
             .build();

@@ -15,10 +15,7 @@ use crate::{
     context::intrinsics::{Intrinsics, StandardConstructor, StandardConstructors},
     error::JsNativeError,
     object::{internal_methods::get_prototype_from_constructor, JsObject, ObjectData},
-    property::Attribute,
     realm::Realm,
-    string::utf16,
-    symbol::JsSymbol,
     value::{IntegerOrInfinity, Numeric},
     Context, JsArgs, JsResult, JsValue,
 };
@@ -51,8 +48,6 @@ impl IntrinsicObject for ArrayBuffer {
     fn init(realm: &Realm) {
         let _timer = Profiler::global().start_event(Self::NAME, "init");
 
-        let flag_attributes = Attribute::CONFIGURABLE | Attribute::NON_ENUMERABLE;
-
         let get_species = BuiltInBuilder::callable(realm, Self::get_species)
             .name("get [Symbol.species]")
             .build();
@@ -61,27 +56,17 @@ impl IntrinsicObject for ArrayBuffer {
             .name("get byteLength")
             .build();
 
-        BuiltInBuilder::from_standard_constructor::<Self>(realm)
-            .accessor(
-                utf16!("byteLength"),
-                Some(get_byte_length),
-                None,
-                flag_attributes,
-            )
-            .static_accessor(
-                JsSymbol::species(),
-                Some(get_species),
-                None,
-                Attribute::CONFIGURABLE,
-            )
-            .static_method(Self::is_view, "isView", 1)
-            .method(Self::slice, "slice", 2)
-            .property(
-                JsSymbol::to_string_tag(),
-                Self::NAME,
-                Attribute::READONLY | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
-            )
-            .build();
+        BuiltInBuilder::from_standard_constructor_static_shape::<Self>(
+            realm,
+            &boa_builtins::ARRAY_BUFFER_CONSTRUCTOR_STATIC_SHAPE,
+            &boa_builtins::ARRAY_BUFFER_PROTOTYPE_STATIC_SHAPE,
+        )
+        .static_accessor(Some(get_species), None)
+        .static_method(Self::is_view, 1)
+        .accessor(Some(get_byte_length), None)
+        .method(Self::slice, 2)
+        .property(Self::NAME)
+        .build();
     }
 
     fn get(intrinsics: &Intrinsics) -> JsObject {

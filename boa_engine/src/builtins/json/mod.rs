@@ -24,10 +24,9 @@ use crate::{
     error::JsNativeError,
     js_string,
     object::JsObject,
-    property::{Attribute, PropertyNameKind},
+    property::PropertyNameKind,
     realm::Realm,
     string::{utf16, CodePoint},
-    symbol::JsSymbol,
     value::IntegerOrInfinity,
     vm::CallFrame,
     Context, JsArgs, JsResult, JsString, JsValue,
@@ -50,14 +49,14 @@ impl IntrinsicObject for Json {
     fn init(realm: &Realm) {
         let _timer = Profiler::global().start_event(Self::NAME, "init");
 
-        let to_string_tag = JsSymbol::to_string_tag();
-        let attribute = Attribute::READONLY | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE;
-
-        BuiltInBuilder::with_intrinsic::<Self>(realm)
-            .static_method(Self::parse, "parse", 2)
-            .static_method(Self::stringify, "stringify", 3)
-            .static_property(to_string_tag, Self::NAME, attribute)
-            .build();
+        BuiltInBuilder::with_intrinsic_static_shape::<Self>(
+            realm,
+            &boa_builtins::JSON_OBJECT_STATIC_SHAPE,
+        )
+        .static_method(Self::parse, 2)
+        .static_method(Self::stringify, 3)
+        .static_property(Self::NAME)
+        .build();
     }
 
     fn get(intrinsics: &Intrinsics) -> JsObject {
