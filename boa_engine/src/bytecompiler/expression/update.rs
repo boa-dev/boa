@@ -70,13 +70,16 @@ impl ByteCompiler<'_, '_> {
                     PropertyAccessField::Expr(expr) => {
                         self.compile_expr(access.target(), true);
                         self.emit_opcode(Opcode::Dup);
-                        self.compile_expr(expr, true);
 
-                        self.emit_opcode(Opcode::GetPropertyByValuePush);
+                        self.compile_expr(expr, true);
+                        self.emit_opcode(Opcode::ToPropertyKey);
+                        self.emit_opcode(Opcode::DupKey);
+
+                        self.emit_opcode(Opcode::GetPropertyByValue);
                         self.emit_opcode(opcode);
                         if post {
                             self.emit_opcode(Opcode::RotateRight);
-                            self.emit_u8(4);
+                            self.emit_u8(3);
                         }
 
                         self.emit_opcode(Opcode::SetPropertyByValue);
@@ -125,13 +128,16 @@ impl ByteCompiler<'_, '_> {
                     PropertyAccessField::Expr(expr) => {
                         self.emit_opcode(Opcode::Super);
                         self.emit_opcode(Opcode::Dup);
-                        self.compile_expr(expr, true);
 
-                        self.emit_opcode(Opcode::GetPropertyByValuePush);
+                        self.compile_expr(expr, true);
+                        self.emit_opcode(Opcode::ToPropertyKey);
+                        self.emit_opcode(Opcode::DupKey);
+
+                        self.emit_opcode(Opcode::GetPropertyByValue);
                         self.emit_opcode(opcode);
                         if post {
                             self.emit_opcode(Opcode::RotateRight);
-                            self.emit_u8(2);
+                            self.emit_u8(3);
                         }
 
                         self.emit_opcode(Opcode::SetPropertyByValue);

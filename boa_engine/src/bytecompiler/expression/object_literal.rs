@@ -32,8 +32,9 @@ impl ByteCompiler<'_, '_> {
                     PropertyName::Computed(name_node) => {
                         self.compile_expr(name_node, true);
                         self.emit_opcode(Opcode::ToPropertyKey);
+
                         if expr.is_anonymous_function_definition() {
-                            self.emit_opcode(Opcode::Dup);
+                            self.emit_opcode(Opcode::DupKey);
                             self.compile_expr(expr, true);
                             self.emit_opcode(Opcode::SetFunctionName);
                             self.emit_u8(0);
@@ -53,7 +54,8 @@ impl ByteCompiler<'_, '_> {
                         PropertyName::Computed(name_node) => {
                             self.compile_expr(name_node, true);
                             self.emit_opcode(Opcode::ToPropertyKey);
-                            self.emit_opcode(Opcode::Dup);
+                            self.emit_opcode(Opcode::DupKey);
+
                             self.function(expr.into(), NodeKind::Expression, true);
                             self.emit_opcode(Opcode::SetFunctionName);
                             self.emit_u8(1);
@@ -69,7 +71,8 @@ impl ByteCompiler<'_, '_> {
                         PropertyName::Computed(name_node) => {
                             self.compile_expr(name_node, true);
                             self.emit_opcode(Opcode::ToPropertyKey);
-                            self.emit_opcode(Opcode::Dup);
+                            self.emit_opcode(Opcode::DupKey);
+
                             self.function(expr.into(), NodeKind::Expression, true);
                             self.emit_opcode(Opcode::SetFunctionName);
                             self.emit_u8(2);
@@ -85,7 +88,8 @@ impl ByteCompiler<'_, '_> {
                         PropertyName::Computed(name_node) => {
                             self.compile_expr(name_node, true);
                             self.emit_opcode(Opcode::ToPropertyKey);
-                            self.emit_opcode(Opcode::Dup);
+                            self.emit_opcode(Opcode::DupKey);
+
                             self.function(expr.into(), NodeKind::Expression, true);
                             self.emit_opcode(Opcode::SetFunctionName);
                             self.emit_u8(0);
@@ -101,7 +105,8 @@ impl ByteCompiler<'_, '_> {
                         PropertyName::Computed(name_node) => {
                             self.compile_expr(name_node, true);
                             self.emit_opcode(Opcode::ToPropertyKey);
-                            self.emit_opcode(Opcode::Dup);
+                            self.emit_opcode(Opcode::DupKey);
+
                             self.function(expr.into(), NodeKind::Expression, true);
                             self.emit_opcode(Opcode::SetFunctionName);
                             self.emit_u8(0);
@@ -117,7 +122,8 @@ impl ByteCompiler<'_, '_> {
                         PropertyName::Computed(name_node) => {
                             self.compile_expr(name_node, true);
                             self.emit_opcode(Opcode::ToPropertyKey);
-                            self.emit_opcode(Opcode::Dup);
+                            self.emit_opcode(Opcode::DupKey);
+
                             self.function(expr.into(), NodeKind::Expression, true);
                             self.emit_opcode(Opcode::SetFunctionName);
                             self.emit_u8(0);
@@ -133,7 +139,8 @@ impl ByteCompiler<'_, '_> {
                         PropertyName::Computed(name_node) => {
                             self.compile_expr(name_node, true);
                             self.emit_opcode(Opcode::ToPropertyKey);
-                            self.emit_opcode(Opcode::Dup);
+                            self.emit_opcode(Opcode::DupKey);
+
                             self.function(expr.into(), NodeKind::Expression, true);
                             self.emit_opcode(Opcode::SetFunctionName);
                             self.emit_u8(0);

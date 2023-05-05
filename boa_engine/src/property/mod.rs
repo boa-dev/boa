@@ -18,7 +18,7 @@
 mod attribute;
 
 use crate::{js_string, object::shape::slot::SlotAttributes, JsString, JsSymbol, JsValue};
-use boa_gc::{Finalize, Trace};
+use boa_gc::{empty_trace, Finalize, Trace};
 use std::{fmt, iter::FusedIterator};
 
 pub use attribute::Attribute;
@@ -580,6 +580,12 @@ pub enum PropertyKey {
 
     /// A numeric property key.
     Index(u32),
+}
+
+// SAFETY: `PropertyKey` can only contain non-traceable types, making this
+// empty implementation safe.
+unsafe impl Trace for PropertyKey {
+    empty_trace!();
 }
 
 /// Utility function for parsing [`PropertyKey`].

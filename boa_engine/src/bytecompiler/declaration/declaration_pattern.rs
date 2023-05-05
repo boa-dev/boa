@@ -15,8 +15,6 @@ impl ByteCompiler<'_, '_> {
     ) {
         match pattern {
             Pattern::Object(pattern) => {
-                self.emit_opcode(Opcode::ValueNotNullOrUndefined);
-
                 self.emit_opcode(Opcode::RequireObjectCoercible);
 
                 let mut additional_excluded_keys_count = 0;
@@ -35,19 +33,22 @@ impl ByteCompiler<'_, '_> {
                             name,
                             default_init,
                         } => {
-                            self.emit_opcode(Opcode::Dup);
                             match name {
                                 PropertyName::Literal(name) => {
+                                    self.emit_opcode(Opcode::Dup);
                                     let index = self.get_or_insert_name((*name).into());
                                     self.emit(Opcode::GetPropertyByName, &[index]);
                                 }
                                 PropertyName::Computed(node) => {
+                                    self.emit_opcode(Opcode::Dup);
+
                                     self.compile_expr(node, true);
+                                    self.emit_opcode(Opcode::ToPropertyKey);
                                     if rest_exits {
-                                        self.emit_opcode(Opcode::GetPropertyByValuePush);
-                                    } else {
-                                        self.emit_opcode(Opcode::GetPropertyByValue);
+                                        self.emit_opcode(Opcode::DupKey);
                                     }
+
+                                    self.emit_opcode(Opcode::GetPropertyByValue);
                                 }
                             }
 
@@ -60,7 +61,6 @@ impl ByteCompiler<'_, '_> {
                             self.emit_binding(def, *ident);
 
                             if rest_exits && name.computed().is_some() {
-                                self.emit_opcode(Opcode::Swap);
                                 additional_excluded_keys_count += 1;
                             }
                         }
@@ -106,19 +106,22 @@ impl ByteCompiler<'_, '_> {
                             access,
                             default_init,
                         } => {
-                            self.emit_opcode(Opcode::Dup);
                             match name {
                                 PropertyName::Literal(name) => {
+                                    self.emit_opcode(Opcode::Dup);
                                     let index = self.get_or_insert_name((*name).into());
                                     self.emit(Opcode::GetPropertyByName, &[index]);
                                 }
                                 PropertyName::Computed(node) => {
+                                    self.emit_opcode(Opcode::Dup);
+
                                     self.compile_expr(node, true);
+                                    self.emit_opcode(Opcode::ToPropertyKey);
                                     if rest_exits {
-                                        self.emit_opcode(Opcode::GetPropertyByValuePush);
-                                    } else {
-                                        self.emit_opcode(Opcode::GetPropertyByValue);
+                                        self.emit_opcode(Opcode::DupKey);
                                     }
+
+                                    self.emit_opcode(Opcode::GetPropertyByValue);
                                 }
                             }
 
@@ -136,7 +139,6 @@ impl ByteCompiler<'_, '_> {
                             );
 
                             if rest_exits && name.computed().is_some() {
-                                self.emit_opcode(Opcode::Swap);
                                 additional_excluded_keys_count += 1;
                             }
                         }
@@ -145,14 +147,18 @@ impl ByteCompiler<'_, '_> {
                             pattern,
                             default_init,
                         } => {
-                            self.emit_opcode(Opcode::Dup);
                             match name {
                                 PropertyName::Literal(name) => {
+                                    self.emit_opcode(Opcode::Dup);
                                     let index = self.get_or_insert_name((*name).into());
                                     self.emit(Opcode::GetPropertyByName, &[index]);
                                 }
                                 PropertyName::Computed(node) => {
+                                    self.emit_opcode(Opcode::Dup);
+
                                     self.compile_expr(node, true);
+                                    self.emit_opcode(Opcode::ToPropertyKey);
+
                                     self.emit_opcode(Opcode::GetPropertyByValue);
                                 }
                             }
@@ -242,10 +248,10 @@ impl ByteCompiler<'_, '_> {
                     compiler.emit_opcode(Opcode::IteratorNextSetDone);
                     compiler.emit_opcode(unwrapping);
                     if level != 0 {
-                        compiler.emit_opcode(Opcode::RotateLeft);
-                        compiler.emit_u8(level + 3 + u8::from(with_done));
-                        compiler.emit_opcode(Opcode::RotateLeft);
-                        compiler.emit_u8(level + 3 + u8::from(with_done));
+                        for _ in 0..level {
+                            compiler.emit_opcode(Opcode::RotateLeft);
+                            compiler.emit_u8(level + 3 + u8::from(with_done));
+                        }
                         compiler.emit_opcode(Opcode::RotateLeft);
                         compiler.emit_u8(level + 1);
                     }
@@ -285,10 +291,10 @@ impl ByteCompiler<'_, '_> {
                     }
                     compiler.emit_opcode(Opcode::IteratorToArray);
                     if level != 0 {
-                        compiler.emit_opcode(Opcode::RotateLeft);
-                        compiler.emit_u8(level + 3);
-                        compiler.emit_opcode(Opcode::RotateLeft);
-                        compiler.emit_u8(level + 3);
+                        for _ in 0..level {
+                            compiler.emit_opcode(Opcode::RotateLeft);
+                            compiler.emit_u8(level + 3);
+                        }
                         compiler.emit_opcode(Opcode::RotateLeft);
                         compiler.emit_u8(level + 1);
                     }

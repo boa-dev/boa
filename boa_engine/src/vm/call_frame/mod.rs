@@ -7,7 +7,7 @@ mod env_stack;
 
 use crate::{
     builtins::promise::PromiseCapability, environments::BindingLocator, object::JsObject,
-    vm::CodeBlock,
+    property::PropertyKey, vm::CodeBlock,
 };
 use boa_gc::{Finalize, Gc, Trace};
 use thin_vec::ThinVec;
@@ -43,8 +43,11 @@ pub struct CallFrame {
     // Iterators and their `[[Done]]` flags that must be closed when an abrupt completion is thrown.
     pub(crate) iterators: ThinVec<(JsObject, bool)>,
 
-    // The stack of bindings being updated.
-    pub(crate) binding_stack: Vec<BindingLocator>,
+    // Bindings being updated.
+    pub(crate) binding_stack: ThinVec<BindingLocator>,
+
+    // Property keys being accessed.
+    pub(crate) keys: ThinVec<PropertyKey>,
 }
 
 /// ---- `CallFrame` public API ----
@@ -75,7 +78,8 @@ impl CallFrame {
             promise_capability: None,
             async_generator: None,
             iterators: ThinVec::new(),
-            binding_stack: Vec::new(),
+            binding_stack: ThinVec::new(),
+            keys: ThinVec::new(),
         }
     }
 

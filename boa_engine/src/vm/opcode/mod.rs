@@ -621,7 +621,7 @@ generate_impl! {
         ///
         /// Operands:
         ///
-        /// Stack: value **=>** (ToNumeric(value)), (value + 1)
+        /// Stack: value **=>** (value + 1), (ToNumeric(value))
         IncPost,
 
         /// Unary `--` operator.
@@ -635,7 +635,7 @@ generate_impl! {
         ///
         /// Operands:
         ///
-        /// Stack: value **=>** (ToNumeric(value)), (value - 1)
+        /// Stack: value **=>** (value - 1), (ToNumeric(value))
         DecPost,
 
         /// Declare and initialize a function argument.
@@ -751,17 +751,9 @@ generate_impl! {
         ///
         /// Operands:
         ///
-        /// Stack: object, key **=>** value
+        /// Stack: object **=>** value
+        /// Key stack: key **=>**
         GetPropertyByValue,
-
-        /// Get a property by value from an object an push the key and value on the stack.
-        ///
-        /// Like `object[key]`
-        ///
-        /// Operands:
-        ///
-        /// Stack: object, key **=>** key, value
-        GetPropertyByValuePush,
 
         /// Sets a property by name of an object.
         ///
@@ -815,28 +807,32 @@ generate_impl! {
         ///
         /// Operands:
         ///
-        /// Stack: object, key, value **=>** value
+        /// Stack: object, value **=>** value
+        /// Key stack: key **=>**
         SetPropertyByValue,
 
         /// Defines a own property of an object by value.
         ///
         /// Operands:
         ///
-        /// Stack: object, key, value **=>**
+        /// Stack: object, value **=>**
+        /// Key stack: key **=>**
         DefineOwnPropertyByValue,
 
         /// Defines a static class method by value.
         ///
         /// Operands:
         ///
-        /// Stack: class, key, function **=>**
+        /// Stack: class, function **=>**
+        /// Key stack: key **=>**
         DefineClassStaticMethodByValue,
 
         /// Defines a class method by value.
         ///
         /// Operands:
         ///
-        /// Stack: class_proto, key, function **=>**
+        /// Stack: class_proto, function **=>**
+        /// Key stack: key **=>**
         DefineClassMethodByValue,
 
         /// Sets a getter property by name of an object.
@@ -872,7 +868,8 @@ generate_impl! {
         ///
         /// Operands:
         ///
-        /// Stack: object, key, value **=>**
+        /// Stack: object, value **=>**
+        /// Key stack: key **=>**
         SetPropertyGetterByValue,
 
         /// Defines a static getter class method by value.
@@ -881,7 +878,8 @@ generate_impl! {
         ///
         /// Operands:
         ///
-        /// Stack: class, key, function **=>**
+        /// Stack: class, function **=>**
+        /// Key stack: key **=>**
         DefineClassStaticGetterByValue,
 
         /// Defines a getter class method by value.
@@ -890,7 +888,8 @@ generate_impl! {
         ///
         /// Operands:
         ///
-        /// Stack: class_proto, key, function **=>**
+        /// Stack: class_proto, function **=>**
+        /// Key stack: key **=>**
         DefineClassGetterByValue,
 
         /// Sets a setter property by name of an object.
@@ -926,7 +925,8 @@ generate_impl! {
         ///
         /// Operands:
         ///
-        /// Stack: object, key, value **=>**
+        /// Stack: object, value **=>**
+        /// Key stack: key **=>**
         SetPropertySetterByValue,
 
         /// Defines a static setter class method by value.
@@ -935,7 +935,8 @@ generate_impl! {
         ///
         /// Operands:
         ///
-        /// Stack: class, key, function **=>**
+        /// Stack: class, function **=>**
+        /// Key stack: key **=>**
         DefineClassStaticSetterByValue,
 
         /// Defines a setter class method by value.
@@ -944,7 +945,8 @@ generate_impl! {
         ///
         /// Operands:
         ///
-        /// Stack: class_proto, key, function **=>**
+        /// Stack: class_proto, function **=>**
+        /// Key stack: key **=>**
         DefineClassSetterByValue,
 
         /// Set the value of a private property of an object by it's name.
@@ -1051,7 +1053,8 @@ generate_impl! {
         ///
         /// Operands:
         ///
-        /// Stack: object, key **=>**
+        /// Stack: object **=>**
+        /// Key stack: key **=>**
         DeletePropertyByValue,
 
         /// Throws an error when trying to delete a property of `super`
@@ -1072,8 +1075,17 @@ generate_impl! {
         ///
         /// Operands:
         ///
-        /// Stack: value **=>** key
+        /// Stack: value **=>**
+        ///
+        /// Key stack: **=>** key
         ToPropertyKey,
+
+        /// Duplicates the top of the property keys stack.
+        ///
+        /// Operands:
+        ///
+        /// Key stack: key **=>** key, key
+        DupKey,
 
         /// Unconditional jump to address.
         ///
