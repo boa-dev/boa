@@ -111,10 +111,24 @@
 <a href="#110" id="110">110</a>
 <a href="#111" id="111">111</a>
 <a href="#112" id="112">112</a>
+<a href="#113" id="113">113</a>
+<a href="#114" id="114">114</a>
+<a href="#115" id="115">115</a>
+<a href="#116" id="116">116</a>
+<a href="#117" id="117">117</a>
+<a href="#118" id="118">118</a>
+<a href="#119" id="119">119</a>
+<a href="#120" id="120">120</a>
+<a href="#121" id="121">121</a>
+<a href="#122" id="122">122</a>
+<a href="#123" id="123">123</a>
+<a href="#124" id="124">124</a>
+<a href="#125" id="125">125</a>
+<a href="#126" id="126">126</a>
 </pre><pre class="rust"><code><span class="kw">use crate</span>::{
     error::JsNativeError,
     vm::{opcode::Operation, CompletionType},
-    Context, JsResult,
+    Context, JsResult, JsValue,
 };
 
 <span class="doccomment">/// `GetName` implements the Opcode Operation for `Opcode::GetName`
@@ -215,9 +229,23 @@
         <span class="kw">let </span><span class="kw-2">mut </span>binding_locator = context.vm.frame().code_block.bindings[index <span class="kw">as </span>usize];
         binding_locator.throw_mutate_immutable(context)<span class="question-mark">?</span>;
 
+        <span class="kw">let </span>is_global = binding_locator.is_global();
+
         context.find_runtime_binding(<span class="kw-2">&amp;mut </span>binding_locator)<span class="question-mark">?</span>;
 
-        <span class="kw">let </span>value = context.get_binding(binding_locator)<span class="question-mark">?</span>.unwrap_or_default();
+        <span class="kw">let </span>value = <span class="kw">if let </span><span class="prelude-val">Some</span>(value) = context.get_binding(binding_locator)<span class="question-mark">? </span>{
+            value
+        } <span class="kw">else if </span>is_global {
+            JsValue::undefined()
+        } <span class="kw">else </span>{
+            <span class="kw">let </span>name = context
+                .interner()
+                .resolve_expect(binding_locator.name().sym())
+                .to_string();
+            <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::reference()
+                .with_message(<span class="macro">format!</span>(<span class="string">&quot;{name} is not defined&quot;</span>))
+                .into());
+        };
 
         context.vm.push(value);
         <span class="prelude-val">Ok</span>(CompletionType::Normal)
