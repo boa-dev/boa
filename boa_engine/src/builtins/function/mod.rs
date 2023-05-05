@@ -443,7 +443,7 @@ impl IntrinsicObject for BuiltInFunctionObject {
         let _timer = Profiler::global().start_event("function", "init");
 
         let has_instance = BuiltInBuilder::callable(realm, Self::has_instance)
-            .name("[Symbol.iterator]")
+            .name("[Symbol.hasInstance]")
             .length(1)
             .build();
 
