@@ -1,7 +1,7 @@
 use crate::{
     error::JsNativeError,
     vm::{opcode::Operation, CompletionType},
-    Context, JsResult, JsString,
+    Context, JsResult,
 };
 
 /// `DeletePropertyByName` implements the Opcode Operation for `Opcode::DeletePropertyByName`
@@ -17,14 +17,11 @@ impl Operation for DeletePropertyByName {
 
     fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
         let index = context.vm.read::<u32>();
-        let key = context.vm.frame().code_block.names[index as usize];
-        let key = context
-            .interner()
-            .resolve_expect(key.sym())
-            .into_common::<JsString>(false)
-            .into();
         let value = context.vm.pop();
         let object = value.to_object(context)?;
+        let key = context.vm.frame().code_block.names[index as usize]
+            .clone()
+            .into();
         let result = object.__delete__(&key, context)?;
         if !result && context.vm.frame().code_block.strict {
             return Err(JsNativeError::typ()

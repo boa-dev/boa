@@ -1,5 +1,4 @@
 use crate::{
-    js_string,
     property::PropertyKey,
     vm::{opcode::Operation, CompletionType},
     Context, JsResult, JsValue,
@@ -26,8 +25,9 @@ impl Operation for GetPropertyByName {
             value.to_object(context)?
         };
 
-        let name = context.vm.frame().code_block.names[index as usize];
-        let key: PropertyKey = context.interner().resolve_expect(name.sym()).utf16().into();
+        let key = context.vm.frame().code_block.names[index as usize]
+            .clone()
+            .into();
         let result = object.__get__(&key, value, context)?;
 
         context.vm.push(result);
@@ -93,8 +93,7 @@ impl Operation for GetMethod {
 
     fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
         let index = context.vm.read::<u32>();
-        let name = context.vm.frame().code_block.names[index as usize];
-        let key = js_string!(context.interner().resolve_expect(name.sym()).utf16());
+        let key = context.vm.frame().code_block.names[index as usize].clone();
         let value = context.vm.pop();
 
         let method = value.get_method(key, context)?;

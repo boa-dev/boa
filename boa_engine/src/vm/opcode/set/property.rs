@@ -30,8 +30,9 @@ impl Operation for SetPropertyByName {
             object.to_object(context)?
         };
 
-        let name = context.vm.frame().code_block.names[index as usize];
-        let name: PropertyKey = context.interner().resolve_expect(name.sym()).utf16().into();
+        let name: PropertyKey = context.vm.frame().code_block.names[index as usize]
+            .clone()
+            .into();
 
         let succeeded = object.__set__(name.clone(), value.clone(), receiver, context)?;
         if !succeeded && context.vm.frame().code_block.strict {
@@ -163,11 +164,8 @@ impl Operation for SetPropertyGetterByName {
         let value = context.vm.pop();
         let object = context.vm.pop();
         let object = object.to_object(context)?;
-        let name = context.vm.frame().code_block.names[index as usize];
-        let name = context
-            .interner()
-            .resolve_expect(name.sym())
-            .into_common::<JsString>(false)
+        let name = context.vm.frame().code_block.names[index as usize]
+            .clone()
             .into();
         let set = object
             .__get_own_property__(&name, context)?
@@ -240,11 +238,8 @@ impl Operation for SetPropertySetterByName {
         let value = context.vm.pop();
         let object = context.vm.pop();
         let object = object.to_object(context)?;
-        let name = context.vm.frame().code_block.names[index as usize];
-        let name = context
-            .interner()
-            .resolve_expect(name.sym())
-            .into_common::<JsString>(false)
+        let name = context.vm.frame().code_block.names[index as usize]
+            .clone()
             .into();
         let get = object
             .__get_own_property__(&name, context)?

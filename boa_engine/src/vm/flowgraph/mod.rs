@@ -445,7 +445,7 @@ impl CodeBlock {
                     pc += size_of::<u32>();
                     let label = format!(
                         "{opcode_str} '{}'",
-                        interner.resolve_expect(self.names[operand as usize].sym()),
+                        self.names[operand as usize].to_std_string_escaped(),
                     );
                     graph.add_node(previous_pc, NodeShape::None, label.into(), Color::None);
                     graph.add_edge(previous_pc, pc, None, Color::None, EdgeStyle::Line);

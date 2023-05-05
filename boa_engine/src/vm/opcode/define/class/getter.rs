@@ -22,10 +22,8 @@ impl Operation for DefineClassStaticGetterByName {
         let function = context.vm.pop();
         let class = context.vm.pop();
         let class = class.as_object().expect("class must be object");
-        let key = context
-            .interner()
-            .resolve_expect(context.vm.frame().code_block.names[index as usize].sym())
-            .into_common::<JsString>(false)
+        let key = context.vm.frame().code_block.names[index as usize]
+            .clone()
             .into();
         {
             let function_object = function
@@ -74,10 +72,8 @@ impl Operation for DefineClassGetterByName {
         let function = context.vm.pop();
         let class_proto = context.vm.pop();
         let class_proto = class_proto.as_object().expect("class must be object");
-        let key = context
-            .interner()
-            .resolve_expect(context.vm.frame().code_block.names[index as usize].sym())
-            .into_common::<JsString>(false)
+        let key = context.vm.frame().code_block.names[index as usize]
+            .clone()
             .into();
         {
             let function_object = function
