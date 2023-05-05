@@ -22,7 +22,7 @@ use core::ops::ControlFlow;
 #[cfg_attr(feature = "arbitrary", derive(arbitrary::Arbitrary))]
 #[derive(Clone, Debug, PartialEq)]
 pub struct Case {
-    condition: Expression,
+    condition: Option<Expression>,
     body: StatementList,
 }
 
@@ -31,14 +31,30 @@ impl Case {
     #[inline]
     #[must_use]
     pub const fn new(condition: Expression, body: StatementList) -> Self {
-        Self { condition, body }
+        Self {
+            condition: Some(condition),
+            body,
+        }
+    }
+
+    /// Creates a `Case` AST node.
+    #[inline]
+    #[must_use]
+    pub const fn default(body: StatementList) -> Self {
+        Self {
+            condition: None,
+            body,
+        }
     }
 
     /// Gets the condition of the case.
+    ///
+    /// If it's a regular case returns [`Some`] with the [`Expression`],
+    /// otherwise [`None`] is returned if it's the default case.
     #[inline]
     #[must_use]
-    pub const fn condition(&self) -> &Expression {
-        &self.condition
+    pub const fn condition(&self) -> Option<&Expression> {
+        self.condition.as_ref()
     }
 
     /// Gets the statement listin the body of the case.
@@ -47,6 +63,13 @@ impl Case {
     pub const fn body(&self) -> &StatementList {
         &self.body
     }
+
+    /// Check if the case is the `default` case.
+    #[inline]
+    #[must_use]
+    pub const fn is_default(&self) -> bool {
+        self.condition.is_none()
+    }
 }
 
 impl VisitWith for Case {
@@ -54,7 +77,10 @@ impl VisitWith for Case {
     where
         V: Visitor<'a>,
     {
-        try_break!(visitor.visit_expression(&self.condition));
+        if let Some(condition) = &self.condition {
+            try_break!(visitor.visit_expression(condition));
+        }
+
         visitor.visit_statement_list(&self.body)
     }
 
@@ -62,7 +88,9 @@ impl VisitWith for Case {
     where
         V: VisitorMut<'a>,
     {
-        try_break!(visitor.visit_expression_mut(&mut self.condition));
+        if let Some(condition) = &mut self.condition {
+            try_break!(visitor.visit_expression_mut(condition));
+        }
         visitor.visit_statement_list_mut(&mut self.body)
     }
 }
@@ -89,19 +117,14 @@ impl VisitWith for Case {
 pub struct Switch {
     val: Expression,
     cases: Box<[Case]>,
-    default: Option<StatementList>,
 }
 
 impl Switch {
     /// Creates a `Switch` AST node.
     #[inline]
     #[must_use]
-    pub fn new(val: Expression, cases: Box<[Case]>, default: Option<StatementList>) -> Self {
-        Self {
-            val,
-            cases,
-            default,
-        }
+    pub fn new(val: Expression, cases: Box<[Case]>) -> Self {
+        Self { val, cases }
     }
 
     /// Gets the value to switch.
@@ -121,8 +144,13 @@ impl Switch {
     /// Gets the default statement list, if any.
     #[inline]
     #[must_use]
-    pub const fn default(&self) -> Option<&StatementList> {
-        self.default.as_ref()
+    pub fn default(&self) -> Option<&StatementList> {
+        for case in self.cases.as_ref() {
+            if case.is_default() {
+                return Some(case.body());
+            }
+        }
+        None
     }
 }
 
@@ -131,20 +159,20 @@ impl ToIndentedString for Switch {
         let indent = "    ".repeat(indentation);
         let mut buf = format!("switch ({}) {{\n", self.val().to_interned_string(interner));
         for e in self.cases().iter() {
-            buf.push_str(&format!(
-                "{}    case {}:\n{}",
-                indent,
-                e.condition().to_interned_string(interner),
-                e.body().to_indented_string(interner, indentation + 2)
-            ));
+            if let Some(condition) = e.condition() {
+                buf.push_str(&format!(
+                    "{indent}    case {}:\n{}",
+                    condition.to_interned_string(interner),
+                    e.body().to_indented_string(interner, indentation + 2)
+                ));
+            } else {
+                buf.push_str(&format!(
+                    "{indent}    default:\n{}",
+                    e.body().to_indented_string(interner, indentation + 2)
+                ));
+            }
         }
 
-        if let Some(ref default) = self.default {
-            buf.push_str(&format!(
-                "{indent}    default:\n{}",
-                default.to_indented_string(interner, indentation + 2)
-            ));
-        }
         buf.push_str(&format!("{indent}}}"));
 
         buf
@@ -167,9 +195,6 @@ impl VisitWith for Switch {
         for case in self.cases.iter() {
             try_break!(visitor.visit_case(case));
         }
-        if let Some(sl) = &self.default {
-            try_break!(visitor.visit_statement_list(sl));
-        }
         ControlFlow::Continue(())
     }
 
@@ -180,9 +205,6 @@ impl VisitWith for Switch {
         try_break!(visitor.visit_expression_mut(&mut self.val));
         for case in self.cases.iter_mut() {
             try_break!(visitor.visit_case_mut(case));
-        }
-        if let Some(sl) = &mut self.default {
-            try_break!(visitor.visit_statement_list_mut(sl));
         }
         ControlFlow::Continue(())
     }

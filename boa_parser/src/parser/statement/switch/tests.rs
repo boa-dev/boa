@@ -197,22 +197,23 @@ fn check_separated_switch() {
                         ]
                         .into(),
                     ),
-                ]
-                .into(),
-                Some(
-                    vec![Statement::Expression(Expression::from(Call::new(
-                        Expression::PropertyAccess(
-                            SimplePropertyAccess::new(Identifier::new(console).into(), log).into(),
-                        ),
-                        vec![Literal::from(
-                            interner.get_or_intern_static("Default", utf16!("Default")),
-                        )
+                    Case::default(
+                        vec![Statement::Expression(Expression::from(Call::new(
+                            Expression::PropertyAccess(
+                                SimplePropertyAccess::new(Identifier::new(console).into(), log)
+                                    .into(),
+                            ),
+                            vec![Literal::from(
+                                interner.get_or_intern_static("Default", utf16!("Default")),
+                            )
+                            .into()]
+                            .into(),
+                        )))
                         .into()]
                         .into(),
-                    )))
-                    .into()]
-                    .into(),
-                ),
+                    ),
+                ]
+                .into(),
             ))
             .into(),
         ],

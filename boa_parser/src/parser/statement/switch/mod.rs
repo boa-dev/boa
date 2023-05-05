@@ -72,11 +72,10 @@ where
 
         let position = cursor.peek(0, interner).or_abrupt()?.span().start();
 
-        let (cases, default) =
-            CaseBlock::new(self.allow_yield, self.allow_await, self.allow_return)
-                .parse(cursor, interner)?;
+        let cases = CaseBlock::new(self.allow_yield, self.allow_await, self.allow_return)
+            .parse(cursor, interner)?;
 
-        let switch = Switch::new(condition, cases, default);
+        let switch = Switch::new(condition, cases);
 
         // It is a Syntax Error if the LexicallyDeclaredNames of CaseBlock contains any duplicate
         // entries, unless the source text matched by this production is not strict mode code and the
@@ -144,13 +143,13 @@ impl<R> TokenParser<R> for CaseBlock
 where
     R: Read,
 {
-    type Output = (Box<[statement::Case]>, Option<ast::StatementList>);
+    type Output = Box<[statement::Case]>;
 
     fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult<Self::Output> {
         cursor.expect(Punctuator::OpenBlock, "switch case block", interner)?;
 
         let mut cases = Vec::new();
-        let mut default = None;
+        let mut has_default_case = false;
 
         loop {
             let token = cursor.next(interner).or_abrupt()?;
@@ -181,7 +180,7 @@ where
                     cases.push(statement::Case::new(cond, statement_list));
                 }
                 TokenKind::Keyword((Keyword::Default, false)) => {
-                    if default.is_some() {
+                    if has_default_case {
                         // If default has already been defined then it cannot be defined again and to do so is an error.
                         return Err(Error::unexpected(
                             token.to_string(interner),
@@ -202,7 +201,9 @@ where
                     )
                     .parse(cursor, interner)?;
 
-                    default = Some(statement_list);
+                    cases.push(statement::Case::default(statement_list));
+
+                    has_default_case = true;
                 }
                 TokenKind::Punctuator(Punctuator::CloseBlock) => break,
                 _ => {
@@ -216,6 +217,6 @@ where
             }
         }
 
-        Ok((cases.into_boxed_slice(), default))
+        Ok(cases.into_boxed_slice())
     }
 }
