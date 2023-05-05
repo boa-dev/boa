@@ -199,9 +199,9 @@
 <a href="#198" id="198">198</a>
 <a href="#199" id="199">199</a>
 <a href="#200" id="200">200</a>
-</pre><pre class="rust"><code><span class="kw">use </span>chrono::{Datelike, FixedOffset, NaiveDateTime, TimeZone, Timelike};
+</pre><pre class="rust"><code><span class="kw">use </span>chrono::{Datelike, NaiveDateTime, Timelike};
 
-<span class="kw">use </span><span class="kw">crate</span>::value::IntegerOrNan;
+<span class="kw">use crate</span>::{context::HostHooks, value::IntegerOrNan};
 
 <span class="doccomment">/// The absolute maximum value of a timestamp
 </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">const </span>MAX_TIMESTAMP: i64 = <span class="number">864 </span>* <span class="number">10i64</span>.pow(<span class="number">13</span>);
@@ -334,10 +334,10 @@
 }
 
 <span class="doccomment">/// Replaces some (or all) parameters of `date` with the specified parameters
-</span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>replace_params(
+</span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>replace_params&lt;<span class="kw">const </span>LOCAL: bool&gt;(
     datetime: i64,
     params: DateParameters,
-    offset: <span class="prelude-ty">Option</span>&lt;FixedOffset&gt;,
+    hooks: <span class="kw-2">&amp;</span><span class="kw">dyn </span>HostHooks,
 ) -&gt; <span class="prelude-ty">Option</span>&lt;i64&gt; {
     <span class="kw">let </span>datetime = NaiveDateTime::from_timestamp_millis(datetime)<span class="question-mark">?</span>;
     <span class="kw">let </span>DateParameters {
@@ -350,8 +350,8 @@
         millisecond,
     } = params;
 
-    <span class="kw">let </span>datetime = <span class="kw">if let </span><span class="prelude-val">Some</span>(offset) = offset {
-        offset.from_utc_datetime(<span class="kw-2">&amp;</span>datetime).naive_local()
+    <span class="kw">let </span>datetime = <span class="kw">if </span>LOCAL {
+        hooks.local_from_utc(datetime).naive_local()
     } <span class="kw">else </span>{
         datetime
     };
@@ -389,9 +389,9 @@
     <span class="kw">let </span>new_time = make_time(hour, minute, second, millisecond)<span class="question-mark">?</span>;
     <span class="kw">let </span><span class="kw-2">mut </span>ts = make_date(new_day, new_time)<span class="question-mark">?</span>;
 
-    <span class="kw">if let </span><span class="prelude-val">Some</span>(offset) = offset {
-        ts = offset
-            .from_local_datetime(<span class="kw-2">&amp;</span>NaiveDateTime::from_timestamp_millis(ts)<span class="question-mark">?</span>)
+    <span class="kw">if </span>LOCAL {
+        ts = hooks
+            .local_from_naive_local(NaiveDateTime::from_timestamp_millis(ts)<span class="question-mark">?</span>)
             .earliest()<span class="question-mark">?
             </span>.naive_utc()
             .timestamp_millis();

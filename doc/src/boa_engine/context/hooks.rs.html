@@ -199,6 +199,19 @@
 <a href="#198" id="198">198</a>
 <a href="#199" id="199">199</a>
 <a href="#200" id="200">200</a>
+<a href="#201" id="201">201</a>
+<a href="#202" id="202">202</a>
+<a href="#203" id="203">203</a>
+<a href="#204" id="204">204</a>
+<a href="#205" id="205">205</a>
+<a href="#206" id="206">206</a>
+<a href="#207" id="207">207</a>
+<a href="#208" id="208">208</a>
+<a href="#209" id="209">209</a>
+<a href="#210" id="210">210</a>
+<a href="#211" id="211">211</a>
+<a href="#212" id="212">212</a>
+<a href="#213" id="213">213</a>
 </pre><pre class="rust"><code><span class="kw">use crate</span>::{
     builtins::promise::OperationType,
     job::JobCallback,
@@ -206,7 +219,7 @@
     realm::Realm,
     Context, JsResult, JsValue,
 };
-<span class="kw">use </span>chrono::{FixedOffset, Local, NaiveDateTime, Utc};
+<span class="kw">use </span>chrono::{DateTime, FixedOffset, Local, LocalResult, NaiveDateTime, TimeZone, Utc};
 
 <span class="kw">use </span><span class="kw">super</span>::intrinsics::Intrinsics;
 
@@ -383,14 +396,27 @@
         Utc::now().naive_utc()
     }
 
-    <span class="doccomment">/// Gets the current timezone as a fixed offset from UTC.
+    <span class="doccomment">/// Converts the naive datetime `utc` to the corresponding local datetime.
     ///
-    /// Defaults to using [`Local::now`] on all targets, which can cause panics if your platform
+    /// Defaults to using [`Local`] on all targets, which can cause panics if your platform
     /// doesn&#39;t support [`SystemTime::now`][time].
     ///
     /// [time]: std::time::SystemTime::now
-    </span><span class="kw">fn </span>tz_offset(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; FixedOffset {
-        <span class="kw-2">*</span>Local::now().offset()
+    </span><span class="kw">fn </span>local_from_utc(<span class="kw-2">&amp;</span><span class="self">self</span>, utc: NaiveDateTime) -&gt; DateTime&lt;FixedOffset&gt; {
+        <span class="kw">let </span>offset = Local.offset_from_utc_datetime(<span class="kw-2">&amp;</span>utc);
+        DateTime::from_utc(utc, offset)
+    }
+
+    <span class="doccomment">/// Converts the naive local datetime `local` to a local timezone datetime.
+    ///
+    /// Defaults to using [`Local`] on all targets, which can cause panics if your platform
+    /// doesn&#39;t support [`SystemTime::now`][time].
+    ///
+    /// [time]: std::time::SystemTime::now
+    </span><span class="kw">fn </span>local_from_naive_local(<span class="kw-2">&amp;</span><span class="self">self</span>, local: NaiveDateTime) -&gt; LocalResult&lt;DateTime&lt;FixedOffset&gt;&gt; {
+        Local
+            .offset_from_local_datetime(<span class="kw-2">&amp;</span>local)
+            .map(|offset| DateTime::from_local(local, offset))
     }
 }
 
