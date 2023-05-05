@@ -103,13 +103,10 @@
 <a href="#102" id="102">102</a>
 <a href="#103" id="103">103</a>
 <a href="#104" id="104">104</a>
-<a href="#105" id="105">105</a>
-<a href="#106" id="106">106</a>
-<a href="#107" id="107">107</a>
 </pre><pre class="rust"><code><span class="kw">use crate</span>::{
     error::JsNativeError,
     vm::{opcode::Operation, CompletionType},
-    Context, JsResult, JsString,
+    Context, JsResult,
 };
 
 <span class="doccomment">/// `DeletePropertyByName` implements the Opcode Operation for `Opcode::DeletePropertyByName`
@@ -125,14 +122,11 @@
 
     <span class="kw">fn </span>execute(context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;CompletionType&gt; {
         <span class="kw">let </span>index = context.vm.read::&lt;u32&gt;();
-        <span class="kw">let </span>key = context.vm.frame().code_block.names[index <span class="kw">as </span>usize];
-        <span class="kw">let </span>key = context
-            .interner()
-            .resolve_expect(key.sym())
-            .into_common::&lt;JsString&gt;(<span class="bool-val">false</span>)
-            .into();
         <span class="kw">let </span>value = context.vm.pop();
         <span class="kw">let </span>object = value.to_object(context)<span class="question-mark">?</span>;
+        <span class="kw">let </span>key = context.vm.frame().code_block.names[index <span class="kw">as </span>usize]
+            .clone()
+            .into();
         <span class="kw">let </span>result = object.__delete__(<span class="kw-2">&amp;</span>key, context)<span class="question-mark">?</span>;
         <span class="kw">if </span>!result &amp;&amp; context.vm.frame().code_block.strict {
             <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::typ()

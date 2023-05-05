@@ -1371,10 +1371,6 @@
 <a href="#1370" id="1370">1370</a>
 <a href="#1371" id="1371">1371</a>
 <a href="#1372" id="1372">1372</a>
-<a href="#1373" id="1373">1373</a>
-<a href="#1374" id="1374">1374</a>
-<a href="#1375" id="1375">1375</a>
-<a href="#1376" id="1376">1376</a>
 </pre><pre class="rust"><code><span class="doccomment">//! `CodeBlock`
 //!
 //! This module is for the `CodeBlock` which implements a function representation in the VM
@@ -1395,10 +1391,7 @@
     vm::CallFrame,
     Context, JsError, JsResult, JsString, JsValue,
 };
-<span class="kw">use </span>boa_ast::{
-    expression::Identifier,
-    function::{FormalParameterList, PrivateName},
-};
+<span class="kw">use </span>boa_ast::function::{FormalParameterList, PrivateName};
 <span class="kw">use </span>boa_gc::{Finalize, Gc, GcRefCell, Trace};
 <span class="kw">use </span>boa_interner::Sym;
 <span class="kw">use </span>boa_profiler::Profiler;
@@ -1466,8 +1459,7 @@
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) literals: Box&lt;[JsValue]&gt;,
 
     <span class="doccomment">/// Property field names.
-    </span><span class="attr">#[unsafe_ignore_trace]
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) names: Box&lt;[Identifier]&gt;,
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) names: Box&lt;[JsString]&gt;,
 
     <span class="doccomment">/// Private names.
     </span><span class="attr">#[unsafe_ignore_trace]
@@ -1742,7 +1734,7 @@
                 <span class="kw-2">*</span>pc += size_of::&lt;u32&gt;();
                 <span class="macro">format!</span>(
                     <span class="string">&quot;{operand:04}: &#39;{}&#39;&quot;</span>,
-                    interner.resolve_expect(<span class="self">self</span>.names[operand <span class="kw">as </span>usize].sym()),
+                    <span class="self">self</span>.names[operand <span class="kw">as </span>usize].to_std_string_escaped(),
                 )
             }
             Opcode::SetPrivateField

@@ -79,14 +79,10 @@
 <a href="#78" id="78">78</a>
 <a href="#79" id="79">79</a>
 <a href="#80" id="80">80</a>
-<a href="#81" id="81">81</a>
-<a href="#82" id="82">82</a>
-<a href="#83" id="83">83</a>
-<a href="#84" id="84">84</a>
 </pre><pre class="rust"><code><span class="kw">use crate</span>::{
     property::PropertyDescriptor,
     vm::{opcode::Operation, CompletionType},
-    Context, JsNativeError, JsResult, JsString,
+    Context, JsNativeError, JsResult,
 };
 
 <span class="doccomment">/// `DefineOwnPropertyByName` implements the Opcode Operation for `Opcode::DefineOwnPropertyByName`
@@ -109,11 +105,7 @@
         } <span class="kw">else </span>{
             object.to_object(context)<span class="question-mark">?
         </span>};
-        <span class="kw">let </span>name = context.vm.frame().code_block.names[index <span class="kw">as </span>usize];
-        <span class="kw">let </span>name = context
-            .interner()
-            .resolve_expect(name.sym())
-            .into_common::&lt;JsString&gt;(<span class="bool-val">false</span>);
+        <span class="kw">let </span>name = context.vm.frame().code_block.names[index <span class="kw">as </span>usize].clone();
         object.__define_own_property__(
             <span class="kw-2">&amp;</span>name.into(),
             PropertyDescriptor::builder()

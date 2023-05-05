@@ -1057,7 +1057,7 @@
                     pc += size_of::&lt;u32&gt;();
                     <span class="kw">let </span>label = <span class="macro">format!</span>(
                         <span class="string">&quot;{opcode_str} &#39;{}&#39;&quot;</span>,
-                        interner.resolve_expect(<span class="self">self</span>.names[operand <span class="kw">as </span>usize].sym()),
+                        <span class="self">self</span>.names[operand <span class="kw">as </span>usize].to_std_string_escaped(),
                     );
                     graph.add_node(previous_pc, NodeShape::None, label.into(), Color::None);
                     graph.add_edge(previous_pc, pc, <span class="prelude-val">None</span>, Color::None, EdgeStyle::Line);

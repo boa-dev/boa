@@ -152,9 +152,7 @@
 <a href="#151" id="151">151</a>
 <a href="#152" id="152">152</a>
 <a href="#153" id="153">153</a>
-<a href="#154" id="154">154</a>
 </pre><pre class="rust"><code><span class="kw">use crate</span>::{
-    js_string,
     property::PropertyKey,
     vm::{opcode::Operation, CompletionType},
     Context, JsResult, JsValue,
@@ -181,8 +179,9 @@
             value.to_object(context)<span class="question-mark">?
         </span>};
 
-        <span class="kw">let </span>name = context.vm.frame().code_block.names[index <span class="kw">as </span>usize];
-        <span class="kw">let </span>key: PropertyKey = context.interner().resolve_expect(name.sym()).utf16().into();
+        <span class="kw">let </span>key = context.vm.frame().code_block.names[index <span class="kw">as </span>usize]
+            .clone()
+            .into();
         <span class="kw">let </span>result = object.__get__(<span class="kw-2">&amp;</span>key, value, context)<span class="question-mark">?</span>;
 
         context.vm.push(result);
@@ -248,8 +247,7 @@
 
     <span class="kw">fn </span>execute(context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;CompletionType&gt; {
         <span class="kw">let </span>index = context.vm.read::&lt;u32&gt;();
-        <span class="kw">let </span>name = context.vm.frame().code_block.names[index <span class="kw">as </span>usize];
-        <span class="kw">let </span>key = <span class="macro">js_string!</span>(context.interner().resolve_expect(name.sym()).utf16());
+        <span class="kw">let </span>key = context.vm.frame().code_block.names[index <span class="kw">as </span>usize].clone();
         <span class="kw">let </span>value = context.vm.pop();
 
         <span class="kw">let </span>method = value.get_method(key, context)<span class="question-mark">?</span>;

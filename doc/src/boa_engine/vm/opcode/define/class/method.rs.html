@@ -202,16 +202,12 @@
 <a href="#201" id="201">201</a>
 <a href="#202" id="202">202</a>
 <a href="#203" id="203">203</a>
-<a href="#204" id="204">204</a>
-<a href="#205" id="205">205</a>
-<a href="#206" id="206">206</a>
-<a href="#207" id="207">207</a>
 </pre><pre class="rust"><code><span class="kw">use crate</span>::{
     builtins::function::set_function_name,
     object::CONSTRUCTOR,
     property::PropertyDescriptor,
     vm::{opcode::Operation, CompletionType},
-    Context, JsResult, JsString,
+    Context, JsResult,
 };
 
 <span class="doccomment">/// `DefineClassStaticMethodByName` implements the Opcode Operation for `Opcode::DefineClassStaticMethodByName`
@@ -230,10 +226,8 @@
         <span class="kw">let </span>function = context.vm.pop();
         <span class="kw">let </span>class = context.vm.pop();
         <span class="kw">let </span>class = class.as_object().expect(<span class="string">&quot;class must be object&quot;</span>);
-        <span class="kw">let </span>key = context
-            .interner()
-            .resolve_expect(context.vm.frame().code_block.names[index <span class="kw">as </span>usize].sym())
-            .into_common::&lt;JsString&gt;(<span class="bool-val">false</span>)
+        <span class="kw">let </span>key = context.vm.frame().code_block.names[index <span class="kw">as </span>usize]
+            .clone()
             .into();
         {
             <span class="kw">let </span>function_object = function
@@ -278,10 +272,8 @@
         <span class="kw">let </span>function = context.vm.pop();
         <span class="kw">let </span>class_proto = context.vm.pop();
         <span class="kw">let </span>class_proto = class_proto.as_object().expect(<span class="string">&quot;class must be object&quot;</span>);
-        <span class="kw">let </span>key = context
-            .interner()
-            .resolve_expect(context.vm.frame().code_block.names[index <span class="kw">as </span>usize].sym())
-            .into_common::&lt;JsString&gt;(<span class="bool-val">false</span>)
+        <span class="kw">let </span>key = context.vm.frame().code_block.names[index <span class="kw">as </span>usize]
+            .clone()
             .into();
         {
             <span class="kw">let </span>function_object = function

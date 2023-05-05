@@ -336,11 +336,6 @@
 <a href="#335" id="335">335</a>
 <a href="#336" id="336">336</a>
 <a href="#337" id="337">337</a>
-<a href="#338" id="338">338</a>
-<a href="#339" id="339">339</a>
-<a href="#340" id="340">340</a>
-<a href="#341" id="341">341</a>
-<a href="#342" id="342">342</a>
 </pre><pre class="rust"><code><span class="kw">use </span>boa_macros::utf16;
 
 <span class="kw">use crate</span>::{
@@ -373,8 +368,9 @@
             object.to_object(context)<span class="question-mark">?
         </span>};
 
-        <span class="kw">let </span>name = context.vm.frame().code_block.names[index <span class="kw">as </span>usize];
-        <span class="kw">let </span>name: PropertyKey = context.interner().resolve_expect(name.sym()).utf16().into();
+        <span class="kw">let </span>name: PropertyKey = context.vm.frame().code_block.names[index <span class="kw">as </span>usize]
+            .clone()
+            .into();
 
         <span class="kw">let </span>succeeded = object.__set__(name.clone(), value.clone(), receiver, context)<span class="question-mark">?</span>;
         <span class="kw">if </span>!succeeded &amp;&amp; context.vm.frame().code_block.strict {
@@ -506,11 +502,8 @@
         <span class="kw">let </span>value = context.vm.pop();
         <span class="kw">let </span>object = context.vm.pop();
         <span class="kw">let </span>object = object.to_object(context)<span class="question-mark">?</span>;
-        <span class="kw">let </span>name = context.vm.frame().code_block.names[index <span class="kw">as </span>usize];
-        <span class="kw">let </span>name = context
-            .interner()
-            .resolve_expect(name.sym())
-            .into_common::&lt;JsString&gt;(<span class="bool-val">false</span>)
+        <span class="kw">let </span>name = context.vm.frame().code_block.names[index <span class="kw">as </span>usize]
+            .clone()
             .into();
         <span class="kw">let </span>set = object
             .__get_own_property__(<span class="kw-2">&amp;</span>name, context)<span class="question-mark">?
@@ -583,11 +576,8 @@
         <span class="kw">let </span>value = context.vm.pop();
         <span class="kw">let </span>object = context.vm.pop();
         <span class="kw">let </span>object = object.to_object(context)<span class="question-mark">?</span>;
-        <span class="kw">let </span>name = context.vm.frame().code_block.names[index <span class="kw">as </span>usize];
-        <span class="kw">let </span>name = context
-            .interner()
-            .resolve_expect(name.sym())
-            .into_common::&lt;JsString&gt;(<span class="bool-val">false</span>)
+        <span class="kw">let </span>name = context.vm.frame().code_block.names[index <span class="kw">as </span>usize]
+            .clone()
             .into();
         <span class="kw">let </span>get = object
             .__get_own_property__(<span class="kw-2">&amp;</span>name, context)<span class="question-mark">?

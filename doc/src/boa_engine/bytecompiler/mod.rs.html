@@ -1305,6 +1305,8 @@
 <a href="#1304" id="1304">1304</a>
 <a href="#1305" id="1305">1305</a>
 <a href="#1306" id="1306">1306</a>
+<a href="#1307" id="1307">1307</a>
+<a href="#1308" id="1308">1308</a>
 </pre><pre class="rust"><code><span class="doccomment">//! This module contains the bytecode compiler.
 
 </span><span class="kw">mod </span>class;
@@ -1321,6 +1323,7 @@
 <span class="kw">use crate</span>::{
     builtins::function::ThisMode,
     environments::{BindingLocator, CompileTimeEnvironment},
+    js_string,
     vm::{BindingOpcode, CodeBlock, Opcode},
     Context, JsBigInt, JsString, JsValue,
 };
@@ -1548,7 +1551,7 @@
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) literals: Vec&lt;JsValue&gt;,
 
     <span class="doccomment">/// Property field names.
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) names: Vec&lt;Identifier&gt;,
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) names: Vec&lt;JsString&gt;,
 
     <span class="doccomment">/// Private names.
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) private_names: Vec&lt;PrivateName&gt;,
@@ -1670,8 +1673,9 @@
             <span class="kw">return </span><span class="kw-2">*</span>index;
         }
 
+        <span class="kw">let </span>string = <span class="self">self</span>.interner().resolve_expect(name.sym()).utf16();
         <span class="kw">let </span>index = <span class="self">self</span>.names.len() <span class="kw">as </span>u32;
-        <span class="self">self</span>.names.push(name);
+        <span class="self">self</span>.names.push(<span class="macro">js_string!</span>(string));
         <span class="self">self</span>.names_map.insert(name, index);
         index
     }
