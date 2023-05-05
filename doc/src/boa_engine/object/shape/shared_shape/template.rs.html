@@ -140,6 +140,9 @@
 <a href="#139" id="139">139</a>
 <a href="#140" id="140">140</a>
 <a href="#141" id="141">141</a>
+<a href="#142" id="142">142</a>
+<a href="#143" id="143">143</a>
+<a href="#144" id="144">144</a>
 </pre><pre class="rust"><code><span class="kw">use </span>boa_gc::{Finalize, Trace};
 <span class="kw">use </span>thin_vec::ThinVec;
 
@@ -188,6 +191,11 @@
         <span class="self">self
     </span>}
 
+    <span class="doccomment">/// Returns the inner shape of the [`ObjectTemplate`].
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const fn </span>shape(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>SharedShape {
+        <span class="kw-2">&amp;</span><span class="self">self</span>.shape
+    }
+
     <span class="doccomment">/// Add a data property to the [`ObjectTemplate`].
     ///
     /// This assumes that the property with the given key was not previously set
@@ -200,7 +208,6 @@
             property_key: key,
             attributes,
         });
-
         <span class="self">self
     </span>}
 
@@ -239,7 +246,6 @@
             property_key: key,
             attributes,
         });
-
         <span class="self">self
     </span>}
 

@@ -562,12 +562,12 @@ with that field, otherwise <code>false</code> is returned.</p>
 <ul>
 <li><a href="https://tc39.es/ecma262/#sec-testintegritylevel">ECMAScript reference</a></li>
 </ul>
-</div></details><details class="toggle method-toggle" open><summary><section id="method.length_of_array_like" class="method"><a class="srclink rightside" href="../../../src/boa_engine/object/operations.rs.html#481-485">source</a><h4 class="code-header">pub(crate) fn <a href="#method.length_of_array_like" class="fn">length_of_array_like</a>(
+</div></details><details class="toggle method-toggle" open><summary><section id="method.length_of_array_like" class="method"><a class="srclink rightside" href="../../../src/boa_engine/object/operations.rs.html#481-497">source</a><h4 class="code-header">pub(crate) fn <a href="#method.length_of_array_like" class="fn">length_of_array_like</a>(
     &amp;self,
     context: &amp;mut <a class="struct" href="../../struct.Context.html" title="struct boa_engine::Context">Context</a>&lt;'_&gt;
 ) -&gt; <a class="type" href="../../type.JsResult.html" title="type boa_engine::JsResult">JsResult</a>&lt;<a class="primitive" href="https://doc.rust-lang.org/1.69.0/std/primitive.u64.html">u64</a>&gt;</h4></section></summary><div class="docblock"><p>Abstract operation <a href="https://tc39.es/ecma262/#sec-lengthofarraylike"><code>LengthOfArrayLike ( obj )</code></a>.</p>
 <p>Returns the value of the “length” property of an array-like object.</p>
-</div></details><details class="toggle method-toggle" open><summary><section id="method.species_constructor" class="method"><a class="srclink rightside" href="../../../src/boa_engine/object/operations.rs.html#498-538">source</a><h4 class="code-header">pub(crate) fn <a href="#method.species_constructor" class="fn">species_constructor</a>&lt;F&gt;(
+</div></details><details class="toggle method-toggle" open><summary><section id="method.species_constructor" class="method"><a class="srclink rightside" href="../../../src/boa_engine/object/operations.rs.html#510-550">source</a><h4 class="code-header">pub(crate) fn <a href="#method.species_constructor" class="fn">species_constructor</a>&lt;F&gt;(
     &amp;self,
     default_constructor: F,
     context: &amp;mut <a class="struct" href="../../struct.Context.html" title="struct boa_engine::Context">Context</a>&lt;'_&gt;
@@ -581,7 +581,7 @@ constructor to use if a constructor <code>@@species</code> property cannot be fo
 <ul>
 <li><a href="https://tc39.es/ecma262/#sec-speciesconstructor">ECMAScript reference</a></li>
 </ul>
-</div></details><details class="toggle method-toggle" open><summary><section id="method.enumerable_own_property_names" class="method"><a class="srclink rightside" href="../../../src/boa_engine/object/operations.rs.html#546-600">source</a><h4 class="code-header">pub(crate) fn <a href="#method.enumerable_own_property_names" class="fn">enumerable_own_property_names</a>(
+</div></details><details class="toggle method-toggle" open><summary><section id="method.enumerable_own_property_names" class="method"><a class="srclink rightside" href="../../../src/boa_engine/object/operations.rs.html#558-612">source</a><h4 class="code-header">pub(crate) fn <a href="#method.enumerable_own_property_names" class="fn">enumerable_own_property_names</a>(
     &amp;self,
     kind: <a class="enum" href="../../property/enum.PropertyNameKind.html" title="enum boa_engine::property::PropertyNameKind">PropertyNameKind</a>,
     context: &amp;mut <a class="struct" href="../../struct.Context.html" title="struct boa_engine::Context">Context</a>&lt;'_&gt;
@@ -590,7 +590,7 @@ constructor to use if a constructor <code>@@species</code> property cannot be fo
 <ul>
 <li><a href="https://tc39.es/ecma262/#sec-enumerableownpropertynames">ECMAScript reference</a></li>
 </ul>
-</div></details><details class="toggle method-toggle" open><summary><section id="method.get_method" class="method"><a class="srclink rightside" href="../../../src/boa_engine/object/operations.rs.html#610-629">source</a><h4 class="code-header">pub(crate) fn <a href="#method.get_method" class="fn">get_method</a>&lt;K&gt;(
+</div></details><details class="toggle method-toggle" open><summary><section id="method.get_method" class="method"><a class="srclink rightside" href="../../../src/boa_engine/object/operations.rs.html#622-641">source</a><h4 class="code-header">pub(crate) fn <a href="#method.get_method" class="fn">get_method</a>&lt;K&gt;(
     &amp;self,
     key: K,
     context: &amp;mut <a class="struct" href="../../struct.Context.html" title="struct boa_engine::Context">Context</a>&lt;'_&gt;
@@ -601,17 +601,17 @@ constructor to use if a constructor <code>@@species</code> property cannot be fo
 <ul>
 <li><a href="https://tc39.es/ecma262/#sec-getmethod">ECMAScript reference</a></li>
 </ul>
-</div></details><details class="toggle method-toggle" open><summary><section id="method.is_array_abstract" class="method"><a class="srclink rightside" href="../../../src/boa_engine/object/operations.rs.html#639-661">source</a><h4 class="code-header">pub(crate) fn <a href="#method.is_array_abstract" class="fn">is_array_abstract</a>(&amp;self) -&gt; <a class="type" href="../../type.JsResult.html" title="type boa_engine::JsResult">JsResult</a>&lt;<a class="primitive" href="https://doc.rust-lang.org/1.69.0/std/primitive.bool.html">bool</a>&gt;</h4></section></summary><div class="docblock"><p>Abstract operation <code>IsArray ( argument )</code></p>
+</div></details><details class="toggle method-toggle" open><summary><section id="method.is_array_abstract" class="method"><a class="srclink rightside" href="../../../src/boa_engine/object/operations.rs.html#651-673">source</a><h4 class="code-header">pub(crate) fn <a href="#method.is_array_abstract" class="fn">is_array_abstract</a>(&amp;self) -&gt; <a class="type" href="../../type.JsResult.html" title="type boa_engine::JsResult">JsResult</a>&lt;<a class="primitive" href="https://doc.rust-lang.org/1.69.0/std/primitive.bool.html">bool</a>&gt;</h4></section></summary><div class="docblock"><p>Abstract operation <code>IsArray ( argument )</code></p>
 <p>Check if a value is an array.</p>
 <p>More information:</p>
 <ul>
 <li><a href="https://tc39.es/ecma262/#sec-isarray">ECMAScript reference</a></li>
 </ul>
-</div></details><details class="toggle method-toggle" open><summary><section id="method.get_function_realm" class="method"><a class="srclink rightside" href="../../../src/boa_engine/object/operations.rs.html#666-685">source</a><h4 class="code-header">pub(crate) fn <a href="#method.get_function_realm" class="fn">get_function_realm</a>(
+</div></details><details class="toggle method-toggle" open><summary><section id="method.get_function_realm" class="method"><a class="srclink rightside" href="../../../src/boa_engine/object/operations.rs.html#678-697">source</a><h4 class="code-header">pub(crate) fn <a href="#method.get_function_realm" class="fn">get_function_realm</a>(
     &amp;self,
     context: &amp;mut <a class="struct" href="../../struct.Context.html" title="struct boa_engine::Context">Context</a>&lt;'_&gt;
 ) -&gt; <a class="type" href="../../type.JsResult.html" title="type boa_engine::JsResult">JsResult</a>&lt;<a class="struct" href="../../realm/struct.Realm.html" title="struct boa_engine::realm::Realm">Realm</a>&gt;</h4></section></summary><div class="docblock"><p>Abstract operation <a href="https://tc39.es/ecma262/#sec-getfunctionrealm"><code>GetFunctionRealm</code></a>.</p>
-</div></details><details class="toggle method-toggle" open><summary><section id="method.private_element_find" class="method"><a class="srclink rightside" href="../../../src/boa_engine/object/operations.rs.html#698-721">source</a><h4 class="code-header">pub(crate) fn <a href="#method.private_element_find" class="fn">private_element_find</a>(
+</div></details><details class="toggle method-toggle" open><summary><section id="method.private_element_find" class="method"><a class="srclink rightside" href="../../../src/boa_engine/object/operations.rs.html#710-733">source</a><h4 class="code-header">pub(crate) fn <a href="#method.private_element_find" class="fn">private_element_find</a>(
     &amp;self,
     name: &amp;<a class="struct" href="../../../boa_ast/function/class/struct.PrivateName.html" title="struct boa_ast::function::class::PrivateName">PrivateName</a>,
     is_getter: <a class="primitive" href="https://doc.rust-lang.org/1.69.0/std/primitive.bool.html">bool</a>,
@@ -622,7 +622,7 @@ constructor to use if a constructor <code>@@species</code> property cannot be fo
 <ul>
 <li><a href="https://tc39.es/ecma262/#sec-privateelementfind">ECMAScript specification</a></li>
 </ul>
-</div></details><details class="toggle method-toggle" open><summary><section id="method.private_field_add" class="method"><a class="srclink rightside" href="../../../src/boa_engine/object/operations.rs.html#731-760">source</a><h4 class="code-header">pub(crate) fn <a href="#method.private_field_add" class="fn">private_field_add</a>(
+</div></details><details class="toggle method-toggle" open><summary><section id="method.private_field_add" class="method"><a class="srclink rightside" href="../../../src/boa_engine/object/operations.rs.html#743-772">source</a><h4 class="code-header">pub(crate) fn <a href="#method.private_field_add" class="fn">private_field_add</a>(
     &amp;self,
     name: &amp;<a class="struct" href="../../../boa_ast/function/class/struct.PrivateName.html" title="struct boa_ast::function::class::PrivateName">PrivateName</a>,
     value: <a class="enum" href="../../enum.JsValue.html" title="enum boa_engine::JsValue">JsValue</a>,
@@ -633,7 +633,7 @@ constructor to use if a constructor <code>@@species</code> property cannot be fo
 <ul>
 <li><a href="https://tc39.es/ecma262/#sec-privatefieldadd">ECMAScript specification</a></li>
 </ul>
-</div></details><details class="toggle method-toggle" open><summary><section id="method.private_method_or_accessor_add" class="method"><a class="srclink rightside" href="../../../src/boa_engine/object/operations.rs.html#770-809">source</a><h4 class="code-header">pub(crate) fn <a href="#method.private_method_or_accessor_add" class="fn">private_method_or_accessor_add</a>(
+</div></details><details class="toggle method-toggle" open><summary><section id="method.private_method_or_accessor_add" class="method"><a class="srclink rightside" href="../../../src/boa_engine/object/operations.rs.html#782-821">source</a><h4 class="code-header">pub(crate) fn <a href="#method.private_method_or_accessor_add" class="fn">private_method_or_accessor_add</a>(
     &amp;self,
     name: &amp;<a class="struct" href="../../../boa_ast/function/class/struct.PrivateName.html" title="struct boa_ast::function::class::PrivateName">PrivateName</a>,
     method: &amp;<a class="enum" href="../enum.PrivateElement.html" title="enum boa_engine::object::PrivateElement">PrivateElement</a>,
@@ -644,7 +644,7 @@ constructor to use if a constructor <code>@@species</code> property cannot be fo
 <ul>
 <li><a href="https://tc39.es/ecma262/#sec-privatemethodoraccessoradd">ECMAScript specification</a></li>
 </ul>
-</div></details><details class="toggle method-toggle" open><summary><section id="method.private_get" class="method"><a class="srclink rightside" href="../../../src/boa_engine/object/operations.rs.html#819-851">source</a><h4 class="code-header">pub(crate) fn <a href="#method.private_get" class="fn">private_get</a>(
+</div></details><details class="toggle method-toggle" open><summary><section id="method.private_get" class="method"><a class="srclink rightside" href="../../../src/boa_engine/object/operations.rs.html#831-863">source</a><h4 class="code-header">pub(crate) fn <a href="#method.private_get" class="fn">private_get</a>(
     &amp;self,
     name: &amp;<a class="struct" href="../../../boa_ast/function/class/struct.PrivateName.html" title="struct boa_ast::function::class::PrivateName">PrivateName</a>,
     context: &amp;mut <a class="struct" href="../../struct.Context.html" title="struct boa_engine::Context">Context</a>&lt;'_&gt;
@@ -654,7 +654,7 @@ constructor to use if a constructor <code>@@species</code> property cannot be fo
 <ul>
 <li><a href="https://tc39.es/ecma262/#sec-privateget">ECMAScript specification</a></li>
 </ul>
-</div></details><details class="toggle method-toggle" open><summary><section id="method.private_set" class="method"><a class="srclink rightside" href="../../../src/boa_engine/object/operations.rs.html#861-915">source</a><h4 class="code-header">pub(crate) fn <a href="#method.private_set" class="fn">private_set</a>(
+</div></details><details class="toggle method-toggle" open><summary><section id="method.private_set" class="method"><a class="srclink rightside" href="../../../src/boa_engine/object/operations.rs.html#873-927">source</a><h4 class="code-header">pub(crate) fn <a href="#method.private_set" class="fn">private_set</a>(
     &amp;self,
     name: &amp;<a class="struct" href="../../../boa_ast/function/class/struct.PrivateName.html" title="struct boa_ast::function::class::PrivateName">PrivateName</a>,
     value: <a class="enum" href="../../enum.JsValue.html" title="enum boa_engine::JsValue">JsValue</a>,
@@ -665,7 +665,7 @@ constructor to use if a constructor <code>@@species</code> property cannot be fo
 <ul>
 <li><a href="https://tc39.es/ecma262/#sec-privateset">ECMAScript specification</a></li>
 </ul>
-</div></details><details class="toggle method-toggle" open><summary><section id="method.define_field" class="method"><a class="srclink rightside" href="../../../src/boa_engine/object/operations.rs.html#925-959">source</a><h4 class="code-header">pub(crate) fn <a href="#method.define_field" class="fn">define_field</a>(
+</div></details><details class="toggle method-toggle" open><summary><section id="method.define_field" class="method"><a class="srclink rightside" href="../../../src/boa_engine/object/operations.rs.html#937-971">source</a><h4 class="code-header">pub(crate) fn <a href="#method.define_field" class="fn">define_field</a>(
     &amp;self,
     field_record: &amp;<a class="enum" href="../../builtins/function/enum.ClassFieldDefinition.html" title="enum boa_engine::builtins::function::ClassFieldDefinition">ClassFieldDefinition</a>,
     context: &amp;mut <a class="struct" href="../../struct.Context.html" title="struct boa_engine::Context">Context</a>&lt;'_&gt;
@@ -675,7 +675,7 @@ constructor to use if a constructor <code>@@species</code> property cannot be fo
 <ul>
 <li><a href="https://tc39.es/ecma262/#sec-definefield">ECMAScript specification</a></li>
 </ul>
-</div></details><details class="toggle method-toggle" open><summary><section id="method.initialize_instance_elements" class="method"><a class="srclink rightside" href="../../../src/boa_engine/object/operations.rs.html#969-995">source</a><h4 class="code-header">pub(crate) fn <a href="#method.initialize_instance_elements" class="fn">initialize_instance_elements</a>(
+</div></details><details class="toggle method-toggle" open><summary><section id="method.initialize_instance_elements" class="method"><a class="srclink rightside" href="../../../src/boa_engine/object/operations.rs.html#981-1007">source</a><h4 class="code-header">pub(crate) fn <a href="#method.initialize_instance_elements" class="fn">initialize_instance_elements</a>(
     &amp;self,
     constructor: <a class="primitive" href="https://doc.rust-lang.org/1.69.0/std/primitive.reference.html">&amp;Self</a>,
     context: &amp;mut <a class="struct" href="../../struct.Context.html" title="struct boa_engine::Context">Context</a>&lt;'_&gt;
@@ -685,7 +685,7 @@ constructor to use if a constructor <code>@@species</code> property cannot be fo
 <ul>
 <li><a href="https://tc39.es/ecma262/#sec-initializeinstanceelements">ECMAScript specification</a></li>
 </ul>
-</div></details><details class="toggle method-toggle" open><summary><section id="method.invoke" class="method"><a class="srclink rightside" href="../../../src/boa_engine/object/operations.rs.html#1007-1024">source</a><h4 class="code-header">pub(crate) fn <a href="#method.invoke" class="fn">invoke</a>&lt;K&gt;(
+</div></details><details class="toggle method-toggle" open><summary><section id="method.invoke" class="method"><a class="srclink rightside" href="../../../src/boa_engine/object/operations.rs.html#1019-1036">source</a><h4 class="code-header">pub(crate) fn <a href="#method.invoke" class="fn">invoke</a>&lt;K&gt;(
     &amp;self,
     key: K,
     args: &amp;[<a class="enum" href="../../enum.JsValue.html" title="enum boa_engine::JsValue">JsValue</a>],

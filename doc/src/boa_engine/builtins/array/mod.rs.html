@@ -3054,6 +3054,27 @@
 <a href="#3053" id="3053">3053</a>
 <a href="#3054" id="3054">3054</a>
 <a href="#3055" id="3055">3055</a>
+<a href="#3056" id="3056">3056</a>
+<a href="#3057" id="3057">3057</a>
+<a href="#3058" id="3058">3058</a>
+<a href="#3059" id="3059">3059</a>
+<a href="#3060" id="3060">3060</a>
+<a href="#3061" id="3061">3061</a>
+<a href="#3062" id="3062">3062</a>
+<a href="#3063" id="3063">3063</a>
+<a href="#3064" id="3064">3064</a>
+<a href="#3065" id="3065">3065</a>
+<a href="#3066" id="3066">3066</a>
+<a href="#3067" id="3067">3067</a>
+<a href="#3068" id="3068">3068</a>
+<a href="#3069" id="3069">3069</a>
+<a href="#3070" id="3070">3070</a>
+<a href="#3071" id="3071">3071</a>
+<a href="#3072" id="3072">3072</a>
+<a href="#3073" id="3073">3073</a>
+<a href="#3074" id="3074">3074</a>
+<a href="#3075" id="3075">3075</a>
+<a href="#3076" id="3076">3076</a>
 </pre><pre class="rust"><code><span class="doccomment">//! Boa&#39;s implementation of ECMAScript&#39;s global `Array` object.
 //!
 //! The ECMAScript `Array` class is a global object that is used in the construction of arrays; which are high-level, list-like objects.
@@ -3292,6 +3313,28 @@
 }
 
 <span class="kw">impl </span>Array {
+    <span class="doccomment">/// Optimized helper function, that sets the length of the array.
+    </span><span class="kw">fn </span>set_length(o: <span class="kw-2">&amp;</span>JsObject, len: u64, context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;()&gt; {
+        <span class="kw">if </span>o.is_array() &amp;&amp; len &lt; (<span class="number">2u64</span>.pow(<span class="number">32</span>) - <span class="number">1</span>) {
+            <span class="kw">let </span><span class="kw-2">mut </span>borrowed_object = o.borrow_mut();
+            <span class="kw">if </span>borrowed_object.properties().shape.to_addr_usize()
+                == context
+                    .intrinsics()
+                    .templates()
+                    .array()
+                    .shape()
+                    .to_addr_usize()
+            {
+                <span class="comment">// NOTE: The &quot;length&quot; property is the first element.
+                </span>borrowed_object.properties_mut().storage[<span class="number">0</span>] = JsValue::new(len);
+                <span class="kw">return </span><span class="prelude-val">Ok</span>(());
+            }
+        }
+
+        o.set(<span class="macro">utf16!</span>(<span class="string">&quot;length&quot;</span>), len, <span class="bool-val">true</span>, context)<span class="question-mark">?</span>;
+        <span class="prelude-val">Ok</span>(())
+    }
+
     <span class="doccomment">/// Utility for constructing `Array` objects.
     ///
     /// More information:
@@ -3711,7 +3754,7 @@
         </span>}
 
         <span class="comment">// 8. Perform ? Set(A, &quot;length&quot;, lenNumber, true).
-        </span>a.set(<span class="macro">utf16!</span>(<span class="string">&quot;length&quot;</span>), len, <span class="bool-val">true</span>, context)<span class="question-mark">?</span>;
+        </span><span class="self">Self</span>::set_length(<span class="kw-2">&amp;</span>a, len <span class="kw">as </span>u64, context)<span class="question-mark">?</span>;
 
         <span class="comment">// 9. Return A.
         </span><span class="prelude-val">Ok</span>(a.into())
@@ -3835,7 +3878,7 @@
             }
         }
         <span class="comment">// 6. Perform ? Set(A, &quot;length&quot;, 𝔽(n), true).
-        </span>arr.set(<span class="macro">utf16!</span>(<span class="string">&quot;length&quot;</span>), n, <span class="bool-val">true</span>, context)<span class="question-mark">?</span>;
+        </span><span class="self">Self</span>::set_length(<span class="kw-2">&amp;</span>arr, n, context)<span class="question-mark">?</span>;
 
         <span class="comment">// 7. Return A.
         </span><span class="prelude-val">Ok</span>(JsValue::new(arr))
@@ -3880,7 +3923,8 @@
             </span>len += <span class="number">1</span>;
         }
         <span class="comment">// 6. Perform ? Set(O, &quot;length&quot;, 𝔽(len), true).
-        </span>o.set(<span class="macro">utf16!</span>(<span class="string">&quot;length&quot;</span>), len, <span class="bool-val">true</span>, context)<span class="question-mark">?</span>;
+        </span><span class="self">Self</span>::set_length(<span class="kw-2">&amp;</span>o, len, context)<span class="question-mark">?</span>;
+
         <span class="comment">// 7. Return 𝔽(len).
         </span><span class="prelude-val">Ok</span>(len.into())
     }
@@ -3907,7 +3951,8 @@
         <span class="comment">// 3. If len = 0, then
         </span><span class="kw">if </span>len == <span class="number">0 </span>{
             <span class="comment">// a. Perform ? Set(O, &quot;length&quot;, +0𝔽, true).
-            </span>o.set(<span class="macro">utf16!</span>(<span class="string">&quot;length&quot;</span>), <span class="number">0</span>, <span class="bool-val">true</span>, context)<span class="question-mark">?</span>;
+            </span><span class="self">Self</span>::set_length(<span class="kw-2">&amp;</span>o, <span class="number">0</span>, context)<span class="question-mark">?</span>;
+
             <span class="comment">// b. Return undefined.
             </span><span class="prelude-val">Ok</span>(JsValue::undefined())
         <span class="comment">// 4. Else,
@@ -3922,7 +3967,7 @@
             <span class="comment">// e. Perform ? DeletePropertyOrThrow(O, index).
             </span>o.delete_property_or_throw(index, context)<span class="question-mark">?</span>;
             <span class="comment">// f. Perform ? Set(O, &quot;length&quot;, newLen, true).
-            </span>o.set(<span class="macro">utf16!</span>(<span class="string">&quot;length&quot;</span>), new_len, <span class="bool-val">true</span>, context)<span class="question-mark">?</span>;
+            </span><span class="self">Self</span>::set_length(<span class="kw-2">&amp;</span>o, new_len, context)<span class="question-mark">?</span>;
             <span class="comment">// g. Return element.
             </span><span class="prelude-val">Ok</span>(element)
         }
@@ -4163,7 +4208,8 @@
         <span class="comment">// 3. If len = 0, then
         </span><span class="kw">if </span>len == <span class="number">0 </span>{
             <span class="comment">// a. Perform ? Set(O, &quot;length&quot;, +0𝔽, true).
-            </span>o.set(<span class="macro">utf16!</span>(<span class="string">&quot;length&quot;</span>), <span class="number">0</span>, <span class="bool-val">true</span>, context)<span class="question-mark">?</span>;
+            </span><span class="self">Self</span>::set_length(<span class="kw-2">&amp;</span>o, <span class="number">0</span>, context)<span class="question-mark">?</span>;
+
             <span class="comment">// b. Return undefined.
             </span><span class="kw">return </span><span class="prelude-val">Ok</span>(JsValue::undefined());
         }
@@ -4195,7 +4241,7 @@
         <span class="comment">// 7. Perform ? DeletePropertyOrThrow(O, ! ToString(𝔽(len - 1))).
         </span>o.delete_property_or_throw(len - <span class="number">1</span>, context)<span class="question-mark">?</span>;
         <span class="comment">// 8. Perform ? Set(O, &quot;length&quot;, 𝔽(len - 1), true).
-        </span>o.set(<span class="macro">utf16!</span>(<span class="string">&quot;length&quot;</span>), len - <span class="number">1</span>, <span class="bool-val">true</span>, context)<span class="question-mark">?</span>;
+        </span><span class="self">Self</span>::set_length(<span class="kw-2">&amp;</span>o, len - <span class="number">1</span>, context)<span class="question-mark">?</span>;
         <span class="comment">// 9. Return first.
         </span><span class="prelude-val">Ok</span>(first)
     }
@@ -4265,7 +4311,8 @@
             </span>}
         }
         <span class="comment">// 5. Perform ? Set(O, &quot;length&quot;, 𝔽(len + argCount), true).
-        </span>o.set(<span class="macro">utf16!</span>(<span class="string">&quot;length&quot;</span>), len + arg_count, <span class="bool-val">true</span>, context)<span class="question-mark">?</span>;
+        </span><span class="self">Self</span>::set_length(<span class="kw-2">&amp;</span>o, len + arg_count, context)<span class="question-mark">?</span>;
+
         <span class="comment">// 6. Return 𝔽(len + argCount).
         </span><span class="prelude-val">Ok</span>((len + arg_count).into())
     }
@@ -5144,7 +5191,7 @@
         }
 
         <span class="comment">// 15. Perform ? Set(A, &quot;length&quot;, 𝔽(n), true).
-        </span>a.set(<span class="macro">utf16!</span>(<span class="string">&quot;length&quot;</span>), n, <span class="bool-val">true</span>, context)<span class="question-mark">?</span>;
+        </span><span class="self">Self</span>::set_length(<span class="kw-2">&amp;</span>a, n, context)<span class="question-mark">?</span>;
 
         <span class="comment">// 16. Return A.
         </span><span class="prelude-val">Ok</span>(a.into())
@@ -5299,7 +5346,7 @@
         </span>}
 
         <span class="comment">// 14. Perform ? Set(A, &quot;length&quot;, 𝔽(actualDeleteCount), true).
-        </span>arr.set(<span class="macro">utf16!</span>(<span class="string">&quot;length&quot;</span>), actual_delete_count, <span class="bool-val">true</span>, context)<span class="question-mark">?</span>;
+        </span><span class="self">Self</span>::set_length(<span class="kw-2">&amp;</span>arr, actual_delete_count, context)<span class="question-mark">?</span>;
 
         <span class="comment">// 15. Let itemCount be the number of elements in items.
         </span><span class="kw">let </span>item_count = items.len() <span class="kw">as </span>u64;
@@ -5384,12 +5431,7 @@
         }
 
         <span class="comment">// 20. Perform ? Set(O, &quot;length&quot;, 𝔽(len - actualDeleteCount + itemCount), true).
-        </span>o.set(
-            <span class="macro">utf16!</span>(<span class="string">&quot;length&quot;</span>),
-            len - actual_delete_count + item_count,
-            <span class="bool-val">true</span>,
-            context,
-        )<span class="question-mark">?</span>;
+        </span><span class="self">Self</span>::set_length(<span class="kw-2">&amp;</span>o, len - actual_delete_count + item_count, context)<span class="question-mark">?</span>;
 
         <span class="comment">// 21. Return A.
         </span><span class="prelude-val">Ok</span>(JsValue::from(arr))
