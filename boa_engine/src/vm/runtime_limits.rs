@@ -6,6 +6,9 @@ pub struct RuntimeLimits {
 
     /// Max loop iterations before an error is thrown.
     loop_iteration_limit: u64,
+
+    /// Max function recursion limit
+    resursion_limit: usize,
 }
 
 impl Default for RuntimeLimits {
@@ -13,6 +16,7 @@ impl Default for RuntimeLimits {
     fn default() -> Self {
         Self {
             loop_iteration_limit: u64::MAX,
+            resursion_limit: 400,
             stack_size_limit: 1024,
         }
     }
@@ -57,5 +61,18 @@ impl RuntimeLimits {
     #[inline]
     pub fn set_stack_size_limit(&mut self, value: usize) {
         self.stack_size_limit = value;
+    }
+
+    /// Get recursion limit.
+    #[inline]
+    #[must_use]
+    pub const fn recursion_limit(&self) -> usize {
+        self.resursion_limit
+    }
+
+    /// Set recursion limit before an error is thrown.
+    #[inline]
+    pub fn set_recursion_limit(&mut self, value: usize) {
+        self.resursion_limit = value;
     }
 }

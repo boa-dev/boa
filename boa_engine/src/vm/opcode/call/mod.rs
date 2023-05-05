@@ -17,6 +17,14 @@ impl Operation for CallEval {
     const INSTRUCTION: &'static str = "INST - CallEval";
 
     fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
+        if context.vm.runtime_limits.recursion_limit() <= context.vm.frames.len() {
+            return Err(JsNativeError::runtime_limit()
+                .with_message(format!(
+                    "Maximum recursion limit {} exceeded",
+                    context.vm.runtime_limits.recursion_limit()
+                ))
+                .into());
+        }
         if context.vm.runtime_limits.stack_size_limit() <= context.vm.stack.len() {
             return Err(JsNativeError::runtime_limit()
                 .with_message("Maximum call stack size exceeded")
@@ -77,6 +85,14 @@ impl Operation for CallEvalSpread {
     const INSTRUCTION: &'static str = "INST - CallEvalSpread";
 
     fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
+        if context.vm.runtime_limits.recursion_limit() <= context.vm.frames.len() {
+            return Err(JsNativeError::runtime_limit()
+                .with_message(format!(
+                    "Maximum recursion limit {} exceeded",
+                    context.vm.runtime_limits.recursion_limit()
+                ))
+                .into());
+        }
         if context.vm.runtime_limits.stack_size_limit() <= context.vm.stack.len() {
             return Err(JsNativeError::runtime_limit()
                 .with_message("Maximum call stack size exceeded")
@@ -143,6 +159,14 @@ impl Operation for Call {
     const INSTRUCTION: &'static str = "INST - Call";
 
     fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
+        if context.vm.runtime_limits.recursion_limit() <= context.vm.frames.len() {
+            return Err(JsNativeError::runtime_limit()
+                .with_message(format!(
+                    "Maximum recursion limit {} exceeded",
+                    context.vm.runtime_limits.recursion_limit()
+                ))
+                .into());
+        }
         if context.vm.runtime_limits.stack_size_limit() <= context.vm.stack.len() {
             return Err(JsNativeError::runtime_limit()
                 .with_message("Maximum call stack size exceeded")
@@ -182,6 +206,14 @@ impl Operation for CallSpread {
     const INSTRUCTION: &'static str = "INST - CallSpread";
 
     fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
+        if context.vm.runtime_limits.recursion_limit() <= context.vm.frames.len() {
+            return Err(JsNativeError::runtime_limit()
+                .with_message(format!(
+                    "Maximum recursion limit {} exceeded",
+                    context.vm.runtime_limits.recursion_limit()
+                ))
+                .into());
+        }
         if context.vm.runtime_limits.stack_size_limit() <= context.vm.stack.len() {
             return Err(JsNativeError::runtime_limit()
                 .with_message("Maximum call stack size exceeded")
