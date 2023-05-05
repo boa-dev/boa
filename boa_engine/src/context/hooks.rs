@@ -5,7 +5,7 @@ use crate::{
     realm::Realm,
     Context, JsResult, JsValue,
 };
-use chrono::{FixedOffset, Local, NaiveDateTime, Utc};
+use chrono::{DateTime, FixedOffset, Local, LocalResult, NaiveDateTime, TimeZone, Utc};
 
 use super::intrinsics::Intrinsics;
 
@@ -182,14 +182,27 @@ pub trait HostHooks {
         Utc::now().naive_utc()
     }
 
-    /// Gets the current timezone as a fixed offset from UTC.
+    /// Converts the naive datetime `utc` to the corresponding local datetime.
     ///
-    /// Defaults to using [`Local::now`] on all targets, which can cause panics if your platform
+    /// Defaults to using [`Local`] on all targets, which can cause panics if your platform
     /// doesn't support [`SystemTime::now`][time].
     ///
     /// [time]: std::time::SystemTime::now
-    fn tz_offset(&self) -> FixedOffset {
-        *Local::now().offset()
+    fn local_from_utc(&self, utc: NaiveDateTime) -> DateTime<FixedOffset> {
+        let offset = Local.offset_from_utc_datetime(&utc);
+        DateTime::from_utc(utc, offset)
+    }
+
+    /// Converts the naive local datetime `local` to a local timezone datetime.
+    ///
+    /// Defaults to using [`Local`] on all targets, which can cause panics if your platform
+    /// doesn't support [`SystemTime::now`][time].
+    ///
+    /// [time]: std::time::SystemTime::now
+    fn local_from_naive_local(&self, local: NaiveDateTime) -> LocalResult<DateTime<FixedOffset>> {
+        Local
+            .offset_from_local_datetime(&local)
+            .map(|offset| DateTime::from_local(local, offset))
     }
 }
 

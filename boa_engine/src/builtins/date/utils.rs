@@ -1,6 +1,6 @@
-use chrono::{Datelike, FixedOffset, NaiveDateTime, TimeZone, Timelike};
+use chrono::{Datelike, NaiveDateTime, Timelike};
 
-use crate::value::IntegerOrNan;
+use crate::{context::HostHooks, value::IntegerOrNan};
 
 /// The absolute maximum value of a timestamp
 pub(super) const MAX_TIMESTAMP: i64 = 864 * 10i64.pow(13);
@@ -133,10 +133,10 @@ pub(super) struct DateParameters {
 }
 
 /// Replaces some (or all) parameters of `date` with the specified parameters
-pub(super) fn replace_params(
+pub(super) fn replace_params<const LOCAL: bool>(
     datetime: i64,
     params: DateParameters,
-    offset: Option<FixedOffset>,
+    hooks: &dyn HostHooks,
 ) -> Option<i64> {
     let datetime = NaiveDateTime::from_timestamp_millis(datetime)?;
     let DateParameters {
@@ -149,8 +149,8 @@ pub(super) fn replace_params(
         millisecond,
     } = params;
 
-    let datetime = if let Some(offset) = offset {
-        offset.from_utc_datetime(&datetime).naive_local()
+    let datetime = if LOCAL {
+        hooks.local_from_utc(datetime).naive_local()
     } else {
         datetime
     };
@@ -188,9 +188,9 @@ pub(super) fn replace_params(
     let new_time = make_time(hour, minute, second, millisecond)?;
     let mut ts = make_date(new_day, new_time)?;
 
-    if let Some(offset) = offset {
-        ts = offset
-            .from_local_datetime(&NaiveDateTime::from_timestamp_millis(ts)?)
+    if LOCAL {
+        ts = hooks
+            .local_from_naive_local(NaiveDateTime::from_timestamp_millis(ts)?)
             .earliest()?
             .naive_utc()
             .timestamp_millis();

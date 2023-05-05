@@ -258,7 +258,16 @@ fn date_proto_get_timezone_offset() {
             "new Date('1975-08-19T23:15:30+07:00').getTimezoneOffset()",
             {
                 // The value of now().offset() depends on the host machine, so we have to replicate the method code here.
-                let offset_seconds = chrono::Local::now().offset().local_minus_utc();
+                let dt = Local
+                    .from_local_datetime(
+                        &NaiveDate::from_ymd_opt(1975, 8, 19)
+                            .unwrap()
+                            .and_hms_opt(23, 15, 30)
+                            .unwrap(),
+                    )
+                    .earliest()
+                    .unwrap();
+                let offset_seconds = dt.offset().local_minus_utc();
                 -offset_seconds / 60
             },
         ),
