@@ -253,7 +253,7 @@ Its setter can be used to set the loop iteration limit.
 ```javascript
 $boa.limits.loop = 10;
 
-while (true) {} // RuntimeLimit: max loop iteration limit 10 exceeded
+while (true) {} // RuntimeLimit: Maximum loop iteration limit 10 exceeded
 ```
 
 ### Getter & Setter `$boa.limits.recursion`

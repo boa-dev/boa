@@ -255,7 +255,7 @@ fn loop_runtime_limit() {
                 for (let i = 0; i < 20; ++i) { }
             "#},
             JsNativeErrorKind::RuntimeLimit,
-            "max loop iteration limit 10 exceeded",
+            "Maximum loop iteration limit 10 exceeded",
         ),
         TestAction::assert_eq(
             indoc! {r#"
@@ -268,7 +268,44 @@ fn loop_runtime_limit() {
                 while (1) { }
             "#},
             JsNativeErrorKind::RuntimeLimit,
-            "max loop iteration limit 10 exceeded",
+            "Maximum loop iteration limit 10 exceeded",
+        ),
+    ]);
+}
+
+#[test]
+fn recursion_runtime_limit() {
+    run_test_actions([
+        TestAction::run(indoc! {r#"
+            function factorial(n) {
+                if (n == 0) {
+                    return 1;
+                }
+
+                return n * factorial(n - 1);
+            }
+        "#}),
+        TestAction::assert_eq("factorial(8)", JsValue::new(40_320)),
+        TestAction::assert_eq("factorial(11)", JsValue::new(39_916_800)),
+        TestAction::inspect_context(|context| {
+            context.runtime_limits_mut().set_recursion_limit(10);
+        }),
+        TestAction::assert_native_error(
+            "factorial(11)",
+            JsNativeErrorKind::RuntimeLimit,
+            "Maximum recursion limit 10 exceeded",
+        ),
+        TestAction::assert_eq("factorial(8)", JsValue::new(40_320)),
+        TestAction::assert_native_error(
+            indoc! {r#"
+                function x() {
+                    x()
+                }
+
+                x()
+            "#},
+            JsNativeErrorKind::RuntimeLimit,
+            "Maximum recursion limit 10 exceeded",
         ),
     ]);
 }
