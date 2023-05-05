@@ -1,7 +1,7 @@
 use crate::{
     property::PropertyDescriptor,
     vm::{opcode::Operation, CompletionType},
-    Context, JsNativeError, JsResult, JsString,
+    Context, JsNativeError, JsResult,
 };
 
 /// `DefineOwnPropertyByName` implements the Opcode Operation for `Opcode::DefineOwnPropertyByName`
@@ -24,11 +24,7 @@ impl Operation for DefineOwnPropertyByName {
         } else {
             object.to_object(context)?
         };
-        let name = context.vm.frame().code_block.names[index as usize];
-        let name = context
-            .interner()
-            .resolve_expect(name.sym())
-            .into_common::<JsString>(false);
+        let name = context.vm.frame().code_block.names[index as usize].clone();
         object.__define_own_property__(
             &name.into(),
             PropertyDescriptor::builder()

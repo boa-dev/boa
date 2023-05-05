@@ -14,6 +14,7 @@ mod utils;
 use crate::{
     builtins::function::ThisMode,
     environments::{BindingLocator, CompileTimeEnvironment},
+    js_string,
     vm::{BindingOpcode, CodeBlock, Opcode},
     Context, JsBigInt, JsString, JsValue,
 };
@@ -241,7 +242,7 @@ pub struct ByteCompiler<'ctx, 'host> {
     pub(crate) literals: Vec<JsValue>,
 
     /// Property field names.
-    pub(crate) names: Vec<Identifier>,
+    pub(crate) names: Vec<JsString>,
 
     /// Private names.
     pub(crate) private_names: Vec<PrivateName>,
@@ -363,8 +364,9 @@ impl<'ctx, 'host> ByteCompiler<'ctx, 'host> {
             return *index;
         }
 
+        let string = self.interner().resolve_expect(name.sym()).utf16();
         let index = self.names.len() as u32;
-        self.names.push(name);
+        self.names.push(js_string!(string));
         self.names_map.insert(name, index);
         index
     }

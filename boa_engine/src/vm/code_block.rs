@@ -18,10 +18,7 @@ use crate::{
     vm::CallFrame,
     Context, JsError, JsResult, JsString, JsValue,
 };
-use boa_ast::{
-    expression::Identifier,
-    function::{FormalParameterList, PrivateName},
-};
+use boa_ast::function::{FormalParameterList, PrivateName};
 use boa_gc::{Finalize, Gc, GcRefCell, Trace};
 use boa_interner::Sym;
 use boa_profiler::Profiler;
@@ -89,8 +86,7 @@ pub struct CodeBlock {
     pub(crate) literals: Box<[JsValue]>,
 
     /// Property field names.
-    #[unsafe_ignore_trace]
-    pub(crate) names: Box<[Identifier]>,
+    pub(crate) names: Box<[JsString]>,
 
     /// Private names.
     #[unsafe_ignore_trace]
@@ -365,7 +361,7 @@ impl CodeBlock {
                 *pc += size_of::<u32>();
                 format!(
                     "{operand:04}: '{}'",
-                    interner.resolve_expect(self.names[operand as usize].sym()),
+                    self.names[operand as usize].to_std_string_escaped(),
                 )
             }
             Opcode::SetPrivateField
