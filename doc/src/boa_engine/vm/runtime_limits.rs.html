@@ -60,6 +60,23 @@
 <a href="#59" id="59">59</a>
 <a href="#60" id="60">60</a>
 <a href="#61" id="61">61</a>
+<a href="#62" id="62">62</a>
+<a href="#63" id="63">63</a>
+<a href="#64" id="64">64</a>
+<a href="#65" id="65">65</a>
+<a href="#66" id="66">66</a>
+<a href="#67" id="67">67</a>
+<a href="#68" id="68">68</a>
+<a href="#69" id="69">69</a>
+<a href="#70" id="70">70</a>
+<a href="#71" id="71">71</a>
+<a href="#72" id="72">72</a>
+<a href="#73" id="73">73</a>
+<a href="#74" id="74">74</a>
+<a href="#75" id="75">75</a>
+<a href="#76" id="76">76</a>
+<a href="#77" id="77">77</a>
+<a href="#78" id="78">78</a>
 </pre><pre class="rust"><code><span class="doccomment">/// Represents the limits of different runtime operations.
 </span><span class="attr">#[derive(Debug, Clone, Copy)]
 </span><span class="kw">pub struct </span>RuntimeLimits {
@@ -68,6 +85,9 @@
 
     <span class="doccomment">/// Max loop iterations before an error is thrown.
     </span>loop_iteration_limit: u64,
+
+    <span class="doccomment">/// Max function recursion limit
+    </span>resursion_limit: usize,
 }
 
 <span class="kw">impl </span>Default <span class="kw">for </span>RuntimeLimits {
@@ -75,6 +95,7 @@
     </span><span class="kw">fn </span>default() -&gt; <span class="self">Self </span>{
         <span class="self">Self </span>{
             loop_iteration_limit: u64::MAX,
+            resursion_limit: <span class="number">400</span>,
             stack_size_limit: <span class="number">1024</span>,
         }
     }
@@ -119,6 +140,19 @@
     </span><span class="attr">#[inline]
     </span><span class="kw">pub fn </span>set_stack_size_limit(<span class="kw-2">&amp;mut </span><span class="self">self</span>, value: usize) {
         <span class="self">self</span>.stack_size_limit = value;
+    }
+
+    <span class="doccomment">/// Get recursion limit.
+    </span><span class="attr">#[inline]
+    #[must_use]
+    </span><span class="kw">pub const fn </span>recursion_limit(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; usize {
+        <span class="self">self</span>.resursion_limit
+    }
+
+    <span class="doccomment">/// Set recursion limit before an error is thrown.
+    </span><span class="attr">#[inline]
+    </span><span class="kw">pub fn </span>set_recursion_limit(<span class="kw-2">&amp;mut </span><span class="self">self</span>, value: usize) {
+        <span class="self">self</span>.resursion_limit = value;
     }
 }
 </code></pre></div>

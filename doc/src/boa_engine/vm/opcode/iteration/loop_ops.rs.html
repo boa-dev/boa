@@ -206,7 +206,7 @@
                     cleanup_loop_environment(context);
 
                     <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::runtime_limit()
-                        .with_message(<span class="macro">format!</span>(<span class="string">&quot;max loop iteration limit {max} exceeded&quot;</span>))
+                        .with_message(<span class="macro">format!</span>(<span class="string">&quot;Maximum loop iteration limit {max} exceeded&quot;</span>))
                         .into());
                 }
             }
