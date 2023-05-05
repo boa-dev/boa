@@ -1,4 +1,4 @@
-use crate::{builtins::error::ErrorKind, run_test_actions, JsValue, TestAction};
+use crate::{run_test_actions, JsNativeErrorKind, JsValue, TestAction};
 use indoc::indoc;
 
 #[test]
@@ -143,22 +143,22 @@ fn invalid_unary_access() {
     run_test_actions([
         TestAction::assert_native_error(
             "++[]",
-            ErrorKind::Syntax,
+            JsNativeErrorKind::Syntax,
             "Invalid left-hand side in assignment at line 1, col 1",
         ),
         TestAction::assert_native_error(
             "[]++",
-            ErrorKind::Syntax,
+            JsNativeErrorKind::Syntax,
             "Invalid left-hand side in assignment at line 1, col 3",
         ),
         TestAction::assert_native_error(
             "--[]",
-            ErrorKind::Syntax,
+            JsNativeErrorKind::Syntax,
             "Invalid left-hand side in assignment at line 1, col 1",
         ),
         TestAction::assert_native_error(
             "[]--",
-            ErrorKind::Syntax,
+            JsNativeErrorKind::Syntax,
             "Invalid left-hand side in assignment at line 1, col 3",
         ),
     ]);
@@ -170,22 +170,22 @@ fn unary_operations_on_this() {
     run_test_actions([
         TestAction::assert_native_error(
             "++this",
-            ErrorKind::Syntax,
+            JsNativeErrorKind::Syntax,
             "Invalid left-hand side in assignment at line 1, col 1",
         ),
         TestAction::assert_native_error(
             "--this",
-            ErrorKind::Syntax,
+            JsNativeErrorKind::Syntax,
             "Invalid left-hand side in assignment at line 1, col 1",
         ),
         TestAction::assert_native_error(
             "this++",
-            ErrorKind::Syntax,
+            JsNativeErrorKind::Syntax,
             "Invalid left-hand side in assignment at line 1, col 5",
         ),
         TestAction::assert_native_error(
             "this--",
-            ErrorKind::Syntax,
+            JsNativeErrorKind::Syntax,
             "Invalid left-hand side in assignment at line 1, col 5",
         ),
     ]);
@@ -305,7 +305,7 @@ fn assignment_to_non_assignable() {
         .map(|src| {
             TestAction::assert_native_error(
                 src,
-                ErrorKind::Syntax,
+                JsNativeErrorKind::Syntax,
                 "Invalid left-hand side in assignment at line 1, col 3",
             )
         }),
@@ -330,7 +330,7 @@ fn assignment_to_non_assignable_ctd() {
         .map(|src| {
             TestAction::assert_native_error(
                 src,
-                ErrorKind::Syntax,
+                JsNativeErrorKind::Syntax,
                 "Invalid left-hand side in assignment at line 1, col 13",
             )
         }),
@@ -344,7 +344,7 @@ fn multicharacter_assignment_to_non_assignable() {
     run_test_actions(["3 **= 5", "3 <<= 5", "3 >>= 5"].into_iter().map(|src| {
         TestAction::assert_native_error(
             src,
-            ErrorKind::Syntax,
+            JsNativeErrorKind::Syntax,
             "Invalid left-hand side in assignment at line 1, col 3",
         )
     }));
@@ -358,7 +358,7 @@ fn multicharacter_assignment_to_non_assignable_ctd() {
             .map(|src| {
                 TestAction::assert_native_error(
                     src,
-                    ErrorKind::Syntax,
+                    JsNativeErrorKind::Syntax,
                     "Invalid left-hand side in assignment at line 1, col 13",
                 )
             }),
@@ -373,7 +373,7 @@ fn multicharacter_bitwise_assignment_to_non_assignable() {
             .map(|src| {
                 TestAction::assert_native_error(
                     src,
-                    ErrorKind::Syntax,
+                    JsNativeErrorKind::Syntax,
                     "Invalid left-hand side in assignment at line 1, col 3",
                 )
             }),
@@ -393,7 +393,7 @@ fn multicharacter_bitwise_assignment_to_non_assignable_ctd() {
         .map(|src| {
             TestAction::assert_native_error(
                 src,
-                ErrorKind::Syntax,
+                JsNativeErrorKind::Syntax,
                 "Invalid left-hand side in assignment at line 1, col 13",
             )
         }),
@@ -405,22 +405,22 @@ fn assign_to_array_decl() {
     run_test_actions([
         TestAction::assert_native_error(
             "[1] = [2]",
-            ErrorKind::Syntax,
+            JsNativeErrorKind::Syntax,
             "Invalid left-hand side in assignment at line 1, col 5",
         ),
         TestAction::assert_native_error(
             "[3, 5] = [7, 8]",
-            ErrorKind::Syntax,
+            JsNativeErrorKind::Syntax,
             "Invalid left-hand side in assignment at line 1, col 8",
         ),
         TestAction::assert_native_error(
             "[6, 8] = [2]",
-            ErrorKind::Syntax,
+            JsNativeErrorKind::Syntax,
             "Invalid left-hand side in assignment at line 1, col 8",
         ),
         TestAction::assert_native_error(
             "[6] = [2, 9]",
-            ErrorKind::Syntax,
+            JsNativeErrorKind::Syntax,
             "Invalid left-hand side in assignment at line 1, col 5",
         ),
     ]);
@@ -430,7 +430,7 @@ fn assign_to_array_decl() {
 fn assign_to_object_decl() {
     run_test_actions([TestAction::assert_native_error(
         "{a: 3} = {a: 5};",
-        ErrorKind::Syntax,
+        JsNativeErrorKind::Syntax,
         "unexpected token '=', primary expression at line 1, col 8",
     )]);
 }
@@ -439,7 +439,7 @@ fn assign_to_object_decl() {
 fn assignmentoperator_lhs_not_defined() {
     run_test_actions([TestAction::assert_native_error(
         "a += 5",
-        ErrorKind::Reference,
+        JsNativeErrorKind::Reference,
         "a is not defined",
     )]);
 }
@@ -448,7 +448,7 @@ fn assignmentoperator_lhs_not_defined() {
 fn assignmentoperator_rhs_throws_error() {
     run_test_actions([TestAction::assert_native_error(
         "let a; a += b",
-        ErrorKind::Reference,
+        JsNativeErrorKind::Reference,
         "b is not defined",
     )]);
 }
@@ -457,7 +457,7 @@ fn assignmentoperator_rhs_throws_error() {
 fn instanceofoperator_rhs_not_object() {
     run_test_actions([TestAction::assert_native_error(
         "let s = new String(); s instanceof 1",
-        ErrorKind::Type,
+        JsNativeErrorKind::Type,
         "right-hand side of 'instanceof' should be an object, got `number`",
     )]);
 }
@@ -466,7 +466,7 @@ fn instanceofoperator_rhs_not_object() {
 fn instanceofoperator_rhs_not_callable() {
     run_test_actions([TestAction::assert_native_error(
         "let s = new String(); s instanceof {}",
-        ErrorKind::Type,
+        JsNativeErrorKind::Type,
         "right-hand side of 'instanceof' is not callable",
     )]);
 }
@@ -504,7 +504,7 @@ fn delete_variable_in_strict() {
             let x = 10;
             delete x;
         "#},
-        ErrorKind::Syntax,
+        JsNativeErrorKind::Syntax,
         "cannot delete variables in strict mode at line 3, col 1",
     )]);
 }
@@ -513,7 +513,7 @@ fn delete_variable_in_strict() {
 fn delete_non_configurable() {
     run_test_actions([TestAction::assert_native_error(
         "'use strict'; delete Boolean.prototype",
-        ErrorKind::Type,
+        JsNativeErrorKind::Type,
         "Cannot delete property",
     )]);
 }
@@ -528,7 +528,7 @@ fn delete_non_configurable_in_function() {
             }
             t()
         "#},
-        ErrorKind::Type,
+        JsNativeErrorKind::Type,
         "Cannot delete property",
     )]);
 }
@@ -557,7 +557,7 @@ fn delete_in_function_global_strict() {
             }
             a();
         "#},
-        ErrorKind::Type,
+        JsNativeErrorKind::Type,
         "Cannot delete property",
     )]);
 }
@@ -591,7 +591,7 @@ fn delete_in_strict_function_returned() {
             }
             a()();
         "#},
-        ErrorKind::Type,
+        JsNativeErrorKind::Type,
         "Cannot delete property",
     )]);
 }
@@ -633,7 +633,7 @@ mod in_operator {
     fn should_type_error_when_rhs_not_object() {
         run_test_actions([TestAction::assert_native_error(
             "'fail' in undefined",
-            ErrorKind::Type,
+            JsNativeErrorKind::Type,
             "right-hand side of 'in' should be an object, got `undefined`",
         )]);
     }

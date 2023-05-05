@@ -5,6 +5,7 @@ use boa_engine::{object::ObjectInitializer, property::Attribute, Context, JsObje
 
 mod function;
 mod gc;
+mod limits;
 mod object;
 mod optimizer;
 mod realm;
@@ -17,6 +18,7 @@ fn create_boa_object(context: &mut Context<'_>) -> JsObject {
     let optimizer_module = optimizer::create_object(context);
     let gc_module = gc::create_object(context);
     let realm_module = realm::create_object(context);
+    let limits_module = limits::create_object(context);
 
     ObjectInitializer::new(context)
         .property(
@@ -47,6 +49,11 @@ fn create_boa_object(context: &mut Context<'_>) -> JsObject {
         .property(
             "realm",
             realm_module,
+            Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
+        )
+        .property(
+            "limits",
+            limits_module,
             Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
         )
         .build()

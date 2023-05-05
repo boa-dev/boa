@@ -1,4 +1,4 @@
-use crate::{builtins::error::ErrorKind, run_test_actions, TestAction};
+use crate::{run_test_actions, JsNativeErrorKind, TestAction};
 use indoc::indoc;
 
 #[test]
@@ -170,7 +170,7 @@ fn recursive_display() {
 fn not_a_function() {
     run_test_actions([TestAction::assert_native_error(
         "Set()",
-        ErrorKind::Type,
+        JsNativeErrorKind::Type,
         "calling a builtin Set constructor without new is forbidden",
     )]);
 }

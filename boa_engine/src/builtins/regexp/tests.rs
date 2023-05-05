@@ -1,4 +1,4 @@
-use crate::{builtins::error::ErrorKind, object::JsObject, run_test_actions, JsValue, TestAction};
+use crate::{object::JsObject, run_test_actions, JsNativeErrorKind, JsValue, TestAction};
 use indoc::indoc;
 
 #[test]
@@ -120,12 +120,12 @@ fn no_panic_on_parse_fail() {
     run_test_actions([
         TestAction::assert_native_error(
             r"var re = /]/u;",
-            ErrorKind::Syntax,
+            JsNativeErrorKind::Syntax,
             "Invalid regular expression literal: Unbalanced bracket at line 1, col 10",
         ),
         TestAction::assert_native_error(
             r"var re = /a{/u;",
-            ErrorKind::Syntax,
+            JsNativeErrorKind::Syntax,
             "Invalid regular expression literal: Invalid quantifier at line 1, col 10",
         ),
     ]);
@@ -182,13 +182,25 @@ fn search() {
             4,
         ),
         // this-val-non-obj
-        TestAction::assert_native_error("search.value.call()", ErrorKind::Type, ERROR),
-        TestAction::assert_native_error("search.value.call(undefined)", ErrorKind::Type, ERROR),
-        TestAction::assert_native_error("search.value.call(null)", ErrorKind::Type, ERROR),
-        TestAction::assert_native_error("search.value.call(true)", ErrorKind::Type, ERROR),
-        TestAction::assert_native_error("search.value.call('string')", ErrorKind::Type, ERROR),
-        TestAction::assert_native_error("search.value.call(Symbol.search)", ErrorKind::Type, ERROR),
-        TestAction::assert_native_error("search.value.call(86)", ErrorKind::Type, ERROR),
+        TestAction::assert_native_error("search.value.call()", JsNativeErrorKind::Type, ERROR),
+        TestAction::assert_native_error(
+            "search.value.call(undefined)",
+            JsNativeErrorKind::Type,
+            ERROR,
+        ),
+        TestAction::assert_native_error("search.value.call(null)", JsNativeErrorKind::Type, ERROR),
+        TestAction::assert_native_error("search.value.call(true)", JsNativeErrorKind::Type, ERROR),
+        TestAction::assert_native_error(
+            "search.value.call('string')",
+            JsNativeErrorKind::Type,
+            ERROR,
+        ),
+        TestAction::assert_native_error(
+            "search.value.call(Symbol.search)",
+            JsNativeErrorKind::Type,
+            ERROR,
+        ),
+        TestAction::assert_native_error("search.value.call(86)", JsNativeErrorKind::Type, ERROR),
         // u-lastindex-advance
         TestAction::assert_eq(r"/\udf06/u[Symbol.search]('\ud834\udf06')", -1),
         TestAction::assert_eq("/a/[Symbol.search](\"a\")", 0),

@@ -1,4 +1,4 @@
-use crate::{builtins::error::ErrorKind, run_test_actions, JsValue, TestAction};
+use crate::{run_test_actions, JsNativeErrorKind, JsValue, TestAction};
 use indoc::indoc;
 
 #[test]
@@ -15,7 +15,7 @@ fn object_create_with_regular_object() {
 fn object_create_with_undefined() {
     run_test_actions([TestAction::assert_native_error(
         "Object.create()",
-        ErrorKind::Type,
+        JsNativeErrorKind::Type,
         "Object prototype may only be an Object or null: undefined",
     )]);
 }
@@ -24,7 +24,7 @@ fn object_create_with_undefined() {
 fn object_create_with_number() {
     run_test_actions([TestAction::assert_native_error(
         "Object.create(5)",
-        ErrorKind::Type,
+        JsNativeErrorKind::Type,
         "Object prototype may only be an Object or null: 5",
     )]);
 }
@@ -238,11 +238,19 @@ fn object_get_own_property_names_invalid_args() {
     const ERROR: &str = "cannot convert 'null' or 'undefined' to object";
 
     run_test_actions([
-        TestAction::assert_native_error("Object.getOwnPropertyNames()", ErrorKind::Type, ERROR),
-        TestAction::assert_native_error("Object.getOwnPropertyNames(null)", ErrorKind::Type, ERROR),
+        TestAction::assert_native_error(
+            "Object.getOwnPropertyNames()",
+            JsNativeErrorKind::Type,
+            ERROR,
+        ),
+        TestAction::assert_native_error(
+            "Object.getOwnPropertyNames(null)",
+            JsNativeErrorKind::Type,
+            ERROR,
+        ),
         TestAction::assert_native_error(
             "Object.getOwnPropertyNames(undefined)",
-            ErrorKind::Type,
+            JsNativeErrorKind::Type,
             ERROR,
         ),
     ]);
@@ -307,15 +315,19 @@ fn object_get_own_property_symbols_invalid_args() {
     const ERROR: &str = "cannot convert 'null' or 'undefined' to object";
 
     run_test_actions([
-        TestAction::assert_native_error("Object.getOwnPropertySymbols()", ErrorKind::Type, ERROR),
+        TestAction::assert_native_error(
+            "Object.getOwnPropertySymbols()",
+            JsNativeErrorKind::Type,
+            ERROR,
+        ),
         TestAction::assert_native_error(
             "Object.getOwnPropertySymbols(null)",
-            ErrorKind::Type,
+            JsNativeErrorKind::Type,
             ERROR,
         ),
         TestAction::assert_native_error(
             "Object.getOwnPropertySymbols(undefined)",
-            ErrorKind::Type,
+            JsNativeErrorKind::Type,
             ERROR,
         ),
     ]);
@@ -382,9 +394,13 @@ fn object_from_entries_invalid_args() {
     const ERROR: &str = "cannot convert null or undefined to Object";
 
     run_test_actions([
-        TestAction::assert_native_error("Object.fromEntries()", ErrorKind::Type, ERROR),
-        TestAction::assert_native_error("Object.fromEntries(null)", ErrorKind::Type, ERROR),
-        TestAction::assert_native_error("Object.fromEntries(undefined)", ErrorKind::Type, ERROR),
+        TestAction::assert_native_error("Object.fromEntries()", JsNativeErrorKind::Type, ERROR),
+        TestAction::assert_native_error("Object.fromEntries(null)", JsNativeErrorKind::Type, ERROR),
+        TestAction::assert_native_error(
+            "Object.fromEntries(undefined)",
+            JsNativeErrorKind::Type,
+            ERROR,
+        ),
     ]);
 }
 

@@ -3,7 +3,10 @@
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub(crate) enum EnvEntryKind {
     Global,
-    Loop,
+    Loop {
+        /// This is used to keep track of how many iterations a loop has done.
+        iteration_count: u64,
+    },
     Try,
     Catch,
     Finally,
@@ -49,8 +52,9 @@ impl EnvStackEntry {
     }
 
     /// Returns calling `EnvStackEntry` with `kind` field of `Loop`.
-    pub(crate) const fn with_loop_flag(mut self) -> Self {
-        self.kind = EnvEntryKind::Loop;
+    /// And the loop iteration set to zero.
+    pub(crate) const fn with_loop_flag(mut self, iteration_count: u64) -> Self {
+        self.kind = EnvEntryKind::Loop { iteration_count };
         self
     }
 
@@ -95,8 +99,15 @@ impl EnvStackEntry {
     }
 
     /// Returns true if an `EnvStackEntry` is a loop
-    pub(crate) fn is_loop_env(&self) -> bool {
-        self.kind == EnvEntryKind::Loop
+    pub(crate) const fn is_loop_env(&self) -> bool {
+        matches!(self.kind, EnvEntryKind::Loop { .. })
+    }
+
+    pub(crate) const fn as_loop_iteration_count(self) -> Option<u64> {
+        if let EnvEntryKind::Loop { iteration_count } = self.kind {
+            return Some(iteration_count);
+        }
+        None
     }
 
     /// Returns true if an `EnvStackEntry` is a try block

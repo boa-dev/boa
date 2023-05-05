@@ -108,7 +108,6 @@ impl CodeBlock {
                         EdgeStyle::Line,
                     );
                 }
-
                 Opcode::JumpIfFalse
                 | Opcode::JumpIfTrue
                 | Opcode::JumpIfNotUndefined

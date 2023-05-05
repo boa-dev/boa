@@ -1,4 +1,4 @@
-use crate::{builtins::error::ErrorKind, run_test_actions, TestAction};
+use crate::{run_test_actions, JsNativeErrorKind, TestAction};
 use indoc::indoc;
 
 #[test]
@@ -10,7 +10,7 @@ fn let_is_block_scoped() {
             }
             bar;
         "#},
-        ErrorKind::Reference,
+        JsNativeErrorKind::Reference,
         "bar is not defined",
     )]);
 }
@@ -24,7 +24,7 @@ fn const_is_block_scoped() {
             }
             bar;
         "#},
-        ErrorKind::Reference,
+        JsNativeErrorKind::Reference,
         "bar is not defined",
     )]);
 }
@@ -51,7 +51,7 @@ fn functions_use_declaration_scope() {
                 foo();
             }
         "#},
-        ErrorKind::Reference,
+        JsNativeErrorKind::Reference,
         "bar is not defined",
     )]);
 }

@@ -1,4 +1,4 @@
-use crate::{builtins::error::ErrorKind, run_test_actions, TestAction};
+use crate::{run_test_actions, JsNativeErrorKind, TestAction};
 use indoc::indoc;
 
 #[test]
@@ -125,7 +125,7 @@ fn for_loop_iteration_variable_does_not_leak() {
             for (let i = 0;false;) {}
             i
         "#},
-        ErrorKind::Reference,
+        JsNativeErrorKind::Reference,
         "i is not defined",
     )]);
 }
@@ -138,7 +138,7 @@ fn test_invalid_break_target() {
                 break nonexistent;
             }
         "#},
-        ErrorKind::Syntax,
+        JsNativeErrorKind::Syntax,
         "undefined break target: nonexistent at line 1, col 1",
     )]);
 }
@@ -625,7 +625,7 @@ fn for_of_loop_let() {
                 }
             "#}),
         TestAction::assert_eq("result", 3),
-        TestAction::assert_native_error("i", ErrorKind::Reference, "i is not defined"),
+        TestAction::assert_native_error("i", JsNativeErrorKind::Reference, "i is not defined"),
     ]);
 }
 
@@ -639,7 +639,7 @@ fn for_of_loop_const() {
                 }
             "#}),
         TestAction::assert_eq("result", 3),
-        TestAction::assert_native_error("i", ErrorKind::Reference, "i is not defined"),
+        TestAction::assert_native_error("i", JsNativeErrorKind::Reference, "i is not defined"),
     ]);
 }
 

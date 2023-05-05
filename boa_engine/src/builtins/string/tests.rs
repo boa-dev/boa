@@ -1,6 +1,6 @@
 use indoc::indoc;
 
-use crate::{builtins::error::ErrorKind, js_string, run_test_actions, JsValue, TestAction};
+use crate::{js_string, run_test_actions, JsNativeErrorKind, JsValue, TestAction};
 
 #[test]
 fn length() {
@@ -104,7 +104,7 @@ fn repeat() {
 fn repeat_throws_when_count_is_negative() {
     run_test_actions([TestAction::assert_native_error(
         "'x'.repeat(-1)",
-        ErrorKind::Range,
+        JsNativeErrorKind::Range,
         "repeat count must be a positive finite number \
                   that doesn't overflow the maximum string length (2^32 - 1)",
     )]);
@@ -114,7 +114,7 @@ fn repeat_throws_when_count_is_negative() {
 fn repeat_throws_when_count_is_infinity() {
     run_test_actions([TestAction::assert_native_error(
         "'x'.repeat(Infinity)",
-        ErrorKind::Range,
+        JsNativeErrorKind::Range,
         "repeat count must be a positive finite number \
                   that doesn't overflow the maximum string length (2^32 - 1)",
     )]);
@@ -124,7 +124,7 @@ fn repeat_throws_when_count_is_infinity() {
 fn repeat_throws_when_count_overflows_max_length() {
     run_test_actions([TestAction::assert_native_error(
         "'x'.repeat(2 ** 64)",
-        ErrorKind::Range,
+        JsNativeErrorKind::Range,
         "repeat count must be a positive finite number \
                   that doesn't overflow the maximum string length (2^32 - 1)",
     )]);
@@ -247,7 +247,7 @@ fn starts_with() {
 fn starts_with_with_regex_arg() {
     run_test_actions([TestAction::assert_native_error(
         "'Saturday night'.startsWith(/Saturday/)",
-        ErrorKind::Type,
+        JsNativeErrorKind::Type,
         "First argument to String.prototype.startsWith must not be a regular expression",
     )]);
 }
@@ -273,7 +273,7 @@ fn ends_with() {
 fn ends_with_with_regex_arg() {
     run_test_actions([TestAction::assert_native_error(
         "'Saturday night'.endsWith(/night/)",
-        ErrorKind::Type,
+        JsNativeErrorKind::Type,
         "First argument to String.prototype.endsWith must not be a regular expression",
     )]);
 }
@@ -299,7 +299,7 @@ fn includes() {
 fn includes_with_regex_arg() {
     run_test_actions([TestAction::assert_native_error(
         "'Saturday night'.includes(/day/)",
-        ErrorKind::Type,
+        JsNativeErrorKind::Type,
         "First argument to String.prototype.includes must not be a regular expression",
     )]);
 }
@@ -589,7 +589,7 @@ fn split_with_symbol_split_method() {
                 sep[Symbol.split] = 10;
                 'hello'.split(sep, 10);
             "#},
-            ErrorKind::Type,
+            JsNativeErrorKind::Type,
             "value returned for property of object is not a function",
         ),
     ]);
@@ -880,32 +880,32 @@ fn from_code_point() {
         TestAction::assert_eq("String.fromCodePoint(9731, 9733, 9842, 0x4F60)", "☃★♲你"),
         TestAction::assert_native_error(
             "String.fromCodePoint('_')",
-            ErrorKind::Range,
+            JsNativeErrorKind::Range,
             "codepoint `NaN` is not an integer",
         ),
         TestAction::assert_native_error(
             "String.fromCodePoint(Infinity)",
-            ErrorKind::Range,
+            JsNativeErrorKind::Range,
             "codepoint `inf` is not an integer",
         ),
         TestAction::assert_native_error(
             "String.fromCodePoint(-1)",
-            ErrorKind::Range,
+            JsNativeErrorKind::Range,
             "codepoint `-1` outside of Unicode range",
         ),
         TestAction::assert_native_error(
             "String.fromCodePoint(3.14)",
-            ErrorKind::Range,
+            JsNativeErrorKind::Range,
             "codepoint `3.14` is not an integer",
         ),
         TestAction::assert_native_error(
             "String.fromCodePoint(3e-2)",
-            ErrorKind::Range,
+            JsNativeErrorKind::Range,
             "codepoint `0.03` is not an integer",
         ),
         TestAction::assert_native_error(
             "String.fromCodePoint(NaN)",
-            ErrorKind::Range,
+            JsNativeErrorKind::Range,
             "codepoint `NaN` is not an integer",
         ),
     ]);

@@ -1,4 +1,4 @@
-use crate::{builtins::error::ErrorKind, run_test_actions, JsValue, TestAction};
+use crate::{run_test_actions, JsNativeErrorKind, JsValue, TestAction};
 use indoc::indoc;
 
 #[test]
@@ -97,7 +97,7 @@ fn spread_getters_in_object() {
             var a = { x: 42 };
             var aWithXGetter = { ...a, ... { get x() { throw new Error('not thrown yet') } } };
         "#},
-        ErrorKind::Error,
+        JsNativeErrorKind::Error,
         "not thrown yet",
     )]);
 }

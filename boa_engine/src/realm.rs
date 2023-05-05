@@ -24,6 +24,14 @@ pub struct Realm {
     inner: Gc<Inner>,
 }
 
+impl Eq for Realm {}
+
+impl PartialEq for Realm {
+    fn eq(&self, other: &Self) -> bool {
+        Gc::ptr_eq(&self.inner, &other.inner)
+    }
+}
+
 impl fmt::Debug for Realm {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         f.debug_struct("Realm")
@@ -32,12 +40,6 @@ impl fmt::Debug for Realm {
             .field("global_object", &self.inner.global_object)
             .field("global_this", &self.inner.global_this)
             .finish()
-    }
-}
-
-impl PartialEq for Realm {
-    fn eq(&self, other: &Self) -> bool {
-        std::ptr::eq(&*self.inner, &*other.inner)
     }
 }
 
