@@ -265,7 +265,7 @@ Its setter can be used to set the recursion limit.
 $boa.limits.recursion = 100;
 
 function x() {
-    return x();
+  return x();
 }
 x(); // RuntimeLimit: Maximum recursion limit 100 exceeded
 ```
