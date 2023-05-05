@@ -583,7 +583,7 @@ where
             TokenKind::Punctuator(Punctuator::OpenBracket) => {
                 cursor.advance(interner);
                 let node =
-                    AssignmentExpression::new(None, false, self.allow_yield, self.allow_await)
+                    AssignmentExpression::new(None, true, self.allow_yield, self.allow_await)
                         .parse(cursor, interner)?;
                 cursor.expect(Punctuator::CloseBracket, "expected token ']'", interner)?;
                 return Ok(node.into());

@@ -1100,7 +1100,88 @@ impl<'ctx, 'host> ByteCompiler<'ctx, 'host> {
         } else {
             self.emit(Opcode::GetFunction, &[index]);
         }
-        self.emit_u8(0);
+        if !generator {
+            self.emit_u8(0);
+        }
+
+        match node_kind {
+            NodeKind::Declaration => {
+                self.emit_binding(
+                    BindingOpcode::InitVar,
+                    name.expect("function declaration must have a name"),
+                );
+            }
+            NodeKind::Expression => {
+                if !use_expr {
+                    self.emit(Opcode::Pop, &[]);
+                }
+            }
+        }
+    }
+
+    /// Compile an object method AST Node into bytecode.
+    pub(crate) fn object_method(
+        &mut self,
+        function: FunctionSpec<'_>,
+        node_kind: NodeKind,
+        use_expr: bool,
+    ) {
+        let (generator, r#async, arrow) = (
+            function.is_generator(),
+            function.is_async(),
+            function.is_arrow(),
+        );
+        let FunctionSpec {
+            name,
+            parameters,
+            body,
+            has_binding_identifier,
+            ..
+        } = function;
+
+        let binding_identifier = if has_binding_identifier {
+            if let Some(name) = name {
+                Some(name.sym())
+            } else {
+                Some(Sym::EMPTY_STRING)
+            }
+        } else {
+            None
+        };
+
+        let code = FunctionCompiler::new()
+            .name(name.map(Identifier::sym))
+            .generator(generator)
+            .r#async(r#async)
+            .strict(self.strict)
+            .arrow(arrow)
+            .binding_identifier(binding_identifier)
+            .compile(
+                parameters,
+                body,
+                self.current_environment.clone(),
+                self.context,
+            );
+
+        let index = self.functions.len() as u32;
+        self.functions.push(code);
+
+        if r#async && generator {
+            self.emit(Opcode::GetGeneratorAsync, &[index]);
+        } else if generator {
+            self.emit(Opcode::GetGenerator, &[index]);
+        } else if r#async && arrow {
+            self.emit(Opcode::GetAsyncArrowFunction, &[index]);
+        } else if r#async {
+            self.emit(Opcode::GetFunctionAsync, &[index]);
+        } else if arrow {
+            self.emit(Opcode::GetArrowFunction, &[index]);
+        } else {
+            self.emit(Opcode::GetFunction, &[index]);
+        }
+        if !generator {
+            self.emit_u8(1);
+        }
 
         match node_kind {
             NodeKind::Declaration => {
@@ -1179,7 +1260,9 @@ impl<'ctx, 'host> ByteCompiler<'ctx, 'host> {
         } else {
             self.emit(Opcode::GetFunction, &[index]);
         }
-        self.emit_u8(1);
+        if !generator {
+            self.emit_u8(1);
+        }
 
         match node_kind {
             NodeKind::Declaration => {

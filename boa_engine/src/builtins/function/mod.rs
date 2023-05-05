@@ -292,17 +292,6 @@ pub struct Function {
 }
 
 impl Function {
-    /// Returns true if the function object is a constructor.
-    pub fn is_constructor(&self) -> bool {
-        match &self.kind {
-            FunctionKind::Native { constructor, .. } => constructor.is_some(),
-            FunctionKind::Generator { .. }
-            | FunctionKind::AsyncGenerator { .. }
-            | FunctionKind::Async { .. } => false,
-            FunctionKind::Ordinary { code, .. } => !(code.this_mode == ThisMode::Lexical),
-        }
-    }
-
     /// Returns the codeblock of the function, or `None` if the function is a [`NativeFunction`].
     pub fn codeblock(&self) -> Option<&CodeBlock> {
         match &self.kind {
@@ -725,22 +714,9 @@ impl BuiltInFunctionObject {
             let environments = context.vm.environments.pop_to_global();
 
             let function_object = if generator {
-                crate::vm::create_generator_function_object(
-                    code,
-                    r#async,
-                    false,
-                    Some(prototype),
-                    context,
-                )
+                crate::vm::create_generator_function_object(code, r#async, Some(prototype), context)
             } else {
-                crate::vm::create_function_object(
-                    code,
-                    r#async,
-                    false,
-                    Some(prototype),
-                    false,
-                    context,
-                )
+                crate::vm::create_function_object(code, r#async, prototype, context)
             };
 
             context.vm.environments.extend(environments);
@@ -761,7 +737,6 @@ impl BuiltInFunctionObject {
             let function_object = crate::vm::create_generator_function_object(
                 code,
                 r#async,
-                false,
                 Some(prototype),
                 context,
             );
@@ -777,14 +752,8 @@ impl BuiltInFunctionObject {
             );
 
             let environments = context.vm.environments.pop_to_global();
-            let function_object = crate::vm::create_function_object(
-                code,
-                r#async,
-                false,
-                Some(prototype),
-                false,
-                context,
-            );
+            let function_object =
+                crate::vm::create_function_object(code, r#async, prototype, context);
             context.vm.environments.extend(environments);
 
             Ok(function_object)

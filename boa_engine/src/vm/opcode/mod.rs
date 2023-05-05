@@ -1293,14 +1293,14 @@ generate_impl! {
 
         /// Get generator function from the pre-compiled inner functions.
         ///
-        /// Operands: address: `u32`, method: `u8`
+        /// Operands: address: `u32`,
         ///
         /// Stack: **=>** func
         GetGenerator,
 
         /// Get async generator function from the pre-compiled inner functions.
         ///
-        /// Operands: address: `u32`, method: `u8`
+        /// Operands: address: `u32`,
         ///
         /// Stack: **=>** func
         GetGeneratorAsync,

@@ -313,11 +313,17 @@ impl CodeBlock {
             Opcode::GetArrowFunction
             | Opcode::GetAsyncArrowFunction
             | Opcode::GetFunction
-            | Opcode::GetFunctionAsync
-            | Opcode::GetGenerator
-            | Opcode::GetGeneratorAsync => {
+            | Opcode::GetFunctionAsync => {
                 let operand = self.read::<u32>(*pc);
                 *pc += size_of::<u32>() + size_of::<u8>();
+                format!(
+                    "{operand:04}: '{}' (length: {})",
+                    interner.resolve_expect(self.functions[operand as usize].name),
+                    self.functions[operand as usize].length
+                )
+            }
+            Opcode::GetGenerator | Opcode::GetGeneratorAsync => {
+                let operand = self.read::<u32>(*pc);
                 format!(
                     "{operand:04}: '{}' (length: {})",
                     interner.resolve_expect(self.functions[operand as usize].name),
@@ -582,17 +588,10 @@ impl ToInternedString for CodeBlock {
 pub(crate) fn create_function_object(
     code: Gc<CodeBlock>,
     r#async: bool,
-    arrow: bool,
-    prototype: Option<JsObject>,
-    method: bool,
+    prototype: JsObject,
     context: &mut Context<'_>,
 ) -> JsObject {
     let _timer = Profiler::global().start_event("create_function_object", "vm");
-
-    let Some(prototype) = prototype else {
-        // fast path
-        return create_function_object_fast(code, r#async, arrow, method, context);
-    };
 
     let name: JsValue = context
         .interner()
@@ -627,11 +626,11 @@ pub(crate) fn create_function_object(
         )
     };
 
-    let data = ObjectData::function(function);
+    let data = ObjectData::function(function, !r#async);
 
     let templates = context.intrinsics().templates();
 
-    let (mut template, storage, constructor_prototype) = if r#async || arrow || method {
+    let (mut template, storage, constructor_prototype) = if r#async {
         (
             templates.function_without_proto().clone(),
             vec![length, name],
@@ -653,12 +652,12 @@ pub(crate) fn create_function_object(
 
     template.set_prototype(prototype);
 
-    let contructor = template.create(data, storage);
+    let constructor = template.create(data, storage);
 
     if let Some(constructor_prototype) = &constructor_prototype {
-        constructor_prototype.borrow_mut().properties_mut().storage[0] = contructor.clone().into();
+        constructor_prototype.borrow_mut().properties_mut().storage[0] = constructor.clone().into();
     }
-    contructor
+    constructor
 }
 
 /// Creates a new function object.
@@ -704,7 +703,7 @@ pub(crate) fn create_function_object_fast(
 
     let function = Function::new(function, context.realm().clone());
 
-    let data = ObjectData::function(function);
+    let data = ObjectData::function(function, !method && !arrow && !r#async);
 
     if r#async {
         context
@@ -741,7 +740,6 @@ pub(crate) fn create_function_object_fast(
 pub(crate) fn create_generator_function_object(
     code: Gc<CodeBlock>,
     r#async: bool,
-    method: bool,
     prototype: Option<JsObject>,
     context: &mut Context<'_>,
 ) -> JsObject {
@@ -829,11 +827,9 @@ pub(crate) fn create_generator_function_object(
         .configurable(false)
         .build();
 
-    if !method {
-        constructor
-            .define_property_or_throw(PROTOTYPE, prototype_property, context)
-            .expect("failed to define the prototype property of the generator function");
-    }
+    constructor
+        .define_property_or_throw(PROTOTYPE, prototype_property, context)
+        .expect("failed to define the prototype property of the generator function");
     constructor
         .define_property_or_throw(utf16!("name"), name_property, context)
         .expect("failed to define the name property of the generator function");
