@@ -976,8 +976,6 @@
 <a href="#975" id="975">975</a>
 <a href="#976" id="976">976</a>
 <a href="#977" id="977">977</a>
-<a href="#978" id="978">978</a>
-<a href="#979" id="979">979</a>
 </pre><pre class="rust"><code><span class="doccomment">//! Statement and declaration parsing.
 //!
 //! More information:
@@ -1345,8 +1343,6 @@
 
             items.push(item);
         }
-
-        items.sort_by(ast::StatementListItem::hoistable_order);
 
         cursor.set_strict(global_strict);
 

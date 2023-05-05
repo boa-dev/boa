@@ -407,7 +407,7 @@
             <span class="kw">if </span>property_index &gt;= len {
                 <span class="kw">break</span>;
             }
-            <span class="kw">let </span>binding_index = bindings.len() + <span class="number">1</span>;
+            <span class="kw">let </span>binding_index = bindings.len();
             <span class="kw">let </span>entry = bindings
                 .entry(name)
                 .or_insert((binding_index, property_index));

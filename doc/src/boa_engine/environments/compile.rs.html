@@ -244,6 +244,9 @@
 <a href="#243" id="243">243</a>
 <a href="#244" id="244">244</a>
 <a href="#245" id="245">245</a>
+<a href="#246" id="246">246</a>
+<a href="#247" id="247">247</a>
+<a href="#248" id="248">248</a>
 </pre><pre class="rust"><code><span class="kw">use </span><span class="kw">crate</span>::environments::runtime::BindingLocator;
 <span class="kw">use </span>boa_ast::expression::Identifier;
 <span class="kw">use </span>boa_gc::{Finalize, Gc, GcRefCell, Trace};
@@ -347,6 +350,23 @@
             <span class="bool-val">true
         </span>} <span class="kw">else if let </span><span class="prelude-val">Some</span>(outer) = <span class="kw-2">&amp;</span><span class="self">self</span>.outer {
             outer.borrow().has_binding_recursive(name)
+        } <span class="kw">else </span>{
+            <span class="bool-val">false
+        </span>}
+    }
+
+    <span class="doccomment">/// Check if a binding name exists in a environment.
+    /// If strict is `false` check until a function scope is reached.
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>has_binding_eval(<span class="kw-2">&amp;</span><span class="self">self</span>, name: Identifier, strict: bool) -&gt; bool {
+        <span class="kw">let </span>exists = <span class="self">self</span>.bindings.contains_key(<span class="kw-2">&amp;</span>name);
+        <span class="kw">if </span>exists || strict {
+            <span class="kw">return </span>exists;
+        }
+        <span class="kw">if </span><span class="self">self</span>.function_scope {
+            <span class="kw">return </span><span class="bool-val">false</span>;
+        }
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(outer) = <span class="kw-2">&amp;</span><span class="self">self</span>.outer {
+            outer.borrow().has_binding_eval(name, <span class="bool-val">false</span>)
         } <span class="kw">else </span>{
             <span class="bool-val">false
         </span>}
@@ -473,20 +493,6 @@
     <span class="doccomment">/// Gets the environment index of this environment.
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const fn </span>environment_index(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; usize {
         <span class="self">self</span>.environment_index
-    }
-
-    <span class="doccomment">/// Gets the indices of all `var` bindings in this environment.
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>var_binding_indices(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Vec&lt;usize&gt; {
-        <span class="self">self</span>.bindings
-            .iter()
-            .filter_map(|(<span class="kw">_</span>, binding)| {
-                <span class="kw">if </span>binding.lex {
-                    <span class="prelude-val">None
-                </span>} <span class="kw">else </span>{
-                    <span class="prelude-val">Some</span>(binding.index)
-                }
-            })
-            .collect()
     }
 }
 </code></pre></div>

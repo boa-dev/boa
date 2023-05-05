@@ -255,16 +255,6 @@
 <a href="#254" id="254">254</a>
 <a href="#255" id="255">255</a>
 <a href="#256" id="256">256</a>
-<a href="#257" id="257">257</a>
-<a href="#258" id="258">258</a>
-<a href="#259" id="259">259</a>
-<a href="#260" id="260">260</a>
-<a href="#261" id="261">261</a>
-<a href="#262" id="262">262</a>
-<a href="#263" id="263">263</a>
-<a href="#264" id="264">264</a>
-<a href="#265" id="265">265</a>
-<a href="#266" id="266">266</a>
 </pre><pre class="rust"><code><span class="doccomment">//! Boa&#39;s implementation of ECMAScript&#39;s global `eval` function.
 //!
 //! The `eval()` function evaluates ECMAScript code represented as a string.
@@ -278,12 +268,10 @@
 
 </span><span class="kw">use crate</span>::{
     builtins::BuiltInObject, bytecompiler::ByteCompiler, context::intrinsics::Intrinsics,
-    environments::Environment, error::JsNativeError, object::JsObject, realm::Realm, Context,
-    JsArgs, JsResult, JsString, JsValue,
+    environments::Environment, error::JsNativeError, object::JsObject, realm::Realm, vm::Opcode,
+    Context, JsArgs, JsResult, JsString, JsValue,
 };
-<span class="kw">use </span>boa_ast::operations::{
-    contains, contains_arguments, top_level_var_declared_names, ContainsSymbol,
-};
+<span class="kw">use </span>boa_ast::operations::{contains, contains_arguments, ContainsSymbol};
 <span class="kw">use </span>boa_gc::Gc;
 <span class="kw">use </span>boa_interner::Sym;
 <span class="kw">use </span>boa_parser::{Parser, Source};
@@ -491,35 +479,27 @@
             }
         });
 
-        <span class="comment">// Only need to check on non-strict mode since strict mode automatically creates a function
-        // environment for all eval calls.
-        </span><span class="kw">if </span>!strict {
-            <span class="comment">// Error if any var declaration in the eval code already exists as a let/const declaration in the current running environment.
-            </span><span class="kw">if let </span><span class="prelude-val">Some</span>(name) = context
-                .vm
-                .environments
-                .has_lex_binding_until_function_environment(<span class="kw-2">&amp;</span>top_level_var_declared_names(<span class="kw-2">&amp;</span>body))
-            {
-                <span class="kw">let </span>name = context.interner().resolve_expect(name.sym());
-                <span class="kw">let </span>msg = <span class="macro">format!</span>(<span class="string">&quot;variable declaration {name} in eval function already exists as a lexical variable&quot;</span>);
-                <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::syntax().with_message(msg).into());
-            }
-        }
+        <span class="kw">let </span><span class="kw-2">mut </span>compiler = ByteCompiler::new(
+            Sym::MAIN,
+            body.strict(),
+            <span class="bool-val">false</span>,
+            context.vm.environments.current_compile_environment(),
+            context,
+        );
 
-        <span class="comment">// TODO: check if private identifiers inside `eval` are valid.
+        compiler.push_compile_environment(strict);
+        <span class="kw">let </span>push_env = compiler.emit_opcode_with_two_operands(Opcode::PushDeclarativeEnvironment);
 
-        // Compile and execute the eval statement list.
-        </span><span class="kw">let </span>code_block = {
-            <span class="kw">let </span><span class="kw-2">mut </span>compiler = ByteCompiler::new(
-                Sym::MAIN,
-                body.strict(),
-                <span class="bool-val">false</span>,
-                context.vm.environments.current_compile_environment(),
-                context,
-            );
-            compiler.compile_statement_list_with_new_declarative(<span class="kw-2">&amp;</span>body, <span class="bool-val">true</span>, strict);
-            Gc::new(compiler.finish())
-        };
+        compiler.eval_declaration_instantiation(<span class="kw-2">&amp;</span>body, strict)<span class="question-mark">?</span>;
+        compiler.compile_statement_list(<span class="kw-2">&amp;</span>body, <span class="bool-val">true</span>);
+
+        <span class="kw">let </span>env_info = compiler.pop_compile_environment();
+        compiler.patch_jump_with_target(push_env.<span class="number">0</span>, env_info.num_bindings <span class="kw">as </span>u32);
+        compiler.patch_jump_with_target(push_env.<span class="number">1</span>, env_info.index <span class="kw">as </span>u32);
+        compiler.emit_opcode(Opcode::PopEnvironment);
+
+        <span class="kw">let </span>code_block = Gc::new(compiler.finish());
+
         <span class="comment">// Indirect calls don&#39;t need extensions, because a non-strict indirect call modifies only
         // the global object.
         // Strict direct calls also don&#39;t need extensions, since all strict eval calls push a new

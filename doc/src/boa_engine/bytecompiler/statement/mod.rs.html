@@ -80,30 +80,30 @@
 
 <span class="kw">impl </span>ByteCompiler&lt;<span class="lifetime">&#39;_</span>, <span class="lifetime">&#39;_</span>&gt; {
     <span class="doccomment">/// Compiles a [`Statement`] `boa_ast` node.
-    </span><span class="kw">pub fn </span>compile_stmt(<span class="kw-2">&amp;mut </span><span class="self">self</span>, node: <span class="kw-2">&amp;</span>Statement, use_expr: bool, configurable_globals: bool) {
+    </span><span class="kw">pub fn </span>compile_stmt(<span class="kw-2">&amp;mut </span><span class="self">self</span>, node: <span class="kw-2">&amp;</span>Statement, use_expr: bool) {
         <span class="kw">match </span>node {
             Statement::Var(var) =&gt; <span class="self">self</span>.compile_var_decl(var),
-            Statement::If(node) =&gt; <span class="self">self</span>.compile_if(node, use_expr, configurable_globals),
+            Statement::If(node) =&gt; <span class="self">self</span>.compile_if(node, use_expr),
             Statement::ForLoop(for_loop) =&gt; {
-                <span class="self">self</span>.compile_for_loop(for_loop, <span class="prelude-val">None</span>, configurable_globals);
+                <span class="self">self</span>.compile_for_loop(for_loop, <span class="prelude-val">None</span>);
             }
             Statement::ForInLoop(for_in_loop) =&gt; {
-                <span class="self">self</span>.compile_for_in_loop(for_in_loop, <span class="prelude-val">None</span>, configurable_globals);
+                <span class="self">self</span>.compile_for_in_loop(for_in_loop, <span class="prelude-val">None</span>);
             }
             Statement::ForOfLoop(for_of_loop) =&gt; {
-                <span class="self">self</span>.compile_for_of_loop(for_of_loop, <span class="prelude-val">None</span>, configurable_globals);
+                <span class="self">self</span>.compile_for_of_loop(for_of_loop, <span class="prelude-val">None</span>);
             }
             Statement::WhileLoop(while_loop) =&gt; {
-                <span class="self">self</span>.compile_while_loop(while_loop, <span class="prelude-val">None</span>, configurable_globals);
+                <span class="self">self</span>.compile_while_loop(while_loop, <span class="prelude-val">None</span>);
             }
             Statement::DoWhileLoop(do_while_loop) =&gt; {
-                <span class="self">self</span>.compile_do_while_loop(do_while_loop, <span class="prelude-val">None</span>, configurable_globals);
+                <span class="self">self</span>.compile_do_while_loop(do_while_loop, <span class="prelude-val">None</span>);
             }
             Statement::Block(block) =&gt; {
-                <span class="self">self</span>.compile_block(block, use_expr, configurable_globals);
+                <span class="self">self</span>.compile_block(block, use_expr);
             }
             Statement::Labelled(labelled) =&gt; {
-                <span class="self">self</span>.compile_labelled(labelled, use_expr, configurable_globals);
+                <span class="self">self</span>.compile_labelled(labelled, use_expr);
             }
             Statement::Continue(node) =&gt; <span class="self">self</span>.compile_continue(<span class="kw-2">*</span>node),
             Statement::Break(node) =&gt; <span class="self">self</span>.compile_break(<span class="kw-2">*</span>node),
@@ -112,7 +112,7 @@
                 <span class="self">self</span>.emit(Opcode::Throw, <span class="kw-2">&amp;</span>[]);
             }
             Statement::Switch(switch) =&gt; {
-                <span class="self">self</span>.compile_switch(switch, configurable_globals);
+                <span class="self">self</span>.compile_switch(switch);
             }
             Statement::Return(ret) =&gt; {
                 <span class="kw">if let </span><span class="prelude-val">Some</span>(expr) = ret.target() {
@@ -122,9 +122,9 @@
                 }
                 <span class="self">self</span>.emit(Opcode::Return, <span class="kw-2">&amp;</span>[]);
             }
-            Statement::Try(t) =&gt; <span class="self">self</span>.compile_try(t, use_expr, configurable_globals),
+            Statement::Try(t) =&gt; <span class="self">self</span>.compile_try(t, use_expr),
             Statement::Expression(expr) =&gt; <span class="self">self</span>.compile_expr(expr, use_expr),
-            Statement::With(with) =&gt; <span class="self">self</span>.compile_with(with, configurable_globals),
+            Statement::With(with) =&gt; <span class="self">self</span>.compile_with(with),
             Statement::Empty =&gt; {}
         }
     }

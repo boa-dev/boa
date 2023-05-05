@@ -545,36 +545,11 @@
 <a href="#544" id="544">544</a>
 <a href="#545" id="545">545</a>
 <a href="#546" id="546">546</a>
-<a href="#547" id="547">547</a>
-<a href="#548" id="548">548</a>
-<a href="#549" id="549">549</a>
-<a href="#550" id="550">550</a>
-<a href="#551" id="551">551</a>
-<a href="#552" id="552">552</a>
-<a href="#553" id="553">553</a>
-<a href="#554" id="554">554</a>
-<a href="#555" id="555">555</a>
-<a href="#556" id="556">556</a>
-<a href="#557" id="557">557</a>
-<a href="#558" id="558">558</a>
-<a href="#559" id="559">559</a>
-<a href="#560" id="560">560</a>
-<a href="#561" id="561">561</a>
-<a href="#562" id="562">562</a>
-<a href="#563" id="563">563</a>
-<a href="#564" id="564">564</a>
-<a href="#565" id="565">565</a>
-<a href="#566" id="566">566</a>
-<a href="#567" id="567">567</a>
-<a href="#568" id="568">568</a>
-<a href="#569" id="569">569</a>
 </pre><pre class="rust"><code><span class="kw">use super</span>::{ByteCompiler, Literal, NodeKind};
 <span class="kw">use </span><span class="kw">crate</span>::vm::{BindingOpcode, Opcode};
 <span class="kw">use </span>boa_ast::{
-    declaration::Binding,
     expression::Identifier,
-    function::{Class, ClassElement},
-    operations::bound_names,
+    function::{Class, ClassElement, FormalParameterList},
     property::{MethodDefinition, PropertyName},
 };
 <span class="kw">use </span>boa_gc::Gc;
@@ -610,51 +585,22 @@
         <span class="kw">if let </span><span class="prelude-val">Some</span>(expr) = class.constructor() {
             compiler.length = expr.parameters().length();
             compiler.params = expr.parameters().clone();
-            compiler.create_mutable_binding(Sym::ARGUMENTS.into(), <span class="bool-val">false</span>, <span class="bool-val">false</span>);
-            compiler.arguments_binding =
-                <span class="prelude-val">Some</span>(compiler.initialize_mutable_binding(Sym::ARGUMENTS.into(), <span class="bool-val">false</span>));
-            <span class="kw">for </span>parameter <span class="kw">in </span>expr.parameters().as_ref() {
-                <span class="kw">if </span>parameter.is_rest_param() {
-                    compiler.emit_opcode(Opcode::RestParameterInit);
-                }
 
-                <span class="kw">match </span>parameter.variable().binding() {
-                    Binding::Identifier(ident) =&gt; {
-                        compiler.create_mutable_binding(<span class="kw-2">*</span>ident, <span class="bool-val">false</span>, <span class="bool-val">false</span>);
-                        <span class="kw">if let </span><span class="prelude-val">Some</span>(init) = parameter.variable().init() {
-                            <span class="kw">let </span>skip =
-                                compiler.emit_opcode_with_operand(Opcode::JumpIfNotUndefined);
-                            compiler.compile_expr(init, <span class="bool-val">true</span>);
-                            compiler.patch_jump(skip);
-                        }
-                        compiler.emit_binding(BindingOpcode::InitArg, <span class="kw-2">*</span>ident);
-                    }
-                    Binding::Pattern(pattern) =&gt; {
-                        <span class="kw">for </span>ident <span class="kw">in </span>bound_names(pattern) {
-                            compiler.create_mutable_binding(ident, <span class="bool-val">false</span>, <span class="bool-val">false</span>);
-                        }
-                        compiler.compile_declaration_pattern(pattern, BindingOpcode::InitArg);
-                    }
-                }
-            }
-            <span class="kw">if </span>!expr.parameters().has_rest_parameter() {
-                compiler.emit_opcode(Opcode::RestParameterPop);
-            }
-            <span class="kw">let </span>env_label = <span class="kw">if </span>expr.parameters().has_expressions() {
-                compiler.num_bindings = compiler.current_environment.borrow().num_bindings();
-                compiler.push_compile_environment(<span class="bool-val">true</span>);
-                compiler.function_environment_push_location = compiler.next_opcode_location();
-                <span class="prelude-val">Some</span>(compiler.emit_opcode_with_two_operands(Opcode::PushFunctionEnvironment))
-            } <span class="kw">else </span>{
-                <span class="prelude-val">None
-            </span>};
-            compiler.compile_statement_list(expr.body(), <span class="bool-val">false</span>, <span class="bool-val">false</span>);
+            <span class="kw">let </span>(env_labels, <span class="kw">_</span>) = compiler.function_declaration_instantiation(
+                expr.body(),
+                expr.parameters(),
+                <span class="bool-val">false</span>,
+                <span class="bool-val">true</span>,
+                <span class="bool-val">false</span>,
+            );
+
+            compiler.compile_statement_list(expr.body(), <span class="bool-val">false</span>);
 
             <span class="kw">let </span>env_info = compiler.pop_compile_environment();
 
-            <span class="kw">if let </span><span class="prelude-val">Some</span>(env_label) = env_label {
-                compiler.patch_jump_with_target(env_label.<span class="number">0</span>, env_info.num_bindings <span class="kw">as </span>u32);
-                compiler.patch_jump_with_target(env_label.<span class="number">1</span>, env_info.index <span class="kw">as </span>u32);
+            <span class="kw">if let </span><span class="prelude-val">Some</span>(env_labels) = env_labels {
+                compiler.patch_jump_with_target(env_labels.<span class="number">0</span>, env_info.num_bindings <span class="kw">as </span>u32);
+                compiler.patch_jump_with_target(env_labels.<span class="number">1</span>, env_info.index <span class="kw">as </span>u32);
                 compiler.pop_compile_environment();
             } <span class="kw">else </span>{
                 compiler.num_bindings = env_info.num_bindings;
@@ -966,8 +912,16 @@
                     compiler.push_compile_environment(<span class="bool-val">false</span>);
                     compiler.create_immutable_binding(class_name.into(), <span class="bool-val">true</span>);
                     compiler.push_compile_environment(<span class="bool-val">true</span>);
-                    compiler.create_declarations(statement_list, <span class="bool-val">false</span>);
-                    compiler.compile_statement_list(statement_list, <span class="bool-val">false</span>, <span class="bool-val">false</span>);
+
+                    compiler.function_declaration_instantiation(
+                        statement_list,
+                        <span class="kw-2">&amp;</span>FormalParameterList::default(),
+                        <span class="bool-val">false</span>,
+                        <span class="bool-val">true</span>,
+                        <span class="bool-val">false</span>,
+                    );
+
+                    compiler.compile_statement_list(statement_list, <span class="bool-val">false</span>);
                     <span class="kw">let </span>env_info = compiler.pop_compile_environment();
                     compiler.pop_compile_environment();
                     compiler.num_bindings = env_info.num_bindings;

@@ -972,6 +972,12 @@
 <a href="#971" id="971">971</a>
 <a href="#972" id="972">972</a>
 <a href="#973" id="973">973</a>
+<a href="#974" id="974">974</a>
+<a href="#975" id="975">975</a>
+<a href="#976" id="976">976</a>
+<a href="#977" id="977">977</a>
+<a href="#978" id="978">978</a>
+<a href="#979" id="979">979</a>
 </pre><pre class="rust"><code><span class="kw">use crate</span>::{
     environments::CompileTimeEnvironment, error::JsNativeError, object::JsObject, Context,
     JsResult, JsString, JsSymbol, JsValue,
@@ -1310,6 +1316,22 @@
         <span class="prelude-val">None
     </span>}
 
+    <span class="doccomment">/// Check if the next outer function environment is the global environment.
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>is_next_outer_function_environment_global(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="kw">for </span>env <span class="kw">in </span><span class="self">self
+            </span>.stack
+            .iter()
+            .rev()
+            .filter_map(Environment::as_declarative)
+        {
+            <span class="kw">let </span>compile = env.compile.borrow();
+            <span class="kw">if </span>compile.is_function() {
+                <span class="kw">return </span>compile.outer().is_none();
+            }
+        }
+        <span class="bool-val">true
+    </span>}
+
     <span class="doccomment">/// Pop all current environments except the global environment.
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>pop_to_global(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; Vec&lt;Environment&gt; {
         <span class="self">self</span>.stack.split_off(<span class="number">1</span>)
@@ -1455,14 +1477,9 @@
 
         <span class="kw">let </span>this = this.unwrap_or(JsValue::Null);
 
-        <span class="kw">let </span><span class="kw-2">mut </span>bindings = <span class="macro">vec!</span>[<span class="prelude-val">None</span>; num_bindings];
-        <span class="kw">for </span>index <span class="kw">in </span>compile_environment.borrow().var_binding_indices() {
-            bindings[index] = <span class="prelude-val">Some</span>(JsValue::Undefined);
-        }
-
         <span class="self">self</span>.stack
             .push(Environment::Declarative(Gc::new(DeclarativeEnvironment {
-                bindings: GcRefCell::new(bindings),
+                bindings: GcRefCell::new(<span class="macro">vec!</span>[<span class="prelude-val">None</span>; num_bindings]),
                 compile: compile_environment,
                 poisoned: Cell::new(poisoned),
                 with: Cell::new(with),
@@ -1513,14 +1530,9 @@
             )
         };
 
-        <span class="kw">let </span><span class="kw-2">mut </span>bindings = <span class="macro">vec!</span>[<span class="prelude-val">None</span>; num_bindings];
-        <span class="kw">for </span>index <span class="kw">in </span>compile_environment.borrow().var_binding_indices() {
-            bindings[index] = <span class="prelude-val">Some</span>(JsValue::Undefined);
-        }
-
         <span class="self">self</span>.stack
             .push(Environment::Declarative(Gc::new(DeclarativeEnvironment {
-                bindings: GcRefCell::new(bindings),
+                bindings: GcRefCell::new(<span class="macro">vec!</span>[<span class="prelude-val">None</span>; num_bindings]),
                 compile: compile_environment,
                 poisoned: Cell::new(poisoned),
                 with: Cell::new(with),
