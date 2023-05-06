@@ -243,7 +243,7 @@ impl Test {
                 (true, value.display().to_string())
             }
             Outcome::Negative {
-                phase: Phase::Parse | Phase::Early,
+                phase: Phase::Parse,
                 error_type,
             } => {
                 assert_eq!(
@@ -259,18 +259,12 @@ impl Test {
 
                 if self.is_module() {
                     match context.parse_module(source) {
-                        Ok(module_item_list) => match context.compile_module(&module_item_list) {
-                            Ok(_) => (false, "ModuleItemList compilation should fail".to_owned()),
-                            Err(e) => (true, format!("Uncaught {e:?}")),
-                        },
+                        Ok(_) => (false, "ModuleItemList parsing should fail".to_owned()),
                         Err(e) => (true, format!("Uncaught {e}")),
                     }
                 } else {
                     match context.parse_script(source) {
-                        Ok(statement_list) => match context.compile_script(&statement_list) {
-                            Ok(_) => (false, "StatementList compilation should fail".to_owned()),
-                            Err(e) => (true, format!("Uncaught {e:?}")),
-                        },
+                        Ok(_) => (false, "StatementList parsing should fail".to_owned()),
                         Err(e) => (true, format!("Uncaught {e}")),
                     }
                 }
@@ -290,30 +284,33 @@ impl Test {
                 if let Err(e) = self.set_up_env(harness, context, AsyncResult::default()) {
                     return (false, e);
                 }
-                let code = if self.is_module() {
-                    match context
-                        .parse_module(source)
-                        .map_err(Into::into)
-                        .and_then(|stmts| context.compile_module(&stmts))
-                    {
+
+                let e = if self.is_module() {
+                    let module = match context.parse_module(source) {
                         Ok(code) => code,
                         Err(e) => return (false, format!("Uncaught {e}")),
+                    };
+                    match context
+                        .compile_module(&module)
+                        .and_then(|code| context.execute(code))
+                    {
+                        Ok(_) => return (false, "Module execution should fail".to_owned()),
+                        Err(e) => e,
                     }
                 } else {
-                    match context
-                        .parse_script(source)
-                        .map_err(Into::into)
-                        .and_then(|stmts| context.compile_script(&stmts))
-                    {
+                    let script = match context.parse_script(source) {
                         Ok(code) => code,
                         Err(e) => return (false, format!("Uncaught {e}")),
+                    };
+                    match context
+                        .compile_script(&script)
+                        .and_then(|code| context.execute(code))
+                    {
+                        Ok(_) => return (false, "Script execution should fail".to_owned()),
+                        Err(e) => e,
                     }
                 };
 
-                let e = match context.execute(code) {
-                    Ok(res) => return (false, res.display().to_string()),
-                    Err(e) => e,
-                };
                 if let Ok(e) = e.try_native(context) {
                     match &e.kind {
                         JsNativeErrorKind::Syntax if error_type == ErrorType::SyntaxError => {}

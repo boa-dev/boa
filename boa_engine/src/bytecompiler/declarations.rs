@@ -26,16 +26,44 @@ impl ByteCompiler<'_, '_> {
         &mut self,
         script: &StatementList,
     ) -> JsResult<()> {
-        // Note: Step 1-4 Are currently handled while parsing.
         // 1. Let lexNames be the LexicallyDeclaredNames of script.
+        let lex_names = top_level_lexically_declared_names(script);
+
         // 2. Let varNames be the VarDeclaredNames of script.
+        let var_names = top_level_var_declared_names(script);
+
         // 3. For each element name of lexNames, do
-        //     a. If env.HasVarDeclaration(name) is true, throw a SyntaxError exception.
-        //     b. If env.HasLexicalDeclaration(name) is true, throw a SyntaxError exception.
-        //     c. Let hasRestrictedGlobal be ? env.HasRestrictedGlobalProperty(name).
-        //     d. If hasRestrictedGlobal is true, throw a SyntaxError exception.
+        for name in lex_names {
+            // Note: Our implementation differs from the spec here.
+            // a. If env.HasVarDeclaration(name) is true, throw a SyntaxError exception.
+
+            // b. If env.HasLexicalDeclaration(name) is true, throw a SyntaxError exception.
+            if self.has_binding(name) {
+                return Err(JsNativeError::syntax()
+                    .with_message("duplicate lexical declaration")
+                    .into());
+            }
+
+            // c. Let hasRestrictedGlobal be ? env.HasRestrictedGlobalProperty(name).
+            let has_restricted_global = self.context.has_restricted_global_property(name)?;
+
+            // d. If hasRestrictedGlobal is true, throw a SyntaxError exception.
+            if has_restricted_global {
+                return Err(JsNativeError::syntax()
+                    .with_message("restricted global property")
+                    .into());
+            }
+        }
+
         // 4. For each element name of varNames, do
-        //     a. If env.HasLexicalDeclaration(name) is true, throw a SyntaxError exception.
+        for name in var_names {
+            // a. If env.HasLexicalDeclaration(name) is true, throw a SyntaxError exception.
+            if self.has_binding(name) {
+                return Err(JsNativeError::syntax()
+                    .with_message("duplicate lexical declaration")
+                    .into());
+            }
+        }
 
         // 5. Let varDeclarations be the VarScopedDeclarations of script.
         // Note: VarScopedDeclarations for a Script node is TopLevelVarScopedDeclarations.

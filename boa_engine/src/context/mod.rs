@@ -812,6 +812,35 @@ impl Context<'_> {
         // 9. Return unused.
         Ok(())
     }
+
+    /// `HasRestrictedGlobalProperty ( N )`
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-hasrestrictedglobalproperty
+    pub(crate) fn has_restricted_global_property(&mut self, name: Identifier) -> JsResult<bool> {
+        // 1. Let ObjRec be envRec.[[ObjectRecord]].
+        // 2. Let globalObject be ObjRec.[[BindingObject]].
+        let global_object = self.realm().global_object().clone();
+
+        // 3. Let existingProp be ? globalObject.[[GetOwnProperty]](N).
+        let name = PropertyKey::from(self.interner().resolve_expect(name.sym()).utf16());
+        let existing_prop = global_object.__get_own_property__(&name, self)?;
+
+        // 4. If existingProp is undefined, return false.
+        let Some(existing_prop) = existing_prop else {
+            return Ok(false);
+        };
+
+        // 5. If existingProp.[[Configurable]] is true, return false.
+        if existing_prop.configurable() == Some(true) {
+            return Ok(false);
+        }
+
+        // 6. Return true.
+        Ok(true)
+    }
 }
 
 impl<'host> Context<'host> {
