@@ -25,7 +25,7 @@ impl ByteCompiler<'_, '_> {
 
                 self.emit_opcode_with_operand(Opcode::Case)
             } else {
-                Self::DUMMY_LABLE
+                Self::DUMMY_LABEL
             };
 
             labels.push(label);
@@ -36,7 +36,7 @@ impl ByteCompiler<'_, '_> {
 
         for (label, case) in labels.into_iter().zip(switch.cases()) {
             // Check if it's the default case.
-            let label = if label == Self::DUMMY_LABLE {
+            let label = if label == Self::DUMMY_LABEL {
                 default_label_set = true;
                 default_label
             } else {

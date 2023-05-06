@@ -295,7 +295,7 @@ pub struct ByteCompiler<'ctx, 'host> {
 impl<'ctx, 'host> ByteCompiler<'ctx, 'host> {
     /// Represents a placeholder address that will be patched later.
     const DUMMY_ADDRESS: u32 = u32::MAX;
-    const DUMMY_LABLE: Label = Label { index: u32::MAX };
+    const DUMMY_LABEL: Label = Label { index: u32::MAX };
 
     /// Creates a new [`ByteCompiler`].
     #[inline]
