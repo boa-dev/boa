@@ -569,25 +569,25 @@ fn split_with_symbol_split_method() {
         TestAction::run_harness(),
         TestAction::assert_eq(
             indoc! {r#"
-                let sep = {};
-                sep[Symbol.split] = function(s, limit) { return s + limit.toString(); };
-                'hello'.split(sep, 10)
+                let sep_a = {};
+                sep_a[Symbol.split] = function(s, limit) { return s + limit.toString(); };
+                'hello'.split(sep_a, 10)
             "#},
             "hello10",
         ),
         TestAction::assert(indoc! {r#"
-                let sep = {};
-                sep[Symbol.split] = undefined;
+                let sep_b = {};
+                sep_b[Symbol.split] = undefined;
                 arrayEquals(
-                    'hello'.split(sep),
+                    'hello'.split(sep_b),
                     ['hello']
                 )
             "#}),
         TestAction::assert_native_error(
             indoc! {r#"
-                let sep = {};
-                sep[Symbol.split] = 10;
-                'hello'.split(sep, 10);
+                let sep_c = {};
+                sep_c[Symbol.split] = 10;
+                'hello'.split(sep_c, 10);
             "#},
             JsNativeErrorKind::Type,
             "value returned for property of object is not a function",
