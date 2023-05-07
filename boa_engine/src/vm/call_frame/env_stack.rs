@@ -193,9 +193,9 @@ impl EnvStackEntry {
     }
 
     /// Set the loop return value for the current `EnvStackEntry`.
-    pub(crate) fn set_loop_return_value(&mut self, value: &JsValue) -> bool {
+    pub(crate) fn set_loop_return_value(&mut self, value: JsValue) -> bool {
         if let EnvEntryKind::Loop { value: v, .. } = &mut self.kind {
-            *v = value.clone();
+            *v = value;
             true
         } else {
             false

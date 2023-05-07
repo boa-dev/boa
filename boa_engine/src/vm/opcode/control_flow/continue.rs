@@ -37,7 +37,7 @@ impl Operation for Continue {
             };
 
             if found_target {
-                set_loop_result = env_entry.set_loop_return_value(&value);
+                set_loop_result = env_entry.set_loop_return_value(value.clone());
                 continue;
             }
 
@@ -48,7 +48,7 @@ impl Operation for Continue {
                 || (jump_address == target_address && jump_address == env_entry.start_address())
             {
                 found_target = true;
-                set_loop_result = env_entry.set_loop_return_value(&value);
+                set_loop_result = env_entry.set_loop_return_value(value.clone());
                 continue;
             }
 
@@ -56,7 +56,7 @@ impl Operation for Continue {
             // The below check determines whether we have continued from inside of a finally block.
             if jump_address > target_address && jump_address == env_entry.exit_address() {
                 found_target = true;
-                set_loop_result = env_entry.set_loop_return_value(&value);
+                set_loop_result = env_entry.set_loop_return_value(value.clone());
                 context.vm.frame_mut().env_stack.pop();
                 continue;
             }

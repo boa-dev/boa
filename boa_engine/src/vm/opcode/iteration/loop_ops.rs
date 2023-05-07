@@ -80,7 +80,6 @@ impl Operation for LoopEnd {
     const INSTRUCTION: &'static str = "INST - LoopEnd";
 
     fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
-        //cleanup_loop_environment(context);
         let mut envs_to_pop = 0_usize;
         while let Some(env_entry) = context.vm.frame_mut().env_stack.pop() {
             envs_to_pop += env_entry.env_num();
@@ -118,7 +117,7 @@ impl Operation for LoopUpdateReturnValue {
             .env_stack
             .last_mut()
             .expect("loop environment must be present")
-            .set_loop_return_value(&value);
+            .set_loop_return_value(value);
         Ok(CompletionType::Normal)
     }
 }

@@ -33,7 +33,7 @@ impl Operation for Break {
             };
 
             if found_target {
-                set_loop_result = env_entry.set_loop_return_value(&value);
+                set_loop_result = env_entry.set_loop_return_value(value.clone());
                 continue;
             }
 
@@ -41,14 +41,14 @@ impl Operation for Break {
                 || (env_entry.is_finally_env() && jump_address == env_entry.start_address())
             {
                 found_target = true;
-                set_loop_result = env_entry.set_loop_return_value(&value);
+                set_loop_result = env_entry.set_loop_return_value(value.clone());
                 continue;
             }
 
             // Checks for the break if we have jumped from inside of a finally block
             if jump_address == env_entry.exit_address() {
                 found_target = true;
-                set_loop_result = env_entry.set_loop_return_value(&value);
+                set_loop_result = env_entry.set_loop_return_value(value.clone());
                 continue;
             }
             envs_to_pop += env_entry.env_num();
