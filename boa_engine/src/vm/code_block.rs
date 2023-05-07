@@ -330,12 +330,9 @@ impl CodeBlock {
                     self.functions[operand as usize].length
                 )
             }
-            Opcode::DefInitArg
-            | Opcode::DefVar
+            Opcode::DefVar
             | Opcode::DefInitVar
-            | Opcode::DefLet
-            | Opcode::DefInitLet
-            | Opcode::DefInitConst
+            | Opcode::InitializeLexical
             | Opcode::GetName
             | Opcode::GetLocator
             | Opcode::GetNameAndLocator

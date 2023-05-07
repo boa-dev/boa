@@ -66,6 +66,15 @@ impl ByteCompiler<'_, '_> {
             .has_binding_eval(name, strict)
     }
 
+    #[cfg(feature = "annex-b")]
+    /// Check if a binding name exists in a environment.
+    /// Stop when a function scope is reached.
+    pub(crate) fn has_binding_until_var(&self, name: Identifier) -> bool {
+        self.current_environment
+            .borrow()
+            .has_binding_until_var(name)
+    }
+
     /// Create a mutable binding at bytecode compile time.
     /// This function returns a syntax error, if the binding is a redeclaration.
     ///
@@ -118,5 +127,13 @@ impl ByteCompiler<'_, '_> {
         self.current_environment
             .borrow()
             .set_mutable_binding_recursive(name)
+    }
+
+    #[cfg(feature = "annex-b")]
+    /// Return the binding locator for a set operation on an existing var binding.
+    pub(crate) fn set_mutable_binding_var(&self, name: Identifier) -> BindingLocator {
+        self.current_environment
+            .borrow()
+            .set_mutable_binding_var_recursive(name)
     }
 }

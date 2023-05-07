@@ -66,57 +66,26 @@ impl Operation for DefInitVar {
     }
 }
 
-/// `DefLet` implements the Opcode Operation for `Opcode::DefLet`
+/// `InitializeLexical` implements the Opcode Operation for `Opcode::InitializeLexical`
 ///
 /// Operation:
-///  - Declare `let` type variable.
+///  - Initialize a lexical binding.
 #[derive(Debug, Clone, Copy)]
-pub(crate) struct DefLet;
+pub(crate) struct InitializeLexical;
 
-impl Operation for DefLet {
-    const NAME: &'static str = "DefLet";
-    const INSTRUCTION: &'static str = "INST - DefLet";
+impl Operation for InitializeLexical {
+    const NAME: &'static str = "InitializeLexical";
+    const INSTRUCTION: &'static str = "INST - InitializeLexical";
 
     fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
         let index = context.vm.read::<u32>();
+        let value = context.vm.pop();
         let binding_locator = context.vm.frame().code_block.bindings[index as usize];
         context.vm.environments.put_declarative_value(
             binding_locator.environment_index(),
             binding_locator.binding_index(),
-            JsValue::Undefined,
+            value,
         );
         Ok(CompletionType::Normal)
     }
 }
-
-macro_rules! implement_declaratives {
-    ($name:ident, $doc_string:literal) => {
-        #[doc= concat!("`", stringify!($name), "` implements the OpCode Operation for `Opcode::", stringify!($name), "`\n")]
-        #[doc= "\n"]
-        #[doc="Operation:\n"]
-        #[doc= concat!(" - ", $doc_string)]
-        #[derive(Debug, Clone, Copy)]
-        pub(crate) struct $name;
-
-        impl Operation for $name {
-            const NAME: &'static str = stringify!($name);
-            const INSTRUCTION: &'static str = stringify!("INST - " + $name);
-
-            fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
-                let index = context.vm.read::<u32>();
-                let value = context.vm.pop();
-                let binding_locator = context.vm.frame().code_block.bindings[index as usize];
-                context.vm.environments.put_declarative_value(
-                    binding_locator.environment_index(),
-                    binding_locator.binding_index(),
-                    value,
-                );
-                Ok(CompletionType::Normal)
-            }
-        }
-    };
-}
-
-implement_declaratives!(DefInitLet, "Declare and initialize `let` type variable");
-implement_declaratives!(DefInitConst, "Declare and initialize `const` type variable");
-implement_declaratives!(DefInitArg, "Declare and initialize function arguments");

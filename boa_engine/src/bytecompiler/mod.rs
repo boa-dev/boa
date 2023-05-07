@@ -290,6 +290,9 @@ pub struct ByteCompiler<'ctx, 'host> {
 
     // TODO: remove when we separate scripts from the context
     context: &'ctx mut Context<'host>,
+
+    #[cfg(feature = "annex-b")]
+    annex_b_function_names: Vec<Identifier>,
 }
 
 impl<'ctx, 'host> ByteCompiler<'ctx, 'host> {
@@ -337,6 +340,9 @@ impl<'ctx, 'host> ByteCompiler<'ctx, 'host> {
             json_parse,
             current_environment,
             context,
+
+            #[cfg(feature = "annex-b")]
+            annex_b_function_names: Vec::new(),
         }
     }
 
@@ -403,11 +409,6 @@ impl<'ctx, 'host> ByteCompiler<'ctx, 'host> {
                 let index = self.get_or_insert_binding(binding);
                 self.emit(Opcode::DefVar, &[index]);
             }
-            BindingOpcode::Let => {
-                let binding = self.initialize_mutable_binding(name, false);
-                let index = self.get_or_insert_binding(binding);
-                self.emit(Opcode::DefLet, &[index]);
-            }
             BindingOpcode::InitVar => {
                 let binding = if self.has_binding(name) {
                     self.set_mutable_binding(name)
@@ -420,12 +421,12 @@ impl<'ctx, 'host> ByteCompiler<'ctx, 'host> {
             BindingOpcode::InitLet => {
                 let binding = self.initialize_mutable_binding(name, false);
                 let index = self.get_or_insert_binding(binding);
-                self.emit(Opcode::DefInitLet, &[index]);
+                self.emit(Opcode::InitializeLexical, &[index]);
             }
             BindingOpcode::InitConst => {
                 let binding = self.initialize_immutable_binding(name);
                 let index = self.get_or_insert_binding(binding);
-                self.emit(Opcode::DefInitConst, &[index]);
+                self.emit(Opcode::InitializeLexical, &[index]);
             }
             BindingOpcode::SetName => {
                 let binding = self.set_mutable_binding(name);
@@ -742,7 +743,7 @@ impl<'ctx, 'host> ByteCompiler<'ctx, 'host> {
     }
 
     /// Compile a [`StatementList`].
-    pub fn compile_statement_list(&mut self, list: &StatementList, use_expr: bool) {
+    pub fn compile_statement_list(&mut self, list: &StatementList, use_expr: bool, block: bool) {
         if use_expr {
             let expr_index = list
                 .statements()
@@ -758,11 +759,11 @@ impl<'ctx, 'host> ByteCompiler<'ctx, 'host> {
                 .count();
 
             for (i, item) in list.statements().iter().enumerate() {
-                self.compile_stmt_list_item(item, i + 1 == expr_index);
+                self.compile_stmt_list_item(item, i + 1 == expr_index, block);
             }
         } else {
             for item in list.statements() {
-                self.compile_stmt_list_item(item, false);
+                self.compile_stmt_list_item(item, false, block);
             }
         }
     }
@@ -980,10 +981,10 @@ impl<'ctx, 'host> ByteCompiler<'ctx, 'host> {
                             let ident = ident;
                             if let Some(expr) = variable.init() {
                                 self.compile_expr(expr, true);
-                                self.emit_binding(BindingOpcode::InitLet, *ident);
                             } else {
-                                self.emit_binding(BindingOpcode::Let, *ident);
+                                self.emit_opcode(Opcode::PushUndefined);
                             }
+                            self.emit_binding(BindingOpcode::InitLet, *ident);
                         }
                         Binding::Pattern(pattern) => {
                             if let Some(init) = variable.init() {
@@ -1023,18 +1024,33 @@ impl<'ctx, 'host> ByteCompiler<'ctx, 'host> {
     }
 
     /// Compile a [`StatementListItem`].
-    fn compile_stmt_list_item(&mut self, item: &StatementListItem, use_expr: bool) {
+    fn compile_stmt_list_item(&mut self, item: &StatementListItem, use_expr: bool, block: bool) {
         match item {
             StatementListItem::Statement(stmt) => {
                 self.compile_stmt(stmt, use_expr);
             }
-            StatementListItem::Declaration(decl) => self.compile_decl(decl),
+            StatementListItem::Declaration(decl) => self.compile_decl(decl, block),
         }
     }
 
     /// Compile a [`Declaration`].
-    pub fn compile_decl(&mut self, decl: &Declaration) {
+    #[allow(unused_variables)]
+    pub fn compile_decl(&mut self, decl: &Declaration, block: bool) {
         match decl {
+            #[cfg(feature = "annex-b")]
+            Declaration::Function(function) if block => {
+                let name = function
+                    .name()
+                    .expect("function declaration must have name");
+                if self.annex_b_function_names.contains(&name) {
+                    let binding = self.get_binding_value(name);
+                    let index = self.get_or_insert_binding(binding);
+                    self.emit(Opcode::GetName, &[index]);
+                    let binding = self.set_mutable_binding_var(name);
+                    let index = self.get_or_insert_binding(binding);
+                    self.emit(Opcode::SetName, &[index]);
+                }
+            }
             Declaration::Class(class) => self.class(class, false),
             Declaration::Lexical(lexical) => self.compile_lexical_decl(lexical),
             _ => {}

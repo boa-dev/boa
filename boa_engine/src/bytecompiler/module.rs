@@ -18,7 +18,7 @@ impl ByteCompiler<'_, '_> {
     pub fn compile_module_item(&mut self, item: &ModuleItem) {
         match item {
             ModuleItem::StatementListItem(stmt) => {
-                self.compile_stmt_list_item(stmt, false);
+                self.compile_stmt_list_item(stmt, false, false);
             }
             _ => {
                 // TODO: Remove after implementing modules.

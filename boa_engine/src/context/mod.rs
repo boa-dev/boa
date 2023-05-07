@@ -262,7 +262,7 @@ impl<'host> Context<'host> {
             self,
         );
         compiler.global_declaration_instantiation(statement_list)?;
-        compiler.compile_statement_list(statement_list, true);
+        compiler.compile_statement_list(statement_list, true, false);
         Ok(Gc::new(compiler.finish()))
     }
 
