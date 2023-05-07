@@ -98,7 +98,8 @@ where
                 | Keyword::This
                 | Keyword::Function
                 | Keyword::Class
-                | Keyword::Async,
+                | Keyword::Async
+                | Keyword::Super,
                 _,
             ))
             | TokenKind::BooleanLiteral(_)

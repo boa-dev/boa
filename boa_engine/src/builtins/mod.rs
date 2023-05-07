@@ -538,13 +538,16 @@ impl ApplyToObject for OrdinaryFunction {
 
 impl<S: ApplyToObject + IsConstructor> ApplyToObject for Callable<S> {
     fn apply_to(self, object: &mut BuiltInObjectInitializer) {
-        let function = ObjectData::function(function::Function::new(
-            function::FunctionKind::Native {
-                function: NativeFunction::from_fn_ptr(self.function),
-                constructor: S::IS_CONSTRUCTOR.then_some(function::ConstructorKind::Base),
-            },
-            self.realm,
-        ));
+        let function = ObjectData::function(
+            function::Function::new(
+                function::FunctionKind::Native {
+                    function: NativeFunction::from_fn_ptr(self.function),
+                    constructor: S::IS_CONSTRUCTOR.then_some(function::ConstructorKind::Base),
+                },
+                self.realm,
+            ),
+            S::IS_CONSTRUCTOR,
+        );
         object.set_data(function);
         object.insert(
             utf16!("length"),
@@ -922,7 +925,7 @@ impl BuiltInCallable<'_> {
         let function = function::Function::new(function, self.realm.clone());
 
         let object = self.realm.intrinsics().templates().function().create(
-            ObjectData::function(function),
+            ObjectData::function(function, false),
             vec![JsValue::new(self.length), JsValue::new(self.name)],
         );
 

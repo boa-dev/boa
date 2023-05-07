@@ -407,11 +407,7 @@ impl ObjectData {
     /// Create the `AsyncGeneratorFunction` object data
     pub fn async_generator_function(function: Function) -> Self {
         Self {
-            internal_methods: if function.is_constructor() {
-                &CONSTRUCTOR_INTERNAL_METHODS
-            } else {
-                &FUNCTION_INTERNAL_METHODS
-            },
+            internal_methods: &FUNCTION_INTERNAL_METHODS,
             kind: ObjectKind::GeneratorFunction(function),
         }
     }
@@ -518,9 +514,9 @@ impl ObjectData {
     }
 
     /// Create the `Function` object data
-    pub fn function(function: Function) -> Self {
+    pub fn function(function: Function, constructor: bool) -> Self {
         Self {
-            internal_methods: if function.is_constructor() {
+            internal_methods: if constructor {
                 &CONSTRUCTOR_INTERNAL_METHODS
             } else {
                 &FUNCTION_INTERNAL_METHODS
@@ -552,11 +548,7 @@ impl ObjectData {
     /// Create the `GeneratorFunction` object data
     pub fn generator_function(function: Function) -> Self {
         Self {
-            internal_methods: if function.is_constructor() {
-                &CONSTRUCTOR_INTERNAL_METHODS
-            } else {
-                &FUNCTION_INTERNAL_METHODS
-            },
+            internal_methods: &FUNCTION_INTERNAL_METHODS,
             kind: ObjectKind::GeneratorFunction(function),
         }
     }
@@ -1868,7 +1860,7 @@ impl<'ctx, 'host> FunctionObjectBuilder<'ctx, 'host> {
             self.context.realm().clone(),
         );
         let object = self.context.intrinsics().templates().function().create(
-            ObjectData::function(function),
+            ObjectData::function(function, self.constructor.is_some()),
             vec![self.length.into(), self.name.into()],
         );
 
@@ -2303,7 +2295,7 @@ impl<'ctx, 'host> ConstructorBuilder<'ctx, 'host> {
             let mut constructor = self.constructor_object;
             constructor.insert(utf16!("length"), length);
             constructor.insert(utf16!("name"), name);
-            let data = ObjectData::function(function);
+            let data = ObjectData::function(function, self.kind.is_some());
 
             constructor.kind = data.kind;
 

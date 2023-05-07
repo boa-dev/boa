@@ -380,14 +380,24 @@ impl CodeBlock {
                 Opcode::GetArrowFunction
                 | Opcode::GetAsyncArrowFunction
                 | Opcode::GetFunction
-                | Opcode::GetFunctionAsync
-                | Opcode::GetGenerator
-                | Opcode::GetGeneratorAsync => {
+                | Opcode::GetFunctionAsync => {
                     let operand = self.read::<u32>(pc);
                     let fn_name = interner
                         .resolve_expect(self.functions[operand as usize].name)
                         .to_string();
                     pc += size_of::<u32>() + size_of::<u8>();
+                    let label = format!(
+                        "{opcode_str} '{fn_name}' (length: {})",
+                        self.functions[operand as usize].length
+                    );
+                    graph.add_node(previous_pc, NodeShape::None, label.into(), Color::None);
+                    graph.add_edge(previous_pc, pc, None, Color::None, EdgeStyle::Line);
+                }
+                Opcode::GetGenerator | Opcode::GetGeneratorAsync => {
+                    let operand = self.read::<u32>(pc);
+                    let fn_name = interner
+                        .resolve_expect(self.functions[operand as usize].name)
+                        .to_string();
                     let label = format!(
                         "{opcode_str} '{fn_name}' (length: {})",
                         self.functions[operand as usize].length

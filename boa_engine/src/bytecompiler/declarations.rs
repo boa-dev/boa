@@ -195,7 +195,7 @@ impl ByteCompiler<'_, '_> {
 
             // b. Let fo be InstantiateFunctionObject of f with arguments env and privateEnv.
             let function = if generator {
-                create_generator_function_object(code, r#async, false, None, self.context)
+                create_generator_function_object(code, r#async, None, self.context)
             } else {
                 create_function_object_fast(code, r#async, false, false, self.context)
             };
@@ -502,7 +502,7 @@ impl ByteCompiler<'_, '_> {
             if var_environment_is_global {
                 // b. Let fo be InstantiateFunctionObject of f with arguments lexEnv and privateEnv.
                 let function = if generator {
-                    create_generator_function_object(code, r#async, false, None, self.context)
+                    create_generator_function_object(code, r#async, None, self.context)
                 } else {
                     create_function_object_fast(code, r#async, false, false, self.context)
                 };
@@ -525,7 +525,9 @@ impl ByteCompiler<'_, '_> {
                 } else {
                     self.emit(Opcode::GetFunction, &[index]);
                 }
-                self.emit_u8(0);
+                if !generator {
+                    self.emit_u8(0);
+                }
 
                 // i. Let bindingExists be ! varEnv.HasBinding(fn).
                 let binding_exists = self.has_binding_eval(name, strict);
