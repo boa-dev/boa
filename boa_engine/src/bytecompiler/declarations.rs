@@ -15,6 +15,9 @@ use boa_ast::{
 };
 use boa_interner::Sym;
 
+#[cfg(feature = "annex-b")]
+use boa_ast::operations::annex_b_function_declarations_names;
+
 impl ByteCompiler<'_, '_> {
     /// `GlobalDeclarationInstantiation ( script, env )`
     ///
@@ -151,8 +154,55 @@ impl ByteCompiler<'_, '_> {
         // 11. NOTE: No abnormal terminations occur after this algorithm step if the global object is an ordinary object.
         //     However, if the global object is a Proxy exotic object it may exhibit behaviours
         //     that cause abnormal terminations in some of the following steps.
+
         // 12. NOTE: Annex B.3.2.2 adds additional steps at this point.
-        // TODO: Support B.3.2.2.
+        // 12. Perform the following steps:
+        // a. Let strict be IsStrict of script.
+        // b. If strict is false, then
+        #[cfg(feature = "annex-b")]
+        if !script.strict() {
+            let lex_names = top_level_lexically_declared_names(script);
+
+            // i. Let declaredFunctionOrVarNames be the list-concatenation of declaredFunctionNames and declaredVarNames.
+            // ii. For each FunctionDeclaration f that is directly contained in the StatementList of a Block, CaseClause,
+            //     or DefaultClause Contained within script, do
+            for f in annex_b_function_declarations_names(script) {
+                // 1. Let F be StringValue of the BindingIdentifier of f.
+                // 2. If replacing the FunctionDeclaration f with a VariableStatement that has F as a BindingIdentifier
+                //    would not produce any Early Errors for script, then
+                if !lex_names.contains(&f) {
+                    // a. If env.HasLexicalDeclaration(F) is false, then
+                    if !self.current_environment.borrow().has_lex_binding(f) {
+                        // i. Let fnDefinable be ? env.CanDeclareGlobalVar(F).
+                        let fn_definable = self.context.can_declare_global_function(f)?;
+
+                        // ii. If fnDefinable is true, then
+                        if fn_definable {
+                            // i. NOTE: A var binding for F is only instantiated here if it is neither
+                            //          a VarDeclaredName nor the name of another FunctionDeclaration.
+                            // ii. If declaredFunctionOrVarNames does not contain F, then
+                            if !declared_function_names.contains(&f)
+                                && !declared_var_names.contains(&f)
+                            {
+                                // i. Perform ? env.CreateGlobalVarBinding(F, false).
+                                self.context.create_global_var_binding(f, false)?;
+
+                                // ii. Append F to declaredFunctionOrVarNames.
+                                declared_function_names.push(f);
+                            }
+                            // iii. When the FunctionDeclaration f is evaluated, perform the following
+                            //      steps in place of the FunctionDeclaration Evaluation algorithm provided in 15.2.6:
+                            //     i. Let genv be the running execution context's VariableEnvironment.
+                            //     ii. Let benv be the running execution context's LexicalEnvironment.
+                            //     iii. Let fobj be ! benv.GetBindingValue(F, false).
+                            //     iv. Perform ? genv.SetMutableBinding(F, fobj, false).
+                            //     v. Return unused.
+                            self.annex_b_function_names.push(f);
+                        }
+                    }
+                }
+            }
+        }
 
         // 13. Let lexDeclarations be the LexicallyScopedDeclarations of script.
         // 14. Let privateEnv be null.
@@ -253,6 +303,8 @@ impl ByteCompiler<'_, '_> {
     where
         &'a N: Into<NodeRef<'a>>,
     {
+        let mut env = self.current_environment.borrow_mut();
+
         // 1. Let declarations be the LexicallyScopedDeclarations of code.
         let declarations = lexically_scoped_declarations(block);
 
@@ -266,19 +318,28 @@ impl ByteCompiler<'_, '_> {
                 // a. For each element dn of the BoundNames of d, do
                 for dn in bound_names::<'_, VariableList>(d) {
                     // 1. Perform ! env.CreateImmutableBinding(dn, true).
-                    self.create_immutable_binding(dn, true);
+                    env.create_immutable_binding(dn, true);
                 }
             }
             // ii. Else,
             else {
                 // a. For each element dn of the BoundNames of d, do
                 for dn in bound_names::<'_, Declaration>(d) {
+                    #[cfg(not(feature = "annex-b"))]
                     // 1. Perform ! env.CreateMutableBinding(dn, false). NOTE: This step is replaced in section B.3.2.6.
-                    // TODO: Support B.3.2.6.
-                    self.create_mutable_binding(dn, false);
+                    env.create_mutable_binding(dn, false);
+
+                    #[cfg(feature = "annex-b")]
+                    // 1. If ! env.HasBinding(dn) is false, then
+                    if !env.has_binding(dn) {
+                        // a. Perform  ! env.CreateMutableBinding(dn, false).
+                        env.create_mutable_binding(dn, false);
+                    }
                 }
             }
         }
+
+        drop(env);
 
         // Note: Not sure if the spec is wrong here or if our implementation just differs too much,
         //       but we need 3.a to be finished for all declarations before 3.b can be done.
@@ -343,7 +404,8 @@ impl ByteCompiler<'_, '_> {
             // c. Assert: The following loop will terminate.
             // d. Repeat, while thisEnv is not varEnv,
             //     i. If thisEnv is not an Object Environment Record, then
-            //         1. NOTE: The environment of with statements cannot contain any lexical declaration so it doesn't need to be checked for var/let hoisting conflicts.
+            //         1. NOTE: The environment of with statements cannot contain any lexical
+            //            declaration so it doesn't need to be checked for var/let hoisting conflicts.
             //         2. For each element name of varNames, do
             //             a. If ! thisEnv.HasBinding(name) is true, then
             //                 i. Throw a SyntaxError exception.
@@ -420,7 +482,93 @@ impl ByteCompiler<'_, '_> {
         functions_to_initialize.reverse();
 
         // 11. NOTE: Annex B.3.2.3 adds additional steps at this point.
-        // TODO: Support B.3.2.3
+        // 11. If strict is false, then
+        #[cfg(feature = "annex-b")]
+        if !strict {
+            let lexically_declared_names = top_level_lexically_declared_names(body);
+
+            // a. Let declaredFunctionOrVarNames be the list-concatenation of declaredFunctionNames and declaredVarNames.
+            // b. For each FunctionDeclaration f that is directly contained in the StatementList
+            //    of a Block, CaseClause, or DefaultClause Contained within body, do
+            for f in annex_b_function_declarations_names(body) {
+                // i. Let F be StringValue of the BindingIdentifier of f.
+                // ii. If replacing the FunctionDeclaration f with a VariableStatement that has F
+                //     as a BindingIdentifier would not produce any Early Errors for body, then
+                if !lexically_declared_names.contains(&f) {
+                    // 1. Let bindingExists be false.
+                    // 2. Let thisEnv be lexEnv.
+                    // 3. Assert: The following loop will terminate.
+                    // 4. Repeat, while thisEnv is not varEnv,
+                    // a. If thisEnv is not an Object Environment Record, then
+                    // i. If ! thisEnv.HasBinding(F) is true, then
+                    // i. Let bindingExists be true.
+                    // b. Set thisEnv to thisEnv.[[OuterEnv]].
+                    let binding_exists = self.has_binding_until_var(f);
+
+                    // 5. If bindingExists is false and varEnv is a Global Environment Record, then
+                    let fn_definable = if !binding_exists && var_environment_is_global {
+                        // a. If varEnv.HasLexicalDeclaration(F) is false, then
+                        // b. Else,
+                        if self.current_environment.borrow().has_lex_binding(f) {
+                            // i. Let fnDefinable be false.
+                            false
+                        } else {
+                            // i. Let fnDefinable be ? varEnv.CanDeclareGlobalVar(F).
+                            self.context.can_declare_global_var(f)?
+                        }
+                    }
+                    // 6. Else,
+                    else {
+                        // a. Let fnDefinable be true.
+                        true
+                    };
+
+                    // 7. If bindingExists is false and fnDefinable is true, then
+                    if !binding_exists && fn_definable {
+                        let mut function_names = Vec::new();
+
+                        // a. If declaredFunctionOrVarNames does not contain F, then
+                        if !declared_function_names.contains(&f)
+                            //&& !var_names.contains(&f)
+                            && !function_names.contains(&f)
+                        {
+                            // i. If varEnv is a Global Environment Record, then
+                            if var_environment_is_global {
+                                // i. Perform ? varEnv.CreateGlobalVarBinding(F, true).
+                                self.context.create_global_var_binding(f, true)?;
+                            }
+                            // ii. Else,
+                            else {
+                                // i. Let bindingExists be ! varEnv.HasBinding(F).
+                                // ii. If bindingExists is false, then
+                                if !self.has_binding(f) {
+                                    // i. Perform ! varEnv.CreateMutableBinding(F, true).
+                                    self.create_mutable_binding(f, true);
+
+                                    // ii. Perform ! varEnv.InitializeBinding(F, undefined).
+                                    let binding = self.initialize_mutable_binding(f, true);
+                                    let index = self.get_or_insert_binding(binding);
+                                    self.emit_opcode(Opcode::PushUndefined);
+                                    self.emit(Opcode::DefInitVar, &[index]);
+                                }
+                            }
+
+                            // iii. Append F to declaredFunctionOrVarNames.
+                            function_names.push(f);
+                        }
+
+                        // b. When the FunctionDeclaration f is evaluated, perform the following steps
+                        //    in place of the FunctionDeclaration Evaluation algorithm provided in 15.2.6:
+                        //     i. Let genv be the running execution context's VariableEnvironment.
+                        //     ii. Let benv be the running execution context's LexicalEnvironment.
+                        //     iii. Let fobj be ! benv.GetBindingValue(F, false).
+                        //     iv. Perform ? genv.SetMutableBinding(F, fobj, false).
+                        //     v. Return unused.
+                        self.annex_b_function_names.push(f);
+                    }
+                }
+            }
+        }
 
         // 12. Let declaredVarNames be a new empty List.
         let mut declared_var_names = Vec::new();
@@ -752,13 +900,16 @@ impl ByteCompiler<'_, '_> {
             // a. If strict is true or simpleParameterList is false, then
             //     i. Let ao be CreateUnmappedArgumentsObject(argumentsList).
             // b. Else,
-            //     i. NOTE: A mapped argument object is only provided for non-strict functions that don't have a rest parameter, any parameter default value initializers, or any destructured parameters.
+            //     i. NOTE: A mapped argument object is only provided for non-strict functions
+            //              that don't have a rest parameter, any parameter
+            //              default value initializers, or any destructured parameters.
             //     ii. Let ao be CreateMappedArgumentsObject(func, formals, argumentsList, env).
 
             // c. If strict is true, then
             if strict {
                 // i. Perform ! env.CreateImmutableBinding("arguments", false).
-                // ii. NOTE: In strict mode code early errors prevent attempting to assign to this binding, so its mutability is not observable.
+                // ii. NOTE: In strict mode code early errors prevent attempting to assign
+                //           to this binding, so its mutability is not observable.
                 self.create_immutable_binding(arguments, false);
                 self.arguments_binding = Some(self.initialize_immutable_binding(arguments));
             }
@@ -777,7 +928,7 @@ impl ByteCompiler<'_, '_> {
         }
         // 23. Else,
         //     a. Let parameterBindings be parameterNames.
-        let parameter_bindings = parameter_names;
+        let parameter_bindings = parameter_names.clone();
 
         // 24. Let iteratorRecord be CreateListIteratorRecord(argumentsList).
         // 25. If hasDuplicates is true, then
@@ -821,8 +972,11 @@ impl ByteCompiler<'_, '_> {
 
         // 27. If hasParameterExpressions is false, then
         // 28. Else,
-        if has_parameter_expressions {
-            // a. NOTE: A separate Environment Record is needed to ensure that closures created by expressions in the formal parameter list do not have visibility of declarations in the function body.
+        #[allow(unused_variables, unused_mut)]
+        let mut instantiated_var_names = if has_parameter_expressions {
+            // a. NOTE: A separate Environment Record is needed to ensure that closures created by
+            //          expressions in the formal parameter list do not have
+            //          visibility of declarations in the function body.
             // b. Let varEnv be NewDeclarativeEnvironment(env).
             // c. Set the VariableEnvironment of calleeContext to varEnv.
             self.push_compile_environment(true);
@@ -865,6 +1019,8 @@ impl ByteCompiler<'_, '_> {
                     //          the same value as the corresponding initialized parameter.
                 }
             }
+
+            instantiated_var_names
         } else {
             // a. NOTE: Only a single Environment Record is needed for the parameters and top-level vars.
             // b. Let instantiatedVarNames be a copy of the List parameterBindings.
@@ -889,21 +1045,67 @@ impl ByteCompiler<'_, '_> {
             }
 
             // d. Let varEnv be env.
+
+            instantiated_var_names
         };
 
         // 29. NOTE: Annex B.3.2.1 adds additional steps at this point.
-        // TODO: Support B.3.2.1
-
         // 29. If strict is false, then
-        //      a. Let lexEnv be NewDeclarativeEnvironment(varEnv).
-        //      b. NOTE: Non-strict functions use a separate Environment Record for top-level lexical declarations so that a direct eval can determine whether any var scoped declarations introduced by the eval code conflict with pre-existing top-level lexically scoped declarations. This is not needed for strict functions because a strict direct eval always places all declarations into a new Environment Record.
+        #[cfg(feature = "annex-b")]
+        if !strict {
+            // a. For each FunctionDeclaration f that is directly contained in the StatementList
+            //    of a Block, CaseClause, or DefaultClause, do
+            for f in annex_b_function_declarations_names(code) {
+                // i. Let F be StringValue of the BindingIdentifier of f.
+                // ii. If replacing the FunctionDeclaration f with a VariableStatement that has F
+                //     as a BindingIdentifier would not produce any Early Errors
+                //     for func and parameterNames does not contain F, then
+                if !lexical_names.contains(&f) && !parameter_names.contains(&f) {
+                    // 1. NOTE: A var binding for F is only instantiated here if it is neither a
+                    //    VarDeclaredName, the name of a formal parameter, or another FunctionDeclaration.
+
+                    // 2. If initializedBindings does not contain F and F is not "arguments", then
+                    if !instantiated_var_names.contains(&f) && f != arguments {
+                        // a. Perform ! varEnv.CreateMutableBinding(F, false).
+                        self.create_mutable_binding(f, true);
+
+                        // b. Perform ! varEnv.InitializeBinding(F, undefined).
+                        let binding = self.initialize_mutable_binding(f, true);
+                        let index = self.get_or_insert_binding(binding);
+                        self.emit_opcode(Opcode::PushUndefined);
+                        self.emit(Opcode::DefInitVar, &[index]);
+
+                        // c. Append F to instantiatedVarNames.
+                        instantiated_var_names.push(f);
+                    }
+
+                    // 3. When the FunctionDeclaration f is evaluated, perform the following steps
+                    //    in place of the FunctionDeclaration Evaluation algorithm provided in 15.2.6:
+                    //     a. Let fenv be the running execution context's VariableEnvironment.
+                    //     b. Let benv be the running execution context's LexicalEnvironment.
+                    //     c. Let fobj be ! benv.GetBindingValue(F, false).
+                    //     d. Perform ! fenv.SetMutableBinding(F, fobj, false).
+                    //     e. Return unused.
+                    self.annex_b_function_names.push(f);
+                }
+            }
+        }
+
+        // 30. If strict is false, then
+        // 30.a. Let lexEnv be NewDeclarativeEnvironment(varEnv).
+        // 30.b. NOTE: Non-strict functions use a separate Environment Record for top-level lexical
+        //      declarations so that a direct eval can determine whether any var scoped declarations
+        //      introduced by the eval code conflict with pre-existing top-level lexically scoped declarations.
+        //      This is not needed for strict functions because a strict direct eval always
+        //      places all declarations into a new Environment Record.
         // 31. Else,
         //     a. Let lexEnv be varEnv.
         // 32. Set the LexicalEnvironment of calleeContext to lexEnv.
 
         // 33. Let lexDeclarations be the LexicallyScopedDeclarations of code.
         // 34. For each element d of lexDeclarations, do
-        //     a. NOTE: A lexically declared name cannot be the same as a function/generator declaration, formal parameter, or a var name. Lexically declared names are only instantiated here but not initialized.
+        //     a. NOTE: A lexically declared name cannot be the same as a function/generator declaration,
+        //        formal parameter, or a var name. Lexically declared names are only instantiated here but not initialized.
         //     b. For each element dn of the BoundNames of d, do
         //         i. If IsConstantDeclaration of d is true, then
         //             1. Perform ! lexEnv.CreateImmutableBinding(dn, true).

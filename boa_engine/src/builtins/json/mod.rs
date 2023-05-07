@@ -123,7 +123,7 @@ impl Json {
                 context.realm().environment().compile_env(),
                 context,
             );
-            compiler.compile_statement_list(&statement_list, true);
+            compiler.compile_statement_list(&statement_list, true, false);
             Gc::new(compiler.finish())
         };
         let unfiltered = context.execute(code_block)?;

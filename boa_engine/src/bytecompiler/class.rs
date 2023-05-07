@@ -47,7 +47,7 @@ impl ByteCompiler<'_, '_> {
                 false,
             );
 
-            compiler.compile_statement_list(expr.body(), false);
+            compiler.compile_statement_list(expr.body(), false, false);
 
             let env_info = compiler.pop_compile_environment();
 
@@ -374,7 +374,7 @@ impl ByteCompiler<'_, '_> {
                         false,
                     );
 
-                    compiler.compile_statement_list(statement_list, false);
+                    compiler.compile_statement_list(statement_list, false, false);
                     let env_info = compiler.pop_compile_environment();
                     compiler.pop_compile_environment();
                     compiler.num_bindings = env_info.num_bindings;

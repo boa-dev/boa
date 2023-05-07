@@ -125,7 +125,7 @@ impl FunctionCompiler {
             self.generator,
         );
 
-        compiler.compile_statement_list(body, false);
+        compiler.compile_statement_list(body, false, false);
 
         if let Some(env_labels) = env_labels {
             let env_info = compiler.pop_compile_environment();

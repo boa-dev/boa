@@ -9,7 +9,7 @@ use boa_interner::{Interner, Sym};
 use rustc_hash::{FxHashMap, FxHashSet};
 
 use crate::{
-    declaration::{ExportDeclaration, ImportDeclaration, VarDeclaration, Variable},
+    declaration::{Binding, ExportDeclaration, ImportDeclaration, VarDeclaration, Variable},
     expression::{access::SuperPropertyAccess, Await, Identifier, SuperCall, Yield},
     function::{
         ArrowFunction, AsyncArrowFunction, AsyncFunction, AsyncGenerator, Class, ClassElement,
@@ -1661,5 +1661,215 @@ impl<'ast> Visitor<'ast> for TopLevelVarScopedDeclarationsVisitor<'_> {
                 ControlFlow::Continue(())
             }
         }
+    }
+}
+
+/// Returns a list function declaration names that are directly contained in a statement lists
+/// `Block`, `CaseClause` or `DefaultClause`.
+/// If the function declaration would cause an early error it is not included in the list.
+///
+/// This behavior is used in the following annexB sections:
+/// * [B.3.2.1 Changes to FunctionDeclarationInstantiation][spec0]
+/// * [B.3.2.2 Changes to GlobalDeclarationInstantiation][spec1]
+/// * [B.3.2.3 Changes to EvalDeclarationInstantiation][spec2]
+///
+/// [spec0]: https://tc39.es/ecma262/#sec-web-compat-functiondeclarationinstantiation
+/// [spec1]: https://tc39.es/ecma262/#sec-web-compat-globaldeclarationinstantiation
+/// [spec2]: https://tc39.es/ecma262/#sec-web-compat-evaldeclarationinstantiation
+#[must_use]
+pub fn annex_b_function_declarations_names<'a, N>(node: &'a N) -> Vec<Identifier>
+where
+    &'a N: Into<NodeRef<'a>>,
+{
+    let mut declarations = Vec::new();
+    AnnexBFunctionDeclarationNamesVisitor(&mut declarations).visit(node.into());
+    declarations
+}
+
+/// The [`Visitor`] used for [`annex_b_function_declarations_names`].
+#[derive(Debug)]
+struct AnnexBFunctionDeclarationNamesVisitor<'a>(&'a mut Vec<Identifier>);
+
+impl<'ast> Visitor<'ast> for AnnexBFunctionDeclarationNamesVisitor<'_> {
+    type BreakTy = Infallible;
+
+    fn visit_statement_list_item(
+        &mut self,
+        node: &'ast StatementListItem,
+    ) -> ControlFlow<Self::BreakTy> {
+        match node {
+            StatementListItem::Statement(node) => self.visit(node),
+            StatementListItem::Declaration(_) => ControlFlow::Continue(()),
+        }
+    }
+
+    fn visit_statement(&mut self, node: &'ast Statement) -> ControlFlow<Self::BreakTy> {
+        match node {
+            Statement::Block(node) => self.visit(node),
+            Statement::If(node) => self.visit(node),
+            Statement::DoWhileLoop(node) => self.visit(node),
+            Statement::WhileLoop(node) => self.visit(node),
+            Statement::ForLoop(node) => self.visit(node),
+            Statement::ForInLoop(node) => self.visit(node),
+            Statement::ForOfLoop(node) => self.visit(node),
+            Statement::Switch(node) => self.visit(node),
+            Statement::Labelled(node) => self.visit(node),
+            Statement::Try(node) => self.visit(node),
+            Statement::With(node) => self.visit(node),
+            _ => ControlFlow::Continue(()),
+        }
+    }
+
+    fn visit_block(&mut self, node: &'ast crate::statement::Block) -> ControlFlow<Self::BreakTy> {
+        self.visit(node.statement_list());
+        for statement in node.statement_list().statements() {
+            if let StatementListItem::Declaration(Declaration::Function(function)) = statement {
+                let name = function
+                    .name()
+                    .expect("function declaration must have name");
+                self.0.push(name);
+            }
+        }
+
+        let lexically_declared_names = lexically_declared_names_legacy(node.statement_list());
+
+        self.0
+            .retain(|name| !lexically_declared_names.contains(&(*name, false)));
+
+        ControlFlow::Continue(())
+    }
+
+    fn visit_switch(&mut self, node: &'ast crate::statement::Switch) -> ControlFlow<Self::BreakTy> {
+        for case in node.cases() {
+            self.visit(case);
+            for statement in case.body().statements() {
+                if let StatementListItem::Declaration(Declaration::Function(function)) = statement {
+                    let name = function
+                        .name()
+                        .expect("function declaration must have name");
+                    self.0.push(name);
+                }
+            }
+        }
+        if let Some(default) = node.default() {
+            self.visit(default);
+            for statement in default.statements() {
+                if let StatementListItem::Declaration(Declaration::Function(function)) = statement {
+                    let name = function
+                        .name()
+                        .expect("function declaration must have name");
+                    self.0.push(name);
+                }
+            }
+        }
+
+        let lexically_declared_names = lexically_declared_names_legacy(node);
+
+        self.0
+            .retain(|name| !lexically_declared_names.contains(&(*name, false)));
+
+        ControlFlow::Continue(())
+    }
+
+    fn visit_try(&mut self, node: &'ast crate::statement::Try) -> ControlFlow<Self::BreakTy> {
+        self.visit(node.block());
+        if let Some(catch) = node.catch() {
+            self.visit(catch.block());
+
+            if let Some(Binding::Pattern(pattern)) = catch.parameter() {
+                let bound_names = bound_names(pattern);
+
+                self.0.retain(|name| !bound_names.contains(name));
+            }
+        }
+        if let Some(finally) = node.finally() {
+            self.visit(finally.block());
+        }
+        ControlFlow::Continue(())
+    }
+
+    fn visit_if(&mut self, node: &'ast crate::statement::If) -> ControlFlow<Self::BreakTy> {
+        if let Some(node) = node.else_node() {
+            self.visit(node);
+        }
+        self.visit(node.body())
+    }
+
+    fn visit_do_while_loop(
+        &mut self,
+        node: &'ast crate::statement::DoWhileLoop,
+    ) -> ControlFlow<Self::BreakTy> {
+        self.visit(node.body())
+    }
+
+    fn visit_while_loop(
+        &mut self,
+        node: &'ast crate::statement::WhileLoop,
+    ) -> ControlFlow<Self::BreakTy> {
+        self.visit(node.body())
+    }
+
+    fn visit_for_loop(
+        &mut self,
+        node: &'ast crate::statement::ForLoop,
+    ) -> ControlFlow<Self::BreakTy> {
+        self.visit(node.body());
+
+        if let Some(ForLoopInitializer::Lexical(node)) = node.init() {
+            let bound_names = bound_names(node);
+            self.0.retain(|name| !bound_names.contains(name));
+        }
+
+        ControlFlow::Continue(())
+    }
+
+    fn visit_for_in_loop(
+        &mut self,
+        node: &'ast crate::statement::ForInLoop,
+    ) -> ControlFlow<Self::BreakTy> {
+        self.visit(node.body());
+
+        if let IterableLoopInitializer::Let(node) = node.initializer() {
+            let bound_names = bound_names(node);
+            self.0.retain(|name| !bound_names.contains(name));
+        }
+        if let IterableLoopInitializer::Const(node) = node.initializer() {
+            let bound_names = bound_names(node);
+            self.0.retain(|name| !bound_names.contains(name));
+        }
+
+        ControlFlow::Continue(())
+    }
+
+    fn visit_for_of_loop(
+        &mut self,
+        node: &'ast crate::statement::ForOfLoop,
+    ) -> ControlFlow<Self::BreakTy> {
+        self.visit(node.body());
+
+        if let IterableLoopInitializer::Let(node) = node.initializer() {
+            let bound_names = bound_names(node);
+            self.0.retain(|name| !bound_names.contains(name));
+        }
+        if let IterableLoopInitializer::Const(node) = node.initializer() {
+            let bound_names = bound_names(node);
+            self.0.retain(|name| !bound_names.contains(name));
+        }
+
+        ControlFlow::Continue(())
+    }
+
+    fn visit_labelled(
+        &mut self,
+        node: &'ast crate::statement::Labelled,
+    ) -> ControlFlow<Self::BreakTy> {
+        if let LabelledItem::Statement(node) = node.item() {
+            self.visit(node);
+        }
+        ControlFlow::Continue(())
+    }
+
+    fn visit_with(&mut self, node: &'ast crate::statement::With) -> ControlFlow<Self::BreakTy> {
+        self.visit(node.statement())
     }
 }

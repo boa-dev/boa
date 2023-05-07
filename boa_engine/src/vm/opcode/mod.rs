@@ -638,13 +638,6 @@ generate_impl! {
         /// Stack: value **=>** (ToNumeric(value)), (value - 1)
         DecPost,
 
-        /// Declare and initialize a function argument.
-        ///
-        /// Operands: name_index: `u32`
-        ///
-        /// Stack: value **=>**
-        DefInitArg,
-
         /// Declare `var` type variable.
         ///
         /// Operands: name_index: `u32`
@@ -659,26 +652,12 @@ generate_impl! {
         /// Stack: value **=>**
         DefInitVar,
 
-        /// Declare `let` type variable.
-        ///
-        /// Operands: name_index: `u32`
-        ///
-        /// Stack: **=>**
-        DefLet,
-
-        /// Declare and initialize `let` type variable.
+        /// Initialize a lexical binding.
         ///
         /// Operands: name_index: `u32`
         ///
         /// Stack: value **=>**
-        DefInitLet,
-
-        /// Declare and initialize `const` type variable.
-        ///
-        /// Operands: name_index: `u32`
-        ///
-        /// Stack: value **=>**
-        DefInitConst,
+        PutLexicalValue,
 
         /// Find a binding on the environment chain and push its value.
         ///
@@ -1633,7 +1612,6 @@ generate_impl! {
 #[derive(Clone, Copy, Debug)]
 pub(crate) enum BindingOpcode {
     Var,
-    Let,
     InitVar,
     InitLet,
     InitConst,

@@ -43,7 +43,7 @@ impl ByteCompiler<'_, '_> {
                 label
             };
             self.patch_jump(label);
-            self.compile_statement_list(case.body(), false);
+            self.compile_statement_list(case.body(), false, true);
         }
 
         if !default_label_set {
