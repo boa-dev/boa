@@ -332,7 +332,7 @@ impl CodeBlock {
             }
             Opcode::DefVar
             | Opcode::DefInitVar
-            | Opcode::InitializeLexical
+            | Opcode::PutLexicalValue
             | Opcode::GetName
             | Opcode::GetLocator
             | Opcode::GetNameAndLocator
@@ -974,7 +974,7 @@ impl JsObject {
             context
                 .vm
                 .environments
-                .put_declarative_value(index, 0, class_object.into());
+                .put_lexical_value(index, 0, class_object.into());
             last_env -= 1;
         }
 
@@ -986,7 +986,7 @@ impl JsObject {
             context
                 .vm
                 .environments
-                .put_declarative_value(index, 0, self.clone().into());
+                .put_lexical_value(index, 0, self.clone().into());
             last_env -= 1;
         }
 
@@ -1020,7 +1020,7 @@ impl JsObject {
                     context,
                 )
             };
-            context.vm.environments.put_declarative_value(
+            context.vm.environments.put_lexical_value(
                 binding.environment_index(),
                 binding.binding_index(),
                 arguments_obj.into(),
@@ -1242,7 +1242,7 @@ impl JsObject {
                     context
                         .vm
                         .environments
-                        .put_declarative_value(index, 0, self.clone().into());
+                        .put_lexical_value(index, 0, self.clone().into());
                     last_env -= 1;
                 }
 
@@ -1275,7 +1275,7 @@ impl JsObject {
                             context,
                         )
                     };
-                    context.vm.environments.put_declarative_value(
+                    context.vm.environments.put_lexical_value(
                         binding.environment_index(),
                         binding.binding_index(),
                         arguments_obj.into(),

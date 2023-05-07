@@ -421,12 +421,12 @@ impl<'ctx, 'host> ByteCompiler<'ctx, 'host> {
             BindingOpcode::InitLet => {
                 let binding = self.initialize_mutable_binding(name, false);
                 let index = self.get_or_insert_binding(binding);
-                self.emit(Opcode::InitializeLexical, &[index]);
+                self.emit(Opcode::PutLexicalValue, &[index]);
             }
             BindingOpcode::InitConst => {
                 let binding = self.initialize_immutable_binding(name);
                 let index = self.get_or_insert_binding(binding);
-                self.emit(Opcode::InitializeLexical, &[index]);
+                self.emit(Opcode::PutLexicalValue, &[index]);
             }
             BindingOpcode::SetName => {
                 let binding = self.set_mutable_binding(name);

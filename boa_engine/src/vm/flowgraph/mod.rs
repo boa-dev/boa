@@ -407,7 +407,7 @@ impl CodeBlock {
                 }
                 Opcode::DefVar
                 | Opcode::DefInitVar
-                | Opcode::InitializeLexical
+                | Opcode::PutLexicalValue
                 | Opcode::GetName
                 | Opcode::GetLocator
                 | Opcode::GetNameAndLocator

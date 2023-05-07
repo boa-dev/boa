@@ -613,13 +613,13 @@ impl DeclarativeEnvironmentStack {
         }
     }
 
-    /// Set the value of a declarative binding.
+    /// Set the value of a lexical binding.
     ///
     /// # Panics
     ///
     /// Panics if the environment or binding index are out of range.
     #[track_caller]
-    pub(crate) fn put_declarative_value(
+    pub(crate) fn put_lexical_value(
         &mut self,
         environment_index: usize,
         binding_index: usize,

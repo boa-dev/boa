@@ -66,22 +66,22 @@ impl Operation for DefInitVar {
     }
 }
 
-/// `InitializeLexical` implements the Opcode Operation for `Opcode::InitializeLexical`
+/// `PutLexicalValue` implements the Opcode Operation for `Opcode::PutLexicalValue`
 ///
 /// Operation:
 ///  - Initialize a lexical binding.
 #[derive(Debug, Clone, Copy)]
-pub(crate) struct InitializeLexical;
+pub(crate) struct PutLexicalValue;
 
-impl Operation for InitializeLexical {
-    const NAME: &'static str = "InitializeLexical";
-    const INSTRUCTION: &'static str = "INST - InitializeLexical";
+impl Operation for PutLexicalValue {
+    const NAME: &'static str = "PutLexicalValue";
+    const INSTRUCTION: &'static str = "INST - PutLexicalValue";
 
     fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
         let index = context.vm.read::<u32>();
         let value = context.vm.pop();
         let binding_locator = context.vm.frame().code_block.bindings[index as usize];
-        context.vm.environments.put_declarative_value(
+        context.vm.environments.put_lexical_value(
             binding_locator.environment_index(),
             binding_locator.binding_index(),
             value,

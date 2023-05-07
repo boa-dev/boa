@@ -657,7 +657,7 @@ generate_impl! {
         /// Operands: name_index: `u32`
         ///
         /// Stack: value **=>**
-        InitializeLexical,
+        PutLexicalValue,
 
         /// Find a binding on the environment chain and push its value.
         ///
