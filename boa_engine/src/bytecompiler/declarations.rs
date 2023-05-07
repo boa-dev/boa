@@ -50,7 +50,7 @@ impl ByteCompiler<'_, '_> {
             // d. If hasRestrictedGlobal is true, throw a SyntaxError exception.
             if has_restricted_global {
                 return Err(JsNativeError::syntax()
-                    .with_message("restricted global property")
+                    .with_message("cannot redefine non-configurable global property")
                     .into());
             }
         }
