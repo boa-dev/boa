@@ -1806,7 +1806,7 @@
 }
 
 <span class="macro">generate_impl! </span>{
-    <span class="attr">#[derive(Debug, Clone, Copy, TryFromPrimitive)]
+    <span class="attr">#[derive(Debug, Clone, Copy, PartialEq, Eq, TryFromPrimitive)]
     #[repr(u8)]
     </span><span class="kw">pub enum </span>Opcode {
         <span class="doccomment">/// Pop the top value from the stack.

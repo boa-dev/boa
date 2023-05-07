@@ -1390,6 +1390,7 @@
 <a href="#1389" id="1389">1389</a>
 <a href="#1390" id="1390">1390</a>
 <a href="#1391" id="1391">1391</a>
+<a href="#1392" id="1392">1392</a>
 </pre><pre class="rust"><code><span class="doccomment">//! This module contains the bytecode compiler.
 
 </span><span class="kw">mod </span>class;
@@ -1566,7 +1567,7 @@
 }
 
 <span class="attr">#[must_use]
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>Label {
     index: u32,
 }
@@ -1687,6 +1688,7 @@
 <span class="kw">impl</span>&lt;<span class="lifetime">&#39;ctx</span>, <span class="lifetime">&#39;host</span>&gt; ByteCompiler&lt;<span class="lifetime">&#39;ctx</span>, <span class="lifetime">&#39;host</span>&gt; {
     <span class="doccomment">/// Represents a placeholder address that will be patched later.
     </span><span class="kw">const </span>DUMMY_ADDRESS: u32 = u32::MAX;
+    <span class="kw">const </span>DUMMY_LABEL: Label = Label { index: u32::MAX };
 
     <span class="doccomment">/// Creates a new [`ByteCompiler`].
     </span><span class="attr">#[inline]

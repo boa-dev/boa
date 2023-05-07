@@ -188,6 +188,28 @@
 <a href="#187" id="187">187</a>
 <a href="#188" id="188">188</a>
 <a href="#189" id="189">189</a>
+<a href="#190" id="190">190</a>
+<a href="#191" id="191">191</a>
+<a href="#192" id="192">192</a>
+<a href="#193" id="193">193</a>
+<a href="#194" id="194">194</a>
+<a href="#195" id="195">195</a>
+<a href="#196" id="196">196</a>
+<a href="#197" id="197">197</a>
+<a href="#198" id="198">198</a>
+<a href="#199" id="199">199</a>
+<a href="#200" id="200">200</a>
+<a href="#201" id="201">201</a>
+<a href="#202" id="202">202</a>
+<a href="#203" id="203">203</a>
+<a href="#204" id="204">204</a>
+<a href="#205" id="205">205</a>
+<a href="#206" id="206">206</a>
+<a href="#207" id="207">207</a>
+<a href="#208" id="208">208</a>
+<a href="#209" id="209">209</a>
+<a href="#210" id="210">210</a>
+<a href="#211" id="211">211</a>
 </pre><pre class="rust"><code><span class="doccomment">//! Switch node.
 //!
 </span><span class="kw">use crate</span>::{
@@ -212,23 +234,39 @@
 #[cfg_attr(feature = <span class="string">&quot;arbitrary&quot;</span>, derive(arbitrary::Arbitrary))]
 #[derive(Clone, Debug, PartialEq)]
 </span><span class="kw">pub struct </span>Case {
-    condition: Expression,
+    condition: <span class="prelude-ty">Option</span>&lt;Expression&gt;,
     body: StatementList,
 }
 
 <span class="kw">impl </span>Case {
-    <span class="doccomment">/// Creates a `Case` AST node.
+    <span class="doccomment">/// Creates a regular `Case` AST node.
     </span><span class="attr">#[inline]
     #[must_use]
     </span><span class="kw">pub const fn </span>new(condition: Expression, body: StatementList) -&gt; <span class="self">Self </span>{
-        <span class="self">Self </span>{ condition, body }
+        <span class="self">Self </span>{
+            condition: <span class="prelude-val">Some</span>(condition),
+            body,
+        }
+    }
+
+    <span class="doccomment">/// Creates a default `Case` AST node.
+    </span><span class="attr">#[inline]
+    #[must_use]
+    </span><span class="kw">pub const fn </span>default(body: StatementList) -&gt; <span class="self">Self </span>{
+        <span class="self">Self </span>{
+            condition: <span class="prelude-val">None</span>,
+            body,
+        }
     }
 
     <span class="doccomment">/// Gets the condition of the case.
+    ///
+    /// If it&#39;s a regular case returns [`Some`] with the [`Expression`],
+    /// otherwise [`None`] is returned if it&#39;s the default case.
     </span><span class="attr">#[inline]
     #[must_use]
-    </span><span class="kw">pub const fn </span>condition(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>Expression {
-        <span class="kw-2">&amp;</span><span class="self">self</span>.condition
+    </span><span class="kw">pub const fn </span>condition(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>Expression&gt; {
+        <span class="self">self</span>.condition.as_ref()
     }
 
     <span class="doccomment">/// Gets the statement listin the body of the case.
@@ -237,6 +275,13 @@
     </span><span class="kw">pub const fn </span>body(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>StatementList {
         <span class="kw-2">&amp;</span><span class="self">self</span>.body
     }
+
+    <span class="doccomment">/// Check if the case is the `default` case.
+    </span><span class="attr">#[inline]
+    #[must_use]
+    </span><span class="kw">pub const fn </span>is_default(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="self">self</span>.condition.is_none()
+    }
 }
 
 <span class="kw">impl </span>VisitWith <span class="kw">for </span>Case {
@@ -244,7 +289,10 @@
     <span class="kw">where
         </span>V: Visitor&lt;<span class="lifetime">&#39;a</span>&gt;,
     {
-        <span class="macro">try_break!</span>(visitor.visit_expression(<span class="kw-2">&amp;</span><span class="self">self</span>.condition));
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(condition) = <span class="kw-2">&amp;</span><span class="self">self</span>.condition {
+            <span class="macro">try_break!</span>(visitor.visit_expression(condition));
+        }
+
         visitor.visit_statement_list(<span class="kw-2">&amp;</span><span class="self">self</span>.body)
     }
 
@@ -252,7 +300,9 @@
     <span class="kw">where
         </span>V: VisitorMut&lt;<span class="lifetime">&#39;a</span>&gt;,
     {
-        <span class="macro">try_break!</span>(visitor.visit_expression_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>.condition));
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(condition) = <span class="kw-2">&amp;mut </span><span class="self">self</span>.condition {
+            <span class="macro">try_break!</span>(visitor.visit_expression_mut(condition));
+        }
         visitor.visit_statement_list_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>.body)
     }
 }
@@ -279,19 +329,14 @@
 </span><span class="kw">pub struct </span>Switch {
     val: Expression,
     cases: Box&lt;[Case]&gt;,
-    default: <span class="prelude-ty">Option</span>&lt;StatementList&gt;,
 }
 
 <span class="kw">impl </span>Switch {
     <span class="doccomment">/// Creates a `Switch` AST node.
     </span><span class="attr">#[inline]
     #[must_use]
-    </span><span class="kw">pub fn </span>new(val: Expression, cases: Box&lt;[Case]&gt;, default: <span class="prelude-ty">Option</span>&lt;StatementList&gt;) -&gt; <span class="self">Self </span>{
-        <span class="self">Self </span>{
-            val,
-            cases,
-            default,
-        }
+    </span><span class="kw">pub fn </span>new(val: Expression, cases: Box&lt;[Case]&gt;) -&gt; <span class="self">Self </span>{
+        <span class="self">Self </span>{ val, cases }
     }
 
     <span class="doccomment">/// Gets the value to switch.
@@ -311,9 +356,14 @@
     <span class="doccomment">/// Gets the default statement list, if any.
     </span><span class="attr">#[inline]
     #[must_use]
-    </span><span class="kw">pub const fn </span>default(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>StatementList&gt; {
-        <span class="self">self</span>.default.as_ref()
-    }
+    </span><span class="kw">pub fn </span>default(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>StatementList&gt; {
+        <span class="kw">for </span>case <span class="kw">in </span><span class="self">self</span>.cases.as_ref() {
+            <span class="kw">if </span>case.is_default() {
+                <span class="kw">return </span><span class="prelude-val">Some</span>(case.body());
+            }
+        }
+        <span class="prelude-val">None
+    </span>}
 }
 
 <span class="kw">impl </span>ToIndentedString <span class="kw">for </span>Switch {
@@ -321,20 +371,20 @@
         <span class="kw">let </span>indent = <span class="string">&quot;    &quot;</span>.repeat(indentation);
         <span class="kw">let </span><span class="kw-2">mut </span>buf = <span class="macro">format!</span>(<span class="string">&quot;switch ({}) {{\n&quot;</span>, <span class="self">self</span>.val().to_interned_string(interner));
         <span class="kw">for </span>e <span class="kw">in </span><span class="self">self</span>.cases().iter() {
-            buf.push_str(<span class="kw-2">&amp;</span><span class="macro">format!</span>(
-                <span class="string">&quot;{}    case {}:\n{}&quot;</span>,
-                indent,
-                e.condition().to_interned_string(interner),
-                e.body().to_indented_string(interner, indentation + <span class="number">2</span>)
-            ));
+            <span class="kw">if let </span><span class="prelude-val">Some</span>(condition) = e.condition() {
+                buf.push_str(<span class="kw-2">&amp;</span><span class="macro">format!</span>(
+                    <span class="string">&quot;{indent}    case {}:\n{}&quot;</span>,
+                    condition.to_interned_string(interner),
+                    e.body().to_indented_string(interner, indentation + <span class="number">2</span>)
+                ));
+            } <span class="kw">else </span>{
+                buf.push_str(<span class="kw-2">&amp;</span><span class="macro">format!</span>(
+                    <span class="string">&quot;{indent}    default:\n{}&quot;</span>,
+                    e.body().to_indented_string(interner, indentation + <span class="number">2</span>)
+                ));
+            }
         }
 
-        <span class="kw">if let </span><span class="prelude-val">Some</span>(<span class="kw-2">ref </span>default) = <span class="self">self</span>.default {
-            buf.push_str(<span class="kw-2">&amp;</span><span class="macro">format!</span>(
-                <span class="string">&quot;{indent}    default:\n{}&quot;</span>,
-                default.to_indented_string(interner, indentation + <span class="number">2</span>)
-            ));
-        }
         buf.push_str(<span class="kw-2">&amp;</span><span class="macro">format!</span>(<span class="string">&quot;{indent}}}&quot;</span>));
 
         buf
@@ -357,9 +407,6 @@
         <span class="kw">for </span>case <span class="kw">in </span><span class="self">self</span>.cases.iter() {
             <span class="macro">try_break!</span>(visitor.visit_case(case));
         }
-        <span class="kw">if let </span><span class="prelude-val">Some</span>(sl) = <span class="kw-2">&amp;</span><span class="self">self</span>.default {
-            <span class="macro">try_break!</span>(visitor.visit_statement_list(sl));
-        }
         ControlFlow::Continue(())
     }
 
@@ -370,9 +417,6 @@
         <span class="macro">try_break!</span>(visitor.visit_expression_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>.val));
         <span class="kw">for </span>case <span class="kw">in </span><span class="self">self</span>.cases.iter_mut() {
             <span class="macro">try_break!</span>(visitor.visit_case_mut(case));
-        }
-        <span class="kw">if let </span><span class="prelude-val">Some</span>(sl) = <span class="kw-2">&amp;mut </span><span class="self">self</span>.default {
-            <span class="macro">try_break!</span>(visitor.visit_statement_list_mut(sl));
         }
         ControlFlow::Continue(())
     }
