@@ -26,7 +26,7 @@ use crate::{
     property::Attribute,
     realm::Realm,
     value::IntegerOrInfinity,
-    Context, JsObject, JsResult, JsSymbol, JsValue, NativeFunction,
+    Context, JsNativeError, JsObject, JsResult, JsSymbol, JsValue, NativeFunction,
 };
 use boa_ast::temporal::{OffsetSign, UtcOffset};
 use boa_profiler::Profiler;
@@ -64,10 +64,24 @@ impl IntrinsicObject for Temporal {
     }
 }
 
+// -- Temporal Abstract Operations --
+
 /// Abstract operation `ToZeroPaddedDecimalString ( n, minLength )`
 ///
 /// The abstract operation `ToZeroPaddedDecimalString` takes arguments `n` (a non-negative integer)
 /// and `minLength` (a non-negative integer) and returns a String.
 fn to_zero_padded_decimal_string(n: u64, min_length: usize) -> String {
     format!("{n:0min_length$}")
+}
+
+/// Abstract operation 13.45 `ToIntegerIfIntegral( argument )`
+pub(crate) fn to_integer_if_integral(arg: &JsValue, context: &mut Context<'_>) -> JsResult<i32> {
+    if !arg.is_integer() {
+        return Err(JsNativeError::range()
+            .with_message("value to convert is not an integral number.")
+            .into());
+    }
+
+    let number = arg.to_i32(context)?;
+    Ok(number)
 }

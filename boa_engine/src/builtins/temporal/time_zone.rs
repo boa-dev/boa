@@ -118,17 +118,13 @@ impl BuiltInConstructor for TimeZone {
 impl TimeZone {
     // NOTE: id, toJSON, toString currently share the exact same implementation -> Consolidate into one function and define multiple accesors?
     pub(crate) fn get_id(this: &JsValue, _: &[JsValue], _: &mut Context<'_>) -> JsResult<JsValue> {
-        let o = this
-            .as_object()
-            .ok_or_else(|| {
-                JsNativeError::typ().with_message("this value must be a Temporal.TimeZone")
-            })?;
+        let o = this.as_object().ok_or_else(|| {
+            JsNativeError::typ().with_message("this value must be a Temporal.TimeZone")
+        })?;
         let o = o.borrow();
-        let tz = o
-            .as_time_zone()
-            .ok_or_else(|| {
-                JsNativeError::typ().with_message("this value must be a Temporal.TimeZone")
-            })?;
+        let tz = o.as_time_zone().ok_or_else(|| {
+            JsNativeError::typ().with_message("this value must be a Temporal.TimeZone")
+        })?;
         Ok(tz.identifier.clone().into())
     }
 
@@ -232,16 +228,13 @@ impl TimeZone {
     ) -> JsResult<JsValue> {
         // 1. Let timeZone be the this value.
         // 2. Perform ? RequireInternalSlot(timeZone, [[InitializedTemporalTimeZone]]).
-        let o = this
-            .as_object()
-            .ok_or_else(|| {
-                JsNativeError::typ().with_message("this value must be a Temporal.TimeZone")
-            })?;
+        let o = this.as_object().ok_or_else(|| {
+            JsNativeError::typ().with_message("this value must be a Temporal.TimeZone")
+        })?;
         let o = o.borrow();
-        let tz = o.as_time_zone()
-            .ok_or_else(|| {
-                JsNativeError::typ().with_message("this value must be a Temporal.TimeZone")
-            })?;
+        let tz = o.as_time_zone().ok_or_else(|| {
+            JsNativeError::typ().with_message("this value must be a Temporal.TimeZone")
+        })?;
         // 3. Return timeZone.[[Identifier]].
         Ok(tz.identifier.clone().into())
     }

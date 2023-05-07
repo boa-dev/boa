@@ -736,6 +736,18 @@ impl JsObject {
         self.borrow().is_ordinary()
     }
 
+    /// Checks if current object is a `Duration` object.
+    ///
+    /// # Panics
+    ///
+    /// Panics if the object is currently mutably borrowed.
+    #[inline]
+    #[track_caller]
+    #[cfg(feature = "temporal")]
+    pub fn is_duration(&self) -> bool {
+        self.borrow().is_duration()
+    }
+
     /// Checks if it's a proxy object.
     ///
     /// # Panics
