@@ -2341,14 +2341,6 @@
 <a href="#2340" id="2340">2340</a>
 <a href="#2341" id="2341">2341</a>
 <a href="#2342" id="2342">2342</a>
-<a href="#2343" id="2343">2343</a>
-<a href="#2344" id="2344">2344</a>
-<a href="#2345" id="2345">2345</a>
-<a href="#2346" id="2346">2346</a>
-<a href="#2347" id="2347">2347</a>
-<a href="#2348" id="2348">2348</a>
-<a href="#2349" id="2349">2349</a>
-<a href="#2350" id="2350">2350</a>
 </pre><pre class="rust"><code><span class="doccomment">//! Boa&#39;s representation of a JavaScript object and builtin object wrappers
 //!
 //! For the builtin object wrappers, please see [`object::builtins`][builtins] for implementors.
@@ -2758,11 +2750,7 @@
     <span class="doccomment">/// Create the `AsyncGeneratorFunction` object data
     </span><span class="kw">pub fn </span>async_generator_function(function: Function) -&gt; <span class="self">Self </span>{
         <span class="self">Self </span>{
-            internal_methods: <span class="kw">if </span>function.is_constructor() {
-                <span class="kw-2">&amp;</span>CONSTRUCTOR_INTERNAL_METHODS
-            } <span class="kw">else </span>{
-                <span class="kw-2">&amp;</span>FUNCTION_INTERNAL_METHODS
-            },
+            internal_methods: <span class="kw-2">&amp;</span>FUNCTION_INTERNAL_METHODS,
             kind: ObjectKind::GeneratorFunction(function),
         }
     }
@@ -2869,9 +2857,9 @@
     }
 
     <span class="doccomment">/// Create the `Function` object data
-    </span><span class="kw">pub fn </span>function(function: Function) -&gt; <span class="self">Self </span>{
+    </span><span class="kw">pub fn </span>function(function: Function, constructor: bool) -&gt; <span class="self">Self </span>{
         <span class="self">Self </span>{
-            internal_methods: <span class="kw">if </span>function.is_constructor() {
+            internal_methods: <span class="kw">if </span>constructor {
                 <span class="kw-2">&amp;</span>CONSTRUCTOR_INTERNAL_METHODS
             } <span class="kw">else </span>{
                 <span class="kw-2">&amp;</span>FUNCTION_INTERNAL_METHODS
@@ -2903,11 +2891,7 @@
     <span class="doccomment">/// Create the `GeneratorFunction` object data
     </span><span class="kw">pub fn </span>generator_function(function: Function) -&gt; <span class="self">Self </span>{
         <span class="self">Self </span>{
-            internal_methods: <span class="kw">if </span>function.is_constructor() {
-                <span class="kw-2">&amp;</span>CONSTRUCTOR_INTERNAL_METHODS
-            } <span class="kw">else </span>{
-                <span class="kw-2">&amp;</span>FUNCTION_INTERNAL_METHODS
-            },
+            internal_methods: <span class="kw-2">&amp;</span>FUNCTION_INTERNAL_METHODS,
             kind: ObjectKind::GeneratorFunction(function),
         }
     }
@@ -4219,7 +4203,7 @@
             <span class="self">self</span>.context.realm().clone(),
         );
         <span class="kw">let </span>object = <span class="self">self</span>.context.intrinsics().templates().function().create(
-            ObjectData::function(function),
+            ObjectData::function(function, <span class="self">self</span>.constructor.is_some()),
             <span class="macro">vec!</span>[<span class="self">self</span>.length.into(), <span class="self">self</span>.name.into()],
         );
 
@@ -4654,7 +4638,7 @@
             <span class="kw">let </span><span class="kw-2">mut </span>constructor = <span class="self">self</span>.constructor_object;
             constructor.insert(<span class="macro">utf16!</span>(<span class="string">&quot;length&quot;</span>), length);
             constructor.insert(<span class="macro">utf16!</span>(<span class="string">&quot;name&quot;</span>), name);
-            <span class="kw">let </span>data = ObjectData::function(function);
+            <span class="kw">let </span>data = ObjectData::function(function, <span class="self">self</span>.kind.is_some());
 
             constructor.kind = data.kind;
 

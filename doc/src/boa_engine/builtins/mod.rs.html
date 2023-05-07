@@ -1094,6 +1094,9 @@
 <a href="#1093" id="1093">1093</a>
 <a href="#1094" id="1094">1094</a>
 <a href="#1095" id="1095">1095</a>
+<a href="#1096" id="1096">1096</a>
+<a href="#1097" id="1097">1097</a>
+<a href="#1098" id="1098">1098</a>
 </pre><pre class="rust"><code><span class="doccomment">//! Boa&#39;s ECMAScript built-in object implementations, e.g. Object, String, Math, Array, etc.
 
 </span><span class="kw">pub mod </span>array;
@@ -1634,13 +1637,16 @@
 
 <span class="kw">impl</span>&lt;S: ApplyToObject + IsConstructor&gt; ApplyToObject <span class="kw">for </span>Callable&lt;S&gt; {
     <span class="kw">fn </span>apply_to(<span class="self">self</span>, object: <span class="kw-2">&amp;mut </span>BuiltInObjectInitializer) {
-        <span class="kw">let </span>function = ObjectData::function(function::Function::new(
-            function::FunctionKind::Native {
-                function: NativeFunction::from_fn_ptr(<span class="self">self</span>.function),
-                constructor: S::IS_CONSTRUCTOR.then_some(function::ConstructorKind::Base),
-            },
-            <span class="self">self</span>.realm,
-        ));
+        <span class="kw">let </span>function = ObjectData::function(
+            function::Function::new(
+                function::FunctionKind::Native {
+                    function: NativeFunction::from_fn_ptr(<span class="self">self</span>.function),
+                    constructor: S::IS_CONSTRUCTOR.then_some(function::ConstructorKind::Base),
+                },
+                <span class="self">self</span>.realm,
+            ),
+            S::IS_CONSTRUCTOR,
+        );
         object.set_data(function);
         object.insert(
             <span class="macro">utf16!</span>(<span class="string">&quot;length&quot;</span>),
@@ -2018,7 +2024,7 @@
         <span class="kw">let </span>function = function::Function::new(function, <span class="self">self</span>.realm.clone());
 
         <span class="kw">let </span>object = <span class="self">self</span>.realm.intrinsics().templates().function().create(
-            ObjectData::function(function),
+            ObjectData::function(function, <span class="bool-val">false</span>),
             <span class="macro">vec!</span>[JsValue::new(<span class="self">self</span>.length), JsValue::new(<span class="self">self</span>.name)],
         );
 

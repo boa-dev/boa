@@ -1367,10 +1367,6 @@
 <a href="#1366" id="1366">1366</a>
 <a href="#1367" id="1367">1367</a>
 <a href="#1368" id="1368">1368</a>
-<a href="#1369" id="1369">1369</a>
-<a href="#1370" id="1370">1370</a>
-<a href="#1371" id="1371">1371</a>
-<a href="#1372" id="1372">1372</a>
 </pre><pre class="rust"><code><span class="doccomment">//! `CodeBlock`
 //!
 //! This module is for the `CodeBlock` which implements a function representation in the VM
@@ -1686,11 +1682,17 @@
             Opcode::GetArrowFunction
             | Opcode::GetAsyncArrowFunction
             | Opcode::GetFunction
-            | Opcode::GetFunctionAsync
-            | Opcode::GetGenerator
-            | Opcode::GetGeneratorAsync =&gt; {
+            | Opcode::GetFunctionAsync =&gt; {
                 <span class="kw">let </span>operand = <span class="self">self</span>.read::&lt;u32&gt;(<span class="kw-2">*</span>pc);
                 <span class="kw-2">*</span>pc += size_of::&lt;u32&gt;() + size_of::&lt;u8&gt;();
+                <span class="macro">format!</span>(
+                    <span class="string">&quot;{operand:04}: &#39;{}&#39; (length: {})&quot;</span>,
+                    interner.resolve_expect(<span class="self">self</span>.functions[operand <span class="kw">as </span>usize].name),
+                    <span class="self">self</span>.functions[operand <span class="kw">as </span>usize].length
+                )
+            }
+            Opcode::GetGenerator | Opcode::GetGeneratorAsync =&gt; {
+                <span class="kw">let </span>operand = <span class="self">self</span>.read::&lt;u32&gt;(<span class="kw-2">*</span>pc);
                 <span class="macro">format!</span>(
                     <span class="string">&quot;{operand:04}: &#39;{}&#39; (length: {})&quot;</span>,
                     interner.resolve_expect(<span class="self">self</span>.functions[operand <span class="kw">as </span>usize].name),
@@ -1955,17 +1957,10 @@
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>create_function_object(
     code: Gc&lt;CodeBlock&gt;,
     r#async: bool,
-    arrow: bool,
-    prototype: <span class="prelude-ty">Option</span>&lt;JsObject&gt;,
-    method: bool,
+    prototype: JsObject,
     context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
 ) -&gt; JsObject {
     <span class="kw">let </span>_timer = Profiler::global().start_event(<span class="string">&quot;create_function_object&quot;</span>, <span class="string">&quot;vm&quot;</span>);
-
-    <span class="kw">let </span><span class="prelude-val">Some</span>(prototype) = prototype <span class="kw">else </span>{
-        <span class="comment">// fast path
-        </span><span class="kw">return </span>create_function_object_fast(code, r#async, arrow, method, context);
-    };
 
     <span class="kw">let </span>name: JsValue = context
         .interner()
@@ -2000,11 +1995,11 @@
         )
     };
 
-    <span class="kw">let </span>data = ObjectData::function(function);
+    <span class="kw">let </span>data = ObjectData::function(function, !r#async);
 
     <span class="kw">let </span>templates = context.intrinsics().templates();
 
-    <span class="kw">let </span>(<span class="kw-2">mut </span>template, storage, constructor_prototype) = <span class="kw">if </span>r#async || arrow || method {
+    <span class="kw">let </span>(<span class="kw-2">mut </span>template, storage, constructor_prototype) = <span class="kw">if </span>r#async {
         (
             templates.function_without_proto().clone(),
             <span class="macro">vec!</span>[length, name],
@@ -2026,12 +2021,12 @@
 
     template.set_prototype(prototype);
 
-    <span class="kw">let </span>contructor = template.create(data, storage);
+    <span class="kw">let </span>constructor = template.create(data, storage);
 
     <span class="kw">if let </span><span class="prelude-val">Some</span>(constructor_prototype) = <span class="kw-2">&amp;</span>constructor_prototype {
-        constructor_prototype.borrow_mut().properties_mut().storage[<span class="number">0</span>] = contructor.clone().into();
+        constructor_prototype.borrow_mut().properties_mut().storage[<span class="number">0</span>] = constructor.clone().into();
     }
-    contructor
+    constructor
 }
 
 <span class="doccomment">/// Creates a new function object.
@@ -2077,7 +2072,7 @@
 
     <span class="kw">let </span>function = Function::new(function, context.realm().clone());
 
-    <span class="kw">let </span>data = ObjectData::function(function);
+    <span class="kw">let </span>data = ObjectData::function(function, !method &amp;&amp; !arrow &amp;&amp; !r#async);
 
     <span class="kw">if </span>r#async {
         context
@@ -2114,7 +2109,6 @@
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>create_generator_function_object(
     code: Gc&lt;CodeBlock&gt;,
     r#async: bool,
-    method: bool,
     prototype: <span class="prelude-ty">Option</span>&lt;JsObject&gt;,
     context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
 ) -&gt; JsObject {
@@ -2202,11 +2196,9 @@
         .configurable(<span class="bool-val">false</span>)
         .build();
 
-    <span class="kw">if </span>!method {
-        constructor
-            .define_property_or_throw(PROTOTYPE, prototype_property, context)
-            .expect(<span class="string">&quot;failed to define the prototype property of the generator function&quot;</span>);
-    }
+    constructor
+        .define_property_or_throw(PROTOTYPE, prototype_property, context)
+        .expect(<span class="string">&quot;failed to define the prototype property of the generator function&quot;</span>);
     constructor
         .define_property_or_throw(<span class="macro">utf16!</span>(<span class="string">&quot;name&quot;</span>), name_property, context)
         .expect(<span class="string">&quot;failed to define the name property of the generator function&quot;</span>);

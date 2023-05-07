@@ -916,6 +916,8 @@
 <a href="#915" id="915">915</a>
 <a href="#916" id="916">916</a>
 <a href="#917" id="917">917</a>
+<a href="#918" id="918">918</a>
+<a href="#919" id="919">919</a>
 </pre><pre class="rust"><code><span class="kw">use crate</span>::{
     bytecompiler::{ByteCompiler, FunctionCompiler, FunctionSpec, Label, NodeKind},
     vm::{create_function_object_fast, create_generator_function_object, BindingOpcode, Opcode},
@@ -1113,7 +1115,7 @@
 
             <span class="comment">// b. Let fo be InstantiateFunctionObject of f with arguments env and privateEnv.
             </span><span class="kw">let </span>function = <span class="kw">if </span>generator {
-                create_generator_function_object(code, r#async, <span class="bool-val">false</span>, <span class="prelude-val">None</span>, <span class="self">self</span>.context)
+                create_generator_function_object(code, r#async, <span class="prelude-val">None</span>, <span class="self">self</span>.context)
             } <span class="kw">else </span>{
                 create_function_object_fast(code, r#async, <span class="bool-val">false</span>, <span class="bool-val">false</span>, <span class="self">self</span>.context)
             };
@@ -1420,7 +1422,7 @@
             </span><span class="kw">if </span>var_environment_is_global {
                 <span class="comment">// b. Let fo be InstantiateFunctionObject of f with arguments lexEnv and privateEnv.
                 </span><span class="kw">let </span>function = <span class="kw">if </span>generator {
-                    create_generator_function_object(code, r#async, <span class="bool-val">false</span>, <span class="prelude-val">None</span>, <span class="self">self</span>.context)
+                    create_generator_function_object(code, r#async, <span class="prelude-val">None</span>, <span class="self">self</span>.context)
                 } <span class="kw">else </span>{
                     create_function_object_fast(code, r#async, <span class="bool-val">false</span>, <span class="bool-val">false</span>, <span class="self">self</span>.context)
                 };
@@ -1443,7 +1445,9 @@
                 } <span class="kw">else </span>{
                     <span class="self">self</span>.emit(Opcode::GetFunction, <span class="kw-2">&amp;</span>[index]);
                 }
-                <span class="self">self</span>.emit_u8(<span class="number">0</span>);
+                <span class="kw">if </span>!generator {
+                    <span class="self">self</span>.emit_u8(<span class="number">0</span>);
+                }
 
                 <span class="comment">// i. Let bindingExists be ! varEnv.HasBinding(fn).
                 </span><span class="kw">let </span>binding_exists = <span class="self">self</span>.has_binding_eval(name, strict);

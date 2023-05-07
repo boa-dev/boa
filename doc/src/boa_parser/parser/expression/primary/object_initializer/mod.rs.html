@@ -1667,7 +1667,7 @@
             TokenKind::Punctuator(Punctuator::OpenBracket) =&gt; {
                 cursor.advance(interner);
                 <span class="kw">let </span>node =
-                    AssignmentExpression::new(<span class="prelude-val">None</span>, <span class="bool-val">false</span>, <span class="self">self</span>.allow_yield, <span class="self">self</span>.allow_await)
+                    AssignmentExpression::new(<span class="prelude-val">None</span>, <span class="bool-val">true</span>, <span class="self">self</span>.allow_yield, <span class="self">self</span>.allow_await)
                         .parse(cursor, interner)<span class="question-mark">?</span>;
                 cursor.expect(Punctuator::CloseBracket, <span class="string">&quot;expected token &#39;]&#39;&quot;</span>, interner)<span class="question-mark">?</span>;
                 <span class="kw">return </span><span class="prelude-val">Ok</span>(node.into());
