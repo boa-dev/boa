@@ -25,25 +25,25 @@ fn short_circuit_evaluation() {
         // short circuiting OR.
         TestAction::assert_eq(
             indoc! {r#"
-                function add_one(counter) {
+                function add_one_a(counter) {
                     counter.value += 1;
                     return true;
                 }
-                let counter = { value: 0 };
-                let _ = add_one(counter) || add_one(counter);
-                counter.value
+                let counter_a = { value: 0 };
+                add_one_a(counter_a) || add_one_a(counter_a);
+                counter_a.value
             "#},
             1,
         ),
         TestAction::assert_eq(
             indoc! {r#"
-                function add_one(counter) {
+                function add_one_b(counter) {
                     counter.value += 1;
                     return false;
                 }
-                let counter = { value: 0 };
-                let _ = add_one(counter) || add_one(counter);
-                counter.value
+                let counter_b = { value: 0 };
+                add_one_b(counter_b) || add_one_b(counter_b);
+                counter_b.value
             "#},
             2,
         ),
@@ -55,25 +55,25 @@ fn short_circuit_evaluation() {
         // short circuiting AND
         TestAction::assert_eq(
             indoc! {r#"
-                function add_one(counter) {
+                function add_one_c(counter) {
                     counter.value += 1;
                     return true;
                 }
-                let counter = { value: 0 };
-                let _ = add_one(counter) && add_one(counter);
-                counter.value
+                let counter_c = { value: 0 };
+                add_one_c(counter_c) && add_one_c(counter_c);
+                counter_c.value
             "#},
             2,
         ),
         TestAction::assert_eq(
             indoc! {r#"
-                function add_one(counter) {
+                function add_one_d(counter) {
                     counter.value += 1;
                     return false;
                 }
-                let counter = { value: 0 };
-                let _ = add_one(counter) && add_one(counter);
-                counter.value
+                let counter_d = { value: 0 };
+                add_one_d(counter_d) && add_one_d(counter_d);
+                counter_d.value
             "#},
             1,
         ),
@@ -114,24 +114,24 @@ fn assign_operator_precedence() {
 fn unary_pre() {
     run_test_actions([
         TestAction::assert_eq("{ let a = 5; ++a; a }", 6),
-        TestAction::assert_eq("{ let a = 5; --a; a }", 4),
-        TestAction::assert_eq("{ const a = { b: 5 }; ++a.b; a['b'] }", 6),
-        TestAction::assert_eq("{ const a = { b: 5 }; --a['b']; a.b }", 4),
-        TestAction::assert_eq("{ let a = 5; ++a }", 6),
-        TestAction::assert_eq("{ let a = 5; --a }", 4),
-        TestAction::assert_eq("{ let a = 2147483647; ++a }", 2_147_483_648_i64),
-        TestAction::assert_eq("{ let a = -2147483648; --a }", -2_147_483_649_i64),
+        TestAction::assert_eq("{ let b = 5; --b; b }", 4),
+        TestAction::assert_eq("{ const c = { a: 5 }; ++c.a; c['a'] }", 6),
+        TestAction::assert_eq("{ const d = { a: 5 }; --d['a']; d.a }", 4),
+        TestAction::assert_eq("{ let e = 5; ++e }", 6),
+        TestAction::assert_eq("{ let f = 5; --f }", 4),
+        TestAction::assert_eq("{ let g = 2147483647; ++g }", 2_147_483_648_i64),
+        TestAction::assert_eq("{ let h = -2147483648; --h }", -2_147_483_649_i64),
         TestAction::assert_eq(
             indoc! {r#"
-                let a = {[Symbol.toPrimitive]() { return 123; }};
-                ++a
+                let i = {[Symbol.toPrimitive]() { return 123; }};
+                ++i
             "#},
             124,
         ),
         TestAction::assert_eq(
             indoc! {r#"
-                let a = {[Symbol.toPrimitive]() { return 123; }};
-                ++a
+                let j = {[Symbol.toPrimitive]() { return 123; }};
+                ++j
             "#},
             124,
         ),
@@ -210,24 +210,24 @@ fn typeofs() {
 fn unary_post() {
     run_test_actions([
         TestAction::assert_eq("{ let a = 5; a++; a }", 6),
-        TestAction::assert_eq("{ let a = 5; a--; a }", 4),
-        TestAction::assert_eq("{ const a = { b: 5 }; a.b++; a['b'] }", 6),
-        TestAction::assert_eq("{ const a = { b: 5 }; a['b']--; a.b }", 4),
-        TestAction::assert_eq("{ let a = 5; a++ }", 5),
-        TestAction::assert_eq("{ let a = 5; a-- }", 5),
-        TestAction::assert_eq("{ let a = 2147483647; a++; a }", 2_147_483_648_i64),
-        TestAction::assert_eq("{ let a = -2147483648; a--; a }", -2_147_483_649_i64),
+        TestAction::assert_eq("{ let b = 5; b--; b }", 4),
+        TestAction::assert_eq("{ const c = { a: 5 }; c.a++; c['a'] }", 6),
+        TestAction::assert_eq("{ const d = { a: 5 }; d['a']--; d.a }", 4),
+        TestAction::assert_eq("{ let e = 5; e++ }", 5),
+        TestAction::assert_eq("{ let f = 5; f-- }", 5),
+        TestAction::assert_eq("{ let g = 2147483647; g++; g }", 2_147_483_648_i64),
+        TestAction::assert_eq("{ let h = -2147483648; h--; h }", -2_147_483_649_i64),
         TestAction::assert_eq(
             indoc! {r#"
-                let a = {[Symbol.toPrimitive]() { return 123; }};
-                a++
+                let i = {[Symbol.toPrimitive]() { return 123; }};
+                i++
             "#},
             123,
         ),
         TestAction::assert_eq(
             indoc! {r#"
-                let a = {[Symbol.toPrimitive]() { return 123; }};
-                a--
+                let j = {[Symbol.toPrimitive]() { return 123; }};
+                j--
             "#},
             123,
         ),

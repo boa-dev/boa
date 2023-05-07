@@ -773,7 +773,6 @@ impl<'de> Deserialize<'de> for TestFlags {
 #[serde(rename_all = "lowercase")]
 enum Phase {
     Parse,
-    Early,
     Resolution,
     Runtime,
 }
