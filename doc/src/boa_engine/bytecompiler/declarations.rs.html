@@ -918,6 +918,34 @@
 <a href="#917" id="917">917</a>
 <a href="#918" id="918">918</a>
 <a href="#919" id="919">919</a>
+<a href="#920" id="920">920</a>
+<a href="#921" id="921">921</a>
+<a href="#922" id="922">922</a>
+<a href="#923" id="923">923</a>
+<a href="#924" id="924">924</a>
+<a href="#925" id="925">925</a>
+<a href="#926" id="926">926</a>
+<a href="#927" id="927">927</a>
+<a href="#928" id="928">928</a>
+<a href="#929" id="929">929</a>
+<a href="#930" id="930">930</a>
+<a href="#931" id="931">931</a>
+<a href="#932" id="932">932</a>
+<a href="#933" id="933">933</a>
+<a href="#934" id="934">934</a>
+<a href="#935" id="935">935</a>
+<a href="#936" id="936">936</a>
+<a href="#937" id="937">937</a>
+<a href="#938" id="938">938</a>
+<a href="#939" id="939">939</a>
+<a href="#940" id="940">940</a>
+<a href="#941" id="941">941</a>
+<a href="#942" id="942">942</a>
+<a href="#943" id="943">943</a>
+<a href="#944" id="944">944</a>
+<a href="#945" id="945">945</a>
+<a href="#946" id="946">946</a>
+<a href="#947" id="947">947</a>
 </pre><pre class="rust"><code><span class="kw">use crate</span>::{
     bytecompiler::{ByteCompiler, FunctionCompiler, FunctionSpec, Label, NodeKind},
     vm::{create_function_object_fast, create_generator_function_object, BindingOpcode, Opcode},
@@ -946,18 +974,46 @@
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
         script: <span class="kw-2">&amp;</span>StatementList,
     ) -&gt; JsResult&lt;()&gt; {
-        <span class="comment">// Note: Step 1-4 Are currently handled while parsing.
-        // 1. Let lexNames be the LexicallyDeclaredNames of script.
-        // 2. Let varNames be the VarDeclaredNames of script.
-        // 3. For each element name of lexNames, do
-        //     a. If env.HasVarDeclaration(name) is true, throw a SyntaxError exception.
-        //     b. If env.HasLexicalDeclaration(name) is true, throw a SyntaxError exception.
-        //     c. Let hasRestrictedGlobal be ? env.HasRestrictedGlobalProperty(name).
-        //     d. If hasRestrictedGlobal is true, throw a SyntaxError exception.
-        // 4. For each element name of varNames, do
-        //     a. If env.HasLexicalDeclaration(name) is true, throw a SyntaxError exception.
+        <span class="comment">// 1. Let lexNames be the LexicallyDeclaredNames of script.
+        </span><span class="kw">let </span>lex_names = top_level_lexically_declared_names(script);
 
-        // 5. Let varDeclarations be the VarScopedDeclarations of script.
+        <span class="comment">// 2. Let varNames be the VarDeclaredNames of script.
+        </span><span class="kw">let </span>var_names = top_level_var_declared_names(script);
+
+        <span class="comment">// 3. For each element name of lexNames, do
+        </span><span class="kw">for </span>name <span class="kw">in </span>lex_names {
+            <span class="comment">// Note: Our implementation differs from the spec here.
+            // a. If env.HasVarDeclaration(name) is true, throw a SyntaxError exception.
+
+            // b. If env.HasLexicalDeclaration(name) is true, throw a SyntaxError exception.
+            </span><span class="kw">if </span><span class="self">self</span>.has_binding(name) {
+                <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::syntax()
+                    .with_message(<span class="string">&quot;duplicate lexical declaration&quot;</span>)
+                    .into());
+            }
+
+            <span class="comment">// c. Let hasRestrictedGlobal be ? env.HasRestrictedGlobalProperty(name).
+            </span><span class="kw">let </span>has_restricted_global = <span class="self">self</span>.context.has_restricted_global_property(name)<span class="question-mark">?</span>;
+
+            <span class="comment">// d. If hasRestrictedGlobal is true, throw a SyntaxError exception.
+            </span><span class="kw">if </span>has_restricted_global {
+                <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::syntax()
+                    .with_message(<span class="string">&quot;cannot redefine non-configurable global property&quot;</span>)
+                    .into());
+            }
+        }
+
+        <span class="comment">// 4. For each element name of varNames, do
+        </span><span class="kw">for </span>name <span class="kw">in </span>var_names {
+            <span class="comment">// a. If env.HasLexicalDeclaration(name) is true, throw a SyntaxError exception.
+            </span><span class="kw">if </span><span class="self">self</span>.has_binding(name) {
+                <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::syntax()
+                    .with_message(<span class="string">&quot;duplicate lexical declaration&quot;</span>)
+                    .into());
+            }
+        }
+
+        <span class="comment">// 5. Let varDeclarations be the VarScopedDeclarations of script.
         // Note: VarScopedDeclarations for a Script node is TopLevelVarScopedDeclarations.
         </span><span class="kw">let </span>var_declarations = top_level_var_scoped_declarations(script);
 

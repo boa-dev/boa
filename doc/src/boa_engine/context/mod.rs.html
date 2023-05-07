@@ -1058,6 +1058,35 @@
 <a href="#1057" id="1057">1057</a>
 <a href="#1058" id="1058">1058</a>
 <a href="#1059" id="1059">1059</a>
+<a href="#1060" id="1060">1060</a>
+<a href="#1061" id="1061">1061</a>
+<a href="#1062" id="1062">1062</a>
+<a href="#1063" id="1063">1063</a>
+<a href="#1064" id="1064">1064</a>
+<a href="#1065" id="1065">1065</a>
+<a href="#1066" id="1066">1066</a>
+<a href="#1067" id="1067">1067</a>
+<a href="#1068" id="1068">1068</a>
+<a href="#1069" id="1069">1069</a>
+<a href="#1070" id="1070">1070</a>
+<a href="#1071" id="1071">1071</a>
+<a href="#1072" id="1072">1072</a>
+<a href="#1073" id="1073">1073</a>
+<a href="#1074" id="1074">1074</a>
+<a href="#1075" id="1075">1075</a>
+<a href="#1076" id="1076">1076</a>
+<a href="#1077" id="1077">1077</a>
+<a href="#1078" id="1078">1078</a>
+<a href="#1079" id="1079">1079</a>
+<a href="#1080" id="1080">1080</a>
+<a href="#1081" id="1081">1081</a>
+<a href="#1082" id="1082">1082</a>
+<a href="#1083" id="1083">1083</a>
+<a href="#1084" id="1084">1084</a>
+<a href="#1085" id="1085">1085</a>
+<a href="#1086" id="1086">1086</a>
+<a href="#1087" id="1087">1087</a>
+<a href="#1088" id="1088">1088</a>
 </pre><pre class="rust"><code><span class="doccomment">//! The ECMAScript context.
 
 </span><span class="kw">mod </span>hooks;
@@ -1871,6 +1900,35 @@
         //     a. Append N to envRec.[[VarNames]].
         // 9. Return unused.
         </span><span class="prelude-val">Ok</span>(())
+    }
+
+    <span class="doccomment">/// `HasRestrictedGlobalProperty ( N )`
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-hasrestrictedglobalproperty
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>has_restricted_global_property(<span class="kw-2">&amp;mut </span><span class="self">self</span>, name: Identifier) -&gt; JsResult&lt;bool&gt; {
+        <span class="comment">// 1. Let ObjRec be envRec.[[ObjectRecord]].
+        // 2. Let globalObject be ObjRec.[[BindingObject]].
+        </span><span class="kw">let </span>global_object = <span class="self">self</span>.realm().global_object().clone();
+
+        <span class="comment">// 3. Let existingProp be ? globalObject.[[GetOwnProperty]](N).
+        </span><span class="kw">let </span>name = PropertyKey::from(<span class="self">self</span>.interner().resolve_expect(name.sym()).utf16());
+        <span class="kw">let </span>existing_prop = global_object.__get_own_property__(<span class="kw-2">&amp;</span>name, <span class="self">self</span>)<span class="question-mark">?</span>;
+
+        <span class="comment">// 4. If existingProp is undefined, return false.
+        </span><span class="kw">let </span><span class="prelude-val">Some</span>(existing_prop) = existing_prop <span class="kw">else </span>{
+            <span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="bool-val">false</span>);
+        };
+
+        <span class="comment">// 5. If existingProp.[[Configurable]] is true, return false.
+        </span><span class="kw">if </span>existing_prop.configurable() == <span class="prelude-val">Some</span>(<span class="bool-val">true</span>) {
+            <span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="bool-val">false</span>);
+        }
+
+        <span class="comment">// 6. Return true.
+        </span><span class="prelude-val">Ok</span>(<span class="bool-val">true</span>)
     }
 }
 

@@ -525,9 +525,6 @@
 <a href="#524" id="524">524</a>
 <a href="#525" id="525">525</a>
 <a href="#526" id="526">526</a>
-<a href="#527" id="527">527</a>
-<a href="#528" id="528">528</a>
-<a href="#529" id="529">529</a>
 </pre><pre class="rust"><code><span class="doccomment">//! Execution module for the test runner.
 
 </span><span class="kw">mod </span>js262;
@@ -773,7 +770,7 @@
                 (<span class="bool-val">true</span>, value.display().to_string())
             }
             Outcome::Negative {
-                phase: Phase::Parse | Phase::Early,
+                phase: Phase::Parse,
                 error_type,
             } =&gt; {
                 <span class="macro">assert_eq!</span>(
@@ -789,18 +786,12 @@
 
                 <span class="kw">if </span><span class="self">self</span>.is_module() {
                     <span class="kw">match </span>context.parse_module(source) {
-                        <span class="prelude-val">Ok</span>(module_item_list) =&gt; <span class="kw">match </span>context.compile_module(<span class="kw-2">&amp;</span>module_item_list) {
-                            <span class="prelude-val">Ok</span>(<span class="kw">_</span>) =&gt; (<span class="bool-val">false</span>, <span class="string">&quot;ModuleItemList compilation should fail&quot;</span>.to_owned()),
-                            <span class="prelude-val">Err</span>(e) =&gt; (<span class="bool-val">true</span>, <span class="macro">format!</span>(<span class="string">&quot;Uncaught {e:?}&quot;</span>)),
-                        },
+                        <span class="prelude-val">Ok</span>(<span class="kw">_</span>) =&gt; (<span class="bool-val">false</span>, <span class="string">&quot;ModuleItemList parsing should fail&quot;</span>.to_owned()),
                         <span class="prelude-val">Err</span>(e) =&gt; (<span class="bool-val">true</span>, <span class="macro">format!</span>(<span class="string">&quot;Uncaught {e}&quot;</span>)),
                     }
                 } <span class="kw">else </span>{
                     <span class="kw">match </span>context.parse_script(source) {
-                        <span class="prelude-val">Ok</span>(statement_list) =&gt; <span class="kw">match </span>context.compile_script(<span class="kw-2">&amp;</span>statement_list) {
-                            <span class="prelude-val">Ok</span>(<span class="kw">_</span>) =&gt; (<span class="bool-val">false</span>, <span class="string">&quot;StatementList compilation should fail&quot;</span>.to_owned()),
-                            <span class="prelude-val">Err</span>(e) =&gt; (<span class="bool-val">true</span>, <span class="macro">format!</span>(<span class="string">&quot;Uncaught {e:?}&quot;</span>)),
-                        },
+                        <span class="prelude-val">Ok</span>(<span class="kw">_</span>) =&gt; (<span class="bool-val">false</span>, <span class="string">&quot;StatementList parsing should fail&quot;</span>.to_owned()),
                         <span class="prelude-val">Err</span>(e) =&gt; (<span class="bool-val">true</span>, <span class="macro">format!</span>(<span class="string">&quot;Uncaught {e}&quot;</span>)),
                     }
                 }
@@ -820,30 +811,33 @@
                 <span class="kw">if let </span><span class="prelude-val">Err</span>(e) = <span class="self">self</span>.set_up_env(harness, context, AsyncResult::default()) {
                     <span class="kw">return </span>(<span class="bool-val">false</span>, e);
                 }
-                <span class="kw">let </span>code = <span class="kw">if </span><span class="self">self</span>.is_module() {
-                    <span class="kw">match </span>context
-                        .parse_module(source)
-                        .map_err(Into::into)
-                        .and_then(|stmts| context.compile_module(<span class="kw-2">&amp;</span>stmts))
-                    {
+
+                <span class="kw">let </span>e = <span class="kw">if </span><span class="self">self</span>.is_module() {
+                    <span class="kw">let </span>module = <span class="kw">match </span>context.parse_module(source) {
                         <span class="prelude-val">Ok</span>(code) =&gt; code,
                         <span class="prelude-val">Err</span>(e) =&gt; <span class="kw">return </span>(<span class="bool-val">false</span>, <span class="macro">format!</span>(<span class="string">&quot;Uncaught {e}&quot;</span>)),
+                    };
+                    <span class="kw">match </span>context
+                        .compile_module(<span class="kw-2">&amp;</span>module)
+                        .and_then(|code| context.execute(code))
+                    {
+                        <span class="prelude-val">Ok</span>(<span class="kw">_</span>) =&gt; <span class="kw">return </span>(<span class="bool-val">false</span>, <span class="string">&quot;Module execution should fail&quot;</span>.to_owned()),
+                        <span class="prelude-val">Err</span>(e) =&gt; e,
                     }
                 } <span class="kw">else </span>{
-                    <span class="kw">match </span>context
-                        .parse_script(source)
-                        .map_err(Into::into)
-                        .and_then(|stmts| context.compile_script(<span class="kw-2">&amp;</span>stmts))
-                    {
+                    <span class="kw">let </span>script = <span class="kw">match </span>context.parse_script(source) {
                         <span class="prelude-val">Ok</span>(code) =&gt; code,
                         <span class="prelude-val">Err</span>(e) =&gt; <span class="kw">return </span>(<span class="bool-val">false</span>, <span class="macro">format!</span>(<span class="string">&quot;Uncaught {e}&quot;</span>)),
+                    };
+                    <span class="kw">match </span>context
+                        .compile_script(<span class="kw-2">&amp;</span>script)
+                        .and_then(|code| context.execute(code))
+                    {
+                        <span class="prelude-val">Ok</span>(<span class="kw">_</span>) =&gt; <span class="kw">return </span>(<span class="bool-val">false</span>, <span class="string">&quot;Script execution should fail&quot;</span>.to_owned()),
+                        <span class="prelude-val">Err</span>(e) =&gt; e,
                     }
                 };
 
-                <span class="kw">let </span>e = <span class="kw">match </span>context.execute(code) {
-                    <span class="prelude-val">Ok</span>(res) =&gt; <span class="kw">return </span>(<span class="bool-val">false</span>, res.display().to_string()),
-                    <span class="prelude-val">Err</span>(e) =&gt; e,
-                };
                 <span class="kw">if let </span><span class="prelude-val">Ok</span>(e) = e.try_native(context) {
                     <span class="kw">match </span><span class="kw-2">&amp;</span>e.kind {
                         JsNativeErrorKind::Syntax <span class="kw">if </span>error_type == ErrorType::SyntaxError =&gt; {}
