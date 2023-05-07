@@ -27,7 +27,7 @@ pub struct Case {
 }
 
 impl Case {
-    /// Creates a `Case` AST node.
+    /// Creates a regular `Case` AST node.
     #[inline]
     #[must_use]
     pub const fn new(condition: Expression, body: StatementList) -> Self {
@@ -37,7 +37,7 @@ impl Case {
         }
     }
 
-    /// Creates a `Case` AST node.
+    /// Creates a default `Case` AST node.
     #[inline]
     #[must_use]
     pub const fn default(body: StatementList) -> Self {
