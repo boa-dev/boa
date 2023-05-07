@@ -164,7 +164,7 @@ pub(crate) trait Operation {
 }
 
 generate_impl! {
-    #[derive(Debug, Clone, Copy, TryFromPrimitive)]
+    #[derive(Debug, Clone, Copy, PartialEq, Eq, TryFromPrimitive)]
     #[repr(u8)]
     pub enum Opcode {
         /// Pop the top value from the stack.
