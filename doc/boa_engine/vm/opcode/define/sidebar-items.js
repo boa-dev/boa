@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"macro":["implement_declaratives"],"mod":["class","own_property"],"struct":["DefInitArg","DefInitConst","DefInitLet","DefInitVar","DefLet","DefVar"]};
+window.SIDEBAR_ITEMS = {"mod":["class","own_property"],"struct":["DefInitVar","DefVar","PutLexicalValue"]};

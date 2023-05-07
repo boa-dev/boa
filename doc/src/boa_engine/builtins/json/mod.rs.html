@@ -941,7 +941,7 @@
                 context.realm().environment().compile_env(),
                 context,
             );
-            compiler.compile_statement_list(<span class="kw-2">&amp;</span>statement_list, <span class="bool-val">true</span>);
+            compiler.compile_statement_list(<span class="kw-2">&amp;</span>statement_list, <span class="bool-val">true</span>, <span class="bool-val">false</span>);
             Gc::new(compiler.finish())
         };
         <span class="kw">let </span>unfiltered = context.execute(code_block)<span class="question-mark">?</span>;

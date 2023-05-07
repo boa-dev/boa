@@ -1351,7 +1351,7 @@
             <span class="self">self</span>,
         );
         compiler.global_declaration_instantiation(statement_list)<span class="question-mark">?</span>;
-        compiler.compile_statement_list(statement_list, <span class="bool-val">true</span>);
+        compiler.compile_statement_list(statement_list, <span class="bool-val">true</span>, <span class="bool-val">false</span>);
         <span class="prelude-val">Ok</span>(Gc::new(compiler.finish()))
     }
 

@@ -1593,13 +1593,13 @@
         }
     }
 
-    <span class="doccomment">/// Set the value of a declarative binding.
+    <span class="doccomment">/// Set the value of a lexical binding.
     ///
     /// # Panics
     ///
     /// Panics if the environment or binding index are out of range.
     </span><span class="attr">#[track_caller]
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>put_declarative_value(
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>put_lexical_value(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
         environment_index: usize,
         binding_index: usize,

@@ -618,9 +618,6 @@
 <a href="#617" id="617">617</a>
 <a href="#618" id="618">618</a>
 <a href="#619" id="619">619</a>
-<a href="#620" id="620">620</a>
-<a href="#621" id="621">621</a>
-<a href="#622" id="622">622</a>
 </pre><pre class="rust"><code><span class="doccomment">//! This module is responsible for generating the vm instruction flowgraph.
 
 </span><span class="kw">use </span><span class="kw">crate</span>::vm::{CodeBlock, Opcode};
@@ -1028,12 +1025,9 @@
                     graph.add_node(previous_pc, NodeShape::None, label.into(), Color::None);
                     graph.add_edge(previous_pc, pc, <span class="prelude-val">None</span>, Color::None, EdgeStyle::Line);
                 }
-                Opcode::DefInitArg
-                | Opcode::DefVar
+                Opcode::DefVar
                 | Opcode::DefInitVar
-                | Opcode::DefLet
-                | Opcode::DefInitLet
-                | Opcode::DefInitConst
+                | Opcode::PutLexicalValue
                 | Opcode::GetName
                 | Opcode::GetLocator
                 | Opcode::GetNameAndLocator

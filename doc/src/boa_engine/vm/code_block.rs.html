@@ -1364,9 +1364,6 @@
 <a href="#1363" id="1363">1363</a>
 <a href="#1364" id="1364">1364</a>
 <a href="#1365" id="1365">1365</a>
-<a href="#1366" id="1366">1366</a>
-<a href="#1367" id="1367">1367</a>
-<a href="#1368" id="1368">1368</a>
 </pre><pre class="rust"><code><span class="doccomment">//! `CodeBlock`
 //!
 //! This module is for the `CodeBlock` which implements a function representation in the VM
@@ -1699,12 +1696,9 @@
                     <span class="self">self</span>.functions[operand <span class="kw">as </span>usize].length
                 )
             }
-            Opcode::DefInitArg
-            | Opcode::DefVar
+            Opcode::DefVar
             | Opcode::DefInitVar
-            | Opcode::DefLet
-            | Opcode::DefInitLet
-            | Opcode::DefInitConst
+            | Opcode::PutLexicalValue
             | Opcode::GetName
             | Opcode::GetLocator
             | Opcode::GetNameAndLocator
@@ -2346,7 +2340,7 @@
             context
                 .vm
                 .environments
-                .put_declarative_value(index, <span class="number">0</span>, class_object.into());
+                .put_lexical_value(index, <span class="number">0</span>, class_object.into());
             last_env -= <span class="number">1</span>;
         }
 
@@ -2358,7 +2352,7 @@
             context
                 .vm
                 .environments
-                .put_declarative_value(index, <span class="number">0</span>, <span class="self">self</span>.clone().into());
+                .put_lexical_value(index, <span class="number">0</span>, <span class="self">self</span>.clone().into());
             last_env -= <span class="number">1</span>;
         }
 
@@ -2392,7 +2386,7 @@
                     context,
                 )
             };
-            context.vm.environments.put_declarative_value(
+            context.vm.environments.put_lexical_value(
                 binding.environment_index(),
                 binding.binding_index(),
                 arguments_obj.into(),
@@ -2614,7 +2608,7 @@
                     context
                         .vm
                         .environments
-                        .put_declarative_value(index, <span class="number">0</span>, <span class="self">self</span>.clone().into());
+                        .put_lexical_value(index, <span class="number">0</span>, <span class="self">self</span>.clone().into());
                     last_env -= <span class="number">1</span>;
                 }
 
@@ -2647,7 +2641,7 @@
                             context,
                         )
                     };
-                    context.vm.environments.put_declarative_value(
+                    context.vm.environments.put_lexical_value(
                         binding.environment_index(),
                         binding.binding_index(),
                         arguments_obj.into(),

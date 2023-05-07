@@ -285,7 +285,7 @@
             <span class="self">self</span>.generator,
         );
 
-        compiler.compile_statement_list(body, <span class="bool-val">false</span>);
+        compiler.compile_statement_list(body, <span class="bool-val">false</span>, <span class="bool-val">false</span>);
 
         <span class="kw">if let </span><span class="prelude-val">Some</span>(env_labels) = env_labels {
             <span class="kw">let </span>env_info = compiler.pop_compile_environment();

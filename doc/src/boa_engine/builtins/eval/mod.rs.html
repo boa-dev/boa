@@ -491,7 +491,7 @@
         <span class="kw">let </span>push_env = compiler.emit_opcode_with_two_operands(Opcode::PushDeclarativeEnvironment);
 
         compiler.eval_declaration_instantiation(<span class="kw-2">&amp;</span>body, strict)<span class="question-mark">?</span>;
-        compiler.compile_statement_list(<span class="kw-2">&amp;</span>body, <span class="bool-val">true</span>);
+        compiler.compile_statement_list(<span class="kw-2">&amp;</span>body, <span class="bool-val">true</span>, <span class="bool-val">false</span>);
 
         <span class="kw">let </span>env_info = compiler.pop_compile_environment();
         compiler.patch_jump_with_target(push_env.<span class="number">0</span>, env_info.num_bindings <span class="kw">as </span>u32);

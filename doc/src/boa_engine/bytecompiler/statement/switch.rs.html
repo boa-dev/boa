@@ -106,7 +106,7 @@
                 label
             };
             <span class="self">self</span>.patch_jump(label);
-            <span class="self">self</span>.compile_statement_list(case.body(), <span class="bool-val">false</span>);
+            <span class="self">self</span>.compile_statement_list(case.body(), <span class="bool-val">false</span>, <span class="bool-val">true</span>);
         }
 
         <span class="kw">if </span>!default_label_set {
