@@ -61,12 +61,18 @@
 <a href="#60" id="60">60</a>
 <a href="#61" id="61">61</a>
 <a href="#62" id="62">62</a>
+<a href="#63" id="63">63</a>
+<a href="#64" id="64">64</a>
+<a href="#65" id="65">65</a>
+<a href="#66" id="66">66</a>
+<a href="#67" id="67">67</a>
+<a href="#68" id="68">68</a>
 </pre><pre class="rust"><code><span class="kw">use crate</span>::{bytecompiler::ByteCompiler, vm::Opcode};
 <span class="kw">use </span>boa_ast::statement::Switch;
 
 <span class="kw">impl </span>ByteCompiler&lt;<span class="lifetime">&#39;_</span>, <span class="lifetime">&#39;_</span>&gt; {
     <span class="doccomment">/// Compile a [`Switch`] `boa_ast` node
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>compile_switch(<span class="kw-2">&amp;mut </span><span class="self">self</span>, switch: <span class="kw-2">&amp;</span>Switch) {
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>compile_switch(<span class="kw-2">&amp;mut </span><span class="self">self</span>, switch: <span class="kw-2">&amp;</span>Switch, use_expr: bool) {
         <span class="self">self</span>.compile_expr(switch.val(), <span class="bool-val">true</span>);
 
         <span class="self">self</span>.push_compile_environment(<span class="bool-val">false</span>);
@@ -106,7 +112,10 @@
                 label
             };
             <span class="self">self</span>.patch_jump(label);
-            <span class="self">self</span>.compile_statement_list(case.body(), <span class="bool-val">false</span>, <span class="bool-val">true</span>);
+            <span class="self">self</span>.compile_statement_list(case.body(), <span class="bool-val">true</span>, <span class="bool-val">true</span>);
+            <span class="kw">if </span>!case.body().statements().is_empty() {
+                <span class="self">self</span>.emit_opcode(Opcode::LoopUpdateReturnValue);
+            }
         }
 
         <span class="kw">if </span>!default_label_set {
@@ -116,6 +125,9 @@
         <span class="self">self</span>.pop_switch_control_info();
         <span class="self">self</span>.patch_jump(end_label);
         <span class="self">self</span>.emit_opcode(Opcode::LoopEnd);
+        <span class="kw">if </span>!use_expr {
+            <span class="self">self</span>.emit_opcode(Opcode::Pop);
+        }
 
         <span class="kw">let </span>env_info = <span class="self">self</span>.pop_compile_environment();
         <span class="self">self</span>.patch_jump_with_target(push_env.<span class="number">0</span>, env_info.num_bindings <span class="kw">as </span>u32);

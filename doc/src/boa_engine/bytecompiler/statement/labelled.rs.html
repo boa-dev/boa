@@ -64,19 +64,19 @@
         <span class="kw">match </span>labelled.item() {
             LabelledItem::Statement(stmt) =&gt; <span class="kw">match </span>stmt {
                 Statement::ForLoop(for_loop) =&gt; {
-                    <span class="self">self</span>.compile_for_loop(for_loop, <span class="prelude-val">Some</span>(labelled.label()));
+                    <span class="self">self</span>.compile_for_loop(for_loop, <span class="prelude-val">Some</span>(labelled.label()), use_expr);
                 }
                 Statement::ForInLoop(for_in_loop) =&gt; {
-                    <span class="self">self</span>.compile_for_in_loop(for_in_loop, <span class="prelude-val">Some</span>(labelled.label()));
+                    <span class="self">self</span>.compile_for_in_loop(for_in_loop, <span class="prelude-val">Some</span>(labelled.label()), use_expr);
                 }
                 Statement::ForOfLoop(for_of_loop) =&gt; {
-                    <span class="self">self</span>.compile_for_of_loop(for_of_loop, <span class="prelude-val">Some</span>(labelled.label()));
+                    <span class="self">self</span>.compile_for_of_loop(for_of_loop, <span class="prelude-val">Some</span>(labelled.label()), use_expr);
                 }
                 Statement::WhileLoop(while_loop) =&gt; {
-                    <span class="self">self</span>.compile_while_loop(while_loop, <span class="prelude-val">Some</span>(labelled.label()));
+                    <span class="self">self</span>.compile_while_loop(while_loop, <span class="prelude-val">Some</span>(labelled.label()), use_expr);
                 }
                 Statement::DoWhileLoop(do_while_loop) =&gt; {
-                    <span class="self">self</span>.compile_do_while_loop(do_while_loop, <span class="prelude-val">Some</span>(labelled.label()));
+                    <span class="self">self</span>.compile_do_while_loop(do_while_loop, <span class="prelude-val">Some</span>(labelled.label()), use_expr);
                 }
                 stmt =&gt; <span class="self">self</span>.compile_stmt(stmt, use_expr),
             },

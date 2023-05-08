@@ -1407,6 +1407,19 @@
 <a href="#1406" id="1406">1406</a>
 <a href="#1407" id="1407">1407</a>
 <a href="#1408" id="1408">1408</a>
+<a href="#1409" id="1409">1409</a>
+<a href="#1410" id="1410">1410</a>
+<a href="#1411" id="1411">1411</a>
+<a href="#1412" id="1412">1412</a>
+<a href="#1413" id="1413">1413</a>
+<a href="#1414" id="1414">1414</a>
+<a href="#1415" id="1415">1415</a>
+<a href="#1416" id="1416">1416</a>
+<a href="#1417" id="1417">1417</a>
+<a href="#1418" id="1418">1418</a>
+<a href="#1419" id="1419">1419</a>
+<a href="#1420" id="1420">1420</a>
+<a href="#1421" id="1421">1421</a>
 </pre><pre class="rust"><code><span class="doccomment">//! This module contains the bytecode compiler.
 
 </span><span class="kw">mod </span>class;
@@ -2154,8 +2167,17 @@
     <span class="doccomment">/// Compile a [`StatementList`].
     </span><span class="kw">pub fn </span>compile_statement_list(<span class="kw-2">&amp;mut </span><span class="self">self</span>, list: <span class="kw-2">&amp;</span>StatementList, use_expr: bool, block: bool) {
         <span class="kw">if </span>use_expr {
-            <span class="kw">let </span>expr_index = list
+            <span class="kw">let </span>list_until_loop_exit: Vec&lt;<span class="kw">_</span>&gt; = list
                 .statements()
+                .iter()
+                .take_while(|item| {
+                    !<span class="macro">matches!</span>(
+                        item,
+                        StatementListItem::Statement(Statement::Break(<span class="kw">_</span>) | Statement::Continue(<span class="kw">_</span>))
+                    )
+                })
+                .collect();
+            <span class="kw">let </span>expr_index = list_until_loop_exit
                 .iter()
                 .rev()
                 .skip_while(|item| {
@@ -2166,6 +2188,10 @@
                     )
                 })
                 .count();
+
+            <span class="kw">if </span>expr_index == <span class="number">0 </span>&amp;&amp; !list.statements().is_empty() {
+                <span class="self">self</span>.emit_opcode(Opcode::PushUndefined);
+            }
 
             <span class="kw">for </span>(i, item) <span class="kw">in </span>list.statements().iter().enumerate() {
                 <span class="self">self</span>.compile_stmt_list_item(item, i + <span class="number">1 </span>== expr_index, block);

@@ -125,7 +125,6 @@
 <a href="#124" id="124">124</a>
 <a href="#125" id="125">125</a>
 <a href="#126" id="126">126</a>
-<a href="#127" id="127">127</a>
 </pre><pre class="rust"><code><span class="doccomment">//! `CallFrame`
 //!
 //! This module will provides everything needed to implement the `CallFrame`
@@ -156,7 +155,6 @@
     <span class="kw">pub</span>(<span class="kw">crate</span>) pop_on_return: usize,
     <span class="comment">// Tracks the number of environments in environment entry.
     // On abrupt returns this is used to decide how many environments need to be pop&#39;ed.
-    </span><span class="attr">#[unsafe_ignore_trace]
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) env_stack: Vec&lt;EnvStackEntry&gt;,
     <span class="kw">pub</span>(<span class="kw">crate</span>) param_count: usize,
     <span class="kw">pub</span>(<span class="kw">crate</span>) arg_count: usize,

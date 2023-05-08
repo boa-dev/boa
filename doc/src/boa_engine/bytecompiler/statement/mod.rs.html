@@ -85,19 +85,19 @@
             Statement::Var(var) =&gt; <span class="self">self</span>.compile_var_decl(var),
             Statement::If(node) =&gt; <span class="self">self</span>.compile_if(node, use_expr),
             Statement::ForLoop(for_loop) =&gt; {
-                <span class="self">self</span>.compile_for_loop(for_loop, <span class="prelude-val">None</span>);
+                <span class="self">self</span>.compile_for_loop(for_loop, <span class="prelude-val">None</span>, use_expr);
             }
             Statement::ForInLoop(for_in_loop) =&gt; {
-                <span class="self">self</span>.compile_for_in_loop(for_in_loop, <span class="prelude-val">None</span>);
+                <span class="self">self</span>.compile_for_in_loop(for_in_loop, <span class="prelude-val">None</span>, use_expr);
             }
             Statement::ForOfLoop(for_of_loop) =&gt; {
-                <span class="self">self</span>.compile_for_of_loop(for_of_loop, <span class="prelude-val">None</span>);
+                <span class="self">self</span>.compile_for_of_loop(for_of_loop, <span class="prelude-val">None</span>, use_expr);
             }
             Statement::WhileLoop(while_loop) =&gt; {
-                <span class="self">self</span>.compile_while_loop(while_loop, <span class="prelude-val">None</span>);
+                <span class="self">self</span>.compile_while_loop(while_loop, <span class="prelude-val">None</span>, use_expr);
             }
             Statement::DoWhileLoop(do_while_loop) =&gt; {
-                <span class="self">self</span>.compile_do_while_loop(do_while_loop, <span class="prelude-val">None</span>);
+                <span class="self">self</span>.compile_do_while_loop(do_while_loop, <span class="prelude-val">None</span>, use_expr);
             }
             Statement::Block(block) =&gt; {
                 <span class="self">self</span>.compile_block(block, use_expr);
@@ -112,7 +112,7 @@
                 <span class="self">self</span>.emit(Opcode::Throw, <span class="kw-2">&amp;</span>[]);
             }
             Statement::Switch(switch) =&gt; {
-                <span class="self">self</span>.compile_switch(switch);
+                <span class="self">self</span>.compile_switch(switch, use_expr);
             }
             Statement::Return(ret) =&gt; {
                 <span class="kw">if let </span><span class="prelude-val">Some</span>(expr) = ret.target() {
@@ -124,7 +124,7 @@
             }
             Statement::Try(t) =&gt; <span class="self">self</span>.compile_try(t, use_expr),
             Statement::Expression(expr) =&gt; <span class="self">self</span>.compile_expr(expr, use_expr),
-            Statement::With(with) =&gt; <span class="self">self</span>.compile_with(with),
+            Statement::With(with) =&gt; <span class="self">self</span>.compile_with(with, use_expr),
             Statement::Empty =&gt; {}
         }
     }

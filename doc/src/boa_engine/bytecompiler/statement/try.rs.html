@@ -101,6 +101,22 @@
 <a href="#100" id="100">100</a>
 <a href="#101" id="101">101</a>
 <a href="#102" id="102">102</a>
+<a href="#103" id="103">103</a>
+<a href="#104" id="104">104</a>
+<a href="#105" id="105">105</a>
+<a href="#106" id="106">106</a>
+<a href="#107" id="107">107</a>
+<a href="#108" id="108">108</a>
+<a href="#109" id="109">109</a>
+<a href="#110" id="110">110</a>
+<a href="#111" id="111">111</a>
+<a href="#112" id="112">112</a>
+<a href="#113" id="113">113</a>
+<a href="#114" id="114">114</a>
+<a href="#115" id="115">115</a>
+<a href="#116" id="116">116</a>
+<a href="#117" id="117">117</a>
+<a href="#118" id="118">118</a>
 </pre><pre class="rust"><code><span class="kw">use crate</span>::{
     bytecompiler::{ByteCompiler, Label},
     vm::{BindingOpcode, Opcode},
@@ -123,7 +139,13 @@
         }
         <span class="self">self</span>.push_try_control_info(t.finally().is_some(), try_start);
 
-        <span class="self">self</span>.compile_block(t.block(), use_expr);
+        <span class="self">self</span>.compile_block(t.block(), <span class="bool-val">true</span>);
+        <span class="kw">if </span>t.block().statement_list().statements().is_empty() {
+            <span class="self">self</span>.emit_opcode(Opcode::PushUndefined);
+        }
+        <span class="kw">if </span>!use_expr {
+            <span class="self">self</span>.emit_opcode(Opcode::Pop);
+        }
 
         <span class="self">self</span>.emit_opcode(Opcode::TryEnd);
 
@@ -179,12 +201,19 @@
             <span class="self">self</span>.emit_opcode(Opcode::Pop);
         }
 
-        <span class="self">self</span>.compile_block(catch.block(), use_expr);
+        <span class="self">self</span>.compile_block(catch.block(), <span class="bool-val">true</span>);
+        <span class="kw">if </span>catch.block().statement_list().statements().is_empty() {
+            <span class="self">self</span>.emit_opcode(Opcode::PushUndefined);
+        }
+        <span class="kw">if </span>!use_expr {
+            <span class="self">self</span>.emit_opcode(Opcode::Pop);
+        }
 
         <span class="kw">let </span>env_info = <span class="self">self</span>.pop_compile_environment();
         <span class="self">self</span>.patch_jump_with_target(push_env.<span class="number">0</span>, env_info.num_bindings <span class="kw">as </span>u32);
         <span class="self">self</span>.patch_jump_with_target(push_env.<span class="number">1</span>, env_info.index <span class="kw">as </span>u32);
         <span class="self">self</span>.emit_opcode(Opcode::PopEnvironment);
+
         <span class="kw">if </span>parent_try.finally().is_some() {
             <span class="self">self</span>.emit_opcode(Opcode::CatchEnd);
         } <span class="kw">else </span>{
@@ -196,7 +225,10 @@
     }
 
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>compile_finally_stmt(<span class="kw-2">&amp;mut </span><span class="self">self</span>, finally: <span class="kw-2">&amp;</span>Finally, finally_end_label: Label) {
-        <span class="self">self</span>.compile_block(finally.block(), <span class="bool-val">false</span>);
+        <span class="self">self</span>.compile_block(finally.block(), <span class="bool-val">true</span>);
+        <span class="kw">if </span>!finally.block().statement_list().statements().is_empty() {
+            <span class="self">self</span>.emit_opcode(Opcode::Pop);
+        }
 
         <span class="self">self</span>.pop_finally_control_info();
         <span class="self">self</span>.patch_jump(finally_end_label);

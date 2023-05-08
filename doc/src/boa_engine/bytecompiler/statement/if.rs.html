@@ -22,7 +22,17 @@
 <a href="#21" id="21">21</a>
 <a href="#22" id="22">22</a>
 <a href="#23" id="23">23</a>
-</pre><pre class="rust"><code><span class="kw">use </span><span class="kw">crate</span>::bytecompiler::ByteCompiler;
+<a href="#24" id="24">24</a>
+<a href="#25" id="25">25</a>
+<a href="#26" id="26">26</a>
+<a href="#27" id="27">27</a>
+<a href="#28" id="28">28</a>
+<a href="#29" id="29">29</a>
+<a href="#30" id="30">30</a>
+<a href="#31" id="31">31</a>
+<a href="#32" id="32">32</a>
+<a href="#33" id="33">33</a>
+</pre><pre class="rust"><code><span class="kw">use crate</span>::{bytecompiler::ByteCompiler, vm::Opcode};
 <span class="kw">use </span>boa_ast::statement::If;
 
 <span class="kw">impl </span>ByteCompiler&lt;<span class="lifetime">&#39;_</span>, <span class="lifetime">&#39;_</span>&gt; {
@@ -30,18 +40,28 @@
         <span class="self">self</span>.compile_expr(node.cond(), <span class="bool-val">true</span>);
         <span class="kw">let </span>jelse = <span class="self">self</span>.jump_if_false();
 
-        <span class="self">self</span>.compile_stmt(node.body(), use_expr);
+        <span class="kw">if </span>!node.body().returns_value() {
+            <span class="self">self</span>.emit_opcode(Opcode::PushUndefined);
+        }
+        <span class="self">self</span>.compile_stmt(node.body(), <span class="bool-val">true</span>);
 
+        <span class="kw">let </span>exit = <span class="self">self</span>.jump();
+        <span class="self">self</span>.patch_jump(jelse);
         <span class="kw">match </span>node.else_node() {
             <span class="prelude-val">None </span>=&gt; {
-                <span class="self">self</span>.patch_jump(jelse);
+                <span class="self">self</span>.emit_opcode(Opcode::PushUndefined);
             }
             <span class="prelude-val">Some</span>(else_body) =&gt; {
-                <span class="kw">let </span>exit = <span class="self">self</span>.jump();
-                <span class="self">self</span>.patch_jump(jelse);
-                <span class="self">self</span>.compile_stmt(else_body, use_expr);
-                <span class="self">self</span>.patch_jump(exit);
+                <span class="kw">if </span>!else_body.returns_value() {
+                    <span class="self">self</span>.emit_opcode(Opcode::PushUndefined);
+                }
+                <span class="self">self</span>.compile_stmt(else_body, <span class="bool-val">true</span>);
             }
+        }
+        <span class="self">self</span>.patch_jump(exit);
+
+        <span class="kw">if </span>!use_expr {
+            <span class="self">self</span>.emit_opcode(Opcode::Pop);
         }
     }
 }

@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"enum":["EnvEntryKind"],"struct":["EnvStackEntry"]};
+window.SIDEBAR_ITEMS = {"enum":["EnvEntryKind"],"fn":["mark"],"struct":["EnvStackEntry"]};
