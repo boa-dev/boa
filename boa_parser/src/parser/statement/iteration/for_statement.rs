@@ -116,7 +116,21 @@ where
                         .into(),
                 )
             }
-            TokenKind::Keyword((Keyword::Let | Keyword::Const, _)) => Some(
+            TokenKind::Keyword((Keyword::Let, _)) => Some('exit: {
+                if !cursor.strict() {
+                    if let Some(token) = cursor.peek(1, interner)? {
+                        if token.kind() == &TokenKind::Keyword((Keyword::In, false)) {
+                            cursor.advance(interner);
+                            break 'exit boa_ast::Expression::Identifier(Sym::LET.into()).into();
+                        }
+                    }
+                }
+
+                LexicalDeclaration::new(false, self.allow_yield, self.allow_await, true)
+                    .parse(cursor, interner)?
+                    .into()
+            }),
+            TokenKind::Keyword((Keyword::Const, _)) => Some(
                 LexicalDeclaration::new(false, self.allow_yield, self.allow_await, true)
                     .parse(cursor, interner)?
                     .into(),
