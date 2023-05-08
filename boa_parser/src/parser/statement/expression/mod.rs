@@ -47,10 +47,7 @@ where
 
         let next_token = cursor.peek(0, interner).or_abrupt()?;
         match next_token.kind() {
-            TokenKind::Keyword((
-                Keyword::Function | Keyword::Class | Keyword::Async | Keyword::Let,
-                true,
-            )) => {
+            TokenKind::Keyword((Keyword::Function | Keyword::Class | Keyword::Async, true)) => {
                 return Err(Error::general(
                     "Keyword must not contain escaped characters",
                     next_token.span().start(),

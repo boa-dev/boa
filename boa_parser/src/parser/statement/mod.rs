@@ -416,10 +416,9 @@ where
         let tok = cursor.peek(0, interner).or_abrupt()?;
 
         match *tok.kind() {
-            TokenKind::Keyword((
-                Keyword::Function | Keyword::Class | Keyword::Const | Keyword::Let,
-                _,
-            )) => Declaration::new(self.allow_yield, self.allow_await)
+            TokenKind::Keyword(
+                (Keyword::Function | Keyword::Class | Keyword::Const, _) | (Keyword::Let, false),
+            ) => Declaration::new(self.allow_yield, self.allow_await)
                 .parse(cursor, interner)
                 .map(ast::StatementListItem::from),
             TokenKind::Keyword((Keyword::Async, _)) => {
