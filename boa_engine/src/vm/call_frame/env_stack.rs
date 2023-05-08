@@ -184,12 +184,12 @@ impl EnvStackEntry {
 
     /// Increments the `env_num` field for current `EnvEntryStack`.
     pub(crate) fn inc_env_num(&mut self) {
-        self.env_num += 1;
+        (self.env_num, _) = self.env_num.overflowing_add(1);
     }
 
     /// Decrements the `env_num` field for current `EnvEntryStack`.
     pub(crate) fn dec_env_num(&mut self) {
-        self.env_num -= 1;
+        (self.env_num, _) = self.env_num.overflowing_sub(1);
     }
 
     /// Set the loop return value for the current `EnvStackEntry`.

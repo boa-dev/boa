@@ -115,6 +115,12 @@ impl LexicalDeclaration {
             Self::Const(list) | Self::Let(list) => list,
         }
     }
+
+    /// Returns `true` if the declaration is a `const` declaration.
+    #[must_use]
+    pub const fn is_const(&self) -> bool {
+        matches!(self, Self::Const(_))
+    }
 }
 
 impl From<LexicalDeclaration> for Declaration {
