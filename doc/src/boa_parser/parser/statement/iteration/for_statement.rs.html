@@ -405,6 +405,20 @@
 <a href="#404" id="404">404</a>
 <a href="#405" id="405">405</a>
 <a href="#406" id="406">406</a>
+<a href="#407" id="407">407</a>
+<a href="#408" id="408">408</a>
+<a href="#409" id="409">409</a>
+<a href="#410" id="410">410</a>
+<a href="#411" id="411">411</a>
+<a href="#412" id="412">412</a>
+<a href="#413" id="413">413</a>
+<a href="#414" id="414">414</a>
+<a href="#415" id="415">415</a>
+<a href="#416" id="416">416</a>
+<a href="#417" id="417">417</a>
+<a href="#418" id="418">418</a>
+<a href="#419" id="419">419</a>
+<a href="#420" id="420">420</a>
 </pre><pre class="rust"><code><span class="doccomment">//! For statement parsing.
 //!
 //! More information:
@@ -523,7 +537,21 @@
                         </span>.into(),
                 )
             }
-            TokenKind::Keyword((Keyword::Let | Keyword::Const, <span class="kw">_</span>)) =&gt; <span class="prelude-val">Some</span>(
+            TokenKind::Keyword((Keyword::Let, <span class="kw">_</span>)) =&gt; <span class="prelude-val">Some</span>(<span class="lifetime">&#39;exit</span>: {
+                <span class="kw">if </span>!cursor.strict() {
+                    <span class="kw">if let </span><span class="prelude-val">Some</span>(token) = cursor.peek(<span class="number">1</span>, interner)<span class="question-mark">? </span>{
+                        <span class="kw">if </span>token.kind() == <span class="kw-2">&amp;</span>TokenKind::Keyword((Keyword::In, <span class="bool-val">false</span>)) {
+                            cursor.advance(interner);
+                            <span class="kw">break </span><span class="lifetime">&#39;exit </span>boa_ast::Expression::Identifier(Sym::LET.into()).into();
+                        }
+                    }
+                }
+
+                LexicalDeclaration::new(<span class="bool-val">false</span>, <span class="self">self</span>.allow_yield, <span class="self">self</span>.allow_await, <span class="bool-val">true</span>)
+                    .parse(cursor, interner)<span class="question-mark">?
+                    </span>.into()
+            }),
+            TokenKind::Keyword((Keyword::Const, <span class="kw">_</span>)) =&gt; <span class="prelude-val">Some</span>(
                 LexicalDeclaration::new(<span class="bool-val">false</span>, <span class="self">self</span>.allow_yield, <span class="self">self</span>.allow_await, <span class="bool-val">true</span>)
                     .parse(cursor, interner)<span class="question-mark">?
                     </span>.into(),

@@ -4,14 +4,14 @@
     fn <a href="#tymethod.lex" class="fn">lex</a>(
         &amp;mut self,
         cursor: &amp;mut <a class="struct" href="cursor/struct.Cursor.html" title="struct boa_parser::lexer::cursor::Cursor">Cursor</a>&lt;R&gt;,
-        start_pos: <a class="struct" href="../../boa_ast/position/struct.Position.html" title="struct boa_ast::position::Position">Position</a>,
+        start_pos: Position,
         interner: &amp;mut Interner
     ) -&gt; <a class="enum" href="https://doc.rust-lang.org/1.69.0/core/result/enum.Result.html" title="enum core::result::Result">Result</a>&lt;<a class="struct" href="token/struct.Token.html" title="struct boa_parser::lexer::token::Token">Token</a>, <a class="enum" href="error/enum.Error.html" title="enum boa_parser::lexer::error::Error">Error</a>&gt;
        <span class="where">where R: <a class="trait" href="https://doc.rust-lang.org/1.69.0/std/io/trait.Read.html" title="trait std::io::Read">Read</a></span>;
 }</code></pre><h2 id="required-methods" class="small-section-header">Required Methods<a href="#required-methods" class="anchor">§</a></h2><div class="methods"><details class="toggle method-toggle" open><summary><section id="tymethod.lex" class="method"><a class="srclink rightside" href="../../src/boa_parser/lexer/mod.rs.html#56-63">source</a><h4 class="code-header">fn <a href="#tymethod.lex" class="fn">lex</a>(
     &amp;mut self,
     cursor: &amp;mut <a class="struct" href="cursor/struct.Cursor.html" title="struct boa_parser::lexer::cursor::Cursor">Cursor</a>&lt;R&gt;,
-    start_pos: <a class="struct" href="../../boa_ast/position/struct.Position.html" title="struct boa_ast::position::Position">Position</a>,
+    start_pos: Position,
     interner: &amp;mut Interner
 ) -&gt; <a class="enum" href="https://doc.rust-lang.org/1.69.0/core/result/enum.Result.html" title="enum core::result::Result">Result</a>&lt;<a class="struct" href="token/struct.Token.html" title="struct boa_parser::lexer::token::Token">Token</a>, <a class="enum" href="error/enum.Error.html" title="enum boa_parser::lexer::error::Error">Error</a>&gt;<span class="where fmt-newline">where
     R: <a class="trait" href="https://doc.rust-lang.org/1.69.0/std/io/trait.Read.html" title="trait std::io::Read">Read</a>,</span></h4></section></summary><div class="docblock"><p>Lexes the next token.</p>

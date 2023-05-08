@@ -13,7 +13,7 @@
     R: <a class="trait" href="https://doc.rust-lang.org/1.69.0/std/io/trait.Read.html" title="trait std::io::Read">Read</a>,</span></h4></section></summary><div class="docblock"><p>Creates a new lexer.</p>
 </div></details><section id="method.lex_slash_token" class="method"><a class="srclink rightside" href="../../src/boa_parser/lexer/mod.rs.html#122-174">source</a><h4 class="code-header">pub(crate) fn <a href="#method.lex_slash_token" class="fn">lex_slash_token</a>(
     &amp;mut self,
-    start: <a class="struct" href="../../boa_ast/position/struct.Position.html" title="struct boa_ast::position::Position">Position</a>,
+    start: Position,
     interner: &amp;mut Interner
 ) -&gt; <a class="enum" href="https://doc.rust-lang.org/1.69.0/core/result/enum.Result.html" title="enum core::result::Result">Result</a>&lt;<a class="struct" href="token/struct.Token.html" title="struct boa_parser::lexer::token::Token">Token</a>, <a class="enum" href="error/enum.Error.html" title="enum boa_parser::lexer::error::Error">Error</a>&gt;<span class="where fmt-newline">where
     R: <a class="trait" href="https://doc.rust-lang.org/1.69.0/std/io/trait.Read.html" title="trait std::io::Read">Read</a>,</span></h4></section><details class="toggle method-toggle" open><summary><section id="method.skip_html_close" class="method"><a class="srclink rightside" href="../../src/boa_parser/lexer/mod.rs.html#177-199">source</a><h4 class="code-header">pub(crate) fn <a href="#method.skip_html_close" class="fn">skip_html_close</a>(
@@ -34,7 +34,7 @@
 <p>Will return <code>Err</code> on invalid tokens and invalid reads of the bytes being lexed.</p>
 </div></details><details class="toggle method-toggle" open><summary><section id="method.lex_template" class="method"><a class="srclink rightside" href="../../src/boa_parser/lexer/mod.rs.html#357-366">source</a><h4 class="code-header">pub(crate) fn <a href="#method.lex_template" class="fn">lex_template</a>(
     &amp;mut self,
-    start: <a class="struct" href="../../boa_ast/position/struct.Position.html" title="struct boa_ast::position::Position">Position</a>,
+    start: Position,
     interner: &amp;mut Interner
 ) -&gt; <a class="enum" href="https://doc.rust-lang.org/1.69.0/core/result/enum.Result.html" title="enum core::result::Result">Result</a>&lt;<a class="struct" href="token/struct.Token.html" title="struct boa_parser::lexer::token::Token">Token</a>, <a class="enum" href="error/enum.Error.html" title="enum boa_parser::lexer::error::Error">Error</a>&gt;<span class="where fmt-newline">where
     R: <a class="trait" href="https://doc.rust-lang.org/1.69.0/std/io/trait.Read.html" title="trait std::io::Read">Read</a>,</span></h4></section></summary><div class="docblock"><p>Performs the lexing of a template literal.</p>

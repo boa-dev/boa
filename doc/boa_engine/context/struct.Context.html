@@ -78,23 +78,23 @@ bytecode into a value.</p>
 <span class="macro">assert_eq!</span>(value.as_number().unwrap(), <span class="number">4.0</span>);</code></pre></div>
 </div></details><details class="toggle method-toggle" open><summary><section id="method.optimize_statement_list" class="method"><a class="srclink rightside" href="../../src/boa_engine/context/mod.rs.html#218-224">source</a><h4 class="code-header">pub fn <a href="#method.optimize_statement_list" class="fn">optimize_statement_list</a>(
     &amp;mut self,
-    statement_list: &amp;mut <a class="struct" href="../../boa_ast/statement_list/struct.StatementList.html" title="struct boa_ast::statement_list::StatementList">StatementList</a>
-) -&gt; <a class="struct" href="../optimizer/struct.OptimizerStatistics.html" title="struct boa_engine::optimizer::OptimizerStatistics">OptimizerStatistics</a></h4></section></summary><div class="docblock"><p>Applies optimizations to the <a href="../../boa_ast/statement_list/struct.StatementList.html" title="struct boa_ast::statement_list::StatementList"><code>StatementList</code></a> inplace.</p>
+    statement_list: &amp;mut StatementList
+) -&gt; <a class="struct" href="../optimizer/struct.OptimizerStatistics.html" title="struct boa_engine::optimizer::OptimizerStatistics">OptimizerStatistics</a></h4></section></summary><div class="docblock"><p>Applies optimizations to the [<code>StatementList</code>] inplace.</p>
 </div></details><details class="toggle method-toggle" open><summary><section id="method.parse_script" class="method"><a class="srclink rightside" href="../../src/boa_engine/context/mod.rs.html#227-241">source</a><h4 class="code-header">pub fn <a href="#method.parse_script" class="fn">parse_script</a>&lt;R: <a class="trait" href="https://doc.rust-lang.org/1.69.0/std/io/trait.Read.html" title="trait std::io::Read">Read</a>&gt;(
     &amp;mut self,
     src: <a class="struct" href="../struct.Source.html" title="struct boa_engine::Source">Source</a>&lt;'_, R&gt;
-) -&gt; <a class="enum" href="https://doc.rust-lang.org/1.69.0/core/result/enum.Result.html" title="enum core::result::Result">Result</a>&lt;<a class="struct" href="../../boa_ast/statement_list/struct.StatementList.html" title="struct boa_ast::statement_list::StatementList">StatementList</a>, ParseError&gt;</h4></section></summary><div class="docblock"><p>Parse the given source script.</p>
+) -&gt; <a class="enum" href="https://doc.rust-lang.org/1.69.0/core/result/enum.Result.html" title="enum core::result::Result">Result</a>&lt;StatementList, <a class="enum" href="../../boa_parser/error/enum.Error.html" title="enum boa_parser::error::Error">ParseError</a>&gt;</h4></section></summary><div class="docblock"><p>Parse the given source script.</p>
 </div></details><details class="toggle method-toggle" open><summary><section id="method.parse_module" class="method"><a class="srclink rightside" href="../../src/boa_engine/context/mod.rs.html#244-251">source</a><h4 class="code-header">pub fn <a href="#method.parse_module" class="fn">parse_module</a>&lt;R: <a class="trait" href="https://doc.rust-lang.org/1.69.0/std/io/trait.Read.html" title="trait std::io::Read">Read</a>&gt;(
     &amp;mut self,
     src: <a class="struct" href="../struct.Source.html" title="struct boa_engine::Source">Source</a>&lt;'_, R&gt;
-) -&gt; <a class="enum" href="https://doc.rust-lang.org/1.69.0/core/result/enum.Result.html" title="enum core::result::Result">Result</a>&lt;<a class="struct" href="../../boa_ast/module_item_list/struct.ModuleItemList.html" title="struct boa_ast::module_item_list::ModuleItemList">ModuleItemList</a>, ParseError&gt;</h4></section></summary><div class="docblock"><p>Parse the given source script.</p>
+) -&gt; <a class="enum" href="https://doc.rust-lang.org/1.69.0/core/result/enum.Result.html" title="enum core::result::Result">Result</a>&lt;ModuleItemList, <a class="enum" href="../../boa_parser/error/enum.Error.html" title="enum boa_parser::error::Error">ParseError</a>&gt;</h4></section></summary><div class="docblock"><p>Parse the given source script.</p>
 </div></details><details class="toggle method-toggle" open><summary><section id="method.compile_script" class="method"><a class="srclink rightside" href="../../src/boa_engine/context/mod.rs.html#254-267">source</a><h4 class="code-header">pub fn <a href="#method.compile_script" class="fn">compile_script</a>(
     &amp;mut self,
-    statement_list: &amp;<a class="struct" href="../../boa_ast/statement_list/struct.StatementList.html" title="struct boa_ast::statement_list::StatementList">StatementList</a>
+    statement_list: &amp;StatementList
 ) -&gt; <a class="type" href="../type.JsResult.html" title="type boa_engine::JsResult">JsResult</a>&lt;Gc&lt;<a class="struct" href="../vm/code_block/struct.CodeBlock.html" title="struct boa_engine::vm::code_block::CodeBlock">CodeBlock</a>&gt;&gt;</h4></section></summary><div class="docblock"><p>Compile the script AST into a <code>CodeBlock</code> ready to be executed by the VM.</p>
 </div></details><details class="toggle method-toggle" open><summary><section id="method.compile_module" class="method"><a class="srclink rightside" href="../../src/boa_engine/context/mod.rs.html#270-342">source</a><h4 class="code-header">pub fn <a href="#method.compile_module" class="fn">compile_module</a>(
     &amp;mut self,
-    statement_list: &amp;<a class="struct" href="../../boa_ast/module_item_list/struct.ModuleItemList.html" title="struct boa_ast::module_item_list::ModuleItemList">ModuleItemList</a>
+    statement_list: &amp;ModuleItemList
 ) -&gt; <a class="type" href="../type.JsResult.html" title="type boa_engine::JsResult">JsResult</a>&lt;Gc&lt;<a class="struct" href="../vm/code_block/struct.CodeBlock.html" title="struct boa_engine::vm::code_block::CodeBlock">CodeBlock</a>&gt;&gt;</h4></section></summary><div class="docblock"><p>Compile the module AST into a <code>CodeBlock</code> ready to be executed by the VM.</p>
 </div></details><details class="toggle method-toggle" open><summary><section id="method.execute" class="method"><a class="srclink rightside" href="../../src/boa_engine/context/mod.rs.html#354-367">source</a><h4 class="code-header">pub fn <a href="#method.execute" class="fn">execute</a>(&amp;mut self, code_block: Gc&lt;<a class="struct" href="../vm/code_block/struct.CodeBlock.html" title="struct boa_engine::vm::code_block::CodeBlock">CodeBlock</a>&gt;) -&gt; <a class="type" href="../type.JsResult.html" title="type boa_engine::JsResult">JsResult</a>&lt;<a class="enum" href="../enum.JsValue.html" title="enum boa_engine::JsValue">JsValue</a>&gt;</h4></section></summary><div class="docblock"><p>Call the VM with a <code>CodeBlock</code> and return the result.</p>
 <p>Since this function receives a <code>Gc&lt;CodeBlock&gt;</code>, cloning the code is very cheap, since it’s
@@ -193,7 +193,7 @@ operation, used within the <a href="https://tc39.es/ecma262/multipage/managing-m
 </div></details></div></details><details class="toggle implementors-toggle" open><summary><section id="impl-Context%3C'_%3E" class="impl"><a class="srclink rightside" href="../../src/boa_engine/context/mod.rs.html#653-844">source</a><a href="#impl-Context%3C'_%3E" class="anchor">§</a><h3 class="code-header">impl <a class="struct" href="../struct.Context.html" title="struct boa_engine::Context">Context</a>&lt;'_&gt;</h3></section></summary><div class="impl-items"><details class="toggle method-toggle" open><summary><section id="method.swap_realm" class="method"><a class="srclink rightside" href="../../src/boa_engine/context/mod.rs.html#655-657">source</a><h4 class="code-header">pub(crate) fn <a href="#method.swap_realm" class="fn">swap_realm</a>(&amp;mut self, realm: &amp;mut <a class="struct" href="../realm/struct.Realm.html" title="struct boa_engine::realm::Realm">Realm</a>)</h4></section></summary><div class="docblock"><p>Swaps the currently active realm with <code>realm</code>.</p>
 </div></details><details class="toggle method-toggle" open><summary><section id="method.can_declare_global_function" class="method"><a class="srclink rightside" href="../../src/boa_engine/context/mod.rs.html#665-694">source</a><h4 class="code-header">pub(crate) fn <a href="#method.can_declare_global_function" class="fn">can_declare_global_function</a>(
     &amp;mut self,
-    name: <a class="struct" href="../../boa_ast/expression/identifier/struct.Identifier.html" title="struct boa_ast::expression::identifier::Identifier">Identifier</a>
+    name: Identifier
 ) -&gt; <a class="type" href="../type.JsResult.html" title="type boa_engine::JsResult">JsResult</a>&lt;<a class="primitive" href="https://doc.rust-lang.org/1.69.0/std/primitive.bool.html">bool</a>&gt;</h4></section></summary><div class="docblock"><p><code>CanDeclareGlobalFunction ( N )</code></p>
 <p>More information:</p>
 <ul>
@@ -201,7 +201,7 @@ operation, used within the <a href="https://tc39.es/ecma262/multipage/managing-m
 </ul>
 </div></details><details class="toggle method-toggle" open><summary><section id="method.can_declare_global_var" class="method"><a class="srclink rightside" href="../../src/boa_engine/context/mod.rs.html#702-718">source</a><h4 class="code-header">pub(crate) fn <a href="#method.can_declare_global_var" class="fn">can_declare_global_var</a>(
     &amp;mut self,
-    name: <a class="struct" href="../../boa_ast/expression/identifier/struct.Identifier.html" title="struct boa_ast::expression::identifier::Identifier">Identifier</a>
+    name: Identifier
 ) -&gt; <a class="type" href="../type.JsResult.html" title="type boa_engine::JsResult">JsResult</a>&lt;<a class="primitive" href="https://doc.rust-lang.org/1.69.0/std/primitive.bool.html">bool</a>&gt;</h4></section></summary><div class="docblock"><p><code>CanDeclareGlobalVar ( N )</code></p>
 <p>More information:</p>
 <ul>
@@ -209,7 +209,7 @@ operation, used within the <a href="https://tc39.es/ecma262/multipage/managing-m
 </ul>
 </div></details><details class="toggle method-toggle" open><summary><section id="method.create_global_var_binding" class="method"><a class="srclink rightside" href="../../src/boa_engine/context/mod.rs.html#726-762">source</a><h4 class="code-header">pub(crate) fn <a href="#method.create_global_var_binding" class="fn">create_global_var_binding</a>(
     &amp;mut self,
-    name: <a class="struct" href="../../boa_ast/expression/identifier/struct.Identifier.html" title="struct boa_ast::expression::identifier::Identifier">Identifier</a>,
+    name: Identifier,
     configurable: <a class="primitive" href="https://doc.rust-lang.org/1.69.0/std/primitive.bool.html">bool</a>
 ) -&gt; <a class="type" href="../type.JsResult.html" title="type boa_engine::JsResult">JsResult</a>&lt;<a class="primitive" href="https://doc.rust-lang.org/1.69.0/std/primitive.unit.html">()</a>&gt;</h4></section></summary><div class="docblock"><p><code>CreateGlobalVarBinding ( N, D )</code></p>
 <p>More information:</p>
@@ -218,7 +218,7 @@ operation, used within the <a href="https://tc39.es/ecma262/multipage/managing-m
 </ul>
 </div></details><details class="toggle method-toggle" open><summary><section id="method.create_global_function_binding" class="method"><a class="srclink rightside" href="../../src/boa_engine/context/mod.rs.html#770-814">source</a><h4 class="code-header">pub(crate) fn <a href="#method.create_global_function_binding" class="fn">create_global_function_binding</a>(
     &amp;mut self,
-    name: <a class="struct" href="../../boa_ast/expression/identifier/struct.Identifier.html" title="struct boa_ast::expression::identifier::Identifier">Identifier</a>,
+    name: Identifier,
     function: <a class="struct" href="../object/jsobject/struct.JsObject.html" title="struct boa_engine::object::jsobject::JsObject">JsObject</a>,
     configurable: <a class="primitive" href="https://doc.rust-lang.org/1.69.0/std/primitive.bool.html">bool</a>
 ) -&gt; <a class="type" href="../type.JsResult.html" title="type boa_engine::JsResult">JsResult</a>&lt;<a class="primitive" href="https://doc.rust-lang.org/1.69.0/std/primitive.unit.html">()</a>&gt;</h4></section></summary><div class="docblock"><p><code>CreateGlobalFunctionBinding ( N, V, D )</code></p>
@@ -228,7 +228,7 @@ operation, used within the <a href="https://tc39.es/ecma262/multipage/managing-m
 </ul>
 </div></details><details class="toggle method-toggle" open><summary><section id="method.has_restricted_global_property" class="method"><a class="srclink rightside" href="../../src/boa_engine/context/mod.rs.html#822-843">source</a><h4 class="code-header">pub(crate) fn <a href="#method.has_restricted_global_property" class="fn">has_restricted_global_property</a>(
     &amp;mut self,
-    name: <a class="struct" href="../../boa_ast/expression/identifier/struct.Identifier.html" title="struct boa_ast::expression::identifier::Identifier">Identifier</a>
+    name: Identifier
 ) -&gt; <a class="type" href="../type.JsResult.html" title="type boa_engine::JsResult">JsResult</a>&lt;<a class="primitive" href="https://doc.rust-lang.org/1.69.0/std/primitive.bool.html">bool</a>&gt;</h4></section></summary><div class="docblock"><p><code>HasRestrictedGlobalProperty ( N )</code></p>
 <p>More information:</p>
 <ul>
