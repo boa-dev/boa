@@ -1,11 +1,17 @@
 //! Module for implementing a `CallFrame`'s environment stacks
 
-#[derive(Clone, Copy, Debug, PartialEq)]
+use crate::JsValue;
+use boa_gc::{Finalize, Trace};
+
+#[derive(Clone, Debug, Finalize, Trace)]
 pub(crate) enum EnvEntryKind {
     Global,
     Loop {
         /// This is used to keep track of how many iterations a loop has done.
         iteration_count: u64,
+
+        // This is the latest return value of the loop.
+        value: JsValue,
     },
     Try,
     Catch,
@@ -13,8 +19,22 @@ pub(crate) enum EnvEntryKind {
     Labelled,
 }
 
-/// The `EnvStackEntry` tracks the environment count and relavant information for the current environment.
-#[derive(Copy, Clone, Debug)]
+impl PartialEq for EnvEntryKind {
+    fn eq(&self, other: &Self) -> bool {
+        matches!(
+            (self, other),
+            (Self::Global, Self::Global)
+                | (Self::Loop { .. }, Self::Loop { .. })
+                | (Self::Try, Self::Try)
+                | (Self::Catch, Self::Catch)
+                | (Self::Finally, Self::Finally)
+                | (Self::Labelled, Self::Labelled)
+        )
+    }
+}
+
+/// The `EnvStackEntry` tracks the environment count and relevant information for the current environment.
+#[derive(Clone, Debug, Finalize, Trace)]
 pub(crate) struct EnvStackEntry {
     start: u32,
     exit: u32,
@@ -46,32 +66,35 @@ impl EnvStackEntry {
     }
 
     /// Returns calling `EnvStackEntry` with `kind` field of `Try`.
-    pub(crate) const fn with_try_flag(mut self) -> Self {
+    pub(crate) fn with_try_flag(mut self) -> Self {
         self.kind = EnvEntryKind::Try;
         self
     }
 
     /// Returns calling `EnvStackEntry` with `kind` field of `Loop`.
     /// And the loop iteration set to zero.
-    pub(crate) const fn with_loop_flag(mut self, iteration_count: u64) -> Self {
-        self.kind = EnvEntryKind::Loop { iteration_count };
+    pub(crate) fn with_loop_flag(mut self, iteration_count: u64) -> Self {
+        self.kind = EnvEntryKind::Loop {
+            iteration_count,
+            value: JsValue::undefined(),
+        };
         self
     }
 
     /// Returns calling `EnvStackEntry` with `kind` field of `Catch`.
-    pub(crate) const fn with_catch_flag(mut self) -> Self {
+    pub(crate) fn with_catch_flag(mut self) -> Self {
         self.kind = EnvEntryKind::Catch;
         self
     }
 
     /// Returns calling `EnvStackEntry` with `kind` field of `Finally`.
-    pub(crate) const fn with_finally_flag(mut self) -> Self {
+    pub(crate) fn with_finally_flag(mut self) -> Self {
         self.kind = EnvEntryKind::Finally;
         self
     }
 
     /// Returns calling `EnvStackEntry` with `kind` field of `Labelled`.
-    pub(crate) const fn with_labelled_flag(mut self) -> Self {
+    pub(crate) fn with_labelled_flag(mut self) -> Self {
         self.kind = EnvEntryKind::Labelled;
         self
     }
@@ -98,14 +121,31 @@ impl EnvStackEntry {
         self.kind == EnvEntryKind::Global
     }
 
-    /// Returns true if an `EnvStackEntry` is a loop
-    pub(crate) const fn is_loop_env(&self) -> bool {
-        matches!(self.kind, EnvEntryKind::Loop { .. })
+    /// Returns the loop iteration count if `EnvStackEntry` is a loop.
+    pub(crate) const fn as_loop_iteration_count(&self) -> Option<u64> {
+        if let EnvEntryKind::Loop {
+            iteration_count, ..
+        } = self.kind
+        {
+            return Some(iteration_count);
+        }
+        None
     }
 
-    pub(crate) const fn as_loop_iteration_count(self) -> Option<u64> {
-        if let EnvEntryKind::Loop { iteration_count } = self.kind {
-            return Some(iteration_count);
+    /// Increases loop iteration count if `EnvStackEntry` is a loop.
+    pub(crate) fn increase_loop_iteration_count(&mut self) {
+        if let EnvEntryKind::Loop {
+            iteration_count, ..
+        } = &mut self.kind
+        {
+            *iteration_count = iteration_count.wrapping_add(1);
+        }
+    }
+
+    /// Returns the loop return value if `EnvStackEntry` is a loop.
+    pub(crate) const fn loop_env_value(&self) -> Option<&JsValue> {
+        if let EnvEntryKind::Loop { value, .. } = &self.kind {
+            return Some(value);
         }
         None
     }
@@ -150,5 +190,15 @@ impl EnvStackEntry {
     /// Decrements the `env_num` field for current `EnvEntryStack`.
     pub(crate) fn dec_env_num(&mut self) {
         self.env_num -= 1;
+    }
+
+    /// Set the loop return value for the current `EnvStackEntry`.
+    pub(crate) fn set_loop_return_value(&mut self, value: JsValue) -> bool {
+        if let EnvEntryKind::Loop { value: v, .. } = &mut self.kind {
+            *v = value;
+            true
+        } else {
+            false
+        }
     }
 }

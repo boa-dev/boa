@@ -28,7 +28,6 @@ pub struct CallFrame {
     pub(crate) pop_on_return: usize,
     // Tracks the number of environments in environment entry.
     // On abrupt returns this is used to decide how many environments need to be pop'ed.
-    #[unsafe_ignore_trace]
     pub(crate) env_stack: Vec<EnvStackEntry>,
     pub(crate) param_count: usize,
     pub(crate) arg_count: usize,

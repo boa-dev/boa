@@ -290,7 +290,6 @@ impl CodeBlock {
             | Opcode::CopyDataProperties
             | Opcode::Break
             | Opcode::Continue
-            | Opcode::LoopContinue
             | Opcode::LoopStart
             | Opcode::TryStart
             | Opcode::AsyncGeneratorNext
@@ -460,6 +459,8 @@ impl CodeBlock {
             | Opcode::Return
             | Opcode::PopEnvironment
             | Opcode::LoopEnd
+            | Opcode::LoopContinue
+            | Opcode::LoopUpdateReturnValue
             | Opcode::LabelledEnd
             | Opcode::CreateForInIterator
             | Opcode::GetIterator
