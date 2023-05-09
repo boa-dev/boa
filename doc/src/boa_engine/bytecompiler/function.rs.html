@@ -158,6 +158,12 @@
 <a href="#157" id="157">157</a>
 <a href="#158" id="158">158</a>
 <a href="#159" id="159">159</a>
+<a href="#160" id="160">160</a>
+<a href="#161" id="161">161</a>
+<a href="#162" id="162">162</a>
+<a href="#163" id="163">163</a>
+<a href="#164" id="164">164</a>
+<a href="#165" id="165">165</a>
 </pre><pre class="rust"><code><span class="kw">use crate</span>::{
     builtins::function::ThisMode,
     bytecompiler::ByteCompiler,
@@ -310,9 +316,15 @@
 
         compiler.params = parameters.clone();
 
-        <span class="comment">// TODO These are redundant if a function returns so may need to check if a function returns and adding these if it doesn&#39;t
-        </span>compiler.emit(Opcode::PushUndefined, <span class="kw-2">&amp;</span>[]);
-        compiler.emit(Opcode::Return, <span class="kw-2">&amp;</span>[]);
+        <span class="kw">if </span>compiler
+            .bytecode
+            .last()
+            .filter(|last| <span class="kw-2">**</span>last == Opcode::Return <span class="kw">as </span>u8)
+            .is_none()
+        {
+            compiler.emit_opcode(Opcode::PushUndefined);
+            compiler.emit_opcode(Opcode::Return);
+        }
 
         Gc::new(compiler.finish())
     }

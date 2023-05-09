@@ -630,7 +630,7 @@ constructor to use if a constructor <code>@@species</code> property cannot be fo
 ) -&gt; <a class="type" href="../../../type.JsResult.html" title="type boa_engine::JsResult">JsResult</a>&lt;<a class="struct" href="../../../realm/struct.Realm.html" title="struct boa_engine::realm::Realm">Realm</a>&gt;</h4></section></summary><div class="docblock"><p>Abstract operation <a href="https://tc39.es/ecma262/#sec-getfunctionrealm"><code>GetFunctionRealm</code></a>.</p>
 </div></details><details class="toggle method-toggle" open><summary><section id="method.private_element_find" class="method"><a class="srclink rightside" href="../../../../src/boa_engine/object/operations.rs.html#710-733">source</a><h4 class="code-header">pub(crate) fn <a href="#method.private_element_find" class="fn">private_element_find</a>(
     &amp;self,
-    name: &amp;PrivateName,
+    name: &amp;<a class="struct" href="../../../../boa_ast/function/class/struct.PrivateName.html" title="struct boa_ast::function::class::PrivateName">PrivateName</a>,
     is_getter: <a class="primitive" href="https://doc.rust-lang.org/1.69.0/std/primitive.bool.html">bool</a>,
     is_setter: <a class="primitive" href="https://doc.rust-lang.org/1.69.0/std/primitive.bool.html">bool</a>
 ) -&gt; <a class="enum" href="https://doc.rust-lang.org/1.69.0/core/option/enum.Option.html" title="enum core::option::Option">Option</a>&lt;<a class="enum" href="../../enum.PrivateElement.html" title="enum boa_engine::object::PrivateElement">PrivateElement</a>&gt;</h4></section></summary><div class="docblock"><p>Abstract operation <code>PrivateElementFind ( O, P )</code></p>
@@ -641,7 +641,7 @@ constructor to use if a constructor <code>@@species</code> property cannot be fo
 </ul>
 </div></details><details class="toggle method-toggle" open><summary><section id="method.private_field_add" class="method"><a class="srclink rightside" href="../../../../src/boa_engine/object/operations.rs.html#743-772">source</a><h4 class="code-header">pub(crate) fn <a href="#method.private_field_add" class="fn">private_field_add</a>(
     &amp;self,
-    name: &amp;PrivateName,
+    name: &amp;<a class="struct" href="../../../../boa_ast/function/class/struct.PrivateName.html" title="struct boa_ast::function::class::PrivateName">PrivateName</a>,
     value: <a class="enum" href="../../../enum.JsValue.html" title="enum boa_engine::JsValue">JsValue</a>,
     context: &amp;mut <a class="struct" href="../../../struct.Context.html" title="struct boa_engine::Context">Context</a>&lt;'_&gt;
 ) -&gt; <a class="type" href="../../../type.JsResult.html" title="type boa_engine::JsResult">JsResult</a>&lt;<a class="primitive" href="https://doc.rust-lang.org/1.69.0/std/primitive.unit.html">()</a>&gt;</h4></section></summary><div class="docblock"><p>Abstract operation <code>PrivateFieldAdd ( O, P, value )</code></p>
@@ -652,7 +652,7 @@ constructor to use if a constructor <code>@@species</code> property cannot be fo
 </ul>
 </div></details><details class="toggle method-toggle" open><summary><section id="method.private_method_or_accessor_add" class="method"><a class="srclink rightside" href="../../../../src/boa_engine/object/operations.rs.html#782-821">source</a><h4 class="code-header">pub(crate) fn <a href="#method.private_method_or_accessor_add" class="fn">private_method_or_accessor_add</a>(
     &amp;self,
-    name: &amp;PrivateName,
+    name: &amp;<a class="struct" href="../../../../boa_ast/function/class/struct.PrivateName.html" title="struct boa_ast::function::class::PrivateName">PrivateName</a>,
     method: &amp;<a class="enum" href="../../enum.PrivateElement.html" title="enum boa_engine::object::PrivateElement">PrivateElement</a>,
     context: &amp;mut <a class="struct" href="../../../struct.Context.html" title="struct boa_engine::Context">Context</a>&lt;'_&gt;
 ) -&gt; <a class="type" href="../../../type.JsResult.html" title="type boa_engine::JsResult">JsResult</a>&lt;<a class="primitive" href="https://doc.rust-lang.org/1.69.0/std/primitive.unit.html">()</a>&gt;</h4></section></summary><div class="docblock"><p>Abstract operation <code>PrivateMethodOrAccessorAdd ( O, method )</code></p>
@@ -663,7 +663,7 @@ constructor to use if a constructor <code>@@species</code> property cannot be fo
 </ul>
 </div></details><details class="toggle method-toggle" open><summary><section id="method.private_get" class="method"><a class="srclink rightside" href="../../../../src/boa_engine/object/operations.rs.html#831-863">source</a><h4 class="code-header">pub(crate) fn <a href="#method.private_get" class="fn">private_get</a>(
     &amp;self,
-    name: &amp;PrivateName,
+    name: &amp;<a class="struct" href="../../../../boa_ast/function/class/struct.PrivateName.html" title="struct boa_ast::function::class::PrivateName">PrivateName</a>,
     context: &amp;mut <a class="struct" href="../../../struct.Context.html" title="struct boa_engine::Context">Context</a>&lt;'_&gt;
 ) -&gt; <a class="type" href="../../../type.JsResult.html" title="type boa_engine::JsResult">JsResult</a>&lt;<a class="enum" href="../../../enum.JsValue.html" title="enum boa_engine::JsValue">JsValue</a>&gt;</h4></section></summary><div class="docblock"><p>Abstract operation <code>PrivateGet ( O, P )</code></p>
 <p>Get the value of a private element.</p>
@@ -673,7 +673,7 @@ constructor to use if a constructor <code>@@species</code> property cannot be fo
 </ul>
 </div></details><details class="toggle method-toggle" open><summary><section id="method.private_set" class="method"><a class="srclink rightside" href="../../../../src/boa_engine/object/operations.rs.html#873-927">source</a><h4 class="code-header">pub(crate) fn <a href="#method.private_set" class="fn">private_set</a>(
     &amp;self,
-    name: &amp;PrivateName,
+    name: &amp;<a class="struct" href="../../../../boa_ast/function/class/struct.PrivateName.html" title="struct boa_ast::function::class::PrivateName">PrivateName</a>,
     value: <a class="enum" href="../../../enum.JsValue.html" title="enum boa_engine::JsValue">JsValue</a>,
     context: &amp;mut <a class="struct" href="../../../struct.Context.html" title="struct boa_engine::Context">Context</a>&lt;'_&gt;
 ) -&gt; <a class="type" href="../../../type.JsResult.html" title="type boa_engine::JsResult">JsResult</a>&lt;<a class="primitive" href="https://doc.rust-lang.org/1.69.0/std/primitive.unit.html">()</a>&gt;</h4></section></summary><div class="docblock"><p>Abstract operation <code>PrivateSet ( O, P, value )</code></p>

@@ -160,7 +160,7 @@
 <a href="#159" id="159">159</a>
 <a href="#160" id="160">160</a>
 </pre><pre class="rust"><code><span class="kw">use crate</span>::{
-    bytecompiler::{Access, ByteCompiler, NodeKind},
+    bytecompiler::{Access, ByteCompiler},
     vm::Opcode,
 };
 <span class="kw">use </span>boa_ast::{
@@ -207,7 +207,7 @@
                 PropertyDefinition::MethodDefinition(name, kind) =&gt; <span class="kw">match </span>kind {
                     MethodDefinition::Get(expr) =&gt; <span class="kw">match </span>name {
                         PropertyName::Literal(name) =&gt; {
-                            <span class="self">self</span>.object_method(expr.into(), NodeKind::Expression, <span class="bool-val">true</span>);
+                            <span class="self">self</span>.object_method(expr.into());
                             <span class="kw">let </span>index = <span class="self">self</span>.get_or_insert_name((<span class="kw-2">*</span>name).into());
                             <span class="self">self</span>.emit(Opcode::SetPropertyGetterByName, <span class="kw-2">&amp;</span>[index]);
                         }
@@ -215,7 +215,7 @@
                             <span class="self">self</span>.compile_expr(name_node, <span class="bool-val">true</span>);
                             <span class="self">self</span>.emit_opcode(Opcode::ToPropertyKey);
                             <span class="self">self</span>.emit_opcode(Opcode::Dup);
-                            <span class="self">self</span>.object_method(expr.into(), NodeKind::Expression, <span class="bool-val">true</span>);
+                            <span class="self">self</span>.object_method(expr.into());
                             <span class="self">self</span>.emit_opcode(Opcode::SetFunctionName);
                             <span class="self">self</span>.emit_u8(<span class="number">1</span>);
                             <span class="self">self</span>.emit_opcode(Opcode::SetPropertyGetterByValue);
@@ -223,7 +223,7 @@
                     },
                     MethodDefinition::Set(expr) =&gt; <span class="kw">match </span>name {
                         PropertyName::Literal(name) =&gt; {
-                            <span class="self">self</span>.object_method(expr.into(), NodeKind::Expression, <span class="bool-val">true</span>);
+                            <span class="self">self</span>.object_method(expr.into());
                             <span class="kw">let </span>index = <span class="self">self</span>.get_or_insert_name((<span class="kw-2">*</span>name).into());
                             <span class="self">self</span>.emit(Opcode::SetPropertySetterByName, <span class="kw-2">&amp;</span>[index]);
                         }
@@ -231,7 +231,7 @@
                             <span class="self">self</span>.compile_expr(name_node, <span class="bool-val">true</span>);
                             <span class="self">self</span>.emit_opcode(Opcode::ToPropertyKey);
                             <span class="self">self</span>.emit_opcode(Opcode::Dup);
-                            <span class="self">self</span>.object_method(expr.into(), NodeKind::Expression, <span class="bool-val">true</span>);
+                            <span class="self">self</span>.object_method(expr.into());
                             <span class="self">self</span>.emit_opcode(Opcode::SetFunctionName);
                             <span class="self">self</span>.emit_u8(<span class="number">2</span>);
                             <span class="self">self</span>.emit_opcode(Opcode::SetPropertySetterByValue);
@@ -239,7 +239,7 @@
                     },
                     MethodDefinition::Ordinary(expr) =&gt; <span class="kw">match </span>name {
                         PropertyName::Literal(name) =&gt; {
-                            <span class="self">self</span>.object_method(expr.into(), NodeKind::Expression, <span class="bool-val">true</span>);
+                            <span class="self">self</span>.object_method(expr.into());
                             <span class="kw">let </span>index = <span class="self">self</span>.get_or_insert_name((<span class="kw-2">*</span>name).into());
                             <span class="self">self</span>.emit(Opcode::DefineOwnPropertyByName, <span class="kw-2">&amp;</span>[index]);
                         }
@@ -247,7 +247,7 @@
                             <span class="self">self</span>.compile_expr(name_node, <span class="bool-val">true</span>);
                             <span class="self">self</span>.emit_opcode(Opcode::ToPropertyKey);
                             <span class="self">self</span>.emit_opcode(Opcode::Dup);
-                            <span class="self">self</span>.object_method(expr.into(), NodeKind::Expression, <span class="bool-val">true</span>);
+                            <span class="self">self</span>.object_method(expr.into());
                             <span class="self">self</span>.emit_opcode(Opcode::SetFunctionName);
                             <span class="self">self</span>.emit_u8(<span class="number">0</span>);
                             <span class="self">self</span>.emit_opcode(Opcode::DefineOwnPropertyByValue);
@@ -255,7 +255,7 @@
                     },
                     MethodDefinition::Async(expr) =&gt; <span class="kw">match </span>name {
                         PropertyName::Literal(name) =&gt; {
-                            <span class="self">self</span>.object_method(expr.into(), NodeKind::Expression, <span class="bool-val">true</span>);
+                            <span class="self">self</span>.object_method(expr.into());
                             <span class="kw">let </span>index = <span class="self">self</span>.get_or_insert_name((<span class="kw-2">*</span>name).into());
                             <span class="self">self</span>.emit(Opcode::DefineOwnPropertyByName, <span class="kw-2">&amp;</span>[index]);
                         }
@@ -263,7 +263,7 @@
                             <span class="self">self</span>.compile_expr(name_node, <span class="bool-val">true</span>);
                             <span class="self">self</span>.emit_opcode(Opcode::ToPropertyKey);
                             <span class="self">self</span>.emit_opcode(Opcode::Dup);
-                            <span class="self">self</span>.object_method(expr.into(), NodeKind::Expression, <span class="bool-val">true</span>);
+                            <span class="self">self</span>.object_method(expr.into());
                             <span class="self">self</span>.emit_opcode(Opcode::SetFunctionName);
                             <span class="self">self</span>.emit_u8(<span class="number">0</span>);
                             <span class="self">self</span>.emit_opcode(Opcode::DefineOwnPropertyByValue);
@@ -271,7 +271,7 @@
                     },
                     MethodDefinition::Generator(expr) =&gt; <span class="kw">match </span>name {
                         PropertyName::Literal(name) =&gt; {
-                            <span class="self">self</span>.object_method(expr.into(), NodeKind::Expression, <span class="bool-val">true</span>);
+                            <span class="self">self</span>.object_method(expr.into());
                             <span class="kw">let </span>index = <span class="self">self</span>.get_or_insert_name((<span class="kw-2">*</span>name).into());
                             <span class="self">self</span>.emit(Opcode::DefineOwnPropertyByName, <span class="kw-2">&amp;</span>[index]);
                         }
@@ -279,7 +279,7 @@
                             <span class="self">self</span>.compile_expr(name_node, <span class="bool-val">true</span>);
                             <span class="self">self</span>.emit_opcode(Opcode::ToPropertyKey);
                             <span class="self">self</span>.emit_opcode(Opcode::Dup);
-                            <span class="self">self</span>.object_method(expr.into(), NodeKind::Expression, <span class="bool-val">true</span>);
+                            <span class="self">self</span>.object_method(expr.into());
                             <span class="self">self</span>.emit_opcode(Opcode::SetFunctionName);
                             <span class="self">self</span>.emit_u8(<span class="number">0</span>);
                             <span class="self">self</span>.emit_opcode(Opcode::DefineOwnPropertyByValue);
@@ -287,7 +287,7 @@
                     },
                     MethodDefinition::AsyncGenerator(expr) =&gt; <span class="kw">match </span>name {
                         PropertyName::Literal(name) =&gt; {
-                            <span class="self">self</span>.object_method(expr.into(), NodeKind::Expression, <span class="bool-val">true</span>);
+                            <span class="self">self</span>.object_method(expr.into());
                             <span class="kw">let </span>index = <span class="self">self</span>.get_or_insert_name((<span class="kw-2">*</span>name).into());
                             <span class="self">self</span>.emit(Opcode::DefineOwnPropertyByName, <span class="kw-2">&amp;</span>[index]);
                         }
@@ -295,7 +295,7 @@
                             <span class="self">self</span>.compile_expr(name_node, <span class="bool-val">true</span>);
                             <span class="self">self</span>.emit_opcode(Opcode::ToPropertyKey);
                             <span class="self">self</span>.emit_opcode(Opcode::Dup);
-                            <span class="self">self</span>.object_method(expr.into(), NodeKind::Expression, <span class="bool-val">true</span>);
+                            <span class="self">self</span>.object_method(expr.into());
                             <span class="self">self</span>.emit_opcode(Opcode::SetFunctionName);
                             <span class="self">self</span>.emit_u8(<span class="number">0</span>);
                             <span class="self">self</span>.emit_opcode(Opcode::DefineOwnPropertyByValue);

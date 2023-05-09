@@ -114,9 +114,6 @@
 <a href="#113" id="113">113</a>
 <a href="#114" id="114">114</a>
 <a href="#115" id="115">115</a>
-<a href="#116" id="116">116</a>
-<a href="#117" id="117">117</a>
-<a href="#118" id="118">118</a>
 </pre><pre class="rust"><code><span class="kw">use crate</span>::{
     bytecompiler::{ByteCompiler, Label},
     vm::{BindingOpcode, Opcode},
@@ -124,7 +121,7 @@
 <span class="kw">use </span>boa_ast::{
     declaration::Binding,
     operations::bound_names,
-    statement::{Finally, Try},
+    statement::{Catch, Finally, Try},
 };
 
 <span class="kw">impl </span>ByteCompiler&lt;<span class="lifetime">&#39;_</span>, <span class="lifetime">&#39;_</span>&gt; {
@@ -152,8 +149,8 @@
         <span class="kw">let </span>finally = <span class="self">self</span>.jump();
         <span class="self">self</span>.patch_jump(catch_start);
 
-        <span class="kw">if </span>t.catch().is_some() {
-            <span class="self">self</span>.compile_catch_stmt(t, use_expr);
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(catch) = t.catch() {
+            <span class="self">self</span>.compile_catch_stmt(catch, t.finally().is_some(), use_expr);
         }
 
         <span class="self">self</span>.patch_jump(finally);
@@ -174,10 +171,7 @@
         }
     }
 
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>compile_catch_stmt(<span class="kw-2">&amp;mut </span><span class="self">self</span>, parent_try: <span class="kw-2">&amp;</span>Try, use_expr: bool) {
-        <span class="kw">let </span>catch = parent_try
-            .catch()
-            .expect(<span class="string">&quot;Catch must exist for compile_catch_stmt to have been invoked&quot;</span>);
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>compile_catch_stmt(<span class="kw-2">&amp;mut </span><span class="self">self</span>, catch: <span class="kw-2">&amp;</span>Catch, finally: bool, use_expr: bool) {
         <span class="self">self</span>.set_jump_control_in_catch(<span class="bool-val">true</span>);
         <span class="kw">let </span>catch_end = <span class="self">self</span>.emit_opcode_with_operand(Opcode::CatchStart);
 
@@ -214,7 +208,7 @@
         <span class="self">self</span>.patch_jump_with_target(push_env.<span class="number">1</span>, env_info.index <span class="kw">as </span>u32);
         <span class="self">self</span>.emit_opcode(Opcode::PopEnvironment);
 
-        <span class="kw">if </span>parent_try.finally().is_some() {
+        <span class="kw">if </span>finally {
             <span class="self">self</span>.emit_opcode(Opcode::CatchEnd);
         } <span class="kw">else </span>{
             <span class="self">self</span>.emit_opcode(Opcode::CatchEnd2);
