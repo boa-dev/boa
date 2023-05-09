@@ -1150,12 +1150,7 @@ impl<'ctx, 'host> ByteCompiler<'ctx, 'host> {
     }
 
     /// Compile an object method AST Node into bytecode.
-    pub(crate) fn object_method(
-        &mut self,
-        function: FunctionSpec<'_>,
-        node_kind: NodeKind,
-        use_expr: bool,
-    ) {
+    pub(crate) fn object_method(&mut self, function: FunctionSpec<'_>) {
         let (generator, r#async, arrow) = (
             function.is_generator(),
             function.is_async(),
@@ -1212,30 +1207,10 @@ impl<'ctx, 'host> ByteCompiler<'ctx, 'host> {
         if !generator {
             self.emit_u8(1);
         }
-
-        match node_kind {
-            NodeKind::Declaration => {
-                self.emit_binding(
-                    BindingOpcode::InitVar,
-                    name.expect("function declaration must have a name"),
-                );
-            }
-            NodeKind::Expression => {
-                if !use_expr {
-                    self.emit(Opcode::Pop, &[]);
-                }
-            }
-        }
     }
 
     /// Compile a class method AST Node into bytecode.
-    fn method(
-        &mut self,
-        function: FunctionSpec<'_>,
-        node_kind: NodeKind,
-        class_name: Sym,
-        use_expr: bool,
-    ) {
+    fn method(&mut self, function: FunctionSpec<'_>, class_name: Sym) {
         let (generator, r#async, arrow) = (
             function.is_generator(),
             function.is_async(),
@@ -1292,20 +1267,6 @@ impl<'ctx, 'host> ByteCompiler<'ctx, 'host> {
         }
         if !generator {
             self.emit_u8(1);
-        }
-
-        match node_kind {
-            NodeKind::Declaration => {
-                self.emit_binding(
-                    BindingOpcode::InitVar,
-                    name.expect("function declaration must have a name"),
-                );
-            }
-            NodeKind::Expression => {
-                if !use_expr {
-                    self.emit(Opcode::Pop, &[]);
-                }
-            }
         }
     }
 
