@@ -5,7 +5,7 @@ use crate::{
 use boa_ast::{
     declaration::Binding,
     operations::bound_names,
-    statement::{Finally, Try},
+    statement::{Catch, Finally, Try},
 };
 
 impl ByteCompiler<'_, '_> {
@@ -33,8 +33,8 @@ impl ByteCompiler<'_, '_> {
         let finally = self.jump();
         self.patch_jump(catch_start);
 
-        if t.catch().is_some() {
-            self.compile_catch_stmt(t, use_expr);
+        if let Some(catch) = t.catch() {
+            self.compile_catch_stmt(catch, t.finally().is_some(), use_expr);
         }
 
         self.patch_jump(finally);
@@ -55,10 +55,7 @@ impl ByteCompiler<'_, '_> {
         }
     }
 
-    pub(crate) fn compile_catch_stmt(&mut self, parent_try: &Try, use_expr: bool) {
-        let catch = parent_try
-            .catch()
-            .expect("Catch must exist for compile_catch_stmt to have been invoked");
+    pub(crate) fn compile_catch_stmt(&mut self, catch: &Catch, finally: bool, use_expr: bool) {
         self.set_jump_control_in_catch(true);
         let catch_end = self.emit_opcode_with_operand(Opcode::CatchStart);
 
@@ -95,7 +92,7 @@ impl ByteCompiler<'_, '_> {
         self.patch_jump_with_target(push_env.1, env_info.index as u32);
         self.emit_opcode(Opcode::PopEnvironment);
 
-        if parent_try.finally().is_some() {
+        if finally {
             self.emit_opcode(Opcode::CatchEnd);
         } else {
             self.emit_opcode(Opcode::CatchEnd2);
