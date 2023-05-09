@@ -24,7 +24,7 @@ impl GlobalEnvironment {
         &self.inner
     }
 
-    /// Get the binding value from the environment by it's index.
+    /// Gets the binding value from the environment by it's index.
     ///
     /// # Panics
     ///

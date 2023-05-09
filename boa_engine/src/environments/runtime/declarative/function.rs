@@ -19,6 +19,7 @@ impl FunctionEnvironment {
         }
     }
 
+    /// Gets the slots of this function environment.
     pub(crate) const fn slots(&self) -> &FunctionSlots {
         &self.slots
     }
@@ -28,7 +29,7 @@ impl FunctionEnvironment {
         &self.inner
     }
 
-    /// Get the binding value from the environment by it's index.
+    /// Gets the binding value from the environment by it's index.
     ///
     /// # Panics
     ///
@@ -82,7 +83,7 @@ impl FunctionEnvironment {
 
     /// `HasSuperBinding`
     ///
-    /// Returns if the environment has a `super` binding.
+    /// Returns `true` if the environment has a `super` binding.
     ///
     /// More information:
     ///  - [ECMAScript specification][spec]
@@ -110,7 +111,7 @@ impl FunctionEnvironment {
 
     /// `HasThisBinding`
     ///
-    /// Returns if the environment has a `this` binding.
+    /// Returns `true` if the environment has a `this` binding.
     ///
     /// More information:
     ///  - [ECMAScript specification][spec]
@@ -123,7 +124,7 @@ impl FunctionEnvironment {
 
     /// `GetThisBinding`
     ///
-    /// Returns the `this` binding on the function environment.
+    /// Returns the `this` binding of the current environment.
     ///
     /// Differs slightly from the spec where lexical this (arrow functions) doesn't get asserted,
     /// but instead is returned as `None`.

@@ -232,7 +232,7 @@ impl DeclarativeEnvironmentKind {
         }
     }
 
-    /// Poisons this environment for future binding searchs.
+    /// Poisons this environment for future binding searches.
     pub(crate) fn poison(&self) {
         match self {
             DeclarativeEnvironmentKind::Lexical(lex) => lex.poisonable_environment().poison(),
@@ -266,7 +266,7 @@ impl PoisonableEnvironment {
         &self.bindings
     }
 
-    /// Get the binding value from the environment by it's index.
+    /// Gets the binding value from the environment by it's index.
     ///
     /// # Panics
     ///
@@ -296,7 +296,7 @@ impl PoisonableEnvironment {
         self.with.get()
     }
 
-    /// Poisons this environment for future binding searchs.
+    /// Poisons this environment for future binding searches.
     fn poison(&self) {
         self.poisoned.set(true);
     }
