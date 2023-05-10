@@ -36,6 +36,10 @@ pub(super) struct Cursor<R> {
 
     /// Indicate if the cursor is used in `JSON.parse`.
     json_parse: bool,
+
+    /// A unique identifier for each parser instance.
+    /// This is used to generate unique identifiers tagged template literals.
+    identifier: usize,
 }
 
 impl<R> Cursor<R>
@@ -50,6 +54,7 @@ where
             private_environment_root_index: 0,
             arrow: false,
             json_parse: false,
+            identifier: 0,
         }
     }
 
@@ -167,6 +172,18 @@ where
     #[inline]
     pub(super) const fn in_class(&self) -> bool {
         self.private_environment_nested_index != 0
+    }
+
+    /// Set the identifier of the cursor.
+    #[inline]
+    pub(super) fn set_identifier(&mut self, identifier: usize) {
+        self.identifier = identifier;
+    }
+
+    /// Get the identifier of the cursor.
+    #[inline]
+    pub(super) const fn identifier(&self) -> usize {
+        self.identifier
     }
 
     /// Returns an error if the next token is not of kind `kind`.

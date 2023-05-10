@@ -293,7 +293,9 @@ impl CodeBlock {
             | Opcode::LoopStart
             | Opcode::TryStart
             | Opcode::AsyncGeneratorNext
-            | Opcode::GeneratorAsyncDelegateNext => {
+            | Opcode::GeneratorAsyncDelegateNext
+            | Opcode::TemplateLookup
+            | Opcode::TemplateCreate => {
                 let operand1 = self.read::<u32>(*pc);
                 *pc += size_of::<u32>();
                 let operand2 = self.read::<u32>(*pc);

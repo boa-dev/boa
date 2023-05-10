@@ -17,7 +17,6 @@ use boa_ast::{
     },
     Expression,
 };
-use boa_interner::Sym;
 
 impl ByteCompiler<'_, '_> {
     fn compile_literal(&mut self, lit: &AstLiteral, use_expr: bool) {
@@ -255,8 +254,14 @@ impl ByteCompiler<'_, '_> {
                     }
                 }
 
-                self.emit_opcode(Opcode::PushNewArray);
-                for cooked in template.cookeds() {
+                let site = template.identifier() as u32;
+                let count = template.cookeds().len() as u32;
+
+                let index = self.next_opcode_location();
+                self.emit(Opcode::TemplateLookup, &[Self::DUMMY_ADDRESS, site]);
+                let jump_label = Label { index };
+
+                for (cooked, raw) in template.cookeds().iter().zip(template.raws()) {
                     if let Some(cooked) = cooked {
                         self.emit_push_literal(Literal::String(
                             self.interner().resolve_expect(*cooked).into_common(false),
@@ -264,22 +269,14 @@ impl ByteCompiler<'_, '_> {
                     } else {
                         self.emit_opcode(Opcode::PushUndefined);
                     }
-                    self.emit_opcode(Opcode::PushValueToArray);
-                }
-                self.emit_opcode(Opcode::Dup);
-                self.emit_opcode(Opcode::Dup);
-
-                self.emit_opcode(Opcode::PushNewArray);
-                for raw in template.raws() {
                     self.emit_push_literal(Literal::String(
                         self.interner().resolve_expect(*raw).into_common(false),
                     ));
-                    self.emit_opcode(Opcode::PushValueToArray);
                 }
 
-                let index = self.get_or_insert_name(Sym::RAW.into());
-                self.emit(Opcode::SetPropertyByName, &[index]);
-                self.emit(Opcode::Pop, &[]);
+                self.emit(Opcode::TemplateCreate, &[site, count]);
+
+                self.patch_jump(jump_label);
 
                 for expr in template.exprs() {
                     self.compile_expr(expr, true);

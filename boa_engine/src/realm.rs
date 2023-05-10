@@ -6,15 +6,15 @@
 //!
 //! A realm is represented in this implementation as a Realm struct with the fields specified from the spec.
 
-use std::fmt;
-
 use crate::{
     context::{intrinsics::Intrinsics, HostHooks},
     environments::DeclarativeEnvironment,
     object::{shape::shared_shape::SharedShape, JsObject},
 };
-use boa_gc::{Finalize, Gc, Trace};
+use boa_gc::{Finalize, Gc, GcRefCell, Trace};
 use boa_profiler::Profiler;
+use rustc_hash::FxHashMap;
+use std::fmt;
 
 /// Representation of a Realm.
 ///
@@ -49,6 +49,7 @@ struct Inner {
     environment: Gc<DeclarativeEnvironment>,
     global_object: JsObject,
     global_this: JsObject,
+    template_map: GcRefCell<FxHashMap<u32, JsObject>>,
 }
 
 impl Realm {
@@ -69,6 +70,7 @@ impl Realm {
                 environment: Gc::new(DeclarativeEnvironment::new_global()),
                 global_object,
                 global_this,
+                template_map: GcRefCell::new(FxHashMap::default()),
             }),
         };
 
@@ -102,5 +104,13 @@ impl Realm {
         if bindings.len() < binding_number {
             bindings.resize(binding_number, None);
         }
+    }
+
+    pub(crate) fn push_template(&self, site: u32, template: JsObject) {
+        self.inner.template_map.borrow_mut().insert(site, template);
+    }
+
+    pub(crate) fn lookup_template(&self, site: u32) -> Option<JsObject> {
+        self.inner.template_map.borrow().get(&site).cloned()
     }
 }

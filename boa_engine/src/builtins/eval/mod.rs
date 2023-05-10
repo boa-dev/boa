@@ -112,6 +112,7 @@ impl Eval {
         //     c. If script Contains ScriptBody is false, return undefined.
         //     d. Let body be the ScriptBody of script.
         let mut parser = Parser::new(Source::from_bytes(&x));
+        parser.set_identifier(context.next_parser_identifier());
         if strict {
             parser.set_strict();
         }

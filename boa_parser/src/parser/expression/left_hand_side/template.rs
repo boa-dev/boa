@@ -9,7 +9,8 @@ use crate::{
 use boa_ast::{self as ast, expression::TaggedTemplate, Position, Punctuator};
 use boa_interner::Interner;
 use boa_profiler::Profiler;
-use std::io::Read;
+use rustc_hash::FxHasher;
+use std::{hash::Hasher, io::Read};
 
 /// Parses a tagged template.
 ///
@@ -60,6 +61,7 @@ where
         let mut exprs = Vec::new();
 
         let mut token = cursor.next(interner).or_abrupt()?;
+        let start_position = token.span().start();
 
         loop {
             match token.kind() {
@@ -77,6 +79,11 @@ where
                     )?;
                 }
                 TokenKind::TemplateNoSubstitution(template_string) => {
+                    let mut hasher = FxHasher::default();
+                    hasher.write_u32(start_position.line_number());
+                    hasher.write_u32(start_position.column_number());
+                    hasher.write_usize(cursor.identifier());
+
                     raws.push(template_string.as_raw());
                     cookeds.push(template_string.to_owned_cooked(interner).ok());
                     return Ok(TaggedTemplate::new(
@@ -84,6 +91,7 @@ where
                         raws.into_boxed_slice(),
                         cookeds.into_boxed_slice(),
                         exprs.into_boxed_slice(),
+                        hasher.finish(),
                     ));
                 }
                 _ => {
