@@ -122,18 +122,12 @@ impl Eval {
         // 8. Let inDerivedConstructor be false.
         // 9. Let inClassFieldInitializer be false.
         // a. Let thisEnvRec be GetThisEnvironment().
-        let flags = match context
-            .vm
-            .environments
-            .get_this_environment()
-            .as_function_slots()
-        {
+        let flags = match context.vm.environments.get_this_environment().as_function() {
             // 10. If direct is true, then
             //     b. If thisEnvRec is a Function Environment Record, then
             Some(function_env) if direct => {
-                let function_env = function_env.borrow();
                 // i. Let F be thisEnvRec.[[FunctionObject]].
-                let function_object = function_env.function_object().borrow();
+                let function_object = function_env.slots().function_object().borrow();
 
                 // ii. Set inFunction to true.
                 let mut flags = Flags::IN_FUNCTION;

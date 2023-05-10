@@ -23,7 +23,7 @@ impl Operation for PushDeclarativeEnvironment {
         context
             .vm
             .environments
-            .push_declarative(num_bindings as usize, compile_environment);
+            .push_lexical(num_bindings as usize, compile_environment);
         context.vm.frame_mut().inc_frame_env_stack();
         Ok(CompletionType::Normal)
     }

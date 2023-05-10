@@ -19,8 +19,8 @@ impl Operation for PushNewTarget {
             .vm
             .environments
             .get_this_environment()
-            .as_function_slots()
-            .and_then(|env| env.borrow().new_target().cloned())
+            .as_function()
+            .and_then(|env| env.slots().new_target().cloned())
         {
             new_target.into()
         } else {

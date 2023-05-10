@@ -8,7 +8,7 @@
 use crate::JsNativeError;
 use crate::{
     builtins::async_generator::{AsyncGenerator, AsyncGeneratorState},
-    environments::{DeclarativeEnvironment, DeclarativeEnvironmentStack},
+    environments::{DeclarativeEnvironment, EnvironmentStack},
     vm::code_block::Readable,
     Context, JsError, JsObject, JsResult, JsValue,
 };
@@ -53,7 +53,7 @@ pub struct Vm {
     pub(crate) frames: Vec<CallFrame>,
     pub(crate) stack: Vec<JsValue>,
     pub(crate) err: Option<JsError>,
-    pub(crate) environments: DeclarativeEnvironmentStack,
+    pub(crate) environments: EnvironmentStack,
     #[cfg(feature = "trace")]
     pub(crate) trace: bool,
     pub(crate) runtime_limits: RuntimeLimits,
@@ -66,7 +66,7 @@ impl Vm {
         Self {
             frames: Vec::with_capacity(16),
             stack: Vec::with_capacity(1024),
-            environments: DeclarativeEnvironmentStack::new(global),
+            environments: EnvironmentStack::new(global),
             err: None,
             #[cfg(feature = "trace")]
             trace: false,
