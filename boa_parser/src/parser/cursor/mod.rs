@@ -9,7 +9,8 @@ use crate::{
 use boa_ast::{Position, Punctuator};
 use boa_interner::Interner;
 use buffered_lexer::BufferedLexer;
-use std::io::Read;
+use rustc_hash::FxHasher;
+use std::{hash::Hasher, io::Read};
 
 /// The result of a peek for a semicolon.
 #[derive(Debug)]
@@ -39,7 +40,10 @@ pub(super) struct Cursor<R> {
 
     /// A unique identifier for each parser instance.
     /// This is used to generate unique identifiers tagged template literals.
-    identifier: usize,
+    identifier: u32,
+
+    /// Tracks the number of tagged templates that are currently being parsed.
+    tagged_templates_count: u32,
 }
 
 impl<R> Cursor<R>
@@ -55,6 +59,7 @@ where
             arrow: false,
             json_parse: false,
             identifier: 0,
+            tagged_templates_count: 0,
         }
     }
 
@@ -176,14 +181,18 @@ where
 
     /// Set the identifier of the cursor.
     #[inline]
-    pub(super) fn set_identifier(&mut self, identifier: usize) {
+    pub(super) fn set_identifier(&mut self, identifier: u32) {
         self.identifier = identifier;
     }
 
-    /// Get the identifier of the cursor.
+    /// Get the identifier for a tagged template.
     #[inline]
-    pub(super) const fn identifier(&self) -> usize {
-        self.identifier
+    pub(super) fn tagged_template_identifier(&mut self) -> u64 {
+        let mut hasher = FxHasher::default();
+        hasher.write_u32(self.identifier);
+        hasher.write_u32(self.tagged_templates_count);
+        self.tagged_templates_count += 1;
+        hasher.finish()
     }
 
     /// Returns an error if the next token is not of kind `kind`.

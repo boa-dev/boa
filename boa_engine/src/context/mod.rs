@@ -114,7 +114,7 @@ pub struct Context<'host> {
     root_shape: SharedShape,
 
     /// Unique identifier for each parser instance used during the context lifetime.
-    parser_identifier: usize,
+    parser_identifier: u32,
 }
 
 impl std::fmt::Debug for Context<'_> {
@@ -233,6 +233,7 @@ impl<'host> Context<'host> {
     ) -> Result<StatementList, ParseError> {
         let _timer = Profiler::global().start_event("Script parsing", "Main");
         let mut parser = Parser::new(src);
+        parser.set_identifier(self.next_parser_identifier());
         if self.strict {
             parser.set_strict();
         }
@@ -250,6 +251,7 @@ impl<'host> Context<'host> {
     ) -> Result<ModuleItemList, ParseError> {
         let _timer = Profiler::global().start_event("Module parsing", "Main");
         let mut parser = Parser::new(src);
+        parser.set_identifier(self.next_parser_identifier());
         parser.parse_module(&mut self.interner)
     }
 
@@ -660,10 +662,9 @@ impl Context<'_> {
     }
 
     /// Get and increment the parser identifier.
-    pub(crate) fn next_parser_identifier(&mut self) -> usize {
-        let identifier = self.parser_identifier;
+    pub(crate) fn next_parser_identifier(&mut self) -> u32 {
         self.parser_identifier += 1;
-        identifier
+        self.parser_identifier
     }
 
     /// `CanDeclareGlobalFunction ( N )`

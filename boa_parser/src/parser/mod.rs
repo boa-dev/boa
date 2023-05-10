@@ -220,7 +220,7 @@ impl<R> Parser<'_, R> {
     }
 
     /// Set the unique identifier for the parser.
-    pub fn set_identifier(&mut self, identifier: usize)
+    pub fn set_identifier(&mut self, identifier: u32)
     where
         R: Read,
     {
