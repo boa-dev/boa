@@ -1086,7 +1086,6 @@ impl RecursionLimiter {
 impl Debug for JsObject {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> std::fmt::Result {
         let ptr: *const _ = self.vtable();
-        let obj: *const _ = &*self.inner;
         let limiter = RecursionLimiter::new(self.as_ref());
 
         // Typically, using `!limiter.live` would be good enough here.
@@ -1098,7 +1097,7 @@ impl Debug for JsObject {
         if !limiter.visited && !limiter.live {
             f.debug_struct("JsObject")
                 .field("vtable", &ptr)
-                .field("object", &obj)
+                .field("object", &self.inner.object)
                 .finish()
         } else {
             f.write_str("{ ... }")
