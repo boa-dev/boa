@@ -237,7 +237,7 @@ impl JsObject {
         // a recursive structure
         // We can follow v8 & SpiderMonkey's lead and return a default value for the hint in this situation
         // (see https://repl.it/repls/IvoryCircularCertification#index.js)
-        let recursion_limiter = RecursionLimiter::new(self);
+        let recursion_limiter = RecursionLimiter::new(self.as_ref());
         if recursion_limiter.live {
             // we're in a recursive object, bail
             return Ok(match hint {
