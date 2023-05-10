@@ -20,7 +20,7 @@ impl ByteCompiler<'_, '_> {
         label: Option<Sym>,
         use_expr: bool,
     ) {
-        let mut let_biding_indices = None;
+        let mut let_binding_indices = None;
         let mut env_labels = None;
         let mut iteration_env_labels = None;
 
@@ -49,7 +49,7 @@ impl ByteCompiler<'_, '_> {
                             let index = self.get_or_insert_binding(binding);
                             indices.push(index);
                         }
-                        let_biding_indices = Some(indices);
+                        let_binding_indices = Some(indices);
                     }
                     self.compile_lexical_decl(decl);
                 }
@@ -68,14 +68,14 @@ impl ByteCompiler<'_, '_> {
             .expect("jump_control must exist as it was just pushed")
             .set_start_address(start_address);
 
-        if let Some(let_biding_indices) = let_biding_indices {
-            for index in &let_biding_indices {
+        if let Some(let_binding_indices) = let_binding_indices {
+            for index in &let_binding_indices {
                 self.emit(Opcode::GetName, &[*index]);
             }
             self.emit_opcode(Opcode::PopEnvironment);
             iteration_env_labels =
                 Some(self.emit_opcode_with_two_operands(Opcode::PushDeclarativeEnvironment));
-            for index in let_biding_indices.iter().rev() {
+            for index in let_binding_indices.iter().rev() {
                 self.emit(Opcode::PutLexicalValue, &[*index]);
             }
         }
