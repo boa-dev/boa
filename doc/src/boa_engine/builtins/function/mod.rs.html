@@ -1113,7 +1113,7 @@
     builtins::BuiltInObject,
     bytecompiler::FunctionCompiler,
     context::intrinsics::{Intrinsics, StandardConstructor, StandardConstructors},
-    environments::DeclarativeEnvironmentStack,
+    environments::EnvironmentStack,
     error::JsNativeError,
     js_string,
     native_function::NativeFunction,
@@ -1258,7 +1258,7 @@
         </span>code: Gc&lt;CodeBlock&gt;,
 
         <span class="doccomment">/// The `[[Environment]]` internal slot.
-        </span>environments: DeclarativeEnvironmentStack,
+        </span>environments: EnvironmentStack,
 
         <span class="doccomment">/// The `[[ConstructorKind]]` internal slot.
         </span>constructor_kind: ConstructorKind,
@@ -1282,7 +1282,7 @@
         </span>code: Gc&lt;CodeBlock&gt;,
 
         <span class="doccomment">/// The `[[Environment]]` internal slot.
-        </span>environments: DeclarativeEnvironmentStack,
+        </span>environments: EnvironmentStack,
 
         <span class="doccomment">/// The `[[HomeObject]]` internal slot.
         </span>home_object: <span class="prelude-ty">Option</span>&lt;JsObject&gt;,
@@ -1297,7 +1297,7 @@
         </span>code: Gc&lt;CodeBlock&gt;,
 
         <span class="doccomment">/// The `[[Environment]]` internal slot.
-        </span>environments: DeclarativeEnvironmentStack,
+        </span>environments: EnvironmentStack,
 
         <span class="doccomment">/// The `[[HomeObject]]` internal slot.
         </span>home_object: <span class="prelude-ty">Option</span>&lt;JsObject&gt;,
@@ -1312,7 +1312,7 @@
         </span>code: Gc&lt;CodeBlock&gt;,
 
         <span class="doccomment">/// The `[[Environment]]` internal slot.
-        </span>environments: DeclarativeEnvironmentStack,
+        </span>environments: EnvironmentStack,
 
         <span class="doccomment">/// The `[[HomeObject]]` internal slot.
         </span>home_object: <span class="prelude-ty">Option</span>&lt;JsObject&gt;,

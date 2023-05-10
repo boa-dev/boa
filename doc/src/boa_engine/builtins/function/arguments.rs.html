@@ -227,8 +227,6 @@
 <a href="#226" id="226">226</a>
 <a href="#227" id="227">227</a>
 <a href="#228" id="228">228</a>
-<a href="#229" id="229">229</a>
-<a href="#230" id="230">230</a>
 </pre><pre class="rust"><code><span class="kw">use crate</span>::{
     environments::DeclarativeEnvironment,
     object::{JsObject, ObjectData},
@@ -264,11 +262,9 @@
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-makearggetter
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>get(<span class="kw-2">&amp;</span><span class="self">self</span>, index: usize) -&gt; <span class="prelude-ty">Option</span>&lt;JsValue&gt; {
-        <span class="kw">if let </span><span class="prelude-val">Some</span>(<span class="prelude-val">Some</span>(binding_index)) = <span class="self">self</span>.binding_indices.get(index) {
-            <span class="kw">return </span><span class="prelude-val">Some</span>(<span class="self">self</span>.environment.get(<span class="kw-2">*</span>binding_index));
-        }
-        <span class="prelude-val">None
-    </span>}
+        <span class="kw">let </span>binding_index = <span class="self">self</span>.binding_indices.get(index).copied().flatten()<span class="question-mark">?</span>;
+        <span class="self">self</span>.environment.get(binding_index)
+    }
 
     <span class="doccomment">/// Set the value of the binding at the given index in the function environment.
     ///
@@ -279,8 +275,8 @@
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-makeargsetter
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>set(<span class="kw-2">&amp;</span><span class="self">self</span>, index: usize, value: <span class="kw-2">&amp;</span>JsValue) {
-        <span class="kw">if let </span><span class="prelude-val">Some</span>(<span class="prelude-val">Some</span>(binding_index)) = <span class="self">self</span>.binding_indices.get(index) {
-            <span class="self">self</span>.environment.set(<span class="kw-2">*</span>binding_index, value.clone());
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(binding_index) = <span class="self">self</span>.binding_indices.get(index).copied().flatten() {
+            <span class="self">self</span>.environment.set(binding_index, value.clone());
         }
     }
 }

@@ -268,48 +268,7 @@
 <a href="#267" id="267">267</a>
 <a href="#268" id="268">268</a>
 <a href="#269" id="269">269</a>
-<a href="#270" id="270">270</a>
-<a href="#271" id="271">271</a>
-<a href="#272" id="272">272</a>
-<a href="#273" id="273">273</a>
-<a href="#274" id="274">274</a>
-<a href="#275" id="275">275</a>
-<a href="#276" id="276">276</a>
-<a href="#277" id="277">277</a>
-<a href="#278" id="278">278</a>
-<a href="#279" id="279">279</a>
-<a href="#280" id="280">280</a>
-<a href="#281" id="281">281</a>
-<a href="#282" id="282">282</a>
-<a href="#283" id="283">283</a>
-<a href="#284" id="284">284</a>
-<a href="#285" id="285">285</a>
-<a href="#286" id="286">286</a>
-<a href="#287" id="287">287</a>
-<a href="#288" id="288">288</a>
-<a href="#289" id="289">289</a>
-<a href="#290" id="290">290</a>
-<a href="#291" id="291">291</a>
-<a href="#292" id="292">292</a>
-<a href="#293" id="293">293</a>
-<a href="#294" id="294">294</a>
-<a href="#295" id="295">295</a>
-<a href="#296" id="296">296</a>
-<a href="#297" id="297">297</a>
-<a href="#298" id="298">298</a>
-<a href="#299" id="299">299</a>
-<a href="#300" id="300">300</a>
-<a href="#301" id="301">301</a>
-<a href="#302" id="302">302</a>
-<a href="#303" id="303">303</a>
-<a href="#304" id="304">304</a>
-<a href="#305" id="305">305</a>
-<a href="#306" id="306">306</a>
-<a href="#307" id="307">307</a>
-<a href="#308" id="308">308</a>
-<a href="#309" id="309">309</a>
 </pre><pre class="rust"><code><span class="kw">use crate</span>::{
-    environments::EnvironmentSlots,
     error::JsNativeError,
     vm::{opcode::Operation, CompletionType},
     Context, JsResult, JsValue,
@@ -327,21 +286,8 @@
     <span class="kw">const </span>INSTRUCTION: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;INST - This&quot;</span>;
 
     <span class="kw">fn </span>execute(context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;CompletionType&gt; {
-        <span class="kw">let </span>env = context.vm.environments.get_this_environment();
-        <span class="kw">match </span>env {
-            EnvironmentSlots::Function(env) =&gt; {
-                <span class="kw">let </span>binding_result = <span class="kw">match </span>env.borrow().get_this_binding() {
-                    <span class="prelude-val">Ok</span>(binding) =&gt; <span class="prelude-val">Ok</span>(binding.clone()),
-                    <span class="prelude-val">Err</span>(e) =&gt; <span class="prelude-val">Err</span>(e),
-                };
-                <span class="kw">let </span>function_binding = binding_result<span class="question-mark">?</span>;
-                context.vm.push(function_binding);
-            }
-            EnvironmentSlots::Global =&gt; {
-                <span class="kw">let </span>this = context.realm().global_this();
-                context.vm.push(this.clone());
-            }
-        }
+        <span class="kw">let </span>this = context.vm.environments.get_this_binding()<span class="question-mark">?</span>;
+        context.vm.push(this);
         <span class="prelude-val">Ok</span>(CompletionType::Normal)
     }
 }
@@ -358,38 +304,30 @@
     <span class="kw">const </span>INSTRUCTION: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;INST - Super&quot;</span>;
 
     <span class="kw">fn </span>execute(context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;CompletionType&gt; {
-        <span class="kw">let </span>home_result = {
+        <span class="kw">let </span>home_object = {
             <span class="kw">let </span>env = context
                 .vm
                 .environments
                 .get_this_environment()
-                .as_function_slots()
+                .as_function()
                 .expect(<span class="string">&quot;super access must be in a function environment&quot;</span>);
-            <span class="kw">let </span>env = env.borrow();
-            <span class="kw">match </span>env.get_this_binding() {
-                <span class="prelude-val">Ok</span>(binding) =&gt; {
-                    <span class="kw">let </span>function_object = env.function_object().borrow();
-                    <span class="kw">let </span>function = function_object
-                        .as_function()
-                        .expect(<span class="string">&quot;must be function object&quot;</span>);
-
-                    <span class="prelude-val">Ok</span>(function.get_home_object().or(binding.as_object()).cloned())
-                }
-                <span class="prelude-val">Err</span>(e) =&gt; <span class="prelude-val">Err</span>(e),
-            }
+            <span class="kw">let </span>this = env
+                .get_this_binding()<span class="question-mark">?
+                </span>.expect(<span class="string">&quot;`get_this_environment` ensures this returns `Some`&quot;</span>);
+            <span class="kw">let </span>function_object = env.slots().function_object().borrow();
+            <span class="kw">let </span>function = function_object
+                .as_function()
+                .expect(<span class="string">&quot;must be function object&quot;</span>);
+            function.get_home_object().or(this.as_object()).cloned()
         };
 
-        <span class="kw">let </span>home = home_result<span class="question-mark">?</span>;
+        <span class="kw">let </span>value = home_object
+            .map(|o| o.__get_prototype_of__(context))
+            .transpose()<span class="question-mark">?
+            </span>.flatten()
+            .map_or_else(JsValue::null, JsValue::from);
 
-        <span class="kw">if let </span><span class="prelude-val">Some</span>(home) = home {
-            <span class="kw">if let </span><span class="prelude-val">Some</span>(proto) = home.__get_prototype_of__(context)<span class="question-mark">? </span>{
-                context.vm.push(JsValue::from(proto));
-            } <span class="kw">else </span>{
-                context.vm.push(JsValue::Null);
-            }
-        } <span class="kw">else </span>{
-            context.vm.push(JsValue::Null);
-        };
+        context.vm.push(value);
         <span class="prelude-val">Ok</span>(CompletionType::Normal)
     }
 }
@@ -410,15 +348,14 @@
             .vm
             .environments
             .get_this_environment()
-            .as_function_slots()
+            .as_function()
             .expect(<span class="string">&quot;super call must be in function environment&quot;</span>);
-        <span class="kw">let </span>this_env_borrow = this_env.borrow();
-        <span class="kw">let </span>new_target = this_env_borrow
+        <span class="kw">let </span>new_target = this_env
+            .slots()
             .new_target()
             .expect(<span class="string">&quot;must have new target&quot;</span>)
             .clone();
-        <span class="kw">let </span>active_function = this_env_borrow.function_object().clone();
-        drop(this_env_borrow);
+        <span class="kw">let </span>active_function = this_env.slots().function_object().clone();
         <span class="kw">let </span>super_constructor = active_function
             .__get_prototype_of__(context)
             .expect(<span class="string">&quot;function object must have prototype&quot;</span>);
@@ -472,18 +409,13 @@
             .vm
             .environments
             .get_this_environment()
-            .as_function_slots()
+            .as_function()
             .expect(<span class="string">&quot;super call must be in function environment&quot;</span>);
 
-        <span class="kw">if </span>!this_env.borrow_mut().bind_this_value(<span class="kw-2">&amp;</span>result) {
-            <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::reference()
-                .with_message(<span class="string">&quot;this already initialized&quot;</span>)
-                .into());
-        }
+        this_env.bind_this_value(result.clone())<span class="question-mark">?</span>;
+        <span class="kw">let </span>function_object = this_env.slots().function_object().clone();
 
-        <span class="kw">let </span>active_function = this_env.borrow().function_object().clone();
-
-        result.initialize_instance_elements(<span class="kw-2">&amp;</span>active_function, context)<span class="question-mark">?</span>;
+        result.initialize_instance_elements(<span class="kw-2">&amp;</span>function_object, context)<span class="question-mark">?</span>;
 
         context.vm.push(result);
         <span class="prelude-val">Ok</span>(CompletionType::Normal)
@@ -533,18 +465,13 @@
             .vm
             .environments
             .get_this_environment()
-            .as_function_slots()
+            .as_function()
             .expect(<span class="string">&quot;super call must be in function environment&quot;</span>);
 
-        <span class="kw">if </span>!this_env.borrow_mut().bind_this_value(<span class="kw-2">&amp;</span>result) {
-            <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::reference()
-                .with_message(<span class="string">&quot;this already initialized&quot;</span>)
-                .into());
-        }
+        this_env.bind_this_value(result.clone())<span class="question-mark">?</span>;
+        <span class="kw">let </span>function_object = this_env.slots().function_object().clone();
 
-        <span class="kw">let </span>active_function = this_env.borrow().function_object().clone();
-
-        result.initialize_instance_elements(<span class="kw-2">&amp;</span>active_function, context)<span class="question-mark">?</span>;
+        result.initialize_instance_elements(<span class="kw-2">&amp;</span>function_object, context)<span class="question-mark">?</span>;
 
         context.vm.push(result);
         <span class="prelude-val">Ok</span>(CompletionType::Normal)
@@ -570,21 +497,18 @@
         }
         arguments.reverse();
 
-        <span class="kw">let </span>(new_target, active_function) = {
-            <span class="kw">let </span>this_env = context
-                .vm
-                .environments
-                .get_this_environment()
-                .as_function_slots()
-                .expect(<span class="string">&quot;super call must be in function environment&quot;</span>);
-            <span class="kw">let </span>this_env_borrow = this_env.borrow();
-            <span class="kw">let </span>new_target = this_env_borrow
-                .new_target()
-                .expect(<span class="string">&quot;must have new target&quot;</span>)
-                .clone();
-            <span class="kw">let </span>active_function = this_env.borrow().function_object().clone();
-            (new_target, active_function)
-        };
+        <span class="kw">let </span>this_env = context
+            .vm
+            .environments
+            .get_this_environment()
+            .as_function()
+            .expect(<span class="string">&quot;super call must be in function environment&quot;</span>);
+        <span class="kw">let </span>new_target = this_env
+            .slots()
+            .new_target()
+            .expect(<span class="string">&quot;must have new target&quot;</span>)
+            .clone();
+        <span class="kw">let </span>active_function = this_env.slots().function_object().clone();
         <span class="kw">let </span>super_constructor = active_function
             .__get_prototype_of__(context)
             .expect(<span class="string">&quot;function object must have prototype&quot;</span>)
@@ -602,14 +526,10 @@
             .vm
             .environments
             .get_this_environment()
-            .as_function_slots()
+            .as_function()
             .expect(<span class="string">&quot;super call must be in function environment&quot;</span>);
 
-        <span class="kw">if </span>!this_env.borrow_mut().bind_this_value(<span class="kw-2">&amp;</span>result) {
-            <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::reference()
-                .with_message(<span class="string">&quot;this already initialized&quot;</span>)
-                .into());
-        }
+        this_env.bind_this_value(result.clone())<span class="question-mark">?</span>;
 
         result.initialize_instance_elements(<span class="kw-2">&amp;</span>active_function, context)<span class="question-mark">?</span>;
 

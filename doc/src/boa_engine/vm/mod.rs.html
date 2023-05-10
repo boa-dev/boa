@@ -435,7 +435,7 @@
 </span><span class="kw">use </span><span class="kw">crate</span>::JsNativeError;
 <span class="kw">use crate</span>::{
     builtins::async_generator::{AsyncGenerator, AsyncGeneratorState},
-    environments::{DeclarativeEnvironment, DeclarativeEnvironmentStack},
+    environments::{DeclarativeEnvironment, EnvironmentStack},
     vm::code_block::Readable,
     Context, JsError, JsObject, JsResult, JsValue,
 };
@@ -480,7 +480,7 @@
     <span class="kw">pub</span>(<span class="kw">crate</span>) frames: Vec&lt;CallFrame&gt;,
     <span class="kw">pub</span>(<span class="kw">crate</span>) stack: Vec&lt;JsValue&gt;,
     <span class="kw">pub</span>(<span class="kw">crate</span>) err: <span class="prelude-ty">Option</span>&lt;JsError&gt;,
-    <span class="kw">pub</span>(<span class="kw">crate</span>) environments: DeclarativeEnvironmentStack,
+    <span class="kw">pub</span>(<span class="kw">crate</span>) environments: EnvironmentStack,
     <span class="attr">#[cfg(feature = <span class="string">&quot;trace&quot;</span>)]
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) trace: bool,
     <span class="kw">pub</span>(<span class="kw">crate</span>) runtime_limits: RuntimeLimits,
@@ -493,7 +493,7 @@
         <span class="self">Self </span>{
             frames: Vec::with_capacity(<span class="number">16</span>),
             stack: Vec::with_capacity(<span class="number">1024</span>),
-            environments: DeclarativeEnvironmentStack::new(global),
+            environments: EnvironmentStack::new(global),
             err: <span class="prelude-val">None</span>,
             <span class="attr">#[cfg(feature = <span class="string">&quot;trace&quot;</span>)]
             </span>trace: <span class="bool-val">false</span>,

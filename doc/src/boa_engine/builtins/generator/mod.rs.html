@@ -441,7 +441,7 @@
 </span><span class="kw">use crate</span>::{
     builtins::iterable::create_iter_result_object,
     context::intrinsics::Intrinsics,
-    environments::DeclarativeEnvironmentStack,
+    environments::EnvironmentStack,
     error::JsNativeError,
     object::{JsObject, CONSTRUCTOR},
     property::Attribute,
@@ -487,7 +487,7 @@
 /// context/vm before the generator execution starts/resumes and after it has ended/yielded.
 </span><span class="attr">#[derive(Debug, Clone, Trace, Finalize)]
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>GeneratorContext {
-    <span class="kw">pub</span>(<span class="kw">crate</span>) environments: DeclarativeEnvironmentStack,
+    <span class="kw">pub</span>(<span class="kw">crate</span>) environments: EnvironmentStack,
     <span class="kw">pub</span>(<span class="kw">crate</span>) stack: Vec&lt;JsValue&gt;,
     <span class="kw">pub</span>(<span class="kw">crate</span>) active_function: <span class="prelude-ty">Option</span>&lt;JsObject&gt;,
     <span class="kw">pub</span>(<span class="kw">crate</span>) call_frame: <span class="prelude-ty">Option</span>&lt;CallFrame&gt;,
@@ -497,7 +497,7 @@
 <span class="kw">impl </span>GeneratorContext {
     <span class="doccomment">/// Creates a new `GeneratorContext` from the raw `Context` state components.
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>new(
-        environments: DeclarativeEnvironmentStack,
+        environments: EnvironmentStack,
         stack: Vec&lt;JsValue&gt;,
         active_function: <span class="prelude-ty">Option</span>&lt;JsObject&gt;,
         call_frame: CallFrame,

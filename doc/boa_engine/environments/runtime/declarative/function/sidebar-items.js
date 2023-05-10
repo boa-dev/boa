@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"enum":["ThisBindingStatus"],"fn":["mark"],"struct":["FunctionEnvironment","FunctionSlots"]};

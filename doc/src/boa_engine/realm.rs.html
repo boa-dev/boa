@@ -105,6 +105,13 @@
 <a href="#104" id="104">104</a>
 <a href="#105" id="105">105</a>
 <a href="#106" id="106">106</a>
+<a href="#107" id="107">107</a>
+<a href="#108" id="108">108</a>
+<a href="#109" id="109">109</a>
+<a href="#110" id="110">110</a>
+<a href="#111" id="111">111</a>
+<a href="#112" id="112">112</a>
+<a href="#113" id="113">113</a>
 </pre><pre class="rust"><code><span class="doccomment">//! Boa&#39;s implementation of ECMAScript&#39;s `Realm Records`
 //!
 //! Conceptually, a realm consists of a set of intrinsic objects, an ECMAScript global environment,
@@ -169,11 +176,12 @@
         <span class="kw">let </span>global_this = hooks
             .create_global_this(<span class="kw-2">&amp;</span>intrinsics)
             .unwrap_or_else(|| global_object.clone());
+        <span class="kw">let </span>environment = Gc::new(DeclarativeEnvironment::global(global_this.clone()));
 
         <span class="kw">let </span>realm = <span class="self">Self </span>{
             inner: Gc::new(Inner {
                 intrinsics,
-                environment: Gc::new(DeclarativeEnvironment::new_global()),
+                environment,
                 global_object,
                 global_this,
             }),
@@ -204,8 +212,14 @@
     <span class="doccomment">/// Resizes the number of bindings on the global environment.
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>resize_global_env(<span class="kw-2">&amp;</span><span class="self">self</span>) {
         <span class="kw">let </span>binding_number = <span class="self">self</span>.environment().compile_env().borrow().num_bindings();
+        <span class="kw">let </span>env = <span class="self">self
+            </span>.environment()
+            .kind()
+            .as_global()
+            .expect(<span class="string">&quot;Realm should only store global environments&quot;</span>)
+            .poisonable_environment();
+        <span class="kw">let </span><span class="kw-2">mut </span>bindings = env.bindings().borrow_mut();
 
-        <span class="kw">let </span><span class="kw-2">mut </span>bindings = <span class="self">self</span>.environment().bindings().borrow_mut();
         <span class="kw">if </span>bindings.len() &lt; binding_number {
             bindings.resize(binding_number, <span class="prelude-val">None</span>);
         }

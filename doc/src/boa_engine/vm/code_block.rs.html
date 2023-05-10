@@ -1364,7 +1364,6 @@
 <a href="#1363" id="1363">1363</a>
 <a href="#1364" id="1364">1364</a>
 <a href="#1365" id="1365">1365</a>
-<a href="#1366" id="1366">1366</a>
 </pre><pre class="rust"><code><span class="doccomment">//! `CodeBlock`
 //!
 //! This module is for the `CodeBlock` which implements a function representation in the VM
@@ -1377,7 +1376,7 @@
         promise::PromiseCapability,
     },
     context::intrinsics::StandardConstructors,
-    environments::{BindingLocator, CompileTimeEnvironment},
+    environments::{BindingLocator, CompileTimeEnvironment, FunctionSlots, ThisBindingStatus},
     error::JsNativeError,
     object::{internal_methods::get_prototype_from_constructor, JsObject, ObjectData, PROTOTYPE},
     property::PropertyDescriptor,
@@ -2319,13 +2318,13 @@
         <span class="kw">let </span>lexical_this_mode = code.this_mode == ThisMode::Lexical;
 
         <span class="kw">let </span>this = <span class="kw">if </span>lexical_this_mode {
-            <span class="prelude-val">None
-        </span>} <span class="kw">else if </span>code.strict {
-            <span class="prelude-val">Some</span>(this.clone())
+            ThisBindingStatus::Lexical
+        } <span class="kw">else if </span>code.strict {
+            ThisBindingStatus::Initialized(this.clone())
         } <span class="kw">else if </span>this.is_null_or_undefined() {
-            <span class="prelude-val">Some</span>(context.global_object().into())
+            ThisBindingStatus::Initialized(context.realm().global_this().clone().into())
         } <span class="kw">else </span>{
-            <span class="prelude-val">Some</span>(
+            ThisBindingStatus::Initialized(
                 this.to_object(context)
                     .expect(<span class="string">&quot;conversion cannot fail&quot;</span>)
                     .into(),
@@ -2338,7 +2337,7 @@
             <span class="kw">let </span>index = context
                 .vm
                 .environments
-                .push_declarative(<span class="number">1</span>, code.compile_environments[last_env].clone());
+                .push_lexical(<span class="number">1</span>, code.compile_environments[last_env].clone());
             context
                 .vm
                 .environments
@@ -2350,7 +2349,7 @@
             <span class="kw">let </span>index = context
                 .vm
                 .environments
-                .push_declarative(<span class="number">1</span>, code.compile_environments[last_env].clone());
+                .push_lexical(<span class="number">1</span>, code.compile_environments[last_env].clone());
             context
                 .vm
                 .environments
@@ -2361,10 +2360,7 @@
         context.vm.environments.push_function(
             code.num_bindings,
             code.compile_environments[last_env].clone(),
-            this,
-            <span class="self">self</span>.clone(),
-            <span class="prelude-val">None</span>,
-            lexical_this_mode,
+            FunctionSlots::new(this, <span class="self">self</span>.clone(), <span class="prelude-val">None</span>),
         );
 
         <span class="kw">if let </span><span class="prelude-val">Some</span>(bindings) = code.parameters_env_bindings {
@@ -2372,7 +2368,7 @@
             context
                 .vm
                 .environments
-                .push_declarative(bindings, code.compile_environments[last_env].clone());
+                .push_lexical(bindings, code.compile_environments[last_env].clone());
         }
 
         <span class="kw">if let </span><span class="prelude-val">Some</span>(binding) = code.arguments_binding {
@@ -2606,7 +2602,7 @@
                     <span class="kw">let </span>index = context
                         .vm
                         .environments
-                        .push_declarative(<span class="number">1</span>, code.compile_environments[last_env].clone());
+                        .push_lexical(<span class="number">1</span>, code.compile_environments[last_env].clone());
                     context
                         .vm
                         .environments
@@ -2617,17 +2613,20 @@
                 context.vm.environments.push_function(
                     code.num_bindings,
                     code.compile_environments[last_env].clone(),
-                    this.clone().map(Into::into),
-                    <span class="self">self</span>.clone(),
-                    <span class="prelude-val">Some</span>(new_target.clone()),
-                    <span class="bool-val">false</span>,
+                    FunctionSlots::new(
+                        this.clone().map_or(ThisBindingStatus::Uninitialized, |o| {
+                            ThisBindingStatus::Initialized(o.into())
+                        }),
+                        <span class="self">self</span>.clone(),
+                        <span class="prelude-val">Some</span>(new_target.clone()),
+                    ),
                 );
 
                 <span class="kw">if let </span><span class="prelude-val">Some</span>(bindings) = code.parameters_env_bindings {
                     context
                         .vm
                         .environments
-                        .push_declarative(bindings, code.compile_environments[<span class="number">0</span>].clone());
+                        .push_lexical(bindings, code.compile_environments[<span class="number">0</span>].clone());
                 }
 
                 <span class="kw">if let </span><span class="prelude-val">Some</span>(binding) = code.arguments_binding {
@@ -2708,15 +2707,14 @@
                 } <span class="kw">else </span>{
                     <span class="kw">let </span>function_env = environment
                         .declarative_expect()
-                        .slots()
-                        .expect(<span class="string">&quot;must be function environment&quot;</span>)
-                        .as_function_slots()
+                        .kind()
+                        .as_function()
                         .expect(<span class="string">&quot;must be function environment&quot;</span>);
                     function_env
-                        .borrow()
                         .get_this_binding()
-                        .map(|this| {
-                            this.as_object()
+                        .map(|v| {
+                            v.expect(<span class="string">&quot;constructors cannot be arrow functions&quot;</span>)
+                                .as_object()
                                 .expect(<span class="string">&quot;this binding must be object&quot;</span>)
                                 .clone()
                         })
