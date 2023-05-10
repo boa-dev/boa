@@ -341,7 +341,10 @@ impl SpecEdition {
     pub(crate) fn from_test_metadata(metadata: &MetaData) -> Result<Self, Vec<&str>> {
         let mut min_edition = if metadata.flags.contains(&TestFlag::Async) {
             Self::ES8
-        } else if metadata.flags.contains(&TestFlag::Module) || metadata.es6id.is_some() {
+        } else if metadata.flags.contains(&TestFlag::Module)
+            || metadata.esid.is_some()
+            || metadata.es6id.is_some()
+        {
             Self::ES6
         } else {
             Self::ES5
