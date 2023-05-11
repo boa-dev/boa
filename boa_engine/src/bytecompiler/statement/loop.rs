@@ -1,5 +1,5 @@
 use boa_ast::{
-    declaration::{Binding, LexicalDeclaration},
+    declaration::Binding,
     operations::bound_names,
     statement::{
         iteration::{ForLoopInitializer, IterableLoopInitializer},
@@ -20,9 +20,9 @@ impl ByteCompiler<'_, '_> {
         label: Option<Sym>,
         use_expr: bool,
     ) {
-        self.push_compile_environment(false);
-        let push_env = self.emit_opcode_with_two_operands(Opcode::PushDeclarativeEnvironment);
-        self.push_empty_loop_jump_control();
+        let mut let_binding_indices = None;
+        let mut env_labels = None;
+        let mut iteration_env_labels = None;
 
         if let Some(init) = for_loop.init() {
             match init {
@@ -31,23 +31,32 @@ impl ByteCompiler<'_, '_> {
                     self.compile_var_decl(decl);
                 }
                 ForLoopInitializer::Lexical(decl) => {
-                    match decl {
-                        LexicalDeclaration::Const(decl) => {
-                            for name in bound_names(decl) {
-                                self.create_immutable_binding(name, true);
-                            }
+                    self.push_compile_environment(false);
+                    env_labels = Some(
+                        self.emit_opcode_with_two_operands(Opcode::PushDeclarativeEnvironment),
+                    );
+
+                    let names = bound_names(decl);
+                    if decl.is_const() {
+                        for name in &names {
+                            self.create_immutable_binding(*name, true);
                         }
-                        LexicalDeclaration::Let(decl) => {
-                            for name in bound_names(decl) {
-                                self.create_mutable_binding(name, false);
-                            }
+                    } else {
+                        let mut indices = Vec::new();
+                        for name in &names {
+                            self.create_mutable_binding(*name, false);
+                            let binding = self.initialize_mutable_binding(*name, false);
+                            let index = self.get_or_insert_binding(binding);
+                            indices.push(index);
                         }
+                        let_binding_indices = Some(indices);
                     }
                     self.compile_lexical_decl(decl);
                 }
             }
         }
 
+        self.push_empty_loop_jump_control();
         let (loop_start, loop_exit) = self.emit_opcode_with_two_operands(Opcode::LoopStart);
         let initial_jump = self.jump();
         let start_address = self.next_opcode_location();
@@ -58,6 +67,18 @@ impl ByteCompiler<'_, '_> {
         self.current_jump_control_mut()
             .expect("jump_control must exist as it was just pushed")
             .set_start_address(start_address);
+
+        if let Some(let_binding_indices) = let_binding_indices {
+            for index in &let_binding_indices {
+                self.emit(Opcode::GetName, &[*index]);
+            }
+            self.emit_opcode(Opcode::PopEnvironment);
+            iteration_env_labels =
+                Some(self.emit_opcode_with_two_operands(Opcode::PushDeclarativeEnvironment));
+            for index in let_binding_indices.iter().rev() {
+                self.emit(Opcode::PutLexicalValue, &[*index]);
+            }
+        }
 
         self.emit_opcode(Opcode::LoopContinue);
         self.patch_jump_with_target(loop_start, start_address);
@@ -83,10 +104,6 @@ impl ByteCompiler<'_, '_> {
 
         self.emit(Opcode::Jump, &[start_address]);
 
-        let env_info = self.pop_compile_environment();
-        self.patch_jump_with_target(push_env.0, env_info.num_bindings as u32);
-        self.patch_jump_with_target(push_env.1, env_info.index as u32);
-
         self.patch_jump(exit);
         self.patch_jump(loop_exit);
         self.pop_loop_control_info();
@@ -95,7 +112,17 @@ impl ByteCompiler<'_, '_> {
         if !use_expr {
             self.emit_opcode(Opcode::Pop);
         }
-        self.emit_opcode(Opcode::PopEnvironment);
+
+        if let Some(env_labels) = env_labels {
+            let env_info = self.pop_compile_environment();
+            self.patch_jump_with_target(env_labels.0, env_info.num_bindings as u32);
+            self.patch_jump_with_target(env_labels.1, env_info.index as u32);
+            if let Some(iteration_env_labels) = iteration_env_labels {
+                self.patch_jump_with_target(iteration_env_labels.0, env_info.num_bindings as u32);
+                self.patch_jump_with_target(iteration_env_labels.1, env_info.index as u32);
+            }
+            self.emit_opcode(Opcode::PopEnvironment);
+        }
     }
 
     pub(crate) fn compile_for_in_loop(
