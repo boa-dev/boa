@@ -1,5 +1,6 @@
 use crate::{
     error::JsNativeError,
+    object::internal_methods::InternalMethodContext,
     vm::{opcode::Operation, CompletionType},
     Context, JsResult, JsValue,
 };
@@ -54,7 +55,7 @@ impl Operation for Super {
         };
 
         let value = home_object
-            .map(|o| o.__get_prototype_of__(context))
+            .map(|o| o.__get_prototype_of__(&mut InternalMethodContext::new(context)))
             .transpose()?
             .flatten()
             .map_or_else(JsValue::null, JsValue::from);
@@ -85,7 +86,7 @@ impl Operation for SuperCallPrepare {
             .expect("super call must be in function environment");
         let active_function = this_env.slots().function_object().clone();
         let super_constructor = active_function
-            .__get_prototype_of__(context)
+            .__get_prototype_of__(&mut InternalMethodContext::new(context))
             .expect("function object must have prototype");
 
         context
@@ -242,7 +243,7 @@ impl Operation for SuperCallDerived {
             .clone();
         let active_function = this_env.slots().function_object().clone();
         let super_constructor = active_function
-            .__get_prototype_of__(context)
+            .__get_prototype_of__(&mut InternalMethodContext::new(context))
             .expect("function object must have prototype")
             .expect("function object must have prototype");
 

@@ -122,7 +122,7 @@ impl SetPrivateMethod {
             .configurable(true)
             .build();
         value
-            .__define_own_property__(&js_string!("name").into(), desc, context)
+            .__define_own_property__(&js_string!("name").into(), desc, &mut context.into())
             .expect("failed to set name property on private method");
 
         let object = context.vm.pop();

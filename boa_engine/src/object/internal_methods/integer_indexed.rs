@@ -9,7 +9,7 @@ use crate::{
     Context, JsResult, JsString, JsValue,
 };
 
-use super::{InternalObjectMethods, ORDINARY_INTERNAL_METHODS};
+use super::{InternalMethodContext, InternalObjectMethods, ORDINARY_INTERNAL_METHODS};
 
 /// Definitions of the internal object methods for integer-indexed exotic objects.
 ///
@@ -62,7 +62,7 @@ fn canonical_numeric_index_string(argument: &JsString) -> Option<f64> {
 pub(crate) fn integer_indexed_exotic_get_own_property(
     obj: &JsObject,
     key: &PropertyKey,
-    context: &mut Context,
+    context: &mut InternalMethodContext<'_>,
 ) -> JsResult<Option<PropertyDescriptor>> {
     let p = match key {
         PropertyKey::String(key) => {
@@ -104,7 +104,7 @@ pub(crate) fn integer_indexed_exotic_get_own_property(
 pub(crate) fn integer_indexed_exotic_has_property(
     obj: &JsObject,
     key: &PropertyKey,
-    context: &mut Context,
+    context: &mut InternalMethodContext<'_>,
 ) -> JsResult<bool> {
     let p = match key {
         PropertyKey::String(key) => {
@@ -135,7 +135,7 @@ pub(crate) fn integer_indexed_exotic_define_own_property(
     obj: &JsObject,
     key: &PropertyKey,
     desc: PropertyDescriptor,
-    context: &mut Context,
+    context: &mut InternalMethodContext<'_>,
 ) -> JsResult<bool> {
     let p = match key {
         PropertyKey::String(key) => {
@@ -197,7 +197,7 @@ pub(crate) fn integer_indexed_exotic_get(
     obj: &JsObject,
     key: &PropertyKey,
     receiver: JsValue,
-    context: &mut Context,
+    context: &mut InternalMethodContext<'_>,
 ) -> JsResult<JsValue> {
     let p = match key {
         PropertyKey::String(key) => {
@@ -230,7 +230,7 @@ pub(crate) fn integer_indexed_exotic_set(
     key: PropertyKey,
     value: JsValue,
     receiver: JsValue,
-    context: &mut Context,
+    context: &mut InternalMethodContext<'_>,
 ) -> JsResult<bool> {
     let p = match &key {
         PropertyKey::String(key) => {
@@ -272,7 +272,7 @@ pub(crate) fn integer_indexed_exotic_set(
 pub(crate) fn integer_indexed_exotic_delete(
     obj: &JsObject,
     key: &PropertyKey,
-    context: &mut Context,
+    context: &mut InternalMethodContext<'_>,
 ) -> JsResult<bool> {
     let p = match &key {
         PropertyKey::String(key) => {
@@ -388,7 +388,7 @@ pub(crate) fn integer_indexed_element_set(
     obj: &JsObject,
     index: f64,
     value: &JsValue,
-    context: &mut Context,
+    context: &mut InternalMethodContext<'_>,
 ) -> JsResult<()> {
     let obj_borrow = obj.borrow();
     let inner = obj_borrow.as_typed_array().expect(

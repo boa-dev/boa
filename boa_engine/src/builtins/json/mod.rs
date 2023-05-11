@@ -23,7 +23,7 @@ use crate::{
     context::intrinsics::Intrinsics,
     error::JsNativeError,
     js_string,
-    object::JsObject,
+    object::{internal_methods::InternalMethodContext, JsObject},
     property::{Attribute, PropertyNameKind},
     realm::Realm,
     string::{common::StaticJsStrings, utf16, CodePoint},
@@ -197,7 +197,7 @@ impl Json {
                     // 3. If newElement is undefined, then
                     if new_element.is_undefined() {
                         // a. Perform ? val.[[Delete]](prop).
-                        obj.__delete__(&i.into(), context)?;
+                        obj.__delete__(&i.into(), &mut InternalMethodContext::new(context))?;
                     }
                     // 4. Else,
                     else {
@@ -226,7 +226,7 @@ impl Json {
                     // 2. If newElement is undefined, then
                     if new_element.is_undefined() {
                         // a. Perform ? val.[[Delete]](P).
-                        obj.__delete__(&p.into(), context)?;
+                        obj.__delete__(&p.into(), &mut InternalMethodContext::new(context))?;
                     }
                     // 3. Else,
                     else {

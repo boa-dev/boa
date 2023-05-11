@@ -2262,7 +2262,7 @@ impl BuiltinTypedArray {
             let target_index = target_offset + k;
 
             // d. Perform ? IntegerIndexedElementSet(target, targetIndex, value).
-            integer_indexed_element_set(target, target_index as f64, &value, context)?;
+            integer_indexed_element_set(target, target_index as f64, &value, &mut context.into())?;
 
             // e. Set k to k + 1.
         }

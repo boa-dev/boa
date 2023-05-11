@@ -3,10 +3,10 @@ use crate::{
     object::JsObject,
     property::{PropertyDescriptor, PropertyKey},
     string::utf16,
-    Context, JsResult,
+    JsResult,
 };
 
-use super::{InternalObjectMethods, ORDINARY_INTERNAL_METHODS};
+use super::{InternalMethodContext, InternalObjectMethods, ORDINARY_INTERNAL_METHODS};
 
 /// Definitions of the internal object methods for array exotic objects.
 ///
@@ -29,7 +29,7 @@ pub(crate) fn array_exotic_define_own_property(
     obj: &JsObject,
     key: &PropertyKey,
     desc: PropertyDescriptor,
-    context: &mut Context,
+    context: &mut InternalMethodContext<'_>,
 ) -> JsResult<bool> {
     // 1. Assert: IsPropertyKey(P) is true.
     match key {
@@ -111,7 +111,7 @@ pub(crate) fn array_exotic_define_own_property(
 fn array_set_length(
     obj: &JsObject,
     desc: PropertyDescriptor,
-    context: &mut Context,
+    context: &mut InternalMethodContext<'_>,
 ) -> JsResult<bool> {
     // 1. If Desc.[[Value]] is absent, then
     let Some(new_len_val) = desc.value() else {

@@ -10,6 +10,11 @@ bitflags! {
         const CONFIGURABLE = 0b0000_0100;
         const GET = 0b0000_1000;
         const SET = 0b0001_0000;
+
+        const INLINE_CACHE_BITS = 0b1110_0000;
+        const PROTOTYPE    = 0b0010_0000;
+        const FOUND        = 0b0100_0000;
+        const NOT_CACHABLE = 0b1000_0000;
     }
 }
 
@@ -36,6 +41,10 @@ impl SlotAttributes {
         // accessor take 2 positions in the storage to accomodate for the `get` and `set` fields.
         1 + u32::from(self.is_accessor_descriptor())
     }
+
+    pub(crate) const fn is_cachable(self) -> bool {
+        !self.contains(Self::NOT_CACHABLE) && self.contains(Self::FOUND)
+    }
 }
 
 /// Represents an [`u32`] index and it's slot attributes of an element in a object storage.
@@ -49,6 +58,17 @@ pub(crate) struct Slot {
 }
 
 impl Slot {
+    pub(crate) const fn new() -> Self {
+        Self {
+            index: 0,
+            attributes: SlotAttributes::empty(),
+        }
+    }
+
+    pub(crate) const fn is_cachable(self) -> bool {
+        self.attributes.is_cachable()
+    }
+
     /// Get the width of the slot.
     pub(crate) fn width(self) -> u32 {
         self.attributes.width()
@@ -73,5 +93,18 @@ impl Slot {
             index: previous_slot.index + previous_slot.width(),
             attributes: new_attributes,
         }
+    }
+
+    pub(crate) fn set_not_cachable_if_already_prototype(&mut self) {
+        // NOTE(HalidOdat): This is a bit hack to avoid conditional branches.
+        //
+        // Equivalent to:
+        // if slot.attributes.contains(SlotAttributes::PROTOTYPE) {
+        //     slot.attributes |= SlotAttributes::NOT_CACHABLE;
+        // }
+        //
+        self.attributes |= SlotAttributes::from_bits_retain(
+            (self.attributes.bits() & SlotAttributes::PROTOTYPE.bits()) << 2,
+        );
     }
 }

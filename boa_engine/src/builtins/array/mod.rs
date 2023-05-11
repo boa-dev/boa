@@ -20,7 +20,10 @@ use crate::{
     context::intrinsics::{Intrinsics, StandardConstructor, StandardConstructors},
     error::JsNativeError,
     js_string,
-    object::{internal_methods::get_prototype_from_constructor, JsObject, ObjectData, CONSTRUCTOR},
+    object::{
+        internal_methods::{get_prototype_from_constructor, InternalMethodContext},
+        JsObject, ObjectData, CONSTRUCTOR,
+    },
     property::{Attribute, PropertyDescriptor, PropertyNameKind},
     realm::Realm,
     string::common::StaticJsStrings,
@@ -349,7 +352,7 @@ impl Array {
                 .enumerable(false)
                 .configurable(false)
                 .build(),
-            context,
+            &mut InternalMethodContext::new(context),
         )?;
 
         Ok(array)

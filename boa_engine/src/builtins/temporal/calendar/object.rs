@@ -847,7 +847,7 @@ impl CalendarProtocol for CustomRuntimeCalendar {
             .__get__(
                 &PropertyKey::from(utf16!("id")),
                 JsValue::undefined(),
-                context,
+                &mut context.into(),
             )
             .expect("method must exist on a object that implements the CalendarProtocol.");
 

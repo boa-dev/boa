@@ -7,7 +7,7 @@ mod tests;
 use std::{collections::hash_map::RandomState, hash::Hash};
 
 use bitflags::bitflags;
-use boa_gc::{empty_trace, Finalize, Gc, Trace};
+use boa_gc::{empty_trace, Finalize, Gc, Trace, WeakGc};
 use indexmap::IndexMap;
 
 use crate::{object::JsPrototype, property::PropertyKey, JsObject};
@@ -474,9 +474,37 @@ impl SharedShape {
         )
     }
 
-    /// Return location in memory of the [`UniqueShape`].
+    /// Return location in memory of the [`SharedShape`].
     pub(crate) fn to_addr_usize(&self) -> usize {
         let ptr: *const _ = self.inner.as_ref();
         ptr as usize
+    }
+}
+
+/// Represents a weak reference to [`SharedShape`].
+#[derive(Debug, Trace, Finalize, Clone)]
+pub(crate) struct WeakSharedShape {
+    inner: WeakGc<Inner>,
+}
+
+impl WeakSharedShape {
+    /// Return location in memory of the [`WeakSharedShape`].
+    ///
+    /// Returns `0` if the inner [`SharedShape`] has been freed.
+    #[inline]
+    #[must_use]
+    pub(crate) fn to_addr_usize(&self) -> usize {
+        self.inner.upgrade().map_or(0, |inner| {
+            let ptr: *const _ = inner.as_ref();
+            ptr as usize
+        })
+    }
+}
+
+impl From<&SharedShape> for WeakSharedShape {
+    fn from(value: &SharedShape) -> Self {
+        WeakSharedShape {
+            inner: WeakGc::new(&value.inner),
+        }
     }
 }

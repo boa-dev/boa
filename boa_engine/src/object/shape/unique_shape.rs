@@ -1,6 +1,6 @@
 use std::{cell::RefCell, fmt::Debug};
 
-use boa_gc::{Finalize, Gc, GcRefCell, Trace};
+use boa_gc::{Finalize, Gc, GcRefCell, Trace, WeakGc};
 
 use crate::property::PropertyKey;
 
@@ -237,5 +237,33 @@ impl UniqueShape {
     pub(crate) fn to_addr_usize(&self) -> usize {
         let ptr: *const _ = self.inner.as_ref();
         ptr as usize
+    }
+}
+
+/// Represents a weak reference to [`UniqueShape`].
+#[derive(Debug, Clone, Trace, Finalize)]
+pub(crate) struct WeakUniqueShape {
+    inner: WeakGc<Inner>,
+}
+
+impl WeakUniqueShape {
+    /// Return location in memory of the [`WeakUniqueShape`].
+    ///
+    /// Returns `0` if the inner [`UniqueShape`] has been freed.
+    #[inline]
+    #[must_use]
+    pub(crate) fn to_addr_usize(&self) -> usize {
+        self.inner.upgrade().map_or(0, |inner| {
+            let ptr: *const _ = inner.as_ref();
+            ptr as usize
+        })
+    }
+}
+
+impl From<&UniqueShape> for WeakUniqueShape {
+    fn from(value: &UniqueShape) -> Self {
+        WeakUniqueShape {
+            inner: WeakGc::new(&value.inner),
+        }
     }
 }

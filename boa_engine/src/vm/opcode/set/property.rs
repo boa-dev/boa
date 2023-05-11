@@ -2,6 +2,7 @@ use boa_macros::utf16;
 
 use crate::{
     builtins::function::set_function_name,
+    object::{internal_methods::InternalMethodContext, shape::slot::SlotAttributes},
     property::{PropertyDescriptor, PropertyKey},
     vm::{opcode::Operation, CompletionType},
     Context, JsNativeError, JsResult, JsString, JsValue,
@@ -25,18 +26,72 @@ impl SetPropertyByName {
             object.to_object(context)?
         };
 
-        let name: PropertyKey = context
-            .vm
-            .frame()
-            .code_block()
-            .constant_string(index)
-            .into();
+        let ic = &context.vm.frame().code_block().ic[index];
+        let mut slot = ic.slot();
+        if slot.is_cachable() {
+            let object_borrowed = object.borrow();
+            if ic.matches(object_borrowed.shape()) {
+                let slot_index = slot.index as usize;
 
+                if slot.attributes.is_accessor_descriptor() {
+                    let result = if slot.attributes.contains(SlotAttributes::PROTOTYPE) {
+                        let prototype = object_borrowed
+                            .properties()
+                            .shape
+                            .prototype()
+                            .expect("prototype should have value");
+                        let prototype = prototype.borrow();
+
+                        prototype.properties().storage[slot_index + 1].clone()
+                    } else {
+                        object_borrowed.properties().storage[slot_index + 1].clone()
+                    };
+
+                    drop(object_borrowed);
+                    if slot.attributes.has_set() && result.is_object() {
+                        result.as_object().expect("should contain getter").call(
+                            &receiver,
+                            &[value.clone()],
+                            context,
+                        )?;
+                    }
+                } else if slot.attributes.contains(SlotAttributes::PROTOTYPE) {
+                    let prototype = object_borrowed
+                        .properties()
+                        .shape
+                        .prototype()
+                        .expect("prototype should have value");
+                    let mut prototype = prototype.borrow_mut();
+
+                    prototype.properties_mut().storage[slot_index] = value.clone();
+                } else {
+                    drop(object_borrowed);
+                    let mut object_borrowed = object.borrow_mut();
+                    object_borrowed.properties_mut().storage[slot_index] = value.clone();
+                }
+                context.vm.push(value);
+                return Ok(CompletionType::Normal);
+            }
+        }
+
+        let name: PropertyKey = ic.name.clone().into();
+
+        let context = &mut InternalMethodContext::new(context);
         let succeeded = object.__set__(name.clone(), value.clone(), receiver, context)?;
         if !succeeded && context.vm.frame().code_block.strict() {
             return Err(JsNativeError::typ()
                 .with_message(format!("cannot set non-writable property: {name}"))
                 .into());
+        }
+
+        slot = *context.slot();
+
+        // Cache the property.
+        if succeeded && slot.is_cachable() {
+            let ic = &context.vm.frame().code_block.ic[index];
+            let object_borrowed = object.borrow();
+            let shape = object_borrowed.shape();
+            ic.set(shape, slot);
         }
         context.vm.stack.push(value);
         Ok(CompletionType::Normal)
@@ -158,7 +213,8 @@ impl Operation for SetPropertyByValue {
         }
 
         // Slow path:
-        let succeeded = object.__set__(key.clone(), value.clone(), receiver, context)?;
+        let succeeded =
+            object.__set__(key.clone(), value.clone(), receiver, &mut context.into())?;
         if !succeeded && context.vm.frame().code_block.strict() {
             return Err(JsNativeError::typ()
                 .with_message(format!("cannot set non-writable property: {key}"))
@@ -188,7 +244,7 @@ impl SetPropertyGetterByName {
             .constant_string(index)
             .into();
         let set = object
-            .__get_own_property__(&name, context)?
+            .__get_own_property__(&name, &mut InternalMethodContext::new(context))?
             .as_ref()
             .and_then(PropertyDescriptor::set)
             .cloned();
@@ -200,7 +256,7 @@ impl SetPropertyGetterByName {
                 .enumerable(true)
                 .configurable(true)
                 .build(),
-            context,
+            &mut InternalMethodContext::new(context),
         )?;
         Ok(CompletionType::Normal)
     }
@@ -245,8 +301,9 @@ impl Operation for SetPropertyGetterByValue {
         let object = context.vm.pop();
         let object = object.to_object(context)?;
         let name = key.to_property_key(context)?;
+
         let set = object
-            .__get_own_property__(&name, context)?
+            .__get_own_property__(&name, &mut InternalMethodContext::new(context))?
             .as_ref()
             .and_then(PropertyDescriptor::set)
             .cloned();
@@ -258,7 +315,7 @@ impl Operation for SetPropertyGetterByValue {
                 .enumerable(true)
                 .configurable(true)
                 .build(),
-            context,
+            &mut InternalMethodContext::new(context),
         )?;
         Ok(CompletionType::Normal)
     }
@@ -282,8 +339,9 @@ impl SetPropertySetterByName {
             .code_block()
             .constant_string(index)
             .into();
+
         let get = object
-            .__get_own_property__(&name, context)?
+            .__get_own_property__(&name, &mut InternalMethodContext::new(context))?
             .as_ref()
             .and_then(PropertyDescriptor::get)
             .cloned();
@@ -295,7 +353,7 @@ impl SetPropertySetterByName {
                 .enumerable(true)
                 .configurable(true)
                 .build(),
-            context,
+            &mut InternalMethodContext::new(context),
         )?;
         Ok(CompletionType::Normal)
     }
@@ -340,8 +398,9 @@ impl Operation for SetPropertySetterByValue {
         let object = context.vm.pop();
         let object = object.to_object(context)?;
         let name = key.to_property_key(context)?;
+
         let get = object
-            .__get_own_property__(&name, context)?
+            .__get_own_property__(&name, &mut InternalMethodContext::new(context))?
             .as_ref()
             .and_then(PropertyDescriptor::get)
             .cloned();
@@ -353,7 +412,7 @@ impl Operation for SetPropertySetterByValue {
                 .enumerable(true)
                 .configurable(true)
                 .build(),
-            context,
+            &mut InternalMethodContext::new(context),
         )?;
         Ok(CompletionType::Normal)
     }

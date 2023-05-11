@@ -4,7 +4,7 @@
 
 use super::{
     internal_methods::{
-        non_existant_call, non_existant_construct, InternalObjectMethods,
+        non_existant_call, non_existant_construct, InternalMethodContext, InternalObjectMethods,
         ARRAY_EXOTIC_INTERNAL_METHODS,
     },
     shape::RootShape,
@@ -1000,6 +1000,8 @@ Cannot both specify accessors and a value or writable attribute",
     where
         K: Into<PropertyKey>,
     {
+        let context = &mut InternalMethodContext::new(context);
+
         // 1. Assert: Type(target) is Object.
         // 2. Assert: excludedItems is a List of property keys.
         // 3. If source is undefined or null, return target.

@@ -1181,7 +1181,7 @@ pub(crate) fn to_temporal_calendar_slot_value(
 fn object_implements_calendar_protocol(calendar_like: &JsObject, context: &mut Context) -> bool {
     CALENDAR_PROTOCOL_METHODS.into_iter().all(|method| {
         calendar_like
-            .__has_property__(&JsString::from(method).into(), context)
+            .__has_property__(&JsString::from(method).into(), &mut context.into())
             .unwrap_or(false)
     })
 }

@@ -18,8 +18,8 @@ use crate::{
     environments::{BindingLocator, BindingLocatorError, CompileTimeEnvironment},
     js_string,
     vm::{
-        BindingOpcode, CodeBlock, CodeBlockFlags, Constant, GeneratorResumeKind, Handler, Opcode,
-        VaryingOperandKind,
+        BindingOpcode, CodeBlock, CodeBlockFlags, Constant, GeneratorResumeKind, Handler,
+        InlineCache, Opcode, VaryingOperandKind,
     },
     Context, JsBigInt, JsString,
 };
@@ -279,6 +279,7 @@ pub struct ByteCompiler<'ctx> {
     current_stack_value_count: u32,
     pub(crate) code_block_flags: CodeBlockFlags,
     handlers: ThinVec<Handler>,
+    pub(crate) ic: Vec<InlineCache>,
     literals_map: FxHashMap<Literal, u32>,
     names_map: FxHashMap<Identifier, u32>,
     bindings_map: FxHashMap<BindingLocator, u32>,
@@ -330,6 +331,7 @@ impl<'ctx> ByteCompiler<'ctx> {
             current_stack_value_count: 2,
             code_block_flags,
             handlers: ThinVec::default(),
+            ic: Vec::default(),
 
             literals_map: FxHashMap::default(),
             names_map: FxHashMap::default(),
@@ -540,6 +542,29 @@ impl<'ctx> ByteCompiler<'ctx> {
     fn emit_i64(&mut self, value: i64) {
         self.emit_u64(value as u64);
     }
+    fn emit_get_property_by_name(&mut self, ident: Sym) {
+        let ic_index = self.ic.len() as u32;
+
+        let name_index = self.get_or_insert_name(Identifier::new(ident));
+        let Constant::String(ref name) = self.constants[name_index as usize].clone() else {
+            unreachable!("there should be a string at index")
+        };
+        self.ic.push(InlineCache::new(name.clone()));
+
+        self.emit_with_varying_operand(Opcode::GetPropertyByName, ic_index);
+    }
+
+    fn emit_set_property_by_name(&mut self, ident: Sym) {
+        let ic_index = self.ic.len() as u32;
+
+        let name_index = self.get_or_insert_name(Identifier::new(ident));
+        let Constant::String(ref name) = self.constants[name_index as usize].clone() else {
+            unreachable!("there should be a string at index")
+        };
+        self.ic.push(InlineCache::new(name.clone()));
+
+        self.emit_with_varying_operand(Opcode::SetPropertyByName, ic_index);
+    }
 
     fn emit_u64(&mut self, value: u64) {
         self.bytecode.extend(value.to_ne_bytes());
@@ -698,7 +723,7 @@ impl<'ctx> ByteCompiler<'ctx> {
 
         // This is done to avoid unneeded bounds checks.
         assert!(self.bytecode.len() > index + U32_SIZE && usize::MAX - U32_SIZE >= index);
-        self.bytecode[index + 1..=index + U32_SIZE].copy_from_slice(bytes.as_slice());
+        self.bytecode[index + 1..=index + U32_SIZE].clone_from_slice(bytes.as_slice());
     }
 
     fn patch_jump(&mut self, label: Label) {
@@ -721,10 +746,9 @@ impl<'ctx> ByteCompiler<'ctx> {
             Access::Property { access } => match access {
                 PropertyAccess::Simple(access) => match access.field() {
                     PropertyAccessField::Const(name) => {
-                        let index = self.get_or_insert_name((*name).into());
                         self.compile_expr(access.target(), true);
                         self.emit_opcode(Opcode::Dup);
-                        self.emit_with_varying_operand(Opcode::GetPropertyByName, index);
+                        self.emit_get_property_by_name(*name);
                     }
                     PropertyAccessField::Expr(expr) => {
                         self.compile_expr(access.target(), true);
@@ -740,10 +764,10 @@ impl<'ctx> ByteCompiler<'ctx> {
                 }
                 PropertyAccess::Super(access) => match access.field() {
                     PropertyAccessField::Const(field) => {
-                        let index = self.get_or_insert_name((*field).into());
                         self.emit_opcode(Opcode::Super);
                         self.emit_opcode(Opcode::This);
-                        self.emit_with_varying_operand(Opcode::GetPropertyByName, index);
+
+                        self.emit_get_property_by_name(*field);
                     }
                     PropertyAccessField::Expr(expr) => {
                         self.emit_opcode(Opcode::Super);
@@ -818,9 +842,8 @@ impl<'ctx> ByteCompiler<'ctx> {
                         self.compile_expr(access.target(), true);
                         self.emit_opcode(Opcode::Dup);
                         expr_fn(self, 2);
-                        let index = self.get_or_insert_name((*name).into());
 
-                        self.emit_with_varying_operand(Opcode::SetPropertyByName, index);
+                        self.emit_set_property_by_name(*name);
                         if !use_expr {
                             self.emit_opcode(Opcode::Pop);
                         }
@@ -850,8 +873,7 @@ impl<'ctx> ByteCompiler<'ctx> {
                         self.emit_opcode(Opcode::Super);
                         self.emit_opcode(Opcode::This);
                         expr_fn(self, 1);
-                        let index = self.get_or_insert_name((*name).into());
-                        self.emit_with_varying_operand(Opcode::SetPropertyByName, index);
+                        self.emit_set_property_by_name(*name);
                         if !use_expr {
                             self.emit_opcode(Opcode::Pop);
                         }
@@ -958,8 +980,7 @@ impl<'ctx> ByteCompiler<'ctx> {
                 self.emit_opcode(Opcode::Dup);
                 match access.field() {
                     PropertyAccessField::Const(field) => {
-                        let index = self.get_or_insert_name((*field).into());
-                        self.emit_with_varying_operand(Opcode::GetPropertyByName, index);
+                        self.emit_get_property_by_name(*field);
                     }
                     PropertyAccessField::Expr(field) => {
                         self.compile_expr(field, true);
@@ -979,8 +1000,7 @@ impl<'ctx> ByteCompiler<'ctx> {
                 self.emit_opcode(Opcode::This);
                 match access.field() {
                     PropertyAccessField::Const(field) => {
-                        let index = self.get_or_insert_name((*field).into());
-                        self.emit_with_varying_operand(Opcode::GetPropertyByName, index);
+                        self.emit_get_property_by_name(*field);
                     }
                     PropertyAccessField::Expr(expr) => {
                         self.compile_expr(expr, true);
@@ -1065,8 +1085,7 @@ impl<'ctx> ByteCompiler<'ctx> {
                 self.emit_opcode(Opcode::Dup);
                 match field {
                     PropertyAccessField::Const(name) => {
-                        let index = self.get_or_insert_name((*name).into());
-                        self.emit_with_varying_operand(Opcode::GetPropertyByName, index);
+                        self.emit_get_property_by_name(*name);
                     }
                     PropertyAccessField::Expr(expr) => {
                         self.compile_expr(expr, true);
@@ -1512,6 +1531,7 @@ impl<'ctx> ByteCompiler<'ctx> {
             bindings: self.bindings.into_boxed_slice(),
             handlers: self.handlers,
             flags: Cell::new(self.code_block_flags),
+            ic: self.ic.into_boxed_slice(),
         }
     }
 

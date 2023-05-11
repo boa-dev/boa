@@ -1,5 +1,6 @@
 use crate::{
     builtins::function::set_function_name,
+    object::internal_methods::InternalMethodContext,
     property::PropertyDescriptor,
     vm::{opcode::Operation, CompletionType},
     Context, JsResult,
@@ -43,7 +44,7 @@ impl DefineClassStaticMethodByName {
                 .enumerable(false)
                 .configurable(true)
                 .build(),
-            context,
+            &mut InternalMethodContext::new(context),
         )?;
         Ok(CompletionType::Normal)
     }
@@ -108,7 +109,7 @@ impl DefineClassMethodByName {
                 .enumerable(false)
                 .configurable(true)
                 .build(),
-            context,
+            &mut InternalMethodContext::new(context),
         )?;
         Ok(CompletionType::Normal)
     }
@@ -221,7 +222,7 @@ impl Operation for DefineClassMethodByValue {
                 .enumerable(false)
                 .configurable(true)
                 .build(),
-            context,
+            &mut InternalMethodContext::new(context),
         )?;
         Ok(CompletionType::Normal)
     }
