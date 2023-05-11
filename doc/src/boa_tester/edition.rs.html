@@ -381,6 +381,9 @@
 <a href="#380" id="380">380</a>
 <a href="#381" id="381">381</a>
 <a href="#382" id="382">382</a>
+<a href="#383" id="383">383</a>
+<a href="#384" id="384">384</a>
+<a href="#385" id="385">385</a>
 </pre><pre class="rust"><code><span class="doccomment">//! Edition detection utilities.
 //!
 //! This module contains the [`SpecEdition`] struct, which is used in the tester to
@@ -724,7 +727,10 @@
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>from_test_metadata(metadata: <span class="kw-2">&amp;</span>MetaData) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>, Vec&lt;<span class="kw-2">&amp;</span>str&gt;&gt; {
         <span class="kw">let </span><span class="kw-2">mut </span>min_edition = <span class="kw">if </span>metadata.flags.contains(<span class="kw-2">&amp;</span>TestFlag::Async) {
             <span class="self">Self</span>::ES8
-        } <span class="kw">else if </span>metadata.flags.contains(<span class="kw-2">&amp;</span>TestFlag::Module) {
+        } <span class="kw">else if </span>metadata.flags.contains(<span class="kw-2">&amp;</span>TestFlag::Module)
+            || metadata.esid.is_some()
+            || metadata.es6id.is_some()
+        {
             <span class="self">Self</span>::ES6
         } <span class="kw">else </span>{
             <span class="self">Self</span>::ES5
