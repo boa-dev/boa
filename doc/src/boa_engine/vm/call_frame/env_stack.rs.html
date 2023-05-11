@@ -389,12 +389,12 @@
 
     <span class="doccomment">/// Increments the `env_num` field for current `EnvEntryStack`.
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>inc_env_num(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
-        <span class="self">self</span>.env_num += <span class="number">1</span>;
+        (<span class="self">self</span>.env_num, <span class="kw">_</span>) = <span class="self">self</span>.env_num.overflowing_add(<span class="number">1</span>);
     }
 
     <span class="doccomment">/// Decrements the `env_num` field for current `EnvEntryStack`.
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>dec_env_num(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
-        <span class="self">self</span>.env_num -= <span class="number">1</span>;
+        (<span class="self">self</span>.env_num, <span class="kw">_</span>) = <span class="self">self</span>.env_num.overflowing_sub(<span class="number">1</span>);
     }
 
     <span class="doccomment">/// Set the loop return value for the current `EnvStackEntry`.

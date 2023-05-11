@@ -384,6 +384,12 @@
 <a href="#383" id="383">383</a>
 <a href="#384" id="384">384</a>
 <a href="#385" id="385">385</a>
+<a href="#386" id="386">386</a>
+<a href="#387" id="387">387</a>
+<a href="#388" id="388">388</a>
+<a href="#389" id="389">389</a>
+<a href="#390" id="390">390</a>
+<a href="#391" id="391">391</a>
 </pre><pre class="rust"><code><span class="doccomment">//! Variable related declarations.
 
 </span><span class="kw">use </span>core::ops::ControlFlow;
@@ -500,6 +506,12 @@
         <span class="kw">match </span><span class="self">self </span>{
             <span class="self">Self</span>::Const(list) | <span class="self">Self</span>::Let(list) =&gt; list,
         }
+    }
+
+    <span class="doccomment">/// Returns `true` if the declaration is a `const` declaration.
+    </span><span class="attr">#[must_use]
+    </span><span class="kw">pub const fn </span>is_const(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="macro">matches!</span>(<span class="self">self</span>, <span class="self">Self</span>::Const(<span class="kw">_</span>))
     }
 }
 

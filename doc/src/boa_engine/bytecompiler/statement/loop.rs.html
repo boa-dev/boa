@@ -447,8 +447,35 @@
 <a href="#446" id="446">446</a>
 <a href="#447" id="447">447</a>
 <a href="#448" id="448">448</a>
+<a href="#449" id="449">449</a>
+<a href="#450" id="450">450</a>
+<a href="#451" id="451">451</a>
+<a href="#452" id="452">452</a>
+<a href="#453" id="453">453</a>
+<a href="#454" id="454">454</a>
+<a href="#455" id="455">455</a>
+<a href="#456" id="456">456</a>
+<a href="#457" id="457">457</a>
+<a href="#458" id="458">458</a>
+<a href="#459" id="459">459</a>
+<a href="#460" id="460">460</a>
+<a href="#461" id="461">461</a>
+<a href="#462" id="462">462</a>
+<a href="#463" id="463">463</a>
+<a href="#464" id="464">464</a>
+<a href="#465" id="465">465</a>
+<a href="#466" id="466">466</a>
+<a href="#467" id="467">467</a>
+<a href="#468" id="468">468</a>
+<a href="#469" id="469">469</a>
+<a href="#470" id="470">470</a>
+<a href="#471" id="471">471</a>
+<a href="#472" id="472">472</a>
+<a href="#473" id="473">473</a>
+<a href="#474" id="474">474</a>
+<a href="#475" id="475">475</a>
 </pre><pre class="rust"><code><span class="kw">use </span>boa_ast::{
-    declaration::{Binding, LexicalDeclaration},
+    declaration::Binding,
     operations::bound_names,
     statement::{
         iteration::{ForLoopInitializer, IterableLoopInitializer},
@@ -469,9 +496,9 @@
         label: <span class="prelude-ty">Option</span>&lt;Sym&gt;,
         use_expr: bool,
     ) {
-        <span class="self">self</span>.push_compile_environment(<span class="bool-val">false</span>);
-        <span class="kw">let </span>push_env = <span class="self">self</span>.emit_opcode_with_two_operands(Opcode::PushDeclarativeEnvironment);
-        <span class="self">self</span>.push_empty_loop_jump_control();
+        <span class="kw">let </span><span class="kw-2">mut </span>let_binding_indices = <span class="prelude-val">None</span>;
+        <span class="kw">let </span><span class="kw-2">mut </span>env_labels = <span class="prelude-val">None</span>;
+        <span class="kw">let </span><span class="kw-2">mut </span>iteration_env_labels = <span class="prelude-val">None</span>;
 
         <span class="kw">if let </span><span class="prelude-val">Some</span>(init) = for_loop.init() {
             <span class="kw">match </span>init {
@@ -480,23 +507,32 @@
                     <span class="self">self</span>.compile_var_decl(decl);
                 }
                 ForLoopInitializer::Lexical(decl) =&gt; {
-                    <span class="kw">match </span>decl {
-                        LexicalDeclaration::Const(decl) =&gt; {
-                            <span class="kw">for </span>name <span class="kw">in </span>bound_names(decl) {
-                                <span class="self">self</span>.create_immutable_binding(name, <span class="bool-val">true</span>);
-                            }
+                    <span class="self">self</span>.push_compile_environment(<span class="bool-val">false</span>);
+                    env_labels = <span class="prelude-val">Some</span>(
+                        <span class="self">self</span>.emit_opcode_with_two_operands(Opcode::PushDeclarativeEnvironment),
+                    );
+
+                    <span class="kw">let </span>names = bound_names(decl);
+                    <span class="kw">if </span>decl.is_const() {
+                        <span class="kw">for </span>name <span class="kw">in </span><span class="kw-2">&amp;</span>names {
+                            <span class="self">self</span>.create_immutable_binding(<span class="kw-2">*</span>name, <span class="bool-val">true</span>);
                         }
-                        LexicalDeclaration::Let(decl) =&gt; {
-                            <span class="kw">for </span>name <span class="kw">in </span>bound_names(decl) {
-                                <span class="self">self</span>.create_mutable_binding(name, <span class="bool-val">false</span>);
-                            }
+                    } <span class="kw">else </span>{
+                        <span class="kw">let </span><span class="kw-2">mut </span>indices = Vec::new();
+                        <span class="kw">for </span>name <span class="kw">in </span><span class="kw-2">&amp;</span>names {
+                            <span class="self">self</span>.create_mutable_binding(<span class="kw-2">*</span>name, <span class="bool-val">false</span>);
+                            <span class="kw">let </span>binding = <span class="self">self</span>.initialize_mutable_binding(<span class="kw-2">*</span>name, <span class="bool-val">false</span>);
+                            <span class="kw">let </span>index = <span class="self">self</span>.get_or_insert_binding(binding);
+                            indices.push(index);
                         }
+                        let_binding_indices = <span class="prelude-val">Some</span>(indices);
                     }
                     <span class="self">self</span>.compile_lexical_decl(decl);
                 }
             }
         }
 
+        <span class="self">self</span>.push_empty_loop_jump_control();
         <span class="kw">let </span>(loop_start, loop_exit) = <span class="self">self</span>.emit_opcode_with_two_operands(Opcode::LoopStart);
         <span class="kw">let </span>initial_jump = <span class="self">self</span>.jump();
         <span class="kw">let </span>start_address = <span class="self">self</span>.next_opcode_location();
@@ -507,6 +543,18 @@
         <span class="self">self</span>.current_jump_control_mut()
             .expect(<span class="string">&quot;jump_control must exist as it was just pushed&quot;</span>)
             .set_start_address(start_address);
+
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(let_binding_indices) = let_binding_indices {
+            <span class="kw">for </span>index <span class="kw">in </span><span class="kw-2">&amp;</span>let_binding_indices {
+                <span class="self">self</span>.emit(Opcode::GetName, <span class="kw-2">&amp;</span>[<span class="kw-2">*</span>index]);
+            }
+            <span class="self">self</span>.emit_opcode(Opcode::PopEnvironment);
+            iteration_env_labels =
+                <span class="prelude-val">Some</span>(<span class="self">self</span>.emit_opcode_with_two_operands(Opcode::PushDeclarativeEnvironment));
+            <span class="kw">for </span>index <span class="kw">in </span>let_binding_indices.iter().rev() {
+                <span class="self">self</span>.emit(Opcode::PutLexicalValue, <span class="kw-2">&amp;</span>[<span class="kw-2">*</span>index]);
+            }
+        }
 
         <span class="self">self</span>.emit_opcode(Opcode::LoopContinue);
         <span class="self">self</span>.patch_jump_with_target(loop_start, start_address);
@@ -532,10 +580,6 @@
 
         <span class="self">self</span>.emit(Opcode::Jump, <span class="kw-2">&amp;</span>[start_address]);
 
-        <span class="kw">let </span>env_info = <span class="self">self</span>.pop_compile_environment();
-        <span class="self">self</span>.patch_jump_with_target(push_env.<span class="number">0</span>, env_info.num_bindings <span class="kw">as </span>u32);
-        <span class="self">self</span>.patch_jump_with_target(push_env.<span class="number">1</span>, env_info.index <span class="kw">as </span>u32);
-
         <span class="self">self</span>.patch_jump(exit);
         <span class="self">self</span>.patch_jump(loop_exit);
         <span class="self">self</span>.pop_loop_control_info();
@@ -544,7 +588,17 @@
         <span class="kw">if </span>!use_expr {
             <span class="self">self</span>.emit_opcode(Opcode::Pop);
         }
-        <span class="self">self</span>.emit_opcode(Opcode::PopEnvironment);
+
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(env_labels) = env_labels {
+            <span class="kw">let </span>env_info = <span class="self">self</span>.pop_compile_environment();
+            <span class="self">self</span>.patch_jump_with_target(env_labels.<span class="number">0</span>, env_info.num_bindings <span class="kw">as </span>u32);
+            <span class="self">self</span>.patch_jump_with_target(env_labels.<span class="number">1</span>, env_info.index <span class="kw">as </span>u32);
+            <span class="kw">if let </span><span class="prelude-val">Some</span>(iteration_env_labels) = iteration_env_labels {
+                <span class="self">self</span>.patch_jump_with_target(iteration_env_labels.<span class="number">0</span>, env_info.num_bindings <span class="kw">as </span>u32);
+                <span class="self">self</span>.patch_jump_with_target(iteration_env_labels.<span class="number">1</span>, env_info.index <span class="kw">as </span>u32);
+            }
+            <span class="self">self</span>.emit_opcode(Opcode::PopEnvironment);
+        }
     }
 
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>compile_for_in_loop(
