@@ -8,7 +8,7 @@ use crate::{
 };
 use boa_engine::{
     builtins::promise::PromiseState,
-    module::{ModuleLoader, SimpleModuleLoader},
+    module::{Module, ModuleLoader, SimpleModuleLoader},
     native_function::NativeFunction,
     object::FunctionObjectBuilder,
     optimizer::OptimizerOptions,
@@ -236,7 +236,7 @@ impl Test {
 
                 // TODO: timeout
                 let value = if self.is_module() {
-                    let module = match context.parse_module(source, None) {
+                    let module = match Module::parse(source, None, context) {
                         Ok(module) => module,
                         Err(err) => return (false, format!("Uncaught {err}")),
                     };
@@ -306,7 +306,7 @@ impl Test {
                 context.set_optimizer_options(OptimizerOptions::OPTIMIZE_ALL);
 
                 if self.is_module() {
-                    match context.parse_module(source, None) {
+                    match Module::parse(source, None, context) {
                         Ok(_) => (false, "ModuleItemList parsing should fail".to_owned()),
                         Err(e) => (true, format!("Uncaught {e}")),
                     }
@@ -332,7 +332,7 @@ impl Test {
                     .build()
                     .expect("cannot fail with default global object");
 
-                let module = match context.parse_module(source, None) {
+                let module = match Module::parse(source, None, context) {
                     Ok(module) => module,
                     Err(err) => return (false, format!("Uncaught {err}")),
                 };
@@ -396,7 +396,7 @@ impl Test {
                     return (false, e);
                 }
                 let error = if self.is_module() {
-                    let module = match context.parse_module(source, None) {
+                    let module = match Module::parse(source, None, context) {
                         Ok(module) => module,
                         Err(e) => return (false, format!("Uncaught {e}")),
                     };

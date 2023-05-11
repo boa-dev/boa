@@ -265,8 +265,8 @@ impl std::fmt::Debug for SourceTextModule {
 }
 
 impl SourceTextModule {
-    #[allow(clippy::new_ret_no_self)]
-    pub(crate) fn new(code: ModuleItemList, realm: Realm) -> Module {
+    /// Creates a new `SourceTextModule` from a parsed `ModuleItemList`.
+    pub(super) fn new(code: ModuleItemList) -> Self {
         let requested_modules = code.requests();
         let import_entries = code.import_entries();
 
@@ -302,7 +302,7 @@ impl SourceTextModule {
 
         let has_tla = contains(&code, ContainsSymbol::AwaitExpression);
 
-        let src = SourceTextModule(Gc::new(GcRefCell::new(SourceTextModuleData {
+        SourceTextModule(Gc::new(GcRefCell::new(SourceTextModuleData {
             code,
             requested_modules,
             has_tla,
@@ -314,19 +314,15 @@ impl SourceTextModule {
             loaded_modules: HashMap::default(),
             async_parent_modules: Vec::default(),
             import_meta: None,
-        })));
-
-        Module {
-            inner: Gc::new(super::Inner {
-                realm,
-                environment: GcRefCell::new(None),
-                namespace: GcRefCell::new(None),
-                kind: ModuleKind::Source(src),
-                host_defined: (),
-            }),
-        }
+        })))
     }
 
+    /// Abstract operation [`LoadRequestedModules ( [ hostDefined ] )`][spec].
+    ///
+    /// Prepares the module for linking by loading all its module dependencies. Returns a `JsPromise`
+    /// that will resolve when the loading process either completes or fails.
+    ///
+    /// [spec]: https://tc39.es/ecma262/#table-abstract-methods-of-module-records
     pub(super) fn load(module: &Module, context: &mut Context<'_>) -> JsPromise {
         let pc = PromiseCapability::new(
             &context.intrinsics().constructors().promise().constructor(),
@@ -353,7 +349,7 @@ impl SourceTextModule {
         state: &Rc<GraphLoadingState>,
         context: &mut Context<'_>,
     ) {
-        let ModuleKind::Source(src) = module.kind() else {
+        let ModuleKind::SourceText(src) = module.kind() else {
             unreachable!("must only be called for `SourceTextModule`s");
         };
 
@@ -376,7 +372,7 @@ impl SourceTextModule {
                     let src = src.clone();
                     let state = state.clone();
                     context.module_loader().load_imported_module(
-                        Referrer::Module(src.clone()),
+                        Referrer::Module(module.clone()),
                         name_specifier,
                         Box::new(move |completion, ctx| {
                             if let Ok(loaded) = &completion {
@@ -440,12 +436,12 @@ impl SourceTextModule {
         export_name: Sym,
         resolve_set: &mut FxHashSet<(Module, Sym)>,
     ) -> Result<ExportLocator, ResolveExportError> {
-        let ModuleKind::Source(src) = module.kind() else {
+        let ModuleKind::SourceText(src) = module.kind() else {
             unreachable!("must only be called for `SourceTextModule`s");
         };
 
         if resolve_set.contains(&(module.clone(), export_name)) {
-            return Err(ResolveExportError::NotFound(export_name));
+            return Err(ResolveExportError::NotFound);
         }
 
         resolve_set.insert((module.clone(), export_name));
@@ -463,22 +459,20 @@ impl SourceTextModule {
         for e in &src.indirect_export_entries {
             if export_name == e.export_name() {
                 let imported_module = &src.loaded_modules[&e.module_request()];
-                match e.import_name() {
-                    ReExportImportName::Star => {
-                        return Ok(ExportLocator {
-                            module: imported_module.clone(),
-                            binding_name: BindingName::Namespace,
-                        })
-                    }
+                return match e.import_name() {
+                    ReExportImportName::Star => Ok(ExportLocator {
+                        module: imported_module.clone(),
+                        binding_name: BindingName::Namespace,
+                    }),
                     ReExportImportName::Name(_) => {
-                        return imported_module.resolve_export(export_name, resolve_set);
+                        imported_module.resolve_export(export_name, resolve_set)
                     }
-                }
+                };
             }
         }
 
         if export_name == Sym::DEFAULT {
-            return Err(ResolveExportError::NotFound(export_name));
+            return Err(ResolveExportError::NotFound);
         }
 
         let mut star_resolution: Option<ExportLocator> = None;
@@ -487,22 +481,22 @@ impl SourceTextModule {
             let imported_module = &src.loaded_modules[e];
             let resolution = match imported_module.resolve_export(export_name, resolve_set) {
                 Ok(resolution) => resolution,
-                Err(e @ ResolveExportError::Ambiguous(_)) => return Err(e),
-                Err(ResolveExportError::NotFound(_)) => continue,
+                Err(e @ ResolveExportError::Ambiguous) => return Err(e),
+                Err(ResolveExportError::NotFound) => continue,
             };
 
             if let Some(star_resolution) = &star_resolution {
                 // 1. Assert: There is more than one * import that includes the requested name.
                 if resolution.module != star_resolution.module {
-                    return Err(ResolveExportError::Ambiguous(export_name));
+                    return Err(ResolveExportError::Ambiguous);
                 }
                 match (resolution.binding_name, star_resolution.binding_name) {
                     (BindingName::Namespace, BindingName::Name(_))
                     | (BindingName::Name(_), BindingName::Namespace) => {
-                        return Err(ResolveExportError::Ambiguous(export_name));
+                        return Err(ResolveExportError::Ambiguous);
                     }
                     (BindingName::Name(res), BindingName::Name(star)) if res != star => {
-                        return Err(ResolveExportError::Ambiguous(export_name));
+                        return Err(ResolveExportError::Ambiguous);
                     }
                     _ => {}
                 }
@@ -511,14 +505,14 @@ impl SourceTextModule {
             }
         }
 
-        star_resolution.ok_or(ResolveExportError::NotFound(export_name))
+        star_resolution.ok_or(ResolveExportError::NotFound)
     }
 
     pub(super) fn link(module: &Module, context: &mut Context<'_>) -> JsResult<()> {
-        let ModuleKind::Source(src) = module.kind() else {
+        let ModuleKind::SourceText(src) = module.kind() else {
             unreachable!("must only be called for `SourceTextModule`s");
         };
-        assert!(matches!(
+        debug_assert!(matches!(
             src.borrow().status,
             Status::Unlinked
                 | Status::Linked { .. }
@@ -529,15 +523,15 @@ impl SourceTextModule {
         let mut stack = Vec::new();
 
         if let Err(err) = Self::inner_link(module, &mut stack, 0, context) {
-            for source in stack {
-                assert!(matches!(source.borrow().status, Status::Linking { .. }));
-                source.borrow_mut().status = Status::Unlinked;
+            for m in stack {
+                debug_assert!(matches!(m.borrow().status, Status::Linking { .. }));
+                m.borrow_mut().status = Status::Unlinked;
             }
             assert!(matches!(src.borrow().status, Status::Unlinked));
             return Err(err);
         }
 
-        assert!(matches!(
+        debug_assert!(matches!(
             src.borrow().status,
             Status::Linked { .. } | Status::EvaluatingAsync { .. } | Status::Evaluated { .. }
         ));
@@ -552,7 +546,7 @@ impl SourceTextModule {
         mut index: usize,
         context: &mut Context<'_>,
     ) -> JsResult<usize> {
-        let ModuleKind::Source(src) = module.kind() else {
+        let ModuleKind::SourceText(src) = module.kind() else {
             unreachable!("must only be called for `SourceTextModule`s");
         };
         if matches!(
@@ -566,7 +560,7 @@ impl SourceTextModule {
             return Ok(index);
         }
 
-        assert!(matches!(src.borrow().status, Status::Unlinked));
+        debug_assert!(matches!(src.borrow().status, Status::Unlinked));
 
         {
             let mut module = src.borrow_mut();
@@ -587,7 +581,7 @@ impl SourceTextModule {
             let required_module = src.borrow().loaded_modules[&required].clone();
 
             index = required_module.inner_link(stack, index, context)?;
-            if let ModuleKind::Source(required_module) = required_module.kind() {
+            if let ModuleKind::SourceText(required_module) = required_module.kind() {
                 debug_assert!(match required_module.borrow().status {
                     Status::PreLinked { .. }
                     | Status::Linked { .. }
@@ -597,7 +591,7 @@ impl SourceTextModule {
                     _ => false,
                 });
 
-                let req_index = if let Status::Linking {
+                let required_index = if let Status::Linking {
                     info:
                         DfsInfo {
                             dfs_ancestor_index, ..
@@ -609,7 +603,7 @@ impl SourceTextModule {
                     None
                 };
 
-                if let Some(req_index) = req_index {
+                if let Some(required_index) = required_index {
                     let mut module = src.borrow_mut();
 
                     let DfsInfo {
@@ -618,7 +612,7 @@ impl SourceTextModule {
                         .status
                         .dfs_info_mut()
                         .expect("should be on the linking state");
-                    *dfs_ancestor_index = usize::min(*dfs_ancestor_index, req_index);
+                    *dfs_ancestor_index = usize::min(*dfs_ancestor_index, required_index);
                 }
             }
         }
@@ -803,7 +797,7 @@ impl SourceTextModule {
             let required_module = self.borrow().loaded_modules[&required].clone();
             index = required_module.inner_evaluate(stack, index, context)?;
 
-            if let ModuleKind::Source(required_module) = required_module.kind() {
+            if let ModuleKind::SourceText(required_module) = required_module.kind() {
                 debug_assert!(match required_module.borrow().status {
                     Status::EvaluatingAsync { .. } | Status::Evaluated { .. } => true,
                     Status::Evaluating { .. } if stack.contains(required_module) => true,
@@ -1017,7 +1011,7 @@ impl SourceTextModule {
             },
         }
 
-        let ModuleKind::Source(src) = module.kind() else {
+        let ModuleKind::SourceText(src) = module.kind() else {
             unreachable!("must only be called for `SourceTextModule`s");
         };
 
@@ -1027,17 +1021,18 @@ impl SourceTextModule {
                 module
                     .resolve_export(e.export_name(), &mut HashSet::default())
                     .map_err(|err| match err {
-                        ResolveExportError::NotFound(name) => {
+                        ResolveExportError::NotFound => {
                             JsNativeError::syntax().with_message(format!(
                                 "could not find export `{}`",
-                                context.interner().resolve_expect(name)
+                                context.interner().resolve_expect(e.export_name())
                             ))
                         }
-                        ResolveExportError::Ambiguous(name) => JsNativeError::syntax()
-                            .with_message(format!(
+                        ResolveExportError::Ambiguous => {
+                            JsNativeError::syntax().with_message(format!(
                                 "could not resolve ambiguous export `{}`",
-                                context.interner().resolve_expect(name)
-                            )),
+                                context.interner().resolve_expect(e.export_name())
+                            ))
+                        }
                     })?;
             }
         }
@@ -1060,22 +1055,25 @@ impl SourceTextModule {
                 let imported_module = &src.loaded_modules[&entry.module_request()];
 
                 if let ImportName::Name(name) = entry.import_name() {
-                    let resolution = imported_module
-                        .resolve_export(name, &mut HashSet::default())
-                        .map_err(|err| match err {
-                            ResolveExportError::NotFound(name) => JsNativeError::syntax()
-                                .with_message(format!(
-                                    "could not find export `{}`",
-                                    compiler.interner().resolve_expect(name)
-                                )),
-                            ResolveExportError::Ambiguous(name) => JsNativeError::syntax()
-                                .with_message(format!(
-                                    "could not resolve ambiguous export `{}`",
-                                    compiler.interner().resolve_expect(name)
-                                )),
-                        })?;
+                    let resolution =
+                        imported_module
+                            .resolve_export(name, &mut HashSet::default())
+                            .map_err(|err| match err {
+                                ResolveExportError::NotFound => JsNativeError::syntax()
+                                    .with_message(format!(
+                                        "could not find export `{}`",
+                                        compiler.interner().resolve_expect(name)
+                                    )),
+                                ResolveExportError::Ambiguous => JsNativeError::syntax()
+                                    .with_message(format!(
+                                        "could not resolve ambiguous export `{}`",
+                                        compiler.interner().resolve_expect(name)
+                                    )),
+                            })?;
+
                     compiler.create_immutable_binding(entry.local_name(), true);
                     let locator = compiler.initialize_immutable_binding(entry.local_name());
+
                     if let BindingName::Name(_) = resolution.binding_name {
                         imports.push(ImportBinding::Single {
                             locator,

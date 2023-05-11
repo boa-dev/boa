@@ -21,7 +21,7 @@ use crate::{
     bytecompiler::ByteCompiler,
     class::{Class, ClassBuilder},
     job::{JobQueue, NativeJob, SimpleJobQueue},
-    module::{Module, ModuleLoader, SimpleModuleLoader, SourceTextModule},
+    module::{ModuleLoader, SimpleModuleLoader},
     native_function::NativeFunction,
     object::{shape::SharedShape, FunctionObjectBuilder, JsObject},
     optimizer::{Optimizer, OptimizerOptions, OptimizerStatistics},
@@ -207,26 +207,6 @@ impl<'host> Context<'host> {
             self.optimize_statement_list(&mut result);
         }
         Ok(result)
-    }
-
-    /// Abstract operation [`ParseModule ( sourceText, realm, hostDefined )`][spec]
-    ///
-    /// Parses the given source as a module.
-    ///
-    /// [spec]: https://tc39.es/ecma262/#sec-parsemodule
-    pub fn parse_module<R: Read>(
-        &mut self,
-        src: Source<'_, R>,
-        realm: Option<Realm>,
-    ) -> JsResult<Module> {
-        let _timer = Profiler::global().start_event("Module parsing", "Main");
-        let mut parser = Parser::new(src);
-        parser.set_identifier(self.next_parser_identifier());
-        let module = parser.parse_module(&mut self.interner)?;
-        Ok(SourceTextModule::new(
-            module,
-            realm.unwrap_or_else(|| self.realm.clone()),
-        ))
     }
 
     /// Compile the script AST into a `CodeBlock` ready to be executed by the VM.

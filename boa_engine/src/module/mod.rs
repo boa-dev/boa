@@ -1,7 +1,12 @@
-//! Module related types.
+//! Boa's implementation of the ECMAScript's module system.
+//!
+//! More information:
+//!  - [ECMAScript reference][spec]
+//!
+//! [spec]: https://tc39.es/ecma262/#sec-modules
 
 mod source;
-use boa_parser::Source;
+use boa_parser::{Parser, Source};
 use boa_profiler::Profiler;
 pub use source::SourceTextModule;
 
@@ -12,6 +17,7 @@ use rustc_hash::{FxHashMap, FxHashSet, FxHasher};
 
 use std::cell::{Cell, RefCell};
 use std::hash::Hash;
+use std::io::Read;
 use std::path::{Path, PathBuf};
 use std::rc::Rc;
 use std::{collections::HashSet, hash::BuildHasherDefault};
@@ -29,11 +35,11 @@ use crate::{
 };
 use crate::{js_string, JsNativeError, JsSymbol, NativeFunction};
 
-///
+/// The referrer from which a load request of a module originates.
 #[derive(Debug)]
 pub enum Referrer {
     ///
-    Module(SourceTextModule),
+    Module(Module),
     ///
     Realm(Realm), // TODO: script
 }
@@ -43,10 +49,10 @@ pub trait ModuleLoader {
     /// Host hook [`HostLoadImportedModule ( referrer, specifier, hostDefined, payload )`][spec].
     ///
     /// This hook allows to customize the module loading functionality of the engine. Technically,
-    /// this should return `()` instead of `JsResult`, leaving the responsibility of calling
-    /// [`FinishLoadingImportedModule`][finish] to the host, but this simpler API just provides
-    /// a closures that replaces [`FinishLoadingImportedModule`]. Specifically, the requirements of
-    /// this hook per the spec are as follows:
+    /// this should call the [`FinishLoadingImportedModule`][finish] operation, but this simpler API just provides
+    /// a closure that replaces [`FinishLoadingImportedModule`].
+    ///
+    /// # Requirements
     ///
     /// - The host environment must perform `FinishLoadingImportedModule(referrer, specifier, payload, result)`,
     /// where result is either a normal completion containing the loaded Module Record or a throw
@@ -144,7 +150,7 @@ impl ModuleLoader for SimpleModuleLoader {
             }
             let source = Source::from_filepath(&path)
                 .map_err(|err| JsNativeError::typ().with_message(err.to_string()))?;
-            let module = context.parse_module(source, None)?;
+            let module = Module::parse(source, None, context)?;
             self.insert(path, module.clone());
             Ok(module)
         })();
@@ -156,9 +162,21 @@ impl ModuleLoader for SimpleModuleLoader {
 /// ECMAScript's [**Abstract module record**][spec].
 ///
 /// [spec]: https://tc39.es/ecma262/#sec-abstract-module-records
-#[derive(Debug, Clone, Trace, Finalize)]
+#[derive(Clone, Trace, Finalize)]
 pub struct Module {
     inner: Gc<Inner>,
+}
+
+impl std::fmt::Debug for Module {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("Module")
+            .field("realm", &self.inner.realm.addr())
+            .field("environment", &self.inner.environment)
+            .field("namespace", &self.inner.namespace)
+            .field("kind", &self.inner.kind)
+            .field("host_defined", &self.inner.host_defined)
+            .finish()
+    }
 }
 
 #[derive(Trace, Finalize)]
@@ -170,37 +188,27 @@ struct Inner {
     host_defined: (),
 }
 
-impl std::fmt::Debug for Inner {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.debug_struct("Inner")
-            .field("realm", &self.realm.addr())
-            .field("environment", &self.environment)
-            .field("namespace", &self.namespace)
-            .field("kind", &self.kind)
-            .field("host_defined", &self.host_defined)
-            .finish()
-    }
-}
-
+///
 #[derive(Debug, Trace, Finalize)]
-enum ModuleKind {
-    Source(SourceTextModule),
+#[non_exhaustive]
+pub enum ModuleKind {
+    ///
+    SourceText(SourceTextModule),
+    ///
     #[allow(unused)]
     Synthetic,
-}
-
-#[derive(Debug, Clone)]
-struct GraphLoadingState {
-    capability: PromiseCapability,
-    loading: Cell<bool>,
-    pending_modules: Cell<usize>,
-    visited: RefCell<HashSet<SourceTextModule>>,
 }
 
 #[derive(Debug, Clone)]
 pub(crate) struct ExportLocator {
     module: Module,
     binding_name: BindingName,
+}
+
+#[derive(Debug, Clone, Copy)]
+pub(crate) enum BindingName {
+    Name(Identifier),
+    Namespace,
 }
 
 impl ExportLocator {
@@ -213,36 +221,72 @@ impl ExportLocator {
     }
 }
 
-#[derive(Debug, Clone, Copy)]
-pub(crate) enum BindingName {
-    Name(Identifier),
-    Namespace,
+#[derive(Debug, Clone)]
+struct GraphLoadingState {
+    capability: PromiseCapability,
+    loading: Cell<bool>,
+    pending_modules: Cell<usize>,
+    visited: RefCell<HashSet<SourceTextModule>>,
 }
 
 #[derive(Debug, Clone, Copy)]
 pub(crate) enum ResolveExportError {
-    NotFound(Sym),
-    Ambiguous(Sym),
+    NotFound,
+    Ambiguous,
 }
 
 impl Module {
-    pub(crate) fn realm(&self) -> &Realm {
+    /// Abstract operation [`ParseModule ( sourceText, realm, hostDefined )`][spec].
+    ///
+    /// Parses the provided `src` as an ECMAScript module, returning an error if parsing fails.
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-parsemodule
+    pub fn parse<R: Read>(
+        src: Source<'_, R>,
+        realm: Option<Realm>,
+        context: &mut Context<'_>,
+    ) -> JsResult<Module> {
+        let _timer = Profiler::global().start_event("Module parsing", "Main");
+        let mut parser = Parser::new(src);
+        parser.set_identifier(context.next_parser_identifier());
+        let module = parser.parse_module(context.interner_mut())?;
+
+        Ok(Module {
+            inner: Gc::new(Inner {
+                realm: realm.unwrap_or_else(|| context.realm().clone()),
+                environment: GcRefCell::default(),
+                namespace: GcRefCell::default(),
+                kind: ModuleKind::SourceText(SourceTextModule::new(module)),
+                host_defined: (),
+            }),
+        })
+    }
+
+    /// Gets the realm of this `Module`.
+    pub fn realm(&self) -> &Realm {
         &self.inner.realm
     }
 
+    /// Gets the kind of this `Module`.
+    pub fn kind(&self) -> &ModuleKind {
+        &self.inner.kind
+    }
+
+    /// Gets the environment of this `Module`.
     pub(crate) fn environment(&self) -> Option<Gc<DeclarativeEnvironment>> {
         self.inner.environment.borrow().clone()
     }
 
-    fn kind(&self) -> &ModuleKind {
-        &self.inner.kind
-    }
-
+    /// Abstract operation [`LoadRequestedModules ( [ hostDefined ] )`][spec].
     ///
+    /// Prepares the module for linking by loading all its module dependencies. Returns a `JsPromise`
+    /// that will resolve when the loading process either completes or fails.
+    ///
+    /// [spec]: https://tc39.es/ecma262/#table-abstract-methods-of-module-records
     #[allow(clippy::missing_panics_doc)]
     pub fn load(&self, context: &mut Context<'_>) -> JsPromise {
         match self.kind() {
-            ModuleKind::Source(_) => SourceTextModule::load(self, context),
+            ModuleKind::SourceText(_) => SourceTextModule::load(self, context),
             ModuleKind::Synthetic => todo!("synthetic.load()"),
         }
     }
@@ -250,7 +294,7 @@ impl Module {
     fn inner_load(&self, state: &Rc<GraphLoadingState>, context: &mut Context<'_>) {
         assert!(state.loading.get());
 
-        if let ModuleKind::Source(_) = self.kind() {
+        if let ModuleKind::SourceText(_) = self.kind() {
             SourceTextModule::inner_load(self, state, context);
             if !state.loading.get() {
                 return;
@@ -296,7 +340,7 @@ impl Module {
 
     fn get_exported_names(&self, export_star_set: &mut Vec<SourceTextModule>) -> FxHashSet<Sym> {
         match self.kind() {
-            ModuleKind::Source(src) => src.get_exported_names(export_star_set),
+            ModuleKind::SourceText(src) => src.get_exported_names(export_star_set),
             ModuleKind::Synthetic => todo!("synthetic.get_exported_names()"),
         }
     }
@@ -308,7 +352,7 @@ impl Module {
         resolve_set: &mut FxHashSet<(Module, Sym)>,
     ) -> Result<ExportLocator, ResolveExportError> {
         match self.kind() {
-            ModuleKind::Source(_) => {
+            ModuleKind::SourceText(_) => {
                 SourceTextModule::resolve_export(self, export_name, resolve_set)
             }
             ModuleKind::Synthetic => todo!("synthetic.resolve_export()"),
@@ -319,7 +363,7 @@ impl Module {
     #[allow(clippy::missing_panics_doc)]
     pub fn link(&self, context: &mut Context<'_>) -> JsResult<()> {
         match self.kind() {
-            ModuleKind::Source(_) => SourceTextModule::link(self, context),
+            ModuleKind::SourceText(_) => SourceTextModule::link(self, context),
             ModuleKind::Synthetic => todo!("synthetic.link()"),
         }
     }
@@ -331,7 +375,7 @@ impl Module {
         context: &mut Context<'_>,
     ) -> JsResult<usize> {
         match self.kind() {
-            ModuleKind::Source(_) => SourceTextModule::inner_link(self, stack, index, context),
+            ModuleKind::SourceText(_) => SourceTextModule::inner_link(self, stack, index, context),
             #[allow(unreachable_code)]
             ModuleKind::Synthetic => {
                 todo!("synthetic.load()");
@@ -367,7 +411,7 @@ impl Module {
     #[allow(clippy::missing_panics_doc)]
     pub fn evaluate(&self, context: &mut Context<'_>) -> JsPromise {
         match self.kind() {
-            ModuleKind::Source(src) => src.evaluate(context),
+            ModuleKind::SourceText(src) => src.evaluate(context),
             ModuleKind::Synthetic => todo!("synthetic.evaluate()"),
         }
     }
@@ -379,7 +423,7 @@ impl Module {
         context: &mut Context<'_>,
     ) -> JsResult<usize> {
         match self.kind() {
-            ModuleKind::Source(src) => src.inner_evaluate(stack, index, None, context),
+            ModuleKind::SourceText(src) => src.inner_evaluate(stack, index, None, context),
             #[allow(unused, clippy::diverging_sub_expression)]
             ModuleKind::Synthetic => {
                 let promise: JsPromise = todo!("module.Evaluate()");
@@ -395,8 +439,8 @@ impl Module {
         }
     }
 
-    /// Loads, links and evaluates the given module `src` by compiling down to bytecode, then
-    /// returning a promise that will resolve when the module executes.
+    /// Loads, links and evaluates this module, returning a promise that will resolve after the module
+    /// finishes its lifecycle.
     ///
     /// # Examples
     /// ```ignore
@@ -484,6 +528,9 @@ pub struct ModuleNamespace {
 }
 
 impl ModuleNamespace {
+    /// Abstract operation [`ModuleNamespaceCreate ( module, exports )`][spec].
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-modulenamespacecreate
     pub(crate) fn create(module: Module, names: Vec<Sym>, context: &mut Context<'_>) -> JsObject {
         let mut exports = names
             .into_iter()
@@ -517,10 +564,12 @@ impl ModuleNamespace {
         namespace
     }
 
+    /// Gets the export names of the `ModuleNamespace` object.
     pub(crate) const fn exports(&self) -> &IndexMap<JsString, Sym, BuildHasherDefault<FxHasher>> {
         &self.exports
     }
 
+    /// Gest the module associated with this `ModuleNamespace` object.
     pub(crate) const fn module(&self) -> &Module {
         &self.module
     }

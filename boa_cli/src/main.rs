@@ -67,7 +67,7 @@ use boa_engine::{
     builtins::promise::PromiseState,
     context::ContextBuilder,
     job::{FutureJob, JobQueue, NativeJob},
-    module::{ModuleLoader, SimpleModuleLoader},
+    module::{Module, ModuleLoader, SimpleModuleLoader},
     optimizer::OptimizerOptions,
     property::Attribute,
     vm::flowgraph::{Direction, Graph},
@@ -306,7 +306,7 @@ fn evaluate_files(
             }
         } else if args.module {
             let result = (|| {
-                let module = context.parse_module(Source::from_bytes(&buffer), None)?;
+                let module = Module::parse(Source::from_bytes(&buffer), None, context)?;
 
                 loader.insert(
                     file.canonicalize()

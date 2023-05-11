@@ -152,6 +152,7 @@ pub mod vm;
 pub mod prelude {
     pub use crate::{
         error::{JsError, JsNativeError, JsNativeErrorKind},
+        module::Module,
         native_function::NativeFunction,
         object::JsObject,
         Context, JsBigInt, JsResult, JsString, JsValue,
@@ -167,6 +168,7 @@ pub use crate::{
     bigint::JsBigInt,
     context::Context,
     error::{JsError, JsNativeError, JsNativeErrorKind},
+    module::Module,
     native_function::NativeFunction,
     object::JsObject,
     string::JsString,
