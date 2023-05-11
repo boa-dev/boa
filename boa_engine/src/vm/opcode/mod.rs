@@ -1607,14 +1607,14 @@ generate_impl! {
 
         /// Lookup if a tagged template object is cached and skip the creation if it is.
         ///
-        /// Operands: jump: `u32`, site: `u32`
+        /// Operands: jump: `u32`, site: `u64`
         ///
         /// Stack: **=>** template (if cached)
         TemplateLookup,
 
         /// Create a new tagged template object and cache it.
         ///
-        /// Operands: site: `u32`, count: `u32`
+        /// Operands: count: `u32`, site: `u64`
         ///
         /// Stack: count * (cooked_value, raw_value) **=>** template
         TemplateCreate,

@@ -254,12 +254,11 @@ impl ByteCompiler<'_, '_> {
                     }
                 }
 
-                let site = template.identifier() as u32;
+                let site = template.identifier();
                 let count = template.cookeds().len() as u32;
 
-                let index = self.next_opcode_location();
-                self.emit(Opcode::TemplateLookup, &[Self::DUMMY_ADDRESS, site]);
-                let jump_label = Label { index };
+                let jump_label = self.emit_opcode_with_operand(Opcode::TemplateLookup);
+                self.emit_u64(site);
 
                 for (cooked, raw) in template.cookeds().iter().zip(template.raws()) {
                     if let Some(cooked) = cooked {
@@ -274,7 +273,8 @@ impl ByteCompiler<'_, '_> {
                     ));
                 }
 
-                self.emit(Opcode::TemplateCreate, &[site, count]);
+                self.emit(Opcode::TemplateCreate, &[count]);
+                self.emit_u64(site);
 
                 self.patch_jump(jump_label);
 

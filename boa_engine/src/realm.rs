@@ -49,7 +49,7 @@ struct Inner {
     environment: Gc<DeclarativeEnvironment>,
     global_object: JsObject,
     global_this: JsObject,
-    template_map: GcRefCell<FxHashMap<u32, JsObject>>,
+    template_map: GcRefCell<FxHashMap<u64, JsObject>>,
 }
 
 impl Realm {
@@ -106,11 +106,11 @@ impl Realm {
         }
     }
 
-    pub(crate) fn push_template(&self, site: u32, template: JsObject) {
+    pub(crate) fn push_template(&self, site: u64, template: JsObject) {
         self.inner.template_map.borrow_mut().insert(site, template);
     }
 
-    pub(crate) fn lookup_template(&self, site: u32) -> Option<JsObject> {
+    pub(crate) fn lookup_template(&self, site: u64) -> Option<JsObject> {
         self.inner.template_map.borrow().get(&site).cloned()
     }
 }

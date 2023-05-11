@@ -9,8 +9,7 @@ use crate::{
 use boa_ast::{Position, Punctuator};
 use boa_interner::Interner;
 use buffered_lexer::BufferedLexer;
-use rustc_hash::FxHasher;
-use std::{hash::Hasher, io::Read};
+use std::io::Read;
 
 /// The result of a peek for a semicolon.
 #[derive(Debug)]
@@ -188,11 +187,12 @@ where
     /// Get the identifier for a tagged template.
     #[inline]
     pub(super) fn tagged_template_identifier(&mut self) -> u64 {
-        let mut hasher = FxHasher::default();
-        hasher.write_u32(self.identifier);
-        hasher.write_u32(self.tagged_templates_count);
         self.tagged_templates_count += 1;
-        hasher.finish()
+
+        let identifier = u64::from(self.identifier);
+        let count = u64::from(self.tagged_templates_count);
+
+        (count << 32) | identifier
     }
 
     /// Returns an error if the next token is not of kind `kind`.

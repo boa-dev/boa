@@ -20,7 +20,7 @@ impl Operation for TemplateLookup {
 
     fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
         let jump = context.vm.read::<u32>();
-        let site = context.vm.read::<u32>();
+        let site = context.vm.read::<u64>();
 
         if let Some(template) = context.realm().lookup_template(site) {
             context.vm.push(template);
@@ -43,8 +43,8 @@ impl Operation for TemplateCreate {
     const INSTRUCTION: &'static str = "INST - TemplateCreate";
 
     fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
-        let site = context.vm.read::<u32>();
         let count = context.vm.read::<u32>();
+        let site = context.vm.read::<u64>();
 
         let template =
             Array::array_create(count.into(), None, context).expect("cannot fail per spec");

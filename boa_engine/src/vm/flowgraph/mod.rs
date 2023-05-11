@@ -138,11 +138,21 @@ impl CodeBlock {
                     graph.add_node(previous_pc, NodeShape::None, label.into(), Color::Red);
                     graph.add_edge(previous_pc, pc, None, Color::None, EdgeStyle::Line);
                 }
-                Opcode::LoopStart | Opcode::TemplateLookup | Opcode::TemplateCreate => {
+                Opcode::LoopStart => {
                     let start_address = self.read::<u32>(pc);
                     pc += size_of::<u32>();
                     let end_address = self.read::<u32>(pc);
                     pc += size_of::<u32>();
+
+                    let label = format!("{opcode_str} {start_address}, {end_address}");
+                    graph.add_node(previous_pc, NodeShape::None, label.into(), Color::Red);
+                    graph.add_edge(previous_pc, pc, None, Color::None, EdgeStyle::Line);
+                }
+                Opcode::TemplateLookup | Opcode::TemplateCreate => {
+                    let start_address = self.read::<u32>(pc);
+                    pc += size_of::<u32>();
+                    let end_address = self.read::<u64>(pc);
+                    pc += size_of::<u64>();
 
                     let label = format!("{opcode_str} {start_address}, {end_address}");
                     graph.add_node(previous_pc, NodeShape::None, label.into(), Color::Red);
