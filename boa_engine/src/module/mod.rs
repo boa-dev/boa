@@ -1,19 +1,26 @@
 //! Boa's implementation of the ECMAScript's module system.
 //!
+//! This module contains the [`Module`] type, which represents an [**Abstract Module Record**][module].
+//! Every module roughly follows the same lifecycle:
+//! - Parse using [`Module::parse`].
+//! - Load all its dependencies using [`Module::load`].
+//! - Link its dependencies together using [`Module::link`].
+//! - Evaluate the module and its dependencies using [`Module::evaluate`].
+//!
+//! Additionally, the [`ModuleLoader`] trait allows customizing the "load" step on the lifecycle
+//! of a module, which allows doing things like fetching modules from urls, having multiple
+//! "modpaths" from where to import modules, or using Rust futures to avoid blocking the main thread
+//! on loads. There's a default [`SimpleModuleLoader`] implementation that just loads modules
+//! relative to a root path, which should hopefully cover most simple usecases.
+//!
 //! More information:
 //!  - [ECMAScript reference][spec]
 //!
 //! [spec]: https://tc39.es/ecma262/#sec-modules
+//! [module]: https://tc39.es/ecma262/#sec-abstract-module-records
 
 mod source;
-use boa_parser::{Parser, Source};
-use boa_profiler::Profiler;
-pub use source::SourceTextModule;
-
-use boa_ast::expression::Identifier;
-use boa_interner::Sym;
-use indexmap::IndexMap;
-use rustc_hash::{FxHashMap, FxHashSet, FxHasher};
+use source::SourceTextModule;
 
 use std::cell::{Cell, RefCell};
 use std::hash::Hash;
@@ -22,7 +29,14 @@ use std::path::{Path, PathBuf};
 use std::rc::Rc;
 use std::{collections::HashSet, hash::BuildHasherDefault};
 
+use indexmap::IndexMap;
+use rustc_hash::{FxHashMap, FxHashSet, FxHasher};
+
+use boa_ast::expression::Identifier;
 use boa_gc::{Finalize, Gc, GcRefCell, Trace};
+use boa_interner::Sym;
+use boa_parser::{Parser, Source};
+use boa_profiler::Profiler;
 
 use crate::object::FunctionObjectBuilder;
 use crate::property::{PropertyDescriptor, PropertyKey};
@@ -38,19 +52,22 @@ use crate::{js_string, JsNativeError, JsSymbol, NativeFunction};
 /// The referrer from which a load request of a module originates.
 #[derive(Debug)]
 pub enum Referrer {
-    ///
+    /// A [**Source Text Module Record**](https://tc39.es/ecma262/#sec-source-text-module-records).
     Module(Module),
-    ///
+    /// A [**Realm**](https://tc39.es/ecma262/#sec-code-realms).
     Realm(Realm), // TODO: script
 }
 
+/// Module loading related host hooks.
 ///
+/// This trait allows to customize the behaviour of the engine on module load requests and
+/// `import.meta` requests.
 pub trait ModuleLoader {
     /// Host hook [`HostLoadImportedModule ( referrer, specifier, hostDefined, payload )`][spec].
     ///
     /// This hook allows to customize the module loading functionality of the engine. Technically,
     /// this should call the [`FinishLoadingImportedModule`][finish] operation, but this simpler API just provides
-    /// a closure that replaces [`FinishLoadingImportedModule`].
+    /// a closure that replaces `FinishLoadingImportedModule`.
     ///
     /// # Requirements
     ///
@@ -106,11 +123,14 @@ pub struct SimpleModuleLoader {
 }
 
 impl SimpleModuleLoader {
-    /// Creates a new `SimpleModuleLoader`.
-    pub fn new(root: &Path) -> JsResult<Self> {
-        let absolute = root
-            .canonicalize()
-            .map_err(|e| JsNativeError::typ().with_message(e.to_string()))?;
+    /// Creates a new `SimpleModuleLoader` from a root module path.
+    pub fn new<P: AsRef<Path>>(root: P) -> JsResult<Self> {
+        let root = root.as_ref();
+        let absolute = root.canonicalize().map_err(|e| {
+            JsNativeError::typ()
+                .with_message(format!("could not set module root `{}`", root.display()))
+                .with_cause(JsError::from_opaque(js_string!(e.to_string()).into()))
+        })?;
         Ok(Self {
             root: absolute,
             module_map: GcRefCell::default(),
@@ -140,17 +160,29 @@ impl ModuleLoader for SimpleModuleLoader {
             let path = specifier
                 .to_std_string()
                 .map_err(|err| JsNativeError::typ().with_message(err.to_string()))?;
-            let path = Path::new(&path);
-            let path = self.root.join(path);
-            let path = path
-                .canonicalize()
-                .map_err(|e| JsNativeError::typ().with_message(e.to_string()))?;
+            let short_path = Path::new(&path);
+            let path = self.root.join(short_path);
+            let path = path.canonicalize().map_err(|err| {
+                JsNativeError::typ()
+                    .with_message(format!(
+                        "could not canonicalize path `{}`",
+                        short_path.display()
+                    ))
+                    .with_cause(JsError::from_opaque(js_string!(err.to_string()).into()))
+            })?;
             if let Some(module) = self.get(&path) {
                 return Ok(module);
             }
-            let source = Source::from_filepath(&path)
-                .map_err(|err| JsNativeError::typ().with_message(err.to_string()))?;
-            let module = Module::parse(source, None, context)?;
+            let source = Source::from_filepath(&path).map_err(|err| {
+                JsNativeError::typ()
+                    .with_message(format!("could not open file `{}`", short_path.display()))
+                    .with_cause(JsError::from_opaque(js_string!(err.to_string()).into()))
+            })?;
+            let module = Module::parse(source, None, context).map_err(|err| {
+                JsNativeError::error()
+                    .with_message(format!("could not parse module `{}`", short_path.display()))
+                    .with_cause(err)
+            })?;
             self.insert(path, module.clone());
             Ok(module)
         })();
@@ -188,34 +220,44 @@ struct Inner {
     host_defined: (),
 }
 
-///
+/// The kind of a [`Module`].
 #[derive(Debug, Trace, Finalize)]
-#[non_exhaustive]
-pub enum ModuleKind {
-    ///
+pub(crate) enum ModuleKind {
+    /// A [**Source Text Module Record**](https://tc39.es/ecma262/#sec-source-text-module-records)
     SourceText(SourceTextModule),
-    ///
+    /// A [**Synthetic Module Record**](https://tc39.es/proposal-json-modules/#sec-synthetic-module-records)
     #[allow(unused)]
     Synthetic,
 }
 
+/// Return value of the [`Module::resolve_export`] operation.
+///
+/// Indicates how to access a specific export in a module.
 #[derive(Debug, Clone)]
-pub(crate) struct ExportLocator {
+pub(crate) struct ResolvedBinding {
     module: Module,
     binding_name: BindingName,
 }
 
+/// The local name of the resolved binding within its containing module.
+///
+/// Note that a resolved binding can resolve to a single binding inside a module (`export var a = 1"`)
+/// or to a whole module namespace (`export * as ns from "mod.js"`).
 #[derive(Debug, Clone, Copy)]
 pub(crate) enum BindingName {
+    /// A local binding.
     Name(Identifier),
+    /// The whole namespace of the containing module.
     Namespace,
 }
 
-impl ExportLocator {
+impl ResolvedBinding {
+    /// Gets the module from which the export resolved.
     pub(crate) const fn module(&self) -> &Module {
         &self.module
     }
 
+    /// Gets the binding associated with the resolved export.
     pub(crate) const fn binding_name(&self) -> BindingName {
         self.binding_name
     }
@@ -268,7 +310,7 @@ impl Module {
     }
 
     /// Gets the kind of this `Module`.
-    pub fn kind(&self) -> &ModuleKind {
+    pub(crate) fn kind(&self) -> &ModuleKind {
         &self.inner.kind
     }
 
@@ -277,7 +319,7 @@ impl Module {
         self.inner.environment.borrow().clone()
     }
 
-    /// Abstract operation [`LoadRequestedModules ( [ hostDefined ] )`][spec].
+    /// Abstract method [`LoadRequestedModules ( [ hostDefined ] )`][spec].
     ///
     /// Prepares the module for linking by loading all its module dependencies. Returns a `JsPromise`
     /// that will resolve when the loading process either completes or fails.
@@ -291,29 +333,48 @@ impl Module {
         }
     }
 
+    /// Abstract operation [`InnerModuleLoading`][spec].
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-InnerModuleLoading
     fn inner_load(&self, state: &Rc<GraphLoadingState>, context: &mut Context<'_>) {
+        // 1. Assert: state.[[IsLoading]] is true.
         assert!(state.loading.get());
 
         if let ModuleKind::SourceText(_) = self.kind() {
+            // continues on `inner_load
             SourceTextModule::inner_load(self, state, context);
             if !state.loading.get() {
                 return;
             }
         }
 
+        // 3. Assert: state.[[PendingModulesCount]] ≥ 1.
         assert!(state.pending_modules.get() >= 1);
 
+        // 4. Set state.[[PendingModulesCount]] to state.[[PendingModulesCount]] - 1.
         state.pending_modules.set(state.pending_modules.get() - 1);
+        // 5. If state.[[PendingModulesCount]] = 0, then
+
         if state.pending_modules.get() == 0 {
+            //     a. Set state.[[IsLoading]] to false.
             state.loading.set(false);
+            //     b. For each Cyclic Module Record loaded of state.[[Visited]], do
+            //         i. If loaded.[[Status]] is new, set loaded.[[Status]] to unlinked.
+            // By default, all modules start on `unlinked`.
+
+            //     c. Perform ! Call(state.[[PromiseCapability]].[[Resolve]], undefined, « undefined »).
             state
                 .capability
                 .resolve()
                 .call(&JsValue::undefined(), &[], context)
                 .expect("marking a module as loaded should not fail");
         }
+        // 6. Return unused.
     }
 
+    /// Abstract operation [`ContinueModuleLoading ( state, moduleCompletion )`][spec].
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-ContinueModuleLoading
     fn resume_load(
         state: &Rc<GraphLoadingState>,
         completion: JsResult<Module>,
@@ -338,6 +399,15 @@ impl Module {
         }
     }
 
+    /// Abstract method [`GetExportedNames([exportStarSet])`][spec].
+    ///
+    /// Returns a list of all the names exported from this module.
+    ///
+    /// # Note
+    ///
+    /// This must only be called if the [`JsPromise`] returned by [`Module::load`] has fulfilled.
+    ///
+    /// [spec]: https://tc39.es/ecma262/#table-abstract-methods-of-module-records
     fn get_exported_names(&self, export_star_set: &mut Vec<SourceTextModule>) -> FxHashSet<Sym> {
         match self.kind() {
             ModuleKind::SourceText(src) => src.get_exported_names(export_star_set),
@@ -345,12 +415,23 @@ impl Module {
         }
     }
 
+    /// Abstract method [`ResolveExport(exportName [, resolveSet])`][spec].
+    ///
+    /// Returns the corresponding local binding of a binding exported by this module.
+    /// The spec requires that this operation must be idempotent; calling this multiple times
+    /// with the same `export_name` and `resolve_set` should always return the same result.
+    ///
+    /// # Note
+    ///
+    /// This must only be called if the [`JsPromise`] returned by [`Module::load`] has fulfilled.
+    ///
+    /// [spec]: https://tc39.es/ecma262/#table-abstract-methods-of-module-records
     #[allow(clippy::mutable_key_type)]
     pub(crate) fn resolve_export(
         &self,
         export_name: Sym,
         resolve_set: &mut FxHashSet<(Module, Sym)>,
-    ) -> Result<ExportLocator, ResolveExportError> {
+    ) -> Result<ResolvedBinding, ResolveExportError> {
         match self.kind() {
             ModuleKind::SourceText(_) => {
                 SourceTextModule::resolve_export(self, export_name, resolve_set)
@@ -359,7 +440,16 @@ impl Module {
         }
     }
 
+    /// Abstract method [`Link() `][spec].
     ///
+    /// Prepares this module for evaluation by resolving all its module dependencies and initializing
+    /// its environment.
+    ///
+    /// # Note
+    ///
+    /// This must only be called if the [`JsPromise`] returned by [`Module::load`] has fulfilled.
+    ///
+    /// [spec]: https://tc39.es/ecma262/#table-abstract-methods-of-module-records
     #[allow(clippy::missing_panics_doc)]
     pub fn link(&self, context: &mut Context<'_>) -> JsResult<()> {
         match self.kind() {
@@ -368,6 +458,9 @@ impl Module {
         }
     }
 
+    /// Abstract operation [`InnerModuleLinking ( module, stack, index )`][spec].
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-InnerModuleLinking
     fn inner_link(
         &self,
         stack: &mut Vec<SourceTextModule>,
@@ -377,37 +470,28 @@ impl Module {
         match self.kind() {
             ModuleKind::SourceText(_) => SourceTextModule::inner_link(self, stack, index, context),
             #[allow(unreachable_code)]
+            // If module is not a Cyclic Module Record, then
             ModuleKind::Synthetic => {
-                todo!("synthetic.load()");
+                // a. Perform ? module.Link().
+                todo!("synthetic.link()");
+                // b. Return index.
                 Ok(index)
             }
         }
     }
 
-    pub(crate) fn get_namespace(&self, context: &mut Context<'_>) -> JsObject {
-        if let Some(obj) = self.inner.namespace.borrow().clone() {
-            return obj;
-        }
-
-        let exported_names = self.get_exported_names(&mut Vec::default());
-
-        let unambiguous_names = exported_names
-            .into_iter()
-            .filter_map(|name| {
-                self.resolve_export(name, &mut HashSet::default())
-                    .ok()
-                    .map(|_| name)
-            })
-            .collect();
-
-        let namespace = ModuleNamespace::create(self.clone(), unambiguous_names, context);
-
-        *self.inner.namespace.borrow_mut() = Some(namespace.clone());
-
-        namespace
-    }
-
+    /// Abstract method [`Evaluate()`][spec].
     ///
+    /// Evaluates this module, returning a promise for the result of the evaluation of this module
+    /// and its dependencies.
+    /// If the promise is rejected, hosts are expected to handle the promise rejection and rethrow
+    /// the evaluation error.
+    ///
+    /// # Note
+    ///
+    /// This must only be called if the [`Module::link`] method finished successfully.
+    ///
+    /// [spec]: https://tc39.es/ecma262/#table-abstract-methods-of-module-records
     #[allow(clippy::missing_panics_doc)]
     pub fn evaluate(&self, context: &mut Context<'_>) -> JsPromise {
         match self.kind() {
@@ -416,6 +500,9 @@ impl Module {
         }
     }
 
+    /// Abstract operation [`InnerModuleLinking ( module, stack, index )`][spec].
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-InnerModuleLinking
     fn inner_evaluate(
         &self,
         stack: &mut Vec<SourceTextModule>,
@@ -424,15 +511,20 @@ impl Module {
     ) -> JsResult<usize> {
         match self.kind() {
             ModuleKind::SourceText(src) => src.inner_evaluate(stack, index, None, context),
+            // 1. If module is not a Cyclic Module Record, then
             #[allow(unused, clippy::diverging_sub_expression)]
             ModuleKind::Synthetic => {
+                //     a. Let promise be ! module.Evaluate().
                 let promise: JsPromise = todo!("module.Evaluate()");
                 let state = promise.state()?;
                 match state {
                     PromiseState::Pending => {
                         unreachable!("b. Assert: promise.[[PromiseState]] is not pending.")
                     }
+                    //     d. Return index.
                     PromiseState::Fulfilled(_) => Ok(index),
+                    //     c. If promise.[[PromiseState]] is rejected, then
+                    //         i. Return ThrowCompletion(promise.[[PromiseResult]]).
                     PromiseState::Rejected(err) => Err(JsError::from_opaque(err)),
                 }
             }
@@ -443,23 +535,28 @@ impl Module {
     /// finishes its lifecycle.
     ///
     /// # Examples
-    /// ```ignore
-    /// # use boa_engine::{Context, Source};
-    /// let loader: &ModuleLoader = &ModuleLoader::new(Path::new("."));
-    /// let mut context = Context::builder().module_loader(loader).build().unwrap();
+    /// ```
+    /// # use std::path::Path;
+    /// # use boa_engine::{Context, Source, Module, JsValue};
+    /// # use boa_engine::builtins::promise::PromiseState;
+    /// # use boa_engine::module::{ModuleLoader, SimpleModuleLoader};
+    /// let loader = &SimpleModuleLoader::new(Path::new(".")).unwrap();
+    /// let dyn_loader: &dyn ModuleLoader = loader;
+    /// let mut context = &mut Context::builder().module_loader(dyn_loader).build().unwrap();
     ///
     /// let source = Source::from_bytes("1 + 3");
     ///
-    /// let module = context.parse_module(source, None).unwrap();
+    /// let module = Module::parse(source, None, context).unwrap();
     ///
-    /// loader.insert(Path::new("./main.mjs").canonicalize().unwrap(), module.clone());
+    /// loader.insert(Path::new("main.mjs").to_path_buf(), module.clone());
     ///
     /// let promise = module.load_link_evaluate(context).unwrap();
     ///
     /// context.run_jobs();
     ///
-    /// assert!(matches!(promise.state(), PromiseState::Fulfilled(JsValue::undefined())));
+    /// assert_eq!(promise.state().unwrap(), PromiseState::Fulfilled(JsValue::undefined()));
     /// ```
+    #[allow(clippy::drop_copy)]
     pub fn load_link_evaluate(&self, context: &mut Context<'_>) -> JsResult<JsPromise> {
         let main_timer = Profiler::global().start_event("Module evaluation", "Main");
 
@@ -503,6 +600,33 @@ impl Module {
 
         Ok(promise)
     }
+
+    /// Abstract operation [`GetModuleNamespace ( module )`][spec].
+    ///
+    /// Gets the [**Module Namespace Object**][ns] that represents this module's exports.
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-getmodulenamespace
+    /// [ns]: https://tc39.es/ecma262/#sec-module-namespace-exotic-objects
+    pub fn namespace(&self, context: &mut Context<'_>) -> JsObject {
+        self.inner
+            .namespace
+            .borrow_mut()
+            .get_or_insert_with(|| {
+                let exported_names = self.get_exported_names(&mut Vec::default());
+
+                let unambiguous_names = exported_names
+                    .into_iter()
+                    .filter_map(|name| {
+                        self.resolve_export(name, &mut HashSet::default())
+                            .ok()
+                            .map(|_| name)
+                    })
+                    .collect();
+
+                ModuleNamespace::create(self.clone(), unambiguous_names, context)
+            })
+            .clone()
+    }
 }
 
 impl PartialEq for Module {
@@ -519,7 +643,9 @@ impl Hash for Module {
     }
 }
 
-/// An object containing the exports of a module.
+/// Module namespace exotic object.
+///
+/// Exposes the bindings exported by a [`Module`] to be accessed from ECMAScript code.
 #[derive(Debug, Trace, Finalize)]
 pub struct ModuleNamespace {
     module: Module,

@@ -240,7 +240,7 @@ fn get(
     } else {
         // 9. If binding.[[BindingName]] is namespace, then
         //     a. Return GetModuleNamespace(targetModule).
-        Ok(target_module.get_namespace(context).into())
+        Ok(target_module.namespace(context).into())
     }
 }
 

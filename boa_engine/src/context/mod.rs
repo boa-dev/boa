@@ -230,8 +230,7 @@ impl<'host> Context<'host> {
     /// Since this function receives a `Gc<CodeBlock>`, cloning the code is very cheap, since it's
     /// just a pointer copy. Therefore, if you'd like to execute the same `CodeBlock` multiple
     /// times, there is no need to re-compile it, and you can just call `clone()` on the
-    /// `Gc<CodeBlock>` returned by the [`Context::compile_script`] or [`Context::compile_module`]
-    /// functions.
+    /// `Gc<CodeBlock>` returned by the [`Context::compile_script`] function.
     ///
     /// Note that this won't run any scheduled promise jobs; you need to call [`Context::run_jobs`]
     /// on the context or [`JobQueue::run_jobs`] on the provided queue to run them.
