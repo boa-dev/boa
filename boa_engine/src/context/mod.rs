@@ -661,7 +661,7 @@ impl Context<'_> {
         std::mem::swap(&mut self.realm, realm);
     }
 
-    /// Get and increment the parser identifier.
+    /// Increment and get the parser identifier.
     pub(crate) fn next_parser_identifier(&mut self) -> u32 {
         self.parser_identifier += 1;
         self.parser_identifier
