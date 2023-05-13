@@ -60,8 +60,7 @@ where
     type Output = Optional;
 
     fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult<Self::Output> {
-        fn parse_const_access<R: Read>(
-            cursor: &mut Cursor<R>,
+        fn parse_const_access(
             token: &Token,
             interner: &mut Interner,
         ) -> ParseResult<OptionalOperationKind> {
@@ -84,13 +83,6 @@ where
                     field: PropertyAccessField::Const(Sym::NULL),
                 },
                 TokenKind::PrivateIdentifier(name) => {
-                    if !cursor.in_class() {
-                        return Err(Error::general(
-                            "Private identifier outside of class",
-                            token.span().start(),
-                        ));
-                    }
-
                     OptionalOperationKind::PrivatePropertyAccess {
                         field: PrivateName::new(*name),
                     }
@@ -121,7 +113,7 @@ where
                     cursor.advance(interner);
                     let field = cursor.next(interner).or_abrupt()?;
 
-                    let item = parse_const_access(cursor, &field, interner)?;
+                    let item = parse_const_access(&field, interner)?;
 
                     items.push(OptionalOperation::new(item, false));
                     continue;
@@ -162,7 +154,7 @@ where
                 }
                 _ => {
                     let token = cursor.next(interner)?.expect("token disappeared");
-                    parse_const_access(cursor, &token, interner)?
+                    parse_const_access(&token, interner)?
                 }
             };
 

@@ -1619,6 +1619,20 @@ generate_impl! {
         /// Stack: count * (cooked_value, raw_value) **=>** template
         TemplateCreate,
 
+        /// Push a private environment.
+        ///
+        /// Operands: count: `u32`, count * private_name_index: `u32`
+        ///
+        /// Stack: class **=>** class
+        PushPrivateEnvironment,
+
+        /// Pop a private environment.
+        ///
+        /// Operands:
+        ///
+        /// Stack: **=>**
+        PopPrivateEnvironment,
+
         /// No-operation instruction, does nothing.
         ///
         /// Operands:

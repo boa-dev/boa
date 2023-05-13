@@ -7,8 +7,9 @@ use boa_ast::{
     declaration::{Binding, LexicalDeclaration, VariableList},
     function::FormalParameterList,
     operations::{
-        bound_names, lexically_scoped_declarations, top_level_lexically_declared_names,
-        top_level_var_declared_names, top_level_var_scoped_declarations, VarScopedDeclaration,
+        all_private_identifiers_valid, bound_names, lexically_scoped_declarations,
+        top_level_lexically_declared_names, top_level_var_declared_names,
+        top_level_var_scoped_declarations, VarScopedDeclaration,
     },
     visitor::NodeRef,
     Declaration, StatementList, StatementListItem,
@@ -428,9 +429,17 @@ impl ByteCompiler<'_, '_> {
         // 5. Let pointer be privateEnv.
         // 6. Repeat, while pointer is not null,
         //     a. For each Private Name binding of pointer.[[Names]], do
-        //         i. If privateIdentifiers does not contain binding.[[Description]], append binding.[[Description]] to privateIdentifiers.
+        //         i. If privateIdentifiers does not contain binding.[[Description]],
+        //            append binding.[[Description]] to privateIdentifiers.
         //     b. Set pointer to pointer.[[OuterPrivateEnvironment]].
+        let private_identifiers = self.context.vm.environments.private_name_descriptions();
+
         // 7. If AllPrivateIdentifiersValid of body with argument privateIdentifiers is false, throw a SyntaxError exception.
+        if !all_private_identifiers_valid(body, private_identifiers) {
+            return Err(JsNativeError::syntax()
+                .with_message("invalid private identifier")
+                .into());
+        }
 
         // 8. Let functionsToInitialize be a new empty List.
         let mut functions_to_initialize = Vec::new();

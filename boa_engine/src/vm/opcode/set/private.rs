@@ -23,6 +23,13 @@ impl Operation for SetPrivateField {
         let value = context.vm.pop();
         let object = context.vm.pop();
         let base_obj = object.to_object(context)?;
+
+        let name = context
+            .vm
+            .environments
+            .resolve_private_identifier(name.description())
+            .expect("private name must be in environment");
+
         base_obj.private_set(&name, value.clone(), context)?;
         context.vm.push(value);
         Ok(CompletionType::Normal)
@@ -48,9 +55,11 @@ impl Operation for DefinePrivateField {
         let object = object
             .as_object()
             .expect("class prototype must be an object");
-        object
-            .borrow_mut()
-            .append_private_element(name, PrivateElement::Field(value));
+
+        object.borrow_mut().append_private_element(
+            object.private_name(name.description()),
+            PrivateElement::Field(value),
+        );
 
         Ok(CompletionType::Normal)
     }
@@ -88,9 +97,11 @@ impl Operation for SetPrivateMethod {
         let object = object
             .as_object()
             .expect("class prototype must be an object");
-        object
-            .borrow_mut()
-            .append_private_element(name, PrivateElement::Method(value.clone()));
+
+        object.borrow_mut().append_private_element(
+            object.private_name(name.description()),
+            PrivateElement::Method(value.clone()),
+        );
         let mut value_mut = value.borrow_mut();
         let function = value_mut
             .as_function_mut()
@@ -123,7 +134,7 @@ impl Operation for SetPrivateSetter {
             .expect("class prototype must be an object");
 
         object.borrow_mut().append_private_element(
-            name,
+            object.private_name(name.description()),
             PrivateElement::Accessor {
                 getter: None,
                 setter: Some(value.clone()),
@@ -161,7 +172,7 @@ impl Operation for SetPrivateGetter {
             .expect("class prototype must be an object");
 
         object.borrow_mut().append_private_element(
-            name,
+            object.private_name(name.description()),
             PrivateElement::Accessor {
                 getter: Some(value.clone()),
                 setter: None,

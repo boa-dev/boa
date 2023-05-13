@@ -47,7 +47,7 @@ use crate::{
     Error,
 };
 use ast::{
-    operations::{check_labels, contains_invalid_object_literal},
+    operations::{all_private_identifiers_valid, check_labels, contains_invalid_object_literal},
     Position,
 };
 use boa_ast::{
@@ -929,7 +929,17 @@ where
             list.push(item);
         }
 
-        Ok(list.into())
+        let list = list.into();
+
+        // It is a Syntax Error if AllPrivateIdentifiersValid of ModuleItemList with argument « » is false.
+        if !all_private_identifiers_valid(&list, Vec::new()) {
+            return Err(Error::general(
+                "invalid private identifier usage",
+                Position::new(1, 1),
+            ));
+        }
+
+        Ok(list)
     }
 }
 

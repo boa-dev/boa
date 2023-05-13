@@ -201,12 +201,6 @@ where
                         }
                         TokenKind::NullLiteral => SimplePropertyAccess::new(lhs, Sym::NULL).into(),
                         TokenKind::PrivateIdentifier(name) => {
-                            if !cursor.in_class() {
-                                return Err(Error::general(
-                                    "Private identifier outside of class",
-                                    token.span().start(),
-                                ));
-                            }
                             PrivatePropertyAccess::new(lhs, PrivateName::new(*name)).into()
                         }
                         _ => {

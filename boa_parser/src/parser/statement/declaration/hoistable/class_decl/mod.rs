@@ -17,8 +17,7 @@ use crate::{
 use ast::{
     function::PrivateName,
     operations::{
-        check_labels, class_private_name_resolver, contains_invalid_object_literal,
-        lexically_declared_names, var_declared_names,
+        check_labels, contains_invalid_object_literal, lexically_declared_names, var_declared_names,
     },
 };
 use boa_ast::{
@@ -182,15 +181,11 @@ where
                 self.has_binding_identifier,
             ))
         } else {
-            cursor.push_private_environment();
-
             let body_start = cursor.peek(0, interner).or_abrupt()?.span().start();
             let (constructor, elements) =
                 ClassBody::new(self.name, self.allow_yield, self.allow_await)
                     .parse(cursor, interner)?;
             cursor.expect(Punctuator::CloseBlock, "class tail", interner)?;
-
-            cursor.pop_private_environment();
 
             if super_ref.is_none() {
                 if let Some(constructor) = &constructor {
@@ -203,24 +198,13 @@ where
                 }
             }
 
-            let mut class = Class::new(
+            Ok(Class::new(
                 self.name,
                 super_ref,
                 constructor,
                 elements.into(),
                 self.has_binding_identifier,
-            );
-
-            if !cursor.in_class()
-                && !class_private_name_resolver(&mut class, cursor.private_environment_root_index())
-            {
-                return Err(Error::lex(LexError::Syntax(
-                    "invalid private name usage".into(),
-                    body_start,
-                )));
-            }
-
-            Ok(class)
+            ))
         }
     }
 }

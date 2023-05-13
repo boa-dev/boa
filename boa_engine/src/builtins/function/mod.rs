@@ -12,15 +12,15 @@
 //! [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function
 
 use crate::{
-    builtins::BuiltInObject,
+    builtins::{BuiltInBuilder, BuiltInConstructor, BuiltInObject, IntrinsicObject},
     bytecompiler::FunctionCompiler,
     context::intrinsics::{Intrinsics, StandardConstructor, StandardConstructors},
-    environments::EnvironmentStack,
+    environments::{EnvironmentStack, PrivateEnvironment},
     error::JsNativeError,
     js_string,
     native_function::NativeFunction,
     object::{internal_methods::get_prototype_from_constructor, JsObject, Object, ObjectData},
-    object::{JsFunction, PrivateElement},
+    object::{JsFunction, PrivateElement, PrivateName},
     property::{Attribute, PropertyDescriptor, PropertyKey},
     realm::Realm,
     string::utf16,
@@ -30,21 +30,22 @@ use crate::{
     Context, JsArgs, JsResult, JsString, JsValue,
 };
 use boa_ast::{
-    function::{FormalParameterList, PrivateName},
-    operations::{bound_names, contains, lexically_declared_names, ContainsSymbol},
+    function::FormalParameterList,
+    operations::{
+        all_private_identifiers_valid, bound_names, contains, lexically_declared_names,
+        ContainsSymbol,
+    },
     StatementList,
 };
 use boa_gc::{self, custom_trace, Finalize, Gc, Trace};
 use boa_interner::Sym;
 use boa_parser::{Parser, Source};
 use boa_profiler::Profiler;
+use std::{fmt, io::Read};
 use thin_vec::ThinVec;
 
-use std::{fmt, io::Read};
-
-use super::{BuiltInBuilder, BuiltInConstructor, IntrinsicObject};
-
 pub(crate) mod arguments;
+
 #[cfg(test)]
 mod tests;
 
@@ -308,6 +309,13 @@ impl Function {
         Self { kind, realm }
     }
 
+    /// Push a private environment to the function.
+    pub(crate) fn push_private_environment(&mut self, environment: Gc<PrivateEnvironment>) {
+        if let FunctionKind::Ordinary { environments, .. } = &mut self.kind {
+            environments.push_private(environment);
+        }
+    }
+
     /// Returns true if the function object is a derived constructor.
     pub(crate) const fn is_derived_constructor(&self) -> bool {
         if let FunctionKind::Ordinary {
@@ -368,9 +376,9 @@ impl Function {
     }
 
     /// Pushes a private value to the `[[Fields]]` internal slot if present.
-    pub(crate) fn push_field_private(&mut self, key: PrivateName, value: JsFunction) {
+    pub(crate) fn push_field_private(&mut self, name: PrivateName, value: JsFunction) {
         if let FunctionKind::Ordinary { fields, .. } = &mut self.kind {
-            fields.push(ClassFieldDefinition::Private(key, value));
+            fields.push(ClassFieldDefinition::Private(name, value));
         }
     }
 
@@ -703,6 +711,18 @@ impl BuiltInFunctionObject {
                             .into());
                     }
                 }
+            }
+
+            if !all_private_identifiers_valid(&parameters, Vec::new()) {
+                return Err(JsNativeError::syntax()
+                    .with_message("invalid private identifier usage")
+                    .into());
+            }
+
+            if !all_private_identifiers_valid(&body, Vec::new()) {
+                return Err(JsNativeError::syntax()
+                    .with_message("invalid private identifier usage")
+                    .into());
             }
 
             let code = FunctionCompiler::new()

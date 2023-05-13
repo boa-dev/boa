@@ -25,12 +25,6 @@ pub(super) enum SemicolonResult<'s> {
 pub(super) struct Cursor<R> {
     buffered_lexer: BufferedLexer<R>,
 
-    /// Tracks the number of nested private environments that the cursor is in.
-    private_environment_nested_index: usize,
-
-    /// Tracks the number of private environments on the root level of the code that is parsed.
-    private_environment_root_index: usize,
-
     /// Tracks if the cursor is in a arrow function declaration.
     arrow: bool,
 
@@ -53,8 +47,6 @@ where
     pub(super) fn new(reader: R) -> Self {
         Self {
             buffered_lexer: Lexer::new(reader).into(),
-            private_environment_nested_index: 0,
-            private_environment_root_index: 0,
             arrow: false,
             json_parse: false,
             identifier: 0,
@@ -148,34 +140,6 @@ where
     /// Set if the cursor is currently used in `JSON.parse`.
     pub(super) fn set_json_parse(&mut self, json_parse: bool) {
         self.json_parse = json_parse;
-    }
-
-    /// Push a new private environment.
-    #[inline]
-    pub(super) fn push_private_environment(&mut self) {
-        if !self.in_class() {
-            self.private_environment_root_index += 1;
-        }
-
-        self.private_environment_nested_index += 1;
-    }
-
-    /// Pop a private environment.
-    #[inline]
-    pub(super) fn pop_private_environment(&mut self) {
-        self.private_environment_nested_index -= 1;
-    }
-
-    /// Returns the current private environment root index.
-    #[inline]
-    pub(super) const fn private_environment_root_index(&self) -> usize {
-        self.private_environment_root_index
-    }
-
-    /// Returns if the cursor is in a class.
-    #[inline]
-    pub(super) const fn in_class(&self) -> bool {
-        self.private_environment_nested_index != 0
     }
 
     /// Set the identifier of the cursor.

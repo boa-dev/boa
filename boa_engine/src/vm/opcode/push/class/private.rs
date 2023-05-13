@@ -36,11 +36,15 @@ impl Operation for PushClassPrivateMethod {
 
         let class = context.vm.pop();
         let class_object = class.as_object().expect("class must be function object");
+
         class_object
             .borrow_mut()
             .as_function_mut()
             .expect("class must be function object")
-            .push_private_method(name, PrivateElement::Method(method_object.clone()));
+            .push_private_method(
+                class_object.private_name(name.description()),
+                PrivateElement::Method(method_object.clone()),
+            );
 
         let mut method_object_mut = method_object.borrow_mut();
         let function = method_object_mut
@@ -69,12 +73,13 @@ impl Operation for PushClassPrivateGetter {
         let getter_object = getter.as_callable().expect("getter must be callable");
         let class = context.vm.pop();
         let class_object = class.as_object().expect("class must be function object");
+
         class_object
             .borrow_mut()
             .as_function_mut()
             .expect("class must be function object")
             .push_private_method(
-                name,
+                class_object.private_name(name.description()),
                 PrivateElement::Accessor {
                     getter: Some(getter_object.clone()),
                     setter: None,
@@ -107,12 +112,13 @@ impl Operation for PushClassPrivateSetter {
         let setter_object = setter.as_callable().expect("getter must be callable");
         let class = context.vm.pop();
         let class_object = class.as_object().expect("class must be function object");
+
         class_object
             .borrow_mut()
             .as_function_mut()
             .expect("class must be function object")
             .push_private_method(
-                name,
+                class_object.private_name(name.description()),
                 PrivateElement::Accessor {
                     getter: None,
                     setter: Some(setter_object.clone()),
