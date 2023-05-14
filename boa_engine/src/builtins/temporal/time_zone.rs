@@ -22,6 +22,7 @@ use crate::{
 };
 use boa_profiler::Profiler;
 
+/// The `Temporal.TimeZone` object.
 #[derive(Debug, Clone)]
 pub struct TimeZone {
     pub(crate) initialized_temporal_time_zone: bool,

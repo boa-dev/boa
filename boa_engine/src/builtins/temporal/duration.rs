@@ -10,10 +10,13 @@ use crate::{
     property::Attribute,
     realm::Realm,
     string::utf16,
-    Context, JsArgs, JsNativeError, JsObject, JsResult, JsSymbol, JsValue,
+    Context, JsArgs, JsNativeError, JsObject, JsResult, JsString, JsSymbol, JsValue,
 };
 use boa_profiler::Profiler;
 
+use super::{DAY, MICROSECOND, MILLISECOND, MONTH, NANOSECOND, WEEK, YEAR};
+
+/// The `Temporal.Duration` object.
 #[derive(Debug, Clone, Copy)]
 pub struct Duration {
     pub(crate) years: f64,
@@ -185,7 +188,7 @@ impl BuiltInConstructor for Duration {
         let years = if let Some(y) = years {
             to_integer_if_integral(y, context)?
         } else {
-            0_i32
+            0_f64
         };
 
         // 3. If months is undefined, let mo be 0; else let mo be ? ToIntegerIfIntegral(months).
@@ -193,7 +196,7 @@ impl BuiltInConstructor for Duration {
         let months = if let Some(mo) = months {
             to_integer_if_integral(mo, context)?
         } else {
-            0_i32
+            0_f64
         };
 
         // 4. If weeks is undefined, let w be 0; else let w be ? ToIntegerIfIntegral(weeks).
@@ -201,7 +204,7 @@ impl BuiltInConstructor for Duration {
         let weeks = if let Some(w) = weeks {
             to_integer_if_integral(w, context)?
         } else {
-            0_i32
+            0_f64
         };
 
         // 5. If days is undefined, let d be 0; else let d be ? ToIntegerIfIntegral(days).
@@ -209,7 +212,7 @@ impl BuiltInConstructor for Duration {
         let days = if let Some(d) = days {
             to_integer_if_integral(d, context)?
         } else {
-            0_i32
+            0_f64
         };
 
         // 6. If hours is undefined, let h be 0; else let h be ? ToIntegerIfIntegral(hours).
@@ -217,7 +220,7 @@ impl BuiltInConstructor for Duration {
         let hours = if let Some(h) = hours {
             to_integer_if_integral(h, context)?
         } else {
-            0_i32
+            0_f64
         };
 
         // 7. If minutes is undefined, let m be 0; else let m be ? ToIntegerIfIntegral(minutes).
@@ -225,7 +228,7 @@ impl BuiltInConstructor for Duration {
         let minutes = if let Some(m) = minutes {
             to_integer_if_integral(m, context)?
         } else {
-            0_i32
+            0_f64
         };
 
         // 8. If seconds is undefined, let s be 0; else let s be ? ToIntegerIfIntegral(seconds).
@@ -233,7 +236,7 @@ impl BuiltInConstructor for Duration {
         let seconds = if let Some(s) = seconds {
             to_integer_if_integral(s, context)?
         } else {
-            0_i32
+            0_f64
         };
 
         // 9. If milliseconds is undefined, let ms be 0; else let ms be ? ToIntegerIfIntegral(milliseconds).
@@ -241,7 +244,7 @@ impl BuiltInConstructor for Duration {
         let milliseconds = if let Some(ms) = milliseconds {
             to_integer_if_integral(ms, context)?
         } else {
-            0_i32
+            0_f64
         };
 
         // 10. If microseconds is undefined, let mis be 0; else let mis be ? ToIntegerIfIntegral(microseconds).
@@ -249,7 +252,7 @@ impl BuiltInConstructor for Duration {
         let microseconds = if let Some(mis) = microseconds {
             to_integer_if_integral(mis, context)?
         } else {
-            0_i32
+            0_f64
         };
 
         // 11. If nanoseconds is undefined, let ns be 0; else let ns be ? ToIntegerIfIntegral(nanoseconds).
@@ -257,11 +260,11 @@ impl BuiltInConstructor for Duration {
         let nanoseconds = if let Some(ns) = nanoseconds {
             to_integer_if_integral(ns, context)?
         } else {
-            0_i32
+            0_f64
         };
 
         // 12. Return ? CreateTemporalDuration(y, mo, w, d, h, m, s, ms, mis, ns, NewTarget).
-        create_temporal_duration(
+        Ok(create_temporal_duration(
             years,
             months,
             weeks,
@@ -274,7 +277,7 @@ impl BuiltInConstructor for Duration {
             nanoseconds,
             new_target,
             context,
-        )
+        )?.into())
     }
 }
 
@@ -384,16 +387,16 @@ impl Duration {
         // duration.[[Days]], duration.[[Hours]], duration.[[Minutes]], duration.[[Seconds]],
         // duration.[[Milliseconds]], duration.[[Microseconds]], duration.[[Nanoseconds]])).
         Ok(duration_sign(&[
-            duration.years as i32,
-            duration.months as i32,
-            duration.weeks as i32,
-            duration.days as i32,
-            duration.hours as i32,
-            duration.minutes as i32,
-            duration.seconds as i32,
-            duration.milliseconds as i32,
-            duration.microseconds as i32,
-            duration.nanoseconds as i32,
+            duration.years,
+            duration.months,
+            duration.weeks,
+            duration.days,
+            duration.hours,
+            duration.minutes,
+            duration.seconds,
+            duration.milliseconds,
+            duration.microseconds,
+            duration.nanoseconds,
         ])
         .into())
     }
@@ -414,16 +417,16 @@ impl Duration {
         // duration.[[Days]], duration.[[Hours]], duration.[[Minutes]], duration.[[Seconds]],
         // duration.[[Milliseconds]], duration.[[Microseconds]], duration.[[Nanoseconds]]).
         let sign = duration_sign(&[
-            duration.years as i32,
-            duration.months as i32,
-            duration.weeks as i32,
-            duration.days as i32,
-            duration.hours as i32,
-            duration.minutes as i32,
-            duration.seconds as i32,
-            duration.milliseconds as i32,
-            duration.microseconds as i32,
-            duration.nanoseconds as i32,
+            duration.years,
+            duration.months,
+            duration.weeks,
+            duration.days,
+            duration.hours,
+            duration.minutes,
+            duration.seconds,
+            duration.milliseconds,
+            duration.microseconds,
+            duration.nanoseconds,
         ]);
 
         // 4. If sign = 0, return true.
@@ -583,17 +586,17 @@ pub(crate) fn to_temporal_duration(item: &JsValue, context: &mut Context<'_>) ->
     // 2. Let result be ? ToTemporalDurationRecord(item).
     let result = to_temporal_duration_record(item)?;
     // 3. Return ! CreateTemporalDuration(result.[[Years]], result.[[Months]], result.[[Weeks]], result.[[Days]], result.[[Hours]], result.[[Minutes]], result.[[Seconds]], result.[[Milliseconds]], result.[[Microseconds]], result.[[Nanoseconds]]).
-    create_temporal_duration(
-        result.years as i32,
-        result.months as i32,
-        result.weeks as i32,
-        result.days as i32,
-        result.hours as i32,
-        result.minutes as i32,
-        result.seconds as i32,
-        result.milliseconds as i32,
-        result.microseconds as i32,
-        result.nanoseconds as i32,
+    Ok(create_temporal_duration(
+        result.years,
+        result.months,
+        result.weeks,
+        result.days,
+        result.hours,
+        result.minutes,
+        result.seconds,
+        result.milliseconds,
+        result.microseconds,
+        result.nanoseconds,
         &context
             .realm()
             .intrinsics()
@@ -602,7 +605,7 @@ pub(crate) fn to_temporal_duration(item: &JsValue, context: &mut Context<'_>) ->
             .constructor()
             .into(),
         context,
-    )
+    )?.into())
 }
 
 /// 7.5.9 ToTemporalDurationRecord ( temporalDurationLike )
@@ -611,11 +614,11 @@ pub(crate) fn to_temporal_duration_record(_temporal_duration_like: &JsValue) -> 
 }
 
 /// 7.5.10 DurationSign ( years, months, weeks, days, hours, minutes, seconds, milliseconds, microseconds, nanoseconds )
-pub(crate) fn duration_sign(values: &[i32]) -> i32 {
+pub(crate) fn duration_sign(values: &[f64]) -> i32 {
     for v in values {
-        if *v < 0 {
+        if *v < 0_f64 {
             return -1;
-        } else if *v > 0 {
+        } else if *v > 0_f64 {
             return 1;
         }
     }
@@ -623,7 +626,7 @@ pub(crate) fn duration_sign(values: &[i32]) -> i32 {
 }
 
 /// 7.5.11 IsValidDuration ( years, months, weeks, days, hours, minutes, seconds, milliseconds, microseconds, nanoseconds )
-pub(crate) fn is_valid_duration(values: &[i32]) -> bool {
+pub(crate) fn is_valid_duration(values: &[f64]) -> bool {
     // 1. Let sign be ! DurationSign(years, months, weeks, days, hours, minutes, seconds, milliseconds, microseconds, nanoseconds).
     let sign = duration_sign(values);
     // 2. For each value v of « years, months, weeks, days, hours, minutes, seconds, milliseconds, microseconds, nanoseconds », do
@@ -633,11 +636,11 @@ pub(crate) fn is_valid_duration(values: &[i32]) -> bool {
             return false;
         }
         // b. If v < 0 and sign > 0, return false.
-        if *v < 0 && sign > 0 {
+        if *v < 0_f64 && sign > 0 {
             return false;
         }
         // c. If v > 0 and sign < 0, return false.
-        if *v > 0 && sign < 0 {
+        if *v > 0_f64 && sign < 0 {
             return false;
         }
     }
@@ -647,19 +650,19 @@ pub(crate) fn is_valid_duration(values: &[i32]) -> bool {
 
 /// 7.5.14 CreateTemporalDuration ( years, months, weeks, days, hours, minutes, seconds, milliseconds, microseconds, nanoseconds [ , newTarget ] )
 pub(crate) fn create_temporal_duration(
-    years: i32,
-    months: i32,
-    weeks: i32,
-    days: i32,
-    hours: i32,
-    minutes: i32,
-    seconds: i32,
-    milliseconds: i32,
-    microseconds: i32,
-    nanoseconds: i32,
+    years: f64,
+    months: f64,
+    weeks: f64,
+    days: f64,
+    hours: f64,
+    minutes: f64,
+    seconds: f64,
+    milliseconds: f64,
+    microseconds: f64,
+    nanoseconds: f64,
     new_target: &JsValue,
     context: &mut Context<'_>,
-) -> JsResult<JsValue> {
+) -> JsResult<JsObject> {
     // 1. If ! IsValidDuration(years, months, weeks, days, hours, minutes, seconds, milliseconds, microseconds, nanoseconds) is false, throw a RangeError exception.
     if !is_valid_duration(&[
         years,
@@ -680,7 +683,7 @@ pub(crate) fn create_temporal_duration(
     // 2. If newTarget is not present, set newTarget to %Temporal.Duration%.
     if new_target.is_undefined() {
         return Err(JsNativeError::typ()
-            .with_message("newTarget must be present whne constructing a Temporal.Duration.")
+            .with_message("newTarget must be present when constructing a Temporal.Duration.")
             .into());
     }
     // 3. Let object be ? OrdinaryCreateFromConstructor(newTarget, "%Temporal.Duration.prototype%", « [[InitializedTemporalDuration]], [[Years]], [[Months]], [[Weeks]], [[Days]], [[Hours]], [[Minutes]], [[Seconds]], [[Milliseconds]], [[Microseconds]], [[Nanoseconds]] »).
@@ -691,28 +694,266 @@ pub(crate) fn create_temporal_duration(
         .as_duration_mut()
         .expect("prototype must be a Temporal.Duration.");
     // 4. Set object.[[Years]] to ℝ(𝔽(years)).
-    duration.years = years as f64;
+    duration.years = years;
     // 5. Set object.[[Months]] to ℝ(𝔽(months)).
-    duration.months = months as f64;
+    duration.months = months;
     // 6. Set object.[[Weeks]] to ℝ(𝔽(weeks)).
-    duration.weeks = weeks as f64;
+    duration.weeks = weeks;
     // 7. Set object.[[Days]] to ℝ(𝔽(days)).
-    duration.days = days as f64;
+    duration.days = days;
     // 8. Set object.[[Hours]] to ℝ(𝔽(hours)).
-    duration.hours = hours as f64;
+    duration.hours = hours;
     // 9. Set object.[[Minutes]] to ℝ(𝔽(minutes)).
-    duration.minutes = minutes as f64;
+    duration.minutes = minutes;
     // 10. Set object.[[Seconds]] to ℝ(𝔽(seconds)).
-    duration.seconds = seconds as f64;
+    duration.seconds = seconds;
     // 11. Set object.[[Milliseconds]] to ℝ(𝔽(milliseconds)).
-    duration.milliseconds = milliseconds as f64;
+    duration.milliseconds = milliseconds;
     // 12. Set object.[[Microseconds]] to ℝ(𝔽(microseconds)).
-    duration.microseconds = microseconds as f64;
+    duration.microseconds = microseconds;
     // 13. Set object.[[Nanoseconds]] to ℝ(𝔽(nanoseconds)).
-    duration.nanoseconds = nanoseconds as f64;
+    duration.nanoseconds = nanoseconds;
 
     drop(object);
 
     // 14. Return object.
-    return Ok(prototype.into());
+    return Ok(prototype);
+}
+
+/// Abstract Operation 7.5.26 RoundDuration ( years, months, weeks, days, hours, minutes,
+///   seconds, milliseconds, microseconds, nanoseconds, increment, unit,
+///   roundingMode [ , relativeTo ] )
+///
+pub(crate) fn round_duration(
+    years: f64,
+    months: f64,
+    weeks: f64,
+    days: f64,
+    hours: f64,
+    minutes: f64,
+    seconds: f64,
+    milliseconds: f64,
+    microseconds: f64,
+    nanoseconds: f64,
+    increment: f64,
+    unit: &JsString,
+    rounding_mode: &JsString,
+    relative_to: Option<&JsValue>,
+    context: &mut Context<'_>,
+) -> JsResult<(Duration, f64)> {
+    // 1. If relativeTo is not present, set relativeTo to undefined.
+    let relative_to = if let Some(val) = relative_to {
+        val.clone()
+    } else {
+        JsValue::undefined()
+    };
+
+    // 2. If unit is "year", "month", or "week", and relativeTo is undefined, then
+    if relative_to.is_undefined()
+        && (unit.as_slice() == YEAR || unit.as_slice() == MONTH || unit.as_slice() == WEEK)
+    {
+        // a. Throw a RangeError exception.
+        return Err(JsNativeError::range()
+            .with_message("relativeTo was out of range while rounding duration.")
+            .into());
+    }
+
+    // 3. Let zonedRelativeTo be undefined.
+    let zoned_relative_to = JsValue::undefined();
+
+    // 4. If relativeTo is not undefined, then
+    if !relative_to.is_undefined() {
+        // TODO implement ZonedDateTime and TemporalDate Handling
+        todo!()
+
+        // a. If relativeTo has an [[InitializedTemporalZonedDateTime]] internal slot, then
+        // i. Set zonedRelativeTo to relativeTo.
+        // ii. Set relativeTo to ? ToTemporalDate(relativeTo).
+        // b. Else,
+        // i. Assert: relativeTo has an [[InitializedTemporalDate]] internal slot.
+        // c. Let calendar be relativeTo.[[Calendar]].
+    }
+    // 5. Else,
+    // a. NOTE: calendar will not be used below.
+
+    // 6. If unit is one of "year", "month", "week", or "day", then
+    if unit.as_slice() == YEAR
+        || unit.as_slice() == MONTH
+        || unit.as_slice() == WEEK
+        || unit.as_slice() == DAY
+    {
+        // a. Let nanoseconds be ! TotalDurationNanoseconds(0, hours, minutes, seconds, milliseconds, microseconds, nanoseconds, 0).
+        // b. Let intermediate be undefined.
+        // c. If zonedRelativeTo is not undefined, then
+        // i. Let intermediate be ? MoveRelativeZonedDateTime(zonedRelativeTo, years, months, weeks, days).
+        // d. Let result be ? NanosecondsToDays(nanoseconds, intermediate).
+        // e. Set days to days + result.[[Days]] + result.[[Nanoseconds]] / result.[[DayLength]].
+        // f. Set hours, minutes, seconds, milliseconds, microseconds, and nanoseconds to 0.
+        // 7. Else,
+    } else {
+        // a. Let fractionalSeconds be nanoseconds × 10-9 + microseconds × 10-6 + milliseconds × 10-3 + seconds.
+    }
+
+    // 8. Let remainder be undefined.
+    let mut remainder = JsValue::undefined();
+    match unit.as_slice() {
+        // 9. If unit is "year", then
+        YEAR => {
+            // a. Let yearsDuration be ! CreateTemporalDuration(years, 0, 0, 0, 0, 0, 0, 0, 0, 0).
+            let years_duration = create_temporal_duration(
+                years,
+                0_f64,
+                0_f64,
+                0_f64,
+                0_f64,
+                0_f64,
+                0_f64,
+                0_f64,
+                0_f64,
+                0_f64,
+                &context
+                    .realm()
+                    .intrinsics()
+                    .constructors()
+                    .duration()
+                    .constructor()
+                    .into(),
+                context,
+            )?;
+            // TODO: deal with calendar object.
+            // b. If calendar is an Object, then
+            // i. Let dateAdd be ? GetMethod(calendar, "dateAdd").
+            // c. Else,
+            // i. Let dateAdd be unused.
+            // d. Let yearsLater be ? CalendarDateAdd(calendar, relativeTo, yearsDuration, undefined, dateAdd).
+            // e. Let yearsMonthsWeeks be ! CreateTemporalDuration(years, months, weeks, 0, 0, 0, 0, 0, 0, 0).
+            // f. Let yearsMonthsWeeksLater be ? CalendarDateAdd(calendar, relativeTo, yearsMonthsWeeks, undefined, dateAdd).
+            // g. Let monthsWeeksInDays be DaysUntil(yearsLater, yearsMonthsWeeksLater).
+            // h. Set relativeTo to yearsLater.
+            // i. Let days be days + monthsWeeksInDays.
+            // j. Let wholeDaysDuration be ? CreateTemporalDuration(0, 0, 0, truncate(days), 0, 0, 0, 0, 0, 0).
+            // k. Let wholeDaysLater be ? CalendarDateAdd(calendar, relativeTo, wholeDaysDuration, undefined, dateAdd).
+            // l. Let untilOptions be OrdinaryObjectCreate(null).
+            // m. Perform ! CreateDataPropertyOrThrow(untilOptions, "largestUnit", "year").
+            // n. Let timePassed be ? CalendarDateUntil(calendar, relativeTo, wholeDaysLater, untilOptions).
+            // o. Let yearsPassed be timePassed.[[Years]].
+            // p. Set years to years + yearsPassed.
+            // q. Let oldRelativeTo be relativeTo.
+            // r. Let yearsDuration be ! CreateTemporalDuration(yearsPassed, 0, 0, 0, 0, 0, 0, 0, 0, 0).
+            // s. Set relativeTo to ? CalendarDateAdd(calendar, relativeTo, yearsDuration, undefined, dateAdd).
+            // t. Let daysPassed be DaysUntil(oldRelativeTo, relativeTo).
+            // u. Set days to days - daysPassed.
+            // v. If days < 0, let sign be -1; else, let sign be 1.
+            // w. Let oneYear be ! CreateTemporalDuration(sign, 0, 0, 0, 0, 0, 0, 0, 0, 0).
+            // x. Let moveResult be ? MoveRelativeDate(calendar, relativeTo, oneYear, dateAdd).
+            // y. Let oneYearDays be moveResult.[[Days]].
+            // z. Let fractionalYears be years + days / abs(oneYearDays).
+            // ?. Set years to RoundNumberToIncrement(fractionalYears, increment, roundingMode).
+            // ?. Set remainder to fractionalYears - years.
+            // ?. Set months, weeks, and days to 0.
+        }
+        MONTH => {
+            // 10. Else if unit is "month", then
+            // a. Let yearsMonths be ! CreateTemporalDuration(years, months, 0, 0, 0, 0, 0, 0, 0, 0).
+            // b. If calendar is an Object, then
+            // i. Let dateAdd be ? GetMethod(calendar, "dateAdd").
+            // c. Else,
+            // i. Let dateAdd be unused.
+            // d. Let yearsMonthsLater be ? CalendarDateAdd(calendar, relativeTo, yearsMonths, undefined, dateAdd).
+            // e. Let yearsMonthsWeeks be ! CreateTemporalDuration(years, months, weeks, 0, 0, 0, 0, 0, 0, 0).
+            // f. Let yearsMonthsWeeksLater be ? CalendarDateAdd(calendar, relativeTo, yearsMonthsWeeks, undefined, dateAdd).
+            // g. Let weeksInDays be DaysUntil(yearsMonthsLater, yearsMonthsWeeksLater).
+            // h. Set relativeTo to yearsMonthsLater.
+            // i. Let days be days + weeksInDays.
+            // j. If days < 0, let sign be -1; else, let sign be 1.
+            // k. Let oneMonth be ! CreateTemporalDuration(0, sign, 0, 0, 0, 0, 0, 0, 0, 0).
+            // l. Let moveResult be ? MoveRelativeDate(calendar, relativeTo, oneMonth, dateAdd).
+            // m. Set relativeTo to moveResult.[[RelativeTo]].
+            // n. Let oneMonthDays be moveResult.[[Days]].
+            // o. Repeat, while abs(days) ≥ abs(oneMonthDays),
+            // i. Set months to months + sign.
+            // ii. Set days to days - oneMonthDays.
+            // iii. Set moveResult to ? MoveRelativeDate(calendar, relativeTo, oneMonth, dateAdd).
+            // iv. Set relativeTo to moveResult.[[RelativeTo]].
+            // v. Set oneMonthDays to moveResult.[[Days]].
+            // p. Let fractionalMonths be months + days / abs(oneMonthDays).
+            // q. Set months to RoundNumberToIncrement(fractionalMonths, increment, roundingMode).
+            // r. Set remainder to fractionalMonths - months.
+            // s. Set weeks and days to 0.
+        }
+        WEEK => {
+            // 11. Else if unit is "week", then
+            // a. If days < 0, let sign be -1; else, let sign be 1.
+            // b. Let oneWeek be ! CreateTemporalDuration(0, 0, sign, 0, 0, 0, 0, 0, 0, 0).
+            // c. If calendar is an Object, then
+            // i. Let dateAdd be ? GetMethod(calendar, "dateAdd").
+            // d. Else,
+            // i. Let dateAdd be unused.
+            // e. Let moveResult be ? MoveRelativeDate(calendar, relativeTo, oneWeek, dateAdd).
+            // f. Set relativeTo to moveResult.[[RelativeTo]].
+            // g. Let oneWeekDays be moveResult.[[Days]].
+            // h. Repeat, while abs(days) ≥ abs(oneWeekDays),
+            // i. Set weeks to weeks + sign.
+            // ii. Set days to days - oneWeekDays.
+            // iii. Set moveResult to ? MoveRelativeDate(calendar, relativeTo, oneWeek, dateAdd).
+            // iv. Set relativeTo to moveResult.[[RelativeTo]].
+            // v. Set oneWeekDays to moveResult.[[Days]].
+            // i. Let fractionalWeeks be weeks + days / abs(oneWeekDays).
+            // j. Set weeks to RoundNumberToIncrement(fractionalWeeks, increment, roundingMode).
+            // k. Set remainder to fractionalWeeks - weeks.
+            // l. Set days to 0.
+        }
+        DAY => {
+            // 12. Else if unit is "day", then
+            // a. Let fractionalDays be days.
+            // b. Set days to RoundNumberToIncrement(days, increment, roundingMode).
+            // c. Set remainder to fractionalDays - days.
+        }
+        HOUR => {
+            // 13. Else if unit is "hour", then
+            // a. Let fractionalHours be (fractionalSeconds / 60 + minutes) / 60 + hours.
+            // b. Set hours to RoundNumberToIncrement(fractionalHours, increment, roundingMode).
+            // c. Set remainder to fractionalHours - hours.
+            // d. Set minutes, seconds, milliseconds, microseconds, and nanoseconds to 0.
+        }
+        MINUTE => {
+            // 14. Else if unit is "minute", then
+            // a. Let fractionalMinutes be fractionalSeconds / 60 + minutes.
+            // b. Set minutes to RoundNumberToIncrement(fractionalMinutes, increment, roundingMode).
+            // c. Set remainder to fractionalMinutes - minutes.
+            // d. Set seconds, milliseconds, microseconds, and nanoseconds to 0.
+        }
+        SECOND => {
+            // 15. Else if unit is "second", then
+            // a. Set seconds to RoundNumberToIncrement(fractionalSeconds, increment, roundingMode).
+            // b. Set remainder to fractionalSeconds - seconds.
+            // c. Set milliseconds, microseconds, and nanoseconds to 0.
+        }
+        MILLISECOND => {
+            // 16. Else if unit is "millisecond", then
+            // a. Let fractionalMilliseconds be nanoseconds × 10-6 + microseconds × 10-3 + milliseconds.
+            // b. Set milliseconds to RoundNumberToIncrement(fractionalMilliseconds, increment, roundingMode).
+            // c. Set remainder to fractionalMilliseconds - milliseconds.
+            // d. Set microseconds and nanoseconds to 0.
+        }
+        MICROSECOND => {
+            // 17. Else if unit is "microsecond", then
+            // a. Let fractionalMicroseconds be nanoseconds × 10-3 + microseconds.
+            // b. Set microseconds to RoundNumberToIncrement(fractionalMicroseconds, increment, roundingMode).
+            // c. Set remainder to fractionalMicroseconds - microseconds.
+            // d. Set nanoseconds to 0.
+        }
+        NANOSECOND => {
+            // 18. Else,
+            // a. Assert: unit is "nanosecond".
+            // b. Set remainder to nanoseconds.
+            // c. Set nanoseconds to RoundNumberToIncrement(nanoseconds, increment, roundingMode).
+            // d. Set remainder to remainder - nanoseconds.
+        }
+    }
+
+    // 19. Assert: days is an integer.
+    // 20. Let duration be ? CreateDurationRecord(years, months, weeks, days, hours, minutes, seconds, milliseconds, microseconds, nanoseconds).
+    // 21. Return the Record { [[DurationRecord]]: duration, [[Remainder]]: remainder }.
+    todo!()
 }

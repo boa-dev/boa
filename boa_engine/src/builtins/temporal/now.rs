@@ -7,13 +7,16 @@ use crate::{
     property::Attribute,
     realm::Realm,
     value::IntegerOrInfinity,
-    Context, JsObject, JsResult, JsSymbol, JsValue, NativeFunction,
+    Context, JsBigInt, JsNativeError, JsObject, JsResult, JsSymbol, JsValue, NativeFunction,
 };
 use boa_profiler::Profiler;
 
+use super::{NS_MAX_INSTANT, NS_MIN_INSTANT};
+use std::time::SystemTime;
+
 /// JavaScript `Temporal.Now` object.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
-pub(crate) struct Now;
+pub struct Now;
 
 impl Now {
     const NAME: &'static str = "Temporal.Now";
@@ -127,9 +130,31 @@ impl Now {
 
 // -- Temporal.Now abstract operations --
 
-/// `SystemUTCEpochNanoseconds`
+/// 2.3.1 `HostSystemUTCEpochNanoseconds ( global )
+fn host_system_utc_epoch_nanoseconds(_global: Realm) -> JsResult<JsBigInt> {
+    // TODO: Implement `SystemTime::now()` calls manually. Needed for `no_std`
+    let epoch_nanos = SystemTime::now()
+        .duration_since(SystemTime::UNIX_EPOCH)
+        .map_err(|e| JsNativeError::range().with_message(e.to_string()))?
+        .as_nanos();
+    Ok(clamp_epoc_nanos(JsBigInt::from(epoch_nanos)))
+}
+
+fn clamp_epoc_nanos(ns: JsBigInt) -> JsBigInt {
+    let max = JsBigInt::from(NS_MAX_INSTANT);
+    let min = JsBigInt::from(NS_MIN_INSTANT);
+    if max < ns {
+        max
+    } else if ns < min {
+        min
+    } else {
+        ns
+    }
+}
+
+/// 2.3.2 `SystemUTCEpochNanoseconds`
 #[allow(unused)]
-fn system_utc_epoch_nanos() {
+fn system_utc_epoch_nanos() -> JsBigInt {
     todo!()
 }
 
