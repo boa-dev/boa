@@ -237,7 +237,7 @@ impl ModuleItemList {
     ///
     /// Gets the list of import entries of this module.
     ///
-    /// [spec]: https://tc39.es/ecma262/#sec-static-semantics-modulerequests
+    /// [spec]: https://tc39.es/ecma262/#sec-static-semantics-importentries
     #[inline]
     #[must_use]
     pub fn import_entries(&self) -> Vec<ImportEntry> {
@@ -298,11 +298,11 @@ impl ModuleItemList {
         entries
     }
 
-    /// Operation [`ImportEntries`][spec].
+    /// Operation [`ExportEntries`][spec].
     ///
-    /// Gets the list of import entries of this module.
+    /// Gets the list of export entries of this module.
     ///
-    /// [spec]: https://tc39.es/ecma262/#sec-static-semantics-modulerequests
+    /// [spec]: https://tc39.es/ecma262/#sec-static-semantics-exportentries
     #[inline]
     #[must_use]
     pub fn export_entries(&self) -> Vec<ExportEntry> {

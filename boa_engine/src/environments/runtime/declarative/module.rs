@@ -5,12 +5,14 @@ use boa_gc::{Finalize, GcRefCell, Trace};
 
 use crate::{module::Module, JsValue};
 
+/// Type of accessor used to access an indirect binding.
 #[derive(Debug, Clone, Copy)]
 enum BindingAccessor {
     Identifier(Identifier),
     Index(usize),
 }
 
+/// An indirect reference to a binding inside an environment.
 #[derive(Clone, Debug, Trace, Finalize)]
 struct IndirectBinding {
     module: Module,
@@ -18,12 +20,20 @@ struct IndirectBinding {
     accessor: Cell<BindingAccessor>,
 }
 
+/// The type of binding a [`ModuleEnvironment`] can contain.
 #[derive(Clone, Debug, Trace, Finalize)]
 enum BindingType {
     Direct(Option<JsValue>),
     Indirect(IndirectBinding),
 }
 
+/// A [**Module Environment Record**][spec].
+///
+/// Module environments allow referencing bindings inside other environments, in addition
+/// to the usual declarative environment functionality.
+///
+///
+/// [spec]: https://tc39.es/ecma262/#sec-module-environment-records
 #[derive(Debug, Trace, Finalize)]
 pub(crate) struct ModuleEnvironment {
     bindings: GcRefCell<Vec<BindingType>>,
@@ -88,7 +98,7 @@ impl ModuleEnvironment {
         }
     }
 
-    /// Sets a reference from this environment to an external environment binding.
+    /// Creates an indirect binding reference to another environment binding.
     ///
     /// # Panics
     ///

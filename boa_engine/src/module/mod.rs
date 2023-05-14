@@ -39,7 +39,6 @@ use boa_parser::{Parser, Source};
 use boa_profiler::Profiler;
 
 use crate::object::FunctionObjectBuilder;
-use crate::property::{PropertyDescriptor, PropertyKey};
 use crate::{
     builtins::promise::{PromiseCapability, PromiseState},
     environments::DeclarativeEnvironment,
@@ -47,7 +46,7 @@ use crate::{
     realm::Realm,
     Context, JsError, JsResult, JsString, JsValue,
 };
-use crate::{js_string, JsNativeError, JsSymbol, NativeFunction};
+use crate::{js_string, JsNativeError, NativeFunction};
 
 /// The referrer from which a load request of a module originates.
 #[derive(Debug)]
@@ -138,11 +137,13 @@ impl SimpleModuleLoader {
     }
 
     /// Inserts a new module onto the module map.
+    #[inline]
     pub fn insert(&self, path: PathBuf, module: Module) {
         self.module_map.borrow_mut().insert(path, module);
     }
 
     /// Gets a module from its original path.
+    #[inline]
     pub fn get(&self, path: &Path) -> Option<Module> {
         self.module_map.borrow().get(path).cloned()
     }
@@ -283,6 +284,7 @@ impl Module {
     /// Parses the provided `src` as an ECMAScript module, returning an error if parsing fails.
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-parsemodule
+    #[inline]
     pub fn parse<R: Read>(
         src: Source<'_, R>,
         realm: Option<Realm>,
@@ -305,6 +307,7 @@ impl Module {
     }
 
     /// Gets the realm of this `Module`.
+    #[inline]
     pub fn realm(&self) -> &Realm {
         &self.inner.realm
     }
@@ -326,6 +329,7 @@ impl Module {
     ///
     /// [spec]: https://tc39.es/ecma262/#table-abstract-methods-of-module-records
     #[allow(clippy::missing_panics_doc)]
+    #[inline]
     pub fn load(&self, context: &mut Context<'_>) -> JsPromise {
         match self.kind() {
             ModuleKind::SourceText(_) => SourceTextModule::load(self, context),
@@ -451,6 +455,7 @@ impl Module {
     ///
     /// [spec]: https://tc39.es/ecma262/#table-abstract-methods-of-module-records
     #[allow(clippy::missing_panics_doc)]
+    #[inline]
     pub fn link(&self, context: &mut Context<'_>) -> JsResult<()> {
         match self.kind() {
             ModuleKind::SourceText(_) => SourceTextModule::link(self, context),
@@ -493,6 +498,7 @@ impl Module {
     ///
     /// [spec]: https://tc39.es/ecma262/#table-abstract-methods-of-module-records
     #[allow(clippy::missing_panics_doc)]
+    #[inline]
     pub fn evaluate(&self, context: &mut Context<'_>) -> JsPromise {
         match self.kind() {
             ModuleKind::SourceText(src) => src.evaluate(context),
@@ -557,6 +563,7 @@ impl Module {
     /// assert_eq!(promise.state().unwrap(), PromiseState::Fulfilled(JsValue::undefined()));
     /// ```
     #[allow(clippy::drop_copy)]
+    #[inline]
     pub fn load_link_evaluate(&self, context: &mut Context<'_>) -> JsResult<JsPromise> {
         let main_timer = Profiler::global().start_event("Module evaluation", "Main");
 
@@ -608,21 +615,31 @@ impl Module {
     /// [spec]: https://tc39.es/ecma262/#sec-getmodulenamespace
     /// [ns]: https://tc39.es/ecma262/#sec-module-namespace-exotic-objects
     pub fn namespace(&self, context: &mut Context<'_>) -> JsObject {
+        // 1. Assert: If module is a Cyclic Module Record, then module.[[Status]] is not new or unlinked.
+        // 2. Let namespace be module.[[Namespace]].
+        // 3. If namespace is empty, then
         self.inner
             .namespace
             .borrow_mut()
             .get_or_insert_with(|| {
+                // a. Let exportedNames be module.GetExportedNames().
                 let exported_names = self.get_exported_names(&mut Vec::default());
 
+                // b. Let unambiguousNames be a new empty List.
                 let unambiguous_names = exported_names
                     .into_iter()
+                    // c. For each element name of exportedNames, do
                     .filter_map(|name| {
+                        // i. Let resolution be module.ResolveExport(name).
+                        // ii. If resolution is a ResolvedBinding Record, append name to unambiguousNames.
                         self.resolve_export(name, &mut HashSet::default())
                             .ok()
                             .map(|_| name)
                     })
                     .collect();
 
+                //     d. Set namespace to ModuleNamespaceCreate(module, unambiguousNames).
+                // 4. Return namespace.
                 ModuleNamespace::create(self.clone(), unambiguous_names, context)
             })
             .clone()
@@ -630,6 +647,7 @@ impl Module {
 }
 
 impl PartialEq for Module {
+    #[inline]
     fn eq(&self, other: &Self) -> bool {
         std::ptr::eq(self.inner.as_ref(), other.inner.as_ref())
     }
@@ -638,6 +656,7 @@ impl PartialEq for Module {
 impl Eq for Module {}
 
 impl Hash for Module {
+    #[inline]
     fn hash<H: std::hash::Hasher>(&self, state: &mut H) {
         std::ptr::hash(self.inner.as_ref(), state);
     }
@@ -658,6 +677,10 @@ impl ModuleNamespace {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-modulenamespacecreate
     pub(crate) fn create(module: Module, names: Vec<Sym>, context: &mut Context<'_>) -> JsObject {
+        // 1. Assert: module.[[Namespace]] is empty.
+        // ignored since this is ensured by `Module::namespace`.
+
+        // 6. Let sortedExports be a List whose elements are the elements of exports ordered as if an Array of the same values had been sorted using %Array.prototype.sort% using undefined as comparefn.
         let mut exports = names
             .into_iter()
             .map(|sym| {
@@ -672,30 +695,30 @@ impl ModuleNamespace {
             .collect::<IndexMap<_, _, _>>();
         exports.sort_keys();
 
-        let namespace = JsObject::from_proto_and_data_with_shared_shape(
-            context.root_shape(),
-            None,
+        // 2. Let internalSlotsList be the internal slots listed in Table 32.
+        // 3. Let M be MakeBasicObject(internalSlotsList).
+        // 4. Set M's essential internal methods to the definitions specified in 10.4.6.
+        // 5. Set M.[[Module]] to module.
+        // 7. Set M.[[Exports]] to sortedExports.
+        // 8. Create own properties of M corresponding to the definitions in 28.3.
+        let namespace = context.intrinsics().templates().namespace().create(
             ObjectData::module_namespace(ModuleNamespace { module, exports }),
+            vec![js_string!("Module").into()],
         );
 
-        namespace.borrow_mut().properties_mut().insert(
-            &PropertyKey::Symbol(JsSymbol::to_string_tag()),
-            PropertyDescriptor::builder()
-                .value(js_string!("Module"))
-                .writable(false)
-                .enumerable(false)
-                .configurable(false)
-                .build(),
-        );
+        // 9. Set module.[[Namespace]] to M.
+        // Ignored because this is done by `Module::namespace`
+
+        // 10. Return M.
         namespace
     }
 
-    /// Gets the export names of the `ModuleNamespace` object.
+    /// Gets the export names of the Module Namespace object.
     pub(crate) const fn exports(&self) -> &IndexMap<JsString, Sym, BuildHasherDefault<FxHasher>> {
         &self.exports
     }
 
-    /// Gest the module associated with this `ModuleNamespace` object.
+    /// Gest the module associated with this Module Namespace object.
     pub(crate) const fn module(&self) -> &Module {
         &self.module
     }

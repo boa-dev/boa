@@ -999,6 +999,8 @@ pub(crate) struct ObjectTemplates {
 
     function_without_proto: ObjectTemplate,
     function_with_prototype_without_proto: ObjectTemplate,
+
+    namespace: ObjectTemplate,
 }
 
 impl ObjectTemplates {
@@ -1104,6 +1106,9 @@ impl ObjectTemplates {
             Attribute::WRITABLE | Attribute::CONFIGURABLE | Attribute::ENUMERABLE,
         );
 
+        let mut namespace = ObjectTemplate::new(root_shape);
+        namespace.property(JsSymbol::to_string_tag().into(), Attribute::empty());
+
         Self {
             iterator_result,
             ordinary_object,
@@ -1121,6 +1126,7 @@ impl ObjectTemplates {
             async_function,
             function_without_proto,
             function_with_prototype_without_proto,
+            namespace,
         }
     }
 
@@ -1287,5 +1293,14 @@ impl ObjectTemplates {
     /// 3. `"prototype"`: (`WRITABLE`, `PERMANENT`, `NON_ENUMERABLE`)
     pub(crate) const fn function_with_prototype_without_proto(&self) -> &ObjectTemplate {
         &self.function_with_prototype_without_proto
+    }
+
+    /// Cached namespace object template.
+    ///
+    /// Transitions:
+    ///
+    /// 1. `@@toStringTag`: (`READONLY`, `NON_ENUMERABLE`, `PERMANENT`)
+    pub(crate) const fn namespace(&self) -> &ObjectTemplate {
+        &self.namespace
     }
 }
