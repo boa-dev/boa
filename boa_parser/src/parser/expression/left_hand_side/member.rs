@@ -137,7 +137,7 @@ where
                             TokenKind::BooleanLiteral((false, _)) => {
                                 SuperPropertyAccess::new(Sym::FALSE.into())
                             }
-                            TokenKind::NullLiteral => SuperPropertyAccess::new(Sym::NULL.into()),
+                            TokenKind::NullLiteral(_) => SuperPropertyAccess::new(Sym::NULL.into()),
                             TokenKind::PrivateIdentifier(_) => {
                                 return Err(Error::general(
                                     "unexpected private identifier",
@@ -199,7 +199,9 @@ where
                         TokenKind::BooleanLiteral((false, _)) => {
                             SimplePropertyAccess::new(lhs, Sym::FALSE).into()
                         }
-                        TokenKind::NullLiteral => SimplePropertyAccess::new(lhs, Sym::NULL).into(),
+                        TokenKind::NullLiteral(_) => {
+                            SimplePropertyAccess::new(lhs, Sym::NULL).into()
+                        }
                         TokenKind::PrivateIdentifier(name) => {
                             if !cursor.in_class() {
                                 return Err(Error::general(

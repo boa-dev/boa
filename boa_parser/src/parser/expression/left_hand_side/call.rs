@@ -110,7 +110,9 @@ where
                         TokenKind::BooleanLiteral((false, _)) => {
                             SimplePropertyAccess::new(lhs, Sym::FALSE).into()
                         }
-                        TokenKind::NullLiteral => SimplePropertyAccess::new(lhs, Sym::NULL).into(),
+                        TokenKind::NullLiteral(_) => {
+                            SimplePropertyAccess::new(lhs, Sym::NULL).into()
+                        }
                         TokenKind::PrivateIdentifier(name) => {
                             if !cursor.in_class() {
                                 return Err(Error::general(

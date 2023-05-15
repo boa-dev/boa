@@ -94,9 +94,15 @@ impl<R> Tokenizer<R> for Identifier {
             Self::take_identifier_name(cursor, start_pos, self.init)?;
 
         let token_kind = match identifier_name.parse() {
-            Ok(Keyword::True) => TokenKind::BooleanLiteral((true, ContainsEscapeSequence(contains_escaped_chars))),
-            Ok(Keyword::False) => TokenKind::BooleanLiteral((false, ContainsEscapeSequence(contains_escaped_chars))),
-            Ok(Keyword::Null) => TokenKind::NullLiteral,
+            Ok(Keyword::True) => {
+                TokenKind::BooleanLiteral((true, ContainsEscapeSequence(contains_escaped_chars)))
+            }
+            Ok(Keyword::False) => {
+                TokenKind::BooleanLiteral((false, ContainsEscapeSequence(contains_escaped_chars)))
+            }
+            Ok(Keyword::Null) => {
+                TokenKind::NullLiteral(ContainsEscapeSequence(contains_escaped_chars))
+            }
             Ok(keyword) => TokenKind::Keyword((keyword, contains_escaped_chars)),
             _ => TokenKind::IdentifierName((
                 interner.get_or_intern(identifier_name.as_str()),

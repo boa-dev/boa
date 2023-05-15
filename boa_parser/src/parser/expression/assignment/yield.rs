@@ -103,7 +103,7 @@ where
                 _,
             ))
             | TokenKind::BooleanLiteral(_)
-            | TokenKind::NullLiteral
+            | TokenKind::NullLiteral(_)
             | TokenKind::StringLiteral(_)
             | TokenKind::TemplateNoSubstitution(_)
             | TokenKind::NumericLiteral(_)

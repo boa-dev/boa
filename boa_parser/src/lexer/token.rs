@@ -118,7 +118,7 @@ pub enum TokenKind {
     /// The [`null` literal][spec].
     ///
     /// [spec]: https://tc39.es/ecma262/#prod-NullLiteral
-    NullLiteral,
+    NullLiteral(ContainsEscapeSequence),
 
     /// A numeric literal.
     NumericLiteral(Numeric),
@@ -266,7 +266,7 @@ impl TokenKind {
             Self::IdentifierName((ident, _)) => interner.resolve_expect(ident).to_string(),
             Self::PrivateIdentifier(ident) => format!("#{}", interner.resolve_expect(ident)),
             Self::Keyword((word, _)) => word.to_string(),
-            Self::NullLiteral => "null".to_owned(),
+            Self::NullLiteral(_) => "null".to_owned(),
             Self::NumericLiteral(Numeric::Rational(num)) => num.to_string(),
             Self::NumericLiteral(Numeric::Integer(num)) => num.to_string(),
             Self::NumericLiteral(Numeric::BigInt(ref num)) => format!("{num}n"),

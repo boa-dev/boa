@@ -600,7 +600,7 @@ where
                 let (utf8, utf16) = word.as_str();
                 interner.get_or_intern_static(utf8, utf16).into()
             }
-            TokenKind::NullLiteral => (Sym::NULL).into(),
+            TokenKind::NullLiteral(_) => (Sym::NULL).into(),
             TokenKind::BooleanLiteral((bool, _)) => match bool {
                 true => Sym::TRUE.into(),
                 false => Sym::FALSE.into(),

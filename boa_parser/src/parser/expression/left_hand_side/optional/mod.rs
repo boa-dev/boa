@@ -74,13 +74,17 @@ where
                 TokenKind::Keyword((kw, _)) => OptionalOperationKind::SimplePropertyAccess {
                     field: PropertyAccessField::Const(kw.to_sym()),
                 },
-                TokenKind::BooleanLiteral((true, _)) => OptionalOperationKind::SimplePropertyAccess {
-                    field: PropertyAccessField::Const(Sym::TRUE),
-                },
-                TokenKind::BooleanLiteral((false, _)) => OptionalOperationKind::SimplePropertyAccess {
-                    field: PropertyAccessField::Const(Sym::FALSE),
-                },
-                TokenKind::NullLiteral => OptionalOperationKind::SimplePropertyAccess {
+                TokenKind::BooleanLiteral((true, _)) => {
+                    OptionalOperationKind::SimplePropertyAccess {
+                        field: PropertyAccessField::Const(Sym::TRUE),
+                    }
+                }
+                TokenKind::BooleanLiteral((false, _)) => {
+                    OptionalOperationKind::SimplePropertyAccess {
+                        field: PropertyAccessField::Const(Sym::FALSE),
+                    }
+                }
+                TokenKind::NullLiteral(_) => OptionalOperationKind::SimplePropertyAccess {
                     field: PropertyAccessField::Const(Sym::NULL),
                 },
                 TokenKind::PrivateIdentifier(name) => {
