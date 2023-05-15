@@ -50,6 +50,9 @@ fn main() -> Result<(), Box<dyn Error>> {
     //
     // parse -> load -> link -> evaluate
     let promise_result = module
+        // Initial load that recursively loads the module's dependencies.
+        // This returns a `JsPromise` that will be resolved when loading finishes,
+        // which allows async loads and async fetches.
         .load(context)
         .then(
             Some(
@@ -57,6 +60,10 @@ fn main() -> Result<(), Box<dyn Error>> {
                     context,
                     NativeFunction::from_copy_closure_with_captures(
                         |_, _, module, context| {
+                            // After loading, link all modules by resolving the imports
+                            // and exports on the full module graph, initializing module
+                            // environments. This returns a plain `Err` since all modules
+                            // must link at the same time.
                             module.link(context)?;
                             Ok(JsValue::undefined())
                         },
@@ -73,6 +80,10 @@ fn main() -> Result<(), Box<dyn Error>> {
                 FunctionObjectBuilder::new(
                     context,
                     NativeFunction::from_copy_closure_with_captures(
+                        // Finally, evaluate the root module.
+                        // This returns a `JsPromise` since a module could have
+                        // top-level await statements, which defers module execution to the
+                        // job queue.
                         |_, _, module, context| Ok(module.evaluate(context).into()),
                         module.clone(),
                     ),

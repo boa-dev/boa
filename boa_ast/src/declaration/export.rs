@@ -264,7 +264,7 @@ pub struct LocalExportEntry {
 }
 
 impl LocalExportEntry {
-    /// Creates a new `OrdinaryExportEntry`.
+    /// Creates a new `LocalExportEntry`.
     #[must_use]
     pub const fn new(local_name: Identifier, export_name: Sym) -> Self {
         Self {
@@ -295,7 +295,7 @@ pub struct IndirectExportEntry {
 }
 
 impl IndirectExportEntry {
-    /// Creates a new `ReExportEntry`.
+    /// Creates a new `IndirectExportEntry`.
     #[must_use]
     pub const fn new(
         module_request: Sym,
