@@ -33,7 +33,7 @@ mod tagged_template;
 mod r#yield;
 
 use crate::visitor::{VisitWith, Visitor, VisitorMut};
-pub use call::{Call, SuperCall};
+pub use call::{Call, ImportCall, SuperCall};
 pub use identifier::{Identifier, RESERVED_IDENTIFIERS_STRICT};
 pub use new::New;
 pub use optional::{Optional, OptionalOperation, OptionalOperationKind};
@@ -121,10 +121,12 @@ pub enum Expression {
     /// See [`SuperCall`].
     SuperCall(SuperCall),
 
+    /// See [`ImportCall`].
+    ImportCall(ImportCall),
+
     /// See [`Optional`].
     Optional(Optional),
 
-    // TODO: Import calls
     /// See [`TaggedTemplate`].
     TaggedTemplate(TaggedTemplate),
 
@@ -192,6 +194,7 @@ impl Expression {
             Self::New(new) => new.to_interned_string(interner),
             Self::Call(call) => call.to_interned_string(interner),
             Self::SuperCall(supc) => supc.to_interned_string(interner),
+            Self::ImportCall(impc) => impc.to_interned_string(interner),
             Self::Optional(opt) => opt.to_interned_string(interner),
             Self::NewTarget => "new.target".to_owned(),
             Self::TaggedTemplate(tag) => tag.to_interned_string(interner),
@@ -300,6 +303,7 @@ impl VisitWith for Expression {
             Self::New(n) => visitor.visit_new(n),
             Self::Call(c) => visitor.visit_call(c),
             Self::SuperCall(sc) => visitor.visit_super_call(sc),
+            Self::ImportCall(ic) => visitor.visit_import_call(ic),
             Self::Optional(opt) => visitor.visit_optional(opt),
             Self::TaggedTemplate(tt) => visitor.visit_tagged_template(tt),
             Self::Assign(a) => visitor.visit_assign(a),
@@ -341,6 +345,7 @@ impl VisitWith for Expression {
             Self::New(n) => visitor.visit_new_mut(n),
             Self::Call(c) => visitor.visit_call_mut(c),
             Self::SuperCall(sc) => visitor.visit_super_call_mut(sc),
+            Self::ImportCall(ic) => visitor.visit_import_call_mut(ic),
             Self::Optional(opt) => visitor.visit_optional_mut(opt),
             Self::TaggedTemplate(tt) => visitor.visit_tagged_template_mut(tt),
             Self::Assign(a) => visitor.visit_assign_mut(a),

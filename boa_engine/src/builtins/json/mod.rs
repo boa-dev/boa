@@ -29,6 +29,7 @@ use crate::{
     string::{utf16, CodePoint},
     symbol::JsSymbol,
     value::IntegerOrInfinity,
+    vm::CallFrame,
     Context, JsArgs, JsResult, JsString, JsValue,
 };
 use boa_gc::Gc;
@@ -126,7 +127,13 @@ impl Json {
             compiler.compile_statement_list(&statement_list, true, false);
             Gc::new(compiler.finish())
         };
-        let unfiltered = context.execute(code_block)?;
+
+        context.vm.push_frame(CallFrame::new(code_block));
+        context.realm().resize_global_env();
+        let record = context.run();
+        context.vm.pop_frame();
+
+        let unfiltered = record.consume()?;
 
         // 11. If IsCallable(reviver) is true, then
         if let Some(obj) = args.get_or_undefined(1).as_callable() {

@@ -186,7 +186,7 @@ pub(crate) mod test {
     ) {
         #[track_caller]
         fn forward_val(context: &mut Context<'_>, source: &str) -> JsResult<JsValue> {
-            context.eval_script(Source::from_bytes(source))
+            context.eval(Source::from_bytes(source))
         }
 
         #[track_caller]

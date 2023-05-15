@@ -70,6 +70,7 @@ use boa_engine::{
     module::{Module, ModuleLoader, SimpleModuleLoader},
     optimizer::OptimizerOptions,
     property::Attribute,
+    script::Script,
     vm::flowgraph::{Direction, Graph},
     Context, JsNativeError, JsResult, Source,
 };
@@ -263,8 +264,8 @@ fn generate_flowgraph(
     format: FlowgraphFormat,
     direction: Option<FlowgraphDirection>,
 ) -> JsResult<String> {
-    let ast = context.parse_script(Source::from_bytes(src))?;
-    let code = context.compile_script(&ast)?;
+    let script = Script::parse(Source::from_bytes(src), None, context)?;
+    let code = script.codeblock(context)?;
 
     let direction = match direction {
         Some(FlowgraphDirection::TopToBottom) | None => Direction::TopToBottom,
@@ -331,7 +332,7 @@ fn evaluate_files(
                 Err(err) => eprintln!("Uncaught {err}"),
             }
         } else {
-            match context.eval_script(Source::from_bytes(&buffer)) {
+            match context.eval(Source::from_bytes(&buffer)) {
                 Ok(v) => println!("{}", v.display()),
                 Err(v) => eprintln!("Uncaught {v}"),
             }
@@ -425,7 +426,7 @@ fn main() -> Result<(), io::Error> {
                             Err(v) => eprintln!("Uncaught {v}"),
                         }
                     } else {
-                        match context.eval_script(Source::from_bytes(line.trim_end())) {
+                        match context.eval(Source::from_bytes(line.trim_end())) {
                             Ok(v) => {
                                 println!("{}", v.display());
                             }

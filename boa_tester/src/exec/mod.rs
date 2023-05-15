@@ -13,6 +13,7 @@ use boa_engine::{
     object::FunctionObjectBuilder,
     optimizer::OptimizerOptions,
     property::Attribute,
+    script::Script,
     Context, JsArgs, JsError, JsNativeErrorKind, JsValue, Source,
 };
 use colored::Colorize;
@@ -269,7 +270,7 @@ impl Test {
                     }
                 } else {
                     context.strict(strict);
-                    match context.eval_script(source) {
+                    match context.eval(source) {
                         Ok(v) => v,
                         Err(err) => return (false, format!("Uncaught {err}")),
                     }
@@ -312,7 +313,7 @@ impl Test {
                     }
                 } else {
                     context.strict(strict);
-                    match context.parse_script(source) {
+                    match Script::parse(source, None, context) {
                         Ok(_) => (false, "StatementList parsing should fail".to_owned()),
                         Err(e) => (true, format!("Uncaught {e}")),
                     }
@@ -443,15 +444,12 @@ impl Test {
                     }
                 } else {
                     context.strict(strict);
-                    let script = match context.parse_script(source) {
+                    let script = match Script::parse(source, None, context) {
                         Ok(code) => code,
                         Err(e) => return (false, format!("Uncaught {e}")),
                     };
 
-                    match context
-                        .compile_script(&script)
-                        .and_then(|code| context.execute(code))
-                    {
+                    match script.evaluate(context) {
                         Ok(_) => return (false, "Script execution should fail".to_owned()),
                         Err(e) => e,
                     }
@@ -545,10 +543,10 @@ impl Test {
         let sta = Source::from_reader(harness.sta.content.as_bytes(), Some(&harness.sta.path));
 
         context
-            .eval_script(assert)
+            .eval(assert)
             .map_err(|e| format!("could not run assert.js:\n{e}"))?;
         context
-            .eval_script(sta)
+            .eval(sta)
             .map_err(|e| format!("could not run sta.js:\n{e}"))?;
 
         if self.flags.contains(TestFlags::ASYNC) {
@@ -557,7 +555,7 @@ impl Test {
                 Some(&harness.doneprint_handle.path),
             );
             context
-                .eval_script(dph)
+                .eval(dph)
                 .map_err(|e| format!("could not run doneprintHandle.js:\n{e}"))?;
         }
 
@@ -567,7 +565,7 @@ impl Test {
                 .get(include_name)
                 .ok_or_else(|| format!("could not find the {include_name} include file."))?;
             let source = Source::from_reader(include.content.as_bytes(), Some(&include.path));
-            context.eval_script(source).map_err(|e| {
+            context.eval(source).map_err(|e| {
                 format!("could not run the harness `{include_name}`:\nUncaught {e}",)
             })?;
         }

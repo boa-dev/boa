@@ -68,7 +68,7 @@ use wasm_bindgen::prelude::*;
 pub fn evaluate(src: &str) -> Result<String, JsValue> {
     // Setup executor
     Context::default()
-        .eval_script(Source::from_bytes(src))
+        .eval(Source::from_bytes(src))
         .map_err(|e| JsValue::from(format!("Uncaught {e}")))
         .map(|v| v.display().to_string())
 }

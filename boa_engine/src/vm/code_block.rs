@@ -511,6 +511,7 @@ impl CodeBlock {
             | Opcode::IsObject
             | Opcode::SetNameByLocator
             | Opcode::PopPrivateEnvironment
+            | Opcode::ImportCall
             | Opcode::Nop => String::new(),
         }
     }

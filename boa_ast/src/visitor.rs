@@ -21,7 +21,7 @@ use crate::{
             assign::{Assign, AssignTarget},
             Binary, BinaryInPrivate, Conditional, Unary, Update,
         },
-        Await, Call, Expression, Identifier, New, Optional, OptionalOperation,
+        Await, Call, Expression, Identifier, ImportCall, New, Optional, OptionalOperation,
         OptionalOperationKind, Parenthesized, Spread, SuperCall, TaggedTemplate, Yield,
     },
     function::{
@@ -164,6 +164,7 @@ node_ref! {
     New,
     Call,
     SuperCall,
+    ImportCall,
     Optional,
     TaggedTemplate,
     Assign,
@@ -263,6 +264,7 @@ pub trait Visitor<'ast>: Sized {
     define_visit!(visit_new, New);
     define_visit!(visit_call, Call);
     define_visit!(visit_super_call, SuperCall);
+    define_visit!(visit_import_call, ImportCall);
     define_visit!(visit_optional, Optional);
     define_visit!(visit_tagged_template, TaggedTemplate);
     define_visit!(visit_assign, Assign);
@@ -359,6 +361,7 @@ pub trait Visitor<'ast>: Sized {
             NodeRef::New(n) => self.visit_new(n),
             NodeRef::Call(n) => self.visit_call(n),
             NodeRef::SuperCall(n) => self.visit_super_call(n),
+            NodeRef::ImportCall(n) => self.visit_import_call(n),
             NodeRef::Optional(n) => self.visit_optional(n),
             NodeRef::TaggedTemplate(n) => self.visit_tagged_template(n),
             NodeRef::Assign(n) => self.visit_assign(n),
@@ -460,6 +463,7 @@ pub trait VisitorMut<'ast>: Sized {
     define_visit_mut!(visit_new_mut, New);
     define_visit_mut!(visit_call_mut, Call);
     define_visit_mut!(visit_super_call_mut, SuperCall);
+    define_visit_mut!(visit_import_call_mut, ImportCall);
     define_visit_mut!(visit_optional_mut, Optional);
     define_visit_mut!(visit_tagged_template_mut, TaggedTemplate);
     define_visit_mut!(visit_assign_mut, Assign);
@@ -556,6 +560,7 @@ pub trait VisitorMut<'ast>: Sized {
             NodeRefMut::New(n) => self.visit_new_mut(n),
             NodeRefMut::Call(n) => self.visit_call_mut(n),
             NodeRefMut::SuperCall(n) => self.visit_super_call_mut(n),
+            NodeRefMut::ImportCall(n) => self.visit_import_call_mut(n),
             NodeRefMut::Optional(n) => self.visit_optional_mut(n),
             NodeRefMut::TaggedTemplate(n) => self.visit_tagged_template_mut(n),
             NodeRefMut::Assign(n) => self.visit_assign_mut(n),

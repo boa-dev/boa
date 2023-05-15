@@ -166,7 +166,7 @@ fn main() {
     "#;
 
     let now = Instant::now();
-    context.eval_script(Source::from_bytes(script)).unwrap();
+    context.eval(Source::from_bytes(script)).unwrap();
 
     // Important to run this after evaluating, since this is what triggers to run the enqueued jobs.
     context.run_jobs();

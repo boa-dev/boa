@@ -2,7 +2,7 @@
 
 use boa_engine::{
     context::DefaultHooks, object::shape::RootShape, optimizer::OptimizerOptions, realm::Realm,
-    Context, Source,
+    script::Script, Context, Source,
 };
 use criterion::{criterion_group, criterion_main, Criterion};
 use std::hint::black_box;
@@ -33,7 +33,13 @@ macro_rules! full_benchmarks {
                     context.set_optimizer_options(OptimizerOptions::empty());
 
                     c.bench_function(concat!($id, " (Parser)"), move |b| {
-                        b.iter(|| context.parse_script(black_box(Source::from_bytes(CODE))))
+                        b.iter(|| {
+                            Script::parse(
+                                black_box(Source::from_bytes(CODE)),
+                                None,
+                                &mut context,
+                            ).unwrap()
+                        })
                     });
                 }
             )*
@@ -42,15 +48,19 @@ macro_rules! full_benchmarks {
             $(
                 {
                     static CODE: &str = include_str!(concat!("bench_scripts/", stringify!($name), ".js"));
-                    let mut context = Context::default();
+                    let context = &mut Context::default();
 
                     // Disable optimizations
                     context.set_optimizer_options(OptimizerOptions::empty());
 
-                    let statement_list = context.parse_script(Source::from_bytes(CODE)).expect("parsing failed");
+                    let script = Script::parse(
+                        black_box(Source::from_bytes(CODE)),
+                        None,
+                        context,
+                    ).unwrap();
                     c.bench_function(concat!($id, " (Compiler)"), move |b| {
                         b.iter(|| {
-                            context.compile_script(black_box(&statement_list))
+                            script.codeblock(context).unwrap()
                         })
                     });
                 }
@@ -60,16 +70,20 @@ macro_rules! full_benchmarks {
             $(
                 {
                     static CODE: &str = include_str!(concat!("bench_scripts/", stringify!($name), ".js"));
-                    let mut context = Context::default();
+                    let context = &mut Context::default();
 
                     // Disable optimizations
                     context.set_optimizer_options(OptimizerOptions::empty());
 
-                    let statement_list = context.parse_script(Source::from_bytes(CODE)).expect("parsing failed");
-                    let code_block = context.compile_script(&statement_list).unwrap();
+                    let script = Script::parse(
+                        black_box(Source::from_bytes(CODE)),
+                        None,
+                        context,
+                    ).unwrap();
+                    script.codeblock(context).unwrap();
                     c.bench_function(concat!($id, " (Execution)"), move |b| {
                         b.iter(|| {
-                            context.execute(black_box(code_block.clone())).unwrap()
+                            script.evaluate(context).unwrap();
                         })
                     });
                 }

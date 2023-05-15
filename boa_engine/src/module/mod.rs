@@ -41,6 +41,8 @@ use boa_parser::{Parser, Source};
 use boa_profiler::Profiler;
 
 use crate::object::FunctionObjectBuilder;
+use crate::script::Script;
+use crate::vm::ActiveRunnable;
 use crate::{
     builtins::promise::{PromiseCapability, PromiseState},
     environments::DeclarativeEnvironment,
@@ -51,12 +53,23 @@ use crate::{
 use crate::{js_string, JsNativeError, NativeFunction};
 
 /// The referrer from which a load request of a module originates.
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub enum Referrer {
     /// A [**Source Text Module Record**](https://tc39.es/ecma262/#sec-source-text-module-records).
     Module(Module),
     /// A [**Realm**](https://tc39.es/ecma262/#sec-code-realms).
-    Realm(Realm), // TODO: script
+    Realm(Realm),
+    /// A [**Script Record**]
+    Script(Script),
+}
+
+impl From<ActiveRunnable> for Referrer {
+    fn from(value: ActiveRunnable) -> Self {
+        match value {
+            ActiveRunnable::Script(script) => Referrer::Script(script),
+            ActiveRunnable::Module(module) => Referrer::Module(module),
+        }
+    }
 }
 
 /// Module loading related host hooks.
