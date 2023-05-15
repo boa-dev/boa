@@ -190,7 +190,7 @@ impl Allocator {
         let _timer = Profiler::global().start_event("New EphemeronBox", "BoaAlloc");
         let element_size = mem::size_of_val::<EphemeronBox<K, V>>(&value);
         BOA_GC.with(|gc| {
-            Self::manage_state(&gc);
+            Self::manage_state(gc);
             value.header.next.set(gc.weak_start.take());
             // Safety: value cannot be a null pointer, since `Box` cannot return null pointers.
             let ptr = unsafe { NonNull::new_unchecked(Box::into_raw(Box::new(value))) };
@@ -515,7 +515,7 @@ impl Collector {
 pub fn force_collect() {
     BOA_GC.with(|gc| {
         if gc.runtime.bytes_allocated.get() > 0 {
-            Collector::collect(&gc);
+            Collector::collect(gc);
         }
     });
 }

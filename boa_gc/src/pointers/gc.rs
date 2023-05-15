@@ -50,13 +50,13 @@ impl<T: Trace> Gc<T> {
     /// Since the new `Gc<T>` is not fully-constructed until `Gc<T>::new_cyclic`
     /// returns, calling [`WeakGc::upgrade`] on the weak reference inside the closure will
     /// fail and result in a `None` value.
-    pub fn new_cyclic<F>(data_fn: F) -> Gc<T>
+    pub fn new_cyclic<F>(data_fn: F) -> Self
     where
         F: FnOnce(&WeakGc<T>) -> T,
     {
         // Create GcBox and allocate it to heap.
         let inner_ptr = BOA_GC.with(|gc| {
-            Allocator::manage_state(&gc);
+            Allocator::manage_state(gc);
 
             let header = GcBoxHeader::new();
 

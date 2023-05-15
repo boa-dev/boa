@@ -25,7 +25,7 @@ impl<T: Trace> WeakGc<T> {
     }
 
     /// Gets the inner ephemeron of the weak gc
-    pub(crate) fn inner(&self) -> &Ephemeron<T, Gc<T>> {
+    pub(crate) const fn inner(&self) -> &Ephemeron<T, Gc<T>> {
         &self.inner
     }
 }

@@ -62,6 +62,8 @@ impl<K: Trace + ?Sized, V: Trace> Ephemeron<K, V> {
 
     /// Creates a new `Ephemeron` that has no data
     pub(crate) fn new_empty() -> Self {
+        // SAFETY: `Allocator` can only return non-null pointers, making this
+        // safe.
         unsafe {
             Self {
                 inner_ptr: Cell::new(Rootable::new_unchecked(Allocator::alloc_ephemeron(

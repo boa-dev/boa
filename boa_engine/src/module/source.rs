@@ -1351,7 +1351,6 @@ impl SourceTextModule {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-source-text-module-record-initialize-environment
     fn initialize_environment(&self, context: &mut Context<'_>) -> JsResult<()> {
-        let parent = self.parent();
         #[derive(Debug)]
         enum ImportBinding {
             Namespace {
@@ -1363,6 +1362,8 @@ impl SourceTextModule {
                 export_locator: ResolvedBinding,
             },
         }
+
+        let parent = self.parent();
 
         {
             let src = self.borrow();
