@@ -296,11 +296,11 @@ impl Module {
         let module = parser.parse_module(context.interner_mut())?;
 
         Ok(Module {
-            inner: Gc::new(Inner {
+            inner: Gc::new_cyclic(|this| Inner {
                 realm: realm.unwrap_or_else(|| context.realm().clone()),
                 environment: GcRefCell::default(),
                 namespace: GcRefCell::default(),
-                kind: ModuleKind::SourceText(SourceTextModule::new(module)),
+                kind: ModuleKind::SourceText(SourceTextModule::new(module, this.clone())),
                 host_defined: (),
             }),
         })
@@ -332,7 +332,40 @@ impl Module {
     #[inline]
     pub fn load(&self, context: &mut Context<'_>) -> JsPromise {
         match self.kind() {
-            ModuleKind::SourceText(_) => SourceTextModule::load(self, context),
+            ModuleKind::SourceText(_) => {
+                // Concrete method [`LoadRequestedModules ( [ hostDefined ] )`][spec].
+                //
+                // [spec]: https://tc39.es/ecma262/#sec-LoadRequestedModules
+                // TODO: 1. If hostDefined is not present, let hostDefined be empty.
+
+                // 2. Let pc be ! NewPromiseCapability(%Promise%).
+                let pc = PromiseCapability::new(
+                    &context.intrinsics().constructors().promise().constructor(),
+                    context,
+                )
+                .expect(
+                    "capability creation must always succeed when using the `%Promise%` intrinsic",
+                );
+
+                // 4. Perform InnerModuleLoading(state, module).
+                self.inner_load(
+                    // 3. Let state be the GraphLoadingState Record {
+                    //     [[IsLoading]]: true, [[PendingModulesCount]]: 1, [[Visited]]: « »,
+                    //     [[PromiseCapability]]: pc, [[HostDefined]]: hostDefined
+                    // }.
+                    &Rc::new(GraphLoadingState {
+                        capability: pc.clone(),
+                        loading: Cell::new(true),
+                        pending_modules: Cell::new(1),
+                        visited: RefCell::default(),
+                    }),
+                    context,
+                );
+
+                // 5. Return pc.[[Promise]].
+                JsPromise::from_object(pc.promise().clone())
+                    .expect("promise created from the %Promise% intrinsic is always native")
+            }
             ModuleKind::Synthetic => todo!("synthetic.load()"),
         }
     }
@@ -344,9 +377,9 @@ impl Module {
         // 1. Assert: state.[[IsLoading]] is true.
         assert!(state.loading.get());
 
-        if let ModuleKind::SourceText(_) = self.kind() {
+        if let ModuleKind::SourceText(src) = self.kind() {
             // continues on `inner_load
-            SourceTextModule::inner_load(self, state, context);
+            src.inner_load(state, context);
             if !state.loading.get() {
                 return;
             }
@@ -374,33 +407,6 @@ impl Module {
                 .expect("marking a module as loaded should not fail");
         }
         // 6. Return unused.
-    }
-
-    /// Abstract operation [`ContinueModuleLoading ( state, moduleCompletion )`][spec].
-    ///
-    /// [spec]: https://tc39.es/ecma262/#sec-ContinueModuleLoading
-    fn resume_load(
-        state: &Rc<GraphLoadingState>,
-        completion: JsResult<Module>,
-        context: &mut Context<'_>,
-    ) {
-        if !state.loading.get() {
-            return;
-        }
-
-        match completion {
-            Ok(m) => {
-                m.inner_load(state, context);
-            }
-            Err(err) => {
-                state.loading.set(false);
-                state
-                    .capability
-                    .reject()
-                    .call(&JsValue::undefined(), &[err.to_opaque(context)], context)
-                    .expect("cannot fail for the default reject function");
-            }
-        }
     }
 
     /// Abstract method [`GetExportedNames([exportStarSet])`][spec].
@@ -437,9 +443,7 @@ impl Module {
         resolve_set: &mut FxHashSet<(Module, Sym)>,
     ) -> Result<ResolvedBinding, ResolveExportError> {
         match self.kind() {
-            ModuleKind::SourceText(_) => {
-                SourceTextModule::resolve_export(self, export_name, resolve_set)
-            }
+            ModuleKind::SourceText(src) => src.resolve_export(export_name, resolve_set),
             ModuleKind::Synthetic => todo!("synthetic.resolve_export()"),
         }
     }
@@ -458,7 +462,7 @@ impl Module {
     #[inline]
     pub fn link(&self, context: &mut Context<'_>) -> JsResult<()> {
         match self.kind() {
-            ModuleKind::SourceText(_) => SourceTextModule::link(self, context),
+            ModuleKind::SourceText(src) => src.link(context),
             ModuleKind::Synthetic => todo!("synthetic.link()"),
         }
     }
@@ -473,7 +477,7 @@ impl Module {
         context: &mut Context<'_>,
     ) -> JsResult<usize> {
         match self.kind() {
-            ModuleKind::SourceText(_) => SourceTextModule::inner_link(self, stack, index, context),
+            ModuleKind::SourceText(src) => src.inner_link(stack, index, context),
             #[allow(unreachable_code)]
             // If module is not a Cyclic Module Record, then
             ModuleKind::Synthetic => {

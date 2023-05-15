@@ -117,6 +117,25 @@ impl<K: Trace + ?Sized, V: Trace> EphemeronBox<K, V> {
         }
     }
 
+    pub(crate) fn new_empty() -> Self {
+        Self {
+            header: EphemeronBoxHeader::new(),
+            data: Cell::new(None),
+        }
+    }
+
+    pub(crate) fn init(&self, key: &Gc<K>, value: V) {
+        let data = Box::into_raw(Box::new(Data {
+            key: key.inner_ptr(),
+            value,
+        }));
+
+        // SAFETY: `Box::into_raw` must always return a non-null pointer.
+        let data = unsafe { NonNull::new_unchecked(data) };
+
+        self.data.set(Some(data));
+    }
+
     /// Returns `true` if the two references refer to the same `GcBox`.
     pub(crate) fn ptr_eq(this: &Self, other: &Self) -> bool {
         // Use .header to ignore fat pointer vtables, to work around

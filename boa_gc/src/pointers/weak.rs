@@ -23,6 +23,11 @@ impl<T: Trace> WeakGc<T> {
     pub fn upgrade(&self) -> Option<Gc<T>> {
         self.inner.value()
     }
+
+    /// Gets the inner ephemeron of the weak gc
+    pub(crate) fn inner(&self) -> &Ephemeron<T, Gc<T>> {
+        &self.inner
+    }
 }
 
 impl<T: Trace> Clone for WeakGc<T> {

@@ -60,6 +60,17 @@ impl<K: Trace + ?Sized, V: Trace> Ephemeron<K, V> {
         EphemeronBox::ptr_eq(this.inner(), other.inner())
     }
 
+    /// Creates a new `Ephemeron` that has no data
+    pub(crate) fn new_empty() -> Self {
+        unsafe {
+            Self {
+                inner_ptr: Cell::new(Rootable::new_unchecked(Allocator::alloc_ephemeron(
+                    EphemeronBox::new_empty(),
+                ))),
+            }
+        }
+    }
+
     fn is_rooted(&self) -> bool {
         self.inner_ptr.get().is_rooted()
     }
@@ -77,7 +88,7 @@ impl<K: Trace + ?Sized, V: Trace> Ephemeron<K, V> {
         self.inner_ptr.get().as_ptr()
     }
 
-    fn inner(&self) -> &EphemeronBox<K, V> {
+    pub(crate) fn inner(&self) -> &EphemeronBox<K, V> {
         // SAFETY: Please see Gc::inner_ptr()
         unsafe { self.inner_ptr().as_ref() }
     }

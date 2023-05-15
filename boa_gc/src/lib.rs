@@ -78,12 +78,7 @@ pub(crate) mod internals;
 
 use boa_profiler::Profiler;
 use internals::{EphemeronBox, ErasedEphemeronBox, ErasedWeakMapBox, WeakMapBox};
-use std::{
-    cell::{Cell, RefCell},
-    collections::HashMap,
-    mem,
-    ptr::NonNull,
-};
+use std::{cell::Cell, collections::HashMap, mem, ptr::NonNull};
 
 pub use crate::trace::{Finalize, Trace};
 pub use boa_macros::{Finalize, Trace};
@@ -96,36 +91,27 @@ type EphemeronPointer = NonNull<dyn ErasedEphemeronBox>;
 type ErasedWeakMapBoxPointer = NonNull<dyn ErasedWeakMapBox>;
 
 thread_local!(static GC_DROPPING: Cell<bool> = Cell::new(false));
-thread_local!(static BOA_GC: RefCell<BoaGc> = RefCell::new( BoaGc {
-    config: GcConfig::default(),
+thread_local!(static BOA_GC: BoaGc = BoaGc {
+    config: GcConfig {
+        threshold: Cell::new(1024),
+        used_space_percentage: Cell::new(80)
+    },
     runtime: GcRuntimeData::default(),
     strong_start: Cell::new(None),
     weak_start: Cell::new(None),
     weak_map_start: Cell::new(None),
-}));
+});
 
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone)]
 struct GcConfig {
-    threshold: usize,
-    used_space_percentage: usize,
+    threshold: Cell<usize>,
+    used_space_percentage: Cell<usize>,
 }
 
-// Setting the defaults to an arbitrary value currently.
-//
-// TODO: Add a configure later
-impl Default for GcConfig {
-    fn default() -> Self {
-        Self {
-            threshold: 1024,
-            used_space_percentage: 80,
-        }
-    }
-}
-
-#[derive(Default, Debug, Clone, Copy)]
+#[derive(Default, Debug, Clone)]
 struct GcRuntimeData {
-    collections: usize,
-    bytes_allocated: usize,
+    collections: Cell<usize>,
+    bytes_allocated: Cell<usize>,
 }
 
 #[derive(Debug)]
@@ -182,17 +168,17 @@ impl Allocator {
     fn alloc_gc<T: Trace>(value: GcBox<T>) -> NonNull<GcBox<T>> {
         let _timer = Profiler::global().start_event("New GcBox", "BoaAlloc");
         let element_size = mem::size_of_val::<GcBox<T>>(&value);
-        BOA_GC.with(|st| {
-            let mut gc = st.borrow_mut();
-
-            Self::manage_state(&mut gc);
+        BOA_GC.with(|gc| {
+            Self::manage_state(gc);
             value.header.next.set(gc.strong_start.take());
             // Safety: value cannot be a null pointer, since `Box` cannot return null pointers.
             let ptr = unsafe { NonNull::new_unchecked(Box::into_raw(Box::new(value))) };
             let erased: NonNull<GcBox<dyn Trace>> = ptr;
 
             gc.strong_start.set(Some(erased));
-            gc.runtime.bytes_allocated += element_size;
+            gc.runtime
+                .bytes_allocated
+                .set(gc.runtime.bytes_allocated.get() + element_size);
 
             ptr
         })
@@ -203,18 +189,17 @@ impl Allocator {
     ) -> NonNull<EphemeronBox<K, V>> {
         let _timer = Profiler::global().start_event("New EphemeronBox", "BoaAlloc");
         let element_size = mem::size_of_val::<EphemeronBox<K, V>>(&value);
-        BOA_GC.with(|st| {
-            let mut gc = st.borrow_mut();
-
-            Self::manage_state(&mut gc);
+        BOA_GC.with(|gc| {
+            Self::manage_state(&gc);
             value.header.next.set(gc.weak_start.take());
             // Safety: value cannot be a null pointer, since `Box` cannot return null pointers.
             let ptr = unsafe { NonNull::new_unchecked(Box::into_raw(Box::new(value))) };
             let erased: NonNull<dyn ErasedEphemeronBox> = ptr;
 
             gc.weak_start.set(Some(erased));
-            gc.runtime.bytes_allocated += element_size;
-
+            gc.runtime
+                .bytes_allocated
+                .set(gc.runtime.bytes_allocated.get() + element_size);
             ptr
         })
     }
@@ -227,9 +212,7 @@ impl Allocator {
         };
         let weak = WeakGc::new(&weak_map.inner);
 
-        BOA_GC.with(|st| {
-            let gc = st.borrow_mut();
-
+        BOA_GC.with(|gc| {
             let weak_box = WeakMapBox {
                 map: weak,
                 next: Cell::new(gc.weak_map_start.take()),
@@ -245,15 +228,18 @@ impl Allocator {
         })
     }
 
-    fn manage_state(gc: &mut BoaGc) {
-        if gc.runtime.bytes_allocated > gc.config.threshold {
+    fn manage_state(gc: &BoaGc) {
+        let bytes_allocated = gc.runtime.bytes_allocated.get();
+        let threshold = gc.config.threshold.get();
+        let used_space_percentage = gc.config.used_space_percentage.get();
+
+        if bytes_allocated > threshold {
             Collector::collect(gc);
 
-            if gc.runtime.bytes_allocated
-                > gc.config.threshold / 100 * gc.config.used_space_percentage
-            {
-                gc.config.threshold =
-                    gc.runtime.bytes_allocated / gc.config.used_space_percentage * 100;
+            if bytes_allocated > threshold / 100 * used_space_percentage {
+                gc.config
+                    .threshold
+                    .set(bytes_allocated / used_space_percentage * 100);
             }
         }
     }
@@ -280,9 +266,9 @@ struct Collector;
 
 impl Collector {
     /// Run a collection on the full heap.
-    fn collect(gc: &mut BoaGc) {
+    fn collect(gc: &BoaGc) {
         let _timer = Profiler::global().start_event("Gc Full Collection", "gc");
-        gc.runtime.collections += 1;
+        gc.runtime.collections.set(gc.runtime.collections.get() + 1);
         let unreachables = Self::mark_heap(&gc.strong_start, &gc.weak_start, &gc.weak_map_start);
 
         // Only finalize if there are any unreachable nodes.
@@ -300,7 +286,7 @@ impl Collector {
             Self::sweep(
                 &gc.strong_start,
                 &gc.weak_start,
-                &mut gc.runtime.bytes_allocated,
+                &gc.runtime.bytes_allocated,
             );
         }
 
@@ -450,7 +436,7 @@ impl Collector {
     unsafe fn sweep(
         mut strong: &Cell<Option<NonNull<GcBox<dyn Trace>>>>,
         mut weak: &Cell<Option<NonNull<dyn ErasedEphemeronBox>>>,
-        total_allocated: &mut usize,
+        total_allocated: &Cell<usize>,
     ) {
         let _timer = Profiler::global().start_event("Gc Sweeping", "gc");
         let _guard = DropGuard::new();
@@ -466,7 +452,7 @@ impl Collector {
                 // The caller must ensure all pointers were allocated by `Box::into_raw(Box::new(..))`.
                 let unmarked_node = unsafe { Box::from_raw(node.as_ptr()) };
                 let unallocated_bytes = mem::size_of_val(&*unmarked_node);
-                *total_allocated -= unallocated_bytes;
+                total_allocated.set(total_allocated.get() - unallocated_bytes);
                 strong.set(unmarked_node.header.next.take());
             }
         }
@@ -483,7 +469,7 @@ impl Collector {
                 // The caller must ensure all pointers were allocated by `Box::into_raw(Box::new(..))`.
                 let unmarked_eph = unsafe { Box::from_raw(eph.as_ptr()) };
                 let unallocated_bytes = mem::size_of_val(&*unmarked_eph);
-                *total_allocated -= unallocated_bytes;
+                total_allocated.set(total_allocated.get() - unallocated_bytes);
                 weak.set(unmarked_eph.header().next.take());
             }
         }
@@ -527,11 +513,9 @@ impl Collector {
 
 /// Forcefully runs a garbage collection of all unaccessible nodes.
 pub fn force_collect() {
-    BOA_GC.with(|current| {
-        let mut gc = current.borrow_mut();
-
-        if gc.runtime.bytes_allocated > 0 {
-            Collector::collect(&mut gc);
+    BOA_GC.with(|gc| {
+        if gc.runtime.bytes_allocated.get() > 0 {
+            Collector::collect(&gc);
         }
     });
 }
@@ -543,9 +527,5 @@ mod test;
 #[cfg(test)]
 #[must_use]
 pub fn has_weak_maps() -> bool {
-    BOA_GC.with(|current| {
-        let gc = current.borrow();
-
-        gc.weak_map_start.get().is_some()
-    })
+    BOA_GC.with(|gc| gc.weak_map_start.get().is_some())
 }

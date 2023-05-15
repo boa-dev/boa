@@ -1,5 +1,5 @@
 use std::{
-    cell::{Cell, RefCell},
+    cell::Cell,
     collections::{HashMap, HashSet},
     hash::Hash,
     rc::Rc,
@@ -16,7 +16,7 @@ use boa_ast::{
     },
     Declaration, ModuleItemList,
 };
-use boa_gc::{custom_trace, empty_trace, Finalize, Gc, GcRef, GcRefCell, GcRefMut, Trace};
+use boa_gc::{custom_trace, empty_trace, Finalize, Gc, GcRef, GcRefCell, GcRefMut, Trace, WeakGc};
 use boa_interner::Sym;
 use rustc_hash::{FxHashMap, FxHashSet};
 
@@ -252,6 +252,7 @@ impl std::fmt::Debug for SourceTextModule {
 
 #[derive(Finalize)]
 struct Inner {
+    parent: WeakGc<super::Inner>,
     code: ModuleItemList,
     status: Status,
     requested_modules: FxHashSet<Sym>,
@@ -285,6 +286,7 @@ impl std::fmt::Debug for Inner {
 
 unsafe impl Trace for Inner {
     custom_trace!(this, {
+        mark(&this.parent);
         mark(&this.status);
         for module in this.loaded_modules.values() {
             mark(module);
@@ -295,12 +297,23 @@ unsafe impl Trace for Inner {
 }
 
 impl SourceTextModule {
+    /// Gets the parent module of this source module.
+    fn parent(&self) -> Module {
+        Module {
+            inner: self
+                .borrow()
+                .parent
+                .upgrade()
+                .expect("source text cannot be dropped before parent module"),
+        }
+    }
+
     /// Creates a new `SourceTextModule` from a parsed `ModuleItemList`.
     ///
     /// Contains part of the abstract operation [`ParseModule`][parse].
     ///
     /// [parse]: https://tc39.es/ecma262/#sec-parsemodule
-    pub(super) fn new(code: ModuleItemList) -> Self {
+    pub(super) fn new(code: ModuleItemList, parent: WeakGc<super::Inner>) -> Self {
         // 3. Let requestedModules be the ModuleRequests of body.
         let requested_modules = code.requests();
         // 4. Let importEntries be ImportEntries of body.
@@ -380,6 +393,7 @@ impl SourceTextModule {
         // }.
         // Most of this can be ignored, since `Status` takes care of the remaining state.
         SourceTextModule(Gc::new(GcRefCell::new(Inner {
+            parent,
             code,
             requested_modules,
             has_tla,
@@ -394,58 +408,18 @@ impl SourceTextModule {
         })))
     }
 
-    /// Concrete method [`LoadRequestedModules ( [ hostDefined ] )`][spec].
-    ///
-    /// [spec]: https://tc39.es/ecma262/#sec-LoadRequestedModules
-    pub(super) fn load(module: &Module, context: &mut Context<'_>) -> JsPromise {
-        // TODO: 1. If hostDefined is not present, let hostDefined be empty.
-        // 2. Let pc be ! NewPromiseCapability(%Promise%).
-        let pc = PromiseCapability::new(
-            &context.intrinsics().constructors().promise().constructor(),
-            context,
-        )
-        .expect("capability creation must always succeed when using the `%Promise%` intrinsic");
-
-        // 4. Perform InnerModuleLoading(state, module).
-        module.inner_load(
-            // 3. Let state be the GraphLoadingState Record {
-            //     [[IsLoading]]: true, [[PendingModulesCount]]: 1, [[Visited]]: « »,
-            //     [[PromiseCapability]]: pc, [[HostDefined]]: hostDefined
-            // }.
-            &Rc::new(GraphLoadingState {
-                capability: pc.clone(),
-                loading: Cell::new(true),
-                pending_modules: Cell::new(1),
-                visited: RefCell::default(),
-            }),
-            context,
-        );
-
-        // 5. Return pc.[[Promise]].
-        JsPromise::from_object(pc.promise().clone())
-            .expect("promise created from the %Promise% intrinsic is always native")
-    }
-
     /// Abstract operation [`InnerModuleLoading`][spec].
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-InnerModuleLoading
-    pub(super) fn inner_load(
-        module: &Module,
-        state: &Rc<GraphLoadingState>,
-        context: &mut Context<'_>,
-    ) {
-        let ModuleKind::SourceText(src) = module.kind() else {
-            unreachable!("must only be called for `SourceTextModule`s");
-        };
-
+    pub(super) fn inner_load(&self, state: &Rc<GraphLoadingState>, context: &mut Context<'_>) {
         // 2. If module is a Cyclic Module Record, module.[[Status]] is new, and state.[[Visited]] does not contain
         //    module, then
         // a. Append module to state.[[Visited]].
-        if matches!(src.borrow().status, Status::Unlinked)
-            && state.visited.borrow_mut().insert(src.clone())
+        if matches!(self.borrow().status, Status::Unlinked)
+            && state.visited.borrow_mut().insert(self.clone())
         {
             // b. Let requestedModulesCount be the number of elements in module.[[RequestedModules]].
-            let requested = src.borrow().requested_modules.clone();
+            let requested = self.borrow().requested_modules.clone();
             // c. Set state.[[PendingModulesCount]] to state.[[PendingModulesCount]] + requestedModulesCount.
             state
                 .pending_modules
@@ -453,7 +427,7 @@ impl SourceTextModule {
             // d. For each String required of module.[[RequestedModules]], do
             for required in requested {
                 //     i. If module.[[LoadedModules]] contains a Record whose [[Specifier]] is required, then
-                let loaded = src.borrow().loaded_modules.get(&required).cloned();
+                let loaded = self.borrow().loaded_modules.get(&required).cloned();
                 if let Some(loaded) = loaded {
                     //         1. Let record be that Record.
                     //         2. Perform InnerModuleLoading(state, record.[[Module]]).
@@ -467,12 +441,12 @@ impl SourceTextModule {
                         .interner()
                         .resolve_expect(required)
                         .into_common(false);
-                    let src = src.clone();
+                    let src = self.clone();
                     let state = state.clone();
                     context.module_loader().load_imported_module(
-                        Referrer::Module(module.clone()),
+                        Referrer::Module(self.parent()),
                         name_specifier,
-                        Box::new(move |completion, ctx| {
+                        Box::new(move |completion, context| {
                             if let Ok(loaded) = &completion {
                                 let mut src = src.borrow_mut();
                                 let entry = src
@@ -482,7 +456,40 @@ impl SourceTextModule {
                                 debug_assert_eq!(entry, loaded);
                             }
 
-                            Module::resume_load(&state, completion, ctx);
+                            // Abstract operation `ContinueModuleLoading ( state, moduleCompletion )`.
+                            //
+                            // https://tc39.es/ecma262/#sec-ContinueModuleLoading
+
+                            // 1. If state.[[IsLoading]] is false, return unused.
+                            if !state.loading.get() {
+                                return;
+                            }
+
+                            // 2. If moduleCompletion is a normal completion, then
+                            match completion {
+                                Ok(m) => {
+                                    // a. Perform InnerModuleLoading(state, moduleCompletion.[[Value]]).
+                                    m.inner_load(&state, context);
+                                }
+                                // 3. Else,
+                                Err(err) => {
+                                    // a. Set state.[[IsLoading]] to false.
+                                    state.loading.set(false);
+
+                                    // b. Perform ! Call(state.[[PromiseCapability]].[[Reject]], undefined, « moduleCompletion.[[Value]] »).
+                                    state
+                                        .capability
+                                        .reject()
+                                        .call(
+                                            &JsValue::undefined(),
+                                            &[err.to_opaque(context)],
+                                            context,
+                                        )
+                                        .expect("cannot fail for the default reject function");
+                                }
+                            }
+
+                            // 4. Return unused.
                         }),
                         context,
                     );
@@ -559,27 +566,24 @@ impl SourceTextModule {
     /// [spec]: https://tc39.es/ecma262/#sec-resolveexport
     #[allow(clippy::mutable_key_type)]
     pub(super) fn resolve_export(
-        module: &Module,
+        &self,
         export_name: Sym,
         resolve_set: &mut FxHashSet<(Module, Sym)>,
     ) -> Result<ResolvedBinding, ResolveExportError> {
+        let parent = self.parent();
         // 1. Assert: module.[[Status]] is not new.
         // 2. If resolveSet is not present, set resolveSet to a new empty List.
-        let ModuleKind::SourceText(src) = module.kind() else {
-        unreachable!("must only be called for `SourceTextModule`s");
-    };
-
         // 3. For each Record { [[Module]], [[ExportName]] } r of resolveSet, do
         //     a. If module and r.[[Module]] are the same Module Record and SameValue(exportName, r.[[ExportName]]) is true, then
-        if resolve_set.contains(&(module.clone(), export_name)) {
+        if resolve_set.contains(&(parent.clone(), export_name)) {
             //         i. Assert: This is a circular import request.
             //         ii. Return null.
             return Err(ResolveExportError::NotFound);
         }
 
         // 4. Append the Record { [[Module]]: module, [[ExportName]]: exportName } to resolveSet.
-        resolve_set.insert((module.clone(), export_name));
-        let src = src.borrow();
+        resolve_set.insert((parent.clone(), export_name));
+        let src = self.borrow();
 
         // 5. For each ExportEntry Record e of module.[[LocalExportEntries]], do
         for e in &src.local_export_entries {
@@ -588,7 +592,7 @@ impl SourceTextModule {
                 //         i. Assert: module provides the direct binding for this export.
                 //         ii. Return ResolvedBinding Record { [[Module]]: module, [[BindingName]]: e.[[LocalName]] }.
                 return Ok(ResolvedBinding {
-                    module: module.clone(),
+                    module: parent,
                     binding_name: BindingName::Name(e.local_name()),
                 });
             }
@@ -681,14 +685,10 @@ impl SourceTextModule {
     /// Concrete method [`Link ( )`][spec].
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-moduledeclarationlinking
-    pub(super) fn link(module: &Module, context: &mut Context<'_>) -> JsResult<()> {
-        let ModuleKind::SourceText(src) = module.kind() else {
-            unreachable!("must only be called for `SourceTextModule`s");
-        };
-
+    pub(super) fn link(&self, context: &mut Context<'_>) -> JsResult<()> {
         // 1. Assert: module.[[Status]] is one of unlinked, linked, evaluating-async, or evaluated.
         debug_assert!(matches!(
-            src.borrow().status,
+            self.borrow().status,
             Status::Unlinked
                 | Status::Linked { .. }
                 | Status::EvaluatingAsync { .. }
@@ -700,7 +700,7 @@ impl SourceTextModule {
 
         // 3. Let result be Completion(InnerModuleLinking(module, stack, 0)).
         // 4. If result is an abrupt completion, then
-        if let Err(err) = Self::inner_link(module, &mut stack, 0, context) {
+        if let Err(err) = self.inner_link(&mut stack, 0, context) {
             //     a. For each Cyclic Module Record m of stack, do
             for m in stack {
                 //         i. Assert: m.[[Status]] is linking.
@@ -709,14 +709,14 @@ impl SourceTextModule {
                 m.borrow_mut().status = Status::Unlinked;
             }
             //     b. Assert: module.[[Status]] is unlinked.
-            assert!(matches!(src.borrow().status, Status::Unlinked));
+            assert!(matches!(self.borrow().status, Status::Unlinked));
             //     c. Return ? result.
             return Err(err);
         }
 
         // 5. Assert: module.[[Status]] is one of linked, evaluating-async, or evaluated.
         debug_assert!(matches!(
-            src.borrow().status,
+            self.borrow().status,
             Status::Linked { .. } | Status::EvaluatingAsync { .. } | Status::Evaluated { .. }
         ));
         // 6. Assert: stack is empty.
@@ -730,18 +730,14 @@ impl SourceTextModule {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-InnerModuleLinking
     pub(super) fn inner_link(
-        module: &Module,
+        &self,
         stack: &mut Vec<Self>,
         mut index: usize,
         context: &mut Context<'_>,
     ) -> JsResult<usize> {
-        let ModuleKind::SourceText(src) = module.kind() else {
-            unreachable!("must only be called for `SourceTextModule`s");
-        };
-
         // 2. If module.[[Status]] is one of linking, linked, evaluating-async, or evaluated, then
         if matches!(
-            src.borrow().status,
+            self.borrow().status,
             Status::Linking { .. }
                 | Status::PreLinked { .. }
                 | Status::Linked { .. }
@@ -753,10 +749,10 @@ impl SourceTextModule {
         }
 
         // 3. Assert: module.[[Status]] is unlinked.
-        debug_assert!(matches!(src.borrow().status, Status::Unlinked));
+        debug_assert!(matches!(self.borrow().status, Status::Unlinked));
 
         {
-            let mut module = src.borrow_mut();
+            let mut module = self.borrow_mut();
             // 4. Set module.[[Status]] to linking.
             // 5. Set module.[[DFSIndex]] to index.
             // 6. Set module.[[DFSAncestorIndex]] to index.
@@ -772,14 +768,14 @@ impl SourceTextModule {
         index += 1;
 
         // 8. Append module to stack.
-        stack.push(src.clone());
+        stack.push(self.clone());
 
         // 9. For each String required of module.[[RequestedModules]], do
 
-        let requested = src.borrow().requested_modules.clone();
+        let requested = self.borrow().requested_modules.clone();
         for required in requested {
             //     a. Let requiredModule be GetImportedModule(module, required).
-            let required_module = src.borrow().loaded_modules[&required].clone();
+            let required_module = self.borrow().loaded_modules[&required].clone();
 
             //     b. Set index to ? InnerModuleLinking(requiredModule, stack, index).
             index = required_module.inner_link(stack, index, context)?;
@@ -813,7 +809,7 @@ impl SourceTextModule {
                 };
 
                 if let Some(required_index) = required_index {
-                    let mut module = src.borrow_mut();
+                    let mut module = self.borrow_mut();
 
                     let DfsInfo {
                         dfs_ancestor_index, ..
@@ -825,16 +821,18 @@ impl SourceTextModule {
                 }
             }
         }
+
         // 10. Perform ? module.InitializeEnvironment().
-        Self::initialize_environment(module, context)?;
+        self.initialize_environment(context)?;
+
         // 11. Assert: module occurs exactly once in stack.
-        debug_assert_eq!(stack.iter().filter(|module| *module == src).count(), 1);
+        debug_assert_eq!(stack.iter().filter(|module| *module == self).count(), 1);
         // 12. Assert: module.[[DFSAncestorIndex]] ≤ module.[[DFSIndex]].
         debug_assert!({
             let DfsInfo {
                 dfs_ancestor_index,
                 dfs_index,
-            } = src
+            } = self
                 .borrow()
                 .status
                 .dfs_info()
@@ -843,7 +841,7 @@ impl SourceTextModule {
             dfs_ancestor_index <= dfs_index
         });
 
-        let info = src.borrow().status.dfs_info().copied();
+        let info = self.borrow().status.dfs_info().copied();
         match info {
             // 13. If module.[[DFSAncestorIndex]] = module.[[DFSIndex]], then
 
@@ -867,7 +865,7 @@ impl SourceTextModule {
                     });
 
                 //         v. If requiredModule and module are the same Module Record, set done to true.
-                if &last == src {
+                if &last == self {
                     break;
                 }
             },
@@ -914,8 +912,8 @@ impl SourceTextModule {
         };
 
         // 4. If module.[[TopLevelCapability]] is not empty, then
-        //     a. Return module.[[TopLevelCapability]].[[Promise]].
         if let Some(promise) = promise {
+            // a. Return module.[[TopLevelCapability]].[[Promise]].
             return promise;
         }
 
@@ -959,39 +957,39 @@ impl SourceTextModule {
             }
             // 9. If result is an abrupt completion, then
             Err(err) => {
-                //     a. For each Cyclic Module Record m of stack, do
+                // a. For each Cyclic Module Record m of stack, do
                 for m in stack {
-                    //         i. Assert: m.[[Status]] is evaluating.
-                    //         ii. Set m.[[Status]] to evaluated.
-                    //         iii. Set m.[[EvaluationError]] to result.
-                    m.borrow_mut().status.
-                    transition(|current| match current {
+                    m.borrow_mut().status.transition(|current| match current {
+                        // i. Assert: m.[[Status]] is evaluating.
                         Status::Evaluating {
                             top_level_capability,
                             cycle_root,
                             ..
-                        }
-                        | Status::EvaluatingAsync {
+                        } | Status::EvaluatingAsync {
                             top_level_capability,
                             cycle_root,
-                                ..
-                            } => Status::Evaluated {
+                            ..
+                        } => {
+                            // ii. Set m.[[Status]] to evaluated.
+                            // iii. Set m.[[EvaluationError]] to result.
+                            Status::Evaluated {
                                 top_level_capability,
                                 cycle_root,
                                 error: Some(err.clone()),
-                            },
-                            _ => panic!(
-                                "can only transition to `Evaluated` from the `Evaluating` or `EvaluatingAsync states"
-                            ),
-                        });
+                            }
+                        },
+                        _ => panic!(
+                            "can only transition to `Evaluated` from the `Evaluating` or `EvaluatingAsync states"
+                        ),
+                    });
                 }
-                //     b. Assert: module.[[Status]] is evaluated.
-                //     c. Assert: module.[[EvaluationError]] is result.
+                // b. Assert: module.[[Status]] is evaluated.
+                // c. Assert: module.[[EvaluationError]] is result.
                 assert!(
                     matches!(&self.borrow().status, Status::Evaluated { error, .. } if error.is_some())
                 );
 
-                //     d. Perform ! Call(capability.[[Reject]], undefined, « result.[[Value]] »).
+                // d. Perform ! Call(capability.[[Reject]], undefined, « result.[[Value]] »).
                 capability
                     .reject()
                     .call(&JsValue::undefined(), &[err.to_opaque(context)], context)
@@ -1352,7 +1350,8 @@ impl SourceTextModule {
     /// Abstract operation [`InitializeEnvironment ( )`][spec].
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-source-text-module-record-initialize-environment
-    fn initialize_environment(module: &Module, context: &mut Context<'_>) -> JsResult<()> {
+    fn initialize_environment(&self, context: &mut Context<'_>) -> JsResult<()> {
+        let parent = self.parent();
         #[derive(Debug)]
         enum ImportBinding {
             Namespace {
@@ -1365,16 +1364,12 @@ impl SourceTextModule {
             },
         }
 
-        let ModuleKind::SourceText(src) = module.kind() else {
-            unreachable!("must only be called for `SourceTextModule`s");
-        };
-
         {
-            let src = src.borrow();
+            let src = self.borrow();
             // 1. For each ExportEntry Record e of module.[[IndirectExportEntries]], do
             for e in &src.indirect_export_entries {
                 //     a. Let resolution be module.ResolveExport(e.[[ExportName]]).
-                module
+                parent
                     .resolve_export(e.export_name(), &mut HashSet::default())
                     //     b. If resolution is either null or ambiguous, throw a SyntaxError exception.
                     .map_err(|err| match err {
@@ -1398,7 +1393,7 @@ impl SourceTextModule {
         // 2. Assert: All named exports from module are resolvable.
         // 3. Let realm be module.[[Realm]].
         // 4. Assert: realm is not undefined.
-        let mut realm = module.realm().clone();
+        let mut realm = parent.realm().clone();
 
         // 5. Let env be NewModuleEnvironment(realm.[[GlobalEnv]]).
         // 6. Set module.[[Environment]] to env.
@@ -1415,7 +1410,7 @@ impl SourceTextModule {
 
         let codeblock = {
             // 7. For each ImportEntry Record in of module.[[ImportEntries]], do
-            let src = src.borrow();
+            let src = self.borrow();
             for entry in &src.import_entries {
                 //     a. Let importedModule be GetImportedModule(module, in.[[ModuleRequest]]).
                 let imported_module = &src.loaded_modules[&entry.module_request()];
@@ -1633,10 +1628,10 @@ impl SourceTextModule {
         context.swap_realm(&mut realm);
 
         debug_assert!(envs.current().as_declarative().is_some());
-        *module.inner.environment.borrow_mut() = envs.current().as_declarative().cloned();
+        *parent.inner.environment.borrow_mut() = envs.current().as_declarative().cloned();
 
         // 16. Set module.[[Context]] to moduleContext.
-        src.borrow_mut().status.transition(|state| match state {
+        self.borrow_mut().status.transition(|state| match state {
             Status::Linking { info } => Status::PreLinked {
                 info,
                 context: SourceTextContext {

@@ -85,9 +85,9 @@ impl fmt::Debug for GcBoxHeader {
 
 /// A garbage collected allocation.
 #[derive(Debug)]
-pub struct GcBox<T: Trace + ?Sized + 'static> {
+pub struct GcBox<T: ?Sized + 'static> {
     pub(crate) header: GcBoxHeader,
-    value: T,
+    pub(crate) value: T,
 }
 
 impl<T: Trace> GcBox<T> {
