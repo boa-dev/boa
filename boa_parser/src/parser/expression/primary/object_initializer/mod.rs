@@ -601,7 +601,7 @@ where
                 interner.get_or_intern_static(utf8, utf16).into()
             }
             TokenKind::NullLiteral => (Sym::NULL).into(),
-            TokenKind::BooleanLiteral(bool) => match bool {
+            TokenKind::BooleanLiteral((bool, _)) => match bool {
                 true => Sym::TRUE.into(),
                 false => Sym::FALSE.into(),
             },

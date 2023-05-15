@@ -131,10 +131,10 @@ where
                             TokenKind::Keyword((kw, _)) => {
                                 SuperPropertyAccess::new(kw.to_sym().into())
                             }
-                            TokenKind::BooleanLiteral(true) => {
+                            TokenKind::BooleanLiteral((true, _)) => {
                                 SuperPropertyAccess::new(Sym::TRUE.into())
                             }
-                            TokenKind::BooleanLiteral(false) => {
+                            TokenKind::BooleanLiteral((false, _)) => {
                                 SuperPropertyAccess::new(Sym::FALSE.into())
                             }
                             TokenKind::NullLiteral => SuperPropertyAccess::new(Sym::NULL.into()),
@@ -193,10 +193,10 @@ where
                         TokenKind::Keyword((kw, _)) => {
                             SimplePropertyAccess::new(lhs, kw.to_sym()).into()
                         }
-                        TokenKind::BooleanLiteral(true) => {
+                        TokenKind::BooleanLiteral((true, _)) => {
                             SimplePropertyAccess::new(lhs, Sym::TRUE).into()
                         }
-                        TokenKind::BooleanLiteral(false) => {
+                        TokenKind::BooleanLiteral((false, _)) => {
                             SimplePropertyAccess::new(lhs, Sym::FALSE).into()
                         }
                         TokenKind::NullLiteral => SimplePropertyAccess::new(lhs, Sym::NULL).into(),

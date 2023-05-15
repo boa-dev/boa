@@ -95,7 +95,7 @@ impl From<BigInt> for Numeric {
 #[derive(Clone, PartialEq, Debug)]
 pub enum TokenKind {
     /// A boolean literal, which is either `true` or `false`.
-    BooleanLiteral(bool),
+    BooleanLiteral((bool, ContainsEscapeSequence)),
 
     /// The end of the file.
     EOF,
@@ -152,7 +152,7 @@ pub enum TokenKind {
 impl From<bool> for TokenKind {
     #[inline]
     fn from(oth: bool) -> Self {
-        Self::BooleanLiteral(oth)
+        Self::BooleanLiteral((oth, ContainsEscapeSequence(false)))
     }
 }
 
@@ -182,7 +182,7 @@ impl TokenKind {
     #[inline]
     #[must_use]
     pub const fn boolean_literal(lit: bool) -> Self {
-        Self::BooleanLiteral(lit)
+        Self::BooleanLiteral((lit, ContainsEscapeSequence(false)))
     }
 
     /// Creates an `EOF` token kind.
@@ -261,7 +261,7 @@ impl TokenKind {
     #[must_use]
     pub fn to_string(&self, interner: &Interner) -> String {
         match *self {
-            Self::BooleanLiteral(val) => val.to_string(),
+            Self::BooleanLiteral((val, _)) => val.to_string(),
             Self::EOF => "end of file".to_owned(),
             Self::IdentifierName((ident, _)) => interner.resolve_expect(ident).to_string(),
             Self::PrivateIdentifier(ident) => format!("#{}", interner.resolve_expect(ident)),
