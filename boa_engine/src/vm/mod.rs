@@ -14,7 +14,7 @@ use crate::{
     Context, JsError, JsObject, JsResult, JsValue, Module,
 };
 
-use boa_gc::Gc;
+use boa_gc::{custom_trace, Finalize, Gc, Trace};
 use boa_profiler::Profiler;
 use std::{convert::TryInto, mem::size_of};
 
@@ -63,10 +63,19 @@ pub struct Vm {
 }
 
 /// Active runnable in the current vm context.
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Finalize)]
 pub(crate) enum ActiveRunnable {
     Script(Script),
     Module(Module),
+}
+
+unsafe impl Trace for ActiveRunnable {
+    custom_trace!(this, {
+        match this {
+            ActiveRunnable::Script(script) => mark(script),
+            ActiveRunnable::Module(module) => mark(module),
+        }
+    });
 }
 
 impl Vm {

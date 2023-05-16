@@ -2333,7 +2333,7 @@ fn new_promise_reaction_job(
     };
 
     // 4. Return the Record { [[Job]]: job, [[Realm]]: handlerRealm }.
-    NativeJob::with_realm(job, realm)
+    NativeJob::with_realm(job, realm, context)
 }
 
 /// More information:
@@ -2387,5 +2387,5 @@ fn new_promise_resolve_thenable_job(
     };
 
     // 6. Return the Record { [[Job]]: job, [[Realm]]: thenRealm }.
-    NativeJob::with_realm(job, realm)
+    NativeJob::with_realm(job, realm, context)
 }

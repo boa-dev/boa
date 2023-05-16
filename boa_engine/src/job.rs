@@ -22,6 +22,7 @@ use std::{any::Any, cell::RefCell, collections::VecDeque, fmt::Debug, future::Fu
 use crate::{
     object::{JsFunction, NativeObject},
     realm::Realm,
+    vm::ActiveRunnable,
     Context, JsResult, JsValue,
 };
 use boa_gc::{Finalize, Trace};
@@ -68,6 +69,7 @@ pub struct NativeJob {
     #[allow(clippy::type_complexity)]
     f: Box<dyn FnOnce(&mut Context<'_>) -> JsResult<JsValue>>,
     realm: Option<Realm>,
+    active_runnable: Option<ActiveRunnable>,
 }
 
 impl Debug for NativeJob {
@@ -85,17 +87,19 @@ impl NativeJob {
         Self {
             f: Box::new(f),
             realm: None,
+            active_runnable: None,
         }
     }
 
     /// Creates a new `NativeJob` from a closure and an execution realm.
-    pub fn with_realm<F>(f: F, realm: Realm) -> Self
+    pub fn with_realm<F>(f: F, realm: Realm, context: &mut Context<'_>) -> Self
     where
         F: FnOnce(&mut Context<'_>) -> JsResult<JsValue> + 'static,
     {
         Self {
             f: Box::new(f),
             realm: Some(realm),
+            active_runnable: context.vm.active_runnable.clone(),
         }
     }
 
@@ -110,11 +114,24 @@ impl NativeJob {
     ///
     /// If the native job has an execution realm defined, this sets the running execution
     /// context to the realm's before calling the inner closure, and resets it after execution.
-    pub fn call(self, context: &mut Context<'_>) -> JsResult<JsValue> {
+    pub fn call(mut self, context: &mut Context<'_>) -> JsResult<JsValue> {
+        // If realm is not null, each time job is invoked the implementation must perform
+        // implementation-defined steps such that execution is prepared to evaluate ECMAScript
+        // code at the time of job's invocation.
         if let Some(realm) = self.realm {
             let old_realm = context.enter_realm(realm);
+
+            // Let scriptOrModule be GetActiveScriptOrModule() at the time HostEnqueuePromiseJob is
+            // invoked. If realm is not null, each time job is invoked the implementation must
+            // perform implementation-defined steps such that scriptOrModule is the active script or
+            // module at the time of job's invocation.
+            std::mem::swap(&mut context.vm.active_runnable, &mut self.active_runnable);
+
             let result = (self.f)(context);
+
             context.enter_realm(old_realm);
+            std::mem::swap(&mut context.vm.active_runnable, &mut self.active_runnable);
+
             result
         } else {
             (self.f)(context)
@@ -173,8 +190,22 @@ impl JobCallback {
 pub trait JobQueue {
     /// [`HostEnqueuePromiseJob ( job, realm )`][spec].
     ///
-    /// Enqueues a [`NativeJob`] on the job queue. Note that host-defined [Jobs] need to satisfy
-    /// a set of requirements for them to be spec-compliant.
+    /// Enqueues a [`NativeJob`] on the job queue.
+    ///
+    /// # Requirements
+    ///
+    /// Per the [spec]:
+    /// > An implementation of `HostEnqueuePromiseJob` must conform to the requirements in [9.5][Jobs] as well as the
+    ///   following:
+    /// > - If `realm` is not null, each time `job` is invoked the implementation must perform implementation-defined steps
+    ///     such that execution is prepared to evaluate ECMAScript code at the time of job's invocation.
+    /// > - Let `scriptOrModule` be `GetActiveScriptOrModule()` at the time `HostEnqueuePromiseJob` is invoked. If realm
+    ///     is not null, each time job is invoked the implementation must perform implementation-defined steps such that
+    ///     scriptOrModule is the active script or module at the time of job's invocation.
+    /// > - Jobs must run in the same order as the `HostEnqueuePromiseJob` invocations that scheduled them.
+    ///
+    /// Of all the requirements, Boa guarantees the first two by its internal implementation of `NativeJob`, meaning
+    /// the implementer must only guarantee that jobs are run in the same order as they're enqueued.
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-hostenqueuepromisejob
     /// [Jobs]: https://tc39.es/ecma262/#sec-jobs

@@ -26,7 +26,7 @@ use crate::{
     string::utf16,
     symbol::JsSymbol,
     value::IntegerOrInfinity,
-    vm::CodeBlock,
+    vm::{ActiveRunnable, CodeBlock},
     Context, JsArgs, JsResult, JsString, JsValue,
 };
 use boa_ast::{
@@ -177,6 +177,9 @@ pub(crate) enum FunctionKind {
 
         /// The class object that this function is associated with.
         class_object: Option<JsObject>,
+
+        /// The `[[ScriptOrModule]]` internal slot.
+        script_or_module: Option<ActiveRunnable>,
     },
 
     /// A bytecode async function.
@@ -192,6 +195,9 @@ pub(crate) enum FunctionKind {
 
         /// The class object that this function is associated with.
         class_object: Option<JsObject>,
+
+        /// The `[[ScriptOrModule]]` internal slot.
+        script_or_module: Option<ActiveRunnable>,
     },
 
     /// A bytecode generator function.
@@ -207,6 +213,9 @@ pub(crate) enum FunctionKind {
 
         /// The class object that this function is associated with.
         class_object: Option<JsObject>,
+
+        /// The `[[ScriptOrModule]]` internal slot.
+        script_or_module: Option<ActiveRunnable>,
     },
 
     /// A bytecode async generator function.
@@ -222,6 +231,9 @@ pub(crate) enum FunctionKind {
 
         /// The class object that this function is associated with.
         class_object: Option<JsObject>,
+
+        /// The `[[ScriptOrModule]]` internal slot.
+        script_or_module: Option<ActiveRunnable>,
     },
 }
 
@@ -268,13 +280,14 @@ unsafe impl Trace for FunctionKind {
                 }
                 mark(class_object);
             }
-            Self::Async { code, environments, home_object, class_object }
-            | Self::Generator { code, environments, home_object, class_object}
-            | Self::AsyncGenerator { code, environments, home_object, class_object} => {
+            Self::Async { code, environments, home_object, class_object, script_or_module }
+            | Self::Generator { code, environments, home_object, class_object, script_or_module}
+            | Self::AsyncGenerator { code, environments, home_object, class_object, script_or_module} => {
                 mark(code);
                 mark(environments);
                 mark(home_object);
                 mark(class_object);
+                mark(script_or_module);
             }
         }
     }}
