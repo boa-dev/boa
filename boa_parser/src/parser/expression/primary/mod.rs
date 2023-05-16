@@ -27,7 +27,10 @@ use self::{
     object_initializer::ObjectLiteral,
 };
 use crate::{
-    lexer::{token::Numeric, InputElement, Token, TokenKind},
+    lexer::{
+        token::{ContainsEscapeSequence, Numeric},
+        InputElement, Token, TokenKind,
+    },
     parser::{
         expression::{
             identifiers::IdentifierReference, primary::template::TemplateLiteral,
@@ -103,7 +106,9 @@ where
         let tok_position = tok.span().start();
 
         match tok.kind() {
-            TokenKind::Keyword((Keyword::This, true)) => Err(Error::general(
+            TokenKind::Keyword((Keyword::This, true))
+            | TokenKind::BooleanLiteral((_, ContainsEscapeSequence(true)))
+            | TokenKind::NullLiteral(ContainsEscapeSequence(true)) => Err(Error::general(
                 "Keyword must not contain escaped characters",
                 tok_position,
             )),
@@ -193,12 +198,12 @@ where
                     .parse(cursor, interner)
                     .map(Into::into)
             }
-            TokenKind::BooleanLiteral(boolean) => {
+            TokenKind::BooleanLiteral((boolean, _)) => {
                 let node = Literal::from(*boolean).into();
                 cursor.advance(interner);
                 Ok(node)
             }
-            TokenKind::NullLiteral => {
+            TokenKind::NullLiteral(_) => {
                 cursor.advance(interner);
                 Ok(Literal::Null.into())
             }
