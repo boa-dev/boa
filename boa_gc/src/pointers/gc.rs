@@ -1,8 +1,8 @@
 use crate::{
     finalizer_safe,
-    internals::{GcBox, GcBoxHeader},
+    internals::GcBox,
     trace::{Finalize, Trace},
-    Allocator, Ephemeron, WeakGc, BOA_GC,
+    Allocator,
 };
 use std::{
     cell::Cell,
@@ -10,9 +10,8 @@ use std::{
     fmt::{self, Debug, Display},
     hash::{Hash, Hasher},
     marker::PhantomData,
-    mem,
     ops::Deref,
-    ptr::{self, NonNull},
+    ptr::NonNull,
     rc::Rc,
 };
 
@@ -42,70 +41,6 @@ impl<T: Trace> Gc<T> {
             inner_ptr: Cell::new(inner_ptr.rooted()),
             marker: PhantomData,
         }
-    }
-
-    /// Constructs a new `Gc<T>` while giving you a `WeakGc<T>` to the allocation,
-    /// to allow you to construct a `T` which holds a weak pointer to itself.
-    ///
-    /// Since the new `Gc<T>` is not fully-constructed until `Gc<T>::new_cyclic`
-    /// returns, calling [`WeakGc::upgrade`] on the weak reference inside the closure will
-    /// fail and result in a `None` value.
-    pub fn new_cyclic<F>(data_fn: F) -> Self
-    where
-        F: FnOnce(&WeakGc<T>) -> T,
-    {
-        // Create GcBox and allocate it to heap.
-        let inner_ptr = BOA_GC.with(|st| {
-            let mut gc = st.borrow_mut();
-
-            Allocator::manage_state(&mut gc);
-
-            let header = GcBoxHeader::new();
-
-            header.next.set(gc.strong_start.take());
-
-            // Safety: value cannot be a null pointer, since `Box` cannot return null pointers.
-            unsafe {
-                NonNull::new_unchecked(Box::into_raw(Box::new(GcBox {
-                    header,
-                    value: mem::MaybeUninit::<T>::uninit(),
-                })))
-            }
-        });
-
-        let init_ptr: NonNull<GcBox<T>> = inner_ptr.cast();
-
-        let weak = WeakGc::from(Ephemeron::new_empty());
-
-        let data = data_fn(&weak);
-
-        // SAFETY: `inner_ptr` has been allocated above, so making writes to `init_ptr` is safe.
-        let strong = unsafe {
-            let inner = init_ptr.as_ptr();
-            ptr::write(ptr::addr_of_mut!((*inner).value), data);
-
-            // `strong` must be a valid value that implements [`Trace`].
-            (*inner).value.unroot();
-
-            // `init_ptr` is initialized and its contents are unrooted, making this operation safe.
-            Self::from_raw(init_ptr)
-        };
-
-        BOA_GC.with(|st| {
-            let mut gc = st.borrow_mut();
-            let erased: NonNull<GcBox<dyn Trace>> = init_ptr;
-
-            gc.strong_start.set(Some(erased));
-            gc.runtime.bytes_allocated += mem::size_of::<GcBox<T>>();
-        });
-
-        // SAFETY: `init_ptr` is initialized and its contents are unrooted, making this operation
-        // safe.
-        unsafe {
-            weak.inner().inner().init(&strong, Self::from_raw(init_ptr));
-        }
-
-        strong
     }
 
     /// Consumes the `Gc`, returning a wrapped raw pointer.

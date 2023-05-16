@@ -295,15 +295,21 @@ impl Module {
         parser.set_identifier(context.next_parser_identifier());
         let module = parser.parse_module(context.interner_mut())?;
 
-        Ok(Module {
-            inner: Gc::new_cyclic(|this| Inner {
+        let src = SourceTextModule::new(module);
+
+        let module = Module {
+            inner: Gc::new(Inner {
                 realm: realm.unwrap_or_else(|| context.realm().clone()),
                 environment: GcRefCell::default(),
                 namespace: GcRefCell::default(),
-                kind: ModuleKind::SourceText(SourceTextModule::new(module, this.clone())),
+                kind: ModuleKind::SourceText(src.clone()),
                 host_defined: (),
             }),
-        })
+        };
+
+        src.set_parent(module.clone());
+
+        Ok(module)
     }
 
     /// Gets the realm of this `Module`.

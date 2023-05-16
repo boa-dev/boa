@@ -11,7 +11,7 @@ use boa_ast::{
     },
     Declaration, ModuleItemList,
 };
-use boa_gc::{custom_trace, empty_trace, Finalize, Gc, GcRefCell, Trace, WeakGc};
+use boa_gc::{custom_trace, empty_trace, Finalize, Gc, GcRefCell, Trace};
 use boa_interner::Sym;
 use rustc_hash::{FxHashMap, FxHashSet};
 
@@ -241,21 +241,11 @@ impl std::fmt::Debug for SourceTextModule {
 
         if !limiter.visited && !limiter.live {
             f.debug_struct("SourceTextModule")
-                .field("code", &self.inner.code)
                 .field("status", &self.inner.status)
-                .field("requested_modules", &self.inner.requested_modules)
                 .field("loaded_modules", &self.inner.loaded_modules)
-                .field("has_tla", &self.inner.has_tla)
                 .field("async_parent_modules", &self.inner.async_parent_modules)
                 .field("import_meta", &self.inner.import_meta)
-                .field("import_entries", &self.inner.import_entries)
-                .field("local_export_entries", &self.inner.local_export_entries)
-                .field(
-                    "indirect_export_entries",
-                    &self.inner.indirect_export_entries,
-                )
-                .field("star_export_entries", &self.inner.star_export_entries)
-                .finish()
+                .finish_non_exhaustive()
         } else {
             f.write_str("{ ... }")
         }
@@ -264,35 +254,39 @@ impl std::fmt::Debug for SourceTextModule {
 
 #[derive(Trace, Finalize)]
 struct Inner {
-    parent: WeakGc<super::Inner>,
+    parent: GcRefCell<Option<Module>>,
     status: GcRefCell<Status>,
     loaded_modules: GcRefCell<FxHashMap<Sym, Module>>,
     async_parent_modules: GcRefCell<Vec<SourceTextModule>>,
     import_meta: GcRefCell<Option<JsObject>>,
-    requested_modules: FxHashSet<Sym>,
+    #[unsafe_ignore_trace]
+    code: ModuleCode,
+}
+
+#[derive(Debug)]
+struct ModuleCode {
     has_tla: bool,
-    #[unsafe_ignore_trace]
-    code: ModuleItemList,
-    #[unsafe_ignore_trace]
+    requested_modules: FxHashSet<Sym>,
+    node: ModuleItemList,
     import_entries: Vec<ImportEntry>,
-    #[unsafe_ignore_trace]
     local_export_entries: Vec<LocalExportEntry>,
-    #[unsafe_ignore_trace]
     indirect_export_entries: Vec<IndirectExportEntry>,
-    #[unsafe_ignore_trace]
     star_export_entries: Vec<Sym>,
 }
 
 impl SourceTextModule {
+    /// Sets the parent module of this source module.
+    pub(super) fn set_parent(&self, parent: Module) {
+        *self.inner.parent.borrow_mut() = Some(parent);
+    }
+
     /// Gets the parent module of this source module.
     fn parent(&self) -> Module {
-        Module {
-            inner: self
-                .inner
-                .parent
-                .upgrade()
-                .expect("source text cannot be dropped before parent module"),
-        }
+        self.inner
+            .parent
+            .borrow()
+            .clone()
+            .expect("parent module must be initialized")
     }
 
     /// Creates a new `SourceTextModule` from a parsed `ModuleItemList`.
@@ -300,7 +294,7 @@ impl SourceTextModule {
     /// Contains part of the abstract operation [`ParseModule`][parse].
     ///
     /// [parse]: https://tc39.es/ecma262/#sec-parsemodule
-    pub(super) fn new(code: ModuleItemList, parent: WeakGc<super::Inner>) -> Self {
+    pub(super) fn new(code: ModuleItemList) -> Self {
         // 3. Let requestedModules be the ModuleRequests of body.
         let requested_modules = code.requests();
         // 4. Let importEntries be ImportEntries of body.
@@ -381,18 +375,20 @@ impl SourceTextModule {
         // Most of this can be ignored, since `Status` takes care of the remaining state.
         Self {
             inner: Gc::new(Inner {
-                parent,
-                code,
-                requested_modules,
-                has_tla,
-                import_entries,
-                local_export_entries,
-                indirect_export_entries,
-                star_export_entries,
+                parent: GcRefCell::default(),
                 status: GcRefCell::default(),
                 loaded_modules: GcRefCell::default(),
                 async_parent_modules: GcRefCell::default(),
                 import_meta: GcRefCell::default(),
+                code: ModuleCode {
+                    node: code,
+                    requested_modules,
+                    has_tla,
+                    import_entries,
+                    local_export_entries,
+                    indirect_export_entries,
+                    star_export_entries,
+                },
             }),
         }
     }
@@ -408,7 +404,7 @@ impl SourceTextModule {
             && state.visited.borrow_mut().insert(self.clone())
         {
             // b. Let requestedModulesCount be the number of elements in module.[[RequestedModules]].
-            let requested = &self.inner.requested_modules;
+            let requested = &self.inner.code.requested_modules;
             // c. Set state.[[PendingModulesCount]] to state.[[PendingModulesCount]] + requestedModulesCount.
             state
                 .pending_modules
@@ -526,21 +522,21 @@ impl SourceTextModule {
         let mut exported_names = FxHashSet::default();
 
         // 6. For each ExportEntry Record e of module.[[LocalExportEntries]], do
-        for e in &self.inner.local_export_entries {
+        for e in &self.inner.code.local_export_entries {
             //     a. Assert: module provides the direct binding for this export.
             //     b. Append e.[[ExportName]] to exportedNames.
             exported_names.insert(e.export_name());
         }
 
         // 7. For each ExportEntry Record e of module.[[IndirectExportEntries]], do
-        for e in &self.inner.indirect_export_entries {
+        for e in &self.inner.code.indirect_export_entries {
             //     a. Assert: module imports a specific binding for this export.
             //     b. Append e.[[ExportName]] to exportedNames.
             exported_names.insert(e.export_name());
         }
 
         // 8. For each ExportEntry Record e of module.[[StarExportEntries]], do
-        for e in &self.inner.star_export_entries {
+        for e in &self.inner.code.star_export_entries {
             //     a. Let requestedModule be GetImportedModule(module, e.[[ModuleRequest]]).
             let requested_module = self.inner.loaded_modules.borrow()[e].clone();
 
@@ -584,7 +580,7 @@ impl SourceTextModule {
         resolve_set.insert((parent.clone(), export_name));
 
         // 5. For each ExportEntry Record e of module.[[LocalExportEntries]], do
-        for e in &self.inner.local_export_entries {
+        for e in &self.inner.code.local_export_entries {
             //     a. If SameValue(exportName, e.[[ExportName]]) is true, then
             if export_name == e.export_name() {
                 //         i. Assert: module provides the direct binding for this export.
@@ -597,7 +593,7 @@ impl SourceTextModule {
         }
 
         // 6. For each ExportEntry Record e of module.[[IndirectExportEntries]], do
-        for e in &self.inner.indirect_export_entries {
+        for e in &self.inner.code.indirect_export_entries {
             //     a. If SameValue(exportName, e.[[ExportName]]) is true, then
             if export_name == e.export_name() {
                 //         i. Let importedModule be GetImportedModule(module, e.[[ModuleRequest]]).
@@ -633,7 +629,7 @@ impl SourceTextModule {
         let mut star_resolution: Option<ResolvedBinding> = None;
 
         // 9. For each ExportEntry Record e of module.[[StarExportEntries]], do
-        for e in &self.inner.star_export_entries {
+        for e in &self.inner.code.star_export_entries {
             //     a. Let importedModule be GetImportedModule(module, e.[[ModuleRequest]]).
             let imported_module = self.inner.loaded_modules.borrow()[e].clone();
             //     b. Let resolution be importedModule.ResolveExport(exportName, resolveSet).
@@ -768,7 +764,7 @@ impl SourceTextModule {
 
         // 9. For each String required of module.[[RequestedModules]], do
 
-        for required in &self.inner.requested_modules {
+        for required in &self.inner.code.requested_modules {
             //     a. Let requiredModule be GetImportedModule(module, required).
             let required_module = self.inner.loaded_modules.borrow()[required].clone();
 
@@ -1073,7 +1069,7 @@ impl SourceTextModule {
         stack.push(self.clone());
 
         // 11. For each String required of module.[[RequestedModules]], do
-        for &required in &self.inner.requested_modules {
+        for &required in &self.inner.code.requested_modules {
             //     a. Let requiredModule be GetImportedModule(module, required).
             let required_module = self.inner.loaded_modules.borrow()[&required].clone();
             //     b. Set index to ? InnerModuleEvaluation(requiredModule, stack, index).
@@ -1139,7 +1135,7 @@ impl SourceTextModule {
         }
 
         // 12. If module.[[PendingAsyncDependencies]] > 0 or module.[[HasTLA]] is true, then
-        if pending_async_dependencies > 0 || self.inner.has_tla {
+        if pending_async_dependencies > 0 || self.inner.code.has_tla {
             //     a. Assert: module.[[AsyncEvaluation]] is false and was never previously set to true.
             {
                 let Status::Evaluating { async_eval_index, .. } = &mut *self.inner.status.borrow_mut() else {
@@ -1243,7 +1239,7 @@ impl SourceTextModule {
             Status::Evaluating { .. } | Status::EvaluatingAsync { .. }
         ));
         // 2. Assert: module.[[HasTLA]] is true.
-        debug_assert!(self.inner.has_tla);
+        debug_assert!(self.inner.code.has_tla);
 
         // 3. Let capability be ! NewPromiseCapability(%Promise%).
         let capability = PromiseCapability::new(
@@ -1326,7 +1322,7 @@ impl SourceTextModule {
 
                     //         v. Set m.[[PendingAsyncDependencies]] to m.[[PendingAsyncDependencies]] - 1.
                     *pending_async_dependencies -= 1;
-                    (*pending_async_dependencies, m.inner.has_tla)
+                    (*pending_async_dependencies, m.inner.code.has_tla)
                 };
 
                 //         vi. If m.[[PendingAsyncDependencies]] = 0, then
@@ -1362,7 +1358,7 @@ impl SourceTextModule {
 
         {
             // 1. For each ExportEntry Record e of module.[[IndirectExportEntries]], do
-            for e in &self.inner.indirect_export_entries {
+            for e in &self.inner.code.indirect_export_entries {
                 //     a. Let resolution be module.ResolveExport(e.[[ExportName]]).
                 parent
                     .resolve_export(e.export_name(), &mut HashSet::default())
@@ -1405,7 +1401,7 @@ impl SourceTextModule {
 
         let codeblock = {
             // 7. For each ImportEntry Record in of module.[[ImportEntries]], do
-            for entry in &self.inner.import_entries {
+            for entry in &self.inner.code.import_entries {
                 //     a. Let importedModule be GetImportedModule(module, in.[[ModuleRequest]]).
                 let imported_module =
                     self.inner.loaded_modules.borrow()[&entry.module_request()].clone();
@@ -1469,7 +1465,7 @@ impl SourceTextModule {
 
             // 18. Let code be module.[[ECMAScriptCode]].
             // 19. Let varDeclarations be the VarScopedDeclarations of code.
-            let var_declarations = var_scoped_declarations(&self.inner.code);
+            let var_declarations = var_scoped_declarations(&self.inner.code.node);
             // 20. Let declaredVarNames be a new empty List.
             let mut declared_var_names = Vec::new();
             // 21. For each element d of varDeclarations, do
@@ -1493,7 +1489,7 @@ impl SourceTextModule {
 
             // 22. Let lexDeclarations be the LexicallyScopedDeclarations of code.
             // 23. Let privateEnv be null.
-            let lex_declarations = lexically_scoped_declarations(&self.inner.code);
+            let lex_declarations = lexically_scoped_declarations(&self.inner.code.node);
             // 24. For each element d of lexDeclarations, do
             for declaration in lex_declarations {
                 match &declaration {
@@ -1557,7 +1553,7 @@ impl SourceTextModule {
                 }
             }
 
-            compiler.compile_module_item_list(&self.inner.code);
+            compiler.compile_module_item_list(&self.inner.code.node);
 
             Gc::new(compiler.finish())
         };
@@ -1785,7 +1781,7 @@ fn async_module_execution_fulfilled(module: &SourceTextModule, context: &mut Con
         }
 
         //     b. Else if m.[[HasTLA]] is true, then
-        let has_tla = m.inner.has_tla;
+        let has_tla = m.inner.code.has_tla;
         if has_tla {
             //         i. Perform ExecuteAsyncModule(m).
             m.execute_async(context);
