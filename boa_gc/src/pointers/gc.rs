@@ -55,8 +55,10 @@ impl<T: Trace> Gc<T> {
         F: FnOnce(&WeakGc<T>) -> T,
     {
         // Create GcBox and allocate it to heap.
-        let inner_ptr = BOA_GC.with(|gc| {
-            Allocator::manage_state(gc);
+        let inner_ptr = BOA_GC.with(|st| {
+            let mut gc = st.borrow_mut();
+
+            Allocator::manage_state(&mut gc);
 
             let header = GcBoxHeader::new();
 
@@ -89,13 +91,12 @@ impl<T: Trace> Gc<T> {
             Self::from_raw(init_ptr)
         };
 
-        BOA_GC.with(|gc| {
+        BOA_GC.with(|st| {
+            let mut gc = st.borrow_mut();
             let erased: NonNull<GcBox<dyn Trace>> = init_ptr;
 
             gc.strong_start.set(Some(erased));
-            gc.runtime
-                .bytes_allocated
-                .set(gc.runtime.bytes_allocated.get() + mem::size_of::<GcBox<T>>());
+            gc.runtime.bytes_allocated += mem::size_of::<GcBox<T>>();
         });
 
         // SAFETY: `init_ptr` is initialized and its contents are unrooted, making this operation

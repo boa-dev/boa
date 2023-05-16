@@ -9,27 +9,32 @@ struct Harness;
 
 impl Harness {
     fn assert_collections(o: usize) {
-        BOA_GC.with(|gc| {
-            assert_eq!(gc.runtime.collections.get(), o);
+        BOA_GC.with(|current| {
+            let gc = current.borrow();
+            assert_eq!(gc.runtime.collections, o);
         });
     }
 
     fn assert_empty_gc() {
-        BOA_GC.with(|gc| {
+        BOA_GC.with(|current| {
+            let gc = current.borrow();
+
             assert!(gc.strong_start.get().is_none());
-            assert_eq!(gc.runtime.bytes_allocated.get(), 0);
+            assert!(gc.runtime.bytes_allocated == 0);
         });
     }
 
     fn assert_bytes_allocated() {
-        BOA_GC.with(|gc| {
-            assert!(gc.runtime.bytes_allocated.get() > 0);
+        BOA_GC.with(|current| {
+            let gc = current.borrow();
+            assert!(gc.runtime.bytes_allocated > 0);
         });
     }
 
     fn assert_exact_bytes_allocated(bytes: usize) {
-        BOA_GC.with(|gc| {
-            assert_eq!(gc.runtime.bytes_allocated.get(), bytes);
+        BOA_GC.with(|current| {
+            let gc = current.borrow();
+            assert_eq!(gc.runtime.bytes_allocated, bytes);
         });
     }
 }
