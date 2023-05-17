@@ -620,6 +620,16 @@
 <a href="#619" id="619">619</a>
 <a href="#620" id="620">620</a>
 <a href="#621" id="621">621</a>
+<a href="#622" id="622">622</a>
+<a href="#623" id="623">623</a>
+<a href="#624" id="624">624</a>
+<a href="#625" id="625">625</a>
+<a href="#626" id="626">626</a>
+<a href="#627" id="627">627</a>
+<a href="#628" id="628">628</a>
+<a href="#629" id="629">629</a>
+<a href="#630" id="630">630</a>
+<a href="#631" id="631">631</a>
 </pre><pre class="rust"><code><span class="doccomment">//! This module is responsible for generating the vm instruction flowgraph.
 
 </span><span class="kw">use </span><span class="kw">crate</span>::vm::{CodeBlock, Opcode};
@@ -765,6 +775,16 @@
                     pc += size_of::&lt;u32&gt;();
                     <span class="kw">let </span>end_address = <span class="self">self</span>.read::&lt;u32&gt;(pc);
                     pc += size_of::&lt;u32&gt;();
+
+                    <span class="kw">let </span>label = <span class="macro">format!</span>(<span class="string">&quot;{opcode_str} {start_address}, {end_address}&quot;</span>);
+                    graph.add_node(previous_pc, NodeShape::None, label.into(), Color::Red);
+                    graph.add_edge(previous_pc, pc, <span class="prelude-val">None</span>, Color::None, EdgeStyle::Line);
+                }
+                Opcode::TemplateLookup | Opcode::TemplateCreate =&gt; {
+                    <span class="kw">let </span>start_address = <span class="self">self</span>.read::&lt;u32&gt;(pc);
+                    pc += size_of::&lt;u32&gt;();
+                    <span class="kw">let </span>end_address = <span class="self">self</span>.read::&lt;u64&gt;(pc);
+                    pc += size_of::&lt;u64&gt;();
 
                     <span class="kw">let </span>label = <span class="macro">format!</span>(<span class="string">&quot;{opcode_str} {start_address}, {end_address}&quot;</span>);
                     graph.add_node(previous_pc, NodeShape::None, label.into(), Color::Red);

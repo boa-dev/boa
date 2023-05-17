@@ -307,6 +307,32 @@
 <a href="#306" id="306">306</a>
 <a href="#307" id="307">307</a>
 <a href="#308" id="308">308</a>
+<a href="#309" id="309">309</a>
+<a href="#310" id="310">310</a>
+<a href="#311" id="311">311</a>
+<a href="#312" id="312">312</a>
+<a href="#313" id="313">313</a>
+<a href="#314" id="314">314</a>
+<a href="#315" id="315">315</a>
+<a href="#316" id="316">316</a>
+<a href="#317" id="317">317</a>
+<a href="#318" id="318">318</a>
+<a href="#319" id="319">319</a>
+<a href="#320" id="320">320</a>
+<a href="#321" id="321">321</a>
+<a href="#322" id="322">322</a>
+<a href="#323" id="323">323</a>
+<a href="#324" id="324">324</a>
+<a href="#325" id="325">325</a>
+<a href="#326" id="326">326</a>
+<a href="#327" id="327">327</a>
+<a href="#328" id="328">328</a>
+<a href="#329" id="329">329</a>
+<a href="#330" id="330">330</a>
+<a href="#331" id="331">331</a>
+<a href="#332" id="332">332</a>
+<a href="#333" id="333">333</a>
+<a href="#334" id="334">334</a>
 </pre><pre class="rust"><code><span class="doccomment">//! Cursor implementation for the parser.
 </span><span class="kw">mod </span>buffered_lexer;
 
@@ -345,6 +371,13 @@
 
     <span class="doccomment">/// Indicate if the cursor is used in `JSON.parse`.
     </span>json_parse: bool,
+
+    <span class="doccomment">/// A unique identifier for each parser instance.
+    /// This is used to generate unique identifiers tagged template literals.
+    </span>identifier: u32,
+
+    <span class="doccomment">/// Tracks the number of tagged templates that are currently being parsed.
+    </span>tagged_templates_count: u32,
 }
 
 <span class="kw">impl</span>&lt;R&gt; Cursor&lt;R&gt;
@@ -359,6 +392,8 @@
             private_environment_root_index: <span class="number">0</span>,
             arrow: <span class="bool-val">false</span>,
             json_parse: <span class="bool-val">false</span>,
+            identifier: <span class="number">0</span>,
+            tagged_templates_count: <span class="number">0</span>,
         }
     }
 
@@ -477,6 +512,23 @@
     </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">const fn </span>in_class(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
         <span class="self">self</span>.private_environment_nested_index != <span class="number">0
     </span>}
+
+    <span class="doccomment">/// Set the identifier of the cursor.
+    </span><span class="attr">#[inline]
+    </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>set_identifier(<span class="kw-2">&amp;mut </span><span class="self">self</span>, identifier: u32) {
+        <span class="self">self</span>.identifier = identifier;
+    }
+
+    <span class="doccomment">/// Get the identifier for a tagged template.
+    </span><span class="attr">#[inline]
+    </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>tagged_template_identifier(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; u64 {
+        <span class="self">self</span>.tagged_templates_count += <span class="number">1</span>;
+
+        <span class="kw">let </span>identifier = u64::from(<span class="self">self</span>.identifier);
+        <span class="kw">let </span>count = u64::from(<span class="self">self</span>.tagged_templates_count);
+
+        (count &lt;&lt; <span class="number">32</span>) | identifier
+    }
 
     <span class="doccomment">/// Returns an error if the next token is not of kind `kind`.
     </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>expect&lt;K&gt;(

@@ -1087,6 +1087,18 @@
 <a href="#1086" id="1086">1086</a>
 <a href="#1087" id="1087">1087</a>
 <a href="#1088" id="1088">1088</a>
+<a href="#1089" id="1089">1089</a>
+<a href="#1090" id="1090">1090</a>
+<a href="#1091" id="1091">1091</a>
+<a href="#1092" id="1092">1092</a>
+<a href="#1093" id="1093">1093</a>
+<a href="#1094" id="1094">1094</a>
+<a href="#1095" id="1095">1095</a>
+<a href="#1096" id="1096">1096</a>
+<a href="#1097" id="1097">1097</a>
+<a href="#1098" id="1098">1098</a>
+<a href="#1099" id="1099">1099</a>
+<a href="#1100" id="1100">1100</a>
 </pre><pre class="rust"><code><span class="doccomment">//! The ECMAScript context.
 
 </span><span class="kw">mod </span>hooks;
@@ -1201,6 +1213,9 @@
 
     optimizer_options: OptimizerOptions,
     root_shape: SharedShape,
+
+    <span class="doccomment">/// Unique identifier for each parser instance used during the context lifetime.
+    </span>parser_identifier: u32,
 }
 
 <span class="kw">impl </span>std::fmt::Debug <span class="kw">for </span>Context&lt;<span class="lifetime">&#39;_</span>&gt; {
@@ -1319,6 +1334,7 @@
     ) -&gt; <span class="prelude-ty">Result</span>&lt;StatementList, ParseError&gt; {
         <span class="kw">let </span>_timer = Profiler::global().start_event(<span class="string">&quot;Script parsing&quot;</span>, <span class="string">&quot;Main&quot;</span>);
         <span class="kw">let </span><span class="kw-2">mut </span>parser = Parser::new(src);
+        parser.set_identifier(<span class="self">self</span>.next_parser_identifier());
         <span class="kw">if </span><span class="self">self</span>.strict {
             parser.set_strict();
         }
@@ -1336,6 +1352,7 @@
     ) -&gt; <span class="prelude-ty">Result</span>&lt;ModuleItemList, ParseError&gt; {
         <span class="kw">let </span>_timer = Profiler::global().start_event(<span class="string">&quot;Module parsing&quot;</span>, <span class="string">&quot;Main&quot;</span>);
         <span class="kw">let </span><span class="kw-2">mut </span>parser = Parser::new(src);
+        parser.set_identifier(<span class="self">self</span>.next_parser_identifier());
         parser.parse_module(<span class="kw-2">&amp;mut </span><span class="self">self</span>.interner)
     }
 
@@ -1745,6 +1762,12 @@
         std::mem::swap(<span class="kw-2">&amp;mut </span><span class="self">self</span>.realm, realm);
     }
 
+    <span class="doccomment">/// Increment and get the parser identifier.
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>next_parser_identifier(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; u32 {
+        <span class="self">self</span>.parser_identifier += <span class="number">1</span>;
+        <span class="self">self</span>.parser_identifier
+    }
+
     <span class="doccomment">/// `CanDeclareGlobalFunction ( N )`
     ///
     /// More information:
@@ -2114,6 +2137,7 @@
             }),
             optimizer_options: OptimizerOptions::OPTIMIZE_ALL,
             root_shape,
+            parser_identifier: <span class="number">0</span>,
         };
 
         builtins::set_default_global_bindings(<span class="kw-2">&amp;mut </span>context)<span class="question-mark">?</span>;

@@ -1096,6 +1096,11 @@
 <a href="#1095" id="1095">1095</a>
 <a href="#1096" id="1096">1096</a>
 <a href="#1097" id="1097">1097</a>
+<a href="#1098" id="1098">1098</a>
+<a href="#1099" id="1099">1099</a>
+<a href="#1100" id="1100">1100</a>
+<a href="#1101" id="1101">1101</a>
+<a href="#1102" id="1102">1102</a>
 </pre><pre class="rust"><code><span class="doccomment">//! Boa&#39;s implementation of ECMAScript&#39;s global `Function` object and Native Functions.
 //!
 //! Objects wrap `Function`s and expose them via call/construct slots.
@@ -1684,17 +1689,22 @@
                 <span class="kw">let </span>parameters = parameters.join(<span class="macro">utf16!</span>(<span class="string">&quot;,&quot;</span>));
 
                 <span class="comment">// TODO: make parser generic to u32 iterators
-                </span><span class="kw">let </span>parameters =
-                    <span class="kw">match </span>Parser::new(Source::from_bytes(<span class="kw-2">&amp;</span>String::from_utf16_lossy(<span class="kw-2">&amp;</span>parameters)))
-                        .parse_formal_parameters(context.interner_mut(), generator, r#async)
-                    {
-                        <span class="prelude-val">Ok</span>(parameters) =&gt; parameters,
-                        <span class="prelude-val">Err</span>(e) =&gt; {
-                            <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::syntax()
-                                .with_message(<span class="macro">format!</span>(<span class="string">&quot;failed to parse function parameters: {e}&quot;</span>))
-                                .into())
-                        }
-                    };
+                </span><span class="kw">let </span>parameters = String::from_utf16_lossy(<span class="kw-2">&amp;</span>parameters);
+                <span class="kw">let </span><span class="kw-2">mut </span>parser = Parser::new(Source::from_bytes(<span class="kw-2">&amp;</span>parameters));
+                parser.set_identifier(context.next_parser_identifier());
+
+                <span class="kw">let </span>parameters = <span class="kw">match </span>parser.parse_formal_parameters(
+                    context.interner_mut(),
+                    generator,
+                    r#async,
+                ) {
+                    <span class="prelude-val">Ok</span>(parameters) =&gt; parameters,
+                    <span class="prelude-val">Err</span>(e) =&gt; {
+                        <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::syntax()
+                            .with_message(<span class="macro">format!</span>(<span class="string">&quot;failed to parse function parameters: {e}&quot;</span>))
+                            .into())
+                    }
+                };
 
                 <span class="kw">if </span>generator &amp;&amp; contains(<span class="kw-2">&amp;</span>parameters, ContainsSymbol::YieldExpression) {
                     <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::syntax().with_message(
@@ -1724,11 +1734,11 @@
             <span class="kw">let </span>body = <span class="string">b&quot;\n&quot;</span>.chain(body_arg.as_bytes()).chain(<span class="string">b&quot;\n&quot;</span>.as_slice());
 
             <span class="comment">// TODO: make parser generic to u32 iterators
-            </span><span class="kw">let </span>body = <span class="kw">match </span>Parser::new(Source::from_reader(body, <span class="prelude-val">None</span>)).parse_function_body(
-                context.interner_mut(),
-                generator,
-                r#async,
-            ) {
+            </span><span class="kw">let </span><span class="kw-2">mut </span>parser = Parser::new(Source::from_reader(body, <span class="prelude-val">None</span>));
+            parser.set_identifier(context.next_parser_identifier());
+
+            <span class="kw">let </span>body = <span class="kw">match </span>parser.parse_function_body(context.interner_mut(), generator, r#async)
+            {
                 <span class="prelude-val">Ok</span>(statement_list) =&gt; statement_list,
                 <span class="prelude-val">Err</span>(e) =&gt; {
                     <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::syntax()

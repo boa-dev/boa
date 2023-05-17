@@ -1625,6 +1625,23 @@
 <a href="#1624" id="1624">1624</a>
 <a href="#1625" id="1625">1625</a>
 <a href="#1626" id="1626">1626</a>
+<a href="#1627" id="1627">1627</a>
+<a href="#1628" id="1628">1628</a>
+<a href="#1629" id="1629">1629</a>
+<a href="#1630" id="1630">1630</a>
+<a href="#1631" id="1631">1631</a>
+<a href="#1632" id="1632">1632</a>
+<a href="#1633" id="1633">1633</a>
+<a href="#1634" id="1634">1634</a>
+<a href="#1635" id="1635">1635</a>
+<a href="#1636" id="1636">1636</a>
+<a href="#1637" id="1637">1637</a>
+<a href="#1638" id="1638">1638</a>
+<a href="#1639" id="1639">1639</a>
+<a href="#1640" id="1640">1640</a>
+<a href="#1641" id="1641">1641</a>
+<a href="#1642" id="1642">1642</a>
+<a href="#1643" id="1643">1643</a>
 </pre><pre class="rust"><code><span class="doccomment">/// The opcodes of the vm.
 </span><span class="kw">use crate</span>::{vm::CompletionType, Context, JsResult};
 
@@ -1654,6 +1671,7 @@
 <span class="kw">mod </span>set;
 <span class="kw">mod </span>swap;
 <span class="kw">mod </span>switch;
+<span class="kw">mod </span>templates;
 <span class="kw">mod </span>to;
 <span class="kw">mod </span>unary_ops;
 <span class="kw">mod </span>value;
@@ -1705,6 +1723,8 @@
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use </span>swap::<span class="kw-2">*</span>;
 <span class="attr">#[doc(inline)]
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use </span>switch::<span class="kw-2">*</span>;
+<span class="attr">#[doc(inline)]
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use </span>templates::<span class="kw-2">*</span>;
 <span class="attr">#[doc(inline)]
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use </span>to::<span class="kw-2">*</span>;
 <span class="attr">#[doc(inline)]
@@ -3228,6 +3248,20 @@
         ///
         /// Stack: value **=&gt;** is_object
         </span>IsObject,
+
+        <span class="doccomment">/// Lookup if a tagged template object is cached and skip the creation if it is.
+        ///
+        /// Operands: jump: `u32`, site: `u64`
+        ///
+        /// Stack: **=&gt;** template (if cached)
+        </span>TemplateLookup,
+
+        <span class="doccomment">/// Create a new tagged template object and cache it.
+        ///
+        /// Operands: count: `u32`, site: `u64`
+        ///
+        /// Stack: count * (cooked_value, raw_value) **=&gt;** template
+        </span>TemplateCreate,
 
         <span class="doccomment">/// No-operation instruction, does nothing.
         ///

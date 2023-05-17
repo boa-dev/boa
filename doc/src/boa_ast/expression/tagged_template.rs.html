@@ -131,6 +131,16 @@
 <a href="#130" id="130">130</a>
 <a href="#131" id="131">131</a>
 <a href="#132" id="132">132</a>
+<a href="#133" id="133">133</a>
+<a href="#134" id="134">134</a>
+<a href="#135" id="135">135</a>
+<a href="#136" id="136">136</a>
+<a href="#137" id="137">137</a>
+<a href="#138" id="138">138</a>
+<a href="#139" id="139">139</a>
+<a href="#140" id="140">140</a>
+<a href="#141" id="141">141</a>
+<a href="#142" id="142">142</a>
 </pre><pre class="rust"><code><span class="kw">use </span>boa_interner::{Interner, Sym, ToInternedString};
 <span class="kw">use </span>core::ops::ControlFlow;
 
@@ -154,6 +164,7 @@
     raws: Box&lt;[Sym]&gt;,
     cookeds: Box&lt;[<span class="prelude-ty">Option</span>&lt;Sym&gt;]&gt;,
     exprs: Box&lt;[Expression]&gt;,
+    identifier: u64,
 }
 
 <span class="kw">impl </span>TaggedTemplate {
@@ -166,12 +177,14 @@
         raws: Box&lt;[Sym]&gt;,
         cookeds: Box&lt;[<span class="prelude-ty">Option</span>&lt;Sym&gt;]&gt;,
         exprs: Box&lt;[Expression]&gt;,
+        identifier: u64,
     ) -&gt; <span class="self">Self </span>{
         <span class="self">Self </span>{
             tag: tag.into(),
             raws,
             cookeds,
             exprs,
+            identifier,
         }
     }
 
@@ -201,6 +214,13 @@
     #[must_use]
     </span><span class="kw">pub const fn </span>exprs(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>[Expression] {
         <span class="kw-2">&amp;</span><span class="self">self</span>.exprs
+    }
+
+    <span class="doccomment">/// Gets the unique identifier of the template.
+    </span><span class="attr">#[inline]
+    #[must_use]
+    </span><span class="kw">pub const fn </span>identifier(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; u64 {
+        <span class="self">self</span>.identifier
     }
 }
 
