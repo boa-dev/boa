@@ -443,9 +443,11 @@
 <a href="#442" id="442">442</a>
 <a href="#443" id="443">443</a>
 <a href="#444" id="444">444</a>
+<a href="#445" id="445">445</a>
 </pre><pre class="rust"><code><span class="doccomment">//! Macros for the Boa JavaScript engine.
-
-</span><span class="attr">#![doc(
+//!
+</span><span class="attr">#![doc = <span class="macro">include_str!</span>(<span class="string">&quot;../../ABOUT.md&quot;</span>)]
+#![doc(
     html_logo_url = <span class="string">&quot;https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg&quot;</span>,
     html_favicon_url = <span class="string">&quot;https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg&quot;
 </span>)]

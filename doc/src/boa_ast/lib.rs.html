@@ -155,25 +155,6 @@
 <a href="#154" id="154">154</a>
 <a href="#155" id="155">155</a>
 <a href="#156" id="156">156</a>
-<a href="#157" id="157">157</a>
-<a href="#158" id="158">158</a>
-<a href="#159" id="159">159</a>
-<a href="#160" id="160">160</a>
-<a href="#161" id="161">161</a>
-<a href="#162" id="162">162</a>
-<a href="#163" id="163">163</a>
-<a href="#164" id="164">164</a>
-<a href="#165" id="165">165</a>
-<a href="#166" id="166">166</a>
-<a href="#167" id="167">167</a>
-<a href="#168" id="168">168</a>
-<a href="#169" id="169">169</a>
-<a href="#170" id="170">170</a>
-<a href="#171" id="171">171</a>
-<a href="#172" id="172">172</a>
-<a href="#173" id="173">173</a>
-<a href="#174" id="174">174</a>
-<a href="#175" id="175">175</a>
 </pre><pre class="rust"><code><span class="doccomment">//! Boa&#39;s **`boa_ast`** crate implements an ECMAScript abstract syntax tree.
 //!
 //! # Crate Overview
@@ -186,29 +167,10 @@
 //! [`Statement`]s, with [`StatementList`] being the primordial Parse Node that combines
 //! all of them to create a proper AST.
 //!
-//! # About Boa
-//! Boa is an open-source, experimental ECMAScript Engine written in Rust for lexing, parsing and executing ECMAScript/JavaScript. Currently, Boa
-//! supports some of the [language][boa-conformance]. More information can be viewed at [Boa&#39;s website][boa-web].
-//!
-//! Try out the most recent release with Boa&#39;s live demo [playground][boa-playground].  
-//!
-//! # Boa Crates
-//!  - **`boa_ast`** - Boa&#39;s ECMAScript Abstract Syntax Tree.
-//!  - **`boa_engine`** - Boa&#39;s implementation of ECMAScript builtin objects and execution.
-//!  - **`boa_gc`** - Boa&#39;s garbage collector.
-//!  - **`boa_interner`** - Boa&#39;s string interner.
-//!  - **`boa_parser`** - Boa&#39;s lexer and parser.
-//!  - **`boa_profiler`** - Boa&#39;s code profiler.
-//!  - **`boa_unicode`** - Boa&#39;s Unicode identifier.
-//!  - **`boa_icu_provider`** - Boa&#39;s ICU4X data provider.
-//!
 //! [grammar]: https://tc39.es/ecma262/#sec-syntactic-grammar
 //! [early]: https://tc39.es/ecma262/#sec-static-semantic-rules
-//! [boa-conformance]: https://boajs.dev/boa/test262/
-//! [boa-web]: https://boajs.dev/
-//! [boa-playground]: https://boajs.dev/boa/playground/
-
-</span><span class="attr">#![doc(
+</span><span class="attr">#![doc = <span class="macro">include_str!</span>(<span class="string">&quot;../../ABOUT.md&quot;</span>)]
+#![doc(
     html_logo_url = <span class="string">&quot;https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg&quot;</span>,
     html_favicon_url = <span class="string">&quot;https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg&quot;
 </span>)]

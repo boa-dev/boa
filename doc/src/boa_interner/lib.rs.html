@@ -444,27 +444,10 @@
 <a href="#443" id="443">443</a>
 <a href="#444" id="444">444</a>
 <a href="#445" id="445">445</a>
-<a href="#446" id="446">446</a>
-<a href="#447" id="447">447</a>
-<a href="#448" id="448">448</a>
-<a href="#449" id="449">449</a>
-<a href="#450" id="450">450</a>
-<a href="#451" id="451">451</a>
-<a href="#452" id="452">452</a>
-<a href="#453" id="453">453</a>
-<a href="#454" id="454">454</a>
-<a href="#455" id="455">455</a>
-<a href="#456" id="456">456</a>
-<a href="#457" id="457">457</a>
-<a href="#458" id="458">458</a>
-<a href="#459" id="459">459</a>
-<a href="#460" id="460">460</a>
-<a href="#461" id="461">461</a>
-<a href="#462" id="462">462</a>
-<a href="#463" id="463">463</a>
 </pre><pre class="rust"><code><span class="doccomment">//! Boa&#39;s **`boa_interner`** is a string interner for compiler performance.
 //!
 //! # Crate Overview
+//!
 //! The idea behind using a string interner is that in most of the code, strings such as
 //! identifiers and literals are often repeated. This causes extra burden when comparing them and
 //! storing them. A string interner stores a unique `usize` symbol for each string, making sure
@@ -473,27 +456,8 @@
 //! need to store a `usize`. This reduces memory consumption and improves performance in the
 //! compiler.
 //!
-//! # About Boa
-//! Boa is an open-source, experimental ECMAScript Engine written in Rust for lexing, parsing and executing ECMAScript/JavaScript. Currently, Boa
-//! supports some of the [language][boa-conformance]. More information can be viewed at [Boa&#39;s website][boa-web].
-//!
-//! Try out the most recent release with Boa&#39;s live demo [playground][boa-playground].  
-//!
-//! # Boa Crates
-//!  - **`boa_ast`** - Boa&#39;s ECMAScript Abstract Syntax Tree.
-//!  - **`boa_engine`** - Boa&#39;s implementation of ECMAScript builtin objects and execution.
-//!  - **`boa_gc`** - Boa&#39;s garbage collector.
-//!  - **`boa_interner`** - Boa&#39;s string interner.
-//!  - **`boa_parser`** - Boa&#39;s lexer and parser.
-//!  - **`boa_profiler`** - Boa&#39;s code profiler.
-//!  - **`boa_unicode`** - Boa&#39;s Unicode identifier.
-//!  - **`boa_icu_provider`** - Boa&#39;s ICU4X data provider.
-//!
-//! [boa-conformance]: https://boajs.dev/boa/test262/
-//! [boa-web]: https://boajs.dev/
-//! [boa-playground]: https://boajs.dev/boa/playground/
-
-</span><span class="attr">#![doc(
+</span><span class="attr">#![doc = <span class="macro">include_str!</span>(<span class="string">&quot;../../ABOUT.md&quot;</span>)]
+#![doc(
     html_logo_url = <span class="string">&quot;https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg&quot;</span>,
     html_favicon_url = <span class="string">&quot;https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg&quot;
 </span>)]

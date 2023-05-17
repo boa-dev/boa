@@ -85,54 +85,20 @@
 <a href="#84" id="84">84</a>
 <a href="#85" id="85">85</a>
 <a href="#86" id="86">86</a>
-<a href="#87" id="87">87</a>
-<a href="#88" id="88">88</a>
-<a href="#89" id="89">89</a>
-<a href="#90" id="90">90</a>
-<a href="#91" id="91">91</a>
-<a href="#92" id="92">92</a>
-<a href="#93" id="93">93</a>
-<a href="#94" id="94">94</a>
-<a href="#95" id="95">95</a>
-<a href="#96" id="96">96</a>
-<a href="#97" id="97">97</a>
-<a href="#98" id="98">98</a>
-<a href="#99" id="99">99</a>
-<a href="#100" id="100">100</a>
-<a href="#101" id="101">101</a>
-<a href="#102" id="102">102</a>
-<a href="#103" id="103">103</a>
 </pre><pre class="rust"><code><span class="doccomment">//! Boa&#39;s **`boa_parser`** crate is a parser targeting the latest [ECMAScript language specification][spec].
 //!
 //! # Crate Overview
+//!
 //! This crate contains implementations of a [`Lexer`] and a [`Parser`] for the **ECMAScript**
 //! language. The [lexical grammar][lex] and the [syntactic grammar][grammar] being targeted are
 //! fully defined in the specification. See the links provided for more information.
 //!
-//! # About Boa
-//! Boa is an open-source, experimental ECMAScript Engine written in Rust for lexing, parsing and executing ECMAScript/JavaScript. Currently, Boa
-//! supports some of the [language][boa-conformance]. More information can be viewed at [Boa&#39;s website][boa-web].
-//!
-//! Try out the most recent release with Boa&#39;s live demo [playground][boa-playground].  
-//!
-//! # Boa Crates
-//!  - **`boa_ast`** - Boa&#39;s ECMAScript Abstract Syntax Tree.
-//!  - **`boa_engine`** - Boa&#39;s implementation of ECMAScript builtin objects and execution.
-//!  - **`boa_gc`** - Boa&#39;s garbage collector.
-//!  - **`boa_interner`** - Boa&#39;s string interner.
-//!  - **`boa_parser`** - Boa&#39;s lexer and parser.
-//!  - **`boa_profiler`** - Boa&#39;s code profiler.
-//!  - **`boa_unicode`** - Boa&#39;s Unicode identifier.
-//!  - **`boa_icu_provider`** - Boa&#39;s ICU4X data provider.
-//!
 //! [spec]: https://tc39.es/ecma262
 //! [lex]: https://tc39.es/ecma262/#sec-ecmascript-language-lexical-grammar
 //! [grammar]: https://tc39.es/ecma262/#sec-ecmascript-language-expressions
-//! [boa-conformance]: https://boajs.dev/boa/test262/
-//! [boa-web]: https://boajs.dev/
-//! [boa-playground]: https://boajs.dev/boa/playground/
-
-</span><span class="attr">#![doc(
+//!
+</span><span class="attr">#![doc = <span class="macro">include_str!</span>(<span class="string">&quot;../../ABOUT.md&quot;</span>)]
+#![doc(
     html_logo_url = <span class="string">&quot;https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg&quot;</span>,
     html_favicon_url = <span class="string">&quot;https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg&quot;
 </span>)]

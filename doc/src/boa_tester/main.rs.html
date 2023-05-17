@@ -785,12 +785,14 @@
 <a href="#784" id="784">784</a>
 <a href="#785" id="785">785</a>
 <a href="#786" id="786">786</a>
+<a href="#787" id="787">787</a>
 </pre><pre class="rust"><code><span class="doccomment">//! Test262 test runner
 //!
 //! This crate will run the full ECMAScript test suite (Test262) and report compliance of the
 //! `boa` engine.
-
-</span><span class="attr">#![doc(
+//!
+</span><span class="attr">#![doc = <span class="macro">include_str!</span>(<span class="string">&quot;../../ABOUT.md&quot;</span>)]
+#![doc(
     html_logo_url = <span class="string">&quot;https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg&quot;</span>,
     html_favicon_url = <span class="string">&quot;https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg&quot;
 </span>)]

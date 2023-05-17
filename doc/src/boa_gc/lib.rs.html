@@ -550,52 +550,14 @@
 <a href="#549" id="549">549</a>
 <a href="#550" id="550">550</a>
 <a href="#551" id="551">551</a>
-<a href="#552" id="552">552</a>
-<a href="#553" id="553">553</a>
-<a href="#554" id="554">554</a>
-<a href="#555" id="555">555</a>
-<a href="#556" id="556">556</a>
-<a href="#557" id="557">557</a>
-<a href="#558" id="558">558</a>
-<a href="#559" id="559">559</a>
-<a href="#560" id="560">560</a>
-<a href="#561" id="561">561</a>
-<a href="#562" id="562">562</a>
-<a href="#563" id="563">563</a>
-<a href="#564" id="564">564</a>
-<a href="#565" id="565">565</a>
-<a href="#566" id="566">566</a>
-<a href="#567" id="567">567</a>
-<a href="#568" id="568">568</a>
-<a href="#569" id="569">569</a>
-<a href="#570" id="570">570</a>
 </pre><pre class="rust"><code><span class="doccomment">//! Boa&#39;s **`boa_gc`** crate implements a garbage collector.
 //!
 //! # Crate Overview
-//! **`boa_gc`** is a mark-sweep garbage collector that implements a Trace and Finalize trait
+//! **`boa_gc`** is a mark-sweep garbage collector that implements a [`Trace`] and [`Finalize`] trait
 //! for garbage collected values.
 //!
-//! # About Boa
-//! Boa is an open-source, experimental ECMAScript Engine written in Rust for lexing, parsing and executing ECMAScript/JavaScript. Currently, Boa
-//! supports some of the [language][boa-conformance]. More information can be viewed at [Boa&#39;s website][boa-web].
-//!
-//! Try out the most recent release with Boa&#39;s live demo [playground][boa-playground].  
-//!
-//! # Boa Crates
-//!  - **`boa_ast`** - Boa&#39;s ECMAScript Abstract Syntax Tree.
-//!  - **`boa_engine`** - Boa&#39;s implementation of ECMAScript builtin objects and execution.
-//!  - **`boa_gc`** - Boa&#39;s garbage collector.
-//!  - **`boa_interner`** - Boa&#39;s string interner.
-//!  - **`boa_parser`** - Boa&#39;s lexer and parser.
-//!  - **`boa_profiler`** - Boa&#39;s code profiler.
-//!  - **`boa_unicode`** - Boa&#39;s Unicode identifier.
-//!  - **`boa_icu_provider`** - Boa&#39;s ICU4X data provider.
-//!
-//! [boa-conformance]: https://boajs.dev/boa/test262/
-//! [boa-web]: https://boajs.dev/
-//! [boa-playground]: https://boajs.dev/boa/playground/
-
-</span><span class="attr">#![doc(
+</span><span class="attr">#![doc = <span class="macro">include_str!</span>(<span class="string">&quot;../../ABOUT.md&quot;</span>)]
+#![doc(
     html_logo_url = <span class="string">&quot;https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg&quot;</span>,
     html_favicon_url = <span class="string">&quot;https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg&quot;
 </span>)]

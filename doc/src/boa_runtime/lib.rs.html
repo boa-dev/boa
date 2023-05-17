@@ -313,38 +313,8 @@
 <a href="#312" id="312">312</a>
 <a href="#313" id="313">313</a>
 <a href="#314" id="314">314</a>
-<a href="#315" id="315">315</a>
-<a href="#316" id="316">316</a>
-<a href="#317" id="317">317</a>
-<a href="#318" id="318">318</a>
-<a href="#319" id="319">319</a>
-<a href="#320" id="320">320</a>
-<a href="#321" id="321">321</a>
-<a href="#322" id="322">322</a>
-<a href="#323" id="323">323</a>
-<a href="#324" id="324">324</a>
-<a href="#325" id="325">325</a>
-<a href="#326" id="326">326</a>
-<a href="#327" id="327">327</a>
-<a href="#328" id="328">328</a>
-<a href="#329" id="329">329</a>
-<a href="#330" id="330">330</a>
-<a href="#331" id="331">331</a>
-<a href="#332" id="332">332</a>
-<a href="#333" id="333">333</a>
-<a href="#334" id="334">334</a>
-<a href="#335" id="335">335</a>
-<a href="#336" id="336">336</a>
-</pre><pre class="rust"><code><span class="doccomment">//! Boa&#39;s **boa_runtime** crate contains an example runtime and basic runtime features and functionality for the `boa_engine` crate for
-//! runtime implementors.
-//!
-//! # About Boa
-//!
-//! Boa is an open-source, experimental ECMAScript Engine written in Rust for lexing, parsing and
-//! executing ECMAScript/JavaScript. Currently, Boa supports some of the [language][boa-conformance].
-//! More information can be viewed at [Boa&#39;s website][boa-web].
-//!
-//! Try out the most recent release with Boa&#39;s live demo [playground][boa-playground].
+</pre><pre class="rust"><code><span class="doccomment">//! Boa&#39;s **boa_runtime** crate contains an example runtime and basic runtime features and
+//! functionality for the `boa_engine` crate for runtime implementors.
 //!
 //! # Example: Adding Web API&#39;s Console Object
 //!
@@ -385,22 +355,8 @@
 //!
 //! ```
 //!
-//! # Boa Crates
-//!  - **`boa_ast`** - Boa&#39;s ECMAScript Abstract Syntax Tree.
-//!  - **`boa_engine`** - Boa&#39;s implementation of ECMAScript builtin objects and execution.
-//!  - **`boa_gc`** - Boa&#39;s garbage collector.
-//!  - **`boa_interner`** - Boa&#39;s string interner.
-//!  - **`boa_parser`** - Boa&#39;s lexer and parser.
-//!  - **`boa_profiler`** - Boa&#39;s code profiler.
-//!  - **`boa_unicode`** - Boa&#39;s Unicode identifier.
-//!  - **`boa_icu_provider`** - Boa&#39;s ICU4X data provider.
-//!
-//! [ecma-402]: https://tc39.es/ecma402
-//! [boa-conformance]: https://boajs.dev/boa/test262/
-//! [boa-web]: https://boajs.dev/
-//! [boa-playground]: https://boajs.dev/boa/playground/
-
-</span><span class="attr">#![doc(
+</span><span class="attr">#![doc = <span class="macro">include_str!</span>(<span class="string">&quot;../../ABOUT.md&quot;</span>)]
+#![doc(
     html_logo_url = <span class="string">&quot;https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg&quot;</span>,
     html_favicon_url = <span class="string">&quot;https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg&quot;
 </span>)]
