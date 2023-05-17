@@ -18,6 +18,8 @@ pub struct Sym {
     value: NonZeroUsize,
 }
 
+// SAFETY: `NonZeroUsize` is a constrained `usize`, and all primitive types don't need to be traced
+// by the garbage collector.
 unsafe impl Trace for Sym {
     empty_trace!();
 }

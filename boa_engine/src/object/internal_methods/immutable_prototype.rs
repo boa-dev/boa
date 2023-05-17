@@ -5,12 +5,12 @@ use crate::{
 
 use super::{InternalObjectMethods, ORDINARY_INTERNAL_METHODS};
 
-/// Definitions of the internal object methods for [**Module Namespace Exotic Objects**][spec].
+/// Definitions of the internal object methods for [**Immutable Prototype Exotic Objects**][spec].
 ///
-/// [spec]: https://tc39.es/ecma262/#sec-module-namespace-exotic-objects
+/// [spec]: https://tc39.es/ecma262/#sec-immutable-prototype-exotic-objects
 pub(crate) static IMMUTABLE_PROTOTYPE_EXOTIC_INTERNAL_METHODS: InternalObjectMethods =
     InternalObjectMethods {
-        __set_prototype_of__: set_prototype_of,
+        __set_prototype_of__: immutable_prototype_exotic_set_prototype_of,
         ..ORDINARY_INTERNAL_METHODS
     };
 
@@ -18,7 +18,7 @@ pub(crate) static IMMUTABLE_PROTOTYPE_EXOTIC_INTERNAL_METHODS: InternalObjectMet
 ///
 /// [spec]: https://tc39.es/ecma262/#sec-immutable-prototype-exotic-objects-setprototypeof-v
 #[allow(clippy::needless_pass_by_value)]
-pub(crate) fn set_prototype_of(
+pub(crate) fn immutable_prototype_exotic_set_prototype_of(
     obj: &JsObject,
     val: JsPrototype,
     context: &mut Context<'_>,

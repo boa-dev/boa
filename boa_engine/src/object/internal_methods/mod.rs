@@ -19,9 +19,9 @@ pub(super) mod arguments;
 pub(super) mod array;
 pub(super) mod bound_function;
 pub(super) mod function;
-pub(super) mod immutable;
+pub(super) mod immutable_prototype;
 pub(super) mod integer_indexed;
-pub(super) mod namespace;
+pub(super) mod module_namespace;
 pub(super) mod proxy;
 pub(super) mod string;
 
