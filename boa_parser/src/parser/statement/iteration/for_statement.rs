@@ -135,7 +135,7 @@ where
                     .parse(cursor, interner)?
                     .into(),
             ),
-            TokenKind::Keyword((Keyword::Async, false)) => {
+            TokenKind::Keyword((Keyword::Async, false)) if !r#await => {
                 match cursor.peek(1, interner).or_abrupt()?.kind() {
                     TokenKind::Keyword((Keyword::Of, _)) => {
                         return Err(Error::lex(LexError::Syntax(

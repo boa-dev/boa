@@ -143,14 +143,8 @@ where
 
                 match cursor.peek(1, interner)?.map(Token::kind) {
                     Some(TokenKind::Keyword((Keyword::Function, _)))
-                        if !is_line_terminator && contain_escaped_char =>
+                        if !is_line_terminator && !contain_escaped_char =>
                     {
-                        Err(Error::general(
-                            "Keyword must not contain escaped characters",
-                            tok_position,
-                        ))
-                    }
-                    Some(TokenKind::Keyword((Keyword::Function, _))) if !is_line_terminator => {
                         cursor.advance(interner);
                         match cursor.peek(1, interner)?.map(Token::kind) {
                             Some(TokenKind::Punctuator(Punctuator::Mul)) => {
