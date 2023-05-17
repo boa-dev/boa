@@ -421,7 +421,7 @@
                 }
             }
             <span class="comment">//  AsyncArrowFunction[?In, ?Yield, ?Await]
-            </span>TokenKind::Keyword((Keyword::Async, <span class="kw">_</span>)) =&gt; {
+            </span>TokenKind::Keyword((Keyword::Async, <span class="bool-val">false</span>)) =&gt; {
                 <span class="kw">let </span>skip_n = <span class="kw">if </span>cursor.peek_is_line_terminator(<span class="number">0</span>, interner).or_abrupt()<span class="question-mark">? </span>{
                     <span class="number">2
                 </span>} <span class="kw">else </span>{

@@ -654,12 +654,6 @@
 <a href="#653" id="653">653</a>
 <a href="#654" id="654">654</a>
 <a href="#655" id="655">655</a>
-<a href="#656" id="656">656</a>
-<a href="#657" id="657">657</a>
-<a href="#658" id="658">658</a>
-<a href="#659" id="659">659</a>
-<a href="#660" id="660">660</a>
-<a href="#661" id="661">661</a>
 </pre><pre class="rust"><code><span class="doccomment">//! Primary expression parsing.
 //!
 //! More information:
@@ -805,14 +799,8 @@
 
                 <span class="kw">match </span>cursor.peek(<span class="number">1</span>, interner)<span class="question-mark">?</span>.map(Token::kind) {
                     <span class="prelude-val">Some</span>(TokenKind::Keyword((Keyword::Function, <span class="kw">_</span>)))
-                        <span class="kw">if </span>!is_line_terminator &amp;&amp; contain_escaped_char =&gt;
+                        <span class="kw">if </span>!is_line_terminator &amp;&amp; !contain_escaped_char =&gt;
                     {
-                        <span class="prelude-val">Err</span>(Error::general(
-                            <span class="string">&quot;Keyword must not contain escaped characters&quot;</span>,
-                            tok_position,
-                        ))
-                    }
-                    <span class="prelude-val">Some</span>(TokenKind::Keyword((Keyword::Function, <span class="kw">_</span>))) <span class="kw">if </span>!is_line_terminator =&gt; {
                         cursor.advance(interner);
                         <span class="kw">match </span>cursor.peek(<span class="number">1</span>, interner)<span class="question-mark">?</span>.map(Token::kind) {
                             <span class="prelude-val">Some</span>(TokenKind::Punctuator(Punctuator::Mul)) =&gt; {

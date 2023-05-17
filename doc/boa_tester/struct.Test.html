@@ -17,19 +17,19 @@
     &amp;self,
     harness: &amp;<a class="struct" href="struct.Harness.html" title="struct boa_tester::Harness">Harness</a>,
     verbose: <a class="primitive" href="https://doc.rust-lang.org/1.69.0/std/primitive.u8.html">u8</a>,
-    optimizer_options: <a class="struct" href="../boa_engine/optimizer/struct.OptimizerOptions.html" title="struct boa_engine::optimizer::OptimizerOptions">OptimizerOptions</a>
+    optimizer_options: OptimizerOptions
 ) -&gt; <a class="struct" href="https://doc.rust-lang.org/1.69.0/alloc/vec/struct.Vec.html" title="struct alloc::vec::Vec">Vec</a>&lt;<a class="struct" href="struct.TestResult.html" title="struct boa_tester::TestResult">TestResult</a>&gt; <a href="#" class="tooltip" data-notable-ty="Vec&lt;TestResult&gt;">ⓘ</a></h4></section></summary><div class="docblock"><p>Runs the test.</p>
 </div></details><details class="toggle method-toggle" open><summary><section id="method.run_once" class="method"><a class="srclink rightside" href="../src/boa_tester/exec/mod.rs.html#156-397">source</a><h4 class="code-header">fn <a href="#method.run_once" class="fn">run_once</a>(
     &amp;self,
     harness: &amp;<a class="struct" href="struct.Harness.html" title="struct boa_tester::Harness">Harness</a>,
     strict: <a class="primitive" href="https://doc.rust-lang.org/1.69.0/std/primitive.bool.html">bool</a>,
     verbose: <a class="primitive" href="https://doc.rust-lang.org/1.69.0/std/primitive.u8.html">u8</a>,
-    optimizer_options: <a class="struct" href="../boa_engine/optimizer/struct.OptimizerOptions.html" title="struct boa_engine::optimizer::OptimizerOptions">OptimizerOptions</a>
+    optimizer_options: OptimizerOptions
 ) -&gt; <a class="struct" href="struct.TestResult.html" title="struct boa_tester::TestResult">TestResult</a></h4></section></summary><div class="docblock"><p>Runs the test once, in strict or non-strict mode</p>
 </div></details><details class="toggle method-toggle" open><summary><section id="method.set_up_env" class="method"><a class="srclink rightside" href="../src/boa_tester/exec/mod.rs.html#400-451">source</a><h4 class="code-header">fn <a href="#method.set_up_env" class="fn">set_up_env</a>(
     &amp;self,
     harness: &amp;<a class="struct" href="struct.Harness.html" title="struct boa_tester::Harness">Harness</a>,
-    context: &amp;mut <a class="struct" href="../boa_engine/context/struct.Context.html" title="struct boa_engine::context::Context">Context</a>&lt;'_&gt;,
+    context: &amp;mut Context&lt;'_&gt;,
     async_result: <a class="struct" href="exec/struct.AsyncResult.html" title="struct boa_tester::exec::AsyncResult">AsyncResult</a>
 ) -&gt; <a class="enum" href="https://doc.rust-lang.org/1.69.0/core/result/enum.Result.html" title="enum core::result::Result">Result</a>&lt;<a class="primitive" href="https://doc.rust-lang.org/1.69.0/std/primitive.unit.html">()</a>, <a class="struct" href="https://doc.rust-lang.org/1.69.0/alloc/string/struct.String.html" title="struct alloc::string::String">String</a>&gt;</h4></section></summary><div class="docblock"><p>Sets the environment up to run the test.</p>
 </div></details></div></details><details class="toggle implementors-toggle" open><summary><section id="impl-Test-1" class="impl"><a class="srclink rightside" href="../src/boa_tester/main.rs.html#596-633">source</a><a href="#impl-Test-1" class="anchor">§</a><h3 class="code-header">impl <a class="struct" href="struct.Test.html" title="struct boa_tester::Test">Test</a></h3></section></summary><div class="impl-items"><details class="toggle method-toggle" open><summary><section id="method.new" class="method"><a class="srclink rightside" href="../src/boa_tester/main.rs.html#598-620">source</a><h4 class="code-header">pub(crate) fn <a href="#method.new" class="fn">new</a>&lt;N, C&gt;(name: N, path: C, metadata: <a class="struct" href="read/struct.MetaData.html" title="struct boa_tester::read::MetaData">MetaData</a>) -&gt; <a class="type" href="https://docs.rs/eyre/0.6.8/eyre/type.Result.html" title="type eyre::Result">Result</a>&lt;Self&gt;<span class="where fmt-newline">where

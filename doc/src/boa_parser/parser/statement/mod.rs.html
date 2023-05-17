@@ -1398,7 +1398,7 @@
             ) =&gt; Declaration::new(<span class="self">self</span>.allow_yield, <span class="self">self</span>.allow_await)
                 .parse(cursor, interner)
                 .map(ast::StatementListItem::from),
-            TokenKind::Keyword((Keyword::Async, <span class="kw">_</span>)) =&gt; {
+            TokenKind::Keyword((Keyword::Async, <span class="bool-val">false</span>)) =&gt; {
                 <span class="kw">let </span>skip_n = <span class="kw">if </span>cursor.peek_is_line_terminator(<span class="number">0</span>, interner).or_abrupt()<span class="question-mark">? </span>{
                     <span class="number">2
                 </span>} <span class="kw">else </span>{
